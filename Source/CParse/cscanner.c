@@ -690,7 +690,15 @@ int yylex(void) {
 		termtoken = SWIG_TOKEN_LPAREN;
 		termvalue = "(";
 		break;
-	      } else if (nexttok == SWIG_TOKEN_SEMI) {
+              } else if (nexttok == SWIG_TOKEN_CODEBLOCK) {
+                termtoken = SWIG_TOKEN_CODEBLOCK;
+                termvalue = Scanner_text(scan);
+                break;
+              } else if (nexttok == SWIG_TOKEN_LBRACE) {
+                termtoken = SWIG_TOKEN_LBRACE;
+                termvalue = "{";
+                break;
+              } else if (nexttok == SWIG_TOKEN_SEMI) {
 		termtoken = SWIG_TOKEN_SEMI;
 		termvalue = ";";
 		break;
@@ -859,8 +867,14 @@ int yylex(void) {
 	return (INLINE);
       if (strcmp(yytext, "%typemap") == 0)
 	return (TYPEMAP);
-      if (strcmp(yytext, "%feature") == 0)
+      if (strcmp(yytext, "%feature") == 0) {
+        /* The rename_active indicates we don't need the information of the 
+         * following function's return type. This applied for %rename, so do
+         * %feature. 
+         */
+        rename_active = 1;
 	return (FEATURE);
+      }
       if (strcmp(yytext, "%except") == 0)
 	return (EXCEPT);
       if (strcmp(yytext, "%importfile") == 0)

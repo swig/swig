@@ -110,6 +110,7 @@
     SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
   }
 }
+
 %typemap(argout) SWIGTYPE *,
                  SWIGTYPE [],
                  SWIGTYPE&;
@@ -204,15 +205,15 @@
 %typemap(out) SWIGTYPE *,
               SWIGTYPE [],
               SWIGTYPE &
-{
-	SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor, $owner);
-}
+%{
+  SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor, $owner);
+%}
 
 %typemap(out) SWIGTYPE *DYNAMIC,
               SWIGTYPE &DYNAMIC
 {
-        swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
-	SWIG_SetPointerZval(return_value, (void *)$1, ty, $owner);
+  swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);
+  SWIG_SetPointerZval(return_value, (void *)$1, ty, $owner);
 }
 
 %typemap(out) SWIGTYPE
@@ -224,7 +225,7 @@
 #else
 {
   $&1_ltype resultobj = ($&1_ltype) emalloc(sizeof($1_type));
-  memmove(resultobj, &$1, sizeof($1_type));
+  memcpy(resultobj, &$1, sizeof($1_type));
   SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
 }
 #endif
@@ -232,9 +233,9 @@
 %typemap(out) void "";
 
 %typemap(out) char [ANY]
-{
+%{
   RETVAL_STRINGL($1,$1_dim0,1);
-}
+%}
 
 // This typecheck does hard checking for proper argument type.  If you want
 // an argument to be converted from a different PHP type, you must convert
@@ -264,19 +265,24 @@
 %php_typecheck(double,SWIG_TYPECHECK_BOOL,IS_DOUBLE)
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
- " /* typecheck SWIGTYPE */ "
+{
+  void *tmp;
+  _v = (SWIG_ConvertPtr(*$input, (void **)&tmp, $&1_descriptor, 0) >= 0);
+}
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *,
              SWIGTYPE [],
              SWIGTYPE &
 {
   void *tmp;
-  _v = (SWIG_ConvertPtr( *$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+  _v = (SWIG_ConvertPtr(*$input, (void**)&tmp, $1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *
- " /* typecheck void * */ "
-
+{
+  void *tmp;
+  _v = (SWIG_ConvertPtr(*$input, (void**)&tmp, 0, 0) >= 0);
+}
 
 /* Exception handling */
 

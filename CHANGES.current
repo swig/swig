@@ -1,7 +1,116 @@
-Version 1.3.37 (in progress)
-=============================
+2008-09-26  Mikel Bancroft  <mikel@franz.com>
 
-2008-09-02: wsfulton
+Version 1.3.37 (in progress)
+============================
+
+2008-09-26: mutandiz
+	    [allegrocl]
+	    Lots of test-suite work.
+	    - Fix ordering of wrapper output and %{ %} header output.
+	    - Fix declarations of local vars in C wrappers.
+	    - Fix declaration of defined constants in C wrappers.
+	    - Fix declaration of EnumValues in C wrappers.
+	    - add some const typemaps to allegrocl.swg
+	    - add rename for operator bool() overloads.
+	
+2008-09-25: olly
+	    [PHP5] Fill in typemaps for SWIGTYPE and void * (SF#2095186).
+
+2008-09-22: mutandiz (Mikel Bancroft)
+	    [allegrocl]
+	    - Support wrapping of types whose definitions are not seen by
+	    SWIG. They are treated as forward-referenced classes and if a
+	    definition is not seen are treated as (* :void).
+	    - Don't wrap the contents of unnamed namespaces.
+	    - More code cleanup. Removed some extraneous warnings.
+	    - start work on having the allegrocl mod pass the cpp test-suite.
+
+2008-09-19: olly
+	    [PHP5] Add typemaps for long long and unsigned long long.
+
+2008-09-18: wsfulton
+            [C#] Added C# array typemaps provided by Antti Karanta.
+            The arrays provide a way to use MarshalAs(UnmanagedType.LPArray)
+            and pinning the array using 'fixed'. See arrays_csharp.i library file
+            for details.
+
+2008-09-18: wsfulton
+	    Document the optional module attribute in the %import directive,
+            see Modules.html. Add a warning for Python wrappers when the
+            module name for an imported base class is missing, requiring the
+            module attribute to be added to %import, eg 
+
+              %import(module="FooModule") foo.h
+
+2008-09-18: olly
+	    [PHP5] Change the default input typemap for char * to turn PHP
+	    Null into C NULL (previously it was converted to an empty string).
+	    The new behaviour is consistent with how the corresponding output
+	    typemap works (SF#2025719).
+
+	    If you want to keep the old behaviour, add the following typemap
+	    to your interface file (PHP's convert_to_string_ex() function does
+	    the converting from PHP Null to an empty string):
+
+	    %typemap(in) char * {
+		convert_to_string_ex($input);
+		$1 = Z_STRVAL_PP($input);
+	    }
+
+2008-09-18: olly
+	    [PHP5] Fix extra code added to proxy class constructors in the case
+	    where the only constructor takes no arguments.
+
+2008-09-18: olly
+	    [PHP5] Fix wrapping of a renamed enumerated value of an enum class
+	    member (SF#2095273).
+
+2008-09-17: mutandiz (Mikel Bancroft)
+	    [allegrocl]
+	    - Fix how forward reference typedefs are handled, so as not to conflict
+	    with other legit typedefs.
+	    - Don't (for now) perform an ffitype typemap lookup when trying to
+	    when calling compose_foreign_type(). This is actually a useful thing
+	    to do in certain cases, the test cases for which I can't currently
+	    locate :/. It's breaking some wrapping behavior that is more commonly
+	    seen, however. I'll readd in a more appropriate way when I can
+	    recreate the needed test case, or a user complains (which means
+	    they probably have a test case).
+	    - document the -isolate command-line arg in the 'swig -help' output.
+	    It was in the html docs, but not there.
+	    - small amount of code cleanup, removed some unused code.
+	    - some minor aesthetic changes.
+
+2008-09-12: bhy
+            [Python] Python 3.0 support branch merged into SWIG trunk. Thanks to
+            Google Summer of Code 2008 for supporting this project! By default
+            SWIG will generate interface files compatible with both Python 2.x
+            and 3.0. And there's also some Python 3 new features that can be
+            enabled by passing a "-py3" command line option to SWIG. These
+            features are:
+
+              - Function annotation support
+                  Also, the parameter list of proxy function will be generated,
+                  even without the "-py3" option. However, the parameter list
+                  will fallback to *args if the function (or method) is overloaded.
+              - Buffer interface support
+              - Abstract base class support
+
+            For details of Python 3 support and these features, please see the
+            "Python 3 Support" section in the "SWIG and Python" chapter of the SWIG
+            documentation.
+
+            The "-apply" command line option and support of generating codes
+            using apply() is removed. Since this is only required by very old
+            Python.
+
+            This merge also patched SWIG's parser to solve a bug. By this patch,
+            SWIG features able to be correctly applied on C++ conversion operator,
+            such like this:
+              
+              %feature("shadow")  *::operator bool %{ ... %}
+
+2008-09-02: richardb
 	    [Python] Commit patch #2089149: Director exception handling mangles
 	    returned exception.  Exceptions raised by Python code in directors
 	    are now passed through to the caller without change.  Also, remove
@@ -27,10 +136,6 @@ Version 1.3.37 (in progress)
 2008-09-01: wsfulton
             [CFFI] Commit patch #2079381 submitted by Boris Smilga - constant exprs put into 
             no-eval context in DEFCENUM
-
-2008-09-01: wsfulton
-            [C#] Correct array bounds checking in std::vector typemaps - Insert and InsertRange
-            methods.
 
 2008-08-02: wuzzeb
             [Chicken,Allegro] Commit Patch 2019314

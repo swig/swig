@@ -24,8 +24,12 @@
 %enddef
 
 %define CONVERT_STRING_IN(lvar,t,invar)
-  convert_to_string_ex(invar);
-  lvar = (t) Z_STRVAL_PP(invar);
+  if ((*invar)->type==IS_NULL) {
+    lvar = (t) 0;
+  } else {
+    convert_to_string_ex(invar);
+    lvar = (t) Z_STRVAL_PP(invar);
+  }
 %enddef
 
 %define %pass_by_val( TYPE, CONVERT_IN )

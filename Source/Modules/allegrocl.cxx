@@ -34,6 +34,8 @@ static bool CWrap = true;	// generate wrapper file for C code by default. most c
 static bool Generate_Wrapper = false;
 static bool unique_swig_package = false;
 
+static SwigType *fwdref_ffi_type = NewString("__SWIGACL_FwdReference");
+
 static String *current_namespace = NewString("");
 static String *current_package = NewString("");
 static Hash *defined_namespace_packages = NewHash();
@@ -168,6 +170,7 @@ static String *namespace_of(String *str) {
 void add_linked_type(Node *n) {
 #ifdef ALLEGROCL_CLASS_DEBUG
   Printf(stderr, "Adding linked node of type: %s(%s) %s(%x)\n\n", nodeType(n), Getattr(n, "storage"), Getattr(n, "name"), n);
+  // Swig_print_node(n);
 #endif
   if (!first_linked_type) {
     first_linked_type = n;
@@ -297,7 +300,8 @@ void add_forward_referenced_type(Node *n, int overwrite = 0) {
   }
 }
 
-void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0, String *name = 0, String *ns = current_namespace) {
+void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
+			      String *name = 0, String *ns = current_namespace) {
 
   String *val;
   String *ns_list = listify_namespace(ns);
@@ -321,22 +325,34 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0, String 
       /*
          For typedefs of the form:
 
-         typedef __xxx { ... } xxx;
+         typedef struct __xxx { ... } xxx;
 
+	 behavior differs between C mode and C++ mode.
+
+	 C Mode:
          add_defined_foreign_type will be called once via classHandler
-         to define the type for 'struct __xxx', and once via typedefHandler
-         to associate xxx with 'struct __xxx'. 
+         to define the type for 'struct __xxx' and add the mapping from
+	 'struct __xxx' -> 'xxx'
 
-         We create the following type to identifier mappings:
+	 It will also be called once via typedefHandler to add the
+	 mapping 'xxx' -> 'xxx'
 
-         struct __xxx -> (swig-insert-id "xxx")    via classHand
-         xxx -> (swig-insert-id "xxx")    via typedefHand
+	 C++ Mode:
+	 add_defined_foreign_type will be called once via classHandler
+	 to define the type for 'xxx'. it also adds the mapping from
+	 'xxx' -> 'xxx' and also for 'struct xxx' -> 'xxx'
 
-         and all references to this typedef'd struct will appear in 
-         generated code as 'xxx'. For non-typedef'd structs, the
-         classHand mapping will be
+	 In typedefHandler, we again try to add the mapping from
+	 'xxx' -> 'xxx', which already exists. This second mapping
+	 is ignored.
 
-         struct __xxx -> (swig-insert-id "__xxx")
+	 Both modes:
+
+         All references to this typedef'd struct will appear in
+         generated lisp code as an objectd of type 'xxx'. For
+         non-typedef'd structs, the classHand mapping will be
+
+           struct __xxx -> (swig-insert-id "__xxx")
        */
       // Swig_print_node(n);
       String *unnamed = Getattr(n, "unnamed");
@@ -585,7 +601,11 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0, String 
     Delete(mangled_name_gen);
     Delete(mangled_lname_gen);
   } else {
-    Swig_warning(WARN_TYPE_REDEFINED, Getfile(n), Getline(n), "Attempting to store a foreign type that exists: %s (%s)\n", k, val);
+    if (!CPlusPlus || Strcmp(Getattr(n,"kind"),"typedef")) {
+       Swig_warning(WARN_TYPE_REDEFINED, Getfile(n), Getline(n),
+		    "Attempting to store a foreign type that exists: %s (%s)\n",
+		    k, val);
+    } 
   }
 
   Delete(ns_list);
@@ -620,7 +640,8 @@ String *get_ffi_type(SwigType *ty, const String_or_char *name) {
 #ifdef ALLEGROCL_TYPE_DEBUG
     Printf(stderr, "found_type '%s'\n", found_type);
 #endif
-    return (Strcmp(found_type, "forward-reference") ? Copy(found_type) : NewString(":void"));
+    return (Strcmp(found_type, "forward-reference") ? Copy(found_type) :
+	    get_ffi_type(fwdref_ffi_type, ""));
   } else {
     Hash *typemap = Swig_typemap_search("ffitype", ty, name, 0);
 
@@ -707,25 +728,39 @@ String *internal_compose_foreign_type(SwigType *ty) {
 	  if (res)
 	    Printf(ffiType, "%s", res);
 	}
-//         while(resolved_type) {
-//        // the resolved_type may expand into something like p.NS1::NS2::SomeType
-//        // for which get_ffi_type will not find any match (due to the p.).
-//        // Printf(stderr, "\n  in resolved type loop on '%s'\n", resolved_type);
-//           res = get_ffi_type(resolved_type, "");
-//           if (res) {
-//             Printf(ffiType, "%s", res);
-//             break;
-//           } else {
-//          resolved_type = SwigType_typedef_resolve(resolved_type);
-//           }
-//       }
+
 	if (!res) {
-	  if (Strstr(tok, "struct ")) {
-	    Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(tok), Getline(tok), "Unable to find definition of '%s', assuming forward reference.\n", tok);
-	  } else {
-	    Printf(stderr, "Unable to compose foreign type of: '%s'\n", tok);
+	  String *is_struct = 0;
+	  String *tok_remove_text = 0;
+	  String *tok_name = Copy(tok);
+	  String *tok_key = SwigType_str(tok,0);
+	  if ((is_struct = Strstr(tok_key, "struct ")) || Strstr(tok_key, "union ")) {
+	    tok_remove_text = NewString(is_struct ? "struct " : "union ");
 	  }
-	  Printf(ffiType, "(* :void)");
+
+	  /* be more permissive of opaque types. This is the swig way.
+	     compiles will notice if these types are ultimately not
+	     present. */
+
+	  if(tok_remove_text) {
+	    Replaceall(tok_name,tok_remove_text,"");
+	  }
+	  tok_name = strip_namespaces(tok_name);
+	  Delete(tok_remove_text);
+	  // Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(tok), Getline(tok), "Unable to find definition of '%s', assuming forward reference.\n", tok);
+
+#ifdef ALLEGROCL_TYPE_DEBUG
+	  Printf(stderr, "i-c-f-t: adding forward reference for unknown type '%s'. mapping: %s -> %s\n", tok, tok_key, tok_name);
+#endif
+	  Node *nn = NewHash();
+	  Setattr(nn,"nodeType","classforward");
+	  Setattr(nn,"kind","class");
+	  Setattr(nn,"sym:name",tok_name);
+	  Setattr(nn,"name",tok_key);
+	  Setattr(nn,"allegrocl:package",current_namespace);
+
+	  add_forward_referenced_type(nn, 0);
+	  Printf(ffiType, "%s", get_ffi_type(tok, ""), tok_name);
 	}
       }
     }
@@ -733,24 +768,36 @@ String *internal_compose_foreign_type(SwigType *ty) {
   return ffiType;
 }
 
-String *compose_foreign_type(SwigType *ty, String *id = 0) {
+String *compose_foreign_type(SwigType *ty, String * /*id*/ = 0) {
 
-  Hash *lookup_res = Swig_typemap_search("ffitype", ty, id, 0);
+/*  Hash *lookup_res = Swig_typemap_search("ffitype", ty, id, 0); */
+
 #ifdef ALLEGROCL_TYPE_DEBUG
   Printf(stderr, "compose_foreign_type: ENTER (%s)...\n ", ty);
-  String *id_ref = SwigType_str(ty, id);
+  // Printf(stderr, "compose_foreign_type: ENTER (%s)(%s)...\n ", ty, (id ? id : 0));
+  /* String *id_ref = SwigType_str(ty, id);
   Printf(stderr, "looking up typemap for %s, found '%s'(%x)\n",
 	 id_ref, lookup_res ? Getattr(lookup_res, "code") : 0, lookup_res);
+  if (lookup_res) Swig_print_node(lookup_res);
+  */
 #endif
+
   /* should we allow named lookups in the typemap here? YES! */
   /* unnamed lookups should be found in get_ffi_type, called
      by internal_compose_foreign_type(), below. */
+
+  /* I'm reverting to 'no' for the question above. I can no longer
+     remember why I needed it. If a user needed it, I'll find out
+     as soon as they upgrade. Sigh. -mutandiz 9/16/2008. */
+
+/*
   if(id && lookup_res) {
 #ifdef ALLEGROCL_TYPE_DEBUG
     Printf(stderr, "compose_foreign_type: EXIT-1 (%s)\n ", Getattr(lookup_res, "code"));
 #endif
     return NewString(Getattr(lookup_res, "code"));
   }
+*/
 
   SwigType *temp = SwigType_strip_qualifiers(ty);
   String *res = internal_compose_foreign_type(temp);
@@ -828,6 +875,10 @@ String *strip_parens(String *string) {
 }
 
 int ALLEGROCL::validIdentifier(String *s) {
+#ifdef ALLEGROCL_DEBUG
+	Printf(stderr, "validIdentifier %s\n", s);
+#endif
+
   char *c = Char(s);
 
   bool got_dot = false;
@@ -954,6 +1005,7 @@ String *convert_literal(String *literal, String *type, bool try_to_split) {
 	Delete(num);
 	num = 0;
       }
+      Delete(lisp_exp);
     } else {
       String *id = NewStringf("#.(swig-insert-id \"%s\" %s :type :constant)",
 			      num, ns);
@@ -1285,7 +1337,6 @@ void emit_typedef(Node *n) {
 
   // leave these in for now. might want to change these to def-foreign-class at some point.
 //  Printf(f_clhead, ";; %s\n", SwigType_typedef_resolve_all(lisp_type));
-  // Swig_print_node(n);
   Printf(f_clhead, "(swig-def-foreign-type \"%s\"\n  %s)\n", name, lisp_type);
 
   Delete(name);
@@ -1516,7 +1567,10 @@ void ALLEGROCL::main(int argc, char *argv[]) {
 	      "\tcalled to convert identifiers to symbols.\n"
 	      "\n"
 	      "   -[no]cwrap\n"
-	      "\tTurn on or turn off generation of an intermediate C file when\n" "\tcreating a C interface. By default this is only done for C++ code.\n");
+	      "\tTurn on or turn off generation of an intermediate C file when\n" "\tcreating a C interface. By default this is only done for C++ code.\n"
+	      "   -isolate\n"
+	      "Define all SWIG helper functions in a package unique to this module. Avoids redefinition warnings when loading multiple SWIGged modules\n"
+	      "into the same running Allegro CL image.\n");
 
     }
 
@@ -1571,7 +1625,7 @@ int ALLEGROCL::top(Node *n) {
 	 "  (:export #:*swig-identifier-converter* #:*swig-module-name*\n"
 	 "           #:*void* #:*swig-export-list*))\n"
 	 "(in-package :%s)\n\n"
-	 "(eval-when (compile load eval)\n"
+	 "(eval-when (:compile-toplevel :load-toplevel :execute)\n"
 	 "  (defparameter *swig-identifier-converter* '%s)\n"
 	 "  (defparameter *swig-module-name* :%s))\n\n", swig_package, swig_package, identifier_converter, module_name);
   Printf(f_cl, "(defpackage :%s\n" "  (:use :common-lisp :%s :ff :excl))\n\n", module_name, swig_package);
@@ -1604,6 +1658,8 @@ int ALLEGROCL::top(Node *n) {
   Delete(f_cl);			// Delete the handle, not the file
   Delete(f_clhead);
   Delete(f_clwrap);
+
+  Printf(f_cxx, "%s\n", f_cxx_wrapper);
 
   Close(f_cxx);
   Delete(f_cxx);
@@ -2338,41 +2394,24 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
     for (p = pl; p; p = nextSibling(p), argnum++, largnum++) {
       // SwigType *argtype=Getattr(p, "type");
       SwigType *argtype = Swig_cparse_type(Getattr(p, "tmap:ctype"));
+      SwigType *parmtype = Getattr(p,"type");
 
       if (!first) {
 	Printf(fcl, "\n   ");
       }
 
-      if (SwigType_isvarargs(argtype)) {
-	Printf(stderr, "Function %s (line %d) contains varargs, which is not directly supported. Use %%varargs instead.\n", Getattr(n, "name"), Getline(n));
-      } else {
+      /* by default, skip varargs */
+      if (!SwigType_isvarargs(parmtype)) {
 	String *argname = NewStringf("PARM%d_%s", largnum, Getattr(p, "name"));
 
-	// Swig_print_node(p);
 	// Printf(stderr,"%s\n", Getattr(p,"tmap:lin"));
 	String *ffitype = compose_foreign_type(argtype, Getattr(p,"name"));
-	String *deref_ffitype;
-
-	deref_ffitype = dereference_ffitype(ffitype);
-
-/*
-	String *temp = Copy(argtype);
-
-	if (SwigType_ispointer(temp)) {
-	  SwigType_pop(temp);
-	  deref_ffitype = compose_foreign_type(temp);
-	} else {
-	  deref_ffitype = Copy(ffitype);
-	}
-
-	Delete(temp);
-*/
-	// String *lisptype=get_lisp_type(argtype, argname);
-	String *lisptype = get_lisp_type(Getattr(p, "type"), Getattr(p, "name"));
+	String *deref_ffitype = dereference_ffitype(ffitype);
+	String *lisptype = get_lisp_type(parmtype, Getattr(p, "name"));
 
 #ifdef ALLEGROCL_DEBUG
-	Printf(stderr, "lisptype of '%s' '%s' = '%s'\n",
-	       Getattr(p, "type"), Getattr(p, "name"), lisptype);
+	Printf(stderr, "lisptype of '%s' '%s' = '%s'\n", parmtype,
+	       Getattr(p, "name"), lisptype);
 #endif
 
 	// while we're walking the parameters, generating LIN
@@ -2403,7 +2442,9 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
 	  first = 0;
 	}
 
+	Delete(argname);
 	Delete(ffitype);
+	Delete(deref_ffitype);
 	Delete(lisptype);
       }
     }
@@ -2441,11 +2482,6 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
     lclass = lookup_defined_foreign_ltype(cl_t);
     isPtrReturn = 1;
   }
-  //  if (SwigType_ispointer(cl_t)) {
-  //    isPtrReturn = 1;
-  //    SwigType_pop(cl_t);
-  //    lclass = lookup_defined_foreign_ltype(cl_t);
-  //  }
 
   int ff_foreign_ptr = 0;
   if (!lclass) {
@@ -2518,6 +2554,11 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
 }
 
 int ALLEGROCL::functionWrapper(Node *n) {
+#ifdef ALLEGROCL_DEBUG
+	Printf(stderr, "functionWrapper %s\n", Getattr(n,"name"));
+	Swig_print_node(n);
+#endif
+
 
   ParmList *parms = CopyParmList(Getattr(n, "parms"));
   Wrapper *f = NewWrapper();
@@ -2532,11 +2573,13 @@ int ALLEGROCL::functionWrapper(Node *n) {
   Delete(resolved);
 
   if (!is_void_return) {
-    String *lresult_init = NewStringf("= (%s)0", raw_return_type);
-    Wrapper_add_localv(f, "lresult",
-		       SwigType_lstr(SwigType_ltype(return_type), "lresult"),
-		       lresult_init, NIL);
-    Delete(lresult_init);
+     String *lresult_init =
+	     NewStringf("= (%s)0",
+			SwigType_str(SwigType_strip_qualifiers(return_type),0));
+     Wrapper_add_localv(f, "lresult",
+			SwigType_lstr(SwigType_ltype(return_type), "lresult"),
+			lresult_init, NIL);
+     Delete(lresult_init);
   }
   // Emit all of the local variables for holding arguments.
   emit_parameter_variables(parms, f);
@@ -2632,26 +2675,32 @@ int ALLEGROCL::functionWrapper(Node *n) {
 
   String *tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
   if (!is_void_return && tm) {
-    Replaceall(tm, "$result", "lresult");
-    Printf(f->code, "%s\n", tm);
-    Printf(f->code, "    return lresult;\n");
-    Delete(tm);
-  } else {
-    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(t, 0), name);
+    if (tm) { 
+      Replaceall(tm, "$result", "lresult");
+      Printf(f->code, "%s\n", tm);
+      Printf(f->code, "    return lresult;\n");
+      Delete(tm);
+    } else {
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
+		   "Unable to use return type %s in function %s.\n",
+		   SwigType_str(t, 0), name);
+    }
   }
+
   emit_return_variable(n, t, f);
 
   if (CPlusPlus) {
     Printf(f->code, "  } catch (...) {\n");
     if (!is_void_return)
-      Printf(f->code, "    return (%s)0;\n", raw_return_type);
+      Printf(f->code, "    return (%s)0;\n",
+	     SwigType_str(SwigType_strip_qualifiers(return_type),0));
     Printf(f->code, "  }\n");
   }
   Printf(f->code, "}\n");
 
   /* print this when in C mode? make this a command-line arg? */
   if (Generate_Wrapper)
-    Wrapper_print(f, f_cxx);
+    Wrapper_print(f, f_cxx_wrapper);
 
   String *f_buffer = NewString("");
 
@@ -2673,13 +2722,15 @@ int ALLEGROCL::functionWrapper(Node *n) {
 }
 
 int ALLEGROCL::namespaceDeclaration(Node *n) {
-  // Empty namespaces are not worth DEFPACKAGEing.
-  // Swig_print_node(n);
 #ifdef ALLEGROCL_DEBUG
   Printf(stderr, "namespaceDecl: '%s'(0x%x) (fc=0x%x)\n", Getattr(n, "sym:name"), n, firstChild(n));
 #endif
 
-  if (!firstChild(n))
+  /* don't wrap a namespace with no contents. package bloat.
+     also, test-suite/namespace_class.i claims an unnamed namespace
+     is 'private' and should not be wrapped. Complying...
+  */
+  if (Getattr(n,"unnamed") || !firstChild(n))
     return SWIG_OK;
 
   String *name = Getattr(n, "sym:name");
@@ -2706,7 +2757,7 @@ int ALLEGROCL::namespaceDeclaration(Node *n) {
 
 int ALLEGROCL::constructorHandler(Node *n) {
 #ifdef ALLEGROCL_DEBUG
-  Printf(stderr, "constructor %s\n", Getattr(n, "name"));
+  Printf(stderr, "constructorHandler %s\n", Getattr(n, "name"));
 #endif
   // Swig_print_node(n);
   Setattr(n, "allegrocl:kind", "constructor");
@@ -2718,7 +2769,7 @@ int ALLEGROCL::constructorHandler(Node *n) {
 
 int ALLEGROCL::destructorHandler(Node *n) {
 #ifdef ALLEGROCL_DEBUG
-  Printf(stderr, "destructor %s\n", Getattr(n, "name"));
+  Printf(stderr, "destructorHandler %s\n", Getattr(n, "name"));
 #endif
 
   Setattr(n, "allegrocl:kind", "destructor");
@@ -2729,9 +2780,8 @@ int ALLEGROCL::destructorHandler(Node *n) {
 }
 
 int ALLEGROCL::constantWrapper(Node *n) {
-
 #ifdef ALLEGROCL_DEBUG
-  Printf(stderr, "constant %s\n", Getattr(n, "name"));
+  Printf(stderr, "constantWrapper %s\n", Getattr(n, "name"));
 #endif
 
   if (Generate_Wrapper) {
@@ -2752,8 +2802,9 @@ int ALLEGROCL::constantWrapper(Node *n) {
     SwigType_add_qualifier(const_type, "const");
     SwigType_add_qualifier(const_type, "static");
 
-    String *ppcname = NewStringf("ACLppc_%s", Getattr(n, "name"));
-    Printf(f_cxx, "static const %s = %s;\n", SwigType_lstr(const_type, ppcname), const_val);
+    String *ppcname = NewStringf("ACLppc_%s", Getattr(n, "sym:name"));
+    // Printf(f_cxx, "static const %s = %s;\n", SwigType_lstr(const_type, ppcname), const_val);
+    Printf(f_cxx, "%s = %s;\n", SwigType_lstr(const_type, ppcname), const_val);
 
     Setattr(n, "name", ppcname);
     SetFlag(n, "feature:immutable");
@@ -2787,6 +2838,10 @@ int ALLEGROCL::constantWrapper(Node *n) {
 }
 
 int ALLEGROCL::globalvariableHandler(Node *n) {
+#ifdef ALLEGROCL_DEBUG
+  Printf(stderr, "globalvariableHandler %s\n", Getattr(n, "name"));
+#endif
+
   if (Generate_Wrapper)
     return Language::globalvariableHandler(n);
 
@@ -2817,7 +2872,7 @@ int ALLEGROCL::globalvariableHandler(Node *n) {
 
 int ALLEGROCL::variableWrapper(Node *n) {
 #ifdef ALLEGROCL_DEBUG
-  Printf(stderr, "variable %s\n", Getattr(n, "name"));
+  Printf(stderr, "variableWrapper %s\n", Getattr(n, "name"));
 #endif
   Setattr(n, "allegrocl:kind", "variable");
   Setattr(n, "allegrocl:old-sym:name", Getattr(n, "sym:name"));
@@ -2842,6 +2897,7 @@ int ALLEGROCL::variableWrapper(Node *n) {
   }
 
   ctype = SwigType_str(type, 0);
+
   // EXPORT <SwigType_str> <mangled_name>;
   // <SwigType_str> <mangled_name> = <name>;
   Printf(f_cxx, "EXPORT %s %s;\n%s %s = %s%s;\n", ctype, mangled_name, ctype, mangled_name, (pointer_added ? "&" : ""), name);
@@ -2852,14 +2908,19 @@ int ALLEGROCL::variableWrapper(Node *n) {
      Printf(f_cxx, "// vwrap: %s\n", compose_foreign_type(SwigType_strip_qualifiers(Copy(rtype))));
    */
 
+  Printf(stderr,"***\n");
   Delete(mangled_name);
+
+#ifdef ALLEGROCL_DEBUG
+  Printf(stderr, "DONE variable %s\n", Getattr(n, "name"));
+#endif
 
   return SWIG_OK;
 }
 
 int ALLEGROCL::memberfunctionHandler(Node *n) {
 #ifdef ALLEGROCL_DEBUG
-  Printf(stderr, "member function %s::%s\n", Getattr(parent_node_skipping_extends(n), "name"), Getattr(n, "name"));
+  Printf(stderr, "memberfunctionHandler %s::%s\n", Getattr(parent_node_skipping_extends(n), "name"), Getattr(n, "name"));
 #endif
   Setattr(n, "allegrocl:kind", "member function");
   Setattr(n, "allegrocl:old-sym:name", Getattr(n, "sym:name"));
@@ -2870,7 +2931,7 @@ int ALLEGROCL::memberfunctionHandler(Node *n) {
 
 int ALLEGROCL::membervariableHandler(Node *n) {
 #ifdef ALLEGROCL_DEBUG
-  Printf(stderr, "member variable %s::%s\n", Getattr(parent_node_skipping_extends(n), "name"), Getattr(n, "name"));
+  Printf(stderr, "membervariableHandler %s::%s\n", Getattr(parent_node_skipping_extends(n), "name"), Getattr(n, "name"));
 #endif
   Setattr(n, "allegrocl:kind", "member variable");
   Setattr(n, "allegrocl:old-sym:name", Getattr(n, "sym:name"));
@@ -2880,10 +2941,8 @@ int ALLEGROCL::membervariableHandler(Node *n) {
 }
 
 int ALLEGROCL::typedefHandler(Node *n) {
-
 #ifdef ALLEGROCL_TYPE_DEBUG
-  Printf(stderr, "In typedefHAND\n");
-  // Swig_print_node(n);
+  Printf(stderr, "In typedefHandler\n");
 #endif
 
   SwigType *typedef_type = Getattr(n,"type");
@@ -2901,9 +2960,7 @@ int ALLEGROCL::typedefHandler(Node *n) {
     Printf(stderr, "  typedef in class '%s'(%x)\n", Getattr(in_class, "sym:name"), in_class);
 #endif
     Setattr(n, "allegrocl:typedef:in-class", in_class);
-  }
 
-  if (in_class) {
     String *class_name = Getattr(in_class, "name");
     name = NewStringf("%s__%s", class_name, sym_name);
     type_ref = NewStringf("%s::%s", class_name, sym_name);
@@ -2917,14 +2974,19 @@ int ALLEGROCL::typedefHandler(Node *n) {
 
   String *lookup = lookup_defined_foreign_type(typedef_type);
 
-  // Printf(stderr, "** lookup='%s'(%x), ff_type='%s', strstr = '%d'\n", lookup, lookup, ff_type, !Strstr(ff_type,"void"));
+#ifdef ALLEGROCL_TYPE_DEBUG
+  Printf(stderr, "** lookup='%s'(%x), typedef_type='%s', strcmp = '%d' strstr = '%d'\n", lookup, lookup, typedef_type, Strcmp(typedef_type,"void"), Strstr(ff_type,"__SWIGACL_FwdReference"));
+#endif
 
-  if(lookup || (!lookup && !Strstr(ff_type,"void")))
+  if(lookup || (!lookup && Strcmp(typedef_type,"void")) ||
+     (!lookup && Strstr(ff_type,"__SWIGACL_FwdReference"))) {
 	  add_defined_foreign_type(n, 0, type_ref, name);
-  else add_forward_referenced_type(n);
+  } else {
+     add_forward_referenced_type(n);
+  }
 
 #ifdef ALLEGROCL_TYPE_DEBUG
-  Printf(stderr, "Out typedefHAND\n");
+  Printf(stderr, "Out typedefHandler\n");
 #endif
 
   Delete(ff_type);
@@ -2934,22 +2996,33 @@ int ALLEGROCL::typedefHandler(Node *n) {
 
 // forward referenced classes are added specially to defined_foreign_types
 int ALLEGROCL::classforwardDeclaration(Node *n) {
+#ifdef ALLEGROCL_DEBUG
+  Printf(stderr, "classforwardDeclaration %s\n", Getattr(n, "name"));
+#endif
+
   add_forward_referenced_type(n);
   return SWIG_OK;
 }
 
 int ALLEGROCL::classHandler(Node *n) {
 #ifdef ALLEGROCL_DEBUG
-  Printf(stderr, "class %s::%s\n", current_namespace, Getattr(n, "sym:name"));
+  Printf(stderr, "classHandler %s::%s\n", current_namespace, Getattr(n, "sym:name"));
 #endif
 
+  int result;
+
   if (Generate_Wrapper)
-    return cppClassHandler(n);
+    result = cppClassHandler(n);
   else
-    return cClassHandler(n);
+    result = cClassHandler(n);
+
+  return result;
 }
 
 int ALLEGROCL::cClassHandler(Node *n) {
+#ifdef ALLEGROCL_TYPE_DEBUG
+  Printf(stderr, "In cClassHandler\n");
+#endif
   //  String *cDeclName = Getattr(n,"classDeclaration:name");
   // String *name= Getattr(n, "sym:name"); 
   //  String *kind = Getattr(n,"kind");
@@ -2959,22 +3032,21 @@ int ALLEGROCL::cClassHandler(Node *n) {
   // Printf(stderr, "Adding %s foreign type\n", name);
   String *ns = listify_namespace(current_namespace);
 
-#ifdef ALLEGROCL_TYPE_DEBUG
-  Printf(stderr, "In cClassHAND\n");
-#endif
-
   add_defined_foreign_type(n);
 
   Delete(ns);
 
 #ifdef ALLEGROCL_TYPE_DEBUG
-  Printf(stderr, "Out cClassHAND\n");
+  Printf(stderr, "Out cClassHandler\n");
 #endif
 
   return SWIG_OK;
 }
 
 int ALLEGROCL::cppClassHandler(Node *n) {
+#ifdef ALLEGROCL_DEBUG
+  Printf(stderr, "cppClassHandler %s\n", Getattr(n, "name"));
+#endif
 
   // String *name=Getattr(n, "sym:name");
   // String *kind = Getattr(n,"kind");
@@ -3033,6 +3105,9 @@ int ALLEGROCL::cppClassHandler(Node *n) {
     // so their types can be added to the linked_type_list.
     SwigType *childType = NewStringf("%s%s", Getattr(c, "decl"),
 				     Getattr(c, "type"));
+#ifdef ALLEGROCL_CLASS_DEBUG
+    Printf(stderr, "looking at child '%x' of type '%s'\n", c, childType);
+#endif
     if (!SwigType_isfunction(childType))
       Delete(compose_foreign_type(childType));
 
@@ -3073,6 +3148,9 @@ int ALLEGROCL::emit_one(Node *n) {
 }
 
 int ALLEGROCL::enumDeclaration(Node *n) {
+#ifdef ALLEGROCL_DEBUG
+  Printf(stderr, "enumDeclaration %s\n", Getattr(n, "name"));
+#endif
 
   if (Getattr(n, "sym:name")) {
     add_defined_foreign_type(n);
@@ -3089,21 +3167,34 @@ int ALLEGROCL::enumDeclaration(Node *n) {
 
 
 int ALLEGROCL::enumvalueDeclaration(Node *n) {
-
+#ifdef ALLEGROCL_DEBUG
+  Printf(stderr, "enumvalueDeclaration %s\n", Getattr(n, "name"));
+#endif
   /* print this when in C mode? make this a command-line arg? */
-
   if (Generate_Wrapper) {
-    String *mangled_name = mangle_name(n, "ACL_ENUM");
+	  SwigType *enum_type = Copy(Getattr(n,"type"));
+	  String *mangled_name =
+		  mangle_name(n, "ACL_ENUM",
+			      in_class ? Getattr(in_class,"name") :
+			      current_namespace);
+	  
+	  SwigType_add_qualifier(enum_type,"const");
 
-    Printf(f_cxx, "EXPORT const %s %s = %s;\n", Getattr(n, "type"), mangled_name, Getattr(n, "value"));
+	  String *enum_decl = SwigType_str(enum_type, mangled_name);
+	  Printf(f_cxx_wrapper, "EXPORT %s;\n", enum_decl);
+	  Printf(f_cxx_wrapper, "%s = %s;\n", enum_decl, Getattr(n, "value"));
 
     Delete(mangled_name);
+    Delete(enum_type);
+    Delete(enum_decl);
   }
-
   return SWIG_OK;
 }
 
 int ALLEGROCL::templateDeclaration(Node *n) {
+#ifdef ALLEGROCL_DEBUG
+  Printf(stderr, "templateDeclaration %s\n", Getattr(n, "name"));
+#endif
 
   String *type = Getattr(n, "templatetype");
 

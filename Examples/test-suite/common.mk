@@ -237,6 +237,7 @@ CPP_TEST_CASES += \
 	null_pointer \
 	operator_overload \
 	operator_overload_break \
+        operbool \
 	ordering \
 	overload_copy \
 	overload_extend \

@@ -231,14 +231,14 @@
         return new std::vector<CTYPE >(self->begin()+index, self->begin()+index+count);
       }
       void Insert(int index, const value_type& x) throw (std::out_of_range) {
-        if (index>=0 && index<(int)self->size())
+        if (index>=0 && index<(int)self->size()+1)
           self->insert(self->begin()+index, x);
         else
           throw std::out_of_range("index");
       }
       // Takes a deep copy of the elements unlike ArrayList.InsertRange
       void InsertRange(int index, const std::vector<CTYPE >& values) throw (std::out_of_range) {
-        if (index>=0 && index<(int)self->size())
+        if (index>=0 && index<(int)self->size()+1)
           self->insert(self->begin()+index, values.begin(), values.end());
         else
           throw std::out_of_range("index");

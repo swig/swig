@@ -1,56 +1,56 @@
 from director_classic import *
 
 class TargetLangPerson(Person):
-	def __init__(self):
-		Person.__init__(self)
-	def id(self):
-		identifier = "TargetLangPerson"
-                return identifier
+    def __init__(self):
+        Person.__init__(self)
+    def id(self):
+        identifier = "TargetLangPerson"
+        return identifier
 
 class TargetLangChild(Child):
-	def __init__(self):
-		Child.__init__(self)
-	def id(self):
-		identifier = "TargetLangChild"
-                return identifier
+    def __init__(self):
+        Child.__init__(self)
+    def id(self):
+        identifier = "TargetLangChild"
+        return identifier
 
 class TargetLangGrandChild(GrandChild):
-	def __init__(self):
-		GrandChild.__init__(self)
-	def id(self):
-		identifier = "TargetLangGrandChild"
-                return identifier
+    def __init__(self):
+        GrandChild.__init__(self)
+    def id(self):
+        identifier = "TargetLangGrandChild"
+        return identifier
 
 # Semis - don't override id() in target language
 class TargetLangSemiPerson(Person):
-	def __init__(self):
-		Person.__init__(self)
+    def __init__(self):
+        Person.__init__(self)
         # No id() override
 
 class TargetLangSemiChild(Child):
-	def __init__(self):
-		Child.__init__(self)
+    def __init__(self):
+        Child.__init__(self)
         # No id() override
 
 class TargetLangSemiGrandChild(GrandChild):
-	def __init__(self):
-		GrandChild.__init__(self)
+    def __init__(self):
+        GrandChild.__init__(self)
         # No id() override
 
 # Orphans - don't override id() in C++
 class TargetLangOrphanPerson(OrphanPerson):
-	def __init__(self):
-		OrphanPerson.__init__(self)
-	def id(self):
-		identifier = "TargetLangOrphanPerson"
-                return identifier
+    def __init__(self):
+        OrphanPerson.__init__(self)
+    def id(self):
+        identifier = "TargetLangOrphanPerson"
+        return identifier
 
 class TargetLangOrphanChild(OrphanChild):
-	def __init__(self):
-		Child.__init__(self)
-	def id(self):
-		identifier = "TargetLangOrphanChild"
-                return identifier
+    def __init__(self):
+        Child.__init__(self)
+    def id(self):
+        identifier = "TargetLangOrphanChild"
+        return identifier
 
 
 def check(person, expected):
@@ -61,7 +61,7 @@ def check(person, expected):
   if (debug):
     print(ret)
   if (ret != expected):
-    raise ("Failed. Received: " + ret + " Expected: " + expected)
+    raise RuntimeError("Failed. Received: " + str(ret) + " Expected: " + expected)
 
   # Polymorphic call from C++
   caller = Caller()
@@ -70,7 +70,7 @@ def check(person, expected):
   if (debug):
     print(ret)
   if (ret != expected):
-    raise ("Failed. Received: " + ret + " Expected: " + expected)
+    raise RuntimeError("Failed. Received: " + str(ret) + " Expected: " + expected)
 
   # Polymorphic call of object created in target language and passed to C++ and back again
   baseclass = caller.baseClass()
@@ -78,7 +78,7 @@ def check(person, expected):
   if (debug):
     print(ret)
   if (ret != expected):
-    raise ("Failed. Received: " + ret + " Expected: " + expected)
+    raise RuntimeError("Failed. Received: " + str(ret)+ " Expected: " + expected)
 
   caller.resetCallback()
   if (debug):
