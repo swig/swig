@@ -1340,6 +1340,7 @@ public:
 
       /* tell interpreter about class attributes */
       {
+        /* this is all broken, see template_default2 test */
         SwigType *ct = NewStringf("p.%s", name);
         String *mang = SwigType_manglestr(ct);
         Printv(pm, "use fields (", NIL);

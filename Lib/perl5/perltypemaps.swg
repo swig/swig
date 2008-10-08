@@ -78,13 +78,13 @@
  * ------------------------------------------------------------ */
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE []  
-    "SWIG_Perl_WrapNative($result, $1, $1_descriptor, 0, 0);"; 
+    "SWIG_Perl_WrapNative($result, $1, $1_descriptor, $shadow, 0);"; 
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE &
-    "sv_setiv(SvRV($result),PTR2IV(&$1));"; 
+    "SWIG_Perl_WrapNative($result, &$1, $1_descriptor, $shadow, 0);"; 
 
 %typemap(varout,type="$&1_descriptor") SWIGTYPE
-    "sv_setiv(SvRV($result), PTR2IV(&$1));";
+    "SWIG_Perl_WrapNative($result, &$1, $1_descriptor, $shadow, 0);"
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE (CLASS::*) {
   SWIG_MakePackedObj($result, (void *) &$1, sizeof($1_type), $1_descriptor);

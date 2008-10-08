@@ -259,8 +259,8 @@ SWIG_Perl_WrapNative(SV *sv, const void *ptr, swig_type_info *t, int flags,
   swig_perl_type_ext *ext = (swig_perl_type_ext *)t->clientdata;
   MGVTBL *vtbl;
 
-  if(flags & SWIG_SHADOW) {
-    assert(ext);
+  if(flags & SWIG_SHADOW && ext) {
+	/* pointer_reference for sample of shadow set without ext */
     if (!proto || !SvOK(proto))
       proto = sv_2mortal(newSVpv(SWIG_Perl_TypeProxyName(t), 0));
     {
@@ -315,10 +315,10 @@ SWIG_Perl_WrapNative(SV *sv, const void *ptr, swig_type_info *t, int flags,
     vtbl = &SWIG_Perl_default_vtbl;
   }
   sv_magicext(SvRV(sv), 0, PERL_MAGIC_ext, vtbl, (char *)wrap, 0);
-/*  warn("WrapNative(0x%08p, %s) {\n", ptr, SWIG_Perl_TypeProxyName(t));
-//  //sv_dump(sv);
-//  do_sv_dump(0, Perl_debug_log, sv, 0, 4, 0, 0);
-//  warn("}"); */
+  /*warn("WrapNative(0x%08p, %s) {\n", ptr, SWIG_Perl_TypeProxyName(t));
+  sv_dump(sv);
+  do_sv_dump(0, Perl_debug_log, sv, 0, 4, 0, 0);
+  warn("}"); */
   return sv;
 }
 SWIGINTERN void *
@@ -373,6 +373,7 @@ SWIG_Perl_SvUnwrap(void **pp, SV *sv, swig_type_info *t, int flags) {
 
 SWIGRUNTIME int
 SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *t, int flags) {
+  SvGETMAGIC(sv);
   return SWIG_Perl_SvUnwrap(ptr, sv, t, flags);
 }
 
