@@ -208,7 +208,11 @@ class Allocate:public Dispatcher {
 
   /* Checks if a function, n, is the same as any in the base class, ie if the method is polymorphic.
    * Also checks for methods which will be hidden (ie a base has an identical non-virtual method).
-   * Both methods must have public access for a match to occur. */
+   * Both methods must have public access for a match to occur.
+   * Finally, if the method is not polymorphic and does not hide a method in a base class,
+   * it checks if a function has the same name as a function in the base class. In this case
+   * the "overloadsbase" attribute is set. This is for languages that do not support overloading.
+   */
   int function_is_defined_in_bases(Node *n, Node *bases) {
 
     if (!bases)
@@ -390,15 +394,19 @@ class Allocate:public Dispatcher {
 		if (!is_non_public_base(inclass, b))
 		  Setattr(n, "hides", base);
 	    }
-	    if (both_have_public_access || both_have_protected_access)
+	    if (both_have_public_access || both_have_protected_access) {
+	      // If we find an exact math - e.g. the method overrides or hides another one
+	      // then the overloadsbase attribute makes no sense.
+	      Delattr(n, "overloadsbase");
 	      return 1;
+	    }
 	  } else if (is_public(base) && is_public(n) && !is_non_public_base(inclass, b)) {
 	    // The name is being overloaded - mark it
-	    Setattr(n, "overloads_base", base);
+	    Setattr(n, "overloadsbase", base);
 	  }
 	} else if (is_public(base) && is_public(n) && !is_non_public_base(inclass, b)) {
 	  // The name is being overloaded - mark it
-	  Setattr(n, "overloads_base", base);
+	  Setattr(n, "overloadsbase", base);
 	}
       }
     }

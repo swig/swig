@@ -1790,8 +1790,8 @@ public:
       return;
 
     // Check if the name has not already been used in a base class
-    if (Getattr(n, "overloads_base")) {
-      Node *over = Getattr(n, "overloads_base");
+    if (Getattr(n, "overloadsbase")) {
+      Node *over = Getattr(n, "overloadsbase");
       SwigType *tc = Copy(Getattr(n, "decl"));
       String *oname;
       String *cname;
