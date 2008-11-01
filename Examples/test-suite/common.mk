@@ -260,6 +260,7 @@ CPP_TEST_CASES += \
 	rename3 \
 	rename4 \
 	rename_scope \
+	rename_strip_encoder \
 	restrict_cplusplus \
 	return_const_value \
 	return_value_scope \

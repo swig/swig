@@ -927,6 +927,37 @@ String *Swig_string_command(String *s) {
 
 
 /* -----------------------------------------------------------------------------
+ * Swig_string_strip()
+ *
+ * Strip given prefix from identifiers 
+ *
+ *  Printf(stderr,"%(strip:[wx])s","wxHello") -> Hello
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_strip(String *s) {
+  String *ns;
+  if (!Len(s)) {
+    ns = NewString(s);
+  } else {
+    const char *cs = Char(s);
+    const char *ce = Strchr(cs, ']');
+    if (*cs != '[' || ce == NULL) {
+      ns = NewString(s);
+    } else {
+      String *fmt = NewStringf("%%.%ds", ce-cs-1);
+      String *prefix = NewStringf(fmt, cs+1);
+      if (0 == Strncmp(ce+1, prefix, Len(prefix))) {
+        ns = NewString(ce+1+Len(prefix));
+      } else {
+        ns = NewString(ce+1);
+      }
+    }
+  }
+  return ns;
+}
+
+
+/* -----------------------------------------------------------------------------
  * Swig_string_rxspencer()
  *
  * Executes a regexp substitution via the RxSpencer library. For example:
@@ -1053,6 +1084,7 @@ void Swig_init() {
   DohEncoding("command", Swig_string_command);
   DohEncoding("rxspencer", Swig_string_rxspencer);
   DohEncoding("schemify", Swig_string_schemify);
+  DohEncoding("strip", Swig_string_strip);
 
   /* aliases for the case encoders */
   DohEncoding("uppercase", Swig_string_upper);
