@@ -1341,9 +1341,9 @@ public:
 	    String *str = Getattr(n, "feature:docstring");
 	    if (str == NULL || Len(str) == 0) {
 	      if (CPlusPlus) {
-		Printf(doc, "Proxy of C++ %s class", class_name);
+		Printf(doc, "Proxy of C++ %s class", real_classname);
 	      } else {
-		Printf(doc, "Proxy of C %s struct", class_name);
+		Printf(doc, "Proxy of C %s struct", real_classname);
 	      }
 	    }
 	  }
