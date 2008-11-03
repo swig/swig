@@ -1,0 +1,8 @@
+Makefile
+ccache
+*gz
+config.h
+config.log
+config.status
+tca.log
+tca.map
