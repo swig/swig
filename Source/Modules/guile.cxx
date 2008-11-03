@@ -174,7 +174,7 @@ public:
 	  }
 	} else if (strcmp(argv[i], "-procdoc") == 0) {
 	  if (argv[i + 1]) {
-	    procdoc = NewFile(argv[i + 1], (char *) "w");
+	    procdoc = NewFile(argv[i + 1], "w", SWIG_output_files());
 	    if (!procdoc) {
 	      FileErrorDisplay(argv[i + 1]);
 	      SWIG_exit(EXIT_FAILURE);
@@ -299,7 +299,7 @@ public:
     /* Initialize all of the output files */
     String *outfile = Getattr(n, "outfile");
 
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -499,7 +499,7 @@ public:
 				 SWIG_output_directory(),
 				 primitive_name);
       Delete(primitive_name);
-      File *scmstubfile = NewFile(fname, (char *) "w");
+      File *scmstubfile = NewFile(fname, "w", SWIG_output_files());
       if (!scmstubfile) {
 	FileErrorDisplay(fname);
 	SWIG_exit(EXIT_FAILURE);
@@ -530,7 +530,7 @@ public:
 
       String *fname = NewStringf("%s%s.scm", SWIG_output_directory(),
 				 module_name);
-      File *goopsfile = NewFile(fname, (char *) "w");
+      File *goopsfile = NewFile(fname, "w", SWIG_output_files());
       if (!goopsfile) {
 	FileErrorDisplay(fname);
 	SWIG_exit(EXIT_FAILURE);

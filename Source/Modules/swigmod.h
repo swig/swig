@@ -317,6 +317,9 @@ void SWIG_config_file(const String_or_char *);
 const String *SWIG_output_directory();
 void SWIG_config_cppext(const char *ext);
 
+/* get the list of generated files */
+List *SWIG_output_files();
+
 void SWIG_library_directory(const char *);
 int emit_num_arguments(ParmList *);
 int emit_num_required(ParmList *);

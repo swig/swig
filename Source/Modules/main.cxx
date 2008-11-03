@@ -180,6 +180,7 @@ static String *dependencies_target = 0;
 static int external_runtime = 0;
 static String *external_runtime_name = 0;
 enum { STAGE1=1, STAGE2=2, STAGE3=4, STAGE4=8, STAGEOVERFLOW=16 };
+static List *all_output_files = 0;
 
 // -----------------------------------------------------------------------------
 // check_suffix(char *name)
@@ -300,6 +301,11 @@ void SWIG_config_cppext(const char *ext) {
   cpp_extension = (char *) ext;
 }
 
+List *SWIG_output_files() {
+  assert(all_output_files);
+  return all_output_files;
+}
+
 void SWIG_setfeature(const char *cfeature, const char *cvalue) {
   Hash *features_hash = Swig_cparse_features();
   String *name = NewString("");
@@ -363,7 +369,7 @@ static void SWIG_dump_runtime() {
     }
   }
 
-  runtime = NewFile(outfile, "w");
+  runtime = NewFile(outfile, "w", SWIG_output_files());
   if (!runtime) {
     FileErrorDisplay(outfile);
     SWIG_exit(EXIT_FAILURE);
@@ -867,6 +873,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   }
 
   libfiles = NewList();
+  all_output_files = NewList();
 
   /* Check for SWIG_FEATURES environment variable */
 
@@ -940,20 +947,21 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (!s) {
       fprintf(stderr, "Unable to locate '%s' in the SWIG library.\n", input_file);
     } else {
-      FILE *f = fopen(outfile, "r");
+      FILE *f = Swig_open(outfile);
       if (f) {
 	fclose(f);
 	fprintf(stderr, "File '%s' already exists. Checkout aborted.\n", outfile);
       } else {
-	f = fopen(outfile, "w");
-	if (!f) {
-	  fprintf(stderr, "Unable to create file '%s'\n", outfile);
-	} else {
-	  if (Verbose)
-	    fprintf(stdout, "'%s' checked out from the SWIG library.\n", input_file);
-	  fputs(Char(s), f);
-	  fclose(f);
-	}
+        File *f_outfile = NewFile(outfile, "w", SWIG_output_files());
+        if (!f_outfile) {
+          FileErrorDisplay(outfile);
+          SWIG_exit(EXIT_FAILURE);
+        } else {
+          if (Verbose)
+            fprintf(stdout, "'%s' checked out from the SWIG library.\n", outfile);
+          Printv(f_outfile, s, NIL);
+          Close(f_outfile);
+        }
       }
     }
   } else {
@@ -1019,14 +1027,14 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  outfile = NewString(outfile_name);
 	}
 	if (dependencies_file && Len(dependencies_file) != 0) {
-	  f_dependencies_file = NewFile(dependencies_file, "w");
+	  f_dependencies_file = NewFile(dependencies_file, "w", SWIG_output_files());
 	  if (!f_dependencies_file) {
 	    FileErrorDisplay(dependencies_file);
 	    SWIG_exit(EXIT_FAILURE);
 	  }
 	} else if (!depend_only) {
 	  String *filename = NewStringf("%s_wrap.%s", Swig_file_basename(input_file), depends_extension);
-	  f_dependencies_file = NewFile(filename, "w");
+	  f_dependencies_file = NewFile(filename, "w", SWIG_output_files());
 	  if (!f_dependencies_file) {
 	    FileErrorDisplay(filename);
 	    SWIG_exit(EXIT_FAILURE);
@@ -1172,6 +1180,21 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     Swig_typemap_debug();
   if (memory_debug)
     DohMemoryDebug();
+
+  char *outfiles = getenv("CCACHE_OUTFILES");
+  if (outfiles) {
+    File *f_outfiles = NewFile(outfiles, "w", 0);
+    if (!f_outfiles) {
+      Printf(stderr, "Failed to write list of output files to the filename '%s' specified in CCACHE_OUTFILES environment variable - ", outfiles);
+      FileErrorDisplay(f_outfiles);
+      SWIG_exit(EXIT_FAILURE);
+    } else {
+      int i;
+      for (i = 0; i < Len(all_output_files); i++)
+        Printf(f_outfiles, "%s\n", Getitem(all_output_files, i));
+      Close(f_outfiles);
+    }
+  }
 
   // Deletes
   Delete(libfiles);

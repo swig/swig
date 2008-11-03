@@ -878,7 +878,7 @@ int R::DumpCode(Node *n) {
   Printf(stderr, "Writing S code to %s\n", output_filename);
 #endif
   
-  File *scode = NewFile(output_filename, "w");
+  File *scode = NewFile(output_filename, "w", SWIG_output_files());
   if (!scode) {
     FileErrorDisplay(output_filename);
     SWIG_exit(EXIT_FAILURE);
@@ -893,7 +893,7 @@ int R::DumpCode(Node *n) {
   Close(scode);
   //  Delete(scode);
   String *outfile = Getattr(n,"outfile");
-  File *runtime = NewFile(outfile,"w");
+  File *runtime = NewFile(outfile,"w", SWIG_output_files());
   if (!runtime) {
     FileErrorDisplay(outfile);
     SWIG_exit(EXIT_FAILURE);
@@ -920,7 +920,7 @@ int R::DumpCode(Node *n) {
   if(outputNamespaceInfo) {
     output_filename = NewString("");
     Printf(output_filename, "%sNAMESPACE", SWIG_output_directory());
-    File *ns = NewFile(output_filename, "w");
+    File *ns = NewFile(output_filename, "w", SWIG_output_files());
     if (!ns) {
       FileErrorDisplay(output_filename);
       SWIG_exit(EXIT_FAILURE);

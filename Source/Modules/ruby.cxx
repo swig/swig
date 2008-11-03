@@ -992,7 +992,7 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
 
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -1003,7 +1003,7 @@ public:
         Printf(stderr, "Unable to determine outfile_h\n");
         SWIG_exit(EXIT_FAILURE);
       }
-      f_runtime_h = NewFile(outfile_h, "w");
+      f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
 	SWIG_exit(EXIT_FAILURE);

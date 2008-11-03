@@ -1590,7 +1590,7 @@ int ALLEGROCL::top(Node *n) {
 
   Printf(cl_filename, "%s%s.cl", SWIG_output_directory(), module_name);
 
-  f_cl = NewFile(cl_filename, "w");
+  f_cl = NewFile(cl_filename, "w", SWIG_output_files());
   if (!f_cl) {
     Printf(stderr, "Unable to open %s for writing\n", cl_filename);
     SWIG_exit(EXIT_FAILURE);
@@ -1599,7 +1599,7 @@ int ALLEGROCL::top(Node *n) {
   Generate_Wrapper = CPlusPlus || CWrap;
 
   if (Generate_Wrapper) {
-    f_cxx = NewFile(cxx_filename, "w");
+    f_cxx = NewFile(cxx_filename, "w", SWIG_output_files());
     if (!f_cxx) {
       Close(f_cl);
       Delete(f_cl);

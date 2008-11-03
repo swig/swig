@@ -79,7 +79,7 @@ int CLISP::top(Node *n) {
     Printf(output_filename, "%s%s.lisp", SWIG_output_directory(), module);
   }
 
-  f_cl = NewFile(output_filename, "w+");
+  f_cl = NewFile(output_filename, "w+", SWIG_output_files());
   if (!f_cl) {
     FileErrorDisplay(output_filename);
     SWIG_exit(EXIT_FAILURE);

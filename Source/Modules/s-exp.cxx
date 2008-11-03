@@ -59,7 +59,7 @@ public:
       String *outfile = Getattr(n, "outfile");
       Replaceall(outfile, "_wrap.cxx", ".lisp");
       Replaceall(outfile, "_wrap.c", ".lisp");
-      out = NewFile(outfile, "w");
+      out = NewFile(outfile, "w", SWIG_output_files());
       if (!out) {
 	FileErrorDisplay(outfile);
 	SWIG_exit(EXIT_FAILURE);

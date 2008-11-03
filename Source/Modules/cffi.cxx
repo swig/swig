@@ -119,15 +119,14 @@ int CFFI::top(Node *n) {
 
   Printf(lisp_filename, "%s%s.lisp", SWIG_output_directory(), module);
 
-  File *f_lisp = NewFile(lisp_filename, "w");
-  NewFile(lisp_filename, "w");
+  File *f_lisp = NewFile(lisp_filename, "w", SWIG_output_files());
   if (!f_lisp) {
     FileErrorDisplay(lisp_filename);
     SWIG_exit(EXIT_FAILURE);
   }
 
   if (CPlusPlus || CWrap) {
-    f_cxx = NewFile(cxx_filename, "w");
+    f_cxx = NewFile(cxx_filename, "w", SWIG_output_files());
     if (!f_cxx) {
       Close(f_lisp);
       Delete(f_lisp);
@@ -137,7 +136,7 @@ int CFFI::top(Node *n) {
 
     String *clos_filename = NewString("");
     Printf(clos_filename, "%s%s-clos.lisp", SWIG_output_directory(), module);
-    f_clos = NewFile(clos_filename, "w");
+    f_clos = NewFile(clos_filename, "w", SWIG_output_files());
     if (!f_clos) {
       Close(f_lisp);
       Delete(f_lisp);

@@ -188,7 +188,7 @@ int CHICKEN::top(Node *n) {
   /* Initialize all of the output files */
   String *outfile = Getattr(n, "outfile");
 
-  f_runtime = NewFile(outfile, "w");
+  f_runtime = NewFile(outfile, "w", SWIG_output_files());
   if (!f_runtime) {
     FileErrorDisplay(outfile);
     SWIG_exit(EXIT_FAILURE);
@@ -251,7 +251,7 @@ int CHICKEN::top(Node *n) {
   Printf(f_init, "#endif\n");
 
   Printf(chicken_filename, "%s%s.scm", SWIG_output_directory(), module);
-  if ((f_scm = NewFile(chicken_filename, "w")) == 0) {
+  if ((f_scm = NewFile(chicken_filename, "w", SWIG_output_files())) == 0) {
     FileErrorDisplay(chicken_filename);
     SWIG_exit(EXIT_FAILURE);
   }

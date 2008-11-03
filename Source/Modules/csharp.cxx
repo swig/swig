@@ -286,7 +286,7 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
 
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -297,7 +297,7 @@ public:
         Printf(stderr, "Unable to determine outfile_h\n");
         SWIG_exit(EXIT_FAILURE);
       }
-      f_runtime_h = NewFile(outfile_h, "w");
+      f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
 	SWIG_exit(EXIT_FAILURE);
@@ -396,7 +396,7 @@ public:
     // Generate the intermediary class
     {
       String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), imclass_name);
-      File *f_im = NewFile(filen, "w");
+      File *f_im = NewFile(filen, "w", SWIG_output_files());
       if (!f_im) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
@@ -440,7 +440,7 @@ public:
     // Generate the C# module class
     {
       String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), module_class_name);
-      File *f_module = NewFile(filen, "w");
+      File *f_module = NewFile(filen, "w", SWIG_output_files());
       if (!f_module) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
@@ -1155,7 +1155,7 @@ public:
 	} else {
 	  // Global enums are defined in their own file
 	  String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), symname);
-	  File *f_enum = NewFile(filen, "w");
+	  File *f_enum = NewFile(filen, "w", SWIG_output_files());
 	  if (!f_enum) {
 	    FileErrorDisplay(filen);
 	    SWIG_exit(EXIT_FAILURE);
@@ -1734,7 +1734,7 @@ public:
       }
 
       String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), proxy_class_name);
-      f_proxy = NewFile(filen, "w");
+      f_proxy = NewFile(filen, "w", SWIG_output_files());
       if (!f_proxy) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
@@ -2960,7 +2960,7 @@ public:
   void emitTypeWrapperClass(String *classname, SwigType *type) {
     String *swigtype = NewString("");
     String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), classname);
-    File *f_swigtype = NewFile(filen, "w");
+    File *f_swigtype = NewFile(filen, "w", SWIG_output_files());
     if (!f_swigtype) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);

@@ -542,7 +542,7 @@ MODULA3():
    * ----------------------------------------------------------------------------- */
 
   File *openWriteFile(String *name) {
-    File *file = NewFile(name, "w");
+    File *file = NewFile(name, "w", SWIG_output_files());
     if (!file) {
       FileErrorDisplay(name);
       SWIG_exit(EXIT_FAILURE);
@@ -902,7 +902,7 @@ MODULA3():
     /* Initialize all of the output files */
     outfile = Getattr(n, "outfile");
 
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -2382,7 +2382,7 @@ MODULA3():
       }
 
       String *filen = NewStringf("%s%s.m3", Swig_file_dirname(outfile), proxy_class_name);
-      f_proxy = NewFile(filen, "w");
+      f_proxy = NewFile(filen, "w", SWIG_output_files());
       if (!f_proxy) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
@@ -3762,7 +3762,7 @@ MODULA3():
 
   void emitTypeWrapperClass(String *classname, SwigType *type) {
     String *filen = NewStringf("%s%s.m3", Swig_file_dirname(outfile), classname);
-    File *f_swigtype = NewFile(filen, "w");
+    File *f_swigtype = NewFile(filen, "w", SWIG_output_files());
     if (!f_swigtype) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);

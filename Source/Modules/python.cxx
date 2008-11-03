@@ -513,7 +513,7 @@ public:
     String *outfile = Getattr(n, "outfile");
     String *outfile_h = !no_header_file ? Getattr(n, "outfile_h") : 0;
 
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -521,7 +521,7 @@ public:
 
     if (directorsEnabled()) {
       if (!no_header_file) {
-	f_runtime_h = NewFile(outfile_h, "w");
+	f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
 	if (!f_runtime_h) {
 	  FileErrorDisplay(outfile_h);
 	  SWIG_exit(EXIT_FAILURE);
@@ -662,7 +662,7 @@ public:
 	module = interface;
       else
 	Insert(module, 0, "_");
-      if ((f_shadow_py = NewFile(filen, "w")) == 0) {
+      if ((f_shadow_py = NewFile(filen, "w", SWIG_output_files())) == 0) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
       }

@@ -222,7 +222,7 @@ public:
     /* Initialize all of the output files */
     String *outfile = Getattr(n, "outfile");
 
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -315,7 +315,7 @@ public:
 	pmfile = NewStringf("%s.pm", m);
       }
       String *filen = NewStringf("%s%s", SWIG_output_directory(), pmfile);
-      if ((f_pm = NewFile(filen, "w")) == 0) {
+      if ((f_pm = NewFile(filen, "w", SWIG_output_files())) == 0) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
       }

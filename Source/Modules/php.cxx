@@ -258,7 +258,7 @@ public:
     String *outfile = Getattr(n, "outfile");
 
     /* main output file */
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -302,7 +302,7 @@ public:
     Printv(filen, SWIG_output_directory(), module, ".php", NIL);
     phpfilename = NewString(filen);
 
-    f_phpcode = NewFile(filen, "w");
+    f_phpcode = NewFile(filen, "w", SWIG_output_files());
     if (!f_phpcode) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
@@ -381,7 +381,7 @@ public:
     /* Create the .h file too */
     filen = NewStringEmpty();
     Printv(filen, SWIG_output_directory(), "php_", module, ".h", NIL);
-    f_h = NewFile(filen, "w");
+    f_h = NewFile(filen, "w", SWIG_output_files());
     if (!f_h) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
