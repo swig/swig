@@ -1033,15 +1033,23 @@ static int ccache_main(int argc, char *argv[])
 		case 'F':
 			check_cache_dir();
 			v = atoi(optarg);
-			stats_set_limits(v, -1);
-			printf("Set cache file limit to %u\n", (unsigned)v);
+			if (stats_set_limits(v, -1) == 0) {
+				printf("Set cache file limit to %u\n", (unsigned)v);
+			} else {
+				printf("Could not set cache file limit.\n");
+				exit(1);
+			}
 			break;
 
 		case 'M':
 			check_cache_dir();
 			v = value_units(optarg);
-			stats_set_limits(-1, v);
-			printf("Set cache size limit to %uk\n", (unsigned)v);
+			if (stats_set_limits(-1, v) == 0) {
+				printf("Set cache size limit to %uk\n", (unsigned)v);
+			} else {
+				printf("Could not set cache size limit.\n");
+				exit(1);
+			}
 			break;
 
 		default:

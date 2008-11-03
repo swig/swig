@@ -286,7 +286,7 @@ void stats_zero(void)
 
 
 /* set the per directory limits */
-void stats_set_limits(long maxfiles, long maxsize)
+int stats_set_limits(long maxfiles, long maxsize)
 {
 	int dir;
 	unsigned counters[STATS_END];
@@ -298,7 +298,9 @@ void stats_set_limits(long maxfiles, long maxsize)
 		maxsize /= 16;
 	}
 
-	create_dir(cache_dir);
+	if (create_dir(cache_dir) != 0) {
+		return 1;
+	}
 
 	/* set the limits in each directory */
 	for (dir=0;dir<=0xF;dir++) {
@@ -306,7 +308,9 @@ void stats_set_limits(long maxfiles, long maxsize)
 		int fd;
 
 		x_asprintf(&cdir, "%s/%1x", cache_dir, dir);
-		create_dir(cdir);
+		if (create_dir(cdir) != 0) {
+			return 1;
+		}
 		x_asprintf(&fname, "%s/stats", cdir);
 		free(cdir);
 
@@ -326,6 +330,8 @@ void stats_set_limits(long maxfiles, long maxsize)
 		}
 		free(fname);
 	}
+
+	return 0;
 }
 
 /* set the per directory sizes */
