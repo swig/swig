@@ -1128,6 +1128,14 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	if (!getenv("CCACHE_READONLY")) {
+		if (create_cachedirtag(cache_dir) != 0) {
+			fprintf(stderr,"ccache: failed to create %s/CACHEDIR.TAG (%s)\n",
+				cache_dir, strerror(errno));
+			exit(1);
+		}
+	}
+
 	ccache(argc, argv);
 	return 1;
 }

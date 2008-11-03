@@ -94,6 +94,7 @@ int move_file(const char *src, const char *dest);
 int test_if_compressed(const char *filename);
 
 int create_dir(const char *dir);
+int create_cachedirtag(const char *dir);
 void x_asprintf(char **ptr, const char *format, ...);
 char *x_strdup(const char *s);
 void *x_realloc(void *ptr, size_t size);

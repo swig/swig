@@ -329,6 +329,39 @@ int create_dir(const char *dir)
 	return 0;
 }
 
+char const CACHEDIR_TAG[] =
+	"Signature: 8a477f597d28d172789f06886806bc55\n"
+	"# This file is a cache directory tag created by ccache.\n"
+	"# For information about cache directory tags, see:\n"
+	"#	http://www.brynosaurus.com/cachedir/\n";
+
+int create_cachedirtag(const char *dir)
+{
+	char *filename;
+	struct stat st;
+	FILE *f;
+	x_asprintf(&filename, "%s/CACHEDIR.TAG", dir);
+	if (stat(filename, &st) == 0) {
+		if (S_ISREG(st.st_mode)) {
+			goto success;
+		}
+		errno = EEXIST;
+		goto error;
+	}
+	f = fopen(filename, "w");
+	if (!f) goto error;
+	if (fwrite(CACHEDIR_TAG, sizeof(CACHEDIR_TAG)-1, 1, f) != 1) {
+		goto error;
+	}
+	if (fclose(f)) goto error;
+success:
+	free(filename);
+	return 0;
+error:
+	free(filename);
+	return 1;
+}
+
 /*
   this is like asprintf() but dies if the malloc fails
   note that we use vsnprintf in a rather poor way to make this more portable
