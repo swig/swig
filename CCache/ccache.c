@@ -500,8 +500,13 @@ static void from_cache(int first)
 
 	/* update timestamps for LRU cleanup
 	   also gives output_file a sensible mtime when hard-linking (for make) */
+#ifdef HAVE_UTIMES
+       utimes(hashname, NULL);
+	utimes(stderr_file, NULL);
+#else
 	utime(hashname, NULL);
 	utime(stderr_file, NULL);
+#endif
 
 	if (strcmp(output_file, "/dev/null") == 0) {
 		ret = 0;
