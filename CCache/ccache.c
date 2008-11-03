@@ -199,7 +199,7 @@ static void to_cache(ARGS *args)
 		fd = open(tmp_stderr, O_RDONLY | O_BINARY);
 		if (fd != -1) {
 			if (strcmp(output_file, "/dev/null") == 0 ||
-			    rename(tmp_hashname, output_file) == 0 || errno == ENOENT) {
+			    move_file(tmp_hashname, output_file) == 0 || errno == ENOENT) {
 				if (cpp_stderr) {
 					/* we might have some stderr from cpp */
 					int fd2 = open(cpp_stderr, O_RDONLY | O_BINARY);
@@ -231,13 +231,24 @@ static void to_cache(ARGS *args)
 	x_asprintf(&path_stderr, "%s.stderr", hashname);
 
 	if (stat(tmp_stderr, &st1) != 0 ||
-	    stat(tmp_hashname, &st2) != 0 ||
-	    rename(tmp_hashname, hashname) != 0 ||
-	    rename(tmp_stderr, path_stderr) != 0) {
+		stat(tmp_hashname, &st2) != 0 ||
+		move_file(tmp_hashname, hashname) != 0 ||
+		move_file(tmp_stderr, path_stderr) != 0) {
 		cc_log("failed to rename tmp files - %s\n", strerror(errno));
 		stats_update(STATS_ERROR);
 		failed();
 	}
+
+#if ENABLE_ZLIB
+	/* do an extra stat on the cache files for
+	   the size statistics */
+	if (stat(path_stderr, &st1) != 0 ||
+		stat(hashname, &st2) != 0) {
+		cc_log("failed to stat cache files - %s\n", strerror(errno));
+		stats_update(STATS_ERROR);
+		failed();
+    }
+#endif
 
 	cc_log("Placed %s into cache\n", output_file);
 	stats_tocache(file_size(&st1) + file_size(&st2));
@@ -474,7 +485,13 @@ static void from_cache(int first)
 	}
 
 	/* the user might be disabling cache hits */
+#ifndef ENABLE_ZLIB
+	/* if the cache file is compressed we must recache */
+	if ((first && getenv("CCACHE_RECACHE")) ||
+		test_if_compressed(hashname) == 1) {
+#else
 	if (first && getenv("CCACHE_RECACHE")) {
+#endif
 		close(fd_stderr);
 		unlink(stderr_file);
 		free(stderr_file);
@@ -487,7 +504,9 @@ static void from_cache(int first)
 		ret = 0;
 	} else {
 		unlink(output_file);
-		if (getenv("CCACHE_HARDLINK")) {
+		/* only make a hardlink if the cache file is uncompressed */
+		if (getenv("CCACHE_HARDLINK") &&
+			test_if_compressed(hashname) == 0) {
 			ret = link(hashname, output_file);
 		} else {
 			ret = copy_file(hashname, output_file);

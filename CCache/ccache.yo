@@ -169,6 +169,11 @@ will have problems with the intermediate filename extensions used in
 this optimisation, in which case this option could allow ccache to be
 used.
 
+dit(bf(CCACHE_NOCOMPRESS)) If you set the environment variable
+CCACHE_NOCOMPRESS then there is no compression used on files that go
+into the cache. However, this setting has no effect on how files are
+retrieved from the cache, compressed results will still be usable.
+
 dit(bf(CCACHE_NOSTATS)) If you set the environment variable
 CCACHE_NOSTATS then ccache will not update the statistics files on
 each compile.
@@ -181,7 +186,8 @@ dit(bf(CCACHE_HARDLINK)) If you set the environment variable
 CCACHE_HARDLINK then ccache will attempt to use hard links from the
 cache directory when creating the compiler output rather than using a
 file copy. Using hard links is faster, but can confuse programs like
-'make' that rely on modification times.
+'make' that rely on modification times. Hard links are never made for
+compressed cache files.
 
 dit(bf(CCACHE_RECACHE)) This forces ccache to not use any cached
 results, even if it finds them. New results are still cached, but
@@ -235,6 +241,14 @@ files limits.
 When these limits are reached ccache will reduce the cache to 20%
 below the numbers you specified in order to avoid doing the cache
 clean operation too often.
+
+manpagesection(CACHE COMPRESSION)
+
+By default ccache will compress all files it puts into the cache
+using the zlib compression. While this involves a negligible
+performance slowdown, it significantly increases the number of files
+that fit in the cache. You can turn off compression setting the
+CCACHE_NOCOMPRESS environment variable.
 
 manpagesection(HOW IT WORKS)
 
@@ -294,6 +308,8 @@ itemize(
   cache. This tells the filesystem to inherit group ownership for new
   directories. The command "chmod g+s `find $CCACHE_DIR -type d`" might
   be useful for this.
+  it() Set bf(CCACHE_NOCOMPRESS) for all users, if there are users with
+  versions of ccache that do not support compression.
 )
 
 manpagesection(HISTORY)

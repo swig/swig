@@ -44,6 +44,7 @@ void fatal(const char *msg)
 	exit(1);
 }
 
+#ifndef ENABLE_ZLIB
 /* copy all data from one file descriptor to another */
 void copy_fd(int fd_in, int fd_out)
 {
@@ -55,6 +56,11 @@ void copy_fd(int fd_in, int fd_out)
 			fatal("Failed to copy fd");
 		}
 	}
+}
+
+/* move a file using rename */
+int move_file(const char *src, const char *dest) {
+	return rename(src, dest);
 }
 
 /* copy a file - used when hard links don't work 
@@ -120,6 +126,174 @@ int copy_file(const char *src, const char *dest)
 	return 0;
 }
 
+#else /* ENABLE_ZLIB */
+
+/* copy all data from one file descriptor to another
+   possibly decompressing it
+*/
+void copy_fd(int fd_in, int fd_out) {
+	char buf[10240];
+	int n;
+	gzFile gz_in;
+
+	gz_in = gzdopen(dup(fd_in), "rb");
+
+	if (!gz_in) {
+		fatal("Failed to copy fd");
+	}
+
+	while ((n = gzread(gz_in, buf, sizeof(buf))) > 0) {
+		if (write(fd_out, buf, n) != n) {
+			fatal("Failed to copy fd");
+		}
+	}
+}
+
+static int _copy_file(const char *src, const char *dest, int mode) {
+	int fd_in, fd_out;
+	gzFile gz_in, gz_out = NULL;
+	char buf[10240];
+	int n, ret;
+	char *tmp_name;
+	mode_t mask;
+	struct stat st;
+
+	x_asprintf(&tmp_name, "%s.XXXXXX", dest);
+
+	if (getenv("CCACHE_NOCOMPRESS")) {
+		mode = COPY_UNCOMPRESSED;
+	}
+
+	/* open source file */
+	fd_in = open(src, O_RDONLY);
+	if (fd_in == -1) {
+		return -1;
+	}
+
+	gz_in = gzdopen(fd_in, "rb");
+	if (!gz_in) {
+		close(fd_in);
+		return -1;
+	}
+
+	/* open destination file */
+	fd_out = mkstemp(tmp_name);
+	if (fd_out == -1) {
+		gzclose(gz_in);
+		free(tmp_name);
+		return -1;
+	}
+
+	if (mode == COPY_TO_CACHE) {
+		/* The gzip file format occupies at least 20 bytes. So
+		   it will always occupy an entire filesystem block,
+		   even for empty files.
+		   Since most stderr files will be empty, we turn off
+		   compression in this case to save space.
+		*/
+		if (fstat(fd_in, &st) != 0) {
+			gzclose(gz_in);
+			close(fd_out);
+			free(tmp_name);
+			return -1;
+		}
+		if (file_size(&st) == 0) {
+			mode = COPY_UNCOMPRESSED;
+		}
+	}
+
+	if (mode == COPY_TO_CACHE) {
+		gz_out = gzdopen(dup(fd_out), "wb");
+		if (!gz_out) {
+			gzclose(gz_in);
+			close(fd_out);
+			free(tmp_name);
+			return -1;
+		}
+	}
+
+	while ((n = gzread(gz_in, buf, sizeof(buf))) > 0) {
+		if (mode == COPY_TO_CACHE) {
+			ret = gzwrite(gz_out, buf, n);
+		} else {
+			ret = write(fd_out, buf, n);
+		}
+		if (ret != n) {
+			gzclose(gz_in);
+			if (gz_out) {
+				gzclose(gz_out);
+			}
+			close(fd_out);
+			unlink(tmp_name);
+			free(tmp_name);
+			return -1;
+		}
+	}
+
+	gzclose(gz_in);
+	if (gz_out) {
+		gzclose(gz_out);
+	}
+
+	/* get perms right on the tmp file */
+	mask = umask(0);
+	fchmod(fd_out, 0666 & ~mask);
+	umask(mask);
+
+	/* the close can fail on NFS if out of space */
+	if (close(fd_out) == -1) {
+		unlink(tmp_name);
+		free(tmp_name);
+		return -1;
+	}
+
+	unlink(dest);
+
+	if (rename(tmp_name, dest) == -1) {
+		unlink(tmp_name);
+		free(tmp_name);
+		return -1;
+	}
+
+	free(tmp_name);
+
+	return 0;
+}
+
+/* move a file to the cache, compressing it */
+int move_file(const char *src, const char *dest) {
+	int ret;
+
+	ret = _copy_file(src, dest, COPY_TO_CACHE);
+	if (ret != -1) unlink(src);
+	return ret;
+}
+
+/* copy a file from the cache, decompressing it */
+int copy_file(const char *src, const char *dest) {
+	return _copy_file(src, dest, COPY_FROM_CACHE);
+}
+#endif /* ENABLE_ZLIB */
+
+/* test if a file is zlib compressed */
+int test_if_compressed(const char *filename) {
+	FILE *f;
+
+	f = fopen(filename, "rb");
+	if (!f) {
+		return 0;
+	}
+
+	/* test if file starts with 1F8B, which is zlib's
+	 * magic number */
+	if ((fgetc(f) != 0x1f) || (fgetc(f) != 0x8b)) {
+		fclose(f);
+		return 0;
+	}
+	
+	fclose(f);
+	return 1;
+}
 
 /* make sure a directory exists */
 int create_dir(const char *dir)

@@ -98,3 +98,6 @@
 
 /* Define _GNU_SOURCE so that we get all necessary prototypes */
 #undef _GNU_SOURCE
+
+/* Define to 1 if you like to have zlib compression for the ccache. */
+#undef ENABLE_ZLIB

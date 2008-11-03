@@ -11,6 +11,7 @@ CC=@CC@
 CFLAGS=@CFLAGS@ -I.
 EXEEXT=@EXEEXT@
 
+LIBS= @LIBS@
 OBJS= ccache.o mdfour.o hash.o execute.o util.o args.o stats.o \
 	cleanup.o snprintf.o unify.o
 HEADERS = ccache.h mdfour.h
@@ -20,7 +21,7 @@ all: ccache$(EXEEXT)
 docs: ccache.1 web/ccache-man.html
 
 ccache$(EXEEXT): $(OBJS) $(HEADERS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
 ccache.1: ccache.yo
 	-yodl2man -o ccache.1 ccache.yo

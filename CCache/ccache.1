@@ -210,7 +210,8 @@ If you set the environment variable
 CCACHE_HARDLINK then ccache will attempt to use hard links from the
 cache directory when creating the compiler output rather than using a
 file copy\&. Using hard links is faster, but can confuse programs like
-\&'make\&' that rely on modification times\&.
+\&'make\&' that rely on modification times\&. Hard links are never made for
+compressed cache files\&.
 .IP 
 .IP "\fBCCACHE_RECACHE\fP" 
 This forces ccache to not use any cached
@@ -257,6 +258,11 @@ systems like this you can use the CCACHE_EXTENSION option to override
 the default\&. On HP-UX set this environment variable to "i" if you use
 the aCC compiler\&.
 .IP 
+.IP "\fBCCACHE_NOCOMPRESS\fP" 
+If you set the environment variable
+CCACHE_NOCOMPRESS then there is no compression used on files that go
+into the cache\&.
+.IP 
 .PP 
 .SH "CACHE SIZE MANAGEMENT" 
 .PP 
@@ -268,6 +274,14 @@ files limits\&.
 When these limits are reached ccache will reduce the cache to 20%
 below the numbers you specified in order to avoid doing the cache
 clean operation too often\&.
+.PP 
+.SH "CACHE COMPRESSION" 
+.PP 
+By default ccache will compress all files it puts into the cache
+using the zlib compression\&. While this involves a negligible
+performance slowdown, it significantly increases the number of files
+that fit in the cache\&. You can turn off compression setting the
+CCACHE_NOCOMPRESS environment variable\&.
 .PP 
 .SH "HOW IT WORKS" 
 .PP 

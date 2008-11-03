@@ -23,6 +23,10 @@
 #include <pwd.h>
 #endif
 
+#ifdef ENABLE_ZLIB
+#include <zlib.h>
+#endif
+
 #define STATUS_NOTFOUND 3
 #define STATUS_FATAL 4
 #define STATUS_NOCACHE 5
@@ -34,6 +38,13 @@
 /* default maximum cache size */
 #ifndef DEFAULT_MAXSIZE
 #define DEFAULT_MAXSIZE (1000*1000)
+#endif
+
+/* file copy mode */
+#ifdef ENABLE_ZLIB
+#define COPY_UNCOMPRESSED 0
+#define COPY_FROM_CACHE 1
+#define COPY_TO_CACHE 2
 #endif
 
 enum stats {
@@ -79,6 +90,8 @@ void fatal(const char *msg);
 
 void copy_fd(int fd_in, int fd_out);
 int copy_file(const char *src, const char *dest);
+int move_file(const char *src, const char *dest);
+int test_if_compressed(const char *filename);
 
 int create_dir(const char *dir);
 void x_asprintf(char **ptr, const char *format, ...);
