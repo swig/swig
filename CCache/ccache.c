@@ -498,6 +498,9 @@ static void from_cache(int first)
 		return;
 	}
 
+	/* update timestamps for LRU cleanup
+	   also gives output_file a sensible mtime when hard-linking (for make) */
+	utime(hashname, NULL);
 	utime(stderr_file, NULL);
 
 	if (strcmp(output_file, "/dev/null") == 0) {
@@ -531,10 +534,6 @@ static void from_cache(int first)
 			stats_update(STATS_ERROR);
 			failed();
 		}
-	}
-	if (ret == 0) {
-		/* update the mtime on the file so that make doesn't get confused */
-		utime(output_file, NULL);
 	}
 
 	/* get rid of the intermediate preprocessor file */
