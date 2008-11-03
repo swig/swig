@@ -448,7 +448,7 @@ const char *get_home_directory(void)
 		}
 	}
 #endif
-	fatal("Unable to determine home directory");
+	cc_log("Unable to determine home directory");
 	return NULL;
 }
 
