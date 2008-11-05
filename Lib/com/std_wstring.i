@@ -17,14 +17,21 @@ namespace std {
 %naturalvar wstring;
 class wstring;
 
-%typemap(ctype) wstring "WCHAR *"
-%typemap(comtype) wstring "BSTR"
+%typemap(ctype) wstring, const wstring& "WCHAR *"
+%typemap(comtype) wstring, const wstring& "BSTR"
 
 %typemap(in) wstring {
   if ($input) {
     $1.assign($input);
   }
 }
+
+%typemap(in) const wstring & ($*1_ltype temp)
+%{
+  if ($input)
+    temp.assign($input);
+  $1 = &temp;
+%}
 
 %typemap(out) wstring %{
   {
@@ -36,5 +43,17 @@ class wstring;
     $result = SWIG_res + 2;
   }
 %}
+
+%typemap(out) const wstring & %{
+  {
+    int SWIG_len = (*$1).size() + 1;
+    WCHAR *SWIG_res = (WCHAR *) CoTaskMemAlloc((SWIG_len + 2) * sizeof(WCHAR));
+    /* First 4 bytes contain length in bytes */
+    *((unsigned int *) SWIG_res) = (unsigned int) (SWIG_len - 1) * sizeof(WCHAR);
+    wcsncpy(SWIG_res + 2, (*$1).c_str(), SWIG_len);
+    $result = SWIG_res + 2;
+  }
+%}
+
 
 }
