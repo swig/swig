@@ -44,6 +44,7 @@ if test x"$ccache_cv_COMPAR_FN_T" = x"yes"; then
    AC_DEFINE(HAVE_COMPAR_FN_T, 1, [ ])
 fi
 
+dnl Note: This could be replaced by AC_FUNC_SNPRINTF() in the autoconf macro archive
 AC_CACHE_CHECK([for C99 vsnprintf],ccache_cv_HAVE_C99_VSNPRINTF,[
 AC_TRY_RUN([
 #include <sys/types.h>
@@ -70,12 +71,14 @@ if test x"$ccache_cv_HAVE_C99_VSNPRINTF" = x"yes"; then
 fi
 
 dnl Check for zlib.
+dnl Note: This could be replaced by CHECK_ZLIB() in the autoconf macro archive
 AC_ARG_ENABLE([zlib],
               AS_HELP_STRING([--enable-zlib], [enable zlib support for ccache compression]),,
               [enable_zlib=yes])
 
 if test x"$enable_zlib" = x"yes"; then
-    AC_CHECK_HEADER(zlib.h, AC_CHECK_LIB(z, gzdopen, LIBS="-lz $LIBS"; AC_DEFINE(ENABLE_ZLIB)))
+    AC_CHECK_HEADER(zlib.h, AC_CHECK_LIB(z, gzdopen, [LIBS="-lz $LIBS"
+						      AC_DEFINE([ENABLE_ZLIB], 1, [Define to 1 if you would like to have zlib compression for ccache.]) ] ))
 fi
 
 AC_CONFIG_FILES([Makefile])

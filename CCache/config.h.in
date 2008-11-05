@@ -1,5 +1,8 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
+/* Define to 1 if you would like to have zlib compression for ccache. */
+#undef ENABLE_ZLIB
+
 /* Define to 1 if you have the `asprintf' function. */
 #undef HAVE_ASPRINTF
 
@@ -110,6 +113,3 @@
 
 /* Define _GNU_SOURCE so that we get all necessary prototypes */
 #undef _GNU_SOURCE
-
-/* Define to 1 if you like to have zlib compression for the ccache. */
-#undef ENABLE_ZLIB
