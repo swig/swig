@@ -1111,12 +1111,12 @@ static void ccache(int argc, char *argv[])
 
 static void usage(void)
 {
-	printf("ccache, a compiler cache, with modifications for SWIG. Version %s\n", CCACHE_VERSION);
+	printf("%s, a compiler cache including support for SWIG. Version %s\n", MYNAME, CCACHE_VERSION);
 	printf("Copyright Andrew Tridgell, 2002\n\n");
 	
 	printf("Usage:\n");
-	printf("\tccache [options]\n");
-	printf("\tccache compiler [compile options]\n");
+	printf("\t" MYNAME " [options]\n");
+	printf("\t" MYNAME " compiler [compile options]\n");
 	printf("\tcompiler [compile options]    (via symbolic link)\n");
 	printf("\nOptions:\n");
 
@@ -1146,7 +1146,7 @@ static int ccache_main(int argc, char *argv[])
 	while ((c = getopt(argc, argv, "hszcCF:M:V")) != -1) {
 		switch (c) {
 		case 'V':
-			printf("ccache with modifications for SWIG version %s\n", CCACHE_VERSION);
+			printf("%s version %s\n", MYNAME, CCACHE_VERSION);
 			printf("Copyright Andrew Tridgell 2002\n");
 			printf("Released under the GNU GPL v2 or later\n");
 			exit(0);
