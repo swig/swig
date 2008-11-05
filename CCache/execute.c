@@ -36,6 +36,11 @@ int execute(char **argv,
 	if (pid == 0) {
 		int fd;
 
+		/* TODO: needs moving after possible exit() below, but before stdout is redirected */
+		if (ccache_verbose) {
+			display_execute_args(argv);
+		}
+
 		unlink(path_stdout);
 		fd = open(path_stdout, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL|O_BINARY, 0666);
 		if (fd == -1) {
@@ -126,4 +131,17 @@ char *find_executable(const char *name, const char *exclude_name)
 	}
 
 	return NULL;
+}
+
+void display_execute_args(char **argv)
+{
+	if (argv) {
+		printf("ccache executing: ");
+		while (*argv) {
+			printf("%s ", *argv);
+			++argv;
+		}
+		printf("\n");
+		fflush(stdout);
+	}
 }

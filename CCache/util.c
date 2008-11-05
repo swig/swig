@@ -44,21 +44,7 @@ void fatal(const char *msg)
 	exit(1);
 }
 
-#ifndef ENABLE_ZLIB
-/* copy all data from one file descriptor to another */
-void copy_fd(int fd_in, int fd_out)
-{
-	char buf[10240];
-	int n;
-
-	while ((n = read(fd_in, buf, sizeof(buf))) > 0) {
-		if (write(fd_out, buf, n) != n) {
-			fatal("Failed to copy fd");
-		}
-	}
-}
-
-static int safe_rename(const char* oldpath, const char* newpath)
+int safe_rename(const char* oldpath, const char* newpath)
 {
     /* safe_rename is for creating entries in the cache.
 
@@ -75,6 +61,20 @@ static int safe_rename(const char* oldpath, const char* newpath)
     }
 }
  
+#ifndef ENABLE_ZLIB
+/* copy all data from one file descriptor to another */
+void copy_fd(int fd_in, int fd_out)
+{
+	char buf[10240];
+	int n;
+
+	while ((n = read(fd_in, buf, sizeof(buf))) > 0) {
+		if (write(fd_out, buf, n) != n) {
+			fatal("Failed to copy fd");
+		}
+	}
+}
+
 /* move a file using rename */
 int move_file(const char *src, const char *dest) {
 	return safe_rename(src, dest);
@@ -83,7 +83,7 @@ int move_file(const char *src, const char *dest) {
 /* copy a file - used when hard links don't work 
    the copy is done via a temporary file and atomic rename
 */
-int copy_file(const char *src, const char *dest)
+static int copy_file(const char *src, const char *dest)
 {
 	int fd1, fd2;
 	char buf[10240];
@@ -141,6 +141,16 @@ int copy_file(const char *src, const char *dest)
 	free(tmp_name);
 
 	return 0;
+}
+
+/* copy a file to the cache */
+static int copy_file_to_cache(const char *src, const char *dest) {
+	return copy_file(src, dest);
+}
+
+/* copy a file from the cache */
+static int copy_file_from_cache(const char *src, const char *dest) {
+	return copy_file(src, dest);
 }
 
 #else /* ENABLE_ZLIB */
@@ -286,8 +296,13 @@ int move_file(const char *src, const char *dest) {
 	return ret;
 }
 
+/* copy a file to the cache, compressing it */
+static int copy_file_to_cache(const char *src, const char *dest) {
+	return _copy_file(src, dest, COPY_TO_CACHE);
+}
+
 /* copy a file from the cache, decompressing it */
-int copy_file(const char *src, const char *dest) {
+static int copy_file_from_cache(const char *src, const char *dest) {
 	return _copy_file(src, dest, COPY_FROM_CACHE);
 }
 #endif /* ENABLE_ZLIB */
@@ -310,6 +325,61 @@ int test_if_compressed(const char *filename) {
 	
 	fclose(f);
 	return 1;
+}
+
+/* copy file to the cache with error checking taking into account compression and hard linking if desired */
+int commit_to_cache(const char *src, const char *dest, int hardlink)
+{
+	int ret = -1;
+	unlink(dest);
+	if (hardlink) {
+		ret = link(src, dest);
+	}
+	if (ret == -1) {
+		ret = copy_file_to_cache(src, dest);
+		if (ret == -1) {
+			cc_log("failed to commit %s -> %s (%s)\n", src, dest, strerror(errno));
+			stats_update(STATS_ERROR);
+		}
+	}
+	return ret;
+}
+
+/* copy file out of the cache with error checking taking into account compression and hard linking if desired */
+int retrieve_from_cache(const char *src, const char *dest, int hardlink)
+{
+	int ret = 0;
+
+	x_utimes(src);
+
+	if (strcmp(dest, "/dev/null") == 0) {
+		ret = 0;
+	} else {
+		unlink(dest);
+		/* only make a hardlink if the cache file is uncompressed */
+		if (hardlink && test_if_compressed(src) == 0) {
+			ret = link(src, dest);
+		} else {
+			ret = copy_file_from_cache(src, dest);
+		}
+	}
+
+	/* the cached file might have been deleted by some external process */
+	if (ret == -1 && errno == ENOENT) {
+		cc_log("hashfile missing for %s\n", dest);
+		stats_update(STATS_MISSING);
+		return -1;
+	}
+
+	if (ret == -1) {
+		ret = copy_file_from_cache(src, dest);
+		if (ret == -1) {
+			cc_log("failed to retrieve %s -> %s (%s)\n", src, dest, strerror(errno));
+			stats_update(STATS_ERROR);
+			return -1;
+		}
+	}
+	return ret;
 }
 
 /* make sure a directory exists */
@@ -410,15 +480,24 @@ void *x_malloc(size_t size)
 void *x_realloc(void *ptr, size_t size)
 {
 	void *p2;
+#if 1
+	/* Avoid invalid read in memcpy below */
+	p2 = realloc(ptr, size);
+	if (!p2) {
+		fatal("out of memory in x_realloc");
+	}
+#else
 	if (!ptr) return x_malloc(size);
 	p2 = malloc(size);
 	if (!p2) {
 		fatal("out of memory in x_realloc");
 	}
 	if (ptr) {
+		/* Note invalid read as the memcpy reads beyond the memory allocated by ptr */
 		memcpy(p2, ptr, size);
 		free(ptr);
 	}
+#endif
 	return p2;
 }
 
@@ -674,5 +753,14 @@ const char *get_home_directory(void)
 #endif
 	cc_log("Unable to determine home directory");
 	return NULL;
+}
+
+int x_utimes(const char *filename)
+{
+#ifdef HAVE_UTIMES
+	return utimes(filename, NULL);
+#else
+	return utime(filename, NULL);
+#endif
 }
 

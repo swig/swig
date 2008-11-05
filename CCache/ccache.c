@@ -23,6 +23,9 @@
 
 #include "ccache.h"
 
+/* verbose mode */
+int ccache_verbose = 0;
+
 /* the base cache directory */
 char *cache_dir = NULL;
 
@@ -64,6 +67,9 @@ char *stats_file = NULL;
 
 /* can we safely use the unification hashing backend? */
 static int enable_unify;
+
+/* customisation for using the SWIG compiler */
+static int swig;
 
 /* a list of supported file extensions, and the equivalent
    extension for code that has been through the pre-processor
@@ -122,6 +128,14 @@ static void failed(void)
 		args_add_prefix(orig_args, p);
 	}
 
+	if (ccache_verbose) {
+		display_execute_args(orig_args->argv);
+	}
+
+	if (swig) {
+		putenv("CCACHE_OUTFILES");
+	}
+
 	execv(orig_args->argv[0], orig_args->argv);
 	cc_log("execv returned (%s)!\n", strerror(errno));
 	perror(orig_args->argv[0]);
@@ -149,21 +163,43 @@ static const char *tmp_string(void)
 	return ret;
 }
 
+/* update cached file sizes and count helper function for to_cache() */
+static void to_cache_stats_helper(struct stat *pstat, char *cached_filename, char *tmp_outfiles, int *files_size, int *cached_files_count)
+{
+#if ENABLE_ZLIB
+	/* do an extra stat on the cache file for the size statistics */
+	if (stat(cached_filename, pstat) != 0) {
+		cc_log("failed to stat cache files - %s\n", strerror(errno));
+		stats_update(STATS_ERROR);
+		if (tmp_outfiles) {
+			unlink(tmp_outfiles);
+		}
+		failed();
+	}
+#endif
+	(*files_size) += file_size(pstat);
+	(*cached_files_count)++;
+}
 
 /* run the real compiler and put the result in cache */
 static void to_cache(ARGS *args)
 {
 	char *path_stderr;
-	char *tmp_stdout, *tmp_stderr, *tmp_hashname;
-	struct stat st1, st2;
+	char *tmp_stdout, *tmp_stderr, *tmp_outfiles;
+	struct stat st1;
 	int status;
+	int cached_files_count = 0;
+	int files_size = 0;
 
 	x_asprintf(&tmp_stdout, "%s/tmp.stdout.%s", temp_dir, tmp_string());
 	x_asprintf(&tmp_stderr, "%s/tmp.stderr.%s", temp_dir, tmp_string());
-	x_asprintf(&tmp_hashname, "%s/tmp.hash.%s.o", temp_dir, tmp_string());
+	x_asprintf(&tmp_outfiles, "%s/tmp.outfiles.%s", temp_dir, tmp_string());
 
-	args_add(args, "-o");
-	args_add(args, tmp_hashname);
+	/* TODO swig */
+	if (output_file) {
+		args_add(args, "-o");
+		args_add(args, output_file);
+	}
 
 	/* Turn off DEPENDENCIES_OUTPUT when running cc1, because
 	 * otherwise it will emit a line like
@@ -172,90 +208,155 @@ static void to_cache(ARGS *args)
 	 *
 	 * unsetenv() is on BSD and Linux but not portable. */
 	putenv("DEPENDENCIES_OUTPUT");
+
+	/* Give SWIG a filename for it to create and populate with a list of files that it generates */
+	if (swig) {
+		char *ccache_outfiles;
+		x_asprintf(&ccache_outfiles, "CCACHE_OUTFILES=%s", tmp_outfiles);
+		unlink(tmp_outfiles);
+		if (getenv("CCACHE_OUTFILES") || putenv(ccache_outfiles) == -1) {
+			stats_update(STATS_ERROR);
+			failed();
+		}
+	}
 	
 	if (getenv("CCACHE_CPP2")) {
 		args_add(args, input_file);
 	} else {
+		if (swig) {
+			args_add(args, "-nopreprocess");
+		}
 		args_add(args, i_tmpfile);
 	}
 	status = execute(args->argv, tmp_stdout, tmp_stderr);
 	args_pop(args, 3);
 
 	if (stat(tmp_stdout, &st1) != 0 || st1.st_size != 0) {
-		cc_log("compiler produced stdout for %s\n", output_file);
+		cc_log("compiler produced stdout for %s\n", input_file);
 		stats_update(STATS_STDOUT);
 		unlink(tmp_stdout);
 		unlink(tmp_stderr);
-		unlink(tmp_hashname);
+		unlink(tmp_outfiles);
+		if (!swig) unlink(output_file);
 		failed();
 	}
 	unlink(tmp_stdout);
 
 	if (status != 0) {
 		int fd;
-		cc_log("compile of %s gave status = %d\n", output_file, status);
+		cc_log("compile of %s gave status = %d\n", input_file, status);
 		stats_update(STATS_STATUS);
 
 		fd = open(tmp_stderr, O_RDONLY | O_BINARY);
 		if (fd != -1) {
-			if (strcmp(output_file, "/dev/null") == 0 ||
-			    move_file(tmp_hashname, output_file) == 0 || errno == ENOENT) {
-				if (cpp_stderr) {
-					/* we might have some stderr from cpp */
-					int fd2 = open(cpp_stderr, O_RDONLY | O_BINARY);
-					if (fd2 != -1) {
-						copy_fd(fd2, 2);
-						close(fd2);
-						unlink(cpp_stderr);
-						cpp_stderr = NULL;
-					}
+			if (cpp_stderr) {
+				/* we might have some stderr from cpp */
+				int fd2 = open(cpp_stderr, O_RDONLY | O_BINARY);
+				if (fd2 != -1) {
+					copy_fd(fd2, 2);
+					close(fd2);
+					unlink(cpp_stderr);
+					cpp_stderr = NULL;
 				}
-
-				/* we can use a quick method of
-                                   getting the failed output */
-				copy_fd(fd, 2);
-				close(fd);
-				unlink(tmp_stderr);
-				if (i_tmpfile && !direct_i_file) {
-					unlink(i_tmpfile);
-				}
-				exit(status);
 			}
+
+			/* we can use a quick method of
+			   getting the failed output */
+			copy_fd(fd, 2);
+			close(fd);
+			unlink(tmp_stderr);
+			if (i_tmpfile && !direct_i_file) {
+				unlink(i_tmpfile);
+			}
+			exit(status);
 		}
 		
 		unlink(tmp_stderr);
-		unlink(tmp_hashname);
+		unlink(tmp_outfiles);
+		if (!swig) unlink(output_file);
 		failed();
+	} else {
+		int hardlink = (getenv("CCACHE_NOCOMPRESS") != 0) && (getenv("CCACHE_HARDLINK") != 0);
+		if (swig) {
+			/* read the list of generated files and copy each of them into the cache */
+			FILE *file;
+			file = fopen(tmp_outfiles, "r");
+			if (file) {
+				char out_filename[FILENAME_MAX + 1];
+				char out_filename_cache[FILENAME_MAX + 1];
+				while (fgets(out_filename, FILENAME_MAX, file)) {
+					char *linefeed = strchr(out_filename, '\n');
+					if (linefeed) {
+						*linefeed = 0;
+
+						if (cached_files_count == 0) {
+							strcpy(out_filename_cache, hashname);
+						} else {
+							sprintf(out_filename_cache, "%s.%d", hashname, cached_files_count);
+						}
+
+						if (stat(out_filename, &st1) != 0 ||
+								commit_to_cache(out_filename, out_filename_cache, hardlink) != 0) {
+							fclose(file);
+							unlink(tmp_outfiles);
+							failed();
+						}
+						to_cache_stats_helper(&st1, out_filename_cache, tmp_outfiles, &files_size, &cached_files_count);
+					} else {
+						cached_files_count = 0;
+						break;
+					}
+				}
+				fclose(file);
+				if (cached_files_count == 0) {
+					cc_log("failed to copy output files to cache - internal error\n");
+					stats_update(STATS_ERROR);
+					unlink(tmp_outfiles);
+					failed();
+				}
+
+				/* also copy the (uncompressed) file containing the list of generated files into the cache */
+				sprintf(out_filename_cache, "%s.outfiles", hashname);
+				if (stat(tmp_outfiles, &st1) != 0 ||
+					safe_rename(tmp_outfiles, out_filename_cache) != 0) {
+					cc_log("failed to copy outfiles file to cache - %s\n", strerror(errno));
+					stats_update(STATS_ERROR);
+					unlink(tmp_outfiles);
+					failed();
+				}
+				to_cache_stats_helper(&st1, out_filename_cache, tmp_outfiles, &files_size, &cached_files_count);
+				unlink(tmp_outfiles);
+			} else {
+				cc_log("failed to open temp outfiles file - %s\n", strerror(errno));
+				stats_update(STATS_ERROR);
+				failed();
+			}
+		} else {
+			if (stat(output_file, &st1) != 0 ||
+				commit_to_cache(output_file, hashname, hardlink) != 0) {
+				failed();
+			}
+			to_cache_stats_helper(&st1, hashname, 0, &files_size, &cached_files_count);
+		}
 	}
 
 	x_asprintf(&path_stderr, "%s.stderr", hashname);
 
 	if (stat(tmp_stderr, &st1) != 0 ||
-		stat(tmp_hashname, &st2) != 0 ||
-		move_file(tmp_hashname, hashname) != 0 ||
 		move_file(tmp_stderr, path_stderr) != 0) {
 		cc_log("failed to rename tmp files - %s\n", strerror(errno));
 		stats_update(STATS_ERROR);
 		failed();
 	}
 
-#if ENABLE_ZLIB
-	/* do an extra stat on the cache files for
-	   the size statistics */
-	if (stat(path_stderr, &st1) != 0 ||
-		stat(hashname, &st2) != 0) {
-		cc_log("failed to stat cache files - %s\n", strerror(errno));
-		stats_update(STATS_ERROR);
-		failed();
-    }
-#endif
+	to_cache_stats_helper(&st1, path_stderr, 0, &files_size, &cached_files_count);
 
-	cc_log("Placed %s into cache\n", output_file);
-	stats_tocache(file_size(&st1) + file_size(&st2));
+	cc_log("Placed %d files for %s into cache\n", cached_files_count, input_file);
+	stats_tocache(files_size, cached_files_count);
 
-	free(tmp_hashname);
 	free(tmp_stderr);
 	free(tmp_stdout);
+	free(tmp_outfiles);
 	free(path_stderr);
 }
 
@@ -288,7 +389,7 @@ static void find_hash(ARGS *args)
 	}
 
 	/* we have to hash the extension, as a .i file isn't treated the same
-	   by the compiler as a .ii file */
+	   by the compiler as a .ii file (Note: not strictly necessary for SWIG) */
 	hash_string(i_extension);
 
 	/* first the arguments */
@@ -383,7 +484,7 @@ static void find_hash(ARGS *args)
 		/* we are compiling a .i or .ii file - that means we
 		   can skip the cpp stage and directly form the
 		   correct i_tmpfile */
-		path_stdout = input_file;
+		path_stdout = x_strdup(input_file);
 		if (create_empty_file(path_stderr) != 0) {
 			stats_update(STATS_ERROR);
 			cc_log("failed to create empty stderr file\n");
@@ -456,7 +557,6 @@ static void find_hash(ARGS *args)
 	free(hash_dir);
 }
 
-
 /* 
    try to return the compile result from cache. If we can return from
    cache then this function exits with the correct status code,
@@ -465,7 +565,6 @@ static void from_cache(int first)
 {
 	int fd_stderr, fd_cpp_stderr;
 	char *stderr_file;
-	int ret;
 	struct stat st;
 
 	x_asprintf(&stderr_file, "%s.stderr", hashname);
@@ -488,56 +587,81 @@ static void from_cache(int first)
 #ifndef ENABLE_ZLIB
 	/* if the cache file is compressed we must recache */
 	if ((first && getenv("CCACHE_RECACHE")) ||
-		test_if_compressed(hashname) == 1) {
+		test_if_compressed(hashname) == 1)
 #else
-	if (first && getenv("CCACHE_RECACHE")) {
+	if (first && getenv("CCACHE_RECACHE"))
 #endif
+	{
 		close(fd_stderr);
 		unlink(stderr_file);
 		free(stderr_file);
 		return;
 	}
 
-	/* update timestamps for LRU cleanup
-	   also gives output_file a sensible mtime when hard-linking (for make) */
-#ifdef HAVE_UTIMES
-       utimes(hashname, NULL);
-	utimes(stderr_file, NULL);
-#else
-	utime(hashname, NULL);
-	utime(stderr_file, NULL);
-#endif
+	if (first) {
+		int hardlink;
+		int passfail = -1;
 
-	if (strcmp(output_file, "/dev/null") == 0) {
-		ret = 0;
-	} else {
-		unlink(output_file);
-		/* only make a hardlink if the cache file is uncompressed */
-		if (getenv("CCACHE_HARDLINK") &&
-			test_if_compressed(hashname) == 0) {
-			ret = link(hashname, output_file);
+		/* update timestamps for LRU cleanup
+		   also gives output_file a sensible mtime when hard-linking (for make) */
+		x_utimes(stderr_file);
+
+		hardlink = (getenv("CCACHE_HARDLINK") != 0);
+
+		if (swig) {
+			/* read the list of generated files and copy each of them out of the cache */
+			FILE *file;
+			char *outfiles;
+			x_asprintf(&outfiles, "%s.outfiles", hashname);
+			file = fopen(outfiles, "r");
+			if (file) {
+				char out_filename[FILENAME_MAX + 1];
+				char out_filename_cache[FILENAME_MAX + 1];
+				int retrieved_files_count = 0;
+				x_utimes(outfiles);
+				while (fgets(out_filename, FILENAME_MAX, file)) {
+					char *linefeed = strchr(out_filename, '\n');
+					if (linefeed) {
+						*linefeed = 0;
+
+						if (retrieved_files_count == 0) {
+							strcpy(out_filename_cache, hashname);
+						} else {
+							sprintf(out_filename_cache, "%s.%d", hashname, retrieved_files_count);
+						}
+
+						passfail = retrieve_from_cache(out_filename_cache, out_filename, hardlink);
+						if (passfail == -1) {
+							break;
+						}
+
+						retrieved_files_count++;
+					} else {
+						cc_log("failed to copy output files from cache - internal error\n");
+						stats_update(STATS_ERROR);
+						passfail = -1;
+						break;
+					}
+				}
+				if (retrieved_files_count == 0) {
+					cc_log("failed to copy output files from cache - internal error\n");
+					stats_update(STATS_ERROR);
+					passfail = -1;
+				}
+				fclose(file);
+			} else {
+				cc_log("failed to open cached outfiles file - %s\n", strerror(errno));
+				stats_update(STATS_ERROR);
+			}
 		} else {
-			ret = copy_file(hashname, output_file);
+			passfail = retrieve_from_cache(hashname, output_file, hardlink);
 		}
-	}
 
-	/* the hash file might have been deleted by some external process */
-	if (ret == -1 && errno == ENOENT) {
-		cc_log("hashfile missing for %s\n", output_file);
-		stats_update(STATS_MISSING);
-		close(fd_stderr);
-		unlink(stderr_file);
-		return;
-	}
-	free(stderr_file);
-
-	if (ret == -1) {
-		ret = copy_file(hashname, output_file);
-		if (ret == -1) {
-			cc_log("failed to copy %s -> %s (%s)\n", 
-			       hashname, output_file, strerror(errno));
-			stats_update(STATS_ERROR);
-			failed();
+		free(stderr_file);
+		if (passfail == -1) {
+			close(fd_stderr);
+			unlink(stderr_file);
+			return;
 		}
 	}
 
@@ -566,7 +690,7 @@ static void from_cache(int first)
 
 	/* and exit with the right status code */
 	if (first) {
-		cc_log("got cached result for %s\n", output_file);
+		cc_log("got cached result for %s\n", input_file);
 		stats_update(STATS_CACHED);
 	}
 
@@ -597,7 +721,7 @@ static void find_compiler(int argc, char **argv)
 
 	/* support user override of the compiler */
 	if ((path=getenv("CCACHE_CC"))) {
-		base = strdup(path);
+		base = x_strdup(path);
 	}
 
 	orig_args->argv[0] = find_executable(base, MYNAME);
@@ -621,6 +745,8 @@ static const char *check_extension(const char *fname, int *direct_i)
 	if (direct_i) {
 		*direct_i = 0;
 	}
+
+	if (swig) return "ii"; /* any file extension is acceptable as input for SWIG */
 
 	p = strrchr(fname, '.');
 	if (!p) return NULL;
@@ -661,6 +787,11 @@ static void process_args(int argc, char **argv)
 	stripped_args = args_init(0, NULL);
 
 	args_add(stripped_args, argv[0]);
+
+	/* -c not required for SWIG */
+	if (swig) {
+		found_c_opt = 1;
+	}
 
 	for (i=1; i<argc; i++) {
 		/* some options will never work ... */
@@ -709,9 +840,11 @@ static void process_args(int argc, char **argv)
 		}
 		
 		/* alternate form of -o, with no space */
-		if (strncmp(argv[i], "-o", 2) == 0) {
-			output_file = &argv[i][2];
-			continue;
+		if (!swig) { /* some of SWIG's arguments begin with -o */
+			if (strncmp(argv[i], "-o", 2) == 0) {
+				output_file = &argv[i][2];
+				continue;
+			}
 		}
 
 		/* debugging is handled specially, so that we know if we
@@ -745,6 +878,13 @@ static void process_args(int argc, char **argv)
 			dependency_filename_specified = 1;
 		} else if (strcmp(argv[i], "-MQ") == 0 || strcmp(argv[i], "-MT") == 0) {
 			dependency_target_specified = 1;
+		}
+
+		/* the input file is already preprocessed */
+		if (swig && strcmp(argv[i], "-nopreprocess") == 0) {
+			args_add(stripped_args, argv[i]);
+			direct_i_file = 1;
+			continue;
 		}
 
 		/* options that take an argument */
@@ -817,7 +957,11 @@ static void process_args(int argc, char **argv)
 		failed();
 	}
 
-	i_extension = check_extension(input_file, &direct_i_file);
+	if (swig) {
+		i_extension = check_extension(input_file, NULL);
+	} else {
+		i_extension = check_extension(input_file, &direct_i_file);
+	}
 	if (i_extension == NULL) {
 		cc_log("Not a C/C++ file - %s\n", input_file);
 		stats_update(STATS_NOTC);
@@ -843,7 +987,7 @@ static void process_args(int argc, char **argv)
 		failed();
 	}
 
-	if (!output_file) {
+	if (!swig && !output_file) {
 		char *p;
 		output_file = x_strdup(input_file);
 		if ((p = strrchr(output_file, '/'))) {
@@ -895,7 +1039,7 @@ static void process_args(int argc, char **argv)
 	}
 
 	/* cope with -o /dev/null */
-	if (strcmp(output_file,"/dev/null") != 0 && stat(output_file, &st) == 0 && !S_ISREG(st.st_mode)) {
+	if (output_file && strcmp(output_file,"/dev/null") != 0 && stat(output_file, &st) == 0 && !S_ISREG(st.st_mode)) {
 		cc_log("Not a regular file %s\n", output_file);
 		stats_update(STATS_DEVICE);
 		failed();
@@ -934,6 +1078,10 @@ static void ccache(int argc, char *argv[])
 		enable_unify = 1;
 	}
 
+	if (getenv("CCACHE_SWIG")) {
+		swig = 1;
+	}
+
 	/* process argument list, returning a new set of arguments for pre-processing */
 	process_args(orig_args->argc, orig_args->argv);
 
@@ -963,7 +1111,7 @@ static void ccache(int argc, char *argv[])
 
 static void usage(void)
 {
-	printf("ccache, a compiler cache. Version %s\n", CCACHE_VERSION);
+	printf("ccache, a compiler cache, with modifications for SWIG. Version %s\n", CCACHE_VERSION);
 	printf("Copyright Andrew Tridgell, 2002\n\n");
 	
 	printf("Usage:\n");
@@ -998,7 +1146,7 @@ static int ccache_main(int argc, char *argv[])
 	while ((c = getopt(argc, argv, "hszcCF:M:V")) != -1) {
 		switch (c) {
 		case 'V':
-			printf("ccache version %s\n", CCACHE_VERSION);
+			printf("ccache with modifications for SWIG version %s\n", CCACHE_VERSION);
 			printf("Copyright Andrew Tridgell 2002\n");
 			printf("Released under the GNU GPL v2 or later\n");
 			exit(0);
@@ -1097,12 +1245,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	temp_dir = getenv("CCACHE_TEMPDIR");
-	if (!temp_dir) {
-		temp_dir = cache_dir;
-	}
-
 	cache_logfile = getenv("CCACHE_LOGFILE");
+
+	if (getenv("CCACHE_VERBOSE")) {
+		ccache_verbose = 1;
+	}
 
 	setup_uncached_err();
 	
@@ -1138,6 +1285,17 @@ int main(int argc, char *argv[])
 		fprintf(stderr,"ccache: failed to create %s (%s)\n", 
 			cache_dir, strerror(errno));
 		exit(1);
+	}
+
+	temp_dir = getenv("CCACHE_TEMPDIR");
+	if (!temp_dir) {
+		x_asprintf(&temp_dir, "%s/temp", cache_dir);
+		/* make sure temp dir exists if not supplied by user */
+		if (temp_dir && create_dir(temp_dir) != 0) {
+			fprintf(stderr,"ccache: failed to create %s (%s)\n", 
+				temp_dir, strerror(errno));
+			exit(1);
+		}
 	}
 
 	if (!getenv("CCACHE_READONLY")) {

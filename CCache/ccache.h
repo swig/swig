@@ -92,9 +92,12 @@ void cc_log(const char *format, ...);
 void fatal(const char *msg);
 
 void copy_fd(int fd_in, int fd_out);
-int copy_file(const char *src, const char *dest);
+int safe_rename(const char* oldpath, const char* newpath);
 int move_file(const char *src, const char *dest);
 int test_if_compressed(const char *filename);
+
+int commit_to_cache(const char *src, const char *dest, int hardlink);
+int retrieve_from_cache(const char *src, const char *dest, int hardlink);
 
 int create_dir(const char *dir);
 int create_cachedirtag(const char *dir);
@@ -112,11 +115,12 @@ char *x_realpath(const char *path);
 char *gnu_getcwd(void);
 int create_empty_file(const char *fname);
 const char *get_home_directory(void);
+int x_utimes(const char *filename);
 
 void stats_update(enum stats stat);
 void stats_zero(void);
 void stats_summary(void);
-void stats_tocache(size_t size);
+void stats_tocache(size_t size, size_t numfiles);
 void stats_read(const char *stats_file, unsigned counters[STATS_END]);
 int stats_set_limits(long maxfiles, long maxsize);
 size_t value_units(const char *s);
@@ -144,6 +148,7 @@ int execute(char **argv,
 	    const char *path_stdout,
 	    const char *path_stderr);
 char *find_executable(const char *name, const char *exclude_name);
+void display_execute_args(char **argv);
 
 typedef struct {
 	char **argv;
@@ -157,6 +162,8 @@ void args_add_prefix(ARGS *args, const char *s);
 void args_pop(ARGS *args, int n);
 void args_strip(ARGS *args, const char *prefix);
 void args_remove_first(ARGS *args);
+
+extern int ccache_verbose;
 
 #if HAVE_COMPAR_FN_T
 #define COMPAR_FN_T __compar_fn_t

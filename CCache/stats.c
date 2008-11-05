@@ -116,7 +116,7 @@ static void stats_read_fd(int fd, unsigned counters[STATS_END])
 }
 
 /* update the stats counter for this compile */
-static void stats_update_size(enum stats stat, size_t size)
+static void stats_update_size(enum stats stat, size_t size, size_t numfiles)
 {
 	int fd;
 	unsigned counters[STATS_END];
@@ -147,7 +147,7 @@ static void stats_update_size(enum stats stat, size_t size)
 
 	/* on a cache miss we up the file count and size */
 	if (stat == STATS_TOCACHE) {
-		counters[STATS_NUMFILES] += 2;
+		counters[STATS_NUMFILES] += numfiles;
 		counters[STATS_TOTALSIZE] += size;
 	}
 
@@ -173,18 +173,18 @@ static void stats_update_size(enum stats stat, size_t size)
 }
 
 /* record a cache miss */
-void stats_tocache(size_t size)
+void stats_tocache(size_t size, size_t numfiles)
 {
 	/* convert size to kilobytes */
 	size = size / 1024;
 
-	stats_update_size(STATS_TOCACHE, size);
+	stats_update_size(STATS_TOCACHE, size, numfiles);
 }
 
 /* update a normal stat */
 void stats_update(enum stats stat)
 {
-	stats_update_size(stat, 0);
+	stats_update_size(stat, 0, 0);
 }
 
 /* read in the stats from one dir and add to the counters */
