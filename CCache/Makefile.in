@@ -1,3 +1,4 @@
+datarootdir = @datarootdir@
 srcdir=@srcdir@
 VPATH=@srcdir@
 
