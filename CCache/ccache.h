@@ -1,4 +1,6 @@
-#define CCACHE_VERSION "2.4"
+#include "ccache_swig_config.h"
+
+#define CCACHE_VERSION SWIG_VERSION
 
 #include "config.h"
 
@@ -34,7 +36,7 @@
 #define STATUS_FATAL 4
 #define STATUS_NOCACHE 5
 
-#define MYNAME "ccache-swig"
+#define MYNAME PACKAGE_NAME
 
 #define LIMIT_MULTIPLE 0.8
 

@@ -7,6 +7,7 @@ exec_prefix=@exec_prefix@
 bindir=@bindir@
 mandir=@mandir@
 INSTALLCMD=@INSTALL@
+PACKAGE_NAME=@PACKAGE_NAME@
 
 CC=@CC@
 CFLAGS=@CFLAGS@ -I.
@@ -17,11 +18,11 @@ OBJS= ccache.o mdfour.o hash.o execute.o util.o args.o stats.o \
 	cleanup.o snprintf.o unify.o
 HEADERS = ccache.h mdfour.h
 
-all: ccache$(EXEEXT)
+all: $(PACKAGE_NAME)$(EXEEXT)
 
 docs: ccache.1 web/ccache-man.html
 
-ccache$(EXEEXT): $(OBJS) $(HEADERS)
+$(PACKAGE_NAME)$(EXEEXT): $(OBJS) $(HEADERS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 ccache.1: ccache.yo
@@ -31,14 +32,14 @@ web/ccache-man.html: ccache.yo
 	mkdir -p man
 	yodl2html -o web/ccache-man.html ccache.yo
 
-install: ccache$(EXEEXT) ccache.1
+install: $(PACKAGE_NAME)$(EXEEXT) ccache.1
 	${INSTALLCMD} -d $(DESTDIR)${bindir}
-	${INSTALLCMD} -m 755 ccache$(EXEEXT) $(DESTDIR)${bindir}
+	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}
 	${INSTALLCMD} -d $(DESTDIR)${mandir}/man1
 	${INSTALLCMD} -m 644 ${srcdir}/ccache.1 $(DESTDIR)${mandir}/man1/
 
 clean:
-	/bin/rm -f $(OBJS) *~ ccache$(EXEEXT)
+	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
 
 test: test.sh
 	CC='$(CC)' ./test.sh
@@ -46,7 +47,7 @@ test: test.sh
 check: test
 
 distclean: clean
-	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status
+	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status configure config.h
 
 # FIXME: To fix this, test.sh needs to be able to take ccache from the
 # installed prefix, not from the source dir.

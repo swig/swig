@@ -14,15 +14,20 @@ datarootdir = @datarootdir@
 SHELL       = /bin/sh
 SWIG_LIB    = @swig_lib@
 BIN_DIR     = @bindir@
+ENABLE_CCACHE = @ENABLE_CCACHE@
 TARGET_NOEXE= swig
 TARGET      = $(TARGET_NOEXE)@EXEEXT@
 SOURCE      = Source
+CCACHE      = CCache
 DOCS        = Doc/Manual
 
-swig: libfiles source
+swig: libfiles source ccache
 
 source:
 	@cd $(SOURCE) && $(MAKE)
+
+ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE))
 
 libfiles: $(srcdir)/Lib/swigwarn.swg
 
@@ -349,6 +354,9 @@ clean-docs:
 	@echo cleaning Docs
 	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) -s clean
 
+clean-ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s clean)
+
 maintainer-clean: clean-libfiles
 	@cd $(SOURCE) && $(MAKE) maintainer-clean
 
@@ -358,7 +366,7 @@ maintainer-clean: clean-libfiles
 
 DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool
 
-distclean: distclean-objects clean-examples clean-gifplot distclean-test-suite clean-docs distclean-dead
+distclean: distclean-objects clean-examples clean-gifplot distclean-test-suite clean-docs distclean-dead distclean-ccache
 
 distclean-objects: distclean-source
 
@@ -370,6 +378,9 @@ distclean-source:
 distclean-test-suite:
 	@echo distcleaning Examples/test-suite
 	@$(MAKE) -k -s noskip-test-suite ACTION=distclean
+
+distclean-ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s distclean)
 
 noskip-test-suite:				\
 	noskip-tcl-test-suite			\
