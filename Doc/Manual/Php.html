@@ -14,7 +14,6 @@
 <li><a href="#Php_nn1">Generating PHP Extensions</a>
 <ul>
 <li><a href="#Php_nn1_1">Building a loadable extension</a>
-<li><a href="#Php_nn1_2">Building extensions into PHP</a>
 <li><a href="#Php_nn1_3">Using PHP Extensions</a>
 </ul>
 <li><a href="#Php_nn2">Basic PHP interface</a>
@@ -119,6 +118,7 @@ this approach, or provide explicit support for it.
 
 <H3><a name="Php_nn1_1"></a>28.1.1 Building a loadable extension</H3>
 
+
 <p>
 To build your module as a dynamically loadable extension, use compilation
 commands like these (if you aren't using GCC, the commands will be different,
@@ -131,7 +131,8 @@ least work for Linux though):
 	gcc -shared example_wrap.o -o example.so
 </pre></div>
 
-<H3><a name="Php_nn1_3"></a>28.1.3 Using PHP Extensions</H3>
+<H3><a name="Php_nn1_3"></a>28.1.2 Using PHP Extensions</H3>
+
 
 <p>
 To test the extension from a PHP script, you need to load it first. You
