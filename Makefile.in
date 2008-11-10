@@ -322,7 +322,7 @@ broken-%-test-suite:
 
 clean: clean-objects clean-libfiles clean-examples clean-gifplot clean-test-suite clean-docs
 
-clean-objects: clean-source
+clean-objects: clean-source clean-ccache
 
 clean-source:
 	@echo cleaning Source
