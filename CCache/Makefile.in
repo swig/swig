@@ -20,23 +20,23 @@ HEADERS = ccache.h mdfour.h
 
 all: $(PACKAGE_NAME)$(EXEEXT)
 
-docs: ccache.1 web/ccache-man.html
+docs: $(PACKAGE_NAME).1 web/$(PACKAGE_NAME)-man.html
 
 $(PACKAGE_NAME)$(EXEEXT): $(OBJS) $(HEADERS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
-ccache.1: ccache.yo
-	-yodl2man -o ccache.1 ccache.yo
+$(PACKAGE_NAME).1: ccache.yo
+	-yodl2man -o $(PACKAGE_NAME).1 ccache.yo
 
-web/ccache-man.html: ccache.yo
+web/$(PACKAGE_NAME)-man.html: ccache.yo
 	mkdir -p man
-	yodl2html -o web/ccache-man.html ccache.yo
+	yodl2html -o web/$(PACKAGE_NAME)-man.html ccache.yo
 
-install: $(PACKAGE_NAME)$(EXEEXT) ccache.1
+install: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 	${INSTALLCMD} -d $(DESTDIR)${bindir}
 	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}
 	${INSTALLCMD} -d $(DESTDIR)${mandir}/man1
-	${INSTALLCMD} -m 644 ${srcdir}/ccache.1 $(DESTDIR)${mandir}/man1/
+	${INSTALLCMD} -m 644 ${srcdir}/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/
 
 clean:
 	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
