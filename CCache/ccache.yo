@@ -135,6 +135,10 @@ dit(bf(CCACHE_LOGFILE)) If you set the CCACHE_LOGFILE environment
 variable then ccache will write some log information on cache hits
 and misses in that file. This is useful for tracking down problems.
 
+dit(bf(CCACHE_VERBOSE)) If you set the CCACHE_VERBOSE environment
+variable then ccache will display on stdout all the compiler invocations
+that it makes. This can useful for debugging unexpected problems.
+
 dit(bf(CCACHE_PATH)) You can optionally set CCACHE_PATH to a colon
 separated path where ccache will look for the real compilers. If you
 don't do this then ccache will look for the first executable matching
@@ -228,6 +232,10 @@ doesn't work, for example when using the aCC compiler on HP-UX. On
 systems like this you can use the CCACHE_EXTENSION option to override
 the default. On HP-UX set this environment variable to "i" if you use
 the aCC compiler.
+
+dit(bf(CCACHE_SWIG)) The CCACHE_SWIG environment variable needs to be
+set in order for ccache to work with SWIG. Currently the CCACHE_CPP2
+environment variable also needs to be set in order to work with SWIG.
 
 enddit()
 
