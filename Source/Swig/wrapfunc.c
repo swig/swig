@@ -23,7 +23,7 @@ static int Max_line_size = 128;
  * Create a new wrapper function object.
  * ----------------------------------------------------------------------------- */
 
-Wrapper *NewWrapper() {
+Wrapper *NewWrapper(void) {
   Wrapper *w;
   w = (Wrapper *) malloc(sizeof(Wrapper));
   w->localh = NewHash();

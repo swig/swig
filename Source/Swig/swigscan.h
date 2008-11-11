@@ -11,7 +11,7 @@
 
 typedef struct Scanner Scanner;
 
-extern Scanner     *NewScanner();
+extern Scanner     *NewScanner(void);
 extern void         DelScanner(Scanner *);
 extern void         Scanner_clear(Scanner *);
 extern void         Scanner_push(Scanner *, String *);

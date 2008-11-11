@@ -36,7 +36,7 @@ struct Scanner {
  * Create a new scanner object
  * ----------------------------------------------------------------------------- */
 
-Scanner *NewScanner() {
+Scanner *NewScanner(void) {
   Scanner *s;
   s = (Scanner *) malloc(sizeof(Scanner));
   s->line = 1;

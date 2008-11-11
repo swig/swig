@@ -73,7 +73,7 @@ void Swig_push_directory(const String_or_char *dirname) {
  * the preprocessor.
  * ----------------------------------------------------------------------------- */
 
-void Swig_pop_directory() {
+void Swig_pop_directory(void) {
   if (!Swig_get_push_dir())
     return;
   if (!pdirectories)
@@ -87,7 +87,7 @@ void Swig_pop_directory() {
  * Returns the full pathname of the last file opened. 
  * ----------------------------------------------------------------------------- */
 
-String *Swig_last_file() {
+String *Swig_last_file(void) {
   assert(lastpath);
   return lastpath;
 }

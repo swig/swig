@@ -271,7 +271,7 @@ extern int DohGetmark(DOH *obj);
  * Strings.
  * ----------------------------------------------------------------------------- */
 
-extern DOHString *DohNewStringEmpty();
+extern DOHString *DohNewStringEmpty(void);
 extern DOHString *DohNewString(const DOH *c);
 extern DOHString *DohNewStringWithSize(const DOH *c, int len);
 extern DOHString *DohNewStringf(const DOH *fmt, ...);
@@ -309,14 +309,14 @@ extern int DohCopyto(DOHFile * input, DOHFile * output);
  * List
  * ----------------------------------------------------------------------------- */
 
-extern DOHList *DohNewList();
+extern DOHList *DohNewList(void);
 extern void DohSortList(DOH *lo, int (*cmp) (const DOH *, const DOH *));
 
 /* -----------------------------------------------------------------------------
  * Hash
  * ----------------------------------------------------------------------------- */
 
-extern DOHHash *DohNewHash();
+extern DOHHash *DohNewHash(void);
 
 /* -----------------------------------------------------------------------------
  * Void

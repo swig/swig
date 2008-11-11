@@ -38,12 +38,12 @@ extern "C" {
   extern void Swig_cparse_follow_locators(int);
   extern void start_inline(char *, int);
   extern String *scanner_ccode;
-  extern int yylex();
+  extern int yylex(void);
 
 /* parser.y */
   extern SwigType *Swig_cparse_type(String *);
   extern Node *Swig_cparse(File *);
-  extern Hash *Swig_cparse_features();
+  extern Hash *Swig_cparse_features(void);
   extern void SWIG_cparse_set_compact_default_args(int defargs);
   extern int SWIG_cparse_template_reduce(int treduce);
 
