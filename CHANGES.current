@@ -4,6 +4,10 @@ Version 1.3.37 (in progress)
 ============================
 
 2008-11-01: wsfulton
+	    [Java] Add patch #2152691 from MATSUURA Takanori which fixes compiles using the
+	    Intel compiler
+
+2008-11-01: wsfulton
             Add patch #2128249 from Anatoly Techtonik which corrects the C/C++ proxy
             class being reported for Python docstrings when %rename is used.
 
