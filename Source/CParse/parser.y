@@ -203,7 +203,7 @@ static String *yyrename = 0;
 static String *resolve_node_scope(String *cname);
 
 
-Hash *Swig_cparse_features() {
+Hash *Swig_cparse_features(void) {
   static Hash   *features_hash = 0;
   if (!features_hash) features_hash = NewHash();
   return features_hash;

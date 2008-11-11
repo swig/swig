@@ -93,7 +93,7 @@ String *Swig_last_file(void) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_search_path() 
+ * Swig_search_path_any() 
  * 
  * Returns a list of the current search paths.
  * ----------------------------------------------------------------------------- */
