@@ -1894,6 +1894,8 @@ include_directive: includetype options string LBRACKET {
                      $1.filename = Copy(cparse_file);
 		     $1.line = cparse_line;
 		     scanner_set_location(NewString($3),1);
+                     if ($2 && GetFlag($2, "maininput"))
+                       scanner_set_main_input_file(NewString($3));
                } interface RBRACKET {
                      String *mname = 0;
                      $$ = $6;

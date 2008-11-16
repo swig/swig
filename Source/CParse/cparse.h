@@ -34,7 +34,9 @@ extern "C" {
   extern void scanner_ignore_typedef(void);
   extern void scanner_last_id(int);
   extern void scanner_clear_rename(void);
-  extern void scanner_set_location(String_or_char *, int line);
+  extern void scanner_set_location(String_or_char *file, int line);
+  extern void scanner_set_main_input_file(String *file);
+  extern String *scanner_get_main_input_file();
   extern void Swig_cparse_follow_locators(int);
   extern void start_inline(char *, int);
   extern String *scanner_ccode;

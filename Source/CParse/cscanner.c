@@ -22,7 +22,10 @@ char cvsroot_cscanner_c[] = "$Id$";
 static Scanner *scan = 0;
 
 /* Global string containing C code. Used by the parser to grab code blocks */
-DOHString *scanner_ccode = 0;
+String *scanner_ccode = 0;
+
+/* The main file being parsed */
+static String *main_input_file = 0;
 
 /* Error reporting/location information */
 int     cparse_line = 1;
@@ -465,6 +468,14 @@ void scanner_clear_rename() {
 static int next_token = 0;
 void scanner_next_token(int tok) {
   next_token = tok;
+}
+
+void scanner_set_main_input_file(String *file) {
+  main_input_file = file;
+}
+
+String *scanner_get_main_input_file() {
+  return main_input_file;
 }
 
 /* ----------------------------------------------------------------------------

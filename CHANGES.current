@@ -1,9 +1,14 @@
-2008-09-26  Mikel Bancroft  <mikel@franz.com>
-
 Version 1.3.37 (in progress)
 ============================
 
-2008-11-01: wsfulton
+2008-11-16: wsfulton
+	    Fix -nopreprocess option to:
+	    - correctly report file names in warning and error messages.
+	    - use the original input filename that created the preprocessed output when 
+	      determining the C++ wrapper file name (in the absence of -o). Previously 
+	      the name of the input file containing the preprocessed output was used.
+
+2008-11-11: wsfulton
 	    [Java] Add patch #2152691 from MATSUURA Takanori which fixes compiles using the
 	    Intel compiler
 
