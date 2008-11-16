@@ -75,6 +75,7 @@
 <li><a href="#Typemaps_nn48">More about <tt>%apply</tt> and <tt>%clear</tt></a>
 <li><a href="#Typemaps_nn49">Reducing wrapper code size</a>
 <li><a href="#Typemaps_nn47">Passing data between typemaps</a>
+<li><a href="#Typemaps_nn52">C++ <tt>this</tt> pointer</a>
 <li><a href="#Typemaps_nn51">Where to go for more information?</a>
 </ul>
 </div>
@@ -3899,8 +3900,65 @@ sure that the typemaps sharing information have exactly the same types and names
 </p>
 
 
-<H2><a name="Typemaps_nn51"></a>10.15 Where to go for more information?</H2>
+<H2><a name="Typemaps_nn52"></a>10.15 C++ "this" pointer</H2>
 
+<p>
+All the rules discussed for Typemaps apply to C++ as well as C.
+However in addition C++ passes an extra parameter into every
+non-static class method -- the <tt>this</tt> pointer.  Occasionally it can be
+useful to apply a typemap to this pointer (for example to check
+and make sure <tt>this</tt> is non-null before deferencing).
+Actually, C also has an the equivalent of the <tt>this</tt> pointer which is used
+when accessing variables in a C struct.
+</p>
+<p>
+In order to customise the <tt>this</tt> pointer handling, target a variable named <tt>self</tt> in your typemaps.
+<tt>self</tt> is the name SWIG uses to refer to the extra parameter in wrapped functions. 
+</p>
+<p>
+For example, if wrapping for Java generation:
+</p>
+
+<div class="code">
+<pre>
+%typemap(check) SWIGTYPE *self %{
+if (!$1) {
+  SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "swigCPtr null");
+  return $null;
+}
+%}
+</pre>
+</div>
+
+<p>
+In the above case, the <tt>$1</tt> variable is expanded into the argument
+name that SWIG is using as the <tt>this</tt> pointer.
+
+SWIG will then insert the check code before the actual C++ class method
+is called, and will raise an exception rather than crash
+the Java virtual machine.
+
+The generated code will look something like:
+</p>
+
+<div class="code">
+<pre>
+  if (!arg1) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException,
+      "invalid native object; delete() likely already called");
+    return ;
+  }
+  (arg1)->wrappedFunction(...);
+</pre>
+</div>
+
+<p>
+Note that if you have a parameter named <tt>self</tt> then it
+will also match the typemap.  One work around is to create an interface file that wraps
+the method, but give the argument a name other than <tt>self</tt>.
+</p>
+
+<H2><a name="Typemaps_nn51"></a>10.16 Where to go for more information?</H2>
 
 <p>
 The
