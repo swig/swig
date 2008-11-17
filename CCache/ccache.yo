@@ -233,9 +233,10 @@ systems like this you can use the CCACHE_EXTENSION option to override
 the default. On HP-UX set this environment variable to "i" if you use
 the aCC compiler.
 
-dit(bf(CCACHE_SWIG)) The CCACHE_SWIG environment variable needs to be
-set in order for ccache to work with SWIG. Currently the CCACHE_CPP2
-environment variable also needs to be set in order to work with SWIG.
+dit(bf(CCACHE_SWIG)) When using SWIG as the compiler and it does not
+have 'swig' in the executable name, then the CCACHE_SWIG environment 
+variable needs to be set in order for ccache to work correctly with 
+SWIG. 
 
 enddit()
 

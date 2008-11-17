@@ -195,7 +195,6 @@ static void to_cache(ARGS *args)
 	x_asprintf(&tmp_stderr, "%s/tmp.stderr.%s", temp_dir, tmp_string());
 	x_asprintf(&tmp_outfiles, "%s/tmp.outfiles.%s", temp_dir, tmp_string());
 
-	/* TODO swig */
 	if (output_file) {
 		args_add(args, "-o");
 		args_add(args, output_file);
@@ -384,13 +383,19 @@ static void find_hash(ARGS *args)
 
 	/* when we are doing the unifying tricks we need to include
            the input file name in the hash to get the warnings right */
-	if (enable_unify) {
+	if (enable_unify || swig) {
 		hash_string(input_file);
 	}
 
-	/* we have to hash the extension, as a .i file isn't treated the same
-	   by the compiler as a .ii file (Note: not strictly necessary for SWIG) */
-	hash_string(i_extension);
+	if (swig) {
+		if (output_file) {
+			hash_string(output_file);
+		}
+	} else {
+		/* we have to hash the extension, as a .i file isn't treated the same
+		   by the compiler as a .ii file */
+		hash_string(i_extension);
+	}
 
 	/* first the arguments */
 	for (i=1;i<args->argc;i++) {
@@ -1055,6 +1060,15 @@ static void process_args(int argc, char **argv)
 	}
 }
 
+static void detect_swig()
+{
+	char *basename = str_basename(orig_args->argv[0]);
+	if (strstr(basename, "swig") || getenv("CCACHE_SWIG")) {
+		swig = 1;
+	}
+	free(basename);
+}
+
 /* the main ccache driver function */
 static void ccache(int argc, char *argv[])
 {
@@ -1078,9 +1092,7 @@ static void ccache(int argc, char *argv[])
 		enable_unify = 1;
 	}
 
-	if (getenv("CCACHE_SWIG")) {
-		swig = 1;
-	}
+	detect_swig();
 
 	/* process argument list, returning a new set of arguments for pre-processing */
 	process_args(orig_args->argc, orig_args->argv);
