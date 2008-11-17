@@ -353,9 +353,9 @@ The name of the module is specified using the <tt>%module</tt> directive or<tt> 
 To load your shared native library module in Java, simply use Java's <tt>System.loadLibrary</tt> method in a Java class:</p>
 
 <div class="code"><pre>
-// main.java
+// runme.java
 
-public class main {
+public class runme {
   static {
     System.loadLibrary("example");
   }
@@ -372,7 +372,7 @@ Compile all the Java files and run:
 
 <div class="code"><pre>
 $ javac *.java
-$ java main
+$ java runme
 24
 $
 </pre></div>
@@ -394,12 +394,12 @@ You may get an exception similar to this:
 </p>
 
 <div class="code"><pre>
-$ java main
+$ java runme
 Exception in thread "main" java.lang.UnsatisfiedLinkError: no example in java.library.path
         at java.lang.ClassLoader.loadLibrary(ClassLoader.java:1312)
         at java.lang.Runtime.loadLibrary0(Runtime.java:749)
         at java.lang.System.loadLibrary(System.java:820)
-        at main.&lt;clinit&gt;(main.java:5)
+        at runme.&lt;clinit&gt;(runme.java:5)
 </pre></div>
 
 <p>
@@ -426,7 +426,7 @@ The following exception is indicative of this:
 </p>
 
 <div class="code"><pre>
-$ java main
+$ java runme
 Exception in thread "main" java.lang.UnsatisfiedLinkError: libexample.so: undefined
 symbol: fact
         at java.lang.ClassLoader$NativeLibrary.load(Native Method)
@@ -434,7 +434,7 @@ symbol: fact
         at java.lang.ClassLoader.loadLibrary(ClassLoader.java, Compiled Code)
         at java.lang.Runtime.loadLibrary0(Runtime.java, Compiled Code)
         at java.lang.System.loadLibrary(System.java, Compiled Code)
-        at main.&lt;clinit&gt;(main.java:5)
+        at runme.&lt;clinit&gt;(runme.java:5)
 $
 </pre></div>
 
@@ -3760,7 +3760,7 @@ will produce a familiar looking Java exception:
 Exception in thread "main" java.lang.OutOfMemoryError: Not enough memory
         at exampleJNI.malloc(Native Method)
         at example.malloc(example.java:16)
-        at main.main(main.java:112)
+        at runme.main(runme.java:112)
 </pre>
 </div>
 
@@ -6168,9 +6168,9 @@ When this module is compiled, our wrapped C functions can be used by the followi
 </p>
 
 <div class="code"><pre>
-// File main.java
+// File runme.java
 
-public class main {
+public class runme {
 
   static {
     try {
@@ -6196,7 +6196,7 @@ When compiled and run we get:
 </p>
 
 <div class="code"><pre>
-$ java main
+$ java runme
 argv[0] = Cat
 argv[1] = Dog
 argv[2] = Cow
@@ -6387,9 +6387,9 @@ The following Java program demonstrates this:
 </p>
 
 <div class="code"><pre>
-// File: main.java
+// File: runme.java
 
-public class main {
+public class runme {
 
   static {
     try {
@@ -6414,7 +6414,7 @@ When compiled and run we get:
 </p>
 
 <div class="code"><pre>
-$ java main
+$ java runme
 1 12.0  340.0
 </pre></div>
 
@@ -6474,7 +6474,7 @@ We get:
 <div class="code"><pre>
 Ambulance started
 java.lang.ClassCastException
-        at main.main(main.java:16)
+        at runme.main(runme.java:16)
 </pre></div>
 
 <p>

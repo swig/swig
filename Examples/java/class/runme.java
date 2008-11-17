@@ -1,7 +1,7 @@
 // This example illustrates how C++ classes can be used from Java using SWIG.
 // The Java class gets mapped onto the C++ class and behaves as if it is a Java class.
 
-public class main {
+public class runme {
   static {
     try {
         System.loadLibrary("example");

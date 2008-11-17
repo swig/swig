@@ -1,6 +1,6 @@
 // This example illustrates the manipulation of C++ references in Java.
 
-public class main {
+public class runme {
   static {
     try {
         System.loadLibrary("example");

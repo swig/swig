@@ -2,7 +2,7 @@
 
 import java.lang.reflect.*;
 
-public class main {
+public class runme {
   static {
     try {
         System.loadLibrary("example");

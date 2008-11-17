@@ -489,7 +489,7 @@ java_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 java_clean:
-	rm -f *_wrap* *~ .~* *.class `find . -name \*.java | grep -v main.java`
+	rm -f *_wrap* *~ .~* *.class `find . -name \*.java | grep -v runme.java`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@JAVASO@
 

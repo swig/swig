@@ -17,7 +17,7 @@ class CEO extends Manager {
 }
 
 
-public class main {
+public class runme {
   static {
     try {
         System.loadLibrary("example");

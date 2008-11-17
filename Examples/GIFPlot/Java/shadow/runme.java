@@ -1,7 +1,8 @@
 // Plot a 3D function
+
 import java.lang.Math;
 
-public class main {
+public class runme {
 
   static {
     try {
@@ -26,20 +27,20 @@ public class main {
     int nxpoints =  60;
     int nypoints =  60;
     
-    SWIGTYPE_p_ColorMap cmap  = gifplot.new_ColorMap("cmap");
-    SWIGTYPE_p_FrameBuffer frame = gifplot.new_FrameBuffer(500,500);
-    gifplot.FrameBuffer_clear(frame,(short)gifplot.BLACK);
+    ColorMap cmap = new ColorMap("cmap");
+    FrameBuffer frame = new FrameBuffer(500,500);
+    frame.clear((short)gifplot.BLACK);
     
-    SWIGTYPE_p_Plot3D p3    = gifplot.new_Plot3D(frame,xmin,ymin,zmin,xmax,ymax,zmax);
-    gifplot.Plot3D_lookat(p3,2*(zmax-zmin));
-    gifplot.Plot3D_autoperspective(p3,40);
-    gifplot.Plot3D_rotu(p3,60);
-    gifplot.Plot3D_rotr(p3,30);
-    gifplot.Plot3D_rotd(p3,10);
+    Plot3D p3 = new Plot3D(frame,xmin,ymin,zmin,xmax,ymax,zmax);
+    p3.lookat(2*(zmax-zmin));
+    p3.autoperspective(40);
+    p3.rotu(60);
+    p3.rotr(30);
+    p3.rotd(10);
     
     System.out.println( "Making a nice 3D plot..." );
-    gifplot.Plot3D_clear(p3,(short)gifplot.BLACK);
-    gifplot.Plot3D_start(p3);
+    p3.clear((short)gifplot.BLACK);
+    p3.start();
     double dx = 1.0*(xmax-xmin)/nxpoints;
     double dy = 1.0*(ymax-ymin)/nypoints;
     double cscale = 240.0/(zmax-zmin);
@@ -58,13 +59,13 @@ public class main {
         double c = (c1+c2+c3+c4)/4;
         if (c < 0) c = 0;
         if (c > 239) c = 239;
-        gifplot.Plot3D_solidquad(p3,x,y,z1,x+dx,y,z2,x+dx,y+dy,z3,x,y+dy,z4,(short)(c+16));
+        p3.solidquad(x,y,z1,x+dx,y,z2,x+dx,y+dy,z3,x,y+dy,z4,(short)(c+16));
         y = y + dy;
       }
       x = x + dx;
     }
 
-    gifplot.FrameBuffer_writeGIF(frame,cmap,"image.gif");
+    frame.writeGIF(cmap,"image.gif");
     System.out.println( "Wrote image.gif" );
   } 
 

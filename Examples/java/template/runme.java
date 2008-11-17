@@ -1,6 +1,6 @@
 // This example illustrates how C++ templates can be used from Java.
 
-public class main {
+public class runme {
   static {
     try {
         System.loadLibrary("example");
