@@ -887,7 +887,6 @@ static void process_args(int argc, char **argv)
 
 		/* the input file is already preprocessed */
 		if (swig && strcmp(argv[i], "-nopreprocess") == 0) {
-			args_add(stripped_args, argv[i]);
 			direct_i_file = 1;
 			continue;
 		}
