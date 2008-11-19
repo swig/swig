@@ -9,7 +9,13 @@ else
  COMPILER=cc
 fi
 
-CCACHE=../ccache
+if test -n "$SWIG"; then
+ SWIG="$SWIG"
+else
+ SWIG=swig
+fi
+
+CCACHE=../ccache-swig
 TESTDIR=test.$$
 
 test_failed() {
@@ -30,6 +36,20 @@ randcode() {
     while [ $i -lt $nlines ]; do
 	echo "int foo$nlines$i(int x) { return x; }"
 	i=`expr $i + 1`
+    done
+    ) >> "$outfile"
+}
+
+genswigcode() {
+    outfile="$1"
+    nlines=$2
+    i=0;
+    (
+    echo "%module swigtest$2;"
+    while [ $i -lt $nlines ]; do
+        echo "int foo$nlines$i(int x);"
+        echo "struct Bar$nlines$i { int y; };"
+        i=`expr $i + 1`
     done
     ) >> "$outfile"
 }
@@ -247,6 +267,117 @@ basetests() {
     rm -f test1.c
 }
 
+swigtests() {
+    echo "starting swig testsuite $testsuite"
+    rm -rf .ccache
+    checkstat 'cache hit' 0
+    checkstat 'cache miss' 0
+
+    j=1
+    rm -f *.i
+    genswigcode testswig1.i 1
+
+    testname="BASIC"
+    $CCACHE_COMPILE -java testswig1.i
+    checkstat 'cache hit' 0
+    checkstat 'cache miss' 1
+    
+    checkstat 'files in cache' 6
+
+    testname="BASIC2"
+    $CCACHE_COMPILE -java testswig1.i
+    checkstat 'cache hit' 1
+    checkstat 'cache miss' 1
+    
+    testname="output"
+    $CCACHE_COMPILE -java testswig1.i -o foo_wrap.c
+    checkstat 'cache hit' 1
+    checkstat 'cache miss' 2
+
+    testname="bad"
+    $CCACHE_COMPILE -java testswig1.i -I 2> /dev/null
+    checkstat 'bad compiler arguments' 1
+
+    testname="stdout"
+    $CCACHE_COMPILE -v -java testswig1.i > /dev/null
+    checkstat 'compiler produced stdout' 1
+
+    testname="non-regular"
+    mkdir testd
+    $CCACHE_COMPILE -o testd -java testswig1.i > /dev/null 2>&1
+    rmdir testd
+    checkstat 'output to a non-regular file' 1
+
+    testname="no-input"
+    $CCACHE_COMPILE -java 2> /dev/null
+    checkstat 'no input file' 1
+
+
+    testname="CCACHE_DISABLE"
+    CCACHE_DISABLE=1 $CCACHE_COMPILE -java testswig1.i 2> /dev/null
+    checkstat 'cache hit' 1 
+    $CCACHE_COMPILE -java testswig1.i
+    checkstat 'cache hit' 2 
+
+    testname="CCACHE_CPP2"
+    CCACHE_CPP2=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    checkstat 'cache hit' 2 
+    checkstat 'cache miss' 3
+
+    CCACHE_CPP2=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    checkstat 'cache hit' 3 
+    checkstat 'cache miss' 3
+
+    testname="CCACHE_NOSTATS"
+    CCACHE_NOSTATS=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    checkstat 'cache hit' 3
+    checkstat 'cache miss' 3
+    
+    testname="CCACHE_RECACHE"
+    CCACHE_RECACHE=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    checkstat 'cache hit' 3 
+    checkstat 'cache miss' 4
+
+    # strictly speaking should be 3x6=18 instead of 4x6=24 - RECACHE causes a double counting!
+    checkstat 'files in cache' 24 
+    $CCACHE -c > /dev/null
+    checkstat 'files in cache' 18
+
+
+    testname="CCACHE_HASHDIR"
+    CCACHE_HASHDIR=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    checkstat 'cache hit' 3
+    checkstat 'cache miss' 5
+
+    CCACHE_HASHDIR=1 $CCACHE_COMPILE -java -O -O testswig1.i
+    checkstat 'cache hit' 4
+    checkstat 'cache miss' 5
+
+    checkstat 'files in cache' 24
+    
+    testname="cpp call"
+    $CCACHE_COMPILE -java -E testswig1.i > testswig1-preproc.i
+    checkstat 'cache hit' 4
+    checkstat 'cache miss' 5
+
+    testname="direct .i compile"
+    $CCACHE_COMPILE -java testswig1.i
+    checkstat 'cache hit' 5
+    checkstat 'cache miss' 5
+
+    # No cache hit due to different input file name, -nopreprocess should not be given twice to SWIG
+    $CCACHE_COMPILE -java -nopreprocess testswig1-preproc.i
+    checkstat 'cache hit' 5
+    checkstat 'cache miss' 6
+
+    $CCACHE_COMPILE -java -nopreprocess testswig1-preproc.i
+    checkstat 'cache hit' 6
+    checkstat 'cache miss' 6
+
+    rm -f testswig1-preproc.i
+    rm -f testswig1.i
+}
+
 ######
 # main program
 rm -rf $TESTDIR
@@ -259,19 +390,31 @@ export CCACHE_DIR
 testsuite="base"
 CCACHE_COMPILE="$CCACHE $COMPILER"
 basetests
+CCACHE_COMPILE="$CCACHE $SWIG"
+swigtests
 
 testsuite="link"
-ln -s ../ccache $COMPILER
+echo ln -s $CCACHE $COMPILER
+ln -s $CCACHE $COMPILER
 CCACHE_COMPILE="./$COMPILER"
 basetests
+rm "./$COMPILER"
+ln -s $CCACHE $SWIG
+CCACHE_COMPILE="./$SWIG"
+swigtests
+rm "./$SWIG"
 
 testsuite="hardlink"
 CCACHE_COMPILE="$CCACHE $COMPILER"
-CCACHE_HARDLINK=1 basetests
+CCACHE_NOCOMPRESS=1 CCACHE_HARDLINK=1 basetests
+CCACHE_COMPILE="$CCACHE $SWIG"
+CCACHE_NOCOMPRESS=1 CCACHE_HARDLINK=1 swigtests
 
 testsuite="cpp2"
 CCACHE_COMPILE="$CCACHE $COMPILER"
 CCACHE_CPP2=1 basetests
+CCACHE_COMPILE="$CCACHE $SWIG"
+CCACHE_CPP2=1 swigtests
 
 testsuite="nlevels4"
 CCACHE_COMPILE="$CCACHE $COMPILER"
