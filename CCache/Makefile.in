@@ -11,6 +11,8 @@ PACKAGE_NAME=@PACKAGE_NAME@
 
 CC=@CC@
 CFLAGS=@CFLAGS@ -I.
+SWIG=swig
+SWIG_LIB=../../Lib
 EXEEXT=@EXEEXT@
 
 LIBS= @LIBS@
@@ -41,8 +43,10 @@ install: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 clean:
 	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
 
+check : test
+
 test: test.sh
-	CC='$(CC)' ./test.sh
+	SWIG_LIB='$(SWIG_LIB)' PATH=../..:$$PATH SWIG='$(SWIG)' CC='$(CC)' ./test.sh
 
 check: test
 
