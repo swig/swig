@@ -1331,10 +1331,10 @@ AC_SUBST(RUBYDYNAMICLINKING)
 
 PHP4BIN=
 
-AC_ARG_WITH(php4, AS_HELP_STRING([--without-php4], [Disable PHP])
-AS_HELP_STRING([--with-php4=path], [Set location of PHP executable]),[ PHP4BIN="$withval"], [PHP4BIN=yes])
+AC_ARG_WITH(php, AS_HELP_STRING([--without-php], [Disable PHP])
+AS_HELP_STRING([--with-php=path], [Set location of PHP executable]),[ PHP4BIN="$withval"], [PHP4BIN=yes])
 
-# First, check for "--without-php4" or "--with-php4=no".
+# First, check for "--without-php" or "--with-php=no".
 if test x"${PHP4BIN}" = xno -o x"${with_alllang}" = xno ; then 
     AC_MSG_NOTICE([Disabling PHP])
     PHP4=
@@ -2149,7 +2149,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/ocaml/Makefile	        \
     Examples/test-suite/octave/Makefile	        \
     Examples/test-suite/perl5/Makefile	        \
-    Examples/test-suite/php4/Makefile	        \
+    Examples/test-suite/php/Makefile	        \
     Examples/test-suite/pike/Makefile	        \
     Examples/test-suite/python/Makefile	        \
     Examples/test-suite/ruby/Makefile	        \

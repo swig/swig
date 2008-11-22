@@ -49,7 +49,7 @@ skip-guilescm   = test -n "@SKIP_GUILESCM@"
 skip-guile	= test -n "@SKIP_GUILE@"
 skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
 skip-ruby	= test -n "@SKIP_RUBY@"
-skip-php4	= test -n "@SKIP_PHP4@"
+skip-php	= test -n "@SKIP_PHP4@"
 skip-ocaml      = test -n "@SKIP_OCAML@"
 skip-octave     = test -n "@SKIP_OCTAVE@"
 skip-pike       = test -n "@SKIP_PIKE@"
@@ -89,13 +89,16 @@ check-aliveness:
 	@$(skip-ruby)     || ./$(TARGET) -ruby     -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
 	@$(skip-octave)   || ./$(TARGET) -octave   -help
-	@$(skip-php4)     || ./$(TARGET) -php4     -help
+	@$(skip-php)      || ./$(TARGET) -php      -help
 	@$(skip-pike)     || ./$(TARGET) -pike     -help
 	@$(skip-chicken)  || ./$(TARGET) -chicken  -help
 	@$(skip-csharp)   || ./$(TARGET) -csharp   -help
 	@$(skip-modula3)  || ./$(TARGET) -modula3  -help
 	@$(skip-lua)      || ./$(TARGET) -lua      -help
 	@$(skip-r) 	  || ./$(TARGET) -r        -help
+
+check-ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
 
 # Checks examples for compilation (does not run them)
 check-examples:					\
@@ -108,7 +111,7 @@ check-examples:					\
 	check-ruby-examples			\
 	check-ocaml-examples			\
 	check-octave-examples			\
-	check-php4-examples			\
+	check-php-examples			\
 	check-pike-examples			\
 	check-chicken-examples                  \
 	check-csharp-examples                   \
@@ -129,7 +132,7 @@ mzscheme_examples  :=$(shell sed '/^\#/d' $(srcdir)/Examples/mzscheme/check.list
 ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
 octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
-php4_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/php4/check.list)
+php4_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/php/check.list)
 pike_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/pike/check.list)
 chicken_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/chicken/check.list)
 csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
@@ -181,7 +184,7 @@ check-gifplot:					\
 	check-ruby-gifplot			\
 	check-ocaml-gifplot			\
 	check-octave-gifplot			\
-	check-php4-gifplot			\
+	check-php-gifplot			\
 	check-pike-gifplot			\
 	check-chicken-gifplot                   \
 #	check-lua-gifplot                  	\
@@ -223,7 +226,7 @@ check-test-suite:				\
 	check-ruby-test-suite			\
 	check-ocaml-test-suite			\
 	check-octave-test-suite			\
-	check-php4-test-suite			\
+	check-php-test-suite			\
 	check-pike-test-suite			\
 	check-csharp-test-suite			\
 	check-modula3-test-suite		\
@@ -260,7 +263,7 @@ partialcheck-test-suite:
 partialcheck-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=partialcheck
 
-check: check-aliveness check-examples check-gifplot check-test-suite
+check: check-aliveness check-ccache check-examples check-gifplot check-test-suite
 
 # Run known-to-be-broken as well as not broken testcases in the test-suite
 all-test-suite:					\
@@ -274,7 +277,7 @@ all-test-suite:					\
 	all-ruby-test-suite			\
 	all-ocaml-test-suite			\
 	all-octave-test-suite			\
-	all-php4-test-suite			\
+	all-php-test-suite			\
 	all-pike-test-suite			\
 	all-csharp-test-suite			\
 	all-modula3-test-suite			\
@@ -301,7 +304,7 @@ broken-test-suite:				\
 	broken-ruby-test-suite			\
 	broken-ocaml-test-suite			\
 	broken-octave-test-suite		\
-	broken-php4-test-suite			\
+	broken-php-test-suite			\
 	broken-pike-test-suite			\
 	broken-csharp-test-suite		\
 	broken-modula3-test-suite		\
@@ -393,7 +396,7 @@ noskip-test-suite:				\
 	noskip-ruby-test-suite			\
 	noskip-ocaml-test-suite			\
 	noskip-octave-test-suite		\
-	noskip-php4-test-suite			\
+	noskip-php-test-suite			\
 	noskip-pike-test-suite			\
 	noskip-csharp-test-suite		\
 	noskip-lua-test-suite			\
@@ -441,7 +444,7 @@ MKINSTDIRS      = @abs_srcdir@/Tools/config/install-sh -m 0755 -d
 # Use standard autoconf approach to transform executable name using --program-prefix and --program-suffix
 transform	= @program_transform_name@
 
-install: install-main install-lib
+install: install-main install-lib install-ccache
 	@echo "Installation complete"
 
 install-main:
@@ -450,7 +453,7 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php4 ocaml octave \
+lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
 	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r
 
 lib-modules = std
@@ -484,6 +487,9 @@ install-lib:
 		  done;						\
 	      fi) ; 						\
 	done
+
+install-ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) install)
 
 
 #####################################################################
