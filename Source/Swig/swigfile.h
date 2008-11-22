@@ -14,6 +14,7 @@ extern void    Swig_push_directory(const String_or_char *dirname);
 extern void    Swig_pop_directory(void);
 extern String *Swig_last_file(void);
 extern List   *Swig_search_path(void);
+extern FILE   *Swig_include_open(const String_or_char *name);
 extern FILE   *Swig_open(const String_or_char *name);
 extern String *Swig_read_file(FILE *f); 
 extern String *Swig_include(const String_or_char *name);

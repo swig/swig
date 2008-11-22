@@ -1886,16 +1886,19 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
                  ;
 
 /* ------------------------------------------------------------
-   %includefile "filename" [ declarations ] 
-   %importfile  "filename" [ declarations ]
+   %includefile "filename" [option1="xyz", ...] [ declarations ] 
+   %importfile  "filename" [option1="xyz", ...] [ declarations ]
    ------------------------------------------------------------ */
 
 include_directive: includetype options string LBRACKET {
                      $1.filename = Copy(cparse_file);
 		     $1.line = cparse_line;
 		     scanner_set_location(NewString($3),1);
-                     if ($2 && GetFlag($2, "maininput"))
-                       scanner_set_main_input_file(NewString($3));
+                     if ($2) { 
+		       String *maininput = Getattr($2, "maininput");
+		       if (maininput)
+		         scanner_set_main_input_file(NewString(maininput));
+		     }
                } interface RBRACKET {
                      String *mname = 0;
                      $$ = $6;

@@ -947,7 +947,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (!s) {
       fprintf(stderr, "Unable to locate '%s' in the SWIG library.\n", input_file);
     } else {
-      FILE *f = Swig_open(outfile);
+      FILE *f = Swig_include_open(outfile);
       if (f) {
 	fclose(f);
 	fprintf(stderr, "File '%s' already exists. Checkout aborted.\n", outfile);
@@ -974,17 +974,22 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       String *fs = NewString("");
       FILE *df = Swig_open(input_file);
       if (!df) {
-	char *cfile = Char(input_file);
-	if (cfile && cfile[0] == '-') {
-	  Printf(stderr, "Unable to find option or file '%s', ", input_file);
-	  Printf(stderr, "use 'swig -help' for more information.\n");
+	df = Swig_include_open(input_file);
+	if (!df) {
+	  char *cfile = Char(input_file);
+	  if (cfile && cfile[0] == '-') {
+	    Printf(stderr, "Unable to find option or file '%s', ", input_file);
+	    Printf(stderr, "use 'swig -help' for more information.\n");
+	  } else {
+	    Printf(stderr, "Unable to find file '%s'.\n", input_file);
+	  }
+	  SWIG_exit(EXIT_FAILURE);
 	} else {
-	  Printf(stderr, "Unable to find file '%s'.\n", input_file);
+	  Swig_warning(WARN_DEPRECATED_INPUT_FILE, "SWIG", 1, "Use of the include path to find the input file is deprecated and will not work with ccache. Please include the path when specifying the input file.\n"); // so that behaviour is like c/c++ compilers
 	}
-	SWIG_exit(EXIT_FAILURE);
       }
-      fclose(df);
       if (!no_cpp) {
+	fclose(df);
 	Printf(fs, "%%include <swig.swg>\n");
 	if (allkw) {
 	  Printf(fs, "%%include <allkw.swg>\n");
@@ -992,7 +997,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	if (lang_config) {
 	  Printf(fs, "\n%%include <%s>\n", lang_config);
 	}
-	Printf(fs, "%%include(maininput=1) \"%s\"\n", Swig_last_file());
+	Printf(fs, "%%include(maininput=\"%s\") \"%s\"\n", input_file, Swig_last_file());
 	for (i = 0; i < Len(libfiles); i++) {
 	  Printf(fs, "\n%%include \"%s\"\n", Getitem(libfiles, i));
 	}
@@ -1000,8 +1005,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	cpps = Preprocessor_parse(fs);
 	Delete(fs);
       } else {
-	df = Swig_open(input_file);
 	cpps = Swig_read_file(df);
+	fclose(df);
       }
       if (Swig_error_count()) {
 	SWIG_exit(EXIT_FAILURE);

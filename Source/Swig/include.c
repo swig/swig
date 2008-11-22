@@ -151,10 +151,11 @@ List *Swig_search_path() {
 /* -----------------------------------------------------------------------------
  * Swig_open()
  *
- * Looks for a file and open it.  Returns an open  FILE * on success.
+ * open a file, optionally looking for it in the include path.  Returns an open  
+ * FILE * on success.
  * ----------------------------------------------------------------------------- */
 
-static FILE *Swig_open_any(const String_or_char *name, int sysfile) {
+static FILE *Swig_open_file(const String_or_char *name, int sysfile, int use_include_path) {
   FILE *f;
   String *filename;
   List *spath = 0;
@@ -169,7 +170,7 @@ static FILE *Swig_open_any(const String_or_char *name, int sysfile) {
   filename = NewString(cname);
   assert(filename);
   f = fopen(Char(filename), "r");
-  if (!f) {
+  if (!f && use_include_path) {
     spath = Swig_search_path_any(sysfile);
     ilen = Len(spath);
     for (i = 0; i < ilen; i++) {
@@ -193,8 +194,14 @@ static FILE *Swig_open_any(const String_or_char *name, int sysfile) {
   return f;
 }
 
+/* Open a file - searching the include paths to find it */
+FILE *Swig_include_open(const String_or_char *name) {
+  return Swig_open_file(name, 0, 1);
+}
+
+/* Open a file - does not use include paths to find it */
 FILE *Swig_open(const String_or_char *name) {
-  return Swig_open_any(name, 0);
+  return Swig_open_file(name, 0, 0);
 }
 
 
@@ -235,7 +242,7 @@ static String *Swig_include_any(const String_or_char *name, int sysfile) {
   String *str;
   String *file;
 
-  f = Swig_open_any(name, sysfile);
+  f = Swig_open_file(name, sysfile, 1);
   if (!f)
     return 0;
   str = Swig_read_file(f);
@@ -265,7 +272,7 @@ String *Swig_include_sys(const String_or_char *name) {
 int Swig_insert_file(const String_or_char *filename, File *outfile) {
   char buffer[4096];
   int nbytes;
-  FILE *f = Swig_open(filename);
+  FILE *f = Swig_include_open(filename);
 
   if (!f)
     return -1;

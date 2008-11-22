@@ -1624,7 +1624,7 @@ public:
 	} else if (Strcmp(code, "include") == 0) {
 	  /* Include a file into the .pm file */
 	  if (value) {
-	    FILE *f = Swig_open(value);
+	    FILE *f = Swig_include_open(value);
 	    if (!f) {
 	      Printf(stderr, "%s : Line %d. Unable to locate file %s\n", input_file, line_number, value);
 	    } else {
