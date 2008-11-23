@@ -1140,11 +1140,15 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
     if (top) {
       if (!Getattr(top, "name")) {
-	Printf(stderr, "*** No module name specified using %%module or -module.\n");
+	Printf(stderr, "No module name specified using %%module or -module.\n");
 	SWIG_exit(EXIT_FAILURE);
       } else {
 	/* Set some filename information on the object */
 	String *infile = scanner_get_main_input_file();
+	if (!infile) {
+	  Printf(stderr, "Missing input file in preprocessed output.\n");
+	  SWIG_exit(EXIT_FAILURE);
+	}
 	Setattr(top, "infile", infile); // Note: if nopreprocess then infile is the original input file, otherwise input_file
 	Setattr(top, "inputfile", input_file);
 	if (!outfile_name) {
