@@ -1101,7 +1101,8 @@ public:
 	      case T_LONG: {
 		char *p;
 		errno = 0;
-		(void) strtol(Char(value), &p, 0);
+		unsigned int n = strtol(Char(value), &p, 0);
+		(void) n;
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
@@ -1114,7 +1115,8 @@ public:
 	      case T_ULONG: {
 		char *p;
 		errno = 0;
-		(void) strtoul(Char(value), &p, 0);
+		unsigned int n = strtoul(Char(value), &p, 0);
+		(void) n;
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");

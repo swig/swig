@@ -127,7 +127,7 @@ char cvsroot_modula3_cxx[] = "$Id$";
 #include <limits.h>		// for INT_MAX
 #include <ctype.h>
 
-const char usageArgDir[] = "m3wrapargdir typemap expect values: in, out, inout\n";
+#define USAGE_ARG_DIR "m3wrapargdir typemap expect values: in, out, inout\n"
 
 class MODULA3:public Language {
 public:
@@ -374,7 +374,7 @@ MODULA3():
     } else if (Strcmp(dir, "out") == 0) {
       return false;
     } else {
-      printf(usageArgDir);
+      printf(USAGE_ARG_DIR);
       return false;
     }
   }
@@ -386,7 +386,7 @@ MODULA3():
     } else if ((Strcmp(dir, "out") == 0) || (Strcmp(dir, "inout") == 0)) {
       return true;
     } else {
-      printf(usageArgDir);
+      printf(USAGE_ARG_DIR);
       return false;
     }
   }
