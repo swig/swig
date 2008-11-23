@@ -1,4 +1,8 @@
 // shared_ptr namespaces could be boost or std or std::tr1
+// For example for std::tr1, use:
+// #define SWIG_SHARED_PTR_NAMESPACE std
+// #define SWIG_SHARED_PTR_SUBNAMESPACE tr1
+
 #if !defined(SWIG_SHARED_PTR_NAMESPACE)
 # define SWIG_SHARED_PTR_NAMESPACE boost
 #endif
@@ -44,12 +48,12 @@ SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, const, TYPE)
 %define SWIG_SHARED_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE...)
 SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, , TYPE)
 SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, const, TYPE)
-%types(SWIG_SHARED_PTR_NAMESPACE::shared_ptr< TYPE > = SWIG_SHARED_PTR_NAMESPACE::shared_ptr< BASECLASSTYPE >) %{
+%types(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > = SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >) %{
   *newmemory = SWIG_CAST_NEW_MEMORY;
-  return (void *) new SWIG_SHARED_PTR_NAMESPACE::shared_ptr< BASECLASSTYPE >(*(SWIG_SHARED_PTR_NAMESPACE::shared_ptr< TYPE > *)$from);
+  return (void *) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >(*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *)$from);
   %}
 %extend TYPE {
-  static SWIG_SHARED_PTR_NAMESPACE::shared_ptr< BASECLASSTYPE > SWIGSharedPtrUpcast(SWIG_SHARED_PTR_NAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast) {
+  static SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE > SWIGSharedPtrUpcast(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast) {
     return swigSharedPtrUpcast;
   }
 }
