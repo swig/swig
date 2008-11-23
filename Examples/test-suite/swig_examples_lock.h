@@ -1,9 +1,9 @@
 
-namespace SwigExamples {
-
 # if defined(_WIN32) || defined(__WIN32__)
 
 #include <windows.h>
+
+namespace SwigExamples {
 
 class CriticalSection {
 public:
@@ -27,9 +27,14 @@ private:
   CriticalSection &critical_section;
 };
 
+}
+
 #else
 
 #include <pthread.h>
+
+namespace SwigExamples {
+
 class CriticalSection {
 public:
   CriticalSection() {
@@ -55,7 +60,7 @@ private:
   CriticalSection &critical_section;
 };
 
-#endif
-
 }
+
+#endif
 
