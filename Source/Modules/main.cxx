@@ -117,7 +117,8 @@ static const char *usage3 = (const char *) "\
                         -fastdispatch -fvirtual \n\
      -o <outfile>    - Set name of the output file to <outfile>\n\
      -oh <headfile>  - Set name of the output header file to <headfile>\n\
-     -outdir <dir>   - Set language specific files output directory <dir>\n\
+     -outcurrentdir  - Set default output dir to current dir instead of input file's path\n\
+     -outdir <dir>   - Set language specific files output directory to <dir>\n\
      -small          - Compile in virtual elimination & compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates\n\
@@ -153,6 +154,7 @@ static char *cpp_extension = (char *) "cxx";
 static char *depends_extension = (char *) "d";
 static String *outdir = 0;
 static String *xmlout = 0;
+static int outcurrentdir = 0;
 static int help = 0;
 static int checkout = 0;
 static int cpp_only = 0;
@@ -694,6 +696,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	} else {
 	  Swig_arg_error();
 	}
+      } else if (strcmp(argv[i], "-outcurrentdir") == 0) {
+	Swig_mark_arg(i);
+	outcurrentdir = 1;
       } else if (strcmp(argv[i], "-Wall") == 0) {
 	Swig_mark_arg(i);
 	Swig_warnall();
@@ -1018,11 +1023,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       if (depend) {
 	if (!no_cpp) {
 	  String *outfile;
+
+	  char *basename = Swig_file_basename(outcurrentdir ? Swig_file_filename(input_file): Char(input_file));
 	  if (!outfile_name) {
 	    if (CPlusPlus || lang->cplus_runtime_mode()) {
-	      outfile = NewStringf("%s_wrap.%s", Swig_file_basename(input_file), cpp_extension);
+	      outfile = NewStringf("%s_wrap.%s", basename, cpp_extension);
 	    } else {
-	      outfile = NewStringf("%s_wrap.c", Swig_file_basename(input_file));
+	      outfile = NewStringf("%s_wrap.c", basename);
 	    }
 	  } else {
 	    outfile = NewString(outfile_name);
@@ -1034,7 +1041,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	      SWIG_exit(EXIT_FAILURE);
 	    }
 	  } else if (!depend_only) {
-	    String *filename = NewStringf("%s_wrap.%s", Swig_file_basename(input_file), depends_extension);
+	    String *filename = NewStringf("%s_wrap.%s", basename, depends_extension);
 	    f_dependencies_file = NewFile(filename, "w", SWIG_output_files());
 	    if (!f_dependencies_file) {
 	      FileErrorDisplay(filename);
@@ -1151,21 +1158,23 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	}
 	Setattr(top, "infile", infile); // Note: if nopreprocess then infile is the original input file, otherwise input_file
 	Setattr(top, "inputfile", input_file);
+
+	char *basename = Swig_file_basename(outcurrentdir ? Swig_file_filename(infile): Char(infile));
 	if (!outfile_name) {
 	  if (CPlusPlus || lang->cplus_runtime_mode()) {
-	    Setattr(top, "outfile", NewStringf("%s_wrap.%s", Swig_file_basename(infile), cpp_extension));
+	    Setattr(top, "outfile", NewStringf("%s_wrap.%s", basename, cpp_extension));
 	  } else {
-	    Setattr(top, "outfile", NewStringf("%s_wrap.c", Swig_file_basename(infile)));
+	    Setattr(top, "outfile", NewStringf("%s_wrap.c", basename));
 	  }
 	} else {
 	  Setattr(top, "outfile", outfile_name);
 	}
 	if (!outfile_name_h) {
-	  Setattr(top, "outfile_h", NewStringf("%s_wrap.%s", Swig_file_basename(infile), hpp_extension));
+	  Setattr(top, "outfile_h", NewStringf("%s_wrap.%s", basename, hpp_extension));
 	} else {
 	  Setattr(top, "outfile_h", outfile_name_h);
 	}
-	set_outdir(Swig_file_dirname(Getattr(top, "outfile")));
+	set_outdir(Swig_file_dirname(basename));
 	if (Swig_contract_mode_get()) {
 	  Swig_contracts(top);
 	}

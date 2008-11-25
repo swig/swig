@@ -1,6 +1,12 @@
 Version 1.3.37 (in progress)
 ============================
 
+2008-11-24: wsfulton
+	    Add -outcurrentdir option. This sets the default output directory to the current 
+	    directory instead of the path specified by the input file. This option enables
+	    behaviour similar to c/c++ compilers. Note that this controls the output directory,
+	    but only in the absence of the -o and/or -outdir options.
+
 2008-11-23: wsfulton
 	    [ruby] Apply patch #2263850 to fix ruby/file.i ... rubyio.h filename change in 
 	    ruby 1.9.
