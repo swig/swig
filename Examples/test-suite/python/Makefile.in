@@ -32,9 +32,8 @@ PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}
 
 
 CPP_TEST_CASES += \
-        abstractbase \
 	argcargvtest \
-	autodoc \
+	python_autodoc \
 	callback \
 	complextest \
 	director_stl \
@@ -45,12 +44,12 @@ CPP_TEST_CASES += \
 	input \
 	inplaceadd \
 	implicittest \
-	kwargs \
 	li_cstring \
 	li_cwstring \
 	li_factory \
 	li_implicit \
 	li_std_vectora \
+	li_std_vector_extra \
 	li_std_map \
 	li_std_pair_extra \
 	li_std_set \
@@ -58,9 +57,11 @@ CPP_TEST_CASES += \
 	li_std_string_extra \
 	li_std_wstream \
 	li_std_wstring \
-	nondynamic \
-	overload_simple_cast \
 	primitive_types \
+        python_abstractbase \
+	python_kwargs \
+	python_nondynamic \
+	python_overload_simple_cast \
 	std_containers \
 	swigobject \
 	template_matrix \
@@ -68,12 +69,13 @@ CPP_TEST_CASES += \
 
 #	li_std_carray
 #	director_profile
+#	python_pybuf
 
 C_TEST_CASES += \
 	file_test \
 	li_cstring \
 	li_cwstring \
-	nondynamic
+	python_nondynamic
 
 #
 # This test only works with modern C compilers
