@@ -656,7 +656,11 @@ int FrameBuffer_writeGIF(FrameBuffer *f, ColorMap *c, char *filename) {
     fclose(file);
     return -1;
   }
-  fwrite(buffer,nbytes,1,file);
+  if (fwrite(buffer,nbytes,1,file) != 1) {
+    free(buffer);
+    fclose(file);
+    return -1;
+  }
   fclose(file);
   free(buffer);
   return 0;
