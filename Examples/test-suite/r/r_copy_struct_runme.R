@@ -1,6 +1,6 @@
 source("unittest.R")
-dyn.load(paste("copy_struct", .Platform$dynlib.ext, sep=""))
-source("copy_struct.R")
+dyn.load(paste("r_copy_struct", .Platform$dynlib.ext, sep=""))
+source("r_copy_struct.R")
 cacheMetaData(1)
 
 a <- getA()

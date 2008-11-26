@@ -1,4 +1,4 @@
-cell_deref;
+octave_cell_deref;
 
 assert(func("hello"));
 assert(func({"hello"}));

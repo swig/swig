@@ -1,4 +1,4 @@
-%module li_std_string
+%module li_std_string_extra
 
 %naturalvar A;
 
@@ -51,5 +51,5 @@ std::basic_string<char,std::char_traits<char>,std::allocator<char> > test_value_
 
 %}
 
-%include ../li_std_string.i
+%include "li_std_string.i"
 

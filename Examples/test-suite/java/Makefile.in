@@ -37,6 +37,7 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 SWIGOPT += -package $*
+INTERFACEDIR = ../../
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -72,7 +73,7 @@ run_testcase = \
 	(cd $* && $(COMPILETOOL) $(JAVAC) -classpath . *.java) && \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 	  $(COMPILETOOL) $(JAVAC) -classpath . -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && 	  \
-	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_LIBRARY_PATH="$*:$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) -classpath . $*\_runme;) \
+	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_LIBRARY_PATH="$*:$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) -classpath . $*_runme;) \
 	fi;
 
 # Clean: remove testcase directories

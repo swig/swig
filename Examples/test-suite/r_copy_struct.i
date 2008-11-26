@@ -1,4 +1,4 @@
-%module copy_struct
+%module r_copy_struct
 
 %feature("opaque", "yes")  B;
 %feature("opaque", "yes")  C;

@@ -12,11 +12,11 @@
 #      certain packages have been installed.   Set the prefixes
 #      accordingly.
 #
-# 2.   To use this makefile, simply set SRCS, INTERFACE, INCLUDES, LIBS,
-#      TARGET, and do a
+# 2.   To use this makefile, set required varibles, eg SRCS, INTERFACE, 
+#      INTERFACEDIR, INCLUDES, LIBS, TARGET, and do a
 #           $(MAKE) -f Makefile.template.in SRCS='$(SRCS)' \
 #           INCLUDES='$(INCLUDES) LIBS='$(LIBS)' INTERFACE='$(INTERFACE)' \
-#           TARGET='$(TARGET)' method
+#           INTERFACEDIR='$(INTERFACEDIR)' TARGET='$(TARGET)' method
 #
 #      'method' describes what is being built.
 #---------------------------------------------------------------
@@ -31,6 +31,8 @@ SRCS       =
 INCLUDES   =
 LIBS       =
 INTERFACE  =
+INTERFACEDIR  =
+INTERFACEPATH = $(INTERFACEDIR)$(INTERFACE)
 SWIGOPT    =
 SWIG       = swig
 
@@ -105,12 +107,12 @@ TCLCXXSHARED = @TCLCXXSHARED@
 
 
 tclsh: $(SRCS)
-	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACE)
+	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE) \
 	$(TCL_LIB)  $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
 tclsh_cpp: $(SRCS)
-	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACE)
+	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE) \
 	$(TCL_LIB) $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
@@ -119,13 +121,13 @@ tclsh_cpp: $(SRCS)
 # -----------------------------------------------------------
 
 wish: $(SRCS)
-	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACE)
+	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE) \
 	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
 
 wish_cpp: $(SRCS)
-	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACE)
+	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -lwish.i $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE) \
 	$(XINCLUDE) $(TCL_LIB) $(TK_OPTS) $(XLIB) $(LIBS) $(SYSLIBS) -o $(TARGET)
 
@@ -134,7 +136,7 @@ wish_cpp: $(SRCS)
 # -----------------------------------------------------------
 
 tcl:  $(SRCS)
-	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
+	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE)
 	$(TCLLDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
 
@@ -143,7 +145,7 @@ tcl:  $(SRCS)
 # -----------------------------------------------------------
 
 tcl_cpp: $(SRCS)
-	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACE)
+	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE)
 	$(TCLCXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
 
@@ -175,7 +177,7 @@ PERL5_CCFLAGS = @PERL5CCFLAGS@
 # ----------------------------------------------------------------
 
 perl5: $(SRCS)
-	$(SWIG) -perl5 $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -perl5 $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
@@ -184,7 +186,7 @@ perl5: $(SRCS)
 # ----------------------------------------------------------------
 
 perl5_cpp: $(SRCS)
-	$(SWIG) -perl5 -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -perl5 -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
@@ -202,11 +204,11 @@ perl5_xs: $(SRCS)
 PERL5_LIB    = -L$(PERL5_INCLUDE) -l@PERL5LIB@ @LIBS@ $(SYSLIBS)
 
 perl5_static: $(SRCS)
-	$(SWIG) -perl5 -static -lperlmain.i $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -perl5 -static -lperlmain.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) -Dbool=char $(SRCS) $(ISRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
 
 perl5_static_cpp: $(SRCS)
-	$(SWIG) -perl5 -c++ -static -lperlmain.i $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -perl5 -c++ -static -lperlmain.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
 
 # -----------------------------------------------------------------
@@ -255,7 +257,7 @@ endif
 # ----------------------------------------------------------------
 
 python: $(SRCS)
-	$(SWIGPYTHON) $(SWIGOPT) $(INTERFACE)
+	$(SWIGPYTHON) $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 
@@ -264,7 +266,7 @@ python: $(SRCS)
 # -----------------------------------------------------------------
 
 python_cpp: $(SRCS)
-	$(SWIGPYTHON) -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIGPYTHON) -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 
@@ -280,12 +282,12 @@ TKINTER =
 PYTHON_LIBOPTS = $(PYTHON_LINK) @LIBS@ $(TKINTER) $(SYSLIBS)
 
 python_static: $(SRCS)
-	$(SWIGPYTHON) -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(SWIGPYTHON) -lembed.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDES) \
 	$(PYTHON_INCLUDE) $(LIBS) -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
 python_static_cpp: $(SRCS)
-	$(SWIGPYTHON) -c++ -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(SWIGPYTHON) -c++ -lembed.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
@@ -336,7 +338,7 @@ OCTAVE_SO     = @OCTAVE_SO@
 # ----------------------------------------------------------------
 
 octave: $(SRCS)
-	$(SWIG) -octave $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -octave $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(CXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
 	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(INCLUDES) $(OCTAVE_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
@@ -346,7 +348,7 @@ octave: $(SRCS)
 # -----------------------------------------------------------------
 
 octave_cpp: $(SRCS)
-	$(SWIG) -c++ -octave $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -octave $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
 	$(CXXSHARED) -g $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
@@ -373,12 +375,12 @@ GUILE_LIBPREFIX = lib
 # Build a dynamically loaded module with passive linkage and the scm interface
 #------------------------------------------------------------------
 guile: $(SRCS)
-	$(SWIG) -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 guile_cpp: $(SRCS)
-	$(SWIG) -c++ -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
@@ -389,12 +391,12 @@ guile_externalhdr:
 # Build a dynamically loaded module with passive linkage and the gh interface
 #------------------------------------------------------------------
 guile_gh: $(SRCS)
-	$(SWIG) -guile -gh -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -guile -gh -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 guile_gh_cpp: $(SRCS)
-	$(SWIG) -c++ -guile -gh -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -guile -gh -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
@@ -403,12 +405,12 @@ guile_gh_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 guile_passive: $(SRCS)
-	$(SWIG) -guile -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -guile -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 guile_passive_cpp: $(SRCS)
-	$(SWIG) -c++ -guile -Linkage passive $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -guile -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
@@ -419,24 +421,24 @@ guile_passive_cpp: $(SRCS)
 GUILE_LIBOPTS = @GUILELINK@ @LIBS@ $(SYSLIBS)
 
 guile_static: $(SRCS)
-	$(SWIG) -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) \
 	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
 	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 guile_static_cpp: $(SRCS)
-	$(SWIG) -c++ -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
 	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 guile_simple: $(SRCS)
-	$(SWIG) -guile -lguilemain.i -Linkage simple $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -guile -lguilemain.i -Linkage simple $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) \
 	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 guile_simple_cpp: $(SRCS)
-	$(SWIG) -c++ -guile -lguilemain.i -Linkage simple $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -guile -lguilemain.i -Linkage simple $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
@@ -471,7 +473,7 @@ JAVACFLAGS = @JAVACFLAGS@
 # ----------------------------------------------------------------
 
 java: $(SRCS)
-	$(SWIG) -java $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -java $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(JAVACFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(JAVA_INCLUDE)
 	$(JAVALDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
 
@@ -480,7 +482,7 @@ java: $(SRCS)
 # ----------------------------------------------------------------
 
 java_cpp: $(SRCS)
-	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -java -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(JAVACFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JAVA_INCLUDE)
 	$(JAVACXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
 
@@ -504,12 +506,12 @@ MODULA3_INCLUDE= @MODULA3INC@
 # ----------------------------------------------------------------
 
 modula3: $(SRCS)
-	$(SWIG) -modula3 $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -modula3 $(SWIGOPT) $(INTERFACEPATH)
 #	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) \
 #       $(OBJS) $(IOBJS) $(LIBS)
 
 modula3_cpp: $(SRCS)
-	$(SWIG) -modula3 -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -modula3 -c++ $(SWIGOPT) $(INTERFACEPATH)
 
 # -----------------------------------------------------------------
 # Cleaning the modula3 examples
@@ -533,12 +535,12 @@ MZSCHEME_SO = @MZSCHEME_SO@
 # ----------------------------------------------------------------
 
 mzscheme: $(SRCS)
-	$(SWIG) -mzscheme $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -mzscheme $(SWIGOPT) $(INTERFACEPATH)
 	$(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ISRCS) $(SRCS)
 	$(MZC) --ld $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS)
 
 mzscheme_cpp: $(SRCS)
-	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(CFLAGS) -o $(LIBPREFIX)$(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS) 
 
@@ -573,7 +575,7 @@ OCAMLCORE=\
 
 ocaml_static: $(SRCS)
 	$(OCAMLCORE)
-	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACEPATH)
 	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
@@ -587,7 +589,7 @@ ocaml_static: $(SRCS)
 
 ocaml_dynamic: $(SRCS)
 	$(OCAMLCORE)
-	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACEPATH)
 	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCS)
 	$(CXXSHARED) $(CFLAGS) $(CCSHARED) $(CFLAGS) -o $(INTERFACE:%.i=%@SO@) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) $(LIBS)
@@ -606,7 +608,7 @@ ocaml_dynamic: $(SRCS)
 
 ocaml_static_toplevel: $(SRCS)
 	$(OCAMLCORE)
-	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -ocaml $(SWIGOPT) $(INTERFACEPATH)
 	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
@@ -621,7 +623,7 @@ ocaml_static_toplevel: $(SRCS)
 
 ocaml_static_cpp: $(SRCS)
 	$(OCAMLCORE)
-	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS)
@@ -638,7 +640,7 @@ ocaml_static_cpp: $(SRCS)
 
 ocaml_static_cpp_toplevel: $(SRCS)
 	$(OCAMLCORE)
-	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS)
@@ -656,7 +658,7 @@ ocaml_static_cpp_toplevel: $(SRCS)
 
 ocaml_dynamic_cpp: $(SRCS)
 	$(OCAMLCORE)
-	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
 	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS) -ccopt -fPIC
@@ -697,7 +699,7 @@ RUBY_DLNK = @RUBYDYNAMICLINKING@
 # ----------------------------------------------------------------
 
 ruby: $(SRCS)
-	$(SWIG) -ruby $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -ruby $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(RUBY_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
@@ -706,7 +708,7 @@ ruby: $(SRCS)
 # -----------------------------------------------------------------
 
 ruby_cpp: $(SRCS)
-	$(SWIG) -c++ -ruby $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -ruby $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(RUBY_INCLUDE)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
@@ -720,12 +722,12 @@ ruby_cpp: $(SRCS)
 RUBY_LIBOPTS = @RUBYLINK@ @LIBS@ $(SYSLIBS)
 
 ruby_static: $(SRCS)
-	$(SWIG) -ruby -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -ruby -lembed.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(RUBY_CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDES) \
 	$(RUBY_INCLUDE) $(LIBS) -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
 
 ruby_cpp_static: $(SRCS)
-	$(SWIG) -c++ -ruby -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -ruby -lembed.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	$(RUBY_INCLUDE) $(LIBS)  -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
 
@@ -751,7 +753,7 @@ PHP4_INCLUDE = @PHP4INC@
 PHP4_SO      = @PHP4_SO@
 
 php4: $(SRCS)
-	$(SWIG) -php5 $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -php5 $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PHP4_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP4_SO)
 
@@ -760,7 +762,7 @@ php4: $(SRCS)
 # --------------------------------------------------------------------
 
 php4_cpp: $(SRCS)
-	$(SWIG) -php5 -cppext cxx -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -php5 -cppext cxx -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP4_INCLUDE)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP4_SO)
 
@@ -798,7 +800,7 @@ PIKE_DLNK    = @PIKEDYNAMICLINKING@
 # ----------------------------------------------------------------
 
 pike: $(SRCS)
-	$(SWIG) -pike $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -pike $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(PIKE_CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(PIKE_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(PIKE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
@@ -807,7 +809,7 @@ pike: $(SRCS)
 # -----------------------------------------------------------------
 
 pike_cpp: $(SRCS)
-	$(SWIG) -c++ -pike $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -pike $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(PIKE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(PIKE_INCLUDE)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(PIKE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
@@ -821,12 +823,12 @@ pike_cpp: $(SRCS)
 PIKE_LIBOPTS = @PIKELINK@ @LIBS@ $(SYSLIBS)
 
 pike_static: $(SRCS)
-	$(SWIG) -pike -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -pike -lembed.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(PIKE_CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDES) \
 	$(PIKE_INCLUDE) $(LIBS) -L$(PIKE_LIB) $(PIKE_LIBOPTS) -o $(TARGET)
 
 pike_cpp_static: $(SRCS)
-	$(SWIG) -c++ -pike -lembed.i $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -pike -lembed.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(PIKE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	$(PIKE_INCLUDE) $(LIBS)  -L$(PIKE_LIB) $(PIKE_LIBOPTS) -o $(TARGET)
 
@@ -868,7 +870,7 @@ CHICKEN_COMPILED_MAIN_OBJECT = $(CHICKEN_COMPILED_MAIN:.c=.@OBJEXT@)
 
 # This is the old way to build chicken, but it does not work correctly with exceptions
 chicken_direct: $(SRCS)
-	$(SWIG) -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+	$(SWIG) -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACEPATH)
 	$(CHICKEN) $(CHICKEN_GENERATED_SCHEME) $(CHICKENOPTS) \
 		-dynamic -feature chicken-compile-shared \
 		-output-file $(CHICKEN_COMPILED_SCHEME)
@@ -878,7 +880,7 @@ chicken_direct: $(SRCS)
 		$(LIBS) $(CHICKEN_SHAREDLIBOPTS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 chicken_direct_cpp: $(CXXSRCS) $(CHICKSRCS)
-	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACEPATH)
 	$(CHICKEN) $(CHICKEN_GENERATED_SCHEME) $(CHICKENOPTS) \
 		-dynamic -feature chicken-compile-shared \
 		-output-file $(CHICKEN_COMPILED_SCHEME)
@@ -893,7 +895,7 @@ chicken_direct_cpp: $(CXXSRCS) $(CHICKSRCS)
 
 # The following two targets are also used by the test suite
 chicken_static: $(SRCS) $(CHICKSRCS)
-	$(SWIG) -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+	$(SWIG) -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACEPATH)
 	$(CHICKEN) $(CHICKEN_GENERATED_SCHEME) $(CHICKENOPTS) \
 		-output-file $(CHICKEN_COMPILED_SCHEME)
 	$(CHICKEN) $(CHICKEN_MAIN) $(CHICKENOPTS) \
@@ -905,7 +907,7 @@ chicken_static: $(SRCS) $(CHICKSRCS)
 		$(OBJS) $(IOBJS) $(LIBS) $(CHICKEN_SHAREDLIBOPTS) -o $(TARGET)
 
 chicken_static_cpp: $(CXXSRCS) $(CHICKSRCS)
-	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACEPATH)
 	$(CHICKEN) $(CHICKEN_GENERATED_SCHEME) $(CHICKENOPTS) \
 		-output-file $(CHICKEN_COMPILED_SCHEME)
 	$(CHICKEN) $(CHICKEN_MAIN) $(CHICKENOPTS) \
@@ -921,11 +923,11 @@ chicken_static_cpp: $(CXXSRCS) $(CHICKSRCS)
 # ----------------------------------------------------------------
 
 chicken:
-	$(SWIG) -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+	$(SWIG) -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACEPATH)
 	$(COMPILETOOL) $(CHICKEN_CSC) -s `echo $(INCLUDES) | sed 's/-I/-C -I/g'` $(CHICKEN_GENERATED_SCHEME) $(SRCS) $(ISRCS) -o $(TARGET)$(SO)
 
 chicken_cpp:
-	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACE)
+	$(SWIG) -c++ -chicken $(SWIGOPT) $(INCLUDE) $(INTERFACEPATH)
 	$(COMPILETOOL) $(CHICKEN_CSC) -s `echo $(INCLUDES) | sed 's/-I/-C -I/g'` $(CHICKEN_GENERATED_SCHEME) $(SRCS) $(ICXXSRCS) $(CXXSRCS) -o $(TARGET)$(SO)
 
 chicken_externalhdr:
@@ -953,7 +955,7 @@ CSHARPSO = @CSHARPSO@
 # ----------------------------------------------------------------
 
 csharp: $(SRCS)
-	$(SWIG) -csharp $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -csharp $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(CSHARPCFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) -o $(CSHARP_LIBPREFIX)$(TARGET)$(CSHARPSO)
 
@@ -962,7 +964,7 @@ csharp: $(SRCS)
 # ----------------------------------------------------------------
 
 csharp_cpp: $(SRCS)
-	$(SWIG) -csharp -c++ $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -csharp -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(CSHARPCFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(CSHARP_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(CSHARP_LIBPREFIX)$(TARGET)$(CSHARPSO)
 
@@ -1002,7 +1004,7 @@ LUA_INTERP     = ../lua.c
 # ----------------------------------------------------------------
 
 lua: $(SRCS)
-	$(SWIG) -lua $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -lua $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) $(LUA_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
 
@@ -1011,7 +1013,7 @@ lua: $(SRCS)
 # -----------------------------------------------------------------
 
 lua_cpp: $(SRCS)
-	$(SWIG) -c++ -lua $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -lua $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(LUA_INCLUDE)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
 
@@ -1020,12 +1022,12 @@ lua_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 lua_static: $(SRCS)
-	$(SWIG) -lua -module example $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -lua -module example $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS)  $(ISRCS) $(SRCS) $(LUA_INTERP) $(INCLUDES) \
 	$(LUA_INCLUDE) $(LIBS) $(LUA_LIB) -o $(TARGET)
 
 lua_static_cpp: $(SRCS)
-	$(SWIG) -c++ -lua -module example $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -lua -module example $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(LUA_INTERP) $(INCLUDES) \
 	$(LUA_INCLUDE) $(LIBS)  $(LUA_LIB) -o $(TARGET)
 
@@ -1043,12 +1045,12 @@ lua_clean:
 ##################################################################
 
 allegrocl: $(SRCS)
-	$(SWIG) -allegrocl -cwrap $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -allegrocl -cwrap $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCS) 
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 allegrocl_cpp: $(SRCS)
-	$(SWIG) -c++ -allegrocl $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -allegrocl $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) 
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
@@ -1062,10 +1064,10 @@ allegrocl_clean:
 ##################################################################
 
 clisp: $(SRCS)
-	$(SWIG) -clisp $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -clisp $(SWIGOPT) $(INTERFACEPATH)
 
 clisp_cpp: $(SRCS)
-	$(SWIG) -c++ -clisp $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -clisp $(SWIGOPT) $(INTERFACEPATH)
 
 clisp_clean:
 	rm -f *_wrap* *~ .~*
@@ -1077,12 +1079,12 @@ clisp_clean:
 ##################################################################
 
 cffi: $(SRCS)
-	$(SWIG) -cffi $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -cffi $(SWIGOPT) $(INTERFACEPATH)
 #	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCS) 
 #	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 cffi_cpp: $(SRCS)
-	$(SWIG) -c++ -cffi $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -cffi $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) 
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
@@ -1096,12 +1098,12 @@ cffi_clean:
 ##################################################################
 
 uffi: $(SRCS)
-	$(SWIG) -uffi $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -uffi $(SWIGOPT) $(INTERFACEPATH)
 #	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCS) 
 #	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 uffi_cpp: $(SRCS)
-	$(SWIG) -c++ -uffi $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -c++ -uffi $(SWIGOPT) $(INTERFACEPATH)
 #	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) 
 #	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
@@ -1119,11 +1121,11 @@ RCXXSRCS = $(INTERFACE:.i=_wrap.cpp) #Need to use _wrap.cpp for R build system a
 RRSRC = $(INTERFACE:.i=.R)
 
 r: $(SRCS)
-	$(SWIG) -r $(SWIGOPT) $(INTERFACE)
+	$(SWIG) -r $(SWIGOPT) $(INTERFACEPATH)
 	+( PKG_LIBS="$(SRCS)" PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) )
 
 r_cpp: $(CXXSRCS)
-	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACE)
+	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
 	+( PKG_LIBS="$(CXXSRCS)" PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) )
 
 r_clean:

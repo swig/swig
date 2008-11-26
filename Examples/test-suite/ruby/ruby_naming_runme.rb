@@ -9,86 +9,86 @@
 
 require 'swig_assert'
 
-require 'naming'
+require 'ruby_naming'
 
 # Check class names
-if not Naming
-  raise RuntimeError, 'Invalid module name for Naming'
+if not Ruby_naming
+  raise RuntimeError, 'Invalid module name for Ruby_naming'
 end
 
-if not Naming::MyClass
+if not Ruby_naming::MyClass
   raise RuntimeError, 'Invalid class name for MyClass'
 end
 
 
 # Check constant names / values
-if Naming::CONSTANT1 != 1
+if Ruby_naming::CONSTANT1 != 1
   raise RuntimeError, "Incorrect value for CONSTANT1" 
 end
 
-if Naming::CONSTANT2 != 2
+if Ruby_naming::CONSTANT2 != 2
   raise RuntimeError, "Incorrect value for CONSTANT2" 
 end
 
 # Check constant names / values
-if Naming::CONSTANT3 != 3
+if Ruby_naming::CONSTANT3 != 3
   raise RuntimeError, "Incorrect value for CONSTANT3" 
 end
 
-if not Naming::methods.include?("constant4")
+if not Ruby_naming::methods.include?("constant4")
   raise RuntimeError, "Incorrect mapping for constant4" 
 end
 
-if not Naming::methods.include?("constant5")
+if not Ruby_naming::methods.include?("constant5")
   raise RuntimeError, "Incorrect mapping for constant5" 
 end
 
-if not Naming::methods.include?("constant6")
+if not Ruby_naming::methods.include?("constant6")
   raise RuntimeError, "Incorrect mapping for constant6" 
 end
 
-if not Naming::TestConstants.instance_methods.include?("constant7")
+if not Ruby_naming::TestConstants.instance_methods.include?("constant7")
   raise RuntimeError, "Incorrect mapping for constant7" 
 end
 
-if not Naming::TestConstants.methods.include?("constant8")
+if not Ruby_naming::TestConstants.methods.include?("constant8")
   raise RuntimeError, "Incorrect mapping for constant8" 
 end
 
 # There is no constant9 because it is illegal C++
-#if not Naming::TestConstants.instance_methods.include?("constant9")
+#if not Ruby_naming::TestConstants.instance_methods.include?("constant9")
 #  raise RuntimeError, "Incorrect mapping for constant9" 
 #end
 
-if Naming::TestConstants::CONSTANT10 != 10
+if Ruby_naming::TestConstants::CONSTANT10 != 10
   raise RuntimeError, "Incorrect value for CONSTANT10" 
 end
 
-if not Naming::methods.include?("constant11")
+if not Ruby_naming::methods.include?("constant11")
   raise RuntimeError, "Incorrect mapping for constant11" 
 end
 
 
 # Check enums
-if Naming::constants.include?("Color")
+if Ruby_naming::constants.include?("Color")
   raise RuntimeError, "Color enum should not be exposed to Ruby" 
 end
 
-if Naming::Red != 0
+if Ruby_naming::Red != 0
   raise RuntimeError, "Incorrect value for enum RED" 
 end
 
-if Naming::Green != 1
+if Ruby_naming::Green != 1
   raise RuntimeError, "Incorrect value for enum GREEN" 
 end
 
-if Naming::Blue != 2
+if Ruby_naming::Blue != 2
   raise RuntimeError, "Incorrect value for enum BLUE" 
 end
 
 
 # Check method names
-my_class = Naming::MyClass.new()
+my_class = Ruby_naming::MyClass.new()
 
 if my_class.method_one != 1 
   raise RuntimeError, "Incorrect value for method_one" 

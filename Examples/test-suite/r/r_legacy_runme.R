@@ -1,6 +1,6 @@
 source("unittest.R")
-dyn.load(paste("legacy", .Platform$dynlib.ext, sep=""))
-source("legacy.R")
+dyn.load(paste("r_legacy", .Platform$dynlib.ext, sep=""))
+source("r_legacy.R")
 cacheMetaData(1)
 
 obj <- getObject(1,3)

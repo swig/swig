@@ -1,4 +1,4 @@
-%module namewarn_rename
+%module php_namewarn_rename
 
 
 %inline %{

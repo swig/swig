@@ -59,11 +59,12 @@ CXXSRCS    =
 CSRCS      = 
 TARGETPREFIX = 
 TARGETSUFFIX = 
-SWIGOPT    = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE) -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE) -DSWIG_NOEXTRA_QUALIFICATION
-INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE) -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
+SWIGOPT    = -outcurrentdir -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
+INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
 LIBPREFIX  = lib
 ACTION     = check
+INTERFACEDIR = ../
 
 #
 # Please keep test cases in alphabetical order.
@@ -405,6 +406,7 @@ CPP_STD_TEST_CASES += \
 	template_typedef_fnc \
 	template_type_namespace \
 	template_opaque
+#        li_std_list
 
 
 ifndef SKIP_CPP_STD_CASES
@@ -441,11 +443,13 @@ C_TEST_CASES += \
 	overload_extendc \
 	preproc \
 	ret_by_value \
+	simple_array \
 	sizeof_pointer \
 	sneaky1 \
 	struct_rename \
 	typedef_struct \
 	typemap_subst \
+	union \
 	unions
 
 
@@ -491,14 +495,14 @@ swig_and_compile_cpp =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
-	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
+	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_c =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
-	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
+	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)
 
 swig_and_compile_multi_cpp = \
@@ -506,7 +510,7 @@ swig_and_compile_multi_cpp = \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
 	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
-	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" \
+	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done
 
@@ -518,7 +522,7 @@ swig_and_compile_external =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS) $*_external.cxx" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
 	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
-	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACE="$*.i" \
+	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_runtime = \

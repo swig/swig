@@ -9,9 +9,9 @@
 
 require 'swig_assert'
 
-require 'keywords'
+require 'ruby_keywords'
 
-kw = Keywords::Keywords.new
+kw = Ruby_keywords::Keywords.new
 
 if kw.alias != 'alias' then
  raise RuntimeError, 'Keyword method did not work: alias'

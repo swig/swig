@@ -1,5 +1,5 @@
 /**
- * @file   li_std_speed.i
+ * @file   ruby_li_std_speed.i
  * @author gga
  * @date   Fri May 18 18:03:15 2007
  * 
@@ -8,7 +8,7 @@
  * 
  */
 
-%module li_std_speed
+%module ruby_li_std_speed
 
 %include <std_list.i>
 %include <std_vector.i>

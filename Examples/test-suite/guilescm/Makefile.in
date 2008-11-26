@@ -2,7 +2,7 @@
 # Makefile for guile test-suite (with SCM API)
 #######################################################################
 
-EXTRA_TEST_CASES += ext_test.externaltest
+EXTRA_TEST_CASES += guilescm_ext_test.externaltest
 
 include ../guile/Makefile
 

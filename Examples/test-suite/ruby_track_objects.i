@@ -1,4 +1,4 @@
-%module track_objects
+%module ruby_track_objects
 
 %include typemaps.i
 

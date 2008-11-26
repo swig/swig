@@ -1,5 +1,4 @@
-/* File : example.i */
-%module double_delete
+%module r_double_delete
 
 %inline %{
 

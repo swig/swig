@@ -1,4 +1,4 @@
-%module keywords
+%module ruby_keywords
 
 // fix up conflicts with C++ keywords
 %rename("and") Keywords::and_;

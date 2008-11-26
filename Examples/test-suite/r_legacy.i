@@ -1,4 +1,4 @@
-%module legacy
+%module r_legacy
 %inline %{
 typedef char *String;
 

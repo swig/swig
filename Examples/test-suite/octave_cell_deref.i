@@ -1,4 +1,4 @@
-%module cell_deref
+%module octave_cell_deref
 
 %inline {
   bool func(const char* s) {

@@ -10,7 +10,9 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
-	cell_deref
+	li_std_pair_extra \
+	li_std_string_extra \
+	octave_cell_deref
 
 CPP_TEST_BROKEN += \
 	implicittest \

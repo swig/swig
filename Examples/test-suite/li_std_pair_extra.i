@@ -1,4 +1,4 @@
-%module li_std_pair
+%module li_std_pair_extra
 
 //
 // activate the automatic comparison methods generation (==,!=,...) 

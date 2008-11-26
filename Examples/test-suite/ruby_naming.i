@@ -1,4 +1,4 @@
-%module naming
+%module ruby_naming
 
 %predicate predicateMethod();
 %bang bangMethod();

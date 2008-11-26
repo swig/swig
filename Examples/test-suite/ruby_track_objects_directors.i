@@ -1,4 +1,4 @@
-%module(directors="1") track_objects_directors
+%module(directors="1") ruby_track_objects_directors
 
 %{
 #include <string>

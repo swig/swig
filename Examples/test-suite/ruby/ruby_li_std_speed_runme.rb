@@ -10,8 +10,8 @@
 
 require 'benchmark'
 require 'mathn'
-require 'li_std_speed'
-include Li_std_speed
+require 'ruby_li_std_speed'
+include Ruby_li_std_speed
 
 
 def benchmark(f, phigh, sequences)
