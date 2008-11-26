@@ -1,4 +1,4 @@
-%module kwargs
+%module python_kwargs
 
 %nocopyctor;
 %kwargs;

@@ -64,9 +64,10 @@ CPP_TEST_CASES += \
 	std_containers \
 	swigobject \
 	template_matrix \
-	simutry \
-	vector
+	simutry
 
+#	li_std_carray
+#	director_profile
 
 C_TEST_CASES += \
 	file_test \

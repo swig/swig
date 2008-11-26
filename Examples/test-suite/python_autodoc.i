@@ -1,4 +1,4 @@
-%module(docstring="hello") autodoc
+%module(docstring="hello") python_autodoc
 
 %feature("autodoc");
 

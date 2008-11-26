@@ -1,4 +1,4 @@
-%module abstractbase
+%module python_abstractbase
 %include <pyabc.i>
 %include <std_map.i>
 %include <std_multimap.i>

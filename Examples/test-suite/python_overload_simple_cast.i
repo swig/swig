@@ -1,4 +1,4 @@
 // Simple tests of overloaded functions
-%module("castmode") overload_simple_cast
+%module("castmode") python_overload_simple_cast
 
 %include overload_simple.i

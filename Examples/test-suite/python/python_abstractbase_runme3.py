@@ -1,4 +1,4 @@
-from abstractbase import *
+from python_abstractbase import *
 from collections import *
 assert issubclass(Mapii, MutableMapping)
 assert issubclass(Multimapii, MutableMapping)

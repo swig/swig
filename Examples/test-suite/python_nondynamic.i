@@ -1,4 +1,4 @@
-%module nondynamic
+%module python_nondynamic
 
 /*
  Use the %pythonnondynamic directuve to make the wrapped class a

@@ -1,6 +1,6 @@
-import nondynamic
+import python_nondynamic
 
-aa = nondynamic.A()
+aa = python_nondynamic.A()
 
 aa.a = 1
 aa.b = 2
@@ -14,10 +14,10 @@ if not err:
   raise RuntimeError, "A is not static"  
 
 
-class B(nondynamic.A):
+class B(python_nondynamic.A):
   c = 4
   def __init__(self):
-    nondynamic.A.__init__(self)
+    python_nondynamic.A.__init__(self)
     pass
   pass
 
@@ -35,5 +35,5 @@ if not err:
   raise RuntimeError, "B is not static"  
     
       
-cc = nondynamic.C()
+cc = python_nondynamic.C()
 cc.d = 3

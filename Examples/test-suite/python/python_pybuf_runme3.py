@@ -1,7 +1,7 @@
 #run: 
-#  python pybuf_runme3.py benchmark
+#  python python_pybuf_runme3.py benchmark
 #for the benchmark, other wise the test case will be run
-import pybuf
+import python_pybuf
 import sys
 if len(sys.argv)>=2 and sys.argv[1]=="benchmark":
     #run the benchmark
