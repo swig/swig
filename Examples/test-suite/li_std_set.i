@@ -31,4 +31,10 @@
 
 
 
+#if defined(SWIGRUBY)
 %template(LanguageSet) std::set<swig::LANGUAGE_OBJ>; 
+#endif
+
+#if defined(SWIGPYTHON)
+%template(pyset) std::set<swig::PyObject_ptr>; 
+#endif

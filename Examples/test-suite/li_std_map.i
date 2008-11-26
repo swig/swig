@@ -47,8 +47,15 @@ namespace std
   %template(pairiiAc) pair<int,const pair<int, A*> >;
 
 
+#ifdef SWIGRUBY
   %template() pair< swig::LANGUAGE_OBJ, swig::LANGUAGE_OBJ >;
   %template(LanguageMap) map< swig::LANGUAGE_OBJ, swig::LANGUAGE_OBJ >;
+#endif
+
+#ifdef SWIGPYTHON
+  %template() pair<swig::PyObject_ptr, swig::PyObject_ptr>;
+  %template(pymap) map<swig::PyObject_ptr, swig::PyObject_ptr>;
+#endif
   
 }
 

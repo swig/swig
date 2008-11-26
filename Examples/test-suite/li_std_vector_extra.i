@@ -1,4 +1,4 @@
-%module li_std_vector
+%module li_std_vector_extra
 
 %warnfilter(509) overloaded1;
 %warnfilter(509) overloaded2;
