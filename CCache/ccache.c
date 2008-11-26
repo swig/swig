@@ -176,6 +176,9 @@ static void to_cache_stats_helper(struct stat *pstat, char *cached_filename, cha
 		}
 		failed();
 	}
+#else
+        (void)cached_filename;
+        (void)tmp_outfiles;
 #endif
 	(*files_size) += file_size(pstat);
 	(*cached_files_count)++;
