@@ -4,7 +4,7 @@
 
 %module keyword_rename
 
-//#pragma SWIG nowarn=SWIGWARN_PARSE_KEYWORD
+#pragma SWIG nowarn=SWIGWARN_PARSE_KEYWORD
 
 %inline %{
 
