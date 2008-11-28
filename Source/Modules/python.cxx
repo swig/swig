@@ -890,7 +890,7 @@ public:
   int add_pyinstancemethod_new()
   {
     String* name = NewString("SWIG_PyInstanceMethod_New");
-    Printf(methods, "\t { (char *)\"%s\", (PyCFunction)%s, METH_O, NULL},", name, name);
+    Printf(methods, "\t { (char *)\"%s\", (PyCFunction)%s, METH_O, NULL},\n", name, name);
     Delete(name);
     return 0;
   }
