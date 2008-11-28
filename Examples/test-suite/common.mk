@@ -77,6 +77,7 @@ CPP_TEST_BROKEN += \
 	cpp_broken \
 	exception_partial_info \
 	extend_variable \
+	li_std_vector_ptr \
 	namespace_union \
 	nested_comment \
 	overload_complicated \

@@ -123,11 +123,17 @@ std::vector<std::string>  vecStr(std::vector<std::string> v) {
 %pointer_class(int,PtrInt)
 %array_functions(int,ArrInt)
 
+%inline %{
+  int *makeIntPtr(int v) { return new int(v); }
+  double *makeDoublePtr(double v) { return new double(v); }
+  int extractInt(int *p) { return *p; }
+%}
 
 %template(pyvector) std::vector<swig::PyObject_ptr>; 
 
 namespace std {
-   %template(ConstIntVector) vector<const int *>;
+   %template(ConstShortVector) vector<const short *>;
+//   %template(ConstIntVector) vector<const int *>; // interferes with vector<int *>... see new testcase li_std_vector_ptr
 }
 
 %inline %{

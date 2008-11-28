@@ -133,3 +133,24 @@ if overloaded3(None) != "vector<int> *":
 if overloaded3(100) != "int":
   raise RuntimeError
 
+
+# vector pointer checks
+ip = makeIntPtr(11)
+dp = makeDoublePtr(33.3)
+error = 0
+try:
+  vi = IntPtrVector((ip, dp)) # check vector<int *> does not accept double * element
+  error = 1
+except:
+  pass
+
+if error:
+  raise RuntimeError
+
+vi = IntPtrVector((ip, makeIntPtr(22)))
+if extractInt(vi[0]) != 11:
+  raise RuntimeError
+
+if extractInt(vi[1]) != 22:
+  raise RuntimeError
+

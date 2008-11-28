@@ -42,7 +42,7 @@ namespace swig {
   struct traits_asptr {   
     static int asptr(const octave_value& obj, Type **val) {
       Type *p;
-      int res = (SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0) == SWIG_OK) ? SWIG_OLDOBJ : 0;
+      int res = SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0);
       if (SWIG_IsOK(res)) {
 	if (val) *val = p;
       }
