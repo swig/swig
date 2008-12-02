@@ -925,7 +925,11 @@ public:
 	  if (!options || (!Getattr(options, "noshadow") && !Getattr(options, "noproxy"))) {
 	    Printf(import, "_%s\n", modname);
 	    if (!Strstr(f_shadow_imports, import)) {
-	      Printf(f_shadow, "import %s\n", modname);
+	      if (pkg && (!package || Strcmp(pkg, package) != 0)) {
+	        Printf(f_shadow, "import %s.%s\n", pkg, modname);
+	      } else {
+	        Printf(f_shadow, "import %s\n", modname);
+	      }
 	      Printv(f_shadow_imports, import, NULL);
 	    }
 	  }
