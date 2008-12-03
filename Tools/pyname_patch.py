@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 From SWIG 1.3.37 we deprecated all SWIG symbols that start with Py,
 since they are inappropriate and discouraged in Python documentation
