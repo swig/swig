@@ -26,9 +26,7 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 
-#Use the tricky command because we want to disable the "import" fixer,
-#but currently 2to3 has no option to let us do it
-PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
+PY2TO3 = 2to3 -x import 
 
 
 CPP_TEST_CASES += \
