@@ -129,7 +129,7 @@ std::vector<std::string>  vecStr(std::vector<std::string> v) {
   int extractInt(int *p) { return *p; }
 %}
 
-%template(pyvector) std::vector<swig::PyObject_ptr>; 
+%template(pyvector) std::vector<swig::SwigPtr_PyObject>; 
 
 namespace std {
    %template(ConstShortVector) vector<const short *>;

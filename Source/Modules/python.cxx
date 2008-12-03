@@ -738,7 +738,7 @@ public:
 	Printv(f_shadow,
 	       "def _swig_setattr_nondynamic(self,class_type,name,value,static=1):\n",
 	       tab4, "if (name == \"thisown\"): return self.this.own(value)\n",
-	       tab4, "if (name == \"this\"):\n", tab4, tab4, "if type(value).__name__ == 'PySwigObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
+	       tab4, "if (name == \"this\"):\n", tab4, tab4, "if type(value).__name__ == 'SwigPyObject':\n", tab4, tab8, "self.__dict__[name] = value\n",
 #ifdef USE_THISOWN
 	       tab4, tab8, "if hasattr(value,\"thisown\"): self.__dict__[\"thisown\"] = value.thisown\n", tab4, tab8, "del value.thisown\n",
 #endif
@@ -2741,7 +2741,7 @@ public:
       Printf(f_directors_h, "    PyObject *swig_get_method(size_t method_index, const char *method_name) const {\n");
       Printf(f_directors_h, "      PyObject *method = vtable[method_index];\n");
       Printf(f_directors_h, "      if (!method) {\n");
-      Printf(f_directors_h, "        swig::PyObject_var name = SWIG_Python_str_FromChar(method_name);\n");
+      Printf(f_directors_h, "        swig::SwigVar_PyObject name = SWIG_Python_str_FromChar(method_name);\n");
       Printf(f_directors_h, "        method = PyObject_GetAttr(swig_get_self(), name);\n");
       Printf(f_directors_h, "        if (method == NULL) {\n");
       Printf(f_directors_h, "          std::string msg = \"Method in class %s doesn't exist, undefined \";\n", classname);
@@ -2753,7 +2753,7 @@ public:
       Printf(f_directors_h, "      return method;\n");
       Printf(f_directors_h, "    }\n");
       Printf(f_directors_h, "private:\n");
-      Printf(f_directors_h, "    mutable swig::PyObject_var vtable[%d];\n", director_method_index);
+      Printf(f_directors_h, "    mutable swig::SwigVar_PyObject vtable[%d];\n", director_method_index);
       Printf(f_directors_h, "#endif\n\n");
     }
 
@@ -3753,8 +3753,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	  Replaceall(tm, "$input", input);
 	  Delete(input);
 	  Replaceall(tm, "$owner", "0");
-	  /* Wrapper_add_localv(w, source, "swig::PyObject_var", source, "= 0", NIL); */
-	  Printv(wrap_args, "swig::PyObject_var ", source, ";\n", NIL);
+	  /* Wrapper_add_localv(w, source, "swig::SwigVar_PyObject", source, "= 0", NIL); */
+	  Printv(wrap_args, "swig::SwigVar_PyObject ", source, ";\n", NIL);
 
 	  Printv(wrap_args, tm, "\n", NIL);
 	  Printv(arglist, "(PyObject *)", source, NIL);
@@ -3810,7 +3810,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	  if (target) {
 	    String *director = NewStringf("director_%s", mangle);
 	    Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
-	    Wrapper_add_localv(w, source, "swig::PyObject_var", source, "= 0", NIL);
+	    Wrapper_add_localv(w, source, "swig::SwigVar_PyObject", source, "= 0", NIL);
 	    Printf(wrap_args, "%s = SWIG_DIRECTOR_CAST(%s);\n", director, nonconst);
 	    Printf(wrap_args, "if (!%s) {\n", director);
 	    Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
@@ -3821,7 +3821,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	    Delete(director);
 	    Printv(arglist, source, NIL);
 	  } else {
-	    Wrapper_add_localv(w, source, "swig::PyObject_var", source, "= 0", NIL);
+	    Wrapper_add_localv(w, source, "swig::SwigVar_PyObject", source, "= 0", NIL);
 	    Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
 	    //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
 	    //       source, nonconst, base);
@@ -3872,33 +3872,33 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Append(w->code, "PyObject* method = swig_get_method(swig_method_index, swig_method_name);\n");
     if (Len(parse_args) > 0) {
       if (use_parse || !modernargs) {
-	Printf(w->code, "swig::PyObject_var result = PyObject_CallFunction(method, (char *)\"(%s)\" %s);\n", parse_args, arglist);
+	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallFunction(method, (char *)\"(%s)\" %s);\n", parse_args, arglist);
       } else {
-	Printf(w->code, "swig::PyObject_var result = PyObject_CallFunctionObjArgs(method %s, NULL);\n", arglist);
+	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallFunctionObjArgs(method %s, NULL);\n", arglist);
       }
     } else {
       if (modernargs) {
-	Append(w->code, "swig::PyObject_var args = PyTuple_New(0);\n");
-	Append(w->code, "swig::PyObject_var result = PyObject_Call(method, (PyObject*) args, NULL);\n");
+	Append(w->code, "swig::SwigVar_PyObject args = PyTuple_New(0);\n");
+	Append(w->code, "swig::SwigVar_PyObject result = PyObject_Call(method, (PyObject*) args, NULL);\n");
       } else {
-	Printf(w->code, "swig::PyObject_var result = PyObject_CallFunction(method, NULL, NULL);\n");
+	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallFunction(method, NULL, NULL);\n");
       }
     }
     Append(w->code, "#else\n");
     if (Len(parse_args) > 0) {
       if (use_parse || !modernargs) {
-	Printf(w->code, "swig::PyObject_var result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n",
+	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n",
 	       pyname, parse_args, arglist);
       } else {        
-	Printf(w->code, "swig::PyObject_var swig_method_name = SWIG_Python_str_FromChar((char *)\"%s\");\n", pyname);
-	Printf(w->code, "swig::PyObject_var result = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name %s, NULL);\n", arglist);
+	Printf(w->code, "swig::SwigVar_PyObject swig_method_name = SWIG_Python_str_FromChar((char *)\"%s\");\n", pyname);
+	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name %s, NULL);\n", arglist);
       }
     } else {
       if (!modernargs) {
-	Printf(w->code, "swig::PyObject_var result = PyObject_CallMethod(swig_get_self(), (char *) \"%s\", NULL);\n", pyname);
+	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallMethod(swig_get_self(), (char *) \"%s\", NULL);\n", pyname);
       } else {
-	Printf(w->code, "swig::PyObject_var swig_method_name = SWIG_Python_str_FromChar((char *)\"%s\");\n", pyname);
-	Append(w->code, "swig::PyObject_var result = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name, NULL);\n");
+	Printf(w->code, "swig::SwigVar_PyObject swig_method_name = SWIG_Python_str_FromChar((char *)\"%s\");\n", pyname);
+	Append(w->code, "swig::SwigVar_PyObject result = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name, NULL);\n");
       }
     }
     Append(w->code, "#endif\n");

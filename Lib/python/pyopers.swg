@@ -90,7 +90,7 @@ __bool__ = __nonzero__
 
 */
 
-#define %pyinplaceoper(PyOper, Oper) %delobject Oper; %newobject Oper; %rename(PyOper) Oper
+#define %pyinplaceoper(SwigPyOper, Oper) %delobject Oper; %newobject Oper; %rename(SwigPyOper) Oper
 
 %pyinplaceoper(__iadd__   , *::operator +=);
 %pyinplaceoper(__isub__   , *::operator -=);

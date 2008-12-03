@@ -1,55 +1,55 @@
 #ifdef __cplusplus
 
 /*
-  PyObject_ptr is used as a replacement of PyObject *, where
+  SwigPtr_PyObject is used as a replacement of PyObject *, where
   the INCREF/DECREF are applied as needed.
 
-  You can use PyObject_ptr in a container, such as
+  You can use SwigPtr_PyObject in a container, such as
   
-     std::vector<PyObject_ptr>;
+     std::vector<SwigPtr_PyObject>;
 
   or as a member variable:
   
      struct A {
-       PyObject_ptr obj;
+       SwigPtr_PyObject obj;
        A(PyObject *o) : _obj(o) {
        }
      };
 
    or as a input/output value 
 
-     PyObject_ptr func(PyObject_ptr obj) {     
-       PyObject_ptr out = PyString_FromFormat("hello %s", PyObject_AsString(obj));
+     SwigPtr_PyObject func(SwigPtr_PyObject obj) {     
+       SwigPtr_PyObject out = PyString_FromFormat("hello %s", PyObject_AsString(obj));
        Py_DECREF(out);
        return out;
      }
 
    just remember to pair the object creation with the proper DECREF,
-   the same as with plain PyObject *ptr, since PyObject_ptr always add
+   the same as with plain PyObject *ptr, since SwigPtr_PyObject always add
    one reference at construction.
 
-   PyObject_ptr is 'visible' at the wrapped side, so you can do:
+   SwigPtr_PyObject is 'visible' at the wrapped side, so you can do:
 
 
-      %template(pyvector) std::vector<swig::PyObject_ptr>;
+      %template(pyvector) std::vector<swig::SwigPtr_PyObject>;
 
    and all the proper typemaps will be used.
    
 */
 
 namespace swig {
-  %ignore PyObject_ptr;
-  struct PyObject_ptr {};
-  %apply PyObject * {PyObject_ptr};
-  %apply PyObject * const& {PyObject_ptr const&};
+  %ignore SwigPtr_PyObject;
+  struct SwigPtr_PyObject {};
+  %apply PyObject * {SwigPtr_PyObject};
+  %apply PyObject * const& {SwigPtr_PyObject const&};
 
   /* For output */
-  %typemap(out,noblock=1)  PyObject_ptr {
+  %typemap(out,noblock=1)  SwigPtr_PyObject {
     $result = (PyObject *)$1;
     Py_INCREF($result);
   }
   
-  %typemap(out,noblock=1)  PyObject_ptr const & {
+  %typemap(out,noblock=1)  SwigPtr_PyObject const & {
     $result = (PyObject *)*$1;
     Py_INCREF($result);
   }
@@ -58,28 +58,28 @@ namespace swig {
 
 %{
 namespace swig {
-  class PyObject_ptr {
+  class SwigPtr_PyObject {
   protected:
     PyObject *_obj;
 
   public:
-    PyObject_ptr() :_obj(0)
+    SwigPtr_PyObject() :_obj(0)
     {
     }
 
-    PyObject_ptr(const PyObject_ptr& item) : _obj(item._obj)
+    SwigPtr_PyObject(const SwigPtr_PyObject& item) : _obj(item._obj)
     {
       Py_XINCREF(_obj);      
     }
     
-    PyObject_ptr(PyObject *obj, bool initial_ref = true) :_obj(obj)
+    SwigPtr_PyObject(PyObject *obj, bool initial_ref = true) :_obj(obj)
     {
       if (initial_ref) {
         Py_XINCREF(_obj);
       }
     }
     
-    PyObject_ptr & operator=(const PyObject_ptr& item) 
+    SwigPtr_PyObject & operator=(const SwigPtr_PyObject& item) 
     {
       Py_XINCREF(item._obj);
       Py_XDECREF(_obj);
@@ -87,7 +87,7 @@ namespace swig {
       return *this;      
     }
     
-    ~PyObject_ptr() 
+    ~SwigPtr_PyObject() 
     {
       Py_XDECREF(_obj);
     }
@@ -106,33 +106,33 @@ namespace swig {
 %}
 
 /*
-  PyObject_var is used to manage 'in the scope' PyObject * variables,
+  SwigVar_PyObject is used to manage 'in the scope' PyObject * variables,
   as in
 
   int func () {
-    PyObject_var obj = PyString_FromString("hello");
+    SwigVar_PyObject obj = PyString_FromString("hello");
   }
 
   ie, 'obj' is created and destructed in the same scope from
   a python object that carries at least one reference value.
   
-  PyObject_var just take care of applying the proper Py_DECREF.
+  SwigVar_PyObject just take care of applying the proper Py_DECREF.
 
   Hence, this class is purely internal and not visible at the wrapped side.
  */
 namespace swig {
-  %ignore PyObject_var;
-  struct PyObject_var {};
-  %apply PyObject * {PyObject_var};
-  %apply PyObject * const& {PyObject_var const&};
+  %ignore SwigVar_PyObject;
+  struct SwigVar_PyObject {};
+  %apply PyObject * {SwigVar_PyObject};
+  %apply PyObject * const& {SwigVar_PyObject const&};
 }
 
 %{
 namespace swig {
-  struct PyObject_var : PyObject_ptr {
-    PyObject_var(PyObject* obj = 0) : PyObject_ptr(obj, false) { }
+  struct SwigVar_PyObject : SwigPtr_PyObject {
+    SwigVar_PyObject(PyObject* obj = 0) : SwigPtr_PyObject(obj, false) { }
     
-    PyObject_var & operator = (PyObject* obj)
+    SwigVar_PyObject & operator = (PyObject* obj)
     {
       Py_XDECREF(_obj);
       _obj = obj;

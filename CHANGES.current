@@ -1,6 +1,38 @@
 Version 1.3.37 (in progress)
 ============================
 
+2008-12-04: bhy
+            [Python] Applied patch SF#2158938: all the SWIG symbol names started with Py
+            are changed, since they are inappropriate and discouraged in Python
+            documentation (from http://www.python.org/doc/2.5.2/api/includes.html):
+
+            "All user visible names defined by Python.h (except those defined by
+            the included standard headers) have one of the prefixes "Py" or "_Py".
+            Names beginning with "_Py" are for internal use by the Python implementation
+            and should not be used by extension writers. Structure member names do
+            not have a reserved prefix.
+
+            Important: user code should never define names that begin with "Py" or "_Py".
+            This confuses the reader, and jeopardizes the portability of the user
+            code to future Python versions, which may define additional names beginning
+            with one of these prefixes."
+
+            Here is a brief list of what changed:
+
+                PySwig* -> SwigPy*
+                PyObject_ptr -> SwigPtr_PyObject
+                PyObject_var -> SwigVar_PyObject
+                PySequence_Base, PySequence_Cont, PySequence_Ref ->
+                        SwigPySequence_Base, SwigPySequence_Cont, SwigPySequence_Ref
+                PyMap* -> SwigPyMap*
+
+            We provided a pyname_compat.i for backward compatibility. Users whose code having
+            these symbols and do not want to change it could simply include this file
+            at front of your code. A better solution is to run the converting tool on
+            your code, which has been put in SWIG's SVN trunk (Tools/pyname_patch.py) and
+            you can download it here:
+            https://swig.svn.sourceforge.net/svnroot/swig/trunk/Tools/pyname_patch.py 
+
 2008-12-02: wsfulton
 	    [Python] Apply patch #2143727 from Serge Monkewitz to fix importing base classes 
 	    when the package option is specified in %module and that module is %import'ed.
