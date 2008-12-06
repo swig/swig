@@ -10,10 +10,10 @@ INCLUDES   = -I../../Include
 all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' php4
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' php
 
 clean::
-	$(MAKE) -f $(TOP)/Makefile php4_clean
+	$(MAKE) -f $(TOP)/Makefile php_clean
 	rm -f *.gif
 	rm -f php_simple.h
 
