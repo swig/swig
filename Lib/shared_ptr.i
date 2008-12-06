@@ -51,7 +51,7 @@ SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, const, TYPE)
 %types(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > = SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >) %{
   *newmemory = SWIG_CAST_NEW_MEMORY;
   return (void *) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >(*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *)$from);
-  %}
+%}
 %extend TYPE {
   static SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE > SWIGSharedPtrUpcast(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast) {
     return swigSharedPtrUpcast;
