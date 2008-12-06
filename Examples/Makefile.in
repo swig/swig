@@ -746,41 +746,41 @@ ruby_clean:
 ##################################################################
 
 # -------------------------------------------------------------------
-# Build a PHP4 dynamically loadable module (C)
+# Build a PHP dynamically loadable module (C)
 # -------------------------------------------------------------------
 
-PHP4_INCLUDE = @PHP4INC@
-PHP4_SO      = @PHP4_SO@
+PHP_INCLUDE = @PHPINC@
+PHP_SO      = @PHP_SO@
 
-php4: $(SRCS)
+php: $(SRCS)
 	$(SWIG) -php5 $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PHP4_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP4_SO)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PHP_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 
 # --------------------------------------------------------------------
-# Build a PHP4 dynamically loadable module (C++)
+# Build a PHP dynamically loadable module (C++)
 # --------------------------------------------------------------------
 
-php4_cpp: $(SRCS)
+php_cpp: $(SRCS)
 	$(SWIG) -php5 -cppext cxx -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP4_INCLUDE)
-	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP4_SO)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP_INCLUDE)
+	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 
 # -----------------------------------------------------------------
-# Running a PHP4 example
+# Running a PHP example
 # -----------------------------------------------------------------
 
-PHP4=@PHP4@
-PHP4SCRIPT ?= runme.php4
+PHP=@PHP@
+PHPSCRIPT ?= runme.php
 
-php4_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(PHP4) -n -q -d extension_dir=. $(PHP4SCRIPT)
+php_run:
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(PHP) -n -q -d extension_dir=. $(PHPSCRIPT)
 
 # -----------------------------------------------------------------
-# Cleaning the PHP4 examples
+# Cleaning the PHP examples
 # -----------------------------------------------------------------
 
-php4_clean:
+php_clean:
 	rm -f *_wrap* *~ .~* example.php php_example.h
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@

@@ -243,10 +243,10 @@ case $host in
    *) GUILE_SO=$SO;;
 esac
 
-AC_SUBST(PHP4_SO)
+AC_SUBST(PHP_SO)
 case $host in
-   *-*-darwin*) PHP4_SO=.so;;
-   *) PHP4_SO=$SO;;
+   *-*-darwin*) PHP_SO=.so;;
+   *) PHP_SO=$SO;;
 esac
 
 AC_SUBST(MZSCHEME_SO)
@@ -1329,37 +1329,37 @@ AC_SUBST(RUBYDYNAMICLINKING)
 # Look for PHP
 #-------------------------------------------------------------------------
 
-PHP4BIN=
+PHPBIN=
 
 AC_ARG_WITH(php, AS_HELP_STRING([--without-php], [Disable PHP])
-AS_HELP_STRING([--with-php=path], [Set location of PHP executable]),[ PHP4BIN="$withval"], [PHP4BIN=yes])
+AS_HELP_STRING([--with-php=path], [Set location of PHP executable]),[ PHPBIN="$withval"], [PHPBIN=yes])
 
 # First, check for "--without-php" or "--with-php=no".
-if test x"${PHP4BIN}" = xno -o x"${with_alllang}" = xno ; then 
+if test x"${PHPBIN}" = xno -o x"${with_alllang}" = xno ; then 
     AC_MSG_NOTICE([Disabling PHP])
-    PHP4=
+    PHP=
 else
 
-    if test "x$PHP4BIN" = xyes; then
-      AC_CHECK_PROGS(PHP4, [php5 php])
+    if test "x$PHPBIN" = xyes; then
+      AC_CHECK_PROGS(PHP, [php5 php])
     else
-      PHP4=$PHP4BIN
+      PHP=$PHPBIN
     fi
 
     AC_MSG_CHECKING(for PHP header files)
     dnl /usr/bin/php5 -> /usr/bin/php-config5
-    case $PHP4 in
+    case $PHP in
       *5)
-	PHP4CONFIG=`echo "$PHP4"|sed 's/5$/-config5/'` ;;
+	PHPCONFIG=`echo "$PHP"|sed 's/5$/-config5/'` ;;
       *)
-	PHP4CONFIG=$PHP4-config ;;
+	PHPCONFIG=$PHP-config ;;
     esac
-    php_version=`$PHP4CONFIG --version 2>/dev/null`
+    php_version=`$PHPCONFIG --version 2>/dev/null`
     case $php_version in
     5*) 
-	PHP4INC=`$PHP4CONFIG --includes 2>/dev/null`
-	if test -n "$PHP4INC"; then
-	  AC_MSG_RESULT($PHP4INC)
+	PHPINC=`$PHPCONFIG --includes 2>/dev/null`
+	if test -n "$PHPINC"; then
+	  AC_MSG_RESULT($PHPINC)
 	else
 	  AC_MSG_RESULT(not found)
 	fi
@@ -1368,8 +1368,8 @@ else
 	AC_MSG_RESULT([found PHP $version, but only PHP 5 is supported]) ;;
     esac
 fi
-AC_SUBST(PHP4)
-AC_SUBST(PHP4INC)
+AC_SUBST(PHP)
+AC_SUBST(PHPINC)
 
 #----------------------------------------------------------------
 # Look for ocaml
@@ -2003,11 +2003,11 @@ fi
 AC_SUBST(SKIP_RUBY)
 
 
-SKIP_PHP4=
-if test -z "$PHP4" || test -z "$PHP4INC" ; then
-    SKIP_PHP4="1"
+SKIP_PHP=
+if test -z "$PHP" || test -z "$PHPINC" ; then
+    SKIP_PHP="1"
 fi
-AC_SUBST(SKIP_PHP4)
+AC_SUBST(SKIP_PHP)
 
 
 SKIP_OCAML=
