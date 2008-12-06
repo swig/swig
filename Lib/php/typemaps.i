@@ -4,7 +4,7 @@
  *
  * typemaps.i.
  *
- * SWIG Typemap library for PHP4.
+ * SWIG Typemap library for PHP.
  *
  * This library provides standard typemaps for modifying SWIG's behavior.
  * With enough entries in this file, I hope that very few people actually

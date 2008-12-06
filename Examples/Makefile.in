@@ -753,7 +753,7 @@ PHP_INCLUDE = @PHPINC@
 PHP_SO      = @PHP_SO@
 
 php: $(SRCS)
-	$(SWIG) -php5 $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIG) -php $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PHP_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 
@@ -762,7 +762,7 @@ php: $(SRCS)
 # --------------------------------------------------------------------
 
 php_cpp: $(SRCS)
-	$(SWIG) -php5 -cppext cxx -c++ $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIG) -php -cppext cxx -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP_INCLUDE)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
 

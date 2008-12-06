@@ -1,6 +1,14 @@
 Version 1.3.37 (in progress)
 ============================
 
+2008-12-02: wsfulton
+	    [PHP] Deprecate %pragma(php4). Please use %pragma(php) instead.
+	    The following two warnings have been renamed:
+	    WARN_PHP4_MULTIPLE_INHERITANCE -> WARN_PHP_MULTIPLE_INHERITANCE
+	    WARN_PHP4_UNKNOWN_PRAGMA       -> WARN_PHP_UNKNOWN_PRAGMA
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2008-12-04: bhy
             [Python] Applied patch SF#2158938: all the SWIG symbol names started with Py
             are changed, since they are inappropriate and discouraged in Python

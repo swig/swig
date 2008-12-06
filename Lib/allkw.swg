@@ -19,7 +19,7 @@
 %include <chicken/chickenkw.swg>
 %include <csharp/csharpkw.swg>
 %include <java/javakw.swg>
-%include <php4/php4kw.swg>
+%include <php/php.swg>
 %include <pike/pikekw.swg>
 %include <python/pythonkw.swg>
 %include <ocaml/ocamlkw.swg>

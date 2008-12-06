@@ -70,8 +70,8 @@ static int default_error_code = E_ERROR;
   if (!(expr) ) { zend_printf("Contract Assert Failed %s\n",msg ); } else
 
 /* Standard SWIG API */
-#define SWIG_GetModule(clientdata) SWIG_Php4_GetModule()
-#define SWIG_SetModule(clientdata, pointer) SWIG_Php4_SetModule(pointer)
+#define SWIG_GetModule(clientdata) SWIG_Php_GetModule()
+#define SWIG_SetModule(clientdata, pointer) SWIG_Php_SetModule(pointer)
 
 /* used to wrap returned objects in so we know whether they are newobject
    and need freeing, or not */
@@ -199,7 +199,7 @@ SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags TSRMLS_DC
 }
 
 static char const_name[] = "swig_runtime_data_type_pointer";
-static swig_module_info *SWIG_Php4_GetModule() {
+static swig_module_info *SWIG_Php_GetModule() {
   zval *pointer;
   swig_module_info *ret = 0;
 
@@ -216,7 +216,7 @@ static swig_module_info *SWIG_Php4_GetModule() {
   return ret; 
 }
 
-static void SWIG_Php4_SetModule(swig_module_info *pointer) {
+static void SWIG_Php_SetModule(swig_module_info *pointer) {
   TSRMLS_FETCH();
   REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, 0);
 }
