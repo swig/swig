@@ -91,7 +91,7 @@ static void write_stats(int fd, unsigned counters[STATS_END])
 	if (len >= (int)sizeof(buf)-1) fatal("stats too long?!");
 
 	lseek(fd, 0, SEEK_SET);
-	write(fd, buf, len);
+	if (write(fd, buf, len) == -1) fatal("could not write stats");
 }
 
 
