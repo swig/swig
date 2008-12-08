@@ -20,14 +20,14 @@ manpagesection(OPTIONS SUMMARY)
 Here is a summary of the options to ccache.
 
 verb(
--s, --show-stats        show statistics summary
--z, --zero-stats        zero statistics
--c, --cleanup           run a cache cleanup
--C, --clear             clear the cache completely
--F <n>, --max-files=<n> set maximum files in cache
--M <n>, --max-size=<n>  set maximum size of cache (use G, M or K)
--h, --help              this help page
--V, --version           print version number
+-s                      show statistics summary
+-z                      zero statistics
+-c                      run a cache cleanup
+-C                      clear the cache completely
+-F <n>                  set maximum files in cache
+-M <n>                  set maximum size of cache (use G, M or K)
+-h                      this help page
+-V                      print version number
 )
 
 manpageoptions()
@@ -38,32 +38,32 @@ normal compiler options apply and you should refer to your compilers
 documentation.
 
 startdit()
-dit(bf(-h, --help)) Print a options summary page
+dit(bf(-h)) Print a options summary page
 
-dit(bf(-s, --show-stats)) Print the current statistics summary for the cache. The
+dit(bf(-s)) Print the current statistics summary for the cache. The
 statistics are stored spread across the subdirectories of the
 cache. Using "ccache -s" adds up the statistics across all
 subdirectories and prints the totals.
 
-dit(bf(-z, --zero-stats)) Zero the cache statistics. 
+dit(bf(-z)) Zero the cache statistics. 
 
-dit(bf(-V, --version)) Print the ccache version number
+dit(bf(-V)) Print the ccache version number
 
-dit(bf(-c, --cleanup)) Clean the cache and re-calculate the cache file count and
+dit(bf(-c)) Clean the cache and re-calculate the cache file count and
 size totals. Normally the -c option should not be necessary as ccache
 keeps the cache below the specified limits at runtime and keeps
 statistics up to date on each compile. This option is mostly useful
 if you manually modify the cache contents or believe that the cache
 size statistics may be inaccurate.
 
-dit(bf(-C, --clear)) Clear the entire cache, removing all cached files.
+dit(bf(-C)) Clear the entire cache, removing all cached files.
 
-dit(bf(-F <maxfiles>, --max-files=<maxfiles>)) This sets the maximum number of files allowed in
+dit(bf(-F <maxfiles>)) This sets the maximum number of files allowed in
 the cache. The value is stored inside the cache directory and applies
 to all future compiles. Due to the way the value is stored the actual
 value used is always rounded down to the nearest multiple of 16.
 
-dit(bf(-M <maxsize>, --max-size=<maxsize>)) This sets the maximum cache size. You can specify
+dit(bf(-M <maxsize>)) This sets the maximum cache size. You can specify
 a value in gigabytes, megabytes or kilobytes by appending a G, M or K
 to the value. The default is gigabytes. The actual value stored is
 rounded down to the nearest multiple of 16 kilobytes.
@@ -236,7 +236,11 @@ the aCC compiler.
 dit(bf(CCACHE_SWIG)) When using SWIG as the compiler and it does not
 have 'swig' in the executable name, then the CCACHE_SWIG environment 
 variable needs to be set in order for ccache to work correctly with 
-SWIG. 
+SWIG. The use of CCACHE_CPP2 is also recommended for SWIG due to some
+preprocessor quirks, however, use of CCACHE_CPP2 can often be skipped
+-- check your generated code with and without this option set. Known
+problems are using preprocessor directives within %inline blocks and
+the use of '#pragma SWIG'.
 
 enddit()
 
