@@ -496,7 +496,7 @@ install-ccache:
 # TARGETS: uninstall & friends
 #####################################################################
 
-uninstall: uninstall-main uninstall-lib
+uninstall: uninstall-main uninstall-lib uninstall-ccache
 	@echo "Uninstall complete"
 
 uninstall-main:
@@ -506,6 +506,9 @@ uninstall-main:
 uninstall-lib:
 	@echo "Uninstalling the SWIG library"
 	rm -rf $(DESTDIR)$(SWIG_LIB)/
+
+uninstall-ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) uninstall)
 
 ############################################################################
 # DIST and other maintenance

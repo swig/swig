@@ -15,6 +15,9 @@ SWIG=swig
 SWIG_LIB=../../Lib
 EXEEXT=@EXEEXT@
 
+# Use standard autoconf approach to transform executable name using --program-prefix and --program-suffix
+transform = @program_transform_name@
+
 LIBS= @LIBS@
 OBJS= ccache.o mdfour.o hash.o execute.o util.o args.o stats.o \
 	cleanup.o snprintf.o unify.o
@@ -36,9 +39,13 @@ web/$(PACKAGE_NAME)-man.html: ccache.yo
 
 install: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 	${INSTALLCMD} -d $(DESTDIR)${bindir}
-	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}
+	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
 	${INSTALLCMD} -d $(DESTDIR)${mandir}/man1
-	${INSTALLCMD} -m 644 ${srcdir}/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/
+	${INSTALLCMD} -m 644 ${srcdir}/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
+
+uninstall: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
+	rm -f $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
+	rm -f $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
 
 clean:
 	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
