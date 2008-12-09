@@ -311,7 +311,7 @@ following conditions need to be met:
 
 itemize(
   it() Use the same bf(CCACHE_DIR) environment variable setting
-  it() Set the bf(CCACHE_NOLINK) environment variable
+  it() Unset the bf(CCACHE_HARDLINK) environment variable
   it() Make sure everyone sets the CCACHE_UMASK environment variable
   to 002, this ensures that cached files are accessible to everyone in
   the group.
