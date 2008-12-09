@@ -61,7 +61,7 @@ os.system("find "+dirname+" -name autom4te.cache -exec rm -rf {} \\;")
 
 # Build documentation
 print "Building documentation"
-os.system("cd "+dirname+"/Doc/Manual && make && rm *.bak") == 0 or failed()
+os.system("cd "+dirname+" && make docs") == 0 or failed()
 
 # Build the tar-ball
 os.system("tar -cf "+dirname+".tar "+dirname) == 0 or failed()

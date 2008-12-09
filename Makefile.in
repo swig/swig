@@ -35,7 +35,18 @@ libfiles: $(srcdir)/Lib/swigwarn.swg
 maintainer: libfiles
 	@cd $(SOURCE) && $(MAKE) CParse/parser.h
 
-.PHONY: source libfiles maintainer
+#####################################################################
+# Documentation
+#####################################################################
+
+docs: docs-main docs-ccache
+
+docs-main:
+	@echo making docs
+	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) all clean-baks
+
+docs-ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) docs)
 
 #####################################################################
 # All the languages SWIG speaks (when it wants to)
@@ -353,12 +364,17 @@ clean-%-test-suite:
 clean-%-gifplot:
 	@$(MAKE) -k -s check-$*-gifplot ACTION=clean
 
-clean-docs:
-	@echo cleaning Docs
-	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) -s clean
-
 clean-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s clean)
+
+clean-docs: clean-docs-main clean-docs-ccache
+
+clean-docs-main:
+	@echo cleaning Docs
+	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) clean
+
+clean-docs-ccache:
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) clean-docs)
 
 maintainer-clean: clean-libfiles
 	@cd $(SOURCE) && $(MAKE) maintainer-clean

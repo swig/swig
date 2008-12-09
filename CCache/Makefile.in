@@ -25,7 +25,7 @@ HEADERS = ccache.h mdfour.h
 
 all: $(PACKAGE_NAME)$(EXEEXT)
 
-docs: $(PACKAGE_NAME).1 web/$(PACKAGE_NAME)-man.html
+docs: $(PACKAGE_NAME).1 web/ccache-man.html
 
 $(PACKAGE_NAME)$(EXEEXT): $(OBJS) $(HEADERS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
@@ -33,9 +33,9 @@ $(PACKAGE_NAME)$(EXEEXT): $(OBJS) $(HEADERS)
 $(PACKAGE_NAME).1: ccache.yo
 	-yodl2man -o $(PACKAGE_NAME).1 ccache.yo
 
-web/$(PACKAGE_NAME)-man.html: ccache.yo
+web/ccache-man.html: ccache.yo
 	mkdir -p man
-	yodl2html -o web/$(PACKAGE_NAME)-man.html ccache.yo
+	yodl2html -o web/ccache-man.html ccache.yo
 
 install: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 	${INSTALLCMD} -d $(DESTDIR)${bindir}
@@ -49,6 +49,9 @@ uninstall: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 
 clean:
 	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
+
+clean-docs:
+	rm -f $(PACKAGE_NAME).1 web/ccache-man.html
 
 check : test
 
