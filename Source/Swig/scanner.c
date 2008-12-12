@@ -15,6 +15,9 @@ char cvsroot_scanner_c[] = "$Id$";
 #include "swig.h"
 #include <ctype.h>
 
+extern String *cparse_file;
+extern int     cparse_start_line;
+
 struct Scanner {
   String *text;			/* Current token value */
   List   *scanobjs;		/* Objects being scanned */
@@ -536,7 +539,7 @@ static int look(Scanner * s) {
       break;
     case 10:			/* C++ style comment */
       if ((c = nextchar(s)) == 0) {
-	set_error(s,s->start_line,"Unterminated comment");
+	Swig_error(cparse_file, cparse_start_line, "Unterminated comment\n");
 	return SWIG_TOKEN_ERROR;
       }
       if (c == '\n') {
@@ -548,7 +551,7 @@ static int look(Scanner * s) {
       break;
     case 11:			/* C style comment block */
       if ((c = nextchar(s)) == 0) {
-	set_error(s,s->start_line,"Unterminated comment");
+	Swig_error(cparse_file, cparse_start_line, "Unterminated comment\n");
 	return SWIG_TOKEN_ERROR;
       }
       if (c == '*') {
@@ -559,7 +562,7 @@ static int look(Scanner * s) {
       break;
     case 12:			/* Still in C style comment */
       if ((c = nextchar(s)) == 0) {
-	set_error(s,s->start_line,"Unterminated comment");
+	Swig_error(cparse_file, cparse_start_line, "Unterminated comment\n");
 	return SWIG_TOKEN_ERROR;
       }
       if (c == '*') {
@@ -573,7 +576,7 @@ static int look(Scanner * s) {
 
     case 2:			/* Processing a string */
       if ((c = nextchar(s)) == 0) {
-	set_error(s,s->start_line, "Unterminated string");
+	Swig_error(cparse_file, cparse_start_line, "Unterminated string\n");
 	return SWIG_TOKEN_ERROR;
       }
       if (c == '\"') {
@@ -656,7 +659,7 @@ static int look(Scanner * s) {
 
     case 40:			/* Process an include block */
       if ((c = nextchar(s)) == 0) {
-	set_error(s,s->start_line,"Unterminated code block");
+	Swig_error(cparse_file, cparse_start_line, "Unterminated block\n");
 	return SWIG_TOKEN_ERROR;
       }
       if (c == '%')
@@ -933,7 +936,7 @@ static int look(Scanner * s) {
       /* A character constant */
     case 9:
       if ((c = nextchar(s)) == 0) {
-	set_error(s,s->start_line,"Unterminated character constant");
+	Swig_error(cparse_file, cparse_start_line, "Unterminated character constant\n");
 	return SWIG_TOKEN_ERROR;
       }
       if (c == '\'') {
@@ -1048,7 +1051,7 @@ static int look(Scanner * s) {
       /* Reverse string */
     case 900:
       if ((c = nextchar(s)) == 0) {
-	set_error(s,s->start_line,"Unterminated character constant");
+	Swig_error(cparse_file, cparse_start_line, "Unterminated character constant\n");
 	return SWIG_TOKEN_ERROR;
       }
       if (c == '`') {

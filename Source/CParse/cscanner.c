@@ -264,10 +264,8 @@ int yylook(void) {
   while (1) {
     if ((tok = Scanner_token(scan)) == 0)
       return 0;
-    if (tok == SWIG_TOKEN_ERROR) {
-      Swig_error(Scanner_file(scan), Scanner_errline(scan), Scanner_errmsg(scan));
-      continue;
-    }
+    if (tok == SWIG_TOKEN_ERROR)
+      return 0;
     cparse_start_line = Scanner_start_line(scan);
     cparse_line = Scanner_line(scan);
     cparse_file = Scanner_file(scan);
