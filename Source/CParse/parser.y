@@ -1002,6 +1002,68 @@ static void add_nested(Nested *n) {
   }
 }
 
+/* Strips C-style and C++-style comments from string in-place. */
+static void strip_comments(char *string) {
+  int state = 0; /* 
+                  * 0 - not in comment
+                  * 1 - in c-style comment
+                  * 2 - in c++-style comment
+                  * 3 - in string
+                  * 4 - after reading / not in comments
+                  * 5 - after reading * in c-style comments
+                  * 6 - after reading \ in strings
+                  */
+  char * c = string;
+  while (*c) {
+    switch (state) {
+    case 0:
+      if (*c == '\"')
+        state = 3;
+      else if (*c == '/')
+        state = 4;
+      break;
+    case 1:
+      if (*c == '*')
+        state = 5;
+      *c = ' ';
+      break;
+    case 2:
+      if (*c == '\n')
+        state = 0;
+      else
+        *c = ' ';
+      break;
+    case 3:
+      if (*c == '\"')
+        state = 0;
+      else if (*c == '\\')
+        state = 6;
+      break;
+    case 4:
+      if (*c == '/') {
+        *(c-1) = ' ';
+        *c = ' ';
+        state = 2;
+      } else if (*c == '*') {
+        *(c-1) = ' ';
+        *c = ' ';
+        state = 1;
+      } else
+        state = 0;
+      break;
+    case 5:
+      if (*c == '/')
+        state = 0;
+      *c = ' ';
+      break;
+    case 6:
+      state = 3;
+      break;
+    }
+    ++c;
+  }
+}
+
 /* Dump all of the nested class declarations to the inline processor
  * However.  We need to do a few name replacements and other munging
  * first.  This function must be called before closing a class! */
@@ -1052,6 +1114,9 @@ static Node *dump_nested(const char *parent) {
        set_nextSibling(retx,ret);
        ret = retx; 
     */
+
+    /* Strip comments - further code may break in presence of comments. */
+    strip_comments(Char(n->code));
 
     /* Make all SWIG created typedef structs/unions/classes unnamed else 
        redefinition errors occur - nasty hack alert.*/

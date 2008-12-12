@@ -79,7 +79,7 @@ CPP_TEST_BROKEN += \
 	extend_variable \
 	li_std_vector_ptr \
 	namespace_union \
-	nested_comment \
+	nested_struct \
 	overload_complicated \
 	template_default_pointer \
 	template_expr
@@ -235,6 +235,7 @@ CPP_TEST_CASES += \
 	namespace_typemap \
 	namespace_virtual_method \
 	naturalvar \
+	nested_comment \
 	newobject1 \
 	null_pointer \
 	operator_overload \
