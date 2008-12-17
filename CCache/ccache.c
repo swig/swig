@@ -136,7 +136,7 @@ static void failed(void)
 		putenv("CCACHE_OUTFILES");
 	}
 
-	execv(orig_args->argv[0], (const char *const *)orig_args->argv);
+	execv(orig_args->argv[0], orig_args->argv);
 	cc_log("execv returned (%s)!\n", strerror(errno));
 	perror(orig_args->argv[0]);
 	exit(1);
