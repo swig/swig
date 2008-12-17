@@ -431,7 +431,7 @@ Please refer to this section for details, but for convenience, the C# usage for 
 
 <p>
 For the <tt>%array_functions</tt> example, the equivalent usage would be:
-<p>
+</p>
 
 <div class="code">
 <pre>
@@ -445,7 +445,7 @@ example.delete_doubleArray(a);                      // Destroy array
 
 <p>
 and for the <tt>%array_class</tt> example, the equivalent usage would be:
-<p>
+</p>
 
 <div class="code">
 <pre>
@@ -485,18 +485,17 @@ on MSDN.
 <p>
 The P/Invoke default marshalling is supported by the <tt>arrays_csharp.i</tt> library via the INPUT, OUTPUT and INOUT typemaps. 
 Let's look at some example usage. Consider the following C function:
+</p>
 <div class="code">
 <pre>
 void myArrayCopy(int *sourceArray, int *targetArray, int nitems);
 </pre>
 </div>
-</p>
 
 <p>
 We can now instruct SWIG to use the default marshalling typemaps by 
 </p>
 
-<p>
 <div class="code">
 <pre>
 %include "arrays_csharp.i"
@@ -505,13 +504,11 @@ We can now instruct SWIG to use the default marshalling typemaps by
 %apply int OUTPUT[] {int *targetArray}
 </pre>
 </div>
-</p>
 
 <p>
 As a result, we get the following method in the module class:
 </p>
 
-<p>
 <div class="code">
 <pre>
 public static void myArrayCopy(int[] sourceArray, int[] targetArray, int nitems) {
@@ -519,7 +516,6 @@ public static void myArrayCopy(int[] sourceArray, int[] targetArray, int nitems)
 }
 </pre>
 </div>
-</p>
 
 <p>
 If we look beneath the surface at the corresponding intermediary class code, we see
@@ -528,7 +524,6 @@ that SWIG has generated code that uses attributes
 marshalling for the arrays:
 </p>
 
-<p>
 <div class="code">
 <pre>
 [DllImport("example", EntryPoint="CSharp_myArrayCopy")]
@@ -536,7 +531,6 @@ public static extern void myArrayCopy([In, MarshalAs(UnmanagedType.LPArray)]int[
                                       [Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2, int jarg3);
 </pre>
 </div>
-</p>
 
 <p>
 As an example of passing an inout array (i.e. the target function will both read from and
@@ -544,19 +538,16 @@ write to the array), consider this C function that swaps a given number of eleme
 in the given arrays:
 </p>
 
-<p>
 <div class="code">
 <pre>
 void myArraySwap(int *array1, int *array2, int nitems);
 </pre>
 </div>
-</p>
 
 <p>
 Now, we can instruct SWIG to wrap this by
 </p>
 
-<p>
 <div class="code">
 <pre>
 %include "arrays_csharp.i"
@@ -565,13 +556,11 @@ Now, we can instruct SWIG to wrap this by
 %apply int INOUT[] {int *array2}
 </pre>
 </div>
-</p>
 
 <p>
 This results in the module class method
 </p>
 
-<p>
 <div class="code">
 <pre>
   public static void myArraySwap(int[] array1, int[] array2, int nitems) {
@@ -579,13 +568,11 @@ This results in the module class method
   }
 </pre>
 </div>
-</p>
 
 <p>
 and intermediate class method
 </p>
 
-<p>
 <div class="code">
 <pre>
   [DllImport("example", EntryPoint="CSharp_myArraySwap")]
@@ -593,7 +580,6 @@ and intermediate class method
                                         [In, Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2, int jarg3);
 </pre>
 </div>
-</p>
 
 
 <H3><a name="CSharp_arrays_pinning"></a>17.3.3 Managed arrays using pinning</H3>
@@ -629,19 +615,16 @@ void myArrayCopy(int *sourceArray, int *targetArray, int nitems);
 We now need to declare the module class method unsafe, as we are using pointers:
 </p>
 
-<p>
 <div class="code">
 <pre>
 %csmethodmodifiers myArrayCopy "public unsafe";
  </pre>
 </div>
-</p>
 
 <p>
 Apply the appropriate typemaps to the array parameters:
 </p>
 
-<p>
 <div class="code">
 <pre>
 %include "arrays_csharp.i"
@@ -650,7 +633,6 @@ Apply the appropriate typemaps to the array parameters:
 %apply int FIXED[] {int *targetArray}
 </pre>
 </div>
-</p>
 
 <p>
 Notice that there is no need for separate in, out or inout typemaps as is the
@@ -661,7 +643,6 @@ case when using P/Invoke default marshalling.
 As a result, we get the following method in the module class:
 </p>
 
-<p>
 <div class="code">
 <pre>
   public unsafe static void myArrayCopy(int[] sourceArray, int[] targetArray, int nitems) {
@@ -675,7 +656,6 @@ As a result, we get the following method in the module class:
   }
 </pre>
 </div>
-</p>
 
 <p>
 On the method signature level the only difference to the version using P/Invoke default
@@ -687,14 +667,12 @@ Also the intermediate class method looks a little different from the default mar
 example - the method is expecting an IntPtr as the parameter type.
 </p>
 
-<p>
 <div class="code">
 <pre>
 [DllImport("example", EntryPoint="CSharp_myArrayCopy")]
 public static extern void myArrayCopy(IntPtr jarg1, IntPtr jarg2, int jarg3);
 </pre>
 </div>
-</p>
 
 
 
