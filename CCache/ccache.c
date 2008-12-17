@@ -136,7 +136,7 @@ static void failed(void)
 		putenv("CCACHE_OUTFILES");
 	}
 
-	execv(orig_args->argv[0], orig_args->argv);
+	execv(orig_args->argv[0], (const char *const *)orig_args->argv);
 	cc_log("execv returned (%s)!\n", strerror(errno));
 	perror(orig_args->argv[0]);
 	exit(1);
@@ -722,7 +722,11 @@ static void find_compiler(int argc, char **argv)
 	if (strcmp(base, MYNAME) == 0) {
 		args_remove_first(orig_args);
 		free(base);
-		if (strchr(argv[1],'/')) {
+		if (strchr(argv[1],'/')
+#ifdef _WIN32
+                    || strchr(argv[1],'\\')
+#endif
+                    ) {
 			/* a full path was given */
 			return;
 		}

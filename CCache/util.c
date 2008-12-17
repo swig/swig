@@ -46,19 +46,24 @@ void fatal(const char *msg)
 
 int safe_rename(const char* oldpath, const char* newpath)
 {
-    /* safe_rename is for creating entries in the cache.
+	/* safe_rename is for creating entries in the cache.
 
-       Works like rename(), but it never overwrites an existing
-       cache entry. This avoids corruption on NFS. */
-    int status = link( oldpath, newpath );
-    if( status == 0 || errno == EEXIST )
-    {
-	return unlink( oldpath );
-    }
-    else
-    {
-	return -1;
-    }
+	   Works like rename(), but it never overwrites an existing
+	   cache entry. This avoids corruption on NFS. */
+#ifndef _WIN32
+	int status = link(oldpath, newpath);
+	if( status == 0 || errno == EEXIST )
+#else
+	int status = CreateHardLinkA(newpath, oldpath, NULL) ? 0 : -1;
+	if( status == 0 || GetLastError() == ERROR_ALREADY_EXISTS )
+#endif
+	{
+		return unlink( oldpath );
+	}
+	else
+	{
+		return -1;
+	}
 }
  
 #ifndef ENABLE_ZLIB
@@ -74,6 +79,15 @@ void copy_fd(int fd_in, int fd_out)
 		}
 	}
 }
+
+#ifndef HAVE_MKSTEMP
+/* cheap and nasty mkstemp replacement */
+static int mkstemp(char *template)
+{
+	mktemp(template);
+	return open(template, O_RDWR | O_CREAT | O_EXCL | O_BINARY, 0600);
+}
+#endif
 
 /* move a file using rename */
 int move_file(const char *src, const char *dest) {
@@ -119,9 +133,13 @@ static int copy_file(const char *src, const char *dest)
 	close(fd1);
 
 	/* get perms right on the tmp file */
+#ifndef _WIN32
 	mask = umask(0);
 	fchmod(fd2, 0666 & ~mask);
 	umask(mask);
+#else
+	(void)mask;
+#endif
 
 	/* the close can fail on NFS if out of space */
 	if (close(fd2) == -1) {
@@ -333,7 +351,11 @@ int commit_to_cache(const char *src, const char *dest, int hardlink)
 	int ret = -1;
 	unlink(dest);
 	if (hardlink) {
+#ifdef _WIN32
+		ret = CreateHardLinkA(dest, src, NULL) ? 0 : -1;
+#else
 		ret = link(src, dest);
+#endif
 	}
 	if (ret == -1) {
 		ret = copy_file_to_cache(src, dest);
@@ -358,7 +380,11 @@ int retrieve_from_cache(const char *src, const char *dest, int hardlink)
 		unlink(dest);
 		/* only make a hardlink if the cache file is uncompressed */
 		if (hardlink && test_if_compressed(src) == 0) {
+#ifdef _WIN32
+			ret = CreateHardLinkA(dest, src, NULL) ? 0 : -1;
+#else
 			ret = link(src, dest);
+#endif
 		} else {
 			ret = copy_file_from_cache(src, dest);
 		}
@@ -393,9 +419,15 @@ int create_dir(const char *dir)
 		errno = ENOTDIR;
 		return 1;
 	}
+#ifdef _WIN32
+	if (mkdir(dir) != 0 && errno != EEXIST) {
+		return 1;
+	}
+#else
 	if (mkdir(dir, 0777) != 0 && errno != EEXIST) {
 		return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -526,7 +558,12 @@ void traverse(const char *dir, void (*fn)(const char *, struct stat *))
 		if (strlen(de->d_name) == 0) continue;
 
 		x_asprintf(&fname, "%s/%s", dir, de->d_name);
-		if (lstat(fname, &st)) {
+#ifdef _WIN32
+		if (stat(fname, &st))
+#else
+ 		if (lstat(fname, &st))
+#endif
+                {
 			if (errno != ENOENT) {
 				perror(fname);
 			}
@@ -551,8 +588,16 @@ char *str_basename(const char *s)
 {
 	char *p = strrchr(s, '/');
 	if (p) {
-		return x_strdup(p+1);
-	} 
+		s = (p+1);
+	}
+
+#ifdef _WIN32
+	p = strrchr(s, '\\');
+
+	if (p) {
+		s = (p+1);
+	}
+#endif
 
 	return x_strdup(s);
 }
@@ -563,6 +608,9 @@ char *dirname(char *s)
 	char *p;
 	s = x_strdup(s);
 	p = strrchr(s, '/');
+#ifdef _WIN32
+	p = strrchr(s, '\\');
+#endif
 	if (p) {
 		*p = 0;
 	} 
@@ -571,6 +619,7 @@ char *dirname(char *s)
 
 int lock_fd(int fd)
 {
+#ifndef _WIN32
 	struct flock fl;
 	int ret;
 
@@ -586,17 +635,26 @@ int lock_fd(int fd)
 		ret = fcntl(fd, F_SETLKW, &fl);
 	} while (ret == -1 && errno == EINTR);
 	return ret;
+#else
+	(void)fd;
+#warning "missing implementation???"
+	return 0;
+#endif
 }
 
 /* return size on disk of a file */
 size_t file_size(struct stat *st)
 {
+#ifdef _WIN32
+	return (st->st_size + 1023) & ~1023;
+#else
 	size_t size = st->st_blocks * 512;
 	if ((size_t)st->st_size > size) {
 		/* probably a broken stat() call ... */
 		size = (st->st_size + 1023) & ~1023;
 	}
 	return size;
+#endif
 }
 
 
@@ -658,6 +716,17 @@ size_t value_units(const char *s)
 */
 char *x_realpath(const char *path)
 {
+#ifdef _WIN32
+	char namebuf[MAX_PATH];
+	DWORD ret;
+
+	ret = GetFullPathNameA(path, sizeof(namebuf), namebuf, NULL);
+	if (ret == 0 || ret >= sizeof(namebuf)) {
+		return NULL;
+	}
+
+	return x_strdup(namebuf);
+#else
 	int maxlen;
 	char *ret, *p;
 #ifdef PATH_MAX
@@ -693,6 +762,7 @@ char *x_realpath(const char *path)
 	}
 	free(ret);
 	return NULL;
+#endif
 }
 
 /* a getcwd that will returns an allocated buffer */
@@ -713,16 +783,6 @@ char *gnu_getcwd(void)
 	}
 }
 
-#ifndef HAVE_MKSTEMP
-/* cheap and nasty mkstemp replacement */
-int mkstemp(char *template)
-{
-	mktemp(template);
-	return open(template, O_RDWR | O_CREAT | O_EXCL | O_BINARY, 0600);
-}
-#endif
-
-
 /* create an empty file */
 int create_empty_file(const char *fname)
 {
@@ -741,6 +801,24 @@ int create_empty_file(const char *fname)
 */
 const char *get_home_directory(void)
 {
+#ifdef _WIN32
+	static char home_path[MAX_PATH] = {0};
+	HRESULT ret;
+
+	/* we already have the path */
+	if (home_path[0] != 0) {
+		return home_path;
+	}
+
+	/* get the path to "Application Data" folder */
+	ret = SHGetFolderPathA(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, home_path);
+	if (SUCCEEDED(ret)) {
+		return home_path;
+	}
+
+	fprintf(stderr, "ccache: Unable to determine home directory\n");
+	return NULL;
+#else
 	const char *p = getenv("HOME");
 	if (p) {
 		return p;
@@ -753,8 +831,9 @@ const char *get_home_directory(void)
 		}
 	}
 #endif
-	cc_log("Unable to determine home directory");
+	fatal("Unable to determine home directory");
 	return NULL;
+#endif
 }
 
 int x_utimes(const char *filename)

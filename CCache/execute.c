@@ -18,6 +18,33 @@
 
 #include "ccache.h"
 
+#ifdef _WIN32
+static char *argvtos(char **argv)
+{
+	int i, len;
+	char *ptr, *str;
+
+	for (i = 0, len = 0; argv[i]; i++) {
+		len += strlen(argv[i]) + 3;
+	}
+
+	str = ptr = (char *)malloc(len + 1);
+	if (str == NULL)
+		return NULL;
+
+	for (i = 0; argv[i]; i++) {
+		len = strlen(argv[i]);
+		*ptr++ = '"';
+		memcpy(ptr, argv[i], len);
+		ptr += len;
+		*ptr++ = '"';
+		*ptr++ = ' ';
+	}
+	*ptr = 0;
+
+	return str;
+}
+#endif
 
 /*
   execute a compiler backend, capturing all output to the given paths
@@ -27,6 +54,60 @@ int execute(char **argv,
 	    const char *path_stdout,
 	    const char *path_stderr)
 {
+#ifdef _WIN32
+	PROCESS_INFORMATION pinfo; 
+	STARTUPINFO sinfo;
+	BOOL ret; 
+	DWORD exitcode;
+	char *args;
+	HANDLE fd_out, fd_err;
+	SECURITY_ATTRIBUTES sa = {sizeof(SECURITY_ATTRIBUTES), NULL, TRUE};
+
+	/* TODO: needs moving after possible exit() below, but before stdout is redirected */
+	if (ccache_verbose) {
+		display_execute_args(argv);
+	}
+
+	fd_out = CreateFile(path_stdout, GENERIC_WRITE, 0, &sa, CREATE_ALWAYS,
+                            FILE_ATTRIBUTE_NORMAL, NULL);
+	if (fd_out == INVALID_HANDLE_VALUE) {
+		return STATUS_NOCACHE;
+	}
+
+	fd_err = CreateFile(path_stderr, GENERIC_WRITE, 0, &sa, CREATE_ALWAYS,
+                            FILE_ATTRIBUTE_NORMAL, NULL);
+	if (fd_err == INVALID_HANDLE_VALUE) {
+		return STATUS_NOCACHE;
+	}
+   
+	ZeroMemory(&pinfo, sizeof(PROCESS_INFORMATION));
+	ZeroMemory(&sinfo, sizeof(STARTUPINFO));
+
+	sinfo.cb = sizeof(STARTUPINFO); 
+	sinfo.hStdError = fd_err;
+	sinfo.hStdOutput = fd_out;
+	sinfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+	sinfo.dwFlags |= STARTF_USESTDHANDLES;
+ 
+	args = argvtos(argv);
+
+	ret = CreateProcessA(argv[0], args, NULL, NULL, TRUE, 0, NULL, NULL,
+	                     &sinfo, &pinfo);
+
+	free(args);
+	CloseHandle(fd_out);
+	CloseHandle(fd_err);
+
+	if (ret == 0)
+		return -1;
+
+	WaitForSingleObject(pinfo.hProcess, INFINITE);
+	GetExitCodeProcess(pinfo.hProcess, &exitcode);
+	CloseHandle(pinfo.hProcess);
+	CloseHandle(pinfo.hThread);
+
+	return exitcode;
+#else
 	pid_t pid;
 	int status;
 
@@ -69,6 +150,7 @@ int execute(char **argv,
 	}
 
 	return WEXITSTATUS(status);
+#endif
 }
 
 
@@ -77,6 +159,19 @@ int execute(char **argv,
 */
 char *find_executable(const char *name, const char *exclude_name)
 {
+#if _WIN32
+	(void)exclude_name;
+	DWORD ret;
+	char namebuf[MAX_PATH];
+
+	ret = SearchPathA(getenv("CCACHE_PATH"), name, ".exe",
+			  sizeof(namebuf), namebuf, NULL);
+	if (ret != 0) {
+		return x_strdup(namebuf);
+	}
+
+	return NULL;
+#else
 	char *path;
 	char *tok;
 	struct stat st1, st2;
@@ -131,6 +226,7 @@ char *find_executable(const char *name, const char *exclude_name)
 	}
 
 	return NULL;
+#endif
 }
 
 void display_execute_args(char **argv)

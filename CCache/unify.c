@@ -238,6 +238,39 @@ static void unify(unsigned char *p, size_t size)
 */
 int unify_hash(const char *fname)
 {
+#ifdef _WIN32
+	HANDLE file;
+	HANDLE section;
+	MEMORY_BASIC_INFORMATION minfo;
+	char *map;
+
+	file = CreateFileA(fname, GENERIC_READ, FILE_SHARE_READ, NULL,
+	                   OPEN_EXISTING, 0, NULL);
+	if (file == INVALID_HANDLE_VALUE)
+		return -1;
+
+	section = CreateFileMappingA(file, NULL, PAGE_READONLY, 0, 0, NULL);
+	CloseHandle(file);
+	if (section == NULL)
+		return -1;
+
+	map = MapViewOfFile(section, FILE_MAP_READ, 0, 0, 0);
+	CloseHandle(section);
+	if (map == NULL)
+		return -1;
+
+        if (VirtualQuery(map, &minfo, sizeof(minfo)) != sizeof(minfo)) {
+		UnmapViewOfFile(map);
+		return -1;
+        }
+
+	/* pass it through the unifier */
+	unify((unsigned char *)map, minfo.RegionSize);
+
+	UnmapViewOfFile(map);
+
+	return 0;
+#else
 	int fd;
 	struct stat st;	
 	char *map;
@@ -265,5 +298,6 @@ int unify_hash(const char *fname)
 	munmap(map, st.st_size);
 
 	return 0;
+#endif
 }
 

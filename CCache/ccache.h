@@ -2,7 +2,11 @@
 
 #define CCACHE_VERSION SWIG_VERSION
 
+#ifndef _WIN32
 #include "config.h"
+#else
+#define PACKAGE_NAME "ccache-swig.exe"
+#endif
 
 #include <stdio.h>
 #include <unistd.h>
@@ -10,8 +14,16 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/mman.h>
+
+#ifndef _WIN32
+ #include <sys/wait.h>
+ #include <sys/mman.h>
+#else
+#define _WIN32_WINNT 0x0500
+ #include <windows.h>
+ #include <shlobj.h>
+#endif
+
 #include <sys/file.h>
 #include <fcntl.h>
 #include <time.h>
