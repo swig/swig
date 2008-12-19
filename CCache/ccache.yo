@@ -272,7 +272,7 @@ The basic idea is to detect when you are compiling exactly the same
 code a 2nd time and use the previously compiled output. You detect
 that it is the same code by forming a hash of:
 
-itemize(
+itemization(
   it() the pre-processor output from running the compiler with -E
   it() the command line options
   it() the real compilers size and modification time
@@ -312,7 +312,7 @@ file. Typically, users will see that their libraries and binaries are
 relinked without reason.  To share a cache without side effects, the
 following conditions need to be met:
 
-itemize(
+itemization(
   it() Use the same bf(CCACHE_DIR) environment variable setting
   it() Unset the bf(CCACHE_HARDLINK) environment variable
   it() Make sure everyone sets the CCACHE_UMASK environment variable
@@ -346,7 +346,7 @@ manpagesection(DIFFERENCES FROM COMPILERCACHE)
 
 The biggest differences between Erik's compilercache script and ccache
 are:
-itemize(
+itemization(
 it() ccache is written in C, which makes it a bit faster (calling out to
   external programs is mostly what slowed down the scripts).
 it() ccache can automatically find the real compiler
@@ -361,7 +361,7 @@ it() ccache avoids a double call to cpp on a cache miss
 manpagesection(CREDITS)
 
 Thanks to the following people for their contributions to ccache
-itemize(
+itemization(
  it() Erik Thiele for the original compilercache script
  it() Luciano Rocha for the idea of compiling the pre-processor output
  to avoid a 2nd cpp pass
