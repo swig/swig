@@ -1,23 +1,24 @@
-mailto(bugs@ccache.samba.org)
-manpage(ccache)(1)(April 2002)()()
-manpagename(ccache)(a fast compiler cache)
+mailto(swig-devel see: http://www.swig.org/mail.html)
+manpage(ccache-swig)(1)()()()
+manpagename(ccache-swig)(a fast compiler cache)
 manpagesynopsis()
 
-ccache [OPTION]
+ccache-swig [OPTION]
 
-ccache <compiler> [COMPILER OPTIONS]
+ccache-swig <compiler> [COMPILER OPTIONS]
 
 <compiler> [COMPILER OPTIONS]
 
 manpagedescription()
 
-ccache is a compiler cache. It speeds up re-compilation of C/C++ code 
+ccache-swig is a compiler cache. It speeds up re-compilation of C/C++/SWIG code 
 by caching previous compiles and detecting when the same compile is
-being done again.
+being done again. ccache-swig is ccache plus support for SWIG. ccache
+and ccache-swig are used interchangeably in this document.
 
 manpagesection(OPTIONS SUMMARY)
 
-Here is a summary of the options to ccache.
+Here is a summary of the options to ccache-swig.
 
 verb(
 -s                      show statistics summary
@@ -32,7 +33,7 @@ verb(
 
 manpageoptions()
 
-These options only apply when you invoke ccache as "ccache". When
+These options only apply when you invoke ccache as "ccache-swig". When
 invoked as a compiler none of these options apply. In that case your
 normal compiler options apply and you should refer to your compilers
 documentation.
@@ -42,7 +43,7 @@ dit(bf(-h)) Print a options summary page
 
 dit(bf(-s)) Print the current statistics summary for the cache. The
 statistics are stored spread across the subdirectories of the
-cache. Using "ccache -s" adds up the statistics across all
+cache. Using "ccache-swig -s" adds up the statistics across all
 subdirectories and prints the totals.
 
 dit(bf(-z)) Zero the cache statistics. 
@@ -73,21 +74,22 @@ enddit()
 manpagesection(INSTALLATION)
 
 There are two ways to use ccache. You can either prefix your compile
-commands with "ccache" or you can create a symbolic link between
-ccache and the names of your compilers. The first method is most
+commands with "ccache-swig" or you can create a symbolic link between
+ccache-swig and the names of your compilers. The first method is most
 convenient if you just want to try out ccache or wish to use it for
 some specific projects. The second method is most useful for when you
 wish to use ccache for all your compiles.
 
-To install for usage by the first method just copy ccache to somewhere
+To install for usage by the first method just copy ccache-swig to somewhere
 in your path. 
 
 To install for the second method do something like this:
 verb(
-  cp ccache /usr/local/bin/
-  ln -s /usr/local/bin/ccache /usr/local/bin/gcc
-  ln -s /usr/local/bin/ccache /usr/local/bin/g++
-  ln -s /usr/local/bin/ccache /usr/local/bin/cc
+  cp ccache-swig /usr/local/bin/
+  ln -s /usr/local/bin/ccache-swig /usr/local/bin/gcc
+  ln -s /usr/local/bin/ccache-swig /usr/local/bin/g++
+  ln -s /usr/local/bin/ccache-swig /usr/local/bin/cc
+  ln -s /usr/local/bin/ccache-swig /usr/local/bin/swig
 )
 This will work as long as /usr/local/bin comes before the path to gcc
 (which is usually in /usr/bin). After installing you may wish to run
@@ -257,7 +259,8 @@ clean operation too often.
 
 manpagesection(CACHE COMPRESSION)
 
-By default ccache will compress all files it puts into the cache
+By default on most platforms ccache will compress all files it puts 
+into the cache
 using the zlib compression. While this involves a negligible
 performance slowdown, it significantly increases the number of files
 that fit in the cache. You can turn off compression setting the
@@ -332,6 +335,8 @@ by Erik Thiele and I would like to thank him for an excellent piece of
 work. See 
 url(http://www.erikyyy.de/compilercache/)(http://www.erikyyy.de/compilercache/)
 for the Erik's scripts.
+ccache-swig is a port of the original ccache with support added for use
+with SWIG.
 
 I wrote ccache because I wanted to get a bit more speed out of a
 compiler cache and I wanted to remove some of the limitations of the
@@ -366,10 +371,12 @@ itemize(
 manpageauthor()
 
 ccache was written by Andrew Tridgell
-url(http://samba.org/~tridge/)(http://samba.org/~tridge/)
+url(http://samba.org/~tridge/)(http://samba.org/~tridge/).
+ccache was adapted to create ccache-swig for use with SWIG by William Fulton.
 
 If you wish to report a problem or make a suggestion then please email
-bugs@ccache.samba.org
+the SWIG developers on the swig-devel mailing list, see
+url(http://www.swig.org/mail.html)(http://www.swig.org/mail.html)
 
 ccache is released under the GNU General Public License version 2 or
 later. Please see the file COPYING for license details.
