@@ -130,6 +130,9 @@ char *gnu_getcwd(void);
 int create_empty_file(const char *fname);
 const char *get_home_directory(void);
 int x_utimes(const char *filename);
+#ifdef _WIN32
+void perror_win32(LPTSTR pszFunction);
+#endif
 
 void stats_update(enum stats stat);
 void stats_zero(void);
@@ -158,6 +161,9 @@ void cleanup_dir(const char *dir, size_t maxfiles, size_t maxsize);
 void cleanup_all(const char *dir);
 void wipe_all(const char *dir);
 
+#ifdef _WIN32
+char *argvtos(char **argv);
+#endif
 int execute(char **argv, 
 	    const char *path_stdout,
 	    const char *path_stderr);

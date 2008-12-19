@@ -241,31 +241,34 @@ int unify_hash(const char *fname)
 #ifdef _WIN32
 	HANDLE file;
 	HANDLE section;
-	MEMORY_BASIC_INFORMATION minfo;
+	DWORD filesize_low;
 	char *map;
+	int ret = -1;
 
 	file = CreateFileA(fname, GENERIC_READ, FILE_SHARE_READ, NULL,
 	                   OPEN_EXISTING, 0, NULL);
-	if (file == INVALID_HANDLE_VALUE)
-		return -1;
+	if (file != INVALID_HANDLE_VALUE) {
+		filesize_low = GetFileSize(file, NULL);
+		if (!(filesize_low == INVALID_FILE_SIZE && GetLastError() != NO_ERROR)) {
+			section = CreateFileMappingA(file, NULL, PAGE_READONLY, 0, 0, NULL);
+			CloseHandle(file);
+			if (section != NULL) {
+				map = MapViewOfFile(section, FILE_MAP_READ, 0, 0, 0);
+				CloseHandle(section);
+				if (map != NULL)
+					ret = 0;
+			}
+		}
+	}
 
-	section = CreateFileMappingA(file, NULL, PAGE_READONLY, 0, 0, NULL);
-	CloseHandle(file);
-	if (section == NULL)
+	if (ret == -1) {
+		cc_log("Failed to open preprocessor output %s\n", fname);
+		stats_update(STATS_PREPROCESSOR);
 		return -1;
-
-	map = MapViewOfFile(section, FILE_MAP_READ, 0, 0, 0);
-	CloseHandle(section);
-	if (map == NULL)
-		return -1;
-
-        if (VirtualQuery(map, &minfo, sizeof(minfo)) != sizeof(minfo)) {
-		UnmapViewOfFile(map);
-		return -1;
-        }
+	}
 
 	/* pass it through the unifier */
-	unify((unsigned char *)map, minfo.RegionSize);
+	unify((unsigned char *)map, filesize_low);
 
 	UnmapViewOfFile(map);
 
@@ -288,6 +291,7 @@ int unify_hash(const char *fname)
 	map = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (map == (char *)-1) {
 		cc_log("Failed to mmap %s\n", fname);
+		stats_update(STATS_PREPROCESSOR);
 		return -1;
 	}
 	close(fd);

@@ -136,10 +136,40 @@ static void failed(void)
 		putenv("CCACHE_OUTFILES");
 	}
 
+#ifndef _WIN32
 	execv(orig_args->argv[0], orig_args->argv);
 	cc_log("execv returned (%s)!\n", strerror(errno));
 	perror(orig_args->argv[0]);
 	exit(1);
+#else
+	/* execv on Windows causes the 'non-regular' testcase to fail, so use Win32 API instead */
+	{
+		PROCESS_INFORMATION pinfo; 
+		STARTUPINFO sinfo;
+		BOOL ret; 
+		DWORD exitcode;
+		char *args;
+
+		ZeroMemory(&pinfo, sizeof(PROCESS_INFORMATION));
+		ZeroMemory(&sinfo, sizeof(STARTUPINFO));
+		sinfo.cb = sizeof(STARTUPINFO); 
+		args = argvtos(orig_args->argv);
+		ret = CreateProcessA(orig_args->argv[0], args, NULL, NULL, TRUE, 0, NULL, NULL,
+				     &sinfo, &pinfo);
+		if (!ret) {
+			exitcode = 1;
+			cc_log("CreateProcessA failed starting %s\n", orig_args->argv[0]);
+			perror_win32(orig_args->argv[0]);
+		} else {
+			WaitForSingleObject(pinfo.hProcess, INFINITE);
+			GetExitCodeProcess(pinfo.hProcess, &exitcode);
+			CloseHandle(pinfo.hProcess);
+			CloseHandle(pinfo.hThread);
+		}
+		free(args);
+		exit(exitcode);
+	}
+#endif
 }
 
 

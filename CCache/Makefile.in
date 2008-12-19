@@ -8,6 +8,8 @@ bindir=@bindir@
 mandir=@mandir@
 INSTALLCMD=@INSTALL@
 PACKAGE_NAME=@PACKAGE_NAME@
+# Soft link test can be skipped on systems that don't support soft linking
+NOSOFTLINKSTEST=
 
 CC=@CC@
 CFLAGS=@CFLAGS@ -I.
@@ -56,7 +58,7 @@ clean-docs:
 check : test
 
 test: test.sh
-	SWIG_LIB='$(SWIG_LIB)' PATH=../..:$$PATH SWIG='$(SWIG)' CC='$(CC)' ./test.sh
+	SWIG_LIB='$(SWIG_LIB)' PATH=../..:$$PATH SWIG='$(SWIG)' CC='$(CC)' NOSOFTLINKSTEST='$(NOSOFTLINKSTEST)' ./test.sh
 
 check: test
 

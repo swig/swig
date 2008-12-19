@@ -65,6 +65,7 @@ checkstat() {
     stat="$1"
     expected_value="$2"
     value=`getstat "$stat"`
+#    echo "exp: $expected_value got: $value $testname"
     if [ "$expected_value" != "$value" ]; then
 	test_failed "SUITE: $testsuite TEST: $testname - Expected $stat to be $expected_value got $value"
     fi
@@ -393,15 +394,19 @@ basetests
 CCACHE_COMPILE="$CCACHE $SWIG"
 swigtests
 
-testsuite="link"
-ln -s $CCACHE $COMPILER
-CCACHE_COMPILE="./$COMPILER"
-basetests
-rm "./$COMPILER"
-ln -s $CCACHE $SWIG
-CCACHE_COMPILE="./$SWIG"
-swigtests
-rm "./$SWIG"
+if test -z "$NOSOFTLINKSTEST"; then
+  testsuite="link"
+  ln -s $CCACHE $COMPILER
+  CCACHE_COMPILE="./$COMPILER"
+  basetests
+  rm "./$COMPILER"
+  ln -s $CCACHE $SWIG
+  CCACHE_COMPILE="./$SWIG"
+  swigtests
+  rm "./$SWIG"
+else
+  echo "skipping testsuite link"
+fi
 
 testsuite="hardlink"
 CCACHE_COMPILE="env CCACHE_NOCOMPRESS=1 CCACHE_HARDLINK=1 $CCACHE $COMPILER"

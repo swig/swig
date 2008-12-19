@@ -845,3 +845,23 @@ int x_utimes(const char *filename)
 #endif
 }
 
+#ifdef _WIN32
+/* perror for Win32 API calls, using GetLastError() instead of errno */
+void perror_win32(LPTSTR pszFunction)
+{
+	LPTSTR pszMessage;
+	DWORD dwLastError = GetLastError();
+
+	FormatMessage(	FORMAT_MESSAGE_ALLOCATE_BUFFER |
+			FORMAT_MESSAGE_FROM_SYSTEM |
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			dwLastError,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPTSTR)&pszMessage,
+			0, NULL );
+
+	fprintf(stderr, "%s: %s\n", pszFunction, pszMessage);
+	LocalFree(pszMessage);
+}
+#endif

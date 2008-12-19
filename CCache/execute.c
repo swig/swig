@@ -19,7 +19,7 @@
 #include "ccache.h"
 
 #ifdef _WIN32
-static char *argvtos(char **argv)
+char *argvtos(char **argv)
 {
 	int i, len;
 	char *ptr, *str;
