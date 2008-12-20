@@ -27,6 +27,7 @@ HEADERS = ccache.h mdfour.h
 
 all: $(PACKAGE_NAME)$(EXEEXT)
 
+# Note that HTML documentation is actually generated and used from the main SWIG documentation Makefile
 docs: $(PACKAGE_NAME).1 web/ccache-man.html
 
 $(PACKAGE_NAME)$(EXEEXT): $(OBJS) $(HEADERS)
