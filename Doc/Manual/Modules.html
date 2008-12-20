@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Modules"></a>15 Working with Modules</H1>
+<H1><a name="Modules"></a>16 Working with Modules</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -37,7 +37,7 @@ This chapter describes the problem of using SWIG in programs
 where you want to create a collection of modules.
 </p>
 
-<H2><a name="Modules_nn1"></a>15.1 Basics</H2>
+<H2><a name="Modules_nn1"></a>16.1 Basics</H2>
 
 
 <p>
@@ -135,7 +135,7 @@ in parallel from multiple threads as SWIG provides no locking - for more on that
 issue, read on.
 </p>
 
-<H2><a name="Modules_nn2"></a>15.2 The SWIG runtime code</H2>
+<H2><a name="Modules_nn2"></a>16.2 The SWIG runtime code</H2>
 
 
 <p>
@@ -201,7 +201,7 @@ can peacefully coexist. So the type structures are separated by the
 is empty. Only modules compiled with the same pair will share type information.
 </p>
 
-<H2><a name="external_run_time"></a>15.3 External access to the runtime</H2>
+<H2><a name="external_run_time"></a>16.3 External access to the runtime</H2>
 
 
 <p>As described in <a href="Typemaps.html#runtime_type_checker">The run-time type checker</a>,
@@ -238,7 +238,7 @@ SWIG_TYPE_TABLE to be the same as the module whose types you are trying to
 access.
 </p>
 
-<H2><a name="Modules_nn4"></a>15.4 A word of caution about static libraries</H2>
+<H2><a name="Modules_nn4"></a>16.4 A word of caution about static libraries</H2>
 
 
 <p>
@@ -249,7 +249,7 @@ into it. This is very often <b>NOT</b> what you want and it can lead to unexpect
 behavior. When working with dynamically loadable modules, you should try to work exclusively with shared libraries.
 </p>
 
-<H2><a name="Modules_nn5"></a>15.5 References</H2>
+<H2><a name="Modules_nn5"></a>16.5 References</H2>
 
 
 <p>
@@ -257,7 +257,7 @@ Due to the complexity of working with shared libraries and multiple modules, it 
 an outside reference.  John Levine's "Linkers and Loaders" is highly recommended.
 </p>
 
-<H2><a name="Modules_nn6"></a>15.6 Reducing the wrapper file size</H2>
+<H2><a name="Modules_nn6"></a>16.6 Reducing the wrapper file size</H2>
 
 
 <p>

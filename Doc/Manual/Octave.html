@@ -8,7 +8,7 @@
 
 <body bgcolor="#ffffff">
 
-<H1><a name="Octave"></a>26 SWIG and Octave</H1>
+<H1><a name="Octave"></a>27 SWIG and Octave</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -54,14 +54,14 @@ More information can be found at <a href="http://www.octave.org">www.octave.org<
 Also, there are a dozen or so examples in the Examples/octave directory, and hundreds in the test suite (Examples/test-suite and Examples/test-suite/octave).
 </p>
 
-<H2><a name="Octave_nn2"></a>26.1 Preliminaries</H2>
+<H2><a name="Octave_nn2"></a>27.1 Preliminaries</H2>
 
 
 <p>
 The current SWIG implemention is based on Octave 2.9.12. Support for other versions (in particular the recent 3.0) has not been tested, nor has support for any OS other than Linux.
 </p>
 
-<H2><a name="Octave_nn3"></a>26.2 Running SWIG</H2>
+<H2><a name="Octave_nn3"></a>27.2 Running SWIG</H2>
 
 
 <p>
@@ -89,7 +89,7 @@ This creates a C/C++ source file <tt>example_wrap.cxx</tt>. The generated C++ so
 The swig command line has a number of options you can use, like to redirect it's output. Use <tt>swig --help</tt> to learn about these.
 </p>
 
-<H3><a name="Octave_nn5"></a>26.2.1 Compiling a dynamic module</H3>
+<H3><a name="Octave_nn5"></a>27.2.1 Compiling a dynamic module</H3>
 
 
 <p>
@@ -116,7 +116,7 @@ $ mkoctfile example_wrap.cxx example.c
 
           <div class="targetlang"><pre>octave:1&gt; example</pre></div>
 
-<H3><a name="Octave_nn6"></a>26.2.2 Using your module</H3>
+<H3><a name="Octave_nn6"></a>27.2.2 Using your module</H3>
 
 
 <p>
@@ -134,10 +134,10 @@ octave:4&gt; example.cvar.Foo=4;
 octave:5&gt; example.cvar.Foo
 ans =  4 </pre></div>
 
-<H2><a name="Octave_nn7"></a>26.3 A tour of basic C/C++ wrapping</H2>
+<H2><a name="Octave_nn7"></a>27.3 A tour of basic C/C++ wrapping</H2>
 
 
-<H3><a name="Octave_nn8"></a>26.3.1 Modules</H3>
+<H3><a name="Octave_nn8"></a>27.3.1 Modules</H3>
 
 
 <p>
@@ -179,7 +179,7 @@ One can also rename it by simple assignment, e.g.,
 octave:1&gt; some_vars = cvar;
 </pre></div>
 
-<H3><a name="Octave_nn9"></a>26.3.2 Functions</H3>
+<H3><a name="Octave_nn9"></a>27.3.2 Functions</H3>
 
 
 <p>
@@ -196,7 +196,7 @@ int fact(int n); </pre></div>
     <div class="targetlang"><pre>octave:1&gt; example.fact(4)
 24 </pre></div>
 
-<H3><a name="Octave_nn10"></a>26.3.3 Global variables</H3>
+<H3><a name="Octave_nn10"></a>27.3.3 Global variables</H3>
 
 
 <p>
@@ -249,7 +249,7 @@ octave:2&gt; example.PI=3.142;
 octave:3&gt; example.PI
 ans =  3.1420 </pre></div>
 
-<H3><a name="Octave_nn11"></a>26.3.4 Constants and enums</H3>
+<H3><a name="Octave_nn11"></a>27.3.4 Constants and enums</H3>
 
 
 <p>
@@ -271,7 +271,7 @@ example.SCONST="Hello World"
 example.SUNDAY=0
 .... </pre></div>
 
-<H3><a name="Octave_nn12"></a>26.3.5 Pointers</H3>
+<H3><a name="Octave_nn12"></a>27.3.5 Pointers</H3>
 
 
 <p>
@@ -318,7 +318,7 @@ octave:2&gt; f=example.fopen("not there","r");
 error: value on right hand side of assignment is undefined
 error: evaluating assignment expression near line 2, column 2 </pre></div>
 
-<H3><a name="Octave_nn13"></a>26.3.6 Structures and C++ classes</H3>
+<H3><a name="Octave_nn13"></a>27.3.6 Structures and C++ classes</H3>
 
 
 <p>
@@ -453,7 +453,7 @@ ans =  1
 Depending on the ownership setting of a <tt>swig_ref</tt>, it may call C++ destructors when its reference count goes to zero. See the section on memory management below for details.
 </p>
 
-<H3><a name="Octave_nn15"></a>26.3.7 C++ inheritance</H3>
+<H3><a name="Octave_nn15"></a>27.3.7 C++ inheritance</H3>
 
 
 <p>
@@ -462,7 +462,7 @@ This information contains the full class hierarchy. When an indexing operation (
 the tree is walked to find a match in the current class as well as any of its bases. The lookup is then cached in the <tt>swig_ref</tt>.
 </p>
 
-<H3><a name="Octave_nn17"></a>26.3.8 C++ overloaded functions</H3>
+<H3><a name="Octave_nn17"></a>27.3.8 C++ overloaded functions</H3>
 
 
 <p>
@@ -472,7 +472,7 @@ The dispatch function selects which overload to call (if any) based on the passe
 <tt>typecheck</tt> typemaps are used to analyze each argument, as well as assign precedence. See the chapter on typemaps for details.
 </p>
 
-<H3><a name="Octave_nn18"></a>26.3.9 C++ operators</H3>
+<H3><a name="Octave_nn18"></a>27.3.9 C++ operators</H3>
 
 
 <p>
@@ -572,7 +572,7 @@ On the C++ side, the default mappings are as follows:
 %rename(__brace)     *::operator[];
 </pre></div>
 
-<H3><a name="Octave_nn19"></a>26.3.10 Class extension with %extend</H3>
+<H3><a name="Octave_nn19"></a>27.3.10 Class extension with %extend</H3>
 
 
 <p>
@@ -602,7 +602,7 @@ octave:3&gt; printf("%s\n",a);
 octave:4&gt; a.__str()
 4
 </pre></div>
-<H3><a name="Octave_nn20"></a>26.3.11 C++ templates</H3>
+<H3><a name="Octave_nn20"></a>27.3.11 C++ templates</H3>
 
 
 <p>
@@ -679,14 +679,14 @@ ans =
 </pre></div>
 
 
-<H3><a name="Octave_nn21"></a>26.3.12 C++ Smart Pointers</H3>
+<H3><a name="Octave_nn21"></a>27.3.12 C++ Smart Pointers</H3>
 
 
 <p>
 C++ smart pointers are fully supported as in other modules.
 </p>
 
-<H3><a name="Octave_nn22"></a>26.3.13 Directors (calling Octave from C++ code)</H3>
+<H3><a name="Octave_nn22"></a>27.3.13 Directors (calling Octave from C++ code)</H3>
 
 
 <p>
@@ -766,14 +766,14 @@ c-side routine called
 octave-side routine called
 </pre></div>
 
-<H3><a name="Octave_nn23"></a>26.3.14 Threads</H3>
+<H3><a name="Octave_nn23"></a>27.3.14 Threads</H3>
 
 
 <p>
 The use of threads in wrapped Director code is not supported; i.e., an Octave-side implementation of a C++ class must be called from the Octave interpreter's thread. Anything fancier (apartment/queue model, whatever) is left to the user. Without anything fancier, this amounts to the limitation that Octave must drive the module... like, for example, an optimization package that calls Octave to evaluate an objective function.
 </p>
 
-<H3><a name="Octave_nn24"></a>26.3.15 Memory management</H3>
+<H3><a name="Octave_nn24"></a>27.3.15 Memory management</H3>
 
 
 <p>
@@ -807,14 +807,14 @@ The %newobject directive may be used to control this behavior for pointers retur
 In the case where one wishes for the C++ side to own an object that was created in Octave (especially a Director object), one can use the __disown() method to invert this logic. Then letting the Octave reference count go to zero will not destroy the object, but destroying the object will invalidate the Octave-side object if it still exists (and call destructors of other C++ bases in the case of multiple inheritance/<tt>subclass()</tt>'ing).
 </p>
 
-<H3><a name="Octave_nn25"></a>26.3.16 STL support</H3>
+<H3><a name="Octave_nn25"></a>27.3.16 STL support</H3>
 
 
 <p>
 This is some skeleton support for various STL containers.
 </p>
 
-<H3><a name="Octave_nn26"></a>26.3.17 Matrix typemaps</H3>
+<H3><a name="Octave_nn26"></a>27.3.17 Matrix typemaps</H3>
 
 
 <p>

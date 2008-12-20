@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Php"></a>28 SWIG and PHP</H1>
+<H1><a name="Php"></a>29 SWIG and PHP</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -69,7 +69,7 @@ your extension into php directly, you will need the complete PHP source tree
 available.
 </p>
 
-<H2><a name="Php_nn1"></a>28.1 Generating PHP Extensions</H2>
+<H2><a name="Php_nn1"></a>29.1 Generating PHP Extensions</H2>
 
 
 <p>
@@ -116,7 +116,7 @@ and it doesn't play nicely with package system.  We don't recommend
 this approach, or provide explicit support for it.
 </p>
 
-<H3><a name="Php_nn1_1"></a>28.1.1 Building a loadable extension</H3>
+<H3><a name="Php_nn1_1"></a>29.1.1 Building a loadable extension</H3>
 
 
 <p>
@@ -131,7 +131,7 @@ least work for Linux though):
 	gcc -shared example_wrap.o -o example.so
 </pre></div>
 
-<H3><a name="Php_nn1_3"></a>28.1.2 Using PHP Extensions</H3>
+<H3><a name="Php_nn1_3"></a>29.1.2 Using PHP Extensions</H3>
 
 
 <p>
@@ -162,7 +162,7 @@ attempts to do the <tt>dl()</tt> call for you:
 	include("example.php");
 </pre></div>
 
-<H2><a name="Php_nn2"></a>28.2 Basic PHP interface</H2>
+<H2><a name="Php_nn2"></a>29.2 Basic PHP interface</H2>
 
 
 <p>
@@ -172,7 +172,7 @@ possible for names of symbols in one extension module to clash with
 other symbols unless care is taken to <tt>%rename</tt> them.
 </p>
 
-<H3><a name="Php_nn2_1"></a>28.2.1 Constants</H3>
+<H3><a name="Php_nn2_1"></a>29.2.1 Constants</H3>
 
 
 <p>
@@ -297,7 +297,7 @@ both point to the same value, without the case test taking place.  (
 Apologies, this paragraph needs rewriting to make some sense. )
 </p>
 
-<H3><a name="Php_nn2_2"></a>28.2.2 Global Variables</H3>
+<H3><a name="Php_nn2_2"></a>29.2.2 Global Variables</H3>
 
 
 <p>
@@ -346,7 +346,7 @@ undefined.
 At this time SWIG does not support custom accessor methods.
 </p>
 
-<H3><a name="Php_nn2_3"></a>28.2.3 Functions</H3>
+<H3><a name="Php_nn2_3"></a>29.2.3 Functions</H3>
 
 
 <p>
@@ -399,7 +399,7 @@ print $s;      # The value of $s was not changed.
 -->
 
 
-<H3><a name="Php_nn2_4"></a>28.2.4 Overloading</H3>
+<H3><a name="Php_nn2_4"></a>29.2.4 Overloading</H3>
 
 
 <p>
@@ -455,7 +455,7 @@ taking the integer argument.
 </p>
 -->
 
-<H3><a name="Php_nn2_5"></a>28.2.5 Pointers and References</H3>
+<H3><a name="Php_nn2_5"></a>29.2.5 Pointers and References</H3>
 
 
 <p>
@@ -587,7 +587,7 @@ PHP in a number of ways: by using <tt>unset</tt> on an existing
 variable, or assigning <tt>NULL</tt> to a variable.
 </p>
 
-<H3><a name="Php_nn2_6"></a>28.2.6 Structures and C++ classes</H3>
+<H3><a name="Php_nn2_6"></a>29.2.6 Structures and C++ classes</H3>
 
 
 <p>
@@ -646,7 +646,7 @@ Would be used in the following way from PHP5:
 Member variables and methods are accessed using the <tt>-&gt;</tt> operator.
 </p>
 
-<H4><a name="Php_nn2_6_1"></a>28.2.6.1 Using <tt>-noproxy</tt></H4>
+<H4><a name="Php_nn2_6_1"></a>29.2.6.1 Using <tt>-noproxy</tt></H4>
 
 
 <p>
@@ -672,7 +672,7 @@ Complex_im_set($obj,$d);
 Complex_im_get($obj);
 </pre></div>
 
-<H4><a name="Php_nn2_6_2"></a>28.2.6.2 Constructors and Destructors</H4>
+<H4><a name="Php_nn2_6_2"></a>29.2.6.2 Constructors and Destructors</H4>
 
 
 <p>
@@ -713,7 +713,7 @@ the programmer can either reassign the variable or call
 <tt>unset($v)</tt>
 </p>
 
-<H4><a name="Php_nn2_6_3"></a>28.2.6.3 Static Member Variables</H4>
+<H4><a name="Php_nn2_6_3"></a>29.2.6.3 Static Member Variables</H4>
 
 
 <p>
@@ -756,7 +756,7 @@ Ko::threats(10);
 echo "There has now been " . Ko::threats() . " threats\n";
 
 </pre></div>
-<H4><a name="Php_nn2_6_4"></a>28.2.6.4 Static Member Functions</H4>
+<H4><a name="Php_nn2_6_4"></a>29.2.6.4 Static Member Functions</H4>
 
 
 <p>
@@ -778,7 +778,7 @@ Ko::threats();
 </pre></div>
 
 
-<H3><a name="Php_nn2_7"></a>28.2.7 PHP Pragmas, Startup and Shutdown code</H3>
+<H3><a name="Php_nn2_7"></a>29.2.7 PHP Pragmas, Startup and Shutdown code</H3>
 
 
 <p>
