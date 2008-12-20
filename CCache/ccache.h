@@ -5,6 +5,7 @@
 #ifndef _WIN32
 #include "config.h"
 #else
+#include <sys/locking.h>
 #define PACKAGE_NAME "ccache-swig.exe"
 #endif
 

@@ -617,9 +617,24 @@ char *dirname(char *s)
 	return s;
 }
 
+/*
+  http://www.ecst.csuchico.edu/~beej/guide/ipc/flock.html
+  http://cvs.php.net/viewvc.cgi/php-src/win32/flock.c?revision=1.2&view=markup
+  Should return 0 for success, >0 otherwise
+ */
 int lock_fd(int fd)
 {
-#ifndef _WIN32
+#ifdef _WIN32
+#  if 1
+	return _locking(fd, _LK_NBLCK, 1);
+#  else
+	HANDLE fl = (HANDLE)_get_osfhandle(fd);
+	OVERLAPPED o;
+	memset(&o, 0, sizeof(o));
+	return (LockFileEx(fl, LOCKFILE_EXCLUSIVE_LOCK, 0, 1, 0, &o))
+		? 0 : GetLastError();
+#  endif
+#else
 	struct flock fl;
 	int ret;
 
@@ -635,10 +650,6 @@ int lock_fd(int fd)
 		ret = fcntl(fd, F_SETLKW, &fl);
 	} while (ret == -1 && errno == EINTR);
 	return ret;
-#else
-	(void)fd;
-#warning "missing implementation???"
-	return 0;
 #endif
 }
 
