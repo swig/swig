@@ -55,6 +55,8 @@ int execute(char **argv,
 	    const char *path_stderr)
 {
 #ifdef _WIN32
+
+#if 0
 	PROCESS_INFORMATION pinfo; 
 	STARTUPINFO sinfo;
 	BOOL ret; 
@@ -107,6 +109,55 @@ int execute(char **argv,
 	CloseHandle(pinfo.hThread);
 
 	return exitcode;
+#else /* possibly slightly faster */
+	/* Should be portable */
+	int   status = -2;
+	int   fd, std_od = -1, std_ed = -1;
+
+	/* TODO: needs moving after possible exit() below, but before stdout is redirected */
+	if (ccache_verbose) {
+		display_execute_args(argv);
+	}
+
+	unlink(path_stdout);
+	std_od = _dup(1);
+	fd = _open(path_stdout, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL|O_BINARY, 0666);
+	if (fd == -1) {
+		status = STATUS_NOCACHE;
+		cc_log("stdout error: failed to open %s\n", path_stdout);
+		goto out;
+	}
+	_dup2(fd, 1);
+	_close(fd);
+
+	unlink(path_stderr);
+	fd = _open(path_stderr, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL|O_BINARY, 0666);
+	std_ed = _dup(2);
+	if (fd == -1) {
+		status = STATUS_NOCACHE;
+		cc_log("stderr error: failed to open %s\n", path_stderr);
+		goto out;
+	}
+	_dup2(fd, 2);
+	_close(fd);
+
+	/* Spawn process (_exec* familly doesn't return) */
+	status = _spawnv(_P_WAIT, argv[0], (const char **)argv);
+
+out:
+	cc_log("%s:\n  stdout -> %s\n  stderr -> %s\n  process status=%i\n",
+			argv[0], path_stdout, path_stderr, status);
+	if (status == -1) cc_log("Error %i: %s\n", errno, strerror(errno));
+
+	/* Restore descriptors */
+	if (std_od != -1) _dup2(std_od, 1);
+	if (std_ed != -1) _dup2(std_ed, 2);
+	_flushall();
+
+	return (status>0);
+
+#endif
+
 #else
 	pid_t pid;
 	int status;
