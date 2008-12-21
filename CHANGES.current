@@ -1,6 +1,10 @@
 Version 1.3.37 (in progress)
 ============================
 
+2008-12-21: wsfulton
+	    Apply patch #2440046 which fixes possible seg faults for member and global
+	    variable char arrays when the strings are larger than the string array size.
+
 2008-12-20: wsfulton
 	    The ccache compiler cache has been adapted to work with SWIG and
 	    named ccache-swig. It now works with C/C++ compilers as well as SWIG

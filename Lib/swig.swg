@@ -423,13 +423,21 @@ namespace std {
 /* Character array handling */
 
 %typemap(memberin) char [ANY] {
-  if ($input) strncpy((char *)$1, (const char *)$input, $1_dim0);
-  else $1[0] = 0;
+  if($input) {
+    strncpy((char*)$1, (const char *)$input, $1_dim0-1);
+    $1[$1_dim0-1] = 0;
+  } else {
+    $1[0] = 0;
+  }
 }
 
 %typemap(globalin) char [ANY] {
-  if ($input) strncpy((char *)$1, (const char *)$input, $1_dim0);
-  else $1[0] = 0;
+  if($input) {
+    strncpy((char*)$1, (const char *)$input, $1_dim0-1);
+    $1[$1_dim0-1] = 0;
+  } else {
+    $1[0] = 0;
+  }
 }
 
 %typemap(memberin) char [] {
