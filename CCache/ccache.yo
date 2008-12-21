@@ -261,6 +261,13 @@ systems like this you can use the CCACHE_EXTENSION option to override
 the default. On HP-UX set this environment variable to "i" if you use
 the aCC compiler.
 
+dit(bf(CCACHE_STRIPC)) If you set the environment variable 
+CCACHE_STRIPC then ccache will strip the -c option when invoking
+the preprocessor. This option is primarily for the Sun Workshop
+C++ compiler as without this option an unwarranted warning is displayed:
+CC: Warning: "-E" redefines product from "object" to "source (stdout)"
+when -E and -c is used together.
+
 dit(bf(CCACHE_SWIG)) When using SWIG as the compiler and it does not
 have 'swig' in the executable name, then the CCACHE_SWIG environment 
 variable needs to be set in order for ccache to work correctly with 

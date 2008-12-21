@@ -68,6 +68,9 @@ char *stats_file = NULL;
 /* can we safely use the unification hashing backend? */
 static int enable_unify;
 
+/* should we strip -c when running the preprocessor only? */
+static int strip_c_option;
+
 /* customisation for using the SWIG compiler */
 static int swig;
 
@@ -229,6 +232,10 @@ static void to_cache(ARGS *args)
 	x_asprintf(&tmp_stdout, "%s/tmp.stdout.%s", temp_dir, tmp_string());
 	x_asprintf(&tmp_stderr, "%s/tmp.stderr.%s", temp_dir, tmp_string());
 	x_asprintf(&tmp_outfiles, "%s/tmp.outfiles.%s", temp_dir, tmp_string());
+
+	if (strip_c_option) {
+		args_add(stripped_args, "-c");
+	}
 
 	if (output_file) {
 		args_add(args, "-o");
@@ -859,7 +866,9 @@ static void process_args(int argc, char **argv)
 
 		/* we must have -c */
 		if (strcmp(argv[i], "-c") == 0) {
-			args_add(stripped_args, argv[i]);
+			if (!strip_c_option) {
+				args_add(stripped_args, argv[i]);
+			}
 			found_c_opt = 1;
 			continue;
 		}
@@ -1124,6 +1133,10 @@ static void ccache(int argc, char *argv[])
 	if (getenv("CCACHE_DISABLE")) {
 		cc_log("ccache is disabled\n");
 		failed();
+	}
+
+	if (getenv("CCACHE_STRIPC")) {
+		strip_c_option = 1;
 	}
 
 	if (getenv("CCACHE_UNIFY")) {
