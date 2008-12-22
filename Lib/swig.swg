@@ -647,7 +647,7 @@ public:
     SwigValueWrapper(const SwigValueWrapper<T>& rhs) : tt(new T(*rhs.tt)) { }
     SwigValueWrapper(const T& t) : tt(new T(t)) { }
     ~SwigValueWrapper() { delete tt; } 
-    SwigValueWrapper& operator=(const T& t) { delete tt; tt = new T(t); return *this; }
+    SwigValueWrapper& operator=(const T& t) { T *oldtt = tt; tt = 0; delete oldtt; tt = new T(t); return *this; }
     operator T&() const { return *tt; }
     T *operator&() { return tt; }
 private:
