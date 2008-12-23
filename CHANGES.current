@@ -1,6 +1,11 @@
 Version 1.3.37 (in progress)
 ============================
 
+2008-12-23: wsfulton
+	    [Java] Fix #2153773 - %nojavaexception was clearing the exception feature
+            instead of disabling it. Clearing checked Java exceptions also didn't work. 
+	    The new %clearjavaexception can be used for clearing the exception feature.
+
 2008-12-22: wsfulton
 	    Fix #2432801 - Make SwigValueWrapper exception safe for when copy constructors
 	    throw exceptions.

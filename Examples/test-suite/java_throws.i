@@ -143,3 +143,41 @@ try {
     }
 %}
 
+// Test %nojavaexception
+%javaexception("MyException") %{
+/* global exception handler */
+try {
+    $action
+} catch (MyException) {
+    jclass excep = jenv->FindClass("java_throws/MyException");
+    if (excep)
+        jenv->ThrowNew(excep, "exception message");
+    return $null;
+}
+%}
+
+%nojavaexception *::noExceptionPlease();
+%nojavaexception NoExceptTest::NoExceptTest();
+
+// Need to handle the checked exception in NoExceptTest.delete()
+%typemap(javafinalize) SWIGTYPE %{
+  protected void finalize() {
+    try {
+      delete();
+    } catch (MyException e) {
+      throw new RuntimeException(e);
+    }
+  }
+%}
+
+%inline %{
+struct NoExceptTest {
+  unsigned int noExceptionPlease() { return 123; }
+  unsigned int exceptionPlease() { return 456; }
+  ~NoExceptTest() {}
+};
+%}
+
+// Turn global exceptions off (for the implicit destructors)
+%nojavaexception;
+

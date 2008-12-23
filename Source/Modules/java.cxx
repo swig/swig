@@ -70,6 +70,7 @@ class JAVA:public Language {
   String *imclass_cppcasts_code;	//C++ casts up inheritance hierarchies intermediary class code
   String *imclass_directors;	// Intermediate class director code
   String *destructor_call;	//C++ destructor call if any
+  String *destructor_throws_clause;	//C++ destructor throws clause if any
 
   // Director method stuff:
   List *dmethods_seq;
@@ -141,6 +142,7 @@ public:
       imclass_cppcasts_code(NULL),
       imclass_directors(NULL),
       destructor_call(NULL),
+      destructor_throws_clause(NULL),
       dmethods_seq(NULL),
       dmethods_table(NULL),
       n_dmethods(0),
@@ -1654,7 +1656,7 @@ public:
       else
 	Replaceall(destruct, "$jnicall", "throw new UnsupportedOperationException(\"C++ destructor does not have public access\")");
       if (*Char(destruct))
-	Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " void ", destruct_methodname, "() ", destruct, "\n", NIL);
+	Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " void ", destruct_methodname, "()", destructor_throws_clause, " ", destruct, "\n", NIL);
     }
 
     /* Insert directordisconnect typemap, if this class has directors enabled */
@@ -1761,6 +1763,7 @@ public:
       Clear(proxy_class_code);
 
       destructor_call = NewString("");
+      destructor_throws_clause = NewString("");
       proxy_class_constants_code = NewString("");
     }
 
@@ -1819,6 +1822,8 @@ public:
       proxy_class_name = NULL;
       Delete(destructor_call);
       destructor_call = NULL;
+      Delete(destructor_throws_clause);
+      destructor_throws_clause = NULL;
       Delete(proxy_class_constants_code);
       proxy_class_constants_code = NULL;
     }
@@ -2336,6 +2341,7 @@ public:
 
     if (proxy_flag) {
       Printv(destructor_call, imclass_name, ".", Swig_name_destroy(symname), "(swigCPtr)", NIL);
+      generateThrowsClause(n, destructor_throws_clause);
     }
     return SWIG_OK;
   }
@@ -2870,7 +2876,7 @@ public:
     String *throws_attribute = NewStringf("%s:throws", attribute);
     String *throws = Getattr(parameter, throws_attribute);
 
-    if (throws) {
+    if (throws && Len(throws) > 0) {
       String *throws_list = Getattr(n, "java:throwslist");
       if (!throws_list) {
 	throws_list = NewList();

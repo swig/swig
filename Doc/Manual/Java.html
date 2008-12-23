@@ -3820,7 +3820,9 @@ public:
 In the example above, <tt>java.lang.Exception</tt> is a checked exception class and so ought to be declared in the throws clause of <tt>getitem</tt>.
 Classes can be specified for adding to the throws clause using <tt>%javaexception(classes)</tt> instead of <tt>%exception</tt>,
 where <tt>classes</tt> is a string containing one or more comma separated Java classes.
-The <tt>%nojavaexception</tt> feature is the equivalent to <tt>%noexception</tt> and clears previously declared exception handlers.
+The <tt>%clearjavaexception</tt> feature is the equivalent to <tt>%clearexception</tt> and clears previously declared exception handlers. 
+The <tt>%nojavaexception</tt> feature is the equivalent to <tt>%noexception</tt> and disables the exception handler.
+See <a href="Customization.html#Customization_clearing_features">Clearing features</a> for the difference on disabling and clearing features.
 </p>
 
 <div class="code">
