@@ -118,6 +118,21 @@ String *Swig_strip_c_comments(const String *s) {
 
 
 /* -----------------------------------------------------------------------------
+ * Swig_filename_escape()
+ *
+ * Escapes backslashes in filename - for Windows
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_filename_escape(String *filename) {
+  String *adjusted_filename = Copy(filename);
+#if defined(_WIN32)		/* Note not on Cygwin else filename is displayed with double '/' */
+    Replaceall(adjusted_filename, "\\\\", "\\");	/* remove double '\' in case any already present */
+    Replaceall(adjusted_filename, "\\", "\\\\");
+#endif
+    return adjusted_filename;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_escape()
  *
  * Takes a string object and produces a string with escape codes added to it.
