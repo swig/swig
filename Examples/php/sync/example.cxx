@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 int x = 42;
-char *s = "Test";
+char *s = (char *)"Test";
 
 void Sync::printer(void) {
 
