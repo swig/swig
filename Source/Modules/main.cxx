@@ -943,7 +943,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // If the user has requested to check out a file, handle that
   if (checkout) {
     DOH *s;
-    String *outfile = Char(input_file);
+    char *outfile = Char(input_file);
     if (outfile_name)
       outfile = outfile_name;
 
@@ -952,12 +952,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     s = Swig_include(input_file);
     if (!s) {
-      fprintf(stderr, "Unable to locate '%s' in the SWIG library.\n", input_file);
+      Printf(stderr, "Unable to locate '%s' in the SWIG library.\n", input_file);
     } else {
       FILE *f = Swig_include_open(outfile);
       if (f) {
 	fclose(f);
-	fprintf(stderr, "File '%s' already exists. Checkout aborted.\n", outfile);
+	Printf(stderr, "File '%s' already exists. Checkout aborted.\n", outfile);
       } else {
         File *f_outfile = NewFile(outfile, "w", SWIG_output_files());
         if (!f_outfile) {
@@ -965,7 +965,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
           SWIG_exit(EXIT_FAILURE);
         } else {
           if (Verbose)
-            fprintf(stdout, "'%s' checked out from the SWIG library.\n", outfile);
+            Printf(stdout, "'%s' checked out from the SWIG library.\n", outfile);
           Printv(f_outfile, s, NIL);
           Close(f_outfile);
         }
