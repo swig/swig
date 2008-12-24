@@ -34,22 +34,22 @@ double Square::perimeter(void) {
   return 4*width;
 }
 
-char *overloaded(int i) {
+const char *overloaded(int i) {
   return "Overloaded with int";
 }
 
-char *overloaded(double d) {
+const char *overloaded(double d) {
   return "Overloaded with double";
 }
 
-char *overloaded(const char * str) {
+const char *overloaded(const char * str) {
   return "Overloaded with char *";
 }
 
-char *overloaded( const Circle& ) {
+const char *overloaded( const Circle& ) {
   return "Overloaded with Circle";
 }
 
-char *overloaded( const Shape& ) {
+const char *overloaded( const Shape& ) {
   return "Overloaded with Shape";
 }

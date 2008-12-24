@@ -38,9 +38,9 @@ public:
   virtual double perimeter(void);
 };
 
-char *overloaded( int i );
-char *overloaded( double d );
-char *overloaded( const char * str );
-char *overloaded( const Circle& );
-char *overloaded( const Shape& );
+const char *overloaded( int i );
+const char *overloaded( double d );
+const char *overloaded( const char * str );
+const char *overloaded( const Circle& );
+const char *overloaded( const Shape& );
 
