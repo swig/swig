@@ -287,6 +287,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_banner(File *f);
   extern String *Swig_strip_c_comments(const String *s);
   extern String *Swig_filename_escape(String *filename);
+  extern void Swig_filename_correct(String *filename);
   extern String *Swig_string_escape(String *s);
   extern String *Swig_string_mangle(const String *s);
   extern void Swig_scopename_split(String *s, String **prefix, String **last);

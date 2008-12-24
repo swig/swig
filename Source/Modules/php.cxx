@@ -1489,8 +1489,7 @@ public:
        Replaceall(tm, "$symname", iname);
        Printf(f_c->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n",
-       input_file, line_number, SwigType_str(t, 0));
+       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
        }
      */
     /* Now generate C -> PHP sync blocks */
@@ -1502,8 +1501,7 @@ public:
        Replaceall(tm, "$symname", iname);
        Printf(f_php->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n",
-       input_file, line_number, SwigType_str(t, 0));
+       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
        }
        }
      */

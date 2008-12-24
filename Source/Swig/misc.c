@@ -118,6 +118,23 @@ String *Swig_strip_c_comments(const String *s) {
 
 
 /* -----------------------------------------------------------------------------
+ * Swig_filename_correct()
+ *
+ * Corrects filenames on non-unix systems
+ * ----------------------------------------------------------------------------- */
+
+void Swig_filename_correct(String *filename) {
+#if defined(_WIN32) || defined(MACSWIG)
+  /* accept Unix path separator on non-Unix systems */
+  Replaceall(filename, "/", SWIG_FILE_DELIMITER);
+#endif
+#if defined(__CYGWIN__)
+  /* accept Windows path separator in addition to Unix path separator */
+  Replaceall(filename, "\\", SWIG_FILE_DELIMITER);
+#endif
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_filename_escape()
  *
  * Escapes backslashes in filename - for Windows

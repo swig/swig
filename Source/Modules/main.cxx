@@ -185,12 +185,13 @@ enum { STAGE1=1, STAGE2=2, STAGE3=4, STAGE4=8, STAGEOVERFLOW=16 };
 static List *all_output_files = 0;
 
 // -----------------------------------------------------------------------------
-// check_suffix(char *name)
+// check_suffix()
 //
 // Checks the suffix of a file to see if we should emit extern declarations.
 // -----------------------------------------------------------------------------
 
-static int check_suffix(const char *name) {
+static int check_suffix(String *filename) {
+  const char *name = Char(filename);
   const char *c;
   if (!name)
     return 0;
@@ -936,12 +937,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   // If we made it this far, looks good. go for it....
 
-  input_file = argv[argc - 1];
+  input_file = NewString(argv[argc - 1]);
+  Swig_filename_correct(input_file);
 
   // If the user has requested to check out a file, handle that
   if (checkout) {
     DOH *s;
-    char *outfile = input_file;
+    String *outfile = Char(input_file);
     if (outfile_name)
       outfile = outfile_name;
 
@@ -1002,7 +1004,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	if (lang_config) {
 	  Printf(fs, "\n%%include <%s>\n", lang_config);
 	}
-	Printf(fs, "%%include(maininput=\"%s\") \"%s\"\n", Swig_filename_escape(NewString(input_file)), Swig_last_file());
+	Printf(fs, "%%include(maininput=\"%s\") \"%s\"\n", Swig_filename_escape(input_file), Swig_last_file());
 	for (i = 0; i < Len(libfiles); i++) {
 	  Printf(fs, "\n%%include \"%s\"\n", Getitem(libfiles, i));
 	}

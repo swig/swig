@@ -3174,8 +3174,7 @@ MODULA3():
 		Clear(result_m3wraptype);
 		Printv(result_m3wraptype, tm, NIL);
 	      } else {
-		Swig_warning(WARN_MODULA3_TYPEMAP_MULTIPLE_RETURN,
-			     input_file, line_number,
+		Swig_warning(WARN_MODULA3_TYPEMAP_MULTIPLE_RETURN, input_file, line_number,
 			     "Typemap m3wrapargdir set to 'out' for %s implies a RETURN value, but the routine %s has already one.\nUse %%multiretval feature.\n",
 			     SwigType_str(Getattr(p, "type"), 0), raw_name);
 	      }

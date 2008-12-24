@@ -61,7 +61,7 @@ static String *AttributeFunctionGet = 0;
 static String *AttributeFunctionSet = 0;
 static Node *CurrentClass = 0;
 int line_number = 0;
-char *input_file = 0;
+String *input_file = 0;
 int SmartPointer = 0;
 static Hash *classhash;
 
@@ -352,7 +352,7 @@ int Language::emit_one(Node *n) {
     Extend = 1;
 
   line_number = Getline(n);
-  input_file = Char(Getfile(n));
+  input_file = Getfile(n);
 
   /*
      symtab = Getattr(n,"symtab");

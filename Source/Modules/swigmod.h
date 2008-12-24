@@ -26,7 +26,7 @@ typedef int bool;
 #define PLAIN_VIRTUAL   1
 #define PURE_VIRTUAL    2
 
-extern char *input_file;
+extern String *input_file;
 extern int line_number;
 extern int start_line;
 extern int CPlusPlus;		// C++ mode
