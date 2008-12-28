@@ -178,6 +178,6 @@ struct NoExceptTest {
 };
 %}
 
-// Turn global exceptions off (for the implicit destructors)
+// Turn global exceptions off (for the implicit destructors/constructors)
 %nojavaexception;
 
