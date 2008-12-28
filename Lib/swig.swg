@@ -653,10 +653,9 @@ template<typename T> class SwigValueWrapper {
     Pointer& operator=(Pointer& rhs) { T* oldptr = ptr; ptr = 0; delete oldptr; ptr = rhs.ptr; rhs.ptr = 0; return *this; }
   } pointer;
   SwigValueWrapper& operator=(const SwigValueWrapper<T>& rhs);
+  SwigValueWrapper(const SwigValueWrapper<T>& rhs);
 public:
   SwigValueWrapper() : pointer(0) { }
-  SwigValueWrapper(const SwigValueWrapper<T>& rhs) : pointer(new T(*rhs.pointer.ptr)) { }
-  SwigValueWrapper(const T& t) : pointer(new T(t)) { }
   SwigValueWrapper& operator=(const T& t) { Pointer tmp(new T(t)); pointer = tmp; return *this; }
   operator T&() const { return *pointer.ptr; }
   T *operator&() { return pointer.ptr; }
