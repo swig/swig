@@ -3230,15 +3230,15 @@ cpp_class_decl  :
                 storage_class cpptype idcolon inherit LBRACE {
                    List *bases = 0;
 		   Node *scope = 0;
-		   $$ = new_node("class");
-		   Setline($$,cparse_start_line);
-		   Setattr($$,"kind",$2);
+		   $<node>$ = new_node("class");
+		   Setline($<node>$,cparse_start_line);
+		   Setattr($<node>$,"kind",$2);
 		   if ($4) {
-		     Setattr($$,"baselist", Getattr($4,"public"));
-		     Setattr($$,"protectedbaselist", Getattr($4,"protected"));
-		     Setattr($$,"privatebaselist", Getattr($4,"private"));
+		     Setattr($<node>$,"baselist", Getattr($4,"public"));
+		     Setattr($<node>$,"protectedbaselist", Getattr($4,"protected"));
+		     Setattr($<node>$,"privatebaselist", Getattr($4,"private"));
 		   }
-		   Setattr($$,"allows_typedef","1");
+		   Setattr($<node>$,"allows_typedef","1");
 
 		   /* preserve the current scope */
 		   prev_symtab = Swig_symbol_current();
@@ -3267,10 +3267,10 @@ cpp_class_decl  :
 		       nscope_inner = 0;
 		     }
 		   }
-		   Setattr($$,"name",$3);
+		   Setattr($<node>$,"name",$3);
 
 		   Delete(class_rename);
-                   class_rename = make_name($$,$3,0);
+                   class_rename = make_name($<node>$,$3,0);
 		   Classprefix = NewString($3);
 		   /* Deal with inheritance  */
 		   if ($4) {
@@ -3339,7 +3339,7 @@ cpp_class_decl  :
 			   Swig_error(cparse_file, cparse_line, "realloc() failed\n");
 		       }
 		   }
-		   class_decl[class_level++] = $$;
+		   class_decl[class_level++] = $<node>$;
 		   inclass = 1;
                } cpp_members RBRACE cpp_opt_declarators {
 		 Node *p;
@@ -3462,14 +3462,14 @@ cpp_class_decl  :
              | storage_class cpptype LBRACE {
 	       String *unnamed;
 	       unnamed = make_unnamed();
-	       $$ = new_node("class");
-	       Setline($$,cparse_start_line);
-	       Setattr($$,"kind",$2);
-	       Setattr($$,"storage",$1);
-	       Setattr($$,"unnamed",unnamed);
-	       Setattr($$,"allows_typedef","1");
+	       $<node>$ = new_node("class");
+	       Setline($<node>$,cparse_start_line);
+	       Setattr($<node>$,"kind",$2);
+	       Setattr($<node>$,"storage",$1);
+	       Setattr($<node>$,"unnamed",unnamed);
+	       Setattr($<node>$,"allows_typedef","1");
 	       Delete(class_rename);
-	       class_rename = make_name($$,0,0);
+	       class_rename = make_name($<node>$,0,0);
 	       if (strcmp($2,"class") == 0) {
 		 cplus_mode = CPLUS_PRIVATE;
 	       } else {
@@ -3488,7 +3488,7 @@ cpp_class_decl  :
 		       Swig_error(cparse_file, cparse_line, "realloc() failed\n");
 		   }
 	       }
-	       class_decl[class_level++] = $$;
+	       class_decl[class_level++] = $<node>$;
 	       inclass = 1;
 	       Classprefix = NewStringEmpty();
 	       Delete(Namespaceprefix);
