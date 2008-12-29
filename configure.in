@@ -31,6 +31,12 @@ AC_PROG_RANLIB
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 AC_CHECK_PROGS(AR, ar aal, ar)
 AC_SUBST(AR)
+AC_CHECK_PROGS(YODL2MAN, yodl2man)
+AC_CHECK_PROGS(YODL2HTML, yodl2html)
+
+if test -z "$YODL2MAN"
+then AC_MSG_ERROR([cannot find yodl executable yodl2man])
+fi
 
 AC_COMPILE_WARNINGS # Increase warning levels
 
