@@ -2573,9 +2573,9 @@ String * R::runtimeCode() {
 void R::main(int argc, char *argv[]) {
   bool cppcast = true;
   init();
+  Preprocessor_define("SWIGR 1", 0);
   SWIG_library_directory("r");
   SWIG_config_file("r.swg");
-  Preprocessor_define("SWIGR 1", 0);
   debugMode = false;
   copyStruct = true;
   memoryProfile = false;

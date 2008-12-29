@@ -29,6 +29,9 @@ public:
   }
 
   virtual void main(int argc, char *argv[]) {
+    // Add a symbol to the parser for conditional compilation
+    Preprocessor_define("SWIGSEXP 1", 0);
+
     SWIG_typemap_lang("sexp");
     for (int iX = 0; iX < argc; iX++) {
       if (strcmp(argv[iX], "-typemaplang") == 0) {
@@ -42,9 +45,6 @@ public:
 	fputs(usage, stdout);
       }
     }
-
-    // Add a symbol to the parser for conditional compilation
-    Preprocessor_define("SWIGSEXP 1", 0);
   }
 
   DOHHash *print_circle_hash;

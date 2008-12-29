@@ -180,6 +180,7 @@ static String *get_lisp_type(SwigType *ty, const String_or_char *name) {
 void UFFI::main(int argc, char *argv[]) {
   int i;
 
+  Preprocessor_define("SWIGUFFI 1", 0);
   SWIG_library_directory("uffi");
   SWIG_config_file("uffi.swg");
 

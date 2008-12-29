@@ -67,6 +67,7 @@ private:
 void CFFI::main(int argc, char *argv[]) {
   int i;
 
+  Preprocessor_define("SWIGCFFI 1", 0);
   SWIG_library_directory("cffi");
   SWIG_config_file("cffi.swg");
   generate_typedef_flag = 0;

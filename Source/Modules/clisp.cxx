@@ -36,6 +36,7 @@ private:
 void CLISP::main(int argc, char *argv[]) {
   int i;
 
+  Preprocessor_define("SWIGCLISP 1", 0);
   SWIG_library_directory("clisp");
   SWIG_config_file("clisp.swg");
   generate_typedef_flag = 0;

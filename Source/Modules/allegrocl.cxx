@@ -1520,6 +1520,7 @@ extern "C" Language *swig_allegrocl(void) {
 void ALLEGROCL::main(int argc, char *argv[]) {
   int i;
 
+  Preprocessor_define("SWIGALLEGROCL 1", 0);
   SWIG_library_directory("allegrocl");
   SWIG_config_file("allegrocl.swg");
 
@@ -1575,8 +1576,6 @@ void ALLEGROCL::main(int argc, char *argv[]) {
     }
 
   }
-
-  Preprocessor_define("SWIGALLEGROCL 1", 0);
 
   allow_overloading();
 }
