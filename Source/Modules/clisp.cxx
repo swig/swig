@@ -89,10 +89,11 @@ int CLISP::top(Node *n) {
   Swig_register_filebyname("runtime", f_null);
   Swig_register_filebyname("wrapper", f_null);
 
-  String *header =
-      NewStringf
-      (";; This is an automatically generated file. \n;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). \n\n(defpackage :%s\n  (:use :common-lisp :ffi)",
-       module);
+  String *header = NewString("");
+
+  Swig_banner_target_lang(header, ";;");
+
+  Printf(header, "\n(defpackage :%s\n  (:use :common-lisp :ffi)", module);
 
   Language::top(n);
 

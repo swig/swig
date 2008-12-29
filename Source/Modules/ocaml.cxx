@@ -262,7 +262,8 @@ public:
       Swig_name_register("get", "%v__get__");
     }
 
-    Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
+    Swig_banner(f_runtime);
+
     Printf(f_runtime, "#define SWIG_MODULE \"%s\"\n", module);
     /* Module name */
     Printf(f_mlbody, "let module_name = \"%s\"\n", module);
@@ -275,8 +276,6 @@ public:
 	   "       `unknown -> " "         (match y with\n" "           `Int x -> (Swig.C_int x)\n" "           | _ -> raise (LabelNotFromThisEnum v))\n");
 
     Printf(f_int_to_enum, "let int_to_enum x y =\n" "    match (x : c_enum_type) with\n" "      `unknown -> C_enum (`Int y)\n");
-
-    Swig_banner(f_runtime);
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");

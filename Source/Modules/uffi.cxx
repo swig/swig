@@ -239,8 +239,10 @@ int UFFI::top(Node *n) {
   Swig_register_filebyname("runtime", f_null);
   Swig_register_filebyname("wrapper", f_cl);
 
-  Printf(f_cl,
-	 ";; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10; package: %s -*-\n;; This is an automatically generated file.  Make changes in\n;; the definition file, not here.\n\n(defpackage :%s\n  (:use :common-lisp :uffi))\n\n(in-package :%s)\n",
+  Swig_banner_target_lang(f_cl, ";;");
+
+  Printf(f_cl, "\n"
+	 ";; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10; package: %s -*-\n\n(defpackage :%s\n  (:use :common-lisp :uffi))\n\n(in-package :%s)\n",
 	 module, module, module);
   Printf(f_cl, "(eval-when (compile load eval)\n  (defparameter *swig-identifier-converter* '%s))\n", identifier_converter);
 

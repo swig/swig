@@ -215,7 +215,6 @@ int CHICKEN::top(Node *n) {
   clos_methods = NewString("");
   scm_const_defs = NewString("");
 
-  Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
   Swig_banner(f_runtime);
 
   Printf(f_runtime, "/* Implementation : CHICKEN */\n\n");
@@ -256,9 +255,9 @@ int CHICKEN::top(Node *n) {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  Printv(f_scm,
-	 ";; -*- buffer-read-only: t -*- vi: set ro:\n",
-	 ";; This file was created automatically by SWIG.\n", ";; Don't modify this file, modify the SWIG interface instead.\n", NIL);
+  Swig_banner_target_lang(f_scm, ";;");
+  Printf(f_scm, "\n");
+
   if (declare_unit)
     Printv(f_scm, "(declare (unit ", scmmodule, "))\n\n", NIL);
   Printv(f_scm, "(declare \n",

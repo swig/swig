@@ -22,7 +22,7 @@ public:
   String *f_clhead;
   String *f_clwrap;
   bool CWrap;     // generate wrapper file for C code?  
-  File *f_cxx;
+  File *f_runtime;
   File *f_cxx_header;
   File *f_cxx_wrapper;
   File *f_clos;
@@ -126,8 +126,8 @@ int CFFI::top(Node *n) {
   }
 
   if (CPlusPlus || CWrap) {
-    f_cxx = NewFile(cxx_filename, "w", SWIG_output_files());
-    if (!f_cxx) {
+    f_runtime = NewFile(cxx_filename, "w", SWIG_output_files());
+    if (!f_runtime) {
       Close(f_lisp);
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
@@ -144,21 +144,24 @@ int CFFI::top(Node *n) {
       SWIG_exit(EXIT_FAILURE);
     }
   } else {
-    f_cxx = NewString("");
+    f_runtime = NewString("");
     f_clos = NewString("");
   }
 
-  f_cxx_header = f_cxx;
+  f_cxx_header = f_runtime;
   f_cxx_wrapper = NewString("");
 
   Swig_register_filebyname("header", f_cxx_header);
   Swig_register_filebyname("wrapper", f_cxx_wrapper);
-  Swig_register_filebyname("runtime", f_cxx);
+  Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("lisphead", f_clhead);
   if (!no_swig_lisp)
     Swig_register_filebyname("swiglisp", f_cl);
   else
     Swig_register_filebyname("swiglisp", f_null);
+
+  Swig_banner(f_runtime);
+  Swig_banner_target_lang(f_lisp, ";;;");
 
   Language::top(n);
   Printf(f_lisp, "%s\n", f_clhead);
@@ -170,8 +173,8 @@ int CFFI::top(Node *n) {
   Delete(f_cl);
   Delete(f_clhead);
   Delete(f_clwrap);
-  Close(f_cxx);
-  Delete(f_cxx);
+  Close(f_runtime);
+  Delete(f_runtime);
   Delete(f_cxx_wrapper);
   Delete(f_null);
 
@@ -454,7 +457,7 @@ int CFFI::functionWrapper(Node *n) {
   Printf(f->code, "}\n");
 
   if (CPlusPlus)
-    Wrapper_print(f, f_cxx);
+    Wrapper_print(f, f_runtime);
 
   if (CPlusPlus) {
     emit_defun(n, wname);

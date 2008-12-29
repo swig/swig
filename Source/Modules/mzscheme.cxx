@@ -146,7 +146,6 @@ public:
     init_func_def = NewString("");
     Swig_register_filebyname("init", init_func_def);
 
-    Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
     Swig_banner(f_runtime);
 
     module = Getattr(n, "name");

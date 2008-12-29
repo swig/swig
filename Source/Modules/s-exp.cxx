@@ -71,7 +71,10 @@ public:
     Swig_register_filebyname("runtime", f_sink);
     Swig_register_filebyname("init", f_sink);
 
+    Swig_banner_target_lang(out, ";;;");
+
     Language::top(n);
+    Printf(out, "\n");
     Printf(out, ";;; Lisp parse tree produced by SWIG\n");
     print_circle_hash = DohNewHash();
     print_circle_count = 0;

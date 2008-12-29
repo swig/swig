@@ -108,7 +108,9 @@ public:
     Swig_register_filebyname("initbeforefunc", f_initbeforefunc);
     Swig_register_filebyname("director", f_directors);
     Swig_register_filebyname("director_h", f_directors_h);
+
     Swig_banner(f_runtime);
+
     Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
 

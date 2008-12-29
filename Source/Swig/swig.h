@@ -285,6 +285,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_set_fakeversion(const char *version);
   extern const char *Swig_package_version(void);
   extern void Swig_banner(File *f);
+  extern void Swig_banner_target_lang(File *f, const String_or_char *commentchar);
   extern String *Swig_strip_c_comments(const String *s);
   extern String *Swig_filename_escape(String *filename);
   extern void Swig_filename_correct(String *filename);

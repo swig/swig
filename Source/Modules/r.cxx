@@ -819,8 +819,7 @@ int R::top(Node *n) {
 
   Swig_register_filebyname("sclasses", s_classes);
 
-
-  Printf(s_init, "# This is an automatically generated file by the R module for SWIG.\n\n");
+  Swig_banner_target_lang(s_init, "#");
   outputCommandLineArguments(s_init);
 
   Printf(f_wrapper, "#ifdef __cplusplus\n");
@@ -2659,7 +2658,7 @@ int R::outputCommandLineArguments(File *out)
   if(Argc < 1 || !Argv || !Argv[0])
     return(-1);
 
-  Printf(out, "##   Generated via the command line invocation:\n##\t");
+  Printf(out, "\n##   Generated via the command line invocation:\n##\t");
   for(int i = 0; i < Argc ; i++) {
     Printf(out, " %s", Argv[i]);
   }
