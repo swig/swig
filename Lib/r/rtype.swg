@@ -35,15 +35,18 @@
    INTSXP.
 */
 
+/* Force coercion of integer, since by default R sets all constants to
+   numeric, which means that you can't directly call a function with an 
+   integer using an R numercal literal */
 
 %typemap(scoercein) int, int *, int &
-  %{  $input = as($input, "integer");     %}
+  %{  $input = as.integer($input);     %}
 %typemap(scoercein) ptrdiff_t, ptrdiff_t *, ptrdiff_t &
-  %{  $input = as($input, "integer");     %}
+  %{  $input = as.integer($input);     %}
 %typemap(scoercein) unsigned long, unsigned long *, unsigned long &
-  %{  $input = as($input, "integer");     %}
+  %{  $input = as.integer($input);     %}
 %typemap(scoercein) unsigned int, unsigned int *, unsigned int &
-  %{  $input = as($input, "integer");     %}
+  %{  $input = as.integer($input);     %}
 %typemap(scoercein) double, double *, double &
   %{ %}
 %typemap(scoercein) float, float *, float &
