@@ -1,6 +1,12 @@
 Version 1.3.37 (in progress)
 ============================
 
+2008-12-30: wsfulton
+	    Bug #2430756. All the languages now define a macro in the generated C/C++
+	    wrapper file indicating which language is being wrapped. The macro name is the
+	    same as those defined when SWIG is run, eg SWIGJAVA, SWIGOCTAVE, SWIGCSHARP etc
+	    and are listed in the "Conditional Compilation" section in the documentation.
+
 2008-12-23: wsfulton
 	    [Java] Fix #2153773 - %nojavaexception was clearing the exception feature
             instead of disabling it. Clearing checked Java exceptions also didn't work. 

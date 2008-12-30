@@ -111,10 +111,12 @@ public:
 
     Swig_banner(f_runtime);
 
+    Printf(f_runtime, "#define SWIGOCTAVE\n");
     Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
 
     if (directorsEnabled()) {
+      Printf(f_runtime, "#define SWIG_DIRECTORS\n");
       Swig_banner(f_directors_h);
       if (dirprot_mode()) {
 	//      Printf(f_directors_h, "#include <map>\n");
@@ -122,6 +124,7 @@ public:
       }
     }
 
+    Printf(f_runtime, "\n");
 
     Printf(s_global_tab, "\nstatic const struct swig_octave_member swig_globals[] = {\n");
     Printf(f_init, "static void SWIG_init_user(octave_swig_type* module_ns)\n{\n");

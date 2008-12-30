@@ -160,6 +160,9 @@ public:
 
     Swig_banner(f_runtime);
 
+    Printf(f_runtime, "#define SWIGTCL\n");
+    Printf(f_runtime, "\n");
+
     /* Set the module name, namespace, and prefix */
 
     module = NewStringf("%(lower)s", Getattr(n, "name"));

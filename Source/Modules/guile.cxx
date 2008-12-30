@@ -324,7 +324,7 @@ public:
 
     Swig_banner(f_runtime);
 
-    Printf(f_runtime, "/* Implementation : GUILE */\n\n");
+    Printf(f_runtime, "#define SWIGGUILE\n");
 
     if (!use_scm_interface) {
       if (SwigRuntime == 1)
@@ -356,6 +356,8 @@ public:
     if (CPlusPlus) {
       Printf(f_runtime, "\n}\n");
     }
+
+    Printf(f_runtime, "\n");
 
     Language::top(n);
 

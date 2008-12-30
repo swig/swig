@@ -360,6 +360,8 @@ public:
 
     Swig_banner(f_runtime);	// Print the SWIG banner message
 
+    Printf(f_runtime, "#define SWIGCSHARP\n");
+
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
 
@@ -375,6 +377,8 @@ public:
       if (outfile_h)
 	Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
     }
+
+    Printf(f_runtime, "\n");
 
     Swig_name_register((char *) "wrapper", (char *) "CSharp_%f");
     if (old_variable_names) {

@@ -264,8 +264,6 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
 
-    Swig_banner(f_runtime);
-
     /* sections of the output file */
     s_init = NewString("/* init section */\n");
     r_init = NewString("/* rinit section */\n");
@@ -290,6 +288,11 @@ public:
     Swig_register_filebyname("rshutdown", r_shutdown);
     Swig_register_filebyname("header", s_header);
     Swig_register_filebyname("wrapper", s_wrappers);
+
+    Swig_banner(f_runtime);
+
+    Printf(f_runtime, "#define SWIGPHP\n");
+    Printf(f_runtime, "\n");
 
     /* Set the module name */
     module = Copy(Getattr(n, "name"));

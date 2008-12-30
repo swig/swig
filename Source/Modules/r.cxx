@@ -816,9 +816,14 @@ int R::top(Node *n) {
   Swig_register_filebyname("header", s_header);
   Swig_register_filebyname("wrapper", f_wrapper);
   Swig_register_filebyname("s", sfile);
-
   Swig_register_filebyname("sclasses", s_classes);
 
+  Swig_banner(f_runtime);
+
+  Printf(f_runtime, "#define SWIGR\n");
+  Printf(f_runtime, "\n");
+
+  
   Swig_banner_target_lang(s_init, "#");
   outputCommandLineArguments(s_init);
 
@@ -897,9 +902,6 @@ int R::DumpCode(Node *n) {
     FileErrorDisplay(outfile);
     SWIG_exit(EXIT_FAILURE);
   }
-  
-  Swig_banner(runtime);
-  
   
   Printf(runtime, "/* Runtime */\n");
   Printf(runtime, "%s\n", f_runtime);

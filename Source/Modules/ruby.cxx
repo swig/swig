@@ -1043,6 +1043,8 @@ public:
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
     }
 
+    Printf(f_runtime, "\n");
+
     /* typedef void *VALUE */
     SwigType *value = NewSwigType(T_VOID);
     SwigType_add_pointer(value);

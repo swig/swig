@@ -148,6 +148,9 @@ public:
 
     Swig_banner(f_runtime);
 
+    Printf(f_runtime, "#define SWIGMZSCHEME\n");
+    Printf(f_runtime, "\n");
+
     module = Getattr(n, "name");
 
     Language::top(n);

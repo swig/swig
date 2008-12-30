@@ -256,7 +256,7 @@ public:
 
     Printf(f_runtime, "#define SWIGPERL\n");
     Printf(f_runtime, "#define SWIG_CASTRANK_MODE\n");
-
+    Printf(f_runtime, "\n");
 
     // Is the imported module in another package?  (IOW, does it use the
     // %module(package="name") option and it's different than the package

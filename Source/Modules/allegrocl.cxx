@@ -1618,6 +1618,10 @@ int ALLEGROCL::top(Node *n) {
   Swig_register_filebyname("lisphead", f_cl);
 
   Swig_banner(f_runtime);
+
+  Printf(f_runtime, "#define SWIGALLEGROCL\n");
+  Printf(f_runtime, "\n");
+
   Swig_banner_target_lang(f_cl, ";;");
 
   Printf(f_cl, "\n"

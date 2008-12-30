@@ -601,6 +601,8 @@ public:
       Printf(f_runtime, "#define SWIG_PYTHON_CLASSIC\n");
     }
 
+    Printf(f_runtime, "\n");
+
     Printf(f_header, "#if (PY_VERSION_HEX <= 0x02000000)\n");
     Printf(f_header, "# if !defined(SWIG_PYTHON_CLASSIC)\n");
     Printf(f_header, "#  error \"This python version requires swig to be run with the '-classic' option\"\n");

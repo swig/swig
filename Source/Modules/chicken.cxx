@@ -217,10 +217,12 @@ int CHICKEN::top(Node *n) {
 
   Swig_banner(f_runtime);
 
-  Printf(f_runtime, "/* Implementation : CHICKEN */\n\n");
+  Printf(f_runtime, "#define SWIGCHICKEN\n");
 
   if (no_collection)
     Printf(f_runtime, "#define SWIG_CHICKEN_NO_COLLECTION 1\n");
+
+  Printf(f_runtime, "\n");
 
   /* Set module name */
   module = Swig_copy_string(Char(Getattr(n, "name")));

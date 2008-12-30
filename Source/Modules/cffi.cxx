@@ -162,6 +162,10 @@ int CFFI::top(Node *n) {
     Swig_register_filebyname("swiglisp", f_null);
 
   Swig_banner(f_runtime);
+
+  Printf(f_runtime, "#define SWIGCFFI\n");
+  Printf(f_runtime, "\n");
+
   Swig_banner_target_lang(f_lisp, ";;;");
 
   Language::top(n);

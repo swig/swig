@@ -143,6 +143,9 @@ public:
     /* Standard stuff for the SWIG runtime section */
     Swig_banner(f_runtime);
 
+    Printf(f_runtime, "#define SWIGPIKE\n");
+    Printf(f_runtime, "\n");
+
     Printf(f_header, "#define SWIG_init    pike_module_init\n");
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
 

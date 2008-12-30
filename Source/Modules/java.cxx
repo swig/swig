@@ -369,6 +369,8 @@ public:
 
     Swig_banner(f_runtime);	// Print the SWIG banner message
 
+    Printf(f_runtime, "#define SWIGJAVA\n");
+
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
 
@@ -384,6 +386,8 @@ public:
       if (outfile_h)
 	Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
     }
+
+    Printf(f_runtime, "\n");
 
     String *wrapper_name = NewString("");
 
