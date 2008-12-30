@@ -268,7 +268,7 @@ static int maxmaxcode = 1 << GP_BITS; /* NEVER generate this */
 
 static  count_int      *htab;
 static  unsigned short *codetab;
-static  GIFOutBufSize;
+static  int GIFOutBufSize;
 
 /* static  count_int      htab [HSIZE];
 static  unsigned short codetab [HSIZE]; */
