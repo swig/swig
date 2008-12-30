@@ -1,5 +1,5 @@
-Version 1.3.37 (in progress)
-============================
+Version 1.3.37 (30 December 2008)
+=================================
 
 2008-12-30: wsfulton
 	    Bug #2430756. All the languages now define a macro in the generated C/C++
@@ -77,6 +77,8 @@ Version 1.3.37 (in progress)
             your code, which has been put in SWIG's SVN trunk (Tools/pyname_patch.py) and
             you can download it here:
             https://swig.svn.sourceforge.net/svnroot/swig/trunk/Tools/pyname_patch.py 
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2008-12-02: wsfulton
 	    [Python] Apply patch #2143727 from Serge Monkewitz to fix importing base classes 
@@ -280,7 +282,7 @@ Version 1.3.37 (in progress)
             Fix SF #2019156 Configuring with --without-octave or --without-alllang
             did not disable octave.
 
-2008-07-14: wsfultonn
+2008-07-14: wsfulton
             [Java, C#] Fix director typemaps for pointers so that NULL pointers are correctly 
             marshalled to C#/Java null in director methods.
 
