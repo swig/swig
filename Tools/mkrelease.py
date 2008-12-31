@@ -34,7 +34,6 @@ print "Uploading to Sourceforge"
 os.system("rsync --archive --verbose -P --times -e ssh swig-" + version + ".tar.gz " + username + "@frs.sourceforge.net:uploads/") and failed("")
 os.system("rsync --archive --verbose -P --times -e ssh swigwin-" + version + ".zip " + username + "@frs.sourceforge.net:uploads/") and failed("")
 
-print "not labelling...."
-#os.system("svn copy -m \"rel-" + version + "\" https://swig.svn.sourceforge.net/svnroot/swig/trunk https://swig.svn.sourceforge.net/svnroot/swig/tags/rel-" + version + "/")
+os.system("svn copy -m \"rel-" + version + "\" https://swig.svn.sourceforge.net/svnroot/swig/trunk https://swig.svn.sourceforge.net/svnroot/swig/tags/rel-" + version + "/")
 
 print "Finished"
