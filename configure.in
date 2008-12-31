@@ -21,27 +21,82 @@ AH_BOTTOM([
 #endif
 ])
 
-dnl Checks for programs.
+dnl Check for programs that a user requires to build SWIG
 AC_PROG_CC
 AC_PROG_CXX
-AC_PROG_YACC
 AC_EXEEXT
 AC_OBJEXT
-AC_PROG_RANLIB
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
-AC_CHECK_PROGS(AR, ar aal, ar)
-AC_SUBST(AR)
-AC_CHECK_PROGS(YODL2MAN, yodl2man)
-AC_CHECK_PROGS(YODL2HTML, yodl2html)
 
 AC_COMPILE_WARNINGS # Increase warning levels
 
 AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
 AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$build"], [Platform that SWIG is built for])
 
-
 dnl Checks for header files.
 AC_HEADER_STDC
+
+dnl Checks for types.
+AC_LANG_PUSH([C++])
+AC_CHECK_TYPES([bool])
+AC_LANG_POP([C++])
+
+dnl Look for popen
+AC_ARG_WITH(popen, AS_HELP_STRING([--without-popen], [Disable popen]), with_popen="$withval")
+if test x"${with_popen}" = xno ; then 
+AC_MSG_NOTICE([Disabling popen])
+else
+AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), AC_MSG_NOTICE([Disabling popen]))
+fi
+
+dnl Look for RxSpencer 
+AC_ARG_WITH(rxspencer, AS_HELP_STRING([--with-rxspencer], [Enable RxSpencer]), with_rxspencer="yes")
+if test x"${with_rxspencer}" = xyes ; then 
+#check first for the header
+ AC_CHECK_HEADER(rxspencer/regex.h,with_rxspencer="yes",with_rxspencer="no")
+ if test x"${with_rxspencer}" = xyes ; then 
+# now check for the library
+  AC_CHECK_LIB(rxspencer, regcomp,with_rxspencer="yes",with_rxspencer="no")
+ fi
+ if test x"${with_rxspencer}" = xyes ; then 
+# library and header are available
+  AC_DEFINE(HAVE_RXSPENCER, 1,[Define if rxspencer is available])
+  LIBS="$LIBS -lrxspencer"
+ else
+  AC_MSG_NOTICE([RxSpencer not found. Obtain it at http://arglist.com/regex or http://gnuwin32.sourceforge.net/packages.html])
+ fi
+fi
+
+dnl CCache
+AC_ARG_ENABLE([ccache], AS_HELP_STRING([--disable-ccache], [disable building and installation of ccache-swig executable (default enabled)]), [enable_ccache=$enableval], [enable_ccache=yes])
+AC_MSG_CHECKING([whether to enable ccache-swig])
+AC_MSG_RESULT([$enable_ccache])
+
+if test "$enable_ccache" = yes; then
+  AC_CONFIG_SUBDIRS(CCache)
+  ENABLE_CCACHE=1
+fi
+AC_SUBST(ENABLE_CCACHE)
+
+
+echo ""
+echo "Checking packages required for SWIG developers."
+echo "Note : None of the following packages are required for users to compile and install SWIG"
+echo ""
+
+AC_PROG_YACC
+AC_PROG_RANLIB
+AC_CHECK_PROGS(AR, ar aal, ar)
+AC_SUBST(AR)
+AC_CHECK_PROGS(YODL2MAN, yodl2man)
+AC_CHECK_PROGS(YODL2HTML, yodl2html)
+
+
+echo ""
+echo "Checking for installed target languages and other information in order to compile and run the examples."
+echo "Note : None of the following packages are required for users to compile and install SWIG"
+echo ""
+
 
 dnl How to specify include directories that may be system directories.
 # -I should not be used on system directories (GCC)
@@ -52,21 +107,9 @@ else
 fi
 
 
-dnl Checks for types.
-AC_LANG_PUSH([C++])
-AC_CHECK_TYPES([bool])
-AC_LANG_POP([C++])
+dnl Info for building shared libraries ... in order to run the examples
 
-
-# Set info about shared libraries.
-AC_SUBST(SO)
-AC_SUBST(LDSHARED)
-AC_SUBST(CCSHARED)
-AC_SUBST(CXXSHARED)
-AC_SUBST(TRYLINKINGWITHCXX)
-AC_SUBST(LINKFORSHARED)
-
-# SO is the extension of shared libraries `(including the dot!)
+# SO is the extension of shared libraries (including the dot!)
 AC_MSG_CHECKING(SO)
 if test -z "$SO"
 then
@@ -203,7 +246,6 @@ then
 	esac
 fi
 AC_MSG_RESULT($RPATH)
-AC_SUBST(RPATH)
 
 # LINKFORSHARED are the flags passed to the $(CC) command that links
 # the a few executables -- this is only needed for a few systems
@@ -222,6 +264,15 @@ then
 	esac
 fi
 AC_MSG_RESULT($LINKFORSHARED)
+
+# Set info about shared libraries.
+AC_SUBST(SO)
+AC_SUBST(LDSHARED)
+AC_SUBST(CCSHARED)
+AC_SUBST(CXXSHARED)
+AC_SUBST(TRYLINKINGWITHCXX)
+AC_SUBST(LINKFORSHARED)
+AC_SUBST(RPATH)
 
 # This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
 # Sometimes .bundle works, but sometimes .so is needed.  It depends on the target language
@@ -270,46 +321,6 @@ case $host in
    *) PLATFLAGS="";;
 esac
 
-
-
-echo ""
-echo "Checking for installed packages."
-echo "Note : None of the following packages are required to compile SWIG"
-echo ""
-
-#----------------------------------------------------------------
-# Look for popen
-#----------------------------------------------------------------
-
-AC_ARG_WITH(popen, AS_HELP_STRING([--without-popen], [Disable popen]), with_popen="$withval")
-if test x"${with_popen}" = xno ; then 
-AC_MSG_NOTICE([Disabling popen])
-else
-AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), AC_MSG_NOTICE([Disabling popen]))
-fi
-
-#----------------------------------------------------------------
-# Look for RxSpencer 
-#----------------------------------------------------------------
-
-AC_ARG_WITH(rxspencer, AS_HELP_STRING([--with-rxspencer], [Enable RxSpencer]), with_rxspencer="yes")
-if test x"${with_rxspencer}" = xyes ; then 
-#check first for the header
- AC_CHECK_HEADER(rxspencer/regex.h,with_rxspencer="yes",with_rxspencer="no")
- if test x"${with_rxspencer}" = xyes ; then 
-# now check for the library
-  AC_CHECK_LIB(rxspencer, regcomp,with_rxspencer="yes",with_rxspencer="no")
- fi
- if test x"${with_rxspencer}" = xyes ; then 
-# library and header are available
-  AC_DEFINE(HAVE_RXSPENCER, 1,[Define if rxspencer is available])
-  LIBS="$LIBS -lrxspencer"
- else
-  AC_MSG_NOTICE([RxSpencer not found. Obtain it at http://arglist.com/regex or http://gnuwin32.sourceforge.net/packages.html])
- fi
-fi
-
-#----------------------------------------------------------------
 
 # Check for specific libraries.   Used for SWIG examples
 AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
@@ -2101,6 +2112,7 @@ AC_SUBST(SKIP_GCJ)
 # Miscellaneous
 #----------------------------------------------------------------
 
+
 # Root directory
 # Translate path for native Windows compilers for use with 'make check'
 ROOT_DIR=`pwd`
@@ -2166,18 +2178,6 @@ AC_CONFIG_FILES([			        \
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_CONFIG_FILES([CCache/ccache_swig_config.h])
-
-# ccache
-AC_ARG_ENABLE([ccache], AS_HELP_STRING([--disable-ccache], [disable building and installation of ccache-swig executable (default enabled)]), [enable_ccache=$enableval], [enable_ccache=yes])
-AC_MSG_CHECKING([whether to enable ccache-swig])
-AC_MSG_RESULT([$enable_ccache])
-
-if test "$enable_ccache" = yes; then
-  AC_CONFIG_SUBDIRS(CCache)
-  ENABLE_CCACHE=1
-fi
-
-AC_SUBST(ENABLE_CCACHE)
 
 AC_OUTPUT
 dnl configure.in ends here
