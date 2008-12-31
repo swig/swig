@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 
 # This script builds a swig-1.3 distribution.
 # Usage : mkdist.py version, where version should be 1.3.x
