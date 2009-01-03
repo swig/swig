@@ -32,6 +32,10 @@ private:
 #else
 
 #include <pthread.h>
+#ifndef PTHREAD_MUTEX_RECURSIVE_NP
+  // For Cygwin and possibly other OSs: _NP is "non-portable"
+  #define PTHREAD_MUTEX_RECURSIVE_NP PTHREAD_MUTEX_RECURSIVE
+#endif
 
 namespace SwigExamples {
 
