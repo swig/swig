@@ -12,6 +12,7 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);
 
 %inline %{
+#include "boost/shared_ptr.hpp"
 #include "boost/intrusive_ptr.hpp"
 #include <boost/detail/atomic_count.hpp>
 
@@ -33,6 +34,7 @@
 %include "std_string.i"
 #ifndef INTRUSIVE_PTR_WRAPPER
 # define SWIG_INTRUSIVE_PTR_NAMESPACE SwigBoost
+# define SWIG_SHARED_PTR_NAMESPACE SwigBoost
 #endif
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON)

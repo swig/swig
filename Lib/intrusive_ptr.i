@@ -1,4 +1,10 @@
-// intrusive_ptr namespaces could be boost or std or std::tr1
+// Allow for different namespaces for shared_ptr / intrusive_ptr - they could be boost or std or std::tr1
+// For example for std::tr1, use:
+// #define SWIG_SHARED_PTR_NAMESPACE std
+// #define SWIG_SHARED_PTR_SUBNAMESPACE tr1
+// #define SWIG_INTRUSIVE_PTR_NAMESPACE boost
+// #define SWIG_INTRUSIVE_PTR_SUBNAMESPACE 
+
 #if !defined(SWIG_INTRUSIVE_PTR_NAMESPACE)
 # define SWIG_INTRUSIVE_PTR_NAMESPACE boost
 #endif
@@ -13,19 +19,12 @@ namespace SWIG_INTRUSIVE_PTR_NAMESPACE {
 #if defined(SWIG_INTRUSIVE_PTR_SUBNAMESPACE)
   namespace SWIG_INTRUSIVE_PTR_SUBNAMESPACE {
 #endif
-    template <class T> class shared_ptr {
-    };
-    
     template <class T> class intrusive_ptr {
     };
 #if defined(SWIG_INTRUSIVE_PTR_SUBNAMESPACE)
   }
 #endif
 }
-
-%inline %{
-  #include "boost/shared_ptr.hpp"
-%}
 
 %fragment("SWIG_intrusive_deleter", "header") {
 template<class T> struct SWIG_intrusive_deleter
@@ -58,12 +57,12 @@ SWIG_INTRUSIVE_PTR_TYPEMAPS(PROXYCLASS, const, TYPE)
 %define SWIG_INTRUSIVE_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE...)
 SWIG_INTRUSIVE_PTR_TYPEMAPS(PROXYCLASS, , TYPE)
 SWIG_INTRUSIVE_PTR_TYPEMAPS(PROXYCLASS, const, TYPE)
-%types(SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< TYPE > = SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< BASECLASSTYPE >) %{
+%types(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > = SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >) %{
   *newmemory = SWIG_CAST_NEW_MEMORY;
-  return (void *) new SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< BASECLASSTYPE >(*(SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< TYPE > *)$from);
+  return (void *) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >(*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *)$from);
   %}
 %extend TYPE {
-  static SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< BASECLASSTYPE > SWIGSharedPtrUpcast(SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast) {
+  static SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE > SWIGSharedPtrUpcast(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast) {
     return swigSharedPtrUpcast;
   }
 }
@@ -83,12 +82,12 @@ SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(PROXYCLASS, const, TYPE)
 %define SWIG_INTRUSIVE_PTR_DERIVED_NO_WRAP(PROXYCLASS, BASECLASSTYPE, TYPE...)
 SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(PROXYCLASS, , TYPE)
 SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(PROXYCLASS, const, TYPE)
-%types(SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< TYPE > = SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< BASECLASSTYPE >) %{
+%types(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > = SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >) %{
   *newmemory = SWIG_CAST_NEW_MEMORY;
-  return (void *) new SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< BASECLASSTYPE >(*(SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< TYPE > *)$from);
-  %}
+  return (void *) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >(*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *)$from);
+%}
 %extend TYPE {
-  static SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< BASECLASSTYPE > SWIGSharedPtrUpcast(SWIG_INTRUSIVE_PTR_NAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast) {
+  static SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE > SWIGSharedPtrUpcast(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast) {
     return swigSharedPtrUpcast;
   }
 }
