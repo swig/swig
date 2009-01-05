@@ -121,6 +121,7 @@ public:
     }
 
     Preprocessor_define("SWIGTCL 1", 0);
+    // SWIGTCL8 is deprecated, and no longer documented.
     Preprocessor_define("SWIGTCL8 1", 0);
     SWIG_typemap_lang("tcl8");
     SWIG_config_file("tcl8.swg");

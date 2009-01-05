@@ -239,6 +239,7 @@ public:
     }
 
     Preprocessor_define("SWIGPHP 1", 0);
+    // SWIGPHP5 is deprecated, and no longer documented.
     Preprocessor_define("SWIGPHP5 1", 0);
     SWIG_typemap_lang("php");
     SWIG_config_file("php.swg");

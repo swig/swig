@@ -207,6 +207,7 @@ public:
     }
 
     Preprocessor_define("SWIGPERL 1", 0);
+    // SWIGPERL5 is deprecated, and no longer documented.
     Preprocessor_define("SWIGPERL5 1", 0);
     SWIG_typemap_lang("perl5");
     SWIG_config_file("perl5.swg");
