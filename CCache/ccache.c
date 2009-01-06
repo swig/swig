@@ -233,7 +233,7 @@ static void to_cache(ARGS *args)
 	x_asprintf(&tmp_stderr, "%s/tmp.stderr.%s", temp_dir, tmp_string());
 	x_asprintf(&tmp_outfiles, "%s/tmp.outfiles.%s", temp_dir, tmp_string());
 
-	if (strip_c_option) {
+	if (strip_c_option && !swig) {
 		args_add(stripped_args, "-c");
 	}
 
