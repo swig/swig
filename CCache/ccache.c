@@ -256,6 +256,7 @@ static void to_cache(ARGS *args)
 		x_asprintf(&ccache_outfiles, "CCACHE_OUTFILES=%s", tmp_outfiles);
 		unlink(tmp_outfiles);
 		if (getenv("CCACHE_OUTFILES") || putenv(ccache_outfiles) == -1) {
+			cc_log("CCACHE_OUTFILES env variable already set or could not be set\n");
 			stats_update(STATS_ERROR);
 			failed();
 		}
