@@ -56,7 +56,7 @@ int execute(char **argv,
 {
 #ifdef _WIN32
 
-#if 0
+#if 1
 	PROCESS_INFORMATION pinfo; 
 	STARTUPINFO sinfo;
 	BOOL ret; 
@@ -110,7 +110,7 @@ int execute(char **argv,
 
 	return exitcode;
 #else /* possibly slightly faster */
-	/* Should be portable */
+	/* needs fixing to quote commandline options to handle spaces in CCACHE_DIR etc */
 	int   status = -2;
 	int   fd, std_od = -1, std_ed = -1;
 

@@ -74,7 +74,7 @@ checkstat() {
 
 basetests() {
     echo "starting testsuite $testsuite"
-    rm -rf .ccache
+    rm -rf "$CCACHE_DIR"
     checkstat 'cache hit' 0
     checkstat 'cache miss' 0
 
@@ -279,7 +279,7 @@ basetests() {
 
 swigtests() {
     echo "starting swig testsuite $testsuite"
-    rm -rf .ccache
+    rm -rf "$CCACHE_DIR"
     checkstat 'cache hit' 0
     checkstat 'cache miss' 0
 
@@ -402,8 +402,8 @@ swigtests() {
 rm -rf $TESTDIR
 mkdir $TESTDIR
 cd $TESTDIR || exit 1
-mkdir .ccache
-CCACHE_DIR=.ccache
+CCACHE_DIR="ccache dir" # with space in directory name (like Windows default)
+mkdir "$CCACHE_DIR"
 export CCACHE_DIR
 
 testsuite="base"
