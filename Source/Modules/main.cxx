@@ -1214,7 +1214,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     File *f_outfiles = NewFile(outfiles, "w", 0);
     if (!f_outfiles) {
       Printf(stderr, "Failed to write list of output files to the filename '%s' specified in CCACHE_OUTFILES environment variable - ", outfiles);
-      FileErrorDisplay(f_outfiles);
+      FileErrorDisplay(outfiles);
       SWIG_exit(EXIT_FAILURE);
     } else {
       int i;
