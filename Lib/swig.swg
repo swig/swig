@@ -634,7 +634,7 @@ namespace std {
  *       arg1 = Vector(1,2,3); // Assignment from a value  
  *
  * The class offers a strong guarantee of exception safety.
- * With regards to the implementation, the private Pointer nested class is 
+ * With regards to the implementation, the private SwigMovePointer nested class is 
  * a simple smart pointer with move semantics, much like std::auto_ptr.
  *
  * This wrapping technique was suggested by William Fulton and is henceforth
@@ -646,17 +646,17 @@ namespace std {
 #ifdef __cplusplus
 /* SwigValueWrapper is described in swig.swg */
 template<typename T> class SwigValueWrapper {
-  struct Pointer {
+  struct SwigMovePointer {
     T *ptr;
-    Pointer(T *p) : ptr(p) { }
-    ~Pointer() { delete ptr; }
-    Pointer& operator=(Pointer& rhs) { T* oldptr = ptr; ptr = 0; delete oldptr; ptr = rhs.ptr; rhs.ptr = 0; return *this; }
+    SwigMovePointer(T *p) : ptr(p) { }
+    ~SwigMovePointer() { delete ptr; }
+    SwigMovePointer& operator=(SwigMovePointer& rhs) { T* oldptr = ptr; ptr = 0; delete oldptr; ptr = rhs.ptr; rhs.ptr = 0; return *this; }
   } pointer;
   SwigValueWrapper& operator=(const SwigValueWrapper<T>& rhs);
   SwigValueWrapper(const SwigValueWrapper<T>& rhs);
 public:
   SwigValueWrapper() : pointer(0) { }
-  SwigValueWrapper& operator=(const T& t) { Pointer tmp(new T(t)); pointer = tmp; return *this; }
+  SwigValueWrapper& operator=(const T& t) { SwigMovePointer tmp(new T(t)); pointer = tmp; return *this; }
   operator T&() const { return *pointer.ptr; }
   T *operator&() { return pointer.ptr; }
 };%}
