@@ -242,15 +242,6 @@ basetests() {
     checkstat 'cache hit' 10
     checkstat 'cache miss' 38
 
-    testname="stripc" # This test might not be portable
-    CCACHE_STRIPC=1 $CCACHE_COMPILE -c test1.c
-    checkstat 'cache hit' 10
-    checkstat 'cache miss' 39
-
-    CCACHE_STRIPC=1 $CCACHE_COMPILE -c test1.c
-    checkstat 'cache hit' 11
-    checkstat 'cache miss' 39
-
     # removed these tests as some compilers (including newer versions of gcc)
     # determine which language to use based on .ii/.i extension, and C++ may 
     # not be installed
@@ -264,6 +255,15 @@ basetests() {
 #     checkstat 'cache hit' 11
 #     checkstat 'cache miss' 39
     
+    testname="stripc" # This test might not be portable
+    CCACHE_STRIPC=1 $CCACHE_COMPILE -c test1.c
+    checkstat 'cache hit' 10
+    checkstat 'cache miss' 39
+
+    CCACHE_STRIPC=1 $CCACHE_COMPILE -c test1.c
+    checkstat 'cache hit' 11
+    checkstat 'cache miss' 39
+
     testname="zero-stats"
     $CCACHE -z > /dev/null
     checkstat 'cache hit' 0
