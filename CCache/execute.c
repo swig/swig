@@ -145,8 +145,6 @@ int execute(char **argv,
 	status = _spawnv(_P_WAIT, argv[0], (const char **)argv);
 
 out:
-	cc_log("%s:\n  stdout -> %s\n  stderr -> %s\n  process status=%i\n",
-			argv[0], path_stdout, path_stderr, status);
 	if (status == -1) cc_log("Error %i: %s\n", errno, strerror(errno));
 
 	/* Restore descriptors */
