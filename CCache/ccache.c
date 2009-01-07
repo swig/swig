@@ -329,6 +329,9 @@ static void to_cache(ARGS *args)
 				while (fgets(out_filename, FILENAME_MAX, file)) {
 					char *linefeed = strchr(out_filename, '\n');
 					if (linefeed) {
+						char *potential_cr = linefeed - 1;
+						if (potential_cr >= out_filename && *potential_cr == '\r')
+						  *potential_cr = 0;
 						*linefeed = 0;
 
 						if (cached_files_count == 0) {
@@ -337,8 +340,7 @@ static void to_cache(ARGS *args)
 							sprintf(out_filename_cache, "%s.%d", hashname, cached_files_count);
 						}
 
-						if (stat(out_filename, &st1) != 0 ||
-								commit_to_cache(out_filename, out_filename_cache, hardlink) != 0) {
+						if (commit_to_cache(out_filename, out_filename_cache, hardlink) != 0) {
 							fclose(file);
 							unlink(tmp_outfiles);
 							failed();
@@ -374,8 +376,7 @@ static void to_cache(ARGS *args)
 				failed();
 			}
 		} else {
-			if (stat(output_file, &st1) != 0 ||
-				commit_to_cache(output_file, hashname, hardlink) != 0) {
+			if (commit_to_cache(output_file, hashname, hardlink) != 0) {
 				failed();
 			}
 			to_cache_stats_helper(&st1, hashname, 0, &files_size, &cached_files_count);
@@ -670,6 +671,9 @@ static void from_cache(int first)
 				while (fgets(out_filename, FILENAME_MAX, file)) {
 					char *linefeed = strchr(out_filename, '\n');
 					if (linefeed) {
+						char *potential_cr = linefeed - 1;
+						if (potential_cr >= out_filename && *potential_cr == '\r')
+						  *potential_cr = 0;
 						*linefeed = 0;
 
 						if (retrieved_files_count == 0) {

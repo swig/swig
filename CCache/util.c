@@ -349,20 +349,26 @@ int test_if_compressed(const char *filename) {
 int commit_to_cache(const char *src, const char *dest, int hardlink)
 {
 	int ret = -1;
-	unlink(dest);
-	if (hardlink) {
+	struct stat st;
+	if (stat(src, &st) == 0) {
+		unlink(dest);
+		if (hardlink) {
 #ifdef _WIN32
-		ret = CreateHardLinkA(dest, src, NULL) ? 0 : -1;
+			ret = CreateHardLinkA(dest, src, NULL) ? 0 : -1;
 #else
-		ret = link(src, dest);
+			ret = link(src, dest);
 #endif
-	}
-	if (ret == -1) {
-		ret = copy_file_to_cache(src, dest);
-		if (ret == -1) {
-			cc_log("failed to commit %s -> %s (%s)\n", src, dest, strerror(errno));
-			stats_update(STATS_ERROR);
 		}
+		if (ret == -1) {
+			ret = copy_file_to_cache(src, dest);
+			if (ret == -1) {
+				cc_log("failed to commit %s -> %s (%s)\n", src, dest, strerror(errno));
+				stats_update(STATS_ERROR);
+			}
+		}
+	} else {
+		cc_log("failed to put %s in the cache (%s)\n", src, strerror(errno));
+		stats_update(STATS_ERROR);
 	}
 	return ret;
 }
