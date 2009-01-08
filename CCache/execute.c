@@ -123,9 +123,7 @@ int execute(char **argv,
 	std_od = _dup(1);
 	fd = _open(path_stdout, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL|O_BINARY, 0666);
 	if (fd == -1) {
-		status = STATUS_NOCACHE;
-		cc_log("stdout error: failed to open %s\n", path_stdout);
-		goto out;
+		exit(STATUS_NOCACHE);
 	}
 	_dup2(fd, 1);
 	_close(fd);
@@ -134,18 +132,13 @@ int execute(char **argv,
 	fd = _open(path_stderr, O_WRONLY|O_CREAT|O_TRUNC|O_EXCL|O_BINARY, 0666);
 	std_ed = _dup(2);
 	if (fd == -1) {
-		status = STATUS_NOCACHE;
-		cc_log("stderr error: failed to open %s\n", path_stderr);
-		goto out;
+		exit(STATUS_NOCACHE);
 	}
 	_dup2(fd, 2);
 	_close(fd);
 
 	/* Spawn process (_exec* familly doesn't return) */
 	status = _spawnv(_P_WAIT, argv[0], (const char **)argv);
-
-out:
-	if (status == -1) cc_log("Error %i: %s\n", errno, strerror(errno));
 
 	/* Restore descriptors */
 	if (std_od != -1) _dup2(std_od, 1);
@@ -235,6 +228,7 @@ char *find_executable(const char *name, const char *exclude_name)
 	}
 	if (!path) {
 		cc_log("no PATH variable!?\n");
+		stats_update(STATS_ENVIRONMMENT);
 		return NULL;
 	}
 

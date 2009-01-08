@@ -125,6 +125,7 @@ static void failed(void)
 	if ((e=getenv("CCACHE_PREFIX"))) {
 		char *p = find_executable(e, MYNAME);
 		if (!p) {
+			cc_log("could not find executable (%s)\n", e);
 			perror(e);
 			exit(1);
 		}
@@ -535,8 +536,8 @@ static void find_hash(ARGS *args)
 		   correct i_tmpfile */
 		path_stdout = x_strdup(input_file);
 		if (create_empty_file(path_stderr) != 0) {
-			stats_update(STATS_ERROR);
 			cc_log("failed to create empty stderr file\n");
+			stats_update(STATS_ERROR);
 			failed();
 		}
 		status = 0;
@@ -592,6 +593,7 @@ static void find_hash(ARGS *args)
 		char *p;
 		if (create_dir(hash_dir) != 0) {
 			cc_log("failed to create %s\n", hash_dir);
+			stats_update(STATS_ERROR);
 			failed();
 		}
 		x_asprintf(&p, "%s/%c", hash_dir, s[i]);
@@ -600,6 +602,7 @@ static void find_hash(ARGS *args)
 	}
 	if (create_dir(hash_dir) != 0) {
 		cc_log("failed to create %s\n", hash_dir);
+		stats_update(STATS_ERROR);
 		failed();
 	}
 	x_asprintf(&hashname, "%s/%s", hash_dir, s+nlevels);
@@ -785,6 +788,7 @@ static void find_compiler(int argc, char **argv)
 	/* can't find the compiler! */
 	if (!orig_args->argv[0]) {
 		stats_update(STATS_COMPILER);
+		cc_log("could not find compiler (%s)\n", base);
 		perror(base);
 		exit(1);
 	}
@@ -1069,6 +1073,7 @@ static void process_args(int argc, char **argv)
 
 			if (p) {
 				if (strlen(p) < 2) {
+					cc_log("badly formed dependency file %s\n", output_file);
 					stats_update(STATS_ARGS);
 					failed();
 					return;
@@ -1105,6 +1110,8 @@ static void process_args(int argc, char **argv)
 	if ((e=getenv("CCACHE_PREFIX"))) {
 		char *p = find_executable(e, MYNAME);
 		if (!p) {
+			cc_log("could not find executable (%s)\n", e);
+			stats_update(STATS_ENVIRONMMENT);
 			perror(e);
 			exit(1);
 		}
@@ -1288,6 +1295,7 @@ static void setup_uncached_err(void)
 	uncached_fd = dup(2);
 	if (uncached_fd == -1) {
 		cc_log("dup(2) failed\n");
+		stats_update(STATS_ERROR);
 		failed();
 	}
 
@@ -1296,6 +1304,7 @@ static void setup_uncached_err(void)
 
 	if (putenv(buf) == -1) {
 		cc_log("putenv failed\n");
+		stats_update(STATS_ERROR);
 		failed();
 	}
 }

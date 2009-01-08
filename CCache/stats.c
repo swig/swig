@@ -55,6 +55,7 @@ static struct {
 	{ STATS_OUTSTDOUT,    "output to stdout               ", NULL, 0 },
 	{ STATS_DEVICE,       "output to a non-regular file   ", NULL, 0 },
 	{ STATS_NOINPUT,      "no input file                  ", NULL, 0 },
+	{ STATS_ENVIRONMMENT, "error due to bad env variable  ", NULL, 0 },
 	{ STATS_NUMFILES,     "files in cache                 ", NULL, FLAG_NOZERO|FLAG_ALWAYS },
 	{ STATS_TOTALSIZE,    "cache size                     ", display_size , FLAG_NOZERO|FLAG_ALWAYS },
 	{ STATS_MAXFILES,     "max files                      ", NULL, FLAG_NOZERO },
