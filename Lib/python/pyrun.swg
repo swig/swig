@@ -682,12 +682,12 @@ _PySwigObject_type(void) {
   if (!type_init) {
     const PyTypeObject tmp
       = {
-    /* PyOjbect header changed in Python 3 */
+	/* PyOjbect header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+	PyVarObject_HEAD_INIT(&PyType_Type, 0)
 #else    
-    PyObject_HEAD_INIT(NULL)
-    0,				    /* ob_size */
+	PyObject_HEAD_INIT(NULL)
+	0,				    /* ob_size */
 #endif
 	(char *)"SwigPyObject",		    /* tp_name */
 	sizeof(SwigPyObject),		    /* tp_basicsize */
@@ -732,11 +732,11 @@ _PySwigObject_type(void) {
 	0,				    /* tp_alloc */	    	
 	0,			            /* tp_new */	    	
 	0,	                            /* tp_free */	   
-        0,                                  /* tp_is_gc */  
+	0,                                  /* tp_is_gc */  
 	0,				    /* tp_bases */   
 	0,				    /* tp_mro */
 	0,				    /* tp_cache */   
- 	0,				    /* tp_subclasses */
+	0,				    /* tp_subclasses */
 	0,				    /* tp_weaklist */
 #endif
 #if PY_VERSION_HEX >= 0x02030000
