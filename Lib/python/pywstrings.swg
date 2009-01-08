@@ -17,7 +17,7 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
   }
 %#endif
   if (isunicode) {
-    int len = PyUnicode_GetSize(obj);
+    Py_ssize_t len = PyUnicode_GetSize(obj);
     if (cptr) {
       *cptr = %new_array(len + 1, wchar_t);
       PyUnicode_AsWideChar((PyUnicodeObject *)obj, *cptr, len);

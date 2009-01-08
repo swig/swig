@@ -29,7 +29,7 @@ SWIG_AsWCharPtrAndSize(VALUE obj, wchar_t **cptr, size_t *psize, int *alloc)
 //     }
 //   }
 //   if (ok) {
-//     int len = PyUnicode_GetSize(obj);
+//     Py_ssize_t len = PyUnicode_GetSize(obj);
 //     rb_notimplement();
 //     if (cptr) {
 //       *cptr = %new_array(len + 1, wchar_t);
