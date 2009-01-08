@@ -12,12 +12,15 @@ if a1.this != a2.this:
   
 
 lthis = long(a.this)
-xstr1 = "0x%x" % (lthis,)
+# match pointer value, but deal with leading zeros on 8/16 bit systems
+xstr8bit  = "%08X" % (lthis,)
+xstr16bit = "%016X" % (lthis,)
 xstr2 = pointer_str(a)
 
-if xstr1 != xstr2:
-  print  xstr1, xstr2
-  raise RuntimeError
+if xstr8bit != xstr2:
+  if xstr16bit != xstr2:
+    print  xstr8bit, xstr16bit, xstr2
+    raise RuntimeError
 
 s = str(a.this)
 r = repr(a.this)
