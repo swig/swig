@@ -684,22 +684,9 @@ namespace Swig {
       return outarg(0).string_value();
     }
 
-    /*
     virtual Octave_map map_value() const {
-      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
-      member_value_pair *m = nc_this->find_member("__str", false);
-      if (!m) {
-	error("__map method not defined");
-	return std::string();
-      }
-      octave_value_list outarg = nc_this->member_invoke(m, octave_value_list(nc_this->as_value()), 1);
-      if (outarg.length() < 1 || !outarg(0).is_map()) {
-	error("__map method did not return a string");
-	return std::string();
-      }
-      return outarg(0).map_value();
+      return Octave_map();
     }
-    */
 
     virtual string_vector map_keys() const {
       member_map tmp;
@@ -875,6 +862,9 @@ namespace Swig {
 
     virtual std::string string_value(bool force = false) const 
       { return ptr->string_value(force); }
+
+    virtual Octave_map map_value() const
+      { return ptr->map_value(); }
 
     virtual string_vector map_keys() const
       { return ptr->map_keys(); }
