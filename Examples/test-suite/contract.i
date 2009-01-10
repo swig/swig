@@ -201,3 +201,33 @@ struct E {
 };
 %}
 
+
+// Namespace
+
+%{
+namespace myNames {
+
+class myClass
+{
+    public:
+    	myClass(int i) {}
+};
+
+}
+%}
+
+namespace myNames {
+
+%contract myClass::myClass( int i ) {
+require:
+    i > 0;
+}
+
+class myClass
+{
+    public:
+    	myClass(int i) {}
+};
+
+}
+
