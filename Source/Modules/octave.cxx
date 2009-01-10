@@ -40,6 +40,13 @@ public:
    OCTAVE():f_runtime(0), f_header(0), f_doc(0), f_wrappers(0),
 	    f_init(0), f_initbeforefunc(0), f_directors(0), f_directors_h(0), 
 	    s_global_tab(0), s_members_tab(0), class_name(0) {
+     /* Add code to manage protected constructors and directors */
+     director_prot_ctor_code = NewString("");
+     Printv(director_prot_ctor_code,
+	    "if ( $comparison ) { /* subclassed */\n",
+	    "  $director_new \n",
+	    "} else {\n", "  error(\"accessing abstract class or protected constructor\"); \n", "  SWIG_fail;\n", "}\n", NIL);
+
      enable_cplus_runtime_mode();
      allow_overloading();
      director_multiple_inheritance = 1;
