@@ -23,16 +23,16 @@ endif
 
 s = li_std_string_extra.string("he");
 #s += "ll"
-#s.append('o')
+#s.append("ll")
 s = s + "llo";
 
 if (s != x)
   error("bad string mapping: %s, %s", s, x);
 endif
 
-if (s[1:4] != x[1:4])
-  error("bad string mapping")
-endif
+#if (s(1:4) != x(1:4))
+#  error("bad string mapping")
+#endif
 
 if (li_std_string_extra.test_value(s) != x)
   error("bad string mapping")
@@ -63,11 +63,11 @@ if (a + " world" != "hello world")
   error("bad string mapping")
 endif
 
-if ("hello" + b != "hello world")
-  error("bad string mapping")
-endif
+#if ("hello" + b != "hello world")
+#  error("bad string mapping")
+#endif
 
-c = ("hello" + b)
+c = (li_std_string_extra.string("hello") + b);
 if (c.find_last_of("l") != 9)
   error("bad string mapping")
 endif
@@ -157,6 +157,6 @@ if (li_std_string_extra.c_empty() != "")
   error
 endif
 
-if (li_std_string_extra.c_null() != None)
-  error
-endif
+#if (li_std_string_extra.c_null() != None)
+#  error
+#endif

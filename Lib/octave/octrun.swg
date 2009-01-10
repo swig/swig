@@ -589,7 +589,7 @@ namespace Swig {
       // index operator
       else {
 	if (ops[skip] == '(' || ops[skip] == '{') {
-	  const char *op_name = ops[skip] == '(' ? "__paren" : "__brace";
+	  const char *op_name = ops[skip] == '(' ? "__paren__" : "__brace__";
 	  octave_value_list args;
 	  args.append(*idx_it++);
 	  ++skip;
@@ -628,7 +628,7 @@ namespace Swig {
       }
 
       else if (ops[skip] == '(' || ops[skip] == '{') {
-	const char *op_name = ops[skip] == '(' ? "__paren_asgn" : "__brace_asgn";
+	const char *op_name = ops[skip] == '(' ? "__paren_asgn__" : "__brace_asgn__";
 	member_value_pair *m = find_member(op_name, false);
 	if (m) {
 	  octave_value_list args;
@@ -666,19 +666,19 @@ namespace Swig {
 
     virtual bool is_string() const {
       octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
-      return !!nc_this->find_member("__str", false);
+      return !!nc_this->find_member("__str__", false);
     }
 
     virtual std::string string_value(bool force = false) const {
       octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
-      member_value_pair *m = nc_this->find_member("__str", false);
+      member_value_pair *m = nc_this->find_member("__str__", false);
       if (!m) {
-	error("__str method not defined");
+	error("__str__ method not defined");
 	return std::string();
       }
       octave_value_list outarg = nc_this->member_invoke(m, octave_value_list(nc_this->as_value()), 1);
       if (outarg.length() < 1 || !outarg(0).is_string()) {
-	error("__str method did not return a string");
+	error("__str__ method did not return a string");
 	return std::string();
       }
       return outarg(0).string_value();
@@ -699,6 +699,35 @@ namespace Swig {
 
       return keys;
     }
+
+    virtual bool save_ascii (std::ostream& os) {
+      return true;
+    }
+
+    virtual bool load_ascii (std::istream& is) {
+      return true;
+    }
+
+    virtual bool save_binary (std::ostream& os, bool& save_as_floats) {
+      return true;
+    }
+
+    virtual bool load_binary (std::istream& is, bool swap, 
+			      oct_mach_info::float_format fmt) {
+      return true;
+    }
+
+#if defined (HAVE_HDF5)
+    virtual bool
+      save_hdf5 (hid_t loc_id, const char *name, bool save_as_floats) {
+      return true;
+    }
+
+    virtual bool
+      load_hdf5 (hid_t loc_id, const char *name, bool have_h5giterate_bug) {
+      return true;
+    }
+#endif
 
     virtual octave_value convert_to_str(bool pad = false, bool force = false, char type = '"') const {
       return string_value();
@@ -724,7 +753,7 @@ namespace Swig {
       assert(ost);
 
       octave_value ret;
-      if (ost->dispatch_unary_op(std::string("__") + op_name, ret))
+      if (ost->dispatch_unary_op(std::string("__") + op_name + std::string("__"), ret))
 	return ret;
       std::string symbol = "op_" + ost->swig_type_name() + "_" + op_name;
       octave_value_list args;
@@ -741,7 +770,7 @@ namespace Swig {
       octave_swig_type *rhs_ost = Swig::swig_value_deref(rhs);
 
       octave_value ret;
-      if (lhs_ost && lhs_ost->dispatch_binary_op(std::string("__") + op_name, rhs, ret))
+      if (lhs_ost && lhs_ost->dispatch_binary_op(std::string("__") + op_name + std::string("__"), rhs, ret))
 	return ret;
 
       std::string symbol;
@@ -869,6 +898,29 @@ namespace Swig {
     virtual string_vector map_keys() const
       { return ptr->map_keys(); }
 
+    virtual bool save_ascii (std::ostream& os)
+      { return ptr->save_ascii(os); }
+
+    virtual bool load_ascii (std::istream& is)
+      { return ptr->load_ascii(is); }
+
+    virtual bool save_binary (std::ostream& os, bool& save_as_floats)
+      { return ptr->save_binary(os, save_as_floats); }
+
+    virtual bool load_binary (std::istream& is, bool swap, 
+			      oct_mach_info::float_format fmt)
+      { return ptr->load_binary(is, swap, fmt); }
+
+#if defined (HAVE_HDF5)
+    virtual bool
+      save_hdf5 (hid_t loc_id, const char *name, bool save_as_floats)
+      { return ptr->save_hdf5(loc_id, name, save_as_floats); }
+
+    virtual bool
+      load_hdf5 (hid_t loc_id, const char *name, bool have_h5giterate_bug)
+      { return ptr->load_hdf5(loc_id, name, have_h5giterate_bug); }
+#endif
+
     virtual octave_value convert_to_str(bool pad = false, bool force = false, char type = '"') const
       { return ptr->convert_to_str(pad, force, type); }
 
@@ -917,6 +969,37 @@ namespace Swig {
     void print(std::ostream &os, bool pr_as_read_syntax = false) const {
       os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size() << std::endl;
     }
+
+
+    virtual bool save_ascii (std::ostream& os) {
+      return true;
+    }
+
+    virtual bool load_ascii (std::istream& is) {
+      return true;
+    }
+
+    virtual bool save_binary (std::ostream& os, bool& save_as_floats) {
+      return true;
+    }
+
+    virtual bool load_binary (std::istream& is, bool swap, 
+			      oct_mach_info::float_format fmt) {
+      return true;
+    }
+
+#if defined (HAVE_HDF5)
+    virtual bool
+      save_hdf5 (hid_t loc_id, const char *name, bool save_as_floats) {
+      return true;
+    }
+
+    virtual bool
+      load_hdf5 (hid_t loc_id, const char *name, bool have_h5giterate_bug) {
+      return true;
+    }
+#endif
+
   private:
     DECLARE_OCTAVE_ALLOCATOR;
     DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA;

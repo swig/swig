@@ -513,11 +513,11 @@ namespace swig
       return x;
     }
 
-    value_type __paren(difference_type i) throw (std::out_of_range) {
+    value_type __paren__(difference_type i) throw (std::out_of_range) {
       return *(swig::cgetpos(self, i));
     }
 
-    void __paren_asgn(difference_type i, value_type x) throw (std::out_of_range) {
+    void __paren_asgn__(difference_type i, value_type x) throw (std::out_of_range) {
       *(swig::getpos(self,i)) = x;
     }
 
