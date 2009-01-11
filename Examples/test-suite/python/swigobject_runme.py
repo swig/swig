@@ -19,9 +19,9 @@ lthis = long(a.this)
 xstr1 = "%016X" % (lthis,)
 xstr1 = lstrip(xstr1, '0')
 xstr2 = pointer_str(a)
-xstr2 = lstrip(xstr2, '0')
 xstr2 = replace(xstr2, "0x", "")
 xstr2 = replace(xstr2, "0X", "")
+xstr2 = lstrip(xstr2, '0')
 xstr2 = upper(xstr2)
 
 if xstr1 != xstr2:
