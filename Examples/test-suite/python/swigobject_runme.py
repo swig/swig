@@ -1,5 +1,8 @@
 
 from swigobject import  *
+from string import replace
+from string import upper
+from string import lstrip
 
 a = A()
 
@@ -12,15 +15,17 @@ if a1.this != a2.this:
   
 
 lthis = long(a.this)
-# match pointer value, but deal with leading zeros on 8/16 bit systems
-xstr8bit  = "%08X" % (lthis,)
-xstr16bit = "%016X" % (lthis,)
+# match pointer value, but deal with leading zeros on 8/16 bit systems and different C++ compilers interpretation of %p
+xstr1 = "%016X" % (lthis,)
+xstr1 = lstrip(xstr1, '0')
 xstr2 = pointer_str(a)
+xstr2 = replace(xstr2, "0x", "")
+xstr2 = replace(xstr2, "0X", "")
+xstr2 = upper(xstr2)
 
-if xstr8bit != xstr2:
-  if xstr16bit != xstr2:
-    print  xstr8bit, xstr16bit, xstr2
-    raise RuntimeError
+if xstr1 != xstr2:
+  print xstr1, xstr2
+  raise RuntimeError
 
 s = str(a.this)
 r = repr(a.this)
