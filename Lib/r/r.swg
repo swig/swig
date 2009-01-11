@@ -55,7 +55,8 @@ SWIG_InitializeModule(0);
 
 %typemap(out) void "";
 
-%typemap(in) int *, int[ANY] %{
+%typemap(in) int *, int[ANY],
+	     long *, long[ANY] %{
   $1 = INTEGER($input);
 %}
 
@@ -77,7 +78,7 @@ SWIG_InitializeModule(0);
 %}
 
 
-%typemap(scheck) int %{
+%typemap(scheck) int, long %{
   if(length($input) > 1) {
      warning("using only the first element of $input")
   }
@@ -157,11 +158,12 @@ $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);
  }
 
 
-%typemap(in,noblock=1) int {
+%typemap(in,noblock=1) int, long
+{
   $1 = %static_cast(INTEGER($input)[0], $1_ltype);
 }
 
-%typemap(out,noblock=1) int 
+%typemap(out,noblock=1) int, long
   "$result = Rf_ScalarInteger($1);";
 
 
@@ -172,18 +174,16 @@ $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);
 %typemap(out,noblock=1) bool 
   "$result = Rf_ScalarLogical($1);";
 
-%typemap(in,noblock=1) unsigned int, 
-             unsigned long,
+%typemap(in,noblock=1) 
              float, 
-             double,
-             long 
+             double
 {
   $1 = %static_cast(REAL($input)[0], $1_ltype); 
 }
 
-
-%typemap(out,noblock=1) unsigned int *
-  "$result = ScalarReal(*($1));";
+/* Why is this here ? */
+/* %typemap(out,noblock=1) unsigned int *
+  "$result = ScalarReal(*($1));"; */
 
 %Rruntime %{
 setMethod('[', "ExternalReference",
