@@ -56,13 +56,61 @@ SWIG_InitializeModule(0);
 %typemap(out) void "";
 
 %typemap(in) int *, int[ANY],
-	     long *, long[ANY] %{
-  $1 = INTEGER($input);
+	     signed int *, signed int[ANY],
+	     unsigned int *, unsigned int[ANY],
+             short *, short[ANY],
+             signed short *, signed short[ANY],
+             unsigned short *, unsigned short[ANY],
+             long *, long[ANY],
+             signed long *, signed long[ANY],
+             unsigned long *, unsigned long[ANY],
+             long long *, long long[ANY],
+             signed long long *, signed long long[ANY],
+             unsigned long long *, unsigned long long[ANY]
+             
+{
+{ int _rswigi;
+  int _rswiglen = LENGTH($input);
+  $1 = %static_cast(calloc(sizeof($1_basetype), _rswiglen), $1_ltype);
+  for (_rswigi=0; _rswigi< _rswiglen; _rswigi++) {
+     $1[_rswigi] = INTEGER($input)[_rswigi];
+  }
+}
+} 
+
+%typemap(in) float *, float[ANY],
+             double *, double[ANY]
+             
+{
+{  int _rswigi;
+  int _rswiglen = LENGTH($input);
+  $1 = %static_cast(calloc(sizeof($1_basetype), _rswiglen), $1_ltype);
+  for (_rswigi=0; _rswigi<_rswiglen; _rswigi++) {
+     $1[_rswigi] = REAL($input)[_rswigi];
+  }
+}
+}
+
+%typemap(freearg,noblock=1) int *, int[ANY], 
+	     signed int *, signed int[ANY],
+	     unsigned int *, unsigned int[ANY],
+             short *, short[ANY],
+             signed short *, signed short[ANY],
+             unsigned short *, unsigned short[ANY],
+             long *, long[ANY],
+             signed long *, signed long[ANY],
+             unsigned long *, unsigned long[ANY],
+             long long *, long long[ANY],
+             signed long long *, signed long long[ANY],
+             unsigned long long *, unsigned long long[ANY],
+             float *, float[ANY],
+             double *, double[ANY]
+%{             
+  free($1);
 %}
 
-%typemap(in) double *, double[ANY] %{
-  $1 = REAL($input);
-%}
+
+
 
 /* Shoul dwe recycle to make the length correct.
    And warn if length() > the dimension. 
@@ -91,8 +139,6 @@ SWIG_InitializeModule(0);
 %include <ropers.swg>
 %include <typemaps/swigtypemaps.swg>
 %include <rtype.swg>
-
-%apply int[ANY] { enum SWIGTYPE[ANY] };
 
 %typemap(in,noblock=1) enum SWIGTYPE[ANY] {
    $1 = %reinterpret_cast(INTEGER($input), $1_ltype);

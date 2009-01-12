@@ -3,7 +3,7 @@
    for use in class representations. 
  */
 
-%typemap("rtype") int, int *, int &      "numeric";
+%typemap("rtype") int, int *, int &      "integer";
 %apply int {size_t}
 %apply int {std::size_t}
 %apply int {ptrdiff_t}
@@ -13,11 +13,11 @@
 %apply int {short}
 %apply int {unsigned short}
 
-%typemap("rtype") long, long *, long &      "numeric";
+%typemap("rtype") long, long *, long &      "integer";
 %apply long {long long}
 %apply long {signed long long}
 %apply long {unsigned long long}
-%apply long {unsigned long}
+%apply long {signed long}
 %apply long {unsigned long}
 
 %typemap("rtype") double, double*, double & "numeric";
@@ -143,7 +143,24 @@ string &, std::string &
 		     std::string,
 		     string &,
 		     std::string &, 
-		     void
+		     void,
+		     signed int,
+		     signed int &,		     
+		     unsigned int,
+		     unsigned int &,		     
+		     short,
+		     short &,		     
+		     unsigned short,
+		     unsigned short &,		     
+		     long long,
+		     signed long long,
+		     signed long long &,		     
+		     unsigned long long,
+		     unsigned long long &,		     
+		     signed long,
+		     signed long &,		     
+		     unsigned long,
+		     unsigned long &		     
  %{    %}
 
 
