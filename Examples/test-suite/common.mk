@@ -451,7 +451,7 @@ C_TEST_CASES += \
 	struct_rename \
 	typedef_struct \
 	typemap_subst \
-	union \
+	union_parameter \
 	unions
 
 

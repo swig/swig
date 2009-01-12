@@ -1,4 +1,4 @@
-%module unions
+%module union_parameter
 
 %inline %{
 

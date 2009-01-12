@@ -1,4 +1,4 @@
-if [ catch { load ./union[info sharedlibextension] unions} err_msg ] {
+if [ catch { load ./union_parameter[info sharedlibextension] union_parameter} err_msg ] {
         puts stderr "Could not load shared object:\n$err_msg"
 }
 
