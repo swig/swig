@@ -41,7 +41,7 @@ unittest(d$u, 0)
 
 
 la <- new("A");
-la@ui <- 5
+la@ui <- as.integer(5)
 # Removing the next line makes this fail in R 2.4
 la@str <- ""
 
@@ -49,9 +49,10 @@ other = A()
 foo <- copyToC(la, other)
 
 aa = A()
-aa$i = 201
+aa$i = as.integer(201)
 aa$d = pi
 aa$str = "foo"
+aa$ui = as.integer(0)
 copyToR(aa)
 
 
