@@ -3,8 +3,12 @@ Version 1.3.37 (30 December 2008)
 
 2009-01-13: mgossage
 	    [Lua] Added contract support for requiring that unsigned numbers are >=0
-        Rewrote much of Examples/Lua/embed3. 
-	    Added a lot of to the Lua documentation.
+	    Rewrote much of Examples/Lua/embed3. 
+	    Added a lot to the Lua documentation.
+
+2009-01-13: wsfulton
+	    Fix compilation error when using directors on protected virtual overloaded 
+	    methods reported by Sam Hendley.
 
 2009-01-12: drjoe
             Fixed handling of integer arrays
