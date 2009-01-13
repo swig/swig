@@ -34,14 +34,29 @@
 <li><a href="#Lua_nn20">C++ templates</a>
 <li><a href="#Lua_nn21">C++ Smart Pointers</a>
 <li><a href="#Lua_nn22">C++ Exceptions</a>
-<li><a href="#Lua_nn23">Writing your own custom wrappers</a>
-<li><a href="#Lua_nn24">Adding additional Lua code</a>
 </ul>
-<li><a href="#Lua_nn25">Details on the Lua binding</a>
+<li><a href="#Lua_nn23">Typemaps</a>
 <ul>
-<li><a href="#Lua_nn26">Binding global data into the module.</a>
-<li><a href="#Lua_nn27">Userdata and Metatables</a>
-<li><a href="#Lua_nn28">Memory management</a>
+<li><a href="#Lua_nn24">What is a typemap?</a>
+<li><a href="#Lua_nn25">Using typemaps</a>
+<li><a href="#Lua_nn26">Typemaps and arrays</a>
+<li><a href="#Lua_nn27">Typemaps and pointer-pointer functions</a>
+</ul>
+<li><a href="#Lua_nn28">Writing Typemaps</a>
+<ul>
+<li><a href="#Lua_nn29">Typemaps you can write</a>
+<li><a href="#Lua_nn30">SWIG's Lua-C API</a>
+</ul>
+<li><a href="#Lua_nn31">Customization of your Bindings</a>
+<ul>
+<li><a href="#Lua_nn32">Writing your own custom wrappers</a>
+<li><a href="#Lua_nn33">Adding additional Lua code</a>
+</ul>
+<li><a href="#Lua_nn34">Details on the Lua binding</a>
+<ul>
+<li><a href="#Lua_nn35">Binding global data into the module.</a>
+<li><a href="#Lua_nn36">Userdata and Metatables</a>
+<li><a href="#Lua_nn37">Memory management</a>
 </ul>
 </ul>
 </div>
@@ -1003,8 +1018,9 @@ stack traceback:
 </pre></div>
 
 <p>
-SWIG is able to throw numeric types, enums, chars, char*'s and std::string's without problem.
-However its not so simple for to throw objects. 
+SWIG is able to throw numeric types, enums, chars, char*'s and std::string's without problem. It has also written typemaps for std::exception and its derived classes, which convert the exception into and error string. </p>
+<p>
+However its not so simple for to throw other types of objects. 
 Thrown objects are not valid outside the 'catch' block. Therefore they cannot be
 returned to the interpreter. 
 The obvious ways to overcome this would be to either return a copy of the object, or so convert the object to a string and
@@ -1036,10 +1052,6 @@ stack traceback:
 <p>
 To get a more useful behaviour out of SWIG you must either: provide a way to convert your exceptions into strings, or
 throw objects which can be copied.
-</p>
-<p>
-SWIG has typemaps for std::exception and its children already written, so a function which throws any of these will
-automatically have its exception converted into an error string.
 </p>
 <p>
 If you have your own class which you want output as a string you will need to add a typemap something like this:
@@ -1098,8 +1110,259 @@ add exception specification to functions or globally (respectively).
 </p>
 
 
-<H3><a name="Lua_nn23"></a>23.3.16 Writing your own custom wrappers</H3>
+<H2><a name="Lua_nn23"></a>23.4 Typemaps</H2>
 
+<p>This section explains what typemaps are and the usage of them. The default wrappering behaviour of SWIG is enough in most cases. However sometimes SWIG may need a little additional assistance to know which typemap to apply to provide the best wrappering. This section will be explaining how to use typemaps to best effect</p>
+
+<H3><a name="Lua_nn24"></a>23.4.1 What is a typemap?</H3>
+
+<p>A typemap is nothing more than a code generation rule that is attached to a specific C datatype. For example, to convert integers from Lua to C, you might define a typemap like this:</p>
+
+<div class="code"><pre>%module example
+
+%typemap(in) int {
+	$1 = (int) lua_tonumber(L,$input);
+	printf("Received an integer : %d\n",$1);
+}
+%inline %{
+extern int fact(int n);
+%}
+</pre></div>
+
+<p><i>Note: you shouldn't use this typemap, as SWIG already has a typemap for this task. This is purely for example.</i></p>
+
+<p>Typemaps are always associated with some specific aspect of code generation. In this case, the "in" method refers to the conversion of input arguments to C/C++. The datatype int is the datatype to which the typemap will be applied. The supplied C code is used to convert values. In this code a number of special variable prefaced by a $ are used. The $1 variable is placeholder for a local variable of type int. The $input is the index on the Lua stack for the value to be used.</p>
+
+<p>When this example is compiled into a Lua module, it operates as follows:</p>
+
+<div class="targetlang"><pre>&gt; require "example"
+&gt; print(example.fact(6))
+Received an integer : 6
+720
+</pre></div>
+
+<H3><a name="Lua_nn25"></a>23.4.2 Using typemaps</H3>
+
+<p>There are many ready written typemaps built into SWIG for all common types (int, float, short, long, char*, enum and more), which SWIG uses automatically, with no effort required on your part.</p>
+
+<p>However for more complex functions which use input/output parameters or arrays, you will need to make use of &lt;typemaps.i&gt;, which contains typemaps for these situations. For example, consider these functions:</p>
+
+<div class="code"><pre>void add(int x, int y, int *result) {
+   *result = x + y;
+}
+
+int sub(int *x1, int *y1) {
+   return *x1-*y1;
+}
+
+void swap(int *sx, int *sy) {
+   int t=*sx;
+   *sx=*sy;
+   *sy=t;
+}
+</pre></div>
+
+<p>It is clear to the programmer, that 'result' is an output parameter, 'x1' and 'y1' are input parameters and 'sx' and 'sy' are input/output parameters. However is not apparent to SWIG, so SWIG must to informed about which kind they are, so it can wrapper accordingly.</p>
+
+<p>One means would be to rename the argument name to help SWIG, eg <tt>void add(int x, int y, int *OUTPUT)</tt>, however it is easier to use the <tt>%apply</tt> to achieve the same result, as shown below.</p>
+
+<div class="code"><pre>%include &lt;typemaps.i&gt;
+%apply int* OUTPUT {int *result}; // int *result is output
+%apply int* INPUT {int *x1, int *y1}; // int *x1 and int *y1 are input
+%apply int* INOUT {int *sx, int *sy}; // int *sx and int *sy are input and output
+
+void add(int x, int y, int *result);
+int sub(int *x1, int *y1);
+void swap(int *sx, int *sy);
+</pre></div>
+
+<p>When wrapped, it gives the following results:</p>
+
+<div class="targetlang"><pre>&gt; require "example"
+&gt; print(example.add(1,2))
+3
+&gt; print(demo.sub(1,2))
+-1
+&gt; a,b=1,2
+&gt; c,d=demo.swap(a,b)
+&gt; print(a,b,c,d)
+1       2       2       1
+</pre></div>
+
+<p>Notice, that 'result' is not required in the arguments to call the function, as it an output parameter only.  For 'sx' and 'sy' they must be passed in (as they are input), but the original value is not modified (Lua does not have a pass by reference feature). The modified results are then returned as two return values. All INPUT/OUTPUT/INOUT arguments will behave in a similar manner.</p>
+
+<p>Note: C++ references must be handled exactly the same way. However SWIG will automatically wrap a <tt>const int&amp;</tt>  as an input parameter (since that it obviously input).</p>
+
+<H3><a name="Lua_nn26"></a>23.4.3 Typemaps and arrays</H3>
+
+<p>Arrays present a challenge for SWIG, because like pointers SWIG does not know whether these are input or output values, nor
+does SWIG have any indication of how large an array should be. However with the proper guidance SWIG can easily wrapper
+arrays for convenient usage.</p>
+
+<p>Given the functions:</p>
+<div class="code"><pre>extern void sort_int(int* arr, int len);
+extern void sort_double(double* arr, int len);
+</pre></div>
+
+<p>There are basically two ways that SWIG can deal with this. The first way, uses the <tt>&lt;carrays.i&gt;</tt> library
+to create an array in C/C++ then this can be filled within Lua and passed into the function. It works, but its a bit tedious.
+More details can be found in the <a href="Library.html#Library_nn5">carrays.i</a> documention.</p>
+
+<p>The second and more intuitive way, would be to pass a Lua table directly into the function, and have SWIG automatically convert between Lua-table and C-array. Within the <tt>&lt;typemaps.i&gt;</tt> file there are typemaps ready written to perform this task. To use them is again a matter of using %appy in the correct manner.</p>
+
+<p>The wrapper file below, shows both the use of carrays as well as the use of the typemap to wrap arrays. </p>
+
+<div class="code"><pre>// using the C-array
+%include &lt;carrays.i&gt;
+// this declares a batch of function for manipulating C integer arrays
+%array_functions(int,int)
+
+extern void sort_int(int* arr, int len); // the function to wrap
+
+// using typemaps
+%include &lt;typemaps.i&gt;
+%apply (double *INOUT,int) {(double* arr,int len)};
+
+extern void sort_double(double* arr, int len); // the function to wrap
+</pre></div>
+
+<p>Once wrappered, the functions can both be called, though with different ease of use:</p>
+
+<div class="targetlang"><pre>require "example"
+ARRAY_SIZE=10
+
+-- passing a C array to the sort_int()
+arr=example.new_int(ARRAY_SIZE) -- create the array
+for i=0,ARRAY_SIZE-1 do -- index 0..9 (just like C)
+    example.int_setitem(arr,i,math.random(1000))
+end
+example.sort_int(arr,ARRAY_SIZE)  -- call the function
+example.delete_int(arr) -- must delete the allocated memory
+
+-- use a typemap to call with a Lua-table
+-- one item of note: the typemap creates a copy, rather than edit-in-place
+t={} -- a Lua table
+for i=1,ARRAY_SIZE do -- index 1..10 (Lua style)
+    t[i]=math.random(1000)/10
+end
+t=example.sort_double(t) -- replace t with the result
+</pre></div>
+
+<p>Obviously the first version could be made less tedious by writing a Lua function to perform the conversion from a table 
+to a C-array. The <tt>%luacode</tt> directive is good for this. See SWIG\Examples\lua\arrays for an example of this.</p>
+
+<p><b>Warning:</b> in C indexes start at ZERO, in Lua indexes start at ONE. SWIG expects C-arrays to be filled for 0..N-1
+and Lua tables to be 1..N, (the indexing follows the norm for the language). In the typemap when it converts the table to an array it quietly changes the indexing accordingly. Take note of this behaviour if you have a C function which returns indexes.</p>
+
+<p>Note: SWIG also can support arrays of pointers in a similar manner.</p>
+
+<H3><a name="Lua_nn27"></a>23.4.4 Typemaps and pointer-pointer functions</H3>
+
+<p>Several C++ libraries use a pointer-pointer functions to create its objects. These functions require a pointer to a pointer which is then filled with the pointer to the new object. Microsoft's COM and DirectX as well as many other libraries have this kind of function. An example is given below:</p>
+
+<div class="code"><pre>struct iMath;    // some structure
+int Create_Math(iMath** pptr); // its creator (assume it mallocs)
+</pre></div>
+
+<p>Which would be used with the following C code:</p>
+
+<div class="code"><pre>iMath* ptr;
+int ok;
+ok=Create_Math(&amp;ptr);
+// do things with ptr
+//...
+free(ptr); // dispose of iMath
+</pre></div>
+
+<p>SWIG has a ready written typemap to deal with such a kind of function in &lt;typemaps.i&gt;. It provides the correct wrappering as well as setting the flag to inform Lua that the object in question should be garbage collected. Therefore the code is simply:</p>
+
+<div class="code"><pre>%include &lt;typemaps.i&gt;
+%apply SWIGTYPE** OUTPUT{iMath **pptr }; // tell SWIG its an output
+
+struct iMath;    // some structure
+int Create_Math(iMath** pptr); // its creator (assume it mallocs)
+</pre></div>
+
+<p>The usage is as follows:</p>
+
+<div class="targetlang"><pre>ok,ptr=Create_Math() -- ptr is a iMath* which is returned with the int (ok)
+ptr=nil -- the iMath* will be GC'ed as normal
+</pre></div>
+
+<H2><a name="Lua_nn28"></a>23.5 Writing typemaps</H2>
+
+<p>This section describes how you can modify SWIG's default wrapping behavior for various C/C++ datatypes using the <tt>%typemap</tt> directive. This is an advanced topic that assumes familiarity with the Lua C API as well as the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.</p>
+
+<p>Before proceeding, it should be stressed that writing typemaps is rarely needed unless you want to change some aspect of the wrappering, or to achieve an effect which in not available with the default bindings.</p>
+
+<p>Before proceeding, you should read the previous section on using typemaps, as well as read the ready written typemaps found in luatypemaps.swg and typemaps.i. These are both well documented and fairly easy to read. You should not attempt to write your own typemaps until you have read and can understand both of these files (they may well also give you a idea to base your worn on).</p>
+
+<H3><a name="Lua_nn29"></a>23.5.1 Typemaps you can write</H3>
+
+<p>There are many different types of typemap that can be written, the full list can be found in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter. However the following are the most commonly used ones.</p>
+
+<ul>
+<li><tt>in</tt> this is for input arguments to functions</li>
+<li><tt>out</tt> this is for return types from functions</li>
+<li><tt>argout</tt> this is for a function argument which is actually returning something</li>
+<li><tt>typecheck</tt> this is used to determine which overloaded function should be called 
+(the syntax for the typecheck is different from the typemap, see typemaps for details).</li>
+</ul>
+
+<H3><a name="Lua_nn30"></a>23.5.2 SWIG's Lua-C API</H3>
+
+<p>This section explains the SWIG specific Lua-C API. It does not cover the main Lua-C api, as this is well documented and not worth covering.</p>
+
+<p><tt>int SWIG_ConvertPtr(lua_State* L,int index,void** ptr,swig_type_info *type,int flags);</tt></p>
+
+<div class="indent">
+This is the standard function used for converting a Lua userdata to a void*. It takes the value at the given index in the Lua state and converts it to a userdata. It will then provide the neccesary type checks, confirming that the pointer is compatible with the type given in 'type'. Then finally setting '*ptr' to the pointer.
+If flags is set to SWIG_POINTER_DISOWN, this is will clear any ownership flag set on the object.<br>
+The returns a value which can be checked with the macro SWIG_IsOK()
+</div>
+
+<p><tt>void SWIG_NewPointerObj(lua_State* L,void* ptr,swig_type_info *type,int own);</tt></p>
+
+<div class="indent">
+This is the opposite of SWIG_ConvertPtr, as it pushes a new userdata which wrappers the pointer 'ptr' of type 'type'.
+The parameter 'own' specifies if the object is owned be Lua and if it is 1 then Lua will GC the object when the userdata is disposed of.
+</div>
+
+<p><tt>void* SWIG_MustGetPtr(lua_State* L,int index,swig_type_info *type,int flags,int argnum,const char* func_name);</tt></p>
+
+<div class="indent">
+This function is a version of SWIG_ConvertPtr(), except that it will either work, or it will trigger a lua_error() with a text error message. This function is rarely used, and may be deprecated in the future.
+</div>
+
+<p><tt>SWIG_fail</tt></p>
+
+<div class="indent">
+This macro, when called within the context of a SWIG wrappered function, will jump to the error handler code. This will call any cleanup code (freeing any temp variables) and then triggers a lua_error.<br>
+A common use for this code is:<br><pre>
+if (!SWIG_IsOK(SWIG_ConvertPtr( .....)){
+ lua_pushstring(L,"something bad happened");
+ SWIG_fail;
+}</pre></div>
+
+<p><tt>SWIG_fail_arg(char* func_name,int argnum,char* type)</tt></p>
+
+<div class="indent">
+This macro, when called within the context of a SWIG wrappered function, will display the error message and jump to the error handler code. The error message is of the form "Error in <i>func_name</i> (arg <i>argnum</i>), expected '<i>type</i>' got '<i>whatever the type was</i>'"</pre></div>
+
+<p><tt>SWIG_fail_ptr(const char* fn_name,int argnum,swig_type_info* type);</tt></p>
+
+<div class="indent">
+Similar to SWIG_fail_arg, except that it will display the swig_type_info information instead.</pre></div>
+
+<H2><a name="Lua_nn31"></a>23.6 Customization of your Bindings</H2>
+
+<p>
+This section covers adding of some small extra bits to your module to add the last finishing touches.
+</p>
+
+
+
+<H3><a name="Lua_nn32"></a>23.6.1 Writing your own custom wrappers</H3>
 
 <p>
 Sometimes, it may be neccesary to add your own special functions, which bypass the normal SWIG wrappering method, and just use the native Lua API calls. These 'native' functions allow direct adding of your own code into the module. This is performed with the <tt>%native</tt> directive as follows:
@@ -1117,7 +1380,7 @@ int native_function(lua_State*L) // my native code
 The <tt>%native</tt> directive in the above example, tells SWIG that there is a function <tt>int native_function(lua_State*L);</tt> which is to be added into the module under the name '<tt>my_func</tt>'. SWIG will not add any wrappering for this function, beyond adding it into the function table. How you write your code is entirely up to you.
 </p>
 
-<H3><a name="Lua_nn24"></a>23.3.17 Adding additional Lua code</H3>
+<H3><a name="Lua_nn33"></a>23.6.2 Adding additional Lua code</H3>
 
 
 <p>
@@ -1155,7 +1418,7 @@ Good uses for this feature is adding of new code, or writing helper functions to
 See Examples/lua/arrays for an example of this code.
 </p>
 
-<H2><a name="Lua_nn25"></a>23.4 Details on the Lua binding</H2>
+<H2><a name="Lua_nn34"></a>23.7 Details on the Lua binding</H2>
 
 
 <p>
@@ -1166,7 +1429,7 @@ See Examples/lua/arrays for an example of this code.
  </i>
 </p>
 
-<H3><a name="Lua_nn26"></a>23.4.1 Binding global data into the module.</H3>
+<H3><a name="Lua_nn35"></a>23.7.1 Binding global data into the module.</H3>
 
 
 <p>
@@ -1226,7 +1489,7 @@ end
 <p>
 That way when you call '<tt>a=example.Foo</tt>', the interpreter looks at the table 'example' sees that there is no field 'Foo' and calls __index. This will in turn check in '.get' table and find the existence of 'Foo' and then return the value of the C function call 'Foo_get()'. Similarly for the code '<tt>example.Foo=10</tt>', the interpreter will check the table, then call the __newindex which will then check the '.set' table and call the C function 'Foo_set(10)'.
 </p>
-<H3><a name="Lua_nn27"></a>23.4.2 Userdata and Metatables</H3>
+<H3><a name="Lua_nn36"></a>23.7.2 Userdata and Metatables</H3>
 
 
 <p>
@@ -1306,7 +1569,7 @@ Note: Both the opaque structures (like the FILE*) and normal wrappered classes/s
 <p>
 Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the classes metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming its an operator overload.
 </p>
-<H3><a name="Lua_nn28"></a>23.4.3 Memory management</H3>
+<H3><a name="Lua_nn37"></a>23.7.3 Memory management</H3>
 
 
 <p>
