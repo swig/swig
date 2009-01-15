@@ -82,10 +82,13 @@ if test -f "$tarball"; then
       echo "Compiling (quietly)..."
       make > build.log
       echo "Simple check to see if swig.exe runs..."
-      env LD_LIBRARY_PATH= PATH= ./swig.exe -version
+      env LD_LIBRARY_PATH= PATH= ./swig.exe -version || exit 1
+      echo "Simple check to see if ccache-swig.exe runs..."
+      env LD_LIBRARY_PATH= PATH= ./CCache/ccache-swig.exe -V || exit 1
       echo "Creating $swigwinbasename.zip..."
       cd ..
       cp $swigbasename/swig.exe $swigwinbasename
+      cp $swigbasename/CCache/ccache-swig.exe $swigwinbasename/CCache
       cp $swigbasename/Lib/swigwarn.swg $swigwinbasename/Lib
       sleep 2 # fix strange not finding swig.exe
       echo "Unzip into a directory of your choice. Please read the README file as well as Doc\Manual\Windows.html for installation instructions." > swig_windows_zip_comments.txt

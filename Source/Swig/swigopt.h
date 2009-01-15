@@ -13,4 +13,4 @@
  extern void  Swig_mark_arg(int n);
  extern int   Swig_check_marked(int n);
  extern void  Swig_check_options(int check_input);
- extern void  Swig_arg_error();
+ extern void  Swig_arg_error(void);

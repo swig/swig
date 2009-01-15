@@ -29,6 +29,7 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 SWIGOPT += -namespace $*Namespace $(SWIGOPTSPECIAL)
+INTERFACEDIR = ../../
 
 CSHARPFLAGSSPECIAL =
 

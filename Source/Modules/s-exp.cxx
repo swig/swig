@@ -29,6 +29,9 @@ public:
   }
 
   virtual void main(int argc, char *argv[]) {
+    // Add a symbol to the parser for conditional compilation
+    Preprocessor_define("SWIGSEXP 1", 0);
+
     SWIG_typemap_lang("sexp");
     for (int iX = 0; iX < argc; iX++) {
       if (strcmp(argv[iX], "-typemaplang") == 0) {
@@ -42,9 +45,6 @@ public:
 	fputs(usage, stdout);
       }
     }
-
-    // Add a symbol to the parser for conditional compilation
-    Preprocessor_define("SWIGSEXP 1", 0);
   }
 
   DOHHash *print_circle_hash;
@@ -59,7 +59,7 @@ public:
       String *outfile = Getattr(n, "outfile");
       Replaceall(outfile, "_wrap.cxx", ".lisp");
       Replaceall(outfile, "_wrap.c", ".lisp");
-      out = NewFile(outfile, "w");
+      out = NewFile(outfile, "w", SWIG_output_files());
       if (!out) {
 	FileErrorDisplay(outfile);
 	SWIG_exit(EXIT_FAILURE);
@@ -71,7 +71,10 @@ public:
     Swig_register_filebyname("runtime", f_sink);
     Swig_register_filebyname("init", f_sink);
 
+    Swig_banner_target_lang(out, ";;;");
+
     Language::top(n);
+    Printf(out, "\n");
     Printf(out, ";;; Lisp parse tree produced by SWIG\n");
     print_circle_hash = DohNewHash();
     print_circle_count = 0;

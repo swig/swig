@@ -1,6 +1,9 @@
 /* File : example.i */
 %module example
 
+%{
+#include "example.h"
+%}
 %include "arrays_csharp.i"
 
 %apply int INPUT[]  { int* sourceArray }

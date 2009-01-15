@@ -73,7 +73,7 @@ void Swig_push_directory(const String_or_char *dirname) {
  * the preprocessor.
  * ----------------------------------------------------------------------------- */
 
-void Swig_pop_directory() {
+void Swig_pop_directory(void) {
   if (!Swig_get_push_dir())
     return;
   if (!pdirectories)
@@ -87,13 +87,13 @@ void Swig_pop_directory() {
  * Returns the full pathname of the last file opened. 
  * ----------------------------------------------------------------------------- */
 
-String *Swig_last_file() {
+String *Swig_last_file(void) {
   assert(lastpath);
   return lastpath;
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_search_path() 
+ * Swig_search_path_any() 
  * 
  * Returns a list of the current search paths.
  * ----------------------------------------------------------------------------- */
@@ -151,10 +151,11 @@ List *Swig_search_path() {
 /* -----------------------------------------------------------------------------
  * Swig_open()
  *
- * Looks for a file and open it.  Returns an open  FILE * on success.
+ * open a file, optionally looking for it in the include path.  Returns an open  
+ * FILE * on success.
  * ----------------------------------------------------------------------------- */
 
-static FILE *Swig_open_any(const String_or_char *name, int sysfile) {
+static FILE *Swig_open_file(const String_or_char *name, int sysfile, int use_include_path) {
   FILE *f;
   String *filename;
   List *spath = 0;
@@ -169,7 +170,7 @@ static FILE *Swig_open_any(const String_or_char *name, int sysfile) {
   filename = NewString(cname);
   assert(filename);
   f = fopen(Char(filename), "r");
-  if (!f) {
+  if (!f && use_include_path) {
     spath = Swig_search_path_any(sysfile);
     ilen = Len(spath);
     for (i = 0; i < ilen; i++) {
@@ -182,19 +183,21 @@ static FILE *Swig_open_any(const String_or_char *name, int sysfile) {
     Delete(spath);
   }
   if (f) {
-#if defined(_WIN32)		/* Note not on Cygwin else filename is displayed with double '/' */
-    Replaceall(filename, "\\\\", "\\");	/* remove double '\' in case any already present */
-    Replaceall(filename, "\\", "\\\\");
-#endif
     Delete(lastpath);
-    lastpath = Copy(filename);
+    lastpath = Swig_filename_escape(filename);
   }
   Delete(filename);
   return f;
 }
 
+/* Open a file - searching the include paths to find it */
+FILE *Swig_include_open(const String_or_char *name) {
+  return Swig_open_file(name, 0, 1);
+}
+
+/* Open a file - does not use include paths to find it */
 FILE *Swig_open(const String_or_char *name) {
-  return Swig_open_any(name, 0);
+  return Swig_open_file(name, 0, 0);
 }
 
 
@@ -235,7 +238,7 @@ static String *Swig_include_any(const String_or_char *name, int sysfile) {
   String *str;
   String *file;
 
-  f = Swig_open_any(name, sysfile);
+  f = Swig_open_file(name, sysfile, 1);
   if (!f)
     return 0;
   str = Swig_read_file(f);
@@ -265,7 +268,7 @@ String *Swig_include_sys(const String_or_char *name) {
 int Swig_insert_file(const String_or_char *filename, File *outfile) {
   char buffer[4096];
   int nbytes;
-  FILE *f = Swig_open(filename);
+  FILE *f = Swig_include_open(filename);
 
   if (!f)
     return -1;

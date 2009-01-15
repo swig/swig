@@ -3,17 +3,23 @@
    for use in class representations. 
  */
 
-%typemap("rtype") int, int *, int &      "numeric";
+%typemap("rtype") int, int *, int &      "integer";
 %apply int {size_t}
 %apply int {std::size_t}
 %apply int {ptrdiff_t}
 %apply int {std::ptrdiff_t}
+%apply int {signed int}
+%apply int {unsigned int}
+%apply int {short}
+%apply int {unsigned short}
 
-%typemap("rtype") long, long *    "numeric";
-%typemap("rtype") unsigned long, 
-                  unsigned long * "numeric";
-%typemap("rtype") unsigned int, 
-                  unsigned int *  "numeric";
+%typemap("rtype") long, long *, long &      "integer";
+%apply long {long long}
+%apply long {signed long long}
+%apply long {unsigned long long}
+%apply long {signed long}
+%apply long {unsigned long}
+
 %typemap("rtype") double, double*, double & "numeric";
 %typemap("rtype") float, float *, float &  "numeric";
 %typemap("rtype") char *, char ** "character";
@@ -35,15 +41,14 @@
    INTSXP.
 */
 
+/* Force coercion of integer, since by default R sets all constants to
+   numeric, which means that you can't directly call a function with an 
+   integer using an R numercal literal */
 
 %typemap(scoercein) int, int *, int &
-  %{  $input = as($input, "integer");     %}
-%typemap(scoercein) ptrdiff_t, ptrdiff_t *, ptrdiff_t &
-  %{  $input = as($input, "integer");     %}
-%typemap(scoercein) unsigned long, unsigned long *, unsigned long &
-  %{  $input = as($input, "integer");     %}
-%typemap(scoercein) unsigned int, unsigned int *, unsigned int &
-  %{  $input = as($input, "integer");     %}
+  %{  $input = as.integer($input);     %}
+%typemap(scoercein) long, long *, long &
+  %{  $input = as.integer($input);     %}
 %typemap(scoercein) double, double *, double &
   %{ %}
 %typemap(scoercein) float, float *, float &
@@ -87,44 +92,15 @@
 
 %typemap(scoercein) bool, bool *, bool & 
 		    "$input = as.logical($input) ";
-/*
 %typemap(scoercein) int, 
                     int *, 
 		    int &,
                     int[ANY],
-		    size_t,
-		    std::size_t,
-		    size_t &,
-		    std::size_t &
+		    long,
+		    long *,
+		    long &,
+		    long[ANY]
   "$input = as.integer($input) ";
-
-
-%typemap(scoercein) unsigned int, 
-                    unsigned long,
-                    double, 
-                    float,
-                    long,
-                    long long,
-     	            unsigned int[], 
-                    unsigned long[],
-                    double[], 
-                    float[],
-                    long[],
-                    long long[],
-     	            unsigned int[ANY], 
-                    unsigned long[ANY],
-                    double[ANY], 
-                    float[ANY],
-                    long[ANY],
-                    long long[ANY],
-     	            unsigned int *, 
-                    unsigned long *,
-                    double*, 
-                    float*,
-                    long*,
-                    long long *
-%{  $input = as.numeric($input) %}
-*/
 
 %typemap(scoercein) char *, string, std::string,
 string &, std::string &
@@ -153,31 +129,38 @@ string &, std::string &
 %typemap(scoerceout) char,
 		     char *,
 		     char &,
-		     unsigned int, 
-		     unsigned int &, 
-                     unsigned long,
-                     unsigned long &,
 		     double, 
 		     double &,
                      float,
 		     float &,
-                     long,
-		     long &,
-                     long long,
-		     long long &,
                      int,
 		     int &,
+		     long,
+		     long &,
                      bool,
 		     bool &,
 		     string,
 		     std::string,
 		     string &,
 		     std::string &, 
-		     size_t,
-		     std::size_t,
-		     size_t &,
-		     std::size_t &,
-		     void
+		     void,
+		     signed int,
+		     signed int &,		     
+		     unsigned int,
+		     unsigned int &,		     
+		     short,
+		     short &,		     
+		     unsigned short,
+		     unsigned short &,		     
+		     long long,
+		     signed long long,
+		     signed long long &,		     
+		     unsigned long long,
+		     unsigned long long &,		     
+		     signed long,
+		     signed long &,		     
+		     unsigned long,
+		     unsigned long &		     
  %{    %}
 
 

@@ -16,7 +16,7 @@ typedef struct Wrapper {
     String *code;
 } Wrapper;
 
-extern Wrapper *NewWrapper();
+extern Wrapper *NewWrapper(void);
 extern void     DelWrapper(Wrapper *w);
 extern void     Wrapper_compact_print_mode_set(int flag);
 extern void     Wrapper_pretty_print(String *str, File *f);

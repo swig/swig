@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[1.3.37],[http://www.swig.org])
+AC_INIT([swig],[1.3.38],[http://www.swig.org])
 AC_PREREQ(2.58)
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
@@ -21,25 +21,82 @@ AH_BOTTOM([
 #endif
 ])
 
-dnl Checks for programs.
+dnl Check for programs that a user requires to build SWIG
 AC_PROG_CC
 AC_PROG_CXX
-AC_PROG_YACC
 AC_EXEEXT
 AC_OBJEXT
-AC_PROG_RANLIB
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
-AC_CHECK_PROGS(AR, ar aal, ar)
-AC_SUBST(AR)
 
 AC_COMPILE_WARNINGS # Increase warning levels
 
 AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
 AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$build"], [Platform that SWIG is built for])
 
-
 dnl Checks for header files.
 AC_HEADER_STDC
+
+dnl Checks for types.
+AC_LANG_PUSH([C++])
+AC_CHECK_TYPES([bool])
+AC_LANG_POP([C++])
+
+dnl Look for popen
+AC_ARG_WITH(popen, AS_HELP_STRING([--without-popen], [Disable popen]), with_popen="$withval")
+if test x"${with_popen}" = xno ; then 
+AC_MSG_NOTICE([Disabling popen])
+else
+AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), AC_MSG_NOTICE([Disabling popen]))
+fi
+
+dnl Look for RxSpencer 
+AC_ARG_WITH(rxspencer, AS_HELP_STRING([--with-rxspencer], [Enable RxSpencer]), with_rxspencer="yes")
+if test x"${with_rxspencer}" = xyes ; then 
+#check first for the header
+ AC_CHECK_HEADER(rxspencer/regex.h,with_rxspencer="yes",with_rxspencer="no")
+ if test x"${with_rxspencer}" = xyes ; then 
+# now check for the library
+  AC_CHECK_LIB(rxspencer, regcomp,with_rxspencer="yes",with_rxspencer="no")
+ fi
+ if test x"${with_rxspencer}" = xyes ; then 
+# library and header are available
+  AC_DEFINE(HAVE_RXSPENCER, 1,[Define if rxspencer is available])
+  LIBS="$LIBS -lrxspencer"
+ else
+  AC_MSG_NOTICE([RxSpencer not found. Obtain it at http://arglist.com/regex or http://gnuwin32.sourceforge.net/packages.html])
+ fi
+fi
+
+dnl CCache
+AC_ARG_ENABLE([ccache], AS_HELP_STRING([--disable-ccache], [disable building and installation of ccache-swig executable (default enabled)]), [enable_ccache=$enableval], [enable_ccache=yes])
+AC_MSG_CHECKING([whether to enable ccache-swig])
+AC_MSG_RESULT([$enable_ccache])
+
+if test "$enable_ccache" = yes; then
+  AC_CONFIG_SUBDIRS(CCache)
+  ENABLE_CCACHE=1
+fi
+AC_SUBST(ENABLE_CCACHE)
+
+
+echo ""
+echo "Checking packages required for SWIG developers."
+echo "Note : None of the following packages are required for users to compile and install SWIG"
+echo ""
+
+AC_PROG_YACC
+AC_PROG_RANLIB
+AC_CHECK_PROGS(AR, ar aal, ar)
+AC_SUBST(AR)
+AC_CHECK_PROGS(YODL2MAN, yodl2man)
+AC_CHECK_PROGS(YODL2HTML, yodl2html)
+
+
+echo ""
+echo "Checking for installed target languages and other information in order to compile and run the examples."
+echo "Note : None of the following packages are required for users to compile and install SWIG"
+echo ""
+
 
 dnl How to specify include directories that may be system directories.
 # -I should not be used on system directories (GCC)
@@ -50,21 +107,9 @@ else
 fi
 
 
-dnl Checks for types.
-AC_LANG_PUSH([C++])
-AC_CHECK_TYPES([bool])
-AC_LANG_POP([C++])
+dnl Info for building shared libraries ... in order to run the examples
 
-
-# Set info about shared libraries.
-AC_SUBST(SO)
-AC_SUBST(LDSHARED)
-AC_SUBST(CCSHARED)
-AC_SUBST(CXXSHARED)
-AC_SUBST(TRYLINKINGWITHCXX)
-AC_SUBST(LINKFORSHARED)
-
-# SO is the extension of shared libraries `(including the dot!)
+# SO is the extension of shared libraries (including the dot!)
 AC_MSG_CHECKING(SO)
 if test -z "$SO"
 then
@@ -201,7 +246,6 @@ then
 	esac
 fi
 AC_MSG_RESULT($RPATH)
-AC_SUBST(RPATH)
 
 # LINKFORSHARED are the flags passed to the $(CC) command that links
 # the a few executables -- this is only needed for a few systems
@@ -220,6 +264,15 @@ then
 	esac
 fi
 AC_MSG_RESULT($LINKFORSHARED)
+
+# Set info about shared libraries.
+AC_SUBST(SO)
+AC_SUBST(LDSHARED)
+AC_SUBST(CCSHARED)
+AC_SUBST(CXXSHARED)
+AC_SUBST(TRYLINKINGWITHCXX)
+AC_SUBST(LINKFORSHARED)
+AC_SUBST(RPATH)
 
 # This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
 # Sometimes .bundle works, but sometimes .so is needed.  It depends on the target language
@@ -243,10 +296,10 @@ case $host in
    *) GUILE_SO=$SO;;
 esac
 
-AC_SUBST(PHP4_SO)
+AC_SUBST(PHP_SO)
 case $host in
-   *-*-darwin*) PHP4_SO=.so;;
-   *) PHP4_SO=$SO;;
+   *-*-darwin*) PHP_SO=.so;;
+   *) PHP_SO=$SO;;
 esac
 
 AC_SUBST(MZSCHEME_SO)
@@ -268,46 +321,6 @@ case $host in
    *) PLATFLAGS="";;
 esac
 
-
-
-echo ""
-echo "Checking for installed packages."
-echo "Note : None of the following packages are required to compile SWIG"
-echo ""
-
-#----------------------------------------------------------------
-# Look for popen
-#----------------------------------------------------------------
-
-AC_ARG_WITH(popen, AS_HELP_STRING([--without-popen], [Disable popen]), with_popen="$withval")
-if test x"${with_popen}" = xno ; then 
-AC_MSG_NOTICE([Disabling popen])
-else
-AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), AC_MSG_NOTICE([Disabling popen]))
-fi
-
-#----------------------------------------------------------------
-# Look for RxSpencer 
-#----------------------------------------------------------------
-
-AC_ARG_WITH(rxspencer, AS_HELP_STRING([--with-rxspencer], [Enable RxSpencer]), with_rxspencer="yes")
-if test x"${with_rxspencer}" = xyes ; then 
-#check first for the header
- AC_CHECK_HEADER(rxspencer/regex.h,with_rxspencer="yes",with_rxspencer="no")
- if test x"${with_rxspencer}" = xyes ; then 
-# now check for the library
-  AC_CHECK_LIB(rxspencer, regcomp,with_rxspencer="yes",with_rxspencer="no")
- fi
- if test x"${with_rxspencer}" = xyes ; then 
-# library and header are available
-  AC_DEFINE(HAVE_RXSPENCER, 1,[Define if rxspencer is available])
-  LIBS="$LIBS -lrxspencer"
- else
-  AC_MSG_NOTICE([RxSpencer not found. Obtain it at http://arglist.com/regex or http://gnuwin32.sourceforge.net/packages.html])
- fi
-fi
-
-#----------------------------------------------------------------
 
 # Check for specific libraries.   Used for SWIG examples
 AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
@@ -1329,37 +1342,37 @@ AC_SUBST(RUBYDYNAMICLINKING)
 # Look for PHP
 #-------------------------------------------------------------------------
 
-PHP4BIN=
+PHPBIN=
 
-AC_ARG_WITH(php4, AS_HELP_STRING([--without-php4], [Disable PHP])
-AS_HELP_STRING([--with-php4=path], [Set location of PHP executable]),[ PHP4BIN="$withval"], [PHP4BIN=yes])
+AC_ARG_WITH(php, AS_HELP_STRING([--without-php], [Disable PHP])
+AS_HELP_STRING([--with-php=path], [Set location of PHP executable]),[ PHPBIN="$withval"], [PHPBIN=yes])
 
-# First, check for "--without-php4" or "--with-php4=no".
-if test x"${PHP4BIN}" = xno -o x"${with_alllang}" = xno ; then 
+# First, check for "--without-php" or "--with-php=no".
+if test x"${PHPBIN}" = xno -o x"${with_alllang}" = xno ; then 
     AC_MSG_NOTICE([Disabling PHP])
-    PHP4=
+    PHP=
 else
 
-    if test "x$PHP4BIN" = xyes; then
-      AC_CHECK_PROGS(PHP4, [php5 php])
+    if test "x$PHPBIN" = xyes; then
+      AC_CHECK_PROGS(PHP, [php5 php])
     else
-      PHP4=$PHP4BIN
+      PHP=$PHPBIN
     fi
 
     AC_MSG_CHECKING(for PHP header files)
     dnl /usr/bin/php5 -> /usr/bin/php-config5
-    case $PHP4 in
+    case $PHP in
       *5)
-	PHP4CONFIG=`echo "$PHP4"|sed 's/5$/-config5/'` ;;
+	PHPCONFIG=`echo "$PHP"|sed 's/5$/-config5/'` ;;
       *)
-	PHP4CONFIG=$PHP4-config ;;
+	PHPCONFIG=$PHP-config ;;
     esac
-    php_version=`$PHP4CONFIG --version 2>/dev/null`
+    php_version=`$PHPCONFIG --version 2>/dev/null`
     case $php_version in
     5*) 
-	PHP4INC=`$PHP4CONFIG --includes 2>/dev/null`
-	if test -n "$PHP4INC"; then
-	  AC_MSG_RESULT($PHP4INC)
+	PHPINC=`$PHPCONFIG --includes 2>/dev/null`
+	if test -n "$PHPINC"; then
+	  AC_MSG_RESULT($PHPINC)
 	else
 	  AC_MSG_RESULT(not found)
 	fi
@@ -1368,8 +1381,8 @@ else
 	AC_MSG_RESULT([found PHP $version, but only PHP 5 is supported]) ;;
     esac
 fi
-AC_SUBST(PHP4)
-AC_SUBST(PHP4INC)
+AC_SUBST(PHP)
+AC_SUBST(PHPINC)
 
 #----------------------------------------------------------------
 # Look for ocaml
@@ -2003,11 +2016,11 @@ fi
 AC_SUBST(SKIP_RUBY)
 
 
-SKIP_PHP4=
-if test -z "$PHP4" || test -z "$PHP4INC" ; then
-    SKIP_PHP4="1"
+SKIP_PHP=
+if test -z "$PHP" || test -z "$PHPINC" ; then
+    SKIP_PHP="1"
 fi
-AC_SUBST(SKIP_PHP4)
+AC_SUBST(SKIP_PHP)
 
 
 SKIP_OCAML=
@@ -2099,6 +2112,7 @@ AC_SUBST(SKIP_GCJ)
 # Miscellaneous
 #----------------------------------------------------------------
 
+
 # Root directory
 # Translate path for native Windows compilers for use with 'make check'
 ROOT_DIR=`pwd`
@@ -2131,7 +2145,6 @@ case $host in
 esac
 AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWIG system-independent libraries (Unix install on native Windows)])
 
-
 AC_CONFIG_FILES([			        \
     Makefile				        \
     swig.spec				        \
@@ -2150,7 +2163,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/ocaml/Makefile	        \
     Examples/test-suite/octave/Makefile	        \
     Examples/test-suite/perl5/Makefile	        \
-    Examples/test-suite/php4/Makefile	        \
+    Examples/test-suite/php/Makefile	        \
     Examples/test-suite/pike/Makefile	        \
     Examples/test-suite/python/Makefile	        \
     Examples/test-suite/ruby/Makefile	        \
@@ -2164,7 +2177,7 @@ AC_CONFIG_FILES([			        \
     Lib/ocaml/swigp4.ml
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
+AC_CONFIG_FILES([CCache/ccache_swig_config.h])
+
 AC_OUTPUT
-
-
 dnl configure.in ends here

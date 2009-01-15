@@ -816,11 +816,15 @@ int R::top(Node *n) {
   Swig_register_filebyname("header", s_header);
   Swig_register_filebyname("wrapper", f_wrapper);
   Swig_register_filebyname("s", sfile);
-
   Swig_register_filebyname("sclasses", s_classes);
 
+  Swig_banner(f_runtime);
 
-  Printf(s_init, "# This is an automatically generated file by the R module for SWIG.\n\n");
+  Printf(f_runtime, "#define SWIGR\n");
+  Printf(f_runtime, "\n");
+
+  
+  Swig_banner_target_lang(s_init, "#");
   outputCommandLineArguments(s_init);
 
   Printf(f_wrapper, "#ifdef __cplusplus\n");
@@ -878,7 +882,7 @@ int R::DumpCode(Node *n) {
   Printf(stderr, "Writing S code to %s\n", output_filename);
 #endif
   
-  File *scode = NewFile(output_filename, "w");
+  File *scode = NewFile(output_filename, "w", SWIG_output_files());
   if (!scode) {
     FileErrorDisplay(output_filename);
     SWIG_exit(EXIT_FAILURE);
@@ -893,14 +897,11 @@ int R::DumpCode(Node *n) {
   Close(scode);
   //  Delete(scode);
   String *outfile = Getattr(n,"outfile");
-  File *runtime = NewFile(outfile,"w");
+  File *runtime = NewFile(outfile,"w", SWIG_output_files());
   if (!runtime) {
     FileErrorDisplay(outfile);
     SWIG_exit(EXIT_FAILURE);
   }
-  
-  Swig_banner(runtime);
-  
   
   Printf(runtime, "/* Runtime */\n");
   Printf(runtime, "%s\n", f_runtime);
@@ -920,7 +921,7 @@ int R::DumpCode(Node *n) {
   if(outputNamespaceInfo) {
     output_filename = NewString("");
     Printf(output_filename, "%sNAMESPACE", SWIG_output_directory());
-    File *ns = NewFile(output_filename, "w");
+    File *ns = NewFile(output_filename, "w", SWIG_output_files());
     if (!ns) {
       FileErrorDisplay(output_filename);
       SWIG_exit(EXIT_FAILURE);
@@ -2574,9 +2575,9 @@ String * R::runtimeCode() {
 void R::main(int argc, char *argv[]) {
   bool cppcast = true;
   init();
+  Preprocessor_define("SWIGR 1", 0);
   SWIG_library_directory("r");
   SWIG_config_file("r.swg");
-  Preprocessor_define("SWIGR 1", 0);
   debugMode = false;
   copyStruct = true;
   memoryProfile = false;
@@ -2659,7 +2660,7 @@ int R::outputCommandLineArguments(File *out)
   if(Argc < 1 || !Argv || !Argv[0])
     return(-1);
 
-  Printf(out, "##   Generated via the command line invocation:\n##\t");
+  Printf(out, "\n##   Generated via the command line invocation:\n##\t");
   for(int i = 0; i < Argc ; i++) {
     Printf(out, " %s", Argv[i]);
   }

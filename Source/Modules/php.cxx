@@ -48,13 +48,13 @@ char cvsroot_php_cxx[] = "$Id$";
 #include <errno.h>
 
 static const char *usage = (char *) "\
-PHP Options (available with -php5)\n\
+PHP Options (available with -php)\n\
      -cppext          - cpp file extension (default to .cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
-     -prefix <prefix> - Prepend <prefix> to all class names in PHP5 wrappers\n\
+     -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
 
-/* The original class wrappers for PHP4 stored the pointer to the C++ class in
+/* The original class wrappers for PHP stored the pointer to the C++ class in
  * the object property _cPtr.  If we use the same name for the member variable
  * which we put the pointer to the C++ class in, then the flat function
  * wrappers will automatically pull it out without any changes being required.
@@ -239,8 +239,9 @@ public:
     }
 
     Preprocessor_define("SWIGPHP 1", 0);
+    // SWIGPHP5 is deprecated, and no longer documented.
     Preprocessor_define("SWIGPHP5 1", 0);
-    SWIG_typemap_lang("php4");
+    SWIG_typemap_lang("php");
     SWIG_config_file("php.swg");
     allow_overloading();
   }
@@ -258,13 +259,11 @@ public:
     String *outfile = Getattr(n, "outfile");
 
     /* main output file */
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
-
-    Swig_banner(f_runtime);
 
     /* sections of the output file */
     s_init = NewString("/* init section */\n");
@@ -291,6 +290,11 @@ public:
     Swig_register_filebyname("header", s_header);
     Swig_register_filebyname("wrapper", s_wrappers);
 
+    Swig_banner(f_runtime);
+
+    Printf(f_runtime, "#define SWIGPHP\n");
+    Printf(f_runtime, "\n");
+
     /* Set the module name */
     module = Copy(Getattr(n, "name"));
     cap_module = NewStringf("%(upper)s", module);
@@ -302,7 +306,7 @@ public:
     Printv(filen, SWIG_output_directory(), module, ".php", NIL);
     phpfilename = NewString(filen);
 
-    f_phpcode = NewFile(filen, "w");
+    f_phpcode = NewFile(filen, "w", SWIG_output_files());
     if (!f_phpcode) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
@@ -381,7 +385,7 @@ public:
     /* Create the .h file too */
     filen = NewStringEmpty();
     Printv(filen, SWIG_output_directory(), "php_", module, ".h", NIL);
-    f_h = NewFile(filen, "w");
+    f_h = NewFile(filen, "w", SWIG_output_files());
     if (!f_h) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
@@ -586,7 +590,7 @@ public:
 
     Printf(f->code, "SWIG_ErrorCode() = E_ERROR;\n");
     Printf(f->code, "SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
-    Printv(f->code, "zend_error(SWIG_ErrorCode(),SWIG_ErrorMsg());\n", NIL);
+    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n", NIL);
 
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, s_wrappers);
@@ -842,7 +846,7 @@ public:
     /* Error handling code */
     Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
-    Printv(f->code, "zend_error(SWIG_ErrorCode(),SWIG_ErrorMsg());", NIL);
+    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
 
     Printf(f->code, "}\n");
 
@@ -1101,7 +1105,8 @@ public:
 	      case T_LONG: {
 		char *p;
 		errno = 0;
-		(void) strtol(Char(value), &p, 0);
+		unsigned int n = strtol(Char(value), &p, 0);
+		(void) n;
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
@@ -1114,7 +1119,8 @@ public:
 	      case T_ULONG: {
 		char *p;
 		errno = 0;
-		(void) strtoul(Char(value), &p, 0);
+		unsigned int n = strtoul(Char(value), &p, 0);
+		(void) n;
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
@@ -1487,8 +1493,7 @@ public:
        Replaceall(tm, "$symname", iname);
        Printf(f_c->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n",
-       input_file, line_number, SwigType_str(t, 0));
+       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
        }
      */
     /* Now generate C -> PHP sync blocks */
@@ -1500,8 +1505,7 @@ public:
        Replaceall(tm, "$symname", iname);
        Printf(f_php->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n",
-       input_file, line_number, SwigType_str(t, 0));
+       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
        }
        }
      */
@@ -1574,8 +1578,8 @@ public:
    *
    * Pragma directive.
    *
-   * %pragma(php4) code="String"         # Includes a string in the .php file
-   * %pragma(php4) include="file.pl"     # Includes a file in the .php file
+   * %pragma(php) code="String"         # Includes a string in the .php file
+   * %pragma(php) include="file.pl"     # Includes a file in the .php file
    */
 
   virtual int pragmaDirective(Node *n) {
@@ -1584,7 +1588,7 @@ public:
       String *type = Getattr(n, "name");
       String *value = Getattr(n, "value");
 
-      if (Strcmp(lang, "php4") == 0) {
+      if (Strcmp(lang, "php") == 0 || Strcmp(lang, "php4") == 0) {
 	if (Strcmp(type, "code") == 0) {
 	  if (value) {
 	    Printf(pragma_code, "%s\n", value);
@@ -2069,6 +2073,6 @@ extern "C" Language *swig_php4(void) {
   return NULL; // To avoid compiler warnings.
 }
 
-extern "C" Language *swig_php5(void) {
+extern "C" Language *swig_php(void) {
   return new_swig_php();
 }

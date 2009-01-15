@@ -123,7 +123,7 @@ public:
     String *outfile = Getattr(n, "outfile");
 
     /* Open the output file */
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -142,6 +142,9 @@ public:
 
     /* Standard stuff for the SWIG runtime section */
     Swig_banner(f_runtime);
+
+    Printf(f_runtime, "#define SWIGPIKE\n");
+    Printf(f_runtime, "\n");
 
     Printf(f_header, "#define SWIG_init    pike_module_init\n");
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);

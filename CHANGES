@@ -2,6 +2,348 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 See CHANGES.current for current version.
 
+Version 1.3.37 (13 January 2009)
+================================
+
+2009-01-13: mgossage
+	    [Lua] Added contract support for requiring that unsigned numbers are >=0
+	    Rewrote much of Examples/Lua/embed3. 
+	    Added a lot to the Lua documentation.
+
+2009-01-13: wsfulton
+	    Fix compilation error when using directors on protected virtual overloaded 
+	    methods reported by Sam Hendley.
+
+2009-01-12: drjoe
+            [R] Fixed handling of integer arrays
+
+2009-01-10: drjoe
+	    [R] Fix integer handling in r to deal correctly with signed
+	    and unsigned issues
+
+2009-01-10: wsfulton
+	    Patch  #1992756 from Colin McDonald - %contract not working for classes 
+	    in namespace
+
+2009-01-05: olly
+	    Mark SWIGPERL5, SWIGPHP5, and SWIGTCL8 as deprecated in the source
+	    code and remove documentation of them.
+
+2008-12-30: wsfulton
+	    Bug #2430756. All the languages now define a macro in the generated C/C++
+	    wrapper file indicating which language is being wrapped. The macro name is the
+	    same as those defined when SWIG is run, eg SWIGJAVA, SWIGOCTAVE, SWIGCSHARP etc
+	    and are listed in the "Conditional Compilation" section in the documentation.
+
+2008-12-23: wsfulton
+	    [Java] Fix #2153773 - %nojavaexception was clearing the exception feature
+            instead of disabling it. Clearing checked Java exceptions also didn't work. 
+	    The new %clearjavaexception can be used for clearing the exception feature.
+
+2008-12-22: wsfulton
+	    Fix #2432801 - Make SwigValueWrapper exception safe for when copy constructors
+	    throw exceptions.
+
+2008-12-21: wsfulton
+	    Apply patch #2440046 which fixes possible seg faults for member and global
+	    variable char arrays when the strings are larger than the string array size.
+
+2008-12-20: wsfulton
+	    The ccache compiler cache has been adapted to work with SWIG and
+	    named ccache-swig. It now works with C/C++ compilers as well as SWIG
+	    and can result in impressive speedups when used to recompile unchanged
+	    code with either a C/C++ compiler or SWIG. Documentation is in CCache.html
+	    or the installed ccache-swig man page.
+
+2008-12-12: wsfulton
+	    Apply patch from Kalyanov Dmitry which fixes parsing of nested structs
+	    containing comments.
+
+2008-12-12: wsfulton
+	    Fix error message in some nested struct and %inline parsing error situations
+	    such as unterminated strings and comments.
+
+2008-12-07: olly
+	    [PHP] Fix warnings when compiling generated wrapper with GCC 4.3.
+
+2008-12-06: wsfulton
+	    [PHP] Deprecate %pragma(php4). Please use %pragma(php) instead.
+	    The following two warnings have been renamed:
+	    WARN_PHP4_MULTIPLE_INHERITANCE -> WARN_PHP_MULTIPLE_INHERITANCE
+	    WARN_PHP4_UNKNOWN_PRAGMA       -> WARN_PHP_UNKNOWN_PRAGMA
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2008-12-04: bhy
+            [Python] Applied patch SF#2158938: all the SWIG symbol names started with Py
+            are changed, since they are inappropriate and discouraged in Python
+            documentation (from http://www.python.org/doc/2.5.2/api/includes.html):
+
+            "All user visible names defined by Python.h (except those defined by
+            the included standard headers) have one of the prefixes "Py" or "_Py".
+            Names beginning with "_Py" are for internal use by the Python implementation
+            and should not be used by extension writers. Structure member names do
+            not have a reserved prefix.
+
+            Important: user code should never define names that begin with "Py" or "_Py".
+            This confuses the reader, and jeopardizes the portability of the user
+            code to future Python versions, which may define additional names beginning
+            with one of these prefixes."
+
+            Here is a brief list of what changed:
+
+                PySwig* -> SwigPy*
+                PyObject_ptr -> SwigPtr_PyObject
+                PyObject_var -> SwigVar_PyObject
+                PySequence_Base, PySequence_Cont, PySequence_Ref ->
+                        SwigPySequence_Base, SwigPySequence_Cont, SwigPySequence_Ref
+                PyMap* -> SwigPyMap*
+
+            We provided a pyname_compat.i for backward compatibility. Users whose code having
+            these symbols and do not want to change it could simply include this file
+            at front of your code. A better solution is to run the converting tool on
+            your code, which has been put in SWIG's SVN trunk (Tools/pyname_patch.py) and
+            you can download it here:
+            https://swig.svn.sourceforge.net/svnroot/swig/trunk/Tools/pyname_patch.py 
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2008-12-02: wsfulton
+	    [Python] Apply patch #2143727 from Serge Monkewitz to fix importing base classes 
+	    when the package option is specified in %module and that module is %import'ed.
+
+2008-11-28: wsfulton
+	    [UTL] Fix #2080497. Some incorrect acceptance of types in the STL, eg a double * element
+	    passed into a vector<int *> constructor would be accepted, but the ensuing behaviour
+	    was undefined. Now the type conversion correctly raises an exception.
+
+2008-11-24: wsfulton
+	    Add -outcurrentdir option. This sets the default output directory to the current 
+	    directory instead of the path specified by the input file. This option enables
+	    behaviour similar to c/c++ compilers. Note that this controls the output directory,
+	    but only in the absence of the -o and/or -outdir options.
+
+2008-11-23: wsfulton
+	    [ruby] Apply patch #2263850 to fix ruby/file.i ... rubyio.h filename change in 
+	    ruby 1.9.
+
+2008-11-23: wsfulton
+	    Apply patch #2319790 from Johan Hake to fix shared_ptr usage in std::tr1 namespace.
+
+2008-11-21: wsfulton
+	    The use of the include path to find the input file is now deprecated.
+	    This makes the behaviour of SWIG the same as C/C++ compilers in preparation
+	    for use with ccache.
+
+2008-11-16: wsfulton
+	    Fix -nopreprocess option to:
+	    - correctly report file names in warning and error messages.
+	    - use the original input filename that created the preprocessed output when 
+	      determining the C++ wrapper file name (in the absence of -o). Previously 
+	      the name of the input file containing the preprocessed output was used.
+
+2008-11-11: wsfulton
+	    [Java] Add patch #2152691 from MATSUURA Takanori which fixes compiles using the
+	    Intel compiler
+
+2008-11-01: wsfulton
+            Add patch #2128249 from Anatoly Techtonik which corrects the C/C++ proxy
+            class being reported for Python docstrings when %rename is used.
+
+2008-11-01: wsfulton
+            Add the strip encoder patch from Anatoly Techtonik #2130016. This enables an 
+            easy way to rename symbols by stripping a commonly used prefix in all the
+            function/struct names. It works in the same way as the other encoders, such as
+            title, lower, command etc outlined in CHANGES file dated 12/30/2005. Example
+            below will rename wxAnotherWidget to AnotherWidget and wxDoSomething to 
+            DoSomething:
+
+              %rename("%(strip:[wx])s") ""; 
+
+              struct wxAnotherWidget {
+                  void wxDoSomething();
+              };
+
+2008-09-26: mutandiz
+	    [allegrocl]
+	    Lots of test-suite work.
+	    - Fix ordering of wrapper output and %{ %} header output.
+	    - Fix declarations of local vars in C wrappers.
+	    - Fix declaration of defined constants in C wrappers.
+	    - Fix declaration of EnumValues in C wrappers.
+	    - add some const typemaps to allegrocl.swg
+	    - add rename for operator bool() overloads.
+	
+2008-09-25: olly
+	    [PHP5] Fill in typemaps for SWIGTYPE and void * (SF#2095186).
+
+2008-09-22: mutandiz (Mikel Bancroft)
+	    [allegrocl]
+	    - Support wrapping of types whose definitions are not seen by
+	    SWIG. They are treated as forward-referenced classes and if a
+	    definition is not seen are treated as (* :void).
+	    - Don't wrap the contents of unnamed namespaces.
+	    - More code cleanup. Removed some extraneous warnings.
+	    - start work on having the allegrocl mod pass the cpp test-suite.
+
+2008-09-19: olly
+	    [PHP5] Add typemaps for long long and unsigned long long.
+
+2008-09-18: wsfulton
+            [C#] Added C# array typemaps provided by Antti Karanta.
+            The arrays provide a way to use MarshalAs(UnmanagedType.LPArray)
+            and pinning the array using 'fixed'. See arrays_csharp.i library file
+            for details.
+
+2008-09-18: wsfulton
+	    Document the optional module attribute in the %import directive,
+            see Modules.html. Add a warning for Python wrappers when the
+            module name for an imported base class is missing, requiring the
+            module attribute to be added to %import, eg 
+
+              %import(module="FooModule") foo.h
+
+2008-09-18: olly
+	    [PHP5] Change the default input typemap for char * to turn PHP
+	    Null into C NULL (previously it was converted to an empty string).
+	    The new behaviour is consistent with how the corresponding output
+	    typemap works (SF#2025719).
+
+	    If you want to keep the old behaviour, add the following typemap
+	    to your interface file (PHP's convert_to_string_ex() function does
+	    the converting from PHP Null to an empty string):
+
+	    %typemap(in) char * {
+		convert_to_string_ex($input);
+		$1 = Z_STRVAL_PP($input);
+	    }
+
+2008-09-18: olly
+	    [PHP5] Fix extra code added to proxy class constructors in the case
+	    where the only constructor takes no arguments.
+
+2008-09-18: olly
+	    [PHP5] Fix wrapping of a renamed enumerated value of an enum class
+	    member (SF#2095273).
+
+2008-09-17: mutandiz (Mikel Bancroft)
+	    [allegrocl]
+	    - Fix how forward reference typedefs are handled, so as not to conflict
+	    with other legit typedefs.
+	    - Don't (for now) perform an ffitype typemap lookup when trying to
+	    when calling compose_foreign_type(). This is actually a useful thing
+	    to do in certain cases, the test cases for which I can't currently
+	    locate :/. It's breaking some wrapping behavior that is more commonly
+	    seen, however. I'll readd in a more appropriate way when I can
+	    recreate the needed test case, or a user complains (which means
+	    they probably have a test case).
+	    - document the -isolate command-line arg in the 'swig -help' output.
+	    It was in the html docs, but not there.
+	    - small amount of code cleanup, removed some unused code.
+	    - some minor aesthetic changes.
+
+2008-09-12: bhy
+            [Python] Python 3.0 support branch merged into SWIG trunk. Thanks to
+            Google Summer of Code 2008 for supporting this project! By default
+            SWIG will generate interface files compatible with both Python 2.x
+            and 3.0. And there's also some Python 3 new features that can be
+            enabled by passing a "-py3" command line option to SWIG. These
+            features are:
+
+              - Function annotation support
+                  Also, the parameter list of proxy function will be generated,
+                  even without the "-py3" option. However, the parameter list
+                  will fallback to *args if the function (or method) is overloaded.
+              - Buffer interface support
+              - Abstract base class support
+
+            For details of Python 3 support and these features, please see the
+            "Python 3 Support" section in the "SWIG and Python" chapter of the SWIG
+            documentation.
+
+            The "-apply" command line option and support of generating codes
+            using apply() is removed. Since this is only required by very old
+            Python.
+
+            This merge also patched SWIG's parser to solve a bug. By this patch,
+            SWIG features able to be correctly applied on C++ conversion operator,
+            such like this:
+              
+              %feature("shadow")  *::operator bool %{ ... %}
+
+2008-09-02: richardb
+	    [Python] Commit patch #2089149: Director exception handling mangles
+	    returned exception.  Exceptions raised by Python code in directors
+	    are now passed through to the caller without change.  Also, remove
+	    the ": " prefix which used to be added to other director exceptions
+	    (eg, those due to incorrect return types).
+
+2008-09-02: wsfulton
+            [Python] Commit patch #1988296 GCItem multiple module linking issue when using 
+            directors.
+
+2008-09-02: wsfulton
+            [C#] Support for 'using' and 'fixed' blocks in the 'csin' typemap is now
+            possible through the use of the pre attribute and the new terminator attribute, eg
+
+              %typemap(csin, 
+                       pre="    using (CDate temp$csinput = new CDate($csinput)) {",
+                       terminator="    } // terminate temp$csinput using block",
+                      ) const CDate &
+                       "$csclassname.getCPtr(temp$csinput)"
+
+            See CSharp.html for more info.
+
+2008-09-01: wsfulton
+            [CFFI] Commit patch #2079381 submitted by Boris Smilga - constant exprs put into 
+            no-eval context in DEFCENUM
+
+2008-08-02: wuzzeb
+            [Chicken,Allegro] Commit Patch 2019314
+            Fixes a build error in chicken, and several build errors and other errors
+            in Allegro CL
+
+2008-07-19: wsfulton
+            Fix building of Tcl examples/test-suite on Mac OSX reported by Gideon Simpson.
+
+2008-07-17: wsfulton
+            Fix SF #2019156 Configuring with --without-octave or --without-alllang
+            did not disable octave.
+
+2008-07-14: wsfulton
+            [Java, C#] Fix director typemaps for pointers so that NULL pointers are correctly 
+            marshalled to C#/Java null in director methods.
+
+2008-07-04: olly
+	    [PHP] For std_vector.i and std_map.i, rename empty() to is_empty()
+	    since "empty" is a PHP reserved word.  Based on patch from Mark Klein
+	    in SF#1943417.
+
+2008-07-04: olly
+	    [PHP] The deprecated command line option "-make" has been removed.  
+	    Searches on Google codesearch suggest that nobody is using it now
+	    anyway.
+
+2008-07-04: olly
+	    [PHP] The SWIG cdata.i library module is now supported.
+
+2008-07-03: olly
+	    [PHP] The deprecated command line option "-phpfull" has been
+	    removed.  We recommend building your extension as a dynamically
+	    loadable module.
+
+2008-07-02: olly
+	    [PHP4] Support for PHP4 has been removed.  The PHP developers are
+	    no longer making new PHP4 releases, and won't even be providing
+	    patches for critical security issues after 2008-08-08.
+
+2008-07-02: olly
+	    [Python] Import the C extension differently for Python 2.6 and
+	    later so that an implicit relative import doesn't produce a
+	    deprecation warning for 2.6 and a failure for 2.7 and later.
+	    Patch from Richard Boulton in SF#2008229, plus follow-up patches
+	    from Richard and Haoyu Bai.
+
 Version 1.3.36 (24 June 2008)
 =============================
 

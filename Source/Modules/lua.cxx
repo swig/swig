@@ -213,7 +213,7 @@ public:
     String *outfile = Getattr(n, "outfile");
 
     /* Open the output file */
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -250,9 +250,14 @@ public:
 
     /* Standard stuff for the SWIG runtime section */
     Swig_banner(f_runtime);
+
+    Printf(f_runtime, "#define SWIGLUA\n");
+
     //    if (NoInclude) {
     //      Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
     //    }
+
+    Printf(f_runtime, "\n");
 
     //String *init_name = NewStringf("%(title)s_Init", module);
     //Printf(f_header, "#define SWIG_init    %s\n", init_name);

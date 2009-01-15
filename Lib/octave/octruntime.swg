@@ -3,6 +3,7 @@
 #include <octave/parse.h>
 #include <octave/ov-fcn-handle.h>
 #include <octave/Cell.h>
+#include <octave/oct-map.h>
 %}
 
 %insert(runtime) "swigrun.swg";

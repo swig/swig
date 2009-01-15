@@ -14,11 +14,11 @@ sub ok_not ($;$) {
     ok($test, $name);
 }
 
-my $a = C::A->new();
+my $a = CommonPackage::A->new();
 
-isa_ok($a, 'C::A');
+isa_ok($a, 'CommonPackage::A');
 
-my $b = C::B->new();
+my $b = CommonPackage::B->new();
 
-isa_ok($b, 'C::B');
+isa_ok($b, 'CommonPackage::B');
        

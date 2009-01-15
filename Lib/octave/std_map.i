@@ -22,7 +22,7 @@
 	/*
 	int res = SWIG_ERROR;
 	if (PyDict_Check(obj)) {
-	  PyObject_var items = PyObject_CallMethod(obj,(char *)"items",NULL);
+	  SwigVar_PyObject items = PyObject_CallMethod(obj,(char *)"items",NULL);
 	  res = traits_asptr_stdseq<std::map<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  map_type *p;
@@ -58,8 +58,8 @@
 	  }
 	  PyObject *obj = PyDict_New();
 	  for (const_iterator i= map.begin(); i!= map.end(); ++i) {
-	    swig::PyObject_var key = swig::from(i->first);
-	    swig::PyObject_var val = swig::from(i->second);
+	    swig::SwigVar_PyObject key = swig::from(i->first);
+	    swig::SwigVar_PyObject val = swig::from(i->second);
 	    PyDict_SetItem(obj, key, val);
 	  }
 	  return obj;
@@ -92,10 +92,10 @@
     };
 
     template<class OutIterator, class FromOper, class ValueType = typename OutIterator::value_type>
-    struct OctMapIterator_T : PySwigIteratorClosed_T<OutIterator, ValueType, FromOper>
+    struct OctMapIterator_T : SwigPyIteratorClosed_T<OutIterator, ValueType, FromOper>
     {
       OctMapIterator_T(OutIterator curr, OutIterator first, OutIterator last, octave_value seq)
-	: PySwigIteratorClosed_T<OutIterator,ValueType,FromOper>(curr, first, last, seq)
+	: SwigPyIteratorClosed_T<OutIterator,ValueType,FromOper>(curr, first, last, seq)
       {
       }
     };
@@ -112,7 +112,7 @@
     };
 
     template<typename OutIter>
-    inline PySwigIterator*
+    inline SwigPyIterator*
     make_output_key_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, octave_value seq = octave_value())
     {
       return new OctMapKeyIterator_T<OutIter>(current, begin, end, seq);
@@ -130,7 +130,7 @@
     
 
     template<typename OutIter>
-    inline PySwigIterator*
+    inline SwigPyIterator*
     make_output_value_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, octave_value seq = 0)
     {
       return new OctMapValueIterator_T<OutIter>(current, begin, end, seq);

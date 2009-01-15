@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * swigrun.swg
  *
- * This file contains generic CAPI SWIG runtime support for pointer
+ * This file contains generic C API SWIG runtime support for pointer
  * type checking.
  * ----------------------------------------------------------------------------- */
 
@@ -20,11 +20,11 @@
 
 /*
   You can use the SWIGRUNTIME and SWIGRUNTIMEINLINE macros for
-  creating a static or dynamic library from the swig runtime code.
-  In 99.9% of the cases, swig just needs to declare them as 'static'.
+  creating a static or dynamic library from the SWIG runtime code.
+  In 99.9% of the cases, SWIG just needs to declare them as 'static'.
   
-  But only do this if is strictly necessary, ie, if you have problems
-  with your compiler or so.
+  But only do this if strictly necessary, ie, if you have problems
+  with your compiler or suchlike.
 */
 
 #ifndef SWIGRUNTIME
@@ -51,14 +51,14 @@
 /* 
    Flags/methods for returning states.
    
-   The swig conversion methods, as ConvertPtr, return and integer 
+   The SWIG conversion methods, as ConvertPtr, return and integer 
    that tells if the conversion was successful or not. And if not,
    an error code can be returned (see swigerrors.swg for the codes).
    
    Use the following macros/flags to set or process the returning
    states.
    
-   In old swig versions, you usually write code as:
+   In old versions of SWIG, code such as the following was usually written:
 
      if (SWIG_ConvertPtr(obj,vptr,ty.flags) != -1) {
        // success code
@@ -66,7 +66,7 @@
        //fail code
      }
 
-   Now you can be more explicit as:
+   Now you can be more explicit:
 
     int res = SWIG_ConvertPtr(obj,vptr,ty.flags);
     if (SWIG_IsOK(res)) {
@@ -75,7 +75,7 @@
       // fail code
     }
 
-   that seems to be the same, but now you can also do
+   which is the same really, but now you can also do
 
     Type *ptr;
     int res = SWIG_ConvertPtr(obj,(void **)(&ptr),ty.flags);
@@ -93,7 +93,7 @@
     
    I.e., now SWIG_ConvertPtr can return new objects and you can
    identify the case and take care of the deallocation. Of course that
-   requires also to SWIG_ConvertPtr to return new result values, as
+   also requires SWIG_ConvertPtr to return new result values, such as
 
       int SWIG_ConvertPtr(obj, ptr,...) {         
         if (<obj is ok>) {			       
@@ -111,7 +111,7 @@
 
    Of course, returning the plain '0(success)/-1(fail)' still works, but you can be
    more explicit by returning SWIG_BADOBJ, SWIG_ERROR or any of the
-   swig errors code.
+   SWIG errors code.
 
    Finally, if the SWIG_CASTRANK_MODE is enabled, the result code
    allows to return the 'cast rank', for example, if you have this
@@ -125,9 +125,8 @@
       fooi(1)   // cast rank '0'
 
    just use the SWIG_AddCast()/SWIG_CheckState()
+*/
 
-
- */
 #define SWIG_OK                    (0) 
 #define SWIG_ERROR                 (-1)
 #define SWIG_IsOK(r)               (r >= 0)
@@ -152,7 +151,6 @@
 #define SWIG_DelTmpMask(r)         (SWIG_IsOK(r) ? (r & ~SWIG_TMPOBJMASK) : r)
 #define SWIG_IsTmpObj(r)           (SWIG_IsOK(r) && (r & SWIG_TMPOBJMASK))
 
-
 /* Cast-Rank Mode */
 #if defined(SWIG_CASTRANK_MODE)
 #  ifndef SWIG_TypeRank
@@ -173,8 +171,6 @@ SWIGINTERNINLINE int SWIG_CheckState(int r) {
 #  define SWIG_AddCast
 #  define SWIG_CheckState(r) (SWIG_IsOK(r) ? 1 : 0)
 #endif
-
-
 
 
 #include <string.h>
@@ -273,40 +269,58 @@ SWIG_TypeCompare(const char *nb, const char *tb) {
 }
 
 
-/* think of this as a c++ template<> or a scheme macro */
-#define SWIG_TypeCheck_Template(comparison, ty)         \
-  if (ty) {                                             \
-    swig_cast_info *iter = ty->cast;                    \
-    while (iter) {                                      \
-      if (comparison) {                                 \
-        if (iter == ty->cast) return iter;              \
-        /* Move iter to the top of the linked list */   \
-        iter->prev->next = iter->next;                  \
-        if (iter->next)                                 \
-          iter->next->prev = iter->prev;                \
-        iter->next = ty->cast;                          \
-        iter->prev = 0;                                 \
-        if (ty->cast) ty->cast->prev = iter;            \
-        ty->cast = iter;                                \
-        return iter;                                    \
-      }                                                 \
-      iter = iter->next;                                \
-    }                                                   \
-  }                                                     \
-  return 0
-
 /*
   Check the typename
 */
 SWIGRUNTIME swig_cast_info *
 SWIG_TypeCheck(const char *c, swig_type_info *ty) {
-  SWIG_TypeCheck_Template(strcmp(iter->type->name, c) == 0, ty);
+  if (ty) {
+    swig_cast_info *iter = ty->cast;
+    while (iter) {
+      if (strcmp(iter->type->name, c) == 0) {
+        if (iter == ty->cast)
+          return iter;
+        /* Move iter to the top of the linked list */
+        iter->prev->next = iter->next;
+        if (iter->next)
+          iter->next->prev = iter->prev;
+        iter->next = ty->cast;
+        iter->prev = 0;
+        if (ty->cast) ty->cast->prev = iter;
+        ty->cast = iter;
+        return iter;
+      }
+      iter = iter->next;
+    }
+  }
+  return 0;
 }
 
-/* Same as previous function, except strcmp is replaced with a pointer comparison */
+/* 
+  Identical to SWIG_TypeCheck, except strcmp is replaced with a pointer comparison
+*/
 SWIGRUNTIME swig_cast_info *
-SWIG_TypeCheckStruct(swig_type_info *from, swig_type_info *into) {
-  SWIG_TypeCheck_Template(iter->type == from, into);
+SWIG_TypeCheckStruct(swig_type_info *from, swig_type_info *ty) {
+  if (ty) {
+    swig_cast_info *iter = ty->cast;
+    while (iter) {
+      if (iter->type == from) {
+        if (iter == ty->cast)
+          return iter;
+        /* Move iter to the top of the linked list */
+        iter->prev->next = iter->next;
+        if (iter->next)
+          iter->next->prev = iter->prev;
+        iter->next = ty->cast;
+        iter->prev = 0;
+        if (ty->cast) ty->cast->prev = iter;
+        ty->cast = iter;
+        return iter;
+      }
+      iter = iter->next;
+    }
+  }
+  return 0;
 }
 
 /*

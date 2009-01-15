@@ -19,7 +19,7 @@ SKIP_CPP_STD_CASES = Yes
 
 CPP_TEST_CASES += li_std_string 
 
-EXTRA_TEST_CASES += ext_test.externaltest
+EXTRA_TEST_CASES += chicken_ext_test.externaltest
 
 include $(srcdir)/../common.mk
 

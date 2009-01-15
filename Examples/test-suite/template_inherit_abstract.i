@@ -56,7 +56,7 @@ namespace oss
 %inline %{ 
   namespace oss 
   { 
-#ifdef SWIGCSHARP
+#if defined(SWIG) && defined(SWIGCSHARP)
 %ignore HModule<B>::get(); // Work around for lack of multiple inheritance support - base ModuleBase is ignored.
 #endif
     struct test : HModule<B> 

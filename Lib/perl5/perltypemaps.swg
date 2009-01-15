@@ -43,6 +43,7 @@
 
 /* Perl types */
 #define SWIG_Object                      SV *
+#define VOID_Object                      sv_newmortal()
 
 /* Perl $shadow flag */
 #define %newpointer_flags                $shadow

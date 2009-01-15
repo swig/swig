@@ -1191,7 +1191,8 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 #define %javaenum(wrapapproach)     %feature("java:enum","wrapapproach")
 #define %javamethodmodifiers        %feature("java:methodmodifiers")
 #define %javaexception(exceptionclasses) %feature("except",throws=exceptionclasses)
-#define %nojavaexception                 %feature("except","",throws="")
+#define %nojavaexception            %feature("except","0",throws="")
+#define %clearjavaexception         %feature("except","",throws="")
 
 %pragma(java) jniclassclassmodifiers="class"
 %pragma(java) moduleclassmodifiers="public class"

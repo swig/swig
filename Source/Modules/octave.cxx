@@ -40,6 +40,13 @@ public:
    OCTAVE():f_runtime(0), f_header(0), f_doc(0), f_wrappers(0),
 	    f_init(0), f_initbeforefunc(0), f_directors(0), f_directors_h(0), 
 	    s_global_tab(0), s_members_tab(0), class_name(0) {
+     /* Add code to manage protected constructors and directors */
+     director_prot_ctor_code = NewString("");
+     Printv(director_prot_ctor_code,
+	    "if ( $comparison ) { /* subclassed */\n",
+	    "  $director_new \n",
+	    "} else {\n", "  error(\"accessing abstract class or protected constructor\"); \n", "  SWIG_fail;\n", "}\n", NIL);
+
      enable_cplus_runtime_mode();
      allow_overloading();
      director_multiple_inheritance = 1;
@@ -87,7 +94,7 @@ public:
 
     String *module = Getattr(n, "name");
     String *outfile = Getattr(n, "outfile");
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -108,11 +115,15 @@ public:
     Swig_register_filebyname("initbeforefunc", f_initbeforefunc);
     Swig_register_filebyname("director", f_directors);
     Swig_register_filebyname("director_h", f_directors_h);
+
     Swig_banner(f_runtime);
+
+    Printf(f_runtime, "#define SWIGOCTAVE\n");
     Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
 
     if (directorsEnabled()) {
+      Printf(f_runtime, "#define SWIG_DIRECTORS\n");
       Swig_banner(f_directors_h);
       if (dirprot_mode()) {
 	//      Printf(f_directors_h, "#include <map>\n");
@@ -120,6 +131,7 @@ public:
       }
     }
 
+    Printf(f_runtime, "\n");
 
     Printf(s_global_tab, "\nstatic const struct swig_octave_member swig_globals[] = {\n");
     Printf(f_init, "static void SWIG_init_user(octave_swig_type* module_ns)\n{\n");

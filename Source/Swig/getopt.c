@@ -100,7 +100,7 @@ void Swig_check_options(int check_input) {
  * Generates a generic error message and exits.
  * ----------------------------------------------------------------------------- */
 
-void Swig_arg_error() {
+void Swig_arg_error(void) {
   Printf(stderr, "SWIG : Unable to parse command line options.\n");
   Printf(stderr, "Use 'swig -help' for available options.\n");
   exit(1);

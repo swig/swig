@@ -26,7 +26,7 @@ typedef int bool;
 #define PLAIN_VIRTUAL   1
 #define PURE_VIRTUAL    2
 
-extern char *input_file;
+extern String *input_file;
 extern int line_number;
 extern int start_line;
 extern int CPlusPlus;		// C++ mode
@@ -316,6 +316,9 @@ void SWIG_exit(int);		/* use EXIT_{SUCCESS,FAILURE} */
 void SWIG_config_file(const String_or_char *);
 const String *SWIG_output_directory();
 void SWIG_config_cppext(const char *ext);
+
+/* get the list of generated files */
+List *SWIG_output_files();
 
 void SWIG_library_directory(const char *);
 int emit_num_arguments(ParmList *);

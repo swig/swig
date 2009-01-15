@@ -188,7 +188,7 @@ int CHICKEN::top(Node *n) {
   /* Initialize all of the output files */
   String *outfile = Getattr(n, "outfile");
 
-  f_runtime = NewFile(outfile, "w");
+  f_runtime = NewFile(outfile, "w", SWIG_output_files());
   if (!f_runtime) {
     FileErrorDisplay(outfile);
     SWIG_exit(EXIT_FAILURE);
@@ -215,13 +215,14 @@ int CHICKEN::top(Node *n) {
   clos_methods = NewString("");
   scm_const_defs = NewString("");
 
-  Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
   Swig_banner(f_runtime);
 
-  Printf(f_runtime, "/* Implementation : CHICKEN */\n\n");
+  Printf(f_runtime, "#define SWIGCHICKEN\n");
 
   if (no_collection)
     Printf(f_runtime, "#define SWIG_CHICKEN_NO_COLLECTION 1\n");
+
+  Printf(f_runtime, "\n");
 
   /* Set module name */
   module = Swig_copy_string(Char(Getattr(n, "name")));
@@ -251,14 +252,14 @@ int CHICKEN::top(Node *n) {
   Printf(f_init, "#endif\n");
 
   Printf(chicken_filename, "%s%s.scm", SWIG_output_directory(), module);
-  if ((f_scm = NewFile(chicken_filename, "w")) == 0) {
+  if ((f_scm = NewFile(chicken_filename, "w", SWIG_output_files())) == 0) {
     FileErrorDisplay(chicken_filename);
     SWIG_exit(EXIT_FAILURE);
   }
 
-  Printv(f_scm,
-	 ";; -*- buffer-read-only: t -*- vi: set ro:\n",
-	 ";; This file was created automatically by SWIG.\n", ";; Don't modify this file, modify the SWIG interface instead.\n", NIL);
+  Swig_banner_target_lang(f_scm, ";;");
+  Printf(f_scm, "\n");
+
   if (declare_unit)
     Printv(f_scm, "(declare (unit ", scmmodule, "))\n\n", NIL);
   Printv(f_scm, "(declare \n",

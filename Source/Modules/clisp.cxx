@@ -36,6 +36,7 @@ private:
 void CLISP::main(int argc, char *argv[]) {
   int i;
 
+  Preprocessor_define("SWIGCLISP 1", 0);
   SWIG_library_directory("clisp");
   SWIG_config_file("clisp.swg");
   generate_typedef_flag = 0;
@@ -79,7 +80,7 @@ int CLISP::top(Node *n) {
     Printf(output_filename, "%s%s.lisp", SWIG_output_directory(), module);
   }
 
-  f_cl = NewFile(output_filename, "w+");
+  f_cl = NewFile(output_filename, "w+", SWIG_output_files());
   if (!f_cl) {
     FileErrorDisplay(output_filename);
     SWIG_exit(EXIT_FAILURE);
@@ -89,10 +90,11 @@ int CLISP::top(Node *n) {
   Swig_register_filebyname("runtime", f_null);
   Swig_register_filebyname("wrapper", f_null);
 
-  String *header =
-      NewStringf
-      (";; This is an automatically generated file. \n;;Make changes as you feel are necessary (but remember if you try to regenerate this file, your changes will be lost). \n\n(defpackage :%s\n  (:use :common-lisp :ffi)",
-       module);
+  String *header = NewString("");
+
+  Swig_banner_target_lang(header, ";;");
+
+  Printf(header, "\n(defpackage :%s\n  (:use :common-lisp :ffi)", module);
 
   Language::top(n);
 

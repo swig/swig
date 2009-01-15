@@ -6,12 +6,12 @@
 %fragment("StdMultimapTraits","header",fragment="StdSequenceTraits")
 {
   namespace swig {
-    template <class PySeq, class K, class T >
+    template <class SwigPySeq, class K, class T >
     inline void 
-    assign(const PySeq& pyseq, std::multimap<K,T > *multimap) {
+    assign(const SwigPySeq& swigpyseq, std::multimap<K,T > *multimap) {
       typedef typename std::multimap<K,T>::value_type value_type;
-      typename PySeq::const_iterator it = pyseq.begin();
-      for (;it != pyseq.end(); ++it) {
+      typename SwigPySeq::const_iterator it = swigpyseq.begin();
+      for (;it != swigpyseq.end(); ++it) {
 	multimap->insert(value_type(it->first, it->second));
       }
     }
@@ -22,7 +22,7 @@
       static int asptr(PyObject *obj, std::multimap<K,T> **val) {
 	int res = SWIG_ERROR;
 	if (PyDict_Check(obj)) {
-	  PyObject_var items = PyObject_CallMethod(obj,(char *)"items",NULL);
+	  SwigVar_PyObject items = PyObject_CallMethod(obj,(char *)"items",NULL);
 	  return traits_asptr_stdseq<std::multimap<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  multimap_type *p;
@@ -55,8 +55,8 @@
 	  }
 	  PyObject *obj = PyDict_New();
 	  for (const_iterator i= multimap.begin(); i!= multimap.end(); ++i) {
-	    swig::PyObject_var key = swig::from(i->first);
-	    swig::PyObject_var val = swig::from(i->second);
+	    swig::SwigVar_PyObject key = swig::from(i->first);
+	    swig::SwigVar_PyObject val = swig::from(i->second);
 	    PyDict_SetItem(obj, key, val);
 	  }
 	  return obj;

@@ -650,14 +650,7 @@ static String *get_filename(String *str, int *sysfile) {
     if (isspace(c))
       Ungetc(c, str);
   }
-#if defined(_WIN32) || defined(MACSWIG)
-  /* accept Unix path separator on non-Unix systems */
-  Replaceall(fn, "/", SWIG_FILE_DELIMITER);
-#endif
-#if defined(__CYGWIN__)
-  /* accept Windows path separator in addition to Unix path separator */
-  Replaceall(fn, "\\", SWIG_FILE_DELIMITER);
-#endif
+  Swig_filename_correct(fn);
   Seek(fn, 0, SEEK_SET);
   return fn;
 }

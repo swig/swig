@@ -20,11 +20,15 @@
    to reflect the number of values returned (normally SWIG_arg++; will do)
 */
 // numbers
-%typemap(in,checkfn="lua_isnumber") int,short,long,
-             unsigned int,unsigned short,unsigned long,
-             signed char,unsigned char,
-             float,double
+%typemap(in,checkfn="lua_isnumber") int, short, long,
+             signed char, float, double
 %{$1 = ($type)lua_tonumber(L, $input);%}
+ 
+// additional check for unsigned numbers, to not permit negative input
+%typemap(in,checkfn="lua_isnumber") unsigned int,
+             unsigned short, unsigned long, unsigned char
+%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
+$1 = ($type)lua_tonumber(L, $input);%}
 
 %typemap(out) int,short,long,
              unsigned int,unsigned short,unsigned long,
@@ -41,14 +45,19 @@
 %typemap(in,checkfn="lua_isnumber") const int&($basetype temp)
 %{ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 
-%typemap(out) const int&
+%typemap(in,checkfn="lua_isnumber") const unsigned int&($basetype temp)
+%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
+temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
+
+%typemap(out) const int&, const unsigned int&
 %{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
 
 // for the other numbers we can just use an apply statement to cover them
-%apply const int & {const short&,const long&,
-             const unsigned int&,const unsigned short&,const unsigned long&,
-             const signed char&,const unsigned char&,
+%apply const int & {const short&,const long&,const signed char&,
              const float&,const double&};
+
+%apply const unsigned int & {const unsigned short&,const unsigned long&,
+             const unsigned char&};
 
 /* enums have to be handled slightly differently
 	VC++ .net will not allow a cast from lua_Number(double) to enum directly.

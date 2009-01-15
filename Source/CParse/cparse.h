@@ -34,16 +34,18 @@ extern "C" {
   extern void scanner_ignore_typedef(void);
   extern void scanner_last_id(int);
   extern void scanner_clear_rename(void);
-  extern void scanner_set_location(String_or_char *, int line);
+  extern void scanner_set_location(String_or_char *file, int line);
+  extern void scanner_set_main_input_file(String *file);
+  extern String *scanner_get_main_input_file();
   extern void Swig_cparse_follow_locators(int);
   extern void start_inline(char *, int);
   extern String *scanner_ccode;
-  extern int yylex();
+  extern int yylex(void);
 
 /* parser.y */
   extern SwigType *Swig_cparse_type(String *);
   extern Node *Swig_cparse(File *);
-  extern Hash *Swig_cparse_features();
+  extern Hash *Swig_cparse_features(void);
   extern void SWIG_cparse_set_compact_default_args(int defargs);
   extern int SWIG_cparse_template_reduce(int treduce);
 

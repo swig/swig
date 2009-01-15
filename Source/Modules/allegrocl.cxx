@@ -21,7 +21,7 @@ char cvsroot_allegrocl_cxx[] = "$Id$";
 static File *f_cl = 0;
 String *f_clhead = NewString("");
 String *f_clwrap = NewString("(swig-in-package ())\n\n");
-static File *f_cxx;
+static File *f_runtime;
 static File *f_cxx_header = 0;
 static File *f_cxx_wrapper = 0;
 
@@ -1520,6 +1520,7 @@ extern "C" Language *swig_allegrocl(void) {
 void ALLEGROCL::main(int argc, char *argv[]) {
   int i;
 
+  Preprocessor_define("SWIGALLEGROCL 1", 0);
   SWIG_library_directory("allegrocl");
   SWIG_config_file("allegrocl.swg");
 
@@ -1576,8 +1577,6 @@ void ALLEGROCL::main(int argc, char *argv[]) {
 
   }
 
-  Preprocessor_define("SWIGALLEGROCL 1", 0);
-
   allow_overloading();
 }
 
@@ -1590,7 +1589,7 @@ int ALLEGROCL::top(Node *n) {
 
   Printf(cl_filename, "%s%s.cl", SWIG_output_directory(), module_name);
 
-  f_cl = NewFile(cl_filename, "w");
+  f_cl = NewFile(cl_filename, "w", SWIG_output_files());
   if (!f_cl) {
     Printf(stderr, "Unable to open %s for writing\n", cl_filename);
     SWIG_exit(EXIT_FAILURE);
@@ -1599,27 +1598,33 @@ int ALLEGROCL::top(Node *n) {
   Generate_Wrapper = CPlusPlus || CWrap;
 
   if (Generate_Wrapper) {
-    f_cxx = NewFile(cxx_filename, "w");
-    if (!f_cxx) {
+    f_runtime = NewFile(cxx_filename, "w", SWIG_output_files());
+    if (!f_runtime) {
       Close(f_cl);
       Delete(f_cl);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
       SWIG_exit(EXIT_FAILURE);
     }
   } else
-    f_cxx = NewString("");
+    f_runtime = NewString("");
 
-  f_cxx_header = f_cxx;
+  f_cxx_header = f_runtime;
   f_cxx_wrapper = NewString("");
 
   Swig_register_filebyname("header", f_cxx_header);
   Swig_register_filebyname("wrapper", f_cxx_wrapper);
-  Swig_register_filebyname("runtime", f_cxx);
+  Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("lisp", f_clwrap);
   Swig_register_filebyname("lisphead", f_cl);
 
-  Printf(f_cl, ";; This is an automatically generated file.  Make changes in\n"
-	 ";; the definition file, not here.\n\n"
+  Swig_banner(f_runtime);
+
+  Printf(f_runtime, "#define SWIGALLEGROCL\n");
+  Printf(f_runtime, "\n");
+
+  Swig_banner_target_lang(f_cl, ";;");
+
+  Printf(f_cl, "\n"
 	 "(defpackage :%s\n"
 	 "  (:use :common-lisp :ff :excl)\n"
 	 "  (:export #:*swig-identifier-converter* #:*swig-module-name*\n"
@@ -1636,7 +1641,7 @@ int ALLEGROCL::top(Node *n) {
 
   Language::top(n);
 
-  //  SwigType_emit_type_table(f_cxx,f_cxx_wrapper);
+  //  SwigType_emit_type_table(f_runtime,f_cxx_wrapper);
 
   // Swig_print_tree(n);
 #ifdef ALLEGROCL_TYPE_DEBUG
@@ -1659,10 +1664,10 @@ int ALLEGROCL::top(Node *n) {
   Delete(f_clhead);
   Delete(f_clwrap);
 
-  Printf(f_cxx, "%s\n", f_cxx_wrapper);
+  Printf(f_runtime, "%s\n", f_cxx_wrapper);
 
-  Close(f_cxx);
-  Delete(f_cxx);
+  Close(f_runtime);
+  Delete(f_runtime);
   Delete(f_cxx_wrapper);
 
   // Swig_print_tree(n);
@@ -2803,8 +2808,8 @@ int ALLEGROCL::constantWrapper(Node *n) {
     SwigType_add_qualifier(const_type, "static");
 
     String *ppcname = NewStringf("ACLppc_%s", Getattr(n, "sym:name"));
-    // Printf(f_cxx, "static const %s = %s;\n", SwigType_lstr(const_type, ppcname), const_val);
-    Printf(f_cxx, "%s = %s;\n", SwigType_lstr(const_type, ppcname), const_val);
+    // Printf(f_runtime, "static const %s = %s;\n", SwigType_lstr(const_type, ppcname), const_val);
+    Printf(f_runtime, "%s = %s;\n", SwigType_lstr(const_type, ppcname), const_val);
 
     Setattr(n, "name", ppcname);
     SetFlag(n, "feature:immutable");
@@ -2861,7 +2866,7 @@ int ALLEGROCL::globalvariableHandler(Node *n) {
   ctype = SwigType_str(type, 0);
   // EXPORT <SwigType_str> <mangled_name>;
   // <SwigType_str> <mangled_name> = <name>;
-  //  Printf(f_cxx, "EXPORT %s %s;\n%s %s = %s%s;\n", ctype, mangled_name,
+  //  Printf(f_runtime, "EXPORT %s %s;\n%s %s = %s%s;\n", ctype, mangled_name,
   //     ctype, mangled_name, (pointer_added ? "&" : ""), name);
 
   Printf(f_clwrap, "(swig-defvar \"%s\" \"%s\" :type %s)\n",
@@ -2900,12 +2905,12 @@ int ALLEGROCL::variableWrapper(Node *n) {
 
   // EXPORT <SwigType_str> <mangled_name>;
   // <SwigType_str> <mangled_name> = <name>;
-  Printf(f_cxx, "EXPORT %s %s;\n%s %s = %s%s;\n", ctype, mangled_name, ctype, mangled_name, (pointer_added ? "&" : ""), name);
+  Printf(f_runtime, "EXPORT %s %s;\n%s %s = %s%s;\n", ctype, mangled_name, ctype, mangled_name, (pointer_added ? "&" : ""), name);
 
   Printf(f_cl, "(swig-defvar \"%s\" :type %s)\n", mangled_name, ((SwigType_isconst(type)) ? ":constant" : ":variable"));
   /*
-     Printf(f_cxx, "// swigtype: %s\n", SwigType_typedef_resolve_all(Getattr(n,"type")));
-     Printf(f_cxx, "// vwrap: %s\n", compose_foreign_type(SwigType_strip_qualifiers(Copy(rtype))));
+     Printf(f_runtime, "// swigtype: %s\n", SwigType_typedef_resolve_all(Getattr(n,"type")));
+     Printf(f_runtime, "// vwrap: %s\n", compose_foreign_type(SwigType_strip_qualifiers(Copy(rtype))));
    */
 
   Printf(stderr,"***\n");

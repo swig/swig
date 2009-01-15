@@ -1019,6 +1019,20 @@ but this will:
 </pre>
 </div>
 
+<p>
+SWIG provides macros for disabling and clearing features. Many of these can be found in the <tt>swig.swg</tt> library file.
+The typical pattern is to define three macros; one to define the feature itself, one to disable the feature and one to clear the feature.
+The three macros below show this for the "except" feature:
+</p>
+
+<div class="code">
+<pre>
+#define %exception      %feature("except")
+#define %noexception    %feature("except","0")
+#define %clearexception %feature("except","")
+</pre>
+</div>
+
 <H3><a name="Customization_features_default_args"></a>11.3.4 Features and default arguments</H3>
 
 

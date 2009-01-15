@@ -43,6 +43,14 @@
 %include <boost_shared_ptr.i>
 SWIG_SHARED_PTR(Klass, Space::Klass)
 SWIG_SHARED_PTR_DERIVED(KlassDerived, Space::Klass, Space::KlassDerived)
+SWIG_SHARED_PTR_DERIVED(Klass2ndDerived, Space::Klass, Space::Klass2ndDerived)
+SWIG_SHARED_PTR_DERIVED(Klass3rdDerived, Space::Klass2ndDerived, Space::Klass3rdDerived)
+
+// TEMP for python
+%types(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< Space::Klass3rdDerived > = SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< Space::Klass >) {
+  *newmemory = SWIG_CAST_NEW_MEMORY;
+  return (void *) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< Space::Klass >(*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< Space::Klass3rdDerived > *)$from);
+}
 
 #endif
 
@@ -101,7 +109,13 @@ private:
 };
 SwigExamples::CriticalSection Space::Klass::critical_section;
 
-struct IgnoredMultipleInheritBase { virtual ~IgnoredMultipleInheritBase() {} double d; double e;};
+struct IgnoredMultipleInheritBase { 
+  IgnoredMultipleInheritBase() : d(0.0), e(0.0) {}
+  virtual ~IgnoredMultipleInheritBase() {} 
+  double d; 
+  double e;
+  virtual void AVirtualMethod() {} 
+};
 
 // For most compilers, this use of multiple inheritance results in different derived and base class 
 // pointer values ... for some more challenging tests :)
@@ -142,7 +156,21 @@ SwigBoost::shared_ptr<KlassDerived>*& derivedsmartptrpointerreftest(SwigBoost::s
   return kd;
 }
 
+// 3 classes in inheritance chain test
+struct Klass2ndDerived : Klass {
+  Klass2ndDerived() : Klass() {}
+  Klass2ndDerived(const std::string &val) : Klass(val) {}
+};
+struct Klass3rdDerived : IgnoredMultipleInheritBase, Klass2ndDerived {
+  Klass3rdDerived() : Klass2ndDerived() {}
+  Klass3rdDerived(const std::string &val) : Klass2ndDerived(val) {}
+  virtual ~Klass3rdDerived() {}
+  virtual std::string getValue() const { return Klass2ndDerived::getValue() + "-3rdDerived"; }
+};
 
+std::string test3rdupcast( SwigBoost::shared_ptr< Klass > k) {
+  return k->getValue();
+}
 
 
 
@@ -217,8 +245,14 @@ SwigBoost::shared_ptr<Klass>* smartpointerpointerownertest() {
   return new SwigBoost::shared_ptr<Klass>(new Klass("smartpointerpointerownertest"));
 }
 
-// Provide overloads for Klass and KlassDerived as some language modules, eg Python, create an extra reference in
+// Provide overloads for Klass and derived classes as some language modules, eg Python, create an extra reference in
 // the marshalling if an upcast to a base class is required.
+long use_count(const SwigBoost::shared_ptr<Klass3rdDerived>& sptr) {
+  return sptr.use_count();
+}
+long use_count(const SwigBoost::shared_ptr<Klass2ndDerived>& sptr) {
+  return sptr.use_count();
+}
 long use_count(const SwigBoost::shared_ptr<KlassDerived>& sptr) {
   return sptr.use_count();
 }

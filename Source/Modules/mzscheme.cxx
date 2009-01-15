@@ -129,7 +129,7 @@ public:
     /* Initialize all of the output files */
     String *outfile = Getattr(n, "outfile");
 
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -146,8 +146,10 @@ public:
     init_func_def = NewString("");
     Swig_register_filebyname("init", init_func_def);
 
-    Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
     Swig_banner(f_runtime);
+
+    Printf(f_runtime, "#define SWIGMZSCHEME\n");
+    Printf(f_runtime, "\n");
 
     module = Getattr(n, "name");
 

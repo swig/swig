@@ -345,6 +345,16 @@ public class runme
       verifyCount(1, kret);
     }
 
+    // 3rd derived class
+    {
+      Klass k = new Klass3rdDerived("me oh my");
+      String val = k.getValue();
+      verifyValue("me oh my-3rdDerived", val);
+      verifyCount(3, k); // 3 classes in inheritance chain == 3 swigCPtr values
+      val = li_boost_shared_ptr.test3rdupcast(k);
+      verifyValue("me oh my-3rdDerived", val);
+      verifyCount(3, k);
+    }
 
     ////////////////////////////////// Member variables ////////////////////////////////////////
     // smart pointer by value
