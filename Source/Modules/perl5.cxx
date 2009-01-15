@@ -1139,8 +1139,9 @@ public:
 
     /* Do some work on the class name */
     if (verbose > 0) {
+      String *modulename = Getattr(clsmodule, "name");
       fprintf(stdout, "setclassname: Found sym:name: %s\n", Char(symname));
-      fprintf(stdout, "setclassname: Found module: %s\n", Char(clsmodule));
+      fprintf(stdout, "setclassname: Found module: %s\n", Char(modulename));
       fprintf(stdout, "setclassname: No package found\n");
     }
 
