@@ -2148,7 +2148,9 @@ struct IDargs {
   String *arity;
 
   IDargs():name(0), type(0), klass(0), arity(0) {
-  } String *full_quoted_str() {
+  }
+
+  String *full_quoted_str() {
     String *result = no_others_quoted_str();
     if (arity)
       Printf(result, " :arity %s", arity);
