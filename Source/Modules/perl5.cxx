@@ -103,7 +103,6 @@ static String *class_name = 0;	/* Name of the class (what Perl thinks it is) */
 
 static String *pcode = 0;	/* Perl code associated with each class */
 						  /* static  String   *blessedmembers = 0;     *//* Member data associated with each class */
-static int member_func = 0;	/* Set to 1 when wrapping a member function */
 static String *func_stubs = 0;	/* Function stubs */
 static String *const_stubs = 0;	/* Constant stubs */
 static int num_consts = 0;	/* Number of constants */
@@ -369,8 +368,6 @@ public:
     /* emit wrappers */
     Language::top(n);
 
-    String *base = NewString("");
-
     /* Dump out variable wrappers */
 
     Printv(magic, "\n\n#ifdef PERL_OBJECT\n", "};\n", "#endif\n", NIL);
@@ -448,49 +445,6 @@ public:
 
     if (blessed) {
 
-      /*
-       * These methods will be duplicated if package 
-       *   has been specified, so we do not output them
-       */
-      if (!dest_package) {
-	Printv(base, "\n# ---------- BASE METHODS -------------\n\n", "package ", namespace_module, ";\n\n", NIL);
-
-	/* Write out the TIE method */
-
-	Printv(base, "sub TIEHASH {\n", tab4, "my ($classname,$obj) = @_;\n", tab4, "return bless $obj, $classname;\n", "}\n\n", NIL);
-
-	/* Output a CLEAR method.   This is just a place-holder, but by providing it we
-	 * can make declarations such as
-	 *     %$u = ( x => 2, y=>3, z =>4 );
-	 *
-	 * Where x,y,z are the members of some C/C++ object. */
-
-	Printf(base, "sub CLEAR { }\n\n");
-
-	/* Output default firstkey/nextkey methods */
-
-	Printf(base, "sub FIRSTKEY { }\n\n");
-	Printf(base, "sub NEXTKEY { }\n\n");
-
-	/* Output a FETCH method.  This is actually common to all classes */
-	Printv(base,
-	       "sub FETCH {\n",
-	       tab4, "my ($self,$field) = @_;\n", tab4, "my $member_func = \"swig_${field}_get\";\n", tab4, "$self->$member_func();\n", "}\n\n", NIL);
-
-	/* Output a STORE method.   This is also common to all classes (might move to base class) */
-
-	Printv(base,
-	       "sub STORE {\n",
-	       tab4, "my ($self,$field,$newval) = @_;\n",
-	       tab4, "my $member_func = \"swig_${field}_set\";\n", tab4, "$self->$member_func($newval);\n", "}\n\n", NIL);
-
-	/* Output a 'this' method */
-
-	Printv(base, "sub this {\n", tab4, "my $ptr = shift;\n", tab4, "return tied(%$ptr);\n", "}\n\n", NIL);
-
-	Printf(f_pm, "%s", base);
-      }
-
       /* Emit function stubs for stand-alone functions */
       Printf(f_pm, "\n# ------- FUNCTION WRAPPERS --------\n\n");
       Printf(f_pm, "package %s;\n\n", namespace_module);
@@ -519,7 +473,6 @@ public:
     Printf(f_pm, "1;\n");
     Close(f_pm);
     Delete(f_pm);
-    Delete(base);
     Delete(dest_package);
     Delete(underscore_module);
 
@@ -882,7 +835,11 @@ public:
     /* Now register the function */
 
     if (!Getattr(n, "sym:overloaded")) {
-      Printf(command_tab, "{\"%s::%s\", %s},\n", cmodule, iname, wname);
+      String *pname = Getattr(n, "perl5:name");
+      if (pname) 
+        Printf(command_tab, "{\"%s\", %s},\n", pname, wname);
+      else
+        Printf(command_tab, "{\"%s::%s\", %s},\n", cmodule, iname, wname);
     } else if (!Getattr(n, "sym:nextSibling")) {
       /* Generate overloaded dispatch function */
       int maxargs;
@@ -905,7 +862,13 @@ public:
       Printf(df->code, "XSRETURN(0);\n");
       Printv(df->code, "}\n", NIL);
       Wrapper_print(df, f_wrappers);
-      Printf(command_tab, "{\"%s::%s\", %s},\n", cmodule, iname, dname);
+      {
+        String *pname = Getattr(n, "perl5:name");
+        if (pname)
+          Printf(command_tab, "{\"%s\", %s},\n", pname, dname);
+        else
+          Printf(command_tab, "{\"%s::%s\", %s},\n", cmodule, iname, dname);
+      }
       DelWrapper(df);
       Delete(dispatch);
       Delete(dname);
@@ -919,7 +882,7 @@ public:
        * Create a stub for this function, provided it's not a member function
        * -------------------------------------------------------------------- */
 
-      if ((blessed) && (!member_func)) {
+      if ((blessed) && (!Getattr(n, "ismember"))) {
 	Printv(func_stubs, "*", iname, " = *", cmodule, "::", iname, ";\n", NIL);
       }
 
@@ -1485,12 +1448,22 @@ public:
   virtual int memberfunctionHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
 
-    member_func = 1;
-    Language::memberfunctionHandler(n);
-    member_func = 0;
-
-    if ((blessed) && (!Getattr(n, "sym:nextSibling"))) {
-
+    if (blessed && !Getattr(n, "sym:nextSibling")) {
+      if (Getattr(n, "feature:shadow")) {
+        /* TODO: TEST THIS!  It should map the unmodified function to
+         * <pkg>::class::_core_<method>, documentation references
+         * <pkgc>::<method> but <pkgc> is going away */
+        Setattr(n, "perl5:name", NewStringf("%s::%s::_core_%s",
+          namespace_module, class_name, symname));
+	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
+	String *plaction = NewStringf("%s::%s", cmodule, Swig_name_member(class_name, symname));
+	Replaceall(plcode, "$action", plaction);
+	Delete(plaction);
+	Printv(pcode, plcode, NIL);
+      } else {
+        Setattr(n, "perl5:name", NewStringf("%s::%s::%s",
+          namespace_module, class_name, symname));
+      }
       if (Strstr(symname, "__eq__")) {
 	DohSetInt(operators, "__eq__", 1);
 	have_operators = 1;
@@ -1555,17 +1528,9 @@ public:
 	DohSetInt(operators, "__pluseq__", 1);
 	have_operators = 1;
       }
-
-      if (Getattr(n, "feature:shadow")) {
-	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
-	String *plaction = NewStringf("%s::%s", cmodule, Swig_name_member(class_name, symname));
-	Replaceall(plcode, "$action", plaction);
-	Delete(plaction);
-	Printv(pcode, plcode, NIL);
-      } else {
-	Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(class_name, symname), ";\n", NIL);
-      }
     }
+
+    Language::memberfunctionHandler(n);
     return SWIG_OK;
   }
 
@@ -1577,9 +1542,7 @@ public:
 
   virtual int membervariableHandler(Node *n) {
 
-    member_func = 1;
     Language::membervariableHandler(n);
-    member_func = 0;
 
     Append(have_data_members, n);
     return SWIG_OK;
@@ -1606,12 +1569,10 @@ public:
       Setattr(n, "perl5:implicits", p);
       Delete(p);
     }
-
-    member_func = 1;
-    Language::constructorHandler(n);
-
     if ((blessed) && (!Getattr(n, "sym:nextSibling"))) {
       if (Getattr(n, "feature:shadow")) {
+        Setattr(n, "perl5:name", NewStringf("%s::%s::_core_%s",
+          namespace_module, class_name, symname));
 	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
 	String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name, symname));
 	Replaceall(plcode, "$action", plaction);
@@ -1626,13 +1587,15 @@ public:
           pname = "new";
 	else
           pname = Char(cname);
-        Printf(pcode, "*%s = *%s::%s;\n", pname, cmodule, cname);
+        Setattr(n, "perl5:name", NewStringf("%s::%s::%s",
+          namespace_module, class_name, pname));
         Delete(cname);
 
 	have_constructor = 1;
       }
     }
-    member_func = 0;
+
+    Language::constructorHandler(n);
     return SWIG_OK;
   }
 
@@ -1642,28 +1605,31 @@ public:
 
   virtual int destructorHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
-    member_func = 1;
-    Language::destructorHandler(n);
     if (blessed) {
       if (Getattr(n, "feature:shadow")) {
+        Setattr(n, "perl5:name", NewStringf("%s::%s::_core_%s",
+          namespace_module, class_name, symname));
 	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
 	String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name, symname));
 	Replaceall(plcode, "$action", plaction);
 	Delete(plaction);
 	Printv(pcode, plcode, NIL);
       } else {
-	Printv(pcode,
-	       "sub DESTROY {\n",
-	       tab4, "return unless $_[0]->isa('HASH');\n",
-	       tab4, "my $self = tied(%{$_[0]});\n",
-	       tab4, "return unless defined $self;\n",
-	       tab4, "delete $ITERATORS{$self};\n",
-	       tab4, "if (exists $OWNER{$self}) {\n",
-	       tab8, cmodule, "::", Swig_name_destroy(symname), "($self);\n", tab8, "delete $OWNER{$self};\n", tab4, "}\n}\n\n", NIL);
+        Setattr(n, "perl5:name", NewStringf("%s::%s::%s",
+          namespace_module, class_name, "_core_DESTROY"));
+	//Printv(pcode,
+	//       "sub DESTROY {\n",
+	//       tab4, "return unless $_[0]->isa('HASH');\n",
+	//       tab4, "my $self = tied(%{$_[0]});\n",
+	//       tab4, "return unless defined $self;\n",
+	//       tab4, "delete $ITERATORS{$self};\n",
+	//       tab4, "if (exists $OWNER{$self}) {\n",
+	//       tab8, cmodule, "::", Swig_name_destroy(symname), "($self);\n", tab8, "delete $OWNER{$self};\n", tab4, "}\n}\n\n", NIL);
 	have_destructor = 1;
       }
     }
-    member_func = 0;
+
+    Language::destructorHandler(n);
     return SWIG_OK;
   }
 
@@ -1672,13 +1638,12 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmemberfunctionHandler(Node *n) {
-    member_func = 1;
-    Language::staticmemberfunctionHandler(n);
-    member_func = 0;
     if ((blessed) && (!Getattr(n, "sym:nextSibling"))) {
       String *symname = Getattr(n, "sym:name");
-      Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(class_name, symname), ";\n", NIL);
+      Setattr(n, "perl5:name", NewStringf("%s::%s::%s",
+          namespace_module, class_name, symname));
     }
+    Language::staticmemberfunctionHandler(n);
     return SWIG_OK;
   }
 
