@@ -839,7 +839,8 @@ public:
       if (pname) 
         Printf(command_tab, "{\"%s\", %s},\n", pname, wname);
       else
-        Printf(command_tab, "{\"%s::%s\", %s},\n", cmodule, iname, wname);
+        Printf(command_tab, "{\"%s::%s\", %s},\n",
+            namespace_module, iname, wname);
     } else if (!Getattr(n, "sym:nextSibling")) {
       /* Generate overloaded dispatch function */
       int maxargs;
@@ -867,7 +868,8 @@ public:
         if (pname)
           Printf(command_tab, "{\"%s\", %s},\n", pname, dname);
         else
-          Printf(command_tab, "{\"%s::%s\", %s},\n", cmodule, iname, dname);
+          Printf(command_tab, "{\"%s::%s\", %s},\n",
+            namespace_module, iname, dname);
       }
       DelWrapper(df);
       Delete(dispatch);
@@ -877,15 +879,6 @@ public:
       if (export_all) {
 	Printf(exported, "%s ", iname);
       }
-
-      /* --------------------------------------------------------------------
-       * Create a stub for this function, provided it's not a member function
-       * -------------------------------------------------------------------- */
-
-      if ((blessed) && (!Getattr(n, "ismember"))) {
-	Printv(func_stubs, "*", iname, " = *", cmodule, "::", iname, ";\n", NIL);
-      }
-
     }
     Delete(cleanup);
     Delete(outarg);
