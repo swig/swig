@@ -42,7 +42,7 @@
 <li><a href="#Lua_nn26">Typemaps and arrays</a>
 <li><a href="#Lua_nn27">Typemaps and pointer-pointer functions</a>
 </ul>
-<li><a href="#Lua_nn28">Writing Typemaps</a>
+<li><a href="#Lua_nn28">Writing typemaps</a>
 <ul>
 <li><a href="#Lua_nn29">Typemaps you can write</a>
 <li><a href="#Lua_nn30">SWIG's Lua-C API</a>
@@ -1112,9 +1112,11 @@ add exception specification to functions or globally (respectively).
 
 <H2><a name="Lua_nn23"></a>23.4 Typemaps</H2>
 
+
 <p>This section explains what typemaps are and the usage of them. The default wrappering behaviour of SWIG is enough in most cases. However sometimes SWIG may need a little additional assistance to know which typemap to apply to provide the best wrappering. This section will be explaining how to use typemaps to best effect</p>
 
 <H3><a name="Lua_nn24"></a>23.4.1 What is a typemap?</H3>
+
 
 <p>A typemap is nothing more than a code generation rule that is attached to a specific C datatype. For example, to convert integers from Lua to C, you might define a typemap like this:</p>
 
@@ -1142,6 +1144,7 @@ Received an integer : 6
 </pre></div>
 
 <H3><a name="Lua_nn25"></a>23.4.2 Using typemaps</H3>
+
 
 <p>There are many ready written typemaps built into SWIG for all common types (int, float, short, long, char*, enum and more), which SWIG uses automatically, with no effort required on your part.</p>
 
@@ -1194,6 +1197,7 @@ void swap(int *sx, int *sy);
 <p>Note: C++ references must be handled exactly the same way. However SWIG will automatically wrap a <tt>const int&amp;</tt>  as an input parameter (since that it obviously input).</p>
 
 <H3><a name="Lua_nn26"></a>23.4.3 Typemaps and arrays</H3>
+
 
 <p>Arrays present a challenge for SWIG, because like pointers SWIG does not know whether these are input or output values, nor
 does SWIG have any indication of how large an array should be. However with the proper guidance SWIG can easily wrapper
@@ -1258,6 +1262,7 @@ and Lua tables to be 1..N, (the indexing follows the norm for the language). In 
 
 <H3><a name="Lua_nn27"></a>23.4.4 Typemaps and pointer-pointer functions</H3>
 
+
 <p>Several C++ libraries use a pointer-pointer functions to create its objects. These functions require a pointer to a pointer which is then filled with the pointer to the new object. Microsoft's COM and DirectX as well as many other libraries have this kind of function. An example is given below:</p>
 
 <div class="code"><pre>struct iMath;    // some structure
@@ -1291,6 +1296,7 @@ ptr=nil -- the iMath* will be GC'ed as normal
 
 <H2><a name="Lua_nn28"></a>23.5 Writing typemaps</H2>
 
+
 <p>This section describes how you can modify SWIG's default wrapping behavior for various C/C++ datatypes using the <tt>%typemap</tt> directive. This is an advanced topic that assumes familiarity with the Lua C API as well as the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.</p>
 
 <p>Before proceeding, it should be stressed that writing typemaps is rarely needed unless you want to change some aspect of the wrappering, or to achieve an effect which in not available with the default bindings.</p>
@@ -1298,6 +1304,7 @@ ptr=nil -- the iMath* will be GC'ed as normal
 <p>Before proceeding, you should read the previous section on using typemaps, as well as read the ready written typemaps found in luatypemaps.swg and typemaps.i. These are both well documented and fairly easy to read. You should not attempt to write your own typemaps until you have read and can understand both of these files (they may well also give you a idea to base your worn on).</p>
 
 <H3><a name="Lua_nn29"></a>23.5.1 Typemaps you can write</H3>
+
 
 <p>There are many different types of typemap that can be written, the full list can be found in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter. However the following are the most commonly used ones.</p>
 
@@ -1310,6 +1317,7 @@ ptr=nil -- the iMath* will be GC'ed as normal
 </ul>
 
 <H3><a name="Lua_nn30"></a>23.5.2 SWIG's Lua-C API</H3>
+
 
 <p>This section explains the SWIG specific Lua-C API. It does not cover the main Lua-C api, as this is well documented and not worth covering.</p>
 
@@ -1356,6 +1364,7 @@ Similar to SWIG_fail_arg, except that it will display the swig_type_info informa
 
 <H2><a name="Lua_nn31"></a>23.6 Customization of your Bindings</H2>
 
+
 <p>
 This section covers adding of some small extra bits to your module to add the last finishing touches.
 </p>
@@ -1363,6 +1372,7 @@ This section covers adding of some small extra bits to your module to add the la
 
 
 <H3><a name="Lua_nn32"></a>23.6.1 Writing your own custom wrappers</H3>
+
 
 <p>
 Sometimes, it may be neccesary to add your own special functions, which bypass the normal SWIG wrappering method, and just use the native Lua API calls. These 'native' functions allow direct adding of your own code into the module. This is performed with the <tt>%native</tt> directive as follows:
