@@ -258,7 +258,7 @@ check-%-test-suite:
 	fi
 	@passed=true;							\
 	dir="Examples/test-suite/$*";					\
-	if $(skip-$*); then						\
+	if $(skip-$*) -a $(ACTION) != "partialcheck"; then						\
 	  echo skipping $* test-suite $(ACTION);			\
 	elif [ ! -d $$dir ]; then					\
 	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
