@@ -220,7 +220,7 @@ void Swig_symbol_init() {
  * Set the C scopename of the current symbol table.
  * ----------------------------------------------------------------------------- */
 
-void Swig_symbol_setscopename(const String_or_char *name) {
+void Swig_symbol_setscopename(const_String_or_char_ptr name) {
   String *qname;
   /* assert(!Getattr(current_symtab,"name")); */
   Setattr(current_symtab, "name", name);
@@ -250,10 +250,10 @@ String *Swig_symbol_getscopename() {
  * Given a fully qualified C scopename, this function returns a symbol table
  * ----------------------------------------------------------------------------- */
 
-Symtab *Swig_symbol_getscope(const String_or_char *name) {
+Symtab *Swig_symbol_getscope(const_String_or_char_ptr name) {
   if (!symtabs)
     return 0;
-  if (Equal("::", (String_or_char *) name))
+  if (Equal("::", (const_String_or_char_ptr ) name))
     name = "";
   return Getattr(symtabs, name);
 }
@@ -373,7 +373,7 @@ Symtab *Swig_symbol_current() {
  * Makes an alias for a symbol in the global symbol table.
  * ----------------------------------------------------------------------------- */
 
-void Swig_symbol_alias(String_or_char *aliasname, Symtab *s) {
+void Swig_symbol_alias(const_String_or_char_ptr aliasname, Symtab *s) {
   String *qname = Swig_symbol_qualifiedscopename(current_symtab);
   if (qname) {
     Printf(qname, "::%s", aliasname);
@@ -421,7 +421,7 @@ void Swig_symbol_inherit(Symtab *s) {
  * Adds a node to the C symbol table only.
  * ----------------------------------------------------------------------------- */
 
-void Swig_symbol_cadd(String_or_char *name, Node *n) {
+void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
   Node *append = 0;
 
   Node *cn;
@@ -594,7 +594,7 @@ void Swig_symbol_cadd(String_or_char *name, Node *n) {
  * for namespace support, type resolution, and other issues.
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_symbol_add(String_or_char *symname, Node *n) {
+Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
   Hash *c, *cn, *cl = 0;
   SwigType *decl, *ndecl;
   String *cstorage, *nstorage;
@@ -890,7 +890,7 @@ static Node *_symbol_lookup(String *name, Symtab *symtab, int (*check) (Node *n)
   return 0;
 }
 
-static Node *symbol_lookup(String_or_char *name, Symtab *symtab, int (*check) (Node *n)) {
+static Node *symbol_lookup(const_String_or_char_ptr name, Symtab *symtab, int (*check) (Node *n)) {
   Node *n = 0;
   if (DohCheck(name)) {
     n = _symbol_lookup(name, symtab, check);
@@ -908,7 +908,7 @@ static Node *symbol_lookup(String_or_char *name, Symtab *symtab, int (*check) (N
  * symbol_lookup_qualified()
  * ----------------------------------------------------------------------------- */
 
-static Node *symbol_lookup_qualified(String_or_char *name, Symtab *symtab, String *prefix, int local, int (*checkfunc) (Node *n)) {
+static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symtab, String *prefix, int local, int (*checkfunc) (Node *n)) {
   /* This is a little funky, we search by fully qualified names */
 
   if (!symtab)
@@ -974,7 +974,7 @@ static Node *symbol_lookup_qualified(String_or_char *name, Symtab *symtab, Strin
  * to get the real node.
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_symbol_clookup(String_or_char *name, Symtab *n) {
+Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
   Hash *hsym = 0;
   Node *s = 0;
 
@@ -1046,7 +1046,7 @@ Node *Swig_symbol_clookup(String_or_char *name, Symtab *n) {
  * inheritance hierarchy. 
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_symbol_clookup_check(String_or_char *name, Symtab *n, int (*checkfunc) (Node *n)) {
+Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*checkfunc) (Node *n)) {
   Hash *hsym = 0;
   Node *s = 0;
 
@@ -1110,7 +1110,7 @@ Node *Swig_symbol_clookup_check(String_or_char *name, Symtab *n, int (*checkfunc
  * Swig_symbol_clookup_local()
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
+Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
   Hash *h, *hsym;
   Node *s = 0;
 
@@ -1158,7 +1158,7 @@ Node *Swig_symbol_clookup_local(String_or_char *name, Symtab *n) {
  * Swig_symbol_clookup_local_check()
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_symbol_clookup_local_check(String_or_char *name, Symtab *n, int (*checkfunc) (Node *)) {
+Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, int (*checkfunc) (Node *)) {
   Hash *h, *hsym;
   Node *s = 0;
 
@@ -1209,7 +1209,7 @@ Node *Swig_symbol_clookup_local_check(String_or_char *name, Symtab *n, int (*che
  * Look up a scope name.
  * ----------------------------------------------------------------------------- */
 
-Symtab *Swig_symbol_cscope(String_or_char *name, Symtab *symtab) {
+Symtab *Swig_symbol_cscope(const_String_or_char_ptr name, Symtab *symtab) {
   char *cname = Char(name);
   if (strncmp(cname, "::", 2) == 0)
     return symbol_lookup_qualified(0, global_scope, name, 0, 0);

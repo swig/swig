@@ -144,6 +144,9 @@ typedef void DOH;
 #define DOHString_or_char  DOH
 #define DOHObj_or_char     DOH
 
+typedef const DOHString_or_char * const_String_or_char_ptr;
+typedef const DOHString_or_char * DOHconst_String_or_char_ptr;
+
 #define DOH_BEGIN          -1
 #define DOH_END            -2
 #define DOH_CUR            -3

@@ -31,7 +31,7 @@
 
 /* Utility functions */
 
-extern int    checkAttribute(Node *obj, const String_or_char *name, const String_or_char *value);
+extern int    checkAttribute(Node *obj, const_String_or_char_ptr name, const_String_or_char_ptr value);
 extern void   appendChild(Node *node, Node *child);
 extern void   prependChild(Node *node, Node *child);
 extern void   removeNode(Node *node);

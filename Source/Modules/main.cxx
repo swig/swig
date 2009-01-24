@@ -285,7 +285,7 @@ static void set_outdir(const String *c_wrapper_file_dir) {
 }
 
 /* This function sets the name of the configuration file */
-void SWIG_config_file(const String_or_char *filename) {
+void SWIG_config_file(const_String_or_char_ptr filename) {
   lang_config = NewString(filename);
 }
 

@@ -101,12 +101,12 @@ protected:
   int isPointer(SwigType *t);
   void dispatchFunction(Node *n);
 
-  String *chickenNameMapping(String *, String_or_char *);
+  String *chickenNameMapping(String *, const_String_or_char_ptr );
   String *chickenPrimitiveName(String *);
 
   String *runtimeCode();
   String *defaultExternalRuntimeFilename();
-  String *buildClosFunctionCall(List *types, String_or_char *closname, String_or_char *funcname);
+  String *buildClosFunctionCall(List *types, const_String_or_char_ptr closname, const_String_or_char_ptr funcname);
 };
 
 /* -----------------------------------------------------------------------
@@ -1234,7 +1234,7 @@ int CHICKEN::importDirective(Node *n) {
   return Language::importDirective(n);
 }
 
-String *CHICKEN::buildClosFunctionCall(List *types, String_or_char *closname, String_or_char *funcname) {
+String *CHICKEN::buildClosFunctionCall(List *types, const_String_or_char_ptr closname, const_String_or_char_ptr funcname) {
   String *method_signature = NewString("");
   String *func_args = NewString("");
   String *func_call = NewString("");
@@ -1508,7 +1508,7 @@ int CHICKEN::validIdentifier(String *s) {
    * If class_name = "" that means the mapping is for a function or
    * variable not attached to any class.
    * ------------------------------------------------------------ */
-String *CHICKEN::chickenNameMapping(String *name, String_or_char *class_name) {
+String *CHICKEN::chickenNameMapping(String *name, const_String_or_char_ptr class_name) {
   String *n = NewString("");
 
   if (Strcmp(class_name, "") == 0) {

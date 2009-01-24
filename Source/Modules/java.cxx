@@ -82,7 +82,7 @@ class JAVA:public Language {
 
   enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
-  static Parm *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n) {
+  static Parm *NewParmFromNode(SwigType *type, const_String_or_char_ptr name, Node *n) {
     Parm *p = NewParm(type, name);
     Setfile(p, Getfile(n));
     Setline(p, Getline(n));

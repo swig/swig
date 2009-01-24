@@ -1654,7 +1654,7 @@ public:
    * If class_name = "" that means the mapping is for a function or
    * variable not attached to any class.
    * ------------------------------------------------------------ */
-  String *goopsNameMapping(String *name, String_or_char *class_name) {
+  String *goopsNameMapping(String *name, const_String_or_char_ptr class_name) {
     String *n = NewString("");
 
     if (Strcmp(class_name, "") == 0) {

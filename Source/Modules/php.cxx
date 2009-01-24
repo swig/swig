@@ -1934,7 +1934,7 @@ public:
     return NewStringEmpty();
   }
 
-  String *PhpTypeFromTypemap(char *op, Node *n, String_or_char *lname) {
+  String *PhpTypeFromTypemap(char *op, Node *n, const_String_or_char_ptr lname) {
     String *tms = Swig_typemap_lookup(op, n, lname, 0);
     if (!tms)
       return 0;

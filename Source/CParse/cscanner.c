@@ -442,7 +442,7 @@ int yylook(void) {
 
 static int check_typedef = 0;
 
-void scanner_set_location(String_or_char *file, int line) {
+void scanner_set_location(const_String_or_char_ptr file, int line) {
   Scanner_set_location(scan,file,line-1);
 }
 

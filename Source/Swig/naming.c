@@ -27,13 +27,13 @@ static Hash *naming_hash = 0;
  * Register a new naming format.
  * ----------------------------------------------------------------------------- */
 
-void Swig_name_register(const String_or_char *method, const String_or_char *format) {
+void Swig_name_register(const_String_or_char_ptr method, const_String_or_char_ptr format) {
   if (!naming_hash)
     naming_hash = NewHash();
   Setattr(naming_hash, method, format);
 }
 
-void Swig_name_unregister(const String_or_char *method) {
+void Swig_name_unregister(const_String_or_char_ptr method) {
   if (naming_hash) {
     Delattr(naming_hash, method);
   }
@@ -127,7 +127,7 @@ static int name_mangle(String *r) {
  * Converts all of the non-identifier characters of a string to underscores.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_mangle(const String_or_char *s) {
+String *Swig_name_mangle(const_String_or_char_ptr s) {
 #if 0
   String *r = NewString(s);
   name_mangle(r);
@@ -143,7 +143,7 @@ String *Swig_name_mangle(const String_or_char *s) {
  * Returns the name of a wrapper function.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_wrapper(const String_or_char *fname) {
+String *Swig_name_wrapper(const_String_or_char_ptr fname) {
   String *r;
   String *f;
 
@@ -168,7 +168,7 @@ String *Swig_name_wrapper(const String_or_char *fname) {
  * Returns the name of a class method.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_member(const String_or_char *classname, const String_or_char *mname) {
+String *Swig_name_member(const_String_or_char_ptr classname, const_String_or_char_ptr mname) {
   String *r;
   String *f;
   String *rclassname;
@@ -201,7 +201,7 @@ String *Swig_name_member(const String_or_char *classname, const String_or_char *
  * Returns the name of the accessor function used to get a variable.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_get(const String_or_char *vname) {
+String *Swig_name_get(const_String_or_char_ptr vname) {
   String *r;
   String *f;
 
@@ -229,7 +229,7 @@ String *Swig_name_get(const String_or_char *vname) {
  * Returns the name of the accessor function used to set a variable.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_set(const String_or_char *vname) {
+String *Swig_name_set(const_String_or_char_ptr vname) {
   String *r;
   String *f;
 
@@ -253,7 +253,7 @@ String *Swig_name_set(const String_or_char *vname) {
  * Returns the name of the accessor function used to create an object.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_construct(const String_or_char *classname) {
+String *Swig_name_construct(const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
@@ -286,7 +286,7 @@ String *Swig_name_construct(const String_or_char *classname) {
  * Returns the name of the accessor function used to copy an object.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_copyconstructor(const String_or_char *classname) {
+String *Swig_name_copyconstructor(const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
@@ -319,7 +319,7 @@ String *Swig_name_copyconstructor(const String_or_char *classname) {
  * Returns the name of the accessor function used to destroy an object.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_destroy(const String_or_char *classname) {
+String *Swig_name_destroy(const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
@@ -351,7 +351,7 @@ String *Swig_name_destroy(const String_or_char *classname) {
  * Returns the name of the accessor function used to disown an object.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_disown(const String_or_char *classname) {
+String *Swig_name_disown(const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
@@ -727,7 +727,7 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
  * concatenating the feature name plus ':' plus the attribute name.
  * ----------------------------------------------------------------------------- */
 
-void Swig_feature_set(Hash *features, const String_or_char *name, SwigType *decl, const String_or_char *featurename, String *value, Hash *featureattribs) {
+void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *decl, const_String_or_char_ptr featurename, String *value, Hash *featureattribs) {
   Hash *n;
   Hash *fhash;
 
@@ -1436,7 +1436,7 @@ static String *apply_rename(String *newname, int fullname, String *prefix, Strin
  * 
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_make(Node *n, String *prefix, String_or_char *cname, SwigType *decl, String *oldname) {
+String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, SwigType *decl, String *oldname) {
   String *nname = 0;
   String *result = 0;
   String *name = NewString(cname);

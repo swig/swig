@@ -107,7 +107,7 @@ void Swig_typemap_init() {
   tm_scope = 0;
 }
 
-static String *tmop_name(const String_or_char *op) {
+static String *tmop_name(const_String_or_char_ptr op) {
   static Hash *names = 0;
   String *s;
   /* Due to "interesting" object-identity semantics of DOH,
@@ -164,7 +164,7 @@ Hash *Swig_typemap_pop_scope() {
  * Add a new multi-valued typemap
  * ----------------------------------------------------------------------------- */
 
-void Swig_typemap_register(const String_or_char *op, ParmList *parms, String_or_char *code, ParmList *locals, ParmList *kwargs) {
+void Swig_typemap_register(const_String_or_char_ptr op, ParmList *parms, const_String_or_char_ptr code, ParmList *locals, ParmList *kwargs) {
   Hash *tm;
   Hash *tm1;
   Hash *tm2;
@@ -270,7 +270,7 @@ void Swig_typemap_register(const String_or_char *op, ParmList *parms, String_or_
  * Retrieve typemap information from current scope.
  * ----------------------------------------------------------------------------- */
 
-static Hash *Swig_typemap_get(SwigType *type, String_or_char *name, int scope) {
+static Hash *Swig_typemap_get(SwigType *type, const_String_or_char_ptr name, int scope) {
   Hash *tm, *tm1;
   /* See if this type has been seen before */
   if ((scope < 0) || (scope > tm_scope))
@@ -292,7 +292,7 @@ static Hash *Swig_typemap_get(SwigType *type, String_or_char *name, int scope) {
  * Copy a typemap
  * ----------------------------------------------------------------------------- */
 
-int Swig_typemap_copy(const String_or_char *op, ParmList *srcparms, ParmList *parms) {
+int Swig_typemap_copy(const_String_or_char_ptr op, ParmList *srcparms, ParmList *parms) {
   Hash *tm = 0;
   String *tmop;
   Parm *p;
@@ -347,7 +347,7 @@ int Swig_typemap_copy(const String_or_char *op, ParmList *srcparms, ParmList *pa
  * Delete a multi-valued typemap
  * ----------------------------------------------------------------------------- */
 
-void Swig_typemap_clear(const String_or_char *op, ParmList *parms) {
+void Swig_typemap_clear(const_String_or_char_ptr op, ParmList *parms) {
   SwigType *type;
   String *name;
   Parm *p;
@@ -590,7 +590,7 @@ static SwigType *strip_arrays(SwigType *type) {
  * that includes a 'code' attribute.
  * ----------------------------------------------------------------------------- */
 
-Hash *Swig_typemap_search(const String_or_char *op, SwigType *type, const String_or_char *name, SwigType **matchtype) {
+Hash *Swig_typemap_search(const_String_or_char_ptr op, SwigType *type, const_String_or_char_ptr name, SwigType **matchtype) {
   Hash *result = 0, *tm, *tm1, *tma;
   Hash *backup = 0;
   SwigType *noarrays = 0;
@@ -737,7 +737,7 @@ ret_result:
  * Search for a multi-valued typemap.
  * ----------------------------------------------------------------------------- */
 
-Hash *Swig_typemap_search_multi(const String_or_char *op, ParmList *parms, int *nmatch) {
+Hash *Swig_typemap_search_multi(const_String_or_char_ptr op, ParmList *parms, int *nmatch) {
   SwigType *type;
   SwigType *mtype = 0;
   String *name;
@@ -1173,7 +1173,7 @@ static void typemap_locals(DOHString * s, ParmList *l, Wrapper *f, int argnum) {
  *              $1 in the out typemap will be replaced  by the code in actioncode.
  * ----------------------------------------------------------------------------- */
 
-static String *Swig_typemap_lookup_impl(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f, String *actioncode) {
+static String *Swig_typemap_lookup_impl(const_String_or_char_ptr op, Node *node, const_String_or_char_ptr lname, Wrapper *f, String *actioncode) {
   SwigType *type;
   SwigType *mtype = 0;
   String *pname;
@@ -1384,13 +1384,13 @@ static String *Swig_typemap_lookup_impl(const String_or_char *op, Node *node, co
   return s;
 }
 
-String *Swig_typemap_lookup_out(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f, String *actioncode) {
+String *Swig_typemap_lookup_out(const_String_or_char_ptr op, Node *node, const_String_or_char_ptr lname, Wrapper *f, String *actioncode) {
   assert(actioncode);
   assert(Cmp(op, "out") == 0);
   return Swig_typemap_lookup_impl(op, node, lname, f, actioncode);
 }
 
-String *Swig_typemap_lookup(const String_or_char *op, Node *node, const String_or_char *lname, Wrapper *f) {
+String *Swig_typemap_lookup(const_String_or_char_ptr op, Node *node, const_String_or_char_ptr lname, Wrapper *f) {
   return Swig_typemap_lookup_impl(op, node, lname, f, 0);
 }
 
@@ -1406,7 +1406,7 @@ String *Swig_typemap_lookup(const String_or_char *op, Node *node, const String_o
  * A new attribute called "tmap:in:foo" with value "xyz" is attached to p.
  * ----------------------------------------------------------------------------- */
 
-void Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p) {
+void Swig_typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr op, Parm *p) {
   String *temp = NewStringEmpty();
   Parm *kw = Getattr(tm, "kwargs");
   while (kw) {
@@ -1438,7 +1438,7 @@ void Swig_typemap_attach_kwargs(Hash *tm, const String_or_char *op, Parm *p) {
  * attribute, print that warning message.
  * ----------------------------------------------------------------------------- */
 
-static void Swig_typemap_warn(const String_or_char *op, Parm *p) {
+static void Swig_typemap_warn(const_String_or_char_ptr op, Parm *p) {
   String *temp = NewStringf("%s:warning", op);
   String *w = Getattr(p, tmop_name(temp));
   Delete(temp);
@@ -1447,7 +1447,7 @@ static void Swig_typemap_warn(const String_or_char *op, Parm *p) {
   }
 }
 
-static void Swig_typemap_emit_code_fragments(const String_or_char *op, Parm *p) {
+static void Swig_typemap_emit_code_fragments(const_String_or_char_ptr op, Parm *p) {
   String *temp = NewStringf("%s:fragment", op);
   String *f = Getattr(p, tmop_name(temp));
   if (f) {
@@ -1479,7 +1479,7 @@ String *Swig_typemap_get_option(Hash *tm, String *name) {
   return 0;
 }
 
-void Swig_typemap_attach_parms(const String_or_char *op, ParmList *parms, Wrapper *f) {
+void Swig_typemap_attach_parms(const_String_or_char_ptr op, ParmList *parms, Wrapper *f) {
   Parm *p, *firstp;
   Hash *tm;
   int nmatch = 0;

@@ -625,7 +625,7 @@ void note_implicit_template_instantiation(SwigType *t) {
   add_defined_foreign_type(0, 0, t, t, implicit_ns ? implicit_ns : current_namespace);
 }
 
-String *get_ffi_type(SwigType *ty, const String_or_char *name) {
+String *get_ffi_type(SwigType *ty, const_String_or_char_ptr name) {
   /* lookup defined foreign type.
      if it exists, it will return a form suitable for placing
      into lisp code to generate the def-foreign-type name */
@@ -1962,7 +1962,7 @@ int any_varargs(ParmList *pl) {
   return 0;
 }
 
-String *get_lisp_type(SwigType *ty, const String_or_char *name) {
+String *get_lisp_type(SwigType *ty, const_String_or_char_ptr name) {
   Hash *typemap = Swig_typemap_search("lisptype", ty, name, 0);
   if (typemap) {
     String *typespec = Getattr(typemap, "code");

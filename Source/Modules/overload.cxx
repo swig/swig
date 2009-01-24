@@ -316,7 +316,7 @@ static bool print_typecheck(String *f, int j, Parm *pj) {
  * ReplaceFormat()
  * ----------------------------------------------------------------------------- */
 
-static String *ReplaceFormat(const String_or_char *fmt, int j) {
+static String *ReplaceFormat(const_String_or_char_ptr fmt, int j) {
   String *lfmt = NewString(fmt);
   char buf[50];
   sprintf(buf, "%d", j);
@@ -352,7 +352,7 @@ static String *ReplaceFormat(const String_or_char *fmt, int j) {
 /*
   Cast dispatch mechanism.
 */
-String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
+String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *maxargs) {
   int i, j;
 
   *maxargs = 1;
@@ -536,7 +536,7 @@ String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *max
 /*
   Fast dispatch mechanism, provided by  Salvador Fandi~no Garc'ia (#930586).
 */
-String *Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *maxargs) {
+String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *maxargs) {
   int i, j;
 
   *maxargs = 1;
@@ -695,7 +695,7 @@ String *Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *max
   return f;
 }
 
-String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
+String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxargs) {
 
   if (fast_dispatch_mode || GetFlag(n, "feature:fastdispatch")) {
     return Swig_overload_dispatch_fast(n, fmt, maxargs);

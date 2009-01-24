@@ -118,7 +118,7 @@ void Scanner_push(Scanner * s, String *txt) {
  * call to Scanner_token().
  * ----------------------------------------------------------------------------- */
 
-void Scanner_pushtoken(Scanner * s, int nt, const String_or_char *val) {
+void Scanner_pushtoken(Scanner * s, int nt, const_String_or_char_ptr val) {
   assert(s);
   assert((nt >= 0) && (nt < SWIG_MAXTOKENS));
   s->nexttoken = nt;
@@ -212,7 +212,7 @@ static char nextchar(Scanner * s) {
  * Sets error information on the scanner.
  * ----------------------------------------------------------------------------- */
 
-static void set_error(Scanner *s, int line, String_or_char *msg) {
+static void set_error(Scanner *s, int line, const_String_or_char_ptr msg) {
   s->error_line = line;
   s->error = NewString(msg);
 }

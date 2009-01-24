@@ -50,7 +50,7 @@ static char wrn_nnum_fmt[64];
 static char err_line_fmt[64];
 static char err_eof_fmt[64];
 
-static String *format_filename(const String_or_char *filename);
+static String *format_filename(const_String_or_char_ptr filename);
 
 /* -----------------------------------------------------------------------------
  * Swig_warning()
@@ -58,7 +58,7 @@ static String *format_filename(const String_or_char *filename);
  * Issue a warning message
  * ----------------------------------------------------------------------------- */
 
-void Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt, ...) {
+void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const char *fmt, ...) {
   String *out;
   char *msg;
   int wrn = 1;
@@ -121,7 +121,7 @@ void Swig_warning(int wnum, const String_or_char *filename, int line, const char
  * Issue an error message
  * ----------------------------------------------------------------------------- */
 
-void Swig_error(const String_or_char *filename, int line, const char *fmt, ...) {
+void Swig_error(const_String_or_char_ptr filename, int line, const char *fmt, ...) {
   va_list ap;
   String *formatted_filename = NULL;
 
@@ -170,7 +170,7 @@ void Swig_error_silent(int s) {
  * Takes a comma separate list of warning numbers and puts in the filter.
  * ----------------------------------------------------------------------------- */
 
-void Swig_warnfilter(const String_or_char *wlist, int add) {
+void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
   char *c;
   char *cw;
   String *s;
@@ -268,7 +268,7 @@ void Swig_error_msg_format(ErrorMessageFormat format) {
  *
  * Remove double backslashes in Windows filename paths for display
  * ----------------------------------------------------------------------------- */
-static String *format_filename(const String_or_char *filename) {
+static String *format_filename(const_String_or_char_ptr filename) {
   String *formatted_filename = NewString(filename);
 #if defined(_WIN32)
   Replaceall(formatted_filename, "\\\\", "\\");

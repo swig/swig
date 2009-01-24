@@ -163,7 +163,7 @@ void SwigType_typesystem_init() {
  * already defined.  
  * ----------------------------------------------------------------------------- */
 
-int SwigType_typedef(SwigType *type, String_or_char *name) {
+int SwigType_typedef(SwigType *type, const_String_or_char_ptr name) {
   if (Getattr(current_typetab, name))
     return -1;			/* Already defined */
   if (Strcmp(type, name) == 0) {	/* Can't typedef a name to itself */
@@ -193,7 +193,7 @@ int SwigType_typedef(SwigType *type, String_or_char *name) {
  * Defines a class in the current scope. 
  * ----------------------------------------------------------------------------- */
 
-int SwigType_typedef_class(String_or_char *name) {
+int SwigType_typedef_class(const_String_or_char_ptr name) {
   String *cname;
   /*  Printf(stdout,"class : '%s'\n", name); */
   if (Getattr(current_typetab, name))
@@ -232,7 +232,7 @@ String *SwigType_scope_name(Typetab *ttab) {
  * Creates a new scope
  * ----------------------------------------------------------------------------- */
 
-void SwigType_new_scope(const String_or_char *name) {
+void SwigType_new_scope(const_String_or_char_ptr name) {
   Typetab *s;
   Hash *ttab;
   String *qname;
@@ -1071,7 +1071,7 @@ int SwigType_istypedef(SwigType *t) {
  * Name is a qualified name like A::B.
  * ----------------------------------------------------------------------------- */
 
-int SwigType_typedef_using(String_or_char *name) {
+int SwigType_typedef_using(const_String_or_char_ptr name) {
   String *base;
   String *td;
   String *prefix;
@@ -1415,7 +1415,7 @@ static Hash *r_remembered = 0;	/* Hash of types we remembered already */
 
 static void (*r_tracefunc) (SwigType *t, String *mangled, String *clientdata) = 0;
 
-void SwigType_remember_mangleddata(String *mangled, const String_or_char *clientdata) {
+void SwigType_remember_mangleddata(String *mangled, const_String_or_char_ptr clientdata) {
   if (!r_mangleddata) {
     r_mangleddata = NewHash();
   }
@@ -1423,7 +1423,7 @@ void SwigType_remember_mangleddata(String *mangled, const String_or_char *client
 }
 
 
-void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata) {
+void SwigType_remember_clientdata(SwigType *t, const_String_or_char_ptr clientdata) {
   String *mt;
   SwigType *lt;
   Hash *h;
