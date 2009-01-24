@@ -96,6 +96,9 @@ eswig_LDADD   = @SWIGLIBS@
 # Override the link stage to avoid using Libtool
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 
+# Enforce all SWIG .c source code to compile under C++ compiler
+CC = $(CXX)
+
 # The executable is copied to the root directory for installation and running the test-suite.
 # This occurs on each invocation of make and is a step towards providing support for multiple 
 # build directories.
