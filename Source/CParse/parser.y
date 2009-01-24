@@ -3334,7 +3334,7 @@ cpp_class_decl  :
 		       } else {
 			   max_class_levels *= 2;
 		       }
-		       class_decl = realloc(class_decl, sizeof(Node*) * max_class_levels);
+		       class_decl = (Node**) realloc(class_decl, sizeof(Node*) * max_class_levels);
 		       if (!class_decl) {
 			   Swig_error(cparse_file, cparse_line, "realloc() failed\n");
 		       }
@@ -3483,7 +3483,7 @@ cpp_class_decl  :
 		   } else {
 		       max_class_levels *= 2;
 		   }
-		   class_decl = realloc(class_decl, sizeof(Node*) * max_class_levels);
+		   class_decl = (Node**) realloc(class_decl, sizeof(Node*) * max_class_levels);
 		   if (!class_decl) {
 		       Swig_error(cparse_file, cparse_line, "realloc() failed\n");
 		   }

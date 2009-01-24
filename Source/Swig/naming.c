@@ -600,7 +600,7 @@ static void merge_features(Hash *features, Node *n) {
  * ----------------------------------------------------------------------------- */
 
 static
-void features_get(Hash *features, String *tname, SwigType *decl, SwigType *ncdecl, Node *node) {
+void features_get(Hash *features, const String *tname, SwigType *decl, SwigType *ncdecl, Node *node) {
   Node *n = Getattr(features, tname);
 #ifdef SWIG_DEBUG
   Printf(stdout, "  features_get: %s\n", tname);

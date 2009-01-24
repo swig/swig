@@ -442,7 +442,7 @@ int yylook(void) {
 
 static int check_typedef = 0;
 
-void scanner_set_location(const_String_or_char_ptr file, int line) {
+void scanner_set_location(String *file, int line) {
   Scanner_set_location(scan,file,line-1);
 }
 
@@ -701,7 +701,7 @@ int yylex(void) {
 		break;
               } else if (nexttok == SWIG_TOKEN_CODEBLOCK) {
                 termtoken = SWIG_TOKEN_CODEBLOCK;
-                termvalue = Scanner_text(scan);
+                termvalue = Char(Scanner_text(scan));
                 break;
               } else if (nexttok == SWIG_TOKEN_LBRACE) {
                 termtoken = SWIG_TOKEN_LBRACE;
