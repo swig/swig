@@ -307,7 +307,7 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
     copy_location(_str, s);
     str = s;
   } else {
-    str = NewString((char *) str);
+    str = NewString((char *) _str);
   }
   Seek(str, 0, SEEK_SET);
   line = Getline(str);
