@@ -299,7 +299,7 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
   String *str;
 
   assert(cpp);
-  assert(str);
+  assert(_str);
 
   /* First make sure that string is actually a string */
   if (DohCheck(_str)) {
