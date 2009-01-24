@@ -45,9 +45,9 @@ int SwigRuntime = 0;		// 0 = no option, 1 = -runtime, 2 = -noruntime
  */
 #define EXTRA_WARNINGS "202,309,403,512,321,322"
 
-extern "C" {
+/*extern "C" {*/
   extern String *ModuleName;
-}
+/*}*/
 
 /* usage string split into multiple parts otherwise string is too big for some compilers */
 /* naming conventions for commandline options - no underscores, no capital letters, join words together

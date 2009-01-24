@@ -26,7 +26,7 @@ void Wrapper_virtual_elimination_mode_set(int flag) {
 /* Helper function to assist with abstract class checking.  
    This is a major hack. Sorry.  */
 
-extern "C" {
+/* extern "C" { */
   static String *search_decl = 0;	/* Declarator being searched */
   static int check_implemented(Node *n) {
     String *decl;
@@ -53,7 +53,7 @@ extern "C" {
     }
     return 0;
   }
-}
+/*}*/
 
 class Allocate:public Dispatcher {
   Node *inclass;

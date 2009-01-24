@@ -14,7 +14,7 @@
 
 #include "swigwarn.h"
 
-#ifdef __cplusplus
+#if 0
 extern "C" {
 #endif
   extern int Preprocessor_expr(String *s, int *error);
@@ -32,7 +32,7 @@ extern "C" {
   extern void Preprocessor_expr_init(void);
   extern void Preprocessor_expr_delete(void);
 
-#ifdef __cplusplus
+#if 0
 }
 #endif
 #endif

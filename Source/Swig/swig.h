@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifdef __cplusplus
+#if 0
 extern "C" {
 #endif
 
@@ -399,7 +399,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void SwigType_template_init(void);
 
 
-#ifdef __cplusplus
+#if 0
 }
 #endif
 #endif

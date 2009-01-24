@@ -1276,7 +1276,7 @@ String *CHICKEN::buildClosFunctionCall(List *types, const_String_or_char_ptr clo
   return func_call;
 }
 
-extern "C" {
+/*extern "C" {*/
 
   /* compares based on non-primitive names */
   static int compareTypeListsHelper(const DOH *a, const DOH *b, int opt_equal) {
@@ -1307,7 +1307,7 @@ extern "C" {
   static int compareTypeLists(const DOH *a, const DOH *b) {
     return compareTypeListsHelper(a, b, 0);
   }
-}
+/*}*/
 
 void CHICKEN::dispatchFunction(Node *n) {
   /* Last node in overloaded chain */

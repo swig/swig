@@ -107,11 +107,11 @@ static int primRenamer = 0;	// if (use-modules ((...) :renamer ...) is exported 
 static int exportprimitive = 0;	// -exportprimitive argument
 static String *memberfunction_name = 0;
 
-extern "C" {
+/*extern "C" {*/
   static int has_classname(Node *class_node) {
     return Getattr(class_node, "guile:goopsclassname") != NULL;
   }
-}
+/*}*/
 
 class GUILE:public Language {
 public:

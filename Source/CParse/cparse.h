@@ -15,7 +15,7 @@
 #include "swig.h"
 #include "swigwarn.h"
 
-#ifdef __cplusplus
+#if 0
 extern "C" {
 #endif
 
@@ -61,7 +61,7 @@ extern "C" {
   extern Node *Swig_cparse_template_locate(String *name, ParmList *tparms, Symtab *tscope);
   extern void Swig_cparse_debug_templates(int);
 
-#ifdef __cplusplus
+#if 0
 }
 #endif
 #define SWIG_WARN_NODE_BEGIN(Node) \

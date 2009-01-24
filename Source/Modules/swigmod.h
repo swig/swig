@@ -344,10 +344,10 @@ String *Swig_director_declaration(Node *n);
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
 /* directors.cxx end */
 
-extern "C" {
+/* extern "C" { */
   void SWIG_typemap_lang(const char *);
   typedef Language *(*ModuleFactory) (void);
-} void Swig_register_module(const char *name, ModuleFactory fac);
+/*}*/ void Swig_register_module(const char *name, ModuleFactory fac);
 ModuleFactory Swig_find_module(const char *name);
 
 /* Utilities */

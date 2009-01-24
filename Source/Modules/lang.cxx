@@ -36,7 +36,7 @@ void Wrapper_naturalvar_mode_set(int flag) {
   naturalvar_mode = flag;
 }
 
-extern "C" {
+/*extern "C" {*/
   int Swig_director_mode() {
     return director_mode;
   }
@@ -46,7 +46,7 @@ extern "C" {
   int Swig_all_protected_mode() {
     return all_protected_mode;
   }
-}
+/*}*/
 
 /* Some status variables used during parsing */
 static int InClass = 0; /* Parsing C++ or not */
