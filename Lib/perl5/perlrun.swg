@@ -493,39 +493,6 @@ typedef struct swig_constant_info {
 } swig_constant_info;
 
 
-/* Structure for variable table */
-typedef struct {
-  const char   *name;
-  SwigMagicFunc   set;
-  SwigMagicFunc   get;
-  swig_type_info  **type;
-} swig_variable_info;
-
-/* Magic variable code */
-#ifndef PERL_OBJECT
-#define swig_create_magic(s,a,b,c) _swig_create_magic(s,a,b,c)
-  #ifndef MULTIPLICITY
-     SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) 
-  #else
-     SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) 
-  #endif
-#else
-#  define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
-SWIGRUNTIME void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) 
-#endif
-{
-  MAGIC *mg;
-  sv_magic(sv,sv,'U',(char *) name,strlen(name));
-  mg = mg_find(sv,'U');
-  mg->mg_virtual = (MGVTBL *) malloc(sizeof(MGVTBL));
-  mg->mg_virtual->svt_get = (SwigMagicFunc) get;
-  mg->mg_virtual->svt_set = (SwigMagicFunc) set;
-  mg->mg_virtual->svt_len = 0;
-  mg->mg_virtual->svt_clear = 0;
-  mg->mg_virtual->svt_free = 0;
-}
-
-
 SWIGRUNTIME swig_module_info *
 SWIG_Perl_GetModule(void) {
   static void *type_pointer = (void *)0;

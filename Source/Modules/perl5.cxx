@@ -76,7 +76,6 @@ static String       *dest_package = 0;
 
 static String *command_tab = 0;
 static String *constant_tab = 0;
-static String *variable_tab = 0;
 
 static File *f_runtime = 0;
 static File *f_header = 0;
@@ -248,7 +247,6 @@ public:
 
     command_tab = NewString("static swig_command_info swig_commands[] = {\n");
     constant_tab = NewString("static swig_constant_info swig_constants[] = {\n");
-    variable_tab = NewString("static swig_variable_info swig_variables[] = {\n");
 
     Swig_banner(f_runtime);
 
@@ -415,9 +413,6 @@ public:
     Printf(f_init, "}\n");
 
     /* Finish off tables */
-    Printf(variable_tab, "{0,0,0,0}\n};\n");
-    Printv(f_wrappers, variable_tab, NIL);
-
     Printf(command_tab, "{0,0}\n};\n");
     Printv(f_wrappers, command_tab, NIL);
 
@@ -837,12 +832,17 @@ public:
     /* Now register the function */
 
     if (!Getattr(n, "sym:overloaded")) {
+      /* TODO: would be very cool to use newXSproto here, but for now
+       * let's just make it work using the current call signature
+       * checks. */
       String *pname = Getattr(n, "perl5:name");
       if (pname) 
-        Printf(command_tab, "{\"%s\", %s},\n", pname, wname);
+        Printv(f_init,
+            "newXS(\"", pname, "\", ", wname, ", __FILE__);\n", NIL);
       else
-        Printf(command_tab, "{\"%s::%s\", %s},\n",
-            namespace_module, iname, wname);
+        Printv(f_init,
+            "newXS(\"", namespace_module, "::", iname, "\", ",
+            wname, ", __FILE__);\n", NIL);
     } else if (!Getattr(n, "sym:nextSibling")) {
       /* Generate overloaded dispatch function */
       int maxargs;
@@ -868,10 +868,12 @@ public:
       {
         String *pname = Getattr(n, "perl5:name");
         if (pname)
-          Printf(command_tab, "{\"%s\", %s},\n", pname, dname);
+          Printv(f_init,
+              "newXS(\"", pname, "\", ", dname, ", __FILE__);\n", NIL);
         else
-          Printf(command_tab, "{\"%s::%s\", %s},\n",
-            namespace_module, iname, dname);
+          Printv(f_init,
+              "newXS(\"", namespace_module, "::", iname, "\", ",
+              dname, ", __FILE__);\n", NIL);
       }
       DelWrapper(df);
       Delete(dispatch);
@@ -1284,9 +1286,13 @@ public:
 
       /* tell interpreter about class attributes */
       {
-        /* this is all broken, see template_default2 test */
-        SwigType *ct = NewStringf("p.%s", name);
-        String *mang = SwigType_manglestr(ct);
+        /* TODO: this is all broken, see template_default2 test */
+        SwigType *ct = Copy(name);
+        String *mang;
+
+        SwigType_add_pointer(ct);
+        mang = SwigType_manglestr(ct);
+
         Printv(pm, "use fields (", NIL);
         int nattr = 0;
         for (Iterator i = First(Getattr(n, "perl5:memberVariables"));

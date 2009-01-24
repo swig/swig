@@ -37,7 +37,7 @@ XS(SWIG_init) {
     }
 
     /* Install variables */
-    for (i = 0; swig_variables[i].name; i++) {
+    /*for (i = 0; swig_variables[i].name; i++) {
       SV *sv;
       sv = get_sv((char*) swig_variables[i].name, TRUE | 0x2 | GV_ADDMULTI);
       if (swig_variables[i].type) {
@@ -46,7 +46,7 @@ XS(SWIG_init) {
 	sv_setiv(sv,(IV) 0);
       }
       swig_create_magic(sv, (char *) swig_variables[i].name, swig_variables[i].set, swig_variables[i].get); 
-    }
+    }*/
 
     /* Install constant */
     for (i = 0; swig_constants[i].type; i++) {
