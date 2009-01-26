@@ -51,7 +51,7 @@
 
 /* Perl-specific SWIG API */
 
-#define SWIG_MakePtr(sv, ptr, type, flags)              SWIG_Perl_MakePtr(SWIG_PERL_OBJECT_CALL sv, ptr, type, flags)
+#define SWIG_MakePtr(sv, ptr, type, flags)              SWIG_Perl_WrapNative(sv, ptr, type, flags, 0)
 #define SWIG_MakePackedObj(sv, p, s, type)	        SWIG_Perl_MakePackedObj(SWIG_PERL_OBJECT_CALL sv, p, s, type)
 #define SWIG_SetError(str)                              SWIG_Error(SWIG_RuntimeError, str)
 
