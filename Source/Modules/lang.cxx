@@ -2960,14 +2960,9 @@ Node *Language::classLookup(SwigType *s) {
   n = Getattr(classtypes, s);
   if (!n) {
     Symtab *stab = 0;
-//    SwigType *lt = SwigType_ltype(s);
-//    SwigType *ty1 = SwigType_typedef_resolve_all(lt);
     SwigType *ty1 = SwigType_typedef_resolve_all(s);
     SwigType *ty2 = SwigType_strip_qualifiers(ty1);
-//    Printf(stdout, "   stages... ty1: %s ty2: %s\n", ty1, ty2);
-//    Delete(lt);
     Delete(ty1);
-//    lt = 0;
     ty1 = 0;
 
     String *base = SwigType_base(ty2);
@@ -2975,6 +2970,12 @@ Node *Language::classLookup(SwigType *s) {
     Replaceall(base, "class ", "");
     Replaceall(base, "struct ", "");
     Replaceall(base, "union ", "");
+
+    if (strncmp(Char(base), "::", 2) == 0) {
+      String *oldbase = base;
+      base = NewString(Char(base) + 2);
+      Delete(oldbase);
+    }
 
     String *prefix = SwigType_prefix(ty2);
 
@@ -3048,6 +3049,12 @@ Node *Language::enumLookup(SwigType *s) {
 
     Replaceall(base, "enum ", "");
     String *prefix = SwigType_prefix(ty2);
+
+    if (strncmp(Char(base), "::", 2) == 0) {
+      String *oldbase = base;
+      base = NewString(Char(base) + 2);
+      Delete(oldbase);
+    }
 
     /* Look for type in symbol table */
     while (!n) {

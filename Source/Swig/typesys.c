@@ -840,6 +840,7 @@ SwigType *SwigType_typedef_resolve_all(SwigType *t) {
  *
  * Given a type declaration, this function tries to fully qualify it according to
  * typedef scope rules.
+ * Inconsistency to be fixed: ::Foo returns ::Foo, whereas ::Foo * returns Foo *
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_typedef_qualified(SwigType *t) {
