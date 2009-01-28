@@ -993,7 +993,7 @@ Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
   }
 
   if (Swig_scopename_check(name)) {
-    char *cname = Char(name);
+    const char *cname = Char(name);
     if (strncmp(cname, "::", 2) == 0) {
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
@@ -1065,7 +1065,7 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*
   }
 
   if (Swig_scopename_check(name)) {
-    char *cname = Char(name);
+    const char *cname = Char(name);
     if (strncmp(cname, "::", 2) == 0) {
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
@@ -1129,7 +1129,7 @@ Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
   }
 
   if (Swig_scopename_check(name)) {
-    char *cname = Char(name);
+    const char *cname = Char(name);
     if (strncmp(cname, "::", 2) == 0) {
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
@@ -1177,7 +1177,7 @@ Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, 
   }
 
   if (Swig_scopename_check(name)) {
-    char *cname = Char(name);
+    const char *cname = Char(name);
     if (strncmp(cname, "::", 2) == 0) {
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
@@ -1212,7 +1212,7 @@ Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, 
  * ----------------------------------------------------------------------------- */
 
 Symtab *Swig_symbol_cscope(const_String_or_char_ptr name, Symtab *symtab) {
-  char *cname = Char(name);
+  const char *cname = Char(name);
   if (strncmp(cname, "::", 2) == 0)
     return symbol_lookup_qualified(0, global_scope, name, 0, 0);
   return symbol_lookup_qualified(0, symtab, name, 0, 0);
@@ -1409,7 +1409,7 @@ SwigType *Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
   List *elements;
   String *result = NewStringEmpty();
   int i, len;
-  char *c = Char(t);
+  const char *c = Char(t);
   if (strncmp(c, "::", 2) == 0) {
     Append(result, t);
     return result;
@@ -1599,7 +1599,7 @@ SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
       {
 	const char *dclass[3] = { "struct ", "union ", "class " };
 	int i;
-	char *c = Char(nt);
+	const char *c = Char(nt);
 	for (i = 0; i < 3; i++) {
 	  if (strstr(c, dclass[i]) == c) {
 	    Replace(nt, dclass[i], "", DOH_REPLACE_FIRST);
@@ -1650,7 +1650,7 @@ String *Swig_symbol_string_qualify(String *s, Symtab *st) {
   int have_id = 0;
   String *id = NewStringEmpty();
   String *r = NewStringEmpty();
-  char *c = Char(s);
+  const char *c = Char(s);
   while (*c) {
     if (isalpha((int) *c) || (*c == '_') || (*c == ':')) {
       Putc(*c, id);

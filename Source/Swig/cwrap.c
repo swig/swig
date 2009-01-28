@@ -285,7 +285,7 @@ String *Swig_cresult(SwigType *t, const_String_or_char_ptr name, const_String_or
 
   /* A sick hack */
   {
-    char *c = Char(decl) + Len(decl) - 1;
+    const char *c = Char(decl) + Len(decl) - 1;
     if (!((*c == ';') || (*c == '}')))
       Append(fcall, ";");
   }

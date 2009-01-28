@@ -160,7 +160,7 @@ void SwigType_push(SwigType *t, String *cons) {
     return;
 
   if (Len(t)) {
-    char *c = Char(cons);
+    const char *c = Char(cons);
     if (c[strlen(c) - 1] != '.')
       Insert(t, 0, ".");
   }
@@ -174,7 +174,7 @@ void SwigType_push(SwigType *t, String *cons) {
  * ----------------------------------------------------------------------------- */
 
 int SwigType_ispointer_return(SwigType *t) {
-  char *c;
+  const char *c;
   int idx;
   if (!t)
     return 0;
@@ -187,7 +187,7 @@ int SwigType_ispointer_return(SwigType *t) {
 }
 
 int SwigType_isreference_return(SwigType *t) {
-  char *c;
+  const char *c;
   int idx;
   if (!t)
     return 0;
@@ -200,7 +200,7 @@ int SwigType_isreference_return(SwigType *t) {
 }
 
 int SwigType_isconst(SwigType *t) {
-  char *c;
+  const char *c;
   if (!t)
     return 0;
   c = Char(t);
@@ -237,7 +237,7 @@ int SwigType_ismutable(SwigType *t) {
 }
 
 int SwigType_isenum(SwigType *t) {
-  char *c = Char(t);
+  const char *c = Char(t);
   if (!t)
     return 0;
   if (strncmp(c, "enum ", 5) == 0) {
@@ -247,7 +247,7 @@ int SwigType_isenum(SwigType *t) {
 }
 
 int SwigType_issimple(SwigType *t) {
-  char *c = Char(t);
+  const char *c = Char(t);
   if (!t)
     return 0;
   while (*c) {
@@ -358,7 +358,7 @@ void SwigType_add_default(String *def, SwigType *nr) {
 SwigType *SwigType_default(SwigType *t) {
   String *r1, *def;
   String *r = 0;
-  char *cr;
+  const char *cr;
 
 #ifdef SWIG_DEFAULT_CACHE
   if (!default_cache)
@@ -429,7 +429,7 @@ SwigType *SwigType_default(SwigType *t) {
       for (i = 0; i < ndim; i++) {
 	String *dim = SwigType_array_getdim(r, i);
 	if (!Len(dim)) {
-	  char *c = Char(nr);
+	  const char *c = Char(nr);
 	  empty = strstr(c, "a(ANY).") != c;
 	}
 	Delete(dim);
@@ -499,7 +499,7 @@ String *SwigType_namestr(const SwigType *t) {
   String *suffix;
   List *p;
   int i, sz;
-  char *d = Char(t);
+  const char *d = Char(t);
   char *c = strstr(d, "<(");
 
   if (!c || !strstr(c + 2, ")>"))
@@ -942,7 +942,7 @@ String *SwigType_manglestr_default(SwigType *s) {
   result = SwigType_prefix(lt);
   base = SwigType_base(lt);
 
-  c = Char(result);
+  c = (char *) Char(result);
   while (*c) {
     if (!isalnum((int) *c))
       *c = '_';
@@ -959,7 +959,7 @@ String *SwigType_manglestr_default(SwigType *s) {
   Replace(base, "union ", "", DOH_REPLACE_ANY);
   Replace(base, "enum ", "", DOH_REPLACE_ANY);
 
-  c = Char(base);
+  c = (char *) Char(base);
   while (*c) {
     if (*c == '<')
       *c = 'T';

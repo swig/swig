@@ -384,7 +384,7 @@ String *Swig_string_ucase(String *s) {
 
 String *Swig_string_first_upper(String *s) {
   String *ns = NewStringEmpty();
-  char *cs = Char(s);
+  const char *cs = Char(s);
   if (cs && cs[0] != 0) {
     Putc(toupper((int)cs[0]), ns);
     Append(ns, cs + 1);
@@ -405,7 +405,7 @@ String *Swig_string_first_upper(String *s) {
 
 String *Swig_string_first_lower(String *s) {
   String *ns = NewStringEmpty();
-  char *cs = Char(s);
+  const char *cs = Char(s);
   if (cs && cs[0] != 0) {
     Putc(tolower((int)cs[0]), ns);
     Append(ns, cs + 1);
@@ -506,7 +506,7 @@ String *Swig_string_mangle(const String *s) {
 #if 0
   /* old mangling, not suitable for using in macros */
   String *t = Copy(s);
-  char *c = Char(t);
+  const char *c = Char(t);
   while (*c) {
     if (!isalnum(*c))
       *c = '_';
@@ -517,7 +517,7 @@ String *Swig_string_mangle(const String *s) {
   String *result = NewStringEmpty();
   int space = 0;
   int state = 0;
-  char *pc, *cb;
+  const char *pc, *cb;
   String *b = Copy(s);
   if (SwigType_istemplate(b)) {
     String *st = Swig_symbol_template_deftype(b, 0);
@@ -652,9 +652,9 @@ String *Swig_string_emangle(String *s) {
  * ----------------------------------------------------------------------------- */
 
 void Swig_scopename_split(const String *s, String **rprefix, String **rlast) {
-  char *tmp = Char(s);
-  char *c = tmp;
-  char *cc = c;
+  const char *tmp = Char(s);
+  const char *c = tmp;
+  const char *cc = c;
   char *co = 0;
   if (!strstr(c, "::")) {
     *rprefix = 0;
@@ -706,9 +706,9 @@ void Swig_scopename_split(const String *s, String **rprefix, String **rlast) {
 
 
 String *Swig_scopename_prefix(const String *s) {
-  char *tmp = Char(s);
-  char *c = tmp;
-  char *cc = c;
+  const char *tmp = Char(s);
+  const char *c = tmp;
+  const char *cc = c;
   char *co = 0;
   if (!strstr(c, "::"))
     return 0;
@@ -758,9 +758,9 @@ String *Swig_scopename_prefix(const String *s) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_scopename_last(const String *s) {
-  char *tmp = Char(s);
-  char *c = tmp;
-  char *cc = c;
+  const char *tmp = Char(s);
+  const char *c = tmp;
+  const char *cc = c;
   char *co = 0;
   if (!strstr(c, "::"))
     return NewString(s);
@@ -802,9 +802,9 @@ String *Swig_scopename_last(const String *s) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_scopename_first(const String *s) {
-  char *tmp = Char(s);
-  char *c = tmp;
-  char *co = 0;
+  const char *tmp = Char(s);
+  const char *c = tmp;
+  const char *co = 0;
   if (!strstr(c, "::"))
     return 0;
 
@@ -852,8 +852,8 @@ String *Swig_scopename_first(const String *s) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_scopename_suffix(const String *s) {
-  char *tmp = Char(s);
-  char *c = tmp;
+  const char *tmp = Char(s);
+  const char *c = tmp;
   char *co = 0;
   if (!strstr(c, "::"))
     return 0;
@@ -896,7 +896,7 @@ String *Swig_scopename_suffix(const String *s) {
  * ----------------------------------------------------------------------------- */
 
 int Swig_scopename_check(const String *s) {
-  char *c = Char(s);
+  const char *c = Char(s);
   char *co = strstr(c, "operator ");
 
   if (co) {
@@ -955,7 +955,7 @@ String *Swig_string_command(String *s) {
   String *res = NewStringEmpty();
 #if defined(HAVE_POPEN)
   if (Len(s)) {
-    char *command = Char(s);
+    const char *command = Char(s);
     FILE *fp = popen(command, "r");
     if (fp) {
       char buffer[1025];
@@ -1042,7 +1042,7 @@ const char *skip_delim(char pb, char pe, const char *ce) {
 String *Swig_string_rxspencer(String *s) {
   String *res = 0;
   if (Len(s)) {
-    const char *cs = Char(s);
+    const const char *cs = Char(s);
     const char *cb;
     const char *ce;
     if (*cs == '[') {

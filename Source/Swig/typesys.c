@@ -755,7 +755,7 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
   r = SwigType_prefix(t);
   if (!type) {
     if (r && Len(r)) {
-      char *cr = Char(r);
+      const char *cr = Char(r);
       if ((strstr(cr, "f(") || (strstr(cr, "m(")))) {
 	SwigType *rt = SwigType_typedef_resolve(r);
 	if (rt) {
@@ -953,7 +953,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 		  break;
 		lastnode = n;
 		if (n) {
-		  char *ntype = Char(nodeType(n));
+		  const char *ntype = Char(nodeType(n));
 		  if (strcmp(ntype, "enumitem") == 0) {
 		    /* An enum item.   Generate a fully qualified name */
 		    String *qn = Swig_symbol_qualified(n);
@@ -1051,7 +1051,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
  * Checks a typename to see if it is a typedef.
  * ----------------------------------------------------------------------------- */
 
-int SwigType_istypedef(SwigType *t) {
+int SwigType_istypedef(const SwigType *t) {
   String *type;
 
   type = SwigType_typedef_resolve(t);
@@ -1186,8 +1186,8 @@ int SwigType_isclass(SwigType *t) {
  * everything is based on typemaps.
  * ----------------------------------------------------------------------------- */
 
-int SwigType_type(SwigType *t) {
-  char *c;
+int SwigType_type(const SwigType *t) {
+  const char *c;
   /* Check for the obvious stuff */
   c = Char(t);
 
@@ -1486,7 +1486,7 @@ void SwigType_remember_clientdata(SwigType *t, const_String_or_char_ptr clientda
      Printf(stdout,"fr= '%s'\n\n", fr); */
 
   if (t) {
-    char *ct = Char(t);
+    const char *ct = Char(t);
     if (strchr(ct, '<') && !(strstr(ct, "<("))) {
       Printf(stdout, "Bad template type passed to SwigType_remember: %s\n", t);
       assert(0);

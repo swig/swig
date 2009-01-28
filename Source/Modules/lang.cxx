@@ -84,7 +84,7 @@ int Dispatcher::emit_one(Node *n) {
   String *wrn;
   int ret = SWIG_OK;
 
-  char *tag = Char(nodeType(n));
+  const char *tag = Char(nodeType(n));
   if (!tag) {
     /* Printf(stderr,"SWIG: Fatal internal error. Malformed parse tree
        node!\n"); */
@@ -188,7 +188,7 @@ int Dispatcher::emit_one(Node *n) {
 
 int Dispatcher::emit_children(Node *n) {
   Node *c;
-  char *eo = Char(Getattr(n, "feature:emitonlychildren"));
+  const char *eo = Char(Getattr(n, "feature:emitonlychildren"));
   for (c = firstChild(n); c; c = nextSibling(c)) {
     if (eo) {
       const char *tag = Char(nodeType(c));
@@ -411,7 +411,7 @@ static Node *first_nontemplate(Node *n) {
  * Handle swig pragma directives.  
  * -------------------------------------------------------------------------- */
 
-void swig_pragma(char *lang, char *name, char *value) {
+void swig_pragma(const char *lang, const char *name, const char *value) {
   if (strcmp(lang, "swig") == 0) {
     if ((strcmp(name, "make_default") == 0) || ((strcmp(name, "makedefault") == 0))) {
       GenerateDefault = 1;
@@ -419,16 +419,15 @@ void swig_pragma(char *lang, char *name, char *value) {
       Swig_warning(WARN_DEPRECATED_NODEFAULT, "SWIG", 1, "dangerous, use %%nodefaultctor, %%nodefaultdtor instead.\n");
       GenerateDefault = 0;
     } else if (strcmp(name, "attributefunction") == 0) {
-      String *nvalue = NewString(value);
-      char *s = strchr(Char(nvalue), ':');
+      const char *p = Char(value);
+      const char *s = strchr(p, ':');
       if (!s) {
 	Swig_error(input_file, line_number, "Bad value for attributefunction. Expected \"fmtget:fmtset\".\n");
       } else {
-	*s = 0;
-	AttributeFunctionGet = NewString(Char(nvalue));
+	//*s = 0;
+	AttributeFunctionGet = NewStringWithSize(p, s-p);
 	AttributeFunctionSet = NewString(s + 1);
       }
-      Delete(nvalue);
     } else if (strcmp(name, "noattributefunction") == 0) {
       AttributeFunctionGet = 0;
       AttributeFunctionSet = 0;
@@ -2321,8 +2320,8 @@ int Language::classDeclaration(Node *n) {
   String *tdname = Getattr(n, "tdname");
   String *symname = Getattr(n, "sym:name");
 
-  char *classname = tdname ? Char(tdname) : Char(name);
-  char *iname = Char(symname);
+  const char *classname = tdname ? Char(tdname) : Char(name);
+  const char *iname = Char(symname);
   int strip = (tdname || CPlusPlus) ? 1 : 0;
 
 
@@ -2740,7 +2739,7 @@ int Language::destructorHandler(Node *n) {
 
   String *symname = Getattr(n, "sym:name");
   String *mrename;
-  char *csymname = Char(symname);
+  const char *csymname = Char(symname);
   if (csymname && (*csymname == '~'))
     csymname += 1;
 
@@ -2784,7 +2783,7 @@ int Language::namespaceDeclaration(Node *n) {
 }
 
 int Language::validIdentifier(String *s) {
-  char *c = Char(s);
+  const char *c = Char(s);
   while (*c) {
     if (!(isalnum(*c) || (*c == '_')))
       return 0;

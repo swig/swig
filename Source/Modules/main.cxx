@@ -211,7 +211,7 @@ static int check_suffix(String *filename) {
 static void install_opts(int argc, char *argv[]) {
   int i;
   int noopt = 0;
-  char *c;
+  const char *c;
   for (i = 1; i < (argc - 1); i++) {
     if (argv[i]) {
       if ((*argv[i] == '-') && (!isupper(*(argv[i] + 1)))) {
@@ -837,7 +837,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
   String *package_version = NewString(PACKAGE_VERSION); /* Note that the fakeversion has not been set at this point */
-  char *token = strtok(Char(package_version), ".");
+  const char *token = strtok((char *)Char(package_version), ".");
   String *vers = NewString("SWIG_VERSION 0x");
   int count = 0;
   while (token) {
@@ -943,7 +943,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // If the user has requested to check out a file, handle that
   if (checkout) {
     DOH *s;
-    char *outfile = Char(input_file);
+    const char *outfile = Char(input_file);
     if (outfile_name)
       outfile = outfile_name;
 
@@ -983,7 +983,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       if (!df) {
 	df = Swig_include_open(input_file);
 	if (!df) {
-	  char *cfile = Char(input_file);
+	  const char *cfile = Char(input_file);
 	  if (cfile && cfile[0] == '-') {
 	    Printf(stderr, "Unable to find option or file '%s', ", input_file);
 	    Printf(stderr, "use 'swig -help' for more information.\n");

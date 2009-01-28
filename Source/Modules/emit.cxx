@@ -407,7 +407,7 @@ String *emit_action(Node *n) {
     if (fragment) {
       char *c, *tok;
       String *t = Copy(fragment);
-      c = Char(t);
+      c = (char *) Char(t);
       tok = strtok(c, ",");
       while (tok) {
 	String *fname = NewString(tok);

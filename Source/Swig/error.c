@@ -60,7 +60,7 @@ static String *format_filename(const_String_or_char_ptr filename);
 
 void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const char *fmt, ...) {
   String *out;
-  char *msg;
+  const char *msg;
   int wrn = 1;
   va_list ap;
   if (silence)
@@ -75,7 +75,7 @@ void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const c
 
   msg = Char(out);
   if (isdigit((unsigned char) *msg)) {
-    unsigned long result = strtoul(msg, &msg, 10);
+    unsigned long result = strtoul(msg, (char **)&msg, 10);
     if (msg != Char(out)) {
       msg++;
       wnum = result;
@@ -86,7 +86,7 @@ void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const c
   if (filter) {
     char temp[32];
     char *c;
-    char *f = Char(filter);
+    const char *f = Char(filter);
     sprintf(temp, "%d", wnum);
     while (*f != '\0' && (c = strstr(f, temp))) {
       if (*(c - 1) == '-') {
@@ -171,8 +171,8 @@ void Swig_error_silent(int s) {
  * ----------------------------------------------------------------------------- */
 
 void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
-  char *c;
-  char *cw;
+  const char *c;
+  const char *cw;
   String *s;
   if (!filter)
     filter = NewStringEmpty();
@@ -187,7 +187,8 @@ void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
     ++cw;
   }
   c = Char(s);
-  c = strtok(c, ", ");
+  //TODO(bhy) fix later
+  c = strtok((char*)c, ", ");
   while (c) {
     if (isdigit((int) *c) || (*c == '+') || (*c == '-')) {
       /* Even if c is a digit, the rest of the string might not be, eg in the case of typemap 

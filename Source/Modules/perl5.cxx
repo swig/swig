@@ -305,7 +305,7 @@ public:
       f_pm = NewString(0);
     } else {
       if (pmfile == NULL) {
-	char *m = Char(module) + Len(module);
+	const char *m = Char(module) + Len(module);
 	while (m != Char(module)) {
 	  if (*m == ':') {
 	    m++;
@@ -977,7 +977,7 @@ public:
     if (SwigType_type(type) == T_MPOINTER) {
       String *wname = Swig_name_wrapper(iname);
       Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type, wname), value);
-      value = Char(wname);
+      value = wname;
     }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
@@ -1031,7 +1031,7 @@ public:
   /* ------------------------------------------------------------
    * usage_func()
    * ------------------------------------------------------------ */
-  char *usage_func(char *iname, SwigType *, ParmList *l) {
+  const char *usage_func(const char *iname, SwigType *, ParmList *l) {
     static String *temp = 0;
     Parm *p;
     int i;
@@ -1227,7 +1227,7 @@ public:
 	Printf(pm, "use overload\n");
 	Iterator ki;
 	for (ki = First(operators); ki.key; ki = Next(ki)) {
-	  char *name = Char(ki.key);
+	  const char *name = Char(ki.key);
 	  //        fprintf(stderr,"found name: <%s>\n", name);
 	  if (strstr(name, "__eq__")) {
 	    Printv(pm, tab4, "\"==\" => sub { $_[0]->__eq__($_[1])},\n",NIL);
@@ -1649,7 +1649,7 @@ public:
   String *perlcode(String *code, const String *indent) {
     String *out = NewString("");
     String *temp;
-    char *t;
+    const char *t;
     if (!indent)
       indent = "";
 
@@ -1672,7 +1672,7 @@ public:
     for (si = First(clist); si.item; si = Next(si)) {
       s = si.item;
       if (Len(s)) {
-	char *c = Char(s);
+	const char *c = Char(s);
 	while (*c) {
 	  if (!isspace(*c))
 	    break;
@@ -1689,7 +1689,7 @@ public:
     while (si.item) {
       s = si.item;
       if (Len(s) > initial) {
-	char *c = Char(s);
+	const char *c = Char(s);
 	c += initial;
 	Printv(out, indent, c, "\n", NIL);
       } else {

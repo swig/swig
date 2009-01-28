@@ -458,7 +458,7 @@ MODULA3():
    * ----------------------------------------------------------------------------- */
   String *nameToModula3(const String *sym, bool leadingCap) {
     int len_sym = Len(sym);
-    char *csym = Char(sym);
+    const char *csym = Char(sym);
     char *m3sym = new char[len_sym + 1];
     int i, j;
     bool cap = leadingCap;
@@ -508,7 +508,7 @@ MODULA3():
     String *oldPrefix = Getattr(n, "feature:modula3:oldprefix");
     String *newPrefix = Getattr(n, "feature:modula3:newprefix");
     String *result = NewString("");
-    char *short_sym = Char(sym);
+    const char *short_sym = Char(sym);
     // if at least one prefix feature is present
     // the replacement takes place
     if ((oldPrefix != NIL) || (newPrefix != NIL)) {

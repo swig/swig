@@ -135,13 +135,13 @@ extern "C" {
   extern String *SwigType_lcaststr(SwigType *s, const_String_or_char_ptr id);
   extern String *SwigType_manglestr(SwigType *t);
   extern SwigType *SwigType_ltype(SwigType *t);
-  extern int SwigType_ispointer(SwigType *t);
+  extern int SwigType_ispointer(const SwigType *t);
   extern int SwigType_ispointer_return(SwigType *t);
   extern int SwigType_isfunctionpointer(SwigType *t);
   extern int SwigType_ismemberpointer(SwigType *t);
   extern int SwigType_isreference(SwigType *t);
   extern int SwigType_isreference_return(SwigType *t);
-  extern int SwigType_isarray(SwigType *t);
+  extern int SwigType_isarray(const SwigType *t);
   extern int SwigType_prefix_is_simple_1D_array(SwigType *t);
   extern int SwigType_isfunction(SwigType *t);
   extern int SwigType_isqualifier(SwigType *t);
@@ -188,7 +188,7 @@ extern "C" {
   extern SwigType *SwigType_typedef_resolve(const SwigType *t);
   extern SwigType *SwigType_typedef_resolve_all(SwigType *t);
   extern SwigType *SwigType_typedef_qualified(SwigType *t);
-  extern int SwigType_istypedef(SwigType *t);
+  extern int SwigType_istypedef(const SwigType *t);
   extern int SwigType_isclass(SwigType *t);
   extern void SwigType_attach_symtab(Symtab *syms);
   extern void SwigType_remember(SwigType *t);
@@ -196,7 +196,7 @@ extern "C" {
   extern void SwigType_remember_mangleddata(String *mangled, const_String_or_char_ptr clientdata);
   extern void (*SwigType_remember_trace(void (*tf) (SwigType *, String *, String *))) (SwigType *, String *, String *);
   extern void SwigType_emit_type_table(File *f_headers, File *f_table);
-  extern int SwigType_type(SwigType *t);
+  extern int SwigType_type(const SwigType *t);
 
 /* --- Symbol table module --- */
 

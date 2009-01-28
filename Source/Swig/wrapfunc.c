@@ -465,11 +465,11 @@ int Wrapper_check_local(Wrapper *w, const_String_or_char_ptr name) {
  * used.  Returns the name that was actually selected.
  * ----------------------------------------------------------------------------- */
 
-char *Wrapper_new_local(Wrapper *w, const_String_or_char_ptr name, const_String_or_char_ptr decl) {
+const char *Wrapper_new_local(Wrapper *w, const_String_or_char_ptr name, const_String_or_char_ptr decl) {
   int i;
   String *nname = NewString(name);
   String *ndecl = NewString(decl);
-  char *ret;
+  const char *ret;
 
   i = 0;
 
@@ -496,9 +496,9 @@ char *Wrapper_new_local(Wrapper *w, const_String_or_char_ptr name, const_String_
  * to manually construct the 'decl' string before calling.
  * ----------------------------------------------------------------------------- */
 
-char *Wrapper_new_localv(Wrapper *w, const_String_or_char_ptr name, ...) {
+const char *Wrapper_new_localv(Wrapper *w, const_String_or_char_ptr name, ...) {
   va_list ap;
-  char *ret;
+  const char *ret;
   String *decl;
   DOH *obj;
   decl = NewStringEmpty();

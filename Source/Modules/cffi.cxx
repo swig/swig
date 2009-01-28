@@ -54,7 +54,7 @@ private:
   void emit_struct_union(Node *n, bool un);
   void emit_export(Node *n, String *name);
   void emit_inline(Node *n, String *name);
-  String *lispy_name(char *name);
+  String *lispy_name(const char *name);
   String *lispify_name(Node *n, String *ty, const char *flag, bool kw = false);
   String *convert_literal(String *num_param, String *type, bool try_to_split = true);
   String *infix_to_prefix(String *val, char split_op, const String *op, String *type);
@@ -872,7 +872,8 @@ String *CFFI::lispify_name(Node *n, String *ty, const char *flag, bool kw) {
 /* utilities */
 /* returns new string w/ parens stripped */
 String *CFFI::strip_parens(String *string) {
-  char *s = Char(string), *p;
+  const char *s = Char(string);
+  char *p;
   int len = Len(string);
   String *res;
 
@@ -896,7 +897,7 @@ String *CFFI::strip_parens(String *string) {
 }
 
 String *CFFI::trim(String *str) {
-  char *c = Char(str);
+  const char *c = Char(str);
   while (*c != '\0' && isspace((int) *c))
     ++c;
   String *result = NewString(c);
@@ -952,7 +953,7 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
   String *trimmed = trim(num_param);
   String *num = strip_parens(trimmed), *res = 0;
   Delete(trimmed);
-  char *s = Char(num);
+  const char *s = Char(num);
 
   // very basic parsing of infix expressions.
   if (try_to_split) {
@@ -976,8 +977,8 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
     // Use CL syntax for float literals 
 
     // careful. may be a float identifier or float constant.
-    char *num_start = Char(num);
-    char *num_end = num_start + strlen(num_start) - 1;
+    const char *num_start = Char(num);
+    const char *num_end = num_start + strlen(num_start) - 1;
 
     bool is_literal = isdigit(*num_start) || (*num_start == '.') || (*num_start == '+') || (*num_start == '-');
 
@@ -990,7 +991,8 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
       }
 
       if (*num_end == 'l' || *num_end == 'L' || *num_end == 'f' || *num_end == 'F') {
-        *num_end = '\0';
+        //*num_end = '\0';
+        Delitem(num, DOH_END);
         num_end--;
       }
 
@@ -1047,7 +1049,7 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
 }
 
 //less flexible as it does the conversion in C, the lispify name does the conversion in lisp
-String *CFFI::lispy_name(char *name) {
+String *CFFI::lispy_name(const char *name) {
   bool helper = false;
   String *new_name = NewString("");
   for (unsigned int i = 0; i < strlen(name); i++) {

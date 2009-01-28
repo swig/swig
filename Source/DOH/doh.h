@@ -221,7 +221,7 @@ extern int DohDelslice(DOH *obj, int sindex, int eindex);
 
 /* File methods */
 
-extern int DohWrite(DOHFile * obj, void *buffer, int length);
+extern int DohWrite(DOHFile * obj, const void *buffer, int length);
 extern int DohRead(DOHFile * obj, void *buffer, int length);
 extern int DohSeek(DOHFile * obj, long offset, int whence);
 extern long DohTell(DOHFile * obj);
@@ -300,10 +300,10 @@ extern char *DohStrchr(const DOHString_or_char *s1, int ch);
  * Files
  * ----------------------------------------------------------------------------- */
 
-extern DOHFile *DohNewFile(DOH *filename, const char *mode, DOHList *outfiles);
+extern DOHFile *DohNewFile(const DOH *filename, const char *mode, DOHList *outfiles);
 extern DOHFile *DohNewFileFromFile(FILE *f);
 extern DOHFile *DohNewFileFromFd(int fd);
-extern void DohFileErrorDisplay(DOHString * filename);
+extern void DohFileErrorDisplay(const DOHString * filename);
 extern int DohClose(DOH *file);
 extern int DohCopyto(DOHFile * input, DOHFile * output);
 
@@ -355,7 +355,7 @@ extern void DohMemoryDebug(void);
 #define Push(s,x)          DohInsertitem(s,DOH_BEGIN,x)
 #define Len                DohLen
 #define Data               DohData
-#define Char               (char *) Data
+#define Char               (const char *) Data
 #define Cmp                DohCmp
 #define Equal              DohEqual
 #define Setline            DohSetline

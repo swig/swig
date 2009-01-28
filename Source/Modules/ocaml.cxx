@@ -374,7 +374,7 @@ public:
    */
 
   void oc_SwigType_del_reference(SwigType *t) {
-    char *c = Char(t);
+    const char *c = Char(t);
     if (strncmp(c, "q(", 2) == 0) {
       Delete(SwigType_pop(t));
       c = Char(t);
@@ -387,7 +387,7 @@ public:
   }
 
   void oc_SwigType_del_array(SwigType *t) {
-    char *c = Char(t);
+    const char *c = Char(t);
     if (strncmp(c, "q(", 2) == 0) {
       Delete(SwigType_pop(t));
       c = Char(t);
@@ -1005,7 +1005,7 @@ public:
   }
 
   bool isSimpleType(String *name) {
-    char *ch = Char(name);
+    const char *ch = Char(name);
 
     return !(strchr(ch, '(') || strchr(ch, '<') || strchr(ch, ')') || strchr(ch, '>'));
   }

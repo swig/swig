@@ -44,7 +44,8 @@ static int name_mangle(String *r) {
   int special;
   special = 0;
   Replaceall(r, "::", "_");
-  c = Char(r);
+  //TODO(bhy) fix later
+  c = (char*) Char(r);
   while (*c) {
     if (!isalnum((int) *c) && (*c != '_')) {
       special = 1;
@@ -172,7 +173,7 @@ String *Swig_name_member(const_String_or_char_ptr classname, const_String_or_cha
   String *r;
   String *f;
   String *rclassname;
-  char *cname;
+  const char *cname;
 
   rclassname = SwigType_namestr(classname);
   r = NewStringEmpty();
@@ -257,7 +258,7 @@ String *Swig_name_construct(const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
-  char *cname;
+  const char *cname;
 
   rclassname = SwigType_namestr(classname);
   r = NewStringEmpty();
@@ -290,7 +291,7 @@ String *Swig_name_copyconstructor(const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
-  char *cname;
+  const char *cname;
 
   rclassname = SwigType_namestr(classname);
   r = NewStringEmpty();
@@ -323,7 +324,7 @@ String *Swig_name_destroy(const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
-  char *cname;
+  const char *cname;
   rclassname = SwigType_namestr(classname);
   r = NewStringEmpty();
   if (!naming_hash)
@@ -355,7 +356,7 @@ String *Swig_name_disown(const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
-  char *cname;
+  const char *cname;
   rclassname = SwigType_namestr(classname);
   r = NewStringEmpty();
   if (!naming_hash)
@@ -538,7 +539,7 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   Iterator ki;
   String *bprefix;
   String *dprefix;
-  char *cbprefix;
+  const char *cbprefix;
   int plen;
 
   if (!namehash)
@@ -549,7 +550,7 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   cbprefix = Char(bprefix);
   plen = strlen(cbprefix);
   for (ki = First(namehash); ki.key; ki = Next(ki)) {
-    char *k = Char(ki.key);
+    const char *k = Char(ki.key);
     if (strncmp(k, cbprefix, plen) == 0) {
       Iterator oi;
       String *nkey = NewStringf("%s%s", dprefix, k + plen);
@@ -1028,7 +1029,7 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj) {
   while (kw) {
     Node *next = nextSibling(kw);
     String *kname = Getattr(kw, "name");
-    char *ckey = kname ? Char(kname) : 0;
+    const char *ckey = kname ? Char(kname) : 0;
     if (ckey) {
       const char **rkey;
       int isnotmatch = 0;
@@ -1135,8 +1136,8 @@ static DOH *Swig_get_lattr(Node *n, List *lattr) {
 #if defined(USE_RXSPENCER)
 int Swig_name_rxsmatch_value(String *mvalue, String *value) {
   int match = 0;
-  char *cvalue = Char(value);
-  char *cmvalue = Char(mvalue);
+  const char *cvalue = Char(value);
+  const char *cmvalue = Char(mvalue);
   regex_t compiled;
   int retval = regcomp(&compiled, cmvalue, REG_EXTENDED | REG_NOSUB);
   if (retval != 0)
@@ -1160,8 +1161,8 @@ int Swig_name_rxsmatch_value(String *mvalue, String *value) {
 int Swig_name_match_value(String *mvalue, String *value) {
 #if defined(SWIG_USE_SIMPLE_MATCHOR)
   int match = 0;
-  char *cvalue = Char(value);
-  char *cmvalue = Char(mvalue);
+  const char *cvalue = Char(value);
+  const char *cmvalue = Char(mvalue);
   char *sep = strchr(cmvalue, '|');
   while (sep && !match) {
     match = strncmp(cvalue, cmvalue, sep - cmvalue) == 0;
@@ -1405,7 +1406,7 @@ static String *apply_rename(String *newname, int fullname, String *prefix, Strin
     if (Strcmp(newname, "$ignore") == 0) {
       result = Copy(newname);
     } else {
-      char *cnewname = Char(newname);
+      const char *cnewname = Char(newname);
       if (cnewname) {
 	int destructor = name && (*(Char(name)) == '~');
 	String *fmt = newname;
@@ -1506,7 +1507,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
     }
     if (result && !Equal(result, name)) {
       /* operators in C++ allow aliases, we look for them */
-      char *cresult = Char(result);
+      const char *cresult = Char(result);
       if (cresult && (strncmp(cresult, "operator ", 9) == 0)) {
 	String *nresult = Swig_name_make(n, prefix, result, decl, oldname);
 	if (!Equal(nresult, result)) {

@@ -82,7 +82,7 @@ private:
 static ALLEGROCL *allegrocl = 0;
 
 static String *trim(String *str) {
-  char *c = Char(str);
+  const char *c = Char(str);
   while (*c != '\0' && isspace((int) *c))
     ++c;
   String *result = NewString(c);
@@ -91,7 +91,7 @@ static String *trim(String *str) {
 }
 
 int is_integer(String *s) {
-  char *c = Char(s);
+  const char *c = Char(s);
   if (c[0] == '#' && (c[1] == 'x' || c[1] == 'o'))
     c += 2;
 
@@ -142,16 +142,16 @@ String *namespaced_name(Node *n, String *ns = current_namespace) {
 
 // "Namespace::Nested::Class2::Baz" -> "Baz"
 static String *strip_namespaces(String *str) {
-  char *result = Char(str);
+  const char *result = Char(str);
   String *stripped_one;
   while ((stripped_one = Strstr(result, "::")))
     result = Char(stripped_one) + 2;
   return NewString(result);
 }
 
-static String *namespace_of(String *str) {
-  char *p = Char(str);
-  char *start = Char(str);
+static char *namespace_of(String *str) {
+  const char *p = Char(str);
+  const char *start = Char(str);
   char *result = 0;
   String *stripped_one;
 
@@ -164,7 +164,7 @@ static String *namespace_of(String *str) {
     strncpy(result, start, len - 1);
     result[len - 1] = 0;
   }
-  return Char(result);
+  return result;
 }
 
 void add_linked_type(Node *n) {
@@ -621,7 +621,7 @@ void note_implicit_template_instantiation(SwigType *t) {
 #ifdef ALLEGROCL_CLASS_DEBUG
   Printf(stderr, "culling namespace of '%s' from '%s'\n", t, SwigType_templateprefix(t));
 #endif
-  String *implicit_ns = namespace_of(SwigType_templateprefix(t));
+  char *implicit_ns = namespace_of(SwigType_templateprefix(t));
   add_defined_foreign_type(0, 0, t, t, implicit_ns ? implicit_ns : current_namespace);
 }
 
@@ -845,8 +845,8 @@ static String *mangle_name(Node *n, char const *prefix = "ACL", String *ns = cur
    (* :char) ==> :char
    (* (:array :int 30)) ==> (:array :int 30) */
 String *dereference_ffitype(String *ffitype) {
-   char *start;
-   char *temp = Char(ffitype);
+   const char *start;
+   const char *temp = Char(ffitype);
    String *reduced_type = 0;
 
    if(temp && temp[0] == '(' && temp[1] == '*') {
@@ -855,12 +855,10 @@ String *dereference_ffitype(String *ffitype) {
       // walk past start of pointer references
       while(*temp == ' ') temp++;
       start = temp;
-      // temp = Char(reduced_type);
-      reduced_type = NewString(start);
-      temp = Char(reduced_type);
       // walk to end of string. remove closing paren
       while(*temp != '\0') temp++;
-      *(--temp) = '\0';
+      reduced_type = NewStringWithSize(start, temp-start-1);
+      //*(--temp) = '\0';
    }
 
    return reduced_type ? reduced_type : Copy(ffitype);
@@ -879,7 +877,7 @@ int ALLEGROCL::validIdentifier(String *s) {
 	Printf(stderr, "validIdentifier %s\n", s);
 #endif
 
-  char *c = Char(s);
+  const char *c = Char(s);
 
   bool got_dot = false;
   bool only_dots = true;
@@ -949,7 +947,7 @@ String *convert_literal(String *literal, String *type, bool try_to_split) {
   String *num_param = Copy(literal);
   String *trimmed = trim(num_param);
   String *num = strip_parens(trimmed), *res = 0;
-  char *s = Char(num);
+  const char *s = Char(num);
 
   String *ns = listify_namespace(current_namespace);
 
@@ -977,8 +975,8 @@ String *convert_literal(String *literal, String *type, bool try_to_split) {
     String *oldnum = Copy(num);
 
     // careful. may be a float identifier or float constant.
-    char *num_start = Char(num);
-    char *num_end = num_start + strlen(num_start) - 1;
+    const char *num_start = Char(num);
+    const char *num_end = num_start + strlen(num_start) - 1;
 
     bool is_literal = isdigit(*num_start) || (*num_start == '.');
 
@@ -991,7 +989,8 @@ String *convert_literal(String *literal, String *type, bool try_to_split) {
       }
 
       if (*num_end == 'l' || *num_end == 'L' || *num_end == 'f' || *num_end == 'F') {
-	*num_end = '\0';
+	//*num_end = '\0';
+        Delitem(num, DOH_END);
 	num_end--;
       }
 
@@ -2196,7 +2195,7 @@ IDargs *id_converter_arguments(Node *n) {
     Replaceall(Getattr(n, "allegrocl:kind"), "function", "operator");
   if (Strstr(Getattr(n, "allegrocl:kind"), "variable")) {
     int name_end = Len(Getattr(n, "sym:name")) - 4;
-    char *str = Char(Getattr(n, "sym:name"));
+    const char *str = Char(Getattr(n, "sym:name"));
     String *get_set = NewString(str + name_end + 1);
     result->type = Copy(Getattr(n, "allegrocl:kind"));
     Replaceall(result->type, "variable", "");

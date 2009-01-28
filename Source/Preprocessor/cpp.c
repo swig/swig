@@ -265,7 +265,7 @@ void Preprocessor_error_as_warning(int a) {
 String *Macro_vararg_name(const_String_or_char_ptr str, const_String_or_char_ptr line) {
   String *argname;
   String *varargname;
-  char *s, *dots;
+  const char *s, *dots;
 
   argname = Copy(str);
   s = Char(argname);
@@ -283,8 +283,8 @@ String *Macro_vararg_name(const_String_or_char_ptr str, const_String_or_char_ptr
   if (dots == s) {
     varargname = NewString("__VA_ARGS__");
   } else {
-    *dots = '\0';
-    varargname = NewString(s);
+    //*dots = '\0';
+    varargname = NewStringWithSize(s, dots-s);
   }
   Delete(argname);
   return varargname;
@@ -407,7 +407,8 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
 
   {
     int state = 0;
-    char *cc = Char(macrovalue);
+    //TODO(bhy): fix later
+    char *cc = (char *) Char(macrovalue);
     while (*cc) {
       switch (state) {
       case 0:
@@ -812,7 +813,7 @@ static String *expand_macro(String *name, List *args) {
 
       if (strchr(Char(ns), '`')) {
 	String *rep;
-	char *c;
+	const char *c;
 	Clear(temp);
 	Printf(temp, "`%s`", aname);
 	c = Char(arg);
@@ -847,11 +848,13 @@ static String *expand_macro(String *name, List *args) {
 
       if (isvarargs && i == l - 1 && Len(arg) == 0) {
 	/* Zero length varargs macro argument.   We search for commas that might appear before and nuke them */
-	char *a, *s, *t, *name;
-	int namelen;
+	const char *s, *name;
+	char *a, *t;
+        int namelen;
 	s = Char(ns);
 	name = Char(aname);
 	namelen = Len(aname);
+        //TODO(bhy) fix later
 	a = strstr(s, name);
 	while (a) {
 	  char ca = a[namelen + 1];
@@ -1170,7 +1173,7 @@ static void addline(DOH *s1, DOH *s2, int allow) {
   if (allow) {
     Append(s1, s2);
   } else {
-    char *c = Char(s2);
+    const char *c = Char(s2);
     while (*c) {
       if (*c == '\n')
 	Putc('\n', s1);
@@ -1623,7 +1626,7 @@ String *Preprocessor_parse(String *s) {
 	}
       } else if (Equal(id, kpp_pragma)) {
 	if (Strncmp(value, "SWIG ", 5) == 0) {
-	  char *c = Char(value) + 5;
+	  const char *c = Char(value) + 5;
 	  while (*c && (isspace((int) *c)))
 	    c++;
 	  if (*c) {

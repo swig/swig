@@ -674,7 +674,7 @@ public:
     if (SwigType_type(type) == T_MPOINTER) {
       String *wname = Swig_name_wrapper(iname);
       Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type, wname), value);
-      value = Char(wname);
+      value = wname;
     }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
@@ -1216,7 +1216,7 @@ public:
    * usage_string()
    * ------------------------------------------------------------ */
 
-  char *usage_string(char *iname, SwigType *, ParmList *l) {
+  const char *usage_string(const char *iname, SwigType *, ParmList *l) {
     static String *temp = 0;
     Parm *p;
     int i, numopt, pcount;

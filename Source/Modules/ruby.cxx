@@ -110,7 +110,8 @@ public:
     if (Strncmp(s, prefix, Len(prefix)) == 0) {
       Replaceall(temp, prefix, "");
     }
-    return Char(temp);
+    //TODO(bhy) fix it later
+    return (char *)Char(temp);
   }
 };
 
@@ -202,7 +203,7 @@ private:
   autodoc_l autodoc_level(String *autodoc) {
     autodoc_l dlevel = NO_AUTODOC;
     if (autodoc) {
-      char *c = Char(autodoc);
+      const char *c = Char(autodoc);
       if (c && isdigit(c[0])) {
 	dlevel = (autodoc_l) atoi(c);
       } else {
@@ -245,7 +246,7 @@ private:
     String *doc = NULL;
 
     if (have_ds) {
-      char *t = Char(str);
+      const char *t = Char(str);
       if (*t == '{') {
 	Delitem(str, 0);
 	Delitem(str, DOH_END);
@@ -448,7 +449,9 @@ private:
 		    parent_name = Copy( Getattr(mod, "name") );
 		  if ( parent_name )
 		    {
-		      (Char(parent_name))[0] = (char)toupper((Char(parent_name))[0]);
+                      Seek(parent_name, 0, SEEK_SET);
+                      Putc(toupper((Char(parent_name))[0]), parent_name);
+		      //(Char(parent_name))[0] = (char)toupper((Char(parent_name))[0]);
 		    }
 		}
 		if ( parent_name )
@@ -1196,7 +1199,9 @@ public:
 	while (m.item) {
 	  if (Len(m.item) > 0) {
 	    String *cap = NewString(m.item);
-	    (Char(cap))[0] = (char)toupper((Char(cap))[0]);
+            Seek(cap, 0, SEEK_SET);
+            Putc(toupper((Char(cap))[0]), cap);
+	    //(Char(cap))[0] = (char)toupper((Char(cap))[0]);
 	    if (last != 0) {
 	      Append(module, "::");
 	    }
@@ -1208,7 +1213,9 @@ public:
 	if (feature == 0) {
 	  feature = Copy(last);
 	}
-	(Char(last))[0] = (char)toupper((Char(last))[0]);
+        Seek(last, 0, SEEK_SET);
+        Putc(toupper((Char(last))[0]), last);
+	//(Char(last))[0] = (char)toupper((Char(last))[0]);
 	modvar = NewStringf("m%s", last);
 	Delete(modules);
       }
@@ -1573,7 +1580,7 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int validIdentifier(String *s) {
-    char *c = Char(s);
+    const char *c = Char(s);
     while (*c) {
       if (!(isalnum(*c) || (*c == '_') || (*c == '?') || (*c == '!') || (*c == '=')))
 	return 0;
@@ -2253,7 +2260,7 @@ public:
     if (SwigType_type(type) == T_MPOINTER) {
       String *wname = Swig_name_wrapper(iname);
       Printf(f_header, "static %s = %s;\n", SwigType_str(type, wname), value);
-      value = Char(wname);
+      value = wname;
     }
     String *tm = Swig_typemap_lookup("constant", n, value, 0);
     if (!tm)
@@ -2305,7 +2312,8 @@ public:
       if (!klass) {
 	klass = new RClass();
 	String *valid_name = NewString(symname ? symname : namestr);
-	validate_const_name(Char(valid_name), "class");
+        //TODO(bhy) fix it later
+	validate_const_name((char *)Char(valid_name), "class");
 	klass->set_name(namestr, symname, valid_name);
 	SET_RCLASS(classes, Char(namestr), klass);
 	Delete(valid_name);
@@ -2443,7 +2451,8 @@ public:
     assert(klass != 0);
     Delete(namestr);
     String *valid_name = NewString(symname);
-    validate_const_name(Char(valid_name), "class");
+    //TODO: fix it later
+    validate_const_name((char*)Char(valid_name), "class");
 
     Clear(klass->type);
     Printv(klass->type, Getattr(n, "classtype"), NIL);
@@ -2545,7 +2554,7 @@ public:
     Node *pn = Swig_methodclass(n);
     String *symname = Getattr(pn, "sym:name");
     String *name = Copy(symname);
-    char *cname = Char(name);
+    char *cname = (char*)Char(name); //TODO: fix later
     if (cname)
       cname[0] = (char)toupper(cname[0]);
     Printv(director_prot_ctor_code,

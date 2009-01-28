@@ -159,7 +159,7 @@ static FILE *Swig_open_file(const_String_or_char_ptr name, int sysfile, int use_
   FILE *f;
   String *filename;
   List *spath = 0;
-  char *cname;
+  const char *cname;
   int i, ilen;
 
   if (!directories)
@@ -219,7 +219,7 @@ String *Swig_read_file(FILE *f) {
   }
   len = Len(str);
   if (len) {
-    char *cstr = Char(str);
+    const char *cstr = Char(str);
     if (cstr[len - 1] != '\n') {
       Append(str, "\n");
     }
@@ -313,9 +313,9 @@ File *Swig_filebyname(const_String_or_char_ptr filename) {
  * Returns the suffix of a file
  * ----------------------------------------------------------------------------- */
 
-char *Swig_file_suffix(const_String_or_char_ptr filename) {
-  char *d;
-  char *c = Char(filename);
+const char *Swig_file_suffix(const_String_or_char_ptr filename) {
+  const char *d;
+  const char *c = Char(filename);
   int len = Len(filename);
   if (strlen(c)) {
     d = c + len - 1;
@@ -339,7 +339,7 @@ char *Swig_file_basename(const_String_or_char_ptr filename) {
   static char tmp[1024];
   char *c;
   strcpy(tmp, Char(filename));
-  c = Swig_file_suffix(tmp);
+  c = (char*) Swig_file_suffix(tmp);
   *c = 0;
   return tmp;
 }

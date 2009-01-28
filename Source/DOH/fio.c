@@ -328,19 +328,21 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
 	    DohFree(stemp);
 	  }
 	} else {
+          const char *enc_str = (const char*) doh;
 	  if (!doh)
-	    doh = (char *) "";
+	    enc_str = "";
 
 	  if (strlen(encoder)) {
 	    DOH *s = NewString(doh);
 	    Seek(s, 0, SEEK_SET);
 	    enc = encode(encoder, s);
 	    Delete(s);
-	    doh = Char(enc);
+	    enc_str = Char(enc);
 	  } else {
 	    enc = 0;
+            //enc_str = (const char*) doh;
 	  }
-	  maxwidth = maxwidth + strlen(newformat) + strlen((char *) doh);
+	  maxwidth = maxwidth + strlen(newformat) + strlen(enc_str);
 	  *(fmt++) = 's';
 	  *fmt = 0;
 	  if ((maxwidth + 1) < OBUFLEN) {
@@ -348,7 +350,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
 	  } else {
 	    stemp = (char *) DohMalloc(maxwidth + 1);
 	  }
-	  nbytes += sprintf(stemp, newformat, doh);
+	  nbytes += sprintf(stemp, newformat, enc_str);
 	  if (Writen(so, stemp, strlen(stemp)) < 0)
 	    return -1;
 	  if (stemp != obuffer) {

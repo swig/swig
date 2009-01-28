@@ -305,7 +305,7 @@ public:
 
     if (str && Len(str) > 0) {
       // strip off {} if necessary
-      char *t = Char(str);
+      const char *t = Char(str);
       if (*t == '{') {
 	Delitem(str, 0);
 	Delitem(str, DOH_END);

@@ -49,7 +49,8 @@ static int any_varargs(ParmList *pl) {
 /* utilities */
 /* returns new string w/ parens stripped */
 static String *strip_parens(String *string) {
-  char *s = Char(string), *p;
+  const char *s = Char(string);
+  char *p;
   int len = Len(string);
   String *res;
 
@@ -75,7 +76,7 @@ static String *strip_parens(String *string) {
 
 static String *convert_literal(String *num_param, String *type) {
   String *num = strip_parens(num_param), *res;
-  char *s = Char(num);
+  const char *s = Char(num);
 
   /* Make sure doubles use 'd' instead of 'e' */
   if (!Strcmp(type, "double")) {
@@ -138,7 +139,7 @@ static String *get_ffi_type(SwigType *ty, const_String_or_char_ptr name) {
     return NewString(typespec);
   } else {
     SwigType *tr = SwigType_typedef_resolve_all(ty);
-    char *type_reduced = Char(tr);
+    const char *type_reduced = Char(tr);
     int i;
 
     //Printf(stdout,"convert_type %s\n", ty);

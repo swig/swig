@@ -312,7 +312,8 @@ int CLISP::classDeclaration(Node *n) {
 /* utilities */
 /* returns new string w/ parens stripped */
 String *CLISP::strip_parens(String *string) {
-  char *s = Char(string), *p;
+  const char *s = Char(string);
+  char *p;
   int len = Len(string);
   String *res;
 
@@ -337,7 +338,7 @@ String *CLISP::strip_parens(String *string) {
 
 String *CLISP::convert_literal(String *num_param, String *type) {
   String *num = strip_parens(num_param), *res;
-  char *s = Char(num);
+  const char *s = Char(num);
 
   /* Make sure doubles use 'd' instead of 'e' */
   if (!Strcmp(type, "double")) {

@@ -281,7 +281,7 @@ int Preprocessor_expr(DOH *s, int *error) {
       }
       if ((token == SWIG_TOKEN_INT) || (token == SWIG_TOKEN_UINT) || (token == SWIG_TOKEN_LONG) || (token == SWIG_TOKEN_ULONG)) {
 	/* A number.  Reduce EXPR_TOP to an EXPR_VALUE */
-	char *c = Char(Scanner_text(scan));
+	const char *c = Char(Scanner_text(scan));
 	stack[sp].value = (long) strtol(c, 0, 0);
 	stack[sp].svalue = 0;
 	/*        stack[sp].value = (long) atol(Char(Scanner_text(scan))); */

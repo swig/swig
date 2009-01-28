@@ -43,7 +43,7 @@ static Node    *module_node = 0;
 static String  *Classprefix = 0;  
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
-static char    *last_cpptype = 0;
+static const char    *last_cpptype = 0;
 static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
 static int      extendmode   = 0;
@@ -86,7 +86,7 @@ static Node *copy_node(Node *n) {
   for (k = First(n); k.key; k = Next(k)) {
     String *ci;
     String *key = k.key;
-    char *ckey = Char(key);
+    const char *ckey = Char(key);
     if ((strcmp(ckey,"nextSibling") == 0) ||
 	(strcmp(ckey,"previousSibling") == 0) ||
 	(strcmp(ckey,"parentNode") == 0) ||
@@ -209,7 +209,7 @@ Hash *Swig_cparse_features(void) {
   return features_hash;
 }
 
-static String *feature_identifier_fix(String *s) {
+static String *feature_identifier_fix(const_String_or_char_ptr s) {
   if (SwigType_istemplate(s)) {
     String *tp, *ts, *ta, *tq;
     tp = SwigType_templateprefix(s);
@@ -433,7 +433,7 @@ static void add_symbols(Node *n) {
       /* Only add to C symbol table and continue */
       Swig_symbol_add(0, n);
     } else if (strncmp(Char(symname),"$ignore",7) == 0) {
-      char *c = Char(symname)+7;
+      const char *c = Char(symname)+7;
       SetFlag(n,"feature:ignore");
       if (strlen(c)) {
 	SWIG_WARN_NODE_BEGIN(n);
@@ -518,7 +518,7 @@ static void add_symbols_copy(Node *n) {
   String *name;
   int    emode = 0;
   while (n) {
-    char *cnodeType = Char(nodeType(n));
+    const char *cnodeType = Char(nodeType(n));
 
     if (strcmp(cnodeType,"access") == 0) {
       String *kind = Getattr(n,"kind");
@@ -832,7 +832,7 @@ static String *remove_block(Node *kw, const String *inputcode) {
   while (kw) {
    String *name = Getattr(kw,"name");
    if (name && (Cmp(name,"noblock") == 0)) {
-     char *cstr = Char(inputcode);
+     const char *cstr = Char(inputcode);
      size_t len = Len(inputcode);
      if (len && cstr[0] == '{') {
        --len; ++cstr; 
@@ -980,7 +980,7 @@ typedef struct Nested {
   String   *code;        /* Associated code fragment */
   int      line;         /* line number where it starts */
   char     *name;        /* Name associated with this nested class */
-  char     *kind;        /* Kind of class */
+  const char     *kind;        /* Kind of class */
   int      unnamed;      /* unnamed class */
   SwigType *type;        /* Datatype associated with the name */
   struct Nested   *next;        /* Next code fragment in list */
@@ -1115,27 +1115,32 @@ static Node *dump_nested(const char *parent) {
        ret = retx; 
     */
 
-    /* Strip comments - further code may break in presence of comments. */
-    strip_comments(Char(n->code));
+    /* TODO(bhy) Futher clean up. */
 
-    /* Make all SWIG created typedef structs/unions/classes unnamed else 
+    /* allocate a new temp char* string, so the following code can work on this writable string. */
+    char *tmp_code = (char *) malloc(Len(n->code)+1);
+    strncpy(tmp_code, Char(n->code), Len(n->code)+1);
+    /* Strip comments - further code may break in presence of comments. */
+    strip_comments(tmp_code);
+
+    /* Make all SWIG created typedef structs/unions/classes unnamed else
        redefinition errors occur - nasty hack alert.*/
 
     {
       const char* types_array[3] = {"struct", "union", "class"};
       int i;
       for (i=0; i<3; i++) {
-	char* code_ptr = Char(n->code);
+	char* code_ptr = tmp_code; //Char(n->code);
 	while (code_ptr) {
 	  /* Replace struct name (as in 'struct name {...}' ) with whitespace
 	     name will be between struct and opening brace */
-	
+
 	  code_ptr = strstr(code_ptr, types_array[i]);
 	  if (code_ptr) {
 	    char *open_bracket_pos;
 	    code_ptr += strlen(types_array[i]);
 	    open_bracket_pos = strchr(code_ptr, '{');
-	    if (open_bracket_pos) { 
+	    if (open_bracket_pos) {
 	      /* Make sure we don't have something like struct A a; */
 	      char* semi_colon_pos = strchr(code_ptr, ';');
 	      if (!(semi_colon_pos && (semi_colon_pos < open_bracket_pos)))
@@ -1146,15 +1151,15 @@ static Node *dump_nested(const char *parent) {
 	}
       }
     }
-    
+
     {
       /* Remove SWIG directive %constant which may be left in the SWIG created typedefs */
-      char* code_ptr = Char(n->code);
+      char* code_ptr = tmp_code; //Char(n->code);
       while (code_ptr) {
 	code_ptr = strstr(code_ptr, "%constant");
 	if (code_ptr) {
 	  char* directive_end_pos = strchr(code_ptr, ';');
-	  if (directive_end_pos) { 
+	  if (directive_end_pos) {
             while (code_ptr <= directive_end_pos)
               *code_ptr++ = ' ';
 	  }
@@ -1162,15 +1167,21 @@ static Node *dump_nested(const char *parent) {
       }
     }
     {
+      /* Put tmp_code back to n->code */
+      Delete(n->code);
+      n->code = NewString(tmp_code);
+      free(tmp_code);
+    }
+    {
       Node *head = new_node("insert");
       String *code = NewStringf("\n%s\n",n->code);
       Setattr(head,"code", code);
       Delete(code);
       set_nextSibling(head,ret);
-      Delete(ret);      
+      Delete(ret);
       ret = head;
     }
-      
+
     /* Dump the code to the scanner */
     start_inline(Char(n->code),n->line);
 
@@ -1190,7 +1201,7 @@ Node *Swig_cparse(File *f) {
   return top;
 }
 
-static void single_new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier) {
+static void single_new_feature(const char *featurename, String *val, Hash *featureattribs, const char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier) {
   String *fname;
   String *name;
   String *fixname;
@@ -1240,7 +1251,7 @@ static void single_new_feature(const char *featurename, String *val, Hash *featu
 /* Add a new feature to the Hash. Additional features are added if the feature has a parameter list (declaratorparms)
  * and one or more of the parameters have a default argument. An extra feature is added for each defaulted parameter,
  * simulating the equivalent overloaded method. */
-static void new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier) {
+static void new_feature(const char *featurename, String *val, Hash *featureattribs, const char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier) {
 
   ParmList *declparms = declaratorparms;
 
@@ -1339,7 +1350,7 @@ static void default_arguments(Node *n) {
       /* Create new function and add to symbol table */
       {
 	SwigType *ntype = Copy(nodeType(function));
-	char *cntype = Char(ntype);
+	const char *cntype = Char(ntype);
         Node *new_function = new_node(ntype);
         SwigType *decl = Copy(Getattr(function,"decl"));
         int constqualifier = SwigType_isconst(decl);
@@ -1436,7 +1447,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %}
 
 %union {
-  char  *id;
+  const char *id;
   List  *bases;
   struct Define {
     String *val;
@@ -1453,7 +1464,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
     int   line;
   } loc;
   struct {
-    char      *id;
+    const char      *id;
     SwigType  *type;
     String    *defarg;
     ParmList  *parms;
@@ -2316,11 +2327,13 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		scanner_clear_rename();
               }
               | rename_namewarn LPAREN kwargs RPAREN string SEMI {
+                String *tmp_str = NewString($5);
 		if ($1) {
-		  Swig_name_rename_add(Namespaceprefix,$5,0,$3,0);
+		  Swig_name_rename_add(Namespaceprefix,tmp_str,0,$3,0);
 		} else {
-		  Swig_name_namewarn_add(Namespaceprefix,$5,0,$3);
+		  Swig_name_namewarn_add(Namespaceprefix,tmp_str,0,$3);
 		}
+                Delete(tmp_str);
 		$$ = 0;
 		scanner_clear_rename();
               }
@@ -2759,7 +2772,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 			       String *symname = Swig_name_make(templnode,0,$3,0,0);
 			    */
-			    String *symname = $3;
+			    String *symname = NewString($3);
                             Swig_cparse_template_expand(templnode,symname,temparms,tscope);
                             Setattr(templnode,"sym:name",symname);
                           } else {
@@ -3528,7 +3541,7 @@ cpp_class_decl  :
 	       Delete(n);
 	       {
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
-		 String *name = 0;
+		 const char *name = 0;
 		 if ($1 && (strcmp($1,"typedef") == 0)) {
 		   if (!Len($7.type)) {	
 		     String *scpname = 0;
@@ -3884,13 +3897,13 @@ template_parms  : templateparameters {
 		    String *name = Getattr(p,"name");
 		    if (!name) {
 		      /* Hmmm. Maybe it's a 'class T' parameter */
-		      char *type = Char(Getattr(p,"type"));
+		      const char *type = Char(Getattr(p,"type"));
 		      /* Template template parameter */
 		      if (strncmp(type,"template<class> ",16) == 0) {
 			type += 16;
 		      }
 		      if ((strncmp(type,"class ",6) == 0) || (strncmp(type,"typename ", 9) == 0)) {
-			char *t = strchr(type,' ');
+			const char *t = strchr(type,' ');
 			Setattr(p,"name", t+1);
 		      } else {
 			/*
@@ -5819,13 +5832,13 @@ mem_initializer : idcolon LPAREN {
             	}
                 ;
 
-template_decl : LESSTHAN valparms GREATERTHAN { 
+template_decl : LESSTHAN valparms GREATERTHAN {
                      String *s = NewStringEmpty();
                      SwigType_add_template(s,$2);
                      $$ = Char(s);
 		     scanner_last_id(1);
                  }
-               | empty { $$ = (char*)"";  }
+               | empty { $$ = ""; }
                ;
 
 idstring       : ID { $$ = $1; }
@@ -5928,9 +5941,10 @@ idcolontailnt   : DCOLON ID idcolontailnt {
 
 /* Concatenated strings */
 string         : string STRING { 
-                   $$ = (char *) malloc(strlen($1)+strlen($2)+1);
-                   strcpy($$,$1);
-                   strcat($$,$2);
+                   char *tmp = (char *) malloc(strlen($1)+strlen($2)+1);
+                   strcpy(tmp,$1);
+                   strcat(tmp,$2);
+                   $$ = tmp;
                }
                | STRING { $$ = $1;}
                ; 
@@ -6036,12 +6050,12 @@ Parm *Swig_cparse_parm(String *s) {
 
 ParmList *Swig_cparse_parms(String *s) {
    String *ns;
-   char *cs = Char(s);
+   const char *cs = Char(s);
    if (cs && cs[0] != '(') {
      ns = NewStringf("(%s);",s);
    } else {
      ns = NewStringf("%s;",s);
-   }   
+   }
    Seek(ns,0,SEEK_SET);
    scanner_file(ns);
    top = 0;

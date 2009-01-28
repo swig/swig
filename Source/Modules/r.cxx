@@ -53,7 +53,7 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
     *outCount = count;
   
   String *tmp = NewString("");
-  char *retName = Char(SwigType_manglestr(t));
+  const char *retName = Char(SwigType_manglestr(t));
   Insert(tmp, 0, retName);
   return tmp;
   
@@ -109,7 +109,7 @@ static String * getRType(Node *n) {
 static String *getRClassName(String *retType, int /*addRef*/ = 1, int upRef=0) {
   String *tmp = NewString("");
   SwigType *resolved = SwigType_typedef_resolve_all(retType);
-  char *retName = Char(SwigType_manglestr(resolved));
+  const char *retName = Char(SwigType_manglestr(resolved));
   if (upRef) {
     Printf(tmp, "_p%s", retName);
   } else{
@@ -187,7 +187,7 @@ static String * getRClassNameCopyStruct(String *retType, int addRef) {
   
   
   String *el = Getitem(l, n-1);
-  char *ptr = Char(el);
+  const char *ptr = Char(el);
   if(strncmp(ptr, "struct ", 7) == 0)
     ptr += 7;
   
@@ -1019,7 +1019,7 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
     el = Getattr(tb, key);
     
     String *className = Getitem(el, 0);
-    char *ptr = Char(key);
+    const char *ptr = Char(key);
     ptr = &ptr[Len(key) - 3];
     int isSet = strcmp(ptr, "set") == 0;
     
@@ -1075,7 +1075,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     if (!Strcmp(item, "__str__")) has_str = 1;
     
     String *dup = Getitem(el, j + 1);
-    char *ptr = Char(dup);
+    const char *ptr = Char(dup);
     ptr = &ptr[Len(dup) - 3];
     
     if (!strcmp(ptr, "get"))
@@ -1108,7 +1108,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     for(j = 0; j < numMems; j+=3) {
       String *item = Getitem(el, j);
       String *dup = Getitem(el, j + 1);
-      char *ptr = Char(dup);
+      const char *ptr = Char(dup);
       ptr = &ptr[Len(dup) - 3];
       
       if (!strcmp(ptr, "get")) {
@@ -1311,7 +1311,7 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
 		    int isSet) {
   if(isSet < 0) {
     int n = Len(name);
-    char *ptr = Char(name);
+    const char *ptr = Char(name);
     isSet = Strcmp(NewString(&ptr[n-3]), "set") == 0;
   }
   
@@ -1748,7 +1748,7 @@ int R::functionWrapper(Node *n) {
        We will dump all these at the end. */
     
     int n = Len(iname);
-    char *ptr = Char(iname);
+    const char *ptr = Char(iname);
     bool isSet(Strcmp(NewString(&ptr[n-3]), "set") == 0);
     
     
@@ -2483,7 +2483,8 @@ int R::generateCopyRoutines(Node *n) {
       
   String *m = NewStringf("%sCopyToR", name);
   addNamespaceMethod(m);
-  char *tt = Char(m);  tt[Len(m)-1] = 'C';
+  //char *tt = Char(m);  tt[Len(m)-1] = 'C';
+  Delitem(m, DOH_END); Append(m, "C");
   addNamespaceMethod(m);
   Delete(m);
   Delete(rclassName);
@@ -2513,7 +2514,7 @@ int R::typedefHandler(Node *n) {
 
   if(Strncmp(type, "struct ", 7) == 0) {
     String *name = Getattr(n, "name");
-    char *trueName = Char(type);
+    const char *trueName = Char(type);
     trueName += 7;
     if (debugMode)
       Printf(stderr, "<typedefHandler> Defining S class %s\n", trueName);

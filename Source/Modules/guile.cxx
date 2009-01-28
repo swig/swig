@@ -1684,7 +1684,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int validIdentifier(String *s) {
-    char *c = Char(s);
+    const char *c = Char(s);
     /* Check whether we have an R5RS identifier.  Guile supports a
        superset of R5RS identifiers, but it's probably a bad idea to use
        those. */

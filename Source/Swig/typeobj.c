@@ -130,9 +130,9 @@ SwigType *NewSwigType(const_String_or_char_ptr initial) {
  * substring, to chop the element off, or for other purposes).
  * ----------------------------------------------------------------------------- */
 
-static int element_size(char *c) {
+static int element_size(const char *c) {
   int nparen;
-  char *s = c;
+  const char *s = c;
   while (*c) {
     if (*c == '.') {
       c++;
@@ -177,7 +177,7 @@ SwigType *SwigType_del_element(SwigType *t) {
 
 SwigType *SwigType_pop(SwigType *t) {
   SwigType *result;
-  char *c;
+  const char *c;
   int sz;
 
   c = Char(t);
@@ -201,7 +201,7 @@ SwigType *SwigType_pop(SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_parm(SwigType *t) {
-  char *start, *c;
+  const char *start, *c;
   int nparens = 0;
 
   c = Char(t);
@@ -233,7 +233,7 @@ String *SwigType_parm(SwigType *t) {
 List *SwigType_split(const SwigType *t) {
   String *item;
   List *list;
-  char *c;
+  const char *c;
   int len;
 
   c = Char(t);
@@ -269,8 +269,8 @@ List *SwigType_split(const SwigType *t) {
 List *SwigType_parmlist(const String *p) {
   String *item = 0;
   List *list;
-  char *c;
-  char *itemstart;
+  const char *c;
+  const char *itemstart;
   int size;
 
   assert(p);
@@ -335,7 +335,7 @@ SwigType *SwigType_add_pointer(SwigType *t) {
 }
 
 SwigType *SwigType_del_pointer(SwigType *t) {
-  char *c, *s;
+  const char *c, *s;
   c = Char(t);
   s = c;
   /* Skip qualifiers, if any */
@@ -352,8 +352,8 @@ SwigType *SwigType_del_pointer(SwigType *t) {
   return t;
 }
 
-int SwigType_ispointer(SwigType *t) {
-  char *c;
+int SwigType_ispointer(const SwigType *t) {
+  const char *c;
   if (!t)
     return 0;
   c = Char(t);
@@ -387,7 +387,7 @@ SwigType *SwigType_add_reference(SwigType *t) {
 }
 
 SwigType *SwigType_del_reference(SwigType *t) {
-  char *c = Char(t);
+  const char *c = Char(t);
   int check = strncmp(c, "r.", 2);
   assert(check == 0);
   Delslice(t, 0, 2);
@@ -395,7 +395,7 @@ SwigType *SwigType_del_reference(SwigType *t) {
 }
 
 int SwigType_isreference(SwigType *t) {
-  char *c;
+  const char *c;
   if (!t)
     return 0;
   c = Char(t);
@@ -422,9 +422,9 @@ int SwigType_isreference(SwigType *t) {
 SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
   char temp[256], newq[256];
   int sz, added = 0;
-  char *q, *cqual;
-
-  char *c = Char(t);
+  char *q;
+  const char *cqual;
+  const char *c = Char(t);
   cqual = Char(qual);
 
   if (!(strncmp(c, "q(", 2) == 0)) {
@@ -477,7 +477,7 @@ SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
 }
 
 SwigType *SwigType_del_qualifier(SwigType *t) {
-  char *c = Char(t);
+  const char *c = Char(t);
   int check = strncmp(c, "q(", 2);
   assert(check == 0);
   Delslice(t, 0, element_size(c));
@@ -485,7 +485,7 @@ SwigType *SwigType_del_qualifier(SwigType *t) {
 }
 
 int SwigType_isqualifier(SwigType *t) {
-  char *c;
+  const char *c;
   if (!t)
     return 0;
   c = Char(t);
@@ -500,7 +500,7 @@ int SwigType_isqualifier(SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 int SwigType_isfunctionpointer(SwigType *t) {
-  char *c;
+  const char *c;
   if (!t)
     return 0;
   c = Char(t);
@@ -545,7 +545,7 @@ SwigType *SwigType_add_memberpointer(SwigType *t, const_String_or_char_ptr name)
 }
 
 SwigType *SwigType_del_memberpointer(SwigType *t) {
-  char *c = Char(t);
+  const char *c = Char(t);
   int check = strncmp(c, "m(", 2);
   assert(check == 0);
   Delslice(t, 0, element_size(c));
@@ -553,7 +553,7 @@ SwigType *SwigType_del_memberpointer(SwigType *t) {
 }
 
 int SwigType_ismemberpointer(SwigType *t) {
-  char *c;
+  const char *c;
   if (!t)
     return 0;
   c = Char(t);
@@ -589,15 +589,15 @@ SwigType *SwigType_add_array(SwigType *t, const_String_or_char_ptr size) {
 }
 
 SwigType *SwigType_del_array(SwigType *t) {
-  char *c = Char(t);
+  const char *c = Char(t);
   int check = strncmp(c, "a(", 2);
   assert(check == 0);
   Delslice(t, 0, element_size(c));
   return t;
 }
 
-int SwigType_isarray(SwigType *t) {
-  char *c;
+int SwigType_isarray(const SwigType *t) {
+  const char *c;
   if (!t)
     return 0;
   c = Char(t);
@@ -613,7 +613,7 @@ int SwigType_isarray(SwigType *t) {
  * eg Foo[], Foo[3] return true, but Foo[3][3], Foo*[], Foo*[3], Foo**[] return false
  */
 int SwigType_prefix_is_simple_1D_array(SwigType *t) {
-  char *c = Char(t);
+  const char *c = Char(t);
 
   if (c && (strncmp(c, "a(", 2) == 0)) {
     c = strchr(c, '.');
@@ -640,7 +640,7 @@ SwigType *SwigType_pop_arrays(SwigType *t) {
 /* Return number of array dimensions */
 int SwigType_array_ndim(SwigType *t) {
   int ndim = 0;
-  char *c = Char(t);
+  const char *c = Char(t);
 
   while (c && (strncmp(c, "a(", 2) == 0)) {
     c = strchr(c, '.');
@@ -652,14 +652,16 @@ int SwigType_array_ndim(SwigType *t) {
 
 /* Get nth array dimension */
 String *SwigType_array_getdim(SwigType *t, int n) {
-  char *c = Char(t);
+  const char *c = Char(t);
   while (c && (strncmp(c, "a(", 2) == 0) && (n > 0)) {
     c = strchr(c, '.');
     c++;
     n--;
   }
   if (n == 0) {
-    String *dim = SwigType_parm(c);
+    String *tmp = NewString(c);
+    String *dim = SwigType_parm(tmp);
+    Delete(tmp);
     if (SwigType_istemplate(dim)) {
       String *ndim = SwigType_namestr(dim);
       Delete(dim);
@@ -676,8 +678,8 @@ String *SwigType_array_getdim(SwigType *t, int n) {
 void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
   String *result = 0;
   char temp;
-  char *start;
-  char *c = Char(t);
+  const char *start;
+  const char *c = Char(t);
 
   start = c;
   if (strncmp(c, "a(", 2))
@@ -689,11 +691,11 @@ void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
     n--;
   }
   if (n == 0) {
-    temp = *c;
-    *c = 0;
-    result = NewString(start);
+    //temp = *c;
+    //*c = 0;
+    result = NewStringWithSize(start, c-start);
     Printf(result, "a(%s)", rep);
-    *c = temp;
+    //*c = temp;
     c = strchr(c, '.');
     Append(result, c);
   }
@@ -745,7 +747,7 @@ SwigType *SwigType_add_function(SwigType *t, ParmList *parms) {
 SwigType *SwigType_pop_function(SwigType *t) {
   SwigType *f = 0;
   SwigType *g = 0;
-  char *c = Char(t);
+  const char *c = Char(t);
   if (strncmp(c, "q(", 2) == 0) {
     f = SwigType_pop(t);
     c = Char(t);
@@ -762,7 +764,7 @@ SwigType *SwigType_pop_function(SwigType *t) {
 }
 
 int SwigType_isfunction(SwigType *t) {
-  char *c;
+  const char *c;
   if (!t) {
     return 0;
   }
@@ -936,7 +938,7 @@ String *SwigType_templateargs(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 int SwigType_istemplate(const SwigType *t) {
-  char *ct = Char(t);
+  const char *ct = Char(t);
   ct = strstr(ct, "<(");
   if (ct && (strstr(ct + 2, ")>")))
     return 1;
@@ -951,8 +953,8 @@ int SwigType_istemplate(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_base(const SwigType *t) {
-  char *c;
-  char *lastop = 0;
+  const char *c;
+  const char *lastop = 0;
   c = Char(t);
 
   lastop = c;
@@ -1009,7 +1011,7 @@ SwigType *SwigType_base(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_prefix(const SwigType *t) {
-  char *c, *d;
+  const char *c, *d;
   String *r = 0;
 
   c = Char(t);
@@ -1046,10 +1048,10 @@ String *SwigType_prefix(const SwigType *t) {
     }
 
     if (*d == '.') {
-      char t = *(d + 1);
-      *(d + 1) = 0;
-      r = NewString(c);
-      *(d + 1) = t;
+      //char t = *(d + 1);
+      //*(d + 1) = 0;
+      r = NewStringWithSize(c, d+1-c);
+      //*(d + 1) = t;
       return r;
     }
   }

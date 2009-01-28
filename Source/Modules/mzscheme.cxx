@@ -774,7 +774,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int validIdentifier(String *s) {
-    char *c = Char(s);
+    const char *c = Char(s);
     /* Check whether we have an R5RS identifier. */
     /* <identifier> --> <initial> <subsequent>* | <peculiar identifier> */
     /* <initial> --> <letter> | <special initial> */

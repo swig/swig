@@ -25,5 +25,5 @@ extern void     Wrapper_print(Wrapper *w, File *f);
 extern int      Wrapper_add_local(Wrapper *w, const_String_or_char_ptr name, const_String_or_char_ptr decl);
 extern int      Wrapper_add_localv(Wrapper *w, const_String_or_char_ptr name, ...);
 extern int      Wrapper_check_local(Wrapper *w, const_String_or_char_ptr name);
-extern char    *Wrapper_new_local(Wrapper *w, const_String_or_char_ptr name, const_String_or_char_ptr decl);
-extern char    *Wrapper_new_localv(Wrapper *w, const_String_or_char_ptr name, ...);
+extern const char *Wrapper_new_local(Wrapper *w, const_String_or_char_ptr name, const_String_or_char_ptr decl);
+extern const char *Wrapper_new_localv(Wrapper *w, const_String_or_char_ptr name, ...);

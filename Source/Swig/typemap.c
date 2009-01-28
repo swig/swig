@@ -389,7 +389,7 @@ static
 int count_args(String *s) {
   /* Count up number of arguments */
   int na = 0;
-  char *c = Char(s);
+  const char *c = Char(s);
   while (*c) {
     if (*c == '+')
       na++;
@@ -553,9 +553,9 @@ void Swig_typemap_clear_apply(Parm *parms) {
   if (tm) {
     /* Clear typemaps that match our signature */
     Iterator ki, ki2;
-    char *ctsig = Char(tsig);
+    const char *ctsig = Char(tsig);
     for (ki = First(tm); ki.key; ki = Next(ki)) {
-      char *ckey = Char(ki.key);
+      const char *ckey = Char(ki.key);
       if (strncmp(ckey, "tmap:", 5) == 0) {
 	int na = count_args(ki.key);
 	if ((na == narg) && strstr(ckey, ctsig)) {
@@ -877,7 +877,7 @@ int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, SwigType *
     String *mangle, *star_mangle, *amp_mangle, *base_mangle, *base_name;
     String *descriptor, *star_descriptor, *amp_descriptor;
     String *ts;
-    char *sc;
+    const char *sc;
 
     sc = Char(s);
 
@@ -1101,7 +1101,7 @@ int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, SwigType *
 
 static void typemap_locals(DOHString * s, ParmList *l, Wrapper *f, int argnum) {
   Parm *p;
-  char *new_name;
+  const char *new_name;
 
   p = l;
   while (p) {
@@ -1186,7 +1186,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr op, Node *node,
   String *symname;
   String *cname = 0;
   String *clname = 0;
-  char *cop = Char(op);
+  const char *cop = Char(op);
   int optimal_attribute = 0;
   int optimal_substitution = 0;
   int num_substitutions = 0;
@@ -1245,7 +1245,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr op, Node *node,
   while (kw) {
     String *value = Copy(Getattr(kw, "value"));
     String *type = Getattr(kw, "type");
-    char *ckwname = Char(Getattr(kw, "name"));
+    const char *ckwname = Char(Getattr(kw, "name"));
     if (type) {
       String *mangle = Swig_string_mangle(type);
       Append(value, mangle);
@@ -1488,7 +1488,7 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr op, ParmList *parms, Wra
   ParmList *locals;
   int argnum = 0;
   char temp[256];
-  char *cop = Char(op);
+  const char *cop = Char(op);
   String *kwmatch = 0;
   p = parms;
 
@@ -1728,7 +1728,7 @@ static List *split_embedded(String *s) {
 
 static void split_var(String *s, String **name, String **value) {
   char *eq;
-  char *c;
+  const char *c;
 
   eq = strchr(Char(s), '=');
   if (!eq) {

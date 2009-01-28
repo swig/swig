@@ -794,7 +794,7 @@ public:
     if (SwigType_type(type) == T_MPOINTER) {
       String *wname = Swig_name_wrapper(iname);
       Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type, wname), value);
-      value = Char(wname);
+      value = wname;
     }
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {

@@ -252,7 +252,7 @@ Scanner_freeze_line(Scanner *s, int val) {
  * ----------------------------------------------------------------------------- */
 static void retract(Scanner * s, int n) {
   int i, l;
-  char *str;
+  const char *str;
 
   str = Char(s->text);
   l = Len(s->text);

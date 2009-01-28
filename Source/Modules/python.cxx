@@ -961,7 +961,7 @@ public:
   String *pythoncode(String *code, const String *indent) {
     String *out = NewString("");
     String *temp;
-    char *t;
+    const char *t;
     if (!indent)
       indent = "";
 
@@ -984,7 +984,7 @@ public:
     for (si = First(clist); si.item; si = Next(si)) {
       s = si.item;
       if (Len(s)) {
-	char *c = Char(s);
+	const char *c = Char(s);
 	while (*c) {
 	  if (!isspace(*c))
 	    break;
@@ -1001,7 +1001,7 @@ public:
     while (si.item) {
       s = si.item;
       if (Len(s) > initial) {
-	char *c = Char(s);
+	const char *c = Char(s);
 	c += initial;
 	Printv(out, indent, c, "\n", NIL);
       } else {
@@ -1031,7 +1031,7 @@ public:
   autodoc_l autodoc_level(String *autodoc) {
     autodoc_l dlevel = NO_AUTODOC;
     if (autodoc) {
-      char *c = Char(autodoc);
+      const char *c = Char(autodoc);
       if (c && isdigit(c[0])) {
 	dlevel = (autodoc_l) atoi(c);
       } else {
@@ -1073,7 +1073,7 @@ public:
     String *doc = NULL;
 
     if (have_ds) {
-      char *t = Char(str);
+      const char *t = Char(str);
       if (*t == '{') {
 	Delitem(str, 0);
 	Delitem(str, DOH_END);
@@ -1548,7 +1548,7 @@ public:
 
   String *pythonprepend(Node *n) {
     String *str = Getattr(n, "feature:pythonprepend");
-    char *t = Char(str);
+    const char *t = Char(str);
     if (*t == '{') {
       Delitem(str, 0);
       Delitem(str, DOH_END);
@@ -1578,7 +1578,7 @@ public:
     if (!str)
       str = Getattr(n, "feature:addtofunc");
 
-    char *t = Char(str);
+    const char *t = Char(str);
     if (*t == '{') {
       Delitem(str, 0);
       Delitem(str, DOH_END);

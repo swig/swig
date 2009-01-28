@@ -185,7 +185,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int validIdentifier(String *s) {
-    char *c = Char(s);
+    const char *c = Char(s);
     const char *c0 = c;
     const char *c1 = c0 + 1;
     while (*c) {

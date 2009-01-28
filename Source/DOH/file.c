@@ -65,7 +65,7 @@ static int File_read(DOH *fo, void *buffer, int len) {
  * File_write()
  * ----------------------------------------------------------------------------- */
 
-static int File_write(DOH *fo, void *buffer, int len) {
+static int File_write(DOH *fo, const void *buffer, int len) {
   DohFile *f = (DohFile *) ObjData(fo);
   if (f->filep) {
     int ret = (int) fwrite(buffer, 1, len, f->filep);
@@ -231,10 +231,10 @@ static DohObjInfo DohFileType = {
  * If newfiles is non-zero, the filename is added to the list of new files.
  * ----------------------------------------------------------------------------- */
 
-DOH *DohNewFile(DOH *filename, const char *mode, DOHList *newfiles) {
+DOH *DohNewFile(const DOH *filename, const char *mode, DOHList *newfiles) {
   DohFile *f;
   FILE *file;
-  char *filen;
+  const char *filen;
 
   filen = Char(filename);
   file = fopen(filen, mode);
@@ -294,6 +294,6 @@ DOH *DohNewFileFromFd(int fd) {
  * Display cause of one of the NewFile functions failing.
  * ----------------------------------------------------------------------------- */
 
-void DohFileErrorDisplay(DOHString * filename) {
+void DohFileErrorDisplay(const DOHString * filename) {
   Printf(stderr, "Unable to open file %s: %s\n", filename, strerror(errno));
 }

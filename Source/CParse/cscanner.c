@@ -178,7 +178,7 @@ void scanner_file(DOHFile * f) {
  * by the %inline directive.
  * ------------------------------------------------------------------------- */
 
-void start_inline(char *text, int line) {
+void start_inline(const char *text, int line) {
   String *stext = NewString(text);
 
   Seek(stext,0,SEEK_SET);
@@ -423,7 +423,7 @@ int yylook(void) {
     case SWIG_TOKEN_COMMENT:
       {
 	String *cmt = Scanner_text(scan);
-	char *loc = Char(cmt);
+	const char *loc = Char(cmt);
 	if ((strncmp(loc,"/*@SWIG",7) == 0) && (loc[Len(cmt)-3] == '@')) {
 	  scanner_locator(cmt);
 	}
@@ -485,7 +485,7 @@ String *scanner_get_main_input_file() {
 int yylex(void) {
 
   int l;
-  char *yytext;
+  const char *yytext;
 
   if (!scan_init) {
     scanner_init();
@@ -724,7 +724,7 @@ int yylex(void) {
 	    yylval.str = s;
 	    if (!rename_active) {
 	      String *cs;
-	      char *t = Char(s) + 9;
+	      const char *t = Char(s) + 9;
 	      if (!((strcmp(t, "new") == 0)
 		    || (strcmp(t, "delete") == 0)
 		    || (strcmp(t, "new[]") == 0)

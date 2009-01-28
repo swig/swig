@@ -417,7 +417,7 @@ static int String_read(DOH *so, void *buffer, int len) {
 /* -----------------------------------------------------------------------------
  * int String_write() - Write data to a string
  * ----------------------------------------------------------------------------- */
-static int String_write(DOH *so, void *buffer, int len) {
+static int String_write(DOH *so, const void *buffer, int len) {
   int newlen;
   String *s = (String *) ObjData(so);
   s->hashkey = -1;
@@ -603,13 +603,13 @@ static char *end_quote(char *s) {
   }
 }
 
-static char *match_simple(char *base, char *s, char *token, int tokenlen) {
+static char *match_simple(char *base, char *s, const char *token, int tokenlen) {
   (void) base;
   (void) tokenlen;
   return strstr(s, token);
 }
 
-static char *match_identifier(char *base, char *s, char *token, int tokenlen) {
+static char *match_identifier(char *base, char *s, const char *token, int tokenlen) {
   while (s) {
     s = strstr(s, token);
     if (!s)
@@ -628,7 +628,7 @@ static char *match_identifier(char *base, char *s, char *token, int tokenlen) {
 }
 
 
-static char *match_identifier_begin(char *base, char *s, char *token, int tokenlen) {
+static char *match_identifier_begin(char *base, char *s, const char *token, int tokenlen) {
   while (s) {
     s = strstr(s, token);
     if (!s)
@@ -642,7 +642,7 @@ static char *match_identifier_begin(char *base, char *s, char *token, int tokenl
   return 0;
 }
 
-static char *match_identifier_end(char *base, char *s, char *token, int tokenlen) {
+static char *match_identifier_end(char *base, char *s, const char *token, int tokenlen) {
   (void) base;
   while (s) {
     s = strstr(s, token);
@@ -657,7 +657,7 @@ static char *match_identifier_end(char *base, char *s, char *token, int tokenlen
   return 0;
 }
 
-static int replace_simple(String *str, char *token, char *rep, int flags, int count, char *(*match) (char *, char *, char *, int)) {
+static int replace_simple(String *str, const char *token, const char *rep, int flags, int count, char *(*match) (char *, char *, const char *, int)) {
   int tokenlen;			/* Length of the token */
   int replen;			/* Length of the replacement */
   int delta, expand = 0;
@@ -1148,9 +1148,9 @@ int DohStrncmp(const DOHString_or_char *s1, const DOHString_or_char *s2, int n) 
 }
 
 char *DohStrstr(const DOHString_or_char *s1, const DOHString_or_char *s2) {
-  char *p1 = Char(s1);
-  char *p2 = Char(s2);
-  return p1 == 0 || p2 == 0 || *p2 == '\0' ? p1 : strstr(p1, p2);
+  const char *p1 = Char(s1);
+  const char *p2 = Char(s2);
+  return (char*) (p1 == 0 || p2 == 0 || *p2 == '\0' ? p1 : strstr(p1, p2));
 }
 
 char *DohStrchr(const DOHString_or_char *s1, int ch) {

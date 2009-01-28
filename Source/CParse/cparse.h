@@ -38,7 +38,7 @@ extern "C" {
   extern void scanner_set_main_input_file(String *file);
   extern String *scanner_get_main_input_file();
   extern void Swig_cparse_follow_locators(int);
-  extern void start_inline(char *, int);
+  extern void start_inline(const char *, int);
   extern String *scanner_ccode;
   extern int yylex(void);
 

@@ -215,8 +215,8 @@ static int cparse_template_expand(Node *n, String *tname, String *rname, String 
 
 static
 String *partial_arg(String *s, String *p) {
-  char *c;
-  char *cp = Char(p);
+  const char *c;
+  const char *cp = Char(p);
   String *prefix;
   String *newarg;
 

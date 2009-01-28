@@ -73,7 +73,7 @@ void Swig_fragment_register(Node *fragment) {
  * ----------------------------------------------------------------------------- */
 
 static
-char *char_index(char *str, char c) {
+const char *char_index(const char *str, char c) {
   while (*str && (c != *str))
     ++str;
   return (c == *str) ? str : 0;
@@ -81,7 +81,8 @@ char *char_index(char *str, char c) {
 
 void Swig_fragment_emit(Node *n) {
   String *code;
-  char *pc, *tok;
+  const char *pc;
+  const char *tok;
   String *t;
   String *mangle = 0;
   String *name = 0;
@@ -107,10 +108,14 @@ void Swig_fragment_emit(Node *n) {
   t = Copy(name);
   tok = Char(t);
   pc = char_index(tok, ',');
-  if (pc)
-    *pc = 0;
+  /*if (pc)
+    *pc = 0;*/
   while (tok) {
-    String *name = NewString(tok);
+    String *name;
+    if (pc)
+      name = NewStringWithSize(tok, pc-tok);
+    else
+      name = NewString(tok);
     if (mangle)
       Append(name, mangle);
     if (looking_fragments && Getattr(looking_fragments, name)) {
@@ -172,8 +177,8 @@ void Swig_fragment_emit(Node *n) {
     tok = pc ? pc + 1 : 0;
     if (tok) {
       pc = char_index(tok, ',');
-      if (pc)
-	*pc = 0;
+      /*if (pc)
+	*pc = 0;*/
     }
     Delete(name);
   }
