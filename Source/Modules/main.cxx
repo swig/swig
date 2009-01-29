@@ -273,15 +273,18 @@ static unsigned int decode_numbers_list(String *numlist) {
 
 static void set_outdir(const String *c_wrapper_file_dir) {
 
+  Printf(stdout, "outdir (10): %s\n", outdir);
   // Add file delimiter if not present in output directory name
   if (outdir && Len(outdir) != 0) {
     const char *outd = Char(outdir);
     if (strcmp(outd + strlen(outd) - strlen(SWIG_FILE_DELIMITER), SWIG_FILE_DELIMITER) != 0)
       Printv(outdir, SWIG_FILE_DELIMITER, NIL);
   }
+  Printf(stdout, "outdir (20): %s\n", outdir);
   // Use the C wrapper file's directory if the output directory has not been set by user
   if (!outdir)
     outdir = NewString(c_wrapper_file_dir);
+  Printf(stdout, "outdir (30): %s\n", outdir);
 }
 
 /* This function sets the name of the configuration file */
@@ -1162,6 +1165,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	Setattr(top, "inputfile", input_file);
 
 	char *basename = Swig_file_basename(outcurrentdir ? Swig_file_filename(infile): Char(infile));
+Printf(stdout, "basename: %s\n", basename);
 	if (!outfile_name) {
 	  if (CPlusPlus || lang->cplus_runtime_mode()) {
 	    Setattr(top, "outfile", NewStringf("%s_wrap.%s", basename, cpp_extension));
@@ -1176,7 +1180,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	} else {
 	  Setattr(top, "outfile_h", outfile_name_h);
 	}
-	set_outdir(Swig_file_dirname(basename));
+	set_outdir(Swig_file_dirname(Getattr(top, "outfile")));
 	if (Swig_contract_mode_get()) {
 	  Swig_contracts(top);
 	}
