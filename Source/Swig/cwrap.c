@@ -683,7 +683,7 @@ String *Swig_cppdestructor_call(Node *n) {
  *
  * ----------------------------------------------------------------------------- */
 
-String *Swig_cmemberset_call(const_String_or_char_ptr name, SwigType *type, String *self, int varcref) {
+String *Swig_cmemberset_call(const_String_or_char_ptr name, SwigType *type, const_String_or_char_ptr self, int varcref) {
   String *func;
   String *pname0 = Swig_cparm_name(0, 0);
   String *pname1 = Swig_cparm_name(0, 1);
@@ -718,7 +718,7 @@ String *Swig_cmemberset_call(const_String_or_char_ptr name, SwigType *type, Stri
  *
  * ----------------------------------------------------------------------------- */
 
-String *Swig_cmemberget_call(const_String_or_char_ptr name, SwigType *t, String *self, int varcref) {
+String *Swig_cmemberget_call(const_String_or_char_ptr name, SwigType *t, const_String_or_char_ptr self, int varcref) {
   String *func;
   String *call;
   String *pname0 = Swig_cparm_name(0, 0);

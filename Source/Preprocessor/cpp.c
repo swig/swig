@@ -86,7 +86,7 @@ static String *cpp_include(const_String_or_char_ptr fn, int sysfile) {
   }
   if (!s) {
     /* XXX(bhy) may not need the seek */
-    // Seek(fn, 0, SEEK_SET);
+    /* Seek(fn, 0, SEEK_SET); */
     if (ignore_missing) {
       Swig_warning(WARN_PP_MISSING_FILE, Getfile(fn), Getline(fn), "Unable to find '%s'\n", fn);
     } else {
