@@ -539,7 +539,7 @@ static SwigType *typedef_resolve(Typetab *s, String *base) {
  * ----------------------------------------------------------------------------- */
 
 /* #define SWIG_DEBUG */
-SwigType *SwigType_typedef_resolve(SwigType *t) {
+SwigType *SwigType_typedef_resolve(const SwigType *t) {
   String *base;
   String *type = 0;
   String *r = 0;

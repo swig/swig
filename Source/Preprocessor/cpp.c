@@ -85,7 +85,8 @@ static String *cpp_include(const_String_or_char_ptr fn, int sysfile) {
     Setattr(included_files, file, file);
   }
   if (!s) {
-    Seek(fn, 0, SEEK_SET);
+    /* XXX(bhy) may not need the seek */
+    // Seek(fn, 0, SEEK_SET);
     if (ignore_missing) {
       Swig_warning(WARN_PP_MISSING_FILE, Getfile(fn), Getline(fn), "Unable to find '%s'\n", fn);
     } else {
@@ -261,7 +262,7 @@ void Preprocessor_error_as_warning(int a) {
  * ----------------------------------------------------------------------------- */
 
 
-const_String_or_char_ptr Macro_vararg_name(const_String_or_char_ptr str, const_String_or_char_ptr line) {
+String *Macro_vararg_name(const_String_or_char_ptr str, const_String_or_char_ptr line) {
   String *argname;
   String *varargname;
   char *s, *dots;
@@ -295,18 +296,18 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
   List *arglist = 0;
   int c, line;
   int varargs = 0;
-  const_String_or_char_ptr str = (const_String_or_char_ptr ) _str;
+  String *str;
 
   assert(cpp);
-  assert(str);
+  assert(_str);
 
   /* First make sure that string is actually a string */
-  if (DohCheck(str)) {
-    s = Copy(str);
-    copy_location(str, s);
+  if (DohCheck(_str)) {
+    s = Copy(_str);
+    copy_location(_str, s);
     str = s;
   } else {
-    str = NewString((char *) str);
+    str = NewString((char *) _str);
   }
   Seek(str, 0, SEEK_SET);
   line = Getline(str);

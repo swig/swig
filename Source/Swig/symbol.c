@@ -827,7 +827,7 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
  * verifying that a class hierarchy implements all pure virtual methods.
  * ----------------------------------------------------------------------------- */
 
-static Node *_symbol_lookup(String *name, Symtab *symtab, int (*check) (Node *n)) {
+static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (Node *n)) {
   Node *n;
   List *inherit;
   Hash *sym = Getattr(symtab, "csymtab");
@@ -908,7 +908,7 @@ static Node *symbol_lookup(const_String_or_char_ptr name, Symtab *symtab, int (*
  * symbol_lookup_qualified()
  * ----------------------------------------------------------------------------- */
 
-static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symtab, String *prefix, int local, int (*checkfunc) (Node *n)) {
+static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symtab, const String *prefix, int local, int (*checkfunc) (Node *n)) {
   /* This is a little funky, we search by fully qualified names */
 
   if (!symtab)
@@ -928,6 +928,7 @@ static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symt
     /* Make qualified name of current scope */
     String *qalloc = 0;
     String *qname = Swig_symbol_qualifiedscopename(symtab);
+    const String *cqname;
     if (qname) {
       if (Len(qname)) {
 	if (prefix && Len(prefix)) {
@@ -937,10 +938,11 @@ static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symt
 	Append(qname, prefix);
       }
       qalloc = qname;
+      cqname = qname;
     } else {
-      qname = prefix;
+      cqname = prefix;
     }
-    st = Getattr(symtabs, qname);
+    st = Getattr(symtabs, cqname);
     /* Found a scope match */
     if (st) {
       if (!name) {

@@ -237,9 +237,9 @@ extern DohIterator DohNext(DohIterator x);
 
 /* Positional */
 
-extern int DohGetline(DOH *obj);
+extern int DohGetline(const DOH *obj);
 extern void DohSetline(DOH *obj, int line);
-extern DOH *DohGetfile(DOH *obj);
+extern DOH *DohGetfile(const DOH *obj);
 extern void DohSetfile(DOH *obj, DOH *file);
 
   /* String Methods */

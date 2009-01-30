@@ -651,7 +651,7 @@ String *Swig_string_emangle(String *s) {
  * In this case, "A::B".   Returns NULL if there is no base.
  * ----------------------------------------------------------------------------- */
 
-void Swig_scopename_split(String *s, String **rprefix, String **rlast) {
+void Swig_scopename_split(const String *s, String **rprefix, String **rlast) {
   char *tmp = Char(s);
   char *c = tmp;
   char *cc = c;
@@ -705,7 +705,7 @@ void Swig_scopename_split(String *s, String **rprefix, String **rlast) {
 }
 
 
-String *Swig_scopename_prefix(String *s) {
+String *Swig_scopename_prefix(const String *s) {
   char *tmp = Char(s);
   char *c = tmp;
   char *cc = c;
@@ -757,7 +757,7 @@ String *Swig_scopename_prefix(String *s) {
  * case, "C". 
  * ----------------------------------------------------------------------------- */
 
-String *Swig_scopename_last(String *s) {
+String *Swig_scopename_last(const String *s) {
   char *tmp = Char(s);
   char *c = tmp;
   char *cc = c;
@@ -801,7 +801,7 @@ String *Swig_scopename_last(String *s) {
  * In this case, "A".   Returns NULL if there is no base.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_scopename_first(String *s) {
+String *Swig_scopename_first(const String *s) {
   char *tmp = Char(s);
   char *c = tmp;
   char *co = 0;
@@ -851,7 +851,7 @@ String *Swig_scopename_first(String *s) {
  * In this case, "B::C".   Returns NULL if there is no suffix.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_scopename_suffix(String *s) {
+String *Swig_scopename_suffix(const String *s) {
   char *tmp = Char(s);
   char *c = tmp;
   char *co = 0;
@@ -895,7 +895,7 @@ String *Swig_scopename_suffix(String *s) {
  * Checks to see if a name is qualified with a scope name
  * ----------------------------------------------------------------------------- */
 
-int Swig_scopename_check(String *s) {
+int Swig_scopename_check(const String *s) {
   char *c = Char(s);
   char *co = strstr(c, "operator ");
 

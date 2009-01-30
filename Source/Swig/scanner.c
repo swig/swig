@@ -122,7 +122,7 @@ void Scanner_pushtoken(Scanner * s, int nt, const_String_or_char_ptr val) {
   assert(s);
   assert((nt >= 0) && (nt < SWIG_MAXTOKENS));
   s->nexttoken = nt;
-  if (val != s->text) {
+  if ( Char(val) != Char(s->text) ) {
     Clear(s->text);
     Append(s->text,val);
   }

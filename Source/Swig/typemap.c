@@ -1467,7 +1467,7 @@ static void Swig_typemap_emit_code_fragments(const_String_or_char_ptr op, Parm *
  * given typemap type
  * ----------------------------------------------------------------------------- */
 
-String *Swig_typemap_get_option(Hash *tm, String *name) {
+String *Swig_typemap_get_option(Hash *tm, const_String_or_char_ptr name) {
   Parm *kw = Getattr(tm, "kwargs");
   while (kw) {
     String *kname = Getattr(kw, "name");
