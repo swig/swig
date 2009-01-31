@@ -958,7 +958,7 @@ public:
    * pythoncode()     - Output python code into the shadow file
    * ------------------------------------------------------------ */
 
-  String *pythoncode(String *code, const String *indent) {
+  String *pythoncode(String *code, const_String_or_char_ptr indent) {
     String *out = NewString("");
     String *temp;
     char *t;
@@ -1645,10 +1645,10 @@ public:
     if (have_docstring(n))
       Printv(f_dest, "  ", docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
     if (have_pythonprepend(n))
-      Printv(f_dest, "  ", pythonprepend(n), "\n", NIL);
+      Printv(f_dest, pythoncode(pythonprepend(n), "  "), "\n", NIL);
     if (have_pythonappend(n)) {
       Printv(f_dest, "  val = ", funcCall(name, callParms), "\n", NIL);
-      Printv(f_dest, "  ", pythonappend(n), "\n", NIL);
+      Printv(f_dest, pythoncode(pythonappend(n), "  "), "\n", NIL);
       Printv(f_dest, "  return val\n", NIL);
     } else {
 	Printv(f_dest, "  return ", funcCall(name, callParms), "\n", NIL);
@@ -3118,12 +3118,12 @@ public:
 	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
 	    if (have_pythonprepend(n)) {
 	      fproxy = 0;
-	      Printv(f_shadow, tab8, pythonprepend(n), "\n", NIL);
+	      Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
 	    }
 	    if (have_pythonappend(n)) {
 	      fproxy = 0;
 	      Printv(f_shadow, tab8, "val = ", funcCall(Swig_name_member(class_name, symname), callParms), "\n", NIL);
-	      Printv(f_shadow, tab8, pythonappend(n), "\n", NIL);
+	      Printv(f_shadow, pythoncode(pythonappend(n), tab8), "\n", NIL);
 	      Printv(f_shadow, tab8, "return val\n\n", NIL);
 	    } else {
 	      Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(class_name, symname), callParms), "\n\n", NIL);
@@ -3165,10 +3165,10 @@ public:
 	if (have_docstring(n))
 	  Printv(f_shadow, tab8, docstring(n, AUTODOC_STATICFUNC, tab8), "\n", NIL);
 	if (have_pythonprepend(n))
-	  Printv(f_shadow, tab8, pythonprepend(n), "\n", NIL);
+	  Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
 	if (have_pythonappend(n)) {
 	  Printv(f_shadow, tab8, "val = ", funcCall(Swig_name_member(class_name, symname), callParms), "\n", NIL);
-	  Printv(f_shadow, tab8, pythonappend(n), "\n", NIL);
+	  Printv(f_shadow, pythoncode(pythonappend(n), tab8), "\n", NIL);
 	  Printv(f_shadow, tab8, "return val\n\n", NIL);
 	} else {
 	  Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(class_name, symname), callParms), "\n\n", NIL);
@@ -3275,7 +3275,7 @@ public:
 	    if (have_docstring(n))
 	      Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
 	    if (have_pythonprepend(n))
-	      Printv(f_shadow, tab8, pythonprepend(n), "\n", NIL);
+	      Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
 	    Printv(f_shadow, pass_self, NIL);
 	    if (fastinit) {
 	      Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self,", funcCall(Swig_name_construct(symname), callParms), ")\n", NIL);
@@ -3285,7 +3285,7 @@ public:
 		     tab8, "try: self.this.append(this)\n", tab8, "except: self.this = this\n", NIL);
 	    }
 	    if (have_pythonappend(n))
-	      Printv(f_shadow, tab8, pythonappend(n), "\n\n", NIL);
+	      Printv(f_shadow, pythoncode(pythonappend(n), tab8), "\n\n", NIL);
 	    Delete(pass_self);
 	  }
 	  have_constructor = 1;
@@ -3308,13 +3308,13 @@ public:
 	    if (have_docstring(n))
 	      Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
 	    if (have_pythonprepend(n))
-	      Printv(f_shadow_stubs, tab4, pythonprepend(n), "\n", NIL);
+	      Printv(f_shadow_stubs, pythoncode(pythonprepend(n), tab4), "\n", NIL);
 	    Printv(f_shadow_stubs, tab4, "val = ", funcCall(Swig_name_construct(symname), callParms), "\n", NIL);
 #ifdef USE_THISOWN
 	    Printv(f_shadow_stubs, tab4, "val.thisown = 1\n", NIL);
 #endif
 	    if (have_pythonappend(n))
-	      Printv(f_shadow_stubs, tab4, pythonappend(n), "\n", NIL);
+	      Printv(f_shadow_stubs, pythoncode(pythonappend(n), tab4), "\n", NIL);
 	    Printv(f_shadow_stubs, tab4, "return val\n", NIL);
 	  }
 	}
@@ -3356,7 +3356,7 @@ public:
 	if (have_docstring(n))
 	  Printv(f_shadow, tab8, docstring(n, AUTODOC_DTOR, tab8), "\n", NIL);
 	if (have_pythonprepend(n))
-	  Printv(f_shadow, tab8, pythonprepend(n), "\n", NIL);
+	  Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
 #ifdef USE_THISOWN
 	Printv(f_shadow, tab8, "try:\n", NIL);
 	Printv(f_shadow, tab8, tab4, "if self.thisown: ", module, ".", Swig_name_destroy(symname), "(self)\n", NIL);
@@ -3364,7 +3364,7 @@ public:
 #else
 #endif
 	if (have_pythonappend(n))
-	  Printv(f_shadow, tab8, pythonappend(n), "\n", NIL);
+	  Printv(f_shadow, pythoncode(pythonappend(n), tab8), "\n", NIL);
 	Printv(f_shadow, tab8, "pass\n", NIL);
 	Printv(f_shadow, "\n", NIL);
       }
