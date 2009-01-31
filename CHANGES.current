@@ -1,5 +1,9 @@
 Version 1.3.38 (in progress)
 ================================
+2008-01-31: bhy
+            [Python] Fix SF#2552048 reported by Gaetan Lehmann. The parameter list
+            of static member function in generated proxy code should not have the
+            'self' parameter.
 
 2008-01-29: wsfulton
 	    Fix regression introduced in 1.3.37 where the default output directory

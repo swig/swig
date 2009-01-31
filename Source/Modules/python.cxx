@@ -3159,8 +3159,8 @@ public:
     if (shadow) {
       if (!classic && !Getattr(n, "feature:python:callback") && have_addtofunc(n)) {
 	int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
-        String *parms = make_pyParmList(n, true, false, kw);
-        String *callParms = make_pyParmList(n, true, true, kw);
+        String *parms = make_pyParmList(n, false, false, kw);
+        String *callParms = make_pyParmList(n, false, true, kw);
 	Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	if (have_docstring(n))
 	  Printv(f_shadow, tab8, docstring(n, AUTODOC_STATICFUNC, tab8), "\n", NIL);
