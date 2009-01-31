@@ -333,8 +333,8 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_ref_call(Node *n, const String *lname);
   extern String *Swig_cdestructor_call(Node *n);
   extern String *Swig_cppdestructor_call(Node *n);
-  extern String *Swig_cmemberset_call(const_String_or_char_ptr name, SwigType *type, const_String_or_char_ptr self, int varcref);
-  extern String *Swig_cmemberget_call(const_String_or_char_ptr name, SwigType *t, const_String_or_char_ptr self, int varcref);
+  extern String *Swig_cmemberset_call(const_String_or_char_ptr name, SwigType *type, String *self, int varcref);
+  extern String *Swig_cmemberget_call(const_String_or_char_ptr name, SwigType *t, String *self, int varcref);
 
   extern int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self);
 
