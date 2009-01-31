@@ -1355,12 +1355,15 @@ if (!SWIG_IsOK(SWIG_ConvertPtr( .....)){
 <p><tt>SWIG_fail_arg(char* func_name,int argnum,char* type)</tt></p>
 
 <div class="indent">
-This macro, when called within the context of a SWIG wrappered function, will display the error message and jump to the error handler code. The error message is of the form "Error in <i>func_name</i> (arg <i>argnum</i>), expected '<i>type</i>' got '<i>whatever the type was</i>'"</pre></div>
+This macro, when called within the context of a SWIG wrappered function, will display the error message and jump to the error handler code. The error message is of the form 
+<pre>
+"Error in <i>func_name</i> (arg <i>argnum</i>), expected '<i>type</i>' got '<i>whatever the type was</i>'"
+</pre></div>
 
 <p><tt>SWIG_fail_ptr(const char* fn_name,int argnum,swig_type_info* type);</tt></p>
 
 <div class="indent">
-Similar to SWIG_fail_arg, except that it will display the swig_type_info information instead.</pre></div>
+Similar to SWIG_fail_arg, except that it will display the swig_type_info information instead.</div>
 
 <H2><a name="Lua_nn31"></a>23.6 Customization of your Bindings</H2>
 
