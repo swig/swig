@@ -7,9 +7,6 @@ require_ok('array_member');
 
 my $f = array_member::Foo->new();
 $f->{data} = $array_member::global_data;
-my $t = $f->{data};
-use Devel::Peek;
-Dump($t);
 
 for(my $i=0; $i<8; $i++) {
 	is( array_member::get_value($f->{data},$i),

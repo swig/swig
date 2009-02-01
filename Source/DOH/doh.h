@@ -144,6 +144,9 @@ typedef void DOH;
 #define DOHString_or_char  DOH
 #define DOHObj_or_char     DOH
 
+typedef const DOHString_or_char * const_String_or_char_ptr;
+typedef const DOHString_or_char * DOHconst_String_or_char_ptr;
+
 #define DOH_BEGIN          -1
 #define DOH_END            -2
 #define DOH_CUR            -3
@@ -234,9 +237,9 @@ extern DohIterator DohNext(DohIterator x);
 
 /* Positional */
 
-extern int DohGetline(DOH *obj);
+extern int DohGetline(const DOH *obj);
 extern void DohSetline(DOH *obj, int line);
-extern DOH *DohGetfile(DOH *obj);
+extern DOH *DohGetfile(const DOH *obj);
 extern void DohSetfile(DOH *obj, DOH *file);
 
   /* String Methods */

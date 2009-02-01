@@ -66,7 +66,7 @@ static void yyerror (const char *e) {
   (void)e;
 }
 
-static Node *new_node(const String_or_char *tag) {
+static Node *new_node(const_String_or_char_ptr tag) {
   Node *n = NewHash();
   set_nodeType(n,tag);
   Setfile(n,cparse_file);
@@ -1425,7 +1425,7 @@ static void default_arguments(Node *n) {
  * Used by the parser to mark subtypes with extra information.
  * ----------------------------------------------------------------------------- */
 
-static void tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
+static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
   while (n) {
     Setattr(n, attrname, value);
     tag_nodes(firstChild(n), attrname, value);
@@ -3334,7 +3334,7 @@ cpp_class_decl  :
 		       } else {
 			   max_class_levels *= 2;
 		       }
-		       class_decl = realloc(class_decl, sizeof(Node*) * max_class_levels);
+		       class_decl = (Node**) realloc(class_decl, sizeof(Node*) * max_class_levels);
 		       if (!class_decl) {
 			   Swig_error(cparse_file, cparse_line, "realloc() failed\n");
 		       }
@@ -3483,7 +3483,7 @@ cpp_class_decl  :
 		   } else {
 		       max_class_levels *= 2;
 		   }
-		   class_decl = realloc(class_decl, sizeof(Node*) * max_class_levels);
+		   class_decl = (Node**) realloc(class_decl, sizeof(Node*) * max_class_levels);
 		   if (!class_decl) {
 		       Swig_error(cparse_file, cparse_line, "realloc() failed\n");
 		   }

@@ -6,23 +6,18 @@
  * type checking.
  * ----------------------------------------------------------------------------- */
 
-#ifdef PERL_OBJECT
-#define SWIG_PERL_OBJECT_DECL CPerlObj *SWIGUNUSEDPARM(pPerl),
-#define SWIG_PERL_OBJECT_CALL pPerl,
-#else
-#define SWIG_PERL_OBJECT_DECL
-#define SWIG_PERL_OBJECT_CALL
-#endif
-
 /* Common SWIG API */
 
 /* for raw pointers */
-#define SWIG_ConvertPtr(obj, pp, type, flags)           SWIG_Perl_ConvertPtr(SWIG_PERL_OBJECT_CALL obj, pp, type, flags)
-#define SWIG_NewPointerObj(p, type, flags)              SWIG_Perl_NewPointerObj(SWIG_PERL_OBJECT_CALL p, type, flags)
+#define SWIG_ConvertPtr(obj, pp, type, flags)           SWIG_Perl_ConvertPtr(obj, pp, type, flags)
+#define SWIG_NewPointerObjP(ptr, t, flags) \
+    SWIG_Perl_MakePtr(0, ptr, t, flags, proto)
+#define SWIG_NewPointerObj(ptr, t, flags) \
+    SWIG_Perl_MakePtr(0, ptr, t, flags, 0)
 
 /* for raw packed data */
-#define SWIG_ConvertPacked(obj, p, s, type)             SWIG_Perl_ConvertPacked(SWIG_PERL_OBJECT_CALL obj, p, s, type)
-#define SWIG_NewPackedObj(p, s, type)	                SWIG_Perl_NewPackedObj(SWIG_PERL_OBJECT_CALL p, s, type)
+#define SWIG_ConvertPacked(obj, p, s, type)             SWIG_Perl_ConvertPacked(obj, p, s, type)
+#define SWIG_NewPackedObj(p, s, type)	                SWIG_Perl_NewPackedObj(p, s, type)
 
 /* for class or struct pointers */
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_ConvertPtr(obj, pptr, type, flags)
@@ -51,15 +46,15 @@
 
 /* Perl-specific SWIG API */
 
-#define SWIG_MakePtr(sv, ptr, type, flags)              SWIG_Perl_WrapNative(sv, ptr, type, flags, 0)
-#define SWIG_MakePackedObj(sv, p, s, type)	        SWIG_Perl_MakePackedObj(SWIG_PERL_OBJECT_CALL sv, p, s, type)
+#define SWIG_MakePtr(sv, ptr, type, flags)              SWIG_Perl_MakePtr(sv, ptr, type, flags, 0)
+#define SWIG_MakePackedObj(sv, p, s, type)	        SWIG_Perl_MakePackedObj(sv, p, s, type)
 #define SWIG_SetError(str)                              SWIG_Error(SWIG_RuntimeError, str)
 
 
-#define SWIG_PERL_DECL_ARGS_1(arg1)                     (SWIG_PERL_OBJECT_DECL arg1)
-#define SWIG_PERL_CALL_ARGS_1(arg1)                     (SWIG_PERL_OBJECT_CALL arg1)
-#define SWIG_PERL_DECL_ARGS_2(arg1, arg2)               (SWIG_PERL_OBJECT_DECL arg1, arg2)
-#define SWIG_PERL_CALL_ARGS_2(arg1, arg2)               (SWIG_PERL_OBJECT_CALL arg1, arg2)
+#define SWIG_PERL_DECL_ARGS_1(arg1)                     (arg1)
+#define SWIG_PERL_CALL_ARGS_1(arg1)                     (arg1)
+#define SWIG_PERL_DECL_ARGS_2(arg1, arg2)               (arg1, arg2)
+#define SWIG_PERL_CALL_ARGS_2(arg1, arg2)               (arg1, arg2)
 
 /* -----------------------------------------------------------------------------
  * pointers/data manipulation
@@ -74,8 +69,6 @@ extern "C" {
 
 #define SWIG_OWNER   SWIG_POINTER_OWN
 #define SWIG_SHADOW  SWIG_OWNER << 1
-
-#define SWIG_MAYBE_PERL_OBJECT SWIG_PERL_OBJECT_DECL
 
 /* SWIG Perl macros */
 
@@ -256,6 +249,51 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
 
 /* wrapping & unwrapping native opaque pointers */
 
+SWIGRUNTIME int
+SWIG_Perl_ConvertMg(MAGIC *mg, void **ptr, swig_type_info *t, int flags) {
+  /* TODO: this is incomplete */
+  *ptr = INT2PTR(void *, SvIV((SV *)mg->mg_ptr));
+  return SWIG_OK;
+}
+SWIGRUNTIME int
+SWIG_Perl_ConvertPtr(SV *sv, void **ptr, swig_type_info *_t, int flags) {
+  swig_cast_info *tc;
+  void *voidptr = (void *)0;
+  MAGIC *mg;
+
+  SvGETMAGIC(sv);
+  if (!SvOK(sv)) {
+    *ptr = (void *) 0;
+    return SWIG_OK;
+  }
+  if (!SvROK(sv))
+    return SWIG_ERROR;
+  /* runtime type checks:
+   * _t == 0 means no typecheck restrictions (void* style)
+   * TypeProxyCheck() succeeds on a c/c++ inheritance
+   * sv_derived_from succeeds on Perl inheritance
+   */
+  if (_t) {
+    const char *c = HvNAME(SvSTASH(SvRV(sv)));
+    tc = SWIG_TypeProxyCheck(c, _t);
+    if(!tc && !sv_derived_from(sv, SWIG_Perl_TypeProxyName(_t)))
+    return SWIG_ERROR;
+  } else tc = 0;
+  mg = mg_find(SvRV(sv), PERL_MAGIC_ext);
+  if (!mg)
+    return SWIG_ERROR;
+  SWIG_Perl_ConvertMg(mg, &voidptr, _t, flags);
+  if (tc) {
+    /* TODO: implement newmemory */
+    int newmemory = 0;
+    *ptr = SWIG_TypeCast(tc, voidptr, &newmemory);
+    assert(!newmemory);
+  } else {
+    *ptr = voidptr;
+  }
+  return SWIG_OK;
+}
+
 SWIGINTERN SV *
 SWIG_Perl_WrapVar(SV *sv, MGVTBL *vtbl, SV *wrap) {
   sv_magicext(sv, 0, PERL_MAGIC_ext, vtbl, (char *)wrap, 0);
@@ -264,7 +302,7 @@ SWIG_Perl_WrapVar(SV *sv, MGVTBL *vtbl, SV *wrap) {
 }
 
 SWIGINTERN SV *
-SWIG_Perl_WrapNative(SV *sv, const void *ptr, swig_type_info *t, int flags,
+SWIG_Perl_MakePtr(SV *sv, const void *ptr, swig_type_info *t, int flags,
 	SV *proto) {
   SV *wrap;
 
@@ -352,79 +390,11 @@ SWIG_Perl_WrapNative(SV *sv, const void *ptr, swig_type_info *t, int flags,
   warn("}"); */
   return sv;
 }
-SWIGINTERN void *
-SWIG_Perl_MgUnwrap(MAGIC *mg) {
-  return INT2PTR(void *, SvIV((SV *)mg->mg_ptr));
-}
-SWIGRUNTIME int
-SWIG_Perl_ConvertMg(MAGIC *mg, void **ptr, swig_type_info *t, int flags) {
-  /* TODO: this is incomplete */
-  *ptr = SWIG_Perl_MgUnwrap(mg);
-  return SWIG_OK;
-}
-SWIGINTERN int
-SWIG_Perl_SvUnwrap(void **pp, SV *sv, swig_type_info *t, int flags) {
-  MAGIC *mg;
-  swig_cast_info *tc = 0;
-  void *p = 0;
-
-  if (!SvOK(sv)) {
-    *pp = 0;
-    return SWIG_OK;
-  }
-  if (!SvROK(sv))
-    return SWIG_ERROR;
-  /* runtime type checks:
-   * t == 0 means no typecheck restrictions (void* style)
-   * TypeProxyCheck() succeeds on a c/c++ inheritance
-   * sv_derived_from succeeds on Perl inheritance
-   */
-  if (t) {
-    const char *c = HvNAME(SvSTASH(SvRV(sv)));
-    tc = SWIG_TypeProxyCheck(c, t);
-    if(!tc && !sv_derived_from(sv, SWIG_Perl_TypeProxyName(t)))
-    return SWIG_ERROR;
-  }
-  mg = mg_find(SvRV(sv), PERL_MAGIC_ext);
-  if (!mg)
-    return SWIG_ERROR;
-  p = SWIG_Perl_MgUnwrap(mg);
-  if (tc) {
-    /* TODO: implement newmemory */
-    int newmemory = 0;
-    *pp = SWIG_TypeCast(tc, p, &newmemory);
-    assert(!newmemory);
-  } else {
-    *pp = p;
-  }
-  return SWIG_OK;
-}
 
 /* Function for getting a pointer value */
 
-SWIGRUNTIME int
-SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *t, int flags) {
-  SvGETMAGIC(sv);
-  return SWIG_Perl_SvUnwrap(ptr, sv, t, flags);
-}
-
-SWIGRUNTIME SV *
-SWIG_Perl_TypeOverrideName = 0;
-
 SWIGRUNTIME void
-SWIG_Perl_TypeOverride(SV *proto) {
-  SWIG_Perl_TypeOverrideName = proto;
-}
-
-SWIGRUNTIMEINLINE SV *
-SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *ptr, swig_type_info *t, int flags) {
-  SV *proto = SWIG_Perl_TypeOverrideName;
-  SWIG_Perl_TypeOverrideName = 0;
-  return SWIG_Perl_WrapNative(0, ptr, t, flags, proto);
-}
-
-SWIGRUNTIME void
-SWIG_Perl_MakePackedObj(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, int sz, swig_type_info *type) {
+SWIG_Perl_MakePackedObj(SV *sv, void *ptr, int sz, swig_type_info *type) {
   char result[1024];
   char *r = result;
   if ((2*sz + 1 + strlen(SWIG_Perl_TypeProxyName(type))) > 1000) return;
@@ -435,7 +405,7 @@ SWIG_Perl_MakePackedObj(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, int sz, swig_t
 }
 
 SWIGRUNTIME SV *
-SWIG_Perl_NewPackedObj(SWIG_MAYBE_PERL_OBJECT void *ptr, int sz, swig_type_info *type) {
+SWIG_Perl_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
   SV *result = sv_newmortal();
   SWIG_Perl_MakePackedObj(result, ptr, sz, type);
   return result;
@@ -443,7 +413,7 @@ SWIG_Perl_NewPackedObj(SWIG_MAYBE_PERL_OBJECT void *ptr, int sz, swig_type_info 
 
 /* Convert a packed value value */
 SWIGRUNTIME int
-SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_type_info *ty) {
+SWIG_Perl_ConvertPacked(SV *obj, void *ptr, int sz, swig_type_info *ty) {
   swig_cast_info *tc;
   const char  *c = 0;
 

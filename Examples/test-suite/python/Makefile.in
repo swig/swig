@@ -32,6 +32,7 @@ PY2TO3 = 2to3 -x import
 CPP_TEST_CASES += \
 	argcargvtest \
 	python_autodoc \
+	python_append \
 	callback \
 	complextest \
 	director_stl \

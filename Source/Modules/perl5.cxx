@@ -61,13 +61,6 @@ static String *module = 0;
 static String       *namespace_module = 0;
 
 /*
- * cmodule
- *   the namespace of the internal glue code, set to the value of
- *   module with a 'c' appended
- */
-static String *cmodule = 0;
-
-/*
  * dest_package
  *   an optional namespace to put all classes into. Specified by using
  *   the %module(package="Foo::Bar") "baz" syntax
@@ -83,7 +76,6 @@ static File *f_wrappers = 0;
 static File *f_init = 0;
 static File *f_pm = 0;
 static String *pm;		/* Package initialization code */
-static String *magic;		/* Magic variable wrappers     */
 
 static int staticoption = 0;
 
@@ -97,6 +89,7 @@ static int do_constants = 0;	/* Constant wrapping */
 static List *classlist = 0;	/* List of classes */
 
 static Node *class_node = 0;    /* class currently being processed */
+static Hash *mangle_seen = 0;
 static int have_destructor = 0;
 static String *class_name = 0;	/* Name of the class (what Perl thinks it is) */
 
@@ -241,7 +234,6 @@ public:
     var_stubs = NewString("");
     const_stubs = NewString("");
     exported = NewString("");
-    magic = NewString("");
     pragma_include = NewString("");
     additional_perl_code = NewString("");
 
@@ -284,14 +276,6 @@ public:
       fprintf(stdout, "top: using namespace_module: %s\n", Char(namespace_module));
     }
 
-    /* If we're in blessed mode, change the package name to "packagec" */
-
-    if (blessed) {
-      cmodule = NewStringf("%sc",namespace_module);
-    } else {
-      cmodule = NewString(namespace_module);
-    }
-
     /* Create a .pm file
      * Need to strip off any prefixes that might be found in
      * the module name */
@@ -323,8 +307,8 @@ public:
     {
       String *boot_name = NewStringf("boot_%s", underscore_module);
       Printf(f_header,"#define SWIG_init    %s\n\n", boot_name);
-      Printf(f_header,"#define SWIG_name   \"%s::%s\"\n", cmodule, boot_name);
-      Printf(f_header,"#define SWIG_prefix \"%s::\"\n", cmodule);
+      Printf(f_header,"#define SWIG_name   \"%s::%s\"\n", module, boot_name);
+      Printf(f_header,"#define SWIG_prefix \"%s::\"\n", module);
       Delete(boot_name);
     }
 
@@ -347,20 +331,6 @@ public:
       }
     }
 
-    /* Start creating magic code */
-
-    Printv(magic,
-           "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n",
-	   "#ifdef PERL_OBJECT\n",
-	   "#define MAGIC_CLASS _wrap_", underscore_module, "_var::\n",
-	   "class _wrap_", underscore_module, "_var : public CPerlObj {\n",
-	   "public:\n",
-	   "#else\n",
-	   "#define MAGIC_CLASS\n",
-	   "#endif\n",
-	   "SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *SWIGUNUSEDPARM(sv), MAGIC *SWIGUNUSEDPARM(mg)) {\n",
-	   tab4, "MAGIC_PPERL\n", tab4, "croak(\"Value is read-only.\");\n", tab4, "return 0;\n", "}\n", NIL);
-
     Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
 
     /* emit wrappers */
@@ -368,40 +338,7 @@ public:
 
     /* Dump out variable wrappers */
 
-    Printv(magic, "\n\n#ifdef PERL_OBJECT\n", "};\n", "#endif\n", NIL);
-    Printv(magic, "\n#ifdef __cplusplus\n}\n#endif\n", NIL);
-
-    Printf(f_header, "%s\n", magic);
-
-#if 1
     SwigType_emit_type_table(f_runtime, f_wrappers);
-#else
-    String *type_table = NewString("");
-
-    /* Patch the type table to reflect the names used by shadow classes */
-    if (blessed) {
-      Iterator cls;
-      for (cls = First(classlist); cls.item; cls = Next(cls)) {
-	String *pname = Getattr(cls.item, "perl5:proxy");
-	if (pname) {
-	  SwigType *type = Getattr(cls.item, "classtypeobj");
-	  if (!type)
-	    continue;		/* If unnamed class, no type will be found */
-	  type = Copy(type);
-
-	  SwigType_add_pointer(type);
-	  String *mangled = SwigType_manglestr(type);
-	  SwigType_remember_mangleddata(mangled, NewStringf("\"%s\"", pname));
-	  Delete(type);
-	  Delete(mangled);
-	}
-      }
-    }
-    SwigType_emit_type_table(f_runtime, type_table);
-
-    Printf(f_wrappers, "%s", type_table);
-    Delete(type_table);
-#endif
 
     Printf(constant_tab, "{0,0,0,0,0,0}\n};\n");
     Printv(f_wrappers, constant_tab, NIL);
@@ -416,17 +353,12 @@ public:
     Printf(command_tab, "{0,0}\n};\n");
     Printv(f_wrappers, command_tab, NIL);
 
-
-    Printf(f_pm, "package %s;\n", cmodule);
-
     if (!staticoption) {
       Printf(f_pm,"bootstrap %s;\n", module);
     } else {
-      Printf(f_pm,"package %s;\n", cmodule);
       Printf(f_pm,"boot_%s();\n", underscore_module);
     }
 
-    Printf(f_pm, "package %s;\n", module);
     /* 
      * If the package option has been given we are placing our
      *   symbols into some other packages namespace, so we do not
@@ -606,12 +538,10 @@ public:
 
     num_implicits = 0;
     if (outer) {
-      Parm *tmp = outer;
       Parm *tail;
-      while(tmp) {
-        tail = tmp;
+      for(Parm *cur = outer; cur; cur = nextSibling(cur)) {
+        tail = cur;
         num_implicits++;
-        tmp = nextSibling(tmp);
       }
       /* link the outer with inner parms */
       set_nextSibling(tail, l);
@@ -782,13 +712,11 @@ public:
       } else {
 	Replaceall(tm, "$shadow", "0");
       }
-      if (GetFlag(n, "feature:new")) {
-        if (blessed && Equal(nodeType(n), "constructor"))
-          Append(f->code, "SWIG_Perl_TypeOverride(proto);\n");
-	Replaceall(tm, "$owner", "SWIG_OWNER");
-      } else {
-	Replaceall(tm, "$owner", "0");
-      }
+      Replaceall(tm, "$owner", GetFlag(n, "feature:new") ?
+          "SWIG_OWNER" : "0");
+      /* TODO: this NewPointerObjP stuff is a hack */
+      if (blessed && Equal(nodeType(n), "constructor"))
+        Replaceall(tm, "NewPointerObj", "NewPointerObjP");
       Printf(f->code, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
@@ -1017,6 +945,10 @@ public:
       value = Char(wname);
     }
 
+    Swig_require("namespaceHack", n, "*sym:name", NIL);
+    if (Getattr(n, "perl5:name"))
+      Setattr(n, "sym:name", Getattr(n, "perl5:name"));
+
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
@@ -1039,6 +971,7 @@ public:
       Printf(f_init, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
+      Swig_restore(n);
       return SWIG_NOWRAP;
     }
 
@@ -1047,12 +980,10 @@ public:
 	Printv(var_stubs,
 	       "\nmy %__", iname, "_hash;\n",
 	       "tie %__", iname, "_hash,\"", is_shadow(type), "\", $",
-	       cmodule, "::", iname, ";\n", "$", iname, "= \\%__", iname, "_hash;\n", "bless $", iname, ", ", is_shadow(type), ";\n", NIL);
+	       module, "::", iname, ";\n", "$", iname, "= \\%__", iname, "_hash;\n", "bless $", iname, ", ", is_shadow(type), ";\n", NIL);
       } else if (do_constants) {
-	Printv(const_stubs, "sub ", name, " () { $", cmodule, "::", name, " }\n", NIL);
+	Printv(const_stubs, "sub ", name, " () { $", module, "::", name, " }\n", NIL);
 	num_consts++;
-      } else {
-	Printv(var_stubs, "*", iname, " = *", cmodule, "::", iname, ";\n", NIL);
       }
     }
     if (export_all) {
@@ -1062,6 +993,7 @@ public:
 	Printf(exported, "$%s ", iname);
       }
     }
+    Swig_restore(n);
     return SWIG_OK;
   }
 
@@ -1116,12 +1048,9 @@ public:
     if (!addSymbol(funcname, n))
       return SWIG_ERROR;
 
-    Printf(command_tab, "{\"%s::%s\", %s},\n", cmodule, name, funcname);
+    Printf(command_tab, "{\"%s::%s\", %s},\n", module, name, funcname);
     if (export_all)
       Printf(exported, "%s ", name);
-    if (blessed) {
-      Printv(func_stubs, "*", name, " = *", cmodule, "::", name, ";\n", NIL);
-    }
     return SWIG_OK;
   }
 
@@ -1261,7 +1190,8 @@ public:
     }
 
     /* Emit all of the members */
-    Language::classHandler(n);
+    int rv = Language::classHandler(n);
+    if(rv != SWIG_OK) return rv;
 
 
     /* Finish the rest of the class */
@@ -1286,13 +1216,17 @@ public:
 
       /* tell interpreter about class attributes */
       {
-        /* TODO: this is all broken, see template_default2 test */
         SwigType *ct = Copy(name);
         String *mang;
 
         SwigType_add_pointer(ct);
         mang = SwigType_manglestr(ct);
-
+        /* mangle_seen is to avoid emitting type information for types
+         * SwigType_remember_clientdata does not consider to be
+         * different, it's a hack.  I think the problem this workaround
+         * is needed for is in typesys/symbol management. */
+        if (!mangle_seen) mangle_seen = NewHash();
+        if (!Getattr(mangle_seen, mang)) {
         Printv(pm, "use fields (", NIL);
         int nattr = 0;
         for (Iterator i = First(Getattr(n, "perl5:memberVariables"));
@@ -1336,9 +1270,10 @@ public:
         Append(pm, ");\n");
         String *tmp = NewStringf("&_swigt_ext_%s", mang);
         SwigType_remember_clientdata(ct, tmp);
+        Setattr(mangle_seen, mang, "1");
         Delete(mang);
         Delete(ct);
-      }
+      }}
 
       if (have_operators) {
 	Printf(pm, "use overload\n");
@@ -1448,7 +1383,7 @@ public:
 
       if (Getattr(n, "feature:shadow")) {
 	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
-	String *plaction = NewStringf("%s::%s", cmodule, Swig_name_member(class_name, symname));
+	String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name, symname));
 	Replaceall(plcode, "$action", plaction);
 	Delete(plaction);
 	Printv(pcode, plcode, NIL);
@@ -1588,7 +1523,7 @@ public:
   virtual int destructorHandler(Node *n) {
     if (blessed) {
       String *symname = Getattr(n, "sym:name");
-      char *pname = "_swig_DESTROY";
+      const char *pname = "_swig_DESTROY";
       if (Getattr(n, "feature:shadow")) {
 	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
 	String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name, symname));
@@ -1603,7 +1538,7 @@ public:
       //    tab4, "return unless defined $self;\n",
       //    tab4, "delete $ITERATORS{$self};\n",
       //    tab4, "if (exists $OWNER{$self}) {\n",
-      //    tab8, cmodule, "::", Swig_name_destroy(symname), "($self);\n", tab8, "delete $OWNER{$self};\n", tab4, "}\n}\n\n", NIL);
+      //    tab8, module, "::", Swig_name_destroy(symname), "($self);\n", tab8, "delete $OWNER{$self};\n", tab4, "}\n}\n\n", NIL);
       }
       Setattr(n, "perl5:name", NewStringf("%s::%s::%s",
         namespace_module, class_name, pname));
@@ -1640,18 +1575,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    String *symname = Getattr(n, "sym:name");
-    int oldblessed = blessed;
-
-    /* Create a normal constant */
-    blessed = 0;
-    Language::memberconstantHandler(n);
-    blessed = oldblessed;
-
-    if (blessed) {
-      Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(class_name, symname), ";\n", NIL);
-    }
-    return SWIG_OK;
+    if (blessed)
+      Setattr(n, "perl5:name", NewStringf("%s::%s",
+            class_name, Getattr(n, "sym:name")));
+    return Language::memberconstantHandler(n);
   }
 
   /* ------------------------------------------------------------

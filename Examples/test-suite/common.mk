@@ -194,6 +194,7 @@ CPP_TEST_CASES += \
 	fragments \
 	friends \
 	fvirtual \
+	global_namespace \
 	global_ns_arg \
 	global_vars \
 	grouping \

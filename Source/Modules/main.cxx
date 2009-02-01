@@ -285,7 +285,7 @@ static void set_outdir(const String *c_wrapper_file_dir) {
 }
 
 /* This function sets the name of the configuration file */
-void SWIG_config_file(const String_or_char *filename) {
+void SWIG_config_file(const_String_or_char_ptr filename) {
   lang_config = NewString(filename);
 }
 
@@ -1176,7 +1176,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	} else {
 	  Setattr(top, "outfile_h", outfile_name_h);
 	}
-	set_outdir(Swig_file_dirname(basename));
+	set_outdir(Swig_file_dirname(Getattr(top, "outfile")));
 	if (Swig_contract_mode_get()) {
 	  Swig_contracts(top);
 	}

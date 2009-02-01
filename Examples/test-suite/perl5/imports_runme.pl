@@ -1,5 +1,5 @@
-use imports_b;
 use imports_a;
+use imports_b;
 
 $x = imports_b::B->new();
-imports_ac::A_hello($x);
+$x->imports_a::A::hello();

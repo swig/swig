@@ -224,7 +224,7 @@ public:
    * name (i.e. "enum_test").
    * ------------------------------------------------------------ */
 
-  String *strip(const DOHString_or_char *name) {
+  String *strip(const DOHconst_String_or_char_ptr name) {
     String *s = Copy(name);
     if (Strncmp(name, PrefixPlusUnderscore, Len(PrefixPlusUnderscore)) != 0) {
       return s;
@@ -237,7 +237,7 @@ public:
    * add_method()
    * ------------------------------------------------------------ */
 
-  void add_method(const DOHString_or_char *name, const DOHString_or_char *function, const DOHString_or_char *description) {
+  void add_method(const DOHconst_String_or_char_ptr name, const DOHconst_String_or_char_ptr function, const DOHconst_String_or_char_ptr description) {
     String *rename = NULL;
     switch (current) {
     case NO_CPP:

@@ -131,7 +131,7 @@ static void add_defined_foreign_type(String *type) {
 }
 
 
-static String *get_ffi_type(SwigType *ty, const String_or_char *name) {
+static String *get_ffi_type(SwigType *ty, const_String_or_char_ptr name) {
   Hash *typemap = Swig_typemap_search("ffitype", ty, name, 0);
   if (typemap) {
     String *typespec = Getattr(typemap, "code");
@@ -167,7 +167,7 @@ static String *get_ffi_type(SwigType *ty, const String_or_char *name) {
   return 0;
 }
 
-static String *get_lisp_type(SwigType *ty, const String_or_char *name) {
+static String *get_lisp_type(SwigType *ty, const_String_or_char_ptr name) {
   Hash *typemap = Swig_typemap_search("lisptype", ty, name, 0);
   if (typemap) {
     String *typespec = Getattr(typemap, "code");

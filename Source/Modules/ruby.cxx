@@ -78,7 +78,7 @@ public:
     Delete(temp);
   }
 
-  void set_name(const String_or_char *cn, const String_or_char *rn, const String_or_char *valn) {
+  void set_name(const_String_or_char_ptr cn, const_String_or_char_ptr rn, const_String_or_char_ptr valn) {
     /* Original C/C++ class (or struct) name */
     Clear(cname);
     Append(cname, cn);
@@ -104,7 +104,7 @@ public:
     Printv(prefix, (rn ? rn : cn), "_", NIL);
   }
 
-  char *strip(const String_or_char *s) {
+  char *strip(const_String_or_char_ptr s) {
     Clear(temp);
     Append(temp, s);
     if (Strncmp(s, prefix, Len(prefix)) == 0) {
@@ -1228,7 +1228,7 @@ public:
   /**
    * Process the comma-separated list of aliases (if any).
    */
-  void defineAliases(Node *n, const String_or_char *iname) {
+  void defineAliases(Node *n, const_String_or_char_ptr iname) {
     String *aliasv = Getattr(n, "feature:alias");
     if (aliasv) {
       List *aliases = Split(aliasv, ',', INT_MAX);
@@ -1262,7 +1262,7 @@ public:
    * as another instance of the same class.
    * --------------------------------------------------------------------- */
 
-  void create_command(Node *n, const String_or_char *iname) {
+  void create_command(Node *n, const_String_or_char_ptr iname) {
 
     String *alloc_func = Swig_name_wrapper(iname);
     String *wname = Swig_name_wrapper(iname);
@@ -2566,7 +2566,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_allocate");
+    Swig_name_register((const_String_or_char_ptr ) "construct", (const_String_or_char_ptr ) "%c_allocate");
 
 
     Language::constructorHandler(n);
@@ -2601,7 +2601,7 @@ public:
     Delete(docs);
 
     current = CONSTRUCTOR_INITIALIZE;
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
+    Swig_name_register((const_String_or_char_ptr ) "construct", (const_String_or_char_ptr ) "new_%c");
     Language::constructorHandler(n);
 
     /* Restore original parameter list */
@@ -2609,7 +2609,7 @@ public:
     Swig_restore(n);
 
     /* Done */
-    Swig_name_unregister((String_or_char *) "construct");
+    Swig_name_unregister((const_String_or_char_ptr ) "construct");
     current = NO_CPP;
     klass->constructor_defined = 1;
     return SWIG_OK;
@@ -2623,7 +2623,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_allocate");
+    Swig_name_register((const_String_or_char_ptr ) "construct", (const_String_or_char_ptr ) "%c_allocate");
 
     return Language::copyconstructorHandler(n);
   }

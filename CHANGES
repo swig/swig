@@ -2,6 +2,30 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 See CHANGES.current for current version.
 
+Version 1.3.38 (31 January 2009)
+================================
+
+2008-01-31: bhy
+            [Python] Fix SF#2552488 reported by Gaetan Lehmann. Now %pythonprepend
+            and %pythonappend have correct indentation.
+
+2008-01-31: bhy
+            [Python] Fix SF#2552048 reported by Gaetan Lehmann. The parameter list
+            of static member function in generated proxy code should not have the
+            'self' parameter.
+
+2008-01-29: wsfulton
+	    Fix regression introduced in 1.3.37 where the default output directory
+	    for target language specific files (in the absence of -outdir) was no
+	    longer the same directory as the generated c/c++ file.
+
+2008-01-28: wsfulton
+	    [Java, C#] Fix proxy class not being used when the global scope operator
+	    was used for parameters passed by value. Reported by David Piepgrass.
+
+2008-01-15: wsfulton
+	    [Perl] Fix seg fault when running with -v option, reported by John Ky.
+
 Version 1.3.37 (13 January 2009)
 ================================
 

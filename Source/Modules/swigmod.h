@@ -313,7 +313,7 @@ int SWIG_main(int, char **, Language *);
 void emit_parameter_variables(ParmList *l, Wrapper *f);
 void emit_return_variable(Node *n, SwigType *rt, Wrapper *f);
 void SWIG_exit(int);		/* use EXIT_{SUCCESS,FAILURE} */
-void SWIG_config_file(const String_or_char *);
+void SWIG_config_file(const_String_or_char_ptr );
 const String *SWIG_output_directory();
 void SWIG_config_cppext(const char *ext);
 
@@ -329,17 +329,17 @@ void emit_mark_varargs(ParmList *l);
 String *emit_action(Node *n);
 int emit_action_code(Node *n, String *wrappercode, String *action);
 void Swig_overload_check(Node *n);
-String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *);
-String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *);
-String *Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *);
+String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *);
+String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *);
+String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *);
 SwigType *cplus_value_type(SwigType *t);
 
 /* directors.cxx start */
 String *Swig_csuperclass_call(String *base, String *method, ParmList *l);
 String *Swig_class_declaration(Node *n, String *name);
 String *Swig_class_name(Node *n);
-String *Swig_method_call(String_or_char *name, ParmList *parms);
-String *Swig_method_decl(SwigType *rtype, SwigType *decl, const String_or_char *id, List *args, int strip, int values);
+String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms);
+String *Swig_method_decl(SwigType *rtype, SwigType *decl, const_String_or_char_ptr id, List *args, int strip, int values);
 String *Swig_director_declaration(Node *n);
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
 /* directors.cxx end */

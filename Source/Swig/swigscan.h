@@ -15,7 +15,7 @@ extern Scanner     *NewScanner(void);
 extern void         DelScanner(Scanner *);
 extern void         Scanner_clear(Scanner *);
 extern void         Scanner_push(Scanner *, String *);
-extern void         Scanner_pushtoken(Scanner *, int, const String_or_char *value);
+extern void         Scanner_pushtoken(Scanner *, int, const_String_or_char_ptr value);
 extern int          Scanner_token(Scanner *);
 extern String      *Scanner_text(Scanner *);
 extern void         Scanner_skip_line(Scanner *);
