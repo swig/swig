@@ -39,7 +39,7 @@ class string;
 }
 
 %typemap(out) string, const string &, string * {
-  const char *str = cppresult->c_str();
+  const char *str = cppresult.c_str();
   size_t len = strlen(str);
   $result = (char *) malloc(len + 1);
   memcpy($result, str, len);

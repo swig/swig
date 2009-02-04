@@ -612,9 +612,7 @@ ready:
           }
           else {
             return_var_type = type;
-            SwigType_add_pointer(return_var_type);
           }
-          
           Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
           return_object = true;
         }
