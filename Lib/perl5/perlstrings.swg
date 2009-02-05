@@ -6,6 +6,11 @@
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
 {
+  if (SvMAGICAL(obj)) {
+     SV *tmp = sv_newmortal();
+     SvSetSV(tmp, obj);
+     obj = tmp;
+  }
   if (SvPOK(obj)) {
     STRLEN len = 0;
     char *cstr = SvPV(obj, len); 
