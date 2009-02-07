@@ -1550,10 +1550,12 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
   void *result;
   if (SWIG_Python_ConvertPtr(obj, &result, ty, flags) == -1) {
     PyErr_Clear();
-    if (flags & SWIG_POINTER_EXCEPTION) {
+#if SWIG_POINTER_EXCEPTION
+    if (flags) {
       SWIG_Python_TypeError(SWIG_TypePrettyName(ty), obj);
       SWIG_Python_ArgFail(argnum);
     }
+#endif
   }
   return result;
 }
