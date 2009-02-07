@@ -677,7 +677,6 @@ String *SwigType_array_getdim(SwigType *t, int n) {
 /* Replace nth array dimension */
 void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
   String *result = 0;
-  char temp;
   const char *start;
   const char *c = Char(t);
 
