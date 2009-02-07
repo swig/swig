@@ -247,6 +247,17 @@ cppfiles/example_wrap.cpp
 pyfiles/example.py
 </pre></div>
 
+<p>
+If the <tt>-outcurrentdir</tt> option is used (without <tt>-o</tt>)
+then SWIG behaves like a typical C/C++
+compiler and the default output directory is then the current directory. Without
+this option the default output directory is the path to the input file. 
+If <tt>-o</tt> and
+<tt>-outcurrentdir</tt> are used together, <tt>-outcurrentdir</tt> is effectively ignored
+as the output directory for the language files is the same directory as the
+generated C/C++ file if not overidden with <tt>-outdir</tt>.
+</p>
+
 <H3><a name="SWIG_nn5"></a>5.1.3 Comments</H3>
 
 
