@@ -691,11 +691,8 @@ void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
     n--;
   }
   if (n == 0) {
-    //temp = *c;
-    //*c = 0;
     result = NewStringWithSize(start, c-start);
     Printf(result, "a(%s)", rep);
-    //*c = temp;
     c = strchr(c, '.');
     Append(result, c);
   }
@@ -1048,10 +1045,7 @@ String *SwigType_prefix(const SwigType *t) {
     }
 
     if (*d == '.') {
-      //char t = *(d + 1);
-      //*(d + 1) = 0;
       r = NewStringWithSize(c, d+1-c);
-      //*(d + 1) = t;
       return r;
     }
   }

@@ -187,7 +187,7 @@ void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
     ++cw;
   }
   c = Char(s);
-  //TODO(bhy) fix later
+  /* TODO(bhy) fix later */
   c = strtok((char*)c, ", ");
   while (c) {
     if (isdigit((int) *c) || (*c == '+') || (*c == '-')) {

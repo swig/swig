@@ -44,7 +44,7 @@ static int name_mangle(String *r) {
   int special;
   special = 0;
   Replaceall(r, "::", "_");
-  //TODO(bhy) fix later
+  /* TODO(bhy) fix later */
   c = (char*) Char(r);
   while (*c) {
     if (!isalnum((int) *c) && (*c != '_')) {
