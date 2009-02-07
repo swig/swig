@@ -1,6 +1,11 @@
 Version 1.3.39 (in progress)
 ============================
 
+2008-02-07: wsfulton
+            [MzScheme] Apply #2081967 configure changes for examples to build with recent PLT versions.
+	    Also fixes Makefile errors building SWIG executable when mzscheme package is installed 
+	    (version 3.72 approx and later).
+
 2009-02-04: talby
             [Perl] Fix SF#2564192 reported by David Kolovratnk.
             SWIG_AsCharPtrAndSize() now handles "get" magic.

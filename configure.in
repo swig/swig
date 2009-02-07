@@ -1195,25 +1195,35 @@ AC_ARG_WITH(mzc, AS_HELP_STRING([--with-mzc=path], [Set location of MzScheme's m
 
 # First, check for "--without-mzscheme" or "--with-mzscheme=no".
 if test x"${MZSCHEMEBIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling MzScheme])
-MZC=
+  AC_MSG_NOTICE([Disabling MzScheme])
+  MZC=
 else
+  if test "x$MZSCHEMEBIN" = xyes; then
+     AC_PATH_PROG(MZSCHEME, mzscheme)
+  else
+     MZSCHEME="$MZSCHEMEBIN"
+  fi
+  
+  if test -z "$MZCBIN"; then
+     AC_PATH_PROG(MZC, mzc)
+  fi
 
-if test "x$MZSCHEMEBIN" = xyes; then
-   AC_PATH_PROG(MZSCHEME, mzscheme)
-else
-   MZSCHEME="$MZSCHEMEBIN"
-fi
-
-if test -z "$MZCBIN"; then
-   AC_PATH_PROG(MZC, mzc)
-fi
-
-if test -n "$MZSCHEME"; then
-AC_MSG_CHECKING(for MzScheme dynext object) 
-MZDYNOBJ=`$MZSCHEME --mute-banner --version --eval '(begin (require (lib "link.ss" "dynext")) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x) (display " ")) ((current-make-standard-link-libraries)))) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x) (display " ")) (expand-for-link-variant (current-standard-link-libraries)))))'`
-AC_MSG_RESULT($MZDYNOBJ)
-fi
+  if test -n "$MZSCHEME"; then
+    AC_MSG_CHECKING(for MzScheme dynext object) 
+    MZDYNOBJ=`$MZSCHEME --eval '(begin (require dynext/link) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (printf "~a" x)) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
+    if test -f "$MZDYNOBJ"; then
+      MZDYNOBJ="$MZDYNOBJ"
+    else
+      # older versions
+      MZDYNOBJ=`$MZSCHEME --mute-banner --version --eval '(begin (require (lib "link.ss" "dynext")) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x) (display " ")) ((current-make-standard-link-libraries)))) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x) (display " ")) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
+    fi
+    if test -f "$MZDYNOBJ"; then
+      AC_MSG_RESULT($MZDYNOBJ)
+    else
+      AC_MSG_RESULT(not found)
+      MZDYNOBJ=""
+    fi
+  fi
 fi
 AC_SUBST(MZDYNOBJ)
 
@@ -2003,7 +2013,7 @@ AC_SUBST(SKIP_GUILESCM)
 
 
 SKIP_MZSCHEME=
-if test -z "$MZC" ; then
+if test -z "$MZC" || test -z "$MZDYNOBJ" ; then
     SKIP_MZSCHEME="1"
 fi
 AC_SUBST(SKIP_MZSCHEME)
