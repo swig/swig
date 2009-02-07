@@ -1130,7 +1130,7 @@ static Node *dump_nested(const char *parent) {
       const char* types_array[3] = {"struct", "union", "class"};
       int i;
       for (i=0; i<3; i++) {
-	char* code_ptr = tmp_code; //Char(n->code);
+	char* code_ptr = tmp_code; 
 	while (code_ptr) {
 	  /* Replace struct name (as in 'struct name {...}' ) with whitespace
 	     name will be between struct and opening brace */
@@ -1154,7 +1154,7 @@ static Node *dump_nested(const char *parent) {
 
     {
       /* Remove SWIG directive %constant which may be left in the SWIG created typedefs */
-      char* code_ptr = tmp_code; //Char(n->code);
+      char* code_ptr = tmp_code; 
       while (code_ptr) {
 	code_ptr = strstr(code_ptr, "%constant");
 	if (code_ptr) {

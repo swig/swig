@@ -340,7 +340,6 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
 	    enc_str = Char(enc);
 	  } else {
 	    enc = 0;
-            //enc_str = (const char*) doh;
 	  }
 	  maxwidth = maxwidth + strlen(newformat) + strlen(enc_str);
 	  *(fmt++) = 's';

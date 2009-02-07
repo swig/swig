@@ -86,7 +86,7 @@ static String *cpp_include(const_String_or_char_ptr fn, int sysfile) {
   }
   if (!s) {
     /* XXX(bhy) may not need the seek */
-    // Seek(fn, 0, SEEK_SET);
+    /* Seek(fn, 0, SEEK_SET); */
     if (ignore_missing) {
       Swig_warning(WARN_PP_MISSING_FILE, Getfile(fn), Getline(fn), "Unable to find '%s'\n", fn);
     } else {
@@ -283,7 +283,7 @@ String *Macro_vararg_name(const_String_or_char_ptr str, const_String_or_char_ptr
   if (dots == s) {
     varargname = NewString("__VA_ARGS__");
   } else {
-    //*dots = '\0';
+    /* *dots = '\0'; */
     varargname = NewStringWithSize(s, dots-s);
   }
   Delete(argname);
@@ -407,7 +407,7 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
 
   {
     int state = 0;
-    //TODO(bhy): fix later
+    /* TODO(bhy): fix later */
     char *cc = (char *) Char(macrovalue);
     while (*cc) {
       switch (state) {
@@ -854,7 +854,7 @@ static String *expand_macro(String *name, List *args) {
 	s = Char(ns);
 	name = Char(aname);
 	namelen = Len(aname);
-        //TODO(bhy) fix later
+        /* TODO(bhy) fix later */
 	a = strstr(s, name);
 	while (a) {
 	  char ca = a[namelen + 1];
