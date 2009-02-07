@@ -1214,8 +1214,8 @@ else
     if test -f "$MZDYNOBJ"; then
       MZDYNOBJ="$MZDYNOBJ"
     else
-      # older versions
-      MZDYNOBJ=`$MZSCHEME --mute-banner --version --eval '(begin (require (lib "link.ss" "dynext")) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x) (display " ")) ((current-make-standard-link-libraries)))) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x) (display " ")) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
+      # older versions (3.72 approx and earlier)
+      MZDYNOBJ=`$MZSCHEME --mute-banner --version --eval '(begin (require (lib "link.ss" "dynext")) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x) (display " ")) ((current-make-standard-link-libraries)))) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x)) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
     fi
     if test -f "$MZDYNOBJ"; then
       AC_MSG_RESULT($MZDYNOBJ)
