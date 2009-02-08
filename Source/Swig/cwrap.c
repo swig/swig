@@ -1028,7 +1028,7 @@ int Swig_ConstructorToFunction(Node *n, String *classname, String *none_comparis
     Parm *p2, *p3;
 
     directorparms = CopyParmList(prefix_args);
-    for (p = directorparms; nextSibling(p); p = nextSibling(p));
+    for (p = directorparms; nextSibling(p); p = nextSibling(p)) {};
     for (p2 = parms; p2; p2 = nextSibling(p2)) {
       p3 = CopyParm(p2);
       set_nextSibling(p, p3);
