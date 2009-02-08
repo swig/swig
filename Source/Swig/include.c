@@ -373,7 +373,8 @@ char *Swig_file_dirname(const_String_or_char_ptr filename) {
   char *c;
   strcpy(tmp, Char(filename));
   if (!strstr(tmp, delim)) {
-    return "";
+    tmp[0]=0;
+    return tmp;
   }
   c = tmp + strlen(tmp) - 1;
   while (*c != *delim)

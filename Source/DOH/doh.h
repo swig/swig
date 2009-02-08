@@ -254,7 +254,7 @@ extern int DohDelmeta(DOH *, const DOH *);
 
   /* Utility functions */
 
-extern void DohEncoding(char *name, DOH *(*fn) (DOH *s));
+extern void DohEncoding(const char *name, DOH *(*fn) (DOH *s));
 extern int DohPrintf(DOHFile * obj, const char *format, ...);
 extern int DohvPrintf(DOHFile * obj, const char *format, va_list ap);
 extern int DohPrintv(DOHFile * obj, ...);
