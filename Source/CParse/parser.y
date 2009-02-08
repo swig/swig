@@ -3405,9 +3405,9 @@ cpp_class_decl  :
 		 {
 		   String *name = $3;
 		   if ($9) {
-		     SwigType *decltype = Getattr($9,"decl");
+		     SwigType *decl_type = Getattr($9,"decl");
 		     if (Cmp($1,"typedef") == 0) {
-		       if (!decltype || !Len(decltype)) {
+		       if (!decl_type || !Len(decl_type)) {
 			 String *cname;
 			 name = Getattr($9,"name");
 			 cname = Copy(name);
@@ -3422,7 +3422,7 @@ cpp_class_decl  :
 			 if (!Getattr(classes,name)) {
 			   Setattr(classes,name,$$);
 			 }
-			 Setattr($$,"decl",decltype);
+			 Setattr($$,"decl",decl_type);
 		       }
 		     }
 		   }
