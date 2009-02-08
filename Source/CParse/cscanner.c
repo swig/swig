@@ -711,6 +711,10 @@ int yylex(void) {
 		termtoken = SWIG_TOKEN_SEMI;
 		termvalue = ";";
 		break;
+              } else if (nexttok == SWIG_TOKEN_STRING) {
+		termtoken = SWIG_TOKEN_STRING;
+                termvalue = Swig_copy_string(Char(Scanner_text(scan)));
+		break;
 	      } else if (nexttok == SWIG_TOKEN_ID) {
 		if (needspace) {
 		  Append(s," ");
