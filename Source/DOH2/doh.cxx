@@ -118,15 +118,15 @@ namespace doh {
   }
 
 
-  /* class String_or_char_ptr */
+  /* class const_String_or_char_ptr */
 
-  String_or_char_ptr::String_or_char_ptr(const String_or_char_ptr& str)
+  const_String_or_char_ptr::const_String_or_char_ptr(const const_String_or_char_ptr& str)
     :content_str(str.content_str),
     content_charptr(str.content_charptr),
     need_free(0) /* TODO: may potential memory leak/corrupt here */
   {}
 
-  String_or_char_ptr::~String_or_char_ptr() {
+  const_String_or_char_ptr::~const_String_or_char_ptr() {
     if (need_free) {
       delete content_str;
     }
@@ -134,22 +134,22 @@ namespace doh {
 
   // Casters
   // from const char*
-  String_or_char_ptr::String_or_char_ptr(const char *s)
+  const_String_or_char_ptr::const_String_or_char_ptr(const char *s)
     :content_str(0), content_charptr(s),
     need_free(false)
   {}
   // from DOH*
-  String_or_char_ptr::String_or_char_ptr(const DOH* str)
+  const_String_or_char_ptr::const_String_or_char_ptr(const DOH* str)
     :content_str(dynamic_cast<const String*>(str)),
     content_charptr(0),
     need_free(false)
   {}
   // to const char*
-  String_or_char_ptr::operator const char* () const {
+  const_String_or_char_ptr::operator const char* () const {
     return content_charptr ? content_charptr : content_str->c_str();
   }
   // to const String*
-  String_or_char_ptr::operator const String* () const {
+  const_String_or_char_ptr::operator const String* () const {
     if (!content_str) {
       content_str = new String(content_charptr);
       need_free = true;

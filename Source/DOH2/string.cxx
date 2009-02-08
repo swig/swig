@@ -200,17 +200,17 @@ namespace doh {
     return new String();
   }
 
-  String *NewString(String_or_char_ptr c) {
+  String *NewString(const_String_or_char_ptr c) {
     return new String(c);
   }
 
-  String *NewStringWithSize(const String_or_char_ptr c, int len) {
+  String *NewStringWithSize(const_String_or_char_ptr c, int len) {
     const char *p = c;
     return new String(c, len);
   }
   
   /*XXX const char* fmt is enough */
-  String *NewStringf(const String_or_char_ptr fmt, VA_DEF) {
+  String *NewStringf(const_String_or_char_ptr fmt, VA_DEF) {
     //va_list ap;
     String *r = new String();
     const char * fmtstr = fmt;
@@ -220,21 +220,21 @@ namespace doh {
     return r;
   }
 
-  int Cmp(String_or_char_ptr obj1, String_or_char_ptr obj2) {
+  int Cmp(const_String_or_char_ptr obj1, const_String_or_char_ptr obj2) {
     const String *str1 = obj1; // implicit cast
     const String *str2 = obj2;
     return str1->compare(*str2);
   }
   
-  const char *Char(const String_or_char_ptr s) {
+  const char *Char(const_String_or_char_ptr s) {
     return s;
   }
   
-  int Equal(const String_or_char_ptr obj1, const String_or_char_ptr obj2) {
+  int Equal(const_String_or_char_ptr obj1, const_String_or_char_ptr obj2) {
     return Cmp(obj1, obj2)==0;
   }
 
-  int Strcmp(const String_or_char_ptr s1, const String_or_char_ptr s2) {
+  int Strcmp(const_String_or_char_ptr s1, const_String_or_char_ptr s2) {
     const char *c1 = Char(s1);
     const char *c2 = Char(s2);
     if (c1 && c2) {
@@ -244,16 +244,16 @@ namespace doh {
     }
   }
 
-  int Strncmp(const String_or_char_ptr s1, const String_or_char_ptr s2, int n) {
+  int Strncmp(const_String_or_char_ptr s1, const_String_or_char_ptr s2, int n) {
     return strncmp(Char(s1), Char(s2), n);
   }
-  const char *Strstr(const String_or_char_ptr s1, const String_or_char_ptr s2) {
+  const char *Strstr(const_String_or_char_ptr s1, const_String_or_char_ptr s2) {
     const char *p1 = Char(s1);
     const char *p2 = Char(s2);
     return p1 == 0 || p2 == 0 || *p2 == '\0' ? p1 : strstr(p1, p2);
   }
 
-  const char *Strchr(const String_or_char_ptr s1, int ch) {
+  const char *Strchr(const_String_or_char_ptr s1, int ch) {
     return strchr(Char(s1), ch);
   }
 
@@ -267,8 +267,8 @@ void Chop(DOH *src) {
   so.erase(i, len-i);
 }
   
-int Replace(DOH * src, const String_or_char_ptr token, 
-            const String_or_char_ptr rep, int flags) {
+int Replace(DOH * src, const_String_or_char_ptr token, 
+            const_String_or_char_ptr rep, int flags) {
   String *so = doh_cast<String*>(src);
   so->doh_replace(token, rep, flags);
 }

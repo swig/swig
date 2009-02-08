@@ -263,18 +263,18 @@ namespace doh {
    * It is the equivalence of
    *    const String_or_char *
    */
-  class String_or_char_ptr {
+  class const_String_or_char_ptr {
   public:
     // Copy constructor
-    String_or_char_ptr(const String_or_char_ptr& str);
+    const_String_or_char_ptr(const const_String_or_char_ptr& str);
     // Destructor
-    ~String_or_char_ptr();
+    ~const_String_or_char_ptr();
 
     /* Casters */
     // from const char*
-    String_or_char_ptr(const char *s);
+    const_String_or_char_ptr(const char *s);
     // from DOH*
-    String_or_char_ptr(const DOH* str);
+    const_String_or_char_ptr(const DOH* str);
     // to const char*
     operator const char* () const;
     // to const String*
@@ -349,24 +349,24 @@ namespace doh {
 
   /* Mapping methods */
   //XXX Removed all the const qulifier of 'DOH *value' argument
-  DOHCaster Getattr(DOH *obj, const String_or_char_ptr name);
-  int Setattr(DOH *obj, const String_or_char_ptr name, const char *value); // Overloaded
-  int Setattr(DOH *obj, const String_or_char_ptr name, DOH *value);
-  int Checkattr(DOH *obj, const String_or_char_ptr name, const String_or_char_ptr value);
+  DOHCaster Getattr(DOH *obj, const_String_or_char_ptr name);
+  int Setattr(DOH *obj, const_String_or_char_ptr name, const char *value); // Overloaded
+  int Setattr(DOH *obj, const_String_or_char_ptr name, DOH *value);
+  int Checkattr(DOH *obj, const_String_or_char_ptr name, const_String_or_char_ptr value);
   DOHCaster Keys(DOH *obj);
-  int GetInt(DOH *obj, const String_or_char_ptr name);
-  void SetInt(DOH *obj, const String_or_char_ptr name, int value);
+  int GetInt(DOH *obj, const_String_or_char_ptr name);
+  void SetInt(DOH *obj, const_String_or_char_ptr name, int value);
   #define DohSetInt SetInt
-  double GetDouble(DOH *obj, const String_or_char_ptr name); // Never
-  double SetDouble(DOH *obj, const String_or_char_ptr name, double); // Never
-  char *GetChar(DOH *obj, const String_or_char_ptr name); // These are redundant 
+  double GetDouble(DOH *obj, const_String_or_char_ptr name); // Never
+  double SetDouble(DOH *obj, const_String_or_char_ptr name, double); // Never
+  char *GetChar(DOH *obj, const_String_or_char_ptr name); // These are redundant 
   void SetChar(DOH *obj, const DOH *name, char *value);
-  DOHCaster GetFlagAttr(DOH *obj, const String_or_char_ptr name);
-  int GetFlag(DOH *obj, const String_or_char_ptr name);
-  void SetFlagAttr(DOH *obj, const String_or_char_ptr name, DOH *attr); // Rare
-  void SetFlag(DOH *obj, const String_or_char_ptr name);
-  void GetVoid(DOH *obj, const String_or_char_ptr name); // Rare, unable to support.  Modules/allegrocl.cxx
-  void *SetVoid(DOH *obj, const String_or_char_ptr name, void *value);
+  DOHCaster GetFlagAttr(DOH *obj, const_String_or_char_ptr name);
+  int GetFlag(DOH *obj, const_String_or_char_ptr name);
+  void SetFlagAttr(DOH *obj, const_String_or_char_ptr name, DOH *attr); // Rare
+  void SetFlag(DOH *obj, const_String_or_char_ptr name);
+  void GetVoid(DOH *obj, const_String_or_char_ptr name); // Rare, unable to support.  Modules/allegrocl.cxx
+  void *SetVoid(DOH *obj, const_String_or_char_ptr name, void *value);
   #define UnsetFlag(o,n)     SetFlagAttr(o,n,NULL)
 
   /* Sequence methods */
@@ -410,9 +410,9 @@ namespace doh {
   void Setfile(DOH *obj, DOH *file);
 
   /* String Methods */
-  int Cmp(String_or_char_ptr obj1, String_or_char_ptr obj2);
-  int Equal(const String_or_char_ptr obj1, const String_or_char_ptr obj2);
-  int Replace(DOH * src, const String_or_char_ptr token, const String_or_char_ptr rep, int flags);
+  int Cmp(const_String_or_char_ptr obj1, const_String_or_char_ptr obj2);
+  int Equal(const_String_or_char_ptr obj1, const_String_or_char_ptr obj2);
+  int Replace(DOH * src, const_String_or_char_ptr token, const_String_or_char_ptr rep, int flags);
   void Chop(DOH * src);
 
   /* Meta-variables */
@@ -445,16 +445,16 @@ namespace doh {
    * ----------------------------------------------------------------------------- */
 
   String *NewStringEmpty(void);
-  String *NewString(String_or_char_ptr c);
-  String *NewStringWithSize(const String_or_char_ptr c, int len);
-  String *NewStringf(const String_or_char_ptr fmt, VA_DECL);
+  String *NewString(const_String_or_char_ptr c);
+  String *NewStringWithSize(const_String_or_char_ptr c, int len);
+  String *NewStringf(const_String_or_char_ptr fmt, VA_DECL);
 
-  const char *Char(const String_or_char_ptr s);
+  const char *Char(const_String_or_char_ptr s);
 
-  int Strcmp(const String_or_char_ptr s1, const String_or_char_ptr s2);
-  int Strncmp(const String_or_char_ptr s1, const String_or_char_ptr s2, int n);
-  const char *Strstr(const String_or_char_ptr s1, const String_or_char_ptr s2);
-  const char *Strchr(const String_or_char_ptr s1, int ch);
+  int Strcmp(const_String_or_char_ptr s1, const_String_or_char_ptr s2);
+  int Strncmp(const_String_or_char_ptr s1, const_String_or_char_ptr s2, int n);
+  const char *Strstr(const_String_or_char_ptr s1, const_String_or_char_ptr s2);
+  const char *Strchr(const_String_or_char_ptr s1, int ch);
 
   /* String replacement flags */
 
@@ -487,7 +487,7 @@ namespace doh {
   List *NewList();
   //void SortList(DOH *lo, int (*cmp) (const DOH *, const DOH *));
   void SortList(DOH *lo, int (*cmp) 
-          (const String_or_char_ptr, const String_or_char_ptr));
+          (const_String_or_char_ptr, const_String_or_char_ptr));
 
   /* -----------------------------------------------------------------------------
    * Hash
