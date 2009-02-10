@@ -21,7 +21,7 @@
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
   $1 = ($1_ltype) buf;
-  $2 = ($2_ltype) size;
+  $2 = ($2_ltype) (size/sizeof($*1_type));
 }
 %enddef
 
@@ -73,7 +73,7 @@
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
   $1 = ($1_ltype) buf;
-  $2 = ($2_ltype) size;
+  $2 = ($2_ltype) (size / sizeof($*1_type));
 }
 %enddef
 

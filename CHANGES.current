@@ -1,6 +1,10 @@
 Version 1.3.39 (in progress)
 ============================
 
+2008-02-08: bhy
+            Change the SIZE mapped by %pybuffer_mutable_binary and %pybuffer_binary in pybuffer.i from
+            the length of the buffer to the number of items in the buffer.
+
 2008-02-08: wsfulton
             Fix %feature not working for conversion operators, reported by Matt Sprague, for example:
 	      %feature("cs:methodmodifiers") operator bool "protected";
