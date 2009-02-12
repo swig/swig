@@ -1,6 +1,29 @@
 Version 1.3.39 (in progress)
 ============================
 
+2008-02-12: wsfulton
+	    Remove unnecessary temporary variable when wrapping return values that are references. 
+	    Example of generated code for wrapping:
+
+	      struct XYZ {
+		std::string& refReturn();
+	      };
+
+	    used to be:
+
+              std::string *result = 0 ;
+              ...
+              {
+                std::string &_result_ref = (arg1)->refReturn();
+                result = (std::string *) &_result_ref;
+              }
+
+	     Now it is:
+
+              std::string *result = 0 ;
+              ...
+              result = (std::string *) &(arg1)->refReturn();
+
 2008-02-08: bhy
             Change the SIZE mapped by %pybuffer_mutable_binary and %pybuffer_binary in pybuffer.i from
             the length of the buffer to the number of items in the buffer.

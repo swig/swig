@@ -260,10 +260,9 @@ String *Swig_cresult(SwigType *t, const_String_or_char_ptr name, const_String_or
     break;
   case T_REFERENCE:
     {
-      String *str = SwigType_str(t, "_result_ref");
-      Printf(fcall, "{\n");
-      Printf(fcall, "%s = ", str);
-      Delete(str);
+      String *lstr = SwigType_lstr(t, 0);
+      Printf(fcall, "%s = (%s) &", name, lstr);
+      Delete(lstr);
     }
     break;
   case T_USER:
@@ -290,12 +289,6 @@ String *Swig_cresult(SwigType *t, const_String_or_char_ptr name, const_String_or
       Append(fcall, ";");
   }
 
-  if (SwigType_type(t) == T_REFERENCE) {
-    String *lstr = SwigType_lstr(t, 0);
-    Printf(fcall, "\n%s = (%s) &_result_ref;\n", name, lstr);
-    Append(fcall, "}");
-    Delete(lstr);
-  }
   return fcall;
 }
 
