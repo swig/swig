@@ -1,6 +1,12 @@
 Version 1.3.39 (in progress)
 ============================
 
+2008-02-14: wsfulton
+	    Extend attribute library support for structs/classes and the accessor functions use
+	    pass/return by value semantics. Two new macros are available and usage is identical
+	    to %attribute. These are %attributeval for structs/classes and %attributestring for
+	    string classes, like std::string. See attribute.swg for more details.
+
 2008-02-13: wsfulton
 	    Add support for %extend and memberin typemaps. Previously the memberin typemaps were
 	    ignored for member variables within a %extend block.
