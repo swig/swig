@@ -1203,7 +1203,7 @@ int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags) 
  * This function creates a C wrapper for setting a structure member.
  * ----------------------------------------------------------------------------- */
 
-int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
+int Swig_MembersetToFunction(Node *n, String *classname, int flags, String **call) {
   String *name;
   ParmList *parms;
   Parm *p;
@@ -1251,23 +1251,21 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   Delete(p);
 
   if (flags & CWRAP_EXTEND) {
-    String *call;
     String *cres;
     String *code = Getattr(n, "code");
     if (code) {
       /* I don't think this ever gets run - WSF */
       Swig_add_extension_code(n, mangled, parms, void_type, code, cparse_cplusplus, "self");
     }
-    call = Swig_cfunction_call(mangled, parms);
-    cres = NewStringf("%s;", call);
+    *call = Swig_cfunction_call(mangled, parms);
+    cres = NewStringf("%s;", *call);
     Setattr(n, "wrap:action", cres);
-    Delete(call);
     Delete(cres);
   } else {
-    String *call = Swig_cmemberset_call(name, type, self, varcref);
-    String *cres = NewStringf("%s;", call);
+    String *cres;
+    *call = Swig_cmemberset_call(name, type, self, varcref);
+    cres = NewStringf("%s;", *call);
     Setattr(n, "wrap:action", cres);
-    Delete(call);
     Delete(cres);
   }
   Setattr(n, "type", void_type);

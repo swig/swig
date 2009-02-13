@@ -1,6 +1,10 @@
 Version 1.3.39 (in progress)
 ============================
 
+2008-02-13: wsfulton
+	    Add support for %extend and memberin typemaps. Previously the memberin typemaps were
+	    ignored for member variables within a %extend block.
+
 2008-02-12: wsfulton
 	    Remove unnecessary temporary variable when wrapping return values that are references. 
 	    Example of generated code for wrapping:
