@@ -526,7 +526,7 @@ modula3_clean:
 #####                       MZSCHEME                        ######
 ##################################################################
 
-MZC = test -n "@MZC@" && @MZC@
+MZC = @MZC@
 MZDYNOBJ = @MZDYNOBJ@
 MZSCHEME_SO = @MZSCHEME_SO@
 
@@ -536,12 +536,12 @@ MZSCHEME_SO = @MZSCHEME_SO@
 
 mzscheme: $(SRCS)
 	$(SWIG) -mzscheme $(SWIGOPT) $(INTERFACEPATH)
-	$(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ISRCS) $(SRCS)
-	$(MZC) --ld $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS)
+	$(COMPILETOOL) $(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ISRCS) $(SRCS)
+	$(COMPILETOOL) $(MZC) --ld $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS)
 
 mzscheme_cpp: $(SRCS)
 	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
+	$(COMPILETOOL) $(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(CFLAGS) -o $(LIBPREFIX)$(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS) 
 
 # -----------------------------------------------------------------
