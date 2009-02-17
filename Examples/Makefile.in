@@ -563,6 +563,7 @@ OCAMLFIND=@OCAMLFIND@
 OCAMLMKTOP=@OCAMLMKTOP@ $(SWIGWHERE)
 NOLINK ?= false
 OCAMLPP= -pp "camlp4o ./swigp4.cmo"
+OCAMLP4WHERE=`$(COMPILETOOL) camlp4 -where`
 OCAMLCORE=\
 	rm -rf swig.mli swig.ml swigp4.ml && \
 	$(SWIG) -ocaml -co swig.mli 2>/dev/null &&  \
@@ -570,7 +571,7 @@ OCAMLCORE=\
 	$(SWIG) -ocaml -co swigp4.ml 2>/dev/null &&  \
 	$(OCC) -c swig.mli &&  \
 	$(OCC) -c swig.ml &&  \
-	$(OCC) -I `camlp4 -where` -pp "camlp4o pa_extend.cmo q_MLast.cmo" \
+	$(OCC) -I $(OCAMLP4WHERE) -pp "camlp4o pa_extend.cmo q_MLast.cmo" \
 		-c swigp4.ml
 
 ocaml_static: $(SRCS)
@@ -616,7 +617,7 @@ ocaml_static_toplevel: $(SRCS)
 		$(OCC) $(OCAMLPP) -c $(PROGFILE)
 	$(NOLINK) || $(OCAMLMKTOP) \
 		swig.cmo \
-		-I `camlp4 -where` camlp4o.cma swigp4.cmo \
+		-I $(OCAMLP4WHERE) camlp4o.cma swigp4.cmo \
 		-g -ccopt -g -cclib -g -custom -o $(TARGET)_top \
 		$(INTERFACE:%.i=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)"
@@ -650,7 +651,7 @@ ocaml_static_cpp_toplevel: $(SRCS)
 		$(OCC) $(OCAMLPP) -c $(PROGFILE)
 	$(NOLINK) || $(OCAMLMKTOP) \
 		swig.cmo \
-		-I `camlp4 -where` camlp4o.cma swigp4.cmo \
+		-I $(OCAMLP4WHERE) camlp4o.cma swigp4.cmo \
 		-g -ccopt -g -cclib -g -custom -o $(TARGET)_top \
 		$(INTERFACE:%.i=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) \

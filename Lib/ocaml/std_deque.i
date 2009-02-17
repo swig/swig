@@ -28,4 +28,4 @@
    }
 };
 
-%include <_std_deque.i>
+%include <std/_std_deque.i>

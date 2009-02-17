@@ -27,7 +27,7 @@ namespace Foo {
     %typemap(javaout) Str1 * = char *;
 #endif
     %typemap(in) Str1 * = char *;
-#if !(defined(SWIGCSHARP) || defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGMZSCHEME))
+#if !(defined(SWIGCSHARP) || defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGMZSCHEME) || defined(SWIGOCAML))
     %typemap(freearg) Str1 * = char *;
 #endif
     %typemap(typecheck) Str1 * = char *;
