@@ -2771,8 +2771,8 @@ The bare <tt>%{ ... %}</tt> directive is a shortcut that is the same as
 </p>
 
 <p>
-The <tt>%begin</tt> section is empty by default
-and is provided as a way for users to insert code at the top of the wrapper file.
+The <tt>%begin</tt> section is effectively empty as it just contains the SWIG banner by default. 
+This section is provided as a way for users to insert code at the top of the wrapper file before any other code is generated.
 Everything in a code insertion block is copied verbatim into the output file and is 
 not parsed by SWIG.   Most SWIG input files have at least one such block to include header
 files and support C code.  Additional code blocks may be placed anywhere in a
