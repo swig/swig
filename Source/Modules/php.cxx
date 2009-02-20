@@ -71,6 +71,7 @@ static String *prefix = 0;
 
 static String *shadow_classname = 0;
 
+static File *f_begin = 0;
 static File *f_runtime = 0;
 static File *f_h = 0;
 static File *f_phpcode = 0;
@@ -259,11 +260,12 @@ public:
     String *outfile = Getattr(n, "outfile");
 
     /* main output file */
-    f_runtime = NewFile(outfile, "w", SWIG_output_files());
-    if (!f_runtime) {
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
+    f_runtime = NewString("");
 
     /* sections of the output file */
     s_init = NewString("/* init section */\n");
@@ -282,6 +284,7 @@ public:
     s_phpclasses = NewString("/* PHP Proxy Classes */\n");
 
     /* Register file targets with the SWIG file handler */
+    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", s_init);
     Swig_register_filebyname("rinit", r_init);
@@ -290,8 +293,9 @@ public:
     Swig_register_filebyname("header", s_header);
     Swig_register_filebyname("wrapper", s_wrappers);
 
-    Swig_banner(f_runtime);
+    Swig_banner(f_begin);
 
+    Printf(f_runtime, "\n");
     Printf(f_runtime, "#define SWIGPHP\n");
     Printf(f_runtime, "\n");
 
@@ -316,6 +320,7 @@ public:
 
     Swig_banner(f_phpcode);
 
+    Printf(f_phpcode, "\n");
     Printf(f_phpcode, "// Try to load our extension if it's not already loaded.\n");
     Printf(f_phpcode, "if (!extension_loaded(\"%s\")) {\n", module);
     Printf(f_phpcode, "  if (strtolower(substr(PHP_OS, 0, 3)) === 'win') {\n");
@@ -393,7 +398,7 @@ public:
 
     Swig_banner(f_h);
 
-    Printf(f_h, "\n\n");
+    Printf(f_h, "\n");
     Printf(f_h, "#ifndef PHP_%s_H\n", cap_module);
     Printf(f_h, "#define PHP_%s_H\n\n", cap_module);
     Printf(f_h, "extern zend_module_entry %s_module_entry;\n", module);
@@ -522,16 +527,19 @@ public:
     Printf(s_wrappers, "/* end wrapper section */\n");
     Printf(s_vdecl, "/* end vdecl subsection */\n");
 
-    Printv(f_runtime, s_header, s_vdecl, s_wrappers, NIL);
-    Printv(f_runtime, all_cs_entry, "\n\n", s_entry, "{NULL, NULL, NULL}\n};\n\n", NIL);
-    Printv(f_runtime, s_init, NIL);
+    Dump(f_runtime, f_begin);
+    Printv(f_begin, s_header, s_vdecl, s_wrappers, NIL);
+    Printv(f_begin, all_cs_entry, "\n\n", s_entry, "{NULL, NULL, NULL}\n};\n\n", NIL);
+    Printv(f_begin, s_init, NIL);
     Delete(s_header);
     Delete(s_wrappers);
     Delete(s_init);
     Delete(s_vdecl);
     Delete(all_cs_entry);
     Delete(s_entry);
-    Close(f_runtime);
+    Close(f_begin);
+    Delete(f_runtime);
+    Delete(f_begin);
 
     Printf(f_phpcode, "%s\n%s\n", pragma_incl, pragma_code);
     if (s_fakeoowrappers) {

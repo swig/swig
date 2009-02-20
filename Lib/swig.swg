@@ -25,10 +25,11 @@
 
 /* Code insertion directives such as %wrapper %{ ... %} */
 
-#define %init        %insert("init")
-#define %wrapper     %insert("wrapper")
-#define %header      %insert("header")
+#define %begin       %insert("begin")
 #define %runtime     %insert("runtime")
+#define %header      %insert("header")
+#define %wrapper     %insert("wrapper")
+#define %init        %insert("init")
 
 /* Class extension */
 

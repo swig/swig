@@ -24,6 +24,7 @@ class CSHARP:public Language {
   const String *protected_string;
 
   Hash *swig_types_hash;
+  File *f_begin;
   File *f_runtime;
   File *f_runtime_h;
   File *f_header;
@@ -102,6 +103,7 @@ public:
       public_string(NewString("public")),
       protected_string(NewString("protected")),
       swig_types_hash(NULL),
+      f_begin(NULL),
       f_runtime(NULL),
       f_runtime_h(NULL),
       f_header(NULL),
@@ -286,8 +288,8 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
 
-    f_runtime = NewFile(outfile, "w", SWIG_output_files());
-    if (!f_runtime) {
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
@@ -304,6 +306,7 @@ public:
       }
     }
 
+    f_runtime = NewString("");
     f_init = NewString("");
     f_header = NewString("");
     f_wrappers = NewString("");
@@ -313,6 +316,7 @@ public:
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("wrapper", f_wrappers);
+    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
     Swig_register_filebyname("director", f_directors);
@@ -358,8 +362,9 @@ public:
     if (!dllimport)
       dllimport = Copy(module_class_name);
 
-    Swig_banner(f_runtime);	// Print the SWIG banner message
+    Swig_banner(f_begin);
 
+    Printf(f_runtime, "\n");
     Printf(f_runtime, "#define SWIGCSHARP\n");
 
     if (directorsEnabled()) {
@@ -367,6 +372,7 @@ public:
 
       /* Emit initial director header and director code: */
       Swig_banner(f_directors_h);
+      Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module_class_name);
       Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module_class_name);
 
@@ -571,10 +577,11 @@ public:
     n_dmethods = 0;
 
     /* Close all of the files */
-    Dump(f_header, f_runtime);
+    Dump(f_runtime, f_begin);
+    Dump(f_header, f_begin);
 
     if (directorsEnabled()) {
-      Dump(f_directors, f_runtime);
+      Dump(f_directors, f_begin);
       Dump(f_directors_h, f_runtime_h);
 
       Printf(f_runtime_h, "\n");
@@ -589,13 +596,14 @@ public:
       f_directors_h = NULL;
     }
 
-    Dump(f_wrappers, f_runtime);
-    Wrapper_pretty_print(f_init, f_runtime);
+    Dump(f_wrappers, f_begin);
+    Wrapper_pretty_print(f_init, f_begin);
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_runtime);
+    Close(f_begin);
     Delete(f_runtime);
+    Delete(f_begin);
     return SWIG_OK;
   }
 

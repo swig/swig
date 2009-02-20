@@ -379,6 +379,7 @@ static void SWIG_dump_runtime() {
   }
 
   Swig_banner(runtime);
+  Printf(runtime, "\n");
 
   s = Swig_include_sys("swiglabels.swg");
   if (!s) {

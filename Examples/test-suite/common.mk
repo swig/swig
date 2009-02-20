@@ -206,6 +206,7 @@ CPP_TEST_CASES += \
 	inherit_target_language \
 	inherit_void_arg \
 	inline_initializer \
+	insert_directive \
         keyword_rename \
 	kind \
 	langobj \

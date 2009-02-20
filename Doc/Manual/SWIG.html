@@ -2737,11 +2737,16 @@ the module upon loading.
 
 <p>
 Code is inserted into the appropriate code section by using one
-of the following code insertion directives:
+of the code insertion directives listed below. The order of the sections in
+the wrapper file is as shown:
 </p>
 
 <div class="code">
 <pre>
+%begin %{
+   ... code in begin section ...
+%}
+
 %runtime %{
    ... code in runtime section ...
 %}
@@ -2762,10 +2767,12 @@ of the following code insertion directives:
 
 <p>
 The bare <tt>%{ ... %}</tt> directive is a shortcut that is the same as
-<tt>%header %{ ... %}</tt>.
+<tt>%header %{ ... %}</tt>. 
 </p>
 
 <p>
+The <tt>%begin</tt> section is empty by default
+and is provided as a way for users to insert code at the top of the wrapper file.
 Everything in a code insertion block is copied verbatim into the output file and is 
 not parsed by SWIG.   Most SWIG input files have at least one such block to include header
 files and support C code.  Additional code blocks may be placed anywhere in a

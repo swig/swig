@@ -21,6 +21,7 @@ char cvsroot_allegrocl_cxx[] = "$Id$";
 static File *f_cl = 0;
 String *f_clhead = NewString("");
 String *f_clwrap = NewString("(swig-in-package ())\n\n");
+static File *f_begin;
 static File *f_runtime;
 static File *f_cxx_header = 0;
 static File *f_cxx_wrapper = 0;
@@ -1598,27 +1599,30 @@ int ALLEGROCL::top(Node *n) {
   Generate_Wrapper = CPlusPlus || CWrap;
 
   if (Generate_Wrapper) {
-    f_runtime = NewFile(cxx_filename, "w", SWIG_output_files());
-    if (!f_runtime) {
+    f_begin = NewFile(cxx_filename, "w", SWIG_output_files());
+    if (!f_begin) {
       Close(f_cl);
       Delete(f_cl);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
       SWIG_exit(EXIT_FAILURE);
     }
   } else
-    f_runtime = NewString("");
+    f_begin = NewString("");
 
+  f_runtime = NewString("");
   f_cxx_header = f_runtime;
   f_cxx_wrapper = NewString("");
 
   Swig_register_filebyname("header", f_cxx_header);
   Swig_register_filebyname("wrapper", f_cxx_wrapper);
+  Swig_register_filebyname("begin", f_begin);
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("lisp", f_clwrap);
   Swig_register_filebyname("lisphead", f_cl);
 
-  Swig_banner(f_runtime);
+  Swig_banner(f_begin);
 
+  Printf(f_runtime, "\n");
   Printf(f_runtime, "#define SWIGALLEGROCL\n");
   Printf(f_runtime, "\n");
 
@@ -1664,10 +1668,12 @@ int ALLEGROCL::top(Node *n) {
   Delete(f_clhead);
   Delete(f_clwrap);
 
-  Printf(f_runtime, "%s\n", f_cxx_wrapper);
+  Dump(f_runtime, f_begin);
+  Printf(f_begin, "%s\n", f_cxx_wrapper);
 
-  Close(f_runtime);
+  Close(f_begin);
   Delete(f_runtime);
+  Delete(f_begin);
   Delete(f_cxx_wrapper);
 
   // Swig_print_tree(n);
