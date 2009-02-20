@@ -955,7 +955,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (!s) {
       Printf(stderr, "Unable to locate '%s' in the SWIG library.\n", input_file);
     } else {
-      FILE *f = Swig_include_open(outfile);
+      FILE *f = Swig_open(outfile);
       if (f) {
 	fclose(f);
 	Printf(stderr, "File '%s' already exists. Checkout aborted.\n", outfile);
