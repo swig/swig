@@ -245,7 +245,7 @@ void CFFI::emit_defmethod(Node *n) {
 
   ParmList *pl = Getattr(n, "parms");
   int argnum = 0;
-  Node *parent = parentNode(n);
+  Node *parent = getCurrentClass();
   bool first = 0;
   
   for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
@@ -300,7 +300,7 @@ void CFFI::emit_initialize_instance(Node *n) {
 
   ParmList *pl = Getattr(n, "parms");
   int argnum = 0;
-  Node *parent = parentNode(n);
+  Node *parent = getCurrentClass();
 
   for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
     String *argname = Getattr(p, "name");
@@ -337,18 +337,18 @@ void CFFI::emit_initialize_instance(Node *n) {
 }
 
 void CFFI::emit_setter(Node *n) {
-  Node *p = parentNode(n);
+  Node *parent = getCurrentClass();
   Printf(f_clos, "(cl:defmethod (cl:setf %s) (arg0 (obj %s))\n  (%s (ff-pointer obj) arg0))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
-         lispify_name(p, lispy_name(Char(Getattr(p, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
+         lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
 }
 
 
 void CFFI::emit_getter(Node *n) {
-  Node *p = parentNode(n);
+  Node *parent = getCurrentClass();
   Printf(f_clos, "(cl:defmethod %s ((obj %s))\n  (%s (ff-pointer obj)))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
-         lispify_name(p, lispy_name(Char(Getattr(p, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
+         lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
 }
 
 int CFFI::memberfunctionHandler(Node *n) {
