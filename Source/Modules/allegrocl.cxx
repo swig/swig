@@ -2813,11 +2813,10 @@ int ALLEGROCL::constantWrapper(Node *n) {
     }
 
     SwigType_add_qualifier(const_type, "const");
-    SwigType_add_qualifier(const_type, "static");
 
     String *ppcname = NewStringf("ACLppc_%s", Getattr(n, "sym:name"));
     // Printf(f_runtime, "static const %s = %s;\n", SwigType_lstr(const_type, ppcname), const_val);
-    Printf(f_runtime, "%s = %s;\n", SwigType_lstr(const_type, ppcname), const_val);
+    Printf(f_runtime, "static %s = %s;\n", SwigType_lstr(const_type, ppcname), const_val);
 
     Setattr(n, "name", ppcname);
     SetFlag(n, "feature:immutable");

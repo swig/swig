@@ -1,6 +1,9 @@
 Version 1.3.39 (in progress)
 ============================
 
+2008-02-21: wsfulton
+	    [Allegrocl] Fix seg fault wrapping some constant variable (%constant) types.
+
 2008-02-20: wsfulton
 	    [CFFI] Fix seg faults when for %extend and using statements.
 
