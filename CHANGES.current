@@ -1,6 +1,10 @@
 Version 1.3.39 (in progress)
 ============================
 
+2008-03-01: bhy
+            [Python] Fix SF#2583160. Now the importer in Python shadow wrapper take care of the
+            case that module already imported at other place.
+
 2008-02-28: bhy
             [Python] Fix SF#2637352. Move struct declaration of SWIG_module in pyinit.swg before
             the method calls, since some C compiler don't allow declaration in middle of function
