@@ -2,6 +2,12 @@ Version 1.3.39 (in progress)
 ============================
 
 2008-03-01: bhy
+            [Python] Some fixes for Python 3.0.1 and higher support. In 3.0.1, the C API function
+            PyObject_Compare is removed, so PyObject_RichCompareBool is used for replacement.
+            Struct initilization of SwigPyObject and SwigPyObject_as_number changed to reflect
+            the drop of tp_compare and nb_long.
+
+2008-03-01: bhy
             [Python] Fix SF#2583160. Now the importer in Python shadow wrapper take care of the
             case that module already imported at other place.
 

@@ -115,7 +115,7 @@ namespace std {
     { 
       bool res;
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-      res = PyObject_Compare(v, w) < 0;
+      res = PyObject_RichCompareBool(v, w, Py_LT);
       /* This may fall into a case of inconsistent
                eg. ObjA > ObjX > ObjB
                but ObjA < ObjB
