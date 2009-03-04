@@ -38,6 +38,7 @@ static Hash *seen_enumvalues = 0;
 static Hash *seen_constructors = 0;
 
 static File *f_header = 0;
+static File *f_begin = 0;
 static File *f_runtime = 0;
 static File *f_wrappers = 0;
 static File *f_directors = 0;
@@ -214,11 +215,12 @@ public:
     /* Initialize all of the output files */
     String *outfile = Getattr(n, "outfile");
 
-    f_runtime = NewFile(outfile, "w", SWIG_output_files());
-    if (!f_runtime) {
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
+    f_runtime = NewString("");
     f_init = NewString("");
     f_header = NewString("");
     f_wrappers = NewString("");
@@ -247,6 +249,7 @@ public:
     Swig_register_filebyname("init", init_func_def);
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("wrapper", f_wrappers);
+    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("mli", f_mlibody);
     Swig_register_filebyname("ml", f_mlbody);
@@ -262,8 +265,9 @@ public:
       Swig_name_register("get", "%v__get__");
     }
 
-    Swig_banner(f_runtime);
+    Swig_banner(f_begin);
 
+    Printf(f_runtime, "\n");
     Printf(f_runtime, "#define SWIGOCAML\n");
     Printf(f_runtime, "#define SWIG_MODULE \"%s\"\n", module);
     /* Module name */
@@ -324,16 +328,18 @@ public:
 
     SwigType_emit_type_table(f_runtime, f_wrappers);
     /* Close all of the files */
+    Dump(f_runtime, f_begin);
     Dump(f_directors_h, f_header);
-    Dump(f_header, f_runtime);
+    Dump(f_header, f_begin);
     Dump(f_directors, f_wrappers);
-    Dump(f_wrappers, f_runtime);
-    Wrapper_pretty_print(f_init, f_runtime);
+    Dump(f_wrappers, f_begin);
+    Wrapper_pretty_print(f_init, f_begin);
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_runtime);
+    Close(f_begin);
     Delete(f_runtime);
+    Delete(f_begin);
 
     Dump(f_enumtypes_type, f_mlout);
     Dump(f_enumtypes_value, f_mlout);

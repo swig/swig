@@ -1422,36 +1422,39 @@ int Language::membervariableHandler(Node *n) {
 	  target = NewStringf("%s->%s", pname, name);
 	  Delete(pname);
 	}
-	tm = Swig_typemap_lookup("memberin", n, target, 0);
+      } else {
+	 target = NewStringf("$extendgetcall"); // member variable access expanded later
       }
+      tm = Swig_typemap_lookup("memberin", n, target, 0);
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
       if (is_non_virtual_protected_access(n))
         flags = flags | CWRAP_ALL_PROTECTED_ACCESS;
 
-      Swig_MembersetToFunction(n, ClassType, flags);
+      String *call = 0;
+      Swig_MembersetToFunction(n, ClassType, flags, &call);
       Setattr(n, "memberset", "1");
-      if (!Extend) {
-	/* Check for a member in typemap here */
 
-	if (!tm) {
-	  if (SwigType_isarray(type)) {
-	    Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(type, 0));
-	    make_set_wrapper = 0;
-	  }
-	} else {
-	  String *pname0 = Swig_cparm_name(0, 0);
-	  String *pname1 = Swig_cparm_name(0, 1);
-	  Replace(tm, "$source", pname1, DOH_REPLACE_ANY);
-	  Replace(tm, "$target", target, DOH_REPLACE_ANY);
-	  Replace(tm, "$input", pname1, DOH_REPLACE_ANY);
-	  Replace(tm, "$self", pname0, DOH_REPLACE_ANY);
-	  Setattr(n, "wrap:action", tm);
-	  Delete(tm);
-	  Delete(pname0);
-	  Delete(pname1);
+      if (!tm) {
+	if (SwigType_isarray(type)) {
+	  Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(type, 0));
+	  make_set_wrapper = 0;
 	}
-	Delete(target);
+      } else {
+	String *pname0 = Swig_cparm_name(0, 0);
+	String *pname1 = Swig_cparm_name(0, 1);
+	Replace(tm, "$source", pname1, DOH_REPLACE_ANY);
+	Replace(tm, "$target", target, DOH_REPLACE_ANY);
+	Replace(tm, "$input", pname1, DOH_REPLACE_ANY);
+	Replace(tm, "$self", pname0, DOH_REPLACE_ANY);
+	Replace(tm, "$extendgetcall", call, DOH_REPLACE_ANY);
+	Setattr(n, "wrap:action", tm);
+	Delete(tm);
+	Delete(pname0);
+	Delete(pname1);
       }
+      Delete(call);
+      Delete(target);
+
       if (make_set_wrapper) {
 	Setattr(n, "sym:name", mrename_set);
 	functionWrapper(n);

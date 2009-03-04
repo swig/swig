@@ -660,7 +660,11 @@ _PySwigObject_type(void) {
     0,   /*nb_coerce*/
 #endif
     (unaryfunc)SwigPyObject_long, /*nb_int*/
+#if PY_VERSION_HEX < 0x03000000
     (unaryfunc)SwigPyObject_long, /*nb_long*/
+#else
+    0, /*nb_reserved*/
+#endif
     (unaryfunc)0,                 /*nb_float*/
 #if PY_VERSION_HEX < 0x03000000
     (unaryfunc)SwigPyObject_oct,  /*nb_oct*/
@@ -700,7 +704,11 @@ _PySwigObject_type(void) {
 	(getattrfunc)0,			    /* tp_getattr */ 
 #endif
 	(setattrfunc)0,			    /* tp_setattr */ 
-	(cmpfunc)SwigPyObject_compare,	    /* tp_compare */ 
+#if PY_VERSION_HEX >= 0x03000000
+    0, /* tp_reserved in 3.0.1 */
+#else
+	(cmpfunc)SwigPyObject_compare,	    /* tp_compare */
+#endif
 	(reprfunc)SwigPyObject_repr,	    /* tp_repr */    
 	&SwigPyObject_as_number,	    /* tp_as_number */
 	0,				    /* tp_as_sequence */
@@ -871,14 +879,18 @@ _PySwigPacked_type(void) {
 	(printfunc)SwigPyPacked_print,	    /* tp_print */   	
 	(getattrfunc)0,			    /* tp_getattr */ 	
 	(setattrfunc)0,			    /* tp_setattr */ 	
-	(cmpfunc)SwigPyPacked_compare,	    /* tp_compare */ 	
-	(reprfunc)SwigPyPacked_repr,	    /* tp_repr */    	
-	0,	                            /* tp_as_number */	
+#if PY_VERSION_HEX>=0x03000000
+    0, /* tp_reserved in 3.0.1 */
+#else
+    (cmpfunc)SwigPyPacked_compare,	    /* tp_compare */
+#endif
+	(reprfunc)SwigPyPacked_repr,	    /* tp_repr */
+	0,	                            /* tp_as_number */
 	0,				    /* tp_as_sequence */
-	0,				    /* tp_as_mapping */	
-	(hashfunc)0,			    /* tp_hash */	
-	(ternaryfunc)0,			    /* tp_call */	
-	(reprfunc)SwigPyPacked_str,	    /* tp_str */	
+	0,				    /* tp_as_mapping */
+	(hashfunc)0,			    /* tp_hash */
+	(ternaryfunc)0,			    /* tp_call */
+	(reprfunc)SwigPyPacked_str,	    /* tp_str */
 	PyObject_GenericGetAttr,            /* tp_getattro */
 	0,				    /* tp_setattro */
 	0,		                    /* tp_as_buffer */
@@ -1550,10 +1562,12 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
   void *result;
   if (SWIG_Python_ConvertPtr(obj, &result, ty, flags) == -1) {
     PyErr_Clear();
-    if (flags & SWIG_POINTER_EXCEPTION) {
+#if SWIG_POINTER_EXCEPTION
+    if (flags) {
       SWIG_Python_TypeError(SWIG_TypePrettyName(ty), obj);
       SWIG_Python_ArgFail(argnum);
     }
+#endif
   }
   return result;
 }

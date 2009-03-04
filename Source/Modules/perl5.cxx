@@ -67,9 +67,9 @@ static String       *namespace_module = 0;
  */
 static String       *dest_package = 0;
 
-static String *command_tab = 0;
 static String *constant_tab = 0;
 
+static File *f_begin = 0;
 static File *f_runtime = 0;
 static File *f_header = 0;
 static File *f_wrappers = 0;
@@ -88,14 +88,12 @@ static int blessed = 1;		/* Enable object oriented features */
 static int do_constants = 0;	/* Constant wrapping */
 static List *classlist = 0;	/* List of classes */
 
-static Node *class_node = 0;    /* class currently being processed */
+static Node *CurrentClass = 0;    /* class currently being processed */
+#define ClassName       Getattr(CurrentClass, "sym:name")
 static Hash *mangle_seen = 0;
-static int have_destructor = 0;
-static String *class_name = 0;	/* Name of the class (what Perl thinks it is) */
 
 static String *pcode = 0;	/* Perl code associated with each class */
 						  /* static  String   *blessedmembers = 0;     *//* Member data associated with each class */
-static String *func_stubs = 0;	/* Function stubs */
 static String *const_stubs = 0;	/* Constant stubs */
 static int num_consts = 0;	/* Number of constants */
 static String *var_stubs = 0;	/* Variable stubs */
@@ -212,11 +210,12 @@ public:
     /* Initialize all of the output files */
     String *outfile = Getattr(n, "outfile");
 
-    f_runtime = NewFile(outfile, "w", SWIG_output_files());
-    if (!f_runtime) {
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
+    f_runtime = NewString("");
     f_init = NewString("");
     f_header = NewString("");
     f_wrappers = NewString("");
@@ -224,24 +223,24 @@ public:
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("wrapper", f_wrappers);
+    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
 
     classlist = NewList();
 
     pm = NewString("");
-    func_stubs = NewString("");
     var_stubs = NewString("");
     const_stubs = NewString("");
     exported = NewString("");
     pragma_include = NewString("");
     additional_perl_code = NewString("");
 
-    command_tab = NewString("static swig_command_info swig_commands[] = {\n");
     constant_tab = NewString("static swig_constant_info swig_constants[] = {\n");
 
-    Swig_banner(f_runtime);
+    Swig_banner(f_begin);
 
+    Printf(f_runtime, "\n");
     Printf(f_runtime, "#define SWIGPERL\n");
     Printf(f_runtime, "#define SWIG_CASTRANK_MODE\n");
     Printf(f_runtime, "\n");
@@ -349,10 +348,6 @@ public:
     Printf(f_init, "\t XSRETURN(1);\n");
     Printf(f_init, "}\n");
 
-    /* Finish off tables */
-    Printf(command_tab, "{0,0}\n};\n");
-    Printv(f_wrappers, command_tab, NIL);
-
     if (!staticoption) {
       Printf(f_pm,"bootstrap %s;\n", module);
     } else {
@@ -371,11 +366,6 @@ public:
     Printf(f_pm, "%s", pragma_include);
 
     if (blessed) {
-
-      /* Emit function stubs for stand-alone functions */
-      Printf(f_pm, "\n# ------- FUNCTION WRAPPERS --------\n\n");
-      Printf(f_pm, "package %s;\n\n", namespace_module);
-      Printf(f_pm, "%s", func_stubs);
 
       /* Emit package code for different classes */
       Printf(f_pm, "%s", pm);
@@ -404,14 +394,16 @@ public:
     Delete(underscore_module);
 
     /* Close all of the files */
-    Dump(f_header, f_runtime);
-    Dump(f_wrappers, f_runtime);
-    Wrapper_pretty_print(f_init, f_runtime);
+    Dump(f_runtime, f_begin);
+    Dump(f_header, f_begin);
+    Dump(f_wrappers, f_begin);
+    Wrapper_pretty_print(f_init, f_begin);
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_runtime);
+    Close(f_begin);
     Delete(f_runtime);
+    Delete(f_begin);
     return SWIG_OK;
   }
 
@@ -436,6 +428,7 @@ public:
   virtual int functionWrapper(Node *n) {
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
+    String *pname = Getattr(n, "perl5:name");
     SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     ParmList *outer = Getattr(n, "perl5:implicits");
@@ -457,6 +450,8 @@ public:
       if (!addSymbol(iname, n))
 	return SWIG_ERROR;
     }
+    if (!pname)
+      pname = iname;
 
     f = NewWrapper();
 
@@ -465,7 +460,7 @@ public:
       Append(wname, overname);
     }
     Setattr(n, "wrap:name", wname);
-    if(checkAttribute(n, "perl5:instancevariable", "1")) {
+    if(GetFlag(n, "perl5:instancevariable")) {
       int addfail;
       Printv(f->def,
           "SWIGCLASS_STATIC int ", wname, "(pTHX_ SV *sv, MAGIC *mg) {\n",
@@ -565,18 +560,20 @@ public:
       Printf(f->code, "    if (items < %d) {\n",
         num_required + num_implicits);
     }
-    Printf(f->code, "        SWIG_croak(\"Usage: %s\");\n", usage_func(Char(iname), d, outer, l));
-    Printf(f->code, "}\n");
+    Printf(f->code,
+        "        SWIG_croak(\"Usage: %s\");\n"
+        "}\n",
+        usage_func(Char(pname), d, outer));
 
     if (num_implicits) {
       /* TODO: support implicits of types other than SVs */
       Parm *p = outer;
       for (i = 0; i < num_implicits; i++) {
-        String *pname = Getattr(p, "name");
-        String *pinit = SwigType_str(Getattr(p, "type"), pname);
-        Wrapper_add_local(f, pname, pinit);
-        Delete(pinit);
-        Printf(f->code, "%s = ST(%d);\n", pname, i++);
+        String *vname = Getattr(p, "name");
+        String *vdecl = SwigType_str(Getattr(p, "type"), vname);
+        Wrapper_add_local(f, vname, vdecl);
+        Delete(vdecl);
+        Printf(f->code, "%s = ST(%d);\n", vname, i++);
         p = nextSibling(p);
       }
       if (l)
@@ -763,14 +760,8 @@ public:
       /* TODO: would be very cool to use newXSproto here, but for now
        * let's just make it work using the current call signature
        * checks. */
-      String *pname = Getattr(n, "perl5:name");
-      if (pname) 
-        Printv(f_init,
-            "newXS(\"", pname, "\", ", wname, ", __FILE__);\n", NIL);
-      else
-        Printv(f_init,
-            "newXS(\"", namespace_module, "::", iname, "\", ",
-            wname, ", __FILE__);\n", NIL);
+      Printf(f_init, "newXS(\"%s::%s\", %s, __FILE__);\n",
+          namespace_module, pname, wname);
     } else if (!Getattr(n, "sym:nextSibling")) {
       /* Generate overloaded dispatch function */
       int maxargs;
@@ -789,20 +780,12 @@ public:
         Printf(df->code, "items -= %d;\n", num_implicits);
       }
       Printv(df->code, dispatch, "\n", NIL);
-      Printf(df->code, "croak(\"No matching function for overloaded '%s'\");\n", iname);
+      Printf(df->code, "croak(\"No matching function for overloaded '%s'\");\n", pname);
       Printf(df->code, "XSRETURN(0);\n");
       Printv(df->code, "}\n", NIL);
       Wrapper_print(df, f_wrappers);
-      {
-        String *pname = Getattr(n, "perl5:name");
-        if (pname)
-          Printv(f_init,
-              "newXS(\"", pname, "\", ", dname, ", __FILE__);\n", NIL);
-        else
-          Printv(f_init,
-              "newXS(\"", namespace_module, "::", iname, "\", ",
-              dname, ", __FILE__);\n", NIL);
-      }
+      Printf(f_init, "newXS(\"%s::%s\", %s, __FILE__);\n",
+          namespace_module, pname, dname);
       DelWrapper(df);
       Delete(dispatch);
       Delete(dname);
@@ -822,22 +805,26 @@ public:
    * variableWrapper()
    * ------------------------------------------------------------ */
   virtual int variableWrapper(Node *n) {
-    String *symname = Getattr(n, "sym:name");
     String *name = Getattr(n, "name");
+    String *iname = Getattr(n, "sym:name");
+    String *pname = Getattr(n, "perl5:name");
     String *type = Getattr(n, "type");
     Wrapper *f;
     String *getf, *setf;
     String *tm;
     String *tmp;
 
-    if (!addSymbol(symname, n))
+    if (!addSymbol(iname, n))
       return SWIG_ERROR;
+
+    if (!pname)
+      pname = iname;
 
     if (is_assignable(n)) {
       /* emit setter */
       f = NewWrapper();
 
-      tmp = Swig_name_set(symname);
+      tmp = Swig_name_set(iname);
       setf = Swig_name_wrapper(tmp);
       Delete(tmp);
       Setattr(n, "wrap:name", setf);
@@ -869,7 +856,7 @@ public:
     {
       /* emit getter */
       int addfail;
-      tmp = Swig_name_get(symname);
+      tmp = Swig_name_get(iname);
       getf = Swig_name_wrapper(tmp);
       Delete(tmp);
       f = NewWrapper();
@@ -902,8 +889,7 @@ public:
     }
 
     {
-      String *pname = Getattr(n, "perl5:name");
-      String *vtbl = NewStringf("_swig_perl_vtbl_%s", symname);
+      String *vtbl = NewStringf("_swig_perl_vtbl_%s", iname);
 
       Printf(f_wrappers,
         "MGVTBL %s = SWIG_Perl_VTBL(%s, %s);\n",
@@ -911,14 +897,9 @@ public:
 
       Setattr(n, "perl5:vtbl", vtbl);
 
-      if (pname)
-        Printf(f_init,
-          "SWIG_Perl_WrapVar(get_sv(\"%s\", 1), &%s, &PL_sv_undef);\n",
-          pname, vtbl);
-      else
-        Printf(f_init,
-          "SWIG_Perl_WrapVar(get_sv(\"%s::%s\", 1), &%s, &PL_sv_undef);\n",
-          module, symname, vtbl);
+      Printf(f_init,
+          "SWIG_Perl_WrapVar(get_sv(\"%s::%s\", 1), &%s, 0);\n",
+          namespace_module, pname, vtbl);
     }
     return SWIG_OK;
   }
@@ -930,6 +911,7 @@ public:
   virtual int constantWrapper(Node *n) {
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
+    String *pname = Getattr(n, "perl5:name");
     SwigType *type = Getattr(n, "type");
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
@@ -938,16 +920,17 @@ public:
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
 
+    if (!pname)
+      pname = iname;
+    Swig_require("perl5constantWrapper", n, "*sym:name", NIL);
+    Setattr(n, "sym:name", pname);
+
     /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
       String *wname = Swig_name_wrapper(iname);
       Printf(f_wrappers, "static %s = %s;\n", SwigType_str(type, wname), value);
       value = Char(wname);
     }
-
-    Swig_require("namespaceHack", n, "*sym:name", NIL);
-    if (Getattr(n, "perl5:name"))
-      Setattr(n, "sym:name", Getattr(n, "perl5:name"));
 
     if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
       Replaceall(tm, "$source", value);
@@ -1000,7 +983,7 @@ public:
   /* ------------------------------------------------------------
    * usage_func()
    * ------------------------------------------------------------ */
-  char *usage_func(char *iname, SwigType *, ParmList *il, ParmList *l) {
+  char *usage_func(char *iname, SwigType *, ParmList *l) {
     static String *temp = 0;
     Parm *p;
     int i;
@@ -1010,12 +993,9 @@ public:
     Clear(temp);
     Printf(temp, "%s(", iname);
 
-    i = 0;
-    /* Print implicit parameters */
-    for (p = il; p; p = nextSibling(p), i++)
-      Printv(temp, (i > 0 ? "," : ""), Getattr(p, "name"), NIL);
-    /* Now go through and print normal parameters */
+    /* Now go through and print parameters */
     p = l;
+    i = 0;
     while (p != 0) {
       SwigType *pt = Getattr(p, "type");
       String *pn = Getattr(p, "name");
@@ -1042,15 +1022,20 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int nativeWrapper(Node *n) {
-    String *name = Getattr(n, "sym:name");
-    String *funcname = Getattr(n, "wrap:name");
+    String *iname = Getattr(n, "sym:name");
+    String *wname = Getattr(n, "wrap:name");
 
-    if (!addSymbol(funcname, n))
+    if (!addSymbol(iname, n))
       return SWIG_ERROR;
 
-    Printf(command_tab, "{\"%s::%s\", %s},\n", module, name, funcname);
+    /* %native, used to drop hand coded XS directly into .i files, does
+     * not apply to classes, thus no "perl5:name" attribute will ever be
+     * present. */
+    Printf(f_init, "newXS(\"%s::%s\", %s, __FILE__);\n",
+        namespace_module, iname, wname);
+
     if (export_all)
-      Printf(exported, "%s ", name);
+      Printf(exported, "%s ", iname);
     return SWIG_OK;
   }
 
@@ -1150,8 +1135,8 @@ public:
     String *name = 0; /* Real name of C/C++ class */
     String *fullclassname = 0;
 
-    Node *class_outer = class_node;
-    class_node = n;
+    Node *outer_class = CurrentClass;
+    CurrentClass = n;
     {
       /* prefill memberVariables list with parent vars */
       List *member_variables = NewList();
@@ -1170,19 +1155,16 @@ public:
 
     if (blessed) {
       have_operators = 0;
-      have_destructor = 0;
       operators = NewHash();
 
-      class_name = Getattr(n, "sym:name");
-
-      if (!addSymbol(class_name, n))
+      if (!addSymbol(ClassName, n))
 	return SWIG_ERROR;
 
       /* Use the fully qualified name of the Perl class */
       if (!compat) {
-	fullclassname = NewStringf("%s::%s", namespace_module, class_name);
+	fullclassname = NewStringf("%s::%s", namespace_module, ClassName);
       } else {
-	fullclassname = NewString(class_name);
+	fullclassname = NewString(ClassName);
       }
       name = Getattr(n, "name");
       pcode = NewString("");
@@ -1346,8 +1328,9 @@ public:
 
       /* Dump out a hash table containing the pointers that we own */
       Printf(pm, "%%OWNER = ();\n");
-      if (First(Getattr(n, "perl5:memberVariables")).item || have_destructor)
-	Printf(pm, "%%ITERATORS = ();\n");
+      if (First(Getattr(n, "perl5:memberVariables")).item ||
+          Getattr(n, "perl5:destructor"))
+        Printf(pm, "%%ITERATORS = ();\n");
 
       /* Dump out the package methods */
 
@@ -1368,7 +1351,7 @@ public:
       Delete(operators);
       operators = 0;
     }
-    class_node = class_outer; 
+    CurrentClass = outer_class; 
     return SWIG_OK;
   }
 
@@ -1377,21 +1360,11 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberfunctionHandler(Node *n) {
+    if (blessed)
+      Setattr(n, "perl5:name", NewStringf("%s::%s", ClassName,
+            Getattr(n, "sym:name")));
     if (blessed && !Getattr(n, "sym:nextSibling")) {
       String *symname = Getattr(n, "sym:name");
-      String *pname = Copy(symname);
-
-      if (Getattr(n, "feature:shadow")) {
-	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
-	String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name, symname));
-	Replaceall(plcode, "$action", plaction);
-	Delete(plaction);
-	Printv(pcode, plcode, NIL);
-        Insert(pname, 0, "_swig_");
-      }
-      Setattr(n, "perl5:name", NewStringf("%s::%s::%s",
-        namespace_module, class_name, pname));
-      Delete(pname);
 
       if (Strstr(symname, "__eq__")) {
 	DohSetInt(operators, "__eq__", 1);
@@ -1468,11 +1441,8 @@ public:
    * ----------------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node *n) {
-    Append(Getattr(class_node, "perl5:memberVariables"), n);
-    /* rerouting for unified variable handling, the Language base would
-     * have sent this to functionWrapper() */
+    Append(Getattr(CurrentClass, "perl5:memberVariables"), n);
     Setattr(n, "perl5:instancevariable", "1");
-    //return variableWrapper(n);
     return Language::membervariableHandler(n);
   }
 
@@ -1486,32 +1456,17 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
-    {
+    if (blessed) {
+      String *symname = Getattr(n, "sym:name");
+      Setattr(n, "perl5:name", NewStringf("%s::%s", ClassName,
+            Equal(symname, ClassName) ? "new" : symname));
+
       String *type = NewString("SV");
       SwigType_add_pointer(type);
       Parm *p = NewParm(type, "proto");
       Delete(type);
       Setattr(n, "perl5:implicits", p);
       Delete(p);
-    }
-    if (blessed) {
-      String *symname = Getattr(n, "sym:name");
-      String *pname;
-      if (Strcmp(symname, class_name) == 0)
-        pname = NewString("new");
-      else
-        pname = Swig_name_construct(symname);
-      if (Getattr(n, "feature:shadow")) {
-	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
-	String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name, symname));
-	Replaceall(plcode, "$action", plaction);
-	Delete(plaction);
-	Printv(pcode, plcode, NIL);
-        Insert(pname, 0, "_swig_");
-      }
-      Setattr(n, "perl5:name", NewStringf("%s::%s::%s",
-        namespace_module, class_name, pname));
-      Delete(pname);
     }
     return Language::constructorHandler(n);
   }
@@ -1521,29 +1476,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int destructorHandler(Node *n) {
-    if (blessed) {
-      String *symname = Getattr(n, "sym:name");
-      const char *pname = "_swig_DESTROY";
-      if (Getattr(n, "feature:shadow")) {
-	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
-	String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name, symname));
-	Replaceall(plcode, "$action", plaction);
-	Delete(plaction);
-	Printv(pcode, plcode, NIL);
-      //} else {
-      //  Printv(pcode,
-      //    "sub DESTROY {\n",
-      //    tab4, "return unless $_[0]->isa('HASH');\n",
-      //    tab4, "my $self = tied(%{$_[0]});\n",
-      //    tab4, "return unless defined $self;\n",
-      //    tab4, "delete $ITERATORS{$self};\n",
-      //    tab4, "if (exists $OWNER{$self}) {\n",
-      //    tab8, module, "::", Swig_name_destroy(symname), "($self);\n", tab8, "delete $OWNER{$self};\n", tab4, "}\n}\n\n", NIL);
-      }
-      Setattr(n, "perl5:name", NewStringf("%s::%s::%s",
-        namespace_module, class_name, pname));
-    }
-    have_destructor = 1;
+    if (blessed)
+      Setattr(n, "perl5:name", NewStringf("%s::%s",
+            ClassName, "_swig_DESTROY"));
+    Setattr(n, "perl5:destructor", n);
     return Language::destructorHandler(n);
   }
 
@@ -1552,9 +1488,20 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmemberfunctionHandler(Node *n) {
-    if ((blessed) && (!Getattr(n, "sym:nextSibling")))
-      Setattr(n, "perl5:name", NewStringf("%s::%s::%s",
-        namespace_module, class_name, Getattr(n, "sym:name")));
+    if (blessed) {
+      Setattr(n, "perl5:name", NewStringf("%s::%s",
+            ClassName, Getattr(n, "sym:name")));
+
+      if(!GetFlag(n, "allocate:smartpointeraccess")) {
+        /* proto is probably only appropriate if directors are enabled */
+        String *type = NewString("SV");
+        SwigType_add_pointer(type);
+        Parm *p = NewParm(type, "proto");
+        Delete(type);
+        Setattr(n, "perl5:implicits", p);
+        Delete(p);
+      }
+    }
     return Language::staticmemberfunctionHandler(n);
   }
 
@@ -1563,10 +1510,10 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmembervariableHandler(Node *n) {
-    Append(Getattr(class_node, "perl5:memberVariables"), n);
-    if ((blessed) && (!Getattr(n, "sym:nextSibling")))
-      Setattr(n, "perl5:name", NewStringf("%s::%s::%s",
-        namespace_module, class_name, Getattr(n, "sym:name")));
+    if (blessed)
+      Setattr(n, "perl5:name", NewStringf("%s::%s",
+            ClassName, Getattr(n, "sym:name")));
+    Append(Getattr(CurrentClass, "perl5:memberVariables"), n);
     return Language::staticmembervariableHandler(n);
   }
 
@@ -1577,7 +1524,7 @@ public:
   virtual int memberconstantHandler(Node *n) {
     if (blessed)
       Setattr(n, "perl5:name", NewStringf("%s::%s",
-            class_name, Getattr(n, "sym:name")));
+            ClassName, Getattr(n, "sym:name")));
     return Language::memberconstantHandler(n);
   }
 

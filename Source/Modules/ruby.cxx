@@ -158,6 +158,7 @@ private:
   File *f_directors;
   File *f_directors_h;
   File *f_directors_helpers;
+  File *f_begin;
   File *f_runtime;
   File *f_runtime_h;
   File *f_header;
@@ -762,6 +763,7 @@ public:
     classes = 0;
     klass = 0;
     special_methods = 0;
+    f_begin = 0;
     f_runtime = 0;
     f_header = 0;
     f_wrappers = 0;
@@ -992,11 +994,20 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
 
-    f_runtime = NewFile(outfile, "w", SWIG_output_files());
-    if (!f_runtime) {
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
+
+    f_runtime = NewString("");
+    f_init = NewString("");
+    f_header = NewString("");
+    f_wrappers = NewString("");
+    f_directors_h = NewString("");
+    f_directors = NewString("");
+    f_directors_helpers = NewString("");
+    f_initbeforefunc = NewString("");
 
     if (directorsEnabled()) {
       if (!outfile_h) {
@@ -1010,17 +1021,10 @@ public:
       }
     }
 
-    f_init = NewString("");
-    f_header = NewString("");
-    f_wrappers = NewString("");
-    f_directors_h = NewString("");
-    f_directors = NewString("");
-    f_directors_helpers = NewString("");
-    f_initbeforefunc = NewString("");
-
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("wrapper", f_wrappers);
+    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
     Swig_register_filebyname("director", f_directors);
@@ -1035,8 +1039,9 @@ public:
 
     registerMagicMethods();
 
-    Swig_banner(f_runtime);
+    Swig_banner(f_begin);
 
+    Printf(f_runtime, "\n");
     Printf(f_runtime, "#define SWIGRUBY\n");
 
     if (directorsEnabled()) {
@@ -1060,6 +1065,7 @@ public:
       Replaceall(module_macro, "::", "__");
 
       Swig_banner(f_directors_h);
+      Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module_macro);
       Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module_macro);
       Printf(f_directors_h, "namespace Swig {\n");
@@ -1112,27 +1118,29 @@ public:
     SwigType_emit_type_table(f_runtime, f_wrappers);
 
     /* Close all of the files */
-    Dump(f_header, f_runtime);
+    Dump(f_runtime, f_begin);
+    Dump(f_header, f_begin);
 
     if (directorsEnabled()) {
-      Dump(f_directors_helpers, f_runtime);
-      Dump(f_directors, f_runtime);
+      Dump(f_directors_helpers, f_begin);
+      Dump(f_directors, f_begin);
       Dump(f_directors_h, f_runtime_h);
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
       Close(f_runtime_h);
     }
 
-    Dump(f_wrappers, f_runtime);
-    Dump(f_initbeforefunc, f_runtime);
-    Wrapper_pretty_print(f_init, f_runtime);
+    Dump(f_wrappers, f_begin);
+    Dump(f_initbeforefunc, f_begin);
+    Wrapper_pretty_print(f_init, f_begin);
 
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_initbeforefunc);
-    Close(f_runtime);
+    Close(f_begin);
     Delete(f_runtime);
+    Delete(f_begin);
 
     return SWIG_OK;
   }

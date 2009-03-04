@@ -31,11 +31,6 @@ XS(SWIG_init) {
 
     SWIG_InitializeModule(0);
 
-    /* Install commands */
-    for (i = 0; swig_commands[i].name; i++) {
-      newXS((char*) swig_commands[i].name,swig_commands[i].wrapper, (char*)__FILE__);
-    }
-
     /* Install constant */
     for (i = 0; swig_constants[i].type; i++) {
       SV *sv;

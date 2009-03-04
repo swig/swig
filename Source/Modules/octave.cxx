@@ -18,6 +18,7 @@ Octave Options (available with -octave)\n\
 
 class OCTAVE:public Language {
 private:
+  File *f_begin;
   File *f_runtime;
   File *f_header;
   File *f_doc;
@@ -37,7 +38,7 @@ private:
   Hash *docs;
 
 public:
-   OCTAVE():f_runtime(0), f_header(0), f_doc(0), f_wrappers(0),
+   OCTAVE():f_begin(0), f_runtime(0), f_header(0), f_doc(0), f_wrappers(0),
 	    f_init(0), f_initbeforefunc(0), f_directors(0), f_directors_h(0), 
 	    s_global_tab(0), s_members_tab(0), class_name(0) {
      /* Add code to manage protected constructors and directors */
@@ -94,11 +95,12 @@ public:
 
     String *module = Getattr(n, "name");
     String *outfile = Getattr(n, "outfile");
-    f_runtime = NewFile(outfile, "w", SWIG_output_files());
-    if (!f_runtime) {
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
+    f_runtime = NewString("");
     f_header = NewString("");
     f_doc = NewString("");
     f_wrappers = NewString("");
@@ -107,6 +109,7 @@ public:
     f_directors_h = NewString("");
     f_directors = NewString("");
     s_global_tab = NewString("");
+    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("doc", f_doc);
@@ -116,8 +119,9 @@ public:
     Swig_register_filebyname("director", f_directors);
     Swig_register_filebyname("director_h", f_directors_h);
 
-    Swig_banner(f_runtime);
+    Swig_banner(f_begin);
 
+    Printf(f_runtime, "\n");
     Printf(f_runtime, "#define SWIGOCTAVE\n");
     Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
@@ -155,15 +159,16 @@ public:
 
     Printv(f_wrappers, s_global_tab, NIL);
     SwigType_emit_type_table(f_runtime, f_wrappers);
-    Dump(f_header, f_runtime);
-    Dump(f_doc, f_runtime);
+    Dump(f_runtime, f_begin);
+    Dump(f_header, f_begin);
+    Dump(f_doc, f_begin);
     if (directorsEnabled()) {
-      Dump(f_directors_h, f_runtime);
-      Dump(f_directors, f_runtime);
+      Dump(f_directors_h, f_begin);
+      Dump(f_directors, f_begin);
     }
-    Dump(f_wrappers, f_runtime);
-    Dump(f_initbeforefunc, f_runtime);
-    Wrapper_pretty_print(f_init, f_runtime);
+    Dump(f_wrappers, f_begin);
+    Dump(f_initbeforefunc, f_begin);
+    Wrapper_pretty_print(f_init, f_begin);
 
     Delete(s_global_tab);
     Delete(f_initbeforefunc);
@@ -173,8 +178,9 @@ public:
     Delete(f_header);
     Delete(f_directors);
     Delete(f_directors_h);
-    Close(f_runtime);
+    Close(f_begin);
     Delete(f_runtime);
+    Delete(f_begin);
 
     return SWIG_OK;
   }

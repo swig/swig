@@ -84,6 +84,7 @@ skip-gcj        = test -n "@SKIP_GCJ@"
 #####################################################################
 
 ACTION = check
+NOSKIP =
 
 chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/Lib
 chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
@@ -258,7 +259,7 @@ check-%-test-suite:
 	fi
 	@passed=true;							\
 	dir="Examples/test-suite/$*";					\
-	if $(skip-$*) -a $(ACTION) != "partialcheck"; then						\
+	if $(skip-$*) -a "$(NOSKIP)" != "1"; then			\
 	  echo skipping $* test-suite $(ACTION);			\
 	elif [ ! -d $$dir ]; then					\
 	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
@@ -271,10 +272,10 @@ check-%-test-suite:
 
 # Partial test-suite check - it only invokes SWIG, ie no compilation and no runtime testing
 partialcheck-test-suite:
-	@$(MAKE) -k -s check-test-suite ACTION=partialcheck
+	@$(MAKE) -k -s check-test-suite ACTION=partialcheck NOSKIP=1
 
 partialcheck-%-test-suite:
-	@$(MAKE) -k -s check-$*-test-suite ACTION=partialcheck
+	@$(MAKE) -k -s check-$*-test-suite ACTION=partialcheck NOSKIP=1
 
 check: check-aliveness check-ccache check-examples check-gifplot check-test-suite
 
@@ -355,13 +356,13 @@ clean-gifplot:
 	@$(MAKE) -k -s check-gifplot ACTION=clean
 
 clean-test-suite:
-	@$(MAKE) -k -s check-test-suite ACTION=clean
+	@$(MAKE) -k -s check-test-suite ACTION=clean NOSKIP=1
 
 clean-%-examples:
 	@$(MAKE) -k -s check-$*-examples ACTION=clean
 
 clean-%-test-suite:
-	@$(MAKE) -k -s check-$*-test-suite ACTION=clean
+	@$(MAKE) -k -s check-$*-test-suite ACTION=clean NOSKIP=1
 
 clean-%-gifplot:
 	@$(MAKE) -k -s check-$*-gifplot ACTION=clean
@@ -398,41 +399,10 @@ distclean-source:
 
 distclean-test-suite:
 	@echo distcleaning Examples/test-suite
-	@$(MAKE) -k -s noskip-test-suite ACTION=distclean
+	@$(MAKE) -k -s check-test-suite ACTION=distclean NOSKIP=1
 
 distclean-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s distclean)
-
-noskip-test-suite:				\
-	noskip-tcl-test-suite			\
-	noskip-perl5-test-suite			\
-	noskip-python-test-suite		\
-	noskip-java-test-suite			\
-	noskip-guilescm-test-suite		\
-	noskip-guile-test-suite			\
-	noskip-mzscheme-test-suite		\
-	noskip-ruby-test-suite			\
-	noskip-ocaml-test-suite			\
-	noskip-octave-test-suite		\
-	noskip-php-test-suite			\
-	noskip-pike-test-suite			\
-	noskip-csharp-test-suite		\
-	noskip-lua-test-suite			\
-	noskip-allegrocl-test-suite		\
-	noskip-clisp-test-suite			\
-	noskip-uffi-test-suite			\
-	noskip-cffi-test-suite			\
-	noskip-chicken-test-suite		\
-	noskip-r-test-suite
-
-noskip-%-test-suite:
-	dir="Examples/test-suite/$*";					\
-	if [ ! -d $$dir ]; then						\
-	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
-	else								\
-	  echo $(ACTION)ing $$dir;					\
-	  (cd $$dir && $(MAKE) -k -s $(ACTION))				\
-	fi;
 
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)

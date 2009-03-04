@@ -17,18 +17,26 @@ external language extensions all have attractive syntax and benefits,
 but when considering only core Perl modules there is just one realistic
 choice, the "fields" pragma.  "use fields" is a relatively new language
 addition, but the Perl interpreter moving in a direction which makes
-this choice clearly superior.  It is not ideal, it's intent is the best
-match with our needs.  (TODO: justify that claim.)
+this choice clearly superior.  It is not ideal, but it's intent is the
+best match with SWIG's needs.  (TODO: justify that claim.)
 
-sv_magic() PERL_MAGIC_ext (~)
+A wrapped native will leverage PERL_MAGIC_ext heavily.
+
+PERL_MAGIC_ext (~) set via sv_magicext()
 
 	Here's a rough sketch of the memory layout.
 
-    "$stub" SV --> HV (~) ----------------\
-                   |- attr1 => val1 (~) ---> "wrap" SV ---> nativePtr
-                   |- attr2 => val2 (~) --/
+    "$stub" SV ──▸ HV (~) ────────────────╮
+                    ├─ attr1 => val1 (~) ─┼─▸ "wrap" SV ──▸ nativePtr
+                    ╰─ attr2 => val2 (~) ─╯
 
 the "$stub" is what is presented to Perl as the object, it looks and
 feels like a Perl created object.
 
+
+Hmm... not working.  type information is required for reasonable
+teardown semantics.
+
+
 ** more to come **
+

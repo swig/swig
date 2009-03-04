@@ -424,6 +424,7 @@ protected:
   String *sfile;
   String *f_init;
   String *s_classes;
+  String *f_begin;
   String *f_runtime;
   String *f_wrapper;
   String *s_header;
@@ -487,6 +488,7 @@ R::R() :
   sfile(0),
   f_init(0),
   s_classes(0),
+  f_begin(0),
   f_runtime(0),
   f_wrapper(0),
   s_header(0),
@@ -767,6 +769,7 @@ void R::init() {
   sfile = NewString("");
   f_init = NewString("");
   s_header = NewString("");
+  f_begin = NewString("");
   f_runtime = NewString("");
   f_wrapper = NewString("");
   s_classes = NewString("");
@@ -811,6 +814,7 @@ int R::top(Node *n) {
   Swig_register_filebyname("sinit", s_init);
   Swig_register_filebyname("sinitroutine", s_init_routine);
 
+  Swig_register_filebyname("begin", f_begin);
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("init", f_init);
   Swig_register_filebyname("header", s_header);
@@ -818,8 +822,9 @@ int R::top(Node *n) {
   Swig_register_filebyname("s", sfile);
   Swig_register_filebyname("sclasses", s_classes);
 
-  Swig_banner(f_runtime);
+  Swig_banner(f_begin);
 
+  Printf(f_runtime, "\n");
   Printf(f_runtime, "#define SWIGR\n");
   Printf(f_runtime, "\n");
 
@@ -862,7 +867,9 @@ int R::top(Node *n) {
   Delete(f_init);
 
   Delete(s_header);
+  Close(f_begin);
   Delete(f_runtime);
+  Delete(f_begin);
 
   return SWIG_OK;
 }
@@ -903,16 +910,10 @@ int R::DumpCode(Node *n) {
     SWIG_exit(EXIT_FAILURE);
   }
   
-  Printf(runtime, "/* Runtime */\n");
+  Printf(runtime, "%s", f_begin);
   Printf(runtime, "%s\n", f_runtime);
-  
-  Printf(runtime, "/* Header */\n");
   Printf(runtime, "%s\n", s_header);
-
-  Printf(runtime, "/* Wrapper */\n");
   Printf(runtime, "%s\n", f_wrapper);
-
-  Printf(runtime, "/* Init code */\n");
   Printf(runtime, "%s\n", f_init);
 
   Close(runtime);

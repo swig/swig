@@ -411,7 +411,7 @@ using the SWIG <tt>%insert(section) %{ ...code... %}</tt> directive:
 <pre>
 %module example
 
-%insert("runtime") %{
+%{
 #include "header.h"
 %}
 
@@ -432,7 +432,7 @@ generated lisp interface file
 </ul>
 <p>
 Note that the block <tt>%{ ... %}</tt> is effectively a shortcut for
-<tt>%insert("runtime") %{ ... %}</tt>.
+<tt>%insert("header") %{ ... %}</tt>.
 </p>
 
 

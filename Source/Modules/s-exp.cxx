@@ -68,6 +68,7 @@ public:
     String *f_sink = NewString("");
     Swig_register_filebyname("header", f_sink);
     Swig_register_filebyname("wrapper", f_sink);
+    Swig_register_filebyname("begin", f_sink);
     Swig_register_filebyname("runtime", f_sink);
     Swig_register_filebyname("init", f_sink);
 

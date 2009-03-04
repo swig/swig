@@ -114,9 +114,8 @@ run_testcase = \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(ALLEGROCLBIN) -batch -s $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
 
-# Clean: (does nothing, we dont generate extra allegrocl code)
 %.clean:
-	
+	@rm -f $*.cl
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile allegrocl_clean

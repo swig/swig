@@ -655,7 +655,7 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
   }
 
 #ifdef SWIG_DEBUG
-  Printf(stdout, "Swig_features_get: %s %s %s\n", prefix, name, decl);
+  Printf(stdout, "Swig_features_get: '%s' '%s' '%s'\n", prefix, name, decl);
 #endif
 
   /* Global features */
@@ -732,7 +732,7 @@ void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *d
   Hash *fhash;
 
 #ifdef SWIG_DEBUG
-  Printf(stdout, "Swig_feature_set: %s %s %s %s\n", name, decl, featurename, value);
+  Printf(stdout, "Swig_feature_set: '%s' '%s' '%s' '%s'\n", name, decl, featurename, value);
 #endif
 
   n = Getattr(features, name);

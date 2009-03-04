@@ -29,8 +29,8 @@ is($d->get(), $dr->get());
 #
 # 'narrowing' also works
 #
-my $ddc = virtual_poly::NDouble::narrow($d->nnumber());
+my $ddc = virtual_poly::NDouble->narrow($d->nnumber());
 is($d->get, $ddc->get());
 
-my $dic = virtual_poly::NInt::narrow($i->nnumber());
+my $dic = virtual_poly::NInt->narrow($i->nnumber());
 is($i->get(), $dic->get());

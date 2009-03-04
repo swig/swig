@@ -237,6 +237,7 @@ int UFFI::top(Node *n) {
   }
 
   Swig_register_filebyname("header", f_null);
+  Swig_register_filebyname("begin", f_null);
   Swig_register_filebyname("runtime", f_null);
   Swig_register_filebyname("wrapper", f_cl);
 

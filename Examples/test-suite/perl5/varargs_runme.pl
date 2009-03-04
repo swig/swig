@@ -15,4 +15,4 @@ is($f->{str}, "Greetings");
         
 is($f->test("Hello"), "Hello");
 
-is(varargs::Foo::statictest("Grussen", 1), "Grussen");
+is(varargs::Foo->statictest("Grussen", 1), "Grussen");

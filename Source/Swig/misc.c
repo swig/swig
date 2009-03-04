@@ -67,7 +67,7 @@ void Swig_banner(File *f) {
  * changes to this file unless you know what you are doing--modify the SWIG \n\
  * interface file instead. \n", Swig_package_version());
   /* String too long for ISO compliance */
-  Printf(f, " * ----------------------------------------------------------------------------- */\n\n");
+  Printf(f, " * ----------------------------------------------------------------------------- */\n");
 
 }
 

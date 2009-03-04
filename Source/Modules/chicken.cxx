@@ -30,6 +30,7 @@ static char *module = 0;
 static char *chicken_path = (char *) "chicken";
 static int num_methods = 0;
 
+static File *f_begin = 0;
 static File *f_runtime = 0;
 static File *f_header = 0;
 static File *f_wrappers = 0;
@@ -188,11 +189,12 @@ int CHICKEN::top(Node *n) {
   /* Initialize all of the output files */
   String *outfile = Getattr(n, "outfile");
 
-  f_runtime = NewFile(outfile, "w", SWIG_output_files());
-  if (!f_runtime) {
+  f_begin = NewFile(outfile, "w", SWIG_output_files());
+  if (!f_begin) {
     FileErrorDisplay(outfile);
     SWIG_exit(EXIT_FAILURE);
   }
+  f_runtime = NewString("");
   f_init = NewString("");
   f_header = NewString("");
   f_wrappers = NewString("");
@@ -205,6 +207,7 @@ int CHICKEN::top(Node *n) {
   /* Register file targets with the SWIG file handler */
   Swig_register_filebyname("header", f_header);
   Swig_register_filebyname("wrapper", f_wrappers);
+  Swig_register_filebyname("begin", f_begin);
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("init", f_init);
 
@@ -215,8 +218,9 @@ int CHICKEN::top(Node *n) {
   clos_methods = NewString("");
   scm_const_defs = NewString("");
 
-  Swig_banner(f_runtime);
+  Swig_banner(f_begin);
 
+  Printf(f_runtime, "\n");
   Printf(f_runtime, "#define SWIGCHICKEN\n");
 
   if (no_collection)
@@ -308,15 +312,17 @@ int CHICKEN::top(Node *n) {
   /* Close all of the files */
   Delete(primitive_names);
   Delete(scmmodule);
-  Dump(f_header, f_runtime);
-  Dump(f_wrappers, f_runtime);
-  Wrapper_pretty_print(f_init, f_runtime);
+  Dump(f_runtime, f_begin);
+  Dump(f_header, f_begin);
+  Dump(f_wrappers, f_begin);
+  Wrapper_pretty_print(f_init, f_begin);
   Delete(f_header);
   Delete(f_wrappers);
   Delete(f_sym_size);
   Delete(f_init);
-  Close(f_runtime);
+  Close(f_begin);
   Delete(f_runtime);
+  Delete(f_begin);
   return SWIG_OK;
 }
 

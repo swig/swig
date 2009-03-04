@@ -843,7 +843,7 @@ Version 1.3.34 (27 February 2008)
               };
 
 Version 1.3.33 (November 23, 2007)
-=================================
+==================================
 
 11/21/2007: mikel
 	    [allegrocl] omit private slot type info in the classes/types
@@ -1775,7 +1775,7 @@ Version 1.3.31 (November 20, 2006)
 	    [lua] update to typemap for object by value, to make it c89 compliant
 
 Version 1.3.30 (November 13, 2006)
-=================================
+==================================
 
 11/12/2006: wsfulton
             [java] Remove DetachCurrentThread patch from  08/11/2006 - it causes segfaults
@@ -6098,7 +6098,7 @@ Version 1.3.24 (December 14, 2004)
 	      compile with no errors, java shows some problems.	
 
 Version 1.3.23 (November 11, 2004)
-=================================
+==================================
 
 11/05/2004: wsfulton
             Patch #982753 from Fabrice Salvaire: Adds dependencies generation for
@@ -8349,7 +8349,8 @@ Version 1.3.22 (September 4, 2004)
             exception instead.
 
 Version 1.3.21 (January 11, 2004)
-==================================
+=================================
+
 01/10/2004: cheetah (William Fulton)
             The output format for both warnings and errors can be selected for
             integration with your favourite IDE/editor. Editors and IDEs can usually
@@ -10123,6 +10124,7 @@ Version 1.3.20 (December 17, 2003)
 
 Version 1.3.19 (March 28, 2003)
 ===============================
+
 03/28/2003: beazley
             Variety of minor bug fixes to the 1.3.18 release including:
 
@@ -10709,6 +10711,7 @@ Version 1.3.18 (March 23, 2003)
 
 Version 1.3.17 (November 22, 2002)
 ==================================
+
 11/19/2002: beazley
             Fixed [ 613922 ] preprocessor errors with HAVE_LONG_LONG.
             
@@ -11064,6 +11067,7 @@ Version 1.3.16 (October 14, 2002)
 
 Version 1.3.15 (September 9, 2002)
 ==================================
+
 09/09/2002: beazley
             Fixed nasty runtime type checking bug with subtypes and inheritance
             and templates. 
@@ -12756,6 +12760,7 @@ Version 1.3.14 (August 12, 2002)
 
 Version 1.3.13 (June 17, 2002)
 ==============================
+
 06/16/2002: beazley
             Fixed a bug with __FILE__ expansion in the preprocessor.   On Windows,
             the backslash (\) is now converted to (\\) in the string literal
@@ -15887,6 +15892,7 @@ Version 1.3.10 (December 10, 2001)
 
 Version 1.3.9 (September 25, 2001)
 ==================================
+
 9/25/2001: beazley
            Fixed parsing problem with type declarations like 
            'char ** const'.  SWIG parsed this correctly, but the
@@ -15899,6 +15905,7 @@ Version 1.3.9 (September 25, 2001)
 
 Version 1.3.8 (September 23, 2001)
 ==================================
+
 9/23/2001: beazley
            Included improved distutils setup.py file in the Tools 
            directory (look for the setup.py.tmpl file).  Contributed by
@@ -17271,7 +17278,7 @@ Version 1.3 Alpha 5
           and function bodies.  Preprocessor bug.
 
 Version 1.3 Alpha 4 (September 4, 2000)
-======================================
+=======================================
 
 9/3/00  : ttn
           Added instructions for maintainers in Examples/README on how
@@ -18357,6 +18364,7 @@ Version 1.3 Alpha 1 (February 11, 2000)
 
 Version 1.1 Patch 5 (February 5, 1998)
 ======================================
+
 2/4/98  : Fixed a bug in the configure script when different package
           locations are specified (--with-tclincl, etc...).
 
@@ -18609,6 +18617,7 @@ Version 1.1 Patch 3 (November 24, 1997)
 
 Version 1.1 Patch 2 (September 4, 1997)
 =======================================
+
 9/4/97  : Fixed problem with handling of virtual functions that
           was introduced by some changes in the C++ module.
 
@@ -19744,7 +19753,7 @@ This release should fix most, if not all, of those problems.
           it generated alot of unnecessary code).
 
 Version 1.1 Beta3 (January 9, 1997)
-====================================
+===================================
 
 Note : A *huge* number of changes related to ongoing modifications.
 
@@ -19867,6 +19876,7 @@ Version 1.1 Beta1 (October 30, 1996)
 
 Version 1.0 Final (August 31, 1996)
 ===================================
+
 1. Fixed minor bug in C++ module
 
 2. Fixed minor bug in pointer type-checker when using
@@ -19950,7 +19960,7 @@ number of immediate problems :
 3.  A few minor fixes were made in the Makefile
 
 Version 1.0 Beta 3 (June 14, 1996)
-===================================
+==================================
 
 
 There are lots of changes in this release :
@@ -20040,6 +20050,7 @@ let me know.
 
 Version 1.0 Beta 2 (April 26, 1996)
 ===================================
+
 This release is identical to Beta1 except a few minor bugs are
 fixed and the SWIG library has been updated to work with Tcl 7.5/Tk 4.1.
 A tcl7.5 examples directory is now included.
@@ -20054,6 +20065,7 @@ A tcl7.5 examples directory is now included.
 
 Version 1.0 Beta 1  (April 10, 1996).
 =====================================
+
 This is the first "semi-official" release of SWIG.    It has a
 number of substantial improvements over the Alpha release.   These
 notes are in no particular order--hope I remembered everything....

@@ -22,6 +22,7 @@ public:
   String *f_clhead;
   String *f_clwrap;
   bool CWrap;     // generate wrapper file for C code?  
+  File *f_begin;
   File *f_runtime;
   File *f_cxx_header;
   File *f_cxx_wrapper;
@@ -127,8 +128,8 @@ int CFFI::top(Node *n) {
   }
 
   if (CPlusPlus || CWrap) {
-    f_runtime = NewFile(cxx_filename, "w", SWIG_output_files());
-    if (!f_runtime) {
+    f_begin = NewFile(cxx_filename, "w", SWIG_output_files());
+    if (!f_begin) {
       Close(f_lisp);
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
@@ -145,15 +146,17 @@ int CFFI::top(Node *n) {
       SWIG_exit(EXIT_FAILURE);
     }
   } else {
-    f_runtime = NewString("");
+    f_begin = NewString("");
     f_clos = NewString("");
   }
 
+  f_runtime = NewString("");
   f_cxx_header = f_runtime;
   f_cxx_wrapper = NewString("");
 
   Swig_register_filebyname("header", f_cxx_header);
   Swig_register_filebyname("wrapper", f_cxx_wrapper);
+  Swig_register_filebyname("begin", f_begin);
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("lisphead", f_clhead);
   if (!no_swig_lisp)
@@ -161,8 +164,9 @@ int CFFI::top(Node *n) {
   else
     Swig_register_filebyname("swiglisp", f_null);
 
-  Swig_banner(f_runtime);
+  Swig_banner(f_begin);
 
+  Printf(f_runtime, "\n");
   Printf(f_runtime, "#define SWIGCFFI\n");
   Printf(f_runtime, "\n");
 
@@ -178,8 +182,10 @@ int CFFI::top(Node *n) {
   Delete(f_cl);
   Delete(f_clhead);
   Delete(f_clwrap);
-  Close(f_runtime);
+  Dump(f_runtime, f_begin);
+  Close(f_begin);
   Delete(f_runtime);
+  Delete(f_begin);
   Delete(f_cxx_wrapper);
   Delete(f_null);
 
@@ -239,7 +245,7 @@ void CFFI::emit_defmethod(Node *n) {
 
   ParmList *pl = Getattr(n, "parms");
   int argnum = 0;
-  Node *parent = parentNode(n);
+  Node *parent = getCurrentClass();
   bool first = 0;
   
   for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
@@ -294,7 +300,7 @@ void CFFI::emit_initialize_instance(Node *n) {
 
   ParmList *pl = Getattr(n, "parms");
   int argnum = 0;
-  Node *parent = parentNode(n);
+  Node *parent = getCurrentClass();
 
   for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
     String *argname = Getattr(p, "name");
@@ -331,18 +337,18 @@ void CFFI::emit_initialize_instance(Node *n) {
 }
 
 void CFFI::emit_setter(Node *n) {
-  Node *p = parentNode(n);
+  Node *parent = getCurrentClass();
   Printf(f_clos, "(cl:defmethod (cl:setf %s) (arg0 (obj %s))\n  (%s (ff-pointer obj) arg0))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
-         lispify_name(p, lispy_name(Char(Getattr(p, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
+         lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
 }
 
 
 void CFFI::emit_getter(Node *n) {
-  Node *p = parentNode(n);
+  Node *parent = getCurrentClass();
   Printf(f_clos, "(cl:defmethod %s ((obj %s))\n  (%s (ff-pointer obj)))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
-         lispify_name(p, lispy_name(Char(Getattr(p, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
+         lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
 }
 
 int CFFI::memberfunctionHandler(Node *n) {

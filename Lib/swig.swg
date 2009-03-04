@@ -25,10 +25,11 @@
 
 /* Code insertion directives such as %wrapper %{ ... %} */
 
-#define %init        %insert("init")
-#define %wrapper     %insert("wrapper")
-#define %header      %insert("header")
+#define %begin       %insert("begin")
 #define %runtime     %insert("runtime")
+#define %header      %insert("header")
+#define %wrapper     %insert("wrapper")
+#define %init        %insert("init")
 
 /* Class extension */
 
@@ -467,26 +468,26 @@ namespace std {
 /* memberin/globalin typemap for double arrays. */
 
 %typemap(memberin) SWIGTYPE [ANY][ANY] {
-  $basetype (*inp)[$dim1] = ($basetype (*)[$dim1])($input);
-  $basetype (*dest)[$dim1] = ($basetype (*)[$dim1])($1);
+  $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
+  $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
   size_t ii = 0;
-  for (; ii < $dim0; ++ii) {
+  for (; ii < $1_dim0; ++ii) {
     $basetype *ip = inp[ii];
     $basetype *dp = dest[ii];
     size_t jj = 0;
-    for (; jj < $dim1; ++jj) dp[jj] = ip[jj];
+    for (; jj < $1_dim1; ++jj) dp[jj] = ip[jj];
   }
 }
 
 %typemap(globalin) SWIGTYPE [ANY][ANY] {
-  $basetype (*inp)[$dim1] = ($basetype (*)[$dim1])($input);
-  $basetype (*dest)[$dim1] = ($basetype (*)[$dim1])($1);
+  $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
+  $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
   size_t ii = 0;
-  for (; ii < $dim0; ++ii) {
+  for (; ii < $1_dim0; ++ii) {
     $basetype *ip = inp[ii];
     $basetype *dp = dest[ii];
     size_t jj = 0;
-    for (; jj < $dim1; ++jj) dp[jj] = ip[jj];
+    for (; jj < $1_dim1; ++jj) dp[jj] = ip[jj];
   }
 }
 

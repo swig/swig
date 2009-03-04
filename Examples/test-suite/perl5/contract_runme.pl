@@ -40,10 +40,10 @@ require_ok('contract');
 	like($@, qr/\bRuntimeError\b/, "method post bad");
 }
 {
-	ok(contract::Foo::stest_prepost(4,0), "static method prepost");
-	eval { contract::Foo::stest_prepost(-4,2) };
+	ok(contract::Foo->stest_prepost(4,0), "static method prepost");
+	eval { contract::Foo->stest_prepost(-4,2) };
 	like($@, qr/\bRuntimeError\b/, "static method pre bad");
-	eval { contract::Foo::stest_prepost(4,-10) };
+	eval { contract::Foo->stest_prepost(4,-10) };
 	like($@, qr/\bRuntimeError\b/, "static method post bad");
 }
 {

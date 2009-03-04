@@ -9,7 +9,8 @@
 /* Common SWIG API */
 
 /* for raw pointers */
-#define SWIG_ConvertPtr(obj, pp, type, flags)           SWIG_Perl_ConvertPtr(obj, pp, type, flags)
+#define SWIG_ConvertPtr(obj, pp, type, flags) \
+    SWIG_Perl_ConvertPtr(obj, pp, type, flags)
 #define SWIG_NewPointerObjP(ptr, t, flags) \
     SWIG_Perl_MakePtr(0, ptr, t, flags, proto)
 #define SWIG_NewPointerObj(ptr, t, flags) \
@@ -88,50 +89,7 @@ extern "C" {
 #  endif 
 #endif 
 
-#ifdef PERL_OBJECT
-#define MAGIC_PPERL  CPerlObj *pPerl = (CPerlObj *) this;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-typedef int (CPerlObj::*SwigMagicFunc)(SV *, MAGIC *);
-#ifdef __cplusplus
-}
-#endif
-
-#define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
-#define SWIGCLASS_STATIC
-
-#else /* PERL_OBJECT */
-
-#define MAGIC_PPERL
 #define SWIGCLASS_STATIC static SWIGUNUSED
-
-#ifndef MULTIPLICITY
-#define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-typedef int (*SwigMagicFunc)(SV *, MAGIC *);
-#ifdef __cplusplus
-}
-#endif
-
-#else /* MULTIPLICITY */
-
-#define SWIG_MAGIC(a,b) (struct interpreter *interp, SV *a, MAGIC *b)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* MULTIPLICITY */
-#endif /* PERL_OBJECT */
 
 /* Workaround for bug in perl 5.6.x croak and earlier */
 #if (PERL_VERSION < 8)
@@ -197,14 +155,43 @@ typedef struct swig_perl_type_ext {
   const int nattr;
   swig_perl_type_ext_var *attr;
 } swig_perl_type_ext;
+typedef struct swig_perl_wrap {
+  HV *stash;
+  void *ptr;
+  IV refcnt;
+} swig_perl_wrap;
+SWIGINTERN HV *SWIG_Perl_OwnerTbl(HV *stash) {
+  GV *gv = *(GV **)hv_fetch(stash, "OWNER", 5, TRUE);
+  if (!isGV(gv))
+    gv_init(gv, stash, "OWNER", 5, FALSE);
+  return GvHVn(gv);
+}
+SWIGINTERN SV *SWIG_Perl_LookupPtr(HV *stash, void *ptr) {
+  HE *ent = hv_fetch_ent(SWIG_Perl_OwnerTbl(stash),
+      sv_2mortal(newSViv(PTR2IV(ptr))), 0, 0);
+  /*warn("lookup(%s:%p) %s\n", HvNAME(stash), ptr, ent ? "hit" : "miss");*/
+  return ent ? HeVAL(ent) : 0;
+}
+SWIGINTERN void SWIG_Perl_RememberPtr(swig_perl_wrap *wrap, SV *impl) {
+  /*warn("store (%s:%p)\n", HvNAME(wrap->stash), wrap->ptr);*/
+  hv_store_ent(SWIG_Perl_OwnerTbl(wrap->stash),
+    sv_2mortal(newSViv(PTR2IV(wrap->ptr))), impl, 0);
+}
+SWIGINTERN void SWIG_Perl_ForgetPtr(swig_perl_wrap *wrap) {
+  /*warn("delete(%s:%p)\n", HvNAME(wrap->stash), wrap->ptr);*/
+  hv_delete_ent(SWIG_Perl_OwnerTbl(wrap->stash),
+    sv_2mortal(newSViv(PTR2IV(wrap->ptr))), G_DISCARD, 0);
+}
 SWIGINTERN int
 SWIG_Perl_vtbl_svt_free(pTHX_ SV *sv, MAGIC *mg) {
-  SV *wrap = (SV *)mg->mg_ptr;
-  //if(SvREFCNT(wrap) <= 1) {
-  //  warn("ready to drop native ptr 0x%08p\n", INT2PTR(void *, SvIV(wrap)));
-  //  /* TODO: fire destructor here? */
-  //}
-  SvREFCNT_dec(wrap);
+  swig_perl_wrap *wrap = (swig_perl_wrap *)mg->mg_ptr;
+  wrap->refcnt--;
+  if(wrap->refcnt <= 0) {
+    SWIG_Perl_ForgetPtr(wrap);
+    /*Safefree(wrap);*/
+    warn("free(%p)\n", wrap);
+    free(wrap);
+  }
   return 0;
 }
 #define SWIG_Perl_VTBL(getf, setf) \
@@ -252,7 +239,7 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
 SWIGRUNTIME int
 SWIG_Perl_ConvertMg(MAGIC *mg, void **ptr, swig_type_info *t, int flags) {
   /* TODO: this is incomplete */
-  *ptr = INT2PTR(void *, SvIV((SV *)mg->mg_ptr));
+  *ptr = ((swig_perl_wrap *)mg->mg_ptr)->ptr;
   return SWIG_OK;
 }
 SWIGRUNTIME int
@@ -295,74 +282,84 @@ SWIG_Perl_ConvertPtr(SV *sv, void **ptr, swig_type_info *_t, int flags) {
 }
 
 SWIGINTERN SV *
-SWIG_Perl_WrapVar(SV *sv, MGVTBL *vtbl, SV *wrap) {
+SWIG_Perl_WrapVar(SV *sv, MGVTBL *vtbl, swig_perl_wrap *wrap) {
+  if(wrap) wrap->refcnt++;
   sv_magicext(sv, 0, PERL_MAGIC_ext, vtbl, (char *)wrap, 0);
-  SvREFCNT(wrap)++;
   return sv;
 }
 
 SWIGINTERN SV *
-SWIG_Perl_MakePtr(SV *sv, const void *ptr, swig_type_info *t, int flags,
-	SV *proto) {
-  SV *wrap;
-
-  if (!ptr) {
-	if(sv) SvSetSV(sv, &PL_sv_undef);
-	else sv = &PL_sv_undef;
-	return sv;
-  }
-	
-  wrap = newSViv(PTR2IV(ptr));
-  swig_perl_type_ext *ext = (swig_perl_type_ext *)t->clientdata;
+SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
+    SV *proto) {
+  HV *stash;
+  swig_perl_wrap *wrap;
+  SV *impl;
+  swig_perl_type_ext *ext;
   MGVTBL *vtbl;
 
+  if (!sv) sv = newSV(0);
+
+  if (!ptr) {
+    SvSetSV(sv, &PL_sv_undef);
+    return sv;
+  }
+  if (!proto)
+    proto = sv_2mortal(newSVpv(SWIG_Perl_TypeProxyName(t), 0));
+
+  stash = gv_stashpv(SWIG_Perl_TypeProxyName(t), GV_ADD);
+
+  if ((impl = SWIG_Perl_LookupPtr(stash, ptr))) {
+    SvSetSV(sv, sv_2mortal(newRV_inc(impl)));
+    return sv;
+  }
+  ext = (swig_perl_type_ext *)t->clientdata;
+
+  /*Newx(wrap, 1, swig_perl_wrap);*/
+  wrap = (swig_perl_wrap *)malloc(sizeof(swig_perl_wrap));
+  wrap->stash = stash;
+  wrap->ptr = ptr;
+  wrap->refcnt = 1;
+
   if(flags & SWIG_SHADOW && ext) {
-	/* pointer_reference for sample of shadow set without ext */
-    {
-      /* So many object models out there...
-       * Class::Accessor?  Class::Struct?  Class::Std?  Class::Closure?
-       * There certainly is more than one way to do it!
-       *
-       * But those are all CPAN modules, when we look at core perl we
-       * find just the "fields" pragma.  Pros: compile time checks for
-       * attribute validity when objects are typed; unsurprising
-       * inheritance mechanism for end users.  Cons: constructor has no
-       * XS api yet, implementation switch from avhv to hv in v5.9.0.
-       * The good points are compelling for SWIG users, the bad points
-       * complicate this wrapper, but it's managable. */
-      SV *tmp;
-      dSP;
-      I32 count;
+    /* pointer_reference.i for sample of shadow set without ext */
 
-	  ENTER;
-	  SAVETMPS;
+    /* So many object models out there...
+     * Class::Accessor?  Class::Struct?  Class::Std?  Class::Closure?
+     * There certainly is more than one way to do it!
+     *
+     * But those are all CPAN modules, when we look at core perl we
+     * find just the "fields" pragma.  Pros: compile time checks for
+     * attribute validity when objects are typed; unsurprising
+     * inheritance mechanism for end users.  Cons: constructor has no
+     * XS api yet, implementation switch from avhv to hv in v5.9.0.
+     * The good points are compelling for SWIG users, the bad points
+     * complicate this wrapper, but it's managable. */
+    dSP;
+    I32 count;
 
-      if (!proto || !SvOK(proto))
-        proto = sv_2mortal(newSVpv(SWIG_Perl_TypeProxyName(t), 0));
+    ENTER;
+    SAVETMPS;
 
-      PUSHMARK(SP);
-      XPUSHs(proto);
-      PUTBACK;
-      count = call_pv("fields::new", G_SCALAR);
-      assert(count == 1);
-      SPAGAIN;
-      tmp = POPs;
-      PUTBACK;
+    PUSHMARK(SP);
+    XPUSHs(proto);
+    PUTBACK;
+    count = call_pv("fields::new", G_SCALAR);
+    assert(count == 1);
+    SPAGAIN;
+    impl = POPs;
+    PUTBACK;
 
-      if(sv) SvSetSV(sv, tmp);
-	  else {
-		sv = tmp;
-		SvREFCNT(sv)++;
-	  }
+    SvSetSV(sv, impl);
+    SvREFCNT_inc(SvRV(sv));
 
-	  FREETMPS;
-	  LEAVE;
-    }
+    FREETMPS;
+    LEAVE;
+
     vtbl = &ext->vtbl;
     if(ext->attr) { /* populate object attribute stubs */
-	  int i;
+      int i;
       for(i = 0; i < ext->nattr; i++) {
-        SV *k = newSVpv(ext->attr[i].name, 0);
+        SV *k = sv_2mortal(newSVpv(ext->attr[i].name, 0));
         SV *v = SWIG_Perl_WrapVar(newSV(0), &ext->attr[i].vtbl, wrap);
 #if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 9)
         /* obj is a hash */
@@ -374,20 +371,19 @@ SWIG_Perl_MakePtr(SV *sv, const void *ptr, swig_type_info *t, int flags,
       }
     }
   } else {
-	SV *tmp = newSV(0);
-	newSVrv(tmp, SWIG_Perl_TypeProxyName(t));
-	if (sv) SvSetSV(sv, tmp);
-	else {
-	  sv = tmp;
-	  SvREFCNT(sv)++;
-	}
-    vtbl = &SWIG_Perl_default_vtbl;
+    SV *tmp = sv_newmortal();
+    newSVrv(tmp, SWIG_Perl_TypeProxyName(t));
+    SvSetSV(sv, tmp);
   }
+  vtbl = &SWIG_Perl_default_vtbl;
   sv_magicext(SvRV(sv), 0, PERL_MAGIC_ext, vtbl, (char *)wrap, 0);
-  /*warn("WrapNative(0x%08p, %s) {\n", ptr, SWIG_Perl_TypeProxyName(t));
-  sv_dump(sv);
-  do_sv_dump(0, Perl_debug_log, sv, 0, 4, 0, 0);
-  warn("}"); */
+#if 0
+      /*warn("WrapNative(0x%p, \"%s\")\n", ptr, SWIG_Perl_TypeProxyName(t));*/
+      /* sv_dump(sv);
+      do_sv_dump(0, Perl_debug_log, sv, 0, 4, 0, 0);
+      warn("}");*/
+#endif
+  SWIG_Perl_RememberPtr(wrap, SvRV(sv));
   return sv;
 }
 
