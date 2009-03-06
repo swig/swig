@@ -434,12 +434,6 @@ SWIG_Perl_ConvertPacked(SV *obj, void *ptr, int sz, swig_type_info *ty) {
 typedef XSPROTO(SwigPerlWrapper);
 typedef SwigPerlWrapper *SwigPerlWrapperPtr;
 
-/* Structure for command table */
-typedef struct {
-  const char         *name;
-  SwigPerlWrapperPtr  wrapper;
-} swig_command_info;
-
 /* Information for constant table */
 
 #define SWIG_INT     1
@@ -483,6 +477,30 @@ SWIG_Perl_SetModule(swig_module_info *module) {
   pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TRUE | GV_ADDMULTI);
   sv_setiv(pointer, PTR2IV(module));
 }
+
+XS(SWIG_Perl_This) {
+  dXSARGS;
+  SV *self;
+  MAGIC *mg;
+  if (items != 1) {
+    SWIG_croak("Usage: $obj->this();");
+  }
+  self = ST(0);
+  if (SvROK(self)) {
+    mg = mg_find(SvRV(self), PERL_MAGIC_ext);
+    if (mg) {
+      ST(0) = newSViv(PTR2IV(((swig_perl_wrap *)mg->mg_ptr)->ptr));
+      XSRETURN(1);
+    } else {
+      SWIG_croak("self not magical");
+    }
+  } else {
+    SWIG_croak("self not an object");
+  }
+fail:
+  SWIG_croak_null();
+}
+
 
 #ifdef __cplusplus
 }

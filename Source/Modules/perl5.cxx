@@ -1346,7 +1346,9 @@ public:
 	     tab4, "delete $OWNER{$ptr};\n",
 	     "}\n\n", "sub ACQUIRE {\n", tab4, "my $self = shift;\n", tab4, "my $ptr = tied(%$self);\n", tab4, "$OWNER{$ptr} = 1;\n", "}\n\n", NIL);
 
-      /* Only output the following methods if a class has member data */
+      /* bind a 'this' method */
+      Printf(f_init, "newXS(\"%s::%s::this\", SWIG_Perl_This, __FILE__);\n",
+          namespace_module, ClassName);
 
       Delete(operators);
       operators = 0;
