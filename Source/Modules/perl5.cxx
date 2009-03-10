@@ -898,7 +898,7 @@ public:
       Setattr(n, "perl5:vtbl", vtbl);
 
       Printf(f_init,
-          "SWIG_Perl_WrapVar(get_sv(\"%s::%s\", 1), &%s, 0);\n",
+          "SWIG_Perl_WrapVar(get_sv(\"%s::%s\", TRUE | GV_ADDMULTI), &%s, 0);\n",
           namespace_module, pname, vtbl);
     }
     return SWIG_OK;
@@ -1137,21 +1137,7 @@ public:
 
     Node *outer_class = CurrentClass;
     CurrentClass = n;
-    {
-      /* prefill memberVariables list with parent vars */
-      List *member_variables = NewList();
-      Setattr(n, "perl5:memberVariables", member_variables);
-      List *bases = Getattr(n, "bases");
-      if (bases) {
-        for (Iterator b = First(bases); b.item; b = Next(b)) {
-          List *parent_members = Getattr(b.item, "perl5:memberVariables");
-          for (Iterator v = First(parent_members); v.item; v = Next(v)) {
-            Append(member_variables, v.item);
-          }
-        }
-      }
-    }
-
+    Setattr(n, "perl5:memberVariables", NewList());
 
     if (blessed) {
       have_operators = 0;
@@ -1209,35 +1195,53 @@ public:
          * is needed for is in typesys/symbol management. */
         if (!mangle_seen) mangle_seen = NewHash();
         if (!Getattr(mangle_seen, mang)) {
-        Printv(pm, "use fields (", NIL);
+
+        /* declare attribute bindings */
         int nattr = 0;
-        for (Iterator i = First(Getattr(n, "perl5:memberVariables"));
-            i.item; i = Next(i)) {
-          Node *ch = i.item;
-          String *vtbl = Getattr(ch, "perl5:vtbl");
-          if(vtbl) {
-            vtbl = Copy(vtbl);
-          } else {
-            String *getf = Getattr(ch, "perl5:getter");
-            if (!getf) continue;
-            String *setf = Getattr(ch, "perl5:setter");
-            vtbl = NewStringf("SWIG_Perl_VTBL(%s, %s)",
-              getf, setf ? setf : "0");
+        int nfield = 0;
+        List *bases = Getattr(n, "bases");
+        if(bases) bases = Copy(bases);
+        else      bases = NewList();
+        Insert(bases, 0, n);
+        Printv(pm, "use fields (", NIL);
+        for (int i = Len(bases); i > 0; i--) {
+          Node *iclass = Getitem(bases, i - 1);
+          for (Iterator j = First(Getattr(iclass,
+              "perl5:memberVariables")); j.item; j = Next(j)) {
+            Node *ch = j.item;
+            /* XS side */
+            String *vtbl = Getattr(ch, "perl5:vtbl");
+            if(vtbl) {
+              vtbl = Copy(vtbl);
+            } else {
+              String *getf = Getattr(ch, "perl5:getter");
+              if (!getf) continue;
+              String *setf = Getattr(ch, "perl5:setter");
+              vtbl = NewStringf("SWIG_Perl_VTBL(%s, %s)",
+                  getf, setf ? setf : "0");
+            }
+            String *chn = Getattr(ch, "sym:name");
+            if (nattr == 0) {
+              Printv(f_wrappers, "static swig_perl_type_ext_var "
+                  "_swigt_ext_var_", mang, "[] = {\n", NIL);
+            } else {
+              Append(f_wrappers, ",\n");
+            }
+            Printf(f_wrappers,
+                "  { \"%s\", %s }", chn, vtbl);
+            Delete(vtbl);
+            nattr++;
+            /* Perl side */
+            if (iclass == n || Strncmp(chn, "_", 1) == 0) {
+              /* fields.pm handles leading underscore a bit special */
+              if (nfield)
+                Append(pm, ", ");
+              Printf(pm, "'%s'", chn);
+              nfield++;
+            }
           }
-          String *chn = Getattr(ch, "sym:name");
-          if (nattr == 0) {
-            Printv(f_wrappers, "static swig_perl_type_ext_var "
-              "_swigt_ext_var_", mang, "[] = {\n", NIL);
-          } else {
-            Append(f_wrappers, ",\n");
-            Append(pm, ", ");
-          }
-          Printf(f_wrappers,
-            "  { \"%s\", %s }", chn, vtbl);
-          Printf(pm, "'%s'", chn);
-          Delete(vtbl);
-          nattr++;
         }
+        Append(pm, ");\n");
         if (nattr) {
           Printf(f_wrappers, "\n};\n"
             "static swig_perl_type_ext _swigt_ext_%s = "
@@ -1249,7 +1253,7 @@ public:
             "SWIG_Perl_TypeExt(\"%s\", 0, 0);\n\n",
             mang, fullclassname);
         }
-        Append(pm, ");\n");
+        Delete(bases);
         String *tmp = NewStringf("&_swigt_ext_%s", mang);
         SwigType_remember_clientdata(ct, tmp);
         Setattr(mangle_seen, mang, "1");
@@ -1324,30 +1328,21 @@ public:
 	Printv(pm, tab4, "\"fallback\" => 1;\n", NIL);
       }
       // make use strict happy
-      Printv(pm, "use vars qw(%OWNER %ITERATORS %BLESSEDMEMBERS);\n", NIL);
+      Printv(pm, "use vars qw(%OWNER);\n", NIL);
 
       /* Dump out a hash table containing the pointers that we own */
       Printf(pm, "%%OWNER = ();\n");
-      if (First(Getattr(n, "perl5:memberVariables")).item ||
-          Getattr(n, "perl5:destructor"))
-        Printf(pm, "%%ITERATORS = ();\n");
 
       /* Dump out the package methods */
-
       Printv(pm, pcode, NIL);
       Delete(pcode);
 
-      /* Output methods for managing ownership */
-
-      Printv(pm,
-	     "sub DISOWN {\n",
-	     tab4, "my $self = shift;\n",
-	     tab4, "my $ptr = tied(%$self);\n",
-	     tab4, "delete $OWNER{$ptr};\n",
-	     "}\n\n", "sub ACQUIRE {\n", tab4, "my $self = shift;\n", tab4, "my $ptr = tied(%$self);\n", tab4, "$OWNER{$ptr} = 1;\n", "}\n\n", NIL);
-
-      /* bind a 'this' method */
+      /* bind core swig class methods */
       Printf(f_init, "newXS(\"%s::%s::this\", SWIG_Perl_This, __FILE__);\n",
+          namespace_module, ClassName);
+      Printf(f_init, "newXS(\"%s::%s::DISOWN\", SWIG_Perl_Disown, __FILE__);\n",
+          namespace_module, ClassName);
+      Printf(f_init, "newXS(\"%s::%s::ACQUIRE\", SWIG_Perl_Acquire, __FILE__);\n",
           namespace_module, ClassName);
 
       Delete(operators);
@@ -1358,13 +1353,40 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * memberfunctionCommon()
+   *
+   * Just hoisting the common bits of member function wrapping into a
+   * common place to ease code consistency and readability
+   * ------------------------------------------------------------ */
+  virtual int memberfunctionCommon(Node *n, int shadow = 1) {
+    if (blessed) {
+      String *symname = Getattr(n, "sym:name");
+      String *pname;
+      String *pfunc = 0;
+
+      if(shadow)
+        pfunc = Getattr(n, "feature:shadow");
+      pname = NewStringf("%s%s",
+          pfunc ? "_swig_" : "",
+          Equal(nodeType(n), "constructor") &&
+            Equal(symname, ClassName) ? "new" : symname);
+      if(pfunc) {
+        String *pname_ref = NewStringf("do { \\&%s }", pname);
+        Replaceall(pfunc, "$action", pname_ref);
+        Delete(pname_ref);
+        Append(pcode, pfunc);
+      }
+      Setattr(n, "perl5:name", NewStringf("%s::%s", ClassName, pname));
+    }
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
    * memberfunctionHandler()
    * ------------------------------------------------------------ */
 
   virtual int memberfunctionHandler(Node *n) {
-    if (blessed)
-      Setattr(n, "perl5:name", NewStringf("%s::%s", ClassName,
-            Getattr(n, "sym:name")));
+    memberfunctionCommon(n);
     if (blessed && !Getattr(n, "sym:nextSibling")) {
       String *symname = Getattr(n, "sym:name");
 
@@ -1458,11 +1480,8 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
+    memberfunctionCommon(n);
     if (blessed) {
-      String *symname = Getattr(n, "sym:name");
-      Setattr(n, "perl5:name", NewStringf("%s::%s", ClassName,
-            Equal(symname, ClassName) ? "new" : symname));
-
       String *type = NewString("SV");
       SwigType_add_pointer(type);
       Parm *p = NewParm(type, "proto");
@@ -1478,9 +1497,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int destructorHandler(Node *n) {
-    if (blessed)
-      Setattr(n, "perl5:name", NewStringf("%s::%s",
-            ClassName, "_swig_DESTROY"));
+    memberfunctionCommon(n);
     Setattr(n, "perl5:destructor", n);
     return Language::destructorHandler(n);
   }
@@ -1490,19 +1507,15 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmemberfunctionHandler(Node *n) {
-    if (blessed) {
-      Setattr(n, "perl5:name", NewStringf("%s::%s",
-            ClassName, Getattr(n, "sym:name")));
-
-      if(!GetFlag(n, "allocate:smartpointeraccess")) {
-        /* proto is probably only appropriate if directors are enabled */
-        String *type = NewString("SV");
-        SwigType_add_pointer(type);
-        Parm *p = NewParm(type, "proto");
-        Delete(type);
-        Setattr(n, "perl5:implicits", p);
-        Delete(p);
-      }
+    memberfunctionCommon(n);
+    if (blessed && !GetFlag(n, "allocate:smartpointeraccess")) {
+      /* proto is probably only appropriate if directors are enabled */
+      String *type = NewString("SV");
+      SwigType_add_pointer(type);
+      Parm *p = NewParm(type, "proto");
+      Delete(type);
+      Setattr(n, "perl5:implicits", p);
+      Delete(p);
     }
     return Language::staticmemberfunctionHandler(n);
   }
@@ -1512,9 +1525,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmembervariableHandler(Node *n) {
-    if (blessed)
-      Setattr(n, "perl5:name", NewStringf("%s::%s",
-            ClassName, Getattr(n, "sym:name")));
+    memberfunctionCommon(n, 0);
     Append(Getattr(CurrentClass, "perl5:memberVariables"), n);
     return Language::staticmembervariableHandler(n);
   }
@@ -1524,9 +1535,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    if (blessed)
-      Setattr(n, "perl5:name", NewStringf("%s::%s",
-            ClassName, Getattr(n, "sym:name")));
+    memberfunctionCommon(n, 0);
     return Language::memberconstantHandler(n);
   }
 

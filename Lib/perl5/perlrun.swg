@@ -173,14 +173,16 @@ SWIGINTERN SV *SWIG_Perl_LookupPtr(HV *stash, void *ptr) {
   return ent ? HeVAL(ent) : 0;
 }
 SWIGINTERN void SWIG_Perl_RememberPtr(swig_perl_wrap *wrap, SV *impl) {
-  /*warn("store (%s:%p)\n", HvNAME(wrap->stash), wrap->ptr);*/
+  SV *ref = newSVsv(impl);
+  sv_rvweaken(ref);
+  /*warn("store (%s:%p) = %p\n", HvNAME(wrap->stash), wrap->ptr, SvRV(impl));*/
   hv_store_ent(SWIG_Perl_OwnerTbl(wrap->stash),
-    sv_2mortal(newSViv(PTR2IV(wrap->ptr))), impl, 0);
+    sv_2mortal(newSViv(PTR2IV(wrap->ptr))), ref, 0);
 }
 SWIGINTERN void SWIG_Perl_ForgetPtr(swig_perl_wrap *wrap) {
   /*warn("delete(%s:%p)\n", HvNAME(wrap->stash), wrap->ptr);*/
   hv_delete_ent(SWIG_Perl_OwnerTbl(wrap->stash),
-    sv_2mortal(newSViv(PTR2IV(wrap->ptr))), G_DISCARD, 0);
+    sv_2mortal(newSViv(PTR2IV(wrap->ptr))), 0, 0);
 }
 SWIGINTERN int
 SWIG_Perl_vtbl_svt_free(pTHX_ SV *sv, MAGIC *mg) {
@@ -188,8 +190,8 @@ SWIG_Perl_vtbl_svt_free(pTHX_ SV *sv, MAGIC *mg) {
   wrap->refcnt--;
   if(wrap->refcnt <= 0) {
     SWIG_Perl_ForgetPtr(wrap);
+    /*warn("free(%p)\n", wrap);*/
     /*Safefree(wrap);*/
-    warn("free(%p)\n", wrap);
     free(wrap);
   }
   return 0;
@@ -238,8 +240,11 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
 
 SWIGRUNTIME int
 SWIG_Perl_ConvertMg(MAGIC *mg, void **ptr, swig_type_info *t, int flags) {
-  /* TODO: this is incomplete */
-  *ptr = ((swig_perl_wrap *)mg->mg_ptr)->ptr;
+  swig_perl_wrap *wrap = (swig_perl_wrap *)mg->mg_ptr;
+  if(flags & SWIG_POINTER_DISOWN)
+    SWIG_Perl_ForgetPtr(wrap);
+  /* TODO: other flags? */
+  *ptr = wrap->ptr;
   return SWIG_OK;
 }
 SWIGRUNTIME int
@@ -309,7 +314,7 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
   stash = gv_stashpv(SWIG_Perl_TypeProxyName(t), GV_ADD);
 
   if ((impl = SWIG_Perl_LookupPtr(stash, ptr))) {
-    SvSetSV(sv, sv_2mortal(newRV_inc(impl)));
+    SvSetSV(sv, impl);
     return sv;
   }
   ext = (swig_perl_type_ext *)t->clientdata;
@@ -350,11 +355,11 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
     PUTBACK;
 
     SvSetSV(sv, impl);
-    SvREFCNT_inc(SvRV(sv));
 
     FREETMPS;
     LEAVE;
 
+    sv_2mortal(SvRV(sv));
     vtbl = &ext->vtbl;
     if(ext->attr) { /* populate object attribute stubs */
       int i;
@@ -383,7 +388,7 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
       do_sv_dump(0, Perl_debug_log, sv, 0, 4, 0, 0);
       warn("}");*/
 #endif
-  SWIG_Perl_RememberPtr(wrap, SvRV(sv));
+  SWIG_Perl_RememberPtr(wrap, sv);
   return sv;
 }
 
@@ -482,25 +487,56 @@ XS(SWIG_Perl_This) {
   dXSARGS;
   SV *self;
   MAGIC *mg;
-  if (items != 1) {
+
+  if (items != 1)
     SWIG_croak("Usage: $obj->this();");
-  }
   self = ST(0);
-  if (SvROK(self)) {
-    mg = mg_find(SvRV(self), PERL_MAGIC_ext);
-    if (mg) {
-      ST(0) = newSViv(PTR2IV(((swig_perl_wrap *)mg->mg_ptr)->ptr));
-      XSRETURN(1);
-    } else {
-      SWIG_croak("self not magical");
-    }
-  } else {
+  if (!SvROK(self))
     SWIG_croak("self not an object");
-  }
+  mg = mg_find(SvRV(self), PERL_MAGIC_ext);
+  if (!mg)
+    SWIG_croak("self not magical");
+  ST(0) = newSViv(PTR2IV(((swig_perl_wrap *)mg->mg_ptr)->ptr));
+  XSRETURN(1);
 fail:
   SWIG_croak_null();
 }
+XS(SWIG_Perl_Disown) {
+  dXSARGS;
+  SV *self;
+  MAGIC *mg;
 
+  if (items != 1)
+    SWIG_croak("Usage: $obj->DISOWN()");
+  self = ST(0);
+  if (!SvROK(self))
+    SWIG_croak("self not an object");
+  mg = mg_find(SvRV(self), PERL_MAGIC_ext);
+  if (!mg)
+    SWIG_croak("self not magical");
+  SWIG_Perl_ForgetPtr(((swig_perl_wrap *)mg->mg_ptr));
+  XSRETURN(0);
+fail:
+  SWIG_croak_null();
+}
+XS(SWIG_Perl_Acquire) {
+  dXSARGS;
+  SV *self;
+  MAGIC *mg;
+
+  if (items != 1)
+    SWIG_croak("Usage: $obj->ACQUIRE()");
+  self = ST(0);
+  if (!SvROK(self))
+    SWIG_croak("self not an object");
+  mg = mg_find(SvRV(self), PERL_MAGIC_ext);
+  if (!mg)
+    SWIG_croak("self not magical");
+  SWIG_Perl_RememberPtr(((swig_perl_wrap *)mg->mg_ptr), self);
+  XSRETURN(0);
+fail:
+  SWIG_croak_null();
+}
 
 #ifdef __cplusplus
 }
