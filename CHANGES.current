@@ -1,6 +1,9 @@
 Version 1.3.39 (in progress)
 ============================
 
+2008-03-12: wsfulton
+	    [Ruby] Fix #2676738 SWIG generated symbol name clashes.
+
 2008-03-01: bhy
             [Python] Some fixes for Python 3.0.1 and higher support. In 3.0.1, the C API function
             PyObject_Compare is removed, so PyObject_RichCompareBool is used for replacement.

@@ -30,7 +30,7 @@ public:
 
   /**
    * The C variable name used in the SWIG-generated wrapper code to refer to
-   * this class; usually it is of the form "cClassName.klass", where cClassName
+   * this class; usually it is of the form "SwigClassXXX.klass", where SwigClassXXX
    * is a swig_class struct instance and klass is a member of that struct.
    */
   String *vname;
@@ -39,7 +39,7 @@ public:
    * The C variable name used in the SWIG-generated wrapper code to refer to
    * the module that implements this class's methods (when we're trying to
    * support C++ multiple inheritance). Usually it is of the form
-   * "cClassName.mImpl", where cClassName is a swig_class struct instance
+   * "SwigClassClassName.mImpl", where SwigClassXXX is a swig_class struct instance
    * and mImpl is a member of that struct.
    */
   String *mImpl;
@@ -93,11 +93,11 @@ public:
 
     /* Variable name for the VALUE that refers to the Ruby Class object */
     Clear(vname);
-    Printf(vname, "c%s.klass", name);
+    Printf(vname, "SwigClass%s.klass", name);
 
     /* Variable name for the VALUE that refers to the Ruby Class object */
     Clear(mImpl);
-    Printf(mImpl, "c%s.mImpl", name);
+    Printf(mImpl, "SwigClass%s.mImpl", name);
 
     /* Prefix */
     Clear(prefix);
@@ -2402,9 +2402,9 @@ public:
   void handleMarkFuncDirective(Node *n) {
     String *markfunc = Getattr(n, "feature:markfunc");
     if (markfunc) {
-      Printf(klass->init, "c%s.mark = (void (*)(void *)) %s;\n", klass->name, markfunc);
+      Printf(klass->init, "SwigClass%s.mark = (void (*)(void *)) %s;\n", klass->name, markfunc);
     } else {
-      Printf(klass->init, "c%s.mark = 0;\n", klass->name);
+      Printf(klass->init, "SwigClass%s.mark = 0;\n", klass->name);
     }
   }
 
@@ -2414,10 +2414,10 @@ public:
   void handleFreeFuncDirective(Node *n) {
     String *freefunc = Getattr(n, "feature:freefunc");
     if (freefunc) {
-      Printf(klass->init, "c%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
+      Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
     } else {
       if (klass->destructor_defined) {
-	Printf(klass->init, "c%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
+	Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
       }
     }
   }
@@ -2428,9 +2428,9 @@ public:
   void handleTrackDirective(Node *n) {
     int trackObjects = GetFlag(n, "feature:trackobjects");
     if (trackObjects) {
-      Printf(klass->init, "c%s.trackObjects = 1;\n", klass->name);
+      Printf(klass->init, "SwigClass%s.trackObjects = 1;\n", klass->name);
     } else {
-      Printf(klass->init, "c%s.trackObjects = 0;\n", klass->name);
+      Printf(klass->init, "SwigClass%s.trackObjects = 0;\n", klass->name);
     }
   }
 
@@ -2455,7 +2455,7 @@ public:
 
     Clear(klass->type);
     Printv(klass->type, Getattr(n, "classtype"), NIL);
-    Printv(f_wrappers, "swig_class c", valid_name, ";\n\n", NIL);
+    Printv(f_wrappers, "swig_class SwigClass", valid_name, ";\n\n", NIL);
     Printv(klass->init, "\n", tab4, NIL);
 
     if (!useGlobalModule) {
@@ -2473,7 +2473,7 @@ public:
     SwigType_add_pointer(tt);
     SwigType_remember(tt);
     String *tm = SwigType_manglestr(tt);
-    Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &c%s);\n", tm, valid_name);
+    Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &SwigClass%s);\n", tm, valid_name);
     Delete(tm);
     Delete(tt);
     Delete(valid_name);
