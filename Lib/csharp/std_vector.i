@@ -24,7 +24,7 @@
 
 // MACRO for use within the std::vector class body
 // CSTYPE and CTYPE respectively correspond to the types in the cstype and ctype typemaps
-%define SWIG_STD_VECTOR_MINIMUM(CSTYPE, CTYPE...)
+%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CONST_REFERENCE_TYPE, CSTYPE, CTYPE...)
 %typemap(csinterfaces) std::vector<CTYPE > "IDisposable, System.Collections.IEnumerable";
 %typemap(cscode) std::vector<CTYPE > %{
   public $csclassname(System.Collections.ICollection c) : this() {
@@ -176,7 +176,7 @@
   public:
     typedef size_t size_type;
     typedef CTYPE value_type;
-    typedef const value_type& const_reference;
+    typedef CONST_REFERENCE_TYPE const_reference;
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;
@@ -286,6 +286,11 @@
     }
 %enddef
 
+%define SWIG_STD_VECTOR_MINIMUM(CSTYPE, CTYPE...)
+SWIG_STD_VECTOR_MINIMUM_INTERNAL(const value_type&, CSTYPE, CTYPE)
+%enddef
+
+
 // Extra methods added to the collection class if operator== is defined for the class being wrapped
 // CSTYPE and CTYPE respectively correspond to the types in the cstype and ctype typemaps
 %define SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CSTYPE, CTYPE...)
@@ -334,7 +339,6 @@ namespace std {
 }
 %enddef
 
-
 %{
 #include <vector>
 #include <algorithm>
@@ -365,7 +369,16 @@ namespace std {
 
 // template specializations for std::vector
 // these provide extra collections methods as operator== is defined
-SWIG_STD_VECTOR_SPECIALIZE(bool, bool)
+
+// extra specialization for bool
+namespace std {
+  template<> class vector<bool > {
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(bool, bool, bool)
+    SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(bool, bool)
+  };
+}
+
+// primitive types specialization
 SWIG_STD_VECTOR_SPECIALIZE(char, char)
 SWIG_STD_VECTOR_SPECIALIZE(sbyte, signed char)
 SWIG_STD_VECTOR_SPECIALIZE(byte, unsigned char)
@@ -380,5 +393,4 @@ SWIG_STD_VECTOR_SPECIALIZE(ulong, unsigned long long)
 SWIG_STD_VECTOR_SPECIALIZE(float, float)
 SWIG_STD_VECTOR_SPECIALIZE(double, double)
 SWIG_STD_VECTOR_SPECIALIZE(string, std::string) // also requires a %include <std_string.i>
-
 
