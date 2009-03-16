@@ -365,20 +365,15 @@ namespace std {
   template<class T> class vector<const T*> {
     SWIG_STD_VECTOR_MINIMUM(T, const T*)
   };
-}
-
-// template specializations for std::vector
-// these provide extra collections methods as operator== is defined
-
-// extra specialization for bool
-namespace std {
-  template<> class vector<bool > {
+  // bool is a bit different in the C++ standard
+  template<> class vector<bool> {
     SWIG_STD_VECTOR_MINIMUM_INTERNAL(bool, bool, bool)
     SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(bool, bool)
   };
 }
 
-// primitive types specialization
+// template specializations for std::vector
+// these provide extra collections methods as operator== is defined
 SWIG_STD_VECTOR_SPECIALIZE(char, char)
 SWIG_STD_VECTOR_SPECIALIZE(sbyte, signed char)
 SWIG_STD_VECTOR_SPECIALIZE(byte, unsigned char)
