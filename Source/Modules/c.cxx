@@ -78,14 +78,15 @@ public:
       }
     }
 
-    if (!CPlusPlus)
+    if (!CPlusPlus) 
       except_flag = false;
 
     // add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGC 1", 0);
-    Preprocessor_define("SWIG_C_RUNTME 1", 0);
     if (except_flag)
       Preprocessor_define("SWIG_C_EXCEPT 1", 0);
+    if (CPlusPlus)
+      Preprocessor_define("SWIG_CPPMODE 1", 0);
 
     SWIG_library_directory("c");
 
@@ -199,7 +200,7 @@ public:
     }
 
     Swig_register_filebyname("header", f_header);
-    Swig_register_filebyname("wrappers", f_wrappers);
+    Swig_register_filebyname("wrapper", f_wrappers);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
 
@@ -425,7 +426,7 @@ ready:
   /* ----------------------------------------------------------------------
    * functionWrapper()
    * ---------------------------------------------------------------------- */
-  
+   
   virtual int functionWrapper(Node *n) {
     String *name = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
@@ -544,13 +545,13 @@ ready:
         Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
       }
 
-      // add variable for holding result of original function
+      // add variable for holding result of original function 'cppresult'
       bool return_object = false;
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
         SwigType *tdtype = SwigType_typedef_resolve(type);
         if (tdtype)
           type = tdtype;
-
+        
         if (SwigType_isenum(type)) {
           Wrapper_add_localv(wrapper, "cppresult", "int", "cppresult", NIL);
         }
@@ -575,12 +576,15 @@ ready:
             SwigType_add_reference(type);
           }
           else if (SwigType_isarray(type)) {
+            
             return_var_type = SwigType_base(type);
             SwigType *atype = Copy(type);
             do {
               SwigType_del_array(atype);
               SwigType_add_pointer(return_var_type);
             } while (SwigType_isarray(atype));
+            if (SwigType_ispointer(atype))
+              SwigType_add_pointer(return_var_type);
             Delete(atype);
           }
           else {
@@ -611,6 +615,7 @@ ready:
               SwigType_add_pointer(return_var_type);
           }
           else {
+            SwigType_add_pointer(type);
             return_var_type = type;
           }
           Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
@@ -687,7 +692,10 @@ ready:
         gencomma = 1;
  
         // apply typemaps for input parameter
-        if ((tm = Getattr(p, "tmap:in"))) {
+        if (Cmp(nodeType(n), "destructor") == 0) {
+          p = Getattr(p, "tmap:in:next");
+        }
+        else if ((tm = Getattr(p, "tmap:in"))) {
           if (dont_apply_tmap) {
             Printv(wrapper->code, lname, " = ", arg_name, ";\n", NIL);
           }
@@ -702,6 +710,7 @@ ready:
           Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
           p = nextSibling(p);
         }
+        
 
         Delete(arg_name);
         Delete(proxy_parm_type);
@@ -710,12 +719,14 @@ ready:
 
       Printf(wrapper->def, ") {");
 
-      // emit variables for holding parameters
-      emit_parameter_variables(parms, wrapper);
-
-      // emit variable for holding function return value
-      emit_return_variable(n, return_type, wrapper);
-
+      if (Cmp(nodeType(n), "destructor") != 0) {
+        // emit variables for holding parameters
+        emit_parameter_variables(parms, wrapper);
+        
+        // emit variable for holding function return value
+        emit_return_variable(n, return_type, wrapper);
+      }
+      
       // insert constraint checking
       for (p = parms; p; ) {
         if ((tm = Getattr(p, "tmap:check"))) {
@@ -1043,7 +1054,11 @@ ready:
     String *code = NewString("");
 
     // create code for 'get' function
-    Printv(code, "result = ", classname, "::", name, ";\n", NIL);
+    Printv(code, "result = $mod", classname, "::", name, ";\n", NIL);
+    if (!SwigType_isbuiltin(SwigType_base(type)) && !SwigType_ispointer(type))
+      Replaceall(code, "$mod", "&");
+    else
+      Replaceall(code, "$mod", "");
     wrap_get_variable(n, classname, newclassname, name, code);
 
     // create parameter for 'set' function
@@ -1066,7 +1081,11 @@ ready:
       }
       else 
         code = NewString("");
-      Printv(code, classname, "::", name, " = arg1;\n", NIL);
+      Printv(code, classname, "::", name, " = $mod arg1;\nresult = arg1;\n", NIL);
+      if (!SwigType_isbuiltin(SwigType_base(type)) && !SwigType_ispointer(type))
+        Replaceall(code, "$mod", "*");
+      else
+        Replaceall(code, "$mod", "");
       wrap_set_variable(n, classname, newclassname, name, code);
     }
 
@@ -1082,26 +1101,14 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int membervariableHandler(Node *n) {
-    SwigType *type = Copy(Getattr(n, "type"));
-    SwigType *tdtype;
-    tdtype = SwigType_typedef_resolve(type);
-    if (tdtype)
-      type = tdtype;
-
-    int array_count = 0;
-    while (SwigType_isarray(type)) {
-      SwigType_del_array(type);
-      array_count++;
+    SwigType *type = Getattr(n, "type");
+    SwigType *btype = SwigType_base(type);
+    if (SwigType_isarray(type) && !SwigType_isbuiltin(btype)) {
+      // this hack applies to member objects array (not ptrs.)
+      SwigType_add_pointer(btype);
+      SwigType_add_array(btype, NewStringf("%s", SwigType_array_getdim(type, 0)));
+      Setattr(n, "type", btype);
     }
-    if (type) {
-      if (!SwigType_ispointer(type) && !SwigType_isreference(type))
-        Setattr(n, "c:retval", "1");
-    }
-    while (array_count) {
-      SwigType_add_pointer(type);
-      array_count--;
-    }
-    Delete(type);
     return Language::membervariableHandler(n);
   }
 
@@ -1289,7 +1296,7 @@ ready:
     // create action code
     if (except_flag) {
       Printf(code, "SWIG_remove_registry_entry(carg1);\n");
-      Printf(code, "SWIG_destroy_object(arg1);\n");
+      Printf(code, "SWIG_destroy_object(carg1);");
     }
     else {
       Printv(code, "if (carg1->obj)\ndelete (", classname, " *) (carg1->obj);\n", NIL);

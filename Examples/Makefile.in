@@ -1098,17 +1098,19 @@ r_clean:
 # ----------------------------------------------------------------
 
 CLIBPREFIX = lib
+C_LDSHARED = @C_LDSHARED@
+CXX_LDSHARED = @CXX_LDSHARED@
+C_SO = @C_SO@
 
 c: $(SRCS)
 	$(SWIG) -c $(SWIGOPT) $(INTERFACE)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES)
-	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(CLIBPREFIX)$(TARGET)$(SO)
+	$(C_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
 	
 c_cpp: $(SRCS)
 	$(SWIG) -c++ -c $(SWIGOPT) $(INTERFACE)
 	$(CXX) -c $(CCSHARED) $(CXXFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
-	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(SO)
+	$(CXX_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
 
 c_compile: $(RUNME) $(PROXY)
 	$(CC) $(RUNME) $(PROXY) -L. -l$(TARGET) -o $(RUNME:.c=)
-

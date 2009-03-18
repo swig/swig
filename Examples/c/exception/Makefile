@@ -24,6 +24,6 @@ memchk:
 	env LD_LIBRARY_PATH=. $(MEMTOOL) ./runme
 
 clean:
-	rm -f *.o *.out *.so *.a *.dll *.exe *_wrap* *_proxy* *~ runme
+	rm -f *.o *.out *.so *.a *.dll *.dylib *.exe *_wrap* *_proxy* *~ runme
 
 check: all

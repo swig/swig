@@ -15,6 +15,7 @@
 #include <setjmp.h>
 
 #define SWIG_STR(x) #x
+#define SWIG_contract_assert(expr, msg) if(!(expr)) { printf("%s\n", msg); SWIG_exit(0); } else
 %}
 
 // typemaps for function parameters
@@ -34,7 +35,7 @@
 %typemap(ctype) short *&, int *&, long *&, char *&, float *&, double *& "$1_basetype **"
 %typemap(ctype) const short *&, const int *&, const long *&, const char *&, const float *&, const double *& "$1_basetype **"
 %typemap(ctype) short [ANY], int [ANY], long [ANY], char [ANY], float [ANY], double [ANY] "$1_basetype *"
-%typemap(ctype) void * [ANY], short * [ANY], int * [ANY], long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1_basetype **"
+%typemap(ctype) void * [ANY], short * [ANY], int * [ANY], long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1_basetype *"
 %typemap(ctype) void [ANY][ANY], short [ANY][ANY], int [ANY][ANY], long [ANY][ANY], char [ANY][ANY], float [ANY][ANY], double [ANY][ANY] "$1_basetype **"
 %typemap(ctype) SWIGTYPE         "SwigObj *"
 %typemap(ctype) SWIGTYPE *       "SwigObj *"
@@ -96,10 +97,13 @@
     $1 = ($1_ltype) 0;
 }
 
+/*
+ * unsupported yet
 %typemap(freearg) SWIGTYPE * [ANY], SWIGTYPE * [ANY][ANY], SWIGTYPE **, SWIGTYPE *** {
-  if (arg2)
-    free(arg2);
+  if ($input)
+    free($input);
 }
+*/
 
 %typemap(in) SWIGTYPE * [ANY][ANY], SWIGTYPE *** {
   if ($input) {
@@ -143,9 +147,11 @@
 %typemap(couttype) short *&, int *&, long *&, char *&, float *&, double *& "$1_basetype **"
 %typemap(couttype) const short *&, const int *&, const long *&, const char *&, const float *&, const double *& "$1_basetype **"
 %typemap(couttype) short [ANY], int [ANY], long [ANY], char [ANY], float [ANY], double [ANY] "$1_basetype *"
+%typemap(couttype) short * [ANY], int * [ANY], long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1_basetype *"
 %typemap(couttype) SWIGTYPE      "SwigObj *"
 %typemap(couttype) SWIGTYPE *    "SwigObj *"
 %typemap(couttype) SWIGTYPE &    "SwigObj *"
+%typemap(couttype) SWIGTYPE [ANY] "SwigObj **"
 %typemap(couttype) SWIGTYPE * [ANY], SWIGTYPE ** "SwigObj **"
 %typemap(couttype) SWIGTYPE * [ANY][ANY], SWIGTYPE *** "SwigObj ***"
 %typemap(couttype) enum SWIGTYPE "$1_type"
@@ -167,6 +173,7 @@
 %typemap(out) short *&, int *&, long *&, char *&, float *&, double *& "$result = $1;"
 %typemap(out) const short *&, const int *&, const long *&, const char *&, const float *&, const double *& "$result = $1;"
 %typemap(out) short [ANY], int [ANY], long [ANY], char [ANY], float [ANY], double [ANY] "$result = $1;"
+%typemap(out) short * [ANY], int * [ANY], long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$result = $1;"
 %typemap(out) void ""
 
 %typemap(out, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$result = $1;"
@@ -175,31 +182,41 @@
 %typemap(out) enum SWIGTYPE "$result = ($1_type) $1;"
 
 %typemap(out) SWIGTYPE {
-  $result = SWIG_create_object(SWIG_STR($1_type));
+  $result = SWIG_temporary;
   $result->obj = (void*) &$1;
 }
 
 %typemap(out) SWIGTYPE *, SWIGTYPE & {
-  $result = SWIG_create_object(SWIG_STR($1_basetype));
+  $result = SWIG_temporary;
   $result->obj = (void*) $1;
 }
 
 %typemap(out) SWIGTYPE * [ANY], SWIGTYPE ** {
+  static SwigObj **_temp = 0;
   if ($1) {
-    $result = (SwigObj**) malloc($1_dim0 * sizeof(SwigObj*));
     size_t i = 0;
-    for ( ; i < $1_dim0; ++i)
+    if (_temp) {
+        for ( ; i < $1_dim0; ++i)
+          SWIG_destroy_object(_temp[i]);
+        free(_temp);
+    }
+    _temp = (SwigObj**) malloc($1_dim0 * sizeof(SwigObj*));
+    for (i = 0 ; i < $1_dim0; ++i) {
       if ($1[i]) {
-        $result[i] = SWIG_create_object(SWIG_STR($1_ltype));
-        $result[i]->obj = (void*) $1[i];
+        _temp[i] = SWIG_create_object(SWIG_STR($1_ltype));
+        _temp[i]->obj = (void*) $1[i];
       }
       else
-        $result[i] = (SwigObj*) 0;
+        _temp[i] = (SwigObj*) 0;
+    }
+    $result = _temp;
   }
   else
     $result = (SwigObj**) 0;
 }
 
+/*
+ * 2+ dim arrays - not supported yet
 %typemap(out) SWIGTYPE * [ANY][ANY], SWIGTYPE *** {
   if ($1) {
     $result = (SwigObj***) malloc($1_dim0 * $1_dim1 * sizeof(SwigObj*));
@@ -217,7 +234,7 @@
   }
   else
     $result = (SwigObj***) 0;
-}
+}*/
 
 
 #ifdef SWIG_C_EXCEPT
@@ -228,6 +245,11 @@ typedef struct {
 } SwigObj;
 %}
 %include "cexcept.swg"
+#ifdef SWIG_CPPMODE
+%insert("runtime") %{
+SwigObj *SWIG_temporary = (SwigObj *) malloc(sizeof(SwigObj));
+%}
+#endif
 #else
 %insert("runtime") %{
 typedef struct {
@@ -246,6 +268,12 @@ SWIGEXPORTC int SWIG_exit(int code) {
 }
 #endif
 %}
+
+#ifdef SWIG_CPPMODE
+%insert("runtime") %{
+SwigObj *SWIG_temporary = (SwigObj *) malloc(sizeof(SwigObj));
+%}
+#endif
 
 %insert("proxy_header") %{
 typedef struct {
