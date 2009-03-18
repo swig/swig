@@ -82,14 +82,17 @@ public class li_std_vector_runme {
       } catch (ArgumentException) {
       }
     }
+#if SWIG_DOTNET_1
     {
+      // runtime check that 2D arrays fail
       double[,] outputarray = new double[collectionSize,collectionSize];
       try {
         vect.CopyTo(outputarray);
-        throw new Exception("CopyTo (5) test failed");
+        throw new Exception("CopyTo (5a) test failed");
       } catch (ArgumentException) {
       }
     }
+#endif
     {
       StructVector inputvector = new StructVector();
       int arrayLen = 10;
@@ -154,6 +157,9 @@ public class li_std_vector_runme {
         throw new Exception("ICollection constructor null test failed");
       } catch (ArgumentNullException) {
       }
+      {
+        myDoubleVector = new DoubleVector() { 123.4, 567.8, 901.2 };
+      }
 
       // IndexOf() test
       for (int i=0; i<collectionSize; i++) {
@@ -187,11 +193,22 @@ public class li_std_vector_runme {
         throw new Exception("Repeat count test failed");
       
       // Also tests enumerator
-      System.Collections.IEnumerator myEnumerator = dv.GetEnumerator();
-      while ( myEnumerator.MoveNext() ) {
-         if ((double)myEnumerator.Current != 77.7)
-           throw new Exception("Repeat test failed");
+      {
+        System.Collections.IEnumerator myEnumerator = dv.GetEnumerator();
+        while ( myEnumerator.MoveNext() ) {
+           if ((double)myEnumerator.Current != 77.7)
+             throw new Exception("Repeat (1) test failed");
+        }
       }
+#if !SWIG_DOTNET_1
+      {
+        System.Collections.Generic.IEnumerator<double> myEnumerator = dv.GetEnumerator();
+        while ( myEnumerator.MoveNext() ) {
+           if (myEnumerator.Current != 77.7)
+             throw new Exception("Repeat (2) test failed");
+        }
+      }
+#endif
     }
 
     {
@@ -514,6 +531,13 @@ public class li_std_vector_runme {
         dvec.Add(i/2.0);
       }
       li_std_vector.halve_in_place(dvec);
+    }
+
+    // Dispose()
+    {
+      using (StructVector vs = new StructVector() { new Struct(0.0), new Struct(11.1) } )
+      using (DoubleVector vd = new DoubleVector() { 0.0, 11.1 } ) {
+      }
     }
 
     // More wrapped methods
