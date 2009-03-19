@@ -80,9 +80,11 @@ swig_varlink_str(swig_varlinkobject *v) {
 
 SWIGINTERN int
 swig_varlink_print(swig_varlinkobject *v, FILE *fp, int SWIGUNUSEDPARM(flags)) {
+  char *tmp;
   PyObject *str = swig_varlink_str(v);
   fprintf(fp,"Swig global variables ");
-  fprintf(fp,"%s\n", SWIG_Python_str_AsChar(str));
+  fprintf(fp,"%s\n", tmp = SWIG_Python_str_AsChar(str));
+  SWIG_Python_str_DelForPy3(tmp);
   Py_DECREF(str);
   return 0;
 }

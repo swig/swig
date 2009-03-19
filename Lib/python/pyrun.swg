@@ -407,13 +407,16 @@ SwigPyObject_repr(SwigPyObject *v, PyObject *args)
 SWIGRUNTIME int
 SwigPyObject_print(SwigPyObject *v, FILE *fp, int SWIGUNUSEDPARM(flags))
 {
+  char *str;
 #ifdef METH_NOARGS
   PyObject *repr = SwigPyObject_repr(v);
 #else
   PyObject *repr = SwigPyObject_repr(v, NULL);
 #endif
   if (repr) {
-    fputs(SWIG_Python_str_AsChar(repr), fp);
+    str = SWIG_Python_str_AsChar(repr); 
+    fputs(str, fp);
+    SWIG_Python_str_DelForPy3(str);
     Py_DECREF(repr);
     return 0; 
   } else {
@@ -1474,21 +1477,23 @@ SWIG_Python_TypeQuery(const char *type)
 
 SWIGRUNTIME int
 SWIG_Python_AddErrMesg(const char* mesg, int infront)
-{
+{  
   if (PyErr_Occurred()) {
     PyObject *type = 0;
     PyObject *value = 0;
     PyObject *traceback = 0;
     PyErr_Fetch(&type, &value, &traceback);
     if (value) {
+      char *tmp;
       PyObject *old_str = PyObject_Str(value);
       Py_XINCREF(type);
       PyErr_Clear();
       if (infront) {
-	PyErr_Format(type, "%s %s", mesg, SWIG_Python_str_AsChar(old_str));
+	PyErr_Format(type, "%s %s", mesg, tmp = SWIG_Python_str_AsChar(old_str));
       } else {
-	PyErr_Format(type, "%s %s", SWIG_Python_str_AsChar(old_str), mesg);
+	PyErr_Format(type, "%s %s", tmp = SWIG_Python_str_AsChar(old_str), mesg);
       }
+      SWIG_Python_str_DelForPy3(tmp);
       Py_DECREF(old_str);
     }
     return 1;
@@ -1540,6 +1545,7 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 	if (cstr) {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s(%s)' is received",
 		       type, otype, cstr);
+          SWIG_Python_str_DelForPy3(cstr);
 	} else {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
 		       type, otype);

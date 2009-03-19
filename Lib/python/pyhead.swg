@@ -21,16 +21,34 @@
 #  define SWIG_Python_str_FromFormat PyString_FromFormat
 #endif
 
+
+/* Warning: This function will allocate a new string in Python 3,
+ * so please call SWIG_Python_str_DelForPy3(x) to free the space.
+ */
 SWIGINTERN char*
 SWIG_Python_str_AsChar(PyObject *str)
 {
 #if PY_VERSION_HEX >= 0x03000000
+  char *cstr;
+  char *newstr;
+  int len;
   str = PyUnicode_AsUTF8String(str);
-  return PyBytes_AsString(str);
+  PyBytes_AsStringAndSize(str, &cstr, &len);
+  newstr = (char *) malloc(len+1);
+  memcpy(newstr, cstr, len+1);
+  Py_XDECREF(str);
+  return newstr;
 #else
   return PyString_AsString(str);
 #endif
 }
+
+#if PY_VERSION_HEX >= 0x03000000
+#  define SWIG_Python_str_DelForPy3(x) free( (void*) (x) )
+#else
+#  define SWIG_Python_str_DelForPy3(x) 
+#endif
+
 
 SWIGINTERN PyObject*
 SWIG_Python_str_FromChar(const char *c)
