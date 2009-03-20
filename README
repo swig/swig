@@ -91,6 +91,12 @@ A SWIG FAQ and other hints can be found on the SWIG Wiki:
 What's New?
 ===========
 
+SWIG-1.3.39 summary:
+- Some new small feature enhancements.
+- Improved C# std::vector wrappers.
+- Bug fixes: mainly Python, but also Perl, MzScheme, CFFI, Allegrocl 
+  and Ruby
+
 SWIG-1.3.38 summary:
 - Output directory regression fix and other minor bug fixes
 
