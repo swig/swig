@@ -30,16 +30,6 @@ A Windows version is also available at
 
      http://prdownloads.sourceforge.net/swig/swigwin-1.3.39.zip
 
-Release numbers
----------------
-With SWIG-1.3, we are adopting an odd/even version numbering scheme for
-SWIG.  Odd version numbers (1.3, 1.5, 1.7, etc...) are considered to
-be development releases.  Even numbers (1.4,1.6,1.8) are stable
-releases.  The current 1.3 effort is working to produce a stable 2.0
-release.  A stable 2.0 release will not be made until it can
-accompanied by fully updated documentation.  In the meantime, we will
-continue to make periodic 1.3.x releases.
-
 Please report problems with this release to the swig-dev mailing list,
 details at http://www.swig.org/mail.html.
 
