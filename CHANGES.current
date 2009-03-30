@@ -1,3 +1,15 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-03-30: olly
+	    [PHP] The default out typemap for char[ANY] now returns the string up to a
+	    zero byte, or the end of the array if there is no zero byte.  This
+	    is the same as Python does, and seems more generally useful than
+	    the previous behaviour of returning the whole contents of the array
+	    including any zero bytes.  If you want the old behaviour, you can provide
+	    your own typemap to do this:
+
+	    %typemap(out) char [ANY]
+	    %{
+		RETVAL_STRINGL($1, $1_dim0, 1);
+	    %}
