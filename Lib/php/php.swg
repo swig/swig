@@ -233,9 +233,11 @@
 %typemap(out) void "";
 
 %typemap(out) char [ANY]
-%{
-  RETVAL_STRINGL($1,$1_dim0,1);
-%}
+{
+  int len = 0;
+  while (len < $1_dim0 && $1[len]) ++len;
+  RETVAL_STRINGL($1, len, 1);
+}
 
 // This typecheck does hard checking for proper argument type.  If you want
 // an argument to be converted from a different PHP type, you must convert
