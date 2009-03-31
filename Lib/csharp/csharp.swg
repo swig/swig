@@ -396,7 +396,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   SWIG_UnpackData($input, (void *)&$1, sizeof($1));
 %}
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
-  if(!$1) {
+  if (!$1) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type type is null", 0);
     return $null;
   } %}
@@ -885,22 +885,26 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 %typemap(csdestruct, methodname="Dispose", methodmodifiers="public") SWIGTYPE {
     lock(this) {
-      if(swigCPtr.Handle != IntPtr.Zero && swigCMemOwn) {
-        swigCMemOwn = false;
-        $imcall;
+      if (swigCPtr.Handle != IntPtr.Zero) {
+        if (swigCMemOwn) {
+          swigCMemOwn = false;
+          $imcall;
+        }
+        swigCPtr = new HandleRef(null, IntPtr.Zero);
       }
-      swigCPtr = new HandleRef(null, IntPtr.Zero);
       GC.SuppressFinalize(this);
     }
   }
 
 %typemap(csdestruct_derived, methodname="Dispose", methodmodifiers="public") SWIGTYPE {
     lock(this) {
-      if(swigCPtr.Handle != IntPtr.Zero && swigCMemOwn) {
-        swigCMemOwn = false;
-        $imcall;
+      if (swigCPtr.Handle != IntPtr.Zero) {
+        if (swigCMemOwn) {
+          swigCMemOwn = false;
+          $imcall;
+        }
+        swigCPtr = new HandleRef(null, IntPtr.Zero);
       }
-      swigCPtr = new HandleRef(null, IntPtr.Zero);
       GC.SuppressFinalize(this);
       base.Dispose();
     }

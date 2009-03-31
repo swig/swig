@@ -342,7 +342,7 @@
 // plain reference
 %typemap(in) CONST TYPE & %{
   $1 = ($1_ltype)((*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0);
-  if(!$1) {
+  if (!$1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
     return $null;
   } %}
@@ -430,19 +430,23 @@
 %}
 
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") TYPE {
-    if(swigCPtr != 0 && swigCMemOwnBase) {
-      swigCMemOwnBase = false;
-      $jnicall;
+    if (swigCPtr != 0) {
+      if (swigCMemOwnBase) {
+        swigCMemOwnBase = false;
+        $jnicall;
+      }
+      swigCPtr = 0;
     }
-    swigCPtr = 0;
   }
 
 %typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized") TYPE {
-    if(swigCPtr != 0 && swigCMemOwnDerived) {
-      swigCMemOwnDerived = false;
-      $jnicall;
+    if (swigCPtr != 0) {
+      if (swigCMemOwnDerived) {
+        swigCMemOwnDerived = false;
+        $jnicall;
+      }
+      swigCPtr = 0;
     }
-    swigCPtr = 0;
     super.delete();
   }
 
