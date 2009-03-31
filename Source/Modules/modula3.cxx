@@ -376,7 +376,7 @@ MODULA3():
     } else if (Strcmp(dir, "out") == 0) {
       return false;
     } else {
-      printf(USAGE_ARG_DIR);
+      printf("%s", USAGE_ARG_DIR);
       return false;
     }
   }
@@ -388,7 +388,7 @@ MODULA3():
     } else if ((Strcmp(dir, "out") == 0) || (Strcmp(dir, "inout") == 0)) {
       return true;
     } else {
-      printf(USAGE_ARG_DIR);
+      printf("%s", USAGE_ARG_DIR);
       return false;
     }
   }
