@@ -13,7 +13,7 @@ whenhtml(htmlcommand(
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="CCache"></a>ccache-swig(1) manpage</H1>
+<H1><a name="CCache"></a>Using SWIG with ccache - ccache-swig(1) manpage</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <!-- INDEX -->
