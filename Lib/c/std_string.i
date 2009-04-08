@@ -10,9 +10,11 @@ namespace std {
 class string;
 
 %typemap(ctype) string "char *"
+%typemap(ctype) string * "char *"
 %typemap(ctype) const string & "char *"
 %typemap(couttype) string  "char *"
 %typemap(couttype) const string & "char *"
+%typemap(couttype) string * "char *"
 
 %typemap(in) string {
   if ($input) {
@@ -23,7 +25,7 @@ class string;
   }
 }
 
-%typemap(in) const string & {
+%typemap(in) const string &, string * {
   if ($input) {
     $1 = new std::string($input);
   }
@@ -33,13 +35,13 @@ class string;
   }
 }
 
-%typemap(freearg) const string & {
+%typemap(freearg) const string &, string * {
   if ($1)
     delete $1;
 }
 
 %typemap(out) string, const string &, string * {
-  const char *str = cppresult.c_str();
+  const char *str = cppresult->c_str();
   size_t len = strlen(str);
   $result = (char *) malloc(len + 1);
   memcpy($result, str, len);

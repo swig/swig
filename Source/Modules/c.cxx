@@ -293,6 +293,9 @@ public:
     call = Swig_cfunction_call(Getattr(n, "name"), parms);
     cres = Swig_cresult(type, "result", call);
     Setattr(n, "wrap:action", cres);
+    
+    if (!SwigType_ispointer(type) && !SwigType_isreference(type))
+      Setattr(n, "c:retval", "1");
 
     functionWrapper(n);
 
@@ -747,24 +750,25 @@ ready:
         if (!except || (Cmp(except, "0") != 0))
           Printf(action, "if (SWIG_exc.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
       }
-      if (Cmp(nodeType(n), "constructor") != 0)
-        Replace(action, "result =", "cppresult = $mod", DOH_REPLACE_FIRST);
       
       // handle special cases of cpp return result
-
-      String *mod = NewString("$mod");
-      if (SwigType_isreference(type))
-        Replaceall(mod, "$mod", "");
-      else if (SwigType_isenum(type))
-        Replaceall(mod, "$mod", "(int)");
-      else if (return_object && Getattr(n, "c:retval") && !SwigType_isarray(type))
-        Replaceall(mod, "$mod", "&");
-      else {
-        Delete(mod);
-        mod = empty_string;
+      if (Cmp(nodeType(n), "constructor") != 0) { 
+        if (SwigType_isenum(type)) {
+          // returning enum value
+          Replace(action, "result =", "cppresult = (int)", DOH_REPLACE_FIRST);
+        }
+        else if (return_object && Getattr(n, "c:retval") && !SwigType_isarray(type)) {
+          // returning object by value
+          String *str = SwigType_str(SwigType_add_reference(SwigType_base(type)), "_result_ref");
+          String *lstr = SwigType_lstr(type, 0);
+          Replace(action, "result =", NewStringf("const %s = ", str), DOH_REPLACE_FIRST); 
+          Printf(action, "cppresult = (%s) &_result_ref;\n", lstr);
+          Delete(str);
+          Delete(lstr);
+        }
+        else
+          Replace(action, "result =", "cppresult = ", DOH_REPLACE_FIRST);
       }
-
-      Replaceall(action, "$mod", mod);
 
       // emit output typemap if needed
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
