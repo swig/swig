@@ -94,5 +94,20 @@ public class java_throws_runme {
 
       if (!pass)
         throw new RuntimeException("Test 7 failed");
+
+      // Test %nojavaexception
+      NoExceptTest net = new NoExceptTest();
+
+      pass = false;
+      try {
+        net.exceptionPlease();
+	pass = true;
+      }
+      catch (MyException e) {}
+
+      if (!pass)
+        throw new RuntimeException("Test 8 failed");
+
+      net.noExceptionPlease();
   }
 }

@@ -66,7 +66,7 @@ static void yyerror (const char *e) {
   (void)e;
 }
 
-static Node *new_node(const String_or_char *tag) {
+static Node *new_node(const_String_or_char_ptr tag) {
   Node *n = NewHash();
   set_nodeType(n,tag);
   Setfile(n,cparse_file);
@@ -203,7 +203,7 @@ static String *yyrename = 0;
 static String *resolve_node_scope(String *cname);
 
 
-Hash *Swig_cparse_features() {
+Hash *Swig_cparse_features(void) {
   static Hash   *features_hash = 0;
   if (!features_hash) features_hash = NewHash();
   return features_hash;
@@ -1002,6 +1002,68 @@ static void add_nested(Nested *n) {
   }
 }
 
+/* Strips C-style and C++-style comments from string in-place. */
+static void strip_comments(char *string) {
+  int state = 0; /* 
+                  * 0 - not in comment
+                  * 1 - in c-style comment
+                  * 2 - in c++-style comment
+                  * 3 - in string
+                  * 4 - after reading / not in comments
+                  * 5 - after reading * in c-style comments
+                  * 6 - after reading \ in strings
+                  */
+  char * c = string;
+  while (*c) {
+    switch (state) {
+    case 0:
+      if (*c == '\"')
+        state = 3;
+      else if (*c == '/')
+        state = 4;
+      break;
+    case 1:
+      if (*c == '*')
+        state = 5;
+      *c = ' ';
+      break;
+    case 2:
+      if (*c == '\n')
+        state = 0;
+      else
+        *c = ' ';
+      break;
+    case 3:
+      if (*c == '\"')
+        state = 0;
+      else if (*c == '\\')
+        state = 6;
+      break;
+    case 4:
+      if (*c == '/') {
+        *(c-1) = ' ';
+        *c = ' ';
+        state = 2;
+      } else if (*c == '*') {
+        *(c-1) = ' ';
+        *c = ' ';
+        state = 1;
+      } else
+        state = 0;
+      break;
+    case 5:
+      if (*c == '/')
+        state = 0;
+      *c = ' ';
+      break;
+    case 6:
+      state = 3;
+      break;
+    }
+    ++c;
+  }
+}
+
 /* Dump all of the nested class declarations to the inline processor
  * However.  We need to do a few name replacements and other munging
  * first.  This function must be called before closing a class! */
@@ -1052,6 +1114,9 @@ static Node *dump_nested(const char *parent) {
        set_nextSibling(retx,ret);
        ret = retx; 
     */
+
+    /* Strip comments - further code may break in presence of comments. */
+    strip_comments(Char(n->code));
 
     /* Make all SWIG created typedef structs/unions/classes unnamed else 
        redefinition errors occur - nasty hack alert.*/
@@ -1360,7 +1425,7 @@ static void default_arguments(Node *n) {
  * Used by the parser to mark subtypes with extra information.
  * ----------------------------------------------------------------------------- */
 
-static void tag_nodes(Node *n, const String_or_char *attrname, DOH *value) {
+static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
   while (n) {
     Setattr(n, attrname, value);
     tag_nodes(firstChild(n), attrname, value);
@@ -1886,14 +1951,19 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
                  ;
 
 /* ------------------------------------------------------------
-   %includefile "filename" [ declarations ] 
-   %importfile  "filename" [ declarations ]
+   %includefile "filename" [option1="xyz", ...] [ declarations ] 
+   %importfile  "filename" [option1="xyz", ...] [ declarations ]
    ------------------------------------------------------------ */
 
 include_directive: includetype options string LBRACKET {
                      $1.filename = Copy(cparse_file);
 		     $1.line = cparse_line;
 		     scanner_set_location(NewString($3),1);
+                     if ($2) { 
+		       String *maininput = Getattr($2, "maininput");
+		       if (maininput)
+		         scanner_set_main_input_file(NewString(maininput));
+		     }
                } interface RBRACKET {
                      String *mname = 0;
                      $$ = $6;
@@ -2290,21 +2360,25 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                     String *val = $7 ? NewString($7) : NewString("1");
                     new_feature($3, val, 0, $5.id, $5.type, $5.parms, $6.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum RPAREN declarator cpp_const SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, 0, $7.id, $7.type, $7.parms, $8.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring featattr RPAREN declarator cpp_const stringbracesemi {
                     String *val = $8 ? NewString($8) : NewString("1");
                     new_feature($3, val, $4, $6.id, $6.type, $6.parms, $7.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN declarator cpp_const SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, $6, $8.id, $8.type, $8.parms, $9.qualifier);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
 
                   /* Global feature */
@@ -2312,21 +2386,25 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                     String *val = $5 ? NewString($5) : NewString("1");
                     new_feature($3, val, 0, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum RPAREN SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, 0, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring featattr RPAREN stringbracesemi {
                     String *val = $6 ? NewString($6) : NewString("1");
                     new_feature($3, val, $4, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN SEMI {
                     String *val = Len($5) ? NewString($5) : 0;
                     new_feature($3, val, $6, 0, 0, 0, 0);
                     $$ = 0;
+                    scanner_clear_rename();
                   }
                   ;
 
@@ -3152,15 +3230,15 @@ cpp_class_decl  :
                 storage_class cpptype idcolon inherit LBRACE {
                    List *bases = 0;
 		   Node *scope = 0;
-		   $$ = new_node("class");
-		   Setline($$,cparse_start_line);
-		   Setattr($$,"kind",$2);
+		   $<node>$ = new_node("class");
+		   Setline($<node>$,cparse_start_line);
+		   Setattr($<node>$,"kind",$2);
 		   if ($4) {
-		     Setattr($$,"baselist", Getattr($4,"public"));
-		     Setattr($$,"protectedbaselist", Getattr($4,"protected"));
-		     Setattr($$,"privatebaselist", Getattr($4,"private"));
+		     Setattr($<node>$,"baselist", Getattr($4,"public"));
+		     Setattr($<node>$,"protectedbaselist", Getattr($4,"protected"));
+		     Setattr($<node>$,"privatebaselist", Getattr($4,"private"));
 		   }
-		   Setattr($$,"allows_typedef","1");
+		   Setattr($<node>$,"allows_typedef","1");
 
 		   /* preserve the current scope */
 		   prev_symtab = Swig_symbol_current();
@@ -3189,10 +3267,10 @@ cpp_class_decl  :
 		       nscope_inner = 0;
 		     }
 		   }
-		   Setattr($$,"name",$3);
+		   Setattr($<node>$,"name",$3);
 
 		   Delete(class_rename);
-                   class_rename = make_name($$,$3,0);
+                   class_rename = make_name($<node>$,$3,0);
 		   Classprefix = NewString($3);
 		   /* Deal with inheritance  */
 		   if ($4) {
@@ -3256,12 +3334,12 @@ cpp_class_decl  :
 		       } else {
 			   max_class_levels *= 2;
 		       }
-		       class_decl = realloc(class_decl, sizeof(Node*) * max_class_levels);
+		       class_decl = (Node**) realloc(class_decl, sizeof(Node*) * max_class_levels);
 		       if (!class_decl) {
 			   Swig_error(cparse_file, cparse_line, "realloc() failed\n");
 		       }
 		   }
-		   class_decl[class_level++] = $$;
+		   class_decl[class_level++] = $<node>$;
 		   inclass = 1;
                } cpp_members RBRACE cpp_opt_declarators {
 		 Node *p;
@@ -3384,14 +3462,14 @@ cpp_class_decl  :
              | storage_class cpptype LBRACE {
 	       String *unnamed;
 	       unnamed = make_unnamed();
-	       $$ = new_node("class");
-	       Setline($$,cparse_start_line);
-	       Setattr($$,"kind",$2);
-	       Setattr($$,"storage",$1);
-	       Setattr($$,"unnamed",unnamed);
-	       Setattr($$,"allows_typedef","1");
+	       $<node>$ = new_node("class");
+	       Setline($<node>$,cparse_start_line);
+	       Setattr($<node>$,"kind",$2);
+	       Setattr($<node>$,"storage",$1);
+	       Setattr($<node>$,"unnamed",unnamed);
+	       Setattr($<node>$,"allows_typedef","1");
 	       Delete(class_rename);
-	       class_rename = make_name($$,0,0);
+	       class_rename = make_name($<node>$,0,0);
 	       if (strcmp($2,"class") == 0) {
 		 cplus_mode = CPLUS_PRIVATE;
 	       } else {
@@ -3405,12 +3483,12 @@ cpp_class_decl  :
 		   } else {
 		       max_class_levels *= 2;
 		   }
-		   class_decl = realloc(class_decl, sizeof(Node*) * max_class_levels);
+		   class_decl = (Node**) realloc(class_decl, sizeof(Node*) * max_class_levels);
 		   if (!class_decl) {
 		       Swig_error(cparse_file, cparse_line, "realloc() failed\n");
 		   }
 	       }
-	       class_decl[class_level++] = $$;
+	       class_decl[class_level++] = $<node>$;
 	       inclass = 1;
 	       Classprefix = NewStringEmpty();
 	       Delete(Namespaceprefix);
@@ -5414,7 +5492,18 @@ valexpr        : exprnum { $$ = $1; }
                | LPAREN expr RPAREN expr %prec CAST {
                  $$ = $4;
 		 if ($4.type != T_STRING) {
-		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $4.val);
+		   switch ($2.type) {
+		     case T_FLOAT:
+		     case T_DOUBLE:
+		     case T_LONGDOUBLE:
+		     case T_FLTCPLX:
+		     case T_DBLCPLX:
+		       $$.val = NewStringf("(%s)%s", $2.val, $4.val); /* SwigType_str and decimal points don't mix! */
+		       break;
+		     default:
+		       $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $4.val);
+		       break;
+		   }
 		 }
  	       }
                | LPAREN expr pointer RPAREN expr %prec CAST {

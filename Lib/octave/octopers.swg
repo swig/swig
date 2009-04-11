@@ -6,68 +6,68 @@
 
 // operators supported in Octave, and the methods they are routed to
 
-// __brace      a{args}
-// __brace_asgn a{args} = rhs
-// __paren      a(args)
-// __paren_asgn a(args) = rhs
-// __str        generates string rep
+// __brace__      a{args}
+// __brace_asgn__ a{args} = rhs
+// __paren__      a(args)
+// __paren_asgn__ a(args) = rhs
+// __str__        generates string rep
 
-// __not        !a
-// __uplus      +a
-// __uminus     -a
-// __transpose  a.'
-// __hermitian  a'
-// __incr       a++
-// __decr       a--
-// __add        a + b
-// __sub        a - b
-// __mul        a * b
-// __div        a / b
-// __pow        a ^ b
-// __ldiv       a \ b
-// __lshift     a << b
-// __rshift     a >> b
-// __lt         a < b
-// __le         a <= b
-// __eq         a == b
-// __ge         a >= b
-// __gt         a > b
-// __ne         a != b
-// __el_mul     a .* b
-// __el_div     a ./ b
-// __el_pow     a .^ b
-// __el_ldiv    a .\ b
-// __el_and     a & b
-// __el_or      a | b
+// __not__        !a
+// __uplus__      +a
+// __uminus__     -a
+// __transpose__  a.'
+// __hermitian__  a'
+// __incr__       a++
+// __decr__       a--
+// __add__        a + b
+// __sub__        a - b
+// __mul__        a * b
+// __div__        a / b
+// __pow__        a ^ b
+// __ldiv__       a \ b
+// __lshift__     a << b
+// __rshift__     a >> b
+// __lt__         a < b
+// __le__         a <= b
+// __eq__         a == b
+// __ge__         a >= b
+// __gt__         a > b
+// __ne__         a != b
+// __el_mul__     a .* b
+// __el_div__     a ./ b
+// __el_pow__     a .^ b
+// __el_ldiv__    a .\ b
+// __el_and__     a & b
+// __el_or__      a | b
 
 // operators supported in C++, and the methods that route to them
 
-%rename(__add)       *::operator+;
-%rename(__add)       *::operator+();
-%rename(__add)       *::operator+() const;
-%rename(__sub)       *::operator-;
-%rename(__uminus)    *::operator-();
-%rename(__uminus)    *::operator-() const;
-%rename(__mul)       *::operator*;
-%rename(__div)       *::operator/;
-%rename(__mod)       *::operator%;
-%rename(__lshift)    *::operator<<;
-%rename(__rshift)    *::operator>>;
-%rename(__el_and)    *::operator&&;
-%rename(__el_or)     *::operator||;
-%rename(__xor)       *::operator^;
-%rename(__invert)    *::operator~;
-%rename(__lt)        *::operator<;
-%rename(__le)        *::operator<=;
-%rename(__gt)        *::operator>;
-%rename(__ge)        *::operator>=;
-%rename(__eq)        *::operator==;
-%rename(__ne)        *::operator!=;
-%rename(__not)       *::operator!;
-%rename(__incr)      *::operator++;
-%rename(__decr)      *::operator--;
-%rename(__paren)     *::operator();
-%rename(__brace)     *::operator[];
+%rename(__add__)       *::operator+;
+%rename(__add__)       *::operator+();
+%rename(__add__)       *::operator+() const;
+%rename(__sub__)       *::operator-;
+%rename(__uminus__)    *::operator-();
+%rename(__uminus__)    *::operator-() const;
+%rename(__mul__)       *::operator*;
+%rename(__div__)       *::operator/;
+%rename(__mod__)       *::operator%;
+%rename(__lshift__)    *::operator<<;
+%rename(__rshift__)    *::operator>>;
+%rename(__el_and__)    *::operator&&;
+%rename(__el_or__)     *::operator||;
+%rename(__xor__)       *::operator^;
+%rename(__invert__)    *::operator~;
+%rename(__lt__)        *::operator<;
+%rename(__le__)        *::operator<=;
+%rename(__gt__)        *::operator>;
+%rename(__ge__)        *::operator>=;
+%rename(__eq__)        *::operator==;
+%rename(__ne__)        *::operator!=;
+%rename(__not__)       *::operator!;
+%rename(__incr__)      *::operator++;
+%rename(__decr__)      *::operator--;
+%rename(__paren__)     *::operator();
+%rename(__brace__)     *::operator[];
 
 // Ignored inplace operators
 %ignoreoperator(PLUSEQ)     operator+=;

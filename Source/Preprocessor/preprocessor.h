@@ -19,8 +19,8 @@ extern "C" {
 #endif
   extern int Preprocessor_expr(String *s, int *error);
   extern char *Preprocessor_expr_error(void);
-  extern Hash *Preprocessor_define(const String_or_char *str, int swigmacro);
-  extern void Preprocessor_undef(const String_or_char *name);
+  extern Hash *Preprocessor_define(const_String_or_char_ptr str, int swigmacro);
+  extern void Preprocessor_undef(const_String_or_char_ptr name);
   extern void Preprocessor_init(void);
   extern void Preprocessor_delete(void);
   extern String *Preprocessor_parse(String *s);

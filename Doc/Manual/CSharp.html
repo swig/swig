@@ -5,12 +5,18 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="CSharp"></a>17 SWIG and C#</H1>
+<H1><a name="CSharp"></a>18 SWIG and C#</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
 <li><a href="#csharp_introduction">Introduction</a>
 <li><a href="#csharp_differences_java">Differences to the Java module</a>
+<li><a href="#CSharp_arrays">C# Arrays</a>
+<ul>
+<li><a href="#CSharp_arrays_swig_library">The SWIG C arrays library</a>
+<li><a href="#CSharp_arrays_pinvoke_default_array_marshalling">Managed arrays using P/Invoke default array marshalling</a>
+<li><a href="#CSharp_arrays_pinning">Managed arrays using pinning</a>
+</ul>
 <li><a href="#csharp_exceptions">C# Exceptions</a>
 <ul>
 <li><a href="#csharp_exception_example_check_typemap">C# exception example using "check" typemap</a>
@@ -39,7 +45,7 @@
 
 
 
-<H2><a name="csharp_introduction"></a>17.1 Introduction</H2>
+<H2><a name="csharp_introduction"></a>18.1 Introduction</H2>
 
 
 <p>
@@ -59,7 +65,7 @@ The <a href="http://msdn.microsoft.com">Microsoft Developer Network (MSDN)</a> h
 Monodoc, available from the Mono project, has a very useful section titled <a href="http://www.mono-project.com/Interop_with_Native_Libraries">Interop with native libraries</a>.
 </p>
 
-<H2><a name="csharp_differences_java"></a>17.2 Differences to the Java module</H2>
+<H2><a name="csharp_differences_java"></a>18.2 Differences to the Java module</H2>
 
 
 <p>
@@ -201,7 +207,12 @@ $jnicall                    -&gt; $imcall
 
 <li>
 <p>
-Unlike the "javain" typemap, the "csin" typemap does not support the 'pgcpp' attribute as the C# module does not have a premature garbage collection prevention parameter. The "csin" typemap supports an additional optional attribute called 'cshin'. It should contain the parameter type and name whenever a <a href="Java.html#java_constructor_helper_function">constructor helper function</a> is generated due to the 'pre' or 'post' attributes. Note that 'pre', 'post' and 'cshin' attributes are not used for marshalling the property set. Please see the <a href="#csharp_date_marshalling">Date marshalling example</a> and <a href="#CSharp.html#csharp_date_properties">Date marshalling of properties example</a> for further understanding.
+Unlike the "javain" typemap, the "csin" typemap does not support the 'pgcpp' attribute as the C# module does not have a premature garbage collection prevention parameter. 
+The "csin" typemap supports additional optional attributes called 'cshin' and 'terminator'. 
+The 'cshin' attribute should contain the parameter type and name whenever a <a href="Java.html#java_constructor_helper_function">constructor helper function</a> is generated due to the 'pre' or 'post' attributes. 
+The 'terminator' attribute normally just contains a closing brace for when the 'pre' attribute contains an opening brace, such as when a C# <tt>using</tt> or <tt>fixed</tt> block is started.
+Note that 'pre', 'post', 'terminator' and 'cshin' attributes are not used for marshalling the property set.
+Please see the <a href="#csharp_date_marshalling">Date marshalling example</a> and <a href="#CSharp.html#csharp_date_properties">Date marshalling of properties example</a> for further understanding of these "csin" applicable attributes.
 </p>
 </li>
 
@@ -397,7 +408,275 @@ Windows users can also get the examples working using a
 <a href="http://www.cygwin.com">Cygwin</a> or <a href="http://www.mingw.org">MinGW</a> environment for automatic configuration of the example makefiles.
 Any one of the three C# compilers (Portable.NET, Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
 
-<H2><a name="csharp_exceptions"></a>17.3 C# Exceptions</H2>
+<H2><a name="CSharp_arrays"></a>18.3 C# Arrays</H2>
+
+
+<p>
+There are various ways to pass arrays from C# to C/C++. 
+The default wrapping treats arrays as pointers and as such simple type wrapper classes are generated, 
+eg <tt>SWIGTYPE_p_int</tt> when wrapping the C type <tt>int []</tt> or <tt>int *</tt>.
+This gives a rather restricted use of the underlying unmanaged code and the most practical way to use arrays is to enhance or customise
+with one of the following three approaches; namely the SWIG C arrays library, P/Invoke default array marshalling or 
+pinned arrays.
+</p>
+
+<H3><a name="CSharp_arrays_swig_library"></a>18.3.1 The SWIG C arrays library</H3>
+
+
+<p>
+The C arrays library keeps all the array memory in the unmanaged layer.
+The library is available to all language modules and is documented in the <a href="Library.html#Library_carrays">carrays.i library</a> section.
+Please refer to this section for details, but for convenience, the C# usage for the two examples outlined there is shown below.
+</p>
+
+<p>
+For the <tt>%array_functions</tt> example, the equivalent usage would be:
+</p>
+
+<div class="code">
+<pre>
+SWIGTYPE_p_double a = example.new_doubleArray(10);  // Create an array
+for (int i=0; i&lt;10; i++)
+  example.doubleArray_setitem(a,i,2*i);             // Set a value
+example.print_array(a);                             // Pass to C
+example.delete_doubleArray(a);                      // Destroy array
+</pre>
+</div>
+
+<p>
+and for the <tt>%array_class</tt> example, the equivalent usage would be:
+</p>
+
+<div class="code">
+<pre>
+doubleArray c = new doubleArray(10);    // Create double[10]
+for (int i=0; i&lt;10; i++)
+  c.setitem(i, 2*i);                    // Assign values
+example.print_array(c.cast());          // Pass to C
+</pre>
+</div>
+
+
+<H3><a name="CSharp_arrays_pinvoke_default_array_marshalling"></a>18.3.2 Managed arrays using P/Invoke default array marshalling</H3>
+
+
+<p>
+In the P/Invoke default marshalling scheme, one needs to designate whether the invoked function will treat a managed
+array parameter as input, output, or both. When the function is invoked, the CLR allocates a separate chunk of memory as big as the given managed array, 
+which is automatically released at the end of the function call. If the array parameter is marked as being input, the content of the managed array is copied
+into this buffer when the call is made. Correspondingly, if the array parameter is marked as being output, the contents of the reserved buffer are copied
+back into the managed array after the call returns. A pointer to to this buffer
+is passed to the native function.
+</p>
+
+<p>
+The reason for allocating a separate buffer is to leave the CLR free to relocate the managed array object 
+during garbage collection. If the overhead caused by the copying is causing a significant performance penalty, consider pinning the managed array and
+passing a direct reference as described in the next section.
+</p>
+
+<p>
+For more information on the subject, see  the
+<a href="http://msdn.microsoft.com/en-us/library/z6cfh6e6(VS.80).aspx">Default Marshaling for Arrays</a> article
+on MSDN.
+</p>
+
+
+<p>
+The P/Invoke default marshalling is supported by the <tt>arrays_csharp.i</tt> library via the INPUT, OUTPUT and INOUT typemaps. 
+Let's look at some example usage. Consider the following C function:
+</p>
+<div class="code">
+<pre>
+void myArrayCopy(int *sourceArray, int *targetArray, int nitems);
+</pre>
+</div>
+
+<p>
+We can now instruct SWIG to use the default marshalling typemaps by 
+</p>
+
+<div class="code">
+<pre>
+%include "arrays_csharp.i"
+
+%apply int INPUT[]  {int *sourceArray}
+%apply int OUTPUT[] {int *targetArray}
+</pre>
+</div>
+
+<p>
+As a result, we get the following method in the module class:
+</p>
+
+<div class="code">
+<pre>
+public static void myArrayCopy(int[] sourceArray, int[] targetArray, int nitems) {
+    examplePINVOKE.myArrayCopy(sourceArray, targetArray, nitems);
+}
+</pre>
+</div>
+
+<p>
+If we look beneath the surface at the corresponding intermediary class code, we see
+that SWIG has generated code that uses attributes 
+(from the System.Runtime.InteropServices namespace) to tell the CLR to use default
+marshalling for the arrays:
+</p>
+
+<div class="code">
+<pre>
+[DllImport("example", EntryPoint="CSharp_myArrayCopy")]
+public static extern void myArrayCopy([In, MarshalAs(UnmanagedType.LPArray)]int[] jarg1, 
+                                      [Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2, int jarg3);
+</pre>
+</div>
+
+<p>
+As an example of passing an inout array (i.e. the target function will both read from and
+write to the array), consider this C function that swaps a given number of elements
+in the given arrays:
+</p>
+
+<div class="code">
+<pre>
+void myArraySwap(int *array1, int *array2, int nitems);
+</pre>
+</div>
+
+<p>
+Now, we can instruct SWIG to wrap this by
+</p>
+
+<div class="code">
+<pre>
+%include "arrays_csharp.i"
+
+%apply int INOUT[] {int *array1}
+%apply int INOUT[] {int *array2}
+</pre>
+</div>
+
+<p>
+This results in the module class method
+</p>
+
+<div class="code">
+<pre>
+  public static void myArraySwap(int[] array1, int[] array2, int nitems) {
+    examplePINVOKE.myArraySwap(array1, array2, nitems);
+  }
+</pre>
+</div>
+
+<p>
+and intermediate class method
+</p>
+
+<div class="code">
+<pre>
+  [DllImport("example", EntryPoint="CSharp_myArraySwap")]
+  public static extern void myArraySwap([In, Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg1, 
+                                        [In, Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2, int jarg3);
+</pre>
+</div>
+
+
+<H3><a name="CSharp_arrays_pinning"></a>18.3.3 Managed arrays using pinning</H3>
+
+
+<p>
+It is also possible to pin a given array in memory (i.e. fix its location in memory), obtain a
+direct pointer to it, and then pass this pointer to the wrapped C/C++ function. This approach
+involves no copying, but it makes the work of the garbage collector harder as 
+the managed array object can not be relocated before the fix on the array is released. You should avoid 
+fixing arrays in memory in cases where the control may re-enter the managed side via a callback and/or
+another thread may produce enough garbage to trigger garbage collection.
+</p>
+
+<p>
+For more information, see the <a href="http://msdn.microsoft.com/en-us/library/f58wzh21(VS.80).aspx">fixed statement</a> in the C# language reference.
+</p>
+
+
+<p>
+Now let's look at an example using pinning, thus avoiding the CLR making copies
+of the arrays passed as parameters. The <tt>arrays_csharp.i</tt> library file again provides the required support via the <tt>FIXED</tt> typemaps.
+Let's use the same function from the previous section:
+</p>
+
+<div class="code">
+<pre>
+void myArrayCopy(int *sourceArray, int *targetArray, int nitems);
+</pre>
+</div>
+
+<p>
+We now need to declare the module class method unsafe, as we are using pointers:
+</p>
+
+<div class="code">
+<pre>
+%csmethodmodifiers myArrayCopy "public unsafe";
+ </pre>
+</div>
+
+<p>
+Apply the appropriate typemaps to the array parameters:
+</p>
+
+<div class="code">
+<pre>
+%include "arrays_csharp.i"
+
+%apply int FIXED[] {int *sourceArray}
+%apply int FIXED[] {int *targetArray}
+</pre>
+</div>
+
+<p>
+Notice that there is no need for separate in, out or inout typemaps as is the
+case when using P/Invoke default marshalling. 
+</p>
+
+<p>
+As a result, we get the following method in the module class:
+</p>
+
+<div class="code">
+<pre>
+  public unsafe static void myArrayCopy(int[] sourceArray, int[] targetArray, int nitems) {
+    fixed ( int *swig_ptrTo_sourceArray = sourceArray ) {
+    fixed ( int *swig_ptrTo_targetArray = targetArray ) {
+    {
+      examplePINVOKE.myArrayCopy((IntPtr)swig_ptrTo_sourceArray, (IntPtr)swig_ptrTo_targetArray, nitems);
+    }
+    }
+    }
+  }
+</pre>
+</div>
+
+<p>
+On the method signature level the only difference to the version using P/Invoke default
+marshalling is the "unsafe" quantifier, which is required because we are handling pointers.
+</p>
+
+<p>
+Also the intermediate class method looks a little different from the default marshalling
+example - the method is expecting an IntPtr as the parameter type.
+</p>
+
+<div class="code">
+<pre>
+[DllImport("example", EntryPoint="CSharp_myArrayCopy")]
+public static extern void myArrayCopy(IntPtr jarg1, IntPtr jarg2, int jarg3);
+</pre>
+</div>
+
+
+
+<H2><a name="csharp_exceptions"></a>18.4 C# Exceptions</H2>
 
 
 <p>
@@ -494,7 +773,7 @@ set so should only be used when a C# exception is not created.
 </p>
 
 
-<H3><a name="csharp_exception_example_check_typemap"></a>17.3.1 C# exception example using "check" typemap</H3>
+<H3><a name="csharp_exception_example_check_typemap"></a>18.4.1 C# exception example using "check" typemap</H3>
 
 
 <p>
@@ -676,7 +955,7 @@ method and C# code does not handle pending exceptions via the canthrow attribute
 Actually it will issue this warning for any function beginning with <tt>SWIG_CSharpSetPendingException</tt>.
 </P>
 
-<H3><a name="csharp_exception_example_percent_exception"></a>17.3.2 C# exception example using %exception</H3>
+<H3><a name="csharp_exception_example_percent_exception"></a>18.4.2 C# exception example using %exception</H3>
 
 
 <p>
@@ -741,7 +1020,7 @@ The managed code generated does check for the pending exception as mentioned ear
 </pre>
 </div>
 
-<H3><a name="csharp_exception_example_exception_specifications"></a>17.3.3 C# exception example using exception specifications</H3>
+<H3><a name="csharp_exception_example_exception_specifications"></a>18.4.3 C# exception example using exception specifications</H3>
 
 
 <p>
@@ -798,7 +1077,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_evensonly(int jarg1) {
 Multiple catch handlers are generated should there be more than one exception specifications declared.
 </p>
 
-<H3><a name="csharp_custom_application_exception"></a>17.3.4 Custom C# ApplicationException example</H3>
+<H3><a name="csharp_custom_application_exception"></a>18.4.4 Custom C# ApplicationException example</H3>
 
 
 <p>
@@ -932,7 +1211,7 @@ try {
 </pre>
 </div>
 
-<H2><a name="csharp_directors"></a>17.4 C# Directors</H2>
+<H2><a name="csharp_directors"></a>18.5 C# Directors</H2>
 
 
 <p>
@@ -945,7 +1224,7 @@ The following sections provide information on the C# director implementation and
 However, the <a href="Java.html#java_directors">Java directors</a> section should also be read in order to gain more insight into directors.
 </p>
 
-<H3><a name="csharp_directors_example"></a>17.4.1 Directors example</H3>
+<H3><a name="csharp_directors_example"></a>18.5.1 Directors example</H3>
 
 
 <p>
@@ -1066,7 +1345,7 @@ CSharpDerived - UIntMethod(123)
 </pre>
 </div>
 
-<H3><a name="csharp_directors_implementation"></a>17.4.2 Directors implementation</H3>
+<H3><a name="csharp_directors_implementation"></a>18.5.2 Directors implementation</H3>
 
 
 <p>
@@ -1252,7 +1531,7 @@ void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
 </pre>
 </div>
 
-<H3><a name="csharp_director_caveats"></a>17.4.3 Director caveats</H3>
+<H3><a name="csharp_director_caveats"></a>18.5.3 Director caveats</H3>
 
 
 <p>
@@ -1300,7 +1579,7 @@ However, a call from C# to <tt>CSharpDefaults.DefaultMethod()</tt> will of cours
 should pass the call on to <tt>CSharpDefaults.DefaultMethod(int)</tt>using the C++ default value, as shown above.
 </p>
 
-<H2><a name="csharp_typemap_examples"></a>17.5 C# Typemap examples</H2>
+<H2><a name="csharp_typemap_examples"></a>18.6 C# Typemap examples</H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
@@ -1308,7 +1587,7 @@ might look at the files "<tt>csharp.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
 
-<H3><a name="csharp_memory_management_member_variables"></a>17.5.1 Memory management when returning references to member variables</H3>
+<H3><a name="csharp_memory_management_member_variables"></a>18.6.1 Memory management when returning references to member variables</H3>
 
 
 <p>
@@ -1432,7 +1711,7 @@ public class Bike : IDisposable {
 Note the <tt>addReference</tt> call.
 </p>
 
-<H3><a name="csharp_memory_management_objects"></a>17.5.2 Memory management for objects passed to the C++ layer</H3>
+<H3><a name="csharp_memory_management_objects"></a>18.6.2 Memory management for objects passed to the C++ layer</H3>
 
 
 <p>
@@ -1551,7 +1830,7 @@ The 'cscode' typemap simply adds in the specified code into the C# proxy class.
 </div>
 
 
-<H3><a name="csharp_date_marshalling"></a>17.5.3 Date marshalling using the csin typemap and associated attributes</H3>
+<H3><a name="csharp_date_marshalling"></a>18.6.3 Date marshalling using the csin typemap and associated attributes</H3>
 
 
 <p>
@@ -1567,6 +1846,7 @@ Let's assume the code being wrapped is as follows:
 <pre>
 class CDate {
 public:
+  CDate();
   CDate(int year, int month, int day);
   int getYear();
   int getMonth();
@@ -1649,8 +1929,8 @@ The typemaps to achieve this are shown below.
 <pre>
 %typemap(cstype) const CDate&amp; "System.DateTime"
 %typemap(csin, 
-         pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);")
-         const CDate &amp;
+         pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);"
+        ) const CDate &amp;
          "$csclassname.getCPtr(temp$csinput)"
 
 %typemap(cstype) CDate&amp; "out System.DateTime"
@@ -1658,7 +1938,8 @@ The typemaps to achieve this are shown below.
          pre="    CDate temp$csinput = new CDate();", 
          post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
               " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
-         cshin="out $csinput") CDate &amp;
+         cshin="out $csinput"
+        ) CDate &amp;
          "$csclassname.getCPtr(temp$csinput)"
 
 </pre>
@@ -1763,7 +2044,8 @@ will be possible with the following <tt>CDate *</tt> typemaps
          pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);",
          post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
               " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
-         cshin="ref $csinput") CDate *
+         cshin="ref $csinput"
+        ) CDate *
          "$csclassname.getCPtr(temp$csinput)"
 </pre>
 </div>
@@ -1788,7 +2070,51 @@ public class example {
 </pre>
 </div>
 
-<H3><a name="csharp_date_properties"></a>17.5.4 A date example demonstrating marshalling of C# properties</H3>
+<p>
+The following typemap is the same as the previous but demonstrates how a using block can be used for the temporary variable.
+The only change to the previous typemap is the introduction of the 'terminator' attribute to terminate the <tt>using</tt> block.
+The <tt>subtractYears</tt> method is nearly identical to the above <tt>addYears</tt> method.
+</p>
+
+<div class="code">
+<pre>
+%typemap(csin,
+         pre="    using (CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day)) {",
+         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+         terminator="    } // terminate temp$csinput using block",
+         cshin="ref $csinput"
+        ) CDate *
+         "$csclassname.getCPtr(temp$csinput)"
+
+void subtractYears(CDate *pDate, int years) {
+  *pDate = CDate(pDate-&gt;getYear() - years, pDate-&gt;getMonth(), pDate-&gt;getDay());
+}
+</pre>
+</div>
+
+<p>
+The resulting generated code shows the termination of the <tt>using</tt> block:
+</p>
+
+<div class="code">
+<pre>
+public class example {
+  public static void subtractYears(ref System.DateTime pDate, int years) {
+    using (CDate temppDate = new CDate(pDate.Year, pDate.Month, pDate.Day)) {
+    try {
+      examplePINVOKE.subtractYears(CDate.getCPtr(temppDate), years);
+    } finally {
+      pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(), 0, 0, 0);
+    }
+    } // terminate temppDate using block
+  }
+  ...
+}
+</pre>
+</div>
+
+<H3><a name="csharp_date_properties"></a>18.6.4 A date example demonstrating marshalling of C# properties</H3>
 
 
 <p>
@@ -1827,7 +2153,8 @@ The typemap type required is thus <tt>CDate *</tt>. Given that the previous sect
          pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);",
          post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
               " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
-         cshin="ref $csinput") CDate *
+         cshin="ref $csinput"
+        ) CDate *
          "$csclassname.getCPtr(temp$csinput)"
 
 %typemap(csvarin, excode=SWIGEXCODE2) CDate * %{
@@ -1888,7 +2215,7 @@ Some points to note:
 </ul>
 
 
-<H3><a name="csharp_partial_classes"></a>17.5.5 Turning wrapped classes into partial classes</H3>
+<H3><a name="csharp_partial_classes"></a>18.6.5 Turning wrapped classes into partial classes</H3>
 
 
 <p>
@@ -1988,7 +2315,7 @@ demonstrating that the class contains methods calling both unmanaged code - <tt>
 The following example is an alternative approach to adding managed code to the generated proxy class.
 </p>
 
-<H3><a name="csharp_extending_proxy_class"></a>17.5.6 Extending proxy classes with additional C# code</H3>
+<H3><a name="csharp_extending_proxy_class"></a>18.6.6 Extending proxy classes with additional C# code</H3>
 
 
 <p>

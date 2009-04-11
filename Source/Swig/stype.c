@@ -270,20 +270,6 @@ int SwigType_issimple(SwigType *t) {
   return 1;
 }
 
-int SwigType_isbuiltin(SwigType *t) {
-  const char* builtins[] = { "void", "short", "int", "long", "char", "float", "double", "bool", 0 };
-  int i = 0;
-  char *c = Char(t);
-  if (!t)
-    return 0;
-  while (builtins[i]) {
-    if (strcmp(c, builtins[i]) == 0)
-      return 1;
-    i++;
-  }
-  return 0;
-}
-
 /* -----------------------------------------------------------------------------
  * SwigType_default()
  *
@@ -551,7 +537,7 @@ String *SwigType_namestr(const SwigType *t) {
  * Create a C string representation of a datatype.
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_str(SwigType *s, const String_or_char *id) {
+String *SwigType_str(SwigType *s, const_String_or_char_ptr id) {
   String *result;
   String *element = 0, *nextelement;
   List *elements;
@@ -746,7 +732,7 @@ SwigType *SwigType_ltype(SwigType *s) {
  *          with an equivalent assignable version.
  * -------------------------------------------------------------------- */
 
-String *SwigType_lstr(SwigType *s, const String_or_char *id) {
+String *SwigType_lstr(SwigType *s, const_String_or_char_ptr id) {
   String *result;
   SwigType *tc;
 
@@ -763,7 +749,7 @@ String *SwigType_lstr(SwigType *s, const String_or_char *id) {
  * datatype printed by str().
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
+String *SwigType_rcaststr(SwigType *s, const_String_or_char_ptr name) {
   String *result, *cast;
   String *element = 0, *nextelement;
   SwigType *td, *rs, *tc = 0;
@@ -906,7 +892,7 @@ String *SwigType_rcaststr(SwigType *s, const String_or_char *name) {
  * Casts a variable from the real type to the local datatype.
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_lcaststr(SwigType *s, const String_or_char *name) {
+String *SwigType_lcaststr(SwigType *s, const_String_or_char_ptr name) {
   String *result;
 
   result = NewStringEmpty();

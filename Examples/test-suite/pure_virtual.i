@@ -9,7 +9,7 @@
 
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) E; /* C#, Java, Php4 multiple inheritance */
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) E; /* C#, Java, PHP multiple inheritance */
 
 %nodefaultctor C;
 %nodefaultdtor C;
@@ -62,16 +62,18 @@ class E : public C, public AA {
 public:
    virtual void something() { };
 };
+%}
 
 /* Fill in method from AA.  This class should be constructable */
 #ifdef SWIGCSHARP
 %ignore F::method2(); // Work around for lack of multiple inheritance support - base AA is ignored.
 #endif
+
+%inline %{
 class F : public E {
    public:
      virtual void method2() { }
 };
-
 %}
 
 %{

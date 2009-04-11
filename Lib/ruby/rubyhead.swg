@@ -7,6 +7,9 @@
 #ifdef read
 # undef read
 #endif
+#ifdef bind
+# undef bind
+#endif
 
 
 /* Ruby 1.7 defines NUM2LL(), LL2NUM() and ULL2NUM() macros */

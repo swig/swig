@@ -1,5 +1,5 @@
 This example uses the file in ../../Interface/gifplot.i to build
-an interface with shadow classes.  After doing a make, run the program main, ie: 'java main'.
+an interface with shadow classes.  After doing a make, run the program runme, ie: 'java runme'.
 
-Note the differences in the main.java files between this example and the  
+Note the differences in the runme.java files between this example and the  
 'full' example. This example uses the shadow classes.

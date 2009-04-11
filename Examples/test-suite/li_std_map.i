@@ -10,7 +10,7 @@
  *
  *         For example:
  *                swig::LANGUAGE_OBJ  is  GC_VALUE in Ruby
- *                swig::LANGUAGE_OBJ  is  PyObject_ptr in python
+ *                swig::LANGUAGE_OBJ  is  SwigPtr_PyObject in python
  * 
  * 
  */
@@ -47,8 +47,15 @@ namespace std
   %template(pairiiAc) pair<int,const pair<int, A*> >;
 
 
+#ifdef SWIGRUBY
   %template() pair< swig::LANGUAGE_OBJ, swig::LANGUAGE_OBJ >;
   %template(LanguageMap) map< swig::LANGUAGE_OBJ, swig::LANGUAGE_OBJ >;
+#endif
+
+#ifdef SWIGPYTHON
+  %template() pair<swig::SwigPtr_PyObject, swig::SwigPtr_PyObject>;
+  %template(pymap) map<swig::SwigPtr_PyObject, swig::SwigPtr_PyObject>;
+#endif
   
 }
 

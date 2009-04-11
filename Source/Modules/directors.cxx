@@ -84,7 +84,7 @@ String *Swig_director_declaration(Node *n) {
 }
 
 
-String *Swig_method_call(String_or_char *name, ParmList *parms) {
+String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
   String *func;
   int i = 0;
   int comma = 0;
@@ -128,7 +128,7 @@ String *Swig_method_call(String_or_char *name, ParmList *parms) {
  *
  */
 
-String *Swig_method_decl(SwigType *returntype, SwigType *decl, const String_or_char *id, List *args, int strip, int values) {
+String *Swig_method_decl(SwigType *returntype, SwigType *decl, const_String_or_char_ptr id, List *args, int strip, int values) {
   String *result;
   List *elements;
   String *element = 0, *nextelement;

@@ -313,6 +313,11 @@ int test(int defined)
 #define MASK(shift, size) (((1 << (size)) - 1) <<(shift))
 #define SOME_MASK_DEF (80*MASK(8, 10))
 
+/* some constants */
+#define BOLTZMANN    (1.380658e-23)
+#define AVOGADRO     (6.0221367e23)
+#define RGAS         (BOLTZMANN*AVOGADRO)
+#define RGASX        (BOLTZMANN*AVOGADRO*BOLTZMANN)
 
 %{
 #define TEUCHOS_TYPE_NAME_TRAITS_BUILTIN_TYPE_SPECIALIZATION(TYPE) \

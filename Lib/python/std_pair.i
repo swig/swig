@@ -42,8 +42,8 @@
 	  }
 	} else if (PySequence_Check(obj)) {
 	  if (PySequence_Size(obj) == 2) {
-	    swig::PyObject_var first = PySequence_GetItem(obj,0);
-	    swig::PyObject_var second = PySequence_GetItem(obj,1);
+	    swig::SwigVar_PyObject first = PySequence_GetItem(obj,0);
+	    swig::SwigVar_PyObject second = PySequence_GetItem(obj,1);
 	    res = get_pair(first, second, val);
 	  }
 	} else {
@@ -92,8 +92,8 @@
 	  }
 	} else if (PySequence_Check(obj)) {
 	  if (PySequence_Size(obj) == 2) {
-	    swig::PyObject_var first = PySequence_GetItem(obj,0);
-	    swig::PyObject_var second = PySequence_GetItem(obj,1);
+	    swig::SwigVar_PyObject first = PySequence_GetItem(obj,0);
+	    swig::SwigVar_PyObject second = PySequence_GetItem(obj,1);
 	    res = get_pair(first, second, val);
 	  }
 	} else {

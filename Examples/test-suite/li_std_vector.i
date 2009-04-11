@@ -85,8 +85,10 @@ SWIG_STD_VECTOR_SPECIALIZE(SWIGTYPE_p_int, const int *)
 %template(StructureConstPtrVector) std::vector<const Structure *>;
 #endif
 
+#if !defined(SWIGR)
 %template(IntPtrVector) std::vector<int *>;
 %template(IntConstPtrVector) std::vector<const int *>;
+#endif
 %template(StructVector) std::vector<Struct>;
 %template(StructPtrVector) std::vector<Struct *>;
 %template(StructConstPtrVector) std::vector<const Struct *>;

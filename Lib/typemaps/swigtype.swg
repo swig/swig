@@ -124,7 +124,7 @@
 %typemap(memberin) SWIGTYPE [ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) $1[ii] = $input[ii];
+    for (; ii < (size_t)$1_dim0; ++ii) $1[ii] = $input[ii];
   } else {
     %variable_nullref("$type","$name");
   }
@@ -133,7 +133,7 @@
 %typemap(globalin) SWIGTYPE [ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) $1[ii] = $input[ii];
+    for (; ii < (size_t)$1_dim0; ++ii) $1[ii] = $input[ii];
   } else {
     %variable_nullref("$type","$name");
   }
@@ -146,7 +146,7 @@
     %variable_fail(res, "$type", "$name");
   } else if (inp) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) $1[ii] = inp[ii];
+    for (; ii < (size_t)$1_dim0; ++ii) $1[ii] = inp[ii];
   } else {
     %variable_nullref("$type", "$name");
   }
@@ -158,10 +158,10 @@
 %typemap(memberin) SWIGTYPE [ANY][ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) {
+    for (; ii < (size_t)$1_dim0; ++ii) {
       if ($input[ii]) {
 	size_t jj = 0;
-	for (; jj < (size_t)$dim1; ++jj) $1[ii][jj] = $input[ii][jj];
+	for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
       } else {
 	%variable_nullref("$type","$name");
       }
@@ -174,10 +174,10 @@
 %typemap(globalin) SWIGTYPE [ANY][ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) {
+    for (; ii < (size_t)$1_dim0; ++ii) {
       if ($input[ii]) {
 	size_t jj = 0;
-	for (; jj < (size_t)$dim1; ++jj) $1[ii][jj] = $input[ii][jj];
+	for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
       } else {
 	%variable_nullref("$type","$name");
       }
@@ -188,16 +188,16 @@
 }
 
 %typemap(varin) SWIGTYPE [ANY][ANY] {
-  $basetype (*inp)[$dim1] = 0;
+  $basetype (*inp)[$1_dim1] = 0;
   int res = SWIG_ConvertPtr($input, %as_voidptrptr(&inp), $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
   } else if (inp) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) {
+    for (; ii < (size_t)$1_dim0; ++ii) {
       if (inp[ii]) {
 	size_t jj = 0;
-	for (; jj < (size_t)$dim1; ++jj) $1[ii][jj] = inp[ii][jj];
+	for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = inp[ii][jj];
       } else {
 	%variable_nullref("$type", "$name");
       }

@@ -1,7 +1,5 @@
 SWIG TO-DO
 
-Release: SWIG-1.3.36
-
 -----------------------------------------------------------------------------
 
 ****    = High Priority
@@ -338,6 +336,14 @@ Common Lisp
        The embedded SWIG would be driven by a CL program.  High-level
        typemaps would be written as Lisp programs that generate Lisp
        code.
+
+ALLEGROCL
+-----
+These first three will remove most of the warnings from most of the
+remaining checkpartial tests that are failing.
+****  Throws typemap support
+****  const typemaps
+****  long long typemaps
 
 Ocaml
 -----

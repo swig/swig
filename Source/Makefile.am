@@ -38,11 +38,11 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/allegrocl.cxx		\
 		Modules/allocate.cxx		\
 		Modules/browser.cxx		\
+		Modules/c.cxx       \
 		Modules/cffi.cxx		\
 		Modules/chicken.cxx		\
 		Modules/clisp.cxx		\
 		Modules/contract.cxx		\
-		Modules/c.cxx		\
 		Modules/csharp.cxx		\
 		Modules/directors.cxx		\
 		Modules/emit.cxx		\
@@ -58,7 +58,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/octave.cxx		\
 		Modules/overload.cxx		\
 		Modules/perl5.cxx		\
-		Modules/php4.cxx		\
+		Modules/php.cxx			\
 		Modules/pike.cxx		\
 		Modules/python.cxx		\
 		Modules/r.cxx			\

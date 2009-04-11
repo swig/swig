@@ -22,7 +22,10 @@ char cvsroot_cscanner_c[] = "$Id$";
 static Scanner *scan = 0;
 
 /* Global string containing C code. Used by the parser to grab code blocks */
-DOHString *scanner_ccode = 0;
+String *scanner_ccode = 0;
+
+/* The main file being parsed */
+static String *main_input_file = 0;
 
 /* Error reporting/location information */
 int     cparse_line = 1;
@@ -261,10 +264,8 @@ int yylook(void) {
   while (1) {
     if ((tok = Scanner_token(scan)) == 0)
       return 0;
-    if (tok == SWIG_TOKEN_ERROR) {
-      Swig_error(Scanner_file(scan), Scanner_errline(scan), Scanner_errmsg(scan));
-      continue;
-    }
+    if (tok == SWIG_TOKEN_ERROR)
+      return 0;
     cparse_start_line = Scanner_start_line(scan);
     cparse_line = Scanner_line(scan);
     cparse_file = Scanner_file(scan);
@@ -441,7 +442,7 @@ int yylook(void) {
 
 static int check_typedef = 0;
 
-void scanner_set_location(String_or_char *file, int line) {
+void scanner_set_location(String *file, int line) {
   Scanner_set_location(scan,file,line-1);
 }
 
@@ -465,6 +466,14 @@ void scanner_clear_rename() {
 static int next_token = 0;
 void scanner_next_token(int tok) {
   next_token = tok;
+}
+
+void scanner_set_main_input_file(String *file) {
+  main_input_file = file;
+}
+
+String *scanner_get_main_input_file() {
+  return main_input_file;
 }
 
 /* ----------------------------------------------------------------------------
@@ -690,9 +699,21 @@ int yylex(void) {
 		termtoken = SWIG_TOKEN_LPAREN;
 		termvalue = "(";
 		break;
-	      } else if (nexttok == SWIG_TOKEN_SEMI) {
+              } else if (nexttok == SWIG_TOKEN_CODEBLOCK) {
+                termtoken = SWIG_TOKEN_CODEBLOCK;
+                termvalue = Char(Scanner_text(scan));
+                break;
+              } else if (nexttok == SWIG_TOKEN_LBRACE) {
+                termtoken = SWIG_TOKEN_LBRACE;
+                termvalue = "{";
+                break;
+              } else if (nexttok == SWIG_TOKEN_SEMI) {
 		termtoken = SWIG_TOKEN_SEMI;
 		termvalue = ";";
+		break;
+              } else if (nexttok == SWIG_TOKEN_STRING) {
+		termtoken = SWIG_TOKEN_STRING;
+                termvalue = Swig_copy_string(Char(Scanner_text(scan)));
 		break;
 	      } else if (nexttok == SWIG_TOKEN_ID) {
 		if (needspace) {
@@ -859,8 +880,14 @@ int yylex(void) {
 	return (INLINE);
       if (strcmp(yytext, "%typemap") == 0)
 	return (TYPEMAP);
-      if (strcmp(yytext, "%feature") == 0)
+      if (strcmp(yytext, "%feature") == 0) {
+        /* The rename_active indicates we don't need the information of the 
+         * following function's return type. This applied for %rename, so do
+         * %feature. 
+         */
+        rename_active = 1;
 	return (FEATURE);
+      }
       if (strcmp(yytext, "%except") == 0)
 	return (EXCEPT);
       if (strcmp(yytext, "%importfile") == 0)

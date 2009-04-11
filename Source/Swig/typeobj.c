@@ -110,7 +110,7 @@ char cvsroot_typeobj_c[] = "$Id$";
  * ----------------------------------------------------------------------------- */
 
 #ifdef NEW
-SwigType *NewSwigType(const String_or_char *initial) {
+SwigType *NewSwigType(const_String_or_char_ptr initial) {
   return NewString(initial);
 }
 
@@ -419,7 +419,7 @@ int SwigType_isreference(SwigType *t) {
  * stored in exactly the same way as "q(const volatile)".
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_add_qualifier(SwigType *t, const String_or_char *qual) {
+SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
   char temp[256], newq[256];
   int sz, added = 0;
   char *q, *cqual;
@@ -537,7 +537,7 @@ SwigType *SwigType_functionpointer_decompose(SwigType *t) {
  * Add, remove, and test for C++ pointer to members.
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_add_memberpointer(SwigType *t, const String_or_char *name) {
+SwigType *SwigType_add_memberpointer(SwigType *t, const_String_or_char_ptr name) {
   String *temp = NewStringf("m(%s).", name);
   Insert(t, 0, temp);
   Delete(temp);
@@ -579,7 +579,7 @@ int SwigType_ismemberpointer(SwigType *t) {
  * SwigType_pop_arrays()        - Remove all arrays
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_add_array(SwigType *t, const String_or_char *size) {
+SwigType *SwigType_add_array(SwigType *t, const_String_or_char_ptr size) {
   char temp[512];
   strcpy(temp, "a(");
   strcat(temp, Char(size));
@@ -673,7 +673,7 @@ String *SwigType_array_getdim(SwigType *t, int n) {
 }
 
 /* Replace nth array dimension */
-void SwigType_array_setdim(SwigType *t, int n, const String_or_char *rep) {
+void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
   String *result = 0;
   char temp;
   char *start;

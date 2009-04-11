@@ -29,6 +29,11 @@ typedef struct SWIGCDATA {
   $result = C_string(&string_space, $1.len, $1.data);
 }
 %typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
+#elif SWIGPHP
+%typemap(out) SWIGCDATA {
+  ZVAL_STRINGL($result, $1.data, $1.len, 1);
+}
+%typemap(in) (const void *indata, int inlen) = (char *STRING, int LENGTH);
 #else
 %echo "cdata.i module not supported."
 #endif
@@ -76,7 +81,3 @@ SWIGCDATA cdata_##NAME(TYPE *ptr, int nelements);
 
 /* Memory move function */
 void memmove(void *data, const void *indata, int inlen);
-
-
-
-

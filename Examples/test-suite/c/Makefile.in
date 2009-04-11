@@ -21,6 +21,8 @@ CPP_TEST_CASES =    cast_operator \
 
 include $(srcdir)/../common.mk
 
+INTERFACEDIR = ../../
+
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup)

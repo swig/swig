@@ -22,3 +22,4 @@ clean::
 
 check: all
 
+	$(MAKE) -f $(TOP)/Makefile python_run

@@ -45,7 +45,7 @@ String *Swig_cparm_name(Parm *p, int i) {
  * and user defined types to pointers.
  * ----------------------------------------------------------------------------- */
 
-static String *Swig_clocal(SwigType *t, const String_or_char *name, const String_or_char *value) {
+static String *Swig_clocal(SwigType *t, const_String_or_char_ptr name, const_String_or_char_ptr value) {
   String *decl;
 
   decl = NewStringEmpty();
@@ -147,7 +147,7 @@ String *Swig_wrapped_member_var_type(SwigType *t, int varcref) {
 }
 
 
-static String *Swig_wrapped_var_deref(SwigType *t, String_or_char *name, int varcref) {
+static String *Swig_wrapped_var_deref(SwigType *t, const_String_or_char_ptr name, int varcref) {
   if (SwigType_isclass(t)) {
     if (varcref) {
       if (cparse_cplusplus) {
@@ -163,7 +163,7 @@ static String *Swig_wrapped_var_deref(SwigType *t, String_or_char *name, int var
   }
 }
 
-static String *Swig_wrapped_var_assign(SwigType *t, const String_or_char *name, int varcref) {
+static String *Swig_wrapped_var_assign(SwigType *t, const_String_or_char_ptr name, int varcref) {
   if (SwigType_isclass(t)) {
     if (varcref) {
       return NewStringf("%s", name);
@@ -251,7 +251,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
  * function call.  
  * ----------------------------------------------------------------------------- */
 
-String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_char *decl) {
+String *Swig_cresult(SwigType *t, const_String_or_char_ptr name, const_String_or_char_ptr decl) {
   String *fcall;
 
   fcall = NewStringEmpty();
@@ -260,10 +260,9 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
     break;
   case T_REFERENCE:
     {
-      String *str = SwigType_str(t, "_result_ref");
-      Printf(fcall, "{\n");
-      Printf(fcall, "%s = ", str);
-      Delete(str);
+      String *lstr = SwigType_lstr(t, 0);
+      Printf(fcall, "%s = (%s) &", name, lstr);
+      Delete(lstr);
     }
     break;
   case T_USER:
@@ -290,12 +289,6 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
       Append(fcall, ";");
   }
 
-  if (SwigType_type(t) == T_REFERENCE) {
-    String *lstr = SwigType_lstr(t, 0);
-    Printf(fcall, "\n%s = (%s) &_result_ref;\n", name, lstr);
-    Append(fcall, "}");
-    Delete(lstr);
-  }
   return fcall;
 }
 
@@ -309,7 +302,7 @@ String *Swig_cresult(SwigType *t, const String_or_char *name, const String_or_ch
  *
  * ----------------------------------------------------------------------------- */
 
-String *Swig_cfunction_call(String_or_char *name, ParmList *parms) {
+String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms) {
   String *func;
   int i = 0;
   int comma = 0;
@@ -376,7 +369,7 @@ String *Swig_cfunction_call(String_or_char *name, ParmList *parms) {
  * set to "(*this)->" or some similar sequence.
  * ----------------------------------------------------------------------------- */
 
-static String *Swig_cmethod_call(String_or_char *name, ParmList *parms, String_or_char *self, String *explicit_qualifier, SwigType *director_type) {
+static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms, const_String_or_char_ptr self, String *explicit_qualifier, SwigType *director_type) {
   String *func, *nname;
   int i = 0;
   Parm *p = parms;
@@ -468,7 +461,7 @@ static String *Swig_cmethod_call(String_or_char *name, ParmList *parms, String_o
  *      calloc(1,sizeof(name));
  * ----------------------------------------------------------------------------- */
 
-String *Swig_cconstructor_call(String_or_char *name) {
+String *Swig_cconstructor_call(const_String_or_char_ptr name) {
   DOH *func;
 
   func = NewStringEmpty();
@@ -487,7 +480,7 @@ String *Swig_cconstructor_call(String_or_char *name) {
  *
  * ----------------------------------------------------------------------------- */
 
-String *Swig_cppconstructor_base_call(String_or_char *name, ParmList *parms, int skip_self) {
+String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, ParmList *parms, int skip_self) {
   String *func;
   String *nname;
   int i = 0;
@@ -532,15 +525,15 @@ String *Swig_cppconstructor_base_call(String_or_char *name, ParmList *parms, int
   return func;
 }
 
-String *Swig_cppconstructor_call(String_or_char *name, ParmList *parms) {
+String *Swig_cppconstructor_call(const_String_or_char_ptr name, ParmList *parms) {
   return Swig_cppconstructor_base_call(name, parms, 0);
 }
 
-String *Swig_cppconstructor_nodirector_call(String_or_char *name, ParmList *parms) {
+String *Swig_cppconstructor_nodirector_call(const_String_or_char_ptr name, ParmList *parms) {
   return Swig_cppconstructor_base_call(name, parms, 1);
 }
 
-String *Swig_cppconstructor_director_call(String_or_char *name, ParmList *parms) {
+String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmList *parms) {
   return Swig_cppconstructor_base_call(name, parms, 0);
 }
 
@@ -683,7 +676,7 @@ String *Swig_cppdestructor_call(Node *n) {
  *
  * ----------------------------------------------------------------------------- */
 
-String *Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_char *self, int varcref) {
+String *Swig_cmemberset_call(const_String_or_char_ptr name, SwigType *type, String *self, int varcref) {
   String *func;
   String *pname0 = Swig_cparm_name(0, 0);
   String *pname1 = Swig_cparm_name(0, 1);
@@ -718,7 +711,7 @@ String *Swig_cmemberset_call(String_or_char *name, SwigType *type, String_or_cha
  *
  * ----------------------------------------------------------------------------- */
 
-String *Swig_cmemberget_call(const String_or_char *name, SwigType *t, String_or_char *self, int varcref) {
+String *Swig_cmemberget_call(const_String_or_char_ptr name, SwigType *t, String *self, int varcref) {
   String *func;
   String *call;
   String *pname0 = Swig_cparm_name(0, 0);
@@ -1210,7 +1203,7 @@ int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags) 
  * This function creates a C wrapper for setting a structure member.
  * ----------------------------------------------------------------------------- */
 
-int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
+int Swig_MembersetToFunction(Node *n, String *classname, int flags, String **call) {
   String *name;
   ParmList *parms;
   Parm *p;
@@ -1258,23 +1251,21 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   Delete(p);
 
   if (flags & CWRAP_EXTEND) {
-    String *call;
     String *cres;
     String *code = Getattr(n, "code");
     if (code) {
       /* I don't think this ever gets run - WSF */
       Swig_add_extension_code(n, mangled, parms, void_type, code, cparse_cplusplus, "self");
     }
-    call = Swig_cfunction_call(mangled, parms);
-    cres = NewStringf("%s;", call);
+    *call = Swig_cfunction_call(mangled, parms);
+    cres = NewStringf("%s;", *call);
     Setattr(n, "wrap:action", cres);
-    Delete(call);
     Delete(cres);
   } else {
-    String *call = Swig_cmemberset_call(name, type, self, varcref);
-    String *cres = NewStringf("%s;", call);
+    String *cres;
+    *call = Swig_cmemberset_call(name, type, self, varcref);
+    cres = NewStringf("%s;", *call);
     Setattr(n, "wrap:action", cres);
-    Delete(call);
     Delete(cres);
   }
   Setattr(n, "type", void_type);

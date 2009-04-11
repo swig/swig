@@ -26,7 +26,6 @@ public:
 };
 
 static File *f_cl = 0;
-static File *f_null = 0;
 
 static struct {
   int count;
@@ -132,7 +131,7 @@ static void add_defined_foreign_type(String *type) {
 }
 
 
-static String *get_ffi_type(SwigType *ty, const String_or_char *name) {
+static String *get_ffi_type(SwigType *ty, const_String_or_char_ptr name) {
   Hash *typemap = Swig_typemap_search("ffitype", ty, name, 0);
   if (typemap) {
     String *typespec = Getattr(typemap, "code");
@@ -168,7 +167,7 @@ static String *get_ffi_type(SwigType *ty, const String_or_char *name) {
   return 0;
 }
 
-static String *get_lisp_type(SwigType *ty, const String_or_char *name) {
+static String *get_lisp_type(SwigType *ty, const_String_or_char_ptr name) {
   Hash *typemap = Swig_typemap_search("lisptype", ty, name, 0);
   if (typemap) {
     String *typespec = Getattr(typemap, "code");
@@ -181,6 +180,7 @@ static String *get_lisp_type(SwigType *ty, const String_or_char *name) {
 void UFFI::main(int argc, char *argv[]) {
   int i;
 
+  Preprocessor_define("SWIGUFFI 1", 0);
   SWIG_library_directory("uffi");
   SWIG_config_file("uffi.swg");
 
@@ -225,31 +225,26 @@ void UFFI::main(int argc, char *argv[]) {
 int UFFI::top(Node *n) {
   String *module = Getattr(n, "name");
   String *output_filename = NewString("");
-  String *devnull = NewString("/dev/null");
-
-  f_null = NewFile(devnull, "w+");
-  if (!f_null) {
-    FileErrorDisplay(devnull);
-    SWIG_exit(EXIT_FAILURE);
-  }
-  Delete(devnull);
-
+  File *f_null = NewString("");
 
   Printf(output_filename, "%s%s.cl", SWIG_output_directory(), module);
 
 
-  f_cl = NewFile(output_filename, "w");
+  f_cl = NewFile(output_filename, "w", SWIG_output_files());
   if (!f_cl) {
     FileErrorDisplay(output_filename);
     SWIG_exit(EXIT_FAILURE);
   }
 
   Swig_register_filebyname("header", f_null);
+  Swig_register_filebyname("begin", f_null);
   Swig_register_filebyname("runtime", f_null);
   Swig_register_filebyname("wrapper", f_cl);
 
-  Printf(f_cl,
-	 ";; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10; package: %s -*-\n;; This is an automatically generated file.  Make changes in\n;; the definition file, not here.\n\n(defpackage :%s\n  (:use :common-lisp :uffi))\n\n(in-package :%s)\n",
+  Swig_banner_target_lang(f_cl, ";;");
+
+  Printf(f_cl, "\n"
+	 ";; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10; package: %s -*-\n\n(defpackage :%s\n  (:use :common-lisp :uffi))\n\n(in-package :%s)\n",
 	 module, module, module);
   Printf(f_cl, "(eval-when (compile load eval)\n  (defparameter *swig-identifier-converter* '%s))\n", identifier_converter);
 

@@ -33,7 +33,7 @@
 // plain reference
 %typemap(in, canthrow=1) CONST TYPE & %{
   $1 = ($1_ltype)(((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)$input) ? ((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)$input)->get() : 0);
-  if(!$1) {
+  if (!$1) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type reference is null", 0);
     return $null;
   } %}
@@ -199,22 +199,26 @@
 
 %typemap(csdestruct, methodname="Dispose", methodmodifiers="public") TYPE {
     lock(this) {
-      if(swigCPtr.Handle != IntPtr.Zero && swigCMemOwnBase) {
-        swigCMemOwnBase = false;
-        $imcall;
+      if (swigCPtr.Handle != IntPtr.Zero) {
+        if (swigCMemOwnBase) {
+          swigCMemOwnBase = false;
+          $imcall;
+        }
+        swigCPtr = new HandleRef(null, IntPtr.Zero);
       }
-      swigCPtr = new HandleRef(null, IntPtr.Zero);
       GC.SuppressFinalize(this);
     }
   }
 
 %typemap(csdestruct_derived, methodname="Dispose", methodmodifiers="public") TYPE {
     lock(this) {
-      if(swigCPtr.Handle != IntPtr.Zero && swigCMemOwnDerived) {
-        swigCMemOwnDerived = false;
-        $imcall;
+      if (swigCPtr.Handle != IntPtr.Zero) {
+        if (swigCMemOwnDerived) {
+          swigCMemOwnDerived = false;
+          $imcall;
+        }
+        swigCPtr = new HandleRef(null, IntPtr.Zero);
       }
-      swigCPtr = new HandleRef(null, IntPtr.Zero);
       GC.SuppressFinalize(this);
       base.Dispose();
     }

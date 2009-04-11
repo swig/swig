@@ -827,7 +827,7 @@ void DohSetfile(DOH *ho, DOH *file) {
 /* -----------------------------------------------------------------------------
  * DohGetFile()
  * ----------------------------------------------------------------------------- */
-DOH *DohGetfile(DOH *ho) {
+DOH *DohGetfile(const DOH *ho) {
   DohBase *h = (DohBase *) ho;
   DohObjInfo *objinfo;
   if (!h)
@@ -854,7 +854,7 @@ void DohSetline(DOH *ho, int l) {
 /* -----------------------------------------------------------------------------
  * DohGetLine()
  * ----------------------------------------------------------------------------- */
-int DohGetline(DOH *ho) {
+int DohGetline(const DOH *ho) {
   DohBase *h = (DohBase *) ho;
   DohObjInfo *objinfo;
   if (!h)

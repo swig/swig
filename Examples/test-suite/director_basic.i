@@ -112,12 +112,14 @@ public:
     return vmethod(b);
   }  
 
-
   static MyClass *get_self(MyClass *c) 
   {
     return c;
   }
-  
+
+  static Bar * call_pmethod(MyClass *myclass, Bar *b) {
+    return myclass->pmethod(b);
+  }
 };
 
 template<class T>

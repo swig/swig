@@ -1056,7 +1056,7 @@ DOHString *DohNewString(const DOH *so) {
  * NewStringEmpty() - Create a new string
  * ----------------------------------------------------------------------------- */
 
-DOHString *DohNewStringEmpty() {
+DOHString *DohNewStringEmpty(void) {
   int max = INIT_MAXSIZE;
   String *str = (String *) DohMalloc(sizeof(String));
   str->hashkey = 0;

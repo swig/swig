@@ -30,6 +30,7 @@ static char *module = 0;
 static char *chicken_path = (char *) "chicken";
 static int num_methods = 0;
 
+static File *f_begin = 0;
 static File *f_runtime = 0;
 static File *f_header = 0;
 static File *f_wrappers = 0;
@@ -101,12 +102,12 @@ protected:
   int isPointer(SwigType *t);
   void dispatchFunction(Node *n);
 
-  String *chickenNameMapping(String *, String_or_char *);
+  String *chickenNameMapping(String *, const_String_or_char_ptr );
   String *chickenPrimitiveName(String *);
 
   String *runtimeCode();
   String *defaultExternalRuntimeFilename();
-  String *buildClosFunctionCall(List *types, String_or_char *closname, String_or_char *funcname);
+  String *buildClosFunctionCall(List *types, const_String_or_char_ptr closname, const_String_or_char_ptr funcname);
 };
 
 /* -----------------------------------------------------------------------
@@ -188,11 +189,12 @@ int CHICKEN::top(Node *n) {
   /* Initialize all of the output files */
   String *outfile = Getattr(n, "outfile");
 
-  f_runtime = NewFile(outfile, "w");
-  if (!f_runtime) {
+  f_begin = NewFile(outfile, "w", SWIG_output_files());
+  if (!f_begin) {
     FileErrorDisplay(outfile);
     SWIG_exit(EXIT_FAILURE);
   }
+  f_runtime = NewString("");
   f_init = NewString("");
   f_header = NewString("");
   f_wrappers = NewString("");
@@ -205,6 +207,7 @@ int CHICKEN::top(Node *n) {
   /* Register file targets with the SWIG file handler */
   Swig_register_filebyname("header", f_header);
   Swig_register_filebyname("wrapper", f_wrappers);
+  Swig_register_filebyname("begin", f_begin);
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("init", f_init);
 
@@ -215,13 +218,15 @@ int CHICKEN::top(Node *n) {
   clos_methods = NewString("");
   scm_const_defs = NewString("");
 
-  Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
-  Swig_banner(f_runtime);
+  Swig_banner(f_begin);
 
-  Printf(f_runtime, "/* Implementation : CHICKEN */\n\n");
+  Printf(f_runtime, "\n");
+  Printf(f_runtime, "#define SWIGCHICKEN\n");
 
   if (no_collection)
     Printf(f_runtime, "#define SWIG_CHICKEN_NO_COLLECTION 1\n");
+
+  Printf(f_runtime, "\n");
 
   /* Set module name */
   module = Swig_copy_string(Char(Getattr(n, "name")));
@@ -251,14 +256,14 @@ int CHICKEN::top(Node *n) {
   Printf(f_init, "#endif\n");
 
   Printf(chicken_filename, "%s%s.scm", SWIG_output_directory(), module);
-  if ((f_scm = NewFile(chicken_filename, "w")) == 0) {
+  if ((f_scm = NewFile(chicken_filename, "w", SWIG_output_files())) == 0) {
     FileErrorDisplay(chicken_filename);
     SWIG_exit(EXIT_FAILURE);
   }
 
-  Printv(f_scm,
-	 ";; -*- buffer-read-only: t -*- vi: set ro:\n",
-	 ";; This file was created automatically by SWIG.\n", ";; Don't modify this file, modify the SWIG interface instead.\n", NIL);
+  Swig_banner_target_lang(f_scm, ";;");
+  Printf(f_scm, "\n");
+
   if (declare_unit)
     Printv(f_scm, "(declare (unit ", scmmodule, "))\n\n", NIL);
   Printv(f_scm, "(declare \n",
@@ -307,15 +312,17 @@ int CHICKEN::top(Node *n) {
   /* Close all of the files */
   Delete(primitive_names);
   Delete(scmmodule);
-  Dump(f_header, f_runtime);
-  Dump(f_wrappers, f_runtime);
-  Wrapper_pretty_print(f_init, f_runtime);
+  Dump(f_runtime, f_begin);
+  Dump(f_header, f_begin);
+  Dump(f_wrappers, f_begin);
+  Wrapper_pretty_print(f_init, f_begin);
   Delete(f_header);
   Delete(f_wrappers);
   Delete(f_sym_size);
   Delete(f_init);
-  Close(f_runtime);
+  Close(f_begin);
   Delete(f_runtime);
+  Delete(f_begin);
   return SWIG_OK;
 }
 
@@ -1233,7 +1240,7 @@ int CHICKEN::importDirective(Node *n) {
   return Language::importDirective(n);
 }
 
-String *CHICKEN::buildClosFunctionCall(List *types, String_or_char *closname, String_or_char *funcname) {
+String *CHICKEN::buildClosFunctionCall(List *types, const_String_or_char_ptr closname, const_String_or_char_ptr funcname) {
   String *method_signature = NewString("");
   String *func_args = NewString("");
   String *func_call = NewString("");
@@ -1507,7 +1514,7 @@ int CHICKEN::validIdentifier(String *s) {
    * If class_name = "" that means the mapping is for a function or
    * variable not attached to any class.
    * ------------------------------------------------------------ */
-String *CHICKEN::chickenNameMapping(String *name, String_or_char *class_name) {
+String *CHICKEN::chickenNameMapping(String *name, const_String_or_char_ptr class_name) {
   String *n = NewString("");
 
   if (Strcmp(class_name, "") == 0) {

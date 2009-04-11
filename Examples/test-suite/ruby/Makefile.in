@@ -10,7 +10,6 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES = \
-	keywords \
 	li_cdata \
 	li_cstring \
 	li_factory \
@@ -20,11 +19,14 @@ CPP_TEST_CASES = \
 	li_std_queue \
 	li_std_set \
 	li_std_stack \
-	naming \
 	primitive_types \
-	std_containers \
-	track_objects \
-	track_objects_directors
+	ruby_keywords \
+	ruby_naming \
+	ruby_track_objects \
+	ruby_track_objects_directors \
+	std_containers
+#	ruby_li_std_speed
+#	stl_new
 
 C_TEST_CASES += \
 	li_cdata \
@@ -39,7 +41,7 @@ SWIGOPT += -w801 -noautorename -features autodoc=4
 # Rules for the different types of tests
 
 # make sure -autorename is true for the naming test
-naming.cpptest: SWIGOPT = -autorename
+ruby_naming.cpptest: SWIGOPT += -autorename
 
 %.cpptest: 
 	$(setup)

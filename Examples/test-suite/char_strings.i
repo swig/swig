@@ -9,6 +9,12 @@ below.
 %warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) global_char_array1;  // Unable to set variable of type char[]
 %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) global_const_char;  // Setting a const char * variable may leak memory.
 
+#ifdef SWIG_ALLEGRO_CL
+%{
+#include <stdio.h>
+%}
+#endif
+
 %{
 #define OTHERLAND_MSG "Little message from the safe world."
 #define CPLUSPLUS_MSG "A message from the deep dark world of C++, where anything is possible."

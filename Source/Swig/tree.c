@@ -229,7 +229,7 @@ Node *copyNode(Node *n) {
  * checkAttribute()
  * ----------------------------------------------------------------------------- */
 
-int checkAttribute(Node *n, const String_or_char *name, const String_or_char *value) {
+int checkAttribute(Node *n, const_String_or_char_ptr name, const_String_or_char_ptr value) {
   String *v = Getattr(n, name);
   return v ? Equal(v, value) : 0;
 }

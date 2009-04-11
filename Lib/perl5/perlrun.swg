@@ -205,12 +205,31 @@ SWIG_Perl_TypeProxyName(const swig_type_info *type) {
   }
 }
 
+/* Identical to SWIG_TypeCheck, except for strcmp comparison */
 SWIGRUNTIME swig_cast_info *
 SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
-  SWIG_TypeCheck_Template(( (!iter->type->clientdata && (strcmp(iter->type->name, c) == 0)) 
-			    || (iter->type->clientdata && (strcmp((char*)iter->type->clientdata, c) == 0))), ty);
+  if (ty) {
+    swig_cast_info *iter = ty->cast;
+    while (iter) {
+      if ( (!iter->type->clientdata && (strcmp(iter->type->name, c) == 0)) ||
+            (iter->type->clientdata && (strcmp((char*)iter->type->clientdata, c) == 0)) ) {
+        if (iter == ty->cast)
+          return iter;
+        /* Move iter to the top of the linked list */
+        iter->prev->next = iter->next;
+        if (iter->next)
+          iter->next->prev = iter->prev;
+        iter->next = ty->cast;
+        iter->prev = 0;
+        if (ty->cast) ty->cast->prev = iter;
+        ty->cast = iter;
+        return iter;
+      }
+      iter = iter->next;
+    }
+  }
+  return 0;
 }
-
 
 /* Function for getting a pointer value */
 

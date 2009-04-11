@@ -10,6 +10,7 @@
 /* chicken.h has to appear first. */
 
 %insert(runtime) %{
+#include <assert.h>
 #include <chicken.h>
 %}
 

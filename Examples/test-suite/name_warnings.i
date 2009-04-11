@@ -58,13 +58,12 @@ namespace std
 
 %template(max_i) max<int>;
 
-
 %inline {
   /* silently rename the parameter names in csharp/java */
 #ifdef SWIGR
   double foo(double inparam, double out) { return 1.0; }
 #else
-  double foo(double in, double out) { return 1.0; }
+  double foo(double abstract, double out) { return 1.0; }
 #endif
   double bar(double native, bool boolean) { return 1.0; }
 }
