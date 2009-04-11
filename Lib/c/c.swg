@@ -43,7 +43,7 @@
 %typemap(ctype) SWIGTYPE * [ANY], SWIGTYPE ** "SwigObj **"
 %typemap(ctype) SWIGTYPE * [ANY][ANY], SWIGTYPE *** "SwigObj ***"
 %typemap(ctype) SWIGTYPE *&      "SwigObj **"
-%typemap(ctype) enum SWIGTYPE    "$1_type"
+%typemap(ctype) enum SWIGTYPE    "int"
 
 %fragment("stdbool_inc", "proxy_header") {#include <stdbool.h>}
 %typemap(ctype, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
@@ -154,7 +154,7 @@
 %typemap(couttype) SWIGTYPE [ANY] "SwigObj **"
 %typemap(couttype) SWIGTYPE * [ANY], SWIGTYPE ** "SwigObj **"
 %typemap(couttype) SWIGTYPE * [ANY][ANY], SWIGTYPE *** "SwigObj ***"
-%typemap(couttype) enum SWIGTYPE "$1_type"
+%typemap(couttype) enum SWIGTYPE "int"
 
 %typemap(couttype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_type"
 %typemap(couttype, fragment="stdbool_inc") bool & "$1_basetype*"

@@ -28,11 +28,8 @@ class C:public Language {
 
   String *empty_string;
   String *int_string;
-  String *enum_values;
   String *create_object;
   String *destroy_object;
-
-  int enum_id;
 
   bool proxy_flag;
   bool except_flag;
@@ -46,10 +43,8 @@ public:
   C() : 
     empty_string(NewString("")),
     int_string(NewString("int")),
-    enum_values(0),
     create_object(0),
     destroy_object(0),
-    enum_id(1),
     proxy_flag(true),
     except_flag(true) {
   }
@@ -258,8 +253,6 @@ public:
       return SWIG_OK;
     String *name = Getattr(n, "name");
     SwigType *type = Getattr(n, "type");
-    if (SwigType_isenum(type))
-      type = make_enum_type(n, type);
     String *type_str = Copy(SwigType_str(type, 0));
     if (SwigType_isarray(type)) {
       String *dims = Strchr(type_str, '[');
@@ -398,35 +391,6 @@ ready:
   }
 
   /* ----------------------------------------------------------------------
-   * make_enum_type()
-   *
-   * given C++ enum type this function returns its C representation
-   * ---------------------------------------------------------------------- */
-
-  String *make_enum_type(Node *n, SwigType *enumtype) {
-    Symtab *symtab = Getattr(n, "sym:symtab");
-    String *unnamed = Getattr(n, "unnamed");
-    String *newtype = 0;
-    String *query = 0;
-
-    if (!unnamed)
-      query = Swig_scopename_last(SwigType_str(enumtype, 0));
-    else {
-      Replaceall(unnamed, "$unnamed", "enum");
-      Replaceall(unnamed, "$", "");
-      query = unnamed;
-    }
-
-    Node *node = Swig_symbol_clookup(query, symtab);
-    if (node)
-      newtype = NewStringf("enum %s", Getattr(node, "name"));
-    else
-      newtype = SwigType_str(enumtype, 0);
-   
-    return newtype;
-  }
-
-  /* ----------------------------------------------------------------------
    * functionWrapper()
    * ---------------------------------------------------------------------- */
    
@@ -533,10 +497,6 @@ ready:
       // set the return type
       if (Cmp(Getattr(n, "c:objstruct"), "1") == 0) {
         Printv(return_type, SwigType_str(type, 0), NIL);
-      }
-      else if (SwigType_isenum(type)) {
-        type = return_type = make_enum_type(n, type);
-        Setattr(n, "type", return_type);
       }
       else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
         String *ctypeout = Getattr(n, "tmap:couttype:out");
@@ -662,18 +622,9 @@ ready:
         String *arg_name = NewString("");
 
         Printf(arg_name, "c%s", lname);
-        bool dont_apply_tmap = false;
 
         // set the appropriate type for parameter
-        if (SwigType_isenum(type)) {
-          c_parm_type = make_enum_type(n, type);
-          if (Getattr(n, "unnamed")) {
-            type = int_string;
-            Setattr(p, "type", type);
-            dont_apply_tmap = true;
-          }
-        }
-        else if ((tm = Getattr(p, "tmap:ctype"))) {
+        if ((tm = Getattr(p, "tmap:ctype"))) {
           Printv(c_parm_type, tm, NIL);
         }
         else {
@@ -699,14 +650,9 @@ ready:
           p = Getattr(p, "tmap:in:next");
         }
         else if ((tm = Getattr(p, "tmap:in"))) {
-          if (dont_apply_tmap) {
-            Printv(wrapper->code, lname, " = ", arg_name, ";\n", NIL);
-          }
-          else {
-            Replaceall(tm, "$input", arg_name);
-            Setattr(p, "emit:input", arg_name);
-            Printf(wrapper->code, "%s\n", tm);
-          }
+          Replaceall(tm, "$input", arg_name);
+          Setattr(p, "emit:input", arg_name);
+          Printf(wrapper->code, "%s\n", tm);
           p = Getattr(p, "tmap:in:next");
         }
         else {
@@ -1321,82 +1267,10 @@ ready:
 
   /* ---------------------------------------------------------------------
    * enumDeclaration()
-   *
-   * for enums declared inside class we create global enum declaration
-   * and change enum parameter and return value names
    * --------------------------------------------------------------------- */
 
   virtual int enumDeclaration(Node *n) {
-    if (!proxy_flag)
-      return SWIG_OK;
-    String *newclassname = Getattr(Swig_methodclass(n), "sym:name");
-    String *name = Getattr(n, "sym:name");
-    String *code = NewString("");
-    String *tdname = Getattr(n, "tdname");
-
-    if (tdname) {
-      Printf(code, "typedef ");
-      name = Getattr(n, "name");
-      String *td_def_name = NewStringf("enum %s", name);
-      SwigType_typedef(td_def_name, name);
-      Delete(td_def_name);
-      SwigType_istypedef(name);
-    }
-
-    Symtab *symtab = Getattr(n, "sym:symtab");
-    String *newname = newclassname ? NewStringf("%s_", newclassname) : Copy(name);
-
-    Printf(code, "enum ");
-
-    if (!name) {
-      String *anonymous_name = NewStringf("enum%d ", enum_id++);
-      Setattr(n, "sym:name", anonymous_name);
-      Setattr(n, "unnamed", "1");
-      name = Getattr(n, "sym:name");
-      Delete(anonymous_name);
-    }
-    if (Delattr(n, "unnamed")) {
-      // unnamed enum declaration: create new symbol
-      Replaceall(name, "$unnamed", "enum");
-      Delitem(name, DOH_END);
-
-      Node *entry = NewHash();
-      set_nodeType(entry, "enum");
-      Setattr(entry, "name", name);
-      Setattr(entry, "sym:name", name);
-      Setattr(entry, "sym:symtab", symtab);
-      Swig_symbol_add(name, entry);
-    } 
-    if (newclassname) {
-      if (symtab) {
-        Node *node = Swig_symbol_clookup(name, symtab);
-        if (node)
-          Append(newname, name);
-      }
-      else
-        Append(newname, "enum");
-
-     Setattr(n, "name", newname);
-    }
-    else {
-      Delete(newname);
-      newname = name;
-    }
-    Printv(code, newname ? newname : "", " {\n$enumvalues\n} ", tdname ? tdname : "", ";\n\n", NIL);
-    emit_children(n);
-
-    if (enum_values) {
-      Replaceall(code, "$enumvalues", enum_values);
-      Append(f_proxy_header, code);
-      if (newclassname)
-        Append(f_header, code);
-      Delete(enum_values);
-      enum_values = 0;
-    }
-
-    Delete(newname);
-    Delete(code);
-    return SWIG_OK;
+    return Language::enumDeclaration(n);
   }
 
   /* ---------------------------------------------------------------------
@@ -1404,55 +1278,14 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int enumvalueDeclaration(Node *n) {
-    String *name = Getattr(n, "sym:name");
-    String *enumvalue = Getattr(n, "enumvalue");
-    String *init = 0;
-    if (enumvalue) {
-      char *value_repr = Char(enumvalue);
-      if (value_repr)
-        if (!isdigit(*value_repr) && *value_repr != '+' && *value_repr != '-') {
-          init = NewStringf(" = '%c'", *value_repr);
-        }
-        else
-          init = NewStringf(" = %s", enumvalue);
-    }
-
-    String *newclassname = Getattr(Swig_methodclass(parentNode(n)), "sym:name");
-    String *newname = NewStringf("%s_%s", newclassname, name);
-    int gencomma = 1;
-    if (!enum_values) {
-      enum_values = NewString("");
-      gencomma = 0;
-    }
-    Printv(enum_values, gencomma ? ",\n  " : "  ", newclassname ? newname : name, enumvalue ? init : "", NIL);
-    Delete(newname);
-    if (init)
-      Delete(init);
-    return SWIG_OK;
-  }
-
-  /* ---------------------------------------------------------------------
-   * typedefHandler()
-   * --------------------------------------------------------------------- */
-
-  virtual int typedefHandler(Node *n) {
-    if (!proxy_flag)
-      return SWIG_OK;
-    String *name = Getattr(n, "sym:name");
-    String *type = Getattr(n, "type");
-    char *c = Char(SwigType_str(type, 0));
-
-    if (!name)
-      name = Getattr(n, "name");
-
-    if (strncmp(c, "enum", 4) != 0) {
-      if (name && type)  {
-        String *code = NewStringf("typedef %s %s;\n\n", name, type);
-        Append(f_proxy_header, code);
-        Delete(code);
-        SwigType_typedef(type, name);
-      }
-    }
+    if (Cmp(Getattr(n, "ismember"), "1") == 0 && Cmp(Getattr(n, "access"), "public") != 0)
+      return SWIG_NOWRAP;
+    Swig_require("enumvalueDeclaration", n, "*value", "?enumvalueex", "?enumvalue", NIL);
+    String *name = Getattr(n, "value");
+    String *value = Getattr(n, "enumvalueex");
+    value = value ? value : Getattr(n, "enumvalue");
+    Printv(f_proxy_header, "#define ", Swig_name_mangle(name), " ", value, "\n", NIL);
+    Swig_restore(n);
     return SWIG_OK;
   }
 
