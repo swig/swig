@@ -19,6 +19,13 @@ CPP_TEST_CASES =    cast_operator \
                     enums \
                     enum_plus
 
+#
+# BROKEN TEST CASES:
+# default_constructor - last case: when using %extend generates 2 ctors wrappers,
+#                       both using new, while the class constructor is private
+#
+CPP_TEST_BROKEN_CXX = default_constructor
+
 include $(srcdir)/../common.mk
 
 INTERFACEDIR = ../../

@@ -9,10 +9,14 @@
 int globalints[] = {100, 200, 300};
 const int constglobalints[] = {400, 500, 600};
 
+class CC {};
+
 struct Bar {
     static int ints[];
+    static CC ccs[];
 };
 int Bar::ints[] = {700, 800, 900};
+CC Bar::ccs[] = {CC(), CC()};
 
 double arr_bool(bool array[], int length)                { double sum=0.0; int i=0; for(; i<length; i++) { sum += array[i]; array[i]=!array[i]; } return sum; }
 double arr_char(char array[], int length)                { double sum=0.0; int i=0; for(; i<length; i++) { sum += array[i]; array[i]*=2; } return sum; }

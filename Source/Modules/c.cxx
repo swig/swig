@@ -7,13 +7,14 @@
  * C language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_c_cxx[] = "$Id$";
+char cvsroot_c_cxx[] = "$Id: c.cxx 11186 2009-04-11 10:46:13Z maciekd $";
 
 #include <ctype.h>
 #include "swigmod.h"
 
 int SwigType_isbuiltin(SwigType *t) {
-  const char* builtins[] = { "void", "short", "int", "long", "char", "float", "double", "bool", 0 };
+  const char* builtins[] = { "void", "short", "int", "long", "char", "float", "double", "bool",
+    "unsigned short", "unsigned int", "unsigned long", "unsigned char", "signed char", 0 };
   int i = 0;
   char *c = Char(t);
   if (!t)
@@ -410,7 +411,9 @@ ready:
    
   virtual int functionWrapper(Node *n) {
     String *name = Getattr(n, "sym:name");
+    String *storage = Getattr(n, "storage");
     SwigType *type = Getattr(n, "type");
+    SwigType *otype = Copy(type);
     SwigType *return_type = NewString("");
     String *wname;
     String *arg_names = NewString("");
@@ -422,7 +425,7 @@ ready:
     SwigType *return_var_type = empty_string;
     int gencomma;
     bool is_void_return = (SwigType_type(type) == T_VOID);
-
+    
     // create new function wrapper object
     Wrapper *wrapper = NewWrapper();
 
@@ -479,18 +482,19 @@ ready:
     else {
       // C++ function wrapper
       
-      // mark the first parameter as object-struct
-      if ((Cmp(Getattr(n, "storage"), "static") != 0) &&
-          (Cmp(Getattr(n, "ismember"), "1") == 0) &&
+      // mark the first parameter as object-struct      
+      if (storage && Cmp(storage, "static") != 0) {
+        if ((Cmp(Getattr(n, "ismember"), "1") == 0) &&
           (Cmp(nodeType(n), "constructor") != 0)) {
-        Setattr(parms, "c:objstruct", "1");
-        if (!Getattr(parms, "lname"))
-          Setattr(parms, "lname", "arg1");
-        SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
-        SwigType_add_pointer(stype);
-        Setattr(parms, "c:stype", stype);
+          Setattr(parms, "c:objstruct", "1");
+          if (!Getattr(parms, "lname"))
+            Setattr(parms, "lname", "arg1");
+          SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
+          SwigType_add_pointer(stype);
+          Setattr(parms, "c:stype", stype);
+        }
       }
-
+      
       // mangle name if function is overloaded
       if (Getattr(n, "sym:overloaded")) {
         if (!Getattr(n, "copy_constructor")) {
@@ -521,82 +525,111 @@ ready:
       else {
         Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
       }
-
+      
       // add variable for holding result of original function 'cppresult'
+      // WARNING: Here we possibly make change to 'type' attribute of the node.
+      // This is done before the standard typemaps are attached, so they will
+      // use the modified type.
+      // In order to refer to the original type use 'otype' variable.
       bool return_object = false;
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
-        SwigType *tdtype = SwigType_typedef_resolve(type);
+        SwigType *tdtype = SwigType_typedef_resolve_all(type);
         if (tdtype)
           type = tdtype;
         
-        if (SwigType_isenum(type)) {
+        if (SwigType_ismemberpointer(type)) {
+          Wrapper_add_local(wrapper, "cppresult", SwigType_str(type, "cppresult"));
+        }
+        else if (SwigType_isenum(type)) {
           Wrapper_add_localv(wrapper, "cppresult", "int", "cppresult", NIL);
         }
-        else if (SwigType_isbuiltin(SwigType_base(type))) {
-          // type is built-in (int, char, double, etc.)
-          if (SwigType_isconst(type))
-            SwigType_del_qualifier(type);
+        else {
+          if (SwigType_isbuiltin(SwigType_base(type))) {
+            // type is built-in (int, char, double, etc.)
+          
+            //Printf(stdout, "BUILTIN %s %s\n", name,  SwigType_str(type, 0));
+          
+            if (SwigType_isconst(type))
+              SwigType_del_qualifier(type);
 
-          if (SwigType_isreference(type)) {
-            if (SwigType_isconst(SwigType_del_reference(type))) {
+            if (SwigType_isreference(type)) {
+              if (SwigType_isconst(SwigType_del_reference(type))) {
+                return_var_type = SwigType_base(type);
+                SwigType_add_qualifier(return_var_type, "const");
+                SwigType_add_pointer(return_var_type);
+              }
+              else {
+                return_var_type = SwigType_base(type);
+                SwigType_add_pointer(return_var_type);
+              }
+              if (SwigType_ispointer(type)) {
+                SwigType_add_pointer(return_var_type);
+              }
+              SwigType_add_reference(type);
+            }
+            else if (SwigType_isarray(type)) {
+            
               return_var_type = SwigType_base(type);
-              SwigType_add_qualifier(return_var_type, "const");
-              SwigType_add_pointer(return_var_type);
+              SwigType *atype = Copy(type);
+              do {
+                SwigType_del_array(atype);
+                SwigType_add_pointer(return_var_type);
+              } while (SwigType_isarray(atype));
+              if (SwigType_ispointer(atype))
+                SwigType_add_pointer(return_var_type);
+              Delete(atype);
             }
             else {
-              return_var_type = SwigType_base(type);
-              SwigType_add_pointer(return_var_type);
+              return_var_type = type;
             }
+          }
+          else {
+            // type is class
+          
+            //Printf(stdout, "CLASS %s %s\n", name,  SwigType_str(type, 0));
             if (SwigType_ispointer(type)) {
-              SwigType_add_pointer(return_var_type);
+              return_var_type = type;
             }
-            SwigType_add_reference(type);
+            else if (SwigType_isreference(type)) {
+              return_var_type = type;
+              SwigType_del_reference(return_var_type);
+                SwigType_add_pointer(return_var_type);
+            }
+            else if (SwigType_isarray(type)) {
+              return_var_type = SwigType_base(type);
+              SwigType *atype = Copy(type);
+              do {
+                SwigType_del_array(atype);
+                SwigType_add_pointer(return_var_type);
+              } while (SwigType_isarray(atype));
+              Delete(atype);
+              //if (Cmp(Getattr(n, "c:retval"), "1"))
+                SwigType_add_pointer(return_var_type);
+            }
+            else {
+              SwigType_add_pointer(type);
+              return_var_type = type;
+            }
+            return_object = true;
           }
-          else if (SwigType_isarray(type)) {
-            
-            return_var_type = SwigType_base(type);
-            SwigType *atype = Copy(type);
-            do {
-              SwigType_del_array(atype);
-              SwigType_add_pointer(return_var_type);
-            } while (SwigType_isarray(atype));
-            if (SwigType_ispointer(atype))
-              SwigType_add_pointer(return_var_type);
-            Delete(atype);
+        
+          // hack for handling const 'cppresult' return values,
+          // including cases like: A const *&
+          SwigType *temp1 = Copy(otype), *temp2 = 0;
+          if (SwigType_isreference(temp1)) {
+            SwigType_del_reference(temp1);
+            temp2 = Copy(temp1);
+            if (SwigType_ispointer(temp2))
+              SwigType_del_pointer(temp2);
           }
-          else {
-            return_var_type = type;
-          }
-
-          Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
-        }
-        else {
-          // type is class
-          if (SwigType_ispointer(type))
-            return_var_type = type;
-          else if (SwigType_isreference(type)) {
-            return_var_type = SwigType_base(type);
-            SwigType_add_pointer(return_var_type);
-            if (SwigType_ispointer(type))
-              SwigType_add_pointer(return_var_type);
-          }
-          else if (SwigType_isarray(type)) {
-            return_var_type = SwigType_base(type);
-            SwigType *atype = Copy(type);
-            do {
-              SwigType_del_array(atype);
-              SwigType_add_pointer(return_var_type);
-            } while (SwigType_isarray(atype));
-            Delete(atype);
-            if (Cmp(Getattr(n, "c:retval"), "1"))
-              SwigType_add_pointer(return_var_type);
-          }
-          else {
-            SwigType_add_pointer(type);
-            return_var_type = type;
-          }
-          Wrapper_add_localv(wrapper, "cppresult", SwigType_str(return_var_type, 0), "cppresult", NIL);
-          return_object = true;
+          String *var_name = SwigType_str(return_var_type, 0);
+          if (SwigType_isconst(otype) || SwigType_isconst(temp1) || SwigType_isconst(temp2))
+            Replaceall(var_name, "const", "");
+          Wrapper_add_localv(wrapper, "cppresult", var_name, "cppresult", NIL);
+          Delete(var_name);
+          Delete(temp1);
+          if (temp2)
+            Delete(temp2);
         }
       }
 
@@ -624,16 +657,27 @@ ready:
       // prepare function definition
       gencomma = 0;
       for (p = parms; p; ) {
+        
+        //Printf(stdout, "TYPE: %s ", SwigType_str(Getattr(p, "type"), 0));
+        //Swig_print_node(p);
 
         while (checkAttribute(p, "tmap:in:numinputs", "0")) {
           p = Getattr(p, "tmap:in:next");
         }
 
         SwigType *type = Getattr(p, "type");
+        if (SwigType_type(type) == T_VOID) {
+            p = nextSibling(p);
+            continue;
+        }
         String *lname = Getattr(p, "lname");
         String *c_parm_type = NewString("");
         String *proxy_parm_type = NewString("");
         String *arg_name = NewString("");
+        
+        SwigType *tdtype = SwigType_typedef_resolve_all(type);
+        if (tdtype)
+          type = tdtype;
 
         Printf(arg_name, "c%s", lname);
 
@@ -644,6 +688,11 @@ ready:
         else {
           Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
         }
+        
+        // hack for handling arrays of objects, as typemap SWIGOBJ *[ANY] 
+        // precedes int *[ANY] for int arrays
+        if (!SwigType_isbuiltin(SwigType_base(type)))
+          Replaceall(c_parm_type, SwigType_base(type), SwigType_isarray(type) ? "SwigObj *" : "SwigObj");
 
         // use proxy-type for parameter if supplied
         String* stype = Getattr(p, "c:stype");
@@ -654,9 +703,9 @@ ready:
           Printv(proxy_parm_type, c_parm_type, NIL);
         }
 
-        Printv(arg_names, gencomma ? ", " : "", Getattr(p, "name"), NIL);
+        Printv(arg_names, gencomma ? ", " : "", arg_name, NIL);
         Printv(wrapper->def, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
-        Printv(proto, gencomma ? ", " : "", proxy_parm_type, " ", Getattr(p, "name"), NIL);
+        Printv(proto, gencomma ? ", " : "", proxy_parm_type, " ", arg_name, NIL);
         gencomma = 1;
  
         // apply typemaps for input parameter
@@ -674,7 +723,6 @@ ready:
           p = nextSibling(p);
         }
         
-
         Delete(arg_name);
         Delete(proxy_parm_type);
         Delete(c_parm_type);
@@ -703,13 +751,10 @@ ready:
         }
       }
 
-      // emit action code
-      String *action = emit_action(n);
-      String *except = Getattr(n, "feature:except");
-      if (Getattr(n, "throws") || except) {
-        if (!except || (Cmp(except, "0") != 0))
-          Printf(action, "if (SWIG_exc.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
-      }
+      // create action code
+      String *action = Getattr(n, "wrap:action");
+      if (!action)
+        action = NewString("");
       
       // handle special cases of cpp return result
       if (Cmp(nodeType(n), "constructor") != 0) { 
@@ -717,19 +762,32 @@ ready:
           // returning enum value
           Replace(action, "result =", "cppresult = (int)", DOH_REPLACE_FIRST);
         }
-        else if (return_object && Getattr(n, "c:retval") && !SwigType_isarray(type)) {
+        else if (return_object && Getattr(n, "c:retval") && !SwigType_isarray(type) 
+          && Cmp(Getattr(n, "storage"), "static") != 0) {
           // returning object by value
           String *str = SwigType_str(SwigType_add_reference(SwigType_base(type)), "_result_ref");
           String *lstr = SwigType_lstr(type, 0);
-          Replace(action, "result =", NewStringf("const %s = ", str), DOH_REPLACE_FIRST); 
-          Printf(action, "cppresult = (%s) &_result_ref;\n", lstr);
+          if (Cmp(Getattr(n, "kind"), "variable") == 0) {
+            Delete(action);
+            action = NewStringf("const %s = %s;\n", str, Swig_cmemberget_call(Getattr(n, "name"), type, 0, 0));
+          }
+          else {
+            String *call_str = NewStringf("const %s = %s", str, 
+              SwigType_ispointer(SwigType_typedef_resolve_all(otype)) ? "*" : "");
+            Replace(action, "result =", call_str, DOH_REPLACE_FIRST);
+            Delete(call_str);
+          }
+          Printf(action, "\ncppresult = (%s) &_result_ref;\n", lstr);
           Delete(str);
           Delete(lstr);
         }
         else
           Replace(action, "result =", "cppresult = ", DOH_REPLACE_FIRST);
       }
-
+      
+      // prepare action code to use, e.g. insert try-catch blocks
+      action = emit_action(n);
+      
       // emit output typemap if needed
       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
         if ((tm = Swig_typemap_lookup_out("out", n, "cppresult", wrapper, action))) {
@@ -746,6 +804,12 @@ ready:
         Append(wrapper->code, action);
       }
 
+      String *except = Getattr(n, "feature:except");
+      if (Getattr(n, "throws") || except) {
+        if (!except || (Cmp(except, "0") != 0))
+          Printf(wrapper->code, "if (SWIG_exc.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
+      }
+      
       // insert cleanup code
       for (p = parms; p; ) {
         if ((tm = Getattr(p, "tmap:freearg"))) {
@@ -796,6 +860,7 @@ ready:
     Delete(arg_names);
     Delete(wname);
     Delete(return_type);
+    Delete(otype);
     DelWrapper(wrapper);
     return SWIG_OK;
   }
@@ -923,7 +988,7 @@ ready:
   virtual int staticmemberfunctionHandler(Node *n) {
     SwigType *type = Getattr(n, "type");
     SwigType *tdtype;
-    tdtype = SwigType_typedef_resolve(type);
+    tdtype = SwigType_typedef_resolve_all(type);
     if (tdtype)
       type = tdtype;
     if (type) {
@@ -940,7 +1005,7 @@ ready:
   virtual int memberfunctionHandler(Node *n) {
     SwigType *type = Getattr(n, "type");
     SwigType *tdtype;
-    tdtype = SwigType_typedef_resolve(type);
+    tdtype = SwigType_typedef_resolve_all(type);
     if (tdtype)
       type = tdtype;
     if (type) {
@@ -950,114 +1015,32 @@ ready:
     return Language::memberfunctionHandler(n);
   }
 
-  /* --------------------------------------------------------------------
-   * wrap_get_variable()
-   * --------------------------------------------------------------------- */
-
-  void wrap_get_variable(Node *n, String *classname, String *newclassname, String *name, String *code) {
-    // modify method name
-    String *new_name = NewString("");
-    Printv(new_name, newclassname, "_", Swig_name_get(name), NIL);
-    Setattr(n, "sym:name", new_name);
-
-    // generate action code
-    String *action = NewString("");
-    if (!code) {
-      code = NewString("");
-      Printv(code, "result = ((", classname, "*) arg1->obj)->", name, ";\n", NIL);
-    }
-    Append(action, code);
-
-    Setattr(n, "wrap:action", action);
-
-    functionWrapper(n);
-
-    Delete(code);     // we are deallocating it, regardless of where it was created
-    Delete(action);
-    Delete(new_name);
-  }
-
-  /* --------------------------------------------------------------------
-   * wrap_set_variable()
-   * --------------------------------------------------------------------- */
-
-  void wrap_set_variable(Node *n, String *classname, String *newclassname, String *name, String *code) {
-    // modify method name
-    String *new_name = NewString("");
-    Printv(new_name, newclassname, "_", Swig_name_set(name), NIL);
-    Setattr(n, "sym:name", new_name);
-
-    // generate action code
-    String *action = NewString("");
-    if (!code) {
-      code = NewString("");
-      Printv(code, "((", classname, "*) arg1->obj)->", name, " = arg2;\n", NIL);
-    }
-    Append(action, code);
-    Setattr(n, "wrap:action", action);
-
-    functionWrapper(n);
-
-    Delete(code);     // see wrap_get_variable()
-    Delete(action);
-    Delete(new_name);
-  }
 
   /* ---------------------------------------------------------------------
    * staticmembervariableHandler()
-   * TODO: refactor
    * --------------------------------------------------------------------- */
 
   virtual int staticmembervariableHandler(Node *n) {
-    Node *klass = Swig_methodclass(n);
-    String *name = Getattr(n, "sym:name");
-    SwigType *type = Copy(Getattr(n, "type"));
-    String *classname = Getattr(klass, "classtype");
-    String *newclassname = Getattr(klass, "sym:name");
-    String *new_name = NewString("");
-    String *code = NewString("");
-
-    // create code for 'get' function
-    Printv(code, "result = $mod", classname, "::", name, ";\n", NIL);
-    if (!SwigType_isbuiltin(SwigType_base(type)) && !SwigType_ispointer(type))
-      Replaceall(code, "$mod", "&");
-    else
-      Replaceall(code, "$mod", "");
-    wrap_get_variable(n, classname, newclassname, name, code);
-
-    // create parameter for 'set' function
-    Parm *p = NewParm(Getattr(n, "type"), "value");
-    Setattr(p, "lname", "arg1");
-    Setattr(n, "parms", p);
-   
-    if (!SwigType_isconst(type)) {
-      // create code for 'set' function
-      if (SwigType_isarray(Getattr(n, "type"))) {
-        code = NewString("");
-        Printf(code, "if (arg2) {\n");
-        Printf(code, "int i;\n");
-        Printv(code, "for (i = 0; i < ", SwigType_array_getdim(Getattr(n, "type"), 0), "; ++i) {\n", NIL);
-        Printv(code, classname, "::", name, "[i] = arg2[i];\n", NIL);
-        Printf(code, "}\n}\n");
-      }
-      else if (SwigType_isenum(Getattr(n, "type")) && Getattr(n, "unnamed")) {
-        code = NewString("* (int *) &");
-      }
-      else 
-        code = NewString("");
-      Printv(code, classname, "::", name, " = $mod arg1;\nresult = arg1;\n", NIL);
-      if (!SwigType_isbuiltin(SwigType_base(type)) && !SwigType_ispointer(type))
-        Replaceall(code, "$mod", "*");
-      else
-        Replaceall(code, "$mod", "");
-      wrap_set_variable(n, classname, newclassname, name, code);
+    SwigType *type = Getattr(n, "type");
+    SwigType *tdtype = SwigType_typedef_resolve_all(type);
+    if (tdtype) {
+      type = tdtype;
+      Setattr(n, "type", type);
     }
-
-    Setattr(n, "type", "void");
-
-    Delete(new_name);
+    SwigType *btype = SwigType_base(type);
+    if (SwigType_isarray(type) && !SwigType_isbuiltin(btype)) {
+      // this hack applies to member objects array (not ptrs.)
+      SwigType_add_pointer(btype);
+      SwigType_add_array(btype, NewStringf("%s", SwigType_array_getdim(type, 0)));
+      Setattr(n, "type", btype);
+    }
+    if (type) {
+      if (!SwigType_ispointer(type) && !SwigType_isreference(type))
+        Setattr(n, "c:retval", "1");
+    }
     Delete(type);
-    return SWIG_OK;
+    Delete(btype);
+    return Language::staticmembervariableHandler(n);
   }
 
   /* ---------------------------------------------------------------------
@@ -1066,6 +1049,11 @@ ready:
 
   virtual int membervariableHandler(Node *n) {
     SwigType *type = Getattr(n, "type");
+    SwigType *tdtype = SwigType_typedef_resolve_all(type);
+    if (tdtype) {
+      type = tdtype;
+      Setattr(n, "type", type);
+    }
     SwigType *btype = SwigType_base(type);
     if (SwigType_isarray(type) && !SwigType_isbuiltin(btype)) {
       // this hack applies to member objects array (not ptrs.)
@@ -1073,6 +1061,12 @@ ready:
       SwigType_add_array(btype, NewStringf("%s", SwigType_array_getdim(type, 0)));
       Setattr(n, "type", btype);
     }
+    if (type) {
+      if (!SwigType_ispointer(type) && !SwigType_isreference(type))
+        Setattr(n, "c:retval", "1");
+    }
+    Delete(type);
+    Delete(btype);
     return Language::membervariableHandler(n);
   }
 
@@ -1093,17 +1087,23 @@ ready:
     if (baselist) {
       Iterator it;
       for (it = First(baselist); it.item; it = Next(it)) {
-        Printf(s, "result->typenames[%d] = Swig_typename_%s;\n", i++, Getattr(it.item, "sym:name"));
+        String *kname = Getattr(it.item, "sym:name");
+        if (kname)
+          Printf(s, "result->typenames[%d] = Swig_typename_%s;\n", i++, kname);
       }
     }
     Printf(s, "result->typenames[%d] = 0;\n", i);
     Printf(s, "}\n");
+  }
 
-    s = destroy_object;
-
-    Printv(s, "if (strcmp(object->typenames[0], \"", classname, "\") == 0) {\n", NIL);
-    Printv(s, "if (object->obj)\ndelete (", classname, " *) (object->obj);\n", NIL);
-    Printf(s, "}\n");
+  void add_to_destroy_object(Node *n, String *classname) {
+    String *s = destroy_object;
+    String *access = Getattr(n, "access");
+    if (access && Cmp(access, "private") != 0) {
+      Printv(s, "if (strcmp(object->typenames[0], \"", classname, "\") == 0) {\n", NIL);
+      Printv(s, "if (object->obj)\ndelete (", classname, " *) (object->obj);\n", NIL);
+      Printf(s, "}\n");
+    }
   }
 
   /* ---------------------------------------------------------------------
@@ -1111,6 +1111,9 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int constructorHandler(Node *n) {
+    String *access = Getattr(n, "access");
+    if (Cmp(access, "private") == 0)
+      return SWIG_NOWRAP;
     if (Getattr(n, "copy_constructor"))
       return copyconstructorHandler(n);
 
@@ -1124,7 +1127,6 @@ ready:
     String *constr_name = NewString("");
     String *arg_lnames = NewString("");
     ParmList *parms = Getattr(n, "parms");
-
 
     // prepare argument names
     Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
@@ -1197,7 +1199,7 @@ ready:
     Setattr(n, "c:stype", stype);
 
     // modify the constructor name
-    constr_name = Swig_name_construct(newclassname);
+    constr_name = Swig_name_copyconstructor(newclassname);
     Setattr(n, "name", constr_name);
     Setattr(n, "sym:name", constr_name);
 
@@ -1259,6 +1261,7 @@ ready:
 
     // create action code
     if (except_flag) {
+      add_to_destroy_object(n, classname);
       Printf(code, "SWIG_remove_registry_entry(carg1);\n");
       Printf(code, "SWIG_destroy_object(carg1);");
     }

@@ -1,7 +1,7 @@
 /* File : example.i */
 %module dynamic_cast
 
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGC)
 %apply SWIGTYPE *DYNAMIC { Foo * };
 #endif
 
@@ -17,14 +17,14 @@ public:
 };
 %}
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGC)
 %typemap(out) Foo *blah {
     Bar *downcast = dynamic_cast<Bar *>($1);
     *(Bar **)&$result = downcast;
 }
 #endif
 
-#if defined(SWIGJAVA)
+#if defined(SWIGJAVA) 
 %typemap(javaout) Foo * {
     return new Bar($jnicall, $owner);
   }
@@ -54,7 +54,7 @@ char *do_test(Bar *b) {
 }
 %}
 
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGC)
 // A general purpose function for dynamic casting of a Foo *
 %{
 static swig_type_info *

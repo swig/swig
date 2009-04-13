@@ -11,6 +11,7 @@ class string;
 
 %typemap(ctype) string "char *"
 %typemap(ctype) string * "char *"
+%typemap(ctype) string & "char *"
 %typemap(ctype) const string & "char *"
 %typemap(couttype) string  "char *"
 %typemap(couttype) const string & "char *"
@@ -25,7 +26,7 @@ class string;
   }
 }
 
-%typemap(in) const string &, string * {
+%typemap(in) const string &, string *, string & {
   if ($input) {
     $1 = new std::string($input);
   }
