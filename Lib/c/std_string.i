@@ -16,6 +16,8 @@ class string;
 %typemap(couttype) string  "char *"
 %typemap(couttype) const string & "char *"
 %typemap(couttype) string * "char *"
+%typemap(cppouttype, retobj="1") string "std::string*"
+%typemap(cppouttype) const string &, string * "std::string*"
 
 %typemap(in) string {
   if ($input) {
@@ -50,4 +52,3 @@ class string;
 }
 
 }
-

@@ -10,23 +10,29 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@/..
 top_builddir = @top_builddir@/..
 
-C_TEST_CASES =
-
-CPP_TEST_CASES =    cast_operator \
-                    char_strings \
-                    exception_order \
-                    exception_partial_info \
-                    enums \
-                    enum_plus
+include $(srcdir)/../common.mk
 
 #
 # BROKEN TEST CASES:
-# default_constructor - last case: when using %extend generates 2 ctors wrappers,
+# default_constructor - last case fail: using %extend generates 2 ctors wrappers,
 #                       both using new, while the class constructor is private
+# extend*             - directive %extend is not fully supported yet
+# li*                 - not supported at all yet
+# long_long_apply     - no INPUT, OUTPUT, INOUT typemaps defined
+# template*           - not fully supported yet
 #
-CPP_TEST_BROKEN_CXX = default_constructor
 
-include $(srcdir)/../common.mk
+C_CPP_TEST_BROKEN = \
+    default_constructor \
+    extend \
+    extend_default \
+    extend_placement \
+    li_attribute \
+    li_boost_shared_ptr \
+    li_carrays \
+    li_cdata \
+    li_windows \
+    long_long_apply
 
 INTERFACEDIR = ../../
 

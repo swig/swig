@@ -73,6 +73,7 @@ INTERFACEDIR = ../
 
 # Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_BROKEN += \
+    abstract_access \
 	constants \
 	cpp_broken \
 	exception_partial_info \

@@ -41,6 +41,7 @@ SWIGINTERN int SWIG_registry_size = SWIG_REGISTRY_INIT;
 
 SWIGINTERN SwigObj *SWIG_create_object(const char *classname);
 SWIGINTERN void SWIG_destroy_object(SwigObj *object);
+SWIGINTERN void SWIG_free_SwigObj(SwigObj *object);
 
 SWIGEXPORTC struct SWIG_exc_struct {
   int code;
@@ -97,6 +98,15 @@ SWIGINTERN void SWIG_remove_registry_entry(SwigObj *entry) {
   }
 }
 
+SWIGINTERN void SWIG_free_SwigObj(SwigObj *object) {
+  if (object) {
+    if (object->typenames)
+      free(object->typenames);
+    free(object);
+    object = (SwigObj *) 0;
+  }
+}
+
 SWIGINTERN void SWIG_cleanup() {
   if (SWIG_rt_stack_base)
     free(SWIG_rt_stack_base);
@@ -111,7 +121,7 @@ SWIGINTERN void SWIG_cleanup() {
   if (SWIG_registry_base) {
     for (i = 0; i < SWIG_registry_size; ++i) {
       if (*(SWIG_registry_base + i)) {
-        SWIG_destroy_object(*(SWIG_registry_base + i));
+        SWIG_free_SwigObj(*(SWIG_registry_base + i));
         *(SWIG_registry_base + i)  = 0;
       }
     }
@@ -229,11 +239,6 @@ SWIGINTERN void SWIG_runtime_init() {
 #include <setjmp.h>
 
 SWIGIMPORT jmp_buf SWIG_rt_env;
-
-typedef struct {
-  void *obj;
-  const char **typenames;
-} SwigObj;
 
 SWIGIMPORT struct SWIG_exc_struct {
   int code;

@@ -27,6 +27,19 @@ std::string ExceptionVars(double i, double j) {
 %}
 
 %rename(ExceptionVars) Space::exceptionvars;
+
+#ifdef SWIGC
+
+%exception Space::exceptionvars %{
+  $action
+  result = (char*)$symname(1.0,2.0).c_str(); // Should expand to ExceptionVars
+  result = (char*)$name(3.0,4.0).c_str(); // Should expand to Space::exceptionvars
+  // above will not compile if the variables are not expanded properly
+  result = "$action  $name  $symname  $overname $wrapname";
+%}
+
+#else
+
 %exception Space::exceptionvars %{
   $action
   result = $symname(1.0,2.0); // Should expand to ExceptionVars
@@ -34,6 +47,9 @@ std::string ExceptionVars(double i, double j) {
   // above will not compile if the variables are not expanded properly
   result = "$action  $name  $symname  $overname $wrapname";
 %}
+
+#endif
+
 %inline %{
 namespace Space {
 std::string exceptionvars(double i, double j) {
@@ -42,6 +58,20 @@ std::string exceptionvars(double i, double j) {
 }
 %}
 
+
+#ifdef SWIGC
+
+%exception Space::overloadedmethod %{
+  $action
+  result = (char*)Space::$symname(1.0).c_str();
+  result = (char*)$name().c_str();
+  result = (char*)$name(2.0).c_str();
+  // above will not compile if the variables are not expanded properly
+  result = "$action  $name  $symname  $overname $wrapname";
+  // $decl
+%}
+
+#else
 
 %exception Space::overloadedmethod %{
   $action
@@ -52,6 +82,8 @@ std::string exceptionvars(double i, double j) {
   result = "$action  $name  $symname  $overname $wrapname";
   // $decl
 %}
+
+#endif
 
 %inline %{
 namespace Space {
