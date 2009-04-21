@@ -192,6 +192,10 @@ OUTPUT_TYPEMAP(double,             double,               double,   DOUBLE_PTR)
 
 #undef OUTPUT_TYPEMAP
 
+%typemap(in) bool *OUTPUT, bool &OUTPUT
+%{ *$input = 0; 
+   $1 = ($1_ltype)$input; %}
+
 
 /*
 INOUT typemaps
