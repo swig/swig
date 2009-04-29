@@ -1236,12 +1236,9 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
     }
   } else {
 #if PY_VERSION_HEX >= 0x03000000
-    fprintf(stderr, "<<<<");
     inst = PyBaseObject_Type.tp_new((PyTypeObject*) data->newargs, Py_None, Py_None);
     PyObject_SetAttr(inst, SWIG_This(), swig_this);
     Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
-    fprintf(stderr, ">>>>");
-    
 #else
     PyObject *dict = PyDict_New();
     PyDict_SetItem(dict, SWIG_This(), swig_this);
