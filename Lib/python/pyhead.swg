@@ -31,7 +31,7 @@ SWIG_Python_str_AsChar(PyObject *str)
 #if PY_VERSION_HEX >= 0x03000000
   char *cstr;
   char *newstr;
-  int len;
+  Py_ssize_t len;
   str = PyUnicode_AsUTF8String(str);
   PyBytes_AsStringAndSize(str, &cstr, &len);
   newstr = (char *) malloc(len+1);
