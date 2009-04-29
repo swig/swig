@@ -1,4 +1,4 @@
-/* Compatibility marcos for Python 3 */
+/* Compatibility macros for Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
 
 #define PyClass_Check(obj) PyObject_IsInstance(obj, (PyObject *)&PyType_Type)

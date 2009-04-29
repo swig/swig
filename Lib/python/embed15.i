@@ -9,7 +9,7 @@
  * earlier versions.
  *
  * This file makes it possible to extend Python and all of its
- * built-in functions without having to hack it's setup script.
+ * built-in functions without having to hack its setup script.
  * ----------------------------------------------------------------------------- */
 
 #ifdef AUTODOC

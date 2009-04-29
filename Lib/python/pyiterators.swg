@@ -9,7 +9,7 @@
  * Users can derive form the SwigPyIterator to implement their
  * own iterators. As an example (real one since we use it for STL/STD
  * containers), the template SwigPyIterator_T does the
- * implementation for genereic C++ iterators.
+ * implementation for generic C++ iterators.
  * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>

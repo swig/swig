@@ -152,7 +152,7 @@ swig_varlink_type(void) {
       (char *)"swigvarlink",              /* Type name (tp_name) */
       sizeof(swig_varlinkobject),         /* Basic size (tp_basicsize) */
       0,                                  /* Itemsize (tp_itemsize) */
-      (destructor) swig_varlink_dealloc,   /* Deallocator (tp_dealloc) */ 
+      (destructor) swig_varlink_dealloc,  /* Deallocator (tp_dealloc) */ 
       (printfunc) swig_varlink_print,     /* Print (tp_print) */
       (getattrfunc) swig_varlink_getattr, /* get attr (tp_getattr) */
       (setattrfunc) swig_varlink_setattr, /* Set attr (tp_setattr) */
@@ -163,7 +163,7 @@ swig_varlink_type(void) {
       0,                                  /* tp_as_mapping */
       0,                                  /* tp_hash */
       0,                                  /* tp_call */
-      (reprfunc)swig_varlink_str,        /* tp_str */
+      (reprfunc) swig_varlink_str,        /* tp_str */
       0,                                  /* tp_getattro */
       0,                                  /* tp_setattro */
       0,                                  /* tp_as_buffer */
@@ -184,7 +184,7 @@ swig_varlink_type(void) {
 #endif
     };
     varlink_type = tmp;
-    /* for Python 3 we already assigned the ob_type in PyVarObject_HEAD_INIT() */
+    /* for Python 3 we already assigned ob_type in PyVarObject_HEAD_INIT() */
 #if PY_VERSION_HEX < 0x03000000
     varlink_type.ob_type = &PyType_Type;
 #endif

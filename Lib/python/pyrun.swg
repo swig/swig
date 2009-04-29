@@ -440,7 +440,7 @@ SwigPyObject_compare(SwigPyObject *v, SwigPyObject *w)
   return (i < j) ? -1 : ((i > j) ? 1 : 0);
 }
 
-/* Added for Python 3.x, whould it also useful for Python 2.x? */
+/* Added for Python 3.x, would it also be useful for Python 2.x? */
 SWIGRUNTIME PyObject*
 SwigPyObject_richcompare(SwigPyObject *v, SwigPyObject *w, int op)
 {
@@ -488,7 +488,7 @@ SwigPyObject_dealloc(PyObject *v)
       /* destroy is always a VARARGS method */
       PyObject *res;
       if (data->delargs) {
-	/* we need to create a temporal object to carry the destroy operation */
+	/* we need to create a temporary object to carry the destroy operation */
 	PyObject *tmp = SwigPyObject_New(sobj->ptr, ty, 0);
 	res = SWIG_Python_CallFunctor(destroy, tmp);
 	Py_DECREF(tmp);
@@ -689,7 +689,7 @@ _PySwigObject_type(void) {
   if (!type_init) {
     const PyTypeObject tmp
       = {
-	/* PyOjbect header changed in Python 3 */
+	/* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
 	PyVarObject_HEAD_INIT(&PyType_Type, 0)
 #else    
@@ -758,7 +758,7 @@ _PySwigObject_type(void) {
 #endif
       };
     swigpyobject_type = tmp;
-    /* for Python 3 we already assigned the ob_type in PyVarObject_HEAD_INIT() */
+    /* for Python 3 we already assigned ob_type in PyVarObject_HEAD_INIT() */
 #if PY_VERSION_HEX < 0x03000000
     swigpyobject_type.ob_type = &PyType_Type;
 #endif
@@ -1206,7 +1206,7 @@ SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *t
  * ----------------------------------------------------------------------------- */
 
 /*
-  Create a new instance object, whitout calling __init__, and set the
+  Create a new instance object, without calling __init__, and set the
   'this' attribute.
 */
 

@@ -1,11 +1,11 @@
 //
-// embed15.i
+// embed.i
 // SWIG file embedding the Python interpreter in something else.
 // This file is based on Python-1.5.  It will not work with
 // earlier versions.
 //
 // This file makes it possible to extend Python and all of its
-// built-in functions without having to hack it's setup script.
+// built-in functions without having to hack its setup script.
 //
 
 
