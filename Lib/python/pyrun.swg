@@ -708,7 +708,7 @@ _PySwigObject_type(void) {
 #endif
 	(setattrfunc)0,			    /* tp_setattr */ 
 #if PY_VERSION_HEX >= 0x03000000
-    0, /* tp_reserved in 3.0.1 */
+    0, /* tp_reserved in 3.0.1, tp_compare in 3.0.0 but not used */
 #else
 	(cmpfunc)SwigPyObject_compare,	    /* tp_compare */
 #endif
@@ -1236,9 +1236,12 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
     }
   } else {
 #if PY_VERSION_HEX >= 0x03000000
+    fprintf(stderr, "<<<<");
     inst = PyBaseObject_Type.tp_new((PyTypeObject*) data->newargs, Py_None, Py_None);
     PyObject_SetAttr(inst, SWIG_This(), swig_this);
     Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+    fprintf(stderr, ">>>>");
+    
 #else
     PyObject *dict = PyDict_New();
     PyDict_SetItem(dict, SWIG_This(), swig_this);
