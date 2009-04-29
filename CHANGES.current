@@ -1,6 +1,14 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-04-29: olly
+	    [Python] Don't attempt to acquire the GIL in situations where we
+	    know that it will already be locked.  This avoids some dead-locks
+	    with mod_python (due to mod_python bugs which are apparently
+	    unlikely to ever be fixed), and results in smaller wrappers which
+	    run a little faster (in tests with Xapian on x86-64 Ubuntu 9.04,
+	    the stripped wrapper library was 11% smaller and ran 2.7% faster).
+
 2009-04-21: wsfulton
 	    [C#] Fix #2753469 - bool &OUTPUT and bool *OUTPUT typemaps initialisation.
 
