@@ -19,7 +19,8 @@
  *   %template(VectKlass) std::vector<SomeNamespace::Klass>;
  *
  * Note that IEnumerable<> is implemented in the proxy class which is useful for using LINQ with 
- * C++ std::vector wrappers.
+ * C++ std::vector wrappers. IEnumerable<> is replaced by IList<> wherever we are confident that the
+ * required C++ operator== is available for correct compilation.
  *
  * Warning: heavy macro usage in this file. Use swig -E to get a sane view on the real file contents!
  * ----------------------------------------------------------------------------- */
@@ -31,8 +32,8 @@
 
 // MACRO for use within the std::vector class body
 // CSTYPE and CTYPE respectively correspond to the types in the cstype and ctype typemaps
-%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CONST_REFERENCE_TYPE, CSTYPE, CTYPE...)
-%typemap(csinterfaces) std::vector<CTYPE > "IDisposable, System.Collections.IEnumerable\n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.IEnumerable<CSTYPE>\n#endif\n";
+%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE_TYPE, CSTYPE, CTYPE...)
+%typemap(csinterfaces) std::vector<CTYPE > "IDisposable, System.Collections.IEnumerable\n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.CSINTERFACE<CSTYPE>\n#endif\n";
 %typemap(cscode) std::vector<CTYPE > %{
   public $csclassname(System.Collections.ICollection c) : this() {
     if (c == null)
@@ -325,9 +326,8 @@
 %enddef
 
 %define SWIG_STD_VECTOR_MINIMUM(CSTYPE, CTYPE...)
-SWIG_STD_VECTOR_MINIMUM_INTERNAL(const value_type&, CSTYPE, CTYPE)
+SWIG_STD_VECTOR_MINIMUM_INTERNAL(IEnumerable, const value_type&, CSTYPE, CTYPE)
 %enddef
-
 
 // Extra methods added to the collection class if operator== is defined for the class being wrapped
 // CSTYPE and CTYPE respectively correspond to the types in the cstype and ctype typemaps
@@ -367,7 +367,7 @@ SWIG_STD_VECTOR_MINIMUM_INTERNAL(const value_type&, CSTYPE, CTYPE)
 %define SWIG_STD_VECTOR_SPECIALIZE(CSTYPE, CTYPE...)
 namespace std {
   template<> class vector<CTYPE > {
-    SWIG_STD_VECTOR_MINIMUM(CSTYPE, CTYPE)
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, const value_type&, CSTYPE, CTYPE)
     SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CSTYPE, CTYPE)
   };
 }
@@ -409,7 +409,7 @@ namespace std {
   };
   // bool is a bit different in the C++ standard
   template<> class vector<bool> {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(bool, bool, bool)
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, bool, bool, bool)
     SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(bool, bool)
   };
 }
