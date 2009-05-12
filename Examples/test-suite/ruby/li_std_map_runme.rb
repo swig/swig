@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #
-# Tests for std::map and std::multimap
+# Tests for std::map
 #
 # 
 # 
@@ -41,15 +41,6 @@ m["foo"] = "hello"
 pm = Li_std_map::LanguageMap.new
 m.each_key { |k| pm[k] = m[k] }
 m.each_key { |k| swig_assert_equal("pm[#{k.inspect}]", "m[#{k.inspect}]", binding) }
-
-m = Li_std_map::MmapA.new
-m[0] = a1
-m[0] = a2
-m[0].size == 2
-m.respond_to?(:each) == true
-m.respond_to?(:each_key) == true
-m.respond_to?(:each_value) == true
-m.values_at(0)[0] == m[0]
 EOF
 
 mii = Li_std_map::Mapii.new

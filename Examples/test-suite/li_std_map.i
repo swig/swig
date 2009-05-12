@@ -16,11 +16,11 @@
  */
 
 %module("templatereduce") li_std_map
+
 %feature("trackobjects");
 
 %include std_pair.i
 %include std_map.i
-%include std_multimap.i
 
 %inline %{
 struct A{
@@ -39,7 +39,6 @@ namespace std
   %template(pairAA) pair<int, A>;
   %template(pairA) pair<int, A*>;
   %template(mapA) map<int, A*>;
-  %template(mmapA) multimap<int, A*>;
 
   %template(paircA1) pair<const int, A*>;
   %template(paircA2) pair<const int, const A*>;
