@@ -5,8 +5,6 @@
 import example 
 
 
-# CEO class, which overrides Employee::getPosition().
-
 class PyCallback(example.Callback):
 	def __init__(self):
 		example.Callback.__init__(self)
