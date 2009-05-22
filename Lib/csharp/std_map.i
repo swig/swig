@@ -56,28 +56,28 @@
     void clear();
     %extend {
       T get(const K& key) throw (std::out_of_range) {
-        std::map<K,T >::iterator i = self->find(key);
-        if (i != self->end())
+        std::map<K,T >::iterator i = $self->find(key);
+        if (i != $self->end())
           return i->second;
         else
           throw std::out_of_range("key not found");
       }
 
       void set(const K& key, const T& x) {
-        (*self)[key] = x;
+        (*$self)[key] = x;
       }
 
       void del(const K& key) throw (std::out_of_range) {
-        std::map<K,T >::iterator i = self->find(key);
-        if (i != self->end())
-          self->erase(i);
+        std::map<K,T >::iterator i = $self->find(key);
+        if (i != $self->end())
+          $self->erase(i);
         else
           throw std::out_of_range("key not found");
       }
 
       bool has_key(const K& key) {
-        std::map<K,T >::iterator i = self->find(key);
-        return i != self->end();
+        std::map<K,T >::iterator i = $self->find(key);
+        return i != $self->end();
       }
     }
 
@@ -288,15 +288,15 @@
     void clear();
     %extend {
       T getitem(K key) throw (std::out_of_range) {
-        std::map<K,T >::iterator i = self->find(key);
-        if (i != self->end())
+        std::map<K,T >::iterator i = $self->find(key);
+        if (i != $self->end())
           return i->second;
         else
           throw std::out_of_range("key not found");
       }
 
       void setitem(K key, T x) {
-        (*self)[key] = x;
+        (*$self)[key] = x;
       }
 
       // create_iterator_begin() and get_next_key() work together to provide a collection of keys to C#
@@ -304,12 +304,12 @@
       %apply void *VOID_INT_PTR { std::map<K, T >::iterator *swigiterator }
 
       std::map<K, T >::iterator *create_iterator_begin() {
-        return new std::map<K, T >::iterator(self->begin());
+        return new std::map<K, T >::iterator($self->begin());
       }
 
       K get_next_key(std::map<K, T >::iterator *swigiterator) throw (std::out_of_range) {
         std::map<K, T >::iterator iter = *swigiterator;
-        if (iter == self->end()) {
+        if (iter == $self->end()) {
           delete swigiterator;
           throw std::out_of_range("no more map elements");
         }
@@ -318,25 +318,25 @@
       }
 
       bool ContainsKey(K key) {
-        std::map<K, T >::iterator iter = self->find(key);
-        if (iter != self->end()) {
+        std::map<K, T >::iterator iter = $self->find(key);
+        if (iter != $self->end()) {
           return true;
         }
         return false;
       }
 
       void Add(K key, T val) throw (std::out_of_range) {
-        std::map<K, T >::iterator iter = self->find(key);
-        if (iter != self->end()) {
+        std::map<K, T >::iterator iter = $self->find(key);
+        if (iter != $self->end()) {
           throw std::out_of_range("key already exists");
         }
-        self->insert(std::pair<K, T >(key, val));
+        $self->insert(std::pair<K, T >(key, val));
       }
 
       bool Remove(K key) {
-        std::map<K, T >::iterator iter = self->find(key);
-        if (iter != self->end()) {
-          self->erase(iter);
+        std::map<K, T >::iterator iter = $self->find(key);
+        if (iter != $self->end()) {
+          $self->erase(iter);
           return true;
         }                
         return false;

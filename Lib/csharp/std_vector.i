@@ -238,26 +238,26 @@
        return pv;
       }
       CTYPE getitemcopy(int index) throw (std::out_of_range) {
-        if (index>=0 && index<(int)self->size())
-          return (*self)[index];
+        if (index>=0 && index<(int)$self->size())
+          return (*$self)[index];
         else
           throw std::out_of_range("index");
       }
       const_reference getitem(int index) throw (std::out_of_range) {
-        if (index>=0 && index<(int)self->size())
-          return (*self)[index];
+        if (index>=0 && index<(int)$self->size())
+          return (*$self)[index];
         else
           throw std::out_of_range("index");
       }
       void setitem(int index, const value_type& val) throw (std::out_of_range) {
-        if (index>=0 && index<(int)self->size())
-          (*self)[index] = val;
+        if (index>=0 && index<(int)$self->size())
+          (*$self)[index] = val;
         else
           throw std::out_of_range("index");
       }
       // Takes a deep copy of the elements unlike ArrayList.AddRange
       void AddRange(const std::vector<CTYPE >& values) {
-        self->insert(self->end(), values.begin(), values.end());
+        $self->insert($self->end(), values.begin(), values.end());
       }
       // Takes a deep copy of the elements unlike ArrayList.GetRange
       std::vector<CTYPE > *GetRange(int index, int count) throw (std::out_of_range, std::invalid_argument) {
@@ -265,26 +265,26 @@
           throw std::out_of_range("index");
         if (count < 0)
           throw std::out_of_range("count");
-        if (index >= (int)self->size()+1 || index+count > (int)self->size())
+        if (index >= (int)$self->size()+1 || index+count > (int)$self->size())
           throw std::invalid_argument("invalid range");
-        return new std::vector<CTYPE >(self->begin()+index, self->begin()+index+count);
+        return new std::vector<CTYPE >($self->begin()+index, $self->begin()+index+count);
       }
       void Insert(int index, const value_type& x) throw (std::out_of_range) {
-        if (index>=0 && index<(int)self->size()+1)
-          self->insert(self->begin()+index, x);
+        if (index>=0 && index<(int)$self->size()+1)
+          $self->insert($self->begin()+index, x);
         else
           throw std::out_of_range("index");
       }
       // Takes a deep copy of the elements unlike ArrayList.InsertRange
       void InsertRange(int index, const std::vector<CTYPE >& values) throw (std::out_of_range) {
-        if (index>=0 && index<(int)self->size()+1)
-          self->insert(self->begin()+index, values.begin(), values.end());
+        if (index>=0 && index<(int)$self->size()+1)
+          $self->insert($self->begin()+index, values.begin(), values.end());
         else
           throw std::out_of_range("index");
       }
       void RemoveAt(int index) throw (std::out_of_range) {
-        if (index>=0 && index<(int)self->size())
-          self->erase(self->begin() + index);
+        if (index>=0 && index<(int)$self->size())
+          $self->erase($self->begin() + index);
         else
           throw std::out_of_range("index");
       }
@@ -293,9 +293,9 @@
           throw std::out_of_range("index");
         if (count < 0)
           throw std::out_of_range("count");
-        if (index >= (int)self->size()+1 || index+count > (int)self->size())
+        if (index >= (int)$self->size()+1 || index+count > (int)$self->size())
           throw std::invalid_argument("invalid range");
-        self->erase(self->begin()+index, self->begin()+index+count);
+        $self->erase($self->begin()+index, $self->begin()+index+count);
       }
       static std::vector<CTYPE > *Repeat(const value_type& value, int count) throw (std::out_of_range) {
         if (count < 0)
@@ -303,24 +303,24 @@
         return new std::vector<CTYPE >(count, value);
       }
       void Reverse() {
-        std::reverse(self->begin(), self->end());
+        std::reverse($self->begin(), $self->end());
       }
       void Reverse(int index, int count) throw (std::out_of_range, std::invalid_argument) {
         if (index < 0)
           throw std::out_of_range("index");
         if (count < 0)
           throw std::out_of_range("count");
-        if (index >= (int)self->size()+1 || index+count > (int)self->size())
+        if (index >= (int)$self->size()+1 || index+count > (int)$self->size())
           throw std::invalid_argument("invalid range");
-        std::reverse(self->begin()+index, self->begin()+index+count);
+        std::reverse($self->begin()+index, $self->begin()+index+count);
       }
       // Takes a deep copy of the elements unlike ArrayList.SetRange
       void SetRange(int index, const std::vector<CTYPE >& values) throw (std::out_of_range) {
         if (index < 0)
           throw std::out_of_range("index");
-        if (index+values.size() > self->size())
+        if (index+values.size() > $self->size())
           throw std::out_of_range("index");
-        std::copy(values.begin(), values.end(), self->begin()+index);
+        std::copy(values.begin(), values.end(), $self->begin()+index);
       }
     }
 %enddef
@@ -335,26 +335,26 @@ SWIG_STD_VECTOR_MINIMUM_INTERNAL(IEnumerable, const value_type&, CSTYPE, CTYPE)
 %define SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CSTYPE, CTYPE...)
     %extend {
       bool Contains(const value_type& value) {
-        return std::find(self->begin(), self->end(), value) != self->end();
+        return std::find($self->begin(), $self->end(), value) != $self->end();
       }
       int IndexOf(const value_type& value) {
         int index = -1;
-        std::vector<CTYPE >::iterator it = std::find(self->begin(), self->end(), value);
-        if (it != self->end())
-          index = (int)(it - self->begin());
+        std::vector<CTYPE >::iterator it = std::find($self->begin(), $self->end(), value);
+        if (it != $self->end())
+          index = (int)(it - $self->begin());
         return index;
       }
       int LastIndexOf(const value_type& value) {
         int index = -1;
-        std::vector<CTYPE >::reverse_iterator rit = std::find(self->rbegin(), self->rend(), value);
-        if (rit != self->rend())
-          index = (int)(self->rend() - 1 - rit);
+        std::vector<CTYPE >::reverse_iterator rit = std::find($self->rbegin(), $self->rend(), value);
+        if (rit != $self->rend())
+          index = (int)($self->rend() - 1 - rit);
         return index;
       }
       bool Remove(const value_type& value) {
-        std::vector<CTYPE >::iterator it = std::find(self->begin(), self->end(), value);
-        if (it != self->end()) {
-          self->erase(it);
+        std::vector<CTYPE >::iterator it = std::find($self->begin(), $self->end(), value);
+        if (it != $self->end()) {
+          $self->erase(it);
 	  return true;
         }
         return false;
