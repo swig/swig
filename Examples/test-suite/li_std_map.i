@@ -15,19 +15,27 @@
 // Add an inline function to test
 %inline %{
 
-double keyAverage(std::map<int, int> m) {
+double valueAverage(std::map<std::string, int> m) {
   if (m.size() == 0) {
     return 0.0;
   }
     
   double a = 0.0;
-  for (std::map<int, int>::iterator i = m.begin(); i != m.end(); i++) {
-    a += i->first;
+  for (std::map<std::string, int>::iterator i = m.begin(); i != m.end(); i++) {
+    a += i->second;
   }
     
   return a / m.size();
 }
     
+std::string stringifyKeys(std::map<std::string, int> m) {
+  std::string a;
+  for (std::map<std::string, int>::iterator i = m.begin(); i != m.end(); i++) {
+    a += " " + i->first;
+  }
+  return a;
+}
+
 struct Struct {
   double num;
   Struct() : num(0.0) {}
