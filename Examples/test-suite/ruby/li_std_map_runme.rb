@@ -43,7 +43,7 @@ m.each_key { |k| pm[k] = m[k] }
 m.each_key { |k| swig_assert_equal("pm[#{k.inspect}]", "m[#{k.inspect}]", binding) }
 EOF
 
-mii = Li_std_map::Mapii.new
+mii = Li_std_map::IntIntMap.new
 
 mii[1] = 1
 mii[1] = 2

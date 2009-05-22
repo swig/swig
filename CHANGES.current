@@ -1,8 +1,12 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-05-11: wsfulton
+	    [C#] Improved std::map wrappers based on patch from Yuval Baror. The C# proxy
+            now implements System.Collections.Generic.IDictionary<>.
+
 2009-05-14: bhy
-        [Python] Fix the wrong pointer value returned by SwigPyObject_repr().
+            [Python] Fix the wrong pointer value returned by SwigPyObject_repr().
 
 2009-05-13: mutandiz (Mikel Bancroft)
 	    [allegrocl] Minor tweak when wrapping in -nocwrap mode.
