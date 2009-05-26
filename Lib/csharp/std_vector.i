@@ -226,6 +226,7 @@
     %newobject GetRange(int index, int count);
     %newobject Repeat(const value_type& value, int count);
     vector();
+    vector(const vector &other);
     %extend {
       vector(int capacity) throw (std::out_of_range) {
         std::vector<CTYPE >* pv = 0;
