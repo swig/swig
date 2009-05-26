@@ -1,9 +1,24 @@
 Version 1.3.40 (in progress)
 ============================
 
-2009-05-11: wsfulton
+2009-05-26: wsfulton
 	    [C#] Improved std::map wrappers based on patch from Yuval Baror. The C# proxy
             now implements System.Collections.Generic.IDictionary<>.
+
+	    These std:map wrappers have a non-backwards compatible overhaul to make them
+            like a .NET IDictionary. Some method names have changed as following:
+              set -> setitem (use this[] property now)
+              get -> getitem (use this[] property now)
+              has_key -> ContainsKey
+              del -> Remove
+              clear -> Clear
+
+            The following macros used for std::map wrappers are deprecated and will no longer work:
+              specialize_std_map_on_key
+              specialize_std_map_on_value
+              specialize_std_map_on_both
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2009-05-14: bhy
             [Python] Fix the wrong pointer value returned by SwigPyObject_repr().

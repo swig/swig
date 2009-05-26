@@ -53,7 +53,7 @@
     %rename(Clear) clear;
     void clear();
     %extend {
-      const mapped_type& get(const key_type& key) throw (std::out_of_range) {
+      const mapped_type& getitem(const key_type& key) throw (std::out_of_range) {
         std::map<K,T >::iterator iter = $self->find(key);
         if (iter != $self->end())
           return iter->second;
@@ -61,22 +61,31 @@
           throw std::out_of_range("key not found");
       }
 
-      void set(const key_type& key, const mapped_type& x) {
+      void setitem(const key_type& key, const mapped_type& x) {
         (*$self)[key] = x;
       }
 
-      void del(const key_type& key) throw (std::out_of_range) {
-        std::map<K,T >::iterator iter = $self->find(key);
-        if (iter != $self->end())
-          $self->erase(iter);
-        else
-          throw std::out_of_range("key not found");
-      }
-
-      bool has_key(const key_type& key) {
-        std::map<K,T >::iterator iter = $self->find(key);
+      bool ContainsKey(const key_type& key) {
+        std::map<K, T >::iterator iter = $self->find(key);
         return iter != $self->end();
       }
+
+      void Add(const key_type& key, const mapped_type& val) throw (std::out_of_range) {
+        std::map<K, T >::iterator iter = $self->find(key);
+        if (iter != $self->end())
+          throw std::out_of_range("key already exists");
+        $self->insert(std::pair<K, T >(key, val));
+      }
+
+      bool Remove(const key_type& key) {
+        std::map<K, T >::iterator iter = $self->find(key);
+        if (iter != $self->end()) {
+          $self->erase(iter);
+          return true;
+        }                
+        return false;
+      }
+
     }
 
 %enddef

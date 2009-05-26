@@ -226,14 +226,14 @@ public class li_std_map_runme {
             StructIntMap limap = new StructIntMap();
             Struct s7 = new Struct(7);
             Struct s8 = new Struct(8);
-            limap.set(s7 , 8);
-            if (limap.get(s7) != 8)
+            limap.setitem(s7 , 8);
+            if (limap.getitem(s7) != 8)
                 throw new Exception("Assignment test on non-specialized map failed");
 
-            if (!limap.has_key(s7))
+            if (!limap.ContainsKey(s7))
                 throw new Exception("Key test (1) on non-specialized map failed");
 
-            if (limap.has_key(s8))
+            if (limap.ContainsKey(s8))
                 throw new Exception("Key test (2) on non-specialized map failed");
         }
 
