@@ -34,8 +34,6 @@
  * Warning: heavy macro usage in this file. Use swig -E to get a sane view on the real file contents!
  * ----------------------------------------------------------------------------- */
 
-//%include <std_common.i>
-
 %{
 #include <map>
 #include <algorithm>
@@ -45,39 +43,40 @@
 // A minimal implementation to be used when no specialization exists.
 %define SWIG_STD_MAP_MINIMAL_INTERNAL(K, T)
   public:
-
     map();
-    map(const map<K, T > &);
+    map(const map<K, T > &other);
 
+    typedef K key_type;
+    typedef T mapped_type;
     typedef size_t size_type;
-//    size_type size() const;
+    size_type size() const;
     bool empty() const;
     %rename(Clear) clear;
     void clear();
     %extend {
-      T get(const K& key) throw (std::out_of_range) {
-        std::map<K,T >::iterator i = $self->find(key);
-        if (i != $self->end())
-          return i->second;
+      const mapped_type& get(const key_type& key) throw (std::out_of_range) {
+        std::map<K,T >::iterator iter = $self->find(key);
+        if (iter != $self->end())
+          return iter->second;
         else
           throw std::out_of_range("key not found");
       }
 
-      void set(const K& key, const T& x) {
+      void set(const key_type& key, const mapped_type& x) {
         (*$self)[key] = x;
       }
 
-      void del(const K& key) throw (std::out_of_range) {
-        std::map<K,T >::iterator i = $self->find(key);
-        if (i != $self->end())
-          $self->erase(i);
+      void del(const key_type& key) throw (std::out_of_range) {
+        std::map<K,T >::iterator iter = $self->find(key);
+        if (iter != $self->end())
+          $self->erase(iter);
         else
           throw std::out_of_range("key not found");
       }
 
-      bool has_key(const K& key) {
-        std::map<K,T >::iterator i = $self->find(key);
-        return i != $self->end();
+      bool has_key(const key_type& key) {
+        std::map<K,T >::iterator iter = $self->find(key);
+        return iter != $self->end();
       }
     }
 
@@ -91,8 +90,8 @@
  */
 %define SWIG_STD_MAP_SPECIALIZED_INTERNAL(K, T, CSKEYTYPE, CSVALUETYPE)
 // add typemaps here
-%typemap(csinterfaces) std::map<K, T > "IDisposable \n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.IDictionary<CSKEYTYPE, CSVALUETYPE >\n#endif\n";
-%typemap(cscode) std::map<K, T> %{
+%typemap(csinterfaces) std::map<K, T > "IDisposable \n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.IDictionary<CSKEYTYPE, CSVALUETYPE>\n#endif\n";
+%typemap(cscode) std::map<K, T > %{
 
   public CSVALUETYPE this[CSKEYTYPE key] {
     get {
@@ -277,26 +276,48 @@
 %}
 
   public:
-
     map();
-    map(const map<K, T > &);
+    map(const map<K, T > &other);
 
+    typedef K key_type;
+    typedef T mapped_type;
     typedef size_t size_type;
     size_type size() const;
     bool empty() const;
     %rename(Clear) clear;
     void clear();
     %extend {
-      T getitem(K key) throw (std::out_of_range) {
-        std::map<K,T >::iterator i = $self->find(key);
-        if (i != $self->end())
-          return i->second;
+      const mapped_type& getitem(const key_type& key) throw (std::out_of_range) {
+        std::map<K,T >::iterator iter = $self->find(key);
+        if (iter != $self->end())
+          return iter->second;
         else
           throw std::out_of_range("key not found");
       }
 
-      void setitem(K key, T x) {
+      void setitem(const key_type& key, const mapped_type& x) {
         (*$self)[key] = x;
+      }
+
+      bool ContainsKey(const key_type& key) {
+        std::map<K, T >::iterator iter = $self->find(key);
+        return iter != $self->end();
+      }
+
+      void Add(const key_type& key, const mapped_type& val) throw (std::out_of_range) {
+        std::map<K, T >::iterator iter = $self->find(key);
+        if (iter != $self->end())
+          throw std::out_of_range("key already exists");
+        $self->insert(std::pair<K, T >(key, val));
+      }
+
+      bool Remove(const key_type& key) {
+        std::map<K, T >::iterator iter = $self->find(key);
+        if (iter != $self->end()) {
+          $self->erase(iter);
+          return true;
+        }                
+        return false;
       }
 
       // create_iterator_begin() and get_next_key() work together to provide a collection of keys to C#
@@ -307,7 +328,7 @@
         return new std::map<K, T >::iterator($self->begin());
       }
 
-      K get_next_key(std::map<K, T >::iterator *swigiterator) throw (std::out_of_range) {
+      const key_type& get_next_key(std::map<K, T >::iterator *swigiterator) throw (std::out_of_range) {
         std::map<K, T >::iterator iter = *swigiterator;
         if (iter == $self->end()) {
           delete swigiterator;
@@ -316,43 +337,19 @@
         (*swigiterator)++;
         return (*iter).first;
       }
-
-      bool ContainsKey(K key) {
-        std::map<K, T >::iterator iter = $self->find(key);
-        if (iter != $self->end()) {
-          return true;
-        }
-        return false;
-      }
-
-      void Add(K key, T val) throw (std::out_of_range) {
-        std::map<K, T >::iterator iter = $self->find(key);
-        if (iter != $self->end()) {
-          throw std::out_of_range("key already exists");
-        }
-        $self->insert(std::pair<K, T >(key, val));
-      }
-
-      bool Remove(K key) {
-        std::map<K, T >::iterator iter = $self->find(key);
-        if (iter != $self->end()) {
-          $self->erase(iter);
-          return true;
-        }                
-        return false;
-      }
     }
+
+
+%csmethodmodifiers std::map<K, T >::size "private"
+%csmethodmodifiers std::map<K, T >::getitem "private"
+%csmethodmodifiers std::map<K, T >::setitem "private"
+%csmethodmodifiers std::map<K, T >::create_iterator_begin "private"
+%csmethodmodifiers std::map<K, T >::get_next_key "private"
 
 %enddef
 
 
-%csmethodmodifiers std::map::size "private"
-%csmethodmodifiers std::map::getitem "private"
-%csmethodmodifiers std::map::setitem "private"
-%csmethodmodifiers std::map::create_iterator_begin "private"
-%csmethodmodifiers std::map::get_next_key "private"
-
-
+// Main specialization macros
 %define SWIG_STD_MAP_SPECIALIZED(K, T, CSKEY, CSVAL)
 namespace std {
   template<> class map<K, T > {
@@ -361,36 +358,27 @@ namespace std {
 }
 %enddef
 
-
 %define SWIG_STD_MAP_SPECIALIZED_SIMPLE(K, T)
   SWIG_STD_MAP_SPECIALIZED(K, T, K, T)
 %enddef
 
-// Backwards compatibility macros
+// Old macros (deprecated)
 %define specialize_std_map_on_key(K,CHECK,CONVERT_FROM,CONVERT_TO)
-  template<class T> class map<K,T> {
-    SWIG_STD_MAP_MINIMAL_INTERNAL(K, T)
-  };
+#warning specialize_std_map_on_key ignored - macro is deprecated, please use SWIG_STD_MAP_MINIMAL_INTERNAL in Lib/csharp/std_map.i
 %enddef
 
 %define specialize_std_map_on_value(T,CHECK,CONVERT_FROM,CONVERT_TO)
-  template<class K> class map<K,T> {
-    SWIG_STD_MAP_MINIMAL_INTERNAL(K, T)
-  };
+#warning specialize_std_map_on_value ignored - macro is deprecated, please use SWIG_STD_MAP_MINIMAL_INTERNAL in Lib/csharp/std_map.i
 %enddef
-    
-%define specialize_std_map_on_both(K,CHECK_K,CONVERT_K_FROM,CONVERT_K_TO,
-                                   T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO)
-  template<> class map<K,T> {
-    SWIG_STD_MAP_MINIMAL_INTERNAL(K, T)
-  };
+
+%define specialize_std_map_on_both(K,CHECK_K,CONVERT_K_FROM,CONVERT_K_TO, T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO)
+#warning specialize_std_map_on_both ignored - macro is deprecated, please use SWIG_STD_MAP_MINIMAL_INTERNAL in Lib/csharp/std_map.i
 %enddef
-                                   
-// exported class
+
+// Default implementation
 namespace std {   
-  // Regular implementation
   template<class K, class T> class map {    
-     SWIG_STD_MAP_MINIMAL_INTERNAL(K, T)
+    SWIG_STD_MAP_MINIMAL_INTERNAL(K, T)
   };
 }
  
