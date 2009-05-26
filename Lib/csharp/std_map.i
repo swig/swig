@@ -5,7 +5,6 @@
  * std_map.i
  *
  * SWIG typemaps for std::map
- * C# implementation by Yuval Baror (http://yuval.bar-or.org)
  *
  * The C# wrapper is made to look and feel like a C# System.Collections.Generic.IDictionary<>.
  * 
