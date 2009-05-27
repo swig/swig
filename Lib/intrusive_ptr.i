@@ -27,11 +27,10 @@ namespace SWIG_INTRUSIVE_PTR_NAMESPACE {
 }
 
 %fragment("SWIG_intrusive_deleter", "header") {
-template<class T> struct SWIG_intrusive_deleter
-{
-    void operator()(T * p)
-    {
-        if(p) intrusive_ptr_release(p);
+template<class T> struct SWIG_intrusive_deleter {
+    void operator()(T *p) {
+        if (p) 
+          intrusive_ptr_release(p);
     }
 };
 }
