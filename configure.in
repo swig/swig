@@ -916,6 +916,70 @@ AC_SUBST(OCTAVELIB)
 AC_SUBST(OCTAVECCFLAGS)
 
 #----------------------------------------------------------------
+# Look for Scilab
+#----------------------------------------------------------------
+
+SCILABBIN=
+SCILABDYNAMICLINKING=
+
+
+AC_ARG_WITH(scilab, AS_HELP_STRING([--without-scilab], [Disable Scilab])
+AS_HELP_STRING([--with-scilab=path], [Set location of Scilab executable]),[SCILABBIN="$withval"], [SCILABBIN=yes])
+
+# First, check for "--without-scilab" or "--with-scilab=no".
+if test x"${SCILABBIN}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling Scilab])
+SCILAB=
+else
+
+# First figure out what the name of Scilab is
+
+if test "x$SCILABBIN" = xyes; then
+AC_CHECK_PROGS(SCILAB, scilab)
+else
+SCILAB="$SCILABBIN"
+fi
+
+
+AC_MSG_CHECKING(for Scilab header files)
+if test -n "$SCILAB"; then
+	SCILABDIR="/usr/include"
+	if test "$SCILABDIR" != ""; then
+		dirs="$SCILABDIR"
+		SCILABEXT=""
+		for i in $dirs; do
+			if test -r $i/scilab/stack.h; then
+				SCILABEXT="$i"
+				break;
+			fi
+			if test -r $i/scilab/scialab/stack.h; then
+				SCILABEXT="$i/scilab"
+				break;
+			fi
+		done
+		if test "$SCILABEXT" = "" ; then
+			AC_MSG_RESULT(not found)
+		else
+			AC_MSG_RESULT($SCILABEXT)
+		fi
+
+		AC_MSG_CHECKING(for Scilab compiler options)
+ 		SCILABCCFLAGS=""
+		AC_MSG_RESULT($SCILABCCFLAGS)
+	fi
+else
+       	AC_MSG_RESULT(could not figure out how to run scilab)
+fi
+
+fi
+
+AC_SUBST(SCILAB)
+AC_SUBST(SCILABEEXT)
+AC_SUBST(SCILABDYNAMICLINKING)
+AC_SUBST(SCILABLIB)
+AC_SUBST(SCILABCCFLAGS)
+
+#----------------------------------------------------------------
 # Look for java
 #----------------------------------------------------------------
 
