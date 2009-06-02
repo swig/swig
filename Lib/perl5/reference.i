@@ -202,6 +202,31 @@ as follows :
   $1 = &dvalue;
 }
 
+%typemap(typecheck) int *REFERENCE, int &REFERENCE,
+                    short *REFERENCE, short &REFERENCE,
+                    long *REFERENCE, long  &REFERENCE,
+                    signed char *REFERENCE, unsigned char &REFERENCE,
+                    bool *REFERENCE, bool &REFERENCE
+{
+  $1 = SvROK($input) && SvIOK(SvRV($input));
+}
+%typemap(typecheck) double *REFERENCE, double &REFERENCE,
+                    float *REFERENCE, float &REFERENCE
+{
+  $1 = SvROK($input);
+  if($1) {
+    SV *tmpsv = SvRV($input);
+    $1 = SvNOK(tmpsv) || SvIOK(tmpsv);
+  }
+}
+%typemap(typecheck) unsigned int   *REFERENCE, unsigned int &REFERENCE,
+                    unsigned short *REFERENCE, unsigned short &REFERENCE,
+                    unsigned long  *REFERENCE, unsigned long &REFERENCE,
+                    unsigned char  *REFERENCE, unsigned char &REFERENCE
+{
+  $1 = SvROK($input) && SvUOK(SvRV($input));
+}
+
 %typemap(argout) double *REFERENCE, double &REFERENCE,
                  float  *REFERENCE, float &REFERENCE
 {
