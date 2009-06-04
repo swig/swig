@@ -31,7 +31,11 @@ struct Scanner {
   String *error;                /* Last error message (if any) */
   int     error_line;           /* Error line number */
   int     freeze_line;          /* Suspend line number updates */
+  List   *brackets;             /* Current level of < > brackets on each level */
 };
+
+void Scanner_push_brackets(Scanner*);
+void Scanner_clear_brackets(Scanner*);
 
 /* -----------------------------------------------------------------------------
  * NewScanner()
@@ -53,6 +57,8 @@ Scanner *NewScanner(void) {
   s->str = 0;
   s->error = 0;
   s->freeze_line = 0;
+  s->brackets = NewList();
+  Scanner_push_brackets(s);
   return s;
 }
 
@@ -65,6 +71,7 @@ Scanner *NewScanner(void) {
 void DelScanner(Scanner * s) {
   assert(s);
   Delete(s->scanobjs);
+  Delete(s->brackets);
   Delete(s->text);
   Delete(s->file);
   Delete(s->error);
@@ -84,6 +91,7 @@ void Scanner_clear(Scanner * s) {
   Delete(s->str);
   Clear(s->text);
   Clear(s->scanobjs);
+  Scanner_clear_brackets(s);
   Delete(s->error);
   s->error = 0;
   s->line = 1;
@@ -243,6 +251,74 @@ Scanner_errline(Scanner *s) {
 void
 Scanner_freeze_line(Scanner *s, int val) {
   s->freeze_line = val;
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_brackets()
+ *
+ * Returns the number of brackets at the current depth.
+ * ----------------------------------------------------------------------------- */
+int*
+Scanner_brackets(Scanner *s) {
+  return (int*)(**((void***)Getitem(s->brackets, 0))); /* TODO: Use VoidObj*->ptr instead of void** */
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_clear_brackets()
+ *
+ * Resets the current depth and clears all brackets.
+ * Usually called at the end of statements;
+ * ----------------------------------------------------------------------------- */
+void
+Scanner_clear_brackets(Scanner *s) {
+  Clear(s->brackets);
+  Scanner_push_brackets(s); /* base bracket count should always be created */
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_inc_brackets()
+ *
+ * Increases the number of brackets at the current depth.
+ * Usually called when '<' was found.
+ * ----------------------------------------------------------------------------- */
+void
+Scanner_inc_brackets(Scanner *s) {
+  (*Scanner_brackets(s))++;
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_dec_brackets()
+ *
+ * Decreases the number of brackets at the current depth.
+ * Usually called when '>' was found.
+ * ----------------------------------------------------------------------------- */
+void
+Scanner_dec_brackets(Scanner *s) {
+  (*Scanner_brackets(s))--;
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_push_brackets()
+ *
+ * Increases the depth of brackets.
+ * Usually called when '(' was found.
+ * ----------------------------------------------------------------------------- */
+void
+Scanner_push_brackets(Scanner *s) {
+  int *newInt = malloc(sizeof(int));
+  *newInt = 0;
+  Push(s->brackets, NewVoid(newInt, free));
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_pop_brackets()
+ *
+ * Decreases the depth of brackets.
+ * Usually called when ')' was found.
+ * ----------------------------------------------------------------------------- */
+void
+Scanner_pop_brackets(Scanner *s) {
+  Delitem(s->brackets, 0);
 }
 
 /* -----------------------------------------------------------------------------
@@ -432,12 +508,18 @@ static int look(Scanner * s) {
 
       /* Look for single character symbols */
 
-      else if (c == '(')
+      else if (c == '(') {
+        Scanner_push_brackets(s);
 	return SWIG_TOKEN_LPAREN;
-      else if (c == ')')
+      }
+      else if (c == ')') {
+        Scanner_pop_brackets(s);
 	return SWIG_TOKEN_RPAREN;
-      else if (c == ';')
+      }
+      else if (c == ';') {
+        Scanner_clear_brackets(s);
 	return SWIG_TOKEN_SEMI;
+      }
       else if (c == ',')
 	return SWIG_TOKEN_COMMA;
       else if (c == '*')
@@ -704,6 +786,7 @@ static int look(Scanner * s) {
       break;
 
     case 60:			/* shift operators */
+      Scanner_inc_brackets(s);
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_LESSTHAN;
       if (c == '<')
@@ -716,9 +799,10 @@ static int look(Scanner * s) {
       }
       break;
     case 61:
+      Scanner_dec_brackets(s);
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_GREATERTHAN;
-      if (c == '>')
+      if (c == '>' && ((*Scanner_brackets(s))<0)) /* go to double >> only, if no template < has been used */
 	state = 250;
       else if (c == '=')
 	return SWIG_TOKEN_GTEQUAL;
@@ -1024,6 +1108,7 @@ static int look(Scanner * s) {
       break;
 
     case 240:			/* LSHIFT, LSEQUAL */
+      Scanner_inc_brackets(s);
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_LSHIFT;
       else if (c == '=')
@@ -1035,6 +1120,7 @@ static int look(Scanner * s) {
       break;
 
     case 250:			/* RSHIFT, RSEQUAL */
+      Scanner_dec_brackets(s);
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_RSHIFT;
       else if (c == '=')
