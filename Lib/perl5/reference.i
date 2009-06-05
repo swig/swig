@@ -205,7 +205,7 @@ as follows :
 %typemap(typecheck) int *REFERENCE, int &REFERENCE,
                     short *REFERENCE, short &REFERENCE,
                     long *REFERENCE, long  &REFERENCE,
-                    signed char *REFERENCE, unsigned char &REFERENCE,
+                    signed char *REFERENCE, signed char &REFERENCE,
                     bool *REFERENCE, bool &REFERENCE
 {
   $1 = SvROK($input) && SvIOK(SvRV($input));
@@ -224,7 +224,11 @@ as follows :
                     unsigned long  *REFERENCE, unsigned long &REFERENCE,
                     unsigned char  *REFERENCE, unsigned char &REFERENCE
 {
-  $1 = SvROK($input) && SvUOK(SvRV($input));
+  $1 = SvROK($input);
+  if($1) {
+    SV *tmpsv = SvRV($input);
+    $1 = SvUOK(tmpsv) || SvIOK(tmpsv);
+  }
 }
 
 %typemap(argout) double *REFERENCE, double &REFERENCE,
@@ -239,7 +243,7 @@ as follows :
 %typemap(argout)       int            *REFERENCE, int &REFERENCE,
                        short          *REFERENCE, short &REFERENCE,
                        long           *REFERENCE, long  &REFERENCE,
-                       signed char    *REFERENCE, unsigned char &REFERENCE,
+                       signed char    *REFERENCE, signed char &REFERENCE,
                        bool           *REFERENCE, bool &REFERENCE
 {
   SV *tempsv;
