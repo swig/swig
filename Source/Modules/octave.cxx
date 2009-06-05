@@ -1305,11 +1305,6 @@ public:
 	Setattr(n, "type", return_type);
 	tm = Swig_typemap_lookup("directorout", n, "result", w);
 	Setattr(n, "type", type);
-	if (tm == 0) {
-	  String *name = NewString("result");
-	  tm = Swig_typemap_search("directorout", return_type, name, NULL);
-	  Delete(name);
-	}
 	if (tm != 0) {
 	  char temp[24];
 	  sprintf(temp, "out(%d)", idx);

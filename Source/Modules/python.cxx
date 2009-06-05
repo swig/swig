@@ -3949,11 +3949,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       Setattr(n, "type", return_type);
       tm = Swig_typemap_lookup("directorout", n, "result", w);
       Setattr(n, "type", type);
-      if (tm == 0) {
-	String *name = NewString("result");
-	tm = Swig_typemap_search("directorout", return_type, name, NULL);
-	Delete(name);
-      }
       if (tm != 0) {
 	if (outputs > 1) {
 	  Printf(w->code, "output = PyTuple_GetItem(result, %d);\n", idx++);
