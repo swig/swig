@@ -82,8 +82,8 @@ CPP_TEST_BROKEN += \
 	nested_struct \
 	overload_complicated \
 	template_default_pointer \
-	template_double_brackets_broke \
-	template_expr
+	template_expr \
+	$(CPP0X_TEST_BROKEN)
 
 
 # Broken C test cases. (Can be run individually using make testcase.ctest.)
@@ -312,7 +312,6 @@ CPP_TEST_CASES += \
 	template_default_inherit \
 	template_default_qualify \
 	template_default_vw \
-	template_double_brackets \
 	template_enum \
 	template_enum_ns_inherit \
 	template_enum_typedef \
@@ -396,7 +395,16 @@ CPP_TEST_CASES += \
 	virtual_destructor \
 	virtual_poly \
 	voidtest \
-	wrapmacro
+	wrapmacro \
+	$(CPP0X_TEST_CASES)
+
+# C++0x test cases.
+CPP0X_TEST_CASES = \
+	cpp0x_template_double_brackets
+
+# Broken C++0x test cases.
+CPP0X_TEST_BROKEN = \
+	cpp0x_template_double_brackets_broken
 
 #
 # Put all the heavy STD/STL cases here, where they can be skipped if needed
