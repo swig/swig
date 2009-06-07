@@ -276,9 +276,80 @@ class SCILAB:public Language {
 
   virtual int variableWrapper(Node *n) {
  
-    Language::variableWrapper(n);	/* Default to functions */
+    String *name = Getattr(n, "name");
+    String *iname = Getattr(n, "sym:name");
+    SwigType *t = Getattr(n, "type");
+
+    if (!addSymbol(iname, n))
+      return SWIG_ERROR;
+
+    String *tm;
+    Wrapper *getf = NewWrapper();
+    Wrapper *setf = NewWrapper();
+
+    String *getname = Swig_name_get(iname);
+    String *setname = Swig_name_set(iname);
+
+    Printv(setf->def, "int ", setname, " (char *fname){", NIL);
+
+    Wrapper_add_local(setf, "piAddrVar", "int *piAddrVar");
+    Wrapper_add_local(setf, "iRows", "int iRows");
+    Wrapper_add_local(setf, "iCols", "int iCols");
+   // Wrapper_add_local(setf, "pdblReal", "double *pdblReal");
+    
+    
+    if (is_assignable(n)) {
+      Setattr(n, "wrap:name", setname);
+      if ((tm = Swig_typemap_lookup("in", n, name, 0))) {
+	Replaceall(tm, "$source", "args(0)");
+	Replaceall(tm, "$target", name);
+	Replaceall(tm, "$input", "args(0)");
+       Replaceall(tm, "$argnum", "1");
+	//if (Getattr(n, "tmap:varin:implicitconv")) {
+	  //Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
+	//}
+	emit_action_code(n, setf->code, tm);
+	Delete(tm);
+      } else {
+	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
+      }
+      
+    } else {
+      //Printf(setf->code, "return octave_set_immutable(args,nargout);");
+    }
+    Append(setf->code, "}\n");
+    Wrapper_print(setf, f_wrappers);
+    Printf(f_builder, "\"%s\",\"%s\";",iname,setname);
+
+    Setattr(n, "wrap:name", getname);
+    int addfail = 0;
+    Printv(getf->def, "int ", getname, " (char *fname){", NIL);
+   
+    Wrapper_add_local(getf, "piAddrOut", "int* _piAddress");
+    Wrapper_add_local(getf, "iRows", "int iRowsOut");
+    Wrapper_add_local(getf, "iColsOut", "int iColsOut ");
+   
+    if ((tm = Swig_typemap_lookup("out", n, name, 0))) {
+      Replaceall(tm, "$source", name);
+      Replaceall(tm, "$target", "obj");
+      Replaceall(tm, "$result", "obj");
+      addfail = emit_action_code(n, getf->code, tm);
+      Delete(tm);
+    } else {
+      Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
+    }
+    //Append(getf->code, "  return obj;\n");
+    //if (addfail) {
+      //Append(getf->code, "fail:\n");
+      //Append(getf->code, "  return octave_value_list();\n");
+    //}
+    Append(getf->code, "}\n");
+    Wrapper_print(getf, f_wrappers);
+    Printf(f_builder, "\"%s\",\"%s\";",iname,getname);
 
     return SWIG_OK;
+
+   
   }
 
 };

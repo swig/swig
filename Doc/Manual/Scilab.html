@@ -22,6 +22,7 @@
 <ul>
 <li><a href="#Scilab_nn8">Modules</a>
 <li><a href="#Scilab_nn9">Functions</a>
+<li><a href="#scilab_nn10">Global variables</a>
 </ul>
 </ul>
 </div>
@@ -172,4 +173,19 @@ int fact(int n); </pre></div>
 
     <div class="targetlang"><pre>Scilab:1&gt;fact(4)
 ant=24 </pre></div>
+<H3><a name="scilab_nn10"></a>27.3.3 Global variables</H3>
+
+<p>
+    To expose variables, SWIG actually generates two functions, to get and set the value. In this case, Foo_set and Foo_set would be generated. SWIG then automatically calls these functions when you get and set the variable-- in the former case creating a local copy in the interpreter of the C variables, and in the latter case copying an interpreter variables onto the C variable. 
+</p>
+
+    <div class="targetlang"><pre>scilab:1&gt; exec loader.sce;
+scilab:2&gt; c=Foo
+c =  3
+scilab:3&gt; Foo=4;
+scilab:4&gt; c
+c =  3
+scilab:5&gt; Foo
+ans =  4</pre></div>
+
 
