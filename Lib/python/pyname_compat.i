@@ -15,10 +15,10 @@
 *
 * This file defined macros to provide backward compatibility for these deprecated
 * symbols. In the case you have these symbols in your interface file, you can simply
-* include this file at begining of it.
+* include this file at beginning of it.
 *
 * However, this file may be removed in future release of SWIG, so using this file to
-* keep these inappropriate names in your SWIG interface file is also not recommanded.
+* keep these inappropriate names in your SWIG interface file is also not recommended.
 * Instead, we provide a simple tool for converting your interface files to
 * the new naming convention. You can download the tool here:
 * https://swig.svn.sourceforge.net/svnroot/swig/trunk/Tools/pyname_patch.py

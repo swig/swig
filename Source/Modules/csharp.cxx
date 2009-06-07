@@ -1497,6 +1497,7 @@ public:
     Node *attributes = NewHash();
     const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE, attributes);
     bool purebase_replace = GetFlag(attributes, "tmap:csbase:replace") ? true : false;
+    bool purebase_notderived = GetFlag(attributes, "tmap:csbase:notderived") ? true : false;
     Delete(attributes);
 
     // C++ inheritance
@@ -1529,17 +1530,22 @@ public:
       }
     }
 
-    const String *wanted_base = baseclass ? baseclass : pure_baseclass;
     bool derived = baseclass && getProxyName(c_baseclassname);
+    if (derived && purebase_notderived)
+      pure_baseclass = empty_string;
+    const String *wanted_base = baseclass ? baseclass : pure_baseclass;
 
     if (purebase_replace) {
       wanted_base = pure_baseclass;
       derived = false;
       Delete(baseclass);
       baseclass = NULL;
+      if (purebase_notderived)
+        Swig_error(input_file, line_number, "The csbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n", typemap_lookup_type);
     } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
       Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number,
-		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#. Perhaps you need the replace attribute in the csbase typemap?\n", typemap_lookup_type, pure_baseclass);
+		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#. "
+		   "Perhaps you need one of the 'replace' or 'notderived' attributes in the csbase typemap?\n", typemap_lookup_type, pure_baseclass);
     }
 
     // Pure C# interfaces

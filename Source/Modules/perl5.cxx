@@ -461,7 +461,7 @@ public:
     }
     Setattr(n, "wrap:name", wname);
     if(GetFlag(n, "perl5:instancevariable")) {
-      int addfail;
+      int addfail = 1;
       Printv(f->def,
           "SWIGCLASS_STATIC int ", wname, "(pTHX_ SV *sv, MAGIC *mg) {\n",
           NIL);
@@ -507,7 +507,6 @@ public:
         //Replaceall(tm, "$source", "result");
         //Replaceall(tm, "$target", "ST(argvi)");
         //Replaceall(tm, "$result", "ST(argvi)");
-        Replaceall(tm, "$shadow", is_shadow(t) ? "SWIG_SHADOW" : "0");
         Replaceall(tm, "$owner", "0");
         Printv(f->code,
             tm, "\n",
@@ -664,11 +663,6 @@ public:
 	Replaceall(tm, "$source", Getattr(p, "lname"));
 	Replaceall(tm, "$target", "ST(argvi)");
 	Replaceall(tm, "$result", "ST(argvi)");
-	if (is_shadow(t)) {
-	  Replaceall(tm, "$shadow", "SWIG_SHADOW");
-	} else {
-	  Replaceall(tm, "$shadow", "0");
-	}
 
 	String *in = Getattr(p, "emit:input");
 	if (in) {
@@ -704,11 +698,6 @@ public:
       Replaceall(tm, "$source", "result");
       Replaceall(tm, "$target", "ST(argvi)");
       Replaceall(tm, "$result", "ST(argvi)");
-      if (is_shadow(t)) {
-	Replaceall(tm, "$shadow", "SWIG_SHADOW");
-      } else {
-	Replaceall(tm, "$shadow", "0");
-      }
       Replaceall(tm, "$owner", GetFlag(n, "feature:new") ?
           "SWIG_OWNER" : "0");
       /* TODO: this NewPointerObjP stuff is a hack */
@@ -874,7 +863,6 @@ public:
       Replaceall(tm, "$target", "sv");
       Replaceall(tm, "$result", "sv");
       Replaceall(tm, "$source", name);
-      Replaceall(tm, "$shadow", is_shadow(type) ? "SWIG_SHADOW" : "0");
       addfail = emit_action_code(n, f->code, tm);
       Append(f->code, "  return 0;\n");
       if (addfail) {
@@ -936,21 +924,11 @@ public:
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
-      if (is_shadow(type)) {
-	Replaceall(tm, "$shadow", "SWIG_SHADOW");
-      } else {
-	Replaceall(tm, "$shadow", "0");
-      }
       Printf(constant_tab, "%s,\n", tm);
     } else if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
-      if (is_shadow(type)) {
-	Replaceall(tm, "$shadow", "SWIG_SHADOW");
-      } else {
-	Replaceall(tm, "$shadow", "0");
-      }
       Printf(f_init, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");

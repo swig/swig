@@ -5302,6 +5302,9 @@ base (extends) for Java class: empty default
 Note that this typemap accepts a <tt>replace</tt> attribute as an optional flag. When set to "1", it will replace/override any C++ base classes
 that might have been parsed. If this flag is not specified and there are C++ base classes, then a multiple inheritance warning
 is issued and the code in the typemap is ignored.
+The typemap also accepts a <tt>notderived</tt> attribute as an optional flag. When set to "1", it will not apply to classes that
+are derived from a C++ base. 
+When used with the SWIGTYPE type, it is useful for giving a common base for all proxy classes, that is, providing a base class that sits in between all proxy classes and the Java base class <tt>Object</tt> for example: <tt>%typemap(javabase, notderived="1") SWIGTYPE "CommonBase"</tt>.
 </div>
 
 <p><tt>%typemap(javabody)</tt></p>

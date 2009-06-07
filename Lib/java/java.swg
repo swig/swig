@@ -364,7 +364,7 @@
 }
 
 %typemap(freearg, noblock=1) char * { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)$1); }
-%typemap(out, noblock=1) char * { if($1) $result = JCALL1(NewStringUTF, jenv, (const char *)$1); }
+%typemap(out, noblock=1) char * { if ($1) $result = JCALL1(NewStringUTF, jenv, (const char *)$1); }
 %typemap(javadirectorin) char * "$jniinput"
 %typemap(javadirectorout) char * "$javacall"
 
@@ -378,7 +378,7 @@
   $1 = &temp;
 }
 %typemap(freearg, noblock=1) char *& { if ($1 && *$1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)*$1); }
-%typemap(out, noblock=1) char *& { if(*$1) $result = JCALL1(NewStringUTF, jenv, (const char *)*$1); }
+%typemap(out, noblock=1) char *& { if (*$1) $result = JCALL1(NewStringUTF, jenv, (const char *)*$1); }
 
 %typemap(out) void ""
 %typemap(javadirectorin) void "$jniinput"
@@ -597,7 +597,7 @@
 /* Generic pointers and references */
 %typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
-  if(!$1) {
+  if (!$1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
     return $null;
   } %}
@@ -656,7 +656,7 @@
 
 %typemap(argout) char[ANY], char[] ""
 %typemap(freearg, noblock=1) char[ANY], char[] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)$1); }
-%typemap(out, noblock=1) char[ANY], char[] { if($1) $result = JCALL1(NewStringUTF, jenv, (const char *)$1); }
+%typemap(out, noblock=1) char[ANY], char[] { if ($1) $result = JCALL1(NewStringUTF, jenv, (const char *)$1); }
 %typemap(javadirectorin) char[ANY], char[] "$jniinput"
 %typemap(javadirectorout) char[ANY], char[] "$javacall"
 
@@ -1148,19 +1148,23 @@ SWIG_PROXY_CONSTRUCTOR(true, false, TYPENAME)
 SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") SWIGTYPE {
-    if(swigCPtr != 0 && swigCMemOwn) {
-      swigCMemOwn = false;
-      $jnicall;
+    if (swigCPtr != 0) {
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
+        $jnicall;
+      }
+      swigCPtr = 0;
     }
-    swigCPtr = 0;
   }
 
 %typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized") SWIGTYPE {
-    if(swigCPtr != 0 && swigCMemOwn) {
-      swigCMemOwn = false;
-      $jnicall;
+    if (swigCPtr != 0) {
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
+        $jnicall;
+      }
+      swigCPtr = 0;
     }
-    swigCPtr = 0;
     super.delete();
   }
 

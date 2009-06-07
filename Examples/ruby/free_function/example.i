@@ -20,7 +20,7 @@
 	static void free_Zoo(void* ptr) {
 		Zoo* zoo = (Zoo*) ptr;
 
-		/* Loop over each object and call SWIG_RemoveMapping */
+		/* Loop over each object and call SWIG_RubyRemoveTracking */
 		int count = zoo->get_num_animals();
 
 		for(int i = 0; i < count; ++i) {
@@ -32,7 +32,7 @@
 			SWIG_RubyRemoveTracking(animal);
 		}
 
-	   /* Now call SWIG_RemoveMapping for the zoo */
+	   /* Now call SWIG_RubyRemoveTracking for the zoo */
 		SWIG_RubyRemoveTracking(ptr);
 
 		/* Now free the zoo which will free the animals it contains */

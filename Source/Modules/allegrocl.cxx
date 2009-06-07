@@ -483,7 +483,7 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
 	if (!Strcmp(nodeType(n), "cdecl") && !Strcmp(Getattr(n, "storage"), "typedef")) {
 	  SwigType *type = SwigType_strip_qualifiers(Getattr(n, "type"));
 #ifdef ALLEGROCL_CLASS_DEBUG
-	  Printf(stderr, "Examining typedef '%s' for class references.\n", type);
+	  Printf(stderr, "Examining typedef '%s' for class references. (%d)\n", type, SwigType_isclass(type));
 #endif
 	  if (SwigType_isclass(type)) {
 #ifdef ALLEGROCL_CLASS_DEBUG
@@ -761,6 +761,7 @@ String *internal_compose_foreign_type(SwigType *ty) {
 	  Setattr(nn,"allegrocl:package",current_namespace);
 
 	  add_forward_referenced_type(nn, 0);
+	  // tok_name is dangling here, unused. ouch. why?
 	  Printf(ffiType, "%s", get_ffi_type(tok, ""), tok_name);
 	}
       }
@@ -934,9 +935,8 @@ String *infix_to_prefix(String *val, char split_op, const String *op, String *ty
     Printf(result, ")");
     Delete(ored);
     return part_failed ? 0 : result;
-  } else {
-    Delete(ored);
   }
+  Delete(ored);
   return 0;
 }
 
@@ -955,7 +955,7 @@ String *convert_literal(String *literal, String *type, bool try_to_split) {
   String *ns = listify_namespace(current_namespace);
 
   // very basic parsing of infix expressions.
-  if (try_to_split) {
+  if (try_to_split && SwigType_type(type) != T_STRING) {
     if ((res = infix_to_prefix(num, '|', "logior", type)))
       return res;
     if ((res = infix_to_prefix(num, '&', "logand", type)))
@@ -970,7 +970,18 @@ String *convert_literal(String *literal, String *type, bool try_to_split) {
       return res;
     if ((res = infix_to_prefix(num, '-', "-", type)))
       return res;
+    // if ((res = infix_to_prefix(num, '~', "lognot", type))) return res;
     //  if( (res = infix_to_prefix(num, '<<', "ash", type)) ) return res;  
+  }
+
+  // unary complement...
+  if (s[0] == '~' && Len(num) >= 2) {
+    String *id = NewString(++s);
+    String *id_conv = convert_literal(id, type, false);
+    Delete(id);
+    if (id_conv) 
+      return NewStringf("(lognot %s)", id_conv);
+    s--;
   }
 
   if (SwigType_type(type) == T_FLOAT || SwigType_type(type) == T_DOUBLE || SwigType_type(type) == T_LONGDOUBLE) {
@@ -1136,7 +1147,7 @@ void emit_synonym(Node *synonym) {
 
   of_ltype = lookup_defined_foreign_ltype(of_name);
 
-  // Printf(f_clhead,";; from emit-synonym\n");
+  // Printf(stderr,";; from emit-synonym syn='%s' of_ltype='%s'\n", syn_ltype, of_ltype);
   if( of_ltype )
       Printf(f_clhead, "(swig-def-synonym-type %s\n   %s\n   %s)\n", syn_ltype, of_ltype, syn_type);
 

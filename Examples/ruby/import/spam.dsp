@@ -120,7 +120,7 @@ InputName=spam
 	echo RUBY_INCLUDE: %RUBY_INCLUDE% 
 	echo RUBY_LIB: %RUBY_LIB% 
 	echo on 
-	..\..\..\swig -c++ -ruby $(InputPath) 
+	..\..\..\swig.exe -c++ -ruby $(InputPath) 
 	
 # End Custom Build
 
@@ -135,7 +135,7 @@ InputName=spam
 	echo RUBY_INCLUDE: %RUBY_INCLUDE% 
 	echo RUBY_LIB: %RUBY_LIB% 
 	echo on 
-	..\..\..\swig -c++ -ruby $(InputPath) 
+	..\..\..\swig.exe -c++ -ruby $(InputPath) 
 	
 # End Custom Build
 

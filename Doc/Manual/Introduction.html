@@ -414,7 +414,8 @@ SWIG_LINK_LIBRARIES(example ${PYTHON_LIBRARIES})
 </pre></div>
 <p>
 The above example will generate native build files such as makefiles, nmake files and Visual Studio projects
-which will invoke SWIG and compile the generated C++ files into _example.so (UNIX) or _example.dll (Windows).
+which will invoke SWIG and compile the generated C++ files into _example.so (UNIX) or _example.pyd (Windows).
+For other target languages on Windows a dll, instead of a .pyd file, is usually generated.
 </p>
 
 <H2><a name="Introduction_nn12"></a>2.7 Hands off code generation</H2>

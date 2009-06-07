@@ -10,11 +10,13 @@
 
 /* for raw pointers */
 #define SWIG_ConvertPtr(obj, pp, type, flags) \
-    SWIG_Perl_ConvertPtr(obj, pp, type, flags)
+    SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, flags, 0)
 #define SWIG_NewPointerObjP(ptr, t, flags) \
     SWIG_Perl_MakePtr(0, ptr, t, flags, proto)
 #define SWIG_NewPointerObj(ptr, t, flags) \
     SWIG_Perl_MakePtr(0, ptr, t, flags, 0)
+#define SWIG_ConvertPtrAndOwn(obj, pp, type, flags, own) \
+    SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, flags, own)
 
 /* for raw packed data */
 #define SWIG_ConvertPacked(obj, p, s, type)             SWIG_Perl_ConvertPacked(obj, p, s, type)
@@ -69,7 +71,6 @@ extern "C" {
 #endif
 
 #define SWIG_OWNER   SWIG_POINTER_OWN
-#define SWIG_SHADOW  SWIG_OWNER << 1
 
 /* SWIG Perl macros */
 
@@ -248,11 +249,14 @@ SWIG_Perl_ConvertMg(MAGIC *mg, void **ptr, swig_type_info *t, int flags) {
   return SWIG_OK;
 }
 SWIGRUNTIME int
-SWIG_Perl_ConvertPtr(SV *sv, void **ptr, swig_type_info *_t, int flags) {
+SWIG_Perl_ConvertPtrAndOwn(SV *sv, void **ptr, swig_type_info *_t,
+       	int flags, int *own) {
   swig_cast_info *tc;
   void *voidptr = (void *)0;
   MAGIC *mg;
 
+  if (own)
+    *own = 0;
   SvGETMAGIC(sv);
   if (!SvOK(sv)) {
     *ptr = (void *) 0;
@@ -276,10 +280,10 @@ SWIG_Perl_ConvertPtr(SV *sv, void **ptr, swig_type_info *_t, int flags) {
     return SWIG_ERROR;
   SWIG_Perl_ConvertMg(mg, &voidptr, _t, flags);
   if (tc) {
-    /* TODO: implement newmemory */
     int newmemory = 0;
     *ptr = SWIG_TypeCast(tc, voidptr, &newmemory);
-    assert(!newmemory);
+    if (own)
+      *own |= newmemory & SWIG_CAST_NEW_MEMORY;
   } else {
     *ptr = voidptr;
   }
@@ -325,7 +329,7 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
   wrap->ptr = ptr;
   wrap->refcnt = 1;
 
-  if(flags & SWIG_SHADOW && ext) {
+  if(ext) {
     /* pointer_reference.i for sample of shadow set without ext */
 
     /* So many object models out there...

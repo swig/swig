@@ -45,11 +45,6 @@
 #define SWIG_Object                      SV *
 #define VOID_Object                      sv_newmortal()
 
-/* Perl $shadow flag */
-#define %newpointer_flags                $shadow
-#define %newinstance_flags               $shadow
-
-
 /* Complete overload of the output/constant/exception macros */
 
 /* output */

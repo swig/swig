@@ -5492,7 +5492,18 @@ valexpr        : exprnum { $$ = $1; }
                | LPAREN expr RPAREN expr %prec CAST {
                  $$ = $4;
 		 if ($4.type != T_STRING) {
-		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $4.val);
+		   switch ($2.type) {
+		     case T_FLOAT:
+		     case T_DOUBLE:
+		     case T_LONGDOUBLE:
+		     case T_FLTCPLX:
+		     case T_DBLCPLX:
+		       $$.val = NewStringf("(%s)%s", $2.val, $4.val); /* SwigType_str and decimal points don't mix! */
+		       break;
+		     default:
+		       $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $4.val);
+		       break;
+		   }
 		 }
  	       }
                | LPAREN expr pointer RPAREN expr %prec CAST {

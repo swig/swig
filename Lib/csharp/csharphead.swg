@@ -68,7 +68,7 @@ static SWIG_CSharpException_t SWIG_csharp_exceptions[] = {
 static SWIG_CSharpExceptionArgument_t SWIG_csharp_exceptions_argument[] = {
   { SWIG_CSharpArgumentException, NULL },
   { SWIG_CSharpArgumentNullException, NULL },
-  { SWIG_CSharpArgumentOutOfRangeException, NULL },
+  { SWIG_CSharpArgumentOutOfRangeException, NULL }
 };
 
 static void SWIGUNUSED SWIG_CSharpSetPendingException(SWIG_CSharpExceptionCodes code, const char *msg) {

@@ -64,7 +64,7 @@ INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
 LIBPREFIX  = lib
 ACTION     = check
-INTERFACEDIR = ../
+INTERFACEDIR = $(if $(wildcard $*.i), ./, ../)
 
 #
 # Please keep test cases in alphabetical order.
@@ -371,6 +371,7 @@ CPP_TEST_CASES += \
 	typemap_namespace \
 	typemap_ns_using \
 	typemap_numinputs \
+	typemap_out_optimal \
 	typemap_variables \
 	typemap_various \
 	typename \

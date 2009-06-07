@@ -383,9 +383,7 @@ SwigPyObject_repr(SwigPyObject *v, PyObject *args)
 #endif
 {
   const char *name = SWIG_TypePrettyName(v->ty);
-  PyObject *hex = SwigPyObject_hex(v);    
-  PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at %p>", name, hex);
-  Py_DECREF(hex);
+  PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at %p>", name, v);
   if (v->next) {
 #ifdef METH_NOARGS
     PyObject *nrep = SwigPyObject_repr((SwigPyObject *)v->next);
@@ -407,13 +405,16 @@ SwigPyObject_repr(SwigPyObject *v, PyObject *args)
 SWIGRUNTIME int
 SwigPyObject_print(SwigPyObject *v, FILE *fp, int SWIGUNUSEDPARM(flags))
 {
+  char *str;
 #ifdef METH_NOARGS
   PyObject *repr = SwigPyObject_repr(v);
 #else
   PyObject *repr = SwigPyObject_repr(v, NULL);
 #endif
   if (repr) {
-    fputs(SWIG_Python_str_AsChar(repr), fp);
+    str = SWIG_Python_str_AsChar(repr); 
+    fputs(str, fp);
+    SWIG_Python_str_DelForPy3(str);
     Py_DECREF(repr);
     return 0; 
   } else {
@@ -437,7 +438,7 @@ SwigPyObject_compare(SwigPyObject *v, SwigPyObject *w)
   return (i < j) ? -1 : ((i > j) ? 1 : 0);
 }
 
-/* Added for Python 3.x, whould it also useful for Python 2.x? */
+/* Added for Python 3.x, would it also be useful for Python 2.x? */
 SWIGRUNTIME PyObject*
 SwigPyObject_richcompare(SwigPyObject *v, SwigPyObject *w, int op)
 {
@@ -485,7 +486,7 @@ SwigPyObject_dealloc(PyObject *v)
       /* destroy is always a VARARGS method */
       PyObject *res;
       if (data->delargs) {
-	/* we need to create a temporal object to carry the destroy operation */
+	/* we need to create a temporary object to carry the destroy operation */
 	PyObject *tmp = SwigPyObject_New(sobj->ptr, ty, 0);
 	res = SWIG_Python_CallFunctor(destroy, tmp);
 	Py_DECREF(tmp);
@@ -686,7 +687,7 @@ _PySwigObject_type(void) {
   if (!type_init) {
     const PyTypeObject tmp
       = {
-	/* PyOjbect header changed in Python 3 */
+	/* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
 	PyVarObject_HEAD_INIT(&PyType_Type, 0)
 #else    
@@ -705,7 +706,7 @@ _PySwigObject_type(void) {
 #endif
 	(setattrfunc)0,			    /* tp_setattr */ 
 #if PY_VERSION_HEX >= 0x03000000
-    0, /* tp_reserved in 3.0.1 */
+    0, /* tp_reserved in 3.0.1, tp_compare in 3.0.0 but not used */
 #else
 	(cmpfunc)SwigPyObject_compare,	    /* tp_compare */
 #endif
@@ -755,7 +756,7 @@ _PySwigObject_type(void) {
 #endif
       };
     swigpyobject_type = tmp;
-    /* for Python 3 we already assigned the ob_type in PyVarObject_HEAD_INIT() */
+    /* for Python 3 we already assigned ob_type in PyVarObject_HEAD_INIT() */
 #if PY_VERSION_HEX < 0x03000000
     swigpyobject_type.ob_type = &PyType_Type;
 #endif
@@ -1203,7 +1204,7 @@ SWIG_Python_ConvertPacked(PyObject *obj, void *ptr, size_t sz, swig_type_info *t
  * ----------------------------------------------------------------------------- */
 
 /*
-  Create a new instance object, whitout calling __init__, and set the
+  Create a new instance object, without calling __init__, and set the
   'this' attribute.
 */
 
@@ -1234,7 +1235,6 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
   } else {
 #if PY_VERSION_HEX >= 0x03000000
     inst = PyBaseObject_Type.tp_new((PyTypeObject*) data->newargs, Py_None, Py_None);
-    Py_INCREF(data->newargs);
     PyObject_SetAttr(inst, SWIG_This(), swig_this);
     Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
 #else
@@ -1475,21 +1475,23 @@ SWIG_Python_TypeQuery(const char *type)
 
 SWIGRUNTIME int
 SWIG_Python_AddErrMesg(const char* mesg, int infront)
-{
+{  
   if (PyErr_Occurred()) {
     PyObject *type = 0;
     PyObject *value = 0;
     PyObject *traceback = 0;
     PyErr_Fetch(&type, &value, &traceback);
     if (value) {
+      char *tmp;
       PyObject *old_str = PyObject_Str(value);
       Py_XINCREF(type);
       PyErr_Clear();
       if (infront) {
-	PyErr_Format(type, "%s %s", mesg, SWIG_Python_str_AsChar(old_str));
+	PyErr_Format(type, "%s %s", mesg, tmp = SWIG_Python_str_AsChar(old_str));
       } else {
-	PyErr_Format(type, "%s %s", SWIG_Python_str_AsChar(old_str), mesg);
+	PyErr_Format(type, "%s %s", tmp = SWIG_Python_str_AsChar(old_str), mesg);
       }
+      SWIG_Python_str_DelForPy3(tmp);
       Py_DECREF(old_str);
     }
     return 1;
@@ -1541,6 +1543,7 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 	if (cstr) {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s(%s)' is received",
 		       type, otype, cstr);
+          SWIG_Python_str_DelForPy3(cstr);
 	} else {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
 		       type, otype);

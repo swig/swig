@@ -1739,7 +1739,6 @@ public:
     /* Last node in overloaded chain */
 
     int maxargs;
-    int allow_thread = threads_enable(n);
 
     String *tmp = NewString("");
     String *dispatch;
@@ -1762,8 +1761,6 @@ public:
     Wrapper_add_local(f, "argc", "int argc");
     Printf(tmp, "PyObject *argv[%d]", maxargs + 1);
     Wrapper_add_local(f, "argv", tmp);
-    if (allow_thread)
-      thread_begin_block(n, f->code);
 
     if (!fastunpack) {
       Wrapper_add_local(f, "ii", "int ii");
@@ -1780,18 +1777,7 @@ public:
 
     Replaceall(dispatch, "$args", "self,args");
 
-    if (allow_thread) {
-      String *ret = NewStringEmpty();
-      thread_end_block(n, ret);
-      Append(ret, "return ");
-      Replaceall(dispatch, "return ", ret);
-      Delete(ret);
-    }
-
     Printv(f->code, dispatch, "\n", NIL);
-
-    if (allow_thread)
-      thread_end_block(n, f->code);
 
     if (GetFlag(n, "feature:python:maybecall")) {
       Append(f->code, "fail:\n");
@@ -1899,8 +1885,6 @@ public:
     kwargs = NewString("");
 
     int allow_thread = threads_enable(n);
-    if (allow_thread)
-      thread_begin_block(n, f->code);
 
     Wrapper_add_local(f, "resultobj", "PyObject *resultobj = 0");
 
@@ -2331,8 +2315,6 @@ public:
       }
     }
 
-    if (allow_thread)
-      thread_end_block(n, f->code);
     Append(f->code, "    return resultobj;\n");
 
     /* Error handling code */
@@ -2341,8 +2323,6 @@ public:
     if (need_cleanup) {
       Printv(f->code, cleanup, NIL);
     }
-    if (allow_thread)
-      thread_end_block(n, f->code);
     Printv(f->code, "  return NULL;\n", NIL);
 
 
@@ -3858,10 +3838,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
     int allow_thread = threads_enable(n);
 
-    if (allow_thread)
-      thread_begin_block(n, w->code);
-
     if (allow_thread) {
+      thread_begin_block(n, w->code);
       Append(w->code, "{\n");
     }
 
@@ -3971,11 +3949,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       Setattr(n, "type", return_type);
       tm = Swig_typemap_lookup("directorout", n, "result", w);
       Setattr(n, "type", type);
-      if (tm == 0) {
-	String *name = NewString("result");
-	tm = Swig_typemap_search("directorout", return_type, name, NULL);
-	Delete(name);
-      }
       if (tm != 0) {
 	if (outputs > 1) {
 	  Printf(w->code, "output = PyTuple_GetItem(result, %d);\n", idx++);
