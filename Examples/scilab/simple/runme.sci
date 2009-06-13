@@ -5,6 +5,7 @@ exec builder.sce;
 exec loader.sce;
 
 // Call our gcd() function
+
 x = 42;
 y = 105;
 g = gcd(x,y);
@@ -16,8 +17,8 @@ printf("The gcd of %d and %d is %d\n",x,y,g);
 Foo_get()
 
 // Change its value
-Foo_set = 3.1415926
+Foo_set(3.1415926)
 
 //See if the change took effect
-Foo_get
+Foo_get()
 

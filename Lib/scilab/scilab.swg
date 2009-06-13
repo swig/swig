@@ -1,5 +1,5 @@
 %include <typemaps/swigmacros.swg>
 %include <typemaps/fragments.swg>
-%include <sciprimtype.swg>
+%include <sciprimtypes.swg>
 %include <scitypemaps.swg>
 

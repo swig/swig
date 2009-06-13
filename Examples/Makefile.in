@@ -1135,3 +1135,28 @@ r_clean:
 	rm -f *.@OBJEXT@ *@SO@ NAMESPACE
 	rm -f $(RRSRC) runme.Rout .RData
 
+##################################################################
+#####                 SCILAB                                ######
+##################################################################
+
+# Make sure these locate your Octave installation
+SCILAB_INCLUDE= $(DEFS) @SCILABINCLUDE@
+SCILAB_LIB    = @SCILABLIB@
+SCILAB        = @SCILAB@
+
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+scilab: $(SRCS)
+	$(SWIG) -scilab $(SWIGOPT) $(INTERFACEPATH)
+	
+
+# -----------------------------------------------------------------
+# Cleaning the scilab examples
+# -----------------------------------------------------------------
+
+scilab_clean:
+	rm -f *_wrap* 
+	

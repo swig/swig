@@ -72,7 +72,7 @@ class SCILAB:public Language {
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     
     /*Another output file to generate the .so or .dll */
-    String *builder = NewString("builder.sce");
+    String *builder = NewStringf("%sbuilder.sce",SWIG_output_directory());
     f_builder=NewFile(builder,"w",SWIG_output_files());
     
     /* Initialize all of the output files */
@@ -99,6 +99,9 @@ class SCILAB:public Language {
     Printf(f_runtime, "#include \"stack-c.h\"\n");
     Printf(f_runtime, "#include \"sciprint.h\"\n");
     Printf(f_runtime, "#include \"Scierror.h\"\n");
+    Printf(f_runtime, "#include \"variable_api.h\"\n");
+    Printf(f_runtime, "#include \"localization.h\"\n");
+    
     
     /*Initialize the builder.sce file*/
     Printf(f_builder,"ilib_name = \"%slib\";\n",module);
@@ -166,7 +169,7 @@ class SCILAB:public Language {
     if (overloaded)
       Append(overname, Getattr(n, "sym:overname"));
 
-    Printv(f->def, "int ", overname, " (char *fname){", NIL);
+    Printv(f->def, "int ", overname, " (char *fname,unsigned long fname_len) {", NIL);
    
    // Emit all of the local variables for holding arguments
     emit_parameter_variables(l, f);
@@ -209,8 +212,8 @@ class SCILAB:public Language {
 	}
        String *getargs = NewString("");
        Printv(getargs, tm, NIL);
-	Printv(f->code, getargs, "\n", NIL);
-	Delete(getargs);
+       Printv(f->code, getargs, "\n", NIL);
+       Delete(getargs);
        p = Getattr(p, "tmap:in:next");
 	continue;
       } else {
@@ -228,22 +231,19 @@ class SCILAB:public Language {
    //Insert the return variable 
     emit_return_variable(n, d, f);
 
-   if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
 
       Printf(f->code, "%s\n", tm);
      
     } 
-   else {
-   Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
+    else {
+    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
     }
     
     /* Insert argument output code */
     String *outarg = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$result", "_outp");
-	//Replaceall(tm, "$arg", Getattr(p, "emit:input"));
-	//Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
       } else {
@@ -290,13 +290,12 @@ class SCILAB:public Language {
     String *getname = Swig_name_get(iname);
     String *setname = Swig_name_set(iname);
 
-    Printv(setf->def, "int ", setname, " (char *fname){", NIL);
+    Printv(setf->def, "int ", setname, " (char *fname,unsigned long fname_len) {", NIL);
 
     Wrapper_add_local(setf, "piAddrVar", "int *piAddrVar");
     Wrapper_add_local(setf, "iRows", "int iRows");
     Wrapper_add_local(setf, "iCols", "int iCols");
-   // Wrapper_add_local(setf, "pdblReal", "double *pdblReal");
-    
+  
     
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
@@ -304,7 +303,7 @@ class SCILAB:public Language {
 	Replaceall(tm, "$source", "args(0)");
 	Replaceall(tm, "$target", name);
 	Replaceall(tm, "$input", "args(0)");
-       Replaceall(tm, "$argnum", "1");
+        Replaceall(tm, "$argnum", "1");
 	//if (Getattr(n, "tmap:varin:implicitconv")) {
 	  //Replaceall(tm, "$implicitconv", get_implicitconv_flag(n));
 	//}
@@ -319,11 +318,11 @@ class SCILAB:public Language {
     }
     Append(setf->code, "}\n");
     Wrapper_print(setf, f_wrappers);
-    Printf(f_builder, "\"%s\",\"%s\";",iname,setname);
+    Printf(f_builder, "\"%s\",\"%s\";",setname,setname);
 
     Setattr(n, "wrap:name", getname);
     int addfail = 0;
-    Printv(getf->def, "int ", getname, " (char *fname){", NIL);
+    Printv(getf->def, "int ", getname, " (char *fname,unsigned long fname_len){", NIL);
    
     Wrapper_add_local(getf, "piAddrOut", "int* _piAddress");
     Wrapper_add_local(getf, "iRows", "int iRowsOut");
@@ -338,18 +337,57 @@ class SCILAB:public Language {
     } else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
     }
-    //Append(getf->code, "  return obj;\n");
-    //if (addfail) {
-      //Append(getf->code, "fail:\n");
-      //Append(getf->code, "  return octave_value_list();\n");
-    //}
+   
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
-    Printf(f_builder, "\"%s\",\"%s\";",iname,getname);
+    Printf(f_builder, "\"%s\",\"%s\";",getname,getname);
 
     return SWIG_OK;
 
    
+  }
+
+ /* -----------------------------------------------------------------------
+   * constantWrapper()
+   * ----------------------------------------------------------------------- */
+
+  virtual int constantWrapper(Node *n) {
+    String *name = Getattr(n, "name");
+    String *iname = Getattr(n, "sym:name");
+    SwigType *type = Getattr(n, "type");
+    String *rawval = Getattr(n, "rawval");
+    String *value = rawval ? rawval : Getattr(n, "value");
+    String *tm;
+
+    if (!addSymbol(iname, n))
+      return SWIG_ERROR;
+
+    Wrapper *getf = NewWrapper();
+    String *getname = Swig_name_get(iname);
+    
+    Setattr(n, "wrap:name", getname);
+    Printv(getf->def, "int ", getname, " (char *fname,unsigned long fname_len) {", NIL);
+    
+    Wrapper_add_local(getf, "piAddrOut", "int* _piAddress");
+    Wrapper_add_local(getf, "iRows", "int iRowsOut");
+    Wrapper_add_local(getf, "iColsOut", "int iColsOut ");
+   
+    if ((tm = Swig_typemap_lookup("out", n, name, 0))) {
+      Replaceall(tm, "$source", name);
+      Replaceall(tm, "$target", "obj");
+      Replaceall(tm, "$result", "obj");
+      emit_action_code(n, getf->code, tm);
+      Delete(tm);
+    } else {
+      Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(type, 0));
+    }
+    
+    Append(getf->code, "}\n");
+    Wrapper_print(getf, f_wrappers);
+    Printf(f_header, "const %s %s=%s;\n",SwigType_str(type,0),iname,value);
+    Printf(f_builder, "\"%s\",\"%s\";",iname,getname);
+
+    return SWIG_OK;
   }
 
 };
