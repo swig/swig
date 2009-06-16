@@ -369,6 +369,45 @@ public class enum_thorough_simple_runme {
       i.setMemberInstance(Instances.memberinstance3);
       if (i.getMemberInstance() != Instances.memberinstance3) throw new RuntimeException("MemberInstance 1 failed");
     }
+    // ignore enum item tests start
+    {
+      if (enum_thorough_simple.ignoreATest(IgnoreTest.ignoreA_zero) != 0) throw new RuntimeException("ignoreATest 0 failed");
+      if (enum_thorough_simple.ignoreATest(IgnoreTest.ignoreA_three) != 3) throw new RuntimeException("ignoreATest 3 failed");
+      if (enum_thorough_simple.ignoreATest(IgnoreTest.ignoreA_ten) != 10) throw new RuntimeException("ignoreATest 10 failed");
+      if (enum_thorough_simple.ignoreATest(IgnoreTest.ignoreA_eleven) != 11) throw new RuntimeException("ignoreATest 11 failed");
+      if (enum_thorough_simple.ignoreATest(IgnoreTest.ignoreA_thirteen) != 13) throw new RuntimeException("ignoreATest 13 failed");
+      if (enum_thorough_simple.ignoreATest(IgnoreTest.ignoreA_fourteen) != 14) throw new RuntimeException("ignoreATest 14 failed");
+      if (enum_thorough_simple.ignoreATest(IgnoreTest.ignoreA_twenty) != 20) throw new RuntimeException("ignoreATest 20 failed");
+      if (enum_thorough_simple.ignoreATest(IgnoreTest.ignoreA_thirty) != 30) throw new RuntimeException("ignoreATest 30 failed");
+      if (enum_thorough_simple.ignoreATest(IgnoreTest.ignoreA_thirty_two) != 32) throw new RuntimeException("ignoreATest 32 failed");
+      if (enum_thorough_simple.ignoreATest(IgnoreTest.ignoreA_thirty_three) != 33) throw new RuntimeException("ignoreATest 33 failed");
+    }
+    {
+      if (enum_thorough_simple.ignoreBTest(IgnoreTest.ignoreB_eleven) != 11) throw new RuntimeException("ignoreBTest 11 failed");
+      if (enum_thorough_simple.ignoreBTest(IgnoreTest.ignoreB_twelve) != 12) throw new RuntimeException("ignoreBTest 12 failed");
+      if (enum_thorough_simple.ignoreBTest(IgnoreTest.ignoreB_thirty_one) != 31) throw new RuntimeException("ignoreBTest 31 failed");
+      if (enum_thorough_simple.ignoreBTest(IgnoreTest.ignoreB_thirty_two) != 32) throw new RuntimeException("ignoreBTest 32 failed");
+      if (enum_thorough_simple.ignoreBTest(IgnoreTest.ignoreB_forty_one) != 41) throw new RuntimeException("ignoreBTest 41 failed");
+      if (enum_thorough_simple.ignoreBTest(IgnoreTest.ignoreB_forty_two) != 42) throw new RuntimeException("ignoreBTest 42 failed");
+    }
+    {
+      if (enum_thorough_simple.ignoreCTest(IgnoreTest.ignoreC_ten) != 10) throw new RuntimeException("ignoreCTest 10 failed");
+      if (enum_thorough_simple.ignoreCTest(IgnoreTest.ignoreC_twelve) != 12) throw new RuntimeException("ignoreCTest 12 failed");
+      if (enum_thorough_simple.ignoreCTest(IgnoreTest.ignoreC_thirty) != 30) throw new RuntimeException("ignoreCTest 30 failed");
+      if (enum_thorough_simple.ignoreCTest(IgnoreTest.ignoreC_thirty_two) != 32) throw new RuntimeException("ignoreCTest 32 failed");
+      if (enum_thorough_simple.ignoreCTest(IgnoreTest.ignoreC_forty) != 40) throw new RuntimeException("ignoreCTest 40 failed");
+      if (enum_thorough_simple.ignoreCTest(IgnoreTest.ignoreC_forty_two) != 42) throw new RuntimeException("ignoreCTest 42 failed");
+    }
+    {
+      if (enum_thorough_simple.ignoreDTest(IgnoreTest.ignoreD_twenty_one) != 21) throw new RuntimeException("ignoreDTest 21 failed");
+      if (enum_thorough_simple.ignoreDTest(IgnoreTest.ignoreD_twenty_two) != 22) throw new RuntimeException("ignoreDTest 22 failed");
+    }
+    {
+      if (enum_thorough_simple.ignoreETest(IgnoreTest.ignoreE_zero) != 0) throw new RuntimeException("ignoreETest 0 failed");
+      if (enum_thorough_simple.ignoreETest(IgnoreTest.ignoreE_twenty_one) != 21) throw new RuntimeException("ignoreETest 21 failed");
+      if (enum_thorough_simple.ignoreETest(IgnoreTest.ignoreE_twenty_two) != 22) throw new RuntimeException("ignoreETest 22 failed");
+    }
+    // ignore enum item tests end
     {
       if (enum_thorough_simple.repeatTest(enum_thorough_simpleConstants.one) != 1) throw new RuntimeException("repeatTest 1 failed");
       if (enum_thorough_simple.repeatTest(enum_thorough_simpleConstants.initial) != 1) throw new RuntimeException("repeatTest 2 failed");

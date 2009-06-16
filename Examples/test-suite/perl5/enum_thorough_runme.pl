@@ -1,7 +1,7 @@
 # an adaptation of ../java/enum_thorough_runme.java
 use strict;
 use warnings;
-use Test::More tests => 272;
+use Test::More tests => 299;
 BEGIN { use_ok('enum_thorough') }
 require_ok('enum_thorough');
 
@@ -348,6 +348,45 @@ SKIP: {
 	$i->{MemberInstance} = $enum_thorough::Instances::memberinstance3;
 	is($i->{MemberInstance}, $enum_thorough::Instances::memberinstance3, "MemberInstance 1");
 }
+# ignore enum item tests start
+{
+	is(enum_thorough::ignoreATest($enum_thorough::IgnoreTest::ignoreA_zero), 0, "ignoreATest 0");
+	is(enum_thorough::ignoreATest($enum_thorough::IgnoreTest::ignoreA_three), 3, "ignoreATest 3");
+	is(enum_thorough::ignoreATest($enum_thorough::IgnoreTest::ignoreA_ten), 10, "ignoreATest 10");
+	is(enum_thorough::ignoreATest($enum_thorough::IgnoreTest::ignoreA_eleven), 11, "ignoreATest 11");
+	is(enum_thorough::ignoreATest($enum_thorough::IgnoreTest::ignoreA_thirteen), 13, "ignoreATest 13");
+	is(enum_thorough::ignoreATest($enum_thorough::IgnoreTest::ignoreA_fourteen), 14, "ignoreATest 14");
+	is(enum_thorough::ignoreATest($enum_thorough::IgnoreTest::ignoreA_twenty), 20, "ignoreATest 20");
+	is(enum_thorough::ignoreATest($enum_thorough::IgnoreTest::ignoreA_thirty), 30, "ignoreATest 30");
+	is(enum_thorough::ignoreATest($enum_thorough::IgnoreTest::ignoreA_thirty_two), 32, "ignoreATest 32");
+	is(enum_thorough::ignoreATest($enum_thorough::IgnoreTest::ignoreA_thirty_three), 33, "ignoreATest 33");
+}
+{
+	is(enum_thorough::ignoreBTest($enum_thorough::IgnoreTest::ignoreB_eleven), 11, "ignoreBTest 11");
+	is(enum_thorough::ignoreBTest($enum_thorough::IgnoreTest::ignoreB_twelve), 12, "ignoreBTest 12");
+	is(enum_thorough::ignoreBTest($enum_thorough::IgnoreTest::ignoreB_thirty_one), 31, "ignoreBTest 31");
+	is(enum_thorough::ignoreBTest($enum_thorough::IgnoreTest::ignoreB_thirty_two), 32, "ignoreBTest 32");
+	is(enum_thorough::ignoreBTest($enum_thorough::IgnoreTest::ignoreB_forty_one), 41, "ignoreBTest 41");
+	is(enum_thorough::ignoreBTest($enum_thorough::IgnoreTest::ignoreB_forty_two), 42, "ignoreBTest 42");
+}
+{
+	is(enum_thorough::ignoreCTest($enum_thorough::IgnoreTest::ignoreC_ten), 10, "ignoreCTest 10");
+	is(enum_thorough::ignoreCTest($enum_thorough::IgnoreTest::ignoreC_twelve), 12, "ignoreCTest 12");
+	is(enum_thorough::ignoreCTest($enum_thorough::IgnoreTest::ignoreC_thirty), 30, "ignoreCTest 30");
+	is(enum_thorough::ignoreCTest($enum_thorough::IgnoreTest::ignoreC_thirty_two), 32, "ignoreCTest 32");
+	is(enum_thorough::ignoreCTest($enum_thorough::IgnoreTest::ignoreC_forty), 40, "ignoreCTest 40");
+	is(enum_thorough::ignoreCTest($enum_thorough::IgnoreTest::ignoreC_forty_two), 42, "ignoreCTest 42");
+}
+{
+	is(enum_thorough::ignoreDTest($enum_thorough::IgnoreTest::ignoreD_twenty_one), 21, "ignoreDTest 21");
+	is(enum_thorough::ignoreDTest($enum_thorough::IgnoreTest::ignoreD_twenty_two), 22, "ignoreDTest 22");
+}
+{
+	is(enum_thorough::ignoreETest($enum_thorough::IgnoreTest::ignoreE_zero), 0, "ignoreETest 0");
+	is(enum_thorough::ignoreETest($enum_thorough::IgnoreTest::ignoreE_twenty_one), 21, "ignoreETest 21");
+	is(enum_thorough::ignoreETest($enum_thorough::IgnoreTest::ignoreE_twenty_two), 22, "ignoreETest 22");
+}
+# ignore enum item tests end
 {
 	is(enum_thorough::repeatTest($enum_thorough::one), 1, "repeatTest 1");
 	is(enum_thorough::repeatTest($enum_thorough::initial), 1, "repeatTest 2");
@@ -368,8 +407,8 @@ SKIP: {
 is(enum_thorough::speedTest4($enum_thorough::SpeedClass::slow),
 	$enum_thorough::SpeedClass::slow, "speedTest Global 4");
 is(enum_thorough::speedTest5($enum_thorough::SpeedClass::slow),
-	$enum_thorough::SpeedClass::slow, "speedTest Global 5 failed");
+	$enum_thorough::SpeedClass::slow, "speedTest Global 5");
 is(enum_thorough::speedTest4($enum_thorough::SpeedClass::fast),
-	$enum_thorough::SpeedClass::fast, "speedTest Global 4 failed");
+	$enum_thorough::SpeedClass::fast, "speedTest Global 4");
 is(enum_thorough::speedTest5($enum_thorough::SpeedClass::fast),
-	$enum_thorough::SpeedClass::fast, "speedTest Global 5 failed");
+	$enum_thorough::SpeedClass::fast, "speedTest Global 5");

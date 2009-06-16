@@ -1283,7 +1283,7 @@ public:
       if ((enum_feature == ProperEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
 	// Wrap (non-anonymous) C/C++ enum with a proper Java enum
 	// Emit the enum item.
-	if (!Getattr(n, "_last"))	// Only the first enum item has this attribute set
+	if (!GetFlag(n, "firstenumitem"))
 	  Printf(enum_code, ",\n");
 	Printf(enum_code, "  %s", symname);
 	if (Getattr(n, "enumvalue")) {

@@ -487,9 +487,54 @@ struct Instances {
 // Repeated values
 #if defined(SWIGJAVA)
 %javaconst(1);
+// needed for typesafe and proper enums only
+%javaconst(0) ignoreA_three;
+%javaconst(0) ignoreA_thirteen;
 #elif defined(SWIGCSHARP)
+// needed for typesafe enums only
+#ifdef SWIG_TEST_NOCSCONST
+  %csconst(0) ignoreA_three;
+  %csconst(0) ignoreA_thirteen;
+#endif
 %csconst(1);
 #endif
+
+%ignore ignoreA_one;
+%ignore ignoreA_two;
+%ignore ignoreA_twelve;
+%ignore ignoreA_thirty_one;
+
+%ignore ignoreB_ten;
+%ignore ignoreB_twenty;
+%ignore ignoreB_thirty;
+%ignore ignoreB_forty;
+
+%ignore ignoreC_eleven;
+%ignore ignoreC_thirty_one;
+%ignore ignoreC_forty_one;
+
+%ignore ignoreD_ten;
+%ignore ignoreD_twenty;
+
+%ignore ignoreE_twenty;
+
+%inline %{
+struct IgnoreTest {
+  enum IgnoreA { ignoreA_zero, ignoreA_one, ignoreA_two, ignoreA_three, ignoreA_ten=10, ignoreA_eleven, ignoreA_twelve, ignoreA_thirteen, ignoreA_fourteen, ignoreA_twenty=20, ignoreA_thirty=30, ignoreA_thirty_one, ignoreA_thirty_two, ignoreA_thirty_three };
+  enum IgnoreB { ignoreB_ten=10, ignoreB_eleven, ignoreB_twelve, ignoreB_twenty=20, ignoreB_thirty=30, ignoreB_thirty_one, ignoreB_thirty_two, ignoreB_forty=40, ignoreB_forty_one, ignoreB_forty_two };
+  enum IgnoreC { ignoreC_ten=10, ignoreC_eleven, ignoreC_twelve, ignoreC_twenty=20, ignoreC_thirty=30, ignoreC_thirty_one, ignoreC_thirty_two, ignoreC_forty=40, ignoreC_forty_one, ignoreC_forty_two };
+  enum IgnoreD { ignoreD_ten=10, ignoreD_twenty=20, ignoreD_twenty_one, ignoreD_twenty_two };
+  enum IgnoreE { ignoreE_zero, ignoreE_twenty=20, ignoreE_twenty_one, ignoreE_twenty_two };
+};
+
+IgnoreTest::IgnoreA ignoreATest(IgnoreTest::IgnoreA n) { return n; }
+IgnoreTest::IgnoreB ignoreBTest(IgnoreTest::IgnoreB n) { return n; }
+IgnoreTest::IgnoreC ignoreCTest(IgnoreTest::IgnoreC n) { return n; }
+IgnoreTest::IgnoreD ignoreDTest(IgnoreTest::IgnoreD n) { return n; }
+IgnoreTest::IgnoreE ignoreETest(IgnoreTest::IgnoreE n) { return n; }
+%}
+
+#warning TODO: remove SWIGPERL code - replace with portable symbols
 
 #if defined(SWIGPERL)
 %inline %{
