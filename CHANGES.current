@@ -2,9 +2,8 @@ Version 1.3.40 (in progress)
 ============================
 
 2009-06-16: wsfulton
-	    [Java,C#] Fix enum marshalling when %ignore is used on one of the enum items reported
-            by Lubomir Konstantinov. Incorrect enum values were being passed to the C++ layer or 
-            compilation errors resulted.
+	    [Java,C#] Fix enum marshalling when %ignore is used on one of the enum items.
+            Incorrect enum values were being passed to the C++ layer or compilation errors resulted.
 
 2009-06-02: talby
 	    [Perl] Resolved reference.i overload support problem
