@@ -1,7 +1,7 @@
 # an adaptation of ../java/enum_thorough_runme.java
 use strict;
 use warnings;
-use Test::More tests => 299;
+use Test::More tests => 298;
 BEGIN { use_ok('enum_thorough') }
 require_ok('enum_thorough');
 
@@ -392,12 +392,7 @@ SKIP: {
 	is(enum_thorough::repeatTest($enum_thorough::initial), 1, "repeatTest 2");
 	is(enum_thorough::repeatTest($enum_thorough::two), 2, "repeatTest 3");
 	is(enum_thorough::repeatTest($enum_thorough::three), 3, "repeatTest 4");
-{ local $TODO = "overzealous keyword guarding";
-	ok(defined($enum_thorough::last), "found enum value");
-SKIP: {
-	skip "enum value not in expected package", 1 unless defined $enum_thorough::last;
-	is(enum_thorough::repeatTest($enum_thorough::last), 3, "repeatTest 5");
-}}
+	is(enum_thorough::repeatTest($enum_thorough::llast), 3, "repeatTest 5");
 	is(enum_thorough::repeatTest($enum_thorough::end), 3, "repeatTest 6");
 }
 

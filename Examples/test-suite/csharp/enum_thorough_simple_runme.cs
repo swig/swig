@@ -402,7 +402,7 @@ public class runme {
       if (enum_thorough_simple.repeatTest(enum_thorough_simple.initial) != 1) throw new Exception("repeatTest 2 failed");
       if (enum_thorough_simple.repeatTest(enum_thorough_simple.two) != 2) throw new Exception("repeatTest 3 failed");
       if (enum_thorough_simple.repeatTest(enum_thorough_simple.three) != 3) throw new Exception("repeatTest 4 failed");
-      if (enum_thorough_simple.repeatTest(enum_thorough_simple.last) != 3) throw new Exception("repeatTest 5 failed");
+      if (enum_thorough_simple.repeatTest(enum_thorough_simple.llast) != 3) throw new Exception("repeatTest 5 failed");
       if (enum_thorough_simple.repeatTest(enum_thorough_simple.end) != 3) throw new Exception("repeatTest 6 failed");
     }
   }

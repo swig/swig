@@ -413,7 +413,7 @@ public class enum_thorough_simple_runme {
       if (enum_thorough_simple.repeatTest(enum_thorough_simpleConstants.initial) != 1) throw new RuntimeException("repeatTest 2 failed");
       if (enum_thorough_simple.repeatTest(enum_thorough_simpleConstants.two) != 2) throw new RuntimeException("repeatTest 3 failed");
       if (enum_thorough_simple.repeatTest(enum_thorough_simpleConstants.three) != 3) throw new RuntimeException("repeatTest 4 failed");
-      if (enum_thorough_simple.repeatTest(enum_thorough_simpleConstants.last) != 3) throw new RuntimeException("repeatTest 5 failed");
+      if (enum_thorough_simple.repeatTest(enum_thorough_simpleConstants.llast) != 3) throw new RuntimeException("repeatTest 5 failed");
       if (enum_thorough_simple.repeatTest(enum_thorough_simpleConstants.end) != 3) throw new RuntimeException("repeatTest 6 failed");
     }
   }

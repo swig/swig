@@ -534,9 +534,6 @@ IgnoreTest::IgnoreD ignoreDTest(IgnoreTest::IgnoreD n) { return n; }
 IgnoreTest::IgnoreE ignoreETest(IgnoreTest::IgnoreE n) { return n; }
 %}
 
-#warning TODO: remove SWIGPERL code - replace with portable symbols
-
-#if defined(SWIGPERL)
 %inline %{
 
 namespace RepeatSpace {
@@ -553,25 +550,4 @@ repeat repeatTest(repeat e) { return e; }
 }
 
 %}
-
-#else
-%inline %{
-
-namespace RepeatSpace {
-typedef enum
-{
-   one = 1,
-   initial = one,
-   two,
-   three,
-   last = three,
-   end = last
-} repeat;
-repeat repeatTest(repeat e) { return e; }
-}
-
-%}
-
-
-#endif
 

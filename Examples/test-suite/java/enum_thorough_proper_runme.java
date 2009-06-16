@@ -413,7 +413,7 @@ public class enum_thorough_proper_runme {
       if (enum_thorough_proper.repeatTest(repeat.initial).swigValue() != 1) throw new RuntimeException("repeatTest 2 failed");
       if (enum_thorough_proper.repeatTest(repeat.two).swigValue() != 2) throw new RuntimeException("repeatTest 3 failed");
       if (enum_thorough_proper.repeatTest(repeat.three).swigValue() != 3) throw new RuntimeException("repeatTest 4 failed");
-      if (enum_thorough_proper.repeatTest(repeat.last).swigValue() != 3) throw new RuntimeException("repeatTest 5 failed");
+      if (enum_thorough_proper.repeatTest(repeat.llast).swigValue() != 3) throw new RuntimeException("repeatTest 5 failed");
       if (enum_thorough_proper.repeatTest(repeat.end).swigValue() != 3) throw new RuntimeException("repeatTest 6 failed");
     }
   }
