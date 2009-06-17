@@ -177,8 +177,10 @@ int bar(int x);
 The name of the module is supplied using the special <tt>%module</tt>
 directive (or the <tt>-module</tt> command line option).  This
 directive must appear at the beginning of the file and is used to name
-the resulting extension module (in addition, this name often defines
-a namespace in the target language).  If the module name is supplied on the
+the resulting target language extension module. Exactly what this results
+in depends on the target language, eg the module name can define
+a target language namespace or merely be a useful name for naming files or helper classes.
+If the module name is supplied on the
 command line, it overrides the name specified with the
 <tt>%module</tt> directive.
 </p>
@@ -2361,7 +2363,7 @@ You can make a <tt>Vector</tt> look a lot like a class by writing a SWIG interfa
 #include "vector.h"
 %}
 
-%include vector.h            // Just grab original C header file
+%include "vector.h"          // Just grab original C header file
 %extend Vector {             // Attach these functions to struct Vector
 	Vector(double x, double y, double z) {
 		Vector *v;
@@ -2883,10 +2885,16 @@ interface to your program.
 SWIG's <tt>%include</tt> directive to process an entire C
 source/header file. 
 
-<li>Make sure everything in the interface file uses ANSI C/C++syntax.
+<li>Make sure everything in the interface file uses ANSI C/C++ syntax.
 
 <li>Make sure all necessary `<tt>typedef</tt>' declarations and
-type-information is available in the interface file.
+type-information is available in the interface file. 
+In particular, ensure that the type information is specified in the correct order as required by a C compiler.
+In particular, define a type before it is used! A C compiler will tell you
+if the full type information is not available when it is needed, whereas
+SWIG will usually not warn or error out as it is designed to work without
+full type information. However, if type information is not specified
+correctly, the wrappers can be sub-optimal.
 
 <li>If your program has a main() function, you may need to rename it
 (read on).
@@ -2945,16 +2953,21 @@ extern void dump(FILE *f);
 
 <p>
 Of course, in this case, our header file is pretty simple so we could
-have made an interface file like this as well:</p>
+use a simpler approach and use an interface file like this:</p>
 
 <div class="code"><pre>
 /* File : interface.i */
 %module mymodule
-%include header.h
+%{
+#include "header.h"
+%}
+%include "header.h"
 </pre></div>
 
 <p>
-Naturally, your mileage may vary.</p>
+The main advantage of this approach is minimal maintenance of an interface file for when the header file changes in the future.
+In more complex projects, an interface file containing numerous <tt>%include</tt> and <tt>#include</tt> statements like this is one of the most common approaches to interface file design due to lower maintenance overhead.
+</p>
 
 <H3><a name="SWIG_nn48"></a>5.7.3 Why use separate interface files?</H3>
 

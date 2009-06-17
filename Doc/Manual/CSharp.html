@@ -99,6 +99,7 @@ namespace com.bloggs.widget {
   ...
 }
 </pre></div>
+Note that by default, the generated C# classes have no namespace and the module name is unrelated to namespaces. The module name is just like in Java and is merely used to name some of the generated classes.
 </li>
 
 <li>
@@ -131,7 +132,7 @@ If it was used, it would generate an illegal runtime initialisation via a PInvok
 C# doesn't support the notion of throws clauses.
 Therefore there is no 'throws' typemap attribute support for adding exception classes to a throws clause.
 Likewise there is no need for an equivalent to <tt>%javaexception</tt>.
-In fact, throwing C# exceptions works quite differently, see <a href="CSharp.html#csharp_exceptions">C# Exceptions></a> below.
+In fact, throwing C# exceptions works quite differently, see <a href="CSharp.html#csharp_exceptions">C# Exceptions</a> below.
 </li>
 
 <li>
