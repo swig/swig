@@ -479,7 +479,7 @@ One can include <b>cpointer.i</b> to generate PHP wrappers to <tt>int
 
 <div class="code"><pre>
 %module example
-%include cpointer.i
+%include "cpointer.i"
 %pointer_functions(int,intp)
 
 void add( int *in1, int *in2, int *result);
@@ -513,7 +513,7 @@ parameter names as appropriate.
 
 <div class="code"><pre>
 %module example
-%include typemaps.i
+%include "typemaps.i"
 
 void add( int *INPUT, int *INPUT, int *OUTPUT);
 
@@ -545,7 +545,7 @@ named typemap REFERENCE.
 
 <div class="code"><pre>
 %module example
-%include phppointers.i
+%include "phppointers.i"
 
 void add( int *REF, int *REF, int *REF);
 
