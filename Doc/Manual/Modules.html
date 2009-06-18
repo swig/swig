@@ -10,6 +10,7 @@
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
+<li><a href="#Modules_introduction">Modules Introduction</a>
 <li><a href="#Modules_nn1">Basics</a>
 <li><a href="#Modules_nn2">The SWIG runtime code</a>
 <li><a href="#external_run_time">External access to the runtime</a>
@@ -22,11 +23,48 @@
 
 
 
+<H2><a name="Modules_introduction"></a>15.1 Modules Introduction</H2>
+
+
+<p>
+Each invocation of SWIG requires a module name to be specified.
+The module name is used to name the resulting target language extension module. 
+Exactly what this means and and what the name is used for
+depends on the target language, for example the name can define
+a target language namespace or merely be a useful name for naming files or helper classes.
+</p>
+
+<p>
+The module name can be supplied in one of two ways. 
+The first is to specify it with the special <tt>%module</tt>
+directive. This directive must appear at the beginning of the interface file.
+The general form of this directive is:
+</p>
+
+<div class="code"><pre>
+<tt>%module(option1="value1",option2="value2",...) modulename</tt>
+</pre></div>
+
+<p>
+where the modulename is mandatory and the options add one or more optional additional features.
+Typically no options are specified, for example:
+</p>
+
+<div class="code"><pre>
+<tt>%module mymodule</tt>
+</pre></div>
+
+<p>
+The second way to specify the module name is with the <tt>-module</tt> command line option, for example <tt>-module mymodule</tt>.
+If the module name is supplied on the command line, it overrides the name specified by the
+<tt>%module</tt> directive.
+</p>
+
 <p>
 When first working with SWIG, users commonly start by creating a
 single module.  That is, you might define a single SWIG interface that
 wraps some set of C/C++ code.  You then compile all of the generated
-wrapper code into a module and use it.   For large applications, however,
+wrapper code together and use it.   For large applications, however,
 this approach is problematic---the size of the generated wrapper code
 can be rather large.  Moreover, it is probably easier to manage the
 target language interface when it is broken up into smaller pieces.
@@ -34,10 +72,11 @@ target language interface when it is broken up into smaller pieces.
 
 <p>
 This chapter describes the problem of using SWIG in programs
-where you want to create a collection of modules.
+where you want to create a collection of modules. 
+Each module in the collection is created via separate invocations of SWIG.
 </p>
 
-<H2><a name="Modules_nn1"></a>15.1 Basics</H2>
+<H2><a name="Modules_nn1"></a>15.2 Basics</H2>
 
 
 <p>
@@ -135,7 +174,7 @@ in parallel from multiple threads as SWIG provides no locking - for more on that
 issue, read on.
 </p>
 
-<H2><a name="Modules_nn2"></a>15.2 The SWIG runtime code</H2>
+<H2><a name="Modules_nn2"></a>15.3 The SWIG runtime code</H2>
 
 
 <p>
@@ -201,7 +240,7 @@ can peacefully coexist. So the type structures are separated by the
 is empty. Only modules compiled with the same pair will share type information.
 </p>
 
-<H2><a name="external_run_time"></a>15.3 External access to the runtime</H2>
+<H2><a name="external_run_time"></a>15.4 External access to the runtime</H2>
 
 
 <p>As described in <a href="Typemaps.html#runtime_type_checker">The run-time type checker</a>,
@@ -238,7 +277,7 @@ SWIG_TYPE_TABLE to be the same as the module whose types you are trying to
 access.
 </p>
 
-<H2><a name="Modules_nn4"></a>15.4 A word of caution about static libraries</H2>
+<H2><a name="Modules_nn4"></a>15.5 A word of caution about static libraries</H2>
 
 
 <p>
@@ -249,7 +288,7 @@ into it. This is very often <b>NOT</b> what you want and it can lead to unexpect
 behavior. When working with dynamically loadable modules, you should try to work exclusively with shared libraries.
 </p>
 
-<H2><a name="Modules_nn5"></a>15.5 References</H2>
+<H2><a name="Modules_nn5"></a>15.6 References</H2>
 
 
 <p>
@@ -257,7 +296,7 @@ Due to the complexity of working with shared libraries and multiple modules, it 
 an outside reference.  John Levine's "Linkers and Loaders" is highly recommended.
 </p>
 
-<H2><a name="Modules_nn6"></a>15.6 Reducing the wrapper file size</H2>
+<H2><a name="Modules_nn6"></a>15.7 Reducing the wrapper file size</H2>
 
 
 <p>

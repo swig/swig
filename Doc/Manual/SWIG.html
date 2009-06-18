@@ -174,15 +174,8 @@ int bar(int x);
 ...
 </pre></div>
 <p>
-The name of the module is supplied using the special <tt>%module</tt>
-directive (or the <tt>-module</tt> command line option).  This
-directive must appear at the beginning of the file and is used to name
-the resulting target language extension module. Exactly what this results
-in depends on the target language, eg the module name can define
-a target language namespace or merely be a useful name for naming files or helper classes.
-If the module name is supplied on the
-command line, it overrides the name specified with the
-<tt>%module</tt> directive.
+The module name is supplied using the special <tt>%module</tt>
+directive. Modules are described further in the <a href="Modules.html#Modules_introduction">Modules Introduction</a> section.
 </p>
 
 <p>
@@ -2889,12 +2882,12 @@ source/header file.
 
 <li>Make sure all necessary `<tt>typedef</tt>' declarations and
 type-information is available in the interface file. 
-In particular, ensure that the type information is specified in the correct order as required by a C compiler.
-In particular, define a type before it is used! A C compiler will tell you
-if the full type information is not available when it is needed, whereas
+In particular, ensure that the type information is specified in the correct order as required by a C/C++ compiler.
+Most importantly, define a type before it is used! A C compiler will tell you
+if the full type information is not available if it is needed, whereas
 SWIG will usually not warn or error out as it is designed to work without
 full type information. However, if type information is not specified
-correctly, the wrappers can be sub-optimal.
+correctly, the wrappers can be sub-optimal and even result in uncompileable C/C++ code.
 
 <li>If your program has a main() function, you may need to rename it
 (read on).
