@@ -24,6 +24,7 @@
 <li><a href="#Scilab_nn9">Functions</a>
 <li><a href="#scilab_nn10">Global variables</a>
 <li><a href="#Scilab_nn11">Constants</a>
+<li><a href="#Scilab_nn12">Enums</a>
 </ul>
 </ul>
 </div>
@@ -215,34 +216,85 @@ ans =  4</pre></div>
 </p>
 
     <div class="code"><pre>%module example
-%constant int ICONST=42;
+#define    ICONST      42
+#define    FCONST      2.1828
+#define    CCONST      'x'
+#define    CCONST2     '\n'
 #define    SCONST      "Hello World"
+#define    SCONST2     "\"Hello World\""
 </pre></div>
 
 <p>
-    This is 'effectively' converted into the following code in the wrapper file: 
+    A file called example.sce will be created, which could be interpreted by the scilab. The code in the file is as following:
 </p>
 
     <div class="code"><pre>....
-const int ICONST=42;
-const char * SCONST="Hello World";
-....
-int ICONST_get (char *fname,unsigned long fname_len) {..}
-int SCONST_get (char *fname,unsigned long fname_len) {..}
+example.ICONST = 42
+example.FCONST = 2.1828
+example.CCONST = ascii(120)
+example.CCONST2 = ascii(10)
+example.SCONST = "Hello World"
+example.SCONST2 = """Hello World"""
+example.EXPR = 42+3*(2.1828)
+example.iconst = 37
+example.fconst = 3.14
 .... </pre></div>
-<p>It is easy to use the C constants as global variables:</p>
+<p>It is easy to use the C constants after run the command "exec example.sce":</p>
 
     <div class="targetlang"><pre>
-scilab:1&gt; ICONST
-ant = 42
+scilab:1&gt; exec example.sce;
+scilab:2&gt; example.ICONST
+ans= 42
+scilab:3&gt; example.FCONST
+ans= 2.1828
+scilab:4&gt; example.CCONST
+ans=x
+scilab:5&gt; example.CCONST2
+ans=
 
-scilab:2&gt; SCONST
-ant= Hello world
-
-scilab:3&gt; c=SCONST()
-c = Hello World  
+scilab:6&gt; example.SCONST
+ans= Hello World
+scilab:7&gt; example.SCONST2
+ans= "Hello World"
+scilab:8&gt; example.EXPR
+ans= 48.5484
+scilab:9&gt; example.iconst
+ans= 37
+scilab:10&gt; example.fconst
+ans= 3.14
 </pre></div>
 
+<H3><a name="Scilab_nn12"></a>27.3.5 Enums</H3>
+
+<p>  The way that deals with the enums is similar to the constants. For example: 
+</p>
+
+    <div class="code"><pre>%module example
+typedef enum  { RED, BLUE, GREEN } color;
+</pre></div>
+
+<p>
+    A file called example.sce will be created, which could be interpreted by the scilab. The code in the file is as following:
+</p>
+
+    <div class="code"><pre>....
+color.RED=0;
+color.BLUE=color.RED + 1;
+color.GREEN=color.BLUE + 1;
+.... </pre></div>
+<p>It is easy to use the enums after run the command "exec example.sce":</p>
+
+    <div class="targetlang"><pre>
+scilab:1&gt; exec example.sce;
+scilab:2&gt; printf("    RED    = %i\n", color.RED);
+    RED    = 0
+
+scilab:3&gt; printf("    BLUE    = %i\n", color.BLUE);
+    BLUE   = 1
+
+scilab:4&gt; printf("    GREEN    = %i\n", color.GREEN);
+    GREEN  = 2
+</pre></div>
 
 
 

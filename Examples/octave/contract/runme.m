@@ -4,7 +4,7 @@ example
 
 # Call our gcd() function
 
-x = 42;
+x = -2;
 y = 105;
 g = example.gcd(x,y);
 printf("The gcd of %d and %d is %d\n",x,y,g);

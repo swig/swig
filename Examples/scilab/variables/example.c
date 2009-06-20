@@ -28,18 +28,18 @@ char            *strvar=0;
 /* A debugging function to print out their values */
 
 void print_vars() {
-  sciprint("ivar      = %d\n", ivar);
-  sciprint("svar      = %d\n", svar);
-  sciprint("lvar      = %ld\n", lvar);
-  sciprint("uivar     = %u\n", uivar);
-  sciprint("usvar     = %u\n", usvar);
-  sciprint("ulvar     = %lu\n", ulvar);
-  sciprint("scvar     = %d\n", scvar);
-  sciprint("ucvar     = %u\n", ucvar);
-  sciprint("fvar      = %g\n", fvar);
-  sciprint("dvar      = %g\n", dvar);
-  sciprint("cvar      = %c\n", cvar);
-  sciprint("strvar    = %s\n",strvar);
+  printf("ivar      = %d\n", ivar);
+  printf("svar      = %d\n", svar);
+  printf("lvar      = %ld\n", lvar);
+  printf("uivar     = %u\n", uivar);
+  printf("usvar     = %u\n", usvar);
+  printf("ulvar     = %lu\n", ulvar);
+  printf("scvar     = %d\n", scvar);
+  printf("ucvar     = %u\n", ucvar);
+  printf("fvar      = %g\n", fvar);
+  printf("dvar      = %g\n", dvar);
+  printf("cvar      = %c\n", cvar);
+  printf("strvar    = %s\n",strvar);
 }
 
 
