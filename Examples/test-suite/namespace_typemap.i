@@ -75,7 +75,7 @@ namespace test {
     class string_class;
 #ifdef SWIGPYTHON
 	%typemap(in) string_class * {
-	    $1 = new string_class(PyString_AsString($input));
+	    $1 = new string_class(SWIG_Python_str_AsChar($input));
 	}
 	%typemap(freearg) string_class * {
 	    delete $1;

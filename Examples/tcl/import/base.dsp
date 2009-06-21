@@ -118,7 +118,7 @@ InputName=base
 	echo TCL_INCLUDE: %TCL_INCLUDE% 
 	echo TCL_LIB: %TCL_LIB% 
 	echo on 
-	..\..\..\swig -c++ -tcl8 $(InputPath) 
+	..\..\..\swig.exe -c++ -tcl8 $(InputPath) 
 	
 # End Custom Build
 
@@ -133,7 +133,7 @@ InputName=base
 	echo TCL_INCLUDE: %TCL_INCLUDE% 
 	echo TCL_LIB: %TCL_LIB% 
 	echo on 
-	..\..\..\swig -c++ -tcl8 $(InputPath) 
+	..\..\..\swig.exe -c++ -tcl8 $(InputPath) 
 	
 # End Custom Build
 

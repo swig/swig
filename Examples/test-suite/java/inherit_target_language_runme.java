@@ -21,6 +21,15 @@ public class inherit_target_language_runme {
     new MultipleDerived2().targetLanguageBaseMethod();
     new MultipleDerived3().f();
     new MultipleDerived4().g();
+
+    BaseX baseX = new BaseX();
+    baseX.basex();
+    baseX.targetLanguageBase2Method();
+
+    DerivedX derivedX = new DerivedX();
+    derivedX.basex();
+    derivedX.derivedx();
+    derivedX.targetLanguageBase2Method();
   }
 }
 

@@ -17,7 +17,7 @@ char cvsroot_parms_c[] = "$Id$";
  * Create a new parameter from datatype 'type' and name 'name'.
  * ------------------------------------------------------------------------ */
 
-Parm *NewParm(SwigType *type, const String_or_char *name) {
+Parm *NewParm(SwigType *type, const_String_or_char_ptr name) {
   Parm *p = NewHash();
   set_nodeType(p, "parm");
   if (type) {

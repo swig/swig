@@ -1,5 +1,8 @@
 from director_exception import *
-from exceptions import *
+
+class MyException(Exception):
+	def __init__(self, a, b):
+		self.msg = a + b
 
 class MyFoo(Foo):
 	def ping(self):
@@ -7,38 +10,61 @@ class MyFoo(Foo):
 
 class MyFoo2(Foo):
 	def ping(self):
-		return true
+		return True
 		pass # error: should return a string
 
-ok = 0
+class MyFoo3(Foo):
+	def ping(self):
+		raise MyException("foo", "bar")
 
+# Check that the NotImplementedError raised by MyFoo.ping() is returned by
+# MyFoo.pong().
+ok = 0
 a = MyFoo()
 b = launder(a)
-
 try:
 	b.pong()
 except NotImplementedError, e:
-	ok = 1
+	if str(e) == "MyFoo::ping() EXCEPTION":
+		ok = 1
+	else:
+		print "Unexpected error message: %s" % str(e)
 except:
 	pass
-
 if not ok:
 	raise RuntimeError
 
-ok = 0
 
+# Check that the director returns the appropriate TypeError if the return type
+# is wrong.
+ok = 0
 a = MyFoo2()
 b = launder(a)
-
 try:
 	b.pong()
-except:
-	ok = 1
-
-
+except TypeError, e:
+	if str(e) == "Swig director type mismatch in output value of type 'std::string'":
+		ok = 1
+	else:
+		print "Unexpected error message: %s" % str(e)
 if not ok:
 	raise RuntimeError
 
+
+# Check that the director can return an exception which requires two arguments
+# to the constructor, without mangling it.
+ok = 0
+a = MyFoo3()
+b = launder(a)
+try:
+	b.pong()
+except MyException, e:
+	if e.msg == 'foobar':
+		ok = 1
+	else:
+		print "Unexpected error message: %s" % str(e)
+if not ok:
+	raise RuntimeError
 
 try:
 	raise Exception2()

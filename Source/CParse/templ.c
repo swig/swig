@@ -15,7 +15,7 @@ char cvsroot_templ_c[] = "$Id$";
 static int template_debug = 0;
 
 
-String *baselists[3];
+const char *baselists[3];
 
 void SwigType_template_init() {
   baselists[0] = "baselist";

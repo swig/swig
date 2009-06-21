@@ -345,7 +345,7 @@ DohObjInfo DohListType = {
 
 #define MAXLISTITEMS 8
 
-DOH *DohNewList() {
+DOH *DohNewList(void) {
   List *l;
   int i;
   l = (List *) DohMalloc(sizeof(List));

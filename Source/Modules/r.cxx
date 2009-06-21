@@ -424,6 +424,7 @@ protected:
   String *sfile;
   String *f_init;
   String *s_classes;
+  String *f_begin;
   String *f_runtime;
   String *f_wrapper;
   String *s_header;
@@ -487,6 +488,7 @@ R::R() :
   sfile(0),
   f_init(0),
   s_classes(0),
+  f_begin(0),
   f_runtime(0),
   f_wrapper(0),
   s_header(0),
@@ -767,6 +769,7 @@ void R::init() {
   sfile = NewString("");
   f_init = NewString("");
   s_header = NewString("");
+  f_begin = NewString("");
   f_runtime = NewString("");
   f_wrapper = NewString("");
   s_classes = NewString("");
@@ -811,16 +814,22 @@ int R::top(Node *n) {
   Swig_register_filebyname("sinit", s_init);
   Swig_register_filebyname("sinitroutine", s_init_routine);
 
+  Swig_register_filebyname("begin", f_begin);
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("init", f_init);
   Swig_register_filebyname("header", s_header);
   Swig_register_filebyname("wrapper", f_wrapper);
   Swig_register_filebyname("s", sfile);
-
   Swig_register_filebyname("sclasses", s_classes);
 
+  Swig_banner(f_begin);
 
-  Printf(s_init, "# This is an automatically generated file by the R module for SWIG.\n\n");
+  Printf(f_runtime, "\n");
+  Printf(f_runtime, "#define SWIGR\n");
+  Printf(f_runtime, "\n");
+
+  
+  Swig_banner_target_lang(s_init, "#");
   outputCommandLineArguments(s_init);
 
   Printf(f_wrapper, "#ifdef __cplusplus\n");
@@ -858,7 +867,9 @@ int R::top(Node *n) {
   Delete(f_init);
 
   Delete(s_header);
+  Close(f_begin);
   Delete(f_runtime);
+  Delete(f_begin);
 
   return SWIG_OK;
 }
@@ -878,7 +889,7 @@ int R::DumpCode(Node *n) {
   Printf(stderr, "Writing S code to %s\n", output_filename);
 #endif
   
-  File *scode = NewFile(output_filename, "w");
+  File *scode = NewFile(output_filename, "w", SWIG_output_files());
   if (!scode) {
     FileErrorDisplay(output_filename);
     SWIG_exit(EXIT_FAILURE);
@@ -893,25 +904,16 @@ int R::DumpCode(Node *n) {
   Close(scode);
   //  Delete(scode);
   String *outfile = Getattr(n,"outfile");
-  File *runtime = NewFile(outfile,"w");
+  File *runtime = NewFile(outfile,"w", SWIG_output_files());
   if (!runtime) {
     FileErrorDisplay(outfile);
     SWIG_exit(EXIT_FAILURE);
   }
   
-  Swig_banner(runtime);
-  
-  
-  Printf(runtime, "/* Runtime */\n");
+  Printf(runtime, "%s", f_begin);
   Printf(runtime, "%s\n", f_runtime);
-  
-  Printf(runtime, "/* Header */\n");
   Printf(runtime, "%s\n", s_header);
-
-  Printf(runtime, "/* Wrapper */\n");
   Printf(runtime, "%s\n", f_wrapper);
-
-  Printf(runtime, "/* Init code */\n");
   Printf(runtime, "%s\n", f_init);
 
   Close(runtime);
@@ -920,7 +922,7 @@ int R::DumpCode(Node *n) {
   if(outputNamespaceInfo) {
     output_filename = NewString("");
     Printf(output_filename, "%sNAMESPACE", SWIG_output_directory());
-    File *ns = NewFile(output_filename, "w");
+    File *ns = NewFile(output_filename, "w", SWIG_output_files());
     if (!ns) {
       FileErrorDisplay(output_filename);
       SWIG_exit(EXIT_FAILURE);
@@ -2574,9 +2576,9 @@ String * R::runtimeCode() {
 void R::main(int argc, char *argv[]) {
   bool cppcast = true;
   init();
+  Preprocessor_define("SWIGR 1", 0);
   SWIG_library_directory("r");
   SWIG_config_file("r.swg");
-  Preprocessor_define("SWIGR 1", 0);
   debugMode = false;
   copyStruct = true;
   memoryProfile = false;
@@ -2659,7 +2661,7 @@ int R::outputCommandLineArguments(File *out)
   if(Argc < 1 || !Argv || !Argv[0])
     return(-1);
 
-  Printf(out, "##   Generated via the command line invocation:\n##\t");
+  Printf(out, "\n##   Generated via the command line invocation:\n##\t");
   for(int i = 0; i < Argc ; i++) {
     Printf(out, " %s", Argv[i]);
   }

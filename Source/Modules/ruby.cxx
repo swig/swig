@@ -30,7 +30,7 @@ public:
 
   /**
    * The C variable name used in the SWIG-generated wrapper code to refer to
-   * this class; usually it is of the form "cClassName.klass", where cClassName
+   * this class; usually it is of the form "SwigClassXXX.klass", where SwigClassXXX
    * is a swig_class struct instance and klass is a member of that struct.
    */
   String *vname;
@@ -39,7 +39,7 @@ public:
    * The C variable name used in the SWIG-generated wrapper code to refer to
    * the module that implements this class's methods (when we're trying to
    * support C++ multiple inheritance). Usually it is of the form
-   * "cClassName.mImpl", where cClassName is a swig_class struct instance
+   * "SwigClassClassName.mImpl", where SwigClassXXX is a swig_class struct instance
    * and mImpl is a member of that struct.
    */
   String *mImpl;
@@ -78,7 +78,7 @@ public:
     Delete(temp);
   }
 
-  void set_name(const String_or_char *cn, const String_or_char *rn, const String_or_char *valn) {
+  void set_name(const_String_or_char_ptr cn, const_String_or_char_ptr rn, const_String_or_char_ptr valn) {
     /* Original C/C++ class (or struct) name */
     Clear(cname);
     Append(cname, cn);
@@ -93,18 +93,18 @@ public:
 
     /* Variable name for the VALUE that refers to the Ruby Class object */
     Clear(vname);
-    Printf(vname, "c%s.klass", name);
+    Printf(vname, "SwigClass%s.klass", name);
 
     /* Variable name for the VALUE that refers to the Ruby Class object */
     Clear(mImpl);
-    Printf(mImpl, "c%s.mImpl", name);
+    Printf(mImpl, "SwigClass%s.mImpl", name);
 
     /* Prefix */
     Clear(prefix);
     Printv(prefix, (rn ? rn : cn), "_", NIL);
   }
 
-  char *strip(const String_or_char *s) {
+  char *strip(const_String_or_char_ptr s) {
     Clear(temp);
     Append(temp, s);
     if (Strncmp(s, prefix, Len(prefix)) == 0) {
@@ -158,6 +158,7 @@ private:
   File *f_directors;
   File *f_directors_h;
   File *f_directors_helpers;
+  File *f_begin;
   File *f_runtime;
   File *f_runtime_h;
   File *f_header;
@@ -762,6 +763,7 @@ public:
     classes = 0;
     klass = 0;
     special_methods = 0;
+    f_begin = 0;
     f_runtime = 0;
     f_header = 0;
     f_wrappers = 0;
@@ -992,24 +994,13 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
 
-    f_runtime = NewFile(outfile, "w");
-    if (!f_runtime) {
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
 
-    if (directorsEnabled()) {
-      if (!outfile_h) {
-        Printf(stderr, "Unable to determine outfile_h\n");
-        SWIG_exit(EXIT_FAILURE);
-      }
-      f_runtime_h = NewFile(outfile_h, "w");
-      if (!f_runtime_h) {
-	FileErrorDisplay(outfile_h);
-	SWIG_exit(EXIT_FAILURE);
-      }
-    }
-
+    f_runtime = NewString("");
     f_init = NewString("");
     f_header = NewString("");
     f_wrappers = NewString("");
@@ -1018,9 +1009,22 @@ public:
     f_directors_helpers = NewString("");
     f_initbeforefunc = NewString("");
 
+    if (directorsEnabled()) {
+      if (!outfile_h) {
+        Printf(stderr, "Unable to determine outfile_h\n");
+        SWIG_exit(EXIT_FAILURE);
+      }
+      f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
+      if (!f_runtime_h) {
+	FileErrorDisplay(outfile_h);
+	SWIG_exit(EXIT_FAILURE);
+      }
+    }
+
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("wrapper", f_wrappers);
+    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
     Swig_register_filebyname("director", f_directors);
@@ -1035,13 +1039,16 @@ public:
 
     registerMagicMethods();
 
-    Swig_banner(f_runtime);
+    Swig_banner(f_begin);
 
+    Printf(f_runtime, "\n");
     Printf(f_runtime, "#define SWIGRUBY\n");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
     }
+
+    Printf(f_runtime, "\n");
 
     /* typedef void *VALUE */
     SwigType *value = NewSwigType(T_VOID);
@@ -1058,6 +1065,7 @@ public:
       Replaceall(module_macro, "::", "__");
 
       Swig_banner(f_directors_h);
+      Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module_macro);
       Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module_macro);
       Printf(f_directors_h, "namespace Swig {\n");
@@ -1110,27 +1118,29 @@ public:
     SwigType_emit_type_table(f_runtime, f_wrappers);
 
     /* Close all of the files */
-    Dump(f_header, f_runtime);
+    Dump(f_runtime, f_begin);
+    Dump(f_header, f_begin);
 
     if (directorsEnabled()) {
-      Dump(f_directors_helpers, f_runtime);
-      Dump(f_directors, f_runtime);
+      Dump(f_directors_helpers, f_begin);
+      Dump(f_directors, f_begin);
       Dump(f_directors_h, f_runtime_h);
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
       Close(f_runtime_h);
     }
 
-    Dump(f_wrappers, f_runtime);
-    Dump(f_initbeforefunc, f_runtime);
-    Wrapper_pretty_print(f_init, f_runtime);
+    Dump(f_wrappers, f_begin);
+    Dump(f_initbeforefunc, f_begin);
+    Wrapper_pretty_print(f_init, f_begin);
 
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_initbeforefunc);
-    Close(f_runtime);
+    Close(f_begin);
     Delete(f_runtime);
+    Delete(f_begin);
 
     return SWIG_OK;
   }
@@ -1226,7 +1236,7 @@ public:
   /**
    * Process the comma-separated list of aliases (if any).
    */
-  void defineAliases(Node *n, const String_or_char *iname) {
+  void defineAliases(Node *n, const_String_or_char_ptr iname) {
     String *aliasv = Getattr(n, "feature:alias");
     if (aliasv) {
       List *aliases = Split(aliasv, ',', INT_MAX);
@@ -1260,7 +1270,7 @@ public:
    * as another instance of the same class.
    * --------------------------------------------------------------------- */
 
-  void create_command(Node *n, const String_or_char *iname) {
+  void create_command(Node *n, const_String_or_char_ptr iname) {
 
     String *alloc_func = Swig_name_wrapper(iname);
     String *wname = Swig_name_wrapper(iname);
@@ -2392,9 +2402,9 @@ public:
   void handleMarkFuncDirective(Node *n) {
     String *markfunc = Getattr(n, "feature:markfunc");
     if (markfunc) {
-      Printf(klass->init, "c%s.mark = (void (*)(void *)) %s;\n", klass->name, markfunc);
+      Printf(klass->init, "SwigClass%s.mark = (void (*)(void *)) %s;\n", klass->name, markfunc);
     } else {
-      Printf(klass->init, "c%s.mark = 0;\n", klass->name);
+      Printf(klass->init, "SwigClass%s.mark = 0;\n", klass->name);
     }
   }
 
@@ -2404,10 +2414,10 @@ public:
   void handleFreeFuncDirective(Node *n) {
     String *freefunc = Getattr(n, "feature:freefunc");
     if (freefunc) {
-      Printf(klass->init, "c%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
+      Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
     } else {
       if (klass->destructor_defined) {
-	Printf(klass->init, "c%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
+	Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
       }
     }
   }
@@ -2418,9 +2428,9 @@ public:
   void handleTrackDirective(Node *n) {
     int trackObjects = GetFlag(n, "feature:trackobjects");
     if (trackObjects) {
-      Printf(klass->init, "c%s.trackObjects = 1;\n", klass->name);
+      Printf(klass->init, "SwigClass%s.trackObjects = 1;\n", klass->name);
     } else {
-      Printf(klass->init, "c%s.trackObjects = 0;\n", klass->name);
+      Printf(klass->init, "SwigClass%s.trackObjects = 0;\n", klass->name);
     }
   }
 
@@ -2445,7 +2455,7 @@ public:
 
     Clear(klass->type);
     Printv(klass->type, Getattr(n, "classtype"), NIL);
-    Printv(f_wrappers, "swig_class c", valid_name, ";\n\n", NIL);
+    Printv(f_wrappers, "swig_class SwigClass", valid_name, ";\n\n", NIL);
     Printv(klass->init, "\n", tab4, NIL);
 
     if (!useGlobalModule) {
@@ -2463,7 +2473,7 @@ public:
     SwigType_add_pointer(tt);
     SwigType_remember(tt);
     String *tm = SwigType_manglestr(tt);
-    Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &c%s);\n", tm, valid_name);
+    Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &SwigClass%s);\n", tm, valid_name);
     Delete(tm);
     Delete(tt);
     Delete(valid_name);
@@ -2564,7 +2574,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_allocate");
+    Swig_name_register((const_String_or_char_ptr ) "construct", (const_String_or_char_ptr ) "%c_allocate");
 
 
     Language::constructorHandler(n);
@@ -2599,7 +2609,7 @@ public:
     Delete(docs);
 
     current = CONSTRUCTOR_INITIALIZE;
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "new_%c");
+    Swig_name_register((const_String_or_char_ptr ) "construct", (const_String_or_char_ptr ) "new_%c");
     Language::constructorHandler(n);
 
     /* Restore original parameter list */
@@ -2607,7 +2617,7 @@ public:
     Swig_restore(n);
 
     /* Done */
-    Swig_name_unregister((String_or_char *) "construct");
+    Swig_name_unregister((const_String_or_char_ptr ) "construct");
     current = NO_CPP;
     klass->constructor_defined = 1;
     return SWIG_OK;
@@ -2621,7 +2631,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register((String_or_char *) "construct", (String_or_char *) "%c_allocate");
+    Swig_name_register((const_String_or_char_ptr ) "construct", (const_String_or_char_ptr ) "%c_allocate");
 
     return Language::copyconstructorHandler(n);
   }
@@ -3235,11 +3245,6 @@ public:
 	Setattr(n, "type", return_type);
 	tm = Swig_typemap_lookup("directorout", n, "result", w);
 	Setattr(n, "type", type);
-	if (tm == 0) {
-	  String *name = NewString("result");
-	  tm = Swig_typemap_search("directorout", return_type, name, NULL);
-	  Delete(name);
-	}
 	if (tm != 0) {
 	  if (outputs > 1 && !asvoid ) {
 	    Printf(w->code, "output = rb_ary_entry(result, %d);\n", idx++);

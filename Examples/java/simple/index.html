@@ -65,15 +65,15 @@ to create the extension <tt>libexample.so (unix)</tt>.
 
 <h2>Using the extension</h2>
 
-Click <a href="main.java">here</a> to see a program that calls our C functions from Java.
+Click <a href="runme.java">here</a> to see a program that calls our C functions from Java.
 <p>
-Compile the java files <tt><a href="example.java">example.java</a></tt> and <tt><a href="main.java">main.java</a></tt>
-to create the class files example.class and main.class before running main in the JVM.  Ensure that the libexample.so file is in your LD_LIBRARY_PATH before running. For example:
+Compile the java files <tt><a href="example.java">example.java</a></tt> and <tt><a href="runme.java">runme.java</a></tt>
+to create the class files example.class and runme.class before running runme in the JVM.  Ensure that the libexample.so file is in your LD_LIBRARY_PATH before running. For example:
 <blockquote>
 <pre>
 export LD_LIBRARY_PATH=. #ksh 
 javac *.java
-java main
+java runme
 </pre>
 </blockquote>
 

@@ -74,7 +74,7 @@ static void copy_location(const DOH *s1, DOH *s2) {
   Setline(s2, Getline((DOH *) s1));
 }
 
-static String *cpp_include(String_or_char *fn, int sysfile) {
+static String *cpp_include(const_String_or_char_ptr fn, int sysfile) {
   String *s = sysfile ? Swig_include_sys(fn) : Swig_include(fn);
   if (s && single_include) {
     String *file = Getfile(s);
@@ -85,7 +85,8 @@ static String *cpp_include(String_or_char *fn, int sysfile) {
     Setattr(included_files, file, file);
   }
   if (!s) {
-    Seek(fn, 0, SEEK_SET);
+    /* XXX(bhy) may not need the seek */
+    /* Seek(fn, 0, SEEK_SET); */
     if (ignore_missing) {
       Swig_warning(WARN_PP_MISSING_FILE, Getfile(fn), Getline(fn), "Unable to find '%s'\n", fn);
     } else {
@@ -261,8 +262,9 @@ void Preprocessor_error_as_warning(int a) {
  * ----------------------------------------------------------------------------- */
 
 
-String_or_char *Macro_vararg_name(String_or_char *str, String_or_char *line) {
-  String_or_char *argname, *varargname;
+String *Macro_vararg_name(const_String_or_char_ptr str, const_String_or_char_ptr line) {
+  String *argname;
+  String *varargname;
   char *s, *dots;
 
   argname = Copy(str);
@@ -288,24 +290,24 @@ String_or_char *Macro_vararg_name(String_or_char *str, String_or_char *line) {
   return varargname;
 }
 
-Hash *Preprocessor_define(const String_or_char *_str, int swigmacro) {
+Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
   String *macroname = 0, *argstr = 0, *macrovalue = 0, *file = 0, *s = 0;
   Hash *macro = 0, *symbols = 0, *m1;
   List *arglist = 0;
   int c, line;
   int varargs = 0;
-  String_or_char *str = (String_or_char *) _str;
+  String *str;
 
   assert(cpp);
-  assert(str);
+  assert(_str);
 
   /* First make sure that string is actually a string */
-  if (DohCheck(str)) {
-    s = Copy(str);
-    copy_location(str, s);
+  if (DohCheck(_str)) {
+    s = Copy(_str);
+    copy_location(_str, s);
     str = s;
   } else {
-    str = NewString((char *) str);
+    str = NewString((char *) _str);
   }
   Seek(str, 0, SEEK_SET);
   line = Getline(str);
@@ -532,7 +534,7 @@ macro_error:
  *
  * Undefines a macro.
  * ----------------------------------------------------------------------------- */
-void Preprocessor_undef(const String_or_char *str) {
+void Preprocessor_undef(const_String_or_char_ptr str) {
   Hash *symbols;
   assert(cpp);
   symbols = Getattr(cpp, kpp_symbols);
@@ -650,14 +652,7 @@ static String *get_filename(String *str, int *sysfile) {
     if (isspace(c))
       Ungetc(c, str);
   }
-#if defined(_WIN32) || defined(MACSWIG)
-  /* accept Unix path separator on non-Unix systems */
-  Replaceall(fn, "/", SWIG_FILE_DELIMITER);
-#endif
-#if defined(__CYGWIN__)
-  /* accept Windows path separator in addition to Unix path separator */
-  Replaceall(fn, "\\", SWIG_FILE_DELIMITER);
-#endif
+  Swig_filename_correct(fn);
   Seek(fn, 0, SEEK_SET);
   return fn;
 }

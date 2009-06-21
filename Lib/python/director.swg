@@ -47,7 +47,7 @@
 
 /*
   Use -DSWIG_DIRECTOR_STATIC if you prefer to avoid the use of the
-  'Swig' namespace. This could be usefull for multi-modules projects.
+  'Swig' namespace. This could be useful for multi-modules projects.
 */
 #ifdef SWIG_DIRECTOR_STATIC
 /* Force anonymous (static) namespace */
@@ -107,17 +107,13 @@ namespace Swig {
   /* memory handler */
   struct GCItem 
   {
-    virtual ~GCItem() = 0;
+    virtual ~GCItem() {}
 
     virtual int get_own() const
     {
       return 0;
     }
   };
-
-  GCItem::~GCItem()
-  {
-  }
 
   struct GCItem_var
   {
@@ -212,10 +208,7 @@ namespace Swig {
         swig_msg += msg;
       }
       if (!PyErr_Occurred()) {
-        swig_msg.insert(0, ": ");
         PyErr_SetString(error, getMessage());
-      } else {
-        SWIG_Python_AddErrorMsg(getMessage());
       }
       SWIG_PYTHON_THREAD_END_BLOCK; 
     }

@@ -34,7 +34,7 @@
 
 %insert(runtime) %{
 /* Fix for jlong on some versions of gcc on Windows */
-#if defined(__GNUC__) && !defined(__INTELC__)
+#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
   typedef long long __int64;
 #endif
 
@@ -83,7 +83,8 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
     { SWIG_JavaNullPointerException, "java/lang/NullPointerException" },
     { SWIG_JavaDirectorPureVirtual, "java/lang/RuntimeException" },
     { SWIG_JavaUnknownError,  "java/lang/UnknownError" },
-    { (SWIG_JavaExceptionCodes)0,  "java/lang/UnknownError" } };
+    { (SWIG_JavaExceptionCodes)0,  "java/lang/UnknownError" }
+  };
   const SWIG_JavaExceptions_t *except_ptr = java_exceptions;
 
   while (except_ptr->code != code && except_ptr->code)

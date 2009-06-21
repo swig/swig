@@ -2,9 +2,9 @@
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
- * php4.cxx
+ * php.cxx
  *
- * Php language module for SWIG.
+ * PHP language module for SWIG.
  * -----------------------------------------------------------------------------
  */
 
@@ -40,7 +40,7 @@
  * (may need to add more WARN_PHP_xxx codes...)
  */
 
-char cvsroot_php4_cxx[] = "$Id$";
+char cvsroot_php_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
@@ -48,13 +48,13 @@ char cvsroot_php4_cxx[] = "$Id$";
 #include <errno.h>
 
 static const char *usage = (char *) "\
-PHP Options (available with -php5)\n\
+PHP Options (available with -php)\n\
      -cppext          - cpp file extension (default to .cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
-     -prefix <prefix> - Prepend <prefix> to all class names in PHP5 wrappers\n\
+     -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
 
-/* The original class wrappers for PHP4 store the pointer to the C++ class in
+/* The original class wrappers for PHP stored the pointer to the C++ class in
  * the object property _cPtr.  If we use the same name for the member variable
  * which we put the pointer to the C++ class in, then the flat function
  * wrappers will automatically pull it out without any changes being required.
@@ -71,6 +71,7 @@ static String *prefix = 0;
 
 static String *shadow_classname = 0;
 
+static File *f_begin = 0;
 static File *f_runtime = 0;
 static File *f_h = 0;
 static File *f_phpcode = 0;
@@ -141,7 +142,7 @@ void SwigPHP_emit_resource_registrations() {
     Printf(s_wrappers, "/* NEW Destructor style */\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n", key);
 
     // write out body
-    if ((class_node != NOTCLASS)) {
+    if (class_node != NOTCLASS) {
       String *destructor = Getattr(class_node, "destructor");
       human_name = Getattr(class_node, "sym:name");
       if (!human_name)
@@ -172,12 +173,9 @@ void SwigPHP_emit_resource_registrations() {
   }
 }
 
-class PHP:public Language {
-  int php_version;
-
+class PHP : public Language {
 public:
-   PHP(int php_version_):php_version(php_version_) {
-  }
+  PHP() { }
 
   /* Test to see if a type corresponds to something wrapped with a shadow class. */
   
@@ -242,8 +240,9 @@ public:
     }
 
     Preprocessor_define("SWIGPHP 1", 0);
+    // SWIGPHP5 is deprecated, and no longer documented.
     Preprocessor_define("SWIGPHP5 1", 0);
-    SWIG_typemap_lang("php4");
+    SWIG_typemap_lang("php");
     SWIG_config_file("php.swg");
     allow_overloading();
   }
@@ -261,13 +260,12 @@ public:
     String *outfile = Getattr(n, "outfile");
 
     /* main output file */
-    f_runtime = NewFile(outfile, "w");
-    if (!f_runtime) {
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
-
-    Swig_banner(f_runtime);
+    f_runtime = NewString("");
 
     /* sections of the output file */
     s_init = NewString("/* init section */\n");
@@ -286,6 +284,7 @@ public:
     s_phpclasses = NewString("/* PHP Proxy Classes */\n");
 
     /* Register file targets with the SWIG file handler */
+    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", s_init);
     Swig_register_filebyname("rinit", r_init);
@@ -293,6 +292,12 @@ public:
     Swig_register_filebyname("rshutdown", r_shutdown);
     Swig_register_filebyname("header", s_header);
     Swig_register_filebyname("wrapper", s_wrappers);
+
+    Swig_banner(f_begin);
+
+    Printf(f_runtime, "\n");
+    Printf(f_runtime, "#define SWIGPHP\n");
+    Printf(f_runtime, "\n");
 
     /* Set the module name */
     module = Copy(Getattr(n, "name"));
@@ -305,7 +310,7 @@ public:
     Printv(filen, SWIG_output_directory(), module, ".php", NIL);
     phpfilename = NewString(filen);
 
-    f_phpcode = NewFile(filen, "w");
+    f_phpcode = NewFile(filen, "w", SWIG_output_files());
     if (!f_phpcode) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
@@ -315,6 +320,7 @@ public:
 
     Swig_banner(f_phpcode);
 
+    Printf(f_phpcode, "\n");
     Printf(f_phpcode, "// Try to load our extension if it's not already loaded.\n");
     Printf(f_phpcode, "if (!extension_loaded(\"%s\")) {\n", module);
     Printf(f_phpcode, "  if (strtolower(substr(PHP_OS, 0, 3)) === 'win') {\n");
@@ -384,7 +390,7 @@ public:
     /* Create the .h file too */
     filen = NewStringEmpty();
     Printv(filen, SWIG_output_directory(), "php_", module, ".h", NIL);
-    f_h = NewFile(filen, "w");
+    f_h = NewFile(filen, "w", SWIG_output_files());
     if (!f_h) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
@@ -392,7 +398,7 @@ public:
 
     Swig_banner(f_h);
 
-    Printf(f_h, "\n\n");
+    Printf(f_h, "\n");
     Printf(f_h, "#ifndef PHP_%s_H\n", cap_module);
     Printf(f_h, "#define PHP_%s_H\n\n", cap_module);
     Printf(f_h, "extern zend_module_entry %s_module_entry;\n", module);
@@ -521,16 +527,19 @@ public:
     Printf(s_wrappers, "/* end wrapper section */\n");
     Printf(s_vdecl, "/* end vdecl subsection */\n");
 
-    Printv(f_runtime, s_header, s_vdecl, s_wrappers, NIL);
-    Printv(f_runtime, all_cs_entry, "\n\n", s_entry, "{NULL, NULL, NULL}\n};\n\n", NIL);
-    Printv(f_runtime, s_init, NIL);
+    Dump(f_runtime, f_begin);
+    Printv(f_begin, s_header, s_vdecl, s_wrappers, NIL);
+    Printv(f_begin, all_cs_entry, "\n\n", s_entry, "{NULL, NULL, NULL}\n};\n\n", NIL);
+    Printv(f_begin, s_init, NIL);
     Delete(s_header);
     Delete(s_wrappers);
     Delete(s_init);
     Delete(s_vdecl);
     Delete(all_cs_entry);
     Delete(s_entry);
-    Close(f_runtime);
+    Close(f_begin);
+    Delete(f_runtime);
+    Delete(f_begin);
 
     Printf(f_phpcode, "%s\n%s\n", pragma_incl, pragma_code);
     if (s_fakeoowrappers) {
@@ -589,7 +598,7 @@ public:
 
     Printf(f->code, "SWIG_ErrorCode() = E_ERROR;\n");
     Printf(f->code, "SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
-    Printv(f->code, "zend_error(SWIG_ErrorCode(),SWIG_ErrorMsg());\n", NIL);
+    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n", NIL);
 
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, s_wrappers);
@@ -710,7 +719,7 @@ public:
       Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");
     }
 
-    /* Now convert from php to C variables */
+    /* Now convert from PHP to C variables */
     // At this point, argcount if used is the number of deliberately passed args
     // not including this_ptr even if it is used.
     // It means error messages may be out by argbase with error
@@ -845,7 +854,7 @@ public:
     /* Error handling code */
     Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
-    Printv(f->code, "zend_error(SWIG_ErrorCode(),SWIG_ErrorMsg());", NIL);
+    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
 
     Printf(f->code, "}\n");
 
@@ -861,7 +870,7 @@ public:
     Delete(wname);
     wname = NULL;
 
-    if (!(shadow && php_version == 5)) {
+    if (!shadow) {
       DelWrapper(f);
       return SWIG_OK;
     }
@@ -1104,7 +1113,8 @@ public:
 	      case T_LONG: {
 		char *p;
 		errno = 0;
-		(void) strtol(Char(value), &p, 0);
+		unsigned int n = strtol(Char(value), &p, 0);
+		(void) n;
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
@@ -1117,7 +1127,8 @@ public:
 	      case T_ULONG: {
 		char *p;
 		errno = 0;
-		(void) strtoul(Char(value), &p, 0);
+		unsigned int n = strtoul(Char(value), &p, 0);
+		(void) n;
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
@@ -1358,16 +1369,26 @@ public:
       Printf(output, "\n");
       // If it's a member function or a class constructor...
       if (wrapperType == memberfn || (newobject && current_class)) {
-	Printf(output, "\tfunction %s(%s) {\n", methodname, args);
 	// We don't need this code if the wrapped class has a copy ctor
 	// since the flat function new_CLASSNAME will handle it for us.
 	if (newobject && !Getattr(current_class, "allocate:copy_constructor")) {
+	  const char * arg0;
+	  if (max_num_of_arguments > 0) {
+	    arg0 = Char(arg_names[0]);
+	  } else {
+	    arg0 = "res";
+	    Delete(args);
+	    args = NewString("$res=null");
+	  }
 	  SwigType *t = Getattr(current_class, "classtype");
 	  String *mangled_type = SwigType_manglestr(SwigType_ltype(t));
-	  Printf(s_oowrappers, "\t\tif (is_resource($%s) && get_resource_type($%s) == \"_p%s\") {\n", arg_names[0], arg_names[0], mangled_type);
-	  Printf(s_oowrappers, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg_names[0]);
-	  Printf(s_oowrappers, "\t\t\treturn;\n");
-	  Printf(s_oowrappers, "\t\t}\n");
+	  Printf(output, "\tfunction %s(%s) {\n", methodname, args);
+	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) == \"_p%s\") {\n", arg0, arg0, mangled_type);
+	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
+	  Printf(output, "\t\t\treturn;\n");
+	  Printf(output, "\t\t}\n");
+	} else {
+	  Printf(output, "\tfunction %s(%s) {\n", methodname, args);
 	}
       } else {
 	Printf(output, "\tstatic function %s(%s) {\n", methodname, args);
@@ -1480,8 +1501,7 @@ public:
        Replaceall(tm, "$symname", iname);
        Printf(f_c->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n",
-       input_file, line_number, SwigType_str(t, 0));
+       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
        }
      */
     /* Now generate C -> PHP sync blocks */
@@ -1493,8 +1513,7 @@ public:
        Replaceall(tm, "$symname", iname);
        Printf(f_php->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n",
-       input_file, line_number, SwigType_str(t, 0));
+       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
        }
        }
      */
@@ -1525,7 +1544,7 @@ public:
       Printf(s_cinit, "%s\n", tm);
     }
 
-    if (shadow && php_version == 5) {
+    if (shadow) {
       String *enumvalue = GetChar(n, "enumvalue");
       String *set_to = iname;
 
@@ -1567,8 +1586,8 @@ public:
    *
    * Pragma directive.
    *
-   * %pragma(php4) code="String"         # Includes a string in the .php file
-   * %pragma(php4) include="file.pl"     # Includes a file in the .php file
+   * %pragma(php) code="String"         # Includes a string in the .php file
+   * %pragma(php) include="file.pl"     # Includes a file in the .php file
    */
 
   virtual int pragmaDirective(Node *n) {
@@ -1577,7 +1596,7 @@ public:
       String *type = Getattr(n, "name");
       String *value = Getattr(n, "value");
 
-      if (Strcmp(lang, "php4") == 0) {
+      if (Strcmp(lang, "php") == 0 || Strcmp(lang, "php4") == 0) {
 	if (Strcmp(type, "code") == 0) {
 	  if (value) {
 	    Printf(pragma_code, "%s\n", value);
@@ -1815,7 +1834,7 @@ public:
     String *iname = Getattr(n, "sym:name");
 
     /* A temporary(!) hack for static member variables.
-     * Php currently supports class functions, but not class variables.
+     * PHP currently supports class functions, but not class variables.
      * Until it does, we convert a class variable to a class function
      * that returns the current value of the variable. E.g.
      *
@@ -1824,7 +1843,7 @@ public:
      *          static int ncount;
      * };
      *
-     * would be available in php as Example::ncount() 
+     * would be available in PHP as Example::ncount() 
      */
 
     // If the variable is const, then it's wrapped as a constant with set/get
@@ -1923,7 +1942,7 @@ public:
     return NewStringEmpty();
   }
 
-  String *PhpTypeFromTypemap(char *op, Node *n, String_or_char *lname) {
+  String *PhpTypeFromTypemap(char *op, Node *n, const_String_or_char_ptr lname) {
     String *tms = Swig_typemap_lookup(op, n, lname, 0);
     if (!tms)
       return 0;
@@ -1999,7 +2018,6 @@ public:
     Wrapper_print(f, s_wrappers);
 
     return SWIG_OK;
-
   }
 
   /* ------------------------------------------------------------
@@ -2007,17 +2025,13 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    wrapping_member_constant = Getattr(n, "name");
+    wrapping_member_constant = Getattr(n, "sym:name");
     Language::memberconstantHandler(n);
     wrapping_member_constant = NULL;
     return SWIG_OK;
   }
 
 };				/* class PHP */
-
-/* -----------------------------------------------------------------------------
- * swig_php()    - Instantiate module
- * ----------------------------------------------------------------------------- */
 
 static PHP *maininstance = 0;
 
@@ -2045,8 +2059,12 @@ extern "C" void typetrace(SwigType *ty, String *mangled, String *clientdata) {
     (*r_prevtracefunc) (ty, mangled, (String *) clientdata);
 }
 
-static Language *new_swig_php(int php_version) {
-  maininstance = new PHP(php_version);
+/* -----------------------------------------------------------------------------
+ * new_swig_php()    - Instantiate module
+ * ----------------------------------------------------------------------------- */
+
+static Language *new_swig_php() {
+  maininstance = new PHP;
   if (!r_prevtracefunc) {
     r_prevtracefunc = SwigType_remember_trace(typetrace);
   } else {
@@ -2063,6 +2081,6 @@ extern "C" Language *swig_php4(void) {
   return NULL; // To avoid compiler warnings.
 }
 
-extern "C" Language *swig_php5(void) {
-  return new_swig_php(5);
+extern "C" Language *swig_php(void) {
+  return new_swig_php();
 }

@@ -5,13 +5,13 @@
 %fragment("StdSetTraits","header",fragment="StdSequenceTraits")
 %{
   namespace swig {
-    template <class PySeq, class T> 
+    template <class SwigPySeq, class T> 
     inline void 
-    assign(const PySeq& pyseq, std::set<T>* seq) {
-      // seq->insert(pyseq.begin(), pyseq.end()); // not used as not always implemented
-      typedef typename PySeq::value_type value_type;
-      typename PySeq::const_iterator it = pyseq.begin();
-      for (;it != pyseq.end(); ++it) {
+    assign(const SwigPySeq& swigpyseq, std::set<T>* seq) {
+      // seq->insert(swigpyseq.begin(), swigpyseq.end()); // not used as not always implemented
+      typedef typename SwigPySeq::value_type value_type;
+      typename SwigPySeq::const_iterator it = swigpyseq.begin();
+      for (;it != swigpyseq.end(); ++it) {
 	seq->insert(seq->end(),(value_type)(*it));
       }
     }

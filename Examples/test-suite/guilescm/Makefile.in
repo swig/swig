@@ -2,7 +2,7 @@
 # Makefile for guile test-suite (with SCM API)
 #######################################################################
 
-EXTRA_TEST_CASES += ext_test.externaltest
+EXTRA_TEST_CASES += guilescm_ext_test.externaltest
 
 include ../guile/Makefile
 
@@ -31,7 +31,7 @@ swig_and_compile_multi_cpp = \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
 	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $$SWIGOPT" NOLINK=true \
-	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACE="$$f.i" \
+	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done
 

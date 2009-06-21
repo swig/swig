@@ -33,6 +33,12 @@
 /* Special cases */
 %rename(__invert__)     *::operator~;
 %rename(__call__)       *::operator();
+
+%feature("shadow")      *::operator bool %{
+def __nonzero__(self):
+    return $action(self)
+__bool__ = __nonzero__
+%};
 %rename(__nonzero__)    *::operator bool;
 
 /* Ignored operators */
@@ -84,7 +90,7 @@
 
 */
 
-#define %pyinplaceoper(PyOper, Oper) %delobject Oper; %newobject Oper; %rename(PyOper) Oper
+#define %pyinplaceoper(SwigPyOper, Oper) %delobject Oper; %newobject Oper; %rename(SwigPyOper) Oper
 
 %pyinplaceoper(__iadd__   , *::operator +=);
 %pyinplaceoper(__isub__   , *::operator -=);

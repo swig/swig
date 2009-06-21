@@ -1,3 +1,64 @@
+/* Compatibility macros for Python 3 */
+#if PY_VERSION_HEX >= 0x03000000
+
+#define PyClass_Check(obj) PyObject_IsInstance(obj, (PyObject *)&PyType_Type)
+#define PyInt_Check(x) PyLong_Check(x)
+#define PyInt_AsLong(x) PyLong_AsLong(x)
+#define PyInt_FromLong(x) PyLong_FromLong(x)
+#define PyString_Format(fmt, args)  PyUnicode_Format(fmt, args)
+
+#endif
+
+#ifndef Py_TYPE
+#  define Py_TYPE(op) ((op)->ob_type)
+#endif
+
+/* SWIG APIs for compatibility of both Python 2 & 3 */
+
+#if PY_VERSION_HEX >= 0x03000000
+#  define SWIG_Python_str_FromFormat PyUnicode_FromFormat
+#else
+#  define SWIG_Python_str_FromFormat PyString_FromFormat
+#endif
+
+
+/* Warning: This function will allocate a new string in Python 3,
+ * so please call SWIG_Python_str_DelForPy3(x) to free the space.
+ */
+SWIGINTERN char*
+SWIG_Python_str_AsChar(PyObject *str)
+{
+#if PY_VERSION_HEX >= 0x03000000
+  char *cstr;
+  char *newstr;
+  Py_ssize_t len;
+  str = PyUnicode_AsUTF8String(str);
+  PyBytes_AsStringAndSize(str, &cstr, &len);
+  newstr = (char *) malloc(len+1);
+  memcpy(newstr, cstr, len+1);
+  Py_XDECREF(str);
+  return newstr;
+#else
+  return PyString_AsString(str);
+#endif
+}
+
+#if PY_VERSION_HEX >= 0x03000000
+#  define SWIG_Python_str_DelForPy3(x) free( (void*) (x) )
+#else
+#  define SWIG_Python_str_DelForPy3(x) 
+#endif
+
+
+SWIGINTERN PyObject*
+SWIG_Python_str_FromChar(const char *c)
+{
+#if PY_VERSION_HEX >= 0x03000000
+  return PyUnicode_FromString(c); 
+#else
+  return PyString_FromString(c);
+#endif
+}
 
 /* Add PyOS_snprintf for old Pythons */
 #if PY_VERSION_HEX < 0x02020000
@@ -44,13 +105,13 @@ PyString_FromFormat(const char *fmt, ...) {
 #  define PyObject_GenericGetAttr 0
 # endif
 #endif
+
 /* Py_NotImplemented is defined in 2.1 and up. */
 #if PY_VERSION_HEX < 0x02010000
 # ifndef Py_NotImplemented
 #  define Py_NotImplemented PyExc_RuntimeError
 # endif
 #endif
-
 
 /* A crude PyString_AsStringAndSize implementation for old Pythons */
 #if PY_VERSION_HEX < 0x02010000
@@ -65,7 +126,6 @@ PyString_FromFormat(const char *fmt, ...) {
 #  define PySequence_Size PySequence_Length
 # endif
 #endif
-
 
 /* PyBool_FromLong for old Pythons */
 #if PY_VERSION_HEX < 0x02030000

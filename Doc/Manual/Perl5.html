@@ -264,7 +264,7 @@ extern int fact(int);
 %}
 
 // Include code for rebuilding Perl
-%include perlmain.i
+%include &lt;perlmain.i&gt;
 </pre></div>
 
 <p>
@@ -1543,7 +1543,7 @@ example:
 <div class="code">
 <pre>
 %module example
-%include typemaps.i
+%include "typemaps.i"
 
 void add(int x, int y, int *REFERENCE);
 </pre>

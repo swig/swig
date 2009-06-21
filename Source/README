@@ -1,9 +1,5 @@
 SWIG Source directory
 
-This directory currently contains a mix of legacy SWIG1.1 code and
-recent development work.  As a result, it's still a little messy.
-Here is a rough breakdown of the directories:
-
  Source/DOH          -  A core set of basic datatypes including
                         strings, lists, hashes, and files.  Used
                         extensively by the rest of SWIG.
@@ -16,8 +12,9 @@ Here is a rough breakdown of the directories:
 
  Source/Modules      -  Language modules.
 
+ Source/Include      -  Include files.
 
-The following directories may be in CVS, but are largely deprecated:
+Historic directories which may be in CVS, but have been removed:
 
  Source/Modules1.1   -  Old SWIG-1.1 modules. Empty.
 
@@ -25,6 +22,4 @@ The following directories may be in CVS, but are largely deprecated:
                         as CParse is more capable.
 
  Source/SWIG1.1      -  Old SWIG1.1 core. Completely empty now.
-
-
 

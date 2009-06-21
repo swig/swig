@@ -33,26 +33,58 @@ typedef struct swig_varlinkobject {
 
 SWIGINTERN PyObject *
 swig_varlink_repr(swig_varlinkobject *SWIGUNUSEDPARM(v)) {
+#if PY_VERSION_HEX >= 0x03000000
+  return PyUnicode_InternFromString("<Swig global variables>");
+#else
   return PyString_FromString("<Swig global variables>");
+#endif
 }
 
 SWIGINTERN PyObject *
 swig_varlink_str(swig_varlinkobject *v) {
+#if PY_VERSION_HEX >= 0x03000000
+  PyObject *str = PyUnicode_InternFromString("(");
+  PyObject *tail;
+  PyObject *joined;
+  swig_globalvar *var;
+  for (var = v->vars; var; var=var->next) {
+    tail = PyUnicode_FromString(var->name);
+    joined = PyUnicode_Concat(str, tail);
+    Py_DecRef(str);
+    Py_DecRef(tail);
+    str = joined;
+    if (var->next) {
+        tail = PyUnicode_InternFromString(", ");
+        joined = PyUnicode_Concat(str, tail);
+        Py_DecRef(str);
+        Py_DecRef(tail);
+        str = joined;
+    }
+  }
+  tail = PyUnicode_InternFromString(")");
+  joined = PyUnicode_Concat(str, tail);
+  Py_DecRef(str);
+  Py_DecRef(tail);
+  str = joined;
+#else
   PyObject *str = PyString_FromString("(");
-  swig_globalvar  *var;
+  swig_globalvar *var;
   for (var = v->vars; var; var=var->next) {
     PyString_ConcatAndDel(&str,PyString_FromString(var->name));
     if (var->next) PyString_ConcatAndDel(&str,PyString_FromString(", "));
   }
   PyString_ConcatAndDel(&str,PyString_FromString(")"));
+#endif
   return str;
 }
 
 SWIGINTERN int
 swig_varlink_print(swig_varlinkobject *v, FILE *fp, int SWIGUNUSEDPARM(flags)) {
+  char *tmp;
   PyObject *str = swig_varlink_str(v);
   fprintf(fp,"Swig global variables ");
-  fprintf(fp,"%s\n", PyString_AsString(str));
+  fprintf(fp,"%s\n", tmp = SWIG_Python_str_AsChar(str));
+  SWIG_Python_str_DelForPy3(tmp);
   Py_DECREF(str);
   return 0;
 }
@@ -110,12 +142,17 @@ swig_varlink_type(void) {
   if (!type_init) {
     const PyTypeObject tmp
       = {
+      /* PyObject header changed in Python 3 */
+#if PY_VERSION_HEX >= 0x03000000
+      PyVarObject_HEAD_INIT(&PyType_Type, 0)
+#else
       PyObject_HEAD_INIT(NULL)
       0,                                  /* Number of items in variable part (ob_size) */
+#endif
       (char *)"swigvarlink",              /* Type name (tp_name) */
       sizeof(swig_varlinkobject),         /* Basic size (tp_basicsize) */
       0,                                  /* Itemsize (tp_itemsize) */
-      (destructor) swig_varlink_dealloc,   /* Deallocator (tp_dealloc) */ 
+      (destructor) swig_varlink_dealloc,  /* Deallocator (tp_dealloc) */ 
       (printfunc) swig_varlink_print,     /* Print (tp_print) */
       (getattrfunc) swig_varlink_getattr, /* get attr (tp_getattr) */
       (setattrfunc) swig_varlink_setattr, /* Set attr (tp_setattr) */
@@ -126,7 +163,7 @@ swig_varlink_type(void) {
       0,                                  /* tp_as_mapping */
       0,                                  /* tp_hash */
       0,                                  /* tp_call */
-      (reprfunc)swig_varlink_str,        /* tp_str */
+      (reprfunc) swig_varlink_str,        /* tp_str */
       0,                                  /* tp_getattro */
       0,                                  /* tp_setattro */
       0,                                  /* tp_as_buffer */
@@ -147,7 +184,10 @@ swig_varlink_type(void) {
 #endif
     };
     varlink_type = tmp;
+    /* for Python 3 we already assigned ob_type in PyVarObject_HEAD_INIT() */
+#if PY_VERSION_HEX < 0x03000000
     varlink_type.ob_type = &PyType_Type;
+#endif
     type_init = 1;
   }
   return &varlink_type;
@@ -272,13 +312,37 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 #ifdef __cplusplus
 extern "C"
 #endif
-SWIGEXPORT void SWIG_init(void) {
-  PyObject *m, *d;
-  
+
+SWIGEXPORT 
+#if PY_VERSION_HEX >= 0x03000000
+  PyObject*
+#else
+  void
+#endif
+SWIG_init(void) {
+  PyObject *m, *d;  
+#if PY_VERSION_HEX >= 0x03000000
+  static struct PyModuleDef SWIG_module = {
+    PyModuleDef_HEAD_INIT,
+    (char *) SWIG_name,
+    NULL,
+    -1,
+    SwigMethods,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+  };
+#endif
+
   /* Fix SwigMethods to carry the callback ptrs when needed */
   SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
-  
+
+#if PY_VERSION_HEX >= 0x03000000
+  m = PyModule_Create(&SWIG_module);
+#else
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
+#endif
   d = PyModule_GetDict(m);
   
   SWIG_InitializeModule(0);

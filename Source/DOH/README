@@ -92,12 +92,12 @@ DohEncoding(name, fn)           Register a format encoding for Printf
 
 Currently Available datatypes
 ------------------------------
-NewString(char *initial)                  Strings
-NewHash()                                 Hash
-NewList()                                 List
-NewVoid(void *ptr, void (*del)(void *))   Void
-NewFile(char *file, char *mode)           File
-NewCallable(DOH *(*func)(DOH *, DOH *))   Callable object
+NewString(char *initial)                            Strings
+NewHash()                                           Hash
+NewList()                                           List
+NewVoid(void *ptr, void (*del)(void *))             Void
+NewFile(char *filename, char *mode, List *newfiles) File
+NewCallable(DOH *(*func)(DOH *, DOH *))             Callable object
 
 
 Odds and ends:

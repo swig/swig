@@ -49,6 +49,7 @@
 #define WARN_DEPRECATED_NOEXTERN      122
 #define WARN_DEPRECATED_NODEFAULT     123
 #define WARN_DEPRECATED_TYPEMAP_LANG  124
+#define WARN_DEPRECATED_INPUT_FILE    125
 
 /* -- Preprocessor -- */
 
@@ -251,8 +252,8 @@
  * PHP4 versions of new warnings since existing user interface files can't
  * be using them.
  */
-#define WARN_PHP4_MULTIPLE_INHERITANCE        870
-#define WARN_PHP4_UNKNOWN_PRAGMA              871
+#define WARN_PHP_MULTIPLE_INHERITANCE         870
+#define WARN_PHP_UNKNOWN_PRAGMA               871
 
 #define WARN_PHP_MULTIPLE_INHERITANCE         870
 #define WARN_PHP_UNKNOWN_PRAGMA               871

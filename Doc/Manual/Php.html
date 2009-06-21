@@ -413,7 +413,7 @@ Overloaded Functions and Methods</a>.
 
 <!-- This isn't correct for 1.3.30 and needs rewriting to reflect reality
 <p>
-Because PHP4 is a dynamically typed language, simple values can be
+Because PHP is a dynamically typed language, simple values can be
 silently converted from one type to another.  For example, integers,
 doubles and strings silently convert to each other depending on
 context.  This situation make overloading slightly problematic because
@@ -433,7 +433,7 @@ PHP.  The string <tt>"2"</tt> simultaneously represents the integer
 
 <p>
 In order to provide the most natural experience to PHP programmers,
-the default <tt>%typecheck</tt> implemented in <tt>php4.swg</tt>
+the default <tt>%typecheck</tt> implemented in <tt>php.swg</tt>
 allows any simple type (integer, double, string) in PHP to be used for
 any simple C type (int, double, char *).  The function selected then
 depends only on the argument type precedence defined by SWIG.
@@ -479,7 +479,7 @@ One can include <b>cpointer.i</b> to generate PHP wrappers to <tt>int
 
 <div class="code"><pre>
 %module example
-%include cpointer.i
+%include "cpointer.i"
 %pointer_functions(int,intp)
 
 void add( int *in1, int *in2, int *result);
@@ -513,7 +513,7 @@ parameter names as appropriate.
 
 <div class="code"><pre>
 %module example
-%include typemaps.i
+%include "typemaps.i"
 
 void add( int *INPUT, int *INPUT, int *OUTPUT);
 
@@ -545,7 +545,7 @@ named typemap REFERENCE.
 
 <div class="code"><pre>
 %module example
-%include phppointers.i
+%include "phppointers.i"
 
 void add( int *REF, int *REF, int *REF);
 
@@ -782,12 +782,6 @@ Ko::threats();
 
 
 <p>
-Note: Currently pragmas for PHP need to be specified using
-<tt>%pragma(php4)</tt> but also apply for PHP5!  This is just a historical
-oddity because SWIG's PHP support predates PHP5.
-</p>
-
-<p>
 To place PHP code in the generated "example.php" file one can use the
 <b>code</b> pragma. The code is inserted after loading the shared
 object.
@@ -795,7 +789,7 @@ object.
 
 <div class="code"><pre>
 %module example
-%pragma(php4) code="
+%pragma(php) code="
 # This code is inserted into example.php
 echo \"example.php execution\\n\";
 "
@@ -817,7 +811,7 @@ the example.php file.
 
 <div class="code"><pre>
 %module example
-%pragma(php4) code="
+%pragma(php) code="
 include \"include.php\";
 "
 %pragma(php) include="include.php"   // equivalent.
@@ -831,7 +825,7 @@ phpinfo() function.
 
 <div class="code"><pre>
 %module example;
-%pragma(php4) phpinfo="
+%pragma(php) phpinfo="
   zend_printf("An example of PHP support through SWIG\n");
   php_info_print_table_start();
   php_info_print_table_header(2, \"Directive\", \"Value\");

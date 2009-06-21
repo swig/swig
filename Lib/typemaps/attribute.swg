@@ -11,7 +11,7 @@
   The following macros convert a pair of set/get methods
   into a "native" attribute.
 
-  Use %attribute when you have a pair of get/set methods
+  Use %attribute when you have a pair of get/set methods to a primitive type
   like in:
 
       %attribute(A, int, a, get_a, set_a);
@@ -27,8 +27,8 @@
 
       %attribute(A, int, c, get_c);
 
-  Use %attributeref when you have const/non-const reference
-  access methods, like in:
+  Use %attributeref when you have const/non-const reference access methods
+  for primitive types or class/structs, like in:
 
       %attributeref(A, int, b);
 
@@ -99,6 +99,40 @@
 
   where %arg() 'normalizes' the type to be understood as a single
   argument, otherwise the macro will get confused by the comma.
+
+  The %attributeval is the same as %attribute, but should be used when the type
+  is a class/struct (ie a non-primitive type) and when the get and set methods 
+  return/pass by value. The following is very similar to the above example, but 
+  note that the access is by value rather than reference.
+
+    %attributeval(MyClassVal, MyFoo, ReadWriteFoo, GetFoo, SetFoo);
+    %attributeval(MyClassVal, MyFoo, ReadOnlyFoo, GetFoo);
+    %inline %{
+      class MyClassVal {
+	MyFoo foo;
+      public:
+	MyFoo GetFoo() { return foo; }
+	void SetFoo(MyFoo other) { foo = other; }
+      };
+    %} 
+
+  The %attributestring is the same as %attributeval, but should be used for string
+  class types, which are unusual as they are a class on the C++ side, but normally an
+  immutable/primitive type in the target language. Example usage for std::string:
+
+    %include <std_string.i>
+    %attributestring(MyStringyClass, std::string, ReadWriteString, GetString, SetString);
+    %attributestring(MyStringyClass, std::string, ReadOnlyString, GetString);
+    %inline %{
+      class MyStringyClass {
+	std::string str;
+      public:
+	MyStringyClass(const std::string &val) : str(val) {}
+	std::string GetString() { return str; }
+	void SetString(std::string other) { str = other; }
+      };
+    %} 
+
 */
 
 //
@@ -201,5 +235,52 @@
   #else
     %attribute_custom(Class, AttributeType, AccessorMethod, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
   #endif
+%enddef
+
+
+%define %attributeval(Class, AttributeType, AttributeName, GetMethod, SetMethod...)
+  %{
+    #define %mangle(Class) ##_## AttributeName ## _get(self_) new AttributeType(self_->GetMethod())
+  %}
+  #if #SetMethod != ""
+    %{
+      #define %mangle(Class) ##_## AttributeName ## _set(self_, val_) self_->SetMethod(*val_)
+    %}
+    #if #SetMethod != #AttributeName
+      %ignore Class::SetMethod;
+    #endif
+  #else
+    %immutable Class::AttributeName;
+  #endif
+  %ignore Class::GetMethod();
+  %ignore Class::GetMethod() const;
+  %newobject Class::AttributeName;
+  %extend Class {
+    AttributeType AttributeName;
+  }
+%enddef
+
+
+%define %attributestring(Class, AttributeType, AttributeName, GetMethod, SetMethod...)
+  %{
+    #define %mangle(Class) ##_## AttributeName ## _get(self_) *new AttributeType(self_->GetMethod())
+  %}
+  #if #SetMethod != ""
+    %{
+      #define %mangle(Class) ##_## AttributeName ## _set(self_, val_) self_->SetMethod(val_)
+    %}
+    #if #SetMethod != #AttributeName
+      %ignore Class::SetMethod;
+    #endif
+  #else
+    %immutable Class::AttributeName;
+  #endif
+  %ignore Class::GetMethod();
+  %ignore Class::GetMethod() const;
+  %newobject Class::AttributeName;
+  %typemap(newfree) const AttributeType &AttributeName "delete $1;// my newfree override"
+  %extend Class {
+    AttributeType AttributeName;
+  }
 %enddef
 

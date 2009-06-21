@@ -88,7 +88,7 @@
   if ($result) {
     PyObject *robj = PyObject_CallMethod($result, (char *)"__deref__", NULL);
     if (robj && !PyErr_Occurred()) {
-      PySwigObject_append((PyObject *) SWIG_Python_GetSwigThis($result), 
+      SwigPyObject_append((PyObject *) SWIG_Python_GetSwigThis($result), 
 			  (PyObject *) SWIG_Python_GetSwigThis(robj));
       Py_DECREF(robj);
     }

@@ -26,37 +26,76 @@
 
 %typemap(lout) SWIGTYPE         "(cl::let* ((address $body)\n         (new-inst (cl::make-instance '$lclass :foreign-address address)))\n    (cl::unless (cl::zerop address)\n      (excl:schedule-finalization new-inst #'$ldestructor))\n    (cl::setq ACL_ffresult new-inst))";
 
-%typemap(lisptype) bool "cl:boolean";
-%typemap(lisptype) char "cl:character";
-%typemap(lisptype) unsigned char "cl:integer";
-%typemap(lisptype) signed char "cl:integer";
+%typemap(lisptype) bool, const bool "cl:boolean";
+%typemap(lisptype) char, const char "cl:character";
+%typemap(lisptype) unsigned char, const unsigned char "cl:integer";
+%typemap(lisptype) signed char, const signed char "cl:integer";
 
-%typemap(ffitype) bool ":int";
-%typemap(ffitype) char ":char";
-%typemap(ffitype) unsigned char ":unsigned-char";
-%typemap(ffitype) signed char ":char";
-%typemap(ffitype) short, signed short ":short";
-%typemap(ffitype) unsigned short ":unsigned-short";
-%typemap(ffitype) int, signed int ":int";
-%typemap(ffitype) unsigned int ":unsigned-int";
-%typemap(ffitype) long, signed long ":long";
-%typemap(ffitype) unsigned long ":unsigned-long";
-%typemap(ffitype) float ":float";
-%typemap(ffitype) double ":double";
-%typemap(ffitype) char * "(* :char)";
+%typemap(ffitype) bool, const bool ":int";
+%typemap(ffitype) char, const char,
+		  signed char, const signed char ":char";
+%typemap(ffitype) unsigned char, const unsigned char ":unsigned-char";
+%typemap(ffitype) short, const short,
+		  signed short, const signed short ":short";
+%typemap(ffitype) unsigned short, const unsigned short ":unsigned-short";
+%typemap(ffitype) int, const int, signed int, const signed int ":int";
+%typemap(ffitype) unsigned int, const unsigned int ":unsigned-int";
+%typemap(ffitype) long, const long, signed long, const signed long ":long";
+%typemap(ffitype) unsigned long, const unsigned long ":unsigned-long";
+%typemap(ffitype) float, const float ":float";
+%typemap(ffitype) double, const double ":double";
+%typemap(ffitype) char *, const char *, signed char *,
+		  const signed char *, signed char &,
+		  const signed char &			 "(* :char)";
+%typemap(ffitype) unsigned char *, const unsigned char *,
+		  unsigned char &, const unsigned char & "(* :unsigned-char)";
+%typemap(ffitype) short *, const short *, short &,
+		  const short &				"(* :short)";
+%typemap(ffitype) unsigned short *, const unsigned short *,
+		  unsigned short &, const unsigned short & "(* :unsigned-short)";
+%typemap(ffitype) int *, const int *, int &, const int & "(* :int)";
+%typemap(ffitype) unsigned int *, const unsigned int *,
+		  unsigned int &, const unsigned int &	"(* :unsigned-int)";
 %typemap(ffitype) void * "(* :void)";
 %typemap(ffitype) void ":void";
 %typemap(ffitype) enum SWIGTYPE ":int";
 %typemap(ffitype) SWIGTYPE & "(* :void)";
 
-%typemap(ctype) bool                       "int";
+/* const typemaps
+idea: marshall all primitive c types to their respective lisp types
+to maintain const corretness. For pointers/references, all bets
+are off if you try to modify them.
+
+idea: add a constant-p slot to the base foreign-pointer class. For
+constant pointer/references check this value when setting (around method?)
+and error if a setf operation is performed on the address of this object.
+
+*/
+
+/* 
+%exception %{
+   try {
+      $action
+   } catch (...) {
+      return $null;
+   }
+%}
+
+*/
+
+// %typemap(throws) SWIGTYPE {
+//   (void)$1;
+//   SWIG_fail;
+// }
+
+%typemap(ctype) bool, const bool		"int";
 %typemap(ctype) char, unsigned char, signed char,
                 short, signed short, unsigned short,
                 int, signed int, unsigned int,
                 long, signed long, unsigned long,
                 float, double, long double, char *, void *, void,
-                enum SWIGTYPE, SWIGTYPE *,
-                SWIGTYPE[ANY], SWIGTYPE &  "$1_ltype";
+                enum SWIGTYPE, SWIGTYPE *, SWIGTYPE[],
+                SWIGTYPE[ANY], SWIGTYPE &, const SWIGTYPE  "$1_ltype";
 %typemap(ctype) SWIGTYPE                   "$&1_type";
 
 %typemap(in) bool                          "$1 = (bool)$input;";
@@ -65,7 +104,7 @@
              int, signed int, unsigned int,
              long, signed long, unsigned long,
              float, double, long double, char *, void *, void,
-             enum SWIGTYPE, SWIGTYPE *,
+             enum SWIGTYPE, SWIGTYPE *, SWIGTYPE[],
              SWIGTYPE[ANY], SWIGTYPE &     "$1 = $input;";
 %typemap(in) SWIGTYPE                      "$1 = *$input;";
 
@@ -122,7 +161,8 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
                     long, signed long, unsigned long,
                     enum SWIGTYPE { $1 = 1; };
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &,
-                                   SWIGTYPE[ANY], SWIGTYPE { $1 = 1; };
+				   SWIGTYPE[], SWIGTYPE[ANY],
+				   SWIGTYPE { $1 = 1; };
 
 /* This maps C/C++ types to Lisp classes for overload dispatch */
 
@@ -147,7 +187,7 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
               enum SWIGTYPE, SWIGTYPE *,
               SWIGTYPE[ANY], SWIGTYPE &    "$result = $1;";
 #ifdef __cplusplus
-%typemap(out) SWIGTYPE                     "$result = new $1_type($1);";
+%typemap(out) SWIGTYPE                     "$result = new $1_ltype($1);";
 #else
 %typemap(out) SWIGTYPE {
   $result = ($&1_ltype) malloc(sizeof($1_type));
@@ -243,12 +283,15 @@ $body)"
 
 %rename(__funcall__)	     *::operator();
 %rename(__aref__)	     *::operator[];
+
+%rename(__bool__)	     *::operator bool();
+%rename(__bool__)	     *::operator bool() const;
 #endif
 
 %insert("lisphead") %{
 ;; $Id$
 
-(eval-when (compile load eval)
+(eval-when (:compile-toplevel :load-toplevel :execute)
 
   ;; avoid compiling ef-templates at runtime
   (excl:find-external-format :fat)
@@ -375,7 +418,7 @@ $body)"
 
 (defswig2 swig-defconstant (string value)
   (cl::let ((symbol (id-convert-and-export string :type :constant)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (cl::defconstant ,symbol ,value))))
 
 (cl::defun maybe-reorder-args (funcname arglist)
@@ -421,7 +464,7 @@ $body)"
 	 )
     (cl::when (swig-anyvarargs-p ffargs)
       (cl::setq ffargs '()))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (excl::compiler-let ((*record-xref-info* nil))
          (ff:def-foreign-call (,mangle ,mangled-name) ,ffargs ,@kwargs))
        (cl::macrolet ((swig-ff-call (&rest args)
@@ -447,7 +490,7 @@ $body)"
                      ffargs
                      (cl::loop for (nil name nil . ffi) in ffargs
                            collect `(,name ,@ffi)))))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (excl::compiler-let ((*record-xref-info* nil))
          (ff:def-foreign-call (,mangle ,mangled-name) ,ffargs ,@kwargs))
        (cl::macrolet ((swig-ff-call (&rest args)
@@ -459,7 +502,7 @@ $body)"
 (defswig1 swig-dispatcher ((name &key (type :operator) class arities))
   (cl::let ((symbol (id-convert-and-export name
                          :type type :class class)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (cl::defun ,symbol (&rest args)
          (cl::case (cl::length args)
            ,@(cl::loop for arity in arities
@@ -472,14 +515,14 @@ $body)"
 (defswig2 swig-def-foreign-stub (name)
   (cl::let ((lsymbol (id-convert-and-export name :type :class))
 	    (symbol (id-convert-and-export name :type :type)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
 	(ff:def-foreign-type ,symbol (:class ))
 	(cl::defclass ,lsymbol (ff:foreign-pointer) ()))))
 
 (defswig2 swig-def-foreign-class (name supers &rest rest)
   (cl::let ((lsymbol (id-convert-and-export name :type :class))
 	    (symbol (id-convert-and-export name :type :type)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (ff:def-foreign-type ,symbol ,@rest)
        (cl::defclass ,lsymbol ,supers
 	 ((foreign-type :initform ',symbol :initarg :foreign-type
@@ -487,11 +530,11 @@ $body)"
 
 (defswig2 swig-def-foreign-type (name &rest rest)
   (cl::let ((symbol (id-convert-and-export name :type :type)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
        (ff:def-foreign-type ,symbol ,@rest))))
 
 (defswig2 swig-def-synonym-type (synonym of ff-synonym)
-  `(cl::eval-when (compile load eval)
+  `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
      (cl::setf (cl::find-class ',synonym) (cl::find-class ',of))
      (ff:def-foreign-type ,ff-synonym (:struct ))))
 
@@ -511,24 +554,24 @@ $body)"
              (parent-strings (cl::mapcar #'package-name-for-namespace
                                  parent-namespaces))
              (string (package-name-for-namespace namespace)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
       (cl::defpackage ,string
         (:use :swig :ff #+ignore '(:common-lisp :ff :excl)
               ,@parent-strings ,*swig-module-name*)
 	(:import-from :cl :* :nil :t)))))
 
 (cl::defmacro swig-in-package (namespace)
-  `(cl::eval-when (compile load eval)
+  `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
     (cl::in-package ,(package-name-for-namespace namespace))))
 
 (defswig2 swig-defvar (name mangled-name &key type (ftype :unsigned-natural))
   (cl::let ((symbol (id-convert-and-export name :type type)))
-    `(cl::eval-when (compile load eval)
+    `(cl::eval-when (:compile-toplevel :load-toplevel :execute)
       (ff:def-foreign-variable (,symbol ,mangled-name) :type ,ftype))))
 
 ) ;; eval-when
 
-(cl::eval-when (compile eval)
+(cl::eval-when (:compile-toplevel :execute)
   (cl::flet ((starts-with-p (str prefix)
               (cl::and (cl::>= (cl::length str) (cl::length prefix))
                 (cl::string= str prefix :end1 (cl::length prefix)))))
@@ -539,7 +582,7 @@ $body)"
 
 %}
 
-
+typedef void *__SWIGACL_FwdReference;
 
 %{
 
@@ -550,6 +593,8 @@ $body)"
 #endif
 
 #define EXPORT   EXTERN SWIGEXPORT
+
+typedef void *__SWIGACL_FwdReference;
 
 #include <string.h>
 #include <stdlib.h>

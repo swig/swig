@@ -1,8 +1,8 @@
 This example runs the entire gifplot.h header file through SWIG without
-any changes.  The program 'main.java' does something a little more 
-interesting. After doing a make, run it using 'java main'. You'll have to go 
+any changes.  The program 'runme.java' does something a little more 
+interesting. After doing a make, run it using 'java runme'. You'll have to go 
 look at the header file to get a complete listing of the functions.
 
-Note the differences in the main.java files between this example and the  
+Note the differences in the runme.java files between this example and the  
 'full' example. This example does not use shadow classes.
 

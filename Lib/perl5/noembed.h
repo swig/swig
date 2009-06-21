@@ -91,3 +91,9 @@
 #ifdef open
   #undef open
 #endif
+#ifdef readdir
+  #undef readdir
+#endif
+#ifdef bind
+  #undef bind
+#endif

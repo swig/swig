@@ -1,13 +1,13 @@
 /*
-  Defines the As/From conversors for double/float complex, you need to
-  provide complex Type, the Name you want to use in the conversors,
+  Defines the As/From converters for double/float complex, you need to
+  provide complex Type, the Name you want to use in the converters,
   the complex Constructor method, and the Real and Imag complex
-  accesor methods.
+  accessor methods.
 
   See the std_complex.i and ccomplex.i for concret examples.
 */
 
-/* the common from conversor */
+/* the common from converter */
 %define %swig_fromcplx_conv(Type, Real, Imag)
 %fragment(SWIG_From_frag(Type),"header")
 {

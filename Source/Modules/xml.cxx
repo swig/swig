@@ -47,7 +47,7 @@ public:
 	iX++;
 	Swig_mark_arg(iX);
 	String *outfile = NewString(argv[iX]);
-	out = NewFile(outfile, "w");
+	out = NewFile(outfile, "w", SWIG_output_files());
 	if (!out) {
 	  FileErrorDisplay(outfile);
 	  SWIG_exit(EXIT_FAILURE);
@@ -82,7 +82,7 @@ public:
       Replaceall(outfile, ".cxx", ".xml");
       Replaceall(outfile, ".cpp", ".xml");
       Replaceall(outfile, ".c", ".xml");
-      out = NewFile(outfile, "w");
+      out = NewFile(outfile, "w", SWIG_output_files());
       if (!out) {
 	FileErrorDisplay(outfile);
 	SWIG_exit(EXIT_FAILURE);
@@ -301,7 +301,7 @@ void Swig_print_xml(DOH *obj, String *filename) {
   if (!filename) {
     out = stdout;
   } else {
-    out = NewFile(filename, "w");
+    out = NewFile(filename, "w", SWIG_output_files());
     if (!out) {
       FileErrorDisplay(filename);
       SWIG_exit(EXIT_FAILURE);
