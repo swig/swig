@@ -48,7 +48,7 @@ for k in pm:
 
 
 
-mii = li_std_map.mapii()
+mii = li_std_map.IntIntMap()
 
 mii[1] = 1
 mii[1] = 2

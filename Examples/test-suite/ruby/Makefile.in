@@ -15,6 +15,7 @@ CPP_TEST_CASES = \
 	li_factory \
 	li_std_functors \
 	li_std_map \
+	li_std_multimap \
 	li_std_pair_lang_object \
 	li_std_queue \
 	li_std_set \

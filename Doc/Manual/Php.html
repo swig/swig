@@ -479,7 +479,7 @@ One can include <b>cpointer.i</b> to generate PHP wrappers to <tt>int
 
 <div class="code"><pre>
 %module example
-%include cpointer.i
+%include "cpointer.i"
 %pointer_functions(int,intp)
 
 void add( int *in1, int *in2, int *result);
@@ -513,7 +513,7 @@ parameter names as appropriate.
 
 <div class="code"><pre>
 %module example
-%include typemaps.i
+%include "typemaps.i"
 
 void add( int *INPUT, int *INPUT, int *OUTPUT);
 
@@ -545,7 +545,7 @@ named typemap REFERENCE.
 
 <div class="code"><pre>
 %module example
-%include phppointers.i
+%include "phppointers.i"
 
 void add( int *REF, int *REF, int *REF);
 
@@ -780,12 +780,6 @@ Ko::threats();
 
 <H3><a name="Php_nn2_7"></a>29.2.7 PHP Pragmas, Startup and Shutdown code</H3>
 
-
-<p>
-Note: Currently pragmas for PHP need to be specified using
-<tt>%pragma(php)</tt> but also apply for PHP5!  This is just a historical
-oddity because SWIG's PHP support predates PHP5.
-</p>
 
 <p>
 To place PHP code in the generated "example.php" file one can use the

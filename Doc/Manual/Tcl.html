@@ -190,7 +190,7 @@ extern int mod(int, int);
 extern double My_variable;
 %}
 
-%include tclsh.i       // Include code for rebuilding tclsh
+%include "tclsh.i"       // Include code for rebuilding tclsh
 
 </pre></div>
 
@@ -2822,7 +2822,7 @@ int print_args(char **argv) {
     return i;
 }
 %}
-%include tclsh.i
+%include "tclsh.i"
 
 </pre></div>
 

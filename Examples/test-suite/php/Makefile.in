@@ -16,28 +16,12 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 TARGETPREFIX =# Should be php_ for Windows, empty otherwise
 
-makecpptests:
-	@bash -ec 'for test in $(CPP_TEST_CASES) ; do $(MAKE) clean && $(MAKE) $${test}.cpptest; done'
-
-maketests: makecpptests makectests
-
-makectests:
-	@bash -ec 'for test in $(C_TEST_CASES) ; do $($(MAKE)) clean && $(MAKE) $${test}.cpptest; done'
-
-runcpptests:
-	@bash -ec 'for test in $(CPP_TEST_CASES) ; do if [ -f $${test}_runme.php ] ; then $(MAKE) clean && $(MAKE) $${test}.cpptest; fi ; done'
-
-runctests:
-	@bash -ec 'for test in $(C_TEST_CASES) ; do if [ -f $${test}_runme.php ] ; then $(MAKE) clean && $(MAKE) $${test}.cpptest; fi; done'
-
-runtests: runcpptests runctests
-
 # write out tests without a _runme.php
 missingcpptests:
-	@bash -ec 'for test in $(CPP_TEST_CASES) ; do test -f $${test}_runme.php || echo $${test}; done'
+	for test in $(CPP_TEST_CASES) ; do test -f $${test}_runme.php || echo $${test}; done
 
 missingctests:
-	@bash -ec 'for test in $(C_TEST_CASES) ; do test -f $${test}_runme.php || echo $${test}; done'
+	for test in $(C_TEST_CASES) ; do test -f $${test}_runme.php || echo $${test}; done
 
 missingtests: missingcpptests missingctests
 

@@ -254,6 +254,12 @@ It is also possible to change the <a href="SWIG.html#output">output directory </
 </p>
 
 <p>
+The module name, specified with <tt>%module</tt>, determines the name of various generated classes as discussed <a href=#module_packages_classes>later</a>.
+Note that the module name does not define a Java package and by default, the generated Java classes do not have a Java package.
+The <tt>-package</tt> option described below can specify a Java package name to use.
+</p>
+
+<p>
 The following sections have further practical examples and details on how you might go about
 compiling and using the generated files.
 </p>

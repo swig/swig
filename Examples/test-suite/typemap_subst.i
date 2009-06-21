@@ -50,6 +50,14 @@
     (void)stardesc;
     (void)ampdesc;
   }
+  { /* Test descriptor macro */
+    void *desc = $descriptor(const struct xyzzy **);
+    void *stardesc = $descriptor(const struct xyzzy *);
+    void *ampdesc = $descriptor(const struct xyzzy ***);
+    (void)desc;
+    (void)stardesc;
+    (void)ampdesc;
+  }
   $1 = ($ltype) temp;  
 }
 
