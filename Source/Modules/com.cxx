@@ -364,7 +364,7 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
 
-    f_runtime = NewFile(outfile, "w");
+    f_runtime = NewFile(outfile, "w", SWIG_output_files());
     if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
@@ -474,7 +474,7 @@ public:
     /* Generate DEF file */
     if (deffile_flag) {
       String *filen = NewStringf("%s%s.def", SWIG_output_directory(), module_class_name);
-      f_deffile = NewFile(filen, "w");
+      f_deffile = NewFile(filen, "w", SWIG_output_files());
       if (!f_deffile) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
@@ -495,7 +495,7 @@ public:
 
     if (rcfile_flag) {
       String *filen = NewStringf("%s%s.rc", SWIG_output_directory(), module_class_name);
-      f_rcfile = NewFile(filen, "w");
+      f_rcfile = NewFile(filen, "w", SWIG_output_files());
       if (!f_rcfile) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
@@ -510,7 +510,7 @@ public:
     /* Generate the IDL file containing the module class and proxy classes */
     {
       String *filen = NewStringf("%s%s.idl", SWIG_output_directory(), module_class_name);
-      f_module = NewFile(filen, "w");
+      f_module = NewFile(filen, "w", SWIG_output_files());
       if (!f_module) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
