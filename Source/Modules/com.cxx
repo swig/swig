@@ -231,16 +231,16 @@ public:
    * ----------------------------------------------------------------------------- */
 
   COM():empty_string(NewString("")),
-      hresult_flag(true),
       proxy_flag(true),
+      dllexports_flag(true),
       deffile_flag(true),
       rcfile_flag(true),
-      dllexports_flag(true),
+      hresult_flag(true),
       enum_constant_flag(false),
+      clsid_list(NewString("")),
       proxy_class_vtable_code(NewString("")),
       proxy_static_class_vtable_code(NewString("")),
       proxy_class_vtable_defs(NewString("")),
-      clsid_list(NewString("")),
       namespce(NULL) {
     /* Use NIL GUID by default */
     memset(&master_guid, 0, sizeof(GUID));
