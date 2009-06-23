@@ -1231,3 +1231,5 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason,
 
 %}
 
+/* COM IDL keywords */
+%include <comkw.swg>
