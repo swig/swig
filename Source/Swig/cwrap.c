@@ -195,7 +195,11 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       String *type = Getattr(p, "type");
       /* default values only emitted if in compact default args mode */
       String *pvalue = (compactdefargs) ? Getattr(p, "value") : 0;
-      SwigType *altty = SwigType_alttype(type, 0);
+
+      /* When using compactdefaultargs, the code generated initialises a variable via a constructor call that accepts the
+       * default value as a parameter. The default constructor is not called and therefore SwigValueWrapper is not needed. */
+      SwigType *altty = pvalue ? 0 : SwigType_alttype(type, 0);
+
       int tycode = SwigType_type(type);
       if (tycode == T_REFERENCE) {
 	if (pvalue) {
