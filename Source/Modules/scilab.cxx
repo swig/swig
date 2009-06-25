@@ -99,7 +99,7 @@ public:
     Printf(f_runtime, "#include \"stack-c.h\"\n");
     Printf(f_runtime, "#include \"sciprint.h\"\n");
     Printf(f_runtime, "#include \"Scierror.h\"\n");
-    Printf(f_runtime, "#include \"variable_api.h\"\n");
+    Printf(f_runtime, "#include \"api_variable.h\"\n");
     Printf(f_runtime, "#include \"localization.h\"\n");
     
     /* Initialize the builder.sce file code */
@@ -187,7 +187,7 @@ public:
     if (overloaded)
       Append(overname, Getattr(n, "sym:overname"));
 
-    Printv(f->def, "int ", overname, " (char *fname,unsigned long fname_len) {\nint iOutNum=1;\nint iVarOut=Rhs+1;", NIL);
+    Printv(f->def, "int ", overname, " (char *fname,unsigned long fname_len) {\n", NIL);
    
     /* Emit all of the local variables for holding arguments */
     emit_parameter_variables(l, f);
@@ -199,8 +199,12 @@ public:
     /* Get number of required and total arguments */
     int num_arguments = emit_num_arguments(l);
     int num_required = emit_num_required(l);
+    
+    /* the number of the output */
+    int out_required = 0;
     //int varargs = emit_isvarargs(l);
    
+    
     if (constructor && num_arguments == 1 && num_required == 1) {
       if (Cmp(storage, "explicit") == 0) {
 	Node *parent = Swig_methodclass(n);
@@ -252,7 +256,8 @@ public:
     if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       Replaceall(tm, "$result", "result");
       Printf(f->code, "%s\n", tm);
-     
+      if(strlen(Char(tm))!=0)
+        out_required++;
     } 
     else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
@@ -264,11 +269,20 @@ public:
       if ((tm = Getattr(p, "tmap:argout"))) {
 	Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
+        out_required++;
       } else {
 	p = nextSibling(p);
       }
     }
     Printv(f->code, outarg, NIL);
+
+    /* Insert the code checking for the number of input and output */
+    if(out_required==0) out_required=1;
+    Printf(f->def,"CheckRhs(%d,%d);\n",num_required,num_required);
+    Printf(f->def,"CheckLhs(%d,%d);\n",out_required,out_required);
+   
+    /* Insert the order of output parameters*/
+    Printf(f->def,"\nint iOutNum=1;\nint iVarOut=Rhs+1;");
    
     /* Finish the the code for the function  */
     Printf(f->code, "return 0;\n");	
@@ -312,7 +326,14 @@ public:
     String *getname = Swig_name_get(iname);
     String *setname = Swig_name_set(iname);
 
-    Printv(setf->def, "int ", setname, " (char *fname,unsigned long fname_len) {\nint iOutNum=1;\nint iVarOut=Rhs+1;", NIL);
+    Printv(setf->def, "int ", setname, " (char *fname,unsigned long fname_len) {\n", NIL);
+    
+    /* Check the number of input and output */
+    Printf(setf->def,"CheckRhs(1,1);\n");
+    Printf(setf->def,"CheckLhs(1,1);\n");
+    
+    /* Insert the order of output parameters*/
+    Printf(setf->def,"\nint iOutNum=1;\nint iVarOut=Rhs+1;");
     
     /* add the local variable */
     Wrapper_add_local(setf, "piAddrVar", "int *piAddrVar");
@@ -339,7 +360,14 @@ public:
     /* deal with the get function */
     Setattr(n, "wrap:name", getname);
     int addfail = 0;
-    Printv(getf->def, "int ", getname, " (char *fname,unsigned long fname_len){\nint iOutNum=1;\nint iVarOut=Rhs+1;", NIL);
+    Printv(getf->def, "int ", getname, " (char *fname,unsigned long fname_len){\n", NIL);
+   
+    /* Check the number of input and output */
+    Printf(getf->def,"CheckRhs(0,0);\n");
+    Printf(getf->def,"CheckLhs(1,1);\n");
+    
+    /* Insert the order of output parameters*/
+    Printf(getf->def,"\nint iOutNum=1;\nint iVarOut=Rhs+1;");
    
     /* add local variabe */
     Wrapper_add_local(getf, "piAddrOut", "int* _piAddress");

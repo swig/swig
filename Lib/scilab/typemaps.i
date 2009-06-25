@@ -64,7 +64,7 @@ or you can use the %apply directive :
 	     float *INPUT (int *piAddrVar, int iRows, int iCols, float temp),
 	     double *INPUT (int *piAddrVar, int iRows, int iCols, double temp) {
   double* _piData;
-  getVarAddressFromNumber($argnum, &piAddrVar);
+  getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_matrix || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
@@ -123,7 +123,7 @@ output values.
 
 // Force the argument to be ignored.
 
-%typemap(in) signed char *OUTPUT (signed temp),
+%typemap(in,numinputs=0) signed char *OUTPUT (signed temp),
 	     unsigned char *OUTPUT (unsigned temp),
 	     short *OUTPUT (short temp),
 	     unsigned short *OUTPUT (unsigned short temp),
@@ -169,13 +169,13 @@ output values.
 }
 
 
-%typemap(argout) double *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress),
-              float *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress) {
+%typemap(argout) double *OUTPUT(int iRowsOut,int iColsOut),
+              float *OUTPUT(int iRowsOut,int iColsOut) {
   double temp;
   temp=(double)(*$result);
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, &temp$argnum, &_piAddress);
+  createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, &temp$argnum);
   LhsVar(iOutNum)=iVarOut;
   iOutNum++;
   iVarOut++;

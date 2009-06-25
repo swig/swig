@@ -158,7 +158,7 @@ clisp_examples     :=
 uffi_examples      :=
 cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
-scilab_examples    :=
+scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
 
 # all examples
 check-%-examples :
@@ -206,7 +206,7 @@ check-gifplot:					\
 #	check-lua-gifplot                  	\
 #	check-csharp-gifplot                    \
 #	check-modula3-gifplot               \
-       check-scilab-gifplot			
+	check-scilab-gifplot			
 check-%-gifplot: gifplot-library
 	@if test -z "$(skip-$*)"; then				\
 	  echo $* unknown;					\
@@ -253,7 +253,7 @@ check-test-suite:				\
 	check-cffi-test-suite			\
 	check-chicken-test-suite		\
 	check-r-test-suite               \
-       check-scilab-test-suite		
+	check-scilab-test-suite		
 check-%-test-suite:
 	@if test -z "$(skip-$*)"; then					\
 	  echo $* unknown;						\

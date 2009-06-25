@@ -27,7 +27,7 @@
 	     float (int *piAddrVar, int iRows, int iCols),
 	     double (int *piAddrVar, int iRows, int iCols) {
   double* _piData;
-  getVarAddressFromNumber($argnum, &piAddrVar);
+  getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_matrix || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
@@ -40,7 +40,7 @@
 %typemap(in) char (int *piAddrVar, int iRows, int iCols) {   
   char* _pstStrings;
   int _piLength;
-  getVarAddressFromNumber($argnum, &piAddrVar);
+  getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
     
   if (getVarType(piAddrVar) != sci_strings || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
@@ -51,18 +51,82 @@
 }
 
 /* Pointers */
-%typemap(in) signed char *(int *piAddrVar, int iRows, int iCols, signed char temp),
-	     unsigned char *(int *piAddrVar, int iRows, int iCols, unsigned char temp),
-	     short *(int *piAddrVar, int iRows, int iCols, short temp),
-	     unsigned short *(int *piAddrVar, int iRows, int iCols, unsigned short temp),
-	     int *(int *piAddrVar, int iRows, int iCols, int temp),
-	     unsigned int *(int *piAddrVar, int iRows, int iCols, unsigned int temp),
-	     long *(int *piAddrVar, int iRows, int iCols, long temp),
-	     unsigned long *(int *piAddrVar, int iRows, int iCols, unsigned long temp),
-	     float *(int *piAddrVar, int iRows, int iCols, float temp),
-	     double *(int *piAddrVar, int iRows, int iCols, double temp) {
+%typemap(in) signed char *(int *piAddrVar, int iRows, int iCols) {
+  char* _piData;
+  int index;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  getVarDimension(piAddrVar, &iRows, &iCols);
+  
+  if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+  }
+  getMatrixOfInteger8(piAddrVar, &iRows, &iCols,  &_piData);
+  if($1!=NULL) {
+    free($1);
+  }
+  $1=($1_ltype)malloc(iRows*iCols*sizeof($*1_ltype));
+  for(index=0;index<iRows*iCols;index++){
+    $1[index]=($*1_ltype)_piData[index];
+  }
+}
+
+%typemap(in) short *(int *piAddrVar, int iRows, int iCols),
+             unsigned char *(int *piAddrVar, int iRows, int iCols),
+             short [](int *piAddrVar, int iRows, int iCols),
+             unsigned char [](int *piAddrVar, int iRows, int iCols) {
+  short* _piData;
+  int index;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  getVarDimension(piAddrVar, &iRows, &iCols);
+  
+  if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+  }
+  getMatrixOfInteger16(piAddrVar, &iRows, &iCols,  &_piData);
+  if($1!=NULL) {
+    free($1);
+  }
+  $1=($1_ltype)malloc(iRows*iCols*sizeof($*1_ltype));
+  for(index=0;index<iRows*iCols;index++){
+    $1[index]=($*1_ltype)_piData[index];
+  }
+}
+
+%typemap(in) unsigned short *(int *piAddrVar, int iRows, int iCols),
+	     int *(int *piAddrVar, int iRows, int iCols),
+	     unsigned int *(int *piAddrVar, int iRows, int iCols),
+	     long *(int *piAddrVar, int iRows, int iCols),
+	     unsigned long *(int *piAddrVar, int iRows, int iCols),
+             unsigned short [](int *piAddrVar, int iRows, int iCols),
+	     int [](int *piAddrVar, int iRows, int iCols),
+	     unsigned int [](int *piAddrVar, int iRows, int iCols),
+	     long [](int *piAddrVar, int iRows, int iCols),
+	     unsigned long [](int *piAddrVar, int iRows, int iCols) {
+  int* _piData;
+  int index;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  getVarDimension(piAddrVar, &iRows, &iCols);
+  
+  if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+  }
+  getMatrixOfInteger32(piAddrVar, &iRows, &iCols,  &_piData);
+  if($1!=NULL) {
+    free($1);
+  }
+  $1=($1_ltype)malloc(iRows*iCols*sizeof($*1_ltype));
+  for(index=0;index<iRows*iCols;index++){
+    $1[index]=($*1_ltype)_piData[index];
+  }
+}
+
+%typemap(in) double *(int *piAddrVar, int iRows, int iCols),
+             float *(int *piAddrVar, int iRows, int iCols), 
+             double [](int *piAddrVar, int iRows, int iCols),
+             float [](int *piAddrVar, int iRows, int iCols){
   double* _piData;
-  getVarAddressFromNumber($argnum, &piAddrVar);
+  int index;
+  getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_matrix || isVarComplex(piAddrVar)) {
@@ -73,15 +137,16 @@
     free($1);
   }
   $1=($1_ltype)malloc(iRows*iCols*sizeof($*1_ltype));
-  memcpy($1,_piData,iRows*iCols*sizeof($*1_ltype));
-  //temp=($*1_ltype)*_piData;
-  //$1=&temp;
+  for(index=0;index<iRows*iCols;index++){
+    $1[index]=($*1_ltype)_piData[index];
+  }
 }
 
-%typemap(in) char *(int *piAddrVar, int iRows, int iCols) {
+%typemap(in) char *(int *piAddrVar, int iRows, int iCols), 
+             char [](int *piAddrVar, int iRows, int iCols){
   char* _pstStrings;
   int _piLength;
-  getVarAddressFromNumber($argnum, &piAddrVar);
+  getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_strings || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
@@ -89,6 +154,113 @@
   }
   getMatrixOfString(piAddrVar, &iRows, &iCols,&_piLength, &_pstStrings);
   $1=strdup(_pstStrings);
+}
+
+/* Arrays */
+%typemap(in) signed char [ANY][ANY](int *piAddrVar, int iRows, int iCols) {
+  char* _piData;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  getVarDimension(piAddrVar, &iRows, &iCols);
+  
+  if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+  }
+  getMatrixOfInteger8(piAddrVar, &iRows, &iCols,  &_piData);
+  if($1!=NULL) {
+    free($1);
+  }
+  $1=($1_ltype)malloc($1_dim0*$1_dim1*sizeof($1_basetype));
+  size_t jj;
+  for(jj=0;jj<$1_dim1;jj++){
+    size_t ii;
+    for(ii=0;ii<$1_dim0;ii++)
+    $1[ii][jj]=($1_basetype)_piData[jj*$1_dim0+ii];
+  }
+}
+
+%typemap(in) short [ANY][ANY](int *piAddrVar, int iRows, int iCols),
+             unsigned char [ANY][ANY](int *piAddrVar, int iRows, int iCols) {
+  short* _piData;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  getVarDimension(piAddrVar, &iRows, &iCols);
+  
+  if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+  }
+  getMatrixOfInteger16(piAddrVar, &iRows, &iCols,  &_piData);
+  if($1!=NULL) {
+    free($1);
+  }
+  $1=($1_ltype)malloc($1_dim0*$1_dim1*sizeof($1_basetype));
+  size_t jj;
+  for(jj=0;jj<$1_dim1;jj++){
+    size_t ii;
+    for(ii=0;ii<$1_dim0;ii++)
+    $1[ii][jj]=($1_basetype)_piData[jj*$1_dim0+ii];
+  }
+}
+
+%typemap(in) unsigned short [ANY][ANY](int *piAddrVar, int iRows, int iCols),
+             int [ANY][ANY](int *piAddrVar, int iRows, int iCols), 
+             unsigned int [ANY][ANY](int *piAddrVar, int iRows, int iCols),
+             long [ANY][ANY](int *piAddrVar, int iRows, int iCols),
+             unsigned long [ANY][ANY](int *piAddrVar, int iRows, int iCols){
+  int* _piData;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  getVarDimension(piAddrVar, &iRows, &iCols);
+  
+  if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+  }
+  getMatrixOfInteger32(piAddrVar, &iRows, &iCols,  &_piData);
+  if($1!=NULL) {
+    free($1);
+  }
+  $1=($1_ltype)malloc($1_dim0*$1_dim1*sizeof($1_basetype));
+  size_t jj;
+  for(jj=0;jj<$1_dim1;jj++){
+    size_t ii;
+    for(ii=0;ii<$1_dim0;ii++)
+    $1[ii][jj]=($1_basetype)_piData[jj*$1_dim0+ii];
+  }
+}
+
+
+%typemap(in) double [ANY][ANY](int *piAddrVar, int iRows, int iCols),
+             float [ANY][ANY](int *piAddrVar, int iRows, int iCols) {
+  double* _piData;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  getVarDimension(piAddrVar, &iRows, &iCols);
+  
+  if (getVarType(piAddrVar) != sci_matrix || isVarComplex(piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+  }
+  getMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData);
+  if($1!=NULL) {
+    free($1);
+  }
+  $1=($1_ltype)malloc($1_dim0*$1_dim1*sizeof($1_basetype));
+  size_t jj;
+  for(jj=0;jj<$1_dim1;jj++){
+    size_t ii;
+    for(ii=0;ii<$1_dim0;ii++)
+    $1[ii][jj]=($1_basetype)_piData[jj*$1_dim0+ii];
+  }
+}
+
+%typemap(in) SWIGTYPE *(int *piAddrVar, int iRows, int iCols) {
+  $&1_ltype  _piData=($&1_ltype)0;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  getVarDimension(piAddrVar, &iRows, &iCols);
+  
+  if (getVarType(piAddrVar) != sci_matrix || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+  }
+  getMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData);
+  $1=($1_ltype)*_piData;
+}
+%typemap(in) SWIGTYPE {
+  
 }
 
 /* -----------------------------------------------------------------------------
@@ -134,24 +306,24 @@
   iVarOut++;
 }
 
-%typemap(out) double (int iRowsOut,int iColsOut,int* _piAddress),
-              float (int iRowsOut,int iColsOut,int* _piAddress) {
+%typemap(out) double (int iRowsOut,int iColsOut),
+              float (int iRowsOut,int iColsOut) {
   double temp;
   temp=(double)($result);
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, &temp, &_piAddress);
+  createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum)=iVarOut;
   iOutNum++;
   iVarOut++;
 }
 
-%typemap(out) char (int iRowsOut,int iColsOut,int* _piAddress) {
+%typemap(out) char (int iRowsOut,int iColsOut) {
   char* temp;
   temp=(char*)&($result);
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfString(iVarOut, iRowsOut, iColsOut, &temp, &_piAddress);
+  createMatrixOfString(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum)=iVarOut;
   iOutNum++;
   iVarOut++;
@@ -199,22 +371,31 @@
   iVarOut++;
 }
 
-%typemap(out) double *(int iRowsOut,int iColsOut,int* _piAddress),
-              float *(int iRowsOut,int iColsOut,int* _piAddress) {
+%typemap(out) double *(int iRowsOut,int iColsOut),
+              float *(int iRowsOut,int iColsOut) {
   double *temp;
   temp=(double *)($result);
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, temp, &_piAddress);
+  createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, temp);
   LhsVar(iOutNum)=iVarOut;
   iOutNum++;
   iVarOut++;
 }
 
-%typemap(out) char *(int iRowsOut,int iColsOut,int* _piAddress){
+%typemap(out) char *(int iRowsOut,int iColsOut){
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfString(iVarOut, iRowsOut, iColsOut, &($result), &_piAddress);
+  createMatrixOfString(iVarOut, iRowsOut, iColsOut, &($result));
+  LhsVar(iOutNum)=iVarOut;
+  iOutNum++;
+  iVarOut++;
+}
+
+%typemap(out) SWIGTYPE *(int iRowsOut,int iColsOut) {
+  iRowsOut=1; 
+  iColsOut=1;
+  createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, &$result);
   LhsVar(iOutNum)=iVarOut;
   iOutNum++;
   iVarOut++;

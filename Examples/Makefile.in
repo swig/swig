@@ -1139,7 +1139,7 @@ r_clean:
 #####                 SCILAB                                ######
 ##################################################################
 
-# Make sure these locate your Octave installation
+# Make sure these locate your Scilab installation
 SCILAB_INCLUDE= $(DEFS) @SCILABINCLUDE@
 SCILAB_LIB    = @SCILABLIB@
 SCILAB        = @SCILAB@
@@ -1158,5 +1158,5 @@ scilab: $(SRCS)
 # -----------------------------------------------------------------
 
 scilab_clean:
-	rm -f *_wrap* 
+	rm -f *.sce *.so lib*lib.c 
 	
