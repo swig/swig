@@ -1,3 +1,7 @@
+/* This interface checks whether Swig supports the new double angled brackets
+   in the template syntax without having a space inbetween. This feature was
+   introduced in new C++0x standard.
+*/
 %module foo
 %inline %{
 #include <map>
