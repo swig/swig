@@ -335,12 +335,13 @@ OCTAVE_SO     = @OCTAVE_SO@
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
+# Note: Octave requires C++ compiler when compiling C wrappers
 # ----------------------------------------------------------------
 
 octave: $(SRCS)
 	$(SWIG) -octave $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(CXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
-	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(INCLUDES) $(OCTAVE_INCLUDE)
+	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
+	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
 # -----------------------------------------------------------------
