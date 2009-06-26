@@ -630,6 +630,8 @@ int yylex(void) {
 	  return (PROTECTED);
 	if (strcmp(yytext, "friend") == 0)
 	  return (FRIEND);
+	if (strcmp(yytext, "constexpr") == 0)
+	  return (CONSTEXPR);
 	if (strcmp(yytext, "virtual") == 0)
 	  return (VIRTUAL);
 	if (strcmp(yytext, "operator") == 0) {

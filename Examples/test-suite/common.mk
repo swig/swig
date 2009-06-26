@@ -93,6 +93,7 @@ C_TEST_BROKEN += \
 
 # C++ test cases. (Can be run individually using make testcase.cpptest.)
 CPP_TEST_CASES += \
+	$(CPP0X_TEST_CASES) \
 	abstract_access \
 	abstract_inherit \
 	abstract_inherit_ok \
@@ -395,16 +396,15 @@ CPP_TEST_CASES += \
 	virtual_destructor \
 	virtual_poly \
 	voidtest \
-	wrapmacro \
-	$(CPP0X_TEST_CASES)
+	wrapmacro
 
 # C++0x test cases.
 CPP0X_TEST_CASES = \
 	cpp0x_template_double_brackets
+#	cpp0x_constexpr # not supported by any compilers yet
 
 # Broken C++0x test cases.
-CPP0X_TEST_BROKEN = \
-	cpp0x_template_double_brackets_broken
+CPP0X_TEST_BROKEN = 
 
 #
 # Put all the heavy STD/STL cases here, where they can be skipped if needed
@@ -497,7 +497,7 @@ ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
 #######################################################################
 # The following applies for all module languages
 #######################################################################
-all:	$(BROKEN_TEST_CASES) $(NOT_BROKEN_TEST_CASES)
+all:	$(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES)
 
 check: 	$(NOT_BROKEN_TEST_CASES)
 

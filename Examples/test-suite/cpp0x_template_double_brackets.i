@@ -1,9 +1,8 @@
 %module foo
+%inline %{
 #include <map>
 std::map<int,std::map<int, double>> m;
-std::map<int,std::map<int, double> > n;
-std::map< std::map<(6>>1), double>, double> o;
-//std::map< std::map<6>>1, double>, double> p; // fails as it should
+std::map< int,std::map<int, double> > n;
 
 class ABC {
 public:
@@ -18,9 +17,10 @@ public:
         int a;
 
         template<typename U>
-        int operator>>(ABC &, U);
+        U operator>>(ABC &);
 
         template<typename U>
-        int operator<<(ABC &, U);
+        U operator<<(ABC &);
 };
+%}
 

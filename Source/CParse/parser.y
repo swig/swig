@@ -1492,7 +1492,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token ILLEGAL CONSTANT
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
-%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT
+%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT CONSTEXPR
 %token USING
 %token <node> NAMESPACE
 %token NATIVE INLINE
@@ -4490,6 +4490,7 @@ storage_class  : EXTERN { $$ = "extern"; }
                | VIRTUAL { $$ = "virtual"; }
                | FRIEND { $$ = "friend"; }
                | EXPLICIT { $$ = "explicit"; }
+               | CONSTEXPR { $$ = "constexpr"; }
                | empty { $$ = 0; }
                ;
 
