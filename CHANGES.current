@@ -1,6 +1,10 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-06-26: olly
+	    [Ruby] Fix to handle FIXNUM values greater than MAXINT passed for a
+	    double parameter.
+
 2009-06-24: wsfulton
             Fix wrapping methods with default arguments and the compactdefaultargs feature 
             where a class is passed by value and is assigned a default value. The SwigValueWrapper

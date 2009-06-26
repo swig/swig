@@ -50,6 +50,9 @@ end
 
 raise RuntimeError if fail != 1
 
+# Test a number which won't fit in a 32 bit integer and is represented
+# as a FIXNUM by Ruby.
+raise RuntimeError if val_double(51767811298) != 51767811298
 
 raise RuntimeError if val_double_2(1.0) != 4.0
 raise RuntimeError if val_double_2(1) != 4
