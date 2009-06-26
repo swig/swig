@@ -321,6 +321,13 @@ case $host in
    *) PLATFLAGS="";;
 esac
 
+# Add switch to enable C++0x support
+AC_SUBST(PLATCXXFLAGS)
+if test "$GCC" = yes; then
+    PLATCXXFLAGS=$PLATFLAGS" -std=c++0x "
+else
+    PLATCXXFLAGS=$PLATFLAGS
+fi
 
 # Check for specific libraries.   Used for SWIG examples
 AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
