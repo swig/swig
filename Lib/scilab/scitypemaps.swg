@@ -31,7 +31,7 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_matrix || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData);
   $1=($1_ltype)*_piData;
@@ -44,11 +44,12 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
     
   if (getVarType(piAddrVar) != sci_strings || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfString(piAddrVar, &iRows, &iCols,&_piLength, &_pstStrings);
   $1=($1_ltype)*_pstStrings;
 }
+
 
 /* Pointers */
 %typemap(in) signed char *(int *piAddrVar, int iRows, int iCols) {
@@ -58,7 +59,7 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfInteger8(piAddrVar, &iRows, &iCols,  &_piData);
   if($1!=NULL) {
@@ -80,7 +81,7 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfInteger16(piAddrVar, &iRows, &iCols,  &_piData);
   if($1!=NULL) {
@@ -108,7 +109,7 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfInteger32(piAddrVar, &iRows, &iCols,  &_piData);
   if($1!=NULL) {
@@ -130,7 +131,7 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_matrix || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData);
   if($1!=NULL) {
@@ -150,7 +151,7 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_strings || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfString(piAddrVar, &iRows, &iCols,&_piLength, &_pstStrings);
   $1=strdup(_pstStrings);
@@ -163,7 +164,7 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfInteger8(piAddrVar, &iRows, &iCols,  &_piData);
   if($1!=NULL) {
@@ -185,7 +186,7 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfInteger16(piAddrVar, &iRows, &iCols,  &_piData);
   if($1!=NULL) {
@@ -210,7 +211,7 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_ints || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfInteger32(piAddrVar, &iRows, &iCols,  &_piData);
   if($1!=NULL) {
@@ -233,7 +234,7 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_matrix || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData);
   if($1!=NULL) {
@@ -254,7 +255,7 @@
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_matrix || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData);
   $1=($1_ltype)*_piData;

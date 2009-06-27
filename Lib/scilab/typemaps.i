@@ -68,7 +68,7 @@ or you can use the %apply directive :
   getVarDimension(piAddrVar, &iRows, &iCols);
   
   if (getVarType(piAddrVar) != sci_matrix || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, 1);
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData);
   temp=($*1_ltype)*_piData;

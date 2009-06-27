@@ -25,6 +25,7 @@
 <li><a href="#scilab_nn10">Global variables</a>
 <li><a href="#Scilab_nn11">Constants</a>
 <li><a href="#Scilab_nn12">Enums</a>
+<li><a href="#Octave_nn13">Pointers</a>
 </ul>
 </ul>
 </div>
@@ -295,6 +296,48 @@ scilab:3&gt; printf("    BLUE    = %i\n", color.BLUE);
 scilab:4&gt; printf("    GREEN    = %i\n", color.GREEN);
     GREEN  = 2
 </pre></div>
+
+
+<H3><a name="Octave_nn13"></a>27.3.5 Pointers</H3>
+<p>
+      Pointers are fully supported by SWIG. One way to deal with the pointers is using the INPUT and OUTPUT typemaps. For example, in order to call C functions as the following:
+</p>
+	<div class="code"><pre>
+void sub(int *x, int *y, int *result) {
+  *result = *x - *y;
+}
+int divide(int n, int d, int *r) {
+   int q;
+   q = n/d;
+   *r = n - q*d;
+   return q;
+}
+</pre></div>
+<p> We could write a interface file:
+</p>
+	<div class="code"><pre>%module example
+%include typemaps.i
+extern void sub(int *INPUT, int *INPUT, int *OUTPUT);
+
+%apply int *OUTPUT { int *r };
+extern int divide(int n, int d, int *r);
+</pre></div>
+<p>Then run it in Scilab:
+</p>
+
+    <div class="targetlang"><pre>
+scilab:1&gt; r = sub(37,42);
+scilab:2&gt; printf("     37 - 42 = %i\n",r);
+    37 - 42 = -5
+
+scilab:3&gt; [q,r] = divide(42,37);
+scilab:4&gt; printf("     42/37 = %d remainder %d\n",q,r);
+    42/37 = 1 remainder 5
+
+</pre></div>
+<p> From the example above, it is clear that instead of passing a pointer to an object,
+we only need a real value instead. 
+</p>
 
 
 

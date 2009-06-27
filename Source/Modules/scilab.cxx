@@ -35,6 +35,7 @@ public:
   SCILAB():
     f_builder_code(NewString("")), f_example_code(NewString("")), hasfunction_flag(false), hasconstant_flag(false) {
   }
+  
     
   /* ------------------------------------------------------------
    * main()
