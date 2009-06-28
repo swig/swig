@@ -32,6 +32,8 @@ struct Scanner {
   int     error_line;           /* Error line number */
   int     freeze_line;          /* Suspend line number updates */
   List   *brackets;             /* Current level of < > brackets on each level */
+  int     str_delimiter;        /* Custom string delimiter: true, false */
+  String *str_delimiter_val;    /* Custom string delimiter. eg. R"XXX[my custom string "value"]XXX" */
 };
 
 void Scanner_push_brackets(Scanner*);
@@ -58,6 +60,8 @@ Scanner *NewScanner(void) {
   s->error = 0;
   s->freeze_line = 0;
   s->brackets = NewList();
+  s->str_delimiter = 0;
+  s->str_delimiter_val = NewStringEmpty();
   Scanner_push_brackets(s);
   return s;
 }
@@ -76,8 +80,9 @@ void DelScanner(Scanner * s) {
   Delete(s->file);
   Delete(s->error);
   Delete(s->str);
+  Delete(s->str_delimiter_val);
   free(s->idstart);
-  free(s);
+  free(s); 
 }
 
 /* -----------------------------------------------------------------------------
@@ -93,6 +98,8 @@ void Scanner_clear(Scanner * s) {
   Clear(s->scanobjs);
   Scanner_clear_brackets(s);
   Delete(s->error);
+  Clear(s->str_delimiter_val);
+  s->str_delimiter = 0;
   s->error = 0;
   s->line = 1;
   s->nexttoken = -1;
@@ -496,15 +503,16 @@ static int look(Scanner * s) {
 
     case 1000:
       if ((c = nextchar(s)) == 0)
-	return (0);
+        return (0);
       if (c == '%')
 	state = 4;		/* Possibly a SWIG directive */
-
-      /* Look for possible identifiers */
+      
+      /* Look for possible identifiers or unicode strings */
 
       else if ((isalpha(c)) || (c == '_') ||
-	       (s->idstart && strchr(s->idstart, c)))
+	       (s->idstart && strchr(s->idstart, c))) {
 	state = 7;
+      }
 
       /* Look for single character symbols */
 
@@ -569,16 +577,16 @@ static int look(Scanner * s) {
 	state = 1;		/* Comment (maybe)  */
 	s->start_line = s->line;
       }
-      else if (c == '\"') {
-	state = 2;		/* Possibly a string */
-	s->start_line = s->line;
-	Clear(s->text);
-      }
 
       else if (c == ':')
 	state = 5;		/* maybe double colon */
       else if (c == '0')
 	state = 83;		/* An octal or hex value */
+      else if (c == '\"') {
+	state = 2;              /* A string or Unicode string constant */
+	s->start_line = s->line;
+	Clear(s->text);
+      }
       else if (c == '\'') {
 	s->start_line = s->line;
 	Clear(s->text);
@@ -811,22 +819,61 @@ static int look(Scanner * s) {
 	return SWIG_TOKEN_GREATERTHAN;
       }
       break;
-    case 7:			/* Identifier */
+    case 7:			/* Identifier or unicode string */
+      if (c!='u' && c!='U' && c!='L') { /* Definitely an identifier */
+	state = 70;
+	break;
+      }
+      
+      if ((c = nextchar(s)) == 0) {
+	return SWIG_TOKEN_ID;
+      }
+      else if (c=='\"') { /* u or U string */
+	retract(s, 1);
+	state = 1000;
+      }
+      else if (c=='8') { /* Possibly u8 string */
+	state = 71;
+	break;
+      }
+      else {
+	retract(s, 1);   /* Definitely an identifier */
+	state = 70;
+	break;
+      }
+      break;
+
+    case 70:			/* Identifier */
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_ID;
       if (isalnum(c) || (c == '_') || (c == '$')) {
-	state = 7;
+	state = 70;
       } else {
 	retract(s, 1);
 	return SWIG_TOKEN_ID;
       }
+      break;
+    
+    case 71:			/* Possibly u8 string */
+      if ((c = nextchar(s)) == 0) {
+	return SWIG_TOKEN_ID;
+      }
+      if (c=='\"') {
+	retract(s, 1);
+	state = 1000;
+      }
+      else {
+	retract(s, 2); /* Definitely an identifier. Retract 8" */
+	state = 70;
+      }
+      
       break;
 
     case 75:			/* Special identifier $ */
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_DOLLAR;
       if (isalnum(c) || (c == '_') || (c == '*') || (c == '&')) {
-	state = 7;
+	state = 70;
       } else {
 	retract(s,1);
 	if (Len(s->text) == 1) return SWIG_TOKEN_DOLLAR;

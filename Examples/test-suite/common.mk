@@ -401,7 +401,8 @@ CPP_TEST_CASES += \
 # C++0x test cases.
 CPP0X_TEST_CASES = \
 	cpp0x_template_double_brackets \
-	cpp0x_explicit_conversion_operators
+	cpp0x_explicit_conversion_operators \
+	cpp0x_raw_string_literals
 #	cpp0x_constexpr # not supported by any compilers yet
 
 # Broken C++0x test cases.
