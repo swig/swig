@@ -32,8 +32,6 @@ struct Scanner {
   int     error_line;           /* Error line number */
   int     freeze_line;          /* Suspend line number updates */
   List   *brackets;             /* Current level of < > brackets on each level */
-  int     str_delimiter;        /* Custom string delimiter: true, false */
-  String *str_delimiter_val;    /* Custom string delimiter. eg. R"XXX[my custom string "value"]XXX" */
 };
 
 void Scanner_push_brackets(Scanner*);
@@ -60,8 +58,6 @@ Scanner *NewScanner(void) {
   s->error = 0;
   s->freeze_line = 0;
   s->brackets = NewList();
-  s->str_delimiter = 0;
-  s->str_delimiter_val = NewStringEmpty();
   Scanner_push_brackets(s);
   return s;
 }
@@ -80,7 +76,6 @@ void DelScanner(Scanner * s) {
   Delete(s->file);
   Delete(s->error);
   Delete(s->str);
-  Delete(s->str_delimiter_val);
   free(s->idstart);
   free(s); 
 }
@@ -98,8 +93,6 @@ void Scanner_clear(Scanner * s) {
   Clear(s->scanobjs);
   Scanner_clear_brackets(s);
   Delete(s->error);
-  Clear(s->str_delimiter_val);
-  s->str_delimiter = 0;
   s->error = 0;
   s->line = 1;
   s->nexttoken = -1;
@@ -475,13 +468,15 @@ static void get_escape(Scanner *s) {
  * ----------------------------------------------------------------------------- */
 
 static int look(Scanner * s) {
-  int state;
+  int state = 0;
   int c = 0;
+  String *str_delimiter = 0;
 
-  state = 0;
   Clear(s->text);
   s->start_line = s->line;
   Setfile(s->text, Getfile(s->str));
+
+
   while (1) {
     switch (state) {
     case 0:
@@ -507,7 +502,7 @@ static int look(Scanner * s) {
       if (c == '%')
 	state = 4;		/* Possibly a SWIG directive */
       
-      /* Look for possible identifiers or unicode strings */
+      /* Look for possible identifiers or unicode/delimiter strings */
 
       else if ((isalpha(c)) || (c == '_') ||
 	       (s->idstart && strchr(s->idstart, c))) {
@@ -583,7 +578,7 @@ static int look(Scanner * s) {
       else if (c == '0')
 	state = 83;		/* An octal or hex value */
       else if (c == '\"') {
-	state = 2;              /* A string or Unicode string constant */
+	state = 2;              /* A string constant */
 	s->start_line = s->line;
 	Clear(s->text);
       }
@@ -665,18 +660,63 @@ static int look(Scanner * s) {
       break;
 
     case 2:			/* Processing a string */
+      if (!str_delimiter) {
+	state=20;
+	break;
+      }
+      
       if ((c = nextchar(s)) == 0) {
 	Swig_error(cparse_file, cparse_start_line, "Unterminated string\n");
 	return SWIG_TOKEN_ERROR;
       }
-      if (c == '\"') {
-	Delitem(s->text, DOH_END);
-	return SWIG_TOKEN_STRING;
-      } else if (c == '\\') {
-	Delitem(s->text, DOH_END);
-	get_escape(s);
-      } else
-	state = 2;
+      else if (c == '[') {
+	state = 20;
+      }
+      else {
+	char temp[2] = { 0, 0 };
+	temp[0] = c;
+	Append( str_delimiter, temp );
+      }
+    
+      break;
+
+    case 20:			/* Inside the string */
+      if ((c = nextchar(s)) == 0) {
+	Swig_error(cparse_file, cparse_start_line, "Unterminated string\n");
+	return SWIG_TOKEN_ERROR;
+      }
+      
+      if (!str_delimiter) { /* Ordinary string: "value" */
+	if (c == '\"') {
+	  Delitem(s->text, DOH_END);
+	  return SWIG_TOKEN_STRING;
+	} else if (c == '\\') {
+	  Delitem(s->text, DOH_END);
+	  get_escape(s);
+	}
+      } else {             /* Custom delimiter string: R"XXXX[value]XXXX" */
+	if (c==']') {
+	  int i=0;
+	  String *end_delimiter = NewStringEmpty();
+	  while ((c = nextchar(s)) != 0 && c!='\"') {
+	    char temp[2] = { 0, 0 };
+	    temp[0] = c;
+	    Append( end_delimiter, temp );
+	    i++;
+	  }
+	  
+	  if (Strcmp( str_delimiter, end_delimiter )==0) {
+	    Delete( end_delimiter ); /* Correct end delimiter ]XXXX" occured */
+	    Delete( str_delimiter );
+	    str_delimiter = 0;
+	    return SWIG_TOKEN_STRING;
+	  } else {                   /* Incorrect end delimiter occured */
+	    retract( s, i );
+	    Delete( end_delimiter );
+	  }
+	}
+      }
+      
       break;
 
     case 3:			/* Maybe a not equals */
@@ -819,8 +859,13 @@ static int look(Scanner * s) {
 	return SWIG_TOKEN_GREATERTHAN;
       }
       break;
-    case 7:			/* Identifier or unicode string */
-      if (c!='u' && c!='U' && c!='L') { /* Definitely an identifier */
+    
+    case 7:			/* Identifier or unicode/custom delimiter string */
+      if (c=='R') { /* Possibly CUSTOM DELIMITER string */
+	state = 72;
+	break;
+      }
+      else if (c!='u' && c!='U' && c!='L') { /* Definitely an identifier */
 	state = 70;
 	break;
       }
@@ -828,18 +873,19 @@ static int look(Scanner * s) {
       if ((c = nextchar(s)) == 0) {
 	return SWIG_TOKEN_ID;
       }
-      else if (c=='\"') { /* u or U string */
+      else if (c=='\"') { /* Definitely u, U or L string */
 	retract(s, 1);
 	state = 1000;
       }
+      else if (c=='R') { /* Possibly CUSTOM DELIMITER u, U, L string */
+	state = 73;
+      }
       else if (c=='8') { /* Possibly u8 string */
 	state = 71;
-	break;
       }
       else {
 	retract(s, 1);   /* Definitely an identifier */
 	state = 70;
-	break;
       }
       break;
 
@@ -859,11 +905,40 @@ static int look(Scanner * s) {
 	return SWIG_TOKEN_ID;
       }
       if (c=='\"') {
-	retract(s, 1);
+	retract(s, 1); /* Definitely u8 string */
 	state = 1000;
+      }
+      else if (c=='R') {
+	state = 74; /* Possibly CUSTOM DELIMITER u8 string */
       }
       else {
 	retract(s, 2); /* Definitely an identifier. Retract 8" */
+	state = 70;
+      }
+      
+      break;
+
+    case 72:			/* Possibly CUSTOM DELIMITER string */
+    case 73:
+    case 74:
+      if ((c = nextchar(s)) == 0) {
+	return SWIG_TOKEN_ID;
+      }
+      if (c=='\"') {
+	retract(s, 1); /* Definitely custom delimiter u, U or L string */
+	str_delimiter = NewStringEmpty();
+	state = 1000;
+      }
+      else {
+	if (state==72) {
+	  retract(s, 1); /* Definitely an identifier. Retract ? */
+	}
+	else if (state==73) {
+	  retract(s, 2); /* Definitely an identifier. Retract R? */
+	}
+	else if (state==74) {
+	  retract(s, 3); /* Definitely an identifier. Retract 8R? */
+	}
 	state = 70;
       }
       
