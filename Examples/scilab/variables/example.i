@@ -17,6 +17,8 @@
     extern float            fvar;
     extern double           dvar;
     extern char            *strvar;
+    extern double          *Foo1;
+    extern double          *Foo2;
 %}
 
 

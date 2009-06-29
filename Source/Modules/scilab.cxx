@@ -315,18 +315,32 @@ public:
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     SwigType *t = Getattr(n, "type");
-
+    
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
     
+    String *rowname=NewString("");
+    String *colname=NewString("");
+    String *iscomplexname=NewString("");
+    Printf(rowname,"iRows_%s",iname);
+    Printf(colname,"iCols_%s",iname);
+    Printf(iscomplexname,"isComplex_%s",iname);
+    
     /* two wrapper function to get and set the variable */
     String *tm;
+    String *globalVar=NewString("");
     Wrapper *getf = NewWrapper();
     Wrapper *setf = NewWrapper();
 
     String *getname = Swig_name_get(iname);
     String *setname = Swig_name_set(iname);
-
+    
+    Printf(globalVar, "int %s=0;\n",rowname);
+    Printf(globalVar, "int %s=0;\n",colname);
+    if(!Strcmp(t,"p.double"))
+      Printf(globalVar, "int %s=0;\n\n",iscomplexname);
+    else
+      Printf(globalVar,"\n");
     Printv(setf->def, "int ", setname, " (char *fname,unsigned long fname_len) {\n", NIL);
     
     /* Check the number of input and output */
@@ -338,14 +352,17 @@ public:
     
     /* add the local variable */
     Wrapper_add_local(setf, "piAddrVar", "int *piAddrVar");
-    Wrapper_add_local(setf, "iRows", "int iRows");
-    Wrapper_add_local(setf, "iCols", "int iCols");
+    //Wrapper_add_local(setf, "iRows", "int iRows");
+    //Wrapper_add_local(setf, "iCols", "int iCols");
   
     /* deal with the set function */
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
       if ((tm = Swig_typemap_lookup("in", n, name, 0))) {
 	Replaceall(tm, "$argnum", "1");
+        Replaceall(tm,"iRows",rowname);
+        Replaceall(tm,"iCols",colname);
+        Replaceall(tm,"isComplex",iscomplexname);
 	emit_action_code(n, setf->code, tm);
 	Delete(tm);
       } else {
@@ -372,11 +389,14 @@ public:
    
     /* add local variabe */
     Wrapper_add_local(getf, "piAddrOut", "int* _piAddress");
-    Wrapper_add_local(getf, "iRows", "int iRowsOut");
-    Wrapper_add_local(getf, "iColsOut", "int iColsOut ");
+    //Wrapper_add_local(getf, "iRows", "int iRowsOut");
+    //Wrapper_add_local(getf, "iColsOut", "int iColsOut ");
    
     if ((tm = Swig_typemap_lookup("out", n, name, 0))) {
       Replaceall(tm, "$result", name);
+      Replaceall(tm,"iRowsOut",rowname);
+      Replaceall(tm,"iColsOut",colname);
+      Replaceall(tm,"isComplex",iscomplexname);
       addfail = emit_action_code(n, getf->code, tm);
       Delete(tm);
     } else {
@@ -386,6 +406,7 @@ public:
     /*Dump the wrapper function */ 
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
+    Printf(f_header,"%s",globalVar);
     Printf(f_builder_code, "\"%s\",\"%s\";",getname,getname);
 
     return SWIG_OK;

@@ -73,8 +73,8 @@
 
 %typemap(in) short *(int *piAddrVar, int iRows, int iCols),
              unsigned char *(int *piAddrVar, int iRows, int iCols),
-             short [](int *piAddrVar, int iRows, int iCols),
-             unsigned char [](int *piAddrVar, int iRows, int iCols) {
+             short [ANY](int *piAddrVar, int iRows, int iCols),
+             unsigned char [ANY](int *piAddrVar, int iRows, int iCols) {
   short* _piData;
   int index;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -98,11 +98,11 @@
 	     unsigned int *(int *piAddrVar, int iRows, int iCols),
 	     long *(int *piAddrVar, int iRows, int iCols),
 	     unsigned long *(int *piAddrVar, int iRows, int iCols),
-             unsigned short [](int *piAddrVar, int iRows, int iCols),
-	     int [](int *piAddrVar, int iRows, int iCols),
-	     unsigned int [](int *piAddrVar, int iRows, int iCols),
-	     long [](int *piAddrVar, int iRows, int iCols),
-	     unsigned long [](int *piAddrVar, int iRows, int iCols) {
+             unsigned short [ANY](int *piAddrVar, int iRows, int iCols),
+	     int [ANY](int *piAddrVar, int iRows, int iCols),
+	     unsigned int [ANY](int *piAddrVar, int iRows, int iCols),
+	     long [ANY](int *piAddrVar, int iRows, int iCols),
+	     unsigned long [ANY](int *piAddrVar, int iRows, int iCols) {
   int* _piData;
   int index;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -123,28 +123,48 @@
 
 %typemap(in) double *(int *piAddrVar, int iRows, int iCols),
              float *(int *piAddrVar, int iRows, int iCols), 
-             double [](int *piAddrVar, int iRows, int iCols),
-             float [](int *piAddrVar, int iRows, int iCols){
+             double [ANY](int *piAddrVar, int iRows, int iCols),
+             float [ANY](int *piAddrVar, int iRows, int iCols){
   double* _piData;
   int index;
   getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
   
-  if (getVarType(piAddrVar) != sci_matrix || isVarComplex(piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
+  if (getVarType(piAddrVar) == sci_matrix ){
+     if(!isVarComplex(piAddrVar)) {
+       isComplex=0;
+       getMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData);
+       if($1!=NULL) {
+         free($1);
+       }
+       $1=($1_ltype)malloc(iRows*iCols*sizeof($*1_ltype));
+       for(index=0;index<iRows*iCols;index++){
+         $1[index]=($*1_ltype)_piData[index];
+       }
+     }
+     else {
+       isComplex=1;
+       double *_pdblImg;
+       getComplexMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData, &_pdblImg);
+       if($1!=NULL) {
+         free($1);
+       }
+       $1=($1_ltype)malloc(2*iRows*iCols*sizeof($*1_ltype));
+       for(index=0;index<iRows*iCols;index++){
+         $1[index]=($*1_ltype)_piData[index];
+         $1[index+iRows*iCols]=(double)_pdblImg[index];
+       }
+     }
   }
-  getMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData);
-  if($1!=NULL) {
-    free($1);
-  }
-  $1=($1_ltype)malloc(iRows*iCols*sizeof($*1_ltype));
-  for(index=0;index<iRows*iCols;index++){
-    $1[index]=($*1_ltype)_piData[index];
+  else {
+    Scierror(999, _("%s: Wrong type for input argument #%d: double matrix expected.\n"), fname, $argnum);
   }
 }
 
+
+
 %typemap(in) char *(int *piAddrVar, int iRows, int iCols), 
-             char [](int *piAddrVar, int iRows, int iCols){
+             char [ANY](int *piAddrVar, int iRows, int iCols){
   char* _pstStrings;
   int _piLength;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -170,12 +190,13 @@
   if($1!=NULL) {
     free($1);
   }
-  $1=($1_ltype)malloc($1_dim0*$1_dim1*sizeof($1_basetype));
-  size_t jj;
-  for(jj=0;jj<$1_dim1;jj++){
-    size_t ii;
-    for(ii=0;ii<$1_dim0;ii++)
-    $1[ii][jj]=($1_basetype)_piData[jj*$1_dim0+ii];
+  $1=($1_ltype)malloc(iRows*sizeof($*1_ltype));
+  size_t ii;
+  for(ii=0;ii<iRows;ii++){
+    $1[ii]=($*1_ltype)malloc(iCols*sizeof($1_basetype));
+    size_t jj;
+    for(jj=0;jj<iCols;jj++)
+    $1[ii][jj]=($1_basetype)_piData[jj*iRows+ii];
   }
 }
 
@@ -192,12 +213,13 @@
   if($1!=NULL) {
     free($1);
   }
-  $1=($1_ltype)malloc($1_dim0*$1_dim1*sizeof($1_basetype));
-  size_t jj;
-  for(jj=0;jj<$1_dim1;jj++){
-    size_t ii;
-    for(ii=0;ii<$1_dim0;ii++)
-    $1[ii][jj]=($1_basetype)_piData[jj*$1_dim0+ii];
+  $1=($1_ltype)malloc(iRows*sizeof($*1_ltype));
+  size_t ii;
+  for(ii=0;ii<iRows;ii++){
+    $1[ii]=($*1_ltype)malloc(iCols*sizeof($1_basetype));
+    size_t jj;
+    for(jj=0;jj<iCols;jj++)
+    $1[ii][jj]=($1_basetype)_piData[jj*iRows+ii];
   }
 }
 
@@ -217,12 +239,13 @@
   if($1!=NULL) {
     free($1);
   }
-  $1=($1_ltype)malloc($1_dim0*$1_dim1*sizeof($1_basetype));
-  size_t jj;
-  for(jj=0;jj<$1_dim1;jj++){
-    size_t ii;
-    for(ii=0;ii<$1_dim0;ii++)
-    $1[ii][jj]=($1_basetype)_piData[jj*$1_dim0+ii];
+  $1=($1_ltype)malloc(iRows*sizeof($*1_ltype));
+  size_t ii;
+  for(ii=0;ii<iRows;ii++){
+    $1[ii]=($*1_ltype)malloc(iCols*sizeof($1_basetype));
+    size_t jj;
+    for(jj=0;jj<iCols;jj++)
+    $1[ii][jj]=($1_basetype)_piData[jj*iRows+ii];
   }
 }
 
@@ -240,12 +263,13 @@
   if($1!=NULL) {
     free($1);
   }
-  $1=($1_ltype)malloc($1_dim0*$1_dim1*sizeof($1_basetype));
-  size_t jj;
-  for(jj=0;jj<$1_dim1;jj++){
-    size_t ii;
-    for(ii=0;ii<$1_dim0;ii++)
-    $1[ii][jj]=($1_basetype)_piData[jj*$1_dim0+ii];
+  $1=($1_ltype)malloc(iRows*sizeof($*1_ltype));
+  size_t ii;
+  for(ii=0;ii<iRows;ii++){
+    $1[ii]=($*1_ltype)malloc(iCols*sizeof($1_basetype));
+    size_t jj;
+    for(jj=0;jj<iCols;jj++)
+    $1[ii][jj]=($1_basetype)_piData[jj*iRows+ii];
   }
 }
 
@@ -372,16 +396,20 @@
   iVarOut++;
 }
 
-%typemap(out) double *(int iRowsOut,int iColsOut),
-              float *(int iRowsOut,int iColsOut) {
-  double *temp;
-  temp=(double *)($result);
-  iRowsOut=1; 
-  iColsOut=1;
-  createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, temp);
-  LhsVar(iOutNum)=iVarOut;
-  iOutNum++;
-  iVarOut++;
+%typemap(out) double *,
+              float * {
+  if(isComplex) {
+    createComplexMatrixOfDouble(iVarOut, iRowsOut, iColsOut, $result,&$result[iRowsOut*iColsOut]);
+    LhsVar(iOutNum)=iVarOut;
+    iOutNum++;
+    iVarOut++;
+  }
+  else {
+    createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, $result);
+    LhsVar(iOutNum)=iVarOut;
+    iOutNum++;
+    iVarOut++;
+  }
 }
 
 %typemap(out) char *(int iRowsOut,int iColsOut){
@@ -401,6 +429,7 @@
   iOutNum++;
   iVarOut++;
 }
+
 
 /* ------------------------------------------------------------
  *  Enums mapped as integer values

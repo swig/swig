@@ -23,6 +23,9 @@ char             cvar = 0;
 float            fvar = 0;
 double           dvar = 0;
 char            *strvar=0;
+double          *Foo1;
+double          *Foo2;
+
 
 
 /* A debugging function to print out their values */
