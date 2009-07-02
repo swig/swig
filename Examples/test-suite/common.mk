@@ -472,7 +472,7 @@ MULTI_CPP_TEST_CASES += \
 # Non standard testcases, usually using custom commandline options
 # Testcase names are prefixed with custom_ and can be run individually using make testcase.customtest
 CUSTOM_TEST_CASES = \
-	custom_allkw \
+	custom_wallkw \
 
 # individual custom tests - any kind of customisation allowed here
 # Note: $(basename $@) strips everything after and including the . in the target name
