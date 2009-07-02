@@ -22,8 +22,8 @@ CPP_TEST_CASES = \
 	exception_partial_info
 
 CUSTOM_TEST_CASES = \
-	custom_csharp_lib_arrays \
-	custom_intermediary_classname
+	csharp_lib_arrays \
+	intermediary_classname
 
 include $(srcdir)/../common.mk
 
@@ -50,9 +50,9 @@ CSHARPFLAGSSPECIAL =
 	+$(run_testcase)
 
 # Rules for custom tests
-custom_intermediary_classname.customtest: 
-	$(MAKE) $(basename $@).cpptest SWIGOPTCUSTOM="-dllimport custom_intermediary_classname"
-custom_csharp_lib_arrays.customtest: 
+intermediary_classname.customtest: 
+	$(MAKE) $(basename $@).cpptest SWIGOPTCUSTOM="-dllimport intermediary_classname"
+csharp_lib_arrays.customtest: 
 	$(MAKE) $(basename $@).cpptest CSHARPFLAGSSPECIAL="-unsafe"
 
 # Makes a directory for the testcase if it does not exist

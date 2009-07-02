@@ -19,7 +19,7 @@ CPP_TEST_CASES = \
 	enum_thorough_simple \
 	enum_thorough_typeunsafe \
 	exception_partial_info \
-	custom_intermediary_classname \
+	intermediary_classname \
 	java_constants \
 	java_director \
 	java_enums \

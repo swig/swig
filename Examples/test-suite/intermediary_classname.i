@@ -1,6 +1,6 @@
 
 // This test is to check the intermediary class name can be changed (C# and Java only use intermediary classes at time of writing)
-%module(directors="1", jniclassname="custom_intermediary_classname", imclassname="custom_intermediary_classname") "custom_intermediary_classname"
+%module(directors="1", jniclassname="intermediary_classname", imclassname="intermediary_classname") "intermediary_classname"
 
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR);
 

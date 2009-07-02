@@ -1,5 +1,5 @@
 using System;
-using custom_csharp_lib_arraysNamespace;
+using csharp_lib_arraysNamespace;
 
 public class runme
 {
@@ -9,7 +9,7 @@ public class runme
       int[] source = { 1, 2, 3, 4, 5 };
       int[] target = new int[ source.Length ];
 
-      custom_csharp_lib_arrays.myArrayCopy( source, target, target.Length );
+      csharp_lib_arrays.myArrayCopy( source, target, target.Length );
       CompareArrays(source, target);
     }
 
@@ -17,7 +17,7 @@ public class runme
       int[] source = { 1, 2, 3, 4, 5 };
       int[] target = new int[ source.Length ];
 
-      custom_csharp_lib_arrays.myArrayCopyUsingFixedArrays( source, target, target.Length );
+      csharp_lib_arrays.myArrayCopyUsingFixedArrays( source, target, target.Length );
       CompareArrays(source, target);
     }
 
@@ -25,7 +25,7 @@ public class runme
       int[] source = { 1, 2, 3, 4, 5 };
       int[] target = new int[] { 6, 7, 8, 9, 10 };
 
-      custom_csharp_lib_arrays.myArraySwap( source, target, target.Length );
+      csharp_lib_arrays.myArraySwap( source, target, target.Length );
 
       for (int i=0; i<target.Length; ++i)
         target[i] += 5;
@@ -36,7 +36,7 @@ public class runme
       int[] source = { 1, 2, 3, 4, 5 };
       int[] target = new int[] { 6, 7, 8, 9, 10 };
 
-      custom_csharp_lib_arrays.myArraySwapUsingFixedArrays( source, target, target.Length );
+      csharp_lib_arrays.myArraySwapUsingFixedArrays( source, target, target.Length );
 
       for (int i=0; i<target.Length; ++i)
         target[i] += 5;

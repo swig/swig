@@ -1,4 +1,4 @@
-%module custom_csharp_lib_arrays
+%module csharp_lib_arrays
 
 %include "arrays_csharp.i"
 

@@ -9,8 +9,7 @@
 # then builds the object code for use by the language.
 # To complete a test in a language follow these guidelines: 
 # 1) Add testcases to CPP_TEST_CASES (c++) or C_TEST_CASES (c) or
-#    MULTI_CPP_TEST_CASES (multi-module c++ tests) or 
-#    CUSTOM_TEST_CASES (mainly for customised SWIG comandline options)
+#    MULTI_CPP_TEST_CASES (multi-module c++ tests)
 # 2) If not already done, create a makefile which:
 #    a) Defines LANGUAGE matching a language rule in Examples/Makefile, 
 #       for example LANGUAGE = java
@@ -472,8 +471,8 @@ MULTI_CPP_TEST_CASES += \
 
 # Non standard testcases, usually using custom commandline options
 # Testcase names are prefixed with custom_ and can be run individually using make testcase.customtest
-CUSTOM_TEST_CASES += \
-	custom_wallkw \
+CUSTOM_TEST_CASES = \
+	custom_allkw \
 
 # individual custom tests - any kind of customisation allowed here
 # Note: $(basename $@) strips everything after and including the . in the target name
