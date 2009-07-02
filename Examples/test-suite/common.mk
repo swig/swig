@@ -60,6 +60,7 @@ CSRCS      =
 TARGETPREFIX = 
 TARGETSUFFIX = 
 SWIGOPT    = -outcurrentdir -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
+SWIGOPTCUSTOM =
 INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
 LIBPREFIX  = lib
@@ -468,6 +469,16 @@ MULTI_CPP_TEST_CASES += \
 	template_typedef_import \
 	multi_import
 
+# Non standard testcases, usually using custom commandline options
+# Testcase names are prefixed with custom_ and can be run individually using make testcase.customtest
+CUSTOM_TEST_CASES = \
+	custom_allkw \
+
+# individual custom tests - any kind of customisation allowed here
+# Note: $(basename $@) strips everything after and including the . in the target name
+custom_wallkw.customtest: 
+	$(MAKE) $(basename $@).cpptest SWIGOPTCUSTOM="-Wallkw"
+
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
 			$(C_TEST_CASES:=.ctest) \
 			$(MULTI_CPP_TEST_CASES:=.multicpptest) \
@@ -500,14 +511,14 @@ broken: $(BROKEN_TEST_CASES)
 swig_and_compile_cpp =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $(SWIGOPTCUSTOM)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_c =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $(SWIGOPTCUSTOM)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)
 
@@ -515,7 +526,7 @@ swig_and_compile_multi_cpp = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
-	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $(SWIGOPTCUSTOM)" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done
@@ -527,7 +538,7 @@ swig_and_compile_external =  \
 	$(LANGUAGE)$(VARIANT)_externalhdr; \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS) $*_external.cxx" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $(SWIGOPTCUSTOM)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 

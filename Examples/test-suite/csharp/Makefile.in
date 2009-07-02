@@ -28,7 +28,7 @@ CUSTOM_TEST_CASES = \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-SWIGOPT += -namespace $*Namespace $(SWIGOPTSPECIAL)
+SWIGOPT += -namespace $*Namespace
 INTERFACEDIR = ../../
 
 CSHARPFLAGSSPECIAL =
@@ -51,9 +51,9 @@ CSHARPFLAGSSPECIAL =
 
 # Rules for custom tests
 intermediary_classname.customtest: 
-	$(MAKE) intermediary_classname.cpptest SWIGOPTSPECIAL="-dllimport intermediary_classname"
+	$(MAKE) $(basename $@).cpptest SWIGOPTCUSTOM="-dllimport intermediary_classname"
 csharp_lib_arrays.customtest: 
-	$(MAKE) csharp_lib_arrays.cpptest CSHARPFLAGSSPECIAL="-unsafe"
+	$(MAKE) $(basename $@).cpptest CSHARPFLAGSSPECIAL="-unsafe"
 
 # Makes a directory for the testcase if it does not exist
 setup = \
