@@ -1054,6 +1054,8 @@ static void strip_comments(char *string) {
     case 5:
       if (*c == '/')
         state = 0;
+      else 
+        state = 1;
       *c = ' ';
       break;
     case 6:
