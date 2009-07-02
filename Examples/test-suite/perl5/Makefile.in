@@ -15,7 +15,7 @@ CPP_TEST_CASES += \
 	li_cdata \
 	li_cstring \
 	li_cdata_carrays \
-	byreference \
+	li_reference \
 
 C_TEST_CASES += \
 	li_cdata \

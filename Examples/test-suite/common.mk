@@ -64,7 +64,7 @@ INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
 LIBPREFIX  = lib
 ACTION     = check
-INTERFACEDIR = $(if $(wildcard $*.i), ./, ../)
+INTERFACEDIR = ../
 
 #
 # Please keep test cases in alphabetical order.
