@@ -1025,7 +1025,7 @@ Deletes <tt>s</tt>.
 </div>
 
 <p>
-<b><tt>int Len(String_or_char *s)</tt></b>
+<b><tt>int Len(const String_or_char *s)</tt></b>
 </p>
 
 <div class="indent">
@@ -1033,7 +1033,7 @@ Returns the length of the string.
 </div>
 
 <p>
-<b><tt>char *Char(String_or_char *s)</tt></b>
+<b><tt>char *Char(const String_or_char *s)</tt></b>
 </p>
 
 <div class="indent">
@@ -1041,7 +1041,7 @@ Returns a pointer to the first character in a string.
 </div>
 
 <p>
-<b><tt>void Append(String *s, String_or_char *t)</tt></b>
+<b><tt>void Append(String *s, const String_or_char *t)</tt></b>
 </p>
 
 <div class="indent">
@@ -1049,7 +1049,7 @@ Appends <tt>t</tt> to the end of string <tt>s</tt>.
 </div>
 
 <p>
-<b><tt>void Insert(String *s, int pos, String_or_char *t)</tt></b>
+<b><tt>void Insert(String *s, int pos, const String_or_char *t)</tt></b>
 </p>
 
 <div class="indent">
@@ -1162,7 +1162,7 @@ Returns the number of items in <tt>h</tt>.
 </div>
 
 <p>
-<b><tt>Object *Getattr(Hash *h, String_or_char *key)</tt></b>
+<b><tt>Object *Getattr(Hash *h, const String_or_char *key)</tt></b>
 </p>
 
 <div class="indent">
@@ -1171,7 +1171,7 @@ a simple <tt>char *</tt> string.   Returns NULL if not found.
 </div>
 
 <p>
-<b><tt>int Setattr(Hash *h, String_or_char *key, Object_or_char *val)</tt></b>
+<b><tt>int Setattr(Hash *h, const String_or_char *key, const Object_or_char *val)</tt></b>
 </p>
 
 <div class="indent">
@@ -1185,7 +1185,7 @@ of <tt>val</tt>.   Returns 1 if this operation replaced an existing hash entry,
 </div>
 
 <p>
-<b><tt>int Delattr(Hash *h, String_or_char *key)</tt></b>
+<b><tt>int Delattr(Hash *h, const String_or_char *key)</tt></b>
 </p>
 
 <div class="indent">
@@ -1249,7 +1249,7 @@ negative, the first item is returned.
 </div>
 
 <p>
-<b><tt>int *Setitem(List *x, int n, Object_or_char *val)</tt></b>
+<b><tt>int *Setitem(List *x, int n, const Object_or_char *val)</tt></b>
 </p>
 
 <div class="indent">
@@ -1271,7 +1271,7 @@ for <tt>n</tt>.
 </div>
 
 <p>
-<b><tt>void Append(List *x, Object_or_char *t)</tt></b>
+<b><tt>void Append(List *x, const Object_or_char *t)</tt></b>
 </p>
 
 <div class="indent">
@@ -1281,7 +1281,7 @@ used to create a String object.
 </div>
 
 <p>
-<b><tt>void Insert(String *s, int pos, Object_or_char *t)</tt></b>
+<b><tt>void Insert(String *s, int pos, const Object_or_char *t)</tt></b>
 </p>
 
 <div class="indent">
@@ -1479,13 +1479,14 @@ Same as the C <tt>tell()</tt> function.
 </div>
 
 <p>
-<b><tt>File *NewFile(const char *filename, const char *mode)</tt></b>
+<b><tt>File *NewFile(const char *filename, const char *mode, List *newfiles)</tt></b>
 </p>
 
 <div class="indent">
 Create a File object using the <tt>fopen()</tt> library call.  This
 file differs from <tt>FILE *</tt> in that it can be placed in the standard
-SWIG containers (lists, hashes, etc.).
+SWIG containers (lists, hashes, etc.). The <tt>filename</tt> is added to the 
+<tt>newfiles</tt> list if <tt>newfiles</tt> is non-zero and the file was created successfully.
 </div>
 
 <p>
@@ -1922,7 +1923,7 @@ Adds a reference to <tt>ty</tt>.
 </div>
 
 <p>
-<b><tt>void SwigType_add_array(SwigType *ty, String_or_char *dim)</tt></b>
+<b><tt>void SwigType_add_array(SwigType *ty, const String_or_char *size)</tt></b>
 </p>
 
 <div class="indent">
@@ -1962,7 +1963,7 @@ Sets <tt>n</tt>th array dimensions of <tt>ty</tt> to <tt>rep</tt>.
 </div>
 
 <p>
-<b><tt>void SwigType_add_qualifier(SwigType *ty, String_or_char *q)</tt></b>
+<b><tt>void SwigType_add_qualifier(SwigType *ty, const String_or_char *q)</tt></b>
 </p>
 
 <div class="indent">
@@ -1971,7 +1972,7 @@ Adds a type qualifier <tt>q</tt> to <tt>ty</tt>.  <tt>q</tt> is typically
 </div>
 
 <p>
-<b><tt>void SwigType_add_memberpointer(SwigType *ty, String_or_char *cls)</tt></b>
+<b><tt>void SwigType_add_memberpointer(SwigType *ty, const String_or_char *cls)</tt></b>
 </p>
 
 <div class="indent">
@@ -2292,7 +2293,7 @@ The following functions produce strings that are suitable for output.
 </p>
 
 <p>
-<b><tt>String *SwigType_str(SwigType *ty, String_or_char *id = 0)</tt></b>
+<b><tt>String *SwigType_str(SwigType *ty, const String_or_char *id = 0)</tt></b>
 </p>
 
 <div class="indent">
@@ -2303,7 +2304,7 @@ used to convert string-encoded types back into a form that is valid C syntax.
 </div>
 
 <p>
-<b><tt>String *SwigType_lstr(SwigType *ty, String_or_char *id = 0)</tt></b>
+<b><tt>String *SwigType_lstr(SwigType *ty, const String_or_char *id = 0)</tt></b>
 </p>
 
 <div class="indent">
@@ -2312,7 +2313,7 @@ is generated from the type's lvalue (as generated from SwigType_ltype).
 </div>
 
 <p>
-<b><tt>String *SwigType_lcaststr(SwigType *ty, String_or_char *id = 0)</tt></b>
+<b><tt>String *SwigType_lcaststr(SwigType *ty, const String_or_char *id = 0)</tt></b>
 </p>
 
 <div class="indent">
@@ -2323,7 +2324,7 @@ this function produces the string "<tt>(char *) foo</tt>".
 </div>
 
 <p>
-<b><tt>String *SwigType_rcaststr(SwigType *ty, String_or_char *id = 0)</tt></b>
+<b><tt>String *SwigType_rcaststr(SwigType *ty, const String_or_char *id = 0)</tt></b>
 </p>
 
 <div class="indent">
@@ -2776,6 +2777,7 @@ such as:
 class PYTHON : public Language {
 protected:
    /* General DOH objects used for holding the strings */
+   File *f_begin;
    File *f_runtime;
    File *f_header;
    File *f_wrappers;
@@ -2791,22 +2793,25 @@ int Python::top(Node *n) {
    ...
 
    /* Initialize I/O */
-   f_runtime = NewFile(outfile, "w");
-   if (!f_runtime) {
+   f_begin = NewFile(outfile, "w", SWIG_output_files());
+   if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
    }
+   f_runtime = NewString("");
    f_init = NewString("");
    f_header = NewString("");
    f_wrappers = NewString("");
 
    /* Register file targets with the SWIG file handler */
+   Swig_register_filebyname("begin", f_begin);
    Swig_register_filebyname("header", f_header);
    Swig_register_filebyname("wrapper", f_wrappers);
    Swig_register_filebyname("runtime", f_runtime);
    Swig_register_filebyname("init", f_init);
 
    /* Output module initialization code */
+   Swig_banner(f_begin);
    ...
 
    /* Emit code for children */
@@ -2814,16 +2819,18 @@ int Python::top(Node *n) {
 
    ...
    /* Write all to the file */
-   Dump(f_header, f_runtime);
-   Dump(f_wrappers, f_runtime);
-   Wrapper_pretty_print(f_init, f_runtime);
+   Dump(f_runtime, f_begin);
+   Dump(f_header, f_begin);
+   Dump(f_wrappers, f_begin);
+   Wrapper_pretty_print(f_init, f_begin);
 
    /* Cleanup files */
+   Delete(f_runtime);
    Delete(f_header);
    Delete(f_wrappers);
    Delete(f_init);
-   Close(f_runtime);
-   Delete(f_runtime);
+   Close(f_begin);
+   Delete(f_begin);
 
    return SWIG_OK;
 }
