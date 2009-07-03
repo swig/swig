@@ -23,9 +23,11 @@ EXTRA_TEST_CASES += chicken_ext_test.externaltest
 
 include $(srcdir)/../common.mk
 
-
 # Overridden variables here
 SWIGOPT += -nounit
+
+# Custom tests - tests with additional commandline options
+# none!
 
 # Rules for the different types of tests
 %.cpptest: 

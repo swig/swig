@@ -38,12 +38,10 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 SWIGOPT += -w801 -noautorename -features autodoc=4
 
-
-# Rules for the different types of tests
-
-# make sure -autorename is true for the naming test
+# Custom tests - tests with additional commandline options
 ruby_naming.cpptest: SWIGOPT += -autorename
 
+# Rules for the different types of tests
 %.cpptest: 
 	$(setup)
 	+$(swig_and_compile_cpp)

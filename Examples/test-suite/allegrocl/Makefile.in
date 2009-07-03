@@ -89,7 +89,11 @@ SKIP_CPP_STD_CASES = Yes
 
 include $(srcdir)/../common.mk
 
+# Overridden variables here
 # SWIGOPT += -debug-module 4
+
+# Custom tests - tests with additional commandline options
+# none!
 
 # Rules for the different types of tests
 %.cpptest: 

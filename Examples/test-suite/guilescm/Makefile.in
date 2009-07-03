@@ -6,11 +6,14 @@ EXTRA_TEST_CASES += guilescm_ext_test.externaltest
 
 include ../guile/Makefile
 
+# Overridden variables here
 INCLUDES += -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/guilescm
-
 VARIANT      =
 # Refer to the guile directory for the run scripts
 SCRIPTPREFIX = ../guile/
+
+# Custom tests - tests with additional commandline options
+# none!
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.scm appended after the testcase name.

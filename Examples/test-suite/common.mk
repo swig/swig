@@ -16,8 +16,8 @@
 #    b) Define rules for %.ctest, %.cpptest, %.multicpptest and %.clean.
 #    c) Define srcdir, top_srcdir and top_builddir (these are the
 #       equivalent to configure's variables of the same name).
-# 3) One off special commandline options can be achieved by adding a
-#    test case to CUSTOM_TEST_CASES and defining rules to run and test.
+# 3) One off special commandline options for a testcase can be added.
+#    See custom tests below.
 #
 # The 'check' target runs the testcases including SWIG invocation,
 # C/C++ compilation, target language compilation (if any) and runtime
@@ -60,7 +60,6 @@ CSRCS      =
 TARGETPREFIX = 
 TARGETSUFFIX = 
 SWIGOPT    = -outcurrentdir -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
-SWIGOPTCUSTOM =
 INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
 LIBPREFIX  = lib
@@ -72,7 +71,7 @@ INTERFACEDIR = ../
 # Note that any whitespace after the last entry in each list will break make
 #
 
-# Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
+# Broken C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_BROKEN += \
 	constants \
 	cpp_broken \
@@ -86,12 +85,12 @@ CPP_TEST_BROKEN += \
 	template_expr
 
 
-# Broken C test cases. (Can be run individually using make testcase.ctest.)
+# Broken C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_BROKEN += \
 	tag_no_clash_with_variable
 
 
-# C++ test cases. (Can be run individually using make testcase.cpptest.)
+# C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
 	abstract_access \
 	abstract_inherit \
@@ -143,6 +142,7 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
+	custom_wallkw \
 	default_args \
 	default_constructor \
 	defvalue_constructor \
@@ -421,7 +421,7 @@ CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
 endif
 
 
-# C test cases. (Can be run individually using make testcase.ctest.)
+# C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
 	arrays \
 	char_constant \
@@ -460,7 +460,7 @@ C_TEST_CASES += \
 	unions
 
 
-# Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest.)
+# Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
 	imports \
@@ -469,20 +469,13 @@ MULTI_CPP_TEST_CASES += \
 	template_typedef_import \
 	multi_import
 
-# Non standard testcases, usually using custom commandline options
-# Testcase names are prefixed with custom_ and can be run individually using make testcase.customtest
-CUSTOM_TEST_CASES = \
-	custom_wallkw \
+# Custom tests - tests with additional commandline options
+custom_wallkw.cpptest: SWIGOPT += -Wallkw
 
-# individual custom tests - any kind of customisation allowed here
-# Note: $(basename $@) strips everything after and including the . in the target name
-custom_wallkw.customtest: 
-	$(MAKE) $(basename $@).cpptest SWIGOPTCUSTOM="-Wallkw"
 
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
 			$(C_TEST_CASES:=.ctest) \
 			$(MULTI_CPP_TEST_CASES:=.multicpptest) \
-			$(CUSTOM_TEST_CASES:=.customtest) \
 			$(EXTRA_TEST_CASES)
 
 BROKEN_TEST_CASES = 	$(CPP_TEST_BROKEN:=.cpptest) \
@@ -491,7 +484,6 @@ BROKEN_TEST_CASES = 	$(CPP_TEST_BROKEN:=.cpptest) \
 ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
 			$(C_TEST_CASES:=.clean) \
 			$(MULTI_CPP_TEST_CASES:=.clean) \
-			$(CUSTOM_TEST_CASES:=.clean) \
 			$(CPP_TEST_BROKEN:=.clean) \
 			$(C_TEST_BROKEN:=.clean)
 
@@ -511,14 +503,14 @@ broken: $(BROKEN_TEST_CASES)
 swig_and_compile_cpp =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $(SWIGOPTCUSTOM)" NOLINK=true \
+	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_c =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $(SWIGOPTCUSTOM)" NOLINK=true \
+	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)
 
@@ -526,7 +518,7 @@ swig_and_compile_multi_cpp = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
 	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
-	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $(SWIGOPTCUSTOM)" NOLINK=true \
+	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
 	  $(LANGUAGE)$(VARIANT)_cpp; \
 	done
@@ -538,7 +530,7 @@ swig_and_compile_external =  \
 	$(LANGUAGE)$(VARIANT)_externalhdr; \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS) $*_external.cxx" \
 	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $(SWIGOPTCUSTOM)" NOLINK=true \
+	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
 	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
