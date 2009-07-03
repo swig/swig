@@ -27,7 +27,16 @@ include $(srcdir)/../common.mk
 SWIGOPT += -nounit
 
 # Custom tests - tests with additional commandline options
-# none!
+# If there exists a PROXYSUFFIX runme file, we also generate the wrapper
+# with the -proxy argument
+%.cppproxy: SWIGOPT += -proxy
+%.cppproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
+
+%.cproxy: SWIGOPT += -proxy
+%.cproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
+
+%.multiproxy: SWIGOPT += -proxy -noclosuses
+%.multiproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -59,35 +68,27 @@ SWIGOPT += -nounit
 	+$(swig_and_compile_external)
 	$(run_testcase)
 
+%.cppproxy:
+	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
+	+$(swig_and_compile_cpp)
+	$(run_testcase)
+
+%.cproxy:
+	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
+	+$(swig_and_compile_c)
+	$(run_testcase)
+
+%.multiproxy:
+	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
+	+$(swig_and_compile_multi_cpp)
+	$(run_testcase)
+
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(CHICKEN_CSI) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
 	fi;
-
-# If there exists a PROXYSUFFIX runme file, we also generate the wrapper
-# with the -proxy argument
-%.cppproxy: SWIGOPT += -proxy
-%.cppproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
-%.cppproxy:
-	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
-	+$(swig_and_compile_cpp)
-	$(run_testcase)
-
-%.cproxy: SWIGOPT += -proxy
-%.cproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
-%.cproxy:
-	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
-	+$(swig_and_compile_c)
-	$(run_testcase)
-
-%.multiproxy: SWIGOPT += -proxy -noclosuses
-%.multiproxy: SCRIPTSUFFIX = $(PROXYSUFFIX)
-%.multiproxy:
-	echo "$(ACTION)ing testcase $* (with run test) under chicken with -proxy"
-	+$(swig_and_compile_multi_cpp)
-	$(run_testcase)
 
 # Clean
 %.clean:
