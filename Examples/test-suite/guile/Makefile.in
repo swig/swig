@@ -9,8 +9,13 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 GUILE        = @GUILE@
+GUILE_RUNTIME=-runtime
 
-C_TEST_CASES = long_long list_vector pointer_in_out multivalue
+C_TEST_CASES = long_long \
+               list_vector \
+               multivalue \
+               pointer_in_out
+
 
 include $(srcdir)/../common.mk
 
@@ -18,7 +23,7 @@ include $(srcdir)/../common.mk
 # none!
 
 # Custom tests - tests with additional commandline options
-# none!
+%.multicpptest: SWIGOPT += $(GUILE_RUNTIME)
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -30,19 +35,6 @@ include $(srcdir)/../common.mk
 	$(setup)
 	+$(swig_and_compile_c)
 	$(run_testcase)
-
-# override the default in common.mk by adding SWIGOPT +=
-swig_and_compile_multi_cpp = \
-	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	  SWIGOPT=" -runtime "; \
-	  export SWIGOPT; \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
-	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
-	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $$SWIGOPT" NOLINK=true \
-	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
-	  $(LANGUAGE)$(VARIANT)_cpp; \
-	  SWIGOPT=" -noruntime "; \
-	done
 
 %.multicpptest: 
 	$(setup)

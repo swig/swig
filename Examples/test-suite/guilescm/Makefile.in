@@ -11,6 +11,7 @@ INCLUDES += -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/guilescm
 VARIANT      =
 # Refer to the guile directory for the run scripts
 SCRIPTPREFIX = ../guile/
+GUILE_RUNTIME=
 
 # Custom tests - tests with additional commandline options
 # none!
@@ -28,15 +29,6 @@ setup = \
 	else								  \
 	  echo "$(ACTION)ing testcase $* under $(LANGUAGE) (with SCM API)" ;		  \
 	fi;
-
-swig_and_compile_multi_cpp = \
-	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
-	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
-	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT) $$SWIGOPT" NOLINK=true \
-	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
-	  $(LANGUAGE)$(VARIANT)_cpp; \
-	done
 
 %.externaltest:
 	$(local_setup)
