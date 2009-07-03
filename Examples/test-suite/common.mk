@@ -142,7 +142,6 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
-	custom_wallkw \
 	default_args \
 	default_constructor \
 	defvalue_constructor \
@@ -395,6 +394,7 @@ CPP_TEST_CASES += \
 	virtual_destructor \
 	virtual_poly \
 	voidtest \
+	wallkw \
 	wrapmacro
 
 #
@@ -470,7 +470,7 @@ MULTI_CPP_TEST_CASES += \
 	multi_import
 
 # Custom tests - tests with additional commandline options
-custom_wallkw.cpptest: SWIGOPT += -Wallkw
+wallkw.cpptest: SWIGOPT += -Wallkw
 
 
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \

@@ -1,4 +1,4 @@
-%module custom_wallkw
+%module wallkw
 
 // test the -Wallkw option
 

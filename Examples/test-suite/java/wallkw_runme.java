@@ -1,11 +1,11 @@
 
-import custom_wallkw.*;
+import wallkw.*;
 
-public class custom_wallkw_runme {
+public class wallkw_runme {
 
   static {
     try {
-	System.loadLibrary("custom_wallkw");
+	System.loadLibrary("wallkw");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -13,13 +13,13 @@ public class custom_wallkw_runme {
   }
 
   public static void main(String argv[]) {
-    if (!custom_wallkw.c_clone().equals("clone"))
+    if (!wallkw.c_clone().equals("clone"))
       throw new RuntimeException("clone_c keyword fail");
-    if (!custom_wallkw._delegate().equals("delegate"))
+    if (!wallkw._delegate().equals("delegate"))
       throw new RuntimeException("delegate keyword fail");
-    if (!custom_wallkw._pass().equals("pass"))
+    if (!wallkw._pass().equals("pass"))
       throw new RuntimeException("pass keyword fail");
-    if (!custom_wallkw.C_alias().equals("alias"))
+    if (!wallkw.C_alias().equals("alias"))
       throw new RuntimeException("alias keyword fail");
   }
 }
