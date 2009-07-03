@@ -23,8 +23,8 @@
 	if (PyDict_Check(obj)) {
 	  SwigVar_PyObject items = PyObject_CallMethod(obj,(char *)"items",NULL);
 %#if PY_VERSION_HEX >= 0x03000000
-          /* In Python 3.x the ".items()" method return a dict_items object */
-          items = PySequence_Fast(items, ".items() havn't returned a sequence!");
+          /* In Python 3.x the ".items()" method returns a dict_items object */
+          items = PySequence_Fast(items, ".items() didn't return a sequence!");
 %#endif
 	  res = traits_asptr_stdseq<std::map<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {
