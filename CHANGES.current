@@ -1,6 +1,12 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-07-03: olly
+	    [Tcl] To complement USE_TCL_STUBS, add support for USE_TK_STUBS
+	    and SWIG_TCL_STUBS_VERSION.  Document all three in the Tcl chapter
+	    of the manual.  Based on patch from SF#2810380 by Christian
+	    Gollwitzer.
+
 2009-07-02: wsfulton
             Fix -Wallkw option as reported by Solomon Gibbs.
 

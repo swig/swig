@@ -66,6 +66,7 @@
 <ul>
 <li><a href="#Tcl_nn45">Proxy classes</a>
 </ul>
+<li><a href="#Tcl_nn46">Tcl/Tk Stubs</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -3407,6 +3408,27 @@ The cool thing about this example is that it works with any C++ object
 wrapped by SWIG and requires no special compilation.  Proof that a
 short, but clever Tcl script can be combined with SWIG to do many
 interesting things.
+</p>
+
+<H2><a name="Tcl_nn46"></a>33.10 Tcl/Tk Stubs</H2>
+
+<p>
+For background information about the Tcl Stubs feature, see
+<a href="http://www.tcl.tk/doc/howto/stubs.html">http://www.tcl.tk/doc/howto/stubs.html</a>.
+</p>
+
+<p>
+As of SWIG 1.3.10, the generated C/C++ wrapper will use the Tcl Stubs
+feature if compiled with <tt>-DUSE_TCL_STUBS</tt>.
+</p>
+
+<p>
+As of SWIG 1.3.40, the generated C/C++ wrapper will use the Tk Stubs
+feature if compiled with <tt>-DUSE_TK_STUBS</tt>.  Also, you can override
+the minimum version to support which is passed to <tt>Tcl_InitStubs()</tt>
+and <tt>Tk_InitStubs()</tt> with <tt>-DSWIG_TCL_STUBS_VERSION="8.3"</tt>
+or the version being compiled with using
+<tt>-DSWIG_TCL_STUBS_VERSION=TCL_VERSION</tt>.
 </p>
 
 </body>
