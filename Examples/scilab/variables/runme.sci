@@ -37,13 +37,10 @@ printf("fvar      = %f\n", fvar_get());
 printf("dvar      = %f\n", dvar_get());
 printf("cvar      = %s\n", cvar_get());
 printf("strvar    = %s\n", strvar_get());
-Foo1_get();
-Foo2_get();
+Foo1_get()
+Foo2_get()
 
 printf("\nVariables (values printed from C)\n");
 
-print_vars()
-
-
-
+print_vars();
 

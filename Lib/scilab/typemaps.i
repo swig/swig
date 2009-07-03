@@ -141,8 +141,6 @@ output values.
   iColsOut=1;
   createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, &temp$argnum, &_piAddress);
   LhsVar(iOutNum)=iVarOut;
-  iOutNum++;
-  iVarOut++;
 }
 
 %typemap(argout) short *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress),
@@ -151,8 +149,6 @@ output values.
   iColsOut=1;
   createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &temp$argnum, &_piAddress);
   LhsVar(iOutNum)=iVarOut;
-  iOutNum++;
-  iVarOut++;
 }
 
 %typemap(argout) int *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress),
@@ -164,8 +160,6 @@ output values.
   iColsOut=1;
   createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &temp$argnum, &_piAddress);
   LhsVar(iOutNum)=iVarOut;
-  iOutNum++;
-  iVarOut++;
 }
 
 
@@ -177,8 +171,6 @@ output values.
   iColsOut=1;
   createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, &temp$argnum);
   LhsVar(iOutNum)=iVarOut;
-  iOutNum++;
-  iVarOut++;
 }
 
 

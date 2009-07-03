@@ -256,6 +256,8 @@ public:
 
     if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       Replaceall(tm, "$result", "result");
+      if(out_required>0)
+        Printf(f->code,"iOutNum++;\niVarOut++;\n");
       Printf(f->code, "%s\n", tm);
       if(strlen(Char(tm))!=0)
         out_required++;
@@ -268,7 +270,9 @@ public:
     String *outarg = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Printv(outarg, tm, "\n", NIL);
+	if(out_required>0)
+           Printf(f->code,"iOutNum++;\niVarOut++;\n");
+        Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
         out_required++;
       } else {
@@ -277,13 +281,37 @@ public:
     }
     Printv(f->code, outarg, NIL);
 
+    /* Insert cleanup code */
+    String *cleanup = NewString("");
+    for (p = l; p;) {
+      if ((tm = Getattr(p, "tmap:freearg"))) {
+	if (tm && (Len(tm) != 0)) {
+	  Printv(cleanup, tm, "\n", NIL);
+	}
+	p = Getattr(p, "tmap:freearg:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+  
+    /* Output cleanup code */
+    Printv(f->code, cleanup, NIL);
+
     /* Insert the code checking for the number of input and output */
-    if(out_required==0) out_required=1;
+    int flag;
+    if(out_required==0) {
+      out_required=1;
+      flag=0;
+    }
+    else {
+      flag=1;
+    }
     Printf(f->def,"CheckRhs(%d,%d);\n",num_required,num_required);
     Printf(f->def,"CheckLhs(%d,%d);\n",out_required,out_required);
    
     /* Insert the order of output parameters*/
-    Printf(f->def,"\nint iOutNum=1;\nint iVarOut=Rhs+1;");
+    if(flag)
+      Printf(f->def,"\nint iOutNum=1;\nint iVarOut=Rhs+1;");
    
     /* Finish the the code for the function  */
     Printf(f->code, "return 0;\n");	
@@ -347,18 +375,13 @@ public:
     Printf(setf->def,"CheckRhs(1,1);\n");
     Printf(setf->def,"CheckLhs(1,1);\n");
     
-    /* Insert the order of output parameters*/
-    Printf(setf->def,"\nint iOutNum=1;\nint iVarOut=Rhs+1;");
-    
     /* add the local variable */
     Wrapper_add_local(setf, "piAddrVar", "int *piAddrVar");
-    //Wrapper_add_local(setf, "iRows", "int iRows");
-    //Wrapper_add_local(setf, "iCols", "int iCols");
-  
+   
     /* deal with the set function */
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
-      if ((tm = Swig_typemap_lookup("in", n, name, 0))) {
+      if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
 	Replaceall(tm, "$argnum", "1");
         Replaceall(tm,"iRows",rowname);
         Replaceall(tm,"iCols",colname);
@@ -387,12 +410,7 @@ public:
     /* Insert the order of output parameters*/
     Printf(getf->def,"\nint iOutNum=1;\nint iVarOut=Rhs+1;");
    
-    /* add local variabe */
-    Wrapper_add_local(getf, "piAddrOut", "int* _piAddress");
-    //Wrapper_add_local(getf, "iRows", "int iRowsOut");
-    //Wrapper_add_local(getf, "iColsOut", "int iColsOut ");
-   
-    if ((tm = Swig_typemap_lookup("out", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$result", name);
       Replaceall(tm,"iRowsOut",rowname);
       Replaceall(tm,"iColsOut",colname);

@@ -208,7 +208,23 @@ scilab:4&gt; c
 c =  3
 
 scilab:5&gt; Foo_get()
-ans =  4</pre></div>
+ans =  4
+
+scilab:6&gt; Foo_set([1,2,3;4,5,6]);
+
+scilab:7&gt; Foo_get()
+ans  =
+ 
+    1.    2.    3.  
+    4.    5.    6. 
+scilab:8&gt; Foo_set([1+2*%i,2+3*%i;3+4*%i,7+8*%i]);
+
+scilab:9&gt; Foo_get()
+ ans  =
+ 
+    1. + 2.i    2. + 3.i  
+    3. + 4.i    7. + 8.i  
+</pre></div>
 <H3><a name="Scilab_nn11"></a>27.3.4 Constants</H3>
 
 
