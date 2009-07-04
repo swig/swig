@@ -119,6 +119,7 @@
 
 
 // tests valuewrapper
+%feature("compactdefaultargs") MyClass2::set;
 %inline %{
   enum MyType { Val1, Val2 }; 
 
@@ -134,6 +135,7 @@
       void set(MyClass1 cl1 = Val1) {}
       // This could have been written : set(MyClass1 cl1 = MyClass1(Val1)) 
       // But it works in C++ since there is a "conversion" constructor in  MyClass1. 
+      void set2(MyClass1 cl1 = Val1) {}
   };
 %}
 

@@ -27,7 +27,7 @@ struct a
   struct {
     /*struct*/
     struct {
-      int b;
+      int b; /**< v1/v2 B-tree & local/fractal heap for groups, B-tree for chunked datasets */
     } c;
   } d;
 };

@@ -1,4 +1,4 @@
-%module byreference
+%module li_reference
 
 %include "reference.i"
 

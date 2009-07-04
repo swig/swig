@@ -15,7 +15,7 @@ CPP_TEST_CASES += \
 	li_cdata \
 	li_cstring \
 	li_cdata_carrays \
-	byreference \
+	li_reference \
 
 C_TEST_CASES += \
 	li_cdata \
@@ -25,6 +25,9 @@ C_TEST_CASES += \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
+# none!
+
+# Custom tests - tests with additional commandline options
 # none!
 
 # Rules for the different types of tests

@@ -10,6 +10,12 @@
 #ifdef bind
 # undef bind
 #endif
+#ifdef close
+# undef close
+#endif
+#ifdef connect
+# undef connect
+#endif
 
 
 /* Ruby 1.7 defines NUM2LL(), LL2NUM() and ULL2NUM() macros */

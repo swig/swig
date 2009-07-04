@@ -339,7 +339,7 @@ python that you run the command with. Taking apart the command line:
      setup.py is the tradition)
 <li> <tt>build_ext</tt> -- telling distutils to build extensions
 <li> <tt>--inplace</tt> -- this tells distutils to put the extension lib in the current dir.
-     Other wise, it will put it inside a build hierarchy, and you'd have to move it to use it.
+     Otherwise, it will put it inside a build hierarchy, and you'd have to move it to use it.
 </ul>
 
 <p>
@@ -363,8 +363,8 @@ program using commands like this (shown for Linux):
 
 <div class="shell"><pre>
 $ swig -python example.i
-$ gcc -c -fPIC example.c
-$ gcc -c -fPIC example_wrap.c -I/usr/local/include/python2.0
+$ gcc -O2 -fPIC -c example.c
+$ gcc -O2 -fPIC -c example_wrap.c -I/usr/local/include/python2.5
 $ gcc -shared example.o example_wrap.o -o _example.so
 </pre></div>
 
@@ -654,25 +654,18 @@ compiler.  For example:
 
 <div class="shell"><pre>
 $ swig -c++ -python example.i
-$ g++ -c example.cxx
-$ g++ -c example_wrap.cxx -I/usr/local/include/python2.0
+$ g++ -O2 -fPIC -c example.cxx
+$ g++ -O2 -fPIC -c example_wrap.cxx -I/usr/local/include/python2.5
 $ g++ -shared example.o example_wrap.o -o _example.so
 </pre></div>
 
 <p>
-On some platforms, you could also need to generate
-position-independent code (PIC), by using a compiler option such as -fPIC.
-Notably, the x86_64 (Opteron and EM64T) platform requires it, and when
-using the GNU Compiler Suite, you will need to modify the previous example
-as follows:
+The -fPIC option tells GCC to generate position-independent code (PIC)
+which is required for most architectures (it's not vital on x86, but
+still a good idea as it allows code pages from the library to be shared between
+processes).  Other compilers may need a different option specified instead of
+-fPIC.
 </p>
-
-<div class="shell"><pre>
-$ swig -c++ -python example.i
-$ g++ -fPIC -c example.cxx
-$ g++ -fPIC -c example_wrap.cxx -I/usr/local/include/python2.0
-$ g++ -shared example.o example_wrap.o -o _example.so
-</pre></div>
 
 <p>
 In addition to this, you may need to include additional library
@@ -683,7 +676,7 @@ Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 <div class="shell"><pre>
 $ swig -c++ -python example.i
 $ CC -c example.cxx
-$ CC -c example_wrap.cxx -I/usr/local/include/python2.0
+$ CC -c example_wrap.cxx -I/usr/local/include/python2.5
 $ CC -G example.o example_wrap.o -L/opt/SUNWspro/lib -o _example.so -lCrun
 </pre></div>
 

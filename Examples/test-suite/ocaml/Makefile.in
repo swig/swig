@@ -44,6 +44,9 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 # none!
 
+# Custom tests - tests with additional commandline options
+# none!
+
 # Rules for the different types of tests
 %.cpptest:
 	echo $@ >> testing

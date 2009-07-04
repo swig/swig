@@ -40,6 +40,9 @@ include $(srcdir)/../common.mk
 SWIGOPT += -package $*
 INTERFACEDIR = ../../
 
+# Custom tests - tests with additional commandline options
+# none!
+
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup)

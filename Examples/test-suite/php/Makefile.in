@@ -16,6 +16,9 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 TARGETPREFIX =# Should be php_ for Windows, empty otherwise
 
+# Custom tests - tests with additional commandline options
+# none!
+
 # write out tests without a _runme.php
 missingcpptests:
 	for test in $(CPP_TEST_CASES) ; do test -f $${test}_runme.php || echo $${test}; done

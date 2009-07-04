@@ -11,9 +11,13 @@ top_builddir = @top_builddir@
 
 include $(srcdir)/../common.mk
 
+# Overridden variables here
 # no C++ tests for now
 CPP_TEST_CASES =
 #C_TEST_CASES += 
+
+# Custom tests - tests with additional commandline options
+# none!
 
 # Rules for the different types of tests
 %.cpptest: 
