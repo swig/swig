@@ -8,21 +8,22 @@
  * when used as class methods.
  * ----------------------------------------------------------------------------- */
 
-#define PHPKW(x) %keywordwarn("'" `x` "' is a php keyword, renamed as 'c_" `x` "'",sourcefmt="%(lower)s", rename="c_%s",fullname=1)  `x`
+#define PHPKW(x) %keywordwarn("'" `x` "' is a PHP keyword, renamed as 'c_" `x` "'",sourcefmt="%(lower)s", rename="c_%s",fullname=1)  `x`
 
 %define PHPCN(x) 
-%keywordwarn("'" `x` "' is a php reserved class name, class renamed as 'c_" `x` "'",%$isclass,rename="c_%s") `x`;
-%keywordwarn("'" `x` "' is a php reserved class name, constructor renamed as 'c_" `x` "'",%$isconstructor,rename="c_%s") `x`;
+%keywordwarn("'" `x` "' is a PHP reserved class name, class renamed as 'c_" `x` "'",%$isclass,rename="c_%s") `x`;
+%keywordwarn("'" `x` "' is a PHP reserved class name, constructor renamed as 'c_" `x` "'",%$isconstructor,rename="c_%s") `x`;
 %enddef
 
-#define PHPBN1(x) %builtinwarn("'" `x` "' conflicts with a built-in name in php",sourcefmt="%(lower)s",fullname=1)  `x`
-#define PHPBN2(x) %builtinwarn("'" `x` "' conflicts with a built-in name in php")  "::" `x`
+#define PHPBN1(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP",sourcefmt="%(lower)s",fullname=1)  `x`
+#define PHPBN2(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP")  "::" `x`
 
 
 /*
    From
 
      http://aspn.activestate.com/ASPN/docs/PHP/reserved.html
+     http://php.net/manual/en/reserved.keywords.php
 
    and reviewed by Olly Betts.
 
@@ -30,76 +31,81 @@
 */
 
 /* We classify these as kw since PHP will not run if used globally. */
+/* "You cannot use any of the following words as constants, class names,
+ * function or method names. Using them as variable names is generally OK, but
+ * could lead to confusion."
+ */
 /* case insensitive */
+PHPKW(__halt_compiler);
+PHPKW(abstract);
 PHPKW(and);
 PHPKW(array);
 PHPKW(as);
 PHPKW(break);
 PHPKW(case);
-PHPKW(cfunction); /* No longer reserved in PHP5 */
+PHPKW(catch);
 PHPKW(class);
+PHPKW(clone);
 PHPKW(const);
 PHPKW(continue);
 PHPKW(declare);
 PHPKW(default);
-PHPKW(die);
+PHPKW(die); // "Language construct"
 PHPKW(do);
-PHPKW(echo);
+PHPKW(echo); // "Language construct"
 PHPKW(else);
 PHPKW(elseif);
-PHPKW(empty);
+PHPKW(empty); // "Language construct"
 PHPKW(enddeclare);
 PHPKW(endfor);
 PHPKW(endforeach);
 PHPKW(endif);
 PHPKW(endswitch);
 PHPKW(endwhile);
-PHPKW(eval);
-PHPKW(exit);
+PHPKW(eval); // "Language construct"
+PHPKW(exit); // "Language construct"
 PHPKW(extends);
+PHPKW(final);
 PHPKW(for);
 PHPKW(foreach);
 PHPKW(function);
 PHPKW(global);
+PHPKW(goto); // As of PHP5.3
 PHPKW(if);
-PHPKW(include);
-PHPKW(include_once);
-PHPKW(isset);
-PHPKW(list);
+PHPKW(implements);
+PHPKW(include); // "Language construct"
+PHPKW(include_once); // "Language construct"
+PHPKW(instanceof);
+PHPKW(interface);
+PHPKW(isset); // "Language construct"
+PHPKW(list); // "Language construct"
+PHPKW(namespace); // As of PHP5.3
 PHPKW(new);
-// PHPKW(old_function); /* No longer reserved in PHP5 */
 PHPKW(or);
-PHPKW(print);
-PHPKW(require);
-PHPKW(require_once);
-PHPKW(return);
+PHPKW(print); // "Language construct"
+PHPKW(private);
+PHPKW(protected);
+PHPKW(public);
+PHPKW(require); // "Language construct"
+PHPKW(require_once); // "Language construct"
+PHPKW(return); // "Language construct"
 PHPKW(static);
 PHPKW(switch);
-PHPKW(unset);
+PHPKW(throw);
+PHPKW(try);
+PHPKW(unset); // "Language construct"
 PHPKW(use);
 PHPKW(var);
 PHPKW(while);
 PHPKW(xor);
-PHPKW(__FILE__);
-PHPKW(__LINE__);
-PHPKW(__FUNCTION__);
+// Compile-time constants
 PHPKW(__CLASS__);
-
-/* Added in PHP5 */
-PHPKW(__halt_compiler);
-PHPKW(abstract);
-PHPKW(catch);
-PHPKW(clone);
-PHPKW(final);
-PHPKW(implements);
-PHPKW(instanceof);
-PHPKW(interface);
-PHPKW(private);
-PHPKW(protected);
-PHPKW(public);
-PHPKW(throw);
-PHPKW(try);
+PHPKW(__DIR__); // As of PHP5.3
+PHPKW(__FILE__);
+PHPKW(__FUNCTION__);
 PHPKW(__METHOD__);
+PHPKW(__NAMESPACE__); // As of PHP5.3
+PHPKW(__LINE__);
 
 /* We classify these as built-in names since they conflict, but PHP still runs */
 

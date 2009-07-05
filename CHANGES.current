@@ -1,6 +1,11 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-07-05: olly
+	    [PHP] Update the list of PHP keywords - "cfunction" is no longer a
+	    keyword in PHP5 and PHP 5.3 added "goto", "namespace", "__DIR__",
+	    and "__NAMESPACE__".
+
 2009-07-03: olly
 	    [Tcl] To complement USE_TCL_STUBS, add support for USE_TK_STUBS
 	    and SWIG_TCL_STUBS_VERSION.  Document all three in the Tcl chapter

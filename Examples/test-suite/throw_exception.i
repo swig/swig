@@ -8,6 +8,9 @@
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) Namespace::enum1;
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) Namespace::enum2;
+#ifdef SWIGPHP
+%warnfilter(SWIGWARN_PARSE_KEYWORD) Namespace;
+#endif
 
 // Tests SWIG's automatic exception mechanism
 
