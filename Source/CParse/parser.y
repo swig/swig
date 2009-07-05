@@ -1493,6 +1493,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT CONSTEXPR
+%token STATIC_ASSERT
 %token USING
 %token <node> NAMESPACE
 %token NATIVE INLINE
@@ -1539,7 +1540,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 /* C++ declarations */
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl;
 %type <node>     cpp_members cpp_member;
-%type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator;
+%type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert;
 %type <node>     cpp_swig_directive cpp_temp_possible cpp_nested cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl ;
 %type <node>     kwargs options;
@@ -3864,6 +3865,9 @@ cpp_temp_possible:  c_decl {
                 | cpp_constructor_decl {
                    $$ = $1;
                 }
+                | cpp_static_assert {
+                   $$ = $1;
+                }
                 | cpp_template_decl {
 		  $$ = 0;
                 }
@@ -4110,6 +4114,7 @@ cpp_member   : c_declaration { $$ = $1; }
                  default_arguments($$);
              }
              | cpp_destructor_decl { $$ = $1; }
+             | cpp_static_assert { $$ = $1; }
              | cpp_protection_decl { $$ = $1; }
              | cpp_swig_directive { $$ = $1; }
              | cpp_conversion_operator { $$ = $1; }
@@ -4280,6 +4285,13 @@ cpp_catch_decl : CATCH LPAREN parms RPAREN LBRACE {
                  $$ = 0;
                }
                ;
+
+/* static_assert(bool, const char*); */
+cpp_static_assert : STATIC_ASSERT LPAREN {
+                skip_balanced('(',')');
+                $$ = 0;
+              }
+              ;
 
 /* public: */
 cpp_protection_decl : PUBLIC COLON { 

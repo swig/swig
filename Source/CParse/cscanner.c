@@ -634,6 +634,8 @@ int yylex(void) {
 	  return (CONSTEXPR);
 	if (strcmp(yytext, "virtual") == 0)
 	  return (VIRTUAL);
+	if (strcmp(yytext, "static_assert") == 0)
+	  return (STATIC_ASSERT);
 	if (strcmp(yytext, "operator") == 0) {
 	  int nexttok;
 	  String *s = NewString("operator ");
