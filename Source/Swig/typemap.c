@@ -114,7 +114,7 @@ static String *tmop_name(const_String_or_char_ptr op) {
      we have to make sure that we only intern strings without object
      identity into the hash table.
 
-     (Swig_typemap_attach_kwargs calls tmop_name several times with
+     (typemap_attach_kwargs calls tmop_name several times with
      the "same" String *op (i.e., same object identity) but differing
      string values.)
 
@@ -134,6 +134,7 @@ static String *tmop_name(const_String_or_char_ptr op) {
   return s;
 }
 
+#if 0
 /* -----------------------------------------------------------------------------
  * Swig_typemap_new_scope()
  * 
@@ -157,6 +158,7 @@ Hash *Swig_typemap_pop_scope() {
   }
   return 0;
 }
+#endif
 
 /* ----------------------------------------------------------------------------- 
  * Swig_typemap_register()
@@ -265,12 +267,12 @@ void Swig_typemap_register(const_String_or_char_ptr op, ParmList *parms, const_S
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_typemap_get()
+ * typemap_get()
  *
  * Retrieve typemap information from current scope.
  * ----------------------------------------------------------------------------- */
 
-static Hash *Swig_typemap_get(SwigType *type, const_String_or_char_ptr name, int scope) {
+static Hash *typemap_get(SwigType *type, const_String_or_char_ptr name, int scope) {
   Hash *tm, *tm1;
   /* See if this type has been seen before */
   if ((scope < 0) || (scope > tm_scope))
@@ -312,7 +314,7 @@ int Swig_typemap_copy(const_String_or_char_ptr op, ParmList *srcparms, ParmList 
       pname = Getattr(p, "name");
 
       /* Lookup the type */
-      tm = Swig_typemap_get(ptype, pname, ts);
+      tm = typemap_get(ptype, pname, ts);
       if (!tm)
 	break;
 
@@ -360,7 +362,7 @@ void Swig_typemap_clear(const_String_or_char_ptr op, ParmList *parms) {
   while (p) {
     type = Getattr(p, "type");
     name = Getattr(p, "name");
-    tm = Swig_typemap_get(type, name, tm_scope);
+    tm = typemap_get(type, name, tm_scope);
     if (!tm)
       return;
     p = nextSibling(p);
@@ -385,8 +387,7 @@ void Swig_typemap_clear(const_String_or_char_ptr op, ParmList *parms) {
  * it works.
  * ----------------------------------------------------------------------------- */
 
-static
-int count_args(String *s) {
+static int count_args(String *s) {
   /* Count up number of arguments */
   int na = 0;
   char *c = Char(s);
@@ -456,7 +457,7 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
   while (ts >= 0) {
 
     /* See if there is a matching typemap in this scope */
-    sm = Swig_typemap_get(type, name, ts);
+    sm = typemap_get(type, name, ts);
 
     /* if there is not matching, look for a typemap in the
        original typedef, if any, like in:
@@ -468,7 +469,7 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
     if (!sm) {
       SwigType *ntype = SwigType_typedef_resolve(type);
       if (ntype && (Cmp(ntype, type) != 0)) {
-	sm = Swig_typemap_get(ntype, name, ts);
+	sm = typemap_get(ntype, name, ts);
       }
       Delete(ntype);
     }
@@ -584,13 +585,13 @@ static SwigType *strip_arrays(SwigType *type) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_typemap_search()
+ * typemap_search()
  *
  * Search for a typemap match.    Tries to find the most specific typemap
  * that includes a 'code' attribute.
  * ----------------------------------------------------------------------------- */
 
-Hash *Swig_typemap_search(const_String_or_char_ptr op, SwigType *type, const_String_or_char_ptr name, SwigType **matchtype) {
+static Hash *typemap_search(const_String_or_char_ptr op, SwigType *type, const_String_or_char_ptr name, SwigType **matchtype) {
   Hash *result = 0, *tm, *tm1, *tma;
   Hash *backup = 0;
   SwigType *noarrays = 0;
@@ -732,12 +733,12 @@ ret_result:
 
 
 /* -----------------------------------------------------------------------------
- * Swig_typemap_search_multi()
+ * typemap_search_multi()
  *
  * Search for a multi-valued typemap.
  * ----------------------------------------------------------------------------- */
 
-Hash *Swig_typemap_search_multi(const_String_or_char_ptr op, ParmList *parms, int *nmatch) {
+static Hash *typemap_search_multi(const_String_or_char_ptr op, ParmList *parms, int *nmatch) {
   SwigType *type;
   SwigType *mtype = 0;
   String *name;
@@ -752,14 +753,14 @@ Hash *Swig_typemap_search_multi(const_String_or_char_ptr op, ParmList *parms, in
   name = Getattr(parms, "name");
 
   /* Try to find a match on the first type */
-  tm = Swig_typemap_search(op, type, name, &mtype);
+  tm = typemap_search(op, type, name, &mtype);
   if (tm) {
     if (mtype && SwigType_isarray(mtype)) {
       Setattr(parms, "tmap:match", mtype);
     }
     Delete(mtype);
     newop = NewStringf("%s-%s+%s:", op, type, name);
-    tm1 = Swig_typemap_search_multi(newop, nextSibling(parms), nmatch);
+    tm1 = typemap_search_multi(newop, nextSibling(parms), nmatch);
     if (tm1)
       tm = tm1;
     if (Getattr(tm, "code")) {
@@ -780,8 +781,7 @@ Hash *Swig_typemap_search_multi(const_String_or_char_ptr op, ParmList *parms, in
  * type and pname are the type and parameter name.
  * ----------------------------------------------------------------------------- */
 
-static
-void replace_local_types(ParmList *p, const String *name, const String *rep) {
+static void replace_local_types(ParmList *p, const String *name, const String *rep) {
   SwigType *t;
   while (p) {
     t = Getattr(p, "type");
@@ -790,8 +790,7 @@ void replace_local_types(ParmList *p, const String *name, const String *rep) {
   }
 }
 
-static
-int check_locals(ParmList *p, const char *s) {
+static int check_locals(ParmList *p, const char *s) {
   while (p) {
     char *c = GetChar(p, "type");
     if (strstr(c, s))
@@ -801,8 +800,7 @@ int check_locals(ParmList *p, const char *s) {
   return 0;
 }
 
-static
-int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, SwigType *rtype, String *pname, String *lname, int index) {
+static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, SwigType *rtype, String *pname, String *lname, int index) {
   char var[512];
   char *varname;
   SwigType *ftype;
@@ -1216,7 +1214,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr op, Node *node,
     String *qsn = st ? Swig_symbol_string_qualify(pname, st) : 0;
     if (qsn) {
       if (Len(qsn) && !Equal(qsn, pname)) {
-	tm = Swig_typemap_search(op, type, qsn, &mtype);
+	tm = typemap_search(op, type, qsn, &mtype);
 	if (tm && (!Getattr(tm, "pname") || strstr(Char(Getattr(tm, "type")), "SWIGTYPE"))) {
 	  tm = 0;
 	}
@@ -1226,7 +1224,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr op, Node *node,
   }
   if (!tm)
 #endif
-    tm = Swig_typemap_search(op, type, pname, &mtype);
+    tm = typemap_search(op, type, pname, &mtype);
   if (!tm)
     return sdef;
 
@@ -1394,9 +1392,8 @@ String *Swig_typemap_lookup(const_String_or_char_ptr op, Node *node, const_Strin
   return Swig_typemap_lookup_impl(op, node, lname, f, 0);
 }
 
-
 /* -----------------------------------------------------------------------------
- * Swig_typemap_attach_kwargs()
+ * typemap_attach_kwargs()
  *
  * If this hash (tm) contains a linked list of parameters under its "kwargs"
  * attribute, add keys for each of those named keyword arguments to this
@@ -1406,7 +1403,7 @@ String *Swig_typemap_lookup(const_String_or_char_ptr op, Node *node, const_Strin
  * A new attribute called "tmap:in:foo" with value "xyz" is attached to p.
  * ----------------------------------------------------------------------------- */
 
-void Swig_typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr op, Parm *p) {
+static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr op, Parm *p) {
   String *temp = NewStringEmpty();
   Parm *kw = Getattr(tm, "kwargs");
   while (kw) {
@@ -1432,13 +1429,13 @@ void Swig_typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr op, Parm *p) 
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_typemap_warn()
+ * typemap_warn()
  *
  * If any warning message is attached to this parameter's "tmap:op:warning"
  * attribute, print that warning message.
  * ----------------------------------------------------------------------------- */
 
-static void Swig_typemap_warn(const_String_or_char_ptr op, Parm *p) {
+static void typemap_warn(const_String_or_char_ptr op, Parm *p) {
   String *temp = NewStringf("%s:warning", op);
   String *w = Getattr(p, tmop_name(temp));
   Delete(temp);
@@ -1447,7 +1444,7 @@ static void Swig_typemap_warn(const_String_or_char_ptr op, Parm *p) {
   }
 }
 
-static void Swig_typemap_emit_code_fragments(const_String_or_char_ptr op, Parm *p) {
+static void typemap_emit_code_fragments(const_String_or_char_ptr op, Parm *p) {
   String *temp = NewStringf("%s:fragment", op);
   String *f = Getattr(p, tmop_name(temp));
   if (f) {
@@ -1467,7 +1464,7 @@ static void Swig_typemap_emit_code_fragments(const_String_or_char_ptr op, Parm *
  * given typemap type
  * ----------------------------------------------------------------------------- */
 
-String *Swig_typemap_get_option(Hash *tm, const_String_or_char_ptr name) {
+static String *typemap_get_option(Hash *tm, const_String_or_char_ptr name) {
   Parm *kw = Getattr(tm, "kwargs");
   while (kw) {
     String *kname = Getattr(kw, "name");
@@ -1502,7 +1499,7 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr op, ParmList *parms, Wra
 #ifdef SWIG_DEBUG
     Printf(stdout, "parms:  %s %s %s\n", op, Getattr(p, "name"), Getattr(p, "type"));
 #endif
-    tm = Swig_typemap_search_multi(op, p, &nmatch);
+    tm = typemap_search_multi(op, p, &nmatch);
 #ifdef SWIG_DEBUG
     if (tm)
       Printf(stdout, "found:  %s\n", tm);
@@ -1521,7 +1518,7 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr op, ParmList *parms, Wra
        here, the freearg typemap requires the "in" typemap to match,
        or the 'var$argnum' variable will not exist.
      */
-    kwmatch = Swig_typemap_get_option(tm, "match");
+    kwmatch = typemap_get_option(tm, "match");
     if (kwmatch) {
       String *tmname = NewStringf("tmap:%s", kwmatch);
       String *tmin = Getattr(p, tmname);
@@ -1547,7 +1544,7 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr op, ParmList *parms, Wra
 	    continue;
 	  } else {
 	    int nnmatch;
-	    Hash *tmapin = Swig_typemap_search_multi(kwmatch, p, &nnmatch);
+	    Hash *tmapin = typemap_search_multi(kwmatch, p, &nnmatch);
 	    String *tmname = Getattr(tm, "pname");
 	    String *tnname = Getattr(tmapin, "pname");
 	    if (!(tmname && tnname && Equal(tmname, tnname)) && !(!tmname && !tnname)) {
@@ -1640,13 +1637,13 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr op, ParmList *parms, Wra
     Setattr(firstp, tmop_name(temp), p);
 
     /* Attach kwargs */
-    Swig_typemap_attach_kwargs(tm, op, firstp);
+    typemap_attach_kwargs(tm, op, firstp);
 
     /* Print warnings, if any */
-    Swig_typemap_warn(op, firstp);
+    typemap_warn(op, firstp);
 
     /* Look for code fragments */
-    Swig_typemap_emit_code_fragments(op, firstp);
+    typemap_emit_code_fragments(op, firstp);
 
     /* increase argnum to consider numinputs */
     argnum += nmatch - 1;

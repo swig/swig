@@ -819,21 +819,24 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
       //               Getattr(c, "type"));
       //       SWIG_exit(EXIT_FAILURE);
     } else {
-      SwigType *childType = NewStringf("%s%s", Getattr(c, "decl"),
-               Getattr(c, "type"));
+      SwigType *childType = NewStringf("%s%s", Getattr(c, "decl"), Getattr(c, "type"));
 
-      Hash *typemap = Swig_typemap_search("cin", childType, "", 0);
-      String *typespec = NewString("");
-      if (typemap) {
-  typespec = NewString(Getattr(typemap, "code"));
-      }
+      Node *node = NewHash();
+      Setattr(node, "type", childType);
+      Setfile(node, Getfile(n));
+      Setline(node, Getline(n));
+      const String *tm = Swig_typemap_lookup("cin", node, "", 0);
+
+      String *typespec = tm ? NewString(tm) : NewString("");
 
       String *slot_name = lispify_name(c, Getattr(c, "sym:name"), "'slotname");
       if (Strcmp(slot_name, "t") == 0 || Strcmp(slot_name, "T") == 0)
-  slot_name = NewStringf("t_var");
+	slot_name = NewStringf("t_var");
 
       Printf(f_cl, "\n\t(%s %s)", slot_name, typespec);
 
+      Delete(node);
+      Delete(childType);
       Delete(typespec);
     }
   }

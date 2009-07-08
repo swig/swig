@@ -25,7 +25,7 @@ public:
   virtual int typedefHandler(Node *n);
   List *entries;
 private:
-  String *get_ffi_type(SwigType *ty);
+  String *get_ffi_type(Node *n, SwigType *ty);
   String *convert_literal(String *num_param, String *type);
   String *strip_parens(String *string);
   int extern_all_flag;
@@ -167,7 +167,7 @@ int CLISP::functionWrapper(Node *n) {
     String *argname = Getattr(p, "name");
     //    SwigType *argtype;
 
-    String *ffitype = get_ffi_type(Getattr(p, "type"));
+    String *ffitype = get_ffi_type(n, Getattr(p, "type"));
 
     int tempargname = 0;
 
@@ -190,7 +190,7 @@ int CLISP::functionWrapper(Node *n) {
   if (ParmList_len(pl) != 0) {
     Printf(f_cl, ")\n");	/* finish arg list */
   }
-  String *ffitype = get_ffi_type(Getattr(n, "type"));
+  String *ffitype = get_ffi_type(n, Getattr(n, "type"));
   if (Strcmp(ffitype, "NIL")) {	//when return type is not nil
     Printf(f_cl, "\t(:return-type %s)\n", ffitype);
   }
@@ -222,7 +222,7 @@ int CLISP::variableWrapper(Node *n) {
     return SWIG_OK;
 
   String *var_name = Getattr(n, "sym:name");
-  String *lisp_type = get_ffi_type(Getattr(n, "type"));
+  String *lisp_type = get_ffi_type(n, Getattr(n, "type"));
   Printf(f_cl, "\n(ffi:def-c-var %s\n (:name \"%s\")\n (:type %s)\n", var_name, var_name, lisp_type);
   Printf(f_cl, "\t(:library +library-name+))\n");
   Append(entries, var_name);
@@ -234,7 +234,7 @@ int CLISP::variableWrapper(Node *n) {
 int CLISP::typedefHandler(Node *n) {
   if (generate_typedef_flag) {
     is_function = 0;
-    Printf(f_cl, "\n(ffi:def-c-type %s %s)\n", Getattr(n, "name"), get_ffi_type(Getattr(n, "type")));
+    Printf(f_cl, "\n(ffi:def-c-type %s %s)\n", Getattr(n, "name"), get_ffi_type(n, Getattr(n, "type")));
   }
 
   return Language::typedefHandler(n);
@@ -290,7 +290,7 @@ int CLISP::classDeclaration(Node *n) {
 
     String *temp = Copy(Getattr(c, "decl"));
     Append(temp, Getattr(c, "type"));	//appending type to the end, otherwise wrong type
-    String *lisp_type = get_ffi_type(temp);
+    String *lisp_type = get_ffi_type(n, temp);
     Delete(temp);
 
     String *slot_name = Getattr(c, "sym:name");
@@ -371,15 +371,20 @@ String *CLISP::convert_literal(String *num_param, String *type) {
   return res;
 }
 
-String *CLISP::get_ffi_type(SwigType *ty) {
-  Hash *typemap = Swig_typemap_search("in", ty, "", 0);
-  if (typemap) {
-    String *typespec = Getattr(typemap, "code");
-    return NewString(typespec);
+String *CLISP::get_ffi_type(Node *n, SwigType *ty) {
+  Node *node = NewHash();
+  Setattr(node, "type", ty);
+  Setfile(node, Getfile(n));
+  Setline(node, Getline(n));
+  const String *tm = Swig_typemap_lookup("in", node, "", 0);
+  Delete(node);
+
+  if (tm) {
+    return NewString(tm);
   } else if (SwigType_ispointer(ty)) {
     SwigType *cp = Copy(ty);
     SwigType_del_pointer(cp);
-    String *inner_type = get_ffi_type(cp);
+    String *inner_type = get_ffi_type(n, cp);
 
     if (SwigType_isfunction(cp)) {
       return inner_type;
@@ -409,12 +414,12 @@ String *CLISP::get_ffi_type(SwigType *ty) {
       Delete(array_dim);
       SwigType_del_array(cp);
       SwigType_add_pointer(cp);
-      String *str = get_ffi_type(cp);
+      String *str = get_ffi_type(n, cp);
       Delete(cp);
       return str;
     } else {
       SwigType_pop_arrays(cp);
-      String *inner_type = get_ffi_type(cp);
+      String *inner_type = get_ffi_type(n, cp);
       Delete(cp);
 
       int ndim = SwigType_array_ndim(ty);
@@ -455,7 +460,7 @@ String *CLISP::get_ffi_type(SwigType *ty) {
     for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
       String *argname = Getattr(p, "name");
       SwigType *argtype = Getattr(p, "type");
-      String *ffitype = get_ffi_type(argtype);
+      String *ffitype = get_ffi_type(n, argtype);
 
       int tempargname = 0;
 
@@ -475,7 +480,7 @@ String *CLISP::get_ffi_type(SwigType *ty) {
     if (ParmList_len(pl) != 0) {
       Printf(args, ")\n");	/* finish arg list */
     }
-    String *ffitype = get_ffi_type(cp);
+    String *ffitype = get_ffi_type(n, cp);
     String *str = NewStringf("(ffi:c-function %s \t\t\t\t(:return-type %s))", args, ffitype);
     Delete(fn);
     Delete(args);

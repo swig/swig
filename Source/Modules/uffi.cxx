@@ -131,11 +131,17 @@ static void add_defined_foreign_type(String *type) {
 }
 
 
-static String *get_ffi_type(SwigType *ty, const_String_or_char_ptr name) {
-  Hash *typemap = Swig_typemap_search("ffitype", ty, name, 0);
-  if (typemap) {
-    String *typespec = Getattr(typemap, "code");
-    return NewString(typespec);
+static String *get_ffi_type(Node *n, SwigType *ty, const_String_or_char_ptr name) {
+  Node *node = NewHash();
+  Setattr(node, "type", ty);
+  Setattr(node, "name", name);
+  Setfile(node, Getfile(n));
+  Setline(node, Getline(n));
+  const String *tm = Swig_typemap_lookup("ffitype", node, "", 0);
+  Delete(node);
+
+  if (tm) {
+    return NewString(tm);
   } else {
     SwigType *tr = SwigType_typedef_resolve_all(ty);
     char *type_reduced = Char(tr);
@@ -167,14 +173,16 @@ static String *get_ffi_type(SwigType *ty, const_String_or_char_ptr name) {
   return 0;
 }
 
-static String *get_lisp_type(SwigType *ty, const_String_or_char_ptr name) {
-  Hash *typemap = Swig_typemap_search("lisptype", ty, name, 0);
-  if (typemap) {
-    String *typespec = Getattr(typemap, "code");
-    return NewString(typespec);
-  } else {
-    return NewString("");
-  }
+static String *get_lisp_type(Node *n, SwigType *ty, const_String_or_char_ptr name) {
+  Node *node = NewHash();
+  Setattr(node, "type", ty);
+  Setattr(node, "name", name);
+  Setfile(node, Getfile(n));
+  Setline(node, Getline(n));
+  const String *tm = Swig_typemap_lookup("lisptype", node, "", 0);
+  Delete(node);
+
+  return tm ? NewString(tm) : NewString("");
 }
 
 void UFFI::main(int argc, char *argv[]) {
@@ -280,8 +288,8 @@ int UFFI::functionWrapper(Node *n) {
     for (p = pl; p; p = nextSibling(p), argnum++) {
       String *argname = Getattr(p, "name");
       SwigType *argtype = Getattr(p, "type");
-      String *ffitype = get_ffi_type(argtype, argname);
-      String *lisptype = get_lisp_type(argtype, argname);
+      String *ffitype = get_ffi_type(n, argtype, argname);
+      String *lisptype = get_lisp_type(n, argtype, argname);
       int tempargname = 0;
 
       if (!argname) {
@@ -307,7 +315,7 @@ int UFFI::functionWrapper(Node *n) {
 	 //"  :strings-convert t\n"
 	 //"  :call-direct %s\n"
 	 //"  :optimize-for-space t"
-	 ")\n", get_ffi_type(Getattr(n, "type"), "result")
+	 ")\n", get_ffi_type(n, Getattr(n, "type"), "result")
 	 //,varargs ? "nil"  : "t"
       );
 
@@ -361,7 +369,7 @@ int UFFI::classHandler(Node *n) {
 
 
     /* Printf(stdout, "Converting %s in %s\n", type, name); */
-    lisp_type = get_ffi_type(type, Getattr(c, "sym:name"));
+    lisp_type = get_ffi_type(n, type, Getattr(c, "sym:name"));
 
     Printf(f_cl, "  (#.(%s \"%s\" :type :slot) %s)\n", identifier_converter, Getattr(c, "sym:name"), lisp_type);
 

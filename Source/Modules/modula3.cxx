@@ -2230,23 +2230,23 @@ MODULA3():
       baseclass = NewString("");
 
     // Inheritance from pure Modula 3 classes
-    const String *pure_baseclass = typemapLookup("m3base", classDeclarationName, WARN_NONE);
+    const String *pure_baseclass = typemapLookup(n, "m3base", classDeclarationName, WARN_NONE);
     if (hasContent(pure_baseclass) && hasContent(baseclass)) {
       Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, input_file,
 		   line_number,
 		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n", classDeclarationName, pure_baseclass);
     }
     // Pure Modula 3 interfaces
-    const String *pure_interfaces = typemapLookup(derived ? "m3interfaces_derived" : "m3interfaces",
+    const String *pure_interfaces = typemapLookup(n, derived ? "m3interfaces_derived" : "m3interfaces",
 						  classDeclarationName, WARN_NONE);
 
     // Start writing the proxy class
-    Printv(proxy_class_def, typemapLookup("m3imports", classDeclarationName, WARN_NONE),	// Import statements
-	   "\n", typemapLookup("m3classmodifiers", classDeclarationName, WARN_MODULA3_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
+    Printv(proxy_class_def, typemapLookup(n, "m3imports", classDeclarationName, WARN_NONE),	// Import statements
+	   "\n", typemapLookup(n, "m3classmodifiers", classDeclarationName, WARN_MODULA3_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " class $m3classname",	// Class name and bases
 	   (derived || *Char(pure_baseclass) || *Char(pure_interfaces)) ? " : " : "", baseclass, pure_baseclass, ((derived || *Char(pure_baseclass)) && *Char(pure_interfaces)) ?	// Interfaces
 	   ", " : "", pure_interfaces, " {\n", "  private IntPtr swigCPtr;\n",	// Member variables for memory handling
-	   derived ? "" : "  protected bool swigCMemOwn;\n", "\n", "  ", typemapLookup("m3ptrconstructormodifiers", classDeclarationName, WARN_MODULA3_TYPEMAP_PTRCONSTMOD_UNDEF),	// pointer constructor modifiers
+	   derived ? "" : "  protected bool swigCMemOwn;\n", "\n", "  ", typemapLookup(n, "m3ptrconstructormodifiers", classDeclarationName, WARN_MODULA3_TYPEMAP_PTRCONSTMOD_UNDEF),	// pointer constructor modifiers
 	   " $m3classname(IntPtr cPtr, bool cMemoryOwn) ",	// Constructor used for wrapping pointers
 	   derived ?
 	   ": base($imclassname.$m3classnameTo$baseclass(cPtr), cMemoryOwn) {\n"
@@ -2262,10 +2262,10 @@ MODULA3():
     Node *attributes = NewHash();
     String *destruct_methodname = NULL;
     if (derived) {
-      tm = typemapLookup("m3destruct_derived", classDeclarationName, WARN_NONE, attributes);
+      tm = typemapLookup(n, "m3destruct_derived", classDeclarationName, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:m3destruct_derived:methodname");
     } else {
-      tm = typemapLookup("m3destruct", classDeclarationName, WARN_NONE, attributes);
+      tm = typemapLookup(n, "m3destruct", classDeclarationName, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:m3destruct:methodname");
     }
     if (!destruct_methodname) {
@@ -2275,7 +2275,7 @@ MODULA3():
     if (tm) {
       // Finalize method
       if (*Char(destructor_call)) {
-	Printv(proxy_class_def, typemapLookup("m3finalize", classDeclarationName, WARN_NONE), NIL);
+	Printv(proxy_class_def, typemapLookup(n, "m3finalize", classDeclarationName, WARN_NONE), NIL);
       }
       // Dispose method
       Printv(destruct, tm, NIL);
@@ -2290,8 +2290,8 @@ MODULA3():
     Delete(destruct);
 
     // Emit various other methods
-    Printv(proxy_class_def, typemapLookup("m3getcptr", classDeclarationName, WARN_MODULA3_TYPEMAP_GETCPTR_UNDEF),	// getCPtr method
-	   typemapLookup("m3code", classDeclarationName, WARN_NONE),	// extra Modula 3 code
+    Printv(proxy_class_def, typemapLookup(n, "m3getcptr", classDeclarationName, WARN_MODULA3_TYPEMAP_GETCPTR_UNDEF),	// getCPtr method
+	   typemapLookup(n, "m3code", classDeclarationName, WARN_NONE),	// extra Modula 3 code
 	   "\n", NIL);
 
     // Substitute various strings into the above template
@@ -3765,6 +3765,10 @@ MODULA3():
    * ----------------------------------------------------------------------------- */
 
   void emitTypeWrapperClass(String *classname, SwigType *type) {
+    Node *n = NewHash();
+    Setfile(n, input_file);
+    Setline(n, line_number);
+
     String *filen = NewStringf("%s%s.m3", Swig_file_dirname(outfile), classname);
     File *f_swigtype = NewFile(filen, "w", SWIG_output_files());
     if (!f_swigtype) {
@@ -3777,19 +3781,19 @@ MODULA3():
     emitBanner(f_swigtype);
 
     // Pure Modula 3 baseclass and interfaces
-    const String *pure_baseclass = typemapLookup("m3base", type, WARN_NONE);
-    const String *pure_interfaces = typemapLookup("m3interfaces", type, WARN_NONE);
+    const String *pure_baseclass = typemapLookup(n, "m3base", type, WARN_NONE);
+    const String *pure_interfaces = typemapLookup(n, "m3interfaces", type, WARN_NONE);
 
     // Emit the class
-    Printv(swigtype, typemapLookup("m3imports", type, WARN_NONE),	// Import statements
-	   "\n", typemapLookup("m3classmodifiers", type, WARN_MODULA3_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
+    Printv(swigtype, typemapLookup(n, "m3imports", type, WARN_NONE),	// Import statements
+	   "\n", typemapLookup(n, "m3classmodifiers", type, WARN_MODULA3_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " class $m3classname",	// Class name and bases
 	   *Char(pure_baseclass) ? " : " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
-	   " : " : "", pure_interfaces, " {\n", "  private IntPtr swigCPtr;\n", "\n", "  ", typemapLookup("m3ptrconstructormodifiers", type, WARN_MODULA3_TYPEMAP_PTRCONSTMOD_UNDEF),	// pointer constructor modifiers
+	   " : " : "", pure_interfaces, " {\n", "  private IntPtr swigCPtr;\n", "\n", "  ", typemapLookup(n, "m3ptrconstructormodifiers", type, WARN_MODULA3_TYPEMAP_PTRCONSTMOD_UNDEF),	// pointer constructor modifiers
 	   " $m3classname(IntPtr cPtr, bool bFutureUse) {\n",	// Constructor used for wrapping pointers
 	   "    swigCPtr = cPtr;\n", "  }\n", "\n", "  protected $m3classname() {\n",	// Default constructor
-	   "    swigCPtr = IntPtr.Zero;\n", "  }\n", typemapLookup("m3getcptr", type, WARN_MODULA3_TYPEMAP_GETCPTR_UNDEF),	// getCPtr method
-	   typemapLookup("m3code", type, WARN_NONE),	// extra Modula 3 code
+	   "    swigCPtr = IntPtr.Zero;\n", "  }\n", typemapLookup(n, "m3getcptr", type, WARN_MODULA3_TYPEMAP_GETCPTR_UNDEF),	// getCPtr method
+	   typemapLookup(n, "m3code", type, WARN_NONE),	// extra Modula 3 code
 	   "}\n", "\n", NIL);
 
     Replaceall(swigtype, "$m3classname", classname);
@@ -3802,25 +3806,29 @@ MODULA3():
 
   /* -----------------------------------------------------------------------------
    * typemapLookup()
+   * n - for input only and must contain info for Getfile(n) and Getline(n) to work
+   * op - typemap method name
+   * type - typemap type to lookup
+   * warning - warning number to issue if no typemaps found
+   * typemap_attributes - the typemap attributes are attached to this node and will 
+   *   also be used for temporary storage if non null
+   * return is never NULL, unlike Swig_typemap_lookup()
    * ----------------------------------------------------------------------------- */
 
-  const String *typemapLookup(const String *op, String *type, int warning, Node *typemap_attributes = NULL) {
-    String *tm = NULL;
-    const String *code = NULL;
-
-    if ((tm = Swig_typemap_search(op, type, NULL, NULL))) {
-      code = Getattr(tm, "code");
-      if (typemap_attributes)
-	Swig_typemap_attach_kwargs(tm, op, typemap_attributes);
-    }
-
-    if (!code) {
-      code = empty_string;
+  const String *typemapLookup(Node *n, const_String_or_char_ptr op, SwigType *type, int warning, Node *typemap_attributes = 0) {
+    Node *node = !typemap_attributes ? NewHash() : typemap_attributes;
+    Setattr(node, "type", type);
+    Setfile(node, Getfile(n));
+    Setline(node, Getline(n));
+    const String *tm = Swig_typemap_lookup(op, node, "", 0);
+    if (!tm) {
+      tm = empty_string;
       if (warning != WARN_NONE)
-	Swig_warning(warning, input_file, line_number, "No %s typemap defined for %s\n", op, type);
+	Swig_warning(warning, Getfile(n), Getline(n), "No %s typemap defined for %s\n", op, SwigType_str(type, 0));
     }
-
-    return code ? code : empty_string;
+    if (!typemap_attributes)
+      Delete(node);
+    return tm;
   }
 
   /* -----------------------------------------------------------------------------
