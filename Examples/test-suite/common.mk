@@ -79,7 +79,7 @@ CPP_TEST_BROKEN += \
 	extend_variable \
 	li_std_vector_ptr \
 	namespace_union \
-	nested_struct \
+	nested_structs \
 	overload_complicated \
 	template_default_pointer \
 	template_expr
@@ -220,6 +220,7 @@ CPP_TEST_CASES += \
 	li_typemaps \
 	li_windows \
 	long_long_apply \
+	memberin_extend \
 	member_pointer \
 	member_template \
 	minherit \
