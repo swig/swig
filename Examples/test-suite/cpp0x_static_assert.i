@@ -1,7 +1,7 @@
 /* This test case checks whether swig correctly parses and ignores the
    keywords "static_assert()" inside the class or struct.
 */
-%module static_assert
+%module cpp0x_static_assert
 
 %inline %{
 template <typename T>

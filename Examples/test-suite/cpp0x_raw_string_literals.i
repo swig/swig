@@ -7,8 +7,7 @@
 
    This module also tests whether Swig correctly parses custom string delimiters.
 */
-
-%module raw_string_literals
+%module cpp0x_raw_string_literals
 
 %inline %{
 #include <iostream>

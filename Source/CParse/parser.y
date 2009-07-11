@@ -3850,10 +3850,14 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 		      Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		      if (error) $$ = 0;
                   }
-                | TEMPLATE cpptype idcolon {
+                | TEMPLATE cpptype idcolon { /* Explicit template instantiation */
 		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
                    $$ = 0; 
-                }
+		  }
+		| EXTERN TEMPLATE cpptype idcolon { /* Explicit template instantiation without the translation unit */
+		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
+                   $$ = 0; 
+                  }
                 ;
 
 cpp_temp_possible:  c_decl {

@@ -1,7 +1,7 @@
 /* This interface checks whether Swig correctly compiles the new
    explicit conversion operators feature introduced in C++0x.
 */
-%module foo
+%module cpp0x_explicit_conversion_operators
 
 %inline %{
 
