@@ -13,7 +13,7 @@ char cvsroot_octave_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 Octave Options (available with -octave)\n\
-     -api <N> - Generate code that assume octave API N [default: 37]\n\
+     -api <N> - Generate code that assumes Octave API N [default: 37]\n\
      \n";
 
 
