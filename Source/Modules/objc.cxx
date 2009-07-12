@@ -34,7 +34,6 @@ protected:
   String *variable_name;	// Name of a variable being wrapped
   String *proxy_class_decl;
   String *proxy_class_def;
-  String *proxy_class_code;
 
 public:
    OBJC():empty_string(NewString("")),
@@ -50,8 +49,7 @@ public:
       static_flag(false),
       variable_wrapper_flag(false),
       proxy_flag(true),
-      proxy_class_name(NULL), variable_name(NULL), proxy_class_def(NULL), proxy_class_decl(NULL), proxy_class_code(NULL),
-      ocpp_h_code(NULL), proxy_h_code(NULL), proxy_m_code(NULL) {
+      proxy_class_name(NULL), variable_name(NULL), proxy_class_def(NULL), proxy_class_decl(NULL), ocpp_h_code(NULL), proxy_h_code(NULL), proxy_m_code(NULL) {
   } virtual void main(int argc, char *argv[]) {
     SWIG_library_directory("objc");
 
@@ -125,10 +123,49 @@ public:
     ocpp_h_code = NewString("");
     proxy_h_code = NewString("");
     proxy_m_code = NewString("");
+    proxy_class_decl = NewString("");
+    proxy_class_def = NewString("");
 
     // Emit code for children
     Language::top(n);
 
+
+    // Generate proxy code
+    if (proxy_flag) {
+      String *file_proxy_h = NewStringf("%sProxy.h", modulename);
+      f_proxy_h = NewFile(file_proxy_h, "w", SWIG_output_files());
+      if (!f_proxy_h) {
+	FileErrorDisplay(f_proxy_h);
+	SWIG_exit(EXIT_FAILURE);
+      }
+
+      String *file_proxy_m = NewStringf("%sProxy.m", modulename);
+      f_proxy_m = NewFile(file_proxy_m, "w", SWIG_output_files());
+      if (!f_proxy_m) {
+	FileErrorDisplay(f_proxy_m);
+	SWIG_exit(EXIT_FAILURE);
+      }
+
+      emitBanner(f_proxy_h);
+      Printf(f_proxy_m, "#include \"%s\"\n\n", file_h);
+      Printf(f_proxy_m, "#include \"%s\"\n\n", file_proxy_h);
+      Printv(f_proxy_h, proxy_h_code, NIL);
+      Printv(f_proxy_m, proxy_m_code, NIL);
+
+      Delete(file_proxy_h);
+      file_proxy_h = NULL;
+      Delete(file_proxy_m);
+      file_proxy_m = NULL;
+
+      Delete(proxy_h_code);
+      proxy_h_code = NULL;
+      Delete(proxy_h_code);
+      proxy_h_code = NULL;
+      Close(f_proxy_m);
+      Delete(f_proxy_m);
+      Close(f_proxy_h);
+      Delete(f_proxy_h);
+    }
     // Generate low level accessors
     {
       Printf(f_wrappers, "}\n");
@@ -171,43 +208,6 @@ public:
       Delete(f_ocpp_mm);
       Close(f_ocpp_h);
       Delete(f_ocpp_h);
-    }
-
-    // Generate proxy code
-    if (proxy_flag) {
-      String *file_proxy_h = NewStringf("%sProxy.h", modulename);
-      f_proxy_h = NewFile(file_proxy_h, "w", SWIG_output_files());
-      if (!f_proxy_h) {
-	FileErrorDisplay(f_proxy_h);
-	SWIG_exit(EXIT_FAILURE);
-      }
-
-      String *file_proxy_m = NewStringf("%sProxy.m", modulename);
-      f_proxy_m = NewFile(file_proxy_m, "w", SWIG_output_files());
-      if (!f_proxy_m) {
-	FileErrorDisplay(f_proxy_m);
-	SWIG_exit(EXIT_FAILURE);
-      }
-
-      emitBanner(f_proxy_h);
-      Printf(f_proxy_m, "#include \"%s\"\n\n", file_h);
-      Printf(f_proxy_m, "#include \"%s\"\n\n", file_proxy_h);
-      Printv(f_proxy_h, proxy_h_code, NIL);
-      Printv(f_proxy_m, proxy_m_code, NIL);
-
-      Delete(file_proxy_h);
-      file_proxy_h = NULL;
-      Delete(file_proxy_m);
-      file_proxy_m = NULL;
-
-      Delete(proxy_h_code);
-      proxy_h_code = NULL;
-      Delete(proxy_h_code);
-      proxy_h_code = NULL;
-      Close(f_proxy_m);
-      Delete(f_proxy_m);
-      Close(f_proxy_h);
-      Delete(f_proxy_h);
     }
 
     return SWIG_OK;
@@ -281,6 +281,7 @@ public:
   void proxyFunctionHandler(Node *n) {
     SwigType *t = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
+    String *ocpp_function_name = Getattr(n, "ocppfuncname");
     String *proxy_function_name = Getattr(n, "proxyfuncname");
     String *tm;
     Parm *p;
@@ -329,13 +330,14 @@ public:
     if (objcattributes)
       Printf(function_decl, "  %s\n", objcattributes);
 
-    if (static_flag) {
+    if (static_flag)
       Printf(function_decl, "+ ");
-    }
+    else
+      Printf(function_decl, "- ");
 
-    Printf(function_decl, "(%s) %s:", return_type, proxy_function_name);
+    Printf(function_decl, "(%s) %s", return_type, proxy_function_name);
 
-    Printv(imcall, "$imfuncname(", NIL);
+    Printv(imcall, "$ocppfuncname(", NIL);
 
     if (!static_flag)
       Printf(imcall, "swigCPtr");
@@ -401,8 +403,8 @@ public:
     }
 
     Printf(imcall, ")");
-    Printv(function_def, function_decl, "{", NIL);
-    Printf(function_decl, ";");
+    Printv(function_def, function_decl, NIL);
+    Printf(function_decl, ";\n");
 
     // Transform return type used in low level accessor to type used in Objective-C proxy function 
     if ((tm = Swig_typemap_lookup("objcout", n, "", 0))) {
@@ -410,6 +412,7 @@ public:
 	Replaceall(tm, "$owner", "true");
       else
 	Replaceall(tm, "$owner", "false");
+      Replaceall(imcall, "$ocppfuncname", ocpp_function_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_NONE, input_file, line_number, "No objcout typemap defined for %s\n", SwigType_str(t, 0));
@@ -655,10 +658,6 @@ public:
    * ----------------------------------------------------------------------------- */
 
   String *getOverloadedName(Node *n) {
-
-    /* A Objective-C HandleRef is used for all classes in the SWIG intermediary class.
-     * The intermediary class methods are thus mangled when overloaded to give
-     * a unique name. */
     String *overloaded_name = NewStringf("%s", Getattr(n, "sym:name"));
 
     if (Getattr(n, "sym:overloaded")) {
@@ -668,19 +667,200 @@ public:
     return overloaded_name;
   }
 
+  /* ----------------------------------------------------------------------
+   * memberfunctionHandler()
+   * ---------------------------------------------------------------------- */
 
-  /* -----------------------------------------------------------------------------
-   * emitProxyClassDeclaration()
-   * ----------------------------------------------------------------------------- */
+  virtual int memberfunctionHandler(Node *n) {
+    Language::memberfunctionHandler(n);
 
-  void emitProxyClassDeclaration(Node *n) {
+    if (proxy_flag) {
+      String *overloaded_name = getOverloadedName(n);
+      String *wname = Swig_name_wrapper(overloaded_name);
+      Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
+      Setattr(n, "ocppfuncname", wname);
+      proxyFunctionHandler(n);
+      Delete(overloaded_name);
+    }
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * staticmemberfunctionHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int staticmemberfunctionHandler(Node *n) {
+
+    static_flag = true;
+    Language::staticmemberfunctionHandler(n);
+
+    if (proxy_flag) {
+      String *overloaded_name = getOverloadedName(n);
+      String *wname = Swig_name_wrapper(overloaded_name);
+      Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
+      Setattr(n, "ocppfuncname", wname);
+      proxyFunctionHandler(n);
+      Delete(overloaded_name);
+    }
+    static_flag = false;
+
+    return SWIG_OK;
   }
 
   /* -----------------------------------------------------------------------------
-   * emitProxyClassDefinition()
+   * globalfunctionHandler()
+   * ----------------------------------------------------------------------------- */
+  virtual int globalfunctionHandler(Node *n) {
+    Language::globalfunctionHandler(n);
+
+    if (proxy_flag) {
+      String *overloaded_name = getOverloadedName(n);
+      String *wname = Swig_name_wrapper(overloaded_name);
+      Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
+      Setattr(n, "ocppfuncname", wname);
+      proxyFunctionHandler(n);
+      Delete(overloaded_name);
+    }
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getProxyName()
+   *
+   * Test to see if a type corresponds to something wrapped with a proxy class
+   * Return NULL if not otherwise the proxy class name
    * ----------------------------------------------------------------------------- */
 
-  void emitProxyClassDefinition(Node *n) {
+  String *getProxyName(SwigType *t) {
+    if (proxy_flag) {
+      Node *n = classLookup(t);
+      if (n) {
+	return Getattr(n, "sym:name");
+      }
+    }
+    return NULL;
+  }
+
+
+  /* -----------------------------------------------------------------------------
+   * typemapLookup()
+   * ----------------------------------------------------------------------------- */
+
+  const String *typemapLookup(const String *op, String *type, int warning, Node *typemap_attributes = NULL) {
+    String *tm = NULL;
+    const String *code = NULL;
+
+    if ((tm = Swig_typemap_search(op, type, NULL, NULL))) {
+      code = Getattr(tm, "code");
+      if (typemap_attributes)
+	Swig_typemap_attach_kwargs(tm, op, typemap_attributes);
+    }
+
+    if (!code) {
+      code = empty_string;
+      if (warning != WARN_NONE)
+	Swig_warning(warning, input_file, line_number, "No %s typemap defined for %s\n", op, type);
+    }
+
+    return code ? code : empty_string;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * proxyClassHandler()
+   * ----------------------------------------------------------------------------- */
+
+  void proxyClassHandler(Node *n) {
+    String *c_classname = SwigType_namestr(Getattr(n, "name"));
+    String *c_baseclass = NULL;
+    String *baseclass = NULL;
+    String *c_baseclassname = NULL;
+    String *typemap_lookup_type = Getattr(n, "classtypeobj");
+
+    // Inheritance from pure Objective-C classes
+    Node *attributes = NewHash();
+    const String *pure_baseclass = typemapLookup("objcbase", typemap_lookup_type, WARN_NONE, attributes);
+    bool purebase_replace = GetFlag(attributes, "tmap:objcbase:replace") ? true : false;
+    bool purebase_notderived = GetFlag(attributes, "tmap:objcbase:notderived") ? true : false;
+    Delete(attributes);
+
+    // C++ inheritance
+    if (!purebase_replace) {
+      List *baselist = Getattr(n, "bases");
+      if (baselist) {
+	Iterator base = First(baselist);
+	while (base.item && GetFlag(base.item, "feature:ignore")) {
+	  base = Next(base);
+	}
+	if (base.item) {
+	  c_baseclassname = Getattr(base.item, "name");
+	  baseclass = Copy(getProxyName(c_baseclassname));
+	  if (baseclass)
+	    c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
+	  base = Next(base);
+	  /* Warn about multiple inheritance for additional base class(es) */
+	  while (base.item) {
+	    if (GetFlag(base.item, "feature:ignore")) {
+	      base = Next(base);
+	      continue;
+	    }
+	    String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
+	    String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
+	    Swig_warning(WARN_NONE, input_file, line_number,
+			 "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Objective-C.\n", proxyclassname, baseclassname);
+	    base = Next(base);
+	  }
+	}
+      }
+    }
+
+    bool derived = baseclass && getProxyName(c_baseclassname);
+    if (derived && purebase_notderived)
+      pure_baseclass = empty_string;
+    const String *wanted_base = baseclass ? baseclass : pure_baseclass;
+
+    if (purebase_replace) {
+      wanted_base = pure_baseclass;
+      derived = false;
+      Delete(baseclass);
+      baseclass = NULL;
+      if (purebase_notderived)
+	Swig_error(input_file, line_number, "The objcbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n",
+		   typemap_lookup_type);
+    } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
+      Swig_warning(WARN_NONE, input_file, line_number,
+		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Objective-C. "
+		   "Perhaps you need one of the 'replace' or 'notderived' attributes in the objcbase typemap?\n", typemap_lookup_type, pure_baseclass);
+    }
+    // Pure Objective-C interfaces
+    const String *pure_interfaces = typemapLookup(derived ? "objcinterfaces_derived" : "objcinterfaces", typemap_lookup_type, WARN_NONE);
+    // Start writing the proxy class
+    Printv(proxy_class_def, typemapLookup("objcimports", typemap_lookup_type, WARN_NONE),	// Import statements
+	   "\n", NIL);
+
+    // Class attributes
+    const String *objcattributes = typemapLookup("objcattributes", typemap_lookup_type, WARN_NONE);
+    if (objcattributes && *Char(objcattributes))
+      Printf(proxy_class_def, "%s\n", objcattributes);
+
+    Printv(proxy_class_decl, typemapLookup("objcclassinterface", typemap_lookup_type, WARN_NONE),	// Class modifiers
+	   " $objcclassname",	// Class name and base class
+	   (*Char(wanted_base) || *Char(pure_interfaces)) ? " : " : "", wanted_base, (*Char(wanted_base) && *Char(pure_interfaces)) ?	// Interfaces
+	   ", " : "", pure_interfaces, derived ? typemapLookup("objcbody_derived", typemap_lookup_type, WARN_NONE) :	// main body of class
+	   typemapLookup("objcbody", typemap_lookup_type, WARN_NONE),	// main body of class
+	   "\n", NIL);
+
+    Printv(proxy_class_def, typemapLookup("objcclassimplementation", typemap_lookup_type, WARN_NONE),	// Class modifiers
+	   " $objcclassname", NIL);
+
+    // Emit extra user code
+    Printv(proxy_class_def, typemapLookup("objccode", typemap_lookup_type, WARN_NONE),	// extra Objective-C code
+	   "\n", NIL);
+
+    // Substitute various strings into the above template
+    Replaceall(proxy_class_decl, "$objcclassname", proxy_class_name);
+    Replaceall(proxy_class_def, "$objcclassname", proxy_class_name);
+
+    Delete(baseclass);
   }
 
 
@@ -693,17 +873,19 @@ public:
       proxy_class_name = NewString(Getattr(n, "sym:name"));
       if (!addSymbol(proxy_class_name, n))
 	return SWIG_ERROR;
+
+      Clear(proxy_class_def);
+      Clear(proxy_class_decl);
+      proxyClassHandler(n);
+      Printv(proxy_h_code, proxy_class_decl, NIL);
+      Printv(proxy_m_code, proxy_class_def, NIL);
     }
 
     Language::classHandler(n);
 
     if (proxy_flag) {
-      emitProxyClassDeclaration(n);
-      Printv(f_proxy_h, proxy_class_decl, proxy_class_code, NIL);
-
-      emitProxyClassDefinition(n);
-      Printv(f_proxy_m, proxy_class_def, proxy_class_code, NIL);
-
+      Printv(proxy_h_code, "\n@end", NIL);
+      Printv(proxy_m_code, "\n@end", NIL);
       Delete(proxy_class_name);
       proxy_class_name = NULL;
     }

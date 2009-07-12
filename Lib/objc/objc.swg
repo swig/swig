@@ -10,7 +10,7 @@
 %include <objchead.swg>
 
 
-/* Following are the ocpptype typemaps which contain the Objective-C or C++ types used in the intermediary code */
+/* Following are the ocpptype typemaps which contain the Objective-C or C++ types used in the intermediary C code */
 // Primitive types
 %typemap(ocpptype) bool,               const bool &               "BOOL"
 %typemap(ocpptype) char,               const char &               "char"
@@ -127,14 +127,14 @@
 %typemap(objctype) void                                           "void"
 
 // Pointers, references and arrays
-%typemap(ocpptype) char *, char *&, char[ANY], char[]   "NSString *"
-%typemap(ocpptype) SWIGTYPE "$objcclassname *"
-%typemap(ocpptype) SWIGTYPE [] "NSMutableArray *" //TBD
-%typemap(ocpptype) SWIGTYPE *  "$objcclassname *" 
-%typemap(ocpptype) SWIGTYPE & "$objcclassname *"
+%typemap(objctype) char *, char *&, char[ANY], char[]   "NSString *"
+%typemap(objctype) SWIGTYPE "$objcclassname *"
+%typemap(objctype) SWIGTYPE [] "NSMutableArray *" //TBD
+%typemap(objctype) SWIGTYPE *  "$objcclassname *" 
+%typemap(objctype) SWIGTYPE & "$objcclassname *"
 
 // Pointer to a class member
-%typemap(ocpptype) SWIGTYPE (CLASS::*) "" //TBD
+%typemap(objctype) SWIGTYPE (CLASS::*) "" //TBD
 
 
 
@@ -301,3 +301,25 @@
 		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cMemberPtr] autorelease];
     return ret;
 }
+
+
+/* Objective-C specific directives */
+#define %objcconst(flag)              %feature("objc:const","flag")
+#define %objcconstvalue(value)        %feature("objc:constvalue",value)
+#define %objcenum(wrapapproach)       %feature("objc:enum","wrapapproach")
+#define %objcmethodmodifiers          %feature("objc:methodmodifiers")
+#define %objcnothrowexception         %feature("except")
+#define %objcattributes               %feature("objc:attributes")
+
+%pragma(objc) imclassclassmodifiers="class"
+%pragma(objc) moduleclassmodifiers="public class"
+
+%pragma(objc) moduleimports=%{
+using System;
+using System.Runtime.InteropServices;
+%}
+
+%pragma(objc) imclassimports=%{
+using System;
+using System.Runtime.InteropServices;
+%}
