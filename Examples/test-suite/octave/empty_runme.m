@@ -1,6 +1,8 @@
+empty
+
 printf("begin\n");
 who global
-empty
+
 printf("after load\n");
 who global
 

@@ -75,6 +75,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
 #if USE_OCTAVE_API_VERSION<37
   link_to_global_variable(curr_sym_tab->lookup(SWIG_name_d,true));
 #else
+  symbol_table::varref(SWIG_name_d);
   symbol_table::mark_global(SWIG_name_d);
 #endif
   set_global_value(SWIG_name_d,Swig::swig_value_ref(module_ns));
