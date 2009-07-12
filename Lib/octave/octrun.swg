@@ -439,9 +439,14 @@ namespace Swig {
 	  install_builtin_function(it->second.first->method, it->first,
 				   it->second.first->doc?it->second.first->doc:std::string());
 	else if (it->second.second.is_defined()) {
+#if USE_OCTAVE_API_VERSION<37
 	  link_to_global_variable(curr_sym_tab->lookup(it->first, true));
+#else 
+	  symbol_table::mark_global(it->first);
+#endif
 	  set_global_value(it->first, it->second.second);
 	  
+#if USE_OCTAVE_API_VERSION<37
 	  octave_swig_type *ost = Swig::swig_value_deref(it->second.second);
 	  if (ost) {
 	    const char* h = ost->help_text();
@@ -450,6 +455,7 @@ namespace Swig {
 	      sr->document(h);
 	    }
 	  }
+#endif
 	}
       }
     }
@@ -1352,6 +1358,10 @@ SWIGRUNTIME swig_module_info *SWIG_Octave_GetModule(void *clientdata) {
 SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *pointer) {
   octave_value ov = new octave_swig_packed(0, &pointer, sizeof(swig_module_info *));
   const char *module_var = "__SWIG_MODULE__" SWIG_TYPE_TABLE_NAME SWIG_RUNTIME_VERSION;
+#if USE_OCTAVE_API_VERSION<37
   link_to_global_variable(curr_sym_tab->lookup(module_var, true));
+#else
+  symbol_table::mark_global(module_var);
+#endif
   set_global_value(module_var, ov);
 }
