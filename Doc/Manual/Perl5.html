@@ -40,7 +40,7 @@
 <li><a href="#Perl5_nn24">Modules and packages</a>
 </ul>
 <li><a href="#Perl5_nn25">Input and output parameters</a>
-<li><a href="#Perl5_nn26">Exception handling </a>
+<li><a href="#Perl5_nn26">Exception handling</a>
 <li><a href="#Perl5_nn27">Remapping datatypes with typemaps</a>
 <ul>
 <li><a href="#Perl5_nn28">A simple typemap example</a>
@@ -50,8 +50,8 @@
 </ul>
 <li><a href="#Perl5_nn32">Typemap Examples</a>
 <ul>
-<li><a href="#Perl5_nn33">Converting a Perl5 array to a char ** </a>
-<li><a href="#Perl5_nn34">Return values </a>
+<li><a href="#Perl5_nn33">Converting a Perl5 array to a char **</a>
+<li><a href="#Perl5_nn34">Return values</a>
 <li><a href="#Perl5_nn35">Returning values from arguments</a>
 <li><a href="#Perl5_nn36">Accessing array structure members</a>
 <li><a href="#Perl5_nn37">Turning Perl references into C pointers</a>
@@ -892,7 +892,7 @@ if (defined($ptr)) {
 </pre></div>
 
 <p>
-To create a NULL pointer, you should pass the <tt>undef </tt>value to
+To create a NULL pointer, you should pass the <tt>undef</tt> value to
 a function.
 </p>
 
@@ -902,7 +902,7 @@ pointer that SWIG wrapper functions return.  Suppose that <tt>$a</tt>
 and <tt>$b</tt> are two references that point to the same C object.
 In general, <tt>$a</tt> and <tt>$b</tt> will be different--since they
 are different references.  Thus, it is a mistake to check the equality
-of <tt>$a </tt>and <tt>$b</tt> to check the equality of two C
+of <tt>$a</tt> and <tt>$b</tt> to check the equality of two C
 pointers.  The correct method to check equality of C pointers is to
 dereference them as follows :
 </p>
@@ -1580,7 +1580,7 @@ print "$c\n";
 <b>Note:</b> The <tt>REFERENCE</tt> feature is only currently supported for numeric types (integers and floating point).
 </p>
 
-<H2><a name="Perl5_nn26"></a>28.6 Exception handling </H2>
+<H2><a name="Perl5_nn26"></a>28.6 Exception handling</H2>
 
 
 <p>
@@ -2120,7 +2120,7 @@ might look at the files "<tt>perl5.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 </p>
 
-<H3><a name="Perl5_nn33"></a>28.8.1 Converting a Perl5 array to a char ** </H3>
+<H3><a name="Perl5_nn33"></a>28.8.1 Converting a Perl5 array to a char **</H3>
 
 
 <p>
@@ -2212,7 +2212,7 @@ print @$b,"\n";                                  # Print it out
 </pre></div>
 
 
-<H3><a name="Perl5_nn34"></a>28.8.2 Return values </H3>
+<H3><a name="Perl5_nn34"></a>28.8.2 Return values</H3>
 
 
 <p>
@@ -2727,7 +2727,7 @@ corresponding Perl object (this situation turns out to come up
 frequently when constructing objects like linked lists and trees).
 When C takes possession of an object, you can change Perl's ownership
 by simply deleting the object from the <tt>%OWNER</tt> hash.  This is
-done using the <tt>DISOWN </tt>method.
+done using the <tt>DISOWN</tt> method.
 </p>
 
 <div class="targetlang"><pre>
