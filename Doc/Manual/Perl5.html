@@ -815,7 +815,7 @@ extern char *path;       // Declared later in the input
 
 
 <p>
-Constants are wrapped as read-only Perl variables.  For example:
+By default, constants are wrapped as read-only Perl variables.  For example:
 </p>
 
 <div class="code">
@@ -835,6 +835,19 @@ In Perl:
 use example;
 print $example::FOO,"\n";    # OK
 $example::FOO = 2;           # Error
+</pre>
+</div>
+
+<p>
+Alternatively, if you use swig's <tt>-const</tt> option, constants are wrapped
+such that the leading $ isn't required (by using a constant subroutine), which
+usually gives a more natural Perl interface, for example:
+</p>
+
+<div class="targetlang">
+<pre>
+use example;
+print example::FOO,"\n";
 </pre>
 </div>
 
