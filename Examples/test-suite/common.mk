@@ -406,6 +406,7 @@ CPP0X_TEST_CASES = \
 	cpp0x_static_assert \
 	cpp0x_template_explicit \
 	cpp0x_thread_local
+#	cpp0x_smart_pointers # not supported by standard library yet
 #	cpp0x_constexpr # not supported by any compilers yet
 
 # Broken C++0x test cases.
