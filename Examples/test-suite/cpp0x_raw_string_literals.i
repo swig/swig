@@ -26,16 +26,17 @@ int u8R = 100;
 int uR  = 100;
 int UR  = 100;
 
-string a     ="ABC";
-wstring wide =L"ABC";
-string b     =u8"ABC";
-string c     =u"ABC";
-string d     =U"ABC";
+char      *a = "ABC";
+wstring wide = L"ABC";
+//char    *b = u8"ABC"; // not supported by GCC
+char16_t  *c = u"ABC";
+char32_t  *d = U"ABC";
 
-string e      =R"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
-wstring wide2 =LR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
-string f      =u8R"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
-string g      =uR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
-string h      =UR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
-
+/* Raw string literals are not supported by GCC yet */
+/*char       *e = R"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
+wstring wide2 = LR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
+char       *f = u8R"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
+char16_t   *g = uR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
+char32_t   *h = UR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
+*/
 %}
