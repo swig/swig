@@ -161,7 +161,7 @@ public:
 
   virtual int functionWrapper(Node *n) {
     
-    hasfunction_flag=true;
+    hasfunction_flag = true;
     
     /* A new wrapper function object */
     Wrapper *f = NewWrapper();
@@ -299,19 +299,19 @@ public:
 
     /* Insert the code checking for the number of input and output */
     int flag;
-    if(out_required==0) {
-      out_required=1;
-      flag=0;
+    if(out_required == 0) {
+      out_required = 1;
+      flag = 0;
     }
     else {
-      flag=1;
+      flag = 1;
     }
-    Printf(f->def,"CheckRhs(%d,%d);\n",num_required,num_required);
-    Printf(f->def,"CheckLhs(%d,%d);\n",out_required,out_required);
+    Printf(f->def, "CheckRhs(%d,%d);\n",num_required,num_required);
+    Printf(f->def, "CheckLhs(%d,%d);\n",out_required,out_required);
    
     /* Insert the order of output parameters*/
     if(flag)
-      Printf(f->def,"\nint iOutNum=1;\nint iVarOut=Rhs+1;");
+      Printf(f->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
    
     /* Finish the the code for the function  */
     Printf(f->code, "return 0;\n");	
@@ -322,7 +322,7 @@ public:
     /* Dump the wrapper function */
     Wrapper_print(f, f_wrappers);
     DelWrapper(f);
-    Printf(f_builder_code, "\"%s\",\"%s\";",iname,wname);
+    Printf(f_builder_code, "\"%s\",\"%s\";", iname, wname);
 
     Delete(overname);
     Delete(wname);
@@ -337,7 +337,7 @@ public:
 
   virtual int variableWrapper(Node *n) {
     
-    hasfunction_flag=true;
+    hasfunction_flag = true;
     
     /* Get the useful information from the node */
     String *name = Getattr(n, "name");
@@ -347,33 +347,33 @@ public:
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
     
-    String *rowname=NewString("");
-    String *colname=NewString("");
-    String *iscomplexname=NewString("");
-    Printf(rowname,"iRows_%s",iname);
-    Printf(colname,"iCols_%s",iname);
-    Printf(iscomplexname,"isComplex_%s",iname);
+    String *rowname = NewString("");
+    String *colname = NewString("");
+    String *iscomplexname = NewString("");
+    Printf(rowname, "iRows_%s", iname);
+    Printf(colname, "iCols_%s", iname);
+    Printf(iscomplexname, "isComplex_%s", iname);
     
     /* two wrapper function to get and set the variable */
     String *tm;
-    String *globalVar=NewString("");
+    String *globalVar = NewString("");
     Wrapper *getf = NewWrapper();
     Wrapper *setf = NewWrapper();
 
     String *getname = Swig_name_get(iname);
     String *setname = Swig_name_set(iname);
     
-    Printf(globalVar, "int %s=0;\n",rowname);
-    Printf(globalVar, "int %s=0;\n",colname);
-    if(!Strcmp(t,"p.double"))
-      Printf(globalVar, "int %s=0;\n\n",iscomplexname);
+    Printf(globalVar, "int %s=0;\n", rowname);
+    Printf(globalVar, "int %s=0;\n", colname);
+    if(!Strcmp(t, "p.double"))
+      Printf(globalVar, "int %s=0;\n\n", iscomplexname);
     else
-      Printf(globalVar,"\n");
+      Printf(globalVar, "\n");
     Printv(setf->def, "int ", setname, " (char *fname,unsigned long fname_len) {\n", NIL);
     
     /* Check the number of input and output */
-    Printf(setf->def,"CheckRhs(1,1);\n");
-    Printf(setf->def,"CheckLhs(1,1);\n");
+    Printf(setf->def, "CheckRhs(1,1);\n");
+    Printf(setf->def, "CheckLhs(1,1);\n");
     
     /* add the local variable */
     Wrapper_add_local(setf, "piAddrVar", "int *piAddrVar");
@@ -383,9 +383,9 @@ public:
       Setattr(n, "wrap:name", setname);
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
 	Replaceall(tm, "$argnum", "1");
-        Replaceall(tm,"iRows",rowname);
-        Replaceall(tm,"iCols",colname);
-        Replaceall(tm,"isComplex",iscomplexname);
+        Replaceall(tm, "iRows", rowname);
+        Replaceall(tm, "iCols", colname);
+        Replaceall(tm, "isComplex", iscomplexname);
 	emit_action_code(n, setf->code, tm);
 	Delete(tm);
       } else {
@@ -396,7 +396,7 @@ public:
     }
     Append(setf->code, "}\n");
     Wrapper_print(setf, f_wrappers);
-    Printf(f_builder_code, "\"%s\",\"%s\";",setname,setname);
+    Printf(f_builder_code, "\"%s\",\"%s\";", setname, setname);
     
     /* deal with the get function */
     Setattr(n, "wrap:name", getname);
@@ -404,17 +404,17 @@ public:
     Printv(getf->def, "int ", getname, " (char *fname,unsigned long fname_len){\n", NIL);
    
     /* Check the number of input and output */
-    Printf(getf->def,"CheckRhs(0,0);\n");
-    Printf(getf->def,"CheckLhs(1,1);\n");
+    Printf(getf->def, "CheckRhs(0,0);\n");
+    Printf(getf->def, "CheckLhs(1,1);\n");
     
     /* Insert the order of output parameters*/
-    Printf(getf->def,"\nint iOutNum=1;\nint iVarOut=Rhs+1;");
+    Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
    
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$result", name);
-      Replaceall(tm,"iRowsOut",rowname);
-      Replaceall(tm,"iColsOut",colname);
-      Replaceall(tm,"isComplex",iscomplexname);
+      Replaceall(tm, "iRowsOut", rowname);
+      Replaceall(tm, "iColsOut", colname);
+      Replaceall(tm, "isComplex", iscomplexname);
       addfail = emit_action_code(n, getf->code, tm);
       Delete(tm);
     } else {
@@ -424,8 +424,16 @@ public:
     /*Dump the wrapper function */ 
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
-    Printf(f_header,"%s",globalVar);
-    Printf(f_builder_code, "\"%s\",\"%s\";",getname,getname);
+    Printf(f_header,"%s", globalVar);
+    Printf(f_builder_code, "\"%s\",\"%s\";", getname, getname);
+    
+    Delete(rowname);
+    Delete(colname);
+    Delete(iscomplexname);
+    Delete(globalVar);
+    DelWrapper(setf);
+    DelWrapper(getf);
+    
 
     return SWIG_OK;
    }
@@ -437,40 +445,42 @@ public:
   virtual int constantWrapper(Node *n) {
     
     /* set the flag so to generate the example.sce */
-    hasconstant_flag=true;
+    hasconstant_flag = true;
    
     /* Get the useful information from the node */
     String *iname = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
-    String *tempvalue=NewString("");
+    String *tempvalue = NewString("");
     
     /* set the value format to be  the scilab format */
-    if(!Strcmp(type,"char")){
-      value=Getattr(n,"rawvalue");
-      char *temp=(Char(value));
-      tempvalue=NewString("ascii");
-      Printf(tempvalue,"(%i)",(int)*temp);
-      value=Copy(tempvalue);
+    if(!Strcmp(type, "char")){
+      value = Getattr(n, "rawvalue");
+      char *temp = (Char(value));
+      tempvalue = NewString("ascii");
+      Printf(tempvalue, "(%i)", (int)*temp);
+      value = Copy(tempvalue);
+      Delete(tempvalue);
     } 
     else{
-      if(!Strcmp(type,"p.char")){
-        char *temp=(Char(value));
-        int len=strlen(temp);
-        for(int i=0;i<len;++i){
-          if(temp[i]=='\\'){
-            temp[i]='"';
+      if(!Strcmp(type, "p.char")){
+        char *temp = (Char(value));
+        int len = strlen(temp);
+        for(int i=0; i<len; ++i){
+          if(temp[i] == '\\'){
+            temp[i] = '"';
             ++i;
           }
         }
-        Printf(tempvalue,"%s",temp);
-        value=Copy(tempvalue);
+        Printf(tempvalue, "%s",temp);
+        value = Copy(tempvalue);
       }
+      Delete(tempvalue);
     }
     
     /* write into the code string */
-    Printf(f_example_code, "example.%s = %s\n",iname,value);
+    Printf(f_example_code, "example.%s = %s\n", iname, value);
     
     return SWIG_OK;
   }
@@ -482,7 +492,7 @@ public:
   virtual int enumDeclaration(Node *n) {
     
     /* set the flag so to generate the example.sce */
-    hasconstant_flag=true;
+    hasconstant_flag = true;
     return Language::enumDeclaration(n);
   }
 
@@ -496,34 +506,34 @@ public:
     String *iname = Getattr(n, "sym:name");
     
     /* get the name of the enum name */
-    String *parentName=Getattr(parentNode(n), "sym:name");
+    String *parentName = Getattr(parentNode(n), "sym:name");
     
     /* set the name to be the enum.enumvalue format */
-    String *temp=Copy(parentName);
-    Printf(temp,".%s",iname);
-    Setattr(n,"sym:name",temp);
+    String *temp = Copy(parentName);
+    Printf(temp, ".%s", iname);
+    Setattr(n, "sym:name", temp);
    
     /* set the value attribute to be the integer */
     String *value;
-    String *enumvalue=Getattr(n,"enumvalue");
+    String *enumvalue = Getattr(n, "enumvalue");
     if(enumvalue) {
-      Setattr(n,"value",enumvalue);
+      Setattr(n, "value", enumvalue);
     }
     else {
-      if(n!=firstChild(parentNode(n))) {
-        enumvalue=Getattr(n,"enumvalueex");
-        value=Copy(parentName);
-        Printf(value,".%s",enumvalue);
-        Setattr(n,"value",value);
+      if(n != firstChild(parentNode(n))) {
+        enumvalue = Getattr(n, "enumvalueex");
+        value = Copy(parentName);
+        Printf(value, ".%s", enumvalue);
+        Setattr(n, "value", value);
       }
       else {
-        Setattr(n,"value",Getattr(n,"enumvalueex"));
+        Setattr(n, "value", Getattr(n, "enumvalueex"));
       }
     }
-    value=Getattr(n,"value");
+    value = Getattr(n, "value");
     
     /* write into the code string */
-    Printf(f_example_code, "%s.%s=%s;\n",parentName,iname,value);
+    Printf(f_example_code, "%s.%s=%s;\n", parentName, iname, value);
     
     return SWIG_OK;
     }

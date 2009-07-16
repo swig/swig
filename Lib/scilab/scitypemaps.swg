@@ -337,35 +337,35 @@
  * ----------------------------------------------------------------------------- */
 
 /* Basic C types */
-%typemap(out) signed char (int iRowsOut,int iColsOut,int* _piAddress) {
+%typemap(out) signed char (int iRowsOut,int iColsOut) {
   char temp;
   temp=(char)($result);
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, &temp, &_piAddress);
+  createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum)=iVarOut;
 }
 
-%typemap(out) short (int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned char (int iRowsOut,int iColsOut,int* _piAddress) {
+%typemap(out) short (int iRowsOut,int iColsOut),
+              unsigned char (int iRowsOut,int iColsOut) {
   short temp;
   temp=(short)($result);
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &temp, &_piAddress);
+  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum)=iVarOut;
 }
 
-%typemap(out) int (int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned int (int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned short (int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned long (int iRowsOut,int iColsOut,int* _piAddress),
-              long (int iRowsOut,int iColsOut,int* _piAddress) {
+%typemap(out) int (int iRowsOut,int iColsOut),
+              unsigned int (int iRowsOut,int iColsOut),
+              unsigned short (int iRowsOut,int iColsOut),
+              unsigned long (int iRowsOut,int iColsOut),
+              long (int iRowsOut,int iColsOut) {
   int temp;
   temp=(int)($result);
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &temp, &_piAddress);
+  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum)=iVarOut;
 }
 
@@ -392,35 +392,35 @@
 }
 
 /* Pointers */
-%typemap(out) signed char *(int iRowsOut,int iColsOut,int* _piAddress) {
+%typemap(out) signed char *(int iRowsOut,int iColsOut) {
   char *temp;
   temp=(char *)($result);
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, temp, &_piAddress);
+  createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, temp);
   LhsVar(iOutNum)=iVarOut;
 }
 
-%typemap(out) short *(int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned char *(int iRowsOut,int iColsOut,int* _piAddress) {
+%typemap(out) short *(int iRowsOut,int iColsOut),
+              unsigned char *(int iRowsOut,int iColsOut) {
   short *temp;
   temp=(short *)($result);
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, temp, &_piAddress);
+  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, temp);
   LhsVar(iOutNum)=iVarOut;
 }
 
-%typemap(out) int *(int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned int *(int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned short *(int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned long *(int iRowsOut,int iColsOut,int* _piAddress),
-              long *(int iRowsOut,int iColsOut,int* _piAddress) {
+%typemap(out) int *(int iRowsOut,int iColsOut),
+              unsigned int *(int iRowsOut,int iColsOut),
+              unsigned short *(int iRowsOut,int iColsOut),
+              unsigned long *(int iRowsOut,int iColsOut),
+              long *(int iRowsOut,int iColsOut) {
   int *temp;
   temp=(int *)($result);
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, temp, &_piAddress);
+  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, temp);
   LhsVar(iOutNum)=iVarOut;
 }
 
@@ -549,22 +549,19 @@
  * ----------------------------------------------------------------------------- */
 /* Basic C types */
 %typemap(varout,noblock=1) signed char {
-  int* _piAddress;
-  createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, &$result, &_piAddress);
+  createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, &$result);
   LhsVar(iOutNum)=iVarOut;
 }
 
 %typemap(varout,noblock=1) short {
-  int* _piAddress;
-  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &$result, &_piAddress);
+  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &$result);
   LhsVar(iOutNum)=iVarOut;
 }
 
 %typemap(varout,noblock=1) unsigned char {
-  int* _piAddress;
   short temp;
   temp=$result;
-  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &temp, &_piAddress);
+  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum)=iVarOut;
 }
 
@@ -573,8 +570,7 @@
                            unsigned short,
                            unsigned long,
                            long {
-  int* _piAddress;
-  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &$result, &_piAddress);
+  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &$result);
   LhsVar(iOutNum)=iVarOut;
 }
 
