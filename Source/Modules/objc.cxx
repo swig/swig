@@ -12,6 +12,7 @@ protected:
   static const char *usage;
   const String *empty_string;
 
+  Hash *swig_types_hash;
   File *f_ocpp_h;
   File *f_ocpp_mm;
   File *f_runtime;
@@ -37,6 +38,7 @@ protected:
 
 public:
    OBJC():empty_string(NewString("")),
+      swig_types_hash(NULL),
       f_ocpp_h(NULL),
       f_ocpp_mm(NULL),
       f_proxy_h(NULL),
@@ -125,6 +127,7 @@ public:
     proxy_m_code = NewString("");
     proxy_class_decl = NewString("");
     proxy_class_def = NewString("");
+    swig_types_hash = NewHash();
 
     // Emit code for children
     Language::top(n);
@@ -200,6 +203,8 @@ public:
       Delete(ocpp_h_code);
       ocpp_h_code = NULL;
 
+      Delete(swig_types_hash);
+      swig_types_hash = NULL;
       Delete(f_header);
       Delete(f_wrappers);
       Delete(f_init);
@@ -238,6 +243,108 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
+   * getEnumName()
+   * ----------------------------------------------------------------------------- */
+
+  String *getEnumName(SwigType *t) {
+    Node *enum_name = NULL;
+    Node *n = enumLookup(t);
+    if (n) {
+      String *symname = Getattr(n, "sym:name");
+      if (symname) {
+	// Add in class scope when referencing enum if not a global enum
+	String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
+	String *proxyname = 0;
+	if (scopename_prefix) {
+	  proxyname = getProxyName(scopename_prefix);
+	}
+	if (proxyname)
+	  enum_name = NewStringf("%s.%s", proxyname, symname);
+	else
+	  enum_name = NewStringf("%s", symname);
+	Delete(scopename_prefix);
+      }
+    }
+
+    return enum_name;
+  }
+
+
+  /* -----------------------------------------------------------------------------
+   * substituteClassname()
+   *
+   * Substitute $objcclassname with the proxy class name for classes/structs/unions that SWIG knows about.
+   * Also substitutes enums with enum name.
+   * Otherwise use the $descriptor name for the C# class name. Note that the $&objcclassname substitution
+   * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
+   * Inputs:
+   *   pt - parameter type
+   *   tm - cstype typemap
+   * Outputs:
+   *   tm - cstype typemap with $objcclassname substitution
+   * Return:
+   *   substitution_performed - flag indicating if a substitution was performed
+   * ----------------------------------------------------------------------------- */
+
+  bool substituteClassname(SwigType *pt, String *tm) {
+    bool substitution_performed = false;
+    SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+
+    if (Strstr(tm, "$objcclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$objcclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$*objcclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      Delete(SwigType_pop(classnametype));
+      substituteClassnameSpecialVariable(classnametype, tm, "$*objcclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$&objcclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      SwigType_add_pointer(classnametype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$&objcclassname");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+
+    Delete(strippedtype);
+    Delete(type);
+
+    return substitution_performed;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteClassnameSpecialVariable()
+   * ----------------------------------------------------------------------------- */
+
+  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+    if (SwigType_isenum(classnametype)) {
+      String *enumname = getEnumName(classnametype);
+      if (enumname)
+	Replaceall(tm, classnamespecialvariable, enumname);
+      else
+	Replaceall(tm, classnamespecialvariable, NewStringf("int"));
+    } else {
+      String *classname = getProxyName(classnametype);
+      if (classname) {
+	Replaceall(tm, classnamespecialvariable, classname);	// getProxyName() works for pointers to classes too
+      } else {			// use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+	String *descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+	Replaceall(tm, classnamespecialvariable, descriptor);
+
+	// Add to hash table so that the type wrapper classes can be created later
+	Setattr(swig_types_hash, descriptor, classnametype);
+	Delete(descriptor);
+      }
+    }
+  }
+
+  /* -----------------------------------------------------------------------------
    * makeParameterName()
    *
    * Inputs: 
@@ -268,17 +375,170 @@ public:
     return arg;
   }
 
+
   /* -----------------------------------------------------------------------------
-   * proxyFunctionHandler()
+   * proxyGlobalFunctionHandler()
+   *
+   * C global functions are mapped to Objective-C global functions.
+   * ----------------------------------------------------------------------------- */
+
+  void proxyGlobalFunctionHandler(Node *n) {
+    SwigType *t = Getattr(n, "type");
+    ParmList *l = Getattr(n, "parms");
+    String *ocpp_function_name = Getattr(n, "ocppfuncname");
+    String *proxy_function_name = Getattr(n, "proxyfuncname");
+    String *tm;
+    Parm *p;
+    Parm *last_parm = 0;
+    int i;
+    String *imcall = NewString("");
+    String *return_type = NewString("");
+    String *function_def = NewString("");
+    String *function_decl = NewString("");
+
+    bool setter_flag = false;
+
+    if (!proxy_flag)
+      return;
+
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in Objective-C
+    if (Getattr(n, "overload:ignore"))
+      return;
+
+    if (l) {
+      if (SwigType_type(Getattr(l, "type")) == T_VOID) {
+	l = nextSibling(l);
+      }
+    }
+
+    /* Attach the non-standard typemaps to the parameter list */
+    Swig_typemap_attach_parms("in", l, NULL);
+    Swig_typemap_attach_parms("objctype", l, NULL);
+    Swig_typemap_attach_parms("objcin", l, NULL);
+
+    /* Get return types */
+    if ((tm = Swig_typemap_lookup("objctype", n, "", 0))) {
+      String *objctypeout = Getattr(n, "tmap:objctype:out");	// the type in the objctype typemap's out attribute overrides the type in the typemap
+      if (objctypeout)
+	tm = objctypeout;
+      substituteClassname(t, tm);
+      Printf(return_type, "%s", tm);
+    } else {
+      Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(t, 0));
+    }
+
+    /* Start generating the proxy function */
+    const String *outattributes = Getattr(n, "tmap:objctype:outattributes");
+    if (outattributes)
+      Printf(function_decl, "  %s\n", outattributes);
+    const String *objcattributes = Getattr(n, "feature:objc:attributes");
+    if (objcattributes)
+      Printf(function_decl, "  %s\n", objcattributes);
+
+    if (static_flag)
+      Printf(function_decl, "static ");
+
+    Printf(function_decl, "%s %s(", return_type, proxy_function_name);
+
+    Printv(imcall, "$ocppfuncname(", NIL);
+
+    emit_mark_varargs(l);
+
+    int gencomma = !static_flag;
+
+    /* Output each parameter */
+    for (i = 0, p = l; p; i++) {
+
+      /* Ignored varargs */
+      if (checkAttribute(p, "varargs:ignore", "1")) {
+	p = nextSibling(p);
+	continue;
+      }
+
+      /* Ignored parameters */
+      if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	p = Getattr(p, "tmap:in:next");
+	continue;
+      }
+
+      /* Ignore the 'this' argument for variable wrappers */
+      if (!(variable_wrapper_flag && i == 0)) {
+	SwigType *pt = Getattr(p, "type");
+	String *param_type = NewString("");
+	if (setter_flag)
+	  last_parm = p;
+
+	/* Get the Objective-C parameter type */
+	if ((tm = Getattr(p, "tmap:objctype"))) {
+	  substituteClassname(t, tm);
+	  const String *inattributes = Getattr(p, "tmap:objctype:inattributes");
+	  Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
+	} else {
+	  Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(pt, 0));
+	}
+
+	String *arg = makeParameterName(n, p, i);
+
+	// Use typemaps to transform type used in Objective-C proxy function to the one used in intermediate code.
+	if ((tm = Getattr(p, "tmap:objcin"))) {
+	  substituteClassname(pt, tm);
+	  Replaceall(tm, "$objcinput", arg);
+	  Printv(imcall, tm, NIL);
+	} else {
+	  Swig_warning(WARN_NONE, input_file, line_number, "No objcin typemap defined for %s\n", SwigType_str(pt, 0));
+	}
+
+	/* Add parameter to proxy function */
+	if (gencomma >= 2)
+	  Printf(function_decl, ", ");
+	gencomma = 2;
+	Printf(function_decl, "%s %s", param_type, arg);
+
+	Delete(arg);
+	Delete(param_type);
+      }
+      p = Getattr(p, "tmap:in:next");
+    }
+
+    Printf(imcall, ")");
+    Printf(function_decl, ")");
+    Printv(function_def, function_decl, NIL);
+    Printf(function_decl, ";\n");
+
+    // Transform return type used in low level accessor to type used in Objective-C proxy function 
+    if ((tm = Swig_typemap_lookup("objcout", n, "", 0))) {
+      if (GetFlag(n, "feature:new"))
+	Replaceall(tm, "$owner", "true");
+      else
+	Replaceall(tm, "$owner", "false");
+      substituteClassname(t, tm);
+      Replaceall(imcall, "$ocppfuncname", ocpp_function_name);
+      Replaceall(tm, "$imcall", imcall);
+    } else {
+      Swig_warning(WARN_NONE, input_file, line_number, "No objcout typemap defined for %s\n", SwigType_str(t, 0));
+    }
+
+    Printf(function_def, " %s\n\n", tm ? (const String *) tm : empty_string);
+    Printv(proxy_h_code, function_decl, NIL);
+    Printv(proxy_m_code, function_def, NIL);
+
+    Delete(function_decl);
+    Delete(function_def);
+    Delete(return_type);
+    Delete(imcall);
+  }
+
+
+  /* -----------------------------------------------------------------------------
+   * proxyClassFunctionHandler()
    *
    * Function called for creating an Objective-C proxy function around a c++ function 
    * Used for static and non-static C++ class function and C global functions.
    * C++ class static functions map to Objective-C "+" functions.
    * C++ class non-static functions map to Objective-C "-" functions.
-   * C global functions are mapped to Objective-C global functions.
    * ----------------------------------------------------------------------------- */
 
-  void proxyFunctionHandler(Node *n) {
+  void proxyClassFunctionHandler(Node *n) {
     SwigType *t = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *ocpp_function_name = Getattr(n, "ocppfuncname");
@@ -335,7 +595,7 @@ public:
     else
       Printf(function_decl, "- ");
 
-    Printf(function_decl, "(%s) %s", return_type, proxy_function_name);
+    Printf(function_decl, "(%s)%s", return_type, proxy_function_name);
 
     Printv(imcall, "$ocppfuncname(", NIL);
 
@@ -369,6 +629,7 @@ public:
 
 	/* Get the Objective-C parameter type */
 	if ((tm = Getattr(p, "tmap:objctype"))) {
+	  substituteClassname(pt, tm);
 	  const String *inattributes = Getattr(p, "tmap:objctype:inattributes");
 	  Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
 	} else {
@@ -382,6 +643,7 @@ public:
 	}
 	// Use typemaps to transform type used in Objective-C proxy function to type used in low level ocpp accessor
 	if ((tm = Getattr(p, "tmap:objcin"))) {
+	  substituteClassname(pt, tm);
 	  Replaceall(tm, "$objcinput", arg);
 	  Printv(imcall, tm, NIL);
 	} else {
@@ -392,9 +654,9 @@ public:
 	if (i == 0)
 	  Printf(function_decl, ":");
 	else
-	  Printf(function_decl, "%s: ", arg);
+	  Printf(function_decl, " %s: ", arg);
 
-	Printf(function_decl, "(%s)%s", param_type, arg);
+	Printf(function_decl, " (%s)%s", param_type, arg);
 
 	Delete(arg);
 	Delete(param_type);
@@ -412,6 +674,7 @@ public:
 	Replaceall(tm, "$owner", "true");
       else
 	Replaceall(tm, "$owner", "false");
+      substituteClassname(t, tm);
       Replaceall(imcall, "$ocppfuncname", ocpp_function_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
@@ -679,7 +942,7 @@ public:
       String *wname = Swig_name_wrapper(overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "ocppfuncname", wname);
-      proxyFunctionHandler(n);
+      proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
     return SWIG_OK;
@@ -699,7 +962,7 @@ public:
       String *wname = Swig_name_wrapper(overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "ocppfuncname", wname);
-      proxyFunctionHandler(n);
+      proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
     static_flag = false;
@@ -718,7 +981,7 @@ public:
       String *wname = Swig_name_wrapper(overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "ocppfuncname", wname);
-      proxyFunctionHandler(n);
+      proxyGlobalFunctionHandler(n);
       Delete(overloaded_name);
     }
     return SWIG_OK;
@@ -884,8 +1147,8 @@ public:
     Language::classHandler(n);
 
     if (proxy_flag) {
-      Printv(proxy_h_code, "\n@end", NIL);
-      Printv(proxy_m_code, "\n@end", NIL);
+      Printv(proxy_h_code, "@end\n\n", NIL);
+      Printv(proxy_m_code, "@end\n\n", NIL);
       Delete(proxy_class_name);
       proxy_class_name = NULL;
     }
