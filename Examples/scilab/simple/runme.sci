@@ -22,3 +22,5 @@ Foo_set(3.1415926)
 // See if the change took effect
 Foo_get()
 
+exit
+

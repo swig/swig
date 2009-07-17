@@ -20,3 +20,5 @@ try
 catch
   printf("FOO is not defined (good)\n");
 end
+
+exit

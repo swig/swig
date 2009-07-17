@@ -63,7 +63,7 @@ or you can use the %apply directive :
 	     unsigned long *INPUT (int *piAddrVar, int iRows, int iCols, unsigned long temp),
 	     float *INPUT (int *piAddrVar, int iRows, int iCols, float temp),
 	     double *INPUT (int *piAddrVar, int iRows, int iCols, double temp) {
-  double* _piData;
+  double *_piData;
   getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
   
@@ -71,8 +71,8 @@ or you can use the %apply directive :
     Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData);
-  temp=($*1_ltype)*_piData;
-  $1=&temp;
+  temp = ($*1_ltype)*_piData;
+  $1 = &temp;
 }
 #undef INPUT_TYPEMAP
                  
@@ -133,44 +133,44 @@ output values.
 	     unsigned long *OUTPUT (unsigned long temp),
 	     float *OUTPUT (float temp),
 	     double *OUTPUT (double temp) {
-  $1=($1_ltype)&temp;
+  $1 = ($1_ltype)&temp;
 }
 
-%typemap(argout) signed char *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress) {
+%typemap(argout) signed char *OUTPUT(int iRowsOut, int iColsOut) {
+  iRowsOut = 1; 
+  iColsOut = 1;
+  createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(argout) short *OUTPUT(int iRowsOut, int iColsOut),
+              unsigned char *OUTPUT(int iRowsOut, int iColsOut) {
+  iRowsOut = 1; 
+  iColsOut = 1;
+  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(argout) int *OUTPUT(int iRowsOut,int iColsOut),
+              unsigned int *OUTPUT(int iRowsOut,int iColsOut),
+              unsigned short *OUTPUT(int iRowsOut,int iColsOut),
+              unsigned long *OUTPUT(int iRowsOut,int iColsOut),
+              long *OUTPUT(int iRowsOut,int iColsOut) {
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, &temp$argnum, &_piAddress);
+  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &temp$argnum);
   LhsVar(iOutNum)=iVarOut;
 }
 
-%typemap(argout) short *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned char *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress) {
-  iRowsOut=1; 
-  iColsOut=1;
-  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &temp$argnum, &_piAddress);
-  LhsVar(iOutNum)=iVarOut;
-}
 
-%typemap(argout) int *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned int *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned short *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress),
-              unsigned long *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress),
-              long *OUTPUT(int iRowsOut,int iColsOut,int* _piAddress) {
-  iRowsOut=1; 
-  iColsOut=1;
-  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &temp$argnum, &_piAddress);
-  LhsVar(iOutNum)=iVarOut;
-}
-
-
-%typemap(argout) double *OUTPUT(int iRowsOut,int iColsOut),
-              float *OUTPUT(int iRowsOut,int iColsOut) {
+%typemap(argout) double *OUTPUT(int iRowsOut, int iColsOut),
+              float *OUTPUT(int iRowsOut, int iColsOut) {
   double temp;
-  temp=(double)(*$result);
-  iRowsOut=1; 
-  iColsOut=1;
+  temp = (double)(*$result);
+  iRowsOut = 1; 
+  iColsOut = 1;
   createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, &temp$argnum);
-  LhsVar(iOutNum)=iVarOut;
+  LhsVar(iOutNum) = iVarOut;
 }
 
 

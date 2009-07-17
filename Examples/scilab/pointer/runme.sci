@@ -18,3 +18,5 @@ printf("Testing multiple return values\n");
 [q,r] = divide(42,37);
 printf("     42/37 = %d remainder %d\n",q,r);
 
+exit
+

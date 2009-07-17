@@ -17,8 +17,12 @@
     extern float            fvar;
     extern double           dvar;
     extern char            *strvar;
+    extern char             name[256];
     extern double          *Foo1;
     extern double          *Foo2;
+    extern int             *pivar;
+    extern short             *psvar;
+    extern char            **foo;
 %}
 
 

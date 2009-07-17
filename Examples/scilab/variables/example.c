@@ -23,9 +23,12 @@ char             cvar = 0;
 float            fvar = 0;
 double           dvar = 0;
 char            *strvar=0;
+char             name[5] = "Dave";
 double          *Foo1;
 double          *Foo2;
-
+int             *pivar;
+short           *psvar;
+char            **foo;
 
 
 /* A debugging function to print out their values */
@@ -43,6 +46,7 @@ void print_vars() {
   printf("dvar      = %g\n", dvar);
   printf("cvar      = %c\n", cvar);
   printf("strvar    = %s\n",strvar);
+  printf("name      = %c%c%c%c%c\n", name[0],name[1],name[2],name[3],name[4]);
 }
 
 

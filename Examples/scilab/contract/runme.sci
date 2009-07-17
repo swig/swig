@@ -32,3 +32,7 @@ y=105;
 g=gcd(x,y);
 printf("The gcd of %d and %d is %d\n",x,y,g);
 
+exit
+
+
+

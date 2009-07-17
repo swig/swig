@@ -20,3 +20,5 @@ enum_test(color.BLUE);
 enum_test(color.GREEN);
 enum_test(1234);
 
+exit
+
