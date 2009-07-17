@@ -340,6 +340,8 @@ int yylook(void) {
       return GREATERTHANOREQUALTO;
     case SWIG_TOKEN_RSHIFT:
       return RSHIFT;
+    case SWIG_TOKEN_ARROW:
+      return ARROW;
     case SWIG_TOKEN_PERIOD:
       return PERIOD;
     case SWIG_TOKEN_MODULO:
@@ -592,6 +594,10 @@ int yylex(void) {
       if (strcmp(yytext, "bool") == 0) {
 	yylval.type = NewSwigType(T_BOOL);
 	return (TYPE_BOOL);
+      }
+      if (strcmp(yytext, "auto") == 0) {
+	yylval.type = NewSwigType(T_AUTO);
+	return (TYPE_AUTO);
       }
 
       /* Non ISO (Windows) C extensions */

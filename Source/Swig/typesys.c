@@ -1257,6 +1257,8 @@ int SwigType_type(SwigType *t) {
     return T_ULONGLONG;
   if (strncmp(c, "enum ", 5) == 0)
     return T_INT;
+  if (strcmp(c, "auto") == 0)
+    return T_AUTO;
 
   if (strcmp(c, "v(...)") == 0)
     return T_VARARGS;

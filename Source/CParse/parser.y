@@ -1486,7 +1486,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token <str> CHARCONST 
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG
 %token <ivalue> TYPEDEF
-%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
+%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64 TYPE_AUTO
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
@@ -1501,6 +1501,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token WARN 
 %token LESSTHAN GREATERTHAN MODULO DELETE_KW
 %token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO
+%token ARROW
 %token QUESTIONMARK
 %token TYPES PARMS
 %token NONID DSTAR DCNOT
@@ -1534,7 +1535,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
-%type <node>     c_declaration c_decl c_decl_tail c_enum_decl c_enum_forward_decl c_constructor_decl ;
+%type <node>     c_declaration c_decl c_decl_tail c_enum_decl c_enum_forward_decl c_constructor_decl c_rettype ;
 %type <node>     enumlist edecl;
 
 /* C++ declarations */
@@ -2939,25 +2940,25 @@ c_declaration   : c_decl {
    A C global declaration of some kind (may be variable, function, typedef, etc.)
    ------------------------------------------------------------ */
 
-c_decl  : storage_class type declarator initializer c_decl_tail {
+c_decl  : storage_class type declarator c_rettype initializer c_decl_tail {
               $$ = new_node("cdecl");
-	      if ($4.qualifier) SwigType_push($3.type,$4.qualifier);
+	      if ($5.qualifier) SwigType_push($3.type,$5.qualifier);
 	      Setattr($$,"type",$2);
 	      Setattr($$,"storage",$1);
 	      Setattr($$,"name",$3.id);
 	      Setattr($$,"decl",$3.type);
 	      Setattr($$,"parms",$3.parms);
-	      Setattr($$,"value",$4.val);
-	      Setattr($$,"throws",$4.throws);
-	      Setattr($$,"throw",$4.throwf);
-	      if (!$5) {
+	      Setattr($$,"value",$5.val);
+	      Setattr($$,"throws",$5.throws);
+	      Setattr($$,"throw",$5.throwf);
+	      if (!$6) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
 		  Delete(code);
 		}
 	      } else {
-		Node *n = $5;
+		Node *n = $6;
 		/* Inherit attributes */
 		while (n) {
 		  String *type = Copy($2);
@@ -2967,8 +2968,8 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		  Delete(type);
 		}
 	      }
-	      if ($4.bitfield) {
-		Setattr($$,"bitfield", $4.bitfield);
+	      if ($5.bitfield) {
+		Setattr($$,"bitfield", $5.bitfield);
 	      }
 
 	      /* Look for "::" declarations (ignored) */
@@ -2982,22 +2983,33 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		    String *lstr = Swig_scopename_last($3.id);
 		    Setattr($$,"name",lstr);
 		    Delete(lstr);
-		    set_nextSibling($$,$5);
+		    set_nextSibling($$,$6);
 		  } else {
 		    Delete($$);
-		    $$ = $5;
+		    $$ = $6;
 		  }
 		  Delete(p);
 		} else {
 		  Delete($$);
-		  $$ = $5;
+		  $$ = $6;
 		}
 	      } else {
-		set_nextSibling($$,$5);
+		set_nextSibling($$,$6);
 	      }
            }
            ;
 
+/* Alternate function syntax:
+   auto funcName(int x, int y) -> int; */
+
+c_rettype : ARROW type {
+              $$ = new_node("rettype");
+	      Setattr($$,"type",$2);
+          }
+          | empty {
+              $$ = 0;
+          }
+          ;
 /* Allow lists of variables and functions to be built up */
 
 c_decl_tail    : SEMI { 
@@ -5209,6 +5221,7 @@ type_right     : primitive_type { $$ = $1;
                 }
                | TYPE_BOOL { $$ = $1; }
                | TYPE_VOID { $$ = $1; }
+               | TYPE_AUTO { $$ = $1; }
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
                | ENUM idcolon { $$ = NewStringf("enum %s", $2); }
                | TYPE_RAW { $$ = $1; }

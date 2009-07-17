@@ -73,6 +73,7 @@ extern "C" {
 #define   T_FLTCPLX    23
 #define   T_DBLCPLX    24
 #define   T_NUMERIC    25
+#define   T_AUTO       26
 
 #define   T_COMPLEX    T_DBLCPLX
 

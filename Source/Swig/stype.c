@@ -141,6 +141,9 @@ SwigType *NewSwigType(int t) {
   case T_VOID:
     return NewString("void");
     break;
+  case T_AUTO:
+    return NewString("auto");
+    break;
   default:
     break;
   }
