@@ -5846,6 +5846,17 @@ mem_initializer : idcolon LPAREN {
 	            skip_balanced('(',')');
                     Clear(scanner_ccode);
             	}
+                | idcolon LBRACE {
+                /* Uniform initialization. eg.
+                   struct MyStruct {
+                     MyStruct(int x, double y) : x_{x}, y_{y} {}
+                     int x_;
+                     double y_;
+                   };
+                */
+	            skip_balanced('{','}');
+                    Clear(scanner_ccode);
+                }
                 ;
 
 template_decl : LESSTHAN valparms GREATERTHAN { 
