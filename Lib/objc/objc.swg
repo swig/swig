@@ -233,6 +233,47 @@
 %typemap(objcinterfaces)                SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(objcinterfaces_derived)        SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 
+// Proxy classes (base classes, ie, not derived classes)
+%typemap(objcinterface) SWIGTYPE %{
+{
+	void *swigCPtr;
+}
+- (void*)getCptr;
+- (id)initWithCptr: (void*) cptr;
+%}
+
+%typemap(objcbody) SWIGTYPE %{
+- (void*)getCptr {
+	return swigCPtr;
+}
+
+- (id)initWithCptr: (void*) cptr{
+	if(self = [super init]) {
+		swigCPtr = cptr;
+	}
+	return self;
+}
+%}
+
+
+// Derived proxy classes
+%typemap(objcinterface_derived) SWIGTYPE ""
+
+%typemap(objcbody_derived) SWIGTYPE %{
+ -(void*)getCptr {
+	return swigCPtr;
+}
+
+-(id)initWithCptr: (void*) cptr{
+	if(self = [super init]) {
+		swigCPtr = cptr;
+	}
+	return self;
+}
+%}
+
+
+
 
 /* Following are the typemaps used for Objective-C setter and getters for global variables */
 // Primitive types
@@ -277,12 +318,13 @@
     void *cPtr = $imcall;
 		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cPtr] autorelease];
     return ret;
-  }
+}
+	
 %typemap(objcvarout) SWIGTYPE & { //TBD
 		void *cPtr = $imcall;
 		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cPtr] autorelease];
     return ret;
-  }
+}
 	
 // TBD: below we need to see if this $objcclassname is Class pointer or some other pointer
 // Also see the memory management part
@@ -310,16 +352,3 @@
 #define %objcmethodmodifiers          %feature("objc:methodmodifiers")
 #define %objcnothrowexception         %feature("except")
 #define %objcattributes               %feature("objc:attributes")
-
-%pragma(objc) imclassclassmodifiers="class"
-%pragma(objc) moduleclassmodifiers="public class"
-
-%pragma(objc) moduleimports=%{
-using System;
-using System.Runtime.InteropServices;
-%}
-
-%pragma(objc) imclassimports=%{
-using System;
-using System.Runtime.InteropServices;
-%}

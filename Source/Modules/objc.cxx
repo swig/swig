@@ -205,6 +205,11 @@ public:
 
       Delete(swig_types_hash);
       swig_types_hash = NULL;
+      Delete(proxy_class_def);
+      proxy_class_def = NULL;
+      Delete(proxy_class_decl);
+      proxy_class_decl = NULL;
+
       Delete(f_header);
       Delete(f_wrappers);
       Delete(f_init);
@@ -275,13 +280,13 @@ public:
    *
    * Substitute $objcclassname with the proxy class name for classes/structs/unions that SWIG knows about.
    * Also substitutes enums with enum name.
-   * Otherwise use the $descriptor name for the C# class name. Note that the $&objcclassname substitution
+   * Otherwise use the $descriptor name for the Objective-C class name. Note that the $&objcclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
    * Inputs:
    *   pt - parameter type
-   *   tm - cstype typemap
+   *   tm - objctype typemap
    * Outputs:
-   *   tm - cstype typemap with $objcclassname substitution
+   *   tm - objctype typemap with $objcclassname substitution
    * Return:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
@@ -351,7 +356,6 @@ public:
    *   n - Node
    *   p - parameter node
    *   arg_num - parameter argument number
-   *   setter  - set this flag when wrapping variables
    * Return:
    *   arg - a unique parameter name
    * ----------------------------------------------------------------------------- */
@@ -939,10 +943,12 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *wname = Swig_name_wrapper(overloaded_name);
+      String *imfunctname = Swig_name_member(proxy_class_name, overloaded_name);
+      String *ocppfunctname = NewStringf("ObjCPP_%s", imfunctname);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
-      Setattr(n, "ocppfuncname", wname);
+      Setattr(n, "ocppfuncname", ocppfunctname);
       proxyClassFunctionHandler(n);
+      Delete(imfunctname);
       Delete(overloaded_name);
     }
     return SWIG_OK;
@@ -959,12 +965,15 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *wname = Swig_name_wrapper(overloaded_name);
+      String *imfunctname = Swig_name_member(proxy_class_name, overloaded_name);
+      String *ocppfunctname = NewStringf("ObjCPP_%s", imfunctname);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
-      Setattr(n, "ocppfuncname", wname);
+      Setattr(n, "ocppfuncname", ocppfunctname);
       proxyClassFunctionHandler(n);
+      Delete(imfunctname);
       Delete(overloaded_name);
     }
+
     static_flag = false;
 
     return SWIG_OK;
@@ -978,12 +987,13 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *wname = Swig_name_wrapper(overloaded_name);
+      String *intermediary_function_name = Swig_name_wrapper(overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
-      Setattr(n, "ocppfuncname", wname);
+      Setattr(n, "ocppfuncname", intermediary_function_name);
       proxyGlobalFunctionHandler(n);
       Delete(overloaded_name);
     }
+
     return SWIG_OK;
   }
 
@@ -1033,7 +1043,6 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void proxyClassHandler(Node *n) {
-    String *c_classname = SwigType_namestr(Getattr(n, "name"));
     String *c_baseclass = NULL;
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
@@ -1078,7 +1087,7 @@ public:
 
     bool derived = baseclass && getProxyName(c_baseclassname);
     if (derived && purebase_notderived)
-      pure_baseclass = empty_string;
+      pure_baseclass = "NSObject";
     const String *wanted_base = baseclass ? baseclass : pure_baseclass;
 
     if (purebase_replace) {
@@ -1108,12 +1117,14 @@ public:
     Printv(proxy_class_decl, typemapLookup("objcclassinterface", typemap_lookup_type, WARN_NONE),	// Class modifiers
 	   " $objcclassname",	// Class name and base class
 	   (*Char(wanted_base) || *Char(pure_interfaces)) ? " : " : "", wanted_base, (*Char(wanted_base) && *Char(pure_interfaces)) ?	// Interfaces
-	   ", " : "", pure_interfaces, derived ? typemapLookup("objcbody_derived", typemap_lookup_type, WARN_NONE) :	// main body of class
-	   typemapLookup("objcbody", typemap_lookup_type, WARN_NONE),	// main body of class
+	   ", " : "", pure_interfaces, derived ? typemapLookup("objcinterface_derived", typemap_lookup_type, WARN_NONE) :	// main body of class
+	   typemapLookup("objcinterface", typemap_lookup_type, WARN_NONE),	// main body of class
 	   "\n", NIL);
 
     Printv(proxy_class_def, typemapLookup("objcclassimplementation", typemap_lookup_type, WARN_NONE),	// Class modifiers
-	   " $objcclassname", NIL);
+	   " $objcclassname", derived ? typemapLookup("objcbody_derived", typemap_lookup_type, WARN_NONE) :	// main body of class
+	   typemapLookup("objcbody", typemap_lookup_type, WARN_NONE),	// main body of class
+	   "\n", NIL);
 
     // Emit extra user code
     Printv(proxy_class_def, typemapLookup("objccode", typemap_lookup_type, WARN_NONE),	// extra Objective-C code
