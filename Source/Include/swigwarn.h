@@ -248,13 +248,6 @@
 
 /* please leave 850-869 free for Modula 3 */
 
-/* These are needed for backward compatibility, but you don't need to add
- * PHP4 versions of new warnings since existing user interface files can't
- * be using them.
- */
-#define WARN_PHP_MULTIPLE_INHERITANCE         870
-#define WARN_PHP_UNKNOWN_PRAGMA               871
-
 #define WARN_PHP_MULTIPLE_INHERITANCE         870
 #define WARN_PHP_UNKNOWN_PRAGMA               871
 

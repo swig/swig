@@ -322,7 +322,7 @@ public:
 
     Printf(f_phpcode, "\n");
     Printf(f_phpcode, "// Try to load our extension if it's not already loaded.\n");
-    Printf(f_phpcode, "if (!extension_loaded(\"%s\")) {\n", module);
+    Printf(f_phpcode, "if (!extension_loaded('%s')) {\n", module);
     Printf(f_phpcode, "  if (strtolower(substr(PHP_OS, 0, 3)) === 'win') {\n");
     Printf(f_phpcode, "    if (!dl('php_%s.dll')) return;\n", module);
     Printf(f_phpcode, "  } else {\n");
@@ -1383,7 +1383,7 @@ public:
 	  SwigType *t = Getattr(current_class, "classtype");
 	  String *mangled_type = SwigType_manglestr(SwigType_ltype(t));
 	  Printf(output, "\tfunction %s(%s) {\n", methodname, args);
-	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) == \"_p%s\") {\n", arg0, arg0, mangled_type);
+	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) == '_p%s') {\n", arg0, arg0, mangled_type);
 	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
 	  Printf(output, "\t\t\treturn;\n");
 	  Printf(output, "\t\t}\n");
@@ -1433,7 +1433,7 @@ public:
 	      class_node = Getattr(zend_types, mangled);
 	    }
 	    if (i.item) {
-	      Printf(output, "case \"%s\": ", mangled);
+	      Printf(output, "case '%s': ", mangled);
 	    } else {
 	      Printf(output, "default: ");
 	    }
@@ -1603,7 +1603,7 @@ public:
 	  }
 	} else if (Strcmp(type, "include") == 0) {
 	  if (value) {
-	    Printf(pragma_incl, "include \"%s\";\n", value);
+	    Printf(pragma_incl, "include '%s';\n", value);
 	  }
 	} else if (Strcmp(type, "phpinfo") == 0) {
 	  if (value) {

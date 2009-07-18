@@ -75,7 +75,7 @@ static int default_error_code = E_ERROR;
 
 /* used to wrap returned objects in so we know whether they are newobject
    and need freeing, or not */
-typedef struct _swig_object_wrapper {
+typedef struct {
   void * ptr;
   int newobject;
 } swig_object_wrapper;

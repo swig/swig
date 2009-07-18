@@ -2636,8 +2636,9 @@ The example above also shows a common approach of issuing a warning for an as ye
 <p>
 The "out" typemap is the main typemap for return types.
 This typemap supports an optional attribute flag called "optimal", which is for reducing 
-temporary variables and the amount of generated code.
-It only really makes a difference when returning objects by value and it cannot always be used, 
+temporary variables and the amount of generated code, thereby giving the compiler the opportunity to 
+use <i>return value optimization</i> for generating faster executing code.
+It only really makes a difference when returning objects by value and has some limitations on usage,
 as explained later on.
 </p>
 
@@ -2695,7 +2696,7 @@ XX(const XX &amp;)
 Note that three objects are being created as well as an assignment.
 Wouldn't it be great if the <tt>XX::create()</tt> method was the only time a constructor was called?
 As the method returns by value, this is asking a lot and the code that SWIG generates by default
-makes it impossible for the compiler to make this type of optimisation.
+makes it impossible for the compiler to use <i>return value optimisation (RVO)</i>.
 However, this is where the "optimal" attribute in the "out" typemap can help out.
 If the typemap code is kept the same and just the "optimal" attribute specified like this:
 </p>
@@ -2754,7 +2755,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_XX_create() {
 <p>
 The major difference is the <tt>result</tt> temporary variable holding the value returned from <tt>XX::create()</tt> is no longer generated and instead the copy constructor call is made directly from
 the value returned by <tt>XX::create()</tt>.
-With modern compiler optimisations turned on, the copy is not actually done, in fact the object is never created
+With modern compilers implementing RVO, the copy is not actually done, in fact the object is never created
 on the stack in <tt>XX::create()</tt> at all, it is simply created directly on the heap.
 In the first instance, the <tt>$1</tt> special variable in the typemap is expanded into <tt>result</tt>.
 In the second instance, <tt>$1</tt> is expanded into <tt>XX::create()</tt> and this is essentially
@@ -2762,7 +2763,7 @@ what the "optimal" attribute is telling SWIG to do.
 </p>
 
 <p>
-This kind of optimisation is not turned on by default as it has a number of restrictions.
+The "optimal" attribute optimisation is not turned on by default as it has a number of restrictions.
 Firstly, some code cannot be condensed into a simple call for passing into the copy constructor.
 One common occurrence is when <a href="Customization.html#exception">%exception</a> is used.
 Consider adding the following <tt>%exception</tt> to the example:

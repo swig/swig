@@ -1171,11 +1171,11 @@ public:
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Java enum
 
 	// Pure Java baseclass and interfaces
-	const String *pure_baseclass = typemapLookup("javabase", typemap_lookup_type, WARN_NONE);
-	const String *pure_interfaces = typemapLookup("javainterfaces", typemap_lookup_type, WARN_NONE);
+	const String *pure_baseclass = typemapLookup(n, "javabase", typemap_lookup_type, WARN_NONE);
+	const String *pure_interfaces = typemapLookup(n, "javainterfaces", typemap_lookup_type, WARN_NONE);
 
 	// Emit the enum
-	Printv(enum_code, typemapLookup("javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers (enum modifiers really)
+	Printv(enum_code, typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers (enum modifiers really)
 	       " ", symname, *Char(pure_baseclass) ?	// Bases
 	       " extends " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
 	       " implements " : "", pure_interfaces, " {\n", NIL);
@@ -1196,8 +1196,8 @@ public:
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Java enum
 	// Finish the enum declaration
 	// Typemaps are used to generate the enum definition in a similar manner to proxy classes.
-	Printv(enum_code, (enum_feature == ProperEnum) ? ";\n" : "", typemapLookup("javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
-	       typemapLookup("javacode", typemap_lookup_type, WARN_NONE),	// extra Java code
+	Printv(enum_code, (enum_feature == ProperEnum) ? ";\n" : "", typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
+	       typemapLookup(n, "javacode", typemap_lookup_type, WARN_NONE),	// extra Java code
 	       "}", NIL);
 
 	Replaceall(enum_code, "$javaclassname", symname);
@@ -1234,7 +1234,7 @@ public:
 	  if (Len(package) > 0)
 	    Printf(f_enum, "package %s;\n", package);
 
-	  Printv(f_enum, typemapLookup("javaimports", typemap_lookup_type, WARN_NONE),	// Import statements
+	  Printv(f_enum, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE), // Import statements
 		 "\n", enum_code, "\n", NIL);
 
 	  Printf(f_enum, "\n");
@@ -1295,7 +1295,7 @@ public:
 	// Wrap C/C++ enums with constant integers or use the typesafe enum pattern
 	const String *parent_name = Getattr(parentNode(n), "name");
 	String *typemap_lookup_type = parent_name ? Copy(parent_name) : NewString("int");
-	const String *tm = typemapLookup("jstype", typemap_lookup_type, WARN_JAVA_TYPEMAP_JSTYPE_UNDEF);
+	const String *tm = typemapLookup(n, "jstype", typemap_lookup_type, WARN_JAVA_TYPEMAP_JSTYPE_UNDEF);
 	String *return_type = Copy(tm);
 	Delete(typemap_lookup_type);
 	typemap_lookup_type = NULL;
@@ -1560,12 +1560,12 @@ public:
     String *c_baseclass = NULL;
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
-    String *typemap_lookup_type = Getattr(n, "classtypeobj");
+    SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
 
     // Inheritance from pure Java classes
     Node *attributes = NewHash();
-    const String *pure_baseclass = typemapLookup("javabase", typemap_lookup_type, WARN_NONE, attributes);
+    const String *pure_baseclass = typemapLookup(n, "javabase", typemap_lookup_type, WARN_NONE, attributes);
     bool purebase_replace = GetFlag(attributes, "tmap:javabase:replace") ? true : false;
     bool purebase_notderived = GetFlag(attributes, "tmap:javabase:notderived") ? true : false;
     Delete(attributes);
@@ -1619,15 +1619,15 @@ public:
     }
 
     // Pure Java interfaces
-    const String *pure_interfaces = typemapLookup("javainterfaces", typemap_lookup_type, WARN_NONE);
+    const String *pure_interfaces = typemapLookup(n, "javainterfaces", typemap_lookup_type, WARN_NONE);
 
     // Start writing the proxy class
-    Printv(proxy_class_def, typemapLookup("javaimports", typemap_lookup_type, WARN_NONE),	// Import statements
-	   "\n", typemapLookup("javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
+    Printv(proxy_class_def, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE),	// Import statements
+	   "\n", typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
 	   (*Char(wanted_base)) ? " extends " : "", wanted_base, *Char(pure_interfaces) ?	// Pure Java interfaces
-	   " implements " : "", pure_interfaces, " {", derived ? typemapLookup("javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :	// main body of class
-	   typemapLookup("javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
+	   " implements " : "", pure_interfaces, " {", derived ? typemapLookup(n, "javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :	// main body of class
+	   typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
 	   NIL);
 
     // C++ destructor is wrapped by the delete method
@@ -1638,11 +1638,11 @@ public:
     String *destruct_methodname = NULL;
     String *destruct_methodmodifiers = NULL;
     if (derived) {
-      tm = typemapLookup("javadestruct_derived", typemap_lookup_type, WARN_NONE, attributes);
+      tm = typemapLookup(n, "javadestruct_derived", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:javadestruct_derived:methodname");
       destruct_methodmodifiers = Getattr(attributes, "tmap:javadestruct_derived:methodmodifiers");
     } else {
-      tm = typemapLookup("javadestruct", typemap_lookup_type, WARN_NONE, attributes);
+      tm = typemapLookup(n, "javadestruct", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:javadestruct:methodname");
       destruct_methodmodifiers = Getattr(attributes, "tmap:javadestruct:methodmodifiers");
     }
@@ -1660,7 +1660,7 @@ public:
     if (tm) {
       // Finalize method
       if (*Char(destructor_call)) {
-	Printv(proxy_class_def, typemapLookup("javafinalize", typemap_lookup_type, WARN_NONE), NIL);
+	Printv(proxy_class_def, typemapLookup(n, "javafinalize", typemap_lookup_type, WARN_NONE), NIL);
       }
       // delete method
       Printv(destruct, tm, NIL);
@@ -1681,9 +1681,9 @@ public:
       release_jnicall = NewStringf("%s.%s_change_ownership(this, swigCPtr, false)", imclass_name, proxy_class_name);
       take_jnicall = NewStringf("%s.%s_change_ownership(this, swigCPtr, true)", imclass_name, proxy_class_name);
 
-      emitCodeTypemap(false, typemap_lookup_type, "directordisconnect", "methodname", destruct_jnicall);
-      emitCodeTypemap(false, typemap_lookup_type, "directorowner_release", "methodname", release_jnicall);
-      emitCodeTypemap(false, typemap_lookup_type, "directorowner_take", "methodname", take_jnicall);
+      emitCodeTypemap(n, false, typemap_lookup_type, "directordisconnect", "methodname", destruct_jnicall);
+      emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_release", "methodname", release_jnicall);
+      emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_take", "methodname", take_jnicall);
 
       Delete(destruct_jnicall);
       Delete(release_jnicall);
@@ -1694,7 +1694,7 @@ public:
     Delete(destruct);
 
     // Emit extra user code
-    Printv(proxy_class_def, typemapLookup("javacode", typemap_lookup_type, WARN_NONE),	// extra Java code
+    Printv(proxy_class_def, typemapLookup(n, "javacode", typemap_lookup_type, WARN_NONE),	// extra Java code
 	   "\n", NIL);
 
     // Substitute various strings into the above template
@@ -2285,7 +2285,7 @@ public:
 
       /* Insert the javaconstruct typemap, doing the replacement for $directorconnect, as needed */
       Hash *attributes = NewHash();
-      String *construct_tm = Copy(typemapLookup("javaconstruct", Getattr(n, "name"),
+      String *construct_tm = Copy(typemapLookup(n, "javaconstruct", Getattr(n, "name"),
 						WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF, attributes));
       if (construct_tm) {
 	if (!feature_director) {
@@ -2815,6 +2815,10 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void emitTypeWrapperClass(String *classname, SwigType *type) {
+    Node *n = NewHash();
+    Setfile(n, input_file);
+    Setline(n, line_number);
+
     String *swigtype = NewString("");
     String *filen = NewStringf("%s%s.java", SWIG_output_directory(), classname);
     File *f_swigtype = NewFile(filen, "w", SWIG_output_files());
@@ -2833,16 +2837,16 @@ public:
       Printf(f_swigtype, "package %s;\n", package);
 
     // Pure Java baseclass and interfaces
-    const String *pure_baseclass = typemapLookup("javabase", type, WARN_NONE);
-    const String *pure_interfaces = typemapLookup("javainterfaces", type, WARN_NONE);
+    const String *pure_baseclass = typemapLookup(n, "javabase", type, WARN_NONE);
+    const String *pure_interfaces = typemapLookup(n, "javainterfaces", type, WARN_NONE);
 
     // Emit the class
-    Printv(swigtype, typemapLookup("javaimports", type, WARN_NONE),	// Import statements
-	   "\n", typemapLookup("javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
+    Printv(swigtype, typemapLookup(n, "javaimports", type, WARN_NONE),	// Import statements
+	   "\n", typemapLookup(n, "javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
 	   *Char(pure_baseclass) ? " extends " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
-	   " implements " : "", pure_interfaces, " {", typemapLookup("javabody", type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
-	   typemapLookup("javacode", type, WARN_NONE),	// extra Java code
+	   " implements " : "", pure_interfaces, " {", typemapLookup(n, "javabody", type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
+	   typemapLookup(n, "javacode", type, WARN_NONE),	// extra Java code
 	   "}\n", "\n", NIL);
 
     Replaceall(swigtype, "$javaclassname", classname);
@@ -2852,29 +2856,34 @@ public:
 
     Close(f_swigtype);
     Delete(swigtype);
+    Delete(n);
   }
 
   /* -----------------------------------------------------------------------------
    * typemapLookup()
+   * n - for input only and must contain info for Getfile(n) and Getline(n) to work
+   * op - typemap method name
+   * type - typemap type to lookup
+   * warning - warning number to issue if no typemaps found
+   * typemap_attributes - the typemap attributes are attached to this node and will 
+   *   also be used for temporary storage if non null
+   * return is never NULL, unlike Swig_typemap_lookup()
    * ----------------------------------------------------------------------------- */
 
-  const String *typemapLookup(const String *op, String *type, int warning, Node *typemap_attributes = NULL) {
-    String *tm = NULL;
-    const String *code = NULL;
-
-    if ((tm = Swig_typemap_search(op, type, NULL, NULL))) {
-      code = Getattr(tm, "code");
-      if (typemap_attributes)
-	Swig_typemap_attach_kwargs(tm, op, typemap_attributes);
-    }
-
-    if (!code) {
-      code = empty_string;
+  const String *typemapLookup(Node *n, const_String_or_char_ptr op, SwigType *type, int warning, Node *typemap_attributes = 0) {
+    Node *node = !typemap_attributes ? NewHash() : typemap_attributes;
+    Setattr(node, "type", type);
+    Setfile(node, Getfile(n));
+    Setline(node, Getline(n));
+    const String *tm = Swig_typemap_lookup(op, node, "", 0);
+    if (!tm) {
+      tm = empty_string;
       if (warning != WARN_NONE)
-	Swig_warning(warning, input_file, line_number, "No %s typemap defined for %s\n", op, type);
+	Swig_warning(warning, Getfile(n), Getline(n), "No %s typemap defined for %s\n", op, SwigType_str(type, 0));
     }
-
-    return code ? code : empty_string;
+    if (!typemap_attributes)
+      Delete(node);
+    return tm;
   }
 
   /* -----------------------------------------------------------------------------
@@ -3183,8 +3192,7 @@ public:
    * typemaps.
    *--------------------------------------------------------------------*/
 
-  void
-   emitCodeTypemap(bool derived, String *lookup_type, const String *typemap, const String *methodname, const String *jnicall) {
+  void emitCodeTypemap(Node *n, bool derived, SwigType *lookup_type, const String *typemap, const String *methodname, const String *jnicall) {
     const String *tm = NULL;
     Node *tmattrs = NewHash();
     String *lookup_tmname = NewString(typemap);
@@ -3195,7 +3203,7 @@ public:
       Append(lookup_tmname, "_derived");
     }
 
-    tm = typemapLookup(lookup_tmname, lookup_type, WARN_NONE, tmattrs);
+    tm = typemapLookup(n, lookup_tmname, lookup_type, WARN_NONE, tmattrs);
     method_attr_name = NewStringf("tmap:%s:%s", lookup_tmname, methodname);
     method_attr = Getattr(tmattrs, method_attr_name);
 
@@ -3979,7 +3987,7 @@ public:
     Node *disconn_attr = NewHash();
     String *disconn_methodname = NULL;
 
-    disconn_tm = typemapLookup("directordisconnect", full_classname, WARN_NONE, disconn_attr);
+    disconn_tm = typemapLookup(n, "directordisconnect", full_classname, WARN_NONE, disconn_attr);
     disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
 
     Printv(w->code, "  swig_disconnect_director_self(\"", disconn_methodname, "\");\n", "}\n", NIL);
