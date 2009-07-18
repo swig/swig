@@ -1913,7 +1913,7 @@ public:
 	Printv(f->def, "SWIGINTERN PyObject *", wname, "__varargs__", "(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *varargs) {", NIL);
       }
       if (allow_kwargs) {
-	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number, "Can't use keyword arguments with overloaded functions.\n");
+	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number, "Can't use keyword arguments with overloaded functions (%s).\n", Swig_name_decl(n));
 	allow_kwargs = 0;
       }
     } else {
