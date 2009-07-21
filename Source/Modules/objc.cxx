@@ -24,8 +24,11 @@ protected:
 
   bool proxy_flag;		// Flag for generating proxy classes
   bool native_function_flag;	// Flag for when wrapping a native function
+  bool enum_constant_flag;	// Flag for when wrapping an enum or constant
   bool static_flag;		// Flag for when wrapping a static functions or member variables
   bool variable_wrapper_flag;	// Flag for when wrapping a nonstatic member variable
+  bool wrapping_member_flag;	// Flag for when wrapping a member variable/enum/const
+  bool global_variable_flag;	// Flag for when wrapping a global variable
 
   String *ocpp_h_code;		// Code for Objective-C++ header
   String *proxy_h_code;		// Code for Objective-C proxy header
@@ -48,8 +51,11 @@ public:
       f_wrappers(NULL),
       f_init(NULL),
       native_function_flag(false),
+      enum_constant_flag(false),
       static_flag(false),
       variable_wrapper_flag(false),
+      wrapping_member_flag(false),
+      global_variable_flag(false),
       proxy_flag(true),
       proxy_class_name(NULL), variable_name(NULL), proxy_class_def(NULL), proxy_class_decl(NULL), ocpp_h_code(NULL), proxy_h_code(NULL), proxy_m_code(NULL) {
   } virtual void main(int argc, char *argv[]) {
@@ -356,11 +362,12 @@ public:
    *   n - Node
    *   p - parameter node
    *   arg_num - parameter argument number
+   *   setter  - set this flag when wrapping variables
    * Return:
    *   arg - a unique parameter name
    * ----------------------------------------------------------------------------- */
 
-  String *makeParameterName(Node *n, Parm *p, int arg_num) {
+  String *makeParameterName(Node *n, Parm *p, int arg_num, bool setter) {
 
     String *arg = 0;
     String *pn = Getattr(p, "name");
@@ -376,6 +383,13 @@ public:
     String *wrn = pn ? Swig_name_warning(p, 0, pn, 0) : 0;
     arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", arg_num) : Copy(pn);
 
+    if (setter && Cmp(arg, "self") != 0) {
+      // Note that for setters the parameter name is always set but sometimes includes C++ 
+      // scope resolution, so we need to strip off the scope resolution to make a valid name.
+      Delete(arg);
+      arg = NewString("value");	//Swig_scopename_last(pn);
+    }
+
     return arg;
   }
 
@@ -390,7 +404,7 @@ public:
     SwigType *t = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *ocpp_function_name = Getattr(n, "ocppfuncname");
-    String *proxy_function_name = Getattr(n, "proxyfuncname");
+    String *func_name = NULL;
     String *tm;
     Parm *p;
     Parm *last_parm = 0;
@@ -431,6 +445,21 @@ public:
       Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
+    /* Change function name for global variables */
+    if (proxy_flag && global_variable_flag) {
+      // Capitalize the first letter in the variable to create a objcBean type getter/setter function name
+      func_name = NewString("");
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(variable_name)) == 0);
+      if (setter_flag)
+	Printf(func_name, "set");
+      else
+	Printf(func_name, "get");
+      Putc(toupper((int) *Char(variable_name)), func_name);
+      Printf(func_name, "%s", Char(variable_name) + 1);
+    } else {
+      func_name = Copy(Getattr(n, "sym:name"));
+    }
+
     /* Start generating the proxy function */
     const String *outattributes = Getattr(n, "tmap:objctype:outattributes");
     if (outattributes)
@@ -442,7 +471,7 @@ public:
     if (static_flag)
       Printf(function_decl, "static ");
 
-    Printf(function_decl, "%s %s(", return_type, proxy_function_name);
+    Printf(function_decl, "%s %s(", return_type, func_name);
 
     Printv(imcall, "$ocppfuncname(", NIL);
 
@@ -481,7 +510,7 @@ public:
 	  Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(pt, 0));
 	}
 
-	String *arg = makeParameterName(n, p, i);
+	String *arg = makeParameterName(n, p, i, true);
 
 	// Use typemaps to transform type used in Objective-C proxy function to the one used in intermediate code.
 	if ((tm = Getattr(p, "tmap:objcin"))) {
@@ -586,6 +615,11 @@ public:
       Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
+    if (wrapping_member_flag && !enum_constant_flag) {
+      // For wrapping member variables
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) == 0);
+    }
+
     /* Start generating the proxy function */
     const String *outattributes = Getattr(n, "tmap:objctype:outattributes");
     if (outattributes)
@@ -640,7 +674,7 @@ public:
 	  Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(pt, 0));
 	}
 
-	String *arg = makeParameterName(n, p, i);
+	String *arg = makeParameterName(n, p, i, setter_flag);
 
 	if (gencomma) {
 	  Printf(imcall, ", ");
@@ -902,23 +936,96 @@ public:
 
     Printf(f->code, "}\n");
 
-    /* Substitute the cleanup code */
+    // Substitute the cleanup code
     Replaceall(f->code, "$cleanup", cleanup);
 
-    /* Substitute the function name */
+    // Substitute the function name
     Replaceall(f->code, "$symname", symname);
 
     // Dump the function out
     if (!native_function_flag) {
       Wrapper_print(f, f_wrappers);
     }
+
+    if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
+      Setattr(n, "ocppfuncname", wname);
+      proxyGlobalFunctionHandler(n);
+    }
+
+    /* 
+     * Generate the proxy class getters/setters for public member variables.
+     * Not for enums and constants.
+     */
+    if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
+      // Capitalize the first letter in the variable to create getter/setter function name
+      bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) != 0;
+
+      String *getter_setter_name = NewString("");
+      if (!getter_flag)
+	Printf(getter_setter_name, "set");
+      else
+	Printf(getter_setter_name, "get");
+      Putc(toupper((int) *Char(variable_name)), getter_setter_name);
+      Printf(getter_setter_name, "%s", Char(variable_name) + 1);
+
+      String *ocppfunctname = NewStringf("ObjCPP_%s", symname);
+
+      Setattr(n, "proxyfuncname", getter_setter_name);
+      Setattr(n, "ocppfuncname", ocppfunctname);
+
+      proxyClassFunctionHandler(n);
+      Delete(getter_setter_name);
+      Delete(ocppfunctname);
+    }
     // Tidy up
     Delete(ocpp_return_type);
     Delete(wname);
+    Delete(overloaded_name);
     DelWrapper(f);
 
     return SWIG_OK;
   }
+
+  /* ----------------------------------------------------------------------
+   * membervariableHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int membervariableHandler(Node *n) {
+    variable_name = Getattr(n, "sym:name");
+    wrapping_member_flag = true;
+    variable_wrapper_flag = true;
+    Language::membervariableHandler(n);
+    wrapping_member_flag = false;
+    variable_wrapper_flag = false;
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * staticmembervariableHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int staticmembervariableHandler(Node *n) {
+    variable_name = Getattr(n, "sym:name");
+    wrapping_member_flag = true;
+    static_flag = true;
+    Language::staticmembervariableHandler(n);
+    wrapping_member_flag = false;
+    static_flag = false;
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * memberconstantHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int memberconstantHandler(Node *n) {
+    variable_name = Getattr(n, "sym:name");
+    wrapping_member_flag = true;
+    Language::memberconstantHandler(n);
+    wrapping_member_flag = false;
+    return SWIG_OK;
+  }
+
 
   /* -----------------------------------------------------------------------------
    * getOverloadedName()
@@ -932,6 +1039,30 @@ public:
     }
 
     return overloaded_name;
+  }
+
+  /* -----------------------------------------------------------------------
+   * variableWrapper()
+   * ----------------------------------------------------------------------- */
+
+  virtual int variableWrapper(Node *n) {
+    variable_wrapper_flag = true;
+    Language::variableWrapper(n);	/* Default to functions */
+    variable_wrapper_flag = false;
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------
+   * globalvariableHandler()
+   * ------------------------------------------------------------------------ */
+
+  virtual int globalvariableHandler(Node *n) {
+
+    variable_name = Getattr(n, "sym:name");
+    global_variable_flag = true;
+    int ret = Language::globalvariableHandler(n);
+    global_variable_flag = false;
+    return ret;
   }
 
   /* ----------------------------------------------------------------------
@@ -975,24 +1106,6 @@ public:
     }
 
     static_flag = false;
-
-    return SWIG_OK;
-  }
-
-  /* -----------------------------------------------------------------------------
-   * globalfunctionHandler()
-   * ----------------------------------------------------------------------------- */
-  virtual int globalfunctionHandler(Node *n) {
-    Language::globalfunctionHandler(n);
-
-    if (proxy_flag) {
-      String *overloaded_name = getOverloadedName(n);
-      String *intermediary_function_name = Swig_name_wrapper(overloaded_name);
-      Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
-      Setattr(n, "ocppfuncname", intermediary_function_name);
-      proxyGlobalFunctionHandler(n);
-      Delete(overloaded_name);
-    }
 
     return SWIG_OK;
   }
@@ -1114,7 +1227,7 @@ public:
     if (objcattributes && *Char(objcattributes))
       Printf(proxy_class_def, "%s\n", objcattributes);
 
-    Printv(proxy_class_decl, typemapLookup("objcclassinterface", typemap_lookup_type, WARN_NONE),	// Class modifiers
+    Printv(proxy_class_decl, "\n", typemapLookup("objcclassinterface", typemap_lookup_type, WARN_NONE),	// Class modifiers
 	   " $objcclassname",	// Class name and base class
 	   (*Char(wanted_base) || *Char(pure_interfaces)) ? " : " : "", wanted_base, (*Char(wanted_base) && *Char(pure_interfaces)) ?	// Interfaces
 	   ", " : "", pure_interfaces, derived ? typemapLookup("objcinterface_derived", typemap_lookup_type, WARN_NONE) :	// main body of class
