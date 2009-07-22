@@ -225,7 +225,7 @@
 
 
 /* Following are the typemaps used for the generation of proxy and type wrapper class code */
-%typemap(objcbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+%typemap(objcbase,notderived="")                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "NSObject"
 %typemap(objcclassinterface)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "@interface"
 %typemap(objcclassimplementation)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "@implementation"
 %typemap(objccode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
@@ -257,7 +257,9 @@
 
 
 // Derived proxy classes
-%typemap(objcinterface_derived) SWIGTYPE ""
+%typemap(objcinterface_derived) SWIGTYPE %{
+- (id)initWithCptr: (void*) cptr;
+%}
 
 %typemap(objcbody_derived) SWIGTYPE %{
  -(void*)getCptr {
@@ -344,6 +346,35 @@
     return ret;
 }
 
+/*
+ * Objective-C constructor and destructor typemaps:
+ *
+ * The objcconstruct typemap is inserted when a proxy class's constructor is generated.
+ * This typemap allows control over what code is executed in the constructor as
+ * well as specifying who owns the underlying C/C++ object. Normally, Objective-C has
+ * ownership and the underlying C/C++ object is deallocated when the Objective-C object
+ * is deallocated (swigCMemOwn is true.) If swigCMemOwn is false, C/C++ is
+ * ultimately responsible for deallocating the underlying object's memory.
+ *
+ */
+
+%typemap(objcconstruct) SWIGTYPE {
+	if(self = [super init]) {
+		swigCPtr = $imcall;
+	}
+	return self;
+}
+
+%typemap(objcdestruct, methodname="dealloc") SWIGTYPE {
+  if (swigCPtr != 0) {
+	  if (swigCMemOwn) {
+		  swigCMemOwn = false;
+      $imcall;
+	  }
+    swigCPtr = 0;
+  }
+  [super dealloc];
+}
 
 /* Objective-C specific directives */
 #define %objcconst(flag)              %feature("objc:const","flag")

@@ -38,6 +38,7 @@ protected:
   String *variable_name;	// Name of a variable being wrapped
   String *proxy_class_decl;
   String *proxy_class_def;
+  String *destructor_call;	//C++ destructor call if any
 
 public:
    OBJC():empty_string(NewString("")),
@@ -57,7 +58,8 @@ public:
       wrapping_member_flag(false),
       global_variable_flag(false),
       proxy_flag(true),
-      proxy_class_name(NULL), variable_name(NULL), proxy_class_def(NULL), proxy_class_decl(NULL), ocpp_h_code(NULL), proxy_h_code(NULL), proxy_m_code(NULL) {
+      proxy_class_name(NULL),
+      destructor_call(NULL), variable_name(NULL), proxy_class_def(NULL), proxy_class_decl(NULL), ocpp_h_code(NULL), proxy_h_code(NULL), proxy_m_code(NULL) {
   } virtual void main(int argc, char *argv[]) {
     SWIG_library_directory("objc");
 
@@ -659,7 +661,7 @@ public:
       }
 
       /* Ignore the 'this' argument for variable wrappers */
-      if (!(variable_wrapper_flag && i == 0)) {
+      if (!(variable_wrapper_flag && i == 0) || static_flag) {
 	SwigType *pt = Getattr(p, "type");
 	String *param_type = NewString("");
 	if (setter_flag)
@@ -689,10 +691,12 @@ public:
 	}
 
 	/* Add parameter to proxy function */
-	if (i == 0)
-	  Printf(function_decl, ":");
-	else
+	if (gencomma >= 2)
 	  Printf(function_decl, " %s: ", arg);
+	else
+	  Printf(function_decl, ":");
+
+	gencomma = 2;
 
 	Printf(function_decl, " (%s)%s", param_type, arg);
 
@@ -987,6 +991,147 @@ public:
   }
 
   /* ----------------------------------------------------------------------
+   * constructorHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int constructorHandler(Node *n) {
+    ParmList *l = Getattr(n, "parms");
+    String *tm;
+    Parm *p;
+    int i;
+    String *function_decl = NewString("");
+    String *function_def = NewString("");
+    String *ocpp_return_type = NewString("");
+
+    Language::constructorHandler(n);
+
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in Objective-C
+    if (Getattr(n, "overload:ignore"))
+      return SWIG_OK;
+
+    if (proxy_flag) {
+      String *overloaded_name = getOverloadedName(n);
+      String *mangled_overname = Swig_name_construct(overloaded_name);
+      String *imcall = NewString("");
+
+      tm = Getattr(n, "tmap:ocpptype");	// typemaps were attached earlier to the node
+      Printf(ocpp_return_type, "%s", tm);
+
+      Printf(function_decl, "- (id)init");
+
+      Printv(imcall, mangled_overname, "(", NIL);
+
+      /* Attach the non-standard typemaps to the parameter list */
+      Swig_typemap_attach_parms("in", l, NULL);
+      Swig_typemap_attach_parms("ocpptype", l, NULL);
+      Swig_typemap_attach_parms("objctype", l, NULL);
+      Swig_typemap_attach_parms("objcin", l, NULL);
+
+      emit_mark_varargs(l);
+
+      int gencomma = 0;
+
+      /* Output each parameter */
+      for (i = 0, p = l; p; i++) {
+
+	/* Ignored varargs */
+	if (checkAttribute(p, "varargs:ignore", "1")) {
+	  p = nextSibling(p);
+	  continue;
+	}
+
+	/* Ignored parameters */
+	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	  p = Getattr(p, "tmap:in:next");
+	  continue;
+	}
+
+	SwigType *pt = Getattr(p, "type");
+	String *param_type = NewString("");
+
+	/* Get the Objective-C parameter type */
+	if ((tm = Getattr(p, "tmap:objctype"))) {
+	  substituteClassname(pt, tm);
+	  Printf(param_type, "%s", tm);
+	} else {
+	  Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(pt, 0));
+	}
+
+	if (gencomma)
+	  Printf(imcall, ", ");
+
+	String *arg = makeParameterName(n, p, i, false);
+
+	// Use typemaps to transform type used in Objective-C wrapper function (in proxy class) to type used in intermediary code
+	if ((tm = Getattr(p, "tmap:objcin"))) {
+	  substituteClassname(pt, tm);
+	  Replaceall(tm, "$objcinput", arg);
+	  Printv(imcall, tm, NIL);
+	} else {
+	  Swig_warning(WARN_NONE, input_file, line_number, "No objcin typemap defined for %s\n", SwigType_str(pt, 0));
+	}
+
+	/* Add parameter to proxy function */
+	if (gencomma >= 2)
+	  Printf(function_decl, " %s: ", arg);
+	else {
+	  String *func_name = NewString("With");
+	  Putc(toupper((int) *Char(arg)), func_name);
+	  Printf(func_name, "%s", Char(arg) + 1);
+	  Printf(function_decl, "%s:", func_name);
+	  Delete(func_name);
+	}
+
+	gencomma = 2;
+
+	Printf(function_decl, " (%s)%s", param_type, arg);
+	Delete(arg);
+	Delete(param_type);
+	p = Getattr(p, "tmap:in:next");
+      }
+
+      Printf(imcall, ")");
+      Printv(function_def, function_decl, NIL);
+      Printf(function_decl, ";");
+
+      /* Insert the objcconstruct typemap, doing the replacement for $directorconnect, as needed */
+      Hash *attributes = NewHash();
+      String *construct_tm = Copy(typemapLookup("objcconstruct", Getattr(n, "name"),
+						WARN_NONE, attributes));
+      if (construct_tm) {
+	Printv(function_def, " ", construct_tm, "\n", NIL);
+      }
+
+      Replaceall(function_def, "$imcall", imcall);
+
+      Printv(proxy_class_decl, function_decl, NIL);
+      Printv(proxy_class_def, function_def, NIL);
+
+      Delete(ocpp_return_type);
+      Delete(construct_tm);
+      Delete(attributes);
+      Delete(overloaded_name);
+      Delete(imcall);
+    }
+
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * destructorHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int destructorHandler(Node *n) {
+    Language::destructorHandler(n);
+    String *symname = Getattr(n, "sym:name");
+
+    if (proxy_flag) {
+      Printv(destructor_call, Swig_name_destroy(symname), "(swigCPtr)", NIL);
+    }
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
    * membervariableHandler()
    * ---------------------------------------------------------------------- */
 
@@ -1200,7 +1345,7 @@ public:
 
     bool derived = baseclass && getProxyName(c_baseclassname);
     if (derived && purebase_notderived)
-      pure_baseclass = "NSObject";
+      pure_baseclass = "";
     const String *wanted_base = baseclass ? baseclass : pure_baseclass;
 
     if (purebase_replace) {
@@ -1219,8 +1364,8 @@ public:
     // Pure Objective-C interfaces
     const String *pure_interfaces = typemapLookup(derived ? "objcinterfaces_derived" : "objcinterfaces", typemap_lookup_type, WARN_NONE);
     // Start writing the proxy class
-    Printv(proxy_class_def, typemapLookup("objcimports", typemap_lookup_type, WARN_NONE),	// Import statements
-	   "\n", NIL);
+    Printv(proxy_class_decl, typemapLookup("objcimports", typemap_lookup_type, WARN_NONE),	// Import statements
+	   "\n", NIL);		// This would be needed when we decide upon a separate file for each class.
 
     // Class attributes
     const String *objcattributes = typemapLookup("objcattributes", typemap_lookup_type, WARN_NONE);
@@ -1232,16 +1377,37 @@ public:
 	   (*Char(wanted_base) || *Char(pure_interfaces)) ? " : " : "", wanted_base, (*Char(wanted_base) && *Char(pure_interfaces)) ?	// Interfaces
 	   ", " : "", pure_interfaces, derived ? typemapLookup("objcinterface_derived", typemap_lookup_type, WARN_NONE) :	// main body of class
 	   typemapLookup("objcinterface", typemap_lookup_type, WARN_NONE),	// main body of class
-	   "\n", NIL);
+	   NIL);
 
     Printv(proxy_class_def, typemapLookup("objcclassimplementation", typemap_lookup_type, WARN_NONE),	// Class modifiers
 	   " $objcclassname", derived ? typemapLookup("objcbody_derived", typemap_lookup_type, WARN_NONE) :	// main body of class
 	   typemapLookup("objcbody", typemap_lookup_type, WARN_NONE),	// main body of class
 	   "\n", NIL);
 
+    // C++ destructor is wrapped by the dealloc method
+    // Note that the method name is specified in a typemap attribute called methodname
+    String *destruct = NewString("");
+    const String *tm = NULL;
+    attributes = NewHash();
+    String *destruct_methodname = NewString("dealloc");
+    tm = typemapLookup("objcdestruct", typemap_lookup_type, WARN_NONE, attributes);
+
+    // Emit the dealloc method
+    if (tm) {
+      // dealloc method
+      Printv(destruct, tm, NIL);
+      if (*Char(destructor_call))
+	Replaceall(destruct, "$imcall", destructor_call);
+      else
+	Replaceall(destruct, "$imcall", "throw new MethodAccessException(\"C++ destructor does not have public access\")");
+      if (*Char(destruct)) {
+	Printv(proxy_class_decl, "- (void)", destruct_methodname, "();", "\n", NIL);
+	Printv(proxy_class_def, "- (void)", destruct_methodname, "() ", destruct, "\n\n", NIL);
+      }
+    }
     // Emit extra user code
     Printv(proxy_class_def, typemapLookup("objccode", typemap_lookup_type, WARN_NONE),	// extra Objective-C code
-	   "\n", NIL);
+	   NIL);
 
     // Substitute various strings into the above template
     Replaceall(proxy_class_decl, "$objcclassname", proxy_class_name);
@@ -1263,18 +1429,30 @@ public:
 
       Clear(proxy_class_def);
       Clear(proxy_class_decl);
+
+      destructor_call = NewString("");
+
       proxyClassHandler(n);
       Printv(proxy_h_code, proxy_class_decl, NIL);
       Printv(proxy_m_code, proxy_class_def, NIL);
+
+      Clear(proxy_class_def);
+      Clear(proxy_class_decl);
     }
 
     Language::classHandler(n);
 
     if (proxy_flag) {
-      Printv(proxy_h_code, "@end\n\n", NIL);
-      Printv(proxy_m_code, "@end\n\n", NIL);
+      Printv(proxy_h_code, proxy_class_decl, NIL);
+      Printv(proxy_m_code, proxy_class_def, NIL);
+
+      Printv(proxy_h_code, "\n@end\n\n", NIL);
+      Printv(proxy_m_code, "\n@end\n\n", NIL);
+
       Delete(proxy_class_name);
       proxy_class_name = NULL;
+      Delete(destructor_call);
+      destructor_call = NULL;
     }
 
     return SWIG_OK;
