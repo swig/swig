@@ -409,6 +409,7 @@ CPP0X_TEST_CASES = \
 	cpp0x_function_objects
 #       cpp0x_alternate_function_syntax # not fully implemented yet
 #	cpp0x_hash_types # not fully implemented yet
+#	cpp0x_unrestricted_unions # not supported by any compilers yet
 #	cpp0x_smart_pointers # not supported by standard library yet
 #	cpp0x_constexpr # not supported by any compilers yet
 #	cpp0x_thread_local # not supported by any compilers yet
