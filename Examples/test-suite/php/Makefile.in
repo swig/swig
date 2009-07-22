@@ -17,7 +17,7 @@ include $(srcdir)/../common.mk
 TARGETPREFIX =# Should be php_ for Windows, empty otherwise
 
 # Custom tests - tests with additional commandline options
-# none!
+prefix.cpptest: SWIGOPT += -prefix Project
 
 # write out tests without a _runme.php
 missingcpptests:

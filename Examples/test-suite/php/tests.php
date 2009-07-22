@@ -34,8 +34,11 @@ class check {
       $df=array_flip($df[internal]);
       foreach($_original_functions[internal] as $func) unset($df[$func]);
       // Now chop out any get/set accessors
-      foreach(array_keys($df) as $func) if (GETSET && ereg('_[gs]et$',$func)) $extrags[]=$func;
-      else $extra[]=$func;
+      foreach(array_keys($df) as $func)
+        if ((GETSET && ereg('_[gs]et$',$func)) || ereg('^new_', $func)
+          || ereg('_(alter|get)_newobject$', $func))
+          $extrags[]=$func;
+        else $extra[]=$func;
 //      $extra=array_keys($df);
     }
     if ($gs) return $extrags;

@@ -37,6 +37,10 @@
 %{
   CONVERT_IN($1,$1_ltype,$input);
 %}
+%typemap(directorout) TYPE, const TYPE &
+%{
+  CONVERT_IN($result,$1_ltype,$input);
+%}
 %enddef
 
 %fragment("t_output_helper","header") %{

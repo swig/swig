@@ -32,6 +32,16 @@
 </ul>
 <li><a href="#Php_nn2_7">PHP Pragmas, Startup and Shutdown code</a>
 </ul>
+<li><a href="#Php_nn3">Cross language polymorphism</a>
+<ul>
+<li><a href="#Php_nn3_1">Enabling directors</a>
+<li><a href="#Php_nn3_2">Director classes</a>
+<li><a href="#Php_nn3_3">Ownership and object destruction</a>
+<li><a href="#Php_nn3_4">Exception unrolling</a>
+<li><a href="#Php_nn3_5">Overhead and code bloat</a>
+<li><a href="#Php_nn3_6">Typemaps</a>
+<li><a href="#Php_nn3_7">Miscellaneous</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -864,6 +874,382 @@ either <tt>%init</tt> or <tt>%minit</tt>.
 <p>
 The <tt>%rinit</tt> and <tt>%rshutdown</tt> statements insert code
 into the request init and shutdown code respectively.
+</p>
+
+<H2><a name="Php_nn3"></a>29.3 Cross language polymorphism</H2>
+
+
+<p>
+Proxy classes provide a more natural, object-oriented way to access
+extension classes. As described above, each proxy instance has an
+associated C++ instance, and method calls to the proxy are passed to the
+C++ instance transparently via C wrapper functions.
+</p>
+
+<p>
+This arrangement is asymmetric in the sense that no corresponding
+mechanism exists to pass method calls down the inheritance chain from
+C++ to PHP. In particular, if a C++ class has been extended in PHP
+(by extending the proxy class), these extensions will not be visible
+from C++ code. Virtual method calls from C++ are thus not able access
+the lowest implementation in the inheritance chain.
+</p>
+
+<p>
+Changes have been made to SWIG 1.3.18 to address this problem and make
+the relationship between C++ classes and proxy classes more symmetric.
+To achieve this goal, new classes called directors are introduced at the
+bottom of the C++ inheritance chain. Support for generating PHP classes
+has been added in SWIG 1.3.40. The job of the directors is to route
+method calls correctly, either to C++ implementations higher in the
+inheritance chain or to PHP implementations lower in the inheritance
+chain. The upshot is that C++ classes can be extended in PHP and from
+C++ these extensions look exactly like native C++ classes. Neither C++
+code nor PHP code needs to know where a particular method is
+implemented: the combination of proxy classes, director classes, and C
+wrapper functions takes care of all the cross-language method routing
+transparently.
+</p>
+
+<H3><a name="Php_nn3_1"></a>29.3.1 Enabling directors</H3>
+
+
+<p>
+The director feature is disabled by default.  To use directors you
+must make two changes to the interface file.  First, add the "directors"
+option to the %module directive, like this:
+</p>
+
+<div class="code">
+<pre>
+%module(directors="1") modulename
+</pre>
+</div>
+
+<p>
+Without this option no director code will be generated.  Second, you
+must use the %feature("director") directive to tell SWIG which classes 
+and methods should get directors.  The %feature directive can be applied 
+globally, to specific classes, and to specific methods, like this:
+</p>
+
+<div class="code">
+<pre>
+// generate directors for all classes that have virtual methods
+%feature("director");         
+
+// generate directors for all virtual methods in class Foo
+%feature("director") Foo;      
+
+// generate a director for just Foo::bar()
+%feature("director") Foo::bar; 
+</pre>
+</div>
+
+<p>
+You can use the %feature("nodirector") directive to turn off
+directors for specific classes or methods.  So for example,
+</p>
+
+<div class="code">
+<pre>
+%feature("director") Foo;
+%feature("nodirector") Foo::bar;
+</pre>
+</div>
+
+<p>
+will generate directors for all virtual methods of class Foo except
+bar().  
+</p>
+
+<p>
+Directors can also be generated implicitly through inheritance. 
+In the following, class Bar will get a director class that handles
+the methods one() and two() (but not three()):
+</p>
+
+<div class="code">
+<pre>
+%feature("director") Foo;
+class Foo {
+public:
+    Foo(int foo);
+    virtual void one();
+    virtual void two();
+};
+
+class Bar: public Foo {
+public:
+    virtual void three();
+};
+</pre>
+</div>
+
+<p>
+then at the PHP side you can define
+</p>
+
+<div class="targetlang">
+<pre>
+require("mymodule.php");
+
+class MyFoo extends Foo {
+  function one() {
+     print "one from php\n";
+  }
+}
+</pre>
+</div>
+
+
+<H3><a name="Php_nn3_2"></a>29.3.2 Director classes</H3>
+
+
+ 
+
+
+<p>
+For each class that has directors enabled, SWIG generates a new class
+that derives from both the class in question and a special
+<tt>Swig::Director</tt> class. These new classes, referred to as director
+classes, can be loosely thought of as the C++ equivalent of the PHP
+proxy classes. The director classes store a pointer to their underlying
+PHP object.  Indeed, this is quite similar to the "_cPtr" and "thisown"
+members of the PHP proxy classes.
+</p>
+
+<p>
+For simplicity let's ignore the <tt>Swig::Director</tt> class and refer to the
+original C++ class as the director's base class. By default, a director
+class extends all virtual methods in the inheritance chain of its base
+class (see the preceding section for how to modify this behavior).
+Thus all virtual method calls, whether they originate in C++ or in
+PHP via proxy classes, eventually end up in at the implementation in the
+director class. The job of the director methods is to route these method
+calls to the appropriate place in the inheritance chain. By "appropriate
+place" we mean the method that would have been called if the C++ base
+class and its extensions in PHP were seamlessly integrated. That
+seamless integration is exactly what the director classes provide,
+transparently skipping over all the messy extension API glue that binds
+the two languages together.
+</p>
+
+<p>
+In reality, the "appropriate place" is one of only two possibilities:
+C++ or PHP. Once this decision is made, the rest is fairly easy. If the
+correct implementation is in C++, then the lowest implementation of the
+method in the C++ inheritance chain is called explicitly. If the correct
+implementation is in PHP, the Zend API is used to call the method of the
+underlying PHP object (after which the usual virtual method resolution
+in PHP automatically finds the right implementation).
+</p>
+
+<p>
+Now how does the director decide which language should handle the method call?
+The basic rule is to handle the method in PHP, unless there's a good
+reason not to. The reason for this is simple: PHP has the most
+"extended" implementation of the method. This assertion is guaranteed,
+since at a minimum the PHP proxy class implements the method. If the
+method in question has been extended by a class derived from the proxy
+class, that extended implementation will execute exactly as it should.
+If not, the proxy class will route the method call into a C wrapper
+function, expecting that the method will be resolved in C++. The wrapper
+will call the virtual method of the C++ instance, and since the director
+extends this the call will end up right back in the director method. Now
+comes the "good reason not to" part. If the director method were to blindly
+call the PHP method again, it would get stuck in an infinite loop. We avoid this
+situation by adding special code to the C wrapper function that tells
+the director method to not do this.  The C wrapper function compares the
+called and the declaring class name of the given method.  If these are
+not the same, then the C wrapper function tells the director to resolve
+the method by calling up the C++ inheritance chain, preventing an
+infinite loop.
+</p>
+
+<p>
+One more point needs to be made about the relationship between director
+classes and proxy classes. When a proxy class instance is created in
+PHP, SWIG creates an instance of the original C++ class and assigns it
+to <tt>-&gt;_cPtr</tt>. This is exactly what happens without directors
+and is true even if directors are enabled for the particular class in
+question. When a class <i>derived</i> from a proxy class is created,
+however, SWIG then creates an instance of the corresponding C++ director
+class. The reason for this difference is that user-defined subclasses
+may override or extend methods of the original class, so the director
+class is needed to route calls to these methods correctly. For
+unmodified proxy classes, all methods are ultimately implemented in C++
+so there is no need for the extra overhead involved with routing the
+calls through PHP.
+</p>
+
+<H3><a name="Php_nn3_3"></a>29.3.3 Ownership and object destruction</H3>
+
+
+<p>
+Memory management issues are slightly more complicated with directors
+than for proxy classes alone. PHP instances hold a pointer to the
+associated C++ director object, and the director in turn holds a pointer
+back to the PHP object. By default, proxy classes own their C++ director
+object and take care of deleting it when they are garbage collected.
+</p>
+
+<p>
+This relationship can be reversed by calling the special
+<tt>-&gt;thisown</tt> property of the proxy class. After setting this
+property to <tt>0</tt>, the director class no longer destroys the PHP
+object.  Assuming no outstanding references to the PHP object remain,
+the PHP object will be destroyed at the same time. This is a good thing,
+since directors and proxies refer to each other and so must be created
+and destroyed together. Destroying one without destroying the other will
+likely cause your program to segfault.
+</p>
+
+<p>
+Here is an example:
+</p>
+
+<div class="code">
+<pre>
+class Foo {
+public:
+    ...
+};
+class FooContainer {
+public:
+    void addFoo(Foo *);
+    ...
+};
+</pre>
+</div>
+
+<br>
+
+<div class="targetlang">
+<pre>
+$c = new FooContainer();
+$a = new Foo();
+$a-&gt;thisown = 0;
+$c-&gt;addFoo($a);
+</pre>
+</div>
+
+<p>
+In this example, we are assuming that FooContainer will take care of
+deleting all the Foo pointers it contains at some point.
+</p>
+
+<H3><a name="Php_nn3_4"></a>29.3.4 Exception unrolling</H3>
+
+
+<p>
+With directors routing method calls to PHP, and proxies routing them
+to C++, the handling of exceptions is an important concern. By default, the
+directors ignore exceptions that occur during method calls that are
+resolved in PHP. To handle such exceptions correctly, it is necessary
+to temporarily translate them into C++ exceptions. This can be done with
+the %feature("director:except") directive. The following code should
+suffice in most cases:
+</p>
+
+<div class="code">
+<pre>
+%feature("director:except") {
+    if ($error == FAILURE) {
+        throw Swig::DirectorMethodException();
+    }
+}
+</pre>
+</div>
+
+<p>
+This code will check the PHP error state after each method call from a
+director into PHP, and throw a C++ exception if an error occurred.  This
+exception can be caught in C++ to implement an error handler.
+Currently no information about the PHP error is stored in the
+Swig::DirectorMethodException object, but this will likely change in the
+future.
+</p>
+
+<p>
+It may be the case that a method call originates in PHP, travels up to
+C++ through a proxy class, and then back into PHP via a director method.
+If an exception occurs in PHP at this point, it would be nice for that
+exception to find its way back to the original caller. This can be done
+by combining a normal %exception directive with the
+<tt>director:except</tt> handler shown above. Here is an example of a
+suitable exception handler:
+</p>
+
+<div class="code">
+<pre>
+%exception {
+    try { $action }
+    catch (Swig::DirectorException &amp;e) { SWIG_fail; }
+}
+</pre>
+</div>
+
+<p>
+The class Swig::DirectorException used in this example is actually a
+base class of Swig::DirectorMethodException, so it will trap this
+exception. Because the PHP error state is still set when
+Swig::DirectorMethodException is thrown, PHP will register the exception
+as soon as the C wrapper function returns.
+</p>
+
+<H3><a name="Php_nn3_5"></a>29.3.5 Overhead and code bloat</H3>
+
+
+<p>
+Enabling directors for a class will generate a new director method for
+every virtual method in the class' inheritance chain. This alone can
+generate a lot of code bloat for large hierarchies. Method arguments
+that require complex conversions to and from target language types can
+result in large director methods. For this reason it is recommended that
+you selectively enable directors only for specific classes that are
+likely to be extended in PHP and used in C++.
+</p>
+
+<p>
+Compared to classes that do not use directors, the call routing in the
+director methods does add some overhead. In particular, at least one
+dynamic cast and one extra function call occurs per method call from
+PHP. Relative to the speed of PHP execution this is probably completely
+negligible. For worst case routing, a method call that ultimately
+resolves in C++ may take one extra detour through PHP in order to ensure
+that the method does not have an extended PHP implementation. This could
+result in a noticeable overhead in some cases.
+</p>
+
+<p>
+Although directors make it natural to mix native C++ objects with PHP
+objects (as director objects) via a common base class pointer, one
+should be aware of the obvious fact that method calls to PHP objects
+will be much slower than calls to C++ objects. This situation can be
+optimized by selectively enabling director methods (using the %feature
+directive) for only those methods that are likely to be extended in PHP.
+</p>
+
+<H3><a name="Php_nn3_6"></a>29.3.6 Typemaps</H3>
+
+
+<p>
+Typemaps for input and output of most of the basic types from director
+classes have been written. These are roughly the reverse of the usual
+input and output typemaps used by the wrapper code. The typemap
+operation names are 'directorin', 'directorout', and 'directorargout'.
+The director code does not currently use any of the other kinds of
+typemaps.  It is not clear at this point which kinds are appropriate and
+need to be supported.
+</p>
+
+
+<H3><a name="Php_nn3_7"></a>29.3.7 Miscellaneous</H3>
+
+
+<p> Director typemaps for STL classes are mostly in place, and hence you
+should be able to use std::string, etc., as you would any other type.
 </p>
 
 </body>

@@ -1,6 +1,9 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-07-21: vmiklos
+            [PHP] Director support added.
+
 2009-07-15: olly
 	    [Perl] Don't specify Perl prototype "()" for a constructor with a
 	    different name to the class, as such constructors can still take
@@ -17,12 +20,24 @@ Version 1.3.40 (in progress)
 	    of the manual.  Based on patch from SF#2810380 by Christian
 	    Gollwitzer.
 
+2009-07-02: vmiklos
+            [PHP] Added factory.i for PHP, see the li_factory testcase
+            for more info on how to use it.
+
 2009-07-02: wsfulton
             Fix -Wallkw option as reported by Solomon Gibbs.
 
 2009-07-02: wsfulton
             Fix syntax error when a nested struct contains a comment containing a * followed eventually by a /. 
             Regression from 1.3.37, reported by Solomon Gibbs.
+
+2009-07-01: vmiklos
+            [PHP] Unknown properties are no longer ignored in proxy
+            classes.
+
+2009-07-01: vmiklos
+            [PHP] Fixed %newobject behaviour, previously any method
+            marked with %newobject was handled as a constructor.
 
 2009-06-30: olly
 	    [Ruby] Undefine close and connect macros defined by Ruby API
@@ -65,6 +80,12 @@ Version 1.3.40 (in progress)
               specialize_std_map_on_both
 
             *** POTENTIAL INCOMPATIBILITY ***
+
+2009-05-20: vmiklos
+            [PHP] Add the 'thisown' member to classes. The usage of it
+            is the same as the Python thisown one: it's 1 by default and
+            you can set it to 0 if you want to prevent freeing it. (For
+            example to prevent a double free.)
 
 2009-05-14: bhy
             [Python] Fix the wrong pointer value returned by SwigPyObject_repr().
