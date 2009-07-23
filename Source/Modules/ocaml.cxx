@@ -45,6 +45,8 @@ class OCAML : public Language {
                                       // the code we are wrapping is relevant to a class
     int in_constructor;               // in_constructor will determine whether or
                                       // not we're dealing with a constructor...
+    int constructor_number;           // first constructor has this value set at 0, and
+                                      // we increment it for each constructor.
 
 };
 
@@ -118,7 +120,9 @@ int OCAML::top(Node * n) {
   // Initialising the OCaml submodule containing low-level access
   // to C wrapper functions and to low-level OCaml type declarations.
   // This OCaml submodule will be opaque to the end user.
-  Printf(f_mlcdecl, "module Swig = struct\n");
+  Printf(f_mlcdecl, "module Swig = struct\n\n");
+  Printf(f_mlcdecl, "  (* The Swig module contains raw accessors to C functions,\n");
+  Printf(f_mlcdecl, "     as well as type declarations enforcing sound typing. *)\n\n");
 
   // n contains the whole parse tree. This instruction is
   // the code iterating over the whole parse tree. Code for
@@ -137,7 +141,7 @@ int OCAML::top(Node * n) {
   // Closing the OCaml submodule containing low-level C accessors
   // and low-level OCaml type declarations.
 
-  Printf(f_mlcdecl, "end;;\n");
+  Printf(f_mlcdecl, "end;;\n\n");
 
   // Write all to the file
   Dump                (f_header  , f_runtime);
@@ -172,9 +176,10 @@ int OCAML::functionWrapper (Node * n) {
   ParmList * parms   = Getattr(n, "parms"      );
 
   // Conversion of parms to the string parmstr
-  String   * parmstr = ParmList_str_defaultargs(parms);
-  String   * func    = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
-  String   * action  = Getattr(n, "wrap:action");
+  // ???
+  //String   * parmstr = ParmList_str_defaultargs(parms);
+  //String   * func    = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
+  //String   * action  = Getattr(n, "wrap:action");
 
   // Declaration of the wrapper.
   Wrapper * f = NewWrapper();
@@ -183,6 +188,8 @@ int OCAML::functionWrapper (Node * n) {
   String * wrapper_name = Swig_name_wrapper(name);
 
   // Checking that the wrapper name doesn't conflict with another symbol.
+  // YZIQUEL: Why is this there? Ask on the mailing list. OK, it's there
+  // because we want to avoid conflicts, but what is Swig's policy, here?
   if (!addSymbol(name, n)) {
     DelWrapper(f);
     return SWIG_ERROR;
@@ -193,25 +200,6 @@ int OCAML::functionWrapper (Node * n) {
 
   // Attach the non-standard typemaps to the parameter list.
   Swig_typemap_attach_parms("ocamlin", parms, f);
-
-  // This switch is where we choose the OCaml-side wrapping behaviour, depending on
-  // whether we are wrapping a raw C function, or a C++ function of a class.
-  //
-  // TODO: Make this switch exhaustive.
-
-  String * f_mlbody_concreteclass_1 = NewString("");
-  String * f_mlbody_concreteclass_2 = NewString("");
-
-  if (classmode && in_constructor) {
-    Printf(f_mlcdecl, "  external %s : ", wrapper_name);
-    Printf(f_mlbody_concreteclass, "class %s = object(self)\n", proxy_class_name);
-    Printf(f_mlbody_concreteclass, "  inherit %s\n", proxy_class_name);
-    Printf(f_mlbody_concreteclass, "  val underlying_cpp_object = Swig.%s constructing_argument\n", wrapper_name);
-    Printf(f_mlbody_concreteclass, "end;;\n");
-  } else if (classmode) {
-    Printf(f_mlcdecl, "external %s : Obj.t * Obj.t -> Obj.t = \"%s\"\n", wrapper_name, wrapper_name);
-    Printf(f_mlbody_virtualclass, "method %s x = Swig.%s (underlying_cpp_object, x)\n", name, wrapper_name);
-  }
 
 
   // Trying to generate wrapper code.... No promise yet!
@@ -241,6 +229,10 @@ int OCAML::functionWrapper (Node * n) {
   int num_arguments = emit_num_arguments(parms);
   int num_required = emit_num_required(parms);
 
+  // Placeholder strings for OCaml code - arguments and types for wrappers.
+  String * ml_wrapper_argtypes = NewString("");
+  String * ml_constructor_args = NewString("");
+
   // Now walk the function parameter list and generate code to get arguments.
   int gencomma = 0;
   Parm * p;
@@ -261,7 +253,9 @@ int OCAML::functionWrapper (Node * n) {
     Printv(f->def, gencomma ? ", " : "", "CAML_VALUE ", arg, NIL);
     gencomma = 1;
 
-    Printv(f_mlcdecl, Getattr(p, "tmap:ocamlin"), " -> ", NIL);
+    // Iteratively writing the strings for wrapper arguments on the OCaml side.
+    Printv(ml_wrapper_argtypes, Getattr(p, "tmap:ocamlin"), " -> ", NIL);
+    Printf(ml_constructor_args, " arg%d", i);
 
     // Declaring the input ocaml_arg_n, i.e. arg, value in the wrapper.
     String * caml_parameter_declaration = NewString("");
@@ -316,7 +310,28 @@ int OCAML::functionWrapper (Node * n) {
   Printf(f->code, "\nCAMLreturn(caml_result);\n}");
   Wrapper_print(f, f_wrappers);
 
-  Printf(f_mlcdecl, "%s = \"%s\"\n", proxy_class_name, wrapper_name);
+  // This switch is where we choose the OCaml-side wrapping behaviour, depending on
+  // whether we are wrapping a raw C function, or a C++ function of a class.
+  //
+  // TODO: Make this switch exhaustive.
+
+  if (classmode && in_constructor) {
+    Printf(f_mlcdecl, "  external %s : %s%s = \"%s\"\n",
+      wrapper_name, ml_wrapper_argtypes, proxy_class_name, wrapper_name);
+    Printf(f_mlbody_concreteclass, "class %s_%d%s = object(self)\n",
+      proxy_class_name, constructor_number, ml_constructor_args);
+    Printf(f_mlbody_concreteclass, "  inherit %s\n", proxy_class_name);
+    Printf(f_mlbody_concreteclass, "  val underlying_cpp_object = Swig.%s%s\n",
+      wrapper_name, ml_constructor_args);
+    Printf(f_mlbody_concreteclass, "end;;\n");
+  } else if (classmode) {
+    Printf(f_mlcdecl, "external %s : Obj.t * Obj.t -> Obj.t = \"%s\"\n", wrapper_name, wrapper_name);
+    Printf(f_mlbody_virtualclass, "method %s x = Swig.%s (underlying_cpp_object, x)\n", name, wrapper_name);
+  }
+
+  // Cleaning up placeholder strings for args and types for OCaml code.
+  Delete(ml_wrapper_argtypes);
+  Delete(ml_constructor_args);
 
   return SWIG_OK;
 }
@@ -347,6 +362,10 @@ int OCAML::classHandler (Node * n) {
   // We are wrapping a class. Set classmode to true.
   classmode = true;
 
+  // Concerning overloading, as overloading is not allowed in Objective Caml,
+  // we count the number of constructors, to generate different class names.
+  constructor_number = 0;
+
   // Recursing throughout the node's children.
   Language::classHandler(n);
 
@@ -371,5 +390,6 @@ int OCAML::constructorHandler (Node * n) {
   in_constructor = true;
   ret = Language::constructorHandler(n);
   in_constructor = false;
+  constructor_number++;
   return ret;
 }
