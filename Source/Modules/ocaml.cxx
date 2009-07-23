@@ -30,13 +30,18 @@ class OCAML : public Language {
     File * f_init;
 
     // DOH objects for output to OCaml code
-    File * f_mlcdecl;                 // File object for the import of the C declaration in the .ml module
-    File * f_mlbody;                  // File object for the .ml code that will be exported
-    File * f_mlout;                   // File object where .ml code will be concatenated and dumped
-    File * f_mliout;                  // File object where .mli interface description is written
+    File * f_mlcdecl;                  // File object for the import of the C declaration in the .ml module
+    File * f_mlbody;                   // File object for the .ml code that will be exported
+    File * f_mlout;                    // File object where .ml code will be concatenated and dumped
+    File * f_mliout;                   // File object where .mli interface description is written
 
-    String * f_mlbody_virtualclass;   // String object containing the OCaml virtual class declarations.
-    String * f_mlbody_concreteclass;  // String object containing the OCaml "concrete" class declarations.
+    String * f_mlbody_virtualclass;    // String object containing the OCaml virtual class declarations.
+    String * f_mlbody_concreteclass;   // String object containing the OCaml "concrete" class declarations.
+
+    String * f_mli_object_type;        // String object containing the OCaml type declaration
+                                       // corresponding to a C++ class
+    String * f_mli_constructing_class; // String object containing the OCaml declaration of classes
+                                       // corresponding to C++ constructors
 
     // Objects used while delving into the parse tree.
     String * proxy_class_name;
@@ -334,9 +339,11 @@ int OCAML::functionWrapper (Node * n) {
     Printf(f_mlbody_concreteclass, "  val underlying_cpp_object = Swig.%s%s\n",
       wrapper_name, ml_constructor_args);
     Printf(f_mlbody_concreteclass, "end;;\n");
+    Printf(f_mli_constructing_class, "class %s_%d : %s%s\n",
+      proxy_class_name, constructor_number, ml_wrapper_argtypes, proxy_class_name);
   } else if (classmode) {
-    Printf(f_mlcdecl, "external %s : Obj.t * Obj.t -> Obj.t = \"%s\"\n", wrapper_name, wrapper_name);
-    Printf(f_mlbody_virtualclass, "method %s x = Swig.%s (underlying_cpp_object, x)\n", name, wrapper_name);
+    Printf(f_mlcdecl, "  external %s : Obj.t * Obj.t -> Obj.t = \"%s\"\n", wrapper_name, wrapper_name);
+    Printf(f_mlbody_virtualclass, "  method %s x = Swig.%s (underlying_cpp_object, x)\n", name, wrapper_name);
   }
 
   // Cleaning up placeholder strings for args and types for OCaml code.
@@ -368,7 +375,11 @@ int OCAML::classHandler (Node * n) {
   f_mlbody_concreteclass = NewString("");
   Printf(f_mlbody_virtualclass, "class virtual %s = object(self)\n", proxy_class_name);
   Printf(f_mlbody_virtualclass, "  val virtual underlying_cpp_object : Swig.%s\n", proxy_class_name);
-  Printf(f_mliout, "type %s = < >\n", proxy_class_name);
+
+  // Similar initialisation on the .mli side.
+  f_mli_object_type = NewString("");
+  f_mli_constructing_class = NewString("");
+  Printf(f_mli_object_type, "class virtual %s : object\n", proxy_class_name);
 
   // We are wrapping a class. Set classmode to true.
   classmode = true;
@@ -386,10 +397,17 @@ int OCAML::classHandler (Node * n) {
 
   // Finishing the virtual class declaration, and dumping
   // everything to f_mlbody.
-  Printf(f_mlbody_virtualclass, "end;;\n");
+  Printf(f_mlbody_virtualclass, "end;;\n\n");
   Printv(f_mlbody, f_mlbody_virtualclass, f_mlbody_concreteclass, NIL);
   Delete(f_mlbody_virtualclass);
   Delete(f_mlbody_concreteclass);
+
+  // Finishing class type declaration in .mli file, and dumping
+  // everything to f_mliout.
+  Printf(f_mli_object_type, "end\n\n");
+  Printv(f_mliout, f_mli_object_type, f_mli_constructing_class, NIL);
+  Delete(f_mli_object_type);
+  Delete(f_mli_constructing_class);
 
   return SWIG_OK;
 }
