@@ -5,13 +5,15 @@
 
   /* Including OCaml system. */
   #define CAML_VALUE value
-  #include <caml/alloc.h>
-  #include <caml/custom.h>
-  #include <caml/mlvalues.h>
-  #include <caml/memory.h>
-  #include <caml/callback.h>
-  #include <caml/fail.h>
-  #include <caml/misc.h>
+  extern "C" {
+    #include <caml/alloc.h>
+    #include <caml/custom.h>
+    #include <caml/mlvalues.h>
+    #include <caml/memory.h>
+    #include <caml/callback.h>
+    #include <caml/fail.h>
+    #include <caml/misc.h>
+  }
 
   #define SWIG_CAMLlocal1(x) \
     CAML_VALUE x = 0; \

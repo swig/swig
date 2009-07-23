@@ -32,7 +32,8 @@ class OCAML : public Language {
     // DOH objects for output to OCaml code
     File * f_mlcdecl;                 // File object for the import of the C declaration in the .ml module
     File * f_mlbody;                  // File object for the .ml code that will be exported
-    File * f_mlout;
+    File * f_mlout;                   // File object where .ml code will be concatenated and dumped
+    File * f_mliout;                  // File object where .mli interface description is written
 
     String * f_mlbody_virtualclass;   // String object containing the OCaml virtual class declarations.
     String * f_mlbody_concreteclass;  // String object containing the OCaml "concrete" class declarations.
@@ -116,6 +117,13 @@ int OCAML::top(Node * n) {
     FileErrorDisplay(ml_filename);
     SWIG_exit(EXIT_FAILURE);
   }
+  String * mlifile = NewString("");
+  Printv(mlifile, modulename, ".mli", NIL);
+  String * mli_filename = NewStringf("%s%s", SWIG_output_directory(), mlifile);
+  if (0 == (f_mliout = NewFile(mli_filename, "w", SWIG_output_files()))) {
+    FileErrorDisplay(mli_filename);
+    SWIG_exit(EXIT_FAILURE);
+  }
 
   // Initialising the OCaml submodule containing low-level access
   // to C wrapper functions and to low-level OCaml type declarations.
@@ -141,7 +149,7 @@ int OCAML::top(Node * n) {
   // Closing the OCaml submodule containing low-level C accessors
   // and low-level OCaml type declarations.
 
-  Printf(f_mlcdecl, "end;;\n\n");
+  Printf(f_mlcdecl, "\nend;;\n\n");
 
   // Write all to the file
   Dump                (f_header  , f_runtime);
@@ -158,8 +166,10 @@ int OCAML::top(Node * n) {
   // Write and dump OCaml-specific files, cleanup.
   Dump   (f_mlcdecl, f_mlout);
   Dump   (f_mlbody,  f_mlout);
-  Close  (f_mlout);
-  Delete (f_mlout);
+  Close  (f_mlout) ;
+  Delete (f_mlout) ;
+  Close  (f_mliout);
+  Delete (f_mliout);
 
   return SWIG_OK;
 }
@@ -208,7 +218,7 @@ int OCAML::functionWrapper (Node * n) {
   // /usr/share/doc/swig-doc/Devel/wrapobj.html
 
   // Generating wrapper C declaration, without arguments...
-  Printv(f->def, "CAML_VALUE ", wrapper_name, " (", NIL);
+  Printv(f->def, "extern \"C\" CAML_VALUE ", wrapper_name, " (", NIL);
 
   // Declaring the output return variable.
   Wrapper_add_local(f, "caml_result", "SWIG_CAMLlocal1(caml_result)");
@@ -358,6 +368,7 @@ int OCAML::classHandler (Node * n) {
   f_mlbody_concreteclass = NewString("");
   Printf(f_mlbody_virtualclass, "class virtual %s = object(self)\n", proxy_class_name);
   Printf(f_mlbody_virtualclass, "  val virtual underlying_cpp_object : Swig.%s\n", proxy_class_name);
+  Printf(f_mliout, "type %s = < >\n", proxy_class_name);
 
   // We are wrapping a class. Set classmode to true.
   classmode = true;
