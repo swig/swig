@@ -38,7 +38,9 @@ protected:
   String *variable_name;	// Name of a variable being wrapped
   String *proxy_class_decl;
   String *proxy_class_def;
-  String *destructor_call;	//C++ destructor call if any
+  String *destructor_call;	// C++ destructor call if any
+  String *proxy_class_constants_code;
+  String *proxy_global_constants_code;
 
 public:
    OBJC():empty_string(NewString("")),
@@ -59,7 +61,8 @@ public:
       global_variable_flag(false),
       proxy_flag(true),
       proxy_class_name(NULL),
-      destructor_call(NULL), variable_name(NULL), proxy_class_def(NULL), proxy_class_decl(NULL), ocpp_h_code(NULL), proxy_h_code(NULL), proxy_m_code(NULL) {
+      destructor_call(NULL), proxy_class_constants_code(NULL), proxy_global_constants_code(NULL), variable_name(NULL), proxy_class_def(NULL),
+      proxy_class_decl(NULL), ocpp_h_code(NULL), proxy_h_code(NULL), proxy_m_code(NULL) {
   } virtual void main(int argc, char *argv[]) {
     SWIG_library_directory("objc");
 
@@ -136,6 +139,7 @@ public:
     proxy_class_decl = NewString("");
     proxy_class_def = NewString("");
     swig_types_hash = NewHash();
+    proxy_global_constants_code = NewString("");
 
     // Emit code for children
     Language::top(n);
@@ -217,6 +221,8 @@ public:
       proxy_class_def = NULL;
       Delete(proxy_class_decl);
       proxy_class_decl = NULL;
+      Delete(proxy_global_constants_code);
+      proxy_global_constants_code = NULL;
 
       Delete(f_header);
       Delete(f_wrappers);
@@ -1255,6 +1261,122 @@ public:
     return SWIG_OK;
   }
 
+
+  /* -----------------------------------------------------------------------
+   * constantWrapper()
+   * Used for wrapping constants - #define or %constant.
+   * Also for inline initialised const static primitive type member variables (short, int, double, enums etc).
+   * Objective-C static const variables are generated for these.
+   * If the %objcconst(1) feature is used then the C constant value is used to initialise the Objective-C const variable.
+   * If not, method is generated to get the C constant value for initialisation of the Objective-C const variable.
+   * However, if the %objcconstvalue feature is used, it overrides all other ways to generate the initialisation.
+   * Also note that this method might be called for wrapping enum items (when the enum is using %objcconst(0)).
+   * ------------------------------------------------------------------------ */
+
+  virtual int constantWrapper(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+    SwigType *t = Getattr(n, "type");
+    ParmList *l = Getattr(n, "parms");
+    String *tm;
+    String *return_type = NewString("");
+    String *constants_code = NewString("");
+
+    if (!addSymbol(symname, n))
+      return SWIG_ERROR;
+
+    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
+
+    // The %objcconst feature determines how the constant value is obtained
+    int const_feature_flag = GetFlag(n, "feature:objc:const");
+
+    /* Adjust the enum type for the Swig_typemap_lookup.
+     * We want the same objctype typemap for all the enum items so we use the enum type (parent node). */
+    if (is_enum_item) {
+      t = Getattr(parentNode(n), "enumtype");
+      Setattr(n, "type", t);
+    }
+
+    /* Attach the non-standard typemaps to the parameter list. */
+    Swig_typemap_attach_parms("objctype", l, NULL);
+
+    /* Get Objective-C return types */
+    bool classname_substituted_flag = false;
+
+    if ((tm = Swig_typemap_lookup("objctype", n, "", 0))) {
+      String *objctypeout = Getattr(n, "tmap:objctype:out");	// the type in the objctype typemap's out attribute overrides the type in the typemap
+      if (objctypeout)
+	tm = objctypeout;
+      classname_substituted_flag = substituteClassname(t, tm);
+      Printf(return_type, "%s", tm);
+    } else {
+      Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(t, 0));
+    }
+
+    // Add the stripped quotes back in
+    String *new_value = NewString("");
+    Swig_save("constantWrapper", n, "value", NIL);
+    if (SwigType_type(t) == T_STRING) {
+      Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
+      Setattr(n, "value", new_value);
+    } else if (SwigType_type(t) == T_CHAR) {
+      Printf(new_value, "\'%s\'", Copy(Getattr(n, "value")));
+      Setattr(n, "value", new_value);
+    }
+
+    const String *outattributes = Getattr(n, "tmap:objctype:outattributes");
+    if (outattributes)
+      Printf(constants_code, "  %s\n", outattributes);
+    const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
+
+    Printf(constants_code, "  %s %s %s = ", (const_feature_flag ? "const" : "static"), return_type, itemname);
+
+    // Check for the %objcconstvalue feature
+    String *value = Getattr(n, "feature:objc:constvalue");
+
+    if (value) {
+      Printf(constants_code, "%s;\n", value);
+    } else if (!const_feature_flag) {
+      // Default enum and constant handling will work with any type of C constant and initialises the Objective-C variable from C through a method call.
+
+      if (classname_substituted_flag) {
+	if (SwigType_isenum(t)) {
+	  // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
+	  Printf(constants_code, "(%s)%s();\n", return_type, Swig_name_get(symname));
+	} else {
+	  // This handles function pointers using the %constant directive
+	  Printf(constants_code, "new %s(%s(), false);\n", return_type, Swig_name_get(symname));
+	}
+      } else
+	Printf(constants_code, "%s();\n", Swig_name_get(symname));
+
+      // Each constant and enum value is wrapped with a separate function call
+      SetFlag(n, "feature:immutable");
+      enum_constant_flag = true;
+      variableWrapper(n);
+      enum_constant_flag = false;
+    } else {
+      // Alternative constant handling will use the C syntax to make a true Objective-C constant and hope that it compiles as Objective-C code
+      Printf(constants_code, "%s;\n", Getattr(n, "value"));
+    }
+
+    // Emit the generated code to appropriate place
+    // Enums only emit the intermediate methods, so no proxy wrapper methods needed
+    if (!is_enum_item) {
+      if (proxy_flag && wrapping_member_flag)
+	Printv(proxy_class_constants_code, constants_code, NIL);
+      else {
+	Printv(proxy_global_constants_code, constants_code, NIL);
+	Printv(proxy_h_code, proxy_global_constants_code, NIL);
+      }
+    }
+    // Cleanup
+    Swig_restore(n);
+    Delete(new_value);
+    Delete(return_type);
+    Delete(constants_code);
+    return SWIG_OK;
+  }
+
   /* -----------------------------------------------------------------------------
    * getProxyName()
    *
@@ -1431,6 +1553,7 @@ public:
       Clear(proxy_class_decl);
 
       destructor_call = NewString("");
+      proxy_class_constants_code = NewString("");
 
       proxyClassHandler(n);
       Printv(proxy_h_code, proxy_class_decl, NIL);
@@ -1443,6 +1566,11 @@ public:
     Language::classHandler(n);
 
     if (proxy_flag) {
+
+      // Write out all the constants
+      if (Len(proxy_class_constants_code) != 0)
+	Printv(proxy_h_code, proxy_class_constants_code, NIL);
+
       Printv(proxy_h_code, proxy_class_decl, NIL);
       Printv(proxy_m_code, proxy_class_def, NIL);
 
@@ -1453,6 +1581,8 @@ public:
       proxy_class_name = NULL;
       Delete(destructor_call);
       destructor_call = NULL;
+      Delete(proxy_class_constants_code);
+      proxy_class_constants_code = NULL;
     }
 
     return SWIG_OK;
