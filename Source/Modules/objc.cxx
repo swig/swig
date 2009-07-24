@@ -4,6 +4,7 @@
  */
 
 #include "swigmod.h"
+#include "cparse.h"
 #include <ctype.h>
 
 
@@ -39,8 +40,11 @@ protected:
   String *proxy_class_decl;
   String *proxy_class_def;
   String *destructor_call;	// C++ destructor call if any
+  String *enum_code;
   String *proxy_class_constants_code;
   String *proxy_global_constants_code;
+
+  enum EnumFeature { SimpleEnum, ProperEnum };
 
 public:
    OBJC():empty_string(NewString("")),
@@ -61,7 +65,7 @@ public:
       global_variable_flag(false),
       proxy_flag(true),
       proxy_class_name(NULL),
-      destructor_call(NULL), proxy_class_constants_code(NULL), proxy_global_constants_code(NULL), variable_name(NULL), proxy_class_def(NULL),
+      destructor_call(NULL), proxy_class_constants_code(NULL), enum_code(NULL), proxy_global_constants_code(NULL), variable_name(NULL), proxy_class_def(NULL),
       proxy_class_decl(NULL), ocpp_h_code(NULL), proxy_h_code(NULL), proxy_m_code(NULL) {
   } virtual void main(int argc, char *argv[]) {
     SWIG_library_directory("objc");
@@ -164,7 +168,7 @@ public:
       emitBanner(f_proxy_h);
       Printf(f_proxy_m, "#include \"%s\"\n\n", file_h);
       Printf(f_proxy_m, "#include \"%s\"\n\n", file_proxy_h);
-      Printv(f_proxy_h, proxy_h_code, NIL);
+      Printv(f_proxy_h, proxy_global_constants_code, proxy_h_code, NIL);
       Printv(f_proxy_m, proxy_m_code, NIL);
 
       Delete(file_proxy_h);
@@ -286,6 +290,66 @@ public:
     }
 
     return enum_name;
+  }
+
+	/*----------------------------------------------------------------------
+   * decodeEnumFeature()
+   * Decode the possible enum features, which are one of:
+   *   %objcenum(simple)
+   *   %objcenum(proper)
+   *--------------------------------------------------------------------*/
+
+  EnumFeature decodeEnumFeature(Node *n) {
+    EnumFeature enum_feature = SimpleEnum;
+    String *feature = Getattr(n, "feature:objc:enum");
+    if (feature) {
+      if (Cmp(feature, "simple") == 0)
+	enum_feature = SimpleEnum;
+      else if (Cmp(feature, "proper") == 0)
+	enum_feature = ProperEnum;
+    }
+    return enum_feature;
+  }
+
+
+  /* -----------------------------------------------------------------------
+   * enumValue()
+   * This method will return a string with an enum value to use in Objective-C generated
+   * code. If the %objcconst feature is not used, the string will contain the intermediary
+   * method call to obtain the enum value. The intermediary methods to obtain
+   * the enum value will be generated. Otherwise the C/C++ enum value will be used if there
+   * is one and hopefully it will compile as Objective-C code - e.g. 20 as in: enum E{e=20};
+   * The %objcconstvalue feature overrides all other ways to generate the constant value.
+   * The caller must delete memory allocated for the returned string.
+   * ------------------------------------------------------------------------ */
+
+  String *enumValue(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+
+    // Check for the %objcconstvalue feature
+    String *value = Getattr(n, "feature:objc:constvalue");
+
+    if (!value) {
+      // The %objcconst feature determines how the constant value is obtained
+      int const_feature_flag = GetFlag(n, "feature:objc:const");
+
+      if (const_feature_flag) {
+	// Use the C syntax to make a true Objective-C constant and hope that it compiles as Objective-C code
+	value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
+      } else {
+	// Get the enumvalue from a PINVOKE call
+	if (!getCurrentClass() || !cparse_cplusplus || !proxy_flag) {
+	  // Strange hack to change the name
+	  Setattr(n, "name", Getattr(n, "value"));	/* for wrapping of enums in a namespace when emit_action is used */
+	  constantWrapper(n);
+	  value = NewStringf("%s()", Swig_name_get(symname));
+	} else {
+	  memberconstantHandler(n);
+	  value = NewStringf("%s()", Swig_name_get(Swig_name_member(proxy_class_name, symname)));
+	}
+      }
+    }
+    return value;
   }
 
 
@@ -1261,6 +1325,145 @@ public:
     return SWIG_OK;
   }
 
+  /* ----------------------------------------------------------------------
+   * enumDeclaration()
+   *
+   * C/C++ enums can be mapped in one of 4 ways, depending on the objc:enum feature specified:
+   * 1) Simple enums - simple constant within the proxy (Class or global)
+   * 2) Proper enums - proper Objective-C/C enum. This is just copy-paste of the enum declaration.
+   * Anonymous enums always default to 1)
+   * ---------------------------------------------------------------------- */
+
+  virtual int enumDeclaration(Node *n) {
+
+    if (!ImportMode) {
+      if (getCurrentClass() && (cplus_mode != PUBLIC))
+	return SWIG_NOWRAP;
+
+      enum_code = NewString("");
+      String *symname = Getattr(n, "sym:name");
+      String *constants_code = (proxy_flag && is_wrapping_class())? proxy_global_constants_code : proxy_global_constants_code;
+      EnumFeature enum_feature = decodeEnumFeature(n);
+      String *typemap_lookup_type = Getattr(n, "name");
+
+      if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
+	// Cop-paste the C/C++ enum as an Objective-C enum
+	Printf(enum_code, "enum %s {", symname);
+
+      } else {
+	// Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums of any sort
+	if (symname && !Getattr(n, "unnamedinstance"))
+	  Printf(constants_code, "  // %s \n", symname);
+      }
+
+      // Emit each enum item
+      Language::enumDeclaration(n);
+
+      Replaceall(enum_code, "$objcclassname", symname);
+
+      // Substitute $enumvalues - intended usage is for typesafe enums
+      if (Getattr(n, "enumvalues"))
+	Replaceall(enum_code, "$enumvalues", Getattr(n, "enumvalues"));
+      else
+	Replaceall(enum_code, "$enumvalues", "");
+
+
+      if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
+	// Copy-paste the C/C++ enum as a proper Objective-C enum
+	// Finish the enum declaration
+	Printf(enum_code, "};\n\n");
+      } else {
+	// Wrap C++ enum with simple constant
+	Printf(enum_code, "\n");
+	if (proxy_flag && is_wrapping_class()) {
+	  Printv(proxy_global_constants_code, enum_code, NIL);	// for now writing everything globally
+	} else {
+	  Printv(proxy_global_constants_code, enum_code, NIL);
+	}
+      }
+
+      Delete(enum_code);
+      enum_code = NULL;
+    }
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * enumvalueDeclaration()
+   * ---------------------------------------------------------------------- */
+
+  virtual int enumvalueDeclaration(Node *n) {
+    if (getCurrentClass() && (cplus_mode != PUBLIC))
+      return SWIG_NOWRAP;
+
+    Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
+    String *symname = Getattr(n, "sym:name");
+    String *value = Getattr(n, "value");
+    String *name = Getattr(n, "name");
+    String *tmpValue;
+    String *tm;
+    SwigType *t = Getattr(n, "type");
+
+    // Strange hack from parent method
+    if (value)
+      tmpValue = NewString(value);
+    else
+      tmpValue = NewString(name);
+    // Note that this is used in enumValue() amongst other places
+    Setattr(n, "value", tmpValue);
+
+    {
+      EnumFeature enum_feature = decodeEnumFeature(parentNode(n));
+      // The %objcconst feature determines how the constant value is obtained
+
+      int const_feature_flag = GetFlag(n, "feature:objc:const");
+
+      if ((enum_feature != SimpleEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
+	// Wrap (non-anonymous) C/C++ enum with a proper Objective-C enum
+	// Emit the enum item.
+	if (!Getattr(n, "_last"))	// Only the first enum item has this attribute set
+	  Printf(enum_code, ",\n");
+	Printf(enum_code, "  %s", symname);
+
+	// Check for the %objcconstvalue feature
+	String *value = Getattr(n, "feature:objc:constvalue");
+
+	// Note that the enum value must be a true constant and cannot be set from a PINVOKE call, thus no support for %objcconst(0)
+	value = value ? value : Getattr(n, "enumvalue");
+	if (value) {
+	  Printf(enum_code, " = %s", value);
+	}
+      } else {
+	// Wrap C/C++ enums with constant integers
+	String *return_type = NewString("");
+
+	if ((tm = Swig_typemap_lookup("objctype", n, "", 0))) {
+	  String *objctypeout = Getattr(n, "tmap:objctype:out");	// the type in the objctype typemap's out attribute overrides the type in the typemap
+	  if (objctypeout)
+	    tm = objctypeout;
+	  substituteClassname(t, tm);
+	  Printf(return_type, "%s", tm);
+	}
+	// Simple integer constants
+	// Note these are always generated for anonymous enums, no matter what enum_feature is specified
+	const char *const_static = const_feature_flag ? "const" : "static";
+	String *value = enumValue(n);
+	Printf(enum_code, "  %s %s %s = %s;\n", const_static, return_type, symname, value);
+	Delete(value);
+      }
+
+      // Add the enum value to the comma separated list being constructed in the enum declaration.
+      String *enumvalues = Getattr(parentNode(n), "enumvalues");
+      if (!enumvalues)
+	Setattr(parentNode(n), "enumvalues", Copy(symname));
+      else
+	Printv(enumvalues, ", ", symname, NIL);
+    }
+
+    Delete(tmpValue);
+    Swig_restore(n);
+    return SWIG_OK;
+  }
 
   /* -----------------------------------------------------------------------
    * constantWrapper()
@@ -1316,10 +1519,10 @@ public:
     String *new_value = NewString("");
     Swig_save("constantWrapper", n, "value", NIL);
     if (SwigType_type(t) == T_STRING) {
-      Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
+      Printf(new_value, "@\"%s\"", Copy(Getattr(n, "value")));
       Setattr(n, "value", new_value);
     } else if (SwigType_type(t) == T_CHAR) {
-      Printf(new_value, "\'%s\'", Copy(Getattr(n, "value")));
+      Printf(new_value, "\'%s\'", Copy(Getattr(n, "value")));	//character pointer ??
       Setattr(n, "value", new_value);
     }
 
@@ -1362,9 +1565,10 @@ public:
     // Emit the generated code to appropriate place
     // Enums only emit the intermediate methods, so no proxy wrapper methods needed
     if (!is_enum_item) {
-      if (proxy_flag && wrapping_member_flag)
-	Printv(proxy_class_constants_code, constants_code, NIL);
-      else {
+      if (proxy_flag && wrapping_member_flag) {
+	Printv(proxy_global_constants_code, constants_code, NIL);	//for now writing everything globally
+	Printv(proxy_h_code, proxy_global_constants_code, NIL);
+      } else {
 	Printv(proxy_global_constants_code, constants_code, NIL);
 	Printv(proxy_h_code, proxy_global_constants_code, NIL);
       }
