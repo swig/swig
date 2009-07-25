@@ -1,4 +1,4 @@
-/* -----------------------------------------------------------------------------
+  /* -----------------------------------------------------------------------------
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
@@ -1535,7 +1535,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
-%type <node>     c_declaration c_decl c_decl_tail c_enum_decl c_enum_forward_decl c_constructor_decl c_rettype ;
+%type <node>     c_declaration c_decl c_decl_tail c_enum_keyword c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl c_rettype ;
 %type <node>     enumlist edecl;
 
 /* C++ declarations */
@@ -3071,15 +3071,40 @@ initializer   : def_args {
               ;
 
 
+
 /* ------------------------------------------------------------
-   enum Name;
+   enum
+   or
+   enum class
    ------------------------------------------------------------ */
 
-c_enum_forward_decl : storage_class ENUM ID SEMI {
+c_enum_keyword : ENUM {
+		   $$ = (char*)"enumkeyword";
+	      }
+	      | ENUM CLASS {
+		   $$ = (char*)"enumclasskeyword";
+	      }
+	      ;
+
+/* ------------------------------------------------------------
+   base enum type (eg. unsigned short)
+   ------------------------------------------------------------ */
+
+c_enum_inherit : COLON primitive_type {
+                   $$ = $2;
+              }
+              | empty { $$ = 0; }
+              ;
+/* ------------------------------------------------------------
+   enum [class] Name;
+   ------------------------------------------------------------ */
+
+c_enum_forward_decl : storage_class c_enum_keyword c_enum_inherit ID SEMI {
 		   SwigType *ty = 0;
 		   $$ = new_node("enumforward");
-		   ty = NewStringf("enum %s", $3);
-		   Setattr($$,"name",$3);
+		   ty = NewStringf("enum %s", $4);
+		   Setattr($$,"enumkeyword",$2);
+		   Setattr($$,"name",$4);
 		   Setattr($$,"type",ty);
 		   Setattr($$,"sym:weak", "1");
 		   add_symbols($$);
@@ -3087,52 +3112,58 @@ c_enum_forward_decl : storage_class ENUM ID SEMI {
               ;
 
 /* ------------------------------------------------------------
-   enum { ... }
+   enum [class] Name [: base_type] { ... };
+   or
+   enum [class] Name [: base_type] { ... } MyEnum [= ...];
  * ------------------------------------------------------------ */
 
-c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
+c_enum_decl :  storage_class c_enum_keyword ename c_enum_inherit LBRACE enumlist RBRACE SEMI {
 		  SwigType *ty = 0;
                   $$ = new_node("enum");
 		  ty = NewStringf("enum %s", $3);
+		  Setattr($$,"enumkeyword",$2);
 		  Setattr($$,"name",$3);
+		  Setattr($$,"inherit",$4);
 		  Setattr($$,"type",ty);
-		  appendChild($$,$5);
-		  add_symbols($$);       /* Add to tag space */
-		  add_symbols($5);       /* Add enum values to id space */
+		  appendChild($$,$6);
+		  add_symbols($$);      /* Add to tag space */
+		  add_symbols($6);      /* Add enum values to id space */
                }
-               | storage_class ENUM ename LBRACE enumlist RBRACE declarator c_decl_tail {
+	       | storage_class c_enum_keyword ename c_enum_inherit LBRACE enumlist RBRACE declarator c_decl_tail {
 		 Node *n;
 		 SwigType *ty = 0;
 		 String   *unnamed = 0;
 		 int       unnamedinstance = 0;
 
 		 $$ = new_node("enum");
+		 Setattr($$,"enumkeyword",$2);
+		 Setattr($$,"inherit",$4);
 		 if ($3) {
 		   Setattr($$,"name",$3);
 		   ty = NewStringf("enum %s", $3);
-		 } else if ($7.id) {
+		 } else if ($8.id) {
 		   unnamed = make_unnamed();
 		   ty = NewStringf("enum %s", unnamed);
 		   Setattr($$,"unnamed",unnamed);
                    /* name is not set for unnamed enum instances, e.g. enum { foo } Instance; */
 		   if ($1 && Cmp($1,"typedef") == 0) {
-		     Setattr($$,"name",$7.id);
+		     Setattr($$,"name",$8.id);
                    } else {
                      unnamedinstance = 1;
                    }
 		   Setattr($$,"storage",$1);
 		 }
-		 if ($7.id && Cmp($1,"typedef") == 0) {
-		   Setattr($$,"tdname",$7.id);
+		 if ($8.id && Cmp($1,"typedef") == 0) {
+		   Setattr($$,"tdname",$8.id);
                    Setattr($$,"allows_typedef","1");
                  }
-		 appendChild($$,$5);
+		 appendChild($$,$6);
 		 n = new_node("cdecl");
 		 Setattr(n,"type",ty);
-		 Setattr(n,"name",$7.id);
+		 Setattr(n,"name",$8.id);
 		 Setattr(n,"storage",$1);
-		 Setattr(n,"decl",$7.type);
-		 Setattr(n,"parms",$7.parms);
+		 Setattr(n,"decl",$8.type);
+		 Setattr(n,"parms",$8.parms);
 		 Setattr(n,"unnamed",unnamed);
 
                  if (unnamedinstance) {
@@ -3142,8 +3173,8 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		   Setattr(n,"unnamedinstance","1");
 		   Delete(cty);
                  }
-		 if ($8) {
-		   Node *p = $8;
+		 if ($9) {
+		   Node *p = $9;
 		   set_nextSibling(n,p);
 		   while (p) {
 		     SwigType *cty = Copy(ty);
@@ -3163,8 +3194,8 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 
                  /* Ensure that typedef enum ABC {foo} XYZ; uses XYZ for sym:name, like structs.
                   * Note that class_rename/yyrename are bit of a mess so used this simple approach to change the name. */
-                 if ($7.id && $3 && Cmp($1,"typedef") == 0) {
-		   String *name = NewString($7.id);
+                 if ($8.id && $3 && Cmp($1,"typedef") == 0) {
+		   String *name = NewString($8.id);
                    Setattr($$, "parser:makename", name);
 		   Delete(name);
                  }
@@ -3172,7 +3203,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		 add_symbols($$);       /* Add enum to tag space */
 		 set_nextSibling($$,n);
 		 Delete(n);
-		 add_symbols($5);       /* Add enum values to id space */
+		 add_symbols($6);       /* Add enum values to id space */
 	         add_symbols(n);
 		 Delete(unnamed);
 	       }
@@ -5223,7 +5254,7 @@ type_right     : primitive_type { $$ = $1;
                | TYPE_VOID { $$ = $1; }
                | TYPE_AUTO { $$ = $1; }
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
-               | ENUM idcolon { $$ = NewStringf("enum %s", $2); }
+               | c_enum_keyword idcolon { $$ = NewStringf("enum %s", $2); }
                | TYPE_RAW { $$ = $1; }
 
                | idcolon {
