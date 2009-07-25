@@ -275,7 +275,7 @@ int OCAML::functionWrapper (Node * n) {
 
     // Declaring the input ocaml_arg_n, i.e. arg, value in the wrapper.
     String * caml_parameter_declaration = NewString("");
-    Printf(caml_parameter_declaration, "CAMLparam1(%s)", arg);
+    Printf(caml_parameter_declaration, "CAMLxparam1(%s)", arg);
     Wrapper_add_local(f, arg, caml_parameter_declaration);
     Delete(caml_parameter_declaration);
 
@@ -298,7 +298,7 @@ int OCAML::functionWrapper (Node * n) {
     Delete(arg);
 
   }
-  Printf(f->def, ")\n{\n");
+  Printf(f->def, ")\n{\n  CAMLparam0();");
 
   // Now write code to make the function call.
   String * action_code = emit_action(n);
@@ -343,7 +343,8 @@ int OCAML::functionWrapper (Node * n) {
     Printf(f_mli_constructing_class, "class %s_%d : %s%s\n",
       proxy_class_name, constructor_number, ml_wrapper_argtypes, proxy_class_name);
   } else if (classmode) {
-    Printf(f_mlcdecl, "  external %s : Obj.t * Obj.t -> Obj.t = \"%s\"\n", wrapper_name, wrapper_name);
+    Printf(f_mlcdecl, "  external %s : %s%s = \"%s\"\n",
+      wrapper_name, ml_wrapper_argtypes, Swig_typemap_lookup("ocamlout", n, "result", 0), wrapper_name);
     Printf(f_mlbody_opaqueclass, "  method %s x = Swig.%s (underlying_cpp_object, x)\n", name, wrapper_name);
   }
 

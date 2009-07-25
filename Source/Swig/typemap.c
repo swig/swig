@@ -17,6 +17,14 @@ char cvsroot_typemap_c[] = "$Id$";
 #define SWIG_DEBUG
 #endif
 
+#if 0
+#define SWIG_DEBUG_TYPE_MATCHING
+/* #define SWIG_DEBUG_TYPEMAP  "tmap:out"    */
+/* #define SWIG_DEBUG_NAME     "tokenizer"   */
+/* #define SWIG_DEBUG_TYPENAME "p.tokenizer" */
+int debug_flag = 0;
+#endif
+
 static void replace_embedded_typemap(String *s);
 
 /* -----------------------------------------------------------------------------
@@ -49,6 +57,11 @@ static Hash *typemaps[MAX_SCOPE];
 static int tm_scope = 0;
 
 static Hash *get_typemap(int tm_scope, SwigType *type) {
+
+#ifdef SWIG_DEBUG_TYPE_MATCHING
+  if (debug_flag) Printf(stdout, "  get_typemap: type is %s\n", type);
+#endif
+
   Hash *tm = 0;
   SwigType *dtype = 0;
   if (SwigType_istemplate(type)) {
@@ -603,6 +616,24 @@ static Hash *typemap_search(const_String_or_char_ptr op, SwigType *type, const_S
   SwigType *unstripped = 0;
   String *tmop = tmop_name(op);
 
+#ifdef SWIG_DEBUG_TYPE_MATCHING
+  if ( 1
+#ifdef SWIG_DEBUG_TYPEMAP
+       && (0 == Strcmp (tmop, SWIG_DEBUG_TYPEMAP))
+#endif
+#ifdef SWIG_DEBUG_NAME
+       && (0 == Strcmp (name, SWIG_DEBUG_NAME))
+#endif
+#ifdef SWIG_DEBUG_TYPENAME
+       && (0 == Strcmp (type, SWIG_DEBUG_TYPENAME))
+#endif
+     ) debug_flag = 1;
+  if (debug_flag) {
+    Printf(stdout, "typemap_search: function called with arguments:\n");
+    Printf(stdout, "  tmop is %s, name is %s, type is %s\n", tmop, name, type);
+  }
+#endif
+
   if ((name) && Len(name))
     cname = name;
   ts = tm_scope;
@@ -610,6 +641,11 @@ static Hash *typemap_search(const_String_or_char_ptr op, SwigType *type, const_S
   while (ts >= 0) {
     ctype = type;
     while (ctype) {
+
+#ifdef SWIG_DEBUG_TYPE_MATCHING
+      if (debug_flag) Printf(stdout, "  loop: ctype is %s\n", ctype);
+#endif
+
       /* Try to get an exact type-match */
       tm = get_typemap(ts, ctype);
       if (tm && cname) {
@@ -728,6 +764,11 @@ ret_result:
   }
   if (type != ctype)
     Delete(ctype);
+
+#ifdef SWIG_DEBUG_TYPE_MATCHING
+  debug_flag = 0;
+#endif
+
   return result;
 }
 
