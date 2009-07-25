@@ -191,12 +191,6 @@ int OCAML::functionWrapper (Node * n) {
   String   * type    = Getattr(n, "type"       );
   ParmList * parms   = Getattr(n, "parms"      );
 
-  // Conversion of parms to the string parmstr
-  // ???
-  //String   * parmstr = ParmList_str_defaultargs(parms);
-  //String   * func    = SwigType_str(type, NewStringf("%s(%s)", name, parmstr));
-  //String   * action  = Getattr(n, "wrap:action");
-
   // Declaration of the wrapper.
   Wrapper * f = NewWrapper();
 
@@ -247,6 +241,7 @@ int OCAML::functionWrapper (Node * n) {
 
   // Placeholder strings for OCaml code - arguments and types for wrappers.
   String * ml_wrapper_argtypes = NewString("");
+  String * mli_method_argtypes = NewString("");
   String * ml_constructor_args = NewString("");
 
   // Now walk the function parameter list and generate code to get arguments.
@@ -270,7 +265,12 @@ int OCAML::functionWrapper (Node * n) {
     gencomma = 1;
 
     // Iteratively writing the strings for wrapper arguments on the OCaml side.
-    Printv(ml_wrapper_argtypes, Getattr(p, "tmap:ocamlin"), " -> ", NIL);
+    if (!i && classmode && !in_constructor)
+      Printv(ml_wrapper_argtypes, proxy_class_name, " -> ", NIL);
+    else
+      Printv(ml_wrapper_argtypes, Getattr(p, "tmap:ocamlin"), " -> ", NIL);
+    if (i && classmode && !in_constructor)
+      Printv(mli_method_argtypes, Getattr(p, "tmap:ocamlin"), " -> ", NIL);
     Printf(ml_constructor_args, " arg%d", i);
 
     // Declaring the input ocaml_arg_n, i.e. arg, value in the wrapper.
@@ -345,11 +345,17 @@ int OCAML::functionWrapper (Node * n) {
   } else if (classmode) {
     Printf(f_mlcdecl, "  external %s : %s%s = \"%s\"\n",
       wrapper_name, ml_wrapper_argtypes, Swig_typemap_lookup("ocamlout", n, "result", 0), wrapper_name);
-    Printf(f_mlbody_opaqueclass, "  method %s x = Swig.%s (underlying_cpp_object, x)\n", name, wrapper_name);
+    Printf(f_mlbody_opaqueclass, "  method %s = Swig.%s underlying_cpp_object\n",
+      Getattr(n, "name"), wrapper_name);
+    Printf(f_mlbody_classtype, "  method %s : %s%s\n",
+      Getattr(n, "name"), mli_method_argtypes, Swig_typemap_lookup("ocamlout", n, "result", 0));
+    Printf(f_mli_object_type, "  method %s : %s%s\n",
+      Getattr(n, "name"), mli_method_argtypes, Swig_typemap_lookup("ocamlout", n, "result", 0));
   }
 
   // Cleaning up placeholder strings for args and types for OCaml code.
   Delete(ml_wrapper_argtypes);
+  Delete(mli_method_argtypes);
   Delete(ml_constructor_args);
 
   return SWIG_OK;
