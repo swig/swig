@@ -4804,7 +4804,16 @@ declarator :  pointer notso_direct_declarator {
               $$ = $1;
 	      if (!$$.type) $$.type = NewStringEmpty();
            }
-           | AND notso_direct_declarator { 
+           | AND notso_direct_declarator {
+	     $$ = $2;
+	     $$.type = NewStringEmpty();
+	     SwigType_add_reference($$.type);
+	     if ($2.type) {
+	       SwigType_push($$.type,$2.type);
+	       Delete($2.type);
+	     }
+           }
+           | LAND notso_direct_declarator {
 	     $$ = $2;
 	     $$.type = NewStringEmpty();
 	     SwigType_add_reference($$.type);
@@ -5082,7 +5091,7 @@ abstract_declarator : pointer {
 		      Delete($2.type);
 		    }
                   }
-                  | AND { 
+                  | AND {
                     $$.id = 0;
                     $$.parms = 0;
 		    $$.have_parms = 0;
