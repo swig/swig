@@ -1418,15 +1418,13 @@ static List * Swig_overload_rank(Node *n,
 	    String *t2 = Getattr(p2,"tmap:typecheck:precedence");
 	    if ((!t1) && (!nodes[i].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[i].n), Getline(nodes[i].n),
-			   "Overloaded %s(%s) not supported (no type checking rule for '%s').\n", 
-			   Getattr(nodes[i].n,"name"),ParmList_str_defaultargs(Getattr(nodes[i].n,"parms")),
-			   SwigType_str(Getattr(p1,"type"),0));
+			   "Overloaded method %s not supported (no type checking rule for '%s').\n",
+			   Swig_name_decl(nodes[i].n), SwigType_str(Getattr(p1, "type"), 0));
 	      nodes[i].error = 1;
 	    } else if ((!t2) && (!nodes[j].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[j].n), Getline(nodes[j].n),
-			   "Overloaded %s(%s) not supported (no type checking rule for '%s').\n", 
-			   Getattr(nodes[j].n,"name"),ParmList_str_defaultargs(Getattr(nodes[j].n,"parms")),
-			   SwigType_str(Getattr(p2,"type"),0));
+			   "xx Overloaded method %s not supported (no type checking rule for '%s').\n",
+			   Swig_name_decl(nodes[j].n), SwigType_str(Getattr(p2, "type"), 0));
 	      nodes[j].error = 1;
 	    }
 	    if (t1 && t2) {
@@ -1556,21 +1554,15 @@ static List * Swig_overload_rank(Node *n,
 	    if (!nodes[j].error) {
               if (script_lang_wrapping) {
 	        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
-			     "Overloaded %s(%s)%s is shadowed by %s(%s)%s at %s:%d.\n",
-			     Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-			     SwigType_isconst(Getattr(nodes[j].n,"decl")) ? " const" : "", 
-			     Getattr(nodes[i].n,"name"), ParmList_errorstr(nodes[i].parms),
-			     SwigType_isconst(Getattr(nodes[i].n,"decl")) ? " const" : "", 
-			     Getfile(nodes[i].n),Getline(nodes[i].n));
+			     "Overloaded method %s is shadowed by %s at %s:%d.\n",
+			     Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n),
+			     Getfile(nodes[i].n), Getline(nodes[i].n));
               } else {
                 if (!Getattr(nodes[j].n, "overload:ignore"))
 	          Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-			       "Overloaded method %s(%s)%s ignored. Method %s(%s)%s at %s:%d used.\n",
-			       Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-			       SwigType_isconst(Getattr(nodes[j].n,"decl")) ? " const" : "", 
-                               Getattr(nodes[i].n,"name"), ParmList_errorstr(nodes[i].parms),
-			       SwigType_isconst(Getattr(nodes[i].n,"decl")) ? " const" : "", 
-			       Getfile(nodes[i].n),Getline(nodes[i].n));
+			       "Overloaded method %s ignored. Method %s at %s:%d used.\n",
+			       Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n),
+			       Getfile(nodes[i].n), Getline(nodes[i].n));
               }
 	      nodes[j].error = 1;
 	    }

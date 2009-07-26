@@ -126,12 +126,12 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	    String *t2 = Getattr(p2, "tmap:typecheck:precedence");
 	    if ((!t1) && (!nodes[i].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[i].n), Getline(nodes[i].n),
-			   "Overloaded method %s not supported (no type checking rule for '%s').\n",
+			   "xx Overloaded method %s not supported (no type checking rule for '%s').\n",
 			   Swig_name_decl(nodes[i].n), SwigType_str(Getattr(p1, "type"), 0));
 	      nodes[i].error = 1;
 	    } else if ((!t2) && (!nodes[j].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[j].n), Getline(nodes[j].n),
-			   "Overloaded method %s not supported (no type checking rule for '%s').\n",
+			   "yy Overloaded method %s not supported (no type checking rule for '%s').\n",
 			   Swig_name_decl(nodes[j].n), SwigType_str(Getattr(p2, "type"), 0));
 	      nodes[j].error = 1;
 	    }
