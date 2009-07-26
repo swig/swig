@@ -1,3 +1,5 @@
+%include <std_common.i>
+
 %{
   #include <string>
 %}
