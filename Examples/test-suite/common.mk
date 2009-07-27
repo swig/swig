@@ -408,7 +408,8 @@ CPP0X_TEST_CASES = \
         cpp0x_uniform_initialization \
 	cpp0x_function_objects \
 	cpp0x_strongly_typed_enumerations \
-	cpp0x_rvalue_reference
+	cpp0x_rvalue_reference \
+	cpp0x_variadic_templates
 #       cpp0x_alternate_function_syntax # not fully implemented yet
 #	cpp0x_hash_types # not fully implemented yet
 #	cpp0x_unrestricted_unions # not supported by any compilers yet

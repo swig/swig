@@ -5808,6 +5808,14 @@ templcpptype   : CLASS {
                    $$ = (char *)"typename"; 
 		   if (!inherit_list) last_cpptype = $$;
                }
+               | CLASS PERIOD PERIOD PERIOD {
+                   $$ = (char*)"class"; 
+		   if (!inherit_list) last_cpptype = $$;
+               }
+               | TYPENAME PERIOD PERIOD PERIOD { 
+                   $$ = (char *)"typename"; 
+		   if (!inherit_list) last_cpptype = $$;
+               }
                ;
 
 cpptype        : templcpptype {
