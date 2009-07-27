@@ -306,12 +306,12 @@ public:
     else {
       flag = 1;
     }
-    Printf(f->def, "CheckRhs(%d,%d);\n",num_required,num_required);
-    Printf(f->def, "CheckLhs(%d,%d);\n",out_required,out_required);
+    Printf(f->def, "CheckRhs(%d, %d);\n",num_required,num_required);
+    Printf(f->def, "CheckLhs(%d, %d);\n",out_required,out_required);
    
     /* Insert the order of output parameters*/
     if(flag)
-      Printf(f->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
+      Printf(f->def, "\nint iOutNum = 1;\nint iVarOut = Rhs + 1;");
    
     /* Finish the the code for the function  */
     Printf(f->code, "return 0;\n");	
@@ -404,8 +404,8 @@ public:
     Printv(getf->def, "int ", getname, " (char *fname,unsigned long fname_len){\n", NIL);
    
     /* Check the number of input and output */
-    Printf(getf->def, "CheckRhs(0,0);\n");
-    Printf(getf->def, "CheckLhs(1,1);\n");
+    Printf(getf->def, "CheckRhs(0, 0);\n");
+    Printf(getf->def, "CheckLhs(1, 1);\n");
     
     /* Insert the order of output parameters*/
     Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
@@ -533,7 +533,7 @@ public:
     value = Getattr(n, "value");
     
     /* write into the code string */
-    Printf(f_example_code, "%s.%s=%s;\n", parentName, iname, value);
+    Printf(f_example_code, "%s.%s = %s;\n", parentName, iname, value);
     
     return SWIG_OK;
     }

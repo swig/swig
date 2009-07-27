@@ -1,3 +1,4 @@
+#!/usr/bin/octave
 # file: runme.m
 
 example

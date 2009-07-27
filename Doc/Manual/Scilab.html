@@ -26,6 +26,7 @@
 <li><a href="#Scilab_nn11">Constants</a>
 <li><a href="#Scilab_nn12">Enums</a>
 <li><a href="#Octave_nn13">Pointers</a>
+<li><a href="#Octave_nn14">Structs</a>
 </ul>
 </ul>
 </div>
@@ -354,6 +355,30 @@ scilab:4&gt; printf("     42/37 = %d remainder %d\n",q,r);
 <p> From the example above, it is clear that instead of passing a pointer to an object,
 we only need a real value instead. 
 </p>
+
+<H3><a name="Octave_nn14"></a>27.3.6 Structs</H3>
+<p>
+   SWIG creates a set of accessor functions when encountering a structure or union. For example:
+</p>
+	<div class="code"><pre>%module example
+%inline %{
+typedef struct {
+    int x;
+} Foo;
+
+%}
+</pre></div>
+<p> When wrappered, it would generate two main function: Foo_x_set(), which set the data value of the structrure and Foo_x_get() which could obtain the value of the structrure. Run it in Scilab:
+</p>
+	<div class="targetlang"><pre>
+a=new_Foo();
+Foo_x_set(a,100);
+Foo_x_get(a)
+ans  =
+ 
+  100  
+</pre></div>
+
 
 
 
