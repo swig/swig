@@ -1,6 +1,11 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-07-28: vmiklos
+            [PHP] If a member function is not public but it has a base
+            which is public, then now a warning is issued and the member
+            function will be public, as PHP requires this.
+
 2009-07-21: vmiklos
             [PHP] Director support added.
 

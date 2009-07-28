@@ -1520,7 +1520,48 @@ public:
       Printf(output, "\n");
       // If it's a member function or a class constructor...
       if (wrapperType == memberfn || (constructor && current_class)) {
-	String *acc = Getattr(n, "access");
+	String *acc = NewString(Getattr(n, "access"));
+	// If a base has the same method with public access, then PHP
+	// requires to have it here as public as well
+	Node *bases = Getattr(Swig_methodclass(n), "bases");
+	if (bases && Strcmp(acc, "public") != 0) {
+	  String *warnmsg = 0;
+	  int haspublicbase = 0;
+	  Iterator i = First(bases);
+	  while (i.item) {
+	    Node *j = firstChild(i.item);
+	    while (j) {
+	      if (Strcmp(Getattr(j, "name"), Getattr(n, "name")) != 0) {
+		j = nextSibling(j);
+		continue;
+	      }
+	      if (Strcmp(nodeType(j), "cdecl") == 0) {
+		if (!Getattr(j, "access") || checkAttribute(j, "access", "public")) {
+		  haspublicbase = 1;
+		}
+	      } else if (Strcmp(nodeType(j), "using") == 0 && firstChild(j) && Strcmp(nodeType(firstChild(j)), "cdecl") == 0) {
+		if (!Getattr(firstChild(j), "access") || checkAttribute(firstChild(j), "access", "public")) {
+		  haspublicbase = 1;
+		}
+	      }
+	      if (haspublicbase) {
+		  warnmsg = NewStringf("Modifying the access of '%s::%s' to public, as the base '%s' has it as public as well.\n", Getattr(current_class, "classtype"), Getattr(n, "name"), Getattr(i.item, "classtype"));
+		  break;
+	      }
+	      j = nextSibling(j);
+	    }
+	    i = Next(i);
+	    if (haspublicbase) {
+	      break;
+	    }
+	  }
+	  if (Getattr(n, "access") && haspublicbase) {
+	    Delete(acc);
+	    acc = NewString("public");
+	    Swig_warning(WARN_PHP_PUBLIC_BASE, input_file, line_number, Char(warnmsg));
+	    Delete(warnmsg);
+	  }
+	}
 	if (constructor) {
 	  const char * arg0;
 	  if (max_num_of_arguments > 0) {
@@ -1540,6 +1581,7 @@ public:
 	} else {
 	  Printf(output, "\t%s function %s(%s) {\n", acc, methodname, args);
 	}
+	Delete(acc);
       } else {
 	Printf(output, "\tstatic function %s(%s) {\n", methodname, args);
       }
