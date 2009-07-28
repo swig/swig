@@ -164,7 +164,8 @@ class COM:public Language {
   File *f_rcfile;
   File *f_wrappers;
   File *f_proxy;
-  File *f_proxy_forward_defs;
+  File *f_interface_forward_defs;
+  File *f_class_defs;
   File *f_vtables;
   File *f_vtable_defs;
   File *f_factory;
@@ -185,10 +186,11 @@ class COM:public Language {
   bool constructor_flag;
 
   String *proxy_class_def;
-  String *proxy_static_class_def;
-  String *proxy_class_forward_def;
-  String *proxy_class_code;
-  String *proxy_static_class_code;
+  String *proxy_interface_def;
+  String *proxy_static_interface_def;
+  String *proxy_interface_forward_def;
+  String *proxy_interface_code;
+  String *proxy_static_interface_code;
   String *proxy_class_name;
   String *proxy_class_constants_code;
   String *clsid_list;
@@ -373,7 +375,8 @@ public:
     f_header = NewString("");
     f_wrappers = NewString("");
     f_proxy = NewString("");
-    f_proxy_forward_defs = NewString("");
+    f_class_defs = NewString("");
+    f_interface_forward_defs = NewString("");
     f_vtables = NewString("");
     f_vtable_defs = NewString("");
     f_directors = NewString("");
@@ -396,10 +399,11 @@ public:
 
     module_class_code = NewString("");
     proxy_class_def = NewString("");
-    proxy_static_class_def = NewString("");
-    proxy_class_forward_def = NewString("");
-    proxy_class_code = NewString("");
-    proxy_static_class_code = NewString("");
+    proxy_interface_def = NewString("");
+    proxy_static_interface_def = NewString("");
+    proxy_interface_forward_def = NewString("");
+    proxy_interface_code = NewString("");
+    proxy_static_interface_code = NewString("");
 
     if (isNilGUID(&typelib_guid)) {
       String *tlbid_ident = NewStringf("%s.%s.TLBID", namespce, module_class_name);
@@ -535,27 +539,32 @@ public:
       // Import IDispatch declaration, part 2
       Printf(f_module, "  importlib(\"stdole2.tlb\");\n\n");
 
-      Printv(f_module, f_proxy_forward_defs, "\n", NIL);
-
-      // Interface for module class
-      Printf(f_module, "  [\n    object,\n    local,\n    uuid(");
-      formatGUID(f_module, &module_iid, false);
-      Printf(f_module, "),\n    dual\n  ]\n  interface I%s : IDispatch {\n", module_class_name);
-
-      // Add the wrapper methods
-      Printv(f_module, module_class_code, NIL);
-
-      Printf(f_module, "  };\n\n");
+      // Forward definitions of interfaces
+      Printf(f_module, "  interface I%s;\n", module_class_name);
+      Printv(f_module, f_interface_forward_defs, "\n", NIL);
 
       Printv(f_module, "  [\n    uuid(", NIL);
       formatGUID(f_module, &module_clsid, false);
       Printv(f_module, ")\n  ]\n  coclass ", module_class_name, " {\n"
           "    interface I", module_class_name, ";\n  };\n\n", NIL);
 
+      // Add the COM class definitions
+      Printv(f_module, f_class_defs, NIL);
+
+      Printf(f_module, "};\n\n");
+
+      // Interface for module class
+      Printf(f_module, "[\n  object,\n  local,\n  uuid(");
+      formatGUID(f_module, &module_iid, false);
+      Printf(f_module, "),\n  dual\n]\ninterface I%s : IDispatch {\n", module_class_name);
+
+      // Add the wrapper methods
+      Printv(f_module, module_class_code, NIL);
+
+      Printf(f_module, "};\n\n");
+
       // Add the proxy code
       Printv(f_module, f_proxy, NIL);
-
-      Printf(f_module, "};\n");
     }
 
     /* Close all of the files */
@@ -1050,9 +1059,9 @@ public:
     }
 
     if (hresult_flag) {
-      Printf(function_code, "    HRESULT %s(", func_name);
+      Printf(function_code, "  HRESULT %s(", func_name);
     } else {
-      Printf(function_code, "    %s %s(", return_type, func_name);
+      Printf(function_code, "  %s %s(", return_type, func_name);
     }
 
     /* Get number of required and total arguments */
@@ -1109,7 +1118,7 @@ public:
     if (!constructor_flag)
       Printv(module_class_code, function_code, NIL);
     else
-      Printv(proxy_static_class_code, function_code, NIL);
+      Printv(proxy_static_interface_code, function_code, NIL);
     Delete(function_code);
     Delete(return_type);
 
@@ -1169,25 +1178,25 @@ public:
           "    interface I$comclassname;\n  };\n\n", NIL);
     }
 
-    Printv(proxy_class_forward_def, "  interface I$comclassname;\n", NIL);
-    Printv(proxy_class_forward_def, "  interface I$comclassnameStatic;\n", NIL);
-    Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
-    formatGUID(proxy_class_def, proxy_iid, false);
+    Printv(proxy_interface_forward_def, "  interface I$comclassname;\n", NIL);
+    Printv(proxy_interface_forward_def, "  interface I$comclassnameStatic;\n", NIL);
+    Printv(proxy_interface_def, "[\n  object,\n  local,\n  uuid(", NIL);
+    formatGUID(proxy_interface_def, proxy_iid, false);
 
-    Printv(proxy_class_def, "),\n    dual\n  ]\n  interface I$comclassname : ",
+    Printv(proxy_interface_def, "),\n  dual\n]\ninterface I$comclassname : ",
         "I", *Char(wanted_base) ? wanted_base : "Dispatch", " {\n", NIL);
 
     Delete(attributes);
 
-    Printv(proxy_static_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
-    formatGUID(proxy_static_class_def, proxy_static_iid, false);
+    Printv(proxy_static_interface_def, "[\n  object,\n  local,\n  uuid(", NIL);
+    formatGUID(proxy_static_interface_def, proxy_static_iid, false);
 
-    Printv(proxy_static_class_def, "),\n    dual\n  ]\n  interface I$comclassnameStatic : "
+    Printv(proxy_static_interface_def, "),\n  dual\n]\ninterface I$comclassnameStatic : "
         "IDispatch {\n", NIL);
 
     // Add static class property to module class
-    Printf(module_class_code, "    [ propget]\n"
-        "    HRESULT %s([ retval, out ] I%sStatic **SWIG_result);\n",
+    Printf(module_class_code, "  [ propget ]\n"
+        "  HRESULT %s([ retval, out ] I%sStatic **SWIG_result);\n",
         proxy_class_name, proxy_class_name);
 
     Printf(module_class_vtable_code, ",\n  (SWIG_funcptr) _wrap_%sStatic");
@@ -1202,16 +1211,16 @@ public:
         "}\n\n", proxy_class_name, proxy_class_name, proxy_class_name);
 
     // Substitute various strings into the above template
-    Replaceall(proxy_class_code, "$comclassname", proxy_class_name);
-    Replaceall(proxy_static_class_code, "$comclassname", proxy_class_name);
+    Replaceall(proxy_interface_code, "$comclassname", proxy_class_name);
+    Replaceall(proxy_static_interface_code, "$comclassname", proxy_class_name);
     Replaceall(proxy_class_def, "$comclassname", proxy_class_name);
-    Replaceall(proxy_static_class_def, "$comclassname", proxy_class_name);
-    Replaceall(proxy_class_forward_def, "$comclassname", proxy_class_name);
+    Replaceall(proxy_interface_forward_def, "$comclassname", proxy_class_name);
+    Replaceall(proxy_interface_def, "$comclassname", proxy_class_name);
+    Replaceall(proxy_static_interface_def, "$comclassname", proxy_class_name);
 
     Replaceall(proxy_class_def, "$module", module_class_name);
-    Replaceall(proxy_static_class_def, "$module", module_class_name);
-    Replaceall(proxy_class_code, "$module", module_class_name);
-    Replaceall(proxy_static_class_code, "$module", module_class_name);
+    Replaceall(proxy_interface_code, "$module", module_class_name);
+    Replaceall(proxy_static_interface_code, "$module", module_class_name);
 
     Delete(baseclass);
   }
@@ -1377,10 +1386,11 @@ public:
       }
 
       Clear(proxy_class_def);
-      Clear(proxy_static_class_def);
-      Clear(proxy_class_code);
-      Clear(proxy_static_class_code);
-      Clear(proxy_class_forward_def);
+      Clear(proxy_interface_code);
+      Clear(proxy_static_interface_code);
+      Clear(proxy_interface_def);
+      Clear(proxy_static_interface_def);
+      Clear(proxy_interface_forward_def);
       Clear(proxy_class_vtable_code);
       Clear(proxy_static_class_vtable_code);
       Clear(proxy_class_vtable_defs);
@@ -1624,23 +1634,24 @@ public:
       emitProxyClassDefAndCPPCasts(n);
 
       Replaceall(proxy_class_def, "$module", module_class_name);
-      Replaceall(proxy_static_class_def, "$module", module_class_name);
-      Replaceall(proxy_class_code, "$module", module_class_name);
-      Replaceall(proxy_static_class_code, "$module", module_class_name);
+      Replaceall(proxy_interface_def, "$module", module_class_name);
+      Replaceall(proxy_interface_code, "$module", module_class_name);
+      Replaceall(proxy_static_interface_code, "$module", module_class_name);
       Replaceall(proxy_class_constants_code, "$module", module_class_name);
 
-      Printv(f_proxy_forward_defs, proxy_class_forward_def, NIL);
-      Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
+      Printv(f_class_defs, proxy_class_def, NIL);
+      Printv(f_interface_forward_defs, proxy_interface_forward_def, NIL);
+      Printv(f_proxy, proxy_interface_def, proxy_interface_code, NIL);
 
       // Write out all the constants
       if (Len(proxy_class_constants_code) != 0)
 	Printv(f_proxy, proxy_class_constants_code, NIL);
 
-      Printf(f_proxy, "  };\n\n");
+      Printf(f_proxy, "};\n\n");
 
-      Printv(f_proxy, proxy_static_class_def, proxy_static_class_code, NIL);
+      Printv(f_proxy, proxy_static_interface_def, proxy_static_interface_code, NIL);
 
-      Printf(f_proxy, "  };\n\n");
+      Printf(f_proxy, "};\n\n");
 
       Printv(proxy_class_vtable_code, "\n};\n\n", NIL);
 
@@ -1862,18 +1873,18 @@ public:
       setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) == 0);
       
       if (setter_flag) {
-        Printf(function_code, "    [ propput ]\n");
+        Printf(function_code, "  [ propput ]\n");
       } else {
-        Printf(function_code, "    [ propget ]\n");
+        Printf(function_code, "  [ propget ]\n");
       }
     }
 
 
     /* Start generating the proxy function */
     if (hresult_flag) {
-      Printf(function_code, "    HRESULT %s(", proxy_function_name);
+      Printf(function_code, "  HRESULT %s(", proxy_function_name);
     } else {
-      Printf(function_code, "    %s %s(", return_type, proxy_function_name);
+      Printf(function_code, "  %s %s(", return_type, proxy_function_name);
     }
 
     emit_mark_varargs(l);
@@ -1938,11 +1949,11 @@ public:
     Printv(function_code, ";\n", NIL);
 
     if (!Getattr(n, "override")) {
-      Printv(proxy_class_code, function_code, NIL);
+      Printv(proxy_interface_code, function_code, NIL);
     }
 
     if (checkAttribute(n, "storage", "static")) {
-      Printv(proxy_static_class_code, function_code, NIL);
+      Printv(proxy_static_interface_code, function_code, NIL);
     }
 
     Delete(pre_code);
@@ -1994,9 +2005,8 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void emitTypeWrapperClass(String *classname, SwigType *type) {
-    Clear(proxy_class_def);
-    Clear(proxy_static_class_def);
-    Clear(proxy_class_forward_def);
+    Clear(proxy_interface_forward_def);
+    Clear(proxy_interface_def);
 
     proxy_iid = new GUID;
 
@@ -2011,23 +2021,23 @@ public:
     formatGUID(f_vtable_defs, proxy_iid, true);
     Printf(f_vtable_defs, ";\n\n");
 
-    Printv(proxy_class_forward_def, "  interface I$comclassname;\n", NIL);
+    Printv(proxy_interface_forward_def, "  interface I$comclassname;\n", NIL);
 
-    Printv(proxy_class_def, "  [\n    object,\n    local,\n    uuid(", NIL);
-    formatGUID(proxy_class_def, proxy_iid, false);
-    Printv(proxy_class_def, ")\n  ]\n  interface I$comclassname : IUnknown {\n  };\n\n", NIL);
+    Printv(proxy_interface_def, "[\n  object,\n  local,\n  uuid(", NIL);
+    formatGUID(proxy_interface_def, proxy_iid, false);
+    Printv(proxy_interface_def, ")\n]\ninterface I$comclassname : IUnknown {\n};\n\n", NIL);
 
-    Replaceall(proxy_class_forward_def, "$comclassname", classname);
-    Replaceall(proxy_class_def, "$comclassname", classname);
-    Replaceall(proxy_class_forward_def, "$module", module_class_name);
-    Replaceall(proxy_class_def, "$module", module_class_name);
+    Replaceall(proxy_interface_forward_def, "$comclassname", classname);
+    Replaceall(proxy_interface_def, "$comclassname", classname);
+    Replaceall(proxy_interface_forward_def, "$module", module_class_name);
+    Replaceall(proxy_interface_def, "$module", module_class_name);
 
     Printf(f_vtable_defs, "void * SWIGSTDCALL SWIG_wrap%s(void *ptr, int cMemOwn) {\n"
         "  return SWIG_wrap_opaque(ptr, cMemOwn, &IID_I%s);\n"
         "};\n\n", classname, classname);
 
-    Printv(f_proxy_forward_defs, proxy_class_forward_def, NIL);
-    Printv(f_proxy, proxy_class_def, NIL);
+    Printv(f_interface_forward_defs, proxy_interface_forward_def, NIL);
+    Printv(f_proxy, proxy_interface_def, NIL);
 
     delete proxy_iid;
   }
