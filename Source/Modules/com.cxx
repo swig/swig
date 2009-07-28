@@ -554,7 +554,7 @@ public:
       Printf(f_module, "};\n\n");
 
       // Interface for module class
-      Printf(f_module, "[\n  object,\n  local,\n  uuid(");
+      Printf(f_module, "[\n  object,\n  uuid(");
       formatGUID(f_module, &module_iid, false);
       Printf(f_module, "),\n  dual\n]\ninterface I%s : IDispatch {\n", module_class_name);
 
@@ -1180,7 +1180,7 @@ public:
 
     Printv(proxy_interface_forward_def, "  interface I$comclassname;\n", NIL);
     Printv(proxy_interface_forward_def, "  interface I$comclassnameStatic;\n", NIL);
-    Printv(proxy_interface_def, "[\n  object,\n  local,\n  uuid(", NIL);
+    Printv(proxy_interface_def, "[\n  object,\n  uuid(", NIL);
     formatGUID(proxy_interface_def, proxy_iid, false);
 
     Printv(proxy_interface_def, "),\n  dual\n]\ninterface I$comclassname : ",
@@ -1188,7 +1188,7 @@ public:
 
     Delete(attributes);
 
-    Printv(proxy_static_interface_def, "[\n  object,\n  local,\n  uuid(", NIL);
+    Printv(proxy_static_interface_def, "[\n  object,\n  uuid(", NIL);
     formatGUID(proxy_static_interface_def, proxy_static_iid, false);
 
     Printv(proxy_static_interface_def, "),\n  dual\n]\ninterface I$comclassnameStatic : "
@@ -2023,7 +2023,7 @@ public:
 
     Printv(proxy_interface_forward_def, "  interface I$comclassname;\n", NIL);
 
-    Printv(proxy_interface_def, "[\n  object,\n  local,\n  uuid(", NIL);
+    Printv(proxy_interface_def, "[\n  object,\n  uuid(", NIL);
     formatGUID(proxy_interface_def, proxy_iid, false);
     Printv(proxy_interface_def, ")\n]\ninterface I$comclassname : IUnknown {\n};\n\n", NIL);
 
