@@ -12,9 +12,6 @@
  *
  * Short term:
  *
- * Sort out auto-renaming of method and class names which are reserved
- *   words (e.g. empty, clone, exception, etc.)
- *
  * Sort out wrapping of static member variables in OO PHP5.
  *
  * Medium term:

@@ -1,6 +1,11 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-07-28: olly
+	    [PHP] Update warnings about clashes between identifiers and PHP
+	    keywords and automatic renaming to work with the PHP5 class
+	    wrappers.  Fixes SF#1613679.
+
 2009-07-28: vmiklos
             [PHP] If a member function is not public but it has a base
             which is public, then now a warning is issued and the member

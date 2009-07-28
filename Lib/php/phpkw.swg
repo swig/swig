@@ -3,19 +3,13 @@
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
  * phpkw.swg
- *
- * The 'keywords' in PHP are global, ie, the following names are fine
- * when used as class methods.
  * ----------------------------------------------------------------------------- */
 
-#define PHPKW(x) %keywordwarn("'" `x` "' is a PHP keyword, renamed as 'c_" `x` "'",sourcefmt="%(lower)s", rename="c_%s",fullname=1)  `x`
+#define PHPKW(x) %keywordwarn("'" `x` "' is a PHP keyword, renamed as 'c_" `x` "'",sourcefmt="%(lower)s",$isclass,rename="c_%s")  `x`
 
-%define PHPCN(x) 
-%keywordwarn("'" `x` "' is a PHP reserved class name, class renamed as 'c_" `x` "'",%$isclass,rename="c_%s") `x`;
-%keywordwarn("'" `x` "' is a PHP reserved class name, constructor renamed as 'c_" `x` "'",%$isconstructor,rename="c_%s") `x`;
-%enddef
+#define PHPCN(x) %keywordwarn("'" `x` "' is a PHP reserved class name, class renamed as 'c_" `x` "'",%$isclass,rename="c_%s") `x`
 
-#define PHPBN1(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP",sourcefmt="%(lower)s",fullname=1)  `x`
+#define PHPBN1(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP",sourcefmt="%(lower)s")  `x`
 #define PHPBN2(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP")  "::" `x`
 
 
