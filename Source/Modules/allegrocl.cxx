@@ -2006,7 +2006,7 @@ Node *parent_node_skipping_extends(Node *n) {
  * emit_num_lin_arguments()
  *
  * Calculate the total number of arguments.   This function is safe for use
- * with multi-valued typemaps which may change the number of arguments in
+ * with multi-argument typemaps which may change the number of arguments in
  * strange ways.
  * ----------------------------------------------------------------------------- */
 
