@@ -1,4 +1,4 @@
-  /* -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * See the LICENSE file for information on copyright, usage and redistribution
  * of SWIG, and the README file for authors - http://www.swig.org/release.html.
  *
@@ -1549,7 +1549,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 /* Misc */
 %type <dtype>    initializer cpp_const ;
 %type <id>       storage_class;
-%type <pl>       parms  ptail rawparms varargs_parms;
+%type <pl>       parms  ptail rawparms varargs_parms ;
 %type <pl>       templateparameters templateparameterstail;
 %type <p>        parm valparm rawvalparms valparms valptail ;
 %type <p>        typemap_parm tm_list tm_tail ;
@@ -4814,6 +4814,7 @@ declarator :  pointer notso_direct_declarator {
 	     }
            }
            | LAND notso_direct_declarator {
+	     /* Introduced in C++0x, move operator && */
 	     $$ = $2;
 	     $$.type = NewStringEmpty();
 	     SwigType_add_reference($$.type);
@@ -5538,6 +5539,11 @@ valexpr        : exprnum { $$ = $1; }
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
 		  $$.type = T_ULONG;
                }
+               | SIZEOF PERIOD PERIOD PERIOD LPAREN type parameter_declarator RPAREN {
+		  SwigType_push($6,$7.type);
+		  $$.val = NewStringf("sizeof...(%s)",SwigType_str($6,0));
+		  $$.type = T_ULONG;
+               }
                | exprcompound { $$ = $1; }
                | CHARCONST {
 		  $$.val = NewString($1);
@@ -5792,6 +5798,30 @@ base_specifier : opt_virtual idcolon {
 				cparse_line,"%s inheritance ignored.\n", $2);
 		 }
                }
+               | opt_virtual idcolon PERIOD PERIOD PERIOD { /* Variadic inheritance */
+		 $$ = NewHash();
+		 Setfile($$,cparse_file);
+		 Setline($$,cparse_line);
+		 Setattr($$,"name",$2);
+                 if (last_cpptype && (Strcmp(last_cpptype,"struct") != 0)) {
+		   Setattr($$,"access","private");
+		   Swig_warning(WARN_PARSE_NO_ACCESS,cparse_file,cparse_line,
+				"No access specifier given for base class %s (ignored).\n",$2);
+                 } else {
+		   Setattr($$,"access","public");
+		 }
+               }
+	       | opt_virtual access_specifier opt_virtual idcolon PERIOD PERIOD PERIOD { /* Variadic inheritance */
+		 $$ = NewHash();
+		 Setfile($$,cparse_file);
+		 Setline($$,cparse_line);
+		 Setattr($$,"name",$4);
+		 Setattr($$,"access",$2);
+	         if (Strcmp($2,"public") != 0) {
+		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, cparse_file, 
+				cparse_line,"%s inheritance ignored.\n", $2);
+		 }
+               }
                ;
 
 access_specifier :  PUBLIC { $$ = (char*)"public"; }
@@ -5903,21 +5933,24 @@ mem_initializer_list : mem_initializer
                | mem_initializer_list COMMA mem_initializer
                ;
 
-mem_initializer : idcolon LPAREN {
-	            skip_balanced('(',')');
+mem_initializer : idcolon LPAREN parms RPAREN {
+/*	            skip_balanced('(',')');
                     Clear(scanner_ccode);
-            	}
-                | idcolon LBRACE {
-                /* Uniform initialization. eg.
+*/            	}
+                | idcolon LBRACE parms RBRACE {
+                /* Uniform initialization in C++0x.
+		   Example:
                    struct MyStruct {
                      MyStruct(int x, double y) : x_{x}, y_{y} {}
                      int x_;
                      double y_;
                    };
                 */
-	            skip_balanced('{','}');
+/*	            skip_balanced('{','}');
                     Clear(scanner_ccode);
-                }
+*/                }
+                | idcolon LPAREN parms RPAREN PERIOD PERIOD PERIOD { }
+                | idcolon LBRACE parms RBRACE PERIOD PERIOD PERIOD { }
                 ;
 
 template_decl : LESSTHAN valparms GREATERTHAN { 
@@ -5936,7 +5969,7 @@ idstring       : ID { $$ = $1; }
 idstringopt    : idstring { $$ = $1; }
                | empty { $$ = 0; }
                ;
- 
+
 idcolon        : idtemplate idcolontail { 
                   $$ = 0;
 		  if (!$$) $$ = NewStringf("%s%s", $1,$2);
@@ -5946,6 +5979,10 @@ idcolon        : idtemplate idcolontail {
 		 $$ = NewStringf("::%s%s",$3,$4);
                  Delete($4);
                }
+               | PERIOD PERIOD PERIOD idtemplate {
+                 /* Introduced in C++0x, variadic constructor args */
+		 $$ = NewString($4);
+   	       }     
                | idtemplate {
 		 $$ = NewString($1);
    	       }     
