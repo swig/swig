@@ -22,13 +22,13 @@
 </ul>
 <li><a href="#Typemaps_nn10">Typemap specifications</a>
 <ul>
-<li><a href="#Typemaps_nn11">Defining a typemap</a>
+<li><a href="#Typemaps_defining">Defining a typemap</a>
 <li><a href="#Typemaps_nn12">Typemap scope</a>
 <li><a href="#Typemaps_nn13">Copying a typemap</a>
 <li><a href="#Typemaps_nn14">Deleting a typemap</a>
 <li><a href="#Typemaps_nn15">Placement of typemaps</a>
 </ul>
-<li><a href="#Typemaps_nn16">Pattern matching rules</a>
+<li><a href="#Typemaps_pattern_matching">Pattern matching rules</a>
 <ul>
 <li><a href="#Typemaps_nn17">Basic matching rules</a>
 <li><a href="#Typemaps_nn18">Typedef reductions</a>
@@ -41,6 +41,11 @@
 <li><a href="#Typemaps_nn22">Scope</a>
 <li><a href="#Typemaps_nn23">Declaring new local variables</a>
 <li><a href="#Typemaps_special_variables">Special variables</a>
+<li><a href="#Typemaps_special_variable_macros">Special variable macros</a>
+<ul>
+<li><a href="#Typemaps_special_macro_descriptor">$descriptor(type)</a>
+<li><a href="#Typemaps_special_macro_typemap">$typemap(method, typepattern)</a>
+</ul>
 </ul>
 <li><a href="#Typemaps_nn25">Common typemap methods</a>
 <ul>
@@ -69,7 +74,7 @@
 <li><a href="#runtime_type_checker">The run-time type checker</a>
 <ul>
 <li><a href="#Typemaps_nn45">Implementation</a>
-<li><a href="#Typemaps_nn46">Usage</a>
+<li><a href="#Typemaps_runtime_type_checker_usage">Usage</a>
 </ul>
 <li><a href="#Typemaps_overloading">Typemaps and overloading</a>
 <li><a href="#Typemaps_nn48">More about <tt>%apply</tt> and <tt>%clear</tt></a>
@@ -655,7 +660,7 @@ of "The C Programming Language" by Kernighan and Ritchie or
 This section describes the behavior of the <tt>%typemap</tt> directive itself.
 </p>
 
-<H3><a name="Typemaps_nn11"></a>10.2.1 Defining a typemap</H3>
+<H3><a name="Typemaps_defining"></a>10.2.1 Defining a typemap</H3>
 
 
 <p>
@@ -988,7 +993,7 @@ It should be noted that for scoping to work, SWIG has to know that <tt>string</t
 within a particular namespace.  In this example, this is done using the class declaration <tt>class string</tt>.
 </p>
 
-<H2><a name="Typemaps_nn16"></a>10.3 Pattern matching rules</H2>
+<H2><a name="Typemaps_pattern_matching"></a>10.3 Pattern matching rules</H2>
 
 
 <p>
@@ -1646,6 +1651,7 @@ each type must have its own local variable declaration.
 
 <p>
 Within all typemaps, the following special variables are expanded.
+This is by no means a complete list as some target languages have additional special variables which are documented in the language specific chapters.
 </p>
 
 <center>
@@ -1889,6 +1895,86 @@ Another approach, which only works for arrays is to use the <tt>$1_basetype</tt>
    temp[i][j] = x;    /* set a value */
    ...
 }
+</pre>
+</div>
+
+<H3><a name="Typemaps_special_variable_macros"></a>10.4.4 Special variable macros</H3>
+
+
+<p>
+Special variable macros are like macro functions in that they take one or more input arguments 
+which are used for the macro expansion. 
+They look like macro/function calls but use the special variable <tt>$</tt> prefix to the macro name. 
+Note that unlike normal macros, the expansion is not done by the preprocessor, 
+it is done during the SWIG parsing/compilation stages. 
+The following special variable macros are available across all language modules.
+</p>
+
+<H4><a name="Typemaps_special_macro_descriptor"></a>10.4.4.1 $descriptor(type)</H4>
+
+
+<p>
+This macro expands into the type descriptor structure for any C/C++ type specified in <tt>type</tt>.
+It behaves like the <tt>$1_descriptor</tt> special variable described above except that the type to expand is 
+taken from the macro argument rather than inferred from the typemap type. 
+For example, <tt>$descriptor(std::vector&lt;int&gt; *)</tt> will expand into <tt>SWIGTYPE_p_std__vectorT_int_t</tt>.
+This macro is mostly used in the scripting target languages and is demonstrated later in the <a href="#Typemaps_runtime_type_checker_usage">Run-time type checker usage</a> section.
+</p>
+
+<H4><a name="Typemaps_special_macro_typemap"></a>10.4.4.2 $typemap(method, typepattern)</H4>
+
+
+<p>
+This macro uses the <a href="#Typemaps_pattern_matching">pattern matching rules</a> described earlier to lookup and 
+then substitute the special variable macro with the code in the matched typemap.
+The typemap to search for is specified by the arguments, where <tt>method</tt> is the typemap method name and 
+<tt>typepattern</tt> is a type pattern as per the <tt>%typemap</tt> specification in the <a href="#Typemaps_defining">Defining a typemap</a> section.
+</p>
+
+<p>
+The special variables within the matched typemap are expanded into those for the matched typemap type, 
+not the typemap within which the macro is called.
+In practice, there is little use for this macro in the scripting target languages.
+It is mostly used in the target languages that are statically typed as a way to obtain the target language type given the C/C++ type and more commonly only when the C++ type is a template parameter.
+</p>
+
+<p>
+The example below is for C# only and uses some typemap method names documented in the C# chapter, but it shows some of the possible syntax variations.
+</p>
+
+<div class="code">
+<pre>
+%typemap(cstype) unsigned long    "uint"
+%typemap(cstype) unsigned long bb "bool"
+%typemap(cscode) BarClass %{
+  void foo($typemap(cstype, unsigned long aa) var1,
+           $typemap(cstype, unsigned long bb) var2,
+           $typemap(cstype, (unsigned long bb)) var3,
+           $typemap(cstype, unsigned long) var4)
+  {
+    // do something
+  }
+%}
+</pre>
+</div>
+
+<p>
+The result is the following expansion
+</p>
+
+<div class="code">
+<pre>
+%typemap(cstype) unsigned long    "uint"
+%typemap(cstype) unsigned long bb "bool"
+%typemap(cscode) BarClass %{
+  void foo(uint var1,
+           bool var2,
+           bool var3,
+           uint var4)
+  {
+    // do something
+  }
+%}
 </pre>
 </div>
 
@@ -3295,7 +3381,7 @@ structures rather than creating new ones.  These <tt>swig_module_info</tt>
 structures are chained together in a circularly linked list.
 </p>
 
-<H3><a name="Typemaps_nn46"></a>10.10.2 Usage</H3>
+<H3><a name="Typemaps_runtime_type_checker_usage"></a>10.10.2 Usage</H3>
 
 
 <p>This section covers how to use these functions from typemaps.  To learn how to
@@ -3335,8 +3421,8 @@ type tables and improves efficiency.
 
 <p>
 Occasionally, you might need to write a typemap that needs to convert
-pointers of other types.  To handle this, a special macro substitution
-<tt>$descriptor(type)</tt> can be used to generate the SWIG type
+pointers of other types.  To handle this, the special variable macro
+<tt>$descriptor(type)</tt> covered earlier can be used to generate the SWIG type
 descriptor name for any C datatype.  For example:
 </p>
 

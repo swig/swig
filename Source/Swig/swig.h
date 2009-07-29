@@ -390,6 +390,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Wrapper_director_mode_set(int);
   extern void Wrapper_director_protected_mode_set(int);
   extern void Wrapper_all_protected_mode_set(int);
+  extern void Language_replace_special_variables(String *method, String *tm, Parm *parm);
 
 
 /* -- template init -- */

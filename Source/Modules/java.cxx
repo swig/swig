@@ -2604,6 +2604,16 @@ public:
   }
 
   /*----------------------------------------------------------------------
+   * replaceSpecialVariables()
+   *--------------------------------------------------------------------*/
+
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+    (void)method;
+    SwigType *type = Getattr(parm, "type");
+    substituteClassname(type, tm);
+  }
+
+  /*----------------------------------------------------------------------
    * decodeEnumFeature()
    * Decode the possible enum features, which are one of:
    *   %javaenum(simple)
@@ -2700,16 +2710,16 @@ public:
   /* -----------------------------------------------------------------------------
    * substituteClassname()
    *
-   * Substitute $javaclassname with the proxy class name for classes/structs/unions that SWIG knows about.
-   * Also substitutes enums with enum name.
+   * Substitute the special variable $javaclassname with the proxy class name for classes/structs/unions 
+   * that SWIG knows about. Also substitutes enums with enum name.
    * Otherwise use the $descriptor name for the Java class name. Note that the $&javaclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
    * Inputs:
    *   pt - parameter type
-   *   tm - jstype typemap
+   *   tm - typemap contents that might contain the special variable to be replaced
    *   jnidescriptor - if set, inner class names are separated with '$' otherwise a '.'
    * Outputs:
-   *   tm - jstype typemap with $javaclassname substitution
+   *   tm - typemap contents complete with the special variable substitution
    * Return:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
