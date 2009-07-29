@@ -1,6 +1,11 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-07-29: vmiklos
+            [PHP] Static member variables are now prefixed with the
+            class name. This allows static member variables with the
+            same name in different classes.
+
 2009-07-29: olly
 	    [Python] Add missing locks to std::map wrappers.  Patch from 
 	    Paul Hampson in SF#2813836.

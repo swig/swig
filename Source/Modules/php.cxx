@@ -2114,7 +2114,9 @@ public:
     }
 
     String *class_iname = Swig_name_member(Getattr(current_class, "sym:name"), iname);
-    create_command(iname, Swig_name_wrapper(class_iname));
+    String *lclass_iname = NewStringf("%(lower)s", class_iname);
+    create_command(lclass_iname, Swig_name_wrapper(class_iname));
+    Delete(lclass_iname);
 
     Wrapper *f = NewWrapper();
 
