@@ -158,9 +158,11 @@ void SwigPHP_emit_resource_registrations() {
         Printf(s_wrappers, "  %s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n", destructor, key);
       } else {
         Printf(s_wrappers, "  /* No destructor for class %s */\n", human_name);
+        Printf(s_wrappers, "  efree(rsrc->ptr);\n");
       }
     } else {
       Printf(s_wrappers, "  /* No destructor for simple type %s */\n", key);
+      Printf(s_wrappers, "  efree(rsrc->ptr);\n");
     }
 
     // close function
