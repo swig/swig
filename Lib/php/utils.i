@@ -53,6 +53,7 @@ t_output_helper( zval **target, zval *o) {
   }
   if ( (*target)->type == IS_NULL ) {
     REPLACE_ZVAL_VALUE(target,o,1);
+    FREE_ZVAL(o);
     return;
   }
   zval *tmp;

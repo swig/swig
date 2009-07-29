@@ -2,6 +2,10 @@ Version 1.3.40 (in progress)
 ============================
 
 2009-07-29: olly
+	    [PHP] Fix memory leak in PHP OUTPUT typemaps.  Reported by Hitoshi
+	    Amano in SF#2826322.
+
+2009-07-29: olly
 	    [PHP] Fix memory leak in PHP resource destructor for classes
 	    without a destructor and non-class types.  Patch from Hitoshi Amano
 	    in SF#2825303.
