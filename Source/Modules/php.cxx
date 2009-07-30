@@ -130,7 +130,7 @@ extern "C" {
   static void (*r_prevtracefunc) (SwigType *t, String *mangled, String *clientdata) = 0;
 }
 
-void SwigPHP_emit_resource_registrations() {
+static void SwigPHP_emit_resource_registrations() {
   Iterator ki;
 
   if (!zend_types)
@@ -145,7 +145,7 @@ void SwigPHP_emit_resource_registrations() {
     String *human_name = key;
 
     // Write out destructor function header
-    Printf(s_wrappers, "/* NEW Destructor style */\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n", key);
+    Printf(s_wrappers, "static ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n", key);
 
     // write out body
     if (class_node != NOTCLASS) {
@@ -172,7 +172,8 @@ void SwigPHP_emit_resource_registrations() {
     Printf(s_vdecl, "static int le_swig_%s=0; /* handle for %s */\n", key, human_name);
 
     // register with php
-    Printf(s_oinit, "le_swig_%s=zend_register_list_destructors_ex" "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n", key, key, key);
+    Printf(s_oinit, "le_swig_%s=zend_register_list_destructors_ex"
+		    "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n", key, key, key);
 
     // store php type in class struct
     Printf(s_oinit, "SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
