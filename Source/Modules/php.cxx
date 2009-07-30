@@ -188,20 +188,6 @@ public:
     director_language = 1;
   }
 
-  /* Test to see if a type corresponds to something wrapped with a shadow class. */
-  
-  String *is_shadow(SwigType *t) {
-    String *r = 0;
-    Node *n = classLookup(t);
-    if (n) {
-      r = Getattr(n, "php:proxy");	// Set by classDeclaration()
-      if (!r) {
-	r = Getattr(n, "sym:name");	// Not seen by classDeclaration yet, but this is the name
-      }
-    }
-    return r;
-  }
-
   /* ------------------------------------------------------------
    * main()
    * ------------------------------------------------------------ */
@@ -2157,44 +2143,6 @@ public:
     wrapperType = standard;
 
     return SWIG_OK;
-  }
-
-  String * GetShadowReturnType(Node *n) {
-    SwigType *t = Getattr(n, "type");
-
-    /* Map type here */
-    switch (SwigType_type(t)) {
-      case T_CHAR:
-      case T_SCHAR:
-      case T_UCHAR:
-      case T_SHORT:
-      case T_USHORT:
-      case T_INT:
-      case T_UINT:
-      case T_LONG:
-      case T_ULONG:
-      case T_FLOAT:
-      case T_DOUBLE:
-      case T_BOOL:
-      case T_STRING:
-      case T_VOID:
-	break;
-      case T_POINTER:
-      case T_REFERENCE:
-      case T_USER:
-	if (is_shadow(t)) {
-	  return NewString(Char(is_shadow(t)));
-	}
-	break;
-      case T_ARRAY:
-	/* TODO */
-	break;
-      default:
-	Printf(stderr, "GetShadowReturnType: unhandled data type: %s\n", SwigType_str(t, 0));
-	break;
-    }
-
-    return NewStringEmpty();
   }
 
   int abstractConstructorHandler(Node *) {
