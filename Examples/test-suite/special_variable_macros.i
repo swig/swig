@@ -83,8 +83,32 @@ const char * testMary(Name *mary) {
 
 //////////////////////////////////////////////////////////////////////////////////////
 // Multi-arg typemap lookup
-#warning TODO!!!
+// One would never do something like this in reality, it just checks $typemap with multi-arg typemaps
+%typemap(in) (Name *multiname, int num)($*1_type temp_name, $2_ltype temp_count)
+%{
+  /*%typemap(in) (Name *multiname, int num) start */
+  temp_name = $*1_ltype("multiname num");
+  temp_count = strlen(temp_name.getNamePtr()->getName());
+  (void)$input;
+  $1 = temp_name.getNamePtr();
+  $2 = temp_count + 100;
+  /*%typemap(in) (Name *multiname, int num) end */
+%}
 
+%typemap(in) (Name *jim, int count) {
+// %typemap(in) Name *jim start
+$typemap(in, (Name *multiname, int num))
+// %typemap(in) Name *jim end
+}
+
+%inline %{
+const char * testJim(Name *jim, int count) {
+  if (count != strlen(jim->getNamePtr()->getName()) + 100)
+    return "size check failed";
+  else
+    return jim->getName();
+}
+%}
 
 //////////////////////////////////////////////////////////////////////////////////////
 // A real use case for $typemap

@@ -9,4 +9,6 @@ if special_variable_macros.testJill(name) != "jilly":
   raise "test failed"
 if special_variable_macros.testMary(name) != "SWIGTYPE_p_NameWrap":
   raise "test failed"
+if special_variable_macros.testJim(name) != "multiname num":
+  raise "test failed"
 

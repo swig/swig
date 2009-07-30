@@ -17,7 +17,7 @@ char cvsroot_typemap_c[] = "$Id$";
 #define SWIG_DEBUG
 #endif
 
-static void replace_embedded_typemap(String *s, String *lname, Wrapper *f);
+static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper *f);
 
 /* -----------------------------------------------------------------------------
  * Typemaps are stored in a collection of nested hash tables.  Something like
@@ -1344,7 +1344,13 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   if (locals && f) {
     typemap_locals(s, locals, f, -1);
   }
-  replace_embedded_typemap(s, NewString(lname), f);
+
+  {
+    ParmList *parm_sublist = NewParm(type, pname);
+    Setattr(parm_sublist, "lname", lname);
+    replace_embedded_typemap(s, parm_sublist, f);
+    Delete(parm_sublist);
+  }
 
   Replace(s, "$name", pname, DOH_REPLACE_ANY);
 
@@ -1643,7 +1649,7 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *p
       typemap_locals(s, locals, f, argnum);
     }
 
-    replace_embedded_typemap(s, Getattr(firstp, "lname"), f);
+    replace_embedded_typemap(s, firstp, f);
 
     /* Replace the argument number */
     sprintf(temp, "%d", argnum);
@@ -1759,7 +1765,7 @@ static List *split_embedded_typemap(String *s) {
  *   $typemap(in, (Foo<int, bool> a, int b)) # multi-argument typemap matching %typemap(in) (Foo<int, bool> a, int b) {...}
  * ----------------------------------------------------------------------------- */
 
-static void replace_embedded_typemap(String *s, String *lname, Wrapper *f) {
+static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper *f) {
   char *start = 0;
   while ((start = strstr(Char(s), "$TYPEMAP("))) { /* note $typemap capitalisation to $TYPEMAP hack */
 
@@ -1805,11 +1811,19 @@ static void replace_embedded_typemap(String *s, String *lname, Wrapper *f) {
 	 * typemap matching, so split these parameters apart */
 	to_match_parms = Swig_cparse_parms(Getitem(l, 1));
 	if (to_match_parms) {
-	  Parm *p = to_match_parms;;
+	  Parm *p = to_match_parms;
+	  Parm *sub_p = parm_sublist;
+	  String *empty_string = NewStringEmpty(); 
+	  String *lname = empty_string;
 	  while (p) {
+	    if (sub_p) {
+	      lname = Getattr(sub_p, "lname");
+	      sub_p = nextSibling(sub_p);
+	    }
 	    Setattr(p, "lname", lname);
 	    p = nextSibling(p);
 	  }
+	  Delete(empty_string);
 	}
 
 	/* process optional extra parameters - the variable replacements (undocumented) */

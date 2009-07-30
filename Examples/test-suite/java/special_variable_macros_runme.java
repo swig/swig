@@ -22,6 +22,8 @@ public class special_variable_macros_runme {
       throw new RuntimeException("test failed");
     if (!special_variable_macros.testMary(name).equals("SWIGTYPE_p_NameWrap"))
       throw new RuntimeException("test failed");
+    if (!special_variable_macros.testJim(name).equals("multiname num"))
+      throw new RuntimeException("test failed");
     NewName newName = NewName.factory("factoryname");
     name = newName.getStoredName();
   }

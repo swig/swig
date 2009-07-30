@@ -12,6 +12,8 @@ public class runme {
       throw new Exception("test failed");
     if (special_variable_macros.testMary(name) != "SWIGTYPE_p_NameWrap")
       throw new Exception("test failed");
+    if (special_variable_macros.testJim(name) != "multiname num")
+      throw new Exception("test failed");
     NewName newName = NewName.factory("factoryname");
     name = newName.getStoredName();
   }
