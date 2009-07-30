@@ -1175,6 +1175,11 @@ public:
 	  assert(0 <= argno && argno < max_num_of_arguments);
 	  String *&pname = arg_names[argno];
 	  const char *pname_cstr = GetChar(p, "name");
+	  // Just get rid of the C++ namespace part for now.
+	  const char *ptr = NULL;
+	  if ((ptr = strrchr(pname_cstr, ':'))) {
+	    pname_cstr = ptr + 1;
+	  }
 	  if (!pname_cstr) {
 	    // Unnamed parameter, e.g. int foo(int);
 	  } else if (pname == NULL) {
