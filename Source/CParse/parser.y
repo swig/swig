@@ -1486,13 +1486,13 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token <str> CHARCONST 
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG
 %token <ivalue> TYPEDEF
-%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64 TYPE_AUTO
+%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token ILLEGAL CONSTANT
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
-%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT
+%token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT AUTO
 %token STATIC_ASSERT CONSTEXPR THREAD_LOCAL /* C++0x keywords */
 %token USING
 %token <node> NAMESPACE
@@ -1509,6 +1509,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token <str> OPERATOR
 %token <str> COPERATOR
 %token PARSETYPE PARSEPARM PARSEPARMS
+%token TEST1 TEST2 TEST3
 
 %left  CAST
 %left  QUESTIONMARK
@@ -1535,11 +1536,11 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
-%type <node>     c_declaration c_decl c_decl_tail c_enum_keyword c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl c_rettype ;
+%type <node>     c_declaration c_decl c_decl_tail c_enum_keyword c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl ;
 %type <node>     enumlist edecl;
 
 /* C++ declarations */
-%type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl;
+%type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
 %type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert;
 %type <node>     cpp_swig_directive cpp_temp_possible cpp_nested cpp_opt_declarators ;
@@ -1556,7 +1557,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <p>        templateparameter ;
 %type <id>       templcpptype cpptype access_specifier;
 %type <node>     base_specifier
-%type <type>     type rawtype type_right ;
+%type <type>     type rawtype type_right anon_bitfield_type ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype;
 %type <dtype>    expr exprnum exprcompound valexpr;
@@ -2940,25 +2941,25 @@ c_declaration   : c_decl {
    A C global declaration of some kind (may be variable, function, typedef, etc.)
    ------------------------------------------------------------ */
 
-c_decl  : storage_class type declarator c_rettype initializer c_decl_tail {
+c_decl  : storage_class type declarator initializer c_decl_tail {
               $$ = new_node("cdecl");
-	      if ($5.qualifier) SwigType_push($3.type,$5.qualifier);
+	      if ($4.qualifier) SwigType_push($3.type,$4.qualifier);
 	      Setattr($$,"type",$2);
 	      Setattr($$,"storage",$1);
 	      Setattr($$,"name",$3.id);
 	      Setattr($$,"decl",$3.type);
 	      Setattr($$,"parms",$3.parms);
-	      Setattr($$,"value",$5.val);
-	      Setattr($$,"throws",$5.throws);
-	      Setattr($$,"throw",$5.throwf);
-	      if (!$6) {
+	      Setattr($$,"value",$4.val);
+	      Setattr($$,"throws",$4.throws);
+	      Setattr($$,"throw",$4.throwf);
+	      if (!$5) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
 		  Delete(code);
 		}
 	      } else {
-		Node *n = $6;
+		Node *n = $5;
 		/* Inherit attributes */
 		while (n) {
 		  String *type = Copy($2);
@@ -2968,8 +2969,8 @@ c_decl  : storage_class type declarator c_rettype initializer c_decl_tail {
 		  Delete(type);
 		}
 	      }
-	      if ($5.bitfield) {
-		Setattr($$,"bitfield", $5.bitfield);
+	      if ($4.bitfield) {
+		Setattr($$,"bitfield", $4.bitfield);
 	      }
 
 	      /* Look for "::" declarations (ignored) */
@@ -2983,33 +2984,77 @@ c_decl  : storage_class type declarator c_rettype initializer c_decl_tail {
 		    String *lstr = Swig_scopename_last($3.id);
 		    Setattr($$,"name",lstr);
 		    Delete(lstr);
-		    set_nextSibling($$,$6);
+		    set_nextSibling($$,$5);
 		  } else {
 		    Delete($$);
-		    $$ = $6;
+		    $$ = $5;
 		  }
 		  Delete(p);
 		} else {
 		  Delete($$);
-		  $$ = $6;
+		  $$ = $5;
 		}
 	      } else {
-		set_nextSibling($$,$6);
+		set_nextSibling($$,$5);
 	      }
+           }
+           /* Alternate function syntax introduced in C++0x:
+              auto funcName(int x, int y) -> int; */
+           | storage_class AUTO declarator ARROW cpp_alternate_rettype initializer c_decl_tail {
+/*              $$ = new_node("cdecl");
+	      if ($6.qualifier) SwigType_push($3.type,$6.qualifier);
+	      Setattr($$,"type",$5);
+	      Setattr($$,"storage",$1);
+	      Setattr($$,"name",$3.id);
+	      Setattr($$,"decl",$3.type);
+	      Setattr($$,"parms",$3.parms);
+	      Setattr($$,"value",$6.val);
+	      Setattr($$,"throws",$6.throws);
+	      Setattr($$,"throw",$6.throwf);
+	      if (!$7) {
+		if (Len(scanner_ccode)) {
+		  String *code = Copy(scanner_ccode);
+		  Setattr($$,"code",code);
+		  Delete(code);
+		}
+	      } else {
+		Node *n = $7;
+		while (n) {
+		  String *type = Copy($5);
+		  Setattr(n,"type",type);
+		  Setattr(n,"storage",$1);
+		  n = nextSibling(n);
+		  Delete(type);
+		}
+	      }
+	      if ($6.bitfield) {
+		Setattr($$,"bitfield", $6.bitfield);
+	      }
+
+	      if (Strstr($3.id,"::")) {
+                String *p = Swig_scopename_prefix($3.id);
+		if (p) {
+		  if ((Namespaceprefix && Strcmp(p,Namespaceprefix) == 0) ||
+		      (inclass && Strcmp(p,Classprefix) == 0)) {
+		    String *lstr = Swig_scopename_last($3.id);
+		    Setattr($$,"name",lstr);
+		    Delete(lstr);
+		    set_nextSibling($$,$7);
+		  } else {
+		    Delete($$);
+		    $$ = $7;
+		  }
+		  Delete(p);
+		} else {
+		  Delete($$);
+		  $$ = $7;
+		}
+	      } else {
+		set_nextSibling($$,$7);
+	      } */
            }
            ;
 
-/* Alternate function syntax:
-   auto funcName(int x, int y) -> int; */
-
-c_rettype : ARROW type {
-              $$ = new_node("rettype");
-	      Setattr($$,"type",$2);
-          }
-          | empty {
-              $$ = 0;
-          }
-          ;
 /* Allow lists of variables and functions to be built up */
 
 c_decl_tail    : SEMI { 
@@ -3070,7 +3115,13 @@ initializer   : def_args {
               }
               ;
 
-
+cpp_alternate_rettype : primitive_type { $$ = $1; }
+              | TYPE_BOOL { $$ = $1; }
+              | TYPE_VOID { $$ = $1; }
+              | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
+              | TYPE_RAW { $$ = $1; }
+              | idcolon { $$ = $1; }
+              ;
 
 /* ------------------------------------------------------------
    enum
@@ -4529,7 +4580,21 @@ cpp_vend       : cpp_const SEMI {
                ;
 
 
-anonymous_bitfield :  storage_class type COLON expr SEMI { };
+anonymous_bitfield :  storage_class anon_bitfield_type COLON expr SEMI { };
+
+/* Equals type_right without the ENUM keyword and cpptype (templates etc.): */
+anon_bitfield_type : primitive_type { $$ = $1;
+                  /* Printf(stdout,"primitive = '%s'\n", $$);*/
+                }
+               | TYPE_BOOL { $$ = $1; }
+               | TYPE_VOID { $$ = $1; }
+               | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
+               | TYPE_RAW { $$ = $1; }
+
+               | idcolon {
+		  $$ = $1;
+               }
+               ;
 
 /* ====================================================================== 
  *                       PRIMITIVES
@@ -4815,6 +4880,7 @@ declarator :  pointer notso_direct_declarator {
            }
            | LAND notso_direct_declarator {
 	     /* Introduced in C++0x, move operator && */
+             /* Adds one S/R conflict */
 	     $$ = $2;
 	     $$.type = NewStringEmpty();
 	     SwigType_add_reference($$.type);
@@ -5262,7 +5328,6 @@ type_right     : primitive_type { $$ = $1;
                 }
                | TYPE_BOOL { $$ = $1; }
                | TYPE_VOID { $$ = $1; }
-               | TYPE_AUTO { $$ = $1; }
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
                | c_enum_keyword idcolon { $$ = NewStringf("enum %s", $2); }
                | TYPE_RAW { $$ = $1; }
@@ -5838,14 +5903,6 @@ templcpptype   : CLASS {
                    $$ = (char *)"typename"; 
 		   if (!inherit_list) last_cpptype = $$;
                }
-               | CLASS PERIOD PERIOD PERIOD {
-                   $$ = (char*)"class"; 
-		   if (!inherit_list) last_cpptype = $$;
-               }
-               | TYPENAME PERIOD PERIOD PERIOD { 
-                   $$ = (char *)"typename"; 
-		   if (!inherit_list) last_cpptype = $$;
-               }
                ;
 
 cpptype        : templcpptype {
@@ -5931,13 +5988,11 @@ ctor_initializer : COLON mem_initializer_list
 
 mem_initializer_list : mem_initializer
                | mem_initializer_list COMMA mem_initializer
+               | mem_initializer PERIOD PERIOD PERIOD
+               | mem_initializer_list COMMA mem_initializer PERIOD PERIOD PERIOD
                ;
 
-mem_initializer : idcolon LPAREN parms RPAREN {
-/*	            skip_balanced('(',')');
-                    Clear(scanner_ccode);
-*/            	}
-                | idcolon LBRACE parms RBRACE {
+mem_initializer : idcolon LPAREN { skip_balanced('(',')'); Clear(scanner_ccode); }
                 /* Uniform initialization in C++0x.
 		   Example:
                    struct MyStruct {
@@ -5946,11 +6001,7 @@ mem_initializer : idcolon LPAREN parms RPAREN {
                      double y_;
                    };
                 */
-/*	            skip_balanced('{','}');
-                    Clear(scanner_ccode);
-*/                }
-                | idcolon LPAREN parms RPAREN PERIOD PERIOD PERIOD { }
-                | idcolon LBRACE parms RBRACE PERIOD PERIOD PERIOD { }
+                | idcolon LBRACE { skip_balanced('{','}'); Clear(scanner_ccode); }
                 ;
 
 template_decl : LESSTHAN valparms GREATERTHAN { 
@@ -5980,12 +6031,12 @@ idcolon        : idtemplate idcolontail {
                  Delete($4);
                }
                | PERIOD PERIOD PERIOD idtemplate {
-                 /* Introduced in C++0x, variadic constructor args */
+                 /* Introduced in C++0x, variadic constructor args or inside template<> block */
 		 $$ = NewString($4);
-   	       }     
+   	       }
                | idtemplate {
 		 $$ = NewString($1);
-   	       }     
+   	       }
                | NONID DCOLON idtemplate {
 		 $$ = NewStringf("::%s",$3);
                }

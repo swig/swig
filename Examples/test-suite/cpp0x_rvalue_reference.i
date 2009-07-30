@@ -13,10 +13,6 @@ public:
         void setAref(int &a)  { _a = a; }
         void setAmove(int &&a) { _a = a; }
 
-        void arg(int a);
-        void arg(int *a);
-        void arg(int &a);
-//        void arg(int &&a); // redefinition not allowed
 private:
         int _a;
 };

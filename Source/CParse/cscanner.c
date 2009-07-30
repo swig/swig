@@ -595,10 +595,6 @@ int yylex(void) {
 	yylval.type = NewSwigType(T_BOOL);
 	return (TYPE_BOOL);
       }
-      if (strcmp(yytext, "auto") == 0) {
-	yylval.type = NewSwigType(T_AUTO);
-	return (TYPE_AUTO);
-      }
 
       /* Non ISO (Windows) C extensions */
       if (strcmp(yytext, "__int8") == 0) {
@@ -788,6 +784,8 @@ int yylex(void) {
 	  return (yylex());
 	if (strcmp(yytext, "explicit") == 0)
 	  return (EXPLICIT);
+	if (strcmp(yytext, "auto") == 0)
+	  return (AUTO);
 	if (strcmp(yytext, "export") == 0)
 	  return (yylex());
 	if (strcmp(yytext, "typename") == 0)
