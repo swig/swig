@@ -2041,7 +2041,7 @@ public:
 
   virtual int memberfunctionHandler(Node *n) {
     wrapperType = memberfn;
-    this->Language::memberfunctionHandler(n);
+    Language::memberfunctionHandler(n);
     wrapperType = standard;
 
     return SWIG_OK;
@@ -2323,10 +2323,6 @@ public:
       }
     }
     return Language::classDirectorConstructor(n);
-  }
-
-  int classDirectorDefaultConstructor(Node *n) {
-    return Language::classDirectorDefaultConstructor(n);
   }
 
   int classDirectorMethod(Node *n, Node *parent, String *super) {
@@ -2655,9 +2651,7 @@ public:
     return status;
   }
 
-  int classDirectorDisown(Node *n) {
-    /* avoid a warning */
-    n = n;
+  int classDirectorDisown(Node *) {
     return SWIG_OK;
   }
 };				/* class PHP */
