@@ -2872,7 +2872,7 @@ public:
   /* -----------------------------------------------------------------------------
    * typemapLookup()
    * n - for input only and must contain info for Getfile(n) and Getline(n) to work
-   * op - typemap method name
+   * tmap_method - typemap method name
    * type - typemap type to lookup
    * warning - warning number to issue if no typemaps found
    * typemap_attributes - the typemap attributes are attached to this node and will 
@@ -2880,16 +2880,16 @@ public:
    * return is never NULL, unlike Swig_typemap_lookup()
    * ----------------------------------------------------------------------------- */
 
-  const String *typemapLookup(Node *n, const_String_or_char_ptr op, SwigType *type, int warning, Node *typemap_attributes = 0) {
+  const String *typemapLookup(Node *n, const_String_or_char_ptr tmap_method, SwigType *type, int warning, Node *typemap_attributes = 0) {
     Node *node = !typemap_attributes ? NewHash() : typemap_attributes;
     Setattr(node, "type", type);
     Setfile(node, Getfile(n));
     Setline(node, Getline(n));
-    const String *tm = Swig_typemap_lookup(op, node, "", 0);
+    const String *tm = Swig_typemap_lookup(tmap_method, node, "", 0);
     if (!tm) {
       tm = empty_string;
       if (warning != WARN_NONE)
-	Swig_warning(warning, Getfile(n), Getline(n), "No %s typemap defined for %s\n", op, SwigType_str(type, 0));
+	Swig_warning(warning, Getfile(n), Getline(n), "No %s typemap defined for %s\n", tmap_method, SwigType_str(type, 0));
     }
     if (!typemap_attributes)
       Delete(node);

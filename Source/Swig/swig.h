@@ -363,19 +363,19 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 /* --- Legacy Typemap API (somewhat simplified, ha!) --- */
 
   extern void Swig_typemap_init(void);
-  extern void Swig_typemap_register(const_String_or_char_ptr op, ParmList *pattern, const_String_or_char_ptr code, ParmList *locals, ParmList *kwargs);
-  extern int Swig_typemap_copy(const_String_or_char_ptr op, ParmList *srcpattern, ParmList *pattern);
-  extern void Swig_typemap_clear(const_String_or_char_ptr op, ParmList *pattern);
+  extern void Swig_typemap_register(const_String_or_char_ptr tmap_method, ParmList *pattern, const_String_or_char_ptr code, ParmList *locals, ParmList *kwargs);
+  extern int Swig_typemap_copy(const_String_or_char_ptr tmap_method, ParmList *srcpattern, ParmList *pattern);
+  extern void Swig_typemap_clear(const_String_or_char_ptr tmap_method, ParmList *pattern);
   extern int Swig_typemap_apply(ParmList *srcpat, ParmList *destpat);
   extern void Swig_typemap_clear_apply(ParmList *pattern);
   extern void Swig_typemap_debug(void);
 
-  extern String *Swig_typemap_lookup(const_String_or_char_ptr op, Node *n, const_String_or_char_ptr lname, Wrapper *f);
-  extern String *Swig_typemap_lookup_out(const_String_or_char_ptr op, Node *n, const_String_or_char_ptr lname, Wrapper *f, String *actioncode);
+  extern String *Swig_typemap_lookup(const_String_or_char_ptr tmap_method, Node *n, const_String_or_char_ptr lname, Wrapper *f);
+  extern String *Swig_typemap_lookup_out(const_String_or_char_ptr tmap_method, Node *n, const_String_or_char_ptr lname, Wrapper *f, String *actioncode);
   extern void Swig_typemap_new_scope(void);
   extern Hash *Swig_typemap_pop_scope(void);
 
-  extern void Swig_typemap_attach_parms(const_String_or_char_ptr op, ParmList *parms, Wrapper *f);
+  extern void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *parms, Wrapper *f);
 
 /* --- Code fragment support --- */
 

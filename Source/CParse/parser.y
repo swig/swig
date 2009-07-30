@@ -1465,7 +1465,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
   } decl;
   Parm         *tparms;
   struct {
-    String     *op;
+    String     *method;
     Hash       *kwargs;
   } tmap;
   struct {
@@ -2499,10 +2499,10 @@ varargs_parms   : parms { $$ = $1; }
 
 typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		   $$ = 0;
-		   if ($3.op) {
+		   if ($3.method) {
 		     String *code = 0;
 		     $$ = new_node("typemap");
-		     Setattr($$,"method",$3.op);
+		     Setattr($$,"method",$3.method);
 		     if ($3.kwargs) {
 		       ParmList *kw = $3.kwargs;
                        code = remove_block(kw, $6);
@@ -2516,17 +2516,17 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list SEMI {
 		 $$ = 0;
-		 if ($3.op) {
+		 if ($3.method) {
 		   $$ = new_node("typemap");
-		   Setattr($$,"method",$3.op);
+		   Setattr($$,"method",$3.method);
 		   appendChild($$,$5);
 		 }
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list EQUAL typemap_parm SEMI {
 		   $$ = 0;
-		   if ($3.op) {
+		   if ($3.method) {
 		     $$ = new_node("typemapcopy");
-		     Setattr($$,"method",$3.op);
+		     Setattr($$,"method",$3.method);
 		     Setattr($$,"pattern", Getattr($7,"pattern"));
 		     appendChild($$,$5);
 		   }
@@ -2546,15 +2546,15 @@ typemap_type   : kwargs {
 		   /* two argument typemap form */
 		   name = Getattr($1,"name");
 		   if (!name || (Strcmp(name,typemap_lang))) {
-		     $$.op = 0;
+		     $$.method = 0;
 		     $$.kwargs = 0;
 		   } else {
-		     $$.op = Getattr(p,"name");
+		     $$.method = Getattr(p,"name");
 		     $$.kwargs = nextSibling(p);
 		   }
 		 } else {
 		   /* one-argument typemap-form */
-		   $$.op = Getattr($1,"name");
+		   $$.method = Getattr($1,"name");
 		   $$.kwargs = p;
 		 }
                 }
