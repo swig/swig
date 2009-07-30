@@ -393,6 +393,7 @@ public:
       }
     } 
     else {
+      Append(setf->code, "SWIG_Error(999, \"attempt to set immutable member variable\");");
     }
     Append(setf->code, "}\n");
     Wrapper_print(setf, f_wrappers);
@@ -412,9 +413,14 @@ public:
    
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$result", name);
-      Replaceall(tm, "iRowsOut", rowname);
-      Replaceall(tm, "iColsOut", colname);
-      Replaceall(tm, "isComplex", iscomplexname);
+      if (is_assignable(n)) {
+        Replaceall(tm, "iRowsOut", rowname);
+        Replaceall(tm, "iColsOut", colname);
+      } else {
+        Replaceall(tm, "iRowsOut", "1");
+        Replaceall(tm, "iColsOut", "1");
+      }
+      Replaceall(tm, "isComplex", iscomplexname); 
       addfail = emit_action_code(n, getf->code, tm);
       Delete(tm);
     } else {

@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "sciprint.h"
+#include "example.h"
 
 int              ivar = 0;                    
 short            svar = 0;
@@ -22,14 +22,19 @@ unsigned char    ucvar = 0;
 char             cvar = 0;
 float            fvar = 0;
 double           dvar = 0;
-char            *strvar=0;
+char            *strvar = 0;
+const char       cstrvar[] = "Goodbye";
+int             *iptrvar = 0;
 char             name[5] = "Dave";
-double          *Foo1;
-double          *Foo2;
-int             *pivar;
-short           *psvar;
-char            **foo;
+char             path[256] = "/home/beazley";
 
+
+/* Global variables involving a structure */
+Point           *ptptr = 0;
+Point            pt = { 10, 20 };
+
+/* A variable that we will make read-only in the interface */
+int              status = 1;
 
 /* A debugging function to print out their values */
 
@@ -45,9 +50,46 @@ void print_vars() {
   printf("fvar      = %g\n", fvar);
   printf("dvar      = %g\n", dvar);
   printf("cvar      = %c\n", cvar);
-  printf("strvar    = %s\n",strvar);
+  printf("strvar    = %s\n", strvar ? strvar : "(null)");
+  printf("cstrvar   = %s\n", cstrvar ? cstrvar : "(null)");
+  printf("iptrvar   = %p\n", iptrvar);
   printf("name      = %c%c%c%c%c\n", name[0],name[1],name[2],name[3],name[4]);
+  //printf("ptptr     = %p %s\n", ptptr, Point_print( ptptr ) );
+  printf("pt        = (%d, %d)\n", pt.x, pt.y);
+  printf("status    = %d\n", status);
 }
 
+/* A function to create an integer (to test iptrvar) */
 
+int *new_int(int value) {
+  int *ip = (int *) malloc(sizeof(int));
+  *ip = value;
+  return ip;
+}
 
+int value_int(int *value) {
+	return *value;
+}
+
+/* A function to create a point */
+
+Point *new_Point(int x, int y) {
+  Point *p = (Point *) malloc(sizeof(Point));
+  p->x = x;
+  p->y = y;
+  return p;
+}
+
+char * Point_print(Point *p) {
+  static char buffer[256];
+  if (p) {
+    sprintf(buffer,"(%d,%d)", p->x,p->y);
+  } else {
+    sprintf(buffer,"null");
+  }
+  return buffer;
+}
+
+void pt_print() {
+  printf("(%d, %d)\n", pt.x, pt.y);
+}

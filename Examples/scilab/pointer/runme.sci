@@ -1,8 +1,30 @@
 // builder the *.so
 exec builder.sce
 
-//loader the *.so
+// loader the *.so
 exec loader.sce
+
+// First create some objects using the pointer library.
+printf("Testing the pointer library\n");
+a = new_intp();
+b = new_intp();
+c = new_intp();
+intp_assign(a,37);
+intp_assign(b,42);
+
+a,b,c
+
+// Call the add() function with some pointers
+add(a,b,c);
+
+// Now get the result
+r = intp_value(c);
+printf("     37 + 42 = %i\n",r);
+
+// Clean up the pointers
+delete_intp(a);
+delete_intp(b);
+delete_intp(c);
 
 //Now try the typemap library
 //This should be much easier. Now how it is no longer
