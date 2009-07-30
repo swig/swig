@@ -2196,14 +2196,6 @@ public:
     return NewStringEmpty();
   }
 
-  String *PhpTypeFromTypemap(char *tmap_method, Node *n, const_String_or_char_ptr lname) {
-    String *tms = Swig_typemap_lookup(tmap_method, n, lname, 0);
-    if (!tms)
-      return 0;
-    else
-      return NewStringf("%s", tms);
-  }
-
   int abstractConstructorHandler(Node *) {
     return SWIG_OK;
   }
