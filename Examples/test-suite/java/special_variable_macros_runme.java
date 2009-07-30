@@ -1,11 +1,11 @@
 
-import special_variable_functions.*;
+import special_variable_macros.*;
 
-public class special_variable_functions_runme {
+public class special_variable_macros_runme {
 
   static {
     try {
-	System.loadLibrary("special_variable_functions");
+	System.loadLibrary("special_variable_macros");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -14,13 +14,13 @@ public class special_variable_functions_runme {
 
   public static void main(String argv[]) {
     Name name = new Name();
-    if (!special_variable_functions.testFred(name).equals("none"))
+    if (!special_variable_macros.testFred(name).equals("none"))
       throw new RuntimeException("test failed");
-    if (!special_variable_functions.testJack(name).equals("$specialname"))
+    if (!special_variable_macros.testJack(name).equals("$specialname"))
       throw new RuntimeException("test failed");
-    if (!special_variable_functions.testJill(name).equals("jilly"))
+    if (!special_variable_macros.testJill(name).equals("jilly"))
       throw new RuntimeException("test failed");
-    if (!special_variable_functions.testMary(name).equals("SWIGTYPE_p_NameWrap"))
+    if (!special_variable_macros.testMary(name).equals("SWIGTYPE_p_NameWrap"))
       throw new RuntimeException("test failed");
     NewName newName = NewName.factory("factoryname");
     name = newName.getStoredName();

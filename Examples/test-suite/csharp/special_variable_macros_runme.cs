@@ -1,16 +1,16 @@
 using System;
-using special_variable_functionsNamespace;
+using special_variable_macrosNamespace;
 
 public class runme {
   static void Main() {
     Name name = new Name();
-    if (special_variable_functions.testFred(name) != "none")
+    if (special_variable_macros.testFred(name) != "none")
       throw new Exception("test failed");
-    if (special_variable_functions.testJack(name) != "$specialname")
+    if (special_variable_macros.testJack(name) != "$specialname")
       throw new Exception("test failed");
-    if (special_variable_functions.testJill(name) != "jilly")
+    if (special_variable_macros.testJill(name) != "jilly")
       throw new Exception("test failed");
-    if (special_variable_functions.testMary(name) != "SWIGTYPE_p_NameWrap")
+    if (special_variable_macros.testMary(name) != "SWIGTYPE_p_NameWrap")
       throw new Exception("test failed");
     NewName newName = NewName.factory("factoryname");
     name = newName.getStoredName();

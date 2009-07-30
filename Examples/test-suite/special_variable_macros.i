@@ -1,4 +1,4 @@
-%module special_variable_functions
+%module special_variable_macros
 
 // test $typemap() special variable function
 // these tests are not typical of how $typemap() should be used, but it checks that it is mostly working
