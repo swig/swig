@@ -3001,7 +3001,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
            /* Alternate function syntax introduced in C++0x:
               auto funcName(int x, int y) -> int; */
            | storage_class AUTO declarator ARROW cpp_alternate_rettype initializer c_decl_tail {
-/*              $$ = new_node("cdecl");
+              $$ = new_node("cdecl");
 	      if ($6.qualifier) SwigType_push($3.type,$6.qualifier);
 	      Setattr($$,"type",$5);
 	      Setattr($$,"storage",$1);
@@ -3051,7 +3051,7 @@ c_decl  : storage_class type declarator initializer c_decl_tail {
 		}
 	      } else {
 		set_nextSibling($$,$7);
-	      } */
+	      }
            }
            ;
 

@@ -409,13 +409,14 @@ CPP0X_TEST_CASES = \
 	cpp0x_function_objects \
 	cpp0x_strongly_typed_enumerations \
 	cpp0x_rvalue_reference \
-	cpp0x_variadic_templates
-#       cpp0x_alternate_function_syntax # not fully implemented yet
+	cpp0x_variadic_templates \
+        cpp0x_alternate_function_syntax
 #	cpp0x_hash_types # not fully implemented yet
-#	cpp0x_unrestricted_unions # not supported by any compilers yet
-#	cpp0x_smart_pointers # not supported by standard library yet
-#	cpp0x_constexpr # not supported by any compilers yet
-#	cpp0x_thread_local # not supported by any compilers yet
+#	cpp0x_null_pointer_constant # not supported by any compilers yet
+#	cpp0x_unrestricted_unions   # not supported by any compilers yet
+#	cpp0x_smart_pointers        # not supported by standard library yet
+#	cpp0x_constexpr             # not supported by any compilers yet
+#	cpp0x_thread_local          # not supported by any compilers yet
 
 # Broken C++0x test cases.
 CPP0X_TEST_BROKEN = 

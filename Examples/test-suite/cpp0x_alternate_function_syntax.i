@@ -2,10 +2,15 @@
 
 %inline %{
 struct SomeStruct {
-  auto FuncName(int x, int y) -> int;
+  int addNormal(int x, int y);
+  auto addAlternate(int x, int y) -> int;
 };
  
-auto SomeStruct::FuncName(int x, int y) -> int {
+auto SomeStruct::addAlternate(int x, int y) -> int {
+  return x + y;
+}
+
+int SomeStruct::addNormal(int x, int y) {
   return x + y;
 }
 %}
