@@ -1,6 +1,10 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-07-31: olly
+	    [Python] Fix indentation so that we give a useful error if the
+	    module can't be loaded.  Patch from Gaetan Lehmann in SF#2829853.
+
 2009-07-29: wsfulton
             Add $typemap(method, typelist) special variable macro. This allows
             the contents of a typemap to be inserted within another typemap.
@@ -18,11 +22,6 @@ Version 1.3.40 (in progress)
 2009-07-29: olly
 	    [PHP] Fix memory leak in PHP OUTPUT typemaps.  Reported by Hitoshi
 	    Amano in SF#2826322.
-
-2009-07-29: olly
-	    [PHP] Fix memory leak in PHP resource destructor for classes
-	    without a destructor and non-class types.  Patch from Hitoshi Amano
-	    in SF#2825303.
 
 2009-07-28: olly
 	    [PHP] Update warnings about clashes between identifiers and PHP
