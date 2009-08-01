@@ -22,19 +22,19 @@ class MultiArgs<int, std::vector<int>, std::map<std::string, std::vector<int>>> 
 %}
 
 // TODO
-//%template (MultiArgs) MultiArgs<int, std::vector<int>, std::map<std::string, std::vector<int>>>;
+%template (MultiArgs1) MultiArgs<int, std::vector<int>, std::map<std::string, std::vector<int>>>;
 
 ////////////////////////
 // Variadic sizeof... //
 ////////////////////////
 %inline %{
-template<typename ...Args> struct SizeOf {
+template<typename... Args> struct SizeOf {
   static const int size = sizeof...(Args);
 };
 %}
 
 // TODO
-//%template (SizeOf) SizeOf<int, int>;
+%template (SizeOf1) SizeOf<int, int>;
 
 //////////////////////////
 // Variadic inheritance //
@@ -59,9 +59,9 @@ public:
 
 template <typename... BaseClasses> class MultiInherit : public BaseClasses... {
 public:
-   MultiInherit(BaseClasses&&... baseClasses) : BaseClasses(baseClasses)... {}
+   MultiInherit(BaseClasses&... baseClasses) : BaseClasses(baseClasses)... {}
 };
 %}
 
 // TODO
-//%template (MultiInherit) MultiInherit<A,B>;
+%template (MultiInherit1) MultiInherit<A,B>;

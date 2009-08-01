@@ -2621,6 +2621,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  Node *tnode = 0;
 		  Symtab *tscope = 0;
 		  int     specialized = 0;
+		  int     variadic = 0;
 
 		  $$ = 0;
 
@@ -2678,11 +2679,13 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                         Parm *tparms = Getattr(nn,"templateparms");
                         if (!tparms) {
                           specialized = 1;
+                        } else if (Getattr(tparms,"variadic") && strncmp(Char(Getattr(tparms,"variadic")), "1", 1)==0) {
+                          variadic = 1;
                         }
-                        if (nnisclass && !specialized && ((ParmList_len($7) > ParmList_len(tparms)))) {
+                        if (nnisclass && !variadic && !specialized && (ParmList_len($7) > ParmList_len(tparms))) {
                           Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
-                        } else if (nnisclass && !specialized && ((ParmList_len($7) < ParmList_numrequired(tparms)))) {
-                          Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. %d required.\n", ParmList_numrequired(tparms));
+                        } else if (nnisclass && !specialized && ((ParmList_len($7) < (ParmList_numrequired(tparms) - (variadic?1:0))))) { /* Variadic parameter is optional */
+                          Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. %d required.\n", (ParmList_numrequired(tparms)-(variadic?1:0)) );
                         } else if (!nnisclass && ((ParmList_len($7) != ParmList_len(tparms)))) {
                           /* must be an overloaded templated method - ignore it as it is overloaded with a different number of template parameters */
                           nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded templated functions */
@@ -2741,6 +2744,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             if (!p && tp) {
                               p = tp;
                               def_supplied = 1;
+                            } else if (!tp) { /* Variadic tempalte - tp < p */
+                              Swig_warning(0,cparse_file, cparse_line,"Variadic templates not fully supported by Swig.\n");
+                              break;
                             }
                           }
 
@@ -3994,6 +4000,12 @@ template_parms  : templateparameters {
 		      if ((strncmp(type,"class ",6) == 0) || (strncmp(type,"typename ", 9) == 0)) {
 			char *t = strchr(type,' ');
 			Setattr(p,"name", t+1);
+		      } else 
+                      /* Variadic template args */
+		      if ((strncmp(type,"class... ",9) == 0) || (strncmp(type,"typename... ", 12) == 0)) {
+			char *t = strchr(type,' ');
+			Setattr(p,"name", t+1);
+			Setattr(p,"variadic", "1");
 		      } else {
 			/*
 			 Swig_error(cparse_file, cparse_line, "Missing template parameter name\n");
@@ -4925,6 +4937,94 @@ declarator :  pointer notso_direct_declarator {
            | idcolon DSTAR AND notso_direct_declarator { 
 	     SwigType *t = NewStringEmpty();
 	     $$ = $4;
+	     SwigType_add_memberpointer(t,$1);
+	     SwigType_add_reference(t);
+	     if ($$.type) {
+	       SwigType_push(t,$$.type);
+	       Delete($$.type);
+	     } 
+	     $$.type = t;
+	   }
+           
+           /* Variadic versions eg. MyClasses&... myIds */
+           
+           |  pointer PERIOD PERIOD PERIOD notso_direct_declarator {
+              $$ = $5;
+	      if ($$.type) {
+		SwigType_push($1,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = $1;
+           }
+           | pointer AND PERIOD PERIOD PERIOD notso_direct_declarator {
+              $$ = $6;
+	      SwigType_add_reference($1);
+              if ($$.type) {
+		SwigType_push($1,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = $1;
+           }
+           | PERIOD PERIOD PERIOD direct_declarator {
+              $$ = $4;
+	      if (!$$.type) $$.type = NewStringEmpty();
+           }
+           | AND PERIOD PERIOD PERIOD notso_direct_declarator {
+	     $$ = $5;
+	     $$.type = NewStringEmpty();
+	     SwigType_add_reference($$.type);
+	     if ($5.type) {
+	       SwigType_push($$.type,$5.type);
+	       Delete($5.type);
+	     }
+           }
+           | LAND PERIOD PERIOD PERIOD notso_direct_declarator {
+	     /* Introduced in C++0x, move operator && */
+             /* Adds one S/R conflict */
+	     $$ = $5;
+	     $$.type = NewStringEmpty();
+	     SwigType_add_reference($$.type);
+	     if ($5.type) {
+	       SwigType_push($$.type,$5.type);
+	       Delete($5.type);
+	     }
+           }
+           | idcolon DSTAR PERIOD PERIOD PERIOD notso_direct_declarator { 
+	     SwigType *t = NewStringEmpty();
+
+	     $$ = $6;
+	     SwigType_add_memberpointer(t,$1);
+	     if ($$.type) {
+	       SwigType_push(t,$$.type);
+	       Delete($$.type);
+	     }
+	     $$.type = t;
+	     } 
+           | pointer idcolon DSTAR PERIOD PERIOD PERIOD notso_direct_declarator { 
+	     SwigType *t = NewStringEmpty();
+	     $$ = $7;
+	     SwigType_add_memberpointer(t,$2);
+	     SwigType_push($1,t);
+	     if ($$.type) {
+	       SwigType_push($1,$$.type);
+	       Delete($$.type);
+	     }
+	     $$.type = $1;
+	     Delete(t);
+	   }
+           | pointer idcolon DSTAR AND PERIOD PERIOD PERIOD notso_direct_declarator { 
+	     $$ = $8;
+	     SwigType_add_memberpointer($1,$2);
+	     SwigType_add_reference($1);
+	     if ($$.type) {
+	       SwigType_push($1,$$.type);
+	       Delete($$.type);
+	     }
+	     $$.type = $1;
+	   }
+           | idcolon DSTAR AND PERIOD PERIOD PERIOD notso_direct_declarator { 
+	     SwigType *t = NewStringEmpty();
+	     $$ = $7;
 	     SwigType_add_memberpointer(t,$1);
 	     SwigType_add_reference(t);
 	     if ($$.type) {
@@ -5903,6 +6003,14 @@ templcpptype   : CLASS {
                    $$ = (char *)"typename"; 
 		   if (!inherit_list) last_cpptype = $$;
                }
+               | CLASS PERIOD PERIOD PERIOD { 
+                   $$ = (char *)"class..."; 
+		   if (!inherit_list) last_cpptype = $$;
+               }
+               | TYPENAME PERIOD PERIOD PERIOD { 
+                   $$ = (char *)"typename..."; 
+		   if (!inherit_list) last_cpptype = $$;
+               }
                ;
 
 cpptype        : templcpptype {
@@ -6030,10 +6138,6 @@ idcolon        : idtemplate idcolontail {
 		 $$ = NewStringf("::%s%s",$3,$4);
                  Delete($4);
                }
-               | PERIOD PERIOD PERIOD idtemplate {
-                 /* Introduced in C++0x, variadic constructor args or inside template<> block */
-		 $$ = NewString($4);
-   	       }
                | idtemplate {
 		 $$ = NewString($1);
    	       }
