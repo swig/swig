@@ -2744,8 +2744,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             if (!p && tp) {
                               p = tp;
                               def_supplied = 1;
-                            } else if (!tp) { /* Variadic tempalte - tp < p */
-                              Swig_warning(0,cparse_file, cparse_line,"Variadic templates not fully supported by Swig.\n");
+                            } else if (p && !tp) { /* Variadic template - tp < p */
+                              Swig_warning(0,cparse_file, cparse_line,"Only the first variadic argument is currently supported by Swig.\n");
                               break;
                             }
                           }
