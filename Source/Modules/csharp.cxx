@@ -2767,6 +2767,16 @@ public:
   }
 
   /*----------------------------------------------------------------------
+   * replaceSpecialVariables()
+   *--------------------------------------------------------------------*/
+
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+    (void)method;
+    SwigType *type = Getattr(parm, "type");
+    substituteClassname(type, tm);
+  }
+
+  /*----------------------------------------------------------------------
    * decodeEnumFeature()
    * Decode the possible enum features, which are one of:
    *   %csenum(simple)
@@ -2859,15 +2869,15 @@ public:
   /* -----------------------------------------------------------------------------
    * substituteClassname()
    *
-   * Substitute $csclassname with the proxy class name for classes/structs/unions that SWIG knows about.
-   * Also substitutes enums with enum name.
+   * Substitute the special variable $csclassname with the proxy class name for classes/structs/unions 
+   * that SWIG knows about. Also substitutes enums with enum name.
    * Otherwise use the $descriptor name for the C# class name. Note that the $&csclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
    * Inputs:
    *   pt - parameter type
-   *   tm - cstype typemap
+   *   tm - typemap contents that might contain the special variable to be replaced
    * Outputs:
-   *   tm - cstype typemap with $csclassname substitution
+   *   tm - typemap contents complete with the special variable substitution
    * Return:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
@@ -3029,7 +3039,7 @@ public:
   /* -----------------------------------------------------------------------------
    * typemapLookup()
    * n - for input only and must contain info for Getfile(n) and Getline(n) to work
-   * op - typemap method name
+   * tmap_method - typemap method name
    * type - typemap type to lookup
    * warning - warning number to issue if no typemaps found
    * typemap_attributes - the typemap attributes are attached to this node and will 
@@ -3037,16 +3047,16 @@ public:
    * return is never NULL, unlike Swig_typemap_lookup()
    * ----------------------------------------------------------------------------- */
 
-  const String *typemapLookup(Node *n, const_String_or_char_ptr op, SwigType *type, int warning, Node *typemap_attributes = 0) {
+  const String *typemapLookup(Node *n, const_String_or_char_ptr tmap_method, SwigType *type, int warning, Node *typemap_attributes = 0) {
     Node *node = !typemap_attributes ? NewHash() : typemap_attributes;
     Setattr(node, "type", type);
     Setfile(node, Getfile(n));
     Setline(node, Getline(n));
-    const String *tm = Swig_typemap_lookup(op, node, "", 0);
+    const String *tm = Swig_typemap_lookup(tmap_method, node, "", 0);
     if (!tm) {
       tm = empty_string;
       if (warning != WARN_NONE)
-	Swig_warning(warning, Getfile(n), Getline(n), "No %s typemap defined for %s\n", op, SwigType_str(type, 0));
+	Swig_warning(warning, Getfile(n), Getline(n), "No %s typemap defined for %s\n", tmap_method, SwigType_str(type, 0));
     }
     if (!typemap_attributes)
       Delete(node);

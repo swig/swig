@@ -8,7 +8,7 @@ BUILD_SOURCE_DIR=$(top_builddir)/Source
 
 SWIG_CXX_DEFS = @SWILL@
 
-AM_CFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
+AM_CPPFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
 		-I$(BUILD_SOURCE_DIR)/CParse	\
 		-I$(SOURCE_DIR)/Include		\
 		-I$(SOURCE_DIR)/DOH		\
@@ -17,8 +17,7 @@ AM_CFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
 		-I$(SOURCE_DIR)/Swig		\
 		-I$(SOURCE_DIR)/Modules
 
-AM_CXXFLAGS =	$(AM_CFLAGS)			\
-		$(SWIG_CXX_DEFS)
+AM_CXXFLAGS =	$(SWIG_CXX_DEFS)
 
 AM_YFLAGS = -d
 

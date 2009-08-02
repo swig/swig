@@ -37,6 +37,10 @@
 %{
   CONVERT_IN($1,$1_ltype,$input);
 %}
+%typemap(directorout) TYPE, const TYPE &
+%{
+  CONVERT_IN($result,$1_ltype,$input);
+%}
 %enddef
 
 %fragment("t_output_helper","header") %{
@@ -49,6 +53,7 @@ t_output_helper( zval **target, zval *o) {
   }
   if ( (*target)->type == IS_NULL ) {
     REPLACE_ZVAL_VALUE(target,o,1);
+    FREE_ZVAL(o);
     return;
   }
   zval *tmp;

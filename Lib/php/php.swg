@@ -89,6 +89,14 @@
 	$1 = *tmp;
 }
 
+%typemap(directorout) SWIGTYPE ($&1_ltype tmp)
+{
+	if(SWIG_ConvertPtr(*$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
+          SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+	}
+	$result = *tmp;
+}
+
 %typemap(in) SWIGTYPE *,
 	     SWIGTYPE []
 {
@@ -176,15 +184,40 @@
 	ZVAL_LONG(return_value,$1);
 }
 
+%typemap(directorin) int,
+              unsigned int,
+              short,
+              unsigned short,
+              long,
+              unsigned long,
+              signed char,
+              unsigned char,
+              size_t,
+              enum SWIGTYPE
+{
+  ZVAL_LONG($input,$1_name);
+}
+
 %typemap(out) bool
 {
 	ZVAL_BOOL(return_value,($1)?1:0);
+}
+
+%typemap(directorin) bool
+{
+	ZVAL_BOOL($input,($1_name)?1:0);
 }
 
 %typemap(out) float,
               double
 {
 	ZVAL_DOUBLE(return_value,$1);
+}
+
+%typemap(directorin) float,
+              double
+{
+	ZVAL_DOUBLE($input,$1_name);
 }
 
 %typemap(out) char
@@ -209,6 +242,13 @@
   SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor, $owner);
 %}
 
+%typemap(directorin) SWIGTYPE *,
+              SWIGTYPE [],
+              SWIGTYPE &
+%{
+  SWIG_SetPointerZval($input, (void *)&$1_name, $1_descriptor, $owner);
+%}
+
 %typemap(out) SWIGTYPE *DYNAMIC,
               SWIGTYPE &DYNAMIC
 {
@@ -227,6 +267,19 @@
   $&1_ltype resultobj = ($&1_ltype) emalloc(sizeof($1_type));
   memcpy(resultobj, &$1, sizeof($1_type));
   SWIG_SetPointerZval(return_value, (void *)resultobj, $&1_descriptor, 1);
+}
+#endif
+
+%typemap(directorin) SWIGTYPE
+#ifdef __cplusplus
+{
+  SWIG_SetPointerZval($input, SWIG_as_voidptr(&$1_name), $&1_descriptor, 2);
+}
+#else
+{
+  $&1_ltype resultobj = ($&1_ltype) emalloc(sizeof($1_type));
+  memcpy(resultobj, &$1, sizeof($1_type));
+  SWIG_SetPointerZval($input, (void *)resultobj, $&1_descriptor, 2);
 }
 #endif
 

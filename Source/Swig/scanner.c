@@ -85,6 +85,7 @@ void Scanner_clear(Scanner * s) {
   Clear(s->text);
   Clear(s->scanobjs);
   Delete(s->error);
+  s->str = 0;
   s->error = 0;
   s->line = 1;
   s->nexttoken = -1;

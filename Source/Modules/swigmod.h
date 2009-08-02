@@ -216,6 +216,7 @@ public:
   virtual int is_assignable(Node *n);	/* Is variable assignable? */
   virtual String *runtimeCode();	/* returns the language specific runtime code */
   virtual String *defaultExternalRuntimeFilename();	/* the default filename for the external runtime */
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm); /* Language specific special variable substitutions for $typemap() */
 
   /* Runtime is C++ based, so extern "C" header section */
   void enable_cplus_runtime_mode();
@@ -249,6 +250,9 @@ public:
 
   /* Set overload variable templates argc and argv */
   void setOverloadResolutionTemplates(String *argc, String *argv);
+
+  /* Language instance is a singleton - get instance */
+  static Language* instance();
 
 protected:
   /* Allow multiple-input typemaps */
@@ -307,6 +311,7 @@ private:
   int multiinput;
   int cplus_runtime;
   int directors;
+  static Language *this_;
 };
 
 int SWIG_main(int, char **, Language *);
@@ -347,7 +352,9 @@ void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
 extern "C" {
   void SWIG_typemap_lang(const char *);
   typedef Language *(*ModuleFactory) (void);
-} void Swig_register_module(const char *name, ModuleFactory fac);
+} 
+
+void Swig_register_module(const char *name, ModuleFactory fac);
 ModuleFactory Swig_find_module(const char *name);
 
 /* Utilities */

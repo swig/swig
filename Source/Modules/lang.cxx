@@ -18,6 +18,7 @@ static int director_mode = 0;
 static int director_protected_mode = 1;
 static int all_protected_mode = 0;
 static int naturalvar_mode = 0;
+Language* Language::this_ = 0;
 
 /* Set director_protected_mode */
 void Wrapper_director_mode_set(int flag) {
@@ -45,6 +46,9 @@ extern "C" {
   }
   int Swig_all_protected_mode() {
     return all_protected_mode;
+  }
+  void Language_replace_special_variables(String *method, String *tm, Parm *parm) {
+  Language::instance()->replaceSpecialVariables(method, tm, parm);
   }
 }
 
@@ -323,6 +327,8 @@ directors(0) {
   director_prot_ctor_code = 0;
   director_multiple_inheritance = 1;
   director_language = 0;
+  assert(!this_);
+  this_ = this;
 }
 
 Language::~Language() {
@@ -331,6 +337,7 @@ Language::~Language() {
   Delete(enumtypes);
   Delete(director_ctor_code);
   Delete(none_comparison);
+  this_ = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -874,30 +881,8 @@ int Language::cDeclaration(Node *n) {
     if (over)
       over = first_nontemplate(over);
     if (over && (over != n)) {
-      SwigType *tc = Copy(decl);
-      SwigType *td = SwigType_pop_function(tc);
-      String *oname;
-      String *cname;
-      if (CurrentClass) {
-	oname = NewStringf("%s::%s", ClassName, name);
-	cname = NewStringf("%s::%s", ClassName, Getattr(over, "name"));
-      } else {
-	oname = NewString(name);
-	cname = NewString(Getattr(over, "name"));
-      }
-
-      SwigType *tc2 = Copy(Getattr(over, "decl"));
-      SwigType *td2 = SwigType_pop_function(tc2);
-
-      Swig_warning(WARN_LANG_OVERLOAD_DECL, input_file, line_number, "Overloaded declaration ignored.  %s\n", SwigType_str(td, SwigType_namestr(oname)));
-      Swig_warning(WARN_LANG_OVERLOAD_DECL, Getfile(over), Getline(over), "Previous declaration is %s\n", SwigType_str(td2, SwigType_namestr(cname)));
-
-      Delete(tc2);
-      Delete(td2);
-      Delete(tc);
-      Delete(td);
-      Delete(oname);
-      Delete(cname);
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, input_file, line_number, "Overloaded declaration ignored.  %s\n", Swig_name_decl(n));
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, Getfile(over), Getline(over), "Previous declaration is %s\n", Swig_name_decl(over));
       return SWIG_NOWRAP;
     }
   }
@@ -978,7 +963,7 @@ int Language::cDeclaration(Node *n) {
       if (Strncmp(symname, "__dummy_", 8) == 0) {
         SetFlag(n, "feature:ignore");
         Swig_warning(WARN_LANG_TEMPLATE_METHOD_IGNORE, input_file, line_number,
-                     "%%template() contains no name. Template method ignored: %s\n", SwigType_str(decl, SwigType_namestr(Getattr(n,"name"))));
+                     "%%template() contains no name. Template method ignored: %s\n", Swig_name_decl(n));
       }
     }
     if (!GetFlag(n, "feature:ignore"))
@@ -3421,6 +3406,24 @@ String *Language::runtimeCode() {
 
 String *Language::defaultExternalRuntimeFilename() {
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::replaceSpecialVariables()
+ * Language modules should implement this if special variables are to be handled
+ * correctly in the $typemap(...) special variable macro.
+ * method - typemap method name
+ * tm - string containing typemap contents
+ * parm - a parameter describing the typemap type to be handled
+ * ----------------------------------------------------------------------------- */
+void Language::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+  (void)method;
+  (void)tm;
+  (void)parm;
+}
+
+Language *Language::instance() {
+  return this_;
 }
 
 Hash *Language::getClassHash() const {
