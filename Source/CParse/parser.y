@@ -2941,7 +2941,7 @@ c_declaration   : c_decl {
 		    appendChild($$,firstChild($5));
 		  }
                 }
-                | c_lambda_decl { Swig_warning("Swig doesn't produce wrapper code for lambda expressions and closures yet.") $$ = $1; }
+                | c_lambda_decl { Swig_warning(WARN_LANG_NATIVE_UNIMPL, cparse_file, cparse_line,"Swig doesn't produce wrapper code for lambda expressions and closures yet.\n"); $$ = $1; }
                 ;
 
 /* ------------------------------------------------------------
