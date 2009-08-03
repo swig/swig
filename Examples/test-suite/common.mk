@@ -412,6 +412,7 @@ CPP0X_TEST_CASES = \
 	cpp0x_variadic_templates \
         cpp0x_alternate_function_syntax
 #	cpp0x_hash_types # not fully implemented yet
+#	cpp0x_lambda_functions      # not supported by GCC or MSVC yet
 #	cpp0x_null_pointer_constant # not supported by any compilers yet
 #	cpp0x_unrestricted_unions   # not supported by any compilers yet
 #	cpp0x_smart_pointers        # not supported by standard library yet

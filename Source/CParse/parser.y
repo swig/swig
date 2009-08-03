@@ -1536,7 +1536,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
-%type <node>     c_declaration c_decl c_decl_tail c_enum_keyword c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl ;
+%type <node>     c_declaration c_decl c_decl_tail c_enum_keyword c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl c_lambda_decl c_lambda_decl_front ;
 %type <node>     enumlist edecl;
 
 /* C++ declarations */
@@ -2941,6 +2941,7 @@ c_declaration   : c_decl {
 		    appendChild($$,firstChild($5));
 		  }
                 }
+                | c_lambda_decl { Swig_warning("Swig doesn't produce wrapper code for lambda expressions and closures yet.") $$ = $1; }
                 ;
 
 /* ------------------------------------------------------------
@@ -3128,6 +3129,17 @@ cpp_alternate_rettype : primitive_type { $$ = $1; }
               | TYPE_RAW { $$ = $1; }
               | idcolon { $$ = $1; }
               ;
+
+/* Lambda function syntax introduced in C++0x.
+   auto myFunc = [](int x, int y) -> int { return x+y; }
+   OR
+   auto myFunc = [](int x, int y) { return x+y; }
+*/
+c_lambda_decl  : c_lambda_decl_front LPAREN parms RPAREN LBRACE { skip_balanced('{','}'); } SEMI { $$ = 0; }
+               | c_lambda_decl_front LPAREN parms RPAREN ARROW type LBRACE { skip_balanced('{','}'); } SEMI { $$ = 0; }
+
+c_lambda_decl_front : storage_class AUTO idcolon EQUAL LBRACKET { skip_balanced('[',']'); $$ = 0; }
+
 
 /* ------------------------------------------------------------
    enum
