@@ -1627,8 +1627,14 @@ public:
 	     */
 	    Printf(output, "\t\tif (is_resource($r)) {\n");
 	    Printf(output, "\t\t\t$class='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
-	    Printf(output, "\t\t\treturn new $class($r);\n\t\t}\n");
-	    Printf(output, "\t\telse return $r;\n");
+	    if (Getattr(classLookup(Getattr(n, "type")), "module")) {
+	      Printf(output, "\t\t\treturn new $class($r);\n");
+	    } else {
+	      Printf(output, "\t\t\t$c = new stdClass();\n");
+	      Printf(output, "\t\t\t$c->_cPtr = $r;\n");
+	      Printf(output, "\t\t\treturn $c;\n");
+	    }
+	    Printf(output, "\t\t}\n\t\telse return $r;\n");
 	  } else {
 	    Printf(output, "\t\t$this->%s = $r;\n", SWIG_PTR);
 	    Printf(output, "\t\treturn $this;\n");
@@ -1928,7 +1934,7 @@ public:
 
       Printf(s_phpclasses, "class %s%s ", prefix, shadow_classname);
       String *baseclass = NULL;
-      if (base.item) {
+      if (base.item && Getattr(base.item, "module")) {
 	baseclass = Getattr(base.item, "sym:name");
 	if (!baseclass)
 	  baseclass = Getattr(base.item, "name");
