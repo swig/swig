@@ -11,6 +11,7 @@
 
 #define PHPBN1(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP",sourcefmt="%(lower)s")  `x`
 #define PHPBN2(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP")  "::" `x`
+#define PHPFN(x) %keywordwarn("'" `x` "' is a PHP built-in function, renamed as 'c_" `x` "'",sourcefmt="%(lower)s",%$isfunction,%$not %$ismember,rename="c_%s")  `x`
 
 
 /*
@@ -455,7 +456,28 @@ PHPCN(SQLiteResult);
 PHPCN(SQLiteUnbuffered);
 PHPCN(SQLiteException);
 
+/* Built-in PHP functions (incomplete). */
+PHPFN(cos);
+PHPFN(sin);
+PHPFN(tan);
+PHPFN(acos);
+PHPFN(asin);
+PHPFN(atan);
+PHPFN(atan2);
+PHPFN(cosh);
+PHPFN(sinh);
+PHPFN(tanh);
+PHPFN(exp);
+PHPFN(log);
+PHPFN(log10);
+PHPFN(pow);
+PHPFN(sqrt);
+PHPFN(ceil);
+PHPFN(floor);
+PHPFN(fmod);
+
 #undef PHPKW
 #undef PHPBN1
 #undef PHPBN2
 #undef PHPCN
+#undef PHPFN

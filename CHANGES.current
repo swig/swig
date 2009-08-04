@@ -1,6 +1,11 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-08-04: vmiklos
+            [PHP] Various mathematical functions (which would conflict
+            with the built-in PHP ones) are now automatically handled by
+            adding a 'c_' prefix.
+
 2009-08-03: wsfulton
             [C#] The std::vector<T> implementation is improved and now uses $typemap such
             that the proxy class for T no longer has to be specified in some macros
