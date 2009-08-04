@@ -383,3 +383,27 @@
 #define %objcmethodmodifiers          %feature("objc:methodmodifiers")
 #define %objcnothrowexception         %feature("except")
 #define %objcattributes               %feature("objc:attributes")
+
+
+/* Exception handling */
+
+%typemap(throws) int, 
+                 long, 
+                 short, 
+                 unsigned int, 
+                 unsigned long, 
+                 unsigned short
+%{ NString* aFormat = [NSString stringWithString:@"The value is %d"];
+	[NSException raise:@"$1_type exception" format: aFormat, $1] %}
+
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY]
+%{ NString* aFormat = [NSString stringWithString:@"The value is %d"];
+	[NSException raise:@"$1_type exception" format: aFormat, $1] %}
+	
+%typemap(throws) char *
+%{ NString* aFormat = [NSString stringWithString:@"%s"];
+	[NSException raise:@"$1_type exception" format: aFormat, $1] %}
+	
+// Default enum handling
+%include <enums.swg>
+

@@ -4,6 +4,7 @@
  */
 
 #include "swigmod.h"
+#include <limits.h>		// for INT_MAX
 #include "cparse.h"
 #include <ctype.h>
 
@@ -127,15 +128,17 @@ public:
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
 
-    Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIGOBJC\n");
+    Printf(f_runtime, "\n#define SWIGOBJC\n");
     Printf(f_runtime, "\n");
 
     Swig_name_register((char *) "wrapper", (char *) "ObjCPP_%f");
 
     Printf(f_wrappers, "#include \"%s\"\n\n", file_h);
+		
+    Printf(f_wrappers, "\n#ifdef __cplusplus\n");
     Printf(f_wrappers, "extern \"C\" {\n");
-
+    Printf(f_wrappers, "#endif\n\n");
+		
     // Initialize members
     ocpp_h_code = NewString("");
     proxy_h_code = NewString("");
@@ -151,15 +154,15 @@ public:
 
     // Generate proxy code
     if (proxy_flag) {
-      String *file_proxy_h = NewStringf("%sProxy.h", modulename);
-      f_proxy_h = NewFile(file_proxy_h, "w", SWIG_output_files());
+      String *proxy_h = NewStringf("%sProxy.h", modulename);
+      f_proxy_h = NewFile(proxy_h, "w", SWIG_output_files());
       if (!f_proxy_h) {
 	FileErrorDisplay(f_proxy_h);
 	SWIG_exit(EXIT_FAILURE);
       }
 
-      String *file_proxy_m = NewStringf("%sProxy.m", modulename);
-      f_proxy_m = NewFile(file_proxy_m, "w", SWIG_output_files());
+      String *proxy_m = NewStringf("%sProxy.m", modulename);
+      f_proxy_m = NewFile(proxy_m, "w", SWIG_output_files());
       if (!f_proxy_m) {
 	FileErrorDisplay(f_proxy_m);
 	SWIG_exit(EXIT_FAILURE);
@@ -167,14 +170,14 @@ public:
 
       emitBanner(f_proxy_h);
       Printf(f_proxy_m, "#include \"%s\"\n\n", file_h);
-      Printf(f_proxy_m, "#include \"%s\"\n\n", file_proxy_h);
+      Printf(f_proxy_m, "#include \"%s\"\n\n", proxy_h);
       Printv(f_proxy_h, proxy_global_constants_code, proxy_h_code, NIL);
       Printv(f_proxy_m, proxy_m_code, NIL);
 
-      Delete(file_proxy_h);
-      file_proxy_h = NULL;
-      Delete(file_proxy_m);
-      file_proxy_m = NULL;
+      Delete(proxy_h);
+      proxy_h = NULL;
+      Delete(proxy_m);
+      proxy_m = NULL;
 
       Delete(proxy_h_code);
       proxy_h_code = NULL;
@@ -187,7 +190,10 @@ public:
     }
     // Generate low level accessors
     {
-      Printf(f_wrappers, "}\n");
+			Printf(f_wrappers, "#ifdef __cplusplus\n");
+			Printf(f_wrappers, "}\n");
+			Printf(f_wrappers, "#endif\n");
+
       f_ocpp_h = NewFile(file_h, "w", SWIG_output_files());
       if (!f_ocpp_h) {
 	FileErrorDisplay(f_ocpp_h);
@@ -208,9 +214,11 @@ public:
       Printf(f_ocpp_h, "}\n");
       Printf(f_ocpp_h, "#endif\n");
 
-      Dump(f_header, f_ocpp_mm);
-      Dump(f_wrappers, f_ocpp_mm);
-      Wrapper_pretty_print(f_init, f_ocpp_mm);
+			Dump(f_header, f_runtime);
+			Dump(f_wrappers, f_runtime);
+			Wrapper_pretty_print(f_init, f_runtime);
+
+			Dump(f_runtime, f_ocpp_mm);
 
       Delete(file_h);
       file_h = NULL;
@@ -275,17 +283,7 @@ public:
     if (n) {
       String *symname = Getattr(n, "sym:name");
       if (symname) {
-	// Add in class scope when referencing enum if not a global enum
-	String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
-	String *proxyname = 0;
-	if (scopename_prefix) {
-	  proxyname = getProxyName(scopename_prefix);
-	}
-	if (proxyname)
-	  enum_name = NewStringf("%s.%s", proxyname, symname);
-	else
-	  enum_name = NewStringf("%s", symname);
-	Delete(scopename_prefix);
+				enum_name = NewStringf("%s", symname);
       }
     }
 
@@ -586,6 +584,7 @@ public:
 
 	// Use typemaps to transform type used in Objective-C proxy function to the one used in intermediate code.
 	if ((tm = Getattr(p, "tmap:objcin"))) {
+		addThrows(n, "tmap:objcin", p);
 	  substituteClassname(pt, tm);
 	  Replaceall(tm, "$objcinput", arg);
 	  Printv(imcall, tm, NIL);
@@ -612,6 +611,7 @@ public:
 
     // Transform return type used in low level accessor to type used in Objective-C proxy function 
     if ((tm = Swig_typemap_lookup("objcout", n, "", 0))) {
+			addThrows(n, "tmap:objcout", n);
       if (GetFlag(n, "feature:new"))
 	Replaceall(tm, "$owner", "true");
       else
@@ -753,6 +753,7 @@ public:
 	}
 	// Use typemaps to transform type used in Objective-C proxy function to type used in low level ocpp accessor
 	if ((tm = Getattr(p, "tmap:objcin"))) {
+		addThrows(n, "tmap:objcin", p);
 	  substituteClassname(pt, tm);
 	  Replaceall(tm, "$objcinput", arg);
 	  Printv(imcall, tm, NIL);
@@ -782,6 +783,7 @@ public:
 
     // Transform return type used in low level accessor to type used in Objective-C proxy function 
     if ((tm = Swig_typemap_lookup("objcout", n, "", 0))) {
+			addThrows(n, "tmap:objcout", n);
       if (GetFlag(n, "feature:new"))
 	Replaceall(tm, "$owner", "true");
       else
@@ -902,6 +904,7 @@ public:
 
       // Get typemap for this argument
       if ((tm = Getattr(p, "tmap:in"))) {
+				addThrows(n, "tmap:in", p);
 	Replaceall(tm, "$source", arg);	/* deprecated */
 	Replaceall(tm, "$target", ln);	/* deprecated */
 	Replaceall(tm, "$arg", arg);	/* deprecated? */
@@ -920,6 +923,7 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
+				addThrows(n, "tmap:check", p);
 	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -933,6 +937,7 @@ public:
     /* Insert cleanup code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
+				addThrows(n, "tmap:freearg", p);
 	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -946,6 +951,7 @@ public:
     /* Insert argument output code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
+				addThrows(n, "tmap:argout", p);
 	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
 	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
 	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
@@ -958,12 +964,27 @@ public:
       }
     }
 
+		// Get any Objective-C exception classes in the throws typemap
+    ParmList *throw_parm_list = NULL;
+    if ((throw_parm_list = Getattr(n, "throws"))) {
+      Swig_typemap_attach_parms("throws", throw_parm_list, f);
+      for (p = throw_parm_list; p; p = nextSibling(p)) {
+				if ((tm = Getattr(p, "tmap:throws"))) {
+					addThrows(n, "tmap:throws", p);
+				}
+      }
+    }
+		
     // Now write code to make the low level function call
     if (!native_function_flag) {
       String *actioncode = emit_action(n);
+		
+			// Handle exception classes specified in the "except" feature's "throws" attribute
+      addThrows(n, "feature:except", n);
 
       // Return value if necessary
       if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+				addThrows(n, "tmap:out", n);
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Replaceall(tm, "$target", "oresult");	/* deprecated */
 	Replaceall(tm, "$result", "oresult");
@@ -989,6 +1010,7 @@ public:
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
+				addThrows(n, "tmap:newfree", n);
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
@@ -997,6 +1019,7 @@ public:
     /* See if there is any return cleanup code */
     if (!native_function_flag) {
       if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
+				addThrows(n, "tmap:ret", n);
 	Replaceall(tm, "$source", "result");	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
@@ -1021,6 +1044,11 @@ public:
       Wrapper_print(f, f_wrappers);
     }
 
+		if (!is_void_return)
+      Replaceall(f->code, "$null", "0");
+    else
+      Replaceall(f->code, "$null", "");
+		
     if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       Setattr(n, "ocppfuncname", wname);
       proxyGlobalFunctionHandler(n);
@@ -1134,6 +1162,7 @@ public:
 
 	// Use typemaps to transform type used in Objective-C wrapper function (in proxy class) to type used in intermediary code
 	if ((tm = Getattr(p, "tmap:objcin"))) {
+		addThrows(n, "tmap:objcin", p);
 	  substituteClassname(pt, tm);
 	  Replaceall(tm, "$objcinput", arg);
 	  Printv(imcall, tm, NIL);
@@ -1342,46 +1371,37 @@ public:
 
       enum_code = NewString("");
       String *symname = Getattr(n, "sym:name");
-      String *constants_code = (proxy_flag && is_wrapping_class())? proxy_global_constants_code : proxy_global_constants_code;
+      String *constants_code = (proxy_flag && is_wrapping_class())? proxy_class_constants_code : proxy_global_constants_code;
       EnumFeature enum_feature = decodeEnumFeature(n);
       String *typemap_lookup_type = Getattr(n, "name");
 
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
-	// Cop-paste the C/C++ enum as an Objective-C enum
+	// Copy-paste the C/C++ enum as an Objective-C enum
 	Printf(enum_code, "enum %s {", symname);
 
       } else {
 	// Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums of any sort
 	if (symname && !Getattr(n, "unnamedinstance"))
-	  Printf(constants_code, "  // %s \n", symname);
+	  Printf(constants_code, "\n  // %s \n", symname);
       }
 
       // Emit each enum item
       Language::enumDeclaration(n);
 
-      Replaceall(enum_code, "$objcclassname", symname);
-
-      // Substitute $enumvalues - intended usage is for typesafe enums
-      if (Getattr(n, "enumvalues"))
-	Replaceall(enum_code, "$enumvalues", Getattr(n, "enumvalues"));
-      else
-	Replaceall(enum_code, "$enumvalues", "");
-
-
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
+				Replaceall(enum_code, "$objcclassname", symname);
 	// Copy-paste the C/C++ enum as a proper Objective-C enum
 	// Finish the enum declaration
 	Printf(enum_code, "};\n\n");
       } else {
 	// Wrap C++ enum with simple constant
 	Printf(enum_code, "\n");
-	if (proxy_flag && is_wrapping_class()) {
-	  Printv(proxy_global_constants_code, enum_code, NIL);	// for now writing everything globally
-	} else {
-	  Printv(proxy_global_constants_code, enum_code, NIL);
 	}
-      }
-
+	if (proxy_flag && is_wrapping_class())
+	  Printv(proxy_class_constants_code, enum_code, NIL);
+	else
+	  Printv(proxy_global_constants_code, enum_code, NIL);
+  
       Delete(enum_code);
       enum_code = NULL;
     }
@@ -1409,13 +1429,14 @@ public:
       tmpValue = NewString(value);
     else
       tmpValue = NewString(name);
+		
     // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
 
     {
       EnumFeature enum_feature = decodeEnumFeature(parentNode(n));
+			
       // The %objcconst feature determines how the constant value is obtained
-
       int const_feature_flag = GetFlag(n, "feature:objc:const");
 
       if ((enum_feature != SimpleEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
@@ -1423,12 +1444,12 @@ public:
 	// Emit the enum item.
 	if (!Getattr(n, "_last"))	// Only the first enum item has this attribute set
 	  Printf(enum_code, ",\n");
+				
 	Printf(enum_code, "  %s", symname);
 
 	// Check for the %objcconstvalue feature
 	String *value = Getattr(n, "feature:objc:constvalue");
-
-	// Note that the enum value must be a true constant and cannot be set from a PINVOKE call, thus no support for %objcconst(0)
+	// Note that the enum value must be a true constant and cannot be set from an intermediatory call, thus no support for %objcconst(0)
 	value = value ? value : Getattr(n, "enumvalue");
 	if (value) {
 	  Printf(enum_code, " = %s", value);
@@ -1725,7 +1746,7 @@ public:
       if (*Char(destructor_call))
 	Replaceall(destruct, "$imcall", destructor_call);
       else
-	Replaceall(destruct, "$imcall", "throw new MethodAccessException(\"C++ destructor does not have public access\")");
+	Replaceall(destruct, "$imcall", "throw new UnsupportedOperationException(\"C++ destructor does not have public access\")");
       if (*Char(destruct)) {
 	Printv(proxy_class_decl, "- (void)", destruct_methodname, "();", "\n", NIL);
 	Printv(proxy_class_def, "- (void)", destruct_methodname, "() ", destruct, "\n\n", NIL);
@@ -1792,6 +1813,72 @@ public:
     return SWIG_OK;
   }
 
+	/* -----------------------------------------------------------------------------
+   * addThrows()
+   *
+   * Adds exception classes to a throws list. The throws list is the list of classes
+   * that will form the Objective-C throws clause. Mainly for checked exceptions.
+   * ----------------------------------------------------------------------------- */
+	
+  void addThrows(Node *n, const String *attribute, Node *parameter) {
+    // Get the comma separated exception classes for the throws clause - held in typemap/feature's "throws" attribute
+    String *throws_attribute = NewStringf("%s:throws", attribute);
+    String *throws = Getattr(parameter, throws_attribute);
+		
+    if (throws && Len(throws) > 0) {
+      String *throws_list = Getattr(n, "objc:throwslist");
+      if (!throws_list) {
+				throws_list = NewList();
+				Setattr(n, "objc:throwslist", throws_list);
+      }
+      // Put the exception classes in the throws clause into a temporary List
+      List *temp_classes_list = Split(throws, ',', INT_MAX);
+			
+      // Add the exception classes to the node throws list, but don't duplicate if already in list
+      if (temp_classes_list && Len(temp_classes_list) > 0) {
+				for (Iterator cls = First(temp_classes_list); cls.item; cls = Next(cls)) {
+					String *exception_class = NewString(cls.item);
+					Replaceall(exception_class, " ", "");	// remove spaces
+					Replaceall(exception_class, "\t", "");	// remove tabs
+					if (Len(exception_class) > 0) {
+						// $objcclassname substitution
+						SwigType *pt = Getattr(parameter, "type");
+						substituteClassname(pt, exception_class);
+						
+						// Don't duplicate the Objective-C exception class in the throws clause
+						bool found_flag = false;
+						for (Iterator item = First(throws_list); item.item; item = Next(item)) {
+							if (Strcmp(item.item, exception_class) == 0)
+								found_flag = true;
+						}
+						if (!found_flag)
+							Append(throws_list, exception_class);
+					}
+					Delete(exception_class);
+				}
+      }
+      Delete(temp_classes_list);
+    }
+    Delete(throws_attribute);
+  }
+	
+  /* -----------------------------------------------------------------------------
+   * generateThrowsClause()
+   *
+   * Generates throws clause for checked exception
+   * ----------------------------------------------------------------------------- */
+	
+  void generateThrowsClause(Node *n, String *code) {
+    // Add the throws clause into code
+    List *throws_list = Getattr(n, "objc:throwslist");
+    if (throws_list) {
+      Iterator cls = First(throws_list);
+      Printf(code, " throws %s", cls.item);
+      while ((cls = Next(cls)).item)
+				Printf(code, ", %s", cls.item);
+    }
+  }
+	
 
 };
 
