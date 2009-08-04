@@ -5145,7 +5145,7 @@ direct_declarator : idcolon {
 		 $$.parms = 0;
 		 $$.have_parms = 0;
                   }
-
+                  
                   | NOT idcolon {
                   $$.id = Char(NewStringf("~%s",$2));
                   $$.type = 0;
@@ -5218,6 +5218,27 @@ direct_declarator : idcolon {
 		    SwigType_add_function(t,$3);
 		    if (!$$.have_parms) {
 		      $$.parms = $3;
+		      $$.have_parms = 1;
+		    }
+		    if (!$$.type) {
+		      $$.type = t;
+		    } else {
+		      SwigType_push(t, $$.type);
+		      Delete($$.type);
+		      $$.type = t;
+		    }
+                 }
+                 /* User-defined string literals. eg.
+                    int operator""_mySuffix(const char* val, int length) {...} */
+		 /* This produces one S/R conflict. */
+                 | OPERATOR ID LPAREN parms RPAREN {
+		    SwigType *t;
+                    Append($1, Char($2));
+		    $$.id = Char($1);
+		    t = NewStringEmpty();
+		    SwigType_add_function(t,$4);
+		    if (!$$.have_parms) {
+		      $$.parms = $4;
 		      $$.have_parms = 1;
 		    }
 		    if (!$$.type) {

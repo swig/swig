@@ -688,6 +688,11 @@ int yylex(void) {
 	      yylval.str = s;
 	      return OPERATOR;
 	    }
+	  } else if (nexttok == SWIG_TOKEN_STRING) {
+	    /* Operator "" or user-defined string literal ""_suffix */
+	    Append(s,"\"\"");
+	    yylval.str = s;
+	    return OPERATOR;
 	  } else if (nexttok == SWIG_TOKEN_ID) {
 	    /* We have an identifier.  This could be any number of things. It could be a named version of
                an operator (e.g., 'and_eq') or it could be a conversion operator.   To deal with this, we're
