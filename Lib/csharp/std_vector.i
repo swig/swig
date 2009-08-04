@@ -28,7 +28,6 @@
 %include <std_common.i>
 
 // MACRO for use within the std::vector class body
-//
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE_TYPE, CTYPE...)
 %typemap(csinterfaces) std::vector<CTYPE > "IDisposable, System.Collections.IEnumerable\n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n#endif\n";
 %typemap(cscode) std::vector<CTYPE > %{
@@ -359,8 +358,7 @@ SWIG_STD_VECTOR_MINIMUM_INTERNAL(IEnumerable, const value_type&, CTYPE)
     }
 %enddef
 
-// Macros for std::vector class specializations
-//
+// Macros for std::vector class specializations/enhancements
 %define SWIG_STD_VECTOR_ENHANCED(CTYPE...)
 namespace std {
   template<> class vector<CTYPE > {
