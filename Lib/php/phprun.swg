@@ -25,6 +25,15 @@ extern "C" {
 # define SWIG_ZEND_NAMED_FE(ZN, N, A) ZEND_NAMED_FE(ZN, N, A)
 #endif
 
+#ifndef Z_SET_ISREF
+// For PHP < 5.3
+# define Z_SET_ISREF(z) (z)->is_ref = 1
+#endif
+#ifndef Z_SET_REFCOUNT
+// For PHP < 5.3
+# define Z_SET_REFCOUNT(z, rc) (z)->refcount = (rc)
+#endif
+
 #define SWIG_LONG_CONSTANT(N, V) zend_register_long_constant((char*)#N, sizeof(#N), V, CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
 #define SWIG_DOUBLE_CONSTANT(N, V) zend_register_double_constant((char*)#N, sizeof(#N), V, CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
 #define SWIG_STRING_CONSTANT(N, V) zend_register_stringl_constant((char*)#N, sizeof(#N), V, strlen(V), CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
@@ -118,13 +127,13 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject 
       /* class names are stored in lowercase */
       php_strtolower(Z_STRVAL_PP(&classname), Z_STRLEN_PP(&classname));
       if (zend_lookup_class(Z_STRVAL_P(classname), Z_STRLEN_P(classname), &ce TSRMLS_CC) != SUCCESS) {
-        /* class does not exists */
+        /* class does not exist */
         object_init(z);
       } else {
         object_init_ex(z, *ce);
       }
-      z->refcount = 1;
-      z->is_ref = 1;
+      Z_SET_REFCOUNT(z, 1);
+      Z_SET_ISREF(z);
       zend_hash_update(HASH_OF(z), (char*)"_cPtr", sizeof("_cPtr"), (void*)&resource, sizeof(zval), NULL);
       FREE_ZVAL(classname);
     }
