@@ -1,5 +1,5 @@
 // builder the *.so
-exec builder.sce
+exec example_builder.sce
 
 //loader the *.so
 exec loader.sce

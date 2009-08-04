@@ -116,7 +116,7 @@ public:
     if(hasfunction_flag) {
       Printf(f_builder_code,"];\n");
       Printf(f_builder_code,"ilib_build(ilib_name,table,files,libs);");
-      File *f_builder=NewFile(NewStringf("%sbuilder.sce",SWIG_output_directory()),"w",SWIG_output_files());
+      File *f_builder=NewFile(NewStringf("%s%s_builder.sce",SWIG_output_directory(),module),"w",SWIG_output_files());
       Printv(f_builder,f_builder_code,NIL);
       Close(f_builder);
       Delete(f_builder);
@@ -363,10 +363,10 @@ public:
     String *getname = Swig_name_get(iname);
     String *setname = Swig_name_set(iname);
     
-    Printf(globalVar, "int %s=0;\n", rowname);
-    Printf(globalVar, "int %s=0;\n", colname);
+    Printf(globalVar, "int %s = 0;\n", rowname);
+    Printf(globalVar, "int %s = 0;\n", colname);
     if(!Strcmp(t, "p.double"))
-      Printf(globalVar, "int %s=0;\n\n", iscomplexname);
+      Printf(globalVar, "int %s = 0;\n\n", iscomplexname);
     else
       Printf(globalVar, "\n");
     Printv(setf->def, "int ", setname, " (char *fname,unsigned long fname_len) {\n", NIL);
@@ -381,6 +381,8 @@ public:
     /* deal with the set function */
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
+      if (Getattr(n, "unnamedinstance"))
+        Setattr(n, "type", "int");
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
 	Replaceall(tm, "$argnum", "1");
         Replaceall(tm, "iRows", rowname);
@@ -461,7 +463,7 @@ public:
     String *tempvalue = NewString("");
     
     /* set the value format to be  the scilab format */
-    if(!Strcmp(type, "char")){
+    if (!Strcmp(type, "char")) {
       value = Getattr(n, "rawvalue");
       char *temp = (Char(value));
       tempvalue = NewString("ascii");
@@ -469,12 +471,12 @@ public:
       value = Copy(tempvalue);
       Delete(tempvalue);
     } 
-    else{
-      if(!Strcmp(type, "p.char")){
+    else {
+      if (!Strcmp(type, "p.char")) {
         char *temp = (Char(value));
         int len = strlen(temp);
-        for(int i=0; i<len; ++i){
-          if(temp[i] == '\\'){
+        for (int i = 0; i < len; ++i) {
+          if (temp[i] == '\\') {
             temp[i] = '"';
             ++i;
           }
@@ -486,7 +488,7 @@ public:
     }
     
     /* write into the code string */
-    Printf(f_example_code, "example.%s = %s\n", iname, value);
+    Printf(f_example_code, "%s = %s\n", iname, value);
     
     return SWIG_OK;
   }
@@ -515,22 +517,49 @@ public:
     String *parentName = Getattr(parentNode(n), "sym:name");
     
     /* set the name to be the enum.enumvalue format */
-    String *temp = Copy(parentName);
-    Printf(temp, ".%s", iname);
-    Setattr(n, "sym:name", temp);
-   
+    if (parentName) {
+      /*if the enum has a name*/
+      if(!Getattr(parentNode(n), "unnamedinstance")) {
+        String *temp = Copy(parentName);
+        Printf(temp, ".%s", iname);
+        Setattr(n, "sym:name", temp);
+        Delete(temp);
+        iname = Getattr(n, "sym:name");
+      }
+    }
+    
     /* set the value attribute to be the integer */
     String *value;
     String *enumvalue = Getattr(n, "enumvalue");
-    if(enumvalue) {
-      Setattr(n, "value", enumvalue);
+    if (enumvalue) {
+      if (Len(enumvalue) == 1) {
+        char *temp = (Char(enumvalue));
+        /*set the value of char into the format of integer*/
+        if (((*temp <= 'z') && (*temp >= 'a')) || ((*temp <= 'Z') && (*temp >= 'A'))) {
+          String *tempInteger = NewString("");
+          Printf(tempInteger, "%i", int(*temp));
+          Setattr(n, "value", tempInteger);
+          Delete(tempInteger);
+        }
+        else {
+          Setattr(n, "value", enumvalue);
+        }
+      }
+      else {
+        Setattr(n, "value", enumvalue);
+      }
     }
     else {
-      if(n != firstChild(parentNode(n))) {
+      if (n != firstChild(parentNode(n))) {
         enumvalue = Getattr(n, "enumvalueex");
-        value = Copy(parentName);
-        Printf(value, ".%s", enumvalue);
-        Setattr(n, "value", value);
+        if (parentName) {
+          if (!Getattr(parentNode(n), "unnamedinstance")) {
+            String *temp = Copy(parentName); 
+            Printf(temp, ".%s", enumvalue); 
+            enumvalue = Copy(temp);
+          }
+        }
+        Setattr(n, "value", enumvalue);
       }
       else {
         Setattr(n, "value", Getattr(n, "enumvalueex"));
@@ -539,8 +568,7 @@ public:
     value = Getattr(n, "value");
     
     /* write into the code string */
-    Printf(f_example_code, "%s.%s = %s;\n", parentName, iname, value);
-    
+    Printf(f_example_code, "%s = %s;\n", iname, value);
     return SWIG_OK;
     }
 };
