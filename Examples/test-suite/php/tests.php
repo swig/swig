@@ -70,6 +70,8 @@ class check {
   }
 
   function classname($string,$object) {
+    if (!is_object($object))
+      return check::fail("The second argument is a " . gettype($object) . ", not an object.");
     if (strtolower($string)!=strtolower($classname=get_class($object))) return check::fail("Object: \$object is of class %s not class %s",$classname,$string);
     return TRUE;
   }
