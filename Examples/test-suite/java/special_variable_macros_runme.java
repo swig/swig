@@ -24,6 +24,8 @@ public class special_variable_macros_runme {
       throw new RuntimeException("test failed");
     if (!special_variable_macros.testJim(name).equals("multiname num"))
       throw new RuntimeException("test failed");
+    if (special_variable_macros.testJohn(new PairIntBool(10, false)) != 123)
+      throw new RuntimeException("test failed");
     NewName newName = NewName.factory("factoryname");
     name = newName.getStoredName();
   }

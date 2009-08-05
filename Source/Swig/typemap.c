@@ -1699,9 +1699,10 @@ static List *split_embedded_typemap(String *s) {
   List *args = 0;
   char *c, *start;
   int level = 0;
+  int angle_level = 0;
   int leading = 1;
-  args = NewList();
 
+  args = NewList();
   c = strchr(Char(s), '(');
   assert(c);
   c++;
@@ -1720,7 +1721,7 @@ static List *split_embedded_typemap(String *s) {
 	c++;
       }
     }
-    if ((level == 0) && ((*c == ',') || (*c == ')'))) {
+    if ((level == 0) && angle_level == 0 && ((*c == ',') || (*c == ')'))) {
       String *tmp = NewStringWithSize(start, c - start);
       Append(args, tmp);
       Delete(tmp);
@@ -1735,6 +1736,10 @@ static List *split_embedded_typemap(String *s) {
       level++;
     if (*c == ')')
       level--;
+    if (*c == '<')
+      angle_level++;
+    if (*c == '>')
+      angle_level--;
     if (isspace((int) *c) && leading)
       start++;
     if (!isspace((int) *c))
@@ -1901,6 +1906,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
       }
       Delete(l);
     }
+
     if (syntax_error) {
       String *dtypemap = NewString(dollar_typemap);
       Replaceall(dtypemap, "$TYPEMAP", "$typemap");

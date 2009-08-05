@@ -111,6 +111,40 @@ const char * testJim(Name *jim, int count) {
 %}
 
 //////////////////////////////////////////////////////////////////////////////////////
+// Template types with more than one template parameter
+
+// check $1 and $input get expanded properly when used from $typemap()
+%typemap(in) Space::Pair<int, bool> PAIR_INT_BOOL ($1_type temp)
+%{
+  /*%typemap(in) Name *GENERIC start */
+  temp = Space::Pair<int, bool>(123, true);
+  (void)$input;
+  $1 = ($1_ltype)temp;
+  /*%typemap(in) Name *GENERIC end */
+%}
+
+%typemap(in) Space::Pair<int, bool> john {
+// %typemap(in) Name *john start
+$typemap(in, Space::Pair<int, bool> PAIR_INT_BOOL)
+// %typemap(in) Name *john end
+}
+
+%inline %{
+namespace Space {
+  template <typename T1, typename T2> struct Pair {
+    Pair(T1 f, T2 s) : first(f), second(s) {}
+    Pair() {}
+    T1 first;
+    T2 second;
+  };
+  int testJohn(Space::Pair<int, bool> john) {
+    return john.first;
+  }
+}
+%}
+%template(PairIntBool) Space::Pair<int, bool>;
+
+//////////////////////////////////////////////////////////////////////////////////////
 // A real use case for $typemap
 
 #if defined(SWIGCSHARP)
