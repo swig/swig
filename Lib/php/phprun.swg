@@ -25,13 +25,13 @@ extern "C" {
 # define SWIG_ZEND_NAMED_FE(ZN, N, A) ZEND_NAMED_FE(ZN, N, A)
 #endif
 
-#ifndef Z_SET_ISREF
+#ifndef Z_SET_ISREF_P
 // For PHP < 5.3
-# define Z_SET_ISREF(z) (z)->is_ref = 1
+# define Z_SET_ISREF_P(z) (z)->is_ref = 1
 #endif
-#ifndef Z_SET_REFCOUNT
+#ifndef Z_SET_REFCOUNT_P
 // For PHP < 5.3
-# define Z_SET_REFCOUNT(z, rc) (z)->refcount = (rc)
+# define Z_SET_REFCOUNT_P(z, rc) (z)->refcount = (rc)
 #endif
 
 #define SWIG_LONG_CONSTANT(N, V) zend_register_long_constant((char*)#N, sizeof(#N), V, CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
@@ -132,8 +132,8 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject 
       } else {
         object_init_ex(z, *ce);
       }
-      Z_SET_REFCOUNT(z, 1);
-      Z_SET_ISREF(z);
+      Z_SET_REFCOUNT_P(z, 1);
+      Z_SET_ISREF_P(z);
       zend_hash_update(HASH_OF(z), (char*)"_cPtr", sizeof("_cPtr"), (void*)&resource, sizeof(zval), NULL);
       FREE_ZVAL(classname);
     }
