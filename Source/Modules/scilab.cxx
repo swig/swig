@@ -104,9 +104,9 @@ public:
     Printf(f_runtime, "#include \"localization.h\"\n");
     
     /* Initialize the builder.sce file code */
-    Printf(f_builder_code,"ilib_name = \"%slib\";\n",module);
-    Printf(f_builder_code,"files = [\"%s\",\"%s.o\"];\n", outfile,module);
-    Printf(f_builder_code,"libs = [];\n");
+    Printf(f_builder_code, "ilib_name = \"%slib\";\n", module);
+    Printf(f_builder_code, "files = [\"%s\",\"%s.o\"];\n", outfile, module);
+    Printf(f_builder_code, "libs = [];\n");
     Printf(f_builder_code, "table = ["); 
     
     /* Emit code for children */
@@ -114,10 +114,11 @@ public:
     
     /* create the file to generate the module: "builder.sce" */
     if(hasfunction_flag) {
-      Printf(f_builder_code,"];\n");
-      Printf(f_builder_code,"ilib_build(ilib_name,table,files,libs);");
-      File *f_builder=NewFile(NewStringf("%s%s_builder.sce",SWIG_output_directory(),module),"w",SWIG_output_files());
-      Printv(f_builder,f_builder_code,NIL);
+      Printf(f_builder_code, "];\n");
+      Printf(f_builder_code, "ilib_build(ilib_name,table,files,libs);\n");
+      Printf(f_builder_code, "exit");
+      File *f_builder=NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
+      Printv(f_builder, f_builder_code, NIL);
       Close(f_builder);
       Delete(f_builder);
       Delete(f_builder_code);
@@ -128,8 +129,8 @@ public:
     
     /* create the file for constants: "module.sce" */
     if(hasconstant_flag) {
-      File *f_example=NewFile(NewStringf("%s%s.sce",SWIG_output_directory(),module),"w",SWIG_output_files());
-      Printv(f_example,f_example_code,NIL);
+      File *f_example = NewFile(NewStringf("%s%s.sce", SWIG_output_directory(), module), "w", SWIG_output_files());
+      Printv(f_example, f_example_code, NIL);
       Close(f_example); 
       Delete(f_example);
       Delete(f_example_code);
@@ -363,8 +364,8 @@ public:
     String *getname = Swig_name_get(iname);
     String *setname = Swig_name_set(iname);
     
-    Printf(globalVar, "int %s = 0;\n", rowname);
-    Printf(globalVar, "int %s = 0;\n", colname);
+    Printf(globalVar, "int %s = 1;\n", rowname);
+    Printf(globalVar, "int %s = 1;\n", colname);
     if(!Strcmp(t, "p.double"))
       Printf(globalVar, "int %s = 0;\n\n", iscomplexname);
     else
@@ -372,8 +373,8 @@ public:
     Printv(setf->def, "int ", setname, " (char *fname,unsigned long fname_len) {\n", NIL);
     
     /* Check the number of input and output */
-    Printf(setf->def, "CheckRhs(1,1);\n");
-    Printf(setf->def, "CheckLhs(1,1);\n");
+    Printf(setf->def, "CheckRhs(1, 1);\n");
+    Printf(setf->def, "CheckLhs(1, 1);\n");
     
     /* add the local variable */
     Wrapper_add_local(setf, "piAddrVar", "int *piAddrVar");
@@ -467,7 +468,7 @@ public:
       value = Getattr(n, "rawvalue");
       char *temp = (Char(value));
       tempvalue = NewString("ascii");
-      Printf(tempvalue, "(%i)", (int)*temp);
+      Printf(tempvalue, "(%d)", (unsigned int)*temp);
       value = Copy(tempvalue);
       Delete(tempvalue);
     } 

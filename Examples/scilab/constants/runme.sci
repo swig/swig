@@ -1,24 +1,28 @@
+// loader the *.so
+exec loader.sce;
 exec example.sce;
 
-printf("ICONST  = %i (should be 42)\n", example.ICONST);
-printf("FCONST  = %f (should be 2.1828)\n",example. FCONST);
-printf("CCONST  = %c (should be ''x'')\n", example.CCONST);
-printf("CCONST2 = %s (this should be on a new line)\n", example.CCONST2);
-printf("SCONST  = %s (should be ''Hello World'')\n", example.SCONST);
-printf("SCONST2 = %s (should be "'""Hello World"""')\n", example.SCONST2);
-printf("EXPR    = %f (should be 48.5484)\n",example.EXPR);
-printf("iconst  = %i (should be 37)\n", example.iconst);
-printf("fconst  = %f (should be 3.14)\n", example.fconst);
+printf("ICONST  = %i (should be 42)\n", ICONST);
+printf("FCONST  = %f (should be 2.1828)\n", FCONST);
+printf("CCONST  = %c (should be ''x'')\n", CCONST);
+printf("CCONST2 = %s (this should be on a new line)\n", CCONST2);
+printf("SCONST  = %s (should be ''Hello World'')\n", SCONST);
+printf("SCONST2 = %s (should be "'""Hello World"""')\n", SCONST2);
+printf("EXPR    = %f (should be 48.5484)\n", EXPR);
+printf("iconst  = %i (should be 37)\n", iconst);
+printf("fconst  = %f (should be 3.14)\n", fconst);
 
 try
-  printf("EXTERN = %s (Arg! This should not printf(anything)\n", example.EXTERN);
+  printf("EXTERN = %s (Arg! This should not printf(anything)\n", EXTERN);
 catch
   printf("EXTERN is not defined (good)\n");
 end
 try
-  printf("FOO    = %i (Arg! This should not printf(anything)\n", example.FOO);
+  printf("FOO    = %i (Arg! This should not printf(anything)\n", FOO);
 catch
   printf("FOO is not defined (good)\n");
 end
+
+constant_test(iconst);
 
 exit

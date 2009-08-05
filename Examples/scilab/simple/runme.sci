@@ -1,6 +1,3 @@
-// builder the *.so
-exec example_builder.sce;
-
 // loader the *.so
 exec loader.sce;
 
@@ -20,7 +17,7 @@ Foo_get()
 Foo_set(3.1415926)
 
 // See if the change took effect
-Foo_get()
+if Foo_get() <> 3.1415926 then pause,end
 
 exit
 

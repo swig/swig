@@ -1,6 +1,3 @@
-// builder the *.so
-exec example_builder.sce
-
 // loader the *.so
 exec loader.sce
 

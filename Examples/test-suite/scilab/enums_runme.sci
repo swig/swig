@@ -1,4 +1,3 @@
-exec enums_builder.sce
 exec loader.sce
 exec enums.sce
 
