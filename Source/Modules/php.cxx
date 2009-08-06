@@ -1026,7 +1026,14 @@ public:
       String *output = s_oowrappers;
       if (constructor) {
 	class_has_ctor = true;
-	if (strcmp(GetChar(n, "name"), GetChar(n, "constructorHandler:sym:name")) == 0) {
+	// Skip the Foo:: prefix.
+	char *ptr = strrchr(GetChar(n, "name"), ':');
+	if (ptr) {
+	  ptr++;
+	} else {
+	  ptr = GetChar(n, "name");
+	}
+	if (strcmp(ptr, GetChar(n, "constructorHandler:sym:name")) == 0) {
 	  methodname = "__construct";
 	} else {
 	  // The class has multiple constructors and this one is
