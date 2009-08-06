@@ -23,6 +23,4 @@ catch
   printf("FOO is not defined (good)\n");
 end
 
-constant_test(iconst);
-
 exit

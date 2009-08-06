@@ -234,8 +234,11 @@ public:
 	  p = nextSibling(p);
 	  continue;
 	}
-       String *getargs = NewString("");
-       Printv(getargs, tm, NIL);
+      String *getargs = NewString("");
+      if (j >= num_required)
+	Printf(getargs, "if (Rhs > %d) {\n%s\n}", j, tm);
+      else
+	Printv(getargs, tm, NIL);
        Printv(f->code, getargs, "\n", NIL);
        Delete(getargs);
        p = Getattr(p, "tmap:in:next");
@@ -307,7 +310,7 @@ public:
     else {
       flag = 1;
     }
-    Printf(f->def, "CheckRhs(%d, %d);\n",num_required,num_required);
+    Printf(f->def, "CheckRhs(%d, %d);\n",num_required,num_arguments);
     Printf(f->def, "CheckLhs(%d, %d);\n",out_required,out_required);
    
     /* Insert the order of output parameters*/

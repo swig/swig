@@ -16,16 +16,17 @@
  * ----------------------------------------------------------------------------- */
 
 /* Basic C types */
-%typemap(in) signed char (int *piAddrVar, int iRows, int iCols),
-	     unsigned char (int *piAddrVar, int iRows, int iCols),
-	     short (int *piAddrVar, int iRows, int iCols),
-	     unsigned short (int *piAddrVar, int iRows, int iCols),
-	     int (int *piAddrVar, int iRows, int iCols),
-	     unsigned int (int *piAddrVar, int iRows, int iCols),
-	     long (int *piAddrVar, int iRows, int iCols),
-	     unsigned long (int *piAddrVar, int iRows, int iCols),
-	     float (int *piAddrVar, int iRows, int iCols),
-	     double (int *piAddrVar, int iRows, int iCols) {
+%typemap(in) signed char (int iRows, int iCols),
+	     unsigned char (int iRows, int iCols),
+	     short (int iRows, int iCols),
+	     unsigned short (int iRows, int iCols),
+	     int (int iRows, int iCols),
+	     unsigned int (int iRows, int iCols),
+	     long (int iRows, int iCols),
+	     unsigned long (int iRows, int iCols),
+	     float (int iRows, int iCols),
+	     double (int iRows, int iCols) {
+  int *piAddrVar;
   double *_piData;
   getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
@@ -37,7 +38,8 @@
   $1 = ($1_ltype)*_piData;
 }
 
-%typemap(in) char (int *piAddrVar, int iRows, int iCols) {   
+%typemap(in) char (int iRows, int iCols) {   
+  int *piAddrVar;
   char *_pstStrings;
   int _piLength;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -51,16 +53,17 @@
 }
 
 /* Pointers */
-%typemap(in) signed char * (int *piAddrVar),
-             short * (int *piAddrVar),
-             unsigned char * (int *piAddrVar),
-             unsigned short * (int *piAddrVar),
-	     int * (int *piAddrVar),
-	     unsigned int * (int *piAddrVar),
-	     long * (int *piAddrVar),
-	     unsigned long * (int *piAddrVar),
-             double * (int *piAddrVar),
-             float * (int *piAddrVar) {
+%typemap(in) signed char *,
+             short *,
+             unsigned char *,
+             unsigned short *,
+	     int *,
+	     unsigned int *,
+	     long *,
+	     unsigned long *,
+             double *,
+             float * {
+  int *piAddrVar;
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
@@ -71,7 +74,8 @@
   $1 = ($1_ltype)_piData;
 }
 
-%typemap(in) char * (int *piAddrVar, int iRows, int iCols){
+%typemap(in) char * (int iRows, int iCols){
+  int *piAddrVar;
   char *_pstStrings;
   int _piLength;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -84,7 +88,8 @@
   $1 = strdup(_pstStrings);
 }
 
-%typemap(in) signed char [ANY] (int *piAddrVar, int iRows, int iCols) {
+%typemap(in) signed char [ANY] (int iRows, int iCols) {
+  int *piAddrVar;
   char *_piData;
   int index;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -99,8 +104,9 @@
   }
 }
 
-%typemap(in) short [ANY] (int *piAddrVar, int iRows, int iCols),
-             unsigned char [ANY] (int *piAddrVar, int iRows, int iCols) {
+%typemap(in) short [ANY] (int iRows, int iCols),
+             unsigned char [ANY] (int iRows, int iCols) {
+  int *piAddrVar;
   short *_piData;
   int index;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -115,11 +121,12 @@
   }
 }
 
-%typemap(in) unsigned short [ANY] (int *piAddrVar, int iRows, int iCols),
-	     int [ANY] (int *piAddrVar, int iRows, int iCols),
-	     unsigned int [ANY] (int *piAddrVar, int iRows, int iCols),
-	     long [ANY] (int *piAddrVar, int iRows, int iCols),
-	     unsigned long [ANY] (int *piAddrVar, int iRows, int iCols) {
+%typemap(in) unsigned short [ANY] (int iRows, int iCols),
+	     int [ANY] (int iRows, int iCols),
+	     unsigned int [ANY] (int iRows, int iCols),
+	     long [ANY] (int iRows, int iCols),
+	     unsigned long [ANY] (int iRows, int iCols) {
+  int *piAddrVar;
   int *_piData;
   int index;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -134,8 +141,9 @@
   }
 }
 
-%typemap(in) double [ANY] (int *piAddrVar, int iRows, int iCols),
-             float [ANY] (int *piAddrVar, int iRows, int iCols){
+%typemap(in) double [ANY] (int iRows, int iCols),
+             float [ANY] (int iRows, int iCols) {
+  int *piAddrVar;
   double *_piData;
   int index;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -150,7 +158,8 @@
   }
 }
 
-%typemap(in) char [ANY] (int *piAddrVar, int iRows, int iCols){
+%typemap(in) char [ANY] (int iRows, int iCols) {
+  int *piAddrVar;
   char *_pstStrings;
   int _piLength;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -164,7 +173,8 @@
 }
 
 /* Arrays */
-%typemap(in) signed char [ANY][ANY] (int *piAddrVar, int iRows, int iCols) {
+%typemap(in) signed char [ANY][ANY] (int iRows, int iCols) {
+  int *piAddrVar;
   char *_piData;
   getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
@@ -186,8 +196,9 @@
   }
 }
 
-%typemap(in) short [ANY][ANY] (int *piAddrVar, int iRows, int iCols),
-             unsigned char [ANY][ANY] (int *piAddrVar, int iRows, int iCols) {
+%typemap(in) short [ANY][ANY] (int iRows, int iCols),
+             unsigned char [ANY][ANY] (int iRows, int iCols) {
+  int *piAddrVar;
   short *_piData;
   getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
@@ -209,11 +220,12 @@
   }
 }
 
-%typemap(in) unsigned short [ANY][ANY] (int *piAddrVar, int iRows, int iCols),
-             int [ANY][ANY] (int *piAddrVar, int iRows, int iCols), 
-             unsigned int [ANY][ANY] (int *piAddrVar, int iRows, int iCols),
-             long [ANY][ANY] (int *piAddrVar, int iRows, int iCols),
-             unsigned long [ANY][ANY] (int *piAddrVar, int iRows, int iCols){
+%typemap(in) unsigned short [ANY][ANY] (int iRows, int iCols),
+             int [ANY][ANY] (int iRows, int iCols), 
+             unsigned int [ANY][ANY] (int iRows, int iCols),
+             long [ANY][ANY] (int iRows, int iCols),
+             unsigned long [ANY][ANY] (int iRows, int iCols){
+  int *piAddrVar;
   int *_piData;
   getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
@@ -236,8 +248,9 @@
 }
 
 
-%typemap(in) double [ANY][ANY] (int *piAddrVar, int iRows, int iCols),
-             float [ANY][ANY] (int *piAddrVar, int iRows, int iCols) {
+%typemap(in) double [ANY][ANY] (int iRows, int iCols),
+             float [ANY][ANY] (int iRows, int iCols) {
+  int *piAddrVar;
   double *_piData;
   getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
@@ -259,7 +272,8 @@
   }
 }
 
-%typemap(in) SWIGTYPE * (int *piAddrVar) {
+%typemap(in) SWIGTYPE * {
+  int *piAddrVar;
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
@@ -271,6 +285,7 @@
 }
 
 %typemap(in) SWIGTYPE {
+  int *piAddrVar;
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
@@ -614,7 +629,7 @@
   $1 = _pstStrings;
 }
 
-%typemap(varin,noblock=1) SWIGTYPE *(int *piAddrVar) {
+%typemap(varin,noblock=1) SWIGTYPE * {
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
@@ -625,7 +640,7 @@
   $1 = ($1_ltype)_piData;
 }
 
-%typemap(varin,noblock=1) SWIGTYPE [ANY] (int *piAddrVar) {
+%typemap(varin,noblock=1) SWIGTYPE [ANY] {
   void *_piData = NULL;
   int index;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -800,3 +815,4 @@
  * ------------------------------------------------------------ */
 
 %apply int { enum SWIGTYPE };
+%apply int { size_t };
