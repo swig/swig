@@ -1026,7 +1026,13 @@ public:
       String *output = s_oowrappers;
       if (constructor) {
 	class_has_ctor = true;
-	methodname = "__construct";
+	if (strcmp(GetChar(n, "name"), GetChar(n, "constructorHandler:sym:name")) == 0) {
+	  methodname = "__construct";
+	} else {
+	  // The class has multiple constructors and this one is
+	  // renamed, so this will be a static factory function
+	  methodname = GetChar(n, "constructorHandler:sym:name");
+	}
       } else if (wrapperType == memberfn) {
 	methodname = Char(Getattr(n, "memberfunctionHandler:sym:name"));
       } else if (wrapperType == staticmemberfn) {
@@ -1585,7 +1591,11 @@ public:
 	Printf(output, "%s", prepare);
       if (constructor) {
 	if (!directorsEnabled() || !Swig_directorclass(n)) {
-	  Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
+	  if (strcmp(methodname, "__construct") == 0) {
+	    Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
+	  } else {
+	    Printf(output, "\t\treturn new %s(%s);\n", "Foo", invoke);
+	  }
 	} else {
 	  Node *parent = Swig_methodclass(n);
 	  String *classname = Swig_class_name(parent);
