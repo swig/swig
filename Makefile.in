@@ -442,7 +442,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r
+	pike chicken csharp objc modula3 allegrocl clisp lua cffi uffi r
 
 lib-modules = std
 
