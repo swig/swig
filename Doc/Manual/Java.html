@@ -447,6 +447,19 @@ $
 <p>
 This error usually indicates that you forgot to include some object files or libraries in the linking of the native library file.  
 Make sure you compile both the SWIG wrapper file and the code you are wrapping into the native library file.  
+If you forget to compile and link in the SWIG wrapper file into your native library file, you will get a message similar to the following:
+</p>
+
+<div class="code"><pre>
+$ java runme
+Exception in thread "main" java.lang.UnsatisfiedLinkError: exampleJNI.gcd(II)I
+	at exampleJNI.gcd(Native Method)
+	at example.gcd(example.java:12)
+	at runme.main(runme.java:18)
+</pre></div>
+
+<p>
+where <tt>gcd</tt> is the missing JNI function that SWIG generated into the wrapper file.
 Also make sure you pass all of the required libraries to the linker.  
 The <tt>java -verbose:jni</tt> commandline switch is also a great way to get more information on unresolved symbols.
 One last piece of advice is to beware of the common faux pas of having more than one native library version in your path.
