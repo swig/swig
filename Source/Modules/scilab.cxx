@@ -26,14 +26,10 @@ private:
   File *f_init;
   
   String *f_builder_code;
-  String *f_example_code;
-
-  bool hasfunction_flag;
-  bool hasconstant_flag;
- 
+  
 public:
   SCILAB():
-    f_builder_code(NewString("")), f_example_code(NewString("")), hasfunction_flag(false), hasconstant_flag(false) {
+    f_builder_code(NewString("")) {
   }
   
     
@@ -100,7 +96,7 @@ public:
     Printf(f_runtime, "#include \"stack-c.h\"\n");
     Printf(f_runtime, "#include \"sciprint.h\"\n");
     Printf(f_runtime, "#include \"Scierror.h\"\n");
-    Printf(f_runtime, "#include \"api_variable.h\"\n");
+    Printf(f_runtime, "#include \"api_scilab.h\"\n");
     Printf(f_runtime, "#include \"localization.h\"\n");
     
     /* Initialize the builder.sce file code */
@@ -113,31 +109,14 @@ public:
     Language::top(n);
     
     /* create the file to generate the module: "builder.sce" */
-    if(hasfunction_flag) {
-      Printf(f_builder_code, "];\n");
-      Printf(f_builder_code, "ilib_build(ilib_name,table,files,libs);\n");
-      Printf(f_builder_code, "exit");
-      File *f_builder=NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
-      Printv(f_builder, f_builder_code, NIL);
-      Close(f_builder);
-      Delete(f_builder);
-      Delete(f_builder_code);
-    }
-    else {
-      Delete(f_builder_code);
-    }
-    
-    /* create the file for constants: "module.sce" */
-    if(hasconstant_flag) {
-      File *f_example = NewFile(NewStringf("%s%s.sce", SWIG_output_directory(), module), "w", SWIG_output_files());
-      Printv(f_example, f_example_code, NIL);
-      Close(f_example); 
-      Delete(f_example);
-      Delete(f_example_code);
-    }
-    else {
-      Delete(f_example_code);
-    }
+    Printf(f_builder_code, "];\n");
+    Printf(f_builder_code, "ilib_build(ilib_name,table,files,libs);\n");
+    Printf(f_builder_code, "exit");
+    File *f_builder=NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
+    Printv(f_builder, f_builder_code, NIL);
+    Close(f_builder);
+    Delete(f_builder);
+    Delete(f_builder_code);
     
     /* Dump out all the files */
     Dump(f_runtime, f_begin);
@@ -161,8 +140,6 @@ public:
    * ---------------------------------------------------------------------- */
 
   virtual int functionWrapper(Node *n) {
-    
-    hasfunction_flag = true;
     
     /* A new wrapper function object */
     Wrapper *f = NewWrapper();
@@ -341,8 +318,6 @@ public:
 
   virtual int variableWrapper(Node *n) {
     
-    hasfunction_flag = true;
-    
     /* Get the useful information from the node */
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
@@ -456,44 +431,46 @@ public:
 
   virtual int constantWrapper(Node *n) {
     
-    /* set the flag so to generate the example.sce */
-    hasconstant_flag = true;
-   
     /* Get the useful information from the node */
+    String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
-    String *tempvalue = NewString("");
+    String *tm;
     
-    /* set the value format to be  the scilab format */
-    if (!Strcmp(type, "char")) {
-      value = Getattr(n, "rawvalue");
-      char *temp = (Char(value));
-      tempvalue = NewString("ascii");
-      Printf(tempvalue, "(%d)", (unsigned int)*temp);
-      value = Copy(tempvalue);
-      Delete(tempvalue);
-    } 
-    else {
-      if (!Strcmp(type, "p.char")) {
-        char *temp = (Char(value));
-        int len = strlen(temp);
-        for (int i = 0; i < len; ++i) {
-          if (temp[i] == '\\') {
-            temp[i] = '"';
-            ++i;
-          }
-        }
-        Printf(tempvalue, "%s",temp);
-        value = Copy(tempvalue);
-      }
-      Delete(tempvalue);
+    if (!addSymbol(iname, n))
+      return SWIG_ERROR;
+    
+    /*use the get function to get the constant value */
+    Wrapper *getf = NewWrapper();
+    String *getname = Swig_name_get(iname);
+    Setattr(n, "wrap:name", getname);
+    int addfail = 0;
+    Printv(getf->def, "int ", getname, " (char *fname,unsigned long fname_len){\n", NIL);
+   
+    /* Check the number of input and output */
+    Printf(getf->def, "CheckRhs(0, 0);\n");
+    Printf(getf->def, "CheckLhs(1, 1);\n");
+    
+    /* Insert the order of output parameters*/
+    Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
+   
+    if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
+      Replaceall(tm, "$result", value);
+      Replaceall(tm, "iRowsOut", "1");
+      Replaceall(tm, "iColsOut", "1");
+      addfail = emit_action_code(n, getf->code, tm);
+      Delete(tm);
+    } else {
+      Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(type, 0));
     }
-    
-    /* write into the code string */
-    Printf(f_example_code, "%s = %s\n", iname, value);
-    
+   
+    /*Dump the wrapper function */ 
+    Append(getf->code, "}\n");
+    Wrapper_print(getf, f_wrappers);
+    Printf(f_builder_code, "\"%s\",\"%s\";", getname, getname);
+
     return SWIG_OK;
   }
   
@@ -502,9 +479,6 @@ public:
    * --------------------------------------------------------------------- */
   
   virtual int enumDeclaration(Node *n) {
-    
-    /* set the flag so to generate the example.sce */
-    hasconstant_flag = true;
     return Language::enumDeclaration(n);
   }
 
@@ -513,68 +487,8 @@ public:
    * --------------------------------------------------------------------- */
   
   virtual int enumvalueDeclaration(Node *n) {
-    
-    /* get the name of the enumvalue */
-    String *iname = Getattr(n, "sym:name");
-    
-    /* get the name of the enum name */
-    String *parentName = Getattr(parentNode(n), "sym:name");
-    
-    /* set the name to be the enum.enumvalue format */
-    if (parentName) {
-      /*if the enum has a name*/
-      if(!Getattr(parentNode(n), "unnamedinstance")) {
-        String *temp = Copy(parentName);
-        Printf(temp, ".%s", iname);
-        Setattr(n, "sym:name", temp);
-        Delete(temp);
-        iname = Getattr(n, "sym:name");
-      }
-    }
-    
-    /* set the value attribute to be the integer */
-    String *value;
-    String *enumvalue = Getattr(n, "enumvalue");
-    if (enumvalue) {
-      if (Len(enumvalue) == 1) {
-        char *temp = (Char(enumvalue));
-        /*set the value of char into the format of integer*/
-        if (((*temp <= 'z') && (*temp >= 'a')) || ((*temp <= 'Z') && (*temp >= 'A'))) {
-          String *tempInteger = NewString("");
-          Printf(tempInteger, "%i", int(*temp));
-          Setattr(n, "value", tempInteger);
-          Delete(tempInteger);
-        }
-        else {
-          Setattr(n, "value", enumvalue);
-        }
-      }
-      else {
-        Setattr(n, "value", enumvalue);
-      }
-    }
-    else {
-      if (n != firstChild(parentNode(n))) {
-        enumvalue = Getattr(n, "enumvalueex");
-        if (parentName) {
-          if (!Getattr(parentNode(n), "unnamedinstance")) {
-            String *temp = Copy(parentName); 
-            Printf(temp, ".%s", enumvalue); 
-            enumvalue = Copy(temp);
-          }
-        }
-        Setattr(n, "value", enumvalue);
-      }
-      else {
-        Setattr(n, "value", Getattr(n, "enumvalueex"));
-      }
-    }
-    value = Getattr(n, "value");
-    
-    /* write into the code string */
-    Printf(f_example_code, "%s = %s;\n", iname, value);
-    return SWIG_OK;
-    }
+    return Language::enumvalueDeclaration(n);
+  }
 };
 
 extern "C" Language *swig_scilab(void) {

@@ -5,12 +5,12 @@
 
 void enum_test(color c) {
   if (c == RED) {
-    sciprint("color = RED, ");
+    printf("color = RED\n");
   } else if (c == BLUE) {
-    sciprint("color = BLUE, ");
+    printf("color = BLUE\n ");
   } else if (c == GREEN) {
-    sciprint("color = GREEN, ");
+    printf("color = GREEN\n");
   } else {
-    sciprint("color = Unknown color!, ");
+    printf("color = Unknown color!\n");
   }
 }

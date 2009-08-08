@@ -24,10 +24,5 @@
 %constant int iconst = 37;
 %constant double fconst = 3.14;
 
-%inline %{
-void constant_test(const int x) {
-  printf("%i", x);
-}
-%}
 
 

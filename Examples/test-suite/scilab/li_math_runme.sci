@@ -1,7 +1,6 @@
 exec loader.sce;
-exec li_math.sce;
 
-x = fmod(M_PI, M_1_PI)
+x = fmod(M_PI_get(), M_1_PI_get())
 
 exit
 

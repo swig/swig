@@ -1,8 +1,7 @@
 exec loader.sce
-exec enums.sce
 
-bar1(foo1.CSP_ITERATION_BWD)
-bar2(foo3.ABCDE)
-bar3(foo3.FGHJI)
+bar1(CSP_ITERATION_BWD_get())
+bar2(ABCDE_get())
+bar3(FGHJI_get())
 
 exit

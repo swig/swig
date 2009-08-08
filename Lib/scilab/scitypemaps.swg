@@ -272,6 +272,19 @@
   }
 }
 
+%typemap(in) enum SWIGTYPE (int iRows, int iCols) {
+  int *piAddrVar;
+  int *_piData;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  getVarDimension(piAddrVar, &iRows, &iCols);
+  
+  if (getVarType(piAddrVar) != sci_ints || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
+  }
+  getMatrixOfInteger32(piAddrVar, &iRows, &iCols,  &_piData);
+  $1 = ($1_ltype)*_piData;
+}
+
 %typemap(in) SWIGTYPE * {
   int *piAddrVar;
   void *_piData = NULL;
@@ -371,6 +384,7 @@
 %typemap(out,noblock=1) void {
 }
 
+
 /* Pointers */
 %typemap(out) signed char *,
               short *,
@@ -397,6 +411,15 @@
   if ($1) free($1);  
 }
 
+%typemap(out) enum SWIGTYPE (int iRowsOut, int iColsOut) {
+  int temp;
+  temp = (int)($result);
+  iRowsOut = 1; 
+  iColsOut = 1;
+  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &temp);
+  LhsVar(iOutNum) = iVarOut;
+}
+
 %typemap(out) SWIGTYPE * {
   createPointer(iVarOut, (void *)$result);
   LhsVar(iOutNum) = iVarOut;
@@ -420,7 +443,9 @@
 	                  long,
 	                  unsigned long,
 	                  float,
-	                  double {
+	                  double,
+                          long long,
+                          unsigned long long {
   double *_piData;
   getVarAddressFromPosition($argnum, &piAddrVar);
   getVarDimension(piAddrVar, &iRows, &iCols);
@@ -629,6 +654,17 @@
   $1 = _pstStrings;
 }
 
+%typemap(varin,noblock=1) enum SWIGTYPE {
+  int *_piData;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  getVarDimension(piAddrVar, &iRows, &iCols);
+  
+  if (getVarType(piAddrVar) != sci_ints || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
+  }
+  getMatrixOfInteger32(piAddrVar, &iRows, &iCols,  &_piData);
+  $1 = ($1_ltype)*_piData;
+}
 %typemap(varin,noblock=1) SWIGTYPE * {
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
@@ -670,58 +706,79 @@
  * ----------------------------------------------------------------------------- */
 /* Basic C types */
 %typemap(varout,noblock=1) signed char {
-  createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, &$result);
+  signed char temp = $result;
+  createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum) = iVarOut;
 }
 
 %typemap(varout,noblock=1) unsigned char {
-  createMatrixOfUnsignedInteger8(iVarOut, iRowsOut, iColsOut, &$result);
+  unsigned char temp = $result;
+  createMatrixOfUnsignedInteger8(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum) = iVarOut;
 }
 
 %typemap(varout,noblock=1) short {
-  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &$result);
+  short temp = $result;
+  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum) = iVarOut;
 }
 
 %typemap(varout,noblock=1) unsigned short {
-  createMatrixOfUnsignedInteger16(iVarOut, iRowsOut, iColsOut, &$result);
+  unsigned short temp = $result;
+  createMatrixOfUnsignedInteger16(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum) = iVarOut;
 }
 
 %typemap(varout,noblock=1) int,
                            long {
-  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &$result);
+  int temp = $result;
+  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum) = iVarOut;
 }
 
 %typemap(varout,noblock=1) unsigned int,
                            unsigned long {
-  createMatrixOfUnsignedInteger32(iVarOut, iRowsOut, iColsOut, &$result);
+  unsigned int temp = $result;
+  createMatrixOfUnsignedInteger32(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum) = iVarOut;
 }
 
 %typemap(varout,noblock=1) double {
-  createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, &$result);
-  LhsVar(iOutNum) = iVarOut;
-}
-
-%typemap(varout,noblock=1) float {
-  double temp;
-  temp = (double)$result;
+  double temp = $result;
   createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum) = iVarOut;
 }
 
-%typemap(varout,noblock=1) char {
-  char *temp;
-  temp = (char*)&($result);
-  createMatrixOfString(iVarOut, iRowsOut, iColsOut, &temp);
+%typemap(varout,noblock=1) float {
+  double temp = $result;
+  createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum) = iVarOut;
 }
 
+%typemap(varout,noblock=1) long long {
+  long long temp = $result;
+  createMatrixOfInteger64(iVarOut, iRowsOut, iColsOut, &temp);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) unsigned long long {
+  unsigned long long temp = $result;
+  createMatrixOfUnsignedInteger64(iVarOut, iRowsOut, iColsOut, &temp);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) char {
+  char *temp = (char *)malloc(sizeof($result) + 1);
+  *temp = $result;
+  *(temp+1) = '\0';
+  createMatrixOfString(iVarOut, iRowsOut, iColsOut, &temp);
+  LhsVar(iOutNum) = iVarOut;
+  free(temp);
+}
+
 %typemap(varout,noblock=1) char * {
-  createMatrixOfString(iVarOut, iRowsOut, iColsOut, &($result));
+  char *temp = $result;
+  createMatrixOfString(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum) = iVarOut;
 }
 
@@ -786,9 +843,7 @@
 }
 
 %typemap(varout,noblock=1) float [ANY] {
-  double temp;
-  temp = (double)$result;
-  createMatrixOfDouble(iVarOut, 1, $1_dim0, (double *)&temp);
+  createMatrixOfDouble(iVarOut, 1, $1_dim0, (double *)$result);
   LhsVar(iOutNum) = iVarOut;
 }
 
@@ -797,6 +852,12 @@
   pstData = (char **)malloc(iRowsOut * iColsOut * sizeof(char*));
   pstData = $result;
   createMatrixOfString(iVarOut, iRowsOut, iColsOut, pstData);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) enum SWIGTYPE {
+  int temp = $result;
+  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum) = iVarOut;
 }
 
@@ -811,8 +872,7 @@
 }
   
 /* ------------------------------------------------------------
- *  Enums mapped as integer values
+ *  size_t mapped as int
  * ------------------------------------------------------------ */
 
-%apply int { enum SWIGTYPE };
 %apply int { size_t };

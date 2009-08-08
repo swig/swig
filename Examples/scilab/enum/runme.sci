@@ -1,21 +1,19 @@
 // loader the *.so
 exec loader.sce;
 
-exec example.sce;
-
 // Print out the value of some enums
 printf("*** color ***\n");
-printf("    RED    = %i\n", color.RED);
-printf("    BLUE   = %i\n", color.BLUE);
-printf("    GREEN  = %i\n", color.GREEN);
+printf("    RED    = %i\n", RED_get());
+printf("    BLUE   = %i\n", BLUE_get());
+printf("    GREEN  = %i\n", GREEN_get());
 
 
 printf("\nTesting use of enums with functions\n");
 
-enum_test(color.RED);
-enum_test(color.BLUE);
-enum_test(color.GREEN);
-enum_test(1234);
+enum_test(RED_get());
+enum_test(BLUE_get());
+enum_test(GREEN_get());
+enum_test(int32(1234));
 
 exit
 

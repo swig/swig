@@ -27,6 +27,7 @@
 <li><a href="#Scilab_nn12">Enums</a>
 <li><a href="#Scilab_nn13">Pointers</a>
 <li><a href="#Scilab_nn14">Structs</a>
+<li><a href="#Scilab_nn15">Arrays</a>
 </ul>
 </ul>
 </div>
@@ -194,7 +195,7 @@ int fact(int n); </pre></div>
 
     <div class="targetlang"><pre>Scilab:1&gt;fact(4)
 ant=24 </pre></div>
-<H3><a name="scilab_nn10"></a>27.3.3 Global variables</H3>
+<H3><a name="scilab_nn10"></a>36.3.3 Global variables</H3>
 
 <p>
     To expose variables, SWIG actually generates two functions, to get and set the value. In this case, Foo_set and Foo_get would be generated. SWIG then automatically calls these functions when you get and set the variable-- in the former case creating a local copy in the interpreter of the C variables, and in the latter case copying an interpreter variables onto the C variable. 
@@ -210,27 +211,12 @@ c =  3
 
 scilab:5&gt; Foo_get()
 ans =  4
-
-scilab:6&gt; Foo_set([1,2,3;4,5,6]);
-
-scilab:7&gt; Foo_get()
-ans  =
- 
-    1.    2.    3.  
-    4.    5.    6. 
-scilab:8&gt; Foo_set([1+2*%i,2+3*%i;3+4*%i,7+8*%i]);
-
-scilab:9&gt; Foo_get()
- ans  =
- 
-    1. + 2.i    2. + 3.i  
-    3. + 4.i    7. + 8.i  
 </pre></div>
-<H3><a name="Scilab_nn11"></a>27.3.4 Constants</H3>
+<H3><a name="Scilab_nn11"></a>36.3.4 Constants</H3>
 
 
 <p>
-     C constants are not really constant in Scilab. They are actually just a copy of the value into the Scilab interpreter. Therefore they can be changed just as any other value. For example given some constants: 
+     C constants are not really constant in Scilab. When dealing with the constants, the get function will be generated. For example given some constants: 
 </p>
 
     <div class="code"><pre>%module example
@@ -242,47 +228,32 @@ scilab:9&gt; Foo_get()
 #define    SCONST2     "\"Hello World\""
 </pre></div>
 
-<p>
-    A file called example.sce will be created, which could be interpreted by the scilab. The code in the file is as following:
-</p>
-
-    <div class="code"><pre>....
-example.ICONST = 42
-example.FCONST = 2.1828
-example.CCONST = ascii(120)
-example.CCONST2 = ascii(10)
-example.SCONST = "Hello World"
-example.SCONST2 = """Hello World"""
-example.EXPR = 42+3*(2.1828)
-example.iconst = 37
-example.fconst = 3.14
-.... </pre></div>
-<p>It is easy to use the C constants after run the command "exec example.sce":</p>
+<p>It is easy to use them in Scilab:</p>
 
     <div class="targetlang"><pre>
-scilab:1&gt; exec example.sce;
-scilab:2&gt; example.ICONST
+scilab:1&gt; exec loader.sce;
+scilab:2&gt; ICONST_get();
 ans= 42
-scilab:3&gt; example.FCONST
+scilab:3&gt; FCONST_get();
 ans= 2.1828
-scilab:4&gt; example.CCONST
+scilab:4&gt; CCONST_get();
 ans=x
-scilab:5&gt; example.CCONST2
+scilab:5&gt; CCONST2_get();
 ans=
 
-scilab:6&gt; example.SCONST
+scilab:6&gt; SCONST_get();
 ans= Hello World
-scilab:7&gt; example.SCONST2
+scilab:7&gt; SCONST2_get();
 ans= "Hello World"
-scilab:8&gt; example.EXPR
+scilab:8&gt; EXPR_get();
 ans= 48.5484
-scilab:9&gt; example.iconst
+scilab:9&gt; iconst_get();
 ans= 37
-scilab:10&gt; example.fconst
+scilab:10&gt; fconst_get();
 ans= 3.14
 </pre></div>
 
-<H3><a name="Scilab_nn12"></a>27.3.5 Enums</H3>
+<H3><a name="Scilab_nn12"></a>36.3.5 Enums</H3>
 
 <p>  The way that deals with the enums is similar to the constants. For example: 
 </p>
@@ -292,30 +263,24 @@ typedef enum  { RED, BLUE, GREEN } color;
 </pre></div>
 
 <p>
-    A file called example.sce will be created, which could be interpreted by the scilab. The code in the file is as following:
+    Some code like RED_get(), BLUE_get(),GREEN_get() will be generated. So it could be used as the following:
 </p>
 
-    <div class="code"><pre>....
-color.RED=0;
-color.BLUE=color.RED + 1;
-color.GREEN=color.BLUE + 1;
-.... </pre></div>
-<p>It is easy to use the enums after run the command "exec example.sce":</p>
 
     <div class="targetlang"><pre>
-scilab:1&gt; exec example.sce;
-scilab:2&gt; printf("    RED    = %i\n", color.RED);
+scilab:1&gt; exec loader.sce;
+scilab:2&gt; printf("    RED    = %i\n", RED_get());
     RED    = 0
 
-scilab:3&gt; printf("    BLUE    = %i\n", color.BLUE);
+scilab:3&gt; printf("    BLUE    = %i\n", BLUE_get());
     BLUE   = 1
 
-scilab:4&gt; printf("    GREEN    = %i\n", color.GREEN);
+scilab:4&gt; printf("    GREEN    = %i\n", GREEN_get());
     GREEN  = 2
 </pre></div>
 
 
-<H3><a name="Scilab_nn13"></a>27.3.5 Pointers</H3>
+<H3><a name="Scilab_nn13"></a>36.3.6 Pointers</H3>
 <p>
       Pointers are fully supported by SWIG. One way to deal with the pointers is using the INPUT and OUTPUT typemaps. For example, in order to call C functions as the following:
 </p>
@@ -356,7 +321,7 @@ scilab:4&gt; printf("     42/37 = %d remainder %d\n",q,r);
 we only need a real value instead. 
 </p>
 
-<H3><a name="Scilab_nn14"></a>27.3.6 Structs</H3>
+<H3><a name="Scilab_nn14"></a>36.3.7 Structs</H3>
 <p>
    SWIG creates a set of accessor functions when encountering a structure or union. For example:
 </p>
@@ -371,12 +336,51 @@ typedef struct {
 <p> When wrappered, it would generate two main function: Foo_x_set(), which set the data value of the structrure and Foo_x_get() which could obtain the value of the structrure. Run it in Scilab:
 </p>
 	<div class="targetlang"><pre>
-a=new_Foo();
-Foo_x_set(a,100);
-Foo_x_get(a)
+scilab:1&gt; a=new_Foo();
+scilab:2&gt; Foo_x_set(a,100);
+scilab:3&gt; Foo_x_get(a)
 ans  =
  
   100  
+</pre></div>
+
+<H3><a name="Scilab_nn15"></a>36.3.8 Arrays</H3>
+<p>
+   Arrays are fully supported by SWIG and Scilab. In SWIG, they are handled as pointers. And Scilab also supports the pointer well. So it is easy to deal with the arrays. For example:
+</p>
+	<div class="code"><pre>%module example
+
+%inline %{
+int x[10];
+double y[7];
+void initArray()
+{
+  int i, n;
+
+  n = sizeof(x)/sizeof(x[0]);
+  for(i = 0; i < n; i++) 
+    x[i] = i;
+
+  n = sizeof(y)/sizeof(y[0]);
+  for(i = 0; i < n; i++) 
+    y[i] = ((double) i)/ ((double) n);
+  return;
+%}
+</pre></div>
+<p> When wrappered, it would generate the following funtion: x_set(), x_get(), y_set(), y_get(), and _wrap_initArray. So it could be used like this:
+</p>
+	<div class="targetlang"><pre>
+scilab:1&gt; exec loader.sce
+
+scilab:2&gt; initArray();
+scilab:3&gt; x_get()
+ans =
+ 
+  0  1  2  3  4  5  6  7  8  9 
+scilab:4&gt;y_get()
+ans =
+
+  0.    0.1428571    0.2857143    0.4285714    0.5714286    0.7142857   0.8571429
 </pre></div>
 
 
