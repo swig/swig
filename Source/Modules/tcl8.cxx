@@ -931,13 +931,13 @@ public:
 	Printv(f_shadow, "  constructor { } {\n", NIL);
 	Printv(f_shadow, "    # This constructor will fail if called directly\n", NIL);
 	Printv(f_shadow, "    if { [info class] == \"::", class_name, "\" } {\n", NIL);
-	Printv(f_shadow, "      error \"No constructor for class ", class_name, "\"\n", NIL);
+	Printv(f_shadow, "      error \"No constructor for class ", class_name, (Getattr(n, "abstract") ? " - class is abstract" : ""), "\"\n", NIL);
 	Printv(f_shadow, "    }\n", NIL);
 	Printv(f_shadow, "  }\n", NIL);
       }
 
       Printv(f_shadow, "}\n\n", NIL);
-    };
+    }
 
     Printv(f_wrappers, "static swig_class *swig_", mangled_classname, "_bases[] = {", base_class, "0};\n", NIL);
     Printv(f_wrappers, "static const char * swig_", mangled_classname, "_base_names[] = {", base_class_names, "0};\n", NIL);
