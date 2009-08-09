@@ -47,10 +47,10 @@ missingtests: missingcpptests missingctests
 # Runs the testcase. Tries to run testcase_runme.php, and if that's not
 # found, runs testcase.php, except for multicpptests.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHPSCRIPT=$(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL=$(RUNTOOL) php_run;) \
-	elif [ -f $(srcdir)/$(SCRIPTPREFIX)$*.php -a ! -f $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then ( \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHPSCRIPT=$(srcdir)/$(SCRIPTPREFIX)$*.php RUNTOOL=$(RUNTOOL) php_run;) \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHPSCRIPT=$(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL=$(RUNTOOL) php_run; \
+	elif [ -f $(srcdir)/$(SCRIPTPREFIX)$*.php -a ! -f $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHPSCRIPT=$(srcdir)/$(SCRIPTPREFIX)$*.php RUNTOOL=$(RUNTOOL) php_run; \
 	fi;
 
 # Clean: remove the generated .php file

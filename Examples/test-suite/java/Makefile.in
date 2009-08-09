@@ -67,23 +67,23 @@ setup = \
 	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
 	fi;								  \
 	if [ ! -d $* ]; then						  \
-		mkdir $*;						  \
+	  mkdir $*;							  \
 	fi;
 
 # Compiles java files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.java appended after the testcase name.
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
 run_testcase = \
-	(cd $* && $(COMPILETOOL) $(JAVAC) -classpath . *.java) && \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  $(COMPILETOOL) $(JAVAC) -classpath . -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && 	  \
-	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_LIBRARY_PATH="$*:$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) -classpath . $*_runme;) \
+	cd $* && $(COMPILETOOL) $(JAVAC) -classpath . *.java && cd .. && \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  $(COMPILETOOL) $(JAVAC) -classpath . -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_LIBRARY_PATH="$*:$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) -classpath . $*_runme; \
 	fi;
 
 # Clean: remove testcase directories
 %.clean:
 	@if [ -d $* ]; then \
-		rm -rf $*; \
+	  rm -rf $*; \
 	fi;
 
 clean:

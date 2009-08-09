@@ -43,24 +43,24 @@ SWIGOPT += -nounit
 	$(setup)
 	+$(swig_and_compile_cpp)
 	$(run_testcase)
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
-	  $(MAKE) $*.cppproxy; ) \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then \
+	  $(MAKE) $*.cppproxy; \
 	fi;
 
 %.ctest:
 	$(setup)
 	+$(swig_and_compile_c)
 	$(run_testcase)
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
-	  $(MAKE) $*.cproxy; ) \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then \
+	  $(MAKE) $*.cproxy; \
 	fi;
 
 %.multicpptest: 
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then ( \
-	  $(MAKE) $*.multiproxy; ) \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then \
+	  $(MAKE) $*.multiproxy; \
 	fi;
 
 %.externaltest:
@@ -86,8 +86,8 @@ SWIGOPT += -nounit
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.scm appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(CHICKEN_CSI) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(CHICKEN_CSI) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi;
 
 # Clean

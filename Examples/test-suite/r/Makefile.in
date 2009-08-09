@@ -42,20 +42,19 @@ include $(srcdir)/../common.mk
 # Run the runme if it exists.  If not just load the R wrapper to 
 # check for syntactic correctness
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then ( \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" \
-               $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ;) \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	else \
-	  ($(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(WRAPSUFFIX);) \
+	  $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(WRAPSUFFIX); \
 	fi;
 
 run_multitestcase = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then ( \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" \
-               $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ;) \
+               $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX); \
 	else \
-	  ($(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX);) \
+	  $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX); \
 	fi; \
 	done
 # Clean
@@ -64,10 +63,10 @@ clean:
 
 %.clean:
 	@rm -f $*.R $*_wrap.so $*_wrap.cpp $*_wrap.c $*_wrap.o $*_runme.Rout $*.Rout
-	@if [ -f  $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then ( \
+	@if [ -f  $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	   rm -f $${f}.R $${f}.Rout ; \
-	done ) \
+	done \
 	fi
 
 
