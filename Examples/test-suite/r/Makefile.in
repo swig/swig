@@ -46,7 +46,7 @@ run_testcase = \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	else \
 	  $(RUNTOOL) $(RUNR) $(srcdir)/$(SCRIPTPREFIX)$*$(WRAPSUFFIX); \
-	fi;
+	fi
 
 run_multitestcase = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \

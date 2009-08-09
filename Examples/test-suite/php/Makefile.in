@@ -51,7 +51,7 @@ run_testcase = \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHPSCRIPT=$(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL=$(RUNTOOL) php_run; \
 	elif [ -f $(srcdir)/$(SCRIPTPREFIX)$*.php -a ! -f $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHPSCRIPT=$(srcdir)/$(SCRIPTPREFIX)$*.php RUNTOOL=$(RUNTOOL) php_run; \
-	fi;
+	fi
 
 # Clean: remove the generated .php file
 %.clean:

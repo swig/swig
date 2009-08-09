@@ -45,7 +45,7 @@ SWIGOPT += -nounit
 	$(run_testcase)
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then \
 	  $(MAKE) $*.cppproxy; \
-	fi;
+	fi
 
 %.ctest:
 	$(setup)
@@ -53,7 +53,7 @@ SWIGOPT += -nounit
 	$(run_testcase)
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then \
 	  $(MAKE) $*.cproxy; \
-	fi;
+	fi
 
 %.multicpptest: 
 	$(setup)
@@ -61,7 +61,7 @@ SWIGOPT += -nounit
 	$(run_testcase)
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(PROXYSUFFIX) ]; then \
 	  $(MAKE) $*.multiproxy; \
-	fi;
+	fi
 
 %.externaltest:
 	$(setup)
@@ -88,7 +88,7 @@ SWIGOPT += -nounit
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(CHICKEN_CSI) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-	fi;
+	fi
 
 # Clean
 %.clean:

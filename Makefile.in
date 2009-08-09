@@ -182,7 +182,7 @@ java.actionexample:
         else							\
 	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
 	  (cd Examples/$(LANGUAGE)/java && $(MAKE) -s $(chk-set-env) $(ACTION)) \
-	fi;							\
+	fi
 
 gifplot-library:
 	@echo $(ACTION)ing Examples/GIFPlot/Lib

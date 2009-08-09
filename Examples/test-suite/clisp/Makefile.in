@@ -40,7 +40,7 @@ CPP_TEST_CASES =
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(CLISPBIN) -batch -s $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-	fi;
+	fi
 
 # Clean: (does nothing, we dont generate extra clisp code)
 %.clean:

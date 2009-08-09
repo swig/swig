@@ -60,7 +60,7 @@ setup = \
 	fi;								  \
 	if [ ! -d $* ]; then						  \
 	  mkdir $*;							  \
-	fi;
+	fi
 
 # Compiles C# files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.cs appended after the testcase name.
@@ -77,13 +77,13 @@ run_testcase = \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
 	  CSHARPFLAGS='-nologo $(CSHARPFLAGSSPECIAL) -t:module -out:$*.netmodule' \
 	  CSHARPSRCS='*.cs' csharp_compile && cd .. ; \
-	fi;
+	fi
 
 # Clean: remove testcase directories
 %.clean:
 	@if [ -d $* ]; then \
 	  rm -rf $*; \
-	fi;
+	fi
 
 clean:
 	@rm -f *.exe *.exe.mdb

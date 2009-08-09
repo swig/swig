@@ -47,7 +47,7 @@ include $(srcdir)/../common.mk
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(TCLSH) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-	fi;
+	fi
 
 # Clean
 %.clean:

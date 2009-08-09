@@ -58,7 +58,7 @@ LIBS       = -L.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVEPATH=$(srcdir):OCTAVEPATH $(RUNTOOL) $(OCTAVE) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-	fi;
+	fi
 
 # Clean: remove the generated .m file
 %.clean:

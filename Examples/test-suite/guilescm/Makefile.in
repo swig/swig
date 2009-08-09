@@ -21,14 +21,14 @@ GUILE_RUNTIME=
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(GUILE) -l $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
-	fi;
+	fi
 
 setup = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
 	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE) (with SCM API)" ; \
 	else								  \
 	  echo "$(ACTION)ing testcase $* under $(LANGUAGE) (with SCM API)" ;		  \
-	fi;
+	fi
 
 %.externaltest:
 	$(local_setup)
@@ -41,9 +41,9 @@ local_setup = \
 	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE) (with SCM API)" ; \
 	else								  \
 	  echo "$(ACTION)ing testcase $* under $(LANGUAGE) (with SCM API)" ;		  \
-	fi;
+	fi
 
 local_run_testcase = \
 	if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(GUILE) -l $(srcdir)/$*$(SCRIPTSUFFIX); \
-	fi;
+	fi
