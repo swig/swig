@@ -1493,7 +1493,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT AUTO
-%token STATIC_ASSERT CONSTEXPR THREAD_LOCAL /* C++0x keywords */
+%token STATIC_ASSERT CONSTEXPR THREAD_LOCAL DECLTYPE /* C++0x keywords */
 %token USING
 %token <node> NAMESPACE
 %token NATIVE INLINE
@@ -1557,7 +1557,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <p>        templateparameter ;
 %type <id>       templcpptype cpptype access_specifier;
 %type <node>     base_specifier
-%type <type>     type rawtype type_right anon_bitfield_type ;
+%type <type>     type rawtype type_right anon_bitfield_type decltype ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype;
 %type <dtype>    expr exprnum exprcompound valexpr;
@@ -3128,6 +3128,7 @@ cpp_alternate_rettype : primitive_type { $$ = $1; }
               | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
               | TYPE_RAW { $$ = $1; }
               | idcolon { $$ = $1; }
+              | decltype { $$ = $1; }
               ;
 
 /* Lambda function syntax introduced in C++0x.
@@ -5470,6 +5471,19 @@ type_right     : primitive_type { $$ = $1;
                }
                | cpptype idcolon { 
 		 $$ = NewStringf("%s %s", $1, $2);
+               }
+               | decltype {
+                 $$ = $1;
+               }
+               ;
+
+decltype       : DECLTYPE LPAREN idcolon RPAREN {
+                 Node *n = Swig_symbol_clookup($3,0);
+                 if (!n) {
+		   Swig_error(cparse_file, cparse_line, "Identifier %s not defined.\n", $3);
+                 } else {
+                   $$ = Getattr(n, "type");
+                 }
                }
                ;
 

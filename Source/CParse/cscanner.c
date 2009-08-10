@@ -636,6 +636,8 @@ int yylex(void) {
 	  return (CONSTEXPR);
 	if (strcmp(yytext, "thread_local") == 0)
 	  return (THREAD_LOCAL);
+	if (strcmp(yytext, "decltype") == 0)
+	  return (DECLTYPE);
 	if (strcmp(yytext, "virtual") == 0)
 	  return (VIRTUAL);
 	if (strcmp(yytext, "static_assert") == 0)
