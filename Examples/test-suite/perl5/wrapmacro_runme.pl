@@ -9,6 +9,6 @@ require_ok('wrapmacro');
 
 my $a = 2;
 my $b = -1;
-is(wrapmacro::max($a,$b), 2);
-is(wrapmacro::max($a/7.0, -$b*256), 256);
+is(wrapmacro::maximum($a,$b), 2);
+is(wrapmacro::maximum($a/7.0, -$b*256), 256);
 is(wrapmacro::GUINT16_SWAP_LE_BE_CONSTANT(1), 256);

@@ -501,6 +501,10 @@ public:
     Printf(s_entry, "static zend_function_entry %s_functions[] = {\n", module);
 
     /* start the init section */
+    Append(s_init, "#if ZEND_MODULE_API_NO <= 20090626\n");
+    Append(s_init, "#undef ZEND_MODULE_BUILD_ID\n");
+    Append(s_init, "#define ZEND_MODULE_BUILD_ID (char*)\"API\" ZEND_TOSTR(ZEND_MODULE_API_NO) ZEND_BUILD_TS ZEND_BUILD_DEBUG ZEND_BUILD_SYSTEM ZEND_BUILD_EXTRA\n");
+    Append(s_init, "#endif\n");
     Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n" "#if ZEND_MODULE_API_NO > 20010900\n" "    STANDARD_MODULE_HEADER,\n" "#endif\n", NIL);
     Printf(s_init, "    (char*)\"%s\",\n", module);
     Printf(s_init, "    %s_functions,\n", module);
@@ -1022,7 +1026,20 @@ public:
       String *output = s_oowrappers;
       if (constructor) {
 	class_has_ctor = true;
-	methodname = "__construct";
+	// Skip the Foo:: prefix.
+	char *ptr = strrchr(GetChar(n, "name"), ':');
+	if (ptr) {
+	  ptr++;
+	} else {
+	  ptr = GetChar(n, "name");
+	}
+	if (strcmp(ptr, GetChar(n, "constructorHandler:sym:name")) == 0) {
+	  methodname = "__construct";
+	} else {
+	  // The class has multiple constructors and this one is
+	  // renamed, so this will be a static factory function
+	  methodname = GetChar(n, "constructorHandler:sym:name");
+	}
       } else if (wrapperType == memberfn) {
 	methodname = Char(Getattr(n, "memberfunctionHandler:sym:name"));
       } else if (wrapperType == staticmemberfn) {
@@ -1581,7 +1598,11 @@ public:
 	Printf(output, "%s", prepare);
       if (constructor) {
 	if (!directorsEnabled() || !Swig_directorclass(n)) {
-	  Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
+	  if (strcmp(methodname, "__construct") == 0) {
+	    Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
+	  } else {
+	    Printf(output, "\t\treturn new %s(%s);\n", "Foo", invoke);
+	  }
 	} else {
 	  Node *parent = Swig_methodclass(n);
 	  String *classname = Swig_class_name(parent);
@@ -1627,8 +1648,14 @@ public:
 	     */
 	    Printf(output, "\t\tif (is_resource($r)) {\n");
 	    Printf(output, "\t\t\t$class='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
-	    Printf(output, "\t\t\treturn new $class($r);\n\t\t}\n");
-	    Printf(output, "\t\telse return $r;\n");
+	    if (Getattr(classLookup(Getattr(n, "type")), "module")) {
+	      Printf(output, "\t\t\treturn new $class($r);\n");
+	    } else {
+	      Printf(output, "\t\t\t$c = new stdClass();\n");
+	      Printf(output, "\t\t\t$c->_cPtr = $r;\n");
+	      Printf(output, "\t\t\treturn $c;\n");
+	    }
+	    Printf(output, "\t\t}\n\t\telse return $r;\n");
 	  } else {
 	    Printf(output, "\t\t$this->%s = $r;\n", SWIG_PTR);
 	    Printf(output, "\t\treturn $this;\n");
@@ -1928,7 +1955,7 @@ public:
 
       Printf(s_phpclasses, "class %s%s ", prefix, shadow_classname);
       String *baseclass = NULL;
-      if (base.item) {
+      if (base.item && Getattr(base.item, "module")) {
 	baseclass = Getattr(base.item, "sym:name");
 	if (!baseclass)
 	  baseclass = Getattr(base.item, "name");

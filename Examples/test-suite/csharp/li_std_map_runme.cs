@@ -169,7 +169,7 @@ public class li_std_map_runme {
         if (keyStringified != " 1 2 3 4 5")
             throw new Exception("Wrapped method stringifyKeys test failed. Got " + keyStringified);
 
-        // Test a map with a new specialized type (Struct)
+        // Test a map with a new complex type (Struct)
         {
             IntStructMap ismap = new IntStructMap();
             for (int i = 0; i < 10; i++)
@@ -178,12 +178,12 @@ public class li_std_map_runme {
             }
 
             if (ismap.Count != 10)
-                throw new Exception("Count test on specialized map failed");
+                throw new Exception("Count test on complex type map failed");
 
             foreach (KeyValuePair<int, Struct> p in ismap)
             {
                 if ((p.Key * 10.1) != p.Value.num)
-                    throw new Exception("Iteration test on specialized map failed for index " + p.Key);
+                    throw new Exception("Iteration test on complex type map failed for index " + p.Key);
             }
         }
 
@@ -196,12 +196,12 @@ public class li_std_map_runme {
             }
 
             if (ispmap.Count != 10)
-                throw new Exception("Count test on specialized pointer map failed");
+                throw new Exception("Count test on complex type pointer map failed");
 
             foreach (KeyValuePair<int, Struct> p in ispmap)
             {
                 if ((p.Key * 10.1) != p.Value.num)
-                    throw new Exception("Iteration test on specialized pointer map failed for index " + p.Key);
+                    throw new Exception("Iteration test on complex type pointer map failed for index " + p.Key);
             }
         }
         {
@@ -212,29 +212,29 @@ public class li_std_map_runme {
             }
 
             if (iscpmap.Count != 10)
-                throw new Exception("Count test on specialized const pointer map failed");
+                throw new Exception("Count test on complex type const pointer map failed");
 
             foreach (KeyValuePair<int, Struct> p in iscpmap)
             {
                 if ((p.Key * 10.1) != p.Value.num)
-                    throw new Exception("Iteration test on specialized const pointer map failed for index " + p.Key);
+                    throw new Exception("Iteration test on complex type const pointer map failed for index " + p.Key);
             }
         }
 
-        // Test non-specialized map
+        // Test complex type as key (Struct)
         {
             StructIntMap limap = new StructIntMap();
             Struct s7 = new Struct(7);
             Struct s8 = new Struct(8);
-            limap.setitem(s7 , 8);
-            if (limap.getitem(s7) != 8)
-                throw new Exception("Assignment test on non-specialized map failed");
+            limap[s7] = 8;
+            if (limap[s7] != 8)
+                throw new Exception("Assignment test on complex key map failed");
 
             if (!limap.ContainsKey(s7))
-                throw new Exception("Key test (1) on non-specialized map failed");
+                throw new Exception("Key test (1) on complex key map failed");
 
             if (limap.ContainsKey(s8))
-                throw new Exception("Key test (2) on non-specialized map failed");
+                throw new Exception("Key test (2) on complex key map failed");
         }
 
         // All done

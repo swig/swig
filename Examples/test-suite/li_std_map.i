@@ -46,18 +46,6 @@ struct Struct {
 
 %}
 
-#if defined(SWIGCSHARP)
-
-// Specialize some more non-default map types
-SWIG_STD_MAP_SPECIALIZED(int, int *, int, SWIGTYPE_p_int)
-SWIG_STD_MAP_SPECIALIZED(int, const int *, int, SWIGTYPE_p_int)
-SWIG_STD_MAP_SPECIALIZED_SIMPLE(int, Struct)
-SWIG_STD_MAP_SPECIALIZED(int, Struct *, int, Struct)
-SWIG_STD_MAP_SPECIALIZED(int, const Struct *, int, Struct)
-SWIG_STD_MAP_SPECIALIZED(Struct *, int, Struct, int)
-
-#endif
-
 //#if !defined(SWIGR)
 
 // Test out some maps with pointer types

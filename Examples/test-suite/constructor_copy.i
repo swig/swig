@@ -73,10 +73,6 @@ public:
 
 %include "std_vector.i"
 
-#if defined(SWIGCSHARP)
-SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(Flow, Space::Flow)
-#endif
-
 #if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGR) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
 #define SWIG_GOOD_VECTOR
 %ignore std::vector<Space::Flow>::vector(size_type);
