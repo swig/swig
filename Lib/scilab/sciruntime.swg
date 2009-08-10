@@ -1,3 +1,5 @@
+%insert(runtime) "swigrun.swg";
+%insert(runtime) "swigerrors.swg";
 %insert(runtime) %{
 
 void SWIG_Error(int code, const char *msg) {

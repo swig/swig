@@ -119,6 +119,7 @@ public:
     Delete(f_builder_code);
     
     /* Dump out all the files */
+    SwigType_emit_type_table(f_runtime, f_wrappers);
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
     Dump(f_wrappers, f_begin);

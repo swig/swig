@@ -2168,6 +2168,12 @@ SKIP_UFFI=
 #fi
 AC_SUBST(SKIP_UFFI)
 
+SKIP_SCILAB=
+if test -z "$SCILAB"; then
+    SKIP_SCILAB="1"
+fi
+AC_SUBST(SKIP_SCILAB)
+
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
@@ -2248,6 +2254,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/cffi/Makefile		\
     Examples/test-suite/uffi/Makefile		\
     Examples/test-suite/r/Makefile		\
+    Examples/test-suite/scilab/Makefile		\
     Lib/ocaml/swigp4.ml
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])

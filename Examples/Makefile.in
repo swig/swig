@@ -1152,13 +1152,13 @@ SCILAB        = @SCILAB@
 
 scilab: $(SRCS)
 	$(SWIG) -scilab $(SWIGOPT) $(INTERFACEPATH)
-
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH $(SCILAB) -nwni -nb -f builder.sce
 # ----------------------------------------------------------------- 
 # Running a Scilab example
 # ----------------------------------------------------------------- 
 
 scilab_run:
-	 env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH $(SCILAB) -nwni < runme.sci
+	 env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH $(SCILAB) -nwni -nb -f runme.sci
 	
 # -----------------------------------------------------------------
 # Cleaning the scilab examples

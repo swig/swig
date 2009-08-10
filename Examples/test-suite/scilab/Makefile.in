@@ -9,9 +9,6 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-C_TEST_CASES += \
-	integers \
-
 
 include $(srcdir)/../common.mk
 
@@ -19,27 +16,28 @@ include $(srcdir)/../common.mk
 # none!
 
 # Rules for the different types of tests
+%.cpptest: 
+	
 %.ctest:
 	$(setup)
+	cp ../$*.i $*.i
+	if [ -f ../$*.h ]; then (cp ../$*.h $*.h; ) fi;
 	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multicpptest: 
-	$(setup)
-	+$(swig_and_compile_multi_cpp)
-	$(run_testcase)
-
+	
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.sci appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) -nwni -nb -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
 	fi; \
 
 
 # Clean: remove the generated .sci file
 %.clean:
-	@rm -f $*.sci *_wrap.c
+	@rm -f $*.sci *_wrap.c *.i *.h
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile scilab_clean
