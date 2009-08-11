@@ -1194,7 +1194,7 @@ public:
 	  const char *pname_cstr = GetChar(p, "name");
 	  // Just get rid of the C++ namespace part for now.
 	  const char *ptr = NULL;
-	  if ((ptr = strrchr(pname_cstr, ':'))) {
+	  if (pname_cstr && (ptr = strrchr(pname_cstr, ':'))) {
 	    pname_cstr = ptr + 1;
 	  }
 	  if (!pname_cstr) {
