@@ -1570,6 +1570,9 @@ public:
 	    Delete(warnmsg);
 	  }
 	}
+	if (Cmp(acc, "") != 0) {
+	  Append(acc, " ");
+	}
 	if (constructor) {
 	  const char * arg0;
 	  if (max_num_of_arguments > 0) {
@@ -1581,13 +1584,13 @@ public:
 	  }
 	  SwigType *t = Getattr(current_class, "classtype");
 	  String *mangled_type = SwigType_manglestr(SwigType_ltype(t));
-	  Printf(output, "\t%s function %s(%s) {\n", acc, methodname, args);
+	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
 	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '_p%s') {\n", arg0, arg0, mangled_type);
 	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
 	  Printf(output, "\t\t\treturn;\n");
 	  Printf(output, "\t\t}\n");
 	} else {
-	  Printf(output, "\t%s function %s(%s) {\n", acc, methodname, args);
+	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
 	}
 	Delete(acc);
       } else {
