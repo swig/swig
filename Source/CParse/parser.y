@@ -2942,6 +2942,8 @@ c_declaration   : c_decl {
 		  }
                 }
                 | c_lambda_decl { Swig_warning(WARN_LANG_NATIVE_UNIMPL, cparse_file, cparse_line,"Swig doesn't produce wrapper code for lambda expressions and closures yet.\n"); $$ = $1; }
+                | USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_LANG_NATIVE_UNIMPL, cparse_file, cparse_line,"Swig doesn't support 'using' typedefs yet.\n"); $$ = 0; }
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_LANG_NATIVE_UNIMPL, cparse_file, cparse_line,"Swig doesn't support template aliasing yet.\n"); $$ = 0; }
                 ;
 
 /* ------------------------------------------------------------
