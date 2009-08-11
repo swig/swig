@@ -1604,7 +1604,8 @@ public:
 	  if (strcmp(methodname, "__construct") == 0) {
 	    Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
 	  } else {
-	    Printf(output, "\t\treturn new %s(%s);\n", "Foo", invoke);
+	    String *classname = Swig_class_name(current_class);
+	    Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
 	  }
 	} else {
 	  Node *parent = Swig_methodclass(n);
