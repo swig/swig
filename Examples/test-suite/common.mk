@@ -414,7 +414,8 @@ CPP0X_TEST_CASES = \
 	cpp0x_userdefined_literals \
 	cpp0x_decltype \
 	cpp0x_result_of \
-	cpp0x_default_delete
+	cpp0x_default_delete \
+	cpp0x_sizeof_object
 #	cpp0x_template_typedefs     # not supported by any compiler yet
 #	cpp0x_hash_types            # not fully implemented yet
 #	cpp0x_constructors          # not supported by any compiler yet

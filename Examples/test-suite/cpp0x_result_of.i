@@ -17,3 +17,4 @@ typename std::result_of<Fun(Arg)>::type test_result_impl(Fun fun, Arg arg) {
 %}
 
 %template(test_result) test_result_impl<double(*)(double), double>;
+%constant double (*SQUARE)(double) = square;
