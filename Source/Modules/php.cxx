@@ -1027,11 +1027,11 @@ public:
       if (constructor) {
 	class_has_ctor = true;
 	// Skip the Foo:: prefix.
-	char *ptr = strrchr(GetChar(n, "name"), ':');
+	char *ptr = strrchr(GetChar(Swig_methodclass(n), "sym:name"), ':');
 	if (ptr) {
 	  ptr++;
 	} else {
-	  ptr = GetChar(n, "name");
+	  ptr = GetChar(Swig_methodclass(n), "sym:name");
 	}
 	if (strcmp(ptr, GetChar(n, "constructorHandler:sym:name")) == 0) {
 	  methodname = "__construct";
