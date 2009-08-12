@@ -667,7 +667,6 @@ enum boolean {NO=0, YES=1};
 enum months {JAN, FEB, MAR, APR, MAY, JUN, JUL, AUG,
              SEP, OCT, NOV, DEC};
 %constant double BLAH = 42.37;
-#define F_CONST (double) 5            // A floating pointer constant with cast
 #define PI_4 PI/4
 #define FLAGS 0x04 | 0x08 | 0x40
 
@@ -706,7 +705,14 @@ the declaration
 <p>
 defines a constant because <tt>PI</tt> was already defined as a
 constant and the value is known.
+However, for the same conservative reasons even a constant with a simple cast will be ignored, such as
 </p>
+
+<div class="code">
+<pre>
+#define F_CONST (double) 5            // A floating pointer constant with cast
+</pre>
+</div>
 
 <p>
 The use of constant expressions is allowed, but SWIG does not evaluate
