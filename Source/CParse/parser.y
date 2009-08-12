@@ -4265,21 +4265,27 @@ cpp_member   : c_declaration { $$ = $1; }
   
 cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
               if (Classprefix) {
-		 SwigType *decl = NewStringEmpty();
-		 $$ = new_node("constructor");
-		 Setattr($$,"storage",$1);
-		 Setattr($$,"name",$2);
-		 Setattr($$,"parms",$4);
-		 SwigType_add_function(decl,$4);
-		 Setattr($$,"decl",decl);
-		 Setattr($$,"throws",$6.throws);
-		 Setattr($$,"throw",$6.throwf);
-		 if (Len(scanner_ccode)) {
-		   String *code = Copy(scanner_ccode);
-		   Setattr($$,"code",code);
-		   Delete(code);
-		 }
-		 SetFlag($$,"feature:new");
+                if (Getattr($4,"type") && strstr(Char(Getattr($4,"type")), "initializer_list<")) {
+                  /* Ignore constructors containing initializer_list<> introduced in C++0x */
+		  Swig_warning(WARN_LANG_INITIALIZER_LIST, cparse_file, cparse_line, "Constructor with std::initializer_list<> argument ignored.\n");
+                  $$ = 0;
+                } else {
+		  SwigType *decl = NewStringEmpty();
+		  $$ = new_node("constructor");
+		  Setattr($$,"storage",$1);
+		  Setattr($$,"name",$2);
+		  Setattr($$,"parms",$4);
+		  SwigType_add_function(decl,$4);
+		  Setattr($$,"decl",decl);
+		  Setattr($$,"throws",$6.throws);
+		  Setattr($$,"throw",$6.throwf);
+		  if (Len(scanner_ccode)) {
+		    String *code = Copy(scanner_ccode);
+		    Setattr($$,"code",code);
+		    Delete(code);
+		  }
+		  SetFlag($$,"feature:new");
+                }
 	      } else {
 		$$ = 0;
               }
