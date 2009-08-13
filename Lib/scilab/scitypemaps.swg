@@ -84,8 +84,11 @@
   if (getVarType(piAddrVar) != sci_strings || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
     Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
-  getMatrixOfString(piAddrVar, &iRows, &iCols,&_piLength, &_pstStrings);
+  getMatrixOfString(piAddrVar, &iRows, &iCols, &_piLength, NULL);
+  _pstStrings = (char *)malloc(sizeof(char) * _piLength + 1);
+  getMatrixOfString(piAddrVar, &iRows, &iCols, &_piLength, &_pstStrings);
   $1 = strdup(_pstStrings);
+  free(_pstStrings);
 }
 
 %typemap(in) signed char [ANY] (int iRows, int iCols) {
@@ -407,10 +410,6 @@
   LhsVar(iOutNum) = iVarOut;
 }
 
-%typemap(freearg, noblock=1) char * { 
-  if ($1) free($1);  
-}
-
 %typemap(out) enum SWIGTYPE (int iRowsOut, int iColsOut) {
   int temp;
   temp = (int)($result);
@@ -480,7 +479,7 @@
     Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
   getMatrixOfString(piAddrVar, &iRows, &iCols, &_piLength, NULL);
-  _pstStrings = (char *)malloc(sizeof(char) * _piLength);
+  _pstStrings = (char *)malloc(sizeof(char) * _piLength + 1);
   getMatrixOfString(piAddrVar, &iRows, &iCols, &_piLength, &_pstStrings);
   $1 = strdup(_pstStrings);
   free(_pstStrings);
@@ -782,6 +781,7 @@
   LhsVar(iOutNum) = iVarOut;
 }
 
+/* pointer to basic C types */
 %typemap(varout,noblock=1) signed char *,
                            short *,
                            unsigned char *,
@@ -796,6 +796,7 @@
   LhsVar(iOutNum) = iVarOut;
 }
 
+/* Arrays */
 %typemap(varout,noblock=1) char [ANY] {
   char **pstData = NULL;
   pstData = (char **)malloc(sizeof(char *));
@@ -855,12 +856,14 @@
   LhsVar(iOutNum) = iVarOut;
 }
 
+/* Enums */
 %typemap(varout,noblock=1) enum SWIGTYPE {
   int temp = $result;
   createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &temp);
   LhsVar(iOutNum) = iVarOut;
 }
 
+/* Other types */
 %typemap(varout,noblock=1) SWIGTYPE * {
   createPointer(iVarOut, (void *)$result);
   LhsVar(iOutNum) = iVarOut;
@@ -870,7 +873,133 @@
   createPointer(iVarOut, (void *)&$result);
   LhsVar(iOutNum) = iVarOut;
 }
-  
+
+/* ------------------------------------------------------------
+ * --- Typecheck typemaps ---
+ * ------------------------------------------------------------ */
+/* Basic C types */
+%typecheck(SWIG_TYPECHECK_CHAR) char {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_strings) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_INT8) signed char {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_UINT8) unsigned char {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_INT16) short {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_UINT16) unsigned short {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_INT32) int, 
+                                 long {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_UINT32) unsigned int,
+                                  unsigned long {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+
+%typecheck(SWIG_TYPECHECK_DOUBLE) double {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_FLOAT) float {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_STRING) char * {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_strings) ? 1 : 0;
+}
+
+/* Arrays */
+%typecheck(SWIG_TYPECHECK_CHAR_ARRAY) char [ANY] {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_strings) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_INT8_ARRAY) signed char [ANY] {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_INT16_ARRAY) unsigned char [ANY],
+                                       short [ANY] {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_INT32_ARRAY) unsigned short [ANY],
+                                       int [ANY],
+                                       long [ANY] {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_INT64_ARRAY) unsigned int [ANY],
+                                        unsigned long [ANY] {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) double [ANY]{
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_FLOAT_ARRAY) float [ANY]{
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_matrix) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_STRING_ARRAY) char ** {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_strings) ? 1 : 0;
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE * {
+  int *piAddrVar;
+  getVarAddressFromPosition($argnum, &piAddrVar);
+  $1 = (getVarType(piAddrVar) == sci_lufact_pointer) ? 1 : 0;
+}
+
 /* ------------------------------------------------------------
  *  size_t mapped as int
  * ------------------------------------------------------------ */

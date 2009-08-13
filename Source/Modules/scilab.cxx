@@ -30,6 +30,7 @@ private:
 public:
   SCILAB():
     f_builder_code(NewString("")) {
+    allow_overloading();
   }
   
     
@@ -154,7 +155,7 @@ public:
     // int destructor = (!Cmp(nodeType, "destructor"));
     String *storage = Getattr(n, "storage");
     bool overloaded = !!Getattr(n, "sym:overloaded");
-    //bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
+    bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
     String *iname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(iname);
     String *overname = Copy(wname);
@@ -263,6 +264,16 @@ public:
     }
     Printv(f->code, outarg, NIL);
 
+    /* Insert constraint checking code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p, "tmap:check"))) {
+	Printv(f->code, tm, "\n", NIL);
+	p = Getattr(p, "tmap:check:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+
     /* Insert cleanup code */
     String *cleanup = NewString("");
     for (p = l; p;) {
@@ -304,6 +315,10 @@ public:
     /* Dump the wrapper function */
     Wrapper_print(f, f_wrappers);
     DelWrapper(f);
+    
+    if (last_overload)
+      dispatchFunction(n);
+    
     Printf(f_builder_code, "\"%s\",\"%s\";", iname, wname);
 
     Delete(overname);
@@ -312,7 +327,39 @@ public:
   
     return SWIG_OK;
   }
+  
+  /* -----------------------------------------------------------------------
+   * dispatchFunctionWrapper()
+   * ----------------------------------------------------------------------- */
+  
+  void dispatchFunction(Node *n) {
+    Wrapper *f = NewWrapper();
 
+    String *iname = Getattr(n, "sym:name");
+    String *wname = Swig_name_wrapper(iname);
+    int maxargs;
+    String *dispatch = Swig_overload_dispatch(n, "return %s(fname, fname_len);", &maxargs);
+    String *tmp = NewString("");
+
+    Printv(f->def, "int ", wname, " (char *fname,unsigned long fname_len) {\n", NIL);
+    Wrapper_add_local(f, "argc", "int argc = Rhs;");
+    //Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
+    //for (int j = 0; j < maxargs; ++j)
+      //Printf(tmp, "%soctave_value_ref(args,%d)", j ? "," : " ", j);
+    //Printf(tmp, "}");
+    //Wrapper_add_local(f, "argv", tmp);
+    Printv(f->code, dispatch, "\n", NIL);
+    Printf(f->code, "error(\"No matching function for overload\");\n", iname);
+    Printf(f->code, "return 0;\n");
+    Printv(f->code, "}\n", NIL);
+
+    Wrapper_print(f, f_wrappers);
+    Delete(tmp);
+    DelWrapper(f);
+    Delete(dispatch);
+    Delete(wname);
+  }
+ 
   /* -----------------------------------------------------------------------
    * variableWrapper()
    * ----------------------------------------------------------------------- */
