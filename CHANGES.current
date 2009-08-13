@@ -1,6 +1,10 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-08-13: wsfulton
+	    [PHP] Add const reference typemaps. const reference primitive types are
+            now passed by value rather than pointer like the other target languages.
+
 2009-08-08: wsfulton
 	    [Python] More user friendly AttributeError is raised when there are
             no constructors generated for the proxy class in the event that the

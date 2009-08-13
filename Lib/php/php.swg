@@ -184,6 +184,21 @@
 	ZVAL_LONG(return_value,$1);
 }
 
+%typemap(out) const int &,
+              const unsigned int &,
+              const short &,
+              const unsigned short &,
+              const long &,
+              const unsigned long &,
+              const signed char &,
+              const unsigned char &,
+              const bool &,
+              const size_t &,
+              const enum SWIGTYPE &
+{
+	ZVAL_LONG(return_value,*$1);
+}
+
 %typemap(directorin) int,
               unsigned int,
               short,
@@ -203,6 +218,11 @@
 	ZVAL_BOOL(return_value,($1)?1:0);
 }
 
+%typemap(out) const bool &
+{
+	ZVAL_BOOL(return_value,(*$1)?1:0);
+}
+
 %typemap(directorin) bool
 {
 	ZVAL_BOOL($input,($1_name)?1:0);
@@ -214,6 +234,12 @@
 	ZVAL_DOUBLE(return_value,$1);
 }
 
+%typemap(out) const float &,
+              const double &
+{
+	ZVAL_DOUBLE(return_value,*$1);
+}
+
 %typemap(directorin) float,
               double
 {
@@ -223,6 +249,11 @@
 %typemap(out) char
 {
 	ZVAL_STRINGL(return_value,&$1, 1, 1);
+}
+
+%typemap(out) const char &
+{
+	ZVAL_STRINGL(return_value,&*$1, 1, 1);
 }
 
 %typemap(out) char *,

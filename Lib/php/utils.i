@@ -33,9 +33,14 @@
 %enddef
 
 %define %pass_by_val( TYPE, CONVERT_IN )
-%typemap(in) TYPE, const TYPE &
+%typemap(in) TYPE
 %{
   CONVERT_IN($1,$1_ltype,$input);
+%}
+%typemap(in) const TYPE &($*1_ltype temp)
+%{
+  CONVERT_IN(temp,$*1_ltype,$input);
+  $1 = &temp;
 %}
 %typemap(directorout) TYPE, const TYPE &
 %{
