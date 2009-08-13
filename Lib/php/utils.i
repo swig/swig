@@ -37,7 +37,7 @@
 %{
   CONVERT_IN($1,$1_ltype,$input);
 %}
-%typemap(in) const TYPE &($*1_ltype temp)
+%typemap(in) const TYPE & ($*1_ltype temp)
 %{
   CONVERT_IN(temp,$*1_ltype,$input);
   $1 = &temp;

@@ -64,6 +64,8 @@
 %pass_by_val(double, CONVERT_FLOAT_IN);
 
 %pass_by_val(char *, CONVERT_STRING_IN);
+%typemap(in) char *& = const char *&;
+%typemap(directorout) char *& = const char *&;
 
 // char array can be in/out, though the passed string may not be big enough...
 // so we have to size it
@@ -241,7 +243,7 @@
 }
 
 %typemap(directorin) float,
-              double
+                     double
 {
 	ZVAL_DOUBLE($input,$1_name);
 }
@@ -266,6 +268,15 @@
 	}
 }
 
+%typemap(out) char *&
+{
+	if(!*$1) {
+	  ZVAL_NULL(return_value);
+	} else {
+	  ZVAL_STRING(return_value, (char *)*$1, 1);
+	}
+}
+
 %typemap(out) SWIGTYPE *,
               SWIGTYPE [],
               SWIGTYPE &
@@ -274,8 +285,8 @@
 %}
 
 %typemap(directorin) SWIGTYPE *,
-              SWIGTYPE [],
-              SWIGTYPE &
+                     SWIGTYPE [],
+                     SWIGTYPE &
 %{
   SWIG_SetPointerZval($input, (void *)&$1_name, $1_descriptor, $owner);
 %}
@@ -346,7 +357,7 @@
 %php_typecheck(double,SWIG_TYPECHECK_BOOL,IS_DOUBLE)
 %php_typecheck(char,SWIG_TYPECHECK_CHAR,IS_STRING)
 
-%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char *, const char *&, char []
+%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char *, char *&, char []
  " $1 = (Z_TYPE_PP($input) == IS_STRING); "
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE

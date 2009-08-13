@@ -149,6 +149,18 @@ const char global_const_char_array2[sizeof(CPLUSPLUS_MSG)+1] = CPLUSPLUS_MSG;
 %inline %{
 
 // char *& tests
+char *&GetCharPointerRef() {
+  static char str[] = CPLUSPLUS_MSG;
+  static char *ptr = str;
+  return ptr;
+}
+
+bool SetCharPointerRef(char *&str, unsigned int number) {
+  static char static_str[] = CPLUSPLUS_MSG;
+  strcpy(static_str, str);
+  return check(static_str, number);
+}
+
 const char *&GetConstCharPointerRef() {
   static const char str[] = CPLUSPLUS_MSG;
   static const char *ptr = str;
