@@ -6,7 +6,7 @@
     enum Polarization { UnaryPolarization, BinaryPolarization };
  
     template <Polarization P>
-    struct Interface
+    struct Interface_
     {
     };
 
@@ -21,8 +21,8 @@
  
 namespace oss
 {
-  %template(Interface_UP) Interface<UnaryPolarization>;
-  %template(Module_UPIUP) Module<UnaryPolarization,Interface<UnaryPolarization> >;
+  %template(Interface_UP) Interface_<UnaryPolarization>;
+  %template(Module_UPIUP) Module<UnaryPolarization,Interface_<UnaryPolarization> >;
 }
  
 %inline %{
@@ -31,16 +31,16 @@ namespace oss
     namespace hello
     {
       struct HInterface1 :
-           Interface<oss::UnaryPolarization>  // this works (with fullns qualification)
+           Interface_<oss::UnaryPolarization>  // this works (with fullns qualification)
       {
       };
  
       struct HInterface2 :
-          Interface<UnaryPolarization>       // this doesn't work
+          Interface_<UnaryPolarization>       // this doesn't work
       {
       };
  
-     struct HModule1 : Module<UnaryPolarization, Interface<UnaryPolarization> > {
+     struct HModule1 : Module<UnaryPolarization, Interface_<UnaryPolarization> > {
  };
 
     }
