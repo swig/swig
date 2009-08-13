@@ -5,8 +5,8 @@ require "tests.php";
 require "smart_pointer_rename.php";
 
 check::classes(array("Foo","Bar"));
-check::classmethods("foo",array("foo","ftest1","ftest2"));
-check::classmethods("bar",array("__deref__","bar","test","ftest1","ftest2"));
+check::classmethods("foo",array("ftest1","ftest2","__set","__isset","__get","__construct"));
+check::classmethods("bar",array("__deref__","test","ftest1","ftest2","__set","__isset","__get","__construct"));
 $foo=new foo();
 check::classname("foo",$foo);
 $bar=new bar($foo);
