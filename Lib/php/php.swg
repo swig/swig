@@ -327,7 +327,7 @@
 // an argument to be converted from a different PHP type, you must convert
 // it yourself before passing it (e.g. (string)4.7 or (int)"6").
 %define %php_typecheck(_type,_prec,is)
-%typemap(typecheck,precedence=_prec) _type
+%typemap(typecheck,precedence=_prec) _type, const _type &
  " $1 = (Z_TYPE_PP($input) == is); "
 %enddef
 
@@ -342,13 +342,12 @@
 %php_typecheck(size_t,SWIG_TYPECHECK_INT16,IS_LONG)
 %php_typecheck(enum SWIGTYPE,SWIG_TYPECHECK_INT8,IS_LONG)
 %php_typecheck(bool,SWIG_TYPECHECK_BOOL,IS_BOOL)
-
-%php_typecheck(char,SWIG_TYPECHECK_CHAR,IS_STRING)
-%php_typecheck(char *,SWIG_TYPECHECK_STRING,IS_STRING)
-%php_typecheck(char [],SWIG_TYPECHECK_STRING,IS_STRING)
-
 %php_typecheck(float,SWIG_TYPECHECK_FLOAT,IS_DOUBLE)
 %php_typecheck(double,SWIG_TYPECHECK_BOOL,IS_DOUBLE)
+%php_typecheck(char,SWIG_TYPECHECK_CHAR,IS_STRING)
+
+%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char *, const char *&, char []
+ " $1 = (Z_TYPE_PP($input) == IS_STRING); "
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
 {
