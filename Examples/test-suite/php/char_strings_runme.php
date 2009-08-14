@@ -41,4 +41,3 @@ check::equal(SetConstCharPointerRef($OTHERLAND_MSG_10, 10), true, "failed SetCon
 
 check::done();
 ?>
-
