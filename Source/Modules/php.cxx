@@ -1392,9 +1392,11 @@ public:
       /* We use $r to store the return value, so disallow that as a parameter
        * name in case the user uses the "call-time pass-by-reference" feature
        * (it's deprecated and off by default in PHP5, but we want to be
-       * maximally portable).
+       * maximally portable).  Similarly we use $c for the classname or new
+       * stdClass object.
        */
       Setattr(seen, "r", seen);
+      Setattr(seen, "c", seen);
 
       for (int argno = 0; argno < max_num_of_arguments; ++argno) {
 	String *&pname = arg_names[argno];
@@ -1653,11 +1655,11 @@ public:
 	    Printf(output, "\t\tif (is_resource($r)) {\n");
 	    if (Getattr(classLookup(Getattr(n, "type")), "module")) {
 	      if (Len(prefix) == 0) {
-		Printf(output, "\t\t\t$class=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
+		Printf(output, "\t\t\t$c=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
 	      } else {
-		Printf(output, "\t\t\t$class='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
+		Printf(output, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	      }
-	      Printf(output, "\t\t\treturn new $class($r);\n");
+	      Printf(output, "\t\t\treturn new $c($r);\n");
 	    } else {
 	      Printf(output, "\t\t\t$c = new stdClass();\n");
 	      Printf(output, "\t\t\t$c->_cPtr = $r;\n");
