@@ -2046,7 +2046,7 @@ public:
 	Printf(s_phpclasses, "\t}\n");
       } else {
 	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
-	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_example_get_newobject($this->%s);\n", SWIG_PTR);
+	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
 	Printf(s_phpclasses, "\t\telse return $this->%s[$var];\n", SWIG_DATA);
 	Printf(s_phpclasses, "\t}\n");
       }
