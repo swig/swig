@@ -26,10 +26,11 @@ private:
   File *f_init;
   
   String *f_builder_code;
+  bool hasfunction_flag;
   
 public:
   SCILAB():
-    f_builder_code(NewString("")) {
+    f_builder_code(NewString("")), hasfunction_flag(false) {
     allow_overloading();
   }
   
@@ -110,14 +111,19 @@ public:
     Language::top(n);
     
     /* create the file to generate the module: "builder.sce" */
-    Printf(f_builder_code, "];\n");
-    Printf(f_builder_code, "ilib_build(ilib_name,table,files,libs);\n");
-    Printf(f_builder_code, "exit");
-    File *f_builder=NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
-    Printv(f_builder, f_builder_code, NIL);
-    Close(f_builder);
-    Delete(f_builder);
-    Delete(f_builder_code);
+    if(hasfunction_flag) {
+      Printf(f_builder_code, "];\n");
+      Printf(f_builder_code, "ilib_build(ilib_name,table,files,libs);\n");
+      Printf(f_builder_code, "exit");
+      File *f_builder=NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
+      Printv(f_builder, f_builder_code, NIL);
+      Close(f_builder);
+      Delete(f_builder);
+      Delete(f_builder_code);
+    }
+    else {
+      Delete(f_builder_code);
+    }
     
     /* Dump out all the files */
     SwigType_emit_type_table(f_runtime, f_wrappers);
@@ -143,6 +149,8 @@ public:
 
   virtual int functionWrapper(Node *n) {
     
+    hasfunction_flag = true;
+   
     /* A new wrapper function object */
     Wrapper *f = NewWrapper();
     Parm *p;
@@ -366,6 +374,8 @@ public:
 
   virtual int variableWrapper(Node *n) {
     
+    hasfunction_flag = true;
+    
     /* Get the useful information from the node */
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
@@ -478,6 +488,8 @@ public:
    * ----------------------------------------------------------------------- */
 
   virtual int constantWrapper(Node *n) {
+    
+    hasfunction_flag = true;
     
     /* Get the useful information from the node */
     String *name = Getattr(n, "name");
