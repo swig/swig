@@ -2388,6 +2388,10 @@ You can make a <tt>Vector</tt> look a lot like a class by writing a SWIG interfa
 <p>
 Note the usage of the <tt>$self</tt> special variable.
 Its usage is identical to a C++ 'this' pointer and should be used whenever access to the struct instance is required.
+Also note that C++ constructor and destructor syntax has been used to simulate a constructor and destructor, even for C code.
+There is one subtle difference to a normal C++ constructor implementation though and that is although the constructor declaration 
+is as per a normal C++ constructor, the newly constructed object must be returned <b>as if</b> the constructor declaration 
+had a return value, a <tt>Vector *</tt> in this case.
 </p>
 
 <p>
