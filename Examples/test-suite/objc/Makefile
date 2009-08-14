@@ -1,0 +1,61 @@
+#######################################################################
+# Makefile for Objective-C test-suite
+#######################################################################
+
+LANGUAGE     = objc
+OBJC         = objc
+SCRIPTSUFFIX = _runme.m
+srcdir       = .
+top_srcdir   = ../../../..
+top_builddir = ../../../..
+
+C_TEST_CASES = 
+
+CPP_TEST_CASES =
+
+include $(srcdir)/../common.mk
+
+# Overridden variables here
+SWIGOPT +=
+INTERFACEDIR = ../../
+
+# Rules for the different types of tests
+%.cpptest: 
+	$(setup)
+	+(cd $* && $(swig_and_compile_cpp))
+	$(run_testcase)
+
+%.ctest:
+	$(setup)
+	+(cd $* && $(swig_and_compile_c))
+	$(run_testcase)
+
+%.multicpptest: 
+	$(setup)
+	+(cd $* && $(swig_and_compile_multi_cpp))
+	$(run_testcase)
+
+# Makes a directory for the testcase if it does not exist
+setup = \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
+	else								  \
+	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
+	fi;								  \
+	if [ ! -d $* ]; then						  \
+		mkdir $*;						  \
+	fi;
+
+# Compiles Objective-C files then runs the testcase. A testcase is only run if
+# a file is found which has _runme.m appended after the testcase name.
+run_testcase = 
+
+
+# Clean: remove testcase directories
+%.clean:
+	@if [ -d $* ]; then \
+		rm -rf $*; \
+	fi;
+
+clean:
+	@rm -f *.o hs_err*.log
