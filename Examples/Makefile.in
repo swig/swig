@@ -986,6 +986,49 @@ csharp_clean:
 	rm -f *.@OBJEXT@ *@CSHARPSO@
 
 ##################################################################
+#####                      OBJC                           ######
+##################################################################
+OBJC_INCLUDE=@OBJCINC@
+
+# Extra Objective-C specific dynamic linking options
+OBJC_DLNK=@OBJCDYNAMICLINKING@
+OBJC_LIBPREFIX=@OBJCLIBRARYPREFIX@
+OBJCLDSHARED=@OBJCLDSHARED@
+OBJCCXXSHARED=@OBJCCXXSHARED@
+OBJCSO=@OBJCSO@
+OBJCCFLAGS=@OBJCCFLAGS@
+MMSRCS= *Wrapper.mm
+IOBJS = *Wrapper.o
+
+# ----------------------------------------------------------------
+# Build an Objective-C dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+objc: $(SRCS)
+	$(SWIG) -objc $(SWIGOPT) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(OBJCCFLAGS) $(SRCS) $(MMSRCS) $(INCLUDES) $(OBJC_INCLUDE)
+	$(OBJCLDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(OBJC_DLNK) $(LIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
+
+# ----------------------------------------------------------------
+# Build an Objective-C dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+objc_cpp: $(SRCS)
+	$(SWIG) -objc -c++ $(SWIGOPT) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(OBJCCFLAGS) $(SRCS) $(MMSRCS) $(INCLUDES) $(OBJC_INCLUDE)
+	$(OBJCCXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(OBJC_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
+
+# -----------------------------------------------------------------
+# Cleaning the Objective-C examples
+# -----------------------------------------------------------------
+
+objc_clean:
+	rm -f *Wrapper* *~ .~* *.o `find . -name \*.m | grep -v runme.m`
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@OBJCSO@
+
+
+##################################################################
 #####                      LUA                              ######
 ##################################################################
 

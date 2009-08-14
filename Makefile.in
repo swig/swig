@@ -63,6 +63,7 @@ skip-guile	= test -n "@SKIP_GUILE@"
 skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
 skip-ruby	= test -n "@SKIP_RUBY@"
 skip-php	= test -n "@SKIP_PHP@"
+skip-objc	= test -n "@SKIP_OBJC@"
 skip-ocaml      = test -n "@SKIP_OCAML@"
 skip-octave     = test -n "@SKIP_OCTAVE@"
 skip-pike       = test -n "@SKIP_PIKE@"
@@ -101,6 +102,7 @@ check-aliveness:
 	@$(skip-guile)    || ./$(TARGET) -guile    -help
 	@$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
 	@$(skip-ruby)     || ./$(TARGET) -ruby     -help
+	@$(skip-objc)     || ./$(TARGET) -objc     -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
 	@$(skip-octave)   || ./$(TARGET) -octave   -help
 	@$(skip-php)      || ./$(TARGET) -php      -help
@@ -123,6 +125,7 @@ check-examples:					\
 	check-guile-examples			\
 	check-mzscheme-examples			\
 	check-ruby-examples			\
+	check-objc-examples			\
 	check-ocaml-examples			\
 	check-octave-examples			\
 	check-php-examples			\
@@ -144,6 +147,7 @@ java_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/java/check.list)
 guile_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/guile/check.list)
 mzscheme_examples  :=$(shell sed '/^\#/d' $(srcdir)/Examples/mzscheme/check.list)
 ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
+objc_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/objc/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
 octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
 php_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/php/check.list)
@@ -196,6 +200,7 @@ check-gifplot:					\
 	check-guile-gifplot			\
 	check-mzscheme-gifplot			\
 	check-ruby-gifplot			\
+#	check-objc-gifplot			\
 	check-ocaml-gifplot			\
 	check-octave-gifplot			\
 	check-php-gifplot			\
@@ -238,6 +243,7 @@ check-test-suite:				\
 	check-guile-test-suite			\
 	check-mzscheme-test-suite		\
 	check-ruby-test-suite			\
+	check-objc-test-suite			\
 	check-ocaml-test-suite			\
 	check-octave-test-suite			\
 	check-php-test-suite			\
@@ -289,6 +295,7 @@ all-test-suite:					\
 	all-guile-test-suite			\
 	all-mzscheme-test-suite			\
 	all-ruby-test-suite			\
+	all-objc-test-suite			\
 	all-ocaml-test-suite			\
 	all-octave-test-suite			\
 	all-php-test-suite			\
@@ -316,6 +323,7 @@ broken-test-suite:				\
 	broken-guile-test-suite			\
 	broken-mzscheme-test-suite		\
 	broken-ruby-test-suite			\
+	broken-objc-test-suite			\
 	broken-ocaml-test-suite			\
 	broken-octave-test-suite		\
 	broken-php-test-suite			\
@@ -441,8 +449,8 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	pike chicken csharp objc modula3 allegrocl clisp lua cffi uffi r
+lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php objc ocaml octave \
+	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r
 
 lib-modules = std
 

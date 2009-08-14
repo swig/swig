@@ -916,6 +916,121 @@ AC_SUBST(OCTAVELIB)
 AC_SUBST(OCTAVECCFLAGS)
 
 #----------------------------------------------------------------
+# Look for Objective-C
+#----------------------------------------------------------------
+
+AC_ARG_WITH(objc, AS_HELP_STRING([--without-objc], [Disable OBJC]), [with_objc="$withval"], [with_objc=yes])
+AC_ARG_WITH(objc-compiler, [  --with-objc-compiler=path     Set location of OBJC compiler],[OBJCBIN="$withval"], [OBJCBIN=])
+
+# First, check for "--without-objc" or "--with-objc=no".
+if test x"${with_objc}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling OBJC])
+OBJC=
+else
+
+if test -z "$OBJCBIN" ; then
+  case $host in
+  *-*-darwin*)
+		AC_CHECK_PROGS(OBJC, gcc);;
+  *-*-cygwin* | *-*-mingw* | *-*-linux*)
+		AC_CHECK_PROGS(OBJC, gcc)
+		if test -n "$OBJC" && test "$OBJC" = "gcc" ; then
+			AC_MSG_CHECKING(whether gcc is the Apple gcc compiler)
+			gcc 2>/dev/null | grep "Apple" > /dev/null || OBJC =""
+			if test -z "$OBJC" ; then
+				AC_MSG_RESULT(no)
+				AC_CHECK_PROGS(OBJC, gcc)
+			else
+				AC_MSG_RESULT(yes)
+			fi
+		fi
+		;;
+  *);;
+  esac
+else
+  OBJC="$OBJCBIN"
+fi
+
+OBJCPP = '$OBJC'
+
+# the following looks for COCOA or GNUStep framework. TODO: have to be proper
+if test "${opsys}" = darwin; then 
+     COCOA=yes 
+elif test -f /etc/GNUstep/GNUstep.conf; then 
+     GNUSTEP=yes 
+     GNUSTEP_SYSTEM_HEADERS="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_HEADERS)" 
+     GNUSTEP_SYSTEM_LIBRARIES="$(source /etc/GNUstep/GNUstep.conf; echo $GNUSTEP_SYSTEM_LIBRARIES)" 
+     CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}" 
+     CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}" 
+     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}" 
+     LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}" 
+fi 
+
+
+AC_MSG_CHECKING(for objc include file NSObject.h)
+AC_ARG_WITH(objcincl, [  --with-objcincl=path    Set location of Objective-C include directory], [OBJCINCDIR="$withval"], [OBJCINCDIR=])
+
+if test -z "$OBJCINCDIR"; then
+  OBJCINCDIR=
+
+  # Add in default directory for Objective-C headers on Windows for Cygwin, Linux and MacOSX
+  case $host in
+  *-*-cygwin* | *-*-mingw* | *_*_linux*) OBJCINCDIR="$OBJCINCDIR";;
+  *-*-darwin*) OBJCINCDIR="$OBJCINCDIR";;
+  *);;
+  esac
+fi
+
+for d in $OBJCINCDIR ; do
+  if test -r "$d/NSObject.h" ; then
+    AC_MSG_RESULT($d)
+    OBJCINCDIR =$d
+    OBJCINC=-I\"$d\"
+    break
+  fi
+done
+
+if test "$OBJCINC" = "" ; then
+  AC_MSG_RESULT(not found)
+fi
+
+case $host in
+*-*-darwin*) 
+        OBJCDYNAMICLINKING="-dynamiclib"
+        OBJCCFLAGS=""
+        ;;
+*)
+        OBJCDYNAMICLINKING=""
+        OBJCCFLAGS=""
+        ;;
+esac
+
+case $host in
+*-*-darwin*) 
+    OBJCSO=$SO
+    OBJCLDSHARED='$(CC)'
+    OBJCCXXSHARED='$(CXX)'
+    ;;
+*)
+    OBJCSO=$SO
+    OBJCLDSHARED='$(LDSHARED)'
+    OBJCCXXSHARED='$(CXXSHARED)'
+    ;;
+esac
+
+fi
+
+AC_SUBST(OBJC)
+AC_SUBST(OBJCPP)
+AC_SUBST(OBJCINC)
+AC_SUBST(OBJCDYNAMICLINKING)
+AC_SUBST(OBJCLIBRARYPREFIX)
+AC_SUBST(OBJCSO)
+AC_SUBST(OBJCLDSHARED)
+AC_SUBST(OBJCCXXSHARED)
+AC_SUBST(OBJCCFLAGS)
+
+#----------------------------------------------------------------
 # Look for java
 #----------------------------------------------------------------
 
@@ -2032,6 +2147,11 @@ if test -z "$PHP" || test -z "$PHPINC" ; then
 fi
 AC_SUBST(SKIP_PHP)
 
+SKIP_OBJC=
+if test -z "$OBJC"; then
+    SKIP_OBJC="1"
+fi
+AC_SUBST(SKIP_OBJC)
 
 SKIP_OCAML=
 if test -z "$OCAMLBIN" || test -z "$OCAMLINC" ; then
@@ -2169,6 +2289,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/guile/Makefile	        \
     Examples/test-suite/guilescm/Makefile	\
     Examples/test-suite/java/Makefile	        \
+    Examples/test-suite/objc/Makefile	        \
     Examples/test-suite/mzscheme/Makefile	\
     Examples/test-suite/ocaml/Makefile	        \
     Examples/test-suite/octave/Makefile	        \
