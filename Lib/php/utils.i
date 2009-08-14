@@ -42,9 +42,14 @@
   CONVERT_IN(temp,$*1_ltype,$input);
   $1 = &temp;
 %}
-%typemap(directorout) TYPE, const TYPE &
+%typemap(directorout) TYPE
 %{
   CONVERT_IN($result,$1_ltype,$input);
+%}
+%typemap(directorout) const TYPE & ($*1_ltype temp)
+%{
+  CONVERT_IN(temp,$*1_ltype,$input);
+  $result = &temp;
 %}
 %enddef
 
