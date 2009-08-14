@@ -13,7 +13,6 @@
 #define PHPBN2(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP")  "::" `x`
 #define PHPFN(x) %keywordwarn("'" `x` "' is a PHP built-in function, renamed as 'c_" `x` "'",sourcefmt="%(lower)s",%$isfunction,%$not %$ismember,rename="c_%s")  `x`
 
-
 /*
    From
 
@@ -475,6 +474,8 @@ PHPFN(sqrt);
 PHPFN(ceil);
 PHPFN(floor);
 PHPFN(fmod);
+PHPFN(min);
+PHPFN(max);
 
 #undef PHPKW
 #undef PHPBN1
