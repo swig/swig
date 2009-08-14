@@ -1,5 +1,8 @@
 //
 // std::unordered_map
+// Work in progress - the code is not compilable yet:
+// operator--() and constructor(compare function) not available for unordered_
+// types
 //
 
 %include <std_pair.i>

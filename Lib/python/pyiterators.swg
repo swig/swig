@@ -226,6 +226,9 @@ namespace swig {
 
     SwigPyIterator *decr(size_t n = 1)
     {
+      while (n--) {
+	--base::current;
+      }
       return this;
     }
   };
@@ -274,6 +277,13 @@ namespace swig {
 
     SwigPyIterator *decr(size_t n = 1)
     {
+      while (n--) {
+        if (base::current == begin) {
+          throw stop_iteration();
+	} else {
+          --base::current;
+	}
+      }
       return this;
     }
 
