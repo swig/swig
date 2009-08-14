@@ -2,6 +2,9 @@ Version 1.3.40 (in progress)
 ============================
 
 2009-08-14: olly
+	    [PHP] PHP5 now wraps static member variables as documented.
+
+2009-08-14: olly
 	    [PHP] Update the PHP "class" example to work with PHP5 and use
 	    modern wrapping features.
 

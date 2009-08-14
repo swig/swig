@@ -10,10 +10,6 @@
 
 /* FIXME: PHP5 OO wrapping TODO list:
  *
- * Short term:
- *
- * Sort out wrapping of static member variables in OO PHP5.
- *
  * Medium term:
  *
  * Handle default parameters on overloaded methods in PHP where possible.
@@ -766,8 +762,8 @@ public:
     String *outarg = NewStringEmpty();
     String *cleanup = NewStringEmpty();
 
-    // Not issued for overloaded functions or static member variables.
-    if (!overloaded && wrapperType != staticmembervar) {
+    // Not issued for overloaded functions.
+    if (!overloaded) {
       create_command(iname, wname);
     }
     Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
@@ -1721,6 +1717,40 @@ public:
       }
       free(arg_names);
       arg_names = NULL;
+    } else if (wrapperType == staticmembervar) {
+      // FIXME: this case ought to be folded into the one above so that it
+      // handles wrapping static members which are themselves objects.
+
+      // Static member variable, wrapped as a function due to PHP limitations.
+      const char *methodname = 0;
+      String *output = s_oowrappers;
+      methodname = Char(Getattr(n, "staticmembervariableHandler:sym:name"));
+
+      // We're called twice for a writable static member variable - first with
+      // "foo_set" and then with "foo_get" - so generate half the wrapper
+      // function each time.
+      //
+      // For a const static member, we only get called once.
+      static bool started = false;
+      const char *p = Char(iname);
+      if (strlen(p) > 4) {
+	p += strlen(p) - 4;
+	if (!started) {
+	  started = true;
+	  Printf(output, "\n\tstatic function %s() {\n", methodname);
+	  if (strcmp(p, "_set") == 0) {
+	    Printf(output, "\t\tif (func_num_args()) {\n");
+	    Printf(output, "\t\t\t%s(func_get_arg(0));\n", iname);
+	    Printf(output, "\t\t\treturn;\n");
+	    Printf(output, "\t\t}\n");
+	  }
+	}
+	if (strcmp(p, "_get") == 0) {
+	  started = false;
+	  Printf(output, "\t\treturn %s();\n", iname);
+	  Printf(output, "\t}\n");
+	}
+      }
     }
 
     DelWrapper(f);
@@ -2109,68 +2139,6 @@ public:
     wrapperType = staticmembervar;
     Language::staticmembervariableHandler(n);
     wrapperType = standard;
-
-    SwigType *type = Getattr(n, "type");
-    String *name = Getattr(n, "name");
-    String *iname = Getattr(n, "sym:name");
-
-    /* A temporary(!) hack for static member variables.
-     * PHP currently supports class functions, but not class variables.
-     * Until it does, we convert a class variable to a class function
-     * that returns the current value of the variable. E.g.
-     *
-     * class Example {
-     *  public:
-     *          static int ncount;
-     * };
-     *
-     * would be available in PHP as Example::ncount() 
-     */
-
-    // If the variable is const, then it's wrapped as a constant with set/get
-    // functions.
-    if (SwigType_isconst(type))
-      return SWIG_OK;
-
-    // This duplicates the logic from Language::variableWrapper() to test if
-    // the set wrapper is made.
-    int assignable = is_assignable(n);
-    if (assignable) {
-      String *tm = Swig_typemap_lookup("globalin", n, name, 0);
-      if (!tm && SwigType_isarray(type)) {
-	assignable = 0;
-      }
-    }
-
-    String *class_iname = Swig_name_member(Getattr(current_class, "sym:name"), iname);
-    String *lclass_iname = NewStringf("%(lower)s", class_iname);
-    create_command(lclass_iname, Swig_name_wrapper(class_iname));
-    Delete(lclass_iname);
-
-    Wrapper *f = NewWrapper();
-
-    Printv(f->def, "ZEND_NAMED_FUNCTION(", Swig_name_wrapper(class_iname), ") {\n", NIL);
-    String *mget = Swig_name_wrapper(Swig_name_get(class_iname));
-    String *mset = Swig_name_wrapper(Swig_name_set(class_iname));
-
-    if (assignable) {
-      Printf(f->code, "if (ZEND_NUM_ARGS() > 0 ) {\n");
-      Printf(f->code, "  %s( INTERNAL_FUNCTION_PARAM_PASSTHRU );\n", mset);
-      Printf(f->code, "  // need some error checking here?\n");
-      Printf(f->code, "  // Set the argument count to 0 for the get call\n");
-      Printf(f->code, "  ht = 0;\n");
-      Printf(f->code, "}\n");
-    }
-
-    Printf(f->code, "%s( INTERNAL_FUNCTION_PARAM_PASSTHRU );\n", mget);
-    Printf(f->code, "}\n");
-
-    Wrapper_print(f, s_wrappers);
-
-    Delete(class_iname);
-    Delete(mget);
-    Delete(mset);
-    DelWrapper(f);
 
     return SWIG_OK;
   }
