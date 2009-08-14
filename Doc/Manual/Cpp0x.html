@@ -1,0 +1,303 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>SWIG and C++</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGED" CONTENT="20090814;18041000">
+	<META NAME="Podatek 1" CONTENT="">
+	<META NAME="Podatek 2" CONTENT="">
+	<META NAME="Podatek 3" CONTENT="">
+	<META NAME="Podatek 4" CONTENT="">
+	<STYLE TYPE="text/css">
+	<!--
+		H2 { border-top: none; border-bottom: 1.00pt solid #dddddd; border-left: none; border-right: none; padding-top: 0cm; padding-bottom: 0.08cm; padding-left: 0cm; padding-right: 0cm; color: #000000 }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="sl-SI" BGCOLOR="#ffffff" DIR="LTR">
+<H1><a name="Cpp0x_nn1"></a>7 Swig and C++0x</H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#Extern template|outline">Extern template</a>
+<li><a href="#Initializer lists|outline">Initializer lists</a>
+<li><a href="#Type inference|outline">Type inference</a>
+<li><a href="#Range-based for-loop|outline">Range-based for-loop</a>
+<li><a href="#Null pointer constant|outline">Null pointer constant</a>
+<li><a href="#Double angle brackets|outline">Double angle brackets</a>
+<li><a href="#Template typedefs|outline">Template typedefs</a>
+<li><a href="#Unrestricted unions|outline">Unrestricted unions</a>
+<li><a href="#Variadic templates|outline">Variadic templates</a>
+<li><a href="#New string literals|outline">New string literals</a>
+<li><a href="#User-defined literals|outline">User-defined literals</a>
+<li><a href="#Thread-local storage|outline">Thread-local storage</a>
+<li><a href="#Type long long int|outline">Type long long int</a>
+<li><a href="#Static assertions|outline">Static assertions</a>
+<li><a href="#Threading facilities|outline">Threading facilities</a>
+<li><a href="#Tuple types|outline">Tuple types</a>
+<li><a href="#Hash tables|outline">Hash tables</a>
+<li><a href="#Regular expressions|outline">Regular expressions</a>
+<li><a href="#Wrapper reference|outline">Wrapper reference</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Rvalue reference and move semantics|outline">Rvalue
+	reference and move semantics</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Generalized constant expressions|outline">Generalized
+	constant expressions</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Extern template|outline">Extern
+	template</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Initializer lists|outline">Initializer
+	lists</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Uniform initialization|outline">Uniform
+	initialization</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Type inference|outline">Type
+	inference</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Range-based for-loop|outline">Range-based
+	for-loop</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Lambda functions and expressions|outline">Lambda
+	functions and expressions</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Alternate function syntax|outline">Alternate
+	function syntax</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Object construction improvement|outline">Object
+	construction improvement</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Null pointer constant|outline">Null
+	pointer constant</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Strongly typed enumerations|outline">Strongly
+	typed enumerations</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Double angle brackets|outline">Double
+	angle brackets</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Explicit conversion operators|outline">Explicit
+	conversion operators</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Template typedefs|outline">Template
+	typedefs</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Unrestricted unions|outline">Unrestricted
+	unions</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Variadic templates|outline">Variadic
+	templates</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#New string literals|outline">New
+	string literals</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#User-defined literals|outline">User-defined
+	literals</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Thread-local storage|outline">Thread-local
+	storage</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Defaulting/deleting of standard functions on C++ objects|outline">Defaulting/deleting
+	of standard functions on C++ objects</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Type long long int|outline">Type
+	long long int</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Static assertions|outline">Static
+	assertions</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Allow sizeof to work on members of classes without an explicit object|outline">Allow
+	sizeof to work on members of classes without an explicit object</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Threading facilities|outline">Threading
+	facilities</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Tuple types|outline">Tuple
+	types</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Hash tables|outline">Hash
+	tables</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Regular expressions|outline">Regular
+	expressions</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#General-purpose smart pointers|outline">General-purpose
+	smart pointers</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Extensible random number facility|outline">Extensible
+	random number facility</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Wrapper reference|outline">Wrapper
+	reference</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Polymorphous wrappers for function objects|outline">Polymorphous
+	wrappers for function objects</A></P>
+	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Type traits for metaprogramming|outline">Type
+	traits for metaprogramming</A></P>
+	<LI><P><A HREF="#Uniform method for computing return type of function objects|outline">Uniform
+	method for computing return type of function objects</A></P>
+</UL>
+<P>This chapter gives you a brief overview about the Swig
+implementation of the C++0x standard. This area of Swig is a work in
+progress. Initial C++0x support for Swig was written during the
+Google Summer of Code 2009 period.</P>
+<P>Swig supports all the new C++ syntax changes with some limitations
+(decltype expressions, variadic templates number). Wrappers for the
+new types (unordered_ types, result_of, tuples) are not supported
+yet.</P>
+<H2><A NAME="Rvalue reference and move semantics|outline"></A>Rvalue
+reference and move semantics</H2>
+<P>Swig correctly parses the new operator &amp;&amp; the same as the
+reference operator &amp;.</P>
+<H2><A NAME="Generalized constant expressions|outline"></A>Generalized
+constant expressions</H2>
+<P>Swig correctly parses the keyword „constexpr“, but ignores its
+functionality. Constant functions cannot be used as constants yet.</P>
+<H2><a name="Extern template|outline"></a>7.1 Extern template</H2>
+
+
+<P>Swig correctly parses the keywords „extern template“. The
+explicit template instantiation is disabled in Swig.</P>
+<H2><a name="Initializer lists|outline"></a>7.2 Initializer lists</H2>
+
+
+<P>Constructors using the std::initializer_list class are removed
+from the wrapped class, because the only way to acess such a
+constructor is at the compile time using the „= {}“ assignment.</P>
+<P>User should add another constructor with specific arguments
+filling the class members manually.</P>
+<H2><A NAME="Uniform initialization|outline"></A>Uniform
+initialization</H2>
+<P>The curly brackets {} for memeber initialization are fully
+supported by Swig.</P>
+<H2><a name="Type inference|outline"></a>7.3 Type inference</H2>
+
+
+<P>Swig supports „decltype()“ with some limitations. Single
+variable is allowed, however expressions are not supported yet. For
+example:</P>
+<PRE>int i; int j;
+decltype(i+j) k;</PRE><P>
+will result in an error.</P>
+<H2><a name="Range-based for-loop|outline"></a>7.4 Range-based for-loop</H2>
+
+
+<P>This feature is part of the implementation block only. Swig
+ignores it.</P>
+<H2><A NAME="Lambda functions and expressions|outline"></A>Lambda
+functions and expressions</H2>
+<P>Swig correctly parses the Lambda functions syntax. The functions
+are removed from the wrapper class, because of the lack of support
+for closures in target languages (scope of the lambda functions).</P>
+<H2><A NAME="Alternate function syntax|outline"></A>Alternate
+function syntax</H2>
+<P>Swig fully supports the new definition of functions. For example:</P>
+<PRE STYLE="margin-bottom: 0.5cm">float square(float, float);</PRE><P>
+can now be written as</P>
+<PRE STYLE="margin-bottom: 0.5cm">auto square(float, float) -&gt; float;</PRE><P>
+User can also use the type inference for the return type. For
+example:</P>
+<PRE>auto square(float a, float b) -&gt; decltype(a);</PRE><H2>
+<A NAME="Object construction improvement|outline"></A>Object
+construction improvement</H2>
+<P>Swig correctly parses and includes the external functions
+(constructor delegation and constructor inheritance) into the class
+using the „using“ keyword.</P>
+<H2><a name="Null pointer constant|outline"></a>7.5 Null pointer constant</H2>
+
+
+<P>Swig correctly maps the std::nullptr constant to the null pointer
+constant in the target language.</P>
+<H2><A NAME="Strongly typed enumerations|outline"></A>Strongly typed
+enumerations</H2>
+<P>Swig parses the new „enum class“ syntax, but does not support
+nested classes yet. The strongly typed enumerations are treated the
+same as the ordinary and anonymous enums for now.</P>
+<H2><a name="Double angle brackets|outline"></a>7.6 Double angle brackets</H2>
+
+
+<P>Swig correctly parses the symbols &gt;&gt; as the closure of the
+template block, if found inside it at the top level, or as the right
+shift operator &gt;&gt; otherwise.</P>
+<P>User can force the bit shifting operator using the parenthesis
+around the expressions. For example</P>
+<PRE>template&lt;(5&gt;&gt;3)&gt;<BR>class A {};</PRE><H2>
+<A NAME="Explicit conversion operators|outline"></A>Explicit
+conversion operators</H2>
+<P>Swig correctly uses the keyword „explicit“ for function
+objects.</P>
+<H2><a name="Template typedefs|outline"></a>7.7 Template typedefs</H2>
+
+
+<P>Swig currently parses the new „using name =“ syntax, but
+ignores the definition.</P>
+<P>User should still define the typedefs using the old syntax.</P>
+<H2><a name="Unrestricted unions|outline"></a>7.8 Unrestricted unions</H2>
+
+
+<P>Swig fully supports any type inside the union even if it does not
+define the trivial constructor.</P>
+<H2><a name="Variadic templates|outline"></a>7.9 Variadic templates</H2>
+
+
+<P>Swig fully supports the variadic templates syntax (inside the &lt;&gt;
+block, variadic class inheritance and variadic constructor and
+initializers) with some limitations.</P>
+<P>The %template statement however, accepts only the amount of
+arguments as defined in the original template&lt;&gt; block.</P>
+<H2><a name="New string literals|outline"></a>7.10 New string literals</H2>
+
+
+<P>Swig fully supports custom delimiters and unicode string
+constants.</P>
+<P>Swig currently incorrectly parses the odd number of double quotes
+inside the string. Other symbols are correctly parsed.</P>
+<H2><a name="User-defined literals|outline"></a>7.11 User-defined literals</H2>
+
+
+<P>Swig correctly parses the new operator““_mysuffix() functions.</P>
+<P>The %rename currently doesn't parse the double quotes so the user
+should rename the functions in the code using the #define.</P>
+<H2><a name="Thread-local storage|outline"></a>7.12 Thread-local storage</H2>
+
+
+<P>Swig correctly parses the „thread_local“ keyword. The new
+C++0x thread functionalities are currently ignored.</P>
+<H2><A NAME="Defaulting/deleting of standard functions on C++ objects|outline"></A>
+Defaulting/deleting of standard functions on C++ objects</H2>
+<P>Swig correctly parses the „= delete“ and „= default“
+keywords. Swig overrides the standard C++ functions anyway (copy
+constructor, operator= etc.).</P>
+<H2><a name="Type long long int|outline"></a>7.13 Type long long int</H2>
+
+
+<P>Swig correctly parses and uses the new „long long“ type.</P>
+<H2><a name="Static assertions|outline"></a>7.14 Static assertions</H2>
+
+
+<P>Swig correctly parses and calls the new „static_assert“
+function.</P>
+<H2><A NAME="Allow sizeof to work on members of classes without an explicit object|outline"></A>
+Allow sizeof to work on members of classes without an explicit object</H2>
+<P>Swig correctly calls the sizeof() on types as well as on the
+objects.</P>
+<H2><a name="Threading facilities|outline"></a>7.15 Threading facilities</H2>
+
+
+<P>Swig does not currently wrap or use any of the new threading
+classes introduced (thread, mutex, locks, condition variable, task).</P>
+<H2><a name="Tuple types|outline"></a>7.16 Tuple types</H2>
+
+
+<P>Swig does not wrap tuple types yet.</P>
+<H2><a name="Hash tables|outline"></a>7.17 Hash tables</H2>
+
+
+<P>Swig does not wrap the new unordered_ classes yet.</P>
+<H2><a name="Regular expressions|outline"></a>7.18 Regular expressions</H2>
+
+
+<P>Swig does not wrap the new C++0x regular expressions classes,
+because the target language uses its own facilities for this.</P>
+<H2><A NAME="General-purpose smart pointers|outline"></A>General-purpose
+smart pointers</H2>
+<P>Swig ignores the new shared, weak and unique smart pointers.</P>
+<H2><A NAME="Extensible random number facility|outline"></A>Extensible
+random number facility</H2>
+<P>This feature extends the standard library core only and does not
+effect the C++ language.</P>
+<H2><a name="Wrapper reference|outline"></a>7.19 Wrapper reference</H2>
+
+
+<P>Swig does not wrap the new ref() function.</P>
+<H2><A NAME="Polymorphous wrappers for function objects|outline"></A>Polymorphous
+wrappers for function objects</H2>
+<P>Swig fully supports the function templates and function objects.</P>
+<H2><A NAME="Type traits for metaprogramming|outline"></A>Type traits
+for metaprogramming</H2>
+<P>Swig explicitly requires concrete types when using the %template
+directive.</P>
+<H2><A NAME="Uniform method for computing return type of function objects|outline"></A>
+Uniform method for computing return type of function objects</H2>
+<P>Swig does not wrap the new result_of type.</P>
+</BODY>
+</HTML>
