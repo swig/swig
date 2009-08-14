@@ -979,6 +979,8 @@ public:
     Replaceall(f->code, "$symname", iname);
 
     Wrapper_print(f, s_wrappers);
+    DelWrapper(f);
+    f = NULL;
 
     if (overloaded && !Getattr(n, "sym:nextSibling")) {
       dispatchFunction(n);
@@ -988,7 +990,6 @@ public:
     wname = NULL;
 
     if (!shadow) {
-      DelWrapper(f);
       return SWIG_OK;
     }
 
@@ -1004,6 +1005,7 @@ public:
 	  Setattr(shadow_set_vars, varname, iname);
 	}
       }
+      return SWIG_OK;
     }
     // Only look at non-overloaded methods and the last entry in each overload
     // chain (we check the last so that wrap:parms and wrap:name have been set
@@ -1013,6 +1015,7 @@ public:
 
     if (!s_oowrappers)
       s_oowrappers = NewStringEmpty();
+
     if (newobject || wrapperType == memberfn || wrapperType == staticmemberfn || wrapperType == standard) {
       bool handle_as_overload = false;
       String **arg_names;
@@ -1752,8 +1755,6 @@ public:
 	}
       }
     }
-
-    DelWrapper(f);
 
     return SWIG_OK;
   }
