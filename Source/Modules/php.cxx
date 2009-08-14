@@ -1651,15 +1651,19 @@ public:
 	     * TODO: do this in a more elegant way
 	     */
 	    Printf(output, "\t\tif (is_resource($r)) {\n");
-	    Printf(output, "\t\t\t$class='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	    if (Getattr(classLookup(Getattr(n, "type")), "module")) {
+	      if (Len(prefix) == 0) {
+		Printf(output, "\t\t\t$class=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
+	      } else {
+		Printf(output, "\t\t\t$class='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
+	      }
 	      Printf(output, "\t\t\treturn new $class($r);\n");
 	    } else {
 	      Printf(output, "\t\t\t$c = new stdClass();\n");
 	      Printf(output, "\t\t\t$c->_cPtr = $r;\n");
 	      Printf(output, "\t\t\treturn $c;\n");
 	    }
-	    Printf(output, "\t\t}\n\t\telse return $r;\n");
+	    Printf(output, "\t\t}\n\t\treturn $r;\n");
 	  } else {
 	    Printf(output, "\t\t$this->%s = $r;\n", SWIG_PTR);
 	    Printf(output, "\t\treturn $this;\n");
