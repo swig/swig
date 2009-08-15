@@ -1,4 +1,26 @@
 
+#if OCTAVE_API_VERSION_OPTION>0
+#define USE_OCTAVE_API_VERSION OCTAVE_API_VERSION_OPTION
+#else
+
+#include <octave/version.h>
+#ifdef OCTAVE_API_VERSION_N
+#define USE_OCTAVE_API_VERSION OCTAVE_API_VERSION_N
+
+#else // Interim hack to distinguish between Octave 3.2 and earlier versions.
+
+#define ComplexLU __ignore
+#include <octave/CmplxLU.h>
+#undef ComplexLU
+#ifdef octave_Complex_LU_h
+#define USE_OCTAVE_API_VERSION 36
+#else
+#define USE_OCTAVE_API_VERSION 37
+#endif
+
+#endif
+
+#endif
 
 SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args, int varargs) {
   if (num_args > max_args && !varargs)

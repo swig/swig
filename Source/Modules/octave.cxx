@@ -56,7 +56,7 @@ public:
      director_multiple_inheritance = 1;
      director_language = 1;
      docs = NewHash();
-     api_version = 37;
+     api_version = 0;
    }
 
   virtual void main(int argc, char *argv[]) {
@@ -138,7 +138,7 @@ public:
     Printf(f_runtime, "#define SWIGOCTAVE\n");
     Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
-    Printf(f_runtime, "#define USE_OCTAVE_API_VERSION %i\n", api_version);
+    Printf(f_runtime, "#define OCTAVE_API_VERSION_OPTION %i\n", api_version);
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
