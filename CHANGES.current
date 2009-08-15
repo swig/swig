@@ -1,6 +1,10 @@
 Version 1.3.40 (in progress)
 ============================
 
+2009-08-15: wsfulton
+	    [Ruby] Add numerous missing wrapped methods for std::vector<bool> specialization
+            as reported by Youssef Jones.
+
 2009-08-14: wsfulton
 	    [Perl] Add SWIG_ConvertPtrAndOwn() method into the runtime for smart pointer 
             memory ownership control. shared_ptr support still to be added. Patch from 

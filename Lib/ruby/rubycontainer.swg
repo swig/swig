@@ -875,31 +875,8 @@ namespace swig
  }
 %enddef
 
-// ..I don't think %swig_sequence_methods_val are really used at all anymore...
 %define %swig_sequence_methods_val(Sequence...)
-  %swig_sequence_methods_common(%arg(Sequence))
-  %extend {
-
-  VALUE __getitem__(difference_type i) {
-      VALUE r = Qnil;
-      try {
-	r = swig::from< Sequence::value_type >( *(swig::cgetpos(self, i)) );
-      }
-      catch( std::out_of_range )
-	{
-	}
-      return r;
-    }
-
-    VALUE __setitem__(difference_type i, value_type x) {
-      std::size_t len = $self->size();
-      if ( i < 0 ) i = len - i;
-      else if ( static_cast<std::size_t>(i) >= len )
-	$self->resize( i+1, x );
-      else *(swig::getpos(self,i)) = x;
-      return swig::from< Sequence::value_type >( x );
-    }
- }
+  %swig_sequence_methods(%arg(Sequence))
 %enddef
 
 
