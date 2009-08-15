@@ -95,20 +95,32 @@ public:
     Swig_banner(f_begin);
 
     /* Include some header file of scilab */
+    if (CPlusPlus)
+      Printf(f_runtime, "extern \"C\" {\n");
+    
     Printf(f_runtime, "#include \"stack-c.h\"\n");
     Printf(f_runtime, "#include \"sciprint.h\"\n");
     Printf(f_runtime, "#include \"Scierror.h\"\n");
     Printf(f_runtime, "#include \"api_scilab.h\"\n");
     Printf(f_runtime, "#include \"localization.h\"\n");
     
+    if (CPlusPlus)
+      Printf(f_runtime, "}\n");
+   
     /* Initialize the builder.sce file code */
     Printf(f_builder_code, "ilib_name = \"%slib\";\n", module);
     Printf(f_builder_code, "files = [\"%s\",\"%s.o\"];\n", outfile, module);
     Printf(f_builder_code, "libs = [];\n");
     Printf(f_builder_code, "table = ["); 
+
+    if (CPlusPlus)
+      Printf(f_wrappers, "extern \"C\" {\n");
     
     /* Emit code for children */
     Language::top(n);
+
+    if (CPlusPlus)
+      Printf(f_wrappers, "}\n");
     
     /* create the file to generate the module: "builder.sce" */
     if(hasfunction_flag) {

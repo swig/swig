@@ -1145,13 +1145,22 @@ SCILAB_INCLUDE= $(DEFS) @SCILABINCLUDE@
 SCILAB_LIB    = @SCILABLIB@
 SCILAB        = @SCILAB@
 
-
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
 scilab: $(SRCS)
 	$(SWIG) -scilab $(SWIGOPT) $(INTERFACEPATH)
+	if [ -f builder.sce ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH $(SCILAB) -nwni -nb -f builder.sce; \
+	fi
+
+# ----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# ----------------------------------------------------------------
+
+scilab_cpp: $(SRCS)
+	$(SWIG) -scilab -c++ $(SWIGOPT) $(INTERFACEPATH)
 	if [ -f builder.sce ]; then \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH SCILABPATH=$(srcdir):$$SCILABPATH $(SCILAB) -nwni -nb -f builder.sce; \
 	fi
