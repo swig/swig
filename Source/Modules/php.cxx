@@ -118,8 +118,7 @@ static enum {
   membervar,
   staticmembervar,
   constructor,
-  directorconstructor,
-  destructor
+  directorconstructor
 } wrapperType = standard;
 
 extern "C" {
@@ -1007,6 +1006,7 @@ public:
       }
       return SWIG_OK;
     }
+
     // Only look at non-overloaded methods and the last entry in each overload
     // chain (we check the last so that wrap:parms and wrap:name have been set
     // for them all).
@@ -1016,7 +1016,7 @@ public:
     if (!s_oowrappers)
       s_oowrappers = NewStringEmpty();
 
-    if (newobject || wrapperType == memberfn || wrapperType == staticmemberfn || wrapperType == standard) {
+    if (newobject || wrapperType == memberfn || wrapperType == staticmemberfn || wrapperType == standard || wrapperType == staticmembervar) {
       bool handle_as_overload = false;
       String **arg_names;
       String **arg_values;
@@ -1043,6 +1043,9 @@ public:
 	methodname = Char(Getattr(n, "memberfunctionHandler:sym:name"));
       } else if (wrapperType == staticmemberfn) {
 	methodname = Char(Getattr(n, "staticmemberfunctionHandler:sym:name"));
+      } else if (wrapperType == staticmembervar) {
+	// Static member variable, wrapped as a function due to PHP limitations.
+	methodname = Char(Getattr(n, "staticmembervariableHandler:sym:name"));
       } else {			// wrapperType == standard
 	methodname = Char(iname);
 	if (!s_fakeoowrappers)
@@ -1053,6 +1056,7 @@ public:
       bool really_overloaded = overloaded ? true : false;
       int min_num_of_arguments = emit_num_required(l);
       int max_num_of_arguments = emit_num_arguments(l);
+
       // For a function with default arguments, we end up with the fullest
       // parmlist in full_parmlist.
       ParmList *full_parmlist = l;
@@ -1515,6 +1519,7 @@ public:
 	    Printf(prepare, "$this->%s=", SWIG_PTR);
 	  }
 	}
+
 	if (!directorsEnabled() || !Swig_directorclass(n) || !newobject) {
 	  Printf(prepare, "%s(%s);\n", iname, invoke_args);
 	} else {
@@ -1594,6 +1599,26 @@ public:
 	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
 	}
 	Delete(acc);
+      } else if (wrapperType == staticmembervar) {
+	// We're called twice for a writable static member variable - first
+	// with "foo_set" and then with "foo_get" - so generate half the
+	// wrapper function each time.
+	//
+	// For a const static member, we only get called once.
+	static bool started = false;
+	if (!started) {
+	  Printf(output, "\tstatic function %s() {\n", methodname);
+	  if (max_num_of_arguments) {
+	    // Setter.
+	    Printf(output, "\t\tif (func_num_args()) {\n");
+	    Printf(output, "\t\t\t%s(func_get_arg(0));\n", iname);
+	    Printf(output, "\t\t\treturn;\n");
+	    Printf(output, "\t\t}\n");
+	    started = true;
+	    goto done;
+	  }
+	}
+	started = false;
       } else {
 	Printf(output, "\tstatic function %s(%s) {\n", methodname, args);
       }
@@ -1708,6 +1733,8 @@ public:
 	Printf(output, "\t\treturn %s;\n", invoke);
       }
       Printf(output, "\t}\n");
+
+done:
       Delete(prepare);
       Delete(invoke);
       free(arg_values);
@@ -1720,40 +1747,6 @@ public:
       }
       free(arg_names);
       arg_names = NULL;
-    } else if (wrapperType == staticmembervar) {
-      // FIXME: this case ought to be folded into the one above so that it
-      // handles wrapping static members which are themselves objects.
-
-      // Static member variable, wrapped as a function due to PHP limitations.
-      const char *methodname = 0;
-      String *output = s_oowrappers;
-      methodname = Char(Getattr(n, "staticmembervariableHandler:sym:name"));
-
-      // We're called twice for a writable static member variable - first with
-      // "foo_set" and then with "foo_get" - so generate half the wrapper
-      // function each time.
-      //
-      // For a const static member, we only get called once.
-      static bool started = false;
-      const char *p = Char(iname);
-      if (strlen(p) > 4) {
-	p += strlen(p) - 4;
-	if (!started) {
-	  started = true;
-	  Printf(output, "\n\tstatic function %s() {\n", methodname);
-	  if (strcmp(p, "_set") == 0) {
-	    Printf(output, "\t\tif (func_num_args()) {\n");
-	    Printf(output, "\t\t\t%s(func_get_arg(0));\n", iname);
-	    Printf(output, "\t\t\treturn;\n");
-	    Printf(output, "\t\t}\n");
-	  }
-	}
-	if (strcmp(p, "_get") == 0) {
-	  started = false;
-	  Printf(output, "\t\treturn %s();\n", iname);
-	  Printf(output, "\t}\n");
-	}
-      }
     }
 
     return SWIG_OK;
