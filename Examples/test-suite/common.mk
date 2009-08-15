@@ -117,6 +117,7 @@ CPP_TEST_CASES += \
 	arrays_scope \
 	bloody_hell \
 	bools \
+	catches \
 	cast_operator \
 	casts \
 	char_strings \
