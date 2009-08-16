@@ -188,7 +188,7 @@ public:
     if (overloaded)
       Append(overname, Getattr(n, "sym:overname"));
 
-    Printv(f->def, "int ", overname, " (char *fname,unsigned long fname_len) {\n", NIL);
+    Printv(f->def, "int ", overname, " (char *fname, unsigned long fname_len) {\n", NIL);
    
     /* Emit all of the local variables for holding arguments */
     emit_parameter_variables(l, f);
@@ -361,7 +361,7 @@ public:
     String *dispatch = Swig_overload_dispatch(n, "return %s(fname, fname_len);", &maxargs);
     String *tmp = NewString("");
 
-    Printv(f->def, "int ", wname, " (char *fname,unsigned long fname_len) {\n", NIL);
+    Printv(f->def, "int ", wname, " (char *fname, unsigned long fname_len) {\n", NIL);
     Wrapper_add_local(f, "argc", "int argc = Rhs;");
     //Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
     //for (int j = 0; j < maxargs; ++j)
@@ -369,7 +369,7 @@ public:
     //Printf(tmp, "}");
     //Wrapper_add_local(f, "argv", tmp);
     Printv(f->code, dispatch, "\n", NIL);
-    Printf(f->code, "error(\"No matching function for overload\");\n", iname);
+    Printf(f->code, "Scierror(999, _(\"No matching function for overload\"));\n");
     Printf(f->code, "return 0;\n");
     Printv(f->code, "}\n", NIL);
 
@@ -418,7 +418,7 @@ public:
       Printf(globalVar, "int %s = 0;\n\n", iscomplexname);
     else
       Printf(globalVar, "\n");
-    Printv(setf->def, "int ", setname, " (char *fname,unsigned long fname_len) {\n", NIL);
+    Printv(setf->def, "int ", setname, " (char *fname, unsigned long fname_len) {\n", NIL);
     
     /* Check the number of input and output */
     Printf(setf->def, "CheckRhs(1, 1);\n");
@@ -453,7 +453,7 @@ public:
     /* deal with the get function */
     Setattr(n, "wrap:name", getname);
     int addfail = 0;
-    Printv(getf->def, "int ", getname, " (char *fname,unsigned long fname_len){\n", NIL);
+    Printv(getf->def, "int ", getname, " (char *fname, unsigned long fname_len){\n", NIL);
    
     /* Check the number of input and output */
     Printf(getf->def, "CheckRhs(0, 0);\n");
@@ -519,7 +519,7 @@ public:
     String *getname = Swig_name_get(iname);
     Setattr(n, "wrap:name", getname);
     int addfail = 0;
-    Printv(getf->def, "int ", getname, " (char *fname,unsigned long fname_len){\n", NIL);
+    Printv(getf->def, "int ", getname, " (char *fname, unsigned long fname_len){\n", NIL);
    
     /* Check the number of input and output */
     Printf(getf->def, "CheckRhs(0, 0);\n");

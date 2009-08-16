@@ -9,7 +9,6 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-
 include $(srcdir)/../common.mk
 
 # Overridden variables here
@@ -17,7 +16,7 @@ include $(srcdir)/../common.mk
 
 # Rules for the different types of tests
 %.cpptest: 
-	
+		
 %.ctest:
 	$(setup)
 	cp ../$*.i $*.i
@@ -37,7 +36,7 @@ run_testcase = \
 
 # Clean: remove the generated .sci file
 %.clean:
-	@rm -f $*.sci *_wrap.c *.i *.h
+	@rm -f $*.sci *_wrap.c *.i *.h *_wrap.cxx
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile scilab_clean
