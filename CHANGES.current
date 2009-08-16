@@ -120,6 +120,9 @@ Version 1.3.40 (in progress)
 	    different name to the class, as such constructors can still take
 	    parameters.
 
+2009-07-12: xavier99
+	    [Octave] Add support for Octave 3.2 API
+
 2009-07-05: olly
 	    [PHP] Update the list of PHP keywords - "cfunction" is no longer a
 	    keyword in PHP5 and PHP 5.3 added "goto", "namespace", "__DIR__",
