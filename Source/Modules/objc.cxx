@@ -169,6 +169,7 @@ public:
       }
 
       emitBanner(f_proxy_h);
+      Printf(f_proxy_h, "#import <Foundation/Foundation.h>");
       Printf(f_proxy_m, "#include \"%s\"\n\n", file_h);
       Printf(f_proxy_m, "#include \"%s\"\n\n", proxy_h);
       Printv(f_proxy_h, proxy_global_constants_code, proxy_h_code, NIL);
@@ -206,6 +207,7 @@ public:
       }
 
       Swig_banner(f_ocpp_h);
+      Printf(f_ocpp_h, "\n#import <Foundation/Foundation.h>\n");
       Printf(f_ocpp_h, "\n#ifdef __cplusplus\n");
       Printf(f_ocpp_h, "extern \"C\" {\n");
       Printf(f_ocpp_h, "#endif\n\n");
@@ -1038,15 +1040,18 @@ public:
     // Substitute the function name
     Replaceall(f->code, "$symname", symname);
 
-    // Dump the function out
-    if (!native_function_flag) {
-      Wrapper_print(f, f_wrappers);
-    }
+    /* Contract macro modification */
+    Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
 
     if (!is_void_return)
       Replaceall(f->code, "$null", "0");
     else
       Replaceall(f->code, "$null", "");
+
+    // Dump the function out
+    if (!native_function_flag) {
+      Wrapper_print(f, f_wrappers);
+    }
 
     if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       Setattr(n, "ocppfuncname", wname);
@@ -1116,7 +1121,7 @@ public:
 
       Printf(function_decl, "- (id)init");
 
-      Printv(imcall, mangled_overname, "(", NIL);
+      Printv(imcall, "ObjCPP_", mangled_overname, "(", NIL);
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("in", l, NULL);
@@ -1745,10 +1750,11 @@ public:
       if (*Char(destructor_call))
 	Replaceall(destruct, "$imcall", destructor_call);
       else
-	Replaceall(destruct, "$imcall", "throw new UnsupportedOperationException(\"C++ destructor does not have public access\")");
+	Replaceall(destruct, "$imcall",
+		   "[NSException raise:@\"UnsupportedOperationException\" format: @\"%@\", @\"C++ destructor does not have public access\"]");
       if (*Char(destruct)) {
-	Printv(proxy_class_decl, "- (void)", destruct_methodname, "();", "\n", NIL);
-	Printv(proxy_class_def, "- (void)", destruct_methodname, "() ", destruct, "\n\n", NIL);
+	Printv(proxy_class_decl, "- (void)", destruct_methodname, ";", "\n", NIL);
+	Printv(proxy_class_def, "- (void)", destruct_methodname, " ", destruct, "\n\n", NIL);
       }
     }
     // Emit extra user code
