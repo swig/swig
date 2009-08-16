@@ -42,12 +42,16 @@ short full_of_exceptions(int num) {
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
-void throw_spec_function(int value) throw (int) { throw (int)0; }
+bool throw_spec_function(int value) throw (int) { throw (int)0; }
 #if defined(_MSC_VER)
   #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
 %}
 
+%catches(int) catches_function(int value);
+%inline %{
+bool catches_function(int value) { throw (int)0; }
+%}
 
 // Check newfree typemap throws attribute
 %newobject makeTestClass;

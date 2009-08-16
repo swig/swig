@@ -1404,7 +1404,7 @@ MODULA3():
 
     // Get any Modula 3 exception classes in the throws typemap
     ParmList *throw_parm_list = NULL;
-    if ((throw_parm_list = Getattr(n, "throws"))) {
+    if ((throw_parm_list = Getattr(n, "catchlist"))) {
       Swig_typemap_attach_parms("throws", throw_parm_list, f);
       Parm *p;
       for (p = throw_parm_list; p; p = nextSibling(p)) {

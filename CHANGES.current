@@ -2,6 +2,10 @@ Version 1.3.40 (in progress)
 ============================
 
 2009-08-16: wsfulton
+            [Java] When %catches is used, fix so that any classes specified in the "throws"
+            attribute of the "throws" typemap are generated into the Java method's throws clause.
+
+2009-08-16: wsfulton
             [C#] Fix exception handling when %catches is used, reported by Juan Manuel Alvarez.
 
 2009-08-15: wsfulton
