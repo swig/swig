@@ -40,7 +40,7 @@ public class java_throws_runme {
       if (!pass)
         throw new RuntimeException("Test 2 failed");
 
-      // Check the exception class in the throw typemap
+      // Check the exception class is used with %catches
       pass = false;
       try {
         java_throws.catches_function(100);
