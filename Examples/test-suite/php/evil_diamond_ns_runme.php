@@ -1,5 +1,4 @@
 <?php
-// Sample test file
 
 require "tests.php";
 require "evil_diamond_ns.php";

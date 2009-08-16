@@ -1,5 +1,4 @@
 <?php
-// Sample test file
 
 require "tests.php";
 require "valuewrapper_base.php";
