@@ -60,11 +60,11 @@
 
 // Pointer, references and arrays
 %typemap(in) char *, char *&
-%{ $1 = [$input cStringUsingEncoding: NSStringEncodingConversionAllowLossy]; %} //TBD
+%{ $1 = [$input cStringUsingEncoding: [NSString defaultCStringEncoding]]; %}
 %typemap(in) char[ANY]
-%{ $1 = [$input cStringUsingEncoding: NSStringEncodingConversionAllowLossy]; %} //TBD
+%{ $1 = [$input cStringUsingEncoding: [NSString defaultCStringEncoding]]; %}
 %typemap(in) char[]
-%{ $1 = [$input cStringUsingEncoding: NSStringEncodingConversionAllowLossy]; %} //TBD
+%{ $1 = [$input cStringUsingEncoding: [NSString defaultCStringEncoding]]; %}
 
 %typemap(in) SWIGTYPE *
 %{ $1 = ($1_ltype)$input; %}
@@ -166,8 +166,7 @@
 
 /* Following are the "objcout" typemaps for Objective-C++ to Objective-C to conversions */
 // Primitive types
-%typemap(objcout) bool,              const bool &,
-                 char,               const char &,
+%typemap(objcout) char,               const char &,
                  signed char,        const signed char &,
                  unsigned char,      const unsigned char &,
                  short,              const short &,
@@ -183,6 +182,12 @@
 {
 		$1_ltype ret = $imcall;
     return ret;
+}
+
+%typemap(objcout) bool, const bool & {
+	  BOOL ret = $imcall;
+    return ret;
+
 }
 	
 // Pointers, references and arrays		
@@ -237,6 +242,7 @@
 %typemap(objcinterface) SWIGTYPE %{
 {
 	void *swigCPtr;
+	BOOL swigCMemOwn;
 }
 - (void*)getCptr;
 - (id)initWithCptr: (void*) cptr;
@@ -376,16 +382,85 @@
   [super dealloc];
 }
 
-/* Objective-C specific directives */
-#define %objcconst(flag)              %feature("objc:const","flag")
-#define %objcconstvalue(value)        %feature("objc:constvalue",value)
-#define %objcenum(wrapapproach)       %feature("objc:enum","wrapapproach")
-#define %objcmethodmodifiers          %feature("objc:methodmodifiers")
-#define %objcnothrowexception         %feature("except")
-#define %objcattributes               %feature("objc:attributes")
 
 
-/* Exception handling */
+
+/* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
+ * that cannot be overloaded in Objective-C as more than one C++ type maps to a single Objective-C type */
+
+%typecheck(SWIG_TYPECHECK_BOOL) /* Objective-C boolean */
+    BOOL,
+    bool,
+    const bool &
+    ""
+
+%typecheck(SWIG_TYPECHECK_CHAR) /* Objective-C char */
+    char, 
+    const char &
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT8) /* Objective-C byte */
+    signed char,
+    const signed char &
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT16) /* Objective-C short */
+    unsigned char, 
+    short, 
+    const unsigned char &, 
+    const short &
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT32) /* Objective-C int */
+    unsigned short, 
+    int, 
+    long, 
+    const unsigned short &, 
+    const int &, 
+    const long &
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT64) /* Objective-C long */
+    unsigned int, 
+    unsigned long, 
+    long long, 
+    const unsigned int &, 
+    const unsigned long &, 
+    const long long &
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT128) /* Objective-C BigInteger */
+    unsigned long long,
+    const unsigned long long &
+    ""
+
+%typecheck(SWIG_TYPECHECK_FLOAT) /* Objective-C float */
+    float,
+    const float &
+    ""
+
+%typecheck(SWIG_TYPECHECK_DOUBLE) /* Objective-C double */
+    double,
+    const double &
+    ""
+
+%typecheck(SWIG_TYPECHECK_STRING) /* Objective-C String */
+    char *,
+    char *&,
+    char[ANY],
+    char []
+    ""
+
+%typecheck(SWIG_TYPECHECK_POINTER) /* Default */
+    SWIGTYPE, 
+    SWIGTYPE *, 
+    SWIGTYPE &, 
+    SWIGTYPE [],
+    SWIGTYPE (CLASS::*)
+    ""
+
+
+// Exception handling
 
 %typemap(throws) int, 
                  long, 
@@ -403,6 +478,20 @@
 %typemap(throws) char *
 %{ NString* aFormat = [NSString stringWithString:@"%s"];
 	[NSException raise:@"$1_type exception" format: aFormat, $1] %}
+
+
+// Objective-C specific directives
+#define %objcconst(flag)              %feature("objc:const","flag")
+#define %objcconstvalue(value)        %feature("objc:constvalue",value)
+#define %objcenum(wrapapproach)       %feature("objc:enum","wrapapproach")
+#define %objcmethodmodifiers          %feature("objc:methodmodifiers")
+#define %objcnothrowexception         %feature("except")
+#define %objcattributes               %feature("objc:attributes")
+
+/* Some ANSI C typemaps */
+
+%apply unsigned long { size_t };
+%apply const unsigned long & { const size_t & };
 	
 // Default enum handling
 %include <enums.swg>
