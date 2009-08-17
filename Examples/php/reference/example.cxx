@@ -17,7 +17,7 @@ Vector operator+(const Vector &a, const Vector &b) {
   return r;
 }
 
-char *Vector::print() {
+char *Vector::as_string() {
   static char temp[512];
   sprintf(temp,"Vector %p (%g,%g,%g)", this, x,y,z);
   return temp;
@@ -47,4 +47,3 @@ int VectorArray::size() {
   printf("VectorArray: size %d self=%p\n",maxsize,this);
   return maxsize;
 }
-

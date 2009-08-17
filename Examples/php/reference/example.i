@@ -12,7 +12,7 @@ class Vector {
 public:
     Vector(double x, double y, double z);
    ~Vector();
-    char *print();
+    char *as_string();
 };
 
 /* This helper function calls an overloaded operator */
@@ -41,4 +41,3 @@ public:
     }
   }
 };
-
