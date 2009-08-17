@@ -8,6 +8,8 @@
    This module also tests whether Swig correctly parses custom string delimiters.
 */
 %module cpp0x_raw_string_literals
+%warnfilter(454) c;
+%warnfilter(454) d;
 
 %inline %{
 #include <iostream>

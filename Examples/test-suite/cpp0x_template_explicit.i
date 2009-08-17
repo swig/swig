@@ -3,6 +3,8 @@
    using the translation unit).
 */
 %module cpp0x_template_explicit
+%warnfilter(320) std::vector<A>;
+%warnfilter(320) std::vector<A*>;
 
 %inline %{
 #include <vector>

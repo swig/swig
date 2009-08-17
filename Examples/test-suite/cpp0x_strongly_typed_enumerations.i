@@ -2,6 +2,10 @@
    strongly typed enums. Enums with the same type are comparable. Enum classes
    require support for nested classes. */
 %module cpp0x_strongly_typed_enumerations
+%warnfilter(302) Val1;
+%warnfilter(302) Val2;
+%warnfilter(302) Val3;
+%warnfilter(302) Val4;
 
 %inline %{
 enum class Enum1 {

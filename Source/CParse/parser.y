@@ -2745,7 +2745,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                               p = tp;
                               def_supplied = 1;
                             } else if (p && !tp) { /* Variadic template - tp < p */
-                              Swig_warning(0,cparse_file, cparse_line,"Only the first variadic argument is currently supported by Swig.\n");
+                              Swig_warning(WARN_LANG_NATIVE_UNIMPL,cparse_file, cparse_line,"Only the first variadic argument is currently supported by Swig.\n");
                               break;
                             }
                           }
@@ -4265,7 +4265,7 @@ cpp_member   : c_declaration { $$ = $1; }
   
 cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
               if (Classprefix) {
-                if (Getattr($4,"type") && strstr(Char(Getattr($4,"type")), "initializer_list<")) {
+                if ($4 && Getattr($4,"type") && strstr(Char(Getattr($4,"type")), "initializer_list<")) {
                   /* Ignore constructors containing initializer_list<> introduced in C++0x */
 		  Swig_warning(WARN_LANG_INITIALIZER_LIST, cparse_file, cparse_line, "Constructor with std::initializer_list<> argument ignored.\n");
                   $$ = 0;

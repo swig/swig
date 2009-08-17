@@ -11,8 +11,8 @@ struct OutputType {
 	OutputType(int v) { v=val; }	
 };
 
+/* Note: GCC doesn't support user-defined literals yet! */
 struct TT {
-OutputType operator << (const char * string_values, size_t num_chars) { return OutputType(100); }
 OutputType operator "" (const char * string_values, size_t num_chars) { return OutputType(100); }
 OutputType operator "" _mySuffix1(const char * string_values, size_t num_chars) { return OutputType(100); }
 OutputType operator "" _mySuffix2(const wchar_t * string_values, size_t num_chars) { return OutputType(200); }

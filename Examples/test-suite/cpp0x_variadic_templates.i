@@ -4,6 +4,9 @@
    using variadic number of classes.
 */
 %module cpp0x_variadic_templates
+%warnfilter(507) MultiArgs1;
+%warnfilter(507) SizeOf1;
+%warnfilter(507) MultiInherit1;
 
 ////////////////////////
 // Variadic templates //
