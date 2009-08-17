@@ -1,303 +1,694 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE>SWIG and C++</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
-	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGED" CONTENT="20090814;18041000">
-	<META NAME="Podatek 1" CONTENT="">
-	<META NAME="Podatek 2" CONTENT="">
-	<META NAME="Podatek 3" CONTENT="">
-	<META NAME="Podatek 4" CONTENT="">
-	<STYLE TYPE="text/css">
-	<!--
-		H2 { border-top: none; border-bottom: 1.00pt solid #dddddd; border-left: none; border-right: none; padding-top: 0cm; padding-bottom: 0.08cm; padding-left: 0cm; padding-right: 0cm; color: #000000 }
-	-->
-	</STYLE>
-</HEAD>
-<BODY LANG="sl-SI" BGCOLOR="#ffffff" DIR="LTR">
-<H1><a name="Cpp0x_nn1"></a>7 Swig and C++0x</H1>
+<html>
+<head>
+<title>SWIG and Python</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body bgcolor="#ffffff">
+<H1><a name="Cpp0x"></a>7 SWIG and C++0x</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
-<li><a href="#Extern template|outline">Extern template</a>
-<li><a href="#Initializer lists|outline">Initializer lists</a>
-<li><a href="#Type inference|outline">Type inference</a>
-<li><a href="#Range-based for-loop|outline">Range-based for-loop</a>
-<li><a href="#Null pointer constant|outline">Null pointer constant</a>
-<li><a href="#Double angle brackets|outline">Double angle brackets</a>
-<li><a href="#Template typedefs|outline">Template typedefs</a>
-<li><a href="#Unrestricted unions|outline">Unrestricted unions</a>
-<li><a href="#Variadic templates|outline">Variadic templates</a>
-<li><a href="#New string literals|outline">New string literals</a>
-<li><a href="#User-defined literals|outline">User-defined literals</a>
-<li><a href="#Thread-local storage|outline">Thread-local storage</a>
-<li><a href="#Type long long int|outline">Type long long int</a>
-<li><a href="#Static assertions|outline">Static assertions</a>
-<li><a href="#Threading facilities|outline">Threading facilities</a>
-<li><a href="#Tuple types|outline">Tuple types</a>
-<li><a href="#Hash tables|outline">Hash tables</a>
-<li><a href="#Regular expressions|outline">Regular expressions</a>
-<li><a href="#Wrapper reference|outline">Wrapper reference</a>
+<li><a href="#Cpp0x_Introduction">Introduction</a>
+<li><a href="#Cpp0x_Core_language_changes">Core language changes</a>
+<ul>
+<li><a href="#Cpp0x_Rvalue_reference_and_move_semantics">Rvalue reference and move semantics</a>
+<li><a href="#Cpp0x_Generalized_constant_expressions">Generalized constant expressions</a>
+<li><a href="#Cpp0x_Extern_template">Extern template</a>
+<li><a href="#Cpp0x_Initializer_lists">Initializer lists</a>
+<li><a href="#Cpp0x_Uniform_initialization">Uniform initialization</a>
+<li><a href="#Cpp0x_Type_inference">Type inference</a>
+<li><a href="#Cpp0x_Range-based_for-loop">Range-based for-loop</a>
+<li><a href="#Cpp0x_Lambda_functions_and_expressions">Lambda functions and expressions</a>
+<li><a href="#Cpp0x_Alternate_function_syntax">Alternate function syntax</a>
+<li><a href="#Cpp0x_Object_construction_improvement">Object construction improvement</a>
+<li><a href="#Cpp0x_Null_pointer_constant">Null pointer constant</a>
+<li><a href="#Cpp0x_Strongly_typed_enumerations">Strongly typed enumerations</a>
+<li><a href="#Cpp0x_Double_angle_brackets">Double angle brackets</a>
+<li><a href="#Cpp0x_Explicit_conversion_operators">Explicit conversion operators</a>
+<li><a href="#Cpp0x_Template_typedefs">Template typedefs</a>
+<li><a href="#Cpp0x_Unrestricted_unions">Unrestricted unions</a>
+<li><a href="#Cpp0x_Variadic_templates">Variadic templates</a>
+<li><a href="#Cpp0x_New_string_literals">New string literals</a>
+<li><a href="#Cpp0x_User-defined_literals">User-defined literals</a>
+<li><a href="#Cpp0x_Thread-local_storage">Thread-local storage</a>
+<li><a href="#Cpp0x_Defaulting/deleting_of_standard_functions_on_C++_objects">Defaulting/deleting of standard functions on C++ objects</a>
+<li><a href="#Cpp0x_Type_long_long_int">Type long long int</a>
+<li><a href="#Cpp0x_Static_assertions">Static assertions</a>
+<li><a href="#Cpp0x_Allow_sizeof_to_work_on_members_of_classes_without_an_explicit_object">Allow sizeof to work on members of classes without an explicit object</a>
+</ul>
+<li><a href="#Cpp0x_Standard_library_changes">Standard library changes</a>
+<ul>
+<li><a href="#Cpp0x_Threading_facilities">Threading facilities</a>
+<li><a href="#Cpp0x_Tuple_types">Tuple types and hash tables</a>
+<li><a href="#Cpp0x_Regular_expressions">Regular expressions</a>
+<li><a href="#Cpp0x_General-purpose_smart_pointers">General-purpose smart pointers</a>
+<li><a href="#Cpp0x_Extensible_random_number_facility">Extensible random number facility</a>
+<li><a href="#Cpp0x_Wrapper_reference">Wrapper reference</a>
+<li><a href="#Cpp0x_Polymorphous_wrappers_for_function_objects">Polymorphous wrappers for function objects</a>
+<li><a href="#Cpp0x_Type_traits_for_metaprogramming">Type traits for metaprogramming</a>
+<li><a href="#Cpp0x_Uniform_method_for_computing_return_type_of_function_objects">Uniform method for computing return type of function objects</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
 
 
 
-<UL>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Rvalue reference and move semantics|outline">Rvalue
-	reference and move semantics</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Generalized constant expressions|outline">Generalized
-	constant expressions</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Extern template|outline">Extern
-	template</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Initializer lists|outline">Initializer
-	lists</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Uniform initialization|outline">Uniform
-	initialization</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Type inference|outline">Type
-	inference</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Range-based for-loop|outline">Range-based
-	for-loop</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Lambda functions and expressions|outline">Lambda
-	functions and expressions</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Alternate function syntax|outline">Alternate
-	function syntax</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Object construction improvement|outline">Object
-	construction improvement</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Null pointer constant|outline">Null
-	pointer constant</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Strongly typed enumerations|outline">Strongly
-	typed enumerations</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Double angle brackets|outline">Double
-	angle brackets</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Explicit conversion operators|outline">Explicit
-	conversion operators</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Template typedefs|outline">Template
-	typedefs</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Unrestricted unions|outline">Unrestricted
-	unions</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Variadic templates|outline">Variadic
-	templates</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#New string literals|outline">New
-	string literals</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#User-defined literals|outline">User-defined
-	literals</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Thread-local storage|outline">Thread-local
-	storage</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Defaulting/deleting of standard functions on C++ objects|outline">Defaulting/deleting
-	of standard functions on C++ objects</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Type long long int|outline">Type
-	long long int</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Static assertions|outline">Static
-	assertions</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Allow sizeof to work on members of classes without an explicit object|outline">Allow
-	sizeof to work on members of classes without an explicit object</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Threading facilities|outline">Threading
-	facilities</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Tuple types|outline">Tuple
-	types</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Hash tables|outline">Hash
-	tables</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Regular expressions|outline">Regular
-	expressions</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#General-purpose smart pointers|outline">General-purpose
-	smart pointers</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Extensible random number facility|outline">Extensible
-	random number facility</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Wrapper reference|outline">Wrapper
-	reference</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Polymorphous wrappers for function objects|outline">Polymorphous
-	wrappers for function objects</A></P>
-	<LI><P STYLE="margin-bottom: 0cm"><A HREF="#Type traits for metaprogramming|outline">Type
-	traits for metaprogramming</A></P>
-	<LI><P><A HREF="#Uniform method for computing return type of function objects|outline">Uniform
-	method for computing return type of function objects</A></P>
-</UL>
-<P>This chapter gives you a brief overview about the Swig
-implementation of the C++0x standard. This area of Swig is a work in
+<H2><a name="Cpp0x_Introduction"></a>7.1 Introduction</H2>
+
+
+<p>This chapter gives you a brief overview about the Swig
+implementation of the C++0x standard. This part of Swig is still a work in
 progress. Initial C++0x support for Swig was written during the
-Google Summer of Code 2009 period.</P>
-<P>Swig supports all the new C++ syntax changes with some limitations
+Google Summer of Code 2009 period.</p>
+<p>Swig supports all the new C++ syntax changes with some limitations
 (decltype expressions, variadic templates number). Wrappers for the
 new types (unordered_ types, result_of, tuples) are not supported
-yet.</P>
-<H2><A NAME="Rvalue reference and move semantics|outline"></A>Rvalue
-reference and move semantics</H2>
-<P>Swig correctly parses the new operator &amp;&amp; the same as the
-reference operator &amp;.</P>
-<H2><A NAME="Generalized constant expressions|outline"></A>Generalized
-constant expressions</H2>
-<P>Swig correctly parses the keyword „constexpr“, but ignores its
-functionality. Constant functions cannot be used as constants yet.</P>
-<H2><a name="Extern template|outline"></a>7.1 Extern template</H2>
+yet.</p>
+
+<H2><a name="Cpp0x_Core_language_changes"></a>7.2 Core language changes</H2>
 
 
-<P>Swig correctly parses the keywords „extern template“. The
-explicit template instantiation is disabled in Swig.</P>
-<H2><a name="Initializer lists|outline"></a>7.2 Initializer lists</H2>
+<H3><a name="Cpp0x_Rvalue_reference_and_move_semantics"></a>7.2.1 Rvalue reference and move semantics</H3>
 
 
-<P>Constructors using the std::initializer_list class are removed
+<p>Swig correctly parses the new operator &amp;&amp; the same as the reference operator &amp;.</p>
+
+<p>The wrapper for the following code is correctly produced:</p>
+<div class="code"><PRE>
+class MyClass {
+  MyClass(MyClass&amp;&amp; p) : ptr(p.ptr) {p.ptr = 0;}
+  MyClass&amp; operator=(MyClass&amp;&amp; p) {
+    std::swap(ptr, p.ptr);
+    return *this;
+  }
+};
+</PRE></div>
+
+<H3><a name="Cpp0x_Generalized_constant_expressions"></a>7.2.2 Generalized constant expressions</H3>
+
+
+<p>Swig correctly parses the keyword "constexpr", but ignores its functionality. Constant functions cannot be used as constants yet.</p>
+
+<div class="code"><PRE>
+constexpr int myConstFunc() { return 10; }
+const int a = myConstFunc(); // reslults in error
+</PRE></div>
+
+<p>User needs to use values or predefined constants when defining the new constant value:</p>
+
+<div class="code"><PRE>
+#define MY_CONST 10
+constexpr int myConstFunc() { return MY_CONST; }
+const int a = MY_CONST; // ok
+</PRE></div>
+
+<H3><a name="Cpp0x_Extern_template"></a>7.2.3 Extern template</H3>
+
+
+<p>Swig correctly parses the keywords "extern template". However, the explicit template instantiation is not usable for Swig.</p>
+
+
+<div class="code"><PRE>
+extern template class std::vector&lt;MyClass&gt;; // explicit instantiation
+
+...
+
+class MyClass {
+public:
+  int a;
+  int b;
+};
+</PRE></div>
+
+<H3><a name="Cpp0x_Initializer_lists"></a>7.2.4 Initializer lists</H3>
+
+
+<p>Constructors using the std::initializer_list class are removed
 from the wrapped class, because the only way to acess such a
-constructor is at the compile time using the „= {}“ assignment.</P>
-<P>User should add another constructor with specific arguments
-filling the class members manually.</P>
-<H2><A NAME="Uniform initialization|outline"></A>Uniform
-initialization</H2>
-<P>The curly brackets {} for memeber initialization are fully
-supported by Swig.</P>
-<H2><a name="Type inference|outline"></a>7.3 Type inference</H2>
+constructor is at the compile time using the "= {}" assignment.</p>
+<p>User should add another constructor with specific arguments
+filling the class members manually.</p>
+
+<p>For now, if a user wants to fill the class components like this:</p>
+
+<div class="code"><PRE>
+class A {
+public:
+  A( std::initializer_list&lt;int&gt; );
+};
+A a1 = {1,2,3,4};
+</PRE></div>
+
+<p>He should add another constructor using the std::vector for example:</p>
+
+<div class="code"><PRE>
+class A {
+public:
+  A( std::initializer_list&lt;int&gt; );
+  A( std::vector&lt;int&gt; );
+};
+A a1 = {1,2,3,4};
+</PRE></div>
+
+<p>And call it in target language:</p>
+<div class="targetlang"><PRE>
+&gt;&gt;&gt; a2 = A( [1,2,3,4] )
+</PRE></div>
+
+<H3><a name="Cpp0x_Uniform_initialization"></a>7.2.5 Uniform initialization</H3>
 
 
-<P>Swig supports „decltype()“ with some limitations. Single
+<p>The curly brackets {} for memeber initialization are fully
+supported by Swig:</p>
+
+<div class="code"><PRE>
+struct BasicStruct {
+ int x;
+ double y;
+};
+ 
+struct AltStruct {
+  AltStruct(int x, double y) : x_{x}, y_{y} {}
+ 
+  int x_;
+  double y_;
+};
+
+BasicStruct var1{5, 3.2}; // only fills the struct components
+AltStruct var2{2, 4.3};   // calls the constructor
+</PRE></div>
+
+<p>Usage in the target language is the same:</p>
+
+<div class="targetlang"><PRE>
+&gt;&gt;&gt; a = AltStruct(10, 142.15)
+&gt;&gt;&gt; a.x_
+10
+&gt;&gt;&gt; a.y_
+142.15
+</PRE></div>
+
+<H3><a name="Cpp0x_Type_inference"></a>7.2.6 Type inference</H3>
+
+
+<p>Swig supports "decltype()" with some limitations. Single
 variable is allowed, however expressions are not supported yet. For
-example:</P>
-<PRE>int i; int j;
-decltype(i+j) k;</PRE><P>
-will result in an error.</P>
-<H2><a name="Range-based for-loop|outline"></a>7.4 Range-based for-loop</H2>
+example, the following code will work:</p>
+<div class="code"><PRE>
+int i;
+decltype(i) j;
+</PRE></div>
+
+<p>However, using an expression inside the decltype results in syntax error:</p>
+<div class="code"><PRE>
+int i; int j;
+decltype(i+j) k;  // syntax error
+</PRE></div>
+
+<H3><a name="Cpp0x_Range-based_for-loop"></a>7.2.7 Range-based for-loop</H3>
 
 
-<P>This feature is part of the implementation block only. Swig
-ignores it.</P>
-<H2><A NAME="Lambda functions and expressions|outline"></A>Lambda
-functions and expressions</H2>
-<P>Swig correctly parses the Lambda functions syntax. The functions
-are removed from the wrapper class, because of the lack of support
-for closures in target languages (scope of the lambda functions).</P>
-<H2><A NAME="Alternate function syntax|outline"></A>Alternate
-function syntax</H2>
-<P>Swig fully supports the new definition of functions. For example:</P>
-<PRE STYLE="margin-bottom: 0.5cm">float square(float, float);</PRE><P>
-can now be written as</P>
-<PRE STYLE="margin-bottom: 0.5cm">auto square(float, float) -&gt; float;</PRE><P>
-User can also use the type inference for the return type. For
-example:</P>
-<PRE>auto square(float a, float b) -&gt; decltype(a);</PRE><H2>
-<A NAME="Object construction improvement|outline"></A>Object
-construction improvement</H2>
-<P>Swig correctly parses and includes the external functions
+<p>This feature is part of the implementation block only. Swig
+ignores it.</p>
+
+<H3><a name="Cpp0x_Lambda_functions_and_expressions"></a>7.2.8 Lambda functions and expressions</H3>
+
+
+<p>Swig correctly parses the Lambda functions syntax. For example:</p>
+<div class="code"><PRE>
+auto myLambdaFunc = [this]() { this->SomePrivateMemberFunction() };
+</PRE></div>
+
+<p>The lambda functions are removed from the wrapper class for now, because of the lack of support
+for closures (scope of the lambda functions) in target languages though.</p>
+
+<H3><a name="Cpp0x_Alternate_function_syntax"></a>7.2.9 Alternate function syntax</H3>
+
+
+<p>Swig fully supports the new definition of functions. For example:</p>
+<div class="code"><PRE>
+struct SomeStruct {
+  int FuncName(int x, int y);
+};
+</PRE></div>
+
+<p>can now be written as:</p>
+
+<div class="code"><PRE>
+struct SomeStruct {
+  auto FuncName(int x, int y) -> int;
+};
+ 
+auto SomeStruct::FuncName(int x, int y) -> int {
+  return x + y;
+}
+</PRE></div>
+
+<p>The usage in the target languages remains the same:</p>
+
+<div class="targetlang"><PRE>
+&gt;&gt;&gt; a = SomeStruct()
+&gt;&gt;&gt; a.FuncName(10,5)
+15
+</PRE></div>
+
+<p>User can also use the type inference for the return type. For example:</p>
+<div class="code"><PRE>
+auto square(float a, float b) -&gt; decltype(a);
+</PRE></div>
+
+<H3><a name="Cpp0x_Object_construction_improvement"></a>7.2.10 Object construction improvement</H3>
+
+
+<p>Swig correctly parses and includes the external functions
 (constructor delegation and constructor inheritance) into the class
-using the „using“ keyword.</P>
-<H2><a name="Null pointer constant|outline"></a>7.5 Null pointer constant</H2>
+using the "using" keyword.</p>
+
+<div class="code"><PRE>
+class BaseClass {
+public:
+  BaseClass(int iValue);
+};
+
+class DerivedClass: public BaseClass {
+  public:
+  using BaseClass::BaseClass; // Adds DerivedClass(int) constructor
+};
+</PRE></div>
+
+<H3><a name="Cpp0x_Null_pointer_constant"></a>7.2.11 Null pointer constant</H3>
 
 
-<P>Swig correctly maps the std::nullptr constant to the null pointer
-constant in the target language.</P>
-<H2><A NAME="Strongly typed enumerations|outline"></A>Strongly typed
-enumerations</H2>
-<P>Swig parses the new „enum class“ syntax, but does not support
-nested classes yet. The strongly typed enumerations are treated the
-same as the ordinary and anonymous enums for now.</P>
-<H2><a name="Double angle brackets|outline"></a>7.6 Double angle brackets</H2>
+<p>Swig correctly maps the std::nullptr constant to the null pointer
+constant in the target language.</p>
+
+<H3><a name="Cpp0x_Strongly_typed_enumerations"></a>7.2.12 Strongly typed enumerations</H3>
 
 
-<P>Swig correctly parses the symbols &gt;&gt; as the closure of the
+<p>Swig parses the new "enum class" syntax and forward declarator for the enums:</p>
+<div class="code"><PRE>
+enum class MyEnum : unsigned int;
+</PRE></div>
+
+<p>The strongly typed enumerations are treated the same as the ordinary and anonymous enums for now,
+because Swig doesn't support the nested classes. For example, the following code:</p>
+
+<div class="code"><PRE>
+class Color {
+  enum class PrintingColors : unsigned int {
+    Cyan, Magenta, Yellow, Black
+  };
+  
+  enum class BasicColors {
+    Red, Green, Blue
+  };
+  
+  enum class AllColors {
+    // produces warnings because of duplicate names
+    Yellow, Orange, Red, Magenta, Blue, Cyan, Green, Pink, Black, White
+  };
+};
+</PRE></div>
+
+<p>should be written as a series of separated classes containing anonymous enums:</p>
+
+<div class="code"><PRE>
+class PrintingColors {
+  enum : unsigned int {
+    Cyan, Magenta, Yellow, Black
+  };
+};
+
+class BasicColors {
+  enum : unsigned int {
+    Red, Green, Blue
+  };
+};
+
+class AllColors {
+  enum : unsigned int {
+    Yellow, Orange, Red, Magenta, Blue, Cyan, Green, Pink, Black, White
+  };
+};
+</PRE></div>
+
+<H3><a name="Cpp0x_Double_angle_brackets"></a>7.2.13 Double angle brackets</H3>
+
+
+<p>Swig correctly parses the symbols &gt;&gt; as the closure of the
 template block, if found inside it at the top level, or as the right
-shift operator &gt;&gt; otherwise.</P>
-<P>User can force the bit shifting operator using the parenthesis
-around the expressions. For example</P>
-<PRE>template&lt;(5&gt;&gt;3)&gt;<BR>class A {};</PRE><H2>
-<A NAME="Explicit conversion operators|outline"></A>Explicit
-conversion operators</H2>
-<P>Swig correctly uses the keyword „explicit“ for function
-objects.</P>
-<H2><a name="Template typedefs|outline"></a>7.7 Template typedefs</H2>
+shift operator &gt;&gt; otherwise.</p>
+
+<div class="code"><PRE>
+std::vector&lt;std::vector&lt;int&gt;&gt; myIntTable;
+</PRE></div>
+
+<p>User can force the bit shifting operator using the parenthesis
+around the expressions. For example</p>
+
+<div class="code"><PRE>
+template&lt;(5&gt;&gt;3)&gt;
+class A {};
+</PRE></div>
+
+<H3><a name="Cpp0x_Explicit_conversion_operators"></a>7.2.14 Explicit conversion operators</H3>
 
 
-<P>Swig currently parses the new „using name =“ syntax, but
-ignores the definition.</P>
-<P>User should still define the typedefs using the old syntax.</P>
-<H2><a name="Unrestricted unions|outline"></a>7.8 Unrestricted unions</H2>
+<p>Swig correctly parses the keyword "explicit" both for operators and constructors.
+For example:</p>
+
+<div class="code"><PRE>
+class U {
+public:
+        int u;
+};
+
+class V {
+public:
+        int v;
+};
+
+class TestClass {
+public:
+        //implicit converting constructor
+        TestClass( U const &amp;val ) { t=val.u; }
+        // explicit constructor
+        explicit TestClass( V const &amp;val ) { t=val.v; }
+
+        int t;
+};
+</PRE></div>
+
+<p>
+The usage of explicit constructors and operators is somehow specific to C++ when assigning the value
+of one object to another one of different type or translating one type to another. It requires both operator and function overloading features,
+which are not supported by majority of Swig target languages. Also the constructors and operators are not particulary useful in any
+Swig target languages, because all use their own faclities (eg. classes Cloneable and Comparable in Java)
+to achieve particular copy and compare behaviours.
+</p>
+
+<H3><a name="Cpp0x_Template_typedefs"></a>7.2.15 Template typedefs</H3>
 
 
-<P>Swig fully supports any type inside the union even if it does not
-define the trivial constructor.</P>
-<H2><a name="Variadic templates|outline"></a>7.9 Variadic templates</H2>
+<p>Swig currently parses the new "using name =" syntax, but
+ignores the definition:</p>
+
+<div class="code"><PRE>
+using PFD = void (*)(double); // New introduced syntax
+</PRE></div>
+
+<p>User should still define the typedefs using the old syntax:</p>
+
+<div class="code"><PRE>
+typedef void (*PFD)(double);  // The old style
+</PRE></div>
+
+<H3><a name="Cpp0x_Unrestricted_unions"></a>7.2.16 Unrestricted unions</H3>
 
 
-<P>Swig fully supports the variadic templates syntax (inside the &lt;&gt;
+<p>Swig fully supports any type inside the union even if it does not
+define the trivial constructor. For example, the wrapper for the following
+code is correctly produced:</p>
+
+<div class="code"><PRE>
+struct point {
+  point() {}
+  point(int x, int y): x_(x), y_(y) {}
+  int x_, y_;
+};
+
+union P {
+  int z;
+  double w;
+  point p;  // Illegal in C++; point has a non-trivial constructor.  However, this is legal in C++0x.
+} p1;
+</PRE></div>
+
+<H3><a name="Cpp0x_Variadic_templates"></a>7.2.17 Variadic templates</H3>
+
+
+<p>Swig fully supports the variadic templates syntax (inside the &lt;&gt;
 block, variadic class inheritance and variadic constructor and
-initializers) with some limitations.</P>
-<P>The %template statement however, accepts only the amount of
-arguments as defined in the original template&lt;&gt; block.</P>
-<H2><a name="New string literals|outline"></a>7.10 New string literals</H2>
+initializers) with some limitations. The following code is correctly parsed:</p>
+
+<div class="code"><PRE>
+template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
+public:
+   ClassName (BaseClasses&amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+}
+</PRE></div>
+
+<p>Support for the variadic sizeof() function was also introduced:</p>
+
+<div class="code"><PRE>
+const int SIZE = sizeof...(ClassName&lt;int, int&gt;);
+</PRE></div>
+
+<p>The %template statement however, accepts only at most as the amount of
+arguments defined in the original template&lt;&gt; block for now:</p>
+
+<div class="code"><PRE>
+%template(MyVariant1) ClassName&lt;&gt;         // ok
+%template(MyVariant2) ClassName&lt;int&gt;      // ok
+%template(MyVariant3) ClassName&lt;int, int&gt; // too much arguments
+</PRE></div>
+
+<H3><a name="Cpp0x_New_string_literals"></a>7.2.18 New string literals</H3>
 
 
-<P>Swig fully supports custom delimiters and unicode string
-constants.</P>
-<P>Swig currently incorrectly parses the odd number of double quotes
-inside the string. Other symbols are correctly parsed.</P>
-<H2><a name="User-defined literals|outline"></a>7.11 User-defined literals</H2>
+<p>Swig fully supports custom delimiters and unicode string
+constants.</p>
+
+<div class="code"><PRE>
+// New string literals
+char      *a = "ABC";
+wstring wide = L"ABC";
+char      *b = u8"ABC";
+char16_t  *c = u"ABC";
+char32_t  *d = U"ABC";
+
+// Custom String delimiter
+char       *e = R"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
+wstring wide2 = LR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
+char       *f = u8R"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
+char16_t   *g = uR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
+char32_t   *h = UR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
+</PRE></div>
+
+<p>Note: Swig currently incorrectly parses the odd number of double quotes
+inside the string due to Swig's C++ preprocessor.</p>
+
+<H3><a name="Cpp0x_User-defined_literals"></a>7.2.19 User-defined literals</H3>
 
 
-<P>Swig correctly parses the new operator““_mysuffix() functions.</P>
-<P>The %rename currently doesn't parse the double quotes so the user
-should rename the functions in the code using the #define.</P>
-<H2><a name="Thread-local storage|outline"></a>7.12 Thread-local storage</H2>
+<p>Swig correctly parses the new operator""_mysuffix() functions.</p>
+
+<div class="code"><PRE>
+OutputType operator "" _mySuffix(const char * string_values, size_t num_chars);
+OutputType operator "" _mySuffix(const wchar_t * string_values, size_t num_chars);
+OutputType operator "" _mySuffix(const char16_t * string_values, size_t num_chars);
+OutputType operator "" _mySuffix(const char32_t * string_values, size_t num_chars);
+OutputType operator "" _mySuffix(int value);
+</PRE></div>
+
+<p>The %rename currently doesn't parse the double quotes so the user
+should rename the functions in the code using the #define preprocessor directive.</p>
+
+<H3><a name="Cpp0x_Thread-local_storage"></a>7.2.20 Thread-local storage</H3>
 
 
-<P>Swig correctly parses the „thread_local“ keyword. The new
-C++0x thread functionalities are currently ignored.</P>
-<H2><A NAME="Defaulting/deleting of standard functions on C++ objects|outline"></A>
-Defaulting/deleting of standard functions on C++ objects</H2>
-<P>Swig correctly parses the „= delete“ and „= default“
-keywords. Swig overrides the standard C++ functions anyway (copy
-constructor, operator= etc.).</P>
-<H2><a name="Type long long int|outline"></a>7.13 Type long long int</H2>
+<p>Swig correctly parses the "thread_local" keyword. For example, a variable
+reachable by the current thread can be defined as:</p> 
+
+<div class="code"><PRE>
+struct A {
+   thread_local int val;
+};
+</PRE></div>
+
+<p>The new C++0x threading libraries are ignored because each Swig target language offers
+its own threading facilities.</p>
+
+<H3><a name="Cpp0x_Defaulting/deleting_of_standard_functions_on_C++_objects"></a>7.2.21 Defaulting/deleting of standard functions on C++ objects</H3>
 
 
-<P>Swig correctly parses and uses the new „long long“ type.</P>
-<H2><a name="Static assertions|outline"></a>7.14 Static assertions</H2>
+<p>Swig correctly parses the "= delete" and "= default"
+keywords. For example:</p>
+
+<div class="code"><PRE>
+struct NonCopyable {
+  NonCopyable&amp; operator=(const NonCopyable&amp;) = delete; /* Removes operator= */
+  NonCopyable(const NonCopyable&amp;) = delete;                /* Removed copy constructor */
+  NonCopyable() = default;                                     /* Explicitly allows the empty constructor */
+  void *operator new(std::size_t) = delete;                    /* Removes new NonCopyable */
+};
+</PRE></div>
+
+<p>This feature is somehow specific to the C++ only. The defaulting/deleting is currently ignored, because Swig
+automatically produces wrappers for special constructors and operators specific to the target language.</p>
+
+<H3><a name="Cpp0x_Type_long_long_int"></a>7.2.22 Type long long int</H3>
 
 
-<P>Swig correctly parses and calls the new „static_assert“
-function.</P>
-<H2><A NAME="Allow sizeof to work on members of classes without an explicit object|outline"></A>
-Allow sizeof to work on members of classes without an explicit object</H2>
-<P>Swig correctly calls the sizeof() on types as well as on the
-objects.</P>
-<H2><a name="Threading facilities|outline"></a>7.15 Threading facilities</H2>
+<p>Swig correctly parses and uses the new "long long" type already introduced in C99 some time ago.</p>
+
+<H3><a name="Cpp0x_Static_assertions"></a>7.2.23 Static assertions</H3>
 
 
-<P>Swig does not currently wrap or use any of the new threading
-classes introduced (thread, mutex, locks, condition variable, task).</P>
-<H2><a name="Tuple types|outline"></a>7.16 Tuple types</H2>
+<p>Swig correctly parses and calls the new "static_assert" function.</p>
+
+<div class="code"><PRE>
+template &lt;typename T&gt;
+struct Check {
+  static_assert(sizeof(int) &lt;= sizeof(T), "not big enough");
+};
+</PRE></div>
+
+<H3><a name="Cpp0x_Allow_sizeof_to_work_on_members_of_classes_without_an_explicit_object"></a>7.2.24 Allow sizeof to work on members of classes without an explicit object</H3>
 
 
-<P>Swig does not wrap tuple types yet.</P>
-<H2><a name="Hash tables|outline"></a>7.17 Hash tables</H2>
+<p>Swig correctly calls the sizeof() on types as well as on the
+objects. For example:</p>
+
+<div class="code"><PRE>
+struct A {
+  int member;
+};
+
+const int SIZE = sizeof(A::member); // does not work with C++03. Okay with C++0x
+</PRE></div>
+
+<p>In Python:</p>
+<div class="targetlang"><PRE>
+&gt;&gt;&gt; SIZE
+8
+</PRE></div>
+
+<H2><a name="Cpp0x_Standard_library_changes"></a>7.3 Standard library changes</H2>
 
 
-<P>Swig does not wrap the new unordered_ classes yet.</P>
-<H2><a name="Regular expressions|outline"></a>7.18 Regular expressions</H2>
+<H3><a name="Cpp0x_Threading_facilities"></a>7.3.1 Threading facilities</H3>
 
 
-<P>Swig does not wrap the new C++0x regular expressions classes,
-because the target language uses its own facilities for this.</P>
-<H2><A NAME="General-purpose smart pointers|outline"></A>General-purpose
-smart pointers</H2>
-<P>Swig ignores the new shared, weak and unique smart pointers.</P>
-<H2><A NAME="Extensible random number facility|outline"></A>Extensible
-random number facility</H2>
-<P>This feature extends the standard library core only and does not
-effect the C++ language.</P>
-<H2><a name="Wrapper reference|outline"></a>7.19 Wrapper reference</H2>
+<p>Swig does not currently wrap or use any of the new threading
+classes introduced (thread, mutex, locks, condition variable, task). The main reason is that
+Swig target languages offer their own threading facilities that do not rely on the C++.</p>
+
+<H3><a name="Cpp0x_Tuple_types"></a>7.3.2 Tuple types and hash tables</H3>
 
 
-<P>Swig does not wrap the new ref() function.</P>
-<H2><A NAME="Polymorphous wrappers for function objects|outline"></A>Polymorphous
-wrappers for function objects</H2>
-<P>Swig fully supports the function templates and function objects.</P>
-<H2><A NAME="Type traits for metaprogramming|outline"></A>Type traits
-for metaprogramming</H2>
-<P>Swig explicitly requires concrete types when using the %template
-directive.</P>
-<H2><A NAME="Uniform method for computing return type of function objects|outline"></A>
-Uniform method for computing return type of function objects</H2>
-<P>Swig does not wrap the new result_of type.</P>
+<p>Swig does not wrap the new tuple types and the unordered_ classes yet. Variadic support is there so the user can
+include the tuple header file and is parsed without any problems.</p>
+
+<H3><a name="Cpp0x_Regular_expressions"></a>7.3.3 Regular expressions</H3>
+
+
+<p>Swig does not wrap the new C++0x regular expressions classes, because the Swig target languages use their own facilities for this.</p>
+
+<H3><a name="Cpp0x_General-purpose_smart_pointers"></a>7.3.4 General-purpose smart pointers</H3>
+
+
+<p>Swig does not wrap the new shared, weak and unique smart pointers, because the Swig target languages offer their own garbage collectors.</p>
+
+<H3><a name="Cpp0x_Extensible_random_number_facility"></a>7.3.5 Extensible random number facility</H3>
+
+
+<p>This feature extends and standardizes the standard library only and does not effect the C++ language and Swig.</p>
+
+<H3><a name="Cpp0x_Wrapper_reference"></a>7.3.6 Wrapper reference</H3>
+
+
+<p>The new ref and cref classes are used to instantiate a parameter as a reference of a template function. For example:</p>
+
+<div class="code"><PRE>
+void f( int &amp;r )  { r++ ; }
+ 
+// Template function.
+template&lt; class F, class P &gt; void g( F f, P t )  { f(t); }
+ 
+int main() {
+  int i = 0 ;
+  g( f, i ) ;  // 'g&lt;void ( int &amp;r ), int&gt;' is instantiated
+               // then 'i' will not be modified.
+  cout &lt;&lt; i &lt;&lt; endl ;  // Output -&gt; 0
+ 
+  g( f, ref(i) ) ;  // 'g&lt;void(int &amp;r),reference_wrapper&lt;int&gt;&gt;' is instanced
+                    // then 'i' will be modified.
+  cout &lt;&lt; i &lt;&lt; endl ;  // Output -&gt; 1
+}
+</PRE></div>
+
+<p>The ref and cref classes are not wrapped by Swig because the Swig target languages do not support referencing.</p>
+
+<H3><a name="Cpp0x_Polymorphous_wrappers_for_function_objects"></a>7.3.7 Polymorphous wrappers for function objects</H3>
+
+
+<p>Swig fully supports the function template wrappers and function objects:</p>
+
+<div class="code"><PRE>
+function&lt;int ( int, int )&gt; pF;   // function template wrapper
+
+struct Test {
+  bool operator()( short x, short y ); // function object
+};
+</PRE></div>
+
+<H3><a name="Cpp0x_Type_traits_for_metaprogramming"></a>7.3.8 Type traits for metaprogramming</H3>
+
+
+<p>The new C++ metaprogramming is useful at compile time and is aimed specifically for the C++ development:</p>
+
+<div class="code"><PRE>
+// First way of operating.
+template&lt; bool B &gt; struct algorithm {
+  template&lt; class T1, class T2 &gt; int do_it( T1&amp;, T2&amp; )  { /*...*/ }
+};
+// Second way of operating.
+template&lt;&gt; struct algorithm&lt;true&gt; {
+  template&lt; class T1, class T2 &gt; int do_it( T1, T2 )  { /*...*/ }
+};
+// Instantiating 'elaborate' will automatically instantiate the correct way to operate.
+template&lt; class T1, class T2 &gt; int elaborate( T1 A, T2 B ) {
+  // Use the second way only if 'T1' is an integer and if 'T2' is
+  // in floating point, otherwise use the first way.
+  return algorithm&lt; is_integral&lt;T1&gt;::value &amp;&amp; is_floating_point&lt;T2&gt;::value &gt;::do_it( A, B );
+}
+</PRE></div>
+
+<p>Swig correctly parses the template specialization, template types and values inside the &lt;&gt; block and the new helper functions is_convertible, is_integral, is_const etc.
+However, Swig still explicitly requires concrete types when using the %template directive, so the C++ metaprogramming features are not really interesting at runtime in Swig target languages.</p>
+
+<H3><a name="Cpp0x_Uniform_method_for_computing_return_type_of_function_objects"></a>7.3.9 Uniform method for computing return type of function objects</H3>
+
+
+<p>Swig does not wrap the new result_of class introduced in the &lt;functional&gt; header and map the result_of::type to the concrete type yet. For example:</p>
+<div class="code"><PRE>
+%inline %{
+#include &lt;functional&gt;
+double square(double x) {
+        return (x * x);
+}
+
+template&lt;class Fun, class Arg&gt;
+typename std::result_of&lt;Fun(Arg)&gt;::type test_result_impl(Fun fun, Arg arg) {
+        return fun(arg);
+}
+%}
+
+%template(test_result) test_result_impl&lt;double(*)(double), double&gt;;
+%constant double (*SQUARE)(double) = square;
+</PRE></div>
+
+<p>will result in:</p>
+
+<div class="targetlang"><PRE>
+&gt;&gt;&gt; test_result_impl(SQUARE, 5.0)
+&lt;Swig Object of type 'std::result_of&lt; Fun(Arg) &gt;::type *' at 0x7faf99ed8a50&gt;
+</PRE></div>
+
+<p>User should use decltype() where possible for now.</p>
 </BODY>
 </HTML>
