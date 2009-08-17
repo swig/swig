@@ -2067,18 +2067,21 @@ done:
       if (ki.key) {
 	// This class has getters.
 	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
-	// FIXME: tune this threshold...
-	if (Len(shadow_get_vars) <= 2) {
-	  // Not many getters, so avoid call_user_func.
-	  while (ki.key) {
-	    key = ki.key;
-	    Printf(s_phpclasses, "\t\tif ($var === '%s') return %s($this->%s);\n", key, ki.item, SWIG_PTR);
-	    ki = Next(ki);
-	  }
+	// FIXME: Currently we always use call_user_func for __get, so we can
+	// check and wrap the result.  This is needless if all the properties
+	// are primitive types.  Also this doesn't handle all the cases which
+	// a method returning an object does.
+	Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_get';\n", shadow_classname);
+	Printf(s_phpclasses, "\t\tif (function_exists($func)) {\n");
+	Printf(s_phpclasses, "\t\t\t$r = call_user_func($func,$this->%s);\n", SWIG_PTR);
+	Printf(s_phpclasses, "\t\t\tif (!is_resource($r)) return $r;\n");
+	if (Len(prefix) == 0) {
+	  Printf(s_phpclasses, "\t\t\t$c=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
 	} else {
-	  Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_get';\n", shadow_classname);
-	  Printf(s_phpclasses, "\t\tif (function_exists($func)) return call_user_func($func,$this->%s);\n", SWIG_PTR);
+	  Printf(s_phpclasses, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	}
+	Printf(s_phpclasses, "\t\t\treturn new $c($r);\n");
+	Printf(s_phpclasses, "\t\t}\n");
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
 	if (baseclass) {
 	  Printf(s_phpclasses, "\t\treturn %s%s::__get($var);\n", prefix, baseclass);
