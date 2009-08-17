@@ -377,7 +377,7 @@ clean-docs-main:
 	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) clean
 
 clean-docs-ccache:
-	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) clean-docs)
+	@# Use distclean-docs-ccache, else a user requires the yodl tools to generate the docs after a clean
 
 maintainer-clean: clean-libfiles
 	@cd $(SOURCE) && $(MAKE) maintainer-clean
@@ -403,6 +403,9 @@ distclean-test-suite:
 
 distclean-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s distclean)
+
+distclean-docs-ccache:
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) distclean-docs)
 
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)
