@@ -1,3 +1,6 @@
+/* This testcase checks whether Swig produces the correct wrapper for the
+   strongly typed enums. Enums with the same type are comparable. Enum classes
+   require support for nested classes. */
 %module cpp0x_strongly_typed_enumerations
 
 %inline %{

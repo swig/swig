@@ -1,3 +1,5 @@
+/* This testcase checks whether Swig correctly parses the default and delete
+   keywords which keep or remove default C++ object construction functions. */
 %module cpp0x_default_delete
 
 %{
@@ -5,7 +7,7 @@
 
 class NonCopyable {
 public:
-  NonCopyable & operator=(const NonCopyable&) = delete; /* Removes operator= */
+  NonCopyable& operator=(const NonCopyable&) = delete; /* Removes operator= */
   NonCopyable(const NonCopyable&) = delete; /* Removed copy constructor */
   NonCopyable() = default; /* Explicitly allows the empty constructor */
   void *operator new(size_t) = delete; /* Removes new NonCopyable */

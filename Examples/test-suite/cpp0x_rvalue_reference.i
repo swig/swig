@@ -1,3 +1,5 @@
+/* This testcase checks whether Swig correctly parses the double ampersand &&
+   move operator which is currently mapped to the reference & operator. */
 %module cpp0x_rvalue_reference
 
 %inline %{

@@ -1,3 +1,5 @@
+/* This testcase checks whether Swig correctly parses the support for types
+   without the defined trivial constructor in the unions. */
 %module cpp0x_unrestricted_unions
 
 %inline %{

@@ -1,3 +1,5 @@
+/* This testcase checks the new wrappers for the new unordered_ STL types
+   introduced in C++0x. */
 %module cpp0x_hash_tables
 
 %inline %{
