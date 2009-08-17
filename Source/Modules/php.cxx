@@ -2001,7 +2001,11 @@ done:
 	Append(s_phpclasses, "extends Exception ");
       }
       Printf(s_phpclasses, "{\n\tpublic $%s=null;\n", SWIG_PTR);
-      Printf(s_phpclasses, "\tprotected $%s=array();\n", SWIG_DATA);
+      if (!baseclass) {
+	// Only store this in the base class (NB !baseclass means we *are*
+	// a base class...)
+	Printf(s_phpclasses, "\tprotected $%s=array();\n", SWIG_DATA);
+      }
 
       // Write property SET handlers
       ki = First(shadow_set_vars);
@@ -2022,9 +2026,10 @@ done:
 	  Printf(s_phpclasses, "\t\tif (function_exists($func)) return call_user_func($func,$this->%s,$value);\n", SWIG_PTR);
 	}
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_alter_newobject($this->%s,$value);\n", module, SWIG_PTR);
-	Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
 	if (baseclass) {
-	  Printf(s_phpclasses, "\t\treturn %s%s::__set($var,$value);\n", prefix, baseclass);
+	  Printf(s_phpclasses, "\t\t%s%s::__set($var,$value);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
 	}
 	Printf(s_phpclasses, "\t}\n");
 
@@ -2032,16 +2037,28 @@ done:
 	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
 	Printf(s_phpclasses, "\t\tif (function_exists('%s_'.$var.'_set')) return true;\n", shadow_classname);
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
-	Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
+	}
 	Printf(s_phpclasses, "\t}\n");
       } else {
 	Printf(s_phpclasses, "\n\tfunction __set($var,$value) {\n");
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_alter_newobject($this->%s,$value);\n", module, SWIG_PTR);
-	Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\t%s%s::__set($var,$value);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
+	}
 	Printf(s_phpclasses, "\t}\n");
 	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
-	Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
+	}
 	Printf(s_phpclasses, "\t}\n");
       }
       // Write property GET handlers
@@ -2063,18 +2080,21 @@ done:
 	  Printf(s_phpclasses, "\t\tif (function_exists($func)) return call_user_func($func,$this->%s);\n", SWIG_PTR);
 	}
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
-	Printf(s_phpclasses, "\t\tif (array_key_exists($var, $this->%s)) return $this->%s[$var];\n", SWIG_DATA, SWIG_DATA);
-	if (base.item) {
+	if (baseclass) {
 	  Printf(s_phpclasses, "\t\treturn %s%s::__get($var);\n", prefix, baseclass);
 	} else {
 	  // Reading an unknown property name gives null in PHP.
-	  Printf(s_phpclasses, "\t\treturn null;\n");
+	  Printf(s_phpclasses, "\t\treturn $this->%s[$var];\n", SWIG_DATA);
 	}
 	Printf(s_phpclasses, "\t}\n");
       } else {
 	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
-	Printf(s_phpclasses, "\t\treturn $this->%s[$var];\n", SWIG_DATA);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__get($var);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\treturn $this->%s[$var];\n", SWIG_DATA);
+	}
 	Printf(s_phpclasses, "\t}\n");
       }
 
