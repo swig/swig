@@ -122,12 +122,12 @@ public:
     if (CPlusPlus)
       Printf(f_wrappers, "}\n");
     
-    /* create the file to generate the module: "builder.sce" */
+    /* Create the file to generate the module: "builder.sce" */
     if(hasfunction_flag) {
       Printf(f_builder_code, "];\n");
       Printf(f_builder_code, "ilib_build(ilib_name,table,files,libs);\n");
       Printf(f_builder_code, "exit");
-      File *f_builder=NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
+      File *f_builder = NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
       Printv(f_builder, f_builder_code, NIL);
       Close(f_builder);
       Delete(f_builder);
@@ -169,13 +169,12 @@ public:
     String *tm;
     int j;
 
-    /* Get the useful information from the node */
-    String *nodeType = Getattr(n, "nodeType");
-    int constructor = (!Cmp(nodeType, "constructor"));
-    // int destructor = (!Cmp(nodeType, "destructor"));
-    String *storage = Getattr(n, "storage");
+    /* Determine whether the function is overloaded or not */
     bool overloaded = !!Getattr(n, "sym:overloaded");
+    
+    /* Determine whether the function is the last overloaded */   
     bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
+    
     String *iname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(iname);
     String *overname = Copy(wname);
@@ -201,22 +200,9 @@ public:
     int num_arguments = emit_num_arguments(l);
     int num_required = emit_num_required(l);
     
-    /* the number of the output */
+    /* The number of the output */
     int out_required = 0;
-    //int varargs = emit_isvarargs(l);
-   
     
-    if (constructor && num_arguments == 1 && num_required == 1) {
-      if (Cmp(storage, "explicit") == 0) {
-	Node *parent = Swig_methodclass(n);
-	if (GetFlag(parent, "feature:implicitconv")) {
-	  String *desc = NewStringf("SWIGTYPE%s", SwigType_manglestr(Getattr(n, "type")));
-	  Printf(f->code, "if (SWIG_CheckImplicit(%s)) SWIG_fail;\n", desc);
-	  Delete(desc);
-	}
-      }
-    }
-  
     /* Walk the function parameter list and generate code to get arguments */
     for (j = 0, p = l; j < num_arguments; ++j) {
       while (checkAttribute(p, "tmap:in:numinputs", "0")) {
@@ -234,15 +220,18 @@ public:
 	  continue;
 	}
       String *getargs = NewString("");
+      
+      /* The paremeter is variable */
       if (j >= num_required)
 	Printf(getargs, "if (Rhs > %d) {\n%s\n}", j, tm);
       else
 	Printv(getargs, tm, NIL);
-       Printv(f->code, getargs, "\n", NIL);
-       Delete(getargs);
-       p = Getattr(p, "tmap:in:next");
-	continue;
-      } else {
+      Printv(f->code, getargs, "\n", NIL);
+      Delete(getargs);
+      p = Getattr(p, "tmap:in:next");
+      continue;
+      } 
+      else {
 	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
 	break;
       }
@@ -259,11 +248,13 @@ public:
 
     if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
       Replaceall(tm, "$result", "result");
-      if(out_required>0)
-        Printf(f->code,"iOutNum++;\niVarOut++;\n");
+      
+      /* There are more than one output */
+      if (out_required > 0)
+        Printf(f->code, "iOutNum ++;\niVarOut ++;\n");
       Printf(f->code, "%s\n", tm);
-      if(strlen(Char(tm))!=0)
-        out_required++;
+      if (strlen(Char(tm)) != 0)
+        out_required ++;
     } 
     else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
@@ -273,11 +264,11 @@ public:
     String *outarg = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	if(out_required>0)
-           Printf(f->code,"iOutNum++;\niVarOut++;\n");
+	if (out_required > 0)
+          Printf(f->code,"iOutNum ++;\niVarOut ++;\n");
         Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
-        out_required++;
+        out_required ++;
       } else {
 	p = nextSibling(p);
       }
@@ -309,21 +300,24 @@ public:
   
     /* Output cleanup code */
     Printv(f->code, cleanup, NIL);
+    Delete(cleanup);
 
     /* Insert the code checking for the number of input and output */
     int flag;
-    if(out_required == 0) {
+    if (out_required == 0) {
       out_required = 1;
       flag = 0;
     }
     else {
       flag = 1;
     }
+    
+    /* Insert the code checking the number of input */
     Printf(f->def, "CheckRhs(%d, %d);\n",num_required,num_arguments);
     Printf(f->def, "CheckLhs(%d, %d);\n",out_required,out_required);
    
     /* Insert the order of output parameters*/
-    if(flag)
+    if (flag)
       Printf(f->def, "\nint iOutNum = 1;\nint iVarOut = Rhs + 1;");
    
     /* Finish the the code for the function  */
@@ -358,22 +352,23 @@ public:
     String *iname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(iname);
     int maxargs;
+   
+    /* Generate the dispatch function */
     String *dispatch = Swig_overload_dispatch(n, "return %s(fname, fname_len);", &maxargs);
     String *tmp = NewString("");
 
     Printv(f->def, "int ", wname, " (char *fname, unsigned long fname_len) {\n", NIL);
+    
+    /* Get the number of the parameters */
     Wrapper_add_local(f, "argc", "int argc = Rhs;");
-    //Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
-    //for (int j = 0; j < maxargs; ++j)
-      //Printf(tmp, "%soctave_value_ref(args,%d)", j ? "," : " ", j);
-    //Printf(tmp, "}");
-    //Wrapper_add_local(f, "argv", tmp);
+    
+    /* Dump the dispatch function */
     Printv(f->code, dispatch, "\n", NIL);
     Printf(f->code, "Scierror(999, _(\"No matching function for overload\"));\n");
     Printf(f->code, "return 0;\n");
     Printv(f->code, "}\n", NIL);
-
     Wrapper_print(f, f_wrappers);
+    
     Delete(tmp);
     DelWrapper(f);
     Delete(dispatch);
@@ -396,6 +391,7 @@ public:
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
     
+    /* The rows and cols name of the variable */
     String *rowname = NewString("");
     String *colname = NewString("");
     String *iscomplexname = NewString("");
@@ -403,7 +399,7 @@ public:
     Printf(colname, "iCols_%s", iname);
     Printf(iscomplexname, "isComplex_%s", iname);
     
-    /* two wrapper function to get and set the variable */
+    /* Two wrapper function to get and set the variable */
     String *tm;
     String *globalVar = NewString("");
     Wrapper *getf = NewWrapper();
@@ -424,10 +420,10 @@ public:
     Printf(setf->def, "CheckRhs(1, 1);\n");
     Printf(setf->def, "CheckLhs(1, 1);\n");
     
-    /* add the local variable */
+    /* Add the local variable */
     Wrapper_add_local(setf, "piAddrVar", "int *piAddrVar");
    
-    /* deal with the set function */
+    /* Deal with the set function */
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
       if (Getattr(n, "unnamedinstance"))
@@ -450,7 +446,7 @@ public:
     Wrapper_print(setf, f_wrappers);
     Printf(f_builder_code, "\"%s\",\"%s\";", setname, setname);
     
-    /* deal with the get function */
+    /* Deal with the get function */
     Setattr(n, "wrap:name", getname);
     int addfail = 0;
     Printv(getf->def, "int ", getname, " (char *fname, unsigned long fname_len){\n", NIL);
@@ -459,7 +455,7 @@ public:
     Printf(getf->def, "CheckRhs(0, 0);\n");
     Printf(getf->def, "CheckLhs(1, 1);\n");
     
-    /* Insert the order of output parameters*/
+    /* Insert the order of output parameters */
     Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
    
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
@@ -474,11 +470,12 @@ public:
       Replaceall(tm, "isComplex", iscomplexname); 
       addfail = emit_action_code(n, getf->code, tm);
       Delete(tm);
-    } else {
+    } 
+    else {
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(t, 0));
     }
    
-    /*Dump the wrapper function */ 
+    /* Dump the wrapper function */ 
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
     Printf(f_header,"%s", globalVar);
@@ -491,9 +488,8 @@ public:
     DelWrapper(setf);
     DelWrapper(getf);
     
-
     return SWIG_OK;
-   }
+  }
 
   /* -----------------------------------------------------------------------
    * constantWrapper()
@@ -514,7 +510,7 @@ public:
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
     
-    /*use the get function to get the constant value */
+    /* Use the get function to get the constant value */
     Wrapper *getf = NewWrapper();
     String *getname = Swig_name_get(iname);
     Setattr(n, "wrap:name", getname);
@@ -538,10 +534,12 @@ public:
       Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(type, 0));
     }
    
-    /*Dump the wrapper function */ 
+    /* Dump the wrapper function */ 
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
     Printf(f_builder_code, "\"%s\",\"%s\";", getname, getname);
+    
+    DelWrapper(getf);
 
     return SWIG_OK;
   }
