@@ -7,6 +7,9 @@
 #ifdef do_close
   #undef do_close
 #endif
+#ifdef do_exec
+  #undef do_exec
+#endif
 #ifdef scalar
   #undef scalar
 #endif
