@@ -2173,7 +2173,7 @@ reference to be used as a char ** datatype.
 	};
 	myav =	av_make(len,svs);
 	free(svs);
-        $result = newRV((SV*)myav);
+        $result = newRV_noinc((SV*)myav);
         sv_2mortal($result);
         argvi++;
 }

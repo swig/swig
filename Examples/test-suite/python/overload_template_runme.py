@@ -1,8 +1,8 @@
 from overload_template import *
 f = foo()
 
-a = max(3,4)
-b = max(3.4,5.2)
+a = maximum(3,4)
+b = maximum(3.4,5.2)
 
 # mix 1
 if (mix1("hi") != 101):

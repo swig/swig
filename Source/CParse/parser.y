@@ -2726,7 +2726,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			      Parm *ti = targs;
 			      String *tv = Getattr(tp,"value");
 			      if (!tv) tv = Getattr(tp,"type");
-			      while(pi != tp) {
+			      while(pi != tp && ti && pi) {
 				String *name = Getattr(ti,"name");
 				String *value = Getattr(pi,"value");
 				if (!value) value = Getattr(pi,"type");

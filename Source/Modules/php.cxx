@@ -10,10 +10,6 @@
 
 /* FIXME: PHP5 OO wrapping TODO list:
  *
- * Short term:
- *
- * Sort out wrapping of static member variables in OO PHP5.
- *
  * Medium term:
  *
  * Handle default parameters on overloaded methods in PHP where possible.
@@ -122,8 +118,7 @@ static enum {
   membervar,
   staticmembervar,
   constructor,
-  directorconstructor,
-  destructor
+  directorconstructor
 } wrapperType = standard;
 
 extern "C" {
@@ -766,8 +761,8 @@ public:
     String *outarg = NewStringEmpty();
     String *cleanup = NewStringEmpty();
 
-    // Not issued for overloaded functions or static member variables.
-    if (!overloaded && wrapperType != staticmembervar) {
+    // Not issued for overloaded functions.
+    if (!overloaded) {
       create_command(iname, wname);
     }
     Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
@@ -983,6 +978,8 @@ public:
     Replaceall(f->code, "$symname", iname);
 
     Wrapper_print(f, s_wrappers);
+    DelWrapper(f);
+    f = NULL;
 
     if (overloaded && !Getattr(n, "sym:nextSibling")) {
       dispatchFunction(n);
@@ -992,7 +989,6 @@ public:
     wname = NULL;
 
     if (!shadow) {
-      DelWrapper(f);
       return SWIG_OK;
     }
 
@@ -1008,7 +1004,9 @@ public:
 	  Setattr(shadow_set_vars, varname, iname);
 	}
       }
+      return SWIG_OK;
     }
+
     // Only look at non-overloaded methods and the last entry in each overload
     // chain (we check the last so that wrap:parms and wrap:name have been set
     // for them all).
@@ -1017,7 +1015,8 @@ public:
 
     if (!s_oowrappers)
       s_oowrappers = NewStringEmpty();
-    if (newobject || wrapperType == memberfn || wrapperType == staticmemberfn || wrapperType == standard) {
+
+    if (newobject || wrapperType == memberfn || wrapperType == staticmemberfn || wrapperType == standard || wrapperType == staticmembervar) {
       bool handle_as_overload = false;
       String **arg_names;
       String **arg_values;
@@ -1027,11 +1026,11 @@ public:
       if (constructor) {
 	class_has_ctor = true;
 	// Skip the Foo:: prefix.
-	char *ptr = strrchr(GetChar(n, "name"), ':');
+	char *ptr = strrchr(GetChar(Swig_methodclass(n), "sym:name"), ':');
 	if (ptr) {
 	  ptr++;
 	} else {
-	  ptr = GetChar(n, "name");
+	  ptr = GetChar(Swig_methodclass(n), "sym:name");
 	}
 	if (strcmp(ptr, GetChar(n, "constructorHandler:sym:name")) == 0) {
 	  methodname = "__construct";
@@ -1044,6 +1043,9 @@ public:
 	methodname = Char(Getattr(n, "memberfunctionHandler:sym:name"));
       } else if (wrapperType == staticmemberfn) {
 	methodname = Char(Getattr(n, "staticmemberfunctionHandler:sym:name"));
+      } else if (wrapperType == staticmembervar) {
+	// Static member variable, wrapped as a function due to PHP limitations.
+	methodname = Char(Getattr(n, "staticmembervariableHandler:sym:name"));
       } else {			// wrapperType == standard
 	methodname = Char(iname);
 	if (!s_fakeoowrappers)
@@ -1054,6 +1056,7 @@ public:
       bool really_overloaded = overloaded ? true : false;
       int min_num_of_arguments = emit_num_required(l);
       int max_num_of_arguments = emit_num_arguments(l);
+
       // For a function with default arguments, we end up with the fullest
       // parmlist in full_parmlist.
       ParmList *full_parmlist = l;
@@ -1194,7 +1197,7 @@ public:
 	  const char *pname_cstr = GetChar(p, "name");
 	  // Just get rid of the C++ namespace part for now.
 	  const char *ptr = NULL;
-	  if ((ptr = strrchr(pname_cstr, ':'))) {
+	  if (pname_cstr && (ptr = strrchr(pname_cstr, ':'))) {
 	    pname_cstr = ptr + 1;
 	  }
 	  if (!pname_cstr) {
@@ -1392,9 +1395,11 @@ public:
       /* We use $r to store the return value, so disallow that as a parameter
        * name in case the user uses the "call-time pass-by-reference" feature
        * (it's deprecated and off by default in PHP5, but we want to be
-       * maximally portable).
+       * maximally portable).  Similarly we use $c for the classname or new
+       * stdClass object.
        */
       Setattr(seen, "r", seen);
+      Setattr(seen, "c", seen);
 
       for (int argno = 0; argno < max_num_of_arguments; ++argno) {
 	String *&pname = arg_names[argno];
@@ -1514,6 +1519,7 @@ public:
 	    Printf(prepare, "$this->%s=", SWIG_PTR);
 	  }
 	}
+
 	if (!directorsEnabled() || !Swig_directorclass(n) || !newobject) {
 	  Printf(prepare, "%s(%s);\n", iname, invoke_args);
 	} else {
@@ -1570,6 +1576,9 @@ public:
 	    Delete(warnmsg);
 	  }
 	}
+	if (Cmp(acc, "") != 0) {
+	  Append(acc, " ");
+	}
 	if (constructor) {
 	  const char * arg0;
 	  if (max_num_of_arguments > 0) {
@@ -1581,15 +1590,35 @@ public:
 	  }
 	  SwigType *t = Getattr(current_class, "classtype");
 	  String *mangled_type = SwigType_manglestr(SwigType_ltype(t));
-	  Printf(output, "\t%s function %s(%s) {\n", acc, methodname, args);
+	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
 	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '_p%s') {\n", arg0, arg0, mangled_type);
 	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
 	  Printf(output, "\t\t\treturn;\n");
 	  Printf(output, "\t\t}\n");
 	} else {
-	  Printf(output, "\t%s function %s(%s) {\n", acc, methodname, args);
+	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
 	}
 	Delete(acc);
+      } else if (wrapperType == staticmembervar) {
+	// We're called twice for a writable static member variable - first
+	// with "foo_set" and then with "foo_get" - so generate half the
+	// wrapper function each time.
+	//
+	// For a const static member, we only get called once.
+	static bool started = false;
+	if (!started) {
+	  Printf(output, "\tstatic function %s() {\n", methodname);
+	  if (max_num_of_arguments) {
+	    // Setter.
+	    Printf(output, "\t\tif (func_num_args()) {\n");
+	    Printf(output, "\t\t\t%s(func_get_arg(0));\n", iname);
+	    Printf(output, "\t\t\treturn;\n");
+	    Printf(output, "\t\t}\n");
+	    started = true;
+	    goto done;
+	  }
+	}
+	started = false;
       } else {
 	Printf(output, "\tstatic function %s(%s) {\n", methodname, args);
       }
@@ -1601,7 +1630,8 @@ public:
 	  if (strcmp(methodname, "__construct") == 0) {
 	    Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
 	  } else {
-	    Printf(output, "\t\treturn new %s(%s);\n", "Foo", invoke);
+	    String *classname = Swig_class_name(current_class);
+	    Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
 	  }
 	} else {
 	  Node *parent = Swig_methodclass(n);
@@ -1647,15 +1677,22 @@ public:
 	     * TODO: do this in a more elegant way
 	     */
 	    Printf(output, "\t\tif (is_resource($r)) {\n");
-	    Printf(output, "\t\t\t$class='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	    if (Getattr(classLookup(Getattr(n, "type")), "module")) {
-	      Printf(output, "\t\t\treturn new $class($r);\n");
+	      if (Len(prefix) == 0) {
+		Printf(output, "\t\t\t$c=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
+	      } else {
+		Printf(output, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
+	      }
+	      Printf(output, "\t\t\tif (!class_exists($c)) {\n");
+	      Printf(output, "\t\t\t\treturn new %s($r);\n", Getattr(classLookup(d), "sym:name"));
+	      Printf(output, "\t\t\t}\n");
+	      Printf(output, "\t\t\treturn new $c($r);\n");
 	    } else {
 	      Printf(output, "\t\t\t$c = new stdClass();\n");
 	      Printf(output, "\t\t\t$c->_cPtr = $r;\n");
 	      Printf(output, "\t\t\treturn $c;\n");
 	    }
-	    Printf(output, "\t\t}\n\t\telse return $r;\n");
+	    Printf(output, "\t\t}\n\t\treturn $r;\n");
 	  } else {
 	    Printf(output, "\t\t$this->%s = $r;\n", SWIG_PTR);
 	    Printf(output, "\t\treturn $this;\n");
@@ -1699,6 +1736,8 @@ public:
 	Printf(output, "\t\treturn %s;\n", invoke);
       }
       Printf(output, "\t}\n");
+
+done:
       Delete(prepare);
       Delete(invoke);
       free(arg_values);
@@ -1712,8 +1751,6 @@ public:
       free(arg_names);
       arg_names = NULL;
     }
-
-    DelWrapper(f);
 
     return SWIG_OK;
   }
@@ -1964,7 +2001,11 @@ public:
 	Append(s_phpclasses, "extends Exception ");
       }
       Printf(s_phpclasses, "{\n\tpublic $%s=null;\n", SWIG_PTR);
-      Printf(s_phpclasses, "\tprotected $%s=array();\n", SWIG_DATA);
+      if (!baseclass) {
+	// Only store this in the base class (NB !baseclass means we *are*
+	// a base class...)
+	Printf(s_phpclasses, "\tprotected $%s=array();\n", SWIG_DATA);
+      }
 
       // Write property SET handlers
       ki = First(shadow_set_vars);
@@ -1985,9 +2026,10 @@ public:
 	  Printf(s_phpclasses, "\t\tif (function_exists($func)) return call_user_func($func,$this->%s,$value);\n", SWIG_PTR);
 	}
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_alter_newobject($this->%s,$value);\n", module, SWIG_PTR);
-	Printf(s_phpclasses, "\t\telse $this->%s[$var] = $value;\n", SWIG_DATA);
 	if (baseclass) {
-	  Printf(s_phpclasses, "\t\treturn %s%s::__set($var,$value);\n", prefix, baseclass);
+	  Printf(s_phpclasses, "\t\t%s%s::__set($var,$value);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
 	}
 	Printf(s_phpclasses, "\t}\n");
 
@@ -1995,16 +2037,28 @@ public:
 	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
 	Printf(s_phpclasses, "\t\tif (function_exists('%s_'.$var.'_set')) return true;\n", shadow_classname);
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
-	Printf(s_phpclasses, "\t\telse return array_key_exists($var, $this->%s);\n", SWIG_DATA);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
+	}
 	Printf(s_phpclasses, "\t}\n");
       } else {
 	Printf(s_phpclasses, "\n\tfunction __set($var,$value) {\n");
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_alter_newobject($this->%s,$value);\n", module, SWIG_PTR);
-	Printf(s_phpclasses, "\t\telse $this->%s[$var] = $value;\n", SWIG_DATA);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\t%s%s::__set($var,$value);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
+	}
 	Printf(s_phpclasses, "\t}\n");
 	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
-	Printf(s_phpclasses, "\t\telse return array_key_exists($var, $this->%s);\n", SWIG_DATA);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
+	}
 	Printf(s_phpclasses, "\t}\n");
       }
       // Write property GET handlers
@@ -2013,31 +2067,37 @@ public:
       if (ki.key) {
 	// This class has getters.
 	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
-	// FIXME: tune this threshold...
-	if (Len(shadow_get_vars) <= 2) {
-	  // Not many getters, so avoid call_user_func.
-	  while (ki.key) {
-	    key = ki.key;
-	    Printf(s_phpclasses, "\t\tif ($var === '%s') return %s($this->%s);\n", key, ki.item, SWIG_PTR);
-	    ki = Next(ki);
-	  }
+	// FIXME: Currently we always use call_user_func for __get, so we can
+	// check and wrap the result.  This is needless if all the properties
+	// are primitive types.  Also this doesn't handle all the cases which
+	// a method returning an object does.
+	Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_get';\n", shadow_classname);
+	Printf(s_phpclasses, "\t\tif (function_exists($func)) {\n");
+	Printf(s_phpclasses, "\t\t\t$r = call_user_func($func,$this->%s);\n", SWIG_PTR);
+	Printf(s_phpclasses, "\t\t\tif (!is_resource($r)) return $r;\n");
+	if (Len(prefix) == 0) {
+	  Printf(s_phpclasses, "\t\t\t$c=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
 	} else {
-	  Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_get';\n", shadow_classname);
-	  Printf(s_phpclasses, "\t\tif (function_exists($func)) return call_user_func($func,$this->%s);\n", SWIG_PTR);
+	  Printf(s_phpclasses, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	}
-	Printf(s_phpclasses, "\t\telse if ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
-	Printf(s_phpclasses, "\t\telse if(array_key_exists($var, $this->%s)) return $this->%s[$var];\n", SWIG_DATA, SWIG_DATA);
-	// Reading an unknown property name gives null in PHP.
-	if (base.item) {
+	Printf(s_phpclasses, "\t\t\treturn new $c($r);\n");
+	Printf(s_phpclasses, "\t\t}\n");
+	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
+	if (baseclass) {
 	  Printf(s_phpclasses, "\t\treturn %s%s::__get($var);\n", prefix, baseclass);
 	} else {
-	  Printf(s_phpclasses, "\t\treturn null;\n");
+	  // Reading an unknown property name gives null in PHP.
+	  Printf(s_phpclasses, "\t\treturn $this->%s[$var];\n", SWIG_DATA);
 	}
 	Printf(s_phpclasses, "\t}\n");
       } else {
 	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
-	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_example_get_newobject($this->%s);\n", SWIG_PTR);
-	Printf(s_phpclasses, "\t\telse return $this->%s[$var];\n", SWIG_DATA);
+	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__get($var);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\treturn $this->%s[$var];\n", SWIG_DATA);
+	}
 	Printf(s_phpclasses, "\t}\n");
       }
 
@@ -2099,68 +2159,6 @@ public:
     wrapperType = staticmembervar;
     Language::staticmembervariableHandler(n);
     wrapperType = standard;
-
-    SwigType *type = Getattr(n, "type");
-    String *name = Getattr(n, "name");
-    String *iname = Getattr(n, "sym:name");
-
-    /* A temporary(!) hack for static member variables.
-     * PHP currently supports class functions, but not class variables.
-     * Until it does, we convert a class variable to a class function
-     * that returns the current value of the variable. E.g.
-     *
-     * class Example {
-     *  public:
-     *          static int ncount;
-     * };
-     *
-     * would be available in PHP as Example::ncount() 
-     */
-
-    // If the variable is const, then it's wrapped as a constant with set/get
-    // functions.
-    if (SwigType_isconst(type))
-      return SWIG_OK;
-
-    // This duplicates the logic from Language::variableWrapper() to test if
-    // the set wrapper is made.
-    int assignable = is_assignable(n);
-    if (assignable) {
-      String *tm = Swig_typemap_lookup("globalin", n, name, 0);
-      if (!tm && SwigType_isarray(type)) {
-	assignable = 0;
-      }
-    }
-
-    String *class_iname = Swig_name_member(Getattr(current_class, "sym:name"), iname);
-    String *lclass_iname = NewStringf("%(lower)s", class_iname);
-    create_command(lclass_iname, Swig_name_wrapper(class_iname));
-    Delete(lclass_iname);
-
-    Wrapper *f = NewWrapper();
-
-    Printv(f->def, "ZEND_NAMED_FUNCTION(", Swig_name_wrapper(class_iname), ") {\n", NIL);
-    String *mget = Swig_name_wrapper(Swig_name_get(class_iname));
-    String *mset = Swig_name_wrapper(Swig_name_set(class_iname));
-
-    if (assignable) {
-      Printf(f->code, "if (ZEND_NUM_ARGS() > 0 ) {\n");
-      Printf(f->code, "  %s( INTERNAL_FUNCTION_PARAM_PASSTHRU );\n", mset);
-      Printf(f->code, "  // need some error checking here?\n");
-      Printf(f->code, "  // Set the argument count to 0 for the get call\n");
-      Printf(f->code, "  ht = 0;\n");
-      Printf(f->code, "}\n");
-    }
-
-    Printf(f->code, "%s( INTERNAL_FUNCTION_PARAM_PASSTHRU );\n", mget);
-    Printf(f->code, "}\n");
-
-    Wrapper_print(f, s_wrappers);
-
-    Delete(class_iname);
-    Delete(mget);
-    Delete(mset);
-    DelWrapper(f);
 
     return SWIG_OK;
   }

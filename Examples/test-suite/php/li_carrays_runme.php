@@ -1,14 +1,15 @@
 <?php
-// Sample test file
-
 require "tests.php";
 require "li_carrays.php";
 
-// No new functions
+// Check functions.
 check::functions(array(new_intarray,delete_intarray,intarray_getitem,intarray_setitem));
-// No new classes
-check::classes(array(doubleArray));
-// now new vars
+
+// Check classes.
+// NB An "li_carrays" class is created as a mock namespace.
+check::classes(array(li_carrays,doubleArray,AB,XY,XYArray));
+
+// No new global variables.
 check::globals(array());
 
 $d = new doubleArray(10);

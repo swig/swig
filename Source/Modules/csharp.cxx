@@ -898,9 +898,9 @@ public:
       }
     }
 
-    // Get any C# exception classes in the throws typemap
+    // Look for usage of throws typemap and the canthrow flag
     ParmList *throw_parm_list = NULL;
-    if ((throw_parm_list = Getattr(n, "throws"))) {
+    if ((throw_parm_list = Getattr(n, "catchlist"))) {
       Swig_typemap_attach_parms("throws", throw_parm_list, f);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
 	if ((tm = Getattr(p, "tmap:throws"))) {
@@ -3064,13 +3064,6 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
-   * addThrows()
-   // TODO: remove
-   * ----------------------------------------------------------------------------- */
-  void addThrows(Node *, const String *, Node *) {
-  }
-
-  /* -----------------------------------------------------------------------------
    * canThrow()
    * Determine whether the code in the typemap can throw a C# exception.
    * If so, note it for later when excodeSubstitute() is called.
@@ -3417,10 +3410,6 @@ public:
 
       Printf(arg, "j%s", ln);
 
-      /* Add various typemap's 'throws' clauses */
-      addThrows(n, "tmap:directorin", p);
-      addThrows(n, "tmap:out", p);
-
       /* And add to the upcall args */
       if (gencomma > 0)
 	Printf(jupcall_args, ", ");
@@ -3549,9 +3538,8 @@ public:
     Printf(declaration, "    virtual %s", target);
     Delete(target);
 
-    // Get any Java exception classes in the throws typemap
+    // Add any exception specifications to the methods in the director class
     ParmList *throw_parm_list = NULL;
-
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
 
@@ -3562,13 +3550,10 @@ public:
 	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
 	if ((tm = Getattr(p, "tmap:throws"))) {
-	  addThrows(n, "tmap:throws", p);
-
 	  if (gencomma++) {
 	    Append(w->def, ", ");
 	    Append(declaration, ", ");
 	  }
-
 	  Printf(w->def, "%s", SwigType_str(Getattr(p, "type"), 0));
 	  Printf(declaration, "%s", SwigType_str(Getattr(p, "type"), 0));
 	}
@@ -3621,7 +3606,6 @@ public:
 
 	/* Copy jresult into c_result... */
 	if ((tm = Swig_typemap_lookup("directorout", tp, result_str, w))) {
-	  addThrows(n, "tmap:directorout", tp);
 	  Replaceall(tm, "$input", jresult_str);
 	  Replaceall(tm, "$result", result_str);
 	  Printf(w->code, "%s\n", tm);

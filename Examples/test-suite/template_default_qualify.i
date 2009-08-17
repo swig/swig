@@ -12,14 +12,14 @@
     enum Polarization { UnaryPolarization, BinaryPolarization };
  
     template <Polarization P>
-    struct Interface
+    struct Interface_
     {
     };
 
     namespace modules
     {
  
-      template <class traits, class base = Interface<traits::pmode> >
+      template <class traits, class base = Interface_<traits::pmode> >
  // *** problem here ****
       struct Module : base
       {
@@ -35,7 +35,7 @@
  
 namespace oss
 {	
-  %template(Interface_UP) Interface<UnaryPolarization>;
+  %template(Interface_UP) Interface_<UnaryPolarization>;
   namespace modules
   {
     %template(Module_etraits) Module<etraits>;

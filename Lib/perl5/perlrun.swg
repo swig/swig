@@ -18,6 +18,7 @@
 
 /* for raw pointers */
 #define SWIG_ConvertPtr(obj, pp, type, flags)           SWIG_Perl_ConvertPtr(SWIG_PERL_OBJECT_CALL obj, pp, type, flags)
+#define SWIG_ConvertPtrAndOwn(obj, pp, type, flags,own) SWIG_Perl_ConvertPtrAndOwn(SWIG_PERL_OBJECT_CALL obj, pp, type, flags, own)
 #define SWIG_NewPointerObj(p, type, flags)              SWIG_Perl_NewPointerObj(SWIG_PERL_OBJECT_CALL p, type, flags)
 
 /* for raw packed data */
@@ -234,10 +235,14 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
 /* Function for getting a pointer value */
 
 SWIGRUNTIME int
-SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *_t, int flags) {
+SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *_t, int flags, int *own) {
   swig_cast_info *tc;
   void *voidptr = (void *)0;
   SV *tsv = 0;
+
+  if (own)
+    *own = 0;
+
   /* If magical, apply more magic */
   if (SvGMAGICAL(sv))
     mg_get(sv);
@@ -287,7 +292,11 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
     {
       int newmemory = 0;
       *ptr = SWIG_TypeCast(tc,voidptr,&newmemory);
-      assert(!newmemory); /* newmemory handling not yet implemented */
+      if (newmemory == SWIG_CAST_NEW_MEMORY) {
+        assert(own);
+        if (own)
+          *own = *own | SWIG_CAST_NEW_MEMORY;
+      }
     }
   } else {
     *ptr = voidptr;
@@ -317,9 +326,14 @@ SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *
   return SWIG_OK;
 }
 
+SWIGRUNTIME int
+SWIG_Perl_ConvertPtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_info *_t, int flags) {
+  return SWIG_Perl_ConvertPtrAndOwn(sv, ptr, _t, flags, 0);
+}
+
 SWIGRUNTIME void
 SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, int flags) {
-  if (ptr && (flags & SWIG_SHADOW)) {
+  if (ptr && (flags & (SWIG_SHADOW | SWIG_POINTER_OWN))) {
     SV *self;
     SV *obj=newSV(0);
     HV *hash=newHV();

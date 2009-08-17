@@ -32,8 +32,14 @@ bar3(foo3 x) {}
 
 enum sad { boo, hoo = 5 };
 
+#ifdef __cplusplus /* For Octave and g++ which compiles C test code as C++ */
+extern "C" {
+#endif
 /* Unnamed enum instance */
 enum { globalinstance1, globalinstance2, globalinstance3 = 30 } GlobalInstance;
+#ifdef __cplusplus
+}
+#endif
 
 /* Anonymous enum */
 enum { AnonEnum1, AnonEnum2 = 100 };

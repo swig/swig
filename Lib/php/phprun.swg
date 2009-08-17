@@ -113,8 +113,14 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject 
     value->ptr=ptr;
     value->newobject=newobject;
     if (newobject <= 1) {
+      /* Just register the pointer as a resource. */
       ZEND_REGISTER_RESOURCE(z, value, *(int *)(type->clientdata));
     } else {
+      /*
+       * Wrap the resource in an object, the resource will be accessible
+       * via the "_cPtr" member. This is currently only used by
+       * directorin typemaps.
+       */
       value->newobject = 0;
       zval *resource;
       MAKE_STD_ZVAL(resource);

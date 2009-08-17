@@ -1,5 +1,4 @@
 <?php
-// Sample test file
 
 require "tests.php";
 require "newobject1.php";
