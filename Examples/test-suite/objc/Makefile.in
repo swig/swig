@@ -48,8 +48,21 @@ setup = \
 
 # Compiles Objective-C files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.m appended after the testcase name.
-run_testcase = 
-
+run_testcase = \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
+	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
+	  TARGET=$* \
+	  OBJCFLAGS='-L. -framework Foundation -o $*_runme' \
+	  OBJCSRCS='`$(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` \
+	  $*/*.m' objc_compile && \
+	  $(RUNTOOL)$*_runme; ) \
+	else ( \
+	  cd $* && \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	  TARGET=$* \
+	  OBJCFLAGS='-dynamiclib -L. -framework Foundation' \
+	  OBJCSRCS='*.m' objc_compile; ); \
+	fi;
 
 # Clean: remove testcase directories
 %.clean:

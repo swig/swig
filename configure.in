@@ -3,7 +3,7 @@ dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
 AC_INIT([swig],[1.3.40],[http://www.swig.org])
-AC_PREREQ(2.58)
+AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
 AC_CONFIG_HEADERS([Source/Include/swigconfig.h])
@@ -920,57 +920,42 @@ AC_SUBST(OCTAVECCFLAGS)
 #----------------------------------------------------------------
 
 AC_ARG_WITH(objc, AS_HELP_STRING([--without-objc], [Disable OBJC]), [with_objc="$withval"], [with_objc=yes])
-AC_ARG_WITH(objc-compiler, [  --with-objc-compiler=path     Set location of Objective-C compiler],[OBJCCOMPILER="$withval"], [OBJCCOMPILER=])
+AC_ARG_WITH(objc-compiler, [  --with-objc-compiler=path     Set location of Objective-C compiler],[OBJC="$withval"], [OBJC=])
 
 # First, check for "--without-objc" or "--with-objc=no".
 if test x"${with_objc}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Objective-C])
-OBJCCOMPILER=
+OBJC=
+OBJCPP=
 else
 
-if test -z "$OBJCCOMPILER" ; then
-  case $host in
-  *-*-darwin*)
-		AC_CHECK_PROGS(OBJCCOMPILER, gcc);;
-  *-*-cygwin* | *-*-mingw*);;
-  *-*-linux*)
-		AC_CHECK_PROGS(OBJCCOMPILER, gcc)
-		if test -n "$OBJCCOMPILER" && test "$OBJCCOMPILER" = "gcc" ; then
-			AC_MSG_CHECKING(whether gcc is the Apple gcc compiler)
-			gcc 2>/dev/null | grep "Apple" > /dev/null || OBJCCOMPILER =""
-			if test -z "$OBJCCOMPILER" ; then
-				AC_MSG_RESULT(no)
-				AC_CHECK_PROGS(OBJCCOMPILER, gcc)
-			else
-				AC_MSG_RESULT(yes)
-			fi
-		fi
-		;;
-  *);;
-  esac
-else
-  OBJCCOMPILER="$OBJCCOMPILER"
+# set Objective-C compiler
+if test -z "$OBJC" ; then
+  AC_MSG_CHECKING(Objective-C(++) compiler)
+  AC_PROG_OBJC()
+  AC_PROG_OBJCPP()
 fi
 
-AC_MSG_CHECKING(for include file Foundation.h)
+# check for include files
+AC_MSG_CHECKING(for include file Foundation/Foundation.h)
 AC_ARG_WITH(objcincl, [  --with-objcincl=path    Set location of Objective-C include directory], [OBJCINCDIR="$withval"], [OBJCINCDIR=])
 
 if test -z "$OBJCINCDIR"; then
-  OBJCINCDIR="/usr/include /usr/local/include"
+  OBJCINCDIR="/usr/include/ /usr/local/include/"
 
   # Add in default directory for Objective-C headers on Windows for Cygwin(TODO for now), Linux and MacOSX
   case $host in
   *-*-cygwin* | *-*-mingw*) OBJCINCDIR="$OBJCINCDIR";;
-  *_*_linux*) OBJCINCDIR="usr/lib/GNUstep/System/Library/Headers $OBJCINCDIR";;
+  *-*-linux*) OBJCINCDIR="usr/lib/GNUstep/System/Library/Headers $OBJCINCDIR";;
   *-*-darwin*) OBJCINCDIR="/System/Library/Frameworks/Foundation.framework/Headers $OBJCINCDIR";;
   *);;
   esac
 fi
 
 for d in $OBJCINCDIR ; do
-  if test -r "$d/Foundation.h" ; then
+  if test -r "$d/Foundation/Foundation.h" ; then
     AC_MSG_RESULT($d)
-    OBJCINCDIR =$d
+    OBJCINCDIR=$d
     OBJCINC=-I\"$d\"
     break
   fi
@@ -980,16 +965,18 @@ if test "$OBJCINC" = "" ; then
   AC_MSG_RESULT(not found)
 fi
 
+
+# check for objc and/or GNUStep libraries
 AC_ARG_WITH(objclib,[  --with-objclib =path      Set location of Objective-C library directory],[
 	OBJCLIB="-L$withval"], [OBJCLIB=])
 AC_MSG_CHECKING(for Objective-C library)
 
 if test -z "$OBJCLIB"; then
-dirs="/usr/lib/GNUstep/System/Library/Libraries/ /usr/lib"
+dirs="/usr/lib/GNUstep/System/Library/Libraries/ /usr/lib/"
 for i in $dirs ; do
 	if test -r $i/libobjc.a; then
 	    AC_MSG_RESULT($i)
-	    OBJCLIB ="-L$i -lobjc"
+	    OBJCLIB="-L$i -lobjc"
 	    break
 	fi
 done
@@ -1000,7 +987,7 @@ else
 for i in $dirs ; do
 	if test -r $i/libgnu-step-base.a; then
 	    AC_MSG_RESULT($i)
-	    OBJCLIB ="-L$i -lgnustep-base $OBJCLIB"
+	    OBJCLIB="-L$i -lgnustep-base $OBJCLIB"
 	    break
 	fi
 done
@@ -1011,13 +998,14 @@ AC_MSG_RESULT($OBJCLIB)
 fi
 
 
+# linking options
 case $host in
 *-*-darwin*) 
         OBJCDYNAMICLINKING="-dynamiclib -framework Foundation"
         OBJCCFLAGS=""
         ;;
 *-*-linux*) 
-	OBJCDYNAMICLINKING=""
+	OBJCDYNAMICLINKING="$OBJCLIB"
         OBJCCFLAGS=""
         ;;
 *)
@@ -1026,9 +1014,17 @@ case $host in
         ;;
 esac
 
+# OBJCLIBRARYPREFIX
+case $host in
+*-*-cygwin* | *-*-mingw*) OBJCLIBRARYPREFIX="";;
+*) OBJCLIBRARYPREFIX="lib";;
+esac
+
+
+# library output
 case $host in
 *-*-darwin*) 
-    OBJCSO=$SO
+    OBJCSO=".dylib"
     OBJCLDSHARED='$(CC)'
     OBJCCXXSHARED='$(CXX)'
     ;;
@@ -1041,14 +1037,15 @@ esac
 
 fi
 
-AC_SUBST(OBJCCOMPILER)
+AC_SUBST(OBJC)
+AC_SUBST(OBJCPP)
 AC_SUBST(OBJCINC)
 AC_SUBST(OBJCDYNAMICLINKING)
 AC_SUBST(OBJCLIBRARYPREFIX)
+AC_SUBST(OBJCCFLAGS)
 AC_SUBST(OBJCSO)
 AC_SUBST(OBJCLDSHARED)
 AC_SUBST(OBJCCXXSHARED)
-AC_SUBST(OBJCCFLAGS)
 
 #----------------------------------------------------------------
 # Look for java
@@ -2168,7 +2165,7 @@ fi
 AC_SUBST(SKIP_PHP)
 
 SKIP_OBJC=
-if test -z "$OBJCCOMPILER"; then
+if test -z "$OBJC"; then
     SKIP_OBJC="1"
 fi
 AC_SUBST(SKIP_OBJC)
