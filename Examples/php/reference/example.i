@@ -1,6 +1,10 @@
 /* File : example.i */
 
-/* This file shows how to use %extend. */
+/* This example has nothing to do with references but the name is used by all
+ * the other languages so it's hard to rename to something more meaningful.
+ *
+ * Mostly it shows how to use %extend.
+ */
 
 %module example
 
