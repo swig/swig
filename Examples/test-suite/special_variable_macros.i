@@ -88,7 +88,7 @@ const char * testMary(Name *mary) {
 %{
   /*%typemap(in) (Name *multiname, int num) start */
   temp_name = $*1_ltype("multiname num");
-  temp_count = strlen(temp_name.getNamePtr()->getName());
+  temp_count = (int)strlen(temp_name.getNamePtr()->getName());
   (void)$input;
   $1 = temp_name.getNamePtr();
   $2 = temp_count + 100;
@@ -103,7 +103,7 @@ $typemap(in, (Name *multiname, int num))
 
 %inline %{
 const char * testJim(Name *jim, int count) {
-  if (count != strlen(jim->getNamePtr()->getName()) + 100)
+  if (count != (int)strlen(jim->getNamePtr()->getName()) + 100)
     return "size check failed";
   else
     return jim->getName();
