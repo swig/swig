@@ -92,6 +92,10 @@ A SWIG FAQ and other hints can be found on the SWIG Wiki:
 What's New?
 ===========
 
+SWIG-1.3.40 summary:
+- SWIG now supports directors for PHP.
+- PHP support improved in general.
+
 SWIG-1.3.39 summary:
 - Some new small feature enhancements.
 - Improved C# std::vector wrappers.
