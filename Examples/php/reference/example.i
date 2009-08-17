@@ -1,6 +1,6 @@
 /* File : example.i */
 
-/* This file has a few "typical" uses of C++ references. */
+/* This file shows how to use %extend. */
 
 %module example
 
