@@ -95,6 +95,10 @@ What's New?
 SWIG-1.3.40 summary:
 - SWIG now supports directors for PHP.
 - PHP support improved in general.
+- Octave 3.2 support added.
+- Various bug fixes/enhancements for Allegrocl C#, Java, Octave, Perl,
+  Python, Ruby and Tcl.
+- Other generic fixes and minor new features.
 
 SWIG-1.3.39 summary:
 - Some new small feature enhancements.
