@@ -230,14 +230,17 @@ At first glance, this code will look a little confusing.
 However, there is really not much to it.  The first typemap (the "in"
 typemap) is used to convert a value from the target language to C.  The second
 typemap (the "out" typemap) is used to convert in the other
-direction. The content of each typemap is a small fragment of C code
-that is inserted directly into the SWIG generated wrapper functions.  Within
-this code, a number of special variables prefixed with a $ are expanded.  These are
-really just placeholders for C variables that are generated in the course
+direction. The content of each typemap is a small fragment of code
+that is inserted directly into the SWIG generated wrapper functions.
+The code is usually C or C++ code which will be generated into the C/C++ wrapper functions.
+Note that this isn't always the case as some target language modules allow target language 
+code within the typemaps which gets generated into target language specific files.
+Within this code, a number of special variables prefixed with a $ are expanded.  These are
+really just placeholders for C/C++ variables that are generated in the course
 of creating the wrapper function. In this case, <tt>$input</tt> refers to an
-input object that needs to be converted to C and <tt>$result</tt>
+input object that needs to be converted to C/C++ and <tt>$result</tt>
 refers to an object that is going to be returned by a wrapper
-function.  <tt>$1</tt> refers to a C variable that has the same type as
+function.  <tt>$1</tt> refers to a C/C++ variable that has the same type as
 specified in the typemap declaration (an <tt>int</tt> in this
 example).
 </p>
@@ -4060,6 +4063,7 @@ numerous examples.   You should look at these files to get a feel
 for how to define typemaps of your own.
 Some of the language modules support additional typemaps and further
 information is available in the individual chapters for each target language.
+There you may also find more hands-on practical examples.
 </p>
 
 </body>
