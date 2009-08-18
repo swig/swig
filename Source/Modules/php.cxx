@@ -1636,7 +1636,7 @@ public:
 	} else {
 	  Node *parent = Swig_methodclass(n);
 	  String *classname = Swig_class_name(parent);
-	  Printf(output, "\t\tif (get_class($this) === '%s') {\n", classname);
+	  Printf(output, "\t\tif (get_class($this) === '%s%s') {\n", prefix, classname);
 	  Printf(output, "\t\t\t$_this = null;\n");
 	  Printf(output, "\t\t} else {\n");
 	  Printf(output, "\t\t\t$_this = $this;\n");
