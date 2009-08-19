@@ -64,7 +64,7 @@ Major contributors include:
 Past contributors include:
  James Michael DuPont, Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
  Kovuk, Oleg Tolmatcev, Tal Shalif, Lluis Padro, Chris Seatory, Igor Bely, Robin Dunn
- (See CHANGES for a more complete list).
+ (See CHANGES and CHANGES.current for a more complete list).
 
 Portions also copyrighted by companies/corporations;
  Network Applied Communication Laboratory, Inc
@@ -376,8 +376,10 @@ well advised to read this.
 
 Release Notes
 =============
-Please see the CHANGES files for a detailed list of bug fixes and
-new features. A summary of the changes is included in this README file.
+Please see the CHANGES.current file for a detailed list of bug fixes and
+new features for the current release. The CHANGES file contains bug fixes
+and new features for older versions. A summary of the changes is included 
+in this README file.
 
 Windows Installation
 ====================
