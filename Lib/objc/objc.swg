@@ -36,7 +36,7 @@
 %typemap(ocpptype) SWIGTYPE & "void *"
 
 // Pointer to a class member
-%typemap(ocpptype) SWIGTYPE (CLASS::*) "" //TBD
+%typemap(ocpptype) SWIGTYPE (CLASS::*) "void*"
 
 
 /* Following are the "in" typemaps for Objective-C/C++ to C conversions */
@@ -74,8 +74,6 @@
 %{ $1 = ($1_ltype)$input; %} //TBD
 %typemap(in) SWIGTYPE
 %{ $1 = ($1_ltype)$input; %} //TBD
-
-
 
 
 /* Following are the "out" typemaps for C to Objective-C conversions */
@@ -134,7 +132,7 @@
 %typemap(objctype) SWIGTYPE & "$objcclassname *"
 
 // Pointer to a class member
-%typemap(objctype) SWIGTYPE (CLASS::*) "" //TBD
+%typemap(objctype) SWIGTYPE (CLASS::*) "$objcclassname" 
 
 
 
@@ -227,7 +225,7 @@
     return ret;
 }
 
-
+%typemap(argout) char[ANY], char[] ""
 
 /* Following are the typemaps used for the generation of proxy and type wrapper class code */
 %typemap(objcbase,notderived="")                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "NSObject"
@@ -264,15 +262,16 @@
 
 // Derived proxy classes
 %typemap(objcinterface_derived) SWIGTYPE %{
+- (void*)getCptr;
 - (id)initWithCptr: (void*) cptr;
 %}
 
 %typemap(objcbody_derived) SWIGTYPE %{
- -(void*)getCptr {
+- (void*)getCptr {
 	return swigCPtr;
 }
 
--(id)initWithCptr: (void*) cptr{
+-(id)initWithCptr: (void*) cptr {
 	if(self = [super init]) {
 		swigCPtr = cptr;
 	}
@@ -280,7 +279,35 @@
 }
 %}
 
+// Typewrapper classes
+%typemap(interface) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+{
+	void *swigCPtr;
+	BOOL swigCMemOwn;
+}
+- (void*)getCptr;
+- (id)initWithCptr: (void*) cptr;
+%}
 
+%typemap(objcbody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+- (void*)getCptr {
+	return swigCPtr;
+}
+
+- (id)init {
+	if(self = [super init]) {
+		swigCPtr = 0;
+	}
+	return self;
+}
+
+- (id)initWithCptr: (void*) cptr{
+	if(self = [super init]) {
+		swigCPtr = cptr;
+	}
+	return self;
+}
+%}
 
 
 /* Following are the typemaps used for Objective-C setter and getters for global variables */
@@ -488,8 +515,7 @@
 #define %objcnothrowexception         %feature("except")
 #define %objcattributes               %feature("objc:attributes")
 
-/* Some ANSI C typemaps */
-
+// Some ANSI C typemaps
 %apply unsigned long { size_t };
 %apply const unsigned long & { const size_t & };
 	
