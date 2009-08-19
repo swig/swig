@@ -946,7 +946,7 @@ if test -z "$OBJCINCDIR"; then
   # Add in default directory for Objective-C headers on Windows for Cygwin(TODO for now), Linux and MacOSX
   case $host in
   *-*-cygwin* | *-*-mingw*) OBJCINCDIR="$OBJCINCDIR";;
-  *-*-linux*) OBJCINCDIR="usr/lib/GNUstep/System/Library/Headers $OBJCINCDIR";;
+  *-*-linux*) OBJCINCDIR="/usr/include/GNUstep /usr/lib/GNUstep/System/Library/Headers $OBJCINCDIR";;
   *-*-darwin*) OBJCINCDIR="/System/Library/Frameworks/Foundation.framework/Headers $OBJCINCDIR";;
   *);;
   esac
