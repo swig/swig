@@ -169,7 +169,7 @@ public:
       }
 
       emitBanner(f_proxy_h);
-      Printf(f_proxy_h, "#import <Foundation/Foundation.h>");
+      Printf(f_proxy_h, "\n#import <Foundation/Foundation.h>\n");
       Printf(f_proxy_m, "#include \"%s\"\n\n", file_h);
       Printf(f_proxy_m, "#include \"%s\"\n\n", proxy_h);
       Printv(f_proxy_h, proxy_global_constants_code, proxy_h_code, NIL);
@@ -216,6 +216,12 @@ public:
       Printf(f_ocpp_h, "}\n");
       Printf(f_ocpp_h, "#endif\n");
 
+			
+			// Output a Objective-C type wrapper class for each SWIG type
+			for (Iterator swig_type = First(swig_types_hash); swig_type.key; swig_type = Next(swig_type)) {
+				emitTypeWrapperClass(swig_type.key, swig_type.item);
+			}
+			
       Dump(f_header, f_runtime);
       Dump(f_wrappers, f_runtime);
       Wrapper_pretty_print(f_init, f_runtime);
@@ -1623,6 +1629,74 @@ public:
     return NULL;
   }
 
+	/* -----------------------------------------------------------------------------
+   * emitTypeWrapperClass()
+   * ----------------------------------------------------------------------------- */
+	
+  void emitTypeWrapperClass(String *classname, SwigType *type) {
+   
+		String *swigtypeh = NewString("");
+		String *swigtypem = NewString("");
+		String *fileh = NewStringf("%s%s.h", SWIG_output_directory(), classname);
+    String *filem = NewStringf("%s%s.m", SWIG_output_directory(), classname);
+    File *fh_swigtype = NewFile(fileh, "w", SWIG_output_files());
+		File *fm_swigtype = NewFile(filem, "w", SWIG_output_files());
+
+    if (!fh_swigtype) {
+      FileErrorDisplay(fileh);
+      SWIG_exit(EXIT_FAILURE);
+    }		
+   	
+		if (!fm_swigtype) {
+      FileErrorDisplay(filem);
+      SWIG_exit(EXIT_FAILURE);
+    }
+		
+    // Start writing out the type wrapper class file
+    emitBanner(fh_swigtype);
+				
+    // Pure Objective-C baseclass and interfaces
+    const String *pure_baseclass = typemapLookup("objcbase", type, WARN_NONE);
+    const String *pure_interfaces = typemapLookup("objcinterfaces", type, WARN_NONE);
+		
+		Printf(swigtypeh, "#include \<Foundation/Foundation.h\>\n\n", fileh);
+
+		Printv(swigtypeh, typemapLookup("objcimports", type, WARN_NONE),	// Import statements
+					 "\n", typemapLookup("objcclassinterface", type, WARN_NONE),	// Class modifiers
+					 " $objcclassname",	// Class name and base class
+					 *Char(pure_baseclass) ? " : " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
+					 ", " : "", pure_interfaces, typemapLookup("objcinterface", type, WARN_NONE),	// main body of class
+					 typemapLookup("objccode", type, WARN_NONE),	// extra Objective-C code
+					 "@end\n", "\n", NIL);
+		
+		Printf(swigtypem, "#include \"%s\"\n\n", fileh);
+		
+    Printv(swigtypem, typemapLookup("objcimports", type, WARN_NONE),	// Import statements
+					 typemapLookup("objcclassimplementation", type, WARN_NONE),	// Class modifiers
+					 " $objcclassname", typemapLookup("objcbody", type, WARN_NONE),	// main body of class
+					 typemapLookup("objccode", type, WARN_NONE),	// extra Objective-C code
+					 "@end\n", "\n", NIL);
+		
+		
+    Replaceall(swigtypeh, "$objcclassname", classname);
+		Replaceall(swigtypem, "$objcclassname", classname);
+
+    Printv(fh_swigtype, swigtypeh, NIL);
+		Printv(fm_swigtype, swigtypem, NIL);
+
+    Close(fh_swigtype);
+    Delete(swigtypeh);
+		
+		Close(fm_swigtype);
+    Delete(swigtypem);
+
+		Delete(fileh);
+    fileh = NULL;
+		
+		Delete(filem);
+    filem = NULL;
+  }
+	
 
   /* -----------------------------------------------------------------------------
    * typemapLookup()
@@ -1715,8 +1789,8 @@ public:
     // Pure Objective-C interfaces
     const String *pure_interfaces = typemapLookup(derived ? "objcinterfaces_derived" : "objcinterfaces", typemap_lookup_type, WARN_NONE);
     // Start writing the proxy class
-    Printv(proxy_class_decl, typemapLookup("objcimports", typemap_lookup_type, WARN_NONE),	// Import statements
-	   "\n", NIL);		// This would be needed when we decide upon a separate file for each class.
+    //Printv(proxy_class_decl, typemapLookup("objcimports", typemap_lookup_type, WARN_NONE),	// Import statements
+	  // "\n", NIL);		// This would be needed when we decide upon a separate file for each class.
 
     // Class attributes
     const String *objcattributes = typemapLookup("objcattributes", typemap_lookup_type, WARN_NONE);
