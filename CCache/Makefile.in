@@ -37,7 +37,6 @@ $(PACKAGE_NAME).1: ccache.yo
 	-yodl2man -o $(PACKAGE_NAME).1 ccache.yo
 
 web/ccache-man.html: ccache.yo
-	mkdir -p man
 	yodl2html -o web/ccache-man.html ccache.yo
 
 install: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
