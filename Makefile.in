@@ -388,7 +388,7 @@ maintainer-clean: clean-libfiles
 
 DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool
 
-distclean: distclean-objects clean-examples clean-gifplot distclean-test-suite clean-docs distclean-dead distclean-ccache
+distclean: clean-docs distclean-objects clean-examples clean-gifplot distclean-test-suite distclean-dead distclean-ccache
 
 distclean-objects: distclean-source
 
