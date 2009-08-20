@@ -409,6 +409,7 @@ CPP_STD_TEST_CASES += \
 	li_std_combinations \
 	li_std_deque \
 	li_std_except \
+	li_std_map \
         li_std_pair \
 	li_std_string \
 	li_std_vector \
