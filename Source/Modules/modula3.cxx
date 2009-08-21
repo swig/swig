@@ -81,7 +81,7 @@ char cvsroot_modula3_cxx[] = "$Id$";
      that assign special purposes to the array types.
    - Can one interpret $n_basetype as the identifier matched with SWIGTYPE ?
 
-  Swig's odds:
+  SWIG's odds:
    - arguments of type (Node *) for SWIG functions
      should be most often better (const Node *):
      Swig_symbol_qualified, Getattr, nodeType, parentNode

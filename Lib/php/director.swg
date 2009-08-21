@@ -168,7 +168,7 @@ namespace Swig {
   {
   public:
     DirectorPureVirtualException(const char* msg) 
-      : DirectorException(E_ERROR, "Swig director pure virtual method called", msg)
+      : DirectorException(E_ERROR, "SWIG director pure virtual method called", msg)
     { 
     }
 
@@ -182,7 +182,7 @@ namespace Swig {
   {
   public:
     DirectorMethodException(const char* msg = "") 
-      : DirectorException(E_ERROR, "Swig director method error", msg)
+      : DirectorException(E_ERROR, "SWIG director method error", msg)
     { 
     }
 

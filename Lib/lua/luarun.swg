@@ -79,7 +79,7 @@ typedef struct {
 /* this is the struct for wrapping arbitary packed binary data
 (currently it is only used for member function pointers)
 the data ordering is similar to swig_lua_userdata, but it is currently not possible
-to tell the two structures apart within Swig, other than by looking at the type
+to tell the two structures apart within SWIG, other than by looking at the type
 */
 typedef struct {
   swig_type_info   *type;

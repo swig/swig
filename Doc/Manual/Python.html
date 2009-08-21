@@ -1137,7 +1137,7 @@ simply represented as opaque values using an especial python container object:
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; print f
-&lt;Swig Object at _08a71808_p_FILE&gt;
+&lt;Swig Object of type 'FILE *' at 0xb7d6f470&gt;
 </pre></div>
 
 <p>
@@ -1147,7 +1147,7 @@ dereference the pointer from Python. Of course, that isn't much of a concern in 
 </p>
 
 <p>
-In older versions of Swig (1.3.22 or older), pointers were represented
+In older versions of SWIG (1.3.22 or older), pointers were represented
 using a plain string object. If you have an old package that still
 requires that representation, or you just feel nostalgic, you can
 always retrieve it by casting the pointer object to a string:
@@ -1171,7 +1171,7 @@ integer:
 
 <p>
 However, the inverse operation is not possible, i.e., you can't build
-a Swig pointer object from a raw integer value.
+a SWIG pointer object from a raw integer value.
 </p>
 
 <p>
