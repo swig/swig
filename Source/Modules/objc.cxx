@@ -169,7 +169,7 @@ public:
       }
 
       emitBanner(f_proxy_h);
-      Printf(f_proxy_h, "\n#import <Foundation/Foundation.h>\n");
+      Printf(f_proxy_h, "\n#import <Foundation/Foundation.h>\n\n");
       Printf(f_proxy_m, "#include \"%s\"\n\n", file_h);
       Printf(f_proxy_m, "#include \"%s\"\n\n", proxy_h);
       Printv(f_proxy_h, proxy_global_constants_code, proxy_h_code, NIL);
@@ -216,12 +216,12 @@ public:
       Printf(f_ocpp_h, "}\n");
       Printf(f_ocpp_h, "#endif\n");
 
-			
-			// Output a Objective-C type wrapper class for each SWIG type
-			for (Iterator swig_type = First(swig_types_hash); swig_type.key; swig_type = Next(swig_type)) {
-				emitTypeWrapperClass(swig_type.key, swig_type.item);
-			}
-			
+
+      // Output a Objective-C type wrapper class for each SWIG type
+      for (Iterator swig_type = First(swig_types_hash); swig_type.key; swig_type = Next(swig_type)) {
+	emitTypeWrapperClass(swig_type.key, swig_type.item);
+      }
+
       Dump(f_header, f_runtime);
       Dump(f_wrappers, f_runtime);
       Wrapper_pretty_print(f_init, f_runtime);
@@ -279,83 +279,6 @@ public:
     }
 
     return SWIG_OK;
-  }
-
-  /* -----------------------------------------------------------------------------
-   * getEnumName()
-   * ----------------------------------------------------------------------------- */
-
-  String *getEnumName(SwigType *t) {
-    Node *enum_name = NULL;
-    Node *n = enumLookup(t);
-    if (n) {
-      String *symname = Getattr(n, "sym:name");
-      if (symname) {
-	enum_name = NewStringf("%s", symname);
-      }
-    }
-
-    return enum_name;
-  }
-
-	/*----------------------------------------------------------------------
-   * decodeEnumFeature()
-   * Decode the possible enum features, which are one of:
-   *   %objcenum(simple)
-   *   %objcenum(proper)
-   *--------------------------------------------------------------------*/
-
-  EnumFeature decodeEnumFeature(Node *n) {
-    EnumFeature enum_feature = SimpleEnum;
-    String *feature = Getattr(n, "feature:objc:enum");
-    if (feature) {
-      if (Cmp(feature, "simple") == 0)
-	enum_feature = SimpleEnum;
-      else if (Cmp(feature, "proper") == 0)
-	enum_feature = ProperEnum;
-    }
-    return enum_feature;
-  }
-
-
-  /* -----------------------------------------------------------------------
-   * enumValue()
-   * This method will return a string with an enum value to use in Objective-C generated
-   * code. If the %objcconst feature is not used, the string will contain the intermediary
-   * method call to obtain the enum value. The intermediary methods to obtain
-   * the enum value will be generated. Otherwise the C/C++ enum value will be used if there
-   * is one and hopefully it will compile as Objective-C code - e.g. 20 as in: enum E{e=20};
-   * The %objcconstvalue feature overrides all other ways to generate the constant value.
-   * The caller must delete memory allocated for the returned string.
-   * ------------------------------------------------------------------------ */
-
-  String *enumValue(Node *n) {
-    String *symname = Getattr(n, "sym:name");
-
-    // Check for the %objcconstvalue feature
-    String *value = Getattr(n, "feature:objc:constvalue");
-
-    if (!value) {
-      // The %objcconst feature determines how the constant value is obtained
-      int const_feature_flag = GetFlag(n, "feature:objc:const");
-
-      if (const_feature_flag) {
-	// Use the C syntax to make a true Objective-C constant and hope that it compiles as Objective-C code
-	value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
-      } else {
-	// Get the enumvalue from a PINVOKE call
-	if (!getCurrentClass() || !cparse_cplusplus || !proxy_flag) {
-	  // Strange hack to change the name
-	  Setattr(n, "name", Getattr(n, "value"));	/* for wrapping of enums in a namespace when emit_action is used */
-	  constantWrapper(n);
-	  value = NewStringf("%s()", Swig_name_get(symname));
-	} else {
-	  memberconstantHandler(n);
-	  value = NewStringf("%s()", Swig_name_get(Swig_name_member(proxy_class_name, symname)));
-	}
-      }
-    }
-    return value;
   }
 
 
@@ -517,7 +440,6 @@ public:
       String *objctypeout = Getattr(n, "tmap:objctype:out");	// the type in the objctype typemap's out attribute overrides the type in the typemap
       if (objctypeout)
 	tm = objctypeout;
-      substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
       Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(t, 0));
@@ -539,27 +461,15 @@ public:
     }
 
     /* Start generating the proxy function */
-    const String *outattributes = Getattr(n, "tmap:objctype:outattributes");
-    if (outattributes)
-      Printf(function_decl, "  %s\n", outattributes);
-    const String *objcattributes = Getattr(n, "feature:objc:attributes");
-    if (objcattributes)
-      Printf(function_decl, "  %s\n", objcattributes);
-
-    if (static_flag)
-      Printf(function_decl, "static ");
-
     Printf(function_decl, "%s %s(", return_type, func_name);
-
     Printv(imcall, "$ocppfuncname(", NIL);
 
     emit_mark_varargs(l);
 
-    int gencomma = !static_flag;
+    int gencomma = 1;
 
-    /* Output each parameter */
+    /* Output each parameter, this essentially completes the function name for objective-c function */
     for (i = 0, p = l; p; i++) {
-
       /* Ignored varargs */
       if (checkAttribute(p, "varargs:ignore", "1")) {
 	p = nextSibling(p);
@@ -581,14 +491,18 @@ public:
 
 	/* Get the Objective-C parameter type */
 	if ((tm = Getattr(p, "tmap:objctype"))) {
-	  substituteClassname(t, tm);
+	  substituteClassname(pt, tm);
 	  const String *inattributes = Getattr(p, "tmap:objctype:inattributes");
 	  Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
 	} else {
 	  Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(pt, 0));
 	}
 
-	String *arg = makeParameterName(n, p, i, true);
+	String *arg = makeParameterName(n, p, i, setter_flag);
+
+	if (gencomma > 1) {
+	  Printf(imcall, ", ");
+	}
 
 	// Use typemaps to transform type used in Objective-C proxy function to the one used in intermediate code.
 	if ((tm = Getattr(p, "tmap:objcin"))) {
@@ -646,7 +560,7 @@ public:
    * proxyClassFunctionHandler()
    *
    * Function called for creating an Objective-C proxy function around a c++ function 
-   * Used for static and non-static C++ class function and C global functions.
+   * Used for static and non-static C++ class functions.
    * C++ class static functions map to Objective-C "+" functions.
    * C++ class non-static functions map to Objective-C "-" functions.
    * ----------------------------------------------------------------------------- */
@@ -687,10 +601,14 @@ public:
 
     /* Get return types */
     if ((tm = Swig_typemap_lookup("objctype", n, "", 0))) {
-      String *objctypeout = Getattr(n, "tmap:objctype:out");	// the type in the objctype typemap's out attribute overrides the type in the typemap
-      if (objctypeout)
-	tm = objctypeout;
+      // Note that in the case of polymorphic (covariant) return types, the method's return type is changed to be the base of the C++ return type
+      SwigType *covariant = Getattr(n, "covariant");
+      substituteClassname(covariant ? covariant : t, tm);
       Printf(return_type, "%s", tm);
+      if (covariant)
+	Swig_warning(WARN_NONE, input_file, line_number,
+		     "Covariant return types not supported in Objective-C. Proxy method will return %s.\n", SwigType_str(covariant, 0));
+
     } else {
       Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(t, 0));
     }
@@ -717,8 +635,23 @@ public:
 
     Printv(imcall, "$ocppfuncname(", NIL);
 
-    if (!static_flag)
+    if (!static_flag) {
       Printf(imcall, "swigCPtr");
+      String *this_type = Copy(getClassType());
+      String *name = NewString("self");
+      String *qualifier = Getattr(n, "qualifier");
+      if (qualifier)
+	SwigType_push(this_type, qualifier);
+      SwigType_add_pointer(this_type);
+      Parm *this_parm = NewParm(this_type, name);
+      Swig_typemap_attach_parms("ocpptype", this_parm, NULL);
+      Swig_typemap_attach_parms("objctype", this_parm, NULL);
+
+      Delete(this_parm);
+      Delete(name);
+      Delete(this_type);
+
+    }
 
     emit_mark_varargs(l);
 
@@ -1364,10 +1297,88 @@ public:
     return SWIG_OK;
   }
 
+  /* -----------------------------------------------------------------------------
+   * getEnumName()
+   * ----------------------------------------------------------------------------- */
+
+  String *getEnumName(SwigType *t) {
+    Node *enum_name = NULL;
+    Node *n = enumLookup(t);
+    if (n) {
+      String *symname = Getattr(n, "sym:name");
+      if (symname) {
+	enum_name = NewStringf("%s", symname);
+      }
+    }
+
+    return enum_name;
+  }
+
+	/*----------------------------------------------------------------------
+   * decodeEnumFeature()
+   * Decode the possible enum features, which are one of:
+   *   %objcenum(simple)
+   *   %objcenum(proper)
+   *--------------------------------------------------------------------*/
+
+  EnumFeature decodeEnumFeature(Node *n) {
+    EnumFeature enum_feature = SimpleEnum;
+    String *feature = Getattr(n, "feature:objc:enum");
+    if (feature) {
+      if (Cmp(feature, "simple") == 0)
+	enum_feature = SimpleEnum;
+      else if (Cmp(feature, "proper") == 0)
+	enum_feature = ProperEnum;
+    }
+    return enum_feature;
+  }
+
+
+  /* -----------------------------------------------------------------------
+   * enumValue()
+   * This method will return a string with an enum value to use in Objective-C generated
+   * code. If the %objcconst feature is not used, the string will contain the intermediary
+   * method call to obtain the enum value. The intermediary methods to obtain
+   * the enum value will be generated. Otherwise the C/C++ enum value will be used if there
+   * is one and hopefully it will compile as Objective-C code - e.g. 20 as in: enum E{e=20};
+   * The %objcconstvalue feature overrides all other ways to generate the constant value.
+   * The caller must delete memory allocated for the returned string.
+   * ------------------------------------------------------------------------ */
+
+  String *enumValue(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+
+    // Check for the %objcconstvalue feature
+    String *value = Getattr(n, "feature:objc:constvalue");
+
+    if (!value) {
+      // The %objcconst feature determines how the constant value is obtained
+      int const_feature_flag = GetFlag(n, "feature:objc:const");
+
+      if (const_feature_flag) {
+	// Use the C syntax to make a true Objective-C constant and hope that it compiles as Objective-C code
+	value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
+      } else {
+	// Get the enumvalue from an intermediate call
+	if (!getCurrentClass() || !cparse_cplusplus || !proxy_flag) {
+	  // Strange hack to change the name
+	  Setattr(n, "name", Getattr(n, "value"));	/* for wrapping of enums in a namespace when emit_action is used */
+	  constantWrapper(n);
+	  value = NewStringf("%s()", Swig_name_get(symname));
+	} else {
+	  memberconstantHandler(n);
+	  value = NewStringf("%s()", Swig_name_get(Swig_name_member(proxy_class_name, symname)));
+	}
+      }
+    }
+    return value;
+  }
+
+
   /* ----------------------------------------------------------------------
    * enumDeclaration()
    *
-   * C/C++ enums can be mapped in one of 4 ways, depending on the objc:enum feature specified:
+   * C/C++ enums can be mapped in one of 2 ways, depending on the objc:enum feature specified:
    * 1) Simple enums - simple constant within the proxy (Class or global)
    * 2) Proper enums - proper Objective-C/C enum. This is just copy-paste of the enum declaration.
    * Anonymous enums always default to 1)
@@ -1381,13 +1392,19 @@ public:
 
       enum_code = NewString("");
       String *symname = Getattr(n, "sym:name");
-      String *constants_code = (proxy_flag && is_wrapping_class())? proxy_class_constants_code : proxy_global_constants_code;
+
+      // Note: Really enums on Objective-C are just C #defines with some extra type safety so it actually makes sense 
+      // to keep enums globally and let the clients of the header file use them as #defines ofcourse using enum names for 
+      // enum type variable declarations.
+      // So writing enums to proxy_global_constants_code always.
+
+      String *constants_code = (proxy_flag && is_wrapping_class())? proxy_global_constants_code : proxy_global_constants_code;
       EnumFeature enum_feature = decodeEnumFeature(n);
       String *typemap_lookup_type = Getattr(n, "name");
 
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Copy-paste the C/C++ enum as an Objective-C enum
-	Printf(enum_code, "enum %s {", symname);
+	Printf(enum_code, "typedef enum %s {", symname);
 
       } else {
 	// Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums of any sort
@@ -1399,16 +1416,17 @@ public:
       Language::enumDeclaration(n);
 
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
-	Replaceall(enum_code, "$objcclassname", symname);
 	// Copy-paste the C/C++ enum as a proper Objective-C enum
 	// Finish the enum declaration
-	Printf(enum_code, "};\n\n");
+	Printv(enum_code, "}", symname, ";\n\n", NIL);
+	Replaceall(enum_code, "$objcclassname", symname);
+
       } else {
 	// Wrap C++ enum with simple constant
 	Printf(enum_code, "\n");
       }
       if (proxy_flag && is_wrapping_class())
-	Printv(proxy_class_constants_code, enum_code, NIL);
+	Printv(proxy_global_constants_code, enum_code, NIL);
       else
 	Printv(proxy_global_constants_code, enum_code, NIL);
 
@@ -1601,7 +1619,7 @@ public:
 	Printv(proxy_h_code, proxy_global_constants_code, NIL);
       } else {
 	Printv(proxy_global_constants_code, constants_code, NIL);
-	Printv(proxy_h_code, proxy_global_constants_code, NIL);
+	//Printv(proxy_h_code, proxy_global_constants_code, NIL);
       }
     }
     // Cleanup
@@ -1629,74 +1647,73 @@ public:
     return NULL;
   }
 
-	/* -----------------------------------------------------------------------------
+  /* -----------------------------------------------------------------------------
    * emitTypeWrapperClass()
    * ----------------------------------------------------------------------------- */
-	
+
   void emitTypeWrapperClass(String *classname, SwigType *type) {
-   
-		String *swigtypeh = NewString("");
-		String *swigtypem = NewString("");
-		String *fileh = NewStringf("%s%s.h", SWIG_output_directory(), classname);
+
+    String *swigtypeh = NewString("");
+    String *swigtypem = NewString("");
+    String *fileh = NewStringf("%s%s.h", SWIG_output_directory(), classname);
     String *filem = NewStringf("%s%s.m", SWIG_output_directory(), classname);
     File *fh_swigtype = NewFile(fileh, "w", SWIG_output_files());
-		File *fm_swigtype = NewFile(filem, "w", SWIG_output_files());
+    File *fm_swigtype = NewFile(filem, "w", SWIG_output_files());
 
     if (!fh_swigtype) {
       FileErrorDisplay(fileh);
       SWIG_exit(EXIT_FAILURE);
-    }		
-   	
-		if (!fm_swigtype) {
+    }
+
+    if (!fm_swigtype) {
       FileErrorDisplay(filem);
       SWIG_exit(EXIT_FAILURE);
     }
-		
     // Start writing out the type wrapper class file
     emitBanner(fh_swigtype);
-				
+
     // Pure Objective-C baseclass and interfaces
     const String *pure_baseclass = typemapLookup("objcbase", type, WARN_NONE);
     const String *pure_interfaces = typemapLookup("objcinterfaces", type, WARN_NONE);
-		
-		Printf(swigtypeh, "#include \<Foundation/Foundation.h\>\n\n", fileh);
 
-		Printv(swigtypeh, typemapLookup("objcimports", type, WARN_NONE),	// Import statements
-					 "\n", typemapLookup("objcclassinterface", type, WARN_NONE),	// Class modifiers
-					 " $objcclassname",	// Class name and base class
-					 *Char(pure_baseclass) ? " : " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
-					 ", " : "", pure_interfaces, typemapLookup("objcinterface", type, WARN_NONE),	// main body of class
-					 typemapLookup("objccode", type, WARN_NONE),	// extra Objective-C code
-					 "@end\n", "\n", NIL);
-		
-		Printf(swigtypem, "#include \"%s\"\n\n", fileh);
-		
+    Printf(swigtypeh, "#include <Foundation/Foundation.h>\n\n", fileh);
+
+    Printv(swigtypeh, typemapLookup("objcimports", type, WARN_NONE),	// Import statements
+	   "\n", typemapLookup("objcclassinterface", type, WARN_NONE),	// Class modifiers
+	   " $objcclassname",	// Class name and base class
+	   *Char(pure_baseclass) ? " : " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
+	   ", " : "", pure_interfaces, typemapLookup("objcinterface", type, WARN_NONE),	// main body of class
+	   typemapLookup("objccode", type, WARN_NONE),	// extra Objective-C code
+	   "@end\n", "\n", NIL);
+
+    Printf(swigtypem, "#include \"%s\"\n\n", fileh);
+
     Printv(swigtypem, typemapLookup("objcimports", type, WARN_NONE),	// Import statements
-					 typemapLookup("objcclassimplementation", type, WARN_NONE),	// Class modifiers
-					 " $objcclassname", typemapLookup("objcbody", type, WARN_NONE),	// main body of class
-					 typemapLookup("objccode", type, WARN_NONE),	// extra Objective-C code
-					 "@end\n", "\n", NIL);
-		
-		
+	   typemapLookup("objcclassimplementation", type, WARN_NONE),	// Class modifiers
+	   " $objcclassname", typemapLookup("objcbody", type, WARN_NONE),	// main body of class
+	   typemapLookup("objccode", type, WARN_NONE),	// extra Objective-C code
+	   "@end\n", "\n", NIL);
+
+
     Replaceall(swigtypeh, "$objcclassname", classname);
-		Replaceall(swigtypem, "$objcclassname", classname);
+    Replaceall(swigtypem, "$objcclassname", classname);
 
     Printv(fh_swigtype, swigtypeh, NIL);
-		Printv(fm_swigtype, swigtypem, NIL);
+    Printv(fm_swigtype, swigtypem, NIL);
 
     Close(fh_swigtype);
     Delete(swigtypeh);
-		
-		Close(fm_swigtype);
+
+    Close(fm_swigtype);
     Delete(swigtypem);
 
-		Delete(fileh);
+    Delete(fileh);
     fileh = NULL;
-		
-		Delete(filem);
+
+    Delete(filem);
     filem = NULL;
   }
-	
+
 
   /* -----------------------------------------------------------------------------
    * typemapLookup()
@@ -1789,8 +1806,8 @@ public:
     // Pure Objective-C interfaces
     const String *pure_interfaces = typemapLookup(derived ? "objcinterfaces_derived" : "objcinterfaces", typemap_lookup_type, WARN_NONE);
     // Start writing the proxy class
-    //Printv(proxy_class_decl, typemapLookup("objcimports", typemap_lookup_type, WARN_NONE),	// Import statements
-	  // "\n", NIL);		// This would be needed when we decide upon a separate file for each class.
+    //Printv(proxy_class_decl, typemapLookup("objcimports", typemap_lookup_type, WARN_NONE),    // Import statements
+    // "\n", NIL);                // This would be needed when we decide upon a separate file for each class.
 
     // Class attributes
     const String *objcattributes = typemapLookup("objcattributes", typemap_lookup_type, WARN_NONE);

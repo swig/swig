@@ -58,9 +58,26 @@
 %typemap(in) bool
 %{ $1 = $input ? true : false; %}
 
+
 // Pointer, references and arrays
-%typemap(in) char *, char *&
-%{ $1 = [$input cStringUsingEncoding: [NSString defaultCStringEncoding]]; %}
+%typemap(in, noblock=1) char * {
+ $1 = 0;
+  if ($input) {
+    $1 = [$input cStringUsingEncoding: [NSString defaultCStringEncoding]];
+    if (!$1) return $null;
+  }
+}
+
+%typemap(in, noblock=1) char *& ($*1_ltype temp = 0) {
+ $1 = 0;
+  if ($input) {
+    temp = ($*1_ltype)[$input cStringUsingEncoding: [NSString defaultCStringEncoding]];;
+    if (!temp) return $null;
+  }
+  $1 = &temp;
+}
+
+
 %typemap(in) char[ANY]
 %{ $1 = [$input cStringUsingEncoding: [NSString defaultCStringEncoding]]; %}
 %typemap(in) char[]
@@ -74,6 +91,50 @@
 %{ $1 = ($1_ltype)$input; %} //TBD
 %typemap(in) SWIGTYPE
 %{ $1 = ($1_ltype)$input; %} //TBD
+
+%typemap(in) const bool & ($*1_ltype temp)
+%{ temp = $input ? true : false; 
+   $1 = &temp; %}
+
+%typemap(in) const char & ($*1_ltype temp), 
+             const signed char & ($*1_ltype temp), 
+             const unsigned char & ($*1_ltype temp), 
+             const short & ($*1_ltype temp), 
+             const unsigned short & ($*1_ltype temp), 
+             const int & ($*1_ltype temp), 
+             const unsigned int & ($*1_ltype temp), 
+             const long & ($*1_ltype temp), 
+             const unsigned long & ($*1_ltype temp), 
+             const long long & ($*1_ltype temp), 
+             const float & ($*1_ltype temp), 
+             const double & ($*1_ltype temp)
+%{ temp = ($*1_ltype)$input; 
+   $1 = &temp; %}
+
+
+/* Default handling. Object passed by value. Convert to a pointer */
+%typemap(in) SWIGTYPE ($&1_type argp)
+%{ argp = *($&1_ltype*)&$input; 
+   if (!argp) {
+		[NSException raise:@"Attempt to dereference null $1_type"];
+     return $null;
+   }
+   $1 = *argp; %}
+
+%typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
+%typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
+  if (!$1) {
+		[NSException raise:@"$1_type reference is null"];
+     return $null;
+  } %}
+%typemap(in) SWIGTYPE *& ($*1_ltype temp = 0)
+%{ temp = *($1_ltype)&$input;
+   $1 = &temp; %}
+
+
+/* Default array handling */
+%typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}
+
 
 
 /* Following are the "out" typemaps for C to Objective-C conversions */
@@ -94,15 +155,38 @@
              float, 
              double
 %{ $result = $1; %}
-%typemap(out, null="") void ""
+%typemap(out) void ""
 
 
 // Pointers, references and arrays
-%typemap(out) char * %{ $result = [NSString stringWithCString: $1]; %} //TBD
-%typemap(out) SWIGTYPE * %{ $result = (void *)$1; %} 
-%typemap(out) SWIGTYPE & %{ $result = (void *)$1; %} 
+%typemap(out, noblock=1) char * %{ if ($1) $result = [NSString stringWithCString: $1]; %} //TBD
+%typemap(out, noblock=1) char *& %{ if (*$1) $result = [NSString stringWithCString: *$1]; %}
+%typemap(out, noblock=1) char[ANY], char[] %{ if ($1) $result = [NSString stringWithCString: $1]; %}
+
+
+
 %typemap(out) SWIGTYPE [] %{ $result = (void *)$1; %} 
-%typemap(out) SWIGTYPE    %{ $result = (void *)$1; %} 
+
+%typemap(out) SWIGTYPE 
+#ifdef __cplusplus
+%{ *($&1_ltype*)&$result = new $1_ltype((const $1_ltype &)$1); %}
+#else
+{
+  $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
+  memmove($1ptr, &$1, sizeof($1_type));
+  *($&1_ltype*)&$result = $1ptr;
+}
+#endif
+
+%typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*)
+%{ *($&1_ltype)&$result = $1; %} 
+%typemap(out) SWIGTYPE &
+%{ *($&1_ltype)&$result = $1; %} 
+
+%typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
+
+%typemap(out) SWIGTYPE *&
+%{ *($1_ltype)&$result = *$1; %} 
 
 
 
