@@ -14,7 +14,6 @@ all::	objc
 objc::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' objc
-	$(MAKE) -f $(TOP)/Makefile OBJCPPSRCS='$(OBJCPPSRCS)' OBJPPCFLAGS='(OBJCPPFLAGS)' objcpp_compile
 	$(MAKE) -f $(TOP)/Makefile OBJCSRCS='$(OBJCSRCS)' OBJCFLAGS='(OBJCFLAGS)' objc_compile
 
 clean::
