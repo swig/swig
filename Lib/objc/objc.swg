@@ -63,15 +63,29 @@
 %typemap(in, noblock=1) char * {
  $1 = 0;
   if ($input) {
-    $1 = [$input cStringUsingEncoding: [NSString defaultCStringEncoding]];
-    if (!$1) return $null;
-  }
+		int length = [$input length];
+		int bufferSize = sizeof(char) * (length + 1);
+		char *buffer = (char*)malloc(bufferSize);
+		memset(buffer, 0, bufferSize);
+		int i = 0;
+		for (; i < length; ++i)
+			buffer[i] = [$input characterAtIndex: i];
+			$1 = buffer;
+	}
+	if (!$1) return $null;
 }
 
 %typemap(in, noblock=1) char *& ($*1_ltype temp = 0) {
  $1 = 0;
   if ($input) {
-    temp = ($*1_ltype)[$input cStringUsingEncoding: [NSString defaultCStringEncoding]];;
+		int length = [$input length];
+		int bufferSize = sizeof(char) * (length + 1);
+		char *buffer = (char*)malloc(bufferSize);
+		memset(buffer, 0, bufferSize);
+		int i = 0;
+		for (; i < length; ++i)
+			buffer[i] = [$input characterAtIndex: i];
+    temp = ($*1_ltype)buffer;
     if (!temp) return $null;
   }
   $1 = &temp;
@@ -79,9 +93,36 @@
 
 
 %typemap(in) char[ANY]
-%{ $1 = [$input cStringUsingEncoding: [NSString defaultCStringEncoding]]; %}
+%{ 
+	 $1 = 0;
+  if ($input) {
+		int length = [$input length];
+		int bufferSize = sizeof(char) * (length + 1);
+		char *buffer = (char*)malloc(bufferSize);
+		memset(buffer, 0, bufferSize);
+		int i = 0;
+		for (; i < length; ++i)
+			buffer[i] = [$input characterAtIndex: i];
+			$1 = buffer;
+	}
+	if (!$1) return $null;
+%}
+
 %typemap(in) char[]
-%{ $1 = [$input cStringUsingEncoding: [NSString defaultCStringEncoding]]; %}
+%{ 
+	$1 = 0;
+  if ($input) {
+		int length = [$input length];
+		int bufferSize = sizeof(char) * (length + 1);
+		char *buffer = (char*)malloc(bufferSize);
+		memset(buffer, 0, bufferSize);
+		int i = 0;
+		for (; i < length; ++i)
+			buffer[i] = [$input characterAtIndex: i];
+			$1 = buffer;
+	}
+	if (!$1) return $null;
+%}
 
 %typemap(in) SWIGTYPE *
 %{ $1 = ($1_ltype)$input; %}
@@ -116,16 +157,18 @@
 %typemap(in) SWIGTYPE ($&1_type argp)
 %{ argp = *($&1_ltype*)&$input; 
    if (!argp) {
-		[NSException raise:@"Attempt to dereference null $1_type"];
-     return $null;
+		NSException* anException = [NSException exceptionWithName:@"NullPointerException" 
+		reason:@"Attempt to dereference null $1_type"
+    userInfo:nil];
    }
    $1 = *argp; %}
 
 %typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
-		[NSException raise:@"$1_type reference is null"];
-     return $null;
+		NSException* anException = [NSException exceptionWithName:@"NullPointerException" 
+		reason:@"Attempt to dereference null $1_type"
+    userInfo:nil];
   } %}
 %typemap(in) SWIGTYPE *& ($*1_ltype temp = 0)
 %{ temp = *($1_ltype)&$input;
@@ -169,24 +212,24 @@
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{ *($&1_ltype*)&$result = new $1_ltype((const $1_ltype &)$1); %}
+%{ $result = (void*)new $1_ltype((const $1_ltype &)$1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
   memmove($1ptr, &$1, sizeof($1_type));
-  *($&1_ltype*)&$result = $1ptr;
+  $result = $1ptr;
 }
 #endif
 
 %typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*)
-%{ *($&1_ltype)&$result = $1; %} 
+%{ $result = $1; %} 
 %typemap(out) SWIGTYPE &
-%{ *($&1_ltype)&$result = $1; %} 
+%{ $result = $1; %} 
 
-%typemap(out) SWIGTYPE [] %{ *($&1_ltype)&$result = $1; %} 
+%typemap(out) SWIGTYPE [] %{ $result = $1; %} 
 
 %typemap(out) SWIGTYPE *&
-%{ *($1_ltype)&$result = *$1; %} 
+%{ $result = *$1; %} 
 
 
 
@@ -280,14 +323,14 @@
 %typemap(objcout) void {
     $imcall;
   }
-%typemap(objcout) SWIGTYPE { //TBD
+%typemap(objcout) SWIGTYPE {
     void *cPtr = $imcall;
-		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cPtr] autorelease];
+		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
     return ret;
   }
 %typemap(objcout) SWIGTYPE & { //TBD
 		void *cPtr = $imcall;
-		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cPtr] autorelease];
+		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
     return ret;
   }
 	
@@ -295,17 +338,17 @@
 // Also see the memory management part
 %typemap(objcout) SWIGTYPE * {
 		void *cPtr = $imcall;
-		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cPtr] autorelease];
+		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
     return ret;
 }
 %typemap(objcout) SWIGTYPE [] {
 		void *cPtr = $imcall;
-		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cPtr] autorelease];
+		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
     return ret;
 }
 %typemap(objcout) SWIGTYPE (CLASS::*) {
    	void *cMemberPtr = $imcall;
-		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cMemberPtr] autorelease];
+		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cMemberPtr] autorelease];
     return ret;
 }
 
@@ -433,15 +476,15 @@
     $imcall;
 %}
 
-%typemap(objcvarout) SWIGTYPE { //TBD
+%typemap(objcvarout) SWIGTYPE { 
     void *cPtr = $imcall;
-		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cPtr] autorelease];
+		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
     return ret;
 }
 	
-%typemap(objcvarout) SWIGTYPE & { //TBD
+%typemap(objcvarout) SWIGTYPE & { 
 		void *cPtr = $imcall;
-		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cPtr] autorelease];
+		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
     return ret;
 }
 	
@@ -449,17 +492,17 @@
 // Also see the memory management part
 %typemap(objcvarout) SWIGTYPE * {
 		void *cPtr = $imcall;
-		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cPtr] autorelease];
+		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
     return ret;
 }
 %typemap(objcvarout) SWIGTYPE [] {
 		void *cPtr = $imcall;
-		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cPtr] autorelease];
+		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
     return ret;
 }
 %typemap(objcvarout) SWIGTYPE (CLASS::*) {
    	void *cMemberPtr = $imcall;
-		$objcclassname ret = (cPtr == NULL) ? NIL : [[[$objcclassname] initWithCptr: cMemberPtr] autorelease];
+		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cMemberPtr] autorelease];
     return ret;
 }
 

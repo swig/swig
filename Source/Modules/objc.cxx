@@ -35,6 +35,8 @@ protected:
   String *ocpp_h_code;		// Code for Objective-C++ header
   String *proxy_h_code;		// Code for Objective-C proxy header
   String *proxy_m_code;		// Code for Objective-C proxy implementation
+  String *swigtypes_h_code;	// Code for Objective-C typewrapper classes header
+  String *swigtypes_m_code;	// Code for Objective-C typewrapper classes implementation
 
   String *proxy_class_name;	// Name of the proxy class
   String *variable_name;	// Name of a variable being wrapped
@@ -67,7 +69,7 @@ public:
       proxy_flag(true),
       proxy_class_name(NULL),
       destructor_call(NULL), proxy_class_constants_code(NULL), enum_code(NULL), proxy_global_constants_code(NULL), variable_name(NULL), proxy_class_def(NULL),
-      proxy_class_decl(NULL), ocpp_h_code(NULL), proxy_h_code(NULL), proxy_m_code(NULL) {
+      proxy_class_decl(NULL), ocpp_h_code(NULL), proxy_h_code(NULL), proxy_m_code(NULL), swigtypes_h_code(NULL), swigtypes_m_code(NULL) {
   } virtual void main(int argc, char *argv[]) {
     SWIG_library_directory("objc");
 
@@ -133,7 +135,7 @@ public:
 
     Swig_name_register((char *) "wrapper", (char *) "ObjCPP_%f");
 
-    Printf(f_wrappers, "#include \"%s\"\n\n", file_h);
+    Printf(f_wrappers, "#import \"%s\"\n\n", file_h);
 
     Printf(f_wrappers, "\n#ifdef __cplusplus\n");
     Printf(f_wrappers, "extern \"C\" {\n");
@@ -143,6 +145,8 @@ public:
     ocpp_h_code = NewString("");
     proxy_h_code = NewString("");
     proxy_m_code = NewString("");
+    swigtypes_h_code = NewString("");
+    swigtypes_m_code = NewString("");
     proxy_class_decl = NewString("");
     proxy_class_def = NewString("");
     swig_types_hash = NewHash();
@@ -154,6 +158,12 @@ public:
 
     // Generate proxy code
     if (proxy_flag) {
+
+      // Output a Objective-C type wrapper class for each SWIG type
+      for (Iterator swig_type = First(swig_types_hash); swig_type.key; swig_type = Next(swig_type)) {
+	emitTypeWrapperClass(swig_type.key, swig_type.item);
+      }
+
       String *proxy_h = NewStringf("%sProxy.h", modulename);
       f_proxy_h = NewFile(proxy_h, "w", SWIG_output_files());
       if (!f_proxy_h) {
@@ -170,10 +180,10 @@ public:
 
       emitBanner(f_proxy_h);
       Printf(f_proxy_h, "\n#import <Foundation/Foundation.h>\n\n");
-      Printf(f_proxy_m, "#include \"%s\"\n\n", file_h);
-      Printf(f_proxy_m, "#include \"%s\"\n\n", proxy_h);
-      Printv(f_proxy_h, proxy_global_constants_code, proxy_h_code, NIL);
-      Printv(f_proxy_m, proxy_m_code, NIL);
+      Printf(f_proxy_m, "#import \"%s\"\n\n", file_h);
+      Printf(f_proxy_m, "#import \"%s\"\n\n", proxy_h);
+      Printv(f_proxy_h, proxy_global_constants_code, swigtypes_h_code, proxy_h_code, NIL);
+      Printv(f_proxy_m, swigtypes_m_code, proxy_m_code, NIL);
 
       Delete(proxy_h);
       proxy_h = NULL;
@@ -182,8 +192,9 @@ public:
 
       Delete(proxy_h_code);
       proxy_h_code = NULL;
-      Delete(proxy_h_code);
-      proxy_h_code = NULL;
+      Delete(proxy_m_code);
+      proxy_m_code = NULL;
+
       Close(f_proxy_m);
       Delete(f_proxy_m);
       Close(f_proxy_h);
@@ -216,12 +227,6 @@ public:
       Printf(f_ocpp_h, "}\n");
       Printf(f_ocpp_h, "#endif\n");
 
-
-      // Output a Objective-C type wrapper class for each SWIG type
-      for (Iterator swig_type = First(swig_types_hash); swig_type.key; swig_type = Next(swig_type)) {
-	emitTypeWrapperClass(swig_type.key, swig_type.item);
-      }
-
       Dump(f_header, f_runtime);
       Dump(f_wrappers, f_runtime);
       Wrapper_pretty_print(f_init, f_runtime);
@@ -234,6 +239,11 @@ public:
       file_mm = NULL;
       Delete(ocpp_h_code);
       ocpp_h_code = NULL;
+
+      Delete(swigtypes_h_code);
+      swigtypes_h_code = NULL;
+      Delete(swigtypes_m_code);
+      swigtypes_m_code = NULL;
 
       Delete(swig_types_hash);
       swig_types_hash = NULL;
@@ -409,6 +419,8 @@ public:
     String *tm;
     Parm *p;
     Parm *last_parm = 0;
+    int num_arguments = 0;
+    int num_required = 0;
     int i;
     String *imcall = NewString("");
     String *return_type = NewString("");
@@ -431,15 +443,12 @@ public:
     }
 
     /* Attach the non-standard typemaps to the parameter list */
-    Swig_typemap_attach_parms("in", l, NULL);
     Swig_typemap_attach_parms("objctype", l, NULL);
     Swig_typemap_attach_parms("objcin", l, NULL);
 
     /* Get return types */
     if ((tm = Swig_typemap_lookup("objctype", n, "", 0))) {
-      String *objctypeout = Getattr(n, "tmap:objctype:out");	// the type in the objctype typemap's out attribute overrides the type in the typemap
-      if (objctypeout)
-	tm = objctypeout;
+      substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
       Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(t, 0));
@@ -464,65 +473,55 @@ public:
     Printf(function_decl, "%s %s(", return_type, func_name);
     Printv(imcall, "$ocppfuncname(", NIL);
 
-    emit_mark_varargs(l);
+    /* Get number of required and total arguments */
+    num_arguments = emit_num_arguments(l);
+    num_required = emit_num_required(l);
 
-    int gencomma = 1;
+    bool global_or_member_variable = global_variable_flag || (wrapping_member_flag && !enum_constant_flag);
+    int gencomma = 0;
 
-    /* Output each parameter, this essentially completes the function name for objective-c function */
-    for (i = 0, p = l; p; i++) {
-      /* Ignored varargs */
-      if (checkAttribute(p, "varargs:ignore", "1")) {
-	p = nextSibling(p);
-	continue;
-      }
+    /* Output each parameter */
+    for (i = 0, p = l; i < num_arguments; i++) {
 
       /* Ignored parameters */
-      if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	p = Getattr(p, "tmap:in:next");
-	continue;
       }
 
-      /* Ignore the 'this' argument for variable wrappers */
-      if (!(variable_wrapper_flag && i == 0)) {
-	SwigType *pt = Getattr(p, "type");
-	String *param_type = NewString("");
-	if (setter_flag)
-	  last_parm = p;
+      SwigType *pt = Getattr(p, "type");
+      String *param_type = NewString("");
 
-	/* Get the Objective-C parameter type */
-	if ((tm = Getattr(p, "tmap:objctype"))) {
-	  substituteClassname(pt, tm);
-	  const String *inattributes = Getattr(p, "tmap:objctype:inattributes");
-	  Printf(param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
-	} else {
-	  Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(pt, 0));
-	}
-
-	String *arg = makeParameterName(n, p, i, setter_flag);
-
-	if (gencomma > 1) {
-	  Printf(imcall, ", ");
-	}
-
-	// Use typemaps to transform type used in Objective-C proxy function to the one used in intermediate code.
-	if ((tm = Getattr(p, "tmap:objcin"))) {
-	  addThrows(n, "tmap:objcin", p);
-	  substituteClassname(pt, tm);
-	  Replaceall(tm, "$objcinput", arg);
-	  Printv(imcall, tm, NIL);
-	} else {
-	  Swig_warning(WARN_NONE, input_file, line_number, "No objcin typemap defined for %s\n", SwigType_str(pt, 0));
-	}
-
-	/* Add parameter to proxy function */
-	if (gencomma >= 2)
-	  Printf(function_decl, ", ");
-	gencomma = 2;
-	Printf(function_decl, "%s %s", param_type, arg);
-
-	Delete(arg);
-	Delete(param_type);
+      /* Get the Objective-C parameter type */
+      if ((tm = Getattr(p, "tmap:objctype"))) {
+	substituteClassname(pt, tm);
+	Printf(param_type, "%s", tm);
+      } else {
+	Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(pt, 0));
       }
+
+      if (gencomma)
+	Printf(imcall, ", ");
+
+      String *arg = makeParameterName(n, p, i, global_or_member_variable);
+
+      // Use typemaps to transform type used in Objective-C proxy function to the one used in intermediate code.
+      if ((tm = Getattr(p, "tmap:objcin"))) {
+	addThrows(n, "tmap:objcin", p);
+	substituteClassname(pt, tm);
+	Replaceall(tm, "$objcinput", arg);
+	Printv(imcall, tm, NIL);
+      } else {
+	Swig_warning(WARN_NONE, input_file, line_number, "No objcin typemap defined for %s\n", SwigType_str(pt, 0));
+      }
+
+      /* Add parameter to proxy function */
+      if (gencomma >= 2)
+	Printf(function_decl, ", ");
+      gencomma = 2;
+      Printf(function_decl, "%s %s", param_type, arg);
+
+      Delete(arg);
+      Delete(param_type);
       p = Getattr(p, "tmap:in:next");
     }
 
@@ -1653,32 +1652,11 @@ public:
 
   void emitTypeWrapperClass(String *classname, SwigType *type) {
 
-    String *swigtypeh = NewString("");
-    String *swigtypem = NewString("");
-    String *fileh = NewStringf("%s%s.h", SWIG_output_directory(), classname);
-    String *filem = NewStringf("%s%s.m", SWIG_output_directory(), classname);
-    File *fh_swigtype = NewFile(fileh, "w", SWIG_output_files());
-    File *fm_swigtype = NewFile(filem, "w", SWIG_output_files());
-
-    if (!fh_swigtype) {
-      FileErrorDisplay(fileh);
-      SWIG_exit(EXIT_FAILURE);
-    }
-
-    if (!fm_swigtype) {
-      FileErrorDisplay(filem);
-      SWIG_exit(EXIT_FAILURE);
-    }
-    // Start writing out the type wrapper class file
-    emitBanner(fh_swigtype);
-
     // Pure Objective-C baseclass and interfaces
     const String *pure_baseclass = typemapLookup("objcbase", type, WARN_NONE);
     const String *pure_interfaces = typemapLookup("objcinterfaces", type, WARN_NONE);
 
-    Printf(swigtypeh, "#include <Foundation/Foundation.h>\n\n", fileh);
-
-    Printv(swigtypeh, typemapLookup("objcimports", type, WARN_NONE),	// Import statements
+    Printv(swigtypes_h_code, typemapLookup("objcimports", type, WARN_NONE),	// Import statements
 	   "\n", typemapLookup("objcclassinterface", type, WARN_NONE),	// Class modifiers
 	   " $objcclassname",	// Class name and base class
 	   *Char(pure_baseclass) ? " : " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
@@ -1686,32 +1664,14 @@ public:
 	   typemapLookup("objccode", type, WARN_NONE),	// extra Objective-C code
 	   "@end\n", "\n", NIL);
 
-    Printf(swigtypem, "#include \"%s\"\n\n", fileh);
-
-    Printv(swigtypem, typemapLookup("objcimports", type, WARN_NONE),	// Import statements
+    Printv(swigtypes_m_code, typemapLookup("objcimports", type, WARN_NONE),	// Import statements
 	   typemapLookup("objcclassimplementation", type, WARN_NONE),	// Class modifiers
 	   " $objcclassname", typemapLookup("objcbody", type, WARN_NONE),	// main body of class
 	   typemapLookup("objccode", type, WARN_NONE),	// extra Objective-C code
 	   "@end\n", "\n", NIL);
 
-
-    Replaceall(swigtypeh, "$objcclassname", classname);
-    Replaceall(swigtypem, "$objcclassname", classname);
-
-    Printv(fh_swigtype, swigtypeh, NIL);
-    Printv(fm_swigtype, swigtypem, NIL);
-
-    Close(fh_swigtype);
-    Delete(swigtypeh);
-
-    Close(fm_swigtype);
-    Delete(swigtypem);
-
-    Delete(fileh);
-    fileh = NULL;
-
-    Delete(filem);
-    filem = NULL;
+    Replaceall(swigtypes_h_code, "$objcclassname", classname);
+    Replaceall(swigtypes_m_code, "$objcclassname", classname);
   }
 
 
