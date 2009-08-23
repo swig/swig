@@ -283,8 +283,8 @@
 
 // Pointers, references and arrays		
 %typemap(objcin) char *, char *&, char[ANY], char[] "$objcinput"
-%typemap(objcin) SWIGTYPE "[$objcinput getCPtr]"
-%typemap(objcin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "[$objcinput getCPtr]"
+%typemap(objcin) SWIGTYPE "[$objcinput getCptr]"
+%typemap(objcin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "[$objcinput getCptr]"
 %typemap(objcin) SWIGTYPE (CLASS::*) "" //TBD
 
 
