@@ -1,7 +1,7 @@
 /* File : example.i */
 %module example
 
-/* Force the generated Objective-C code to use the C constant values rather than making a method call */
+/* Force the generated Java code to use the C constant values rather than making an intermediate call */
 %objcconst(1);
 
 /* A few preprocessor macros */

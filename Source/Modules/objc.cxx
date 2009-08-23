@@ -94,7 +94,7 @@ public:
     // Set config file
     SWIG_config_file("objc.swg");
 
-    allow_overloading();
+    allow_overloading(false);
   }
 
 
@@ -182,7 +182,7 @@ public:
       Printf(f_proxy_h, "\n#import <Foundation/Foundation.h>\n\n");
       Printf(f_proxy_m, "#import \"%s\"\n\n", file_h);
       Printf(f_proxy_m, "#import \"%s\"\n\n", proxy_h);
-      Printv(f_proxy_h, proxy_global_constants_code, swigtypes_h_code, proxy_h_code, NIL);
+      Printv(f_proxy_h, swigtypes_h_code, proxy_global_constants_code, "\n", proxy_h_code, NIL);
       Printv(f_proxy_m, swigtypes_m_code, proxy_m_code, NIL);
 
       Delete(proxy_h);
@@ -402,6 +402,302 @@ public:
     }
 
     return arg;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * functionWrapper()
+   * ----------------------------------------------------------------------------- */
+
+  virtual int functionWrapper(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+    SwigType *t = Getattr(n, "type");
+    ParmList *l = Getattr(n, "parms");
+
+    String *cleanup = NewString("");
+    String *outarg = NewString("");
+    String *ocpp_return_type = NewString("");
+    String *tm;
+    Parm *p;
+    int i;
+    int num_arguments = 0;
+    int num_required = 0;
+    bool is_void_return;
+    String *overloaded_name = getOverloadedName(n);
+
+    if (!Getattr(n, "sym:overloaded")) {
+      if (!addSymbol(Getattr(n, "sym:name"), n))
+	return SWIG_ERROR;
+    }
+
+    Wrapper *f = NewWrapper();
+    String *wname = Swig_name_wrapper(overloaded_name);
+
+    Swig_typemap_attach_parms("ocpptype", l, f);
+
+    /* Get return types */
+    if ((tm = Swig_typemap_lookup("ocpptype", n, "", 0))) {
+      String *ocpptypeout = Getattr(n, "tmap:ocpptype:out");	// the type in the ocpptype typemap's out attribute overrides the type in the typemap
+      if (ocpptypeout)
+	tm = ocpptypeout;
+      Printf(ocpp_return_type, "%s", tm);
+    } else {
+      Swig_warning(WARN_NONE, input_file, line_number, "No ocpptype typemap defined for %s\n", SwigType_str(t, 0));
+    }
+
+    is_void_return = (Cmp(ocpp_return_type, "void") == 0);
+    if (!is_void_return)
+      Wrapper_add_localv(f, "oresult", ocpp_return_type, "oresult", NIL);
+
+    Printv(f->def, ocpp_return_type, " ", wname, "(", NIL);
+    Printv(ocpp_h_code, ocpp_return_type, " ", wname, "(", NIL);
+
+    // Emit all of the local variables for holding arguments.
+    emit_parameter_variables(l, f);
+
+    // Attach the standard typemaps
+    emit_attach_parmmaps(l, f);
+
+    // Parameter overloading
+    Setattr(n, "wrap:parms", l);
+    Setattr(n, "wrap:name", wname);
+
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in Objective-C
+    if (Getattr(n, "sym:overloaded")) {
+      // Emit warnings for the few cases that can't be overloaded in Objective-C and give up on generating wrapper
+      Swig_overload_check(n);
+      if (Getattr(n, "overload:ignore"))
+	return SWIG_OK;
+    }
+    // Get number of required and total arguments
+    num_arguments = emit_num_arguments(l);
+    num_required = emit_num_required(l);
+    int gencomma = 0;
+
+    // Now walk the function parameter list and generate code to get arguments
+    for (i = 0, p = l; i < num_arguments; i++) {
+
+      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	p = Getattr(p, "tmap:in:next");
+      }
+
+      SwigType *pt = Getattr(p, "type");
+      String *ln = Getattr(p, "lname");
+      String *ocpp_param_type = NewString("");
+      String *arg = NewString("");
+
+      Printf(arg, "o%s", ln);
+
+      if ((tm = Getattr(p, "tmap:ocpptype"))) {
+	const String *inattributes = Getattr(p, "tmap:ocpptype:inattributes");
+	Printf(ocpp_param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
+      } else {
+	Swig_warning(WARN_NONE, input_file, line_number, "No ocpptype typemap defined for %s\n", SwigType_str(pt, 0));
+      }
+
+      // Add parameter to the objcpp function
+      Printv(f->def, gencomma ? ", " : "", ocpp_param_type, " ", arg, NIL);
+      Printv(ocpp_h_code, gencomma ? ", " : "", ocpp_param_type, " ", arg, NIL);
+
+      gencomma = 1;
+
+      // Get typemap for this argument
+      if ((tm = Getattr(p, "tmap:in"))) {
+	addThrows(n, "tmap:in", p);
+	Replaceall(tm, "$source", arg);	/* deprecated */
+	Replaceall(tm, "$target", ln);	/* deprecated */
+	Replaceall(tm, "$arg", arg);	/* deprecated? */
+	Replaceall(tm, "$input", arg);
+	Setattr(p, "emit:input", arg);
+	Printf(f->code, "%s\n", tm);
+	p = Getattr(p, "tmap:in:next");
+      } else {
+	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
+	p = nextSibling(p);
+      }
+      Delete(ocpp_param_type);
+      Delete(arg);
+    }
+
+    /* Insert constraint checking code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p, "tmap:check"))) {
+	addThrows(n, "tmap:check", p);
+	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
+	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
+	Replaceall(tm, "$input", Getattr(p, "emit:input"));
+	Printv(f->code, tm, "\n", NIL);
+	p = Getattr(p, "tmap:check:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+
+    /* Insert cleanup code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p, "tmap:freearg"))) {
+	addThrows(n, "tmap:freearg", p);
+	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
+	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
+	Replaceall(tm, "$input", Getattr(p, "emit:input"));
+	Printv(cleanup, tm, "\n", NIL);
+	p = Getattr(p, "tmap:freearg:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+
+    /* Insert argument output code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p, "tmap:argout"))) {
+	addThrows(n, "tmap:argout", p);
+	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
+	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
+	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
+	Replaceall(tm, "$result", "jresult");
+	Replaceall(tm, "$input", Getattr(p, "emit:input"));
+	Printv(outarg, tm, "\n", NIL);
+	p = Getattr(p, "tmap:argout:next");
+      } else {
+	p = nextSibling(p);
+      }
+    }
+
+    // Get any Objective-C exception classes in the throws typemap
+    ParmList *throw_parm_list = NULL;
+    if ((throw_parm_list = Getattr(n, "throws"))) {
+      Swig_typemap_attach_parms("throws", throw_parm_list, f);
+      for (p = throw_parm_list; p; p = nextSibling(p)) {
+	if ((tm = Getattr(p, "tmap:throws"))) {
+	  addThrows(n, "tmap:throws", p);
+	}
+      }
+    }
+    // Now write code to make the low level function call
+    if (!native_function_flag) {
+      if (Cmp(nodeType(n), "constant") == 0) {
+	// Wrapping a constant hack
+	Swig_save("functionWrapper", n, "wrap:action", NIL);
+
+	// below based on Swig_VargetToFunction()
+	SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
+	Setattr(n, "wrap:action", NewStringf("result = (%s) %s;", SwigType_lstr(ty, 0), Getattr(n, "value")));
+      }
+
+      String *actioncode = emit_action(n);
+
+      // Handle exception classes specified in the "except" feature's "throws" attribute
+      addThrows(n, "feature:except", n);
+
+      if (Cmp(nodeType(n), "constant") == 0)
+	Swig_restore(n);
+
+      // Return value if necessary
+      if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+	addThrows(n, "tmap:out", n);
+	Replaceall(tm, "$source", "result");	/* deprecated */
+	Replaceall(tm, "$target", "oresult");	/* deprecated */
+	Replaceall(tm, "$result", "oresult");
+	if (GetFlag(n, "feature:new"))
+	  Replaceall(tm, "$owner", "1");
+	else
+	  Replaceall(tm, "$owner", "0");
+	Printf(f->code, "%s", tm);
+	if (Len(tm))
+	  Printf(f->code, "\n");
+      } else {
+	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(t, 0), Getattr(n, "name"));
+      }
+      emit_return_variable(n, t, f);
+    }
+
+    /* Output argument output code */
+    Printv(f->code, outarg, NIL);
+
+    /* Output cleanup code */
+    Printv(f->code, cleanup, NIL);
+
+    /* Look to see if there is any newfree cleanup code */
+    if (GetFlag(n, "feature:new")) {
+      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
+	addThrows(n, "tmap:newfree", n);
+	Replaceall(tm, "$source", "result");	/* deprecated */
+	Printf(f->code, "%s\n", tm);
+      }
+    }
+
+    /* See if there is any return cleanup code */
+    if (!native_function_flag) {
+      if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
+	addThrows(n, "tmap:ret", n);
+	Replaceall(tm, "$source", "result");	/* deprecated */
+	Printf(f->code, "%s\n", tm);
+      }
+    }
+    // Finish the ocpp header code and wrapper function definition
+    Printf(ocpp_h_code, ");\n");
+    Printf(f->def, ") {");
+
+    if (!is_void_return)
+      Printv(f->code, "    return oresult;\n", NIL);
+
+    Printf(f->code, "}\n");
+
+    // Substitute the cleanup code
+    Replaceall(f->code, "$cleanup", cleanup);
+
+    // Substitute the function name
+    Replaceall(f->code, "$symname", symname);
+
+    /* Contract macro modification */
+    Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
+
+    if (!is_void_return)
+      Replaceall(f->code, "$null", "0");
+    else
+      Replaceall(f->code, "$null", "");
+
+    // Dump the function out
+    if (!native_function_flag) {
+      Wrapper_print(f, f_wrappers);
+    }
+
+    if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
+      Setattr(n, "ocppfuncname", wname);
+      proxyGlobalFunctionHandler(n);
+    }
+
+    /* 
+     * Generate the proxy class getters/setters for public member variables.
+     * Not for enums and constants.
+     */
+    if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
+      // Capitalize the first letter in the variable to create getter/setter function name
+      bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) != 0;
+
+      String *getter_setter_name = NewString("");
+      if (!getter_flag)
+	Printf(getter_setter_name, "set");
+      else
+	Printf(getter_setter_name, "get");
+      Putc(toupper((int) *Char(variable_name)), getter_setter_name);
+      Printf(getter_setter_name, "%s", Char(variable_name) + 1);
+
+      String *ocppfunctname = NewStringf("ObjCPP_%s", symname);
+
+      Setattr(n, "proxyfuncname", getter_setter_name);
+      Setattr(n, "ocppfuncname", ocppfunctname);
+
+      proxyClassFunctionHandler(n);
+      Delete(getter_setter_name);
+      Delete(ocppfunctname);
+    }
+    // Tidy up
+    Delete(ocpp_return_type);
+    Delete(wname);
+    Delete(overloaded_name);
+    DelWrapper(f);
+
+    return SWIG_OK;
   }
 
 
@@ -743,291 +1039,6 @@ public:
     Delete(function_def);
     Delete(return_type);
     Delete(imcall);
-  }
-
-
-  /* -----------------------------------------------------------------------------
-   * functionWrapper()
-   * ----------------------------------------------------------------------------- */
-
-  virtual int functionWrapper(Node *n) {
-    String *symname = Getattr(n, "sym:name");
-    SwigType *t = Getattr(n, "type");
-    ParmList *l = Getattr(n, "parms");
-
-    String *cleanup = NewString("");
-    String *outarg = NewString("");
-    String *ocpp_return_type = NewString("");
-    String *tm;
-    Parm *p;
-    int i;
-    int num_arguments = 0;
-    int num_required = 0;
-    bool is_void_return;
-    String *overloaded_name = getOverloadedName(n);
-
-    if (!Getattr(n, "sym:overloaded")) {
-      if (!addSymbol(Getattr(n, "sym:name"), n))
-	return SWIG_ERROR;
-    }
-
-    Wrapper *f = NewWrapper();
-    String *wname = Swig_name_wrapper(overloaded_name);
-
-    Swig_typemap_attach_parms("ocpptype", l, f);
-
-    /* Get return types */
-    if ((tm = Swig_typemap_lookup("ocpptype", n, "", 0))) {
-      String *ocpptypeout = Getattr(n, "tmap:ocpptype:out");	// the type in the ocpptype typemap's out attribute overrides the type in the typemap
-      if (ocpptypeout)
-	tm = ocpptypeout;
-      Printf(ocpp_return_type, "%s", tm);
-    } else {
-      Swig_warning(WARN_NONE, input_file, line_number, "No ocpptype typemap defined for %s\n", SwigType_str(t, 0));
-    }
-
-    is_void_return = (Cmp(ocpp_return_type, "void") == 0);
-    if (!is_void_return)
-      Wrapper_add_localv(f, "oresult", ocpp_return_type, "oresult", NIL);
-
-    Printv(f->def, ocpp_return_type, " ", wname, "(", NIL);
-    Printv(ocpp_h_code, ocpp_return_type, " ", wname, "(", NIL);
-
-    // Emit all of the local variables for holding arguments.
-    emit_parameter_variables(l, f);
-
-    // Attach the standard typemaps
-    emit_attach_parmmaps(l, f);
-
-    // Parameter overloading
-    Setattr(n, "wrap:parms", l);
-    Setattr(n, "wrap:name", wname);
-
-    // Wrappers not wanted for some methods where the parameters cannot be overloaded in Objective-C
-    if (Getattr(n, "sym:overloaded")) {
-      // Emit warnings for the few cases that can't be overloaded in Objective-C and give up on generating wrapper
-      Swig_overload_check(n);
-      if (Getattr(n, "overload:ignore"))
-	return SWIG_OK;
-    }
-    // Get number of required and total arguments
-    num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
-    int gencomma = 0;
-
-    // Now walk the function parameter list and generate code to get arguments
-    for (i = 0, p = l; i < num_arguments; i++) {
-
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-	p = Getattr(p, "tmap:in:next");
-      }
-
-      SwigType *pt = Getattr(p, "type");
-      String *ln = Getattr(p, "lname");
-      String *ocpp_param_type = NewString("");
-      String *arg = NewString("");
-
-      Printf(arg, "o%s", ln);
-
-      if ((tm = Getattr(p, "tmap:ocpptype"))) {
-	const String *inattributes = Getattr(p, "tmap:ocpptype:inattributes");
-	Printf(ocpp_param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
-      } else {
-	Swig_warning(WARN_NONE, input_file, line_number, "No ocpptype typemap defined for %s\n", SwigType_str(pt, 0));
-      }
-
-      // Add parameter to the objcpp function
-      Printv(f->def, gencomma ? ", " : "", ocpp_param_type, " ", arg, NIL);
-      Printv(ocpp_h_code, gencomma ? ", " : "", ocpp_param_type, " ", arg, NIL);
-
-      gencomma = 1;
-
-      // Get typemap for this argument
-      if ((tm = Getattr(p, "tmap:in"))) {
-	addThrows(n, "tmap:in", p);
-	Replaceall(tm, "$source", arg);	/* deprecated */
-	Replaceall(tm, "$target", ln);	/* deprecated */
-	Replaceall(tm, "$arg", arg);	/* deprecated? */
-	Replaceall(tm, "$input", arg);
-	Setattr(p, "emit:input", arg);
-	Printf(f->code, "%s\n", tm);
-	p = Getattr(p, "tmap:in:next");
-      } else {
-	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
-	p = nextSibling(p);
-      }
-      Delete(ocpp_param_type);
-      Delete(arg);
-    }
-
-    /* Insert constraint checking code */
-    for (p = l; p;) {
-      if ((tm = Getattr(p, "tmap:check"))) {
-	addThrows(n, "tmap:check", p);
-	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
-	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
-	Replaceall(tm, "$input", Getattr(p, "emit:input"));
-	Printv(f->code, tm, "\n", NIL);
-	p = Getattr(p, "tmap:check:next");
-      } else {
-	p = nextSibling(p);
-      }
-    }
-
-    /* Insert cleanup code */
-    for (p = l; p;) {
-      if ((tm = Getattr(p, "tmap:freearg"))) {
-	addThrows(n, "tmap:freearg", p);
-	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
-	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
-	Replaceall(tm, "$input", Getattr(p, "emit:input"));
-	Printv(cleanup, tm, "\n", NIL);
-	p = Getattr(p, "tmap:freearg:next");
-      } else {
-	p = nextSibling(p);
-      }
-    }
-
-    /* Insert argument output code */
-    for (p = l; p;) {
-      if ((tm = Getattr(p, "tmap:argout"))) {
-	addThrows(n, "tmap:argout", p);
-	Replaceall(tm, "$source", Getattr(p, "emit:input"));	/* deprecated */
-	Replaceall(tm, "$target", Getattr(p, "lname"));	/* deprecated */
-	Replaceall(tm, "$arg", Getattr(p, "emit:input"));	/* deprecated? */
-	Replaceall(tm, "$result", "jresult");
-	Replaceall(tm, "$input", Getattr(p, "emit:input"));
-	Printv(outarg, tm, "\n", NIL);
-	p = Getattr(p, "tmap:argout:next");
-      } else {
-	p = nextSibling(p);
-      }
-    }
-
-    // Get any Objective-C exception classes in the throws typemap
-    ParmList *throw_parm_list = NULL;
-    if ((throw_parm_list = Getattr(n, "throws"))) {
-      Swig_typemap_attach_parms("throws", throw_parm_list, f);
-      for (p = throw_parm_list; p; p = nextSibling(p)) {
-	if ((tm = Getattr(p, "tmap:throws"))) {
-	  addThrows(n, "tmap:throws", p);
-	}
-      }
-    }
-    // Now write code to make the low level function call
-    if (!native_function_flag) {
-      String *actioncode = emit_action(n);
-
-      // Handle exception classes specified in the "except" feature's "throws" attribute
-      addThrows(n, "feature:except", n);
-
-      // Return value if necessary
-      if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-	addThrows(n, "tmap:out", n);
-	Replaceall(tm, "$source", "result");	/* deprecated */
-	Replaceall(tm, "$target", "oresult");	/* deprecated */
-	Replaceall(tm, "$result", "oresult");
-	if (GetFlag(n, "feature:new"))
-	  Replaceall(tm, "$owner", "1");
-	else
-	  Replaceall(tm, "$owner", "0");
-	Printf(f->code, "%s", tm);
-	if (Len(tm))
-	  Printf(f->code, "\n");
-      } else {
-	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(t, 0), Getattr(n, "name"));
-      }
-      emit_return_variable(n, t, f);
-    }
-
-    /* Output argument output code */
-    Printv(f->code, outarg, NIL);
-
-    /* Output cleanup code */
-    Printv(f->code, cleanup, NIL);
-
-    /* Look to see if there is any newfree cleanup code */
-    if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-	addThrows(n, "tmap:newfree", n);
-	Replaceall(tm, "$source", "result");	/* deprecated */
-	Printf(f->code, "%s\n", tm);
-      }
-    }
-
-    /* See if there is any return cleanup code */
-    if (!native_function_flag) {
-      if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-	addThrows(n, "tmap:ret", n);
-	Replaceall(tm, "$source", "result");	/* deprecated */
-	Printf(f->code, "%s\n", tm);
-      }
-    }
-    // Finish the ocpp header code and wrapper function definition
-    Printf(ocpp_h_code, ");\n");
-    Printf(f->def, ") {");
-
-    if (!is_void_return)
-      Printv(f->code, "    return oresult;\n", NIL);
-
-    Printf(f->code, "}\n");
-
-    // Substitute the cleanup code
-    Replaceall(f->code, "$cleanup", cleanup);
-
-    // Substitute the function name
-    Replaceall(f->code, "$symname", symname);
-
-    /* Contract macro modification */
-    Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
-
-    if (!is_void_return)
-      Replaceall(f->code, "$null", "0");
-    else
-      Replaceall(f->code, "$null", "");
-
-    // Dump the function out
-    if (!native_function_flag) {
-      Wrapper_print(f, f_wrappers);
-    }
-
-    if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
-      Setattr(n, "ocppfuncname", wname);
-      proxyGlobalFunctionHandler(n);
-    }
-
-    /* 
-     * Generate the proxy class getters/setters for public member variables.
-     * Not for enums and constants.
-     */
-    if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
-      // Capitalize the first letter in the variable to create getter/setter function name
-      bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) != 0;
-
-      String *getter_setter_name = NewString("");
-      if (!getter_flag)
-	Printf(getter_setter_name, "set");
-      else
-	Printf(getter_setter_name, "get");
-      Putc(toupper((int) *Char(variable_name)), getter_setter_name);
-      Printf(getter_setter_name, "%s", Char(variable_name) + 1);
-
-      String *ocppfunctname = NewStringf("ObjCPP_%s", symname);
-
-      Setattr(n, "proxyfuncname", getter_setter_name);
-      Setattr(n, "ocppfuncname", ocppfunctname);
-
-      proxyClassFunctionHandler(n);
-      Delete(getter_setter_name);
-      Delete(ocppfunctname);
-    }
-    // Tidy up
-    Delete(ocpp_return_type);
-    Delete(wname);
-    Delete(overloaded_name);
-    DelWrapper(f);
-
-    return SWIG_OK;
   }
 
   /* ----------------------------------------------------------------------
@@ -1554,14 +1565,12 @@ public:
     bool classname_substituted_flag = false;
 
     if ((tm = Swig_typemap_lookup("objctype", n, "", 0))) {
-      String *objctypeout = Getattr(n, "tmap:objctype:out");	// the type in the objctype typemap's out attribute overrides the type in the typemap
-      if (objctypeout)
-	tm = objctypeout;
       classname_substituted_flag = substituteClassname(t, tm);
       Printf(return_type, "%s", tm);
     } else {
       Swig_warning(WARN_NONE, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(t, 0));
     }
+
 
     // Add the stripped quotes back in
     String *new_value = NewString("");
@@ -1579,7 +1588,7 @@ public:
       Printf(constants_code, "  %s\n", outattributes);
     const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
 
-    Printf(constants_code, "  %s %s %s = ", (const_feature_flag ? "const" : "static"), return_type, itemname);
+    Printf(constants_code, "%s %s %s = ", (const_feature_flag ? "const" : "static"), return_type, itemname);
 
     // Check for the %objcconstvalue feature
     String *value = Getattr(n, "feature:objc:constvalue");
@@ -1595,7 +1604,7 @@ public:
 	  Printf(constants_code, "(%s)%s();\n", return_type, Swig_name_get(symname));
 	} else {
 	  // This handles function pointers using the %constant directive
-	  Printf(constants_code, "new %s(%s(), false);\n", return_type, Swig_name_get(symname));
+	  Printf(constants_code, "[[[%s alloc] initWithCptr: &%s()] autorelease];\n", return_type, Swig_name_get(symname));
 	}
       } else
 	Printf(constants_code, "%s();\n", Swig_name_get(symname));

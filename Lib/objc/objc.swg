@@ -160,16 +160,20 @@
 		NSException* anException = [NSException exceptionWithName:@"NullPointerException" 
 		reason:@"Attempt to dereference null $1_type"
     userInfo:nil];
+		@throw anException;
    }
    $1 = *argp; %}
 
 %typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
+
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
 		NSException* anException = [NSException exceptionWithName:@"NullPointerException" 
 		reason:@"Attempt to dereference null $1_type"
     userInfo:nil];
+		@throw anException;
   } %}
+	
 %typemap(in) SWIGTYPE *& ($*1_ltype temp = 0)
 %{ temp = *($1_ltype)&$input;
    $1 = &temp; %}
@@ -217,19 +221,19 @@
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
   memmove($1ptr, &$1, sizeof($1_type));
-  $result = $1ptr;
+  $result = (void*)$1ptr;
 }
 #endif
 
 %typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*)
-%{ $result = $1; %} 
+%{ $result = (void*)$1; %} 
 %typemap(out) SWIGTYPE &
-%{ $result = $1; %} 
+%{ $result = (void*)$1; %} 
 
 %typemap(out) SWIGTYPE [] %{ $result = $1; %} 
 
 %typemap(out) SWIGTYPE *&
-%{ $result = *$1; %} 
+%{ $result = (void*)*$1; %} 
 
 
 
@@ -253,13 +257,13 @@
 
 // Pointers, references and arrays
 %typemap(objctype) char *, char *&, char[ANY], char[]   "NSString *"
-%typemap(objctype) SWIGTYPE "$objcclassname *"
-%typemap(objctype) SWIGTYPE [] "NSMutableArray *" //TBD
-%typemap(objctype) SWIGTYPE *  "$objcclassname *" 
-%typemap(objctype) SWIGTYPE & "$objcclassname *"
+%typemap(objctype) SWIGTYPE "$objcclassname*"
+%typemap(objctype) SWIGTYPE [] "NSMutableArray*" //TBD
+%typemap(objctype) SWIGTYPE *  "$objcclassname*" 
+%typemap(objctype) SWIGTYPE & "$objcclassname*"
 
 // Pointer to a class member
-%typemap(objctype) SWIGTYPE (CLASS::*) "$objcclassname" 
+%typemap(objctype) SWIGTYPE (CLASS::*) "$objcclassname*" 
 
 
 
