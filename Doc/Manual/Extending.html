@@ -48,7 +48,7 @@
 <li><a href="#Extending_nn31">Writing a Language Module</a>
 <ul>
 <li><a href="#Extending_nn32">Execution model</a>
-<li><a href="#Extending_nn33">Starting out</a>
+<li><a href="#Extending_starting_out">Starting out</a>
 <li><a href="#Extending_nn34">Command line options</a>
 <li><a href="#Extending_nn35">Configuration and preprocessing</a>
 <li><a href="#Extending_nn36">Entry point to code generation</a>
@@ -57,7 +57,11 @@
 <li><a href="#Extending_nn39">Configuration files</a>
 <li><a href="#Extending_nn40">Runtime support</a>
 <li><a href="#Extending_nn41">Standard library files</a>
-<li><a href="#Extending_nn42">Examples and test cases</a>
+<li><a href="#Extending_nn42">User examples</a>
+<li><a href="#Extending_test_suite">Test driven development and the test-suite</a>
+<ul>
+<li><a href="#Extending_running_test_suite">Running the test-suite</a>
+</ul>
 <li><a href="#Extending_nn43">Documentation</a>
 <li><a href="#Extending_prerequisites">Prerequisites for adding a new language module to the SWIG distribution</a>
 <li><a href="#Extending_coding_style_guidelines">Coding style guidelines</a>
@@ -2471,7 +2475,7 @@ the parsing of command line options, all aspects of code generation are controll
 different methods of the <tt>Language</tt> that must be defined by your module.
 </p>
 
-<H3><a name="Extending_nn33"></a>35.10.2 Starting out</H3>
+<H3><a name="Extending_starting_out"></a>35.10.2 Starting out</H3>
 
 
 <p>
@@ -3053,7 +3057,7 @@ but without the typemaps, there is still work to do.
 <!-- please report bugs in this section to ttn -->
 
 <p>
-At the time of this writing, SWIG supports nearly a dozen languages,
+At the time of this writing, SWIG supports nearly twenty languages,
 which means that for continued sanity in maintaining the configuration
 files, the language modules need to follow some conventions.  These are
 outlined here along with the admission that, yes it is ok to violate
@@ -3225,7 +3229,7 @@ The following are the minimum that are usually supported:
 Please copy these and modify for any new language.
 </p>
 
-<H3><a name="Extending_nn42"></a>35.10.11 Examples and test cases</H3>
+<H3><a name="Extending_nn42"></a>35.10.11 User examples</H3>
 
 
 <p>
@@ -3254,7 +3258,226 @@ during this process, see the section on <a href="#n37a">configuration
 files</a>.
 </p>
 
-<H3><a name="Extending_nn43"></a>35.10.12 Documentation</H3>
+<H3><a name="Extending_test_suite"></a>35.10.12 Test driven development and the test-suite</H3>
+
+
+<p>
+A test driven development approach is central to the improvement and development of SWIG.
+Most modifications to SWIG are accompanied by additional regression tests and checking all 
+tests to ensure that no regressions have been introduced.
+</p>
+
+<p>
+The regression testing is carried out by the SWIG <i>test-suite</i>.
+The test-suite consists of numerous testcase interface files in the <tt>Examples/test-suite</tt> directory
+as well as target language specific runtime tests in the <tt>Examples/test-suite/[lang]</tt> directory. 
+When a testcase is run, it will execute the following steps for each testcase:
+</p>
+
+<ol>
+<li>Execute SWIG passing it the testcase interface file.</li>
+<li>Compile the resulting generated C/C++ code with either the C or C++ compiler into object files.</li>
+<li>Link the object files into a dynamic library (dll/shared object).</li>
+<li>Compile any generated and any runtime test target language code with the target language compiler, if the target language supports compilation. This step thus does not apply to the interpreted languages.</li>
+<li>Execute a runtime test if one exists.</li>
+</ol>
+
+<p>
+For example, the <i>ret_by_value</i> testcase consists of two components.
+The first component is the <tt>Examples/test-suite/ret_by_value.i</tt> interface file.
+The name of the SWIG module <b>must</b> always be the name of the testcase, so the <tt>ret_by_value.i</tt> interface file thus begins with: 
+</p>
+
+<div class="code">
+<pre>
+%module ret_by_value
+</pre>
+</div>
+
+<p>
+The testcase code will then follow the module declaration,
+usually within a <tt>%inline %{ ... %}</tt> section for the majority of the tests.
+</p>
+
+<p>
+The second component is the optional runtime tests.
+Any runtime tests are named using the following convention: <tt>[testcase]_runme.[ext]</tt>, 
+where <tt>[testcase]</tt> is the testcase name and <tt>[ext]</tt> is the normal extension for the target language file.
+In this case, the Java and Python target languages implement a runtime test, so their files are respectively, 
+<tt>Examples/test-suite/java/ret_by_value_runme.java</tt> and 
+<tt>Examples/test-suite/python/ret_by_value_runme.py</tt>.
+</p>
+
+<p>
+The goal of the test-suite is to test as much as possible in a <b>silent</b> manner.
+This way any SWIG or compiler errors or warnings are easily visible.
+Should there be any warnings, changes must be made to either fix them (preferably) or suppress them.
+Compilation or runtime errors result in a testcase failure and will be immediately visible.
+It is therefore essential that the runtime tests are written in a manner that displays nothing to stdout/stderr on success 
+but error/exception out with an error message on stderr on failure.
+</p>
+
+<H4><a name="Extending_running_test_suite"></a>35.10.12.1 Running the test-suite</H4>
+
+
+<p>
+In order for the test-suite to work for a particular target language, the language must be correctly detected
+and configured during the configure stage so that the correct Makefiles are generated.
+Most development occurs on Linux, so usually it is a matter of installing the development packages for the target language
+and simply configuring as outlined <a href="#Extending_starting_out">earlier</a>.
+</p>
+
+<p>
+If when running the test-suite commands that follow, you get a message that the test was skipped, it indicates that the
+configure stage is missing information in order to compile and run everything for that language.
+</p>
+
+<p>
+The test-suite can be run in a number of ways.
+The first group of commands are for running multiple testcases in one run and should be executed in the top level directory.
+To run the entire test-suite (can take a long time):
+</p>
+
+<div class="shell"><pre>
+make -k check-test-suite
+</pre></div>
+
+<p>
+To run the test-suite just for target language [lang], replace [lang] with one of csharp, java, perl5, python, ruby, tcl etc:
+</p>
+
+<div class="shell"><pre>
+make check-[lang]-test-suite
+</pre></div>
+
+<p>
+Note that if a runtime test is available, a message "(with run test)" is displayed when run. For example:
+</p>
+
+<div class="shell"><pre>
+$ make check-python-test-suite
+checking python test-suite
+checking testcase argcargvtest (with run test) under python
+checking testcase python_autodoc under python
+checking testcase python_append (with run test) under python
+checking testcase callback (with run test) under python
+</pre></div>
+
+<p>
+The files generated on a previous run can be deleted using the clean targets, either the whole test-suite or for a particular language:
+</p>
+
+<div class="shell"><pre>
+make clean-test-suite
+make clean-[lang]-test-suite
+</pre></div>
+
+<p>
+The test-suite can be run in a <i>partialcheck</i> mode where just SWIG is executed, that is, the compile, 
+link and running of the testcases is not performed.
+Note that the partialcheck does not require the target language to be correctly configured and detected and unlike the other test-suite make targets, is never skipped. Once again, either all the languages can be executed or just a chosen language:
+</p>
+
+<div class="shell"><pre>
+make partialcheck-test-suite
+make partialcheck-[lang]-test-suite
+</pre></div>
+
+<p>
+If your computer has more than one CPU, you are strongly advised to use parallel make to speed up the execution speed. 
+This can be done with any of the make targets that execute more than one testcase.
+For example, a dual core processor can efficiently use 2 parallel jobs:
+</p>
+
+<div class="shell"><pre>
+make -j2 check-test-suite
+make -j2 check-python-test-suite
+make -j2 partialcheck-java-test-suite
+</pre></div>
+
+<p>
+The second group of commands are for running individual testcases and should be executed in the appropriate
+target language directory, <tt>Examples/test-suite/[lang]</tt>.
+Testcases can contain either C or C++ code and when one is written, a decision must be made as to which of these input
+languages is to be used.
+Replace <tt>[testcase]</tt> in the commands below with the name of the testcase.
+</p>
+
+<p>
+For a C language testcase, add the testcase under the C_TEST_CASES list in <tt>Examples/test-suite/common.mk</tt> and 
+execute individually as:
+</p>
+<div class="shell"><pre>
+make -s [testcase].ctest
+</pre></div>
+
+<p>
+For a C++ language testcase, add the testcase under the CPP_TEST_CASES list in <tt>Examples/test-suite/common.mk</tt> and 
+execute individually as:
+</p>
+<div class="shell"><pre>
+make -s [testcase].cpptest
+</pre></div>
+
+<p>
+A third category of tests are C++ language testcases testing multiple modules (the %import directive).
+These require more than one shared library (dll/shared object) to be built and so are separated out from the normal C++ testcases.
+Add the testcase under the MULTI_CPP_TEST_CASES list in <tt>Examples/test-suite/common.mk</tt> and 
+execute individually as:
+</p>
+<div class="shell"><pre>
+make -s [testcase].multicpptest
+</pre></div>
+
+<p>
+To delete the generated files, execute:
+</p>
+<div class="shell"><pre>
+make -s [testcase].clean
+</pre></div>
+
+<p>
+If you would like to see the exact commands being executed, drop the -s option:
+</p>
+<div class="shell"><pre>
+make [testcase].ctest
+make [testcase].cpptest
+make [testcase].multicpptest
+</pre></div>
+
+<p>
+Some real examples of each:
+</p>
+<div class="shell"><pre>
+make -s ret_by_value.clean
+make -s ret_by_value.ctest
+make -s bools.cpptest
+make -s imports.multicpptest
+</pre></div>
+
+<p>
+Advanced usage of the test-suite facilitates running tools on some of the five stages.
+The make variables <tt>SWIGTOOL</tt> and <tt>RUNTOOL</tt> are used to specify a tool to respectively, invoke SWIG 
+and the execution of the runtime test.
+You are advised to view the <tt>Examples/test-suite/common.mk</tt> file for details but for a short summary,
+the classic usage is to use <a href="http://valgrind.org/">Valgrind</a> for memory checking.
+For example, checking for memory leaks when running the runtime test in the target language interpreter:
+</p>
+
+<div class="shell"><pre>
+make ret_by_value.ctest RUNTOOL="valgrind --leak-check=full"
+</pre></div>
+
+<p>
+This will probably make more sense if you look at the output of the above as it will show the exact commands being executed.
+SWIG can be analyzed for bad memory accesses using:
+</p>
+
+<div class="shell"><pre>
+make ret_by_value.ctest SWIGTOOL="valgrind --tool=memcheck --trace-children=yes"
+</pre></div>
+
+<H3><a name="Extending_nn43"></a>35.10.13 Documentation</H3>
 
 
 <p>
@@ -3286,7 +3509,7 @@ Some topics that you'll want to be sure to address include:
      if available.
 </ul>
 
-<H3><a name="Extending_prerequisites"></a>35.10.13 Prerequisites for adding a new language module to the SWIG distribution</H3>
+<H3><a name="Extending_prerequisites"></a>35.10.14 Prerequisites for adding a new language module to the SWIG distribution</H3>
 
 
 <p>
@@ -3343,7 +3566,7 @@ should be added should there be an area not already covered by
 the existing tests.
 </p>
 
-<H3><a name="Extending_coding_style_guidelines"></a>35.10.14 Coding style guidelines</H3>
+<H3><a name="Extending_coding_style_guidelines"></a>35.10.15 Coding style guidelines</H3>
 
 
 <p>
