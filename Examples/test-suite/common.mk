@@ -257,6 +257,7 @@ CPP_TEST_CASES += \
 	overload_template \
 	overload_template_fast \
 	pointer_reference \
+	preproc_constants \
 	primitive_ref \
 	private_assign \
 	protected_rename \
@@ -456,6 +457,7 @@ C_TEST_CASES += \
 	overload_extend \
 	overload_extendc \
 	preproc \
+	preproc_constants_c \
 	ret_by_value \
 	simple_array \
 	sizeof_pointer \

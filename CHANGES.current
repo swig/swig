@@ -1,5 +1,22 @@
 Version 1.3.41 (in progress)
 ============================
 
+2009-09-02: wsfulton
+	    The following operators in constant expressions now result in type bool for C++ 
+            wrappers and remain as type int for C wrappers, as per each standard: 
+
+              && || == != < > <= >= (Actually the last 4 are still broken). For example:
+
+              #define A 10
+              #define B 10
+              #define A_EQ_B  A == B // now wrapped as type bool for C++
+              #define A_AND_B A && B // now wrapped as type bool for C++
+
+2009-09-02: wsfulton
+	    Fix #2845746. true and false are now recognised keywords (only when wrapping C++).
+            Constants such as the following are now wrapped (as type bool):
+              #define FOO true
+              #define BAR FOO && false
+
 2009-08-29: olly
 	    [Perl] Remove bogus assertion (patch from David Fletcher).
