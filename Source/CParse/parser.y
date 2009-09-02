@@ -292,6 +292,7 @@ static int  add_only_one = 0;
 static void add_symbols(Node *n) {
   String *decl;
   String *wrn = 0;
+  int case_insensitive_target = Swig_symbol_get_case_insensitive_target();
 
   if (inclass && n) {
     cparse_normalize_void(n);
@@ -491,24 +492,37 @@ static void add_symbols(Node *n) {
       if (c != n) {
         /* symbol conflict attempting to add in the new symbol */
         if (Getattr(n,"sym:weak")) {
-          Setattr(n,"sym:name",symname);
+          if (case_insensitive_target) {
+            String *lower_case_name = Swig_string_lower(symname);
+            Setattr(n,"sym:name",lower_case_name);
+            Setattr(n,"sym:casePreservingName",symname);
+            Delete(lower_case_name);
+          } else {
+            Setattr(n,"sym:name",symname);
+          }
         } else {
           String *e = NewStringEmpty();
           String *en = NewStringEmpty();
           String *ec = NewStringEmpty();
+	  String *csymname;
           int redefined = Swig_need_redefined_warn(n,c,inclass);
+          if (case_insensitive_target) {
+            csymname = Getattr(c, "sym:casePreservingName");
+          } else {
+            csymname = Getattr(c, "sym:name");
+          }
           if (redefined) {
             Printf(en,"Identifier '%s' redefined (ignored)",symname);
-            Printf(ec,"previous definition of '%s'",symname);
+            Printf(ec,"previous definition of '%s'",csymname);
           } else {
             Printf(en,"Redundant redeclaration of '%s'",symname);
-            Printf(ec,"previous declaration of '%s'",symname);
+            Printf(ec,"previous declaration of '%s'",csymname);
           }
           if (Cmp(symname,Getattr(n,"name"))) {
             Printf(en," (Renamed from '%s')", SwigType_namestr(Getattr(n,"name")));
           }
           Printf(en,",");
-          if (Cmp(symname,Getattr(c,"name"))) {
+          if (Cmp(csymname,Getattr(c,"name"))) {
             Printf(ec," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
           }
           Printf(ec,".");

@@ -176,6 +176,8 @@ static Hash *global_scope = 0;	/* Global scope */
 
 static int use_inherit = 1;
 
+static int case_insensitive_target = 0;	/* Is the target language case insensitive? */
+
 /* common attribute keys, to avoid calling find_key all the times */
 
 
@@ -698,6 +700,7 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
   int pn = 0;
   int u1 = 0, u2 = 0;
   String *name, *overname;
+  String *case_preserving_name;
 
   /* See if the node has a name.  If so, we place in the C symbol table for this
      scope. We don't worry about overloading here---the primary purpose of this
@@ -737,6 +740,12 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
   if (GetFlag(n, "feature:ignore"))
     return n;
 
+  /* If the target language is case insensitive, use a lower case string */
+  if (case_insensitive_target) {
+    case_preserving_name = NewString(symname);
+    symname = Swig_string_lower(case_preserving_name);
+  }
+
   /* See if the symbol already exists in the table */
   c = Getattr(current, symname);
 
@@ -775,6 +784,8 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
       Setattr(pcl, "sym:nextSibling", n);
       Setattr(n, "sym:symtab", current_symtab);
       Setattr(n, "sym:name", symname);
+      if (case_insensitive_target)
+	Setattr(n, "sym:casePreservingName", case_preserving_name);
       Setattr(n, "sym:previousSibling", pcl);
       return n;
     }
@@ -810,6 +821,8 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
 	Setattr(current, symname, td);
 	Setattr(td, "sym:symtab", current_symtab);
 	Setattr(td, "sym:name", symname);
+	if (case_insensitive_target)
+	  Setattr(td, "sym:casePreservingName", case_preserving_name);
       }
       return n;
     }
@@ -884,6 +897,8 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
     /* Well, we made it this far.  Guess we can drop the symbol in place */
     Setattr(n, "sym:symtab", current_symtab);
     Setattr(n, "sym:name", symname);
+    if (case_insensitive_target)
+      Setattr(n, "sym:casePreservingName", case_preserving_name);
     /* Printf(stdout,"%s %p\n", Getattr(n,"sym:overname"), current_symtab); */
     assert(!Getattr(n, "sym:overname"));
     overname = NewStringf("__SWIG_%d", pn);
@@ -900,12 +915,18 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
   /* No conflict.  Just add it */
   Setattr(n, "sym:symtab", current_symtab);
   Setattr(n, "sym:name", symname);
+  if (case_insensitive_target)
+    Setattr(n, "sym:casePreservingName", case_preserving_name);
   /* Printf(stdout,"%s\n", Getattr(n,"sym:overname")); */
   overname = NewStringf("__SWIG_%d", pn);
   Setattr(n, "sym:overname", overname);
   Delete(overname);
   /* Printf(stdout,"%s %s %s\n", symname, Getattr(n,"decl"), Getattr(n,"sym:overname")); */
   Setattr(current, symname, n);
+  if (case_insensitive_target) {
+    Delete(symname);
+    Delete(case_preserving_name);
+  }
   return n;
 }
 
@@ -2061,4 +2082,13 @@ SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symtab) {
     break;
   }
   return value;
+}
+
+int Swig_symbol_set_case_insensitive_target(int value) {
+  case_insensitive_target = value;
+  return value;
+}
+
+extern int Swig_symbol_get_case_insensitive_target(void) {
+  return case_insensitive_target;
 }

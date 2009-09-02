@@ -250,6 +250,7 @@ public:
     memset(&module_iid, 0, sizeof(GUID));
     memset(&module_clsid, 0, sizeof(GUID));
     director_language = 0;
+    Swig_symbol_set_case_insensitive_target(1);
   }
 
   /* -----------------------------------------------------------------------------
