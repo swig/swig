@@ -28,7 +28,7 @@ public class java_jnitypes_runme {
     double doubleArray[] = new double[] {10.0, 20.0};
     Test objectArray[] = new Test[] {new Test(), test};
 
-    if (java_jnitypes.jnifunc(true) != true)                testFailed("jboolean");
+    if (java_jnitypes.jnifunc_bool(true) != true)           testFailed("jboolean");
     if (java_jnitypes.jnifunc('A') != 'A')                  testFailed("jchar");
     if (java_jnitypes.jnifunc((byte)100) != (byte)100)      testFailed("jbyte");
     if (java_jnitypes.jnifunc((short)100) != (short)100)    testFailed("jshort");
