@@ -306,6 +306,9 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern int Swig_value_wrapper_mode(int mode);
 
+  extern int Swig_symbol_set_case_insensitive_target(int value);
+  extern int Swig_symbol_get_case_insensitive_target(void);
+
 
 #define WARNING(msg) Swig_warn(__FILE__,__LINE__,msg)
 
