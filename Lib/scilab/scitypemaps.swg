@@ -58,7 +58,7 @@
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
-  if (getVarType(piAddrVar) != sci_lufact_pointer) {
+  if (getVarType(piAddrVar) != sci_pointer) {
     Scierror(999, _("%s: Wrong type for input argument #%d: Pointer expected.\n"), fname, $argnum);
   }
   getPointer(piAddrVar, (void **)&_piData);
@@ -436,7 +436,7 @@
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
-  if (getVarType(piAddrVar) != sci_lufact_pointer) {
+  if (getVarType(piAddrVar) != sci_pointer) {
     Scierror(999, _("%s: Wrong type for input argument #%d: Pointer expected.\n"), fname, $argnum);
   }
   getPointer(piAddrVar, (void **)&_piData);
@@ -448,7 +448,7 @@
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
-  if (getVarType(piAddrVar) != sci_lufact_pointer) {
+  if (getVarType(piAddrVar) != sci_pointer) {
     Scierror(999, _("%s: Wrong type for input argument #%d: Pointer expected.\n"), fname, $argnum);
   }
   getPointer(piAddrVar, (void **)&_piData);
@@ -806,7 +806,7 @@
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
-  if (getVarType(piAddrVar) != sci_lufact_pointer) {
+  if (getVarType(piAddrVar) != sci_pointer) {
     Scierror(999, _("%s: Wrong type for input argument #%d: Pointer expected.\n"), fname, $argnum);
   }
   getPointer(piAddrVar, (void **)&_piData);
@@ -1017,7 +1017,7 @@
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
-  if (getVarType(piAddrVar) != sci_lufact_pointer) {
+  if (getVarType(piAddrVar) != sci_pointer) {
     Scierror(999, _("%s: Wrong type for input argument #%d: Pointer expected.\n"), fname, $argnum);
   }
   getPointer(piAddrVar, (void **)&_piData);
@@ -1029,9 +1029,10 @@
   size_t ii;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
-  if (getVarType(piAddrVar) != sci_lufact_pointer) {
+  if (getVarType(piAddrVar) != sci_pointer) {
     Scierror(999, _("%s: Wrong type for input argument #%d: Pointer expected.\n"), fname, $argnum);
   }
+/* TODO: change for a getmatrixofXXXXXXxx */
   getPointer(piAddrVar, (void **)&_piData);
   for(ii = 0; ii < $1_dim0; ii++){
     $1[ii] = (($1_ltype)_piData)[ii];
@@ -1042,16 +1043,18 @@
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
-  if (getVarType(piAddrVar) != sci_lufact_pointer) {
+  if (getVarType(piAddrVar) != sci_pointer) {
     Scierror(999, _("%s: Wrong type for input argument #%d: Pointer expected.\n"), fname, $argnum);
   }
+/* TODO: change for a getmatrixofXXXXXXxx */
   getPointer(piAddrVar, (void **)&_piData);
   
   size_t ii = 0;
   for(; ii < (size_t)$1_dim0; ii++){
     size_t jj = 0;
-    for(; jj < (size_t)$1_dim1; jj++)
-      $1[ii][jj] = (($1_basetype *)_piData)[jj * $1_dim0+ii];
+    for(; jj < (size_t)$1_dim1; jj++) { /* Fill the two dim array. Note that a Scilab matrix is stored as a flat matrix by columns */
+      	  $1[ii][jj] = (($1_basetype *)_piData)[jj * $1_dim0+ii];
+	  }
   }
 }
 
@@ -1059,9 +1062,10 @@
   void *_piData = NULL;
   getVarAddressFromPosition($argnum, &piAddrVar);
   
-  if (getVarType(piAddrVar) != sci_lufact_pointer) {
+  if (getVarType(piAddrVar) != sci_pointer) {
     Scierror(999, _("%s: Wrong type for input argument #%d: Pointer expected.\n"), fname, $argnum);
   }
+/* TODO: change for a getmatrixofXXXXXXxx */
   getPointer(piAddrVar, (void **)&_piData);
   $1 = *(($&1_ltype)_piData);
 }
@@ -1370,7 +1374,7 @@
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE * {
   int *piAddrVar;
   getVarAddressFromPosition($argnum, &piAddrVar);
-  $1 = (getVarType(piAddrVar) == sci_lufact_pointer) ? 1 : 0;
+  $1 = (getVarType(piAddrVar) == sci_pointer) ? 1 : 0;
 }
 
 /* ------------------------------------------------------------
