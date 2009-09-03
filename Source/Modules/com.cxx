@@ -264,7 +264,7 @@ public:
     if (proxy_flag) {
       Node *n = classLookup(t);
       if (n) {
-	return Getattr(n, "sym:name");
+	return Getattr(n, "sym:casePreservingName");
       }
     }
     return NULL;
@@ -618,7 +618,7 @@ public:
    * ----------------------------------------------------------------------------- */
 
   virtual int functionWrapper(Node *n) {
-    String *symname = Getattr(n, "sym:name");
+    String *symname = Getattr(n, "sym:casePreservingName");
     SwigType *t = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *tm;
@@ -878,7 +878,7 @@ public:
   virtual int globalvariableHandler(Node *n) {
 
     generate_property_declaration_flag = true;
-    variable_name = Getattr(n, "sym:name");
+    variable_name = Getattr(n, "sym:casePreservingName");
     global_variable_flag = true;
     int ret = Language::globalvariableHandler(n);
     global_variable_flag = false;
@@ -898,7 +898,7 @@ public:
 
     if (!wrapping_member_flag) {
       global_variable_flag = true;
-      variable_name = Getattr(n, "sym:name");
+      variable_name = Getattr(n, "sym:casePreservingName");
     } else {
       static_flag = true;
     }
@@ -922,9 +922,9 @@ public:
 
     if (proxy_flag) {
       // FIXME: String *overloaded_name = getOverloadedName(n);
-      String *overloaded_name = Getattr(n, "sym:name");
+      String *overloaded_name = Getattr(n, "sym:casePreservingName");
       String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
-      Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
+      Setattr(n, "proxyfuncname", Getattr(n, "sym:casePreservingName"));
       proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
@@ -938,7 +938,7 @@ public:
   virtual int membervariableHandler(Node *n) {
 
     generate_property_declaration_flag = true;
-    variable_name = Getattr(n, "sym:name");
+    variable_name = Getattr(n, "sym:casePreservingName");
     wrapping_member_flag = true;
     variable_wrapper_flag = true;
     Language::membervariableHandler(n);
@@ -958,7 +958,7 @@ public:
     bool static_const_member_flag = (Getattr(n, "value") == 0);
 
     generate_property_declaration_flag = true;
-    variable_name = Getattr(n, "sym:name");
+    variable_name = Getattr(n, "sym:casePreservingName");
     wrapping_member_flag = true;
     static_flag = true;
     Language::staticmembervariableHandler(n);
@@ -975,7 +975,7 @@ public:
 
   virtual int memberconstantHandler(Node *n) {
 
-    variable_name = Getattr(n, "sym:name");
+    variable_name = Getattr(n, "sym:casePreservingName");
     wrapping_member_flag = true;
     Language::memberconstantHandler(n);
     wrapping_member_flag = false;
@@ -1046,17 +1046,17 @@ public:
 
     if (proxy_flag && global_variable_flag) {
       func_name = NewString("");
-      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), variable_name)) == 0);
+      setter_flag = (Cmp(Getattr(n, "sym:casePreservingName"), Swig_name_set(getNSpace(), variable_name)) == 0);
       Printf(func_name, "%s", variable_name);
 
       if (setter_flag) {
-        Printf(function_code, "    [ propput ]\n");
+        Printf(function_code, "  [ propput ]\n");
       } else {
-        Printf(function_code, "    [ propget ]\n");
+        Printf(function_code, "  [ propget ]\n");
       }
     } else {
       /* FIXME: ... */
-      func_name = Getattr(n, "sym:name");
+      func_name = Getattr(n, "sym:casePreservingName");
     }
 
     if (hresult_flag) {
@@ -1200,7 +1200,7 @@ public:
         "  HRESULT %s([ retval, out ] I%sStatic **SWIG_result);\n",
         proxy_class_name, proxy_class_name);
 
-    Printf(module_class_vtable_code, ",\n  (SWIG_funcptr) _wrap_%sStatic");
+    Printf(module_class_vtable_code, ",\n  (SWIG_funcptr) _wrap_%sStatic", proxy_class_name);
 
     Printf(f_wrappers, "extern GUID IID_I%sStatic;\n\n", proxy_class_name);
     Printf(f_wrappers, "extern SWIG_funcptr _wrap%sStatic_vtable[];\n\n", proxy_class_name);
@@ -1375,7 +1375,7 @@ public:
 
   virtual int classHandler(Node *n) {
     if (proxy_flag) {
-      proxy_class_name = NewString(Getattr(n, "sym:name"));
+      proxy_class_name = NewString(Getattr(n, "sym:casePreservingName"));
       List *bases = NULL;
 
       if (!addSymbol(proxy_class_name, n))
@@ -1462,7 +1462,7 @@ public:
           base = Next(base);
 
         if (base.item) {
-          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_I%s)", Getattr(base.item, "sym:name"));
+          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_I%s)", Getattr(base.item, "sym:casePreservingName"));
           /* Get next base */
           bases = Getattr(base.item, "bases");
         } else {
@@ -1535,7 +1535,7 @@ public:
           base = Next(base);
 
         if (base.item) {
-          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_I%s)", Getattr(base.item, "sym:name"));
+          Printf(proxy_class_vtable_code, " ||\n        SWIGIsEqual(iid, &IID_I%s)", Getattr(base.item, "sym:casePreservingName"));
           /* Get next base */
           bases = Getattr(base.item, "bases");
         } else {
@@ -1754,9 +1754,9 @@ public:
 
     if (proxy_flag) {
       // FIXME: String *overloaded_name = getOverloadedName(n);
-      String *overloaded_name = Getattr(n, "sym:name");
+      String *overloaded_name = Getattr(n, "sym:casePreservingName");
       String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
-      Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
+      Setattr(n, "proxyfuncname", Getattr(n, "sym:casePreservingName"));
       proxyClassFunctionHandler(n);
       Delete(overloaded_name);
     }
@@ -1871,7 +1871,7 @@ public:
 
     if (wrapping_member_flag && !enum_constant_flag) {
       // Properties
-      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) == 0);
+      setter_flag = (Cmp(Getattr(n, "sym:casePreservingName"), Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) == 0);
       
       if (setter_flag) {
         Printf(function_code, "  [ propput ]\n");
