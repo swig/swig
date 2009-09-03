@@ -36,11 +36,11 @@
 
 
 <p>
-         Scilab is a scientific software package for numerical computations providing a powerful open computing environment for engineering and scientific applications that is mostly compatible with MATLAB.More information can be found at <a href="http://www.scilab.org">www.scilab.org</a>. 
+         Scilab is a scientific software package for numerical computations providing a powerful open computing environment for engineering and scientific applications that is mostly compatible with MATLAB. More information can be found at <a href="http://www.scilab.org">www.scilab.org</a>. 
 </p>
 
 <p>
-     This chapter is intended to give an introduction to using the module. You should also read the SWIG documentation that is not specific to Scilab.Also, there are a dozen or so examples in the Examples/Scilab directory.
+     This chapter is intended to give an introduction to use the module. You should also read the SWIG documentation which is not specific to Scilab. Also, there are a dozen or so examples in the Examples/Scilab directory.
 </p>
 
 <H2><a name="Scilab_nn2"></a>36.1 Preliminaries</H2>
@@ -96,7 +96,7 @@ $ ./scilab
 </p>
 <div class="code"><pre>
 ilib_name = "examplelib";
-files = ["example_wrap.c","example.o"];
+files = ["example_wrap.c"];
 libs = [];
 table = ["gcd","_wrap_gcd";"Foo_set","_wrap_Foo_set";"Foo_get","_wrap_Foo_get";];
 ilib_build(ilib_name,table,files,libs);
@@ -116,7 +116,7 @@ ilib_build(ilib_name,table,files,libs);
       "exec builder.sce" will produce *.so,and a file called "loader.sce"  which contains how to load the module. Loading it into Scilab is then a matter of invoking 
 </p>
 
-          <div class="shell"><pre>Scilab:1&gt; exec loader.sce</pre></div>
+          <div class="shell"><pre>--&gt; exec loader.sce</pre></div>
 
 <H3><a name="Scilab_nn6"></a>36.2.2 Using your module</H3>
 
@@ -127,15 +127,15 @@ Assuming all goes well, you will be able to do this:
 </p>
 
           <div class="targetlang"><pre>
-Scilab:2&gt;gcd(4,6)
+--&gt; gcd(4,6)
 ans =  2
 
-Scilab:3&gt;Foo_get
+--&gt; Foo_get
 ans =  3
 
-Scilab:4&gt;Foo_set(4);
+--&gt; Foo_set(4);
 
-Scilab:5&gt;Foo_get
+--&gt; Foo_get
 ans =  4 </pre></div>
 
 <H2><a name="Scilab_nn7"></a>36.3 A tour of basic C wrapping</H2>
@@ -166,7 +166,7 @@ clear get_file_path;
 // ------------------------------------------------------
 
 </pre></div>
-<p>addinter (files,spname,fcts) performs incremental linking of a compiled C new Scilab interface routine.
+<p>addinter (files,spname,fcts) performs dynamic linking of a compiled C new Scilab interface routine.
 </p>
 <ul>
 <li><tt><b>files</b></tt>: a character string or a vector of character string contain object files used to define the new Scilab interface routine (interface code, user routines or libraries, system libraries).</li>
@@ -193,23 +193,23 @@ int fact(int n); </pre></div>
      creates a built-in function <tt>fact(n)</tt> that works exactly like you think it does: 
 </p>
 
-    <div class="targetlang"><pre>Scilab:1&gt;fact(4)
-ant=24 </pre></div>
+    <div class="targetlang"><pre>--&gt; fact(4)
+ans=24 </pre></div>
 <H3><a name="scilab_nn10"></a>36.3.3 Global variables</H3>
 
 <p>
     To expose variables, SWIG actually generates two functions, to get and set the value. In this case, Foo_set and Foo_get would be generated. SWIG then automatically calls these functions when you get and set the variable-- in the former case creating a local copy in the interpreter of the C variables, and in the latter case copying an interpreter variables onto the C variable. 
 </p>
 
-    <div class="targetlang"><pre>scilab:1&gt; exec loader.sce;
-scilab:2&gt; c=Foo_get();
+    <div class="targetlang"><pre>--&gt; exec loader.sce;
+--&gt; c=Foo_get();
 
-scilab:3&gt; Foo_set(4);
+--&gt; Foo_set(4);
 
-scilab:4&gt; c
+--&gt; c
 c =  3
 
-scilab:5&gt; Foo_get()
+--&gt; Foo_get()
 ans =  4
 </pre></div>
 <H3><a name="Scilab_nn11"></a>36.3.4 Constants</H3>
@@ -231,25 +231,25 @@ ans =  4
 <p>It is easy to use them in Scilab:</p>
 
     <div class="targetlang"><pre>
-scilab:1&gt; exec loader.sce;
-scilab:2&gt; ICONST_get();
+--&gt; exec loader.sce;
+--&gt; ICONST_get();
 ans= 42
-scilab:3&gt; FCONST_get();
+--&gt; FCONST_get();
 ans= 2.1828
-scilab:4&gt; CCONST_get();
+--&gt; CCONST_get();
 ans=x
-scilab:5&gt; CCONST2_get();
+--&gt; CCONST2_get();
 ans=
 
-scilab:6&gt; SCONST_get();
+--&gt; SCONST_get();
 ans= Hello World
-scilab:7&gt; SCONST2_get();
+--&gt; SCONST2_get();
 ans= "Hello World"
-scilab:8&gt; EXPR_get();
+--&gt; EXPR_get();
 ans= 48.5484
-scilab:9&gt; iconst_get();
+--&gt; iconst_get();
 ans= 37
-scilab:10&gt; fconst_get();
+--&gt; fconst_get();
 ans= 3.14
 </pre></div>
 
@@ -268,14 +268,14 @@ typedef enum  { RED, BLUE, GREEN } color;
 
 
     <div class="targetlang"><pre>
-scilab:1&gt; exec loader.sce;
-scilab:2&gt; printf("    RED    = %i\n", RED_get());
+--&gt; exec loader.sce;
+--&gt; printf("    RED    = %i\n", RED_get());
     RED    = 0
 
-scilab:3&gt; printf("    BLUE    = %i\n", BLUE_get());
+--&gt; printf("    BLUE    = %i\n", BLUE_get());
     BLUE   = 1
 
-scilab:4&gt; printf("    GREEN    = %i\n", GREEN_get());
+--&gt; printf("    GREEN    = %i\n", GREEN_get());
     GREEN  = 2
 </pre></div>
 
@@ -308,12 +308,12 @@ extern int divide(int n, int d, int *r);
 </p>
 
     <div class="targetlang"><pre>
-scilab:1&gt; r = sub(37,42);
-scilab:2&gt; printf("     37 - 42 = %i\n",r);
+--&gt; r = sub(37,42);
+--&gt; printf("     37 - 42 = %i\n",r);
     37 - 42 = -5
 
-scilab:3&gt; [q,r] = divide(42,37);
-scilab:4&gt; printf("     42/37 = %d remainder %d\n",q,r);
+--&gt; [q,r] = divide(42,37);
+--&gt; printf("     42/37 = %d remainder %d\n",q,r);
     42/37 = 1 remainder 5
 
 </pre></div>
@@ -336,9 +336,9 @@ typedef struct {
 <p> When wrappered, it would generate two main function: Foo_x_set(), which set the data value of the structrure and Foo_x_get() which could obtain the value of the structrure. Run it in Scilab:
 </p>
 	<div class="targetlang"><pre>
-scilab:1&gt; a=new_Foo();
-scilab:2&gt; Foo_x_set(a,100);
-scilab:3&gt; Foo_x_get(a)
+--&gt; a=new_Foo();
+--&gt; Foo_x_set(a,100);
+--&gt; Foo_x_get(a)
 ans  =
  
   100  
@@ -370,14 +370,14 @@ void initArray()
 <p> When wrappered, it would generate the following funtion: x_set(), x_get(), y_set(), y_get(), and _wrap_initArray. So it could be used like this:
 </p>
 	<div class="targetlang"><pre>
-scilab:1&gt; exec loader.sce
+--&gt; exec loader.sce
 
-scilab:2&gt; initArray();
-scilab:3&gt; x_get()
+--&gt; initArray();
+--&gt; x_get()
 ans =
  
   0  1  2  3  4  5  6  7  8  9 
-scilab:4&gt;y_get()
+--&gt; y_get()
 ans =
 
   0.    0.1428571    0.2857143    0.4285714    0.5714286    0.7142857   0.8571429
