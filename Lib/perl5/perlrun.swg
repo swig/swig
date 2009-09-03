@@ -293,6 +293,7 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
       int newmemory = 0;
       *ptr = SWIG_TypeCast(tc,voidptr,&newmemory);
       if (newmemory == SWIG_CAST_NEW_MEMORY) {
+        assert(own);
         if (own)
           *own = *own | SWIG_CAST_NEW_MEMORY;
       }
