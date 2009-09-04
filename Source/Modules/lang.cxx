@@ -1379,22 +1379,15 @@ int Language::globalvariableHandler(Node *n) {
 
 int Language::membervariableHandler(Node *n) {
 
-  Swig_require("membervariableHandler", n, "*name", "*sym:name", "*type", "?sym:casePreservingName", NIL);
+  Swig_require("membervariableHandler", n, "*name", "*sym:name", "*type", NIL);
   Swig_save("membervariableHandler", n, "parms", NIL);
 
   String *name = Getattr(n, "name");
   String *symname = Getattr(n, "sym:name");
   SwigType *type = Getattr(n, "type");
-  String *case_preserving_name = 0;
-  int case_insensitive_target = Swig_symbol_get_case_insensitive_target();
-
-  if (case_insensitive_target)
-    case_preserving_name = Getattr(n, "sym:casePreservingName");
 
   if (!AttributeFunctionGet) {
-    String *mname = case_insensitive_target ?
-	Swig_name_member(ClassPrefix, case_preserving_name) :
-	Swig_name_member(ClassPrefix, symname);
+    String *mname = Swig_name_member(ClassPrefix, symname);
     String *mrename_get = Swig_name_get(mname);
     String *mrename_set = Swig_name_set(mname);
     Delete(mname);
@@ -1463,14 +1456,7 @@ int Language::membervariableHandler(Node *n) {
       Delete(target);
 
       if (make_set_wrapper) {
-	if (!case_insensitive_target) {
-	  Setattr(n, "sym:name", mrename_set);
-	} else {
-	  String *mrename_set_lower = Swig_string_lower(mrename_set);
-	  Setattr(n, "sym:name", mrename_set_lower);
-	  Setattr(n, "sym:casePreservingName", mrename_set);
-	  Delete(mrename_set_lower);
-	}
+	Setattr(n, "sym:name", mrename_set);
 	functionWrapper(n);
       } else {
 	SetFlag(n, "feature:immutable");
@@ -1479,8 +1465,6 @@ int Language::membervariableHandler(Node *n) {
       Setattr(n, "type", type);
       Setattr(n, "name", name);
       Setattr(n, "sym:name", symname);
-      if (case_insensitive_target)
-	Setattr(n, "sym:casePreservingName", case_preserving_name);
 
       /* Delete all attached typemaps and typemap attributes */
       Iterator ki;
@@ -1495,14 +1479,7 @@ int Language::membervariableHandler(Node *n) {
       if (is_non_virtual_protected_access(n))
         flags = flags | CWRAP_ALL_PROTECTED_ACCESS;
       Swig_MembergetToFunction(n, ClassType, flags);
-      if (!case_insensitive_target) {
-	Setattr(n, "sym:name", mrename_get);
-      } else {
-	String *mrename_get_lower = Swig_string_lower(mrename_get);
-	Setattr(n, "sym:name", mrename_get_lower);
-	Setattr(n, "sym:casePreservingName", mrename_get);
-	Delete(mrename_get_lower);
-      }
+      Setattr(n, "sym:name", mrename_get);
       Setattr(n, "memberget", "1");
       functionWrapper(n);
     }
@@ -2348,8 +2325,7 @@ int Language::classDeclaration(Node *n) {
   String *symname = Getattr(n, "sym:name");
 
   char *classname = tdname ? Char(tdname) : Char(name);
-  char *iname = Swig_symbol_get_case_insensitive_target() ?
-    Char(Getattr(n, "sym:casePreservingName")) : Char(symname);
+  char *iname = Char(symname);
   int strip = (tdname || CPlusPlus) ? 1 : 0;
 
 
@@ -2860,15 +2836,10 @@ int Language::constantWrapper(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::variableWrapper(Node *n) {
-  Swig_require("variableWrapper", n, "*name", "*sym:name", "*type", "?parms", "?sym:casePreservingName", NIL);
+  Swig_require("variableWrapper", n, "*name", "*sym:name", "*type", "?parms", NIL);
   String *symname = Getattr(n, "sym:name");
   SwigType *type = Getattr(n, "type");
   String *name = Getattr(n, "name");
-  String *case_preserving_name = 0;
-  int case_insensitive_target = Swig_symbol_get_case_insensitive_target();
-
-  if (case_insensitive_target)
-    case_preserving_name = Getattr(n, "sym:casePreservingName");
 
   /* If no way to set variables.  We simply create functions */
   int assignable = is_assignable(n);
@@ -2881,18 +2852,9 @@ int Language::variableWrapper(Node *n) {
     String *tm = Swig_typemap_lookup("globalin", n, name, 0);
 
     Swig_VarsetToFunction(n, flags);
-    if (!case_insensitive_target) {
-      String *sname = Swig_name_set(symname);
-      Setattr(n, "sym:name", sname);
-      Delete(sname);
-    } else {
-      String *sname = Swig_name_set(case_preserving_name);
-      String *sname_lower = Swig_string_lower(sname);
-      Setattr(n, "sym:name", sname_lower);
-      Setattr(n, "sym:casePreservingName", sname);
-      Delete(sname_lower);
-      Delete(sname);
-    }
+    String *sname = Swig_name_set(symname);
+    Setattr(n, "sym:name", sname);
+    Delete(sname);
 
     if (!tm) {
       if (SwigType_isarray(type)) {
@@ -2913,8 +2875,6 @@ int Language::variableWrapper(Node *n) {
     }
     /* Restore parameters */
     Setattr(n, "sym:name", symname);
-    if (case_insensitive_target)
-      Setattr(n, "sym:casePreservingName", case_preserving_name);
     Setattr(n, "type", type);
     Setattr(n, "name", name);
 
@@ -2927,18 +2887,9 @@ int Language::variableWrapper(Node *n) {
   }
 
   Swig_VargetToFunction(n, flags);
-  if (!case_insensitive_target) {
-    String *gname = Swig_name_get(symname);
-    Setattr(n, "sym:name", gname);
-    Delete(gname);
-  } else {
-    String *gname = Swig_name_get(case_preserving_name);
-    String *gname_lower = Swig_string_lower(gname);
-    Setattr(n, "sym:name", gname_lower);
-    Setattr(n, "sym:casePreservingName", gname);
-    Delete(gname_lower);
-    Delete(gname);
-  }
+  String *gname = Swig_name_get(symname);
+  Setattr(n, "sym:name", gname);
+  Delete(gname);
   functionWrapper(n);
   Swig_restore(n);
   return SWIG_OK;
