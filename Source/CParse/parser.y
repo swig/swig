@@ -5620,11 +5620,11 @@ exprcompound   : expr PLUS expr {
 		 /* Putting >= in the expression literally causes an infinite
 		  * loop somewhere in the type system.  Just workaround for now
 		  * - SWIG_GE is defined in swiglabels.swg. */
-		 $$.val = NewStringf("%s SWIG_GE %s", $1.val, $3.val);
+		 $$.val = NewStringf("%s >= %s", $1.val, $3.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr LESSTHANOREQUALTO expr {
-		 $$.val = NewStringf("%s SWIG_LE %s", $1.val, $3.val);
+		 $$.val = NewStringf("%s <= %s", $1.val, $3.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr QUESTIONMARK expr COLON expr %prec QUESTIONMARK {

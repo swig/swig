@@ -68,9 +68,9 @@
 /* FIXME
 #define EXPR_LT          0xFF < 255
 #define EXPR_GT          0xFF > 255
-#define EXPR_LTE         0xFF <= 255
-#define EXPR_LGE         0xFF >= 255
 */
+#define EXPR_LTE         0xFF <= 255
+#define EXPR_GTE         0xFF >= 255
 #define EXPR_INEQUALITY  0xFF != 255
 #define EXPR_EQUALITY    0xFF == 255
 #define EXPR_AND         0xFF & 1

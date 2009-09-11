@@ -50,6 +50,8 @@ public class runme {
     assert( typeof(int) == preproc_constants.EXPR_MINUS.GetType() );
     assert( typeof(int) == preproc_constants.EXPR_LSHIFT.GetType() );
     assert( typeof(int) == preproc_constants.EXPR_RSHIFT.GetType() );
+    assert( typeof(bool) == preproc_constants.EXPR_LTE.GetType() );
+    assert( typeof(bool) == preproc_constants.EXPR_GTE.GetType() );
     assert( typeof(bool) == preproc_constants.EXPR_INEQUALITY.GetType() );
     assert( typeof(bool) == preproc_constants.EXPR_EQUALITY.GetType() );
     assert( typeof(int) == preproc_constants.EXPR_AND.GetType() );
