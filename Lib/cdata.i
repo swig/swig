@@ -79,5 +79,6 @@ SWIGCDATA cdata_##NAME(TYPE *ptr, int nelements);
 
 %cdata(void);
 
-/* Memory move function */
+/* Memory move function. Due to multi-argument typemaps this appears to be wrapped as
+void memmove(void *data, const char *s); */
 void memmove(void *data, const void *indata, int inlen);
