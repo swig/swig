@@ -3127,8 +3127,8 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
                  if (unnamedinstance) {
 		   SwigType *cty = NewString("enum ");
 		   Setattr($$,"type",cty);
-		   Setattr($$,"unnamedinstance","1");
-		   Setattr(n,"unnamedinstance","1");
+		   SetFlag($$,"unnamedinstance");
+		   SetFlag(n,"unnamedinstance");
 		   Delete(cty);
                  }
 		 if ($8) {
