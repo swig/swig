@@ -1226,12 +1226,17 @@ public:
 
     {
       EnumFeature enum_feature = decodeEnumFeature(parent);
+      const String *csattributes = Getattr(n, "feature:cs:attributes");
 
       if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
 	// Wrap (non-anonymous) C/C++ enum with a proper C# enum
 	// Emit the enum item.
 	if (!GetFlag(n, "firstenumitem"))
 	  Printf(enum_code, ",\n");
+
+	if (csattributes)
+	  Printf(enum_code, "  %s\n", csattributes);
+
 	Printf(enum_code, "  %s", symname);
 
 	// Check for the %csconstvalue feature
@@ -1251,6 +1256,9 @@ public:
 	String *return_type = Copy(tm);
         const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
         methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+
+	if (csattributes)
+	  Printf(enum_code, "  %s\n", csattributes);
 
 	if ((enum_feature == TypesafeEnum) && parent_name && !unnamedinstance) {
 	  // Wrap (non-anonymous) enum using the typesafe enum pattern

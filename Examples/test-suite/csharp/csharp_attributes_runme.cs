@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.ComponentModel;
 using csharp_attributesNamespace;
 
 public class runme
@@ -170,6 +171,24 @@ public class runme
       MemberInfo member = (MemberInfo)moretype.GetMember("Wales")[0];
       if (Attribute.GetCustomAttribute(member, typeof(Eurostar2Attribute)) == null)
         throw new Exception("No attribute for " + member.Name);
+    }
+    // Enum value attributes
+    Type walesType = typeof(MoreStations.Wales);
+    {
+      MemberInfo member = (MemberInfo)walesType.GetMember("Cardiff")[0];
+      DescriptionAttribute attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(member, typeof(System.ComponentModel.DescriptionAttribute));
+      if (attribute == null)
+        throw new Exception("No attribute for " + member.Name);
+      if (attribute.Description != "Cardiff city station")
+        throw new Exception("Incorrect attribute value for " + member.Name);
+    }
+    {
+      MemberInfo member = (MemberInfo)walesType.GetMember("Swansea")[0];
+      DescriptionAttribute attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(member, typeof(System.ComponentModel.DescriptionAttribute));
+      if (attribute == null)
+        throw new Exception("No attribute for " + member.Name);
+      if (attribute.Description != "Swansea city station")
+        throw new Exception("Incorrect attribute value for " + member.Name);
     }
     // Enum csattribute typemap
     {

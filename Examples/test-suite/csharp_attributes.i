@@ -15,6 +15,8 @@ public:
 int GlobalFunction(int myInt) { return myInt; }
 %}
 
+//%include "enumsimple.swg"
+//%include "enumtypesafe.swg"
 
 // Test the attributes feature
 %csattributes MoreStations::MoreStations()      "[InterCity1]"
@@ -25,6 +27,8 @@ int GlobalFunction(int myInt) { return myInt; }
 %csattributes Wales                             "[InterCity6]"
 %csattributes Paddington()                      "[InterCity7]"
 %csattributes DidcotParkway                     "[InterCity8]"
+%csattributes MoreStations::Cardiff             "[System.ComponentModel.Description(\"Cardiff city station\")]"
+%csattributes Swansea                           "[System.ComponentModel.Description(\"Swansea city station\")]"
 
 %typemap(csattributes) MoreStations "[Eurostar1]"
 %typemap(csattributes) MoreStations::Wales "[Eurostar2]"
