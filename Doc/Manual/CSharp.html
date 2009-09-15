@@ -297,7 +297,7 @@ Note that all these different C# attributes can be combined so that a method has
 
 <li>
 <p>
-Support for attaching C# attributes to wrapped methods and variables.
+Support for attaching C# attributes to wrapped methods, variables and enum values.
 This is done using the <tt>%csattributes</tt> feature, see <a href="Customization.html#features">%feature directives</a>.
 Note that C# attributes are attached to proxy classes and enums using the <tt>csattributes</tt> typemap.
 For example, imagine we have a custom attribute class, <tt>ThreadSafeAttribute</tt>, for labelling thread safety.
@@ -344,6 +344,38 @@ they can be added using the 'csvarin' and 'csvarout' typemaps respectively.
 Note that the type used for the property is specified in the 'cstype' typemap.
 If the 'out' attribute exists in this typemap, then the type used is from the 'out' attribute.
 </p>
+
+<p>
+An example for attaching attributes to the enum and enum values is shown below.
+</p>
+
+<div class="code">
+<pre>
+%typemap(csattributes) Couleur "[System.ComponentModel.Description(\"Colours\")]"
+%csattributes Rouge "[System.ComponentModel.Description(\"Red\")]"
+%csattributes Vert "[System.ComponentModel.Description(\"Green\")]"
+%inline %{
+  enum Couleur { Rouge, Orange, Vert };
+%}
+</pre>
+</div>
+
+<p>
+which will result in the following C# enum:
+</p>
+
+<div class="code">
+<pre>
+[System.ComponentModel.Description("Colours")]
+public enum Couleur {
+  [System.ComponentModel.Description("Red")]
+  Rouge,
+  Orange,
+  [System.ComponentModel.Description("Green")]
+  Vert
+}
+</pre>
+</div>
 </li>
 
 <li>
