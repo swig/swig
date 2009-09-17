@@ -1234,6 +1234,61 @@
   LhsVar(iOutNum) = iVarOut;
 }
 
+
+%typemap(varout,noblock=1) signed char [ANY][ANY],
+                           char [ANY][ANY]{
+  createMatrixOfInteger8(iVarOut, $1_dim0, $1_dim1, (char *)$result);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) unsigned char [ANY][ANY] {
+  createMatrixOfUnsignedInteger8(iVarOut, $1_dim0, $1_dim1, (unsigned char *)$result);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) short [ANY][ANY] {
+  createMatrixOfInteger16(iVarOut, $1_dim0, $1_dim1, (short *)$result);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) unsigned short [ANY][ANY] {
+  createMatrixOfUnsignedInteger16(iVarOut, $1_dim0, $1_dim1, (unsigned short *)$result);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) int [ANY][ANY],
+                           long [ANY][ANY] {
+  createMatrixOfInteger32(iVarOut, $1_dim0, $1_dim1, (int *)$result);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) unsigned int [ANY][ANY],
+                           unsigned long [ANY][ANY] {
+  createMatrixOfUnsignedInteger32(iVarOut, $1_dim0, $1_dim1, (unsigned int *)$result);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) double [ANY][ANY] {
+  createMatrixOfDouble(iVarOut, $1_dim0, $1_dim1, (double *)$result);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) float [ANY][ANY] {
+  createMatrixOfDouble(iVarOut, $1_dim0, $1_dim1, (double *)$result);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) long long [ANY][ANY] {
+  createMatrixOfInteger64(iVarOut, $1_dim0, $1_dim1, (long long *)$result);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+%typemap(varout,noblock=1) unsigned long long [ANY][ANY] {
+  createMatrixOfUnsignedInteger64(iVarOut, $1_dim0, $1_dim1, (unsigned long long *)$result);
+  LhsVar(iOutNum) = iVarOut;
+}
+
+
 /* Enums */
 %typemap(varout,noblock=1) enum SWIGTYPE {
   createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, (int *)&temp);
