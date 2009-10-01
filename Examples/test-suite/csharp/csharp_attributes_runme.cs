@@ -198,6 +198,8 @@ public class runme
       if (tgv == null)
         throw new Exception("No attribute for Cymru");
     }
+
+    // No runtime test for directorinattributes and directoroutattributes
   }
 }
 
@@ -255,4 +257,10 @@ public class ThreadSafeAttribute : Attribute {
   public ThreadSafeAttribute(bool safe) {}
   public ThreadSafeAttribute() {}
 }
+
+[AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
+public class DirectorIntegerOutAttribute : Attribute {}
+
+[AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
+public class DirectorIntegerInAttribute : Attribute {}
 

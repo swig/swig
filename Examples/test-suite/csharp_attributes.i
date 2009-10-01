@@ -1,4 +1,4 @@
-%module csharp_attributes
+%module(directors="1") csharp_attributes
 
 // Test the inattributes and outattributes typemaps
 %typemap(cstype, outattributes="[IntOut]", inattributes="[IntIn]") int "int"
@@ -50,3 +50,13 @@ enum Cymru { Llanelli };
 double MoreStations::WestonSuperMare = 0.0;
 %}
 
+// Test directorinattributes and directoroutattributes
+%typemap(imtype, directoroutattributes="[DirectorIntegerOut]", directorinattributes="[DirectorIntegerIn]") int "int"
+%feature("director") YetMoreStations;
+
+%inline %{
+struct YetMoreStations {
+  virtual int Slough(int x) {}
+  virtual ~YetMoreStations() {}
+};
+%}

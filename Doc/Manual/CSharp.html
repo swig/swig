@@ -249,7 +249,9 @@ public static extern IntPtr function(string jarg1);
 <p>
 Support for type attributes.
 The 'imtype' and 'cstype' typemaps can have an optional <tt>inattributes</tt> and <tt>outattributes</tt> typemap attribute.
-There are C# attributes and typemap attributes, don't get confused!!
+The 'imtype' typemap can also have an optional <tt>directorinattributes</tt> and <tt>directoroutattributes</tt>
+typemap attribute which attaches to director delegates, an implementation detail of directors, see <a href="#csharp_directors_implementation">directors implementation</a>.
+Note that there are C# attributes and typemap attributes, don't get confused between the two!!
 The C# attributes specified in these typemap attributes are generated wherever the type is used in the C# wrappers.
 These can be used to specify any C# attribute associated with a C/C++ type, but are more typically used for the C# <tt>MarshalAs</tt> attribute.
 For example:
@@ -293,6 +295,11 @@ These attributes are associated with the C/C++ parameter type or return type, wh
 the attribute features and typemaps covered next.
 Note that all these different C# attributes can be combined so that a method has more than one attribute.
 </p>
+
+<p>
+The <tt>directorinattributes</tt> and <tt>directoroutattributes</tt> typemap attribute are attached to the delegates in the director class, for example, the SwigDelegateBase_0
+</p>
+
 </li>
 
 <li>
