@@ -136,7 +136,7 @@ Token TokenList::next(){
 
 
 list<Token>::iterator TokenList::end(){
-	return tokenList.end();
+	return m_tokenList.end();
 }
 
 
