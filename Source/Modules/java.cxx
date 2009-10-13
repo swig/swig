@@ -1304,6 +1304,15 @@ public:
     // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
     
+    {
+      EnumFeature enum_feature = decodeEnumFeature(parentNode(n));
+
+      if ((enum_feature == ProperEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
+	// Wrap (non-anonymous) C/C++ enum with a proper Java enum
+	// Emit the enum item.
+	if (!Getattr(n, "_last"))	// Only the first enum item has this attribute set
+	  Printf(enum_code, ",\n");
+
     //translate and write javadoc comment if flagged
     if (doxygen_javadoc_flag){
       String *doxygen_comments;
@@ -1314,14 +1323,7 @@ public:
 	Delete(doxygen_comments);
       }
     }
-    {
-      EnumFeature enum_feature = decodeEnumFeature(parentNode(n));
 
-      if ((enum_feature == ProperEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
-	// Wrap (non-anonymous) C/C++ enum with a proper Java enum
-	// Emit the enum item.
-	if (!Getattr(n, "_last"))	// Only the first enum item has this attribute set
-	  Printf(enum_code, ",\n");
 	Printf(enum_code, "  %s", symname);
 	if (Getattr(n, "enumvalue")) {
 	  String *value = enumValue(n);
@@ -1841,7 +1843,6 @@ public:
       emitBanner(f_proxy);
 
       if (Len(package) > 0){
-    Printf(f_proxy, "LETS TEST THIS NAO THX \n\n\n");
 	Printf(f_proxy, "package %s;\n", package);
       }
       Clear(proxy_class_def);

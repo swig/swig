@@ -18,7 +18,7 @@
 class JavaDocConverter : public DoxygenTranslator
 {
 public:
-  JavaDocConverter() : debug( true ){}
+  JavaDocConverter() : debug( false ){}
   virtual bool getDocumentation(Node *node, String *&documentation);
   
 protected:

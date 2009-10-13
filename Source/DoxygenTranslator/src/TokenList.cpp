@@ -4,99 +4,162 @@
 #include <string>
 #include <list>
 #include "Token.h"
+#include "DoxygenEntity.h"
 #define TOKENSPERLINE 8; //change this to change the printing behaviour of the token list
-#define  END_LINE 101
-#define PARAGRAPH_END 102 //not used at the moment 
-#define  PLAINSTRING 103
-#define  COMMAND  104
+
 using namespace std;
 
-
-list <Token> tokenList;
-list<Token>::iterator tokenListIterator;
 int noisy2 = 0;
 /* The tokenizer*/
+TokenList::TokenList(const std::string &doxygenStringConst){
+    size_t commentPos;
+    string doxygenString = doxygenStringConst;
 
-TokenList::TokenList(string doxygenString){
-	int currentIndex = 0;
-	//Regex whitespace("[ \t]+");
-	//Regex newLine("[\n]");
-	//Regex command("[@|\\]{1}[^ \t \n]+"); //the cheap solution 
-	//Regex doxygenFluff("[/*!]+");
-	int nextIndex = 0;
-	int isFluff = 0;
+    /* Comment start tokens are replaced in parser.y, see doxygen_comment and
+       doxygen_post_comment_item
+       do {
+        commentPos = doxygenString.find("///<");
+        if (commentPos != string::npos) {
+            doxygenString.replace(commentPos, 4, " ");
+            continue;
+        }
+        commentPos = doxygenString.find("/**<");
+        if (commentPos != string::npos) {
+            doxygenString.replace(commentPos, 4, " ");
+            continue;
+        }
+        commentPos = doxygenString.find("/*!<");
+        if (commentPos != string::npos) {
+            doxygenString.replace(commentPos, 4, " ");
+            continue;
+        }
+        commentPos = doxygenString.find("//!<");
+        if (commentPos != string::npos) {
+            doxygenString.replace(commentPos, 4, " ");
+            continue;
+        }
+        break;
+    } while (true); */
+
+    size_t currentIndex = 0;
+    size_t nextIndex = 0;
+
 	string currentWord;
+
 	while (currentIndex < doxygenString.length()){	
+
 		if(doxygenString[currentIndex] == '\n'){
-			tokenList.push_back(Token(END_LINE, currentWord));
+            m_tokenList.push_back(Token(END_LINE, currentWord));
 			currentIndex++;
 		}
+
+        // skip WS, except \n
 		while(currentIndex < doxygenString.length() && (doxygenString[currentIndex] == ' ' 
 			|| doxygenString[currentIndex]== '\t')) currentIndex ++;
-		if (currentIndex == doxygenString.length()) {} //do nothing since end of string was reached
-		else {nextIndex = currentIndex;
+
+        if (currentIndex < doxygenString.length()) {
+
+            nextIndex = currentIndex;
+
+            // skip non WS
 		while (nextIndex  < doxygenString.length() && (doxygenString[nextIndex] != ' ' 
-			&& doxygenString[nextIndex]!= '\t' && doxygenString[nextIndex]!= '\n')) nextIndex++;
+                   && doxygenString[nextIndex] != '\t' && doxygenString[nextIndex]!= '\n')) 
+                nextIndex++;
+
+            // now we have a token
 		currentWord = doxygenString.substr(currentIndex, nextIndex-currentIndex);
-		if(noisy2) cout << "Current Word: " << currentWord << endl;
+
+            if(noisy2) 
+                cout << "Current Word: " << currentWord << endl;
+
 		if (currentWord[0] == '@' || currentWord[0] == '\\'){
+                // it is doxygen command
 			currentWord = currentWord.substr(1, currentWord.length()-1);
-			tokenList.push_back(Token(COMMAND, currentWord));
-		}
-		else if (currentWord[0] == '\n'){
-			//if ((tokenList.back()).tokenType == END_LINE){}
-			tokenList.push_back(Token(END_LINE, currentWord));
+                m_tokenList.push_back(Token(COMMAND, currentWord));
+
+            } else if (currentWord[0] == '\n'){
+
+                m_tokenList.push_back(Token(END_LINE, currentWord));
 			
 		}
 		else if (currentWord[0] == '*' || currentWord[0] == '/' ||currentWord[0] == '!'){
-			if (currentWord.length() == 1) {isFluff = 1;}	
-			else { isFluff = 1;
-				for(int i = 1; i < currentWord.length(); i++){
-					if (currentWord[0] != '*' && currentWord[0] != '/' && currentWord[0] != '!') isFluff = 0;
-				}
 				
+                bool isPlainString = false;
+
+                if (currentWord.length() > 1) {
+
+                    for(size_t i = 1; i < currentWord.length(); i++){
+                        if (currentWord[i] != '*' && currentWord[i] != '/' && 
+                            currentWord[i] != '!') {
+                                isPlainString = true;
+                                break;
+                        }
 			}
-			if(!isFluff) tokenList.push_back(Token(PLAINSTRING, currentWord));
 		}
 		
-		else if (!currentWord.empty())tokenList.push_back(Token(PLAINSTRING, currentWord));
+                if(isPlainString) 
+                    m_tokenList.push_back(Token(PLAINSTRING, currentWord));
+
+            } else if (!currentWord.empty()) {
+                m_tokenList.push_back(Token(PLAINSTRING, currentWord));
+            }
 		currentIndex = nextIndex;
 	}
 	}
-	tokenListIterator = tokenList.begin(); 
+
+    m_tokenListIter = m_tokenList.begin(); 
+}
+
+
+TokenList::	~TokenList(){
 }
 
 Token TokenList::peek(){
-	if(tokenListIterator!= tokenList.end()){
-		Token returnedToken = (*tokenListIterator);
+    if(m_tokenListIter!= m_tokenList.end()){
+        Token returnedToken = (*m_tokenListIter);
 		return returnedToken;
 	}
 	else
 		return Token(0, "");
 } 
 
+
 Token TokenList::next(){
-	if(tokenListIterator != tokenList.end()){
-		Token returnedToken = (*tokenListIterator);
-		tokenListIterator++;
+    if(m_tokenListIter != m_tokenList.end()){
+        Token returnedToken = (*m_tokenListIter);
+        m_tokenListIter++;
 		return (returnedToken);
 	}
 	else
 		return Token(0, "");
 } 	
 
+
 list<Token>::iterator TokenList::end(){
 	return tokenList.end();
 }
 
+
 list<Token>::iterator TokenList::current(){
-	return tokenListIterator;
+  return m_tokenListIter;
 }
+
+
+list<Token>::iterator TokenList::iteratorCopy(){
+  return m_tokenListIter;
+}
+
+
+void TokenList::setIterator(list<Token>::iterator newPosition){
+  m_tokenListIter = newPosition;
+}
+
+
 void TokenList::printList(){
-	list<Token>::iterator p = tokenList.begin();
+    list<Token>::iterator p = m_tokenList.begin();
 			int i = 1;
 			int b = 0;
-			while (p != tokenList.end()){
+    while (p != m_tokenList.end()){
 				cout << (*p).toString() << " ";
 				b = i%TOKENSPERLINE;
 				if (b == 0) cout << endl;
@@ -104,13 +167,3 @@ void TokenList::printList(){
 			}
 }
 
-list<Token>::iterator  TokenList::iteratorCopy(){
-	list<Token>::iterator p = tokenListIterator;
-	return p;
-}
-void TokenList::setIterator(list<Token>::iterator newPosition){
-	tokenListIterator = newPosition;
-}
-TokenList::	~TokenList(){
-	tokenList.clear();
-}

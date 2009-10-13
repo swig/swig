@@ -13,7 +13,7 @@
 DoxygenEntity::DoxygenEntity(std::string typeEnt){
     typeOfEntity = typeEnt;
     data = "";
-    isLeaf = 1;
+    isLeaf = true;
 }
 
 /* Basic node for commands that have
@@ -24,7 +24,7 @@ DoxygenEntity::DoxygenEntity(std::string typeEnt){
 DoxygenEntity::DoxygenEntity(std::string typeEnt, std::string param1){
     typeOfEntity = typeEnt;
     data = param1;
-    isLeaf = 1;
+    isLeaf = true;
 }
 
 /* Nonterminal node
@@ -33,23 +33,35 @@ DoxygenEntity::DoxygenEntity(std::string typeEnt, std::string param1){
 DoxygenEntity::DoxygenEntity(std::string typeEnt, std::list <DoxygenEntity> &entList ){
     typeOfEntity = typeEnt;
     data = "";
-    isLeaf = 0;
+    isLeaf = false;
     entityList = entList;
 }
 
 void DoxygenEntity::printEntity(int level){
 	int thisLevel = level;
 	if (isLeaf) {
-		for (int i = 0; i < thisLevel; i++) {std::cout << "\t";}
+		for (int i = 0; i < thisLevel; i++) {
+            std::cout << "\t";
+        }
+		
 		std::cout << "Node Command: " << typeOfEntity << " ";
-		if (data.compare("") != 0) std::cout << "Node Data: " << data;
+        
+        if (data.compare("") != 0) {
+            std::cout << "Node Data: " << data;
+        }
 		std::cout << std::endl;
+
+	} else {
+
+		for (int i = 0; i < thisLevel; i++) {
+            std::cout << "\t";
 	}
-	else{
-		for (int i = 0; i < thisLevel; i++) {std::cout << "\t";}
+
 		std::cout << "Node Command : " << typeOfEntity << std::endl;
+
 		std::list<DoxygenEntity>::iterator p = entityList.begin();
 		thisLevel++;
+
 		while (p != entityList.end()){
 			(*p).printEntity(thisLevel);
 			p++;
@@ -57,7 +69,10 @@ void DoxygenEntity::printEntity(int level){
 	}
 }
 
+// not used, completely wrong - currently std lib reports 'invalid operator <'
 bool CompareDoxygenEntities::operator()(DoxygenEntity& first, DoxygenEntity& second){
+
+   // return first.typeOfEntity < second.typeOfEntity;
   if(first.typeOfEntity.compare("brief") == 0) 
     return true;
   if(second.typeOfEntity.compare("brief") == 0) 
@@ -68,7 +83,7 @@ bool CompareDoxygenEntities::operator()(DoxygenEntity& first, DoxygenEntity& sec
     return false;
   if(first.typeOfEntity.compare("partofdescription") == 0) 
     return true;
-  if(first.typeOfEntity.compare("partofdescription") == 0) 
+  if(second.typeOfEntity.compare("partofdescription") == 0) 
     return false;
   if(first.typeOfEntity.compare("plainstd::string") == 0) 
     return true;

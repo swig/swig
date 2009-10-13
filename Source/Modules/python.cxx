@@ -7,7 +7,7 @@
  * Python language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_python_cxx[] = "$Id: python.cxx 10453 2008-05-15 21:18:44Z wsfulton $";
+char cvsroot_python_cxx[] = "$Id$";
 
 #include "swigmod.h"
 #define ctab2  " "
@@ -3124,6 +3124,13 @@ public:
 	    if (!fastproxy || olddefs) {
 	      Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":", NIL);
 	      Printv(f_shadow, " return ", funcCall(Swig_name_member(class_name, symname), callParms), "\n", NIL);
+	      if (doxygen) {
+		String *doxygen_comments;
+		if (DoxygenTranslator::getDocumentation(n, PyDoc, doxygen_comments)) {
+		  Printf(f_shadow, Char(pythoncode(doxygen_comments, tab8))); 
+		  Delete(doxygen_comments);
+		}
+	      }
 	    }
 	  } else {
 	    Printv(f_shadow, tab4, "def ", symname, "(",parms , ")", returnTypeAnnotation(n), ":", NIL);

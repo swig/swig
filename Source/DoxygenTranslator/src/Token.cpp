@@ -1,4 +1,5 @@
 #include "Token.h"
+#include "DoxygenEntity.h"
 using namespace std;
 
 

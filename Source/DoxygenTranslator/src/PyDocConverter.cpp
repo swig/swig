@@ -94,7 +94,7 @@ std::string PyDocConverter::translateEntity(Node *n, DoxygenEntity &doxyEntity){
       ||(doxyEntity.typeOfEntity.compare("details") == 0))
     return justifyString(std::string(translateSubtree(doxyEntity)), 0) + "\n";
   
-  if(doxyEntity.typeOfEntity.compare("plainstring") == 0 
+  if(doxyEntity.typeOfEntity.compare("plainstd::string") == 0 
     || doxyEntity.typeOfEntity.compare("deprecated") == 0 
     || doxyEntity.typeOfEntity.compare("brief") == 0)
     return justifyString(doxyEntity.data, 0) + "\n";

@@ -569,7 +569,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
  		}
  		else{
  			startIndex = savedIndex;
-			addCommand(string("plainstring"), startIndex, aNewList, doxygenString);
+			addCommand(string("plainstd::string"), startIndex, aNewList, doxygenString);
 
  		}
  	}
@@ -728,7 +728,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
 	if(!restOfParagraph.empty()){
 		list <DoxygenEntity> aNewList;
 		aNewList =  parse(placement, restOfParagraph);
-		aNewList.push_front(DoxygenEntity("plainstring", name));
+		aNewList.push_front(DoxygenEntity("plainstd::string", name));
 		doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 		return 1;
 		}
@@ -752,7 +752,7 @@ string getStringTilCommand(int &startInd, string doxygenString){
 	if(!restOfLine.empty()){
 		list <DoxygenEntity> aNewList;
 		aNewList =  parse(placement, restOfLine);
-		aNewList.push_front(DoxygenEntity("plainstring", name));
+		aNewList.push_front(DoxygenEntity("plainstd::string", name));
 		doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 		return 1;
 		}
@@ -775,9 +775,9 @@ string getStringTilCommand(int &startInd, string doxygenString){
 	string headerfile = getNextWord(startInd, doxygenString);
 	string headername = getNextWord(startInd, doxygenString);
 	list <DoxygenEntity> aNewList;
-	aNewList.push_back(DoxygenEntity("plainstring", name));
-	if (!headerfile.empty()) aNewList.push_back(DoxygenEntity("plainstring", headerfile));
-	if (!headername.empty()) aNewList.push_back(DoxygenEntity("plainstring", headername));
+	aNewList.push_back(DoxygenEntity("plainstd::string", name));
+	if (!headerfile.empty()) aNewList.push_back(DoxygenEntity("plainstd::string", headerfile));
+	if (!headername.empty()) aNewList.push_back(DoxygenEntity("plainstd::string", headername));
 	doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 	return 1;
   }
@@ -806,10 +806,10 @@ string getStringTilCommand(int &startInd, string doxygenString){
 	 	/* @command */
 
 	 
-	 if (theCommand.compare("plainstring") == 0){
+	 if (theCommand.compare("plainstd::string") == 0){
 	 		string nextPhrase = getStringTilCommand(startInd, doxygenString);
 	 		if (noisy) cout << "Parsing plain string :" << nextPhrase << endl;
-	 		doxyList.push_back(DoxygenEntity("plainstring", nextPhrase ));
+	 		doxyList.push_back(DoxygenEntity("plainstd::string", nextPhrase ));
 	 		return 1;
 	 }
 	 int commandNumber = commandBelongs(theCommand);

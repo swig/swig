@@ -15,15 +15,16 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine, int ind
     lastPosition = i;
     if (isFirstLine){
       i+=APPROX_LINE_LENGTH;
+    } else {
+        i+=APPROX_LINE_LENGTH - indent*TAB_SIZE;
     }
-    else i+=APPROX_LINE_LENGTH - indent*TAB_SIZE;
+
     i = unformattedLine.find(" ", i);
 
     if (i > 0 && i + 1 < (int)unformattedLine.length()){
       if (!isFirstLine) for (int j = 0; j < indent; j++) {
         formattedLines.append("\t");
-        }
-      else {
+      } else {
         isFirstLine = 0;
       }
       formattedLines.append(unformattedLine.substr(lastPosition, i - lastPosition + 1));
@@ -32,7 +33,11 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine, int ind
     }
   }
   if (lastPosition < (int)unformattedLine.length()){
-    if (!isFirstLine) {for (int j = 0; j < indent; j++) {formattedLines.append("\t");}}
+    if (!isFirstLine) {
+        for (int j = 0; j < indent; j++) { 
+            formattedLines.append("\t");
+        }
+    }
     formattedLines.append(unformattedLine.substr(lastPosition, unformattedLine.length() - lastPosition));
   }
 
@@ -46,7 +51,7 @@ std::string JavaDocConverter::javaDocFormat(DoxygenEntity &doxygenEntity){
   if(doxygenEntity.typeOfEntity.compare("partofdescription") == 0){
         return doxygenEntity.data;
     }
-  if (doxygenEntity.typeOfEntity.compare("plainstring") == 0){
+  if (doxygenEntity.typeOfEntity.compare("plainstd::string") == 0){
       return  doxygenEntity.data;
   }
   else if (doxygenEntity.typeOfEntity.compare("b") == 0){
@@ -85,10 +90,12 @@ std::string JavaDocConverter::javaDocFormat(DoxygenEntity &doxygenEntity){
 
 std::string JavaDocConverter::translateSubtree( DoxygenEntity &doxygenEntity){
   std::string returnedString;
-  if (doxygenEntity.isLeaf){ return javaDocFormat(doxygenEntity) + " ";}
-  else {
+  if (doxygenEntity.isLeaf) { 
+    return javaDocFormat(doxygenEntity) + " ";
+  } else {
     returnedString += javaDocFormat(doxygenEntity);
     std::list<DoxygenEntity>::iterator p = doxygenEntity.entityList.begin();
+
     while (p != doxygenEntity.entityList.end()){
       returnedString+= translateSubtree(*p);
       p++;
@@ -97,38 +104,64 @@ std::string JavaDocConverter::translateSubtree( DoxygenEntity &doxygenEntity){
   return returnedString;
 }
 
+
 std::string JavaDocConverter::translateEntity(DoxygenEntity &doxyEntity){
-  if(doxyEntity.typeOfEntity.compare("partofdescription")== 0) return formatCommand(std::string(translateSubtree(doxyEntity)), 0);
-  if ((doxyEntity.typeOfEntity.compare("brief") == 0)||(doxyEntity.typeOfEntity.compare("details") == 0)){
-  return formatCommand(std::string(translateSubtree(doxyEntity)), 0) + "\n * ";}
-  else if(doxyEntity.typeOfEntity.compare("plainstring")== 0 || doxyEntity.typeOfEntity.compare("deprecated")== 0 || doxyEntity.typeOfEntity.compare("brief")== 0)
-    return formatCommand(doxyEntity.data, 0) + "\n * ";
-  else if(doxyEntity.typeOfEntity.compare("see") == 0){
-    return formatCommand(std::string("@" + doxyEntity.typeOfEntity + "\t\t" + translateSubtree(doxyEntity)), 2);
+  if (doxyEntity.typeOfEntity.compare("partofdescription") == 0) {
+    return formatCommand(std::string(translateSubtree(doxyEntity)), 0);
   }
-  else if(doxyEntity.typeOfEntity.compare("return")== 0
+
+  if ((doxyEntity.typeOfEntity.compare("brief") == 0)  ||  
+      (doxyEntity.typeOfEntity.compare("details") == 0)) {
+    return formatCommand(std::string(translateSubtree(doxyEntity)), 0) + "\n * ";
+
+  } else if(doxyEntity.typeOfEntity.compare("plainstd::string")== 0 || 
+      doxyEntity.typeOfEntity.compare("deprecated")== 0 || 
+      doxyEntity.typeOfEntity.compare("brief")== 0) {
+    return formatCommand(doxyEntity.data, 0) + "\n * ";
+
+  } else if(doxyEntity.typeOfEntity.compare("see") == 0) {
+    return formatCommand(std::string("@" + doxyEntity.typeOfEntity + "\t\t" + 
+	  translateSubtree(doxyEntity)), 2);
+
+  } else if(doxyEntity.typeOfEntity.compare("return")== 0
       || doxyEntity.typeOfEntity.compare("author")== 0
       || doxyEntity.typeOfEntity.compare("param")== 0
+      || doxyEntity.typeOfEntity.compare("throw")== 0
+      || doxyEntity.typeOfEntity.compare("throws")== 0
       || doxyEntity.typeOfEntity.compare("since")== 0
       || doxyEntity.typeOfEntity.compare("version")== 0
       || doxyEntity.typeOfEntity.compare("exception") == 0
       || doxyEntity.typeOfEntity.compare("deprecated") == 0){
+
+    // this 'if' is a hack - convert doxyEntity.typeOfEntity at the time of parsing
+    if (doxyEntity.typeOfEntity.compare("throw")== 0) {
+      doxyEntity.typeOfEntity = "throws";
+    }
     return formatCommand(std::string("@" + doxyEntity.typeOfEntity + "\t" + translateSubtree(doxyEntity)), 2);
-  }
-  else if(doxyEntity.typeOfEntity.compare("sa")== 0){
+
+  } else if(doxyEntity.typeOfEntity.compare("sa")== 0) {
     return formatCommand(std::string("@see\t\t" + translateSubtree(doxyEntity)), 2);
+
+  } else {
+    return formatCommand(javaDocFormat(doxyEntity), 0 );
   }
-  else return formatCommand(javaDocFormat(doxyEntity), 0 );
+
   return "";
 }
 
-bool JavaDocConverter::getDocumentation(Node *n, String *&documentation){
-  documentation = Getattr(n,"DoxygenComment");
-  if(documentation == NULL)
+
+bool JavaDocConverter::getDocumentation(Node *node, String *&documentation) {
+
+  documentation = Getattr(node, "DoxygenComment");
+
+  if (documentation == NULL) {
     return false;
+  }
   
   std::list <DoxygenEntity> entityList = DoxygenParser().createTree(Char(documentation));
-  entityList.sort(CompareDoxygenEntities());
+
+    // entityList.sort(CompareDoxygenEntities()); sorting currently not used,
+    // see CompareDoxygenEntities::operator() in DoxygenEntity.cpp
   
   if(debug){
     std::cout << "---RESORTED LIST---" << std::endl;

@@ -13,18 +13,43 @@
 #include <string>
 #include <list>
 
+
+typedef enum {
+  SIMPLECOMMAND, 
+  IGNOREDSIMPLECOMMAND,
+  COMMANDWORD,
+  IGNOREDCOMMANDWORD,
+  COMMANDLINE,
+  IGNOREDCOMMANDLINE,
+  COMMANDPARAGRAPH,
+  IGNORECOMMANDPARAGRAPH,
+  COMMANDENDCOMMAND,
+  COMMANDWORDPARAGRAPH,
+  COMMANDWORDLINE,
+  COMMANDWORDOWORDWORD,
+  COMMANDOWORD,
+  COMMANDERRORTHROW,
+  COMMANDUNIQUE,
+  END_LINE,
+  PARAGRAPH_END,
+  PLAINSTRING,
+  COMMAND
+} DoxyCommandEnum;
+
 /*
  * Structure to represent a doxygen comment entry
  */
 struct DoxygenEntity{
-  DoxygenEntity(std::string typeEnt);
-  DoxygenEntity(std::string typeEnt, std::string param1);
-  DoxygenEntity(std::string typeEnt, std::list <DoxygenEntity> &entList );
-  void printEntity(int level);
   std::string typeOfEntity;
   std::list <DoxygenEntity> entityList;
   std::string data;
-  int isLeaf;
+  bool isLeaf;
+
+  DoxygenEntity(std::string typeEnt);
+  DoxygenEntity(std::string typeEnt, std::string param1);
+  DoxygenEntity(std::string typeEnt, std::list <DoxygenEntity> &entList );
+
+  void printEntity(int level);
 };
 
 /* 
