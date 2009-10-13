@@ -15,7 +15,7 @@
 
 
 typedef enum {
-  SIMPLECOMMAND, 
+  SIMPLECOMMAND,
   IGNOREDSIMPLECOMMAND,
   COMMANDWORD,
   IGNOREDCOMMANDWORD,
@@ -39,15 +39,15 @@ typedef enum {
 /*
  * Structure to represent a doxygen comment entry
  */
-struct DoxygenEntity{
+struct DoxygenEntity {
   std::string typeOfEntity;
-  std::list <DoxygenEntity> entityList;
+  std::list < DoxygenEntity > entityList;
   std::string data;
   bool isLeaf;
 
   DoxygenEntity(std::string typeEnt);
   DoxygenEntity(std::string typeEnt, std::string param1);
-  DoxygenEntity(std::string typeEnt, std::list <DoxygenEntity> &entList );
+  DoxygenEntity(std::string typeEnt, std::list < DoxygenEntity > &entList);
 
   void printEntity(int level);
 };
@@ -58,7 +58,7 @@ struct DoxygenEntity{
  * such as brief descriptions are TAGGED as such
  */
 struct CompareDoxygenEntities {
-  bool operator()(DoxygenEntity& first, DoxygenEntity& second);
+  bool operator() (DoxygenEntity & first, DoxygenEntity & second);
 };
 
-#endif /*TOKENLIST_H_*/
+#endif

@@ -16,38 +16,37 @@
 #include "DoxygenEntity.h"
 #include "DoxygenTranslator.h"
 
-#define DOC_STRING_LENGTH	  64  // characters per line allowed
-#define DOC_PARAM_STRING_LENGTH	  30  // characters reserved for param name / type
+#define DOC_STRING_LENGTH	  64	// characters per line allowed
+#define DOC_PARAM_STRING_LENGTH	  30	// characters reserved for param name / type
 
-class PyDocConverter : public DoxygenTranslator
-{
+class PyDocConverter : public DoxygenTranslator {
 public:
   PyDocConverter();
   bool getDocumentation(Node *node, String *&documentation);
-  
+
 protected:
-  
+
   /*
    * Process the contents of the entity list producing a documentation string.
    * @param node The parse tree node that the entity list relates to.
    * @param entityList The entity list to process
    */
-  std::string processEntityList(Node *node, std::list<DoxygenEntity>& entityList);
-  
+  std::string processEntityList(Node *node, std::list < DoxygenEntity > &entityList);
+
   /*
    * Format the doxygen comment relating to a function or method parameter
    * @param node The parse tree node that the parameter relates to.
    * @param doxygenEntity The doxygen entity relating to the parameter docstring.
    */
-  std::string formatParam(Node *node, DoxygenEntity &doxygenEntity);
-  
+  std::string formatParam(Node *node, DoxygenEntity & doxygenEntity);
+
   /*
    * Format the doxygen comment relating to the return value for a method or function.
    * @param node The parse tree node that the parameter relates to.
    * @param doxygenEntity The doxygen entity relating to the parameter docstring.
    */
-  std::string formatReturnDescription(Node *node, DoxygenEntity &doxygenEntity);
-  
+  std::string formatReturnDescription(Node *node, DoxygenEntity & doxygenEntity);
+
   /*
    * Format a string so it is justified and split over several lines 
    * not exeeding a given length.
@@ -56,17 +55,17 @@ protected:
    * @param maxWidth The approximate maximum line width.
    */
   std::string justifyString(std::string unformattedLine, int indent = 0, int maxWidth = DOC_STRING_LENGTH);
-  
-  std::string translateSubtree( DoxygenEntity &doxygenEntity);
-  std::string translateEntity(Node *n, DoxygenEntity &doxyEntity);
-  
+
+  std::string translateSubtree(DoxygenEntity & doxygenEntity);
+  std::string translateEntity(Node *n, DoxygenEntity & doxyEntity);
+
   /*
    * Utility method to generate a diving line for a documentation string.
    */
   std::string generateDivider();
-    
+
 private:
   bool debug;
 };
 
-#endif /*PYDOCCONVERTER_H_*/
+#endif

@@ -1,11 +1,10 @@
 #ifndef DOXYGENTRANSWTOKENIZER_H_
 #define DOXYGENTRANSWTOKENIZER_H_
 
-class DoxygenTransWTokenizer
-{
+class DoxygenTransWTokenizer {
 public:
-	DoxygenTransWTokenizer();
-	virtual ~DoxygenTransWTokenizer();
+  DoxygenTransWTokenizer();
+  virtual ~DoxygenTransWTokenizer();
 };
 
-#endif /*DOXYGENTRANSWTOKENIZER_H_*/
+#endif

@@ -28,14 +28,13 @@ enum DocumentationFormat {
  * A class to translate doxygen comments attacted to parser nodes
  * into alternative formats for use in code generated for target languages.
  */
-class DoxygenTranslator
-{
+class DoxygenTranslator {
 public:
   /*
    * Virtual destructor.
    */
-  virtual ~DoxygenTranslator(){}
-  
+  virtual ~ DoxygenTranslator() {
+  }
   /*
    * Return the documentation for a given node formated for the correct 
    * documentation system.
@@ -45,7 +44,7 @@ public:
    * @return A bool to indicate if there was documentation to return for the node.
    */
   static bool getDocumentation(Node *node, DocumentationFormat format, String *&documentation);
-  
+
 protected:
   /*
    * Overridden in subclasses to return the documentation formatted for a given
@@ -55,11 +54,11 @@ protected:
    * @return A bool to indicate if there was documentation to return for the node.
    */
   virtual bool getDocumentation(Node *node, String *&documentation) = 0;
-  
+
   /*
    * Prints the details of a parsed entity list to stdout (for debugging).
    */
-  void printTree(std::list<DoxygenEntity> &entityList);
+  void printTree(std::list < DoxygenEntity > &entityList);
 };
 
-#endif /*DOXYGENTRANSLATOR_H_*/
+#endif

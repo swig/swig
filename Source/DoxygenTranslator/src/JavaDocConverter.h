@@ -15,20 +15,20 @@
 /*
  * A class to translate doxygen comments into JavaDoc style comments.
  */
-class JavaDocConverter : public DoxygenTranslator
-{
+class JavaDocConverter : public DoxygenTranslator {
 public:
-  JavaDocConverter() : debug( false ){}
+  JavaDocConverter() : debug(false) {
+  }
   virtual bool getDocumentation(Node *node, String *&documentation);
-  
+
 protected:
   std::string formatCommand(std::string unformattedLine, int indent);
-  std::string translateEntity(DoxygenEntity &doxyEntity);
-  std::string javaDocFormat(DoxygenEntity &doxygenEntity);
-  std::string translateSubtree( DoxygenEntity &doxygenEntity);
-  
+  std::string translateEntity(DoxygenEntity & doxyEntity);
+  std::string javaDocFormat(DoxygenEntity & doxygenEntity);
+  std::string translateSubtree(DoxygenEntity & doxygenEntity);
+
 private:
   bool debug;
 };
 
-#endif /*JAVADOCCONVERTER_H_*/
+#endif
