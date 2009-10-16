@@ -1148,7 +1148,7 @@ public:
 
       /* Insert the objcconstruct typemap, doing the replacement for $directorconnect, as needed */
       Hash *attributes = NewHash();
-      String *construct_tm = Copy(typemapLookup("objcconstruct", Getattr(n, "name"),
+      String *construct_tm = Copy(typemapLookup(n, "objcconstruct", Getattr(n, "name"),
 						WARN_NONE, attributes));
       if (construct_tm) {
 	Printv(function_def, " ", construct_tm, "\n", NIL);
@@ -1165,7 +1165,7 @@ public:
       Delete(overloaded_name);
       Delete(imcall);
     }
-
+    Delete(n);
     return SWIG_OK;
   }
 
@@ -1660,53 +1660,62 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void emitTypeWrapperClass(String *classname, SwigType *type) {
-
+	Node *n = NewHash();
+	Setfile(n, input_file);
+	Setline(n, line_number);
+	  
     // Pure Objective-C baseclass and interfaces
-    const String *pure_baseclass = typemapLookup("objcbase", type, WARN_NONE);
-    const String *pure_interfaces = typemapLookup("objcinterfaces", type, WARN_NONE);
+    const String *pure_baseclass = typemapLookup(n,"objcbase", type, WARN_NONE);
+    const String *pure_interfaces = typemapLookup(n,"objcinterfaces", type, WARN_NONE);
 
-    Printv(swigtypes_h_code, typemapLookup("objcimports", type, WARN_NONE),	// Import statements
-	   "\n", typemapLookup("objcclassinterface", type, WARN_NONE),	// Class modifiers
+    Printv(swigtypes_h_code, typemapLookup(n, "objcimports", type, WARN_NONE),	// Import statements
+	   "\n", typemapLookup(n, "objcclassinterface", type, WARN_NONE),	// Class modifiers
 	   " $objcclassname",	// Class name and base class
 	   *Char(pure_baseclass) ? " : " : "", pure_baseclass, *Char(pure_interfaces) ?	// Interfaces
-	   ", " : "", pure_interfaces, typemapLookup("objcinterface", type, WARN_NONE),	// main body of class
-	   typemapLookup("objccode", type, WARN_NONE),	// extra Objective-C code
+	   ", " : "", pure_interfaces, typemapLookup(n, "objcinterface", type, WARN_NONE),	// main body of class
+	   typemapLookup(n, "objccode", type, WARN_NONE),	// extra Objective-C code
 	   "@end\n", "\n", NIL);
 
-    Printv(swigtypes_m_code, typemapLookup("objcimports", type, WARN_NONE),	// Import statements
-	   typemapLookup("objcclassimplementation", type, WARN_NONE),	// Class modifiers
-	   " $objcclassname", typemapLookup("objcbody", type, WARN_NONE),	// main body of class
-	   typemapLookup("objccode", type, WARN_NONE),	// extra Objective-C code
+    Printv(swigtypes_m_code, typemapLookup(n, "objcimports", type, WARN_NONE),	// Import statements
+	   typemapLookup(n, "objcclassimplementation", type, WARN_NONE),	// Class modifiers
+	   " $objcclassname", typemapLookup(n, "objcbody", type, WARN_NONE),	// main body of class
+	   typemapLookup(n, "objccode", type, WARN_NONE),	// extra Objective-C code
 	   "@end\n", "\n", NIL);
 
     Replaceall(swigtypes_h_code, "$objcclassname", classname);
     Replaceall(swigtypes_m_code, "$objcclassname", classname);
+	  
+    Delete(n);
   }
 
 
-  /* -----------------------------------------------------------------------------
-   * typemapLookup()
-   * ----------------------------------------------------------------------------- */
-
-  const String *typemapLookup(const String *op, String *type, int warning, Node *typemap_attributes = NULL) {
-    String *tm = NULL;
-    const String *code = NULL;
-
-    if ((tm = Swig_typemap_search(op, type, NULL, NULL))) {
-      code = Getattr(tm, "code");
-      if (typemap_attributes)
-	Swig_typemap_attach_kwargs(tm, op, typemap_attributes);
-    }
-
-    if (!code) {
-      code = empty_string;
-      if (warning != WARN_NONE)
-	Swig_warning(warning, input_file, line_number, "No %s typemap defined for %s\n", op, type);
-    }
-
-    return code ? code : empty_string;
-  }
-
+	/* -----------------------------------------------------------------------------
+	 * typemapLookup(n, )
+	 * n - for input only and must contain info for Getfile(n) and Getline(n) to work
+	 * tmap_method - typemap method name
+	 * type - typemap type to lookup
+	 * warning - warning number to issue if no typemaps found
+	 * typemap_attributes - the typemap attributes are attached to this node and will 
+	 *   also be used for temporary storage if non null
+	 * return is never NULL, unlike Swig_typemap_lookup()
+	 * ----------------------------------------------------------------------------- */
+	
+	const String *typemapLookup(Node *n, const_String_or_char_ptr tmap_method, SwigType *type, int warning, Node *typemap_attributes = 0) {
+		Node *node = !typemap_attributes ? NewHash() : typemap_attributes;
+		Setattr(node, "type", type);
+		Setfile(node, Getfile(n));
+		Setline(node, Getline(n));
+		const String *tm = Swig_typemap_lookup(tmap_method, node, "", 0);
+		if (!tm) {
+			tm = empty_string;
+			if (warning != WARN_NONE)
+				Swig_warning(warning, Getfile(n), Getline(n), "No %s typemap defined for %s\n", tmap_method, SwigType_str(type, 0));
+		}
+		if (!typemap_attributes)
+			Delete(node);
+		return tm;
+	}
+	
   /* -----------------------------------------------------------------------------
    * proxyClassHandler()
    * ----------------------------------------------------------------------------- */
@@ -1719,7 +1728,7 @@ public:
 
     // Inheritance from pure Objective-C classes
     Node *attributes = NewHash();
-    const String *pure_baseclass = typemapLookup("objcbase", typemap_lookup_type, WARN_NONE, attributes);
+    const String *pure_baseclass = typemapLookup(n, "objcbase", typemap_lookup_type, WARN_NONE, attributes);
     bool purebase_replace = GetFlag(attributes, "tmap:objcbase:replace") ? true : false;
     bool purebase_notderived = GetFlag(attributes, "tmap:objcbase:notderived") ? true : false;
     Delete(attributes);
@@ -1773,26 +1782,26 @@ public:
 		   "Perhaps you need one of the 'replace' or 'notderived' attributes in the objcbase typemap?\n", typemap_lookup_type, pure_baseclass);
     }
     // Pure Objective-C interfaces
-    const String *pure_interfaces = typemapLookup(derived ? "objcinterfaces_derived" : "objcinterfaces", typemap_lookup_type, WARN_NONE);
+    const String *pure_interfaces = typemapLookup(n, derived ? "objcinterfaces_derived" : "objcinterfaces", typemap_lookup_type, WARN_NONE);
     // Start writing the proxy class
-    //Printv(proxy_class_decl, typemapLookup("objcimports", typemap_lookup_type, WARN_NONE),    // Import statements
+    //Printv(proxy_class_decl, typemapLookup(n, "objcimports", typemap_lookup_type, WARN_NONE),    // Import statements
     // "\n", NIL);                // This would be needed when we decide upon a separate file for each class.
 
     // Class attributes
-    const String *objcattributes = typemapLookup("objcattributes", typemap_lookup_type, WARN_NONE);
+    const String *objcattributes = typemapLookup(n, "objcattributes", typemap_lookup_type, WARN_NONE);
     if (objcattributes && *Char(objcattributes))
       Printf(proxy_class_def, "%s\n", objcattributes);
 
-    Printv(proxy_class_decl, "\n", typemapLookup("objcclassinterface", typemap_lookup_type, WARN_NONE),	// Class modifiers
+    Printv(proxy_class_decl, "\n", typemapLookup(n, "objcclassinterface", typemap_lookup_type, WARN_NONE),	// Class modifiers
 	   " $objcclassname",	// Class name and base class
 	   (*Char(wanted_base) || *Char(pure_interfaces)) ? " : " : "", wanted_base, (*Char(wanted_base) && *Char(pure_interfaces)) ?	// Interfaces
-	   ", " : "", pure_interfaces, derived ? typemapLookup("objcinterface_derived", typemap_lookup_type, WARN_NONE) :	// main body of class
-	   typemapLookup("objcinterface", typemap_lookup_type, WARN_NONE),	// main body of class
+	   ", " : "", pure_interfaces, derived ? typemapLookup(n, "objcinterface_derived", typemap_lookup_type, WARN_NONE) :	// main body of class
+	   typemapLookup(n, "objcinterface", typemap_lookup_type, WARN_NONE),	// main body of class
 	   NIL);
 
-    Printv(proxy_class_def, typemapLookup("objcclassimplementation", typemap_lookup_type, WARN_NONE),	// Class modifiers
-	   " $objcclassname", derived ? typemapLookup("objcbody_derived", typemap_lookup_type, WARN_NONE) :	// main body of class
-	   typemapLookup("objcbody", typemap_lookup_type, WARN_NONE),	// main body of class
+    Printv(proxy_class_def, typemapLookup(n, "objcclassimplementation", typemap_lookup_type, WARN_NONE),	// Class modifiers
+	   " $objcclassname", derived ? typemapLookup(n, "objcbody_derived", typemap_lookup_type, WARN_NONE) :	// main body of class
+	   typemapLookup(n, "objcbody", typemap_lookup_type, WARN_NONE),	// main body of class
 	   "\n", NIL);
 
     // C++ destructor is wrapped by the dealloc method
@@ -1801,7 +1810,7 @@ public:
     const String *tm = NULL;
     attributes = NewHash();
     String *destruct_methodname = NewString("dealloc");
-    tm = typemapLookup("objcdestruct", typemap_lookup_type, WARN_NONE, attributes);
+    tm = typemapLookup(n, "objcdestruct", typemap_lookup_type, WARN_NONE, attributes);
 
     // Emit the dealloc method
     if (tm) {
@@ -1818,7 +1827,7 @@ public:
       }
     }
     // Emit extra user code
-    Printv(proxy_class_def, typemapLookup("objccode", typemap_lookup_type, WARN_NONE),	// extra Objective-C code
+    Printv(proxy_class_def, typemapLookup(n, "objccode", typemap_lookup_type, WARN_NONE),	// extra Objective-C code
 	   NIL);
 
     // Substitute various strings into the above template
@@ -1826,6 +1835,7 @@ public:
     Replaceall(proxy_class_def, "$objcclassname", proxy_class_name);
 
     Delete(baseclass);
+    Delete(n);
   }
 
 
