@@ -200,7 +200,7 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
  * emit_num_arguments()
  *
  * Calculate the total number of arguments.   This function is safe for use
- * with multi-valued typemaps which may change the number of arguments in
+ * with multi-argument typemaps which may change the number of arguments in
  * strange ways.
  * ----------------------------------------------------------------------------- */
 
@@ -232,7 +232,7 @@ int emit_num_arguments(ParmList *parms) {
  * emit_num_required()
  *
  * Computes the number of required arguments.  This function is safe for
- * use with multi-valued typemaps and knows how to skip over everything
+ * use with multi-argument typemaps and knows how to skip over everything
  * properly. Note that parameters with default values are counted unless
  * the compact default args option is on.
  * ----------------------------------------------------------------------------- */

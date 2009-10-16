@@ -22,6 +22,11 @@ SWIGEXPORT int SWIG_init(Tcl_Interp *);
 }
 #endif
 
+/* Compatibility version for TCL stubs */
+#ifndef SWIG_TCL_STUBS_VERSION
+#define SWIG_TCL_STUBS_VERSION "8.1"
+#endif
+
 %}
 
 %init %{
@@ -74,10 +79,18 @@ SWIGEXPORT int SWIG_init(Tcl_Interp *interp) {
   int i;
   if (interp == 0) return TCL_ERROR;
 #ifdef USE_TCL_STUBS
-  if (Tcl_InitStubs(interp, (char*)"8.1", 0) == NULL) {
+  /* (char*) cast is required to avoid compiler warning/error for Tcl < 8.4. */
+  if (Tcl_InitStubs(interp, (char*)SWIG_TCL_STUBS_VERSION, 0) == NULL) {
     return TCL_ERROR;
   }
 #endif  
+#ifdef USE_TK_STUBS
+  /* (char*) cast is required to avoid compiler warning/error. */
+  if (Tk_InitStubs(interp, (char*)SWIG_TCL_STUBS_VERSION, 0) == NULL) {
+    return TCL_ERROR;
+  }
+#endif
+
   Tcl_PkgProvide(interp, (char*)SWIG_name, (char*)SWIG_version);
   
 #ifdef SWIG_namespace

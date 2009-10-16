@@ -1054,6 +1054,8 @@ static void strip_comments(char *string) {
     case 5:
       if (*c == '/')
         state = 0;
+      else 
+        state = 1;
       *c = ' ';
       break;
     case 6:
@@ -1463,7 +1465,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
   } decl;
   Parm         *tparms;
   struct {
-    String     *op;
+    String     *method;
     Hash       *kwargs;
   } tmap;
   struct {
@@ -1484,7 +1486,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token <id> STRING
 %token <loc> INCLUDE IMPORT INSERT
 %token <str> CHARCONST 
-%token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG
+%token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
@@ -2497,10 +2499,10 @@ varargs_parms   : parms { $$ = $1; }
 
 typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		   $$ = 0;
-		   if ($3.op) {
+		   if ($3.method) {
 		     String *code = 0;
 		     $$ = new_node("typemap");
-		     Setattr($$,"method",$3.op);
+		     Setattr($$,"method",$3.method);
 		     if ($3.kwargs) {
 		       ParmList *kw = $3.kwargs;
                        code = remove_block(kw, $6);
@@ -2514,17 +2516,17 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list SEMI {
 		 $$ = 0;
-		 if ($3.op) {
+		 if ($3.method) {
 		   $$ = new_node("typemap");
-		   Setattr($$,"method",$3.op);
+		   Setattr($$,"method",$3.method);
 		   appendChild($$,$5);
 		 }
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list EQUAL typemap_parm SEMI {
 		   $$ = 0;
-		   if ($3.op) {
+		   if ($3.method) {
 		     $$ = new_node("typemapcopy");
-		     Setattr($$,"method",$3.op);
+		     Setattr($$,"method",$3.method);
 		     Setattr($$,"pattern", Getattr($7,"pattern"));
 		     appendChild($$,$5);
 		   }
@@ -2544,15 +2546,15 @@ typemap_type   : kwargs {
 		   /* two argument typemap form */
 		   name = Getattr($1,"name");
 		   if (!name || (Strcmp(name,typemap_lang))) {
-		     $$.op = 0;
+		     $$.method = 0;
 		     $$.kwargs = 0;
 		   } else {
-		     $$.op = Getattr(p,"name");
+		     $$.method = Getattr(p,"name");
 		     $$.kwargs = nextSibling(p);
 		   }
 		 } else {
 		   /* one-argument typemap-form */
-		   $$.op = Getattr($1,"name");
+		   $$.method = Getattr($1,"name");
 		   $$.kwargs = p;
 		 }
                 }
@@ -2724,7 +2726,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			      Parm *ti = targs;
 			      String *tv = Getattr(tp,"value");
 			      if (!tv) tv = Getattr(tp,"type");
-			      while(pi != tp) {
+			      while(pi != tp && ti && pi) {
 				String *name = Getattr(ti,"name");
 				String *value = Getattr(pi,"value");
 				if (!value) value = Getattr(pi,"type");
@@ -3125,8 +3127,8 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
                  if (unnamedinstance) {
 		   SwigType *cty = NewString("enum ");
 		   Setattr($$,"type",cty);
-		   Setattr($$,"unnamedinstance","1");
-		   Setattr(n,"unnamedinstance","1");
+		   SetFlag($$,"unnamedinstance");
+		   SetFlag(n,"unnamedinstance");
 		   Delete(cty);
                  }
 		 if ($8) {
@@ -5545,6 +5547,7 @@ exprnum        :  NUM_INT { $$ = $1; }
                |  NUM_ULONG { $$ = $1; }
                |  NUM_LONGLONG { $$ = $1; }
                |  NUM_ULONGLONG { $$ = $1; }
+               |  NUM_BOOL { $$ = $1; }
                ;
 
 exprcompound   : expr PLUS expr {
@@ -5589,40 +5592,37 @@ exprcompound   : expr PLUS expr {
 	       }
                | expr LAND expr {
 		 $$.val = NewStringf("%s&&%s",$1.val,$3.val);
-		 $$.type = T_INT;
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr LOR expr {
 		 $$.val = NewStringf("%s||%s",$1.val,$3.val);
-		 $$.type = T_INT;
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr EQUALTO expr {
 		 $$.val = NewStringf("%s==%s",$1.val,$3.val);
-		 $$.type = T_INT;
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr NOTEQUALTO expr {
 		 $$.val = NewStringf("%s!=%s",$1.val,$3.val);
-		 $$.type = T_INT;
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 /* Sadly this causes 2 reduce-reduce conflicts with templates.  FIXME resolve these.
                | expr GREATERTHAN expr {
-		 $$.val = NewStringf("%s SWIG_LT %s", $1.val, $3.val);
-		 $$.type = T_INT;
+		 $$.val = NewStringf("%s < %s", $1.val, $3.val);
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr LESSTHAN expr {
-		 $$.val = NewStringf("%s SWIG_GT %s", $1.val, $3.val);
-		 $$.type = T_INT;
+		 $$.val = NewStringf("%s > %s", $1.val, $3.val);
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 */
                | expr GREATERTHANOREQUALTO expr {
-		 /* Putting >= in the expression literally causes an infinite
-		  * loop somewhere in the type system.  Just workaround for now
-		  * - SWIG_GE is defined in swiglabels.swg. */
-		 $$.val = NewStringf("%s SWIG_GE %s", $1.val, $3.val);
-		 $$.type = T_INT;
+		 $$.val = NewStringf("%s >= %s", $1.val, $3.val);
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr LESSTHANOREQUALTO expr {
-		 $$.val = NewStringf("%s SWIG_LE %s", $1.val, $3.val);
-		 $$.type = T_INT;
+		 $$.val = NewStringf("%s <= %s", $1.val, $3.val);
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr QUESTIONMARK expr COLON expr %prec QUESTIONMARK {
 		 $$.val = NewStringf("%s?%s:%s", $1.val, $3.val, $5.val);

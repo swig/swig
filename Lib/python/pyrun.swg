@@ -383,9 +383,7 @@ SwigPyObject_repr(SwigPyObject *v, PyObject *args)
 #endif
 {
   const char *name = SWIG_TypePrettyName(v->ty);
-  PyObject *hex = SwigPyObject_hex(v);    
-  PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at %p>", name, hex);
-  Py_DECREF(hex);
+  PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at %p>", name, v);
   if (v->next) {
 #ifdef METH_NOARGS
     PyObject *nrep = SwigPyObject_repr((SwigPyObject *)v->next);
@@ -1091,7 +1089,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
               int newmemory = 0;
               *ptr = SWIG_TypeCast(tc,vptr,&newmemory);
               if (newmemory == SWIG_CAST_NEW_MEMORY) {
-                assert(own);
+                assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
                 if (own)
                   *own = *own | SWIG_CAST_NEW_MEMORY;
               }
@@ -1165,10 +1163,10 @@ SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
     /* here we get the method pointer for callbacks */
     const char *doc = (((PyCFunctionObject *)obj) -> m_ml -> ml_doc);
     const char *desc = doc ? strstr(doc, "swig_ptr: ") : 0;
-    if (desc) {
+    if (desc)
       desc = ty ? SWIG_UnpackVoidPtr(desc + 10, &vptr, ty->name) : 0;
-      if (!desc) return SWIG_ERROR;
-    }
+    if (!desc) 
+      return SWIG_ERROR;
     if (ty) {
       swig_cast_info *tc = SWIG_TypeCheck(desc,ty);
       if (tc) {

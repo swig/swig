@@ -1,6 +1,10 @@
 /* File : example.i */
 
-/* This file has a few "typical" uses of C++ references. */
+/* This example has nothing to do with references but the name is used by all
+ * the other languages so it's hard to rename to something more meaningful.
+ *
+ * Mostly it shows how to use %extend.
+ */
 
 %module example
 
@@ -12,7 +16,7 @@ class Vector {
 public:
     Vector(double x, double y, double z);
    ~Vector();
-    char *print();
+    char *as_string();
 };
 
 /* This helper function calls an overloaded operator */
@@ -41,4 +45,3 @@ public:
     }
   }
 };
-

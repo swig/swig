@@ -4,8 +4,8 @@
  *
  * typemaps.i
  *
- * Swig typemap library for Tcl8.  This file contains various sorts
- * of typemaps for modifying Swig's code generation.
+ * SWIG typemap library for Tcl8.  This file contains various sorts
+ * of typemaps for modifying SWIG's code generation.
  * ----------------------------------------------------------------------------- */
 
 #if !defined(SWIG_USE_OLD_TYPEMAPS)

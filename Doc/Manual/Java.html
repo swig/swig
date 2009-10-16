@@ -254,6 +254,12 @@ It is also possible to change the <a href="SWIG.html#output">output directory </
 </p>
 
 <p>
+The module name, specified with <tt>%module</tt>, determines the name of various generated classes as discussed <a href=#module_packages_classes>later</a>.
+Note that the module name does not define a Java package and by default, the generated Java classes do not have a Java package.
+The <tt>-package</tt> option described below can specify a Java package name to use.
+</p>
+
+<p>
 The following sections have further practical examples and details on how you might go about
 compiling and using the generated files.
 </p>
@@ -441,6 +447,19 @@ $
 <p>
 This error usually indicates that you forgot to include some object files or libraries in the linking of the native library file.  
 Make sure you compile both the SWIG wrapper file and the code you are wrapping into the native library file.  
+If you forget to compile and link in the SWIG wrapper file into your native library file, you will get a message similar to the following:
+</p>
+
+<div class="code"><pre>
+$ java runme
+Exception in thread "main" java.lang.UnsatisfiedLinkError: exampleJNI.gcd(II)I
+	at exampleJNI.gcd(Native Method)
+	at example.gcd(example.java:12)
+	at runme.main(runme.java:18)
+</pre></div>
+
+<p>
+where <tt>gcd</tt> is the missing JNI function that SWIG generated into the wrapper file.
 Also make sure you pass all of the required libraries to the linker.  
 The <tt>java -verbose:jni</tt> commandline switch is also a great way to get more information on unresolved symbols.
 One last piece of advice is to beware of the common faux pas of having more than one native library version in your path.

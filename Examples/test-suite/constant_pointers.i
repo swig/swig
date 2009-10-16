@@ -121,7 +121,8 @@ int* const globalRet2() {return &GlobalInt;}
 
 %{
 static int wxEVT_COMMAND_BUTTON_CLICKEDv;
-static int **wxEVT_COMMAND_BUTTON_CLICKEDp;
+static int *wxEVT_COMMAND_BUTTON_CLICKEDp;
+static int **wxEVT_COMMAND_BUTTON_CLICKEDpp = &wxEVT_COMMAND_BUTTON_CLICKEDp;
 #if defined(SWIGR)
 #undef lang1 /* conflicts with symbol in R internals */
 #endif
@@ -137,7 +138,7 @@ char *langs[] ={ lang1 };
 #define EWXWEXPORT_VAR 
 
   const int* wxEVENT_COMMAND_BUTTON_CLICKEDr = (int*) &wxEVT_COMMAND_BUTTON_CLICKEDv;
-  const int* wxEVENT_COMMAND_BUTTON_CLICKEDp = (int*) *wxEVT_COMMAND_BUTTON_CLICKEDp;
+  const int* wxEVENT_COMMAND_BUTTON_CLICKEDp = (int*) *wxEVT_COMMAND_BUTTON_CLICKEDpp;
   char **languages1 = &langs[0];
   char **languages2 = (char **)&langs[0];
 }

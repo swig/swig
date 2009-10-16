@@ -3245,11 +3245,6 @@ public:
 	Setattr(n, "type", return_type);
 	tm = Swig_typemap_lookup("directorout", n, "result", w);
 	Setattr(n, "type", type);
-	if (tm == 0) {
-	  String *name = NewString("result");
-	  tm = Swig_typemap_search("directorout", return_type, name, NULL);
-	  Delete(name);
-	}
 	if (tm != 0) {
 	  if (outputs > 1 && !asvoid ) {
 	    Printf(w->code, "output = rb_ary_entry(result, %d);\n", idx++);

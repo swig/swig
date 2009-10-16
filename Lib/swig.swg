@@ -152,7 +152,7 @@
 #define %clearnaturalvar %feature("naturalvar","")
 
 /* valuewrapper directives */
-#define %valuewrapper        %feature("valuewrapper",)
+#define %valuewrapper        %feature("valuewrapper")
 #define %clearvaluewrapper   %feature("valuewrapper","")
 #define %novaluewrapper      %feature("novaluewrapper")
 #define %clearnovaluewrapper %feature("novaluewrapper","")

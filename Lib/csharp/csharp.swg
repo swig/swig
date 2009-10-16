@@ -803,6 +803,19 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 
+/* Marshal C/C++ pointer to IntPtr */
+%typemap(ctype) void *VOID_INT_PTR "void *"
+%typemap(imtype) void *VOID_INT_PTR "IntPtr"
+%typemap(cstype) void *VOID_INT_PTR "IntPtr"
+%typemap(in) void *VOID_INT_PTR %{ $1 = ($1_ltype)$input; %}
+%typemap(out) void *VOID_INT_PTR %{ $result = (void *)$1; %} 
+%typemap(csin) void *VOID_INT_PTR "$csinput"
+%typemap(csout, excode=SWIGEXCODE) void *VOID_INT_PTR {
+    IntPtr ret = $imcall;$excode
+    return ret;
+  }
+
+
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(csbase)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(csclassmodifiers)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"

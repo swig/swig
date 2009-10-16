@@ -64,6 +64,8 @@
 %pass_by_val(double, CONVERT_FLOAT_IN);
 
 %pass_by_val(char *, CONVERT_STRING_IN);
+%typemap(in) char *& = const char *&;
+%typemap(directorout) char *& = const char *&;
 
 // char array can be in/out, though the passed string may not be big enough...
 // so we have to size it
@@ -89,6 +91,14 @@
 	$1 = *tmp;
 }
 
+%typemap(directorout) SWIGTYPE ($&1_ltype tmp)
+{
+	if(SWIG_ConvertPtr(*$input, (void **) &tmp, $&1_descriptor, 0) < 0 || tmp == NULL) {
+          SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $&1_descriptor");
+	}
+	$result = *tmp;
+}
+
 %typemap(in) SWIGTYPE *,
 	     SWIGTYPE []
 {
@@ -102,6 +112,14 @@
 	if(SWIG_ConvertPtr(*$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
 	    SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $1_descriptor");
 	}
+}
+
+%typemap(in) SWIGTYPE *& ($*ltype temp)
+{
+	if(SWIG_ConvertPtr(*$input, (void **) &temp, $*1_descriptor, 0) < 0) {
+            SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $*1_descriptor");
+	}
+	$1 = &temp;
 }
 
 %typemap(in) SWIGTYPE *DISOWN
@@ -176,9 +194,48 @@
 	ZVAL_LONG(return_value,$1);
 }
 
+%typemap(out) const int &,
+              const unsigned int &,
+              const short &,
+              const unsigned short &,
+              const long &,
+              const unsigned long &,
+              const signed char &,
+              const unsigned char &,
+              const bool &,
+              const size_t &,
+              const enum SWIGTYPE &
+{
+	ZVAL_LONG(return_value,*$1);
+}
+
+%typemap(directorin) int,
+              unsigned int,
+              short,
+              unsigned short,
+              long,
+              unsigned long,
+              signed char,
+              unsigned char,
+              size_t,
+              enum SWIGTYPE
+{
+  ZVAL_LONG($input,$1_name);
+}
+
 %typemap(out) bool
 {
 	ZVAL_BOOL(return_value,($1)?1:0);
+}
+
+%typemap(out) const bool &
+{
+	ZVAL_BOOL(return_value,(*$1)?1:0);
+}
+
+%typemap(directorin) bool
+{
+	ZVAL_BOOL($input,($1_name)?1:0);
 }
 
 %typemap(out) float,
@@ -187,9 +244,26 @@
 	ZVAL_DOUBLE(return_value,$1);
 }
 
+%typemap(out) const float &,
+              const double &
+{
+	ZVAL_DOUBLE(return_value,*$1);
+}
+
+%typemap(directorin) float,
+                     double
+{
+	ZVAL_DOUBLE($input,$1_name);
+}
+
 %typemap(out) char
 {
 	ZVAL_STRINGL(return_value,&$1, 1, 1);
+}
+
+%typemap(out) const char &
+{
+	ZVAL_STRINGL(return_value,&*$1, 1, 1);
 }
 
 %typemap(out) char *,
@@ -202,11 +276,32 @@
 	}
 }
 
+%typemap(out) char *&
+{
+	if(!*$1) {
+	  ZVAL_NULL(return_value);
+	} else {
+	  ZVAL_STRING(return_value, (char *)*$1, 1);
+	}
+}
+
 %typemap(out) SWIGTYPE *,
               SWIGTYPE [],
               SWIGTYPE &
 %{
   SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor, $owner);
+%}
+
+%typemap(out) SWIGTYPE *&
+%{
+  SWIG_SetPointerZval(return_value, (void *)*$1, $*1_descriptor, $owner);
+%}
+
+%typemap(directorin) SWIGTYPE *,
+                     SWIGTYPE [],
+                     SWIGTYPE &
+%{
+  SWIG_SetPointerZval($input, (void *)&$1_name, $1_descriptor, $owner);
 %}
 
 %typemap(out) SWIGTYPE *DYNAMIC,
@@ -230,6 +325,15 @@
 }
 #endif
 
+%typemap(directorin) SWIGTYPE
+{
+  SWIG_SetPointerZval($input, SWIG_as_voidptr(&$1_name), $&1_descriptor, 2);
+}
+
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+
 %typemap(out) void "";
 
 %typemap(out) char [ANY]
@@ -243,7 +347,7 @@
 // an argument to be converted from a different PHP type, you must convert
 // it yourself before passing it (e.g. (string)4.7 or (int)"6").
 %define %php_typecheck(_type,_prec,is)
-%typemap(typecheck,precedence=_prec) _type
+%typemap(typecheck,precedence=_prec) _type, const _type &
  " $1 = (Z_TYPE_PP($input) == is); "
 %enddef
 
@@ -258,13 +362,12 @@
 %php_typecheck(size_t,SWIG_TYPECHECK_INT16,IS_LONG)
 %php_typecheck(enum SWIGTYPE,SWIG_TYPECHECK_INT8,IS_LONG)
 %php_typecheck(bool,SWIG_TYPECHECK_BOOL,IS_BOOL)
-
-%php_typecheck(char,SWIG_TYPECHECK_CHAR,IS_STRING)
-%php_typecheck(char *,SWIG_TYPECHECK_STRING,IS_STRING)
-%php_typecheck(char [],SWIG_TYPECHECK_STRING,IS_STRING)
-
 %php_typecheck(float,SWIG_TYPECHECK_FLOAT,IS_DOUBLE)
 %php_typecheck(double,SWIG_TYPECHECK_BOOL,IS_DOUBLE)
+%php_typecheck(char,SWIG_TYPECHECK_CHAR,IS_STRING)
+
+%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char *, char *&, char []
+ " $1 = (Z_TYPE_PP($input) == IS_STRING); "
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
 {
@@ -274,7 +377,8 @@
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *,
              SWIGTYPE [],
-             SWIGTYPE &
+             SWIGTYPE &,
+             SWIGTYPE *&
 {
   void *tmp;
   _v = (SWIG_ConvertPtr(*$input, (void**)&tmp, $1_descriptor, 0) >= 0);

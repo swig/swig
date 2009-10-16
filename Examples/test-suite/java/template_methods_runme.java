@@ -32,6 +32,13 @@ public class template_methods_runme {
     k.KlassTMethodBool();
     b = Klass.KlassStaticTMethodBoolRenamed(true);
     Klass.KlassStaticTMethodBool();
+
+
+    //
+    ComponentProperties cp = new ComponentProperties();
+    cp.adda("key1", "val1", "key2", 22.2);
+    cp.adda("key1", "val1", "key2", "val2", "key3", "val3");
+    cp.adda("key1", 1, "key2", 2, "key3", 3);
   }
 }
 

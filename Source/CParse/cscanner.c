@@ -257,7 +257,7 @@ void skip_decl(void) {
  * Lexical scanner.
  * ------------------------------------------------------------------------- */
 
-int yylook(void) {
+static int yylook(void) {
 
   int tok = 0;
 
@@ -410,6 +410,9 @@ int yylook(void) {
     case SWIG_TOKEN_FLOAT:
       return NUM_FLOAT;
       
+    case SWIG_TOKEN_BOOL:
+      return NUM_BOOL;
+      
     case SWIG_TOKEN_POUND:
       Scanner_skip_line(scan);
       yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
@@ -525,6 +528,7 @@ int yylex(void) {
   case NUM_UNSIGNED:
   case NUM_LONGLONG:
   case NUM_ULONGLONG:
+  case NUM_BOOL:
     if (l == NUM_INT)
       yylval.dtype.type = T_INT;
     if (l == NUM_FLOAT)
@@ -539,6 +543,8 @@ int yylex(void) {
       yylval.dtype.type = T_LONGLONG;
     if (l == NUM_ULONGLONG)
       yylval.dtype.type = T_ULONGLONG;
+    if (l == NUM_BOOL)
+      yylval.dtype.type = T_BOOL;
     yylval.dtype.val = NewString(Scanner_text(scan));
     yylval.dtype.bitfield = 0;
     yylval.dtype.throws = 0;

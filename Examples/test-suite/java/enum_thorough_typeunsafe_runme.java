@@ -369,12 +369,51 @@ public class enum_thorough_typeunsafe_runme {
       i.setMemberInstance(Instances.memberinstance3);
       if (i.getMemberInstance() != Instances.memberinstance3) throw new RuntimeException("MemberInstance 1 failed");
     }
+    // ignore enum item tests start
+    {
+      if (enum_thorough_typeunsafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_zero) != 0) throw new RuntimeException("ignoreATest 0 failed");
+      if (enum_thorough_typeunsafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_three) != 3) throw new RuntimeException("ignoreATest 3 failed");
+      if (enum_thorough_typeunsafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_ten) != 10) throw new RuntimeException("ignoreATest 10 failed");
+      if (enum_thorough_typeunsafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_eleven) != 11) throw new RuntimeException("ignoreATest 11 failed");
+      if (enum_thorough_typeunsafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_thirteen) != 13) throw new RuntimeException("ignoreATest 13 failed");
+      if (enum_thorough_typeunsafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_fourteen) != 14) throw new RuntimeException("ignoreATest 14 failed");
+      if (enum_thorough_typeunsafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_twenty) != 20) throw new RuntimeException("ignoreATest 20 failed");
+      if (enum_thorough_typeunsafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_thirty) != 30) throw new RuntimeException("ignoreATest 30 failed");
+      if (enum_thorough_typeunsafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_thirty_two) != 32) throw new RuntimeException("ignoreATest 32 failed");
+      if (enum_thorough_typeunsafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_thirty_three) != 33) throw new RuntimeException("ignoreATest 33 failed");
+    }
+    {
+      if (enum_thorough_typeunsafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_eleven) != 11) throw new RuntimeException("ignoreBTest 11 failed");
+      if (enum_thorough_typeunsafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_twelve) != 12) throw new RuntimeException("ignoreBTest 12 failed");
+      if (enum_thorough_typeunsafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_thirty_one) != 31) throw new RuntimeException("ignoreBTest 31 failed");
+      if (enum_thorough_typeunsafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_thirty_two) != 32) throw new RuntimeException("ignoreBTest 32 failed");
+      if (enum_thorough_typeunsafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_forty_one) != 41) throw new RuntimeException("ignoreBTest 41 failed");
+      if (enum_thorough_typeunsafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_forty_two) != 42) throw new RuntimeException("ignoreBTest 42 failed");
+    }
+    {
+      if (enum_thorough_typeunsafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_ten) != 10) throw new RuntimeException("ignoreCTest 10 failed");
+      if (enum_thorough_typeunsafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_twelve) != 12) throw new RuntimeException("ignoreCTest 12 failed");
+      if (enum_thorough_typeunsafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_thirty) != 30) throw new RuntimeException("ignoreCTest 30 failed");
+      if (enum_thorough_typeunsafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_thirty_two) != 32) throw new RuntimeException("ignoreCTest 32 failed");
+      if (enum_thorough_typeunsafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_forty) != 40) throw new RuntimeException("ignoreCTest 40 failed");
+      if (enum_thorough_typeunsafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_forty_two) != 42) throw new RuntimeException("ignoreCTest 42 failed");
+    }
+    {
+      if (enum_thorough_typeunsafe.ignoreDTest(IgnoreTest.IgnoreD.ignoreD_twenty_one) != 21) throw new RuntimeException("ignoreDTest 21 failed");
+      if (enum_thorough_typeunsafe.ignoreDTest(IgnoreTest.IgnoreD.ignoreD_twenty_two) != 22) throw new RuntimeException("ignoreDTest 22 failed");
+    }
+    {
+      if (enum_thorough_typeunsafe.ignoreETest(IgnoreTest.IgnoreE.ignoreE_zero) != 0) throw new RuntimeException("ignoreETest 0 failed");
+      if (enum_thorough_typeunsafe.ignoreETest(IgnoreTest.IgnoreE.ignoreE_twenty_one) != 21) throw new RuntimeException("ignoreETest 21 failed");
+      if (enum_thorough_typeunsafe.ignoreETest(IgnoreTest.IgnoreE.ignoreE_twenty_two) != 22) throw new RuntimeException("ignoreETest 22 failed");
+    }
+    // ignore enum item tests end
     {
       if (enum_thorough_typeunsafe.repeatTest(repeat.one) != 1) throw new RuntimeException("repeatTest 1 failed");
       if (enum_thorough_typeunsafe.repeatTest(repeat.initial) != 1) throw new RuntimeException("repeatTest 2 failed");
       if (enum_thorough_typeunsafe.repeatTest(repeat.two) != 2) throw new RuntimeException("repeatTest 3 failed");
       if (enum_thorough_typeunsafe.repeatTest(repeat.three) != 3) throw new RuntimeException("repeatTest 4 failed");
-      if (enum_thorough_typeunsafe.repeatTest(repeat.last) != 3) throw new RuntimeException("repeatTest 5 failed");
+      if (enum_thorough_typeunsafe.repeatTest(repeat.llast) != 3) throw new RuntimeException("repeatTest 5 failed");
       if (enum_thorough_typeunsafe.repeatTest(repeat.end) != 3) throw new RuntimeException("repeatTest 6 failed");
     }
   }

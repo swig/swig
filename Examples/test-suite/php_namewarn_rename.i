@@ -1,20 +1,23 @@
 %module php_namewarn_rename
 
+#ifdef SWIGPHP
+%warnfilter(SWIGWARN_PARSE_KEYWORD) Empty();
+// FIXME: this doesn't work for me:
+%warnfilter(SWIGWARN_PARSE_KEYWORD) stdClass;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) Hello::empty();
+#endif
 
 %inline %{
 
-  void Empty() {};
-  
+  void Empty() {}
 
-  class stdClass 
+  class stdClass
   {
   };
 
-  struct Hello 
+  struct Hello
   {
-    void empty() {}    
+    void empty() {}
   };
-  
-  
 
 %}

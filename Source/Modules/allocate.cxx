@@ -527,8 +527,7 @@ class Allocate:public Dispatcher {
     }
     ParmList *throws = Getattr(n, "throws");
     if (throws) {
-      /* if there is no an explicit catchlist, 
-         we catch everything in the throwlist */
+      /* if there is no explicit catchlist, we catch everything in the throws list */
       if (!catchlist) {
 	Setattr(n, "catchlist", throws);
       }

@@ -153,12 +153,13 @@ public class li_std_vector_runme {
         }
       }
       try {
-        new DoubleVector(null);
+        new DoubleVector((System.Collections.ICollection)null);
         throw new Exception("ICollection constructor null test failed");
       } catch (ArgumentNullException) {
       }
       {
-        myDoubleVector = new DoubleVector() { 123.4, 567.8, 901.2 };
+        // Collection initializer test, requires C# 3.0
+//        myDoubleVector = new DoubleVector() { 123.4, 567.8, 901.2 };
       }
 
       // IndexOf() test
@@ -180,6 +181,13 @@ public class li_std_vector_runme {
         throw new Exception("LastIndexOf non-existent test failed");
       if (dv.LastIndexOf(33.3) != 6)
         throw new Exception("LastIndexOf position test failed");
+
+      // Copy constructor test
+      DoubleVector dvCopy = new DoubleVector(dv);
+      for (int i=0; i<doubleArray.Length; i++) {
+        if (doubleArray[i] != dvCopy[i])
+          throw new Exception("Copy constructor failed, index:" + i);
+      }
     }
     {
       // Repeat() test
@@ -535,8 +543,8 @@ public class li_std_vector_runme {
 
     // Dispose()
     {
-      using (StructVector vs = new StructVector() { new Struct(0.0), new Struct(11.1) } )
-      using (DoubleVector vd = new DoubleVector() { 0.0, 11.1 } ) {
+      using (StructVector vs = new StructVector( new Struct[] { new Struct(0.0), new Struct(11.1) } ) )
+      using (DoubleVector vd = new DoubleVector( new double[] { 0.0, 11.1 } ) ) {
       }
     }
 

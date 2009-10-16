@@ -1,5 +1,4 @@
 <?php
-// Sample test file
 
 require "tests.php";
 require "li_std_string.php";

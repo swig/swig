@@ -20,7 +20,7 @@
   Casting Operations:
   -------------------
   
-  Swig provides the following casting macros, which implement the
+  SWIG provides the following casting macros, which implement the
   corresponding C++ casting operations:
 
     %const_cast(a, Type)         const_cast<Type >(a)			       
@@ -173,7 +173,7 @@ nocppval
 #endif /* __cplusplus */
 
 /* -----------------------------------------------------------------------------
- * Swig names and mangling
+ * SWIG names and mangling
  * ----------------------------------------------------------------------------- */
 
 #define %mangle(Type...)                  #@Type
@@ -210,7 +210,7 @@ nocppval
 %define %formacro_2(macro,...)%_formacro_2(macro, __VA_ARGS__, __fordone__)%enddef
 
 /* -----------------------------------------------------------------------------
- * Swig flags
+ * SWIG flags
  * ----------------------------------------------------------------------------- */
 
 /* 

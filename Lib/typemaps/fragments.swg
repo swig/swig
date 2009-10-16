@@ -444,15 +444,15 @@ SWIG_AsVal_dec(Type)(SWIG_Object obj, Type *val)
 
 %define %ensure_fragment(Fragment)
 %fragment(`Fragment`,"header") {
-%#error "Swig language implementation must provide the Fragment fragment"
+%#error "SWIG language implementation must provide the Fragment fragment"
 }
 %enddef
 
 %define %ensure_type_fragments(Type)
 %fragment(SWIG_From_frag(Type),"header") {
-%#error "Swig language implementation must provide a SWIG_From_frag(Type) fragment"
+%#error "SWIG language implementation must provide a SWIG_From_frag(Type) fragment"
 }
 %fragment(SWIG_AsVal_frag(Type),"header") {
-%#error "Swig language implementation must provide a SWIG_AsVal_frag(Type) fragment"
+%#error "SWIG language implementation must provide a SWIG_AsVal_frag(Type) fragment"
 }
 %enddef

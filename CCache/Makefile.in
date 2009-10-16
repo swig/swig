@@ -37,7 +37,6 @@ $(PACKAGE_NAME).1: ccache.yo
 	-yodl2man -o $(PACKAGE_NAME).1 ccache.yo
 
 web/ccache-man.html: ccache.yo
-	mkdir -p man
 	yodl2html -o web/ccache-man.html ccache.yo
 
 install: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
@@ -53,7 +52,7 @@ uninstall: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 clean:
 	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
 
-clean-docs:
+distclean-docs:
 	rm -f $(PACKAGE_NAME).1 web/ccache-man.html
 
 check : test
@@ -63,8 +62,8 @@ test: test.sh
 
 check: test
 
-distclean: clean
-	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status configure config.h
+distclean: clean distclean-docs
+	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status configure config.h.in ccache_swig_config.h
 
 # FIXME: To fix this, test.sh needs to be able to take ccache from the
 # installed prefix, not from the source dir.
