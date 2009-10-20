@@ -66,11 +66,9 @@
 <li><a href="#Extending_prerequisites">Prerequisites for adding a new language module to the SWIG distribution</a>
 <li><a href="#Extending_coding_style_guidelines">Coding style guidelines</a>
 </ul>
-<li><a href="#Extending_nn44">Typemaps</a>
-<ul>
-<li><a href="#Extending_nn45">Proxy classes</a>
-</ul>
+<li><a href="#Extending_debugging_options">Debugging Options</a>
 <li><a href="#Extending_nn46">Guide to parse tree nodes</a>
+<li><a href="#Extending_further_info">Further Development Information</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -3590,11 +3588,26 @@ The generated C/C++ code should also follow this style as close as possible. How
 should be avoided as unlike the SWIG developers, users will never have consistent tab settings.
 </p>
 
-<H2><a name="Extending_nn44"></a>35.11 Typemaps</H2>
+<H2><a name="Extending_debugging_options"></a>35.11 Debugging Options</H2>
 
 
-<H3><a name="Extending_nn45"></a>35.11.1 Proxy classes</H3>
+<p>
+There are various command line options which can aid debugging a SWIG interface as well as debugging the development of a language module. These are as follows:
+</p>
 
+<div class="shell"><pre>
+-debug-classes    - Display information about the classes found in the interface
+-debug-module &lt;n&gt; - Display module parse tree at stages 1-4, &lt;n&gt; is a csv list of stages
+-debug-tags       - Display information about the tags found in the interface
+-debug-template   - Display information for debugging templates
+-debug-top &lt;n&gt;    - Display entire parse tree at stages 1-4, &lt;n&gt; is a csv list of stages
+-debug-typedef    - Display information about the types and typedefs in the interface
+-debug-typemap    - Display information for debugging typemaps
+</pre></div>
+
+<p>
+The complete list of command line options for SWIG are available by running <tt>swig -help</tt>.
+</p>
 
 <H2><a name="Extending_nn46"></a>35.12 Guide to parse tree nodes</H2>
 
@@ -4004,6 +4017,13 @@ extern "X" { ... } declaration.
 </pre>
 </div>
 
+<H2><a name="Extending_further_info"></a>35.13 Further Development Information</H2>
+
+
+<p>
+There is further documentation available on the internals of SWIG, API documentation and debugging information.
+This is shipped with SWIG in the <tt>Doc/Devel</tt> directory.
+</P>
 
 
 
