@@ -714,7 +714,6 @@ public:
     String *func_name = NULL;
     String *tm;
     Parm *p;
-    Parm *last_parm = 0;
     int num_arguments = 0;
     int num_required = 0;
     int i;
@@ -1606,8 +1605,11 @@ public:
 	  // This handles function pointers using the %constant directive
 	  Printf(constants_code, "[[[%s alloc] initWithCptr: &%s()] autorelease];\n", return_type, Swig_name_get(symname));
 	}
-      } else
-	Printf(constants_code, "%s();\n", Swig_name_get(symname));
+      } else {
+		  String *ocppfunctname = NewStringf("ObjCPP_%s", symname);
+	Printf(constants_code, "%s();\n", Swig_name_get(ocppfunctname));
+		  Delete(ocppfunctname);
+	  }
 
       // Each constant and enum value is wrapped with a separate function call
       SetFlag(n, "feature:immutable");

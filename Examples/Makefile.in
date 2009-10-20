@@ -1034,7 +1034,7 @@ objcpp_compile: $(SRCS)
 # -----------------------------------------------------------------
 
 objc_clean:
-	rm -f *Wrapper* *Proxy* *~ .~* *.o `find . -name \*.m | grep -v runme.m`
+	rm -f *Wrapper* *Proxy* *~ .~* *.o a.out `find . -name \*.m | grep -v runme.m`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@OBJCSO@
 
