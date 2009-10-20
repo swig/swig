@@ -1,6 +1,27 @@
 Version 1.3.41 (in progress)
 ============================
 
+2009-10-20: wsfulton
+	    Fixed previously fairly poor template partial specialization and explicit 
+            specialization support. Numerous bugs in this area have been fixed including:
+
+            - Template argument deduction implemented for template type arguments, eg this now
+              works:
+                template<typename T> class X      {};
+                template<typename T> class X<T *> {};
+                %template(X1) X<const int *>; // Chooses T * specialization
+
+              and more complex cases with multiple parameters and a mix of template argument
+              deduction and explicitly specialised parameters, eg:
+                template <typename T1, typename T2> struct TwoParm               { void a() {} };
+                template <typename T1>              struct TwoParm<T1 *, int *>  { void e() {} };
+                %template(E) TwoParm<int **, int *>;
+
+            Note that the primary template must now be in scope, like in C++, when
+            an explicit or partial specialization is instantiated with %template.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2009-09-14: wsfulton
 	    [C#] Add %csattributes for adding C# attributes to enum values, see docs for example.
 

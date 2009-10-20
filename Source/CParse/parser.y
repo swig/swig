@@ -3759,6 +3759,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			    Parm *p = $3;
 			    String *fname = NewString(Getattr($$,"name"));
 			    String *ffname = 0;
+			    ParmList *partialparms = 0;
 
 			    char   tmp[32];
 			    int    i, ilen;
@@ -3780,12 +3781,21 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			    /* Patch argument names with typedef */
 			    {
 			      Iterator tt;
+			      Parm *parm_current = 0;
 			      List *tparms = SwigType_parmlist(fname);
 			      ffname = SwigType_templateprefix(fname);
 			      Append(ffname,"<(");
 			      for (tt = First(tparms); tt.item; ) {
 				SwigType *rtt = Swig_symbol_typedef_reduce(tt.item,0);
 				SwigType *ttr = Swig_symbol_type_qualify(rtt,0);
+
+				Parm *newp = NewParm(ttr, 0);
+				if (partialparms)
+				  set_nextSibling(partialparms, newp);
+				else
+				  partialparms = newp;
+				parm_current = newp;
+
 				Append(ffname,ttr);
 				tt = Next(tt);
 				if (tt.item) Putc(',',ffname);
@@ -3796,6 +3806,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			      Append(ffname,")>");
 			    }
 			    {
+			      Node *new_partial = NewHash();
 			      String *partials = Getattr(tempn,"partials");
 			      if (!partials) {
 				partials = NewList();
@@ -3803,7 +3814,9 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 				Delete(partials);
 			      }
 			      /*			      Printf(stdout,"partial: fname = '%s', '%s'\n", fname, Swig_symbol_typedef_reduce(fname,0)); */
-			      Append(partials,ffname);
+			      Setattr(new_partial, "partialparms", partialparms);
+			      Setattr(new_partial, "templcsymname", ffname);
+			      Append(partials, new_partial);
 			    }
 			    Setattr($$,"partialargs",ffname);
 			    Swig_symbol_cadd(ffname,$$);
@@ -3812,8 +3825,8 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 			  Delete(tlist);
 			  Delete(targs);
 			} else {
-			  /* Need to resolve exact specialization name */
-			  /* add default args from generic template */
+			  /* An explicit template specialization */
+			  /* add default args from primary (unspecialized) template */
 			  String *ty = Swig_symbol_template_deftype(tname,0);
 			  String *fname = Swig_symbol_type_qualify(ty,0);
 			  Swig_symbol_cadd(fname,$$);

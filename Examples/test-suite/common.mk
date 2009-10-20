@@ -339,6 +339,8 @@ CPP_TEST_CASES += \
 	template_ns_inherit \
 	template_ns_scope \
 	template_partial_arg \
+	template_partial_specialization \
+	template_partial_specialization_typedef \
 	template_qualifier \
 	template_qualifier \
 	template_ref_type \

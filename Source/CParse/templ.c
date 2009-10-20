@@ -422,6 +422,70 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   return 0;
 }
 
+typedef enum { ExactNoMatch = -2, PartiallySpecializedNoMatch = -1, PartiallySpecializedMatch = 1, ExactMatch = 2 } EMatch;
+
+/* -----------------------------------------------------------------------------
+ * does_parm_match()
+ *
+ * Template argument deduction - check if a template type matches a partially specialized 
+ * template parameter type. Reduce 'partial_parm_type' to see if it matches 'type'.
+ *
+ * type - template parameter type to match against
+ * partial_parm_type - partially specialized template type - a possible match
+ * partial_parm_type_base - base type of partial_parm_type
+ * tscope - template scope
+ * specialization_priority - (output) contains a value indicating how good the match is 
+ *   (higher is better) only set if return is set to PartiallySpecializedMatch or ExactMatch.
+ * ----------------------------------------------------------------------------- */
+
+static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, const char *partial_parm_type_base, Symtab *tscope, int *specialization_priority) {
+  static const int EXACT_MATCH_PRIORITY = 99999; /* a number bigger than the length of any conceivable type */
+  int matches;
+  int substitutions;
+  EMatch match;
+  SwigType *ty = Swig_symbol_typedef_reduce(type, tscope);
+  String *base = SwigType_base(ty);
+  SwigType *t = Copy(partial_parm_type);
+  substitutions = Replaceid(t, partial_parm_type_base, base); /* eg: Replaceid("p.$1", "$1", "int") returns t="p.int" */
+  matches = Equal(ty, t);
+  *specialization_priority = -1;
+  if (substitutions == 1) {
+    /* we have a non-explicit specialized parameter (in partial_parm_type) because a substitution for $1, $2... etc has taken place */
+    SwigType *tt = Copy(partial_parm_type);
+    int len;
+    /*
+       check for match to partial specialization type, for example, all of the following could match the type in the %template:
+       template <typename T> struct XX {};
+       template <typename T> struct XX<T &> {};         // r.$1
+       template <typename T> struct XX<T const &> {};   // r.q(const).$1
+       template <typename T> struct XX<T * const &> {}; // r.q(const).p.$1
+       %template(XXX) XX<int *const&>;                  // r.q(const).p.int
+
+       where type="r.q(const).p.int" will match either of tt="r.$1", tt="r.q(const)" tt="r.q(const).p"
+    */
+    Replaceid(tt, partial_parm_type_base, ""); /* remove the $1, $2 etc, eg tt="p.$1" => "p." */
+    len = Len(tt);
+    if (Strncmp(tt, ty, len) == 0) {
+      match = PartiallySpecializedMatch;
+      *specialization_priority = len;
+    } else {
+      match = PartiallySpecializedNoMatch;
+    }
+    Delete(tt);
+  } else {
+    match = matches ? ExactMatch : ExactNoMatch;
+    if (matches)
+      *specialization_priority = EXACT_MATCH_PRIORITY; /* exact matches always take precedence */
+  }
+  /*
+  Printf(stdout, "      does_parm_match %2d %5d [%s] [%s]\n", match, *specialization_priority, type, partial_parm_type);
+  */
+  Delete(t);
+  Delete(base);
+  Delete(ty);
+  return match;
+}
+
 /* -----------------------------------------------------------------------------
  * template_locate()
  *
@@ -429,175 +493,321 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
  * ----------------------------------------------------------------------------- */
 
 static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
-  Node *n;
-  String *tname, *rname = 0;
+  Node *n = 0;
+  String *tname = 0, *rname = 0;
   Node *templ;
-  List *mpartials = 0;
+  Symtab *primary_scope = 0;
+  List *possiblepartials = 0;
   Parm *p;
-  Parm *parms;
+  Parm *parms = 0;
   Parm *targs;
   ParmList *expandedparms;
+  int *priorities_matrix = 0;
+  int max_possible_partials = 0;
+  int posslen = 0;
 
-  tname = Copy(name);
-  parms = CopyParmList(tparms);
-
-  /* Search for generic template */
+  /* Search for primary (unspecialized) template */
   templ = Swig_symbol_clookup(name, 0);
 
-  /* Add default values from generic template */
-  if (templ) {
-    Symtab *tsdecl = Getattr(templ, "sym:symtab");
+  if (template_debug) {
+    tname = Copy(name);
+    SwigType_add_template(tname, tparms);
+    Printf(stdout, "\n%s:%d: template_debug: Searching for match to: '%s'\n", cparse_file, cparse_line, tname);
+    Delete(tname);
+    tname = 0;
+  }
 
+  if (templ) {
+    tname = Copy(name);
+    parms = CopyParmList(tparms);
+
+    /* All template specializations must be in the primary template's scope, store the symbol table for this scope for specialization lookups */
+    primary_scope = Getattr(templ, "sym:symtab");
+
+    /* Add default values from primary template */
     targs = Getattr(templ, "templateparms");
-    expandedparms = Swig_symbol_template_defargs(parms, targs, tscope, tsdecl);
-  } else {
-    expandedparms = parms;
-  }
+    expandedparms = Swig_symbol_template_defargs(parms, targs, tscope, primary_scope);
 
-
-  /* reduce the typedef */
-  p = expandedparms;
-  while (p) {
-    SwigType *ty = Getattr(p, "type");
-    if (ty) {
-      SwigType *nt = Swig_symbol_type_qualify(ty, tscope);
-      Setattr(p, "type", nt);
-      Delete(nt);
-    }
-    p = nextSibling(p);
-  }
-
-  SwigType_add_template(tname, expandedparms);
-
-  if (template_debug) {
-    Printf(stdout, "\n%s:%d: template_debug: Searching for %s\n", cparse_file, cparse_line, tname);
-  }
-
-  /* Search for an exact specialization.
-     Example: template<> class name<int> { ... } */
-  {
-    if (template_debug) {
-      Printf(stdout, "    searching: '%s' (exact specialization)\n", tname);
-    }
-    n = Swig_symbol_clookup_local(tname, 0);
-    if (!n) {
-      SwigType *rname = Swig_symbol_typedef_reduce(tname, tscope);
-      if (!Equal(rname, tname)) {
-	if (template_debug) {
-	  Printf(stdout, "    searching: '%s' (exact specialization)\n", rname);
-	}
-	n = Swig_symbol_clookup_local(rname, 0);
+    /* reduce the typedef */
+    p = expandedparms;
+    while (p) {
+      SwigType *ty = Getattr(p, "type");
+      if (ty) {
+	SwigType *nt = Swig_symbol_type_qualify(ty, tscope);
+	Setattr(p, "type", nt);
+	Delete(nt);
       }
-      Delete(rname);
+      p = nextSibling(p);
     }
-    if (n) {
-      Node *tn;
-      String *nodeType = nodeType(n);
-      if (Equal(nodeType, "template"))
-	goto success;
-      tn = Getattr(n, "template");
-      if (tn) {
-	n = tn;
-	goto success;		/* Previously wrapped by a template return that */
+    SwigType_add_template(tname, expandedparms);
+
+    /* Search for an explicit (exact) specialization. Example: template<> class name<int> { ... } */
+    {
+      if (template_debug) {
+	Printf(stdout, "    searching for : '%s' (explicit specialization)\n", tname);
       }
-      Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, nodeType(n));
-      Delete(tname);
-      Delete(parms);
-      return 0;			/* Found a match, but it's not a template of any kind. */
-    }
-  }
-
-  /* Search for partial specialization. 
-     Example: template<typename T> class name<T *> { ... } */
-
-  /* Generate reduced template name (stripped of extraneous pointers, etc.) */
-
-  rname = NewStringf("%s<(", name);
-  p = parms;
-  while (p) {
-    String *t;
-    t = Getattr(p, "type");
-    if (!t)
-      t = Getattr(p, "value");
-    if (t) {
-      String *ty = Swig_symbol_typedef_reduce(t, tscope);
-      String *tb = SwigType_base(ty);
-      String *td = SwigType_default(ty);
-      Replaceid(td, "enum SWIGTYPE", tb);
-      Replaceid(td, "SWIGTYPE", tb);
-      Append(rname, td);
-      Delete(tb);
-      Delete(ty);
-      Delete(td);
-    }
-    p = nextSibling(p);
-    if (p) {
-      Append(rname, ",");
-    }
-  }
-  Append(rname, ")>");
-
-  mpartials = NewList();
-  if (templ) {
-    /* First, we search using an exact type prototype */
-    Parm *p;
-    char tmp[32];
-    int i;
-    List *partials;
-    String *ss;
-    Iterator pi;
-
-    partials = Getattr(templ, "partials");
-    if (partials) {
-      for (pi = First(partials); pi.item; pi = Next(pi)) {
-	ss = Copy(pi.item);
-	p = parms;
-	i = 1;
-	while (p) {
-	  String *t, *tn;
-	  sprintf(tmp, "$%d", i);
-	  t = Getattr(p, "type");
-	  if (!t)
-	    t = Getattr(p, "value");
-	  if (t) {
-	    String *ty = Swig_symbol_typedef_reduce(t, tscope);
-	    tn = SwigType_base(ty);
-	    Replaceid(ss, tmp, tn);
-	    Delete(tn);
-	    Delete(ty);
+      n = Swig_symbol_clookup_local(tname, primary_scope);
+      if (!n) {
+	SwigType *rname = Swig_symbol_typedef_reduce(tname, tscope);
+	if (!Equal(rname, tname)) {
+	  if (template_debug) {
+	    Printf(stdout, "    searching for : '%s' (explicit specialization with typedef reduction)\n", rname);
 	  }
-	  i++;
-	  p = nextSibling(p);
+	  n = Swig_symbol_clookup_local(rname, primary_scope);
 	}
-	if (template_debug) {
-	  Printf(stdout, "    searching: '%s' (partial specialization - %s)\n", ss, pi.item);
-	}
-	if ((Equal(ss, tname)) || (Equal(ss, rname))) {
-	  Append(mpartials, pi.item);
-	}
-	Delete(ss);
+	Delete(rname);
       }
-    }
-  }
-
-  if (template_debug) {
-    Printf(stdout, "    Matched partials: %s\n", mpartials);
-  }
-
-  if (Len(mpartials)) {
-    String *s = Getitem(mpartials, 0);
-    n = Swig_symbol_clookup_local(s, 0);
-    if (Len(mpartials) > 1) {
       if (n) {
-	Swig_warning(WARN_PARSE_TEMPLATE_AMBIG, cparse_file, cparse_line, "Instantiation of template '%s' is ambiguous,\n", SwigType_namestr(tname));
-	Swig_warning(WARN_PARSE_TEMPLATE_AMBIG, Getfile(n), Getline(n), "  instantiation '%s' is used.\n", SwigType_namestr(Getattr(n, "name")));
+	Node *tn;
+	String *nodeType = nodeType(n);
+	if (Equal(nodeType, "template")) {
+	  if (template_debug) {
+	    Printf(stdout, "    explicit specialization found: '%s'\n", Getattr(n, "name"));
+	  }
+	  goto success;
+	}
+	tn = Getattr(n, "template");
+	if (tn) {
+	  if (template_debug) {
+	    Printf(stdout, "    previous instantiation found: '%s'\n", Getattr(n, "name"));
+	  }
+	  n = tn;
+	  goto success;	  /* Previously wrapped by a template instantiation */
+	}
+	Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, nodeType(n));
+	Delete(tname);
+	Delete(parms);
+	return 0;	  /* Found a match, but it's not a template of any kind. */
       }
     }
+
+    /* Search for partial specializations.
+     * Example: template<typename T> class name<T *> { ... } 
+
+     * There are 3 types of template arguments:
+     * (1) Template type arguments
+     * (2) Template non type arguments
+     * (3) Template template arguments
+     * only (1) is really supported for partial specializations
+     */
+
+    /* Generate reduced template name (stripped of extraneous pointers, etc.) */
+    rname = NewStringf("%s<(", name);
+    p = parms;
+    while (p) {
+      String *t;
+      t = Getattr(p, "type");
+      if (!t)
+	t = Getattr(p, "value");
+      if (t) {
+	String *tyr = Swig_symbol_typedef_reduce(t, tscope);
+	String *ty = SwigType_strip_qualifiers(tyr);
+	String *tb = SwigType_base(ty);
+	String *td = SwigType_default(ty);
+	Replaceid(td, "enum SWIGTYPE", tb);
+	Replaceid(td, "SWIGTYPE", tb);
+	Append(rname, td);
+	Delete(tb);
+	Delete(td);
+	Delete(ty);
+	Delete(tyr);
+      }
+      p = nextSibling(p);
+      if (p) {
+	Append(rname, ",");
+      }
+    }
+    Append(rname, ")>");
+
+    /* Rank each template parameter against the desired template parameters then build a matrix of best matches */
+    possiblepartials = NewList();
+    {
+      char tmp[32];
+      List *partials;
+
+      partials = Getattr(templ, "partials"); /* note that these partial specializations do not include explicit specializations */
+      if (partials) {
+	Iterator pi;
+	int parms_len = ParmList_len(parms);
+	int *priorities_row;
+	max_possible_partials = Len(partials);
+	priorities_matrix = (int *)malloc(sizeof(int) * max_possible_partials * parms_len); /* slightly wasteful allocation for max possible matches */
+	priorities_row = priorities_matrix;
+	for (pi = First(partials); pi.item; pi = Next(pi)) {
+	  Parm *p = parms;
+	  int all_parameters_match = 1;
+	  int i = 1;
+	  Parm *partialparms = Getattr(pi.item, "partialparms");
+	  Parm *pp = partialparms;
+	  String *templcsymname = Getattr(pi.item, "templcsymname");
+	  if (template_debug) {
+	    Printf(stdout, "    checking match: '%s' (partial specialization)\n", templcsymname);
+	  }
+	  if (ParmList_len(partialparms) == parms_len) {
+	    while (p && pp) {
+	      SwigType *t;
+	      sprintf(tmp, "$%d", i);
+	      t = Getattr(p, "type");
+	      if (!t)
+		t = Getattr(p, "value");
+	      if (t) {
+		EMatch match = does_parm_match(t, Getattr(pp, "type"), tmp, tscope, priorities_row + i - 1);
+		if (match < (int)PartiallySpecializedMatch) {
+		  all_parameters_match = 0;
+		  break;
+		}
+	      }
+	      i++;
+	      p = nextSibling(p);
+	      pp = nextSibling(pp);
+	    }
+	    if (all_parameters_match) {
+	      Append(possiblepartials, pi.item);
+	      priorities_row += parms_len;
+	    }
+	  }
+	}
+      }
+    }
+
+    posslen = Len(possiblepartials);
+    if (template_debug) {
+      int i;
+      if (posslen == 0)
+	Printf(stdout, "    matched partials: NONE\n");
+      else if (posslen == 1)
+	Printf(stdout, "    chosen partial: '%s'\n", Getattr(Getitem(possiblepartials, 0), "templcsymname"));
+      else {
+	Printf(stdout, "    possibly matched partials:\n");
+	for (i = 0; i < posslen; i++) {
+	  Printf(stdout, "      '%s'\n", Getattr(Getitem(possiblepartials, i), "templcsymname"));
+	}
+      }
+    }
+
+    if (posslen > 1) {
+      /* Now go through all the possibly matched partial specialization templates and look for a non-ambiguous match.
+       * Exact matches rank the highest and deduced parameters are ranked by how much they are reduced, eg looking for
+       * a match to const int *, the following rank (highest to lowest):
+       *   const int * (exact match)
+       *   const T *
+       *   T *
+       *   T
+       *
+       *   An ambiguous example when attempting to match as either specialization could match: %template() X<int *, double *>;
+       *   template<typename T1, typename T2> X class {};  // primary template
+       *   template<typename T1> X<T1, double *> class {}; // specialization (1)
+       *   template<typename T2> X<int *, T2> class {};    // specialization (2)
+       */
+      if (template_debug) {
+	int row, col;
+	int parms_len = ParmList_len(parms);
+	Printf(stdout, "      parameter priorities matrix (%d parms):\n", parms_len);
+	for (row = 0; row < posslen; row++) {
+	  int *priorities_row = priorities_matrix + row*parms_len;
+	  Printf(stdout, "        ");
+	  for (col = 0; col < parms_len; col++) {
+	    Printf(stdout, "%5d ", priorities_row[col]);
+	  }
+	  Printf(stdout, "\n");
+	}
+      }
+      {
+	int row, col;
+	int parms_len = ParmList_len(parms);
+	/* Printf(stdout, "      parameter priorities inverse matrix (%d parms):\n", parms_len); */
+	for (col = 0; col < parms_len; col++) {
+	  int *priorities_col = priorities_matrix + col;
+	  int maxpriority = -1;
+	  /* 
+	     Printf(stdout, "max_possible_partials: %d col:%d\n", max_possible_partials, col);
+	     Printf(stdout, "        ");
+	     */
+	  /* determine the highest rank for this nth parameter */
+	  for (row = 0; row < posslen; row++) {
+	    int *element_ptr = priorities_col + row*parms_len;
+	    int priority = *element_ptr;
+	    if (priority > maxpriority)
+	      maxpriority = priority;
+	    /* Printf(stdout, "%5d ", priority); */
+	  }
+	  /* Printf(stdout, "\n"); */
+	  /* flag all the parameters which equal the highest rank */
+	  for (row = 0; row < posslen; row++) {
+	    int *element_ptr = priorities_col + row*parms_len;
+	    int priority = *element_ptr;
+	    *element_ptr = (priority >= maxpriority) ? 1 : 0;
+	  }
+	}
+      }
+      {
+	int row, col;
+	int parms_len = ParmList_len(parms);
+	Iterator pi = First(possiblepartials);
+	Node *chosenpartials = NewList();
+	if (template_debug)
+	  Printf(stdout, "      priority flags matrix:\n");
+	for (row = 0; row < posslen; row++) {
+	  int *priorities_row = priorities_matrix + row*parms_len;
+	  int highest_count = 0; /* count of highest priority parameters */
+	  for (col = 0; col < parms_len; col++) {
+	    highest_count += priorities_row[col];
+	  }
+	  if (template_debug) {
+	    Printf(stdout, "        ");
+	    for (col = 0; col < parms_len; col++) {
+	      Printf(stdout, "%5d ", priorities_row[col]);
+	    }
+	    Printf(stdout, "\n");
+	  }
+	  if (highest_count == parms_len) {
+	    Append(chosenpartials, pi.item);
+	  }
+	  pi = Next(pi);
+	}
+	if (Len(chosenpartials) > 0) {
+	  /* one or more best match found */
+	  Delete(possiblepartials);
+	  possiblepartials = chosenpartials;
+	  posslen = Len(possiblepartials);
+	} else {
+	  /* no best match found */
+	  Delete(chosenpartials);
+	}
+      }
+    }
+
+    if (posslen > 0) {
+      String *s = Getattr(Getitem(possiblepartials, 0), "templcsymname");
+      n = Swig_symbol_clookup_local(s, primary_scope);
+      if (posslen > 1) {
+	int i;
+	if (n) {
+	  Swig_warning(WARN_PARSE_TEMPLATE_AMBIG, cparse_file, cparse_line, "Instantiation of template '%s' is ambiguous,\n", SwigType_namestr(tname));
+	  Swig_warning(WARN_PARSE_TEMPLATE_AMBIG, Getfile(n), Getline(n), "  instantiation '%s' used,\n", SwigType_namestr(Getattr(n, "name")));
+	}
+	for (i = 1; i < posslen; i++) {
+	  String *templcsymname = Getattr(Getitem(possiblepartials, i), "templcsymname");
+	  Node *ignored_node = Swig_symbol_clookup_local(templcsymname, primary_scope);
+	  Swig_warning(WARN_PARSE_TEMPLATE_AMBIG, Getfile(ignored_node), Getline(ignored_node), "  instantiation '%s' ignored.\n", SwigType_namestr(Getattr(ignored_node, "name")));
+	}
+      }
+    }
+
+    if (!n) {
+      if (template_debug) {
+	Printf(stdout, "    chosen primary template: '%s'\n", Getattr(templ, "name"));
+      }
+      n = templ;
+    }
+  } else {
+    if (template_debug) {
+      Printf(stdout, "    primary template not found\n");
+    }
+    /* Give up if primary (unspecialized) template not found as specializations will only exist if there is a primary template */
+    n = 0;
   }
 
-  if (!n) {
-    n = templ;
-  }
   if (!n) {
     Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", name);
   } else if (n) {
@@ -610,12 +820,16 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
 success:
   Delete(tname);
   Delete(rname);
-  Delete(mpartials);
+  Delete(possiblepartials);
   if ((template_debug) && (n)) {
+    /*
     Printf(stdout, "Node: %p\n", n);
     Swig_print_node(n);
+    */
+    Printf(stdout, "    chosen template:'%s'\n", Getattr(n, "name"));
   }
   Delete(parms);
+  free(priorities_matrix);
   return n;
 }
 
