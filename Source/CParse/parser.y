@@ -3791,7 +3791,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 
 				Parm *newp = NewParm(ttr, 0);
 				if (partialparms)
-				  set_nextSibling(partialparms, newp);
+				  set_nextSibling(parm_current, newp);
 				else
 				  partialparms = newp;
 				parm_current = newp;

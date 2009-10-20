@@ -91,6 +91,24 @@ namespace Two {
 %template(E1_) Two::TwoParm<const int *, int *>;
 %template(E2_) Two::TwoParm<int **, int *>;
 
+
+// Many template parameters
+%inline %{
+template <typename T1, typename T2, typename T3, typename T4, typename T5> struct FiveParm                               { void a() {} };
+template <typename T1>                                                     struct FiveParm<T1, int, int, double, short>  { void b() {} };
+%}
+
+%template(FiveParm1) FiveParm<bool, int, int, double, short>;
+
+%inline %{
+template <typename T, int N = 0, int M = 0> struct ThreeParm;
+template <typename T, int N, int M>         struct ThreeParm          { void a1() {} };
+template <typename T>                       struct ThreeParm<T, 0, 0> { void a2() {} };
+template <typename T, int N>                struct ThreeParm<T, N, N> { void a3() {} };
+%}
+
+%template(ThreeParmInt) ThreeParm<int, 0, 0>;
+
 #if 0
 // TODO fix:
 %inline %{
