@@ -2,6 +2,9 @@ Version 1.3.41 (in progress)
 ============================
 
 2009-10-20: wsfulton
+	    [Python] Fix std::vector<const T*>. This would previously compile, but not run correctly.
+
+2009-10-20: wsfulton
 	    Fixed previously fairly poor template partial specialization and explicit 
             specialization support. Numerous bugs in this area have been fixed including:
 

@@ -1,3 +1,4 @@
+// Bug 2359417
 %module li_std_vector_ptr
 
 %include "std_vector.i"
