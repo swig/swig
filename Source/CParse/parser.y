@@ -535,6 +535,8 @@ static void add_symbols_copy(Node *n) {
 
     add_oldname = Getattr(n,"sym:name");
     if ((add_oldname) || (Getattr(n,"sym:needs_symtab"))) {
+      int old_inclass = -1;
+      Node *old_current_class = 0;
       if (add_oldname) {
 	DohIncref(add_oldname);
 	/*  Disable this, it prevents %rename to work with templates */
@@ -564,7 +566,9 @@ static void add_symbols_copy(Node *n) {
 	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
       }
       if (strcmp(cnodeType,"class") == 0) {
+	old_inclass = inclass;
 	inclass = 1;
+	old_current_class = current_class;
 	current_class = n;
 	if (Strcmp(Getattr(n,"kind"),"class") == 0) {
 	  cplus_mode = CPLUS_PRIVATE;
@@ -591,8 +595,8 @@ static void add_symbols_copy(Node *n) {
 	add_oldname = 0;
       }
       if (strcmp(cnodeType,"class") == 0) {
-	inclass = 0;
-	current_class = 0;
+	inclass = old_inclass;
+	current_class = old_current_class;
       }
     } else {
       if (strcmp(cnodeType,"extend") == 0) {
@@ -2752,7 +2756,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           } else {
                             Setattr(templnode,"sym:typename","1");
                           }
-                          if ($3) {
+                          if ($3 && !inclass) {
 			    /*
 			       Comment this out for 1.3.28. We need to
 			       re-enable it later but first we need to
@@ -2770,8 +2774,11 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Swig_cparse_template_expand(templnode,nname,temparms,tscope);
                             Setattr(templnode,"sym:name",nname);
 			    Delete(nname);
-                            Setattr(templnode,"feature:onlychildren",
-                                    "typemap,typemapitem,typemapcopy,typedef,types,fragment");
+                            Setattr(templnode,"feature:onlychildren", "typemap,typemapitem,typemapcopy,typedef,types,fragment");
+
+			    if ($3) {
+			      Swig_warning(WARN_PARSE_NESTED_TEMPLATE, cparse_file, cparse_line, "Named nested template instantiations not supported. Processing as if no name was given to %%template().\n");
+			    }
                           }
                           Delattr(templnode,"templatetype");
                           Setattr(templnode,"template",nn);

@@ -119,13 +119,9 @@ template <typename T, int N>                struct ThreeParm<T, N, N> { void a3(
 //}
 %}
 
-#if 0
-struct AA {  // crashes
-#else
 namespace AA {  // thinks X is in AA namespace
   %template(X2) X<int *>;
 };
-#endif
 #endif
 
 #if 0
