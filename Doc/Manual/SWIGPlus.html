@@ -3246,21 +3246,38 @@ public:
 </div>
 
 <p>
-SWIG should be able to handle most simple uses of partial specialization.  However, it may fail
-to match templates properly in more complicated cases.  For example, if you have this code,
+SWIG supports both template explicit specialization and partial specialization. Consider:
 </p>
 
 <div class="code">
 <pre>
-template&lt;class T1, class T2&gt; class Foo&lt;T1, T2 *&gt; { };
+template&lt;class T1, class T2&gt; class Foo { };                     // (1) primary template
+template&lt;&gt;                   class Foo&lt;double *, int *&gt; { };    // (2) explicit specialization
+template&lt;class T1, class T2&gt; class Foo&lt;T1, T2 *&gt; { };           // (3) partial specialization
 </pre>
 </div>
 
 <p>
-SWIG isn't able to match it properly for instantiations like <tt>Foo&lt;int *, int *&gt;</tt>.
-This problem is not due to parsing, but due to the fact that SWIG does not currently implement all
-of the C++ argument deduction rules.
+SWIG is able to properly match explicit instantiations:
 </p>
+
+<div class="code">
+<pre>
+<tt>Foo&lt;double *, int *&gt;</tt>     // explicit specialization matching (2)
+</pre>
+</div>
+
+<p>
+SWIG implements template argument deduction so that the following partial specialization examples work just like they would with a C++ compiler:
+</p>
+
+<div class="code">
+<pre>
+<tt>Foo&lt;int *, int *&gt;</tt>        // partial specialization matching (3)
+<tt>Foo&lt;int *, const int *&gt;</tt>  // partial specialization matching (3)
+<tt>Foo&lt;int *, int **&gt;</tt>       // partial specialization matching (3)
+</pre>
+</div>
 
 <p>
 Member function templates are supported.  The underlying principle is the same
