@@ -139,7 +139,7 @@ output values.
 %typemap(argout) signed char *OUTPUT(int iRowsOut, int iColsOut) {
   iRowsOut = 1; 
   iColsOut = 1;
-  createMatrixOfInteger8(iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  createMatrixOfInteger8(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
   LhsVar(iOutNum) = iVarOut;
 }
 
@@ -147,7 +147,7 @@ output values.
               unsigned char *OUTPUT(int iRowsOut, int iColsOut) {
   iRowsOut = 1; 
   iColsOut = 1;
-  createMatrixOfInteger16(iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  createMatrixOfInteger16(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
   LhsVar(iOutNum) = iVarOut;
 }
 
@@ -158,7 +158,7 @@ output values.
               long *OUTPUT(int iRowsOut,int iColsOut) {
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfInteger32(iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  createMatrixOfInteger32(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
   LhsVar(iOutNum)=iVarOut;
 }
 
@@ -169,7 +169,7 @@ output values.
   temp = (double)(*$result);
   iRowsOut = 1; 
   iColsOut = 1;
-  createMatrixOfDouble(iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
   LhsVar(iOutNum) = iVarOut;
 }
 
