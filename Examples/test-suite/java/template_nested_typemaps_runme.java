@@ -21,6 +21,7 @@ public class template_nested_typemaps_runme {
 
       if (template_nested_typemaps.globalInt1(v) != v) throw new RuntimeException("failed");
       if (template_nested_typemaps.globalInt2(v) != v) throw new RuntimeException("failed");
+      if (template_nested_typemaps.globalInt3(v) != vTypemap) throw new RuntimeException("failed");
     }
 
     {
@@ -31,6 +32,7 @@ public class template_nested_typemaps_runme {
 
       if (template_nested_typemaps.globalShort1(v) != v) throw new RuntimeException("failed");
       if (template_nested_typemaps.globalShort2(v) != v) throw new RuntimeException("failed");
+      if (template_nested_typemaps.globalShort3(v) != vTypemap) throw new RuntimeException("failed");
     }
   }
 }
