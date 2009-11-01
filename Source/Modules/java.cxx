@@ -2533,10 +2533,10 @@ public:
     // translate and write javadoc comment if flagged
     if (doxygen_javadoc_flag){
       String *doxygen_comments;
-      if(DoxygenTranslator::getDocumentation(n, JavaDoc, doxygen_comments)){
+      if(DoxygenTranslator::getDocumentation(n, JavaDoc, doxygen_comments)) {
 	if(comment_creation_chatter)
 	  Printf(function_code, "/* This was generated from moduleClassFunctionHandler() */");
-	Printf(function_code, Char(doxygen_comments)); 
+	Printv(function_code, doxygen_comments, NIL);
 	Delete(doxygen_comments);
       }
     }

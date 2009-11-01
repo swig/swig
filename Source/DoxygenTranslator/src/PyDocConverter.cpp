@@ -19,6 +19,13 @@ PyDocConverter::PyDocConverter() {
 }
 
 std::string PyDocConverter::formatParam(Node *n, DoxygenEntity & doxygenEntity) {
+
+  if (doxygenEntity.entityList.size() < 2) {
+    /* if 'paramDescriptionEntity' is not there, ignore param. Better than crash!
+       TODO: log error! */
+    return "";
+  }
+
   ParmList *plist = CopyParmList(Getattr(n, "parms"));
   Parm *p = NULL;
 
@@ -34,7 +41,10 @@ std::string PyDocConverter::formatParam(Node *n, DoxygenEntity & doxygenEntity) 
       std::string type = Char(Swig_name_make(n, 0, Getattr(p, "type"), 0, 0));
 
       result = name + " (" + type + ") ";
-      result.resize(DOC_PARAM_STRING_LENGTH - 3, ' ');
+      if (result.size() < (DOC_PARAM_STRING_LENGTH - 3)) {
+	/* do not cut info away - it is better to have not so nice output than type information missing. */
+	result.resize(DOC_PARAM_STRING_LENGTH - 3, ' ');
+      }
       result += "-- " + paramDescription.substr(DOC_PARAM_STRING_LENGTH);
       break;
     }
