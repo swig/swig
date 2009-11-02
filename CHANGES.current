@@ -1,6 +1,10 @@
 Version 1.3.41 (in progress)
 ============================
 
+2009-11-02: olly
+	    [Python] Fix potential memory leak in initialisation code for the
+	    generated module.
+
 2009-10-23: wsfulton
 	    Fix seg fault when using a named nested template instantiation using %template(name) 
             within a class. A warning that these are not supported is now issued plus processing 

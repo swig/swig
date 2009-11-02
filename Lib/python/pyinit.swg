@@ -279,15 +279,15 @@ SWIG_Python_FixMethods(PyMethodDef *methods,
 	}
       }
       if (ci) {
-	size_t shift = (ci->ptype) - types;
-	swig_type_info *ty = types_initial[shift];
-	size_t ldoc = (c - methods[i].ml_doc);
-	size_t lptr = strlen(ty->name)+2*sizeof(void*)+2;
-	char *ndoc = (char*)malloc(ldoc + lptr + 10);
-	if (ndoc) {
-	  char *buff = ndoc;
-	  void *ptr = (ci->type == SWIG_PY_POINTER) ? ci->pvalue : 0;
-	  if (ptr) {
+	void *ptr = (ci->type == SWIG_PY_POINTER) ? ci->pvalue : 0;
+	if (ptr) {
+	  size_t shift = (ci->ptype) - types;
+	  swig_type_info *ty = types_initial[shift];
+	  size_t ldoc = (c - methods[i].ml_doc);
+	  size_t lptr = strlen(ty->name)+2*sizeof(void*)+2;
+	  char *ndoc = (char*)malloc(ldoc + lptr + 10);
+	  if (ndoc) {
+	    char *buff = ndoc;
 	    strncpy(buff, methods[i].ml_doc, ldoc);
 	    buff += ldoc;
 	    strncpy(buff, "swig_ptr: ", 10);
