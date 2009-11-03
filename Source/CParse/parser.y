@@ -2644,6 +2644,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  n = Swig_cparse_template_locate($5,$7,tscope);
 
 		  /* Patch the argument types to respect namespaces */
+Printf(stdout, "    p before patching: %s\n", ParmList_str_defaultargs($7));
 		  p = $7;
 		  while (p) {
 		    SwigType *value = Getattr(p,"value");
@@ -2669,6 +2670,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 		    p = nextSibling(p);
 		  }
+Printf(stdout, "    p after  patching: %s\n", ParmList_str_defaultargs($7));
 
 		  /* Look for the template */
 		  {
@@ -2746,6 +2748,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                               def_supplied = 1;
                             }
                           }
+Printf(stdout, "    p tempar patching: %s\n", ParmList_str_defaultargs(temparms));
 
                           templnode = copy_node(nn);
                           /* We need to set the node name based on name used to instantiate */
