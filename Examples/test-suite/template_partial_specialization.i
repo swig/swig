@@ -69,6 +69,7 @@ namespace Two {
   template <typename T1>              struct TwoParm<T1 *, int *>             { void e() {} };
   template <typename T1>              struct TwoParm<T1, int>                 { void f() {} };
   template <>                         struct TwoParm<int *, const int *>      { void g() {} };
+  template <>                         struct TwoParm<Concrete, Concrete *>    { void h() {} };
 }
 %}
 
@@ -90,6 +91,7 @@ namespace Two {
 %template(B1_) ::Two::TwoParm<char *, ::Concrete *>;
 %template(E1_) Two::TwoParm<const int *, int *>;
 %template(E2_) Two::TwoParm<int **, int *>;
+%template(H_) Two::TwoParm< ::Concrete, ::Concrete * >;
 
 
 // Many template parameters

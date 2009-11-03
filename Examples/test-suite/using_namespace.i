@@ -74,3 +74,14 @@ struct X {
 };
 
 }
+
+%inline %{
+namespace SpaceMan {
+  typedef double SpaceManDouble;
+}
+using namespace ::SpaceMan; // global namespace prefix
+
+SpaceManDouble useSpaceMan(SpaceManDouble s) { return s; }
+
+%}
+

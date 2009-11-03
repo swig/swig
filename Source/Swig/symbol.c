@@ -998,6 +998,8 @@ Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname, global_scope, 0, 0, 0);
+      } else {
+	s = symbol_lookup(nname, global_scope, 0);
       }
       Delete(nname);
     } else {
@@ -1070,6 +1072,8 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname, global_scope, 0, 0, checkfunc);
+      } else {
+	s = symbol_lookup(nname, global_scope, checkfunc);
       }
       Delete(nname);
     } else {
@@ -1134,6 +1138,8 @@ Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname, global_scope, 0, 0, 0);
+      } else {
+	s = symbol_lookup(nname, global_scope, 0);
       }
       Delete(nname);
     } else {
@@ -1182,6 +1188,8 @@ Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, 
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname, global_scope, 0, 0, checkfunc);
+      } else {
+	s = symbol_lookup(nname, global_scope, checkfunc);
       }
       Delete(nname);
     } else {

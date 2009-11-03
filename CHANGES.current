@@ -1,6 +1,28 @@
 Version 1.3.41 (in progress)
 ============================
 
+2009-11-03: wsfulton
+	    Fix some usage of global scope operator, for example:
+
+              namespace AA { /* ... */ }
+              using namespace ::AA;
+
+            and bug #1816802 - SwigValueWrapper should be used ::
+
+              struct CC {
+                CC(int); // no default constructor
+              };
+              ::CC x();
+
+            and in template parameter specializations:
+
+              struct S {};
+              template <typename T> struct X { void a() {}; };
+              template <> struct X<S> { void b() {}; };
+              %template(MyTConcrete) X< ::S >;
+
+            plus probably some other corner case usage of ::.
+
 2009-11-02: olly
 	    [Python] Fix potential memory leak in initialisation code for the
 	    generated module.
