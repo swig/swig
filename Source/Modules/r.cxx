@@ -1101,7 +1101,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     Delete(pitem);
   }
   Delete(itemList);
-  Printf(f->code, ")\n");
+  Printf(f->code, ");\n");
   
   if (!isSet && varaccessor > 0) {
     Printf(f->code, "%svaccessors = c(", tab8);
@@ -1117,7 +1117,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
 	Printf(f->code, "'%s'%s", item, vcount < varaccessor ? ", " : "");
       }
     }
-    Printf(f->code, ")\n");
+    Printf(f->code, ");\n");
   }
   
   
@@ -1129,24 +1129,24 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
 	"stop(\"No ", (isSet ? "modifiable" : "accessible"), " field named \", name, \" in ", className,
 	": fields are \", paste(names(accessorFuns), sep = \", \")", 
 	")", "\n}\n", NIL); */
-  Printv(f->code, tab8,
-	 "idx = pmatch(name, names(accessorFuns))\n",
+  Printv(f->code, ";", tab8,
+	 "idx = pmatch(name, names(accessorFuns));\n",
 	 tab8,
 	 "if(is.na(idx)) \n",
 	 tab8, tab4, NIL);
-  Printf(f->code, "return(callNextMethod(x, name%s))\n",
+  Printf(f->code, "return(callNextMethod(x, name%s));\n",
 	 isSet ? ", value" : "");
-  Printv(f->code, tab8, "f = accessorFuns[[idx]]\n", NIL);
+  Printv(f->code, tab8, "f = accessorFuns[[idx]];\n", NIL);
   if(isSet) {
-    Printv(f->code, tab8, "f(x, value)\n", NIL);
-    Printv(f->code, tab8, "x\n", NIL); // make certain to return the S value.
+    Printv(f->code, tab8, "f(x, value);\n", NIL);
+    Printv(f->code, tab8, "x;\n", NIL); // make certain to return the S value.
   } else {
-    Printv(f->code, tab8, "formals(f)[[1]] = x\n", NIL);
+    Printv(f->code, tab8, "formals(f)[[1]] = x;\n", NIL);
     if (varaccessor) {
       Printv(f->code, tab8,
-	     "if (is.na(match(name, vaccessors))) f else f(x)\n", NIL);
+	     "if (is.na(match(name, vaccessors))) f else f(x);\n", NIL);
     } else {
-      Printv(f->code, tab8, "f\n", NIL);
+      Printv(f->code, tab8, "f;\n", NIL);
     }
   }
   Printf(f->code, "}\n");
@@ -1157,15 +1157,15 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
 	 isSet ? "<-" : "", 
 	 getRClassName(className)); 
   Wrapper_print(f, out);
-  Printf(out, ")\n");
+  Printf(out, ");\n");
   
   if(isSet) {
     Printf(out, "setMethod('[[<-', c('_p%s', 'character'),", 
 	   getRClassName(className)); 
-    Insert(f->code, 2, "name = i\n");
+    Insert(f->code, 2, "name = i;\n");
     Printf(attr->code, "%s", f->code);
     Wrapper_print(attr, out);
-    Printf(out, ")\n");
+    Printf(out, ");\n");
   }
   
   DelWrapper(attr);
@@ -2090,10 +2090,10 @@ int R::functionWrapper(Node *n) {
   }
 
 
-  Printv(sfun->code, (Len(tm) ? "ans = " : ""), ".Call('", wname, 
-	 "', ", sargs, "PACKAGE='", Rpackage, "')\n", NIL);
+  Printv(sfun->code, ";", (Len(tm) ? "ans = " : ""), ".Call('", wname, 
+	 "', ", sargs, "PACKAGE='", Rpackage, "');\n", NIL);
   if(Len(tm))
-    Printf(sfun->code, "%s\n\nans\n", tm);
+    Printf(sfun->code, "%s\n\nans;\n", tm);
   if (destructor)
     Printv(f->code, "R_ClearExternalPtr(self);\n", NIL);
 

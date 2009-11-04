@@ -100,30 +100,30 @@
 		    long *,
 		    long &,
 		    long[ANY]
-  "$input = as.integer($input) ";
+  "$input = as.integer($input); ";
 
 %typemap(scoercein) char *, string, std::string,
 string &, std::string &
-%{  $input = as($input, "character") %}
+%{  $input = as($input, "character"); %}
 
 %typemap(scoerceout) enum SWIGTYPE 
-  %{  $result = enumFromInteger($result, "$R_class") %}
+  %{  $result = enumFromInteger($result, "$R_class"); %}
 
 %typemap(scoerceout) enum SWIGTYPE &
-  %{  $result = enumFromInteger($result, "$R_class") %}
+  %{  $result = enumFromInteger($result, "$R_class"); %}
 
 %typemap(scoerceout) enum SWIGTYPE *
-  %{  $result = enumToInteger($result, "$R_class") %}
+  %{  $result = enumToInteger($result, "$R_class"); %}
 
 
 %typemap(scoerceout) SWIGTYPE 
-  %{ class($result) <- "$&R_class" %}
+  %{ class($result) <- "$&R_class"; %}
 
 %typemap(scoerceout) SWIGTYPE & 
-  %{ class($result) <- "$R_class" %}
+  %{ class($result) <- "$R_class"; %}
 
 %typemap(scoerceout) SWIGTYPE * 
-  %{ class($result) <- "$R_class" %}
+  %{ class($result) <- "$R_class"; %}
 
 /* Override the SWIGTYPE * above. */
 %typemap(scoerceout) char,
