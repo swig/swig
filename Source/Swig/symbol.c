@@ -175,20 +175,32 @@ static Hash *global_scope = 0;	/* Global scope */
 /* common attribute keys, to avoid calling find_key all the times */
 
 
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_tables_print()
+ *
+ * Debug display of symbol tables
+ * ----------------------------------------------------------------------------- */
 
-#if 0
-void Swig_symbol_dump_symtable() {
-  Printf(stdout, "DUMPING SYMTABLE start =======================================\n");
-  {
-    Hash *cst = Getattr(current_symtab, "csymtab");
-    Swig_print_tree(cst);
-    /*
-       Swig_print_tree(Getattr(cst, "NumSpace"));
-     */
-  }
-  Printf(stdout, "DUMPING SYMTABLE end   =======================================\n");
+void Swig_symbol_tables_print(Symtab *symtab) {
+  if (!symtab)
+    symtab = current_symtab;
+
+  Printf(stdout, "SYMBOL TABLES start  =======================================\n");
+  Swig_print_tree(symtab);
+  Printf(stdout, "SYMBOL TABLES finish =======================================\n");
 }
-#endif
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_tables_summary_print()
+ *
+ * Debug summary display of all symbol tables by fully-qualified name 
+ * ----------------------------------------------------------------------------- */
+
+void Swig_symbol_tables_summary_print(void) {
+  Printf(stdout, "SYMBOL TABLES SUMMARY start  =======================================\n");
+  Swig_print_node(symtabs);
+  Printf(stdout, "SYMBOL TABLES SUMMARY finish =======================================\n");
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_init()
@@ -196,7 +208,7 @@ void Swig_symbol_dump_symtable() {
  * Create a new symbol table object
  * ----------------------------------------------------------------------------- */
 
-void Swig_symbol_init() {
+void Swig_symbol_init(void) {
 
   current = NewHash();
   current_symtab = NewHash();
@@ -240,7 +252,7 @@ void Swig_symbol_setscopename(const_String_or_char_ptr name) {
  * Get the C scopename of the current symbol table
  * ----------------------------------------------------------------------------- */
 
-String *Swig_symbol_getscopename() {
+String *Swig_symbol_getscopename(void) {
   return Getattr(current_symtab, "name");
 }
 
@@ -295,7 +307,7 @@ String *Swig_symbol_qualifiedscopename(Symtab *symtab) {
  * Create a new scope.  Returns the newly created scope.
  * ----------------------------------------------------------------------------- */
 
-Symtab *Swig_symbol_newscope() {
+Symtab *Swig_symbol_newscope(void) {
   Hash *n;
   Hash *hsyms, *h;
 
@@ -346,7 +358,7 @@ Symtab *Swig_symbol_setscope(Symtab *sym) {
  * scope to the parent scope.
  * ----------------------------------------------------------------------------- */
 
-Symtab *Swig_symbol_popscope() {
+Symtab *Swig_symbol_popscope(void) {
   Hash *h = current_symtab;
   current_symtab = Getattr(current_symtab, "parentNode");
   assert(current_symtab);
@@ -358,12 +370,22 @@ Symtab *Swig_symbol_popscope() {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_symbol_global_scope()
+ *
+ * Return the symbol table for the global scope.
+ * ----------------------------------------------------------------------------- */
+
+Symtab *Swig_symbol_global_scope(void) {
+  return global_scope;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_symbol_current()
  *
  * Return the current symbol table.
  * ----------------------------------------------------------------------------- */
 
-Symtab *Swig_symbol_current() {
+Symtab *Swig_symbol_current(void) {
   return current_symtab;
 }
 

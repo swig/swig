@@ -62,6 +62,8 @@ static const char *usage1 = (const char *) "\
      -copyright      - Display copyright notices\n\
      -debug-classes  - Display information about the classes found in the interface\n\
      -debug-module <n>- Display module parse tree at stages 1-4, <n> is a csv list of stages\n\
+     -debug-symtabs  - Display symbol tables information\n\
+     -debug-qsymtabs - Display symbol tables summary information using fully qualified names\n\
      -debug-tags     - Display information about the tags found in the interface\n\
      -debug-template - Display information for debugging templates\n\
      -debug-top <n>  - Display entire parse tree at stages 1-4, <n> is a csv list of stages\n\
@@ -162,6 +164,8 @@ static int no_cpp = 0;
 static char *outfile_name = 0;
 static char *outfile_name_h = 0;
 static int tm_debug = 0;
+static int dump_symtabs = 0;
+static int dump_qsymtabs = 0;
 static int dump_tags = 0;
 static int dump_module = 0;
 static int dump_top = 0;
@@ -716,6 +720,12 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strncmp(argv[i], "-w", 2) == 0) {
 	Swig_mark_arg(i);
 	Swig_warnfilter(argv[i] + 2, 1);
+      } else if (strcmp(argv[i], "-debug-symtabs") == 0) {
+	dump_symtabs = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-qsymtabs") == 0) {
+	dump_qsymtabs = 1;
+	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-debug-tags") == 0) || (strcmp(argv[i], "-dump_tags") == 0)) {
 	dump_tags = 1;
 	Swig_mark_arg(i);
@@ -1143,6 +1153,14 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     if (dump_typedef) {
       SwigType_print_scope(0);
+    }
+
+    if (dump_symtabs) {
+      Swig_symbol_tables_print(Swig_symbol_global_scope());
+    }
+
+    if (dump_qsymtabs) {
+      Swig_symbol_tables_summary_print();
     }
 
     if (dump_tags) {

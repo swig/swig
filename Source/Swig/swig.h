@@ -200,6 +200,8 @@ extern "C" {
 
 /* --- Symbol table module --- */
 
+  extern void Swig_symbol_tables_print(Symtab *symtab);
+  extern void Swig_symbol_tables_summary_print(void);
   extern void Swig_symbol_init(void);
   extern void Swig_symbol_setscopename(const_String_or_char_ptr name);
   extern String *Swig_symbol_getscopename(void);
@@ -207,6 +209,7 @@ extern "C" {
   extern Symtab *Swig_symbol_newscope(void);
   extern Symtab *Swig_symbol_setscope(Symtab *);
   extern Symtab *Swig_symbol_getscope(const_String_or_char_ptr symname);
+  extern Symtab *Swig_symbol_global_scope(void);
   extern Symtab *Swig_symbol_current(void);
   extern Symtab *Swig_symbol_popscope(void);
   extern Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *node);

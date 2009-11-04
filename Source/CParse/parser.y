@@ -817,14 +817,8 @@ static List *make_inherit_list(String *clsname, List *names) {
 
 /* If the class name is qualified.  We need to create or lookup namespace entries */
 
-static Symtab *get_global_scope() {
-  Symtab *symtab = Swig_symbol_current();
-  Node   *pn = parentNode(symtab);
-  while (pn) {
-    symtab = pn;
-    pn = parentNode(symtab);
-    if (!pn) break;
-  }
+static Symtab *set_scope_to_global() {
+  Symtab *symtab = Swig_symbol_global_scope();
   Swig_symbol_setscope(symtab);
   return symtab;
 }
@@ -869,11 +863,11 @@ static String *resolve_node_scope(String *cname) {
       String *nprefix = NewString(Char(prefix)+2);
       Delete(prefix);
       prefix= nprefix;
-      gscope = get_global_scope();
+      gscope = set_scope_to_global();
     }    
     if (!prefix || (Len(prefix) == 0)) {
       /* Use the global scope, but we need to add a 'global' namespace.  */
-      if (!gscope) gscope = get_global_scope();
+      if (!gscope) gscope = set_scope_to_global();
       /* note that this namespace is not the "unnamed" one,
 	 and we don't use Setattr(nscope,"name", ""),
 	 because the unnamed namespace is private */

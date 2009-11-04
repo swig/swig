@@ -1,6 +1,12 @@
 Version 1.3.41 (in progress)
 ============================
 
+2009-11-04: wsfulton
+	    Add new debug options:
+             -debug-symtabs  - Display symbol tables information
+             -debug-qsymtabs - Display symbol tables summary information using fully
+                               qualified names
+
 2009-11-03: wsfulton
 	    Fix some usage of global scope operator, for example:
 
