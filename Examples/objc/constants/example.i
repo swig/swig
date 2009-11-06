@@ -2,7 +2,7 @@
 %module example
 
 /* Force the generated Objective-C code to use the C constant values rather than making an intermediate call */
-%objcconst(0);
+%objcconst(1);
 
 /* A few preprocessor macros */
 
