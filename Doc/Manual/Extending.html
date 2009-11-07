@@ -2604,24 +2604,24 @@ void Language::main(int argc, char *argv[]) {
             } else {
               Swig_arg_error();
             }
-	  } else if (strcmp(argv[i],"-globals") == 0) {
-	    if (argv[i+1]) {
-	      global_name = NewString(argv[i+1]);
-	      Swig_mark_arg(i);
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else {
-	      Swig_arg_error();
-	    }
-	  } else if ( (strcmp(argv[i],"-proxy") == 0)) {
-	    proxy_flag = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-keyword") == 0) {
-	    use_kw = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-help") == 0) {
-	    fputs(usage,stderr);
-	  }
+          } else if (strcmp(argv[i],"-globals") == 0) {
+            if (argv[i+1]) {
+              global_name = NewString(argv[i+1]);
+              Swig_mark_arg(i);
+              Swig_mark_arg(i+1);
+              i++;
+            } else {
+              Swig_arg_error();
+            }
+          } else if ( (strcmp(argv[i],"-proxy") == 0)) {
+            proxy_flag = 1;
+            Swig_mark_arg(i);
+          } else if (strcmp(argv[i],"-keyword") == 0) {
+            use_kw = 1;
+            Swig_mark_arg(i);
+          } else if (strcmp(argv[i],"-help") == 0) {
+            fputs(usage,stderr);
+          }
           ...
       }
   }
@@ -3599,7 +3599,8 @@ There are various command line options which can aid debugging a SWIG interface 
 -debug-classes    - Display information about the classes found in the interface
 -debug-module &lt;n&gt; - Display module parse tree at stages 1-4, &lt;n&gt; is a csv list of stages
 -debug-symtabs    - Display symbol tables information
--debug-qsymtabs   - Display symbol tables summary information using fully qualified names
+-debug-symbols    - Display target language symbols in the symbol tables
+-debug-csymbols   - Display C symbols in the symbol tables
 -debug-tags       - Display information about the tags found in the interface
 -debug-template   - Display information for debugging templates
 -debug-top &lt;n&gt;    - Display entire parse tree at stages 1-4, &lt;n&gt; is a csv list of stages

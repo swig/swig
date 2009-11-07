@@ -63,7 +63,8 @@ static const char *usage1 = (const char *) "\
      -debug-classes  - Display information about the classes found in the interface\n\
      -debug-module <n>- Display module parse tree at stages 1-4, <n> is a csv list of stages\n\
      -debug-symtabs  - Display symbol tables information\n\
-     -debug-qsymtabs - Display symbol tables summary information using fully qualified names\n\
+     -debug-symbols  - Display target language symbols in the symbol tables\n\
+     -debug-csymbols - Display C symbols in the symbol tables\n\
      -debug-tags     - Display information about the tags found in the interface\n\
      -debug-template - Display information for debugging templates\n\
      -debug-top <n>  - Display entire parse tree at stages 1-4, <n> is a csv list of stages\n\
@@ -165,7 +166,8 @@ static char *outfile_name = 0;
 static char *outfile_name_h = 0;
 static int tm_debug = 0;
 static int dump_symtabs = 0;
-static int dump_qsymtabs = 0;
+static int dump_symbols = 0;
+static int dump_csymbols = 0;
 static int dump_tags = 0;
 static int dump_module = 0;
 static int dump_top = 0;
@@ -723,8 +725,11 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-debug-symtabs") == 0) {
 	dump_symtabs = 1;
 	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-debug-qsymtabs") == 0) {
-	dump_qsymtabs = 1;
+      } else if (strcmp(argv[i], "-debug-symbols") == 0) {
+	dump_symbols = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-csymbols") == 0) {
+	dump_csymbols = 1;
 	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-debug-tags") == 0) || (strcmp(argv[i], "-dump_tags") == 0)) {
 	dump_tags = 1;
@@ -1156,11 +1161,16 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     if (dump_symtabs) {
-      Swig_symbol_tables_print(Swig_symbol_global_scope());
+      Swig_symbol_print_tables(Swig_symbol_global_scope());
+      Swig_symbol_print_tables_summary();
     }
 
-    if (dump_qsymtabs) {
-      Swig_symbol_tables_summary_print();
+    if (dump_symbols) {
+      Swig_symbol_print_symbols();
+    }
+
+    if (dump_csymbols) {
+      Swig_symbol_print_csymbols();
     }
 
     if (dump_tags) {

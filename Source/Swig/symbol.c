@@ -176,12 +176,12 @@ static Hash *global_scope = 0;	/* Global scope */
 
 
 /* -----------------------------------------------------------------------------
- * Swig_symbol_tables_print()
+ * Swig_symbol_print_tables()
  *
  * Debug display of symbol tables
  * ----------------------------------------------------------------------------- */
 
-void Swig_symbol_tables_print(Symtab *symtab) {
+void Swig_symbol_print_tables(Symtab *symtab) {
   if (!symtab)
     symtab = current_symtab;
 
@@ -191,15 +191,63 @@ void Swig_symbol_tables_print(Symtab *symtab) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_symbol_tables_summary_print()
+ * Swig_symbol_print_tables_summary()
  *
  * Debug summary display of all symbol tables by fully-qualified name 
  * ----------------------------------------------------------------------------- */
 
-void Swig_symbol_tables_summary_print(void) {
+void Swig_symbol_print_tables_summary(void) {
   Printf(stdout, "SYMBOL TABLES SUMMARY start  =======================================\n");
   Swig_print_node(symtabs);
   Printf(stdout, "SYMBOL TABLES SUMMARY finish =======================================\n");
+}
+
+/* -----------------------------------------------------------------------------
+ * symbol_print_symbols()
+ * ----------------------------------------------------------------------------- */
+
+static void symbol_print_symbols(const char *symboltabletype) {
+  Node *obj = symtabs;
+  Iterator ki = First(obj);
+  while (ki.key) {
+    String *k = ki.key;
+    Printf(stdout, "===================================================\n");
+    Printf(stdout, "%s -\n", k);
+    {
+      Symtab *symtab = Getattr(Getattr(obj, k), symboltabletype);
+      Iterator it = First(symtab);
+      while (it.key) {
+	String *symname = it.key;
+	Printf(stdout, "  %s\n", symname);
+	it = Next(it);
+      }
+    }
+    ki = Next(ki);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_print_symbols()
+ *
+ * Debug display of all the target language symbols
+ * ----------------------------------------------------------------------------- */
+
+void Swig_symbol_print_symbols(void) {
+  Printf(stdout, "SYMBOLS start  =======================================\n");
+  symbol_print_symbols("symtab");
+  Printf(stdout, "SYMBOLS finish =======================================\n");
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_print_csymbols()
+ *
+ * Debug display of all the C symbols
+ * ----------------------------------------------------------------------------- */
+
+void Swig_symbol_print_csymbols(void) {
+  Printf(stdout, "CSYMBOLS start  =======================================\n");
+  symbol_print_symbols("csymtab");
+  Printf(stdout, "CSYMBOLS finish =======================================\n");
 }
 
 /* -----------------------------------------------------------------------------
