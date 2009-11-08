@@ -242,6 +242,7 @@ CPP_TEST_CASES += \
 	namespace_typemap \
 	namespace_virtual_method \
 	naturalvar \
+	nested_class \
 	nested_comment \
 	newobject1 \
 	null_pointer \

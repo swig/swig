@@ -4395,7 +4395,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		    n->next = 0;
 		    add_nested(n);
 		  } else {
-		    Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
+		    Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored).\n", $2, $3);
 		    if (strcmp($2, "class") == 0) {
 		      /* For now, just treat the nested class as a forward
 		       * declaration (SF bug #909387). */
@@ -4416,7 +4416,10 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (strcmp($2,"class") == 0) {
-		    Swig_warning(WARN_PARSE_NESTED_CLASS,cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
+		    if ($5.id)
+		      Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested class not currently supported (%s ignored)\n", $5.id);
+		    else
+		      Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
 		  } else if ($5.id) {
 		    /* Generate some code for a new class */
 		    Nested *n = (Nested *) malloc(sizeof(Nested));
@@ -4445,7 +4448,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
               } SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  Swig_warning(WARN_PARSE_NESTED_CLASS,cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
+		  Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $2, $3);
 		}
 	      }
 /* This unfortunately introduces 4 shift/reduce conflicts, so instead the somewhat hacky nested_template is used for ignore nested template classes. */
@@ -4454,7 +4457,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
               } SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  Swig_warning(WARN_PARSE_NESTED_CLASS,cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
+		  Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $5, $6);
 		}
 	      }
 */
