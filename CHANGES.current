@@ -2,6 +2,11 @@ Version 1.3.41 (in progress)
 ============================
 
 2009-11-07: wsfulton
+	    Bug #1514681 - Fix nested template classes within a namespace generated uncompileable
+            code and introduced strange side effects to other wrapper code especially code
+            after the nested template class. Note that nested template classes are still ignored.
+
+2009-11-07: wsfulton
 	    Add new debug options:
               -debug-symtabs    - Display symbol tables information
               -debug-symbols    - Display target language symbols in the symbol tables
@@ -13,7 +18,7 @@ Version 1.3.41 (in progress)
               namespace AA { /* ... */ }
               using namespace ::AA;
 
-            and bug #1816802 - SwigValueWrapper should be used ::
+            and bug #1816802 - SwigValueWrapper should be used:
 
               struct CC {
                 CC(int); // no default constructor

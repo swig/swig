@@ -43,6 +43,7 @@ static Node    *module_node = 0;
 static String  *Classprefix = 0;  
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
+static int      nested_template = 0; /* template class/function definition within a class */
 static char    *last_cpptype = 0;
 static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
@@ -272,6 +273,14 @@ static int  add_only_one = 0;
 static void add_symbols(Node *n) {
   String *decl;
   String *wrn = 0;
+
+  if (nested_template) {
+    if (!(n && Equal(nodeType(n), "template"))) {
+      return;
+    }
+    /* continue if template function, but not template class, declared within a class */
+  }
+
   if (inclass && n) {
     cparse_normalize_void(n);
   }
@@ -3227,10 +3236,10 @@ cpp_declaration : cpp_class_decl {  $$ = $1; }
                 | cpp_catch_decl { $$ = 0; }
                 ;
 
-cpp_class_decl  :
 
 /* A simple class/struct/union definition */
-                storage_class cpptype idcolon inherit LBRACE {
+cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
+                 if (nested_template == 0) {
                    List *bases = 0;
 		   Node *scope = 0;
 		   $<node>$ = new_node("class");
@@ -3344,120 +3353,128 @@ cpp_class_decl  :
 		   }
 		   class_decl[class_level++] = $<node>$;
 		   inclass = 1;
+		 }
                } cpp_members RBRACE cpp_opt_declarators {
-		 Node *p;
-		 SwigType *ty;
-		 Symtab *cscope = prev_symtab;
-		 Node *am = 0;
-		 String *scpname = 0;
-		 $$ = class_decl[--class_level];
-		 inclass = 0;
-		 
-		 /* Check for pure-abstract class */
-		 Setattr($$,"abstract", pure_abstract($7));
-		 
-		 /* This bit of code merges in a previously defined %extend directive (if any) */
-		 
-		 if (extendhash) {
-		   String *clsname = Swig_symbol_qualifiedscopename(0);
-		   am = Getattr(extendhash,clsname);
-		   if (am) {
-		     merge_extensions($$,am);
-		     Delattr(extendhash,clsname);
+		 if (nested_template == 0) {
+		   Node *p;
+		   SwigType *ty;
+		   Symtab *cscope = prev_symtab;
+		   Node *am = 0;
+		   String *scpname = 0;
+		   $$ = class_decl[--class_level];
+		   inclass = 0;
+		   
+		   /* Check for pure-abstract class */
+		   Setattr($$,"abstract", pure_abstract($7));
+		   
+		   /* This bit of code merges in a previously defined %extend directive (if any) */
+		   
+		   if (extendhash) {
+		     String *clsname = Swig_symbol_qualifiedscopename(0);
+		     am = Getattr(extendhash,clsname);
+		     if (am) {
+		       merge_extensions($$,am);
+		       Delattr(extendhash,clsname);
+		     }
+		     Delete(clsname);
 		   }
-		   Delete(clsname);
-		 }
-		 if (!classes) classes = NewHash();
-		 scpname = Swig_symbol_qualifiedscopename(0);
-		 Setattr(classes,scpname,$$);
-		 Delete(scpname);
+		   if (!classes) classes = NewHash();
+		   scpname = Swig_symbol_qualifiedscopename(0);
+		   Setattr(classes,scpname,$$);
+		   Delete(scpname);
 
-		 appendChild($$,$7);
-		 
-		 if (am) append_previous_extension($$,am);
+		   appendChild($$,$7);
+		   
+		   if (am) append_previous_extension($$,am);
 
-		 p = $9;
-		 if (p) {
-		   set_nextSibling($$,p);
-		 }
-		 
-		 if (cparse_cplusplus && !cparse_externc) {
-		   ty = NewString($3);
-		 } else {
-		   ty = NewStringf("%s %s", $2,$3);
-		 }
-		 while (p) {
-		   Setattr(p,"storage",$1);
-		   Setattr(p,"type",ty);
-		   p = nextSibling(p);
-		 }
-		 /* Dump nested classes */
-		 {
-		   String *name = $3;
-		   if ($9) {
-		     SwigType *decltype = Getattr($9,"decl");
-		     if (Cmp($1,"typedef") == 0) {
-		       if (!decltype || !Len(decltype)) {
-			 String *cname;
-			 name = Getattr($9,"name");
-			 cname = Copy(name);
-			 Setattr($$,"tdname",cname);
-			 Delete(cname);
+		   p = $9;
+		   if (p) {
+		     set_nextSibling($$,p);
+		   }
+		   
+		   if (cparse_cplusplus && !cparse_externc) {
+		     ty = NewString($3);
+		   } else {
+		     ty = NewStringf("%s %s", $2,$3);
+		   }
+		   while (p) {
+		     Setattr(p,"storage",$1);
+		     Setattr(p,"type",ty);
+		     p = nextSibling(p);
+		   }
+		   /* Dump nested classes */
+		   {
+		     String *name = $3;
+		     if ($9) {
+		       SwigType *decltype = Getattr($9,"decl");
+		       if (Cmp($1,"typedef") == 0) {
+			 if (!decltype || !Len(decltype)) {
+			   String *cname;
+			   name = Getattr($9,"name");
+			   cname = Copy(name);
+			   Setattr($$,"tdname",cname);
+			   Delete(cname);
 
-			 /* Use typedef name as class name */
-			 if (class_rename && (Strcmp(class_rename,$3) == 0)) {
-			   Delete(class_rename);
-			   class_rename = NewString(name);
+			   /* Use typedef name as class name */
+			   if (class_rename && (Strcmp(class_rename,$3) == 0)) {
+			     Delete(class_rename);
+			     class_rename = NewString(name);
+			   }
+			   if (!Getattr(classes,name)) {
+			     Setattr(classes,name,$$);
+			   }
+			   Setattr($$,"decl",decltype);
 			 }
-			 if (!Getattr(classes,name)) {
-			   Setattr(classes,name,$$);
-			 }
-			 Setattr($$,"decl",decltype);
 		       }
 		     }
+		     appendChild($$,dump_nested(Char(name)));
 		   }
-		   appendChild($$,dump_nested(Char(name)));
-		 }
 
-		 if (cplus_mode != CPLUS_PUBLIC) {
-		 /* we 'open' the class at the end, to allow %template
-		    to add new members */
-		   Node *pa = new_node("access");
-		   Setattr(pa,"kind","public");
-		   cplus_mode = CPLUS_PUBLIC;
-		   appendChild($$,pa);
-		   Delete(pa);
-		 }
+		   if (cplus_mode != CPLUS_PUBLIC) {
+		   /* we 'open' the class at the end, to allow %template
+		      to add new members */
+		     Node *pa = new_node("access");
+		     Setattr(pa,"kind","public");
+		     cplus_mode = CPLUS_PUBLIC;
+		     appendChild($$,pa);
+		     Delete(pa);
+		   }
 
-		 Setattr($$,"symtab",Swig_symbol_popscope());
+		   Setattr($$,"symtab",Swig_symbol_popscope());
 
-		 Classprefix = 0;
-		 if (nscope_inner) {
-		   /* this is tricky */
-		   /* we add the declaration in the original namespace */
-		   appendChild(nscope_inner,$$);
-		   Swig_symbol_setscope(Getattr(nscope_inner,"symtab"));
-		   Delete(Namespaceprefix);
-		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		   add_symbols($$);
-		   if (nscope) $$ = nscope;
-		   /* but the variable definition in the current scope */
+		   Classprefix = 0;
+		   if (nscope_inner) {
+		     /* this is tricky */
+		     /* we add the declaration in the original namespace */
+		     appendChild(nscope_inner,$$);
+		     Swig_symbol_setscope(Getattr(nscope_inner,"symtab"));
+		     Delete(Namespaceprefix);
+		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		     add_symbols($$);
+		     if (nscope) $$ = nscope;
+		     /* but the variable definition in the current scope */
+		     Swig_symbol_setscope(cscope);
+		     Delete(Namespaceprefix);
+		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		     add_symbols($9);
+		   } else {
+		     Delete(yyrename);
+		     yyrename = Copy(class_rename);
+		     Delete(Namespaceprefix);
+		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+
+		     add_symbols($$);
+		     add_symbols($9);
+		   }
 		   Swig_symbol_setscope(cscope);
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		   add_symbols($9);
 		 } else {
-		   Delete(yyrename);
-		   yyrename = Copy(class_rename);
-		   Delete(Namespaceprefix);
-		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-
-		   add_symbols($$);
-		   add_symbols($9);
+		    $$ = new_node("class");
+		    Setattr($$,"kind",$2);
+		    Setattr($$,"name",NewString($3));
+		    SetFlag($$,"nestedtemplateclass");
 		 }
-		 Swig_symbol_setscope(cscope);
-		 Delete(Namespaceprefix);
-		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       }
 
 /* An unnamed struct, possibly with a typedef */
@@ -3617,253 +3634,276 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
    template<...> decl
    ------------------------------------------------------------ */
 
-cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_parameters = $3; } cpp_temp_possible {
-		      String *tname = 0;
-		      int     error = 0;
+cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { 
+		    template_parameters = $3; 
+		    if (inclass)
+		      nested_template++;
 
-		      /* check if we get a namespace node with a class declaration, and retrieve the class */
-		      Symtab *cscope = Swig_symbol_current();
-		      Symtab *sti = 0;
-		      Node *ntop = $6;
-		      Node *ni = ntop;
-		      SwigType *ntype = ni ? nodeType(ni) : 0;
-		      while (ni && Strcmp(ntype,"namespace") == 0) {
-			sti = Getattr(ni,"symtab");
-			ni = firstChild(ni);
-			ntype = nodeType(ni);
-		      }
-		      if (sti) {
-			Swig_symbol_setscope(sti);
-			Delete(Namespaceprefix);
-			Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-			$6 = ni;
-		      }
+		  } cpp_temp_possible {
 
-                      template_parameters = 0;
-                      $$ = $6;
-		      if ($$) tname = Getattr($$,"name");
-		      
-		      /* Check if the class is a template specialization */
-		      if (($$) && (Strchr(tname,'<')) && (!is_operator(tname))) {
-			/* If a specialization.  Check if defined. */
-			Node *tempn = 0;
-			{
-			  String *tbase = SwigType_templateprefix(tname);
-			  tempn = Swig_symbol_clookup_local(tbase,0);
-			  if (!tempn || (Strcmp(nodeType(tempn),"template") != 0)) {
-			    SWIG_WARN_NODE_BEGIN(tempn);
-			    Swig_warning(WARN_PARSE_TEMPLATE_SP_UNDEF, Getfile($$),Getline($$),"Specialization of non-template '%s'.\n", tbase);
-			    SWIG_WARN_NODE_END(tempn);
-			    tempn = 0;
-			    error = 1;
-			  }
-			  Delete(tbase);
+		    /* Don't ignore templated functions declared within a class, unless the templated function is within a nested class */
+		    if (nested_template <= 1) {
+		      int is_nested_template_class = $6 && GetFlag($6, "nestedtemplateclass");
+		      if (is_nested_template_class) {
+			/* Nested template classes would probably better be ignored like ordinary nested classes using cpp_nested, but that introduces shift/reduce conflicts */
+			if (cplus_mode == CPLUS_PUBLIC) {
+			  Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested template %s not currently supported (%s ignored)\n", Getattr($6, "kind"), Getattr($6, "name"));
 			}
-			Setattr($$,"specialization","1");
-			Setattr($$,"templatetype",nodeType($$));
-			set_nodeType($$,"template");
-			/* Template partial specialization */
-			if (tempn && ($3) && ($6)) {
-			  List   *tlist;
-			  String *targs = SwigType_templateargs(tname);
-			  tlist = SwigType_parmlist(targs);
-			  /*			  Printf(stdout,"targs = '%s' %s\n", targs, tlist); */
+			Delete($6);
+			$$ = 0;
+		      } else {
+			String *tname = 0;
+			int     error = 0;
+
+			/* check if we get a namespace node with a class declaration, and retrieve the class */
+			Symtab *cscope = Swig_symbol_current();
+			Symtab *sti = 0;
+			Node *ntop = $6;
+			Node *ni = ntop;
+			SwigType *ntype = ni ? nodeType(ni) : 0;
+			while (ni && Strcmp(ntype,"namespace") == 0) {
+			  sti = Getattr(ni,"symtab");
+			  ni = firstChild(ni);
+			  ntype = nodeType(ni);
+			}
+			if (sti) {
+			  Swig_symbol_setscope(sti);
+			  Delete(Namespaceprefix);
+			  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+			  $6 = ni;
+			}
+
+			$$ = $6;
+			if ($$) tname = Getattr($$,"name");
+			
+			/* Check if the class is a template specialization */
+			if (($$) && (Strchr(tname,'<')) && (!is_operator(tname))) {
+			  /* If a specialization.  Check if defined. */
+			  Node *tempn = 0;
+			  {
+			    String *tbase = SwigType_templateprefix(tname);
+			    tempn = Swig_symbol_clookup_local(tbase,0);
+			    if (!tempn || (Strcmp(nodeType(tempn),"template") != 0)) {
+			      SWIG_WARN_NODE_BEGIN(tempn);
+			      Swig_warning(WARN_PARSE_TEMPLATE_SP_UNDEF, Getfile($$),Getline($$),"Specialization of non-template '%s'.\n", tbase);
+			      SWIG_WARN_NODE_END(tempn);
+			      tempn = 0;
+			      error = 1;
+			    }
+			    Delete(tbase);
+			  }
+			  Setattr($$,"specialization","1");
+			  Setattr($$,"templatetype",nodeType($$));
+			  set_nodeType($$,"template");
+			  /* Template partial specialization */
+			  if (tempn && ($3) && ($6)) {
+			    List   *tlist;
+			    String *targs = SwigType_templateargs(tname);
+			    tlist = SwigType_parmlist(targs);
+			    /*			  Printf(stdout,"targs = '%s' %s\n", targs, tlist); */
+			    if (!Getattr($$,"sym:weak")) {
+			      Setattr($$,"sym:typename","1");
+			    }
+			    
+			    if (Len(tlist) != ParmList_len(Getattr(tempn,"templateparms"))) {
+			      Swig_error(Getfile($$),Getline($$),"Inconsistent argument count in template partial specialization. %d %d\n", Len(tlist), ParmList_len(Getattr(tempn,"templateparms")));
+			      
+			    } else {
+
+			    /* This code builds the argument list for the partial template
+			       specialization.  This is a little hairy, but the idea is as
+			       follows:
+
+			       $3 contains a list of arguments supplied for the template.
+			       For example template<class T>.
+
+			       tlist is a list of the specialization arguments--which may be
+			       different.  For example class<int,T>.
+
+			       tp is a copy of the arguments in the original template definition.
+       
+			       The patching algorithm walks through the list of supplied
+			       arguments ($3), finds the position in the specialization arguments
+			       (tlist), and then patches the name in the argument list of the
+			       original template.
+			    */
+
+			    {
+			      String *pn;
+			      Parm *p, *p1;
+			      int i, nargs;
+			      Parm *tp = CopyParmList(Getattr(tempn,"templateparms"));
+			      nargs = Len(tlist);
+			      p = $3;
+			      while (p) {
+				for (i = 0; i < nargs; i++){
+				  pn = Getattr(p,"name");
+				  if (Strcmp(pn,SwigType_base(Getitem(tlist,i))) == 0) {
+				    int j;
+				    Parm *p1 = tp;
+				    for (j = 0; j < i; j++) {
+				      p1 = nextSibling(p1);
+				    }
+				    Setattr(p1,"name",pn);
+				    Setattr(p1,"partialarg","1");
+				  }
+				}
+				p = nextSibling(p);
+			      }
+			      p1 = tp;
+			      i = 0;
+			      while (p1) {
+				if (!Getattr(p1,"partialarg")) {
+				  Delattr(p1,"name");
+				  Setattr(p1,"type", Getitem(tlist,i));
+				} 
+				i++;
+				p1 = nextSibling(p1);
+			      }
+			      Setattr($$,"templateparms",tp);
+			      Delete(tp);
+			    }
+  #if 0
+			    /* Patch the parameter list */
+			    if (tempn) {
+			      Parm *p,*p1;
+			      ParmList *tp = CopyParmList(Getattr(tempn,"templateparms"));
+			      p = $3;
+			      p1 = tp;
+			      while (p && p1) {
+				String *pn = Getattr(p,"name");
+				Printf(stdout,"pn = '%s'\n", pn);
+				if (pn) Setattr(p1,"name",pn);
+				else Delattr(p1,"name");
+				pn = Getattr(p,"type");
+				if (pn) Setattr(p1,"type",pn);
+				p = nextSibling(p);
+				p1 = nextSibling(p1);
+			      }
+			      Setattr($$,"templateparms",tp);
+			      Delete(tp);
+			    } else {
+			      Setattr($$,"templateparms",$3);
+			    }
+  #endif
+			    Delattr($$,"specialization");
+			    Setattr($$,"partialspecialization","1");
+			    /* Create a specialized name for matching */
+			    {
+			      Parm *p = $3;
+			      String *fname = NewString(Getattr($$,"name"));
+			      String *ffname = 0;
+			      ParmList *partialparms = 0;
+
+			      char   tmp[32];
+			      int    i, ilen;
+			      while (p) {
+				String *n = Getattr(p,"name");
+				if (!n) {
+				  p = nextSibling(p);
+				  continue;
+				}
+				ilen = Len(tlist);
+				for (i = 0; i < ilen; i++) {
+				  if (Strstr(Getitem(tlist,i),n)) {
+				    sprintf(tmp,"$%d",i+1);
+				    Replaceid(fname,n,tmp);
+				  }
+				}
+				p = nextSibling(p);
+			      }
+			      /* Patch argument names with typedef */
+			      {
+				Iterator tt;
+				Parm *parm_current = 0;
+				List *tparms = SwigType_parmlist(fname);
+				ffname = SwigType_templateprefix(fname);
+				Append(ffname,"<(");
+				for (tt = First(tparms); tt.item; ) {
+				  SwigType *rtt = Swig_symbol_typedef_reduce(tt.item,0);
+				  SwigType *ttr = Swig_symbol_type_qualify(rtt,0);
+
+				  Parm *newp = NewParm(ttr, 0);
+				  if (partialparms)
+				    set_nextSibling(parm_current, newp);
+				  else
+				    partialparms = newp;
+				  parm_current = newp;
+
+				  Append(ffname,ttr);
+				  tt = Next(tt);
+				  if (tt.item) Putc(',',ffname);
+				  Delete(rtt);
+				  Delete(ttr);
+				}
+				Delete(tparms);
+				Append(ffname,")>");
+			      }
+			      {
+				Node *new_partial = NewHash();
+				String *partials = Getattr(tempn,"partials");
+				if (!partials) {
+				  partials = NewList();
+				  Setattr(tempn,"partials",partials);
+				  Delete(partials);
+				}
+				/*			      Printf(stdout,"partial: fname = '%s', '%s'\n", fname, Swig_symbol_typedef_reduce(fname,0)); */
+				Setattr(new_partial, "partialparms", partialparms);
+				Setattr(new_partial, "templcsymname", ffname);
+				Append(partials, new_partial);
+			      }
+			      Setattr($$,"partialargs",ffname);
+			      Swig_symbol_cadd(ffname,$$);
+			    }
+			    }
+			    Delete(tlist);
+			    Delete(targs);
+			  } else {
+			    /* An explicit template specialization */
+			    /* add default args from primary (unspecialized) template */
+			    String *ty = Swig_symbol_template_deftype(tname,0);
+			    String *fname = Swig_symbol_type_qualify(ty,0);
+			    Swig_symbol_cadd(fname,$$);
+			    Delete(ty);
+			    Delete(fname);
+			  }
+			}  else if ($$) {
+			  Setattr($$,"templatetype",nodeType($6));
+			  set_nodeType($$,"template");
+			  Setattr($$,"templateparms", $3);
 			  if (!Getattr($$,"sym:weak")) {
 			    Setattr($$,"sym:typename","1");
 			  }
-			  
-			  if (Len(tlist) != ParmList_len(Getattr(tempn,"templateparms"))) {
-			    Swig_error(Getfile($$),Getline($$),"Inconsistent argument count in template partial specialization. %d %d\n", Len(tlist), ParmList_len(Getattr(tempn,"templateparms")));
-			    
-			  } else {
-
-			  /* This code builds the argument list for the partial template
-                             specialization.  This is a little hairy, but the idea is as
-                             follows:
-
-                             $3 contains a list of arguments supplied for the template.
-                             For example template<class T>.
-
-                             tlist is a list of the specialization arguments--which may be
-                             different.  For example class<int,T>.
-
-                             tp is a copy of the arguments in the original template definition.
-     
-                             The patching algorithm walks through the list of supplied
-                             arguments ($3), finds the position in the specialization arguments
-                             (tlist), and then patches the name in the argument list of the
-                             original template.
-			  */
-
+			  add_symbols($$);
+			  default_arguments($$);
+			  /* We also place a fully parameterized version in the symbol table */
 			  {
-			    String *pn;
-			    Parm *p, *p1;
-			    int i, nargs;
-			    Parm *tp = CopyParmList(Getattr(tempn,"templateparms"));
-			    nargs = Len(tlist);
+			    Parm *p;
+			    String *fname = NewStringf("%s<(", Getattr($$,"name"));
 			    p = $3;
-			    while (p) {
-			      for (i = 0; i < nargs; i++){
-				pn = Getattr(p,"name");
-				if (Strcmp(pn,SwigType_base(Getitem(tlist,i))) == 0) {
-				  int j;
-				  Parm *p1 = tp;
-				  for (j = 0; j < i; j++) {
-				    p1 = nextSibling(p1);
-				  }
-				  Setattr(p1,"name",pn);
-				  Setattr(p1,"partialarg","1");
-				}
-			      }
-			      p = nextSibling(p);
-			    }
-			    p1 = tp;
-			    i = 0;
-			    while (p1) {
-			      if (!Getattr(p1,"partialarg")) {
-				Delattr(p1,"name");
-				Setattr(p1,"type", Getitem(tlist,i));
-			      } 
-			      i++;
-			      p1 = nextSibling(p1);
-			    }
-			    Setattr($$,"templateparms",tp);
-			    Delete(tp);
-			  }
-#if 0
-			  /* Patch the parameter list */
-			  if (tempn) {
-			    Parm *p,*p1;
-			    ParmList *tp = CopyParmList(Getattr(tempn,"templateparms"));
-			    p = $3;
-			    p1 = tp;
-			    while (p && p1) {
-			      String *pn = Getattr(p,"name");
-			      Printf(stdout,"pn = '%s'\n", pn);
-			      if (pn) Setattr(p1,"name",pn);
-			      else Delattr(p1,"name");
-			      pn = Getattr(p,"type");
-			      if (pn) Setattr(p1,"type",pn);
-			      p = nextSibling(p);
-			      p1 = nextSibling(p1);
-			    }
-			    Setattr($$,"templateparms",tp);
-			    Delete(tp);
-			  } else {
-			    Setattr($$,"templateparms",$3);
-			  }
-#endif
-			  Delattr($$,"specialization");
-			  Setattr($$,"partialspecialization","1");
-			  /* Create a specialized name for matching */
-			  {
-			    Parm *p = $3;
-			    String *fname = NewString(Getattr($$,"name"));
-			    String *ffname = 0;
-			    ParmList *partialparms = 0;
-
-			    char   tmp[32];
-			    int    i, ilen;
 			    while (p) {
 			      String *n = Getattr(p,"name");
-			      if (!n) {
-				p = nextSibling(p);
-				continue;
-			      }
-			      ilen = Len(tlist);
-			      for (i = 0; i < ilen; i++) {
-				if (Strstr(Getitem(tlist,i),n)) {
-				  sprintf(tmp,"$%d",i+1);
-				  Replaceid(fname,n,tmp);
-				}
-			      }
+			      if (!n) n = Getattr(p,"type");
+			      Append(fname,n);
 			      p = nextSibling(p);
+			      if (p) Putc(',',fname);
 			    }
-			    /* Patch argument names with typedef */
-			    {
-			      Iterator tt;
-			      Parm *parm_current = 0;
-			      List *tparms = SwigType_parmlist(fname);
-			      ffname = SwigType_templateprefix(fname);
-			      Append(ffname,"<(");
-			      for (tt = First(tparms); tt.item; ) {
-				SwigType *rtt = Swig_symbol_typedef_reduce(tt.item,0);
-				SwigType *ttr = Swig_symbol_type_qualify(rtt,0);
-
-				Parm *newp = NewParm(ttr, 0);
-				if (partialparms)
-				  set_nextSibling(parm_current, newp);
-				else
-				  partialparms = newp;
-				parm_current = newp;
-
-				Append(ffname,ttr);
-				tt = Next(tt);
-				if (tt.item) Putc(',',ffname);
-				Delete(rtt);
-				Delete(ttr);
-			      }
-			      Delete(tparms);
-			      Append(ffname,")>");
-			    }
-			    {
-			      Node *new_partial = NewHash();
-			      String *partials = Getattr(tempn,"partials");
-			      if (!partials) {
-				partials = NewList();
-				Setattr(tempn,"partials",partials);
-				Delete(partials);
-			      }
-			      /*			      Printf(stdout,"partial: fname = '%s', '%s'\n", fname, Swig_symbol_typedef_reduce(fname,0)); */
-			      Setattr(new_partial, "partialparms", partialparms);
-			      Setattr(new_partial, "templcsymname", ffname);
-			      Append(partials, new_partial);
-			    }
-			    Setattr($$,"partialargs",ffname);
-			    Swig_symbol_cadd(ffname,$$);
+			    Append(fname,")>");
+			    Swig_symbol_cadd(fname,$$);
 			  }
-			  }
-			  Delete(tlist);
-			  Delete(targs);
-			} else {
-			  /* An explicit template specialization */
-			  /* add default args from primary (unspecialized) template */
-			  String *ty = Swig_symbol_template_deftype(tname,0);
-			  String *fname = Swig_symbol_type_qualify(ty,0);
-			  Swig_symbol_cadd(fname,$$);
-			  Delete(ty);
-			  Delete(fname);
 			}
-		      }  else if ($$) {
-			Setattr($$,"templatetype",nodeType($6));
-			set_nodeType($$,"template");
-			Setattr($$,"templateparms", $3);
-			if (!Getattr($$,"sym:weak")) {
-			  Setattr($$,"sym:typename","1");
-			}
-			add_symbols($$);
-                        default_arguments($$);
-			/* We also place a fully parameterized version in the symbol table */
-			{
-			  Parm *p;
-			  String *fname = NewStringf("%s<(", Getattr($$,"name"));
-			  p = $3;
-			  while (p) {
-			    String *n = Getattr(p,"name");
-			    if (!n) n = Getattr(p,"type");
-			    Append(fname,n);
-			    p = nextSibling(p);
-			    if (p) Putc(',',fname);
-			  }
-			  Append(fname,")>");
-			  Swig_symbol_cadd(fname,$$);
-			}
+			$$ = ntop;
+			Swig_symbol_setscope(cscope);
+			Delete(Namespaceprefix);
+			Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+			if (error) $$ = 0;
 		      }
-		      $$ = ntop;
-		      Swig_symbol_setscope(cscope);
-		      Delete(Namespaceprefix);
-		      Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		      if (error) $$ = 0;
+		    } else {
+		      $$ = 0;
+		    }
+		    template_parameters = 0;
+		    if (inclass)
+		      nested_template--;
                   }
                 | TEMPLATE cpptype idcolon {
 		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
@@ -4377,7 +4417,6 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (strcmp($2,"class") == 0) {
 		    Swig_warning(WARN_PARSE_NESTED_CLASS,cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
-		    /* Generate some code for a new class */
 		  } else if ($5.id) {
 		    /* Generate some code for a new class */
 		    Nested *n = (Nested *) malloc(sizeof(Nested));
@@ -4409,6 +4448,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		  Swig_warning(WARN_PARSE_NESTED_CLASS,cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
 		}
 	      }
+/* This unfortunately introduces 4 shift/reduce conflicts, so instead the somewhat hacky nested_template is used for ignore nested template classes. */
 /*
               | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
               } SEMI {

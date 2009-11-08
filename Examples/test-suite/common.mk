@@ -330,6 +330,7 @@ CPP_TEST_CASES += \
 	template_inherit_abstract \
 	template_int_const \
 	template_methods \
+	template_nested \
 	template_nested_typemaps \
 	template_ns \
 	template_ns2 \
