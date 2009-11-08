@@ -4,13 +4,18 @@
 
 %inline %{
 struct Outer {
-  struct Inner1 {
+  struct InnerStruct1 {
     int x;
   };
 
-  class Inner2 {
+  class InnerClass1 {
   public:
     int x;
+  };
+
+  union InnerUnion1 {
+    int x;
+    double y;
   };
 
   class {
@@ -27,14 +32,19 @@ struct Outer {
     double d;
   };
 
-  class Inner3 {
+  class InnerClass2 {
   public:
     int x;
-  } Inner3Name;
+  } InnerClass2Name;
 
-  struct Inner4 {
+  struct InnerStruct2 {
     int x;
-  } Inner4Name;
+  } InnerStruct2Name;
+
+  union InnerUnion2 {
+    int x;
+    double y;
+  } InnerUnion2Name;
 };
 
 %}
