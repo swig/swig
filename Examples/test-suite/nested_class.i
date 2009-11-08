@@ -45,6 +45,11 @@ struct Outer {
     int x;
     double y;
   } InnerUnion2Name;
+
+  // bug #909387 - inner declared types are treated as forward declarations
+  InnerStruct1* getInnerStruct1() { return 0; }
+  InnerClass1* getInnerClass1() { return 0; }
+  InnerUnion1* getInnerUnion1() { return 0; }
 };
 
 %}

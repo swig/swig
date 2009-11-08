@@ -4396,17 +4396,16 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		    add_nested(n);
 		  } else {
 		    Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored).\n", $2, $3);
-		    if (strcmp($2, "class") == 0) {
-		      /* For now, just treat the nested class as a forward
-		       * declaration (SF bug #909387). */
-		      $$ = new_node("classforward");
-		      Setfile($$,cparse_file);
-		      Setline($$,cparse_line);
-		      Setattr($$,"kind",$2);
-		      Setattr($$,"name",$3);
-		      Setattr($$,"sym:weak", "1");
-		      add_symbols($$);
-		    }
+
+		    /* For now, just treat the nested class/struct/union as a forward
+		     * declaration (SF bug #909387). */
+		    $$ = new_node("classforward");
+		    Setfile($$,cparse_file);
+		    Setline($$,cparse_line);
+		    Setattr($$,"kind",$2);
+		    Setattr($$,"name",$3);
+		    Setattr($$,"sym:weak", "1");
+		    add_symbols($$);
 		  }
 		}
 	      }
@@ -4446,6 +4445,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
  *****/
               | storage_class cpptype idcolon COLON base_list LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
               } SEMI {
+Printf(stdout, "cpp_nested (c)\n");
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $2, $3);

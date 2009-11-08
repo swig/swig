@@ -2,6 +2,17 @@ Version 1.3.41 (in progress)
 ============================
 
 2009-11-08: wsfulton
+	    Fix inconsistency for inner structs/unions/classes. Uncompileable code was being
+            generated when inner struct and union declarations were used as types within
+            the inner struct. The inner struct/union is now treated as a forward declaration making the
+            behaviour the same as an inner class. (C++ code), eg:
+
+              struct Outer {
+                struct InnerStruct { int x; };
+                InnerStruct* getInnerStruct();
+              };
+
+2009-11-08: wsfulton
 	    Ignored nested class/struct warnings now display the name of the ignored class/struct.
 
 2009-11-07: wsfulton
