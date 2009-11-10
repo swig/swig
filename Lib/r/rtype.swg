@@ -60,11 +60,11 @@
 %typemap(scoercein) std::string, std::string *, std::string &
   %{  $input = as($input, "character");     %}
 %typemap(scoercein) enum SWIGTYPE 
-  %{  $input = enumToInteger($input, "$R_class") %}
+  %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE &
-  %{  $input = enumToInteger($input, "$R_class") %}
+  %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE *
-  %{  $input = enumToInteger($input, "$R_class") %}
+  %{  $input = enumToInteger($input, "$R_class"); %}
 
 
 %typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE &  
@@ -84,14 +84,14 @@
 %typemap(scoercein) SWIGTYPE[ANY]  
  %{
     if(is.list($input))
-      assert(all(sapply($input, class) == "$R_class"))     
+      assert(all(sapply($input, class) == "$R_class"));
  %}
 
 
 /* **************************************************************** */
 
 %typemap(scoercein) bool, bool *, bool & 
-		    "$input = as.logical($input) ";
+		    "$input = as.logical($input);";
 %typemap(scoercein) int, 
                     int *, 
 		    int &,

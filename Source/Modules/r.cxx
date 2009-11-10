@@ -1601,9 +1601,9 @@ void R::dispatchFunction(Node *n) {
   List *dispatch = Swig_overload_rank(n, true);
   int   nfunc = Len(dispatch);
   Printv(f->code, 
-	 "argtypes <- mapply(class, list(...))\n",
-	 "argv <- list(...)\n",
-	 "argc <- length(argtypes)\n", NIL );
+	 "argtypes <- mapply(class, list(...));\n",
+	 "argv <- list(...);\n",
+	 "argc <- length(argtypes);\n", NIL );
 
   Printf(f->code, "# dispatch functions %d\n", nfunc);
   int cur_args = -1;
@@ -1649,16 +1649,16 @@ void R::dispatchFunction(Node *n) {
 	}
 	p = Getattr(p, "tmap:in:next");
       }
-      Printf(f->code, ") { f <- %s%s }\n", sfname, overname);
+      Printf(f->code, ") { f <- %s%s; }\n", sfname, overname);
     } else {
-      Printf(f->code, "f <- %s%s", sfname, overname);
+      Printf(f->code, "f <- %s%s; ", sfname, overname);
     }
   }
   if (cur_args != -1) {
     Printv(f->code, "}", NIL);
   }
-  Printv(f->code, "\nf(...)", NIL);
-  Printv(f->code, "\n}", NIL);
+  Printv(f->code, ";\nf(...)", NIL);
+  Printv(f->code, ";\n}", NIL);
   Wrapper_print(f, sfile);
   Printv(sfile, "# Dispatch function\n", NIL);
   DelWrapper(f);
@@ -1886,16 +1886,16 @@ int R::functionWrapper(Node *n) {
 	String *snargs = NewStringf("%d", nargs);
 	Printv(sfun->code, "if(is.function(", name, ")) {", "\n",
 	       "assert('...' %in% names(formals(", name, 
-	       ")) || length(formals(", name, ")) >= ", snargs, ")\n} ", NIL);
+	       ")) || length(formals(", name, ")) >= ", snargs, ");\n} ", NIL);
 	Delete(snargs);
 
 	Printv(sfun->code, "else {\n",
 	       "if(is.character(", name, ")) {\n",
-	       name, " = getNativeSymbolInfo(", name, ")",
-	       "\n}\n",
+	       name, " = getNativeSymbolInfo(", name, ");",
+	       "\n};\n",
 	       "if(is(", name, ", \"NativeSymbolInfo\")) {\n",
-	       name, " = ", name, "$address", "\n}\n",
-	       "}\n",
+	       name, " = ", name, "$address", ";\n}\n",
+	       "}; \n",
 	       NIL);
       } else {
 	Printf(sfun->code, "%s\n", tm);
@@ -2452,11 +2452,11 @@ int R::generateCopyRoutines(Node *n) {
 
     /* The S functions to get and set the member value. */
     String *elNameT = replaceInitialDash(elName);
-    Printf(copyToR->code, "obj@%s = value$%s\n", elNameT, elNameT);
-    Printf(copyToC->code, "obj$%s = value@%s\n", elNameT, elNameT);
+    Printf(copyToR->code, "obj@%s = value$%s;\n", elNameT, elNameT);
+    Printf(copyToC->code, "obj$%s = value@%s;\n", elNameT, elNameT);
     Delete(elNameT);
   }
-  Printf(copyToR->code, "obj\n}\n\n");
+  Printf(copyToR->code, "obj;\n}\n\n");
   String *rclassName = getRClassNameCopyStruct(type, 0); // without the Ref.
   Printf(sfile, "# Start definition of copy functions & methods for %s\n", rclassName);  
   
@@ -2466,9 +2466,9 @@ int R::generateCopyRoutines(Node *n) {
   
   
   Printf(sfile, "# Start definition of copy methods for %s\n", rclassName);  
-  Printf(sfile, "setMethod('copyToR', '_p_%s', CopyToR%s)\n", rclassName, 
+  Printf(sfile, "setMethod('copyToR', '_p_%s', CopyToR%s);\n", rclassName, 
 	 mangledName);
-  Printf(sfile, "setMethod('copyToC', '%s', CopyToC%s)\n\n", rclassName, 
+  Printf(sfile, "setMethod('copyToC', '%s', CopyToC%s);\n\n", rclassName, 
 	 mangledName);
   
   Printf(sfile, "# End definition of copy methods for %s\n", rclassName);  
