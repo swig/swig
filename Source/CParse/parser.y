@@ -4374,18 +4374,33 @@ cpp_protection_decl : PUBLIC COLON {
    by SWIG or this whole thing is going to puke.
    ---------------------------------------------------------------------- */
 
-/* A struct sname { } id;  declaration */
+/* struct sname { } id; or struct sname { }; declaration */
 
 cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
 	      } nested_decl SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  if ($6.id && strcmp($2, "class") != 0) {
+		  if (cparse_cplusplus) {
+		    /* Treat the nested class/struct/union as a forward declaration until a proper nested class solution is implemented */
+		    $$ = new_node("classforward");
+		    Setfile($$,cparse_file);
+		    Setline($$,cparse_line);
+		    Setattr($$,"kind",$2);
+		    Setattr($$,"name",$3);
+		    Setattr($$,"sym:weak", "1");
+		    add_symbols($$);
+
+		    if (GetFlag($$, "feature:nestedworkaround")) {
+		      Swig_symbol_remove($$);
+		      $$ = 0;
+		    } else {
+		      Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored).\n", $2, $3);
+		    }
+		  } else if ($6.id) {
+		    /* Generate some code for a new struct */
 		    Nested *n = (Nested *) malloc(sizeof(Nested));
 		    n->code = NewStringEmpty();
-		    Printv(n->code, "typedef ", $2, " ",
-			   Char(scanner_ccode), " $classname_", $6.id, ";\n", NIL);
-
+		    Printv(n->code, "typedef ", $2, " ", Char(scanner_ccode), " $classname_", $6.id, ";\n", NIL);
 		    n->name = Swig_copy_string($6.id);
 		    n->line = cparse_start_line;
 		    n->type = NewStringEmpty();
@@ -4394,50 +4409,53 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		    SwigType_push(n->type, $6.type);
 		    n->next = 0;
 		    add_nested(n);
-		  } else {
-		    Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored).\n", $2, $3);
-
-		    /* For now, just treat the nested class/struct/union as a forward
-		     * declaration (SF bug #909387). */
-		    $$ = new_node("classforward");
-		    Setfile($$,cparse_file);
-		    Setline($$,cparse_line);
-		    Setattr($$,"kind",$2);
-		    Setattr($$,"name",$3);
-		    Setattr($$,"sym:weak", "1");
-		    add_symbols($$);
 		  }
 		}
 	      }
-/* A struct { } id;  declaration */
+
+/* struct { } id; or struct { }; declaration */
+
               | storage_class cpptype LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
               } nested_decl SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (strcmp($2,"class") == 0) {
-		    if ($5.id)
-		      Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested class not currently supported (%s ignored)\n", $5.id);
-		    else
-		      Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested class not currently supported (ignored)\n");
-		  } else if ($5.id) {
-		    /* Generate some code for a new class */
-		    Nested *n = (Nested *) malloc(sizeof(Nested));
-		    n->code = NewStringEmpty();
-		    Printv(n->code, "typedef ", $2, " " ,
-			    Char(scanner_ccode), " $classname_", $5.id, ";\n",NIL);
-		    n->name = Swig_copy_string($5.id);
-		    n->line = cparse_start_line;
-		    n->type = NewStringEmpty();
-		    n->kind = $2;
-		    n->unnamed = 1;
-		    SwigType_push(n->type,$5.type);
-		    n->next = 0;
-		    add_nested(n);
+		  if ($5.id) {
+		    if (cparse_cplusplus) {
+		      /* Treat the nested class/struct/union as a forward declaration until a proper nested class solution is implemented */
+		      $$ = new_node("classforward");
+		      Setfile($$,cparse_file);
+		      Setline($$,cparse_line);
+		      Setattr($$,"kind",$2);
+		      Setattr($$,"name",$5.id);
+		      Setattr($$,"sym:weak", "1");
+		      add_symbols($$);
+
+		      if (GetFlag($$, "feature:nestedworkaround")) {
+			Swig_symbol_remove($$);
+			$$ = 0;
+		      } else {
+			Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $2, $5.id);
+		      }
+		    } else {
+		      /* Generate some code for a new struct */
+		      Nested *n = (Nested *) malloc(sizeof(Nested));
+		      n->code = NewStringEmpty();
+		      Printv(n->code, "typedef ", $2, " " , Char(scanner_ccode), " $classname_", $5.id, ";\n",NIL);
+		      n->name = Swig_copy_string($5.id);
+		      n->line = cparse_start_line;
+		      n->type = NewStringEmpty();
+		      n->kind = $2;
+		      n->unnamed = 1;
+		      SwigType_push(n->type,$5.type);
+		      n->next = 0;
+		      add_nested(n);
+		    }
 		  } else {
 		    Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
 		  }
 		}
 	      }
+
 /* A  'class name : base_list { };'  declaration, always ignored */
 /*****
      This fixes derived_nested.i, but it adds one shift/reduce. Anyway,
@@ -4445,12 +4463,12 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
  *****/
               | storage_class cpptype idcolon COLON base_list LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
               } SEMI {
-Printf(stdout, "cpp_nested (c)\n");
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $2, $3);
 		}
 	      }
+
 /* This unfortunately introduces 4 shift/reduce conflicts, so instead the somewhat hacky nested_template is used for ignore nested template classes. */
 /*
               | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');

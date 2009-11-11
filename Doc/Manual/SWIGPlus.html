@@ -4695,37 +4695,49 @@ public:
 
 
 <p>
-There is limited support for nested structs and unions when wrapping C code, see <a href="SWIG.html#SWIG_nested_structs">Nested structures</a> for further details.
-However, there is no nested class/struct/union support when wrapping C++ code (using the -c++ commandline option).
-This may be added at a future date, however, until then some of the following workarounds can be applied.
+There is some support for nested structs and unions when wrapping C code, 
+see <a href="SWIG.html#SWIG_nested_structs">Nested structures</a> for further details.
+The added complexity of C++ compared to C means this approach does not work well for
+C++ code (when using the -c++ command line option).
+For C++, a nested class is treated much like an opaque pointer, so anything useful within the nested class, such as its
+methods and variables, are not accessible from the target language.
+True nested class support may be added to SWIG in the future, however, 
+until then some of the following workarounds can be applied to improve the situation.
 </p>
 
 <p>
-It might be possible to use partial class information.  Since
-SWIG does not need the entire class specification to work, conditional
-compilation can be used to comment out the problematic nested class definition, you might do this:
+It might be possible to use partial class information as often you can accept that the nested class is not needed,
+especially if it is not actually used in any methods you need from the target language.
+Imagine you are wrapping the following <tt>Outer</tt> class which contains a nested class <tt>Inner</tt>.
+The easiest thing to do is turn a blind eye to the warning that SWIG generates, or simply suppress it:
 </p>
 
 <div class="code">
 <pre>
-class Foo {
+#pragma SWIG nowarn=SWIGWARN_PARSE_NESTED_CLASS
+class Outer {
 public:
-#ifndef SWIG
-   class Bar {
-   public:
-     ...
-   };
-#endif
-   Foo();
-  ~Foo();
-   ...
+  class Inner {
+    public:
+      ...
+  };
+  Inner getInner();
+  void useInner(const Inner&amp; inner);
+  ...
 };
 </pre>
 </div>
 
 <p>
-The next workaround assumes you cannot modify the source code as was done above and it provides a solution for methods that use nested class types.
-Imagine we are wrapping the <tt>Outer</tt> class which contains a nested class <tt>Inner</tt>:
+Note that if <tt>Inner</tt> can be used as an opaque type, the default wrapping approach suffices.
+For example, if the nested class does not need to be created from the target language, but can be obtained via a method
+call, such as the <tt>getInner()</tt> method above, the returned value can then be passed around, such as passed into the
+<tt>useInner()</tt> method.
+</p>
+
+<p>
+With some more effort the above situation can be improved somewhat and a nested class can be constructed and used
+from the target language much like any other non-nested class. Assuming we have the <tt>Outer</tt> class in a header file:
 </p>
 
 <div class="code">
@@ -4738,23 +4750,24 @@ public:
       int var;
       Inner(int v = 0) : var(v) {}
   };
-  void method(Inner inner);
+  Inner getInner();
+  void useInner(const Inner&amp; inner);
 };
 </pre>
 </div>
 
 <p>
-The following interface file works around SWIG nested class limitations by redefining the nested class as a global class.
-A typedef for the compiler is also required in order for the generated wrappers to compile.
+The following interface file works around the nested class limitations by redefining the nested class as a global class.
+A typedef for the compiler and the <tt>nestedworkaround</tt> 
+<a href="Customization.html#Customization_feature_flags">feature flag</a> is also required in 
+order for the generated wrappers to compile. This flag simply removes all the type information from SWIG, so SWIG treats
+the nested class as if it had not been parsed at all.
 </p>
 
 <div class="code">
 <pre>
 // File : example.i
 %module example
-
-// Suppress SWIG warning
-#pragma SWIG nowarn=SWIGWARN_PARSE_NESTED_CLASS
 
 // Redefine nested class in global scope in order for SWIG to generate
 // a proxy class. Only SWIG parses this definition.
@@ -4764,23 +4777,61 @@ class Inner {
     Inner(int v = 0) : var(v) {}
 };
 
+%nestedworkaround Outer::Inner;
+
 %{
 #include "outer.h"
 %}
 %include "outer.h"
 
+// We've fooled SWIG into thinking that Inner is a global class, so now we need
+// to trick the C++ compiler into understanding this apparent global type.
 %{
-// SWIG thinks that Inner is a global class, so we need to trick the C++
-// compiler into understanding this so called global type.
 typedef Outer::Inner Inner;
 %}
-
 </pre>
 </div>
 
 <p>
-The downside to this approach is having to maintain two definitions of <tt>Inner</tt>, the real one and the one in the interface file that SWIG parses.
+The downside to this approach is a more complex interface file and having to maintain two definitions of <tt>Inner</tt>, 
+the real one and the one in the interface file that SWIG parses.
+However, the upside is that all the methods/variables in the nested class are available from the target language
+as a proxy class is generated instead of treating the nested class as an opaque type.
+The proxy class can be constructed from the target language and passed into any methods accepting the nested class.
+Also note that the original header file is parsed unmodified.
 </p>
+
+<p>
+Finally, conditional compilation can be used as a workaround to comment out nested class definitions in the actual headers,
+assuming you are able to modify them.
+</p>
+
+<div class="code">
+<pre>
+// File outer.h
+class Outer {
+public:
+#ifndef SWIG
+  class Inner {
+    public:
+      ...
+  };
+#endif
+  ...
+};
+</pre>
+</div>
+
+<p>
+This workaround used to be common when SWIG could not deal with nested classes particulary well.
+This should just be a last resort for unusual corner cases now as SWIG can parse nested classes and even handle nested template classes fairly well.
+</p>
+
+<p>
+<b>Compatibility Note:</b> SWIG-1.3.40 and earlier versions did not have the <tt>nestedworkaround</tt> feature
+and the generated code resulting from parsing nested classes did not always compile.
+</p>
+
 
 <H2><a name="SWIGPlus_nn37"></a>6.27 A brief rant about const-correctness</H2>
 

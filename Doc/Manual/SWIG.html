@@ -334,6 +334,7 @@ currently supported:
 For example, SWIG does not support declarations such as the following
 (even though this is legal C):
 
+<p>
 <div class="code">
 <pre>
 /* Non-conventional placement of storage specifier (extern) */
@@ -347,6 +348,7 @@ void bar(Spam (Grok)(Doh));
 
 </pre>
 </div>
+</p>
 
 <p>
 In practice, few (if any) C programmers actually write code like
@@ -360,6 +362,7 @@ is not recommended.  Even though SWIG can parse C++ class declarations,
 it ignores declarations that are decoupled from their
 original class definition (the declarations are parsed, but a lot of warning
 messages may be generated).  For example:
+<p>
 
 <div class="code">
 <pre>
@@ -369,11 +372,12 @@ int foo::bar(int) {
 }
 </pre>
 </div>
+</p>
 </li>
 
 <li>Certain advanced features of C++ such as nested classes 
-are not yet supported. Please see the section on using SWIG
-with C++ for more information.
+are not yet fully supported. Please see the <a href="SWIGPlus.html">C++ section</a>
+for more information.
 </ul>
 
 <p>
@@ -2633,6 +2637,12 @@ If you have a lot nested structure declarations, it is
 advisable to double-check them after running SWIG. Although,
 there is a good chance that they will work, you may have to
 modify the interface file in certain cases.
+</p>
+
+<p>
+Finally, note that nesting is handled differently in C++ mode, 
+see <a href="SWIGPlus.html#SWIGPlus_nested_classes">Nested classes</a>.
+</p>
 
 <H3><a name="SWIG_nn39"></a>5.5.8 Other things to note about structure wrapping</H3>
 

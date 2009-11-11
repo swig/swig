@@ -1331,7 +1331,8 @@ void Swig_symbol_remove(Node *n) {
       Setattr(symtab, symname, symnext);
       fixovername = symnext;	/* fix as symbol to remove is at head of linked list */
     } else {
-      Delattr(symtab, symname);
+      if (symname)
+	Delattr(symtab, symname);
     }
   }
   if (symnext) {

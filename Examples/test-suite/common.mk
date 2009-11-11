@@ -244,6 +244,7 @@ CPP_TEST_CASES += \
 	naturalvar \
 	nested_class \
 	nested_comment \
+	nested_workaround \
 	newobject1 \
 	null_pointer \
 	operator_overload \
