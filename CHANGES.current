@@ -1,5 +1,23 @@
 Version 1.3.41 (in progress)
 ============================
+
+2009-11-12: wsfulton
+            Fix usage of nested template classes so that compileable code is generated - the nested
+            template class is now treated like a normal nested classes that is as an opaque type
+            unless the nestedworkaround feature is used.
+
+2009-11-12: wsfulton
+            Replace SWIGWARN_PARSE_NESTED_CLASS with SWIGWARN_PARSE_NAMED_NESTED_CLASS and
+            SWIGWARN_PARSE_UNNAMED_NESTED_CLASS for named and unnamed nested classes respectively.
+
+            Named nested class ignored warnings can now be suppressed by name using %warnfilter, eg:
+
+              %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::Inner;
+
+            but clearly unnamed nested classes cannot and the global suppression is still required, eg:
+
+              #pragma SWIG nowarn=SWIGWARN_PARSE_UNNAMED_NESTED_CLASS
+
 2009-11-11: wsfulton
             Added the nestedworkaround feature as a way to use the full functionality of a nested class 
             (C++ mode only). It removes the nested class from SWIG's type information so it is as if SWIG

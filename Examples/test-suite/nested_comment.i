@@ -1,5 +1,8 @@
 %module nested_comment
 
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) s1::n;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) a::d;
+
 // this example shows a problem with 'dump_nested' (parser.y).
 
 // bug #949654

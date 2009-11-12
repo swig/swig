@@ -3645,12 +3645,30 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 		    if (nested_template <= 1) {
 		      int is_nested_template_class = $6 && GetFlag($6, "nestedtemplateclass");
 		      if (is_nested_template_class) {
+			$$ = 0;
 			/* Nested template classes would probably better be ignored like ordinary nested classes using cpp_nested, but that introduces shift/reduce conflicts */
 			if (cplus_mode == CPLUS_PUBLIC) {
-			  Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested template %s not currently supported (%s ignored)\n", Getattr($6, "kind"), Getattr($6, "name"));
+			  /* Treat the nested class/struct/union as a forward declaration until a proper nested class solution is implemented */
+			  String *kind = Getattr($6, "kind");
+			  String *name = Getattr($6, "name");
+			  $$ = new_node("template");
+			  Setattr($$,"kind",kind);
+			  Setattr($$,"name",name);
+			  Setattr($$,"sym:weak", "1");
+			  Setattr($$,"templatetype","classforward");
+			  Setattr($$,"templateparms", $3);
+			  add_symbols($$);
+
+			  if (GetFlag($$, "feature:nestedworkaround")) {
+			    Swig_symbol_remove($$);
+			    $$ = 0;
+			  } else {
+			    SWIG_WARN_NODE_BEGIN($$);
+			    Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested template %s not currently supported (%s ignored).\n", kind, name);
+			    SWIG_WARN_NODE_END($$);
+			  }
 			}
 			Delete($6);
-			$$ = 0;
 		      } else {
 			String *tname = 0;
 			int     error = 0;
@@ -4394,7 +4412,9 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		      Swig_symbol_remove($$);
 		      $$ = 0;
 		    } else {
-		      Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored).\n", $2, $3);
+		      SWIG_WARN_NODE_BEGIN($$);
+		      Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored).\n", $2, $3);
+		      SWIG_WARN_NODE_END($$);
 		    }
 		  } else if ($6.id) {
 		    /* Generate some code for a new struct */
@@ -4434,7 +4454,9 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 			Swig_symbol_remove($$);
 			$$ = 0;
 		      } else {
-			Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $2, $5.id);
+			SWIG_WARN_NODE_BEGIN($$);
+			Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $2, $5.id);
+			SWIG_WARN_NODE_END($$);
 		      }
 		    } else {
 		      /* Generate some code for a new struct */
@@ -4451,21 +4473,35 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		      add_nested(n);
 		    }
 		  } else {
-		    Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
+		    Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
 		  }
 		}
 	      }
 
-/* A  'class name : base_list { };'  declaration, always ignored */
-/*****
-     This fixes derived_nested.i, but it adds one shift/reduce. Anyway,
-     we are waiting for the nested class support.
- *****/
+/* class name : base_list { };  declaration */
+/* This adds one shift/reduce. */
+
               | storage_class cpptype idcolon COLON base_list LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
               } SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $2, $3);
+		  /* Treat the nested class/struct/union as a forward declaration until a proper nested class solution is implemented */
+		  $$ = new_node("classforward");
+		  Setfile($$,cparse_file);
+		  Setline($$,cparse_line);
+		  Setattr($$,"kind",$2);
+		  Setattr($$,"name",$3);
+		  Setattr($$,"sym:weak", "1");
+		  add_symbols($$);
+
+		  if (GetFlag($$, "feature:nestedworkaround")) {
+		    Swig_symbol_remove($$);
+		    $$ = 0;
+		  } else {
+		    SWIG_WARN_NODE_BEGIN($$);
+		    Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored).\n", $2, $3);
+		    SWIG_WARN_NODE_END($$);
+		  }
 		}
 	      }
 
@@ -4475,7 +4511,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
               } SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  Swig_warning(WARN_PARSE_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $5, $6);
+		  Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $5, $6);
 		}
 	      }
 */

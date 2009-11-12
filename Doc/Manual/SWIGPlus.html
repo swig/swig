@@ -4714,7 +4714,8 @@ The easiest thing to do is turn a blind eye to the warning that SWIG generates, 
 
 <div class="code">
 <pre>
-#pragma SWIG nowarn=SWIGWARN_PARSE_NESTED_CLASS
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::Inner;
+
 class Outer {
 public:
   class Inner {
@@ -4830,6 +4831,7 @@ This should just be a last resort for unusual corner cases now as SWIG can parse
 <p>
 <b>Compatibility Note:</b> SWIG-1.3.40 and earlier versions did not have the <tt>nestedworkaround</tt> feature
 and the generated code resulting from parsing nested classes did not always compile.
+Nested class warnings could also not be suppressed using %warnfilter.
 </p>
 
 

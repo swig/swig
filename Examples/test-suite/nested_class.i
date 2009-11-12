@@ -1,6 +1,18 @@
 %module nested_class
 
-#pragma SWIG nowarn=SWIGWARN_PARSE_NESTED_CLASS
+#pragma SWIG nowarn=SWIGWARN_PARSE_UNNAMED_NESTED_CLASS
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerStruct1;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerClass1;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerUnion1;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerClass2;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerStruct2;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerUnion2;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerClass3Name;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerStruct3Name;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerUnion3Name;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerClass4;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerStruct4;
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::InnerUnion4;
 
 %inline %{
 struct Outer {
