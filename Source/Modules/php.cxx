@@ -1684,7 +1684,7 @@ public:
 		Printf(output, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	      }
 	      Printf(output, "\t\t\tif (!class_exists($c)) {\n");
-	      Printf(output, "\t\t\t\treturn new %s($r);\n", Getattr(classLookup(d), "sym:name"));
+	      Printf(output, "\t\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
 	      Printf(output, "\t\t\t}\n");
 	      Printf(output, "\t\t\treturn new $c($r);\n");
 	    } else {

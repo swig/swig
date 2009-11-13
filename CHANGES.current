@@ -1,6 +1,10 @@
 Version 1.3.41 (in progress)
 ============================
 
+2009-11-13: olly
+	    [php] Fix place where class prefix (as specified with -prefix)
+	    wasn't being used.  Patch from gverbruggen in SF#2892647.
+
 2009-11-12: wsfulton
             Fix usage of nested template classes so that compileable code is generated - the nested
             template class is now treated like a normal nested classes that is as an opaque type
