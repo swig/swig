@@ -1429,6 +1429,33 @@ static void default_arguments(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * nested_forward_declaration()
+ * 
+ * Treat the nested class/struct/union as a forward declaration until a proper 
+ * nested class solution is implemented.
+ * ----------------------------------------------------------------------------- */
+
+static Node *nested_forward_declaration(const char *kind, const char *name) {
+  Node *n = new_node("classforward");
+  Setfile(n,cparse_file);
+  Setline(n,cparse_line);
+  Setattr(n,"kind", kind);
+  Setattr(n,"name", name);
+  Setattr(n,"sym:weak", "1");
+  add_symbols(n);
+
+  if (GetFlag(n, "feature:nestedworkaround")) {
+    Swig_symbol_remove(n);
+    n = 0;
+  } else {
+    SWIG_WARN_NODE_BEGIN(n);
+    Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, name);
+    SWIG_WARN_NODE_END(n);
+  }
+  return n;
+}
+
+/* -----------------------------------------------------------------------------
  * tag_nodes()
  *
  * Used by the parser to mark subtypes with extra information.
@@ -4399,23 +4426,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (cparse_cplusplus) {
-		    /* Treat the nested class/struct/union as a forward declaration until a proper nested class solution is implemented */
-		    $$ = new_node("classforward");
-		    Setfile($$,cparse_file);
-		    Setline($$,cparse_line);
-		    Setattr($$,"kind",$2);
-		    Setattr($$,"name",$3);
-		    Setattr($$,"sym:weak", "1");
-		    add_symbols($$);
-
-		    if (GetFlag($$, "feature:nestedworkaround")) {
-		      Swig_symbol_remove($$);
-		      $$ = 0;
-		    } else {
-		      SWIG_WARN_NODE_BEGIN($$);
-		      Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored).\n", $2, $3);
-		      SWIG_WARN_NODE_END($$);
-		    }
+		    $$ = nested_forward_declaration($2, $3);
 		  } else if ($6.id) {
 		    /* Generate some code for a new struct */
 		    Nested *n = (Nested *) malloc(sizeof(Nested));
@@ -4441,23 +4452,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if ($5.id) {
 		    if (cparse_cplusplus) {
-		      /* Treat the nested class/struct/union as a forward declaration until a proper nested class solution is implemented */
-		      $$ = new_node("classforward");
-		      Setfile($$,cparse_file);
-		      Setline($$,cparse_line);
-		      Setattr($$,"kind",$2);
-		      Setattr($$,"name",$5.id);
-		      Setattr($$,"sym:weak", "1");
-		      add_symbols($$);
-
-		      if (GetFlag($$, "feature:nestedworkaround")) {
-			Swig_symbol_remove($$);
-			$$ = 0;
-		      } else {
-			SWIG_WARN_NODE_BEGIN($$);
-			Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $2, $5.id);
-			SWIG_WARN_NODE_END($$);
-		      }
+		      $$ = nested_forward_declaration($2, $5.id);
 		    } else {
 		      /* Generate some code for a new struct */
 		      Nested *n = (Nested *) malloc(sizeof(Nested));
@@ -4485,23 +4480,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
               } SEMI {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  /* Treat the nested class/struct/union as a forward declaration until a proper nested class solution is implemented */
-		  $$ = new_node("classforward");
-		  Setfile($$,cparse_file);
-		  Setline($$,cparse_line);
-		  Setattr($$,"kind",$2);
-		  Setattr($$,"name",$3);
-		  Setattr($$,"sym:weak", "1");
-		  add_symbols($$);
-
-		  if (GetFlag($$, "feature:nestedworkaround")) {
-		    Swig_symbol_remove($$);
-		    $$ = 0;
-		  } else {
-		    SWIG_WARN_NODE_BEGIN($$);
-		    Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored).\n", $2, $3);
-		    SWIG_WARN_NODE_END($$);
-		  }
+		  $$ = nested_forward_declaration($2, $3);
 		}
 	      }
 
