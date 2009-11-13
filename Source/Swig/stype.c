@@ -525,7 +525,13 @@ String *SwigType_namestr(const SwigType *t) {
   Putc(' ', r);
   Putc('>', r);
   suffix = SwigType_templatesuffix(t);
-  Append(r, suffix);
+  if (Len(suffix) > 0) {
+    String *suffix_namestr = SwigType_namestr(suffix);
+    Append(r, suffix_namestr);
+    Delete(suffix_namestr);
+  } else {
+    Append(r, suffix);
+  }
   Delete(suffix);
   Delete(p);
   return r;
