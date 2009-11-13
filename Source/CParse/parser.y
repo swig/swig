@@ -859,6 +859,12 @@ static String *remove_block(Node *kw, const String *inputcode) {
 
 static Node *nscope = 0;
 static Node *nscope_inner = 0;
+
+/* Remove the scope prefix from cname and return the base name without the prefix.
+ * The scopes specified in the prefix are found, or created in the current namespace.
+ * So ultimately the scope is changed to that required for the base name.
+ * For example AA::BB::CC as input returns CC and creates the namespace AA then inner 
+ * namespace BB in the current scope. If no scope separator (::) in the input, then nothing happens! */
 static String *resolve_node_scope(String *cname) {
   Symtab *gscope = 0;
   nscope = 0;
@@ -2848,10 +2854,10 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                               Swig_symbol_setscope(csyms);
                             }
 
-                            /* Merge in addmethods for this class */
+                            /* Merge in %extend methods for this class */
 
 			    /* !!! This may be broken.  We may have to add the
-			       addmethods at the beginning of the class */
+			       %extend methods at the beginning of the class */
 
                             if (extendhash) {
                               String *stmp = 0;
