@@ -1070,25 +1070,25 @@ With each is the cast that can be used in the debugger to extract the underlying
 <p>
 <li>String *s;</li>
 <br>
-(String *)((DohBase *)s)-&gt;data
+(struct String *)((DohBase *)s)-&gt;data
 <br>
 The underlying char * string can be displayed with
 <br>
-((String *)((DohBase *)s)-&gt;data)-&gt;str
+(*(struct String *)(((DohBase *)s)-&gt;data)).str
 
 <p>
 <li>SwigType *t;</li>
 <br>
-(String *)((DohBase *)t)-&gt;data
+(struct String *)((DohBase *)t)-&gt;data
 <br>
 The underlying char * string can be displayed with
 <br>
-((String *)((DohBase *)t)-&gt;data)-&gt;str
+(*(struct String *)(((DohBase *)t)-&gt;data)).str
 
 <p>
-<li>String_or_char *sc;</li>
+<li>const_String_or_char_ptr sc;</li>
 Either <br>
-((String *)((DohBase *)sc)-&gt;data)-&gt;str
+(*(struct String *)(((DohBase *)sc)-&gt;data)).str
 <br> or <br>
 (char *)sc
 <br> will work depending on whether the underlying type is really a String * or char *.
