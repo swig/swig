@@ -1,6 +1,9 @@
 Version 1.3.41 (in progress)
 ============================
 
+2009-11-14: wsfulton
+            Fix #2310483 - function pointer typedef within extern "C" block.
+
 2009-11-13: wsfulton
             Fix usage of nested template classes within templated classes so that compileable code 
             is generated.
