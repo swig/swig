@@ -1,4 +1,7 @@
 %module namespace_union
+
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) SpatialIndex::Variant::val;
+
 %inline %{
 namespace SpatialIndex 
 { 

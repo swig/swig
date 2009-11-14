@@ -80,7 +80,6 @@ CPP_TEST_BROKEN += \
 	exception_partial_info \
 	extend_variable \
 	li_std_vector_ptr \
-	namespace_union \
 	nested_structs \
 	overload_complicated \
 	template_default_pointer \
@@ -241,6 +240,7 @@ CPP_TEST_CASES += \
 	namespace_template \
 	namespace_typedef_class \
 	namespace_typemap \
+	namespace_union \
 	namespace_virtual_method \
 	naturalvar \
 	nested_class \
