@@ -1,6 +1,10 @@
 Version 1.3.41 (in progress)
 ============================
 
+2009-11-15: wsfulton
+            Fix #1960977 - Syntax error parsing derived nested class declaration and member
+            variable instance.
+
 2009-11-14: wsfulton
             Fix #2310483 - function pointer typedef within extern "C" block.
 

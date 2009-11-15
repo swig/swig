@@ -4483,7 +4483,7 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 /* This adds one shift/reduce. */
 
               | storage_class cpptype idcolon COLON base_list LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
-              } SEMI {
+              } cpp_opt_declarators {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  $$ = nested_forward_declaration($2, $3);
