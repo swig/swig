@@ -3546,7 +3546,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Classprefix = NewStringEmpty();
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-             } cpp_members RBRACE declarator c_decl_tail {
+             } cpp_members RBRACE declarator initializer c_decl_tail {
 	       String *unnamed;
 	       Node *n;
 	       Classprefix = 0;
@@ -3564,8 +3564,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Setattr(n,"decl",$7.type);
 	       Setattr(n,"parms",$7.parms);
 	       Setattr(n,"storage",$1);
-	       if ($8) {
-		 Node *p = $8;
+	       if ($9) {
+		 Node *p = $9;
 		 set_nextSibling(n,p);
 		 while (p) {
 		   String *type = Copy(unnamed);
@@ -3635,12 +3635,12 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
              ;
 
 cpp_opt_declarators :  SEMI { $$ = 0; }
-                    |  declarator c_decl_tail {
+                    |  declarator initializer c_decl_tail {
                         $$ = new_node("cdecl");
                         Setattr($$,"name",$1.id);
                         Setattr($$,"decl",$1.type);
                         Setattr($$,"parms",$1.parms);
-			set_nextSibling($$,$2);
+			set_nextSibling($$,$3);
                     }
                     ;
 /* ------------------------------------------------------------

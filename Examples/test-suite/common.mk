@@ -303,6 +303,7 @@ CPP_TEST_CASES += \
 	static_array_member \
 	static_const_member \
 	static_const_member_2 \
+	struct_initialization_cpp \
 	struct_value \
 	template \
 	template_arg_replace \
@@ -470,6 +471,7 @@ C_TEST_CASES += \
 	sizeof_pointer \
 	sneaky1 \
 	struct_rename \
+	struct_initialization \
 	typedef_struct \
 	typemap_subst \
 	union_parameter \
