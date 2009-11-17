@@ -48,7 +48,8 @@ protected:
   String *proxy_global_constants_code;
 
   enum EnumFeature { SimpleEnum, ProperEnum };
-
+  enum ConstFeature { CStyleConstants, ObjcStyleConstants, ObjcStyleWrapConstants };
+	
 public:
    OBJC():empty_string(NewString("")),
       swig_types_hash(NULL),
@@ -1349,6 +1350,27 @@ public:
     return enum_feature;
   }
 
+	/*----------------------------------------------------------------------
+	 * decodeConstantFeature()
+	 * Decode the possible constant features, which are one of:
+	 *   %objcconst(cstyle) - default
+	 *   %objcconst(objcstyle)
+	 *   %objcconst(objcstylewrap)
+	 *--------------------------------------------------------------------*/
+	
+	ConstFeature decodeConstFeature(Node *n) {
+		ConstFeature const_feature = CStyleConstants;
+		String *feature = Getattr(n, "feature:objc:const");
+		if (feature) {
+			if (Cmp(feature, "cstyle") == 0)
+				const_feature = CStyleConstants;
+			else if (Cmp(feature, "objcstyle") == 0)
+				const_feature = ObjcStyleConstants;
+			else if (Cmp(feature, "objcstylewrap") == 0)
+				const_feature = ObjcStyleWrapConstants;
+		}
+		return const_feature;
+	}
 
   /* -----------------------------------------------------------------------
    * enumValue()
@@ -1554,9 +1576,9 @@ public:
 
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
-    // The %objcconst feature determines how the constant value is obtained
-    int const_feature_flag = GetFlag(n, "feature:objc:const");
-
+    // The %objcconst feature determines how the contants are represented (C-Style or Objc-Style) and how the constant value is obtained
+	ConstFeature const_feature_flag = decodeConstFeature(n);
+	  
     /* Adjust the enum type for the Swig_typemap_lookup.
      * We want the same objctype typemap for all the enum items so we use the enum type (parent node). */
     if (is_enum_item) {
@@ -1565,7 +1587,7 @@ public:
     }
 
     /* Attach the non-standard typemaps to the parameter list. */
-    Swig_typemap_attach_parms("objctype", l, NULL);
+	Swig_typemap_attach_parms("objctype", l, NULL);
 
     /* Get Objective-C return types */
     bool classname_substituted_flag = false;
@@ -1578,31 +1600,53 @@ public:
     }
 
 
-    // Add the stripped quotes back in
-    String *new_value = NewString("");
-    Swig_save("constantWrapper", n, "value", NIL);
-    if (SwigType_type(t) == T_STRING) {
-      Printf(new_value, "@\"%s\"", Copy(Getattr(n, "value")));
-      Setattr(n, "value", new_value);
-    } else if (SwigType_type(t) == T_CHAR) {
-      Printf(new_value, "\'%s\'", Copy(Getattr(n, "value")));	//character pointer ??
-      Setattr(n, "value", new_value);
-    }
-
-    const String *outattributes = Getattr(n, "tmap:objctype:outattributes");
-    if (outattributes)
-      Printf(constants_code, "  %s\n", outattributes);
-    const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
-
-    Printf(constants_code, "%s %s %s = ", (const_feature_flag ? "const" : "static"), return_type, itemname);
+	  const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
+	  
+	  if(const_feature_flag == CStyleConstants) {
+		  Printf(constants_code,"%s %s=", SwigType_str(t, 0), itemname);
+	  }
+	  else if(const_feature_flag == ObjcStyleConstants) {
+		  Printf(constants_code, "%s %s %s= ", "const", return_type, itemname);
+	  }
+	  else {
+		  Printf(constants_code, "%s %s %s= ", "static", return_type, itemname);
+	  }
+	  
 
     // Check for the %objcconstvalue feature
     String *value = Getattr(n, "feature:objc:constvalue");
 
     if (value) {
       Printf(constants_code, "%s;\n", value);
-    } else if (!const_feature_flag) {
-      // Default enum and constant handling will work with any type of C constant and initialises the Objective-C variable from C through a method call.
+		
+    } else if (const_feature_flag == CStyleConstants) {
+		if (SwigType_type(t) == T_STRING) {
+			Printf(constants_code, "\"%s\";\n", Getattr(n, "value"));
+		} else if (SwigType_type(t) == T_CHAR) {
+			Printf(constants_code, "\'%s\';\n", Getattr(n, "value"));
+		}
+		else {
+			Printf(constants_code, "%s;\n", Getattr(n, "value"));
+		}
+
+	} else if (const_feature_flag == ObjcStyleConstants) {
+		// This constant handling will use the C syntax to make a true Objective-C constant and hope that it compiles as Objective-C code
+		// Add the stripped quotes back in
+		String *new_value = NewString("");
+		Swig_save("constantWrapper", n, "value", NIL);
+		if (SwigType_type(t) == T_STRING) {
+			Printf(new_value, "@\"%s\"", Copy(Getattr(n, "value")));
+			Setattr(n, "value", new_value);
+		} else if (SwigType_type(t) == T_CHAR) {
+			Printf(new_value, "\'%s\'", Copy(Getattr(n, "value")));	//character pointer in obj-c ??
+			Setattr(n, "value", new_value);
+		}
+	
+		Printf(constants_code, "%s;\n", Getattr(n, "value"));
+		Delete(new_value);
+	} else {
+		
+      // This constant/enum handling will work with any type of C constant and initializes the Objective-C variable from C through a method call.
 
       if (classname_substituted_flag) {
 	if (SwigType_isenum(t)) {
@@ -1617,17 +1661,13 @@ public:
 	Printf(constants_code, "%s();\n", Swig_name_get(ocppfunctname));
 		  Delete(ocppfunctname);
 	  }
-
       // Each constant and enum value is wrapped with a separate function call
       SetFlag(n, "feature:immutable");
       enum_constant_flag = true;
       variableWrapper(n);
       enum_constant_flag = false;
-    } else {
-      // Alternative constant handling will use the C syntax to make a true Objective-C constant and hope that it compiles as Objective-C code
-      Printf(constants_code, "%s;\n", Getattr(n, "value"));
-    }
-
+    } 
+	  
     // Emit the generated code to appropriate place
     // Enums only emit the intermediate methods, so no proxy wrapper methods needed
     if (!is_enum_item) {
@@ -1641,7 +1681,6 @@ public:
     }
     // Cleanup
     Swig_restore(n);
-    Delete(new_value);
     Delete(return_type);
     Delete(constants_code);
     return SWIG_OK;

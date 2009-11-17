@@ -1,11 +1,11 @@
 # see top-level Makefile.in
 callback
 class
-constants
+#constants
 enum
 extend
-funcptr
-native
+#funcptr
+#native
 pointer
 reference
 simple

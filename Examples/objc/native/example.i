@@ -50,7 +50,4 @@ char *point_toString1(_Point *p) {
 _Point *point_create(int x, int y);
 char *point_toString1(_Point *p);
 
-/* give access to free() for memory cleanup of the malloc'd _Point */
-extern void free(void *memblock);
-
 %native(point_toString2) char *point_toString2(_Point *p);
