@@ -3132,7 +3132,7 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		  add_symbols($$);       /* Add to tag space */
 		  add_symbols($5);       /* Add enum values to id space */
                }
-               | storage_class ENUM ename LBRACE enumlist RBRACE declarator c_decl_tail {
+               | storage_class ENUM ename LBRACE enumlist RBRACE declarator initializer c_decl_tail {
 		 Node *n;
 		 SwigType *ty = 0;
 		 String   *unnamed = 0;
@@ -3174,8 +3174,8 @@ c_enum_decl : storage_class ENUM ename LBRACE enumlist RBRACE SEMI {
 		   SetFlag(n,"unnamedinstance");
 		   Delete(cty);
                  }
-		 if ($8) {
-		   Node *p = $8;
+		 if ($9) {
+		   Node *p = $9;
 		   set_nextSibling(n,p);
 		   while (p) {
 		     SwigType *cty = Copy(ty);
