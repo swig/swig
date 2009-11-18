@@ -104,6 +104,11 @@ struct Outer {
   InnerStruct4* getInnerStruct4() { return 0; }
   InnerClass4* getInnerClass4() { return 0; }
   InnerUnion4* getInnerUnion4() { return 0; }
+
+  ///////////////////////////////////////////
+  struct InnerMultiple {
+    Integer x;
+  } MultipleInstance1, MultipleInstance2;
 };
 
 %}

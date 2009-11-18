@@ -985,18 +985,16 @@ static String *resolve_node_scope(String *cname) {
  
 
 
-
-
 /* Structures for handling code fragments built for nested classes */
 
 typedef struct Nested {
   String   *code;        /* Associated code fragment */
   int      line;         /* line number where it starts */
-  char     *name;        /* Name associated with this nested class */
-  char     *kind;        /* Kind of class */
+  const char *name;      /* Name associated with this nested class */
+  const char *kind;      /* Kind of class */
   int      unnamed;      /* unnamed class */
   SwigType *type;        /* Datatype associated with the name */
-  struct Nested   *next;        /* Next code fragment in list */
+  struct Nested   *next; /* Next code fragment in list */
 } Nested;
 
 /* Some internal variables for saving nested class information */
@@ -1006,13 +1004,94 @@ static Nested      *nested_list = 0;
 /* Add a function to the nested list */
 
 static void add_nested(Nested *n) {
-  Nested *n1;
-  if (!nested_list) nested_list = n;
-  else {
-    n1 = nested_list;
-    while (n1->next) n1 = n1->next;
+  if (!nested_list) {
+    nested_list = n;
+  } else {
+    Nested *n1 = nested_list;
+    while (n1->next)
+      n1 = n1->next;
     n1->next = n;
   }
+}
+
+/* -----------------------------------------------------------------------------
+ * nested_new_struct()
+ *
+ * Nested struct handling creates a global struct from the nested struct.
+ * ----------------------------------------------------------------------------- */
+
+static void nested_new_struct(Node *cpp_opt_declarators, const char *kind, String *struct_code) {
+  String *name;
+  String *decl;
+
+  /* Create a new global struct declaration which is just a copy of the nested struct */
+  Nested *nested = (Nested *) malloc(sizeof(Nested));
+  Nested *n = nested;
+
+  name = Getattr(cpp_opt_declarators, "name");
+  decl = Getattr(cpp_opt_declarators, "decl");
+  n->code = NewStringEmpty();
+  Printv(n->code, "typedef ", kind, " ", struct_code, " $classname_", name, ";\n", NIL);
+  n->name = Swig_copy_string(Char(name));
+  n->line = cparse_start_line;
+  n->type = NewStringEmpty();
+  n->kind = kind;
+  n->unnamed = 0;
+  SwigType_push(n->type, decl);
+  n->next = 0;
+
+  /* Repeat for any multiple instances of the nested struct */
+  {
+    Node *p = cpp_opt_declarators;
+    p = nextSibling(p);
+    while (p) {
+      Nested *nn = (Nested *) malloc(sizeof(Nested));
+
+      name = Getattr(p, "name");
+      decl = Getattr(p, "decl");
+      nn->code = NewStringEmpty();
+      Printv(nn->code, "typedef ", kind, " ", struct_code, " $classname_", name, ";\n", NIL);
+      nn->name = Swig_copy_string(Char(name));
+      nn->line = cparse_start_line;
+      nn->type = NewStringEmpty();
+      nn->kind = kind;
+      nn->unnamed = 0;
+      SwigType_push(nn->type, decl);
+      nn->next = 0;
+      n->next = nn;
+      n = nn;
+      p = nextSibling(p);
+    }
+  }
+
+  add_nested(nested);
+}
+
+/* -----------------------------------------------------------------------------
+ * nested_forward_declaration()
+ * 
+ * Treat the nested class/struct/union as a forward declaration until a proper 
+ * nested class solution is implemented.
+ * ----------------------------------------------------------------------------- */
+
+static Node *nested_forward_declaration(const char *kind, const char *name) {
+  Node *n = new_node("classforward");
+  Setfile(n,cparse_file);
+  Setline(n,cparse_line);
+  Setattr(n,"kind", kind);
+  Setattr(n,"name", name);
+  Setattr(n,"sym:weak", "1");
+  add_symbols(n);
+
+  if (GetFlag(n, "feature:nestedworkaround")) {
+    Swig_symbol_remove(n);
+    n = 0;
+  } else {
+    SWIG_WARN_NODE_BEGIN(n);
+    Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, name);
+    SWIG_WARN_NODE_END(n);
+  }
+  return n;
 }
 
 /* Strips C-style and C++-style comments from string in-place. */
@@ -1435,33 +1514,6 @@ static void default_arguments(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * nested_forward_declaration()
- * 
- * Treat the nested class/struct/union as a forward declaration until a proper 
- * nested class solution is implemented.
- * ----------------------------------------------------------------------------- */
-
-static Node *nested_forward_declaration(const char *kind, const char *name) {
-  Node *n = new_node("classforward");
-  Setfile(n,cparse_file);
-  Setline(n,cparse_line);
-  Setattr(n,"kind", kind);
-  Setattr(n,"name", name);
-  Setattr(n,"sym:weak", "1");
-  add_symbols(n);
-
-  if (GetFlag(n, "feature:nestedworkaround")) {
-    Swig_symbol_remove(n);
-    n = 0;
-  } else {
-    SWIG_WARN_NODE_BEGIN(n);
-    Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, name);
-    SWIG_WARN_NODE_END(n);
-  }
-  return n;
-}
-
-/* -----------------------------------------------------------------------------
  * tag_nodes()
  *
  * Used by the parser to mark subtypes with extra information.
@@ -1609,7 +1661,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <str>      pragma_arg;
 %type <loc>      includetype;
 %type <type>     pointer primitive_type;
-%type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator typemap_parameter_declarator nested_decl;
+%type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator typemap_parameter_declarator;
 %type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate stringbrace stringbracesemi;
@@ -4427,56 +4479,40 @@ cpp_protection_decl : PUBLIC COLON {
 
 /* struct sname { } id; or struct sname { }; declaration */
 
-cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
-	      } nested_decl SEMI {
+cpp_nested :   storage_class cpptype ID LBRACE {
+		cparse_start_line = cparse_line; skip_balanced('{','}');
+		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
+	      } cpp_opt_declarators {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (cparse_cplusplus) {
 		    $$ = nested_forward_declaration($2, $3);
-		  } else if ($6.id) {
-		    /* Generate some code for a new struct */
-		    Nested *n = (Nested *) malloc(sizeof(Nested));
-		    n->code = NewStringEmpty();
-		    Printv(n->code, "typedef ", $2, " ", Char(scanner_ccode), " $classname_", $6.id, ";\n", NIL);
-		    n->name = Swig_copy_string($6.id);
-		    n->line = cparse_start_line;
-		    n->type = NewStringEmpty();
-		    n->kind = $2;
-		    n->unnamed = 0;
-		    SwigType_push(n->type, $6.type);
-		    n->next = 0;
-		    add_nested(n);
+		  } else if ($6) {
+		    nested_new_struct($6, $2, $<str>5);
 		  }
 		}
+		Delete($<str>5);
 	      }
 
 /* struct { } id; or struct { }; declaration */
 
-              | storage_class cpptype LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
-              } nested_decl SEMI {
+              | storage_class cpptype LBRACE {
+		cparse_start_line = cparse_line; skip_balanced('{','}');
+		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
+	      } cpp_opt_declarators {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  if ($5.id) {
+		  if ($5) {
 		    if (cparse_cplusplus) {
-		      $$ = nested_forward_declaration($2, $5.id);
+		      $$ = nested_forward_declaration($2, Getattr($5, "name"));
 		    } else {
-		      /* Generate some code for a new struct */
-		      Nested *n = (Nested *) malloc(sizeof(Nested));
-		      n->code = NewStringEmpty();
-		      Printv(n->code, "typedef ", $2, " " , Char(scanner_ccode), " $classname_", $5.id, ";\n",NIL);
-		      n->name = Swig_copy_string($5.id);
-		      n->line = cparse_start_line;
-		      n->type = NewStringEmpty();
-		      n->kind = $2;
-		      n->unnamed = 1;
-		      SwigType_push(n->type,$5.type);
-		      n->next = 0;
-		      add_nested(n);
+		      nested_new_struct($5, $2, $<str>4);
 		    }
 		  } else {
 		    Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
 		  }
 		}
+		Delete($<str>4);
 	      }
 
 /* class name : base_list { };  declaration */
@@ -4501,11 +4537,6 @@ cpp_nested :   storage_class cpptype ID LBRACE { cparse_start_line = cparse_line
 	      }
 */
               ;
-
-nested_decl   : declarator { $$ = $1;}
-              | empty { $$.id = 0; }
-              ;
-
 
 /* These directives can be included inside a class definition */
 

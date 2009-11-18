@@ -80,7 +80,6 @@ CPP_TEST_BROKEN += \
 	exception_partial_info \
 	extend_variable \
 	li_std_vector_ptr \
-	nested_structs \
 	overload_complicated \
 	template_default_pointer \
 	template_expr
@@ -461,6 +460,7 @@ C_TEST_CASES += \
 	long_long \
 	name \
 	nested \
+	nested_structs \
 	newobject2 \
 	overload_extend \
 	overload_extendc \
