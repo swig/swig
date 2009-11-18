@@ -1021,7 +1021,6 @@ static void add_nested(Nested *n) {
  * ----------------------------------------------------------------------------- */
 
 static void nested_new_struct(Node *cpp_opt_declarators, const char *kind, String *struct_code) {
-  String *new_struct_decl;
   String *name;
   String *decl;
 
@@ -1033,11 +1032,7 @@ static void nested_new_struct(Node *cpp_opt_declarators, const char *kind, Strin
   decl = Getattr(cpp_opt_declarators, "decl");
 
   n->code = NewStringEmpty();
-  new_struct_decl = NewStringEmpty();
-  Printv(new_struct_decl, "typedef ", kind, " ", struct_code, " $classname_", name, ";\n", NIL);
-  Wrapper_pretty_print(new_struct_decl, n->code);
-  Delete(new_struct_decl);
-
+  Printv(n->code, "typedef ", kind, " ", struct_code, " $classname_", name, ";\n", NIL);
   n->name = Swig_copy_string(Char(name));
   n->line = cparse_start_line;
   n->type = NewStringEmpty();
@@ -1056,12 +1051,8 @@ static void nested_new_struct(Node *cpp_opt_declarators, const char *kind, Strin
       name = Getattr(p, "name");
       decl = Getattr(p, "decl");
 
-      new_struct_decl = NewStringEmpty();
       nn->code = NewStringEmpty();
-      Printv(new_struct_decl, "typedef ", kind, " ", struct_code, " $classname_", name, ";\n", NIL);
-      Wrapper_pretty_print(new_struct_decl, n->code);
-      Delete(new_struct_decl);
-
+      Printv(nn->code, "typedef ", kind, " ", struct_code, " $classname_", name, ";\n", NIL);
       nn->name = Swig_copy_string(Char(name));
       nn->line = cparse_start_line;
       nn->type = NewStringEmpty();
@@ -1176,6 +1167,7 @@ static void strip_comments(char *string) {
 static Node *dump_nested(const char *parent) {
   Nested *n,*n1;
   Node *ret = 0;
+  Node *last = 0;
   n = nested_list;
   if (!parent) {
     nested_list = 0;
@@ -1205,20 +1197,12 @@ static Node *dump_nested(const char *parent) {
     
     add_symbols(retx);
     if (ret) {
-      set_nextSibling(retx,ret);
-      Delete(ret);
+      set_nextSibling(last, retx);
+      Delete(retx);
+    } else {
+      ret = retx;
     }
-    ret = retx;
-
-    /* Insert a forward class declaration */
-    /* Disabled: [ 597599 ] union in class: incorrect scope 
-       retx = new_node("classforward");
-       Setattr(retx,"kind",n->kind);
-       Setattr(retx,"name",Copy(n->type));
-       Setattr(retx,"sym:name", make_name(n->type,0));
-       set_nextSibling(retx,ret);
-       ret = retx; 
-    */
+    last = retx;
 
     /* Strip comments - further code may break in presence of comments. */
     strip_comments(Char(n->code));
@@ -1267,17 +1251,18 @@ static Node *dump_nested(const char *parent) {
       }
     }
     {
-      Node *head = new_node("insert");
-      String *code = NewStringf("\n%s\n",n->code);
-      Setattr(head,"code", code);
+      Node *newnode = new_node("insert");
+      String *code = NewStringEmpty();
+      Wrapper_pretty_print(n->code, code);
+      Setattr(newnode,"code", code);
       Delete(code);
-      set_nextSibling(head,ret);
-      Delete(ret);      
-      ret = head;
+      set_nextSibling(last, newnode);
+      Delete(newnode);      
+      last = newnode;
     }
       
     /* Dump the code to the scanner */
-    start_inline(Char(n->code),n->line);
+    start_inline(Char(Getattr(last, "code")),n->line);
 
     n1 = n->next;
     Delete(n->code);
