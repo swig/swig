@@ -1017,10 +1017,21 @@ static void add_nested(Nested *n) {
 /* -----------------------------------------------------------------------------
  * nested_new_struct()
  *
- * Nested struct handling creates a global struct from the nested struct.
+ * Nested struct handling for C code only creates a global struct from the nested struct.
+ *
+ * Nested structure. This is a sick "hack". If we encounter
+ * a nested structure, we're going to grab the text of its definition and
+ * feed it back into the scanner.  In the meantime, we need to grab
+ * variable declaration information and generate the associated wrapper
+ * code later.  Yikes!
+ *
+ * This really only works in a limited sense.   Since we use the
+ * code attached to the nested class to generate both C code
+ * it can't have any SWIG directives in it.  It also needs to be parsable
+ * by SWIG or this whole thing is going to puke.
  * ----------------------------------------------------------------------------- */
 
-static void nested_new_struct(Node *cpp_opt_declarators, const char *kind, String *struct_code) {
+static void nested_new_struct(const char *kind, String *struct_code, Node *cpp_opt_declarators) {
   String *name;
   String *decl;
 
@@ -1072,28 +1083,76 @@ static void nested_new_struct(Node *cpp_opt_declarators, const char *kind, Strin
 /* -----------------------------------------------------------------------------
  * nested_forward_declaration()
  * 
+ * Nested struct handling for C++ code only.
+ *
  * Treat the nested class/struct/union as a forward declaration until a proper 
  * nested class solution is implemented.
  * ----------------------------------------------------------------------------- */
 
-static Node *nested_forward_declaration(const char *kind, const char *name) {
-  Node *n = new_node("classforward");
-  Setfile(n,cparse_file);
-  Setline(n,cparse_line);
-  Setattr(n,"kind", kind);
-  Setattr(n,"name", name);
-  Setattr(n,"sym:weak", "1");
-  add_symbols(n);
+static Node *nested_forward_declaration(const char *storage, const char *kind, String *sname, const char *name, Node *cpp_opt_declarators) {
+  Node *nn = 0;
+  int warned = 0;
 
-  if (GetFlag(n, "feature:nestedworkaround")) {
-    Swig_symbol_remove(n);
-    n = 0;
-  } else {
-    SWIG_WARN_NODE_BEGIN(n);
-    Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, name);
-    SWIG_WARN_NODE_END(n);
+  if (sname) {
+    /* Add forward declaration of the nested type */
+    Node *n = new_node("classforward");
+    Setfile(n, cparse_file);
+    Setline(n, cparse_line);
+    Setattr(n, "kind", kind);
+    Setattr(n, "name", sname);
+    Setattr(n, "storage", storage);
+    Setattr(n, "sym:weak", "1");
+    add_symbols(n);
+    nn = n;
   }
-  return n;
+
+  /* Add any variable instances. Also add in any further typedefs of the nested type.
+     Note that anonymous typedefs (eg typedef struct {...} a, b;) are treated as class forward declarations */
+  if (cpp_opt_declarators) {
+    int storage_typedef = (storage && (strcmp(storage, "typedef") == 0));
+    int variable_of_anonymous_type = !sname && !storage_typedef;
+    if (!variable_of_anonymous_type) {
+      int anonymous_typedef = !sname && (storage && (strcmp(storage, "typedef") == 0));
+      Node *n = cpp_opt_declarators;
+      SwigType *type = NewString(name);
+      while (n) {
+	Setattr(n, "type", type);
+	Setattr(n, "storage", storage);
+	if (anonymous_typedef) {
+	  Setattr(n, "nodeType", "classforward");
+	  Setattr(n, "sym:weak", "1");
+	}
+	n = nextSibling(n);
+      }
+      Delete(type);
+      add_symbols(cpp_opt_declarators);
+
+      if (nn) {
+	set_nextSibling(nn, cpp_opt_declarators);
+      } else {
+	nn = cpp_opt_declarators;
+      }
+    }
+  }
+
+  if (nn && Equal(nodeType(nn), "classforward")) {
+    Node *n = nn;
+    if (GetFlag(n, "feature:nestedworkaround")) {
+      Swig_symbol_remove(n);
+      nn = 0;
+      warned = 1;
+    } else {
+      SWIG_WARN_NODE_BEGIN(n);
+      Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, sname ? sname : name);
+      SWIG_WARN_NODE_END(n);
+      warned = 1;
+    }
+  }
+
+  if (!warned)
+    Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", kind);
+
+  return nn;
 }
 
 /* Strips C-style and C++-style comments from string in-place. */
@@ -4460,67 +4519,64 @@ cpp_protection_decl : PUBLIC COLON {
               ;
 
 
-/* ----------------------------------------------------------------------
-   Nested structure.    This is a sick "hack".   If we encounter
-   a nested structure, we're going to grab the text of its definition and
-   feed it back into the scanner.  In the meantime, we need to grab
-   variable declaration information and generate the associated wrapper
-   code later.  Yikes!
+/* ------------------------------------------------------------
+   Named nested structs:
+   struct sname { };
+   struct sname { } id;
+   struct sname : bases { };
+   struct sname : bases { } id;
+   typedef sname struct { } td;
+   typedef sname struct : bases { } td;
 
-   This really only works in a limited sense.   Since we use the
-   code attached to the nested class to generate both C/C++ code,
-   it can't have any SWIG directives in it.  It also needs to be parsable
-   by SWIG or this whole thing is going to puke.
-   ---------------------------------------------------------------------- */
+   Adding inheritance, ie replacing 'ID' with 'idcolon inherit' 
+   added one shift/reduce
+   ------------------------------------------------------------ */
 
-/* struct sname { } id; or struct sname { }; declaration */
-
-cpp_nested :   storage_class cpptype ID LBRACE {
+cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
 		cparse_start_line = cparse_line; skip_balanced('{','}');
 		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
 	      } cpp_opt_declarators {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (cparse_cplusplus) {
-		    $$ = nested_forward_declaration($2, $3);
-		  } else if ($6) {
-		    nested_new_struct($6, $2, $<str>5);
+		    $$ = nested_forward_declaration($1, $2, $3, $3, $7);
+		  } else if ($7) {
+		    nested_new_struct($2, $<str>6, $7);
 		  }
 		}
-		Delete($<str>5);
+		Delete($<str>6);
 	      }
 
-/* struct { } id; or struct { }; declaration */
+/* ------------------------------------------------------------
+   Unnamed/anonymous nested structs:
+   struct { };
+   struct { } id;
+   struct : bases { };
+   struct : bases { } id;
+   typedef struct { } td;
+   typedef struct : bases { } td;
+   ------------------------------------------------------------ */
 
-              | storage_class cpptype LBRACE {
+              | storage_class cpptype inherit LBRACE {
 		cparse_start_line = cparse_line; skip_balanced('{','}');
 		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
 	      } cpp_opt_declarators {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
-		  if ($5) {
-		    if (cparse_cplusplus) {
-		      $$ = nested_forward_declaration($2, Getattr($5, "name"));
-		    } else {
-		      nested_new_struct($5, $2, $<str>4);
-		    }
+		  if (cparse_cplusplus) {
+		    const char *name = $6 ? Getattr($6, "name") : 0;
+		    $$ = nested_forward_declaration($1, $2, 0, name, $6);
 		  } else {
-		    Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
+		    if ($6) {
+		      nested_new_struct($2, $<str>5, $6);
+		    } else {
+		      Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
+		    }
 		  }
 		}
-		Delete($<str>4);
+		Delete($<str>5);
 	      }
 
-/* class name : base_list { };  declaration */
-/* This adds one shift/reduce. */
-
-              | storage_class cpptype idcolon COLON base_list LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
-              } cpp_opt_declarators {
-	        $$ = 0;
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  $$ = nested_forward_declaration($2, $3);
-		}
-	      }
 
 /* This unfortunately introduces 4 shift/reduce conflicts, so instead the somewhat hacky nested_template is used for ignore nested template classes. */
 /*

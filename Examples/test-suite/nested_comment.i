@@ -1,26 +1,25 @@
 %module nested_comment
 
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) s1::n;
-%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) a::d;
+#pragma SWIG nowarn=SWIGWARN_PARSE_UNNAMED_NESTED_CLASS
 
 // this example shows a problem with 'dump_nested' (parser.y).
 
 // bug #949654
 %inline %{
-typedef struct s1 {
-union {
-int fsc; /* genie structure hiding - Conductor
-*/
-int fso; /* genie structure hiding - FSOptions
-*/
-struct {
-double *vals;
-int size;
-} vector_val; /* matrix values are mainly used
-in rlgc models */
-char *name;
-} n ;
-} s2; 
+  typedef struct s1 {
+    union {
+      int fsc; /* genie structure hiding - Conductor
+                */
+      int fso; /* genie structure hiding - FSOptions
+                */
+      struct {
+        double *vals;
+        int size;
+      } vector_val; /* matrix values are mainly used
+                       in rlgc models */
+      char *name;
+    } n ;
+  } s2; 
 %}
 
 // comment in nested struct

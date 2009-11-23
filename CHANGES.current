@@ -1,6 +1,12 @@
 Version 1.3.41 (in progress)
 ============================
 
+2009-11-23: wsfulton
+            C++ nested typedef classes can now be handled too, for example:
+              struct Outer {
+                typedef Foo { } FooTypedef1, FooTypedef2;
+              };
+
 2009-11-18: wsfulton
             The wrappers for C nested structs are now generated in the same order as declared 
             in the parsed code.
