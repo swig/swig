@@ -1245,6 +1245,26 @@ is rather esoteric--there's little practical reason to write a typemap quite lik
 to confuse your coworkers even more.
 </p>
 
+<p>
+As a point of clarification, it is worth emphasizing that typedef matching is a typedef <b>reduction</b> process only, that is, SWIG does not search for every single possible typedef.
+Given a type in a declaration, it will only reduce the type, it won't build it up looking for typedefs.
+For example, given the type <tt>Struct</tt>, the typemap below will not be used for the <tt>aStruct</tt> parameter,
+because <tt>Struct</tt> is fully reduced:
+</p>
+
+<div class="code">
+<pre>
+struct Struct {...};
+typedef Struct StructTypedef;
+
+%typemap(in) StructTypedef { 
+  ...
+}
+
+void go(Struct aStruct);
+</pre>
+</div>
+
 <H3><a name="Typemaps_nn19"></a>10.3.3 Default typemaps</H3>
 
 
