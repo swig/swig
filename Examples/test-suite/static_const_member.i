@@ -5,6 +5,12 @@
 
 %module static_const_member
 
+#if SWIGJAVA
+%javaconst(1) EN;
+#elif SWIGCSHARP
+%csconst(1) EN;
+#endif
+
 %inline %{
   
 class X {

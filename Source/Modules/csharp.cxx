@@ -1394,7 +1394,7 @@ public:
       enum_constant_flag = false;
     } else {
       // Alternative constant handling will use the C syntax to make a true C# constant and hope that it compiles as C# code
-      Printf(constants_code, "%s;\n", Getattr(n, "value"));
+      Printf(constants_code, "%s;\n", Getattr(n, "wrappedasconstant") ? Getattr(n, "staticmembervariableHandler:value") : Getattr(n, "value"));
     }
 
     // Emit the generated code to appropriate place
