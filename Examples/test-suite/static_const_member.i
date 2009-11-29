@@ -6,6 +6,7 @@
 %module static_const_member
 
 #if SWIGJAVA
+%javaconst(1) EN;
 %javaconst(1) CHARTEST;
 #elif SWIGCSHARP
 %csconst(1) EN;
