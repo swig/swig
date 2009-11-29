@@ -6,9 +6,10 @@
 %module static_const_member
 
 #if SWIGJAVA
-%javaconst(1) EN;
+%javaconst(1) CHARTEST;
 #elif SWIGCSHARP
 %csconst(1) EN;
+%csconst(1) CHARTEST;
 #endif
 
 %inline %{
@@ -18,6 +19,7 @@ public:
   static const int PN = 0;
   static const int CN = 1;
   static const int EN = 2;
+  static const char CHARTEST = 'A';
 };
 
 %}
