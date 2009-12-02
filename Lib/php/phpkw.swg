@@ -5,13 +5,13 @@
  * phpkw.swg
  * ----------------------------------------------------------------------------- */
 
-#define PHPKW(x) %keywordwarn("'" `x` "' is a PHP keyword, renamed as 'c_" `x` "'",sourcefmt="%(lower)s",$isclass,rename="c_%s")  `x`
+#define PHPKW(x) %keywordwarn("'" `x` "' is a PHP keyword, renamed as 'c_" `x` "'",sourcefmt="%(lower)s",rename="c_%s") `x`
 
-#define PHPCN(x) %keywordwarn("'" `x` "' is a PHP reserved class name, class renamed as 'c_" `x` "'",%$isclass,rename="c_%s") `x`
+#define PHPCN(x) %keywordwarn("'" `x` "' is a PHP reserved class name, class renamed as 'c_" `x` "'",%$isclass,sourcefmt="%(lower)s",rename="c_%s") `x`
 
-#define PHPBN1(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP",sourcefmt="%(lower)s")  `x`
-#define PHPBN2(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP")  "::" `x`
-#define PHPFN(x) %keywordwarn("'" `x` "' is a PHP built-in function, renamed as 'c_" `x` "'",sourcefmt="%(lower)s",%$isfunction,%$not %$ismember,rename="c_%s")  `x`
+#define PHPBN1(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP",sourcefmt="%(lower)s") `x`
+#define PHPBN2(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP") "::" `x`
+#define PHPFN(x) %keywordwarn("'" `x` "' is a PHP built-in function, renamed as 'c_" `x` "'",sourcefmt="%(lower)s",%$isfunction,%$not %$ismember,rename="c_%s") `x`
 
 /*
    From
@@ -355,105 +355,105 @@ PHPBN2(E_STRICT);
 PHPBN2(__COMPILER_HALT_OFFSET__);
 
 /* Class names reserved by PHP */
-PHPCN(stdClass);
-PHPCN(__PHP_Incomplete_Class);
-PHPCN(Directory);
-
+/* case insensitive */
+PHPCN(stdclass);
+PHPCN(__php_incomplete_class);
+PHPCN(directory);
 /* Added in PHP5 (this list apparently depends which extensions you load by default). */
 PHPCN(parent);
 PHPCN(self);
-PHPCN(Exception);
+PHPCN(exception);
 PHPCN(php_user_filter);
-PHPCN(ErrorException);
-PHPCN(XMLWriter);
-PHPCN(LibXMLError);
-PHPCN(SimpleXMLElement);
-PHPCN(SoapClient);
-PHPCN(SoapVar);
-PHPCN(SoapServer);
-PHPCN(SoapFault);
-PHPCN(SoapParam);
-PHPCN(SoapHeader);
-PHPCN(RecursiveIteratorIterator);
-PHPCN(FilterIterator);
-PHPCN(RecursiveFilterIterator);
-PHPCN(ParentIterator);
-PHPCN(LimitIterator);
-PHPCN(CachingIterator);
-PHPCN(RecursiveCachingIterator);
-PHPCN(IteratorIterator);
-PHPCN(NoRewindIterator);
-PHPCN(AppendIterator);
-PHPCN(InfiniteIterator);
-PHPCN(EmptyIterator);
-PHPCN(ArrayObject);
-PHPCN(ArrayIterator);
-PHPCN(RecursiveArrayIterator);
-PHPCN(SplFileInfo);
-PHPCN(DirectoryIterator);
-PHPCN(RecursiveDirectoryIterator);
-PHPCN(SplFileObject);
-PHPCN(SplTempFileObject);
-PHPCN(SimpleXMLIterator);
-PHPCN(LogicException);
-PHPCN(BadFunctionCallException);
-PHPCN(BadMethodCallException);
-PHPCN(DomainException);
-PHPCN(InvalidArgumentException);
-PHPCN(LengthException);
-PHPCN(OutOfRangeException);
-PHPCN(RuntimeException);
-PHPCN(OutOfBoundsException);
-PHPCN(OverflowException);
-PHPCN(RangeException);
-PHPCN(UnderflowException);
-PHPCN(UnexpectedValueException);
-PHPCN(SplObjectStorage);
-PHPCN(ReflectionException);
-PHPCN(Reflection);
-PHPCN(ReflectionFunction);
-PHPCN(ReflectionParameter);
-PHPCN(ReflectionMethod);
-PHPCN(ReflectionClass);
-PHPCN(ReflectionObject);
-PHPCN(ReflectionProperty);
-PHPCN(ReflectionExtension);
-PHPCN(DOMException);
-PHPCN(DOMStringList);
-PHPCN(DOMNameList);
-PHPCN(DOMImplementationList);
-PHPCN(DOMImplementationSource);
-PHPCN(DOMImplementation);
-PHPCN(DOMNode);
-PHPCN(DOMNameSpaceNode);
-PHPCN(DOMDocumentFragment);
-PHPCN(DOMDocument);
-PHPCN(DOMNodeList);
-PHPCN(DOMNamedNodeMap);
-PHPCN(DOMCharacterData);
-PHPCN(DOMAttr);
-PHPCN(DOMElement);
-PHPCN(DOMText);
-PHPCN(DOMComment);
-PHPCN(DOMTypeinfo);
-PHPCN(DOMUserDataHandler);
-PHPCN(DOMDomError);
-PHPCN(DOMErrorHandler);
-PHPCN(DOMLocator);
-PHPCN(DOMConfiguration);
-PHPCN(DOMCdataSection);
-PHPCN(DOMDocumentType);
-PHPCN(DOMNotation);
-PHPCN(DOMEntity);
-PHPCN(DOMEntityReference);
-PHPCN(DOMProcessingInstruction);
-PHPCN(DOMStringExtend);
-PHPCN(DOMXPath);
-PHPCN(XMLReader);
-PHPCN(SQLiteDatabase);
-PHPCN(SQLiteResult);
-PHPCN(SQLiteUnbuffered);
-PHPCN(SQLiteException);
+PHPCN(errorexception);
+PHPCN(xmlwriter);
+PHPCN(libxmlerror);
+PHPCN(simplexmlelement);
+PHPCN(soapclient);
+PHPCN(soapvar);
+PHPCN(soapserver);
+PHPCN(soapfault);
+PHPCN(soapparam);
+PHPCN(soapheader);
+PHPCN(recursiveiteratoriterator);
+PHPCN(filteriterator);
+PHPCN(recursivefilteriterator);
+PHPCN(parentiterator);
+PHPCN(limititerator);
+PHPCN(cachingiterator);
+PHPCN(recursivecachingiterator);
+PHPCN(iteratoriterator);
+PHPCN(norewinditerator);
+PHPCN(appenditerator);
+PHPCN(infiniteiterator);
+PHPCN(emptyiterator);
+PHPCN(arrayobject);
+PHPCN(arrayiterator);
+PHPCN(recursivearrayiterator);
+PHPCN(splfileinfo);
+PHPCN(directoryiterator);
+PHPCN(recursivedirectoryiterator);
+PHPCN(splfileobject);
+PHPCN(spltempfileobject);
+PHPCN(simplexmliterator);
+PHPCN(logicexception);
+PHPCN(badfunctioncallexception);
+PHPCN(badmethodcallexception);
+PHPCN(domainexception);
+PHPCN(invalidargumentexception);
+PHPCN(lengthexception);
+PHPCN(outofrangeexception);
+PHPCN(runtimeexception);
+PHPCN(outofboundsexception);
+PHPCN(overflowexception);
+PHPCN(rangeexception);
+PHPCN(underflowexception);
+PHPCN(unexpectedvalueexception);
+PHPCN(splobjectstorage);
+PHPCN(reflectionexception);
+PHPCN(reflection);
+PHPCN(reflectionfunction);
+PHPCN(reflectionparameter);
+PHPCN(reflectionmethod);
+PHPCN(reflectionclass);
+PHPCN(reflectionobject);
+PHPCN(reflectionproperty);
+PHPCN(reflectionextension);
+PHPCN(domexception);
+PHPCN(domstringlist);
+PHPCN(domnamelist);
+PHPCN(domimplementationlist);
+PHPCN(domimplementationsource);
+PHPCN(domimplementation);
+PHPCN(domnode);
+PHPCN(domnamespacenode);
+PHPCN(domdocumentfragment);
+PHPCN(domdocument);
+PHPCN(domnodelist);
+PHPCN(domnamednodemap);
+PHPCN(domcharacterdata);
+PHPCN(domattr);
+PHPCN(domelement);
+PHPCN(domtext);
+PHPCN(domcomment);
+PHPCN(domtypeinfo);
+PHPCN(domuserdatahandler);
+PHPCN(domdomerror);
+PHPCN(domerrorhandler);
+PHPCN(domlocator);
+PHPCN(domconfiguration);
+PHPCN(domcdatasection);
+PHPCN(domdocumenttype);
+PHPCN(domnotation);
+PHPCN(domentity);
+PHPCN(domentityreference);
+PHPCN(domprocessinginstruction);
+PHPCN(domstringextend);
+PHPCN(domxpath);
+PHPCN(xmlreader);
+PHPCN(sqlitedatabase);
+PHPCN(sqliteresult);
+PHPCN(sqliteunbuffered);
+PHPCN(sqliteexception);
 
 /* Built-in PHP functions (incomplete). */
 PHPFN(cos);
