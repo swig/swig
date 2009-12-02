@@ -1,6 +1,6 @@
 %module memberin_extend
 
-// Tests memberin typemap. The default char * memberin typemap will be used.
+// Tests memberin typemap is not used for %extend.
 // The test extends the struct with a pseudo member variable
 
 %inline %{

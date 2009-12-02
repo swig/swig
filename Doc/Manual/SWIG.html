@@ -2506,41 +2506,53 @@ of the object.
 </p>
 
 <p>
-A similar technique can also be used to work with problematic data members.
+A similar technique can also be used to work with data members that you want to process.
 For example, consider this interface:
 </p>
 
 <div class="code">
 <pre>
 typedef struct {
-   char name[50];
-   ...
+  char name[50];
+  ...
 } Person;
 </pre>
 </div>
 
 <p>
-By default, the <tt>name</tt> attribute is read-only because SWIG does not
-normally know how to modify arrays.  However, you can rewrite the interface
-as follows to change this:
+Say you wanted to ensure <tt>name</tt> was always upper case, you can rewrite
+the interface as follows to ensure this occurs whenever a name is read or written to:
 </p>
 
 <div class="code">
 <pre>
 typedef struct {
-    %extend {
-       char *name;
-    }
-...
+  %extend {
+    char name[50];
+  }
+  ...
 } Person;
 
-// Specific implementation of set/get functions
 %{
-char *Person_name_get(Person *p) {
-   return p-&gt;name;
+#include &lt;string.h&gt;
+#include &lt;ctype.h&gt;
+
+void make_upper(char *name) {
+  char *c;
+  for (c = name; *c; ++c)
+    *c = (char)toupper((int)*c);
 }
+
+/* Specific implementation of set/get functions forcing capitalization */
+
+char *Person_name_get(Person *p) {
+  make_upper(p-&gt;name);
+  return p-&gt;name;
+}
+
 void Person_name_set(Person *p, char *val) {
-   strncpy(p-&gt;name,val,50);
+  strncpy(p-&gt;name,val,50);
+  make_upper(p-&gt;name);
 }
 %}
 </pre>
@@ -2550,7 +2562,7 @@ void Person_name_set(Person *p, char *val) {
 Finally, it should be stressed that even though <tt>%extend</tt>
 can be used to add new data members, these new members can not require
 the allocation of additional storage in the object (e.g., their values must
-be entirely synthesized from existing attributes of the structure).
+be entirely synthesized from existing attributes of the structure or obtained elsewhere).
 </p>
 
 <p>
@@ -2633,7 +2645,7 @@ $o-&gt;{intRep}-&gt;{ivalue} = 7              # Change value of o.intRep.ivalue
 </pre></div>
 
 <p>
-If you have a lot nested structure declarations, it is
+If you have a lot of nested structure declarations, it is
 advisable to double-check them after running SWIG. Although,
 there is a good chance that they will work, you may have to
 modify the interface file in certain cases.

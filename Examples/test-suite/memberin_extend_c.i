@@ -4,22 +4,35 @@
 
 %{
 typedef struct {
-    char name[50];
+  char name[50];
 } Person;
 %}
 
 typedef struct {
-    %extend {
-        char *name;
-    }
+  %extend {
+    char name[50];
+  }
 } Person;
 
-/* Specific implementation of set/get functions */
 %{
-char *Person_name_get(Person *p) {
-   return p->name;
+#include <ctype.h>
+#include <string.h>
+
+void make_upper(char *name) {
+  char *c;
+  for (c = name; *c; ++c)
+    *c = (char)toupper((int)*c);
 }
+
+/* Specific implementation of set/get functions forcing capitalization */
+
+char *Person_name_get(Person *p) {
+  make_upper(p->name);
+  return p->name;
+}
+
 void Person_name_set(Person *p, char *val) {
-   strncpy(p->name,val,50);
+  strncpy(p->name,val,50);
+  make_upper(p->name);
 }
 %}
