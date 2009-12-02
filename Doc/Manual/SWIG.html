@@ -2493,7 +2493,7 @@ instead of a method.  To do this, you might write some code like this:
 // Now supply the implementation of the Vector_magnitude_get function
 %{
 const double Vector_magnitude_get(Vector *v) {
-  return (const double) return sqrt(v-&gt;x*v-&gt;x+v-&gt;y*v-&gt;y+v-&gt;z*v-&gt;z);
+  return (const double) sqrt(v-&gt;x*v-&gt;x+v-&gt;y*v-&gt;y+v-&gt;z*v-&gt;z);
 }
 %}
 
@@ -2512,10 +2512,10 @@ For example, consider this interface:
 
 <div class="code">
 <pre>
-struct Person {
+typedef struct {
    char name[50];
    ...
-}
+} Person;
 </pre>
 </div>
 
@@ -2527,12 +2527,12 @@ as follows to change this:
 
 <div class="code">
 <pre>
-struct Person {
+typedef struct {
     %extend {
        char *name;
     }
 ...
-}
+} Person;
 
 // Specific implementation of set/get functions
 %{

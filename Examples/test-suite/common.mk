@@ -458,6 +458,7 @@ C_TEST_CASES += \
 	li_cpointer \
 	li_math \
 	long_long \
+	memberin_extend_c \
 	name \
 	nested \
 	nested_structs \

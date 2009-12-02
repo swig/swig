@@ -348,7 +348,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern int Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *director_type, int is_director);
   extern int Swig_ConstructorToFunction(Node *n, String *classname, String *none_comparison, String *director_ctor, int cplus, int flags);
   extern int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags);
-  extern int Swig_MembersetToFunction(Node *n, String *classname, int flags, String **call);
+  extern int Swig_MembersetToFunction(Node *n, String *classname, int flags);
   extern int Swig_MembergetToFunction(Node *n, String *classname, int flags);
   extern int Swig_VargetToFunction(Node *n, int flags);
   extern int Swig_VarsetToFunction(Node *n, int flags);
