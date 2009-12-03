@@ -55,6 +55,10 @@
 %pass_by_val(long, CONVERT_INT_IN);
 %pass_by_val(unsigned long, CONVERT_INT_IN);
 
+%pass_by_val(signed long long, CONVERT_LONG_LONG_IN);
+%pass_by_val(long long, CONVERT_LONG_LONG_IN);
+%pass_by_val(unsigned long long, CONVERT_UNSIGNED_LONG_LONG_IN);
+
 %pass_by_val(signed char, CONVERT_INT_IN);
 %pass_by_val(char, CONVERT_CHAR_IN);
 %pass_by_val(unsigned char, CONVERT_INT_IN);
