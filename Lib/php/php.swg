@@ -361,6 +361,8 @@
 %php_typecheck(unsigned short,SWIG_TYPECHECK_UINT16,IS_LONG)
 %php_typecheck(long,SWIG_TYPECHECK_INT64,IS_LONG)
 %php_typecheck(unsigned long,SWIG_TYPECHECK_UINT64,IS_LONG)
+%php_typecheck(long long,SWIG_TYPECHECK_INT64,IS_LONG)
+%php_typecheck(unsigned long long,SWIG_TYPECHECK_UINT64,IS_LONG)
 %php_typecheck(signed char,SWIG_TYPECHECK_INT8,IS_LONG)
 %php_typecheck(unsigned char,SWIG_TYPECHECK_UINT8,IS_LONG)
 %php_typecheck(size_t,SWIG_TYPECHECK_INT16,IS_LONG)
