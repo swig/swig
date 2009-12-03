@@ -2,10 +2,12 @@ Version 1.3.41 (in progress)
 ============================
 
 2009-12-03: olly
-	    [PHP] Add typemaps for long long and unsigned long long.
+	    [PHP] Add typemaps for long long and unsigned long long, and for
+	    pointer to method.
 
 2009-12-02: olly
-	    [PHP] Fix warning and rename of reserved class name to be case insensitive.
+	    [PHP] Fix warning and rename of reserved class name to be case
+	    insensitive.
 
 2009-12-01: wsfulton
             Revert support for %extend and memberin typemaps added in swig-1.3.39. The

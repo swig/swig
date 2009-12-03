@@ -261,3 +261,12 @@ static void SWIG_Php_SetModule(swig_module_info *pointer) {
   TSRMLS_FETCH();
   REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, 0);
 }
+
+#define SWIG_MEMBER_PTR ((char*)"CLASS::*")
+
+static void member_ptr_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
+  efree(rsrc->ptr);
+}
+
+static int le_member_ptr;
+
