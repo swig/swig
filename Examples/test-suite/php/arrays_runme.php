@@ -12,7 +12,7 @@ check::classname(simplestruct,$ss);
 
 $as=new arraystruct();
 $as->array_c="abc";
-check::equal($as->array_c,"ab",'$as->array_c=="ab"');
+check::equal($as->array_c,"a",'$as->array_c=="a"');
 
 check::done();
 ?>
