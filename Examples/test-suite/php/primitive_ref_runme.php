@@ -17,9 +17,9 @@ check::equal(ref_bool(true), true, "ref_bool failed");
 check::equal(ref_float(3.5), 3.5, "ref_float failed");
 check::equal(ref_double(3.5), 3.5, "ref_double failed");
 check::equal(ref_char('x'), 'x', "ref_char failed");
-//check::equal(ref_longlong(0x123456789ABCDEF0), 0x123456789ABCDEF0, "ref_longlong failed");
-//check::equal(ref_ulonglong(0xF23456789ABCDEF0), 0xF23456789ABCDEF0, "ref_ulonglong failed");
-printf("TODO: long long and unsigned long long const reference typemaps\n");
+check::equal(ref_longlong(0x123456789ABCDEF0), 0x123456789ABCDEF0, "ref_longlong failed");
+# 0xF23456789ABCDEF0 won't fit in a long, so PHP makes it a double, but SWIG opts to return it as a string.
+check::equal((double)ref_ulonglong(0xF23456789ABCDEF0), 0xF23456789ABCDEF0, "ref_ulonglong failed");
 
 check::done();
 ?>

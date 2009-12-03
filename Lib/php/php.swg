@@ -198,6 +198,29 @@
 	ZVAL_LONG(return_value,$1);
 }
 
+%typemap(out) long long
+%{
+  if ((long long)LONG_MIN <= $1 && $1 <= (long long)LONG_MAX) {
+    return_value->value.lval = (long)($1);
+    return_value->type = IS_LONG;
+  } else {
+    char temp[256];
+    sprintf(temp, "%lld", $1);
+    ZVAL_STRING(return_value, temp, 1);
+  }
+%}
+%typemap(out) unsigned long long
+%{
+  if ($1 <= (unsigned long long)LONG_MAX) {
+    return_value->value.lval = (long)($1);
+    return_value->type = IS_LONG;
+  } else {
+    char temp[256];
+    sprintf(temp, "%llu", $1);
+    ZVAL_STRING(return_value, temp, 1);
+  }
+%}
+
 %typemap(out) const int &,
               const unsigned int &,
               const short &,
@@ -212,6 +235,29 @@
 {
 	ZVAL_LONG(return_value,*$1);
 }
+
+%typemap(out) const long long &
+%{
+  if ((long long)LONG_MIN <= *$1 && *$1 <= (long long)LONG_MAX) {
+    return_value->value.lval = (long)(*$1);
+    return_value->type = IS_LONG;
+  } else {
+    char temp[256];
+    sprintf(temp, "%lld", *$1);
+    ZVAL_STRING(return_value, temp, 1);
+  }
+%}
+%typemap(out) const unsigned long long &
+%{
+  if (*$1 <= (unsigned long long)LONG_MAX) {
+    return_value->value.lval = (long)(*$1);
+    return_value->type = IS_LONG;
+  } else {
+    char temp[256];
+    sprintf(temp, "%llu", *$1);
+    ZVAL_STRING(return_value, temp, 1);
+  }
+%}
 
 %typemap(directorin) int,
               unsigned int,
