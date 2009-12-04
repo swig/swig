@@ -2,6 +2,10 @@ Version 1.3.41 (in progress)
 ============================
 
 2009-12-04: olly
+	    [Ruby] Improve support for Ruby 1.9 under GCC.  Addresses part of
+	    SF#2859614.
+
+2009-12-04: olly
 	    Fix handling of modulo operator (%) in constant expressions
 	    (SF#2818562).
 
