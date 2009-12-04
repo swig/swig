@@ -1929,9 +1929,7 @@ done:
 
   virtual int classHandler(Node *n) {
     constructors = 0;
-    //SwigType *t = Getattr(n, "classtype");
     current_class = n;
-    // String *use_class_name=SwigType_manglestr(SwigType_ltype(t));
 
     if (shadow) {
       char *rename = GetChar(n, "sym:name");
