@@ -441,6 +441,7 @@ C_TEST_CASES += \
 	arrays \
 	char_constant \
 	const_const \
+	constant_expr \
 	empty \
 	enums \
 	extern_declaration \

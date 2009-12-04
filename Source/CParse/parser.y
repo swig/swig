@@ -1647,7 +1647,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token NATIVE INLINE
 %token TYPEMAP EXCEPT ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
-%token LESSTHAN GREATERTHAN MODULO DELETE_KW
+%token LESSTHAN GREATERTHAN DELETE_KW
 %token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO
 %token QUESTIONMARK
 %token TYPES PARMS
@@ -1668,7 +1668,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %left  GREATERTHAN LESSTHAN GREATERTHANOREQUALTO LESSTHANOREQUALTO
 %left  LSHIFT RSHIFT
 %left  PLUS MINUS
-%left  STAR SLASH MODULUS
+%left  STAR SLASH MODULO
 %left  UMINUS NOT LNOT
 %left  DCOLON
 
@@ -5745,7 +5745,7 @@ exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("%s/%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 	       }
-               | expr MODULUS expr {
+               | expr MODULO expr {
 		 $$.val = NewStringf("%s%%%s",$1.val,$3.val);
 		 $$.type = promote($1.type,$3.type);
 	       }
