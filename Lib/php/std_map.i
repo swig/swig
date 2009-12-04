@@ -30,8 +30,6 @@ namespace std {
         map(const map<K,T> &);
         
         unsigned int size() const;
-        %rename(is_empty) empty;
-        bool empty() const;
         void clear();
         %extend {
             T& get(const K& key) throw (std::out_of_range) {
@@ -55,6 +53,9 @@ namespace std {
                 std::map<K,T >::iterator i = self->find(key);
                 return i != self->end();
             }
+            bool is_empty() const {
+                return self->empty();
+            }
         }
     };
 
@@ -70,8 +71,6 @@ namespace std {
         map(const map<K,T> &);
         
         unsigned int size() const;
-        %rename(is_empty) empty;
-        bool empty() const;
         void clear();
         %extend {
             T& get(K key) throw (std::out_of_range) {
@@ -95,6 +94,9 @@ namespace std {
                 std::map<K,T >::iterator i = self->find(key);
                 return i != self->end();
             }
+            bool is_empty() const {
+                return self->empty();
+            }
         }
     };
     %enddef
@@ -107,8 +109,6 @@ namespace std {
         map(const map<K,T> &);
         
         unsigned int size() const;
-        %rename(is_empty) empty;
-        bool empty() const;
         void clear();
         %extend {
             T get(const K& key) throw (std::out_of_range) {
@@ -132,6 +132,9 @@ namespace std {
                 std::map<K,T >::iterator i = self->find(key);
                 return i != self->end();
             }
+            bool is_empty() const {
+                return self->empty();
+            }
         }
     };
     %enddef
@@ -145,8 +148,6 @@ namespace std {
         map(const map<K,T> &);
         
         unsigned int size() const;
-        %rename(is_empty) empty;
-        bool empty() const;
         void clear();
         %extend {
             T get(K key) throw (std::out_of_range) {
@@ -169,6 +170,9 @@ namespace std {
             bool has_key(K key) {
                 std::map<K,T >::iterator i = self->find(key);
                 return i != self->end();
+            }
+            bool is_empty() const {
+                return self->empty();
             }
         }
     };
