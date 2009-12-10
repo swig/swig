@@ -2536,7 +2536,24 @@ done:
 	}
 	p = nextSibling(p);
       }
-      Append(w->code, "int error;\n");
+
+      /* exception handling */
+      tm = Swig_typemap_lookup("director:except", n, "result", 0);
+      if (!tm) {
+	tm = Getattr(n, "feature:director:except");
+	if (tm)
+	  tm = Copy(tm);
+      }
+      if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
+	if (Replaceall(tm, "$error", "error")) {
+	  /* Only declare error if it is used by the typemap. */
+	  Append(w->code, "int error;\n");
+	}
+      } else {
+	Delete(tm);
+	tm = NULL;
+      }
+
       if (!idx) {
 	Printf(w->code, "zval **args = NULL;\n", idx);
       } else {
@@ -2555,18 +2572,10 @@ done:
       Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,\n");
       Printf(w->code, "  result, %d, args TSRMLS_CC);\n", idx);
 
-      /* exception handling */
-      tm = Swig_typemap_lookup("director:except", n, "result", 0);
-      if (!tm) {
-	tm = Getattr(n, "feature:director:except");
-	if (tm)
-	  tm = Copy(tm);
-      }
-      if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-	Replaceall(tm, "$error", "error");
+      if (tm) {
 	Printv(w->code, Str(tm), "\n", NIL);
+	Delete(tm);
       }
-      Delete(tm);
 
       /* marshal return value from PHP to C/C++ type */
 
