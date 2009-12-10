@@ -3495,6 +3495,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   inclass = 1;
 		 }
                } cpp_members RBRACE cpp_opt_declarators {
+	         (void) $<node>6;
 		 if (nested_template == 0) {
 		   Node *p;
 		   SwigType *ty;
@@ -3656,6 +3657,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
              } cpp_members RBRACE declarator initializer c_decl_tail {
 	       String *unnamed;
 	       Node *n;
+	       (void) $<node>4;
 	       Classprefix = 0;
 	       $$ = class_decl[--class_level];
 	       inclass = 0;
