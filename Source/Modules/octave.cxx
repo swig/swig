@@ -13,7 +13,7 @@ char cvsroot_octave_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 Octave Options (available with -octave)\n\
-     -api <N> - Generate code that assumes Octave API N [default: 37]\n\
+     [no additional options]\n\
      \n";
 
 
@@ -36,8 +36,6 @@ private:
   int have_destructor;
   String *constructor_name;
 
-  int api_version;
-
   Hash *docs;
 
 public:
@@ -56,7 +54,6 @@ public:
      director_multiple_inheritance = 1;
      director_language = 1;
      docs = NewHash();
-     api_version = 0;
    }
 
   virtual void main(int argc, char *argv[]) {
@@ -64,15 +61,6 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stderr);
-	} else if (strcmp(argv[i], "-api") == 0) {
-	  if (argv[i + 1]) {
-	    api_version = atoi(argv[i + 1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
 	}
       }
     }
@@ -138,7 +126,6 @@ public:
     Printf(f_runtime, "#define SWIGOCTAVE\n");
     Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
-    Printf(f_runtime, "#define OCTAVE_API_VERSION_OPTION %i\n", api_version);
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");

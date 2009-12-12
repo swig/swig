@@ -1,6 +1,10 @@
 Version 1.3.41 (in progress)
 ============================
 
+2009-12-12: wsfulton
+            [Octave] Remove the -api option and use the new OCTAVE_API_VERSION_NUMBER
+            macro provided in the octave headers for determining the api version instead.
+
 2009-12-04: olly
 	    [Ruby] Improve support for Ruby 1.9 under GCC.  Addresses part of
 	    SF#2859614.
