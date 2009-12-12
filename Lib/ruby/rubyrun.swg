@@ -45,7 +45,7 @@
 /* Error manipulation */
 
 #define SWIG_ErrorType(code)                            SWIG_Ruby_ErrorType(code)               
-#define SWIG_Error(code, msg)            		rb_raise(SWIG_Ruby_ErrorType(code), msg)
+#define SWIG_Error(code, msg)            		rb_raise(SWIG_Ruby_ErrorType(code), "%s", msg)
 #define SWIG_fail                        		goto fail				 
 
 
