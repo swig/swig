@@ -494,7 +494,7 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, const
 
 static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
   Node *n = 0;
-  String *tname = 0, *rname = 0;
+  String *tname = 0;
   Node *templ;
   Symtab *primary_scope = 0;
   List *possiblepartials = 0;
@@ -590,34 +590,6 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
      * (3) Template template arguments
      * only (1) is really supported for partial specializations
      */
-
-    /* Generate reduced template name (stripped of extraneous pointers, etc.) */
-    rname = NewStringf("%s<(", name);
-    p = parms;
-    while (p) {
-      String *t;
-      t = Getattr(p, "type");
-      if (!t)
-	t = Getattr(p, "value");
-      if (t) {
-	String *tyr = Swig_symbol_typedef_reduce(t, tscope);
-	String *ty = SwigType_strip_qualifiers(tyr);
-	String *tb = SwigType_base(ty);
-	String *td = SwigType_default(ty);
-	Replaceid(td, "enum SWIGTYPE", tb);
-	Replaceid(td, "SWIGTYPE", tb);
-	Append(rname, td);
-	Delete(tb);
-	Delete(td);
-	Delete(ty);
-	Delete(tyr);
-      }
-      p = nextSibling(p);
-      if (p) {
-	Append(rname, ",");
-      }
-    }
-    Append(rname, ")>");
 
     /* Rank each template parameter against the desired template parameters then build a matrix of best matches */
     possiblepartials = NewList();
@@ -819,7 +791,6 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
   }
 success:
   Delete(tname);
-  Delete(rname);
   Delete(possiblepartials);
   if ((template_debug) && (n)) {
     /*
