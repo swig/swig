@@ -115,15 +115,17 @@
 
 #ifdef SWIGPHP
 %define %std_deque_methods(T)
-       %extend {
-            bool is_empty() const {
-                return self->empty();
-            }
-       };
+    %extend {
+        bool is_empty() const {
+            return self->empty();
+        }
+    };
+    %std_deque_methods_noempty(T)
 %enddef
 #else
 %define %std_deque_methods(T)
-       bool empty() const;
+    bool empty() const;
+    %std_deque_methods_noempty(T)
 %enddef
 #endif
 
