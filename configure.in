@@ -316,11 +316,7 @@ esac
 # Optional CFLAGS used to silence compiler warnings on some platforms.
 
 AC_SUBST(PLATFLAGS)
-case $host in
-   *-*-darwin*) PLATFLAGS="-Wno-long-double";;
-   *) PLATFLAGS="";;
-esac
-
+PLATFLAGS=
 
 # Check for specific libraries.   Used for SWIG examples
 AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
