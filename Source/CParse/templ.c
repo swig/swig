@@ -457,11 +457,11 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, const
        check for match to partial specialization type, for example, all of the following could match the type in the %template:
        template <typename T> struct XX {};
        template <typename T> struct XX<T &> {};         // r.$1
-       template <typename T> struct XX<T const &> {};   // r.q(const).$1
-       template <typename T> struct XX<T * const &> {}; // r.q(const).p.$1
+       template <typename T> struct XX<T const&> {};    // r.q(const).$1
+       template <typename T> struct XX<T *const&> {};   // r.q(const).p.$1
        %template(XXX) XX<int *const&>;                  // r.q(const).p.int
 
-       where type="r.q(const).p.int" will match either of tt="r.$1", tt="r.q(const)" tt="r.q(const).p"
+       where type="r.q(const).p.int" will match either of tt="r.", tt="r.q(const)" tt="r.q(const).p"
     */
     Replaceid(tt, partial_parm_type_base, ""); /* remove the $1, $2 etc, eg tt="p.$1" => "p." */
     len = Len(tt);
