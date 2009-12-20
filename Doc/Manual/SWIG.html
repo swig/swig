@@ -330,11 +330,13 @@ currently supported:
 </p>
 
 <ul>
-<li>Non-conventional type declarations.
+  <li>
+<p>
+Non-conventional type declarations.
 For example, SWIG does not support declarations such as the following
 (even though this is legal C):
 
-<p>
+</p>
 <div class="code">
 <pre>
 /* Non-conventional placement of storage specifier (extern) */
@@ -348,7 +350,6 @@ void bar(Spam (Grok)(Doh));
 
 </pre>
 </div>
-</p>
 
 <p>
 In practice, few (if any) C programmers actually write code like
@@ -357,27 +358,32 @@ if you're feeling particularly obfuscated, you can certainly break SWIG (althoug
 </p>
 </li>
 
-<li>Running SWIG on C++ source files (what would appear in a .C or .cxx file) 
-is not recommended.  Even though SWIG can parse C++ class declarations,
-it ignores declarations that are decoupled from their
-original class definition (the declarations are parsed, but a lot of warning
-messages may be generated).  For example:
+<li>
 <p>
+Running SWIG on C++ source files (the code in a .C, .cpp or .cxx file) is not recommended.
+The usual approach is to feed SWIG header files for parsing C++ definitions and declarations.
+The main reason is if SWIG parses a scoped definition or declaration (as is normal for C++ source files),
+it is ignored, unless a declaration for the symbol was parsed earlier.
+For example
+</p>
 
 <div class="code">
 <pre>
-/* Not supported by SWIG */
+/* bar not wrapped unless foo has been defined and 
+   the declaration of bar within foo has already been parsed */
 int foo::bar(int) {
     ... whatever ...
 }
 </pre>
 </div>
-</p>
 </li>
 
-<li>Certain advanced features of C++ such as nested classes 
-are not yet fully supported. Please see the <a href="SWIGPlus.html">C++ section</a>
+<li>
+<p>
+Certain advanced features of C++ such as nested classes 
+are not yet fully supported. Please see the C++ <a href="SWIGPlus.html#SWIGPlus_nested_classes">Nested classes</a> section
 for more information.
+</p>
 </ul>
 
 <p>
