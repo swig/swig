@@ -69,7 +69,8 @@ static const char *usage1 = (const char *) "\
      -debug-template - Display information for debugging templates\n\
      -debug-top <n>  - Display entire parse tree at stages 1-4, <n> is a csv list of stages\n\
      -debug-typedef  - Display information about the types and typedefs in the interface\n\
-     -debug-typemap  - Display information for debugging typemaps\n\
+     -debug-typemap  - Display typemap debugging information\n\
+     -debug-tmsearch - Display typemap search debugging information\n\
      -directors      - Turn on director mode for all the classes, mainly for testing\n\
      -dirprot        - Turn on wrapping of protected members for director classes (default)\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
@@ -654,6 +655,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-debug-typemap") == 0) || (strcmp(argv[i], "-debug_typemap") == 0) || (strcmp(argv[i], "-tm_debug") == 0)) {
 	tm_debug = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-tmsearch") == 0) {
+	Swig_typemap_search_debug_set();
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-module") == 0) {
 	Swig_mark_arg(i);

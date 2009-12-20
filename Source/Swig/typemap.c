@@ -17,6 +17,9 @@ char cvsroot_typemap_c[] = "$Id$";
 #define SWIG_DEBUG
 #endif
 
+static int typemap_search_debug = 0;
+static int in_typemap_search_multi = 0;
+
 static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper *f);
 
 /* -----------------------------------------------------------------------------
@@ -171,12 +174,12 @@ Hash *Swig_typemap_pop_scope() {
 #endif
 
 /* ----------------------------------------------------------------------------- 
- * Swig_typemap_register()
+ * typemap_register()
  *
- * Add a new multi-argument typemap
+ * Internal implementation for Swig_typemap_register()
  * ----------------------------------------------------------------------------- */
 
-void Swig_typemap_register(const_String_or_char_ptr tmap_method, ParmList *parms, const_String_or_char_ptr code, ParmList *locals, ParmList *kwargs) {
+static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *parms, const_String_or_char_ptr code, ParmList *locals, ParmList *kwargs, const_String_or_char_ptr actual_tmap_method, ParmList *parmlist_start) {
   Hash *tm;
   Hash *tm1;
   Hash *tm2;
@@ -249,13 +252,13 @@ void Swig_typemap_register(const_String_or_char_ptr tmap_method, ParmList *parms
     /* Make an entirely new typemap method key */
     String *multi_tmap_method = NewStringf("%s-%s+%s:", tmap_method, type, pname);
     /* Now reregister on the remaining arguments */
-    Swig_typemap_register(multi_tmap_method, np, code, locals, kwargs);
+    typemap_register(multi_tmap_method, np, code, locals, kwargs, actual_tmap_method, parmlist_start);
 
     /*    Setattr(tm2,multi_tmap_method,multi_tmap_method); */
     Delete(multi_tmap_method);
   } else {
-    String *str = SwigType_str(type, pname);
-    String *typemap = NewStringf("typemap(%s) %s", tmap_method, str);
+    String *parms_str = ParmList_str(parmlist_start);
+    String *typemap = NewStringf("typemap(%s) %s", actual_tmap_method, parms_str);
     ParmList *clocals = CopyParmList(locals);
     ParmList *ckwargs = CopyParmList(kwargs);
 
@@ -271,9 +274,19 @@ void Swig_typemap_register(const_String_or_char_ptr tmap_method, ParmList *parms
     Delete(clocals);
     Delete(ckwargs);
 
-    Delete(str);
+    Delete(parms_str);
     Delete(typemap);
   }
+}
+
+/* ----------------------------------------------------------------------------- 
+ * Swig_typemap_register()
+ *
+ * Add a new, possibly multi-argument, typemap
+ * ----------------------------------------------------------------------------- */
+
+void Swig_typemap_register(const_String_or_char_ptr tmap_method, ParmList *parms, const_String_or_char_ptr code, ParmList *locals, ParmList *kwargs) {
+  typemap_register(tmap_method, parms, code, locals, kwargs, tmap_method, parms);
 }
 
 /* -----------------------------------------------------------------------------
@@ -594,6 +607,13 @@ static SwigType *strip_arrays(SwigType *type) {
   return t;
 }
 
+static void debug_search_result_display(Node *tm) {
+  if (tm)
+    Printf(stdout, "  Using: %%%s\n", Getattr(tm, "typemap"));
+  else
+    Printf(stdout, "  None found\n");
+}
+
 /* -----------------------------------------------------------------------------
  * typemap_search()
  *
@@ -612,16 +632,23 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   const String *cname = 0;
   SwigType *unstripped = 0;
   String *tm_method = typemap_method_name(tmap_method);
+  int debug_display = (in_typemap_search_multi == 0) && typemap_search_debug;
 
   if ((name) && Len(name))
     cname = name;
   ts = tm_scope;
 
+  if (debug_display) {
+    const String *empty_string = NewStringEmpty();
+    Printf(stdout, "---- Searching for a suitable '%s' typemap for: %s\n", tmap_method, SwigType_str(type, cname ? cname : empty_string));
+  }
   while (ts >= 0) {
     ctype = type;
     while (ctype) {
       /* Try to get an exact type-match */
       tm = get_typemap(ts, ctype);
+      if (debug_display && cname)
+	Printf(stdout, "  Looking for: %s\n", SwigType_str(ctype, cname));
       if (tm && cname) {
 	tm1 = Getattr(tm, cname);
 	if (tm1) {
@@ -632,6 +659,8 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	    backup = result;
 	}
       }
+      if (debug_display)
+	Printf(stdout, "  Looking for: %s\n", SwigType_str(ctype, 0));
       if (tm) {
 	result = Getattr(tm, tm_method);	/* See if there is simply a type match */
 	if (result && Getattr(result, "code"))
@@ -647,6 +676,8 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	  noarrays = strip_arrays(ctype);
 	}
 	tma = get_typemap(ts, noarrays);
+	if (debug_display)
+	  Printf(stdout, "  Looking for: %s\n", SwigType_str(noarrays, 0));
 	if (tma && cname) {
 	  tm1 = Getattr(tma, cname);
 	  if (tm1) {
@@ -694,11 +725,13 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
       }
     }
 
-    /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default mapping */
+    /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default (SWIGTYPE) mapping */
 
     primitive = SwigType_default(type);
     while (primitive) {
       tm = get_typemap(ts, primitive);
+      if (debug_display && cname)
+	Printf(stdout, "  Looking for: %s\n", SwigType_str(primitive, cname));
       if (tm && cname) {
 	tm1 = Getattr(tm, cname);
 	if (tm1) {
@@ -707,6 +740,8 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	    goto ret_result;
 	}
       }
+      if (debug_display)
+	Printf(stdout, "  Looking for: %s\n", SwigType_str(primitive, 0));
       if (tm) {			/* See if there is simply a type match */
 	result = Getattr(tm, tm_method);
 	if (result)
@@ -771,16 +806,25 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
     }
     Delete(mtype);
     multi_tmap_method = NewStringf("%s-%s+%s:", tmap_method, type, name);
+    in_typemap_search_multi++;
     tm1 = typemap_search_multi(multi_tmap_method, nextSibling(parms), nmatch);
+    in_typemap_search_multi--;
     if (tm1)
       tm = tm1;
     if (Getattr(tm, "code")) {
       *(nmatch) = *nmatch + 1;
+      if (typemap_search_debug && tm1 && (in_typemap_search_multi == 0)) {
+	Printf(stdout, "  Multi-argument typemap found...\n");
+      }
     } else {
       tm = 0;
     }
     Delete(multi_tmap_method);
   }
+
+  if (typemap_search_debug && (in_typemap_search_multi == 0))
+    debug_search_result_display(tm);
+
   return tm;
 }
 
@@ -1236,16 +1280,25 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     if (qsn) {
       if (Len(qsn) && !Equal(qsn, pname)) {
 	tm = typemap_search(tmap_method, type, qsn, &mtype);
+	/* TODO: move the search for qualified names into typemap_search to make it more efficient */
 	if (tm && (!Getattr(tm, "pname") || strstr(Char(Getattr(tm, "type")), "SWIGTYPE"))) {
+	  if (typemap_search_debug)
+	    Printf(stdout, "  Found but not using\n");
 	  tm = 0;
+	} else {
+	  if (typemap_search_debug)
+	    debug_search_result_display(tm);
 	}
       }
       Delete(qsn);
     }
   }
-  if (!tm)
+  if (!tm) {
 #endif
     tm = typemap_search(tmap_method, type, pname, &mtype);
+    if (typemap_search_debug)
+      debug_search_result_display(tm);
+  }
   if (!tm)
     return sdef;
 
@@ -1921,6 +1974,8 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 
 /* -----------------------------------------------------------------------------
  * Swig_typemap_debug()
+ *
+ * Display all typemaps
  * ----------------------------------------------------------------------------- */
 
 void Swig_typemap_debug() {
@@ -1936,4 +1991,14 @@ void Swig_typemap_debug() {
   Printf(stdout, "-----------------------------------------------------------------------------\n");
 }
 
+
+/* -----------------------------------------------------------------------------
+ * Swig_typemap_search_debug_set()
+ *
+ * Turn on typemap searching debug display
+ * ----------------------------------------------------------------------------- */
+
+void Swig_typemap_search_debug_set(void) {
+  typemap_search_debug = 1;
+}
 

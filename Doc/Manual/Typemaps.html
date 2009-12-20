@@ -31,10 +31,11 @@
 <li><a href="#Typemaps_pattern_matching">Pattern matching rules</a>
 <ul>
 <li><a href="#Typemaps_nn17">Basic matching rules</a>
-<li><a href="#Typemaps_nn18">Typedef reductions</a>
+<li><a href="#Typemaps_typedef_reductions">Typedef reductions</a>
 <li><a href="#Typemaps_nn19">Default typemaps</a>
 <li><a href="#Typemaps_mixed_default">Mixed default typemaps</a>
 <li><a href="#Typemaps_nn20">Multi-arguments typemaps</a>
+<li><a href="#Typemaps_debugging_search">Debugging typemap pattern matching</a>
 </ul>
 <li><a href="#Typemaps_nn21">Code generation rules</a>
 <ul>
@@ -68,7 +69,7 @@
 <li><a href="#Typemaps_nn40">Typemaps for arrays</a>
 <li><a href="#Typemaps_nn41">Implementing constraints with typemaps</a>
 </ul>
-<li><a href="#Typemaps_nn43">Typemaps for multiple languages</a>
+<li><a href="#Typemaps_nn43">Typemaps for multiple target languages</a>
 <li><a href="#Typemaps_optimal">Optimal code generation when returning by value</a>
 <li><a href="#Typemaps_multi_argument_typemaps">Multi-argument typemaps</a>
 <li><a href="#runtime_type_checker">The run-time type checker</a>
@@ -1090,7 +1091,7 @@ void F(int x[1000]);   // int [ANY] rule (typemap 5)
 </pre>
 </div>
 
-<H3><a name="Typemaps_nn18"></a>10.3.2 Typedef reductions</H3>
+<H3><a name="Typemaps_typedef_reductions"></a>10.3.2 Typedef reductions</H3>
 
 
 <p>
@@ -1431,6 +1432,104 @@ Currently, the first argument follows the matching rules described in the previo
 but all subsequent arguments must match exactly.
 </p>
 
+
+<H3><a name="Typemaps_debugging_search"></a>10.3.6 Debugging typemap pattern matching</H3>
+
+
+<p>
+The <tt>-debug-tmsearch</tt> command line option is available for debugging typemap searches.
+This can be very useful for watching the pattern matching process in action and for debugging which typemaps are used.
+The option displays all the typemaps and types that are looked for until a successful pattern match is made.
+As the display includes searches for each and every type needed for wrapping, the amount of information displayed can be large.
+Normally you would manually search through the displayed information for the particular type that you are interested in.
+</p>
+
+<p>
+For example, consider some of the code used in the <a href="#Typemaps_typedef_reductions">Typedef reductions</a> section already covered:
+</p>
+
+<div class="code">
+<pre>
+typedef int Integer;
+typedef Integer Row4[4];
+void foo(Row4 rows[10]);
+</pre>
+</div>
+
+<p>
+A sample of the debugging output is shown below for the "in" typemap:
+</p>
+
+<div class="shell">
+<pre>
+swig -debug-tmsearch example.i
+...
+---- Searching for a suitable 'in' typemap for: Row4 rows[10]
+  Looking for: Row4 rows[10]
+  Looking for: Row4 [10]
+  Looking for: Row4 [ANY]
+  Looking for: Integer rows[10][4]
+  Looking for: Integer [10][4]
+  Looking for: Integer [ANY][ANY]
+  Looking for: int rows[10][4]
+  Looking for: int [10][4]
+  Looking for: int [ANY][ANY]
+  Looking for: SWIGTYPE rows[ANY][ANY]
+  Looking for: SWIGTYPE [ANY][ANY]
+  Looking for: SWIGTYPE rows[ANY][]
+  Looking for: SWIGTYPE [ANY][]
+  Looking for: SWIGTYPE *rows[ANY]
+  Looking for: SWIGTYPE *[ANY]
+  Looking for: SWIGTYPE rows[ANY]
+  Looking for: SWIGTYPE [ANY]
+  Looking for: SWIGTYPE rows[]
+  Looking for: SWIGTYPE []
+  Using: %typemap(in) SWIGTYPE []
+...
+</pre>
+</div>
+
+<p>
+showing that the best default match supplied by SWIG is the <tt>SWIGTYPE []</tt> typemap.
+As the example shows, the successful match displays just the typemap method name and type in this format: <tt>%typemap(method) type</tt>.
+This information might meet your debugging needs, however, you might want to analyze further.
+If you next invoke SWIG with the <tt>-E</tt> option to display the preprocessed output, and search for this particular typemap,
+you'll find the full typemap contents (example shown below for Python):
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, noblock=1) SWIGTYPE [] (void *argp = 0, int res = 0) {
+  res = SWIG_ConvertPtr($input, &amp;argp,$descriptor, $disown |  0 );
+  if (!SWIG_IsOK(res)) { 
+    SWIG_exception_fail(SWIG_ArgError(res), "in method '" "$symname" "', argument " "$argnum"" of type '" "$type""'"); 
+  } 
+  $1 = ($ltype)(argp);
+}
+</pre>
+</div>
+
+<p>
+The generated code for the <tt>foo</tt> wrapper will then contain the snippets of the typemap with the special variables expanded.
+The rest of this chapter will need reading though to fully understand all of this, however, the relevant parts of the generated code for the above typemap can be seen below:
+</p>
+
+<div class="code">
+<pre>
+SWIGINTERN PyObject *_wrap_foo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+...
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+...
+  res1 = SWIG_ConvertPtr(obj0, &amp;argp1,SWIGTYPE_p_a_4__int, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "foo" "', argument " "1"" of type '" "int [10][4]""'"); 
+  } 
+  arg1 = (int (*)[4])(argp1);
+...
+}
+</pre>
+</div>
 
 <H2><a name="Typemaps_nn21"></a>10.4 Code generation rules</H2>
 
@@ -2705,12 +2804,12 @@ rather than blindly passing values to the underlying C/C++ program.</p>
 Note: A more advanced constraint checking system is in development.  Stay tuned.
 </p>
 
-<H2><a name="Typemaps_nn43"></a>10.7 Typemaps for multiple languages</H2>
+<H2><a name="Typemaps_nn43"></a>10.7 Typemaps for multiple target languages</H2>
 
 
 <p>
 The code within typemaps is usually language dependent,
-however, many languages support the same typemaps.
+however, many target languages support the same typemaps.
 In order to distinguish typemaps across different languages, the preprocessor should be used.
 For example, the "in" typemap for Perl and Ruby could be written as:
 </p>
@@ -3220,7 +3319,7 @@ language modules.</li>
 <p>
 The run-time type checker is used by many, but not all, of SWIG's supported target languages.
 The run-time type checker features
-are not required and are thus not used for strongly typed languages such as Java and C#.
+are not required and are thus not used for statically typed languages such as Java and C#.
 The scripting and scheme based languages rely on it and it forms
 a critical part of SWIG's operation for these languages.
 </p>
