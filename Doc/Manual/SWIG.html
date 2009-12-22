@@ -798,6 +798,12 @@ being pointed to that is read-only.
 </p>
 
 <p>
+Please note that for const parameters or return types used in a function, SWIG pretty much ignores
+the fact that these are const, see the section on <a href="SWIGPlus.html#SWIGPlus_const">const-correctness</a>
+for more information.
+</p>
+
+<p>
 <b>Compatibility Note:</b> One reason for changing SWIG to handle
 <tt>const</tt> declarations as read-only variables is that there are
 many situations where the value of a <tt>const</tt> variable might
