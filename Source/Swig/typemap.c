@@ -257,10 +257,14 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
     /*    Setattr(tm2,multi_tmap_method,multi_tmap_method); */
     Delete(multi_tmap_method);
   } else {
-    String *parms_str = ParmList_str(parmlist_start);
-    String *typemap = NewStringf("typemap(%s) %s", actual_tmap_method, parms_str);
     ParmList *clocals = CopyParmList(locals);
     ParmList *ckwargs = CopyParmList(kwargs);
+    String *parms_str = ParmList_str(parmlist_start);
+    String *typemap;
+    if (ParmList_len(parmlist_start) > 1)
+     typemap = NewStringf("typemap(%s) (%s)", actual_tmap_method, parms_str);
+    else
+     typemap = NewStringf("typemap(%s) %s", actual_tmap_method, parms_str);
 
     Setattr(tm2, "code", code);
     Setattr(tm2, "type", type);
@@ -643,10 +647,11 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   ts = tm_scope;
 
   if (debug_display) {
-    const String *empty_string = NewStringEmpty();
+    String *empty_string = NewStringEmpty();
     String *typestr = SwigType_str(type, cqualifiedname ? cqualifiedname : (cname ? cname : empty_string));
     Printf(stdout, "---- Searching for a suitable '%s' typemap for: %s\n", tmap_method, typestr);
     Delete(typestr);
+    Delete(empty_string);
   }
   while (ts >= 0) {
     ctype = type;

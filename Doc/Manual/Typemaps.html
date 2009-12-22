@@ -1403,7 +1403,7 @@ Expect to see them being used more and more within the various libraries in late
 </p>
 
 
-<H3><a name="Typemaps_nn20"></a>10.3.5 Multi-arguments typemaps</H3>
+<H3><a name="Typemaps_multi_argument_typemaps"></a>10.3.5 Multi-arguments typemaps</H3>
 
 
 <p>
@@ -1531,6 +1531,22 @@ SWIGINTERN PyObject *_wrap_foo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   arg1 = (int (*)[4])(argp1);
 ...
 }
+</pre>
+</div>
+
+<p>
+Searches for multi-argument typemaps are not mentioned unless a matching multi-argument typemap does actually exist.
+For example, the output for the code in the <a href="#Typemaps_multi_argument_typemaps">previous section</a> is as follows:
+</p>
+
+<div class="shell">
+<pre>
+...
+---- Searching for a suitable 'in' typemap for: char *buffer
+  Looking for: char *buffer
+  Multi-argument typemap found...
+  Using: %typemap(in) (char *buffer,int len)
+...
 </pre>
 </div>
 
