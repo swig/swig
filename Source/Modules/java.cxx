@@ -3724,6 +3724,9 @@ public:
 
     String *upcall = NewStringf("self.%s(%s)", symname, imcall_args);
 
+    // Handle exception classes specified in the "except" feature's "throws" attribute
+    addThrows(n, "feature:except", n);
+
     if (!is_void) {
       Parm *tp = NewParmFromNode(returntype, empty_str, n);
 

@@ -1,6 +1,10 @@
 Version 1.3.41 (in progress)
 ============================
 
+2009-12-23: wsfulton
+            Fix for %javaexception and directors so that all the appropriate throws clauses 
+            are generated. Problem reported by Peter Greenwood.
+
 2009-12-20: wsfulton
             Add -debug-tmsearch option for debugging the typemap pattern matching rules.
             Documented in Typemaps.html.
