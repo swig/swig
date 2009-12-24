@@ -307,12 +307,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_string_title(String *s);
 
   extern void Swig_init(void);
-  extern void Swig_warn(const char *filename, int line, const char *msg);
-
   extern int Swig_value_wrapper_mode(int mode);
-
-
-#define WARNING(msg) Swig_warn(__FILE__,__LINE__,msg)
 
   typedef enum { EMF_STANDARD, EMF_MICROSOFT } ErrorMessageFormat;
 
