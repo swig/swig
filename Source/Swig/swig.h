@@ -319,6 +319,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_warnall(void);
   extern int Swig_warn_count(void);
   extern void Swig_error_msg_format(ErrorMessageFormat format);
+  extern void Swig_diagnostic(const_String_or_char_ptr filename, int line, const char *fmt, ...);
 
 /* --- C Wrappers --- */
   extern String *Swig_cparm_name(Parm *p, int i);
