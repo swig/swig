@@ -626,7 +626,7 @@ static void debug_search_result_display(Node *tm) {
  * 'code' attribute.
  * ----------------------------------------------------------------------------- */
 
-static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type, const_String_or_char_ptr name, const_String_or_char_ptr qualifiedname, SwigType **matchtype) {
+static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type, const_String_or_char_ptr name, const_String_or_char_ptr qualifiedname, SwigType **matchtype, Node *node) {
   Hash *result = 0, *tm, *tm1, *tma;
   Hash *backup = 0;
   SwigType *noarrays = 0;
@@ -649,7 +649,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   if (debug_display) {
     String *empty_string = NewStringEmpty();
     String *typestr = SwigType_str(type, cqualifiedname ? cqualifiedname : (cname ? cname : empty_string));
-    Printf(stdout, "---- Searching for a suitable '%s' typemap for: %s\n", tmap_method, typestr);
+    Swig_diagnostic(Getfile(node), Getline(node), "Searching for a suitable '%s' typemap for: %s\n", tmap_method, typestr);
     Delete(typestr);
     Delete(empty_string);
   }
@@ -846,7 +846,7 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
   name = Getattr(parms, "name");
 
   /* Try to find a match on the first type */
-  tm = typemap_search(tmap_method, type, name, 0, &mtype);
+  tm = typemap_search(tmap_method, type, name, 0, &mtype, parms);
   if (tm) {
     if (mtype && SwigType_isarray(mtype)) {
       Setattr(parms, "tmap:match", mtype);
@@ -1260,6 +1260,22 @@ static void typemap_locals(DOHString * s, ParmList *l, Wrapper *f, int argnum) {
 }
 
 /* -----------------------------------------------------------------------------
+ * typemap_warn()
+ *
+ * If any warning message is attached to this parameter's "tmap:<method>:warning"
+ * attribute, print that warning message.
+ * ----------------------------------------------------------------------------- */
+
+static void typemap_warn(const_String_or_char_ptr tmap_method, Parm *p) {
+  String *temp = NewStringf("%s:warning", tmap_method);
+  String *w = Getattr(p, typemap_method_name(temp));
+  Delete(temp);
+  if (w) {
+    Swig_warning(0, Getfile(p), Getline(p), "%s\n", w);
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_typemap_lookup()
  *
  * Attach one or more typemaps to a node and optionally generate the typemap contents
@@ -1326,7 +1342,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
       qpname = qsn;
   }
 
-  tm = typemap_search(tmap_method, type, pname, qpname, &mtype);
+  tm = typemap_search(tmap_method, type, pname, qpname, &mtype, node);
   if (typemap_search_debug)
     debug_search_result_display(tm);
 
@@ -1459,15 +1475,8 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     Setattr(node, typemap_method_name(temp), "1");
   }
 
-  /* Look for warnings */
-  {
-    String *w;
-    sprintf(temp, "%s:warning", cmethod);
-    w = Getattr(node, typemap_method_name(temp));
-    if (w) {
-      Swig_warning(0, Getfile(node), Getline(node), "%s\n", w);
-    }
-  }
+  /* Print warnings, if any */
+  typemap_warn(cmethod, node);
 
   /* Look for code fragments */
   {
@@ -1540,22 +1549,6 @@ static void typemap_attach_kwargs(Hash *tm, const_String_or_char_ptr tmap_method
   Printf(temp, "%s:match_type", tmap_method);
   Setattr(p, typemap_method_name(temp), Getattr(tm, "type"));
   Delete(temp);
-}
-
-/* -----------------------------------------------------------------------------
- * typemap_warn()
- *
- * If any warning message is attached to this parameter's "tmap:<method>:warning"
- * attribute, print that warning message.
- * ----------------------------------------------------------------------------- */
-
-static void typemap_warn(const_String_or_char_ptr tmap_method, Parm *p) {
-  String *temp = NewStringf("%s:warning", tmap_method);
-  String *w = Getattr(p, typemap_method_name(temp));
-  Delete(temp);
-  if (w) {
-    Swig_warning(0, Getfile(p), Getline(p), "%s\n", w);
-  }
 }
 
 static void typemap_emit_code_fragments(const_String_or_char_ptr tmap_method, Parm *p) {

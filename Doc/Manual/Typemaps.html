@@ -1464,7 +1464,7 @@ A sample of the debugging output is shown below for the "in" typemap:
 <pre>
 swig -debug-tmsearch example.i
 ...
----- Searching for a suitable 'in' typemap for: Row4 rows[10]
+example.h:26: Searching for a suitable 'in' typemap for: Row4 rows[10]
   Looking for: Row4 rows[10]
   Looking for: Row4 [10]
   Looking for: Row4 rows[ANY]
@@ -1542,7 +1542,7 @@ For example, the output for the code in the <a href="#Typemaps_multi_argument_ty
 <div class="shell">
 <pre>
 ...
----- Searching for a suitable 'in' typemap for: char *buffer
+example.h:39: Searching for a suitable 'in' typemap for: char *buffer
   Looking for: char *buffer
   Multi-argument typemap found...
   Using: %typemap(in) (char *buffer,int len)
