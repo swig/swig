@@ -123,7 +123,7 @@ extern "C" {
   extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_add_template(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_pop_function(SwigType *t);
-  extern ParmList *SwigType_function_parms(SwigType *t);
+  extern ParmList *SwigType_function_parms(SwigType *t, Node *file_line_node);
   extern List *SwigType_split(const SwigType *t);
   extern String *SwigType_pop(SwigType *t);
   extern void SwigType_push(SwigType *t, SwigType *s);
@@ -371,6 +371,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_typemap_clear_apply(ParmList *pattern);
   extern void Swig_typemap_debug(void);
   extern void Swig_typemap_search_debug_set(void);
+  extern void Swig_typemap_used_debug_set(void);
 
   extern String *Swig_typemap_lookup(const_String_or_char_ptr tmap_method, Node *n, const_String_or_char_ptr lname, Wrapper *f);
   extern String *Swig_typemap_lookup_out(const_String_or_char_ptr tmap_method, Node *n, const_String_or_char_ptr lname, Wrapper *f, String *actioncode);

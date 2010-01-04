@@ -956,7 +956,7 @@ public:
       String *name = NewString("self");
       String *type = NewString("void");
       SwigType_add_pointer(type);
-      self = NewParm(type, name);
+      self = NewParm(type, name, n);
       Delete(type);
       Delete(name);
       Setattr(self, "lname", "self_obj");
@@ -1051,7 +1051,7 @@ public:
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("void");
     SwigType_add_pointer(type);
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
 

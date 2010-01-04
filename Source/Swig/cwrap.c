@@ -803,7 +803,7 @@ int Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *direc
     SwigType_push(type, qualifier);
   }
   SwigType_add_pointer(type);
-  p = NewParm(type, "self");
+  p = NewParm(type, "self", n);
   Setattr(p, "self", "1");
   Setattr(p, "hidden","1");
   /*
@@ -1155,7 +1155,7 @@ int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags) 
 
   type = NewString(classname);
   SwigType_add_pointer(type);
-  p = NewParm(type, "self");
+  p = NewParm(type, "self", n);
   Setattr(p, "self", "1");
   Setattr(p, "hidden", "1");
   Setattr(p, "wrap:disown", "1");
@@ -1238,13 +1238,13 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
 
   t = NewString(classname);
   SwigType_add_pointer(t);
-  parms = NewParm(t, "self");
+  parms = NewParm(t, "self", n);
   Setattr(parms, "self", "1");
   Setattr(parms, "hidden","1");
   Delete(t);
 
   ty = Swig_wrapped_member_var_type(type, varcref);
-  p = NewParm(ty, name);
+  p = NewParm(ty, name, n);
   Setattr(parms, "hidden", "1");
   set_nextSibling(parms, p);
 
@@ -1327,7 +1327,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
 
   t = NewString(classname);
   SwigType_add_pointer(t);
-  parms = NewParm(t, "self");
+  parms = NewParm(t, "self", n);
   Setattr(parms, "self", "1");
   Setattr(parms, "hidden","1");
   Delete(t);
@@ -1383,7 +1383,7 @@ int Swig_VarsetToFunction(Node *n, int flags) {
   type = Getattr(n, "type");
   nname = SwigType_namestr(name);
   ty = Swig_wrapped_var_type(type, varcref);
-  parms = NewParm(ty, name);
+  parms = NewParm(ty, name, n);
 
   if (flags & CWRAP_EXTEND) {
     String *sname = Swig_name_set(name);

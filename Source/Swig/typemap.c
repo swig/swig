@@ -18,9 +18,10 @@ char cvsroot_typemap_c[] = "$Id$";
 #endif
 
 static int typemap_search_debug = 0;
+static int typemaps_used_debug = 0;
 static int in_typemap_search_multi = 0;
 
-static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper *f);
+static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper *f, Node *file_line_node);
 
 /* -----------------------------------------------------------------------------
  * Typemaps are stored in a collection of nested hash tables.  Something like
@@ -266,6 +267,8 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
     else
      typemap = NewStringf("typemap(%s) %s", actual_tmap_method, parms_str);
 
+    Setfile(tm2, Getfile(code));
+    Setline(tm2, Getline(code));
     Setattr(tm2, "code", code);
     Setattr(tm2, "type", type);
     Setattr(tm2, "typemap", typemap);
@@ -871,6 +874,12 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
 
   if (typemap_search_debug && (in_typemap_search_multi == 0))
     debug_search_result_display(tm);
+  if (typemaps_used_debug && tm) {
+    String *typestr = SwigType_str(type, name);
+    Swig_diagnostic(Getfile(parms), Getline(parms), "Using %%%s for: %s\n", Getattr(tm, "typemap"), typestr);
+    assert(Getfile(parms) && Len(Getfile(parms)) > 0); /* Missing file and line numbering information */
+    Delete(typestr);
+  }
 
   return tm;
 }
@@ -1345,6 +1354,13 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   tm = typemap_search(tmap_method, type, pname, qpname, &mtype, node);
   if (typemap_search_debug)
     debug_search_result_display(tm);
+  if (typemaps_used_debug && tm) {
+    String *typestr = SwigType_str(type, qpname ? qpname : pname);
+    Swig_diagnostic(Getfile(node), Getline(node), "Using %%%s for: %s\n", Getattr(tm, "typemap"), typestr);
+    assert(Getfile(node) && Len(Getfile(node)) > 0); /* Missing file and line numbering information */
+    Delete(typestr);
+  }
+
 
   Delete(qpname);
   qpname = 0;
@@ -1450,9 +1466,9 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   }
 
   {
-    ParmList *parm_sublist = NewParm(type, pname);
+    ParmList *parm_sublist = NewParmWithoutFileLineInfo(type, pname);
     Setattr(parm_sublist, "lname", lname);
-    replace_embedded_typemap(s, parm_sublist, f);
+    replace_embedded_typemap(s, parm_sublist, f, tm);
     Delete(parm_sublist);
   }
 
@@ -1730,7 +1746,7 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *p
       typemap_locals(s, locals, f, argnum);
     }
 
-    replace_embedded_typemap(s, firstp, f);
+    replace_embedded_typemap(s, firstp, f, tm);
 
     /* Replace the argument number */
     sprintf(temp, "%d", argnum);
@@ -1851,7 +1867,7 @@ static List *split_embedded_typemap(String *s) {
  *   $typemap(in, (Foo<int, bool> a, int b)) # multi-argument typemap matching %typemap(in) (Foo<int, bool> a, int b) {...}
  * ----------------------------------------------------------------------------- */
 
-static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper *f) {
+static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper *f, Node *file_line_node) {
   char *start = 0;
   while ((start = strstr(Char(s), "$TYPEMAP("))) { /* note $typemap capitalisation to $TYPEMAP hack */
 
@@ -1895,7 +1911,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 
 	/* the second parameter might contain multiple sub-parameters for multi-argument 
 	 * typemap matching, so split these parameters apart */
-	to_match_parms = Swig_cparse_parms(Getitem(l, 1));
+	to_match_parms = Swig_cparse_parms(Getitem(l, 1), file_line_node);
 	if (to_match_parms) {
 	  Parm *p = to_match_parms;
 	  Parm *sub_p = parm_sublist;
@@ -2027,5 +2043,15 @@ void Swig_typemap_debug() {
 
 void Swig_typemap_search_debug_set(void) {
   typemap_search_debug = 1;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_typemap_used_debug_set()
+ *
+ * Turn on typemaps used debug display
+ * ----------------------------------------------------------------------------- */
+
+void Swig_typemap_used_debug_set(void) {
+  typemaps_used_debug = 1;
 }
 

@@ -2323,7 +2323,7 @@ done:
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("zval");
     SwigType_add_pointer(type);
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
 

@@ -262,7 +262,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   /* Look for partial specialization matching */
   if (Getattr(n, "partialargs")) {
     Parm *p, *tp;
-    ParmList *ptargs = SwigType_function_parms(Getattr(n, "partialargs"));
+    ParmList *ptargs = SwigType_function_parms(Getattr(n, "partialargs"), n);
     p = ptargs;
     tp = tparms;
     while (p && tp) {

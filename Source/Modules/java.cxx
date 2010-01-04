@@ -83,13 +83,6 @@ class JAVA:public Language {
 
   enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
-  static Parm *NewParmFromNode(SwigType *type, const_String_or_char_ptr name, Node *n) {
-    Parm *p = NewParm(type, name);
-    Setfile(p, Getfile(n));
-    Setline(p, Getline(n));
-    return p;
-  }
-
 public:
 
   /* -----------------------------------------------------------------------------
@@ -1981,7 +1974,7 @@ public:
       if (qualifier)
 	SwigType_push(this_type, qualifier);
       SwigType_add_pointer(this_type);
-      Parm *this_parm = NewParm(this_type, name);
+      Parm *this_parm = NewParm(this_type, name, n);
       Swig_typemap_attach_parms("jtype", this_parm, NULL);
       Swig_typemap_attach_parms("jstype", this_parm, NULL);
 
@@ -3389,7 +3382,7 @@ public:
       }
 
       /* Create the intermediate class wrapper */
-      Parm *tp = NewParmFromNode(returntype, empty_str, n);
+      Parm *tp = NewParm(returntype, empty_str, n);
 
       tm = Swig_typemap_lookup("jtype", tp, "", 0);
       if (tm) {
@@ -3401,7 +3394,7 @@ public:
       String *cdesc = NULL;
       SwigType *covariant = Getattr(n, "covariant");
       SwigType *adjustedreturntype = covariant ? covariant : returntype;
-      Parm *adjustedreturntypeparm = NewParmFromNode(adjustedreturntype, empty_str, n);
+      Parm *adjustedreturntypeparm = NewParm(adjustedreturntype, empty_str, n);
 
       if ((tm = Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0))
 	  && (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
@@ -3421,10 +3414,10 @@ public:
       /* Get the JNI field descriptor for this return type, add the JNI field descriptor
          to jniret_desc */
 
-      Parm *retpm = NewParmFromNode(returntype, empty_str, n);
+      Parm *retpm = NewParm(returntype, empty_str, n);
 
       if ((c_ret_type = Swig_typemap_lookup("jni", retpm, "", 0))) {
-	Parm *tp = NewParmFromNode(c_ret_type, empty_str, n);
+	Parm *tp = NewParm(c_ret_type, empty_str, n);
 
 	if (!is_void && !ignored_method) {
 	  String *jretval_decl = NewStringf("%s jresult", c_ret_type);
@@ -3526,7 +3519,7 @@ public:
     }
 
     /* Start the Java field descriptor for the intermediate class's upcall (insert self object) */
-    Parm *tp = NewParmFromNode(c_classname, empty_str, n);
+    Parm *tp = NewParm(c_classname, empty_str, n);
     String *jdesc;
 
     if ((tm = Swig_typemap_lookup("directorin", tp, "", 0))
@@ -3568,7 +3561,7 @@ public:
 
       /* Get parameter's intermediary C type */
       if ((c_param_type = Getattr(p, "tmap:jni"))) {
-	Parm *tp = NewParmFromNode(c_param_type, empty_str, n);
+	Parm *tp = NewParm(c_param_type, empty_str, n);
 	String *desc_tm = NULL, *jdesc = NULL, *cdesc = NULL;
 
 	/* Add to local variables */
@@ -3728,7 +3721,7 @@ public:
     addThrows(n, "feature:except", n);
 
     if (!is_void) {
-      Parm *tp = NewParmFromNode(returntype, empty_str, n);
+      Parm *tp = NewParm(returntype, empty_str, n);
 
       if ((tm = Swig_typemap_lookup("javadirectorout", tp, "", 0))) {
         addThrows(n, "tmap:javadirectorout", tp);
@@ -3772,7 +3765,7 @@ public:
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
 	String *result_str = NewString("c_result");
-	Parm *tp = NewParmFromNode(returntype, result_str, n);
+	Parm *tp = NewParm(returntype, result_str, n);
 
 	/* Copy jresult into c_result... */
 	if ((tm = Swig_typemap_lookup("directorout", tp, result_str, w))) {
@@ -3865,7 +3858,7 @@ public:
 
     SwigType_add_pointer(jenv_type);
 
-    p = NewParmFromNode(jenv_type, NewString("jenv"), n);
+    p = NewParm(jenv_type, NewString("jenv"), n);
     Setattr(p, "arg:byname", "1");
     set_nextSibling(p, NULL);
 
@@ -3902,7 +3895,7 @@ public:
 
     String *jenv_type = NewString("JNIEnv");
     SwigType_add_pointer(jenv_type);
-    p = NewParmFromNode(jenv_type, NewString("jenv"), n);
+    p = NewParm(jenv_type, NewString("jenv"), n);
     set_nextSibling(p, parms);
     parms = p;
 

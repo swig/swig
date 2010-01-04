@@ -1437,7 +1437,11 @@ but all subsequent arguments must match exactly.
 
 
 <p>
-The <tt>-debug-tmsearch</tt> command line option is available for debugging typemap searches.
+There are two useful debug command line options available for debugging typemaps, <tt>-debug-tmsearch</tt> and <tt>-debug-tmused</tt>.
+</p>
+
+<p>
+The <tt>-debug-tmsearch</tt> option is a verbose option for debugging typemap searches.
 This can be very useful for watching the pattern matching process in action and for debugging which typemaps are used.
 The option displays all the typemaps and types that are looked for until a successful pattern match is made.
 As the display includes searches for each and every type needed for wrapping, the amount of information displayed can be large.
@@ -1462,9 +1466,9 @@ A sample of the debugging output is shown below for the "in" typemap:
 
 <div class="shell">
 <pre>
-swig -debug-tmsearch example.i
+swig -perl -debug-tmsearch example.i
 ...
-example.h:26: Searching for a suitable 'in' typemap for: Row4 rows[10]
+example.h:3: Searching for a suitable 'in' typemap for: Row4 rows[10]
   Looking for: Row4 rows[10]
   Looking for: Row4 [10]
   Looking for: Row4 rows[ANY]
@@ -1547,6 +1551,22 @@ example.h:39: Searching for a suitable 'in' typemap for: char *buffer
   Multi-argument typemap found...
   Using: %typemap(in) (char *buffer,int len)
 ...
+</pre>
+</div>
+
+<p>
+The second option for debugging is <tt>-debug-tmused</tt> and this displays the typemaps used.
+This option is a less verbose version of the <tt>-debug-tmsearch</tt> option as it only displays each successfully found typemap on a separate single line.
+The output below is for the example code at the start of this section on debugging.
+</p>
+
+<div class="shell">
+<pre>
+$ swig -perl -debug-tmused example.i
+example.h:3: Using %typemap(in) SWIGTYPE [] for: Row4 rows[10]
+example.h:3: Using %typemap(typecheck) SWIGTYPE * for: Row4 rows[10]
+example.h:3: Using %typemap(freearg) SWIGTYPE [] for: Row4 rows[10]
+example.h:3: Using %typemap(out) void for: void foo
 </pre>
 </div>
 

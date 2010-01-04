@@ -588,7 +588,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
   //   ParmList *parms = Getattr(n, "parms");
   // memory leak
-  ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)));
+  ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)), n);
 
 
   //  if (debugMode) {
@@ -712,10 +712,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
        XXX  Have to be a little more clever so that we can deal with struct A * - the * is getting lost.
        Is this still true? If so, will a SwigType_push() solve things?
     */
-    Node *bbase = NewHash();
-    
-    Setattr(bbase, "type", rettype);
-    Setattr(bbase, "name", NewString("result"));
+    Parm *bbase = NewParm(rettype, "result", n);
     String *returnTM = Swig_typemap_lookup("in", bbase, "result", f);
     if(returnTM) {
       String *tm = returnTM;

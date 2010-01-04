@@ -14,10 +14,25 @@ char cvsroot_parms_c[] = "$Id$";
 /* ------------------------------------------------------------------------
  * NewParm()
  *
- * Create a new parameter from datatype 'type' and name 'name'.
+ * Create a new parameter from datatype 'type' and name 'name' copying
+ * the file and line number from the Node file_line_node.
  * ------------------------------------------------------------------------ */
 
-Parm *NewParm(SwigType *type, const_String_or_char_ptr name) {
+Parm *NewParm(SwigType *type, const_String_or_char_ptr name, Node *file_line_node) {
+  Parm *p = NewParmWithoutFileLineInfo(type, name);
+  Setfile(p, Getfile(file_line_node));
+  Setline(p, Getline(file_line_node));
+  return p;
+}
+
+/* ------------------------------------------------------------------------
+ * NewParmWithoutFileLineInfo()
+ *
+ * Create a new parameter from datatype 'type' and name 'name' without any
+ * file / line numbering information.
+ * ------------------------------------------------------------------------ */
+
+Parm *NewParmWithoutFileLineInfo(SwigType *type, const_String_or_char_ptr name) {
   Parm *p = NewHash();
   set_nodeType(p, "parm");
   if (type) {

@@ -11,7 +11,8 @@
 /* $Id: swig.h 9629 2006-12-30 18:27:47Z beazley $ */
 
 /* Individual parameters */
-extern Parm      *NewParm(SwigType *type, const_String_or_char_ptr name);
+extern Parm	 *NewParm(SwigType *type, const_String_or_char_ptr name, Node *file_line_node);
+extern Parm      *NewParmWithoutFileLineInfo(SwigType *type, const_String_or_char_ptr name);
 extern Parm      *CopyParm(Parm *p);
 
 /* Parameter lists */

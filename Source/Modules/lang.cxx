@@ -900,7 +900,7 @@ int Language::cDeclaration(Node *n) {
       Delete(ty);
       ty = fullty;
       fullty = 0;
-      ParmList *parms = SwigType_function_parms(ty);
+      ParmList *parms = SwigType_function_parms(ty, n);
       Setattr(n, "parms", parms);
     }
     /* Transform the node into a 'function' node and emit */
@@ -1188,6 +1188,8 @@ int Language::memberfunctionHandler(Node *n) {
     Setattr(cbn, "type", cbty);
     Setattr(cbn, "value", cbvalue);
     Setattr(cbn, "name", name);
+    Setfile(cbn, Getfile(n));
+    Setline(cbn, Getline(n));
 
     memberconstantHandler(cbn);
     Setattr(n, "feature:callback:name", Swig_name_member(ClassPrefix, cbname));
@@ -1478,7 +1480,7 @@ int Language::membervariableHandler(Node *n) {
     Parm *p;
     String *gname;
     SwigType *vty;
-    p = NewParm(type, 0);
+    p = NewParm(type, 0, n);
     gname = NewStringf(AttributeFunctionGet, symname);
     if (!Extend) {
       ActionFunc = Copy(Swig_cmemberget_call(name, type));
@@ -1904,12 +1906,14 @@ int Language::classDirectorDisown(Node *n) {
   String *type = NewString(ClassType);
   String *name = NewString("self");
   SwigType_add_pointer(type);
-  Parm *p = NewParm(type, name);
+  Parm *p = NewParm(type, name, n);
   Delete(name);
   Delete(type);
   type = NewString("void");
   String *action = NewString("");
   Printv(action, "{\n", "Swig::Director *director = dynamic_cast<Swig::Director *>(arg1);\n", "if (director) director->swig_disown();\n", "}\n", NULL);
+  Setfile(disown, Getfile(n));
+  Setline(disown, Getline(n));
   Setattr(disown, "wrap:action", action);
   Setattr(disown, "name", mrename);
   Setattr(disown, "sym:name", mrename);
@@ -2162,7 +2166,7 @@ static void addCopyConstructor(Node *n) {
     if (!symname) {
       symname = Copy(csymname);
     }
-    Parm *p = NewParm(cc, "other");
+    Parm *p = NewParm(cc, "other", n);
 
     Setattr(cn, "name", name);
     Setattr(cn, "sym:name", symname);

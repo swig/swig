@@ -2724,11 +2724,11 @@ typemap_parm   : type typemap_parameter_declarator {
                   Parm *parm;
 		  SwigType_push($1,$2.type);
 		  $$ = new_node("typemapitem");
-		  parm = NewParm($1,$2.id);
+		  parm = NewParmWithoutFileLineInfo($1,$2.id);
 		  Setattr($$,"pattern",parm);
 		  Setattr($$,"parms", $2.parms);
 		  Delete(parm);
-		  /*		  $$ = NewParm($1,$2.id);
+		  /*		  $$ = NewParmWithoutFileLineInfo($1,$2.id);
 				  Setattr($$,"parms",$2.parms); */
                 }
                | LPAREN parms RPAREN {
@@ -3983,7 +3983,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 				  SwigType *rtt = Swig_symbol_typedef_reduce(tt.item,0);
 				  SwigType *ttr = Swig_symbol_type_qualify(rtt,0);
 
-				  Parm *newp = NewParm(ttr, 0);
+				  Parm *newp = NewParmWithoutFileLineInfo(ttr, 0);
 				  if (partialparms)
 				    set_nextSibling(parm_current, newp);
 				  else
@@ -4129,7 +4129,7 @@ templateparameters : templateparameter templateparameterstail {
                    ;
 
 templateparameter : templcpptype {
-		    $$ = NewParm(NewString($1), 0);
+		    $$ = NewParmWithoutFileLineInfo(NewString($1), 0);
                   }
                   | parm {
                     $$ = $1;
@@ -4708,7 +4708,7 @@ ptail          : COMMA parm ptail {
 
 parm           : rawtype parameter_declarator {
                    SwigType_push($1,$2.type);
-		   $$ = NewParm($1,$2.id);
+		   $$ = NewParmWithoutFileLineInfo($1,$2.id);
 		   Setfile($$,cparse_file);
 		   Setline($$,cparse_line);
 		   if ($2.defarg) {
@@ -4717,7 +4717,7 @@ parm           : rawtype parameter_declarator {
 		}
 
                 | TEMPLATE LESSTHAN cpptype GREATERTHAN cpptype idcolon def_args {
-                  $$ = NewParm(NewStringf("template<class> %s %s", $5,$6), 0);
+                  $$ = NewParmWithoutFileLineInfo(NewStringf("template<class> %s %s", $5,$6), 0);
 		  Setfile($$,cparse_file);
 		  Setline($$,cparse_line);
                   if ($7.val) {
@@ -4726,7 +4726,7 @@ parm           : rawtype parameter_declarator {
                 }
                 | PERIOD PERIOD PERIOD {
 		  SwigType *t = NewString("v(...)");
-		  $$ = NewParm(t, 0);
+		  $$ = NewParmWithoutFileLineInfo(t, 0);
 		  Setfile($$,cparse_file);
 		  Setline($$,cparse_line);
 		}
@@ -4789,7 +4789,7 @@ valparm        : parm {
 
                }
                | valexpr {
-                  $$ = NewParm(0,0);
+                  $$ = NewParmWithoutFileLineInfo(0,0);
                   Setfile($$,cparse_file);
 		  Setline($$,cparse_line);
 		  Setattr($$,"value",$1.val);
@@ -6226,14 +6226,16 @@ Parm *Swig_cparse_parm(String *s) {
 }
 
 
-ParmList *Swig_cparse_parms(String *s) {
+ParmList *Swig_cparse_parms(String *s, Node *file_line_node) {
    String *ns;
    char *cs = Char(s);
    if (cs && cs[0] != '(') {
      ns = NewStringf("(%s);",s);
    } else {
      ns = NewStringf("%s;",s);
-   }   
+   }
+   Setfile(ns, Getfile(file_line_node));
+   Setline(ns, Getline(file_line_node));
    Seek(ns,0,SEEK_SET);
    scanner_file(ns);
    top = 0;

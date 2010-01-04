@@ -86,13 +86,6 @@ class CSHARP:public Language {
 
   enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
-  static Parm *NewParmFromNode(SwigType *type, const_String_or_char_ptr name, Node *n) {
-    Parm *p = NewParm(type, name);
-    Setfile(p, Getfile(n));
-    Setline(p, Getline(n));
-    return p;
-  }
-
 public:
 
   /* -----------------------------------------------------------------------------
@@ -3331,7 +3324,7 @@ public:
       }
 
       /* Create the intermediate class wrapper */
-      Parm *tp = NewParmFromNode(returntype, empty_str, n);
+      Parm *tp = NewParm(returntype, empty_str, n);
 
       tm = Swig_typemap_lookup("imtype", tp, "", 0);
       if (tm) {
@@ -3351,7 +3344,7 @@ public:
 	Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(returntype, 0));
       }
 
-      Parm *retpm = NewParmFromNode(returntype, empty_str, n);
+      Parm *retpm = NewParm(returntype, empty_str, n);
 
       if ((c_ret_type = Swig_typemap_lookup("ctype", retpm, "", 0))) {
 
@@ -3438,7 +3431,7 @@ public:
 	if (ctypeout)
 	  c_param_type = ctypeout;
 
-	Parm *tp = NewParmFromNode(c_param_type, empty_str, n);
+	Parm *tp = NewParm(c_param_type, empty_str, n);
 	String *desc_tm = NULL;
 
 	/* Add to local variables */
@@ -3593,7 +3586,7 @@ public:
     String *upcall = NewStringf("%s(%s)", symname, imcall_args);
 
     if (!is_void) {
-      Parm *tp = NewParmFromNode(returntype, empty_str, n);
+      Parm *tp = NewParm(returntype, empty_str, n);
 
       if ((tm = Swig_typemap_lookup("csdirectorout", tp, "", 0))) {
 	substituteClassname(returntype, tm);
@@ -3619,7 +3612,7 @@ public:
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
 	String *result_str = NewString("c_result");
-	Parm *tp = NewParmFromNode(returntype, result_str, n);
+	Parm *tp = NewParm(returntype, result_str, n);
 
 	/* Copy jresult into c_result... */
 	if ((tm = Swig_typemap_lookup("directorout", tp, result_str, w))) {

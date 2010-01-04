@@ -1807,7 +1807,7 @@ ParmList *Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope,
 	  ntq = ty;
 	}
 	/* Printf(stderr,"value %s %s %s\n",value,ntr,ntq); */
-	cp = NewParm(ntq, 0);
+	cp = NewParmWithoutFileLineInfo(ntq, 0);
         if (lp)
           set_nextSibling(lp, cp);
         else
@@ -1884,7 +1884,7 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
       String *tprefix = SwigType_templateprefix(base);
       String *targs = SwigType_templateargs(base);
       String *tsuffix = SwigType_templatesuffix(base);
-      ParmList *tparms = SwigType_function_parms(targs);
+      ParmList *tparms = SwigType_function_parms(targs, 0);
       Node *tempn = Swig_symbol_clookup_local(tprefix, tscope);
       if (!tempn && tsuffix && Len(tsuffix)) {
 	tempn = Swig_symbol_clookup(tprefix, 0);
