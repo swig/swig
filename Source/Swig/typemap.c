@@ -886,7 +886,7 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
 
   if (typemap_search_debug && (in_typemap_search_multi == 0))
     debug_search_result_display(tm);
-  if (typemaps_used_debug && tm) {
+  if (typemaps_used_debug && (in_typemap_search_multi == 0) && tm) {
     String *typestr = SwigType_str(type, name);
     Swig_diagnostic(Getfile(parms), Getline(parms), "Using %%%s for: %s\n", Getattr(tm, "source"), typestr);
     assert(Getfile(parms) && Len(Getfile(parms)) > 0); /* Missing file and line numbering information */
