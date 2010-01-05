@@ -183,6 +183,24 @@ String *ParmList_str_defaultargs(ParmList *p) {
   return out;
 }
 
+/* -----------------------------------------------------------------------------
+ * ParmList_str_multibrackets()
+ *
+ * Generates a string of parameters including default arguments adding brackets
+ * if more than one parameter
+ * ----------------------------------------------------------------------------- */
+
+String *ParmList_str_multibrackets(ParmList *p) {
+  String *out;
+  String *parm_str = ParmList_str_defaultargs(p);
+  if (ParmList_len(p) > 1)
+    out = NewStringf("(%s)", parm_str);
+  else
+    out = NewStringf("%s", parm_str);
+  Delete(parm_str);
+  return out;
+}
+
 /* ---------------------------------------------------------------------
  * ParmList_protostr()
  *

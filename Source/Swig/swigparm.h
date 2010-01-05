@@ -25,6 +25,7 @@ extern int        ParmList_has_defaultargs(ParmList *p);
 /* Output functions */
 extern String    *ParmList_str(ParmList *);
 extern String    *ParmList_str_defaultargs(ParmList *);
+extern String    *ParmList_str_multibrackets(ParmList *);
 extern String    *ParmList_protostr(ParmList *);
 
 

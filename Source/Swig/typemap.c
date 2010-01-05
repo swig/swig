@@ -40,7 +40,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
  *    "type"    -  Typemap type
  *    "pname"   -  Parameter name
  *    "code"    -  Typemap code
- *    "typemap" -  Descriptive text describing the actual map
+ *    "source"  -  Source directive (%apply or %typemap) for the typemap
  *    "locals"  -  Local variables (if any)
  *    "kwargs"  -  Typemap attributes
  * 
@@ -50,7 +50,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
  *    "type"    -  r.int
  *    "pname"   -  my_int
  *    "code"    -  $1 = $input;
- *    "typemap" -  typemap(in) int &my_int
+ *    "source"  -  typemap(in) int &my_int
  *    "locals"  -  int tmp
  *    "kwargs"  -  warning="987:my typemap warning", foo=123
  * 
@@ -180,7 +180,7 @@ Hash *Swig_typemap_pop_scope() {
  * Internal implementation for Swig_typemap_register()
  * ----------------------------------------------------------------------------- */
 
-static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *parms, const_String_or_char_ptr code, ParmList *locals, ParmList *kwargs, const_String_or_char_ptr actual_tmap_method, ParmList *parmlist_start) {
+static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *parms, const_String_or_char_ptr code, ParmList *locals, ParmList *kwargs, String *source_directive) {
   Hash *tm;
   Hash *tm1;
   Hash *tm2;
@@ -252,26 +252,20 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
   if (np) {
     /* Make an entirely new typemap method key */
     String *multi_tmap_method = NewStringf("%s-%s+%s:", tmap_method, type, pname);
-    /* Now reregister on the remaining arguments */
-    typemap_register(multi_tmap_method, np, code, locals, kwargs, actual_tmap_method, parmlist_start);
 
-    /*    Setattr(tm2,multi_tmap_method,multi_tmap_method); */
+    /* Now reregister on the remaining arguments */
+    typemap_register(multi_tmap_method, np, code, locals, kwargs, source_directive);
+
     Delete(multi_tmap_method);
   } else {
     ParmList *clocals = CopyParmList(locals);
     ParmList *ckwargs = CopyParmList(kwargs);
-    String *parms_str = ParmList_str(parmlist_start);
-    String *typemap;
-    if (ParmList_len(parmlist_start) > 1)
-     typemap = NewStringf("typemap(%s) (%s)", actual_tmap_method, parms_str);
-    else
-     typemap = NewStringf("typemap(%s) %s", actual_tmap_method, parms_str);
 
     Setfile(tm2, Getfile(code));
     Setline(tm2, Getline(code));
     Setattr(tm2, "code", code);
     Setattr(tm2, "type", type);
-    Setattr(tm2, "typemap", typemap);
+    Setattr(tm2, "source", source_directive);
     if (pname) {
       Setattr(tm2, "pname", pname);
     }
@@ -280,9 +274,6 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
 
     Delete(clocals);
     Delete(ckwargs);
-
-    Delete(parms_str);
-    Delete(typemap);
   }
 }
 
@@ -293,7 +284,13 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
  * ----------------------------------------------------------------------------- */
 
 void Swig_typemap_register(const_String_or_char_ptr tmap_method, ParmList *parms, const_String_or_char_ptr code, ParmList *locals, ParmList *kwargs) {
-  typemap_register(tmap_method, parms, code, locals, kwargs, tmap_method, parms);
+  String *parms_str = ParmList_str_multibrackets(parms);
+  String *source_directive = NewStringf("typemap(%s) %s", tmap_method, parms_str);
+
+  typemap_register(tmap_method, parms, code, locals, kwargs, source_directive);
+
+  Delete(source_directive);
+  Delete(parms_str);
 }
 
 /* -----------------------------------------------------------------------------
@@ -361,9 +358,16 @@ int Swig_typemap_copy(const_String_or_char_ptr tmap_method, ParmList *srcparms, 
     Delete(tm_methods);
 
     if (!p && tm) {
-
       /* Got some kind of match */
-      Swig_typemap_register(tmap_method, parms, Getattr(tm, "code"), Getattr(tm, "locals"), Getattr(tm, "kwargs"));
+      String *parms_str = ParmList_str_multibrackets(parms);
+      String *srcparms_str = ParmList_str_multibrackets(srcparms);
+      String *source_directive = NewStringf("typemap(%s) %s = %s", tmap_method, parms_str, srcparms_str);
+
+      typemap_register(tmap_method, parms, Getattr(tm, "code"), Getattr(tm, "locals"), Getattr(tm, "kwargs"), source_directive);
+
+      Delete(source_directive);
+      Delete(srcparms_str);
+      Delete(parms_str);
       return 0;
     }
     ts--;
@@ -529,9 +533,17 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
 	    locals = Getattr(sm1, "locals");
 	    kwargs = Getattr(sm1, "kwargs");
 	    if (code) {
+	      String *src_str = ParmList_str_multibrackets(src);
+	      String *dest_str = ParmList_str_multibrackets(dest);
+	      String *source_directive = NewStringf("apply %s { %s }", src_str, dest_str);
+
 	      Replace(nkey, dsig, "", DOH_REPLACE_ANY);
 	      Replace(nkey, "tmap:", "", DOH_REPLACE_ANY);
-	      Swig_typemap_register(nkey, dest, code, locals, kwargs);
+	      typemap_register(nkey, dest, code, locals, kwargs, source_directive);
+
+	      Delete(source_directive);
+	      Delete(dest_str);
+	      Delete(src_str);
 	    }
 	  }
 	  Delete(nkey);
@@ -616,7 +628,7 @@ static SwigType *strip_arrays(SwigType *type) {
 
 static void debug_search_result_display(Node *tm) {
   if (tm)
-    Printf(stdout, "  Using: %%%s\n", Getattr(tm, "typemap"));
+    Printf(stdout, "  Using: %%%s\n", Getattr(tm, "source"));
   else
     Printf(stdout, "  None found\n");
 }
@@ -876,7 +888,7 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
     debug_search_result_display(tm);
   if (typemaps_used_debug && tm) {
     String *typestr = SwigType_str(type, name);
-    Swig_diagnostic(Getfile(parms), Getline(parms), "Using %%%s for: %s\n", Getattr(tm, "typemap"), typestr);
+    Swig_diagnostic(Getfile(parms), Getline(parms), "Using %%%s for: %s\n", Getattr(tm, "source"), typestr);
     assert(Getfile(parms) && Len(Getfile(parms)) > 0); /* Missing file and line numbering information */
     Delete(typestr);
   }
@@ -1356,7 +1368,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     debug_search_result_display(tm);
   if (typemaps_used_debug && tm) {
     String *typestr = SwigType_str(type, qpname ? qpname : pname);
-    Swig_diagnostic(Getfile(node), Getline(node), "Using %%%s for: %s\n", Getattr(tm, "typemap"), typestr);
+    Swig_diagnostic(Getfile(node), Getline(node), "Using %%%s for: %s\n", Getattr(tm, "source"), typestr);
     assert(Getfile(node) && Len(Getfile(node)) > 0); /* Missing file and line numbering information */
     Delete(typestr);
   }
