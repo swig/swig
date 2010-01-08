@@ -764,7 +764,7 @@ public:
       Printv(access_mem, "(ptr)->", name, NIL);
       if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
 	Printv(convert_tab, tab4, "fields[i++] = ", NIL);
-	Printv(convert_tab, "_swig_convert_struct_", swigtype, "((", SwigType_str(ctype_ptr, ""), ")&((ptr)->", name, "));\n", NIL);
+	Printv(convert_tab, "_swig_convert_struct_", swigtype, "((", SwigType_str(ctype_ptr, 0), ")&((ptr)->", name, "));\n", NIL);
       } else if ((tm = Swig_typemap_lookup("varout", n, access_mem, 0))) {
 	Replaceall(tm, "$result", "fields[i++]");
 	Printv(convert_tab, tm, "\n", NIL);
