@@ -662,11 +662,9 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   ts = tm_scope;
 
   if (debug_display) {
-    String *empty_string = NewStringEmpty();
-    String *typestr = SwigType_str(type, cqualifiedname ? cqualifiedname : (cname ? cname : empty_string));
+    String *typestr = SwigType_str(type, cqualifiedname ? cqualifiedname : cname);
     Swig_diagnostic(Getfile(node), Getline(node), "Searching for a suitable '%s' typemap for: %s\n", tmap_method, typestr);
     Delete(typestr);
-    Delete(empty_string);
   }
   while (ts >= 0) {
     ctype = type;
@@ -824,15 +822,12 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   result = backup;
 
 ret_result:
-  if (noarrays)
-    Delete(noarrays);
-  if (primitive)
-    Delete(primitive);
+  Delete(noarrays);
+  Delete(primitive);
   if ((unstripped) && (unstripped != type))
     Delete(unstripped);
-  if (matchtype) {
+  if (matchtype)
     *matchtype = Copy(ctype);
-  }
   if (type != ctype)
     Delete(ctype);
   return result;
