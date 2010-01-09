@@ -512,7 +512,8 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
   if (template_debug) {
     tname = Copy(name);
     SwigType_add_template(tname, tparms);
-    Printf(stdout, "\n%s:%d: template_debug: Searching for match to: '%s'\n", cparse_file, cparse_line, tname);
+    Printf(stdout, "\n");
+    Swig_diagnostic(cparse_file, cparse_line, "template_debug: Searching for match to: '%s'\n", tname);
     Delete(tname);
     tname = 0;
   }

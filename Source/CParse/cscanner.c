@@ -135,7 +135,7 @@ static void scanner_locator(String *loc) {
 	  break;
 	Putc(c, fn);
       }
-      /*  Printf(stderr,"location: %s:%d\n",cparse_file,cparse_line); */
+      /*  Swig_diagnostic(cparse_file, cparse_line, "Scanner_set_location\n"); */
       Scanner_set_location(scan,cparse_file,cparse_line);
       Delete(fn);
     }
@@ -502,7 +502,7 @@ int yylex(void) {
 
   l = yylook();
 
-  /*   Printf(stdout, "%s:%d:::%d: '%s'\n", cparse_file, cparse_line, l, Scanner_text(scan)); */
+  /*   Swig_diagnostic(cparse_file, cparse_line, ":::%d: '%s'\n", l, Scanner_text(scan)); */
 
   if (l == NONID) {
     last_id = 1;
