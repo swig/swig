@@ -3093,7 +3093,7 @@ SWIG can detect when the "optimal" attribute cannot be used and will ignore it a
 
 <div class="targetlang">
 <pre>
-example.i:28: Warning(474): Method XX::create() usage of the optimal attribute in the out 
+example.i:28: Warning 474: Method XX::create() usage of the optimal attribute in the out 
 typemap at example.i:14 ignored as the following cannot be used to generate optimal code: 
 try {
   result = XX::create();
@@ -3115,7 +3115,7 @@ In fact SWIG attempts to detect this and will issue a warning something like:
 
 <div class="targetlang">
 <pre>
-example.i:21: Warning(475): Multiple calls to XX::create() might be generated due to 
+example.i:21: Warning 475: Multiple calls to XX::create() might be generated due to 
 optimal attribute usage in the out typemap at example.i:7.
 </pre>
 </div>
