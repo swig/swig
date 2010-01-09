@@ -681,8 +681,9 @@ these methods is described later.
 </p>
 
 <p>
-<em>modifiers</em> is an optional comma separated list of <tt>name="value"</tt> values.  These
-are sometimes to attach extra information to a typemap and is often target-language dependent.
+<em>modifiers</em> is an optional comma separated list of <tt>name="value"</tt> values. 
+These are sometimes to attach extra information to a typemap and is often target-language dependent.
+They are also known as typemap attributes.
 </p>
 
 <p>
@@ -1557,18 +1558,80 @@ example.h:39: Searching for a suitable 'in' typemap for: char *buffer
 <p>
 The second option for debugging is <tt>-debug-tmused</tt> and this displays the typemaps used.
 This option is a less verbose version of the <tt>-debug-tmsearch</tt> option as it only displays each successfully found typemap on a separate single line.
-The output below is for the example code at the start of this section on debugging.
+The output displays the type, and name if present, the typemap method in brackets and then the actual typemap used.
+Below is the output for the example code at the start of this section on debugging.
 </p>
 
 <div class="shell">
 <pre>
 $ swig -perl -debug-tmused example.i
-example.h:3: Using %typemap(in) SWIGTYPE [] for: Row4 rows[10]
-example.h:3: Using %typemap(typecheck) SWIGTYPE * for: Row4 rows[10]
-example.h:3: Using %typemap(freearg) SWIGTYPE [] for: Row4 rows[10]
-example.h:3: Using %typemap(out) void for: void foo
+example.h:3: Typemap for Row4 rows[10] (in) : %typemap(in) SWIGTYPE []
+example.h:3: Typemap for Row4 rows[10] (typecheck) : %typemap(typecheck) SWIGTYPE *
+example.h:3: Typemap for Row4 rows[10] (freearg) : %typemap(freearg) SWIGTYPE []
+example.h:3: Typemap for void foo (out) : %typemap(out) void
 </pre>
 </div>
+
+<p>
+Now, consider the following interface file:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+%{
+void set_value(const char* val) {}
+%}
+
+%typemap(check) char *NON_NULL {
+  if (!$1) {
+    /* ... error handling ... */
+  }
+}
+
+%apply SWIGTYPE * { const char* val, const char* another_value } // use default pointer handling instead of strings
+
+%typemap(check) const char* val = char* NON_NULL;
+
+%typemap(arginit, noblock=1) const char* val {
+   $1 = "";
+}
+
+void set_value(const char* val);
+
+</pre>
+</div>
+
+<p>
+and the output debug:
+</p>
+
+<div class="shell">
+<pre>
+swig -perl5 -debug-tmused example.i
+example.i:21: Typemap for char const *val (arginit) : %typemap(arginit) char const *val
+example.i:21: Typemap for char const *val (in) : %apply SWIGTYPE * { char const *val }
+example.i:21: Typemap for char const *val (typecheck) : %apply SWIGTYPE * { char const *val }
+example.i:21: Typemap for char const *val (check) : %typemap(check) char const *val = char *NON_NULL
+example.i:21: Typemap for char const *val (freearg) : %apply SWIGTYPE * { char const *val }
+example.i:21: Typemap for void set_value (out) : %typemap(out) void
+</pre>
+</div>
+
+<p>
+The following observations about what is displayed can be noted (the same applies for <tt>-debug-tmsearch</tt>):
+<li>
+The relevant typemap is shown, but for typemap copying, the appropriate <tt>%typemap</tt> or <tt>%apply</tt> is displayed, for example, the "check" and "in" typemaps.
+</li>
+<li>
+The typemap modifiers are not shown, eg the <tt>noblock=1</tt> modifier in the "arginit" typemap.
+</li>
+<li>
+The exact <tt>%apply</tt> statement might look different to what is in the actual code. For example, the <tt>const char* another_value</tt> is not shown as it is not relevant here.
+Also the types may be displayed slightly differently - <tt>char const *</tt> and not <tt>const char*</tt>.
+</li>
+</p>
 
 <H2><a name="Typemaps_nn21"></a>10.4 Code generation rules</H2>
 

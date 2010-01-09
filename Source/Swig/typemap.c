@@ -883,7 +883,7 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
     debug_search_result_display(tm);
   if (typemaps_used_debug && (in_typemap_search_multi == 0) && tm) {
     String *typestr = SwigType_str(type, name);
-    Swig_diagnostic(Getfile(parms), Getline(parms), "Using %%%s for: %s\n", Getattr(tm, "source"), typestr);
+    Swig_diagnostic(Getfile(parms), Getline(parms), "Typemap for %s (%s) : %%%s\n", typestr, tmap_method, Getattr(tm, "source"));
     assert(Getfile(parms) && Len(Getfile(parms)) > 0); /* Missing file and line numbering information */
     Delete(typestr);
   }
@@ -1363,7 +1363,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     debug_search_result_display(tm);
   if (typemaps_used_debug && tm) {
     String *typestr = SwigType_str(type, qpname ? qpname : pname);
-    Swig_diagnostic(Getfile(node), Getline(node), "Using %%%s for: %s\n", Getattr(tm, "source"), typestr);
+    Swig_diagnostic(Getfile(node), Getline(node), "Typemap for %s (%s) : %%%s\n", typestr, tmap_method, Getattr(tm, "source"));
     assert(Getfile(node) && Len(Getfile(node)) > 0); /* Missing file and line numbering information */
     Delete(typestr);
   }
