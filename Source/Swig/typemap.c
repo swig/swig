@@ -1431,7 +1431,8 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
         }
       }
       if (!optimal_substitution) {
-        Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(node), Getline(node), "Method %s usage of the optimal attribute in the out typemap at %s:%d ignored as the following cannot be used to generate optimal code: %s\n", Swig_name_decl(node), Getfile(s), Getline(s), clname);
+        Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(node), Getline(node), "Method %s usage of the optimal attribute ignored\n", Swig_name_decl(node));
+        Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(s), Getline(s), "in the out typemap as the following cannot be used to generate optimal code: %s\n", clname);
         Delattr(node, "tmap:out:optimal");
       }
     } else {
@@ -1465,8 +1466,10 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   } else {
     num_substitutions = typemap_replace_vars(s, locals, type, type, pname, (char *) lname, 1);
   }
-  if (optimal_substitution && num_substitutions > 1)
-    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(node), Getline(node), "Multiple calls to %s might be generated due to optimal attribute usage in the out typemap at %s:%d.\n", Swig_name_decl(node), Getfile(s), Getline(s));
+  if (optimal_substitution && num_substitutions > 1) {
+    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(node), Getline(node), "Multiple calls to %s might be generated due to optimal attribute usage in\n", Swig_name_decl(node));
+    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(s), Getline(s), "the out typemap.\n");
+  }
 
   if (locals && f) {
     typemap_locals(s, locals, f, -1);
