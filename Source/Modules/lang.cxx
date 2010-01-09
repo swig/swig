@@ -175,7 +175,7 @@ int Dispatcher::emit_one(Node *n) {
   } else if (strcmp(tag, "types") == 0) {
     ret = typesDirective(n);
   } else {
-    Printf(stderr, "%s:%d. Unrecognized parse tree node type '%s'\n", input_file, line_number, tag);
+    Swig_error(input_file, line_number, "Unrecognized parse tree node type '%s'\n", tag);
     ret = SWIG_ERROR;
   }
   if (wrn) {

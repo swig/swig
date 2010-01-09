@@ -1486,8 +1486,8 @@ static List * Swig_overload_rank(Node *n,
 	  }
 	  if (!differ) {
 	    /* See if declarations differ by const only */
-	    String *d1 = Getattr(nodes[i].n,"decl");
-	    String *d2 = Getattr(nodes[j].n,"decl");
+	    String *d1 = Getattr(nodes[i].n, "decl");
+	    String *d2 = Getattr(nodes[j].n, "decl");
 	    if (d1 && d2) {
 	      String *dq1 = Copy(d1);
 	      String *dq2 = Copy(d2);
@@ -1497,49 +1497,47 @@ static List * Swig_overload_rank(Node *n,
 	      if (SwigType_isconst(d2)) {
 		Delete(SwigType_pop(dq2));
 	      }
-	      if (Strcmp(dq1,dq2) == 0) {
-		
+	      if (Strcmp(dq1, dq2) == 0) {
+
 		if (SwigType_isconst(d1) && !SwigType_isconst(d2)) {
-                  if (script_lang_wrapping) {
-                    // Swap nodes so that the const method gets ignored (shadowed by the non-const method)
-                    Overloaded t = nodes[i];
-                    nodes[i] = nodes[j];
-                    nodes[j] = t;
-                  }
+		  if (script_lang_wrapping) {
+		    // Swap nodes so that the const method gets ignored (shadowed by the non-const method)
+		    Overloaded t = nodes[i];
+		    nodes[i] = nodes[j];
+		    nodes[j] = t;
+		  }
 		  differ = 1;
 		  if (!nodes[j].error) {
-                    if (script_lang_wrapping) {
+		    if (script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				   "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
-				   Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-				   Getfile(nodes[i].n), Getline(nodes[i].n));
-                    } else {
-                      if (!Getattr(nodes[j].n, "overload:ignore"))
-		        Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-				     "Overloaded method %s(%s) ignored. Method %s(%s) const at %s:%d used.\n",
-				     Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-			             Getattr(nodes[i].n,"name"), ParmList_errorstr(nodes[i].parms),
-				     Getfile(nodes[i].n), Getline(nodes[i].n));
-                    }
+				   "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
+				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
+		    } else {
+		      if (!Getattr(nodes[j].n, "overload:ignore"))
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
+				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		    }
 		  }
 		  nodes[j].error = 1;
 		} else if (!SwigType_isconst(d1) && SwigType_isconst(d2)) {
 		  differ = 1;
 		  if (!nodes[j].error) {
-                    if (script_lang_wrapping) {
+		    if (script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				   "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
-				   Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-				   Getfile(nodes[i].n), Getline(nodes[i].n));
-                    } else {
-                      if (!Getattr(nodes[j].n, "overload:ignore"))
-		        Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-				     "Overloaded method %s(%s) const ignored. Method %s(%s) at %s:%d used.\n",
-				     Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-			             Getattr(nodes[i].n,"name"), ParmList_errorstr(nodes[i].parms),
-				     Getfile(nodes[i].n), Getline(nodes[i].n));
-                    }
-                  }
+				   "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
+				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
+		    } else {
+		      if (!Getattr(nodes[j].n, "overload:ignore"))
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
+				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		    }
+		  }
 		  nodes[j].error = 1;
 		}
 	      }
@@ -1549,18 +1547,18 @@ static List * Swig_overload_rank(Node *n,
 	  }
 	  if (!differ) {
 	    if (!nodes[j].error) {
-              if (script_lang_wrapping) {
-	        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
-			     "Overloaded method %s is shadowed by %s at %s:%d.\n",
-			     Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n),
-			     Getfile(nodes[i].n), Getline(nodes[i].n));
-              } else {
-                if (!Getattr(nodes[j].n, "overload:ignore"))
-	          Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-			       "Overloaded method %s ignored. Method %s at %s:%d used.\n",
-			       Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n),
-			       Getfile(nodes[i].n), Getline(nodes[i].n));
-              }
+	      if (script_lang_wrapping) {
+		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
+			     "Overloaded method %s effectively ignored,\n", Swig_name_decl(nodes[j].n));
+		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[i].n), Getline(nodes[i].n),
+			     "as it is shadowed by %s.\n", Swig_name_decl(nodes[i].n));
+	      } else {
+		if (!Getattr(nodes[j].n, "overload:ignore"))
+		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
+			       "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+			       "using %s instead.\n", Swig_name_decl(nodes[i].n));
+	      }
 	      nodes[j].error = 1;
 	    }
 	  }

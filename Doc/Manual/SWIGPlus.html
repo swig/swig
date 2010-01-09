@@ -2031,7 +2031,8 @@ Therefore, when SWIG encounters this situation, it may generate a warning messag
 
 <div class="shell">
 <pre>
-example.i:4: Warning 509: Overloaded foo(long) is shadowed by foo(int) at example.i:3.
+example.i:4: Warning 509: Overloaded method foo(long) effectively ignored,
+example.i:3: Warning 509: as it is shadowed by foo(int).
 </pre>
 </div>
 
@@ -2041,7 +2042,8 @@ or for statically typed languages like Java:
 
 <div class="shell">
 <pre>
-example.i:4: Warning 516: Overloaded method foo(long) ignored. Method foo(int)
+example.i:4: Warning 516: Overloaded method foo(long) ignored,
+example.i:3: Warning 516: using foo(int) instead.
 at example.i:3 used.
 </pre>
 </div>

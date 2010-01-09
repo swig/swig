@@ -2,6 +2,10 @@ Version 1.3.41 (in progress)
 ============================
 
 2010-01-10: wsfulton
+            Fix a few inconsistencies in reporting of file/line numberings including modifying
+            the overload warnings 509, 512, 516 to now be two line warnings.
+
+2010-01-10: wsfulton
             Modify -debug-tags output to use standard file name/line reporting so that editors
             can easily navigate to the appropriate lines.
             Was typically:

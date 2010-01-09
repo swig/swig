@@ -1810,7 +1810,11 @@ message like this: </p>
 
 
 <div class="code shell">
-<pre>example.i:12: Warning 509: Overloaded spam(short) is shadowed by spam(int)<br>at example.i:11.<br> </pre>
+<pre>
+example.i:12: Warning 509: Overloaded method spam(short) effectively ignored,
+example.i:11: Warning 509: as it is shadowed by spam(int).
+<br>
+ </pre>
 
 
 
