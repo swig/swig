@@ -256,7 +256,7 @@ void Swig_error_msg_format(ErrorMessageFormat format) {
     fmt_eof = "%s:EOF";
   }
 
-  sprintf(wrn_wnum_fmt, "%s: %s(%%d): ", fmt_line, warning);
+  sprintf(wrn_wnum_fmt, "%s: %s %%d: ", fmt_line, warning);
   sprintf(wrn_nnum_fmt, "%s: %s: ", fmt_line, warning);
   sprintf(err_line_fmt, "%s: %s: ", fmt_line, error);
   sprintf(err_eof_fmt, "%s: %s: ", fmt_eof, error);

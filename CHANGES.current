@@ -1,6 +1,18 @@
 Version 1.3.41 (in progress)
 ============================
 
+2010-01-09: wsfulton
+            Slight change to warning, error and diagnostic reporting. The warning number is no 
+            longer shown within brackets. This is to help default parsing of warning messages by
+            other tools, vim on Unix in particular.
+
+            Example original display using -Fstandard:
+              example.i:20: Warning(401): Nothing known about base class 'B'. Ignored.
+            New display:
+              example.i:20: Warning 401: Nothing known about base class 'B'. Ignored.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2010-01-03: wsfulton
             Fix missing file/line numbers for typemap warnings and in output from the
            -debug-tmsearch/-debug-tmused options.
