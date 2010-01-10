@@ -64,13 +64,15 @@ or you can use the %apply directive :
 	     float *INPUT (int *piAddrVar, int iRows, int iCols, float temp),
 	     double *INPUT (int *piAddrVar, int iRows, int iCols, double temp) {
   double *_piData;
-  getVarAddressFromPosition($argnum, &piAddrVar);
-  getVarDimension(piAddrVar, &iRows, &iCols);
+  int typearg;
+  getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
-  if (getVarType(piAddrVar) != sci_matrix || iRows != 1 || iCols != 1 || isVarComplex(piAddrVar)) {
+  getVarType(pvApiCtx, piAddrVar, &typearg);
+  if (typearg != sci_matrix || iRows != 1 || iCols != 1 || isVarComplex(pvApiCtx, piAddrVar)) {
     Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
   }
-  getMatrixOfDouble(piAddrVar, &iRows, &iCols,  &_piData);
+  getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols,  &_piData);
   temp = ($*1_ltype)*_piData;
   $1 = &temp;
 }

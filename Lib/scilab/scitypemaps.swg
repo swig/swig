@@ -895,8 +895,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != 1 || iCols != $1_dim0 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Array of signed char expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Array of signed char expected.\n"), fname, $argnum);
+  }
+  if (iRows != 1 || iCols != $1_dim0) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Array of 1 X %d expected.\n"), fname, $argnum, $1_dim0);
   }
   getMatrixOfInteger8(pvApiCtx, piAddrVar, &iRows, &iCols, (char **)&_piData);
   for(; ii < (size_t)$1_dim0; ii++) {
@@ -912,8 +915,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != 1 || iCols != $1_dim0 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Array of unsigned char expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Array of unsigned char expected.\n"), fname, $argnum);
+  }
+  if (iRows != 1 || iCols != $1_dim0) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Array of 1 X %d expected.\n"), fname, $argnum, $1_dim0);
   }
   getMatrixOfUnsignedInteger8(pvApiCtx, piAddrVar, &iRows, &iCols, (unsigned char **)&_piData);
   for(; ii < (size_t)$1_dim0; ii++) {
@@ -929,8 +935,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != 1 || iCols != $1_dim0 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Array of short expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Array of short expected.\n"), fname, $argnum);
+  }
+  if (iRows != 1 || iCols != $1_dim0) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Array of 1 X %d expected.\n"), fname, $argnum, $1_dim0);
   }
   getMatrixOfInteger16(pvApiCtx, piAddrVar, &iRows, &iCols, (short **)&_piData);
   for(; ii < (size_t)$1_dim0; ii++) {
@@ -946,8 +955,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != 1 || iCols != $1_dim0 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Array of unsigned short expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Array of unsigned short expected.\n"), fname, $argnum);
+  }
+  if (iRows != 1 || iCols != $1_dim0) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Array of 1 X %d expected.\n"), fname, $argnum, $1_dim0);
   }
   getMatrixOfUnsignedInteger16(pvApiCtx, piAddrVar, &iRows, &iCols, (unsigned short **)&_piData);
   for(; ii < (size_t)$1_dim0; ii++) {
@@ -964,8 +976,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != 1 || iCols != $1_dim0 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Array of int expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Array of int expected.\n"), fname, $argnum);
+  }
+  if (iRows != 1 || iCols != $1_dim0) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Array of 1 X %d expected.\n"), fname, $argnum, $1_dim0);
   }
   getMatrixOfInteger32(pvApiCtx, piAddrVar, &iRows, &iCols, (int **)&_piData);
   for(; ii < (size_t)$1_dim0; ii++) {
@@ -982,8 +997,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != 1 || iCols != $1_dim0 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Array of unsigned int expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Array of unsigned int expected.\n"), fname, $argnum);
+  }
+  if (iRows != 1 || iCols != $1_dim0) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Array of 1 X %d expected.\n"), fname, $argnum, $1_dim0);
   }
   getMatrixOfUnsignedInteger32(pvApiCtx, piAddrVar, &iRows, &iCols, (unsigned int **)&_piData);
   for(; ii < (size_t)$1_dim0; ii++) {
@@ -1000,8 +1018,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_matrix || iRows != 1 || iCols != $1_dim0 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Array of double expected.\n"), fname, $argnum);
+  if (typearg != sci_matrix || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Array of double expected.\n"), fname, $argnum);
+  }
+  if (iRows != 1 || iCols != $1_dim0) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Array of 1 X %d expected.\n"), fname, $argnum, $1_dim0);
   }
   getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols, (double **)&_piData);
   for(; ii < (size_t)$1_dim0; ii++){
@@ -1017,8 +1038,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != 1 || iCols != $1_dim0 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Array of long long expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Array of long long expected.\n"), fname, $argnum);
+  }
+  if (iRows != 1 || iCols != $1_dim0) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Array of 1 X %d expected.\n"), fname, $argnum, $1_dim0);
   }
   getMatrixOfInteger64(pvApiCtx, piAddrVar, &iRows, &iCols, (long long **)&_piData);
   for(; ii < (size_t)$1_dim0; ii++) {
@@ -1101,8 +1125,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != $1_dim0 || iCols != $1_dim1 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Matrix of signed char expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Matrix of signed char expected.\n"), fname, $argnum);
+  }
+  if (iRows != $1_dim0 || iCols != $1_dim1) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Matrix of %d X %d expected.\n"), fname, $argnum, $1_dim0, $1_dim1);
   }
   getMatrixOfInteger8(pvApiCtx, piAddrVar, &iRows, &iCols, (char **)&_piData);
   
@@ -1121,8 +1148,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != $1_dim0 || iCols != $1_dim1 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Matrix of unsigned char expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Matrix of unsigned char expected.\n"), fname, $argnum);
+  }
+  if (iRows != $1_dim0 || iCols != $1_dim1) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Matrix of %d X %d expected.\n"), fname, $argnum, $1_dim0, $1_dim1);
   }
   getMatrixOfUnsignedInteger8(pvApiCtx, piAddrVar, &iRows, &iCols, (unsigned char **)&_piData);
   
@@ -1141,8 +1171,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != $1_dim0 || iCols != $1_dim1 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Matrix of short expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Matrix of short expected.\n"), fname, $argnum);
+  }
+  if (iRows != $1_dim0 || iCols != $1_dim1) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Matrix of %d X %d expected.\n"), fname, $argnum, $1_dim0, $1_dim1);
   }
   getMatrixOfInteger16(pvApiCtx, piAddrVar, &iRows, &iCols, (short **)&_piData);
   
@@ -1161,8 +1194,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != $1_dim0 || iCols != $1_dim1 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Matrix of unsigned short expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Matrix of unsigned short expected.\n"), fname, $argnum);
+  }
+  if (iRows != $1_dim0 || iCols != $1_dim1) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Matrix of %d X %d expected.\n"), fname, $argnum, $1_dim0, $1_dim1);
   }
   getMatrixOfUnsignedInteger16(pvApiCtx, piAddrVar, &iRows, &iCols, (unsigned short **)&_piData);
   
@@ -1182,8 +1218,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != $1_dim0 || iCols != $1_dim1 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Matrix of int expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Matrix of int expected.\n"), fname, $argnum);
+  }
+  if (iRows != $1_dim0 || iCols != $1_dim1) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Matrix of %d X %d expected.\n"), fname, $argnum, $1_dim0, $1_dim1);
   }
   getMatrixOfInteger32(pvApiCtx, piAddrVar, &iRows, &iCols, (int **)&_piData);
   
@@ -1203,8 +1242,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != $1_dim0 || iCols != $1_dim1 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Matrix of unsigned int expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Matrix of unsigned int expected.\n"), fname, $argnum);
+  }
+  if (iRows != $1_dim0 || iCols != $1_dim1) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Matrix of %d X %d expected.\n"), fname, $argnum, $1_dim0, $1_dim1);
   }
   getMatrixOfUnsignedInteger32(pvApiCtx, piAddrVar, &iRows, &iCols, (unsigned int **)&_piData);
   
@@ -1224,8 +1266,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_matrix || iRows != $1_dim0 || iCols != $1_dim1 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Matrix of double expected.\n"), fname, $argnum);
+  if (typearg != sci_matrix || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Matrix of double expected.\n"), fname, $argnum);
+  }
+  if (iRows != $1_dim0 || iCols != $1_dim1) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Matrix of %d X %d expected.\n"), fname, $argnum, $1_dim0, $1_dim1);
   }
   getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols, (double **)&_piData);
  
@@ -1244,8 +1289,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != $1_dim0 || iCols != $1_dim1 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Matrix of long long expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Matrix of unsigned long long expected.\n"), fname, $argnum);
+  }
+  if (iRows != $1_dim0 || iCols != $1_dim1) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Matrix of %d X %d expected.\n"), fname, $argnum, $1_dim0, $1_dim1);
   }
   getMatrixOfInteger64(pvApiCtx, piAddrVar, &iRows, &iCols, (long long **)&_piData);
   
@@ -1264,8 +1312,11 @@
   getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
   
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_ints || iRows != $1_dim0 || iCols != $1_dim1 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type or dimensions for input argument #%d: Matrix of unsigned long long expected.\n"), fname, $argnum);
+  if (typearg != sci_ints || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: Matrix of unsigned long long expected.\n"), fname, $argnum);
+  }
+  if (iRows != $1_dim0 || iCols != $1_dim1) {
+    Scierror(999, _("%s: Wrong dimensions for input argument #%d: Matrix of %d X %d expected.\n"), fname, $argnum, $1_dim0, $1_dim1);
   }
   getMatrixOfUnsignedInteger64(pvApiCtx, piAddrVar, &iRows, &iCols, (unsigned long long **)&_piData);
   
