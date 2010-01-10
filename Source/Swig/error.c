@@ -248,7 +248,7 @@ void Swig_error_msg_format(ErrorMessageFormat format) {
   switch (format) {
   case EMF_MICROSOFT:
     fmt_line = "%s(%d) ";
-    fmt_eof = "%s(999999)";	/* Is there a special character for EOF? Just use a large number. */
+    fmt_eof = "%s(999999) ";	/* Is there a special character for EOF? Just use a large number. */
     break;
   case EMF_STANDARD:
   default:
