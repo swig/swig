@@ -8,6 +8,7 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance1;
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance2;
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance3;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);
 
 %inline %{
 
@@ -64,7 +65,7 @@ typedef struct _iFoo
     enum { 
       Phoo = +50,
       Char = 'a'
-    } e; 
+    } e;
 } iFoo; 
 %}
 #else
@@ -77,5 +78,20 @@ struct iFoo
     }; 
 }; 
 %}
-
 #endif
+
+// enum declaration and initialization
+%inline %{
+enum Exclamation {
+  goodness,
+  gracious,
+  me
+} enumInstance = me;
+
+enum ContainYourself {
+  slap = 10,
+  my,
+  thigh
+} Slap = slap, My = my, Thigh = thigh, *pThigh = &Thigh, arrayContainYourself[3] = {slap, my, thigh};
+%}
+

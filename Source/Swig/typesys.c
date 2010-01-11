@@ -1120,11 +1120,13 @@ int SwigType_typedef_using(const_String_or_char_ptr name) {
   /* Figure out the scope the using directive refers to */
   {
     prefix = Swig_scopename_prefix(name);
-    s = SwigType_find_scope(current_scope, prefix);
-    if (s) {
-      Hash *ttab = Getattr(s, "typetab");
-      if (!Getattr(ttab, base) && defined_name) {
-	Setattr(ttab, base, defined_name);
+    if (prefix) {
+      s = SwigType_find_scope(current_scope, prefix);
+      if (s) {
+	Hash *ttab = Getattr(s, "typetab");
+	if (!Getattr(ttab, base) && defined_name) {
+	  Setattr(ttab, base, defined_name);
+	}
       }
     }
   }

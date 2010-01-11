@@ -136,6 +136,11 @@
 #define %nocallback     %feature("callback","0")
 #define %clearcallback  %feature("callback","")
 
+/* the %nestedworkaround directive */
+#define %nestedworkaround       %feature("nestedworkaround")
+#define %nonestedworkaround     %feature("nestedworkaround","0")
+#define %clearnestedworkaround  %feature("nestedworkaround","")
+
 /* the %fastdispatch directive */
 #define %fastdispatch        %feature("fastdispatch")
 #define %nofastdispatch      %feature("fastdispatch","0")

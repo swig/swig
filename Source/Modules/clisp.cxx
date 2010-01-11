@@ -452,7 +452,7 @@ String *CLISP::get_ffi_type(Node *n, SwigType *ty) {
     SwigType *cp = Copy(ty);
     SwigType *fn = SwigType_pop_function(cp);
     String *args = NewString("");
-    ParmList *pl = SwigType_function_parms(fn);
+    ParmList *pl = SwigType_function_parms(fn, n);
     if (ParmList_len(pl) != 0) {
       Printf(args, "(:arguments ");
     }

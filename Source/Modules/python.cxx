@@ -2625,7 +2625,7 @@ public:
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("PyObject");
     SwigType_add_pointer(type);
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
 
@@ -3205,7 +3205,7 @@ public:
       String *name = NewString("self");
       String *type = NewString("PyObject");
       SwigType_add_pointer(type);
-      self = NewParm(type, name);
+      self = NewParm(type, name, n);
       Delete(type);
       Delete(name);
       Setattr(self, "lname", "O");

@@ -154,3 +154,23 @@ if extractInt(vi[0]) != 11:
 if extractInt(vi[1]) != 22:
   raise RuntimeError
 
+# vector const pointer checks
+csp = makeConstShortPtr(111)
+
+error = 0
+try:
+  vcs = ConstShortPtrVector((csp, dp)) # check vector<const unsigned short *> does not accept double * element
+  error = 1
+except:
+  pass
+
+if error:
+  raise RuntimeError
+
+vcs = ConstShortPtrVector((csp, makeConstShortPtr(222)))
+if extractConstShort(vcs[0]) != 111:
+  raise RuntimeError
+
+if extractConstShort(vcs[1]) != 222:
+  raise RuntimeError
+

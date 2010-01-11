@@ -55,7 +55,7 @@ The PInvoke interface has been chosen over Microsoft's Managed C++ interface as 
 PInvoke is part of the ECMA/ISO C# specification.
 It is also better suited for robust production environments due to the Managed C++ flaw called the
 <a href="http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dv_vstechart/html/vcconMixedDLLLoadingProblem.asp">Mixed DLL Loading Problem</a>.
-Swig C# works equally well on non-Microsoft operating systems such as Linux, Solaris and Apple Mac using
+SWIG C# works equally well on non-Microsoft operating systems such as Linux, Solaris and Apple Mac using
 <a href="http://www.mono-project.com/">Mono</a> and <a href="http://www.dotgnu.org/pnet.html">Portable.NET</a>.
 </p>
 
@@ -249,7 +249,9 @@ public static extern IntPtr function(string jarg1);
 <p>
 Support for type attributes.
 The 'imtype' and 'cstype' typemaps can have an optional <tt>inattributes</tt> and <tt>outattributes</tt> typemap attribute.
-There are C# attributes and typemap attributes, don't get confused!!
+The 'imtype' typemap can also have an optional <tt>directorinattributes</tt> and <tt>directoroutattributes</tt>
+typemap attribute which attaches to director delegates, an implementation detail of directors, see <a href="#csharp_directors_implementation">directors implementation</a>.
+Note that there are C# attributes and typemap attributes, don't get confused between the two!!
 The C# attributes specified in these typemap attributes are generated wherever the type is used in the C# wrappers.
 These can be used to specify any C# attribute associated with a C/C++ type, but are more typically used for the C# <tt>MarshalAs</tt> attribute.
 For example:
@@ -293,11 +295,16 @@ These attributes are associated with the C/C++ parameter type or return type, wh
 the attribute features and typemaps covered next.
 Note that all these different C# attributes can be combined so that a method has more than one attribute.
 </p>
+
+<p>
+The <tt>directorinattributes</tt> and <tt>directoroutattributes</tt> typemap attribute are attached to the delegates in the director class, for example, the SwigDelegateBase_0
+</p>
+
 </li>
 
 <li>
 <p>
-Support for attaching C# attributes to wrapped methods and variables.
+Support for attaching C# attributes to wrapped methods, variables and enum values.
 This is done using the <tt>%csattributes</tt> feature, see <a href="Customization.html#features">%feature directives</a>.
 Note that C# attributes are attached to proxy classes and enums using the <tt>csattributes</tt> typemap.
 For example, imagine we have a custom attribute class, <tt>ThreadSafeAttribute</tt>, for labelling thread safety.
@@ -344,6 +351,38 @@ they can be added using the 'csvarin' and 'csvarout' typemaps respectively.
 Note that the type used for the property is specified in the 'cstype' typemap.
 If the 'out' attribute exists in this typemap, then the type used is from the 'out' attribute.
 </p>
+
+<p>
+An example for attaching attributes to the enum and enum values is shown below.
+</p>
+
+<div class="code">
+<pre>
+%typemap(csattributes) Couleur "[System.ComponentModel.Description(\"Colours\")]"
+%csattributes Rouge "[System.ComponentModel.Description(\"Red\")]"
+%csattributes Vert "[System.ComponentModel.Description(\"Green\")]"
+%inline %{
+  enum Couleur { Rouge, Orange, Vert };
+%}
+</pre>
+</div>
+
+<p>
+which will result in the following C# enum:
+</p>
+
+<div class="code">
+<pre>
+[System.ComponentModel.Description("Colours")]
+public enum Couleur {
+  [System.ComponentModel.Description("Red")]
+  Rouge,
+  Orange,
+  [System.ComponentModel.Description("Green")]
+  Vert
+}
+</pre>
+</div>
 </li>
 
 <li>
@@ -948,7 +987,7 @@ without setting the <tt>canthrow</tt> attribute you will get a warning message s
 
 <div class="code">
 <pre>
-example.i:21: Warning(845): Unmanaged code contains a call to a SWIG_CSharpSetPendingException
+example.i:21: Warning 845: Unmanaged code contains a call to a SWIG_CSharpSetPendingException
 method and C# code does not handle pending exceptions via the canthrow attribute.
 </pre>
 </div>

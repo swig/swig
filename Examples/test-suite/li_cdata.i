@@ -5,4 +5,4 @@
 %cdata(int);
 %cdata(double);
 
-
+void *malloc(size_t size);

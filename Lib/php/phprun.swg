@@ -36,7 +36,7 @@ extern "C" {
 
 #define SWIG_LONG_CONSTANT(N, V) zend_register_long_constant((char*)#N, sizeof(#N), V, CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
 #define SWIG_DOUBLE_CONSTANT(N, V) zend_register_double_constant((char*)#N, sizeof(#N), V, CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
-#define SWIG_STRING_CONSTANT(N, V) zend_register_stringl_constant((char*)#N, sizeof(#N), V, strlen(V), CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
+#define SWIG_STRING_CONSTANT(N, V) zend_register_stringl_constant((char*)#N, sizeof(#N), (char*)(V), strlen(V), CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
 #define SWIG_CHAR_CONSTANT(N, V) do {\
     static char swig_char = (V);\
     zend_register_stringl_constant((char*)#N, sizeof(#N), &swig_char, 1, CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC);\
@@ -261,3 +261,12 @@ static void SWIG_Php_SetModule(swig_module_info *pointer) {
   TSRMLS_FETCH();
   REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, 0);
 }
+
+#define SWIG_MEMBER_PTR ((char*)"CLASS::*")
+
+static void member_ptr_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
+  efree(rsrc->ptr);
+}
+
+static int le_member_ptr;
+

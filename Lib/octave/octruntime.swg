@@ -72,7 +72,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
     module_ns->install_global();
   module_ns->decref();
 
-#if USE_OCTAVE_API_VERSION<37
+#if OCTAVE_API_VERSION_NUMBER<37
   link_to_global_variable(curr_sym_tab->lookup(SWIG_name_d,true));
 #else
   symbol_table::varref(SWIG_name_d);
@@ -80,7 +80,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
 #endif
   set_global_value(SWIG_name_d,Swig::swig_value_ref(module_ns));
 
-#if USE_OCTAVE_API_VERSION>=37
+#if OCTAVE_API_VERSION_NUMBER>=37
   mlock();
 #endif
 
@@ -89,7 +89,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
 
 // workaround bug in octave where installing global variable of custom type and then
 // exiting without explicitly clearing the variable causes octave to segfault.
-#if USE_OCTAVE_API_VERSION>=37
+#if OCTAVE_API_VERSION_NUMBER>=37
 struct oct_file_unload {
   ~oct_file_unload() {
     string_vector vars = symbol_table::global_variable_names();

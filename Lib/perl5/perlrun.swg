@@ -293,7 +293,7 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
       int newmemory = 0;
       *ptr = SWIG_TypeCast(tc,voidptr,&newmemory);
       if (newmemory == SWIG_CAST_NEW_MEMORY) {
-        assert(own);
+        assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
         if (own)
           *own = *own | SWIG_CAST_NEW_MEMORY;
       }
@@ -311,7 +311,7 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
      */
     SV *obj = sv;
     HV *stash = SvSTASH(SvRV(obj));
-    GV *gv = *(GV**) hv_fetch(stash, "OWNER", 5, TRUE);
+    GV *gv = *(GV**)hv_fetch(stash, "OWNER", 5, TRUE);
     if (isGV(gv)) {
       HV *hv = GvHVn(gv);
       /*
@@ -342,7 +342,7 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
     stash=SvSTASH(SvRV(obj));
     if (flags & SWIG_POINTER_OWN) {
       HV *hv;
-      GV *gv=*(GV**)hv_fetch(stash, "OWNER", 5, TRUE);
+      GV *gv = *(GV**)hv_fetch(stash, "OWNER", 5, TRUE);
       if (!isGV(gv))
         gv_init(gv, stash, "OWNER", 5, FALSE);
       hv=GvHVn(gv);

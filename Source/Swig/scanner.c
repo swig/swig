@@ -16,7 +16,8 @@ char cvsroot_scanner_c[] = "$Id$";
 #include <ctype.h>
 
 extern String *cparse_file;
-extern int     cparse_start_line;
+extern int cparse_cplusplus;
+extern int cparse_start_line;
 
 struct Scanner {
   String *text;			/* Current token value */
@@ -730,13 +731,23 @@ static int look(Scanner * s) {
       break;
     case 7:			/* Identifier */
       if ((c = nextchar(s)) == 0)
-	return SWIG_TOKEN_ID;
-      if (isalnum(c) || (c == '_') || (c == '$')) {
+	state = 71;
+      else if (isalnum(c) || (c == '_') || (c == '$')) {
 	state = 7;
       } else {
 	retract(s, 1);
-	return SWIG_TOKEN_ID;
+	state = 71;
       }
+      break;
+
+    case 71:			/* Identifier or true/false */
+      if (cparse_cplusplus) {
+	if (Strcmp(s->text, "true") == 0)
+	  return SWIG_TOKEN_BOOL;
+	else if (Strcmp(s->text, "false") == 0)
+	  return SWIG_TOKEN_BOOL;
+	}
+      return SWIG_TOKEN_ID;
       break;
 
     case 75:			/* Special identifier $ */
@@ -747,7 +758,7 @@ static int look(Scanner * s) {
       } else {
 	retract(s,1);
 	if (Len(s->text) == 1) return SWIG_TOKEN_DOLLAR;
-	return SWIG_TOKEN_ID;
+	state = 71;
       }
       break;
 

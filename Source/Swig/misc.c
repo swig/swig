@@ -88,8 +88,8 @@ void Swig_banner_target_lang(File *f, const_String_or_char_ptr commentchar) {
 /* -----------------------------------------------------------------------------
  * Swig_strip_c_comments()
  *
- * Return a new string with C comments stripped from the input string. Null is
- * returned if there aren't any.
+ * Return a new string with C comments stripped from the input string. NULL is
+ * returned if there aren't any comments.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_strip_c_comments(const String *s) {
@@ -107,9 +107,10 @@ String *Swig_strip_c_comments(const String *s) {
         comment_begin = c-1;
     } else if (comment_begin && !comment_end && *c == '*') {
       ++c;
-      if (*c == '/')
+      if (*c == '/') {
         comment_end = c;
-      break;
+        break;
+      }
     }
     ++c;
   }

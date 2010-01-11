@@ -3,7 +3,7 @@ require "tests.php";
 require "enum_scope_template.php";
 
 check::classes(array("enum_scope_template", "TreeInt"));
-check::functions("chops");
+check::functions(array("chops","treeint_chops"));
 check::equal(0,TreeInt_Oak,"0==TreeInt_Oak");
 check::equal(1,TreeInt_Fir,"1==TreeInt_Fir");
 check::equal(2,TreeInt_Cedar,"2==TreeInt_Cedar");

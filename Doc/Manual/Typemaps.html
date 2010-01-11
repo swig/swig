@@ -31,10 +31,11 @@
 <li><a href="#Typemaps_pattern_matching">Pattern matching rules</a>
 <ul>
 <li><a href="#Typemaps_nn17">Basic matching rules</a>
-<li><a href="#Typemaps_nn18">Typedef reductions</a>
+<li><a href="#Typemaps_typedef_reductions">Typedef reductions</a>
 <li><a href="#Typemaps_nn19">Default typemaps</a>
 <li><a href="#Typemaps_mixed_default">Mixed default typemaps</a>
 <li><a href="#Typemaps_nn20">Multi-arguments typemaps</a>
+<li><a href="#Typemaps_debugging_search">Debugging typemap pattern matching</a>
 </ul>
 <li><a href="#Typemaps_nn21">Code generation rules</a>
 <ul>
@@ -68,7 +69,7 @@
 <li><a href="#Typemaps_nn40">Typemaps for arrays</a>
 <li><a href="#Typemaps_nn41">Implementing constraints with typemaps</a>
 </ul>
-<li><a href="#Typemaps_nn43">Typemaps for multiple languages</a>
+<li><a href="#Typemaps_nn43">Typemaps for multiple target languages</a>
 <li><a href="#Typemaps_optimal">Optimal code generation when returning by value</a>
 <li><a href="#Typemaps_multi_argument_typemaps">Multi-argument typemaps</a>
 <li><a href="#runtime_type_checker">The run-time type checker</a>
@@ -87,10 +88,6 @@
 <!-- INDEX -->
 
 
-
-<p>
-<b>Disclaimer: This chapter is under construction!</b>
-</p>
 
 <H2><a name="Typemaps_nn2"></a>10.1 Introduction</H2>
 
@@ -230,14 +227,17 @@ At first glance, this code will look a little confusing.
 However, there is really not much to it.  The first typemap (the "in"
 typemap) is used to convert a value from the target language to C.  The second
 typemap (the "out" typemap) is used to convert in the other
-direction. The content of each typemap is a small fragment of C code
-that is inserted directly into the SWIG generated wrapper functions.  Within
-this code, a number of special variables prefixed with a $ are expanded.  These are
-really just placeholders for C variables that are generated in the course
+direction. The content of each typemap is a small fragment of code
+that is inserted directly into the SWIG generated wrapper functions.
+The code is usually C or C++ code which will be generated into the C/C++ wrapper functions.
+Note that this isn't always the case as some target language modules allow target language 
+code within the typemaps which gets generated into target language specific files.
+Within this code, a number of special variables prefixed with a $ are expanded.  These are
+really just placeholders for C/C++ variables that are generated in the course
 of creating the wrapper function. In this case, <tt>$input</tt> refers to an
-input object that needs to be converted to C and <tt>$result</tt>
+input object that needs to be converted to C/C++ and <tt>$result</tt>
 refers to an object that is going to be returned by a wrapper
-function.  <tt>$1</tt> refers to a C variable that has the same type as
+function.  <tt>$1</tt> refers to a C/C++ variable that has the same type as
 specified in the typemap declaration (an <tt>int</tt> in this
 example).
 </p>
@@ -681,8 +681,9 @@ these methods is described later.
 </p>
 
 <p>
-<em>modifiers</em> is an optional comma separated list of <tt>name="value"</tt> values.  These
-are sometimes to attach extra information to a typemap and is often target-language dependent.
+<em>modifiers</em> is an optional comma separated list of <tt>name="value"</tt> values. 
+These are sometimes to attach extra information to a typemap and is often target-language dependent.
+They are also known as typemap attributes.
 </p>
 
 <p>
@@ -1091,7 +1092,7 @@ void F(int x[1000]);   // int [ANY] rule (typemap 5)
 </pre>
 </div>
 
-<H3><a name="Typemaps_nn18"></a>10.3.2 Typedef reductions</H3>
+<H3><a name="Typemaps_typedef_reductions"></a>10.3.2 Typedef reductions</H3>
 
 
 <p>
@@ -1246,6 +1247,26 @@ is rather esoteric--there's little practical reason to write a typemap quite lik
 to confuse your coworkers even more.
 </p>
 
+<p>
+As a point of clarification, it is worth emphasizing that typedef matching is a typedef <b>reduction</b> process only, that is, SWIG does not search for every single possible typedef.
+Given a type in a declaration, it will only reduce the type, it won't build it up looking for typedefs.
+For example, given the type <tt>Struct</tt>, the typemap below will not be used for the <tt>aStruct</tt> parameter,
+because <tt>Struct</tt> is fully reduced:
+</p>
+
+<div class="code">
+<pre>
+struct Struct {...};
+typedef Struct StructTypedef;
+
+%typemap(in) StructTypedef { 
+  ...
+}
+
+void go(Struct aStruct);
+</pre>
+</div>
+
 <H3><a name="Typemaps_nn19"></a>10.3.3 Default typemaps</H3>
 
 
@@ -1383,7 +1404,7 @@ Expect to see them being used more and more within the various libraries in late
 </p>
 
 
-<H3><a name="Typemaps_nn20"></a>10.3.5 Multi-arguments typemaps</H3>
+<H3><a name="Typemaps_multi_argument_typemaps"></a>10.3.5 Multi-arguments typemaps</H3>
 
 
 <p>
@@ -1412,6 +1433,205 @@ Currently, the first argument follows the matching rules described in the previo
 but all subsequent arguments must match exactly.
 </p>
 
+
+<H3><a name="Typemaps_debugging_search"></a>10.3.6 Debugging typemap pattern matching</H3>
+
+
+<p>
+There are two useful debug command line options available for debugging typemaps, <tt>-debug-tmsearch</tt> and <tt>-debug-tmused</tt>.
+</p>
+
+<p>
+The <tt>-debug-tmsearch</tt> option is a verbose option for debugging typemap searches.
+This can be very useful for watching the pattern matching process in action and for debugging which typemaps are used.
+The option displays all the typemaps and types that are looked for until a successful pattern match is made.
+As the display includes searches for each and every type needed for wrapping, the amount of information displayed can be large.
+Normally you would manually search through the displayed information for the particular type that you are interested in.
+</p>
+
+<p>
+For example, consider some of the code used in the <a href="#Typemaps_typedef_reductions">Typedef reductions</a> section already covered:
+</p>
+
+<div class="code">
+<pre>
+typedef int Integer;
+typedef Integer Row4[4];
+void foo(Row4 rows[10]);
+</pre>
+</div>
+
+<p>
+A sample of the debugging output is shown below for the "in" typemap:
+</p>
+
+<div class="shell">
+<pre>
+swig -perl -debug-tmsearch example.i
+...
+example.h:3: Searching for a suitable 'in' typemap for: Row4 rows[10]
+  Looking for: Row4 rows[10]
+  Looking for: Row4 [10]
+  Looking for: Row4 rows[ANY]
+  Looking for: Row4 [ANY]
+  Looking for: Integer rows[10][4]
+  Looking for: Integer [10][4]
+  Looking for: Integer rows[ANY][ANY]
+  Looking for: Integer [ANY][ANY]
+  Looking for: int rows[10][4]
+  Looking for: int [10][4]
+  Looking for: int rows[ANY][ANY]
+  Looking for: int [ANY][ANY]
+  Looking for: SWIGTYPE rows[ANY][ANY]
+  Looking for: SWIGTYPE [ANY][ANY]
+  Looking for: SWIGTYPE rows[ANY][]
+  Looking for: SWIGTYPE [ANY][]
+  Looking for: SWIGTYPE *rows[ANY]
+  Looking for: SWIGTYPE *[ANY]
+  Looking for: SWIGTYPE rows[ANY]
+  Looking for: SWIGTYPE [ANY]
+  Looking for: SWIGTYPE rows[]
+  Looking for: SWIGTYPE []
+  Using: %typemap(in) SWIGTYPE []
+...
+</pre>
+</div>
+
+<p>
+showing that the best default match supplied by SWIG is the <tt>SWIGTYPE []</tt> typemap.
+As the example shows, the successful match displays just the typemap method name and type in this format: <tt>%typemap(method) type</tt>.
+This information might meet your debugging needs, however, you might want to analyze further.
+If you next invoke SWIG with the <tt>-E</tt> option to display the preprocessed output, and search for this particular typemap,
+you'll find the full typemap contents (example shown below for Python):
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, noblock=1) SWIGTYPE [] (void *argp = 0, int res = 0) {
+  res = SWIG_ConvertPtr($input, &amp;argp,$descriptor, $disown |  0 );
+  if (!SWIG_IsOK(res)) { 
+    SWIG_exception_fail(SWIG_ArgError(res), "in method '" "$symname" "', argument " "$argnum"" of type '" "$type""'"); 
+  } 
+  $1 = ($ltype)(argp);
+}
+</pre>
+</div>
+
+<p>
+The generated code for the <tt>foo</tt> wrapper will then contain the snippets of the typemap with the special variables expanded.
+The rest of this chapter will need reading though to fully understand all of this, however, the relevant parts of the generated code for the above typemap can be seen below:
+</p>
+
+<div class="code">
+<pre>
+SWIGINTERN PyObject *_wrap_foo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+...
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+...
+  res1 = SWIG_ConvertPtr(obj0, &amp;argp1,SWIGTYPE_p_a_4__int, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "foo" "', argument " "1"" of type '" "int [10][4]""'"); 
+  } 
+  arg1 = (int (*)[4])(argp1);
+...
+}
+</pre>
+</div>
+
+<p>
+Searches for multi-argument typemaps are not mentioned unless a matching multi-argument typemap does actually exist.
+For example, the output for the code in the <a href="#Typemaps_multi_argument_typemaps">previous section</a> is as follows:
+</p>
+
+<div class="shell">
+<pre>
+...
+example.h:39: Searching for a suitable 'in' typemap for: char *buffer
+  Looking for: char *buffer
+  Multi-argument typemap found...
+  Using: %typemap(in) (char *buffer,int len)
+...
+</pre>
+</div>
+
+<p>
+The second option for debugging is <tt>-debug-tmused</tt> and this displays the typemaps used.
+This option is a less verbose version of the <tt>-debug-tmsearch</tt> option as it only displays each successfully found typemap on a separate single line.
+The output displays the type, and name if present, the typemap method in brackets and then the actual typemap used.
+Below is the output for the example code at the start of this section on debugging.
+</p>
+
+<div class="shell">
+<pre>
+$ swig -perl -debug-tmused example.i
+example.h:3: Typemap for Row4 rows[10] (in) : %typemap(in) SWIGTYPE []
+example.h:3: Typemap for Row4 rows[10] (typecheck) : %typemap(typecheck) SWIGTYPE *
+example.h:3: Typemap for Row4 rows[10] (freearg) : %typemap(freearg) SWIGTYPE []
+example.h:3: Typemap for void foo (out) : %typemap(out) void
+</pre>
+</div>
+
+<p>
+Now, consider the following interface file:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+%{
+void set_value(const char* val) {}
+%}
+
+%typemap(check) char *NON_NULL {
+  if (!$1) {
+    /* ... error handling ... */
+  }
+}
+
+%apply SWIGTYPE * { const char* val, const char* another_value } // use default pointer handling instead of strings
+
+%typemap(check) const char* val = char* NON_NULL;
+
+%typemap(arginit, noblock=1) const char* val {
+   $1 = "";
+}
+
+void set_value(const char* val);
+
+</pre>
+</div>
+
+<p>
+and the output debug:
+</p>
+
+<div class="shell">
+<pre>
+swig -perl5 -debug-tmused example.i
+example.i:21: Typemap for char const *val (arginit) : %typemap(arginit) char const *val
+example.i:21: Typemap for char const *val (in) : %apply SWIGTYPE * { char const *val }
+example.i:21: Typemap for char const *val (typecheck) : %apply SWIGTYPE * { char const *val }
+example.i:21: Typemap for char const *val (check) : %typemap(check) char const *val = char *NON_NULL
+example.i:21: Typemap for char const *val (freearg) : %apply SWIGTYPE * { char const *val }
+example.i:21: Typemap for void set_value (out) : %typemap(out) void
+</pre>
+</div>
+
+<p>
+The following observations about what is displayed can be noted (the same applies for <tt>-debug-tmsearch</tt>):
+<li>
+The relevant typemap is shown, but for typemap copying, the appropriate <tt>%typemap</tt> or <tt>%apply</tt> is displayed, for example, the "check" and "in" typemaps.
+</li>
+<li>
+The typemap modifiers are not shown, eg the <tt>noblock=1</tt> modifier in the "arginit" typemap.
+</li>
+<li>
+The exact <tt>%apply</tt> statement might look different to what is in the actual code. For example, the <tt>const char* another_value</tt> is not shown as it is not relevant here.
+Also the types may be displayed slightly differently - <tt>char const *</tt> and not <tt>const char*</tt>.
+</li>
+</p>
 
 <H2><a name="Typemaps_nn21"></a>10.4 Code generation rules</H2>
 
@@ -2686,12 +2906,12 @@ rather than blindly passing values to the underlying C/C++ program.</p>
 Note: A more advanced constraint checking system is in development.  Stay tuned.
 </p>
 
-<H2><a name="Typemaps_nn43"></a>10.7 Typemaps for multiple languages</H2>
+<H2><a name="Typemaps_nn43"></a>10.7 Typemaps for multiple target languages</H2>
 
 
 <p>
 The code within typemaps is usually language dependent,
-however, many languages support the same typemaps.
+however, many target languages support the same typemaps.
 In order to distinguish typemaps across different languages, the preprocessor should be used.
 For example, the "in" typemap for Perl and Ruby could be written as:
 </p>
@@ -2873,8 +3093,8 @@ SWIG can detect when the "optimal" attribute cannot be used and will ignore it a
 
 <div class="targetlang">
 <pre>
-example.i:28: Warning(474): Method XX::create() usage of the optimal attribute in the out 
-typemap at example.i:14 ignored as the following cannot be used to generate optimal code: 
+example.i:28: Warning 474: Method XX::create() usage of the optimal attribute ignored
+example.i:14: Warning 474: in the out typemap as the following cannot be used to generate optimal code: 
 try {
   result = XX::create();
 } catch(const std::exception &amp;e) {
@@ -2895,8 +3115,8 @@ In fact SWIG attempts to detect this and will issue a warning something like:
 
 <div class="targetlang">
 <pre>
-example.i:21: Warning(475): Multiple calls to XX::create() might be generated due to 
-optimal attribute usage in the out typemap at example.i:7.
+example.i:21: Warning 475: Multiple calls to XX::create() might be generated due to optimal attribute usage in
+example.i:7: Warning 475: the out typemap.
 </pre>
 </div>
 
@@ -3201,7 +3421,7 @@ language modules.</li>
 <p>
 The run-time type checker is used by many, but not all, of SWIG's supported target languages.
 The run-time type checker features
-are not required and are thus not used for strongly typed languages such as Java and C#.
+are not required and are thus not used for statically typed languages such as Java and C#.
 The scripting and scheme based languages rely on it and it forms
 a critical part of SWIG's operation for these languages.
 </p>
@@ -4060,6 +4280,7 @@ numerous examples.   You should look at these files to get a feel
 for how to define typemaps of your own.
 Some of the language modules support additional typemaps and further
 information is available in the individual chapters for each target language.
+There you may also find more hands-on practical examples.
 </p>
 
 </body>

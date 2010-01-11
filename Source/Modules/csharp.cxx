@@ -86,13 +86,6 @@ class CSHARP:public Language {
 
   enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
-  static Parm *NewParmFromNode(SwigType *type, const_String_or_char_ptr name, Node *n) {
-    Parm *p = NewParm(type, name);
-    Setfile(p, Getfile(n));
-    Setline(p, Getline(n));
-    return p;
-  }
-
 public:
 
   /* -----------------------------------------------------------------------------
@@ -1211,6 +1204,9 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *value = Getattr(n, "value");
     String *name = Getattr(n, "name");
+    Node *parent = parentNode(n);
+    int unnamedinstance = GetFlag(parent, "unnamedinstance");
+    String *parent_name = Getattr(parent, "name");
     String *tmpValue;
 
     // Strange hack from parent method
@@ -1222,13 +1218,18 @@ public:
     Setattr(n, "value", tmpValue);
 
     {
-      EnumFeature enum_feature = decodeEnumFeature(parentNode(n));
+      EnumFeature enum_feature = decodeEnumFeature(parent);
+      const String *csattributes = Getattr(n, "feature:cs:attributes");
 
-      if ((enum_feature == ProperEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
+      if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
 	// Wrap (non-anonymous) C/C++ enum with a proper C# enum
 	// Emit the enum item.
 	if (!GetFlag(n, "firstenumitem"))
 	  Printf(enum_code, ",\n");
+
+	if (csattributes)
+	  Printf(enum_code, "  %s\n", csattributes);
+
 	Printf(enum_code, "  %s", symname);
 
 	// Check for the %csconstvalue feature
@@ -1241,21 +1242,19 @@ public:
 	}
       } else {
 	// Wrap C/C++ enums with constant integers or use the typesafe enum pattern
-	const String *parent_name = Getattr(parentNode(n), "name");
-	String *typemap_lookup_type = parent_name ? Copy(parent_name) : NewString("int");
+	String *type = Getattr(n, "type"); /* should be int unless explicitly specified in a C++0x enum class */
+	SwigType *typemap_lookup_type = parent_name ? parent_name : type;
 	const String *tm = typemapLookup(n, "cstype", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF);
+
 	String *return_type = Copy(tm);
-	Delete(typemap_lookup_type);
-	typemap_lookup_type = NULL;
-
-	// The %csconst feature determines how the constant value is obtained
-	int const_feature_flag = GetFlag(n, "feature:cs:const");
-
         const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
         methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
-	if ((enum_feature == TypesafeEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
-	  // Wrap (non-anonymouse) enum using the typesafe enum pattern
+	if (csattributes)
+	  Printf(enum_code, "  %s\n", csattributes);
+
+	if ((enum_feature == TypesafeEnum) && parent_name && !unnamedinstance) {
+	  // Wrap (non-anonymous) enum using the typesafe enum pattern
 	  if (Getattr(n, "enumvalue")) {
 	    String *value = enumValue(n);
 	    Printf(enum_code, "  %s static readonly %s %s = new %s(\"%s\", %s);\n", methodmods, return_type, symname, return_type, symname, value);
@@ -1267,6 +1266,10 @@ public:
 	  // Simple integer constants
 	  // Note these are always generated for anonymous enums, no matter what enum_feature is specified
 	  // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
+
+	  // The %csconst feature determines how the constant value is obtained
+	  int const_feature_flag = GetFlag(n, "feature:cs:const");
+
 	  const char *const_readonly = const_feature_flag ? "const" : "static readonly";
 	  String *value = enumValue(n);
 	  Printf(enum_code, "  %s %s %s %s = %s;\n", methodmods, const_readonly, return_type, symname, value);
@@ -1275,9 +1278,9 @@ public:
       }
 
       // Add the enum value to the comma separated list being constructed in the enum declaration.
-      String *enumvalues = Getattr(parentNode(n), "enumvalues");
+      String *enumvalues = Getattr(parent, "enumvalues");
       if (!enumvalues)
-	Setattr(parentNode(n), "enumvalues", Copy(symname));
+	Setattr(parent, "enumvalues", Copy(symname));
       else
 	Printv(enumvalues, ", ", symname, NIL);
     }
@@ -1384,7 +1387,14 @@ public:
       enum_constant_flag = false;
     } else {
       // Alternative constant handling will use the C syntax to make a true C# constant and hope that it compiles as C# code
-      Printf(constants_code, "%s;\n", Getattr(n, "value"));
+      if (Getattr(n, "wrappedasconstant")) {
+	if (SwigType_type(t) == T_CHAR)
+          Printf(constants_code, "\'%s\';\n", Getattr(n, "staticmembervariableHandler:value"));
+	else
+          Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
+      } else {
+        Printf(constants_code, "%s;\n", Getattr(n, "value"));
+      }
     }
 
     // Emit the generated code to appropriate place
@@ -3314,7 +3324,7 @@ public:
       }
 
       /* Create the intermediate class wrapper */
-      Parm *tp = NewParmFromNode(returntype, empty_str, n);
+      Parm *tp = NewParm(returntype, empty_str, n);
 
       tm = Swig_typemap_lookup("imtype", tp, "", 0);
       if (tm) {
@@ -3334,7 +3344,7 @@ public:
 	Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(returntype, 0));
       }
 
-      Parm *retpm = NewParmFromNode(returntype, empty_str, n);
+      Parm *retpm = NewParm(returntype, empty_str, n);
 
       if ((c_ret_type = Swig_typemap_lookup("ctype", retpm, "", 0))) {
 
@@ -3421,7 +3431,7 @@ public:
 	if (ctypeout)
 	  c_param_type = ctypeout;
 
-	Parm *tp = NewParmFromNode(c_param_type, empty_str, n);
+	Parm *tp = NewParm(c_param_type, empty_str, n);
 	String *desc_tm = NULL;
 
 	/* Add to local variables */
@@ -3576,7 +3586,7 @@ public:
     String *upcall = NewStringf("%s(%s)", symname, imcall_args);
 
     if (!is_void) {
-      Parm *tp = NewParmFromNode(returntype, empty_str, n);
+      Parm *tp = NewParm(returntype, empty_str, n);
 
       if ((tm = Swig_typemap_lookup("csdirectorout", tp, "", 0))) {
 	substituteClassname(returntype, tm);
@@ -3602,7 +3612,7 @@ public:
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
 	String *result_str = NewString("c_result");
-	Parm *tp = NewParmFromNode(returntype, result_str, n);
+	Parm *tp = NewParm(returntype, result_str, n);
 
 	/* Copy jresult into c_result... */
 	if ((tm = Swig_typemap_lookup("directorout", tp, result_str, w))) {

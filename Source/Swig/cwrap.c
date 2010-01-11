@@ -803,7 +803,7 @@ int Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *direc
     SwigType_push(type, qualifier);
   }
   SwigType_add_pointer(type);
-  p = NewParm(type, "self");
+  p = NewParm(type, "self", n);
   Setattr(p, "self", "1");
   Setattr(p, "hidden","1");
   /*
@@ -1155,7 +1155,7 @@ int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags) 
 
   type = NewString(classname);
   SwigType_add_pointer(type);
-  p = NewParm(type, "self");
+  p = NewParm(type, "self", n);
   Setattr(p, "self", "1");
   Setattr(p, "hidden", "1");
   Setattr(p, "wrap:disown", "1");
@@ -1207,7 +1207,7 @@ int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags) 
  * This function creates a C wrapper for setting a structure member.
  * ----------------------------------------------------------------------------- */
 
-int Swig_MembersetToFunction(Node *n, String *classname, int flags, String **call) {
+int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   String *name;
   ParmList *parms;
   Parm *p;
@@ -1238,13 +1238,13 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags, String **cal
 
   t = NewString(classname);
   SwigType_add_pointer(t);
-  parms = NewParm(t, "self");
+  parms = NewParm(t, "self", n);
   Setattr(parms, "self", "1");
   Setattr(parms, "hidden","1");
   Delete(t);
 
   ty = Swig_wrapped_member_var_type(type, varcref);
-  p = NewParm(ty, name);
+  p = NewParm(ty, name, n);
   Setattr(parms, "hidden", "1");
   set_nextSibling(parms, p);
 
@@ -1255,21 +1255,23 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags, String **cal
   Delete(p);
 
   if (flags & CWRAP_EXTEND) {
+    String *call;
     String *cres;
     String *code = Getattr(n, "code");
     if (code) {
       /* I don't think this ever gets run - WSF */
       Swig_add_extension_code(n, mangled, parms, void_type, code, cparse_cplusplus, "self");
     }
-    *call = Swig_cfunction_call(mangled, parms);
-    cres = NewStringf("%s;", *call);
+    call = Swig_cfunction_call(mangled, parms);
+    cres = NewStringf("%s;", call);
     Setattr(n, "wrap:action", cres);
+    Delete(call);
     Delete(cres);
   } else {
-    String *cres;
-    *call = Swig_cmemberset_call(name, type, self, varcref);
-    cres = NewStringf("%s;", *call);
+    String *call = Swig_cmemberset_call(name, type, self, varcref);
+    String *cres = NewStringf("%s;", call);
     Setattr(n, "wrap:action", cres);
+    Delete(call);
     Delete(cres);
   }
   Setattr(n, "type", void_type);
@@ -1325,7 +1327,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
 
   t = NewString(classname);
   SwigType_add_pointer(t);
-  parms = NewParm(t, "self");
+  parms = NewParm(t, "self", n);
   Setattr(parms, "self", "1");
   Setattr(parms, "hidden","1");
   Delete(t);
@@ -1381,7 +1383,7 @@ int Swig_VarsetToFunction(Node *n, int flags) {
   type = Getattr(n, "type");
   nname = SwigType_namestr(name);
   ty = Swig_wrapped_var_type(type, varcref);
-  parms = NewParm(ty, name);
+  parms = NewParm(ty, name, n);
 
   if (flags & CWRAP_EXTEND) {
     String *sname = Swig_name_set(name);

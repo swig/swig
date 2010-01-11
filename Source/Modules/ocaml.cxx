@@ -1727,7 +1727,7 @@ public:
     ParmList *superparms = Getattr(n, "parms");
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("CAML_VALUE");
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     q = Copy(p);
     set_nextSibling(q, superparms);
     set_nextSibling(p, parms);
@@ -1780,7 +1780,7 @@ public:
     ParmList *superparms = Getattr(n, "parms");
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("CAML_VALUE");
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     q = Copy(p);
     set_nextSibling(p, parms);
     parms = p;

@@ -55,6 +55,10 @@
 %pass_by_val(long, CONVERT_INT_IN);
 %pass_by_val(unsigned long, CONVERT_INT_IN);
 
+%pass_by_val(signed long long, CONVERT_LONG_LONG_IN);
+%pass_by_val(long long, CONVERT_LONG_LONG_IN);
+%pass_by_val(unsigned long long, CONVERT_UNSIGNED_LONG_LONG_IN);
+
 %pass_by_val(signed char, CONVERT_INT_IN);
 %pass_by_val(char, CONVERT_CHAR_IN);
 %pass_by_val(unsigned char, CONVERT_INT_IN);
@@ -194,6 +198,29 @@
 	ZVAL_LONG(return_value,$1);
 }
 
+%typemap(out) long long
+%{
+  if ((long long)LONG_MIN <= $1 && $1 <= (long long)LONG_MAX) {
+    return_value->value.lval = (long)($1);
+    return_value->type = IS_LONG;
+  } else {
+    char temp[256];
+    sprintf(temp, "%lld", $1);
+    ZVAL_STRING(return_value, temp, 1);
+  }
+%}
+%typemap(out) unsigned long long
+%{
+  if ($1 <= (unsigned long long)LONG_MAX) {
+    return_value->value.lval = (long)($1);
+    return_value->type = IS_LONG;
+  } else {
+    char temp[256];
+    sprintf(temp, "%llu", $1);
+    ZVAL_STRING(return_value, temp, 1);
+  }
+%}
+
 %typemap(out) const int &,
               const unsigned int &,
               const short &,
@@ -208,6 +235,29 @@
 {
 	ZVAL_LONG(return_value,*$1);
 }
+
+%typemap(out) const long long &
+%{
+  if ((long long)LONG_MIN <= *$1 && *$1 <= (long long)LONG_MAX) {
+    return_value->value.lval = (long)(*$1);
+    return_value->type = IS_LONG;
+  } else {
+    char temp[256];
+    sprintf(temp, "%lld", *$1);
+    ZVAL_STRING(return_value, temp, 1);
+  }
+%}
+%typemap(out) const unsigned long long &
+%{
+  if (*$1 <= (unsigned long long)LONG_MAX) {
+    return_value->value.lval = (long)(*$1);
+    return_value->type = IS_LONG;
+  } else {
+    char temp[256];
+    sprintf(temp, "%llu", *$1);
+    ZVAL_STRING(return_value, temp, 1);
+  }
+%}
 
 %typemap(directorin) int,
               unsigned int,
@@ -304,6 +354,23 @@
   SWIG_SetPointerZval($input, (void *)&$1_name, $1_descriptor, $owner);
 %}
 
+%typemap(out) SWIGTYPE (CLASS::*)
+{
+  void * p = emalloc(sizeof($1));
+  memcpy(p, &$1, sizeof($1));
+  zval * resource;
+  MAKE_STD_ZVAL(resource);
+  ZEND_REGISTER_RESOURCE(resource, p, le_member_ptr);
+
+  SWIG_SetPointerZval(return_value, (void *)&$1, $1_descriptor, $owner);
+}
+
+%typemap(in) SWIGTYPE (CLASS::*)
+{
+  void * p = (void*)zend_fetch_resource($input TSRMLS_CC, -1, SWIG_MEMBER_PTR, NULL, 1, le_member_ptr);
+  memcpy(&$1, p, sizeof($1));
+}
+
 %typemap(out) SWIGTYPE *DYNAMIC,
               SWIGTYPE &DYNAMIC
 {
@@ -357,6 +424,8 @@
 %php_typecheck(unsigned short,SWIG_TYPECHECK_UINT16,IS_LONG)
 %php_typecheck(long,SWIG_TYPECHECK_INT64,IS_LONG)
 %php_typecheck(unsigned long,SWIG_TYPECHECK_UINT64,IS_LONG)
+%php_typecheck(long long,SWIG_TYPECHECK_INT64,IS_LONG)
+%php_typecheck(unsigned long long,SWIG_TYPECHECK_UINT64,IS_LONG)
 %php_typecheck(signed char,SWIG_TYPECHECK_INT8,IS_LONG)
 %php_typecheck(unsigned char,SWIG_TYPECHECK_UINT8,IS_LONG)
 %php_typecheck(size_t,SWIG_TYPECHECK_INT16,IS_LONG)

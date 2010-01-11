@@ -175,20 +175,80 @@ static Hash *global_scope = 0;	/* Global scope */
 /* common attribute keys, to avoid calling find_key all the times */
 
 
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_print_tables()
+ *
+ * Debug display of symbol tables
+ * ----------------------------------------------------------------------------- */
 
-#if 0
-void Swig_symbol_dump_symtable() {
-  Printf(stdout, "DUMPING SYMTABLE start =======================================\n");
-  {
-    Hash *cst = Getattr(current_symtab, "csymtab");
-    Swig_print_tree(cst);
-    /*
-       Swig_print_tree(Getattr(cst, "NumSpace"));
-     */
-  }
-  Printf(stdout, "DUMPING SYMTABLE end   =======================================\n");
+void Swig_symbol_print_tables(Symtab *symtab) {
+  if (!symtab)
+    symtab = current_symtab;
+
+  Printf(stdout, "SYMBOL TABLES start  =======================================\n");
+  Swig_print_tree(symtab);
+  Printf(stdout, "SYMBOL TABLES finish =======================================\n");
 }
-#endif
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_print_tables_summary()
+ *
+ * Debug summary display of all symbol tables by fully-qualified name 
+ * ----------------------------------------------------------------------------- */
+
+void Swig_symbol_print_tables_summary(void) {
+  Printf(stdout, "SYMBOL TABLES SUMMARY start  =======================================\n");
+  Swig_print_node(symtabs);
+  Printf(stdout, "SYMBOL TABLES SUMMARY finish =======================================\n");
+}
+
+/* -----------------------------------------------------------------------------
+ * symbol_print_symbols()
+ * ----------------------------------------------------------------------------- */
+
+static void symbol_print_symbols(const char *symboltabletype) {
+  Node *obj = symtabs;
+  Iterator ki = First(obj);
+  while (ki.key) {
+    String *k = ki.key;
+    Printf(stdout, "===================================================\n");
+    Printf(stdout, "%s -\n", k);
+    {
+      Symtab *symtab = Getattr(Getattr(obj, k), symboltabletype);
+      Iterator it = First(symtab);
+      while (it.key) {
+	String *symname = it.key;
+	Printf(stdout, "  %s\n", symname);
+	it = Next(it);
+      }
+    }
+    ki = Next(ki);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_print_symbols()
+ *
+ * Debug display of all the target language symbols
+ * ----------------------------------------------------------------------------- */
+
+void Swig_symbol_print_symbols(void) {
+  Printf(stdout, "SYMBOLS start  =======================================\n");
+  symbol_print_symbols("symtab");
+  Printf(stdout, "SYMBOLS finish =======================================\n");
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_print_csymbols()
+ *
+ * Debug display of all the C symbols
+ * ----------------------------------------------------------------------------- */
+
+void Swig_symbol_print_csymbols(void) {
+  Printf(stdout, "CSYMBOLS start  =======================================\n");
+  symbol_print_symbols("csymtab");
+  Printf(stdout, "CSYMBOLS finish =======================================\n");
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_init()
@@ -196,7 +256,7 @@ void Swig_symbol_dump_symtable() {
  * Create a new symbol table object
  * ----------------------------------------------------------------------------- */
 
-void Swig_symbol_init() {
+void Swig_symbol_init(void) {
 
   current = NewHash();
   current_symtab = NewHash();
@@ -240,7 +300,7 @@ void Swig_symbol_setscopename(const_String_or_char_ptr name) {
  * Get the C scopename of the current symbol table
  * ----------------------------------------------------------------------------- */
 
-String *Swig_symbol_getscopename() {
+String *Swig_symbol_getscopename(void) {
   return Getattr(current_symtab, "name");
 }
 
@@ -295,7 +355,7 @@ String *Swig_symbol_qualifiedscopename(Symtab *symtab) {
  * Create a new scope.  Returns the newly created scope.
  * ----------------------------------------------------------------------------- */
 
-Symtab *Swig_symbol_newscope() {
+Symtab *Swig_symbol_newscope(void) {
   Hash *n;
   Hash *hsyms, *h;
 
@@ -346,7 +406,7 @@ Symtab *Swig_symbol_setscope(Symtab *sym) {
  * scope to the parent scope.
  * ----------------------------------------------------------------------------- */
 
-Symtab *Swig_symbol_popscope() {
+Symtab *Swig_symbol_popscope(void) {
   Hash *h = current_symtab;
   current_symtab = Getattr(current_symtab, "parentNode");
   assert(current_symtab);
@@ -358,12 +418,22 @@ Symtab *Swig_symbol_popscope() {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_symbol_global_scope()
+ *
+ * Return the symbol table for the global scope.
+ * ----------------------------------------------------------------------------- */
+
+Symtab *Swig_symbol_global_scope(void) {
+  return global_scope;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_symbol_current()
  *
  * Return the current symbol table.
  * ----------------------------------------------------------------------------- */
 
-Symtab *Swig_symbol_current() {
+Symtab *Swig_symbol_current(void) {
   return current_symtab;
 }
 
@@ -998,6 +1068,8 @@ Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname, global_scope, 0, 0, 0);
+      } else {
+	s = symbol_lookup(nname, global_scope, 0);
       }
       Delete(nname);
     } else {
@@ -1070,6 +1142,8 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname, global_scope, 0, 0, checkfunc);
+      } else {
+	s = symbol_lookup(nname, global_scope, checkfunc);
       }
       Delete(nname);
     } else {
@@ -1134,6 +1208,8 @@ Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname, global_scope, 0, 0, 0);
+      } else {
+	s = symbol_lookup(nname, global_scope, 0);
       }
       Delete(nname);
     } else {
@@ -1182,6 +1258,8 @@ Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, 
       String *nname = NewString(cname + 2);
       if (Swig_scopename_check(nname)) {
 	s = symbol_lookup_qualified(nname, global_scope, 0, 0, checkfunc);
+      } else {
+	s = symbol_lookup(nname, global_scope, checkfunc);
       }
       Delete(nname);
     } else {
@@ -1253,7 +1331,8 @@ void Swig_symbol_remove(Node *n) {
       Setattr(symtab, symname, symnext);
       fixovername = symnext;	/* fix as symbol to remove is at head of linked list */
     } else {
-      Delattr(symtab, symname);
+      if (symname)
+	Delattr(symtab, symname);
     }
   }
   if (symnext) {
@@ -1728,7 +1807,7 @@ ParmList *Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope,
 	  ntq = ty;
 	}
 	/* Printf(stderr,"value %s %s %s\n",value,ntr,ntq); */
-	cp = NewParm(ntq, 0);
+	cp = NewParmWithoutFileLineInfo(ntq, 0);
         if (lp)
           set_nextSibling(lp, cp);
         else
@@ -1805,7 +1884,7 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
       String *tprefix = SwigType_templateprefix(base);
       String *targs = SwigType_templateargs(base);
       String *tsuffix = SwigType_templatesuffix(base);
-      ParmList *tparms = SwigType_function_parms(targs);
+      ParmList *tparms = SwigType_function_parms(targs, 0);
       Node *tempn = Swig_symbol_clookup_local(tprefix, tscope);
       if (!tempn && tsuffix && Len(tsuffix)) {
 	tempn = Swig_symbol_clookup(tprefix, 0);

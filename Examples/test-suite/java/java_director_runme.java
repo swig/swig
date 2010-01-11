@@ -34,6 +34,12 @@ public class java_director_runme {
     System.gc();
     System.runFinalization();
 
+    // Give the finalizers a chance to run
+    try {
+      Thread.sleep(50);
+    } catch (InterruptedException e) {
+    }
+
     /* Watch the Quux objects formerly in the QuuxContainer object
        get reaped */
     System.gc();
@@ -73,3 +79,14 @@ class java_director_MyQuux extends Quux {
     return "java_director_MyQuux:" + member();
   }
 }
+
+class java_director_JavaExceptionTest extends JavaExceptionTest {
+  public java_director_JavaExceptionTest() {
+    super();
+  }
+
+  public void etest() throws Exception {
+    super.etest();
+  }
+}
+

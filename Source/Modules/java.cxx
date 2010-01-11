@@ -83,13 +83,6 @@ class JAVA:public Language {
 
   enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
-  static Parm *NewParmFromNode(SwigType *type, const_String_or_char_ptr name, Node *n) {
-    Parm *p = NewParm(type, name);
-    Setfile(p, Getfile(n));
-    Setline(p, Getline(n));
-    return p;
-  }
-
 public:
 
   /* -----------------------------------------------------------------------------
@@ -1267,6 +1260,9 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *value = Getattr(n, "value");
     String *name = Getattr(n, "name");
+    Node *parent = parentNode(n);
+    int unnamedinstance = GetFlag(parent, "unnamedinstance");
+    String *parent_name = Getattr(parent, "name");
     String *tmpValue;
 
     // Strange hack from parent method
@@ -1278,9 +1274,9 @@ public:
     Setattr(n, "value", tmpValue);
 
     {
-      EnumFeature enum_feature = decodeEnumFeature(parentNode(n));
+      EnumFeature enum_feature = decodeEnumFeature(parent);
 
-      if ((enum_feature == ProperEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
+      if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
 	// Wrap (non-anonymous) C/C++ enum with a proper Java enum
 	// Emit the enum item.
 	if (!GetFlag(n, "firstenumitem"))
@@ -1293,18 +1289,16 @@ public:
 	}
       } else {
 	// Wrap C/C++ enums with constant integers or use the typesafe enum pattern
-	const String *parent_name = Getattr(parentNode(n), "name");
-	String *typemap_lookup_type = parent_name ? Copy(parent_name) : NewString("int");
+	String *type = Getattr(n, "type"); /* should be int unless explicitly specified in a C++0x enum class */
+	SwigType *typemap_lookup_type = parent_name ? parent_name : type;
 	const String *tm = typemapLookup(n, "jstype", typemap_lookup_type, WARN_JAVA_TYPEMAP_JSTYPE_UNDEF);
-	String *return_type = Copy(tm);
-	Delete(typemap_lookup_type);
-	typemap_lookup_type = NULL;
 
+	String *return_type = Copy(tm);
         const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
         methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
-	if ((enum_feature == TypesafeEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
-	  // Wrap (non-anonymouse) enum using the typesafe enum pattern
+	if ((enum_feature == TypesafeEnum) && parent_name && !unnamedinstance) {
+	  // Wrap (non-anonymous) enum using the typesafe enum pattern
 	  if (Getattr(n, "enumvalue")) {
 	    String *value = enumValue(n);
 	    Printf(enum_code, "  %s final static %s %s = new %s(\"%s\", %s);\n", methodmods, return_type, symname, return_type, symname, value);
@@ -1323,9 +1317,9 @@ public:
       }
 
       // Add the enum value to the comma separated list being constructed in the enum declaration.
-      String *enumvalues = Getattr(parentNode(n), "enumvalues");
+      String *enumvalues = Getattr(parent, "enumvalues");
       if (!enumvalues)
-	Setattr(parentNode(n), "enumvalues", Copy(symname));
+	Setattr(parent, "enumvalues", Copy(symname));
       else
 	Printv(enumvalues, ", ", symname, NIL);
     }
@@ -1425,7 +1419,14 @@ public:
       enum_constant_flag = false;
     } else {
       // Alternative constant handling will use the C syntax to make a true Java constant and hope that it compiles as Java code
-      Printf(constants_code, "%s;\n", Getattr(n, "value"));
+      if (Getattr(n, "wrappedasconstant")) {
+	if (SwigType_type(t) == T_CHAR)
+          Printf(constants_code, "\'%s\';\n", Getattr(n, "staticmembervariableHandler:value"));
+	else
+          Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
+      } else {
+        Printf(constants_code, "%s;\n", Getattr(n, "value"));
+      }
     }
 
     // Emit the generated code to appropriate place
@@ -1973,7 +1974,7 @@ public:
       if (qualifier)
 	SwigType_push(this_type, qualifier);
       SwigType_add_pointer(this_type);
-      Parm *this_parm = NewParm(this_type, name);
+      Parm *this_parm = NewParm(this_type, name, n);
       Swig_typemap_attach_parms("jtype", this_parm, NULL);
       Swig_typemap_attach_parms("jstype", this_parm, NULL);
 
@@ -3381,7 +3382,7 @@ public:
       }
 
       /* Create the intermediate class wrapper */
-      Parm *tp = NewParmFromNode(returntype, empty_str, n);
+      Parm *tp = NewParm(returntype, empty_str, n);
 
       tm = Swig_typemap_lookup("jtype", tp, "", 0);
       if (tm) {
@@ -3393,7 +3394,7 @@ public:
       String *cdesc = NULL;
       SwigType *covariant = Getattr(n, "covariant");
       SwigType *adjustedreturntype = covariant ? covariant : returntype;
-      Parm *adjustedreturntypeparm = NewParmFromNode(adjustedreturntype, empty_str, n);
+      Parm *adjustedreturntypeparm = NewParm(adjustedreturntype, empty_str, n);
 
       if ((tm = Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0))
 	  && (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
@@ -3413,10 +3414,10 @@ public:
       /* Get the JNI field descriptor for this return type, add the JNI field descriptor
          to jniret_desc */
 
-      Parm *retpm = NewParmFromNode(returntype, empty_str, n);
+      Parm *retpm = NewParm(returntype, empty_str, n);
 
       if ((c_ret_type = Swig_typemap_lookup("jni", retpm, "", 0))) {
-	Parm *tp = NewParmFromNode(c_ret_type, empty_str, n);
+	Parm *tp = NewParm(c_ret_type, empty_str, n);
 
 	if (!is_void && !ignored_method) {
 	  String *jretval_decl = NewStringf("%s jresult", c_ret_type);
@@ -3518,7 +3519,7 @@ public:
     }
 
     /* Start the Java field descriptor for the intermediate class's upcall (insert self object) */
-    Parm *tp = NewParmFromNode(c_classname, empty_str, n);
+    Parm *tp = NewParm(c_classname, empty_str, n);
     String *jdesc;
 
     if ((tm = Swig_typemap_lookup("directorin", tp, "", 0))
@@ -3560,7 +3561,7 @@ public:
 
       /* Get parameter's intermediary C type */
       if ((c_param_type = Getattr(p, "tmap:jni"))) {
-	Parm *tp = NewParmFromNode(c_param_type, empty_str, n);
+	Parm *tp = NewParm(c_param_type, empty_str, n);
 	String *desc_tm = NULL, *jdesc = NULL, *cdesc = NULL;
 
 	/* Add to local variables */
@@ -3716,8 +3717,11 @@ public:
 
     String *upcall = NewStringf("self.%s(%s)", symname, imcall_args);
 
+    // Handle exception classes specified in the "except" feature's "throws" attribute
+    addThrows(n, "feature:except", n);
+
     if (!is_void) {
-      Parm *tp = NewParmFromNode(returntype, empty_str, n);
+      Parm *tp = NewParm(returntype, empty_str, n);
 
       if ((tm = Swig_typemap_lookup("javadirectorout", tp, "", 0))) {
         addThrows(n, "tmap:javadirectorout", tp);
@@ -3761,7 +3765,7 @@ public:
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
 	String *result_str = NewString("c_result");
-	Parm *tp = NewParmFromNode(returntype, result_str, n);
+	Parm *tp = NewParm(returntype, result_str, n);
 
 	/* Copy jresult into c_result... */
 	if ((tm = Swig_typemap_lookup("directorout", tp, result_str, w))) {
@@ -3854,7 +3858,7 @@ public:
 
     SwigType_add_pointer(jenv_type);
 
-    p = NewParmFromNode(jenv_type, NewString("jenv"), n);
+    p = NewParm(jenv_type, NewString("jenv"), n);
     Setattr(p, "arg:byname", "1");
     set_nextSibling(p, NULL);
 
@@ -3891,7 +3895,7 @@ public:
 
     String *jenv_type = NewString("JNIEnv");
     SwigType_add_pointer(jenv_type);
-    p = NewParmFromNode(jenv_type, NewString("jenv"), n);
+    p = NewParm(jenv_type, NewString("jenv"), n);
     set_nextSibling(p, parms);
     parms = p;
 

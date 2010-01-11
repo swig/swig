@@ -518,7 +518,7 @@ class Allocate:public Dispatcher {
      */
     String *scatchlist = Getattr(n, "feature:catches");
     if (scatchlist) {
-      catchlist = Swig_cparse_parms(scatchlist);
+      catchlist = Swig_cparse_parms(scatchlist, n);
       if (catchlist) {
 	Setattr(n, "catchlist", catchlist);
 	mark_exception_classes(catchlist);

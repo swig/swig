@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # This script builds the SWIG source tarball, creates the Windows executable and the Windows zip package
-# and uploads them both to SF ready for release
+# and uploads them both to SF ready for release. Also uploaded are the release notes.
 import sys
 import string
 import os
@@ -30,10 +30,20 @@ os.system("python ./mkdist.py " + version) and failed("")
 print "Build Windows package"
 os.system("./mkwindows.sh " + version) and failed("")
 
-print "Uploading to Sourceforge"
-os.system("rsync --archive --verbose -P --times -e ssh swig-" + version + ".tar.gz " + username + "@frs.sourceforge.net:uploads/") and failed("")
-os.system("rsync --archive --verbose -P --times -e ssh swigwin-" + version + ".zip " + username + "@frs.sourceforge.net:uploads/") and failed("")
+print "Uploading to SourceForge"
+
+swig_dir_sf = username + ",swig@frs.sourceforge.net:/home/frs/project/s/sw/swig/swig/swig-" + version + "/"
+swigwin_dir_sf = username + ",swig@frs.sourceforge.net:/home/frs/project/s/sw/swig/swigwin/swigwin-" + version + "/"
+
+release_notes_file = "release-notes-" + version + ".txt"
+os.system("rm -f " + release_notes_file)
+os.system("cat swig-" + version + "/README " + "swig-" + version + "/CHANGES.current > " + release_notes_file)
+
+os.system("rsync --archive --verbose -P --times -e ssh " + "swig-" + version + ".tar.gz " + release_notes_file + " " + swig_dir_sf) and failed("")
+os.system("rsync --archive --verbose -P --times -e ssh " + "swigwin-" + version + ".zip " + swigwin_dir_sf) and failed("")
 
 os.system("svn copy -m \"rel-" + version + "\" https://swig.svn.sourceforge.net/svnroot/swig/trunk https://swig.svn.sourceforge.net/svnroot/swig/tags/rel-" + version + "/")
 
 print "Finished"
+
+print "Now log in to SourceForge and set the operating system and link the release notes to each of the tarball and zip file in the File Manager."

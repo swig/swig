@@ -62,11 +62,16 @@ static const char *usage1 = (const char *) "\
      -copyright      - Display copyright notices\n\
      -debug-classes  - Display information about the classes found in the interface\n\
      -debug-module <n>- Display module parse tree at stages 1-4, <n> is a csv list of stages\n\
+     -debug-symtabs  - Display symbol tables information\n\
+     -debug-symbols  - Display target language symbols in the symbol tables\n\
+     -debug-csymbols - Display C symbols in the symbol tables\n\
      -debug-tags     - Display information about the tags found in the interface\n\
      -debug-template - Display information for debugging templates\n\
      -debug-top <n>  - Display entire parse tree at stages 1-4, <n> is a csv list of stages\n\
      -debug-typedef  - Display information about the types and typedefs in the interface\n\
-     -debug-typemap  - Display information for debugging typemaps\n\
+     -debug-typemap  - Display typemap debugging information\n\
+     -debug-tmsearch - Display typemap search debugging information\n\
+     -debug-tmused   - Display typemaps used debugging information\n\
      -directors      - Turn on director mode for all the classes, mainly for testing\n\
      -dirprot        - Turn on wrapping of protected members for director classes (default)\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
@@ -162,6 +167,9 @@ static int no_cpp = 0;
 static char *outfile_name = 0;
 static char *outfile_name_h = 0;
 static int tm_debug = 0;
+static int dump_symtabs = 0;
+static int dump_symbols = 0;
+static int dump_csymbols = 0;
 static int dump_tags = 0;
 static int dump_module = 0;
 static int dump_top = 0;
@@ -649,6 +657,12 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if ((strcmp(argv[i], "-debug-typemap") == 0) || (strcmp(argv[i], "-debug_typemap") == 0) || (strcmp(argv[i], "-tm_debug") == 0)) {
 	tm_debug = 1;
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-tmsearch") == 0) {
+	Swig_typemap_search_debug_set();
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-tmused") == 0) {
+	Swig_typemap_used_debug_set();
+	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-module") == 0) {
 	Swig_mark_arg(i);
 	if (argv[i + 1]) {
@@ -716,6 +730,15 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strncmp(argv[i], "-w", 2) == 0) {
 	Swig_mark_arg(i);
 	Swig_warnfilter(argv[i] + 2, 1);
+      } else if (strcmp(argv[i], "-debug-symtabs") == 0) {
+	dump_symtabs = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-symbols") == 0) {
+	dump_symbols = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-csymbols") == 0) {
+	dump_csymbols = 1;
+	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-debug-tags") == 0) || (strcmp(argv[i], "-dump_tags") == 0)) {
 	dump_tags = 1;
 	Swig_mark_arg(i);
@@ -829,12 +852,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   Preprocessor_define((DOH *) "SWIG 1", 0);
   Preprocessor_define((DOH *) "__STDC__", 0);
-#ifdef MACSWIG
-  Preprocessor_define((DOH *) "SWIGMAC 1", 0);
-#endif
-#ifdef SWIGWIN32
-  Preprocessor_define((DOH *) "SWIGWIN32 1", 0);
-#endif
 
   // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
   String *package_version = NewString(PACKAGE_VERSION); /* Note that the fakeversion has not been set at this point */
@@ -1143,6 +1160,19 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
     if (dump_typedef) {
       SwigType_print_scope(0);
+    }
+
+    if (dump_symtabs) {
+      Swig_symbol_print_tables(Swig_symbol_global_scope());
+      Swig_symbol_print_tables_summary();
+    }
+
+    if (dump_symbols) {
+      Swig_symbol_print_symbols();
+    }
+
+    if (dump_csymbols) {
+      Swig_symbol_print_csymbols();
     }
 
     if (dump_tags) {

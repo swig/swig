@@ -647,13 +647,15 @@ public:
 
       {
 	/* Hack alert: will cleanup later -- Dave */
-	Node *n = NewHash();
-	Setattr(n, "name", var_name);
-	Setattr(n, "sym:name", iname);
-	Setattr(n, "type", type);
-	SetFlag(n, "feature:immutable");
-	variableWrapper(n);
-	Delete(n);
+	Node *nn = NewHash();
+	Setfile(nn, Getfile(n));
+	Setline(nn, Getline(n));
+	Setattr(nn, "name", var_name);
+	Setattr(nn, "sym:name", iname);
+	Setattr(nn, "type", type);
+	SetFlag(nn, "feature:immutable");
+	variableWrapper(nn);
+	Delete(nn);
       }
     }
     Delete(proc_name);
@@ -762,7 +764,7 @@ public:
       Printv(access_mem, "(ptr)->", name, NIL);
       if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
 	Printv(convert_tab, tab4, "fields[i++] = ", NIL);
-	Printv(convert_tab, "_swig_convert_struct_", swigtype, "((", SwigType_str(ctype_ptr, ""), ")&((ptr)->", name, "));\n", NIL);
+	Printv(convert_tab, "_swig_convert_struct_", swigtype, "((", SwigType_str(ctype_ptr, 0), ")&((ptr)->", name, "));\n", NIL);
       } else if ((tm = Swig_typemap_lookup("varout", n, access_mem, 0))) {
 	Replaceall(tm, "$result", "fields[i++]");
 	Printv(convert_tab, tm, "\n", NIL);

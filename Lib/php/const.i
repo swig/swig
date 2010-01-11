@@ -51,3 +51,6 @@
   c.module_number = module_number;
   zend_register_constant( &c TSRMLS_CC );
 }
+
+/* Handled as a global variable. */
+%typemap(consttab) SWIGTYPE (CLASS::*) "";

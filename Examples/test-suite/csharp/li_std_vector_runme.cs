@@ -158,7 +158,8 @@ public class li_std_vector_runme {
       } catch (ArgumentNullException) {
       }
       {
-        myDoubleVector = new DoubleVector() { 123.4, 567.8, 901.2 };
+        // Collection initializer test, requires C# 3.0
+//        myDoubleVector = new DoubleVector() { 123.4, 567.8, 901.2 };
       }
 
       // IndexOf() test
@@ -542,8 +543,8 @@ public class li_std_vector_runme {
 
     // Dispose()
     {
-      using (StructVector vs = new StructVector() { new Struct(0.0), new Struct(11.1) } )
-      using (DoubleVector vd = new DoubleVector() { 0.0, 11.1 } ) {
+      using (StructVector vs = new StructVector( new Struct[] { new Struct(0.0), new Struct(11.1) } ) )
+      using (DoubleVector vd = new DoubleVector( new double[] { 0.0, 11.1 } ) ) {
       }
     }
 

@@ -11,11 +11,6 @@ check::classes(array(SpObject));
 check::globals(array());
 
 class MyObject extends SpObject{
-  function __construct() {
-    parent::__construct();
-    return;
-  }
-
   function getFoo() {
     return 123;
   }

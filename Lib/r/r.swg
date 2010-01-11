@@ -50,7 +50,7 @@ SWIG_InitializeModule(0);
 %typemap(scheck) SWIGTYPE[ANY]  
   %{ 
 #      assert(length($input) > $1_dim0)
-      assert(all(sapply($input, class) == "$R_class"))     
+      assert(all(sapply($input, class) == "$R_class"));
   %}
 
 %typemap(out) void "";
@@ -122,14 +122,14 @@ SWIG_InitializeModule(0);
 /* Handling vector case to avoid warnings,
    although we just use the first one. */
 %typemap(scheck) unsigned int %{
-  assert(length($input) == 1 && $input >= 0, "All values must be non-negative")
+  assert(length($input) == 1 && $input >= 0, "All values must be non-negative");
 %}
 
 
 %typemap(scheck) int, long %{
   if(length($input) > 1) {
-     warning("using only the first element of $input")
-  }
+     warning("using only the first element of $input");
+  };
 %}
 
 

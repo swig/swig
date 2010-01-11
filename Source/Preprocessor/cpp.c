@@ -1648,7 +1648,7 @@ String *Preprocessor_parse(String *s) {
       state = 0;
       break;
 
-      /* Swig directives  */
+      /* SWIG directives  */
     case 100:
       /* %{,%} block  */
       if (c == '{') {
@@ -1713,7 +1713,7 @@ String *Preprocessor_parse(String *s) {
     case 110:
       if (!isidchar(c)) {
 	Ungetc(c, s);
-	/* Look for common Swig directives  */
+	/* Look for common SWIG directives  */
 	if (Equal(decl, kpp_dinclude) || Equal(decl, kpp_dimport) || Equal(decl, kpp_dextern)) {
 	  /* Got some kind of file inclusion directive  */
 	  if (allow) {

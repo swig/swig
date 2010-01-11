@@ -1,24 +1,16 @@
 
-#if OCTAVE_API_VERSION_OPTION>0
-#define USE_OCTAVE_API_VERSION OCTAVE_API_VERSION_OPTION
-#else
-
 #include <octave/version.h>
-#ifdef OCTAVE_API_VERSION_N
-#define USE_OCTAVE_API_VERSION OCTAVE_API_VERSION_N
+#ifndef OCTAVE_API_VERSION_NUMBER
 
-#else // Interim hack to distinguish between Octave 3.2 and earlier versions.
-
-#define ComplexLU __ignore
-#include <octave/CmplxLU.h>
-#undef ComplexLU
-#ifdef octave_Complex_LU_h
-#define USE_OCTAVE_API_VERSION 36
-#else
-#define USE_OCTAVE_API_VERSION 37
-#endif
-
-#endif
+  // Hack to distinguish between Octave 3.2 and earlier versions before OCTAVE_API_VERSION_NUMBER existed
+  #define ComplexLU __ignore
+  #include <octave/CmplxLU.h>
+  #undef ComplexLU
+  #ifdef octave_Complex_LU_h
+  # define OCTAVE_API_VERSION_NUMBER 36
+  #else
+  # define OCTAVE_API_VERSION_NUMBER 37
+  #endif
 
 #endif
 
@@ -469,7 +461,7 @@ namespace Swig {
 	  install_builtin_function(it->second.first->method, it->first,
 				   it->second.first->doc?it->second.first->doc:std::string());
 	else if (it->second.second.is_defined()) {
-#if USE_OCTAVE_API_VERSION<37
+#if OCTAVE_API_VERSION_NUMBER<37
 	  link_to_global_variable(curr_sym_tab->lookup(it->first, true));
 #else 
 	  symbol_table::varref(it->first);
@@ -477,7 +469,7 @@ namespace Swig {
 #endif
 	  set_global_value(it->first, it->second.second);
 	  
-#if USE_OCTAVE_API_VERSION<37
+#if OCTAVE_API_VERSION_NUMBER<37
 	  octave_swig_type *ost = Swig::swig_value_deref(it->second.second);
 	  if (ost) {
 	    const char* h = ost->help_text();
@@ -1389,7 +1381,7 @@ SWIGRUNTIME swig_module_info *SWIG_Octave_GetModule(void *clientdata) {
 SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *pointer) {
   octave_value ov = new octave_swig_packed(0, &pointer, sizeof(swig_module_info *));
   const char *module_var = "__SWIG_MODULE__" SWIG_TYPE_TABLE_NAME SWIG_RUNTIME_VERSION;
-#if USE_OCTAVE_API_VERSION<37
+#if OCTAVE_API_VERSION_NUMBER<37
   link_to_global_variable(curr_sym_tab->lookup(module_var, true));
 #else
   symbol_table::varref(module_var);

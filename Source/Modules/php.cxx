@@ -1636,7 +1636,7 @@ public:
 	} else {
 	  Node *parent = Swig_methodclass(n);
 	  String *classname = Swig_class_name(parent);
-	  Printf(output, "\t\tif (get_class($this) === '%s') {\n", classname);
+	  Printf(output, "\t\tif (get_class($this) === '%s%s') {\n", prefix, classname);
 	  Printf(output, "\t\t\t$_this = null;\n");
 	  Printf(output, "\t\t} else {\n");
 	  Printf(output, "\t\t\t$_this = $this;\n");
@@ -1684,7 +1684,7 @@ public:
 		Printf(output, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	      }
 	      Printf(output, "\t\t\tif (!class_exists($c)) {\n");
-	      Printf(output, "\t\t\t\treturn new %s($r);\n", Getattr(classLookup(d), "sym:name"));
+	      Printf(output, "\t\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
 	      Printf(output, "\t\t\t}\n");
 	      Printf(output, "\t\t\treturn new $c($r);\n");
 	    } else {
@@ -1929,9 +1929,7 @@ done:
 
   virtual int classHandler(Node *n) {
     constructors = 0;
-    //SwigType *t = Getattr(n, "classtype");
     current_class = n;
-    // String *use_class_name=SwigType_manglestr(SwigType_ltype(t));
 
     if (shadow) {
       char *rename = GetChar(n, "sym:name");
@@ -2325,7 +2323,7 @@ done:
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("zval");
     SwigType_add_pointer(type);
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
 
@@ -2538,7 +2536,24 @@ done:
 	}
 	p = nextSibling(p);
       }
-      Append(w->code, "int error;\n");
+
+      /* exception handling */
+      tm = Swig_typemap_lookup("director:except", n, "result", 0);
+      if (!tm) {
+	tm = Getattr(n, "feature:director:except");
+	if (tm)
+	  tm = Copy(tm);
+      }
+      if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
+	if (Replaceall(tm, "$error", "error")) {
+	  /* Only declare error if it is used by the typemap. */
+	  Append(w->code, "int error;\n");
+	}
+      } else {
+	Delete(tm);
+	tm = NULL;
+      }
+
       if (!idx) {
 	Printf(w->code, "zval **args = NULL;\n", idx);
       } else {
@@ -2557,18 +2572,10 @@ done:
       Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,\n");
       Printf(w->code, "  result, %d, args TSRMLS_CC);\n", idx);
 
-      /* exception handling */
-      tm = Swig_typemap_lookup("director:except", n, "result", 0);
-      if (!tm) {
-	tm = Getattr(n, "feature:director:except");
-	if (tm)
-	  tm = Copy(tm);
-      }
-      if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-	Replaceall(tm, "$error", "error");
+      if (tm) {
 	Printv(w->code, Str(tm), "\n", NIL);
+	Delete(tm);
       }
-      Delete(tm);
 
       /* marshal return value from PHP to C/C++ type */
 
