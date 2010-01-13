@@ -1,6 +1,10 @@
 Version 1.3.41 (in progress)
 ============================
 
+2010-01-13: olly
+	    [PHP] Add datetime to the list of PHP predefined classes (patch
+	    from David Fletcher in SF#2931042).
+
 2010-01-11: wsfulton
             Slight change to warning, error and diagnostic reporting. The warning number is no 
             longer shown within brackets. This is to help default parsing of warning messages by
