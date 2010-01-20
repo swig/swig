@@ -721,8 +721,8 @@ String *internal_compose_foreign_type(Node *n, SwigType *ty) {
       if (res) {
 	Printf(ffiType, "%s", res);
       } else {
-	SwigType *resolved_type = SwigType_typedef_resolve(tok);
-	if (resolved_type) {
+	SwigType *resolved_type = SwigType_typedef_resolve_all(tok);
+	if (Cmp(resolved_type, tok) != 0) {
 	  res = get_ffi_type(n, resolved_type, "");
 	  if (res) {
 	  } else {
