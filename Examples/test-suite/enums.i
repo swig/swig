@@ -8,6 +8,7 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance1;
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance2;
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) globalinstance3;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);
 
 %inline %{
 
@@ -32,8 +33,14 @@ bar3(foo3 x) {}
 
 enum sad { boo, hoo = 5 };
 
+#ifdef __cplusplus /* For Octave and g++ which compiles C test code as C++ */
+extern "C" {
+#endif
 /* Unnamed enum instance */
 enum { globalinstance1, globalinstance2, globalinstance3 = 30 } GlobalInstance;
+#ifdef __cplusplus
+}
+#endif
 
 /* Anonymous enum */
 enum { AnonEnum1, AnonEnum2 = 100 };
@@ -58,7 +65,7 @@ typedef struct _iFoo
     enum { 
       Phoo = +50,
       Char = 'a'
-    } e; 
+    } e;
 } iFoo; 
 %}
 #else
@@ -71,5 +78,20 @@ struct iFoo
     }; 
 }; 
 %}
-
 #endif
+
+// enum declaration and initialization
+%inline %{
+enum Exclamation {
+  goodness,
+  gracious,
+  me
+} enumInstance = me;
+
+enum ContainYourself {
+  slap = 10,
+  my,
+  thigh
+} Slap = slap, My = my, Thigh = thigh, *pThigh = &Thigh, arrayContainYourself[3] = {slap, my, thigh};
+%}
+

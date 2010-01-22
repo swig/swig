@@ -518,7 +518,7 @@ class Allocate:public Dispatcher {
      */
     String *scatchlist = Getattr(n, "feature:catches");
     if (scatchlist) {
-      catchlist = Swig_cparse_parms(scatchlist);
+      catchlist = Swig_cparse_parms(scatchlist, n);
       if (catchlist) {
 	Setattr(n, "catchlist", catchlist);
 	mark_exception_classes(catchlist);
@@ -527,8 +527,7 @@ class Allocate:public Dispatcher {
     }
     ParmList *throws = Getattr(n, "throws");
     if (throws) {
-      /* if there is no an explicit catchlist, 
-         we catch everything in the throwlist */
+      /* if there is no explicit catchlist, we catch everything in the throws list */
       if (!catchlist) {
 	Setattr(n, "catchlist", throws);
       }

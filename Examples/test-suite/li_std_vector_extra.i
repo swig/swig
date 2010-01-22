@@ -125,15 +125,16 @@ std::vector<std::string>  vecStr(std::vector<std::string> v) {
 
 %inline %{
   int *makeIntPtr(int v) { return new int(v); }
+  const short *makeConstShortPtr(int v) { return new short(v); }
   double *makeDoublePtr(double v) { return new double(v); }
   int extractInt(int *p) { return *p; }
+  short extractConstShort(const short *p) { return *p; }
 %}
 
 %template(pyvector) std::vector<swig::SwigPtr_PyObject>; 
 
 namespace std {
-   %template(ConstShortVector) vector<const short *>;
-//   %template(ConstIntVector) vector<const int *>; // interferes with vector<int *>... see new testcase li_std_vector_ptr
+   %template(ConstShortPtrVector) vector<const short *>;
 }
 
 %inline %{

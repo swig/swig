@@ -730,6 +730,49 @@ class TypePass:private Dispatcher {
     }
     Setattr(n, "enumtype", enumtype);
 
+    // This block of code is for dealing with %ignore on an enum item where the target language
+    // attempts to use the C enum value in the target language itself and expects the previous enum value
+    // to be one more than the previous value... the previous enum item might not exist if it is ignored!
+    // - It sets the first non-ignored enum item with the "firstenumitem" attribute.
+    // - It adds an enumvalue attribute if the previous enum item is ignored
+    {
+      Node *c;
+      int count = 0;
+      String *previous = 0;
+      bool previous_ignored = false;
+      bool firstenumitem = false;
+      for (c = firstChild(n); c; c = nextSibling(c)) {
+	assert(strcmp(Char(nodeType(c)), "enumitem") == 0);
+
+	bool reset;
+	String *enumvalue = Getattr(c, "enumvalue");
+	if (GetFlag(c, "feature:ignore")) {
+	  reset = enumvalue ? true : false;
+	  previous_ignored = true;
+	} else {
+	  if (!enumvalue && previous_ignored) {
+	    if (previous)
+	      Setattr(c, "enumvalue", NewStringf("(%s) + %d", previous, count+1));
+	    else
+	      Setattr(c, "enumvalue", NewStringf("%d", count));
+	    SetFlag(c, "virtenumvalue"); // identify enumvalue as virtual, ie not from the parsed source
+	  }
+	  if (!firstenumitem) {
+	    SetFlag(c, "firstenumitem");
+	    firstenumitem = true;
+	  }
+	  reset = true;
+	  previous_ignored = false;
+	}
+	if (reset) {
+	  previous = enumvalue ? enumvalue : Getattr(c, "name");
+	  count = 0;
+	} else {
+	  count++;
+	}
+      }
+    }
+
     emit_children(n);
     return SWIG_OK;
   }
@@ -753,13 +796,16 @@ class TypePass:private Dispatcher {
       Setattr(n, "value", new_value);
       Delete(new_value);
     }
-    // Make up an enumvalue if one was not specified in the parsed code
-    if (Getattr(n, "_last") && !Getattr(n, "enumvalue")) {	// Only the first enum item has _last set
-      Setattr(n, "enumvalueex", "0");
-    }
     Node *next = nextSibling(n);
-    if (next && !Getattr(next, "enumvalue")) {
-      Setattr(next, "enumvalueex", NewStringf("%s + 1", Getattr(n, "sym:name")));
+
+    // Make up an enumvalue if one was not specified in the parsed code (not designed to be used on enum items and %ignore - enumvalue will be set instead)
+    if (!GetFlag(n, "feature:ignore")) {
+      if (Getattr(n, "_last") && !Getattr(n, "enumvalue")) {	// Only the first enum item has _last set (Note: first non-ignored enum item has firstenumitem set)
+	Setattr(n, "enumvalueex", "0");
+      }
+      if (next && !Getattr(next, "enumvalue")) {
+	Setattr(next, "enumvalueex", NewStringf("%s + 1", Getattr(n, "sym:name")));
+      }
     }
 
     return SWIG_OK;

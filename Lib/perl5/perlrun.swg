@@ -11,12 +11,16 @@
 /* for raw pointers */
 #define SWIG_ConvertPtr(obj, pp, type, flags) \
     SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, flags, 0)
+#define SWIG_ConvertPtrAndOwn(obj, pp, type, flags, own) \
+    SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, flags, own)
 #define SWIG_NewPointerObjP(ptr, t, flags) \
     SWIG_Perl_MakePtr(0, ptr, t, flags, proto)
 #define SWIG_NewPointerObj(ptr, t, flags) \
     SWIG_Perl_MakePtr(0, ptr, t, flags, 0)
-#define SWIG_ConvertPtrAndOwn(obj, pp, type, flags, own) \
-    SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, flags, own)
+#define SWIG_Perl_ConvertMg(obj, pp, type, flags) \
+    SWIG_Perl_ConvertMgAndOwn(obj, pp, type, flags, 0)
+#define SWIG_ConvertMgAndOwn(obj, pp, type, flags, own) \
+    SWIG_Perl_ConvertMgAndOwn(obj, pp, type, flags, own)
 
 /* for raw packed data */
 #define SWIG_ConvertPacked(obj, p, s, type)             SWIG_Perl_ConvertPacked(obj, p, s, type)
@@ -240,7 +244,8 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
 /* wrapping & unwrapping native opaque pointers */
 
 SWIGRUNTIME int
-SWIG_Perl_ConvertMg(MAGIC *mg, void **ptr, swig_type_info *t, int flags) {
+SWIG_Perl_ConvertMgAndOwn(MAGIC *mg, void **ptr, swig_type_info *t,
+        int flags, int *own) {
   swig_perl_wrap *wrap = (swig_perl_wrap *)mg->mg_ptr;
   if(flags & SWIG_POINTER_DISOWN)
     SWIG_Perl_ForgetPtr(wrap);
@@ -249,8 +254,7 @@ SWIG_Perl_ConvertMg(MAGIC *mg, void **ptr, swig_type_info *t, int flags) {
   return SWIG_OK;
 }
 SWIGRUNTIME int
-SWIG_Perl_ConvertPtrAndOwn(SV *sv, void **ptr, swig_type_info *_t,
-       	int flags, int *own) {
+SWIG_Perl_ConvertPtrAndOwn(SV *sv, void **ptr, swig_type_info *_t, int flags, int *own) {
   swig_cast_info *tc;
   void *voidptr = (void *)0;
   MAGIC *mg;
@@ -282,8 +286,11 @@ SWIG_Perl_ConvertPtrAndOwn(SV *sv, void **ptr, swig_type_info *_t,
   if (tc) {
     int newmemory = 0;
     *ptr = SWIG_TypeCast(tc, voidptr, &newmemory);
-    if (own)
-      *own |= newmemory & SWIG_CAST_NEW_MEMORY;
+    if (newmemory == SWIG_CAST_NEW_MEMORY) {
+      assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+      if (own)
+        *own = *own | SWIG_CAST_NEW_MEMORY;
+    }
   } else {
     *ptr = voidptr;
   }

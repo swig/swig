@@ -1,68 +1,299 @@
-Version 1.3.40 (in progress)
+Version 1.3.41 (in progress)
 ============================
 
-2009-06-02: talby
-	    [Perl] Resolved reference.i overload support problem
-	    identfied by John Potowsky.
+2010-01-13: olly
+	    [PHP] Add datetime to the list of PHP predefined classes (patch
+	    from David Fletcher in SF#2931042).
 
-2009-05-26: wsfulton
-	    [C#] Improved std::map wrappers based on patch from Yuval Baror. The C# proxy
-            now implements System.Collections.Generic.IDictionary<>.
+2010-01-11: wsfulton
+            Slight change to warning, error and diagnostic reporting. The warning number is no 
+            longer shown within brackets. This is to help default parsing of warning messages by
+            other tools, vim on Unix in particular.
 
-	    These std:map wrappers have a non-backwards compatible overhaul to make them
-            like a .NET IDictionary. Some method names have changed as following:
-              set -> setitem (use this[] property now)
-              get -> getitem (use this[] property now)
-              has_key -> ContainsKey
-              del -> Remove
-              clear -> Clear
+            Example original display using -Fstandard:
+              example.i:20: Warning(401): Nothing known about base class 'B'. Ignored.
+            New display:
+              example.i:20: Warning 401: Nothing known about base class 'B'. Ignored.
 
-            The following macros used for std::map wrappers are deprecated and will no longer work:
-              specialize_std_map_on_key
-              specialize_std_map_on_value
-              specialize_std_map_on_both
+            Also subtle fix to -Fmicrosoft format adding in missing space. Example original display:
+              example.i(20): Warning(401): Nothing known about base class 'Base'. Ignored.
+            New display:
+              example.i(20) : Warning 401: Nothing known about base class 'Base'. Ignored.
+
+2010-01-10: wsfulton
+            Fix a few inconsistencies in reporting of file/line numberings including modifying
+            the overload warnings 509, 512, 516, 474, 475 to now be two line warnings.
+
+2010-01-10: wsfulton
+            Modify -debug-tags output to use standard file name/line reporting so that editors
+            can easily navigate to the appropriate lines.
+            Was typically:
+              . top . include . include (/usr/share/swig/temp/trunk/Lib/swig.swg:312)
+              . top . include . include . include (/usr/share/swig/temp/trunk/Lib/swigwarnings.swg:39)
+            now:
+              /usr/share/swig/temp/trunk/Lib/swig.swg:312:  . top . include . include
+              /usr/share/swig/temp/trunk/Lib/swigwarnings.swg:39:  . top . include . include . include
+
+2010-01-03: wsfulton
+            Fix missing file/line numbers for typemap warnings and in output from the
+           -debug-tmsearch/-debug-tmused options.
+
+2010-01-03: wsfulton
+            Add typemaps used debugging option (-debug-tmused). When used each line displays
+            the typemap used for each type for which code is being generated including the file
+            and line number related to the type. This is effectively a condensed form of the
+            -debug-tmsearch option. Documented in Typemaps.html.
+
+2009-12-23: wsfulton
+            Fix for %javaexception and directors so that all the appropriate throws clauses 
+            are generated. Problem reported by Peter Greenwood.
+
+2009-12-20: wsfulton
+            Add -debug-tmsearch option for debugging the typemap pattern matching rules.
+            Documented in Typemaps.html.
+
+2009-12-12: wsfulton
+            [Octave] Remove the -api option and use the new OCTAVE_API_VERSION_NUMBER
+            macro provided in the octave headers for determining the api version instead.
+
+2009-12-04: olly
+	    [Ruby] Improve support for Ruby 1.9 under GCC.  Addresses part of
+	    SF#2859614.
+
+2009-12-04: olly
+	    Fix handling of modulo operator (%) in constant expressions
+	    (SF#2818562).
+
+2009-12-04: olly
+	    [PHP] "empty" is a reserved word in PHP, so rename empty() method
+	    on STL classes to "is_empty()" (previously this was automatically
+	    renamed to "c_empty()").
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2009-12-03: olly
+	    [PHP] Add typemaps for long long and unsigned long long, and for
+	    pointer to method.
+
+2009-12-02: olly
+	    [PHP] Fix warning and rename of reserved class name to be case
+	    insensitive.
+
+2009-12-01: wsfulton
+            Revert support for %extend and memberin typemaps added in swig-1.3.39. The
+	    memberin typemaps are ignored again for member variables within a %extend block.
+            Documentation inconsistency reported by Torsten Landschoff.
+
+2009-11-29: wsfulton
+            [Java, C#] Fix generated quoting when using %javaconst(1)/%csconst(1) for 
+            static const char member variables.
+
+              %javaconst(1) A;
+              %csconst(1) A;
+              struct X {
+                static const char A = 'A'; 
+              };
+
+2009-11-26: wsfulton
+            [Java, C#] Fix %javaconst(1)/%csconst(1) for static const member variables to
+            use the actual constant value if it is specified, rather than the C++ code to
+            access the member.
+
+              %javaconst(1) EN;
+              %csconst(1) EN;
+              struct X {
+                static const int EN = 2;
+              };
+
+2009-11-23: wsfulton
+            C++ nested typedef classes can now be handled too, for example:
+              struct Outer {
+                typedef Foo { } FooTypedef1, FooTypedef2;
+              };
+
+2009-11-18: wsfulton
+            The wrappers for C nested structs are now generated in the same order as declared 
+            in the parsed code.
+
+2009-11-18: wsfulton
+            Fix #491476 - multiple declarations of nested structs, for example:
+              struct Outer {
+                struct {
+                  int val;
+                } inner1, inner2, *inner3, inner4[1];
+              } outer;
+
+2009-11-17: wsfulton
+            Fix parsing of enum declaration and initialization, for example:
+
+              enum ABC {
+                a,
+                b,
+                c
+              } A = a, *pC = &C, array[3] = {a, b, c};
+
+2009-11-17: wsfulton
+            Fix parsing of struct declaration and initialization, for example:
+
+              struct S {
+                 int x;
+              } instance = { 10 };
+
+2009-11-15: wsfulton
+            Fix #1960977 - Syntax error parsing derived nested class declaration and member
+            variable instance.
+
+2009-11-14: wsfulton
+            Fix #2310483 - function pointer typedef within extern "C" block.
+
+2009-11-13: wsfulton
+            Fix usage of nested template classes within templated classes so that compileable code 
+            is generated.
+
+2009-11-13: olly
+	    [php] Fix place where class prefix (as specified with -prefix)
+	    wasn't being used.  Patch from gverbruggen in SF#2892647.
+
+2009-11-12: wsfulton
+            Fix usage of nested template classes so that compileable code is generated - the nested
+            template class is now treated like a normal nested classes, that is, as an opaque type
+            unless the nestedworkaround feature is used.
+
+2009-11-12: wsfulton
+            Replace SWIGWARN_PARSE_NESTED_CLASS with SWIGWARN_PARSE_NAMED_NESTED_CLASS and
+            SWIGWARN_PARSE_UNNAMED_NESTED_CLASS for named and unnamed nested classes respectively.
+
+            Named nested class ignored warnings can now be suppressed by name using %warnfilter, eg:
+
+              %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Outer::Inner;
+
+            but clearly unnamed nested classes cannot and the global suppression is still required, eg:
+
+              #pragma SWIG nowarn=SWIGWARN_PARSE_UNNAMED_NESTED_CLASS
+
+2009-11-11: wsfulton
+            Added the nestedworkaround feature as a way to use the full functionality of a nested class 
+            (C++ mode only). It removes the nested class from SWIG's type information so it is as if SWIG
+            had never parsed the nested class. The documented nested class workarounds using a global
+            fake class stopped working when SWIG treated the nested class as an opaque pointer, and
+            this feature reverts this behaviour. The documentation has been updated with details of how
+            to use and implement it, see the "Nested classes" section in SWIGPlus.html.
+
+2009-11-11: wsfulton
+            There were a number of C++ cases where nested classes/structs/unions were being handled
+            as if C code was being parsed which would oftentimes lead to uncompileable code as an
+            attempt was made to wrap the nested structs like it is documented for C code. Now all
+            nested structs/classes/unions are ignored in C++ mode, as was always documented. However,
+            there is an improvement as usage of nested structs/classes/unions is now always treated
+            as an opaque type by default, resulting in generated code that should always compile.
 
             *** POTENTIAL INCOMPATIBILITY ***
 
-2009-05-14: bhy
-            [Python] Fix the wrong pointer value returned by SwigPyObject_repr().
+2009-11-09: drjoe
+	    Fix R for -fcompact and add std_map.i
 
-2009-05-13: mutandiz (Mikel Bancroft)
-	    [allegrocl] Minor tweak when wrapping in -nocwrap mode.
+2009-11-08: wsfulton
+            Fix inconsistency for nested structs/unions/classes. Uncompileable code was being
+            generated when inner struct and union declarations were used as types within the
+            inner struct. The inner struct/union is now treated as a forward declaration making the
+            behaviour the same as an inner class. (C++ code), eg:
 
-2009-05-11: wsfulton
-	    [C#] Improved std::vector wrappers on the C# proxy side from Yuval Baror. These
-	    implement IList<> instead of IEnumerable<> where possible.
+              struct Outer {
+                struct InnerStruct { int x; };
+                InnerStruct* getInnerStruct();
+              };
 
-2009-04-29: wsfulton
-	    [Java, C#] Add the 'notderived' attribute to the javabase and csbase typemaps.
-	    When this attribute is set, the typemap will not apply to classes that are derived
-	    from a C++ base class, eg 
-	      %typemap(csbase, notderived="1") SWIGTYPE "CommonBase"
+2009-11-08: wsfulton
+	    Ignored nested class/struct warnings now display the name of the ignored class/struct.
 
-2009-04-29: olly
-	    [Python] Don't attempt to acquire the GIL in situations where we
-	    know that it will already be locked.  This avoids some dead-locks
-	    with mod_python (due to mod_python bugs which are apparently
-	    unlikely to ever be fixed), and results in smaller wrappers which
-	    run a little faster (in tests with Xapian on x86-64 Ubuntu 9.04,
-	    the stripped wrapper library was 11% smaller and ran 2.7% faster).
+2009-11-07: wsfulton
+	    Bug #1514681 - Fix nested template classes within a namespace generated uncompileable
+            code and introduced strange side effects to other wrapper code especially code
+            after the nested template class. Note that nested template classes are still ignored.
 
-2009-04-21: wsfulton
-	    [C#] Fix #2753469 - bool &OUTPUT and bool *OUTPUT typemaps initialisation.
+2009-11-07: wsfulton
+	    Add new debug options:
+              -debug-symtabs    - Display symbol tables information
+              -debug-symbols    - Display target language symbols in the symbol tables
+              -debug-csymbols   - Display C symbols in the symbol tables
 
-2009-04-09: wsfulton
-	    Fix #2746858 - C macro expression using floating point numbers
+2009-11-03: wsfulton
+	    Fix some usage of global scope operator, for example:
 
-2009-03-30: olly
-	    [PHP] The default out typemap for char[ANY] now returns the string up to a
-	    zero byte, or the end of the array if there is no zero byte.  This
-	    is the same as Python does, and seems more generally useful than
-	    the previous behaviour of returning the whole contents of the array
-	    including any zero bytes.  If you want the old behaviour, you can provide
-	    your own typemap to do this:
+              namespace AA { /* ... */ }
+              using namespace ::AA;
 
-	    %typemap(out) char [ANY]
-	    %{
-		RETVAL_STRINGL($1, $1_dim0, 1);
-	    %}
+            and bug #1816802 - SwigValueWrapper should be used:
+
+              struct CC {
+                CC(int); // no default constructor
+              };
+              ::CC x();
+
+            and in template parameter specializations:
+
+              struct S {};
+              template <typename T> struct X { void a() {}; };
+              template <> struct X<S> { void b() {}; };
+              %template(MyTConcrete) X< ::S >;
+
+            plus probably some other corner case usage of ::.
+
+2009-11-02: olly
+	    [Python] Fix potential memory leak in initialisation code for the
+	    generated module.
+
+2009-10-23: wsfulton
+	    Fix seg fault when using a named nested template instantiation using %template(name) 
+            within a class. A warning that these are not supported is now issued plus processing 
+            continues as if no name was given.
+
+2009-10-20: wsfulton
+	    [Python] Fix std::vector<const T*>. This would previously compile, but not run correctly.
+
+2009-10-20: wsfulton
+	    Fixed previously fairly poor template partial specialization and explicit 
+            specialization support. Numerous bugs in this area have been fixed including:
+
+            - Template argument deduction implemented for template type arguments, eg this now
+              works:
+                template<typename T> class X      {};
+                template<typename T> class X<T *> {};
+                %template(X1) X<const int *>; // Chooses T * specialization
+
+              and more complex cases with multiple parameters and a mix of template argument
+              deduction and explicitly specialised parameters, eg:
+                template <typename T1, typename T2> struct TwoParm               { void a() {} };
+                template <typename T1>              struct TwoParm<T1 *, int *>  { void e() {} };
+                %template(E) TwoParm<int **, int *>;
+
+            Note that the primary template must now be in scope, like in C++, when
+            an explicit or partial specialization is instantiated with %template.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2009-09-14: wsfulton
+	    [C#] Add %csattributes for adding C# attributes to enum values, see docs for example.
+
+2009-09-11: wsfulton
+	    Fix memmove regression in cdata.i as reported by Adriaan Renting.
+
+2009-09-07: wsfulton
+	    Fix constant expressions containing <= or >=.
+
+2009-09-02: wsfulton
+	    The following operators in constant expressions now result in type bool for C++ 
+            wrappers and remain as type int for C wrappers, as per each standard: 
+
+              && || == != < > <= >= (Actually the last 4 are still broken). For example:
+
+              #define A 10
+              #define B 10
+              #define A_EQ_B  A == B // now wrapped as type bool for C++
+              #define A_AND_B A && B // now wrapped as type bool for C++
+
+2009-09-02: wsfulton
+	    Fix #2845746. true and false are now recognised keywords (only when wrapping C++).
+            Constants such as the following are now wrapped (as type bool):
+              #define FOO true
+              #define BAR FOO && false
+

@@ -23,10 +23,10 @@
 using namespace std;
 
 struct XX {
-  XX() { cout << "XX()" << endl; }
+  XX() { if (debug) cout << "XX()" << endl; }
   XX(int i) { if (debug) cout << "XX(" << i << ")" << endl; }
-  XX(const XX &other) { cout << "XX(const XX &)" << endl; }
-  XX& operator =(const XX &other) { cout << "operator=(const XX &)" << endl; return *this; }
+  XX(const XX &other) { if (debug) cout << "XX(const XX &)" << endl; }
+  XX& operator =(const XX &other) { if (debug) cout << "operator=(const XX &)" << endl; return *this; }
   ~XX() { if (debug) cout << "~XX()" << endl; }
   static XX create() { 
     return XX(123);

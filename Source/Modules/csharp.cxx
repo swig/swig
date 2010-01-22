@@ -86,13 +86,6 @@ class CSHARP:public Language {
 
   enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
-  static Parm *NewParmFromNode(SwigType *type, const_String_or_char_ptr name, Node *n) {
-    Parm *p = NewParm(type, name);
-    Setfile(p, Getfile(n));
-    Setline(p, Getline(n));
-    return p;
-  }
-
 public:
 
   /* -----------------------------------------------------------------------------
@@ -898,9 +891,9 @@ public:
       }
     }
 
-    // Get any C# exception classes in the throws typemap
+    // Look for usage of throws typemap and the canthrow flag
     ParmList *throw_parm_list = NULL;
-    if ((throw_parm_list = Getattr(n, "throws"))) {
+    if ((throw_parm_list = Getattr(n, "catchlist"))) {
       Swig_typemap_attach_parms("throws", throw_parm_list, f);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
 	if ((tm = Getattr(p, "tmap:throws"))) {
@@ -1115,16 +1108,16 @@ public:
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper C# enum
 
 	// Pure C# baseclass and interfaces
-	const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE);
-	const String *pure_interfaces = typemapLookup("csinterfaces", typemap_lookup_type, WARN_NONE);
+	const String *pure_baseclass = typemapLookup(n, "csbase", typemap_lookup_type, WARN_NONE);
+	const String *pure_interfaces = typemapLookup(n, "csinterfaces", typemap_lookup_type, WARN_NONE);
 
 	// Class attributes
-	const String *csattributes = typemapLookup("csattributes", typemap_lookup_type, WARN_NONE);
+	const String *csattributes = typemapLookup(n, "csattributes", typemap_lookup_type, WARN_NONE);
 	if (csattributes && *Char(csattributes))
 	  Printf(enum_code, "%s\n", csattributes);
 
 	// Emit the enum
-	Printv(enum_code, typemapLookup("csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers (enum modifiers really)
+	Printv(enum_code, typemapLookup(n, "csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers (enum modifiers really)
 	       " ", symname, (*Char(pure_baseclass) || *Char(pure_interfaces)) ? " : " : "", pure_baseclass, ((*Char(pure_baseclass)) && *Char(pure_interfaces)) ?	// Interfaces
 	       ", " : "", pure_interfaces, " {\n", NIL);
       } else {
@@ -1140,8 +1133,8 @@ public:
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper C# enum
 	// Finish the enum declaration
 	// Typemaps are used to generate the enum definition in a similar manner to proxy classes.
-	Printv(enum_code, (enum_feature == ProperEnum) ? "\n" : typemapLookup("csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),	// main body of class
-	       typemapLookup("cscode", typemap_lookup_type, WARN_NONE),	// extra C# code
+	Printv(enum_code, (enum_feature == ProperEnum) ? "\n" : typemapLookup(n, "csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),	// main body of class
+	       typemapLookup(n, "cscode", typemap_lookup_type, WARN_NONE),	// extra C# code
 	       "}", NIL);
 
 	Replaceall(enum_code, "$csclassname", symname);
@@ -1177,7 +1170,7 @@ public:
 
 	  addOpenNamespace(namespce, f_enum);
 
-	  Printv(f_enum, typemapLookup("csimports", typemap_lookup_type, WARN_NONE),	// Import statements
+	  Printv(f_enum, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE), // Import statements
 		 "\n", enum_code, "\n", NIL);
 
 	  addCloseNamespace(namespce, f_enum);
@@ -1211,6 +1204,9 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *value = Getattr(n, "value");
     String *name = Getattr(n, "name");
+    Node *parent = parentNode(n);
+    int unnamedinstance = GetFlag(parent, "unnamedinstance");
+    String *parent_name = Getattr(parent, "name");
     String *tmpValue;
 
     // Strange hack from parent method
@@ -1222,13 +1218,18 @@ public:
     Setattr(n, "value", tmpValue);
 
     {
-      EnumFeature enum_feature = decodeEnumFeature(parentNode(n));
+      EnumFeature enum_feature = decodeEnumFeature(parent);
+      const String *csattributes = Getattr(n, "feature:cs:attributes");
 
-      if ((enum_feature == ProperEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
+      if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
 	// Wrap (non-anonymous) C/C++ enum with a proper C# enum
 	// Emit the enum item.
-	if (!Getattr(n, "_last"))	// Only the first enum item has this attribute set
+	if (!GetFlag(n, "firstenumitem"))
 	  Printf(enum_code, ",\n");
+
+	if (csattributes)
+	  Printf(enum_code, "  %s\n", csattributes);
+
 	Printf(enum_code, "  %s", symname);
 
 	// Check for the %csconstvalue feature
@@ -1241,21 +1242,19 @@ public:
 	}
       } else {
 	// Wrap C/C++ enums with constant integers or use the typesafe enum pattern
-	const String *parent_name = Getattr(parentNode(n), "name");
-	String *typemap_lookup_type = parent_name ? Copy(parent_name) : NewString("int");
-	const String *tm = typemapLookup("cstype", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF);
+	String *type = Getattr(n, "type"); /* should be int unless explicitly specified in a C++0x enum class */
+	SwigType *typemap_lookup_type = parent_name ? parent_name : type;
+	const String *tm = typemapLookup(n, "cstype", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF);
+
 	String *return_type = Copy(tm);
-	Delete(typemap_lookup_type);
-	typemap_lookup_type = NULL;
-
-	// The %csconst feature determines how the constant value is obtained
-	int const_feature_flag = GetFlag(n, "feature:cs:const");
-
         const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
         methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
-	if ((enum_feature == TypesafeEnum) && Getattr(parentNode(n), "sym:name") && !Getattr(parentNode(n), "unnamedinstance")) {
-	  // Wrap (non-anonymouse) enum using the typesafe enum pattern
+	if (csattributes)
+	  Printf(enum_code, "  %s\n", csattributes);
+
+	if ((enum_feature == TypesafeEnum) && parent_name && !unnamedinstance) {
+	  // Wrap (non-anonymous) enum using the typesafe enum pattern
 	  if (Getattr(n, "enumvalue")) {
 	    String *value = enumValue(n);
 	    Printf(enum_code, "  %s static readonly %s %s = new %s(\"%s\", %s);\n", methodmods, return_type, symname, return_type, symname, value);
@@ -1267,6 +1266,10 @@ public:
 	  // Simple integer constants
 	  // Note these are always generated for anonymous enums, no matter what enum_feature is specified
 	  // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
+
+	  // The %csconst feature determines how the constant value is obtained
+	  int const_feature_flag = GetFlag(n, "feature:cs:const");
+
 	  const char *const_readonly = const_feature_flag ? "const" : "static readonly";
 	  String *value = enumValue(n);
 	  Printf(enum_code, "  %s %s %s %s = %s;\n", methodmods, const_readonly, return_type, symname, value);
@@ -1275,9 +1278,9 @@ public:
       }
 
       // Add the enum value to the comma separated list being constructed in the enum declaration.
-      String *enumvalues = Getattr(parentNode(n), "enumvalues");
+      String *enumvalues = Getattr(parent, "enumvalues");
       if (!enumvalues)
-	Setattr(parentNode(n), "enumvalues", Copy(symname));
+	Setattr(parent, "enumvalues", Copy(symname));
       else
 	Printv(enumvalues, ", ", symname, NIL);
     }
@@ -1384,7 +1387,14 @@ public:
       enum_constant_flag = false;
     } else {
       // Alternative constant handling will use the C syntax to make a true C# constant and hope that it compiles as C# code
-      Printf(constants_code, "%s;\n", Getattr(n, "value"));
+      if (Getattr(n, "wrappedasconstant")) {
+	if (SwigType_type(t) == T_CHAR)
+          Printf(constants_code, "\'%s\';\n", Getattr(n, "staticmembervariableHandler:value"));
+	else
+          Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
+      } else {
+        Printf(constants_code, "%s;\n", Getattr(n, "value"));
+      }
     }
 
     // Emit the generated code to appropriate place
@@ -1490,12 +1500,12 @@ public:
     String *c_baseclass = NULL;
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
-    String *typemap_lookup_type = Getattr(n, "classtypeobj");
+    SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
 
     // Inheritance from pure C# classes
     Node *attributes = NewHash();
-    const String *pure_baseclass = typemapLookup("csbase", typemap_lookup_type, WARN_NONE, attributes);
+    const String *pure_baseclass = typemapLookup(n, "csbase", typemap_lookup_type, WARN_NONE, attributes);
     bool purebase_replace = GetFlag(attributes, "tmap:csbase:replace") ? true : false;
     bool purebase_notderived = GetFlag(attributes, "tmap:csbase:notderived") ? true : false;
     Delete(attributes);
@@ -1549,21 +1559,21 @@ public:
     }
 
     // Pure C# interfaces
-    const String *pure_interfaces = typemapLookup(derived ? "csinterfaces_derived" : "csinterfaces", typemap_lookup_type, WARN_NONE);
+    const String *pure_interfaces = typemapLookup(n, derived ? "csinterfaces_derived" : "csinterfaces", typemap_lookup_type, WARN_NONE);
     // Start writing the proxy class
-    Printv(proxy_class_def, typemapLookup("csimports", typemap_lookup_type, WARN_NONE),	// Import statements
+    Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
 	   "\n", NIL);
 
     // Class attributes
-    const String *csattributes = typemapLookup("csattributes", typemap_lookup_type, WARN_NONE);
+    const String *csattributes = typemapLookup(n, "csattributes", typemap_lookup_type, WARN_NONE);
     if (csattributes && *Char(csattributes))
       Printf(proxy_class_def, "%s\n", csattributes);
 
-    Printv(proxy_class_def, typemapLookup("csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
+    Printv(proxy_class_def, typemapLookup(n, "csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $csclassname",	// Class name and base class
 	   (*Char(wanted_base) || *Char(pure_interfaces)) ? " : " : "", wanted_base, (*Char(wanted_base) && *Char(pure_interfaces)) ?	// Interfaces
-	   ", " : "", pure_interfaces, " {", derived ? typemapLookup("csbody_derived", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF) :	// main body of class
-	   typemapLookup("csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),	// main body of class
+	   ", " : "", pure_interfaces, " {", derived ? typemapLookup(n, "csbody_derived", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF) :	// main body of class
+	   typemapLookup(n, "csbody", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),	// main body of class
 	   NIL);
 
     // C++ destructor is wrapped by the Dispose method
@@ -1574,11 +1584,11 @@ public:
     String *destruct_methodname = NULL;
     String *destruct_methodmodifiers = NULL;
     if (derived) {
-      tm = typemapLookup("csdestruct_derived", typemap_lookup_type, WARN_NONE, attributes);
+      tm = typemapLookup(n, "csdestruct_derived", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:csdestruct_derived:methodname");
       destruct_methodmodifiers = Getattr(attributes, "tmap:csdestruct_derived:methodmodifiers");
     } else {
-      tm = typemapLookup("csdestruct", typemap_lookup_type, WARN_NONE, attributes);
+      tm = typemapLookup(n, "csdestruct", typemap_lookup_type, WARN_NONE, attributes);
       destruct_methodname = Getattr(attributes, "tmap:csdestruct:methodname");
       destruct_methodmodifiers = Getattr(attributes, "tmap:csdestruct:methodmodifiers");
     }
@@ -1595,7 +1605,7 @@ public:
     if (tm) {
       // Finalize method
       if (*Char(destructor_call)) {
-	Printv(proxy_class_def, typemapLookup("csfinalize", typemap_lookup_type, WARN_NONE), NIL);
+	Printv(proxy_class_def, typemapLookup(n, "csfinalize", typemap_lookup_type, WARN_NONE), NIL);
       }
       // Dispose method
       Printv(destruct, tm, NIL);
@@ -1690,7 +1700,7 @@ public:
     Delete(destruct);
 
     // Emit extra user code
-    Printv(proxy_class_def, typemapLookup("cscode", typemap_lookup_type, WARN_NONE),	// extra C# code
+    Printv(proxy_class_def, typemapLookup(n, "cscode", typemap_lookup_type, WARN_NONE),	// extra C# code
 	   "\n", NIL);
 
     // Substitute various strings into the above template
@@ -2355,7 +2365,7 @@ public:
 
       /* Insert the csconstruct typemap, doing the replacement for $directorconnect, as needed */
       Hash *attributes = NewHash();
-      String *construct_tm = Copy(typemapLookup("csconstruct", Getattr(n, "name"),
+      String *construct_tm = Copy(typemapLookup(n, "csconstruct", Getattr(n, "name"),
 						WARN_CSHARP_TYPEMAP_CSCONSTRUCT_UNDEF, attributes));
       if (construct_tm) {
 	if (!feature_director) {
@@ -2767,6 +2777,16 @@ public:
   }
 
   /*----------------------------------------------------------------------
+   * replaceSpecialVariables()
+   *--------------------------------------------------------------------*/
+
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+    (void)method;
+    SwigType *type = Getattr(parm, "type");
+    substituteClassname(type, tm);
+  }
+
+  /*----------------------------------------------------------------------
    * decodeEnumFeature()
    * Decode the possible enum features, which are one of:
    *   %csenum(simple)
@@ -2859,15 +2879,15 @@ public:
   /* -----------------------------------------------------------------------------
    * substituteClassname()
    *
-   * Substitute $csclassname with the proxy class name for classes/structs/unions that SWIG knows about.
-   * Also substitutes enums with enum name.
+   * Substitute the special variable $csclassname with the proxy class name for classes/structs/unions 
+   * that SWIG knows about. Also substitutes enums with enum name.
    * Otherwise use the $descriptor name for the C# class name. Note that the $&csclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
    * Inputs:
    *   pt - parameter type
-   *   tm - cstype typemap
+   *   tm - typemap contents that might contain the special variable to be replaced
    * Outputs:
-   *   tm - cstype typemap with $csclassname substitution
+   *   tm - typemap contents complete with the special variable substitution
    * Return:
    *   substitution_performed - flag indicating if a substitution was performed
    * ----------------------------------------------------------------------------- */
@@ -2972,6 +2992,10 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void emitTypeWrapperClass(String *classname, SwigType *type) {
+    Node *n = NewHash();
+    Setfile(n, input_file);
+    Setline(n, line_number);
+
     String *swigtype = NewString("");
     String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), classname);
     File *f_swigtype = NewFile(filen, "w", SWIG_output_files());
@@ -2989,23 +3013,23 @@ public:
     addOpenNamespace(namespce, f_swigtype);
 
     // Pure C# baseclass and interfaces
-    const String *pure_baseclass = typemapLookup("csbase", type, WARN_NONE);
-    const String *pure_interfaces = typemapLookup("csinterfaces", type, WARN_NONE);
+    const String *pure_baseclass = typemapLookup(n, "csbase", type, WARN_NONE);
+    const String *pure_interfaces = typemapLookup(n, "csinterfaces", type, WARN_NONE);
 
     // Emit the class
-    Printv(swigtype, typemapLookup("csimports", type, WARN_NONE),	// Import statements
+    Printv(swigtype, typemapLookup(n, "csimports", type, WARN_NONE),	// Import statements
 	   "\n", NIL);
 
     // Class attributes
-    const String *csattributes = typemapLookup("csattributes", type, WARN_NONE);
+    const String *csattributes = typemapLookup(n, "csattributes", type, WARN_NONE);
     if (csattributes && *Char(csattributes))
       Printf(swigtype, "%s\n", csattributes);
 
-    Printv(swigtype, typemapLookup("csclassmodifiers", type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
+    Printv(swigtype, typemapLookup(n, "csclassmodifiers", type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $csclassname",	// Class name and base class
 	   (*Char(pure_baseclass) || *Char(pure_interfaces)) ? " : " : "", pure_baseclass, ((*Char(pure_baseclass)) && *Char(pure_interfaces)) ?	// Interfaces
-	   ", " : "", pure_interfaces, " {", typemapLookup("csbody", type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),	// main body of class
-	   typemapLookup("cscode", type, WARN_NONE),	// extra C# code
+	   ", " : "", pure_interfaces, " {", typemapLookup(n, "csbody", type, WARN_CSHARP_TYPEMAP_CSBODY_UNDEF),	// main body of class
+	   typemapLookup(n, "cscode", type, WARN_NONE),	// extra C# code
 	   "}\n", NIL);
 
     Replaceall(swigtype, "$csclassname", classname);
@@ -3019,36 +3043,34 @@ public:
 
     Close(f_swigtype);
     Delete(swigtype);
+    Delete(n);
   }
 
   /* -----------------------------------------------------------------------------
    * typemapLookup()
+   * n - for input only and must contain info for Getfile(n) and Getline(n) to work
+   * tmap_method - typemap method name
+   * type - typemap type to lookup
+   * warning - warning number to issue if no typemaps found
+   * typemap_attributes - the typemap attributes are attached to this node and will 
+   *   also be used for temporary storage if non null
+   * return is never NULL, unlike Swig_typemap_lookup()
    * ----------------------------------------------------------------------------- */
 
-  const String *typemapLookup(const String *op, String *type, int warning, Node *typemap_attributes = NULL) {
-    String *tm = NULL;
-    const String *code = NULL;
-
-    if ((tm = Swig_typemap_search(op, type, NULL, NULL))) {
-      code = Getattr(tm, "code");
-      if (typemap_attributes)
-	Swig_typemap_attach_kwargs(tm, op, typemap_attributes);
-    }
-
-    if (!code) {
-      code = empty_string;
+  const String *typemapLookup(Node *n, const_String_or_char_ptr tmap_method, SwigType *type, int warning, Node *typemap_attributes = 0) {
+    Node *node = !typemap_attributes ? NewHash() : typemap_attributes;
+    Setattr(node, "type", type);
+    Setfile(node, Getfile(n));
+    Setline(node, Getline(n));
+    const String *tm = Swig_typemap_lookup(tmap_method, node, "", 0);
+    if (!tm) {
+      tm = empty_string;
       if (warning != WARN_NONE)
-	Swig_warning(warning, input_file, line_number, "No %s typemap defined for %s\n", op, type);
+	Swig_warning(warning, Getfile(n), Getline(n), "No %s typemap defined for %s\n", tmap_method, SwigType_str(type, 0));
     }
-
-    return code ? code : empty_string;
-  }
-
-  /* -----------------------------------------------------------------------------
-   * addThrows()
-   // TODO: remove
-   * ----------------------------------------------------------------------------- */
-  void addThrows(Node *, const String *, Node *) {
+    if (!typemap_attributes)
+      Delete(node);
+    return tm;
   }
 
   /* -----------------------------------------------------------------------------
@@ -3302,7 +3324,7 @@ public:
       }
 
       /* Create the intermediate class wrapper */
-      Parm *tp = NewParmFromNode(returntype, empty_str, n);
+      Parm *tp = NewParm(returntype, empty_str, n);
 
       tm = Swig_typemap_lookup("imtype", tp, "", 0);
       if (tm) {
@@ -3322,7 +3344,7 @@ public:
 	Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(returntype, 0));
       }
 
-      Parm *retpm = NewParmFromNode(returntype, empty_str, n);
+      Parm *retpm = NewParm(returntype, empty_str, n);
 
       if ((c_ret_type = Swig_typemap_lookup("ctype", retpm, "", 0))) {
 
@@ -3332,7 +3354,8 @@ public:
 	  Delete(jretval_decl);
 	}
       } else {
-	Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(returntype, 0));
+	Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n", 
+	    SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	output_director = false;
       }
 
@@ -3397,10 +3420,6 @@ public:
 
       Printf(arg, "j%s", ln);
 
-      /* Add various typemap's 'throws' clauses */
-      addThrows(n, "tmap:directorin", p);
-      addThrows(n, "tmap:out", p);
-
       /* And add to the upcall args */
       if (gencomma > 0)
 	Printf(jupcall_args, ", ");
@@ -3412,7 +3431,7 @@ public:
 	if (ctypeout)
 	  c_param_type = ctypeout;
 
-	Parm *tp = NewParmFromNode(c_param_type, empty_str, n);
+	Parm *tp = NewParm(c_param_type, empty_str, n);
 	String *desc_tm = NULL;
 
 	/* Add to local variables */
@@ -3475,11 +3494,13 @@ public:
 		Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(pt, 0));
 	      }
 	    } else {
-	      Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number, "No csdirectorin typemap defined for %s\n", SwigType_str(pt, 0));
+	      Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number, "No csdirectorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+		  SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	      output_director = false;
 	    }
 	  } else {
-	    Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(pt, 0));
+	    Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s for use in %s::%s (skipping director method)\n", 
+		SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    output_director = false;
 	  }
 
@@ -3489,11 +3510,13 @@ public:
 	} else {
 	  if (!desc_tm) {
 	    Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number,
-			 "No or improper directorin typemap defined for %s\n", SwigType_str(c_param_type, 0));
+			 "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+			 SwigType_str(c_param_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    p = nextSibling(p);
 	  } else if (!tm) {
 	    Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number,
-			 "No or improper directorin typemap defined for argument %s\n", SwigType_str(pt, 0));
+			 "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n", 
+			 SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    p = nextSibling(p);
 	  }
 
@@ -3502,7 +3525,8 @@ public:
 
 	Delete(tp);
       } else {
-	Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(pt, 0));
+	Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n", 
+	    SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	output_director = false;
 	p = nextSibling(p);
       }
@@ -3524,9 +3548,8 @@ public:
     Printf(declaration, "    virtual %s", target);
     Delete(target);
 
-    // Get any Java exception classes in the throws typemap
+    // Add any exception specifications to the methods in the director class
     ParmList *throw_parm_list = NULL;
-
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
 
@@ -3537,13 +3560,10 @@ public:
 	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
 	if ((tm = Getattr(p, "tmap:throws"))) {
-	  addThrows(n, "tmap:throws", p);
-
 	  if (gencomma++) {
 	    Append(w->def, ", ");
 	    Append(declaration, ", ");
 	  }
-
 	  Printf(w->def, "%s", SwigType_str(Getattr(p, "type"), 0));
 	  Printf(declaration, "%s", SwigType_str(Getattr(p, "type"), 0));
 	}
@@ -3566,7 +3586,7 @@ public:
     String *upcall = NewStringf("%s(%s)", symname, imcall_args);
 
     if (!is_void) {
-      Parm *tp = NewParmFromNode(returntype, empty_str, n);
+      Parm *tp = NewParm(returntype, empty_str, n);
 
       if ((tm = Swig_typemap_lookup("csdirectorout", tp, "", 0))) {
 	substituteClassname(returntype, tm);
@@ -3592,18 +3612,17 @@ public:
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
 	String *result_str = NewString("c_result");
-	Parm *tp = NewParmFromNode(returntype, result_str, n);
+	Parm *tp = NewParm(returntype, result_str, n);
 
 	/* Copy jresult into c_result... */
 	if ((tm = Swig_typemap_lookup("directorout", tp, result_str, w))) {
-	  addThrows(n, "tmap:directorout", tp);
 	  Replaceall(tm, "$input", jresult_str);
 	  Replaceall(tm, "$result", result_str);
 	  Printf(w->code, "%s\n", tm);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-		       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0),
-		       SwigType_namestr(c_classname), SwigType_namestr(name));
+		       "Unable to use return type %s used in %s::%s (skipping director method)\n", 
+		       SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	  output_director = false;
 	}
 
@@ -3814,7 +3833,7 @@ public:
     Node *disconn_attr = NewHash();
     String *disconn_methodname = NULL;
 
-    disconn_tm = typemapLookup("directordisconnect", full_classname, WARN_NONE, disconn_attr);
+    disconn_tm = typemapLookup(n, "directordisconnect", full_classname, WARN_NONE, disconn_attr);
     disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
 
     Printv(w->code, "}\n", NIL);

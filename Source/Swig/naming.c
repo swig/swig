@@ -1611,7 +1611,7 @@ String *Swig_name_decl(Node *n) {
   qname = NewString("");
   if (qualifier && Len(qualifier) > 0)
     Printf(qname, "%s::", qualifier);
-  Printf(qname, "%s", name);
+  Printf(qname, "%s", SwigType_str(name, 0));
 
   decl = NewStringf("%s(%s)%s", qname, ParmList_errorstr(Getattr(n, "parms")), SwigType_isconst(Getattr(n, "decl")) ? " const" : "");
 

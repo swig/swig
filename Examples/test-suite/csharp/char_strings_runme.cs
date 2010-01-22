@@ -120,14 +120,25 @@ public class char_strings_runme {
 
     // char *& tests
     for (i=0; i<count; i++) {
-      String str = char_strings.GetConstCharPointerRef();
+      String str = char_strings.GetCharPointerRef();
       if (str != CPLUSPLUS_MSG)
         throw new Exception("Test char pointer ref get failed, iteration " + i);
     }
 
     for (i=0; i<count; i++) {
-      if (!char_strings.SetConstCharPointerRef(OTHERLAND_MSG + i, i))
+      if (!char_strings.SetCharPointerRef(OTHERLAND_MSG + i, i))
         throw new Exception("Test char pointer ref set failed, iteration " + i);
+    }
+
+    for (i=0; i<count; i++) {
+      String str = char_strings.GetConstCharPointerRef();
+      if (str != CPLUSPLUS_MSG)
+        throw new Exception("Test const char pointer ref get failed, iteration " + i);
+    }
+
+    for (i=0; i<count; i++) {
+      if (!char_strings.SetConstCharPointerRef(OTHERLAND_MSG + i, i))
+        throw new Exception("Test const char pointer ref set failed, iteration " + i);
     }
   }
 }

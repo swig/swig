@@ -667,7 +667,7 @@ in order for this to work.
 </p>
 
 <p>
-<b><tt>char *cdata(void *ptr, int nbytes)</tt></b>
+<b><tt>const char *cdata(void *ptr, size_t nbytes)</tt></b>
 </p>
 
 <div class="indent"><p>
@@ -676,7 +676,7 @@ pointer.
 </p></div>
 
 <p>
-<b><tt>void memmove(void *ptr, char *s)</tt></b>
+<b><tt>void memmove(void *ptr, const char *s)</tt></b>
 </p>
 
 <div class="indent"><p>
@@ -890,7 +890,10 @@ char *foo();
 </div>
 
 <p>
-This will release the result.
+This will release the result if the appropriate target language support is available.
+SWIG provides the appropriate "newfree" typemap for <tt>char *</tt> so that the memory is released,
+however, you may need to provide your own "newfree" typemap for other types.
+See <a href="Customization.html#ownership">Object ownership and %newobject</a> for more details.
 </p>
 
 <H3><a name="Library_nn12"></a>8.3.4 cstring.i</H3>

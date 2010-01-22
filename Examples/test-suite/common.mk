@@ -16,8 +16,8 @@
 #    b) Define rules for %.ctest, %.cpptest, %.multicpptest and %.clean.
 #    c) Define srcdir, top_srcdir and top_builddir (these are the
 #       equivalent to configure's variables of the same name).
-# 3) One off special commandline options can be achieved by adding a
-#    test case to CUSTOM_TEST_CASES and defining rules to run and test.
+# 3) One off special commandline options for a testcase can be added.
+#    See custom tests below.
 #
 # The 'check' target runs the testcases including SWIG invocation,
 # C/C++ compilation, target language compilation (if any) and runtime
@@ -28,12 +28,14 @@
 # The 'clean' target cleans up.
 #
 # Note that the RUNTOOL, COMPILETOOL and SWIGTOOL variables can be used
-# for # invoking tools for the runtime tests and target language 
+# for invoking tools for the runtime tests and target language 
 # compiler (eg javac) respectively. For example, valgrind can be used 
 # for memory checking of the runtime tests using:
-#   make RUNTOOL="valgrind --leak-check-full"
+#   make RUNTOOL="valgrind --leak-check=full"
 # and valgrind can be used when invoking SWIG using:
-#   make SWIGTOOL="valgrind --tool=memcheck"
+#   make SWIGTOOL="valgrind --tool=memcheck --trace-children=yes"
+#    Note: trace-children needed because of preinst-swig shell wrapper
+#    to the swig executable.
 #
 # The variables below can be overridden after including this makefile
 #######################################################################
@@ -64,33 +66,31 @@ INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
 LIBPREFIX  = lib
 ACTION     = check
-INTERFACEDIR = $(if $(wildcard $*.i), ./, ../)
+INTERFACEDIR = ../
 
 #
 # Please keep test cases in alphabetical order.
 # Note that any whitespace after the last entry in each list will break make
 #
 
-# Broken C++ test cases. (Can be run individually using make testcase.cpptest.)
+# Broken C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_BROKEN += \
 	constants \
 	cpp_broken \
 	exception_partial_info \
 	extend_variable \
 	li_std_vector_ptr \
-	namespace_union \
-	nested_struct \
 	overload_complicated \
 	template_default_pointer \
 	template_expr
 
 
-# Broken C test cases. (Can be run individually using make testcase.ctest.)
+# Broken C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_BROKEN += \
 	tag_no_clash_with_variable
 
 
-# C++ test cases. (Can be run individually using make testcase.cpptest.)
+# C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
 	abstract_access \
 	abstract_inherit \
@@ -117,6 +117,7 @@ CPP_TEST_CASES += \
 	arrays_scope \
 	bloody_hell \
 	bools \
+	catches \
 	cast_operator \
 	casts \
 	char_strings \
@@ -188,6 +189,7 @@ CPP_TEST_CASES += \
 	extend_placement \
 	extend_template \
 	extend_template_ns \
+	extern_c \
 	extern_namespace \
 	extern_throws \
 	features \
@@ -220,6 +222,7 @@ CPP_TEST_CASES += \
 	li_typemaps \
 	li_windows \
 	long_long_apply \
+	memberin_extend \
 	member_pointer \
 	member_template \
 	minherit \
@@ -236,9 +239,12 @@ CPP_TEST_CASES += \
 	namespace_template \
 	namespace_typedef_class \
 	namespace_typemap \
+	namespace_union \
 	namespace_virtual_method \
 	naturalvar \
+	nested_class \
 	nested_comment \
+	nested_workaround \
 	newobject1 \
 	null_pointer \
 	operator_overload \
@@ -253,6 +259,7 @@ CPP_TEST_CASES += \
 	overload_template \
 	overload_template_fast \
 	pointer_reference \
+	preproc_constants \
 	primitive_ref \
 	private_assign \
 	protected_rename \
@@ -291,9 +298,11 @@ CPP_TEST_CASES += \
 	smart_pointer_templatevariables \
 	smart_pointer_typedef \
 	special_variables \
+	special_variable_macros \
 	static_array_member \
 	static_const_member \
 	static_const_member_2 \
+	struct_initialization_cpp \
 	struct_value \
 	template \
 	template_arg_replace \
@@ -324,6 +333,8 @@ CPP_TEST_CASES += \
 	template_inherit_abstract \
 	template_int_const \
 	template_methods \
+	template_nested \
+	template_nested_typemaps \
 	template_ns \
 	template_ns2 \
 	template_ns3 \
@@ -333,6 +344,8 @@ CPP_TEST_CASES += \
 	template_ns_inherit \
 	template_ns_scope \
 	template_partial_arg \
+	template_partial_specialization \
+	template_partial_specialization_typedef \
 	template_qualifier \
 	template_qualifier \
 	template_ref_type \
@@ -394,6 +407,7 @@ CPP_TEST_CASES += \
 	virtual_destructor \
 	virtual_poly \
 	voidtest \
+	wallkw \
 	wrapmacro
 
 #
@@ -402,8 +416,10 @@ CPP_TEST_CASES += \
 CPP_STD_TEST_CASES += \
 	director_string \
 	ignore_template_constructor \
+	li_std_combinations \
 	li_std_deque \
 	li_std_except \
+	li_std_map \
         li_std_pair \
 	li_std_string \
 	li_std_vector \
@@ -420,11 +436,12 @@ CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
 endif
 
 
-# C test cases. (Can be run individually using make testcase.ctest.)
+# C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
 	arrays \
 	char_constant \
 	const_const \
+	constant_expr \
 	empty \
 	enums \
 	extern_declaration \
@@ -442,24 +459,28 @@ C_TEST_CASES += \
 	li_cpointer \
 	li_math \
 	long_long \
+	memberin_extend_c \
 	name \
 	nested \
+	nested_structs \
 	newobject2 \
 	overload_extend \
 	overload_extendc \
 	preproc \
+	preproc_constants_c \
 	ret_by_value \
 	simple_array \
 	sizeof_pointer \
 	sneaky1 \
 	struct_rename \
+	struct_initialization \
 	typedef_struct \
 	typemap_subst \
 	union_parameter \
 	unions
 
 
-# Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest.)
+# Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
 	imports \
@@ -468,10 +489,13 @@ MULTI_CPP_TEST_CASES += \
 	template_typedef_import \
 	multi_import
 
+# Custom tests - tests with additional commandline options
+wallkw.cpptest: SWIGOPT += -Wallkw
+
+
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
 			$(C_TEST_CASES:=.ctest) \
 			$(MULTI_CPP_TEST_CASES:=.multicpptest) \
-			$(CUSTOM_TEST_CASES:=.customtest) \
 			$(EXTRA_TEST_CASES)
 
 BROKEN_TEST_CASES = 	$(CPP_TEST_BROKEN:=.cpptest) \
@@ -480,7 +504,6 @@ BROKEN_TEST_CASES = 	$(CPP_TEST_BROKEN:=.cpptest) \
 ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
 			$(C_TEST_CASES:=.clean) \
 			$(MULTI_CPP_TEST_CASES:=.clean) \
-			$(CUSTOM_TEST_CASES:=.clean) \
 			$(CPP_TEST_BROKEN:=.clean) \
 			$(C_TEST_BROKEN:=.clean)
 

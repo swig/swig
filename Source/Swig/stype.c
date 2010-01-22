@@ -525,7 +525,13 @@ String *SwigType_namestr(const SwigType *t) {
   Putc(' ', r);
   Putc('>', r);
   suffix = SwigType_templatesuffix(t);
-  Append(r, suffix);
+  if (Len(suffix) > 0) {
+    String *suffix_namestr = SwigType_namestr(suffix);
+    Append(r, suffix_namestr);
+    Delete(suffix_namestr);
+  } else {
+    Append(r, suffix);
+  }
   Delete(suffix);
   Delete(p);
   return r;
@@ -544,7 +550,10 @@ String *SwigType_str(SwigType *s, const_String_or_char_ptr id) {
   int nelements, i;
 
   if (id) {
-    result = NewString(id);
+    /* stringify the id expanding templates, for example when the id is a fully qualified templated class name */
+    String *id_str = NewString(id); /* unfortunate copy due to current const limitations */
+    result = SwigType_str(id_str, 0);
+    Delete(id_str);
   } else {
     result = NewStringEmpty();
   }

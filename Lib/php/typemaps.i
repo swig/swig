@@ -112,9 +112,7 @@ int_typemap(long long);
 }
 %typemap(in) TYPE *REFERENCE (long long lvalue)
 %{
-  // FIXME won't work for values which don't fit in a long...
-  convert_to_long_ex($input);
-  lvalue = (long long) (*$input)->value.lval;
+  CONVERT_LONG_LONG_IN(lvalue, long long, $input)
   $1 = &lvalue;
 %}
 %typemap(argout) long long *REFERENCE
@@ -126,6 +124,17 @@ int_typemap(long long);
     char temp[256];
     sprintf(temp, "%lld", lvalue$argnum);
     ZVAL_STRING((*$arg), temp, 1);
+  }
+%}
+%typemap(argout) long long &OUTPUT
+%{
+  if ((long long)LONG_MIN <= *arg$argnum && *arg$argnum <= (long long)LONG_MAX) {
+    ($result)->value.lval = (long)(*arg$argnum);
+    ($result)->type = IS_LONG;
+  } else {
+    char temp[256];
+    sprintf(temp, "%lld", *arg$argnum);
+    ZVAL_STRING($result, temp, 1);
   }
 %}
 int_typemap(unsigned long long);
@@ -144,9 +153,7 @@ int_typemap(unsigned long long);
 }
 %typemap(in) TYPE *REFERENCE (unsigned long long lvalue)
 %{
-  // FIXME won't work for values which don't fit in a long...
-  convert_to_long_ex($input);
-  lvalue = (unsigned long long) (*$input)->value.lval;
+  CONVERT_UNSIGNED_LONG_LONG_IN(lvalue, unsigned long long, $input)
   $1 = &lvalue;
 %}
 %typemap(argout) unsigned long long *REFERENCE
@@ -158,6 +165,17 @@ int_typemap(unsigned long long);
     char temp[256];
     sprintf(temp, "%llu", lvalue$argnum);
     ZVAL_STRING((*$arg), temp, 1);
+  }
+%}
+%typemap(argout) unsigned long long &OUTPUT
+%{
+  if (*arg$argnum <= (unsigned long long)LONG_MAX) {
+    ($result)->value.lval = (long)(*arg$argnum);
+    ($result)->type = IS_LONG;
+  } else {
+    char temp[256];
+    sprintf(temp, "%llu", *arg$argnum);
+    ZVAL_STRING($result, temp, 1);
   }
 %}
 
@@ -181,11 +199,13 @@ int_typemap(unsigned long long);
 %typemap(in) short &INOUT = short *INPUT;
 %typemap(in) long &INOUT = long *INPUT;
 %typemap(in) long long &INOUT = long long *INPUT;
+%typemap(in) long long &INPUT = long long *INPUT;
 %typemap(in) unsigned &INOUT = unsigned *INPUT;
 %typemap(in) unsigned short &INOUT = unsigned short *INPUT;
 %typemap(in) unsigned long &INOUT = unsigned long *INPUT;
 %typemap(in) unsigned char &INOUT = unsigned char *INPUT;
 %typemap(in) unsigned long long &INOUT = unsigned long long *INPUT;
+%typemap(in) unsigned long long &INPUT = unsigned long long *INPUT;
 
 %typemap(argout) float *INOUT = float *OUTPUT;
 %typemap(argout) double *INOUT= double *OUTPUT;

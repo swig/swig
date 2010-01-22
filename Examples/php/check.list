@@ -1,16 +1,18 @@
 # see top-level Makefile.in
 # (see also top-level configure.in kludge)
+callback
 class
 constants
 cpointer
 disown
 enum
+extend
 funcptr
 overloading
 pointer
 pragmas
-reference
 proxy
+reference
 simple
 sync
 value

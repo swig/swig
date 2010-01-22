@@ -1,20 +1,29 @@
 %module php_namewarn_rename
 
+#ifdef SWIGPHP
+%warnfilter(SWIGWARN_PARSE_KEYWORD) Empty();
+%warnfilter(SWIGWARN_PARSE_KEYWORD) stdClass;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) directory;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) Hello::empty();
+#endif
 
 %inline %{
 
-  void Empty() {};
-  
+  int Exception() { return 13; }
 
-  class stdClass 
+  void Empty() {}
+
+  class stdClass
   {
   };
 
-  struct Hello 
+  class directory
   {
-    void empty() {}    
   };
-  
-  
+
+  struct Hello
+  {
+    void empty() {}
+  };
 
 %}

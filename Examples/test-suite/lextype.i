@@ -30,13 +30,13 @@ code is not functioning properly it will fail to compile.
 %typemap(in) Animal ()
 {
     void *space_needed = malloc(HEIGHT_$1_lextype * WIDTH_$1_lextype);
-    $1 = space_needed;
+    $1 = ($1_ltype)space_needed;
 }
 
 %typemap(in) Animal[2] ()
 {
     void *space_needed = malloc(2 * HEIGHT_$1_lextype * WIDTH_$1_lextype);
-    $1 = space_needed;
+    $1 = ($1_ltype)space_needed;
 }
 
 %inline %{

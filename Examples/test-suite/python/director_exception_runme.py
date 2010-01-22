@@ -43,7 +43,7 @@ b = launder(a)
 try:
 	b.pong()
 except TypeError, e:
-	if str(e) == "Swig director type mismatch in output value of type 'std::string'":
+	if str(e) == "SWIG director type mismatch in output value of type 'std::string'":
 		ok = 1
 	else:
 		print "Unexpected error message: %s" % str(e)

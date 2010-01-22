@@ -684,8 +684,8 @@ void foo(Bar &amp;b);
 If declarations such as these appear, you will get a warning message like this:
 </p>
 <div class="shell"><pre>
-example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int)
-at example.i:11.
+example.i:12: Warning 509: Overloaded method spam(short) effectively ignored,
+example.i:11: Warning 509: as it is shadowed by spam(int).
 </pre></div>
 <p>
  To fix this, you either need to ignore or rename one of the methods. For example:

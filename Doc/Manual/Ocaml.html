@@ -634,13 +634,13 @@ length.  Instead, use multiple returns, as in the argout_ref example.
 #include "example.h"
 %}
 
-%include stl.i
+%include &lt;stl.i&gt;
 
 namespace std {
         %template(StringVector) std::vector &lt; string &gt;;
 };
 
-%include example.h
+%include "example.h"
 </pre></td></tr>
 <tr><td><font size="-1"><i>This example is in Examples/ocaml/stl
 </i></font></td></tr>

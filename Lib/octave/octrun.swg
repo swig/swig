@@ -1,4 +1,18 @@
 
+#include <octave/version.h>
+#ifndef OCTAVE_API_VERSION_NUMBER
+
+  // Hack to distinguish between Octave 3.2 and earlier versions before OCTAVE_API_VERSION_NUMBER existed
+  #define ComplexLU __ignore
+  #include <octave/CmplxLU.h>
+  #undef ComplexLU
+  #ifdef octave_Complex_LU_h
+  # define OCTAVE_API_VERSION_NUMBER 36
+  #else
+  # define OCTAVE_API_VERSION_NUMBER 37
+  #endif
+
+#endif
 
 SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args, int varargs) {
   if (num_args > max_args && !varargs)
@@ -105,27 +119,35 @@ namespace Swig {
 
   typedef std::map < void *, Director * > rtdir_map;
 
-  SWIGINTERN rtdir_map &get_rtdir_map() {
+  SWIGINTERN rtdir_map* get_rtdir_map() {
     static swig_module_info *module = 0;
     if (!module)
       module = SWIG_GetModule(0);
-    assert(module);
+    if (!module)
+      return 0;
     if (!module->clientdata)
       module->clientdata = new rtdir_map;
-    return *(rtdir_map *) module->clientdata;
+    return (rtdir_map *) module->clientdata;
   }
 
   SWIGINTERNINLINE void set_rtdir(void *vptr, Director *d) {
-    get_rtdir_map()[vptr] = d;
+    rtdir_map* rm = get_rtdir_map();
+    if (rm)
+      (*rm)[vptr] = d;
   }
 
   SWIGINTERNINLINE void erase_rtdir(void *vptr) {
-    get_rtdir_map().erase(vptr);
+    rtdir_map* rm = get_rtdir_map();
+    if (rm)
+      (*rm).erase(vptr);
   }
 
   SWIGINTERNINLINE Director *get_rtdir(void *vptr) {
-    rtdir_map::const_iterator pos = get_rtdir_map().find(vptr);
-    Director *rtdir = (pos != get_rtdir_map().end())? pos->second : 0;
+    rtdir_map* rm = get_rtdir_map();
+    if (!rm)
+      return 0;
+    rtdir_map::const_iterator pos = rm->find(vptr);
+    Director *rtdir = (pos != rm->end())? pos->second : 0;
     return rtdir;
   }
 }
@@ -439,9 +461,15 @@ namespace Swig {
 	  install_builtin_function(it->second.first->method, it->first,
 				   it->second.first->doc?it->second.first->doc:std::string());
 	else if (it->second.second.is_defined()) {
+#if OCTAVE_API_VERSION_NUMBER<37
 	  link_to_global_variable(curr_sym_tab->lookup(it->first, true));
+#else 
+	  symbol_table::varref(it->first);
+	  symbol_table::mark_global(it->first);
+#endif
 	  set_global_value(it->first, it->second.second);
 	  
+#if OCTAVE_API_VERSION_NUMBER<37
 	  octave_swig_type *ost = Swig::swig_value_deref(it->second.second);
 	  if (ost) {
 	    const char* h = ost->help_text();
@@ -450,6 +478,7 @@ namespace Swig {
 	      sr->document(h);
 	    }
 	  }
+#endif
 	}
       }
     }
@@ -1352,6 +1381,11 @@ SWIGRUNTIME swig_module_info *SWIG_Octave_GetModule(void *clientdata) {
 SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *pointer) {
   octave_value ov = new octave_swig_packed(0, &pointer, sizeof(swig_module_info *));
   const char *module_var = "__SWIG_MODULE__" SWIG_TYPE_TABLE_NAME SWIG_RUNTIME_VERSION;
+#if OCTAVE_API_VERSION_NUMBER<37
   link_to_global_variable(curr_sym_tab->lookup(module_var, true));
+#else
+  symbol_table::varref(module_var);
+  symbol_table::mark_global(module_var);
+#endif
   set_global_value(module_var, ov);
 }

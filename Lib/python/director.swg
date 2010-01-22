@@ -237,7 +237,7 @@ namespace Swig {
       try {
         throw;
       } catch (DirectorException& e) {
-        std::cerr << "Swig Director exception caught:" << std::endl
+        std::cerr << "SWIG Director exception caught:" << std::endl
                   << e.getMessage() << std::endl;
       } catch (std::exception& e) {
         std::cerr << "std::exception caught: "<< e.what() << std::endl;
@@ -276,12 +276,12 @@ namespace Swig {
   class DirectorTypeMismatchException : public Swig::DirectorException {
   public:
     DirectorTypeMismatchException(PyObject *error, const char* msg="") 
-      : Swig::DirectorException(error, "Swig director type mismatch", msg)
+      : Swig::DirectorException(error, "SWIG director type mismatch", msg)
     {
     }
 
     DirectorTypeMismatchException(const char* msg="") 
-      : Swig::DirectorException(PyExc_TypeError, "Swig director type mismatch", msg)
+      : Swig::DirectorException(PyExc_TypeError, "SWIG director type mismatch", msg)
     {
     }
 
@@ -300,7 +300,7 @@ namespace Swig {
   class DirectorMethodException : public Swig::DirectorException {
   public:
     DirectorMethodException(const char* msg = "") 
-      : DirectorException(PyExc_RuntimeError, "Swig director method error.", msg)
+      : DirectorException(PyExc_RuntimeError, "SWIG director method error.", msg)
     {
     }    
 
@@ -315,7 +315,7 @@ namespace Swig {
   {
   public:
     DirectorPureVirtualException(const char* msg = "") 
-      : DirectorException(PyExc_RuntimeError, "Swig director pure virtual method called", msg)
+      : DirectorException(PyExc_RuntimeError, "SWIG director pure virtual method called", msg)
     { 
     }
 

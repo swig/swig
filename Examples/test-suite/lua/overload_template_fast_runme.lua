@@ -2,12 +2,12 @@ require("import")	-- the import fn
 import("overload_template_fast")	-- import code
 for k,v in pairs(overload_template_fast) do _G[k]=v end -- move to global
 
--- lua has only one numeric type, so max(int,int) and max(double,double) are the same
+-- lua has only one numeric type, so maximum(int,int) and maximum(double,double) are the same
 -- whichever one was wrapper first will be used (which is int)
 
 f = foo()
 
-a = max(3,4)
+a = maximum(3,4)
 
 -- mix 1
 assert(mix1("hi") == 101)

@@ -13,7 +13,8 @@ char cvsroot_octave_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 Octave Options (available with -octave)\n\
-     (none yet)\n\n";
+     [no additional options]\n\
+     \n";
 
 
 class OCTAVE:public Language {
@@ -955,7 +956,7 @@ public:
       String *name = NewString("self");
       String *type = NewString("void");
       SwigType_add_pointer(type);
-      self = NewParm(type, name);
+      self = NewParm(type, name, n);
       Delete(type);
       Delete(name);
       Setattr(self, "lname", "self_obj");
@@ -1050,7 +1051,7 @@ public:
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("void");
     SwigType_add_pointer(type);
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
 

@@ -659,7 +659,6 @@ public:
     num_saved = 0;
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	SwigType *t = Getattr(p, "type");
 	Replaceall(tm, "$source", Getattr(p, "lname"));
 	Replaceall(tm, "$target", "ST(argvi)");
 	Replaceall(tm, "$result", "ST(argvi)");
@@ -694,7 +693,6 @@ public:
     String *actioncode = emit_action(n);
 
     if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-      SwigType *t = Getattr(n, "type");
       Replaceall(tm, "$source", "result");
       Replaceall(tm, "$target", "ST(argvi)");
       Replaceall(tm, "$result", "ST(argvi)");
@@ -1462,7 +1460,7 @@ public:
     if (blessed) {
       String *type = NewString("SV");
       SwigType_add_pointer(type);
-      Parm *p = NewParm(type, "proto");
+      Parm *p = NewParm(type, "proto", n);
       Delete(type);
       Setattr(n, "perl5:implicits", p);
       Delete(p);
@@ -1490,7 +1488,7 @@ public:
       /* proto is probably only appropriate if directors are enabled */
       String *type = NewString("SV");
       SwigType_add_pointer(type);
-      Parm *p = NewParm(type, "proto");
+      Parm *p = NewParm(type, "proto", n);
       Delete(type);
       Setattr(n, "perl5:implicits", p);
       Delete(p);

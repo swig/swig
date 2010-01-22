@@ -728,7 +728,7 @@ public:
       Printf(f_shadow, tab8 tab8 "_mod = imp.load_module('%s', fp, pathname, description)\n", module);
       Printv(f_shadow, tab4 tab8, "finally:\n", NULL);
       Printv(f_shadow, tab8 tab8, "fp.close()\n", NULL);
-      Printv(f_shadow, tab8 tab8, "return _mod\n", NULL);
+      Printv(f_shadow, tab4 tab8, "return _mod\n", NULL);
       Printf(f_shadow, tab4 "%s = swig_import_helper()\n", module);
       Printv(f_shadow, tab4, "del swig_import_helper\n", NULL);
       Printv(f_shadow, "else:\n", NULL);
@@ -1913,7 +1913,7 @@ public:
 	Printv(f->def, "SWIGINTERN PyObject *", wname, "__varargs__", "(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *varargs) {", NIL);
       }
       if (allow_kwargs) {
-	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number, "Can't use keyword arguments with overloaded functions.\n");
+	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number, "Can't use keyword arguments with overloaded functions (%s).\n", Swig_name_decl(n));
 	allow_kwargs = 0;
       }
     } else {
@@ -2625,7 +2625,7 @@ public:
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("PyObject");
     SwigType_add_pointer(type);
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
 
@@ -2984,7 +2984,7 @@ public:
 	Delete(realct);
       }
       if (!have_constructor) {
-	Printv(f_shadow_file, tab4, "def __init__(self, *args, **kwargs): raise AttributeError(\"No constructor defined\")\n", NIL);
+	Printv(f_shadow_file, tab4, "def __init__(self, *args, **kwargs): raise AttributeError(\"", "No constructor defined", (Getattr(n, "abstract") ? " - class is abstract" : ""), "\")\n", NIL);
       } else if (fastinit) {
 
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
@@ -3205,7 +3205,7 @@ public:
       String *name = NewString("self");
       String *type = NewString("PyObject");
       SwigType_add_pointer(type);
-      self = NewParm(type, name);
+      self = NewParm(type, name, n);
       Delete(type);
       Delete(name);
       Setattr(self, "lname", "O");

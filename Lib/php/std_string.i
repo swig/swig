@@ -35,12 +35,21 @@ namespace std {
         $1.assign(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
     %}
 
+    %typemap(directorout) string %{
+        convert_to_string_ex($input);
+        $result.assign(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
+    %}
+
     %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) const string& %{
       $1 = ( Z_TYPE_PP($input) == IS_STRING ) ? 1 : 0;
     %}
 
     %typemap(out) string %{
         ZVAL_STRINGL($result, const_cast<char*>($1.data()), $1.size(), 1);
+    %}
+
+    %typemap(directorin) string %{
+        ZVAL_STRINGL($input, const_cast<char*>($1_name.data()), $1_name.size(), 1);
     %}
 
     %typemap(out) const string & %{
@@ -61,6 +70,14 @@ namespace std {
         convert_to_string_ex($input);
         temp.assign(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
         $1 = &temp;
+    %}
+
+    %typemap(directorout) string & (std::string *temp) %{
+        convert_to_string_ex($input);
+        temp = new std::string;
+        temp->assign(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
+        swig_acquire_ownership(temp);
+        $result = temp;
     %}
 
     %typemap(argout) string & %{
