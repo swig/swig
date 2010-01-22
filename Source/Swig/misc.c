@@ -893,7 +893,11 @@ String *Swig_scopename_suffix(const String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_scopename_check()
  *
- * Checks to see if a name is qualified with a scope name
+ * Checks to see if a name is qualified with a scope name, examples:
+ *   foo            -> 0
+ *   ::foo          -> 1
+ *   foo::bar       -> 1
+ *   foo< ::bar >   -> 0
  * ----------------------------------------------------------------------------- */
 
 int Swig_scopename_check(const String *s) {

@@ -198,6 +198,7 @@ CPP_TEST_CASES += \
 	fvirtual \
 	global_namespace \
 	global_ns_arg \
+	global_scope_types \
 	global_vars \
 	grouping \
 	ignore_parameter \
@@ -381,6 +382,7 @@ CPP_TEST_CASES += \
 	typedef_scope \
 	typedef_sizet \
 	typedef_struct \
+	typemap_global_scope \
 	typemap_namespace \
 	typemap_ns_using \
 	typemap_numinputs \

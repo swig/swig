@@ -840,17 +840,14 @@ SwigType *SwigType_typedef_resolve_all(SwigType *t) {
  *
  * Given a type declaration, this function tries to fully qualify it according to
  * typedef scope rules.
- * Inconsistency to be fixed: ::Foo returns ::Foo, whereas ::Foo * returns Foo *
+ * If the unary scope operator (::) is used as a prefix to the type to denote global
+ * scope, it is left in place.
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_typedef_qualified(SwigType *t) {
   List *elements;
   String *result;
   int i, len;
-
-  if (strncmp(Char(t), "::", 2) == 0) {
-    return Copy(t);
-  }
 
   if (!typedef_qualified_cache)
     typedef_qualified_cache = NewHash();
@@ -998,10 +995,6 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 	Delete(tprefix);
 	Delete(qprefix);
 	Delete(parms);
-      }
-      if (strncmp(Char(e), "::", 2) == 0) {
-	Delitem(e, 0);
-	Delitem(e, 0);
       }
       Append(result, e);
       Delete(ty);

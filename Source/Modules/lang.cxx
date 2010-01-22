@@ -782,7 +782,7 @@ int Language::typemapcopyDirective(Node *n) {
       Swig_error(input_file, line_number, "Can't copy typemap. Number of types differ.\n");
     } else {
       if (Swig_typemap_copy(method, pattern, npattern) < 0) {
-	Swig_error(input_file, line_number, "Can't copy typemap.\n");
+	Swig_error(input_file, line_number, "Can't copy typemap (%s) %s = %s\n", method, ParmList_str(pattern), ParmList_str(npattern));
       }
     }
     items = nextSibling(items);

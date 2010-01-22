@@ -62,47 +62,53 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 static Hash *typemaps[MAX_SCOPE];
 static int tm_scope = 0;
 
-static Hash *get_typemap(int tm_scope, SwigType *type) {
+static Hash *get_typemap(int tm_scope, const SwigType *type) {
   Hash *tm = 0;
   SwigType *dtype = 0;
+  SwigType *hashtype;
+
   if (SwigType_istemplate(type)) {
     String *ty = Swig_symbol_template_deftype(type, 0);
     dtype = Swig_symbol_type_qualify(ty, 0);
-    /* Printf(stderr,"gettm %s %s\n", type, dtype); */
     type = dtype;
     Delete(ty);
   }
-  tm = Getattr(typemaps[tm_scope], type);
 
+  /* remove unary scope operator (::) prefix indicating global scope for looking up in the hashmap */
+  hashtype = SwigType_remove_global_scope_prefix(type);
+  tm = Getattr(typemaps[tm_scope], hashtype);
 
   if (dtype) {
     if (!tm) {
-      String *t_name = SwigType_templateprefix(type);
-      if (!Equal(t_name, type)) {
+      String *t_name = SwigType_templateprefix(hashtype);
+      if (!Equal(t_name, hashtype)) {
 	tm = Getattr(typemaps[tm_scope], t_name);
       }
       Delete(t_name);
     }
     Delete(dtype);
   }
+  Delete(hashtype);
 
   return tm;
 }
 
-static void set_typemap(int tm_scope, SwigType *type, Hash *tm) {
-  SwigType *dtype = 0;
+static void set_typemap(int tm_scope, const SwigType *type, Hash *tm) {
+  SwigType *hashtype = 0;
   if (SwigType_istemplate(type)) {
     String *ty = Swig_symbol_template_deftype(type, 0);
-    dtype = Swig_symbol_type_qualify(ty, 0);
-    /* Printf(stderr,"settm %s %s\n", type, dtype); */
-    type = dtype;
+    String *tyq = Swig_symbol_type_qualify(ty, 0);
+    hashtype = SwigType_remove_global_scope_prefix(tyq);
+    Delete(tyq);
     Delete(ty);
   } else {
-    dtype = Copy(type);
-    type = dtype;
+    hashtype = SwigType_remove_global_scope_prefix(type);
   }
-  Setattr(typemaps[tm_scope], type, tm);
-  Delete(dtype);
+
+  /* note that the unary scope operator (::) prefix indicating global scope has been removed for storing in the hashmap */
+  Setattr(typemaps[tm_scope], hashtype, tm);
+
+  Delete(hashtype);
 }
 
 
