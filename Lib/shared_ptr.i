@@ -1,3 +1,7 @@
+// The main implementation detail in using this smart pointer of a type is to customise the code generated
+// to use a pointer to the smart pointer of the type, rather than the usual pointer to the underlying type.
+// So for some type T, shared_ptr<T> * is used rather than T *.
+
 // shared_ptr namespaces could be boost or std or std::tr1
 // For example for std::tr1, use:
 // #define SWIG_SHARED_PTR_NAMESPACE std
