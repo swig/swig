@@ -386,6 +386,7 @@ CPP_TEST_CASES += \
 	typemap_namespace \
 	typemap_ns_using \
 	typemap_numinputs \
+	typemap_template \
 	typemap_out_optimal \
 	typemap_variables \
 	typemap_various \

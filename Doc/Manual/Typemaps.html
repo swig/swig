@@ -1026,6 +1026,11 @@ checks are made:
 </ul>
 
 <p>
+If <tt>TYPE</tt> is a C++ template, the matching rules above are repeated with the template parameterization removed.
+For example if <tt>TYPE</tt> is <tt>X&lt; double &gt; </tt>, then repeat with the type simply as <tt>X</tt>.
+</p>
+
+<p>
 If <tt>TYPE</tt> is an array.  The following transformation is made:
 </p>
 

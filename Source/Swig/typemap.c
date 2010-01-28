@@ -78,16 +78,7 @@ static Hash *get_typemap(int tm_scope, const SwigType *type) {
   hashtype = SwigType_remove_global_scope_prefix(type);
   tm = Getattr(typemaps[tm_scope], hashtype);
 
-  if (dtype) {
-    if (!tm) {
-      String *t_name = SwigType_templateprefix(hashtype);
-      if (!Equal(t_name, hashtype)) {
-	tm = Getattr(typemaps[tm_scope], t_name);
-      }
-      Delete(t_name);
-    }
-    Delete(dtype);
-  }
+  Delete(dtype);
   Delete(hashtype);
 
   return tm;
@@ -105,7 +96,7 @@ static void set_typemap(int tm_scope, const SwigType *type, Hash *tm) {
     hashtype = SwigType_remove_global_scope_prefix(type);
   }
 
-  /* note that the unary scope operator (::) prefix indicating global scope has been removed for storing in the hashmap */
+  /* note that the unary scope operator (::) prefix indicating global scope has been removed from the type */
   Setattr(typemaps[tm_scope], hashtype, tm);
 
   Delete(hashtype);
@@ -653,6 +644,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   SwigType *noarrays = 0;
   SwigType *primitive = 0;
   SwigType *ctype = 0;
+  SwigType *template_prefix = 0;
   int ts;
   int isarray;
   const String *cname = 0;
@@ -710,6 +702,48 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	if (result)
 	  backup = result;
       }
+
+      /* look for the type reduced to just the template prefix */
+      Delete(template_prefix);
+      template_prefix = SwigType_templateprefix(ctype);
+      tm = get_typemap(ts, template_prefix);
+      if (template_prefix) {
+	if (debug_display && cqualifiedname)
+	  Printf(stdout, "  Looking for: %s\n", SwigType_str(template_prefix, cqualifiedname));
+	if (tm && cqualifiedname) {
+	  tm1 = Getattr(tm, cqualifiedname);
+	  if (tm1) {
+	    result = Getattr(tm1, tm_method);	/* See if there is a type - qualified name match */
+	    if (result && Getattr(result, "code"))
+	      goto ret_result;
+	    if (result)
+	      backup = result;
+	  }
+	}
+	if (debug_display && cname)
+	  Printf(stdout, "  Looking for: %s\n", SwigType_str(template_prefix, cname));
+	if (tm && cname) {
+	  tm1 = Getattr(tm, cname);
+	  if (tm1) {
+	    result = Getattr(tm1, tm_method);	/* See if there is a type - name match */
+	    if (result && Getattr(result, "code"))
+	      goto ret_result;
+	    if (result)
+	      backup = result;
+	  }
+	}
+	if (debug_display)
+	  Printf(stdout, "  Looking for: %s\n", SwigType_str(template_prefix, 0));
+	if (tm) {
+	  result = Getattr(tm, tm_method);	/* See if there is simply a type match */
+	  if (result && Getattr(result, "code"))
+	    goto ret_result;
+	  if (result)
+	    backup = result;
+	}
+      }
+
+      /* look for [ANY] arrays */
       isarray = SwigType_isarray(ctype);
       if (isarray) {
 	/* If working with arrays, strip away all of the dimensions and replace with "ANY".
@@ -828,6 +862,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   result = backup;
 
 ret_result:
+  Delete(template_prefix);
   Delete(noarrays);
   Delete(primitive);
   if ((unstripped) && (unstripped != type))
