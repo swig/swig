@@ -998,7 +998,8 @@ within a particular namespace.  In this example, this is done using the class de
 
 
 <p>
-The section describes the pattern matching rules by which C datatypes are associated with typemaps.
+The section describes the pattern matching rules by which C/C++ datatypes are associated with typemaps.
+The matching rules can be observed in practice by using the debugging options also described.
 </p>
 
 <H3><a name="Typemaps_nn17"></a>10.3.1 Basic matching rules</H3>
@@ -1013,21 +1014,17 @@ is used.
 <ul>
 <li>Typemaps that exactly match <tt>TYPE</tt> and <tt>NAME</tt>.
 <li>Typemaps that exactly match <tt>TYPE</tt> only.
+<li>If <tt>TYPE</tt> is a C++ template of type <tt>T&lt; TPARMS &gt;</tt>, where <tt>TPARMS</tt> are the template parameters,
+    the type is stripped of the template parameters and the following checks are then made:
+  <ul>
+    <li>Typemaps that exactly match <tt>T</tt> and <tt>NAME</tt>.
+    <li>Typemaps that exactly match <tt>T</tt> only.
+  </ul>
 </ul>
 
 <p>
-If <tt>TYPE</tt> includes qualifiers (const, volatile, etc.), they are stripped and the following
-checks are made:
-</p>
-
-<ul>
-<li>Typemaps that match the stripped <tt>TYPE</tt> and <tt>NAME</tt>.
-<Li>Typemaps that match the stripped <tt>TYPE</tt> only.
-</ul>
-
-<p>
-If <tt>TYPE</tt> is a C++ template, the matching rules above are repeated with the template parameterization removed.
-For example if <tt>TYPE</tt> is <tt>X&lt; double &gt; </tt>, then repeat with the type simply as <tt>X</tt>.
+If <tt>TYPE</tt> includes qualifiers (const, volatile, etc.), they are stripped to form a new stripped type 
+and the matching rules above are repeated on the stripped type.
 </p>
 
 <p>
