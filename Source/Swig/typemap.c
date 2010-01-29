@@ -705,9 +705,9 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 
       /* look for the type reduced to just the template prefix */
       Delete(template_prefix);
-      template_prefix = SwigType_templateprefix(ctype);
-      tm = get_typemap(ts, template_prefix);
+      template_prefix = SwigType_istemplate_templateprefix(ctype);
       if (template_prefix) {
+	tm = get_typemap(ts, template_prefix);
 	if (debug_display && cqualifiedname)
 	  Printf(stdout, "  Looking for: %s\n", SwigType_str(template_prefix, cqualifiedname));
 	if (tm && cqualifiedname) {
