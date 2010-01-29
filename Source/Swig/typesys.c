@@ -1161,9 +1161,9 @@ int SwigType_isclass(SwigType *t) {
       isclass = 1;
     }
     /* Hmmm. Not a class.  If a template, it might be uninstantiated */
-    if (!isclass && SwigType_istemplate(qtys)) {
-      String *tp = SwigType_templateprefix(qtys);
-      if (Strcmp(tp, t) != 0) {
+    if (!isclass) {
+      String *tp = SwigType_istemplate_templateprefix(qtys);
+      if (tp && Strcmp(tp, t) != 0) {
 	isclass = SwigType_isclass(tp);
       }
       Delete(tp);

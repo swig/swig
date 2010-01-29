@@ -374,9 +374,12 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
     // Swig_print_node(n);
   }
 
-  if (SwigType_istemplate(name)) {
-    String *temp = strip_namespaces(SwigType_templateprefix(name));
+  String *tname = SwigType_istemplate_templateprefix(name);
+  if (tname) {
+    String *temp = strip_namespaces(tname);
     name = NewStringf("%s%s%s", temp, SwigType_templateargs(name), SwigType_templatesuffix(name));
+    Delete(temp);
+    Delete(tname);
   }
 
   val = lookup_defined_foreign_type(k);
@@ -1085,11 +1088,12 @@ void emit_stub_class(Node *n) {
   if (Getattr(n, "allegrocl:synonym:already-been-stubbed"))
     return;
 
-  if (SwigType_istemplate(name)) {
-    String *temp = strip_namespaces(SwigType_templateprefix(name));
+  String *tname = SwigType_istemplate_templateprefix(name);
+  if (tname) {
+    String *temp = strip_namespaces(tname);
     name = NewStringf("%s%s%s", temp, SwigType_templateargs(name), SwigType_templatesuffix(name));
-
     Delete(temp);
+    Delete(tname);
   } else {
     name = strip_namespaces(name);
   }
@@ -1276,11 +1280,12 @@ void emit_class(Node *n) {
   String *ns_list = listify_namespace(Getattr(n, "allegrocl:namespace"));
   String *name = Getattr(n, is_tempInst ? "real-name" : "name");
 
-  if (SwigType_istemplate(name)) {
-    String *temp = strip_namespaces(SwigType_templateprefix(name));
+  String *tname = SwigType_istemplate_templateprefix(name);
+  if (tname) {
+    String *temp = strip_namespaces(tname);
     name = NewStringf("%s%s%s", temp, SwigType_templateargs(name), SwigType_templatesuffix(name));
-
     Delete(temp);
+    Delete(tname);
   } else {
     name = strip_namespaces(name);
   }
@@ -1335,10 +1340,12 @@ void emit_typedef(Node *n) {
 
   if (in_class) {
     String *class_name = Getattr(in_class, "name");
-    if (SwigType_istemplate(class_name)) {
-      String *temp = strip_namespaces(SwigType_templateprefix(class_name));
+    String *tname = SwigType_istemplate_templateprefix(class_name);
+    if (tname) {
+      String *temp = strip_namespaces(tname);
       class_name = NewStringf("%s%s%s", temp, SwigType_templateargs(class_name), SwigType_templatesuffix(class_name));
       Delete(temp);
+      Delete(tname);
     }
 
     name = NewStringf("%s__%s", class_name, sym_name);

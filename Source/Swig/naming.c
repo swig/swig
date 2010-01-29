@@ -474,25 +474,12 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
 	Delete(cls);
       }
       /* A template-based class lookup, check name first */
-      if (!rn && SwigType_istemplate(name)) {
-	String *t_name = SwigType_templateprefix(name);
-	if (!Equal(t_name, name)) {
+      if (!rn) {
+	String *t_name = SwigType_istemplate_templateprefix(name);
+	if (t_name)
 	  rn = Swig_name_object_get(namehash, prefix, t_name, decl);
-	}
 	Delete(t_name);
       }
-      /* A template-based class lookup */
-      /*
-      if (!rn && SwigType_istemplate(prefix)) {
-	String *t_prefix = SwigType_templateprefix(prefix);
-	if (Strcmp(t_prefix, prefix) != 0) {
-	  String *t_name = SwigType_templateprefix(name);
-	  rn = Swig_name_object_get(namehash, t_prefix, t_name, decl);
-	  Delete(t_name);
-	}
-	Delete(t_prefix);
-      }
-      */
     }
     /* A wildcard-based class lookup */
     if (!rn) {
@@ -663,10 +650,9 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
   if (name) {
     String *tname = NewStringEmpty();
     /* add features for 'root' template */
-    if (SwigType_istemplate(name)) {
-      String *dname = SwigType_templateprefix(name);
+    String *dname = SwigType_istemplate_templateprefix(name);
+    if (dname) {
       features_get(features, dname, decl, ncdecl, node);
-      Delete(dname);
     }
     /* Catch-all */
     features_get(features, name, decl, ncdecl, node);
@@ -684,16 +670,16 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
       /* A specific class lookup */
       if (Len(prefix)) {
 	/* A template-based class lookup */
-	if (SwigType_istemplate(prefix)) {
-	  String *tprefix = SwigType_templateprefix(prefix);
+	String *tprefix = SwigType_istemplate_templateprefix(prefix);
+	if (tprefix) {
 	  Clear(tname);
 	  Printf(tname, "%s::%s", tprefix, name);
 	  features_get(features, tname, decl, ncdecl, node);
-	  Delete(tprefix);
 	}
 	Clear(tname);
 	Printf(tname, "%s::%s", prefix, name);
 	features_get(features, tname, decl, ncdecl, node);
+	Delete(tprefix);
       }
     } else {
       /* Lookup in the global namespace only */
@@ -702,6 +688,7 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
       features_get(features, tname, decl, ncdecl, node);
     }
     Delete(tname);
+    Delete(dname);
   }
   if (name && SwigType_istemplate(name)) {
     /* add features for complete template type */
