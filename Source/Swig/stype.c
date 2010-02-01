@@ -1095,6 +1095,25 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_remove_global_scope_prefix()
+ *
+ * Removes the unary scope operator (::) prefix indicating global scope in all 
+ * components of the type
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_remove_global_scope_prefix(const SwigType *t) {
+  SwigType *result;
+  const char *type = Char(t);
+  if (strncmp(type, "::", 2) == 0)
+    type += 2;
+  result = NewString(type);
+  Replaceall(result, ".::", ".");
+  Replaceall(result, "(::", "(");
+  Replaceall(result, "enum ::", "enum ");
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_check_decl()
  *
  * Checks type declarators for a match

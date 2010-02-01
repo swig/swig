@@ -62,47 +62,44 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 static Hash *typemaps[MAX_SCOPE];
 static int tm_scope = 0;
 
-static Hash *get_typemap(int tm_scope, SwigType *type) {
+static Hash *get_typemap(int tm_scope, const SwigType *type) {
   Hash *tm = 0;
   SwigType *dtype = 0;
+  SwigType *hashtype;
+
   if (SwigType_istemplate(type)) {
     String *ty = Swig_symbol_template_deftype(type, 0);
     dtype = Swig_symbol_type_qualify(ty, 0);
-    /* Printf(stderr,"gettm %s %s\n", type, dtype); */
     type = dtype;
     Delete(ty);
   }
-  tm = Getattr(typemaps[tm_scope], type);
 
+  /* remove unary scope operator (::) prefix indicating global scope for looking up in the hashmap */
+  hashtype = SwigType_remove_global_scope_prefix(type);
+  tm = Getattr(typemaps[tm_scope], hashtype);
 
-  if (dtype) {
-    if (!tm) {
-      String *t_name = SwigType_templateprefix(type);
-      if (!Equal(t_name, type)) {
-	tm = Getattr(typemaps[tm_scope], t_name);
-      }
-      Delete(t_name);
-    }
-    Delete(dtype);
-  }
+  Delete(dtype);
+  Delete(hashtype);
 
   return tm;
 }
 
-static void set_typemap(int tm_scope, SwigType *type, Hash *tm) {
-  SwigType *dtype = 0;
+static void set_typemap(int tm_scope, const SwigType *type, Hash *tm) {
+  SwigType *hashtype = 0;
   if (SwigType_istemplate(type)) {
     String *ty = Swig_symbol_template_deftype(type, 0);
-    dtype = Swig_symbol_type_qualify(ty, 0);
-    /* Printf(stderr,"settm %s %s\n", type, dtype); */
-    type = dtype;
+    String *tyq = Swig_symbol_type_qualify(ty, 0);
+    hashtype = SwigType_remove_global_scope_prefix(tyq);
+    Delete(tyq);
     Delete(ty);
   } else {
-    dtype = Copy(type);
-    type = dtype;
+    hashtype = SwigType_remove_global_scope_prefix(type);
   }
-  Setattr(typemaps[tm_scope], type, tm);
-  Delete(dtype);
+
+  /* note that the unary scope operator (::) prefix indicating global scope has been removed from the type */
+  Setattr(typemaps[tm_scope], hashtype, tm);
+
+  Delete(hashtype);
 }
 
 
@@ -647,6 +644,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   SwigType *noarrays = 0;
   SwigType *primitive = 0;
   SwigType *ctype = 0;
+  SwigType *template_prefix = 0;
   int ts;
   int isarray;
   const String *cname = 0;
@@ -704,6 +702,48 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	if (result)
 	  backup = result;
       }
+
+      /* look for the type reduced to just the template prefix */
+      Delete(template_prefix);
+      template_prefix = SwigType_templateprefix(ctype);
+      tm = get_typemap(ts, template_prefix);
+      if (template_prefix) {
+	if (debug_display && cqualifiedname)
+	  Printf(stdout, "  Looking for: %s\n", SwigType_str(template_prefix, cqualifiedname));
+	if (tm && cqualifiedname) {
+	  tm1 = Getattr(tm, cqualifiedname);
+	  if (tm1) {
+	    result = Getattr(tm1, tm_method);	/* See if there is a type - qualified name match */
+	    if (result && Getattr(result, "code"))
+	      goto ret_result;
+	    if (result)
+	      backup = result;
+	  }
+	}
+	if (debug_display && cname)
+	  Printf(stdout, "  Looking for: %s\n", SwigType_str(template_prefix, cname));
+	if (tm && cname) {
+	  tm1 = Getattr(tm, cname);
+	  if (tm1) {
+	    result = Getattr(tm1, tm_method);	/* See if there is a type - name match */
+	    if (result && Getattr(result, "code"))
+	      goto ret_result;
+	    if (result)
+	      backup = result;
+	  }
+	}
+	if (debug_display)
+	  Printf(stdout, "  Looking for: %s\n", SwigType_str(template_prefix, 0));
+	if (tm) {
+	  result = Getattr(tm, tm_method);	/* See if there is simply a type match */
+	  if (result && Getattr(result, "code"))
+	    goto ret_result;
+	  if (result)
+	    backup = result;
+	}
+      }
+
+      /* look for [ANY] arrays */
       isarray = SwigType_isarray(ctype);
       if (isarray) {
 	/* If working with arrays, strip away all of the dimensions and replace with "ANY".
@@ -822,6 +862,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   result = backup;
 
 ret_result:
+  Delete(template_prefix);
   Delete(noarrays);
   Delete(primitive);
   if ((unstripped) && (unstripped != type))

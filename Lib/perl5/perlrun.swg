@@ -14,7 +14,7 @@
 #define SWIG_ConvertPtrAndOwn(obj, pp, type, flags, own) \
     SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, flags, own)
 #define SWIG_NewPointerObjP(ptr, t, flags) \
-    SWIG_Perl_MakePtr(0, ptr, t, flags, proto)
+    SWIG_Perl_MakePtr(0, ptr, t, flags, arg1)
 #define SWIG_NewPointerObj(ptr, t, flags) \
     SWIG_Perl_MakePtr(0, ptr, t, flags, 0)
 #define SWIG_Perl_ConvertMg(obj, pp, type, flags) \

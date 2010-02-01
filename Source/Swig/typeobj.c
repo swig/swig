@@ -854,9 +854,8 @@ SwigType *SwigType_add_template(SwigType *t, ParmList *parms) {
  * Returns the prefix before the first template definition.
  * For example:
  *
- *     Foo<(p.int)>::bar
- *
- * returns "Foo"
+ *     Foo<(p.int)>::bar  =>  Foo
+ *     r.q(const).Foo<(p.int)>::bar => r.q(const).Foo
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_templateprefix(const SwigType *t) {

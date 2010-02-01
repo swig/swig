@@ -431,7 +431,6 @@ public:
     String *pname = Getattr(n, "perl5:name");
     SwigType *d = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
-    ParmList *outer = Getattr(n, "perl5:implicits");
     String *overname = 0;
 
     Parm *p;
@@ -441,7 +440,7 @@ public:
     String *tm;
     String *cleanup, *outarg;
     int num_saved = 0;
-    int num_arguments, num_required, num_implicits;
+    int num_arguments, num_required;
     int varargs = 0;
 
     if (Getattr(n, "sym:overloaded")) {
@@ -530,17 +529,6 @@ public:
     Printv(f->def, "XS(", wname, ") {\n", "{\n",	/* scope to destroy C++ objects before croaking */
 	   NIL);
 
-    num_implicits = 0;
-    if (outer) {
-      Parm *tail;
-      for(Parm *cur = outer; cur; cur = nextSibling(cur)) {
-        tail = cur;
-        num_implicits++;
-      }
-      /* link the outer with inner parms */
-      set_nextSibling(tail, l);
-    }
-
     emit_parameter_variables(l, f);
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
@@ -554,30 +542,16 @@ public:
     /* Check the number of arguments */
     if (!varargs) {
       Printf(f->code, "    if ((items < %d) || (items > %d)) {\n",
-        num_required + num_implicits, num_arguments + num_implicits);
+        num_required, num_arguments);
     } else {
       Printf(f->code, "    if (items < %d) {\n",
-        num_required + num_implicits);
+        num_required);
     }
     Printf(f->code,
         "        SWIG_croak(\"Usage: %s\");\n"
         "}\n",
-        usage_func(Char(pname), d, outer));
+        usage_func(Char(pname), d, l));
 
-    if (num_implicits) {
-      /* TODO: support implicits of types other than SVs */
-      Parm *p = outer;
-      for (i = 0; i < num_implicits; i++) {
-        String *vname = Getattr(p, "name");
-        String *vdecl = SwigType_str(Getattr(p, "type"), vname);
-        Wrapper_add_local(f, vname, vdecl);
-        Delete(vdecl);
-        Printf(f->code, "%s = ST(%d);\n", vname, i++);
-        p = nextSibling(p);
-      }
-      if (l)
-        Printf(f->code, "ax += %d;\n", num_implicits);
-    }
     /* Write code to extract parameters. */
     i = 0;
     for (i = 0, p = l; i < num_arguments; i++) {
@@ -684,9 +658,6 @@ public:
       Wrapper_add_localv(f, "_saved", "SV *", temp, NIL);
     }
 
-    if (num_implicits && l)
-      Printf(f->code, "ax -= %d;\n", num_implicits);
-
     /* Now write code to make the function call */
 
     Swig_director_emit_dynamic_cast(n, f);
@@ -762,10 +733,6 @@ public:
       Printv(df->def, "XS(", dname, ") {\n", NIL);
 
       Wrapper_add_local(df, "dXSARGS", "dXSARGS");
-      if (num_implicits) {
-        Printf(df->code, "ax += %d;\n", num_implicits);
-        Printf(df->code, "items -= %d;\n", num_implicits);
-      }
       Printv(df->code, dispatch, "\n", NIL);
       Printf(df->code, "croak(\"No matching function for overloaded '%s'\");\n", pname);
       Printf(df->code, "XSRETURN(0);\n");
@@ -1456,16 +1423,22 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int constructorHandler(Node *n) {
+    int restore = 0;
     memberfunctionCommon(n);
     if (blessed) {
+      Swig_save("perl5memberfunctionimplicit", n, "parms", NIL);
       String *type = NewString("SV");
       SwigType_add_pointer(type);
       Parm *p = NewParm(type, "proto", n);
       Delete(type);
-      Setattr(n, "perl5:implicits", p);
-      Delete(p);
+      Setattr(p, "arg:classref", "1");
+      set_nextSibling(p, Getattr(n, "parms"));
+      Setattr(n, "parms", p);
+      restore = 1;
     }
-    return Language::constructorHandler(n);
+    int rv = Language::constructorHandler(n);
+    if (restore) Swig_restore(n);
+    return rv;
   }
 
   /* ------------------------------------------------------------ 
@@ -1483,17 +1456,22 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmemberfunctionHandler(Node *n) {
+    int restore = 0;
     memberfunctionCommon(n);
     if (blessed && !GetFlag(n, "allocate:smartpointeraccess")) {
-      /* proto is probably only appropriate if directors are enabled */
+      Swig_save("perl5memberfunctionimplicit", n, "parms", NIL);
       String *type = NewString("SV");
       SwigType_add_pointer(type);
       Parm *p = NewParm(type, "proto", n);
       Delete(type);
-      Setattr(n, "perl5:implicits", p);
-      Delete(p);
+      Setattr(p, "arg:classref", "1");
+      set_nextSibling(p, Getattr(n, "parms"));
+      Setattr(n, "parms", p);
+      restore = 1;
     }
-    return Language::staticmemberfunctionHandler(n);
+    int rv = Language::staticmemberfunctionHandler(n);
+    if (restore) Swig_restore(n);
+    return rv;
   }
 
   /* ------------------------------------------------------------

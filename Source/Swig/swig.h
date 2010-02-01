@@ -166,6 +166,7 @@ extern "C" {
   extern SwigType *SwigType_array_type(SwigType *t);
   extern String *SwigType_default(SwigType *t);
   extern void SwigType_typename_replace(SwigType *t, String *pat, String *rep);
+  extern SwigType *SwigType_remove_global_scope_prefix(const SwigType *t);
   extern SwigType *SwigType_alttype(SwigType *t, int ltmap);
 
   extern void SwigType_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *tsdecl);
