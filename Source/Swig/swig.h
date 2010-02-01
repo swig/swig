@@ -158,6 +158,7 @@ extern "C" {
   extern String *SwigType_namestr(const SwigType *t);
   extern String *SwigType_templateprefix(const SwigType *t);
   extern String *SwigType_templatesuffix(const SwigType *t);
+  extern String *SwigType_istemplate_templateprefix(const SwigType *t);
   extern String *SwigType_templateargs(const SwigType *t);
   extern String *SwigType_prefix(const SwigType *t);
   extern int SwigType_array_ndim(SwigType *t);

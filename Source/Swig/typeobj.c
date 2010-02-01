@@ -852,10 +852,12 @@ SwigType *SwigType_add_template(SwigType *t, ParmList *parms) {
  * SwigType_templateprefix()
  *
  * Returns the prefix before the first template definition.
+ * Returns the type unmodified if not a template.
  * For example:
  *
  *     Foo<(p.int)>::bar  =>  Foo
  *     r.q(const).Foo<(p.int)>::bar => r.q(const).Foo
+ *     Foo => Foo
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_templateprefix(const SwigType *t) {
@@ -894,6 +896,25 @@ String *SwigType_templatesuffix(const SwigType *t) {
     c++;
   }
   return NewStringEmpty();
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_istemplate_templateprefix()
+ *
+ * Combines SwigType_istemplate and SwigType_templateprefix efficiently into one function.
+ * Returns the prefix before the first template definition.
+ * Returns NULL if not a template.
+ * For example:
+ *
+ *     Foo<(p.int)>::bar  =>  Foo
+ *     r.q(const).Foo<(p.int)>::bar => r.q(const).Foo
+ *     Foo => NULL
+ * ----------------------------------------------------------------------------- */
+
+String *SwigType_istemplate_templateprefix(const SwigType *t) {
+  const char *s = Char(t);
+  const char *c = strstr(s, "<(");
+  return c ? NewStringWithSize(s, c - s) : 0;
 }
 
 /* -----------------------------------------------------------------------------
