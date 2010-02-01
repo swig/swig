@@ -20,25 +20,28 @@ namespace Swig {
 
   /* base class for director exceptions */
   class DirectorException {
-    protected:
-      std::string e_msg;
     public:
-      DirectorException(const char* msg="") : e_msg(msg) { }
-      const char *getMessage() const { 
-        return e_msg.c_str();
+      SV *sv;
+      DirectorException(const char *msg="") {
+	sv = sv_2mortal(newSVpv(msg, 0));
+	SvREFCNT_inc(sv);
       }
-      virtual ~DirectorException() {}
+      DirectorException(SV *err) : sv(err) { }
+      const char *getMesage() const {
+	return SvPV_nolen(sv);
+      }
+      virtual ~DirectorException() {
+	/* TODO: probably leaky here */
+	/* SvREFCNT_dec(sv); */
+      }
   };
 
   /* type mismatch in the return value from a python method call */
   class DirectorTypeMismatchException : public DirectorException {
     public:
-	  std::string e_type;
-      DirectorTypeMismatchException(const char* type, const char* msg="") :
-	  	e_type(type) {
-		e_msg = "type mismatch ";
-		e_msg += msg;
-	  }
+      DirectorTypeMismatchException(const char* type, const char* msg="") {
+	sv = newSVpvf("%s %s", type, msg);
+      }
       static void raise(const char* type, const char *msg) {
         throw DirectorTypeMismatchException(type, msg);
       }
@@ -47,10 +50,9 @@ namespace Swig {
   /* attempt to call a pure virtual method via a director method */
   class DirectorPureVirtualException : public DirectorException {
     public:
-	  DirectorPureVirtualException(const char *msg) {
-	  	e_msg = msg;
-		e_msg += " is abstract";
-	  }
+      DirectorPureVirtualException(const char *msg) {
+	sv = newSVpvf("%s is abstract", msg);
+      }
       static void raise(const char *msg) {
         throw DirectorPureVirtualException(msg);
       }
@@ -59,13 +61,11 @@ namespace Swig {
   /* Perl exceptions generated during director methods get wrapped for
    * their journey though C++ */
   class DirectorRunException : public DirectorException {
-	public:
-	  SV *e_sv;
-	  DirectorRunException(SV *err) :
-	  	DirectorException(SvPV_nolen(err)), e_sv(err) { }
-	  static void raise(SV *err) {
-	  	throw DirectorRunException(err);
-	  }
+    public:
+      DirectorRunException(SV *err) : DirectorException(err) { }
+      static void raise(SV *err) {
+	throw DirectorRunException(err);
+      }
   };
 
   /* director base class */

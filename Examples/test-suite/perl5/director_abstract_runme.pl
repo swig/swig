@@ -12,7 +12,7 @@ require_ok('director_abstract');
 	}
 }
 
-my $f = MyFoo->new();
+my $a = MyFoo->new();
 
 is($a->ping, "MyFoo::ping()");
 
@@ -39,38 +39,24 @@ is($a->pong(),"Foo::pong();MyFoo::ping()");
 		return $b;
 	}
 }
+
 my $me1 = MyExample1->new();
-die "darn" if $me1->director_abstract::Example1::get_color(1,2,3) != 1;
+isa_ok($me1, 'MyExample1');
+is(director_abstract::Example1->get_color($me1, 1, 2, 3), 1, 'me1');
 
 my $me2 = MyExample2->new(1,2);
-die "darn" if $me2->get_color(1,2,3) != 2;
+isa_ok($me2, 'MyExample2');
+is(director_abstract::Example2->get_color($me2, 1, 2, 3), 2, 'me2');
 
 my $me3 = MyExample3->new();
-die "darn" if $me3->get_color(1,2,3) != 3;
+isa_ok($me3, 'MyExample3');
+is(director_abstract::Example3_i->get_color($me3, 1, 2, 3), 3, 'me3');
 
-eval {
-	$me1 = director_abstract::Example1->new();
-};
-die "darn" unless $@;
+eval { $me1 = director_abstract::Example1->new() };
+like($@, qr/Example1/, 'E1.new()');
 
-eval {
-	$me2 = director_abstract::Example2->new();
-};
-die "darn" unless $@;
+eval { $me2 = director_abstract::Example2->new() };
+like($@, qr/Example2/, 'E2.new()');
 
-eval {
-	$me3 = director_abstract::Example3_i->new();
-};
-die "darn" unless $@;
-
-# I'm not even clear what the heck this is supposed to test
-# every way I interpret it, it ought to fail.
-# * (new A())->f() should die because A is abstract
-# * new A::f() is garbage
-# * A.f is a protected method
-# Let's skip it.
-#
-#try:
-#	f = director_abstract.A.f
-#except:
-#	raise RuntimeError
+eval { $me3 = director_abstract::Example3_i->new() };
+like($@, qr/Example3_i/, 'E3.new()');

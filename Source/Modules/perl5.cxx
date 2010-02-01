@@ -114,6 +114,12 @@ public:
     /* will need to evaluate the viability of MI directors later */
     director_multiple_inheritance = 0;
     director_language = 1;
+    director_prot_ctor_code = Copy(director_ctor_code);
+    Replaceall(director_prot_ctor_code, "$nondirector_new",
+        "SWIG_croak(\"$symname is not a public method\");");
+  }
+  ~PERL5() {
+    Delete(director_prot_ctor_code);
   }
 
   /* Test to see if a type corresponds to something wrapped with a shadow class */
@@ -128,6 +134,12 @@ public:
       return Getattr(n, "perl5:proxy");
     }
     return 0;
+  }
+  /* Test to see if a type corresponds to a director handled class */
+  Node *is_directortype(SwigType *t) {
+    Node *n = classLookup(t);
+    if(!n) return 0;
+    return Swig_directorclass(n) ? n : 0;
   }
 
   /* ------------------------------------------------------------
@@ -704,15 +716,15 @@ public:
           "  } else {\n");
       if(dirprot_mode() && !is_public(n)) {
         Append(f->code,
-            "    SWIG_Error(SWIG_RuntimeError, \"accessing protected member\");\n"
-            "    SWIG_Fail;\n");
+            "    SWIG_croak(\"accessing protected member\");\n");
       } else {
         Append(f->code,
             "    upcall = false;\n");
       }
       Append(f->code,
           "  }\n"
-          "}\n");
+          "}\n"
+          "try {\n");
     }
 
     /* Now write code to make the function call */
@@ -733,6 +745,13 @@ public:
       Printf(f->code, "%s\n", tm);
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
+    }
+    if (is_member_director(n) && !is_smart_pointer()) {
+      Append(f->code,
+          "} catch (Swig::DirectorException &e) {\n"
+          "  SvSetSV(ERRSV, e.sv);\n"
+          "  SWIG_fail;\n"
+          "}\n");
     }
     emit_return_variable(n, d, f);
 
@@ -756,7 +775,7 @@ public:
       Printf(f->code, "%s\n", tm);
     }
 
-    if(GetFlag(n, "feature:new") && Swig_directorclass(n)) {
+    if(GetFlag(n, "feature:new") && is_directortype(d)) {
       Append(f->code,
           "  {\n"
           "    Swig::Director *director = dynamic_cast<Swig::Director *>(result);\n"
@@ -1700,17 +1719,20 @@ public:
       Printf(w->def, "%s {", target);
       { /* generate method body */
         const char *retstmt = "";
+        String *pstack;
+        int pcount = 1;
         Wrapper_add_local(w, "SP", "dSP");
-        Printf(w->code,
+        pstack = NewString(
             "  ENTER;\n"
             "  SAVETMPS;\n"
             "  PUSHMARK(SP);\n"
-            "  XPUSHs(this->Swig::Director::getSelf());\n");
+            "  XPUSHs(av[0]);\n");
+        Printf(w->code,
+            "  av[0] = this->Swig::Director::getSelf();\n");
         if(parms) { /* convert call parms */
           Parm *p;
           String *tm;
 
-          Wrapper_add_local(w, "argsv", "SV *argsv");
           for(p = parms; p; p = nextSibling(p)) {
             /* really not sure why this is necessary but
              * Swig_typemap_attach_parms() didn't expand $1 without it... */
@@ -1727,18 +1749,20 @@ public:
             if (Getattr(p, "tmap:directorargout") != NULL) outputs++;
             tm = Getattr(p, "tmap:directorin");
             if(tm) {
-              Replaceall(tm, "$input", "argsv");
+              String *pav = NewStringf("av[%d]", pcount++);
+              Printf(pstack, "  XPUSHs(%s);\n", pav);
+              Replaceall(tm, "$input", pav);
               Replaceall(tm, "$owner", "0");
               if (is_shadow(ptype))
                 Replaceall(tm, "$shadow", "SWIG_SHADOW");
               else
                 Replaceall(tm, "$shadow", "0");
               Printf(w->code,
-                  "  %s\n"
-                  "  XPUSHs(argsv);\n",
+                  "  %s\n",
                   tm);
               p = Getattr(p, "tmap:directorin:next");
               Delete(tm);
+              Delete(pav);
             } else {
               if(SwigType_type(ptype) != T_VOID) {
                 Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF,
@@ -1752,12 +1776,17 @@ public:
             }
           }
         }
+        {
+          String *tmp = NewStringf("SV *av[%d]", pcount);
+          Wrapper_add_local(w, "av", tmp);
+          Delete(tmp);
+        }
+        Append(pstack, "  PUTBACK;\n");
+        Append(w->code, pstack);
+        Delete(pstack);
         /* This whole G_ARRAY probably needs to be rethought.  it overly
          * complicates the code and I'm not sure it DWIMs the way any
          * person should M. */
-        Append(w->code,
-            "  PUTBACK;\n"
-            );
         switch(outputs) {
           case 0:
             Printf(w->code, "call_method(\"%s\", G_EVAL | G_VOID);\n", name);

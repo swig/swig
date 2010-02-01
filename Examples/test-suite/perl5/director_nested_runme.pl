@@ -48,7 +48,7 @@ die "Bad B virtual resolution" if
 }
 
 my $cc = C->new();
-my $c = $cc->director_nested::FooBar_int::get_self();
+my $c = director_nested::FooBar_int->get_self($cc);
 $c->advance();
 
 die "RuntimeError" if $c->get_name() ne "FooBar::get_name hello";

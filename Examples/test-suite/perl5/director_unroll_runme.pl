@@ -1,6 +1,8 @@
 use strict;
 use warnings;
-use director_unroll;
+use Test::More 'no_plan';
+BEGIN { use_ok 'director_unroll' };
+require_ok 'director_unroll';
 
 {
 	package MyFoo;
@@ -9,11 +11,7 @@ use director_unroll;
 }
 
 $a = MyFoo->new();
-
 $b = director_unroll::Bar->new();
-
 $b->set($a);
 my $c = $b->get();
-
-die "RuntimeError" unless
-	$a->this ne $c->this;
+is($a->this, $c->this, "unrolling");
