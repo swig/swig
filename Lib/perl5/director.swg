@@ -27,9 +27,6 @@ namespace Swig {
 	SvREFCNT_inc(sv);
       }
       DirectorException(SV *err) : sv(err) { }
-      const char *getMesage() const {
-	return SvPV_nolen(sv);
-      }
       virtual ~DirectorException() {
 	/* TODO: probably leaky here */
 	/* SvREFCNT_dec(sv); */

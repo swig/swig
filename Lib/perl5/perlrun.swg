@@ -274,7 +274,7 @@ SWIG_Perl_ConvertPtrAndOwn(SV *sv, void **ptr, swig_type_info *_t, int flags, in
    * sv_derived_from succeeds on Perl inheritance
    */
   if (_t) {
-    const char *c = HvNAME(SvSTASH(SvRV(sv)));
+    const char *c = sv_reftype(SvRV(sv), 1);
     tc = SWIG_TypeProxyCheck(c, _t);
     if(!tc && !sv_derived_from(sv, SWIG_Perl_TypeProxyName(_t)))
     return SWIG_ERROR;

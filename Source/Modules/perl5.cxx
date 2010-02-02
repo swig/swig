@@ -533,6 +533,7 @@ public:
         }
         Replaceall(tm, "$input", "sv");
         Replaceall(tm, "$disown", "0"); /* TODO: verify this */
+        Swig_director_emit_dynamic_cast(n, f);
         emit_action_code(n, f->code, tm);
         emit_action_code(n, f->code, Getattr(n, "wrap:action"));
         addfail = 1;
