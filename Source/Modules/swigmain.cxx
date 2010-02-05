@@ -196,7 +196,8 @@ int main(int margc, char **margv) {
       dl = (fac) ();
     }
   }
+
   int res = SWIG_main(argc, argv, dl);
-  delete dl;
+
   return res;
 }

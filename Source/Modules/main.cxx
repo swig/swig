@@ -25,7 +25,7 @@ char cvsroot_main_cxx[] = "$Id$";
 
 // Global variables
 
-Language *lang;			// Language method
+static Language *lang = 0;	// Language method
 int CPlusPlus = 0;
 int Extend = 0;			// Extend flag
 int ForceExtern = 0;		// Force extern mode
@@ -1231,6 +1231,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Swig_print_tree(Getattr(top, "module"));
     }
     if (dump_xml && top) {
+      delete lang;
+      lang = 0;
       Swig_print_xml(top, xmlout);
     }
     Delete(top);
@@ -1265,6 +1267,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   if ((werror) && (Swig_warn_count())) {
     return Swig_warn_count();
   }
+
+  delete lang;
+
   return Swig_error_count();
 }
 
