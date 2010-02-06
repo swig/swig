@@ -164,8 +164,8 @@ static int help = 0;
 static int checkout = 0;
 static int cpp_only = 0;
 static int no_cpp = 0;
-static char *outfile_name = 0;
-static char *outfile_name_h = 0;
+static String *outfile_name = 0;
+static String *outfile_name_h = 0;
 static int tm_debug = 0;
 static int dump_symtabs = 0;
 static int dump_symbols = 0;
@@ -571,16 +571,17 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-o") == 0) {
 	Swig_mark_arg(i);
 	if (argv[i + 1]) {
-	  outfile_name = Swig_copy_string(argv[i + 1]);
+	  outfile_name = NewString(argv[i + 1]);
+          Swig_filename_correct(outfile_name);
 	  if (!outfile_name_h || !dependencies_file) {
-	    char *ext = strrchr(outfile_name, '.');
-	    String *basename = ext ? NewStringWithSize(outfile_name, ext - outfile_name) : NewString(outfile_name);
+	    char *ext = strrchr(Char(outfile_name), '.');
+	    String *basename = ext ? NewStringWithSize(Char(outfile_name), Char(ext) - Char(outfile_name)) : NewString(outfile_name);
 	    if (!dependencies_file) {
 	      dependencies_file = NewStringf("%s.%s", basename, depends_extension);
 	    }
 	    if (!outfile_name_h) {
 	      Printf(basename, ".%s", hpp_extension);
-	      outfile_name_h = Swig_copy_string(Char(basename));
+	      outfile_name_h = NewString(basename);
 	    }
 	    Delete(basename);
 	  }
@@ -592,7 +593,8 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-oh") == 0) {
 	Swig_mark_arg(i);
 	if (argv[i + 1]) {
-	  outfile_name_h = Swig_copy_string(argv[i + 1]);
+	  outfile_name_h = NewString(argv[i + 1]);
+          Swig_filename_correct(outfile_name_h);
 	  Swig_mark_arg(i + 1);
 	  i++;
 	} else {
@@ -961,7 +963,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // If the user has requested to check out a file, handle that
   if (checkout) {
     DOH *s;
-    char *outfile = Char(input_file);
+    String *outfile = input_file;
     if (outfile_name)
       outfile = outfile_name;
 
