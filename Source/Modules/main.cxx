@@ -1243,7 +1243,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   if (memory_debug)
     DohMemoryDebug();
 
-  const char *outfiles = getenv("CCACHE_OUTFILES");
+  char *outfiles = getenv("CCACHE_OUTFILES");
   if (outfiles) {
     File *f_outfiles = NewFile(outfiles, "w", 0);
     if (!f_outfiles) {
