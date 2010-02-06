@@ -182,14 +182,13 @@ static int depend = 0;
 static int depend_only = 0;
 static int memory_debug = 0;
 static int allkw = 0;
-static DOH *libfiles = 0;
 static DOH *cpps = 0;
 static String *dependencies_file = 0;
-static File *f_dependencies_file = 0;
 static String *dependencies_target = 0;
 static int external_runtime = 0;
 static String *external_runtime_name = 0;
 enum { STAGE1=1, STAGE2=2, STAGE3=4, STAGE4=8, STAGEOVERFLOW=16 };
+static List *libfiles = 0;
 static List *all_output_files = 0;
 
 // -----------------------------------------------------------------------------
@@ -836,7 +835,6 @@ void SWIG_getoptions(int argc, char *argv[]) {
 
 int SWIG_main(int argc, char *argv[], Language *l) {
   char *c;
-  extern void Swig_print_xml(Node *obj, String *filename);
 
   /* Initialize the SWIG core */
   Swig_init();
@@ -1045,6 +1043,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       if (depend) {
 	if (!no_cpp) {
 	  String *outfile;
+          File *f_dependencies_file = 0;
 
 	  char *basename = Swig_file_basename(outcurrentdir ? Swig_file_filename(input_file): Char(input_file));
 	  if (!outfile_name) {
@@ -1244,7 +1243,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   if (memory_debug)
     DohMemoryDebug();
 
-  char *outfiles = getenv("CCACHE_OUTFILES");
+  const char *outfiles = getenv("CCACHE_OUTFILES");
   if (outfiles) {
     File *f_outfiles = NewFile(outfiles, "w", 0);
     if (!f_outfiles) {
