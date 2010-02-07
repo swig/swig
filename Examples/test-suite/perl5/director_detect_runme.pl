@@ -1,45 +1,46 @@
 use strict;
 use warnings;
-use director_detect;
+use Test::More 'no_plan';
+BEGIN { use_ok 'director_detect' }
+require_ok 'director_detect';
 
 {
 	package MyBar;
 	use base 'director_detect::Bar';
-	# workaround until attributes work.
-	our %val;
+        use fields qw(val);
 	sub new { my $class = shift;
 		my $val = @_ ? shift : 2;
 		my $self = $class->SUPER::new();
-		$val{$self} = $val;
+                $self->{val} = $val;
 		return $self;
 	}
 	sub get_value { my($self) = @_;
-		$val{$self}++;
-		return $val{$self};
+                $self->{val}++;
+		return $self->{val};
 	}
 	sub get_class { my($self) = @_;
-		$val{$self}++;
+                $self->{val}++;
 		return director_detect::A->new();
 	}
 	sub just_do_it { my($self) = @_;
-		$val{$self}++;
+                $self->{val}++;
 	}
 	sub clone { my($self) = @_;
-		MyBar->new($val{$self});
+		MyBar->new($self->{val});
 	}
 }
 
 my $b = MyBar->new();
+isa_ok $b, 'MyBar';
 
 my $f = $b->baseclass();
+isa_ok $f, 'director_detect::Foo';
+is $f->get_value(), 3;
 
-my $v = $f->get_value();
-my $a = $f->get_class();
+isa_ok $f->get_class(), 'director_detect::A';
 $f->just_do_it();
 
 my $c = $b->clone();
-my $vc = $c->get_value();
-
-if( ($v != 3) or ($MyBar::val{$b} != 5) or ($vc != 6) ) {
-	die "Bad virtual detection";
-}
+isa_ok $c, 'MyBar';
+is $b->{val}, 5;
+is $c->get_value(), 6;

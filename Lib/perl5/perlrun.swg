@@ -17,10 +17,6 @@
     SWIG_Perl_MakePtr(0, ptr, t, flags, arg1)
 #define SWIG_NewPointerObj(ptr, t, flags) \
     SWIG_Perl_MakePtr(0, ptr, t, flags, 0)
-#define SWIG_Perl_ConvertMg(obj, pp, type, flags) \
-    SWIG_Perl_ConvertMgAndOwn(obj, pp, type, flags, 0)
-#define SWIG_ConvertMgAndOwn(obj, pp, type, flags, own) \
-    SWIG_Perl_ConvertMgAndOwn(obj, pp, type, flags, own)
 
 /* for raw packed data */
 #define SWIG_ConvertPacked(obj, p, s, type)             SWIG_Perl_ConvertPacked(obj, p, s, type)
@@ -66,6 +62,16 @@
 /* -----------------------------------------------------------------------------
  * pointers/data manipulation
  * ----------------------------------------------------------------------------- */
+
+/* Flags for pointer conversions */
+/* #define SWIG_POINTER_DISOWN        0x1 */
+/* #define SWIG_CAST_NEW_MEMORY       0x2 */
+#define SWIG_POINTER_MG            0x4
+#define SWIG_POINTER_WR            0x8
+
+/* Flags for new pointer objects */
+/* #define SWIG_POINTER_OWN           0x1 */
+#define SWIG_POINTER_CLASS         0x2
 
 /* For backward compatibility only */
 #define SWIG_POINTER_EXCEPTION  0
@@ -154,25 +160,37 @@ typedef struct swig_perl_type_ext_var {
   const char *name;
   MGVTBL vtbl;
 } swig_perl_type_ext_var;
+typedef struct swig_perl_wrap swig_perl_wrap;
 typedef struct swig_perl_type_ext {
   const char *name;
   MGVTBL vtbl;
+  void (*destroy)(swig_perl_wrap *);
   const int nattr;
   swig_perl_type_ext_var *attr;
 } swig_perl_type_ext;
-typedef struct swig_perl_wrap {
+struct swig_perl_wrap {
   HV *stash;
   void *ptr;
   IV refcnt;
-} swig_perl_wrap;
-SWIGINTERN HV *SWIG_Perl_OwnerTbl(HV *stash) {
-  GV *gv = *(GV **)hv_fetch(stash, "OWNER", 5, TRUE);
-  if (!isGV(gv))
-    gv_init(gv, stash, "OWNER", 5, FALSE);
-  return GvHVn(gv);
+  int own;
+  swig_type_info *ti;
+};
+SWIGINTERN HV *SWIG_Perl_WrapTbl(HV *stash) {
+  char *name;
+  SV *sv;
+  HV *wc;
+
+  wc = get_hv("swig_runtime_data::wrap_cache", TRUE);
+  name = HvNAME(stash);
+  sv = *hv_fetch(wc, name, strlen(name), TRUE);
+  if (!SvOK(sv)) {
+    SvRV_set(sv, (SV *)newHV());
+    SvROK_on(sv);
+  }
+  return (HV *)SvRV(sv);
 }
 SWIGINTERN SV *SWIG_Perl_LookupPtr(HV *stash, void *ptr) {
-  HE *ent = hv_fetch_ent(SWIG_Perl_OwnerTbl(stash),
+  HE *ent = hv_fetch_ent(SWIG_Perl_WrapTbl(stash),
       sv_2mortal(newSViv(PTR2IV(ptr))), 0, 0);
   /*warn("lookup(%s:%p) %s\n", HvNAME(stash), ptr, ent ? "hit" : "miss");*/
   return ent ? HeVAL(ent) : 0;
@@ -181,13 +199,20 @@ SWIGINTERN void SWIG_Perl_RememberPtr(swig_perl_wrap *wrap, SV *impl) {
   SV *ref = newSVsv(impl);
   sv_rvweaken(ref);
   /*warn("store (%s:%p) = %p\n", HvNAME(wrap->stash), wrap->ptr, SvRV(impl));*/
-  hv_store_ent(SWIG_Perl_OwnerTbl(wrap->stash),
+  hv_store_ent(SWIG_Perl_WrapTbl(wrap->stash),
     sv_2mortal(newSViv(PTR2IV(wrap->ptr))), ref, 0);
 }
 SWIGINTERN void SWIG_Perl_ForgetPtr(swig_perl_wrap *wrap) {
-  /*warn("delete(%s:%p)\n", HvNAME(wrap->stash), wrap->ptr);*/
-  hv_delete_ent(SWIG_Perl_OwnerTbl(wrap->stash),
-    sv_2mortal(newSViv(PTR2IV(wrap->ptr))), 0, 0);
+  /*warn("delete(%s:%p:%d)\n", HvNAME(wrap->stash), wrap->ptr, wrap->refcnt);*/
+  hv_delete_ent(SWIG_Perl_WrapTbl(wrap->stash),
+    sv_2mortal(newSViv(PTR2IV(wrap->ptr))), G_DISCARD, 0);
+  if (wrap->ti->clientdata && wrap->own & SWIG_POINTER_OWN) {
+    /* not all types have ext */
+    /* TODO: allprotected.i had a case where we have an ext but no
+     * destructor recorded, that is probably a bug. */
+    swig_perl_type_ext *ext = (swig_perl_type_ext *)wrap->ti->clientdata;
+    if (ext->destroy) ext->destroy(wrap);
+  }
 }
 SWIGINTERN int
 SWIG_Perl_vtbl_svt_free(pTHX_ SV *sv, MAGIC *mg) {
@@ -205,8 +230,8 @@ SWIG_Perl_vtbl_svt_free(pTHX_ SV *sv, MAGIC *mg) {
   { getf, setf, 0, 0, SWIG_Perl_vtbl_svt_free }
 SWIGINTERN MGVTBL
 SWIG_Perl_default_vtbl = { 0, 0, 0, 0, SWIG_Perl_vtbl_svt_free };
-#define SWIG_Perl_TypeExt(name, count, attrlist) \
-  { name, SWIG_Perl_VTBL(0, 0), count, attrlist }
+#define SWIG_Perl_TypeExt(name, destructor, count, attrlist) \
+  { name, SWIG_Perl_VTBL(0, 0), destructor, count, attrlist }
 
 SWIGRUNTIME const char *
 SWIG_Perl_TypeProxyName(const swig_type_info *type) {
@@ -242,19 +267,27 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
 }
 
 /* wrapping & unwrapping native opaque pointers */
-
-SWIGRUNTIME int
-SWIG_Perl_ConvertMgAndOwn(MAGIC *mg, void **ptr, swig_type_info *t,
+SWIGINTERN int
+SWIG_Perl_ConvertWr(swig_perl_wrap *wrap,
+    void **ptr, swig_type_info *t, int flags, int *own) {
+  if(flags & SWIG_POINTER_DISOWN)
+    wrap->own &= ~SWIG_POINTER_OWN;
+  if(ptr) *ptr = wrap->ptr;
+  return SWIG_OK;
+}
+SWIGINTERN int
+SWIG_Perl_ConvertMg(MAGIC *mg, void **ptr, swig_type_info *t,
         int flags, int *own) {
   swig_perl_wrap *wrap = (swig_perl_wrap *)mg->mg_ptr;
   if(flags & SWIG_POINTER_DISOWN)
-    SWIG_Perl_ForgetPtr(wrap);
-  /* TODO: other flags? */
+    wrap->own &= ~SWIG_POINTER_OWN;
   *ptr = wrap->ptr;
   return SWIG_OK;
 }
-SWIGRUNTIME int
-SWIG_Perl_ConvertPtrAndOwn(SV *sv, void **ptr, swig_type_info *_t, int flags, int *own) {
+/* calling SWIG_ConvertPtr with ptr == 0 is a request to check if such a
+ * conversion is legitimate */
+SWIGINTERN int
+SWIG_Perl_ConvertSv(SV *sv, void **ptr, swig_type_info *_t, int flags, int *own) {
   swig_cast_info *tc;
   void *voidptr = (void *)0;
   MAGIC *mg;
@@ -263,7 +296,7 @@ SWIG_Perl_ConvertPtrAndOwn(SV *sv, void **ptr, swig_type_info *_t, int flags, in
     *own = 0;
   SvGETMAGIC(sv);
   if (!SvOK(sv)) {
-    *ptr = (void *) 0;
+    if (ptr) *ptr = (void *) 0;
     return SWIG_OK;
   }
   if (!SvROK(sv))
@@ -277,24 +310,37 @@ SWIG_Perl_ConvertPtrAndOwn(SV *sv, void **ptr, swig_type_info *_t, int flags, in
     const char *c = sv_reftype(SvRV(sv), 1);
     tc = SWIG_TypeProxyCheck(c, _t);
     if(!tc && !sv_derived_from(sv, SWIG_Perl_TypeProxyName(_t)))
-    return SWIG_ERROR;
+      return SWIG_ERROR;
   } else tc = 0;
   mg = mg_find(SvRV(sv), PERL_MAGIC_ext);
   if (!mg)
     return SWIG_ERROR;
-  SWIG_Perl_ConvertMg(mg, &voidptr, _t, flags);
-  if (tc) {
-    int newmemory = 0;
-    *ptr = SWIG_TypeCast(tc, voidptr, &newmemory);
-    if (newmemory == SWIG_CAST_NEW_MEMORY) {
-      assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
-      if (own)
-        *own = *own | SWIG_CAST_NEW_MEMORY;
+  if (ptr) {
+    SWIG_Perl_ConvertMg(mg, &voidptr, _t, flags, own);
+    if (tc) {
+      int newmemory = 0;
+      *ptr = SWIG_TypeCast(tc, voidptr, &newmemory);
+      if (newmemory == SWIG_CAST_NEW_MEMORY) {
+        assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+        if (own)
+          *own = *own | SWIG_CAST_NEW_MEMORY;
+      }
+    } else {
+      *ptr = voidptr;
     }
-  } else {
-    *ptr = voidptr;
   }
   return SWIG_OK;
+}
+SWIGRUNTIME int
+SWIG_Perl_ConvertPtrAndOwn(void *obj, void **ptr,
+    swig_type_info *t, int flags, int *own) {
+  if (!(flags & (SWIG_POINTER_MG | SWIG_POINTER_WR)))
+    return SWIG_Perl_ConvertSv((SV *)obj, ptr, t, flags, own);
+  if (flags & SWIG_POINTER_MG)
+    return SWIG_Perl_ConvertMg((MAGIC *)obj, ptr, t, flags, own);
+  if (flags & SWIG_POINTER_WR)
+    return SWIG_Perl_ConvertWr((swig_perl_wrap *)obj, ptr, t, flags, own);
+  return SWIG_ERROR;
 }
 
 SWIGINTERN SV *
@@ -335,6 +381,8 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
   wrap->stash = stash;
   wrap->ptr = ptr;
   wrap->refcnt = 1;
+  wrap->own = flags;
+  wrap->ti = t;
 
   if(ext) {
     /* pointer_reference.i for sample of shadow set without ext */
@@ -370,7 +418,6 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
     FREETMPS;
     LEAVE;
 
-    sv_2mortal(SvRV(sv));
     vtbl = &ext->vtbl;
     if(ext->attr) { /* populate object attribute stubs */
       int i;
@@ -494,59 +541,55 @@ SWIG_Perl_SetModule(swig_module_info *module) {
   sv_setiv(pointer, PTR2IV(module));
 }
 
+XS(SWIG_Perl_Own) {
+  dXSARGS;
+  SV *self;
+  MAGIC *mg;
+  swig_perl_wrap *wrap;
+  SV *newv;
+
+  if (items > 0) {
+    self = ST(0);
+    if(SvROK(self)) {
+      mg = mg_find(SvRV(self), PERL_MAGIC_ext);
+      if (mg) {
+	wrap = (swig_perl_wrap *)mg->mg_ptr;
+        switch(items) {
+	  case 2:
+	    if(SvTRUE(ST(1))) {
+              wrap->own |= SWIG_POINTER_OWN;
+	    } else {
+	      wrap->own &= ~SWIG_POINTER_OWN;
+	    }
+	  case 1:
+	    ST(0) = wrap->own & SWIG_POINTER_OWN ? &PL_sv_yes : &PL_sv_no;
+	    XSRETURN(1);
+	}
+      }
+    }
+  }
+  croak("Usage: $obj->_swig_own();");
+}
+
 XS(SWIG_Perl_This) {
   dXSARGS;
   SV *self;
   MAGIC *mg;
+  swig_perl_wrap *wrap;
+  SV *newv;
 
-  if (items != 1)
-    SWIG_croak("Usage: $obj->this();");
-  self = ST(0);
-  if (!SvROK(self))
-    SWIG_croak("self not an object");
-  mg = mg_find(SvRV(self), PERL_MAGIC_ext);
-  if (!mg)
-    SWIG_croak("self not magical");
-  ST(0) = newSViv(PTR2IV(((swig_perl_wrap *)mg->mg_ptr)->ptr));
-  XSRETURN(1);
-fail:
-  SWIG_croak_null();
-}
-XS(SWIG_Perl_Disown) {
-  dXSARGS;
-  SV *self;
-  MAGIC *mg;
-
-  if (items != 1)
-    SWIG_croak("Usage: $obj->DISOWN()");
-  self = ST(0);
-  if (!SvROK(self))
-    SWIG_croak("self not an object");
-  mg = mg_find(SvRV(self), PERL_MAGIC_ext);
-  if (!mg)
-    SWIG_croak("self not magical");
-  SWIG_Perl_ForgetPtr(((swig_perl_wrap *)mg->mg_ptr));
-  XSRETURN(0);
-fail:
-  SWIG_croak_null();
-}
-XS(SWIG_Perl_Acquire) {
-  dXSARGS;
-  SV *self;
-  MAGIC *mg;
-
-  if (items != 1)
-    SWIG_croak("Usage: $obj->ACQUIRE()");
-  self = ST(0);
-  if (!SvROK(self))
-    SWIG_croak("self not an object");
-  mg = mg_find(SvRV(self), PERL_MAGIC_ext);
-  if (!mg)
-    SWIG_croak("self not magical");
-  SWIG_Perl_RememberPtr(((swig_perl_wrap *)mg->mg_ptr), self);
-  XSRETURN(0);
-fail:
-  SWIG_croak_null();
+  if (items == 1) {
+    self = ST(0);
+    if(SvROK(self)) {
+      mg = mg_find(SvRV(self), PERL_MAGIC_ext);
+      if (mg) {
+        wrap = (swig_perl_wrap *)mg->mg_ptr;
+        ST(0) = newSViv(PTR2IV(((swig_perl_wrap *)mg->mg_ptr)->ptr));
+        XSRETURN(1);
+      }
+    }
+  }
+  croak("Usage: $obj->_swig_this();");
 }
 
 #ifdef __cplusplus

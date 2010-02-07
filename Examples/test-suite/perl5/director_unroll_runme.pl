@@ -14,4 +14,4 @@ $a = MyFoo->new();
 $b = director_unroll::Bar->new();
 $b->set($a);
 my $c = $b->get();
-is($a->this, $c->this, "unrolling");
+is($a->_swig_this, $c->_swig_this, "unrolling");

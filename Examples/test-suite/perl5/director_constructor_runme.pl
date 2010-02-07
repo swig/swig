@@ -1,6 +1,8 @@
 use strict;
 use warnings;
-use director_constructor;
+use Test::More 'no_plan';
+BEGIN { use_ok 'director_constructor' }
+require_ok 'director_constructor';
 
 {
 	package Test;
@@ -10,11 +12,11 @@ use director_constructor;
 	}
 	sub test { 3 }
 }
-my $a = Test->new(5);
+my $A = Test->new(5);
+isa_ok $A, 'Test';
+is $A->getit, 5;
+is $A->do_test, 3;
 
-die "RuntimeError" if $a->getit != 5;
-die "RuntimeError" if $a->do_test != 3;
+$A->doubleit();
 
-$a->doubleit();
-
-die "RuntimeError" if $a->getit != 10;
+is $A->getit, 10;

@@ -34,7 +34,8 @@
 # define SWIG_SHARED_PTR_NAMESPACE SwigBoost
 #endif
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || \
+    defined(SWIGPERL)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 

@@ -505,6 +505,28 @@ public:
       Append(wname, overname);
     }
     Setattr(n, "wrap:name", wname);
+    if (GetFlag(n, "perl5:destructor")) {
+      Printv(f->def,
+          "SWIGCLASS_STATIC void ", wname, "(swig_perl_wrap *wrap) {\n",
+          NIL);
+      emit_parameter_variables(l, f);
+      emit_return_variable(n, d, f);
+      emit_attach_parmmaps(l, f);
+      tm = Getattr(l, "tmap:in");
+      Replaceall(tm, "$input", "wrap");
+      Replaceall(tm, "$disown", "SWIG_POINTER_WR");
+      emit_action_code(n, f->code, tm);
+      l = nextSibling(l);
+        String *actioncode = emit_action(n);
+        Append(f->code, actioncode);
+
+      Append(f->code,
+          "fail:\n" /* this actually can't ever fail in this context */
+          "  return;\n"
+          "}");
+      Wrapper_print(f, f_wrappers);
+      return SWIG_OK;
+    }
     if(GetFlag(n, "perl5:instancevariable")) {
       int addfail = 1;
       Printv(f->def,
@@ -517,9 +539,8 @@ public:
 
       /* recover self pointer */
       tm = Getattr(l, "tmap:in");
-      Replaceall(tm, "SWIG_ConvertPtr", "SWIG_Perl_ConvertMg"); /* HACK */
       Replaceall(tm, "$input", "mg");
-      Replaceall(tm, "$disown", "0"); /* TODO: verify this */
+      Replaceall(tm, "$disown", "SWIG_POINTER_MG");
       emit_action_code(n, f->code, tm);
       l = nextSibling(l);
 
@@ -738,7 +759,7 @@ public:
       Replaceall(tm, "$target", "ST(argvi)");
       Replaceall(tm, "$result", "ST(argvi)");
       Replaceall(tm, "$owner", GetFlag(n, "feature:new") ?
-          "SWIG_OWNER" : "0");
+          "SWIG_POINTER_OWN" : "0");
       /* TODO: this NewPointerObjP stuff is a hack */
       if (blessed && Equal(nodeType(n), "constructor")) {
         Replaceall(tm, "NewPointerObj", "NewPointerObjP");
@@ -1277,16 +1298,21 @@ public:
           }
         }
         Append(pm, ");\n");
-        if (nattr) {
-          Printf(f_wrappers, "\n};\n"
-            "static swig_perl_type_ext _swigt_ext_%s = "
-            "SWIG_Perl_TypeExt(\"%s\", %d, _swigt_ext_var_%s);\n\n",
-            mang, fullclassname, nattr, mang);
-        } else {
+        {
+          Node *destroy = Getattr(n, "perl5:destructors");
+          if (nattr) Append(f_wrappers,
+            "\n};\n");
           Printf(f_wrappers,
             "static swig_perl_type_ext _swigt_ext_%s = "
-            "SWIG_Perl_TypeExt(\"%s\", 0, 0);\n\n",
-            mang, fullclassname);
+            "SWIG_Perl_TypeExt(\"%s\", %s, %d, ",
+            mang,
+            fullclassname,
+            destroy ? Getattr(destroy, "wrap:name") : "0",
+            nattr);
+          if (nattr) Printf(f_wrappers,
+            "_swigt_ext_var_%s);\n\n", mang);
+          else Printf(f_wrappers,
+            "0);\n\n");
         }
         Delete(bases);
         String *tmp = NewStringf("&_swigt_ext_%s", mang);
@@ -1373,11 +1399,9 @@ public:
       Delete(pcode);
 
       /* bind core swig class methods */
-      Printf(f_init, "newXS(\"%s::%s::this\", SWIG_Perl_This, __FILE__);\n",
+      Printf(f_init, "newXS(\"%s::%s::_swig_this\", SWIG_Perl_This, __FILE__);\n",
           namespace_module, ClassName);
-      Printf(f_init, "newXS(\"%s::%s::DISOWN\", SWIG_Perl_Disown, __FILE__);\n",
-          namespace_module, ClassName);
-      Printf(f_init, "newXS(\"%s::%s::ACQUIRE\", SWIG_Perl_Acquire, __FILE__);\n",
+      Printf(f_init, "newXS(\"%s::%s::_swig_own\", SWIG_Perl_Own, __FILE__);\n",
           namespace_module, ClassName);
 
       Delete(none_comparison);
@@ -1541,7 +1565,8 @@ public:
 
   virtual int destructorHandler(Node *n) {
     memberfunctionCommon(n);
-    Setattr(n, "perl5:destructor", n);
+    Setattr(CurrentClass, "perl5:destructors", n);
+    Setattr(n, "perl5:destructor", "1");
     return Language::destructorHandler(n);
   }
 

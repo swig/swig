@@ -48,7 +48,7 @@
 /* Complete overload of the output/constant/exception macros */
 
 /* output */
-%define %set_output(obj) $result = obj; argvi++ %enddef
+%define %set_output(obj) $result = sv_2mortal(obj); argvi++ %enddef
 
 /* append output */
 %define %append_output(obj) if (argvi >= items) EXTEND(sp,1); %set_output(obj) %enddef

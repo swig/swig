@@ -18,7 +18,10 @@ is($v1, $v2);
 my $v3 = voidtest::vfunc3($v1);
 my $v4 = voidtest::vfunc4($f);
 is($v3, $v4);
-is($v3->this, $f->this);
-{ local $TODO = "not sure this should work, but maybe void* is special";
+is($v3->_swig_this, $f->_swig_this);
+TODO: {
+  # in general the same pointer cast to different types probably needs
+  # to be distinct.  However a void* may be special
+   local $TODO = "not sure we want this to succeed";
 is($v1, $v4);
 }
