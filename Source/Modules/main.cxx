@@ -564,8 +564,8 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-swiglib") == 0) {
 	if (SwigLibWin)
-	  printf("%s\n", Char(SwigLibWin));
-	printf("%s\n", SwigLib);
+	  Printf(stdout, "%s\n", Char(SwigLibWin));
+	Printf(stdout, "%s\n", SwigLib);
 	SWIG_exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-o") == 0) {
 	Swig_mark_arg(i);
@@ -941,8 +941,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Swig_add_directory((String *) SwigLib);
 
   if (Verbose) {
-    printf("LangSubDir: %s\n", Char(LangSubDir));
-    printf("Search paths:\n");
+    Printf(stdout, "Language subdirectory: %s\n", LangSubDir);
+    Printf(stdout, "Search paths:\n");
     List *sp = Swig_search_path();
     Iterator s;
     for (s = First(sp); s.item; s = Next(s)) {
@@ -966,7 +966,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       outfile = outfile_name;
 
     if (Verbose)
-      printf("Handling checkout...\n");
+      Printf(stdout, "Handling checkout...\n");
 
     s = Swig_include(input_file);
     if (!s) {
@@ -992,7 +992,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   } else {
     // Run the preprocessor
     if (Verbose)
-      printf("Preprocessing...\n");
+      Printf(stdout, "Preprocessing...\n");
 
     {
       int i;
