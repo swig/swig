@@ -1,6 +1,11 @@
 Version 1.3.41 (in progress)
 ============================
 
+2010-02-08: wsfulton
+            Fix #1807329 - When Makefile dependencies are being generated using the -M family of options
+            on Windows, the file paths have been corrected to use single backslashes rather than double
+            backslashes as path separators.
+
 2010-02-06: wsfulton
             Fix #2918902 - language specific files not being generated in correct directory on
             Windows when using forward slashes for -o, for example:
