@@ -564,7 +564,7 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-swiglib") == 0) {
 	if (SwigLibWin)
-	  Printf(stdout, "%s\n", Char(SwigLibWin));
+	  Printf(stdout, "%s\n", SwigLibWin);
 	Printf(stdout, "%s\n", SwigLib);
 	SWIG_exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-o") == 0) {
@@ -1077,9 +1077,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  }
 	  List *files = Preprocessor_depend();
 	  for (int i = 0; i < Len(files); i++) {
-	    if ((depend != 2) || ((depend == 2) && (Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) != 0))) {
-	      Printf(f_dependencies_file, "\\\n %s ", Getitem(files, i));
-	    }
+            int use_file = 1;
+            if (depend == 2) {
+              if ((Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) == 0) || SwigLibWin && (Strncmp(Getitem(files, i), SwigLibWin, Len(SwigLibWin)) == 0))
+                use_file = 0;
+            }
+            if (use_file)
+	      Printf(f_dependencies_file, "\\\n  %s ", Getitem(files, i));
 	  }
 	  Printf(f_dependencies_file, "\n");
 	  if (f_dependencies_file != stdout)
