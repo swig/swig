@@ -47,7 +47,7 @@ SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
 SWIGINTERNINLINE SV *
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
-  SV *obj = sv_newmortal();
+  SV *obj = newSV(0);
   if (carray) {
     sv_setpvn(obj, carray, size);
   } else {

@@ -173,7 +173,7 @@ output values.
   if (argvi >= items) {
     EXTEND(sp,1);
   }
-  $result = sv_newmortal();
+  $result = newSV(0);
   sv_setiv($result,(IV) *($1));
   argvi++;
 }
@@ -186,7 +186,7 @@ output values.
   if (argvi >= items) {
     EXTEND(sp,1);
   }
-  $result = sv_newmortal();
+  $result = newSV(0);
   sv_setuv($result,(UV) *($1));
   argvi++;
 }
@@ -199,7 +199,7 @@ output values.
   if (argvi >= items) {
     EXTEND(sp,1);
   }
-  $result = sv_newmortal();
+  $result = newSV(0);
   sv_setnv($result,(double) *($1));
   argvi++;
 }
@@ -210,7 +210,7 @@ output values.
 	EXTEND(sp,1);
     }
     sprintf(temp,"%lld", (long long)*($1));
-    $result = sv_newmortal();
+    $result = newSV(0);
     sv_setpv($result,temp);
     argvi++;
 }
@@ -221,7 +221,7 @@ output values.
 	EXTEND(sp,1);
     }
     sprintf(temp,"%llu", (unsigned long long)*($1));
-    $result = sv_newmortal();
+    $result = newSV(0);
     sv_setpv($result,temp);
     argvi++;
 }

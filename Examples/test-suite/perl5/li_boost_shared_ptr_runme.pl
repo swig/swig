@@ -424,8 +424,6 @@ SKIP: {
     undef $li_boost_shared_ptr::GlobalPointer;
 
     # plain reference
-    $kglobal;
-
     $k = li_boost_shared_ptr::Klass->new("global reference");
     $li_boost_shared_ptr::GlobalReference = $k;
     is(li_boost_shared_ptr::use_count($k), 1);

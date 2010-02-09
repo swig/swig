@@ -8,7 +8,7 @@
 SWIGINTERNINLINE SV *
 SWIG_From_dec(bool)(bool value)
 {    
-  SV *obj = sv_newmortal();
+  SV *obj = newSV(0);
   if (value) {
     sv_setsv(obj, &PL_sv_yes);
   } else {
@@ -44,7 +44,7 @@ SWIG_AsVal_dec(bool)(SV *obj, bool* val)
 SWIGINTERNINLINE SV *
 SWIG_From_dec(long)(long value)
 {    
-  SV *obj = sv_newmortal();
+  SV *obj = newSV(0);
   sv_setiv(obj, (IV) value);
   return obj;
 }
@@ -96,7 +96,7 @@ SWIG_AsVal_dec(long)(SV *obj, long* val)
 SWIGINTERNINLINE SV *
 SWIG_From_dec(unsigned long)(unsigned long value)
 {    
-  SV *obj = sv_newmortal();
+  SV *obj = newSV(0);
   sv_setuv(obj, (UV) value);
   return obj;
 }
@@ -162,7 +162,7 @@ SWIG_From_dec(long long)(long long value)
     return SWIG_From(long)(%numeric_cast(value,long));
   } else {    
     char temp[256]; 
-    SV *obj = sv_newmortal();
+    SV *obj = newSV(0);
     sprintf(temp, "%lld", value);
     sv_setpv(obj, temp);
     return obj;
@@ -227,7 +227,7 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
     return SWIG_From(long long)(%numeric_cast(value, long long));
   } else {
     char temp[256]; 
-    SV *obj = sv_newmortal();
+    SV *obj = newSV(0);
     sprintf(temp, "%llu", value);
     sv_setpv(obj, temp);
     return obj;
@@ -291,7 +291,7 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
 SWIGINTERNINLINE SV *
 SWIG_From_dec(double)(double value)
 {    
-  SV *obj = sv_newmortal();
+  SV *obj = newSV(0);
   sv_setnv(obj, value);
   return obj;
 }

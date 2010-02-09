@@ -2101,8 +2101,8 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
                  ;
 
 /* ------------------------------------------------------------
-   %includefile "filename" [option1="xyz", ...] [ declarations ] 
-   %importfile  "filename" [option1="xyz", ...] [ declarations ]
+   %includefile(option1="xyz", ...) "filename" [ declarations ] 
+   %importfile(option1="xyz", ...) "filename" [ declarations ]
    ------------------------------------------------------------ */
 
 include_directive: includetype options string LBRACKET {

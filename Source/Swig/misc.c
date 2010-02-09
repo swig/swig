@@ -159,10 +159,23 @@ void Swig_filename_correct(String *filename) {
 String *Swig_filename_escape(String *filename) {
   String *adjusted_filename = Copy(filename);
 #if defined(_WIN32)		/* Note not on Cygwin else filename is displayed with double '/' */
-    Replaceall(adjusted_filename, "\\\\", "\\");	/* remove double '\' in case any already present */
-    Replaceall(adjusted_filename, "\\", "\\\\");
+  Replaceall(adjusted_filename, "\\\\", "\\");	/* remove double '\' in case any already present */
+  Replaceall(adjusted_filename, "\\", "\\\\");
 #endif
     return adjusted_filename;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_filename_unescape()
+ *
+ * Remove double backslash escaping in filename - for Windows
+ * ----------------------------------------------------------------------------- */
+
+void Swig_filename_unescape(String *filename) {
+  (void)filename;
+#if defined(_WIN32)
+  Replaceall(filename, "\\\\", "\\");
+#endif
 }
 
 /* -----------------------------------------------------------------------------

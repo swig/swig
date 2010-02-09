@@ -23,13 +23,12 @@ namespace Swig {
     public:
       SV *sv;
       DirectorException(const char *msg="") {
-	sv = sv_2mortal(newSVpv(msg, 0));
-	SvREFCNT_inc(sv);
+        sv = newSVpv(msg, 0);
       }
       DirectorException(SV *err) : sv(err) { }
       virtual ~DirectorException() {
-	/* TODO: probably leaky here */
-	/* SvREFCNT_dec(sv); */
+        /* TODO: probably leaky here */
+        /* SvREFCNT_dec(sv); */
       }
   };
 
@@ -37,7 +36,7 @@ namespace Swig {
   class DirectorTypeMismatchException : public DirectorException {
     public:
       DirectorTypeMismatchException(const char* type, const char* msg="") {
-	sv = newSVpvf("%s %s", type, msg);
+        sv = newSVpvf("%s %s", type, msg);
       }
       static void raise(const char* type, const char *msg) {
         throw DirectorTypeMismatchException(type, msg);
@@ -48,7 +47,7 @@ namespace Swig {
   class DirectorPureVirtualException : public DirectorException {
     public:
       DirectorPureVirtualException(const char *msg) {
-	sv = newSVpvf("%s is abstract", msg);
+        sv = newSVpvf("%s is abstract", msg);
       }
       static void raise(const char *msg) {
         throw DirectorPureVirtualException(msg);
@@ -61,7 +60,7 @@ namespace Swig {
     public:
       DirectorRunException(SV *err) : DirectorException(err) { }
       static void raise(SV *err) {
-	throw DirectorRunException(err);
+        throw DirectorRunException(err);
       }
   };
 
@@ -69,65 +68,56 @@ namespace Swig {
   class Director {
     private:
       SV  *mSelf;
-	  bool mDisowned;
-	  AV  *mOwned;
 
       /* TODO: understand ownership handling */
-	  /* working assumption: a "disowned" director must keep the perl
-	   * self SV alive manually because 
-	   * C++ holds director and director must hold the sv.
-	   * but an "owned" one must not hold a reference it's sv because
-	   * the perl interpreter will expect it to fall out when it lets
-	   * go.
-	   */
+      /* working assumption: a "disowned" director must keep the perl
+       * self SV alive manually because 
+       * C++ holds director and director must hold the sv.
+       * but an "owned" one must not hold a reference it's sv because
+       * the perl interpreter will expect it to fall out when it lets
+       * go.
+       */
     public:
-      Director() : mSelf(NULL), mDisowned(false), mOwned(newAV()) {
+      Director() : mSelf(0) {
       }
       virtual ~Director() {
-	  	if(mDisowned)
-			SvREFCNT_dec(mSelf);
-		av_undef(mOwned);
+        //sv_rvweaken(mSelf);
+        if(!SvWEAKREF(mSelf))
+          SvREFCNT_dec(mSelf);
       }
       void setSelf(SV *self) {
-	  	if(mSelf) croak("can not recycle directors");
-		if(!self || !SvOK(self)) croak("refusing to wrap bogus perl val");
-		mSelf = newSVsv(self);
-		sv_rvweaken(mSelf);
-//		do_sv_dump(0, Perl_debug_log, mSelf, 0, 0, false, 0);
+        if(mSelf) croak("can not recycle directors");
+        if(!self || !SvOK(self)) croak("refusing to wrap bogus perl val");
+        mSelf = newSVsv(self);
+        sv_rvweaken(mSelf);
       }
       SV *getSelf() const {
         if(!mSelf || !SvOK(mSelf)) {
-			croak("director has no identity %p(%p) %c",
-				this, mSelf, mDisowned ? 't' : 'f');
-		}
+          croak("director has no identity %p(%p)", this, mSelf);
+        }
         return mSelf;
       }
       void swig_disown() {
-	  	if(mDisowned) return;
-	  	mDisowned = true;
-		// our weak ref should become a hard ref now.
-		// don't know how to unweaken, but I can create a stong copy.
-		sv_2mortal(mSelf);
-		mSelf = newSVrv(SvRV(mSelf), NULL);
-		SvREFCNT_inc(mSelf);
-        warn("disowning %s and I don't know why", SvPV_nolen(mSelf));
+        /* perl is going to let go, so I need to hang on.  We can't
+         * unweaken a ref, but we can copy it to a strong one. */
+        mSelf = newSVsv(mSelf);
       }
-	  void swig_acquire_ownership_obj(void *vptr, int own) const {
-	    warn("acquiring ownership obj 0x%p %08x", vptr, own);
-		//warn(">|> %d\n", SvREFCNT(own));
-	//	av_push(mOwned, own);
-		//warn(">|> %d\n", SvREFCNT(own));
-	  }
-	  void swig_acquire_ownership_array(void *vptr) const {
-	    warn("acquiring ownership array 0x%p", vptr);
-	  }
-	  void swig_acquire_ownership(void *vptr) const {
-	    warn("acquiring ownership 0x%p", vptr);
-	  }
-	  int swig_release_ownership(void *vptr) const {
-	  	warn("swig_release_ownership 0x%p", vptr);
-	  }
+      void swig_acquire_ownership_obj(void *vptr, int own) const {
+        warn("acquiring ownership obj 0x%p %08x", vptr, own);
+      }
+      void swig_acquire_ownership_array(void *vptr) const {
+        warn("acquiring ownership array 0x%p", vptr);
+      }
+      void swig_acquire_ownership(void *vptr) const {
+        warn("acquiring ownership 0x%p", vptr);
+      }
+      int swig_release_ownership(void *vptr) const {
+        warn("swig_release_ownership 0x%p", vptr);
+      }
   };
 }
 
 #endif /* __cplusplus */
+/* -*- mode: c++; c-basic-offset: 2; indent-tabs-mode: nil; -*-
+ *  vim:expandtab:shiftwidth=2:tabstop=8:smarttab:ft=cpp
+ */

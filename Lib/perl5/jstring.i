@@ -20,7 +20,7 @@ SWIG_AsVal_dec(jstring)(SV *obj, jstring *val)
 SWIGINTERNINLINE SV *
 SWIG_From_dec(jstring)(jstring val)
 {
-  SV *obj = sv_newmortal();
+  SV *obj = newSV(0);
   if (!val) {
     sv_setsv(obj, &PL_sv_undef);
   } else {

@@ -321,6 +321,7 @@ void SWIG_exit(int);		/* use EXIT_{SUCCESS,FAILURE} */
 void SWIG_config_file(const_String_or_char_ptr );
 const String *SWIG_output_directory();
 void SWIG_config_cppext(const char *ext);
+void Swig_print_xml(Node *obj, String *filename);
 
 /* get the list of generated files */
 List *SWIG_output_files();

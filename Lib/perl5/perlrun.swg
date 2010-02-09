@@ -465,7 +465,7 @@ SWIG_Perl_MakePackedObj(SV *sv, void *ptr, int sz, swig_type_info *type) {
 
 SWIGRUNTIME SV *
 SWIG_Perl_NewPackedObj(void *ptr, int sz, swig_type_info *type) {
-  SV *result = sv_newmortal();
+  SV *result = newSV(0);
   SWIG_Perl_MakePackedObj(result, ptr, sz, type);
   return result;
 }
@@ -595,3 +595,6 @@ XS(SWIG_Perl_This) {
 #ifdef __cplusplus
 }
 #endif
+/* -*- mode: c++; c-basic-offset: 2; indent-tabs-mode: nil; -*-
+ *  vim:expandtab:shiftwidth=2:tabstop=8:smarttab:ft=cpp
+ */

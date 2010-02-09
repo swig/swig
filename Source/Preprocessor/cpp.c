@@ -625,7 +625,7 @@ unterm:
 /* -----------------------------------------------------------------------------
  * DOH *get_filename(DOH *str)
  *
- * Read a filename from str.   A filename can be enclose in quotes, angle brackets,
+ * Read a filename from str.   A filename can be enclosed in quotes, angle brackets,
  * or bare.
  * ----------------------------------------------------------------------------- */
 
@@ -652,6 +652,7 @@ static String *get_filename(String *str, int *sysfile) {
     if (isspace(c))
       Ungetc(c, str);
   }
+  Swig_filename_unescape(fn);
   Swig_filename_correct(fn);
   Seek(fn, 0, SEEK_SET);
   return fn;
@@ -1593,9 +1594,9 @@ String *Preprocessor_parse(String *s) {
 	  s1 = cpp_include(fn, sysfile);
 	  if (s1) {
 	    if (include_all)
-	      Printf(ns, "%%includefile \"%s\" [\n", Swig_last_file());
+	      Printf(ns, "%%includefile \"%s\" [\n", Swig_filename_escape(Swig_last_file()));
 	    else if (import_all) {
-	      Printf(ns, "%%importfile \"%s\" [\n", Swig_last_file());
+	      Printf(ns, "%%importfile \"%s\" [\n", Swig_filename_escape(Swig_last_file()));
 	      push_imported();
 	    }
 
@@ -1732,7 +1733,7 @@ String *Preprocessor_parse(String *s) {
 	      char *dirname;
 	      add_chunk(ns, chunk, allow);
 	      copy_location(s, chunk);
-	      Printf(ns, "%sfile%s \"%s\" [\n", decl, opt, Swig_last_file());
+	      Printf(ns, "%sfile%s \"%s\" [\n", decl, opt, Swig_filename_escape(Swig_last_file()));
 	      if (Equal(decl, kpp_dimport)) {
 		push_imported();
 	      }

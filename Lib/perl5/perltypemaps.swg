@@ -43,7 +43,7 @@
 
 /* Perl types */
 #define SWIG_Object                      SV *
-#define VOID_Object                      sv_newmortal()
+#define VOID_Object                      &PL_sv_undef
 
 /* Complete overload of the output/constant/exception macros */
 

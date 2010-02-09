@@ -495,6 +495,21 @@ public:
       if (!addSymbol(iname, n))
 	return SWIG_ERROR;
     }
+    if (!pname) {
+      /* TODO: this is kind of a hack because we don't have much control
+       * over the stuff in naming.c from here, and
+       * Language::classDirectorDisown() constructs the node to pass
+       * here internally. */
+      if(CurrentClass) {
+        String *tmp = NewStringf("disown_%s", ClassName);
+        if(Equal(iname, tmp)) {
+          pname = NewStringf("%s::_swig_disown", ClassName);
+          Setattr(n, "perl5:name", NewStringf("%s::disown", ClassName));
+        }
+        Delete(tmp);
+      }
+    }
+
     if (!pname)
       pname = iname;
 
@@ -1815,7 +1830,9 @@ public:
          * person should M. */
         switch(outputs) {
           case 0:
-            Printf(w->code, "call_method(\"%s\", G_EVAL | G_VOID);\n", name);
+            Printf(w->code, "call_method(\"%s\", G_EVAL | G_VOID);\n",
+                Equal(Getattr(n, "nodeType"), "destructor") ?
+                  "DESTROY" : name);
             break;
           case 1:
             Wrapper_add_local(w, "w_count", "I32 w_count");
