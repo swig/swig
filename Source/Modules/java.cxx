@@ -402,10 +402,10 @@ public:
     Printf(wrapper_name, "Java_%s%s_%%f", Char(jnipackage), jniname);
     Delete(jniname);
 
-    Swig_name_register((char *) "wrapper", Char(wrapper_name));
+    Swig_name_register("wrapper", Char(wrapper_name));
     if (old_variable_names) {
-      Swig_name_register((char *) "set", (char *) "set_%v");
-      Swig_name_register((char *) "get", (char *) "get_%v");
+      Swig_name_register("set", "set_%v");
+      Swig_name_register("get", "get_%v");
     }
 
     Delete(wrapper_name);
