@@ -65,6 +65,7 @@ static const char *usage1 = (const char *) "\
      -debug-symtabs  - Display symbol tables information\n\
      -debug-symbols  - Display target language symbols in the symbol tables\n\
      -debug-csymbols - Display C symbols in the symbol tables\n\
+     -debug-lsymbols - Display target language layer symbols\n\
      -debug-tags     - Display information about the tags found in the interface\n\
      -debug-template - Display information for debugging templates\n\
      -debug-top <n>  - Display entire parse tree at stages 1-4, <n> is a csv list of stages\n\
@@ -170,6 +171,7 @@ static int tm_debug = 0;
 static int dump_symtabs = 0;
 static int dump_symbols = 0;
 static int dump_csymbols = 0;
+static int dump_lang_symbols = 0;
 static int dump_tags = 0;
 static int dump_module = 0;
 static int dump_top = 0;
@@ -740,6 +742,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-debug-csymbols") == 0) {
 	dump_csymbols = 1;
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-lsymbols") == 0) {
+	dump_lang_symbols = 1;
+	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-debug-tags") == 0) || (strcmp(argv[i], "-dump_tags") == 0)) {
 	dump_tags = 1;
 	Swig_mark_arg(i);
@@ -902,6 +907,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   /* Check for SWIG_FEATURES environment variable */
 
   SWIG_getoptions(argc, argv);
+
+  if (dump_lang_symbols)
+    lang->setSymbolsDumpNeeded();
 
   // Define the __cplusplus symbol
   if (CPlusPlus)
@@ -1079,7 +1087,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  for (int i = 0; i < Len(files); i++) {
             int use_file = 1;
             if (depend == 2) {
-              if ((Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) == 0) || SwigLibWin && (Strncmp(Getitem(files, i), SwigLibWin, Len(SwigLibWin)) == 0))
+              if ((Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) == 0) || (SwigLibWin && (Strncmp(Getitem(files, i), SwigLibWin, Len(SwigLibWin)) == 0)))
                 use_file = 0;
             }
             if (use_file)
@@ -1226,6 +1234,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  Swig_browser(top, 0);
 	}
       }
+    }
+    if (dump_lang_symbols) {
+      lang->dumpSymbols();
     }
     if (dump_top & STAGE4) {
       Printf(stdout, "debug-top stage 4\n");

@@ -209,6 +209,7 @@ public:
   /* Miscellaneous */
   virtual int validIdentifier(String *s);	/* valid identifier? */
   virtual int addSymbol(const String *s, const Node *n);	/* Add symbol        */
+  virtual void dumpSymbols();
   virtual Node *symbolLookup(String *s);	/* Symbol lookup     */
   virtual Node *classLookup(SwigType *s);	/* Class lookup      */
   virtual Node *enumLookup(SwigType *s);	/* Enum lookup       */
@@ -250,6 +251,9 @@ public:
 
   /* Set overload variable templates argc and argv */
   void setOverloadResolutionTemplates(String *argc, String *argv);
+
+  /* Set language module symbol table dump option */
+  void setSymbolsDumpNeeded();
 
   /* Language instance is a singleton - get instance */
   static Language* instance();
@@ -305,12 +309,14 @@ protected:
 
 private:
   Hash *symbols;
+  String *symbolDump;
   Hash *classtypes;
   Hash *enumtypes;
   int overloading;
   int multiinput;
   int cplus_runtime;
   int directors;
+  int symbol_table_dump;
   static Language *this_;
 };
 

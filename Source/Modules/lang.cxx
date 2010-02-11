@@ -308,12 +308,14 @@ none_comparison(NewString("$arg != 0")),
 director_ctor_code(NewString("")),
 director_prot_ctor_code(0),
 symbols(NewHash()),
+symbolDump(NewString("")),
 classtypes(NewHash()),
 enumtypes(NewHash()),
 overloading(0),
 multiinput(0),
 cplus_runtime(0),
-directors(0) {
+directors(0),
+symbol_table_dump(0) {
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
 
@@ -333,6 +335,7 @@ directors(0) {
 
 Language::~Language() {
   Delete(symbols);
+  Delete(symbolDump);
   Delete(classtypes);
   Delete(enumtypes);
   Delete(director_ctor_code);
@@ -2916,16 +2919,33 @@ void Language::main(int argc, char *argv[]) {
  * Prints an error message and returns 0 if a conflict occurs.
  * ----------------------------------------------------------------------------- */
 
-int
-Language::addSymbol(const String *s, const Node *n) {
+int Language::addSymbol(const String *s, const Node *n) {
   Node *c = Getattr(symbols, s);
   if (c && (c != n)) {
-    Swig_error(input_file, line_number, "'%s' is multiply defined in the generated module.\n", s);
+    Swig_error(input_file, line_number, "'%s' is multiply defined in the generated target language module.\n", s);
     Swig_error(Getfile(c), Getline(c), "Previous declaration of '%s'\n", s);
     return 0;
   }
   Setattr(symbols, s, n);
+  if (symbol_table_dump)
+    Printf(symbolDump, "%s\n", s);
   return 1;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::dumpSymbols()
+ * ----------------------------------------------------------------------------- */
+
+void Language::dumpSymbols() {
+  if (symbol_table_dump) {
+    Printf(stdout, "LANGUAGE SYMBOLS start  =======================================\n");
+
+    /* The symbol table is a hash so no ordering is possible if we iterate through it.
+     * Instead we gather the symbols as they are added and display them here. */
+    Printf(stdout, "%s", symbolDump);
+
+    Printf(stdout, "LANGUAGE SYMBOLS finish =======================================\n");
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -3374,6 +3394,10 @@ void Language::setOverloadResolutionTemplates(String *argc, String *argv) {
   argc_template_string = Copy(argc);
   Delete(argv_template_string);
   argv_template_string = Copy(argv);
+}
+
+void Language::setSymbolsDumpNeeded() {
+  symbol_table_dump = 1;
 }
 
 int Language::is_assignable(Node *n) {
