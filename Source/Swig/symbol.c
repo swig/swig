@@ -207,14 +207,14 @@ void Swig_symbol_print_tables_summary(void) {
  * ----------------------------------------------------------------------------- */
 
 static void symbol_print_symbols(const char *symboltabletype) {
-  Node *obj = symtabs;
-  Iterator ki = First(obj);
+  Node *table = symtabs;
+  Iterator ki = First(table);
   while (ki.key) {
     String *k = ki.key;
     Printf(stdout, "===================================================\n");
     Printf(stdout, "%s -\n", k);
     {
-      Symtab *symtab = Getattr(Getattr(obj, k), symboltabletype);
+      Symtab *symtab = Getattr(Getattr(table, k), symboltabletype);
       Iterator it = First(symtab);
       while (it.key) {
 	String *symname = it.key;

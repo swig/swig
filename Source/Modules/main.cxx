@@ -908,9 +908,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   SWIG_getoptions(argc, argv);
 
-  if (dump_lang_symbols)
-    lang->setSymbolsDumpNeeded();
-
   // Define the __cplusplus symbol
   if (CPlusPlus)
     Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);

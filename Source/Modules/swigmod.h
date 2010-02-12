@@ -208,9 +208,9 @@ public:
 
   /* Miscellaneous */
   virtual int validIdentifier(String *s);	/* valid identifier? */
-  virtual int addSymbol(const String *s, const Node *n);	/* Add symbol        */
+  virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");	/* Add symbol        */
   virtual void dumpSymbols();
-  virtual Node *symbolLookup(String *s);	/* Symbol lookup     */
+  virtual Node *symbolLookup(String *s, const_String_or_char_ptr scope = "");			/* Symbol lookup     */
   virtual Node *classLookup(SwigType *s);	/* Class lookup      */
   virtual Node *enumLookup(SwigType *s);	/* Enum lookup       */
   virtual int abstractClassTest(Node *n);	/* Is class really abstract? */
@@ -251,9 +251,6 @@ public:
 
   /* Set overload variable templates argc and argv */
   void setOverloadResolutionTemplates(String *argc, String *argv);
-
-  /* Set language module symbol table dump option */
-  void setSymbolsDumpNeeded();
 
   /* Language instance is a singleton - get instance */
   static Language* instance();
@@ -308,15 +305,13 @@ protected:
   int director_language;
 
 private:
-  Hash *symbols;
-  String *symbolDump;
+  Hash *symtabs; /* symbol tables */
   Hash *classtypes;
   Hash *enumtypes;
   int overloading;
   int multiinput;
   int cplus_runtime;
   int directors;
-  int symbol_table_dump;
   static Language *this_;
 };
 

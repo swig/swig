@@ -307,15 +307,15 @@ Language::Language():
 none_comparison(NewString("$arg != 0")),
 director_ctor_code(NewString("")),
 director_prot_ctor_code(0),
-symbols(NewHash()),
-symbolDump(NewString("")),
+symtabs(NewHash()),
 classtypes(NewHash()),
 enumtypes(NewHash()),
 overloading(0),
 multiinput(0),
 cplus_runtime(0),
-directors(0),
-symbol_table_dump(0) {
+directors(0) {
+  Hash *symbols = NewHash();
+  Setattr(symtabs, "", symbols); // create top level/global symbol table scope
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
 
@@ -334,8 +334,7 @@ symbol_table_dump(0) {
 }
 
 Language::~Language() {
-  Delete(symbols);
-  Delete(symbolDump);
+  Delete(symtabs);
   Delete(classtypes);
   Delete(enumtypes);
   Delete(director_ctor_code);
@@ -1140,7 +1139,7 @@ int Language::callbackfunctionHandler(Node *n) {
   Setattr(n, "type", cbty);
   Setattr(n, "value", calltype);
 
-  Node *ns = Getattr(symbols, cbname);
+  Node *ns = symbolLookup(cbname);
   if (!ns)
     constantWrapper(n);
 
@@ -2462,7 +2461,7 @@ int Language::classHandler(Node *n) {
 	  continue;
 	String *methodname = Getattr(method, "sym:name");
 	String *wrapname = NewStringf("%s_%s", symname, methodname);
-	if (!Getattr(symbols, wrapname) && (!is_public(method))) {
+	if (!symbolLookup(wrapname, "") && (!is_public(method))) {
 	  Node *m = Copy(method);
 	  Setattr(m, "director", "1");
 	  Setattr(m, "parentNode", n);
@@ -2915,20 +2914,34 @@ void Language::main(int argc, char *argv[]) {
 /* -----------------------------------------------------------------------------
  * Language::addSymbol()
  *
- * Adds a symbol entry.  Returns 1 if the symbol is added successfully.
+ * Adds a symbol entry into the target language symbol tables.
+ * Returns 1 if the symbol is added successfully.
  * Prints an error message and returns 0 if a conflict occurs.
+ * The scope is optional for target languages and if supplied must be a fully
+ * resolved scope and the symbol s must not contain any scope qualifiers.
  * ----------------------------------------------------------------------------- */
 
-int Language::addSymbol(const String *s, const Node *n) {
-  Node *c = Getattr(symbols, s);
-  if (c && (c != n)) {
-    Swig_error(input_file, line_number, "'%s' is multiply defined in the generated target language module.\n", s);
-    Swig_error(Getfile(c), Getline(c), "Previous declaration of '%s'\n", s);
-    return 0;
+int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope) {
+  Hash *symbols = Getattr(symtabs, scope);
+  if (!symbols) {
+    // New scope which has not been added by the target language - lazily created.
+    symbols = NewHash();
+    Setattr(symtabs, scope, symbols);
+
+    // Add the new scope as a symbol in the top level scope.
+    // Alternatively the target language must add it in before attempting to add symbols into the scope.
+    const_String_or_char_ptr top_scope = "";
+    Hash *topscope_symbols = Getattr(symtabs, top_scope);
+    Setattr(topscope_symbols, scope, NewHash());
+  } else {
+    Node *c = Getattr(symbols, s);
+    if (c && (c != n)) {
+      Swig_error(input_file, line_number, "'%s' is multiply defined in the generated target language module.\n", s);
+      Swig_error(Getfile(c), Getline(c), "Previous declaration of '%s'\n", s);
+      return 0;
+    }
   }
   Setattr(symbols, s, n);
-  if (symbol_table_dump)
-    Printf(symbolDump, "%s\n", s);
   return 1;
 }
 
@@ -2937,22 +2950,35 @@ int Language::addSymbol(const String *s, const Node *n) {
  * ----------------------------------------------------------------------------- */
 
 void Language::dumpSymbols() {
-  if (symbol_table_dump) {
-    Printf(stdout, "LANGUAGE SYMBOLS start  =======================================\n");
+  Printf(stdout, "LANGUAGE SYMBOLS start  =======================================\n");
 
-    /* The symbol table is a hash so no ordering is possible if we iterate through it.
-     * Instead we gather the symbols as they are added and display them here. */
-    Printf(stdout, "%s", symbolDump);
-
-    Printf(stdout, "LANGUAGE SYMBOLS finish =======================================\n");
+  Node *table = symtabs;
+  Iterator ki = First(table);
+  while (ki.key) {
+    String *k = ki.key;
+    Printf(stdout, "===================================================\n");
+    Printf(stdout, "%s -\n", k);
+    {
+      Symtab *symtab = Getattr(table, k);
+      Iterator it = First(symtab);
+      while (it.key) {
+	String *symname = it.key;
+	Printf(stdout, "  %s\n", symname);
+	it = Next(it);
+      }
+    }
+    ki = Next(ki);
   }
+
+  Printf(stdout, "LANGUAGE SYMBOLS finish =======================================\n");
 }
 
 /* -----------------------------------------------------------------------------
  * Language::symbolLookup()
  * ----------------------------------------------------------------------------- */
 
-Node *Language::symbolLookup(String *s) {
+Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
+  Hash *symbols = Getattr(symtabs, scope);
   return Getattr(symbols, s);
 }
 
@@ -3394,10 +3420,6 @@ void Language::setOverloadResolutionTemplates(String *argc, String *argv) {
   argc_template_string = Copy(argc);
   Delete(argv_template_string);
   argv_template_string = Copy(argv);
-}
-
-void Language::setSymbolsDumpNeeded() {
-  symbol_table_dump = 1;
 }
 
 int Language::is_assignable(Node *n) {
