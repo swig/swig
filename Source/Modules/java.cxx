@@ -47,6 +47,7 @@ class JAVA:public Language {
 
   String *imclass_name;		// intermediary class name
   String *module_class_name;	// module class name
+  String *constants_interface_name;	// constants interface name
   String *imclass_class_code;	// intermediary class code
   String *proxy_class_def;
   String *proxy_class_code;
@@ -114,6 +115,7 @@ public:
       member_func_flag(false),
       imclass_name(NULL),
       module_class_name(NULL),
+      constants_interface_name(NULL),
       imclass_class_code(NULL),
       proxy_class_def(NULL),
       proxy_class_code(NULL),
@@ -338,6 +340,11 @@ public:
       else
 	module_class_name = Copy(Getattr(n, "name"));
     }
+    constants_interface_name = NewStringf("%sConstants", module_class_name);
+
+    // module class and intermediary classes are always created
+    addSymbol(imclass_name, n);
+    addSymbol(module_class_name, n);
 
     imclass_class_code = NewString("");
     proxy_class_def = NewString("");
@@ -501,12 +508,12 @@ public:
 	Printf(f_module, "extends %s ", module_baseclass);
       if (Len(module_interfaces) > 0) {
 	if (Len(module_class_constants_code) != 0)
-	  Printv(f_module, "implements ", Getattr(n, "name"), "Constants, ", module_interfaces, " ", NIL);
+	  Printv(f_module, "implements ", constants_interface_name, ", ", module_interfaces, " ", NIL);
 	else
 	  Printv(f_module, "implements ", module_interfaces, " ", NIL);
       } else {
 	if (Len(module_class_constants_code) != 0)
-	  Printv(f_module, "implements ", Getattr(n, "name"), "Constants ", NIL);
+	  Printv(f_module, "implements ", constants_interface_name, " ", NIL);
       }
       Printf(f_module, "{\n");
 
@@ -526,7 +533,7 @@ public:
 
     // Generate the Java constants interface
     if (Len(module_class_constants_code) != 0) {
-      String *filen = NewStringf("%s%sConstants.java", SWIG_output_directory(), module_class_name);
+      String *filen = NewStringf("%s%s.java", SWIG_output_directory(), constants_interface_name);
       File *f_module = NewFile(filen, "w", SWIG_output_files());
       if (!f_module) {
 	FileErrorDisplay(filen);
@@ -545,7 +552,7 @@ public:
       if (module_imports)
 	Printf(f_module, "%s\n", module_imports);
 
-      Printf(f_module, "public interface %sConstants {\n", module_class_name);
+      Printf(f_module, "public interface %s {\n", constants_interface_name);
 
       // Write out all the global constants
       Printv(f_module, module_class_constants_code, NIL);
@@ -610,6 +617,8 @@ public:
     imclass_class_modifiers = NULL;
     Delete(module_class_name);
     module_class_name = NULL;
+    Delete(constants_interface_name);
+    constants_interface_name = NULL;
     Delete(module_class_code);
     module_class_code = NULL;
     Delete(module_baseclass);
@@ -739,7 +748,7 @@ public:
   virtual int nativeWrapper(Node *n) {
     String *wrapname = Getattr(n, "wrap:name");
 
-    if (!addSymbol(wrapname, n))
+    if (!addSymbol(wrapname, n, imclass_name))
       return SWIG_ERROR;
 
     if (Getattr(n, "type")) {
@@ -781,7 +790,7 @@ public:
     bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
 
     if (!Getattr(n, "sym:overloaded")) {
-      if (!addSymbol(Getattr(n, "sym:name"), n))
+      if (!addSymbol(Getattr(n, "sym:name"), n, imclass_name))
 	return SWIG_ERROR;
     }
 
@@ -1348,10 +1357,12 @@ public:
     String *return_type = NewString("");
     String *constants_code = NewString("");
 
-    if (!addSymbol(symname, n))
-      return SWIG_ERROR;
-
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
+
+    const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
+    String *scope = proxy_flag && wrapping_member_flag ? proxy_class_name : constants_interface_name;
+    if (!addSymbol(itemname, n, scope))
+      return SWIG_ERROR;
 
     // The %javaconst feature determines how the constant value is obtained
     int const_feature_flag = GetFlag(n, "feature:java:const");
@@ -1387,7 +1398,6 @@ public:
       Setattr(n, "value", new_value);
     }
 
-    const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
     const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 

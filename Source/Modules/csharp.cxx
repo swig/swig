@@ -330,6 +330,10 @@ public:
 	module_class_name = Copy(Getattr(n, "name"));
     }
 
+    // module class and intermediary classes are always created
+    addSymbol(imclass_name, n);
+    addSymbol(module_class_name, n);
+
     imclass_class_code = NewString("");
     proxy_class_def = NewString("");
     proxy_class_code = NewString("");
@@ -671,7 +675,7 @@ public:
   virtual int nativeWrapper(Node *n) {
     String *wrapname = Getattr(n, "wrap:name");
 
-    if (!addSymbol(wrapname, n))
+    if (!addSymbol(wrapname, n, imclass_name))
       return SWIG_ERROR;
 
     if (Getattr(n, "type")) {
@@ -711,7 +715,7 @@ public:
     String *overloaded_name = getOverloadedName(n);
 
     if (!Getattr(n, "sym:overloaded")) {
-      if (!addSymbol(Getattr(n, "sym:name"), n))
+      if (!addSymbol(Getattr(n, "sym:name"), n, imclass_name))
 	return SWIG_ERROR;
     }
 
@@ -1309,10 +1313,12 @@ public:
     String *return_type = NewString("");
     String *constants_code = NewString("");
 
-    if (!addSymbol(symname, n))
-      return SWIG_ERROR;
-
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
+
+    const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
+    String *scope = proxy_flag && wrapping_member_flag ? proxy_class_name : module_class_name;
+    if (!addSymbol(itemname, n, scope))
+      return SWIG_ERROR;
 
     // The %csconst feature determines how the constant value is obtained
     int const_feature_flag = GetFlag(n, "feature:cs:const");
@@ -1354,7 +1360,6 @@ public:
     const String *outattributes = Getattr(n, "tmap:cstype:outattributes");
     if (outattributes)
       Printf(constants_code, "  %s\n", outattributes);
-    const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
 
     const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
