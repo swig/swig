@@ -2,6 +2,10 @@ Version 1.3.41 (in progress)
 ============================
 
 2010-02-13: wsfulton
+            [Ruby] Apply patch from Patrick Bennett to fix RARRAY_LEN and RARRAY_PTR usage for Ruby 1.9.x
+            used in various STL wrappers.
+
+2010-02-13: wsfulton
             [C#, Java] Fix incorrect multiply defined symbol name error when an enum item
             and class name have the same name, as reported by Nathan Krieger. Example:
 
