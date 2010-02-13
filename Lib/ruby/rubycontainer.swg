@@ -564,7 +564,8 @@ namespace swig
     {
       Sequence::const_iterator i = $self->begin();
       Sequence::const_iterator e = $self->end();
-      VALUE str = rb_str_new2( swig::type_name< Sequence >() );
+      const char *type_name = swig::type_name< Sequence >();
+      VALUE str = rb_str_new2(type_name);
       str = rb_str_cat2( str, " [" );
       bool comma = false;
       VALUE tmp;
@@ -928,7 +929,7 @@ namespace swig
       } 
       catch( std::invalid_argument )
 	{
-	  rb_raise( rb_eArgError,
+	  rb_raise( rb_eArgError, "%s",
 		    Ruby_Format_TypeError( "", 
 					   swig::type_name<Sequence::value_type>(),
 					   __FUNCTION__, idx+2, elem ));
@@ -955,7 +956,7 @@ namespace swig
 	  }
 	  catch( std::invalid_argument )
 	    {
-	      rb_raise( rb_eArgError,
+	      rb_raise( rb_eArgError, "%s",
 			Ruby_Format_TypeError( "", 
 					       swig::type_name<Sequence::value_type>(),
 					       __FUNCTION__, idx+2, elem ));
@@ -1010,7 +1011,7 @@ namespace swig {
 	  if (seq) {
 	    VALUE lastErr = rb_gv_get("$!");
 	    if (lastErr == Qnil) {
-	      rb_raise(rb_eTypeError, e.what());
+	      rb_raise(rb_eTypeError, "%s", e.what());
 	    }
 	  }
 	  return SWIG_ERROR;
@@ -1050,7 +1051,7 @@ namespace swig {
 	  if (seq) {
 	    VALUE lastErr = rb_gv_get("$!");
 	    if (lastErr == Qnil) {
-	      rb_raise(rb_eTypeError, e.what());
+	      rb_raise(rb_eTypeError, "%s", e.what());
 	    }
 	  }
 	  return SWIG_ERROR;

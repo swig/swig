@@ -76,7 +76,7 @@
     catch ( const std::invalid_argument& )
       {
 	rb_raise(rb_eTypeError,
-		 "Yield block did not return a valid element for " #Container);
+		 "Yield block did not return a valid element for " "Container");
       }
     
     return $self;

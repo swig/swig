@@ -146,7 +146,8 @@
   VALUE inspect() const
     {
       VALUE tmp;
-      VALUE str = rb_str_new2( swig::type_name< pair >() );
+      const char *type_name = swig::type_name< pair >();
+      VALUE str = rb_str_new2( type_name );
       str = rb_str_cat2( str, " (" );
       tmp = swig::from( $self->first );
       tmp = rb_obj_as_string( tmp );

@@ -2,6 +2,9 @@ Version 1.3.41 (in progress)
 ============================
 
 2010-02-13: wsfulton
+            [Ruby] A few fixes for compiling under ruby-1.9.x including patch from 'Nibble'.
+
+2010-02-13: wsfulton
             [Ruby] Apply patch from Patrick Bennett to fix RARRAY_LEN and RARRAY_PTR usage for Ruby 1.9.x
             used in various STL wrappers.
 
