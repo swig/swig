@@ -32,7 +32,7 @@ namespace Spac {
   class Test {
   public:
   void something(::Dingaling t, ::Dingaling* pt, ::Dingaling& rt, const ::Dingaling& crt) {}
-  void tsomething(MyTemplate< ::Dingaling > t1, MyTemplate< const ::Dingaling& > t2) {}
+  void tsomething(MyTemplate< ::Dingaling > t1, MyTemplate< const ::Dingaling* > t2) {}
 //  void usomething(::MyTemplate< ::DINGALING > t3, ::MyTemplate< ::DINGALING *> t4) {} // needs fixing
   void nothing(::Spac::Ting*, ::Spac::TING&) {}
   };
