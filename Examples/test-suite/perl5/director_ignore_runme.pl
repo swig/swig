@@ -1,6 +1,8 @@
 use strict;
 use warnings;
-use director_ignore;
+use Test::More 'no_plan';
+BEGIN { use_ok 'director_ignore' }
+require_ok 'director_ignore';
 
 {
 	package DIgnoresDerived;
@@ -12,10 +14,10 @@ use director_ignore;
 }
 
 my $a = DIgnoresDerived->new();
-
-die "Triple failed" if $a->Triple(5) != 15;
+isa_ok $a, 'DIgnoresDerived';
+is $a->Triple(5), 15;
 
 my $b = DAbstractIgnoresDerived->new();
-
-die "Quadruple failed" if $b->Quadruple(5) != 20;
+isa_ok $b, 'DAbstractIgnoresDerived';
+is $b->Quadruple(5), 20;
 

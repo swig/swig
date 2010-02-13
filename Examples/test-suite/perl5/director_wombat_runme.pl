@@ -1,6 +1,8 @@
 use strict;
 use warnings;
-use director_wombat;
+use Test::More 'no_plan';
+BEGIN { use_ok 'director_wombat' }
+require_ok 'director_wombat';
 
 {
 	package director_wombat_Foo_integers_derived;
@@ -31,16 +33,20 @@ use director_wombat;
 }
 
 my $b = director_wombat::Bar->new();
+isa_ok $b, 'director_wombat::Bar';
 my $a = $b->meth();
-die "failure" if $a->meth(49) != 49;
+is $a->meth(49), 49;
 
 $a = director_wombat_Foo_integers_derived->new();
-die "failure" if $a->meth(62) != 62 + 2;
+isa_ok $a, 'director_wombat_Foo_integers_derived';
+is $a->meth(62), 62 + 2;
 
 $a = director_wombat_Foo_integers_derived_2->new();
-die "failure" if $a->meth(37) != 37;
+isa_ok $a, 'director_wombat_Foo_integers_derived_2';
+is $a->meth(37), 37;
 
 $b = director_wombat_Bar_derived_1->new();
+isa_ok $b, 'director_wombat_Bar_derived_1';
 $b->foo_meth_ref($a, 0);
 $b->foo_meth_ptr($a, 1);
 $b->foo_meth_val($a, 2);

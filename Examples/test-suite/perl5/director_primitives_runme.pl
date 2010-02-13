@@ -1,6 +1,8 @@
 use strict;
 use warnings;
-use director_primitives;
+use Test::More 'no_plan';
+BEGIN { use_ok 'director_primitives' }
+require_ok 'director_primitives';
 
 {
 	package PerlDerived;
@@ -33,6 +35,7 @@ use director_primitives;
 }
 
 my $myCaller = director_primitives::Caller->new();
+isa_ok $myCaller, 'director_primitives::Caller';
 
 {
 	my $myBase = director_primitives::Base->new(100.0);
@@ -50,14 +53,14 @@ my $myCaller = director_primitives::Caller->new();
 sub makeCalls { my($myCaller, $myBase) = @_;
 	$myCaller->set($myBase);
 	$myCaller->NoParmsMethodCall();
-	die "failed" unless $myCaller->BoolMethodCall(1);
-	die "failed" if $myCaller->BoolMethodCall(0);
-	die "failed" if $myCaller->IntMethodCall(-123) != -123;
-	die "failed" if $myCaller->UIntMethodCall(123) != 123;
-	die "failed" if $myCaller->FloatMethodCall(-123 / 128) != -0.9609375;
-	die "failed" if $myCaller->CharPtrMethodCall("test string") ne "test string";
-	die "failed" if $myCaller->ConstCharPtrMethodCall("another string") ne "another string";
-	die "failed" if $myCaller->EnumMethodCall($director_primitives::HShadowHard) != $director_primitives::HShadowHard;
+	is $myCaller->BoolMethodCall(1), '1';
+	is $myCaller->BoolMethodCall(0), '';
+	is $myCaller->IntMethodCall(-123), -123;
+	is $myCaller->UIntMethodCall(123), 123;
+	is $myCaller->FloatMethodCall(-123 / 128), -0.9609375;
+	is $myCaller->CharPtrMethodCall("test string"), "test string";
+	is $myCaller->ConstCharPtrMethodCall("another string"), "another string";
+	is $myCaller->EnumMethodCall($director_primitives::HShadowHard), $director_primitives::HShadowHard;
 	$myCaller->ManyParmsMethodCall(1, -123, 123, 123.456, "test string", "another string", $director_primitives::HShadowHard);
 	$myCaller->NotOverriddenMethodCall();
 	$myCaller->reset();

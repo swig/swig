@@ -1,6 +1,8 @@
 use strict;
 use warnings;
-use director_enum;
+use Test::More 'no_plan';
+BEGIN { use_ok 'director_enum' }
+require_ok 'director_enum';
 
 {
 	package MyFoo;
@@ -11,7 +13,9 @@ use director_enum;
 }
 
 my $b = director_enum::Foo->new();
+isa_ok $b, 'director_enum::Foo';
 my $a = MyFoo->new();
+isa_ok $a, 'MyFoo';
 
-die "RuntimeError" if $a->say_hi($director_enum::hello) !=
+is $a->say_hi($director_enum::hello),
 	$a->say_hello($director_enum::hi);

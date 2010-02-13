@@ -1,6 +1,8 @@
 use strict;
 use warnings;
-use director_nested;
+use Test::More 'no_plan';
+BEGIN { use_ok 'director_nested' }
+require_ok 'director_nested';
 
 {
 	package A;
@@ -10,8 +12,10 @@ use director_nested;
 }
 
 my $a = A->new();
-die "Bad A virtual resolution" if
-	$a->step() ne "Bar::step;Foo::advance;Bar::do_advance;A::do_step;";
+isa_ok $a, 'A';
+
+is $a->step(), "Bar::step;Foo::advance;Bar::do_advance;A::do_step;",
+	'A virtual resolution';
 
 {
 	package B;
@@ -24,9 +28,9 @@ die "Bad A virtual resolution" if
 }
 
 my $b = B->new();
-
-die "Bad B virtual resolution" if
-	$b->step() ne "Bar::step;Foo::advance;B::do_advance;B::do_step;";
+isa_ok $b, 'B';
+is $b->step(), "Bar::step;Foo::advance;B::do_advance;B::do_step;",
+	'B virtual resolution';
 
 {
 	package C;
@@ -48,9 +52,8 @@ die "Bad B virtual resolution" if
 }
 
 my $cc = C->new();
+isa_ok $cc, 'C';
 my $c = director_nested::FooBar_int->get_self($cc);
 $c->advance();
-
-die "RuntimeError" if $c->get_name() ne "FooBar::get_name hello";
-
-die "RuntimeError" if $c->name() ne "FooBar::get_name hello";
+is $c->get_name(), "FooBar::get_name hello";
+is $c->name(), "FooBar::get_name hello";

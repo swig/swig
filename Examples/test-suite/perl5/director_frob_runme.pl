@@ -1,9 +1,10 @@
 use strict;
 use warnings;
-use director_frob;
+use Test::More 'no_plan';
+BEGIN { use_ok 'director_frob' }
+require_ok 'director_frob';
 
 my $foo = director_frob::Bravo->new();
+isa_ok $foo, 'director_frob::Bravo';
 
-my $s = $foo->abs_method();
-
-die "RuntimeError: $s" if $s ne "Bravo::abs_method()";
+is($foo->abs_method(), 'Bravo::abs_method()');

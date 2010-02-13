@@ -305,6 +305,7 @@ CPP_TEST_CASES += \
 	static_const_member_2 \
 	struct_initialization_cpp \
 	struct_value \
+	symbol_clash \
 	template \
 	template_arg_replace \
 	template_arg_scope \

@@ -1,9 +1,16 @@
-#!/usr/bin/perl -w
 use strict;
-use Test::More tests => 9;
+use warnings;
+use Test::More tests => 11;
+BEGIN { use_ok 'operator_overload_break' }
+require_ok 'operator_overload_break';
+use constant {
+    true => '1',
+    false => '',
+};
 
-use operator_overload_break;
-
+# the .i dumps a pile on stdout we don't need to see when we runtests()
+use POSIX;
+POSIX::close(2);
 # Workaround for 
 #   ok( not (expression) , "test description" );
 # does not working in older versions of Perl, eg 5.004_04
@@ -13,43 +20,32 @@ sub ok_not ($;$) {
     ok($test, $name);
 }
 
-pass("loaded");
-
 my $op = operator_overload_break::Op->new(5);
 
 isa_ok($op, "operator_overload_break::Op");
 
-ok((2 == $op - 3),
-   "subtraction");
+is($op - 3 == 2, true, 'subtraction');
 
 $op->{k} = 37;
 
-ok((40 == $op + 3),
-   "addition");
+is($op + 3 == 40, true, "addition");
 
 $op->{k} = 22;
 
-ok((10 == (32 - $op)),
-   "reversed subtraction");
+is(32 - $op == 10, true, "reversed subtraction");
 
-ok_not((3 == $op),
-       'not equal');
+is($op == 3, false, 'not equal');
 
 $op->{k} = 3;
 
 ++$op;
-
-ok(($op == 4),
-   "pre-increment operator");
+is($op == 4, true, "pre-increment operator");
 
 $op++;
-
-ok(($op == 5),
-   "post-increment operator");
+is($op == 5, true, "post-increment operator");
 
 my $op2 = ++$op;
-
 $op2 = $op++;
 
-ok(($op == 7) and ($op2 == 7),
-   "multiple post-increments");
+is $op2 == 6, true, "multiple post-increments";
+is $op == 7, true, "multiple post-increments";

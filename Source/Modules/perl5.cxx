@@ -100,8 +100,16 @@ static String *var_stubs = 0;	/* Variable stubs */
 static String *exported = 0;	/* Exported symbols */
 static String *pragma_include = 0;
 static String *additional_perl_code = 0;	/* Additional Perl code from %perlcode %{ ... %} */
-static Hash *operators = 0;
-static int have_operators = 0;
+
+static Hash *operators;
+static void add_operator(const char *name, const char *oper, const char *impl) {
+  if (!operators) operators = NewHash();
+  Hash *elt = NewHash();
+  Setattr(elt, "name", name);
+  Setattr(elt, "oper", oper);
+  Setattr(elt, "impl", impl);
+  Setattr(operators, name, elt);
+}
 
 class PERL5:public Language {
 public:
@@ -117,9 +125,58 @@ public:
     director_prot_ctor_code = Copy(director_ctor_code);
     Replaceall(director_prot_ctor_code, "$nondirector_new",
         "SWIG_croak(\"$symname is not a public method\");");
+    add_operator("__eq__", "==",
+        "sub { $_[0]->__eq__($_[1]) }");
+    add_operator("__ne__", "!=",
+        "sub { $_[0]->__ne__($_[1]) }");
+    add_operator("__assign__", "=",
+        "sub { $_[0]->__assign__($_[1]) }"); // untested
+    add_operator("__str__", "\"\"",
+        "sub { $_[0]->__str__() }");
+    add_operator("__plusplus__", "++",
+        "sub { $_[0]->__plusplus__() }");
+    add_operator("__minmin__", "--",
+        "sub { $_[0]->__minmin__() }");
+    add_operator("__add__", "+",
+        "sub { $_[0]->__add__($_[1]) }");
+    add_operator("__sub__", "-",
+        "sub {\n"
+        "    return $_[0]->__sub__($_[1]) unless $_[2];\n"
+        "    return $_[0]->__rsub__($_[1]) if $_[0]->can('__rsub__');\n"
+        "    die(\"reverse subtraction not supported\");\n"
+        "  }");
+    add_operator("__mul__", "*",
+        "sub { $_[0]->__mul__($_[1]) }");
+    add_operator("__div__", "/",
+        "sub { $_[0]->__div__($_[1]) }");
+    add_operator("__mod__", "%",
+        "sub { $_[0]->__mod__($_[1]) }");
+    add_operator("__and__", "&",
+        "sub { $_[0]->__and__($_[1]) }"); // untested
+    add_operator("__or__", "|",
+        "sub { $_[0]->__or__($_[1]) }"); // untested
+    add_operator("__gt__", ">",
+        "sub { $_[0]->__gt__($_[1]) }");
+    add_operator("__ge__", ">=",
+        "sub { $_[0]->__ge__($_[1]) }");
+    add_operator("__not__", "!",
+        "sub { $_[0]->__not__() }");
+    add_operator("__lt__", "<",
+        "sub { $_[0]->__lt__($_[1]) }");
+    add_operator("__le__", "<=",
+        "sub { $_[0]->__le__($_[1]) }");
+    add_operator("__pluseq__",
+        "+=", "sub { $_[0]->__pluseq__($_[1]) }");
+    add_operator("__mineq__",
+        "-=", "sub { $_[0]->__mineq__($_[1]) }");
+    add_operator("__neg__",
+        "neg",  "sub { $_[0]->__neg__() }");
+    add_operator("__deref__",
+        "${}", "sub { \\ $_[0]->__deref__() }"); // smart pointer unwrap
   }
   ~PERL5() {
     Delete(director_prot_ctor_code);
+    Delete(operators);
   }
 
   /* Test to see if a type corresponds to something wrapped with a shadow class */
@@ -499,12 +556,16 @@ public:
       /* TODO: this is kind of a hack because we don't have much control
        * over the stuff in naming.c from here, and
        * Language::classDirectorDisown() constructs the node to pass
-       * here internally. */
+       * here internally.
+       * additionally, it doesn't assert "hidden" on it's self param,
+       * and that musses our usage_func(), so let's fix that.
+       */
       if(CurrentClass) {
         String *tmp = NewStringf("disown_%s", ClassName);
         if(Equal(iname, tmp)) {
           pname = NewStringf("%s::_swig_disown", ClassName);
           Setattr(n, "perl5:name", NewStringf("%s::disown", ClassName));
+          Setattr(Getattr(n, "parms"), "hidden", "1");
         }
         Delete(tmp);
       }
@@ -630,10 +691,13 @@ public:
       Printf(f->code, "    if (items < %d) {\n",
         num_required);
     }
-    Printf(f->code,
-        "        SWIG_croak(\"Usage: %s\");\n"
-        "}\n",
-        usage_func(Char(pname), d, l));
+    {
+      String *usage = usage_func(n);
+      Printf(f->code,
+          "        SWIG_croak(\"Usage: %s\");\n"
+          "}\n", usage);
+      Delete(usage);
+    }
 
     /* Write code to extract parameters. */
     i = 0;
@@ -1048,38 +1112,58 @@ public:
   /* ------------------------------------------------------------
    * usage_func()
    * ------------------------------------------------------------ */
-  char *usage_func(char *iname, SwigType *, ParmList *l) {
-    static String *temp = 0;
-    Parm *p;
-    int i;
+  String *usage_func(Node *n) {
+    ParmList *p = Getattr(n, "parms");
+    String *pcall = 0;
+    String *pname = 0;
 
-    if (!temp)
-      temp = NewString("");
-    Clear(temp);
-    Printf(temp, "%s(", iname);
+    pname = Getattr(n, "perl5:name");
+    if(!pname) pname = Getattr(n, "sym:name");
+
+    if(p && CurrentClass) {
+      if (GetFlag(p, "arg:classref")) {
+        /* class method */
+        String *src = NewStringf("%s::", ClassName);
+        String *dst = NewStringf("%s::%s->",
+            namespace_module, ClassName);
+        pcall = NewStringf("%s(", pname);
+        Replace(pcall, src, dst, DOH_REPLACE_FIRST);
+        p = nextSibling(p);
+        Delete(src);
+        Delete(dst);
+      } else if (GetFlag(p, "hidden") && Equal(Getattr(p, "name"), "self")) {
+        String *src = NewStringf("%s::", ClassName);
+        String *dst = NewStringf("[%s::%s object]->",
+            namespace_module, ClassName);
+        pcall = NewStringf("%s(", pname);
+        Replace(pcall, src, dst, DOH_REPLACE_FIRST);
+        p = nextSibling(p);
+        Delete(src);
+        Delete(dst);
+      }
+    }
+    if (!pcall)
+      pcall = NewStringf("%s::%s(", namespace_module, pname);
 
     /* Now go through and print parameters */
-    p = l;
-    i = 0;
-    while (p != 0) {
+    for(int i = 0; p; p = nextSibling(p)) {
       SwigType *pt = Getattr(p, "type");
       String *pn = Getattr(p, "name");
-      if (!checkAttribute(p,"tmap:in:numinputs","0")) {
-        if (i > 0) Append(temp, ",");
-	/* If parameter has been named, use that.   Otherwise, just print a type  */
-	if (SwigType_type(pt) != T_VOID) {
-	  if (Len(pn) > 0) {
-	    Printf(temp, "%s", pn);
-	  } else {
-	    Printf(temp, "%s", SwigType_str(pt, 0));
-	  }
-	}
-	i++;
+      if (checkAttribute(p, "tmap:in:numinputs", "0")) continue;
+
+      if (i > 0) Append(pcall, ",");
+      /* If parameter has been named, use that.   Otherwise, just print a type  */
+      if (SwigType_type(pt) != T_VOID) {
+        if (Len(pn) > 0) {
+          Append(pcall, pn);
+        } else {
+          Append(pcall, SwigType_str(pt, 0));
+        }
       }
-      p = nextSibling(p);
+      i = 1;
     }
-    Printf(temp, ");");
-    return Char(temp);
+    Append(pcall, ");");
+    return pcall;
   }
 
   /* ------------------------------------------------------------
@@ -1206,8 +1290,6 @@ public:
     Setattr(n, "perl5:memberVariables", NewList());
 
     if (blessed) {
-      have_operators = 0;
-      operators = NewHash();
 
       if (!addSymbol(ClassName, n))
 	return SWIG_ERROR;
@@ -1337,77 +1419,17 @@ public:
         Delete(ct);
       }}
 
-      if (have_operators) {
+      List *opers = Getattr(n, "perl5:operators");
+      if (opers) {
 	Printf(pm, "use overload\n");
-	Iterator ki;
-	for (ki = First(operators); ki.key; ki = Next(ki)) {
-	  char *name = Char(ki.key);
-	  //        fprintf(stderr,"found name: <%s>\n", name);
-	  if (strstr(name, "__eq__")) {
-	    Printv(pm, tab4, "\"==\" => sub { $_[0]->__eq__($_[1])},\n",NIL);
-	  } else if (strstr(name, "__ne__")) {
-	    Printv(pm, tab4, "\"!=\" => sub { $_[0]->__ne__($_[1])},\n",NIL);
-	    // there are no tests for this in operator_overload_runme.pl
-	    // it is likely to be broken
-	    //	  } else if (strstr(name, "__assign__")) {
-	    //	    Printv(pm, tab4, "\"=\" => sub { $_[0]->__assign__($_[1])},\n",NIL);
-	  } else if (strstr(name, "__str__")) {
-	    Printv(pm, tab4, "'\"\"' => sub { $_[0]->__str__()},\n",NIL);
-	  } else if (strstr(name, "__plusplus__")) {
-	    Printv(pm, tab4, "\"++\" => sub { $_[0]->__plusplus__()},\n",NIL);
-	  } else if (strstr(name, "__minmin__")) {
-	    Printv(pm, tab4, "\"--\" => sub { $_[0]->__minmin__()},\n",NIL);
-	  } else if (strstr(name, "__add__")) {
-	    Printv(pm, tab4, "\"+\" => sub { $_[0]->__add__($_[1])},\n",NIL);
-	  } else if (strstr(name, "__sub__")) {
-	    Printv(pm, tab4, "\"-\" => sub {  if( not $_[2] ) { $_[0]->__sub__($_[1]) }\n",NIL);
-	    Printv(pm, tab8, "elsif( $_[0]->can('__rsub__') ) { $_[0]->__rsub__($_[1]) }\n",NIL);
-	    Printv(pm, tab8, "else { die(\"reverse subtraction not supported\") }\n",NIL);
-	    Printv(pm, tab8, "},\n",NIL);
-	  } else if (strstr(name, "__mul__")) {
-	    Printv(pm, tab4, "\"*\" => sub { $_[0]->__mul__($_[1])},\n",NIL);
-	  } else if (strstr(name, "__div__")) {
-	    Printv(pm, tab4, "\"/\" => sub { $_[0]->__div__($_[1])},\n",NIL);
-	  } else if (strstr(name, "__mod__")) {
-	    Printv(pm, tab4, "\"%\" => sub { $_[0]->__mod__($_[1])},\n",NIL);
-	    // there are no tests for this in operator_overload_runme.pl
-	    // it is likely to be broken
-	    //	  } else if (strstr(name, "__and__")) {
-	    //	    Printv(pm, tab4, "\"&\" => sub { $_[0]->__and__($_[1])},\n",NIL);
-
-	    // there are no tests for this in operator_overload_runme.pl
-	    // it is likely to be broken
-	    //	  } else if (strstr(name, "__or__")) {
-	    //	    Printv(pm, tab4, "\"|\" => sub { $_[0]->__or__($_[1])},\n",NIL);
-	  } else if (strstr(name, "__gt__")) {
-	    Printv(pm, tab4, "\">\" => sub { $_[0]->__gt__($_[1])},\n",NIL);
-          } else if (strstr(name, "__ge__")) {
-            Printv(pm, tab4, "\">=\" => sub { $_[0]->__ge__($_[1])},\n",NIL);
-	  } else if (strstr(name, "__not__")) {
-	    Printv(pm, tab4, "\"!\" => sub { $_[0]->__not__()},\n",NIL);
-	  } else if (strstr(name, "__lt__")) {
-	    Printv(pm, tab4, "\"<\" => sub { $_[0]->__lt__($_[1])},\n",NIL);
-          } else if (strstr(name, "__le__")) {
-            Printv(pm, tab4, "\"<=\" => sub { $_[0]->__le__($_[1])},\n",NIL);
-	  } else if (strstr(name, "__pluseq__")) {
-	    Printv(pm, tab4, "\"+=\" => sub { $_[0]->__pluseq__($_[1])},\n",NIL);
-	  } else if (strstr(name, "__mineq__")) {
-	    Printv(pm, tab4, "\"-=\" => sub { $_[0]->__mineq__($_[1])},\n",NIL);
-	  } else if (strstr(name, "__neg__")) {
-	    Printv(pm, tab4, "\"neg\" => sub { $_[0]->__neg__()},\n",NIL);
-	  } else {
-	    fprintf(stderr,"Unknown operator: %s\n", name);
-	  }
+	for (Iterator ki = First(opers); ki.item; ki = Next(ki)) {
+          Printf(pm, "  '%s' => %s,\n",
+              Getattr(ki.item, "oper"), Getattr(ki.item, "impl"));
 	}
-	Printv(pm, tab4,
-               "\"=\" => sub { my $class = ref($_[0]); $class->new($_[0]) },\n", NIL);
-	Printv(pm, tab4, "\"fallback\" => 1;\n", NIL);
+        if (!Getattr(opers, "__assign__"))
+          Append(pm, "  '=' => sub { ref($_[0])->new($_[0]) },\n");
+	Append(pm, "  'fallback' => 1;\n");
       }
-      // make use strict happy
-      Printv(pm, "use vars qw(%OWNER);\n", NIL);
-
-      /* Dump out a hash table containing the pointers that we own */
-      Printf(pm, "%%OWNER = ();\n");
 
       /* Dump out the package methods */
       Printv(pm, pcode, NIL);
@@ -1421,8 +1443,6 @@ public:
 
       Delete(none_comparison);
       none_comparison = outer_nc;
-      Delete(operators);
-      operators = 0;
     }
     CurrentClass = outer_class; 
     return SWIG_OK;
@@ -1466,69 +1486,14 @@ public:
     if (blessed && !Getattr(n, "sym:nextSibling")) {
       String *symname = Getattr(n, "sym:name");
 
-      if (Strstr(symname, "__eq__")) {
-	DohSetInt(operators, "__eq__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__ne__")) {
-	DohSetInt(operators, "__ne__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__assign__")) {
-	DohSetInt(operators, "__assign__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__str__")) {
-	DohSetInt(operators, "__str__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__add__")) {
-	DohSetInt(operators, "__add__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__sub__")) {
-	DohSetInt(operators, "__sub__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__mul__")) {
-	DohSetInt(operators, "__mul__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__div__")) {
-	DohSetInt(operators, "__div__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__mod__")) {
-	DohSetInt(operators, "__mod__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__and__")) {
-	DohSetInt(operators, "__and__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__or__")) {
-	DohSetInt(operators, "__or__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__not__")) {
-	DohSetInt(operators, "__not__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__gt__")) {
-	DohSetInt(operators, "__gt__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__ge__")) {
-	DohSetInt(operators, "__ge__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__lt__")) {
-	DohSetInt(operators, "__lt__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__le__")) {
-	DohSetInt(operators, "__le__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__neg__")) {
-	DohSetInt(operators, "__neg__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__plusplus__")) {
-	DohSetInt(operators, "__plusplus__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__minmin__")) {
-	DohSetInt(operators, "__minmin__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__mineq__")) {
-	DohSetInt(operators, "__mineq__", 1);
-	have_operators = 1;
-      } else if (Strstr(symname, "__pluseq__")) {
-	DohSetInt(operators, "__pluseq__", 1);
-	have_operators = 1;
+      Hash *oper = Getattr(operators, symname);
+      if (oper) {
+        List *class_oper = Getattr(CurrentClass, "perl5:operators");
+        if (!class_oper) {
+          class_oper = NewList();
+          Setattr(CurrentClass, "perl5:operators", class_oper);
+        }
+        Append(class_oper, oper);
       }
     }
     return Language::memberfunctionHandler(n);
@@ -1655,6 +1620,7 @@ public:
       SwigType_add_pointer(type);
       Parm *p = NewParm(type, "proto", n);
       Delete(type);
+      Setattr(p, "arg:classref", "1");
       set_nextSibling(p, Getattr(n, "parms"));
       Setattr(n, "parms", p);
       signature = Swig_method_decl(Getattr(n, "type"),
@@ -1831,8 +1797,7 @@ public:
         switch(outputs) {
           case 0:
             Printf(w->code, "call_method(\"%s\", G_EVAL | G_VOID);\n",
-                Equal(Getattr(n, "nodeType"), "destructor") ?
-                  "DESTROY" : name);
+                name);
             break;
           case 1:
             Wrapper_add_local(w, "w_count", "I32 w_count");

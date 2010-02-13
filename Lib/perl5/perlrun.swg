@@ -44,7 +44,7 @@
 /* Error manipulation */
 
 #define SWIG_ErrorType(code)                            SWIG_Perl_ErrorType(code)               
-#define SWIG_Error(code, msg)            		sv_setpvf(GvSV(PL_errgv),"%s %s\n", SWIG_ErrorType(code), msg)
+#define SWIG_Error(code, msg)            		sv_setpvf(GvSV(PL_errgv),"%s %s", SWIG_ErrorType(code), msg)
 #define SWIG_fail                        		goto fail						    
 
 /* Perl-specific SWIG API */

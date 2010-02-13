@@ -762,7 +762,7 @@ public:
     /* Create a function to set the values of the (mutable) variables */
     if (need_setter) {
       Wrapper *wrapper = NewWrapper();
-      String *setter = Swig_name_member(getClassPrefix(), (char *) "`->=");
+      String *setter = Swig_name_member(getClassPrefix(), "`->=");
       String *wname = Swig_name_wrapper(setter);
       Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
       Printf(wrapper->locals, "char *name = (char *) STR0(Pike_sp[0-args].u.string);\n");
@@ -801,7 +801,7 @@ public:
 
     /* Create a function to get the values of the (mutable) variables */
     Wrapper *wrapper = NewWrapper();
-    String *getter = Swig_name_member(getClassPrefix(), (char *) "`->");
+    String *getter = Swig_name_member(getClassPrefix(), "`->");
     String *wname = Swig_name_wrapper(getter);
     Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
     Printf(wrapper->locals, "char *name = (char *) STR0(Pike_sp[0-args].u.string);\n");

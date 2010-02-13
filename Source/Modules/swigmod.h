@@ -208,8 +208,9 @@ public:
 
   /* Miscellaneous */
   virtual int validIdentifier(String *s);	/* valid identifier? */
-  virtual int addSymbol(const String *s, const Node *n);	/* Add symbol        */
-  virtual Node *symbolLookup(String *s);	/* Symbol lookup     */
+  virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");	/* Add symbol        */
+  virtual void dumpSymbols();
+  virtual Node *symbolLookup(String *s, const_String_or_char_ptr scope = "");			/* Symbol lookup     */
   virtual Node *classLookup(SwigType *s);	/* Class lookup      */
   virtual Node *enumLookup(SwigType *s);	/* Enum lookup       */
   virtual int abstractClassTest(Node *n);	/* Is class really abstract? */
@@ -304,7 +305,7 @@ protected:
   int director_language;
 
 private:
-  Hash *symbols;
+  Hash *symtabs; /* symbol tables */
   Hash *classtypes;
   Hash *enumtypes;
   int overloading;

@@ -1,6 +1,8 @@
 use strict;
 use warnings;
-use director_protected;
+use Test::More 'no_plan';
+BEGIN { use_ok 'director_protected' }
+require_ok 'director_protected';
 
 {
 	package FooBar;
@@ -15,61 +17,32 @@ use director_protected;
 }
 
 my $b  = director_protected::Bar->new();
+isa_ok $b, 'director_protected::Bar';
 my $f  = $b->create();
 my $fb = FooBar->new();
+isa_ok $fb, 'FooBar';
 my $fb2 = FooBar2->new();
+isa_ok $fb2, 'FooBar2';
 
-my $s = $fb->used();
-die "RuntimeError" if
-	$s ne "Foo::pang();Bar::pong();Foo::pong();FooBar::ping();";
+is $b->used(), "Foo::pang();Bar::pong();Foo::pong();Bar::ping();";
+eval { $f->used() };
+like $@, qr/protected member/;
+is $fb->used(), "Foo::pang();Bar::pong();Foo::pong();FooBar::ping();";
+is $fb2->used(), "FooBar2::pang();Bar::pong();Foo::pong();FooBar2::ping();";
 
-eval {
-	$s = $fb->used();
-	die if $s ne "Foo::pang();Bar::pong();Foo::pong();FooBar::ping();";
-};
-die "bad FooBar::used" if $@;
+is $b->pong(), "Bar::pong();Foo::pong();Bar::ping();";
+is $f->pong(), "Bar::pong();Foo::pong();Bar::ping();";
+is $fb->pong(), "Bar::pong();Foo::pong();FooBar::ping();";
+is $fb2->pong(), "Bar::pong();Foo::pong();FooBar2::ping();";
 
-eval {
-	$s = $fb2->used();
-	die if $s ne "FooBar2::pang();Bar::pong();Foo::pong();FooBar2::ping();";
-};
-die "bad FooBar2::used" if $@;
+eval { $b->ping() };
+like $@, qr/protected member/;
+eval { $f->ping () };
+like $@, qr/protected member/;
+is $fb->ping(), 'FooBar::ping();';
+is $fb2->ping(), 'FooBar2::ping();';
 
-eval {
-	$s = $b->pong();
-	die if $s ne "Bar::pong();Foo::pong();Bar::ping();";
-};
-die "bad Bar::pong" if $@;
-
-eval {
-	$s = $f->pong();
-	die if $s ne "Bar::pong();Foo::pong();Bar::ping();";
-};
-die "bad Foo::pong $@" if $@;
-
-eval {
-	$s = $fb->pong();
-	die if $s ne "Bar::pong();Foo::pong();FooBar::ping();";
-};
-die "bad FooBar::pong" if $@;
-
-my $protected = 1;
-eval {
-	$b->ping();
-	$protected = 0;
-};
-die "Boo::ping is protected" unless $protected;
-  
-$protected = 1;
-eval {
-	$f->ping();
-	$protected = 0;
-};
-die "Foo::ping is protected" unless $protected;
-
-$protected = 1;
-eval {
-	$f->pang();
-	$protected = 0;
-};
-die "FooBar::pang is protected" unless $protected;
+eval { $b->pang() };
+like $@, qr/protected member/;
+eval { $f->pang() };
+like $@, qr/protected member/;

@@ -1,11 +1,8 @@
-# Test case from bug #1506850
-#"When threading is enabled, the interpreter will infinitely wait on a mutex the second
-#time this type of extended method is called. Attached is an example
-#program that waits on the mutex to be unlocked."
 use strict;
 use warnings;
-use director_extend;
-# I don't think this test applies to perl, but including for completness
+use Test::More 'no_plan';
+BEGIN { use_ok 'director_extend' }
+require_ok 'director_extend';
 
 {
 	package MyObject;
@@ -14,5 +11,6 @@ use director_extend;
 }
 
 my $m = MyObject->new();
-die "1st call" if $m->dummy() != 666;
-die "2nd call" if $m->dummy() != 666;                   # Locked system
+isa_ok $m, 'MyObject';
+is($m->dummy(), 666, '1st call');
+is($m->dummy(), 666, '2nd call');

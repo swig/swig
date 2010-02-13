@@ -966,10 +966,10 @@ MODULA3():
     Printf(f_runtime, "#define SWIGMODULA3\n");
     Printf(f_runtime, "\n");
 
-    Swig_name_register((char *) "wrapper", (char *) "Modula3_%f");
+    Swig_name_register("wrapper", "Modula3_%f");
     if (old_variable_names) {
-      Swig_name_register((char *) "set", (char *) "set_%v");
-      Swig_name_register((char *) "get", (char *) "get_%v");
+      Swig_name_register("set", "set_%v");
+      Swig_name_register("get", "get_%v");
     }
 
     Printf(f_wrappers, "\n#ifdef __cplusplus\n");
