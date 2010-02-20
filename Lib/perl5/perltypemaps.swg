@@ -64,7 +64,7 @@
 %end_block %enddef
 
 /* raise exception */
-%define %raise(obj, type, desc) sv_setsv(GvSV(PL_errgv), obj); SWIG_fail %enddef
+%define %raise(obj, type, desc) sv_setsv(ERRSV, obj); SWIG_fail %enddef
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
@@ -73,3 +73,6 @@
  *  Perl extra typemaps
  * ------------------------------------------------------------ */
 
+%typemap(throws,noblock=1) Swig::DirectorException {
+  %raise($1.sv, "$type", $&descriptor);
+}

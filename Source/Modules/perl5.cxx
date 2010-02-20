@@ -806,6 +806,7 @@ public:
     }
 
     if (is_member_director(n) && !is_smart_pointer()) {
+      Swig_save("perl5:functionWrapper", n, "catchlist", NIL);
       Wrapper_add_local(f, "upcall", "bool upcall");
       Append(f->code,
           "{\n"
@@ -824,8 +825,13 @@ public:
       }
       Append(f->code,
           "  }\n"
-          "}\n"
-          "try {\n");
+          "}\n");
+      {
+        Parm *catchlist = NewHash();
+        Setattr(catchlist, "type", "Swig::DirectorException");
+        set_nextSibling(catchlist, Getattr(n, "catchlist"));
+        Setattr(n, "catchlist", catchlist);
+      }
     }
 
     /* Now write code to make the function call */
@@ -847,13 +853,8 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
-    if (is_member_director(n) && !is_smart_pointer()) {
-      Append(f->code,
-          "} catch (Swig::DirectorException &e) {\n"
-          "  SvSetSV(ERRSV, e.sv);\n"
-          "  SWIG_fail;\n"
-          "}\n");
-    }
+    if (is_member_director(n) && !is_smart_pointer())
+      Swig_restore(n);
     emit_return_variable(n, d, f);
 
     /* If there were any output args, take care of them. */

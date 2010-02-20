@@ -44,7 +44,7 @@
 /* Error manipulation */
 
 #define SWIG_ErrorType(code)                            SWIG_Perl_ErrorType(code)               
-#define SWIG_Error(code, msg)            		sv_setpvf(GvSV(PL_errgv),"%s %s", SWIG_ErrorType(code), msg)
+#define SWIG_Error(code, msg)                           sv_setpvf(ERRSV, "%s %s\n", SWIG_ErrorType(code), msg)
 #define SWIG_fail                        		goto fail						    
 
 /* Perl-specific SWIG API */
@@ -267,80 +267,76 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
 }
 
 /* wrapping & unwrapping native opaque pointers */
-SWIGINTERN int
-SWIG_Perl_ConvertWr(swig_perl_wrap *wrap,
-    void **ptr, swig_type_info *t, int flags, int *own) {
-  if(flags & SWIG_POINTER_DISOWN)
-    wrap->own &= ~SWIG_POINTER_OWN;
-  if(ptr) *ptr = wrap->ptr;
-  return SWIG_OK;
-}
-SWIGINTERN int
-SWIG_Perl_ConvertMg(MAGIC *mg, void **ptr, swig_type_info *t,
-        int flags, int *own) {
-  swig_perl_wrap *wrap = (swig_perl_wrap *)mg->mg_ptr;
-  if(flags & SWIG_POINTER_DISOWN)
-    wrap->own &= ~SWIG_POINTER_OWN;
-  *ptr = wrap->ptr;
-  return SWIG_OK;
-}
 /* calling SWIG_ConvertPtr with ptr == 0 is a request to check if such a
  * conversion is legitimate */
-SWIGINTERN int
-SWIG_Perl_ConvertSv(SV *sv, void **ptr, swig_type_info *_t, int flags, int *own) {
-  swig_cast_info *tc;
-  void *voidptr = (void *)0;
-  MAGIC *mg;
-
-  if (own)
-    *own = 0;
-  SvGETMAGIC(sv);
-  if (!SvOK(sv)) {
-    if (ptr) *ptr = (void *) 0;
-    return SWIG_OK;
-  }
-  if (!SvROK(sv))
-    return SWIG_ERROR;
-  /* runtime type checks:
-   * _t == 0 means no typecheck restrictions (void* style)
-   * TypeProxyCheck() succeeds on a c/c++ inheritance
-   * sv_derived_from succeeds on Perl inheritance
-   */
-  if (_t) {
-    const char *c = sv_reftype(SvRV(sv), 1);
-    tc = SWIG_TypeProxyCheck(c, _t);
-    if(!tc && !sv_derived_from(sv, SWIG_Perl_TypeProxyName(_t)))
-      return SWIG_ERROR;
-  } else tc = 0;
-  mg = mg_find(SvRV(sv), PERL_MAGIC_ext);
-  if (!mg)
-    return SWIG_ERROR;
-  if (ptr) {
-    SWIG_Perl_ConvertMg(mg, &voidptr, _t, flags, own);
-    if (tc) {
-      int newmemory = 0;
-      *ptr = SWIG_TypeCast(tc, voidptr, &newmemory);
-      if (newmemory == SWIG_CAST_NEW_MEMORY) {
-        assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
-        if (own)
-          *own = *own | SWIG_CAST_NEW_MEMORY;
-      }
-    } else {
-      *ptr = voidptr;
-    }
-  }
-  return SWIG_OK;
-}
 SWIGRUNTIME int
 SWIG_Perl_ConvertPtrAndOwn(void *obj, void **ptr,
     swig_type_info *t, int flags, int *own) {
-  if (!(flags & (SWIG_POINTER_MG | SWIG_POINTER_WR)))
-    return SWIG_Perl_ConvertSv((SV *)obj, ptr, t, flags, own);
-  if (flags & SWIG_POINTER_MG)
-    return SWIG_Perl_ConvertMg((MAGIC *)obj, ptr, t, flags, own);
-  if (flags & SWIG_POINTER_WR)
-    return SWIG_Perl_ConvertWr((swig_perl_wrap *)obj, ptr, t, flags, own);
-  return SWIG_ERROR;
+  swig_perl_wrap *wrap = 0;
+  swig_cast_info *tc = 0;
+  void *voidptr = 0;
+
+  switch(flags & (SWIG_POINTER_MG | SWIG_POINTER_WR)) {
+    /* a typical pointer conversion is to extract a raw pointer out of
+     * an SV that represents the pointer, but for certain kinds of
+     * class/struct accesses (attributes and destructors) there are
+     * smipler, quicker conversions. */
+    default:
+      return SWIG_ERROR;
+    case 0: {
+      SV *sv = (SV *)obj;
+      MAGIC *mg;
+
+      if (own)
+        *own = 0;
+      SvGETMAGIC(sv);
+      if (!SvOK(sv)) {
+        if (ptr) *ptr = (void *) 0;
+        return SWIG_OK;
+      }
+      if (!SvROK(sv))
+        return SWIG_ERROR;
+      /* runtime type checks:
+       * t == 0 means no typecheck restrictions (void* style)
+       * TypeProxyCheck() succeeds on a c/c++ inheritance
+       * sv_derived_from succeeds on Perl inheritance
+       */
+      if (t) {
+        const char *c = sv_reftype(SvRV(sv), 1);
+        tc = SWIG_TypeProxyCheck(c, t);
+        if (!tc && !sv_derived_from(sv, SWIG_Perl_TypeProxyName(t)))
+          return SWIG_ERROR;
+      } else {
+        tc = 0;
+      }
+      mg = mg_find(SvRV(sv), PERL_MAGIC_ext);
+      if (!mg) /* maybe an object, but not one of ours */
+        return SWIG_ERROR;
+      if (!ptr) /* just a type check request, okay to drop out now */
+        return SWIG_OK;
+      obj = mg;
+    }
+    case SWIG_POINTER_MG:
+      obj = ((MAGIC *)obj)->mg_ptr;
+    case SWIG_POINTER_WR: /* no conversion necessary */
+      ;
+  }
+  wrap = (swig_perl_wrap *)obj;
+  if(flags & SWIG_POINTER_DISOWN)
+    wrap->own &= ~SWIG_POINTER_OWN;
+  voidptr = wrap->ptr;
+  if (tc) {
+    int newmemory = 0;
+    *ptr = SWIG_TypeCast(tc, voidptr, &newmemory);
+    if (newmemory == SWIG_CAST_NEW_MEMORY) {
+      assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+      if (own)
+        *own = *own | SWIG_CAST_NEW_MEMORY;
+    }
+  } else {
+    *ptr = voidptr;
+  }
+  return SWIG_OK;
 }
 
 SWIGINTERN SV *
@@ -350,6 +346,33 @@ SWIG_Perl_WrapVar(SV *sv, MGVTBL *vtbl, swig_perl_wrap *wrap) {
   return sv;
 }
 
+#if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 9)
+#define SWIG_PERL_EXPERIMENTAL_MAKEPTR 1
+SWIGINTERN void
+SWIG_Perl_FindFields(HV *hv, SV *proto, swig_type_info *t) {
+  /* this is analagous to fields::_accessible_keys() looking to populate
+   * the placeholders into empty slots in the hash that is about to be
+   * locked. */
+  IV i;
+  SV *tmp;
+  AV *isa;
+  HV *fields;
+  if (strEQ(SvPV_nolen(proto), SWIG_Perl_TypeProxyName(t))) return;
+  tmp = newSVpvf("%s::FIELDS", SvPV_nolen(proto));
+  fields = get_hv(SvPV_nolen(tmp), 0);
+  if(fields) {
+    hv_iterinit(fields);
+    HE *he;
+    while(he = hv_iternext(fields)) {
+      hv_store_ent(hv, hv_iterkeysv(he), &PL_sv_placeholder, 0);
+    }
+  }
+  sv_setpvf(tmp, "%s::ISA", SvPV_nolen(proto));
+  isa = get_av(SvPV_nolen(tmp), 0);
+  if (isa) for (i = 0; i < av_len(isa); i++)
+    SWIG_Perl_FindFields(hv, *(av_fetch(isa, i, 0)), t);
+}
+#endif
 SWIGINTERN SV *
 SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
     SV *proto) {
@@ -385,6 +408,35 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
   wrap->ti = t;
 
   if(ext) {
+#if SWIG_PERL_EXPERIMENTAL_MAKEPTR
+    /* this is compatible with the base.pm and fields.pm pragmas.
+     * we end up having to assume some of the guts of fields::new() and
+     * Hash::Util::lock_keys() to accomplish this without a call into
+     * the interpreter.
+     */
+    SvSetSV(sv, newRV_noinc((SV *)newHV()));
+    /* that seems like a leak, but 
+    SvSetSV(sv, sv_2mortal(newRV_noinc((SV *)newHV())));
+       caused segfaults. */
+    sv_bless(sv, gv_stashsv(proto, GV_ADD));
+    SvREFCNT_dec(SvRV(sv));
+
+    /* populate the attributes that are defined in perl with
+     * placeholders. */
+    SWIG_Perl_FindFields((HV *)SvRV(sv), proto, t);
+
+    /* populate wrap accessors for attributes coming from c++ */
+    vtbl = &ext->vtbl;
+    if(ext->attr) { /* populate object attribute stubs */
+      int i;
+      for(i = 0; i < ext->nattr; i++) {
+        SV *k = sv_2mortal(newSVpv(ext->attr[i].name, 0));
+        SV *v = SWIG_Perl_WrapVar(newSV(0), &ext->attr[i].vtbl, wrap);
+        hv_store_ent((HV *)SvRV(sv), k, v, 0);
+      }
+    }
+    SvREADONLY_on(SvRV(sv));
+#else /* SWIG_PERL_EXPERIMENTAL_MAKEPTR */
     /* pointer_reference.i for sample of shadow set without ext */
 
     /* So many object models out there...
@@ -433,6 +485,7 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
 #endif
       }
     }
+#endif /* SWIG_PERL_EXPERIMENTAL_MAKEPTR */
   } else {
     SV *tmp = sv_newmortal();
     newSVrv(tmp, SWIG_Perl_TypeProxyName(t));

@@ -446,11 +446,10 @@ namespace swig
   %typemap(out,noblock=1,fragment="RubySequence_Cont")
     std::pair<const_iterator, const_iterator> {
     $result = rb_ary_new2(2);
-    RARRAY_PTR($result)[0] = SWIG_NewPointerObj(swig::make_const_iterator(%static_cast($1,const $type &).first),
-						swig::ConstIterator::descriptor(),SWIG_POINTER_OWN);
-    RARRAY_PTR($result)[1] = SWIG_NewPointerObj(swig::make_const_iterator(%static_cast($1,const $type &).second),
-						swig::ConstIterator::descriptor(),SWIG_POINTER_OWN);
-    RARRAY_LEN($result) = 2;
+    rb_ary_push($result, SWIG_NewPointerObj(swig::make_const_iterator(%static_cast($1,const $type &).first),
+					    swig::ConstIterator::descriptor(),SWIG_POINTER_OWN));
+    rb_ary_push($result, SWIG_NewPointerObj(swig::make_const_iterator(%static_cast($1,const $type &).second),
+					    swig::ConstIterator::descriptor(),SWIG_POINTER_OWN));
   }
 
   // std::map/multimap/set allow returning std::pair< iterator, iterator > from
@@ -459,11 +458,10 @@ namespace swig
   %typemap(out,noblock=1,fragment="RubySequence_Cont")
     std::pair<iterator, iterator> {
     $result = rb_ary_new2(2);
-    RARRAY_PTR($result)[0] = SWIG_NewPointerObj(swig::make_const_iterator(%static_cast($1,const $type &).first),
-						swig::ConstIterator::descriptor(),SWIG_POINTER_OWN);
-    RARRAY_PTR($result)[1] = SWIG_NewPointerObj(swig::make_const_iterator(%static_cast($1,const $type &).second),
-						swig::ConstIterator::descriptor(),SWIG_POINTER_OWN);
-    RARRAY_LEN($result) = 2;
+    rb_ary_push($result, SWIG_NewPointerObj(swig::make_const_iterator(%static_cast($1,const $type &).first),
+					    swig::ConstIterator::descriptor(),SWIG_POINTER_OWN));
+    rb_ary_push($result, SWIG_NewPointerObj(swig::make_const_iterator(%static_cast($1,const $type &).second),
+					    swig::ConstIterator::descriptor(),SWIG_POINTER_OWN));
   }
 
 
@@ -566,7 +564,8 @@ namespace swig
     {
       Sequence::const_iterator i = $self->begin();
       Sequence::const_iterator e = $self->end();
-      VALUE str = rb_str_new2( swig::type_name< Sequence >() );
+      const char *type_name = swig::type_name< Sequence >();
+      VALUE str = rb_str_new2(type_name);
       str = rb_str_cat2( str, " [" );
       bool comma = false;
       VALUE tmp;
@@ -930,7 +929,7 @@ namespace swig
       } 
       catch( std::invalid_argument )
 	{
-	  rb_raise( rb_eArgError,
+	  rb_raise( rb_eArgError, "%s",
 		    Ruby_Format_TypeError( "", 
 					   swig::type_name<Sequence::value_type>(),
 					   __FUNCTION__, idx+2, elem ));
@@ -957,7 +956,7 @@ namespace swig
 	  }
 	  catch( std::invalid_argument )
 	    {
-	      rb_raise( rb_eArgError,
+	      rb_raise( rb_eArgError, "%s",
 			Ruby_Format_TypeError( "", 
 					       swig::type_name<Sequence::value_type>(),
 					       __FUNCTION__, idx+2, elem ));
@@ -1012,7 +1011,7 @@ namespace swig {
 	  if (seq) {
 	    VALUE lastErr = rb_gv_get("$!");
 	    if (lastErr == Qnil) {
-	      rb_raise(rb_eTypeError, e.what());
+	      rb_raise(rb_eTypeError, "%s", e.what());
 	    }
 	  }
 	  return SWIG_ERROR;
@@ -1052,7 +1051,7 @@ namespace swig {
 	  if (seq) {
 	    VALUE lastErr = rb_gv_get("$!");
 	    if (lastErr == Qnil) {
-	      rb_raise(rb_eTypeError, e.what());
+	      rb_raise(rb_eTypeError, "%s", e.what());
 	    }
 	  }
 	  return SWIG_ERROR;
@@ -1089,9 +1088,8 @@ namespace swig {
 	int i = 0;
 	for (const_iterator it = seq.begin();
 	     it != seq.end(); ++it, ++i) {
-	  RARRAY_PTR(obj)[i] = swig::from< value_type >(*it);
+	  rb_ary_push(obj, swig::from< value_type >(*it));
 	}
-	RARRAY_LEN(obj) = size;
 	rb_obj_freeze(obj);  // treat as immutable result
 	return obj;
       } else {
