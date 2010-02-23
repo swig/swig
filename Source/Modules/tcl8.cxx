@@ -28,7 +28,7 @@ static String *methods_tab = 0;	/* Methods table             */
 static String *attr_tab = 0;	/* Attribute table           */
 static String *prefix = 0;
 static String *module = 0;
-static int nspace = 0;
+static int namespace_option = 0;
 static String *init_name = 0;
 static String *ns_name = 0;
 static int have_constructor;
@@ -97,7 +97,7 @@ public:
 	    i++;
 	  }
 	} else if (strcmp(argv[i], "-namespace") == 0) {
-	  nspace = 1;
+	  namespace_option = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-itcl") == 0) {
 	  itcl = 1;
@@ -204,7 +204,7 @@ public:
 
     Printf(f_header, "#define SWIG_init    %s\n", init_name);
     Printf(f_header, "#define SWIG_name    \"%s\"\n", module);
-    if (nspace) {
+    if (namespace_option) {
       Printf(f_header, "#define SWIG_prefix  \"%s::\"\n", ns_name);
       Printf(f_header, "#define SWIG_namespace \"%s\"\n\n", ns_name);
     } else {
@@ -666,7 +666,7 @@ public:
   virtual int constantWrapper(Node *n) {
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
-    String *nsname = !nspace ? Copy(iname) : NewStringf("%s::%s", ns_name, iname);
+    String *nsname = !namespace_option ? Copy(iname) : NewStringf("%s::%s", ns_name, iname);
     SwigType *type = Getattr(n, "type");
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
@@ -674,7 +674,7 @@ public:
 
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
-    if (nspace)
+    if (namespace_option)
       Setattr(n, "sym:name", nsname);
 
     /* Special hook for member pointer */
@@ -865,7 +865,7 @@ public:
 	Printv(ptrclass, attributes, NIL);
 
 	// base class swig_getset was being called for complex inheritance trees
-	if (nspace) {
+	if (namespace_option) {
 
 	  Printv(ptrclass, "  protected method ", class_name, "_swig_getset {var name1 name2 op} {\n", NIL);
 
@@ -1018,7 +1018,7 @@ public:
 
 	  if (Len(dv) > 0) {
 	    String *defval = NewString(dv);
-	    if (nspace) {
+	    if (namespace_option) {
 	      Insert(defval, 0, "::");
 	      Insert(defval, 0, ns_name);
 	    }
@@ -1036,7 +1036,7 @@ public:
       }
       Printv(imethods, "] ", NIL);
 
-      if (nspace) {
+      if (namespace_option) {
 	Printv(imethods, "{ ", ns_name, "::", class_name, "_", realname, " $swigobj", NIL);
       } else {
 	Printv(imethods, "{ ", class_name, "_", realname, " $swigobj", NIL);
@@ -1164,7 +1164,7 @@ public:
 	// Call to constructor wrapper and parent Ptr class
 	// [BRE] add -namespace/-prefix support
 
-	if (nspace) {
+	if (namespace_option) {
 	  Printv(constructor, "      ", realname, "Ptr::constructor [", ns_name, "::new_", realname, NIL);
 	} else {
 	  Printv(constructor, "      ", realname, "Ptr::constructor [new_", realname, NIL);
@@ -1231,7 +1231,7 @@ public:
     if (!temp)
       temp = NewString("");
     Clear(temp);
-    if (nspace) {
+    if (namespace_option) {
       Printf(temp, "%s::%s ", ns_name, iname);
     } else {
       Printf(temp, "%s ", iname);
