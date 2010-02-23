@@ -29,7 +29,6 @@ int sci_sumitems(char *fname,unsigned long fname_len)
 	sciErr = getMatrixOfDouble(pvApiCtx, piAddr, &iRows, &iCols, &pdblReal);
 
 	double plop = sumitems(pdblReal, iRows, iCols);
-	printf("plop: %6.2f\n",plop);
 /* 
  * Here, it is a scalar but it could be also a matrix... don't assume it 
  * it will be always 1x1

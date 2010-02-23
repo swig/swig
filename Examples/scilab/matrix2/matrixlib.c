@@ -4,7 +4,6 @@ double sumitems(double *first, int nbRow, int nbCol) {
 	for (i=0; i<(nbRow*nbCol); i++) {
 		total+=first[i];
 	}
-	printf("plop: %6.2f\n",total);
 	return total;
 }
 
