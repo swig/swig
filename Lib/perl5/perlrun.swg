@@ -156,6 +156,24 @@ static void SWIG_croak_null()
 
 #include <stdlib.h>
 
+#define SWIG_PERL_RUNTIME_KEY "swig_runtime_data:" SWIG_RUNTIME_VERSION
+typedef struct swig_perl_module_info {
+  HV *wrap_cache;
+  swig_module_info *module_info;
+} swig_perl_module_info;
+SWIGINTERN swig_perl_module_info *
+SWIG_Perl_RuntimeData(void) {
+  static swig_perl_module_info *ptr = 0;
+
+  if (!ptr) {
+    SV **ent = hv_fetch(PL_modglobal, SWIG_PERL_RUNTIME_KEY,
+        strlen(SWIG_PERL_RUNTIME_KEY), FALSE);
+    if (ent && SvOK(*ent))
+      ptr = INT2PTR(swig_perl_module_info *, SvIV(*ent));
+  }
+  return ptr;
+}
+
 typedef struct swig_perl_type_ext_var {
   const char *name;
   MGVTBL vtbl;
@@ -180,7 +198,7 @@ SWIGINTERN HV *SWIG_Perl_WrapTbl(HV *stash) {
   SV *sv;
   HV *wc;
 
-  wc = get_hv("swig_runtime_data::wrap_cache", TRUE);
+  wc = SWIG_Perl_RuntimeData()->wrap_cache;
   name = HvNAME(stash);
   sv = *hv_fetch(wc, name, strlen(name), TRUE);
   if (!SvOK(sv)) {
@@ -546,10 +564,6 @@ SWIG_Perl_ConvertPacked(SV *obj, void *ptr, int sz, swig_type_info *ty) {
 /* Macros for low-level exception handling */
 #define SWIG_croak(x)    { SWIG_Error(SWIG_RuntimeError, x); SWIG_fail; }
 
-
-typedef XSPROTO(SwigPerlWrapper);
-typedef SwigPerlWrapper *SwigPerlWrapperPtr;
-
 /* Information for constant table */
 
 #define SWIG_INT     1
@@ -568,30 +582,21 @@ typedef struct swig_constant_info {
     swig_type_info **ptype;
 } swig_constant_info;
 
-
 SWIGRUNTIME swig_module_info *
 SWIG_Perl_GetModule(void) {
-  static void *type_pointer = (void *)0;
-  SV *pointer;
-
-  /* first check if pointer already created */
-  if (!type_pointer) {
-    pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, FALSE | GV_ADDMULTI);
-    if (pointer && SvOK(pointer)) {
-      type_pointer = INT2PTR(swig_type_info **, SvIV(pointer));
-    }
-  }
-
-  return (swig_module_info *) type_pointer;
+  swig_perl_module_info *ptr = SWIG_Perl_RuntimeData();
+  if (ptr) return ptr->module_info;
+  return 0;
 }
 
 SWIGRUNTIME void
 SWIG_Perl_SetModule(swig_module_info *module) {
-  SV *pointer;
-
-  /* create a new pointer */
-  pointer = get_sv("swig_runtime_data::type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, TRUE | GV_ADDMULTI);
-  sv_setiv(pointer, PTR2IV(module));
+  static swig_perl_module_info info;
+ 
+  info.wrap_cache = newHV();
+  info.module_info = module;
+  hv_store(PL_modglobal, SWIG_PERL_RUNTIME_KEY,
+      strlen(SWIG_PERL_RUNTIME_KEY), newSViv(PTR2IV(&info)), 0);
 }
 
 XS(SWIG_Perl_Own) {
