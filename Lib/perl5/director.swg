@@ -13,6 +13,7 @@
 #include <string>
 #include <typeinfo>
 #include <exception>
+#include <map>
 
 #define swig_owntype int
 
@@ -63,11 +64,50 @@ namespace Swig {
         throw DirectorRunException(err);
       }
   };
+  struct GCItem { /* typeless abstract base */
+    virtual ~GCItem() {};
+    virtual void drop(void) = 0;
+  };
+  template <typename Type>
+  struct GCTyped : GCItem { /* type specific common abstract base */
+    Type ptr;
+    GCTyped(Type aPtr) : ptr(aPtr) {};
+    virtual ~GCTyped() {};
+    void drop(void) {
+      ptr = 0;
+    }
+  };
+  struct GCObj : GCTyped<void*> {
+    GCObj(void *aPtr) : GCTyped<void*>(aPtr) {};
+    ~GCObj() {
+      /* TODO: I'm unclear on why swig_acquire_ownership_obj() gets a
+       * void* where others get a typed object.  what I'd really love is
+       * access to the swig_perl_wrap struct, but getting that will be
+       * fairly involved. */
+      /* if (this->ptr) delete this->ptr; */
+    }
+  };
+  template <typename Type>
+  struct GCArray : GCTyped<Type> {
+    GCArray(Type aPtr) : GCTyped<Type>(aPtr) {};
+    ~GCArray() {
+      if (this->ptr) delete[] this->ptr;
+    }
+  };
+  template <typename Type>
+  struct GCPtr : GCTyped<Type> {
+    GCPtr(Type aPtr) : GCTyped<Type>(aPtr) {};
+    ~GCPtr() {
+      if (this->ptr) delete this->ptr;
+    }
+  };
 
   /* director base class */
   class Director {
     private:
       SV  *mSelf;
+      typedef std::map<void*, GCItem*> hold_map;
+      mutable hold_map holdings;
 
       /* TODO: understand ownership handling */
       /* working assumption: a "disowned" director must keep the perl
@@ -81,9 +121,12 @@ namespace Swig {
       Director() : mSelf(0) {
       }
       virtual ~Director() {
-        //sv_rvweaken(mSelf);
         if(!SvWEAKREF(mSelf))
           SvREFCNT_dec(mSelf);
+        for(hold_map::iterator cur = holdings.begin();
+            cur != holdings.end(); cur++) {
+          delete cur->second;
+        }
       }
       void setSelf(SV *self) {
         if(mSelf) croak("can not recycle directors");
@@ -102,17 +145,36 @@ namespace Swig {
          * unweaken a ref, but we can copy it to a strong one. */
         mSelf = newSVsv(mSelf);
       }
+      /* swig_{acquire,release}* are fully functional yet and the api
+       * not final.  There are almost certainly leaks, but should be no
+       * segfaults. */
       void swig_acquire_ownership_obj(void *vptr, int own) const {
-        warn("acquiring ownership obj 0x%p %08x", vptr, own);
+        if (!vptr) return;
+        holdings[vptr] = new GCObj(vptr);
+        /* warn("acquiring ownership obj 0x%p %08x", vptr, own); */
       }
-      void swig_acquire_ownership_array(void *vptr) const {
-        warn("acquiring ownership array 0x%p", vptr);
+      template <typename Type>
+      void swig_acquire_ownership_array(Type vptr) const {
+        if (!vptr) return;
+        holdings[vptr] = new GCArray<Type>(vptr);
+        /* warn("acquiring ownership array 0x%p", vptr); */
       }
-      void swig_acquire_ownership(void *vptr) const {
-        warn("acquiring ownership 0x%p", vptr);
+      template <typename Type>
+      void swig_acquire_ownership(Type vptr) const {
+        if (!vptr) return;
+        holdings[vptr] = new GCPtr<Type>(vptr);
+        /* warn("acquiring ownership 0x%p", vptr); */
       }
       int swig_release_ownership(void *vptr) const {
-        warn("swig_release_ownership 0x%p", vptr);
+        if (!vptr) return 0;
+        hold_map::iterator iter = holdings.find(vptr);
+        if (iter == holdings.end()) return 0;
+        GCItem *gc = iter->second;
+        holdings.erase(iter);
+        gc->drop();
+        delete gc;
+        /* warn("swig_release_ownership 0x%p", vptr); */
+        return 1;
       }
   };
 }

@@ -290,11 +290,12 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
 SWIGRUNTIME int
 SWIG_Perl_ConvertPtrAndOwn(void *obj, void **ptr,
     swig_type_info *t, int flags, int *own) {
+  SV *sv = 0;
+  MAGIC *mg = 0;
   swig_perl_wrap *wrap = 0;
   swig_cast_info *tc = 0;
-  void *voidptr = 0;
 
-  switch(flags & (SWIG_POINTER_MG | SWIG_POINTER_WR)) {
+  switch (flags & (SWIG_POINTER_MG | SWIG_POINTER_WR)) {
     /* a typical pointer conversion is to extract a raw pointer out of
      * an SV that represents the pointer, but for certain kinds of
      * class/struct accesses (attributes and destructors) there are
@@ -302,9 +303,7 @@ SWIG_Perl_ConvertPtrAndOwn(void *obj, void **ptr,
     default:
       return SWIG_ERROR;
     case 0: {
-      SV *sv = (SV *)obj;
-      MAGIC *mg;
-
+      sv = (SV *)obj;
       if (own)
         *own = 0;
       SvGETMAGIC(sv);
@@ -320,8 +319,7 @@ SWIG_Perl_ConvertPtrAndOwn(void *obj, void **ptr,
        * sv_derived_from succeeds on Perl inheritance
        */
       if (t) {
-        const char *c = sv_reftype(SvRV(sv), 1);
-        tc = SWIG_TypeProxyCheck(c, t);
+        tc = SWIG_TypeProxyCheck(sv_reftype(SvRV(sv), 1), t);
         if (!tc && !sv_derived_from(sv, SWIG_Perl_TypeProxyName(t)))
           return SWIG_ERROR;
       } else {
@@ -340,19 +338,18 @@ SWIG_Perl_ConvertPtrAndOwn(void *obj, void **ptr,
       ;
   }
   wrap = (swig_perl_wrap *)obj;
-  if(flags & SWIG_POINTER_DISOWN)
+  if (flags & SWIG_POINTER_DISOWN)
     wrap->own &= ~SWIG_POINTER_OWN;
-  voidptr = wrap->ptr;
   if (tc) {
     int newmemory = 0;
-    *ptr = SWIG_TypeCast(tc, voidptr, &newmemory);
+    *ptr = SWIG_TypeCast(tc, wrap->ptr, &newmemory);
     if (newmemory == SWIG_CAST_NEW_MEMORY) {
       assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
       if (own)
         *own = *own | SWIG_CAST_NEW_MEMORY;
     }
   } else {
-    *ptr = voidptr;
+    *ptr = wrap->ptr;
   }
   return SWIG_OK;
 }
