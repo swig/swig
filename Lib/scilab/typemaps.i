@@ -65,14 +65,17 @@ or you can use the %apply directive :
 	     double *INPUT (int *piAddrVar, int iRows, int iCols, double temp) {
   double *_piData;
   int typearg;
-  getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
-  getVarDimension(pvApiCtx, piAddrVar, &iRows, &iCols);
-  
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  if (typearg != sci_matrix || iRows != 1 || iCols != 1 || isVarComplex(pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar expected.\n"), fname, $argnum);
+  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return 0;
   }
-  getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols,  &_piData);
+  
+  sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols,  &_piData);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return 0;
+  }
   temp = ($*1_ltype)*_piData;
   $1 = &temp;
 }
@@ -141,7 +144,11 @@ output values.
 %typemap(argout) signed char *OUTPUT(int iRowsOut, int iColsOut) {
   iRowsOut = 1; 
   iColsOut = 1;
-  createMatrixOfInteger8(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  sciErr = createMatrixOfInteger8(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return 0;
+  }
   LhsVar(iOutNum) = iVarOut;
 }
 
@@ -149,7 +156,11 @@ output values.
               unsigned char *OUTPUT(int iRowsOut, int iColsOut) {
   iRowsOut = 1; 
   iColsOut = 1;
-  createMatrixOfInteger16(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  sciErr = createMatrixOfInteger16(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return 0;
+  }
   LhsVar(iOutNum) = iVarOut;
 }
 
@@ -160,7 +171,11 @@ output values.
               long *OUTPUT(int iRowsOut,int iColsOut) {
   iRowsOut=1; 
   iColsOut=1;
-  createMatrixOfInteger32(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  sciErr = createMatrixOfInteger32(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return 0;
+  }
   LhsVar(iOutNum)=iVarOut;
 }
 
@@ -171,7 +186,11 @@ output values.
   temp = (double)(*$result);
   iRowsOut = 1; 
   iColsOut = 1;
-  createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return 0;
+  }
   LhsVar(iOutNum) = iVarOut;
 }
 
@@ -246,7 +265,6 @@ do this :
 %typemap(in) signed char *INOUT = signed char *OUTPUT;
 %typemap(in) float *INOUT = float *OUTPUT;
 %typemap(in) double *INOUT = double *OUTPUT;
-
 
 
 

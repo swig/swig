@@ -315,6 +315,7 @@ public:
     /* Insert the code checking the number of input */
     Printf(f->def, "CheckRhs(%d, %d);\n",num_required,num_arguments);
     Printf(f->def, "CheckLhs(%d, %d);\n",out_required,out_required);
+    Printf(f->def, "SciErr sciErr;\n");
    
     /* Insert the order of output parameters*/
     if (flag)
@@ -419,7 +420,7 @@ public:
     /* Check the number of input and output */
     Printf(setf->def, "CheckRhs(1, 1);\n");
     Printf(setf->def, "CheckLhs(1, 1);\n");
-    
+    Printf(setf->def, "SciErr sciErr;\n");
     /* Add the local variable */
     Wrapper_add_local(setf, "piAddrVar", "int *piAddrVar");
    
@@ -454,7 +455,7 @@ public:
     /* Check the number of input and output */
     Printf(getf->def, "CheckRhs(0, 0);\n");
     Printf(getf->def, "CheckLhs(1, 1);\n");
-    
+    Printf(getf->def, "SciErr sciErr;\n"); 
     /* Insert the order of output parameters */
     Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
    
@@ -520,7 +521,7 @@ public:
     /* Check the number of input and output */
     Printf(getf->def, "CheckRhs(0, 0);\n");
     Printf(getf->def, "CheckLhs(1, 1);\n");
-    
+    Printf(getf->def, "SciErr sciErr;\n"); 
     /* Insert the order of output parameters*/
     Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
    
