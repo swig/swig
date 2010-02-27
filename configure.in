@@ -2158,8 +2158,6 @@ AC_CONFIG_FILES([			        \
     Examples/Makefile			        \
     Examples/guile/Makefile		        \
     Examples/xml/Makefile		        \
-    Examples/GIFPlot/Makefile		        \
-    Examples/GIFPlot/Lib/Makefile	        \
     Examples/test-suite/chicken/Makefile	\
     Examples/test-suite/csharp/Makefile	        \
     Examples/test-suite/guile/Makefile	        \
