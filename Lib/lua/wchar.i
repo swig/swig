@@ -1,12 +1,8 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * wchar.i
  *
  * Typemaps for the wchar_t type
  * These are mapped to a Lua string and are passed around by value.
- *
  * ----------------------------------------------------------------------------- */
 
 // note: only support for pointer right now, not fixed length strings
