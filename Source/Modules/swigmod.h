@@ -11,8 +11,6 @@
  * Main header file for SWIG modules.
  * ----------------------------------------------------------------------------- */
 
-/* $Id$ */
-
 #ifndef SWIG_SWIGMOD_H_
 #define SWIG_SWIGMOD_H_
 
