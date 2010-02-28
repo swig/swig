@@ -3090,8 +3090,6 @@ The nickname is used in four places:
 <TR><TD><B>usage</B></TD><TD><B>transform</B></TD></TR>
 <TR><TD>"skip" tag</TD><TD>(none)</TD></TR>
 <TR><TD>Examples/ subdir name</TD><TD>(none)</TD></TR>
-<TR><TD>Examples/GIFPlot/ subdir name</TD>
-    <TD>capitalize (upcase first letter)</TD></TR>
 <TR><TD>Examples/test-suite/ subdir name</TD><TD>(none)</TD></TR>
 <!-- add more uses here (remember to adjust header) -->
 </TABLE>
@@ -3159,8 +3157,8 @@ skip-qux = $(skip-qux99)
 
 <p>
 Lastly, you need to modify each of <TT>check-aliveness</TT>,
-<TT>check-examples</TT>, <TT>check-test-suite</TT>,
-<TT>check-gifplot</TT> (all targets) and <TT>lib-languages</TT> (var).
+<TT>check-examples</TT>, <TT>check-test-suite</TT>
+and <TT>lib-languages</TT> (var).
 Use the nickname for these, not the alias.
 Note that you can do this even before you have any tests or examples
 set up; the Makefile rules do some sanity checking and skip around
@@ -3173,10 +3171,6 @@ and look to the existing languages for examples.
 
 <dt> <b>Examples/qux99/check.list</b>
 <dd> Do <TT>cp ../python/check.list .</TT> and modify to taste.
-One subdir per line.
-
-<dt> <b>Examples/GIFPlot/Qux99/check.list</b>
-<dd> Do <TT>cp ../Python/check.list .</TT> and modify to taste.
 One subdir per line.
 
 <dt> <b>Lib/qux99/extra-install.list</b>
