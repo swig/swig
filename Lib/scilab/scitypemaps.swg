@@ -765,7 +765,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) unsigned char (int iRowsOut, int iColsOut) {
@@ -776,7 +776,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) short (int iRowsOut, int iColsOut) {
@@ -787,7 +787,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) unsigned short (int iRowsOut, int iColsOut) {
@@ -798,7 +798,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) int (int iRowsOut, int iColsOut),
@@ -810,7 +810,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) unsigned int (int iRowsOut, int iColsOut),
@@ -822,7 +822,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) double (int iRowsOut, int iColsOut),
@@ -834,7 +834,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) long long (int iRowsOut, int iColsOut) {
@@ -845,7 +845,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) unsigned long long (int iRowsOut, int iColsOut) {
@@ -856,7 +856,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) char (int iRowsOut, int iColsOut) {
@@ -869,7 +869,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out,noblock=1) void {
@@ -877,24 +877,24 @@
 
 
 /* Pointers */
-%typemap(out) signed char *,
-              short *,
-              unsigned char *,
-              unsigned short *,
-	      int *,
-	      unsigned int *,
-	      long *,
-	      unsigned long *,
-              double *,
-              float *,
-              long long,
-              unsigned long long * {
-  sciErr = createPointer(pvApiCtx, iVarOut, (void *)$result);
+%typemap(out) signed char * (int iRowsOut, int iColsOut),
+              short * (int iRowsOut, int iColsOut),
+              unsigned char * (int iRowsOut, int iColsOut),
+              unsigned short * (int iRowsOut, int iColsOut),
+	      int * (int iRowsOut, int iColsOut),
+	      unsigned int * (int iRowsOut, int iColsOut),
+	      long * (int iRowsOut, int iColsOut),
+	      unsigned long * (int iRowsOut, int iColsOut),
+              double * (int iRowsOut, int iColsOut),
+              float * (int iRowsOut, int iColsOut),
+              long long * (int iRowsOut, int iColsOut),
+              unsigned long long * (int iRowsOut, int iColsOut) {
+  sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, (double *)$result);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) char * (int iRowsOut, int iColsOut) {
@@ -905,7 +905,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) enum SWIGTYPE (int iRowsOut, int iColsOut) {
@@ -916,7 +916,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) SWIGTYPE * {
@@ -925,7 +925,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(out) SWIGTYPE {
@@ -934,7 +934,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 /* -----------------------------------------------------------------------------
@@ -1553,7 +1553,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned char {
@@ -1563,7 +1563,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 
 }
 
@@ -1574,7 +1574,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned short {
@@ -1584,7 +1584,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) int,
@@ -1595,7 +1595,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned int,
@@ -1606,7 +1606,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) double,
@@ -1617,7 +1617,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) long long {
@@ -1627,7 +1627,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned long long {
@@ -1637,7 +1637,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) char {
@@ -1649,7 +1649,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
   free(temp);
 }
 
@@ -1660,7 +1660,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 /* pointer to basic C types */
@@ -1681,7 +1681,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 /* Arrays */
@@ -1694,7 +1694,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
    
 }
 
@@ -1704,7 +1704,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned char [ANY] {
@@ -1713,7 +1713,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) short [ANY] {
@@ -1722,7 +1722,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned short [ANY] {
@@ -1731,7 +1731,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) int [ANY],
@@ -1741,7 +1741,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned int [ANY],
@@ -1751,7 +1751,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) double [ANY] {
@@ -1760,7 +1760,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) float [ANY] {
@@ -1769,7 +1769,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) long long [ANY] {
@@ -1778,7 +1778,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned long long [ANY] {
@@ -1787,7 +1787,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) char ** {
@@ -1799,7 +1799,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 
@@ -1810,7 +1810,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned char [ANY][ANY] {
@@ -1819,7 +1819,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) short [ANY][ANY] {
@@ -1828,7 +1828,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned short [ANY][ANY] {
@@ -1837,7 +1837,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) int [ANY][ANY],
@@ -1847,7 +1847,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned int [ANY][ANY],
@@ -1857,7 +1857,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) double [ANY][ANY] {
@@ -1866,7 +1866,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) float [ANY][ANY] {
@@ -1875,7 +1875,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) long long [ANY][ANY] {
@@ -1884,7 +1884,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) unsigned long long [ANY][ANY] {
@@ -1893,7 +1893,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 
@@ -1904,7 +1904,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 /* Other types */
@@ -1914,7 +1914,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 %typemap(varout,noblock=1) SWIGTYPE {
@@ -1923,7 +1923,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  LhsVar(iOutNum) = iVarOut;
+  
 }
 
 /* ------------------------------------------------------------

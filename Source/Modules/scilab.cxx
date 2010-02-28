@@ -322,6 +322,7 @@ public:
       Printf(f->def, "\nint iOutNum = 1;\nint iVarOut = Rhs + 1;");
    
     /* Finish the the code for the function  */
+    Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
     Printf(f->code, "return 0;\n");	
     Printf(f->code, "}\n");
 
@@ -366,6 +367,7 @@ public:
     /* Dump the dispatch function */
     Printv(f->code, dispatch, "\n", NIL);
     Printf(f->code, "Scierror(999, _(\"No matching function for overload\"));\n");
+    Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
     Printf(f->code, "return 0;\n");
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
@@ -477,6 +479,7 @@ public:
     }
    
     /* Dump the wrapper function */ 
+    Printf(getf->code, "LhsVar(iOutNum) = iVarOut;\n");
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
     Printf(f_header,"%s", globalVar);
@@ -536,6 +539,7 @@ public:
     }
    
     /* Dump the wrapper function */ 
+    Printf(getf->code, "LhsVar(iOutNum) = iVarOut;\n");
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
     Printf(f_builder_code, "\"%s\",\"%s\";", getname, getname);

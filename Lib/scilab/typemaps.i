@@ -149,7 +149,6 @@ output values.
     printError(&sciErr, 0);
     return 0;
   }
-  LhsVar(iOutNum) = iVarOut;
 }
 
 %typemap(argout) short *OUTPUT(int iRowsOut, int iColsOut),
@@ -161,7 +160,6 @@ output values.
     printError(&sciErr, 0);
     return 0;
   }
-  LhsVar(iOutNum) = iVarOut;
 }
 
 %typemap(argout) int *OUTPUT(int iRowsOut,int iColsOut),
@@ -176,7 +174,6 @@ output values.
     printError(&sciErr, 0);
     return 0;
   }
-  LhsVar(iOutNum)=iVarOut;
 }
 
 
@@ -191,7 +188,6 @@ output values.
     printError(&sciErr, 0);
     return 0;
   }
-  LhsVar(iOutNum) = iVarOut;
 }
 
 
