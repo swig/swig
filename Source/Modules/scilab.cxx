@@ -322,7 +322,8 @@ public:
       Printf(f->def, "\nint iOutNum = 1;\nint iVarOut = Rhs + 1;");
    
     /* Finish the the code for the function  */
-    Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
+    if (flag)
+      Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
     Printf(f->code, "return 0;\n");	
     Printf(f->code, "}\n");
 
