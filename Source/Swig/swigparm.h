@@ -1,14 +1,16 @@
 /* ----------------------------------------------------------------------------- 
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
  *
  * swigparm.h
  *
  * Functions related to the handling of function/method parameters and
  * parameter lists.  
  * ----------------------------------------------------------------------------- */
-
-/* $Id: swig.h 9629 2006-12-30 18:27:47Z beazley $ */
 
 /* Individual parameters */
 extern Parm	 *NewParm(SwigType *type, const_String_or_char_ptr name, Node *file_line_node);

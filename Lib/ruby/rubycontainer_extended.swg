@@ -1,17 +1,13 @@
-/**
- * @file   rubycontainer_extended.swg
- * @author gga
- * @date   Sat May  5 05:36:01 2007
- * 
- * @brief  This file contains additional functions that make containers
- *         behave closer to ruby primitive types.
- *         However, some of these functions place some restrictions on
- *         the underlying object inside of the container and the iterator
- *        (that it has to have an == comparison function, that it has to have 
- *         an = assignment operator, etc).
- * 
- */
-
+/* -----------------------------------------------------------------------------
+ * rubycontainer_extended.swg
+ *
+ * This file contains additional functions that make containers
+ * behave closer to ruby primitive types.
+ * However, some of these functions place some restrictions on
+ * the underlying object inside of the container and the iterator
+ * (that it has to have an == comparison function, that it has to have 
+ * an = assignment operator, etc).
+ * ----------------------------------------------------------------------------- */
 
 /** 
  * Macro used to add extend functions that require operator== in object.

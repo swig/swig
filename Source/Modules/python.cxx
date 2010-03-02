@@ -1,6 +1,10 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
  *
  * python.cxx
  *
@@ -143,8 +147,8 @@ static const char *usage3 = (char *) "\
      -proxydel       - Generate a __del__ method even though it is now redundant (default) \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -threads        - Add thread support for all the interface\n\
-     -O              - Enable all the optimization options: \n\
-                         -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -noproxydel \n\
+     -O              - Enable the following optimization options: \n\
+                         -modern -fastdispatch -nosafecstrings -fvirtual -noproxydel \n\
                          -fastproxy -fastinit -fastunpack -fastquery -modernargs -nobuildnone \n\
      -py3            - Generate code with Python 3 specific features:\n\
                          Function annotation \n\
@@ -405,7 +409,6 @@ public:
 	} else if (strcmp(argv[i], "-O") == 0) {
 	  classic = 0;
 	  modern = 1;
-	  dirvtable = 1;
 	  safecstrings = 0;
 	  buildnone = 0;
 	  nobuildnone = 1;

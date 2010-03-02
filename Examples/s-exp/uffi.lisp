@@ -312,67 +312,6 @@ is no representation."
 
 ;; Test instances
 
-#||
-
-#+ignore
-(defvar *gifplot-interface*
-  (run-swig (merge-pathnames "Examples/GIFPlot/Interface/gifplot.i"
-			     *swig-source-directory*)
-	    :directory-search-list (list (merge-pathnames "Examples/GIFPlot/Interface/" *swig-source-directory*))))
-
-(defvar *simple-gifplot-interface*
-  (run-swig (merge-pathnames "Examples/GIFPlot/Include/gifplot.h"
-			     *swig-source-directory*)
-	    :directory-search-list (list (merge-pathnames "Examples/GIFPlot/Interface/" *swig-source-directory*))
-	    :module "gifplot"))
-
-(defvar *cplex-glue-directory* #p"/home/mkoeppe/cvs/cplex-glue/")
-
-(defvar *cplex-glue-interface*
-  (run-swig (merge-pathnames "cplex.i" *cplex-glue-directory*)
-	    :directory-search-list (list (merge-pathnames "Lib/guile"
-							  *swig-source-directory*)
-					 *cplex-glue-directory*)
-	    :ignore-errors t))
-	    
-  
-
-(require 'uffi)
-
-;;(let ((*uffi-primitive-type-alist* (cons '("Pixel" . :unsigned-int) *uffi-default-primitive-type-alist*)))
-;;  (eval (cons 'progn (compute-uffi-definitions *simple-gifplot-interface*))))
-
-
-(with-open-file (f "/tmp/swig-uffi.lisp" :direction :output
-		   :if-exists :supersede)
-  (let ((*uffi-definitions* '())
-	(*uffi-output* f)
-	(*uffi-primitive-type-alist*
-	 (cons '("Pixel" . :unsigned-int) *uffi-default-primitive-type-alist*)))
-    (apply 'handle-node *simple-gifplot-interface*)))
-
-#+cplex
-(with-open-file (f "/tmp/swig-uffi.lisp" :direction :output)
-  (let ((*uffi-definitions* '())
-	(*uffi-output* f)
-	(*uffi-primitive-type-alist*
-	 (cons '("Pixel" . :unsigned-int) *uffi-default-primitive-type-alist*)))
-    (apply 'handle-node *cplex-glue-interface*)))
-
-(compile-file "/tmp/swig-uffi.lisp")
-
-(uffi:load-foreign-library (merge-pathnames "Examples/GIFPlot/libgifplot.a"
-					    *swig-source-directory*))
-
-(load "/tmp/swig-uffi.lisp")
-
-(load (merge-pathnames "Examples/GIFPlot/Common-Lisp/full/runme.lisp" *swig-source-directory*))
-
-(action (namestring (merge-pathnames "Examples/GIFPlot/Common-Lisp/full/cmap"
-				     *swig-source-directory*)))
-
-||#
-
 ;;; Link to SWIG itself
 
 #||

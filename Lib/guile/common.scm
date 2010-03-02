@@ -3,12 +3,6 @@
 ;;;*
 ;;;*     This file contains generic SWIG GOOPS classes for generated
 ;;;*     GOOPS file support
-;;;*
-;;;* Copyright (C) 2003 John Lenz (jelenz@wisc.edu)
-;;;* Copyright (C) 2004 Matthias Koeppe (mkoeppe@mail.math.uni-magdeburg.de)
-;;;*
-;;;* This file may be freely redistributed without license or fee provided
-;;;* this copyright message remains intact.
 ;;;************************************************************************
 
 (define-module (Swig swigrun))
