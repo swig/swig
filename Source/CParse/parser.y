@@ -3729,7 +3729,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Setattr(classes,scpname,$$);
 		     Delete(scpname);
 		   } else {
-		     Swig_symbol_setscopename((char*)"<unnamed>");
+		     Swig_symbol_setscopename("<unnamed>");
 		   }
 		 }
 		 appendChild($$,$5);
