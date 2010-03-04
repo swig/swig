@@ -1,5 +1,5 @@
 %module extend_template
-%module xxx
+%module xxx // should be ignored
 namespace oss { // this doesn't 
  %extend Foo<0> { 
     int test1(int x) { return x; }
