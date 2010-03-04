@@ -2115,7 +2115,7 @@ public:
 
     /* create getter */
     int addfail = 0;
-    String *getname = Swig_name_get(iname);
+    String *getname = Swig_name_get(NSPACE_TODO, iname);
     getfname = Swig_name_wrapper(getname);
     Setattr(n, "wrap:name", getfname);
     Printv(getf->def, "SWIGINTERN VALUE\n", getfname, "(", NIL);
@@ -2150,7 +2150,7 @@ public:
       Printf(f_wrappers, "%s", docs);
       Delete(docs);
 
-      String *setname = Swig_name_set(iname);
+      String *setname = Swig_name_set(NSPACE_TODO, iname);
       setfname = Swig_name_wrapper(setname);
       Setattr(n, "wrap:name", setfname);
       Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);

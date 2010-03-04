@@ -60,6 +60,7 @@ extern "C" {
 static int InClass = 0; /* Parsing C++ or not */
 static String *ClassName = 0;	/* This is the real name of the current class */
 static String *ClassPrefix = 0;	/* Class prefix */
+static String *NSpace = 0;	/* Namespace for the nspace feature */
 static String *ClassType = 0;	/* Fully qualified type name to use */
 static String *DirectorClassName = 0;	/* Director name of the current class */
 int Abstract = 0;
@@ -1198,7 +1199,7 @@ int Language::memberfunctionHandler(Node *n) {
     Setline(cbn, Getline(n));
 
     memberconstantHandler(cbn);
-    Setattr(n, "feature:callback:name", Swig_name_member(ClassPrefix, cbname));
+    Setattr(n, "feature:callback:name", Swig_name_member(NSpace, ClassPrefix, cbname));
 
     Delete(cb);
     Delete(cbn);
@@ -1211,7 +1212,7 @@ int Language::memberfunctionHandler(Node *n) {
     }
   }
 
-  String *fname = Swig_name_member(ClassPrefix, symname);
+  String *fname = Swig_name_member(NSpace, ClassPrefix, symname);
   if (Extend && SmartPointer) {
     if (!Getattr(n, "classname")) {
       Setattr(n, "classname", Getattr(CurrentClass, "allocate:smartpointerbase"));
@@ -1236,7 +1237,7 @@ int Language::memberfunctionHandler(Node *n) {
   if (GetFlag(n, "explicitcall"))
     DirectorExtraCall = CWRAP_DIRECTOR_ONE_CALL;
 
-  Swig_MethodToFunction(n, ClassType, Getattr(n, "template") ? SmartPointer : Extend | SmartPointer | DirectorExtraCall, director_type,
+  Swig_MethodToFunction(n, NSpace, ClassType, Getattr(n, "template") ? SmartPointer : Extend | SmartPointer | DirectorExtraCall, director_type,
 			is_member_director(CurrentClass, n));
   Setattr(n, "sym:name", fname);
 
@@ -1272,10 +1273,10 @@ int Language::staticmemberfunctionHandler(Node *n) {
       cname = NewStringf("%s::%s", sname, name);
   } else {
     String *mname = Swig_name_mangle(ClassName);
-    cname = Swig_name_member(mname, name);
+    cname = Swig_name_member(NSpace, mname, name);
     Delete(mname);
   }
-  mrename = Swig_name_member(ClassPrefix, symname);
+  mrename = Swig_name_member(NSpace, ClassPrefix, symname);
 
   if (Extend) {
     String *code = Getattr(n, "code");
@@ -1299,7 +1300,7 @@ int Language::staticmemberfunctionHandler(Node *n) {
 
   if (cb) {
     String *cbname = NewStringf(cb, symname);
-    Setattr(n, "feature:callback:name", Swig_name_member(ClassPrefix, cbname));
+    Setattr(n, "feature:callback:name", Swig_name_member(NSpace, ClassPrefix, cbname));
     Setattr(n, "feature:callback:staticname", name);
   }
   Delattr(n, "storage");
@@ -1380,9 +1381,9 @@ int Language::membervariableHandler(Node *n) {
   SwigType *type = Getattr(n, "type");
 
   if (!AttributeFunctionGet) {
-    String *mname = Swig_name_member(ClassPrefix, symname);
-    String *mrename_get = Swig_name_get(mname);
-    String *mrename_set = Swig_name_set(mname);
+    String *mname = Swig_name_member(0, ClassPrefix, symname);
+    String *mrename_get = Swig_name_get(NSpace, mname);
+    String *mrename_set = Swig_name_set(NSpace, mname);
     Delete(mname);
 
     /* Create a function to set the value of the variable */
@@ -1493,7 +1494,7 @@ int Language::membervariableHandler(Node *n) {
       cpp_member_func(Char(gname), Char(gname), type, 0);
       Delete(ActionFunc);
     } else {
-      String *cname = Swig_name_get(name);
+      String *cname = Swig_name_get(NSpace, name);
       cpp_member_func(Char(cname), Char(gname), type, 0);
       Delete(cname);
     }
@@ -1506,7 +1507,7 @@ int Language::membervariableHandler(Node *n) {
 	cpp_member_func(Char(gname), Char(gname), vty, p);
 	Delete(ActionFunc);
       } else {
-	String *cname = Swig_name_set(name);
+	String *cname = Swig_name_set(NSpace, name);
 	cpp_member_func(Char(cname), Char(gname), vty, p);
 	Delete(cname);
       }
@@ -1534,7 +1535,7 @@ int Language::staticmembervariableHandler(Node *n) {
     String *cname, *mrename;
 
     /* Create the variable name */
-    mrename = Swig_name_member(ClassPrefix, symname);
+    mrename = Swig_name_member(0, ClassPrefix, symname);
     cname = NewStringf("%s::%s", classname, name);
 
     Setattr(n, "sym:name", mrename);
@@ -1676,7 +1677,7 @@ int Language::memberconstantHandler(Node *n) {
   String *symname = Getattr(n, "sym:name");
   String *value = Getattr(n, "value");
 
-  String *mrename = Swig_name_member(ClassPrefix, symname);
+  String *mrename = Swig_name_member(NSpace, ClassPrefix, symname);
   Setattr(n, "sym:name", mrename);
 
   String *new_name = 0;
@@ -1908,7 +1909,7 @@ int Language::classDirectorDisown(Node *n) {
   Node *disown = NewHash();
   String *mrename;
   String *symname = Getattr(n, "sym:name");
-  mrename = Swig_name_disown(symname);	//Getattr(n, "name"));
+  mrename = Swig_name_disown(NSpace, symname);
   String *type = NewString(ClassType);
   String *name = NewString("self");
   SwigType_add_pointer(type);
@@ -2315,6 +2316,7 @@ int Language::classDeclaration(Node *n) {
   String *name = Getattr(n, "name");
   String *tdname = Getattr(n, "tdname");
   String *symname = Getattr(n, "sym:name");
+  String *symnspace = Getattr(n, "sym:nspace");
 
   char *classname = tdname ? Char(tdname) : Char(name);
   char *iname = Char(symname);
@@ -2343,6 +2345,7 @@ int Language::classDeclaration(Node *n) {
 
   ClassName = NewString(classname);
   ClassPrefix = NewString(iname);
+  NSpace = symnspace;
   if (strip) {
     ClassType = NewString(classname);
   } else {
@@ -2403,6 +2406,7 @@ int Language::classDeclaration(Node *n) {
     Language::classHandler(n);
   }
 
+  NSpace = 0;
   InClass = 0;
   CurrentClass = 0;
   Delete(ClassType);
@@ -2635,7 +2639,7 @@ static String *get_director_ctor_code(Node *n, String *director_ctor_code, Strin
 int Language::constructorHandler(Node *n) {
   Swig_require("constructorHandler", n, "?name", "*sym:name", "?type", "?parms", NIL);
   String *symname = Getattr(n, "sym:name");
-  String *mrename = Swig_name_construct(symname);
+  String *mrename = Swig_name_construct(NSpace, symname);
   String *nodeType = Getattr(n, "nodeType");
   int constructor = (!Cmp(nodeType, "constructor"));
   List *abstract = 0;
@@ -2647,7 +2651,7 @@ int Language::constructorHandler(Node *n) {
     Setattr(n, "handled_as_constructor", "1");
   }
 
-  Swig_ConstructorToFunction(n, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend);
+  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend);
   Setattr(n, "sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -2664,12 +2668,12 @@ int Language::constructorHandler(Node *n) {
 int Language::copyconstructorHandler(Node *n) {
   Swig_require("copyconstructorHandler", n, "?name", "*sym:name", "?type", "?parms", NIL);
   String *symname = Getattr(n, "sym:name");
-  String *mrename = Swig_name_copyconstructor(symname);
+  String *mrename = Swig_name_copyconstructor(NSpace, symname);
   List *abstract = 0;
   String *director_ctor = get_director_ctor_code(n, director_ctor_code,
 						 director_prot_ctor_code,
 						 abstract);
-  Swig_ConstructorToFunction(n, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend);
+  Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend);
   Setattr(n, "sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -2739,9 +2743,9 @@ int Language::destructorHandler(Node *n) {
   if (csymname && (*csymname == '~'))
     csymname += 1;
 
-  mrename = Swig_name_destroy(csymname);
+  mrename = Swig_name_destroy(NSpace, csymname);
 
-  Swig_DestructorToFunction(n, ClassType, CPlusPlus, Extend);
+  Swig_DestructorToFunction(n, NSpace, ClassType, CPlusPlus, Extend);
   Setattr(n, "sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
@@ -2844,7 +2848,7 @@ int Language::variableWrapper(Node *n) {
     String *tm = Swig_typemap_lookup("globalin", n, name, 0);
 
     Swig_VarsetToFunction(n, flags);
-    String *sname = Swig_name_set(symname);
+    String *sname = Swig_name_set(NSpace, symname);
     Setattr(n, "sym:name", sname);
     Delete(sname);
 
@@ -2879,7 +2883,7 @@ int Language::variableWrapper(Node *n) {
   }
 
   Swig_VargetToFunction(n, flags);
-  String *gname = Swig_name_get(symname);
+  String *gname = Swig_name_get(NSpace, symname);
   Setattr(n, "sym:name", gname);
   Delete(gname);
   functionWrapper(n);
@@ -2922,11 +2926,11 @@ void Language::main(int argc, char *argv[]) {
  * Returns 1 if the symbol is added successfully.
  * Prints an error message and returns 0 if a conflict occurs.
  * The scope is optional for target languages and if supplied must be a fully
- * resolved scope and the symbol s must not contain any scope qualifiers.
+ * qualified scope and the symbol s must not contain any scope qualifiers.
  * ----------------------------------------------------------------------------- */
 
 int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope) {
-  Hash *symbols = Getattr(symtabs, scope);
+  Hash *symbols = Getattr(symtabs, scope ? scope : "");
   if (!symbols) {
     // New scope which has not been added by the target language - lazily created.
     symbols = NewHash();
@@ -3306,7 +3310,7 @@ bool Language::extraDirectorProtectedCPPMethodsRequired() const {
  * Language::is_wrapping_class()
  * ----------------------------------------------------------------------------- */
 
-int Language::is_wrapping_class() {
+int Language::is_wrapping_class() const {
   return InClass;
 }
 
@@ -3316,6 +3320,14 @@ int Language::is_wrapping_class() {
 
 Node *Language::getCurrentClass() const {
   return CurrentClass;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::getNSpace()
+ * ----------------------------------------------------------------------------- */
+
+String *Language::getNSpace() const {
+  return NSpace;
 }
 
 /* -----------------------------------------------------------------------------

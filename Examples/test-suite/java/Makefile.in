@@ -37,26 +37,27 @@ CPP_TEST_CASES = \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-SWIGOPT += -package $*
+JAVA_PACKAGE = $*
+SWIGOPT += -package $(JAVA_PACKAGE)
 INTERFACEDIR = ../../
 
 # Custom tests - tests with additional commandline options
-# none!
+nspace.%: JAVA_PACKAGE = $*Package
 
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup)
-	+(cd $* && $(swig_and_compile_cpp))
+	+(cd $(JAVA_PACKAGE) && $(swig_and_compile_cpp))
 	$(run_testcase)
 
 %.ctest:
 	$(setup)
-	+(cd $* && $(swig_and_compile_c))
+	+(cd $(JAVA_PACKAGE) && $(swig_and_compile_c))
 	$(run_testcase)
 
 %.multicpptest: 
 	$(setup)
-	+(cd $* && $(swig_and_compile_multi_cpp))
+	+(cd $(JAVA_PACKAGE) && $(swig_and_compile_multi_cpp))
 	$(run_testcase)
 
 # Makes a directory for the testcase if it does not exist
@@ -66,24 +67,24 @@ setup = \
 	else								  \
 	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
 	fi;								  \
-	if [ ! -d $* ]; then						  \
-	  mkdir $*;							  \
+	if [ ! -d $(JAVA_PACKAGE) ]; then						  \
+	  mkdir $(JAVA_PACKAGE);							  \
 	fi
 
 # Compiles java files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.java appended after the testcase name.
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
 run_testcase = \
-	cd $* && $(COMPILETOOL) $(JAVAC) -classpath . *.java && cd .. && \
+	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) -classpath . `find . -name "*.java"` && cd .. && \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  $(COMPILETOOL) $(JAVAC) -classpath . -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_LIBRARY_PATH="$*:$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) -classpath . $*_runme; \
+	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) -classpath . $*_runme; \
 	fi
 
 # Clean: remove testcase directories
 %.clean:
-	@if [ -d $* ]; then \
-	  rm -rf $*; \
+	@if [ -d $(JAVA_PACKAGE) ]; then \
+	  rm -rf $(JAVA_PACKAGE); \
 	fi
 
 clean:

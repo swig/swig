@@ -1,5 +1,33 @@
-Version 1.3.41 (in progress)
+Version 2.0.0 (in progress)
 ============================
+
+2010-03-04: wsfulton
+            Added the nspace feature. This adds some improved namespace support. Currently only Java
+            is supported for target languages, where C++ namespaces are automatically translated into
+            Java packages. The feature only applies to classes,struct,unions and enums declared within
+            a namespace. Methods and variables declared in namespaces still effectively have their
+            namespaces flattened. Example usage:
+
+              %feature(nspace) Outer::Inner1::Color;
+              %feature(nspace) Outer::Inner2::Color;
+
+              namespace Outer {
+                namespace Inner1 {
+                  struct Color {
+                    ...
+                  };
+                }
+                namespace Inner2 {
+                  struct Color {
+                    ...
+                  };
+                }
+              }
+
+            For Java, the -package option is also required when using the nspace feature. Say
+            we use -package com.myco, the two classes can then be accessed as follows from Java:
+
+              com.myco.Outer.Inner1.Color and com.myco.Outer.Inner2.Color.
 
 2010-02-27: wsfulton
             [Python] Remove -dirvtable from the optimizations included by -O as it this option

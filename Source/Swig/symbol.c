@@ -353,6 +353,21 @@ String *Swig_symbol_qualifiedscopename(Symtab *symtab) {
   return result;
 }
 
+/* ----------------------------------------------------------------------------- 
+ * Swig_symbol_qualified_language_scopename()
+ *
+ * Get the fully qualified C scopename of a symbol table but using a language
+ * specific separator for the scopenames. Basically the same as
+ * Swig_symbol_qualifiedscopename() but using the different separator.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_symbol_qualified_language_scopename(Symtab *n) {
+  /* TODO: fix for %rename to work */
+  String *result = Swig_symbol_qualifiedscopename(n);
+  Replaceall(result, "::", NSPACE_SEPARATOR);
+  return result;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_symbol_newscope()
  *

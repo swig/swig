@@ -17,6 +17,9 @@ char cvsroot_misc_c[] = "$Id$";
 #include <errno.h>
 #include <ctype.h>
 #include <limits.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 
 static char *fake_version = 0;
 
@@ -135,6 +138,54 @@ String *Swig_strip_c_comments(const String *s) {
   return stripped;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_new_subdirectory()
+ *
+ * Create the subdirectory only if the basedirectory already exists as a directory.
+ * basedirectory can be NULL or empty to indicate current directory.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
+  String *error = 0;
+  struct stat st;
+  int current_directory = basedirectory ? (Len(basedirectory) == 0 ? 1 : 0) : 0;
+
+  if (current_directory || ((stat(Char(basedirectory), &st) == 0) && S_ISDIR(st.st_mode))) {
+    Iterator it;
+    String *dir = basedirectory ? NewString(basedirectory) : NewString("");
+    List *subdirs = Split(subdirectory, SWIG_FILE_DELIMITER[0], INT_MAX);
+
+    for (it = First(subdirs); it.item; it = Next(it)) {
+      int statdir;
+      String *subdirectory = it.item;
+      Printf(dir, "%s", subdirectory);
+      statdir = stat(Char(dir), &st);
+      if (statdir == 0) {
+	Printf(dir, SWIG_FILE_DELIMITER);
+	if (S_ISDIR(st.st_mode)) {
+	  continue;
+	} else {
+	  error = NewStringf("Cannot create directory %s", dir);
+	  break;
+	}
+      } else {
+#ifdef _WIN32
+	int result = mkdir(Char(dir));
+#else
+	int result = mkdir(Char(dir), 0777);
+#endif
+	Printf(dir, SWIG_FILE_DELIMITER);
+	if (result != 0 && errno != EEXIST) {
+	  error = NewStringf("Cannot create directory %s", dir);
+	  break;
+	}
+      }
+    }
+  } else {
+    error = NewStringf("Cannot create subdirectory %s under the base directory %s", subdirectory, basedirectory);
+  }
+  return error;
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_filename_correct()

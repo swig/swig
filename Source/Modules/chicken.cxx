@@ -1152,9 +1152,9 @@ int CHICKEN::membervariableHandler(Node *n) {
 
   //String *getfunc = NewStringf("%s-%s-get", short_class_name, proc);
   //String *setfunc = NewStringf("%s-%s-set", short_class_name, proc);
-  String *getfunc = Swig_name_get(Swig_name_member(c_class_name, iname));
+  String *getfunc = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, c_class_name, iname));
   Replaceall(getfunc, "_", "-");
-  String *setfunc = Swig_name_set(Swig_name_member(c_class_name, iname));
+  String *setfunc = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, c_class_name, iname));
   Replaceall(setfunc, "_", "-");
 
   Printv(clos_class_defines, "        (list '", proc, " ':swig-virtual ':swig-get ", chickenPrimitiveName(getfunc), NIL);
@@ -1201,7 +1201,7 @@ int CHICKEN::constructorHandler(Node *n) {
   has_constructor_args = 1;
 
   String *iname = Getattr(n, "sym:name");
-  constructor_name = Swig_name_construct(iname);
+  constructor_name = Swig_name_construct(NSPACE_TODO, iname);
   Replaceall(constructor_name, "_", "-");
   return SWIG_OK;
 }

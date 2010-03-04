@@ -265,13 +265,16 @@ protected:
   void allow_overloading(int val = 1);
 
   /* Wrapping class query */
-  int is_wrapping_class();
+  int is_wrapping_class() const;
 
   /* Return the node for the current class */
   Node *getCurrentClass() const;
 
   /* Return C++ mode */
   int getCPlusMode() const;
+
+  /* Return the namespace for the class/enum - the nspace feature */
+  String *getNSpace() const;
 
   /* Return the real name of the current class */
   String *getClassName() const;
