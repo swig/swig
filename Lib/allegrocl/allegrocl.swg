@@ -246,8 +246,6 @@ $body)"
 #endif
 
 %insert("lisphead") %{
-;; $Id$
-
 (eval-when (compile load eval)
 
   ;; avoid compiling ef-templates at runtime

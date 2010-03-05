@@ -1,13 +1,15 @@
 /* ----------------------------------------------------------------------------- 
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
+ *
  * file.c
  *
  *     This file implements a file-like object that can be built around an 
  *     ordinary FILE * or integer file descriptor.
- * 
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.	
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_file_c[] = "$Id$";

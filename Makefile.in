@@ -162,50 +162,6 @@ java.actionexample:
 	  (cd Examples/$(LANGUAGE)/java && $(MAKE) -s $(chk-set-env) $(ACTION)) \
 	fi;							\
 
-gifplot-library:
-	@echo $(ACTION)ing Examples/GIFPlot/Lib
-	@cd Examples/GIFPlot/Lib && $(MAKE) -k -s $(ACTION)
-
-check-gifplot:					\
-	check-tcl-gifplot			\
-	check-perl5-gifplot			\
-	check-python-gifplot			\
-	check-java-gifplot			\
-	check-guile-gifplot			\
-	check-mzscheme-gifplot			\
-	check-ruby-gifplot			\
-	check-ocaml-gifplot			\
-	check-octave-gifplot			\
-	check-php4-gifplot			\
-	check-pike-gifplot			\
-	check-chicken-gifplot                   \
-#	check-lua-gifplot                  	\
-#	check-csharp-gifplot                    \
-#	check-modula3-gifplot
-
-check-%-gifplot: gifplot-library
-	@if test -z "$(skip-$*)"; then				\
-	  echo $* unknown;					\
-	  exit 1;						\
-	fi
-	@passed=true;						\
-	up=`$(srcdir)/Tools/capitalize $*`;			\
-	dir="Examples/GIFPlot/$$up";				\
-	if $(skip-$*); then					\
-	  echo skipping $$up $(ACTION);				\
-	elif [ ! -f $$dir/check.list ]; then			\
-	  echo skipping $$up $(ACTION) "(no $$dir/check.list)";	\
-	else							\
-	  all=`sed '/^#/d' $$dir/check.list`;			\
-	  for a in $$all; do					\
-	    echo $(ACTION)ing $$dir/$$a;			\
-	    (cd $$dir/$$a &&					\
-	    $(MAKE) -k -s $(chk-set-env) $(ACTION))		\
-	    || passed=false;					\
-	  done;							\
-	fi;							\
-	test $$passed = true
-
 # Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
 	check-tcl-test-suite			\
@@ -255,7 +211,7 @@ partialcheck-test-suite:
 partialcheck-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=partialcheck
 
-check: check-aliveness check-examples check-gifplot check-test-suite
+check: check-aliveness check-examples check-test-suite
 
 # Run known-to-be-broken as well as not broken testcases in the test-suite
 all-test-suite:					\
@@ -315,7 +271,7 @@ broken-%-test-suite:
 # CLEAN
 #####################################################################
 
-clean: clean-objects clean-libfiles clean-examples clean-gifplot clean-test-suite clean-docs
+clean: clean-objects clean-libfiles clean-examples clean-test-suite clean-docs
 
 clean-objects: clean-source
 
@@ -330,9 +286,6 @@ clean-libfiles:
 clean-examples:
 	@$(MAKE) -k -s check-examples ACTION=clean
 
-clean-gifplot:
-	@$(MAKE) -k -s check-gifplot ACTION=clean
-
 clean-test-suite:
 	@$(MAKE) -k -s check-test-suite ACTION=clean
 
@@ -341,9 +294,6 @@ clean-%-examples:
 
 clean-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=clean
-
-clean-%-gifplot:
-	@$(MAKE) -k -s check-$*-gifplot ACTION=clean
 
 clean-docs:
 	@echo cleaning Docs
@@ -358,7 +308,7 @@ maintainer-clean: clean-libfiles
 
 DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool
 
-distclean: distclean-objects clean-examples clean-gifplot distclean-test-suite clean-docs distclean-dead
+distclean: distclean-objects clean-examples distclean-test-suite clean-docs distclean-dead
 
 distclean-objects: distclean-source
 
