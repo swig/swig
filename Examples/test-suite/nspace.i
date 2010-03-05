@@ -4,9 +4,13 @@
 #if defined(SWIGJAVA)
 SWIG_JAVABODY_METHODS(public, public, SWIGTYPE) 
 %pragma(java) jniclassclassmodifiers = "public class"
+#endif
 
-%feature("nspace");
-%feature("nspace", "0") Outer::Inner2::NoNSpacePlease;
+// nspace feature only supported by these languages
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+
+%nspace;
+%nonspace Outer::Inner2::NoNSpacePlease;
 
 %copyctor;
 %ignore Outer::Inner2::Color::Color();
@@ -64,6 +68,11 @@ namespace Outer {
       static int staticMemberVariable;
       void colorInstanceMethod(double d) {}
       static void colorStaticMethod(double d) {}
+      void colors(const Inner1::Color& col1a, 
+                  const Outer::Inner1::Color& col1b, 
+                  const Color &col2a, 
+                  const Inner2::Color& col2b, 
+                  const Outer::Inner2::Color& col2c) {}
     }; // Color 
     int Color::staticMemberVariable = 0;
     class NoNSpacePlease {};
@@ -91,3 +100,4 @@ void test_classes(Outer::SomeClass c, Outer::Inner2::Color cc) {}
 %}
 
 #endif
+
