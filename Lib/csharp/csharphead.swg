@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * csharphead.swg
  *
  * Support code for exceptions if the SWIG_CSHARP_NO_EXCEPTION_HELPER is not defined

@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * stdint.i
  *
  * SWIG library file for ISO C99 types: 7.18 Integer types <stdint.h>
