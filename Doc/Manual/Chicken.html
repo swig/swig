@@ -35,7 +35,7 @@
 <li><a href="#Chicken_nn16">Typemaps</a>
 <li><a href="#Chicken_nn17">Pointers</a>
 <ul>
-<li><a href="#collection">Garbage collection</a>
+<li><a href="#Chicken_collection">Garbage collection</a>
 </ul>
 <li><a href="#Chicken_nn18">Unsupported features and known problems</a>
 <ul>
@@ -80,7 +80,7 @@
       relies on some recent additions to CHICKEN, which are only
       present in releases of CHICKEN with version number
       <strong>greater than or equal to 1.89</strong>.  
-      To use a chicken version between 1.40 and 1.89, see the <a href="#collection">Garbage collection</a>
+      To use a chicken version between 1.40 and 1.89, see the <a href="#Chicken_collection">Garbage collection</a>
       section below.
     </p>
 
@@ -225,7 +225,7 @@
       a function that must be called, the constant will appear as a
       scheme variable.  This causes the generated .scm file to just contain the code
       <tt>(set! MYCONSTANT1 (MYCONSTANT1))</tt>. See 
-      <a href="Customization.html#features">Features and the %feature directive</a>
+      <a href="Customization.html#Customization_features">Features and the %feature directive</a>
       for info on how to apply the %feature.
     </p>
 
@@ -253,7 +253,7 @@
 
      <p>The SWIG chicken module has support for exceptions thrown from
      C or C++ code to be caught in scheme.  
-     See <a href="Customization.html#exception">Exception handling with %exception</a>
+     See <a href="Customization.html#Customization_exception">Exception handling with %exception</a>
      for more information about declaring exceptions in the interface file.
      </p>
 
@@ -519,7 +519,7 @@ all the modules.</p>
       type. flags is either zero or SWIG_POINTER_DISOWN (see below).
     </p>
 
-<H3><a name="collection"></a>19.6.1 Garbage collection</H3>
+<H3><a name="Chicken_collection"></a>19.6.1 Garbage collection</H3>
 
 
   <p>If the owner flag passed to <code>SWIG_NewPointerObj</code> is 1, <code>NewPointerObj</code> will add a
@@ -530,7 +530,7 @@ all the modules.</p>
   be garbage collected, SWIG will automatically set the owner flag to 1.  For other functions,
   the <code>%newobject</code> directive must be specified for functions whose return values
   should be garbage collected.  See 
-  <a href="Customization.html#ownership">Object ownership and %newobject</a> for more information.
+  <a href="Customization.html#Customization_ownership">Object ownership and %newobject</a> for more information.
   </p>
 
   <p>In situations where a C or C++ function will assume ownership of a pointer, and thus

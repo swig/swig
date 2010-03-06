@@ -42,7 +42,7 @@
 <ul>
 <li><a href="#SWIGPlus_nn24">Dispatch function generation</a>
 <li><a href="#SWIGPlus_nn25">Ambiguity in Overloading</a>
-<li><a href="#ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>
+<li><a href="#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>
 <li><a href="#SWIGPlus_nn27">Comments on overloading</a>
 </ul>
 <li><a href="#SWIGPlus_nn28">Wrapping overloaded operators</a>
@@ -1128,7 +1128,7 @@ For example if a method has ten default arguments, then eleven wrapper methods a
 <p>
 Please see the <a href="Customization.html#Customization_features_default_args">Features and default arguments</a>
 section for more information on using <tt>%feature</tt> with functions with default arguments.
-The <a href="#ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section 
+The <a href="#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section 
 also deals with using <tt>%rename</tt> and <tt>%ignore</tt> on methods with default arguments.
 If you are writing your own typemaps for types used in methods with default arguments, you may also need to write a <tt>typecheck</tt> typemap.
 See the <a href="Typemaps.html#Typemaps_overloading">Typemaps and overloading</a> section for details or otherwise
@@ -2127,7 +2127,7 @@ it means that the target language module has not yet implemented support for ove
 functions and methods.  The only way to fix the problem is to read the next section.
 </p>
 
-<H3><a name="ambiguity_resolution_renaming"></a>6.15.3 Ambiguity resolution and renaming</H3>
+<H3><a name="SWIGPlus_ambiguity_resolution_renaming"></a>6.15.3 Ambiguity resolution and renaming</H3>
 
 
 <p>
@@ -4103,7 +4103,7 @@ more advanced namespace support.
 
 
 <p>
-Some target languages provide support for the <tt>nspace</tt> <a href="Customization.html#features">feature</a>.
+Some target languages provide support for the <tt>nspace</tt> <a href="Customization.html#Customization_features">feature</a>.
 The feature can be applied to any class, struct, union or enum declared within a named namespace.
 The feature wraps the type within the target language specific concept of a namespace,
 for example, a Java package or C# namespace.
@@ -4304,7 +4304,7 @@ is outlined in the <a href="Typemaps.html#throws_typemap">"throws" typemap</a> s
 <p>
 Since exception specifications are sometimes only used sparingly, this alone may not be enough to
 properly handle C++ exceptions. To do that, a different set of special SWIG directives are used.
-Consult the "<a href="Customization.html#exception">Exception handling with %exception</a>" section for details.
+Consult the "<a href="Customization.html#Customization_exception">Exception handling with %exception</a>" section for details.
 The next section details a way of simulating an exception specification or replacing an existing one.
 </p>
 

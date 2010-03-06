@@ -2503,7 +2503,7 @@ string *foo();
 </div>
 
 <p>
-See <a href="Customization.html#ownership">Object ownership and %newobject</a> for further details.
+See <a href="Customization.html#Customization_ownership">Object ownership and %newobject</a> for further details.
 </p>
 
 <H3><a name="Typemaps_nn35"></a>10.5.10 "memberin" typemap</H3>
@@ -2587,7 +2587,7 @@ catch(char const *_e) {
 
 <p>
 Note that if your methods do not have an exception specification yet they do throw exceptions, SWIG cannot know how to deal with them.
-For a neat way to handle these, see the <a href="Customization.html#exception">Exception handling with %exception</a> section.
+For a neat way to handle these, see the <a href="Customization.html#Customization_exception">Exception handling with %exception</a> section.
 </p>
 
 <H2><a name="Typemaps_nn39"></a>10.6 Some typemap examples</H2>
@@ -3075,7 +3075,7 @@ what the "optimal" attribute is telling SWIG to do.
 <p>
 The "optimal" attribute optimisation is not turned on by default as it has a number of restrictions.
 Firstly, some code cannot be condensed into a simple call for passing into the copy constructor.
-One common occurrence is when <a href="Customization.html#exception">%exception</a> is used.
+One common occurrence is when <a href="Customization.html#Customization_exception">%exception</a> is used.
 Consider adding the following <tt>%exception</tt> to the example:
 </p>
 
@@ -3610,7 +3610,7 @@ structures are chained together in a circularly linked list.
 
 <p>This section covers how to use these functions from typemaps.  To learn how to
 call these functions from external files (not the generated _wrap.c file), see
-the <a href="Modules.html#external_run_time">External access to the run-time system</a>
+the <a href="Modules.html#Modules_external_run_time">External access to the run-time system</a>
 section.</p>
 
 <p>When pointers are converted in a typemap, the typemap code often looks

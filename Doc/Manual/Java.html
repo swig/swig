@@ -250,7 +250,7 @@ rest of your C/C++ application.
 The name of the wrapper file is derived from the name of the input file.  For example, if the
 input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>.
 To change this, you can use the <tt>-o</tt> option. 
-It is also possible to change the <a href="SWIG.html#output">output directory </a> that the Java files are generated into using <tt>-outdir</tt>.
+It is also possible to change the <a href="SWIG.html#SWIG_output">output directory </a> that the Java files are generated into using <tt>-outdir</tt>.
 </p>
 
 <p>
@@ -837,7 +837,7 @@ public interface exampleConstants {
 Note that SWIG has inferred the C type and used an appropriate Java type that will fit the range of all possible values for the C type.
 By default SWIG generates <b>runtime constants</b>. They are not <b>compiler constants</b> that can, for example, be used 
 in a switch statement. This can be changed by using the <tt>%javaconst(flag)</tt> directive. It works like all
-the other <a href="Customization.html#features">%feature directives</a>. The default is <tt>%javaconst(0)</tt>. 
+the other <a href="Customization.html#Customization_features">%feature directives</a>. The default is <tt>%javaconst(0)</tt>. 
 It is possible to initialize all wrapped constants from pure Java code by placing a <tt>%javaconst(1)</tt> <b>before</b> SWIG parses the constants.
 Putting it at the top of your interface file would ensure this.
 Here is an example:
@@ -3751,7 +3751,7 @@ in any way---the extensions only show up in the Java interface.
 If a C or C++ function throws an error, you may want to convert that error into a Java
 exception. To do this, you can use the <tt>%exception</tt> directive.  The <tt>%exception</tt> directive
 simply lets you rewrite part of the generated wrapper code to include an error check.
-It is detailed in full in the <a href="Customization.html#exception">Exception handling with %exception</a> section.
+It is detailed in full in the <a href="Customization.html#Customization_exception">Exception handling with %exception</a> section.
 </p>
 
 <p>

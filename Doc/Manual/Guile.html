@@ -409,7 +409,7 @@ See also the "multivalue" example.
 %feature("constasvar") can be applied to any constant, immutable variable, or enum.
 Instead of exporting the constant as a function that must be called, the
 constant will appear as a scheme variable. See
-<a href="Customization.html#features">Features and the %feature directive</a>
+<a href="Customization.html#Customization_features">Features and the %feature directive</a>
 for info on how to apply the %feature.</p>
 
 <H2><a name="Guile_nn12"></a>20.6 Representation of pointers as smobs</H2>
@@ -487,7 +487,7 @@ to the destructor for this type.  The destructor is the generated wrapper around
 So swig still exports a wrapper for the destructor, it just does not call scm_c_define_gsubr() for
 the wrapped delete function.  So the only way to delete an object is from the garbage collector, since the
 delete function is not available to scripts.  How swig determines if a type should be garbage collected
-is exactly like described in <a href="Customization.html#ownership">
+is exactly like described in <a href="Customization.html#Customization_ownership">
 Object ownership and %newobject</a> in the SWIG manual.  All typemaps use an $owner var, and
 the guile module replaces $owner with 0 or 1 depending on feature:new.</p>
 

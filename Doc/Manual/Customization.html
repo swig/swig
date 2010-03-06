@@ -10,7 +10,7 @@
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
-<li><a href="#exception">Exception handling with %exception</a>
+<li><a href="#Customization_exception">Exception handling with %exception</a>
 <ul>
 <li><a href="#Customization_nn3">Handling exceptions in C code</a>
 <li><a href="#Customization_nn4">Exception handling with longjmp()</a>
@@ -20,14 +20,14 @@
 <li><a href="#Customization_exception_special_variables">Special variables for %exception</a>
 <li><a href="#Customization_nn7">Using The SWIG exception library</a>
 </ul>
-<li><a href="#ownership">Object ownership and %newobject</a>
-<li><a href="#features">Features and the %feature directive</a>
+<li><a href="#Customization_ownership">Object ownership and %newobject</a>
+<li><a href="#Customization_features">Features and the %feature directive</a>
 <ul>
 <li><a href="#Customization_feature_attributes">Feature attributes</a>
 <li><a href="#Customization_feature_flags">Feature flags</a>
 <li><a href="#Customization_clearing_features">Clearing features</a>
 <li><a href="#Customization_features_default_args">Features and default arguments</a>
-<li><a href="#features_example">Feature example</a>
+<li><a href="#Customization_features_example">Feature example</a>
 </ul>
 </ul>
 </div>
@@ -45,7 +45,7 @@ of exception handling is presented.  Then, a more general-purpose
 customization mechanism known as "features" is described.
 </p>
 
-<H2><a name="exception"></a>11.1 Exception handling with %exception</H2>
+<H2><a name="Customization_exception"></a>11.1 Exception handling with %exception</H2>
 
 
 <p>
@@ -351,7 +351,7 @@ In this case, the exception handler is only attached to declarations
 named "allocate".  This would include both global and member
 functions.  The names supplied to <tt>%exception</tt> follow the same
 rules as for <tt>%rename</tt> described in the section on 
-<a href="SWIGPlus.html#ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>.
+<a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>.
 For example, if you wanted to define
 an exception handler for a specific class, you might write this:
 </p>
@@ -582,7 +582,7 @@ it can be used elsewhere in SWIG. This includes typemaps and helper
 functions.  
 </p>
 
-<H2><a name="ownership"></a>11.2 Object ownership and %newobject</H2>
+<H2><a name="Customization_ownership"></a>11.2 Object ownership and %newobject</H2>
 
 
 <p>
@@ -734,7 +734,7 @@ char *strdup(const char *s);
 The results might not be what you expect.
 </p>
 
-<H2><a name="features"></a>11.3 Features and the %feature directive</H2>
+<H2><a name="Customization_features"></a>11.3 Features and the %feature directive</H2>
 
 
 <p>
@@ -1123,7 +1123,7 @@ specifying or not specifying default arguments in a feature is not applicable as
 in SWIG-1.3.23 when the approach to wrapping methods with default arguments was changed.
 </p>
 
-<H3><a name="features_example"></a>11.3.5 Feature example</H3>
+<H3><a name="Customization_features_example"></a>11.3.5 Feature example</H3>
 
 
 <p>
