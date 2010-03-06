@@ -1,6 +1,0 @@
-This example runs the entire gifplot.h header file through SWIG without
-any changes.  The Scheme program 'test-gifplot.scm' does something a 
-little more interesting.  You'll have to go look at the header file to
-get a complete listing of the functions.
-
-`make' will build a static binary.  Run ./gifplot to test it.

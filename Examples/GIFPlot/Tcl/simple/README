@@ -1,5 +1,0 @@
-This is a very minimalistic example in which just a few functions
-and constants from library are wrapped and used to draw some simple
-shapes.  The script 'runme.tcl' runs the example.
-
-
