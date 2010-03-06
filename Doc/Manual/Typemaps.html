@@ -34,7 +34,7 @@
 <li><a href="#Typemaps_typedef_reductions">Typedef reductions</a>
 <li><a href="#Typemaps_nn19">Default typemaps</a>
 <li><a href="#Typemaps_mixed_default">Mixed default typemaps</a>
-<li><a href="#Typemaps_nn20">Multi-arguments typemaps</a>
+<li><a href="#Typemaps_multi_argument_typemaps_patterns">Multi-arguments typemaps</a>
 <li><a href="#Typemaps_debugging_search">Debugging typemap pattern matching</a>
 </ul>
 <li><a href="#Typemaps_nn21">Code generation rules</a>
@@ -1406,7 +1406,7 @@ Expect to see them being used more and more within the various libraries in late
 </p>
 
 
-<H3><a name="Typemaps_multi_argument_typemaps"></a>10.3.5 Multi-arguments typemaps</H3>
+<H3><a name="Typemaps_multi_argument_typemaps_patterns"></a>10.3.5 Multi-arguments typemaps</H3>
 
 
 <p>
@@ -1543,7 +1543,7 @@ SWIGINTERN PyObject *_wrap_foo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
 
 <p>
 Searches for multi-argument typemaps are not mentioned unless a matching multi-argument typemap does actually exist.
-For example, the output for the code in the <a href="#Typemaps_multi_argument_typemaps">previous section</a> is as follows:
+For example, the output for the code in the <a href="#Typemaps_multi_argument_typemaps_patterns">previous section</a> is as follows:
 </p>
 
 <div class="shell">
@@ -1623,6 +1623,8 @@ example.i:21: Typemap for void set_value (out) : %typemap(out) void
 
 <p>
 The following observations about what is displayed can be noted (the same applies for <tt>-debug-tmsearch</tt>):
+</p>
+<ul>
 <li>
 The relevant typemap is shown, but for typemap copying, the appropriate <tt>%typemap</tt> or <tt>%apply</tt> is displayed, for example, the "check" and "in" typemaps.
 </li>
@@ -1633,7 +1635,7 @@ The typemap modifiers are not shown, eg the <tt>noblock=1</tt> modifier in the "
 The exact <tt>%apply</tt> statement might look different to what is in the actual code. For example, the <tt>const char* another_value</tt> is not shown as it is not relevant here.
 Also the types may be displayed slightly differently - <tt>char const *</tt> and not <tt>const char*</tt>.
 </li>
-</p>
+</ul>
 
 <H2><a name="Typemaps_nn21"></a>10.4 Code generation rules</H2>
 
