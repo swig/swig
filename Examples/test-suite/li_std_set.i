@@ -1,18 +1,12 @@
-/**
- * @file   li_std_set.i
- * @author gga
- * @date   Tue May  1 02:52:47 2007
- * 
- * @brief  a test of set containers. 
- *         Languages should define swig::LANGUAGE_OBJ to be
- *         an entity of their native pointer type which can be
- *         included in a STL container.
+/*
+ * a test of set containers. 
+ * Languages should define swig::LANGUAGE_OBJ to be
+ * an entity of their native pointer type which can be
+ * included in a STL container.
  *
- *         For example:
- *                swig::LANGUAGE_OBJ  is  GC_VALUE in Ruby
- *                swig::LANGUAGE_OBJ  is  SwigPtr_PyObject in python
- * 
- * 
+ * For example:
+ *   swig::LANGUAGE_OBJ  is  GC_VALUE in Ruby
+ *   swig::LANGUAGE_OBJ  is  SwigPtr_PyObject in python
  */
 
 %module li_std_set

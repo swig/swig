@@ -1,12 +1,7 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * li_std_map_runme.cs
  *
  * SWIG C# tester for std_map.i
- * Implementation by Yuval Baror (http://yuval.bar-or.org)
- *
  * This class tests all the functionality of the std_map.i wrapper.
  * Upon successful testing, the main function doesn't print out anything.
  * If any error is found - it will be printed on the screen.
