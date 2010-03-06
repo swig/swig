@@ -262,7 +262,7 @@
      inside the %exception blocks.  <code>SWIG_exception</code> will throw a list consisting of the code
      (as an integer) and the message.  Both of these will throw an exception using <code>(abort)</code>,
      which can be handled by <code>(handle-exceptions)</code>.  See
-     <a href="http://www.call-with-current-continuation.org/manual/Exceptions.html#Exceptions">Chicken manual on Exceptions</a>
+     the Chicken manual on Exceptions
      and <a href="http://srfi.schemers.org/srfi-12/srfi-12.html">SFRI-12</a>.  Since the exception values are thrown
      directly, if <code>(condition-case)</code> is used to catch an exception the exception will come through in the <code>val ()</code> case.
      </p>
@@ -416,8 +416,8 @@ $ csc -sv modname.scm modname_wrap.c modname_impl.c -o modname.so
 </div>
 
 <p>This library can then be loaded by scheme code with the <code>(require 'modname)</code> function.
-See <a href="http://www.call-with-current-continuation.org/manual/Loading-extension-libraries.html">
-Loading-extension-libraries</a> in the eval unit inside the CHICKEN manual for more information.</p>
+See the
+Loading-extension-libraries in the eval unit inside the CHICKEN manual for more information.</p>
 
 <p>Another alternative is to run SWIG normally and create a scheme file that contains <code>(declare (uses <i>modname</i>))</code>
 and then compile that file into the shared library as well.  For example, inside the <tt>mod_load.scm</tt> file,</p>
@@ -535,7 +535,7 @@ all the modules.</p>
 
   <p>In situations where a C or C++ function will assume ownership of a pointer, and thus
   chicken should no longer garbage collect it, SWIG provides the <code>DISOWN</code> input typemap.
-  After applying this typemap (see the <a href="Typemaps.html">Typemaps chapter</a> for more information on how to apply typemaps),
+  After applying this typemap (see the <a href="Typemaps.html#Typemaps">Typemaps chapter</a> for more information on how to apply typemaps),
   any pointer that gets passed in will no longer be garbage collected.  
   An object is disowned by passing the <code>SWIG_POINTER_DISOWN</code> flag to <code>SWIG_ConvertPtr</code>.
   <b>Warning:</b> Since the lifetime of the object is now controlled by the underlying code, the object might

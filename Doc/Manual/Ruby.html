@@ -142,7 +142,7 @@
 </ul>
 <li><a href="#Ruby_nn53">Advanced Topics</a>
 <ul>
-<li><a href="#Ruby_nn54">Operator overloading</a>
+<li><a href="#Ruby_operator_overloading">Operator overloading</a>
 <li><a href="#Ruby_nn55">Creating Multi-Module Packages</a>
 <li><a href="#Ruby_nn56">Specifying Mixin Modules</a>
 </ul>
@@ -1317,7 +1317,7 @@ this code: </p>
 
 
 <p> If you want to set an array member, you will need to supply a
-"memberin" typemap described in the <a href="#ruby_cpp_smart_pointers">section on typemaps</a>.
+"memberin" typemap described in the <a href="#Ruby_memberin_typemap">section on typemaps</a>.
 As a special case, SWIG does generate code to set array members of type
 <tt>char</tt> (allowing you to store a Ruby string in the
 structure). </p>
@@ -1956,7 +1956,7 @@ example: </p>
 
 
 <p> More details about wrapping C++ operators into Ruby operators
-is discussed in the <a href="#ruby_operator_overloading">section
+is discussed in the <a href="#Ruby_operator_overloading">section
 on operator overloading</a>. </p>
 
 
@@ -2877,7 +2877,7 @@ method. For example: </p>
 
 <p> SWIG's Ruby module supports cross-language polymorphism
 (a.k.a. the "directors" feature) similar to that for SWIG's Python
-module. Rather than duplicate the information presented in the <a href="Ruby">Python</a> chapter, this
+module. Rather than duplicate the information presented in the <a href="Python.html#Python">Python</a> chapter, this
 section just notes the differences that you need to be aware of when
 using this feature with Ruby. </p>
 
@@ -6089,7 +6089,7 @@ a function. For example:</p>
 
 
 
-<p> See <a href="http://www.swig.org/Doc1.3/SWIGDocumentation.html#Customization_ownership">Object
+<p> See <a href="Customization.html#Customization_ownership">Object
 ownership and %newobject</a> for further details.</p>
 
 
@@ -7099,8 +7099,8 @@ being created. </div>
 
 <p> When you write a typemap, you usually have to work directly
 with Ruby objects. The following functions may prove to be useful.
-(These functions plus many more can be found in <a href="http://www.rubycentral.com/book"><em>Programming
-Ruby</em></a>, by David Thomas and Andrew Hunt.)&nbsp;</p>
+(These functions plus many more can be found in <em>Programming
+Ruby</em> book, by David Thomas and Andrew Hunt.)&nbsp;</p>
 <p>In addition, we list equivalent functions that SWIG defines, which
 provide a language neutral conversion (these functions are defined for
 each swig language supported). &nbsp;If you are trying to create a swig
@@ -8510,7 +8510,7 @@ docstring and they are output together. </p>
 <H2><a name="Ruby_nn53"></a>32.9 Advanced Topics</H2>
 
 
-<H3><a name="Ruby_nn54"></a>32.9.1 Operator overloading</H3>
+<H3><a name="Ruby_operator_overloading"></a>32.9.1 Operator overloading</H3>
 
 
 <p> SWIG allows operator overloading with, by using the <tt>%extend</tt>
@@ -9530,7 +9530,7 @@ parses the expression <i>a != b</i> as <i>!(a == b)</i>.
 <H3><a name="Ruby_nn55"></a>32.9.2 Creating Multi-Module Packages</H3>
 
 
-<p> The chapter on <a href="Modules.html">Working
+<p> The chapter on <a href="Modules.html#Modules">Working
 with Modules</a> discusses the basics of creating multi-module
 extensions with SWIG, and in particular the considerations for sharing
 runtime type information among the different modules. </p>
@@ -10050,7 +10050,7 @@ above. For example:</p>
 <p>In this case, the default SWIG behavior for calling member
 functions is incorrect. The Ruby object should assume ownership of the
 returned object. This can be done by using the %newobject directive.
-See <a href="file:///d:/msys/1.0/src/SWIG/Doc/Manual/Customization.html#Customization_ownership">
+See <a href="Customization.html#Customization_ownership">
 Object ownership and %newobject</a> for more information. </p>
 
 

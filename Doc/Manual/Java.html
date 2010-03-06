@@ -254,7 +254,7 @@ It is also possible to change the <a href="SWIG.html#SWIG_output">output directo
 </p>
 
 <p>
-The module name, specified with <tt>%module</tt>, determines the name of various generated classes as discussed <a href=#Java_module_packages_classes>later</a>.
+The module name, specified with <tt>%module</tt>, determines the name of various generated classes as discussed <a href="#Java_module_packages_classes">later</a>.
 Note that the module name does not define a Java package and by default, the generated Java classes do not have a Java package.
 The <tt>-package</tt> option described below can specify a Java package name to use.
 </p>
@@ -3894,7 +3894,7 @@ public class FooClass {
 
 <p>
 The examples above first use the C JNI calling syntax then the C++ JNI calling syntax. The C++ calling syntax will not compile as C and also vice versa.
-It is however possible to write JNI calls which will compile under both C and C++ and is covered in the <a href="#typemaps_for_c_and_c++">Typemaps for both C and C++ compilation</a> section. 
+It is however possible to write JNI calls which will compile under both C and C++ and is covered in the <a href="#Java_typemaps_for_c_and_cpp">Typemaps for both C and C++ compilation</a> section. 
 </p>
 
 <p>
@@ -5126,11 +5126,11 @@ See the <a href="#Java_nan_exception_typemap">NaN exception example</a> for furt
 </p>
 
 <p>
-The "jtype" typemap has the optional 'nopgcpp' attribute which can be used to suppress the generation of the <a href="Java_pgcpp">premature garbage collection prevention parameter</a>.
+The "jtype" typemap has the optional 'nopgcpp' attribute which can be used to suppress the generation of the <a href="#Java_pgcpp">premature garbage collection prevention parameter</a>.
 </p>
 
 <p>
-The "javain" typemap has the optional 'pre', 'post' and 'pgcppname' attributes. These are used for generating code before and after the JNI call in the proxy class or module class. The 'pre' attribute contains code that is generated before the JNI call and the 'post' attribute contains code generated after the JNI call. The 'pgcppname' attribute is used to change the <a href="Java_pgcpp">premature garbage collection prevention parameter</a> name passed to the JNI function. This is sometimes needed when the 'pre' typemap creates a temporary variable which is then passed to the JNI function.
+The "javain" typemap has the optional 'pre', 'post' and 'pgcppname' attributes. These are used for generating code before and after the JNI call in the proxy class or module class. The 'pre' attribute contains code that is generated before the JNI call and the 'post' attribute contains code generated after the JNI call. The 'pgcppname' attribute is used to change the <a href="#Java_pgcpp">premature garbage collection prevention parameter</a> name passed to the JNI function. This is sometimes needed when the 'pre' typemap creates a temporary variable which is then passed to the JNI function.
 </p>
 
 <p>

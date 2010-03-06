@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Lua_nn1"></a>23 SWIG and Lua</H1>
+<H1><a name="Lua"></a>23 SWIG and Lua</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -1210,7 +1210,7 @@ extern void sort_double(double* arr, int len);
 
 <p>There are basically two ways that SWIG can deal with this. The first way, uses the <tt>&lt;carrays.i&gt;</tt> library
 to create an array in C/C++ then this can be filled within Lua and passed into the function. It works, but its a bit tedious.
-More details can be found in the <a href="Library.html#Library_nn5">carrays.i</a> documention.</p>
+More details can be found in the <a href="Library.html#Library_carrays">carrays.i</a> documention.</p>
 
 <p>The second and more intuitive way, would be to pass a Lua table directly into the function, and have SWIG automatically convert between Lua-table and C-array. Within the <tt>&lt;typemaps.i&gt;</tt> file there are typemaps ready written to perform this task. To use them is again a matter of using %appy in the correct manner.</p>
 
