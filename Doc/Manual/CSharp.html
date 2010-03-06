@@ -9,35 +9,35 @@
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
-<li><a href="#csharp_introduction">Introduction</a>
-<li><a href="#csharp_differences_java">Differences to the Java module</a>
+<li><a href="#CSharp_introduction">Introduction</a>
+<li><a href="#CSharp_differences_java">Differences to the Java module</a>
 <li><a href="#CSharp_arrays">C# Arrays</a>
 <ul>
 <li><a href="#CSharp_arrays_swig_library">The SWIG C arrays library</a>
 <li><a href="#CSharp_arrays_pinvoke_default_array_marshalling">Managed arrays using P/Invoke default array marshalling</a>
 <li><a href="#CSharp_arrays_pinning">Managed arrays using pinning</a>
 </ul>
-<li><a href="#csharp_exceptions">C# Exceptions</a>
+<li><a href="#CSharp_exceptions">C# Exceptions</a>
 <ul>
-<li><a href="#csharp_exception_example_check_typemap">C# exception example using "check" typemap</a>
-<li><a href="#csharp_exception_example_percent_exception">C# exception example using %exception</a>
-<li><a href="#csharp_exception_example_exception_specifications">C# exception example using exception specifications</a>
-<li><a href="#csharp_custom_application_exception">Custom C# ApplicationException example</a>
+<li><a href="#CSharp_exception_example_check_typemap">C# exception example using "check" typemap</a>
+<li><a href="#CSharp_exception_example_percent_exception">C# exception example using %exception</a>
+<li><a href="#CSharp_exception_example_exception_specifications">C# exception example using exception specifications</a>
+<li><a href="#CSharp_custom_application_exception">Custom C# ApplicationException example</a>
 </ul>
-<li><a href="#csharp_directors">C# Directors</a>
+<li><a href="#CSharp_directors">C# Directors</a>
 <ul>
-<li><a href="#csharp_directors_example">Directors example</a>
-<li><a href="#csharp_directors_implementation">Directors implementation</a>
-<li><a href="#csharp_director_caveats">Director caveats</a>
+<li><a href="#CSharp_directors_example">Directors example</a>
+<li><a href="#CSharp_directors_implementation">Directors implementation</a>
+<li><a href="#CSharp_director_caveats">Director caveats</a>
 </ul>
-<li><a href="#csharp_typemap_examples">C# Typemap examples</a>
+<li><a href="#CSharp_typemap_examples">C# Typemap examples</a>
 <ul>
-<li><a href="#csharp_memory_management_member_variables">Memory management when returning references to member variables</a>
-<li><a href="#csharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
-<li><a href="#csharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
-<li><a href="#csharp_date_properties">A date example demonstrating marshalling of C# properties</a>
-<li><a href="#csharp_partial_classes">Turning wrapped classes into partial classes</a>
-<li><a href="#csharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
+<li><a href="#CSharp_memory_management_member_variables">Memory management when returning references to member variables</a>
+<li><a href="#CSharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
+<li><a href="#CSharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
+<li><a href="#CSharp_date_properties">A date example demonstrating marshalling of C# properties</a>
+<li><a href="#CSharp_partial_classes">Turning wrapped classes into partial classes</a>
+<li><a href="#CSharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
 </ul>
 </ul>
 </div>
@@ -45,7 +45,7 @@
 
 
 
-<H2><a name="csharp_introduction"></a>18.1 Introduction</H2>
+<H2><a name="CSharp_introduction"></a>18.1 Introduction</H2>
 
 
 <p>
@@ -65,7 +65,7 @@ The <a href="http://msdn.microsoft.com">Microsoft Developer Network (MSDN)</a> h
 Monodoc, available from the Mono project, has a very useful section titled <a href="http://www.mono-project.com/Interop_with_Native_Libraries">Interop with native libraries</a>.
 </p>
 
-<H2><a name="csharp_differences_java"></a>18.2 Differences to the Java module</H2>
+<H2><a name="CSharp_differences_java"></a>18.2 Differences to the Java module</H2>
 
 
 <p>
@@ -137,7 +137,7 @@ If it was used, it would generate an illegal runtime initialisation via a PInvok
 C# doesn't support the notion of throws clauses.
 Therefore there is no 'throws' typemap attribute support for adding exception classes to a throws clause.
 Likewise there is no need for an equivalent to <tt>%javaexception</tt>.
-In fact, throwing C# exceptions works quite differently, see <a href="CSharp.html#csharp_exceptions">C# Exceptions</a> below.
+In fact, throwing C# exceptions works quite differently, see <a href="CSharp.html#CSharp_exceptions">C# Exceptions</a> below.
 </li>
 
 <li>
@@ -215,10 +215,10 @@ $jnicall                    -&gt; $imcall
 <p>
 Unlike the "javain" typemap, the "csin" typemap does not support the 'pgcpp' attribute as the C# module does not have a premature garbage collection prevention parameter. 
 The "csin" typemap supports additional optional attributes called 'cshin' and 'terminator'. 
-The 'cshin' attribute should contain the parameter type and name whenever a <a href="Java.html#java_constructor_helper_function">constructor helper function</a> is generated due to the 'pre' or 'post' attributes. 
+The 'cshin' attribute should contain the parameter type and name whenever a <a href="Java.html#Java_constructor_helper_function">constructor helper function</a> is generated due to the 'pre' or 'post' attributes. 
 The 'terminator' attribute normally just contains a closing brace for when the 'pre' attribute contains an opening brace, such as when a C# <tt>using</tt> or <tt>fixed</tt> block is started.
 Note that 'pre', 'post', 'terminator' and 'cshin' attributes are not used for marshalling the property set.
-Please see the <a href="#csharp_date_marshalling">Date marshalling example</a> and <a href="#csharp_date_properties">Date marshalling of properties example</a> for further understanding of these "csin" applicable attributes.
+Please see the <a href="#CSharp_date_marshalling">Date marshalling example</a> and <a href="#CSharp_date_properties">Date marshalling of properties example</a> for further understanding of these "csin" applicable attributes.
 </p>
 </li>
 
@@ -255,7 +255,7 @@ public static extern IntPtr function(string jarg1);
 Support for type attributes.
 The 'imtype' and 'cstype' typemaps can have an optional <tt>inattributes</tt> and <tt>outattributes</tt> typemap attribute.
 The 'imtype' typemap can also have an optional <tt>directorinattributes</tt> and <tt>directoroutattributes</tt>
-typemap attribute which attaches to director delegates, an implementation detail of directors, see <a href="#csharp_directors_implementation">directors implementation</a>.
+typemap attribute which attaches to director delegates, an implementation detail of directors, see <a href="#CSharp_directors_implementation">directors implementation</a>.
 Note that there are C# attributes and typemap attributes, don't get confused between the two!!
 The C# attributes specified in these typemap attributes are generated wherever the type is used in the C# wrappers.
 These can be used to specify any C# attribute associated with a C/C++ type, but are more typically used for the C# <tt>MarshalAs</tt> attribute.
@@ -406,7 +406,7 @@ This feature is useful for some obscure cases where SWIG might get the <tt>virtu
 </li>
 
 <li>
-<a name="csharp_module_directive"></a>
+<a name="CSharp_module_directive"></a>
 <p>
 The name of the intermediary class can be changed from its default, that is, the module name with PINVOKE appended after it. 
 The module directive attribute <tt>imclassname</tt> is used to achieve this:
@@ -441,7 +441,7 @@ if specified, otherwise it is equivalent to the <b>$module</b> special variable.
 <p>
 <b><tt>$imclassname</tt></b><br>
 This special variable expands to the intermediary class name. For C# this is usually the same as '$modulePINVOKE' ('$moduleJNI' for Java),
-unless the imclassname attribute is specified in the <a href="CSharp.html#csharp_module_directive">%module directive</a>.
+unless the imclassname attribute is specified in the <a href="CSharp.html#CSharp_module_directive">%module directive</a>.
 </p>
 
 <p>
@@ -721,7 +721,7 @@ public static extern void myArrayCopy(IntPtr jarg1, IntPtr jarg2, int jarg3);
 
 
 
-<H2><a name="csharp_exceptions"></a>18.4 C# Exceptions</H2>
+<H2><a name="CSharp_exceptions"></a>18.4 C# Exceptions</H2>
 
 
 <p>
@@ -818,7 +818,7 @@ set so should only be used when a C# exception is not created.
 </p>
 
 
-<H3><a name="csharp_exception_example_check_typemap"></a>18.4.1 C# exception example using "check" typemap</H3>
+<H3><a name="CSharp_exception_example_check_typemap"></a>18.4.1 C# exception example using "check" typemap</H3>
 
 
 <p>
@@ -1000,7 +1000,7 @@ method and C# code does not handle pending exceptions via the canthrow attribute
 Actually it will issue this warning for any function beginning with <tt>SWIG_CSharpSetPendingException</tt>.
 </P>
 
-<H3><a name="csharp_exception_example_percent_exception"></a>18.4.2 C# exception example using %exception</H3>
+<H3><a name="CSharp_exception_example_percent_exception"></a>18.4.2 C# exception example using %exception</H3>
 
 
 <p>
@@ -1065,7 +1065,7 @@ The managed code generated does check for the pending exception as mentioned ear
 </pre>
 </div>
 
-<H3><a name="csharp_exception_example_exception_specifications"></a>18.4.3 C# exception example using exception specifications</H3>
+<H3><a name="CSharp_exception_example_exception_specifications"></a>18.4.3 C# exception example using exception specifications</H3>
 
 
 <p>
@@ -1122,7 +1122,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_evensonly(int jarg1) {
 Multiple catch handlers are generated should there be more than one exception specifications declared.
 </p>
 
-<H3><a name="csharp_custom_application_exception"></a>18.4.4 Custom C# ApplicationException example</H3>
+<H3><a name="CSharp_custom_application_exception"></a>18.4.4 Custom C# ApplicationException example</H3>
 
 
 <p>
@@ -1256,7 +1256,7 @@ try {
 </pre>
 </div>
 
-<H2><a name="csharp_directors"></a>18.5 C# Directors</H2>
+<H2><a name="CSharp_directors"></a>18.5 C# Directors</H2>
 
 
 <p>
@@ -1266,10 +1266,10 @@ Essentially, it enables unmanaged C++ code to call back into managed code for vi
 
 <p>
 The following sections provide information on the C# director implementation and contain most of the information required to use the C# directors.
-However, the <a href="Java.html#java_directors">Java directors</a> section should also be read in order to gain more insight into directors.
+However, the <a href="Java.html#Java_directors">Java directors</a> section should also be read in order to gain more insight into directors.
 </p>
 
-<H3><a name="csharp_directors_example"></a>18.5.1 Directors example</H3>
+<H3><a name="CSharp_directors_example"></a>18.5.1 Directors example</H3>
 
 
 <p>
@@ -1390,7 +1390,7 @@ CSharpDerived - UIntMethod(123)
 </pre>
 </div>
 
-<H3><a name="csharp_directors_implementation"></a>18.5.2 Directors implementation</H3>
+<H3><a name="CSharp_directors_implementation"></a>18.5.2 Directors implementation</H3>
 
 
 <p>
@@ -1576,7 +1576,7 @@ void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
 </pre>
 </div>
 
-<H3><a name="csharp_director_caveats"></a>18.5.3 Director caveats</H3>
+<H3><a name="CSharp_director_caveats"></a>18.5.3 Director caveats</H3>
 
 
 <p>
@@ -1624,7 +1624,7 @@ However, a call from C# to <tt>CSharpDefaults.DefaultMethod()</tt> will of cours
 should pass the call on to <tt>CSharpDefaults.DefaultMethod(int)</tt>using the C++ default value, as shown above.
 </p>
 
-<H2><a name="csharp_typemap_examples"></a>18.6 C# Typemap examples</H2>
+<H2><a name="CSharp_typemap_examples"></a>18.6 C# Typemap examples</H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
@@ -1632,12 +1632,12 @@ might look at the files "<tt>csharp.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
 
-<H3><a name="csharp_memory_management_member_variables"></a>18.6.1 Memory management when returning references to member variables</H3>
+<H3><a name="CSharp_memory_management_member_variables"></a>18.6.1 Memory management when returning references to member variables</H3>
 
 
 <p>
 This example shows how to prevent premature garbage collection of objects when the underlying C++ class returns a pointer or reference to a member variable.
-The example is a direct equivalent to this <a href="Java.html#java_memory_management_objects">Java equivalent</a>.
+The example is a direct equivalent to this <a href="Java.html#Java_memory_management_objects">Java equivalent</a>.
 </p>
 
 <p>
@@ -1756,11 +1756,11 @@ public class Bike : IDisposable {
 Note the <tt>addReference</tt> call.
 </p>
 
-<H3><a name="csharp_memory_management_objects"></a>18.6.2 Memory management for objects passed to the C++ layer</H3>
+<H3><a name="CSharp_memory_management_objects"></a>18.6.2 Memory management for objects passed to the C++ layer</H3>
 
 
 <p>
-The example is a direct equivalent to this <a href="Java.html#java_memory_management_objects">Java equivalent</a>.
+The example is a direct equivalent to this <a href="Java.html#Java_memory_management_objects">Java equivalent</a>.
 Managing memory can be tricky when using C++ and C# proxy classes.
 The previous example shows one such case and this example looks at memory management for a class passed to a C++ method which expects the object to remain in scope
 after the function has returned. Consider the following two C++ classes:
@@ -1875,14 +1875,14 @@ The 'cscode' typemap simply adds in the specified code into the C# proxy class.
 </div>
 
 
-<H3><a name="csharp_date_marshalling"></a>18.6.3 Date marshalling using the csin typemap and associated attributes</H3>
+<H3><a name="CSharp_date_marshalling"></a>18.6.3 Date marshalling using the csin typemap and associated attributes</H3>
 
 
 <p>
-The <a href="Java.html#nan_exception_typemap">NaN Exception example</a> is a simple example of the "javain" typemap and its 'pre' attribute.
+The <a href="Java.html#Java_nan_exception_typemap">NaN Exception example</a> is a simple example of the "javain" typemap and its 'pre' attribute.
 This example demonstrates how a C++ date class, say <tt>CDate</tt>, can be mapped onto the standard .NET date class,
 <tt>System.DateTime</tt> by using the 'pre', 'post' and 'pgcppname' attributes of the "csin" typemap (the C# equivalent to the "javain" typemap).
-The example is an equivalent to the <a href="Java.html#java_date_marshalling">Java Date marshalling example</a>.
+The example is an equivalent to the <a href="Java.html#Java_date_marshalling">Java Date marshalling example</a>.
 The idea is that the <tt>System.DateTime</tt> is used wherever the C++ API uses a <tt>CDate</tt>.
 Let's assume the code being wrapped is as follows:
 </p>
@@ -2159,7 +2159,7 @@ public class example {
 </pre>
 </div>
 
-<H3><a name="csharp_date_properties"></a>18.6.4 A date example demonstrating marshalling of C# properties</H3>
+<H3><a name="CSharp_date_properties"></a>18.6.4 A date example demonstrating marshalling of C# properties</H3>
 
 
 <p>
@@ -2260,7 +2260,7 @@ Some points to note:
 </ul>
 
 
-<H3><a name="csharp_partial_classes"></a>18.6.5 Turning wrapped classes into partial classes</H3>
+<H3><a name="CSharp_partial_classes"></a>18.6.5 Turning wrapped classes into partial classes</H3>
 
 
 <p>
@@ -2360,7 +2360,7 @@ demonstrating that the class contains methods calling both unmanaged code - <tt>
 The following example is an alternative approach to adding managed code to the generated proxy class.
 </p>
 
-<H3><a name="csharp_extending_proxy_class"></a>18.6.6 Extending proxy classes with additional C# code</H3>
+<H3><a name="CSharp_extending_proxy_class"></a>18.6.6 Extending proxy classes with additional C# code</H3>
 
 
 <p>
