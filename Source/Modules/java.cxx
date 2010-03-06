@@ -1199,7 +1199,7 @@ public:
 	    full_imclass_name = NewStringf("%s.%s", package, imclass_name);
 	  } else {
 	    full_imclass_name = NewStringf("%s", imclass_name);
-	    Printf(stderr, "The nspace feature used on %s is not supported unless a package is specified with -package - Java does not support types declared in the unnamed package accessing types declared in a package.\n", Getattr(n, "name"));
+	    Printf(stderr, "The nspace feature used on %s is not supported unless a package is specified with -package - Java does not support types declared in a named package accessing types declared in an unnamed package.\n", Getattr(n, "name"));
 	    SWIG_exit(EXIT_FAILURE);
 	  }
 	}
@@ -1832,7 +1832,7 @@ public:
 	} else {
 	  full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
 	  full_imclass_name = NewStringf("%s", imclass_name);
-	  Printf(stderr, "The nspace feature used on %s is not supported unless a package is specified with -package - Java does not support types declared in the unnamed package accessing types declared in a package.\n", Getattr(n, "name"));
+	  Printf(stderr, "The nspace feature used on %s is not supported unless a package is specified with -package - Java does not support types declared in a named package accessing types declared in an unnamed package.\n", Getattr(n, "name"));
 	  SWIG_exit(EXIT_FAILURE);
 	}
       }
