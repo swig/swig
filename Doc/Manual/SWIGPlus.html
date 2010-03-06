@@ -48,7 +48,10 @@
 <li><a href="#SWIGPlus_nn28">Wrapping overloaded operators</a>
 <li><a href="#SWIGPlus_class_extension">Class extension</a>
 <li><a href="#SWIGPlus_nn30">Templates</a>
-<li><a href="#SWIGPlus_nn31">Namespaces</a>
+<li><a href="#SWIGPlus_namespaces">Namespaces</a>
+<ul>
+<li><a href="#SWIGPlus_nspace">The nspace feature for namespaces</a>
+</ul>
 <li><a href="#SWIGPlus_renaming_templated_types_namespaces">Renaming templated types in namespaces</a>
 <li><a href="#SWIGPlus_exception_specifications">Exception specifications</a>
 <li><a href="#SWIGPlus_catches">Exception handling with %catches</a>
@@ -3647,12 +3650,16 @@ as the class name.  For example:
 Similar changes apply to typemaps and other customization features.
 </p>
 
-<H2><a name="SWIGPlus_nn31"></a>6.19 Namespaces</H2>
+<H2><a name="SWIGPlus_namespaces"></a>6.19 Namespaces</H2>
 
 
 <p>
-Support for C++ namespaces is a relatively late addition to SWIG,
-first appearing in SWIG-1.3.12.  Before describing the implementation,
+Support for C++ namespaces is comprehensive, but by default simple, however, 
+some target languages can turn on more advanced namespace support via the 
+<a href="#SWIGPlus_nspace">nspace feature</a>, described later.
+Code within unnamed namespaces is ignored as there is no external
+access to symbols declared within the unnamed namespace.
+Before detailing the default implementation for named namespaces,
 it is worth noting that the semantics of C++ namespaces is extremely
 non-trivial--especially with regard to the C++ type system and class
 machinery.  At a most basic level, namespaces are sometimes used to 
@@ -4090,6 +4097,87 @@ a basic namespace implementation.
 None of the target language modules are currently programmed
 with any namespace awareness.   In the future, language modules may or may not provide
 more advanced namespace support.
+</p>
+
+<H3><a name="SWIGPlus_nspace"></a>6.19.1 The nspace feature for namespaces</H3>
+
+
+<p>
+Some target languages provide support for the <tt>nspace</tt> <a href="Customization.html#features">feature</a>.
+The feature can be applied to any class, struct, union or enum declared within a named namespace.
+The feature wraps the type within the target language specific concept of a namespace,
+for example, a Java package or C# namespace.
+Please see the language specific sections to see if the target language you are interested in supports the nspace feature.
+</p>
+
+<p>
+The feature is demonstrated below for C# using the following example:
+</p>
+
+<div class="code">
+<pre>
+%feature("nspace") MyWorld::Material::Color;
+%nspace MyWorld::Wrapping::Color; // %nspace is a macro for %feature("nspace")
+
+namespace MyWorld {
+  namespace Material {
+    class Color {
+    ...
+    };
+  }
+  namespace Wrapping {
+    class Color {
+    ...
+    };
+  }
+}
+</pre>
+</div>
+
+<p>
+Without the <tt>nspace</tt> feature directives above or <tt>%rename</tt>, you would get the following warning resulting in just one of the <tt>Color</tt> classes being available for use from the target language:
+</p>
+
+<div class="shell">
+<pre>
+example.i:9: Error: 'Color' is multiply defined in the generated target language module.
+example.i:5: Error: Previous declaration of 'Color'
+</pre>
+</div>
+
+<p>
+With the <tt>nspace</tt> feature the two <tt>Color</tt> classes are wrapped into the equivalent C# namespaces.
+A fully qualified constructor call of each these two types in C# is then:
+</p>
+
+<div class="targetlang">
+<pre>
+MyWorld.Material.Color materialColor = new MyWorld.Material.Color();
+MyWorld.Wrapping.Color wrappingColor = new MyWorld.Wrapping.Color();
+</pre>
+</div>
+
+<p>
+Note that the <tt>nspace</tt> feature does not apply to variables and functions simply declared in a namespace. For example, the following symbols cannot co-exist in the target language without renaming. This may change in a future version.
+</p>
+
+<div class="code">
+<pre>
+namespace MyWorld {
+  namespace Material {
+    int quantity;
+    void dispatch();
+  }
+  namespace Wrapping {
+    int quantity;
+    void dispatch();
+  }
+}
+</pre>
+</div>
+
+<p>
+<b>Compatibility Note:</b> The nspace feature was first introduced in SWIG-2.0.0.
 </p>
 
 <H2><a name="SWIGPlus_renaming_templated_types_namespaces"></a>6.20 Renaming templated types in namespaces</H2>

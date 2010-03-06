@@ -1852,7 +1852,9 @@ Further details on default arguments and how to restore this approach are given 
 
 
 <p>
-SWIG is aware of C++ namespaces, but namespace names do not appear in
+SWIG is aware of named C++ namespaces and they can be mapped to Java packages, however, 
+the default wrapping flattens the namespaces, effectively ignoring them.
+So by default, the namespace names do not appear in
 the module nor do namespaces result in a module that is broken up into
 submodules or packages.  For example, if you have a file like this,
 </p>
@@ -1906,6 +1908,15 @@ namespace Bar {
 If you have more than one namespace and you want to keep their
 symbols separate, consider wrapping them as separate SWIG modules.
 Each SWIG module can be placed into a separate package.
+</p>
+
+<p>
+The default behaviour described above can be improved via the <a href="SWIGPlus.html#SWIGPlus_nspace">nspace feature</a>.
+Note that it only works for classes, structs, unions and enums declared within a named C++ namespace.
+When the nspace feature is used, the C++ namespaces are converted into Java packages of the same name.
+Proxy classes are thus declared within a package and this proxy makes numerous calls to the JNI intermediary class which is declared in the unnamed package by default.
+As Java does not support types declared in a named package accessing types declared in an unnamed package, the <tt>-package</tt> commandline option described earlier must be used to provide a parent package.
+So if SWIG is run using the <tt>-package com.myco</tt> option, a wrapped class, <tt>MyWorld::Material::Color</tt>, can then be accessed as <tt>com.myco.MyWorld.Material.Color</tt>.
 </p>
 
 <H3><a name="templates"></a>21.3.14 C++ templates</H3>

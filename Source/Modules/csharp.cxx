@@ -54,7 +54,9 @@ class CSHARP:public Language {
   String *proxy_class_def;
   String *proxy_class_code;
   String *module_class_code;
-  String *proxy_class_name;
+  String *proxy_class_name;	// proxy class name
+  String *full_proxy_class_name;// fully qualified proxy class name when using nspace feature, otherwise same as proxy_class_name
+  String *full_imclass_name;	// fully qualified intermediary class name when using nspace feature, otherwise same as imclass_name
   String *variable_name;	//Name of a variable being wrapped
   String *proxy_class_constants_code;
   String *module_class_constants_code;
@@ -125,6 +127,8 @@ public:
       proxy_class_code(NULL),
       module_class_code(NULL),
       proxy_class_name(NULL),
+      full_proxy_class_name(NULL),
+      full_imclass_name(NULL),
       variable_name(NULL),
       proxy_class_constants_code(NULL),
       module_class_constants_code(NULL),
@@ -163,18 +167,34 @@ public:
    * getProxyName()
    *
    * Test to see if a type corresponds to something wrapped with a proxy class.
-   * Return NULL if not otherwise the proxy class name
+   * Return NULL if not otherwise the proxy class name, fully qualified with
+   * a namespace if the nspace feature is used.
    * ----------------------------------------------------------------------------- */
   
    String *getProxyName(SwigType *t) {
-    if (proxy_flag) {
-      Node *n = classLookup(t);
-      if (n) {
-	return Getattr(n, "sym:name");
-      }
-    }
-    return NULL;
-  }
+     String *proxyname = NULL;
+     if (proxy_flag) {
+       Node *n = classLookup(t);
+       if (n) {
+	 proxyname = Getattr(n, "proxyname");
+	 if (!proxyname) {
+	   String *nspace = Getattr(n, "sym:nspace");
+	   String *symname = Getattr(n, "sym:name");
+	   if (nspace) {
+	     if (Len(namespce) > 0)
+	       proxyname = NewStringf("%s.%s.%s", namespce, nspace, symname);
+	     else
+	       proxyname = NewStringf("%s.%s", nspace, symname);
+	   } else {
+	     proxyname = Copy(symname);
+	   }
+	   Setattr(n, "proxyname", proxyname);
+	   Delete(proxyname);
+	 }
+       }
+     }
+     return proxyname;
+   }
 
   /* -----------------------------------------------------------------------------
    * directorClassName()
@@ -419,7 +439,7 @@ public:
       // Start writing out the intermediary class file
       emitBanner(f_im);
 
-      addOpenNamespace(namespce, f_im);
+      addOpenNamespace(namespce, 0, f_im);
 
       if (imclass_imports)
 	Printf(f_im, "%s\n", imclass_imports);
@@ -443,7 +463,7 @@ public:
 
       // Finish off the class
       Printf(f_im, "}\n");
-      addCloseNamespace(namespce, f_im);
+      addCloseNamespace(namespce, 0, f_im);
 
       Close(f_im);
     }
@@ -463,7 +483,7 @@ public:
       // Start writing out the module class file
       emitBanner(f_module);
 
-      addOpenNamespace(namespce, f_module);
+      addOpenNamespace(namespce, 0, f_module);
 
       if (module_imports)
 	Printf(f_module, "%s\n", module_imports);
@@ -495,7 +515,7 @@ public:
 
       // Finish off the class
       Printf(f_module, "}\n");
-      addCloseNamespace(namespce, f_module);
+      addCloseNamespace(namespce, 0, f_module);
 
       Close(f_module);
     }
@@ -1033,7 +1053,7 @@ public:
      */
     if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Capitalize the first letter in the variable in the getter/setter function name
-      bool getter_flag = Cmp(symname, Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, proxy_class_name, variable_name))) != 0;
+      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) != 0;
 
       String *getter_setter_name = NewString("");
       if (!getter_flag)
@@ -1106,6 +1126,22 @@ public:
       if (getCurrentClass() && (cplus_mode != PUBLIC))
 	return SWIG_NOWRAP;
 
+      if (proxy_flag && !is_wrapping_class()) {
+	// Global enums / enums in a namespace
+	String *nspace = Getattr(n, "sym:nspace");
+	assert(!full_imclass_name);
+
+	if (!nspace) {
+	  full_imclass_name = NewStringf("%s", imclass_name);
+	} else {
+	  if (Len(namespce) > 0) {
+	    full_imclass_name = NewStringf("%s.%s", namespce, imclass_name);
+	  } else {
+	    full_imclass_name = NewStringf("%s", imclass_name);
+	  }
+	}
+      }
+
       enum_code = NewString("");
       String *symname = Getattr(n, "sym:name");
       String *constants_code = (proxy_flag && is_wrapping_class())? proxy_class_constants_code : module_class_constants_code;
@@ -1163,7 +1199,9 @@ public:
 	  Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
 	} else {
 	  // Global enums are defined in their own file
-	  String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), symname);
+	  String *nspace = Getattr(n, "sym:nspace");
+	  String *output_directory = outputDirectory(nspace);
+	  String *filen = NewStringf("%s%s.cs", output_directory, symname);
 	  File *f_enum = NewFile(filen, "w", SWIG_output_files());
 	  if (!f_enum) {
 	    FileErrorDisplay(filen);
@@ -1176,14 +1214,14 @@ public:
 	  // Start writing out the enum file
 	  emitBanner(f_enum);
 
-	  addOpenNamespace(namespce, f_enum);
+	  addOpenNamespace(namespce, nspace, f_enum);
 
 	  Printv(f_enum, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE), // Import statements
 		 "\n", enum_code, "\n", NIL);
 
-	  addCloseNamespace(namespce, f_enum);
-
+	  addCloseNamespace(namespce, nspace, f_enum);
 	  Close(f_enum);
+	  Delete(output_directory);
 	}
       } else {
 	// Wrap C++ enum with simple constant
@@ -1196,6 +1234,11 @@ public:
 
       Delete(enum_code);
       enum_code = NULL;
+
+      if (proxy_flag && !is_wrapping_class()) {
+	Delete(full_imclass_name);
+	full_imclass_name = 0;
+      }
     }
     return SWIG_OK;
   }
@@ -1381,13 +1424,13 @@ public:
       if (classname_substituted_flag) {
 	if (SwigType_isenum(t)) {
 	  // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
-	  Printf(constants_code, "(%s)%s.%s();\n", return_type, imclass_name, Swig_name_get(NSPACE_TODO, symname));
+	  Printf(constants_code, "(%s)%s.%s();\n", return_type, imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  // This handles function pointers using the %constant directive
-	  Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, imclass_name, Swig_name_get(NSPACE_TODO, symname));
+	  Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, imclass_name, Swig_name_get(getNSpace(), symname));
 	}
       } else
-	Printf(constants_code, "%s.%s();\n", imclass_name, Swig_name_get(NSPACE_TODO, symname));
+	Printf(constants_code, "%s.%s();\n", imclass_name, Swig_name_get(getNSpace(), symname));
 
       // Each constant and enum value is wrapped with a separate PInvoke function call
       SetFlag(n, "feature:immutable");
@@ -1641,7 +1684,8 @@ public:
 	Printf(proxy_class_code, "    if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s))\n", method, methid);
 	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, overname);
       }
-      Printf(proxy_class_code, "    %s.%s_director_connect(swigCPtr", imclass_name, proxy_class_name);
+      String *director_connect_method_name = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
+      Printf(proxy_class_code, "    %s.%s(swigCPtr", imclass_name, director_connect_method_name);
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
 	UpcallData *udata = Getitem(dmethods_seq, i);
 	String *methid = Getattr(udata, "class_methodidx");
@@ -1703,6 +1747,7 @@ public:
       director_method_types = NULL;
       Delete(director_connect_parms);
       director_connect_parms = NULL;
+      Delete(director_connect_method_name);
     }
 
     Delete(attributes);
@@ -1719,8 +1764,8 @@ public:
     Replaceall(proxy_class_def, "$module", module_class_name);
     Replaceall(proxy_class_code, "$module", module_class_name);
 
-    Replaceall(proxy_class_def, "$imclassname", imclass_name);
-    Replaceall(proxy_class_code, "$imclassname", imclass_name);
+    Replaceall(proxy_class_def, "$imclassname", full_imclass_name);
+    Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
 
     Replaceall(proxy_class_def, "$dllimport", dllimport);
     Replaceall(proxy_class_code, "$dllimport", dllimport);
@@ -1749,24 +1794,38 @@ public:
 
   virtual int classHandler(Node *n) {
 
+    String *nspace = getNSpace();
     File *f_proxy = NULL;
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
 
-      if (!addSymbol(proxy_class_name, n))
+      if (!nspace) {
+	full_proxy_class_name = NewStringf("%s", proxy_class_name);
+	full_imclass_name = NewStringf("%s", imclass_name);
+	if (Cmp(proxy_class_name, imclass_name) == 0) {
+	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
+	  SWIG_exit(EXIT_FAILURE);
+	}
+
+	if (Cmp(proxy_class_name, module_class_name) == 0) {
+	  Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
+	  SWIG_exit(EXIT_FAILURE);
+	}
+      } else {
+	if (Len(namespce) > 0) {
+	  full_proxy_class_name = NewStringf("%s.%s.%s", namespce, nspace, proxy_class_name);
+	  full_imclass_name = NewStringf("%s.%s", namespce, imclass_name);
+	} else {
+	  full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
+	  full_imclass_name = NewStringf("%s", imclass_name);
+	}
+      }
+
+      if (!addSymbol(proxy_class_name, n, nspace))
 	return SWIG_ERROR;
 
-      if (Cmp(proxy_class_name, imclass_name) == 0) {
-	Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
-	SWIG_exit(EXIT_FAILURE);
-      }
-
-      if (Cmp(proxy_class_name, module_class_name) == 0) {
-	Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
-	SWIG_exit(EXIT_FAILURE);
-      }
-
-      String *filen = NewStringf("%s%s.cs", SWIG_output_directory(), proxy_class_name);
+      String *output_directory = outputDirectory(nspace);
+      String *filen = NewStringf("%s%s.cs", output_directory, proxy_class_name);
       f_proxy = NewFile(filen, "w", SWIG_output_files());
       if (!f_proxy) {
 	FileErrorDisplay(filen);
@@ -1779,7 +1838,7 @@ public:
       // Start writing out the proxy class file
       emitBanner(f_proxy);
 
-      addOpenNamespace(namespce, f_proxy);
+      addOpenNamespace(namespce, nspace, f_proxy);
 
       Clear(proxy_class_def);
       Clear(proxy_class_code);
@@ -1797,9 +1856,9 @@ public:
       Replaceall(proxy_class_def, "$module", module_class_name);
       Replaceall(proxy_class_code, "$module", module_class_name);
       Replaceall(proxy_class_constants_code, "$module", module_class_name);
-      Replaceall(proxy_class_def, "$imclassname", imclass_name);
-      Replaceall(proxy_class_code, "$imclassname", imclass_name);
-      Replaceall(proxy_class_constants_code, "$imclassname", imclass_name);
+      Replaceall(proxy_class_def, "$imclassname", full_imclass_name);
+      Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
+      Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_def, "$dllimport", dllimport);
       Replaceall(proxy_class_code, "$dllimport", dllimport);
       Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
@@ -1811,7 +1870,7 @@ public:
 	Printv(f_proxy, proxy_class_constants_code, NIL);
 
       Printf(f_proxy, "}\n");
-      addCloseNamespace(namespce, f_proxy);
+      addCloseNamespace(namespce, nspace, f_proxy);
       Close(f_proxy);
       f_proxy = NULL;
 
@@ -1844,6 +1903,10 @@ public:
 
       Delete(proxy_class_name);
       proxy_class_name = NULL;
+      Delete(full_proxy_class_name);
+      full_proxy_class_name = NULL;
+      Delete(full_imclass_name);
+      full_imclass_name = NULL;
       Delete(destructor_call);
       destructor_call = NULL;
       Delete(proxy_class_constants_code);
@@ -1862,7 +1925,7 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *intermediary_function_name = Swig_name_member(NSPACE_TODO, proxy_class_name, overloaded_name);
+      String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
@@ -1882,7 +1945,7 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *intermediary_function_name = Swig_name_member(NSPACE_TODO, proxy_class_name, overloaded_name);
+      String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
@@ -1962,7 +2025,7 @@ public:
 
     if (wrapping_member_flag && !enum_constant_flag) {
       // Properties
-      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, proxy_class_name, variable_name))) == 0);
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) == 0);
       if (setter_flag)
         Swig_typemap_attach_parms("csvarin", l, NULL);
     }
@@ -2005,7 +2068,7 @@ public:
       Printf(function_code, "static ");
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
 
-    Printv(imcall, imclass_name, ".$imfuncname(", NIL);
+    Printv(imcall, full_imclass_name, ".$imfuncname(", NIL);
     if (!static_flag)
       Printf(imcall, "swigCPtr");
 
@@ -2132,7 +2195,7 @@ public:
       Node *explicit_n = Getattr(n, "explicitcallnode");
       if (explicit_n) {
 	String *ex_overloaded_name = getOverloadedName(explicit_n);
-	String *ex_intermediary_function_name = Swig_name_member(NSPACE_TODO, proxy_class_name, ex_overloaded_name);
+	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, ex_overloaded_name);
 
 	String *ex_imcall = Copy(imcall);
 	Replaceall(ex_imcall, "$imfuncname", ex_intermediary_function_name);
@@ -2250,7 +2313,7 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *mangled_overname = Swig_name_construct(NSPACE_TODO, overloaded_name);
+      String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
       String *imcall = NewString("");
 
       const String *csattributes = Getattr(n, "feature:cs:attributes");
@@ -2270,7 +2333,7 @@ public:
       Printf(function_code, "  %s %s(", methodmods, proxy_class_name);
       Printf(helper_code, "  static private %s SwigConstruct%s(", im_return_type, proxy_class_name);
 
-      Printv(imcall, imclass_name, ".", mangled_overname, "(", NIL);
+      Printv(imcall, full_imclass_name, ".", mangled_overname, "(", NIL);
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("in", l, NULL);
@@ -2451,7 +2514,7 @@ public:
     String *symname = Getattr(n, "sym:name");
 
     if (proxy_flag) {
-      Printv(destructor_call, imclass_name, ".", Swig_name_destroy(NSPACE_TODO, symname), "(swigCPtr)", NIL);
+      Printv(destructor_call, full_imclass_name, ".", Swig_name_destroy(getNSpace(), symname), "(swigCPtr)", NIL);
     }
     return SWIG_OK;
   }
@@ -2577,7 +2640,7 @@ public:
     if (proxy_flag && global_variable_flag) {
       // Capitalize the first letter in the variable to create the getter/setter function name
       func_name = NewString("");
-      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(NSPACE_TODO, variable_name)) == 0);
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), variable_name)) == 0);
       if (setter_flag)
 	Printf(func_name, "set");
       else
@@ -2848,10 +2911,10 @@ public:
 	  // Strange hack to change the name
 	  Setattr(n, "name", Getattr(n, "value"));	/* for wrapping of enums in a namespace when emit_action is used */
 	  constantWrapper(n);
-	  value = NewStringf("%s.%s()", imclass_name, Swig_name_get(NSPACE_TODO, symname));
+	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  memberconstantHandler(n);
-	  value = NewStringf("%s.%s()", imclass_name, Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, proxy_class_name, symname)));
+	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(getNSpace(), proxy_class_name, symname)));
 	}
       }
     }
@@ -2863,26 +2926,41 @@ public:
    * ----------------------------------------------------------------------------- */
 
   String *getEnumName(SwigType *t) {
-    Node *enum_name = NULL;
+    Node *enumname = NULL;
     Node *n = enumLookup(t);
     if (n) {
-      String *symname = Getattr(n, "sym:name");
-      if (symname) {
-	// Add in class scope when referencing enum if not a global enum
-	String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
-	String *proxyname = 0;
-	if (scopename_prefix) {
-	  proxyname = getProxyName(scopename_prefix);
+      enumname = Getattr(n, "enumname");
+      if (!enumname) {
+	String *symname = Getattr(n, "sym:name");
+	if (symname) {
+	  // Add in class scope when referencing enum if not a global enum
+	  String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
+	  String *proxyname = 0;
+	  if (scopename_prefix) {
+	    proxyname = getProxyName(scopename_prefix);
+	  }
+	  if (proxyname) {
+	    enumname = NewStringf("%s.%s", proxyname, symname);
+	  } else {
+	    // global enum or enum in a namespace
+	    String *nspace = Getattr(n, "sym:nspace");
+	    if (nspace) {
+	      if (Len(namespce) > 0)
+		enumname = NewStringf("%s.%s.%s", namespce, nspace, symname);
+	      else
+		enumname = NewStringf("%s.%s", nspace, symname);
+	    } else {
+	      enumname = Copy(symname);
+	    }
+	  }
+	  Setattr(n, "enumname", enumname);
+	  Delete(enumname);
+	  Delete(scopename_prefix);
 	}
-	if (proxyname)
-	  enum_name = NewStringf("%s.%s", proxyname, symname);
-	else
-	  enum_name = NewStringf("%s", symname);
-	Delete(scopename_prefix);
       }
     }
 
-    return enum_name;
+    return enumname;
   }
 
   /* -----------------------------------------------------------------------------
@@ -3019,7 +3097,7 @@ public:
     // Start writing out the type wrapper class file
     emitBanner(f_swigtype);
 
-    addOpenNamespace(namespce, f_swigtype);
+    addOpenNamespace(namespce, 0, f_swigtype);
 
     // Pure C# baseclass and interfaces
     const String *pure_baseclass = typemapLookup(n, "csbase", type, WARN_NONE);
@@ -3048,7 +3126,7 @@ public:
 
     Printv(f_swigtype, swigtype, NIL);
 
-    addCloseNamespace(namespce, f_swigtype);
+    addCloseNamespace(namespce, 0, f_swigtype);
 
     Close(f_swigtype);
     Delete(swigtype);
@@ -3123,20 +3201,51 @@ public:
    * addOpenNamespace()
    * ----------------------------------------------------------------------------- */
 
-  void addOpenNamespace(String *namspace, File *file) {
-    if (namspace)
-      if (Len(namspace) > 0)
-	Printf(file, "namespace %s {\n", namspace);
+  void addOpenNamespace(const String *namspace, const String *nspace, File *file) {
+    if (namspace) {
+      if (Len(namspace) > 0 || nspace) {
+	Printf(file, "namespace ");
+	if (Len(namspace) > 0)
+	  Printv(file, namspace, nspace ? "." : "", NIL);
+	if (nspace)
+	  Printv(file, nspace, NIL);
+	Printf(file, " {\n");
+      }
+    }
   }
 
   /* -----------------------------------------------------------------------------
    * addCloseNamespace()
    * ----------------------------------------------------------------------------- */
 
-  void addCloseNamespace(String *namspace, File *file) {
+  void addCloseNamespace(const String *namspace, const String *nspace, File *file) {
     if (namspace)
-      if (Len(namspace) > 0)
+      if (Len(namspace) > 0 || nspace)
 	Printf(file, "\n}\n");
+  }
+
+  /* -----------------------------------------------------------------------------
+   * outputDirectory()
+   *
+   * Return the directory to use for generating Java classes/enums and create the
+   * subdirectory (does not create if language specific outdir does not exist).
+   * ----------------------------------------------------------------------------- */
+
+  String *outputDirectory(String *nspace) {
+    String *output_directory = Copy(SWIG_output_directory());
+    if (nspace) {
+      String *nspace_subdirectory = Copy(nspace);
+      Replaceall(nspace_subdirectory, ".", SWIG_FILE_DELIMITER);
+      String *newdir_error = Swig_new_subdirectory(output_directory, nspace_subdirectory);
+      if (newdir_error) {
+	Printf(stderr, "%s\n", newdir_error);
+	Delete(newdir_error);
+	SWIG_exit(EXIT_FAILURE);
+      }
+      Printv(output_directory, nspace_subdirectory, SWIG_FILE_DELIMITER, 0);
+      Delete(nspace_subdirectory);
+    }
+    return output_directory;
   }
 
   /*----------------------------------------------------------------------
@@ -3189,7 +3298,7 @@ public:
 
     // Output the director connect method:
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
-    String *swig_director_connect = NewStringf("%s_director_connect", proxy_class_name);
+    String *swig_director_connect = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
     String *sym_name = Getattr(n, "sym:name");
     Wrapper *code_wrap;
 
@@ -3279,7 +3388,7 @@ public:
     // we're consistent with the sym:overload name in functionWrapper. (?? when
     // does the overloaded method name get set?)
 
-    imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(NSPACE_TODO, classname, overloaded_name));
+    imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(getNSpace(), classname, overloaded_name));
 
     if (returntype) {
 

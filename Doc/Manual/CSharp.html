@@ -103,6 +103,11 @@ Note that by default, the generated C# classes have no namespace and the module 
 </li>
 
 <li>
+The <a href="SWIGPlus.html#SWIGPlus_nspace">nspace feature</a> is also supported as described in this general section with a C# example.
+Unlike Java which requires the use of the -package option when using the <tt>nspace</tt> feature, the -namespace option is not mandatory for C#.
+</li>
+
+<li>
 The <tt>-dllimport &lt;name&gt;</tt> commandline option specifies the name of the DLL for the <tt>DllImport</tt> attribute for every PInvoke method. If this commandline option is not given, the <tt>DllImport</tt> DLL name is the same as the module name. This option is useful for when one wants to invoke SWIG multiple times on different modules, yet compile all the resulting code into a single DLL.
 </li>
 

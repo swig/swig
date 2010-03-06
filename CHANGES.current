@@ -1,6 +1,9 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-03-06: wsfulton
+            [C#] Added the nspace feature for C#. Documentation for the nspace feature is now available.
+
 2010-03-04: wsfulton
             Added the nspace feature. This adds some improved namespace support. Currently only Java
             is supported for target languages, where C++ namespaces are automatically translated into
