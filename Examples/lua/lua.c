@@ -1,5 +1,4 @@
 /*
-** $Id$
 ** Lua stand-alone interpreter
 ** See Copyright Notice in lua.h
 */

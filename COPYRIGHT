@@ -1,0 +1,63 @@
+SWIG Copyright and Authors
+--------------------------
+
+Copyright (c) 1995-2010 The SWIG Developers
+Copyright (c) 2005-2006 Arizona Board of Regents (University of Arizona).
+Copyright (c) 1998-2005 University of Chicago.
+Copyright (c) 1995-1998 The University of Utah and the Regents of the University of California
+
+Portions also copyrighted by:
+ Network Applied Communication Laboratory, Inc
+ Information-technology Promotion Agency, Japan
+
+Active SWIG Developers:
+ William Fulton (wsf@fultondesigns.co.uk)               (SWIG core, Java, C#, Windows, Cygwin)
+ Olly Betts (olly@survex.com)                           (PHP)
+ Joseph Wang (joequant@gmail.com)                       (R)
+ Xavier Delacour (xavier.delacour@gmail.com)            (Octave)
+
+Past SWIG developers and major contributors include:
+ Dave Beazley (dave-swig@dabeaz.com)                    (SWIG core, Python, Tcl, Perl)
+ Henning Thielemann (swig@henning-thielemann.de)        (Modula3)
+ Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile, MzScheme)
+ Luigi Ballabio (luigi.ballabio@fastwebnet.it)          (STL wrapping)
+ Mikel Bancroft (mikel@franz.com)                       (Allegro CL)
+ Surendra Singhi (efuzzyone@netscape.net)               (CLISP, CFFI)
+ Marcelo Matus (mmatus@acms.arizona.edu)                (SWIG core, Python, UTL[python,perl,tcl,ruby])
+ Art Yerkes (ayerkes@speakeasy.net)                     (Ocaml)
+ Lyle Johnson (lyle@users.sourceforge.net)              (Ruby)
+ Charlie Savage (cfis@interserv.com)                    (Ruby)
+ Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
+ Richard Palmer (richard@magicality.org)                (PHP)
+ Sam Liddicott - Anonova Ltd (saml@liddicott.com)       (PHP)
+ Tim Hockin - Sun Microsystems (thockin@sun.com)        (PHP)
+ Kevin Ruland                                           (PHP)
+ Shibukawa Yoshiki                                      (Japanese Translation)
+ Jason Stewart (jason@openinformatics.com)              (Perl5)
+ Loic Dachary                                           (Perl5)
+ David Fletcher                                         (Perl5)
+ Gary Holt                                              (Perl5)
+ Masaki Fukushima                                       (Ruby)
+ Scott Michel (scottm@cs.ucla.edu)                      (Java directors)
+ Tiger Feng (songyanf@cs.uchicago.edu)                  (SWIG core)
+ Mark Rose (mrose@stm.lbl.gov)                          (Directors)
+ Jonah Beckford (beckford@usermail.com)                 (CHICKEN)
+ Ahmon Dancy (dancy@franz.com)				(Allegro CL)
+ Dirk Gerrits                                           (Allegro CL)
+ Neil Cawse                                             (C#)
+ Harco de Hilster                                       (Java)
+ Alexey Dyachenko (dyachenko@fromru.com)                (Tcl)
+ Bob Techentin                                          (Tcl)
+ Martin Froehlich <MartinFroehlich@ACM.org>             (Guile)
+ Marcio Luis Teixeira <marciot@holly.colostate.edu>     (Guile)
+ Duncan Temple Lang                                     (R)
+ Miklos Vajna <vmiklos@frugalware.org>                  (PHP directors)
+ Mark Gossage (mark@gossage.cjb.net)                    (Lua)
+ Gonzalo Garramuno (ggarra@advancedsl.com.ar)           (Ruby, Ruby's UTL)
+ John Lenz                                              (Guile, MzScheme updates, Chicken module, runtime system)
+
+Past contributors include:
+ James Michael DuPont, Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
+ Kovuk, Oleg Tolmatcev, Tal Shalif, Lluis Padro, Chris Seatory, Igor Bely, Robin Dunn
+ (See CHANGES and CHANGES.current for a more complete list).
+
