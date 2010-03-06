@@ -1,3 +1,6 @@
+/* -----------------------------------------------------------------------------
+ * std_common.i
+ *
+ * SWIG typemaps for STL - common utilities
+ * ----------------------------------------------------------------------------- */
 %include <ocamlstdcommon.i>
-
-%include <std/std_common.i>
