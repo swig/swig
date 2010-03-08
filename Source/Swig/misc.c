@@ -20,6 +20,10 @@ char cvsroot_misc_c[] = "$Id$";
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef _WIN32
+#include <direct.h>
+#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#endif
 
 static char *fake_version = 0;
 
@@ -170,7 +174,7 @@ String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
 	}
       } else {
 #ifdef _WIN32
-	int result = mkdir(Char(dir));
+	int result = _mkdir(Char(dir));
 #else
 	int result = mkdir(Char(dir), 0777);
 #endif
