@@ -1085,7 +1085,7 @@
 /* Set the default for SWIGTYPE: pointer constructor is protected,
    getCPtr is protected. Season to your own taste! */
 
-SWIG_JAVABODY_METHODS(protected, protected, SWIGTYPE)
+SWIG_JAVABODY_METHODS(public, public, SWIGTYPE)
 
 // Typewrapper classes
 %typemap(javabody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
@@ -1195,7 +1195,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 #define %nojavaexception            %feature("except","0",throws="")
 #define %clearjavaexception         %feature("except","",throws="")
 
-%pragma(java) jniclassclassmodifiers="class"
+%pragma(java) jniclassclassmodifiers="public class"
 %pragma(java) moduleclassmodifiers="public class"
 
 /* Some ANSI C typemaps */

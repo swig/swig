@@ -2253,17 +2253,17 @@ The <tt>jniclasscode</tt> pragma is quite useful for adding in a static block fo
 
 <p>
 Pragmas will take either <tt>""</tt> or <tt>%{ %}</tt> as delimiters. 
-For example, let's change the intermediary JNI class access to public. 
+For example, let's change the intermediary JNI class access to just the default package-private access. 
 </p>
 
 <div class="code">
 <pre>
-%pragma(java) jniclassclassmodifiers="public class"
+%pragma(java) jniclassclassmodifiers="class"
 </pre>
 </div>
 
 <p>
-All the methods in the intermediary JNI class will then be callable outside of the package as the method modifiers are public by default.
+All the methods in the intermediary JNI class will then not be be callable outside of the package as the method modifiers have been changed from public access to default access. This is useful if you want to prevent users calling these low level functions.
 </p>
 
 <H3><a name="Java_module_class"></a>21.4.2 The Java module class</H3>
@@ -2368,7 +2368,7 @@ public class Foo {
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr(Foo obj) {
+  public static long getCPtr(Foo obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -2619,7 +2619,7 @@ public class Base {
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr(Base obj) {
+  public static long getCPtr(Base obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -2659,7 +2659,7 @@ public class Derived extends Base {
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr(Derived obj) {
+  public static long getCPtr(Derived obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -2938,7 +2938,7 @@ public class Test {
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr(Test obj) {
+  public static long getCPtr(Test obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -5459,9 +5459,9 @@ The "javaimports" typemap is ignored if the enum class is wrapped by an inner Ja
 
 <p>
 The defaults can be overridden to tailor these classes.
-Here is an example which will change the <tt>getCPtr</tt> method and constructor from the default protected access to public access. 
-This has a practical application if you are invoking SWIG more than once and generating the wrapped classes into different packages in each invocation.
-If the classes in one package are using the classes in another package, then these methods need to be public.
+Here is an example which will change the <tt>getCPtr</tt> method and constructor from the default public access to protected access. 
+If the classes in one package are not using the classes in another package, then these methods need not be public and removing access to these low level implementation details, is a good thing.
+If you are invoking SWIG more than once and generating the wrapped classes into different packages in each invocation, then you cannot do this as you will then have different packages.
 </p>
 
 <div class="code">
@@ -5470,12 +5470,12 @@ If the classes in one package are using the classes in another package, then the
   private long swigCPtr;
   protected boolean swigCMemOwn;
 
-  public $javaclassname(long cPtr, boolean cMemoryOwn) {
+  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwn = cMemoryOwn;
     swigCPtr = cPtr;
   }
 
-  public static long getCPtr($javaclassname obj) {
+  protected static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
@@ -5483,11 +5483,18 @@ If the classes in one package are using the classes in another package, then the
 </div>
 
 <p>
-The typemap code is the same that is in "<tt>java.swg</tt>", barring the two method modifiers.
+The typemap code is the same that is in "<tt>java.swg</tt>", barring the last two method modifiers.
 Note that <tt>SWIGTYPE</tt> will target all proxy classes, but not the type wrapper classes.
 Also the above typemap is only used for proxy classes that are potential base classes.
 To target proxy classes that are derived from a wrapped class as well, the "javabody_derived" typemap should also be overridden.
+There is a macro in <tt>java.swg</tt> that implements this and the above can instead be implemented using:
 </p>
+
+<div class="code">
+<pre>
+SWIG_JAVABODY_METHODS(protected, protected, SWIGTYPE)
+</pre>
+</div>
 
 <p>
 For the typemap to be used in all type wrapper classes, all the different types that type wrapper classes could be used for should be targeted:

@@ -1,11 +1,6 @@
 // Test the nspace feature
 %module nspace
 
-#if defined(SWIGJAVA)
-SWIG_JAVABODY_METHODS(public, public, SWIGTYPE) 
-%pragma(java) jniclassclassmodifiers = "public class"
-#endif
-
 // nspace feature only supported by these languages
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
 
