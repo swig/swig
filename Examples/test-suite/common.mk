@@ -243,6 +243,7 @@ CPP_TEST_CASES += \
 	namespace_union \
 	namespace_virtual_method \
 	nspace \
+	nspace_extend \
 	naturalvar \
 	nested_class \
 	nested_comment \
