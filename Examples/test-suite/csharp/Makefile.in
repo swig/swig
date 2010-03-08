@@ -72,9 +72,10 @@ run_testcase = \
 	  CSHARPSRCS='`$(CSHARPCYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` `find $* -name "*.cs" -exec $(CSHARPCYGPATH_W) "{}" \+`' csharp_compile && \
 	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" $(RUNTOOL) $(INTERPRETER) $*_runme.exe; \
 	else \
+	  cd $* && \
 	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
 	  CSHARPFLAGS='-nologo $(CSHARPFLAGSSPECIAL) -t:module -out:$*.netmodule' \
-	  CSHARPSRCS='`find $* -name "*.cs" -exec $(CSHARPCYGPATH_W) "{}" \+`' csharp_compile; \
+	  CSHARPSRCS='`find . -name "*.cs" -exec $(CSHARPCYGPATH_W) "{}" \+`' csharp_compile; \
 	fi
 
 # Clean: remove testcase directories
