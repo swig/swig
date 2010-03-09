@@ -1753,6 +1753,8 @@ public:
     Delete(attributes);
     Delete(destruct);
 
+    String *csclazzname = Swig_name_member(getNSpace(), proxy_class_name, ""); // mangled full proxy class name
+
     // Emit extra user code
     Printv(proxy_class_def, typemapLookup(n, "cscode", typemap_lookup_type, WARN_NONE),	// extra C# code
 	   "\n", NIL);
@@ -1770,21 +1772,27 @@ public:
     Replaceall(proxy_class_def, "$dllimport", dllimport);
     Replaceall(proxy_class_code, "$dllimport", dllimport);
 
+    Replaceall(proxy_class_def, "$csclazzname", csclazzname);
+    Replaceall(proxy_class_code, "$csclazzname", csclazzname);
+
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
-      Printv(imclass_cppcasts_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"CSharp_", proxy_class_name, "Upcast", "\")]\n", NIL);
-      Printf(imclass_cppcasts_code, "  public static extern IntPtr $csclassnameUpcast(IntPtr objectRef);\n");
+      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, "SWIGUpcast");
+      String *wname = Swig_name_wrapper(upcast_method);
+
+      Printv(imclass_cppcasts_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
+      Printf(imclass_cppcasts_code, "  public static extern IntPtr %s(IntPtr jarg1);\n", upcast_method);
 
       Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
 
       Printv(upcasts_code,
-	     "SWIGEXPORT $cbaseclass * SWIGSTDCALL CSharp_$imclazznameUpcast",
-	     "($cclass *objectRef) {\n", "    return ($cbaseclass *)objectRef;\n" "}\n", "\n", NIL);
+	     "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname,
+	     "(", c_classname, " *jarg1) {\n", "    return (", c_baseclass, " *)jarg1;\n" "}\n", "\n", NIL);
 
-      Replaceall(upcasts_code, "$cbaseclass", c_baseclass);
-      Replaceall(upcasts_code, "$imclazzname", proxy_class_name);
-      Replaceall(upcasts_code, "$cclass", c_classname);
+      Delete(wname);
+      Delete(upcast_method);
     }
+    Delete(csclazzname);
     Delete(baseclass);
   }
 

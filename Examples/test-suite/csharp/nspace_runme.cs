@@ -56,5 +56,11 @@ public class runme
       ns.Dispose();
       nspaceNamespace.NoNSpacePlease nons = new nspaceNamespace.NoNSpacePlease();
       nons.Dispose();
+
+      // Derived class
+      nspaceNamespace.Outer.Inner3.Blue blue3 = new nspaceNamespace.Outer.Inner3.Blue();
+      blue3.blueInstanceMethod();
+      nspaceNamespace.Outer.Inner4.Blue blue4 = new nspaceNamespace.Outer.Inner4.Blue();
+      blue4.blueInstanceMethod();
     }
 }

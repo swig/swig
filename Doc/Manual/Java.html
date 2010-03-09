@@ -5162,6 +5162,14 @@ If the type does not have an associated proxy class, it expands to the type wrap
 </p>
 
 <p>
+<b><tt>$javaclazzname</tt></b><br>
+This special variable works like <tt>$javaclassname</tt>, but expands the fully qualified C++ class into the package name,
+if used by the <a href="SWIGPlus.html#SWIGPlus_nspace">nspace feature</a>, and the proxy class name, mangled for use as a function name. 
+For example, <tt>Namespace1::Namespace2::Klass</tt> is expanded into <tt>Namespace1_Namespace2_Klass_</tt>.
+This special variable is usually used for making calls to a function in the intermediary JNI class, as they are mangled with this prefix.
+</p>
+
+<p>
 <b><tt>$null </tt></b><br>
 Used in input typemaps to return early from JNI functions that have either void or a non-void return type. Example:
 </p>

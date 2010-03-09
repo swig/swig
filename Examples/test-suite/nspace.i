@@ -73,6 +73,18 @@ namespace Outer {
     class NoNSpacePlease {};
   } // Inner2
 
+  // Derived class
+  namespace Inner3 {
+    struct Blue : Inner2::Color {
+      void blueInstanceMethod() {}
+    };
+  }
+  namespace Inner4 {
+    struct Blue : Inner2::Color {
+      void blueInstanceMethod() {}
+    };
+  }
+
   class SomeClass {	
   public:				
     Inner1::Color::Channel GetInner1ColorChannel() { return Inner1::Color::Transmission; }

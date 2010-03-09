@@ -1762,6 +1762,8 @@ public:
     Delete(attributes);
     Delete(destruct);
 
+    String *javaclazzname = Swig_name_member(getNSpace(), proxy_class_name, ""); // mangled full proxy class name
+
     // Emit extra user code
     Printv(proxy_class_def, typemapLookup(n, "javacode", typemap_lookup_type, WARN_NONE),	// extra Java code
 	   "\n", NIL);
@@ -1776,29 +1778,29 @@ public:
     Replaceall(proxy_class_def, "$imclassname", full_imclass_name);
     Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
 
+    Replaceall(proxy_class_def, "$javaclazzname", javaclazzname);
+    Replaceall(proxy_class_code, "$javaclazzname", javaclazzname);
+
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
-      Printv(imclass_cppcasts_code, "  public final static native long SWIG$javaclassnameUpcast(long jarg1);\n", NIL);
+      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, "SWIGUpcast");
+      String *jniname = makeValidJniName(upcast_method);
+      String *wname = Swig_name_wrapper(jniname);
 
-      Replaceall(imclass_cppcasts_code, "$javaclassname", full_proxy_class_name);
+      Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method);
 
       Printv(upcasts_code,
-	     "SWIGEXPORT jlong JNICALL Java_$jnipackage$imimclass_SWIG$imclazznameUpcast",
-	     "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
+	     "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
 	     "    jlong baseptr = 0;\n"
-	     "    (void)jenv;\n" "    (void)jcls;\n" "    *($cbaseclass **)&baseptr = *($cclass **)&jarg1;\n" "    return baseptr;\n" "}\n", "\n", NIL);
+	     "    (void)jenv;\n" "    (void)jcls;\n" "    *(", c_baseclassname, " **)&baseptr = *(", c_classname, " **)&jarg1;\n"
+	     "    return baseptr;\n"
+	     "}\n", "\n", NIL);
 
-      String *imimclass = makeValidJniName(imclass_name);
-      String *imclazzname = makeValidJniName(full_proxy_class_name);
-      Replaceall(upcasts_code, "$cbaseclass", c_baseclass);
-      Replaceall(upcasts_code, "$imclazzname", imclazzname);
-      Replaceall(upcasts_code, "$cclass", c_classname);
-      Replaceall(upcasts_code, "$jnipackage", jnipackage);
-      Replaceall(upcasts_code, "$imimclass", imimclass);
-
-      Delete(imclazzname);
-      Delete(imimclass);
+      Delete(wname);
+      Delete(jniname);
+      Delete(upcast_method);
     }
+    Delete(javaclazzname);
     Delete(baseclass);
   }
 

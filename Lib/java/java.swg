@@ -1072,7 +1072,7 @@
   private long swigCPtr;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
-    super($imclassname.SWIG$javaclassnameUpcast(cPtr), cMemoryOwn);
+    super($imclassname.$javaclazznameSWIGUpcast(cPtr), cMemoryOwn);
     swigCPtr = cPtr;
   }
 

@@ -60,5 +60,11 @@ public class nspace_runme {
     // turn feature off / ignoring
     nspacePackage.Outer.nspace ns = new nspacePackage.Outer.nspace();
     nspacePackage.NoNSpacePlease nons = new nspacePackage.NoNSpacePlease();
+
+    // Derived class
+    nspacePackage.Outer.Inner3.Blue blue3 = new nspacePackage.Outer.Inner3.Blue();
+    blue3.blueInstanceMethod();
+    nspacePackage.Outer.Inner4.Blue blue4 = new nspacePackage.Outer.Inner4.Blue();
+    blue4.blueInstanceMethod();
   }
 }
