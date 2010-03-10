@@ -1,6 +1,9 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-03-10: mutandiz (Mikel Bancroft)
+	    [allegrocl] Use fully qualified symbol name of cl::identity in emit_defun().
+
 2010-03-06: wsfulton
             [Java] The intermediary JNI class modifiers are now public by default meaning these
             intermediary low level functions are now accessible by default from outside any package

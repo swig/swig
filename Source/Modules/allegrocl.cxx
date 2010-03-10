@@ -1669,13 +1669,8 @@ int ALLEGROCL::top(Node *n) {
 
   Printf(f_clhead, "(in-package :%s)\n", module_name);
 
-  // Swig_print_tree(n);
-
   Language::top(n);
 
-  //  SwigType_emit_type_table(f_runtime,f_cxx_wrapper);
-
-  // Swig_print_tree(n);
 #ifdef ALLEGROCL_TYPE_DEBUG
   dump_linked_types(stderr);
 #endif
@@ -2538,7 +2533,7 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
 //            NewStringf("(push (swig-ff-call%s) ACL_result)", wrap->locals)));
   String *ldestructor = Copy(lclass);
   if (ff_foreign_ptr)
-    Replaceall(ldestructor, ldestructor, "identity");
+    Replaceall(ldestructor, ldestructor, "cl::identity");
   else
     Replaceall(ldestructor, ":type :class", ":type :destructor");
   Replaceall(wrap->code, "$ldestructor", ldestructor);
