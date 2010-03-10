@@ -1764,24 +1764,9 @@ public:
     Delete(attributes);
     Delete(destruct);
 
-    String *javaclazzname = Swig_name_member(getNSpace(), proxy_class_name, ""); // mangled full proxy class name
-
     // Emit extra user code
     Printv(proxy_class_def, typemapLookup(n, "javacode", typemap_lookup_type, WARN_NONE),	// extra Java code
 	   "\n", NIL);
-
-    // Substitute various strings into the above template
-    Replaceall(proxy_class_code, "$javaclassname", proxy_class_name);
-    Replaceall(proxy_class_def, "$javaclassname", proxy_class_name);
-
-    Replaceall(proxy_class_def, "$module", module_class_name);
-    Replaceall(proxy_class_code, "$module", module_class_name);
-
-    Replaceall(proxy_class_def, "$imclassname", full_imclass_name);
-    Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
-
-    Replaceall(proxy_class_def, "$javaclazzname", javaclazzname);
-    Replaceall(proxy_class_code, "$javaclazzname", javaclazzname);
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
@@ -1802,7 +1787,6 @@ public:
       Delete(jniname);
       Delete(upcast_method);
     }
-    Delete(javaclazzname);
     Delete(baseclass);
   }
 
@@ -1882,12 +1866,24 @@ public:
 
       emitProxyClassDefAndCPPCasts(n);
 
+      String *javaclazzname = Swig_name_member(getNSpace(), proxy_class_name, ""); // mangled full proxy class name
+
+      Replaceall(proxy_class_def, "$javaclassname", proxy_class_name);
+      Replaceall(proxy_class_code, "$javaclassname", proxy_class_name);
+      Replaceall(proxy_class_constants_code, "$javaclassname", proxy_class_name);
+
+      Replaceall(proxy_class_def, "$javaclazzname", javaclazzname);
+      Replaceall(proxy_class_code, "$javaclazzname", javaclazzname);
+      Replaceall(proxy_class_constants_code, "$javaclazzname", javaclazzname);
+
       Replaceall(proxy_class_def, "$module", module_class_name);
       Replaceall(proxy_class_code, "$module", module_class_name);
       Replaceall(proxy_class_constants_code, "$module", module_class_name);
+
       Replaceall(proxy_class_def, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
+
       Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
 
       // Write out all the constants
@@ -1933,6 +1929,7 @@ public:
 
       emitDirectorExtraMethods(n);
 
+      Delete(javaclazzname);
       Delete(proxy_class_name);
       proxy_class_name = NULL;
       Delete(full_proxy_class_name);

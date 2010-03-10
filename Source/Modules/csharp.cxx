@@ -1755,27 +1755,9 @@ public:
     Delete(attributes);
     Delete(destruct);
 
-    String *csclazzname = Swig_name_member(getNSpace(), proxy_class_name, ""); // mangled full proxy class name
-
     // Emit extra user code
     Printv(proxy_class_def, typemapLookup(n, "cscode", typemap_lookup_type, WARN_NONE),	// extra C# code
 	   "\n", NIL);
-
-    // Substitute various strings into the above template
-    Replaceall(proxy_class_code, "$csclassname", proxy_class_name);
-    Replaceall(proxy_class_def, "$csclassname", proxy_class_name);
-
-    Replaceall(proxy_class_def, "$module", module_class_name);
-    Replaceall(proxy_class_code, "$module", module_class_name);
-
-    Replaceall(proxy_class_def, "$imclassname", full_imclass_name);
-    Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
-
-    Replaceall(proxy_class_def, "$dllimport", dllimport);
-    Replaceall(proxy_class_code, "$dllimport", dllimport);
-
-    Replaceall(proxy_class_def, "$csclazzname", csclazzname);
-    Replaceall(proxy_class_code, "$csclazzname", csclazzname);
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
@@ -1794,7 +1776,6 @@ public:
       Delete(wname);
       Delete(upcast_method);
     }
-    Delete(csclazzname);
     Delete(baseclass);
   }
 
@@ -1863,12 +1844,24 @@ public:
 
       emitProxyClassDefAndCPPCasts(n);
 
+      String *csclazzname = Swig_name_member(getNSpace(), proxy_class_name, ""); // mangled full proxy class name
+
+      Replaceall(proxy_class_def, "$csclassname", proxy_class_name);
+      Replaceall(proxy_class_code, "$csclassname", proxy_class_name);
+      Replaceall(proxy_class_constants_code, "$csclassname", proxy_class_name);
+
+      Replaceall(proxy_class_def, "$csclazzname", csclazzname);
+      Replaceall(proxy_class_code, "$csclazzname", csclazzname);
+      Replaceall(proxy_class_constants_code, "$csclazzname", csclazzname);
+
       Replaceall(proxy_class_def, "$module", module_class_name);
       Replaceall(proxy_class_code, "$module", module_class_name);
       Replaceall(proxy_class_constants_code, "$module", module_class_name);
+
       Replaceall(proxy_class_def, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
+
       Replaceall(proxy_class_def, "$dllimport", dllimport);
       Replaceall(proxy_class_code, "$dllimport", dllimport);
       Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
@@ -1917,6 +1910,7 @@ public:
 
       emitDirectorExtraMethods(n);
 
+      Delete(csclazzname);
       Delete(proxy_class_name);
       proxy_class_name = NULL;
       Delete(full_proxy_class_name);
