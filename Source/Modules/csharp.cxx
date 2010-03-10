@@ -411,8 +411,8 @@ public:
 
     Swig_name_register("wrapper", "CSharp_%f");
     if (old_variable_names) {
-      Swig_name_register("set", "set_%v");
-      Swig_name_register("get", "get_%v");
+      Swig_name_register("set", "set_%n%v");
+      Swig_name_register("get", "get_%n%v");
     }
 
     Printf(f_wrappers, "\n#ifdef __cplusplus\n");

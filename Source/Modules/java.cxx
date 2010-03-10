@@ -437,8 +437,8 @@ public:
 
     Swig_name_register("wrapper", Char(wrapper_name));
     if (old_variable_names) {
-      Swig_name_register("set", "set_%v");
-      Swig_name_register("get", "get_%v");
+      Swig_name_register("set", "set_%n%v");
+      Swig_name_register("get", "get_%n%v");
     }
 
     Delete(wrapper_name);

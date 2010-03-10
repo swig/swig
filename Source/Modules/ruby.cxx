@@ -2578,7 +2578,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register("construct", "%c_allocate");
+    Swig_name_register("construct", "%n%c_allocate");
 
 
     Language::constructorHandler(n);
@@ -2613,7 +2613,7 @@ public:
     Delete(docs);
 
     current = CONSTRUCTOR_INITIALIZE;
-    Swig_name_register("construct", "new_%c");
+    Swig_name_register("construct", "new_%n%c");
     Language::constructorHandler(n);
 
     /* Restore original parameter list */
@@ -2635,7 +2635,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register("construct", "%c_allocate");
+    Swig_name_register("construct", "%n%n%c_allocate");
 
     return Language::copyconstructorHandler(n);
   }

@@ -159,8 +159,8 @@ public:
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
 
     /* Change naming scheme for constructors and destructors */
-    Swig_name_register("construct", "%c_create");
-    Swig_name_register("destroy", "%c_destroy");
+    Swig_name_register("construct", "%n%c_create");
+    Swig_name_register("destroy", "%n%c_destroy");
 
     /* Current wrap type */
     current = NO_CPP;
