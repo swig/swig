@@ -1792,7 +1792,7 @@ public:
       Printv(upcasts_code,
 	     "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
 	     "    jlong baseptr = 0;\n"
-	     "    (void)jenv;\n" "    (void)jcls;\n" "    *(", c_baseclassname, " **)&baseptr = *(", c_classname, " **)&jarg1;\n"
+	     "    (void)jenv;\n" "    (void)jcls;\n" "    *(", c_baseclass, " **)&baseptr = *(", c_classname, " **)&jarg1;\n"
 	     "    return baseptr;\n"
 	     "}\n", "\n", NIL);
 
@@ -1901,16 +1901,17 @@ public:
          downcasts, making the constructorHandler() a bad place (because ABCs don't get to
          have constructors emitted.) */
       if (GetFlag(n, "feature:javadowncast")) {
-	String *jni_imclass_name = makeValidJniName(imclass_name);
-	String *jni_class_name = makeValidJniName(proxy_class_name);
+	String *downcast_method = Swig_name_member(getNSpace(), proxy_class_name, "SWIGDowncast");
+	String *jniname = makeValidJniName(downcast_method);
+	String *wname = Swig_name_wrapper(jniname);
+
 	String *norm_name = SwigType_namestr(Getattr(n, "name"));
 
-	Printf(imclass_class_code, "  public final static native %s downcast%s(long cPtrBase, boolean cMemoryOwn);\n", proxy_class_name, proxy_class_name);
+	Printf(imclass_class_code, "  public final static native %s %s(long cPtrBase, boolean cMemoryOwn);\n", proxy_class_name, downcast_method);
 
 	Wrapper *dcast_wrap = NewWrapper();
 
-	Printf(dcast_wrap->def, "SWIGEXPORT jobject JNICALL Java_%s%s_downcast%s(JNIEnv *jenv, jclass jcls, jlong jCPtrBase, jboolean cMemoryOwn) {",
-	       jnipackage, jni_imclass_name, jni_class_name);
+	Printf(dcast_wrap->def, "SWIGEXPORT jobject JNICALL %s(JNIEnv *jenv, jclass jcls, jlong jCPtrBase, jboolean cMemoryOwn) {", wname);
 	Printf(dcast_wrap->code, "  Swig::Director *director = (Swig::Director *) 0;\n");
 	Printf(dcast_wrap->code, "  jobject jresult = (jobject) 0;\n");
 	Printf(dcast_wrap->code, "  %s *obj = *((%s **)&jCPtrBase);\n", norm_name, norm_name);
@@ -1921,6 +1922,11 @@ public:
 
 	Wrapper_print(dcast_wrap, f_wrappers);
 	DelWrapper(dcast_wrap);
+
+	Delete(norm_name);
+	Delete(wname);
+	Delete(jniname);
+	Delete(downcast_method);
       }
 
       emitDirectorExtraMethods(n);

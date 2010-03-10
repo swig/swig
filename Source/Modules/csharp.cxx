@@ -803,7 +803,7 @@ public:
 	return SWIG_OK;
     }
 
-    Printv(imclass_class_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"CSharp_", overloaded_name, "\")]\n", NIL);
+    Printv(imclass_class_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
 
     if (im_outattributes)
       Printf(imclass_class_code, "  %s\n", im_outattributes);
@@ -1887,14 +1887,16 @@ public:
          downcasts, making the constructorHandler() a bad place (because ABCs don't get to
          have constructors emitted.) */
       if (GetFlag(n, "feature:javadowncast")) {
+	String *downcast_method = Swig_name_member(getNSpace(), proxy_class_name, "SWIGDowncast");
+	String *wname = Swig_name_wrapper(downcast_method);
+
 	String *norm_name = SwigType_namestr(Getattr(n, "name"));
 
-	Printf(imclass_class_code, "  public final static native %s downcast%s(long cPtrBase, boolean cMemoryOwn);\n", proxy_class_name, proxy_class_name);
+	Printf(imclass_class_code, "  public final static native %s %s(long cPtrBase, boolean cMemoryOwn);\n", proxy_class_name, downcast_method);
 
 	Wrapper *dcast_wrap = NewWrapper();
 
-	Printf(dcast_wrap->def, "SWIGEXPORT jobject SWIGSTDCALL CSharp_downcast%s(JNIEnv *jenv, jclass jcls, jlong jCPtrBase, jboolean cMemoryOwn) {",
-	       proxy_class_name);
+	Printf(dcast_wrap->def, "SWIGEXPORT jobject SWIGSTDCALL %s(JNIEnv *jenv, jclass jcls, jlong jCPtrBase, jboolean cMemoryOwn) {", wname);
 	Printf(dcast_wrap->code, "  Swig::Director *director = (Swig::Director *) 0;\n");
 	Printf(dcast_wrap->code, "  jobject jresult = (jobject) 0;\n");
 	Printf(dcast_wrap->code, "  %s *obj = *((%s **)&jCPtrBase);\n", norm_name, norm_name);
@@ -1905,6 +1907,10 @@ public:
 
 	Wrapper_print(dcast_wrap, f_wrappers);
 	DelWrapper(dcast_wrap);
+
+	Delete(norm_name);
+	Delete(wname);
+	Delete(downcast_method);
       }
 
       emitDirectorExtraMethods(n);
@@ -3307,14 +3313,15 @@ public:
     // Output the director connect method:
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
     String *swig_director_connect = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
+    String *wname = Swig_name_wrapper(swig_director_connect);
     String *sym_name = Getattr(n, "sym:name");
     Wrapper *code_wrap;
 
-    Printv(imclass_class_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"CSharp_", swig_director_connect, "\")]\n", NIL);
+    Printv(imclass_class_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
     Printf(imclass_class_code, "  public static extern void %s(HandleRef jarg1", swig_director_connect);
 
     code_wrap = NewWrapper();
-    Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL CSharp_%s(void *objarg", swig_director_connect);
+    Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
 
     Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
     Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n", sym_name, sym_name);
@@ -3343,6 +3350,7 @@ public:
     Wrapper_print(code_wrap, f_wrappers);
     DelWrapper(code_wrap);
 
+    Delete(wname);
     Delete(swig_director_connect);
   }
 
