@@ -176,7 +176,7 @@ public:
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Getattr(n, "sym:name");
 	   if (nspace) {
-	     if (Len(package) > 0)
+	     if (package)
 	       proxyname = NewStringf("%s.%s.%s", package, nspace, symname);
 	     else
 	       proxyname = NewStringf("%s.%s", nspace, symname);
@@ -234,6 +234,10 @@ public:
 	  if (argv[i + 1]) {
 	    package = NewString("");
 	    Printf(package, argv[i + 1]);
+	    if (Len(package) == 0) {
+	      Delete(package);
+	      package = 0;
+	    }
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
@@ -390,8 +394,6 @@ public:
     dmethods_table = NewHash();
     n_dmethods = 0;
     n_directors = 0;
-    if (!package)
-      package = NewString("");
     jnipackage = NewString("");
     package_path = NewString("");
 
@@ -420,7 +422,7 @@ public:
 
     String *wrapper_name = NewString("");
 
-    if (Len(package)) {
+    if (package) {
       String *jniname = makeValidJniName(package);
       Printv(jnipackage, jniname, NIL);
       Delete(jniname);
@@ -467,7 +469,7 @@ public:
       // Start writing out the intermediary class file
       emitBanner(f_im);
 
-      if (Len(package) > 0)
+      if (package)
 	Printf(f_im, "package %s;\n", package);
 
       if (imclass_imports)
@@ -518,7 +520,7 @@ public:
       // Start writing out the module class file
       emitBanner(f_module);
 
-      if (Len(package) > 0)
+      if (package)
 	Printf(f_module, "package %s;\n", package);
 
       if (module_imports)
@@ -570,7 +572,7 @@ public:
       // Start writing out the Java constants interface file
       emitBanner(f_module);
 
-      if (Len(package) > 0)
+      if (package)
 	Printf(f_module, "package %s;\n", package);
 
       if (module_imports)
@@ -1195,7 +1197,7 @@ public:
 	if (!nspace) {
 	  full_imclass_name = NewStringf("%s", imclass_name);
 	} else {
-	  if (Len(package) > 0) {
+	  if (package) {
 	    full_imclass_name = NewStringf("%s.%s", package, imclass_name);
 	  } else {
 	    full_imclass_name = NewStringf("%s", imclass_name);
@@ -1277,9 +1279,9 @@ public:
 	  // Start writing out the enum file
 	  emitBanner(f_enum);
 
-	  if (Len(package) > 0 || nspace) {
+	  if (package || nspace) {
 	    Printf(f_enum, "package ");
-	    if (Len(package) > 0)
+	    if (package)
 	      Printv(f_enum, package, nspace ? "." : "", NIL);
 	    if (nspace)
 	      Printv(f_enum, nspace, NIL);
@@ -1828,7 +1830,7 @@ public:
 	  SWIG_exit(EXIT_FAILURE);
 	}
       } else {
-	if (Len(package) > 0) {
+	if (package) {
 	  full_proxy_class_name = NewStringf("%s.%s.%s", package, nspace, proxy_class_name);
 	  full_imclass_name = NewStringf("%s.%s", package, imclass_name);
 	} else {
@@ -1856,9 +1858,9 @@ public:
       // Start writing out the proxy class file
       emitBanner(f_proxy);
 
-      if (Len(package) > 0 || nspace) {
+      if (package || nspace) {
 	Printf(f_proxy, "package ");
-	if (Len(package) > 0)
+	if (package)
 	  Printv(f_proxy, package, nspace ? "." : "", NIL);
 	if (nspace)
 	  Printv(f_proxy, nspace, NIL);
@@ -2807,7 +2809,7 @@ public:
 	    // global enum or enum in a namespace
 	    String *nspace = Getattr(n, "sym:nspace");
 	    if (nspace) {
-	      if (Len(package) > 0)
+	      if (package)
 		enumname = NewStringf("%s.%s.%s", package, nspace, symname);
 	      else
 		enumname = NewStringf("%s.%s", nspace, symname);
@@ -2963,7 +2965,7 @@ public:
     // Start writing out the type wrapper class file
     emitBanner(f_swigtype);
 
-    if (Len(package) > 0)
+    if (package)
       Printf(f_swigtype, "package %s;\n", package);
 
     // Pure Java baseclass and interfaces
@@ -3274,8 +3276,7 @@ public:
   /*----------------------------------------------------------------------
    * emitDirectorExtraMethods()
    *
-   * This is where the $javaclassname_director_connect is
-   * generated.
+   * This is where the director connect method is generated.
    *--------------------------------------------------------------------*/
   void emitDirectorExtraMethods(Node *n) {
     if (!Swig_directorclass(n))

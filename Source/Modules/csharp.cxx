@@ -181,7 +181,7 @@ public:
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Getattr(n, "sym:name");
 	   if (nspace) {
-	     if (Len(namespce) > 0)
+	     if (namespce)
 	       proxyname = NewStringf("%s.%s.%s", namespce, nspace, symname);
 	     else
 	       proxyname = NewStringf("%s.%s", nspace, symname);
@@ -239,6 +239,10 @@ public:
 	  if (argv[i + 1]) {
 	    namespce = NewString("");
 	    Printf(namespce, argv[i + 1]);
+	    if (Len(namespce) == 0) {
+	      Delete(namespce);
+	      namespce = 0;
+	    }
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
@@ -378,8 +382,6 @@ public:
     dmethods_table = NewHash();
     n_dmethods = 0;
     n_directors = 0;
-    if (!namespce)
-      namespce = NewString("");
     if (!dllimport)
       dllimport = Copy(module_class_name);
 
@@ -439,7 +441,7 @@ public:
       // Start writing out the intermediary class file
       emitBanner(f_im);
 
-      addOpenNamespace(namespce, 0, f_im);
+      addOpenNamespace(0, f_im);
 
       if (imclass_imports)
 	Printf(f_im, "%s\n", imclass_imports);
@@ -463,7 +465,7 @@ public:
 
       // Finish off the class
       Printf(f_im, "}\n");
-      addCloseNamespace(namespce, 0, f_im);
+      addCloseNamespace(0, f_im);
 
       Close(f_im);
     }
@@ -483,7 +485,7 @@ public:
       // Start writing out the module class file
       emitBanner(f_module);
 
-      addOpenNamespace(namespce, 0, f_module);
+      addOpenNamespace(0, f_module);
 
       if (module_imports)
 	Printf(f_module, "%s\n", module_imports);
@@ -515,7 +517,7 @@ public:
 
       // Finish off the class
       Printf(f_module, "}\n");
-      addCloseNamespace(namespce, 0, f_module);
+      addCloseNamespace(0, f_module);
 
       Close(f_module);
     }
@@ -1134,7 +1136,7 @@ public:
 	if (!nspace) {
 	  full_imclass_name = NewStringf("%s", imclass_name);
 	} else {
-	  if (Len(namespce) > 0) {
+	  if (namespce) {
 	    full_imclass_name = NewStringf("%s.%s", namespce, imclass_name);
 	  } else {
 	    full_imclass_name = NewStringf("%s", imclass_name);
@@ -1214,12 +1216,12 @@ public:
 	  // Start writing out the enum file
 	  emitBanner(f_enum);
 
-	  addOpenNamespace(namespce, nspace, f_enum);
+	  addOpenNamespace(nspace, f_enum);
 
 	  Printv(f_enum, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE), // Import statements
 		 "\n", enum_code, "\n", NIL);
 
-	  addCloseNamespace(namespce, nspace, f_enum);
+	  addCloseNamespace(nspace, f_enum);
 	  Close(f_enum);
 	  Delete(output_directory);
 	}
@@ -1820,7 +1822,7 @@ public:
 	  SWIG_exit(EXIT_FAILURE);
 	}
       } else {
-	if (Len(namespce) > 0) {
+	if (namespce) {
 	  full_proxy_class_name = NewStringf("%s.%s.%s", namespce, nspace, proxy_class_name);
 	  full_imclass_name = NewStringf("%s.%s", namespce, imclass_name);
 	} else {
@@ -1846,7 +1848,7 @@ public:
       // Start writing out the proxy class file
       emitBanner(f_proxy);
 
-      addOpenNamespace(namespce, nspace, f_proxy);
+      addOpenNamespace(nspace, f_proxy);
 
       Clear(proxy_class_def);
       Clear(proxy_class_code);
@@ -1878,7 +1880,7 @@ public:
 	Printv(f_proxy, proxy_class_constants_code, NIL);
 
       Printf(f_proxy, "}\n");
-      addCloseNamespace(namespce, nspace, f_proxy);
+      addCloseNamespace(nspace, f_proxy);
       Close(f_proxy);
       f_proxy = NULL;
 
@@ -2959,7 +2961,7 @@ public:
 	    // global enum or enum in a namespace
 	    String *nspace = Getattr(n, "sym:nspace");
 	    if (nspace) {
-	      if (Len(namespce) > 0)
+	      if (namespce)
 		enumname = NewStringf("%s.%s.%s", namespce, nspace, symname);
 	      else
 		enumname = NewStringf("%s.%s", nspace, symname);
@@ -3111,7 +3113,7 @@ public:
     // Start writing out the type wrapper class file
     emitBanner(f_swigtype);
 
-    addOpenNamespace(namespce, 0, f_swigtype);
+    addOpenNamespace(0, f_swigtype);
 
     // Pure C# baseclass and interfaces
     const String *pure_baseclass = typemapLookup(n, "csbase", type, WARN_NONE);
@@ -3140,7 +3142,7 @@ public:
 
     Printv(f_swigtype, swigtype, NIL);
 
-    addCloseNamespace(namespce, 0, f_swigtype);
+    addCloseNamespace(0, f_swigtype);
 
     Close(f_swigtype);
     Delete(swigtype);
@@ -3215,12 +3217,12 @@ public:
    * addOpenNamespace()
    * ----------------------------------------------------------------------------- */
 
-  void addOpenNamespace(const String *namspace, const String *nspace, File *file) {
-    if (namspace) {
-      if (Len(namspace) > 0 || nspace) {
+  void addOpenNamespace(const String *nspace, File *file) {
+    if (namespce) {
+      if (namespce || nspace) {
 	Printf(file, "namespace ");
-	if (Len(namspace) > 0)
-	  Printv(file, namspace, nspace ? "." : "", NIL);
+	if (namespce)
+	  Printv(file, namespce, nspace ? "." : "", NIL);
 	if (nspace)
 	  Printv(file, nspace, NIL);
 	Printf(file, " {\n");
@@ -3232,9 +3234,9 @@ public:
    * addCloseNamespace()
    * ----------------------------------------------------------------------------- */
 
-  void addCloseNamespace(const String *namspace, const String *nspace, File *file) {
-    if (namspace)
-      if (Len(namspace) > 0 || nspace)
+  void addCloseNamespace(const String *nspace, File *file) {
+    if (namespce)
+      if (namespce || nspace)
 	Printf(file, "\n}\n");
   }
 
@@ -3303,8 +3305,7 @@ public:
   /*----------------------------------------------------------------------
    * emitDirectorExtraMethods()
    *
-   * This is where the director connect method is
-   * generated.
+   * This is where the director connect method is generated.
    *--------------------------------------------------------------------*/
   void emitDirectorExtraMethods(Node *n) {
     if (!Swig_directorclass(n))
