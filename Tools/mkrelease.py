@@ -18,7 +18,7 @@ try:
    username = sys.argv[2]
 except:
    print "Usage: python mkrelease.py version username"
-   print "where version should be 1.3.x and username is your SF username"
+   print "where version should be x.y.z and username is your SF username"
    sys.exit(1)
 
 print "Looking for rsync"

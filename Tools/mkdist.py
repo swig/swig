@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-# This script builds a swig-1.3 distribution.
-# Usage : mkdist.py version, where version should be 1.3.x
+# This script builds a swig-x.y.z distribution.
+# Usage : mkdist.py version, where version should be x.y.z
 
 import sys
 import string
@@ -16,7 +16,7 @@ try:
    version = sys.argv[1]
    dirname = "swig-" + version
 except:
-   print "Usage: mkdist.py version, where version should be 1.3.x"
+   print "Usage: mkdist.py version, where version should be x.y.z"
    sys.exit(1)
 
 # Check name matches normal unix conventions
