@@ -602,6 +602,7 @@ public:
           "  return;\n"
           "}");
       Wrapper_print(f, f_wrappers);
+      DelWrapper(f);
       return SWIG_OK;
     }
     if(GetFlag(n, "perl5:instancevariable")) {
@@ -667,6 +668,7 @@ public:
       Append(f->code,
           "}");
       Wrapper_print(f, f_wrappers);
+      DelWrapper(f);
       return SWIG_OK;
     }
     cleanup = NewString("");
@@ -993,7 +995,7 @@ public:
           "  return 0;\n"
           "}\n");
       Wrapper_print(f, f_wrappers);
-      Delete(f);
+      DelWrapper(f);
     } else {
       setf = NewString("0");
     }
@@ -1028,7 +1030,7 @@ public:
       }
       Append(f->code, "}\n");
       Wrapper_print(f, f_wrappers);
-      Delete(f);
+      DelWrapper(f);
     }
 
     {
