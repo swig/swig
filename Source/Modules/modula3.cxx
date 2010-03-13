@@ -1196,7 +1196,7 @@ MODULA3():
       Swig_restore(n);
       native_function_flag = false;
     } else {
-      Printf(stderr, "%s : Line %d. No return type for %%native method %s.\n", input_file, line_number, Getattr(n, "wrap:name"));
+      Swig_error(input_file, line_number, "No return type for %%native method %s.\n", Getattr(n, "wrap:name"));
     }
 
     return SWIG_OK;

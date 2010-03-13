@@ -785,7 +785,7 @@ public:
       Swig_restore(n);
       native_function_flag = false;
     } else {
-      Printf(stderr, "%s : Line %d. No return type for %%native method %s.\n", input_file, line_number, Getattr(n, "wrap:name"));
+      Swig_error(input_file, line_number, "No return type for %%native method %s.\n", Getattr(n, "wrap:name"));
     }
 
     return SWIG_OK;
@@ -1630,37 +1630,37 @@ public:
 	  Delete(module_interfaces);
 	  module_interfaces = Copy(strvalue);
 	} else if (Strcmp(code, "moduleimport") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use the moduleimports pragma.\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Deprecated pragma. Please use the moduleimports pragma.\n");
 	} else if (Strcmp(code, "moduleinterface") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use the moduleinterfaces pragma.\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Deprecated pragma. Please use the moduleinterfaces pragma.\n");
 	} else if (Strcmp(code, "modulemethodmodifiers") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%javamethodmodifiers.\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%javamethodmodifiers.\n");
 	} else if (Strcmp(code, "allshadowimport") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javaimports).\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javaimports).\n");
 	} else if (Strcmp(code, "allshadowcode") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javacode).\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javacode).\n");
 	} else if (Strcmp(code, "allshadowbase") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javabase).\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javabase).\n");
 	} else if (Strcmp(code, "allshadowinterface") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javainterfaces).\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javainterfaces).\n");
 	} else if (Strcmp(code, "allshadowclassmodifiers") == 0) {
-	  Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javaclassmodifiers).\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javaclassmodifiers).\n");
 	} else if (proxy_flag) {
 	  if (Strcmp(code, "shadowcode") == 0) {
-	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javacode).\n", input_file, line_number);
+	    Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javacode).\n");
 	  } else if (Strcmp(code, "shadowimport") == 0) {
-	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javaimports).\n", input_file, line_number);
+	    Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javaimports).\n");
 	  } else if (Strcmp(code, "shadowbase") == 0) {
-	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javabase).\n", input_file, line_number);
+	    Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javabase).\n");
 	  } else if (Strcmp(code, "shadowinterface") == 0) {
-	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javainterfaces).\n", input_file, line_number);
+	    Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javainterfaces).\n");
 	  } else if (Strcmp(code, "shadowclassmodifiers") == 0) {
-	    Printf(stderr, "%s : Line %d. Ignored: Deprecated pragma. Please use %%typemap(javaclassmodifiers).\n", input_file, line_number);
+	    Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javaclassmodifiers).\n");
 	  } else {
-	    Printf(stderr, "%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
+	    Swig_error(input_file, line_number, "Unrecognized pragma.\n");
 	  }
 	} else {
-	  Printf(stderr, "%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Unrecognized pragma.\n");
 	}
 	Delete(strvalue);
       }

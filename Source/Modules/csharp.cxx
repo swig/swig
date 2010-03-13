@@ -712,7 +712,7 @@ public:
       Swig_restore(n);
       native_function_flag = false;
     } else {
-      Printf(stderr, "%s : Line %d. No return type for %%native method %s.\n", input_file, line_number, Getattr(n, "wrap:name"));
+      Swig_error(input_file, line_number, "No return type for %%native method %s.\n", Getattr(n, "wrap:name"));
     }
 
     return SWIG_OK;
@@ -1586,7 +1586,7 @@ public:
 	  Delete(module_interfaces);
 	  module_interfaces = Copy(strvalue);
 	} else {
-	  Printf(stderr, "%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Unrecognized pragma.\n");
 	}
 	Delete(strvalue);
       }

@@ -2,6 +2,9 @@ Version 2.0.0 (in progress)
 ============================
 
 2010-03-13: wsfulton
+            [Java] Some very old deprecated pragma warnings are now errors.
+
+2010-03-13: wsfulton
             Improve handling of file names and directories containing double/multiple path separators.
 
 2010-03-10: mutandiz (Mikel Bancroft)
