@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * director.swg
  *
  * This file contains support for director classes that proxy
@@ -18,26 +15,41 @@
 #define swig_owntype int
 
 namespace Swig {
-
   /* base class for director exceptions */
   class DirectorException {
     public:
       SV *sv;
-      DirectorException(const char *msg="") {
-        sv = newSVpv(msg, 0);
+      DirectorException(const char *err = "") throw() :
+        sv(newSVpv(err, 0)) {
+        init();
       }
-      DirectorException(SV *err) : sv(err) { }
-      virtual ~DirectorException() {
-        /* TODO: probably leaky here */
-        /* SvREFCNT_dec(sv); */
+      DirectorException(SV *err) throw() : sv(err) {
+        init();
+      }
+      /* to comply with the std::exception interface */
+      virtual const char *what() const throw() {
+        return SvPV_nolen(sv);
+      }
+      /* to comply with the Swig::DirectorException interface of other
+       * language directors */
+      virtual const char *getMessage() const {
+        return SvPV_nolen(sv);
+      }
+      virtual ~DirectorException() throw() {
+        SvREFCNT_dec(sv);
+      }
+    private:
+      virtual void init() {
+        SvREFCNT_inc(sv);
+        /* warn("throwing <<%s>>", SvPV_nolen(sv)); */
       }
   };
 
   /* type mismatch in the return value from a python method call */
   class DirectorTypeMismatchException : public DirectorException {
     public:
-      DirectorTypeMismatchException(const char* type, const char* msg="") {
-        sv = newSVpvf("%s %s", type, msg);
+      DirectorTypeMismatchException(const char* type, const char* msg="") :
+        Swig::DirectorException(newSVpvf("%s %s", type, msg)) {
       }
       static void raise(const char* type, const char *msg) {
         throw DirectorTypeMismatchException(type, msg);
@@ -47,8 +59,8 @@ namespace Swig {
   /* attempt to call a pure virtual method via a director method */
   class DirectorPureVirtualException : public DirectorException {
     public:
-      DirectorPureVirtualException(const char *msg) {
-        sv = newSVpvf("%s is abstract", msg);
+      DirectorPureVirtualException(const char *msg) :
+        Swig::DirectorException(newSVpvf("%s is abstract", msg)) {
       }
       static void raise(const char *msg) {
         throw DirectorPureVirtualException(msg);
@@ -57,11 +69,11 @@ namespace Swig {
 
   /* Perl exceptions generated during director methods get wrapped for
    * their journey though C++ */
-  class DirectorRunException : public DirectorException {
+  class DirectorMethodException : public DirectorException {
     public:
-      DirectorRunException(SV *err) : DirectorException(err) { }
+      DirectorMethodException(SV *err) : DirectorException(err) {}
       static void raise(SV *err) {
-        throw DirectorRunException(err);
+        throw DirectorMethodException(err);
       }
   };
   struct GCItem { /* typeless abstract base */

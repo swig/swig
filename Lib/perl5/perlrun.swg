@@ -253,9 +253,12 @@ SWIG_Perl_default_vtbl = { 0, 0, 0, 0, SWIG_Perl_vtbl_svt_free };
 
 SWIGRUNTIME const char *
 SWIG_Perl_TypeProxyName(const swig_type_info *type) {
-  if (!type) return NULL;
-  if (!type->clientdata) return type->name;
-  return ((swig_perl_type_ext *)type->clientdata)->name;
+  if (!type)
+    return 0;
+  else if (type->clientdata)
+    return ((swig_perl_type_ext *)type->clientdata)->name;
+  else
+    return SWIG_TypeName(type);
 }
 
 /* Identical to SWIG_TypeCheck, except for strcmp comparison */

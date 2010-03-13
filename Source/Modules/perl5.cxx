@@ -1,3 +1,4 @@
+/* ----------------------------------------------------------------------------
  * This file is part of SWIG, which is licensed as a whole under version 3 
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
@@ -544,6 +545,7 @@ public:
     int num_saved = 0;
     int num_arguments, num_required;
     int varargs = 0;
+    int dir_catch = 0;
 
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
@@ -805,15 +807,12 @@ public:
     }
 
     if (is_member_director(n) && !is_smart_pointer()) {
-      Swig_save("perl5:functionWrapper", n, "catchlist", NIL);
       Wrapper_add_local(f, "upcall", "bool upcall");
       Append(f->code,
           "{\n"
           "  Swig::Director *director = dynamic_cast<Swig::Director *>(arg1);\n"
           "  if (director) {\n"
-          "    HV *outer = SvSTASH(SvRV(ST(0)));\n"
-          "    HV *inner = SvSTASH(SvRV(director->getSelf()));\n"
-          "    upcall = outer == inner;\n"
+          "    upcall = SvSTASH(SvRV(ST(0))) == SvSTASH(SvRV(director->getSelf()));\n"
           "  } else {\n");
       if(dirprot_mode() && !is_public(n)) {
         Append(f->code,
@@ -825,12 +824,17 @@ public:
       Append(f->code,
           "  }\n"
           "}\n");
-      {
-        Parm *catchlist = NewHash();
-        Setattr(catchlist, "type", "Swig::DirectorException");
-        set_nextSibling(catchlist, Getattr(n, "catchlist"));
-        Setattr(n, "catchlist", catchlist);
-      }
+    }
+    if (CurrentClass && Swig_directorclass(CurrentClass)) {
+      Swig_require("perl5:functionWrapper", n, "?catchlist", NIL);
+      /* TODO: the type system doesn't know about the DirectorException
+       * class, so this is cheating. */
+      SwigType *ct = NewString("Swig::DirectorException");
+      Parm *catchlist = NewParm(ct, 0, n);
+      Delete(ct);
+      set_nextSibling(catchlist, Getattr(n, "catchlist"));
+      Setattr(n, "catchlist", catchlist);
+      dir_catch = 1;
     }
 
     /* Now write code to make the function call */
@@ -852,7 +856,7 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
     }
-    if (is_member_director(n) && !is_smart_pointer())
+    if (dir_catch)
       Swig_restore(n);
     emit_return_variable(n, d, f);
 
@@ -1674,6 +1678,7 @@ public:
     String *mdefn = NewStringf("");
     String *signature;
     bool output_director = true;
+    String *tmp;
 
     { /* resolve the function signature */
       SwigType *ret_type = Getattr(n, "conversion_operator") ? NULL : type;
@@ -1688,7 +1693,7 @@ public:
         while(p) {
           tm = Getattr(p, "tmap:throws");
           if(tm) {
-            String *tmp = SwigType_str(Getattr(p, "type"), NULL);
+            tmp = SwigType_str(Getattr(p, "type"), NULL);
             if(needComma)
               Append(signature, ", ");
             else
@@ -1783,11 +1788,10 @@ public:
             }
           }
         }
-        {
-          String *tmp = NewStringf("SV *av[%d]", pcount);
-          Wrapper_add_local(w, "av", tmp);
-          Delete(tmp);
-        }
+        tmp = NewStringf("SV *av[%d]", pcount);
+        Wrapper_add_local(w, "av", tmp);
+        Delete(tmp);
+
         Append(pstack, "  PUTBACK;\n");
         Append(w->code, pstack);
         Delete(pstack);
@@ -1813,11 +1817,15 @@ public:
                 "}\n", name, outputs, outputs, name);
             break;
         }
-        Printf(w->code,
-            "if(SvTRUE(ERRSV)) {\n"
-            "  /* need to clean up the perl call stack here */\n"
-            "  Swig::DirectorRunException::raise(ERRSV);\n"
-            "}\n", name);
+	tmp = NewString("err");
+	Wrapper_add_local(w, tmp, "SV *err = 0");
+	Delete(tmp);
+
+        Append(w->code,
+            "if (SvTRUE(ERRSV)) {\n"
+            "  err = newSVsv(ERRSV);\n"
+            "  goto fail;\n"
+            "}\n");
         if(outputs) {
           SwigType *ret_type;
           String   *tm;
@@ -1863,7 +1871,7 @@ public:
             //} else {
               Replaceall(tm, "$disown", "0");
             //}
-            Printf(w->code, "%s\n", tm);
+            Printf(w->code, "{\n%s\n}\n", tm);
             Delete(tm);
             if(SwigType_isreference(ret_type))
               retstmt = "  return *w_result;\n";
@@ -1894,13 +1902,29 @@ public:
           Append(w->code, "PUTBACK;\n");
           Delete(ret_type);
         }
-        Printf(w->code,
+        Append(w->code,
+            "fail:\n"
             "  FREETMPS;\n"
-            "  LEAVE;\n"
+            "  LEAVE;\n");
+	{
+	  String *tm;
+	  if ((tm = Swig_typemap_lookup("director:except", n, "result", 0))) {
+	    /* no op */
+	  } else if((tm = Getattr(n, "feature:director:except"))) {
+	    tm = Copy(tm);
+	  } else {
+	    tm = NewString(
+	        "if ($error) Swig::DirectorMethodException::raise($error);");
+	  }
+	  Replaceall(tm, "$error", "err");
+	  Printv(w->code, tm, "\n", NIL);
+	}
+	Printf(w->code,
             "%s}", retstmt);
       }
       Delete(target);
       Wrapper_print(w, mdefn);
+      DelWrapper(w);
     }
 
     /* borrowed from python.cxx - director.cxx apparently expects us
