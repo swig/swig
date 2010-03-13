@@ -22,7 +22,7 @@ char cvsroot_misc_c[] = "$Id$";
 
 #ifdef _WIN32
 #include <direct.h>
-#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#define S_ISDIR(mode) (((mode) & S_IFDIR) == S_IFDIR)
 #endif
 
 static char *fake_version = 0;
@@ -143,6 +143,26 @@ String *Swig_strip_c_comments(const String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * is_directory()
+ * ----------------------------------------------------------------------------- */
+static int is_directory(String *directory) {
+  int last = Len(directory) - 1;
+  int statres;
+  struct stat st;
+  char *dir = Char(directory);
+  if (dir[last] == SWIG_FILE_DELIMITER[0]) {
+    /* remove trailing slash - can cause S_ISDIR to fail on Windows, at least */
+    dir[last] = 0;
+    statres = stat(dir, &st);
+    dir[last] = SWIG_FILE_DELIMITER[0];
+  } else {
+    statres = stat(dir, &st);
+  }
+  Printf(stdout, "is_directory %d %s\n", (statres == 0 && S_ISDIR(st.st_mode)), dir);
+  return (statres == 0 && S_ISDIR(st.st_mode));
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_new_subdirectory()
  *
  * Create the subdirectory only if the basedirectory already exists as a directory.
@@ -154,7 +174,7 @@ String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
   struct stat st;
   int current_directory = basedirectory ? (Len(basedirectory) == 0 ? 1 : 0) : 0;
 
-  if (current_directory || ((stat(Char(basedirectory), &st) == 0) && S_ISDIR(st.st_mode))) {
+  if (current_directory || is_directory(basedirectory)) {
     Iterator it;
     String *dir = basedirectory ? NewString(basedirectory) : NewString("");
     List *subdirs = Split(subdirectory, SWIG_FILE_DELIMITER[0], INT_MAX);
@@ -186,7 +206,7 @@ String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
       }
     }
   } else {
-    error = NewStringf("Cannot create subdirectory %s under the base directory %s", subdirectory, basedirectory);
+    error = NewStringf("Cannot create subdirectory %s under the base directory %s. Either the base does not exist as a directory or it is not readable.", subdirectory, basedirectory);
   }
   return error;
 }
@@ -194,7 +214,8 @@ String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
 /* -----------------------------------------------------------------------------
  * Swig_filename_correct()
  *
- * Corrects filenames on non-unix systems
+ * Corrects filename paths by removing duplicate delimeters and on non-unix
+ * systems use the correct delimeter across the whole name.
  * ----------------------------------------------------------------------------- */
 
 void Swig_filename_correct(String *filename) {
@@ -207,6 +228,9 @@ void Swig_filename_correct(String *filename) {
   /* accept Windows path separator in addition to Unix path separator */
   Replaceall(filename, "\\", SWIG_FILE_DELIMITER);
 #endif
+  /* remove all duplicate file name delimiters */
+  while (Replaceall(filename, SWIG_FILE_DELIMITER SWIG_FILE_DELIMITER, SWIG_FILE_DELIMITER)) {
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -218,7 +242,9 @@ void Swig_filename_correct(String *filename) {
 String *Swig_filename_escape(String *filename) {
   String *adjusted_filename = Copy(filename);
 #if defined(_WIN32)		/* Note not on Cygwin else filename is displayed with double '/' */
-  Replaceall(adjusted_filename, "\\\\", "\\");	/* remove double '\' in case any already present */
+  /* remove all double '\' in case any already present */
+  while (Replaceall(adjusted_filename, "\\\\", "\\")) {
+  }
   Replaceall(adjusted_filename, "\\", "\\\\");
 #endif
     return adjusted_filename;

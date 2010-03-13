@@ -1,6 +1,9 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-03-13: wsfulton
+            Improve handling of file names and directories containing double/multiple path separators.
+
 2010-03-10: mutandiz (Mikel Bancroft)
 	    [allegrocl] Use fully qualified symbol name of cl::identity in emit_defun().
 

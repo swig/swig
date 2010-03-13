@@ -281,20 +281,21 @@ static unsigned int decode_numbers_list(String *numlist) {
 
 // -----------------------------------------------------------------------------
 // Sets the output directory for language specific (proxy) files if not set and 
-// adds trailing file separator if necessary.
+// corrects the directory name and adds trailing file separator if necessary.
 // ----------------------------------------------------------------------------- 
 
-static void set_outdir(const String *c_wrapper_file_dir) {
+static void configure_outdir(const String *c_wrapper_file_dir) {
+
+  // Use the C wrapper file's directory if the output directory has not been set by user
+  if (!outdir || Len(outdir) == 0)
+    outdir = NewString(c_wrapper_file_dir);
+
+  Swig_filename_correct(outdir);
 
   // Add file delimiter if not present in output directory name
-  if (outdir && Len(outdir) != 0) {
-    const char *outd = Char(outdir);
-    if (strcmp(outd + strlen(outd) - strlen(SWIG_FILE_DELIMITER), SWIG_FILE_DELIMITER) != 0)
-      Printv(outdir, SWIG_FILE_DELIMITER, NIL);
-  }
-  // Use the C wrapper file's directory if the output directory has not been set by user
-  if (!outdir)
-    outdir = NewString(c_wrapper_file_dir);
+  const char *outd = Char(outdir);
+  if (strcmp(outd + strlen(outd) - strlen(SWIG_FILE_DELIMITER), SWIG_FILE_DELIMITER) != 0)
+    Printv(outdir, SWIG_FILE_DELIMITER, NIL);
 }
 
 /* This function sets the name of the configuration file */
@@ -1221,7 +1222,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	} else {
 	  Setattr(top, "outfile_h", outfile_name_h);
 	}
-	set_outdir(Swig_file_dirname(Getattr(top, "outfile")));
+	configure_outdir(Swig_file_dirname(Getattr(top, "outfile")));
 	if (Swig_contract_mode_get()) {
 	  Swig_contracts(top);
 	}
