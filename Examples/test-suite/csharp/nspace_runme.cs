@@ -22,15 +22,25 @@ public class runme
       if (channel != nspaceNamespace.Outer.Inner1.Color.Channel.Transmission)
         throw new ApplicationException("Transmission wrong");
 
-      // static member variables
-      nspaceNamespace.Outer.Inner1.Color.staticMemberVariable = 789;
-      if (nspaceNamespace.Outer.Inner1.Color.staticMemberVariable != 789)
-        throw new ApplicationException("static member variable failed");
+      // class anonymous enums
+      int val1 = nspaceNamespace.Outer.Inner1.Color.ColorEnumVal1;
+      int val2 = nspaceNamespace.Outer.Inner1.Color.ColorEnumVal2;
+      if (val1 != 0 || val2 != 0x22)
+        throw new ApplicationException("ColorEnumVal wrong");
 
       // instance member variables
       color.instanceMemberVariable = 123;
       if (color.instanceMemberVariable != 123)
         throw new ApplicationException("instance member variable failed");
+
+      // static member variables
+      nspaceNamespace.Outer.Inner1.Color.staticMemberVariable = 789;
+      if (nspaceNamespace.Outer.Inner1.Color.staticMemberVariable != 789)
+        throw new ApplicationException("static member variable failed");
+      if (nspaceNamespace.Outer.Inner1.Color.staticConstMemberVariable != 222)
+        throw new ApplicationException("static const member variable failed");
+      if (nspaceNamespace.Outer.Inner1.Color.staticConstEnumMemberVariable != nspaceNamespace.Outer.Inner1.Color.Channel.Transmission)
+        throw new ApplicationException("static const enum member variable failed");
 
       // check globals in a namespace don't get mangled with the nspaceNamespace option
       nspaceNamespace.nspace.namespaceFunction(color);

@@ -28,15 +28,25 @@ public class nspace_runme {
     if (channel != nspacePackage.Outer.Inner1.Color.Channel.Transmission)
       throw new RuntimeException("Transmission wrong");
 
-    // static member variables
-    nspacePackage.Outer.Inner1.Color.setStaticMemberVariable(789);
-    if (nspacePackage.Outer.Inner1.Color.getStaticMemberVariable() != 789)
-      throw new RuntimeException("static member variable failed");
+    // class anonymous enums
+    int val1 = nspacePackage.Outer.Inner1.Color.ColorEnumVal1;
+    int val2 = nspacePackage.Outer.Inner1.Color.ColorEnumVal2;
+    if (val1 != 0 || val2 != 0x22)
+      throw new RuntimeException("ColorEnumVal wrong");
 
     // instance member variables
     color.setInstanceMemberVariable(123);
     if (color.getInstanceMemberVariable() != 123)
       throw new RuntimeException("instance member variable failed");
+
+    // static member variables
+    nspacePackage.Outer.Inner1.Color.setStaticMemberVariable(789);
+    if (nspacePackage.Outer.Inner1.Color.getStaticMemberVariable() != 789)
+      throw new RuntimeException("static member variable failed");
+    if (nspacePackage.Outer.Inner1.Color.staticConstMemberVariable != 222)
+      throw new RuntimeException("static const member variable failed");
+    if (nspacePackage.Outer.Inner1.Color.staticConstEnumMemberVariable != nspacePackage.Outer.Inner1.Color.Channel.Transmission)
+      throw new RuntimeException("static const enum member variable failed");
 
     // Same class different namespaces
     nspacePackage.Outer.Inner1.Color col1 = new nspacePackage.Outer.Inner1.Color();

@@ -10,29 +10,27 @@
 %copyctor;
 %ignore Outer::Inner2::Color::Color();
 
+#define CONSTANT100 100
+
 %inline %{
 
 namespace Outer {
   class nspace {
   };
   namespace Inner1 {
-    enum Channel {
-      Diffuse,
-      Specular = 0x10,
-      Transmission1
-    };
+    enum Channel { Diffuse, Specular = 0x10, Transmission1 };
+    enum { ColorEnumVal1, ColorEnumVal2 = 0x11, ColorEnumVal3 };
 
     struct Color {
       static Color* create() { return new Color(); }
 
-      enum Channel {
-        Diffuse,
-        Specular = 0x20,
-        Transmission
-      };	
+      enum Channel { Diffuse, Specular = 0x20, Transmission };
+      enum { ColorEnumVal1, ColorEnumVal2 = 0x22, ColorEnumVal3 };
 
       int instanceMemberVariable;
       static int staticMemberVariable;
+      static const int staticConstMemberVariable = 222;
+      static const Channel staticConstEnumMemberVariable = Transmission;
       void colorInstanceMethod(double d) {}
       static void colorStaticMethod(double d) {}
     }; // Color 
@@ -43,24 +41,19 @@ namespace Outer {
   } // Inner1 
 
   namespace Inner2 {
-    enum Channel {
-      Diffuse,
-      Specular /* = 0x30*/,
-      Transmission2
-    };
+    enum Channel { Diffuse, Specular = 0x30, Transmission2 };
 
     struct Color {
       Color() : instanceMemberVariable(0) {}
       static Color* create() { return new Color(); }
 
-      enum Channel {
-        Diffuse,
-        Specular/* = 0x40*/,
-        Transmission
-      };	
+      enum Channel { Diffuse, Specular = 0x40, Transmission };
+      enum { ColorEnumVal1, ColorEnumVal2 = 0x33, ColorEnumVal3 };
 
       int instanceMemberVariable;
       static int staticMemberVariable;
+      static const int staticConstMemberVariable = 333;
+      static const Channel staticConstEnumMemberVariable = Transmission;
       void colorInstanceMethod(double d) {}
       static void colorStaticMethod(double d) {}
       void colors(const Inner1::Color& col1a, 
@@ -85,8 +78,8 @@ namespace Outer {
     };
   }
 
-  class SomeClass {	
-  public:				
+  class SomeClass {
+  public:
     Inner1::Color::Channel GetInner1ColorChannel() { return Inner1::Color::Transmission; }
     Inner2::Color::Channel GetInner2ColorChannel() { return Inner2::Color::Transmission; }
     Inner1::Channel GetInner1Channel() { return Inner1::Transmission1; }

@@ -1128,9 +1128,9 @@ public:
       if (getCurrentClass() && (cplus_mode != PUBLIC))
 	return SWIG_NOWRAP;
 
+      String *nspace = Getattr(n, "sym:nspace"); // NSpace/getNSpace() only works during Language::enumDeclaration call
       if (proxy_flag && !is_wrapping_class()) {
 	// Global enums / enums in a namespace
-	String *nspace = Getattr(n, "sym:nspace");
 	assert(!full_imclass_name);
 
 	if (!nspace) {
@@ -1153,6 +1153,17 @@ public:
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper C# enum
 
+	String *scope = 0;
+	if (nspace || proxy_class_name) {
+	  scope = NewString("");
+	  if (nspace)
+	    Printf(scope, "%s", nspace);
+	  if (proxy_class_name)
+	    Printv(scope, nspace ? "." : "", proxy_class_name, NIL);
+	}
+	if (!addSymbol(symname, n, scope))
+	  return SWIG_ERROR;
+
 	// Pure C# baseclass and interfaces
 	const String *pure_baseclass = typemapLookup(n, "csbase", typemap_lookup_type, WARN_NONE);
 	const String *pure_interfaces = typemapLookup(n, "csinterfaces", typemap_lookup_type, WARN_NONE);
@@ -1166,6 +1177,7 @@ public:
 	Printv(enum_code, typemapLookup(n, "csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers (enum modifiers really)
 	       " ", symname, (*Char(pure_baseclass) || *Char(pure_interfaces)) ? " : " : "", pure_baseclass, ((*Char(pure_baseclass)) && *Char(pure_interfaces)) ?	// Interfaces
 	       ", " : "", pure_interfaces, " {\n", NIL);
+	Delete(scope);
       } else {
 	// Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums of any sort
 	if (symname && !Getattr(n, "unnamedinstance"))
@@ -1201,7 +1213,6 @@ public:
 	  Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
 	} else {
 	  // Global enums are defined in their own file
-	  String *nspace = Getattr(n, "sym:nspace");
 	  String *output_directory = outputDirectory(nspace);
 	  String *filen = NewStringf("%s%s.cs", output_directory, symname);
 	  File *f_enum = NewFile(filen, "w", SWIG_output_files());
@@ -1260,6 +1271,7 @@ public:
     Node *parent = parentNode(n);
     int unnamedinstance = GetFlag(parent, "unnamedinstance");
     String *parent_name = Getattr(parent, "name");
+    String *nspace = getNSpace();
     String *tmpValue;
 
     // Strange hack from parent method
@@ -1272,6 +1284,29 @@ public:
 
     {
       EnumFeature enum_feature = decodeEnumFeature(parent);
+
+      // Add to language symbol table
+      String *scope = 0;
+      if (unnamedinstance || !parent_name || enum_feature == SimpleEnum) {
+	if (proxy_class_name) {
+	  scope = NewString("");
+	  if (nspace)
+	    Printf(scope, "%s.", nspace);
+	  Printf(scope, "%s", proxy_class_name);
+	} else {
+	  scope = Copy(module_class_name);
+	}
+      } else {
+	scope = NewString("");
+	if (nspace)
+	  Printf(scope, "%s.", nspace);
+	if (proxy_class_name)
+	  Printf(scope, "%s.", proxy_class_name);
+	Printf(scope, "%s",Getattr(parent, "sym:name"));
+      }
+      if (!addSymbol(name, n, scope))
+	return SWIG_ERROR;
+
       const String *csattributes = Getattr(n, "feature:cs:attributes");
 
       if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
@@ -1336,6 +1371,7 @@ public:
 	Setattr(parent, "enumvalues", Copy(symname));
       else
 	Printv(enumvalues, ", ", symname, NIL);
+      Delete(scope);
     }
 
     Delete(tmpValue);
@@ -1365,9 +1401,21 @@ public:
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
     const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
-    String *scope = proxy_flag && wrapping_member_flag ? proxy_class_name : module_class_name;
-    if (!addSymbol(itemname, n, scope))
-      return SWIG_ERROR;
+    if (!is_enum_item) {
+      String *scope = 0;
+      if (proxy_class_name) {
+	String *nspace = getNSpace();
+	scope = NewString("");
+	if (nspace)
+	  Printf(scope, "%s.", nspace);
+	Printf(scope, "%s", proxy_class_name);
+      } else {
+	scope = Copy(module_class_name);
+      }
+      if (!addSymbol(itemname, n, scope))
+	return SWIG_ERROR;
+      Delete(scope);
+    }
 
     // The %csconst feature determines how the constant value is obtained
     int const_feature_flag = GetFlag(n, "feature:cs:const");
@@ -1426,13 +1474,14 @@ public:
       if (classname_substituted_flag) {
 	if (SwigType_isenum(t)) {
 	  // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
-	  Printf(constants_code, "(%s)%s.%s();\n", return_type, imclass_name, Swig_name_get(getNSpace(), symname));
+	  Printf(constants_code, "(%s)%s.%s();\n", return_type, full_imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  // This handles function pointers using the %constant directive
-	  Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, imclass_name, Swig_name_get(getNSpace(), symname));
+	  Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, full_imclass_name, Swig_name_get(getNSpace(), symname));
 	}
-      } else
-	Printf(constants_code, "%s.%s();\n", imclass_name, Swig_name_get(getNSpace(), symname));
+      } else {
+	Printf(constants_code, "%s.%s();\n", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
+      }
 
       // Each constant and enum value is wrapped with a separate PInvoke function call
       SetFlag(n, "feature:immutable");
@@ -2924,7 +2973,7 @@ public:
 	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
 	} else {
 	  memberconstantHandler(n);
-	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(getNSpace(), proxy_class_name, symname)));
+	  value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, proxy_class_name, symname)));
 	}
       }
     }

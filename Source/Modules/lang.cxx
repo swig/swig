@@ -1612,9 +1612,15 @@ int Language::externDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::enumDeclaration(Node *n) {
+  String *oldNSpace = NSpace;
+  NSpace = Getattr(n, "sym:nspace");
+
   if (!ImportMode) {
     emit_children(n);
   }
+
+  NSpace = oldNSpace;
+
   return SWIG_OK;
 }
 
@@ -1677,7 +1683,7 @@ int Language::memberconstantHandler(Node *n) {
   String *symname = Getattr(n, "sym:name");
   String *value = Getattr(n, "value");
 
-  String *mrename = Swig_name_member(NSpace, ClassPrefix, symname);
+  String *mrename = Swig_name_member(0, ClassPrefix, symname);
   Setattr(n, "sym:name", mrename);
 
   String *new_name = 0;
@@ -2316,7 +2322,6 @@ int Language::classDeclaration(Node *n) {
   String *name = Getattr(n, "name");
   String *tdname = Getattr(n, "tdname");
   String *symname = Getattr(n, "sym:name");
-  String *symnspace = Getattr(n, "sym:nspace");
 
   char *classname = tdname ? Char(tdname) : Char(name);
   char *iname = Char(symname);
@@ -2345,7 +2350,6 @@ int Language::classDeclaration(Node *n) {
 
   ClassName = NewString(classname);
   ClassPrefix = NewString(iname);
-  NSpace = symnspace;
   if (strip) {
     ClassType = NewString(classname);
   } else {
@@ -2357,6 +2361,8 @@ int Language::classDeclaration(Node *n) {
   InClass = 1;
   CurrentClass = n;
 
+  String *oldNSpace = NSpace;
+  NSpace = Getattr(n, "sym:nspace");
 
   /* Call classHandler() here */
   if (!ImportMode) {
@@ -2406,7 +2412,7 @@ int Language::classDeclaration(Node *n) {
     Language::classHandler(n);
   }
 
-  NSpace = 0;
+  NSpace = oldNSpace;
   InClass = 0;
   CurrentClass = 0;
   Delete(ClassType);
@@ -2944,7 +2950,10 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
   } else {
     Node *c = Getattr(symbols, s);
     if (c && (c != n)) {
-      Swig_error(input_file, line_number, "'%s' is multiply defined in the generated target language module.\n", s);
+      if (scope)
+	Swig_error(input_file, line_number, "'%s' is multiply defined in the generated target language module in scope %s.\n", s, scope);
+      else
+	Swig_error(input_file, line_number, "'%s' is multiply defined in the generated target language module.\n", s);
       Swig_error(Getfile(c), Getline(c), "Previous declaration of '%s'\n", s);
       return 0;
     }
