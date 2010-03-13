@@ -573,7 +573,7 @@ public:
     /* Create a function for getting a variable */
     int addfail = 0;
     getf = NewWrapper();
-    String *getname = Swig_name_get(iname);
+    String *getname = Swig_name_get(NSPACE_TODO, iname);
     String *getfname = Swig_name_wrapper(getname);
     Setattr(n, "wrap:name", getfname);
     Printv(getf->def, "SWIGINTERN const char *", getfname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {", NIL);
@@ -605,7 +605,7 @@ public:
     /* Try to create a function setting a variable */
     if (is_assignable(n)) {
       setf = NewWrapper();
-      setname = Swig_name_set(iname);
+      setname = Swig_name_set(NSPACE_TODO, iname);
       setfname = Swig_name_wrapper(setname);
       Setattr(n, "wrap:name", setfname);
       if (setf) {
@@ -951,7 +951,7 @@ public:
     Printv(f_wrappers, "static swig_class _wrap_class_", mangled_classname, " = { \"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
 
     if (have_constructor) {
-      Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(constructor_name)));
+      Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)));
       Delete(constructor_name);
       constructor_name = 0;
     } else {
@@ -989,7 +989,7 @@ public:
     Language::memberfunctionHandler(n);
 
     realname = iname ? iname : name;
-    rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
+    rname = Swig_name_wrapper(Swig_name_member(NSPACE_TODO, class_name, realname));
     if (!Getattr(n, "sym:nextSibling")) {
       Printv(methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
     }
@@ -1082,11 +1082,11 @@ public:
 
     Language::membervariableHandler(n);
     Printv(attr_tab, tab4, "{ \"-", symname, "\",", NIL);
-    rname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name, symname)));
+    rname = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
     Printv(attr_tab, rname, ", ", NIL);
     Delete(rname);
     if (!GetFlag(n, "feature:immutable")) {
-      rname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name, symname)));
+      rname = Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
       Printv(attr_tab, rname, "},\n", NIL);
       Delete(rname);
     } else {

@@ -2115,7 +2115,7 @@ public:
 
     /* create getter */
     int addfail = 0;
-    String *getname = Swig_name_get(iname);
+    String *getname = Swig_name_get(NSPACE_TODO, iname);
     getfname = Swig_name_wrapper(getname);
     Setattr(n, "wrap:name", getfname);
     Printv(getf->def, "SWIGINTERN VALUE\n", getfname, "(", NIL);
@@ -2150,7 +2150,7 @@ public:
       Printf(f_wrappers, "%s", docs);
       Delete(docs);
 
-      String *setname = Swig_name_set(iname);
+      String *setname = Swig_name_set(NSPACE_TODO, iname);
       setfname = Swig_name_wrapper(setname);
       Setattr(n, "wrap:name", setfname);
       Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
@@ -2578,7 +2578,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register("construct", "%c_allocate");
+    Swig_name_register("construct", "%n%c_allocate");
 
 
     Language::constructorHandler(n);
@@ -2613,7 +2613,7 @@ public:
     Delete(docs);
 
     current = CONSTRUCTOR_INITIALIZE;
-    Swig_name_register("construct", "new_%c");
+    Swig_name_register("construct", "new_%n%c");
     Language::constructorHandler(n);
 
     /* Restore original parameter list */
@@ -2635,7 +2635,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register("construct", "%c_allocate");
+    Swig_name_register("construct", "%n%n%c_allocate");
 
     return Language::copyconstructorHandler(n);
   }

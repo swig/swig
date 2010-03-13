@@ -35,6 +35,10 @@ extern "C" {
 #define SWIG_ERROR      0
 #define SWIG_NOWRAP     0
 
+/* Global macros */
+#define NSPACE_SEPARATOR "." /* Namespace separator for the nspace feature - this should be changed to a target language configurable variable */
+#define NSPACE_TODO 0 /* temporary TODO hack */
+
 /* Short names for common data types */
 
   typedef DOH String;
@@ -212,6 +216,7 @@ extern "C" {
   extern void Swig_symbol_setscopename(const_String_or_char_ptr name);
   extern String *Swig_symbol_getscopename(void);
   extern String *Swig_symbol_qualifiedscopename(Symtab *symtab);
+  extern String *Swig_symbol_qualified_language_scopename(Symtab *symtab);
   extern Symtab *Swig_symbol_newscope(void);
   extern Symtab *Swig_symbol_setscope(Symtab *);
   extern Symtab *Swig_symbol_getscope(const_String_or_char_ptr symname);
@@ -259,13 +264,13 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_name_unregister(const_String_or_char_ptr method);
   extern String *Swig_name_mangle(const_String_or_char_ptr s);
   extern String *Swig_name_wrapper(const_String_or_char_ptr fname);
-  extern String *Swig_name_member(const_String_or_char_ptr classname, const_String_or_char_ptr mname);
-  extern String *Swig_name_get(const_String_or_char_ptr vname);
-  extern String *Swig_name_set(const_String_or_char_ptr vname);
-  extern String *Swig_name_construct(const_String_or_char_ptr classname);
-  extern String *Swig_name_copyconstructor(const_String_or_char_ptr classname);
-  extern String *Swig_name_destroy(const_String_or_char_ptr classname);
-  extern String *Swig_name_disown(const_String_or_char_ptr classname);
+  extern String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_ptr classname, const_String_or_char_ptr membername);
+  extern String *Swig_name_get(const_String_or_char_ptr nspace, const_String_or_char_ptr vname);
+  extern String *Swig_name_set(const_String_or_char_ptr nspace, const_String_or_char_ptr vname);
+  extern String *Swig_name_construct(const_String_or_char_ptr nspace, const_String_or_char_ptr classname);
+  extern String *Swig_name_copyconstructor(const_String_or_char_ptr nspace, const_String_or_char_ptr classname);
+  extern String *Swig_name_destroy(const_String_or_char_ptr nspace, const_String_or_char_ptr classname);
+  extern String *Swig_name_disown(const_String_or_char_ptr nspace, const_String_or_char_ptr classname);
 
   extern void Swig_naming_init(void);
   extern void Swig_name_namewarn_add(String *prefix, String *name, SwigType *decl, Hash *namewrn);
@@ -296,6 +301,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_banner(File *f);
   extern void Swig_banner_target_lang(File *f, const_String_or_char_ptr commentchar);
   extern String *Swig_strip_c_comments(const String *s);
+  extern String *Swig_new_subdirectory(String *basedirectory, String *subdirectory);
   extern void Swig_filename_correct(String *filename);
   extern String *Swig_filename_escape(String *filename);
   extern void Swig_filename_unescape(String *filename);
@@ -346,9 +352,9 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
 /* --- Transformations --- */
 
-  extern int Swig_MethodToFunction(Node *n, String *classname, int flags, SwigType *director_type, int is_director);
-  extern int Swig_ConstructorToFunction(Node *n, String *classname, String *none_comparison, String *director_ctor, int cplus, int flags);
-  extern int Swig_DestructorToFunction(Node *n, String *classname, int cplus, int flags);
+  extern int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *classname, int flags, SwigType *director_type, int is_director);
+  extern int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String *classname, String *none_comparison, String *director_ctor, int cplus, int flags);
+  extern int Swig_DestructorToFunction(Node *n, const_String_or_char_ptr nspace, String *classname, int cplus, int flags);
   extern int Swig_MembersetToFunction(Node *n, String *classname, int flags);
   extern int Swig_MembergetToFunction(Node *n, String *classname, int flags);
   extern int Swig_VargetToFunction(Node *n, int flags);

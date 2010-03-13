@@ -159,8 +159,8 @@ public:
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
 
     /* Change naming scheme for constructors and destructors */
-    Swig_name_register("construct", "%c_create");
-    Swig_name_register("destroy", "%c_destroy");
+    Swig_name_register("construct", "%n%c_create");
+    Swig_name_register("destroy", "%n%c_destroy");
 
     /* Current wrap type */
     current = NO_CPP;
@@ -766,7 +766,7 @@ public:
     /* Create a function to set the values of the (mutable) variables */
     if (need_setter) {
       Wrapper *wrapper = NewWrapper();
-      String *setter = Swig_name_member(getClassPrefix(), "`->=");
+      String *setter = Swig_name_member(NSPACE_TODO, getClassPrefix(), "`->=");
       String *wname = Swig_name_wrapper(setter);
       Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
       Printf(wrapper->locals, "char *name = (char *) STR0(Pike_sp[0-args].u.string);\n");
@@ -775,7 +775,7 @@ public:
       while (i.item) {
 	if (!GetFlag(i.item, "feature:immutable")) {
 	  name = Getattr(i.item, "name");
-	  funcname = Swig_name_wrapper(Swig_name_set(Swig_name_member(getClassPrefix(), name)));
+	  funcname = Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, getClassPrefix(), name)));
 	  Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
 	  Printf(wrapper->code, "%s(args);\n", funcname);
 	  Printf(wrapper->code, "return;\n");
@@ -805,7 +805,7 @@ public:
 
     /* Create a function to get the values of the (mutable) variables */
     Wrapper *wrapper = NewWrapper();
-    String *getter = Swig_name_member(getClassPrefix(), "`->");
+    String *getter = Swig_name_member(NSPACE_TODO, getClassPrefix(), "`->");
     String *wname = Swig_name_wrapper(getter);
     Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
     Printf(wrapper->locals, "char *name = (char *) STR0(Pike_sp[0-args].u.string);\n");
@@ -813,7 +813,7 @@ public:
     i = First(membervariables);
     while (i.item) {
       name = Getattr(i.item, "name");
-      funcname = Swig_name_wrapper(Swig_name_get(Swig_name_member(getClassPrefix(), name)));
+      funcname = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, getClassPrefix(), name)));
       Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
       Printf(wrapper->code, "%s(args);\n", funcname);
       Printf(wrapper->code, "return;\n");

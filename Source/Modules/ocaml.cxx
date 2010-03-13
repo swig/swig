@@ -265,8 +265,8 @@ public:
     Swig_register_filebyname("class_ctors", f_class_ctors);
 
     if (old_variable_names) {
-      Swig_name_register("set", "%v__set__");
-      Swig_name_register("get", "%v__get__");
+      Swig_name_register("set", "%n%v__set__");
+      Swig_name_register("get", "%n%v__get__");
     }
 
     Swig_banner(f_begin);

@@ -1,4 +1,3 @@
-/* ----------------------------------------------------------------------------
  * This file is part of SWIG, which is licensed as a whole under version 3 
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
@@ -965,7 +964,7 @@ public:
       /* emit setter */
       f = NewWrapper();
 
-      tmp = Swig_name_set(iname);
+      tmp = Swig_name_set(NSPACE_TODO, iname);
       setf = Swig_name_wrapper(tmp);
       Delete(tmp);
       Setattr(n, "wrap:name", setf);
@@ -997,7 +996,7 @@ public:
     {
       /* emit getter */
       int addfail;
-      tmp = Swig_name_get(iname);
+      tmp = Swig_name_get(NSPACE_TODO, iname);
       getf = Swig_name_wrapper(tmp);
       Delete(tmp);
       f = NewWrapper();

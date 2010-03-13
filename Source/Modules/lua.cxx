@@ -758,7 +758,7 @@ public:
     current=NO_CPP;
     // normally SWIG will generate 2 wrappers, a get and a set
     // but in certain scenarios (immutable, or if its arrays), it will not
-    String *getName = Swig_name_wrapper(Swig_name_get(iname));
+    String *getName = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, iname));
     String *setName = 0;
     // checking whether it can be set to or not appears to be a very error prone issue
     // I refered to the Language::variableWrapper() to find this out
@@ -770,7 +770,7 @@ public:
     Delete(tm);
 
     if (assignable) {
-      setName = Swig_name_wrapper(Swig_name_set(iname));
+      setName = Swig_name_wrapper(Swig_name_set(NSPACE_TODO, iname));
     } else {
       // how about calling a 'this is not settable' error message?
       setName = NewString("SWIG_Lua_set_immutable"); // error message
@@ -790,7 +790,6 @@ public:
     //    REPORT("constantWrapper", n);
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
-    //String *nsname    = !nspace ? Copy(iname) : NewStringf("%s::%s",ns_name,iname);
     String *nsname = Copy(iname);
     SwigType *type = Getattr(n, "type");
     String *rawval = Getattr(n, "rawval");
@@ -799,7 +798,6 @@ public:
 
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
-    //if (nspace) Setattr(n,"sym:name",nsname);
 
     /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
@@ -997,7 +995,7 @@ public:
     Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_classname, " = { \"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
 
     if (have_constructor) {
-      Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(constructor_name)));
+      Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)));
       Delete(constructor_name);
       constructor_name = 0;
     } else {
@@ -1043,7 +1041,7 @@ public:
     current = NO_CPP;
 
     realname = iname ? iname : name;
-    rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
+    rname = Swig_name_wrapper(Swig_name_member(NSPACE_TODO, class_name, realname));
     if (!Getattr(n, "sym:nextSibling")) {
       Printv(s_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
     }
@@ -1063,9 +1061,9 @@ public:
     current = MEMBER_VAR;
     Language::membervariableHandler(n);
     current = NO_CPP;
-    gname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name, symname)));
+    gname = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
     if (!GetFlag(n, "feature:immutable")) {
-      sname = Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name, symname)));
+      sname = Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
     } else {
       //sname = NewString("0");
       sname = NewString("SWIG_Lua_set_immutable"); // error message
