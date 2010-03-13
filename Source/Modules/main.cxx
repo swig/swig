@@ -197,11 +197,11 @@ enum { STAGE1=1, STAGE2=2, STAGE3=4, STAGE4=8, STAGEOVERFLOW=16 };
 static List *libfiles = 0;
 static List *all_output_files = 0;
 
-// -----------------------------------------------------------------------------
-// check_suffix()
-//
-// Checks the suffix of a file to see if we should emit extern declarations.
-// -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * check_suffix()
+ *
+ * Checks the suffix of a file to see if we should emit extern declarations.
+ * ----------------------------------------------------------------------------- */
 
 static int check_suffix(String *filename) {
   const char *name = Char(filename);
@@ -216,10 +216,11 @@ static int check_suffix(String *filename) {
   return 0;
 }
 
-// -----------------------------------------------------------------------------
-// install_opts(int argc, char *argv[])
-// Install all command line options as preprocessor symbols
-// ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
+ * install_opts()
+ *
+ * Install all command line options as preprocessor symbols
+ * ----------------------------------------------------------------------------- */
 
 static void install_opts(int argc, char *argv[]) {
   int i;
@@ -255,11 +256,12 @@ static void install_opts(int argc, char *argv[]) {
   }
 }
 
-// -----------------------------------------------------------------------------
-// decode_numbers_list(String *numlist)
-// Decode comma separated list into a binary number of the inputs or'd together
-// eg list="1,4" will return (2^0 || 2^3) = 0x1001
-// ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
+ * decode_numbers_list()
+ *
+ * Decode comma separated list into a binary number of the inputs or'd together
+ * eg list="1,4" will return (2^0 || 2^3) = 0x1001
+ * ----------------------------------------------------------------------------- */
 
 static unsigned int decode_numbers_list(String *numlist) {
   unsigned int decoded_number = 0;
@@ -279,10 +281,10 @@ static unsigned int decode_numbers_list(String *numlist) {
   return decoded_number;
 }
 
-// -----------------------------------------------------------------------------
-// Sets the output directory for language specific (proxy) files if not set and 
-// corrects the directory name and adds trailing file separator if necessary.
-// ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
+ * Sets the output directory for language specific (proxy) files if not set and 
+ * corrects the directory name and adds trailing file separator if necessary.
+ * ----------------------------------------------------------------------------- */
 
 static void configure_outdir(const String *c_wrapper_file_dir) {
 
@@ -292,10 +294,12 @@ static void configure_outdir(const String *c_wrapper_file_dir) {
 
   Swig_filename_correct(outdir);
 
-  // Add file delimiter if not present in output directory name
-  const char *outd = Char(outdir);
-  if (strcmp(outd + strlen(outd) - strlen(SWIG_FILE_DELIMITER), SWIG_FILE_DELIMITER) != 0)
-    Printv(outdir, SWIG_FILE_DELIMITER, NIL);
+  // Add trailing file delimiter if not present in output directory name
+  if (Len(outdir) > 0) {
+    const char *outd = Char(outdir);
+    if (strcmp(outd + strlen(outd) - strlen(SWIG_FILE_DELIMITER), SWIG_FILE_DELIMITER) != 0)
+      Printv(outdir, SWIG_FILE_DELIMITER, NIL);
+  }
 }
 
 /* This function sets the name of the configuration file */
@@ -1291,11 +1295,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   return Swig_error_count();
 }
 
-// --------------------------------------------------------------------------
-// SWIG_exit(int exit_code)
-//
-// Cleanup and either freeze or exit
-// --------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * SWIG_exit()
+ *
+ * Cleanup and either freeze or exit
+ * ----------------------------------------------------------------------------- */
 
 void SWIG_exit(int exit_code) {
   while (freeze) {
