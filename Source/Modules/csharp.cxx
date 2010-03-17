@@ -3261,15 +3261,13 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void addOpenNamespace(const String *nspace, File *file) {
-    if (namespce) {
-      if (namespce || nspace) {
-	Printf(file, "namespace ");
-	if (namespce)
-	  Printv(file, namespce, nspace ? "." : "", NIL);
-	if (nspace)
-	  Printv(file, nspace, NIL);
-	Printf(file, " {\n");
-      }
+    if (namespce || nspace) {
+      Printf(file, "namespace ");
+      if (namespce)
+	Printv(file, namespce, nspace ? "." : "", NIL);
+      if (nspace)
+	Printv(file, nspace, NIL);
+      Printf(file, " {\n");
     }
   }
 
@@ -3278,9 +3276,8 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void addCloseNamespace(const String *nspace, File *file) {
-    if (namespce)
-      if (namespce || nspace)
-	Printf(file, "\n}\n");
+    if (namespce || nspace)
+      Printf(file, "\n}\n");
   }
 
   /* -----------------------------------------------------------------------------
