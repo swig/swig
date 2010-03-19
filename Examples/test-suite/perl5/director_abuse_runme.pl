@@ -7,9 +7,7 @@ require_ok 'director_abuse';
 sub mkPair { my($tc, $hc) = @_;
     my $t = $tc->new();
     my $h = $hc->new($t);
-    $t->_swig_own(undef);
     $t->_swig_disown();
-    undef $t;
     return $h;
 }
 

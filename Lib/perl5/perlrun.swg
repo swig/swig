@@ -20,7 +20,7 @@
 
 /* for raw packed data */
 #define SWIG_ConvertPacked(obj, p, s, type)             SWIG_Perl_ConvertPacked(obj, p, s, type)
-#define SWIG_NewPackedObj(p, s, type)	                SWIG_Perl_NewPackedObj(p, s, type)
+#define SWIG_NewPackedObj(p, s, type)                   SWIG_Perl_NewPackedObj(p, s, type)
 
 /* for class or struct pointers */
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_ConvertPtr(obj, pptr, type, flags)
@@ -45,12 +45,12 @@
 
 #define SWIG_ErrorType(code)                            SWIG_Perl_ErrorType(code)               
 #define SWIG_Error(code, msg)                           sv_setpvf(ERRSV, "%s %s\n", SWIG_ErrorType(code), msg)
-#define SWIG_fail                        		goto fail						    
+#define SWIG_fail                                       goto fail
 
 /* Perl-specific SWIG API */
 
 #define SWIG_MakePtr(sv, ptr, type, flags)              SWIG_Perl_MakePtr(sv, ptr, type, flags, 0)
-#define SWIG_MakePackedObj(sv, p, s, type)	        SWIG_Perl_MakePackedObj(sv, p, s, type)
+#define SWIG_MakePackedObj(sv, p, s, type)              SWIG_Perl_MakePackedObj(sv, p, s, type)
 #define SWIG_SetError(str)                              SWIG_Error(SWIG_RuntimeError, str)
 
 
@@ -236,7 +236,7 @@ SWIGINTERN int
 SWIG_Perl_vtbl_svt_free(pTHX_ SV *sv, MAGIC *mg) {
   swig_perl_wrap *wrap = (swig_perl_wrap *)mg->mg_ptr;
   wrap->refcnt--;
-  if(wrap->refcnt <= 0) {
+  if (wrap->refcnt <= 0) {
     SWIG_Perl_ForgetPtr(wrap);
     /*warn("free(%p)\n", wrap);*/
     /*Safefree(wrap);*/
@@ -267,7 +267,7 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
   if (ty) {
     swig_cast_info *iter = ty->cast;
     while (iter) {
-	  const char *tpn = SWIG_Perl_TypeProxyName(iter->type);
+      const char *tpn = SWIG_Perl_TypeProxyName(iter->type);
       if ( tpn && strcmp(tpn, c) == 0) {
         if (iter == ty->cast)
           return iter;
@@ -359,7 +359,7 @@ SWIG_Perl_ConvertPtrAndOwn(void *obj, void **ptr,
 
 SWIGINTERN SV *
 SWIG_Perl_WrapVar(SV *sv, MGVTBL *vtbl, swig_perl_wrap *wrap) {
-  if(wrap) wrap->refcnt++;
+  if (wrap) wrap->refcnt++;
   sv_magicext(sv, 0, PERL_MAGIC_ext, vtbl, (char *)wrap, 0);
   return sv;
 }
@@ -378,10 +378,10 @@ SWIG_Perl_FindFields(HV *hv, SV *proto, swig_type_info *t) {
   if (strEQ(SvPV_nolen(proto), SWIG_Perl_TypeProxyName(t))) return;
   tmp = newSVpvf("%s::FIELDS", SvPV_nolen(proto));
   fields = get_hv(SvPV_nolen(tmp), 0);
-  if(fields) {
+  if (fields) {
     hv_iterinit(fields);
     HE *he;
-    while(he = hv_iternext(fields)) {
+    while (he = hv_iternext(fields)) {
       hv_store_ent(hv, hv_iterkeysv(he), &PL_sv_placeholder, 0);
     }
   }
@@ -425,7 +425,7 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
   wrap->own = flags;
   wrap->ti = t;
 
-  if(ext) {
+  if (ext) {
 #if SWIG_PERL_EXPERIMENTAL_MAKEPTR
     /* this is compatible with the base.pm and fields.pm pragmas.
      * we end up having to assume some of the guts of fields::new() and
@@ -445,9 +445,9 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
 
     /* populate wrap accessors for attributes coming from c++ */
     vtbl = &ext->vtbl;
-    if(ext->attr) { /* populate object attribute stubs */
+    if (ext->attr) { /* populate object attribute stubs */
       int i;
-      for(i = 0; i < ext->nattr; i++) {
+      for (i = 0; i < ext->nattr; i++) {
         SV *k = sv_2mortal(newSVpv(ext->attr[i].name, 0));
         SV *v = SWIG_Perl_WrapVar(newSV(0), &ext->attr[i].vtbl, wrap);
         hv_store_ent((HV *)SvRV(sv), k, v, 0);
@@ -489,9 +489,9 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
     LEAVE;
 
     vtbl = &ext->vtbl;
-    if(ext->attr) { /* populate object attribute stubs */
+    if (ext->attr) { /* populate object attribute stubs */
       int i;
-      for(i = 0; i < ext->nattr; i++) {
+      for (i = 0; i < ext->nattr; i++) {
         SV *k = sv_2mortal(newSVpv(ext->attr[i].name, 0));
         SV *v = SWIG_Perl_WrapVar(newSV(0), &ext->attr[i].vtbl, wrap);
 #if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 9)
@@ -608,21 +608,21 @@ XS(SWIG_Perl_Own) {
 
   if (items > 0) {
     self = ST(0);
-    if(SvROK(self)) {
+    if (SvROK(self)) {
       mg = mg_find(SvRV(self), PERL_MAGIC_ext);
       if (mg) {
-	wrap = (swig_perl_wrap *)mg->mg_ptr;
+        wrap = (swig_perl_wrap *)mg->mg_ptr;
         switch(items) {
-	  case 2:
-	    if(SvTRUE(ST(1))) {
+          case 2:
+            if (SvTRUE(ST(1))) {
               wrap->own |= SWIG_POINTER_OWN;
-	    } else {
-	      wrap->own &= ~SWIG_POINTER_OWN;
-	    }
-	  case 1:
-	    ST(0) = wrap->own & SWIG_POINTER_OWN ? &PL_sv_yes : &PL_sv_no;
-	    XSRETURN(1);
-	}
+            } else {
+              wrap->own &= ~SWIG_POINTER_OWN;
+            }
+          case 1:
+            ST(0) = wrap->own & SWIG_POINTER_OWN ? &PL_sv_yes : &PL_sv_no;
+            XSRETURN(1);
+        }
       }
     }
   }
@@ -638,7 +638,7 @@ XS(SWIG_Perl_This) {
 
   if (items == 1) {
     self = ST(0);
-    if(SvROK(self)) {
+    if (SvROK(self)) {
       mg = mg_find(SvRV(self), PERL_MAGIC_ext);
       if (mg) {
         wrap = (swig_perl_wrap *)mg->mg_ptr;

@@ -10,6 +10,8 @@
 %feature("director") Holder;
 %feature("director") Exception;
 
+%apply SWIGTYPE *DISOWN { Thing *aThing };
+
 %inline %{
 
 struct Exception {
