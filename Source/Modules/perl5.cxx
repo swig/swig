@@ -1995,7 +1995,7 @@ public:
 	  if (value) {
 	    FILE *f = Swig_include_open(value);
 	    if (!f) {
-	      Printf(stderr, "%s : Line %d. Unable to locate file %s\n", input_file, line_number, value);
+	      Swig_error(input_file, line_number, "Unable to locate file %s\n", value);
 	    } else {
 	      char buffer[4096];
 	      while (fgets(buffer, 4095, f)) {
@@ -2005,7 +2005,7 @@ public:
 	    fclose(f);
 	  }
 	} else {
-	  Printf(stderr, "%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Unrecognized pragma.\n");
 	}
       }
     }

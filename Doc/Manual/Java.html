@@ -1916,8 +1916,15 @@ Note that it only works for classes, structs, unions and enums declared within a
 When the nspace feature is used, the C++ namespaces are converted into Java packages of the same name.
 Proxy classes are thus declared within a package and this proxy makes numerous calls to the JNI intermediary class which is declared in the unnamed package by default.
 As Java does not support types declared in a named package accessing types declared in an unnamed package, the <tt>-package</tt> commandline option described earlier must be used to provide a parent package.
-So if SWIG is run using the <tt>-package com.myco</tt> option, a wrapped class, <tt>MyWorld::Material::Color</tt>, can then be accessed as <tt>com.myco.MyWorld.Material.Color</tt>.
+So if SWIG is run using the <tt>-package com.myco</tt> option, a wrapped class, <tt>MyWorld::Material::Color</tt>, can then be accessed as <tt>com.myco.MyWorld.Material.Color</tt>. If you don't specify a package, you will get the following error message:
 </p>
+
+<div class="shell">
+<pre>
+example.i:16: Error: The nspace feature used on 'MyWorld::Material::Color' is not supported unless a package is specified
+with -package - Java does not support types declared in a named package accessing types declared in an unnamed package.
+</pre>
+</div>
 
 <H3><a name="Java_templates"></a>21.3.14 C++ templates</H3>
 
