@@ -2621,7 +2621,7 @@ public:
     Swig_restore(n);
 
     /* Done */
-    Swig_name_unregister((const_String_or_char_ptr ) "construct");
+    Swig_name_unregister("construct");
     current = NO_CPP;
     klass->constructor_defined = 1;
     return SWIG_OK;
@@ -2635,7 +2635,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register("construct", "%n%n%c_allocate");
+    Swig_name_register("construct", "%n%c_allocate");
 
     return Language::copyconstructorHandler(n);
   }
