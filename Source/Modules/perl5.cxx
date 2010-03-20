@@ -910,7 +910,7 @@ public:
       /* TODO: would be very cool to use newXSproto here, but for now
        * let's just make it work using the current call signature
        * checks. */
-      Printf(f_init, "newXS(\"%s::%s\", %s, __FILE__);\n",
+      Printf(f_init, "newXS((char *)\"%s::%s\", %s, (char *)__FILE__);\n",
           namespace_module, pname, wname);
     } else if (!Getattr(n, "sym:nextSibling")) {
       /* Generate overloaded dispatch function */
@@ -930,7 +930,7 @@ public:
       Printf(df->code, "XSRETURN(0);\n");
       Printv(df->code, "}\n", NIL);
       Wrapper_print(df, f_wrappers);
-      Printf(f_init, "newXS(\"%s::%s\", %s, __FILE__);\n",
+      Printf(f_init, "newXS((char *)\"%s::%s\", %s, (char *)__FILE__);\n",
           namespace_module, pname, dname);
       DelWrapper(df);
       Delete(dispatch);
@@ -1186,7 +1186,7 @@ public:
     /* %native, used to drop hand coded XS directly into .i files, does
      * not apply to classes, thus no "perl5:name" attribute will ever be
      * present. */
-    Printf(f_init, "newXS(\"%s::%s\", %s, __FILE__);\n",
+    Printf(f_init, "newXS((char *)\"%s::%s\", %s, (char *)__FILE__);\n",
         namespace_module, iname, wname);
 
     if (export_all)
@@ -1442,9 +1442,9 @@ public:
       Delete(pcode);
 
       /* bind core swig class methods */
-      Printf(f_init, "newXS(\"%s::%s::_swig_this\", SWIG_Perl_This, __FILE__);\n",
+      Printf(f_init, "newXS((char *)\"%s::%s::_swig_this\", SWIG_Perl_This, (char *)__FILE__);\n",
           namespace_module, ClassName);
-      Printf(f_init, "newXS(\"%s::%s::_swig_own\", SWIG_Perl_Own, __FILE__);\n",
+      Printf(f_init, "newXS((char *)\"%s::%s::_swig_own\", SWIG_Perl_Own, (char *)__FILE__);\n",
           namespace_module, ClassName);
 
       Delete(none_comparison);
