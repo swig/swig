@@ -25,7 +25,7 @@
 %include <std_common.i>
 
 // MACRO for use within the std::vector class body
-%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE_TYPE, CTYPE...)
+%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE, CTYPE...)
 %typemap(csinterfaces) std::vector<CTYPE > "IDisposable, System.Collections.IEnumerable\n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n#endif\n";
 %typemap(cscode) std::vector<CTYPE > %{
   public $csclassname(System.Collections.ICollection c) : this() {
@@ -208,16 +208,16 @@
   public:
     typedef size_t size_type;
     typedef CTYPE value_type;
-    typedef CONST_REFERENCE_TYPE const_reference;
+    typedef CONST_REFERENCE const_reference;
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;
-    void push_back(const value_type& x);
+    void push_back(CTYPE const& x);
     size_type size() const;
     size_type capacity() const;
     void reserve(size_type n);
     %newobject GetRange(int index, int count);
-    %newobject Repeat(const value_type& value, int count);
+    %newobject Repeat(CTYPE const& value, int count);
     vector();
     vector(const vector &other);
     %extend {
@@ -243,7 +243,7 @@
         else
           throw std::out_of_range("index");
       }
-      void setitem(int index, const value_type& val) throw (std::out_of_range) {
+      void setitem(int index, CTYPE const& val) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size())
           (*$self)[index] = val;
         else
@@ -263,7 +263,7 @@
           throw std::invalid_argument("invalid range");
         return new std::vector<CTYPE >($self->begin()+index, $self->begin()+index+count);
       }
-      void Insert(int index, const value_type& x) throw (std::out_of_range) {
+      void Insert(int index, CTYPE const& x) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size()+1)
           $self->insert($self->begin()+index, x);
         else
@@ -291,7 +291,7 @@
           throw std::invalid_argument("invalid range");
         $self->erase($self->begin()+index, $self->begin()+index+count);
       }
-      static std::vector<CTYPE > *Repeat(const value_type& value, int count) throw (std::out_of_range) {
+      static std::vector<CTYPE > *Repeat(CTYPE const& value, int count) throw (std::out_of_range) {
         if (count < 0)
           throw std::out_of_range("count");
         return new std::vector<CTYPE >(count, value);
@@ -320,31 +320,31 @@
 %enddef
 
 %define SWIG_STD_VECTOR_MINIMUM(CTYPE...)
-SWIG_STD_VECTOR_MINIMUM_INTERNAL(IEnumerable, const value_type&, CTYPE)
+SWIG_STD_VECTOR_MINIMUM_INTERNAL(IEnumerable, CTYPE const&, CTYPE)
 %enddef
 
 // Extra methods added to the collection class if operator== is defined for the class being wrapped
 // The class will then implement IList<>, which adds extra functionality
 %define SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CTYPE...)
     %extend {
-      bool Contains(const value_type& value) {
+      bool Contains(CTYPE const& value) {
         return std::find($self->begin(), $self->end(), value) != $self->end();
       }
-      int IndexOf(const value_type& value) {
+      int IndexOf(CTYPE const& value) {
         int index = -1;
         std::vector<CTYPE >::iterator it = std::find($self->begin(), $self->end(), value);
         if (it != $self->end())
           index = (int)(it - $self->begin());
         return index;
       }
-      int LastIndexOf(const value_type& value) {
+      int LastIndexOf(CTYPE const& value) {
         int index = -1;
         std::vector<CTYPE >::reverse_iterator rit = std::find($self->rbegin(), $self->rend(), value);
         if (rit != $self->rend())
           index = (int)($self->rend() - 1 - rit);
         return index;
       }
-      bool Remove(const value_type& value) {
+      bool Remove(CTYPE const& value) {
         std::vector<CTYPE >::iterator it = std::find($self->begin(), $self->end(), value);
         if (it != $self->end()) {
           $self->erase(it);
@@ -359,7 +359,7 @@ SWIG_STD_VECTOR_MINIMUM_INTERNAL(IEnumerable, const value_type&, CTYPE)
 %define SWIG_STD_VECTOR_ENHANCED(CTYPE...)
 namespace std {
   template<> class vector<CTYPE > {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, const value_type&, CTYPE)
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, CTYPE const&, CTYPE)
     SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CTYPE)
   };
 }
@@ -394,16 +394,12 @@ namespace std {
   template<class T> class vector {
     SWIG_STD_VECTOR_MINIMUM(T)
   };
-  // specializations for pointers
-  template<class T> class vector<T*> {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, const value_type&, T*)
-    SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(T*)
+  // specialization for pointers
+  template<class T> class vector<T *> {
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, T *const&, T *)
+    SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(T *)
   };
-  template<class T> class vector<const T*> {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, const value_type&, const T*)
-    SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(const T*)
-  };
-  // bool is a bit different in the C++ standard
+  // bool is specialized in the C++ standard - const_reference in particular
   template<> class vector<bool> {
     SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, bool, bool)
     SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(bool)
