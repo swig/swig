@@ -37,7 +37,7 @@ extern "C" {
 
 /* Global macros */
 #define NSPACE_SEPARATOR "." /* Namespace separator for the nspace feature - this should be changed to a target language configurable variable */
-#define NSPACE_TODO 0 /* temporary TODO hack */
+#define NSPACE_TODO 0 /* Languages that still need to implement and test the nspace feature use this */
 
 /* Short names for common data types */
 
