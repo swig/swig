@@ -556,10 +556,10 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)), n);
 
 
-  //  if (debugMode) {
+  if (debugMode) {
     Printf(stderr, "Type: %s\n", t);
     Printf(stderr, "Return type: %s\n", SwigType_base(t));
-    //}
+  }
   
   bool isVoidType = Strcmp(rettype, "void") == 0;
   if (debugMode)
