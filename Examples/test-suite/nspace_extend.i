@@ -31,8 +31,6 @@ namespace Outer {
 }
 %}
 
-#endif
-
 %extend Outer::Inner2::Color {
       Color() { return new Outer::Inner2::Color(); }
       ~Color() { delete $self; }
@@ -47,4 +45,6 @@ namespace Outer {
                   const Inner2::Color& col2b, 
                   const Outer::Inner2::Color& col2c) {}
 }
+
+#endif
 
