@@ -29,7 +29,7 @@ namespace std {
         unsigned int size() const;
         void clear();
         %extend {
-            T& get(const K& key) throw (std::out_of_range) {
+            const T& get(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;

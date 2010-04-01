@@ -1,6 +1,76 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-04-01: wsfulton
+            Numerous subtle typemap matching rule fixes when using the default type. The typemap
+            matching rules are to take a type and find the best default typemap (SWIGTYPE, SWIGTYPE* etc),
+            then look for the next best match by reducing the chosen default type. The type reduction
+            now follows C++ template partial specialization matching rules.
+
+            Below are the set of changes made showing the default type reduction
+            along with the old reduced type and the new version of the reduced type:
+
+                   SWIGTYPE const &[ANY]
+              new: SWIGTYPE const &[]
+              old: SWIGTYPE (&)[ANY]
+
+                   SWIGTYPE *const [ANY]
+              new: SWIGTYPE const [ANY]
+              old: SWIGTYPE *[ANY]
+
+                   SWIGTYPE const *const [ANY]
+              new: SWIGTYPE *const [ANY]
+              old: SWIGTYPE const *[ANY]
+
+                   SWIGTYPE const *const &
+              new: SWIGTYPE *const &
+              old: SWIGTYPE const *&
+
+                   SWIGTYPE *const *
+              new: SWIGTYPE const *
+              old: SWIGTYPE **
+
+                   SWIGTYPE *const &
+              new: SWIGTYPE const &
+              old: SWIGTYPE *&
+
+            Additionally, a const SWIGTYPE lookup is used now for any constant type. Some examples, where
+            T is some reduced type, eg int, struct Foo:
+
+                   T const
+              new: SWIGTYPE const
+              old: SWIGTYPE
+
+                   T *const
+              new: SWIGTYPE *const
+              old: SWIGTYPE *
+
+                   T const[]
+              new: SWIGTYPE const[]
+              old: SWIGTYPE[]
+
+                   enum T const
+              new: enum SWIGTYPE const
+              old: enum SWIGTYPE
+
+                   T (*const )[]
+              new: SWIGTYPE (*const )[]
+              old: SWIGTYPE (*)[]
+
+            Reminder: the typemap matching rules can now be seen for any types being wrapped by using
+            either the -debug-tmsearch or -debug-tmused options.
+
+            In practice this leads to some subtle matching rule changes and the majority of users
+            won't notice any changes, except in the prime area of motivation for this change: Improve
+            STL containers of const pointers and passing const pointers by reference. This is fixed
+            because many of the STL containers use a type 'T const&' as parameters and when T is 
+            a const pointer, for example, 'K const*', then the full type is 'K const*const&'. This
+            means that the 'SWIGTYPE *const&' typemaps now match when T is either a non-const or
+            const pointer. Furthermore, some target languages incorrectly had 'SWIGTYPE *&' typemaps
+            when these should have been 'SWIGTYPE *const&'. These have been corrected (Java, C#, Lua, PHP).
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2010-03-13: wsfulton
             [Java] Some very old deprecated pragma warnings are now errors.
 

@@ -3014,8 +3014,6 @@ Node *Language::classLookup(SwigType *s) {
     Symtab *stab = 0;
     SwigType *ty1 = SwigType_typedef_resolve_all(s);
     SwigType *ty2 = SwigType_strip_qualifiers(ty1);
-    Delete(ty1);
-    ty1 = 0;
 
     String *base = SwigType_base(ty2);
 
@@ -3052,11 +3050,18 @@ Node *Language::classLookup(SwigType *s) {
     if (n) {
       /* Found a match.  Look at the prefix.  We only allow
          the cases where where we want a proxy class for the particular type */
-      if ((Len(prefix) == 0) ||	                // simple type (pass by value)
-	  (Strcmp(prefix, "p.") == 0) ||	// pointer
-	  (Strcmp(prefix, "r.") == 0) ||	// reference
-	  (Strcmp(prefix, "r.p.") == 0) || 	// pointer by reference
-          SwigType_prefix_is_simple_1D_array(prefix)) { // Simple 1D array (not arrays of pointers/references)
+      bool acceptable_prefix = 
+	(Len(prefix) == 0) ||			      // simple type (pass by value)
+	(Strcmp(prefix, "p.") == 0) ||		      // pointer
+	(Strcmp(prefix, "r.") == 0) ||		      // reference
+	SwigType_prefix_is_simple_1D_array(prefix);   // Simple 1D array (not arrays of pointers/references)
+      // Also accept pointer by const reference, not non-const pointer reference
+      if (!acceptable_prefix && (Strcmp(prefix, "r.p.") == 0)) {
+	Delete(prefix);
+	prefix = SwigType_prefix(ty1);
+	acceptable_prefix = (Strncmp(prefix, "r.q(const", 9) == 0);
+      }
+      if (acceptable_prefix) {
 	SwigType *cs = Copy(s);
 	Setattr(classtypes, cs, n);
 	Delete(cs);
@@ -3064,9 +3069,10 @@ Node *Language::classLookup(SwigType *s) {
 	n = 0;
       }
     }
-    Delete(ty2);
-    Delete(base);
     Delete(prefix);
+    Delete(base);
+    Delete(ty2);
+    Delete(ty1);
   }
   if (n && (GetFlag(n, "feature:ignore") || Getattr(n, "feature:onlychildren"))) {
     n = 0;
@@ -3092,10 +3098,6 @@ Node *Language::enumLookup(SwigType *s) {
     SwigType *lt = SwigType_ltype(s);
     SwigType *ty1 = SwigType_typedef_resolve_all(lt);
     SwigType *ty2 = SwigType_strip_qualifiers(ty1);
-    Delete(lt);
-    Delete(ty1);
-    lt = 0;
-    ty1 = 0;
 
     String *base = SwigType_base(ty2);
 
@@ -3134,9 +3136,11 @@ Node *Language::enumLookup(SwigType *s) {
 	n = 0;
       }
     }
-    Delete(ty2);
-    Delete(base);
     Delete(prefix);
+    Delete(base);
+    Delete(ty2);
+    Delete(ty1);
+    Delete(lt);
   }
   if (n && (GetFlag(n, "feature:ignore"))) {
     n = 0;

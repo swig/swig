@@ -50,6 +50,9 @@ char cvsroot_typeobj_c[] = "$Id$";
  *  'q(str).'           = Qualifier (such as const or volatile) (const, volatile)
  *  'm(qual).'          = Pointer to member (qual::*)
  *
+ *  The complete type representation for varargs is:
+ *  'v(...)'
+ *
  * The encoding follows the order that you might describe a type in words.
  * For example "p.a(200).int" is "A pointer to array of int's" and
  * "p.q(const).char" is "a pointer to a const char".
@@ -177,6 +180,9 @@ SwigType *SwigType_del_element(SwigType *t) {
  * SwigType_pop()
  * 
  * Pop one type element off the type.
+ * Example: t in:  q(const).p.Integer
+ *          t out: p.Integer
+ *	   result: q(const).
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_pop(SwigType *t) {

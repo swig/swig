@@ -897,6 +897,7 @@
     SWIGTYPE, 
     SWIGTYPE *, 
     SWIGTYPE &, 
+    SWIGTYPE *const&, 
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)
     ""
@@ -1025,22 +1026,19 @@
   }
 
 /* Pointer reference typemaps */
-%typemap(jni) SWIGTYPE *& "jlong"
-%typemap(jtype) SWIGTYPE *& "long"
-%typemap(jstype) SWIGTYPE *& "$*javaclassname"
-%typemap(javain) SWIGTYPE *& "$*javaclassname.getCPtr($javainput)"
-%typemap(javaout) SWIGTYPE *& {
+%typemap(jni) SWIGTYPE *const& "jlong"
+%typemap(jtype) SWIGTYPE *const& "long"
+%typemap(jstype) SWIGTYPE *const& "$*javaclassname"
+%typemap(javain) SWIGTYPE *const& "$*javaclassname.getCPtr($javainput)"
+%typemap(javaout) SWIGTYPE *const& {
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : new $*javaclassname(cPtr, $owner);
   }
-%typemap(in) SWIGTYPE *& ($*1_ltype temp = 0)
+%typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
 %{ temp = *($1_ltype)&$input;
-   $1 = &temp; %}
-%typemap(out) SWIGTYPE *&
+   $1 = ($1_ltype)&temp; %}
+%typemap(out) SWIGTYPE *const&
 %{ *($1_ltype)&$result = *$1; %} 
-
-/* Array reference typemaps */
-%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(javabase)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
@@ -1202,6 +1200,12 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
 %apply unsigned long { size_t };
 %apply const unsigned long & { const size_t & };
+
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
 
 /* java keywords */
 %include <javakw.swg>

@@ -167,11 +167,11 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 // Also needed for object ptrs by const ref
 // eg A* const& ref_pointer(A* const& a);
 // found in mixed_types.i
-%typemap(in,checkfn="lua_isuserdata") SWIGTYPE *&($*ltype temp)
+%typemap(in,checkfn="lua_isuserdata") SWIGTYPE *const&($*ltype temp)
 %{temp=($*ltype)SWIG_MustGetPtr(L,$input,$*descriptor,0,$argnum,"$symname");
-$1=&temp;%}
+$1=($1_ltype)&temp;%}
 
-%typemap(out) SWIGTYPE *&
+%typemap(out) SWIGTYPE *const&
 %{SWIG_NewPointerObj(L,*$1,$*descriptor,$owner); SWIG_arg++; %}
 
 
@@ -335,7 +335,7 @@ parmeters match which function
 // Also needed for object ptrs by const ref
 // eg const A* ref_pointer(A* const& a);
 // found in mixed_types.i
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE* const &
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
 {
   void *ptr;
   if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $*descriptor, 0)) {
@@ -351,6 +351,9 @@ parmeters match which function
 
 // Array reference typemaps
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
 
 // size_t (which is just a unsigned long)
 %apply unsigned long { size_t };

@@ -61,7 +61,7 @@
 
 
 /*  ------------------------------------------------------------
- *  Python extra typemaps
+ *  Python extra typemaps / typemap overrides
  * ------------------------------------------------------------ */
 
 /* Get the address of the 'python self' object */

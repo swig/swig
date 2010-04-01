@@ -219,6 +219,12 @@ $body)"
 %typemap(lispclass) wchar_t* "cl:string";
 //////////////////////////////////////////////////////////////
 
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
+
 /* name conversion for overloaded operators. */
 #ifdef __cplusplus
 %rename(__add__)	     *::operator+;

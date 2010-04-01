@@ -493,6 +493,186 @@ SwigType *SwigType_default(SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_default_create()
+ *
+ * Create the default type for this datatype. This takes a type and strips it
+ * down to a generic form first by resolving all typedefs.
+ *
+ * Rules:
+ *     Pointers:              p.SWIGTYPE
+ *     References:            r.SWIGTYPE
+ *     Arrays no dimension:   a().SWIGTYPE
+ *     Arrays with dimension: a(ANY).SWIGTYPE
+ *     Member pointer:        m(CLASS).SWIGTYPE
+ *     Function pointer:      f(ANY).SWIGTYPE
+ *     Enums:                 enum SWIGTYPE
+ *     Types:                 SWIGTYPE
+ *
+ * Examples (also see SwigType_default_reduce):
+ *
+ *  int [2][4]
+ *    a(2).a(4).int
+ *    a(ANY).a(ANY).SWIGTYPE
+ *
+ *  struct A {};
+ *  typedef A *Aptr;
+ *  Aptr const &
+ *    r.q(const).Aptr
+ *    r.q(const).p.SWIGTYPE
+ *
+ *  enum E {e1, e2};
+ *  enum E const &
+ *    r.q(const).enum E
+ *    r.q(const).enum SWIGTYPE
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_default_create(SwigType *ty) {
+  SwigType *r = 0;
+  List *l;
+  Iterator it;
+  int numitems;
+
+  if (!SwigType_isvarargs(ty)) {
+    SwigType *t = SwigType_typedef_resolve_all(ty);
+    r = NewStringEmpty();
+    l = SwigType_split(t);
+    numitems = Len(l);
+
+    if (numitems >= 1) {
+      String *last_subtype = Getitem(l, numitems-1);
+      if (SwigType_isenum(last_subtype))
+	Setitem(l, numitems-1, NewString("enum SWIGTYPE"));
+      else
+	Setitem(l, numitems-1, NewString("SWIGTYPE"));
+    }
+
+    for (it = First(l); it.item; it = Next(it)) {
+      String *subtype = it.item;
+      if (SwigType_isarray(subtype)) {
+	if (Equal(subtype, "a()."))
+	  Append(r, NewString("a()."));
+	else
+	  Append(r, NewString("a(ANY)."));
+      } else if (SwigType_isfunction(subtype)) {
+	Append(r, NewString("f(ANY).SWIGTYPE"));
+	break;
+      } else if (SwigType_ismemberpointer(subtype)) {
+	Append(r, NewString("m(CLASS).SWIGTYPE"));
+	break;
+      } else {
+	Append(r, subtype);
+      }
+    }
+
+    Delete(l);
+    Delete(t);
+  }
+
+  return r;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_default_reduce()
+ *
+ * This function implements type reduction used in the typemap matching rules
+ * and is very close to the type reduction used in partial template specialization.
+ * SWIGTYPE is used as the generic type. The basic idea is to repeatedly call
+ * this function to reduce the type until it is reduced to nothing.
+ *
+ * The type t must have already been converted to the default type via a call to
+ * SwigType_default_create() before calling this function.
+ *
+ * Example reductions (matching the examples described in SwigType_default_create):
+ *
+ *    a(ANY).a(ANY).SWIGTYPE
+ *    a(ANY).a().SWIGTYPE
+ *    a(ANY).p.SWIGTYPE
+ *    a(ANY).SWIGTYPE
+ *    a().SWIGTYPE
+ *    p.SWIGTYPE
+ *    SWIGTYPE
+ *
+ *    r.q(const).p.SWIGTYPE
+ *    r.q(const).SWIGTYPE
+ *    r.SWIGTYPE
+ *    SWIGTYPE
+ *
+ *    r.q(const).enum SWIGTYPE
+ *    r.enum SWIGTYPE
+ *    r.SWIGTYPE
+ *    SWIGTYPE
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_default_reduce(SwigType *t) {
+  SwigType *r = NewStringEmpty();
+  List *l;
+  Iterator it;
+  int numitems;
+
+  l = SwigType_split(t);
+
+  numitems = Len(l);
+  if (numitems >= 1) {
+    String *last_subtype = Getitem(l, numitems-1);
+    int is_enum = SwigType_isenum(last_subtype);
+
+    if (numitems >=2 ) {
+      String *subtype = Getitem(l, numitems-2); /* last but one */
+      if (SwigType_isarray(subtype)) {
+	if (is_enum) {
+	  /* enum reduction, enum SWIGTYPE => SWIGTYPE */
+	  Setitem(l, numitems-1, NewString("SWIGTYPE"));
+	} else {
+	  /* array reduction, a(ANY). => a(). => p. */
+	  String *reduced_subtype = 0;
+	  if (Strcmp(subtype, "a().") == 0) {
+	    reduced_subtype = NewString("p.");
+	  } else if (Strcmp(subtype, "a(ANY).") == 0) {
+	    reduced_subtype = NewString("a().");
+	  } else {
+	    assert(0);
+	  }
+	  Setitem(l, numitems-2, reduced_subtype);
+	}
+      } else if (SwigType_ismemberpointer(subtype)) {
+	/* member pointer reduction, m(CLASS). => p. */
+	Setitem(l, numitems-2, NewString("p."));
+      } else if (is_enum && !SwigType_isqualifier(subtype)) {
+	/* enum reduction, enum SWIGTYPE => SWIGTYPE */
+	Setitem(l, numitems-1, NewString("SWIGTYPE"));
+      } else {
+	/* simple type reduction, eg, r.p.p. => r.p. */
+	/* also function pointers eg, p.f(ANY). => p. */
+	Delitem(l, numitems-2);
+      }
+    } else {
+      if (is_enum) {
+	/* enum reduction, enum SWIGTYPE => SWIGTYPE */
+	Setitem(l, numitems-1, NewString("SWIGTYPE"));
+      } else {
+	/* delete the only item, we are done with reduction */
+	Delitem(l, 0);
+      }
+    }
+  } else {
+    assert(0);
+  }
+
+  for (it = First(l); it.item; it = Next(it)) {
+    Append(r, it.item);
+  }
+
+  if (Len(r) == 0) {
+    Delete(r);
+    r = 0;
+  }
+
+  Delete(l);
+  return r;
+}
+
+
+/* -----------------------------------------------------------------------------
  * SwigType_namestr()
  *
  * Returns a string of the base type.  Takes care of template expansions
