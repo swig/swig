@@ -60,6 +60,7 @@ or you can use the %apply directive :
 	     unsigned long *INPUT (int *piAddrVar, int iRows, int iCols, unsigned long temp),
 	     float *INPUT (int *piAddrVar, int iRows, int iCols, float temp),
 	     double *INPUT (int *piAddrVar, int iRows, int iCols, double temp) {
+  int iType;
   double *_piData;
   int typearg;
   sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
@@ -68,11 +69,19 @@ or you can use the %apply directive :
     return 0;
   }
   
+  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
+  if (sciErr.iErr || iType != sci_matrix) {
+	 Scierror(999, _("%s: Wrong type for input argument #%d: A real expected.\n"), fname, $argnum);
+	 printError(&sciErr, 0);
+	 return 0;
+     }
+
   sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols,  &_piData);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return 0;
-  }
+  if (sciErr.iErr || iRows * iCols != 1) {
+	 Scierror(999, _("%s: Wrong size for input argument #%d: A real expected.\n"), fname, $argnum);
+	 printError(&sciErr, 0);
+	 return 0;
+     }
   temp = ($*1_ltype)*_piData;
   $1 = &temp;
 }
