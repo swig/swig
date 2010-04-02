@@ -1,6 +1,10 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-04-02: wsfulton
+            [Lua] Fix char pointers, wchar_t pointers and char arrays so that nil can be passed as a
+            valid value. Bug reported by Gedalia Pasternak.
+
 2010-04-01: wsfulton
             Numerous subtle typemap matching rule fixes when using the default type. The typemap
             matching rules are to take a type and find the best default typemap (SWIGTYPE, SWIGTYPE* etc),

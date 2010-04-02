@@ -90,10 +90,19 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 %{  lua_pushboolean(L,(int)((*$1)!=0)); SWIG_arg++;%}
 
 // strings (char* and char[])
-%typemap(in,checkfn="lua_isstring") const char*, char*
+%fragment("SWIG_lua_isnilstring", "header") {
+  int SWIG_lua_isnilstring(lua_State *L, int idx) {
+    int ret = lua_isstring(L, idx);
+    if (!ret)
+     ret = lua_isnil(L, idx);
+    return ret;
+  }
+}
+
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char*, char*
 %{$1 = ($ltype)lua_tostring(L, $input);%}
 
-%typemap(in,checkfn="lua_isstring") const char[ANY], char[ANY]
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char[ANY], char[ANY]
 %{$1 = ($ltype)lua_tostring(L, $input);%}
 
 %typemap(out) const char*, char*
@@ -105,14 +114,14 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 // char's
 // currently treating chars as small strings, not as numbers
 // (however signed & unsigned char's are numbers...)
-%typemap(in,checkfn="lua_isstring") char
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") char
 %{$1 = (lua_tostring(L, $input))[0];%}
 
 %typemap(out) char
 %{  lua_pushfstring(L,"%c",$1); SWIG_arg++;%}
 
 // by const ref
-%typemap(in,checkfn="lua_isstring") const char& (char temp)
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char& (char temp)
 %{temp = (lua_tostring(L, $input))[0]; $1=&temp;%}
 
 %typemap(out) const char&
@@ -288,12 +297,12 @@ parmeters match which function
 }
 
 // special check for a char (string of length 1)
-%typecheck(SWIG_TYPECHECK_CHAR) char, const char& {
-  $1 = lua_isstring(L,$input) && (lua_strlen(L,$input)==1);
+%typecheck(SWIG_TYPECHECK_CHAR,fragment="SWIG_lua_isnilstring") char, const char& {
+  $1 = SWIG_lua_isnilstring(L,$input) && (lua_strlen(L,$input)==1);
 }
 
-%typecheck(SWIG_TYPECHECK_STRING) char *, char[] {
-  $1 = lua_isstring(L,$input);
+%typecheck(SWIG_TYPECHECK_STRING,fragment="SWIG_lua_isnilstring") char *, char[] {
+  $1 = SWIG_lua_isnilstring(L,$input);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE [] {
