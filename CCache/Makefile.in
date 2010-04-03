@@ -40,8 +40,11 @@ web/ccache-man.html: ccache.yo
 	yodl2html -o web/ccache-man.html ccache.yo
 
 install: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
+	@echo "Installing $(PACKAGE_NAME)"
+	@echo "Installing $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)"
 	${INSTALLCMD} -d $(DESTDIR)${bindir}
 	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
+	@echo "Installing $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1"
 	${INSTALLCMD} -d $(DESTDIR)${mandir}/man1
 	${INSTALLCMD} -m 644 ${srcdir}/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
 
