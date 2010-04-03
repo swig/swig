@@ -46,17 +46,18 @@ os.system("rm -Rf "+dirname+"/debian") == 0 or failed()
 # Go build the system
 
 print "Building system"
-os.system("cd "+dirname+"; ./autogen.sh") == 0 or failed()
-os.system("cd "+dirname+"/Tools/WAD; autoconf") == 0 or failed()
-os.system("cd "+dirname+"/Source/CParse; bison -y -d parser.y; mv y.tab.c parser.c; mv y.tab.h parser.h") == 0 or failed()
-os.system("cd "+dirname+"; make -f Makefile.in libfiles srcdir=./") == 0 or failed()
+os.system("cd "+dirname+" && ./autogen.sh") == 0 or failed()
+os.system("cd "+dirname+"/Tools/WAD && autoconf") == 0 or failed()
+os.system("cd "+dirname+"/Source/CParse && bison -y -d parser.y && mv y.tab.c parser.c && mv y.tab.h parser.h") == 0 or failed()
+os.system("cd "+dirname+" && make -f Makefile.in libfiles srcdir=./") == 0 or failed()
 
 # Remove autoconf files
 os.system("find "+dirname+" -name autom4te.cache -exec rm -rf {} \\;")
 
 # Build documentation
-print "Building documentation"
+print "Building html documentation"
 os.system("cd "+dirname+"/Doc/Manual && make all clean-baks") == 0 or failed()
+print "Building man pages"
 os.system("cd "+dirname+"/CCache && yodl2man -o ccache-swig.1 ccache.yo") == 0 or failed()
 
 # Build the tar-ball
