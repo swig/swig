@@ -52,7 +52,7 @@ uninstall: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 clean:
 	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
 
-distclean-docs:
+maintainer-clean:
 	rm -f $(PACKAGE_NAME).1 web/ccache-man.html
 
 check : test
@@ -62,7 +62,7 @@ test: test.sh
 
 check: test
 
-distclean: clean distclean-docs
+distclean: clean
 	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status ccache_swig_config.h
 
 maintainer-clean: distclean
