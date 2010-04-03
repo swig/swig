@@ -349,6 +349,7 @@ distclean-docs-ccache:
 
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)
+	rm -rf autom4te.cache
 
 #####################################################################
 # MAINTAINER CLEAN - clean what the maintainer builds and ships in

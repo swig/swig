@@ -104,7 +104,7 @@ clean-local:
 	rm -f $(top_builddir)/swig@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 
-distclean:
+distclean-local:
 	rm -f $(top_builddir)/Source/Include/swigconfig.h
 	rm -f $(top_builddir)/Source/Include/stamp-h1
 

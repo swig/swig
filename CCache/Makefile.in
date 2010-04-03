@@ -61,6 +61,7 @@ check: test
 
 distclean: clean
 	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status ccache_swig_config.h
+	/bin/rm -rf autom4te.cache
 
 maintainer-clean: distclean
 	/bin/rm -f configure config.h.in 
