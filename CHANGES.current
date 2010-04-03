@@ -1,6 +1,9 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-04-03: wsfulton
+            Fix Makefile targets: distclean and maintainer-clean
+
 2010-04-02: wsfulton
             [Lua] Fix char pointers, wchar_t pointers and char arrays so that nil can be passed as a
             valid value. Bug reported by Gedalia Pasternak.
