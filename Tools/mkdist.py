@@ -64,3 +64,5 @@ os.system("cd "+dirname+"/CCache && yodl2man -o ccache-swig.1 ccache.yo") == 0 o
 os.system("tar -cf "+dirname+".tar "+dirname) == 0 or failed()
 os.system("gzip "+dirname+".tar") == 0 or failed()
 
+print "Finished building "+dirname+".tar.gz"
+
