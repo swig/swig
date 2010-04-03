@@ -64,7 +64,6 @@ distclean: clean
 	/bin/rm -rf autom4te.cache
 
 maintainer-clean: distclean
-	/bin/rm -f configure config.h.in 
 	/bin/rm -f $(PACKAGE_NAME).1 web/ccache-man.html
 
 	

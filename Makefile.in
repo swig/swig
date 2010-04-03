@@ -342,10 +342,7 @@ distclean-examples:
 	@cd Examples && $(MAKE) -k -s distclean
 
 distclean-ccache:
-	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s distclean)
-
-distclean-docs-ccache:
-	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) distclean-docs)
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s distclean)
 
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)
@@ -360,6 +357,8 @@ distclean-dead:
 maintainer-clean:
 	@echo maintainer-cleaning source
 	@cd $(SOURCE) && $(MAKE) -k -s maintainer-clean
+	@echo maintainer-cleaning CCache
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s maintainer-clean)
 	@echo maintainer-cleaning docs
 	@cd $(DOCS) && $(MAKE) -k -s maintainer-clean
 	@echo maintainer-cleaning Lib files
