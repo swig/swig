@@ -323,9 +323,9 @@ clean-ccache:
 
 DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool preinst-swig Lib/ocaml/swigp4.ml
 
-distclean-helper: distclean-test-suite distclean-examples distclean-dead distclean-ccache
+distclean-helper: distclean-test-suite distclean-examples distclean-dead
 
-distclean: distclean-source distclean-helper
+distclean: distclean-source distclean-ccache distclean-helper
 
 distclean-source:
 	@echo distcleaning Source
