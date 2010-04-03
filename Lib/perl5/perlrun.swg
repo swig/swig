@@ -68,6 +68,12 @@
 /* #define SWIG_CAST_NEW_MEMORY       0x2 */
 #define SWIG_POINTER_MG            0x4
 #define SWIG_POINTER_WR            0x8
+/* These Perl specific pointer conversion flags handle two alternate
+ * types of native pointer recovery, _MG handles wrapped variables and
+ * object attributes, and _WR handles destructors.
+ * 
+ * TODO: document the shadow object memory layout.
+ */
 
 /* Flags for new pointer objects */
 /* #define SWIG_POINTER_OWN           0x1 */
@@ -193,6 +199,21 @@ struct swig_perl_wrap {
   int own;
   swig_type_info *ti;
 };
+
+SWIGINTERN void SWIG_Perl_sv_setref(SV *rv, SV *sv, HV *stash) {
+  /* this is similar to SvSetSV(rv, sv_2mortal(newRV_inc(sv))) with
+   * less heap churn. */
+  if (SvROK(rv)) {
+    sv_unref(rv);
+  } else {
+    SvUPGRADE(rv, SVt_RV);
+  }
+  SvOK_off(rv);
+  SvRV_set(rv, sv);
+  SvROK_on(rv);
+  if (stash) sv_bless(rv, stash);
+}
+
 SWIGINTERN HV *SWIG_Perl_WrapTbl(HV *stash) {
   char *name;
   SV *sv;
@@ -201,10 +222,7 @@ SWIGINTERN HV *SWIG_Perl_WrapTbl(HV *stash) {
   wc = SWIG_Perl_RuntimeData()->wrap_cache;
   name = HvNAME(stash);
   sv = *hv_fetch(wc, name, strlen(name), TRUE);
-  if (!SvOK(sv)) {
-    SvRV_set(sv, (SV *)newHV());
-    SvROK_on(sv);
-  }
+  if (!SvOK(sv)) SWIG_Perl_sv_setref(sv, (SV *)newHV(), 0);
   return (HV *)SvRV(sv);
 }
 SWIGINTERN SV *SWIG_Perl_LookupPtr(HV *stash, void *ptr) {
@@ -365,7 +383,6 @@ SWIG_Perl_WrapVar(SV *sv, MGVTBL *vtbl, swig_perl_wrap *wrap) {
 }
 
 #if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 9)
-#define SWIG_PERL_EXPERIMENTAL_MAKEPTR 1
 SWIGINTERN void
 SWIG_Perl_FindFields(HV *hv, SV *proto, swig_type_info *t) {
   /* this is analagous to fields::_accessible_keys() looking to populate
@@ -398,7 +415,6 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
   swig_perl_wrap *wrap;
   SV *impl;
   swig_perl_type_ext *ext;
-  MGVTBL *vtbl;
 
   if (!sv) sv = newSV(0);
 
@@ -426,35 +442,6 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
   wrap->ti = t;
 
   if (ext) {
-#if SWIG_PERL_EXPERIMENTAL_MAKEPTR
-    /* this is compatible with the base.pm and fields.pm pragmas.
-     * we end up having to assume some of the guts of fields::new() and
-     * Hash::Util::lock_keys() to accomplish this without a call into
-     * the interpreter.
-     */
-    SvSetSV(sv, newRV_noinc((SV *)newHV()));
-    /* that seems like a leak, but 
-    SvSetSV(sv, sv_2mortal(newRV_noinc((SV *)newHV())));
-       caused segfaults. */
-    sv_bless(sv, gv_stashsv(proto, GV_ADD));
-    SvREFCNT_dec(SvRV(sv));
-
-    /* populate the attributes that are defined in perl with
-     * placeholders. */
-    SWIG_Perl_FindFields((HV *)SvRV(sv), proto, t);
-
-    /* populate wrap accessors for attributes coming from c++ */
-    vtbl = &ext->vtbl;
-    if (ext->attr) { /* populate object attribute stubs */
-      int i;
-      for (i = 0; i < ext->nattr; i++) {
-        SV *k = sv_2mortal(newSVpv(ext->attr[i].name, 0));
-        SV *v = SWIG_Perl_WrapVar(newSV(0), &ext->attr[i].vtbl, wrap);
-        hv_store_ent((HV *)SvRV(sv), k, v, 0);
-      }
-    }
-    SvREADONLY_on(SvRV(sv));
-#else /* SWIG_PERL_EXPERIMENTAL_MAKEPTR */
     /* pointer_reference.i for sample of shadow set without ext */
 
     /* So many object models out there...
@@ -467,50 +454,41 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
      * inheritance mechanism for end users.  Cons: constructor has no
      * XS api yet, implementation switch from avhv to hv in v5.9.0.
      * The good points are compelling for SWIG users, the bad points
-     * complicate this wrapper, but it's managable. */
-    dSP;
-    I32 count;
-
-    ENTER;
-    SAVETMPS;
-
-    PUSHMARK(SP);
-    XPUSHs(proto);
-    PUTBACK;
-    count = call_pv("fields::new", G_SCALAR);
-    assert(count == 1);
-    SPAGAIN;
-    impl = POPs;
-    PUTBACK;
-
-    SvSetSV(sv, impl);
-
-    FREETMPS;
-    LEAVE;
-
-    vtbl = &ext->vtbl;
+     * complicate this wrapper, but it's managable.
+     */
+# if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 9)
+    /* this is compatible with the base.pm and fields.pm pragmas.
+     * we end up having to assume some of the guts of fields::new() and
+     * Hash::Util::lock_keys() to accomplish this without a call into
+     * the interpreter.
+     */
+    SWIG_Perl_sv_setref(sv, (SV *)newHV(), gv_stashsv(proto, GV_ADD));
+    SWIG_Perl_FindFields((HV *)SvRV(sv), proto, t);
+# else
+    SWIG_Perl_sv_setref(sv, (SV *)newAV(), gv_stashsv(proto, GV_ADD));
+    av_store((AV *)SvRV(sv), 0, newRV_inc((SV *)get_hv(SvPV_nolen(
+      sv_2mortal(newSVpvf("%s::FIELDS", SvPV_nolen(proto)))), TRUE)));
+# endif
+    /* populate wrap accessors for attributes coming from c++ */
     if (ext->attr) { /* populate object attribute stubs */
       int i;
       for (i = 0; i < ext->nattr; i++) {
         SV *k = sv_2mortal(newSVpv(ext->attr[i].name, 0));
         SV *v = SWIG_Perl_WrapVar(newSV(0), &ext->attr[i].vtbl, wrap);
 #if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 9)
-        /* obj is a hash */
         hv_store_ent((HV *)SvRV(sv), k, v, 0);
 #else
-        /* obj is a pseudo-hash */
         avhv_store_ent((AV *)SvRV(sv), k, v, 0);
 #endif
       }
     }
-#endif /* SWIG_PERL_EXPERIMENTAL_MAKEPTR */
+#if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 9)
+    SvREADONLY_on(SvRV(sv));
+#endif
   } else {
-    SV *tmp = sv_newmortal();
-    newSVrv(tmp, SWIG_Perl_TypeProxyName(t));
-    SvSetSV(sv, tmp);
+    SWIG_Perl_sv_setref(sv, newSV(0), stash);
   }
-  vtbl = &SWIG_Perl_default_vtbl;
-  sv_magicext(SvRV(sv), 0, PERL_MAGIC_ext, vtbl, (char *)wrap, 0);
+  sv_magicext(SvRV(sv), 0, PERL_MAGIC_ext, &SWIG_Perl_default_vtbl, (char *)wrap, 0);
 #if 0
       /*warn("WrapNative(0x%p, \"%s\")\n", ptr, SWIG_Perl_TypeProxyName(t));*/
       /* sv_dump(sv);

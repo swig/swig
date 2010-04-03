@@ -99,9 +99,10 @@ sub mkPair { my($tc, $hc) = @_;
     my $h = mkPair('T3', 'H1');
     isa_ok $h, 'director_abuse::Holder';
     isa_ok $h->{thing}, 'director_abuse::Thing';
+    $h->{thing}{attr} = 78;
     is eval { $h->set_attr(12) }, undef;
     like $@, qr/\bbrap\b/;
-    is $h->{thing}{attr}, 0;
+    is $h->{thing}{attr}, 78;
 }
 {
     package H3;
@@ -114,9 +115,10 @@ sub mkPair { my($tc, $hc) = @_;
     my $h = mkPair('T1', 'H3');
     isa_ok $h, 'director_abuse::Holder';
     isa_ok $h->{thing}, 'director_abuse::Thing';
+    $h->{thing}{attr} = 78;
     is eval { $h->set_attr(12) }, undef;
     like $@, qr/\bting\b/;
-    is $h->{thing}{attr}, 0;
+    is $h->{thing}{attr}, 78;
 }
 
 # check errors emitted in C++
