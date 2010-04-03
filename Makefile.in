@@ -293,7 +293,7 @@ broken-%-test-suite:
 # CLEAN
 #####################################################################
 
-clean: clean-objects clean-libfiles clean-examples clean-test-suite clean-docs
+clean: clean-objects clean-examples clean-test-suite
 
 clean-objects: clean-source clean-ccache
 
