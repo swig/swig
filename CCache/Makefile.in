@@ -63,10 +63,10 @@ test: test.sh
 check: test
 
 distclean: clean distclean-docs
-	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status config.h.in ccache_swig_config.h
+	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status ccache_swig_config.h
 
 maintainer-clean: distclean
-	/bin/rm -f configure
+	/bin/rm -f configure config.h.in 
 	
 # FIXME: To fix this, test.sh needs to be able to take ccache from the
 # installed prefix, not from the source dir.

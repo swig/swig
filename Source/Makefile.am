@@ -104,6 +104,9 @@ clean-local:
 	rm -f $(top_builddir)/swig@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 
+distclean:
+	rm -f $(top_builddir)/Source/Include/swigconfig.h
+	rm -f $(top_builddir)/Source/Include/stamp-h1
 
 # Beautify the code.
 # Note that this works well on C code, but does some odd joining of lines for C++ code.

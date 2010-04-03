@@ -336,9 +336,9 @@ maintainer-clean: clean-libfiles
 # DISTCLEAN
 #####################################################################
 
-DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool
+DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool preinst-swig Lib/ocaml/swigp4.ml
 
-distclean: clean-docs distclean-objects clean-examples distclean-test-suite distclean-dead distclean-ccache
+distclean: clean-docs distclean-objects distclean-test-suite distclean-examples distclean-dead distclean-ccache
 
 distclean-objects: distclean-source
 
@@ -351,6 +351,11 @@ distclean-test-suite:
 	@echo distcleaning Examples/test-suite
 	@$(MAKE) -k -s check-test-suite ACTION=distclean NOSKIP=1
 
+distclean-examples:
+	@echo distcleaning Examples
+	@$(MAKE) -k -s clean-examples
+	@cd Examples && $(MAKE) -k -s distclean
+
 distclean-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s distclean)
 
@@ -359,6 +364,9 @@ distclean-docs-ccache:
 
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)
+
+distclean-:
+	rm -f Lib/ocaml/swigp4.ml
 
 #####################################################################
 # Update the Lib/swigwarn.swg file
