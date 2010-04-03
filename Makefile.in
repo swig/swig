@@ -436,7 +436,7 @@ install-lib:
 	done
 
 install-ccache:
-	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) install)
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s install)
 
 
 #####################################################################
