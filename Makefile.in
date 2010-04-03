@@ -302,9 +302,6 @@ clean-source:
 	@cd $(SOURCE) && $(MAKE) -s clean
 	@rm -f $(TARGET)
 
-clean-libfiles:
-	@rm -f $(srcdir)/Lib/swigwarn.swg
-
 clean-examples:
 	@$(MAKE) -k -s check-examples ACTION=clean
 
@@ -320,27 +317,15 @@ clean-%-test-suite:
 clean-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s clean)
 
-clean-docs: clean-docs-main clean-docs-ccache
-
-clean-docs-main:
-	@echo cleaning Docs
-	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) clean
-
-clean-docs-ccache:
-	@# Use distclean-docs-ccache, else a user requires the yodl tools to generate the docs after a clean
-
-maintainer-clean: clean-libfiles
-	@cd $(SOURCE) && $(MAKE) maintainer-clean
-
 #####################################################################
-# DISTCLEAN
+# DISTCLEAN - clean what configure built
 #####################################################################
 
 DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool preinst-swig Lib/ocaml/swigp4.ml
 
-distclean: clean-docs distclean-objects distclean-test-suite distclean-examples distclean-dead distclean-ccache
+distclean-helper: distclean-test-suite distclean-examples distclean-dead distclean-ccache
 
-distclean-objects: distclean-source
+distclean: distclean-source distclean-helper
 
 distclean-source:
 	@echo distcleaning Source
@@ -365,8 +350,21 @@ distclean-docs-ccache:
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)
 
-distclean-:
-	rm -f Lib/ocaml/swigp4.ml
+#####################################################################
+# MAINTAINER CLEAN - clean what the maintainer builds and ships in
+# the distributed tarball - should not delete anything needed to run
+# ./configure && make
+#####################################################################
+
+maintainer-clean:
+	@echo maintainer-cleaning source
+	@cd $(SOURCE) && $(MAKE) -k -s maintainer-clean
+	@echo maintainer-cleaning docs
+	@cd $(DOCS) && $(MAKE) -k -s maintainer-clean
+	@echo maintainer-cleaning Lib files
+	@rm -f $(srcdir)/Lib/swigwarn.swg
+	@echo distcleaning
+	@$(MAKE) -k -s distclean-helper
 
 #####################################################################
 # Update the Lib/swigwarn.swg file

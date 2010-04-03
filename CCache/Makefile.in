@@ -52,9 +52,6 @@ uninstall: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 clean:
 	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
 
-maintainer-clean:
-	rm -f $(PACKAGE_NAME).1 web/ccache-man.html
-
 check : test
 
 test: test.sh
@@ -67,6 +64,8 @@ distclean: clean
 
 maintainer-clean: distclean
 	/bin/rm -f configure config.h.in 
+	/bin/rm -f $(PACKAGE_NAME).1 web/ccache-man.html
+
 	
 # FIXME: To fix this, test.sh needs to be able to take ccache from the
 # installed prefix, not from the source dir.
