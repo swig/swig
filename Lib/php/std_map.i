@@ -56,125 +56,17 @@ namespace std {
         }
     };
 
+// Legacy macros (deprecated)
+%define specialize_std_map_on_key(K,CHECK,CONVERT_FROM,CONVERT_TO)
+#warning "specialize_std_map_on_key ignored - macro is deprecated and no longer necessary"
+%enddef
 
-    // specializations for built-ins
+%define specialize_std_map_on_value(T,CHECK,CONVERT_FROM,CONVERT_TO)
+#warning "specialize_std_map_on_value ignored - macro is deprecated and no longer necessary"
+%enddef
 
-    %define specialize_std_map_on_key(K,CHECK,CONVERT_FROM,CONVERT_TO)
-
-    template<class T> class map<K,T> {
-        // add typemaps here
-      public:
-        map();
-        map(const map<K,T> &);
-        
-        unsigned int size() const;
-        void clear();
-        %extend {
-            T& get(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
-                if (i != self->end())
-                    return i->second;
-                else
-                    throw std::out_of_range("key not found");
-            }
-            void set(K key, const T& x) {
-                (*self)[key] = x;
-            }
-            void del(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
-                if (i != self->end())
-                    self->erase(i);
-                else
-                    throw std::out_of_range("key not found");
-            }
-            bool has_key(K key) {
-                std::map<K,T >::iterator i = self->find(key);
-                return i != self->end();
-            }
-            bool is_empty() const {
-                return self->empty();
-            }
-        }
-    };
-    %enddef
-
-    %define specialize_std_map_on_value(T,CHECK,CONVERT_FROM,CONVERT_TO)
-    template<class K> class map<K,T> {
-        // add typemaps here
-      public:
-        map();
-        map(const map<K,T> &);
-        
-        unsigned int size() const;
-        void clear();
-        %extend {
-            T get(const K& key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
-                if (i != self->end())
-                    return i->second;
-                else
-                    throw std::out_of_range("key not found");
-            }
-            void set(const K& key, T x) {
-                (*self)[key] = x;
-            }
-            void del(const K& key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
-                if (i != self->end())
-                    self->erase(i);
-                else
-                    throw std::out_of_range("key not found");
-            }
-            bool has_key(const K& key) {
-                std::map<K,T >::iterator i = self->find(key);
-                return i != self->end();
-            }
-            bool is_empty() const {
-                return self->empty();
-            }
-        }
-    };
-    %enddef
-
-    %define specialize_std_map_on_both(K,CHECK_K,CONVERT_K_FROM,CONVERT_K_TO,
-                                       T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO)
-    template<> class map<K,T> {
-        // add typemaps here
-      public:
-        map();
-        map(const map<K,T> &);
-        
-        unsigned int size() const;
-        void clear();
-        %extend {
-            T get(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
-                if (i != self->end())
-                    return i->second;
-                else
-                    throw std::out_of_range("key not found");
-            }
-            void set(K key, T x) {
-                (*self)[key] = x;
-            }
-            void del(K key) throw (std::out_of_range) {
-                std::map<K,T >::iterator i = self->find(key);
-                if (i != self->end())
-                    self->erase(i);
-                else
-                    throw std::out_of_range("key not found");
-            }
-            bool has_key(K key) {
-                std::map<K,T >::iterator i = self->find(key);
-                return i != self->end();
-            }
-            bool is_empty() const {
-                return self->empty();
-            }
-        }
-    };
-    %enddef
-
-    // add specializations here
+%define specialize_std_map_on_both(K,CHECK_K,CONVERT_K_FROM,CONVERT_K_TO, T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO)
+#warning "specialize_std_map_on_both ignored - macro is deprecated and no longer necessary"
+%enddef
 
 }
