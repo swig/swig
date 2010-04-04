@@ -7,3 +7,4 @@ sumitems(myMatrix)
 myOtherMatrix=getValues(1);
 size(myOtherMatrix)
 disp(myOtherMatrix);
+exit

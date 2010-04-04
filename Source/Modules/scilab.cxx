@@ -254,8 +254,10 @@ public:
       Replaceall(tm, "$result", "result");
       
       /* There are more than one output */
-      if (out_required > 0)
+      if (out_required > 0) {
+	Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
         Printf(f->code, "iOutNum ++;\niVarOut ++;\n");
+      }
       Printf(f->code, "%s\n", tm);
       if (strlen(Char(tm)) != 0)
         out_required ++;
@@ -268,8 +270,10 @@ public:
     String *outarg = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	if (out_required > 0)
-          Printf(f->code,"iOutNum ++;\niVarOut ++;\n");
+	if (out_required > 0) {
+	  Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
+	  Printf(f->code,"iOutNum ++;\niVarOut ++;\n");
+	}
         Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
         out_required ++;

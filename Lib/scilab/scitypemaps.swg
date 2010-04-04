@@ -969,7 +969,7 @@
      }
   
   sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-  if (sciErr.iErr || iType != sci_pointer {
+  if (sciErr.iErr || iType != sci_pointer) {
 	 Scierror(999, _("%s: Wrong type for input argument #%d: Pointer expected.\n"), fname, $argnum);
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1847,7 +1847,7 @@
 }
 
 %typemap(varin,noblock=1) enum SWIGTYPE {
-  int iType;
+  int iPrec;
   int *_piData;
   sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
   if (sciErr.iErr) {
@@ -2330,7 +2330,7 @@
 
 /* Enums */
 %typemap(varout,noblock=1) enum SWIGTYPE {
-  sciErr = createMatrixOfInteger32(pvApiCtx, iVarOut, iRowsOut, iColsOut, (int *)&temp);
+  sciErr = createMatrixOfInteger32(pvApiCtx, iVarOut, iRowsOut, iColsOut, (int *)&$result);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
