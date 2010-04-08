@@ -375,6 +375,7 @@ CPP_TEST_CASES += \
 	template_virtual \
 	template_whitespace \
 	threads \
+	threads_exception \
 	throw_exception \
 	typedef_array_member \
 	typedef_class \

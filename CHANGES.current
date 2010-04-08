@@ -2,6 +2,10 @@ Version 2.0.0 (in progress)
 ============================
 
 2010-04-03: wsfulton
+            [Python] Fix exceptions being thrown with the -threads option based on patch from Arto Vuori.
+            Fixes bug #2818499.
+
+2010-04-03: wsfulton
             Fix Makefile targets: distclean and maintainer-clean
 
 2010-04-02: wsfulton

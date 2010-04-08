@@ -462,7 +462,15 @@ String *emit_action(Node *n) {
     Printf(eaction, "try {\n");
   }
 
+  String *preaction = Getattr(n, "wrap:preaction");
+  if (preaction)
+    Printv(eaction, preaction, NIL);
+
   Printv(eaction, action, NIL);
+
+  String *postaction = Getattr(n, "wrap:postaction");
+  if (postaction)
+    Printv(eaction, postaction, NIL);
 
   if (catchlist) {
     int unknown_catch = 0;
@@ -470,24 +478,24 @@ String *emit_action(Node *n) {
     for (Parm *ep = catchlist; ep; ep = nextSibling(ep)) {
       String *em = Swig_typemap_lookup("throws", ep, "_e", 0);
       if (em) {
-	SwigType *et = Getattr(ep, "type");
-	SwigType *etr = SwigType_typedef_resolve_all(et);
-	if (SwigType_isreference(etr) || SwigType_ispointer(etr) || SwigType_isarray(etr)) {
-	  Printf(eaction, "catch(%s) {", SwigType_str(et, "_e"));
-	} else if (SwigType_isvarargs(etr)) {
-	  Printf(eaction, "catch(...) {");
-	} else {
-	  Printf(eaction, "catch(%s) {", SwigType_str(et, "&_e"));
-	}
-	Printv(eaction, em, "\n", NIL);
-	Printf(eaction, "}\n");
+        SwigType *et = Getattr(ep, "type");
+        SwigType *etr = SwigType_typedef_resolve_all(et);
+        if (SwigType_isreference(etr) || SwigType_ispointer(etr) || SwigType_isarray(etr)) {
+          Printf(eaction, "catch(%s) {", SwigType_str(et, "_e"));
+        } else if (SwigType_isvarargs(etr)) {
+          Printf(eaction, "catch(...) {");
+        } else {
+          Printf(eaction, "catch(%s) {", SwigType_str(et, "&_e"));
+        }
+        Printv(eaction, em, "\n", NIL);
+        Printf(eaction, "}\n");
       } else {
 	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n), "No 'throws' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep, "type"), 0));
-	unknown_catch = 1;
+        unknown_catch = 1;
       }
     }
     if (unknown_catch) {
-      Printf(eaction, "catch(...) { throw; }\n");
+    Printf(eaction, "catch(...) { throw; }\n");
     }
   }
 

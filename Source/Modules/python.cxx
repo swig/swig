@@ -211,6 +211,7 @@ public:
   virtual void thread_begin_allow(Node *n, String *f) {
     if (!GetFlag(n, "feature:nothreadallow")) {
       String *bb = Getattr(n, "feature:threadbeginallow");
+      Append(f, "{\n");
       if (bb) {
 	Append(f, bb);
       } else {
@@ -222,11 +223,13 @@ public:
   virtual void thread_end_allow(Node *n, String *f) {
     if (!GetFlag(n, "feature:nothreadallow")) {
       String *eb = Getattr(n, "feature:threadendallow");
+      Append(f, "\n");
       if (eb) {
 	Append(f, eb);
       } else {
-	Append(f, "SWIG_PYTHON_THREAD_END_ALLOW;\n");
+	Append(f, "SWIG_PYTHON_THREAD_END_ALLOW;");
       }
+      Append(f, "\n}");
     }
   }
 
@@ -2200,8 +2203,13 @@ public:
       Append(f->code, "try {\n");
     } else {
       if (allow_thread) {
-	Append(f->code, "{\n");
-	thread_begin_allow(n, f->code);
+	String *preaction = NewString("");
+	thread_begin_allow(n, preaction);
+	Setattr(n,"wrap:preaction", preaction);
+
+	String *postaction = NewString("");
+	thread_end_allow(n, postaction);
+	Setattr(n,"wrap:postaction", postaction);
       }
     }
 
@@ -2214,11 +2222,6 @@ public:
       Append(actioncode, "} catch (Swig::DirectorException&) {\n");
       Append(actioncode, "  SWIG_fail;\n");
       Append(actioncode, "}\n");
-    } else {
-      if (allow_thread) {
-	thread_end_allow(n, actioncode);
-	Append(actioncode, "}\n");
-      }
     }
 
     /* This part below still needs cleanup */
