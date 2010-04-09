@@ -2,7 +2,8 @@ Version 2.0.0 (in progress)
 ============================
 
 2010-04-09: wsfulton
-            [Ruby] Apply Ubuntu patch to fix Ruby and std::vector wrappers with -minherit.
+            [Ruby] Fix #2048064 and #2408020.
+            Apply Ubuntu patch to fix Ruby and std::vector wrappers with -minherit.
             https://bugs.launchpad.net/ubuntu/+source/swig1.3/+bug/522874
 
 2010-04-09: wsfulton
