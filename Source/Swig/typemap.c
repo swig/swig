@@ -787,7 +787,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	goto ret_result;
 
       {
-	SwigType *nprim = SwigType_default_reduce(primitive);
+	SwigType *nprim = SwigType_default_deduce(primitive);
 	Delete(primitive);
 	primitive = nprim;
       }

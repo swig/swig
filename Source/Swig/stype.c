@@ -290,7 +290,7 @@ int SwigType_issimple(SwigType *t) {
  *     Enums:                 enum SWIGTYPE
  *     Types:                 SWIGTYPE
  *
- * Examples (also see SwigType_default_reduce):
+ * Examples (also see SwigType_default_deduce):
  *
  *  int [2][4]
  *    a(2).a(4).int
@@ -354,17 +354,19 @@ SwigType *SwigType_default_create(SwigType *ty) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_default_reduce()
+ * SwigType_default_deduce()
  *
- * This function implements type reduction used in the typemap matching rules
- * and is very close to the type reduction used in partial template specialization.
+ * This function implements type deduction used in the typemap matching rules
+ * and is very close to the type deduction used in partial template specialization
+ * matching in that the most specialized type is always chosen.
  * SWIGTYPE is used as the generic type. The basic idea is to repeatedly call
- * this function to reduce the type until it is reduced to nothing.
+ * this function to find a deduced type unless until nothing matches.
  *
  * The type t must have already been converted to the default type via a call to
  * SwigType_default_create() before calling this function.
  *
- * Example reductions (matching the examples described in SwigType_default_create):
+ * Example deductions (matching the examples described in SwigType_default_create),
+ * where the the most specialized matches are highest in the list:
  *
  *    a(ANY).a(ANY).SWIGTYPE
  *    a(ANY).a().SWIGTYPE
@@ -385,7 +387,7 @@ SwigType *SwigType_default_create(SwigType *ty) {
  *    SWIGTYPE
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_default_reduce(SwigType *t) {
+SwigType *SwigType_default_deduce(SwigType *t) {
   SwigType *r = NewStringEmpty();
   List *l;
   Iterator it;
@@ -402,37 +404,37 @@ SwigType *SwigType_default_reduce(SwigType *t) {
       String *subtype = Getitem(l, numitems-2); /* last but one */
       if (SwigType_isarray(subtype)) {
 	if (is_enum) {
-	  /* enum reduction, enum SWIGTYPE => SWIGTYPE */
+	  /* enum deduction, enum SWIGTYPE => SWIGTYPE */
 	  Setitem(l, numitems-1, NewString("SWIGTYPE"));
 	} else {
-	  /* array reduction, a(ANY). => a(). => p. */
-	  String *reduced_subtype = 0;
+	  /* array deduction, a(ANY). => a(). => p. */
+	  String *deduced_subtype = 0;
 	  if (Strcmp(subtype, "a().") == 0) {
-	    reduced_subtype = NewString("p.");
+	    deduced_subtype = NewString("p.");
 	  } else if (Strcmp(subtype, "a(ANY).") == 0) {
-	    reduced_subtype = NewString("a().");
+	    deduced_subtype = NewString("a().");
 	  } else {
 	    assert(0);
 	  }
-	  Setitem(l, numitems-2, reduced_subtype);
+	  Setitem(l, numitems-2, deduced_subtype);
 	}
       } else if (SwigType_ismemberpointer(subtype)) {
-	/* member pointer reduction, m(CLASS). => p. */
+	/* member pointer deduction, m(CLASS). => p. */
 	Setitem(l, numitems-2, NewString("p."));
       } else if (is_enum && !SwigType_isqualifier(subtype)) {
-	/* enum reduction, enum SWIGTYPE => SWIGTYPE */
+	/* enum deduction, enum SWIGTYPE => SWIGTYPE */
 	Setitem(l, numitems-1, NewString("SWIGTYPE"));
       } else {
-	/* simple type reduction, eg, r.p.p. => r.p. */
+	/* simple type deduction, eg, r.p.p. => r.p. */
 	/* also function pointers eg, p.f(ANY). => p. */
 	Delitem(l, numitems-2);
       }
     } else {
       if (is_enum) {
-	/* enum reduction, enum SWIGTYPE => SWIGTYPE */
+	/* enum deduction, enum SWIGTYPE => SWIGTYPE */
 	Setitem(l, numitems-1, NewString("SWIGTYPE"));
       } else {
-	/* delete the only item, we are done with reduction */
+	/* delete the only item, we are done with deduction */
 	Delitem(l, 0);
       }
     }
