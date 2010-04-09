@@ -1924,7 +1924,7 @@ int Language::classDirectorDisown(Node *n) {
   Delete(type);
   type = NewString("void");
   String *action = NewString("");
-  Printv(action, "{\n", "Swig::Director *director = dynamic_cast<Swig::Director *>(arg1);\n", "if (director) director->swig_disown();\n", "}\n", NULL);
+  Printv(action, "{\n", "Swig::Director *director = SWIG_DIRECTOR_CAST(arg1);\n", "if (director) director->swig_disown();\n", "}\n", NULL);
   Setfile(disown, Getfile(n));
   Setline(disown, Getline(n));
   Setattr(disown, "wrap:action", action);

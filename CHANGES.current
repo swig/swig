@@ -2,6 +2,9 @@ Version 2.0.0 (in progress)
 ============================
 
 2010-04-09: wsfulton
+            [Python] Apply patch #2952374 - fix directors and the -nortti option.
+
+2010-04-09: wsfulton
             [Lua] Fix #2887254 and #2946032 - SWIG_Lua_typename using wrong stack index.
 
 2010-04-03: wsfulton
