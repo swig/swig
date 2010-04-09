@@ -2,6 +2,10 @@ Version 2.0.0 (in progress)
 ============================
 
 2010-04-09: wsfulton
+            [Ruby] Apply Ubuntu patch to fix Ruby and std::vector wrappers with -minherit.
+            https://bugs.launchpad.net/ubuntu/+source/swig1.3/+bug/522874
+
+2010-04-09: wsfulton
             [Mzscheme] Apply Ubuntu patch to fix std::map wrappers:
             https://bugs.launchpad.net/ubuntu/+source/swig1.3/+bug/203876
 
