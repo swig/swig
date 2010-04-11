@@ -84,6 +84,11 @@ CXXSHARED=      @CXXSHARED@
 
 OBJS      = $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@)
 
+distclean:
+	rm -f Makefile
+	rm -f guile/Makefile
+	rm -f xml/Makefile
+
 ##################################################################
 #####                       Tcl/Tk                          ######
 ##################################################################

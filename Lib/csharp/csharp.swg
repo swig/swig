@@ -522,6 +522,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     SWIGTYPE, 
     SWIGTYPE *, 
     SWIGTYPE &, 
+    SWIGTYPE *const&, 
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)
     ""
@@ -782,23 +783,20 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     } %}
 
 /* Pointer reference typemaps */
-%typemap(ctype) SWIGTYPE *& "void *"
-%typemap(imtype, out="IntPtr") SWIGTYPE *& "HandleRef"
-%typemap(cstype) SWIGTYPE *& "$*csclassname"
-%typemap(csin) SWIGTYPE *& "$*csclassname.getCPtr($csinput)"
-%typemap(csout, excode=SWIGEXCODE) SWIGTYPE *& {
+%typemap(ctype) SWIGTYPE *const& "void *"
+%typemap(imtype, out="IntPtr") SWIGTYPE *const& "HandleRef"
+%typemap(cstype) SWIGTYPE *const& "$*csclassname"
+%typemap(csin) SWIGTYPE *const& "$*csclassname.getCPtr($csinput)"
+%typemap(csout, excode=SWIGEXCODE) SWIGTYPE *const& {
     IntPtr cPtr = $imcall;
     $*csclassname ret = (cPtr == IntPtr.Zero) ? null : new $*csclassname(cPtr, $owner);$excode
     return ret;
   }
-%typemap(in) SWIGTYPE *& ($*1_ltype temp = 0)
+%typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
 %{ temp = ($*1_ltype)$input;
-   $1 = &temp; %}
-%typemap(out) SWIGTYPE *&
+   $1 = ($1_ltype)&temp; %}
+%typemap(out) SWIGTYPE *const&
 %{ $result = (void *)*$1; %} 
-
-/* Array reference typemaps */
-%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 
 /* Marshal C/C++ pointer to IntPtr */
 %typemap(ctype) void *VOID_INT_PTR "void *"
@@ -952,6 +950,12 @@ using System.Runtime.InteropServices;
 
 %apply unsigned long { size_t };
 %apply const unsigned long & { const size_t & };
+
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
 
 /* csharp keywords */
 %include <csharpkw.swg>

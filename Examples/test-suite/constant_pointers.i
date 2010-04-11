@@ -70,6 +70,8 @@ public:
 
     void ret6(int*& a) {}
     int*& ret7() {return GlobalIntPtr;}
+    void ret8(int*const& a) {}
+    int*const& ret9() {return GlobalIntPtr;}
     ReturnValuesTest() : int3(NULL) {}
 private:
   ReturnValuesTest& operator=(const ReturnValuesTest&);
@@ -112,7 +114,7 @@ int* const globalRet2() {return &GlobalInt;}
     return b;
   }
 
-  B const*& cbar(B const*& b) {
+  B *const& cbar(B *const& b) {
     return b;
   }
 }

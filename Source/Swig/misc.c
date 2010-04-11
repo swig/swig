@@ -158,7 +158,6 @@ static int is_directory(String *directory) {
   } else {
     statres = stat(dir, &st);
   }
-  Printf(stdout, "is_directory %d %s\n", (statres == 0 && S_ISDIR(st.st_mode)), dir);
   return (statres == 0 && S_ISDIR(st.st_mode));
 }
 

@@ -349,3 +349,10 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 }
 
 
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
+
+

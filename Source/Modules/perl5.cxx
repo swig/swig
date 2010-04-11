@@ -1752,11 +1752,8 @@ public:
              * Swig_typemap_attach_parms() didn't expand $1 without it... */
             Setattr(p, "lname", Getattr(p, "name"));
           }
-          /* no clue why python checks the "in" typemaps, I imagine I'll
-           * figure out soon enough once I have testcases runnning.
-           * "out" typemaps might be a fallback attempt, but "in"? */
-          /*Swig_typemap_attach_parms("in", parms, w);*/
-          Swig_typemap_attach_parms("directorin", parms, w);
+          Swig_typemap_attach_parms("in", parms, w);
+	  Swig_typemap_attach_parms("directorin", parms, w);
           Swig_typemap_attach_parms("directorargout", parms, w);
           for (p = parms; p; ) {
             SwigType *ptype = Getattr(p, "type");
@@ -1775,7 +1772,6 @@ public:
                   "  %s\n",
                   tm);
               p = Getattr(p, "tmap:directorin:next");
-              Delete(tm);
               Delete(pav);
             } else {
               if (SwigType_type(ptype) != T_VOID) {

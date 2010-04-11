@@ -70,9 +70,12 @@
 %include <typemaps/swigtypemaps.swg>
 
 /*  ------------------------------------------------------------
- *  Perl extra typemaps
+ *  Perl extra typemaps / typemap overrides
  * ------------------------------------------------------------ */
 
 %typemap(throws,noblock=1) Swig::DirectorException {
   %raise($1.sv, "$type", $&descriptor);
 }
+
+%typemap(varout) SWIGTYPE *const = SWIGTYPE *;
+

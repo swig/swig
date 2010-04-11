@@ -50,7 +50,7 @@ swightml.book:
 	echo "Sections.html" >> swightml.book
 	cat chapters >> swightml.book
 
-clean: clean-baks
+maintainer-clean: clean-baks
 	rm -f swightml.book
 	rm -f swigpdf.book
 	rm -f CCache.html

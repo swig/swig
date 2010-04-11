@@ -674,7 +674,7 @@ static Hash *typemap_search_helper(int debug_display, Hash *tm, const String *tm
   if (debug_display)
     Printf(stdout, "  Looking for: %s\n", SwigType_str(ctype, 0));
   if (tm) {
-    result = Getattr(tm, tm_method);	/* See if there is simply a type match */
+    result = Getattr(tm, tm_method);	/* See if there is simply a type without name match */
     if (result && Getattr(result, "code"))
       goto ret_result;
     if (result)
@@ -779,7 +779,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 
     /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default (SWIGTYPE) mapping */
 
-    primitive = SwigType_default(type);
+    primitive = SwigType_default_create(type);
     while (primitive) {
       tm = get_typemap(ts, primitive);
       result = typemap_search_helper(debug_display, tm, tm_method, primitive, cqualifiedname, cname, &backup);
@@ -787,7 +787,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	goto ret_result;
 
       {
-	SwigType *nprim = SwigType_default(primitive);
+	SwigType *nprim = SwigType_default_reduce(primitive);
 	Delete(primitive);
 	primitive = nprim;
       }

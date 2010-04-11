@@ -40,8 +40,11 @@ web/ccache-man.html: ccache.yo
 	yodl2html -o web/ccache-man.html ccache.yo
 
 install: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
+	@echo "Installing $(PACKAGE_NAME)"
+	@echo "Installing $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)"
 	${INSTALLCMD} -d $(DESTDIR)${bindir}
 	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/`echo $(PACKAGE_NAME) | sed '$(transform)'`$(EXEEXT)
+	@echo "Installing $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1"
 	${INSTALLCMD} -d $(DESTDIR)${mandir}/man1
 	${INSTALLCMD} -m 644 ${srcdir}/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/`echo $(PACKAGE_NAME) | sed '$(transform)'`.1
 
@@ -52,9 +55,6 @@ uninstall: $(PACKAGE_NAME)$(EXEEXT) $(PACKAGE_NAME).1
 clean:
 	/bin/rm -f $(OBJS) *~ $(PACKAGE_NAME)$(EXEEXT)
 
-distclean-docs:
-	rm -f $(PACKAGE_NAME).1 web/ccache-man.html
-
 check : test
 
 test: test.sh
@@ -62,11 +62,13 @@ test: test.sh
 
 check: test
 
-distclean: clean distclean-docs
-	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status config.h.in ccache_swig_config.h
+distclean: clean
+	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status ccache_swig_config.h
+	/bin/rm -rf autom4te.cache
 
 maintainer-clean: distclean
-	/bin/rm -f configure
+	/bin/rm -f $(PACKAGE_NAME).1 web/ccache-man.html
+
 	
 # FIXME: To fix this, test.sh needs to be able to take ccache from the
 # installed prefix, not from the source dir.

@@ -37,7 +37,7 @@ extern "C" {
 
 /* Global macros */
 #define NSPACE_SEPARATOR "." /* Namespace separator for the nspace feature - this should be changed to a target language configurable variable */
-#define NSPACE_TODO 0 /* temporary TODO hack */
+#define NSPACE_TODO 0 /* Languages that still need to implement and test the nspace feature use this */
 
 /* Short names for common data types */
 
@@ -172,6 +172,8 @@ extern "C" {
   extern void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep);
   extern SwigType *SwigType_array_type(SwigType *t);
   extern String *SwigType_default(SwigType *t);
+  extern SwigType *SwigType_default_create(SwigType *ty);
+  extern SwigType *SwigType_default_reduce(SwigType *t);
   extern void SwigType_typename_replace(SwigType *t, String *pat, String *rep);
   extern SwigType *SwigType_remove_global_scope_prefix(const SwigType *t);
   extern SwigType *SwigType_alttype(SwigType *t, int ltmap);
