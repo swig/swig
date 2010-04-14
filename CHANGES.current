@@ -1,6 +1,9 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-04-14: wsfulton
+            Typemap fragments are now official and documented in Typemaps.html.
+
 2010-04-09: wsfulton
             [Ruby] Fix #2048064 and #2408020.
             Apply Ubuntu patch to fix Ruby and std::vector wrappers with -minherit.

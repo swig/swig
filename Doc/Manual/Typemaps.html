@@ -31,9 +31,8 @@
 <li><a href="#Typemaps_pattern_matching">Pattern matching rules</a>
 <ul>
 <li><a href="#Typemaps_nn17">Basic matching rules</a>
-<li><a href="#Typemaps_typedef_reductions">Typedef reductions</a>
-<li><a href="#Typemaps_nn19">Default typemaps</a>
-<li><a href="#Typemaps_mixed_default">Mixed default typemaps</a>
+<li><a href="#Typemaps_typedef_reductions">Typedef reductions matching</a>
+<li><a href="#Typemaps_nn19">Default typemap matching rules</a>
 <li><a href="#Typemaps_multi_argument_typemaps_patterns">Multi-arguments typemaps</a>
 <li><a href="#Typemaps_debugging_search">Debugging typemap pattern matching</a>
 </ul>
@@ -72,14 +71,18 @@
 <li><a href="#Typemaps_nn43">Typemaps for multiple target languages</a>
 <li><a href="#Typemaps_optimal">Optimal code generation when returning by value</a>
 <li><a href="#Typemaps_multi_argument_typemaps">Multi-argument typemaps</a>
-<li><a href="#runtime_type_checker">The run-time type checker</a>
+<li><a href="#Typemaps_fragments">Typemap fragments</a>
+<ul>
+<li><a href="#Typemaps_fragment_type_specialization">Fragment type specialization</a>
+<li><a href="#Typemaps_automatic_specialization">Fragments and automatic typemap specialization</a>
+</ul>
+<li><a href="#Typemaps_runtime_type_checker">The run-time type checker</a>
 <ul>
 <li><a href="#Typemaps_nn45">Implementation</a>
 <li><a href="#Typemaps_runtime_type_checker_usage">Usage</a>
 </ul>
 <li><a href="#Typemaps_overloading">Typemaps and overloading</a>
 <li><a href="#Typemaps_nn48">More about <tt>%apply</tt> and <tt>%clear</tt></a>
-<li><a href="#Typemaps_nn49">Reducing wrapper code size</a>
 <li><a href="#Typemaps_nn47">Passing data between typemaps</a>
 <li><a href="#Typemaps_nn52">C++ "this" pointer</a>
 <li><a href="#Typemaps_nn51">Where to go for more information?</a>
@@ -1408,7 +1411,7 @@ simpler scheme to match the current C++ template partial specialization matching
 </p>
 
 
-<H3><a name="Typemaps_multi_argument_typemaps_patterns"></a>10.3.5 Multi-arguments typemaps</H3>
+<H3><a name="Typemaps_multi_argument_typemaps_patterns"></a>10.3.4 Multi-arguments typemaps</H3>
 
 
 <p>
@@ -1438,7 +1441,7 @@ but all subsequent arguments must match exactly.
 </p>
 
 
-<H3><a name="Typemaps_debugging_search"></a>10.3.6 Debugging typemap pattern matching</H3>
+<H3><a name="Typemaps_debugging_search"></a>10.3.5 Debugging typemap pattern matching</H3>
 
 
 <p>
@@ -3404,7 +3407,335 @@ with non-consecutive C/C++ arguments; a workaround such as a helper function re-
 the arguments to make them consecutive will need to be written.
 </p>
 
-<H2><a name="runtime_type_checker"></a>10.10 The run-time type checker</H2>
+<H2><a name="Typemaps_fragments"></a>10.10 Typemap fragments</H2>
+
+
+<p>
+The primary purpose of fragments is to reduce code bloat that repeated use of typemap code can lead to.
+Fragments are snippets of code that can be thought of as code dependencies of a typemap.
+If a fragment is used by more than one typemap, then the snippet of code within the fragment is only generated once.
+Code bloat is typically reduced by moving typemap code into a support function
+and then placing the support function into a fragment.
+</p>
+
+<p>
+For example, if you have a very long typemap
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) MyClass * {
+  MyClass *value = 0;
+
+  ... many lines of marshalling code  ...
+
+  $result = value;
+}
+</pre>
+</div>
+
+<p>
+the same marshalling code is often repeated in several typemaps, such as "in", "varin", "directorout", etc.
+SWIG copies the code for each argument that requires the typemap code, easily leading to code bloat
+in the generated code.
+To eliminate this, define a fragment that includes the common marshalling code:
+</p>
+
+<div class="code">
+<pre>
+%fragment("AsMyClass", "header") {
+  MyClass *AsMyClass(PyObject *obj) {
+    MyClass *value = 0;
+
+    ... many lines of marshalling code  ...
+
+    return value;
+  }
+}
+
+%typemap(in, fragment="AsMyClass") MyClass * {
+  $result = AsMyClass($input);
+}
+
+%typemap(varin, fragment="AsMyClass") MyClass * {
+  $result = AsMyClass($input);
+}
+</pre>
+</div>
+
+<p>
+When the "in" or "varin" typemaps for MyClass are required, the
+contents of the fragment called "AsMyClass" is added to the "header" section within the generated code, and then the
+typemap code is emitted. Hence, the method <tt>AsMyClass</tt> will be
+generated into the wrapper code before any typemap code that calls it.
+</p>
+
+<p>
+To define a fragment you need a fragment name, a section name for generating the fragment code into, and the code itself.
+See <a href="SWIG.html#SWIG_nn42">Code insertion blocks</a> for a full list of section names.
+Usually the section name used is "header". Both string and curly braces can be used:
+</p>
+
+<div class="code">
+<pre>
+%fragment("my_name", "header") { ... }
+%fragment("my_name", "header") " ... "
+</pre>
+</div>
+
+<p>
+The following are some rules and guidelines for using fragments:
+</p>
+
+<ol>
+<li>
+<p>
+A fragment is added to the wrapping code only once. When using the <tt>MyClass *</tt> typemaps above and wrapping the method:
+</p>
+
+<div class="code">
+<pre>
+void foo(MyClass *a, MyClass *b);
+</pre>
+</div>
+
+<p>
+the generated code will look something like:
+</p>
+
+<div class="code">
+<pre>
+MyClass *AsMyClass(PyObject *obj) {
+  ...
+}
+
+void _wrap_foo(...) {
+  ....
+  arg1 = AsMyClass(obj1);
+  arg2 = AsMyClass(obj2);
+  ...
+  foo(arg1, arg2);
+}
+</pre>
+</div>
+
+<p>
+even as there is duplicated typemap code to process both <tt>a</tt> and
+<tt>b</tt>, the <tt>AsMyClass</tt> method will be defined only once.
+</p>
+
+<li>
+<p>
+A fragment should only be defined once. If there is more than
+one definition, the first definition is the one used.
+All other definitions are silently ignored. For example, if you have
+</p>
+
+
+<div class="code">
+<pre>
+%fragment("AsMyClass", "header") { ...definition 1... }
+....
+%fragment("AsMyClass", "header") { ...definition 2... }
+</pre>
+</div>
+
+<p>
+only the first definition is used. In this way
+you can override the default fragments in a SWIG library by defining your fragment before the library <tt>%include</tt>.
+Note that this behavior is the opposite to typemaps, where the last typemap defined/applied prevails.
+Fragments follow the first-in-first-out convention since they are intended to be global,
+while typemaps are intended to be locally specialized.
+</p>
+
+<li>
+<p>
+Fragment names cannot contain commas.
+</p>
+
+
+<li>
+<p>
+A fragment can use one or more additional fragments, for example:
+</p>
+
+<div class="code">
+<pre>
+%fragment("&lt;limits.h&gt;", "header")  {
+  #include &lt;limits.h&gt;
+}
+
+
+%fragment("AsMyClass", "header", fragment="&lt;limits.h&gt;") {
+  MyClass *AsMyClass(PyObject *obj) {
+    MyClass *value = 0;
+
+    ... some marshalling code  ...
+
+    if  (ival &lt; CHAR_MIN /*defined in &lt;limits.h&gt;*/) {
+       ...
+    } else {
+       ...
+    }
+    ...
+    return value;
+  }
+}
+</pre>
+</div>
+
+<p>
+in this case, when the "AsMyClass" fragment is emitted, it also
+triggers the inclusion of the "&lt;limits.h&gt;" fragment.
+</p>
+
+<li>
+<p>
+A fragment can have dependencies on a number of other fragments, for example:
+</p>
+
+<div class="code">
+<pre>
+%fragment("bigfragment", "header", fragment="frag1", fragment="frag2", fragment="frag3") "";
+</pre>
+</div>
+
+<p>
+When the "bigfragment" is used, the three dependent fragments "frag1",
+"frag2" and "frag3" are also pulled in. Note that as "bigframent" is 
+empty (the empty string - ""), it does not add any code itself, but merely triggers the
+inclusion of the other fragments.
+</p>
+
+<li>
+<p>
+A typemap can also use more than one fragment, but since the
+syntax is different, you need to specify the dependent fragments in a comma separated
+list. Consider:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, fragment="frag1,frag2,frag3") {...}
+</pre>
+</div>
+
+<p>
+which is equivalent to:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, fragment="bigfragment") {...}
+</pre>
+</div>
+
+<p>
+when used with the "bigfragment" defined above.
+</p>
+
+<li>
+<p>
+Finally, you can force the inclusion of a fragment at any point in the generated code as follows:
+</p>
+
+<div class="code">
+<pre>
+%fragment("bigfragment");
+</pre>
+</div>
+
+<p>
+which is very useful inside a template class, for example.
+</p>
+</ol>
+
+<p>
+Most readers will probably want to skip the next two sub-sections on advanced
+fragment usage unless a desire to really get to grips
+with some powerful but tricky macro and fragment usage that is used in parts of the SWIG typemap library.
+</p>
+
+<H3><a name="Typemaps_fragment_type_specialization"></a>10.10.1 Fragment type specialization</H3>
+
+
+<p>
+Fragments can be <i>type specialized</i>. The syntax is as follows:
+</p>
+
+<div class="code">
+<pre>
+%fragment("name", "header") { ...a type independent fragment... }
+%fragment("name"{type}, "header") { ...a type dependent fragment...  }
+</pre>
+</div>
+
+<p>
+where <tt>type</tt> is a C/C++ type. Like typemaps, fragments can also be used inside templates, for example:
+</p>
+
+<div class="code">
+<pre>
+template &lt;class T&gt;
+struct A {
+  %fragment("incode"{A&lt;T&gt;}, "header") {
+    ... 'incode' specialized fragment ...
+  }
+
+  %typemap(in, fragment="incode"{A&lt;T&gt;}) {
+     ... here we use the 'type specialized' fragment "incode"{A&lt;T&gt;} ...
+  }
+};
+</pre>
+</div>
+
+<H3><a name="Typemaps_automatic_specialization"></a>10.10.2 Fragments and automatic typemap specialization</H3>
+
+
+<p>
+Since fragments can be type specialized, they can be elegantly used
+to specialize typemaps. For example, if you have something like:
+</p>
+
+<div class="code">
+<pre>
+%fragment("incode"{float}, "header") {
+  float in_method_float(PyObject *obj) {
+    ...
+  }
+}
+
+%fragment("incode"{long}, "header") {
+  float in_method_long(PyObject *obj) {
+    ...
+  }
+}
+
+// %my_typemaps macro definition
+%define %my_typemaps(Type) 
+%typemap(in, fragment="incode"{Type}) Type {
+  value = in_method_##Type(obj);
+}
+%enddef
+
+%my_typemaps(float);
+%my_typemaps(long);
+</pre>
+</div>
+
+<p>
+then the proper <tt>"incode"{float}</tt> or <tt>"incode"{long}</tt> fragment will be used,
+and the <tt>in_method_float</tt> and <tt>in_method_long</tt> methods will be called whenever
+the <tt>float</tt> or <tt>long</tt> types are used as input parameters.
+</p>
+
+<p>
+This feature is used a lot in the typemaps shipped in the SWIG library for some scripting languages.
+The interested (or very brave) reader can take a look at the fragments.swg file shipped with SWIG to see this in action.
+</p>
+
+
+<H2><a name="Typemaps_runtime_type_checker"></a>10.11 The run-time type checker</H2>
 
 
 <p>
@@ -3430,7 +3761,7 @@ language modules.</li>
 <li>Modules can be unloaded from the type system.</li>
 </ul>
 
-<H3><a name="Typemaps_nn45"></a>10.10.1 Implementation</H3>
+<H3><a name="Typemaps_nn45"></a>10.11.1 Implementation</H3>
 
 
 <p>
@@ -3616,7 +3947,7 @@ structures rather than creating new ones.  These <tt>swig_module_info</tt>
 structures are chained together in a circularly linked list.
 </p>
 
-<H3><a name="Typemaps_runtime_type_checker_usage"></a>10.10.2 Usage</H3>
+<H3><a name="Typemaps_runtime_type_checker_usage"></a>10.11.2 Usage</H3>
 
 
 <p>This section covers how to use these functions from typemaps.  To learn how to
@@ -3710,7 +4041,7 @@ probably just look at the output of SWIG to get a better sense for how types are
 managed.
 </p>
 
-<H2><a name="Typemaps_overloading"></a>10.11 Typemaps and overloading</H2>
+<H2><a name="Typemaps_overloading"></a>10.12 Typemaps and overloading</H2>
 
 
 <p>
@@ -4021,7 +4352,7 @@ Subsequent "in" typemaps would then perform more extensive type-checking.
 </li>
 </ul>
 
-<H2><a name="Typemaps_nn48"></a>10.12 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
+<H2><a name="Typemaps_nn48"></a>10.13 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
 
 
 <p>
@@ -4106,86 +4437,6 @@ example:
 </pre>
 </div>
 
-<H2><a name="Typemaps_nn49"></a>10.13 Reducing wrapper code size</H2>
-
-
-<p>
-Since the code supplied to a typemap is inlined directly into wrapper functions, typemaps can result
-in a tremendous amount of code bloat.  For example, consider this typemap for an array:
-</p>
-
-<div class="code">
-<pre>
-%typemap(in) float [ANY] {
-  int i;
-  if (!PySequence_Check($input)) {
-    PyErr_SetString(PyExc_ValueError,"Expected a sequence");
-    return NULL;
-  }
-  if (PySequence_Length($input) != $1_dim0) {
-    PyErr_SetString(PyExc_ValueError,"Size mismatch. Expected $1_dim0 elements");
-    return NULL;
-  }
-  $1 = (float) malloc($1_dim0*sizeof(float));
-  for (i = 0; i &lt; $1_dim0; i++) {
-    PyObject *o = PySequence_GetItem($input,i);
-    if (PyNumber_Check(o)) {
-      $1[i] = (float) PyFloat_AsDouble(o);
-    } else {
-      PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");      
-      free(result);
-      return NULL;
-    }
-  }
-}
-</pre>
-</div>
-
-<p>
-If you had a large interface with hundreds of functions all accepting
-array parameters, this typemap would be replicated
-repeatedly--generating a huge amount of code.  A better approach might
-be to consolidate some of the typemap into a function.  For example:
-</p>
-
-<div class="code">
-<pre>
-%{
-/* Define a helper function */
-static float *
-convert_float_array(PyObject *input, int size) {
-  int i;
-  float *result;
-  if (!PySequence_Check(input)) {
-    PyErr_SetString(PyExc_ValueError,"Expected a sequence");
-    return NULL;
-  }
-  if (PySequence_Length(input) != size) {
-    PyErr_SetString(PyExc_ValueError,"Size mismatch. ");
-    return NULL;
-  }
-  result = (float) malloc(size*sizeof(float));
-  for (i = 0; i &lt; size; i++) {
-    PyObject *o = PySequence_GetItem(input,i);
-    if (PyNumber_Check(o)) {
-      result[i] = (float) PyFloat_AsDouble(o);
-    } else {
-      PyErr_SetString(PyExc_ValueError,"Sequence elements must be numbers");
-      free(result);       
-      return NULL;
-    }
-  }
-  return result;
-}
-%}
-
-%typemap(in) float [ANY] {
-    $1 = convert_float_array($input, $1_dim0);
-    if (!$1) return NULL;
-}
-%}
-</pre>
-</div>
 
 <H2><a name="Typemaps_nn47"></a>10.14 Passing data between typemaps</H2>
 
