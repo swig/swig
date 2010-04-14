@@ -1,7 +1,7 @@
 %module matrixlib
 %include "matrix.i" 
 extern double sumitems(double *, int, int);
-%typemap (in) (int *numberOfRow, int *numberOfCol) {
+%typemap (in, numinputs=0) (int *numberOfRow, int *numberOfCol) {
   $1 = &iRowsOut;
   $2 = &iColsOut;
 }
