@@ -31,10 +31,10 @@ private:
   
   String *f_builder_code;
   bool hasfunction_flag;
-  
+  int function_count; 
 public:
   SCILAB():
-    f_builder_code(NewString("")), hasfunction_flag(false) {
+    f_builder_code(NewString("")), hasfunction_flag(false), function_count(0) {
     allow_overloading();
   }
   
@@ -113,7 +113,7 @@ public:
    
     /* Initialize the builder.sce file code */
     Printf(f_builder_code, "ilib_name = \"%slib\";\n", module);
-    Printf(f_builder_code, "files = [\"%s\",\"%s.o\"];\n", outfile, module);
+    Printf(f_builder_code, "files = [\"%s\", \"%s.o\"];\n", outfile, module);
     Printf(f_builder_code, "libs = [];\n");
     Printf(f_builder_code, "table = ["); 
 
@@ -341,11 +341,20 @@ public:
     Wrapper_print(f, f_wrappers);
     DelWrapper(f);
     
-    if (last_overload)
+    if (last_overload) {
+      if (++ function_count % 50 == 0) {
+        Printf(f_builder_code, "];\n\ntable = [table;");
+      }
+      Printf(f_builder_code, "\"%s\",\"%s\";", iname, wname);  
       dispatchFunction(n);
-    
-    Printf(f_builder_code, "\"%s\",\"%s\";", iname, wname);
-
+    }
+   
+    if (!overloaded) {
+      if (++ function_count % 50 == 0) {
+        Printf(f_builder_code, "];\n\ntable = [table;");
+      }
+      Printf(f_builder_code, "\"%s\",\"%s\";", iname, wname);
+    }
     Delete(overname);
     Delete(wname);
     Delete(outarg);
@@ -371,8 +380,10 @@ public:
     Printv(f->def, "int ", wname, " (char *fname, unsigned long fname_len) {\n", NIL);
     
     /* Get the number of the parameters */
-    Wrapper_add_local(f, "argc", "int argc = Rhs;");
-    
+    Wrapper_add_local(f, "argc", "int argc = Rhs");
+    Wrapper_add_local(f, "sciErr", "SciErr sciErr");
+    Wrapper_add_local(f, "iOutNum", "int iOutNum = 1");
+    Wrapper_add_local(f, "iVarOut", "int iVarOut = Rhs + 1");
     /* Dump the dispatch function */
     Printv(f->code, dispatch, "\n", NIL);
     Printf(f->code, "Scierror(999, _(\"No matching function for overload\"));\n");
@@ -456,6 +467,9 @@ public:
     }
     Append(setf->code, "}\n");
     Wrapper_print(setf, f_wrappers);
+    if (++ function_count % 50 == 0) {
+        Printf(f_builder_code, "];\n\ntable = [table;");
+    }
     Printf(f_builder_code, "\"%s\",\"%s\";", setname, setname);
     
     /* Deal with the get function */
@@ -492,6 +506,9 @@ public:
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
     Printf(f_header,"%s", globalVar);
+    if (++ function_count % 50 == 0) {
+        Printf(f_builder_code, "];\n\ntable = [table;");
+    }
     Printf(f_builder_code, "\"%s\",\"%s\";", getname, getname);
     
     Delete(rowname);
@@ -551,6 +568,9 @@ public:
     Printf(getf->code, "LhsVar(iOutNum) = iVarOut;\n");
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
+    if (++ function_count % 50 == 0) {
+        Printf(f_builder_code, "];\n\ntable = [table;");
+    }
     Printf(f_builder_code, "\"%s\",\"%s\";", getname, getname);
     
     DelWrapper(getf);
