@@ -89,7 +89,7 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 %typemap(out) const bool&
 %{  lua_pushboolean(L,(int)((*$1)!=0)); SWIG_arg++;%}
 
-// strings (char* and char[])
+// strings (char * and char[])
 %fragment("SWIG_lua_isnilstring", "header") {
   int SWIG_lua_isnilstring(lua_State *L, int idx) {
     int ret = lua_isstring(L, idx);
@@ -99,17 +99,17 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
   }
 }
 
-%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char*, char*
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char *, char *
 %{$1 = ($ltype)lua_tostring(L, $input);%}
 
 %typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char[ANY], char[ANY]
 %{$1 = ($ltype)lua_tostring(L, $input);%}
 
-%typemap(out) const char*, char*
-%{  lua_pushstring(L,(const char*)$1); SWIG_arg++;%}
+%typemap(out) const char *, char *
+%{  lua_pushstring(L,(const char *)$1); SWIG_arg++;%}
 
 %typemap(out) const char[ANY], char[ANY]
-%{  lua_pushstring(L,(const char*)$1); SWIG_arg++;%}
+%{  lua_pushstring(L,(const char *)$1); SWIG_arg++;%}
 
 // char's
 // currently treating chars as small strings, not as numbers
