@@ -131,6 +131,7 @@ CPP_TEST_CASES += \
 	constructor_exception \
 	constructor_explicit \
 	constructor_ignore \
+	constructor_rename \
 	constructor_value \
 	contract \
 	conversion \

@@ -3257,6 +3257,7 @@ public:
 	    String *classname = Swig_class_name(parent);
 	    String *rclassname = Swig_class_name(getCurrentClass());
 	    assert(rclassname);
+            
 
             String *parms = make_pyParmList(n, true, false, allow_kwargs);
             /* Pass 'self' only if using director */
@@ -3300,8 +3301,8 @@ public:
 	    Printv(f_shadow_stubs, pycode, "\n", NIL);
 	    Delete(pycode);
 	  } else {
-            String *parms = make_pyParmList(n, true, false, allow_kwargs);
-            String *callParms = make_pyParmList(n, true, true, allow_kwargs);
+            String *parms = make_pyParmList(n, false, false, allow_kwargs);
+            String *callParms = make_pyParmList(n, false, true, allow_kwargs);
 
 	    Printv(f_shadow_stubs, "\ndef ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
 	    if (have_docstring(n))
