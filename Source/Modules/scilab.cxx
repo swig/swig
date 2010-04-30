@@ -342,7 +342,7 @@ public:
     DelWrapper(f);
     
     if (last_overload) {
-      if (++ function_count % 50 == 0) {
+      if (++ function_count % 10 == 0) {
         Printf(f_builder_code, "];\n\ntable = [table;");
       }
       Printf(f_builder_code, "\"%s\",\"%s\";", iname, wname);  
@@ -350,7 +350,7 @@ public:
     }
    
     if (!overloaded) {
-      if (++ function_count % 50 == 0) {
+      if (++ function_count % 10 == 0) {
         Printf(f_builder_code, "];\n\ntable = [table;");
       }
       Printf(f_builder_code, "\"%s\",\"%s\";", iname, wname);
@@ -467,7 +467,7 @@ public:
     }
     Append(setf->code, "}\n");
     Wrapper_print(setf, f_wrappers);
-    if (++ function_count % 50 == 0) {
+    if (++ function_count % 10 == 0) {
         Printf(f_builder_code, "];\n\ntable = [table;");
     }
     Printf(f_builder_code, "\"%s\",\"%s\";", setname, setname);
@@ -506,7 +506,7 @@ public:
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
     Printf(f_header,"%s", globalVar);
-    if (++ function_count % 50 == 0) {
+    if (++ function_count % 10 == 0) {
         Printf(f_builder_code, "];\n\ntable = [table;");
     }
     Printf(f_builder_code, "\"%s\",\"%s\";", getname, getname);
@@ -568,7 +568,7 @@ public:
     Printf(getf->code, "LhsVar(iOutNum) = iVarOut;\n");
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
-    if (++ function_count % 50 == 0) {
+    if (++ function_count % 10 == 0) {
         Printf(f_builder_code, "];\n\ntable = [table;");
     }
     Printf(f_builder_code, "\"%s\",\"%s\";", getname, getname);
