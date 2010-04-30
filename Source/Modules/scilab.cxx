@@ -428,8 +428,8 @@ public:
     Wrapper *getf = NewWrapper();
     Wrapper *setf = NewWrapper();
 
-    String *getname = Swig_name_get(iname);
-    String *setname = Swig_name_set(iname);
+    String *getname = Swig_name_get(NSPACE_TODO, iname);
+    String *setname = Swig_name_set(NSPACE_TODO, iname);
     
     Printf(globalVar, "int %s = 1;\n", rowname);
     Printf(globalVar, "int %s = 1;\n", colname);
@@ -542,7 +542,7 @@ public:
     
     /* Use the get function to get the constant value */
     Wrapper *getf = NewWrapper();
-    String *getname = Swig_name_get(iname);
+    String *getname = Swig_name_get(NSPACE_TODO, iname);
     Setattr(n, "wrap:name", getname);
     int addfail = 0;
     Printv(getf->def, "int ", getname, " (char *fname, unsigned long fname_len){\n", NIL);
