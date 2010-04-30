@@ -224,7 +224,7 @@ namespace std {
         bool empty() const;
         void clear();
         %extend {
-            T& __getitem__(const K& key) throw (std::out_of_range) {
+            const T& __getitem__(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;

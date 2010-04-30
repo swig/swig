@@ -451,6 +451,7 @@ PHPCN(sqlitedatabase);
 PHPCN(sqliteresult);
 PHPCN(sqliteunbuffered);
 PHPCN(sqliteexception);
+PHPCN(datetime);
 
 /* Built-in PHP functions (incomplete). */
 PHPFN(cos);

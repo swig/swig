@@ -40,7 +40,7 @@
 %typemap(consttab) long long, unsigned long long
        { SWIG_LUA_STRING, (char *) "$symname", 0, 0, (void *)"$value", 0}
 
-%typemap(consttab) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []
+%typemap(consttab) SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &, SWIGTYPE []
        { SWIG_LUA_POINTER, (char *)"$symname", 0, 0, (void *)$value, &$1_descriptor}
 
 // member function pointers
@@ -176,7 +176,7 @@ use %include <std_except.i> instead
 %{lua_pushnumber(L,(lua_Number)(int)$1);SWIG_fail; %}
 
 // strings are just sent as errors
-%typemap(throws) char*, const char*
+%typemap(throws) char *, const char *
 %{lua_pushstring(L,$1);SWIG_fail;%}
 
 // char is changed to a string

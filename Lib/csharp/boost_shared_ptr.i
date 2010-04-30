@@ -1,7 +1,9 @@
 %include <shared_ptr.i>
 
+// Language specific macro implementing all the customisations for handling the smart pointer
 %define SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, CONST, TYPE...)
 
+// %naturalvar is as documented for member variables
 %naturalvar TYPE;
 %naturalvar SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 
@@ -10,6 +12,7 @@
 //"if (debug_shared) { cout << \"deleting use_count: \" << (*smartarg1).use_count() << \" [\" << (boost::get_deleter<SWIG_null_deleter>(*smartarg1) ? std::string(\"CANNOT BE DETERMINED SAFELY\") : ( (*smartarg1).get() ? (*smartarg1)->getValue() : std::string(\"NULL PTR\") )) << \"]\" << endl << flush; }\n"
                                "(void)arg1; delete smartarg1;"
 
+// Typemap customisations...
 
 // plain value
 %typemap(in, canthrow=1) CONST TYPE ($&1_type argp = 0) %{
@@ -41,10 +44,10 @@
 %{ $result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner); %}
 
 // plain pointer by reference
-%typemap(in) CONST TYPE *& ($*1_ltype temp = 0)
-%{ temp = (((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)$input) ? ((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)$input)->get() : 0);
+%typemap(in) TYPE *CONST& ($*1_ltype temp = 0)
+%{ temp = (TYPE *)(((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)$input) ? ((SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *)$input)->get() : 0);
    $1 = &temp; %}
-%typemap(out, fragment="SWIG_null_deleter") CONST TYPE *&
+%typemap(out, fragment="SWIG_null_deleter") TYPE *CONST&
 %{ $result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1 SWIG_NO_NULL_DELETER_$owner); %}
 
 // shared_ptr by value
@@ -135,7 +138,7 @@
     PROXYCLASS ret = (cPtr == IntPtr.Zero) ? null : new PROXYCLASS(cPtr, true);$excode
     return ret;
   }
-%typemap(csout, excode=SWIGEXCODE) CONST TYPE *& {
+%typemap(csout, excode=SWIGEXCODE) TYPE *CONST& {
     IntPtr cPtr = $imcall;
     PROXYCLASS ret = (cPtr == IntPtr.Zero) ? null : new PROXYCLASS(cPtr, true);$excode
     return ret;

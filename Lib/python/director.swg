@@ -85,13 +85,13 @@ namespace Swig {
 }
 # endif /* SWIG_DIRECTOR_RTDIR */
 
-# define SWIG_DIRECTOR_CAST(Arg) Swig::get_rtdir(static_cast<void*>(Arg))
-# define SWIG_DIRECTOR_RGTR(Arg1, Arg2) Swig::set_rtdir(static_cast<void*>(Arg1), Arg2)
+# define SWIG_DIRECTOR_CAST(ARG) Swig::get_rtdir(static_cast<void*>(ARG))
+# define SWIG_DIRECTOR_RGTR(ARG1, ARG2) Swig::set_rtdir(static_cast<void*>(ARG1), ARG2)
 
 #else
 
-# define SWIG_DIRECTOR_CAST(Arg) dynamic_cast<Swig::Director*>(Arg)
-# define SWIG_DIRECTOR_RGTR(Arg1, Arg2)
+# define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
+# define SWIG_DIRECTOR_RGTR(ARG1, ARG2)
 
 #endif /* SWIG_DIRECTOR_NORTTI */
 

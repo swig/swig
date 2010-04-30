@@ -296,14 +296,14 @@ namespace std {
 
 // Legacy macros (deprecated)
 %define specialize_std_map_on_key(K,CHECK,CONVERT_FROM,CONVERT_TO)
-#warning specialize_std_map_on_key ignored - macro is deprecated and no longer necessary
+#warning "specialize_std_map_on_key ignored - macro is deprecated and no longer necessary"
 %enddef
 
 %define specialize_std_map_on_value(T,CHECK,CONVERT_FROM,CONVERT_TO)
-#warning specialize_std_map_on_value ignored - macro is deprecated and no longer necessary
+#warning "specialize_std_map_on_value ignored - macro is deprecated and no longer necessary"
 %enddef
 
 %define specialize_std_map_on_both(K,CHECK_K,CONVERT_K_FROM,CONVERT_K_TO, T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO)
-#warning specialize_std_map_on_both ignored - macro is deprecated and no longer necessary
+#warning "specialize_std_map_on_both ignored - macro is deprecated and no longer necessary"
 %enddef
 

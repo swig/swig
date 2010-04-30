@@ -109,6 +109,12 @@ bool SetConstCharArrayStaticString(const char str[], unsigned int number) {
 char *CharPingPong(char *str) {
   return str;
 }
+char *CharArrayPingPong(char abcstr[]) {
+  return abcstr;
+}
+char *CharArrayDimsPingPong(char abcstr[16]) {
+  return abcstr;
+}
 
 // variables
 char *global_char = NULL;

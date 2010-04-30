@@ -9,6 +9,15 @@
  * naming.c
  *
  * Functions for generating various kinds of names during code generation.
+ *
+ * Swig_name_register is used to register a format string for generating names.
+ * The format string makes use of the following format specifiers:
+ *
+ * %c - class name is substituted
+ * %f - function name is substituted
+ * %m - member name is substituted
+ * %n - namespace is substituted
+ * %v - variable name is substituted
  * ----------------------------------------------------------------------------- */
 
 char cvsroot_naming_c[] = "$Id$";
@@ -126,6 +135,23 @@ static int name_mangle(String *r) {
 }
 
 /* -----------------------------------------------------------------------------
+ * replace_nspace()
+ *
+ * Mangles in the namespace from nspace by replacing %n in name if nspace feature required.
+ * ----------------------------------------------------------------------------- */
+
+static void replace_nspace(String *name, const_String_or_char_ptr nspace) {
+  if (nspace) {
+    String *namspace = NewStringf("%s_", nspace);
+    Replaceall(namspace, NSPACE_SEPARATOR, "_");
+    Replace(name, "%n", namspace, DOH_REPLACE_ANY);
+    Delete(namspace);
+  } else {
+    Replace(name, "%n", "", DOH_REPLACE_ANY);
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_name_mangle()
  *
  * Converts all of the non-identifier characters of a string to underscores.
@@ -172,7 +198,7 @@ String *Swig_name_wrapper(const_String_or_char_ptr fname) {
  * Returns the name of a class method.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_member(const_String_or_char_ptr classname, const_String_or_char_ptr mname) {
+String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_ptr classname, const_String_or_char_ptr membername) {
   String *r;
   String *f;
   String *rclassname;
@@ -184,7 +210,7 @@ String *Swig_name_member(const_String_or_char_ptr classname, const_String_or_cha
     naming_hash = NewHash();
   f = Getattr(naming_hash, "member");
   if (!f) {
-    Append(r, "%c_%m");
+    Append(r, "%n%c_%m");
   } else {
     Append(r, f);
   }
@@ -192,8 +218,9 @@ String *Swig_name_member(const_String_or_char_ptr classname, const_String_or_cha
   if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
     cname = strchr(cname, ' ') + 1;
   }
+  replace_nspace(r, nspace);
   Replace(r, "%c", cname, DOH_REPLACE_ANY);
-  Replace(r, "%m", mname, DOH_REPLACE_ANY);
+  Replace(r, "%m", membername, DOH_REPLACE_ANY);
   /*  name_mangle(r); */
   Delete(rclassname);
   return r;
@@ -205,7 +232,7 @@ String *Swig_name_member(const_String_or_char_ptr classname, const_String_or_cha
  * Returns the name of the accessor function used to get a variable.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_get(const_String_or_char_ptr vname) {
+String *Swig_name_get(const_String_or_char_ptr nspace, const_String_or_char_ptr vname) {
   String *r;
   String *f;
 
@@ -218,10 +245,12 @@ String *Swig_name_get(const_String_or_char_ptr vname) {
     naming_hash = NewHash();
   f = Getattr(naming_hash, "get");
   if (!f) {
-    Append(r, "%v_get");
+    Append(r, "%n%v_get");
   } else {
     Append(r, f);
   }
+
+  replace_nspace(r, nspace);
   Replace(r, "%v", vname, DOH_REPLACE_ANY);
   /* name_mangle(r); */
   return r;
@@ -233,7 +262,7 @@ String *Swig_name_get(const_String_or_char_ptr vname) {
  * Returns the name of the accessor function used to set a variable.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_set(const_String_or_char_ptr vname) {
+String *Swig_name_set(const_String_or_char_ptr nspace, const_String_or_char_ptr vname) {
   String *r;
   String *f;
 
@@ -242,10 +271,12 @@ String *Swig_name_set(const_String_or_char_ptr vname) {
     naming_hash = NewHash();
   f = Getattr(naming_hash, "set");
   if (!f) {
-    Append(r, "%v_set");
+    Append(r, "%n%v_set");
   } else {
     Append(r, f);
   }
+
+  replace_nspace(r, nspace);
   Replace(r, "%v", vname, DOH_REPLACE_ANY);
   /* name_mangle(r); */
   return r;
@@ -257,7 +288,7 @@ String *Swig_name_set(const_String_or_char_ptr vname) {
  * Returns the name of the accessor function used to create an object.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_construct(const_String_or_char_ptr classname) {
+String *Swig_name_construct(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
@@ -269,7 +300,7 @@ String *Swig_name_construct(const_String_or_char_ptr classname) {
     naming_hash = NewHash();
   f = Getattr(naming_hash, "construct");
   if (!f) {
-    Append(r, "new_%c");
+    Append(r, "new_%n%c");
   } else {
     Append(r, f);
   }
@@ -278,6 +309,8 @@ String *Swig_name_construct(const_String_or_char_ptr classname) {
   if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
     cname = strchr(cname, ' ') + 1;
   }
+
+  replace_nspace(r, nspace);
   Replace(r, "%c", cname, DOH_REPLACE_ANY);
   Delete(rclassname);
   return r;
@@ -290,7 +323,7 @@ String *Swig_name_construct(const_String_or_char_ptr classname) {
  * Returns the name of the accessor function used to copy an object.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_copyconstructor(const_String_or_char_ptr classname) {
+String *Swig_name_copyconstructor(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
@@ -302,7 +335,7 @@ String *Swig_name_copyconstructor(const_String_or_char_ptr classname) {
     naming_hash = NewHash();
   f = Getattr(naming_hash, "copy");
   if (!f) {
-    Append(r, "copy_%c");
+    Append(r, "copy_%n%c");
   } else {
     Append(r, f);
   }
@@ -312,6 +345,7 @@ String *Swig_name_copyconstructor(const_String_or_char_ptr classname) {
     cname = strchr(cname, ' ') + 1;
   }
 
+  replace_nspace(r, nspace);
   Replace(r, "%c", cname, DOH_REPLACE_ANY);
   Delete(rclassname);
   return r;
@@ -323,7 +357,7 @@ String *Swig_name_copyconstructor(const_String_or_char_ptr classname) {
  * Returns the name of the accessor function used to destroy an object.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_destroy(const_String_or_char_ptr classname) {
+String *Swig_name_destroy(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
@@ -334,7 +368,7 @@ String *Swig_name_destroy(const_String_or_char_ptr classname) {
     naming_hash = NewHash();
   f = Getattr(naming_hash, "destroy");
   if (!f) {
-    Append(r, "delete_%c");
+    Append(r, "delete_%n%c");
   } else {
     Append(r, f);
   }
@@ -343,6 +377,8 @@ String *Swig_name_destroy(const_String_or_char_ptr classname) {
   if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
     cname = strchr(cname, ' ') + 1;
   }
+
+  replace_nspace(r, nspace);
   Replace(r, "%c", cname, DOH_REPLACE_ANY);
   Delete(rclassname);
   return r;
@@ -355,7 +391,7 @@ String *Swig_name_destroy(const_String_or_char_ptr classname) {
  * Returns the name of the accessor function used to disown an object.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_disown(const_String_or_char_ptr classname) {
+String *Swig_name_disown(const_String_or_char_ptr nspace, const_String_or_char_ptr classname) {
   String *r;
   String *f;
   String *rclassname;
@@ -366,7 +402,7 @@ String *Swig_name_disown(const_String_or_char_ptr classname) {
     naming_hash = NewHash();
   f = Getattr(naming_hash, "disown");
   if (!f) {
-    Append(r, "disown_%c");
+    Append(r, "disown_%n%c");
   } else {
     Append(r, f);
   }
@@ -375,6 +411,8 @@ String *Swig_name_disown(const_String_or_char_ptr classname) {
   if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
     cname = strchr(cname, ' ') + 1;
   }
+
+  replace_nspace(r, nspace);
   Replace(r, "%c", cname, DOH_REPLACE_ANY);
   Delete(rclassname);
   return r;
@@ -478,25 +516,12 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
 	Delete(cls);
       }
       /* A template-based class lookup, check name first */
-      if (!rn && SwigType_istemplate(name)) {
-	String *t_name = SwigType_templateprefix(name);
-	if (!Equal(t_name, name)) {
+      if (!rn) {
+	String *t_name = SwigType_istemplate_templateprefix(name);
+	if (t_name)
 	  rn = Swig_name_object_get(namehash, prefix, t_name, decl);
-	}
 	Delete(t_name);
       }
-      /* A template-based class lookup */
-      /*
-      if (!rn && SwigType_istemplate(prefix)) {
-	String *t_prefix = SwigType_templateprefix(prefix);
-	if (Strcmp(t_prefix, prefix) != 0) {
-	  String *t_name = SwigType_templateprefix(name);
-	  rn = Swig_name_object_get(namehash, t_prefix, t_name, decl);
-	  Delete(t_name);
-	}
-	Delete(t_prefix);
-      }
-      */
     }
     /* A wildcard-based class lookup */
     if (!rn) {
@@ -667,10 +692,9 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
   if (name) {
     String *tname = NewStringEmpty();
     /* add features for 'root' template */
-    if (SwigType_istemplate(name)) {
-      String *dname = SwigType_templateprefix(name);
+    String *dname = SwigType_istemplate_templateprefix(name);
+    if (dname) {
       features_get(features, dname, decl, ncdecl, node);
-      Delete(dname);
     }
     /* Catch-all */
     features_get(features, name, decl, ncdecl, node);
@@ -688,16 +712,16 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
       /* A specific class lookup */
       if (Len(prefix)) {
 	/* A template-based class lookup */
-	if (SwigType_istemplate(prefix)) {
-	  String *tprefix = SwigType_templateprefix(prefix);
+	String *tprefix = SwigType_istemplate_templateprefix(prefix);
+	if (tprefix) {
 	  Clear(tname);
 	  Printf(tname, "%s::%s", tprefix, name);
 	  features_get(features, tname, decl, ncdecl, node);
-	  Delete(tprefix);
 	}
 	Clear(tname);
 	Printf(tname, "%s::%s", prefix, name);
 	features_get(features, tname, decl, ncdecl, node);
+	Delete(tprefix);
       }
     } else {
       /* Lookup in the global namespace only */
@@ -706,6 +730,7 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
       features_get(features, tname, decl, ncdecl, node);
     }
     Delete(tname);
+    Delete(dname);
   }
   if (name && SwigType_istemplate(name)) {
     /* add features for complete template type */

@@ -70,40 +70,6 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   */
 }
 
-#if 0
-static String * getRType(Node *n) {
-  SwigType *elType = Getattr(n, "type");
-  SwigType *elDecl = Getattr(n, "decl");
-  //XXX How can we tell if this is already done.
-  SwigType_push(elType, elDecl);
-  String *ans;
-
-  String *rtype = Swig_typemap_lookup("rtype", n, "", 0);
-  String *i = getRTypeName(elType);
-
-  if(Len(i) == 0) {
-    SwigType *td = SwigType_typedef_resolve(elType);
-    if(td) {
-      //     Printf(stderr, "Resolving typedef %s -> %s\n", elType, td);
-      i = getRTypeName(td);
-    }
-  }
-  //  Printf(stderr, "<getRType> i = %s,  rtype = %s  (for %s)\n", 
-  //	 i, rtype, elType);
-  if(rtype) {
-    ans = NewString("");
-    Printf(ans, "%s", rtype);
-    Replaceall(ans, "$R_class", Char(i));
-    //	Printf(stderr, "Found r type in typemap for %s (for %s) => %s (%s) => %s\n", 
-    //         SwigType_str(elType, 0), Getattr(n, "name"), rtype, i, ans);
-  } else {
-    ans = i;
-  }
-  
-  return(ans);
-}
-#endif
-
 /*********************
  Tries to get the name of the R class corresponding  to the given type
   e.g. struct A * is ARef,  struct A**  is  ARefRef.
@@ -534,12 +500,7 @@ int R::getFunctionPointerNumArgs(Node *n, SwigType *tt) {
   n = Getattr(n, "type");
   if (debugMode)
     Printf(stderr, "type: %s\n", n);
-#if 0
-  SwigType *tmp = SwigType_typedef_resolve(tt);
-  
-  n = SwigType_typedef_resolve(tt);
-#endif
-  
+
   ParmList *parms = Getattr(n, "parms");
   if (debugMode)
     Printf(stderr, "parms = %p\n", parms);
@@ -595,10 +556,10 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)), n);
 
 
-  //  if (debugMode) {
+  if (debugMode) {
     Printf(stderr, "Type: %s\n", t);
     Printf(stderr, "Return type: %s\n", SwigType_base(t));
-    //}
+  }
   
   bool isVoidType = Strcmp(rettype, "void") == 0;
   if (debugMode)

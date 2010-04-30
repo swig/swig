@@ -295,7 +295,7 @@ Klass& reftest(Klass& k) {
   k.append(" reftest");
   return k;
 }
-Klass*& pointerreftest(Klass*& k) {
+Klass *const& pointerreftest(Klass *const& k) {
   k->append(" pointerreftest");
   return k;
 }
@@ -334,7 +334,7 @@ std::string overload_rawbyptr(int i) { return "int"; }
 std::string overload_rawbyptr(Klass *k) { return "rawbyptr"; }
 
 std::string overload_rawbyptrref(int i) { return "int"; }
-std::string overload_rawbyptrref(Klass *&k) { return "rawbyptrref"; }
+std::string overload_rawbyptrref(Klass *const&k) { return "rawbyptrref"; }
 
 
 

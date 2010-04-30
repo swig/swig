@@ -13,8 +13,6 @@
  * and function names are meant to be similar.
  * ----------------------------------------------------------------------------- */
 
-/* $Id: swig.h 9622 2006-12-19 03:49:17Z beazley $ */
-
 /* Macros to traverse the DOM tree */
 
 #define  nodeType(x)               Getattr(x,"nodeType")

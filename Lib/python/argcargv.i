@@ -60,7 +60,7 @@ SWIG_AsArgcArgv(PyObject *input,
 }
 
 /*
-  This typemap works with either a char**, a python list or a python
+  This typemap works with either a char **, a python list or a python
   tuple
  */
 

@@ -1,4 +1,10 @@
 /* File : example.i */
 %module example
 
-int printf(const char *fmt, ...);
+%{
+#include "example.h"
+%}
+
+/* Let's just grab the original header file here */
+%include "example.h"
+

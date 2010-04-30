@@ -1788,7 +1788,7 @@ done:
       Replaceall(tm, "$target", name);
       Printf(s_vinit, "%s\n", tm);
     } else {
-      Printf(stderr, "%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
+      Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
     }
 
     /* Now generate PHP -> C sync blocks */
@@ -1798,7 +1798,7 @@ done:
        Replaceall(tm, "$symname", iname);
        Printf(f_c->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
+       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
        }
      */
     /* Now generate C -> PHP sync blocks */
@@ -1810,7 +1810,7 @@ done:
        Replaceall(tm, "$symname", iname);
        Printf(f_php->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
+       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
        }
        }
      */

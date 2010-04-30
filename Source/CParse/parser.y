@@ -215,9 +215,9 @@ Hash *Swig_cparse_features(void) {
 }
 
 static String *feature_identifier_fix(String *s) {
-  if (SwigType_istemplate(s)) {
-    String *tp, *ts, *ta, *tq;
-    tp = SwigType_templateprefix(s);
+  String *tp = SwigType_istemplate_templateprefix(s);
+  if (tp) {
+    String *ts, *ta, *tq;
     ts = SwigType_templatesuffix(s);
     ta = SwigType_templateargs(s);
     tq = Swig_symbol_type_qualify(ta,0);
@@ -760,14 +760,15 @@ static List *pure_abstract(Node *n) {
 
 static String *make_class_name(String *name) {
   String *nname = 0;
+  String *prefix;
   if (Namespaceprefix) {
     nname= NewStringf("%s::%s", Namespaceprefix, name);
   } else {
     nname = NewString(name);
   }
-  if (SwigType_istemplate(nname)) {
-    String *prefix, *args, *qargs;
-    prefix = SwigType_templateprefix(nname);
+  prefix = SwigType_istemplate_templateprefix(nname);
+  if (prefix) {
+    String *args, *qargs;
     args   = SwigType_templateargs(nname);
     qargs  = Swig_symbol_type_qualify(args,0);
     Append(prefix,qargs);
@@ -2104,8 +2105,8 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
                  ;
 
 /* ------------------------------------------------------------
-   %includefile "filename" [option1="xyz", ...] [ declarations ] 
-   %importfile  "filename" [option1="xyz", ...] [ declarations ]
+   %includefile(option1="xyz", ...) "filename" [ declarations ] 
+   %importfile(option1="xyz", ...) "filename" [ declarations ]
    ------------------------------------------------------------ */
 
 include_directive: includetype options string LBRACKET {
@@ -3384,6 +3385,7 @@ cpp_declaration : cpp_class_decl {  $$ = $1; }
 /* A simple class/struct/union definition */
 cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
                  if (nested_template == 0) {
+                   String *prefix;
                    List *bases = 0;
 		   Node *scope = 0;
 		   $<node>$ = new_node("class");
@@ -3432,9 +3434,9 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   if ($4) {
 		     bases = make_inherit_list($3,Getattr($4,"public"));
 		   }
-		   if (SwigType_istemplate($3)) {
-		     String *fbase, *tbase, *prefix;
-		     prefix = SwigType_templateprefix($3);
+		   prefix = SwigType_istemplate_templateprefix($3);
+		   if (prefix) {
+		     String *fbase, *tbase;
 		     if (Namespaceprefix) {
 		       fbase = NewStringf("%s::%s", Namespaceprefix,$3);
 		       tbase = NewStringf("%s::%s", Namespaceprefix, prefix);
@@ -3445,7 +3447,6 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Swig_name_inherit(tbase,fbase);
 		     Delete(fbase);
 		     Delete(tbase);
-		     Delete(prefix);
 		   }
                    if (strcmp($2,"class") == 0) {
 		     cplus_mode = CPLUS_PRIVATE;
@@ -3496,6 +3497,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		       }
 		   }
 		   class_decl[class_level++] = $<node>$;
+		   Delete(prefix);
 		   inclass = 1;
 		 }
                } cpp_members RBRACE cpp_opt_declarators {
@@ -3727,7 +3729,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Setattr(classes,scpname,$$);
 		     Delete(scpname);
 		   } else {
-		     Swig_symbol_setscopename((char*)"<unnamed>");
+		     Swig_symbol_setscopename("<unnamed>");
 		   }
 		 }
 		 appendChild($$,$5);

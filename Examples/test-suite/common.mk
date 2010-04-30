@@ -131,6 +131,7 @@ CPP_TEST_CASES += \
 	constructor_exception \
 	constructor_explicit \
 	constructor_ignore \
+	constructor_rename \
 	constructor_value \
 	contract \
 	conversion \
@@ -198,6 +199,7 @@ CPP_TEST_CASES += \
 	fvirtual \
 	global_namespace \
 	global_ns_arg \
+	global_scope_types \
 	global_vars \
 	grouping \
 	ignore_parameter \
@@ -241,6 +243,8 @@ CPP_TEST_CASES += \
 	namespace_typemap \
 	namespace_union \
 	namespace_virtual_method \
+	nspace \
+	nspace_extend \
 	naturalvar \
 	nested_class \
 	nested_comment \
@@ -304,6 +308,7 @@ CPP_TEST_CASES += \
 	static_const_member_2 \
 	struct_initialization_cpp \
 	struct_value \
+	symbol_clash \
 	template \
 	template_arg_replace \
 	template_arg_scope \
@@ -371,6 +376,7 @@ CPP_TEST_CASES += \
 	template_virtual \
 	template_whitespace \
 	threads \
+	threads_exception \
 	throw_exception \
 	typedef_array_member \
 	typedef_class \
@@ -381,9 +387,11 @@ CPP_TEST_CASES += \
 	typedef_scope \
 	typedef_sizet \
 	typedef_struct \
+	typemap_global_scope \
 	typemap_namespace \
 	typemap_ns_using \
 	typemap_numinputs \
+	typemap_template \
 	typemap_out_optimal \
 	typemap_variables \
 	typemap_various \

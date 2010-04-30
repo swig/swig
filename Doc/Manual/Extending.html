@@ -54,7 +54,7 @@
 <li><a href="#Extending_nn36">Entry point to code generation</a>
 <li><a href="#Extending_nn37">Module I/O and wrapper skeleton</a>
 <li><a href="#Extending_nn38">Low-level code generators</a>
-<li><a href="#Extending_nn39">Configuration files</a>
+<li><a href="#Extending_configuration_files">Configuration files</a>
 <li><a href="#Extending_nn40">Runtime support</a>
 <li><a href="#Extending_nn41">Standard library files</a>
 <li><a href="#Extending_nn42">User examples</a>
@@ -3049,7 +3049,7 @@ but without the typemaps, there is still work to do.
 </p>
 
 
-<H3><a name="Extending_nn39"></a>35.10.8 Configuration files</H3>
+<H3><a name="Extending_configuration_files"></a>35.10.8 Configuration files</H3>
 
 
 <!-- please report bugs in this section to ttn -->
@@ -3090,8 +3090,6 @@ The nickname is used in four places:
 <TR><TD><B>usage</B></TD><TD><B>transform</B></TD></TR>
 <TR><TD>"skip" tag</TD><TD>(none)</TD></TR>
 <TR><TD>Examples/ subdir name</TD><TD>(none)</TD></TR>
-<TR><TD>Examples/GIFPlot/ subdir name</TD>
-    <TD>capitalize (upcase first letter)</TD></TR>
 <TR><TD>Examples/test-suite/ subdir name</TD><TD>(none)</TD></TR>
 <!-- add more uses here (remember to adjust header) -->
 </TABLE>
@@ -3159,8 +3157,8 @@ skip-qux = $(skip-qux99)
 
 <p>
 Lastly, you need to modify each of <TT>check-aliveness</TT>,
-<TT>check-examples</TT>, <TT>check-test-suite</TT>,
-<TT>check-gifplot</TT> (all targets) and <TT>lib-languages</TT> (var).
+<TT>check-examples</TT>, <TT>check-test-suite</TT>
+and <TT>lib-languages</TT> (var).
 Use the nickname for these, not the alias.
 Note that you can do this even before you have any tests or examples
 set up; the Makefile rules do some sanity checking and skip around
@@ -3173,10 +3171,6 @@ and look to the existing languages for examples.
 
 <dt> <b>Examples/qux99/check.list</b>
 <dd> Do <TT>cp ../python/check.list .</TT> and modify to taste.
-One subdir per line.
-
-<dt> <b>Examples/GIFPlot/Qux99/check.list</b>
-<dd> Do <TT>cp ../Python/check.list .</TT> and modify to taste.
 One subdir per line.
 
 <dt> <b>Lib/qux99/extra-install.list</b>
@@ -3252,7 +3246,7 @@ These can be found, for example for Python, in
 <p>
 By default, all of the examples are built and run when the user types
 <tt>make check</tt>. To ensure that your examples are automatically run
-during this process, see the section on <a href="#n37a">configuration
+during this process, see the section on <a href="#Extending_configuration_files">configuration
 files</a>.
 </p>
 
@@ -3601,6 +3595,7 @@ There are various command line options which can aid debugging a SWIG interface 
 -debug-symtabs    - Display symbol tables information
 -debug-symbols    - Display target language symbols in the symbol tables
 -debug-csymbols   - Display C symbols in the symbol tables
+-debug-lsymbols   - Display target language layer symbols
 -debug-tags       - Display information about the tags found in the interface
 -debug-template   - Display information for debugging templates
 -debug-top &lt;n&gt;    - Display entire parse tree at stages 1-4, &lt;n&gt; is a csv list of stages

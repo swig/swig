@@ -2,9 +2,7 @@ SWIG Examples
 
 The "perl5", "python", "tcl", "guile", "java", "mzscheme", "ruby", and
 "chicken" directories contain a number of simple examples that are
-primarily used for testing. The "GIFPlot" directory contains a more
-complicated example that illustrates some of SWIG's more advanced
-capabilities.
+primarily used for testing. 
 
 The file 'index.html' is the top of a hyperlinked document that
 contains information about all of the examples along with various
