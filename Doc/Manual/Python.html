@@ -2124,8 +2124,8 @@ Object 'RCObj', which implements the ref/unref idiom.
 
 <p>
 To tell SWIG that 'RCObj' and all its derived classes are reference
-counted objects, you use the "ref" and "unref" features, or
-<tt>%ref</tt> and <tt>%unref</tt> directives (since 1.3.28). For example:
+counted objects, you use the "ref" and "unref" features.
+For example:
 </p>
 
 
@@ -2142,25 +2142,6 @@ counted objects, you use the "ref" and "unref" features, or
 ...
 </pre>
 </div>
-
-or, using the directive form:
-
-
-<div class="code">
-<pre>
-%module example
-...
-
-%ref   RCObj "$this-&gt;ref();"
-%unref RCObj "$this-&gt;unref();"
-
-%include "rcobj.h"
-%include "A.h"
-...
-</pre>
-</div>
-
-
 
 <p>
 where the code passed to the "ref" and "unref" features will be
