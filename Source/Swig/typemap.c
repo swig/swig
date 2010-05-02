@@ -698,11 +698,11 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   Hash *backup = 0;
   SwigType *primitive = 0;
   SwigType *ctype = 0;
+  SwigType *ctype_unstripped = 0;
   int ts;
   int isarray;
   const String *cname = 0;
   const String *cqualifiedname = 0;
-  SwigType *unstripped = 0;
   String *tm_method = typemap_method_name(tmap_method);
   int debug_display = (in_typemap_search_multi == 0) && typemap_search_debug;
 
@@ -718,7 +718,8 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     Delete(typestr);
   }
   while (ts >= 0) {
-    ctype = type;
+    ctype = Copy(type);
+    ctype_unstripped = Copy(ctype);
     while (ctype) {
       /* Try to get an exact type-match */
       tm = get_typemap(ts, ctype);
@@ -751,29 +752,25 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	  goto ret_result;
       }
 
-      /* No match so far.   If the type is unstripped, we'll strip its
-         qualifiers and check.   Otherwise, we'll try to resolve a typedef */
-
-      if (!unstripped) {
-	unstripped = ctype;
-	ctype = SwigType_strip_qualifiers(ctype);
-	if (!Equal(ctype, unstripped))
-	  continue;		/* Types are different */
-	Delete(ctype);
-	ctype = unstripped;
-	unstripped = 0;
-      }
+      /* No match so far - try with a qualifier stripped (strip one qualifier at a time until none remain)
+       * The order of stripping in SwigType_strip_single_qualifier is used to provide some sort of consistency
+       * with the default (SWIGTYPE) typemap matching rules for the first qualifier to be stripped. */
       {
-	String *octype;
-	if (unstripped) {
-	  Delete(ctype);
-	  ctype = unstripped;
-	  unstripped = 0;
+	SwigType *oldctype = ctype;
+	ctype = SwigType_strip_single_qualifier(oldctype);
+	if (!Equal(ctype, oldctype)) {
+	  Delete(oldctype);
+	  continue;
 	}
-	octype = ctype;
-	ctype = SwigType_typedef_resolve(ctype);
-	if (octype != type)
-	  Delete(octype);
+	Delete(oldctype);
+      }
+
+      /* Once all qualifiers are stripped try resolve a typedef */
+      {
+	SwigType *oldctype = ctype;
+	ctype = SwigType_typedef_resolve(ctype_unstripped);
+	Delete(oldctype);
+	ctype_unstripped = Copy(ctype);
       }
     }
 
@@ -802,12 +799,10 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 
 ret_result:
   Delete(primitive);
-  if ((unstripped) && (unstripped != type))
-    Delete(unstripped);
   if (matchtype)
     *matchtype = Copy(ctype);
-  if (type != ctype)
-    Delete(ctype);
+  Delete(ctype);
+  Delete(ctype_unstripped);
   return result;
 }
 

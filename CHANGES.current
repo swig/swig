@@ -1,6 +1,14 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-01: wsfulton
+            Typemap matching enhancement for non-default typemaps. Previously all
+            qualifiers were stripped in one step, now they are stripped one at a time
+            starting with the left most qualifier. For example, int const*const 
+            is first stripped to int *const then int *.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2010-04-25: bhy
             [Python] Fix #2985655 - broken constructor renaming.
 
@@ -37,7 +45,7 @@ Version 2.0.0 (in progress)
             Numerous subtle typemap matching rule fixes when using the default type. The typemap
             matching rules are to take a type and find the best default typemap (SWIGTYPE, SWIGTYPE* etc),
             then look for the next best match by reducing the chosen default type. The type deduction
-            now follows C++ template partial specialization matching rules.
+            now follows C++ class template partial specialization matching rules.
 
             Below are the set of changes made showing the default type deduction
             along with the old reduced type and the new version of the reduced type:

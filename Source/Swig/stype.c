@@ -357,8 +357,8 @@ SwigType *SwigType_default_create(SwigType *ty) {
  * SwigType_default_deduce()
  *
  * This function implements type deduction used in the typemap matching rules
- * and is very close to the type deduction used in partial template specialization
- * matching in that the most specialized type is always chosen.
+ * and is very close to the type deduction used in partial template class
+ * specialization matching in that the most specialized type is always chosen.
  * SWIGTYPE is used as the generic type. The basic idea is to repeatedly call
  * this function to find a deduced type unless until nothing matches.
  *
