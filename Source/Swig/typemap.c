@@ -724,7 +724,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
       /* Try to get an exact type-match */
       tm = get_typemap(ts, ctype);
       result = typemap_search_helper(debug_display, tm, tm_method, ctype, cqualifiedname, cname, &backup);
-      if (result)
+      if (result && Getattr(result, "code"))
 	goto ret_result;
 
       {
@@ -734,7 +734,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	  tm = get_typemap(ts, template_prefix);
 	  result = typemap_search_helper(debug_display, tm, tm_method, template_prefix, cqualifiedname, cname, &backup);
 	  Delete(template_prefix);
-	  if (result)
+	  if (result && Getattr(result, "code"))
 	    goto ret_result;
 	}
       }
@@ -748,7 +748,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	tm = get_typemap(ts, noarrays);
 	result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
 	Delete(noarrays);
-	if (result)
+	if (result && Getattr(result, "code"))
 	  goto ret_result;
       }
 
@@ -780,7 +780,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     while (primitive) {
       tm = get_typemap(ts, primitive);
       result = typemap_search_helper(debug_display, tm, tm_method, primitive, cqualifiedname, cname, &backup);
-      if (result)
+      if (result && Getattr(result, "code"))
 	goto ret_result;
 
       {
