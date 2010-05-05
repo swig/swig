@@ -1,6 +1,9 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-05: wsfulton
+            [R] Memory leak fix handling const std::string & inputs, reported by Will Nolan.
+
 2010-05-01: wsfulton
             Typemap matching enhancement for non-default typemaps. Previously all
             qualifiers were stripped in one step, now they are stripped one at a time

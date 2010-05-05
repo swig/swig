@@ -122,7 +122,7 @@ SWIGINTERN int
 SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
 {
   if (cptr && Rf_isString(obj)) {
-    const char *cstr = CHAR(STRING_ELT(obj, 0));
+    char *cstr = %const_cast(CHAR(STRING_ELT(obj, 0)), char *);
     int len = strlen(cstr);
 
     if (alloc) {
@@ -130,9 +130,7 @@ SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
         *cptr = %new_copy_array(cstr, len + 1, char);
         *alloc = SWIG_NEWOBJ;
       } else {
-        *cptr = %reinterpret_cast(malloc(len + 1), char *);
-        *cptr = strcpy(*cptr, cstr);
-        *alloc = SWIG_OLDOBJ;
+        *cptr = cstr;
       }
     } else {
       *cptr = %reinterpret_cast(malloc(len + 1), char *);
