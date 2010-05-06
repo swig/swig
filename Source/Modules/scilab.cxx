@@ -214,6 +214,8 @@ public:
       }
 
       SwigType *pt = Getattr(p, "type");
+      if ( Equal(SwigType_base(pt), "long long") || Equal(SwigType_base(pt), "unsigned long long"))
+        Printv(f->code, " #ifdef __SCILAB_INT64__\n", NIL);
 
       /* Get typemap for this argument */
       String *tm = Getattr(p, "tmap:in");
@@ -231,6 +233,8 @@ public:
       else
 	Printv(getargs, tm, NIL);
       Printv(f->code, getargs, "\n", NIL);
+      if ( Equal(SwigType_base(pt), "long long") || Equal(SwigType_base(pt), "unsigned long long"))
+        Printv(f->code, "#endif\n", NIL);
       Delete(getargs);
       p = Getattr(p, "tmap:in:next");
       continue;
@@ -437,6 +441,8 @@ public:
       Printf(globalVar, "int %s = 0;\n\n", iscomplexname);
     else
       Printf(globalVar, "\n");
+    if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long"))
+      Printv(setf->def, "#ifdef __SCILAB_INT64__\n", NIL);
     Printv(setf->def, "int ", setname, " (char *fname, unsigned long fname_len) {\n", NIL);
     
     /* Check the number of input and output */
@@ -466,6 +472,8 @@ public:
       Append(setf->code, "SWIG_Error(999, \"attempt to set immutable member variable\");");
     }
     Append(setf->code, "}\n");
+     if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long"))
+      Printv(setf->def, "#endif\n", NIL);
     Wrapper_print(setf, f_wrappers);
     if (++ function_count % 10 == 0) {
         Printf(f_builder_code, "];\n\ntable = [table;");
@@ -475,6 +483,8 @@ public:
     /* Deal with the get function */
     Setattr(n, "wrap:name", getname);
     int addfail = 0;
+    if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long"))
+      Printv(getf->def, " #ifdef __SCILAB_INT64__\n", NIL);
     Printv(getf->def, "int ", getname, " (char *fname, unsigned long fname_len){\n", NIL);
    
     /* Check the number of input and output */
@@ -504,6 +514,8 @@ public:
     /* Dump the wrapper function */ 
     Printf(getf->code, "LhsVar(iOutNum) = iVarOut;\n");
     Append(getf->code, "}\n");
+   if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long"))
+      Printv(getf->def, " #endif\n", NIL);
     Wrapper_print(getf, f_wrappers);
     Printf(f_header,"%s", globalVar);
     if (++ function_count % 10 == 0) {
