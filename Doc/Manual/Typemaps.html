@@ -33,6 +33,7 @@
 <li><a href="#Typemaps_nn17">Basic matching rules</a>
 <li><a href="#Typemaps_typedef_reductions">Typedef reductions matching</a>
 <li><a href="#Typemaps_nn19">Default typemap matching rules</a>
+<li><a href="#Typemaps_matching_template_comparison">Matching comparison with C++ templates</a>
 <li><a href="#Typemaps_multi_argument_typemaps_patterns">Multi-arguments typemaps</a>
 <li><a href="#Typemaps_debugging_search">Debugging typemap pattern matching</a>
 </ul>
@@ -1026,8 +1027,10 @@ is used.
 </ul>
 
 <p>
-If <tt>TYPE</tt> includes qualifiers (const, volatile, etc.), they are stripped to form a new stripped type 
+If <tt>TYPE</tt> includes qualifiers (const, volatile, etc.), each qualifier is stripped one at a time to form a new stripped type 
 and the matching rules above are repeated on the stripped type.
+The left-most qualifier is stripped first, resulting in the right-most (or top-level) qualifier being stripped last.
+For example <tt>int const*const</tt> is first stripped to <tt>int *const</tt> then <tt>int *</tt>.
 </p>
 
 <p>
@@ -1056,8 +1059,8 @@ To find a typemap for the argument <tt>const char *s</tt>, SWIG will search for 
 <pre>
 const char *s           Exact type and name match
 const char *            Exact type match
-char *s                 Type and name match (stripped qualifiers)
-char *                  Type match (stripped qualifiers)
+char *s                 Type and name match (qualifier stripped)
+char *                  Type match (qualifier stripped)
 </pre>
 </div>
 
@@ -1096,6 +1099,11 @@ void E(int x[4]);      // int [4] rule      (typemap 4)
 void F(int x[1000]);   // int [ANY] rule    (typemap 5)
 </pre>
 </div>
+
+<p>
+<b>Compatibility note: </b> SWIG-2.0.0 introduced stripping the qualifiers one step at a time. Prior versions
+stripped all qualifiers in one step.
+</p>
 
 <H3><a name="Typemaps_typedef_reductions"></a>10.3.2 Typedef reductions matching</H3>
 
@@ -1280,7 +1288,7 @@ If the basic pattern matching rules result in no match being made, even after ty
 the default typemap matching rules are used to look for a suitable typemap match.
 These rules match a generic typemap based on the reserved <tt>SWIGTYPE</tt> base type.
 For example pointers will use <tt>SWIGTYPE *</tt> and references will use <tt>SWIGTYPE &amp;</tt>.
-More precisely, the rules are based on the C++ template partial specialization matching rules used
+More precisely, the rules are based on the C++ class template partial specialization matching rules used
 by C++ compilers when looking for an appropriate partial template specialization.
 This means that a match is chosen from the most specialized set of generic typemap types available. For example,
 when looking for a match to <tt>int const *</tt>, the rules will prefer to match <tt>SWIGTYPE const *</tt>
@@ -1407,11 +1415,10 @@ Finally the best way to view the typemap matching rules in action is via the <a 
 
 <p>
 <b>Compatibility note: </b> The default typemap matching rules were modified in SWIG-2.0.0 from a slightly 
-simpler scheme to match the current C++ template partial specialization matching rules.
+simpler scheme to match the current C++ class template partial specialization matching rules.
 </p>
 
-
-<H3><a name="Typemaps_multi_argument_typemaps_patterns"></a>10.3.4 Multi-arguments typemaps</H3>
+<H3><a name="Typemaps_multi_argument_typemaps_patterns"></a>10.3.5 Multi-arguments typemaps</H3>
 
 
 <p>
@@ -1441,7 +1448,165 @@ but all subsequent arguments must match exactly.
 </p>
 
 
-<H3><a name="Typemaps_debugging_search"></a>10.3.5 Debugging typemap pattern matching</H3>
+<H3><a name="Typemaps_matching_template_comparison"></a>10.3.4 Matching rules compared to C++ templates</H3>
+
+<p>
+For those intimately familiar with C++ templates, a comparison of the typemap matching rules and template type deduction is interesting.
+The two areas considered are firstly the default typemaps and their similarities to partial template specialization and secondly, non-default typemaps and their similarities to full template specialization.
+</p>
+
+<p>
+For default (SWIGTYPE) typemaps the rules are inspired by C++ class template
+partial specialization. For example, given partial specialization for <tt>T const&amp;</tt> :
+</p>
+
+<div class="code">
+<pre>
+template &lt;typename T&gt; struct X             { void a(); };
+template &lt;typename T&gt; struct X&lt; T const&amp; &gt; { void b(); };
+</pre>
+</div>
+
+<p>
+The full (unspecialized) template is matched with most types, such as:
+</p>
+
+<div class="code">
+<pre>
+X&lt; int &amp; &gt;            x1;  x1.a();
+</pre>
+</div>
+
+<p>
+and the following all match the <tt>T const&amp;</tt> partial specialization:
+</p>
+
+<div class="code">
+<pre>
+X&lt; int *const&amp; &gt;      x2;  x2.b();
+X&lt; int const*const&amp; &gt; x3;  x3.b();
+X&lt; int const&amp; &gt;       x4;  x4.b();
+</pre>
+</div>
+
+<p>
+Now, given just these two default typemaps, where T is analogous to SWIGTYPE:
+</p>
+
+<div class="code">
+<pre>
+%typemap(...) SWIGTYPE        { ... }
+%typemap(...) SWIGTYPE const&amp; { ... }
+</pre>
+</div>
+
+<p>
+The generic default typemap <tt>SWIGTYPE</tt> is used with most types, such as
+</p>
+
+<div class="code">
+<pre>
+int &amp;
+</pre>
+</div>
+
+<p>
+and the following all match the <tt>SWIGTYPE const&amp;</tt> typemap, just like the partial template matching:
+</p>
+
+<div class="code">
+<pre>
+int *const&amp;
+int const*const&amp;
+int const&amp;
+</pre>
+</div>
+
+<p>
+Note that the template and typemap matching rules are not identical for all default typemaps though, for example, with arrays.
+</p>
+
+<p>
+For non-default typemaps, one might expect SWIG to follow the fully specialized template rules.
+This is nearly the case, but not quite.
+Consider a very similar example to the earlier partially specialized template but this time there is a fully specialized template:
+</p>
+
+<div class="code">
+<pre>
+template &lt;typename T&gt; struct Y       { void a(); };
+template &lt;&gt; struct Y&lt; int const &amp; &gt;  { void b(); };
+</pre>
+</div>
+
+<p>
+Only the one type matches the specialized template exactly:
+</p>
+
+<div class="code">
+<pre>
+Y&lt; int &amp; &gt;             y1;  y1.a();
+Y&lt; int *const&amp; &gt;       y2;  y2.a();
+Y&lt; int const *const&amp; &gt; y3;  y3.a();
+Y&lt; int const&amp; &gt;        y4;  y4.b(); // fully specialized match
+</pre>
+</div>
+
+<p>
+Given typemaps with the same types used for the template declared above, where T is again analogous to SWIGTYPE:
+</p>
+
+<div class="code">
+<pre>
+%typemap(...) SWIGTYPE        { ... }
+%typemap(...) int const&amp;      { ... }
+</pre>
+</div>
+
+<p>
+The comparison between non-default typemaps and fully specialized single parameter templates turns out to be the same, as just the one type will match the non-default typemap:
+</p>
+
+<div class="code">
+<pre>
+int &amp;
+int *const&amp;
+int const*const&amp;
+int const&amp;        // matches non-default typemap int const&amp;
+</pre>
+</div>
+
+<p>
+However, if a non-const type is used instead:
+</p>
+
+<div class="code">
+<pre>
+%typemap(...) SWIGTYPE        { ... }
+%typemap(...) int &amp;           { ... }
+</pre>
+</div>
+
+<p>
+then there is a clear difference to template matching as both the const and non-const types match the typemap:
+</p>
+
+<div class="code">
+<pre>
+int &amp;             // matches non-default typemap int &amp;
+int *const&amp;
+int const*const&amp;
+int const&amp;        // matches non-default typemap int &amp;
+</pre>
+</div>
+
+<p>
+There are other subtle differences such as typedef handling, but at least it should be clear that the typemap matching rules
+are similar to those for specialized template handling.
+</p>
+
+
+<H3><a name="Typemaps_debugging_search"></a>10.3.6 Debugging typemap pattern matching</H3>
 
 
 <p>

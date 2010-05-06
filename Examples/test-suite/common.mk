@@ -387,12 +387,14 @@ CPP_TEST_CASES += \
 	typedef_scope \
 	typedef_sizet \
 	typedef_struct \
+	typemap_delete \
 	typemap_global_scope \
 	typemap_namespace \
 	typemap_ns_using \
 	typemap_numinputs \
 	typemap_template \
 	typemap_out_optimal \
+	typemap_qualifier_strip \
 	typemap_variables \
 	typemap_various \
 	typename \
