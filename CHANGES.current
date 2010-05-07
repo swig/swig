@@ -1,6 +1,10 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-07: wsfulton
+            Apply patch #2955146 from Sergey Satskiy to fix expressions containing divide by
+            operator in constructor initialization lists.
+
 2010-05-05: wsfulton
             [R] Memory leak fix handling const std::string & inputs, reported by Will Nolan.
 

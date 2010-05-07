@@ -193,6 +193,7 @@ CPP_TEST_CASES += \
 	extern_c \
 	extern_namespace \
 	extern_throws \
+	expressions \
 	features \
 	fragments \
 	friends \
