@@ -1,6 +1,10 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-09: drjoe
+            Fix bug reported by Wil Nolan change creation of string so
+            that R 2.7.0+ can use char hashes
+
 2010-05-07: wsfulton
             Apply patch #2955146 from Sergey Satskiy to fix expressions containing divide by
             operator in constructor initialization lists.
