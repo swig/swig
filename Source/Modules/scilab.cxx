@@ -75,7 +75,11 @@ public:
     String *module = Getattr(n, "name");
     
     /* One output file for as the wrapper file */
-    String *outfile = Getattr(n, "outfile");
+    String *outfile;
+    if (CPlusPlus)
+      outfile= NewStringf("%s%s_wrap.cxx", SWIG_output_directory(), module);
+    else
+      outfile= NewStringf("%s%s_wrap.c", SWIG_output_directory(), module);
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     
     /* Initialize the output files */
@@ -113,7 +117,10 @@ public:
    
     /* Initialize the builder.sce file code */
     Printf(f_builder_code, "ilib_name = \"%slib\";\n", module);
-    Printf(f_builder_code, "files = [\"%s\", \"%s.o\"];\n", outfile, module);
+    if (CPlusPlus)
+      Printf(f_builder_code, "files = [\"%s_wrap.cxx\",];\n", module);
+    else
+      Printf(f_builder_code, "files = [\"%s_wrap.c\"];\n", module);
     Printf(f_builder_code, "libs = [];\n");
     Printf(f_builder_code, "table = ["); 
 
