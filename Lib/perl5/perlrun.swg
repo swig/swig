@@ -9,14 +9,10 @@
 /* Common SWIG API */
 
 /* for raw pointers */
-#define SWIG_ConvertPtr(obj, pp, type, flags) \
-    SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, flags, 0)
-#define SWIG_ConvertPtrAndOwn(obj, pp, type, flags, own) \
-    SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, flags, own)
-#define SWIG_NewPointerObjP(ptr, t, flags) \
-    SWIG_Perl_MakePtr(0, ptr, t, flags, arg1)
-#define SWIG_NewPointerObj(ptr, t, flags) \
-    SWIG_Perl_MakePtr(0, ptr, t, flags, 0)
+#define SWIG_ConvertPtr(obj, pp, type, flags)           SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, flags, 0)
+#define SWIG_ConvertPtrAndOwn(obj, pp, type, fl, own)   SWIG_Perl_ConvertPtrAndOwn(obj, pp, type, fl, own)
+#define SWIG_NewPointerObjP(ptr, t, flags)              SWIG_Perl_MakePtr(0, ptr, t, flags, arg1)
+#define SWIG_NewPointerObj(ptr, t, flags)               SWIG_Perl_MakePtr(0, ptr, t, flags, 0)
 
 /* for raw packed data */
 #define SWIG_ConvertPacked(obj, p, s, type)             SWIG_Perl_ConvertPacked(obj, p, s, type)
@@ -53,11 +49,6 @@
 #define SWIG_MakePackedObj(sv, p, s, type)              SWIG_Perl_MakePackedObj(sv, p, s, type)
 #define SWIG_SetError(str)                              SWIG_Error(SWIG_RuntimeError, str)
 
-
-#define SWIG_PERL_DECL_ARGS_1(arg1)                     (arg1)
-#define SWIG_PERL_CALL_ARGS_1(arg1)                     (arg1)
-#define SWIG_PERL_DECL_ARGS_2(arg1, arg2)               (arg1, arg2)
-#define SWIG_PERL_CALL_ARGS_2(arg1, arg2)               (arg1, arg2)
 
 /* -----------------------------------------------------------------------------
  * pointers/data manipulation
@@ -163,10 +154,12 @@ static void SWIG_croak_null()
 #include <stdlib.h>
 
 #define SWIG_PERL_RUNTIME_KEY "swig_runtime_data:" SWIG_RUNTIME_VERSION
+
 typedef struct swig_perl_module_info {
   HV *wrap_cache;
   swig_module_info *module_info;
 } swig_perl_module_info;
+
 SWIGINTERN swig_perl_module_info *
 SWIG_Perl_RuntimeData(void) {
   static swig_perl_module_info *ptr = 0;
@@ -184,7 +177,9 @@ typedef struct swig_perl_type_ext_var {
   const char *name;
   MGVTBL vtbl;
 } swig_perl_type_ext_var;
+
 typedef struct swig_perl_wrap swig_perl_wrap;
+
 typedef struct swig_perl_type_ext {
   const char *name;
   MGVTBL vtbl;
@@ -192,6 +187,7 @@ typedef struct swig_perl_type_ext {
   const int nattr;
   swig_perl_type_ext_var *attr;
 } swig_perl_type_ext;
+
 struct swig_perl_wrap {
   HV *stash;
   void *ptr;
@@ -225,12 +221,14 @@ SWIGINTERN HV *SWIG_Perl_WrapTbl(HV *stash) {
   if (!SvOK(sv)) SWIG_Perl_sv_setref(sv, (SV *)newHV(), 0);
   return (HV *)SvRV(sv);
 }
+
 SWIGINTERN SV *SWIG_Perl_LookupPtr(HV *stash, void *ptr) {
   HE *ent = hv_fetch_ent(SWIG_Perl_WrapTbl(stash),
       sv_2mortal(newSViv(PTR2IV(ptr))), 0, 0);
   /*warn("lookup(%s:%p) %s\n", HvNAME(stash), ptr, ent ? "hit" : "miss");*/
   return ent ? HeVAL(ent) : 0;
 }
+
 SWIGINTERN void SWIG_Perl_RememberPtr(swig_perl_wrap *wrap, SV *impl) {
   SV *ref = newSVsv(impl);
   sv_rvweaken(ref);
@@ -238,6 +236,7 @@ SWIGINTERN void SWIG_Perl_RememberPtr(swig_perl_wrap *wrap, SV *impl) {
   hv_store_ent(SWIG_Perl_WrapTbl(wrap->stash),
     sv_2mortal(newSViv(PTR2IV(wrap->ptr))), ref, 0);
 }
+
 SWIGINTERN void SWIG_Perl_ForgetPtr(swig_perl_wrap *wrap) {
   /*warn("delete(%s:%p:%d)\n", HvNAME(wrap->stash), wrap->ptr, wrap->refcnt);*/
   hv_delete_ent(SWIG_Perl_WrapTbl(wrap->stash),
@@ -250,6 +249,7 @@ SWIGINTERN void SWIG_Perl_ForgetPtr(swig_perl_wrap *wrap) {
     if (ext->destroy) ext->destroy(wrap);
   }
 }
+
 SWIGINTERN int
 SWIG_Perl_vtbl_svt_free(pTHX_ SV *sv, MAGIC *mg) {
   swig_perl_wrap *wrap = (swig_perl_wrap *)mg->mg_ptr;
@@ -262,10 +262,13 @@ SWIG_Perl_vtbl_svt_free(pTHX_ SV *sv, MAGIC *mg) {
   }
   return 0;
 }
-#define SWIG_Perl_VTBL(getf, setf) \
-  { getf, setf, 0, 0, SWIG_Perl_vtbl_svt_free }
+
 SWIGINTERN MGVTBL
 SWIG_Perl_default_vtbl = { 0, 0, 0, 0, SWIG_Perl_vtbl_svt_free };
+
+#define SWIG_Perl_VTBL(getf, setf) \
+  { getf, setf, 0, 0, SWIG_Perl_vtbl_svt_free }
+
 #define SWIG_Perl_TypeExt(name, destructor, count, attrlist) \
   { name, SWIG_Perl_VTBL(0, 0), destructor, count, attrlist }
 
@@ -383,11 +386,18 @@ SWIG_Perl_WrapVar(SV *sv, MGVTBL *vtbl, swig_perl_wrap *wrap) {
 }
 
 #if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 9)
+#  define PERL_SWIG_PSEUDOHASH 0
+#else
+#  define PERL_SWIG_PSEUDOHASH 1
+#endif
+
+#if PERL_SWIG_PSEUDOHASH
+#else /* PERL_SWIG_PSEUDOHASH */
 SWIGINTERN void
 SWIG_Perl_FindFields(HV *hv, SV *proto, swig_type_info *t) {
-  /* this is analagous to fields::_accessible_keys() looking to populate
-   * the placeholders into empty slots in the hash that is about to be
-   * locked. */
+  /* this is a helper function for MakePtr, it is analagous to
+   * fields::_accessible_keys() looking to populate the placeholders
+   * into empty slots in the hash that is about to be locked. */
   IV i;
   SV *tmp;
   AV *isa;
@@ -407,7 +417,8 @@ SWIG_Perl_FindFields(HV *hv, SV *proto, swig_type_info *t) {
   if (isa) for (i = 0; i < av_len(isa); i++)
     SWIG_Perl_FindFields(hv, *(av_fetch(isa, i, 0)), t);
 }
-#endif
+#endif /* PERL_SWIG_PSEUDOHASH */
+
 SWIGINTERN SV *
 SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
     SV *proto) {
@@ -456,7 +467,11 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
      * The good points are compelling for SWIG users, the bad points
      * complicate this wrapper, but it's managable.
      */
-# if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 9)
+#if PERL_SWIG_PSEUDOHASH
+    SWIG_Perl_sv_setref(sv, (SV *)newAV(), gv_stashsv(proto, GV_ADD));
+    av_store((AV *)SvRV(sv), 0, newRV_inc((SV *)get_hv(SvPV_nolen(
+      sv_2mortal(newSVpvf("%s::FIELDS", SvPV_nolen(proto)))), TRUE)));
+#else /* PERL_SWIG_PSEUDOHASH */ 
     /* this is compatible with the base.pm and fields.pm pragmas.
      * we end up having to assume some of the guts of fields::new() and
      * Hash::Util::lock_keys() to accomplish this without a call into
@@ -464,25 +479,21 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
      */
     SWIG_Perl_sv_setref(sv, (SV *)newHV(), gv_stashsv(proto, GV_ADD));
     SWIG_Perl_FindFields((HV *)SvRV(sv), proto, t);
-# else
-    SWIG_Perl_sv_setref(sv, (SV *)newAV(), gv_stashsv(proto, GV_ADD));
-    av_store((AV *)SvRV(sv), 0, newRV_inc((SV *)get_hv(SvPV_nolen(
-      sv_2mortal(newSVpvf("%s::FIELDS", SvPV_nolen(proto)))), TRUE)));
-# endif
+#endif /* PERL_SWIG_PSEUDOHASH */ 
     /* populate wrap accessors for attributes coming from c++ */
     if (ext->attr) { /* populate object attribute stubs */
       int i;
       for (i = 0; i < ext->nattr; i++) {
         SV *k = sv_2mortal(newSVpv(ext->attr[i].name, 0));
         SV *v = SWIG_Perl_WrapVar(newSV(0), &ext->attr[i].vtbl, wrap);
-#if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 9)
-        hv_store_ent((HV *)SvRV(sv), k, v, 0);
-#else
+#if PERL_SWIG_PSEUDOHASH
         avhv_store_ent((AV *)SvRV(sv), k, v, 0);
-#endif
+#else /* PERL_SWIG_PSEUDOHASH */ 
+        hv_store_ent((HV *)SvRV(sv), k, v, 0);
+#endif /* PERL_SWIG_PSEUDOHASH */ 
       }
     }
-#if PERL_REVISION > 5 || (PERL_REVISION == 5 && PERL_VERSION >= 9)
+#if !PERL_SWIG_PSEUDOHASH
     SvREADONLY_on(SvRV(sv));
 #endif
   } else {
@@ -490,10 +501,8 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
   }
   sv_magicext(SvRV(sv), 0, PERL_MAGIC_ext, &SWIG_Perl_default_vtbl, (char *)wrap, 0);
 #if 0
-      /*warn("WrapNative(0x%p, \"%s\")\n", ptr, SWIG_Perl_TypeProxyName(t));*/
-      /* sv_dump(sv);
-      do_sv_dump(0, Perl_debug_log, sv, 0, 4, 0, 0);
-      warn("}");*/
+  warn("WrapNative(0x%p, \"%s\")\n", ptr, SWIG_Perl_TypeProxyName(t));
+  do_sv_dump(0, Perl_debug_log, sv, 0, 4, 0, 0);
 #endif
   SWIG_Perl_RememberPtr(wrap, sv);
   return sv;
@@ -631,6 +640,3 @@ XS(SWIG_Perl_This) {
 #ifdef __cplusplus
 }
 #endif
-/* -*- mode: c++; c-basic-offset: 2; indent-tabs-mode: nil; -*-
- *  vim:expandtab:shiftwidth=2:tabstop=8:smarttab:ft=cpp
- */

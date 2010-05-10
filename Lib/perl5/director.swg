@@ -192,6 +192,3 @@ namespace Swig {
 }
 
 #endif /* __cplusplus */
-/* -*- mode: c++; c-basic-offset: 2; indent-tabs-mode: nil; -*-
- *  vim:expandtab:shiftwidth=2:tabstop=8:smarttab:ft=cpp
- */

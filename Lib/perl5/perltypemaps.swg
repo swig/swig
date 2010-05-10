@@ -6,18 +6,6 @@
  *  Fragment section
  * ------------------------------------------------------------ */
 
-/*
-  in Perl we need to pass the CPerlObj value, sometimes, so, we define
-  the decl/call macros as needed.
-*/
-
-#define SWIG_AS_DECL_ARGS SWIG_PERL_DECL_ARGS_2
-#define SWIG_AS_CALL_ARGS SWIG_PERL_CALL_ARGS_2
-
-#define SWIG_FROM_DECL_ARGS  SWIG_PERL_DECL_ARGS_1
-#define SWIG_FROM_CALL_ARGS  SWIG_PERL_CALL_ARGS_1
-
-
 /* Include fundamental fragemt definitions */
 %include <typemaps/fragments.swg>
 

@@ -58,7 +58,7 @@ static String *module = 0;
  *   the same as module, above, unless the %module directive is given
  *   the 'package' option, e.g. %module(package="Foo::Bar") "baz"
  */
-static String       *namespace_module = 0;
+static String *namespace_module = 0;
 
 /*
  * dest_package
@@ -88,12 +88,11 @@ static int blessed = 1;		/* Enable object oriented features */
 static int do_constants = 0;	/* Constant wrapping */
 static List *classlist = 0;	/* List of classes */
 
-static Node *CurrentClass = 0;    /* class currently being processed */
+static Node *CurrentClass = 0;	/* class currently being processed */
 #define ClassName       Getattr(CurrentClass, "sym:name")
 static Hash *mangle_seen = 0;
 
 static String *pcode = 0;	/* Perl code associated with each class */
-						  /* static  String   *blessedmembers = 0;     *//* Member data associated with each class */
 static String *const_stubs = 0;	/* Constant stubs */
 static int num_consts = 0;	/* Number of constants */
 static String *var_stubs = 0;	/* Variable stubs */
@@ -103,7 +102,8 @@ static String *additional_perl_code = 0;	/* Additional Perl code from %perlcode 
 
 static Hash *operators;
 static void add_operator(const char *name, const char *oper, const char *impl) {
-  if (!operators) operators = NewHash();
+  if (!operators)
+    operators = NewHash();
   Hash *elt = NewHash();
   Setattr(elt, "name", name);
   Setattr(elt, "oper", oper);
@@ -123,67 +123,42 @@ public:
     director_multiple_inheritance = 0;
     director_language = 1;
     director_prot_ctor_code = Copy(director_ctor_code);
-    Replaceall(director_prot_ctor_code, "$nondirector_new",
-        "SWIG_croak(\"$symname is not a public method\");");
-    add_operator("__eq__", "==",
-        "sub { $_[0]->__eq__($_[1]) }");
-    add_operator("__ne__", "!=",
-        "sub { $_[0]->__ne__($_[1]) }");
-    add_operator("__assign__", "=",
-        "sub { $_[0]->__assign__($_[1]) }"); // untested
-    add_operator("__str__", "\"\"",
-        "sub { $_[0]->__str__() }");
-    add_operator("__plusplus__", "++",
-        "sub { $_[0]->__plusplus__() }");
-    add_operator("__minmin__", "--",
-        "sub { $_[0]->__minmin__() }");
-    add_operator("__add__", "+",
-        "sub { $_[0]->__add__($_[1]) }");
+    Replaceall(director_prot_ctor_code, "$nondirector_new", "SWIG_croak(\"$symname is not a public method\");");
+    add_operator("__eq__", "==", "sub { $_[0]->__eq__($_[1]) }");
+    add_operator("__ne__", "!=", "sub { $_[0]->__ne__($_[1]) }");
+    add_operator("__assign__", "=", "sub { $_[0]->__assign__($_[1]) }");	// untested
+    add_operator("__str__", "\"\"", "sub { $_[0]->__str__() }");
+    add_operator("__plusplus__", "++", "sub { $_[0]->__plusplus__() }");
+    add_operator("__minmin__", "--", "sub { $_[0]->__minmin__() }");
+    add_operator("__add__", "+", "sub { $_[0]->__add__($_[1]) }");
     add_operator("__sub__", "-",
-        "sub {\n"
-        "    return $_[0]->__sub__($_[1]) unless $_[2];\n"
-        "    return $_[0]->__rsub__($_[1]) if $_[0]->can('__rsub__');\n"
-        "    die(\"reverse subtraction not supported\");\n"
-        "  }");
-    add_operator("__mul__", "*",
-        "sub { $_[0]->__mul__($_[1]) }");
-    add_operator("__div__", "/",
-        "sub { $_[0]->__div__($_[1]) }");
-    add_operator("__mod__", "%",
-        "sub { $_[0]->__mod__($_[1]) }");
-    add_operator("__and__", "&",
-        "sub { $_[0]->__and__($_[1]) }"); // untested
-    add_operator("__or__", "|",
-        "sub { $_[0]->__or__($_[1]) }"); // untested
-    add_operator("__gt__", ">",
-        "sub { $_[0]->__gt__($_[1]) }");
-    add_operator("__ge__", ">=",
-        "sub { $_[0]->__ge__($_[1]) }");
-    add_operator("__not__", "!",
-        "sub { $_[0]->__not__() }");
-    add_operator("__lt__", "<",
-        "sub { $_[0]->__lt__($_[1]) }");
-    add_operator("__le__", "<=",
-        "sub { $_[0]->__le__($_[1]) }");
-    add_operator("__pluseq__",
-        "+=", "sub { $_[0]->__pluseq__($_[1]) }");
-    add_operator("__mineq__",
-        "-=", "sub { $_[0]->__mineq__($_[1]) }");
-    add_operator("__neg__",
-        "neg",  "sub { $_[0]->__neg__() }");
-    add_operator("__deref__",
-        "${}", "sub { \\ $_[0]->__deref__() }"); // smart pointer unwrap
-  }
-  ~PERL5() {
+		 "sub {\n"
+		 "    return $_[0]->__sub__($_[1]) unless $_[2];\n"
+		 "    return $_[0]->__rsub__($_[1]) if $_[0]->can('__rsub__');\n" "    die(\"reverse subtraction not supported\");\n" "  }");
+    add_operator("__mul__", "*", "sub { $_[0]->__mul__($_[1]) }");
+    add_operator("__div__", "/", "sub { $_[0]->__div__($_[1]) }");
+    add_operator("__mod__", "%", "sub { $_[0]->__mod__($_[1]) }");
+    add_operator("__and__", "&", "sub { $_[0]->__and__($_[1]) }");	// untested
+    add_operator("__or__", "|", "sub { $_[0]->__or__($_[1]) }");	// untested
+    add_operator("__gt__", ">", "sub { $_[0]->__gt__($_[1]) }");
+    add_operator("__ge__", ">=", "sub { $_[0]->__ge__($_[1]) }");
+    add_operator("__not__", "!", "sub { $_[0]->__not__() }");
+    add_operator("__lt__", "<", "sub { $_[0]->__lt__($_[1]) }");
+    add_operator("__le__", "<=", "sub { $_[0]->__le__($_[1]) }");
+    add_operator("__pluseq__", "+=", "sub { $_[0]->__pluseq__($_[1]) }");
+    add_operator("__mineq__", "-=", "sub { $_[0]->__mineq__($_[1]) }");
+    add_operator("__neg__", "neg", "sub { $_[0]->__neg__() }");
+    add_operator("__deref__", "${}", "sub { \\ $_[0]->__deref__() }");	// smart pointer unwrap
+  } ~PERL5() {
     Delete(director_prot_ctor_code);
     Delete(operators);
   }
 
-  /* Test to see if a type corresponds to something wrapped with a shadow class */
+  /* Test to see if a type corresponds to a proxy handled class */
   Node *is_shadow(SwigType *t) {
     Node *n;
+
     n = classLookup(t);
-    /*  Printf(stdout,"'%s' --> '%x'\n", t, n); */
     if (n) {
       if (!Getattr(n, "perl5:proxy")) {
 	setclassname(n);
@@ -192,11 +167,13 @@ public:
     }
     return 0;
   }
+
   /* Test to see if a type corresponds to a director handled class */
   Node *is_directortype(SwigType *t) {
-    Node *n = classLookup(t);
-    if (!n) return 0;
-    return Swig_directorclass(n) ? n : 0;
+    Node *n;
+
+    n = classLookup(t);
+    return n && Swig_directorclass(n) ? n : 0;
   }
 
   /* ------------------------------------------------------------
@@ -353,17 +330,18 @@ public:
 
     if (options) {
       if (Getattr(options, "directors"))
-        allow_directors();
+	allow_directors();
       if (Getattr(options, "dirprot"))
-        allow_dirprot();
+	allow_dirprot();
     }
     if (directorsEnabled()) {
       Append(f_runtime, "#define SWIG_DIRECTORS\n");
       Swig_banner(f_director_h);
       Append(f_director,
-          "/* ---------------------------------------------------\n"
-          " * C++ director class methods\n"
-          " * --------------------------------------------------- */\n\n");
+	  "/* ---------------------------------------------------\n"
+	  " * C++ director class methods\n"
+	  " * --------------------------------------------------- */\n"
+	  "\n");
     }
 
     /* Create a .pm file
@@ -496,7 +474,7 @@ public:
       Dump(f_director, f_begin);
       Delete(f_director_h);
       Delete(f_director);
-      f_director_h = 0; 
+      f_director_h = 0;
       f_director = 0;
     }
     Dump(f_wrappers, f_begin);
@@ -562,13 +540,13 @@ public:
        * and that musses our usage_func(), so let's fix that.
        */
       if (CurrentClass) {
-        String *tmp = NewStringf("disown_%s", ClassName);
-        if (Equal(iname, tmp)) {
-          pname = NewStringf("%s::_swig_disown", ClassName);
-          Setattr(n, "perl5:name", NewStringf("%s::disown", ClassName));
-          Setattr(Getattr(n, "parms"), "hidden", "1");
-        }
-        Delete(tmp);
+	String *tmp = NewStringf("disown_%s", ClassName);
+	if (Equal(iname, tmp)) {
+	  pname = NewStringf("%s::_swig_disown", ClassName);
+	  Setattr(n, "perl5:name", NewStringf("%s::disown", ClassName));
+	  Setattr(Getattr(n, "parms"), "hidden", "1");
+	}
+	Delete(tmp);
       }
     }
 
@@ -583,9 +561,7 @@ public:
     }
     Setattr(n, "wrap:name", wname);
     if (GetFlag(n, "perl5:destructor")) {
-      Printv(f->def,
-          "SWIGCLASS_STATIC void ", wname, "(swig_perl_wrap *wrap) {\n",
-          NIL);
+      Printv(f->def, "SWIGCLASS_STATIC void ", wname, "(swig_perl_wrap *wrap) {\n", NIL);
       emit_parameter_variables(l, f);
       emit_return_variable(n, d, f);
       emit_attach_parmmaps(l, f);
@@ -594,22 +570,18 @@ public:
       Replaceall(tm, "$disown", "SWIG_POINTER_WR");
       emit_action_code(n, f->code, tm);
       l = nextSibling(l);
-        String *actioncode = emit_action(n);
-        Append(f->code, actioncode);
+      String *actioncode = emit_action(n);
+      Append(f->code, actioncode);
 
-      Append(f->code,
-          "fail:\n" /* this actually can't ever fail in this context */
-          "  return;\n"
-          "}");
+      Append(f->code, "fail:\n"	/* this actually can't ever fail in this context */
+	     "  return;\n" "}");
       Wrapper_print(f, f_wrappers);
       DelWrapper(f);
       return SWIG_OK;
     }
     if (GetFlag(n, "perl5:instancevariable")) {
       int addfail = 1;
-      Printv(f->def,
-          "SWIGCLASS_STATIC int ", wname, "(pTHX_ SV *sv, MAGIC *mg) {\n",
-          NIL);
+      Printv(f->def, "SWIGCLASS_STATIC int ", wname, "(pTHX_ SV *sv, MAGIC *mg) {\n", NIL);
       Wrapper_add_local(f, "argvi", "int argvi = 0");
       emit_parameter_variables(l, f);
       emit_return_variable(n, d, f);
@@ -623,50 +595,41 @@ public:
       l = nextSibling(l);
 
       if (SwigType_type(d) == T_VOID) {
-        Setattr(n, "perl5:setter", wname);
-        tm = Getattr(l, "tmap:in");
-        if (!tm) {
-          Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to set an attribute of type %s.\n",
-              SwigType_str(Getattr(l, "type"), 0));
-          return SWIG_NOWRAP;
-        }
-        Replaceall(tm, "$input", "sv");
-        Replaceall(tm, "$disown", "0"); /* TODO: verify this */
-        Swig_director_emit_dynamic_cast(n, f);
-        emit_action_code(n, f->code, tm);
-        emit_action_code(n, f->code, Getattr(n, "wrap:action"));
-        addfail = 1;
+	Setattr(n, "perl5:setter", wname);
+	tm = Getattr(l, "tmap:in");
+	if (!tm) {
+	  Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to set an attribute of type %s.\n", SwigType_str(Getattr(l, "type"), 0));
+	  return SWIG_NOWRAP;
+	}
+	Replaceall(tm, "$input", "sv");
+	Replaceall(tm, "$disown", "0");	/* TODO: verify this */
+	Swig_director_emit_dynamic_cast(n, f);
+	emit_action_code(n, f->code, tm);
+	emit_action_code(n, f->code, Getattr(n, "wrap:action"));
+	addfail = 1;
       } else {
-        Setattr(n, "perl5:getter", wname);
-        Swig_director_emit_dynamic_cast(n, f);
-        String *actioncode = emit_action(n);
-        SwigType *t = Getattr(n, "type");
-        tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
-        if (!tm) {
-          Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to get an attribute of type %s.\n",
-              SwigType_str(t, 0), name);
-          return SWIG_NOWRAP;
-        }
-        Wrapper_add_local(f, "dest", "SV *dest");
-        Replaceall(tm, "$result", "dest");
-        //Replaceall(tm, "$source", "result");
-        //Replaceall(tm, "$target", "ST(argvi)");
-        //Replaceall(tm, "$result", "ST(argvi)");
-        Replaceall(tm, "$owner", "0");
-        Printv(f->code,
-            tm, "\n",
-            "SvSetSV(sv, dest);\n", NIL);
+	Setattr(n, "perl5:getter", wname);
+	Swig_director_emit_dynamic_cast(n, f);
+	String *actioncode = emit_action(n);
+	SwigType *t = Getattr(n, "type");
+	tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+	if (!tm) {
+	  Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to get an attribute of type %s.\n", SwigType_str(t, 0), name);
+	  return SWIG_NOWRAP;
+	}
+	Wrapper_add_local(f, "dest", "SV *dest");
+	Replaceall(tm, "$result", "dest");
+	//Replaceall(tm, "$source", "result");
+	//Replaceall(tm, "$target", "ST(argvi)");
+	//Replaceall(tm, "$result", "ST(argvi)");
+	Replaceall(tm, "$owner", "0");
+	Printv(f->code, tm, "\n", "SvSetSV(sv, dest);\n", NIL);
       }
-      Append(f->code,
-          "return 0;\n");
+      Append(f->code, "return 0;\n");
       if (addfail) {
-        Append(f->code,
-            "fail:\n"
-            "croak(Nullch);\n"
-            "return 0;\n");
+	Append(f->code, "fail:\n" "croak(Nullch);\n" "return 0;\n");
       }
-      Append(f->code,
-          "}");
+      Append(f->code, "}");
       Wrapper_print(f, f_wrappers);
       DelWrapper(f);
       return SWIG_OK;
@@ -688,17 +651,13 @@ public:
 
     /* Check the number of arguments */
     if (!varargs) {
-      Printf(f->code, "    if ((items < %d) || (items > %d)) {\n",
-        num_required, num_arguments);
+      Printf(f->code, "    if ((items < %d) || (items > %d)) {\n", num_required, num_arguments);
     } else {
-      Printf(f->code, "    if (items < %d) {\n",
-        num_required);
+      Printf(f->code, "    if (items < %d) {\n", num_required);
     }
     {
       String *usage = usage_func(n);
-      Printf(f->code,
-          "        SWIG_croak(\"Usage: %s\");\n"
-          "}\n", usage);
+      Printf(f->code, "        SWIG_croak(\"Usage: %s\");\n" "}\n", usage);
       Delete(usage);
     }
 
@@ -811,21 +770,15 @@ public:
     if (is_member_director(n) && !is_smart_pointer()) {
       Wrapper_add_local(f, "upcall", "bool upcall");
       Append(f->code,
-          "{\n"
-          "  Swig::Director *director = dynamic_cast<Swig::Director *>(arg1);\n"
-          "  if (director) {\n"
-          "    upcall = SvSTASH(SvRV(ST(0))) == SvSTASH(SvRV(director->getSelf()));\n"
-          "  } else {\n");
+	     "{\n"
+	     "  Swig::Director *director = dynamic_cast<Swig::Director *>(arg1);\n"
+	     "  if (director) {\n" "    upcall = SvSTASH(SvRV(ST(0))) == SvSTASH(SvRV(director->getSelf()));\n" "  } else {\n");
       if (dirprot_mode() && !is_public(n)) {
-        Append(f->code,
-            "    SWIG_croak(\"accessing protected member\");\n");
+	Append(f->code, "    SWIG_croak(\"accessing protected member\");\n");
       } else {
-        Append(f->code,
-            "    upcall = false;\n");
+	Append(f->code, "    upcall = false;\n");
       }
-      Append(f->code,
-          "  }\n"
-          "}\n");
+      Append(f->code, "  }\n" "}\n");
     }
     if (CurrentClass && Swig_directorclass(CurrentClass)) {
       Swig_require("perl5:functionWrapper", n, "?catchlist", NIL);
@@ -848,11 +801,10 @@ public:
       Replaceall(tm, "$source", "result");
       Replaceall(tm, "$target", "ST(argvi)");
       Replaceall(tm, "$result", "ST(argvi)");
-      Replaceall(tm, "$owner", GetFlag(n, "feature:new") ?
-          "SWIG_POINTER_OWN" : "0");
+      Replaceall(tm, "$owner", GetFlag(n, "feature:new") ? "SWIG_POINTER_OWN" : "0");
       /* TODO: this NewPointerObjP stuff is a hack */
       if (blessed && Equal(nodeType(n), "constructor")) {
-        Replaceall(tm, "NewPointerObj", "NewPointerObjP");
+	Replaceall(tm, "NewPointerObj", "NewPointerObjP");
       }
       Printf(f->code, "%s\n", tm);
     } else {
@@ -884,10 +836,7 @@ public:
 
     if (GetFlag(n, "feature:new") && is_directortype(d)) {
       Append(f->code,
-          "  {\n"
-          "    Swig::Director *director = dynamic_cast<Swig::Director *>(result);\n"
-          "    if (director) director->setSelf(ST(0));\n"
-          "  }\n");
+	     "  {\n" "    Swig::Director *director = dynamic_cast<Swig::Director *>(result);\n" "    if (director) director->setSelf(ST(0));\n" "  }\n");
     }
 
     Printv(f->code, "XSRETURN(argvi);\n", "fail:\n", cleanup, "SWIG_croak_null();\n" "}\n" "}\n", NIL);
@@ -910,8 +859,7 @@ public:
       /* TODO: would be very cool to use newXSproto here, but for now
        * let's just make it work using the current call signature
        * checks. */
-      Printf(f_init, "newXS((char *)\"%s::%s\", %s, (char *)__FILE__);\n",
-          namespace_module, pname, wname);
+      Printf(f_init, "newXS((char *)\"%s::%s\", %s, (char *)__FILE__);\n", namespace_module, pname, wname);
     } else if (!Getattr(n, "sym:nextSibling")) {
       /* Generate overloaded dispatch function */
       int maxargs;
@@ -930,8 +878,7 @@ public:
       Printf(df->code, "XSRETURN(0);\n");
       Printv(df->code, "}\n", NIL);
       Wrapper_print(df, f_wrappers);
-      Printf(f_init, "newXS((char *)\"%s::%s\", %s, (char *)__FILE__);\n",
-          namespace_module, pname, dname);
+      Printf(f_init, "newXS((char *)\"%s::%s\", %s, (char *)__FILE__);\n", namespace_module, pname, dname);
       DelWrapper(df);
       Delete(dispatch);
       Delete(dname);
@@ -974,26 +921,17 @@ public:
       setf = Swig_name_wrapper(tmp);
       Delete(tmp);
       Setattr(n, "wrap:name", setf);
-      Printv(f->def,
-          "SWIGCLASS_STATIC int ", setf, "(pTHX_ SV *sv, MAGIC *mg) {\n",
-          NIL);
+      Printv(f->def, "SWIGCLASS_STATIC int ", setf, "(pTHX_ SV *sv, MAGIC *mg) {\n", NIL);
       tm = Swig_typemap_lookup("varin", n, name, f);
       if (!tm) {
-        Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number,
-            "Unable to set variable of type %s.\n",
-            SwigType_str(type, 0));
-        return SWIG_NOWRAP;
+	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(type, 0));
+	return SWIG_NOWRAP;
       }
       Replaceall(tm, "$source", "sv");
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$input", "sv");
       emit_action_code(n, f->code, tm);
-      Append(f->code,
-          "  return 0;\n"
-          "fail:\n"
-          "  croak(Nullch);\n"
-          "  return 0;\n"
-          "}\n");
+      Append(f->code, "  return 0;\n" "fail:\n" "  croak(Nullch);\n" "  return 0;\n" "}\n");
       Wrapper_print(f, f_wrappers);
       DelWrapper(f);
     } else {
@@ -1007,15 +945,11 @@ public:
       Delete(tmp);
       f = NewWrapper();
       Setattr(n, "wrap:name", getf);
-      Printv(f->def,
-          "SWIGCLASS_STATIC int ", getf, "(pTHX_ SV *sv, MAGIC *mg) {\n",
-          NIL);
+      Printv(f->def, "SWIGCLASS_STATIC int ", getf, "(pTHX_ SV *sv, MAGIC *mg) {\n", NIL);
       tm = Swig_typemap_lookup("varout", n, name, f);
       if (!tm) {
-        Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number,
-            "Unable to read variable of type %s\n",
-            SwigType_str(type, 0));
-        return SWIG_NOWRAP;
+	Swig_warning(WARN_TYPEMAP_VAROUT_UNDEF, input_file, line_number, "Unable to read variable of type %s\n", SwigType_str(type, 0));
+	return SWIG_NOWRAP;
       }
       Replaceall(tm, "$target", "sv");
       Replaceall(tm, "$result", "sv");
@@ -1023,10 +957,7 @@ public:
       addfail = emit_action_code(n, f->code, tm);
       Append(f->code, "  return 0;\n");
       if (addfail) {
-        Append(f->code,
-            "fail:\n"
-            "  croak(Nullch);\n"
-            "  return 0;\n");
+	Append(f->code, "fail:\n" "  croak(Nullch);\n" "  return 0;\n");
       }
       Append(f->code, "}\n");
       Wrapper_print(f, f_wrappers);
@@ -1036,15 +967,11 @@ public:
     {
       String *vtbl = NewStringf("_swig_perl_vtbl_%s", iname);
 
-      Printf(f_wrappers,
-        "MGVTBL %s = SWIG_Perl_VTBL(%s, %s);\n",
-        vtbl, getf, setf);
+      Printf(f_wrappers, "MGVTBL %s = SWIG_Perl_VTBL(%s, %s);\n", vtbl, getf, setf);
 
       Setattr(n, "perl5:vtbl", vtbl);
 
-      Printf(f_init,
-          "SWIG_Perl_WrapVar(get_sv(\"%s::%s\", TRUE | GV_ADDMULTI), &%s, 0);\n",
-          namespace_module, pname, vtbl);
+      Printf(f_init, "SWIG_Perl_WrapVar(get_sv(\"%s::%s\", TRUE | GV_ADDMULTI), &%s, 0);\n", namespace_module, pname, vtbl);
     }
     return SWIG_OK;
   }
@@ -1124,28 +1051,29 @@ public:
     String *pname = 0;
 
     pname = Getattr(n, "perl5:name");
-    if (!pname) pname = Getattr(n, "sym:name");
+    if (!pname)
+      pname = Getattr(n, "sym:name");
 
     if (p && CurrentClass) {
       if (GetFlag(p, "arg:classref")) {
-        /* class method */
-        String *src = NewStringf("%s::", ClassName);
-        String *dst = NewStringf("%s::%s->",
-            namespace_module, ClassName);
-        pcall = NewStringf("%s(", pname);
-        Replace(pcall, src, dst, DOH_REPLACE_FIRST);
-        p = nextSibling(p);
-        Delete(src);
-        Delete(dst);
+	/* class method */
+	String *src = NewStringf("%s::", ClassName);
+	String *dst = NewStringf("%s::%s->",
+				 namespace_module, ClassName);
+	pcall = NewStringf("%s(", pname);
+	Replace(pcall, src, dst, DOH_REPLACE_FIRST);
+	p = nextSibling(p);
+	Delete(src);
+	Delete(dst);
       } else if (GetFlag(p, "hidden") && Equal(Getattr(p, "name"), "self")) {
-        String *src = NewStringf("%s::", ClassName);
-        String *dst = NewStringf("[%s::%s object]->",
-            namespace_module, ClassName);
-        pcall = NewStringf("%s(", pname);
-        Replace(pcall, src, dst, DOH_REPLACE_FIRST);
-        p = nextSibling(p);
-        Delete(src);
-        Delete(dst);
+	String *src = NewStringf("%s::", ClassName);
+	String *dst = NewStringf("[%s::%s object]->",
+				 namespace_module, ClassName);
+	pcall = NewStringf("%s(", pname);
+	Replace(pcall, src, dst, DOH_REPLACE_FIRST);
+	p = nextSibling(p);
+	Delete(src);
+	Delete(dst);
       }
     }
     if (!pcall)
@@ -1155,16 +1083,18 @@ public:
     for (int i = 0; p; p = nextSibling(p)) {
       SwigType *pt = Getattr(p, "type");
       String *pn = Getattr(p, "name");
-      if (checkAttribute(p, "tmap:in:numinputs", "0")) continue;
+      if (checkAttribute(p, "tmap:in:numinputs", "0"))
+	continue;
 
-      if (i > 0) Append(pcall, ",");
+      if (i > 0)
+	Append(pcall, ",");
       /* If parameter has been named, use that.   Otherwise, just print a type  */
       if (SwigType_type(pt) != T_VOID) {
-        if (Len(pn) > 0) {
-          Append(pcall, pn);
-        } else {
-          Append(pcall, SwigType_str(pt, 0));
-        }
+	if (Len(pn) > 0) {
+	  Append(pcall, pn);
+	} else {
+	  Append(pcall, SwigType_str(pt, 0));
+	}
       }
       i = 1;
     }
@@ -1186,8 +1116,7 @@ public:
     /* %native, used to drop hand coded XS directly into .i files, does
      * not apply to classes, thus no "perl5:name" attribute will ever be
      * present. */
-    Printf(f_init, "newXS((char *)\"%s::%s\", %s, (char *)__FILE__);\n",
-        namespace_module, iname, wname);
+    Printf(f_init, "newXS((char *)\"%s::%s\", %s, (char *)__FILE__);\n", namespace_module, iname, wname);
 
     if (export_all)
       Printf(exported, "%s ", iname);
@@ -1287,7 +1216,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classHandler(Node *n) {
-    String *name = 0; /* Real name of C/C++ class */
+    String *name = 0;		/* Real name of C/C++ class */
     String *fullclassname = 0;
     String *outer_nc = 0;
 
@@ -1308,8 +1237,7 @@ public:
       }
 
       outer_nc = none_comparison;
-      none_comparison = NewStringf("strNE(SvPV_nolen(ST(0)), \"%s\") && "
-          "sv_derived_from(ST(0), \"%s\")", fullclassname, fullclassname);
+      none_comparison = NewStringf("strNE(SvPV_nolen(ST(0)), \"%s\") && " "sv_derived_from(ST(0), \"%s\")", fullclassname, fullclassname);
 
       name = Getattr(n, "name");
       pcode = NewString("");
@@ -1318,122 +1246,122 @@ public:
 
     /* Emit all of the members */
     int rv = Language::classHandler(n);
-    if (rv != SWIG_OK) return rv;
+
+    if (rv != SWIG_OK)
+      return rv;
 
 
     /* Finish the rest of the class */
     if (blessed) {
-      Printv(pm, "\n",
-          "############# Class : ", fullclassname, " ##############\n",
-          "package ", fullclassname, ";\n", NIL);
+      Printv(pm, "\n", "############# Class : ", fullclassname, " ##############\n", "package ", fullclassname, ";\n", NIL);
 
       /* tell interpreter about class inheritance */
       List *baselist = Getattr(n, "bases");
       if (baselist && Len(baselist)) {
-        int begun = 0;
-        for (Iterator b = First(baselist); b.item; b = Next(b)) {
-          String *bname = Getattr(b.item, "perl5:proxy");
-          if (!bname)
-            continue;
-          Printv(pm, (begun ? ", '" : "use base '"), bname, "'", NIL);
-          begun = 1;
-        }
-        if (begun) Append(pm, ";\n");
+	int begun = 0;
+	for (Iterator b = First(baselist); b.item; b = Next(b)) {
+	  String *bname = Getattr(b.item, "perl5:proxy");
+	  if (!bname)
+	    continue;
+	  Printv(pm, (begun ? ", '" : "use base '"), bname, "'", NIL);
+	  begun = 1;
+	}
+	if (begun)
+	  Append(pm, ";\n");
       }
 
       /* tell interpreter about class attributes */
       {
-        SwigType *ct = Copy(name);
-        String *mang;
+	SwigType *ct = Copy(name);
+	String *mang;
 
-        SwigType_add_pointer(ct);
-        mang = SwigType_manglestr(ct);
-        /* mangle_seen is to avoid emitting type information for types
-         * SwigType_remember_clientdata does not consider to be
-         * different, it's a hack.  I think the problem this workaround
-         * is needed for is in typesys/symbol management. */
-        if (!mangle_seen) mangle_seen = NewHash();
-        if (!Getattr(mangle_seen, mang)) {
+	SwigType_add_pointer(ct);
+	mang = SwigType_manglestr(ct);
+	/* mangle_seen is to avoid emitting type information for types SwigType_remember_clientdata does not consider to be different, it's a hack.  I
+	 * think the problem this workaround is needed for is in typesys/symbol management. */
+	if (!mangle_seen)
+	  mangle_seen = NewHash();
+	if (!Getattr(mangle_seen, mang)) {
+	  /* declare attribute bindings */
+	  int nattr = 0;
+	  int nfield = 0;
+	  List *bases = Getattr(n, "bases");
 
-        /* declare attribute bindings */
-        int nattr = 0;
-        int nfield = 0;
-        List *bases = Getattr(n, "bases");
-        if (bases) bases = Copy(bases);
-        else       bases = NewList();
-        Insert(bases, 0, n);
-        Printv(pm, "use fields (", NIL);
-        for (int i = Len(bases); i > 0; i--) {
-          Node *iclass = Getitem(bases, i - 1);
-          for (Iterator j = First(Getattr(iclass,
-              "perl5:memberVariables")); j.item; j = Next(j)) {
-            Node *ch = j.item;
-            /* XS side */
-            String *vtbl = Getattr(ch, "perl5:vtbl");
-            if (vtbl) {
-              vtbl = Copy(vtbl);
-            } else {
-              String *getf = Getattr(ch, "perl5:getter");
-              if (!getf) continue;
-              String *setf = Getattr(ch, "perl5:setter");
-              vtbl = NewStringf("SWIG_Perl_VTBL(%s, %s)",
-                  getf, setf ? setf : "0");
-            }
-            String *chn = Getattr(ch, "sym:name");
-            if (nattr == 0) {
-              Printv(f_wrappers, "static swig_perl_type_ext_var "
-                  "_swigt_ext_var_", mang, "[] = {\n", NIL);
-            } else {
-              Append(f_wrappers, ",\n");
-            }
-            Printf(f_wrappers,
-                "  { \"%s\", %s }", chn, vtbl);
-            Delete(vtbl);
-            nattr++;
-            /* Perl side */
-            if (iclass == n || Strncmp(chn, "_", 1) == 0) {
-              /* fields.pm handles leading underscore a bit special */
-              if (nfield)
-                Append(pm, ", ");
-              Printf(pm, "'%s'", chn);
-              nfield++;
-            }
-          }
-        }
-        Append(pm, ");\n");
-        {
-          Node *destroy = Getattr(n, "perl5:destructors");
-          if (nattr) Append(f_wrappers,
-            "\n};\n");
-          Printf(f_wrappers,
-            "static swig_perl_type_ext _swigt_ext_%s = "
-            "SWIG_Perl_TypeExt(\"%s\", %s, %d, ",
-            mang,
-            fullclassname,
-            destroy ? Getattr(destroy, "wrap:name") : "0",
-            nattr);
-          if (nattr) Printf(f_wrappers,
-            "_swigt_ext_var_%s);\n\n", mang);
-          else Printf(f_wrappers,
-            "0);\n\n");
-        }
-        Delete(bases);
-        String *tmp = NewStringf("&_swigt_ext_%s", mang);
-        SwigType_remember_clientdata(ct, tmp);
-        Setattr(mangle_seen, mang, "1");
-        Delete(mang);
-        Delete(ct);
-      }}
+	  if (bases)
+	    bases = Copy(bases);
+	  else
+	    bases = NewList();
+	  Insert(bases, 0, n);
+	  Printv(pm, "use fields (", NIL);
+	  for (int i = Len(bases); i > 0; i--) {
+	    Node *iclass = Getitem(bases, i - 1);
+
+	    for (Iterator j = First(Getattr(iclass, "perl5:memberVariables")); j.item; j = Next(j)) {
+	      Node *ch = j.item;
+
+	      /* XS side */
+	      String *vtbl = Getattr(ch, "perl5:vtbl");
+	      if (vtbl) {
+		vtbl = Copy(vtbl);
+	      } else {
+		String *getf = Getattr(ch, "perl5:getter");
+		String *setf = Getattr(ch, "perl5:setter");
+
+		if (!getf)
+		  continue;
+		vtbl = NewStringf("SWIG_Perl_VTBL(%s, %s)", getf, setf ? setf : "0");
+	      }
+	      String *chn = Getattr(ch, "sym:name");
+	      if (nattr == 0) {
+		Printv(f_wrappers, "static swig_perl_type_ext_var _swigt_ext_var_", mang, "[] = {\n", NIL);
+	      } else {
+		Append(f_wrappers, ",\n");
+	      }
+	      Printv(f_wrappers, "  { \"", chn, "\", ", vtbl, " }", NIL);
+	      Delete(vtbl);
+	      nattr++;
+	      /* Perl side */
+	      if (iclass == n || Strncmp(chn, "_", 1) == 0) {
+		/* fields.pm handles leading underscore a bit special */
+		if (nfield)
+		  Append(pm, ", ");
+		Printf(pm, "'%s'", chn);
+		nfield++;
+	      }
+	    }
+	  }
+	  Append(pm, ");\n");
+	  {
+	    Node *destroy = Getattr(n, "perl5:destructors");
+	    if (nattr)
+	      Append(f_wrappers, "\n};\n");
+	    Printf(f_wrappers, "static swig_perl_type_ext _swigt_ext_%s = SWIG_Perl_TypeExt(\"%s\", %s, %d, ",
+		   mang, fullclassname, destroy ? Getattr(destroy, "wrap:name") : "0", nattr);
+	    if (nattr)
+	      Printf(f_wrappers, "_swigt_ext_var_%s);\n\n", mang);
+	    else
+	      Printf(f_wrappers, "0);\n\n");
+	  }
+	  Delete(bases);
+	  {
+	    String *tmp = NewStringf("&_swigt_ext_%s", mang);
+	    SwigType_remember_clientdata(ct, tmp);
+	    Delete(tmp);
+	  }
+	  Setattr(mangle_seen, mang, "1");
+	  Delete(mang);
+	  Delete(ct);
+	}
+      }
 
       List *opers = Getattr(n, "perl5:operators");
       if (opers) {
 	Printf(pm, "use overload\n");
 	for (Iterator ki = First(opers); ki.item; ki = Next(ki)) {
-          Printf(pm, "  '%s' => %s,\n",
-              Getattr(ki.item, "oper"), Getattr(ki.item, "impl"));
+	  Printf(pm, "  '%s' => %s,\n", Getattr(ki.item, "oper"), Getattr(ki.item, "impl"));
 	}
-        if (!Getattr(opers, "__assign__"))
-          Append(pm, "  '=' => sub { ref($_[0])->new($_[0]) },\n");
+	if (!Getattr(opers, "__assign__"))
+	  Append(pm, "  '=' => sub { ref($_[0])->new($_[0]) },\n");
 	Append(pm, "  'fallback' => 1;\n");
       }
 
@@ -1442,15 +1370,13 @@ public:
       Delete(pcode);
 
       /* bind core swig class methods */
-      Printf(f_init, "newXS((char *)\"%s::%s::_swig_this\", SWIG_Perl_This, (char *)__FILE__);\n",
-          namespace_module, ClassName);
-      Printf(f_init, "newXS((char *)\"%s::%s::_swig_own\", SWIG_Perl_Own, (char *)__FILE__);\n",
-          namespace_module, ClassName);
+      Printf(f_init, "newXS((char *)\"%s::%s::_swig_this\", SWIG_Perl_This, (char *)__FILE__);\n", namespace_module, ClassName);
+      Printf(f_init, "newXS((char *)\"%s::%s::_swig_own\", SWIG_Perl_Own, (char *)__FILE__);\n", namespace_module, ClassName);
 
       Delete(none_comparison);
       none_comparison = outer_nc;
     }
-    CurrentClass = outer_class; 
+    CurrentClass = outer_class;
     return SWIG_OK;
   }
 
@@ -1467,16 +1393,13 @@ public:
       String *pfunc = 0;
 
       if (shadow)
-        pfunc = Getattr(n, "feature:shadow");
-      pname = NewStringf("%s%s",
-          pfunc ? "_swig_" : "",
-          Equal(nodeType(n), "constructor") &&
-            Equal(symname, ClassName) ? "new" : symname);
+	pfunc = Getattr(n, "feature:shadow");
+      pname = NewStringf("%s%s", pfunc ? "_swig_" : "", Equal(nodeType(n), "constructor") && Equal(symname, ClassName) ? "new" : symname);
       if (pfunc) {
-        String *pname_ref = NewStringf("do { \\&%s }", pname);
-        Replaceall(pfunc, "$action", pname_ref);
-        Delete(pname_ref);
-        Append(pcode, pfunc);
+	String *pname_ref = NewStringf("do { \\&%s }", pname);
+	Replaceall(pfunc, "$action", pname_ref);
+	Delete(pname_ref);
+	Append(pcode, pfunc);
       }
       Setattr(n, "perl5:name", NewStringf("%s::%s", ClassName, pname));
     }
@@ -1490,16 +1413,15 @@ public:
   virtual int memberfunctionHandler(Node *n) {
     memberfunctionCommon(n);
     if (blessed && !Getattr(n, "sym:nextSibling")) {
-      String *symname = Getattr(n, "sym:name");
+      Hash *oper = Getattr(operators, Getattr(n, "sym:name"));
 
-      Hash *oper = Getattr(operators, symname);
       if (oper) {
-        List *class_oper = Getattr(CurrentClass, "perl5:operators");
-        if (!class_oper) {
-          class_oper = NewList();
-          Setattr(CurrentClass, "perl5:operators", class_oper);
-        }
-        Append(class_oper, oper);
+	List *class_oper = Getattr(CurrentClass, "perl5:operators");
+	if (!class_oper) {
+	  class_oper = NewList();
+	  Setattr(CurrentClass, "perl5:operators", class_oper);
+	}
+	Append(class_oper, oper);
       }
     }
     return Language::memberfunctionHandler(n);
@@ -1513,7 +1435,7 @@ public:
 
   virtual int membervariableHandler(Node *n) {
     Append(Getattr(CurrentClass, "perl5:memberVariables"), n);
-    Setattr(n, "perl5:instancevariable", "1");
+    SetFlag(n, "perl5:instancevariable");
     return Language::membervariableHandler(n);
   }
 
@@ -1535,13 +1457,14 @@ public:
       SwigType_add_pointer(type);
       Parm *p = NewParm(type, "proto", n);
       Delete(type);
-      Setattr(p, "arg:classref", "1");
+      SetFlag(p, "arg:classref");
       set_nextSibling(p, Getattr(n, "parms"));
       Setattr(n, "parms", p);
       restore = 1;
     }
     int rv = Language::constructorHandler(n);
-    if (restore) Swig_restore(n);
+    if (restore)
+      Swig_restore(n);
     return rv;
   }
 
@@ -1552,7 +1475,7 @@ public:
   virtual int destructorHandler(Node *n) {
     memberfunctionCommon(n);
     Setattr(CurrentClass, "perl5:destructors", n);
-    Setattr(n, "perl5:destructor", "1");
+    SetFlag(n, "perl5:destructor");
     return Language::destructorHandler(n);
   }
 
@@ -1575,7 +1498,8 @@ public:
       restore = 1;
     }
     int rv = Language::staticmemberfunctionHandler(n);
-    if (restore) Swig_restore(n);
+    if (restore)
+      Swig_restore(n);
     return rv;
   }
 
@@ -1619,26 +1543,25 @@ public:
     String *mdefn = NewStringf("");
     String *signature;
     String *name = NewStringf("SwigDirector_%s",
-        Getattr(parentNode(n), "sym:name"));
+			      Getattr(parentNode(n), "sym:name"));
 
-    { /* resolve the function signature */
+    {				/* resolve the function signature */
       String *type = NewString("SV");
       SwigType_add_pointer(type);
       Parm *p = NewParm(type, "proto", n);
       Delete(type);
-      Setattr(p, "arg:classref", "1");
+      SetFlag(p, "arg:classref");
       set_nextSibling(p, Getattr(n, "parms"));
       Setattr(n, "parms", p);
-      signature = Swig_method_decl(Getattr(n, "type"),
-          Getattr(n, "decl"), "$name", p, 0, 0);
+      signature = Swig_method_decl(Getattr(n, "type"), Getattr(n, "decl"), "$name", p, 0, 0);
     }
-    { /* prep method decl */
+    {				/* prep method decl */
       String *target = Copy(signature);
       Replaceall(target, "$name", name);
       Printf(mdecl, "    %s;\n", target);
       Delete(target);
     }
-    { /* prep method defn */
+    {				/* prep method defn */
       String *qname;
       String *target;
       String *scall;
@@ -1646,12 +1569,8 @@ public:
       target = Copy(signature);
       Replaceall(target, "$name", qname);
       Delete(qname);
-      scall = Swig_csuperclass_call(0,
-          Getattr(parentNode(n), "classtype"), parms);
-      Printf(mdefn,
-          "%s : %s, Swig::Director() {\n"
-          "}\n",
-          target, scall);
+      scall = Swig_csuperclass_call(0, Getattr(parentNode(n), "classtype"), parms);
+      Printf(mdefn, "%s : %s, Swig::Director() {\n" "}\n", target, scall);
       Delete(target);
       Delete(scall);
     }
@@ -1682,228 +1601,199 @@ public:
     bool output_director = true;
     String *tmp;
 
-    { /* resolve the function signature */
+    {				/* resolve the function signature */
       SwigType *ret_type = Getattr(n, "conversion_operator") ? NULL : type;
       signature = Swig_method_decl(ret_type, decl, "$name", parms, 0, 0);
-      if (Getattr(n, "throw")) { /* prep throws() fragment */
-        Parm *p = Getattr(n, "throws");
-        String *tm;
-        bool needComma = false;
+      if (Getattr(n, "throw")) {	/* prep throws() fragment */
+	Parm *p = Getattr(n, "throws");
+	String *tm;
+	bool needComma = false;
 
-        Append(signature, " throw(");
-        Swig_typemap_attach_parms("throws", p, 0);
-        while (p) {
-          tm = Getattr(p, "tmap:throws");
-          if (tm) {
-            tmp = SwigType_str(Getattr(p, "type"), NULL);
-            if (needComma)
-              Append(signature, ", ");
-            else
-              needComma = true;
-            Append(signature, tmp);
-            Delete(tmp);
-            Delete(tm);
-          }
-          p = nextSibling(p);
-        }
-        Append(signature, ")");
+	Append(signature, " throw(");
+	Swig_typemap_attach_parms("throws", p, 0);
+	while (p) {
+	  tm = Getattr(p, "tmap:throws");
+	  if (tm) {
+	    tmp = SwigType_str(Getattr(p, "type"), NULL);
+	    if (needComma)
+	      Append(signature, ", ");
+	    else
+	      needComma = true;
+	    Append(signature, tmp);
+	    Delete(tmp);
+	    Delete(tm);
+	  }
+	  p = nextSibling(p);
+	}
+	Append(signature, ")");
       }
     }
-    { /* prep method decl */
+    {				/* prep method decl */
       String *target = Copy(signature);
       Replaceall(target, "$name", name);
       Printf(mdecl, "    virtual %s;\n", target);
       Delete(target);
     }
-    { /* prep method defn */
+    {				/* prep method defn */
       String *qname;
       String *target;
       Wrapper *w;
       int outputs = 0;
 
-      if (SwigType_type(type) != T_VOID) outputs = 1;
+      if (SwigType_type(type) != T_VOID)
+	outputs = 1;
 
-      qname = NewStringf("SwigDirector_%s::%s",
-          Swig_class_name(parent), name);
-      target  = Copy(signature);
+      qname = NewStringf("SwigDirector_%s::%s", Swig_class_name(parent), name);
+      target = Copy(signature);
       Replaceall(target, "$name", qname);
       Delete(qname);
 
       w = NewWrapper();
       Printf(w->def, "%s {", target);
-      { /* generate method body */
-        const char *retstmt = "";
-        String *pstack;
-        int pcount = 1;
-        Wrapper_add_local(w, "SP", "dSP");
-        pstack = NewString(
-            "  ENTER;\n"
-            "  SAVETMPS;\n"
-            "  PUSHMARK(SP);\n"
-            "  XPUSHs(av[0]);\n");
-        Printf(w->code,
-            "  av[0] = this->Swig::Director::getSelf();\n");
-        if (parms) { /* convert call parms */
-          Parm *p;
-          String *tm;
+      {				/* generate method body */
+	const char *retstmt = "";
+	String *pstack;
+	int pcount = 1;
+	Wrapper_add_local(w, "SP", "dSP");
+	pstack = NewString("  ENTER;\n" "  SAVETMPS;\n" "  PUSHMARK(SP);\n" "  XPUSHs(av[0]);\n");
+	Printf(w->code, "  av[0] = this->Swig::Director::getSelf();\n");
+	if (parms) {		/* convert call parms */
+	  Parm *p;
+	  String *tm;
 
-          for (p = parms; p; p = nextSibling(p)) {
-            /* really not sure why this is necessary but
-             * Swig_typemap_attach_parms() didn't expand $1 without it... */
-            Setattr(p, "lname", Getattr(p, "name"));
-          }
-          Swig_typemap_attach_parms("in", parms, w);
+	  for (p = parms; p; p = nextSibling(p)) {
+	    /* really not sure why this is necessary but
+	     * Swig_typemap_attach_parms() didn't expand $1 without it... */
+	    Setattr(p, "lname", Getattr(p, "name"));
+	  }
+	  Swig_typemap_attach_parms("in", parms, w);
 	  Swig_typemap_attach_parms("directorin", parms, w);
-          Swig_typemap_attach_parms("directorargout", parms, w);
-          for (p = parms; p; ) {
-            SwigType *ptype = Getattr(p, "type");
-            if (Getattr(p, "tmap:directorargout") != NULL) outputs++;
-            tm = Getattr(p, "tmap:directorin");
-            if (tm) {
-              String *pav = NewStringf("av[%d]", pcount++);
-              Printf(pstack, "  XPUSHs(%s);\n", pav);
-              Replaceall(tm, "$input", pav);
-              Replaceall(tm, "$owner", "0");
-              if (is_shadow(ptype))
-                Replaceall(tm, "$shadow", "SWIG_SHADOW");
-              else
-                Replaceall(tm, "$shadow", "0");
-              Printf(w->code,
-                  "  %s\n",
-                  tm);
-              p = Getattr(p, "tmap:directorin:next");
-              Delete(pav);
-            } else {
-              if (SwigType_type(ptype) != T_VOID) {
-                Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF,
-                    input_file, line_number,
-                    "Unable to use type %s as a function argument "
-                    "in director method %s (skipping method).\n",
-                    SwigType_str(ptype, 0), target);
-                output_director = false;
-              }
-              p = nextSibling(p);
-            }
-          }
-        }
-        tmp = NewStringf("SV *av[%d]", pcount);
-        Wrapper_add_local(w, "av", tmp);
-        Delete(tmp);
+	  Swig_typemap_attach_parms("directorargout", parms, w);
+	  for (p = parms; p;) {
+	    SwigType *ptype = Getattr(p, "type");
+	    if (Getattr(p, "tmap:directorargout") != NULL)
+	      outputs++;
+	    tm = Getattr(p, "tmap:directorin");
+	    if (tm) {
+	      String *pav = NewStringf("av[%d]", pcount++);
+	      Printf(pstack, "  XPUSHs(%s);\n", pav);
+	      Replaceall(tm, "$input", pav);
+	      Replaceall(tm, "$owner", "0");
+	      Printf(w->code, "  %s\n", tm);
+	      p = Getattr(p, "tmap:directorin:next");
+	      Delete(pav);
+	    } else {
+	      if (SwigType_type(ptype) != T_VOID) {
+		Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+		    "Unable to use type %s as a function argument in director method %s (skipping method).\n", SwigType_str(ptype, 0), target);
+		output_director = false;
+	      }
+	      p = nextSibling(p);
+	    }
+	  }
+	}
+	tmp = NewStringf("SV *av[%d]", pcount);
+	Wrapper_add_local(w, "av", tmp);
+	Delete(tmp);
 
-        Append(pstack, "  PUTBACK;\n");
-        Append(w->code, pstack);
-        Delete(pstack);
-        /* This whole G_ARRAY probably needs to be rethought.  it overly
-         * complicates the code and I'm not sure it DWIMs the way any
-         * person should M. */
-        switch(outputs) {
-          case 0:
-            Printf(w->code, "call_method(\"%s\", G_EVAL | G_VOID);\n",
-                name);
-            break;
-          case 1:
-            Wrapper_add_local(w, "w_count", "I32 w_count");
-            Printf(w->code, "w_count = call_method(\"%s\", G_EVAL | G_SCALAR);\n", name);
-            break;
-          default:
-            Wrapper_add_local(w, "w_count", "I32 w_count");
-            Printf(w->code,
-                "w_count = call_method(\"%s\", G_EVAL | G_ARRAY);\n"
-                "if (w_count != %d) {\n"
-                "  croak(\"expected %d values in return from %%s->%s\",\n"
-                "  SvPV_nolen(this->Swig::Director::getSelf()));\n"
-                "}\n", name, outputs, outputs, name);
-            break;
-        }
+	Append(pstack, "  PUTBACK;\n");
+	Append(w->code, pstack);
+	Delete(pstack);
+	/* This whole G_ARRAY probably needs to be rethought.  it overly
+	 * complicates the code and I'm not sure it DWIMs the way any
+	 * person should M. */
+	switch (outputs) {
+	case 0:
+	  Printf(w->code, "call_method(\"%s\", G_EVAL | G_VOID);\n", name);
+	  break;
+	case 1:
+	  Wrapper_add_local(w, "w_count", "I32 w_count");
+	  Printf(w->code, "w_count = call_method(\"%s\", G_EVAL | G_SCALAR);\n", name);
+	  break;
+	default:
+	  Wrapper_add_local(w, "w_count", "I32 w_count");
+	  Printf(w->code,
+		 "w_count = call_method(\"%s\", G_EVAL | G_ARRAY);\n"
+		 "if (w_count != %d) {\n"
+		 "  croak(\"expected %d values in return from %%s->%s\",\n"
+		 "  SvPV_nolen(this->Swig::Director::getSelf()));\n" "}\n", name, outputs, outputs, name);
+	  break;
+	}
 	tmp = NewString("err");
 	Wrapper_add_local(w, tmp, "SV *err = 0");
 	Delete(tmp);
 
-        Append(w->code,
-            "if (SvTRUE(ERRSV)) {\n"
-            "  err = newSVsv(ERRSV);\n"
-            "  goto fail;\n"
-            "}\n");
-        if (outputs) {
-          SwigType *ret_type;
-          String   *tm;
-          Parm     *p;
-          char      buf[256];
-          int       outnum = 0;
-          Wrapper_add_local(w, "ax", "I32 ax");
-          { /* return value frobnication */
-            ret_type = Copy(type);
-            SwigType *t = Copy(decl);
-            SwigType *f = SwigType_pop_function(t);
-            SwigType_push(ret_type, t);
-            Delete(f);
-            Delete(t);
-          }
-          Append(w->code,
-              "  SPAGAIN;\n"
-              "  SP -= w_count;\n"
-              "  ax = (SP - PL_stack_base) + 1;\n");
-          if (SwigType_type(type) != T_VOID) {
-            {
-              String *restype;
-              restype = SwigType_lstr(ret_type, "w_result");
-              Wrapper_add_local(w, "w_result", restype);
-              Delete(restype);
-            }
-            p = NewParm(ret_type, "w_result", n);
-            tm = Swig_typemap_lookup("directorout", p, "w_result", w);
-            if (!tm) {
-              Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF,
-                  input_file, line_number,
-                  "Unable to use return type %s "
-                  "in director method %s (skipping method).\n",
-                  SwigType_str(type, 0), target);
-              output_director = false;
-            }
-            Delete(p);
-            sprintf(buf, "ST(%d)", outnum++);
-            Replaceall(tm, "$result", "w_result");
-            Replaceall(tm, "$input", buf);
-            //if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:out:disown"))) {
-            //  Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
-            //} else {
-              Replaceall(tm, "$disown", "0");
-            //}
-            Printf(w->code, "{\n%s\n}\n", tm);
-            Delete(tm);
-            if (SwigType_isreference(ret_type))
-              retstmt = "  return *w_result;\n";
-            else
-              retstmt = "  return w_result;\n";
-          }
-          /* now handle directorargout... */
-          for (p = parms; p; ) {
-            tm = Getattr(p, "tmap:directorargout");
-            if (tm) {
-              sprintf(buf, "ST(%d)", outnum++);
-              Replaceall(tm, "$input", buf);
-              Replaceall(tm, "$result", Getattr(p, "name"));
-              Printf(w->code, "%s\n", tm);
-              p = Getattr(p, "tmap:directorargout:next");
-            } else {
-              p = nextSibling(p);
-            }
-          }
-          if (outnum != outputs) {
-            Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF,
-                input_file, line_number,
-                "expected %d outputs, but found %d typemaps "
-                "in director method %s (skipping method).\n",
-                outputs, outnum, target);
-            output_director = false;
-          }
-          Append(w->code, "PUTBACK;\n");
-          Delete(ret_type);
-        }
-        Append(w->code,
-            "fail:\n"
-            "  FREETMPS;\n"
-            "  LEAVE;\n");
+	Append(w->code, "if (SvTRUE(ERRSV)) {\n" "  err = newSVsv(ERRSV);\n" "  goto fail;\n" "}\n");
+	if (outputs) {
+	  SwigType *ret_type;
+	  String *tm;
+	  Parm *p;
+	  char buf[256];
+	  int outnum = 0;
+	  Wrapper_add_local(w, "ax", "I32 ax");
+	  {			/* return value frobnication */
+	    ret_type = Copy(type);
+	    SwigType *t = Copy(decl);
+	    SwigType *f = SwigType_pop_function(t);
+	    SwigType_push(ret_type, t);
+	    Delete(f);
+	    Delete(t);
+	  }
+	  Append(w->code, "  SPAGAIN;\n" "  SP -= w_count;\n" "  ax = (SP - PL_stack_base) + 1;\n");
+	  if (SwigType_type(type) != T_VOID) {
+	    {
+	      String *restype;
+	      restype = SwigType_lstr(ret_type, "w_result");
+	      Wrapper_add_local(w, "w_result", restype);
+	      Delete(restype);
+	    }
+	    p = NewParm(ret_type, "w_result", n);
+	    tm = Swig_typemap_lookup("directorout", p, "w_result", w);
+	    if (!tm) {
+	      Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF,
+			   input_file, line_number,
+			   "Unable to use return type %s " "in director method %s (skipping method).\n", SwigType_str(type, 0), target);
+	      output_director = false;
+	    }
+	    Delete(p);
+	    sprintf(buf, "ST(%d)", outnum++);
+	    Replaceall(tm, "$result", "w_result");
+	    Replaceall(tm, "$input", buf);
+	    //if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:out:disown"))) {
+	    //  Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
+	    //} else {
+	    Replaceall(tm, "$disown", "0");
+	    //}
+	    Printf(w->code, "{\n%s\n}\n", tm);
+	    Delete(tm);
+	    if (SwigType_isreference(ret_type))
+	      retstmt = "  return *w_result;\n";
+	    else
+	      retstmt = "  return w_result;\n";
+	  }
+	  /* now handle directorargout... */
+	  for (p = parms; p;) {
+	    tm = Getattr(p, "tmap:directorargout");
+	    if (tm) {
+	      sprintf(buf, "ST(%d)", outnum++);
+	      Replaceall(tm, "$input", buf);
+	      Replaceall(tm, "$result", Getattr(p, "name"));
+	      Printf(w->code, "%s\n", tm);
+	      p = Getattr(p, "tmap:directorargout:next");
+	    } else {
+	      p = nextSibling(p);
+	    }
+	  }
+	  if (outnum != outputs) {
+	    Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF,
+			 input_file, line_number,
+			 "expected %d outputs, but found %d typemaps " "in director method %s (skipping method).\n", outputs, outnum, target);
+	    output_director = false;
+	  }
+	  Append(w->code, "PUTBACK;\n");
+	  Delete(ret_type);
+	}
+	Append(w->code, "fail:\n" "  FREETMPS;\n" "  LEAVE;\n");
 	{
 	  String *tm;
 	  if ((tm = Swig_typemap_lookup("director:except", n, "result", 0))) {
@@ -1911,14 +1801,12 @@ public:
 	  } else if ((tm = Getattr(n, "feature:director:except"))) {
 	    tm = Copy(tm);
 	  } else {
-	    tm = NewString(
-	        "if ($error) Swig::DirectorMethodException::raise($error);");
+	    tm = NewString("if ($error) Swig::DirectorMethodException::raise($error);");
 	  }
 	  Replaceall(tm, "$error", "err");
 	  Printv(w->code, tm, "\n", NIL);
 	}
-	Printf(w->code,
-            "%s}", retstmt);
+	Printf(w->code, "%s}", retstmt);
       }
       Delete(target);
       Wrapper_print(w, mdefn);
@@ -1928,20 +1816,16 @@ public:
     /* borrowed from python.cxx - director.cxx apparently expects us
      * to emit a "${methodname}SwigPublic" at times */
     if (dirprot_mode() && !is_public(n)) {
-      if (Cmp(Getattr(n, "storage"), "virtual") ||
-          Cmp(Getattr(n, "value"), "0")) {
-        /* not pure virtual */
-        String *target = Copy(signature);
-        String *einame = NewStringf("%sSwigPublic", name);
-        const char *returns = SwigType_type(type) != T_VOID ? "return " : "";
-        String *upcall = Swig_method_call(super, parms);
-        Replaceall(target, "$name", einame);
-        Printf(mdecl,
-            "  virtual %s {\n"
-            "    %s%s;\n"
-            "  }\n", target, returns, upcall);
-        Delete(upcall);
-        Delete(target);
+      if (Cmp(Getattr(n, "storage"), "virtual") || Cmp(Getattr(n, "value"), "0")) {
+	/* not pure virtual */
+	String *target = Copy(signature);
+	String *einame = NewStringf("%sSwigPublic", name);
+	const char *returns = SwigType_type(type) != T_VOID ? "return " : "";
+	String *upcall = Swig_method_call(super, parms);
+	Replaceall(target, "$name", einame);
+	Printf(mdecl, "  virtual %s {\n" "    %s%s;\n" "  }\n", target, returns, upcall);
+	Delete(upcall);
+	Delete(target);
       }
     }
 
@@ -1955,8 +1839,7 @@ public:
     return Language::classDirectorMethod(n, parent, super);
   }
   virtual int classDirectorEnd(Node *n) {
-    Printf(Swig_filebyname("director_h"),
-        "};\n");
+    Printf(Swig_filebyname("director_h"), "};\n");
     return Language::classDirectorEnd(n);
   }
   virtual int classDirectorDisown(Node *n) {
