@@ -106,6 +106,8 @@ SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *point
 typedef octave_value_list(*octave_func) (const octave_value_list &, int);
 class octave_swig_type;
 
+# define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
+
 namespace Swig {
   class Director;
 

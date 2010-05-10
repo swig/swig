@@ -698,11 +698,11 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   Hash *backup = 0;
   SwigType *primitive = 0;
   SwigType *ctype = 0;
+  SwigType *ctype_unstripped = 0;
   int ts;
   int isarray;
   const String *cname = 0;
   const String *cqualifiedname = 0;
-  SwigType *unstripped = 0;
   String *tm_method = typemap_method_name(tmap_method);
   int debug_display = (in_typemap_search_multi == 0) && typemap_search_debug;
 
@@ -718,12 +718,13 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     Delete(typestr);
   }
   while (ts >= 0) {
-    ctype = type;
+    ctype = Copy(type);
+    ctype_unstripped = Copy(ctype);
     while (ctype) {
       /* Try to get an exact type-match */
       tm = get_typemap(ts, ctype);
       result = typemap_search_helper(debug_display, tm, tm_method, ctype, cqualifiedname, cname, &backup);
-      if (result)
+      if (result && Getattr(result, "code"))
 	goto ret_result;
 
       {
@@ -733,7 +734,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	  tm = get_typemap(ts, template_prefix);
 	  result = typemap_search_helper(debug_display, tm, tm_method, template_prefix, cqualifiedname, cname, &backup);
 	  Delete(template_prefix);
-	  if (result)
+	  if (result && Getattr(result, "code"))
 	    goto ret_result;
 	}
       }
@@ -747,33 +748,29 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	tm = get_typemap(ts, noarrays);
 	result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
 	Delete(noarrays);
-	if (result)
+	if (result && Getattr(result, "code"))
 	  goto ret_result;
       }
 
-      /* No match so far.   If the type is unstripped, we'll strip its
-         qualifiers and check.   Otherwise, we'll try to resolve a typedef */
-
-      if (!unstripped) {
-	unstripped = ctype;
-	ctype = SwigType_strip_qualifiers(ctype);
-	if (!Equal(ctype, unstripped))
-	  continue;		/* Types are different */
-	Delete(ctype);
-	ctype = unstripped;
-	unstripped = 0;
-      }
+      /* No match so far - try with a qualifier stripped (strip one qualifier at a time until none remain)
+       * The order of stripping in SwigType_strip_single_qualifier is used to provide some sort of consistency
+       * with the default (SWIGTYPE) typemap matching rules for the first qualifier to be stripped. */
       {
-	String *octype;
-	if (unstripped) {
-	  Delete(ctype);
-	  ctype = unstripped;
-	  unstripped = 0;
+	SwigType *oldctype = ctype;
+	ctype = SwigType_strip_single_qualifier(oldctype);
+	if (!Equal(ctype, oldctype)) {
+	  Delete(oldctype);
+	  continue;
 	}
-	octype = ctype;
-	ctype = SwigType_typedef_resolve(ctype);
-	if (octype != type)
-	  Delete(octype);
+	Delete(oldctype);
+      }
+
+      /* Once all qualifiers are stripped try resolve a typedef */
+      {
+	SwigType *oldctype = ctype;
+	ctype = SwigType_typedef_resolve(ctype_unstripped);
+	Delete(oldctype);
+	ctype_unstripped = Copy(ctype);
       }
     }
 
@@ -783,11 +780,11 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     while (primitive) {
       tm = get_typemap(ts, primitive);
       result = typemap_search_helper(debug_display, tm, tm_method, primitive, cqualifiedname, cname, &backup);
-      if (result)
+      if (result && Getattr(result, "code"))
 	goto ret_result;
 
       {
-	SwigType *nprim = SwigType_default_reduce(primitive);
+	SwigType *nprim = SwigType_default_deduce(primitive);
 	Delete(primitive);
 	primitive = nprim;
       }
@@ -802,12 +799,10 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 
 ret_result:
   Delete(primitive);
-  if ((unstripped) && (unstripped != type))
-    Delete(unstripped);
   if (matchtype)
     *matchtype = Copy(ctype);
-  if (type != ctype)
-    Delete(ctype);
+  Delete(ctype);
+  Delete(ctype_unstripped);
   return result;
 }
 

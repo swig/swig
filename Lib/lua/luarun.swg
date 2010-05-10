@@ -661,7 +661,7 @@ SWIGRUNTIME const char *SWIG_Lua_typename(lua_State *L, int tp)
   swig_lua_userdata* usr;
   if (lua_isuserdata(L,tp))
   {
-    usr=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
+    usr=(swig_lua_userdata*)lua_touserdata(L,tp);  /* get data */
     if (usr && usr->type && usr->type->str)
       return usr->type->str;
     return "userdata (unknown type)";

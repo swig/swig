@@ -1,6 +1,50 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-09: drjoe
+            Fix bug reported by Wil Nolan change creation of string so
+            that R 2.7.0+ can use char hashes
+
+2010-05-07: wsfulton
+            Apply patch #2955146 from Sergey Satskiy to fix expressions containing divide by
+            operator in constructor initialization lists.
+
+2010-05-05: wsfulton
+            [R] Memory leak fix handling const std::string & inputs, reported by Will Nolan.
+
+2010-05-01: wsfulton
+            Typemap matching enhancement for non-default typemaps. Previously all
+            qualifiers were stripped in one step, now they are stripped one at a time
+            starting with the left most qualifier. For example, int const*const 
+            is first stripped to int *const then int *.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2010-04-25: bhy
+            [Python] Fix #2985655 - broken constructor renaming.
+
+2010-04-14: wsfulton
+            Typemap fragments are now official and documented in Typemaps.html.
+
+2010-04-09: wsfulton
+            [Ruby] Fix #2048064 and #2408020.
+            Apply Ubuntu patch to fix Ruby and std::vector wrappers with -minherit.
+            https://bugs.launchpad.net/ubuntu/+source/swig1.3/+bug/522874
+
+2010-04-09: wsfulton
+            [Mzscheme] Apply Ubuntu patch to fix std::map wrappers:
+            https://bugs.launchpad.net/ubuntu/+source/swig1.3/+bug/203876
+
+2010-04-09: wsfulton
+            [Python] Apply patch #2952374 - fix directors and the -nortti option.
+
+2010-04-09: wsfulton
+            [Lua] Fix #2887254 and #2946032 - SWIG_Lua_typename using wrong stack index.
+
+2010-04-03: wsfulton
+            [Python] Fix exceptions being thrown with the -threads option based on patch from Arto Vuori.
+            Fixes bug #2818499.
+
 2010-04-03: wsfulton
             Fix Makefile targets: distclean and maintainer-clean
 
@@ -11,10 +55,10 @@ Version 2.0.0 (in progress)
 2010-04-01: wsfulton
             Numerous subtle typemap matching rule fixes when using the default type. The typemap
             matching rules are to take a type and find the best default typemap (SWIGTYPE, SWIGTYPE* etc),
-            then look for the next best match by reducing the chosen default type. The type reduction
-            now follows C++ template partial specialization matching rules.
+            then look for the next best match by reducing the chosen default type. The type deduction
+            now follows C++ class template partial specialization matching rules.
 
-            Below are the set of changes made showing the default type reduction
+            Below are the set of changes made showing the default type deduction
             along with the old reduced type and the new version of the reduced type:
 
                    SWIGTYPE const &[ANY]

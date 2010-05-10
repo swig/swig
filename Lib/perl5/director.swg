@@ -12,6 +12,8 @@
 #include <exception>
 #include <map>
 
+#define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
+
 #define swig_owntype int
 
 namespace Swig {

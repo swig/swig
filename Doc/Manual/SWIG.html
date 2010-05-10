@@ -1672,7 +1672,7 @@ directive as shown :</p>
 // interface.i
 
 %rename(my_print) print;
-extern void print(char *);
+extern void print(const char *);
 
 %rename(foo) a_really_long_and_annoying_name;
 extern int a_really_long_and_annoying_name;
@@ -1725,9 +1725,10 @@ to ignore declarations that match a given identifier.  For example:
 <div class="code">
 <pre>
 %ignore print;         // Ignore all declarations named print
-%ignore _HAVE_FOO_H;   // Ignore an include guard constant
+%ignore MYMACRO;       // Ignore a macro
 ...
-%include "foo.h"       // Grab a header file
+#define MYMACRO 123
+void print(const char *);
 ...
 </pre>
 </div>
@@ -1752,7 +1753,7 @@ For example:
 
 <div class="code">
 <pre>
-%name(output) extern void print(char *);
+%name(output) extern void print(const char *);
 </pre>
 </div>
 

@@ -432,7 +432,7 @@ typedef enum { ExactNoMatch = -2, PartiallySpecializedNoMatch = -1, PartiallySpe
  * does_parm_match()
  *
  * Template argument deduction - check if a template type matches a partially specialized 
- * template parameter type. Reduce 'partial_parm_type' to see if it matches 'type'.
+ * template parameter type. Typedef reduce 'partial_parm_type' to see if it matches 'type'.
  *
  * type - template parameter type to match against
  * partial_parm_type - partially specialized template type - a possible match
@@ -664,7 +664,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
 
     if (posslen > 1) {
       /* Now go through all the possibly matched partial specialization templates and look for a non-ambiguous match.
-       * Exact matches rank the highest and deduced parameters are ranked by how much they are reduced, eg looking for
+       * Exact matches rank the highest and deduced parameters are ranked by how specialized they are, eg looking for
        * a match to const int *, the following rank (highest to lowest):
        *   const int * (exact match)
        *   const T *

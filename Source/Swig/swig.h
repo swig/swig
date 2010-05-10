@@ -159,6 +159,7 @@ extern "C" {
   extern int SwigType_isenum(SwigType *t);
   extern int SwigType_check_decl(SwigType *t, const_String_or_char_ptr decl);
   extern SwigType *SwigType_strip_qualifiers(SwigType *t);
+  extern SwigType *SwigType_strip_single_qualifier(SwigType *t);
   extern SwigType *SwigType_functionpointer_decompose(SwigType *t);
   extern String *SwigType_base(const SwigType *t);
   extern String *SwigType_namestr(const SwigType *t);
@@ -173,7 +174,7 @@ extern "C" {
   extern SwigType *SwigType_array_type(SwigType *t);
   extern String *SwigType_default(SwigType *t);
   extern SwigType *SwigType_default_create(SwigType *ty);
-  extern SwigType *SwigType_default_reduce(SwigType *t);
+  extern SwigType *SwigType_default_deduce(SwigType *t);
   extern void SwigType_typename_replace(SwigType *t, String *pat, String *rep);
   extern SwigType *SwigType_remove_global_scope_prefix(const SwigType *t);
   extern SwigType *SwigType_alttype(SwigType *t, int ltmap);

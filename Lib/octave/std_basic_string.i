@@ -32,6 +32,8 @@ SWIGINTERNINLINE octave_value
   }
 }
 
+%ignore std::basic_string::operator +=;
+
 %include <std/std_basic_string.i>
 %typemaps_asptrfromn(%checkcode(STRING), std::basic_string<char>);
 

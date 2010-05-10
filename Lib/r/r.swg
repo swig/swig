@@ -144,11 +144,11 @@ SWIG_InitializeModule(0);
    $1 = %reinterpret_cast(INTEGER($input), $1_ltype);
 }
 
-%typemap(in,noblock=1,fragment="SWIG_strdup") char* {
+%typemap(in,noblock=1,fragment="SWIG_strdup") char * {
    $1 = %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
 }
 
-%typemap(freearg,noblock=1) char* {
+%typemap(freearg,noblock=1) char * {
    free($1);
 }
 
@@ -189,7 +189,7 @@ else
 strcpy($1, "");
 %}
 
-%typemap(out,noblock=1) char* 
+%typemap(out,noblock=1) char * 
  {  $result = $1 ? Rf_mkString(%reinterpret_cast($1,char *)) : R_NilValue; }
 
 %typemap(in,noblock=1) char {

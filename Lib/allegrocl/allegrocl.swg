@@ -203,20 +203,20 @@ SWIG_TYPECHECK_STRING_ARRAY      1140
 
 %typemap(in)        wchar_t "$1 = $input;";
 %typemap(lin,numinputs=1)       wchar_t "(cl::let (($out (cl:char-code $in)))\n  $body)";
-%typemap(lin,numinputs=1)       wchar_t* "(excl:with-native-string ($out $in
+%typemap(lin,numinputs=1)       wchar_t * "(excl:with-native-string ($out $in
 :external-format #+little-endian :fat-le #-little-endian :fat)\n
 $body)"
 
 %typemap(out)       wchar_t "$result = $1;";
 %typemap(lout)      wchar_t "(cl::setq ACL_ffresult (cl::code-char $body))";
-%typemap(lout)      wchar_t* "(cl::setq ACL_ffresult (excl:native-to-string $body
+%typemap(lout)      wchar_t * "(cl::setq ACL_ffresult (excl:native-to-string $body
 :external-format #+little-endian :fat-le #-little-endian :fat))";
 
 %typemap(ffitype)   wchar_t ":unsigned-short";
 %typemap(lisptype)  wchar_t "";
 %typemap(ctype)     wchar_t "wchar_t";
 %typemap(lispclass) wchar_t "cl:character";
-%typemap(lispclass) wchar_t* "cl:string";
+%typemap(lispclass) wchar_t * "cl:string";
 //////////////////////////////////////////////////////////////
 
 /* Array reference typemaps */
