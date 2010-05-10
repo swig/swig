@@ -45,6 +45,8 @@ see bottom for a set of possible tests
 %rename(MinusMinusPostfix) operator--(int);
 #endif
 
+%rename(IndexInto) *::operator[](unsigned idx); // some languages have a %rename *::operator[] already in place, which seems to takes precedence over the above %rename operator[].
+
 #ifdef SWIGCSHARP
 %csmethodmodifiers operator++() "protected";
 %csmethodmodifiers operator++(int) "private";
