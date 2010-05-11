@@ -807,10 +807,14 @@ class TypePass:private Dispatcher {
       value = name;
     if (Strcmp(value, name) == 0) {
       String *new_value;
-      if (((nsname) || (inclass)) && cparse_cplusplus) {
+      if ((nsname || inclass) && cparse_cplusplus) {
 	new_value = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
       } else {
 	new_value = NewString(value);
+      }
+      if ((nsname || inclass) && !cparse_cplusplus) {
+	String *cppvalue = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
+	Setattr(n, "cppvalue", cppvalue); /* for target languages that always generate C++ code even when wrapping C code */
       }
       Setattr(n, "value", new_value);
       Delete(new_value);

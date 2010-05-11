@@ -58,17 +58,18 @@ Also, there are a dozen or so examples in the Examples/octave directory, and hun
 
 
 <p>
-The current SWIG implemention is based on Octave 2.9.12. Support for other versions (in particular the recent 3.0) has not been tested, nor has support for any OS other than Linux.
+The SWIG implemention was first based on Octave 2.9.12, so this is the minimum version required. Testing has only been done on Linux.
 </p>
 
 <H2><a name="Octave_nn3"></a>27.2 Running SWIG</H2>
 
 
 <p>
-Let's start with a very simple SWIG interface file:
+Let's start with a very simple SWIG interface file, example.i:
 </p>
 
-<div class="code"><pre>%module example
+<div class="code"><pre>
+%module example
 %{
 #include "example.h"
 %}
@@ -76,13 +77,20 @@ int gcd(int x, int y);
 extern double Foo; </pre></div>
 
 <p>
-To build an Octave module, run SWIG using the <tt>-octave</tt> option. The <tt>-c++</tt> option is required (for now) as Octave itself is written in C++ and thus the wrapper code must also be. 
+To build an Octave module when wrapping C code, run SWIG using the <tt>-octave</tt> option:
 </p>
+
+<div class="shell"><pre>$ swig -octave example.i </pre></div>
+
+<p>
+The <tt>-c++</tt> option is also required when wrapping C++ code:
+</p>
+
 
 <div class="shell"><pre>$ swig -octave -c++ example.i </pre></div>
 
 <p>
-This creates a C/C++ source file <tt>example_wrap.cxx</tt>. The generated C++ source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application (in this case, the gcd implementation) to create an extension module.
+This creates a C++ source file <tt>example_wrap.cxx</tt>. A C++ file is generated even when wrapping C code as Octave is itself written in C++ and requires wrapper code to be in the same language. The generated C++ source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application (in this case, the gcd implementation) to create an extension module.
 </p>
 
 <p>
@@ -811,7 +819,7 @@ In the case where one wishes for the C++ side to own an object that was created 
 
 
 <p>
-This is some skeleton support for various STL containers.
+Various STL library files are provided for wrapping STL containers.
 </p>
 
 <H3><a name="Octave_nn26"></a>27.3.17 Matrix typemaps</H3>

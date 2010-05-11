@@ -760,6 +760,7 @@ public:
     SwigType *type = Getattr(n, "type");
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
+    String *cppvalue = Getattr(n, "cppvalue");
     String *tm;
 
     if (!addSymbol(iname, n))
@@ -775,7 +776,7 @@ public:
     if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
-      Replaceall(tm, "$value", value);
+      Replaceall(tm, "$value", cppvalue ? cppvalue : value);
       Replaceall(tm, "$nsname", iname);
       Printf(f_init, "%s\n", tm);
     } else {
