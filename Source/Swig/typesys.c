@@ -79,7 +79,7 @@ char cvsroot_typesys_c[] = "$Id$";
  *
  *     class Bar : public Foo {
  *           void blah(Integer x);
- *     }
+ *     };
  *
  * The argument type of Bar::blah will be set to Foo::Integer.   
  *
