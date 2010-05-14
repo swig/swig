@@ -1,6 +1,10 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-14: olly
+	    [PHP] Fix wrapping of global variables which was producing
+	    uncompilable code in some cases.
+
 2010-05-12: drjoe
 	    [R] Add two more changes from Wil Nolan.  Get garbage
 	    collection to work.  Implement newfree

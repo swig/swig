@@ -1779,8 +1779,6 @@ done:
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
 
-    SwigType_remember(t);
-
     /* First link C variables to PHP */
 
     tm = Swig_typemap_lookup("varinit", n, name, 0);
