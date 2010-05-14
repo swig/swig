@@ -1,6 +1,10 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-14: wsfulton
+            Fix wrapping of C++ enum boolean values reported by Torsten Landschoff:
+              typedef enum { PLAY = true, STOP = false } play_state;
+
 2010-05-14: olly
 	    [PHP] Fix wrapping of global variables which was producing
 	    uncompilable code in some cases.
