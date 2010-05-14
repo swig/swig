@@ -1352,6 +1352,13 @@ public:
     // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
 
+    // Deal with enum values that are bools
+    if (SwigType_type(Getattr(n, "type")) == T_BOOL) {
+      String *boolValue = NewStringf("%s ? 1 : 0", Getattr(n, "enumvalue"));
+      Setattr(n, "enumvalue", boolValue);
+      Delete(boolValue);
+    }
+
     {
       EnumFeature enum_feature = decodeEnumFeature(parent);
 
