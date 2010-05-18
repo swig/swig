@@ -1,6 +1,9 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-18: wsfulton
+            [Java] Fix member pointers on 64 bit platforms.
+
 2010-05-14: wsfulton
             Fix wrapping of C++ enum boolean values reported by Torsten Landschoff:
               typedef enum { PLAY = true, STOP = false } play_state;
