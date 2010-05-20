@@ -346,7 +346,7 @@ OCTAVE_SO     = @OCTAVE_SO@
 octave: $(SRCS)
 	$(SWIG) -octave $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
-	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(INCLUDES)
+	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CSRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
 # -----------------------------------------------------------------

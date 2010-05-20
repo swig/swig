@@ -5601,7 +5601,7 @@ edecl          :  ID {
 		     Setattr($$,"type",type);
 		     Delete(type);
 		   } else {
-		     SwigType *type = NewSwigType(T_INT);
+		     SwigType *type = NewSwigType($3.type == T_BOOL ? T_BOOL : T_INT);
 		     Setattr($$,"value",$1);
 		     Setattr($$,"type",type);
 		     Delete(type);
@@ -5617,8 +5617,8 @@ etype            : expr {
 		       ($$.type != T_LONG) && ($$.type != T_ULONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR) &&
-		       ($$.type != T_CHAR)) {
-		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an int\n");
+		       ($$.type != T_CHAR) && ($$.type != T_BOOL)) {
+		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an integral type\n");
 		   }
 		   if ($$.type == T_CHAR) $$.type = T_INT;
                 }

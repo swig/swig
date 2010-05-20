@@ -32,6 +32,7 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 LIBS       = -L.
+CSRCS      = octave_empty.c
 
 # Custom tests - tests with additional commandline options
 # none!
@@ -44,7 +45,7 @@ LIBS       = -L.
 
 %.ctest:
 	$(setup)
-	+$(swig_and_compile_cpp)
+	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multicpptest: 

@@ -79,7 +79,7 @@ char cvsroot_typesys_c[] = "$Id$";
  *
  *     class Bar : public Foo {
  *           void blah(Integer x);
- *     }
+ *     };
  *
  * The argument type of Bar::blah will be set to Foo::Integer.   
  *
@@ -1773,7 +1773,7 @@ void SwigType_inherit_equiv(File *out) {
       continue;
     }
 
-    /* This type has subclasses.  We now need to walk through these subtypes and generate pointer converion functions */
+    /* This type has subclasses.  We now need to walk through these subtypes and generate pointer conversion functions */
 
     rh = Getattr(r_resolved, rk.key);
     rlist = NewList();
