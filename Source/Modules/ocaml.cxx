@@ -778,7 +778,7 @@ public:
 
     String *proc_name = NewString("");
     String *tm;
-    String *tm2 = NewString("");;
+    String *tm2 = NewString("");
     String *argnum = NewString("0");
     String *arg = NewString("SWIG_Field(args,0)");
     Wrapper *f;

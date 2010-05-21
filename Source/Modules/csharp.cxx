@@ -3886,7 +3886,7 @@ public:
 
   int classDirectorConstructor(Node *n) {
     Node *parent = parentNode(n);
-    String *decl = Getattr(n, "decl");;
+    String *decl = Getattr(n, "decl");
     String *supername = Swig_class_name(parent);
     String *classname = directorClassName(parent);
     String *sub = NewString("");

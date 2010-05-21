@@ -657,7 +657,7 @@ public:
     Parm *p;
     String *proc_name = 0;
     char source[256];
-    Wrapper *f = NewWrapper();;
+    Wrapper *f = NewWrapper();
     String *cleanup = NewString("");
     String *outarg = NewString("");
     String *signature = NewString("");

@@ -973,12 +973,12 @@ public:
       Delete(self);
     }
 
-    return Language::constructorHandler(n);;
+    return Language::constructorHandler(n);
   }
 
   virtual int destructorHandler(Node *n) {
     have_destructor = 1;
-    return Language::destructorHandler(n);;
+    return Language::destructorHandler(n);
   }
 
   virtual int staticmemberfunctionHandler(Node *n) {

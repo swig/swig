@@ -191,7 +191,7 @@ void Preprocessor_init(void) {
   Preprocessor_expr_init();	/* Initialize the expression evaluator */
   included_files = NewHash();
 
-  id_scan = NewScanner();;
+  id_scan = NewScanner();
 
 }
 
