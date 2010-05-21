@@ -1,6 +1,11 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-21: olly
+	    [PHP] Stop generating a bogus line of code in certain constructors.
+	    This was mostly harmless, but caused a PHP notice to be issued, if
+	    enabled (SF#2985684).
+
 2010-05-18: wsfulton
             [Java] Fix member pointers on 64 bit platforms.
 

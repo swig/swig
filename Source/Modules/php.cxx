@@ -1495,7 +1495,7 @@ public:
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
 	    if (Cmp(d, "void") != 0) {
-		if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
+	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
 		Append(prepare, "$r=");
 	      } else {
 		Printf(prepare, "$this->%s=", SWIG_PTR);
@@ -1631,11 +1631,13 @@ public:
 	Printf(output, "%s", prepare);
       if (constructor) {
 	if (!directorsEnabled() || !Swig_directorclass(n)) {
-	  if (strcmp(methodname, "__construct") == 0) {
-	    Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
-	  } else {
-	    String *classname = Swig_class_name(current_class);
-	    Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
+	  if (!Len(prepare)) {
+	    if (strcmp(methodname, "__construct") == 0) {
+	      Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
+	    } else {
+	      String *classname = Swig_class_name(current_class);
+	      Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
+	    }
 	  }
 	} else {
 	  Node *parent = Swig_methodclass(n);
