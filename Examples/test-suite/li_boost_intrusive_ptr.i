@@ -46,8 +46,8 @@
 %include <boost_intrusive_ptr.i>
 SWIG_INTRUSIVE_PTR(Klass, Space::Klass)
 SWIG_INTRUSIVE_PTR_NO_WRAP(KlassWithoutRefCount, Space::KlassWithoutRefCount)
-SWIG_INTRUSIVE_PTR_DERIVED(KlassDerived, Space::KlassWithoutRefCount, Space::KlassDerived)
-SWIG_INTRUSIVE_PTR_DERIVED(KlassDerivedDerived, Space::KlassDerived, Space::KlassDerivedDerived)
+SWIG_INTRUSIVE_PTR(KlassDerived, Space::KlassDerived)
+SWIG_INTRUSIVE_PTR(KlassDerivedDerived, Space::KlassDerivedDerived)
 
 //For the use_count shared_ptr functions
 %typemap(in) SWIG_INTRUSIVE_PTR_QNAMESPACE::shared_ptr< Space::Klass > & ($*1_ltype tempnull) %{ 
@@ -390,9 +390,7 @@ Space::Klass & GlobalReference = GlobalValue;
 
 // Note: %template after the intrusive_ptr typemaps
 SWIG_INTRUSIVE_PTR(BaseIntDouble, Base<int, double>)
-// Note: cannot use Base<int, double> in the macro below because of the comma in the type, 
-// so we use a typedef instead. Alternatively use %arg(Base<int, double>). %arg is defined in swigmacros.swg.
-SWIG_INTRUSIVE_PTR_DERIVED(PairIntDouble, BaseIntDouble_t, Pair<int, double>)
+SWIG_INTRUSIVE_PTR(PairIntDouble, Pair<int, double>)
 
 #endif
 
@@ -409,7 +407,6 @@ template <class T1, class T2> struct Base {
   void release(void) const { if (--count == 0) delete this; }
   int use_count(void) const { return count; }
 };
-typedef Base<int, double> BaseIntDouble_t;
 %}
 
 %template(BaseIntDouble) Base<int, double>;

@@ -1,6 +1,12 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-22: wsfulton
+            Fix #2408232. Improve shared_ptr and intrusive_ptr wrappers for classes in an
+            inheritance hierarchy. No special treatment is needed for derived classes, the
+            SWIG_SHARED_PTR_DERIVED macro is deprecated and SWIG_SHARED_PTR should be used
+            instead.
+
 2010-05-21: olly
 	    [PHP] Stop generating a bogus line of code in certain constructors.
 	    This was mostly harmless, but caused a PHP notice to be issued, if

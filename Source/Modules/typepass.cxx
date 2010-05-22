@@ -231,6 +231,37 @@ class TypePass:private Dispatcher {
       Node *bclass = n;		/* Getattr(n,"class"); */
       Hash *scopes = Getattr(bclass, "typescope");
       SwigType_inherit(clsname, bname, cast, 0);
+      String *smartptr = Getattr(first, "feature:smartptr");
+      if (smartptr) {
+	SwigType *smart = 0;
+	SwigType *spt = Swig_cparse_type(smartptr);
+	if (spt) {
+	  smart = SwigType_typedef_resolve_all(spt);
+	  Delete(spt);
+	  /* Record a (fake) inheritance relationship between smart pointer
+	     and smart pointer to base class, so that smart pointer upcasts
+	     are automatically generated. */
+          SwigType *bsmart = Copy(smart);
+          SwigType *rclsname = SwigType_typedef_resolve_all(clsname);
+          SwigType *rbname = SwigType_typedef_resolve_all(bname);
+	  Replaceall(bsmart, rclsname, rbname);
+          Delete(rclsname);
+          Delete(rbname);
+	  String *smartnamestr = SwigType_namestr(smart);
+	  String *bsmartnamestr = SwigType_namestr(bsmart);
+	  /* construct casting code */
+	  String *convcode = NewStringf("\n    *newmemory = SWIG_CAST_NEW_MEMORY;\n    return (void *) new %s(*(%s *)$from);\n", bsmartnamestr, smartnamestr);
+	  Delete(bsmartnamestr);
+	  Delete(smartnamestr);
+	  /* setup inheritance relationship between smart pointer templates */
+	  SwigType_inherit(smart, bsmart, 0, convcode);
+	  Delete(convcode);
+	  Delete(bsmart);
+	  Delete(smart);
+	} else {
+	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, clsname);
+	}
+      }
       if (!importmode) {
 	String *btype = Copy(bname);
 	SwigType_add_pointer(btype);

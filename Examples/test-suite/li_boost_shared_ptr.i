@@ -42,15 +42,9 @@
 
 %include <boost_shared_ptr.i>
 SWIG_SHARED_PTR(Klass, Space::Klass)
-SWIG_SHARED_PTR_DERIVED(KlassDerived, Space::Klass, Space::KlassDerived)
-SWIG_SHARED_PTR_DERIVED(Klass2ndDerived, Space::Klass, Space::Klass2ndDerived)
-SWIG_SHARED_PTR_DERIVED(Klass3rdDerived, Space::Klass2ndDerived, Space::Klass3rdDerived)
-
-// TEMP for python
-%types(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< Space::Klass3rdDerived > = SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< Space::Klass >) {
-  *newmemory = SWIG_CAST_NEW_MEMORY;
-  return (void *) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< Space::Klass >(*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< Space::Klass3rdDerived > *)$from);
-}
+SWIG_SHARED_PTR(KlassDerived, Space::KlassDerived)
+SWIG_SHARED_PTR(Klass2ndDerived, Space::Klass2ndDerived)
+SWIG_SHARED_PTR(Klass3rdDerived, Space::Klass3rdDerived)
 
 #endif
 
@@ -324,9 +318,7 @@ Space::Klass & GlobalReference = GlobalValue;
 
 // Note: %template after the shared_ptr typemaps
 SWIG_SHARED_PTR(BaseIntDouble, Base<int, double>)
-// Note: cannot use Base<int, double> in the macro below because of the comma in the type, 
-// so we use a typedef instead. Alternatively use %arg(Base<int, double>). %arg is defined in swigmacros.swg.
-SWIG_SHARED_PTR_DERIVED(PairIntDouble, BaseIntDouble_t, Pair<int, double>)
+SWIG_SHARED_PTR(PairIntDouble, Pair<int, double>)
 
 #endif
 
@@ -339,7 +331,6 @@ template <class T1, class T2> struct Base {
   Base(T1 t1, T2 t2) : baseVal1(t1*2), baseVal2(t2*2) {}
   virtual std::string getValue() const { return "Base<>"; };
 };
-typedef Base<int, double> BaseIntDouble_t;
 %}
 
 %template(BaseIntDouble) Base<int, double>;
