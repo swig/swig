@@ -41,10 +41,10 @@
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 
 %include <boost_shared_ptr.i>
-SWIG_SHARED_PTR(Klass, Space::Klass)
-SWIG_SHARED_PTR(KlassDerived, Space::KlassDerived)
-SWIG_SHARED_PTR(Klass2ndDerived, Space::Klass2ndDerived)
-SWIG_SHARED_PTR(Klass3rdDerived, Space::Klass3rdDerived)
+%shared_ptr(Space::Klass)
+%shared_ptr(Space::KlassDerived)
+%shared_ptr(Space::Klass2ndDerived)
+%shared_ptr(Space::Klass3rdDerived)
 
 #endif
 
@@ -317,8 +317,8 @@ Space::Klass & GlobalReference = GlobalValue;
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 
 // Note: %template after the shared_ptr typemaps
-SWIG_SHARED_PTR(BaseIntDouble, Base<int, double>)
-SWIG_SHARED_PTR(PairIntDouble, Pair<int, double>)
+%shared_ptr(Base<int, double>)
+%shared_ptr(Pair<int, double>)
 
 #endif
 

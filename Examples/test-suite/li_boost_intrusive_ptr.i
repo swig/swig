@@ -44,10 +44,10 @@
 #if defined(INTRUSIVE_PTR_WRAPPERS_IMPLEMENTED)
 
 %include <boost_intrusive_ptr.i>
-SWIG_INTRUSIVE_PTR(Klass, Space::Klass)
-SWIG_INTRUSIVE_PTR_NO_WRAP(KlassWithoutRefCount, Space::KlassWithoutRefCount)
-SWIG_INTRUSIVE_PTR(KlassDerived, Space::KlassDerived)
-SWIG_INTRUSIVE_PTR(KlassDerivedDerived, Space::KlassDerivedDerived)
+%intrusive_ptr(Space::Klass)
+%intrusive_ptr_no_wrap(Space::KlassWithoutRefCount)
+%intrusive_ptr(Space::KlassDerived)
+%intrusive_ptr(Space::KlassDerivedDerived)
 
 //For the use_count shared_ptr functions
 %typemap(in) SWIG_INTRUSIVE_PTR_QNAMESPACE::shared_ptr< Space::Klass > & ($*1_ltype tempnull) %{ 
@@ -389,8 +389,8 @@ Space::Klass & GlobalReference = GlobalValue;
 #if defined(INTRUSIVE_PTR_WRAPPERS_IMPLEMENTED)
 
 // Note: %template after the intrusive_ptr typemaps
-SWIG_INTRUSIVE_PTR(BaseIntDouble, Base<int, double>)
-SWIG_INTRUSIVE_PTR(PairIntDouble, Pair<int, double>)
+%intrusive_ptr(Base<int, double>)
+%intrusive_ptr(Pair<int, double>)
 
 #endif
 

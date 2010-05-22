@@ -1,7 +1,7 @@
 %include <shared_ptr.i>
 
 // Language specific macro implementing all the customisations for handling the smart pointer
-%define SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, CONST, TYPE...)
+%define SWIG_SHARED_PTR_TYPEMAPS(CONST, TYPE...)
 
 // %naturalvar is as documented for member variables
 %naturalvar TYPE;
@@ -97,44 +97,44 @@
 %typemap (jstype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
-                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "PROXYCLASS"
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(jstype, TYPE)"
 
 %typemap(javain) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
-                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "PROXYCLASS.getCPtr($javainput)"
+                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(jstype, TYPE).getCPtr($javainput)"
 
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 
 
 %typemap(javaout) CONST TYPE {
-    return new PROXYCLASS($jnicall, true);
+    return new $typemap(jstype, TYPE)($jnicall, true);
   }
 %typemap(javaout) CONST TYPE & {
-    return new PROXYCLASS($jnicall, true);
+    return new $typemap(jstype, TYPE)($jnicall, true);
   }
 %typemap(javaout) CONST TYPE * {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)/*ha*/(cPtr, true);
   }
 %typemap(javaout) TYPE *CONST& {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 
 // Base proxy classes

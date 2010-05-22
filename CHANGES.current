@@ -1,11 +1,20 @@
 Version 2.0.0 (in progress)
 ============================
 
-2010-05-22: wsfulton
+2010-05-23: wsfulton
             Fix #2408232. Improve shared_ptr and intrusive_ptr wrappers for classes in an
-            inheritance hierarchy. No special treatment is needed for derived classes, the
-            SWIG_SHARED_PTR_DERIVED macro is deprecated and SWIG_SHARED_PTR should be used
-            instead.
+            inheritance hierarchy. No special treatment is needed for derived classes.
+            The proxy class also no longer needs to be specified, it is automatically
+            deduced. The following macros are deprecated:
+              SWIG_SHARED_PTR(PROXYCLASS, TYPE)
+              SWIG_SHARED_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE)
+            and have been replaced by
+              %shared_ptr(TYPE)
+            Similarly for intrusive_ptr wrappers, the following macro is deprecated:
+              SWIG_INTRUSIVE_PTR(PROXYCLASS, TYPE)
+              SWIG_INTRUSIVE_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE)
+            and have been replaced by
+              %intrusive_ptr(TYPE)
 
 2010-05-21: olly
 	    [PHP] Stop generating a bogus line of code in certain constructors.

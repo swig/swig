@@ -7,7 +7,7 @@
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 
 %include <boost_shared_ptr.i>
-SWIG_SHARED_PTR(NonDynamic, NonDynamic)
+%shared_ptr(NonDynamic)
 
 #endif
 

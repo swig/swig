@@ -44,18 +44,39 @@ struct SWIG_null_deleter {
 %#define SWIG_NO_NULL_DELETER_1
 }
 
+// Workaround empty first macro argument bug
+#define SWIGEMPTYHACK
 // Main user macro for defining intrusive_ptr typemaps for both const and non-const pointer types
-%define SWIG_INTRUSIVE_PTR(PROXYCLASS, TYPE...)
+%define %intrusive_ptr(TYPE...)
 %feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
-SWIG_INTRUSIVE_PTR_TYPEMAPS(PROXYCLASS, , TYPE)
-SWIG_INTRUSIVE_PTR_TYPEMAPS(PROXYCLASS, const, TYPE)
+SWIG_INTRUSIVE_PTR_TYPEMAPS(SWIGEMPTYHACK, TYPE)
+SWIG_INTRUSIVE_PTR_TYPEMAPS(const, TYPE)
 %enddef
 
-// Extra user macro for including classes in intrusive_ptr typemaps for both const and non-const pointer types
-// This caters for classes which cannot be wrapped by intrusive_ptrs but are still part of the class hierarchy
-%define SWIG_INTRUSIVE_PTR_NO_WRAP(PROXYCLASS, TYPE...)
+%define %intrusive_ptr_no_wrap(TYPE...)
 %feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
-SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(PROXYCLASS, , TYPE)
-SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(PROXYCLASS, const, TYPE)
+SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(SWIGEMPTYHACK, TYPE)
+SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(const, TYPE)
+%enddef
+
+// Legacy macros
+%define SWIG_INTRUSIVE_PTR(PROXYCLASS, TYPE...)
+#warning "SWIG_INTRUSIVE_PTR(PROXYCLASS, TYPE) is deprecated. Please use %intrusive_ptr(TYPE) instead."
+%intrusive_ptr(TYPE)
+%enddef
+
+%define SWIG_INTRUSIVE_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE...)
+#warning "SWIG_INTRUSIVE_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE) is deprecated. Please use %intrusive_ptr(TYPE) instead."
+%intrusive_ptr(TYPE)
+%enddef
+
+%define SWIG_INTRUSIVE_PTR_NO_WRAP(PROXYCLASS, TYPE...)
+#warning "SWIG_INTRUSIVE_PTR_NO_WRAP(PROXYCLASS, TYPE) is deprecated. Please use %intrusive_ptr_no_wrap(TYPE) instead."
+%intrusive_ptr_no_wrap(TYPE)
+%enddef
+
+%define SWIG_INTRUSIVE_PTR_DERIVED_NO_WRAP(PROXYCLASS, BASECLASSTYPE, TYPE...)
+#warning "SWIG_INTRUSIVE_PTR_DERIVED_NO_WRAP(PROXYCLASS, BASECLASSTYPE, TYPE) is deprecated. Please use %intrusive_ptr_no_wrap(TYPE) instead."
+%intrusive_ptr_no_wrap(TYPE)
 %enddef
 
