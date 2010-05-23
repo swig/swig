@@ -511,7 +511,7 @@ In the P/Invoke default marshalling scheme, one needs to designate whether the i
 array parameter as input, output, or both. When the function is invoked, the CLR allocates a separate chunk of memory as big as the given managed array, 
 which is automatically released at the end of the function call. If the array parameter is marked as being input, the content of the managed array is copied
 into this buffer when the call is made. Correspondingly, if the array parameter is marked as being output, the contents of the reserved buffer are copied
-back into the managed array after the call returns. A pointer to to this buffer
+back into the managed array after the call returns. A pointer to this buffer
 is passed to the native function.
 </p>
 

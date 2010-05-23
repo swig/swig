@@ -334,7 +334,7 @@ extern double Foo;
 %mutable;
 </pre></div>
 <p>
-SWIG will allow the the reading of <tt>Foo</tt> but when a set attempt is made, an error function will be called.
+SWIG will allow the reading of <tt>Foo</tt> but when a set attempt is made, an error function will be called.
 </p>
 <div class="targetlang"><pre>
 &gt; print(e.Foo) -- reading works ok
@@ -1099,7 +1099,7 @@ userdata: 0003D880
 </pre></div>
 
 <p>
-Note: is is also possible (though tedious) to have a function throw several different kinds of exceptions. To process this
+Note: it is also possible (though tedious) to have a function throw several different kinds of exceptions. To process this
 will require a pcall, followed by a set of if statements checking the type of the error.
 </p>
 <p>

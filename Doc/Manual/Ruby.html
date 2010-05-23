@@ -10204,7 +10204,7 @@ the same underlying C++ object. This can cause problems. For example:<br>
 
 
 
-<p>After the the garbage collector runs, as a result of our call
+<p>After the garbage collector runs, as a result of our call
 to <tt>GC.start</tt>, calling<tt>tiger2.get_name()</tt>
 causes a segmentation fault. The problem is that when <tt>tiger1</tt>
 is garbage collected, it frees the underlying C++ object. Thus, when <tt>tiger2</tt>
@@ -10649,7 +10649,7 @@ initialization a normal Ruby interpreter will call the ruby_init()
 function which in turn will call a function called Init_stack or
 similar. &nbsp;This function will store a pointer to the location
 where
-the stack points at at that point in time.</p>
+the stack points at that point in time.</p>
 
 
 

@@ -1094,7 +1094,7 @@ C++ enums defined within a C++ class are generated into a static final inner Jav
 </p>
 
 <p>
-Typesafe enums have their advantages over using plain integers in that they they can be used in a typesafe manner.
+Typesafe enums have their advantages over using plain integers in that they can be used in a typesafe manner.
 However, there are limitations. For example, they cannot be used in switch statements and serialization is an issue.
 Please look at the following references for further information: 
 
@@ -2270,7 +2270,7 @@ For example, let's change the intermediary JNI class access to just the default 
 </div>
 
 <p>
-All the methods in the intermediary JNI class will then not be be callable outside of the package as the method modifiers have been changed from public access to default access. This is useful if you want to prevent users calling these low level functions.
+All the methods in the intermediary JNI class will then not be callable outside of the package as the method modifiers have been changed from public access to default access. This is useful if you want to prevent users calling these low level functions.
 </p>
 
 <H3><a name="Java_module_class"></a>21.4.2 The Java module class</H3>
@@ -2758,7 +2758,7 @@ You can encourage the garbage collector to call the finalizers, for example, add
   }
 </pre></div>
 <p>Although this usually works, the documentation doesn't guarantee that <tt>runFinalization()</tt> will actually call the finalizers. 
-As the the shutdown hook is guaranteed you could also make a JNI call to clean up any resources that are being tracked by the C/C++ code.</p>
+As the shutdown hook is guaranteed you could also make a JNI call to clean up any resources that are being tracked by the C/C++ code.</p>
 </li>
 
 <li>
@@ -4521,7 +4521,7 @@ code.
 <p>
 This section describes how you can modify SWIG's default wrapping behavior
 for various C/C++ datatypes using the <tt>%typemap</tt> directive.   
-You are advised to be familiar with the the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.
+You are advised to be familiar with the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.
 While not absolutely essential knowledge, this section assumes some familiarity with the Java Native Interface (JNI). 
 JNI documentation can be consulted either online at <a href="http://java.sun.com">Sun's Java web site</a> or from a good JNI book. 
 The following two books are recommended:</p>
