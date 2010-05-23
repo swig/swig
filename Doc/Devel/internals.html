@@ -42,11 +42,9 @@ David M. Beazley <br>
 </ul>
 <li><a name="i3" href="#3">3. Types and Typemaps</a>
 <li><a name="i4" href="#4">4. Parsing</a>
-<li><a name="i5" href="#5">5. Difference Between SWIG 1.1 and SWIG 1.3</a>
-<li><a name="i6" href="#6">6. Plans for SWIG 2.0</a>
-<li><a name="i7" href="#7">7. C/C++ Wrapper Support Functions</a>
-<li><a name="i8" href="#8">8. Symbol Naming Guidelines for Generated C/C++ Code</a>
-<li><a name="i9" href="#9">9. Debugging SWIG</a>
+<li><a name="i5" href="#5">5. C/C++ Wrapper Support Functions</a>
+<li><a name="i6" href="#6">6. Symbol Naming Guidelines for Generated C/C++ Code</a>
+<li><a name="i7" href="#7">7. Debugging SWIG</a>
 </ul>
 
 <a name="1" href="#i1">
@@ -96,55 +94,35 @@ info.</td>
 </tr>
 
 <tr><td>Source</td>
-<td>SWIG source code is in this subdir tree.  Directories marked w/ "(*)"
-are used in building the <tt>swig</tt> executable. 
+<td>The C and C++ source code for the <tt>swig</tt> executable is in this
+subdir tree.</td>
 
   <table border=1>
 
-  <tr><td>DOH (*)</td>
+  <tr><td>DOH</td>
   <td>C library providing memory allocation, file access and generic
-  containers.  Result: libdoh.a</td>
+  containers.</td>
   </tr>
 
-  <tr><td>Experiment</td>
-  <td>[TODO]</td>
-  </tr>
-
-  <tr><td>Include (*)</td>
+  <tr><td>Include</td>
   <td>Configuration .h files</td>
   </tr>
 
-  <tr><td>LParse</td>
-  <td>Parser (lex / yacc) files and support [why not (*)?!]</td>
+  <tr><td>CParse</td>
+  <td>Parser (lex / yacc) files and support</td>
   </tr>
 
   <tr><td>Modules</td>
-  <td>[TODO]</td>
-  </tr>
-
-  <tr><td>Modules1.1 (*)</td>
   <td>Language-specific callbacks that does actual code generation (each
-  language has a .cxx and a .h file).  Result: libmodules11.a</td>
+  language has a .cxx and a .h file).</td>
   </tr>
 
-  <tr><td>Preprocessor (*)</td>
-  <td>SWIG-specialized C/C++ preprocessor.  Result: libcpp.a</td>
+  <tr><td>Preprocessor</td>
+  <td>SWIG-specialized C/C++ preprocessor.</td>
   </tr>
 
-  <tr><td>SWIG1.1 (*)</td>
-  <td>Parts of SWIG that are not language-specific, including option
-  processing and the type-mapping system.  Result: libswig11.a.
-  Note: This directory is currently being phased out. </td>
-  </tr>
-
-  <tr><td>SWIG1.3</td>
-  <td>[TODO] [funny, nothing here is presently used for swig-1.3].
-  This directory might turn into a compatibility interface between
-  SWIG1.3 and the SWIG1.1 modules.</td>
-  </tr>
-
-  <tr><td>Swig (*)</td>
-  <td>This directory contains the new ANSI C core of the system
+  <tr><td>Swig</td>
+  <td>This directory contains the ANSI C core of the system
   and contains generic functions related to types, file handling,
   scanning, and so forth.</td>
   </tr>
@@ -153,7 +131,7 @@ are used in building the <tt>swig</tt> executable.
 </tr>
 
 <tr><td>Tools</td>
-<td>Libtool support and the mkdist.py script.</td>
+<td>The mkdist.py script and other tools.</td>
 </tr>
 
 <tr><td>Win</td>
@@ -172,14 +150,14 @@ to look for code:
 
 <ul>
 
-<li> <tt>Modules1.1/swigmain.cxx:main()</tt> is the program entry
+<li> <tt>Modules/swigmain.cxx:main()</tt> is the program entry
 point.  It parses the language-specifying command-line option (for
 example, <tt>-java</tt>), creating a new language-specific wrapping
 object (each language is a C++ class derived from base class
 <tt>Language</tt>).  This object and the command-line is passed to
 <tt>SWIG_main()</tt>, whose return value is the program exit value.
 
-<li> <tt>SWIG1.1/main.cxx:SWIG_main()</tt> is the "real" main.  It
+<li> <tt>Modules/main.cxx:SWIG_main()</tt> is the "real" main.  It
 initializes the preprocessor and typemap machinery, defines some
 preprocessor symbols, locates the SWIG library, processes common
 command-line options, and then calls the language-specific command-line
@@ -202,7 +180,7 @@ included <tt>-freeze</tt>, go into an infinite loop; otherwise return the
 error count.
 
 <li> The language-specific <tt>parse()</tt> (and all other
-language-specific code) lives in <tt>Modules1.1/foo.{h,cxx}</tt> for
+language-specific code) lives in <tt>Modules/foo.{h,cxx}</tt> for
 language Foo.  Typically, <tt>FOO::parse()</tt> calls
 <tt>FOO::headers()</tt> and then the global function <tt>yyparse()</tt>,
 which uses the callbacks registered by <tt>SWIG_main()</tt> above. 
@@ -552,8 +530,7 @@ list item: listval5
 The representation and manipulation of types is currently in the
 process of being reorganized and (hopefully) simplified.  The
 following list describes the current set of functions that are used to
-manipulate datatypes.  These functions are different than in
-SWIG1.1 and may change names in the final SWIG1.3 release.
+manipulate datatypes.
 
 <ul>
 <li><tt>SwigType_str(SwigType *t, char *name)</tt>.<br>
@@ -709,19 +686,7 @@ repeated calls without making any copies.
 [TODO]
 
 <a name="5" href="#i5">
-<h2>5. Difference Between SWIG 1.1 and SWIG 1.3</h2>
-</a>
-
-[TODO]
-
-<a name="6" href="#i6">
-<h2>6. Plans for SWIG 2.0</h2>
-</a>
-
-[TODO]
-
-<a name="7" href="#i7">
-<h2>7. The C/C++ Wrapping Layer</h2>
+<h2>5. The C/C++ Wrapping Layer</h2>
 </a>
 
 Added: Dave Beazley (July 22, 2000)
@@ -1000,8 +965,8 @@ for specifying local variable declarations and argument conversions.
 
 
 
-<a name="8" href="#i8">
-<h2>8. Symbol Naming Guidelines for Generated C/C++ Code</h2>
+<a name="6" href="#i6">
+<h2>6. Symbol Naming Guidelines for Generated C/C++ Code</h2>
 </a>
 The C++ standard (ISO/IEC 14882:1998(E)) states:
 <blockquote>
@@ -1047,8 +1012,8 @@ For code compiled as C or C++ that attempts to mangle a wrapped symbol:
 In the past SWIG has generated many symbols which flout the standard especially double underscores. In fact they may not all be rooted out yet, so please fix them when you see them.
 
 
-<a name="9" href="#i9">
-<h2>9. Debugging SWIG</h2>
+<a name="7" href="#i7">
+<h2>7. Debugging SWIG</h2>
 </a>
 Warning. Debugging SWIG is for the very patient.
 <p>
@@ -1099,7 +1064,7 @@ Please also read the Debugging Functions section in <a href="tree.html">SWIG Par
 </p>
 
 <hr>
-Copyright (C) 1999-2004 SWIG Development Team.
+Copyright (C) 1999-2010 SWIG Development Team.
 
 </body>
 </html>
