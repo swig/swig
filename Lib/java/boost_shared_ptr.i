@@ -130,7 +130,7 @@
   }
 %typemap(javaout) CONST TYPE * {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)/*ha*/(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) TYPE *CONST& {
     long cPtr = $jnicall;
@@ -142,7 +142,7 @@
   private long swigCPtr;
   private boolean swigCMemOwnBase;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+  public $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwnBase = cMemoryOwn;
     swigCPtr = cPtr;
   }
@@ -157,8 +157,8 @@
   private long swigCPtr;
   private boolean swigCMemOwnDerived;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
-    super($imclassname.$javaclassname_SWIGSmartPtrUpcast(cPtr), true);
+  public $javaclassname(long cPtr, boolean cMemoryOwn) {
+    super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);
     swigCMemOwnDerived = cMemoryOwn;
     swigCPtr = cPtr;
   }

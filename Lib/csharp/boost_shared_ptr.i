@@ -190,7 +190,7 @@
   private HandleRef swigCPtr;
   private bool swigCMemOwnDerived;
 
-  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($imclassname.$csclassname_SWIGSmartPtrUpcast(cPtr), true) {
+  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($imclassname.$csclazznameSWIGSmartPtrUpcast(cPtr), true) {
     swigCMemOwnDerived = cMemoryOwn;
     swigCPtr = new HandleRef(this, cPtr);
   }

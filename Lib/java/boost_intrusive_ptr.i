@@ -256,7 +256,7 @@
   private long swigCPtr;
   private boolean swigCMemOwnBase;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+  public $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwnBase = cMemoryOwn;
     swigCPtr = cPtr;
   }
@@ -271,8 +271,8 @@
   private long swigCPtr;
   private boolean swigCMemOwnDerived;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
-    super($imclassname.$javaclassname_SWIGSmartPtrUpcast(cPtr), true);
+  public $javaclassname(long cPtr, boolean cMemoryOwn) {
+    super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);
     swigCMemOwnDerived = cMemoryOwn;
     swigCPtr = cPtr;
   }
@@ -406,7 +406,7 @@
   private long swigCPtr;
   private boolean swigCMemOwnBase;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+  public $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwnBase = cMemoryOwn;
     swigCPtr = cPtr;
   }
@@ -421,8 +421,8 @@
   private long swigCPtr;
   private boolean swigCMemOwnDerived;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
-    super($imclassname.$javaclassname_SWIGSmartPtrUpcast(cPtr), true);
+  public $javaclassname(long cPtr, boolean cMemoryOwn) {
+    super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);
     swigCMemOwnDerived = cMemoryOwn;
     swigCPtr = cPtr;
   }
