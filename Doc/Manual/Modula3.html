@@ -11,10 +11,7 @@
 <ul>
 <li><a href="#Modula3_modula3_overview">Overview</a>
 <ul>
-<li><a href="#Modula3_whyscripting">Why not scripting ?</a>
-<li><a href="#Modula3_whymodula3">Why Modula-3 ?</a>
-<li><a href="#Modula3_whycpp">Why C / C++ ?</a>
-<li><a href="#Modula3_whyswig">Why SWIG ?</a>
+<li><a href="#Modula3_motivation">Motivation</a>
 </ul>
 <li><a href="#Modula3_conception">Conception</a>
 <ul>
@@ -49,7 +46,7 @@
 
 <p>
 This chapter describes SWIG's support of
-<a href="http://www.m3.org/">Modula-3</a>.
+<a href="http://modula3.org/">Modula-3</a>.
 You should be familiar with the
 <a href="SWIG.html#SWIG">basics</a>
 of SWIG,
@@ -59,14 +56,18 @@ especially
 
 <H2><a name="Modula3_modula3_overview"></a>24.1 Overview</H2>
 
+<p>
+Modula-3 is a compiled language in the tradition of Niklaus Wirth's Modula 2,
+which is in turn a successor to Pascal.
+</p>
 
 <p>
-The Modula-3 support is very basic and highly experimental!
+SWIG's Modula-3 support is currently very basic and highly experimental!
 Many features are still not designed satisfyingly
 and I need more discussion about the odds and ends.
 Don't rely on any feature, incompatible changes are likely in the future!
-The Modula-3 generator was already useful for interfacing
-to the libraries
+However, the Modula-3 generator was already useful for interfacing
+to the libraries:
 </p>
 
 <ol>
@@ -78,130 +79,33 @@ PLPlot
 <li>
 <a href="http://www.elegosoft.com/cgi-bin/cvsweb.cgi/cm3/m3-libs/fftw/">
 FFTW
-</a> .
+</a>
 </li>
 </ol>
 
+<H3><a name="Modula3_motivation"></a>24.1.3 Motivation</H3>
 
 <p>
-I took some more time to explain
-why I think it's right what I'm doing.
-So the introduction got a bit longer than it should ...  ;-)
-</p>
-
-
-<H3><a name="Modula3_whyscripting"></a>24.1.1 Why not scripting ?</H3>
-
-
-<p>
-SWIG started as wrapper from the fast compiled languages C and C++
-to high level scripting languages like Python.
-Although scripting languages are designed
-to make programming life easier
-by hiding machine internals from the programmer
-there are several aspects of today's scripting languages
-that are unfavourable in my opinion.
+Although it is possible to write Modula-3 code that performs as well as C/C++
+most existing libraries are not written in Modula-3 but in C or C++, and
+even libraries in other languages may provide C header files.
 </p>
 
 <p>
-Besides C, C++, Cluster (a Modula derivate for Amiga computers)
-I evaluated several scripting like languages in the past:
-Different dialects of BASIC,
-Perl, ARexx (a variant of Rexx for Amiga computers),
-shell scripts.
-I found them too inconsistent,
-too weak in distinguishing types,
-too weak in encapsulating pieces of code.
-Eventually I have started several projects in Python
-because of the fine syntax.
-But when projects became larger
-I lost the track.
-I got convinced that one can not have
-maintainable code in a language
-that is not statically typed.
-In fact the main advantages of scripting languages
-e.g. matching regular expressions,
-complex built-in datatypes like lists, dictionaries,
-are not advantages of the language itself
-but can be provided by function libraries.
-</p>
-
-<H3><a name="Modula3_whymodula3"></a>24.1.2 Why Modula-3 ?</H3>
-
-
-<p>
-Modula-3 is a compiler language
-in the tradition of Niklaus Wirth's Modula 2,
-which is in turn a successor of the popular Pascal.
-I have chosen Modula-3
-because of its
-logical syntax,
-strong modularization,
-the type system which is very detailed
-for machine types compared to other languages.
-Of course it supports all of the modern games
-like exceptions, objects, garbage collection, threads.
-While C++ programmers must
-control three languages,
-namely the preprocessor, C and ++,
-Modula-3 is made in one go
-and the language definition is really compact.
+Fortunately Modula-3 can call C functions, but you have to write Modula-3
+interfaces to them, and to make things comfortable you will also need
+wrappers that convert between high-level features of Modula-3 (garbage
+collecting, exceptions) and the explicit tracking of allocated memory and
+exception codes used by C APIs.
 </p>
 
 <p>
-On the one hand Modula-3 can be safe
-(but probably less efficient) in normal modules
-while providing much static and dynamic safety.
-On the other hand you can write efficient
-but less safe code in the style of C
-within <tt>UNSAFE</tt> modules.
+SWIG converts C headers to Modula-3 interfaces for you, and using typemaps
+you can pass <tt>TEXT</tt>s or open arrays, and convert error return codes
+into exceptions.
 </p>
 
 <p>
-Unfortunately Modula's safety and strength
-requires more writing than scripting languages do.
-Today if I want to safe characters
-I prefer Haskell (similar to OCAML) -
-it's statically typed, too.
-</p>
-
-
-<H3><a name="Modula3_whycpp"></a>24.1.3 Why C / C++ ?</H3>
-
-
-<p>
-Although it is no problem to write Modula-3 programs
-that performs as fast as C
-most libraries are not written in Modula-3 but in C.
-Fortunately the binary interface of most function libraries
-can be addressed by Modula-3.
-Even more fortunately even non-C libraries may provide C header files.
-This is where SWIG becomes helpful.
-</p>
-
-<H3><a name="Modula3_whyswig"></a>24.1.4 Why SWIG ?</H3>
-
-
-<p>
-The C headers and the possibility to interface to C libraries
-still leaves the work for you
-to write Modula-3 interfaces to them.
-To make things comfortable you will also need
-wrappers that convert between high-level features of Modula-3
-(garbage collecting, exceptions)
-and the low level of the C libraries.
-</p>
-
-<p>
-SWIG converts C headers to Modula-3 interfaces for you.
-You could call the C functions without loss
-of efficiency but it won't be joy
-because you could not pass <tt>TEXT</tt>s
-or open arrays and
-you would have to process error return codes
-rather then exceptions.
-But using some typemaps SWIG will also generate
-wrappers that bring the whole Modula-3 comfort to you.
 If the library API is ill designed
 writing appropriate typemaps can be still time-consuming.
 E.g. C programmers are very creative to work-around
@@ -211,46 +115,19 @@ otherwise you lose static safety and consistency.
 </p>
 
 <p>
-
-But you have still a problem:
-C library interfaces are often ill.
-They lack for certain information
-because C compilers wouldn't care about.
-You should integrate detailed type information
-by adding <tt>typedef</tt>s and <tt>const</tt>s
-and you should persuade the C library programmer
-to add this information to his interface.
-Only this way other language users can benefit from your work
-and only this way you can easily update your interfaces
-when a new library version is released.
-
-You will realise that writing <b>good</b> SWIG interfaces
-is very costly and it will only amortise
-when considering evolving libraries.
-</p>
-
-
-<p>
-Without SWIG you would probably never consider
-to call C++ libraries from Modula-3.
-But with SWIG this is worth a consideration.
-SWIG can write C wrappers to C++ functions and object methods
-that may throw exceptions.
-In fact it breaks down C++ libraries to C interfaces
-which can be in turn called from Modula-3.
-To make it complete you can hide the C interface
-with Modula-3 classes and exceptions.
+Without SWIG you would probably never consider trying to call C++ libraries
+from Modula-3, but with SWIG this is becomes feasible.
+SWIG can generate C wrappers to C++ functions and object methods
+that may throw exceptions, and then wrap these C wrappers for Module-3.
+To make it complete you can then hide the C interface with Modula-3 classes and
+exceptions.
 </p>
 
 <p>
-Although SWIG does the best it can do
-it can only serve as a one-way strategy.
-That means you can use C++ libraries
-with Modula-3 (even with call back functions),
-but it's certainly not possible to smoothly
-integrate Modula-3 code into a C / C++ project.
+SWIG allows you to call C and C++ libraries from Modula-3 (even with call back
+functions), but it doesn't allow you to easily integrate a Module-3 module into
+a C/C++ project.
 </p>
-
 
 <H2><a name="Modula3_conception"></a>24.2 Conception</H2>
 
@@ -259,7 +136,7 @@ integrate Modula-3 code into a C / C++ project.
 
 
 <p>
-Modula-3 has an integrated support for calling C functions.
+Modula-3 has integrated support for calling C functions.
 This is also extensively used by the standard Modula-3 libraries
 to call OS functions.
 The Modula-3 part of SWIG and the corresponding SWIG library
@@ -417,7 +294,7 @@ with a C interface.
 
 <p>
 Here's a scheme of how the function calls to Modula-3 wrappers
-a redirected to C library functions:
+are redirected to C library functions:
 </p>
 
 <table summary="Modula-3 C++ library">
@@ -1058,8 +935,8 @@ where almost everything is generated by a typemap:
 <ul>
 <li>
 The Modula-3 part of SWIG doesn't try to generate nicely formatted code.
-Use <tt>m3pp</tt> to postprocess the Modula files,
-it does a very good job here.
+If you need to read the generated code, use <tt>m3pp</tt> to postprocess the
+Modula files.
 </li>
 </ul>
 
