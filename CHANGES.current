@@ -2,6 +2,22 @@ Version 2.0.0 (in progress)
 ============================
 
 2010-05-23: wsfulton
+            [C#] Fix #2957375 - SWIGStringHelper and SWIGExceptionHelper not always being
+            initialized before use in .NET 4 as the classes were not marked beforefieldinit.
+            A static constructor has been added to the intermediary class like this:
+
+              %pragma(csharp) imclasscode=%{
+                static $imclassname() {
+                }
+              %}
+
+            If you had added your own custom static constructor to the intermediary class in
+            the same way as above, you will have to modify your approach to use static variable
+            initialization or define SWIG_CSHARP_NO_IMCLASS_STATIC_CONSTRUCTOR - See csharphead.swg.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2010-05-23: wsfulton
             Fix #2408232. Improve shared_ptr and intrusive_ptr wrappers for classes in an
             inheritance hierarchy. No special treatment is needed for derived classes.
             The proxy class also no longer needs to be specified, it is automatically
