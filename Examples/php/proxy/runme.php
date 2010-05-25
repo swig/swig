@@ -9,10 +9,10 @@ include("example.php");
 # ----- Object creation -----
 
 print "Creating some objects:\n";
-$c = CircleFactory(10);
-print "    Created circle $c with area ". $c->area() ."\n";
+$c = example::CircleFactory(10);
+print "    Created circle \$c with area ". $c->area() ."\n";
 $s = new Square(10);
-print "    Created square $s\n";
+print "    Created square \$s\n";
 
 # ----- Access a static member -----
 
@@ -37,7 +37,7 @@ print "    Square = (" . $s->x . "," . $s->y . ")\n";
 
 print "\nHere are some properties of the shapes:\n";
 foreach (array($c,$s) as $o) {
-      print "    ".get_class($o)." $o\n";
+      print "    ".get_class($o)." \$o\n";
       print "        x         = " .  $o->x . "\n";
       print "        y         = " .  $o->y . "\n";
       print "        area      = " .  $o->area() . "\n";
