@@ -10,9 +10,9 @@ require("example.php");
 
 print "Creating some objects:\n";
 $c = new Circle(10);
-print "    Created circle $c\n";
+print "    Created circle \$c\n";
 $s = new Square(10);
-print "    Created square $s\n";
+print "    Created square \$s\n";
 
 # ----- Create the ShapeContainer ----
 
