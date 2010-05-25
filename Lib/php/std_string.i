@@ -53,6 +53,10 @@ namespace std {
         ZVAL_STRINGL($result, const_cast<char*>($1->data()), $1->size(), 1);
     %}
 
+    %typemap(directorin) const string & %{
+        ZVAL_STRINGL($input, const_cast<char*>($1_name.data()), $1_name.size(), 1);
+    %}
+
     %typemap(throws) string %{
       SWIG_PHP_Error(E_ERROR, (char *)$1.c_str());
     %}

@@ -1,6 +1,10 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-25: olly
+	    [PHP] Add missing directorin typemap for const std::string &.
+	    Fixes SF#3006404 reported by t-Legiaw.
+
 2010-05-23: wsfulton
             [C#] Fix #2957375 - SWIGStringHelper and SWIGExceptionHelper not always being
             initialized before use in .NET 4 as the classes were not marked beforefieldinit.
