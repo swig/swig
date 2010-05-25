@@ -29,13 +29,16 @@
 #
 # Note that the RUNTOOL, COMPILETOOL and SWIGTOOL variables can be used
 # for invoking tools for the runtime tests and target language 
-# compiler (eg javac) respectively. For example, valgrind can be used 
-# for memory checking of the runtime tests using:
+# compiler (eg javac), and on SWIG respectively. For example, valgrind
+# can be used for memory checking of the runtime tests using:
 #   make RUNTOOL="valgrind --leak-check=full"
 # and valgrind can be used when invoking SWIG using:
 #   make SWIGTOOL="valgrind --tool=memcheck --trace-children=yes"
 #    Note: trace-children needed because of preinst-swig shell wrapper
 #    to the swig executable.
+#
+# An individual test run can be debugged easily:
+#   make director_string.cpptest RUNTOOL="gdb --args"
 #
 # The variables below can be overridden after including this makefile
 #######################################################################

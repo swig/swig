@@ -3469,6 +3469,14 @@ SWIG can be analyzed for bad memory accesses using:
 make ret_by_value.ctest SWIGTOOL="valgrind --tool=memcheck --trace-children=yes"
 </pre></div>
 
+<p>
+A debugger can also be invoked easily on an individual test, for example gdb:
+</p>
+
+<div class="shell"><pre>
+make ret_by_value.ctest RUNTOOL="gdb --args"
+</pre></div>
+
 <H3><a name="Extending_nn43"></a>35.10.13 Documentation</H3>
 
 
