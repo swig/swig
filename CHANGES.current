@@ -1,6 +1,33 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-27: wsfulton
+            Add the ability for $typemap special variable macros to call other $typemap
+            special variable macros, for example:
+
+              %typemap(cstype) CC "CC"
+              %typemap(cstype) BB "$typemap(cstype, CC)"
+              %typemap(cstype) AA "$typemap(cstype, BB)"
+              void hah(AA aa);
+
+            This also fixes C# std::vector containers of shared_ptr and %shared_ptr.
+
+            Also added diagnostics for $typemap with -debug-tmsearch, for example, the
+            above displays additional diagnostic lines starting "Containing: ":
+
+              example.i:34: Searching for a suitable 'cstype' typemap for: AA aa
+                Looking for: AA aa
+                Looking for: AA
+                Using: %typemap(cstype) AA
+                Containing: $typemap(cstype, BB)
+              example.i:31: Searching for a suitable 'cstype' typemap for: BB
+                Looking for: BB
+                Using: %typemap(cstype) BB
+                Containing: $typemap(cstype, CC)
+              example.i:29: Searching for a suitable 'cstype' typemap for: CC
+                Looking for: CC
+                Using: %typemap(cstype) CC
+
 2010-05-26: olly
 	    Fix %attribute2ref not to produce a syntax error if the last
 	    argument (AccessorMethod) is omitted.  Patch from David Piepgras

@@ -23,3 +23,28 @@ struct NonDynamic {
 boost::shared_ptr<NonDynamic> boing(boost::shared_ptr<NonDynamic> b) { return b; }
 %}
 
+// vector of shared_ptr
+%include "std_vector.i"
+
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
+
+%shared_ptr(IntHolder);
+
+#endif
+
+%inline %{
+#include "boost/shared_ptr.hpp"
+struct IntHolder {
+  int val;
+  IntHolder(int a) : val(a) {}
+};
+int sum(std::vector< boost::shared_ptr<IntHolder> > v) {
+  int sum = 0;
+  for (size_t i=0; i<v.size(); ++i)
+    sum += v[i]->val;
+  return sum;
+}
+%}
+
+%template(VectorIntHolder) std::vector< boost::shared_ptr<IntHolder> >;
+

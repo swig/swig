@@ -1940,10 +1940,16 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 #ifdef SWIG_DEBUG
 	  Printf(stdout, "Swig_typemap_attach_parms:  embedded\n");
 #endif
-	  if (!already_substituting) {
-	    already_substituting = 1;
+	  if (already_substituting < 10) {
+	    already_substituting++;
+	    if ((in_typemap_search_multi == 0) && typemap_search_debug) {
+	      String *dtypemap = NewString(dollar_typemap);
+	      Replaceall(dtypemap, "$TYPEMAP", "$typemap");
+	      Printf(stdout, "  Containing: %s\n", dtypemap);
+	      Delete(dtypemap);
+	    }
 	    Swig_typemap_attach_parms(tmap_method, to_match_parms, f);
-	    already_substituting = 0;
+	    already_substituting--;
 
 	    /* Look for the typemap code */
 	    attr = NewStringf("tmap:%s", tmap_method);
@@ -1974,10 +1980,11 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	    }
 	    Delete(attr);
 	  } else {
-	    /* simple recursive call check, but prevents using an embedded typemap that contains another embedded typemap */
+	    /* Simple recursive call check to prevent infinite recursion - this strategy only allows a limited 
+	     * number of calls by a embedded typemaps to other embedded typemaps though */
 	    String *dtypemap = NewString(dollar_typemap);
 	    Replaceall(dtypemap, "$TYPEMAP", "$typemap");
-	    Swig_error(Getfile(s), Getline(s), "Recursive $typemap calls not supported - %s\n", dtypemap);
+	    Swig_error(Getfile(s), Getline(s), "Likely recursive $typemap calls containing %s. Use -debug-tmsearch to debug.\n", dtypemap);
 	    Delete(dtypemap);
 	  }
 	  syntax_error = 0;
