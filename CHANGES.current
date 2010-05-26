@@ -2,6 +2,11 @@ Version 2.0.0 (in progress)
 ============================
 
 2010-05-26: olly
+	    Fix %attribute2ref not to produce a syntax error if the last
+	    argument (AccessorMethod) is omitted.  Patch from David Piepgras
+	    in SF#2235756.
+
+2010-05-26: olly
 	    [PHP] When using %throws or %catches, SWIG-generated PHP5 wrappers
 	    now throw PHP Exception objects instead of giving a PHP error of
 	    type E_ERROR.
