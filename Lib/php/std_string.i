@@ -23,8 +23,8 @@ namespace std {
 
     class string;
 
-    %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) string %{
-      $1 = ( Z_TYPE_PP($input) == IS_STRING ) ? 1 : 0;
+    %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) string, const string& %{
+        $1 = ( Z_TYPE_PP($input) == IS_STRING ) ? 1 : 0;
     %}
 
     %typemap(in) string %{
@@ -37,15 +37,11 @@ namespace std {
         $result.assign(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
     %}
 
-    %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) const string& %{
-      $1 = ( Z_TYPE_PP($input) == IS_STRING ) ? 1 : 0;
-    %}
-
     %typemap(out) string %{
         ZVAL_STRINGL($result, const_cast<char*>($1.data()), $1.size(), 1);
     %}
 
-    %typemap(directorin) string %{
+    %typemap(directorin) string, const string& %{
         ZVAL_STRINGL($input, const_cast<char*>($1_name.data()), $1_name.size(), 1);
     %}
 
@@ -53,16 +49,8 @@ namespace std {
         ZVAL_STRINGL($result, const_cast<char*>($1->data()), $1->size(), 1);
     %}
 
-    %typemap(directorin) const string & %{
-        ZVAL_STRINGL($input, const_cast<char*>($1_name.data()), $1_name.size(), 1);
-    %}
-
-    %typemap(throws) string %{
-      SWIG_PHP_Error(E_ERROR, (char *)$1.c_str());
-    %}
-
-    %typemap(throws) const string& %{
-      SWIG_PHP_Error(E_ERROR, (char *)$1.c_str());
+    %typemap(throws) string, const string& %{
+        SWIG_PHP_Error(E_ERROR, const_cast<char*>($1.c_str()));
     %}
 
     /* These next two handle a function which takes a non-const reference to
