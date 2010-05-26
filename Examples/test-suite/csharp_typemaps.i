@@ -101,3 +101,12 @@ Number times12(const Number* num) {
 %inline %{
 int myInt = 0;
 %}
+
+
+// Illegal special variable crash
+%typemap(cstype) WasCrashing "$csclassname /*cstype $*csclassname*/" // $*csclassname was causing crash
+%inline %{
+struct WasCrashing {};
+void hoop(WasCrashing was) {}
+%}
+

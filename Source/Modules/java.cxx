@@ -2943,8 +2943,10 @@ public:
     if (Strstr(tm, "$*javaclassname")) {
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
-      substituteClassnameSpecialVariable(classnametype, tm, "$*javaclassname", jnidescriptor);
-      substitution_performed = true;
+      if (Len(classnametype) > 0) {
+	substituteClassnameSpecialVariable(classnametype, tm, "$*javaclassname", jnidescriptor);
+	substitution_performed = true;
+      }
       Delete(classnametype);
     }
     if (Strstr(tm, "$&javaclassname")) {
