@@ -1,6 +1,18 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-05-26: olly
+	    [PHP] When using %throws or %catches, SWIG-generated PHP5 wrappers
+	    now throw PHP Exception objects instead of giving a PHP error of
+	    type E_ERROR.
+
+	    This change shouldn't cause incompatibility issues, since you can't
+	    set an error handler for E_ERROR, so previously PHP would just exit
+	    which also happens for unhandled exceptions.  The benefit is you can
+	    now catch them if you want to.
+
+	    Fixes SF#2545578 and SF#2955522.
+
 2010-05-25: olly
 	    [PHP] Add missing directorin typemap for const std::string &.
 	    Fixes SF#3006404 reported by t-Legiaw.

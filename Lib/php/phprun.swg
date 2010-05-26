@@ -9,6 +9,7 @@ extern "C" {
 #endif
 #include "zend.h"
 #include "zend_API.h"
+#include "zend_exceptions.h"
 #include "php.h"
 #include "ext/standard/php_string.h"
 

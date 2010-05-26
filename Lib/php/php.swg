@@ -461,18 +461,19 @@
                  unsigned int,
                  unsigned long,
                  unsigned short {
-  char error_msg[256];
-  sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
-  SWIG_PHP_Error(E_ERROR, error_msg);
+  zend_throw_exception(NULL, const_cast<char*>("C++ $1_type exception thrown"), $1 TSRMLS_CC);
+  return;
 }
 
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] %{
   (void)$1;
-  SWIG_PHP_Error(E_ERROR, "C++ $1_type exception thrown");
+  zend_throw_exception(NULL, const_cast<char*>("C++ $1_type exception thrown"), 0 TSRMLS_CC);
+  return;
 %}
 
 %typemap(throws) char * %{
-  SWIG_PHP_Error(E_ERROR, (char *)$1);
+  zend_throw_exception(NULL, const_cast<char*>($1), 0 TSRMLS_CC);
+  return;
 %}
 
 /* Array reference typemaps */

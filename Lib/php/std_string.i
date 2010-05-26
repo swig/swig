@@ -50,7 +50,8 @@ namespace std {
     %}
 
     %typemap(throws) string, const string& %{
-        SWIG_PHP_Error(E_ERROR, const_cast<char*>($1.c_str()));
+        zend_throw_exception(NULL, const_cast<char*>($1.c_str()), 0 TSRMLS_CC);
+        return;
     %}
 
     /* These next two handle a function which takes a non-const reference to
