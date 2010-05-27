@@ -956,7 +956,7 @@ Version 1.3.35 (7 April 2008)
 
 03/17/2008: olly
 	    Fix memory leak in SWIG's parser (based on patch from Russell
-	    Bryant in SF#1914023).`
+	    Bryant in SF#1914023).
 
 03/12/2008: wsfulton
             Fix bug #1878285 - unnecessary cast for C struct creation wrappers.
@@ -8256,7 +8256,7 @@ Version 1.3.22 (September 4, 2004)
 	    When needed, use 
 
 	     %inlcude std_string.i      // 'char' strings
-	     %inlcude std_wstring.i     // 'wchar_t; strings
+	     %inlcude std_wstring.i     // 'wchar_t' strings
 	    
 
 04/10/2004: mmatus (Marcelo Matus) 
