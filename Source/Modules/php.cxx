@@ -799,7 +799,7 @@ public:
       Wrapper_add_local(f, "director", "Swig::Director *director = 0");
       Printf(f->code, "director = dynamic_cast<Swig::Director*>(arg1);\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !director->is_overriden_method((char *)\"%s\", (char *)\"%s\");\n",
+      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s\", (char *)\"%s\");\n",
 	  Swig_class_name(Swig_methodclass(n)), name);
     }
 

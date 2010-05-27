@@ -2721,15 +2721,15 @@ public:
       Printf(f_directors_h, "\n\n");
       Printf(f_directors_h, "/* Internal Director utilities */\n");
       Printf(f_directors_h, "public:\n");
-      Printf(f_directors_h, "    bool swig_get_inner(const char* name) const {\n");
-      Printf(f_directors_h, "      std::map<std::string, bool>::const_iterator iv = inner.find(name);\n");
-      Printf(f_directors_h, "      return (iv != inner.end() ? iv->second : false);\n");
+      Printf(f_directors_h, "    bool swig_get_inner(const char* protected_method_name) const {\n");
+      Printf(f_directors_h, "      std::map<std::string, bool>::const_iterator iv = swig_inner.find(protected_method_name);\n");
+      Printf(f_directors_h, "      return (iv != swig_inner.end() ? iv->second : false);\n");
       Printf(f_directors_h, "    }\n\n");
 
-      Printf(f_directors_h, "    void swig_set_inner(const char* name, bool val) const\n");
-      Printf(f_directors_h, "    { inner[name] = val;}\n\n");
+      Printf(f_directors_h, "    void swig_set_inner(const char* protected_method_name, bool val) const\n");
+      Printf(f_directors_h, "    { swig_inner[protected_method_name] = val;}\n\n");
       Printf(f_directors_h, "private:\n");
-      Printf(f_directors_h, "    mutable std::map<std::string, bool> inner;\n");
+      Printf(f_directors_h, "    mutable std::map<std::string, bool> swig_inner;\n");
 
     }
     if (director_method_index) {
