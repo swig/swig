@@ -37,7 +37,7 @@
 <p>
 SWIG is a software development tool that simplifies the task of
 interfacing different languages to C and C++ programs.  In a
-nutshell, SWIG is a compiler that takes C declarations and creates
+nutshell, SWIG is a compiler that takes C/C++ declarations and creates
 the wrappers needed to access those declarations from other languages including
 including Perl, Python, Tcl, Ruby, Guile, and Java.  SWIG normally
 requires no modifications to existing code and can often be used to
@@ -68,7 +68,8 @@ a dedicated IDL compiler).  Although
 this style of development isn't appropriate for every
 project, it is particularly well suited to software development in the
 small; especially the research and development work that is commonly found
-in scientific and engineering projects.
+in scientific and engineering projects. However, nowadays SWIG is known to be used in many
+large open source and commercial projects.
 
 <H2><a name="Introduction_nn3"></a>2.2 Why use SWIG?</H2>
 
@@ -375,10 +376,10 @@ If you are using the GNU Autotools
 <a href="http://www.gnu.org/software/automake">Automake</a>/
 <a href="http://www.gnu.org/software/libtool">Libtool</a>)
 to configure SWIG use in your project, the SWIG Autoconf macros can be used.
-The primary macro is <tt>ac_pkg_swig</tt>, see
-<a href="http://www.gnu.org/software/ac-archive/htmldoc/ac_pkg_swig.html">http://www.gnu.org/software/ac-archive/htmldoc/ac_pkg_swig.html</a>.
-The <tt>ac_python_devel</tt> macro is also helpful for generating Python extensions. See the 
-<a href="http://www.gnu.org/software/ac-archive/htmldoc/index.html">Autoconf Macro Archive</a>
+The primary macro is <tt>ax_pkg_swig</tt>, see
+<a href="http://www.gnu.org/software/autoconf-archive/ax_pkg_swig.html#ax_pkg_swig">http://www.gnu.org/software/autoconf-archive/ax_pkg_swig.html#ax_pkg_swig</a>.
+The <tt>ax_python_devel</tt> macro is also helpful for generating Python extensions. See the 
+<a href="http://www.gnu.org/software/autoconf-archive/">Autoconf Archive</a>
 for further information on this and other Autoconf macros.
 </p>
 
