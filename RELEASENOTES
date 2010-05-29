@@ -1,8 +1,28 @@
 Release Notes
 =============
 
-A summary of recent releases is described below. A more detailed description
-is available in the CHANGES.current and CHANGES files.
+A detailed description of changes are available in the CHANGES.current
+and CHANGES files. The summaries below contain just a brief overview of
+the changes made in each release.
+
+SWIG-2.0.0 summary:
+- Much better nested class/struct support.
+- Much improved template partial specialization and explicit
+  specialization handling.
+- Namespace support improved with the 'nspace' feature where namespaces
+  can be automatically translated into Java packages or C# namespaces.
+- Improved typemap and symbol table debugging.
+- Numerous subtle typemap matching rule changes when using the default
+  (SWIGTYPE) type. These now work much like C++ class template partial
+  specialization matching.
+- Other small enhancements for typemaps. Typemap fragments are also now
+  official and documented.
+- Warning and error display refinements.
+- Wrapping of shared_ptr is improved and documented now.
+- Numerous C++ unary scope operator (::) fixes.
+- Better support for boolean expressions.
+- Various bug fixes and improvements in the Allegrocl, C#, Java, Lua,
+  Octave, PHP, Python, R, Ruby and XML modules.
 
 SWIG-1.3.40 summary:
 - SWIG now supports directors for PHP.
