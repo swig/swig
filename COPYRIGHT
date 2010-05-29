@@ -61,3 +61,16 @@ Past contributors include:
  Kovuk, Oleg Tolmatcev, Tal Shalif, Lluis Padro, Chris Seatory, Igor Bely, Robin Dunn
  (See CHANGES and CHANGES.current for a more complete list).
 
+Historically, the following people contributed to early versions of SWIG.
+Peter Lomdahl, Brad Holian, Shujia Zhou, Niels Jensen, and Tim Germann
+at Los Alamos National Laboratory were the first users. Patrick
+Tullmann at the University of Utah suggested the idea of automatic
+documentation generation. John Schmidt and Kurtis Bleeker at the
+University of Utah tested out the early versions.  Chris Johnson
+supported SWIG's developed at the University of Utah. John Buckman,
+Larry Virden, and Tom Schwaller provided valuable input on the first
+releases and improving the portability of SWIG. David Fletcher and
+Gary Holt have provided a great deal of input on improving SWIG's
+Perl5 implementation. Kevin Butler contributed the first Windows NT
+port.
+
