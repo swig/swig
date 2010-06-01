@@ -30,6 +30,7 @@
 <li><a href="#Library_std_string">std::string</a>
 <li><a href="#Library_std_vector">std::vector</a>
 <li><a href="#Library_stl_exceptions">STL exceptions</a>
+<li><a href="#Library_std_shared_ptr">shared_ptr smart pointer</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
 <ul>
@@ -1393,7 +1394,7 @@ Please look for the library files in the appropriate language library directory.
 </p>
 
 
-<H3><a name="Library_std_string"></a>std::string</H3>
+<H3><a name="Library_std_string"></a>8.4.1 std::string</H3>
 
 
 <p>
@@ -1477,7 +1478,7 @@ void foo(string s, const String &amp;t);     // std_string typemaps still applie
 </pre>
 </div>
 
-<H3><a name="Library_std_vector"></a>std::vector</H3>
+<H3><a name="Library_std_vector"></a>8.4.2 std::vector</H3>
 
 
 <p>
@@ -1706,7 +1707,8 @@ The <tt>%exception</tt> directive can be used by placing the following code befo
 Any thrown STL exceptions will then be gracefully handled instead of causing a crash.
 </p>
 
-<H3><a name="Library_std_shared_ptr"></a>shared_ptr smart pointer</H3>
+<H3><a name="Library_std_shared_ptr"></a>8.4.4 shared_ptr smart pointer</H3>
+
 
 <p>
 Some target languages have support for handling the widely used <tt>boost::shared_ptr</tt> smart pointer.
@@ -1807,8 +1809,8 @@ For example if the above <tt>%shared_ptr(DerivedIntValue)</tt> is omitted, the f
 
 <div class="shell">
 <pre>
-example_wrap.cxx: In function ‘void Java_exampleJNI_delete_1DerivedIntValue(JNIEnv*, _jclass*, jlong)’:
-example_wrap.cxx:3169: error: ‘smartarg1’ was not declared in this scope
+example_wrap.cxx: In function 'void Java_exampleJNI_delete_1DerivedIntValue(JNIEnv*, _jclass*, jlong)':
+example_wrap.cxx:3169: error: 'smartarg1' was not declared in this scope
 </pre>
 </div>
 
