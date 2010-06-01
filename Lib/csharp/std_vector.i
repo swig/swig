@@ -26,8 +26,8 @@
 
 // MACRO for use within the std::vector class body
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE, CTYPE...)
-%typemap(csinterfaces) std::vector<CTYPE > "IDisposable, System.Collections.IEnumerable\n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n#endif\n";
-%typemap(cscode) std::vector<CTYPE > %{
+%typemap(csinterfaces) std::vector< CTYPE > "IDisposable, System.Collections.IEnumerable\n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n#endif\n";
+%typemap(cscode) std::vector< CTYPE > %{
   public $csclassname(System.Collections.ICollection c) : this() {
     if (c == null)
       throw new ArgumentNullException("c");
@@ -222,9 +222,9 @@
     vector(const vector &other);
     %extend {
       vector(int capacity) throw (std::out_of_range) {
-        std::vector<CTYPE >* pv = 0;
+        std::vector< CTYPE >* pv = 0;
         if (capacity >= 0) {
-          pv = new std::vector<CTYPE >();
+          pv = new std::vector< CTYPE >();
           pv->reserve(capacity);
        } else {
           throw std::out_of_range("capacity");
@@ -250,18 +250,18 @@
           throw std::out_of_range("index");
       }
       // Takes a deep copy of the elements unlike ArrayList.AddRange
-      void AddRange(const std::vector<CTYPE >& values) {
+      void AddRange(const std::vector< CTYPE >& values) {
         $self->insert($self->end(), values.begin(), values.end());
       }
       // Takes a deep copy of the elements unlike ArrayList.GetRange
-      std::vector<CTYPE > *GetRange(int index, int count) throw (std::out_of_range, std::invalid_argument) {
+      std::vector< CTYPE > *GetRange(int index, int count) throw (std::out_of_range, std::invalid_argument) {
         if (index < 0)
           throw std::out_of_range("index");
         if (count < 0)
           throw std::out_of_range("count");
         if (index >= (int)$self->size()+1 || index+count > (int)$self->size())
           throw std::invalid_argument("invalid range");
-        return new std::vector<CTYPE >($self->begin()+index, $self->begin()+index+count);
+        return new std::vector< CTYPE >($self->begin()+index, $self->begin()+index+count);
       }
       void Insert(int index, CTYPE const& x) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size()+1)
@@ -270,7 +270,7 @@
           throw std::out_of_range("index");
       }
       // Takes a deep copy of the elements unlike ArrayList.InsertRange
-      void InsertRange(int index, const std::vector<CTYPE >& values) throw (std::out_of_range) {
+      void InsertRange(int index, const std::vector< CTYPE >& values) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size()+1)
           $self->insert($self->begin()+index, values.begin(), values.end());
         else
@@ -291,10 +291,10 @@
           throw std::invalid_argument("invalid range");
         $self->erase($self->begin()+index, $self->begin()+index+count);
       }
-      static std::vector<CTYPE > *Repeat(CTYPE const& value, int count) throw (std::out_of_range) {
+      static std::vector< CTYPE > *Repeat(CTYPE const& value, int count) throw (std::out_of_range) {
         if (count < 0)
           throw std::out_of_range("count");
-        return new std::vector<CTYPE >(count, value);
+        return new std::vector< CTYPE >(count, value);
       }
       void Reverse() {
         std::reverse($self->begin(), $self->end());
@@ -309,7 +309,7 @@
         std::reverse($self->begin()+index, $self->begin()+index+count);
       }
       // Takes a deep copy of the elements unlike ArrayList.SetRange
-      void SetRange(int index, const std::vector<CTYPE >& values) throw (std::out_of_range) {
+      void SetRange(int index, const std::vector< CTYPE >& values) throw (std::out_of_range) {
         if (index < 0)
           throw std::out_of_range("index");
         if (index+values.size() > $self->size())
@@ -328,20 +328,20 @@
       }
       int IndexOf(CTYPE const& value) {
         int index = -1;
-        std::vector<CTYPE >::iterator it = std::find($self->begin(), $self->end(), value);
+        std::vector< CTYPE >::iterator it = std::find($self->begin(), $self->end(), value);
         if (it != $self->end())
           index = (int)(it - $self->begin());
         return index;
       }
       int LastIndexOf(CTYPE const& value) {
         int index = -1;
-        std::vector<CTYPE >::reverse_iterator rit = std::find($self->rbegin(), $self->rend(), value);
+        std::vector< CTYPE >::reverse_iterator rit = std::find($self->rbegin(), $self->rend(), value);
         if (rit != $self->rend())
           index = (int)($self->rend() - 1 - rit);
         return index;
       }
       bool Remove(CTYPE const& value) {
-        std::vector<CTYPE >::iterator it = std::find($self->begin(), $self->end(), value);
+        std::vector< CTYPE >::iterator it = std::find($self->begin(), $self->end(), value);
         if (it != $self->end()) {
           $self->erase(it);
 	  return true;
@@ -354,7 +354,7 @@
 // Macros for std::vector class specializations/enhancements
 %define SWIG_STD_VECTOR_ENHANCED(CTYPE...)
 namespace std {
-  template<> class vector<CTYPE > {
+  template<> class vector< CTYPE > {
     SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, %arg(CTYPE const&), %arg(CTYPE))
     SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CTYPE)
   };
