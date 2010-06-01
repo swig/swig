@@ -4,6 +4,12 @@ Version 2.0.0 (in progress)
 See CHANGES for changes in older releases.
 See RELEASENOTES for a summary of changes in each release.
 
+2010-06-02: wsfulton
+            [C#] Fix SWIG_STD_VECTOR_ENHANCED macro used in std::vector to work with
+            types containing commas, for example:
+
+              SWIG_STD_VECTOR_ENHANCED(std::pair< double, std::string >)
+
 2010-06-01: wsfulton
             Add in std_shared_ptr.i for wrapping std::shared_ptr. Requires the %shared_ptr
             macro like in the boost_shared_ptr.i library. std::tr1::shared_ptr can also be

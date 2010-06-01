@@ -319,10 +319,6 @@
     }
 %enddef
 
-%define SWIG_STD_VECTOR_MINIMUM(CTYPE...)
-SWIG_STD_VECTOR_MINIMUM_INTERNAL(IEnumerable, CTYPE const&, CTYPE)
-%enddef
-
 // Extra methods added to the collection class if operator== is defined for the class being wrapped
 // The class will then implement IList<>, which adds extra functionality
 %define SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CTYPE...)
@@ -359,7 +355,7 @@ SWIG_STD_VECTOR_MINIMUM_INTERNAL(IEnumerable, CTYPE const&, CTYPE)
 %define SWIG_STD_VECTOR_ENHANCED(CTYPE...)
 namespace std {
   template<> class vector<CTYPE > {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, CTYPE const&, CTYPE)
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IList, %arg(CTYPE const&), %arg(CTYPE))
     SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CTYPE)
   };
 }
@@ -392,7 +388,7 @@ namespace std {
   // primary (unspecialized) class template for std::vector
   // does not require operator== to be defined
   template<class T> class vector {
-    SWIG_STD_VECTOR_MINIMUM(T)
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(IEnumerable, T const&, T)
   };
   // specialization for pointers
   template<class T> class vector<T *> {
