@@ -399,6 +399,10 @@ See RELEASENOTES for a summary of changes in each release.
             and line number related to the type. This is effectively a condensed form of the
             -debug-tmsearch option. Documented in Typemaps.html.
 
+2009-12-27: wsfulton
+            License code changes: SWIG Source is GPL-v3 and library code license is now clearer
+            and is provided under a very permissive license. See http://www.swig.org/legal.html.
+
 2009-12-23: wsfulton
             Fix for %javaexception and directors so that all the appropriate throws clauses 
             are generated. Problem reported by Peter Greenwood.

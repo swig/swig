@@ -6,6 +6,7 @@ and CHANGES files. The summaries below contain just a brief overview of
 the changes made in each release.
 
 SWIG-2.0.0 summary:
+- License changes, see LICENSE file and http://www.swig.org/legal.html.
 - Much better nested class/struct support.
 - Much improved template partial specialization and explicit
   specialization handling.
