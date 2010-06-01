@@ -1,6 +1,16 @@
 Version 2.0.0 (in progress)
 ============================
 
+2010-06-01: wsfulton
+            Add in std_shared_ptr.i for wrapping std::shared_ptr. Requires the %shared_ptr
+            macro like in the boost_shared_ptr.i library. std::tr1::shared_ptr can also be
+            wrapped if the following macro is defined:
+
+              #define SWIG_SHARED_PTR_SUBNAMESPACE tr1
+              %include <std_shared_ptr.i>
+
+            shared_ptr is also documented in Library.html now.
+
 2010-05-27: wsfulton
             Add the ability for $typemap special variable macros to call other $typemap
             special variable macros, for example:

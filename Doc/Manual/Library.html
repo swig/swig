@@ -27,8 +27,8 @@
 </ul>
 <li><a href="#Library_stl_cpp_library">STL/C++ Library</a>
 <ul>
-<li><a href="#Library_nn14">std_string.i</a>
-<li><a href="#Library_nn15">std_vector.i</a>
+<li><a href="#Library_std_string">std::string</a>
+<li><a href="#Library_std_vector">std::vector</a>
 <li><a href="#Library_stl_exceptions">STL exceptions</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
@@ -1383,6 +1383,7 @@ The following table shows which C++ classes are supported and the equivalent SWI
 <tr> <td>std::set</td>           <td>set</td>             <td>std_set.i</td> </tr>
 <tr> <td>std::string</td>           <td>string</td>             <td>std_string.i</td> </tr>
 <tr> <td>std::vector</td>           <td>vector</td>             <td>std_vector.i</td> </tr>
+<tr> <td>std::shared_ptr</td>           <td>shared_ptr</td>             <td>std_shared_ptr.i</td> </tr>
 
 </table>
 
@@ -1392,7 +1393,7 @@ Please look for the library files in the appropriate language library directory.
 </p>
 
 
-<H3><a name="Library_nn14"></a>8.4.1 std_string.i</H3>
+<H3><a name="Library_std_string"></a>std::string</H3>
 
 
 <p>
@@ -1476,16 +1477,11 @@ void foo(string s, const String &amp;t);     // std_string typemaps still applie
 </pre>
 </div>
 
-<p>
-<b>Note:</b> The <tt>std_string</tt> library is incompatible with Perl on some platforms.
-We're looking into it.
-</p>
-
-<H3><a name="Library_nn15"></a>8.4.2 std_vector.i</H3>
+<H3><a name="Library_std_vector"></a>std::vector</H3>
 
 
 <p>
-The <tt>std_vector.i</tt> library provides support for the C++ <tt>vector</tt> class in the STL.
+The <tt>std_vector.i</tt> library provides support for the C++ <tt>std::vector</tt> class in the STL.
 Using this library involves the use of the <tt>%template</tt> directive.  All you need to do is to
 instantiate different versions of <tt>vector</tt> for the types that you want to use.  For example:
 </p>
@@ -1660,11 +1656,6 @@ if you want to make their head explode.
 details and the public API exposed to the interpreter vary.
 </p>
 
-<p>
-<b>Note:</b> <tt>std_vector.i</tt> was written by Luigi "The Amazing" Ballabio.
-</p>
-
-
 <H3><a name="Library_stl_exceptions"></a>8.4.3 STL exceptions</H3>
 
 
@@ -1715,6 +1706,123 @@ The <tt>%exception</tt> directive can be used by placing the following code befo
 Any thrown STL exceptions will then be gracefully handled instead of causing a crash.
 </p>
 
+<H3><a name="Library_std_shared_ptr"></a>shared_ptr smart pointer</H3>
+
+<p>
+Some target languages have support for handling the widely used <tt>boost::shared_ptr</tt> smart pointer.
+This smart pointer is also available as <tt>std::tr1::shared_ptr</tt> before it becomes fully standardized as <tt>std::shared_ptr</tt>. 
+The <tt>boost_shared_ptr.i</tt> library provides support for <tt>boost::shared_ptr</tt> and <tt>std_shared_ptr.i</tt> provides support for <tt>std::shared_ptr</tt>, but if the following macro is defined as shown, it can be used for <tt>std::tr1::shared_ptr</tt>:
+</p>
+
+<div class="code">
+<pre>
+#define SWIG_SHARED_PTR_SUBNAMESPACE tr1
+%include &lt;std_shared_ptr.i&gt;
+</pre>
+</div>
+
+<p>
+You can only use one of these variants of shared_ptr in your interface file at a time.
+and all three variants must be used in conjunction with the <tt>%shared_ptr(T)</tt> macro,
+where <tt>T</tt> is the underlying pointer type equating to usage <tt>shared_ptr&lt;T&gt;</tt>.
+The type <tt>T</tt> must be non-primitive.
+A simple example demonstrates usage:
+</p>
+
+<div class="code">
+<pre>
+%module example
+%include &lt;boost_shared_ptr.i&gt;
+%shared_ptr(IntValue)
+
+%inline %{
+#include &lt;boost/shared_ptr.hpp&gt;
+
+struct IntValue {
+  int value;
+  IntValue(int v) : value(v) {}
+};
+
+static int extractValue(const IntValue &amp;t) {
+  return t.value;
+}
+
+static int extractValueSmart(boost::shared_ptr&lt;IntValue&gt; t) {
+  return t-&gt;value;
+}
+%}
+</pre>
+</div>
+
+<p>
+Note that the <tt>%shared_ptr(IntValue)</tt> declaration occurs after the inclusion of the <tt>boost_shared_ptr.i</tt>
+library which provides the macro and, very importantly, before any usage or declaration of the type, <tt>IntValue</tt>.
+The <tt>%shared_ptr</tt> macro provides, a few things for handling this smart pointer, but mostly a number of
+typemaps. These typemaps override the default typemaps so that the underlying proxy class is stored and passed around
+as a pointer to a <tt>shared_ptr</tt> instead of a plain pointer to the underlying type.
+This approach means that any instantiation of the type can be passed to methods taking the type by value, reference, pointer
+or as a smart pointer.
+The interested reader might want to look at the generated code, however, usage is simple and no different
+handling is required from the target language.
+For example, a simple use case of the above code from Java would be:
+</p>
+
+<div class="targetlang">
+<pre>
+IntValue iv = new IntValue(1234);
+int val1 = example.extractValue(iv);
+int val2 = example.extractValueSmart(iv);
+System.out.println(val1 + " " + val2);
+</pre>
+</div>
+
+<p>
+This shared_ptr library works quite differently to SWIG's normal, but somewhat limited, 
+<a href="SWIGPlus.html#SWIGPlus_smart_pointers">smart pointer handling</a>.
+The shared_ptr library does not generate extra wrappers, just for smart pointer handling, in addition to the proxy class.
+The normal proxy class including inheritance relationships is generated as usual.
+The only real change introduced by the <tt>%shared_ptr</tt> macro is that the proxy class stores a pointer to the shared_ptr instance instead of a raw pointer to the instance.
+A proxy class derived from a base which is being wrapped with shared_ptr can and <b>must</b> be wrapped as a shared_ptr too.
+In other words all classes in an inheritance hierarchy must all be used with the <tt>%shared_ptr</tt> macro.
+For example the following code can be used with the base class shown earlier:
+</p>
+
+<div class="code">
+<pre>
+%shared_ptr(DerivedIntValue)
+%inline %{
+struct DerivedIntValue : IntValue {
+  DerivedIntValue(int value) : IntValue(value) {}
+  ...
+};
+%}
+</pre>
+</div>
+
+<p>
+Note that if the <tt>%shared_ptr</tt> macro is omitted for any class in the inheritance hierarchy, it will
+result in a C++ compiler error.
+For example if the above <tt>%shared_ptr(DerivedIntValue)</tt> is omitted, the following is typical of the compiler error that will result:
+</p>
+
+<div class="shell">
+<pre>
+example_wrap.cxx: In function ‘void Java_exampleJNI_delete_1DerivedIntValue(JNIEnv*, _jclass*, jlong)’:
+example_wrap.cxx:3169: error: ‘smartarg1’ was not declared in this scope
+</pre>
+</div>
+
+<p>
+A shared_ptr of the derived class can now be passed to a method where the base is expected in the target language, just as it can in C++:
+</p>
+
+<div class="targetlang">
+<pre>
+DerivedIntValue div = new DerivedIntValue(5678);
+int val3 = example.extractValue(div);
+int val4 = example.extractValueSmart(div);
+</pre>
+</div>
 
 <H2><a name="Library_nn16"></a>8.5 Utility Libraries</H2>
 

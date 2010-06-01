@@ -1,3 +1,5 @@
+// This is a helper file for shared_ptr and should not be included directly.
+
 // The main implementation detail in using this smart pointer of a type is to customise the code generated
 // to use a pointer to the smart pointer of the type, rather than the usual pointer to the underlying type.
 // So for some type T, shared_ptr<T> * is used rather than T *.
