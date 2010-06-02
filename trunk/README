@@ -1,0 +1,231 @@
+SWIG (Simplified Wrapper and Interface Generator)
+
+Version: 2.0.0 (2 June 2010)
+
+Tagline: SWIG is a compiler that integrates C and C++ with languages
+         including Perl, Python, Tcl, Ruby, PHP, Java, Ocaml, Lua,
+         Scheme (Guile, MzScheme, CHICKEN), Pike, C#, Modula-3,
+         Common Lisp (CLISP, Allegro CL, CFFI, UFFI), Octave and R.
+
+SWIG reads annotated C/C++ header files and creates wrapper code (glue
+code) in order to make the corresponding C/C++ libraries available to
+the listed languages, or to extend C/C++ programs with a scripting
+language.
+
+Up-to-date SWIG related information can be found at
+
+        http://www.swig.org
+
+A SWIG FAQ and other hints can be found on the SWIG Wiki:
+
+        http://www.dabeaz.com/cgi-bin/wiki.pl
+
+License
+=======
+Please see the LICENSE file for details of the SWIG license.
+
+Release Notes
+=============
+Please see the CHANGES.current file for a detailed list of bug fixes and
+new features for the current release. The CHANGES file contains bug fixes
+and new features for older versions. A summary of changes in each release
+can be found in the RELEASENOTES file.
+
+Backwards Compatibility
+=======================
+The developers strive their best to preserve backwards compatibility
+between releases, but this is not always possible as the overriding
+aim is to provide the best wrapping experience. Where backwards
+compatibility is known to be broken, it is clearly marked as an
+incompatibility in the CHANGES and CHANGES.current files.
+
+See the documentation for details of the SWIG_VERSION preprocessor
+symbol if you have backward compatibility issues and need to use more
+than one version of SWIG.
+
+Windows Installation
+====================
+Please see the Doc/Manual/Windows.html file for instructions on installing
+SWIG on Windows and running the examples. The Windows distribution is
+called swigwin and includes a prebuilt SWIG executable, swig.exe, included in
+the same directory as this README file. Otherwise it is exactly the same as
+the main SWIG distribution. There is no need to download anything else.
+
+Unix Installation
+=================
+You must use GNU `make' to build SWIG.
+
+http://www.gnu.org/software/make/
+
+To build and install SWIG, simply type the following:
+
+     % ./configure
+     % make
+     % make install
+
+By default SWIG installs itself in /usr/local.  If you need to install SWIG in
+a different location or in your home directory, use the --prefix option
+to ./configure.  For example:
+
+     % ./configure --prefix=/home/yourname/projects
+     % make
+     % make install
+
+Note: the directory given to --prefix must be an absolute pathname.  Do *NOT* use
+the ~ shell-escape to refer to your home directory.  SWIG won't work properly
+if you do this.
+
+The file INSTALL details more about using configure. Also try
+
+     % ./configure --help.
+
+The configure script will attempt to locate various packages on your machine
+including Tcl, Perl5, Python and all the other target languages that SWIG
+uses.  Don't panic if you get 'not found' messages--SWIG does not need these
+packages to compile or run.   The configure script is actually looking for
+these packages so that you can try out the SWIG examples contained
+in the 'Examples' directory without having to hack Makefiles.
+
+Please see the Documentation section below on installing documentation as
+none is installed by default.
+
+SWIG used to include a set of runtime libraries for some languages for working
+with multiple modules. These are no longer built during the installation stage.
+However, users can build them just like any wrapper module as described in
+the documentation, Doc/Manual/Modules.html. The CHANGES file also lists some
+examples which build the runtime library.
+
+Notes:
+
+(1) If you checked the code out via SVN, you will have to run ./autogen.sh
+    before typing 'configure'.  In addition, a full build of SWIG requires
+    the a number of packages to be installed.  Full instructions at
+    http://www.swig.org/svn.html
+
+Macintosh OS X Installation
+============================
+SWIG is known to work on various flavors of OS X.  Follow the Unix installation
+instructions above.   However, as of this writing, there is still great deal of
+inconsistency with how shared libaries are handled by various scripting languages
+on OS X.   We've tried to resolve these differences to the extent of our knowledge.
+
+Users of OS X should be aware that Darwin handles shared libraries and linking in 
+a radically different way than most Unix systems.  In order to test SWIG and run
+the examples, SWIG configures itself to use flat namespaces and to allow undefined 
+symbols (-flat_namespace -undefined suppress). This mostly closely follows the Unix 
+model and makes it more likely that the SWIG examples will work with whatever 
+installation of software you might have.  However, this is generally not the recommended
+technique for building larger extension modules.  Instead, you should utilize
+Darwin's two-level namespaces.  Some details about this can be found here
+
+http://developer.apple.com/documentation/ReleaseNotes/DeveloperTools/TwoLevelNamespaces.html
+
+Needless to say, you might have to experiment a bit to get things working at first.
+
+Testing
+=======
+If you want to test SWIG before installation, type the following:
+
+    % make -k check
+
+'make -k check' requires at least one of the target languages to be
+installed.  If it fails, it may mean that you have an uninstalled
+language module or that the file 'Examples/Makefile' has been
+incorrectly configured.  It may also fail due to compiler issues such
+as broken C++ compiler.  Even if 'make -k check' fails, there is a
+pretty good chance SWIG still works correctly---you will just have to
+mess around with one of the examples and some makefiles to get it to work.
+
+The testing suite executed by 'make -k check' is designed to stress-test
+many parts of the implementation including obscure corner cases. If some
+of these tests fail or generate warning messages, there is no reason for
+alarm---the test may be related to some new SWIG feature or a difficult bug
+that we're trying to resolve.  Chances are that SWIG will work just fine
+for you. Note that if you have more than one CPU/core, then you can use
+parallel make can be used to speed up the check as it does take quite some
+time to run, for example:
+
+    % make -j2 -k check
+
+Also, SWIG's support for C++ is sufficiently advanced that certain
+tests may fail on older C++ compilers (for instance if your compiler
+does not support member templates).   These errors are harmless if you
+don't intend to use these features in your own programs.
+
+Note: The test-suite currently contains over 500 tests.  If you
+have many different target languages installed and a slow machine, it
+might take more than an hour to run the test-suite.
+
+Examples
+========
+The Examples directory contains a variety of examples of using SWIG
+and it has some browsable documentation.  Simply point your browser to
+the file "Example/index.html".
+
+The Examples directory also includes Visual C++ project (.dsp) files for
+building some of the examples on Windows.
+
+Known Issues
+============
+There are minor known bugs, details of which are in the bug tracker, see
+http://www.swig.org/bugs.html.
+
+Troubleshooting
+===============
+In order to operate correctly, SWIG relies upon a set of library
+files.  If after building SWIG, you get error messages like this,
+
+    % swig foo.i
+    :1. Unable to find 'swig.swg'
+    :3. Unable to find 'tcl8.swg'
+
+it means that SWIG has either been incorrectly configured or
+installed.  To fix this:
+
+    1.  Make sure you remembered to do a 'make install' and that
+        the installation actually worked.  Make sure you have
+        write permission on the install directory.
+
+    2.  If that doesn't work, type 'swig -swiglib' to find out
+        where SWIG thinks its library is located.
+
+    3.  If the location is not where you expect, perhaps
+        you supplied a bad option to configure.  Use
+        ./configure --prefix=pathname to set the SWIG install
+        location.   Also, make sure you don't include a shell
+        escape character such as ~ when you specify the path.
+
+    4.  The SWIG library can be changed by setting the SWIG_LIB
+        environment variable.  However, you really shouldn't
+        have to do this.
+
+If you are having other troubles, you might look at the SWIG Wiki at
+http://www.dabeaz.com/cgi-bin/wiki.pl.
+
+Documentation
+=============
+The Doc/Manual directory contains the most recent set of updated
+documentation for this release. The documentation is available in
+three different formats, each of which contains identical content.
+These format are, pdf (Doc/Manual/SWIGDocumentation.pdf), single
+page html (Doc/Manual/SWIGDocumentation.html) or multiple page html
+(other files in Doc/Manual). Please select your chosen format and
+copy/install to wherever takes your fancy.
+
+There is some technical developer documentation available in the
+Doc/Devel subdirectory.  This is not necessarily up-to-date, but it
+has some information on SWIG internals.
+
+Participate!
+============
+Please report any errors and submit patches (if possible)!  We only
+have access to a limited variety of hardware (Linux, Solaris, OS-X,
+and Windows). All contributions help.
+
+If you would like to join the SWIG development team or contribute a
+language module to the distribution, please contact the swig-devel
+mailing list, details at http://www.swig.org/mail.html.
+
+
+ -- The SWIG Maintainers
+

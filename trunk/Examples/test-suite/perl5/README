@@ -1,0 +1,32 @@
+See ../README for common README file.
+
+Any testcases which have _runme.pl appended after the testcase name will be detected and run.
+
+Test::More Support
+==
+
+Test::More and Test::Harness are two of the standard perl test harness
+tools. Support has been added for these modules as of 1.3.28. If
+adding a new test to this suite, please use Test::More. 
+
+Currently converted test cases include:
+
+* operator_overload
+* operator_overload_break
+* package
+* overload_simple
+* apply_strings
+* char_strings
+* default_args
+* enum_thorough
+* global_vars
+* import_nomodule
+* inherit
+* li_cdata_carrays
+* li_std_string
+* member_pointer
+* multiple_inheritance
+* primitive_ref
+* template_default_arg
+* unions
+* voidtest

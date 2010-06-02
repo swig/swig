@@ -1,0 +1,71 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!-- Hand-written HTML -->
+<html>
+<head>
+<title>SWIG and MzScheme</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body bgcolor="#ffffff">
+
+<H1><a name="Mzscheme"></a>25 SWIG and MzScheme</H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#MzScheme_nn2">Creating native MzScheme structures</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<p>
+This section contains information on SWIG's support of MzScheme.
+
+<H2><a name="MzScheme_nn2"></a>25.1 Creating native MzScheme structures</H2>
+
+
+<p>
+Example interface file:
+</p>
+
+<div class="code">
+<pre>
+/* define a macro for the struct creation */
+%define handle_ptr(TYPE,NAME)
+%typemap(argout) TYPE *NAME{
+    Scheme_Object *o = SWIG_NewStructFromPtr($1, $*1_mangle);
+    SWIG_APPEND_VALUE(o);
+}
+
+%typemap(in,numinputs=0) TYPE *NAME (TYPE temp) {
+    $1 = &amp;temp;
+}
+%enddef
+
+/* setup the typemaps for the pointer to an output parameter cntrs */
+handle_ptr(struct diag_cntrs, cntrs);
+</pre>
+</div>
+
+<p>
+Then in scheme, you can use regular struct access procedures like
+</p>
+
+<div class="code">
+<pre>
+	; suppose a function created a struct foo as 
+	; (define foo (make-diag-cntrs (#x1 #x2 #x3) (make-inspector))
+	; Then you can do
+	(format "0x~x" (diag-cntrs-field1 foo))
+	(format "0x~x" (diag-cntrs-field2 foo))
+	;etc...
+</pre>
+</div>
+
+<p>
+That's pretty much it. It works with nested structs as well. 
+</p>
+
+</body>
+</html>
