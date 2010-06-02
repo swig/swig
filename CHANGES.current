@@ -1,8 +1,8 @@
 Version 2.0.0 (2 June 2010)
 ===========================
 
-See CHANGES for changes in older releases.
-See RELEASENOTES for a summary of changes in each release.
+See CHANGES file for changes in older releases.
+See RELEASENOTES file for a summary of changes in each release.
 
 2010-06-02: wsfulton
             [C#] Fix SWIG_STD_VECTOR_ENHANCED macro used in std::vector to work with

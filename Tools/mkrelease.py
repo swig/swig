@@ -37,7 +37,7 @@ swigwin_dir_sf = username + ",swig@frs.sourceforge.net:/home/frs/project/s/sw/sw
 
 release_notes_file = "release-notes-" + version + ".txt"
 os.system("rm -f " + release_notes_file)
-os.system("cat swig-" + version + "/README " + "swig-" + version + "/CHANGES.current > " + release_notes_file)
+os.system("cat swig-" + version + "/README " + "swig-" + version + "/CHANGES.current " + "swig-" + version + "/RELEASENOTES " + "> " + release_notes_file)
 
 os.system("rsync --archive --verbose -P --times -e ssh " + "swig-" + version + ".tar.gz " + release_notes_file + " " + swig_dir_sf) and failed("")
 os.system("rsync --archive --verbose -P --times -e ssh " + "swigwin-" + version + ".zip " + swigwin_dir_sf) and failed("")
