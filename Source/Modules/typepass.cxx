@@ -796,7 +796,7 @@ class TypePass:private Dispatcher {
 
 	bool reset;
 	String *enumvalue = Getattr(c, "enumvalue");
-	if (GetFlag(c, "feature:ignore")) {
+	if (GetFlag(c, "feature:ignore") || !Getattr(c, "sym:name")) {
 	  reset = enumvalue ? true : false;
 	  previous_ignored = true;
 	} else {
