@@ -1,9 +1,9 @@
+This file contains a brief overview of the changes made in each release.
+A detailed description of changes are available in the CHANGES.current
+and CHANGES files.
+
 Release Notes
 =============
-
-A detailed description of changes are available in the CHANGES.current
-and CHANGES files. The summaries below contain just a brief overview of
-the changes made in each release.
 
 SWIG-2.0.0 summary:
 - License changes, see LICENSE file and http://www.swig.org/legal.html.
