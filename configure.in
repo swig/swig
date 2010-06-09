@@ -919,21 +919,21 @@ AC_SUBST(OCTAVECCFLAGS)
 # Look for Objective-C
 #----------------------------------------------------------------
 
-AC_ARG_WITH(objc, AS_HELP_STRING([--without-objc], [Disable OBJC]), [with_objc="$withval"], [with_objc=yes])
-AC_ARG_WITH(objc-compiler, [  --with-objc-compiler=path     Set location of Objective-C compiler],[OBJC="$withval"], [OBJC=])
+AC_ARG_WITH(objc, AS_HELP_STRING([--without-objc], [Disable Objective-C]), [with_objc="$withval"], [with_objc=yes])
+AC_ARG_WITH(objc-compiler, [  --with-objc-compiler=path     Set location of Objective-C compiler],[OBJCBIN="$withval"], [OBJCBIN=])
 
 # First, check for "--without-objc" or "--with-objc=no".
 if test x"${with_objc}" = xno -o x"${with_alllang}" = xno ; then 
 AC_MSG_NOTICE([Disabling Objective-C])
 OBJC=
-OBJCPP=
 else
 
 # set Objective-C compiler
-if test -z "$OBJC" ; then
-  AC_MSG_CHECKING(Objective-C(++) compiler)
+if test -z "$OBJCBIN" ; then
+  AC_MSG_CHECKING(Objective-C compiler)
   AC_PROG_OBJC()
-  AC_PROG_OBJCPP()
+else
+  OBJC="$OBJCBIN"
 fi
 
 # check for include files
@@ -945,7 +945,7 @@ if test -z "$OBJCINCDIR"; then
 
   # Add in default directory for Objective-C headers on Windows for Cygwin(TODO for now), Linux and MacOSX
   case $host in
-  *-*-cygwin* | *-*-mingw*) OBJCINCDIR="$OBJCINCDIR";;
+  *-*-cygwin* | *-*-mingw*) OBJCINCDIR="/usr/include/GNUstep /usr/lib/GNUstep/System/Library/Headers $OBJCINCDIR";;
   *-*-linux*) OBJCINCDIR="/usr/include/GNUstep /usr/lib/GNUstep/System/Library/Headers $OBJCINCDIR";;
   *-*-darwin*) OBJCINCDIR="/System/Library/Frameworks/Foundation.framework/Headers $OBJCINCDIR";;
   *);;
@@ -972,9 +972,9 @@ AC_ARG_WITH(objclib,[  --with-objclib =path      Set location of Objective-C lib
 AC_MSG_CHECKING(for Objective-C library)
 
 if test -z "$OBJCLIB"; then
-dirs="/usr/lib/GNUstep/System/Library/Libraries/ /usr/lib/"
+dirs="/usr/lib/ /usr/local/lib/ /usr/lib/GNUstep/Libraries/"
 for i in $dirs ; do
-	if test -r $i/libobjc.a; then
+	if test -r $i/libobjc.so.2; then
 	    AC_MSG_RESULT($i)
 	    OBJCLIB="-L$i -lobjc"
 	    break
@@ -985,7 +985,7 @@ if test -z "$OBJCLIB"; then
 	AC_MSG_RESULT(not found)
 else
 for i in $dirs ; do
-	if test -r $i/libgnu-step-base.a; then
+	if test -r $i/*gnustep-base*; then
 	    AC_MSG_RESULT($i)
 	    OBJCLIB="-L$i -lgnustep-base $OBJCLIB"
 	    break
@@ -1006,7 +1006,7 @@ case $host in
         ;;
 *-*-linux*) 
 	OBJCDYNAMICLINKING="$OBJCLIB"
-        OBJCCFLAGS=""
+        OBJCCFLAGS="-fconstant-string-class=NSConstantString"  #To avoid crytpic NXConstantString error with GNUStep...!
         ;;
 *)
         OBJCDYNAMICLINKING=""
@@ -1037,12 +1037,11 @@ esac
 
 fi
 
-AC_SUBST(OBJC)
-AC_SUBST(OBJCPP)
 AC_SUBST(OBJCINC)
 AC_SUBST(OBJCDYNAMICLINKING)
 AC_SUBST(OBJCLIBRARYPREFIX)
 AC_SUBST(OBJCCFLAGS)
+AC_SUBST(OBJC)
 AC_SUBST(OBJCSO)
 AC_SUBST(OBJCLDSHARED)
 AC_SUBST(OBJCCXXSHARED)
@@ -2150,6 +2149,11 @@ if test -z "$MZC" || test -z "$MZDYNOBJ" ; then
 fi
 AC_SUBST(SKIP_MZSCHEME)
 
+SKIP_OBJC=
+if test -z "$OBJC" || test -z "$OBJCINC" || test -z "$OBJCLIB" ; then
+    SKIP_OBJC="1"
+fi
+AC_SUBST(SKIP_OBJC)
 
 SKIP_RUBY=
 if test -z "$RUBY" || test -z "$RUBYINCLUDE" || test -z "$RUBYLIB" ; then
@@ -2304,8 +2308,8 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/guile/Makefile	        \
     Examples/test-suite/guilescm/Makefile	\
     Examples/test-suite/java/Makefile	        \
-    Examples/test-suite/objc/Makefile	        \
     Examples/test-suite/mzscheme/Makefile	\
+    Examples/test-suite/objc/Makefile	        \
     Examples/test-suite/ocaml/Makefile	        \
     Examples/test-suite/octave/Makefile	        \
     Examples/test-suite/perl5/Makefile	        \

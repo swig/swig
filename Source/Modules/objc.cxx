@@ -23,8 +23,8 @@ protected:
   const String *empty_string;
 
   Hash *swig_types_hash;
-  File *f_ocpp_h;
-  File *f_ocpp_mm;
+  File *f_objcimtype_h;
+  File *f_objcimtype_mm;
   File *f_runtime;
   File *f_header;
   File *f_wrappers;
@@ -40,7 +40,7 @@ protected:
   bool wrapping_member_flag;	// Flag for when wrapping a member variable/enum/const
   bool global_variable_flag;	// Flag for when wrapping a global variable
 
-  String *ocpp_h_code;		// Code for Objective-C++ header
+  String *objcimtype_h_code;		// Code for Objective-C++ header
   String *proxy_h_code;		// Code for Objective-C proxy header
   String *proxy_m_code;		// Code for Objective-C proxy implementation
   String *swigtypes_h_code;	// Code for Objective-C typewrapper classes header
@@ -61,8 +61,8 @@ protected:
 public:
    OBJC():empty_string(NewString("")),
       swig_types_hash(NULL),
-      f_ocpp_h(NULL),
-      f_ocpp_mm(NULL),
+      f_objcimtype_h(NULL),
+      f_objcimtype_mm(NULL),
 	  f_runtime(NULL),
 	  f_header(NULL),
 	  f_wrappers(NULL),
@@ -76,7 +76,7 @@ public:
       variable_wrapper_flag(false),
       wrapping_member_flag(false),
       global_variable_flag(false),
-	  ocpp_h_code(NULL), 
+	  objcimtype_h_code(NULL), 
 	  proxy_h_code(NULL),
 	  proxy_m_code(NULL), 
 	  swigtypes_h_code(NULL), 
@@ -158,7 +158,7 @@ public:
     Printf(f_wrappers, "#endif\n\n");
 
     // Initialize members
-    ocpp_h_code = NewString("");
+    objcimtype_h_code = NewString("");
     proxy_h_code = NewString("");
     proxy_m_code = NewString("");
     swigtypes_h_code = NewString("");
@@ -222,39 +222,39 @@ public:
       Printf(f_wrappers, "}\n");
       Printf(f_wrappers, "#endif\n");
 
-      f_ocpp_h = NewFile(file_h, "w", SWIG_output_files());
-      if (!f_ocpp_h) {
-	FileErrorDisplay(f_ocpp_h);
+      f_objcimtype_h = NewFile(file_h, "w", SWIG_output_files());
+      if (!f_objcimtype_h) {
+	FileErrorDisplay(f_objcimtype_h);
 	SWIG_exit(EXIT_FAILURE);
       }
-      f_ocpp_mm = NewFile(file_mm, "w", SWIG_output_files());
-      if (!f_ocpp_mm) {
-	FileErrorDisplay(f_ocpp_mm);
+      f_objcimtype_mm = NewFile(file_mm, "w", SWIG_output_files());
+      if (!f_objcimtype_mm) {
+	FileErrorDisplay(f_objcimtype_mm);
 	SWIG_exit(EXIT_FAILURE);
       }
 
-      Swig_banner(f_ocpp_h);
-      Printf(f_ocpp_h, "\n#import <Foundation/Foundation.h>\n");
-      Printf(f_ocpp_h, "\n#ifdef __cplusplus\n");
-      Printf(f_ocpp_h, "extern \"C\" {\n");
-      Printf(f_ocpp_h, "#endif\n\n");
-      Printv(f_ocpp_h, ocpp_h_code, NIL);
-      Printf(f_ocpp_h, "\n#ifdef __cplusplus\n");
-      Printf(f_ocpp_h, "}\n");
-      Printf(f_ocpp_h, "#endif\n");
+      Swig_banner(f_objcimtype_h);
+      Printf(f_objcimtype_h, "\n#import <Foundation/Foundation.h>\n");
+      Printf(f_objcimtype_h, "\n#ifdef __cplusplus\n");
+      Printf(f_objcimtype_h, "extern \"C\" {\n");
+      Printf(f_objcimtype_h, "#endif\n\n");
+      Printv(f_objcimtype_h, objcimtype_h_code, NIL);
+      Printf(f_objcimtype_h, "\n#ifdef __cplusplus\n");
+      Printf(f_objcimtype_h, "}\n");
+      Printf(f_objcimtype_h, "#endif\n");
 
       Dump(f_header, f_runtime);
       Dump(f_wrappers, f_runtime);
       Wrapper_pretty_print(f_init, f_runtime);
 
-      Dump(f_runtime, f_ocpp_mm);
+      Dump(f_runtime, f_objcimtype_mm);
 
       Delete(file_h);
       file_h = NULL;
       Delete(file_mm);
       file_mm = NULL;
-      Delete(ocpp_h_code);
-      ocpp_h_code = NULL;
+      Delete(objcimtype_h_code);
+      objcimtype_h_code = NULL;
 
       Delete(swigtypes_h_code);
       swigtypes_h_code = NULL;
@@ -274,10 +274,10 @@ public:
       Delete(f_wrappers);
       Delete(f_init);
       Delete(f_runtime);
-      Close(f_ocpp_mm);
-      Delete(f_ocpp_mm);
-      Close(f_ocpp_h);
-      Delete(f_ocpp_h);
+      Close(f_objcimtype_mm);
+      Delete(f_objcimtype_mm);
+      Close(f_objcimtype_h);
+      Delete(f_objcimtype_h);
     }
 
     return SWIG_OK;
@@ -431,7 +431,7 @@ public:
 
     String *cleanup = NewString("");
     String *outarg = NewString("");
-    String *ocpp_return_type = NewString("");
+    String *objcim_return_type = NewString("");
     String *tm;
     Parm *p;
     int i;
@@ -448,24 +448,24 @@ public:
     Wrapper *f = NewWrapper();
     String *wname = Swig_name_wrapper(overloaded_name);
 
-    Swig_typemap_attach_parms("ocpptype", l, f);
+    Swig_typemap_attach_parms("objcimtype", l, f);
 
     /* Get return types */
-    if ((tm = Swig_typemap_lookup("ocpptype", n, "", 0))) {
-      String *ocpptypeout = Getattr(n, "tmap:ocpptype:out");	// the type in the ocpptype typemap's out attribute overrides the type in the typemap
-      if (ocpptypeout)
-	tm = ocpptypeout;
-      Printf(ocpp_return_type, "%s", tm);
+    if ((tm = Swig_typemap_lookup("objcimtype", n, "", 0))) {
+      String *objcimtypeout = Getattr(n, "tmap:objcimtype:out");	// the type in the objcimtype typemap's out attribute overrides the type in the typemap
+      if (objcimtypeout)
+	tm = objcimtypeout;
+      Printf(objcim_return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_NONE, input_file, line_number, "No ocpptype typemap defined for %s\n", SwigType_str(t, 0));
+      Swig_warning(WARN_NONE, input_file, line_number, "No objcimtype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
-    is_void_return = (Cmp(ocpp_return_type, "void") == 0);
+    is_void_return = (Cmp(objcim_return_type, "void") == 0);
     if (!is_void_return)
-      Wrapper_add_localv(f, "oresult", ocpp_return_type, "oresult", NIL);
+      Wrapper_add_localv(f, "oresult", objcim_return_type, "oresult", NIL);
 
-    Printv(f->def, ocpp_return_type, " ", wname, "(", NIL);
-    Printv(ocpp_h_code, ocpp_return_type, " ", wname, "(", NIL);
+    Printv(f->def, objcim_return_type, " ", wname, "(", NIL);
+    Printv(objcimtype_h_code, objcim_return_type, " ", wname, "(", NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_parameter_variables(l, f);
@@ -498,21 +498,21 @@ public:
 
       SwigType *pt = Getattr(p, "type");
       String *ln = Getattr(p, "lname");
-      String *ocpp_param_type = NewString("");
+      String *objcim_param_type = NewString("");
       String *arg = NewString("");
 
       Printf(arg, "o%s", ln);
 
-      if ((tm = Getattr(p, "tmap:ocpptype"))) {
-	const String *inattributes = Getattr(p, "tmap:ocpptype:inattributes");
-	Printf(ocpp_param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
+      if ((tm = Getattr(p, "tmap:objcimtype"))) {
+	const String *inattributes = Getattr(p, "tmap:objcimtype:inattributes");
+	Printf(objcim_param_type, "%s%s", inattributes ? inattributes : empty_string, tm);
       } else {
-	Swig_warning(WARN_NONE, input_file, line_number, "No ocpptype typemap defined for %s\n", SwigType_str(pt, 0));
+	Swig_warning(WARN_NONE, input_file, line_number, "No objcimtype typemap defined for %s\n", SwigType_str(pt, 0));
       }
 
       // Add parameter to the objcpp function
-      Printv(f->def, gencomma ? ", " : "", ocpp_param_type, " ", arg, NIL);
-      Printv(ocpp_h_code, gencomma ? ", " : "", ocpp_param_type, " ", arg, NIL);
+      Printv(f->def, gencomma ? ", " : "", objcim_param_type, " ", arg, NIL);
+      Printv(objcimtype_h_code, gencomma ? ", " : "", objcim_param_type, " ", arg, NIL);
 
       gencomma = 1;
 
@@ -530,7 +530,7 @@ public:
 	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
 	p = nextSibling(p);
       }
-      Delete(ocpp_param_type);
+      Delete(objcim_param_type);
       Delete(arg);
     }
 
@@ -649,8 +649,8 @@ public:
 	Printf(f->code, "%s\n", tm);
       }
     }
-    // Finish the ocpp header code and wrapper function definition
-    Printf(ocpp_h_code, ");\n");
+    // Finish the objcimtype header code and wrapper function definition
+    Printf(objcimtype_h_code, ");\n");
     Printf(f->def, ") {");
 
     if (!is_void_return)
@@ -678,7 +678,7 @@ public:
     }
 
     if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
-      Setattr(n, "ocppfuncname", wname);
+      Setattr(n, "objcimfuncname", wname);
       proxyGlobalFunctionHandler(n);
     }
 
@@ -688,7 +688,7 @@ public:
      */
     if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Capitalize the first letter in the variable to create getter/setter function name
-      bool getter_flag = Cmp(symname, Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) != 0;
+      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(),Swig_name_member(0, proxy_class_name, variable_name))) != 0;
 
       String *getter_setter_name = NewString("");
       if (!getter_flag)
@@ -698,17 +698,17 @@ public:
       Putc(toupper((int) *Char(variable_name)), getter_setter_name);
       Printf(getter_setter_name, "%s", Char(variable_name) + 1);
 
-      String *ocppfunctname = NewStringf("ObjCPP_%s", symname);
+      String *objcimfunctname = NewStringf("ObjCPP_%s", symname);
 
       Setattr(n, "proxyfuncname", getter_setter_name);
-      Setattr(n, "ocppfuncname", ocppfunctname);
+      Setattr(n, "objcimfuncname", objcimfunctname);
 
       proxyClassFunctionHandler(n);
       Delete(getter_setter_name);
-      Delete(ocppfunctname);
+      Delete(objcimfunctname);
     }
     // Tidy up
-    Delete(ocpp_return_type);
+    Delete(objcim_return_type);
     Delete(wname);
     Delete(overloaded_name);
     DelWrapper(f);
@@ -726,7 +726,7 @@ public:
   void proxyGlobalFunctionHandler(Node *n) {
     SwigType *t = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
-    String *ocpp_function_name = Getattr(n, "ocppfuncname");
+    String *objcim_function_name = Getattr(n, "objcimfuncname");
     String *func_name = NULL;
     String *tm;
     Parm *p;
@@ -769,7 +769,7 @@ public:
     if (proxy_flag && global_variable_flag) {
       // Capitalize the first letter in the variable to create a objcBean type getter/setter function name
       func_name = NewString("");
-      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(variable_name)) == 0);
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), variable_name)) == 0);
       if (setter_flag)
 	Printf(func_name, "set");
       else
@@ -782,7 +782,7 @@ public:
 
     /* Start generating the proxy function */
     Printf(function_decl, "%s %s(", return_type, func_name);
-    Printv(imcall, "$ocppfuncname(", NIL);
+    Printv(imcall, "$objcimfuncname(", NIL);
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
@@ -849,7 +849,7 @@ public:
       else
 	Replaceall(tm, "$owner", "false");
       substituteClassname(t, tm);
-      Replaceall(imcall, "$ocppfuncname", ocpp_function_name);
+      Replaceall(imcall, "$objcimfuncname", objcim_function_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_NONE, input_file, line_number, "No objcout typemap defined for %s\n", SwigType_str(t, 0));
@@ -878,7 +878,7 @@ public:
   void proxyClassFunctionHandler(Node *n) {
     SwigType *t = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
-    String *ocpp_function_name = Getattr(n, "ocppfuncname");
+    String *objcim_function_name = Getattr(n, "objcimfuncname");
     String *proxy_function_name = Getattr(n, "proxyfuncname");
     String *tm;
     Parm *p;
@@ -925,7 +925,7 @@ public:
 
     if (wrapping_member_flag && !enum_constant_flag) {
       // For wrapping member variables
-      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(Swig_name_member(proxy_class_name, variable_name))) == 0);
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(getNSpace(),proxy_class_name, variable_name))) == 0);
     }
 
     /* Start generating the proxy function */
@@ -943,7 +943,7 @@ public:
 
     Printf(function_decl, "(%s)%s", return_type, proxy_function_name);
 
-    Printv(imcall, "$ocppfuncname(", NIL);
+    Printv(imcall, "$objcimfuncname(", NIL);
 
     if (!static_flag) {
       Printf(imcall, "swigCPtr");
@@ -953,8 +953,8 @@ public:
       if (qualifier)
 	SwigType_push(this_type, qualifier);
       SwigType_add_pointer(this_type);
-      Parm *this_parm = NewParm(this_type, name);
-      Swig_typemap_attach_parms("ocpptype", this_parm, NULL);
+      Parm *this_parm = NewParm(this_type, name, n);
+      Swig_typemap_attach_parms("objcimtype", this_parm, NULL);
       Swig_typemap_attach_parms("objctype", this_parm, NULL);
 
       Delete(this_parm);
@@ -1002,7 +1002,7 @@ public:
 	if (gencomma) {
 	  Printf(imcall, ", ");
 	}
-	// Use typemaps to transform type used in Objective-C proxy function to type used in low level ocpp accessor
+	// Use typemaps to transform type used in Objective-C proxy function to type used in low level objcimtype accessor
 	if ((tm = Getattr(p, "tmap:objcin"))) {
 	  addThrows(n, "tmap:objcin", p);
 	  substituteClassname(pt, tm);
@@ -1040,7 +1040,7 @@ public:
       else
 	Replaceall(tm, "$owner", "false");
       substituteClassname(t, tm);
-      Replaceall(imcall, "$ocppfuncname", ocpp_function_name);
+      Replaceall(imcall, "$objcimfuncname", objcim_function_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_NONE, input_file, line_number, "No objcout typemap defined for %s\n", SwigType_str(t, 0));
@@ -1067,7 +1067,7 @@ public:
     int i;
     String *function_decl = NewString("");
     String *function_def = NewString("");
-    String *ocpp_return_type = NewString("");
+    String *objcim_return_type = NewString("");
 
     Language::constructorHandler(n);
 
@@ -1077,11 +1077,11 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *mangled_overname = Swig_name_construct(overloaded_name);
+      String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
       String *imcall = NewString("");
 
-      tm = Getattr(n, "tmap:ocpptype");	// typemaps were attached earlier to the node
-      Printf(ocpp_return_type, "%s", tm);
+      tm = Getattr(n, "tmap:objcimtype");	// typemaps were attached earlier to the node
+      Printf(objcim_return_type, "%s", tm);
 
       Printf(function_decl, "- (id)init");
 
@@ -1089,7 +1089,7 @@ public:
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("in", l, NULL);
-      Swig_typemap_attach_parms("ocpptype", l, NULL);
+      Swig_typemap_attach_parms("objcimtype", l, NULL);
       Swig_typemap_attach_parms("objctype", l, NULL);
       Swig_typemap_attach_parms("objcin", l, NULL);
 
@@ -1174,7 +1174,7 @@ public:
       Printv(proxy_class_decl, function_decl, NIL);
       Printv(proxy_class_def, function_def, NIL);
 
-      Delete(ocpp_return_type);
+      Delete(objcim_return_type);
       Delete(construct_tm);
       Delete(attributes);
       Delete(overloaded_name);
@@ -1193,7 +1193,7 @@ public:
     String *symname = Getattr(n, "sym:name");
 
     if (proxy_flag) {
-      Printv(destructor_call, Swig_name_destroy(symname), "(swigCPtr)", NIL);
+      Printv(destructor_call, Swig_name_destroy(getNSpace(), symname), "(swigCPtr)", NIL);
     }
     return SWIG_OK;
   }
@@ -1286,10 +1286,10 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *imfunctname = Swig_name_member(proxy_class_name, overloaded_name);
-      String *ocppfunctname = NewStringf("ObjCPP_%s", imfunctname);
+      String *imfunctname = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
+      String *objcimfunctname = NewStringf("ObjCPP_%s", imfunctname);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
-      Setattr(n, "ocppfuncname", ocppfunctname);
+      Setattr(n, "objcimfuncname", objcimfunctname);
       proxyClassFunctionHandler(n);
       Delete(imfunctname);
       Delete(overloaded_name);
@@ -1308,10 +1308,10 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *imfunctname = Swig_name_member(proxy_class_name, overloaded_name);
-      String *ocppfunctname = NewStringf("ObjCPP_%s", imfunctname);
+      String *imfunctname = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
+      String *objcimfunctname = NewStringf("ObjCPP_%s", imfunctname);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
-      Setattr(n, "ocppfuncname", ocppfunctname);
+      Setattr(n, "objcimfuncname", objcimfunctname);
       proxyClassFunctionHandler(n);
       Delete(imfunctname);
       Delete(overloaded_name);
@@ -1410,10 +1410,10 @@ public:
 	  // Strange hack to change the name
 	  Setattr(n, "name", Getattr(n, "value"));	/* for wrapping of enums in a namespace when emit_action is used */
 	  constantWrapper(n);
-	  value = NewStringf("%s()", Swig_name_get(symname));
+	  value = NewStringf("%s()", Swig_name_get(getNSpace(),symname));
 	} else {
 	  memberconstantHandler(n);
-	  value = NewStringf("%s()", Swig_name_get(Swig_name_member(proxy_class_name, symname)));
+	  value = NewStringf("%s()", Swig_name_get(getNSpace(),Swig_name_member(getNSpace(), proxy_class_name, symname)));
 	}
       }
     }
@@ -1659,15 +1659,15 @@ public:
       if (classname_substituted_flag) {
 	if (SwigType_isenum(t)) {
 	  // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
-	  Printf(constants_code, "(%s)%s();\n", return_type, Swig_name_get(symname));
+	  Printf(constants_code, "(%s)%s();\n", return_type, Swig_name_get(getNSpace(), symname));
 	} else {
 	  // This handles function pointers using the %constant directive
-	  Printf(constants_code, "[[[%s alloc] initWithCptr: &%s()] autorelease];\n", return_type, Swig_name_get(symname));
+	  Printf(constants_code, "[[[%s alloc] initWithCptr: &%s()] autorelease];\n", return_type, Swig_name_get(getNSpace(),symname));
 	}
       } else {
-		  String *ocppfunctname = NewStringf("ObjCPP_%s", symname);
-	Printf(constants_code, "%s();\n", Swig_name_get(ocppfunctname));
-		  Delete(ocppfunctname);
+		  String *objcimfunctname = NewStringf("ObjCPP_%s", symname);
+	Printf(constants_code, "%s();\n", Swig_name_get(getNSpace(), objcimfunctname));
+		  Delete(objcimfunctname);
 	  }
       // Each constant and enum value is wrapped with a separate function call
       SetFlag(n, "feature:immutable");

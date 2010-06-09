@@ -7,33 +7,33 @@
 %include <objchead.swg>
 
 
-/* Following are the ocpptype typemaps which contain the Objective-C or C++ types used in the intermediary C code */
+/* Following are the objcimtype typemaps which contain the Objective-C or C++ types used in the intermediary code */
 // Primitive types
-%typemap(ocpptype) bool,               const bool &               "BOOL"
-%typemap(ocpptype) char,               const char &               "char"
-%typemap(ocpptype) signed char,        const signed char &        "signed char"
-%typemap(ocpptype) unsigned char,      const unsigned char &      "unsigned char"
-%typemap(ocpptype) short,              const short &              "short"
-%typemap(ocpptype) unsigned short,     const unsigned short &     "unsigned short"
-%typemap(ocpptype) int,                const int &                "int"
-%typemap(ocpptype) unsigned int,       const unsigned int &       "unsigned int"
-%typemap(ocpptype) long,               const long &               "long"
-%typemap(ocpptype) unsigned long,      const unsigned long &      "unsigned long"
-%typemap(ocpptype) long long,          const long long &          "long long"
-%typemap(ocpptype) unsigned long long, const unsigned long long & "unsigned long long"
-%typemap(ocpptype) float,              const float &              "float"
-%typemap(ocpptype) double,             const double &             "double"
-%typemap(ocpptype) void                                           "void"
+%typemap(objcimtype) bool,               const bool &               "BOOL"
+%typemap(objcimtype) char,               const char &               "char"
+%typemap(objcimtype) signed char,        const signed char &        "signed char"
+%typemap(objcimtype) unsigned char,      const unsigned char &      "unsigned char"
+%typemap(objcimtype) short,              const short &              "short"
+%typemap(objcimtype) unsigned short,     const unsigned short &     "unsigned short"
+%typemap(objcimtype) int,                const int &                "int"
+%typemap(objcimtype) unsigned int,       const unsigned int &       "unsigned int"
+%typemap(objcimtype) long,               const long &               "long"
+%typemap(objcimtype) unsigned long,      const unsigned long &      "unsigned long"
+%typemap(objcimtype) long long,          const long long &          "long long"
+%typemap(objcimtype) unsigned long long, const unsigned long long & "unsigned long long"
+%typemap(objcimtype) float,              const float &              "float"
+%typemap(objcimtype) double,             const double &             "double"
+%typemap(objcimtype) void                                           "void"
 
 // Pointers, references and arrays
-%typemap(ocpptype) char *, char *&, char[ANY], char[]   "NSString *"
-%typemap(ocpptype) SWIGTYPE "void *"
-%typemap(ocpptype) SWIGTYPE [] "void *"
-%typemap(ocpptype) SWIGTYPE *  "void *" 
-%typemap(ocpptype) SWIGTYPE & "void *"
+%typemap(objcimtype) char *, char *&, char[ANY], char[]   "NSString *"
+%typemap(objcimtype) SWIGTYPE "void *"
+%typemap(objcimtype) SWIGTYPE [] "void *"
+%typemap(objcimtype) SWIGTYPE *  "void *" 
+%typemap(objcimtype) SWIGTYPE & "void *"
 
 // Pointer to a class member
-%typemap(ocpptype) SWIGTYPE (CLASS::*) "void*"
+%typemap(objcimtype) SWIGTYPE (CLASS::*) "void*"
 
 
 /* Following are the "in" typemaps for Objective-C/C++ to C conversions */
@@ -184,7 +184,7 @@
 /* Following are the "out" typemaps for C to Objective-C conversions */
 // Primitive types
 %typemap(out) bool
-%{ $result = $1 ? YES : NO; %}
+%{ $result = $1 ? YES : No; %}
 %typemap(out) char, 
              signed char, 
              unsigned char, 
@@ -514,7 +514,7 @@
  * This typemap allows control over what code is executed in the constructor as
  * well as specifying who owns the underlying C/C++ object. Normally, Objective-C has
  * ownership and the underlying C/C++ object is deallocated when the Objective-C object
- * is deallocated (swigCMemOwn is true.) If swigCMemOwn is false, C/C++ is
+ * is deallocated (swigCMemOwn is YES.) If swigCMemOwn is No, C/C++ is
  * ultimately responsible for deallocating the underlying object's memory.
  *
  */
@@ -529,7 +529,7 @@
 %typemap(objcdestruct, methodname="dealloc") SWIGTYPE {
   if (swigCPtr != 0) {
 	  if (swigCMemOwn) {
-		  swigCMemOwn = false;
+		  swigCMemOwn = NO;
       $imcall;
 	  }
     swigCPtr = 0;

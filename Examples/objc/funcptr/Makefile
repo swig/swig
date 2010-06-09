@@ -1,18 +1,17 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
-CXXSRCS    = example.c
+CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =
-OBJCSRCS= *.m
-OBJCPPSRCS= *.mm
-OBJCFLAGS= -framework Foundation -L.
-OBJCPPFLAGS=
+OBJCXXSRCS = *.mm *.m
+OBJCSRCS   = *.m
+OBJCFLAGS  = -fconstant-string-class=NSConstantString 
 
-all::	objc
+all:: objc
 
 objc::
-	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' OBJCPPSRCS='$(OBJCPPSRCS)' SWIG='$(SWIG)' \
+	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' OBJCXXSRCS='$(OBJCXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' objc_cpp
 	$(MAKE) -f $(TOP)/Makefile OBJCSRCS='$(OBJCSRCS)' OBJCFLAGS='$(OBJCFLAGS)' TARGET='$(TARGET)' objc_compile
 

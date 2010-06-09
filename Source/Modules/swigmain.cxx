@@ -75,7 +75,7 @@ static swig_module modules[] = {
   {"-lua", swig_lua, "Lua"},
   {"-modula3", swig_modula3, "Modula 3"},
   {"-mzscheme", swig_mzscheme, "Mzscheme"},
-  {"-objc", swig_objc, "Objective-C"},
+  {"-objc", swig_objc, "Objective C"},
   {"-ocaml", swig_ocaml, "Ocaml"},
   {"-octave", swig_octave, "Octave"},
   {"-perl", swig_perl5, "Perl"},

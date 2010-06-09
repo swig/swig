@@ -2,5 +2,6 @@
 #import "exampleProxy.h"
 
 int main(int argc, char* argv[]) {
-	return 0;
+   printf("result is %d\n", gcd(18,6));
+   return 0;
 }

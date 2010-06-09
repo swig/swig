@@ -990,51 +990,49 @@ csharp_clean:
 #####                      OBJC                           ######
 ##################################################################
 OBJC=@OBJC@
-OBJCPP=@OBJCPP@
-OBJCINC=@OBJCINC@
+OBJC_INCLUDE=@OBJCINC@
 OBJC_DLNK=@OBJCDYNAMICLINKING@
 OBJC_LIBPREFIX = @OBJCLIBRARYPREFIX@
 OBJCCFLAGS=@OBJCCFLAGS@
 OBJCSO=@OBJCSO@
 OBJCLDSHARED=@OBJCLDSHARED@
 OBJCCXXSHARED=@OBJCCXXSHARED@
-OBJCPPOBJS=*Wrapper.o
-OBJCPPSRCS=*.mm
+
+OBJS=*.o
 
 # ----------------------------------------------------------------
-# Build an Objective-C dynamically loadable module (C)
+# Build a Objective-C dynamically loadable module (C)
 # ----------------------------------------------------------------
 
 objc: $(SRCS)
 	$(SWIG) -objc $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(OBJCCFLAGS) $(SRCS) $(OBJCPPSRCS) $(OBJCINC)
-	$(OBJCLDSHARED) $(CFLAGS) $(OBJS) $(OBJCPPOBJS) $(OBJC_DLNK) $(LIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(INCLUDES)
+	$(OBJC) -c $(CCSHARED) $(CFLAGS) $(OBJCCFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJC_INCLUDE)
+	$(OBJCLDSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJC_DLNK) $(LIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
 
 # ----------------------------------------------------------------
-# Build an Objective-C dynamically loadable module (C++)
+# Build a Objective-C dynamically loadable module (C++)
 # ----------------------------------------------------------------
 
 objc_cpp: $(SRCS)
 	$(SWIG) -objc -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(OBJCCFLAGS) $(SRCS) $(CXXSRCS) $(OBJCPPSRCS) $(OBJCINC)
-	$(OBJCCXXSHARED) $(CFLAGS) $(OBJS) $(OBJCPPOBJS) $(OBJC_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(INCLUDES)
+	$(OBJC) -c $(CCSHARED) $(CFLAGS) $(OBJCCFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJC_INCLUDE)
+	$(OBJCCXXSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJC_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
 
 # ----------------------------------------------------------------
-# Compile Objective-C(++) files
+# Compile Objective-C & Objective-C++ files
 # ----------------------------------------------------------------
 
 objc_compile: $(SRCS)
-	$(COMPILETOOL) $(OBJC) $(OBJCFLAGS) $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO) $(OBJCSRCS) $(OBJCINC)
-
-objcpp_compile: $(SRCS)
-	$(COMPILETOOL) $(OBJCPP) $(OBJCPPFLAGS) $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO) $(OBJCPPSRCS) $(OBJCINC)
+	$(COMPILETOOL) $(OBJC) $(OBJC_INCLUDE) $(OBJCFLAGS) $(OBJCSRCS) $(OBJC_DLNK) -L. -l$(TARGET) 
 
 # -----------------------------------------------------------------
 # Cleaning the Objective-C examples
 # -----------------------------------------------------------------
 
 objc_clean:
-	rm -f *Wrapper* *Proxy* *~ .~* *.o a.out `find . -name \*.m | grep -v runme.m`
+	rm -f *.o *Wrapper* *Proxy* a.out
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@OBJCSO@
 
