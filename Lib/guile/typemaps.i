@@ -448,4 +448,10 @@ typedef unsigned long SCM;
   $1 = SWIG_CheckState(res);
 }
 
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
+
 /* typemaps.i ends here */

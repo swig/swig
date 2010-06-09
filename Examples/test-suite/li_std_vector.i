@@ -74,12 +74,6 @@ const std::vector<Struct *> & vecstructptr(const std::vector<Struct *> & vec) { 
 const std::vector<const Struct *> & vecstructconstptr(const std::vector<const Struct *> & vec) { return vec; }
 %}
 
-#if defined(SWIGCSHARP)
-// Also test const and non-const pointers, but not strictly necessary since std::vector was enhanced in swig-1.3.40
-%template(StructurePtrVector) std::vector<Structure *>;
-%template(StructureConstPtrVector) std::vector<const Structure *>;
-#endif
-
 #if !defined(SWIGR)
 %template(IntPtrVector) std::vector<int *>;
 %template(IntConstPtrVector) std::vector<const int *>;
@@ -88,7 +82,6 @@ const std::vector<const Struct *> & vecstructconstptr(const std::vector<const St
 %template(StructPtrVector) std::vector<Struct *>;
 %template(StructConstPtrVector) std::vector<const Struct *>;
 
-#if !defined(SWIGTCL)
 %inline {
   struct MyClass {};
   typedef MyClass *MyClassPtr;
@@ -106,7 +99,6 @@ const std::vector<const Struct *> & vecstructconstptr(const std::vector<const St
     }
   };
 }
-#endif
 
 #if defined(SWIGRUBY)
 %template(LanguageVector) std::vector< swig::LANGUAGE_OBJ >;

@@ -657,7 +657,7 @@ public:
     Parm *p;
     String *proc_name = 0;
     char source[256];
-    Wrapper *f = NewWrapper();;
+    Wrapper *f = NewWrapper();
     String *cleanup = NewString("");
     String *outarg = NewString("");
     String *signature = NewString("");
@@ -1411,16 +1411,18 @@ public:
     }
     {
       /* Hack alert: will cleanup later -- Dave */
-      Node *n = NewHash();
-      Setattr(n, "name", var_name);
-      Setattr(n, "sym:name", iname);
-      Setattr(n, "type", nctype);
-      SetFlag(n, "feature:immutable");
+      Node *nn = NewHash();
+      Setfile(nn, Getfile(n));
+      Setline(nn, Getline(n));
+      Setattr(nn, "name", var_name);
+      Setattr(nn, "sym:name", iname);
+      Setattr(nn, "type", nctype);
+      SetFlag(nn, "feature:immutable");
       if (constasvar) {
-	SetFlag(n, "feature:constasvar");
+	SetFlag(nn, "feature:constasvar");
       }
-      variableWrapper(n);
-      Delete(n);
+      variableWrapper(nn);
+      Delete(nn);
     }
     Delete(var_name);
     Delete(nctype);

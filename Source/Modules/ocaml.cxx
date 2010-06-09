@@ -265,8 +265,8 @@ public:
     Swig_register_filebyname("class_ctors", f_class_ctors);
 
     if (old_variable_names) {
-      Swig_name_register("set", "%v__set__");
-      Swig_name_register("get", "%v__get__");
+      Swig_name_register("set", "%n%v__set__");
+      Swig_name_register("get", "%n%v__get__");
     }
 
     Swig_banner(f_begin);
@@ -778,7 +778,7 @@ public:
 
     String *proc_name = NewString("");
     String *tm;
-    String *tm2 = NewString("");;
+    String *tm2 = NewString("");
     String *argnum = NewString("0");
     String *arg = NewString("SWIG_Field(args,0)");
     Wrapper *f;
@@ -1731,7 +1731,7 @@ public:
     ParmList *superparms = Getattr(n, "parms");
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("CAML_VALUE");
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     q = Copy(p);
     set_nextSibling(q, superparms);
     set_nextSibling(p, parms);
@@ -1784,7 +1784,7 @@ public:
     ParmList *superparms = Getattr(n, "parms");
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("CAML_VALUE");
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     q = Copy(p);
     set_nextSibling(p, parms);
     parms = p;

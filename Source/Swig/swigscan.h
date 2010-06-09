@@ -11,8 +11,6 @@
  * C/C++ scanner. 
  * ----------------------------------------------------------------------------- */
 
-/* $Id: swig.h 9633 2007-01-10 23:43:07Z beazley $ */
-
 typedef struct Scanner Scanner;
 
 extern Scanner     *NewScanner(void);

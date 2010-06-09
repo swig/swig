@@ -18,10 +18,25 @@ char cvsroot_parms_c[] = "$Id$";
 /* ------------------------------------------------------------------------
  * NewParm()
  *
- * Create a new parameter from datatype 'type' and name 'name'.
+ * Create a new parameter from datatype 'type' and name 'name' copying
+ * the file and line number from the Node file_line_node.
  * ------------------------------------------------------------------------ */
 
-Parm *NewParm(SwigType *type, const_String_or_char_ptr name) {
+Parm *NewParm(SwigType *type, const_String_or_char_ptr name, Node *file_line_node) {
+  Parm *p = NewParmWithoutFileLineInfo(type, name);
+  Setfile(p, Getfile(file_line_node));
+  Setline(p, Getline(file_line_node));
+  return p;
+}
+
+/* ------------------------------------------------------------------------
+ * NewParmWithoutFileLineInfo()
+ *
+ * Create a new parameter from datatype 'type' and name 'name' without any
+ * file / line numbering information.
+ * ------------------------------------------------------------------------ */
+
+Parm *NewParmWithoutFileLineInfo(SwigType *type, const_String_or_char_ptr name) {
   Parm *p = NewHash();
   set_nodeType(p, "parm");
   if (type) {
@@ -119,6 +134,14 @@ int ParmList_len(ParmList *p) {
 }
 
 /* ---------------------------------------------------------------------
+ * get_empty_type()
+ * ---------------------------------------------------------------------- */
+
+static SwigType *get_empty_type() {
+  return NewStringEmpty();
+}
+
+/* ---------------------------------------------------------------------
  * ParmList_str()
  *
  * Generates a string of parameters
@@ -127,7 +150,8 @@ int ParmList_len(ParmList *p) {
 String *ParmList_str(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
-    String *pstr = SwigType_str(Getattr(p, "type"), Getattr(p, "name"));
+    String *type = Getattr(p, "type");
+    String *pstr = SwigType_str(type ? type : get_empty_type(), Getattr(p, "name"));
     Append(out, pstr);
     p = nextSibling(p);
     if (p) {
@@ -148,7 +172,8 @@ String *ParmList_str_defaultargs(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
     String *value = Getattr(p, "value");
-    String *pstr = SwigType_str(Getattr(p, "type"), Getattr(p, "name"));
+    String *type = Getattr(p, "type");
+    String *pstr = SwigType_str(type ? type : get_empty_type(), Getattr(p, "name"));
     Append(out, pstr);
     if (value) {
       Printf(out, "=%s", value);
@@ -162,6 +187,24 @@ String *ParmList_str_defaultargs(ParmList *p) {
   return out;
 }
 
+/* -----------------------------------------------------------------------------
+ * ParmList_str_multibrackets()
+ *
+ * Generates a string of parameters including default arguments adding brackets
+ * if more than one parameter
+ * ----------------------------------------------------------------------------- */
+
+String *ParmList_str_multibrackets(ParmList *p) {
+  String *out;
+  String *parm_str = ParmList_str_defaultargs(p);
+  if (ParmList_len(p) > 1)
+    out = NewStringf("(%s)", parm_str);
+  else
+    out = NewStringf("%s", parm_str);
+  Delete(parm_str);
+  return out;
+}
+
 /* ---------------------------------------------------------------------
  * ParmList_protostr()
  *
@@ -171,7 +214,8 @@ String *ParmList_str_defaultargs(ParmList *p) {
 String *ParmList_protostr(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
-    String *pstr = SwigType_str(Getattr(p, "type"), 0);
+    String *type = Getattr(p, "type");
+    String *pstr = SwigType_str(type ? type : get_empty_type(), 0);
     Append(out, pstr);
     p = nextSibling(p);
     if (p) {

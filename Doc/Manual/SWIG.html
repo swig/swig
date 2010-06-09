@@ -13,7 +13,7 @@
 <li><a href="#SWIG_nn2">Running SWIG</a>
 <ul>
 <li><a href="#SWIG_nn3">Input format</a>
-<li><a href="#output">SWIG Output</a>
+<li><a href="#SWIG_output">SWIG Output</a>
 <li><a href="#SWIG_nn5">Comments</a>
 <li><a href="#SWIG_nn6">C Preprocessor</a>
 <li><a href="#SWIG_nn7">SWIG Directives</a>
@@ -92,7 +92,7 @@ chapters.
 
 
 <p>
-To run SWIG, use the <tt>swig</tt> command with options options and a filename like this:
+To run SWIG, use the <tt>swig</tt> command with options and a filename like this:
 </p>
 
 <div class="shell"><pre>
@@ -193,7 +193,7 @@ semantics in SWIG is analogous to that of the declarations section
 used in input files to parser generation tools such as yacc or bison.
 </p>
 
-<H3><a name="output"></a>5.1.2 SWIG Output</H3>
+<H3><a name="SWIG_output"></a>5.1.2 SWIG Output</H3>
 
 
 <p>
@@ -330,10 +330,13 @@ currently supported:
 </p>
 
 <ul>
-<li>Non-conventional type declarations.
+  <li>
+<p>
+Non-conventional type declarations.
 For example, SWIG does not support declarations such as the following
 (even though this is legal C):
 
+</p>
 <div class="code">
 <pre>
 /* Non-conventional placement of storage specifier (extern) */
@@ -355,15 +358,19 @@ if you're feeling particularly obfuscated, you can certainly break SWIG (althoug
 </p>
 </li>
 
-<li>Running SWIG on C++ source files (what would appear in a .C or .cxx file) 
-is not recommended.  Even though SWIG can parse C++ class declarations,
-it ignores declarations that are decoupled from their
-original class definition (the declarations are parsed, but a lot of warning
-messages may be generated).  For example:
+<li>
+<p>
+Running SWIG on C++ source files (the code in a .C, .cpp or .cxx file) is not recommended.
+The usual approach is to feed SWIG header files for parsing C++ definitions and declarations.
+The main reason is if SWIG parses a scoped definition or declaration (as is normal for C++ source files),
+it is ignored, unless a declaration for the symbol was parsed earlier.
+For example
+</p>
 
 <div class="code">
 <pre>
-/* Not supported by SWIG */
+/* bar not wrapped unless foo has been defined and 
+   the declaration of bar within foo has already been parsed */
 int foo::bar(int) {
     ... whatever ...
 }
@@ -371,9 +378,12 @@ int foo::bar(int) {
 </div>
 </li>
 
-<li>Certain advanced features of C++ such as nested classes 
-are not yet supported. Please see the section on using SWIG
-with C++ for more information.
+<li>
+<p>
+Certain advanced features of C++ such as nested classes 
+are not yet fully supported. Please see the C++ <a href="SWIGPlus.html#SWIGPlus_nested_classes">Nested classes</a> section
+for more information.
+</p>
 </ul>
 
 <p>
@@ -785,6 +795,12 @@ const char *e;          // A pointer to a constant character.  The pointer
 <p>
 In this case, the pointer <tt>e</tt> can change---it's only the value
 being pointed to that is read-only.
+</p>
+
+<p>
+Please note that for const parameters or return types used in a function, SWIG pretty much ignores
+the fact that these are const, see the section on <a href="SWIGPlus.html#SWIGPlus_const">const-correctness</a>
+for more information.
 </p>
 
 <p>
@@ -1602,7 +1618,7 @@ double y;                       // Read-write
 
 <p>
 The <tt>%mutable</tt> and <tt>%immutable</tt> directives are actually 
-<a href="Customization.html#features">%feature directives</a> defined like this:
+<a href="Customization.html#Customization_features">%feature directives</a> defined like this:
 </p>
 
 <div class="code"><pre>
@@ -1656,7 +1672,7 @@ directive as shown :</p>
 // interface.i
 
 %rename(my_print) print;
-extern void print(char *);
+extern void print(const char *);
 
 %rename(foo) a_really_long_and_annoying_name;
 extern int a_really_long_and_annoying_name;
@@ -1709,9 +1725,10 @@ to ignore declarations that match a given identifier.  For example:
 <div class="code">
 <pre>
 %ignore print;         // Ignore all declarations named print
-%ignore _HAVE_FOO_H;   // Ignore an include guard constant
+%ignore MYMACRO;       // Ignore a macro
 ...
-%include "foo.h"       // Grab a header file
+#define MYMACRO 123
+void print(const char *);
 ...
 </pre>
 </div>
@@ -1726,7 +1743,7 @@ declarations.  If you need to remove a whole section of problematic code, the SW
 <p>
 More powerful variants of <tt>%rename</tt> and <tt>%ignore</tt> directives can be used to help 
 wrap C++ overloaded functions and methods or C++ methods which use default arguments. This is described in the 
-<a href="SWIGPlus.html#ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section in the C++ chapter.
+<a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section in the C++ chapter.
 </p>
 
 <p>
@@ -1736,7 +1753,7 @@ For example:
 
 <div class="code">
 <pre>
-%name(output) extern void print(char *);
+%name(output) extern void print(const char *);
 </pre>
 </div>
 
@@ -2489,7 +2506,7 @@ instead of a method.  To do this, you might write some code like this:
 // Now supply the implementation of the Vector_magnitude_get function
 %{
 const double Vector_magnitude_get(Vector *v) {
-  return (const double) return sqrt(v-&gt;x*v-&gt;x+v-&gt;y*v-&gt;y+v-&gt;z*v-&gt;z);
+  return (const double) sqrt(v-&gt;x*v-&gt;x+v-&gt;y*v-&gt;y+v-&gt;z*v-&gt;z);
 }
 %}
 
@@ -2502,41 +2519,53 @@ of the object.
 </p>
 
 <p>
-A similar technique can also be used to work with problematic data members.
+A similar technique can also be used to work with data members that you want to process.
 For example, consider this interface:
 </p>
 
 <div class="code">
 <pre>
-struct Person {
-   char name[50];
-   ...
-}
+typedef struct {
+  char name[50];
+  ...
+} Person;
 </pre>
 </div>
 
 <p>
-By default, the <tt>name</tt> attribute is read-only because SWIG does not
-normally know how to modify arrays.  However, you can rewrite the interface
-as follows to change this:
+Say you wanted to ensure <tt>name</tt> was always upper case, you can rewrite
+the interface as follows to ensure this occurs whenever a name is read or written to:
 </p>
 
 <div class="code">
 <pre>
-struct Person {
-    %extend {
-       char *name;
-    }
-...
+typedef struct {
+  %extend {
+    char name[50];
+  }
+  ...
+} Person;
+
+%{
+#include &lt;string.h&gt;
+#include &lt;ctype.h&gt;
+
+void make_upper(char *name) {
+  char *c;
+  for (c = name; *c; ++c)
+    *c = (char)toupper((int)*c);
 }
 
-// Specific implementation of set/get functions
-%{
+/* Specific implementation of set/get functions forcing capitalization */
+
 char *Person_name_get(Person *p) {
-   return p-&gt;name;
+  make_upper(p-&gt;name);
+  return p-&gt;name;
 }
+
 void Person_name_set(Person *p, char *val) {
-   strncpy(p-&gt;name,val,50);
+  strncpy(p-&gt;name,val,50);
+  make_upper(p-&gt;name);
 }
 %}
 </pre>
@@ -2546,7 +2575,7 @@ void Person_name_set(Person *p, char *val) {
 Finally, it should be stressed that even though <tt>%extend</tt>
 can be used to add new data members, these new members can not require
 the allocation of additional storage in the object (e.g., their values must
-be entirely synthesized from existing attributes of the structure).
+be entirely synthesized from existing attributes of the structure or obtained elsewhere).
 </p>
 
 <p>
@@ -2629,10 +2658,16 @@ $o-&gt;{intRep}-&gt;{ivalue} = 7              # Change value of o.intRep.ivalue
 </pre></div>
 
 <p>
-If you have a lot nested structure declarations, it is
+If you have a lot of nested structure declarations, it is
 advisable to double-check them after running SWIG. Although,
 there is a good chance that they will work, you may have to
 modify the interface file in certain cases.
+</p>
+
+<p>
+Finally, note that nesting is handled differently in C++ mode, 
+see <a href="SWIGPlus.html#SWIGPlus_nested_classes">Nested classes</a>.
+</p>
 
 <H3><a name="SWIG_nn39"></a>5.5.8 Other things to note about structure wrapping</H3>
 

@@ -11,8 +11,6 @@
  * File handling functions in the SWIG core
  * ----------------------------------------------------------------------------- */
 
-/* $Id: swig.h 9603 2006-12-05 21:47:01Z beazley $ */
-
 extern List   *Swig_add_directory(const_String_or_char_ptr dirname);
 extern void    Swig_push_directory(const_String_or_char_ptr dirname);
 extern void    Swig_pop_directory(void);

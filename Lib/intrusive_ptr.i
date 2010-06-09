@@ -44,52 +44,39 @@ struct SWIG_null_deleter {
 %#define SWIG_NO_NULL_DELETER_1
 }
 
+// Workaround empty first macro argument bug
+#define SWIGEMPTYHACK
 // Main user macro for defining intrusive_ptr typemaps for both const and non-const pointer types
-// For plain classes, do not use for derived classes
+%define %intrusive_ptr(TYPE...)
+%feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
+SWIG_INTRUSIVE_PTR_TYPEMAPS(SWIGEMPTYHACK, TYPE)
+SWIG_INTRUSIVE_PTR_TYPEMAPS(const, TYPE)
+%enddef
+
+%define %intrusive_ptr_no_wrap(TYPE...)
+%feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
+SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(SWIGEMPTYHACK, TYPE)
+SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(const, TYPE)
+%enddef
+
+// Legacy macros
 %define SWIG_INTRUSIVE_PTR(PROXYCLASS, TYPE...)
-SWIG_INTRUSIVE_PTR_TYPEMAPS(PROXYCLASS, , TYPE)
-SWIG_INTRUSIVE_PTR_TYPEMAPS(PROXYCLASS, const, TYPE)
+#warning "SWIG_INTRUSIVE_PTR(PROXYCLASS, TYPE) is deprecated. Please use %intrusive_ptr(TYPE) instead."
+%intrusive_ptr(TYPE)
 %enddef
 
-// Main user macro for defining intrusive_ptr typemaps for both const and non-const pointer types
-// For derived classes
 %define SWIG_INTRUSIVE_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE...)
-SWIG_INTRUSIVE_PTR_TYPEMAPS(PROXYCLASS, , TYPE)
-SWIG_INTRUSIVE_PTR_TYPEMAPS(PROXYCLASS, const, TYPE)
-%types(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > = SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >) %{
-  *newmemory = SWIG_CAST_NEW_MEMORY;
-  return (void *) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >(*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *)$from);
-  %}
-%extend TYPE {
-  static SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE > SWIGSharedPtrUpcast(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast) {
-    return swigSharedPtrUpcast;
-  }
-}
+#warning "SWIG_INTRUSIVE_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE) is deprecated. Please use %intrusive_ptr(TYPE) instead."
+%intrusive_ptr(TYPE)
 %enddef
 
-// Extra user macro for including classes in intrusive_ptr typemaps for both const and non-const pointer types
-// This caters for classes which cannot be wrapped by intrusive_ptrs but are still part of the class hierarchy
-// For plain classes, do not use for derived classes
 %define SWIG_INTRUSIVE_PTR_NO_WRAP(PROXYCLASS, TYPE...)
-SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(PROXYCLASS, , TYPE)
-SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(PROXYCLASS, const, TYPE)
+#warning "SWIG_INTRUSIVE_PTR_NO_WRAP(PROXYCLASS, TYPE) is deprecated. Please use %intrusive_ptr_no_wrap(TYPE) instead."
+%intrusive_ptr_no_wrap(TYPE)
 %enddef
 
-// Extra user macro for including classes in intrusive_ptr typemaps for both const and non-const pointer types
-// This caters for classes which cannot be wrapped by intrusive_ptrs but are still part of the class hierarchy
-// For derived classes
 %define SWIG_INTRUSIVE_PTR_DERIVED_NO_WRAP(PROXYCLASS, BASECLASSTYPE, TYPE...)
-SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(PROXYCLASS, , TYPE)
-SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(PROXYCLASS, const, TYPE)
-%types(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > = SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >) %{
-  *newmemory = SWIG_CAST_NEW_MEMORY;
-  return (void *) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >(*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *)$from);
-%}
-%extend TYPE {
-  static SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE > SWIGSharedPtrUpcast(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast) {
-    return swigSharedPtrUpcast;
-  }
-}
+#warning "SWIG_INTRUSIVE_PTR_DERIVED_NO_WRAP(PROXYCLASS, BASECLASSTYPE, TYPE) is deprecated. Please use %intrusive_ptr_no_wrap(TYPE) instead."
+%intrusive_ptr_no_wrap(TYPE)
 %enddef
-
 

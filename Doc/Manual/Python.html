@@ -69,9 +69,6 @@
 <li><a href="#Python_nn47">Simple pointers</a>
 <li><a href="#Python_nn48">Unbounded C Arrays</a>
 <li><a href="#Python_nn49">String handling</a>
-<li><a href="#Python_nn50">Arrays</a>
-<li><a href="#Python_nn51">String arrays</a>
-<li><a href="#Python_nn52">STL wrappers</a>
 </ul>
 <li><a href="#Python_nn53">Typemaps</a>
 <ul>
@@ -1285,7 +1282,7 @@ something like this:
 <p>
 This object is actually a Python instance that has been wrapped around a pointer to the low-level
 C structure.  This instance doesn't actually do anything--it just serves as a proxy.
-The pointer to the C object can be found in the the <tt>.this</tt>
+The pointer to the C object can be found in the <tt>.this</tt>
 attribute.  For example:
 </p>
 
@@ -1713,8 +1710,8 @@ If declarations such as these appear, you will get a warning message like this:
 
 <div class="shell">
 <pre>
-example.i:12: Warning(509): Overloaded spam(short) is shadowed by spam(int)
-at example.i:11.
+example.i:12: Warning 509: Overloaded method spam(short) effectively ignored,
+example.i:11: Warning 509: as it is shadowed by spam(int).
 </pre>
 </div>
 
@@ -2127,8 +2124,8 @@ Object 'RCObj', which implements the ref/unref idiom.
 
 <p>
 To tell SWIG that 'RCObj' and all its derived classes are reference
-counted objects, you use the "ref" and "unref" features, or
-<tt>%ref</tt> and <tt>%unref</tt> directives (since 1.3.28). For example:
+counted objects, you use the "ref" and "unref" features.
+For example:
 </p>
 
 
@@ -2145,25 +2142,6 @@ counted objects, you use the "ref" and "unref" features, or
 ...
 </pre>
 </div>
-
-or, using the directive form:
-
-
-<div class="code">
-<pre>
-%module example
-...
-
-%ref   RCObj "$this-&gt;ref();"
-%unref RCObj "$this-&gt;unref();"
-
-%include "rcobj.h"
-%include "A.h"
-...
-</pre>
-</div>
-
-
 
 <p>
 where the code passed to the "ref" and "unref" features will be
@@ -2516,7 +2494,7 @@ in Python-2.2, an entirely new type of class system was introduced.
 This new-style class system offers many enhancements including static
 member functions, properties (managed attributes), and class methods.
 Details about all of these changes can be found on <a
-href="//www.python.org">www.python.org</a> and is not repeated here.
+href="http://www.python.org">www.python.org</a> and is not repeated here.
 </p>
 
 <p>
@@ -2804,12 +2782,12 @@ public:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; c = FooContainer()
-&gt;&gt;&gt; a = Foo().__disown()__
+&gt;&gt;&gt; a = Foo().__disown__()
 &gt;&gt;&gt; c.addFoo(a)
 &gt;&gt;&gt; b = Foo()
-&gt;&gt;&gt; b = b.__disown()__
+&gt;&gt;&gt; b = b.__disown__()
 &gt;&gt;&gt; c.addFoo(b)
-&gt;&gt;&gt; c.addFoo(Foo().__disown()__)
+&gt;&gt;&gt; c.addFoo(Foo().__disown__())
 </pre>
 </div>
 
@@ -3123,7 +3101,7 @@ customization features.
 
 <p>Sometimes you may want to replace or modify the wrapper function
 that SWIG creates in the proxy <tt>.py</tt> file.  The Python module
-in SWIG provides some features that enable you do do this.  First, to
+in SWIG provides some features that enable you to do this.  First, to
 entirely replace a proxy function you can use
 <tt>%feature("shadow")</tt>.  For example:</p>
 
@@ -3853,15 +3831,6 @@ If you need to return binary data, you might use the
 <tt>cstring.i</tt> library file.  The <tt>cdata.i</tt> library can
 also be used to extra binary data from arbitrary pointers.
 </p>
-
-<H3><a name="Python_nn50"></a>31.7.5 Arrays</H3>
-
-
-<H3><a name="Python_nn51"></a>31.7.6 String arrays</H3>
-
-
-<H3><a name="Python_nn52"></a>31.7.7 STL wrappers</H3>
-
 
 <H2><a name="Python_nn53"></a>31.8 Typemaps</H2>
 

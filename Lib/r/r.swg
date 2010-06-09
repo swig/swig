@@ -50,7 +50,7 @@ SWIG_InitializeModule(0);
 %typemap(scheck) SWIGTYPE[ANY]  
   %{ 
 #      assert(length($input) > $1_dim0)
-      assert(all(sapply($input, class) == "$R_class"))     
+      assert(all(sapply($input, class) == "$R_class"));
   %}
 
 %typemap(out) void "";
@@ -122,14 +122,14 @@ SWIG_InitializeModule(0);
 /* Handling vector case to avoid warnings,
    although we just use the first one. */
 %typemap(scheck) unsigned int %{
-  assert(length($input) == 1 && $input >= 0, "All values must be non-negative")
+  assert(length($input) == 1 && $input >= 0, "All values must be non-negative");
 %}
 
 
 %typemap(scheck) int, long %{
   if(length($input) > 1) {
-     warning("using only the first element of $input")
-  }
+     warning("using only the first element of $input");
+  };
 %}
 
 
@@ -144,11 +144,11 @@ SWIG_InitializeModule(0);
    $1 = %reinterpret_cast(INTEGER($input), $1_ltype);
 }
 
-%typemap(in,noblock=1,fragment="SWIG_strdup") char* {
+%typemap(in,noblock=1,fragment="SWIG_strdup") char * {
    $1 = %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
 }
 
-%typemap(freearg,noblock=1) char* {
+%typemap(freearg,noblock=1) char * {
    free($1);
 }
 
@@ -189,7 +189,7 @@ else
 strcpy($1, "");
 %}
 
-%typemap(out,noblock=1) char* 
+%typemap(out,noblock=1) char * 
  {  $result = $1 ? Rf_mkString(%reinterpret_cast($1,char *)) : R_NilValue; }
 
 %typemap(in,noblock=1) char {

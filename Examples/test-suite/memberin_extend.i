@@ -1,6 +1,6 @@
 %module memberin_extend
 
-// Tests memberin typemap. The default char * memberin typemap will be used.
+// Tests memberin typemap is not used for %extend.
 // The test extends the struct with a pseudo member variable
 
 %inline %{
@@ -12,8 +12,19 @@ struct ExtendMe {
 %{
 #include <map>
 std::map<ExtendMe*, char *> ExtendMeStringMap;
-#define ExtendMe_thing_set(self_, val_) ExtendMeStringMap[self_]
-#define ExtendMe_thing_get(self_) ExtendMeStringMap[self_]
+void ExtendMe_thing_set(ExtendMe *self, const char *val) {
+  char *old_val = ExtendMeStringMap[self];
+  delete [] old_val;
+  if (val) {
+    ExtendMeStringMap[self] = new char[strlen(val)+1];
+    strcpy(ExtendMeStringMap[self], val);
+  } else {
+    ExtendMeStringMap[self] = 0;
+  }
+}
+char * ExtendMe_thing_get(ExtendMe *self) {
+  return ExtendMeStringMap[self];
+}
 %}
 
 %extend ExtendMe {

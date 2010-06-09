@@ -56,27 +56,47 @@ example.c is the name of the file with the functions in them
 <div class="shell">
 <pre>
 swig -r example.i
-PKG_LIBS="example.c" R CMD SHLIB example_wrap.c
+R CMD SHLIB example_wrap.c example.c
 </pre>
 </div>
 
 <p>
-The corresponding comments for C++ mode are
+The corresponding options for C++ mode are
 </p>
 
 <div class="shell">
 <pre>
 swig -c++ -r -o example_wrap.cpp example.i
-PKG_LIBS="example.cxx" R CMD SHLIB example_wrap.cpp
+R CMD SHLIB example_wrap.cpp example.cpp
 </pre>
 </div>
 
 <p>
-Note that R is sensitive to the name of the file and to the file
-extension in C and C++ mode.  The name of the wrapper file must be the
-name of the library.  Also in C++ mode, the file extension must be .cpp
-rather than .cxx for the R compile command to recognize it.
+Note that R is sensitive to the names of the files.
+The name of the wrapper file must be the
+name of the library unless you use the -o option to R when building the library, for example:
 </p>
+
+<div class="shell">
+<pre>
+swig -c++ -r -o example_wrap.cpp example.i
+R CMD SHLIB -o example.so example_wrap.cpp example.cpp
+</pre>
+</div>
+
+<p>
+R is also sensitive to the name of the file 
+extension in C and C++ mode. In C++ mode, the file extension must be .cpp
+rather than .cxx for the R compile command to recognize it. If your C++ code is 
+in a file using something other than a .cpp extension, then it may still work using PKG_LIBS:
+</p>
+
+<div class="shell">
+<pre>
+swig -c++ -r -o example_wrap.cpp example.i
+PKG_LIBS="example.cxx" R CMD SHLIB -o example example_wrap.cpp
+</pre>
+</div>
 
 <p>
 The commands produces two files.  A dynamic shared object file called

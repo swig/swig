@@ -122,7 +122,7 @@ SWIGINTERN int
 SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
 {
   if (cptr && Rf_isString(obj)) {
-    const char *cstr = CHAR(STRING_ELT(obj, 0));
+    char *cstr = %const_cast(CHAR(STRING_ELT(obj, 0)), char *);
     int len = strlen(cstr);
 
     if (alloc) {
@@ -130,9 +130,7 @@ SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
         *cptr = %new_copy_array(cstr, len + 1, char);
         *alloc = SWIG_NEWOBJ;
       } else {
-        *cptr = %reinterpret_cast(malloc(len + 1), char *);
-        *cptr = strcpy(*cptr, cstr);
-        *alloc = SWIG_OLDOBJ;
+        *cptr = cstr;
       }
     } else {
       *cptr = %reinterpret_cast(malloc(len + 1), char *);
@@ -164,9 +162,20 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
   SEXP t, c;
   if (!carray) return R_NilValue;
+/* See R internals document 1.10.  
+   MkCharLen was introduced in 2.7.0.  Use that instead of hand
+   creating vector.
+
+   Starting in 2.8.0 creating strings via vectors was deprecated in
+   order to allow for use of CHARSXP caches. */
+
   Rf_protect(t = Rf_allocVector(STRSXP, 1));
+#if R_VERSION >=  R_Version(2,7,0)
+  c = Rf_mkCharLen(carray, size);
+#else
   c = Rf_allocVector(CHARSXP, size);
   strncpy((char *)CHAR(c), carray, size);
+#endif
   SET_STRING_ELT(t, 0, c);
   Rf_unprotect(1);
   return t;

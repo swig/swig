@@ -24,6 +24,12 @@ public:
   const B GetBconst() const {
         return b;
   }
+  ::B GetBGlobalQualifier() {
+        return b;
+  }
+  const ::B GetBconstGlobalGlobalQualifier() const {
+        return b;
+  }
 }; 
 
 %}

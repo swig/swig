@@ -9,6 +9,42 @@
   lvar = (t) Z_LVAL_PP(invar);
 %enddef
 
+%define CONVERT_LONG_LONG_IN(lvar,t,invar)
+  switch ((*(invar))->type) {
+      case IS_DOUBLE:
+          lvar = (t) (*(invar))->value.dval;
+          break;
+      case IS_STRING: {
+          char * endptr;
+          errno = 0;
+          lvar = (t) strtoll((*(invar))->value.str.val, &endptr, 10);
+          if (*endptr && !errno) break;
+          /* FALL THRU */
+      }
+      default:
+          convert_to_long_ex(invar);
+          lvar = (t) (*(invar))->value.lval;
+  }
+%enddef
+
+%define CONVERT_UNSIGNED_LONG_LONG_IN(lvar,t,invar)
+  switch ((*(invar))->type) {
+      case IS_DOUBLE:
+          lvar = (t) (*(invar))->value.dval;
+          break;
+      case IS_STRING: {
+          char * endptr;
+          errno = 0;
+          lvar = (t) strtoull((*(invar))->value.str.val, &endptr, 10);
+          if (*endptr && !errno) break;
+          /* FALL THRU */
+      }
+      default:
+          convert_to_long_ex(invar);
+          lvar = (t) (*(invar))->value.lval;
+  }
+%enddef
+
 %define CONVERT_INT_OUT(lvar,invar)
   lvar = (t) Z_LVAL_PP(invar);
 %enddef

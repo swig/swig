@@ -17,7 +17,7 @@ char cvsroot_octave_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 Octave Options (available with -octave)\n\
-     -api <N> - Generate code that assumes Octave API N [default: 37]\n\
+     [no additional options]\n\
      \n";
 
 
@@ -40,8 +40,6 @@ private:
   int have_destructor;
   String *constructor_name;
 
-  int api_version;
-
   Hash *docs;
 
 public:
@@ -60,7 +58,6 @@ public:
      director_multiple_inheritance = 1;
      director_language = 1;
      docs = NewHash();
-     api_version = 0;
    }
 
   virtual void main(int argc, char *argv[]) {
@@ -68,15 +65,6 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stderr);
-	} else if (strcmp(argv[i], "-api") == 0) {
-	  if (argv[i + 1]) {
-	    api_version = atoi(argv[i + 1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
 	}
       }
     }
@@ -142,7 +130,6 @@ public:
     Printf(f_runtime, "#define SWIGOCTAVE\n");
     Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
-    Printf(f_runtime, "#define OCTAVE_API_VERSION_OPTION %i\n", api_version);
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -714,8 +701,8 @@ public:
     Wrapper *getf = NewWrapper();
     Wrapper *setf = NewWrapper();
 
-    String *getname = Swig_name_get(iname);
-    String *setname = Swig_name_set(iname);
+    String *getname = Swig_name_get(NSPACE_TODO, iname);
+    String *setname = Swig_name_set(NSPACE_TODO, iname);
 
     Printf(setf->def, "static octave_value_list _wrap_%s(const octave_value_list& args,int nargout) {", setname);
     Printf(setf->def, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1,0)) return octave_value_list();", iname);
@@ -773,6 +760,7 @@ public:
     SwigType *type = Getattr(n, "type");
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
+    String *cppvalue = Getattr(n, "cppvalue");
     String *tm;
 
     if (!addSymbol(iname, n))
@@ -788,7 +776,7 @@ public:
     if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
-      Replaceall(tm, "$value", value);
+      Replaceall(tm, "$value", cppvalue ? cppvalue : value);
       Replaceall(tm, "$nsname", iname);
       Printf(f_init, "%s\n", tm);
     } else {
@@ -895,7 +883,7 @@ public:
     Printv(f_wrappers, "static swig_octave_class _wrap_class_", class_name, " = {\"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
     Printv(f_wrappers, Swig_directorclass(n) ? "1," : "0,", NIL);
     if (have_constructor) {
-      String *cname = Swig_name_construct(constructor_name);
+      String *cname = Swig_name_construct(NSPACE_TODO, constructor_name);
       String *wcname = Swig_name_wrapper(cname);
       String *tname = texinfo_name(n);
       Printf(f_wrappers, "%s,%s,", wcname, tname);
@@ -928,7 +916,7 @@ public:
     String *name = Getattr(n, "name");
     String *iname = GetChar(n, "sym:name");
     String *realname = iname ? iname : name;
-    String *rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
+    String *rname = Swig_name_wrapper(Swig_name_member(NSPACE_TODO, class_name, realname));
 
     if (!Getattr(n, "sym:nextSibling")) {
       String *tname = texinfo_name(n);
@@ -949,9 +937,9 @@ public:
     assert(s_members_tab);
     assert(class_name);
     String *symname = Getattr(n, "sym:name");
-    String *getname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name, symname)));
+    String *getname = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
     String *setname = GetFlag(n, "feature:immutable") ?
-	NewString("octave_set_immutable") : Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name, symname)));
+	NewString("octave_set_immutable") : Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
     assert(s_members_tab);
 
     Printf(s_members_tab, "{\"%s\",0,%s,%s,0,0},\n", symname, getname, setname);
@@ -973,7 +961,7 @@ public:
       String *name = NewString("self");
       String *type = NewString("void");
       SwigType_add_pointer(type);
-      self = NewParm(type, name);
+      self = NewParm(type, name, n);
       Delete(type);
       Delete(name);
       Setattr(self, "lname", "self_obj");
@@ -985,12 +973,12 @@ public:
       Delete(self);
     }
 
-    return Language::constructorHandler(n);;
+    return Language::constructorHandler(n);
   }
 
   virtual int destructorHandler(Node *n) {
     have_destructor = 1;
-    return Language::destructorHandler(n);;
+    return Language::destructorHandler(n);
   }
 
   virtual int staticmemberfunctionHandler(Node *n) {
@@ -1001,7 +989,7 @@ public:
     String *name = Getattr(n, "name");
     String *iname = GetChar(n, "sym:name");
     String *realname = iname ? iname : name;
-    String *rname = Swig_name_wrapper(Swig_name_member(class_name, realname));
+    String *rname = Swig_name_wrapper(Swig_name_member(NSPACE_TODO, class_name, realname));
 
     if (!Getattr(n, "sym:nextSibling")) {
       String *tname = texinfo_name(n);
@@ -1027,9 +1015,9 @@ public:
       assert(s_members_tab);
       assert(class_name);
       String *symname = Getattr(n, "sym:name");
-      String *getname = Swig_name_wrapper(Swig_name_get(Swig_name_member(class_name, symname)));
+      String *getname = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
       String *setname = GetFlag(n, "feature:immutable") ?
-	  NewString("octave_set_immutable") : Swig_name_wrapper(Swig_name_set(Swig_name_member(class_name, symname)));
+	  NewString("octave_set_immutable") : Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
       assert(s_members_tab);
 
       Printf(s_members_tab, "{\"%s\",0,%s,%s,1,0},\n", symname, getname, setname);
@@ -1068,7 +1056,7 @@ public:
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("void");
     SwigType_add_pointer(type);
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
 

@@ -3,12 +3,12 @@
 require "tests.php";
 require "cpp_static.php";
 
-// No new functions
-check::functions(array());
-// No new classes
+// New functions
+check::functions(array(staticfunctiontest_static_func,staticfunctiontest_static_func_2,staticfunctiontest_static_func_3));
+// New classes
 check::classes(array(StaticMemberTest,StaticFunctionTest));
-// now new vars
-check::globals(array());
+// New vars
+check::globals(array(staticmembertest_static_int));
 
 check::done();
 ?>

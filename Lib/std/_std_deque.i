@@ -24,7 +24,7 @@
          };
 */
 
-%define %std_deque_methods(T)
+%define %std_deque_methods_noempty(T)
        typedef T &reference;
        typedef const T& const_reference;
 
@@ -38,7 +38,6 @@
        unsigned int size() const;
        unsigned int max_size() const;
        void resize(unsigned int n, T c = T());
-       bool empty() const;
        const_reference front();
        const_reference back();
        void push_front(const T& x);
@@ -66,7 +65,7 @@
                     throw std::out_of_range("deque index out of range");
            }
            void delitem(int i) throw (std::out_of_range) {
-            	int size = int(self->size());
+                int size = int(self->size());
                 if (i<0) i+= size;
                 if (i>=0 && i<size) {
                     self->erase(self->begin()+i);
@@ -74,7 +73,7 @@
                     throw std::out_of_range("deque index out of range");
                 }
            }
-	   std::deque<T> getslice(int i, int j) {
+           std::deque<T> getslice(int i, int j) {
                 int size = int(self->size());
                 if (i<0) i = size+i;
                 if (j<0) j = size+j;
@@ -109,8 +108,23 @@
                 self->erase(self->begin()+i,self->begin()+j);
             }
        };
-
 %enddef
+
+#ifdef SWIGPHP
+%define %std_deque_methods(T)
+    %extend {
+        bool is_empty() const {
+            return self->empty();
+        }
+    };
+    %std_deque_methods_noempty(T)
+%enddef
+#else
+%define %std_deque_methods(T)
+    bool empty() const;
+    %std_deque_methods_noempty(T)
+%enddef
+#endif
 
 namespace std {
     template<class T> class deque {
@@ -118,6 +132,3 @@ namespace std {
        %std_deque_methods(T);
     };
 }
-
-
-

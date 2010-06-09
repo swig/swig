@@ -11,8 +11,6 @@
  * Functions related to wrapper objects.
  * ----------------------------------------------------------------------------- */
 
-/* $Id: swig.h 9635 2007-01-12 01:44:16Z beazley $ */
-
 typedef struct Wrapper {
     Hash *localh;
     String *def;

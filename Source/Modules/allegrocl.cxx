@@ -378,9 +378,12 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
     // Swig_print_node(n);
   }
 
-  if (SwigType_istemplate(name)) {
-    String *temp = strip_namespaces(SwigType_templateprefix(name));
+  String *tname = SwigType_istemplate_templateprefix(name);
+  if (tname) {
+    String *temp = strip_namespaces(tname);
     name = NewStringf("%s%s%s", temp, SwigType_templateargs(name), SwigType_templatesuffix(name));
+    Delete(temp);
+    Delete(tname);
   }
 
   val = lookup_defined_foreign_type(k);
@@ -725,8 +728,8 @@ String *internal_compose_foreign_type(Node *n, SwigType *ty) {
       if (res) {
 	Printf(ffiType, "%s", res);
       } else {
-	SwigType *resolved_type = SwigType_typedef_resolve(tok);
-	if (resolved_type) {
+	SwigType *resolved_type = SwigType_typedef_resolve_all(tok);
+	if (Cmp(resolved_type, tok) != 0) {
 	  res = get_ffi_type(n, resolved_type, "");
 	  if (res) {
 	  } else {
@@ -1089,11 +1092,12 @@ void emit_stub_class(Node *n) {
   if (Getattr(n, "allegrocl:synonym:already-been-stubbed"))
     return;
 
-  if (SwigType_istemplate(name)) {
-    String *temp = strip_namespaces(SwigType_templateprefix(name));
+  String *tname = SwigType_istemplate_templateprefix(name);
+  if (tname) {
+    String *temp = strip_namespaces(tname);
     name = NewStringf("%s%s%s", temp, SwigType_templateargs(name), SwigType_templatesuffix(name));
-
     Delete(temp);
+    Delete(tname);
   } else {
     name = strip_namespaces(name);
   }
@@ -1280,11 +1284,12 @@ void emit_class(Node *n) {
   String *ns_list = listify_namespace(Getattr(n, "allegrocl:namespace"));
   String *name = Getattr(n, is_tempInst ? "real-name" : "name");
 
-  if (SwigType_istemplate(name)) {
-    String *temp = strip_namespaces(SwigType_templateprefix(name));
+  String *tname = SwigType_istemplate_templateprefix(name);
+  if (tname) {
+    String *temp = strip_namespaces(tname);
     name = NewStringf("%s%s%s", temp, SwigType_templateargs(name), SwigType_templatesuffix(name));
-
     Delete(temp);
+    Delete(tname);
   } else {
     name = strip_namespaces(name);
   }
@@ -1339,10 +1344,12 @@ void emit_typedef(Node *n) {
 
   if (in_class) {
     String *class_name = Getattr(in_class, "name");
-    if (SwigType_istemplate(class_name)) {
-      String *temp = strip_namespaces(SwigType_templateprefix(class_name));
+    String *tname = SwigType_istemplate_templateprefix(class_name);
+    if (tname) {
+      String *temp = strip_namespaces(tname);
       class_name = NewStringf("%s%s%s", temp, SwigType_templateargs(class_name), SwigType_templatesuffix(class_name));
       Delete(temp);
+      Delete(tname);
     }
 
     name = NewStringf("%s__%s", class_name, sym_name);
@@ -1662,13 +1669,8 @@ int ALLEGROCL::top(Node *n) {
 
   Printf(f_clhead, "(in-package :%s)\n", module_name);
 
-  // Swig_print_tree(n);
-
   Language::top(n);
 
-  //  SwigType_emit_type_table(f_runtime,f_cxx_wrapper);
-
-  // Swig_print_tree(n);
 #ifdef ALLEGROCL_TYPE_DEBUG
   dump_linked_types(stderr);
 #endif
@@ -1904,14 +1906,15 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		  if (!nodes[j].error) {
 		    if (script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				   "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
-				   Getattr(nodes[j].n, "name"), ParmList_errorstr(nodes[j].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
+				   "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
+				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
 		    } else {
 		      if (!Getattr(nodes[j].n, "overload:ignore"))
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-				     "Overloaded method %s(%s) ignored. Method %s(%s) const at %s:%d used.\n",
-				     Getattr(nodes[j].n, "name"), ParmList_errorstr(nodes[j].parms),
-				     Getattr(nodes[i].n, "name"), ParmList_errorstr(nodes[i].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
+				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -1920,14 +1923,15 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		  if (!nodes[j].error) {
 		    if (script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				   "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
-				   Getattr(nodes[j].n, "name"), ParmList_errorstr(nodes[j].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
+				   "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
+				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
 		    } else {
 		      if (!Getattr(nodes[j].n, "overload:ignore"))
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-				     "Overloaded method %s(%s) const ignored. Method %s(%s) at %s:%d used.\n",
-				     Getattr(nodes[j].n, "name"), ParmList_errorstr(nodes[j].parms),
-				     Getattr(nodes[i].n, "name"), ParmList_errorstr(nodes[i].parms), Getfile(nodes[i].n), Getline(nodes[i].n));
+				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -1941,15 +1945,15 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	    if (!nodes[j].error) {
 	      if (script_lang_wrapping) {
 		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
-			     "Overloaded method %s is shadowed by %s at %s:%d.\n",
-			     Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n),
-			     Getfile(nodes[i].n), Getline(nodes[i].n));
+			     "Overloaded method %s effectively ignored,\n", Swig_name_decl(nodes[j].n));
+		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[i].n), Getline(nodes[i].n),
+			     "as it is shadowed by %s.\n", Swig_name_decl(nodes[i].n));
 	      } else {
 		if (!Getattr(nodes[j].n, "overload:ignore"))
 		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-			       "Overloaded method %s ignored. Method %s at %s:%d used.\n",
-			       Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n),
-			       Getfile(nodes[i].n), Getline(nodes[i].n));
+			       "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+			       "using %s instead.\n", Swig_name_decl(nodes[i].n));
 	      }
 	      nodes[j].error = 1;
 	    }
@@ -2529,7 +2533,7 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
 //            NewStringf("(push (swig-ff-call%s) ACL_result)", wrap->locals)));
   String *ldestructor = Copy(lclass);
   if (ff_foreign_ptr)
-    Replaceall(ldestructor, ldestructor, "identity");
+    Replaceall(ldestructor, ldestructor, "cl::identity");
   else
     Replaceall(ldestructor, ":type :class", ":type :destructor");
   Replaceall(wrap->code, "$ldestructor", ldestructor);

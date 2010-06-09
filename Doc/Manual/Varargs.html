@@ -270,20 +270,36 @@ traceprintf(arg1, NULL);
 
 <p>
 Arguably, this approach seems to defeat the whole point of variable length arguments.  However,
-this actually provides enough support for many simple kinds of varargs functions to still be useful.  For
-instance, you could make function calls like this (in Python):
+this actually provides enough support for many simple kinds of varargs functions to still be useful, however it does come with a caveat.
+For instance, you could make function calls like this (in Python):
 </p>
 
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; traceprintf("Hello World")
 &gt;&gt;&gt; traceprintf("Hello %s. Your number is %d\n" % (name, num))
+&gt;&gt;&gt; traceprintf("Your result is 90%%.")
 </pre>
 </div>
 
 <p>
 Notice how string formatting is being done in Python instead of C. 
+The caveat is the strings passed must be safe to use in C though.
+For example if name was to contain a "%" it should be double escaped in order to avoid unpredictable 
+behaviour:
 </p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; traceprintf("Your result is 90%.\n")  # unpredictable behaviour
+&gt;&gt;&gt; traceprintf("Your result is 90%%.\n") # good
+</pre>
+</div>
+
+<p>
+Read on for further solutions.
+</p>
+
 
 <H2><a name="Varargs_nn5"></a>13.4 Argument replacement using %varargs</H2>
 

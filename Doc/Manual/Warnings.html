@@ -44,8 +44,8 @@ During compilation, SWIG may generate a variety of warning messages.  For exampl
 
 <div class="shell">
 <pre>
-example.i:16: Warning(501): Overloaded declaration ignored.  bar(double)
-example.i:15: Warning(501): Previous declaration is bar(int)
+example.i:16: Warning 501: Overloaded declaration ignored.  bar(double)
+example.i:15: Warning 501: Previous declaration is bar(int)
 </pre>
 </div>
 
@@ -102,7 +102,7 @@ int foo(double);              // Silently ignored.
 <p>
 The <tt>%warnfilter</tt> directive has the same semantics as other declaration modifiers like 
 <tt>%rename</tt>, <tt>%ignore</tt> and <tt>%feature</tt>, see the 
-<a href="Customization.html#features">%feature directive</a> section.  For example, if you wanted to
+<a href="Customization.html#Customization_features">%feature directive</a> section.  For example, if you wanted to
 suppress a warning for a method in a class hierarchy, you could do this:
 </p>
 
@@ -344,7 +344,7 @@ These can be overridden using command line options, for example:
 $ swig -python -Fstandard example.i
 example.i:4: Syntax error in input.
 $ swig -python -Fmicrosoft example.i
-example.i(4): Syntax error in input.
+example.i(4) : Syntax error in input.
 </pre></div>
 
 <H2><a name="Warnings_nn9"></a>14.9 Warning number reference</H2>
@@ -399,18 +399,20 @@ example.i(4): Syntax error in input.
 <li>308. Namespace alias '<em>name</em>' not allowed here. Assuming '<em>name</em>'
 <li>309. [private | protected] inheritance ignored.
 <li>310. Template '<em>name</em>' was already wrapped as '<em>name</em>' (ignored)
-<li>311. Template partial specialization not supported.
-<li>312. Nested classes not currently supported (ignored).
+<li>312. Unnamed nested class not currently supported (ignored).
 <li>313. Unrecognized extern type "<em>name</em>" (ignored).
 <li>314. '<em>identifier</em>' is a <em>lang</em> keyword.
 <li>315. Nothing known about '<em>identifier</em>'.
 <li>316. Repeated %module directive.
 <li>317. Specialization of non-template '<em>name</em>'.
-<li>318. Instantiation of template <em>name</em> is ambiguous. Using <em>templ</em> at <em>file</em>:<em>line</em>
+<li>318. Instantiation of template '<em>name</em>' is ambiguous, instantiation <em>templ</em> used, instantiation <em>templ</em> ignored.
 <li>319. No access specifier given for base class <em>name</em> (ignored).
 <li>320. Explicit template instantiation ignored.
 <li>321. <em>identifier</em> conflicts with a built-in name.
 <li>322. Redundant redeclaration of '<em>name</em>'.
+<li>323. Recursive scope inheritance of '<em>name</em>'.
+<li>324. Named nested template instantiations not supported. Processing as if no name was given to %template().
+<li>325. Nested class not currently supported (<em>name</em> ignored).
 <li>350. operator new ignored.
 <li>351. operator delete ignored.
 <li>352. operator+ ignored.
@@ -482,8 +484,8 @@ example.i(4): Syntax error in input.
 <li>469. No or improper directorin typemap defined for <em>type</em>
 <li>470. Thread/reentrant unsafe wrapping, consider returning by value instead.
 <li>471. Unable to use return type <em>type</em> in director method
-<li>474. Method <em>method</em> usage of the optimal attribute in the out typemap at <em>file</em>:<em>line</em> ignored as the following cannot be used to generate optimal code: <em>code</em>
-<li>475. Multiple calls to <em>method</em> might be generated due to optimal attribute usage in the out typemap at <em>file</em>:<em>line</em>.
+<li>474. Method <em>method</em> usage of the optimal attribute ignored in the out typemap as the following cannot be used to generate optimal code: <em>code</em>
+<li>475. Multiple calls to <em>method</em> might be generated due to optimal attribute usage in the out typemap.
 </ul>
 
 
@@ -492,22 +494,22 @@ example.i(4): Syntax error in input.
 
 
 <ul>
-<li>501. Overloaded declaration ignored. <em>decl</em>
-<li>502. Overloaded constructor ignored. <em>decl</em>
+<li>501. Overloaded declaration ignored. <em>decl</em>. Previous declaration is <em>decl</em>.
+<li>502. Overloaded constructor ignored. <em>decl</em>. Previous declaration is <em>decl</em>.
 <li>503. Can't wrap '<em>identifier</em>' unless renamed to a valid identifier.
 <li>504. Function <em>name</em> must have a return type.
 <li>505. Variable length arguments discarded.
 <li>506. Can't wrap varargs with keyword arguments enabled.
 <li>507. Adding native function <em>name</em> not supported (ignored).
-<li>508. Declaration of '<em>name</em>' shadows declaration accessible via operator-&gt;() at <em>file:line</em>.
-<li>509. Overloaded <em>declaration</em> is shadowed by <em>declaration</em> at <em>file</em>:<em>line</em>.
+<li>508. Declaration of '<em>name</em>' shadows declaration accessible via operator-&gt;(), previous declaration of'<em>declaration</em>'.
+<li>509. Overloaded method <em>declaration</em> effectively ignored, as it is shadowed by <em>declaration</em>.
 <li>510. Friend function '<em>name</em>' ignored.
 <li>511. Can't use keyword arguments with overloaded functions.
-<li>512. Overloaded <em>declaration</em> const ignored. Non-const method at <em>file</em>:<em>line</em> used.
+<li>512. Overloaded method <em>declaration</em> ignored, using non-const method <em>declaration</em> instead.
 <li>513. Can't generate wrappers for unnamed struct/class.
 <li>514. 
 <li>515. 
-<li>516. Overloaded method <em>declaration</em> ignored. Method <em>declaration</em> at <em>file</em>:<em>line</em> used.
+<li>516. Overloaded method <em>declaration</em> ignored, using <em>declaration</em> instead.
 <li>517. 
 <li>518. Portability warning: File <em>file1</em> will be overwritten by <em>file2</em> on case insensitive filesystems such as Windows' FAT32 and NTFS unless the class/module name is renamed.
 <li>519. %template() contains no name. Template method ignored: <em>declaration</em>

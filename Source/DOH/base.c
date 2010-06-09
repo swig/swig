@@ -30,12 +30,15 @@ void DohDelete(DOH *obj) {
 
   if (!obj)
     return;
-#if SWIG_DEBUG_DELETE
   if (!DohCheck(b)) {
+#if SWIG_DEBUG_DELETE
     fputs("DOH: Fatal error. Attempt to delete a non-doh object.\n", stderr);
     abort();
-  }
+#else
+    assert(0);
 #endif
+    return;
+  }
   if (b->flag_intern)
     return;
   assert(b->refcount > 0);
@@ -62,6 +65,15 @@ DOH *DohCopy(const DOH *obj) {
 
   if (!obj)
     return 0;
+  if (!DohCheck(b)) {
+#if SWIG_DEBUG_DELETE
+    fputs("DOH: Fatal error. Attempt to copy a non-doh object.\n", stderr);
+    abort();
+#else
+    assert(0);
+#endif
+    return 0;
+  }
   objinfo = b->type;
   if (objinfo->doh_copy) {
     DohBase *bc = (DohBase *) (objinfo->doh_copy) (b);

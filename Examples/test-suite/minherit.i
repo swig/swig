@@ -75,3 +75,8 @@ int wget(SpamPtr f) {
 
 #endif
 
+
+// Was causing runtime error in Ruby
+%include <std_vector.i>
+%template(IntVector) std::vector<int>;
+

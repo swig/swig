@@ -29,7 +29,7 @@ Past SWIG developers and major contributors include:
  Charlie Savage (cfis@interserv.com)                    (Ruby)
  Thien-Thi Nguyen (ttn@glug.org)                        (build/test/misc)
  Richard Palmer (richard@magicality.org)                (PHP)
- Sam Liddicott - Anonova Ltd (saml@liddicott.com)       (PHP)
+ Sam Liddicott - Ananova Ltd (saml@liddicott.com)       (PHP)
  Tim Hockin - Sun Microsystems (thockin@sun.com)        (PHP)
  Kevin Ruland                                           (PHP)
  Shibukawa Yoshiki                                      (Japanese Translation)
@@ -58,6 +58,42 @@ Past SWIG developers and major contributors include:
 
 Past contributors include:
  James Michael DuPont, Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
- Kovuk, Oleg Tolmatcev, Tal Shalif, Lluis Padro, Chris Seatory, Igor Bely, Robin Dunn
- (See CHANGES and CHANGES.current for a more complete list).
+ Kovuk, Oleg Tolmatcev, Tal Shalif, Lluis Padro, Chris Seatory, Igor Bely, Robin Dunn,
+ Edward Zimmermann, David Ascher, Dominique Dumont, Pier Giorgio Esposito, Hasan Baran Kovuk,
+ Klaus Wiederänders
+ (See CHANGES and CHANGES.current and the bug tracker for a more complete list).
+
+Past students:
+ Songyan Feng (Chicago).
+ Xinghua Shi (Chicago). 
+ Jing Cao (Chicago).
+ Aquinas Hobor (Chicago).
+
+Historically, the following people contributed to early versions of SWIG.
+Peter Lomdahl, Brad Holian, Shujia Zhou, Niels Jensen, and Tim Germann
+at Los Alamos National Laboratory were the first users. Patrick
+Tullmann at the University of Utah suggested the idea of automatic
+documentation generation. John Schmidt and Kurtis Bleeker at the
+University of Utah tested out the early versions.  Chris Johnson
+supported SWIG's developed at the University of Utah. John Buckman,
+Larry Virden, and Tom Schwaller provided valuable input on the first
+releases and improving the portability of SWIG. David Fletcher and
+Gary Holt have provided a great deal of input on improving SWIG's
+Perl5 implementation. Kevin Butler contributed the first Windows NT
+port.
+
+Early bug reports and patches:
+Adam Hupp, Arthur Smyles, Brad Clements, Brett Williams, Buck Hodges,
+Burkhard Kloss, Chia-Liang Kao, Craig Files, Dennis Marsa, Dieter Baron,
+Drake Diedrich, Fleur Diana Dragan, Gary Pennington, Geoffrey Hort, Gerald Williams,
+Greg Anderson, Greg Kochanski, Greg Troxel, Henry Rowley, Irina Kotlova,
+Israel Taller, James Bailey, Jim Fulton, Joel Reed, Jon Travis,
+Junio Hamano, Justin Heyes-Jones, Karl Forner, Keith Davidson,
+Krzysztof Kozminski, Larry Virden, Luke J Crook, Magnus Ljung, Marc Zonzon,
+Mark Howson, Micahel Scharf, Michel Sanner, Mike Romberg, Mike Simons,
+Mike Weiblen, Paul Brannan, Ram Bhamidipaty, Reinhard Fobbe, Rich Wales,
+Richard Salz, Roy Lecates, Rudy Albachten, Scott Drummonds
+Scott Michel, Shaun Lowry, Steve Galser, Tarn Weisner Burton,
+Thomas Weidner, Tony Seward, Uwe Steinmann, Vadim Chugunov, Wyss Clemens,
+Zhong Ren. 
 

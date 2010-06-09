@@ -799,7 +799,7 @@ public:
       Wrapper_add_local(f, "director", "Swig::Director *director = 0");
       Printf(f->code, "director = dynamic_cast<Swig::Director*>(arg1);\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !director->is_overriden_method((char *)\"%s\", (char *)\"%s\");\n",
+      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s\", (char *)\"%s\");\n",
 	  Swig_class_name(Swig_methodclass(n)), name);
     }
 
@@ -1495,7 +1495,7 @@ public:
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
 	    if (Cmp(d, "void") != 0) {
-		if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
+	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
 		Append(prepare, "$r=");
 	      } else {
 		Printf(prepare, "$this->%s=", SWIG_PTR);
@@ -1631,11 +1631,13 @@ public:
 	Printf(output, "%s", prepare);
       if (constructor) {
 	if (!directorsEnabled() || !Swig_directorclass(n)) {
-	  if (strcmp(methodname, "__construct") == 0) {
-	    Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
-	  } else {
-	    String *classname = Swig_class_name(current_class);
-	    Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
+	  if (!Len(prepare)) {
+	    if (strcmp(methodname, "__construct") == 0) {
+	      Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
+	    } else {
+	      String *classname = Swig_class_name(current_class);
+	      Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
+	    }
 	  }
 	} else {
 	  Node *parent = Swig_methodclass(n);
@@ -1688,7 +1690,7 @@ public:
 		Printf(output, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	      }
 	      Printf(output, "\t\t\tif (!class_exists($c)) {\n");
-	      Printf(output, "\t\t\t\treturn new %s($r);\n", Getattr(classLookup(d), "sym:name"));
+	      Printf(output, "\t\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
 	      Printf(output, "\t\t\t}\n");
 	      Printf(output, "\t\t\treturn new $c($r);\n");
 	    } else {
@@ -1779,8 +1781,6 @@ done:
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
 
-    SwigType_remember(t);
-
     /* First link C variables to PHP */
 
     tm = Swig_typemap_lookup("varinit", n, name, 0);
@@ -1788,7 +1788,7 @@ done:
       Replaceall(tm, "$target", name);
       Printf(s_vinit, "%s\n", tm);
     } else {
-      Printf(stderr, "%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
+      Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
     }
 
     /* Now generate PHP -> C sync blocks */
@@ -1798,7 +1798,7 @@ done:
        Replaceall(tm, "$symname", iname);
        Printf(f_c->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
+       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
        }
      */
     /* Now generate C -> PHP sync blocks */
@@ -1810,7 +1810,7 @@ done:
        Replaceall(tm, "$symname", iname);
        Printf(f_php->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
+       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
        }
        }
      */
@@ -1933,9 +1933,7 @@ done:
 
   virtual int classHandler(Node *n) {
     constructors = 0;
-    //SwigType *t = Getattr(n, "classtype");
     current_class = n;
-    // String *use_class_name=SwigType_manglestr(SwigType_ltype(t));
 
     if (shadow) {
       char *rename = GetChar(n, "sym:name");
@@ -2329,7 +2327,7 @@ done:
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("zval");
     SwigType_add_pointer(type);
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
 
@@ -2542,7 +2540,24 @@ done:
 	}
 	p = nextSibling(p);
       }
-      Append(w->code, "int error;\n");
+
+      /* exception handling */
+      tm = Swig_typemap_lookup("director:except", n, "result", 0);
+      if (!tm) {
+	tm = Getattr(n, "feature:director:except");
+	if (tm)
+	  tm = Copy(tm);
+      }
+      if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
+	if (Replaceall(tm, "$error", "error")) {
+	  /* Only declare error if it is used by the typemap. */
+	  Append(w->code, "int error;\n");
+	}
+      } else {
+	Delete(tm);
+	tm = NULL;
+      }
+
       if (!idx) {
 	Printf(w->code, "zval **args = NULL;\n", idx);
       } else {
@@ -2561,18 +2576,10 @@ done:
       Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,\n");
       Printf(w->code, "  result, %d, args TSRMLS_CC);\n", idx);
 
-      /* exception handling */
-      tm = Swig_typemap_lookup("director:except", n, "result", 0);
-      if (!tm) {
-	tm = Getattr(n, "feature:director:except");
-	if (tm)
-	  tm = Copy(tm);
-      }
-      if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-	Replaceall(tm, "$error", "error");
+      if (tm) {
 	Printv(w->code, Str(tm), "\n", NIL);
+	Delete(tm);
       }
-      Delete(tm);
 
       /* marshal return value from PHP to C/C++ type */
 

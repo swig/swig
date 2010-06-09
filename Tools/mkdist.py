@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-# This script builds a swig-1.3 distribution.
-# Usage : mkdist.py version, where version should be 1.3.x
+# This script builds a swig-x.y.z distribution.
+# Usage : mkdist.py version, where version should be x.y.z
 
 import sys
 import string
@@ -16,7 +16,7 @@ try:
    version = sys.argv[1]
    dirname = "swig-" + version
 except:
-   print "Usage: mkdist.py version, where version should be 1.3.x"
+   print "Usage: mkdist.py version, where version should be x.y.z"
    sys.exit(1)
 
 # Check name matches normal unix conventions
@@ -46,20 +46,22 @@ os.system("rm -Rf "+dirname+"/debian") == 0 or failed()
 # Go build the system
 
 print "Building system"
-os.system("cd "+dirname+"; ./autogen.sh") == 0 or failed()
-os.system("cd "+dirname+"/Tools/WAD; autoconf") == 0 or failed()
-os.system("cd "+dirname+"/Source/CParse; bison -y -d parser.y; mv y.tab.c parser.c; mv y.tab.h parser.h") == 0 or failed()
-os.system("cd "+dirname+"; make -f Makefile.in libfiles srcdir=./") == 0 or failed()
+os.system("cd "+dirname+" && ./autogen.sh") == 0 or failed()
+os.system("cd "+dirname+"/Source/CParse && bison -y -d parser.y && mv y.tab.c parser.c && mv y.tab.h parser.h") == 0 or failed()
+os.system("cd "+dirname+" && make -f Makefile.in libfiles srcdir=./") == 0 or failed()
 
 # Remove autoconf files
 os.system("find "+dirname+" -name autom4te.cache -exec rm -rf {} \\;")
 
 # Build documentation
-print "Building documentation"
+print "Building html documentation"
 os.system("cd "+dirname+"/Doc/Manual && make all clean-baks") == 0 or failed()
+print "Building man pages"
 os.system("cd "+dirname+"/CCache && yodl2man -o ccache-swig.1 ccache.yo") == 0 or failed()
 
 # Build the tar-ball
 os.system("tar -cf "+dirname+".tar "+dirname) == 0 or failed()
 os.system("gzip "+dirname+".tar") == 0 or failed()
+
+print "Finished building "+dirname+".tar.gz"
 

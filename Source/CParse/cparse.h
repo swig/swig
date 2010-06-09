@@ -11,8 +11,6 @@
  * SWIG parser module.
  * ----------------------------------------------------------------------------- */
 
-/* $Id$ */
-
 #ifndef SWIG_CPARSE_H_
 #define SWIG_CPARSE_H_
 
@@ -57,7 +55,7 @@ extern "C" {
   extern void Swig_cparse_replace_descriptor(String *s);
   extern void cparse_normalize_void(Node *);
   extern Parm *Swig_cparse_parm(String *s);
-  extern ParmList *Swig_cparse_parms(String *s);
+  extern ParmList *Swig_cparse_parms(String *s, Node *file_line_node);
 
 
 /* templ.c */

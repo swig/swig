@@ -21,7 +21,7 @@ below.
 static char *global_str = NULL;
 const int UINT_DIGITS = 10; // max unsigned int is 4294967295
 
-bool check(const char *str, unsigned int number) {
+bool check(const char *const str, unsigned int number) {
   static char expected[256];
   sprintf(expected, "%s%d", OTHERLAND_MSG, number);
   bool matches = (strcmp(str, expected) == 0);
@@ -105,9 +105,27 @@ bool SetConstCharArrayStaticString(const char str[], unsigned int number) {
   return check(static_str, number);
 }
 
+bool SetCharConstStaticString(char *const str, unsigned int number) {
+  static char static_str[] = CPLUSPLUS_MSG;
+  strcpy(static_str, str);
+  return check(static_str, number);
+}
+
+bool SetConstCharConstStaticString(const char *const str, unsigned int number) {
+  static char static_str[] = CPLUSPLUS_MSG;
+  strcpy(static_str, str);
+  return check(static_str, number);
+}
+
 // get set function
 char *CharPingPong(char *str) {
   return str;
+}
+char *CharArrayPingPong(char abcstr[]) {
+  return abcstr;
+}
+char *CharArrayDimsPingPong(char abcstr[16]) {
+  return abcstr;
 }
 
 // variables

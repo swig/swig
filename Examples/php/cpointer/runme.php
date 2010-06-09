@@ -22,7 +22,7 @@
 	# Now get the result
 	$r = intp_value($c);
 
-	print "	38 + 42 = $r\n";
+	print "	37 + 42 = $r\n";
 
 	# Clean up the pointers
 	delete_intp($a);

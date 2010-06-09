@@ -3,12 +3,12 @@
 require "tests.php";
 require "arrays_scope.php";
 
-// No new functions
+// New functions
 check::functions(array(new_bar,bar_blah));
-// No new classes
+// New classes
 check::classes(array(arrays_scope,Bar));
-// now new vars
-check::globals(array());
+// New vars
+check::globals(array(bar_adata,bar_bdata,bar_cdata));
 
 $bar=new bar();
 

@@ -44,10 +44,10 @@
 #if defined(INTRUSIVE_PTR_WRAPPERS_IMPLEMENTED)
 
 %include <boost_intrusive_ptr.i>
-SWIG_INTRUSIVE_PTR(Klass, Space::Klass)
-SWIG_INTRUSIVE_PTR_NO_WRAP(KlassWithoutRefCount, Space::KlassWithoutRefCount)
-SWIG_INTRUSIVE_PTR_DERIVED(KlassDerived, Space::KlassWithoutRefCount, Space::KlassDerived)
-SWIG_INTRUSIVE_PTR_DERIVED(KlassDerivedDerived, Space::KlassDerived, Space::KlassDerivedDerived)
+%intrusive_ptr(Space::Klass)
+%intrusive_ptr_no_wrap(Space::KlassWithoutRefCount)
+%intrusive_ptr(Space::KlassDerived)
+%intrusive_ptr(Space::KlassDerivedDerived)
 
 //For the use_count shared_ptr functions
 %typemap(in) SWIG_INTRUSIVE_PTR_QNAMESPACE::shared_ptr< Space::Klass > & ($*1_ltype tempnull) %{ 
@@ -295,7 +295,7 @@ Klass& reftest(Klass& k) {
   k.append(" reftest");
   return k;
 }
-Klass*& pointerreftest(Klass*& k) {
+Klass *const& pointerreftest(Klass *const& k) {
   k->append(" pointerreftest");
   return k;
 }
@@ -334,7 +334,7 @@ std::string overload_rawbyptr(int i) { return "int"; }
 std::string overload_rawbyptr(Klass *k) { return "rawbyptr"; }
 
 std::string overload_rawbyptrref(int i) { return "int"; }
-std::string overload_rawbyptrref(Klass *&k) { return "rawbyptrref"; }
+std::string overload_rawbyptrref(Klass *const&k) { return "rawbyptrref"; }
 
 
 
@@ -389,10 +389,8 @@ Space::Klass & GlobalReference = GlobalValue;
 #if defined(INTRUSIVE_PTR_WRAPPERS_IMPLEMENTED)
 
 // Note: %template after the intrusive_ptr typemaps
-SWIG_INTRUSIVE_PTR(BaseIntDouble, Base<int, double>)
-// Note: cannot use Base<int, double> in the macro below because of the comma in the type, 
-// so we use a typedef instead. Alternatively use %arg(Base<int, double>). %arg is defined in swigmacros.swg.
-SWIG_INTRUSIVE_PTR_DERIVED(PairIntDouble, BaseIntDouble_t, Pair<int, double>)
+%intrusive_ptr(Base<int, double>)
+%intrusive_ptr(Pair<int, double>)
 
 #endif
 
@@ -409,7 +407,6 @@ template <class T1, class T2> struct Base {
   void release(void) const { if (--count == 0) delete this; }
   int use_count(void) const { return count; }
 };
-typedef Base<int, double> BaseIntDouble_t;
 %}
 
 %template(BaseIntDouble) Base<int, double>;

@@ -1,6 +1,6 @@
 %wrapper %{
 
-#include "ruby.h"
+#include <ruby.h>
 
 int
 main(argc, argv)

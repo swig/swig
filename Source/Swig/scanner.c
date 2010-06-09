@@ -1182,6 +1182,10 @@ int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
 	state = 11;
       else if (c == '*')
 	state = 12;
+      else if (c == startchar) {
+	state = 0;
+	num_levels++;
+      }
       else
 	state = 0;
       break;

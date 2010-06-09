@@ -18,3 +18,14 @@ check(nd)
 b = boing(nd)
 check(b)
 
+################################
+
+v = VectorIntHolder()
+v.push_back(IntHolder(11))
+v.push_back(IntHolder(22))
+v.push_back(IntHolder(33))
+
+sum = sum(v)
+if sum != 66:
+  raise "sum is wrong"
+
