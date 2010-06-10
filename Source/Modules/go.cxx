@@ -4815,10 +4815,10 @@ extern "C" Language *swig_go(void) {
 // Usage message.
 const char * const GO::usage = (char *) "\
 Go Options (available with -go)\n\
-     -package <name>     - set name of the Go package to <name>\n\
-     -gccgo              - generate code for gccgo rather than 6g/8g\n\
-     -go-prefix <p>      - like gccgo -fgo-prefix option\n\
-     -soname <name>      - name for shared library holding C/C++ code\n\
-     -longsize <s>       - set size of C/C++ long type--32 or 64 bits\n\
-     -rename <new>=<old> - rename symbols\n\
+     -package <name>     - Set name of the Go package to <name>\n\
+     -gccgo              - Generate code for gccgo rather than 6g/8g\n\
+     -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
+     -soname <name>      - Set shared library holding C/C++ code to <name>\n\
+     -longsize <s>       - Set size of C/C++ long type--32 or 64 bits\n\
+     -rename <new>=<old> - Rename symbols from <new> to <old>\n\
 \n";
