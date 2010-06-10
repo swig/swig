@@ -2565,7 +2565,7 @@ done:
       }
       Append(w->code, "zval *result, funcname;\n");
       Append(w->code, "MAKE_STD_ZVAL(result);\n");
-      Printf(w->code, "ZVAL_STRING(&funcname, (char *)\"%s\", 0);\n", name);
+      Printf(w->code, "ZVAL_STRING(&funcname, (char *)\"%s\", 0);\n", GetChar(n, "sym:name"));
       Append(w->code, "if (!swig_self) {\n");
       Append(w->code, "  SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");");
       Append(w->code, "}\n\n");

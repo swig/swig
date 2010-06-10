@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-06-10: olly
+	    [PHP] Fix directors to correctly call a method with has a
+	    different name in PHP to C++ (we were always using the C++ name
+	    in this case).
+
 2010-06-03: wsfulton
             Fix uncompileable code when %rename results in two enum items
             with the same name. Reported by Vadim Zeitlin.
