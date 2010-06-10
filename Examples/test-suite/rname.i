@@ -22,7 +22,12 @@
 %rename (newname) Base::oldname(double d) const;
 
 /* Rename derived class method only */
+#ifndef SWIGGO
 %rename (func) Derived::fn(Base baseValue, Base* basePtr, Base& baseRef);
+#else
+/* func is a keyword in Go. */
+%rename (Xfunc) Derived::fn(Base baseValue, Base* basePtr, Base& baseRef);
+#endif
 
 %inline %{
 class Bar {

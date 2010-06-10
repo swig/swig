@@ -44,6 +44,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/csharp.cxx		\
 		Modules/directors.cxx		\
 		Modules/emit.cxx		\
+		Modules/go.cxx			\
 		Modules/guile.cxx		\
 		Modules/java.cxx		\
 		Modules/lang.cxx		\

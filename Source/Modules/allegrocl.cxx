@@ -1709,6 +1709,8 @@ int ALLEGROCL::top(Node *n) {
    We don't need a dispatch function in the C++ wrapper
    code; we want it over on the lisp side. */
 
+#define Swig_overload_rank Allegrocl_swig_overload_rank
+
 #define MAX_OVERLOAD 256
 
 /* Overload "argc" and "argv" */

@@ -1141,3 +1141,74 @@ r_clean:
 	rm -f *.@OBJEXT@ *@SO@ NAMESPACE
 	rm -f $(RRSRC) runme.Rout .RData
 
+##################################################################
+#####                        Go                             ######
+##################################################################
+
+GO = @GO@
+GOGCC = @GOGCC@
+
+GOSWIGARG = `if $(GOGCC) ; then echo -gccgo; fi`
+GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; fi`
+
+GOSRCS = $(INTERFACE:.i=.go)
+GOCSRCS = $(INTERFACE:.i=_gc.c)
+
+GOC = $(GO:g=c)
+GOLD = $(GO:g=l)
+
+GOPACKAGE = $(INTERFACE:.i=.a)
+
+GOOBJEXT = $(GO:g=)
+GOGCOBJS = $(GOSRCS:.go=.$(GOOBJEXT))
+GOGCCOBJS = $(GOSRCS:.go=.@OBJEXT@)
+
+# ----------------------------------------------------------------
+# Build a Go dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+go: $(SRCS)
+	$(SWIG) -go $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
+	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
+	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(GO) -I . $(GOCOMPILEARG) $(GOSRCS)
+	if ! $(GOGCC) ; then \
+	  $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
+	  gopack grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
+	fi
+
+# ----------------------------------------------------------------
+# Build a Go dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+go_cpp: $(SRCS)
+	$(SWIG) -go -c++ $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
+	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
+	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(GO) -I . $(GOCOMPILEARG) $(GOSRCS)
+	if ! $(GOGCC) ; then \
+	  $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
+	  gopack grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
+	else true; fi
+
+# -----------------------------------------------------------------
+# Running a Go example
+# -----------------------------------------------------------------
+
+go_run: runme.go
+	$(GO) $(GOCOMPILEARG) runme.go
+	if $(GOGCC) ; then \
+	  $(GO) -o runme runme.@OBJEXT@ $(GOGCCOBJS) $(LIBPREFIX)$(TARGET)$(SO); \
+	else \
+	  $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
+	fi
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH ./runme
+
+# -----------------------------------------------------------------
+# Cleaning the Go examples
+# -----------------------------------------------------------------
+
+go_clean:
+	rm -f *_wrap* *_gc* .~* runme
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *.[568] *.a *@SO@

@@ -70,6 +70,15 @@ namespace test {
     delete $1;
 }
 #endif
+#ifdef SWIGGO
+%typemap(go) test::test_complex * "complex128"
+%typemap(in) test::test_complex * {
+    $1 = new test_complex(__real__ $input, __imag__ $input);
+}
+%typemap(freearg) test::test_complex * {
+    delete $1;
+}
+#endif
 
 namespace test {
     class string_class;
@@ -92,6 +101,15 @@ namespace test {
 #ifdef SWIGRUBY
 	%typemap(in) string_class * {
 	    $1 = new string_class(STR2CSTR($input));
+	}
+	%typemap(freearg) string_class * {
+	    delete $1;
+	}
+#endif
+#ifdef SWIGGO
+	%typemap(go) string_class * "string"
+	%typemap(in) string_class * {
+            $1 = new string_class($input.p);
 	}
 	%typemap(freearg) string_class * {
 	    delete $1;
@@ -239,6 +257,14 @@ namespace Split {
 	    rb_raise(rb_eRangeError, "domain error");
 	}
     }	
+#endif
+#ifdef SWIGGO
+    %typemap(in) PosInteger {
+	$1 = $input;
+	if ($1 < 0) {
+	    _swig_gopanic("domain error");
+	}
+    }
 #endif
 }
     

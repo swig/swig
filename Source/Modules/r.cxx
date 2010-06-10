@@ -1299,6 +1299,8 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
     Printf(stderr, "Adding accessor: %s (%s) => %s\n", memberName, name, tmp);
 }
 
+#define Swig_overload_rank R_swig_overload_rank
+
 #define MAX_OVERLOAD 256
 
 struct Overloaded {

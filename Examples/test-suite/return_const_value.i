@@ -4,6 +4,8 @@ It was reported in bug 899332 by Jermey Brown (jhbrown94) */
 %module return_const_value
 
 
+%ignore Foo_ptr::operator=(const Foo_ptr&);
+
 %inline %{
 
 class Foo {
@@ -35,7 +37,12 @@ public:
   {
     f._own = 0;
   }
-  
+
+  Foo_ptr& operator=(const Foo_ptr& f) {
+    _ptr = f._ptr;
+    _own = f._own;
+    f._own = 0;
+  }
 
   ~Foo_ptr() {
     if(_own) delete _ptr;

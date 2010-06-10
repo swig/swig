@@ -1,0 +1,463 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>SWIG and Go</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body bgcolor="#FFFFFF">
+<H1><a name="Go"></a>20 SWIG and Go</H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#Go_overview">Overview</a>
+<li><a href="#Go_running_swig">Running SWIG with Go</a>
+<ul>
+<li><a href="#Go_commandline">Additional Commandline Options</a>
+<li><a href="#Go_outputs">Go Output Files</a>
+</ul>
+<li><a href="#Go_basic_tour">A tour of basic C/C++ wrapping</a>
+<ul>
+<li><a href="#Go_package">Go Package Name</a>
+<li><a href="#Go_names">Go Names</a>
+<li><a href="#Go_constants">Go Constants</a>
+<li><a href="#Go_enumerations">Go Enumerations</a>
+<li><a href="#Go_classes">Go Classes</a>
+<ul>
+<li><a href="#Go_nn12">Go Class Inheritance</a>
+</ul>
+<li><a href="#templates">Go Templates</a>
+<li><a href="#Go_director_classes">Go Director Classes</a>
+<li><a href="#Go_primitive_type_mappings">Default Go primitive type mappings</a>
+</ul>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<p>
+This chapter describes SWIG's support of Go.  For more information on
+the Go programming language
+see <a href="http://golang.org/">golang.org</a>.
+</p>
+
+<H2><a name="Go_overview"></a>20.1 Overview</H2>
+
+
+<p>
+Go is a compiled language, not a scripting language.  However, it does
+not support direct calling of functions written in C/C++.  The cgo
+program may be used to generate wrappers to call C code from Go, but
+there is no convenient way to call C++ code.  SWIG fills this gap.
+</p>
+
+<p>
+There are (at least) two different Go compilers.  One is the gc
+compiler, normally invoked under the names 6g, 8g, or 5g.  The other
+is the gccgo compiler, which is a frontend to the gcc compiler suite.
+The interface to C/C++ code is completely different for the two Go
+compilers.  SWIG supports both, selected by a command line option.
+</p>
+
+<p>
+Because Go is a type-safe compiled language, SWIG's runtime type
+checking and runtime library are not used with Go.  This should be
+borne in mind when reading the rest of the SWIG documentation.
+</p>
+
+<H2><a name="Go_running_swig"></a>20.2 Running SWIG with Go</H2>
+
+
+<p>
+To generate Go code, use the <tt>-go</tt> option with SWIG.  By
+default SWIG will generate code for the gc compilers.  To generate
+code for gccgo, you should use the <tt>-gccgo</tt> option.
+</p>
+
+<H3><a name="Go_commandline"></a>20.2.1 Additional Commandline Options</H3>
+
+
+<p>
+These are the command line options for SWIG's GO module.  They can
+also be seen by using:
+</p>
+
+<div class="code"><pre>
+swig -go -help
+</pre></div>
+
+<table summary="Go specific options">
+<tr>
+<th>Go specific options</th>
+</tr>
+
+<tr>
+<td>-gccgo</td>
+<td>Generate code for gccgo.  The default is to generate code for
+  6g/8g/6g.</td>
+</tr>
+
+<tr>
+<td>-package &lt;name&gt;</td>
+<td>Set the name of the Go package to &lt;name&gt;.  The default
+  package name is the SWIG module name.</td>
+</tr>
+
+<tr>
+<td>-go-prefix &lt;prefix&gt;</td>
+<td>When generating code for gccgo, set the prefix to use.  This
+  corresponds to the <tt>-fgo-prefix</tt> option to gccgo.</td>
+</tr>
+
+<tr>
+<td>-long-type-size &lt;s&gt;</td>
+<td>Set the size for the C/C++ type <tt>long</tt>.  This controls
+  whether <tt>long</tt> is converted to the Go type <tt>int32</tt>
+  or <tt>int64</tt>.  The &lt;s&gt; argument should be 32 or 64.</td>
+</tr>
+
+<tr>
+<td>-rename &lt;old&gt;=&lt;new&gt;</td>
+<td>Rename &lt;old%gt; to &lt;new&gt; when processing the C/C++ code
+  and also the SWIG input file.  This is a convenient way to rename
+  names in the C/C++ code which are the same expect for the first
+  letter, to avoid conflicts when applying the Go renaming rules
+  described below.</td>
+</tr>
+
+</table>
+
+<H3><a name="Go_outputs"></a>20.2.2 Go Output Files</H3>
+
+
+<p> When generating Go code, SWIG will generate the following
+  files:</p>
+
+<ul>
+<li>
+MODULE.go will contain the Go functions that your Go code will call.
+These functions will be wrappers for the C++ functions defined by your
+module.  This file should, of course, be compiled with the Go
+compiler.
+<li>
+MODULE_wrap.c or MODULE_wrap.cxx will contain C/C++ functions will be
+invoked by the Go wrapper code.  This file should be compiled with the
+usual C or C++ compiler and linked into a shared library.
+<li>
+MODULE_wrap.h will be generated if you use the directors feature.  It
+provides a definition of the generated C++ director classes.  It is
+generally not necessary to use this file, but in some special cases it
+may be helpful to include it in your code, compiled with the usual C
+or C++ compiler.
+<li>
+If using the gc compiler, MODULE_gc.c will contain C code which should
+be compiled with the C compiler which part of the gc compiler: 6c, 8c,
+or 5c.  It should then be combined with the compiled MODULE.go using
+gopack.  This file will not be generated when using gccgo.
+</ul>
+
+<p>
+A typical command sequence would look like this:
+</p>
+
+<div class="code"><pre>
+% swig -go example.i
+% gcc -c -fpic example.c
+% gcc -c -fpic example_wrap.c
+% gcc -shared example.o example_wrap.o -o example.so
+% 6g example.go
+% 6c example_gc.c
+% gopack grc example.a example.6 example_gc.6
+% 6g main.go  # your code, not generated by SWIG
+% 6l main.6
+</pre></div>
+
+<H2><a name="Go_basic_tour"></a>20.3 A tour of basic C/C++ wrapping</H2>
+
+
+<p>
+By default, SWIG attempts to build a natural Go interface to your
+C/C++ code.  However, the languages are somewhat different, so some
+modifications have to occur.  This section briefly covers the
+essential aspects of this wrapping.
+</p>
+
+<H3><a name="Go_package"></a>20.3.1 Go Package Name</H3>
+
+
+<p>
+All Go source code lives in a package.  The name of this package will
+default to the name of the module from SWIG's <tt>%module</tt>
+directive.  You may override this by using SWIG's <tt>-package</tt>
+command line option.
+</p>
+
+<H3><a name="Go_names"></a>20.3.2 Go Names</H3>
+
+
+<p>
+In Go, a function is only visible outside the current package if the
+first letter of the name is uppercase.  This is quite different from
+C/C++.  Because of this, C/C++ names are modified when generating the
+Go interface: the first letter is forced to be uppercase if it is not
+already.  This affects the names of functions, methods, variables,
+constants, enums, and classes.
+</p>
+
+<p>
+C/C++ variables are wrapped with setter and getter functions in Go.
+First the first letter of the variable name will be forced to
+uppercase, and then <tt>Get</tt> or <tt>Set</tt> will be prepended.
+For example, if the C/C++ variable is called <tt>var</tt>, then SWIG
+will define the functions <tt>GetVar</tt> and <tt>SetVar</tt>.  If a
+variable is declared as <tt>const</tt>, or if
+SWIG's <a href="SWIG.html#SWIG_readonly_variables">
+<tt>%immutable</tt> directive</a> is used for the variable, then only
+the getter will be defined.
+</p>
+
+<p>
+C++ classes will be discussed further below.  Here we'll note that the
+first letter of the class name will be forced to uppercase to give the
+name of a type in Go.  A constructor will be named <tt>New</tt>
+followed by that name, and the destructor will be
+named <tt>Delete</tt> followed by that name.
+</p>
+
+<H3><a name="Go_constants"></a>20.3.3 Go Constants</H3>
+
+
+<p>
+C/C++ constants created via <tt>#define</tt> or the <tt>%constant</tt>
+directive become Go constants, declared with a <tt>const</tt>
+declaration.
+
+<H3><a name="Go_enumerations"></a>20.3.4 Go Enumerations</H3>
+
+
+<p>
+C/C++ enumeration types will cause SWIG to define an integer type with
+the name of the enumeration (with first letter forced to uppercase as
+usual).  The values of the enumeration will become variables in Go;
+code should avoid modifying those variables.
+</p>
+
+<H3><a name="Go_classes"></a>20.3.5 Go Classes</H3>
+
+
+<p>
+Go has interfaces, methods and inheritance, but it does not have
+classes in the same sense as C++.  This sections describes how SWIG
+represents C++ classes represented in Go.
+</p>
+
+<p>
+For a C++ class <tt>ClassName</tt>, SWIG will define two types in Go:
+an underlying type, which will just hold a pointer to the C++ type,
+and an interface type.  The interface type will be
+named <tt>ClassName</tt>.  SWIG will define a
+function <tt>NewClassName</tt> which will take any constructor
+arguments and return a value of the interface
+type <tt>ClassName</tt>.  SWIG will also define a
+destructor <tt>DeleteClassName</tt>.
+</p>
+
+<p>
+SWIG will represent any methods of the C++ class as methods on the
+underlying type, and also as methods of the interface type.  Thus C++
+methods may be invoked directly using the
+usual <tt>val.MethodName</tt> syntax.  Public members of the C++ class
+will be given getter and setter functions defined as methods of the
+class.
+</p>
+
+<p>
+SWIG will represent static methods of C++ classes as ordinary Go
+functions.  SWIG will use names like <tt>ClassName_MethodName</tt>.
+SWIG will give static members getter and setter functions with names
+like <tt>GetClassName_VarName</tt>.
+</p>
+
+<p>
+Given a value of the interface type, Go code can retrieve the pointer
+to the C++ type by calling the <tt>Swigcptr</tt> method.  This will
+return a value of type <tt>SwigcptrClassName</tt>, which is just a
+name for <tt>uintptr</tt>.  A Go type conversion can be used to
+convert this value to a different C++ type, but note that this
+conversion will not be type checked and is essentially equivalent
+to <tt>reinterpret_cast</tt>.  This should only be used for very
+special cases, such as where C++ would use a <tt>dynamic_cast</tt>.
+</p>
+
+<H4><a name="Go_nn12"></a>20.3.5.1 Go Class Inheritance</H4>
+
+
+<p>
+C++ class inheritance is automatically represented in Go due to its
+use of interfaces.  The interface for a child class will be a superset
+of the interface of its parent class.  Thus a value of the child class
+type in Go may be passed to a function which expects the parent class.
+Doing the reverse will require an explicit type assertion, which will
+be checked dynamically.
+</p>
+
+<H3><a name="templates"></a>20.3.6 Go Templates</H3>
+
+
+<p>
+In order to use C++ templates in Go, you must tell SWIG to create
+wrappers for a particular template instantation.  To do this, use
+the <tt>%template</tt> directive.
+
+<H3><a name="Go_director_classes"></a>20.3.7 Go Director Classes</H3>
+
+
+<p>
+SWIG's director feature permits a Go type to act as the subclass of a
+C++ class with virtual methods.  This is complicated by the fact that
+C++ and Go define inheritance differently.  In Go, structs can inherit
+methods via anonymous field embedding.  However, when a method is
+called for an embedded struct, if that method calls any other methods,
+they are called for the embedded struct, not for the original type.
+Therefore, SWIG must use Go interfaces to represent C++ inheritance.
+</p>
+
+<p>
+In order to use the director feature in Go, you must define a type in
+your Go code.  You must then add methods for the type.  Define a
+method in Go for each C++ virtual function that you want to override.
+You must then create a value of your new type, and pass a pointer to
+it to the function <tt>NewDirectorClassName</tt>,
+where <tt>ClassName</tt> is the name of the C++ class.  That will
+return a value of type <tt>ClassName</tt>.
+</p>
+
+<p>
+For example:
+</p>
+
+<div class="code">
+<pre>
+type GoClass struct { }
+func (p *GoClass) VirtualFunction() { }
+func MakeClass() ClassName {
+	return NewDirectorClassName(&GoClass{})
+}
+</pre>
+</div>
+
+<p>
+Any call in C++ code to the virtual function will wind up calling the
+method defined in Go.  The Go code may of course call other methods on
+itself, and those methods may be defined either in Go or in C++.
+</p>
+
+<H3><a name="Go_primitive_type_mappings"></a>20.3.8 Default Go primitive type mappings</H3>
+
+
+<p>
+The following table lists the default type mapping from C/C++ to Go.
+This table will tell you which Go type to expect for a function which
+uses a given C/C++ type.
+</p>
+
+<table BORDER summary="Go primitive type mappings">
+<tr>
+<td><b>C/C++ type</b></td>
+<td><b>Go type</b></td>
+</tr>
+
+<tr>
+<td>bool</td>
+<td>bool</td>
+</tr>
+
+<tr>
+<td>char</td>
+<td>byte</td>
+</tr>
+
+<tr>
+<td>signed char</td>
+<td>int8</td>
+</tr>
+
+<tr>
+<td>unsigned char</td>
+<td>byte</td>
+</tr>
+
+<tr>
+<td>short</td>
+<td>int16</td>
+</tr>
+
+<tr>
+<td>unsigned short</td>
+<td>uint16</td>
+</tr>
+
+<tr>
+<td>int</td>
+<td>int</td>
+</tr>
+
+<tr>
+<td>unsigned int</td>
+<td>uint</td>
+</tr>
+
+<tr>
+<td>long</td>
+<td>int32 or int64, depending on <tt>-long-type-size</tt></td>
+</tr>
+
+<tr>
+<td>unsigned long</td>
+<td>uint32 or uint64, depending on <tt>-long-type-size</tt></td>
+</tr>
+
+<tr>
+<td>long long</td>
+<td>int64</td>
+</tr>
+
+<tr>
+<td>unsigned long long</td>
+<td>uint64</td>
+</tr>
+
+<tr>
+<td>float</td>
+<td>float32</td>
+</tr>
+
+<tr>
+<td>double</td>
+<td>float64</td>
+</tr>
+
+<tr>
+<td>char *<br>char []</td>
+<td>string</td>
+</tr>
+
+</table>
+
+<p>
+Note that SWIG wraps the C <tt>char</tt> type as a character. Pointers
+and arrays of this type are wrapped as strings.  The <tt>signed
+char</tt> type can be used if you want to treat <tt>char</tt> as a
+signed number rather than a character.  Also note that all const
+references to primitive types are treated as if they are passed by
+value.
+</p>
+
+<p>
+These type mappings are defined by the "go" typemap.  You may change
+that typemap, or add new values, to control how C/C++ types are mapped
+into Go types.
+</p>
+
+</body>
+</html>

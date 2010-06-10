@@ -14,6 +14,8 @@
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) fid;
 #endif
 
+%warnfilter(SWIGWARN_PARSE_KEYWORD) type; // 'type' is a Go keyword, renamed as 'Xtype'
+
 #ifndef SWIG_NO_OVERLOAD
 %immutable Spam::type;
 
