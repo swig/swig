@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-06-10: wsfulton
+            [Lua] Fix SWIG_lua_isnilstring multiply defined when using multiple
+            modules and wrapping strings. Patch from 'Number Cruncher'.
+
 2010-06-10: olly
 	    [PHP] Fix directors to correctly call a method with has a
 	    different name in PHP to C++ (we were always using the C++ name

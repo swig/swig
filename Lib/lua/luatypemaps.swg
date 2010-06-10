@@ -91,12 +91,12 @@ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 
 // strings (char * and char[])
 %fragment("SWIG_lua_isnilstring", "header") {
-  int SWIG_lua_isnilstring(lua_State *L, int idx) {
-    int ret = lua_isstring(L, idx);
-    if (!ret)
-     ret = lua_isnil(L, idx);
-    return ret;
-  }
+SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
+  int ret = lua_isstring(L, idx);
+  if (!ret)
+   ret = lua_isnil(L, idx);
+  return ret;
+}
 }
 
 %typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char *, char *
