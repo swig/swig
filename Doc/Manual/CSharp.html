@@ -38,6 +38,7 @@
 <li><a href="#CSharp_date_properties">A date example demonstrating marshalling of C# properties</a>
 <li><a href="#CSharp_partial_classes">Turning wrapped classes into partial classes</a>
 <li><a href="#CSharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
+<li><a href="#CSharp_enum_underlying_type">Underlying type for enums</a>
 </ul>
 </ul>
 </div>
@@ -2396,6 +2397,38 @@ public class ExtendMe : IDisposable {
   public int Part1() {
     ...
   }
+}
+</pre>
+</div>
+
+<H3><a name="CSharp_enum_underlying_type"></a>18.6.7 Underlying type for enums</H3>
+
+
+<P>
+C# enums use int as the underlying type for each enum item.
+If you wish to change the underlying type to something else, then use the <tt>csbase</tt> typemap.
+For example when your C++ code uses a value larget than int, this is necessary as the C# compiler will not compile values which are too large to fit into an int.
+Here is an example:
+</p>
+
+<div class="code">
+<pre>
+%typemap(csbase) BigNumbers "uint"
+%inline %{
+  enum BigNumbers { big=0x80000000, bigger };
+%}
+</pre>
+</div>
+
+<p>
+The generated enum will then use the given underlying type and compile correctly:
+</p>
+
+<div class="code">
+<pre>
+public enum BigNumbers : uint {
+  big = 0x80000000,
+  bigger
 }
 </pre>
 </div>

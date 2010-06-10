@@ -110,3 +110,10 @@ struct WasCrashing {};
 void hoop(WasCrashing was) {}
 %}
 
+
+// Enum underlying type
+%typemap(csbase) BigNumbers "uint"
+%inline %{
+enum BigNumbers { big=0x80000000, bigger };
+%}
+
