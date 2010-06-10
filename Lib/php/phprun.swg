@@ -24,11 +24,11 @@ extern "C" {
 #endif
 
 #ifndef Z_SET_ISREF_P
-// For PHP < 5.3
+/* For PHP < 5.3 */
 # define Z_SET_ISREF_P(z) (z)->is_ref = 1
 #endif
 #ifndef Z_SET_REFCOUNT_P
-// For PHP < 5.3
+/* For PHP < 5.3 */
 # define Z_SET_REFCOUNT_P(z, rc) (z)->refcount = (rc)
 #endif
 

@@ -96,7 +96,7 @@
   MAKE_STD_ZVAL(z_var);
   z_var->type = IS_STRING;
   if ($1) {
-    // varinit char [ANY]
+    /* varinit char [ANY] */
     ZVAL_STRINGL(z_var,(char*)$1, $1_dim0, 1);
   }
   zend_hash_add(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void*)&z_var, sizeof(zval *), NULL);
