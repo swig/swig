@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Pike"></a>30 SWIG and Pike</H1>
+<H1><a name="Pike"></a>31 SWIG and Pike</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -46,10 +46,10 @@ least, make sure you read the "<a href="SWIG.html#SWIG">SWIG Basics</a>"
 chapter.<br>
 </p>
 
-<H2><a name="Pike_nn2"></a>30.1 Preliminaries</H2>
+<H2><a name="Pike_nn2"></a>31.1 Preliminaries</H2>
 
 
-<H3><a name="Pike_nn3"></a>30.1.1 Running SWIG</H3>
+<H3><a name="Pike_nn3"></a>31.1.1 Running SWIG</H3>
 
 
 <p>
@@ -94,7 +94,7 @@ can use the <tt>-o</tt> option:
 <div class="code">
   <pre>$ <b>swig -pike -o pseudonym.c example.i</b><br></pre>
 </div>
-<H3><a name="Pike_nn4"></a>30.1.2 Getting the right header files</H3>
+<H3><a name="Pike_nn4"></a>31.1.2 Getting the right header files</H3>
 
 
 <p>
@@ -114,7 +114,7 @@ You're looking for files with the names <tt>global.h</tt>, <tt>program.h</tt>
 and so on.
 </p>
 
-<H3><a name="Pike_nn5"></a>30.1.3 Using your module</H3>
+<H3><a name="Pike_nn5"></a>31.1.3 Using your module</H3>
 
 
 <p>
@@ -129,10 +129,10 @@ Pike v7.4 release 10 running Hilfe v3.5 (Incremental Pike Frontend)
 (1) Result: 24
 </pre></div>
 
-<H2><a name="Pike_nn6"></a>30.2 Basic C/C++ Mapping</H2>
+<H2><a name="Pike_nn6"></a>31.2 Basic C/C++ Mapping</H2>
 
 
-<H3><a name="Pike_nn7"></a>30.2.1 Modules</H3>
+<H3><a name="Pike_nn7"></a>31.2.1 Modules</H3>
 
 
 <p>
@@ -143,7 +143,7 @@ concerned), SWIG's <tt>%module</tt> directive doesn't really have any
 significance.
 </p>
 
-<H3><a name="Pike_nn8"></a>30.2.2 Functions</H3>
+<H3><a name="Pike_nn8"></a>31.2.2 Functions</H3>
 
 
 <p>
@@ -168,7 +168,7 @@ exactly as you'd expect it to:
 (1) Result: 24
 </pre></div>
 
-<H3><a name="Pike_nn9"></a>30.2.3 Global variables</H3>
+<H3><a name="Pike_nn9"></a>31.2.3 Global variables</H3>
 
 
 <p>
@@ -197,7 +197,7 @@ will result in two functions, <tt>Foo_get()</tt> and <tt>Foo_set()</tt>:
 (3) Result: 3.141590
 </pre></div>
 
-<H3><a name="Pike_nn10"></a>30.2.4 Constants and enumerated types</H3>
+<H3><a name="Pike_nn10"></a>31.2.4 Constants and enumerated types</H3>
 
 
 <p>
@@ -205,7 +205,7 @@ Enumerated types in C/C++ declarations are wrapped as Pike constants,
 not as Pike enums.
 </p>
 
-<H3><a name="Pike_nn11"></a>30.2.5 Constructors and Destructors</H3>
+<H3><a name="Pike_nn11"></a>31.2.5 Constructors and Destructors</H3>
 
 
 <p>
@@ -213,7 +213,7 @@ Constructors are wrapped as <tt>create()</tt> methods, and destructors are
 wrapped as <tt>destroy()</tt> methods, for Pike classes.
 </p>
 
-<H3><a name="Pike_nn12"></a>30.2.6 Static Members</H3>
+<H3><a name="Pike_nn12"></a>31.2.6 Static Members</H3>
 
 
 <p>
