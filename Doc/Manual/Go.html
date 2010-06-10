@@ -23,9 +23,9 @@
 <li><a href="#Go_enumerations">Go Enumerations</a>
 <li><a href="#Go_classes">Go Classes</a>
 <ul>
-<li><a href="#Go_nn12">Go Class Inheritance</a>
+<li><a href="#Go_class_inheritance">Go Class Inheritance</a>
 </ul>
-<li><a href="#templates">Go Templates</a>
+<li><a href="#Go_templates">Go Templates</a>
 <li><a href="#Go_director_classes">Go Director Classes</a>
 <li><a href="#Go_primitive_type_mappings">Default Go primitive type mappings</a>
 </ul>
@@ -289,7 +289,7 @@ to <tt>reinterpret_cast</tt>.  This should only be used for very
 special cases, such as where C++ would use a <tt>dynamic_cast</tt>.
 </p>
 
-<H4><a name="Go_nn12"></a>20.3.5.1 Go Class Inheritance</H4>
+<H4><a name="Go_class_inheritance"></a>20.3.5.1 Go Class Inheritance</H4>
 
 
 <p>
@@ -301,7 +301,7 @@ Doing the reverse will require an explicit type assertion, which will
 be checked dynamically.
 </p>
 
-<H3><a name="templates"></a>20.3.6 Go Templates</H3>
+<H3><a name="Go_templates"></a>20.3.6 Go Templates</H3>
 
 
 <p>
@@ -341,7 +341,7 @@ For example:
 type GoClass struct { }
 func (p *GoClass) VirtualFunction() { }
 func MakeClass() ClassName {
-	return NewDirectorClassName(&GoClass{})
+	return NewDirectorClassName(&amp;GoClass{})
 }
 </pre>
 </div>
