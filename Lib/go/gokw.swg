@@ -1,6 +1,7 @@
 /* Rename keywords.  */
 
 #define GOKW(x) %keywordwarn("'" `x` "' is a Go keyword, renaming to 'X"`x`"'",rename="X%s")  `x`
+#define GOBN(x) %builtinwarn("'" `x` "' conflicts with a built-in name in Go")  "::"`x`
 
 GOKW(break);
 GOKW(case);
@@ -18,7 +19,6 @@ GOKW(goto);
 GOKW(if);
 GOKW(import);
 GOKW(interface);
-GOKW(map);
 GOKW(package);
 GOKW(range);
 GOKW(return);
@@ -27,5 +27,7 @@ GOKW(struct);
 GOKW(switch);
 GOKW(type);
 GOKW(var);
+
+GOBN(map);
 
 #undef GOKW

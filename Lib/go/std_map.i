@@ -10,11 +10,7 @@
 // std::map
 // ------------------------------------------------------------------------
 
-// "map" is a keyword in Go.
-#define map cmap
-
 %{
-#define map cmap
 #include <map>
 #include <algorithm>
 #include <stdexcept>
