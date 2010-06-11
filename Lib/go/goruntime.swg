@@ -196,13 +196,3 @@ void __go_panic_msg(const char *);
   if (!(expr)) { _swig_gopanic(msg); } else
 %}
 
-#ifdef __cplusplus
-/* We don't need a Swig::Director class, but the Swig testsuite
-  expects one.  */
-%insert(runtime) %{
-namespace Swig {
-  typedef int Director;
-}
-%}
-
-#endif
