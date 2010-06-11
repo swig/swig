@@ -3,7 +3,7 @@
 #######################################################################
 
 LANGUAGE	= go
-GO		= 6g
+GO		= @GO@
 GOGCC		= false
 SCRIPTSUFFIX	= _runme.go
 
