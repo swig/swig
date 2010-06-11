@@ -71,7 +71,7 @@ borne in mind when reading the rest of the SWIG documentation.
 <p>
 To generate Go code, use the <tt>-go</tt> option with SWIG.  By
 default SWIG will generate code for the gc compilers.  To generate
-code for gccgo, you should use the <tt>-gccgo</tt> option.
+code for gccgo, you should also use the <tt>-gccgo</tt> option.
 </p>
 
 <H3><a name="Go_commandline"></a>20.2.1 Additional Commandline Options</H3>
@@ -151,7 +151,7 @@ may be helpful to include it in your code, compiled with the usual C
 or C++ compiler.
 <li>
 If using the gc compiler, MODULE_gc.c will contain C code which should
-be compiled with the C compiler which part of the gc compiler: 6c, 8c,
+be compiled with the C compiler distributed as part of the gc compiler: 6c, 8c,
 or 5c.  It should then be combined with the compiled MODULE.go using
 gopack.  This file will not be generated when using gccgo.
 </ul>
