@@ -6,7 +6,7 @@
 * ----------------------------------------------------------------------------- */
 
 // const enum SWIGTYPE & typemaps
-%typemap(ocpptype) const enum SWIGTYPE & "int"
+%typemap(objcimtype) const enum SWIGTYPE & "int"
 %typemap(objctype) const enum SWIGTYPE & "$*objcclassname"
 
 %typemap(in) const enum SWIGTYPE & ($*1_ltype temp)
@@ -20,7 +20,7 @@
   }
 
 // enum SWIGTYPE typemaps
-%typemap(ocpptype) enum SWIGTYPE "int"
+%typemap(objcimtype) enum SWIGTYPE "int"
 %typemap(objctype) enum SWIGTYPE "$objcclassname"
 
 %typemap(in) enum SWIGTYPE  %{ $1 = ($1_ltype)$input; %}
