@@ -684,16 +684,16 @@ private:
    * makeWrappers()
    *
    * Write out the various function wrappers.
-   * N: The function we are emitting.
-   * NAME: The function name.
-   * GO_NAME: The name of the function in Go.
-   * OVERNAME: The overload string for overloaded function.
-   * WNAME: The SWIG wrapped name--the name of the C function.
-   * BASE: A list of the names of base classes, in the case where this
+   * n: The function we are emitting.
+   * name: The function name.
+   * go_name: The name of the function in Go.
+   * overname: The overload string for overloaded function.
+   * wname: The SWIG wrapped name--the name of the C function.
+   * base: A list of the names of base classes, in the case where this
    *       is is a vritual method not defined in the current class.
-   * PARMS: The parameters.
-   * RESULT: The result type.
-   * IS_STATIC: Whether this is a static method or member.
+   * parms: The parameters.
+   * result: The result type.
+   * is_static: Whether this is a static method or member.
    * ---------------------------------------------------------------------- */
 
   int makeWrappers(Node *n, String *name, String *go_name, String *overname, String *wname, List *base, ParmList *parms, SwigType *result, bool is_static) {
