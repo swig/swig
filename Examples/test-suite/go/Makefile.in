@@ -69,25 +69,25 @@ multi_import.multicpptest:
 # Runs the testcase.
 run_testcase = \
 	if test -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-	  $(GO) -I . $(GOCOMPILEARG) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  $(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	  if $(GOGCC) ; then \
-	    $(GO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $*.@OBJEXT@ $*$(SO); \
+	    $(COMPILETOOL) $(GO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $*.@OBJEXT@ $*$(SO); \
 	  else \
-	    $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  fi && \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH ./$*_runme; \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
 
 run_multi_testcase = \
 	if test -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-	  $(GO) -I . $(GOCOMPILEARG) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  $(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	  if $(GOGCC) ; then \
 	    files=`cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list`; \
-	    $(GO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ `for f in $$files; do echo $$f.@OBJEXT@ $$f$(SO); done`; \
+	    $(COMPILETOOL) $(GO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ `for f in $$files; do echo $$f.@OBJEXT@ $$f$(SO); done`; \
 	  else \
-	    $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  fi && \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH ./$*_runme; \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
 
 %.clean:
