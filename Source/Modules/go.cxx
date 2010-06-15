@@ -385,6 +385,10 @@ private:
 
     Printf(f_go_begin, "\npackage %s\n\n", package);
 
+    // All the C++ wrappers should be extern "C".
+
+    Printv(f_c_wrappers, "#ifdef __cplusplus\n", "extern \"C\" {\n", "#endif\n\n", NULL);
+
     // Set up the hash table for types not defined by SWIG.
 
     undefined_types = NewHash();
@@ -432,6 +436,9 @@ private:
       Delete(f_c_directors);
       f_c_directors = NULL;
     }
+
+    // End the extern "C".
+    Printv(f_c_wrappers, "#ifdef __cplusplus\n", "}\n", "#endif\n\n", NULL);
 
     Dump(f_c_runtime, f_c_begin);
     Dump(f_c_wrappers, f_c_begin);
@@ -1149,8 +1156,6 @@ private:
 
     // Start the function definition.
 
-    Printv(f->def, "#ifdef __cplusplus\n", "extern \"C\"\n", "#endif\n", NULL);
-
     Printv(f->def, "void\n", wname, "(void *swig_v)\n", "{\n", NULL);
 
     // The single function parameter is a pointer to the real argument
@@ -1268,8 +1273,6 @@ private:
     emit_return_variable(n, result, f);
 
     // Start the function definition.
-
-    Printv(f->def, "#ifdef __cplusplus\n", "extern \"C\"\n", "#endif\n", NULL);
 
     String *fnname = NewString("");
     Printv(fnname, go_prefix, "_", wname, "(", NULL);
