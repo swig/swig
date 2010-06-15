@@ -1,13 +1,13 @@
 %module matrixlib
-%include "matrix.i" 
-extern double sumitems(double *, int, int);
-%typemap (in, numinputs=0) (int *numberOfRow, int *numberOfCol) {
-  $1 = &iRowsOut;
-  $2 = &iColsOut;
-}
+%include matrix.i
 
+
+
+
+%apply (double* matrixAsInput,int rows,int cols){(double *first, int nbRow, int nbCol)}
+%apply (double** matrixAsArgOutput,int* rows,int* cols){(double **result,int* nbRowOut,int* nbColOut)}
 %inline {
-extern double sumitems(double *first, int nbRow, int nbCol);
+extern void sumitems_argoutput(double *first, int nbRow, int nbCol,double **result,int* nbRowOut,int* nbColOut);
 extern double* getValues(int *numberOfRow, int *numberOfCol);
 }
 

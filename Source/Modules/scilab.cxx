@@ -281,10 +281,10 @@ public:
     String *outarg = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	if (out_required > 0) {
-	  Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
-	  Printf(f->code,"iOutNum ++;\niVarOut ++;\n");
-	}
+	//if (out_required > 0) {
+	//  Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
+	//  Printf(f->code,"iOutNum ++;\niVarOut ++;\n");
+	//}
         Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
         out_required ++;
@@ -331,6 +331,8 @@ public:
       flag = 1;
     }
     
+
+
     /* Insert the code checking the number of input */
     Printf(f->def, "CheckRhs(%d, %d);\n",num_required,num_arguments);
     Printf(f->def, "CheckLhs(%d, %d);\n",out_required,out_required);
@@ -339,10 +341,13 @@ public:
     /* Insert the order of output parameters*/
     if (flag)
       Printf(f->def, "\nint iOutNum = 1;\nint iVarOut = Rhs + 1;");
+
+    /* Insert the argument counter */
+    Printf(f->def, "\nint scilabArgNumber=0;");
    
     /* Finish the the code for the function  */
-    if (flag)
-      Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
+    //if (flag)
+      Printf(f->code, "//PutLhsVar();\n");
     Printf(f->code, "return 0;\n");	
     Printf(f->code, "}\n");
 
@@ -458,6 +463,8 @@ public:
     Printf(setf->def, "SciErr sciErr;\n");
     /* Add the local variable */
     Wrapper_add_local(setf, "piAddrVar", "int *piAddrVar");
+    /* Insert the argument counter */
+    Printf(setf->def, "\nint scilabArgNumber=0;");
    
     /* Deal with the set function */
     if (is_assignable(n)) {
@@ -500,6 +507,8 @@ public:
     Printf(getf->def, "SciErr sciErr;\n"); 
     /* Insert the order of output parameters */
     Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
+    /* Insert the argument counter */
+    Printf(getf->def, "\nint scilabArgNumber=0;");
    
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$result", name);
@@ -572,6 +581,8 @@ public:
     Printf(getf->def, "SciErr sciErr;\n"); 
     /* Insert the order of output parameters*/
     Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
+    /* Insert the argument counter */
+    Printf(getf->def, "\nint scilabArgNumber=0;");
    
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$result", value);

@@ -18,7 +18,7 @@
   int iType;
   int *piAddrVar;
   double *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -46,7 +46,7 @@
   int typearg;
   char *_pstStrings;
   int _piLength;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -86,7 +86,7 @@
   int iType;
   int *piAddrVar;
   void *_piData = NULL;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -113,7 +113,7 @@
   int *piAddrVar;
   char *_pstStrings;
   int _piLength;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -147,7 +147,7 @@
   int *piAddrVar;
   char *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -173,7 +173,7 @@
   int *piAddrVar;
   unsigned char *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -200,7 +200,7 @@
   int *piAddrVar;
   short *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -227,7 +227,7 @@
   int *piAddrVar;
   unsigned short *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -255,7 +255,7 @@
   int *piAddrVar;
   int *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -283,7 +283,7 @@
   int *piAddrVar;
   unsigned int *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -312,7 +312,7 @@
   int *piAddrVar;
   double *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -340,7 +340,7 @@
   int *piAddrVar;
   long long *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -361,7 +361,7 @@
   int *piAddrVar;
   unsigned long long *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -382,7 +382,7 @@
   int *piAddrVar;
   char *_pstStrings;
   int _piLength;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -416,7 +416,7 @@
   int *piAddrVar;
   char *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -444,7 +444,7 @@
   int *piAddrVar;
   unsigned char *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -472,7 +472,7 @@
   int *piAddrVar;
   short *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -499,7 +499,7 @@
   int *piAddrVar;
   unsigned short *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -528,7 +528,7 @@
   int *piAddrVar;
   int *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -557,7 +557,7 @@
   int *piAddrVar;
   unsigned int *_piData;
   size_t ii = 0;
-  getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -586,7 +586,7 @@
   int *piAddrVar;
   double *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -615,7 +615,7 @@
   int *piAddrVar;
   long long *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -637,7 +637,7 @@
   int *piAddrVar;
   unsigned long long *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -659,7 +659,7 @@
   int iPrec;
   int *piAddrVar;
   char *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -688,7 +688,7 @@
   int iPrec;
   int *piAddrVar;
   unsigned char *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -717,7 +717,7 @@
   int iPrec;
   int *piAddrVar;
   short *_piData;
-  getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -746,7 +746,7 @@
   int iPrec;
   int *piAddrVar;
   unsigned short *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -776,7 +776,7 @@
   int iPrec;
   int *piAddrVar;
   int *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -806,7 +806,7 @@
   int iPrec;
   int *piAddrVar;
   unsigned int *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -836,7 +836,7 @@
   int iType;
   int *piAddrVar;
   double *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -866,7 +866,7 @@
   int iType;
   int *piAddrVar;
   long long *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -889,7 +889,7 @@
   int iType;
   int *piAddrVar;
   unsigned long long *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -912,7 +912,7 @@
   int iPrec;
   int *piAddrVar;
   int *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -937,7 +937,7 @@
   int iType;
   int *piAddrVar;
   void *_piData = NULL;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -962,7 +962,7 @@
   int iType;
   int *piAddrVar;
   void *_piData = NULL;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -996,6 +996,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -1007,6 +1010,10 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
+
   
 }
 
@@ -1018,6 +1025,10 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
+
   
 }
 
@@ -1029,6 +1040,10 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
+
   
 }
 
@@ -1041,6 +1056,10 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
+
   
 }
 
@@ -1053,6 +1072,10 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
+
   
 }
 
@@ -1065,6 +1088,10 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
+
   
 }
 
@@ -1076,6 +1103,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -1087,6 +1117,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -1100,6 +1133,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -1125,6 +1161,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -1136,6 +1175,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -1147,6 +1189,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -1156,6 +1201,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -1165,6 +1213,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -1186,7 +1237,7 @@
                           unsigned long long {
   int iType;
   double *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1212,7 +1263,7 @@
   int iType;
   char *_pstStrings;
   int _piLength;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1239,7 +1290,7 @@
   int iType;
   char *_pstStrings;
   int _piLength;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1272,7 +1323,7 @@
   int iType;
   char *_pstStrings;
   int _piLength;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1306,7 +1357,7 @@
   int iPrec;
   char *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1332,7 +1383,7 @@
   int iPrec;
   unsigned char *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1358,7 +1409,7 @@
   int iPrec;
   short *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1384,7 +1435,7 @@
   int iPrec;
   unsigned short *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1411,7 +1462,7 @@
   int iPrec;
   int *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1438,7 +1489,7 @@
   int iPrec;
   unsigned int *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1465,7 +1516,7 @@
   int iType;
   double *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1492,7 +1543,7 @@
   int iType;
   int *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1512,7 +1563,7 @@
   int iType;
   int *_piData;
   size_t ii = 0;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1543,7 +1594,7 @@
                           unsigned long long * {
   int iType;
   void *_piData = NULL;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1569,7 +1620,7 @@
   char **_pstStrings;
   int *_piLength;
   int i;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1606,7 +1657,7 @@
 %typemap(varin,noblock=1) signed char [ANY][ANY] {
   int iPrec;
   char *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1633,7 +1684,7 @@
 %typemap(varin,noblock=1) unsigned char [ANY][ANY] {
   int iPrec;
   unsigned char *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1661,7 +1712,7 @@
 %typemap(varin,noblock=1) short [ANY][ANY] {
   int iPrec;
   short *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1689,7 +1740,7 @@
 %typemap(varin,noblock=1) unsigned short [ANY][ANY] {
   int iPrec;
   unsigned short *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1718,7 +1769,7 @@
                           long [ANY][ANY] {
   int iPrec;
   int *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1747,7 +1798,7 @@
                           unsigned long [ANY][ANY] {
   int iType;
   unsigned int *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1776,7 +1827,7 @@
                           float [ANY][ANY] {
   int iType;
   double *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1805,7 +1856,7 @@
 %typemap(varin,noblock=1) long long [ANY][ANY] {
   int iType;
   long long *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1827,7 +1878,7 @@
 %typemap(varin,noblock=1) unsigned long long [ANY][ANY] {
   int iType;
   unsigned long long *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1849,7 +1900,7 @@
 %typemap(varin,noblock=1) enum SWIGTYPE {
   int iPrec;
   int *_piData;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1871,7 +1922,7 @@
 %typemap(varin,noblock=1) SWIGTYPE * {
   int iType;
   void *_piData = NULL;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1896,7 +1947,7 @@
   int iType;
   void *_piData = NULL;
   size_t ii;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1922,7 +1973,7 @@
 %typemap(varin,noblock=1) SWIGTYPE [ANY][ANY] {
   int iType;
   void *_piData = NULL;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1952,7 +2003,7 @@
 %typemap(varin,nobloack=1) SWIGTYPE {
   int iType;
   void *_piData = NULL;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -1984,6 +2035,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -1994,6 +2048,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 
 }
@@ -2005,6 +2062,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2015,7 +2075,10 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
-  
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
+
 }
 
 %typemap(varout,noblock=1) int,
@@ -2026,6 +2089,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2037,6 +2103,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2048,6 +2117,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2058,6 +2130,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2068,6 +2143,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2080,6 +2158,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
   free(temp);
 }
@@ -2091,6 +2172,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2112,6 +2196,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2125,6 +2212,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
    
 }
@@ -2135,6 +2225,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2144,6 +2237,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2153,6 +2249,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2162,6 +2261,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2172,6 +2274,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2182,6 +2287,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2191,6 +2299,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2200,6 +2311,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2209,6 +2323,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2218,6 +2335,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2230,6 +2350,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2241,6 +2364,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2250,6 +2376,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2259,6 +2388,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2268,6 +2400,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2278,6 +2413,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2288,6 +2426,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2297,6 +2438,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2306,6 +2450,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2315,6 +2462,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2324,6 +2474,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2335,6 +2488,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2345,6 +2501,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2354,6 +2513,9 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+  LhsVar(iOutNum) = iVarOut;
+  iOutNum++;
+  iVarOut++;
   
 }
 
@@ -2364,7 +2526,7 @@
 %typecheck(SWIG_TYPECHECK_CHAR) char {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2376,7 +2538,7 @@
 %typecheck(SWIG_TYPECHECK_INT8) signed char {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2388,7 +2550,7 @@
 %typecheck(SWIG_TYPECHECK_UINT8) unsigned char {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2400,7 +2562,7 @@
 %typecheck(SWIG_TYPECHECK_INT16) short {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   getVarType(pvApiCtx, piAddrVar, &typearg);
   $1 = (typearg == sci_matrix) ? 1 : 0;
 }
@@ -2408,7 +2570,7 @@
 %typecheck(SWIG_TYPECHECK_UINT16) unsigned short {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2421,7 +2583,7 @@
                                  long {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2434,7 +2596,7 @@
                                   unsigned long {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2447,7 +2609,7 @@
 %typecheck(SWIG_TYPECHECK_DOUBLE) double {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2459,7 +2621,7 @@
 %typecheck(SWIG_TYPECHECK_FLOAT) float {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2471,7 +2633,7 @@
 %typecheck(SWIG_TYPECHECK_STRING) char * {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2484,7 +2646,7 @@
 %typecheck(SWIG_TYPECHECK_CHAR_ARRAY) char [ANY] {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2496,7 +2658,7 @@
 %typecheck(SWIG_TYPECHECK_INT8_ARRAY) signed char [ANY] {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2509,7 +2671,7 @@
                                        short [ANY] {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2523,7 +2685,7 @@
                                        long [ANY] {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2536,7 +2698,7 @@
                                         unsigned long [ANY] {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2548,7 +2710,7 @@
 %typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) double [ANY]{
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2560,7 +2722,7 @@
 %typecheck(SWIG_TYPECHECK_FLOAT_ARRAY) float [ANY]{
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2572,7 +2734,7 @@
 %typecheck(SWIG_TYPECHECK_STRING_ARRAY) char ** {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
@@ -2584,7 +2746,7 @@
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE * {
   int *piAddrVar;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;

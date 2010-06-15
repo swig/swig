@@ -63,7 +63,7 @@ or you can use the %apply directive :
   int iType;
   double *_piData;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $argnum, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return 0;
@@ -155,6 +155,8 @@ output values.
     printError(&sciErr, 0);
     return 0;
   }
+  iOutNum++;
+  iVarOut++;
 }
 
 %typemap(argout) short *OUTPUT(int iRowsOut, int iColsOut),
@@ -166,6 +168,8 @@ output values.
     printError(&sciErr, 0);
     return 0;
   }
+  iOutNum++;
+  iVarOut++;
 }
 
 %typemap(argout) int *OUTPUT(int iRowsOut,int iColsOut),
@@ -180,6 +184,8 @@ output values.
     printError(&sciErr, 0);
     return 0;
   }
+  iOutNum++;
+  iVarOut++;
 }
 
 
@@ -194,6 +200,8 @@ output values.
     printError(&sciErr, 0);
     return 0;
   }
+  iOutNum++;
+  iVarOut++;
 }
 
 

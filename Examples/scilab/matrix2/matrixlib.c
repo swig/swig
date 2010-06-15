@@ -7,6 +7,17 @@ double sumitems(double *first, int nbRow, int nbCol) {
 	return total;
 }
 
+void sumitems_argoutput(double *first, int nbRow, int nbCol,double** result,int* nbrowres,int* nbcolsres) {
+	int i;
+	*nbrowres=nbRow;
+	*nbcolsres=nbCol;
+	*result=malloc(nbRow*nbCol*sizeof(double));
+	for (i=0; i<(nbRow*nbCol); i++) {
+		(*result)[i]=first[i]+first[i];
+	}
+	return;
+}
+
 double* getValues(int *numberOfRow, int *numberOfCol) {
 	*numberOfRow=23; *numberOfCol=3;
 	double *tempMatrix = (double*)malloc(sizeof(double) * *numberOfRow * *numberOfCol);
