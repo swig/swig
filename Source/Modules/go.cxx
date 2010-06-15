@@ -355,9 +355,6 @@ private:
     }
 
     Swig_banner(f_c_begin);
-    if (!gccgo_flag) {
-      Printf(f_c_begin, "\n/* This file should be compiled with gcc.  */\n");
-    }
     if (renames != NULL) {
       Printf(f_c_begin, "%s\n", renames);
     }
@@ -366,7 +363,6 @@ private:
       Printf(f_c_runtime, "#define SWIG_DIRECTORS\n");
 
       Swig_banner(f_c_directors_h);
-      Printf(f_c_directors_h, "\n/* This file should be compiled with gcc.  */\n");
       Printf(f_c_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module);
       Printf(f_c_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
 
