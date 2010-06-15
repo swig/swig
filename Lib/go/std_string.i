@@ -19,7 +19,7 @@ namespace std {
 
 class string;
 
-%typemap(go) string, const string & "string"
+%typemap(gotype) string, const string & "string"
 
 %typemap(in) string
 %{ $1.assign($input.p, $input.n); %}

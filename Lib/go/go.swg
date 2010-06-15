@@ -6,27 +6,27 @@
 
 /* Basic types */
 
-%typemap(go) bool,               const bool &               "bool"
-%typemap(go) char,               const char &               "byte"
-%typemap(go) signed char,        const signed char &        "int8"
-%typemap(go) unsigned char,      const unsigned char &      "byte"
-%typemap(go) short,              const short &              "int16"
-%typemap(go) unsigned short,     const unsigned short &     "uint16"
-%typemap(go) int,                const int &                "int"
-%typemap(go) unsigned int,       const unsigned int &       "uint"
+%typemap(gotype) bool,               const bool &               "bool"
+%typemap(gotype) char,               const char &               "byte"
+%typemap(gotype) signed char,        const signed char &        "int8"
+%typemap(gotype) unsigned char,      const unsigned char &      "byte"
+%typemap(gotype) short,              const short &              "int16"
+%typemap(gotype) unsigned short,     const unsigned short &     "uint16"
+%typemap(gotype) int,                const int &                "int"
+%typemap(gotype) unsigned int,       const unsigned int &       "uint"
 #if SWIGGO_LONG_TYPE_SIZE == 32
-%typemap(go) long,               const long &               "int32"
-%typemap(go) unsigned long,      const unsigned long &      "uint32"
+%typemap(gotype) long,               const long &               "int32"
+%typemap(gotype) unsigned long,      const unsigned long &      "uint32"
 #elif SWIGGO_LONG_TYPE_SIZE == 64
-%typemap(go) long,               const long &               "int64"
-%typemap(go) unsigned long,      const unsigned long &      "uint64"
+%typemap(gotype) long,               const long &               "int64"
+%typemap(gotype) unsigned long,      const unsigned long &      "uint64"
 #else
 #error "SWIGGO_LONG_TYPE_SIZE not 32 or 64"
 #endif
-%typemap(go) long long,          const long long &          "int64"
-%typemap(go) unsigned long long, const unsigned long long & "uint64"
-%typemap(go) float,              const float &              "float32"
-%typemap(go) double,             const double &             "float64"
+%typemap(gotype) long long,          const long long &          "int64"
+%typemap(gotype) unsigned long long, const unsigned long long & "uint64"
+%typemap(gotype) float,              const float &              "float32"
+%typemap(gotype) double,             const double &             "float64"
 
 %typemap(in) bool,
 	     char,
@@ -164,9 +164,9 @@
 /* The size_t type.  */
 
 #if SWIGGO_LONG_TYPE_SIZE == 32
-%typemap(go) size_t, const size_t & %{int%}
+%typemap(gotype) size_t, const size_t & %{int%}
 #else
-%typemap(go) size_t, const size_t & %{int64%}
+%typemap(gotype) size_t, const size_t & %{int64%}
 #endif
 
 %typemap(in) size_t
@@ -198,7 +198,7 @@
 
 /* Member pointers.  */
 
-%typemap(go) SWIGTYPE (CLASS::*)
+%typemap(gotype) SWIGTYPE (CLASS::*)
 %{$gotypename%}
 
 %typemap(in) SWIGTYPE (CLASS::*)
@@ -223,7 +223,7 @@
 
 /* We can't translate pointers using a typemap, so that is handled in
    the C++ code.  */
-%typemap(go) SWIGTYPE *
+%typemap(gotype) SWIGTYPE *
 %{$gotypename%}
 
 %typemap(in) SWIGTYPE *
@@ -242,7 +242,7 @@
 
 /* Pointer references.  */
 
-%typemap(go) SWIGTYPE *const&
+%typemap(gotype) SWIGTYPE *const&
 %{$gotypename%}
 
 %typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
@@ -266,7 +266,7 @@ type _swig_memberptr *byte
 
 /* Converting a C++ reference to Go has to be handled in the C++
    code.  */
-%typemap(go) SWIGTYPE &
+%typemap(gotype) SWIGTYPE &
 %{$gotypename%}
 
 %typemap(in) SWIGTYPE &
@@ -284,7 +284,7 @@ type _swig_memberptr *byte
 /* C arrays turn into Go pointers.  If we know the length we can use a
    slice.  */
 
-%typemap(go) SWIGTYPE []
+%typemap(gotype) SWIGTYPE []
 %{$gotypename%}
 
 %typemap(in) SWIGTYPE []
@@ -301,7 +301,7 @@ type _swig_memberptr *byte
 
 /* Strings.  */
 
-%typemap(go)
+%typemap(gotype)
 	char *, char *&, char[ANY], char[],
 	signed char *, signed char *&, signed char[ANY], signed char[],
 	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
@@ -309,8 +309,8 @@ type _swig_memberptr *byte
 
 /* Needed to avoid confusion with the way the go module handles
    references.  */
-%typemap(go) char&, unsigned char& "*byte"
-%typemap(go) signed char& "*int8"
+%typemap(gotype) char&, unsigned char& "*byte"
+%typemap(gotype) signed char& "*int8"
 
 %typemap(in)
 	char *, char[ANY], char[],
@@ -341,11 +341,11 @@ type _swig_memberptr *byte
 	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
 %{ $result = ($1_ltype)$input.p; %}
 
-/* Enums.  We can't do the right thing for enums in typemap(go) so we
-   deliberately don't define them.  The right thing would be to
+/* Enums.  We can't do the right thing for enums in typemap(gotype) so
+   we deliberately don't define them.  The right thing would be to
    capitalize the name.  This is instead done in go.cxx.  */
 
-%typemap(go) enum SWIGTYPE
+%typemap(gotype) enum SWIGTYPE
 %{$gotypename%}
 
 %typemap(in) enum SWIGTYPE
@@ -364,7 +364,7 @@ type _swig_memberptr *byte
    We convert it to a pointer for the Go code.  Note that all basic
    types are explicitly handled above.  */
 
-%typemap(go) SWIGTYPE
+%typemap(gotype) SWIGTYPE
 %{$gotypename%}
 
 %typemap(in) SWIGTYPE ($&1_type argp)

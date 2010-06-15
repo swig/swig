@@ -71,7 +71,7 @@ namespace test {
 }
 #endif
 #ifdef SWIGGO
-%typemap(go) test::test_complex * "complex128"
+%typemap(gotype) test::test_complex * "complex128"
 %typemap(in) test::test_complex * {
     $1 = new test_complex(__real__ $input, __imag__ $input);
 }
@@ -107,7 +107,7 @@ namespace test {
 	}
 #endif
 #ifdef SWIGGO
-	%typemap(go) string_class * "string"
+	%typemap(gotype) string_class * "string"
 	%typemap(in) string_class * {
             $1 = new string_class($input.p);
 	}

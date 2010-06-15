@@ -12,7 +12,7 @@ extern int squareCubed (int n, int *OUTPUT);
 
 extern int    gcd(int x, int y);
 
-%typemap(go) (int argc, char *argv[]) "[]string"
+%typemap(gotype) (int argc, char *argv[]) "[]string"
 
 %typemap(in) (int argc, char *argv[])
 %{
@@ -40,7 +40,7 @@ extern int    gcd(int x, int y);
 
 extern int gcdmain(int argc, char *argv[]);
 
-%typemap(go) (char *bytes, int len) "string"
+%typemap(gotype) (char *bytes, int len) "string"
 
 %typemap(in) (char *bytes, int len)
 %{
@@ -55,7 +55,7 @@ extern int count(char *bytes, int len, char c);
  * modified.
  */
 
-%typemap(go) (char *str, int len) "[]string"
+%typemap(gotype) (char *str, int len) "[]string"
 
 %typemap(in) (char *str, int len)
 %{

@@ -60,7 +60,7 @@ char * typemaps instead:
 */
 
 %define INPUT_TYPEMAP(TYPE, GOTYPE)
-%typemap(go) TYPE *INPUT, TYPE &INPUT "GOTYPE"
+%typemap(gotype) TYPE *INPUT, TYPE &INPUT "GOTYPE"
 
 %typemap(in) TYPE *INPUT
 %{ $1 = ($1_ltype)&$input; %}
@@ -163,7 +163,7 @@ char * typemaps instead:
 */
 
 %define OUTPUT_TYPEMAP(TYPE, GOTYPE)
-%typemap(go) TYPE *OUTPUT, TYPE &OUTPUT %{[]GOTYPE%}
+%typemap(gotype) TYPE *OUTPUT, TYPE &OUTPUT %{[]GOTYPE%}
 
 %typemap(in) TYPE *OUTPUT($*1_ltype temp)
 {
@@ -287,7 +287,7 @@ char * typemaps instead:
 */
 
 %define INOUT_TYPEMAP(TYPE, GOTYPE)
-%typemap(go) TYPE *INOUT, TYPE &INOUT %{[]GOTYPE%}
+%typemap(gotype) TYPE *INOUT, TYPE &INOUT %{[]GOTYPE%}
 
 %typemap(in) TYPE *INOUT {
   if ($input.len == 0) {

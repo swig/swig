@@ -751,7 +751,7 @@ private:
     Wrapper *dummy = NewWrapper();
     emit_attach_parmmaps(parms, dummy);
     Swig_typemap_attach_parms("default", parms, dummy);
-    Swig_typemap_attach_parms("go", parms, dummy);
+    Swig_typemap_attach_parms("gotype", parms, dummy);
     int parm_count = emit_num_arguments(parms);
     int required_count = emit_num_required(parms);
 
@@ -2473,7 +2473,7 @@ private:
     emit_attach_parmmaps(parms, dummy);
     DelWrapper(dummy);
 
-    Swig_typemap_attach_parms("go", parms, NULL);
+    Swig_typemap_attach_parms("gotype", parms, NULL);
     int parm_count = emit_num_arguments(parms);
 
     String *func_name = NewString("NewDirector");
@@ -2900,7 +2900,7 @@ private:
     emit_attach_parmmaps(parms, dummy);
     DelWrapper(dummy);
 
-    Swig_typemap_attach_parms("go", parms, NULL);
+    Swig_typemap_attach_parms("gotype", parms, NULL);
     int parm_count = emit_num_arguments(parms);
 
     SwigType *result = Getattr(n, "returntype");
@@ -4151,14 +4151,14 @@ private:
     if (n != NULL && Cmp(type, Getattr(n, "type")) == 0) {
       ret = NULL;
       if (Strcmp(Getattr(n, "nodeType"), "parm") == 0) {
-	ret = Getattr(n, "tmap:go");
+	ret = Getattr(n, "tmap:gotype");
       }
       if (ret == NULL) {
-	ret = Swig_typemap_lookup("go", n, "", NULL);
+	ret = Swig_typemap_lookup("gotype", n, "", NULL);
       }
     } else {
       Parm *p = NewParmWithoutFileLineInfo(type, "goType");
-      ret = Swig_typemap_lookup("go", p, "", NULL);
+      ret = Swig_typemap_lookup("gotype", p, "", NULL);
       Delete(p);
     }
 
@@ -4497,12 +4497,12 @@ private:
   /* ----------------------------------------------------------------------
    * hasGoTypemap
    *
-   * Return whether a type has a "go" typemap entry.
+   * Return whether a type has a "gotype" typemap entry.
    * ---------------------------------------------------------------------- */
 
   bool hasGoTypemap(SwigType *type) {
     Parm *p = NewParmWithoutFileLineInfo(type, "test");
-    SwigType *tm = Swig_typemap_lookup("go", p, "", NULL);
+    SwigType *tm = Swig_typemap_lookup("gotype", p, "", NULL);
     Delete(p);
     if (tm != NULL && Strstr(tm, "$gotypename") == NULL) {
       Delete(tm);

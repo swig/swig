@@ -11,7 +11,7 @@ typedef struct SWIGCDATA {
 } SWIGCDATA;
 %}
 
-%typemap(go) SWIGCDATA %{ []byte %}
+%typemap(gotype) SWIGCDATA %{ []byte %}
 %typemap(out) SWIGCDATA (swigcdata argp) {
   argp = _swig_makegobyteslice($1.data, $1.len);
   $result.data = (char*)argp.data;
