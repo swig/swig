@@ -19,16 +19,16 @@ typedef struct { void* array; unsigned int len; unsigned int cap; } _goslice_;
    with gcc.  */
 %insert(runtime) %{
 
-#define __goswig_size_assert_eq(x, y, name) typedef char name[(x-y)*(x-y)*-2+1];
-#define __goswig_size_assert(t, n) __goswig_size_assert_eq(sizeof(t), n, _goswig_sizeof_##t##_is_not_##n)
+#define swiggo_size_assert_eq(x, y, name) typedef char name[(x-y)*(x-y)*-2+1];
+#define swiggo_size_assert(t, n) swiggo_size_assert_eq(sizeof(t), n, swiggo_sizeof_##t##_is_not_##n)
 
-__goswig_size_assert(char, 1)
-__goswig_size_assert(short, 2)
-__goswig_size_assert(int, 4)
-typedef long long __goswig_long_long;
-__goswig_size_assert(__goswig_long_long, 8)
-__goswig_size_assert(float, 4)
-__goswig_size_assert(double, 8)
+swiggo_size_assert(char, 1)
+swiggo_size_assert(short, 2)
+swiggo_size_assert(int, 4)
+typedef long long swiggo_long_long;
+swiggo_size_assert(swiggo_long_long, 8)
+swiggo_size_assert(float, 4)
+swiggo_size_assert(double, 8)
 
 extern
 #ifdef __cplusplus
