@@ -2031,7 +2031,8 @@ private:
     Delete(SwigType_pop_function(result));
 
     // If the base method is imported, wrap:action may not be set.
-    Swig_save("goBaseMethod", method, "wrap:action", "parms", NULL);
+    Swig_save("goBaseMethod", method, "wrap:name", "wrap:action", "parms", NULL);
+    Setattr(method, "wrap:name", wname);
     if (Getattr(method, "wrap:action") == NULL) {
       if (!is_static) {
 	Swig_MethodToFunction(method, getNSpace(), getClassType(), (Getattr(method, "template") != NULL ? SmartPointer : Extend | SmartPointer), NULL, false);
