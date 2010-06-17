@@ -1171,10 +1171,10 @@ go: $(SRCS)
 	$(SWIG) -go $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-	$(GO) -I . $(GOCOMPILEARG) $(GOSRCS)
+	$(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(GOSRCS)
 	if ! $(GOGCC) ; then \
-	  $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
-	  gopack grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
+	  $(COMPILETOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
+	  $(COMPILETOOL) gopack grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
 	fi
 
 # ----------------------------------------------------------------
@@ -1185,11 +1185,11 @@ go_cpp: $(SRCS)
 	$(SWIG) -go -c++ $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-	$(GO) -I . $(GOCOMPILEARG) $(GOSRCS)
+	$(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(GOSRCS)
 	if ! $(GOGCC) ; then \
-	  $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
-	  gopack grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
-	else true; fi
+	  $(COMPILETOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
+	  $(COMPILETOOL) gopack grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
+	fi
 
 # -----------------------------------------------------------------
 # Running a Go example
@@ -1198,11 +1198,11 @@ go_cpp: $(SRCS)
 go_run: runme.go
 	$(GO) $(GOCOMPILEARG) runme.go
 	if $(GOGCC) ; then \
-	  $(GO) -o runme runme.@OBJEXT@ $(GOGCCOBJS) $(LIBPREFIX)$(TARGET)$(SO); \
+	  $(COMPILETOOL) $(GO) -o runme runme.@OBJEXT@ $(GOGCCOBJS) $(LIBPREFIX)$(TARGET)$(SO); \
 	else \
-	  $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
+	  $(COMPILETOOL) $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
 	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH ./runme
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme
 
 # -----------------------------------------------------------------
 # Cleaning the Go examples
