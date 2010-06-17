@@ -654,9 +654,7 @@ private:
 
     Delete(wname);
     Delete(go_name);
-    if (r1 != NULL) {
-      Delete(r1);
-    }
+    Delete(r1);
 
     return SWIG_OK;
   }
@@ -1227,9 +1225,7 @@ private:
     Swig_restore(n);
 
     DelWrapper(f);
-    if (base_parm != NULL) {
-      Delete(base_parm);
-    }
+    Delete(base_parm);
 
     return SWIG_OK;
   }
@@ -1363,9 +1359,7 @@ private:
     Swig_restore(n);
 
     DelWrapper(f);
-    if (base_parm != NULL) {
-      Delete(base_parm);
-    }
+    Delete(base_parm);
 
     return SWIG_OK;
   }
@@ -1619,9 +1613,7 @@ private:
     if (!checkNameConflict(go_name, n, NULL)) {
       Delete(tm);
       Delete(go_name);
-      if (copy != NULL) {
-	Delete(copy);
-      }
+      Delete(copy);
       return SWIG_NOWRAP;
     }
 
@@ -1638,9 +1630,7 @@ private:
 
     Delete(tm);
     Delete(go_name);
-    if (copy != NULL) {
-      Delete(copy);
-    }
+    Delete(copy);
 
     return SWIG_OK;
   }
@@ -3205,9 +3195,7 @@ private:
 	}
       }
 
-      if (first_type != NULL) {
-	Delete(first_type);
-      }
+      Delete(first_type);
       if (first_parm != parms) {
 	Delete(first_parm);
       }
@@ -3337,9 +3325,7 @@ private:
 
       Printv(f_go_wrappers, "}\n\n", NULL);
 
-      if (result_wrapper != NULL) {
-	Delete(result_wrapper);
-      }
+      Delete(result_wrapper);
 
       // Build the C++ functions.
 
@@ -3724,9 +3710,7 @@ private:
 	}
       }
       if (mismatch) {
-	if (all_result != NULL) {
-	  Delete(all_result);
-	}
+	Delete(all_result);
 	all_result = NULL;
       } else if (all_result != NULL) {
 	;
@@ -4021,9 +4005,7 @@ private:
     Printv(f_go_wrappers, "\tpanic(\"No match for overloaded function call\")\n", NULL);
     Printv(f_go_wrappers, "}\n\n", NULL);
 
-    if (all_result != NULL) {
-      Delete(all_result);
-    }
+    Delete(all_result);
     Delete(dispatch);
 
     return SWIG_OK;
@@ -4647,9 +4629,7 @@ private:
       Delete(tm);
       return true;
     }
-    if (tm != NULL) {
-      Delete(tm);
-    }
+    Delete(tm);
     return false;
   }
 
