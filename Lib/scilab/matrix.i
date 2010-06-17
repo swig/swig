@@ -24,6 +24,14 @@
 	$3=(int*)malloc(sizeof(int));
 }
 
+%typemap(freearg) (double** matrixAsArgOutput,int* rows, int* cols)
+{
+	free(*$1);
+	free($1);
+	free($2);
+	free($3);
+}
+
 %typemap(argout) (double** matrixAsArgOutput,int* rows, int* cols)
 {
   sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, *$2, *$3, (double *)*$1);
@@ -31,8 +39,12 @@
 	 printError(&sciErr, 0);
 	 return 0;
 	 }
+
+
 	 
-	 LhsVar(iOutNum) = iVarOut;
-	 iOutNum++;
-	 iVarOut++;
+	LhsVar(iOutNum) = iVarOut;
+	iOutNum++;
+	iVarOut++;
 }
+
+
