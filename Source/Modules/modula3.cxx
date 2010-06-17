@@ -1324,7 +1324,7 @@ MODULA3():
       Parm *p;
       attachParameterNames(n, "tmap:name", "c:wrapname", "m3arg%d");
       bool gencomma = false;
-      for (p = skipIgnored(l, "in"); p != NULL; p = skipIgnored(p, "in")) {
+      for (p = skipIgnored(l, "in"); p; p = skipIgnored(p, "in")) {
 
 	String *arg = Getattr(p, "c:wrapname");
 	{
@@ -1545,7 +1545,7 @@ MODULA3():
       Parm *p;
       writeArgState state;
       attachParameterNames(n, "tmap:rawinname", "modula3:rawname", "arg%d");
-      for (p = skipIgnored(l, "m3rawintype"); p != NULL; p = skipIgnored(p, "m3rawintype")) {
+      for (p = skipIgnored(l, "m3rawintype"); p; p = skipIgnored(p, "m3rawintype")) {
 
 	/* Get argument passing mode, should be one of VALUE, VAR, READONLY */
 	String *mode = Getattr(p, "tmap:m3rawinmode");
@@ -1928,7 +1928,7 @@ MODULA3():
 	} else if (Strcmp(code, "unsafe") == 0) {
 	  unsafe_module = true;
 	} else if (Strcmp(code, "library") == 0) {
-	  if (targetlibrary != NULL) {
+	  if (targetlibrary) {
 	    Delete(targetlibrary);
 	  }
 	  targetlibrary = Copy(strvalue);

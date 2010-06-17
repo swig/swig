@@ -231,7 +231,7 @@ private:
 
   bool have_docstring(Node *n) {
     String *str = Getattr(n, "feature:docstring");
-    return (str != NULL && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
+    return (str && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
   }
 
   /* ------------------------------------------------------------
@@ -244,7 +244,7 @@ private:
   String *docstring(Node *n, autodoc_t ad_type) {
 
     String *str = Getattr(n, "feature:docstring");
-    bool have_ds = (str != NULL && Len(str) > 0);
+    bool have_ds = (str && Len(str) > 0);
     bool have_auto = (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
     String *autodoc = NULL;
     String *doc = NULL;
@@ -259,7 +259,7 @@ private:
 
     if (have_auto) {
       autodoc = make_autodoc(n, ad_type);
-      have_auto = (autodoc != NULL && Len(autodoc) > 0);
+      have_auto = (autodoc && Len(autodoc) > 0);
     }
     // If there is more than one line then make docstrings like this:
     //
@@ -272,14 +272,14 @@ private:
       doc = NewString("");
       Printv(doc, "\n", autodoc, "\n", str, NIL);
     } else if (!have_auto && have_ds) {	// only docstring
-      if (Strchr(str, '\n') == NULL) {
+      if (Strchr(str, '\n') == 0) {
 	doc = NewString(str);
       } else {
 	doc = NewString("");
 	Printv(doc, str, NIL);
       }
     } else if (have_auto && !have_ds) {	// only autodoc
-      if (Strchr(autodoc, '\n') == NULL) {
+      if (Strchr(autodoc, '\n') == 0) {
 	doc = NewStringf("%s", autodoc);
       } else {
 	doc = NewString("");
@@ -618,7 +618,7 @@ private:
 	  {
 	    // Only do the autodoc if there isn't a docstring for the class
 	    String *str = Getattr(n, "feature:docstring");
-	    if (counter == 0 && (str == NULL || Len(str) == 0)) {
+	    if (counter == 0 && (str == 0 || Len(str) == 0)) {
 	      if (CPlusPlus) {
 		Printf(doc, "  Proxy of C++ %s class", full_name);
 	      } else {

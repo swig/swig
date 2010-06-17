@@ -1599,7 +1599,7 @@ public:
 	tm = Getattr(n, "feature:director:except");
       }
       if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-	Printf(w->code, "if (result == NULL) {\n");
+	Printf(w->code, "if (!result) {\n");
 	Printf(w->code, "  CAML_VALUE error = *caml_named_value(\"director_except\");\n");
 	Replaceall(tm, "$error", "error");
 	Printv(w->code, Str(tm), "\n", NIL);

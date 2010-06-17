@@ -1092,7 +1092,7 @@ String *Swig_string_strip(String *s) {
   } else {
     const char *cs = Char(s);
     const char *ce = Strchr(cs, ']');
-    if (*cs != '[' || ce == NULL) {
+    if (*cs != '[' || !ce) {
       ns = NewString(s);
     } else {
       String *fmt = NewStringf("%%.%ds", ce-cs-1);

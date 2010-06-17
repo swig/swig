@@ -1244,7 +1244,7 @@ public:
       idx = 0;
       p = l;
       int use_parse = 0;
-      while (p != NULL) {
+      while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  p = Getattr(p, "tmap:in:next");
 	  continue;

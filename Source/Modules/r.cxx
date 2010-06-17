@@ -2514,7 +2514,7 @@ int R::membervariableHandler(Node *n) {
 
   int status(Language::membervariableHandler(n));
 
-  if(opaqueClassDeclaration == NULL && debugMode)
+  if(!opaqueClassDeclaration && debugMode)
     Printf(stderr, "<membervariableHandler> %s %s\n", Getattr(n, "name"), Getattr(n, "type"));
 
   processing_member_access_function = 0;

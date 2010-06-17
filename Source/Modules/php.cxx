@@ -1206,7 +1206,7 @@ public:
 	  }
 	  if (!pname_cstr) {
 	    // Unnamed parameter, e.g. int foo(int);
-	  } else if (pname == NULL) {
+	  } else if (!pname) {
 	    pname = NewString(pname_cstr);
 	  } else {
 	    size_t len = strlen(pname_cstr);
@@ -1290,7 +1290,7 @@ public:
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
-		} else if (strchr(Char(value), '.') == NULL) {
+		} else if (strchr(Char(value), '.') == 0) {
 		  // Ensure value is a double constant, not an integer one.
 		  Append(value, ".0");
 		  double val2 = strtod(Char(value), &p);
@@ -2496,7 +2496,7 @@ done:
       idx = 0;
       p = l;
       int use_parse = 0;
-      while (p != NULL) {
+      while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  p = Getattr(p, "tmap:in:next");
 	  continue;

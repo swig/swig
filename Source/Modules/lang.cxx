@@ -2996,7 +2996,7 @@ void Language::dumpSymbols() {
 
 Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
   Hash *symbols = Getattr(symtabs, scope ? scope : "");
-  if (symbols == NULL) {
+  if (!symbols) {
     return NULL;
   }
   return Getattr(symbols, s);

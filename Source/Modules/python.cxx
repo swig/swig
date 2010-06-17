@@ -1073,7 +1073,7 @@ public:
 
   bool have_docstring(Node *n) {
     String *str = Getattr(n, "feature:docstring");
-    return (str != NULL && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
+    return (str && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
   }
 
   /* ------------------------------------------------------------
@@ -1085,7 +1085,7 @@ public:
 
   String *docstring(Node *n, autodoc_t ad_type, const String *indent, bool use_triple = true) {
     String *str = Getattr(n, "feature:docstring");
-    bool have_ds = (str != NULL && Len(str) > 0);
+    bool have_ds = (str && Len(str) > 0);
     bool have_auto = (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
     const char *triple_double = use_triple ? "\"\"\"" : "";
     String *autodoc = NULL;
@@ -1101,7 +1101,7 @@ public:
 
     if (have_auto) {
       autodoc = make_autodoc(n, ad_type);
-      have_auto = (autodoc != NULL && Len(autodoc) > 0);
+      have_auto = (autodoc && Len(autodoc) > 0);
     }
     // If there is more than one line then make docstrings like this:
     //
@@ -1116,14 +1116,14 @@ public:
       doc = NewString("");
       Printv(doc, triple_double, "\n", pythoncode(autodoc, indent), "\n", pythoncode(str, indent), indent, triple_double, NIL);
     } else if (!have_auto && have_ds) {	// only docstring
-      if (Strchr(str, '\n') == NULL) {
+      if (Strchr(str, '\n') == 0) {
 	doc = NewStringf("%s%s%s", triple_double, str, triple_double);
       } else {
 	doc = NewString("");
 	Printv(doc, triple_double, "\n", pythoncode(str, indent), indent, triple_double, NIL);
       }
     } else if (have_auto && !have_ds) {	// only autodoc
-      if (Strchr(autodoc, '\n') == NULL) {
+      if (Strchr(autodoc, '\n') == 0) {
 	doc = NewStringf("%s%s%s", triple_double, autodoc, triple_double);
       } else {
 	doc = NewString("");
@@ -1361,7 +1361,7 @@ public:
 	  {
 	    // Only do the autodoc if there isn't a docstring for the class
 	    String *str = Getattr(n, "feature:docstring");
-	    if (str == NULL || Len(str) == 0) {
+	    if (!str || Len(str) == 0) {
 	      if (CPlusPlus) {
 		Printf(doc, "Proxy of C++ %s class", real_classname);
 	      } else {
@@ -1557,7 +1557,7 @@ public:
 
   bool have_pythonprepend(Node *n) {
     String *str = Getattr(n, "feature:pythonprepend");
-    return (str != NULL && Len(str) > 0);
+    return (str && Len(str) > 0);
   }
 
   /* ------------------------------------------------------------
@@ -1584,7 +1584,7 @@ public:
     String *str = Getattr(n, "feature:pythonappend");
     if (!str)
       str = Getattr(n, "feature:addtofunc");
-    return (str != NULL && Len(str) > 0);
+    return (str && Len(str) > 0);
   }
 
   /* ------------------------------------------------------------
@@ -2741,7 +2741,7 @@ public:
       Printf(f_directors_h, "      if (!method) {\n");
       Printf(f_directors_h, "        swig::SwigVar_PyObject name = SWIG_Python_str_FromChar(method_name);\n");
       Printf(f_directors_h, "        method = PyObject_GetAttr(swig_get_self(), name);\n");
-      Printf(f_directors_h, "        if (method == NULL) {\n");
+      Printf(f_directors_h, "        if (!method) {\n");
       Printf(f_directors_h, "          std::string msg = \"Method in class %s doesn't exist, undefined \";\n", classname);
       Printf(f_directors_h, "          msg += method_name;\n");
       Printf(f_directors_h, "          Swig::DirectorMethodException::raise(msg.c_str());\n");
@@ -2904,7 +2904,7 @@ public:
       Printf(f_shadow, ":\n");
       if (have_docstring(n)) {
 	String *str = docstring(n, AUTODOC_CLASS, tab4);
-	if (str != NULL && Len(str))
+	if (str && Len(str))
 	  Printv(f_shadow, tab4, str, "\n", NIL);
       }
       if (!modern) {
@@ -3723,7 +3723,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     idx = 0;
     p = l;
     int use_parse = 0;
-    while (p != NULL) {
+    while (p) {
       if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	p = Getattr(p, "tmap:in:next");
 	continue;
@@ -3910,13 +3910,13 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       if (tm)
 	tm = Copy(tm);
     }
-    Append(w->code, "if (result == NULL) {\n");
+    Append(w->code, "if (!result) {\n");
     Append(w->code, "  PyObject *error = PyErr_Occurred();\n");
     if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
       Replaceall(tm, "$error", "error");
       Printv(w->code, Str(tm), "\n", NIL);
     } else {
-      Append(w->code, "  if (error != NULL) {\n");
+      Append(w->code, "  if (error) {\n");
       Printf(w->code, "    Swig::DirectorMethodException::raise(\"Error detected when calling '%s.%s'\");\n", classname, pyname);
       Append(w->code, "  }\n");
     }
