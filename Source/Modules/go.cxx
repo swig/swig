@@ -27,8 +27,6 @@ class GO:public Language {
   String *soname;
   // Size in bits of the C type "long".
   int long_type_size;
-  // Rename directives.
-  String *renames;
 
   /* Output files */
   File *f_c_begin;
@@ -90,7 +88,6 @@ public:
      go_prefix(NULL),
      soname(NULL),
      long_type_size(32),
-     renames(NULL),
      f_c_begin(NULL),
      f_go_begin(NULL),
      f_gc_begin(NULL),
@@ -173,26 +170,6 @@ private:
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    ++i;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if (strcmp(argv[i], "-rename") == 0) {
-	  if (argv[i + 1] != NULL) {
-	    String *d = NewString(argv[i + 1]);
-	    Replace(d, "=", " ", DOH_REPLACE_FIRST);
-	    Preprocessor_define(d, 0);
-	    if (renames == NULL) {
-	      renames = NewString("");
-	    }
-	    Printv(renames, "#define ", d, "\n", NULL);
-	    Delete(d);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i + 1);
-	    ++i;
-	    // Prevent SWIG from trying to define this for the
-	    // preprocessor, which breaks if there are multiple
-	    // -rename options.
-	    argv[i] = NULL;
 	  } else {
 	    Swig_arg_error();
 	  }
@@ -355,9 +332,6 @@ private:
     }
 
     Swig_banner(f_c_begin);
-    if (renames != NULL) {
-      Printf(f_c_begin, "%s\n", renames);
-    }
 
     if (directorsEnabled()) {
       Printf(f_c_runtime, "#define SWIG_DIRECTORS\n");
@@ -560,6 +534,11 @@ private:
       }
       Delete(c2);
       Delete(c1);
+
+      if (!checkIgnoredParameters(n, go_name)) {
+	Delete(go_name);
+	return SWIG_NOWRAP;
+      }
     } else if (Cmp(nodetype, "constructor") == 0) {
       is_ctor_dtor = true;
 
@@ -612,23 +591,28 @@ private:
       }
 
       go_name = buildGoName(name, is_static, is_friend);
+
+      if (!checkIgnoredParameters(n, go_name)) {
+	Delete(go_name);
+	return SWIG_NOWRAP;
+      }
     }
 
     String *overname = NULL;
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
-    } else if (class_name == NULL || is_static) {
-      if (!addSymbol(go_name, n)) {
-	return SWIG_ERROR;
-      }
     } else {
-      String *c = Copy(class_name);
-      Putc('+', c);
-      Append(c, go_name);
-      if (!addSymbol(c, n)) {
-	return SWIG_ERROR;
+      String *scope;
+      if (class_name == NULL || is_static || is_ctor_dtor) {
+	scope = NULL;
+      } else {
+	scope = NewString("swiggoscope.");
+	Append(scope, class_name);
       }
-      Delete(c);
+      if (!checkNameConflict(go_name, n, scope)) {
+	Delete(go_name);
+	return SWIG_NOWRAP;
+      }
     }
 
     String *wname = Swig_name_wrapper(name);
@@ -646,6 +630,18 @@ private:
     }
 
     if (Getattr(n, "sym:overloaded") && Getattr(n, "sym:nextSibling") == NULL) {
+      String *scope ;
+      if (class_name == NULL || is_static || is_ctor_dtor) {
+	scope = NULL;
+      } else {
+	scope = NewString("swiggoscope.");
+	Append(scope, class_name);
+      }
+      if (!checkNameConflict(go_name, n, scope)) {
+	Delete(go_name);
+	return SWIG_NOWRAP;
+      }
+
       String *receiver = class_receiver;
       if (is_static || is_ctor_dtor) {
 	receiver = NULL;
@@ -1563,11 +1559,6 @@ private:
 
     String *go_name = buildGoName(Getattr(n, "sym:name"), false, false);
 
-    if (!addSymbol(go_name, n)) {
-      Delete(go_name);
-      return SWIG_ERROR;
-    }
-
     String *tm = goType(n, type);
     String *value = Getattr(n, "value");
 
@@ -1625,6 +1616,15 @@ private:
       }
     }
 
+    if (!checkNameConflict(go_name, n, NULL)) {
+      Delete(tm);
+      Delete(go_name);
+      if (copy != NULL) {
+	Delete(copy);
+      }
+      return SWIG_NOWRAP;
+    }
+
     Printv(f_go_wrappers, "const ", go_name, " ", tm, " = ", NULL);
     if (SwigType_type(type) == T_STRING) {
       Printv(f_go_wrappers, "\"", value, "\"", NULL);
@@ -1655,6 +1655,10 @@ private:
     String *name = goEnumName(n);
     if (Strcmp(name, "int") != 0) {
       if (!ImportMode || imported_package == NULL) {
+	if (!checkNameConflict(name, n, NULL)) {
+	  Delete(name);
+	  return SWIG_NOWRAP;
+	}
 	Printv(f_go_wrappers, "type ", name, " int\n", NULL);
       } else {
 	String *nw = NewString("");
@@ -1693,6 +1697,18 @@ private:
    * ------------------------------------------------------------------------ */
 
   int goComplexConstant(Node *n, SwigType *type) {
+    String *symname = Getattr(n, "sym:name");
+    if (symname == NULL) {
+      symname = Getattr(n, "name");
+    }
+
+    String *varname = buildGoName(symname, true, false);
+
+    if (!checkNameConflict(varname, n, NULL)) {
+      Delete(varname);
+      return SWIG_NOWRAP;
+    }
+
     String *get = NewString("");
     Printv(get, "result = ", NULL);
 
@@ -1720,11 +1736,6 @@ private:
     Printv(get, ";\n", NULL);
     Setattr(n, "wrap:action", get);
 
-    String *symname = Getattr(n, "sym:name");
-    if (symname == NULL) {
-      symname = Getattr(n, "name");
-    }
-
     String *sname = Copy(symname);
     if (class_name != NULL) {
       Append(sname, "_");
@@ -1747,7 +1758,6 @@ private:
       return r;
     }
 
-    String *varname = buildGoName(symname, true, false);
     String *t = goType(n, type);
     Printv(f_go_wrappers, "var ", varname, " ", t, " = ", go_name, "()\n", NULL);
 
@@ -1778,6 +1788,12 @@ private:
     String *name = Getattr(n, "sym:name");
 
     String *go_name = exportedName(name);
+
+    if (!checkNameConflict(go_name, n, NULL)) {
+      Delete(go_name);
+      SetFlag(n, "go:conflict");
+      return SWIG_NOWRAP;
+    }
 
     String *go_type_name = goCPointerType(Getattr(n, "classtypeobj"), true);
 
@@ -2452,8 +2468,8 @@ private:
     Append(fn_name, go_name);
 
     if (overname == NULL && !is_ignored) {
-      if (!addSymbol(fn_name, n)) {
-	return SWIG_ERROR;
+      if (!checkNameConflict(fn_name, n, NULL)) {
+	return SWIG_NOWRAP;
       }
     }
 
@@ -4118,6 +4134,132 @@ private:
   }
 
   /* ----------------------------------------------------------------------
+   * checkNameConflict()
+   *
+   * Check for a name conflict on the name we are going to use in Go.
+   * These conflicts are likely because of the enforced
+   * capitalization.  When we find one, issue a warning and return
+   * false.  If the name is OK, return true.
+   * ---------------------------------------------------------------------- */
+
+  bool checkNameConflict(String* name, Node* n, const_String_or_char_ptr scope) {
+    Node *lk = symbolLookup(name, scope);
+    if (lk != NULL) {
+      String *n1 = Getattr(n, "sym:name");
+      if (n1 == NULL) {
+	n1 = Getattr(n, "name");
+      }
+      String *n2 = Getattr(lk, "sym:name");
+      if (n2 == NULL) {
+	n2 = Getattr(lk, "name");
+      }
+      Swig_warning(WARN_GO_NAME_CONFLICT, input_file, line_number,
+		   "Ignoring '%s' due to Go name ('%s') conflict with '%s'\n",
+		   n1, name, n2);
+      return false;
+    }
+    bool r = addSymbol(name, n, scope);
+    assert(r);
+    return true;
+  }
+
+  /* ----------------------------------------------------------------------
+   * checkIgnoredParameters()
+   *
+   * If any of the parameters of this function, or the return type,
+   * are ignored due to a name conflict, give a warning and return
+   * false.
+   * ---------------------------------------------------------------------- */
+
+  bool checkIgnoredParameters(Node *n, String *go_name) {
+    ParmList *parms = Getattr(n, "parms");
+    if (parms != NULL) {
+      Wrapper *dummy = NewWrapper();
+      emit_attach_parmmaps(parms, dummy);
+      int parm_count = emit_num_arguments(parms);
+      Parm *p = parms;
+
+      for (int i = 0; i < parm_count; ++i) {
+	p = getParm(p);
+	if (!checkIgnoredType(n, go_name, Getattr(p, "type"))) {
+	  DelWrapper(dummy);
+	  return false;
+	}
+	p = nextParm(p);
+      }
+
+      DelWrapper(dummy);
+    }
+
+    if (!checkIgnoredType(n, go_name, Getattr(n, "type"))) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /* ----------------------------------------------------------------------
+   * checkIgnoredType()
+   *
+   * If this type is being ignored due to a name conflict, give a
+   * warning and return false.
+   * ---------------------------------------------------------------------- */
+
+  bool checkIgnoredType(Node *n, String *go_name, SwigType *type) {
+    if (hasGoTypemap(type)) {
+      return true;
+    }
+
+    SwigType *t = SwigType_typedef_resolve_all(type);
+
+    bool ret = true;
+    bool is_conflict = false;
+    Node *e = Language::enumLookup(t);
+    if (e != NULL) {
+      if (GetFlag(e, "go:conflict")) {
+	is_conflict = true;
+      }
+    } else if (SwigType_issimple(t)) {
+      Node *cn = classLookup(t);
+      if (cn != NULL) {
+	if (GetFlag(cn, "go:conflict")) {
+	  is_conflict = true;
+	}
+      }
+    } else if (SwigType_ispointer(t) || SwigType_isarray(t) || SwigType_isqualifier(t) || SwigType_isreference(t)) {
+      SwigType *r = Copy(t);
+      if (SwigType_ispointer(r)) {
+	SwigType_del_pointer(r);
+      } else if (SwigType_isarray(r)) {
+	SwigType_del_array(r);
+      } else if (SwigType_isqualifier(r)) {
+	SwigType_del_qualifier(r);
+      } else {
+	SwigType_del_reference(r);
+      }
+
+      if (!checkIgnoredType(n, go_name, r)) {
+	ret = false;
+      }
+
+      Delete(r);
+    }
+
+    if (is_conflict) {
+      String *s = SwigType_str(t, NULL);
+      Swig_warning(WARN_GO_NAME_CONFLICT, input_file, line_number,
+		   "Ignoring '%s' (Go name '%s') due to Go name conflict for parameter or result type '%s'\n",
+		   Getattr(n, "name"), go_name, s);
+      Delete(s);
+      ret = false;
+    }
+
+    Delete(t);
+
+    return ret;
+  }
+
+  /* ----------------------------------------------------------------------
    * goType()
    *
    * Given a SWIG type, return a string for the type in Go.
@@ -4631,5 +4773,4 @@ Go Options (available with -go)\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
      -soname <name>      - Set shared library holding C/C++ code to <name>\n\
      -longsize <s>       - Set size of C/C++ long type--32 or 64 bits\n\
-     -rename <new>=<old> - Rename symbols from <new> to <old>\n\
 \n";

@@ -3,7 +3,7 @@ package main
 import "./special_variable_macros"
 
 func main() {
-	name := special_variable_macros.NewNames()
+	name := special_variable_macros.NewName()
 	if special_variable_macros.TestFred(name) != "none" {
 		panic("test failed")
 	}

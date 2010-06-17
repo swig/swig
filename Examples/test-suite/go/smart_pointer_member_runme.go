@@ -4,7 +4,7 @@ import "fmt"
 import . "./smart_pointer_member"
 
 func main() {
-	f := NewFoos()
+	f := NewFoo()
 	f.SetY(1)
 
 	if f.GetY() != 1 {
@@ -24,7 +24,7 @@ func main() {
 		panic(0)
 	}
 
-	if b.GetZ() != GetFoosZ() {
+	if b.GetZ() != GetFooZ() {
 		panic(0)
 	}
 }

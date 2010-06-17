@@ -21,22 +21,6 @@ top_builddir = @top_builddir@
 
 include $(srcdir)/../common.mk
 
-# Custom tests - tests with additional commandline options
-constant_pointers.cpptest: SWIGOPT += -rename foo=foofn
-director_enum.cpptest: SWIGOPT += -rename Hello=Helloe
-director_finalizer.cpptest: SWIGOPT += -rename deleteFoo=deleteFooFn
-enum_thorough.cpptest: SWIGOPT += -rename One=Onee -rename Two=Twoe
-mixed_types.cpptest: SWIGOPT += -rename Hello=Helloe
-overload_simple.cpptest: SWIGOPT += -rename foo=foofn
-smart_pointer_extend.cpptest: SWIGOPT += -rename CPtrFoo=CPtrFoos
-smart_pointer_member.cpptest: SWIGOPT += -rename Foo=Foos
-special_variable_macros.cpptest: SWIGOPT += -rename Name=Names
-template_partial_specialization.cpptest: SWIGOPT += -rename b=bfn
-template_partial_specialization_typedef.cpptest: SWIGOPT += -rename b=bfn
-template_specialization_enum.cpptest: SWIGOPT += -rename Hello=Helloe
-preproc.ctest: SWIGOPT += -rename a5=a5c -rename a6=a6c
-mod.multicpptest: SWIGOPT += -rename GetC=GetCFn
-
 .SUFFIXES: .cpptest .ctest .multicpptest
 
 # Rules for the different types of tests

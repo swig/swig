@@ -3,57 +3,57 @@ package main
 import . "./overload_simple"
 
 func main() {
-	if Foofn(3) != "foo:int" {
+	if Foo(3) != "foo:int" {
 		panic("foo(int)")
 	}
 
-	if Foofn(float64(3.0)) != "foo:double" {
+	if Foo(float64(3.0)) != "foo:double" {
 		panic("foo(double)")
 	}
 
-	if Foofn("hello") != "foo:char *" {
+	if Foo("hello") != "foo:char *" {
 		panic("foo(char *)")
 	}
 
-	f := NewFoo()
+	f := NewFoos()
 	b := NewBar()
 
-	if Foofn(f) != "foo:Foo *" {
+	if Foo(f) != "foo:Foo *" {
 		panic("foo(Foo *)")
 	}
 
-	if Foofn(b) != "foo:Bar *" {
+	if Foo(b) != "foo:Bar *" {
 		panic("foo(Bar *)")
 	}
 
 	v := Malloc_void(32)
 
-	if Foofn(v) != "foo:void *" {
+	if Foo(v) != "foo:void *" {
 		panic("foo(void *)")
 	}
 	s := NewSpam()
 
-	if s.Foofn(3) != "foo:int" {
+	if s.Foo(3) != "foo:int" {
 		panic("Spam::foo(int)")
 	}
 
-	if s.Foofn(float64(3.0)) != "foo:double" {
+	if s.Foo(float64(3.0)) != "foo:double" {
 		panic("Spam::foo(double)")
 	}
 
-	if s.Foofn("hello") != "foo:char *" {
+	if s.Foo("hello") != "foo:char *" {
 		panic("Spam::foo(char *)")
 	}
 
-	if s.Foofn(f) != "foo:Foo *" {
+	if s.Foo(f) != "foo:Foo *" {
 		panic("Spam::foo(Foo *)")
 	}
 
-	if s.Foofn(b) != "foo:Bar *" {
+	if s.Foo(b) != "foo:Bar *" {
 		panic("Spam::foo(Bar *)")
 	}
 
-	if s.Foofn(v) != "foo:void *" {
+	if s.Foo(v) != "foo:void *" {
 		panic("Spam::foo(void *)")
 	}
 

@@ -43,6 +43,8 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) Instances::memberinstance2;
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) Instances::memberinstance3;
 
+%warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'one' due to Go name ('ObscureOne') conflict with 'Obscure::One' */
+
 %inline %{
 
 enum { AnonEnum1, AnonEnum2 = 100 };
