@@ -51,7 +51,7 @@
 /* 
    Flags/methods for returning states.
    
-   The SWIG conversion methods, as ConvertPtr, return and integer 
+   The SWIG conversion methods, as ConvertPtr, return an integer 
    that tells if the conversion was successful or not. And if not,
    an error code can be returned (see swigerrors.swg for the codes).
    
