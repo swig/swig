@@ -830,7 +830,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
      These two lines just transfer the ownership of the 'this' pointer
      from the input to the output wrapping object.
 
-     This happens in python, but may also happens in other target
+     This happens in python, but may also happen in other target
      languages.
    */
   if (GetFlag(n, "feature:self:disown")) {
