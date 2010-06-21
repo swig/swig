@@ -1,6 +1,7 @@
 #!/bin/sh
 
-# Build Windows distribution (swigwin-1.3.x.zip) -- requires running in either:
+# Build Windows distribution (swigwin-2.0.x.zip) from source tarball (swig-2.0.x.tar.gz)
+# Requires running in either:
 # - MinGW environment
 # - Linux using MinGW cross compiler
 # - Cygwin using MinGW compiler
@@ -21,8 +22,8 @@ if test x$1 != x; then
     fi
 else
     echo "Usage: mkwindows.sh version [zip]"
-    echo "       Build Windows distribution. Works on Cygwin, MinGW or Linux"
-    echo "       version should be 1.3.x"
+    echo "       Build SWIG Windows distribution from source tarball. Works on Cygwin, MinGW or Linux"
+    echo "       version should be 2.0.x"
     echo "       zip is full path to zip program - default is /c/cygwin/bin/zip on MinGW, zip on Linux and Cygwin"
     exit 1
 fi
