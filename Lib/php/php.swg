@@ -357,14 +357,14 @@
   memcpy(p, &$1, sizeof($1));
   zval * resource;
   MAKE_STD_ZVAL(resource);
-  ZEND_REGISTER_RESOURCE(resource, p, le_member_ptr);
+  ZEND_REGISTER_RESOURCE(resource, p, swig_member_ptr);
 
   SWIG_SetPointerZval(return_value, (void *)&$1, $1_descriptor, $owner);
 }
 
 %typemap(in, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
 {
-  void * p = (void*)zend_fetch_resource($input TSRMLS_CC, -1, SWIG_MEMBER_PTR, NULL, 1, le_member_ptr);
+  void * p = (void*)zend_fetch_resource($input TSRMLS_CC, -1, SWIG_MEMBER_PTR, NULL, 1, swig_member_ptr);
   memcpy(&$1, p, sizeof($1));
 }
 

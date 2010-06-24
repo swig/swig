@@ -108,7 +108,7 @@
   memcpy(p, &$1, sizeof($1));
   zval * resource;
   MAKE_STD_ZVAL(resource);
-  ZEND_REGISTER_RESOURCE(resource, p, le_member_ptr);
+  ZEND_REGISTER_RESOURCE(resource, p, swig_member_ptr);
   zend_hash_add(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void*)&resource, sizeof(zval *), NULL);
 }
 
@@ -228,7 +228,7 @@
   zval **z_var;
 
   zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
-  void * p = (void*)zend_fetch_resource(*z_var TSRMLS_CC, -1, SWIG_MEMBER_PTR, NULL, 1, le_member_ptr);
+  void * p = (void*)zend_fetch_resource(*z_var TSRMLS_CC, -1, SWIG_MEMBER_PTR, NULL, 1, swig_member_ptr);
   memcpy(&$1, p, sizeof($1));
 }
 
@@ -350,6 +350,6 @@ deliberate error cos this code looks bogus to me
   memcpy(p, &$1, sizeof($1));
   zval * resource;
   MAKE_STD_ZVAL(resource);
-  ZEND_REGISTER_RESOURCE(resource, p, le_member_ptr);
+  ZEND_REGISTER_RESOURCE(resource, p, swig_member_ptr);
   zend_hash_add(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void*)&resource, sizeof(zval *), NULL);
 }
