@@ -223,7 +223,7 @@
   $1 = ($1_ltype)_temp;
 }
 
-%typemap(varin) SWIGTYPE (CLASS::*)
+%typemap(varin, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
 {
   zval **z_var;
 
