@@ -1575,14 +1575,21 @@ public:
 	  }
 	  if (Getattr(n, "access") && haspublicbase) {
 	    Delete(acc);
-	    acc = NewString("public");
+	    acc = NewStringEmpty(); // implicitly public
 	    Swig_warning(WARN_PHP_PUBLIC_BASE, input_file, line_number, Char(warnmsg));
 	    Delete(warnmsg);
 	  }
 	}
-	if (Cmp(acc, "") != 0) {
+
+	if (Cmp(acc, "public") == 0) {
+	  // The default visibility for methods is public, so don't specify
+	  // that explicitly to keep the wrapper size down.
+	  Delete(acc);
+	  acc = NewStringEmpty();
+	} else if (Cmp(acc, "") != 0) {
 	  Append(acc, " ");
 	}
+
 	if (constructor) {
 	  const char * arg0;
 	  if (max_num_of_arguments > 0) {
