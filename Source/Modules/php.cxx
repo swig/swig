@@ -1702,7 +1702,7 @@ public:
 	      Printf(output, "\t\t\treturn new $c($r);\n");
 	    } else {
 	      Printf(output, "\t\t\t$c = new stdClass();\n");
-	      Printf(output, "\t\t\t$c->_cPtr = $r;\n");
+	      Printf(output, "\t\t\t$c->"SWIG_PTR" = $r;\n");
 	      Printf(output, "\t\t\treturn $c;\n");
 	    }
 	    Printf(output, "\t\t}\n\t\treturn $r;\n");
