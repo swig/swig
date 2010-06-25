@@ -8,14 +8,16 @@
    This module also tests whether Swig correctly parses custom string delimiters.
 */
 %module cpp0x_raw_string_literals
-%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) aa;
 %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) bb;
 %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) ee;
-%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) ff;
+%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) gg;
+%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) xx;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) cc;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) dd;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) gg;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) hh;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) ii;
+
+%include <std_wstring.i>
 
 %inline %{
 #include <iostream>
@@ -38,27 +40,20 @@ struct URStruct {
   static const int UR  = 100;
 };
 
-const char      *aa = "ABC";
-wstring        wide = L"ABC";
-const char      *bb = u8"ABC";
-const char16_t  *cc = u"ABC";
-const char32_t  *dd = U"ABC";
+// New string literals
+wstring         aa =  L"Wide string";
+const char     *bb = u8"UTF-8 string";
+const char16_t *cc =  u"UTF-16 string";
+const char32_t *dd =  U"UTF-32 string";
 %}
 
 /* Raw string literals */
-
-#warning TODO: change SWIG support from old R"[ ... ]" to new R"( ... )"
-
-const char      *ee = R"XXX[to be or "not" to be [square parenthesis] (round parenthesis), that is the question!]XXX";
-wstring       wide2 = LR"XXX[to be or "not" to be [square parenthesis] (round parenthesis), that is the question!]XXX";
-const char      *ff = u8R"XXX[to be or "not" to be [square parenthesis] (round parenthesis), that is the question!]XXX";
-const char16_t  *gg = uR"XXX[to be or "not" to be [square parenthesis] (round parenthesis), that is the question!]XXX";
-const char32_t  *hh = UR"XXX[to be or "not" to be [square parenthesis] (round parenthesis), that is the question!]XXX";
-%{
-const char      *ee = R"XXX(to be or "not" to be [square parenthesis] (round parenthesis), that is the question!)XXX";
-wstring       wide2 = LR"XXX(to be or "not" to be [square parenthesis] (round parenthesis), that is the question!)XXX";
-const char      *ff = u8R"XXX(to be or "not" to be [square parenthesis] (round parenthesis), that is the question!)XXX";
-const char16_t  *gg = uR"XXX(to be or "not" to be [square parenthesis] (round parenthesis), that is the question!)XXX";
-const char32_t  *hh = UR"XXX(to be or "not" to be [square parenthesis] (round parenthesis), that is the question!)XXX";
+%inline %{
+const char      *xx =        ")I'm an \"ascii\" \\ string.";
+const char      *ee =   R"XXX()I'm an "ascii" \ string.)XXX";
+wstring          ff =  LR"XXX(I'm a "raw wide" \ string.)XXX";
+const char      *gg = u8R"XXX(I'm a "raw UTF-8" \ string.)XXX";
+const char16_t  *hh =  uR"XXX(I'm a "raw UTF-16" \ string.)XXX";
+const char32_t  *ii =  UR"XXX(I'm a "raw UTF-32" \ string.)XXX";
 %}
 

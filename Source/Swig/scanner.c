@@ -673,7 +673,7 @@ static int look(Scanner * s) {
 	Swig_error(cparse_file, cparse_start_line, "Unterminated string\n");
 	return SWIG_TOKEN_ERROR;
       }
-      else if (c == '[') {
+      else if (c == '(') {
 	state = 20;
       }
       else {
@@ -698,8 +698,8 @@ static int look(Scanner * s) {
 	  Delitem(s->text, DOH_END);
 	  get_escape(s);
 	}
-      } else {             /* Custom delimiter string: R"XXXX[value]XXXX" */
-	if (c==']') {
+      } else {             /* Custom delimiter string: R"XXXX(value)XXXX" */
+	if (c==')') {
 	  int i=0;
 	  String *end_delimiter = NewStringEmpty();
 	  while ((c = nextchar(s)) != 0 && c!='\"') {
@@ -710,7 +710,7 @@ static int look(Scanner * s) {
 	  }
 	  
 	  if (Strcmp( str_delimiter, end_delimiter )==0) {
-	    Delete( end_delimiter ); /* Correct end delimiter ]XXXX" occured */
+	    Delete( end_delimiter ); /* Correct end delimiter )XXXX" occured */
 	    Delete( str_delimiter );
 	    str_delimiter = 0;
 	    return SWIG_TOKEN_STRING;

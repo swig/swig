@@ -460,23 +460,22 @@ arguments defined in the original template&lt;&gt; block:</p>
 <H3><a name="Cpp0x_New_string_literals"></a>7.2.18 New string literals</H3>
 
 
-<p>SWIG fully supports custom delimiters and unicode string
-constants.</p>
+<p>SWIG fully supports unicode string constants and raw string literals.</p>
 
 <div class="code"><PRE>
 // New string literals
-char      *a = "ABC";
-wstring wide = L"ABC";
-char      *b = u8"ABC";
-char16_t  *c = u"ABC";
-char32_t  *d = U"ABC";
+wstring         aa =  L"Wide string";
+const char     *bb = u8"UTF-8 string";
+const char16_t *cc =  u"UTF-16 string";
+const char32_t *dd =  U"UTF-32 string";
 
-// Custom String delimiter
-char       *e = R"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
-wstring wide2 = LR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
-char       *f = u8R"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
-char16_t   *g = uR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
-char32_t   *h = UR"XXX[to be or "not" to be [these are parenthesis], this is the question!]XXX";
+// Raw string literals
+const char      *xx =        ")I'm an \"ascii\" \\ string.";
+const char      *ee =   R"XXX()I'm an "ascii" \ string.)XXX"; // same as xx
+wstring          ff =  LR"XXX(I'm a "raw wide" \ string.)XXX";
+const char      *gg = u8R"XXX(I'm a "raw UTF-8" \ string.)XXX";
+const char16_t  *hh =  uR"XXX(I'm a "raw UTF-16" \ string.)XXX";
+const char32_t  *ii =  UR"XXX(I'm a "raw UTF-32" \ string.)XXX";
 </PRE></div>
 
 <p>Note: SWIG currently incorrectly parses the odd number of double quotes
