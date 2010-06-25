@@ -102,7 +102,7 @@
   zend_hash_add(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void*)&z_var, sizeof(zval *), NULL);
 }
 
-%typemap(varinit) SWIGTYPE (CLASS::*)
+%typemap(varinit, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
 {
   void * p = emalloc(sizeof($1));
   memcpy(p, &$1, sizeof($1));
@@ -344,7 +344,7 @@ deliberate error cos this code looks bogus to me
   SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor, 0);
 }
 
-%typemap(varout) SWIGTYPE (CLASS::*)
+%typemap(varout, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
 {
   void * p = emalloc(sizeof($1));
   memcpy(p, &$1, sizeof($1));

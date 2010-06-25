@@ -351,7 +351,7 @@
   SWIG_SetPointerZval($input, (void *)&$1_name, $1_descriptor, $owner);
 %}
 
-%typemap(out) SWIGTYPE (CLASS::*)
+%typemap(out, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
 {
   void * p = emalloc(sizeof($1));
   memcpy(p, &$1, sizeof($1));
