@@ -1,4 +1,4 @@
-/* This testcase checks whether Swig correctly parses the default and delete
+/* This testcase checks whether SWIG correctly parses the default and delete
    keywords which keep or remove default C++ object construction functions. */
 %module cpp0x_default_delete
 
@@ -14,11 +14,11 @@ public:
 };
 
 struct A1 {
-   void f(int i);
-   void f(double i) = delete;  /* Don't cast double to int. Compiler returns an error */
+  void f(int i);
+  void f(double i) = delete;  /* Don't cast double to int. Compiler returns an error */
 };
 struct A2 {
-   void f(int i);
-   template<class T> void f(T) = delete; /* Only accept int */
+  void f(int i);
+  template<class T> void f(T) = delete; /* Only accept int */
 };
 %}

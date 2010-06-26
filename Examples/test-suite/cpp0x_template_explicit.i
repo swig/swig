@@ -1,4 +1,4 @@
-/* This unit tests whether Swig correctly parses the code and makes wrappers
+/* This unit tests whether SWIG correctly parses the code and makes wrappers
    for the new C++0x extern templates (explicit template instantiation without
    using the translation unit).
 */

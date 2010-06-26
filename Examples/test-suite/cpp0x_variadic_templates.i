@@ -1,4 +1,4 @@
-/* This testcase checks whether Swig correctly parses and generates the code
+/* This testcase checks whether SWIG correctly parses and generates the code
    for variadic templates. This covers the variadic number of arguments inside
    the template brackets, new functions sizeof... and multiple inheritance
    using variadic number of classes.
@@ -45,19 +45,19 @@ template<typename... Args> struct SizeOf {
 %inline %{
 class A {
 public:
-        A() {
-                a = 100;
-        }
-        
-        int a;
+  A() {
+    a = 100;
+  }
+
+  int a;
 };
 
 class B {
 public:
-        B() {
-                b = 200;
-        }
-        int b;
+  B() {
+    b = 200;
+  }
+  int b;
 };
 
 template <typename... BaseClasses> class MultiInherit : public BaseClasses... {

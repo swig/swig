@@ -1,4 +1,4 @@
-/* This testcase checks whether Swig correctly parses function objects
+/* This testcase checks whether SWIG correctly parses function objects
    and the templates for the functions (signature).
    Function objects are objects which overload the operator() function. */
 %module cpp0x_function_objects

@@ -1,12 +1,12 @@
-/* This testcase checks whether Swig correctly parses the template aliasing. */
+/* This testcase checks whether SWIG correctly parses the template aliasing. */
 %module cpp0x_template_typedefs
 
 %inline %{
 template< typename T1, typename T2, int >
 class SomeType {
-	T1 a;
-	T2 b;
-	int c;
+  T1 a;
+  T2 b;
+  int c;
 };
 
 template< typename T2 >

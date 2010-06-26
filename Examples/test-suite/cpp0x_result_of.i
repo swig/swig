@@ -1,4 +1,4 @@
-/* This testcase checks whether Swig correctly uses the new result_of class
+/* This testcase checks whether SWIG correctly uses the new result_of class
    and its templating capabilities introduced in C++0x. */
 %module cpp0x_result_of
 
@@ -7,12 +7,12 @@
 #include <iostream>
 
 double square(double x) {
-	return (x * x);
+  return (x * x);
 }
 
 template<class Fun, class Arg>
 typename std::result_of<Fun(Arg)>::type test_result_impl(Fun fun, Arg arg) {
-	return fun(arg);
+  return fun(arg);
 }
 %}
 

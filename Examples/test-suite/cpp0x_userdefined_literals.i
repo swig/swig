@@ -1,4 +1,4 @@
-/* This testcase checks whether Swig correctly parses the user-defined literals
+/* This testcase checks whether SWIG correctly parses the user-defined literals
    for the string introduced in C++0x. */
 %module cpp0x_userdefined_literals
 
@@ -6,9 +6,9 @@
 #include <iostream>
 
 struct OutputType {
-	int val;
+  int val;
 
-	OutputType(int v) { v=val; }	
+  OutputType(int v) { v=val; }
 };
 
 /* Note: GCC doesn't support user-defined literals yet! */

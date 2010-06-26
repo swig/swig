@@ -1,4 +1,4 @@
-/* This testcase checks whether Swig correctly uses the new alternate functions
+/* This testcase checks whether SWIG correctly uses the new alternate functions
    declarations and definitions introduced in C++0x. */
 %module cpp0x_alternate_function_syntax
 

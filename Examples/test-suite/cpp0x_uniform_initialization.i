@@ -1,4 +1,4 @@
-/* This testcase checks whether Swig syntactically correctly parses the curly
+/* This testcase checks whether SWIG syntactically correctly parses the curly
    brackets {} for uniform member initialization. */
 %module cpp0x_uniform_initialization
 

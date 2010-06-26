@@ -1,4 +1,4 @@
-/* This testcase checks whether Swig correctly uses the new general-purpose
+/* This testcase checks whether SWIG correctly uses the new general-purpose
    smart pointers introduced in C++0x:
    - shared_ptr
    - weak_ptr

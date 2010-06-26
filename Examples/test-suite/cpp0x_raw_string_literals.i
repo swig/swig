@@ -1,11 +1,11 @@
-/* This module tests whether Swig correctly parses:
+/* This module tests whether SWIG correctly parses:
    -    ordinary strings (char_t)
    - L  wide strings (wchar_t)
    - u8 unicode8 strings (char_t)
    - u  unicode16 strings (char16_t)
    - U  unicode32 strings (char32_t)
 
-   This module also tests whether Swig correctly parses custom string delimiters.
+   This module also tests whether SWIG correctly parses custom string delimiters.
 */
 %module cpp0x_raw_string_literals
 %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) bb;

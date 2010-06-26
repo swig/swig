@@ -1,4 +1,4 @@
-/* This testcase checks whether Swig correctly treats the new nullptr_t
+/* This testcase checks whether SWIG correctly treats the new nullptr_t
    constant introduced in C++0x.
 */
 
@@ -9,8 +9,8 @@
 
 class A {
 public:
-        A() : _myA(std::nullptr) { }
-        
-        A *_myA;
+  A() : _myA(std::nullptr) { }
+
+  A *_myA;
 };
 %}

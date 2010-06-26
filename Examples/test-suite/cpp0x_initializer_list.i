@@ -1,4 +1,4 @@
-/* This testcase checks whether Swig correctly uses the new initializer_list
+/* This testcase checks whether SWIG correctly uses the new initializer_list
    introduced in C++0x. */
 %module cpp0x_initializer_list
 %warnfilter(520) A;
@@ -8,8 +8,8 @@
 
 class A {
 public:
-   A( std::initializer_list<int> ) {}
-   A() {}
+  A( std::initializer_list<int> ) {}
+  A() {}
 };
 %}
 

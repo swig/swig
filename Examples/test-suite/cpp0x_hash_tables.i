@@ -23,21 +23,21 @@ using namespace std;
 
 class MyClass {
 public:
-        set<int> getSet() { return _set; }
-        void addSet(int elt) { _set.insert(_set.begin(), elt); }
-//        map<int, int> getMap() { return _map; }
-//        void addMap(int elt1, int elt2) { _map.insert(make_pair(elt1, elt2)); }
+  set<int> getSet() { return _set; }
+  void addSet(int elt) { _set.insert(_set.begin(), elt); }
+//  map<int, int> getMap() { return _map; }
+//  void addMap(int elt1, int elt2) { _map.insert(make_pair(elt1, elt2)); }
 
-        unordered_set<int> getUnorderedSet() { return _unordered_set; }
-        void addUnorderedSet(int elt) { _unordered_set.insert(_unordered_set.begin(), elt); }
-//        unordered_map<int, int> getUnorderedMap() { return _unordered_map; }
-//        void addUnorderedMap(int elt1, int elt2) { _unordered_map.insert(make_pair(elt1, elt2)); }
+  unordered_set<int> getUnorderedSet() { return _unordered_set; }
+  void addUnorderedSet(int elt) { _unordered_set.insert(_unordered_set.begin(), elt); }
+//  unordered_map<int, int> getUnorderedMap() { return _unordered_map; }
+//  void addUnorderedMap(int elt1, int elt2) { _unordered_map.insert(make_pair(elt1, elt2)); }
 private:
-        set<int> _set;
-//        map<int, int> _map;
+  set<int> _set;
+//  map<int, int> _map;
 
-        unordered_set<int> _unordered_set;
-//        unordered_map<int, int> _unordered_map;
+  unordered_set<int> _unordered_set;
+//  unordered_map<int, int> _unordered_map;
 };
 %}
 
