@@ -20,5 +20,8 @@ public class li_boost_shared_ptr_bits_runme {
     int sum = li_boost_shared_ptr_bits.sum(v);
     if (sum != 66)
       throw new RuntimeException("sum is wrong");
+
+    HiddenDestructor hidden = HiddenDestructor.create();
+    hidden.delete();
   }
 }

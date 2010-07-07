@@ -29,3 +29,6 @@ sum = sum(v)
 if sum != 66:
   raise "sum is wrong"
 
+################################
+p = HiddenDestructor.create()
+

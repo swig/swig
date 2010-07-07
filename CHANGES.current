@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-07-08: wsfulton
+            Fix #3024875 - shared_ptr of classes with non-public destructors. This also fixes
+            the "unref" feature when used on classes with non-public destructors.
+
 2010-06-10: wsfulton
             [Lua] Fix SWIG_lua_isnilstring multiply defined when using multiple
             modules and wrapping strings. Patch from 'Number Cruncher'.
