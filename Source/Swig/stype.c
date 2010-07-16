@@ -735,6 +735,7 @@ String *SwigType_rcaststr(SwigType *s, const_String_or_char_ptr name) {
   int clear = 1;
   int firstarray = 1;
   int isreference = 0;
+  int isfunction = 0;
   int isarray = 0;
 
   result = NewStringEmpty();
@@ -835,6 +836,7 @@ String *SwigType_rcaststr(SwigType *s, const_String_or_char_ptr name) {
       }
       Append(result, ")");
       Delete(parms);
+      isfunction = 1;
     } else {
       String *bs = SwigType_namestr(element);
       Insert(result, 0, " ");
@@ -850,10 +852,12 @@ String *SwigType_rcaststr(SwigType *s, const_String_or_char_ptr name) {
     cast = NewStringf("(%s)", result);
   }
   if (name) {
-    if (isreference) {
-      if (isarray)
-	Clear(cast);
-      Append(cast, "*");
+    if (!isfunction) {
+      if (isreference) {
+	if (isarray)
+	  Clear(cast);
+	Append(cast, "*");
+      }
     }
     Append(cast, name);
   }

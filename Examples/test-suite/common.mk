@@ -201,6 +201,7 @@ CPP_TEST_CASES += \
 	features \
 	fragments \
 	friends \
+	funcptr_cpp \
 	fvirtual \
 	global_namespace \
 	global_ns_arg \
