@@ -54,7 +54,11 @@ int sum(std::vector< boost::shared_ptr<IntHolder> > v) {
 // Bug 3024875
 /////////////////////////////////////////////////
 
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
+
 %shared_ptr(HiddenDestructor)
+
+#endif
 
 %inline %{
 class HiddenDestructor;
