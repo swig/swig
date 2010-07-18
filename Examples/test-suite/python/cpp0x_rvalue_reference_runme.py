@@ -16,7 +16,9 @@ a.setAref(ptr)
 if a.getAcopy() != 5:
 	raise RunTimeError, ("after A::setAref(): int A::getAcopy() value is ", a.getAcopy(), " should be 5")
 
-a.setAmove(ptr)
+rvalueref = a.getAmove()
+
+a.setAmove(rvalueref)
 if a.getAcopy() != 5:
 	raise RunTimeError, ("after A::setAmove(): int A::getAcopy() value is ", a.getAcopy(), " should be 5")
 

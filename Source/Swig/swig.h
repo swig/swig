@@ -94,6 +94,7 @@ extern "C" {
 #define   T_FUNCTION   37
 #define   T_MPOINTER   38
 #define   T_VARARGS    39
+#define   T_RVALUE_REFERENCE  40
 #define   T_SYMBOL     98
 #define   T_ERROR      99
 
@@ -123,6 +124,8 @@ extern "C" {
   extern SwigType *SwigType_pop_arrays(SwigType *t);
   extern SwigType *SwigType_add_reference(SwigType *t);
   extern SwigType *SwigType_del_reference(SwigType *t);
+  extern SwigType *SwigType_add_rvalue_reference(SwigType *t);
+  extern SwigType *SwigType_del_rvalue_reference(SwigType *t);
   extern SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual);
   extern SwigType *SwigType_del_qualifier(SwigType *t);
   extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);
@@ -146,6 +149,7 @@ extern "C" {
   extern int SwigType_ismemberpointer(SwigType *t);
   extern int SwigType_isreference(SwigType *t);
   extern int SwigType_isreference_return(SwigType *t);
+  extern int SwigType_isrvalue_reference(SwigType *t);
   extern int SwigType_isarray(SwigType *t);
   extern int SwigType_prefix_is_simple_1D_array(SwigType *t);
   extern int SwigType_isfunction(SwigType *t);

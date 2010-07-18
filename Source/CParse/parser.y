@@ -3968,15 +3968,19 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { template_para
 		      Delete(Namespaceprefix);
 		      Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		      if (error) $$ = 0;
-                  }
-                | TEMPLATE cpptype idcolon { /* Explicit template instantiation */
+                }
+
+		/* Explicit template instantiation */
+                | TEMPLATE cpptype idcolon {
 		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
-                   $$ = 0; 
-		  }
-		| EXTERN TEMPLATE cpptype idcolon { /* Explicit template instantiation without the translation unit */
+                  $$ = 0; 
+		}
+
+		/* Explicit template instantiation without the translation unit */
+		| EXTERN TEMPLATE cpptype idcolon {
 		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
-                   $$ = 0; 
-                  }
+                  $$ = 0; 
+                }
                 ;
 
 cpp_temp_possible:  c_decl {
@@ -4386,6 +4390,23 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 		 Setattr($$,"storage",$1);
 		 decl = NewStringEmpty();
 		 SwigType_add_reference(decl);
+		 SwigType_add_function(decl,$6);
+		 if ($8.qualifier) {
+		   SwigType_push(decl,$8.qualifier);
+		 }
+		 Setattr($$,"decl",decl);
+		 Setattr($$,"parms",$6);
+		 Setattr($$,"conversion_operator","1");
+		 add_symbols($$);
+	       }
+               | storage_class COPERATOR type LAND LPAREN parms RPAREN cpp_vend {
+		 SwigType *decl;
+                 $$ = new_node("cdecl");
+                 Setattr($$,"type",$3);
+		 Setattr($$,"name",$2);
+		 Setattr($$,"storage",$1);
+		 decl = NewStringEmpty();
+		 SwigType_add_rvalue_reference(decl);
 		 SwigType_add_function(decl,$6);
 		 if ($8.qualifier) {
 		   SwigType_push(decl,$8.qualifier);
@@ -4902,6 +4923,15 @@ declarator :  pointer notso_direct_declarator {
 	      }
 	      $$.type = $1;
            }
+           | pointer LAND notso_direct_declarator {
+              $$ = $3;
+	      SwigType_add_rvalue_reference($1);
+              if ($$.type) {
+		SwigType_push($1,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = $1;
+           }
            | direct_declarator {
               $$ = $1;
 	      if (!$$.type) $$.type = NewStringEmpty();
@@ -4920,7 +4950,7 @@ declarator :  pointer notso_direct_declarator {
              /* Adds one S/R conflict */
 	     $$ = $2;
 	     $$.type = NewStringEmpty();
-	     SwigType_add_reference($$.type);
+	     SwigType_add_rvalue_reference($$.type);
 	     if ($2.type) {
 	       SwigType_push($$.type,$2.type);
 	       Delete($2.type);
@@ -4990,6 +5020,15 @@ declarator :  pointer notso_direct_declarator {
 	      }
 	      $$.type = $1;
            }
+           | pointer LAND PERIOD PERIOD PERIOD notso_direct_declarator {
+              $$ = $6;
+	      SwigType_add_rvalue_reference($1);
+              if ($$.type) {
+		SwigType_push($1,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = $1;
+           }
            | PERIOD PERIOD PERIOD direct_declarator {
               $$ = $4;
 	      if (!$$.type) $$.type = NewStringEmpty();
@@ -5008,7 +5047,7 @@ declarator :  pointer notso_direct_declarator {
              /* Adds one S/R conflict */
 	     $$ = $5;
 	     $$.type = NewStringEmpty();
-	     SwigType_add_reference($$.type);
+	     SwigType_add_rvalue_reference($$.type);
 	     if ($5.type) {
 	       SwigType_push($$.type,$5.type);
 	       Delete($5.type);
@@ -5047,11 +5086,32 @@ declarator :  pointer notso_direct_declarator {
 	     }
 	     $$.type = $1;
 	   }
+           | pointer idcolon DSTAR LAND PERIOD PERIOD PERIOD notso_direct_declarator { 
+	     $$ = $8;
+	     SwigType_add_memberpointer($1,$2);
+	     SwigType_add_rvalue_reference($1);
+	     if ($$.type) {
+	       SwigType_push($1,$$.type);
+	       Delete($$.type);
+	     }
+	     $$.type = $1;
+	   }
            | idcolon DSTAR AND PERIOD PERIOD PERIOD notso_direct_declarator { 
 	     SwigType *t = NewStringEmpty();
 	     $$ = $7;
 	     SwigType_add_memberpointer(t,$1);
 	     SwigType_add_reference(t);
+	     if ($$.type) {
+	       SwigType_push(t,$$.type);
+	       Delete($$.type);
+	     } 
+	     $$.type = t;
+	   }
+           | idcolon DSTAR LAND PERIOD PERIOD PERIOD notso_direct_declarator { 
+	     SwigType *t = NewStringEmpty();
+	     $$ = $7;
+	     SwigType_add_memberpointer(t,$1);
+	     SwigType_add_rvalue_reference(t);
 	     if ($$.type) {
 	       SwigType_push(t,$$.type);
 	       Delete($$.type);
@@ -5191,6 +5251,13 @@ direct_declarator : idcolon {
 		    }
 		    SwigType_add_reference($$.type);
                   }
+                  | LPAREN LAND direct_declarator RPAREN {
+                    $$ = $3;
+		    if (!$$.type) {
+		      $$.type = NewStringEmpty();
+		    }
+		    SwigType_add_rvalue_reference($$.type);
+                  }
                   | LPAREN idcolon DSTAR direct_declarator RPAREN {
 		    SwigType *t;
 		    $$ = $4;
@@ -5283,9 +5350,25 @@ abstract_declarator : pointer {
 		    $$.parms = 0;
 		    $$.have_parms = 0;
 		  }
+                  | pointer LAND {
+		    $$.type = $1;
+		    SwigType_add_rvalue_reference($$.type);
+		    $$.id = 0;
+		    $$.parms = 0;
+		    $$.have_parms = 0;
+		  }
                   | pointer AND direct_abstract_declarator {
 		    $$ = $3;
 		    SwigType_add_reference($1);
+		    if ($$.type) {
+		      SwigType_push($1,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = $1;
+                  }
+                  | pointer LAND direct_abstract_declarator {
+		    $$ = $3;
+		    SwigType_add_rvalue_reference($1);
 		    if ($$.type) {
 		      SwigType_push($1,$$.type);
 		      Delete($$.type);
@@ -5304,12 +5387,28 @@ abstract_declarator : pointer {
 		      Delete($2.type);
 		    }
                   }
+                  | LAND direct_abstract_declarator {
+		    $$ = $2;
+		    $$.type = NewStringEmpty();
+		    SwigType_add_rvalue_reference($$.type);
+		    if ($2.type) {
+		      SwigType_push($$.type,$2.type);
+		      Delete($2.type);
+		    }
+                  }
                   | AND {
                     $$.id = 0;
                     $$.parms = 0;
 		    $$.have_parms = 0;
                     $$.type = NewStringEmpty();
 		    SwigType_add_reference($$.type);
+                  }
+                  | LAND {
+                    $$.id = 0;
+                    $$.parms = 0;
+		    $$.have_parms = 0;
+                    $$.type = NewStringEmpty();
+		    SwigType_add_rvalue_reference($$.type);
                   }
                   | idcolon DSTAR { 
 		    $$.type = NewStringEmpty();
@@ -5821,6 +5920,13 @@ valexpr        : exprnum { $$ = $1; }
 		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
 		 }
  	       }
+               | LPAREN expr LAND RPAREN expr %prec CAST {
+                 $$ = $5;
+		 if ($5.type != T_STRING) {
+		   SwigType_add_rvalue_reference($2.val);
+		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
+		 }
+ 	       }
                | LPAREN expr pointer AND RPAREN expr %prec CAST {
                  $$ = $6;
 		 if ($6.type != T_STRING) {
@@ -5829,9 +5935,21 @@ valexpr        : exprnum { $$ = $1; }
 		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $6.val);
 		 }
  	       }
+               | LPAREN expr pointer LAND RPAREN expr %prec CAST {
+                 $$ = $6;
+		 if ($6.type != T_STRING) {
+		   SwigType_push($2.val,$3);
+		   SwigType_add_rvalue_reference($2.val);
+		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $6.val);
+		 }
+ 	       }
                | AND expr {
 		 $$ = $2;
                  $$.val = NewStringf("&%s",$2.val);
+	       }
+               | LAND expr {
+		 $$ = $2;
+                 $$.val = NewStringf("&&%s",$2.val);
 	       }
                | STAR expr {
 		 $$ = $2;

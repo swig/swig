@@ -1206,6 +1206,8 @@ int SwigType_type(SwigType *t) {
     return T_ARRAY;
   if (strncmp(c, "r.", 2) == 0)
     return T_REFERENCE;
+  if (strncmp(c, "z.", 2) == 0)
+    return T_RVALUE_REFERENCE;
   if (strncmp(c, "m(", 2) == 0)
     return T_MPOINTER;
   if (strncmp(c, "q(", 2) == 0) {
@@ -1538,6 +1540,11 @@ void SwigType_remember_clientdata(SwigType *t, const_String_or_char_ptr clientda
   if (SwigType_isreference(t)) {
     SwigType *tt = Copy(t);
     SwigType_del_reference(tt);
+    SwigType_add_pointer(tt);
+    SwigType_remember_clientdata(tt, clientdata);
+  } else if (SwigType_isrvalue_reference(t)) {
+    SwigType *tt = Copy(t);
+    SwigType_del_rvalue_reference(tt);
     SwigType_add_pointer(tt);
     SwigType_remember_clientdata(tt, clientdata);
   }

@@ -68,6 +68,19 @@ static String *Swig_clocal(SwigType *t, const_String_or_char_ptr name, const_Str
       Delete(lstrname);
     }
     break;
+  case T_RVALUE_REFERENCE:
+    if (value) {
+      String *lstrname = SwigType_lstr(t, name);
+      String *lstr = SwigType_lstr(t, 0);
+      Printf(decl, "%s = (%s) &%s_defrvalue", lstrname, lstr, name);
+      Delete(lstrname);
+      Delete(lstr);
+    } else {
+      String *lstrname = SwigType_lstr(t, name);
+      Printf(decl, "%s = 0", lstrname);
+      Delete(lstrname);
+    }
+    break;
   case T_VOID:
     break;
   case T_VARARGS:
@@ -229,6 +242,34 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	  Delete(defname);
 	  Delete(defvalue);
 	}
+      } else if (tycode == T_RVALUE_REFERENCE) {
+	if (pvalue) {
+	  SwigType *tvalue;
+	  String *defname, *defvalue, *rvalue, *qvalue;
+	  rvalue = SwigType_typedef_resolve_all(pvalue);
+	  qvalue = SwigType_typedef_qualified(rvalue);
+	  defname = NewStringf("%s_defrvalue", lname);
+	  tvalue = Copy(type);
+	  SwigType_del_rvalue_reference(tvalue);
+	  tycode = SwigType_type(tvalue);
+	  if (tycode != T_USER) {
+	    /* plain primitive type, we copy the the def value */
+	    String *lstr = SwigType_lstr(tvalue, defname);
+	    defvalue = NewStringf("%s = %s", lstr, qvalue);
+	    Delete(lstr);
+	  } else {
+	    /* user type, we copy the reference value */
+	    String *str = SwigType_str(type, defname);
+	    defvalue = NewStringf("%s = %s", str, qvalue);
+	    Delete(str);
+	  }
+	  Wrapper_add_localv(w, defname, defvalue, NIL);
+	  Delete(tvalue);
+	  Delete(rvalue);
+	  Delete(qvalue);
+	  Delete(defname);
+	  Delete(defvalue);
+	}
       } else if (!pvalue && ((tycode == T_POINTER) || (tycode == T_STRING))) {
 	pvalue = (String *) "0";
       }
@@ -263,6 +304,13 @@ String *Swig_cresult(SwigType *t, const_String_or_char_ptr name, const_String_or
   case T_VOID:
     break;
   case T_REFERENCE:
+    {
+      String *lstr = SwigType_lstr(t, 0);
+      Printf(fcall, "%s = (%s) &", name, lstr);
+      Delete(lstr);
+    }
+    break;
+  case T_RVALUE_REFERENCE:
     {
       String *lstr = SwigType_lstr(t, 0);
       Printf(fcall, "%s = (%s) &", name, lstr);

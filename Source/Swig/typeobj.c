@@ -45,6 +45,7 @@ char cvsroot_typeobj_c[] = "$Id$";
  * 
  *  'p.'                = Pointer (*)
  *  'r.'                = Reference (&)
+ *  'z.'                = Rvalue reference (&&)
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
  *  'q(str).'           = Qualifier (such as const or volatile) (const, volatile)
@@ -75,6 +76,7 @@ char cvsroot_typeobj_c[] = "$Id$";
  *
  *       SwigType_add_pointer()
  *       SwigType_add_reference()
+ *       SwigType_add_rvalue_reference()
  *       SwigType_add_array()
  *
  * These are used to build new types.  There are also functions to undo these
@@ -82,12 +84,14 @@ char cvsroot_typeobj_c[] = "$Id$";
  *
  *       SwigType_del_pointer()
  *       SwigType_del_reference()
+ *       SwigType_del_rvalue_reference()
  *       SwigType_del_array()
  *
  * In addition, there are query functions
  *
  *       SwigType_ispointer()
  *       SwigType_isreference()
+ *       SwigType_isrvalue_reference()
  *       SwigType_isarray()
  *
  * Finally, there are some data extraction functions that can be used to
@@ -404,6 +408,41 @@ int SwigType_isreference(SwigType *t) {
     return 0;
   c = Char(t);
   if (strncmp(c, "r.", 2) == 0) {
+    return 1;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ *                                 Rvalue References
+ *
+ * SwigType_add_rvalue_reference()
+ * SwigType_del_rvalue_reference()
+ * SwigType_isrvalue_reference()
+ *
+ * Add, remove, and test if a type is a rvalue reference.  The deletion and query
+ * functions take into account qualifiers (if any).
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_add_rvalue_reference(SwigType *t) {
+  Insert(t, 0, "z.");
+  return t;
+}
+
+SwigType *SwigType_del_rvalue_reference(SwigType *t) {
+  char *c = Char(t);
+  int check = strncmp(c, "z.", 2);
+  assert(check == 0);
+  Delslice(t, 0, 2);
+  return t;
+}
+
+int SwigType_isrvalue_reference(SwigType *t) {
+  char *c;
+  if (!t)
+    return 0;
+  c = Char(t);
+  if (strncmp(c, "z.", 2) == 0) {
     return 1;
   }
   return 0;

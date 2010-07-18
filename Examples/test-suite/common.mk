@@ -409,6 +409,7 @@ CPP0X_TEST_CASES = \
 	cpp0x_function_objects \
 	cpp0x_strongly_typed_enumerations \
 	cpp0x_rvalue_reference \
+	cpp0x_rvalue_reference2 \
 	cpp0x_variadic_templates \
         cpp0x_alternate_function_syntax \
 	cpp0x_userdefined_literals \

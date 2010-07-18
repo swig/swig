@@ -1160,6 +1160,7 @@ public:
 		break;
 	      }
 	      case T_REFERENCE:
+	      case T_RVALUE_REFERENCE:
 	      case T_USER:
 	      case T_ARRAY:
 		Clear(value);
@@ -1930,6 +1931,7 @@ public:
 	break;
       case T_POINTER:
       case T_REFERENCE:
+      case T_RVALUE_REFERENCE:
       case T_USER:
 	if (is_shadow(t)) {
 	  return NewString(Char(is_shadow(t)));
