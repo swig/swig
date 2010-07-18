@@ -39,7 +39,6 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 JAVA_PACKAGE = $*
 SWIGOPT += -package $(JAVA_PACKAGE)
-INTERFACEDIR = ../../
 
 # Custom tests - tests with additional commandline options
 nspace.%: JAVA_PACKAGE = $*Package
