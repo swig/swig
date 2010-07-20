@@ -4,7 +4,7 @@ CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
 LIBS       =
-SWIGOPT    = -noproxy
+SWIGOPT    =
 
 all::
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \

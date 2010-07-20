@@ -30,8 +30,6 @@
 
 
 
-<b>Disclaimer: This chapter is under construction.</b>
-
 <p>
 In Chapter 3, SWIG's treatment of basic datatypes and pointers was
 described.  In particular, primitive types such as <tt>int</tt> and
@@ -351,7 +349,7 @@ function like this in an interface file :</p>
 
 <div class="code"><pre>
 %module example
-%include typemaps.i
+%include "typemaps.i"
 ...
 %{
 extern void negate(double *);

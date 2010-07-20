@@ -118,13 +118,11 @@
 
       static VALUE from(const std::pair<T,U>& val) {
 	VALUE obj = rb_ary_new2(2);
-	RARRAY_PTR(obj)[0] = swig::from< 
-	  typename swig::noconst_traits<T >::noconst_type>(val.first);
-	RARRAY_PTR(obj)[1] = swig::from(val.second);
-	RARRAY_LEN(obj) = 2;
-	rb_define_singleton_method(obj, "second",  
+	rb_ary_push(obj, swig::from<typename swig::noconst_traits<T >::noconst_type>(val.first));
+	rb_ary_push(obj, swig::from(val.second));
+	rb_define_singleton_method(obj, "second",
 				   VALUEFUNC(_wrap_pair_second), 0 );
-	rb_define_singleton_method(obj, "second=", 
+	rb_define_singleton_method(obj, "second=",
 				   VALUEFUNC(_wrap_pair_second_eq), 1 );
 	rb_obj_freeze(obj); // treat as immutable tuple
 	return obj;
@@ -148,7 +146,8 @@
   VALUE inspect() const
     {
       VALUE tmp;
-      VALUE str = rb_str_new2( swig::type_name< pair >() );
+      const char *type_name = swig::type_name< pair >();
+      VALUE str = rb_str_new2( type_name );
       str = rb_str_cat2( str, " (" );
       tmp = swig::from( $self->first );
       tmp = rb_obj_as_string( tmp );

@@ -1,5 +1,14 @@
 #include <ruby.h>
 
+/* Ruby 1.9.1 has a "memoisation optimisation" when compiling with GCC which
+ * breaks using rb_intern as an lvalue, as SWIG does.  We work around this
+ * issue for now by disabling this.
+ * https://sourceforge.net/tracker/?func=detail&aid=2859614&group_id=1645&atid=101645
+ */
+#ifdef rb_intern
+# undef rb_intern
+#endif
+
 /* Remove global macros defined in Ruby's win32.h */
 #ifdef write
 # undef write
@@ -9,6 +18,12 @@
 #endif
 #ifdef bind
 # undef bind
+#endif
+#ifdef close
+# undef close
+#endif
+#ifdef connect
+# undef connect
 #endif
 
 

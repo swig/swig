@@ -1,25 +1,20 @@
 /* -----------------------------------------------------------------------------
  * phpkw.swg
- *
- * The 'keywords' in PHP are global, ie, the following names are fine
- * when used as class methods.
  * ----------------------------------------------------------------------------- */
 
-#define PHPKW(x) %keywordwarn("'" `x` "' is a php keyword, renamed as 'c_" `x` "'",sourcefmt="%(lower)s", rename="c_%s",fullname=1)  `x`
+#define PHPKW(x) %keywordwarn("'" `x` "' is a PHP keyword, renamed as 'c_" `x` "'",sourcefmt="%(lower)s",rename="c_%s") `x`
 
-%define PHPCN(x) 
-%keywordwarn("'" `x` "' is a php reserved class name, class renamed as 'c_" `x` "'",%$isclass,rename="c_%s") `x`;
-%keywordwarn("'" `x` "' is a php reserved class name, constructor renamed as 'c_" `x` "'",%$isconstructor,rename="c_%s") `x`;
-%enddef
+#define PHPCN(x) %keywordwarn("'" `x` "' is a PHP reserved class name, class renamed as 'c_" `x` "'",%$isclass,sourcefmt="%(lower)s",rename="c_%s") `x`
 
-#define PHPBN1(x) %builtinwarn("'" `x` "' conflicts with a built-in name in php",sourcefmt="%(lower)s",fullname=1)  `x`
-#define PHPBN2(x) %builtinwarn("'" `x` "' conflicts with a built-in name in php")  "::" `x`
-
+#define PHPBN1(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP",sourcefmt="%(lower)s") `x`
+#define PHPBN2(x) %builtinwarn("'" `x` "' conflicts with a built-in name in PHP") "::" `x`
+#define PHPFN(x) %keywordwarn("'" `x` "' is a PHP built-in function, renamed as 'c_" `x` "'",sourcefmt="%(lower)s",%$isfunction,%$not %$ismember,rename="c_%s") `x`
 
 /*
    From
 
      http://aspn.activestate.com/ASPN/docs/PHP/reserved.html
+     http://php.net/manual/en/reserved.keywords.php
 
    and reviewed by Olly Betts.
 
@@ -27,76 +22,81 @@
 */
 
 /* We classify these as kw since PHP will not run if used globally. */
+/* "You cannot use any of the following words as constants, class names,
+ * function or method names. Using them as variable names is generally OK, but
+ * could lead to confusion."
+ */
 /* case insensitive */
+PHPKW(__halt_compiler);
+PHPKW(abstract);
 PHPKW(and);
 PHPKW(array);
 PHPKW(as);
 PHPKW(break);
 PHPKW(case);
-PHPKW(cfunction); /* No longer reserved in PHP5 */
+PHPKW(catch);
 PHPKW(class);
+PHPKW(clone);
 PHPKW(const);
 PHPKW(continue);
 PHPKW(declare);
 PHPKW(default);
-PHPKW(die);
+PHPKW(die); // "Language construct"
 PHPKW(do);
-PHPKW(echo);
+PHPKW(echo); // "Language construct"
 PHPKW(else);
 PHPKW(elseif);
-PHPKW(empty);
+PHPKW(empty); // "Language construct"
 PHPKW(enddeclare);
 PHPKW(endfor);
 PHPKW(endforeach);
 PHPKW(endif);
 PHPKW(endswitch);
 PHPKW(endwhile);
-PHPKW(eval);
-PHPKW(exit);
+PHPKW(eval); // "Language construct"
+PHPKW(exit); // "Language construct"
 PHPKW(extends);
+PHPKW(final);
 PHPKW(for);
 PHPKW(foreach);
 PHPKW(function);
 PHPKW(global);
+PHPKW(goto); // As of PHP5.3
 PHPKW(if);
-PHPKW(include);
-PHPKW(include_once);
-PHPKW(isset);
-PHPKW(list);
+PHPKW(implements);
+PHPKW(include); // "Language construct"
+PHPKW(include_once); // "Language construct"
+PHPKW(instanceof);
+PHPKW(interface);
+PHPKW(isset); // "Language construct"
+PHPKW(list); // "Language construct"
+PHPKW(namespace); // As of PHP5.3
 PHPKW(new);
-// PHPKW(old_function); /* No longer reserved in PHP5 */
 PHPKW(or);
-PHPKW(print);
-PHPKW(require);
-PHPKW(require_once);
-PHPKW(return);
+PHPKW(print); // "Language construct"
+PHPKW(private);
+PHPKW(protected);
+PHPKW(public);
+PHPKW(require); // "Language construct"
+PHPKW(require_once); // "Language construct"
+PHPKW(return); // "Language construct"
 PHPKW(static);
 PHPKW(switch);
-PHPKW(unset);
+PHPKW(throw);
+PHPKW(try);
+PHPKW(unset); // "Language construct"
 PHPKW(use);
 PHPKW(var);
 PHPKW(while);
 PHPKW(xor);
-PHPKW(__FILE__);
-PHPKW(__LINE__);
-PHPKW(__FUNCTION__);
+// Compile-time constants
 PHPKW(__CLASS__);
-
-/* Added in PHP5 */
-PHPKW(__halt_compiler);
-PHPKW(abstract);
-PHPKW(catch);
-PHPKW(clone);
-PHPKW(final);
-PHPKW(implements);
-PHPKW(instanceof);
-PHPKW(interface);
-PHPKW(private);
-PHPKW(protected);
-PHPKW(public);
-PHPKW(throw);
-PHPKW(try);
+PHPKW(__DIR__); // As of PHP5.3
+PHPKW(__FILE__);
+PHPKW(__FUNCTION__);
 PHPKW(__METHOD__);
+PHPKW(__NAMESPACE__); // As of PHP5.3
+PHPKW(__LINE__);
 
 /* We classify these as built-in names since they conflict, but PHP still runs */
 
@@ -352,107 +352,131 @@ PHPBN2(E_STRICT);
 PHPBN2(__COMPILER_HALT_OFFSET__);
 
 /* Class names reserved by PHP */
-PHPCN(stdClass);
-PHPCN(__PHP_Incomplete_Class);
-PHPCN(Directory);
-
+/* case insensitive */
+PHPCN(stdclass);
+PHPCN(__php_incomplete_class);
+PHPCN(directory);
 /* Added in PHP5 (this list apparently depends which extensions you load by default). */
 PHPCN(parent);
 PHPCN(self);
-PHPCN(Exception);
+PHPCN(exception);
 PHPCN(php_user_filter);
-PHPCN(ErrorException);
-PHPCN(XMLWriter);
-PHPCN(LibXMLError);
-PHPCN(SimpleXMLElement);
-PHPCN(SoapClient);
-PHPCN(SoapVar);
-PHPCN(SoapServer);
-PHPCN(SoapFault);
-PHPCN(SoapParam);
-PHPCN(SoapHeader);
-PHPCN(RecursiveIteratorIterator);
-PHPCN(FilterIterator);
-PHPCN(RecursiveFilterIterator);
-PHPCN(ParentIterator);
-PHPCN(LimitIterator);
-PHPCN(CachingIterator);
-PHPCN(RecursiveCachingIterator);
-PHPCN(IteratorIterator);
-PHPCN(NoRewindIterator);
-PHPCN(AppendIterator);
-PHPCN(InfiniteIterator);
-PHPCN(EmptyIterator);
-PHPCN(ArrayObject);
-PHPCN(ArrayIterator);
-PHPCN(RecursiveArrayIterator);
-PHPCN(SplFileInfo);
-PHPCN(DirectoryIterator);
-PHPCN(RecursiveDirectoryIterator);
-PHPCN(SplFileObject);
-PHPCN(SplTempFileObject);
-PHPCN(SimpleXMLIterator);
-PHPCN(LogicException);
-PHPCN(BadFunctionCallException);
-PHPCN(BadMethodCallException);
-PHPCN(DomainException);
-PHPCN(InvalidArgumentException);
-PHPCN(LengthException);
-PHPCN(OutOfRangeException);
-PHPCN(RuntimeException);
-PHPCN(OutOfBoundsException);
-PHPCN(OverflowException);
-PHPCN(RangeException);
-PHPCN(UnderflowException);
-PHPCN(UnexpectedValueException);
-PHPCN(SplObjectStorage);
-PHPCN(ReflectionException);
-PHPCN(Reflection);
-PHPCN(ReflectionFunction);
-PHPCN(ReflectionParameter);
-PHPCN(ReflectionMethod);
-PHPCN(ReflectionClass);
-PHPCN(ReflectionObject);
-PHPCN(ReflectionProperty);
-PHPCN(ReflectionExtension);
-PHPCN(DOMException);
-PHPCN(DOMStringList);
-PHPCN(DOMNameList);
-PHPCN(DOMImplementationList);
-PHPCN(DOMImplementationSource);
-PHPCN(DOMImplementation);
-PHPCN(DOMNode);
-PHPCN(DOMNameSpaceNode);
-PHPCN(DOMDocumentFragment);
-PHPCN(DOMDocument);
-PHPCN(DOMNodeList);
-PHPCN(DOMNamedNodeMap);
-PHPCN(DOMCharacterData);
-PHPCN(DOMAttr);
-PHPCN(DOMElement);
-PHPCN(DOMText);
-PHPCN(DOMComment);
-PHPCN(DOMTypeinfo);
-PHPCN(DOMUserDataHandler);
-PHPCN(DOMDomError);
-PHPCN(DOMErrorHandler);
-PHPCN(DOMLocator);
-PHPCN(DOMConfiguration);
-PHPCN(DOMCdataSection);
-PHPCN(DOMDocumentType);
-PHPCN(DOMNotation);
-PHPCN(DOMEntity);
-PHPCN(DOMEntityReference);
-PHPCN(DOMProcessingInstruction);
-PHPCN(DOMStringExtend);
-PHPCN(DOMXPath);
-PHPCN(XMLReader);
-PHPCN(SQLiteDatabase);
-PHPCN(SQLiteResult);
-PHPCN(SQLiteUnbuffered);
-PHPCN(SQLiteException);
+PHPCN(errorexception);
+PHPCN(xmlwriter);
+PHPCN(libxmlerror);
+PHPCN(simplexmlelement);
+PHPCN(soapclient);
+PHPCN(soapvar);
+PHPCN(soapserver);
+PHPCN(soapfault);
+PHPCN(soapparam);
+PHPCN(soapheader);
+PHPCN(recursiveiteratoriterator);
+PHPCN(filteriterator);
+PHPCN(recursivefilteriterator);
+PHPCN(parentiterator);
+PHPCN(limititerator);
+PHPCN(cachingiterator);
+PHPCN(recursivecachingiterator);
+PHPCN(iteratoriterator);
+PHPCN(norewinditerator);
+PHPCN(appenditerator);
+PHPCN(infiniteiterator);
+PHPCN(emptyiterator);
+PHPCN(arrayobject);
+PHPCN(arrayiterator);
+PHPCN(recursivearrayiterator);
+PHPCN(splfileinfo);
+PHPCN(directoryiterator);
+PHPCN(recursivedirectoryiterator);
+PHPCN(splfileobject);
+PHPCN(spltempfileobject);
+PHPCN(simplexmliterator);
+PHPCN(logicexception);
+PHPCN(badfunctioncallexception);
+PHPCN(badmethodcallexception);
+PHPCN(domainexception);
+PHPCN(invalidargumentexception);
+PHPCN(lengthexception);
+PHPCN(outofrangeexception);
+PHPCN(runtimeexception);
+PHPCN(outofboundsexception);
+PHPCN(overflowexception);
+PHPCN(rangeexception);
+PHPCN(underflowexception);
+PHPCN(unexpectedvalueexception);
+PHPCN(splobjectstorage);
+PHPCN(reflectionexception);
+PHPCN(reflection);
+PHPCN(reflectionfunction);
+PHPCN(reflectionparameter);
+PHPCN(reflectionmethod);
+PHPCN(reflectionclass);
+PHPCN(reflectionobject);
+PHPCN(reflectionproperty);
+PHPCN(reflectionextension);
+PHPCN(domexception);
+PHPCN(domstringlist);
+PHPCN(domnamelist);
+PHPCN(domimplementationlist);
+PHPCN(domimplementationsource);
+PHPCN(domimplementation);
+PHPCN(domnode);
+PHPCN(domnamespacenode);
+PHPCN(domdocumentfragment);
+PHPCN(domdocument);
+PHPCN(domnodelist);
+PHPCN(domnamednodemap);
+PHPCN(domcharacterdata);
+PHPCN(domattr);
+PHPCN(domelement);
+PHPCN(domtext);
+PHPCN(domcomment);
+PHPCN(domtypeinfo);
+PHPCN(domuserdatahandler);
+PHPCN(domdomerror);
+PHPCN(domerrorhandler);
+PHPCN(domlocator);
+PHPCN(domconfiguration);
+PHPCN(domcdatasection);
+PHPCN(domdocumenttype);
+PHPCN(domnotation);
+PHPCN(domentity);
+PHPCN(domentityreference);
+PHPCN(domprocessinginstruction);
+PHPCN(domstringextend);
+PHPCN(domxpath);
+PHPCN(xmlreader);
+PHPCN(sqlitedatabase);
+PHPCN(sqliteresult);
+PHPCN(sqliteunbuffered);
+PHPCN(sqliteexception);
+PHPCN(datetime);
+
+/* Built-in PHP functions (incomplete). */
+PHPFN(cos);
+PHPFN(sin);
+PHPFN(tan);
+PHPFN(acos);
+PHPFN(asin);
+PHPFN(atan);
+PHPFN(atan2);
+PHPFN(cosh);
+PHPFN(sinh);
+PHPFN(tanh);
+PHPFN(exp);
+PHPFN(log);
+PHPFN(log10);
+PHPFN(pow);
+PHPFN(sqrt);
+PHPFN(ceil);
+PHPFN(floor);
+PHPFN(fmod);
+PHPFN(min);
+PHPFN(max);
 
 #undef PHPKW
 #undef PHPBN1
 #undef PHPBN2
 #undef PHPCN
+#undef PHPFN

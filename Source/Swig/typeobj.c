@@ -824,13 +824,15 @@ int SwigType_isfunction(SwigType *t) {
   return 0;
 }
 
-ParmList *SwigType_function_parms(SwigType *t) {
+/* Create a list of parameters from the type t, using the file_line_node Node for 
+ * file and line numbering for the parameters */
+ParmList *SwigType_function_parms(SwigType *t, Node *file_line_node) {
   List *l = SwigType_parmlist(t);
   Hash *p, *pp = 0, *firstp = 0;
   Iterator o;
 
   for (o = First(l); o.item; o = Next(o)) {
-    p = NewParm(o.item, 0);
+    p = file_line_node ? NewParm(o.item, 0, file_line_node) : NewParmWithoutFileLineInfo(o.item, 0);
     if (!firstp)
       firstp = p;
     if (pp) {
@@ -893,11 +895,12 @@ SwigType *SwigType_add_template(SwigType *t, ParmList *parms) {
  * SwigType_templateprefix()
  *
  * Returns the prefix before the first template definition.
+ * Returns the type unmodified if not a template.
  * For example:
  *
- *     Foo<(p.int)>::bar
- *
- * returns "Foo"
+ *     Foo<(p.int)>::bar  =>  Foo
+ *     r.q(const).Foo<(p.int)>::bar => r.q(const).Foo
+ *     Foo => Foo
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_templateprefix(const SwigType *t) {
@@ -936,6 +939,25 @@ String *SwigType_templatesuffix(const SwigType *t) {
     c++;
   }
   return NewStringEmpty();
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_istemplate_templateprefix()
+ *
+ * Combines SwigType_istemplate and SwigType_templateprefix efficiently into one function.
+ * Returns the prefix before the first template definition.
+ * Returns NULL if not a template.
+ * For example:
+ *
+ *     Foo<(p.int)>::bar  =>  Foo
+ *     r.q(const).Foo<(p.int)>::bar => r.q(const).Foo
+ *     Foo => NULL
+ * ----------------------------------------------------------------------------- */
+
+String *SwigType_istemplate_templateprefix(const SwigType *t) {
+  const char *s = Char(t);
+  const char *c = strstr(s, "<(");
+  return c ? NewStringWithSize(s, c - s) : 0;
 }
 
 /* -----------------------------------------------------------------------------

@@ -11,6 +11,13 @@
 
 %newobject *::create();
 
+#ifdef SWIGPHP
+// TODO: Currently we do not track the dynamic type of returned objects
+// in PHP, so we need the factory helper.
+%include factory.i
+%factory(Foo *Bar::create, Bar);
+#endif
+
 %rename(a) Bar::hello;
 %rename(s) Foo::p;
 %rename(q) Foo::r;

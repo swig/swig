@@ -5,6 +5,8 @@
 %warnfilter(SWIGWARN_LANG_TEMPLATE_METHOD_IGNORE) convolve1<float>();
 %warnfilter(SWIGWARN_LANG_TEMPLATE_METHOD_IGNORE) convolve3<float>();
 
+%include <std_string.i>
+
 ///////////////////
 %ignore convolve1<float>(float a);
 
@@ -75,4 +77,24 @@ struct Klass {
 %}
 %template(KlassTMethodBool) Klass::tmethod<bool>;
 %template(KlassStaticTMethodBool) Klass::statictmethod<bool>;
+
+////////////////////////////////////////////////////////////////////////////
+
+%inline %{
+  class ComponentProperties{
+  public:
+    ComponentProperties() {}
+    ~ComponentProperties() {}
+
+    template <typename T1> void adda(std::string key, T1 val) {}
+    template <typename T1, typename T2> void adda(std::string key1, T1 val1, std::string key2, T2 val2) {}
+    template <typename T1, typename T2, typename T3> void adda(std::string key1, T1 val1, std::string key2, T2 val2, std::string key3, T3 val3) {}
+  };
+%}
+
+%extend ComponentProperties {
+  %template(adda) adda<std::string, double>;
+  %template(adda) adda<std::string, std::string, std::string>; // ERROR OCCURS HERE
+  %template(adda) adda<int, int, int>;
+}
 

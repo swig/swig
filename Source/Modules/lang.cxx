@@ -22,6 +22,7 @@ static int director_mode = 0;
 static int director_protected_mode = 1;
 static int all_protected_mode = 0;
 static int naturalvar_mode = 0;
+Language* Language::this_ = 0;
 
 /* Set director_protected_mode */
 void Wrapper_director_mode_set(int flag) {
@@ -49,6 +50,9 @@ extern "C" {
   }
   int Swig_all_protected_mode() {
     return all_protected_mode;
+  }
+  void Language_replace_special_variables(String *method, String *tm, Parm *parm) {
+  Language::instance()->replaceSpecialVariables(method, tm, parm);
   }
 }
 
@@ -175,7 +179,7 @@ int Dispatcher::emit_one(Node *n) {
   } else if (strcmp(tag, "types") == 0) {
     ret = typesDirective(n);
   } else {
-    Printf(stderr, "%s:%d. Unrecognized parse tree node type '%s'\n", input_file, line_number, tag);
+    Swig_error(input_file, line_number, "Unrecognized parse tree node type '%s'\n", tag);
     ret = SWIG_ERROR;
   }
   if (wrn) {
@@ -307,13 +311,15 @@ Language::Language():
 none_comparison(NewString("$arg != 0")),
 director_ctor_code(NewString("")),
 director_prot_ctor_code(0),
-symbols(NewHash()),
+symtabs(NewHash()),
 classtypes(NewHash()),
 enumtypes(NewHash()),
 overloading(0),
 multiinput(0),
 cplus_runtime(0),
 directors(0) {
+  Hash *symbols = NewHash();
+  Setattr(symtabs, "", symbols); // create top level/global symbol table scope
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
 
@@ -327,14 +333,17 @@ directors(0) {
   director_prot_ctor_code = 0;
   director_multiple_inheritance = 1;
   director_language = 0;
+  assert(!this_);
+  this_ = this;
 }
 
 Language::~Language() {
-  Delete(symbols);
+  Delete(symtabs);
   Delete(classtypes);
   Delete(enumtypes);
   Delete(director_ctor_code);
   Delete(none_comparison);
+  this_ = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -779,7 +788,7 @@ int Language::typemapcopyDirective(Node *n) {
       Swig_error(input_file, line_number, "Can't copy typemap. Number of types differ.\n");
     } else {
       if (Swig_typemap_copy(method, pattern, npattern) < 0) {
-	Swig_error(input_file, line_number, "Can't copy typemap.\n");
+	Swig_error(input_file, line_number, "Can't copy typemap (%s) %s = %s\n", method, ParmList_str(pattern), ParmList_str(npattern));
       }
     }
     items = nextSibling(items);
@@ -878,30 +887,8 @@ int Language::cDeclaration(Node *n) {
     if (over)
       over = first_nontemplate(over);
     if (over && (over != n)) {
-      SwigType *tc = Copy(decl);
-      SwigType *td = SwigType_pop_function(tc);
-      String *oname;
-      String *cname;
-      if (CurrentClass) {
-	oname = NewStringf("%s::%s", ClassName, name);
-	cname = NewStringf("%s::%s", ClassName, Getattr(over, "name"));
-      } else {
-	oname = NewString(name);
-	cname = NewString(Getattr(over, "name"));
-      }
-
-      SwigType *tc2 = Copy(Getattr(over, "decl"));
-      SwigType *td2 = SwigType_pop_function(tc2);
-
-      Swig_warning(WARN_LANG_OVERLOAD_DECL, input_file, line_number, "Overloaded declaration ignored.  %s\n", SwigType_str(td, SwigType_namestr(oname)));
-      Swig_warning(WARN_LANG_OVERLOAD_DECL, Getfile(over), Getline(over), "Previous declaration is %s\n", SwigType_str(td2, SwigType_namestr(cname)));
-
-      Delete(tc2);
-      Delete(td2);
-      Delete(tc);
-      Delete(td);
-      Delete(oname);
-      Delete(cname);
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, input_file, line_number, "Overloaded declaration ignored.  %s\n", Swig_name_decl(n));
+      Swig_warning(WARN_LANG_OVERLOAD_DECL, Getfile(over), Getline(over), "Previous declaration is %s\n", Swig_name_decl(over));
       return SWIG_NOWRAP;
     }
   }
@@ -919,7 +906,7 @@ int Language::cDeclaration(Node *n) {
       Delete(ty);
       ty = fullty;
       fullty = 0;
-      ParmList *parms = SwigType_function_parms(ty);
+      ParmList *parms = SwigType_function_parms(ty, n);
       Setattr(n, "parms", parms);
     }
     /* Transform the node into a 'function' node and emit */
@@ -982,7 +969,7 @@ int Language::cDeclaration(Node *n) {
       if (Strncmp(symname, "__dummy_", 8) == 0) {
         SetFlag(n, "feature:ignore");
         Swig_warning(WARN_LANG_TEMPLATE_METHOD_IGNORE, input_file, line_number,
-                     "%%template() contains no name. Template method ignored: %s\n", SwigType_str(decl, SwigType_namestr(Getattr(n,"name"))));
+                     "%%template() contains no name. Template method ignored: %s\n", Swig_name_decl(n));
       }
     }
     if (!GetFlag(n, "feature:ignore"))
@@ -1156,7 +1143,7 @@ int Language::callbackfunctionHandler(Node *n) {
   Setattr(n, "type", cbty);
   Setattr(n, "value", calltype);
 
-  Node *ns = Getattr(symbols, cbname);
+  Node *ns = symbolLookup(cbname);
   if (!ns)
     constantWrapper(n);
 
@@ -1207,6 +1194,8 @@ int Language::memberfunctionHandler(Node *n) {
     Setattr(cbn, "type", cbty);
     Setattr(cbn, "value", cbvalue);
     Setattr(cbn, "name", name);
+    Setfile(cbn, Getfile(n));
+    Setline(cbn, Getline(n));
 
     memberconstantHandler(cbn);
     Setattr(n, "feature:callback:name", Swig_name_member(ClassPrefix, cbname));
@@ -1426,39 +1415,36 @@ int Language::membervariableHandler(Node *n) {
 	  target = NewStringf("%s->%s", pname, name);
 	  Delete(pname);
 	}
-      } else {
-	 target = NewStringf("$extendgetcall"); // member variable access expanded later
+	tm = Swig_typemap_lookup("memberin", n, target, 0);
       }
-      tm = Swig_typemap_lookup("memberin", n, target, 0);
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
       if (is_non_virtual_protected_access(n))
         flags = flags | CWRAP_ALL_PROTECTED_ACCESS;
 
-      String *call = 0;
-      Swig_MembersetToFunction(n, ClassType, flags, &call);
+      Swig_MembersetToFunction(n, ClassType, flags);
       Setattr(n, "memberset", "1");
+      if (!Extend) {
+	/* Check for a member in typemap here */
 
-      if (!tm) {
-	if (SwigType_isarray(type)) {
-	  Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(type, 0));
-	  make_set_wrapper = 0;
+	if (!tm) {
+	  if (SwigType_isarray(type)) {
+	    Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(type, 0));
+	    make_set_wrapper = 0;
+	  }
+	} else {
+	  String *pname0 = Swig_cparm_name(0, 0);
+	  String *pname1 = Swig_cparm_name(0, 1);
+	  Replace(tm, "$source", pname1, DOH_REPLACE_ANY);
+	  Replace(tm, "$target", target, DOH_REPLACE_ANY);
+	  Replace(tm, "$input", pname1, DOH_REPLACE_ANY);
+	  Replace(tm, "$self", pname0, DOH_REPLACE_ANY);
+	  Setattr(n, "wrap:action", tm);
+	  Delete(tm);
+	  Delete(pname0);
+	  Delete(pname1);
 	}
-      } else {
-	String *pname0 = Swig_cparm_name(0, 0);
-	String *pname1 = Swig_cparm_name(0, 1);
-	Replace(tm, "$source", pname1, DOH_REPLACE_ANY);
-	Replace(tm, "$target", target, DOH_REPLACE_ANY);
-	Replace(tm, "$input", pname1, DOH_REPLACE_ANY);
-	Replace(tm, "$self", pname0, DOH_REPLACE_ANY);
-	Replace(tm, "$extendgetcall", call, DOH_REPLACE_ANY);
-	Setattr(n, "wrap:action", tm);
-	Delete(tm);
-	Delete(pname0);
-	Delete(pname1);
+	Delete(target);
       }
-      Delete(call);
-      Delete(target);
-
       if (make_set_wrapper) {
 	Setattr(n, "sym:name", mrename_set);
 	functionWrapper(n);
@@ -1500,7 +1486,7 @@ int Language::membervariableHandler(Node *n) {
     Parm *p;
     String *gname;
     SwigType *vty;
-    p = NewParm(type, 0);
+    p = NewParm(type, 0, n);
     gname = NewStringf(AttributeFunctionGet, symname);
     if (!Extend) {
       ActionFunc = Copy(Swig_cmemberget_call(name, type));
@@ -1926,12 +1912,14 @@ int Language::classDirectorDisown(Node *n) {
   String *type = NewString(ClassType);
   String *name = NewString("self");
   SwigType_add_pointer(type);
-  Parm *p = NewParm(type, name);
+  Parm *p = NewParm(type, name, n);
   Delete(name);
   Delete(type);
   type = NewString("void");
   String *action = NewString("");
   Printv(action, "{\n", "Swig::Director *director = dynamic_cast<Swig::Director *>(arg1);\n", "if (director) director->swig_disown();\n", "}\n", NULL);
+  Setfile(disown, Getfile(n));
+  Setline(disown, Getline(n));
   Setattr(disown, "wrap:action", action);
   Setattr(disown, "name", mrename);
   Setattr(disown, "sym:name", mrename);
@@ -2184,7 +2172,7 @@ static void addCopyConstructor(Node *n) {
     if (!symname) {
       symname = Copy(csymname);
     }
-    Parm *p = NewParm(cc, "other");
+    Parm *p = NewParm(cc, "other", n);
 
     Setattr(cn, "name", name);
     Setattr(cn, "sym:name", symname);
@@ -2477,7 +2465,7 @@ int Language::classHandler(Node *n) {
 	  continue;
 	String *methodname = Getattr(method, "sym:name");
 	String *wrapname = NewStringf("%s_%s", symname, methodname);
-	if (!Getattr(symbols, wrapname) && (!is_public(method))) {
+	if (!symbolLookup(wrapname, "") && (!is_public(method))) {
 	  Node *m = Copy(method);
 	  Setattr(m, "director", "1");
 	  Setattr(m, "parentNode", n);
@@ -2930,27 +2918,71 @@ void Language::main(int argc, char *argv[]) {
 /* -----------------------------------------------------------------------------
  * Language::addSymbol()
  *
- * Adds a symbol entry.  Returns 1 if the symbol is added successfully.
+ * Adds a symbol entry into the target language symbol tables.
+ * Returns 1 if the symbol is added successfully.
  * Prints an error message and returns 0 if a conflict occurs.
+ * The scope is optional for target languages and if supplied must be a fully
+ * resolved scope and the symbol s must not contain any scope qualifiers.
  * ----------------------------------------------------------------------------- */
 
-int
-Language::addSymbol(const String *s, const Node *n) {
-  Node *c = Getattr(symbols, s);
-  if (c && (c != n)) {
-    Swig_error(input_file, line_number, "'%s' is multiply defined in the generated module.\n", s);
-    Swig_error(Getfile(c), Getline(c), "Previous declaration of '%s'\n", s);
-    return 0;
+int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope) {
+  Hash *symbols = Getattr(symtabs, scope);
+  if (!symbols) {
+    // New scope which has not been added by the target language - lazily created.
+    symbols = NewHash();
+    Setattr(symtabs, scope, symbols);
+
+    // Add the new scope as a symbol in the top level scope.
+    // Alternatively the target language must add it in before attempting to add symbols into the scope.
+    const_String_or_char_ptr top_scope = "";
+    Hash *topscope_symbols = Getattr(symtabs, top_scope);
+    Setattr(topscope_symbols, scope, NewHash());
+  } else {
+    Node *c = Getattr(symbols, s);
+    if (c && (c != n)) {
+      Swig_error(input_file, line_number, "'%s' is multiply defined in the generated target language module.\n", s);
+      Swig_error(Getfile(c), Getline(c), "Previous declaration of '%s'\n", s);
+      return 0;
+    }
   }
   Setattr(symbols, s, n);
   return 1;
 }
 
 /* -----------------------------------------------------------------------------
+ * Language::dumpSymbols()
+ * ----------------------------------------------------------------------------- */
+
+void Language::dumpSymbols() {
+  Printf(stdout, "LANGUAGE SYMBOLS start  =======================================\n");
+
+  Node *table = symtabs;
+  Iterator ki = First(table);
+  while (ki.key) {
+    String *k = ki.key;
+    Printf(stdout, "===================================================\n");
+    Printf(stdout, "%s -\n", k);
+    {
+      Symtab *symtab = Getattr(table, k);
+      Iterator it = First(symtab);
+      while (it.key) {
+	String *symname = it.key;
+	Printf(stdout, "  %s\n", symname);
+	it = Next(it);
+      }
+    }
+    ki = Next(ki);
+  }
+
+  Printf(stdout, "LANGUAGE SYMBOLS finish =======================================\n");
+}
+
+/* -----------------------------------------------------------------------------
  * Language::symbolLookup()
  * ----------------------------------------------------------------------------- */
 
-Node *Language::symbolLookup(String *s) {
+Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
+  Hash *symbols = Getattr(symtabs, scope);
   return Getattr(symbols, s);
 }
 
@@ -3425,6 +3457,24 @@ String *Language::runtimeCode() {
 
 String *Language::defaultExternalRuntimeFilename() {
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::replaceSpecialVariables()
+ * Language modules should implement this if special variables are to be handled
+ * correctly in the $typemap(...) special variable macro.
+ * method - typemap method name
+ * tm - string containing typemap contents
+ * parm - a parameter describing the typemap type to be handled
+ * ----------------------------------------------------------------------------- */
+void Language::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+  (void)method;
+  (void)tm;
+  (void)parm;
+}
+
+Language *Language::instance() {
+  return this_;
 }
 
 Hash *Language::getClassHash() const {

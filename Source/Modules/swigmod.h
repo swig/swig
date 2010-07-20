@@ -212,14 +212,16 @@ public:
 
   /* Miscellaneous */
   virtual int validIdentifier(String *s);	/* valid identifier? */
-  virtual int addSymbol(const String *s, const Node *n);	/* Add symbol        */
-  virtual Node *symbolLookup(String *s);	/* Symbol lookup     */
+  virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");	/* Add symbol        */
+  virtual void dumpSymbols();
+  virtual Node *symbolLookup(String *s, const_String_or_char_ptr scope = "");			/* Symbol lookup     */
   virtual Node *classLookup(SwigType *s);	/* Class lookup      */
   virtual Node *enumLookup(SwigType *s);	/* Enum lookup       */
   virtual int abstractClassTest(Node *n);	/* Is class really abstract? */
   virtual int is_assignable(Node *n);	/* Is variable assignable? */
   virtual String *runtimeCode();	/* returns the language specific runtime code */
   virtual String *defaultExternalRuntimeFilename();	/* the default filename for the external runtime */
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm); /* Language specific special variable substitutions for $typemap() */
 
   /* Runtime is C++ based, so extern "C" header section */
   void enable_cplus_runtime_mode();
@@ -253,6 +255,9 @@ public:
 
   /* Set overload variable templates argc and argv */
   void setOverloadResolutionTemplates(String *argc, String *argv);
+
+  /* Language instance is a singleton - get instance */
+  static Language* instance();
 
 protected:
   /* Allow multiple-input typemaps */
@@ -304,13 +309,14 @@ protected:
   int director_language;
 
 private:
-  Hash *symbols;
+  Hash *symtabs; /* symbol tables */
   Hash *classtypes;
   Hash *enumtypes;
   int overloading;
   int multiinput;
   int cplus_runtime;
   int directors;
+  static Language *this_;
 };
 
 int SWIG_main(int, char **, Language *);
@@ -320,6 +326,7 @@ void SWIG_exit(int);		/* use EXIT_{SUCCESS,FAILURE} */
 void SWIG_config_file(const_String_or_char_ptr );
 const String *SWIG_output_directory();
 void SWIG_config_cppext(const char *ext);
+void Swig_print_xml(Node *obj, String *filename);
 
 /* get the list of generated files */
 List *SWIG_output_files();
@@ -351,7 +358,9 @@ void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
 extern "C" {
   void SWIG_typemap_lang(const char *);
   typedef Language *(*ModuleFactory) (void);
-} void Swig_register_module(const char *name, ModuleFactory fac);
+} 
+
+void Swig_register_module(const char *name, ModuleFactory fac);
 ModuleFactory Swig_find_module(const char *name);
 
 /* Utilities */

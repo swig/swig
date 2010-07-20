@@ -2578,7 +2578,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register((const_String_or_char_ptr ) "construct", (const_String_or_char_ptr ) "%c_allocate");
+    Swig_name_register("construct", "%c_allocate");
 
 
     Language::constructorHandler(n);
@@ -2594,7 +2594,7 @@ public:
       Parm *self;
       String *name = NewString("self");
       String *type = NewString("VALUE");
-      self = NewParm(type, name);
+      self = NewParm(type, name, n);
       Delete(type);
       Delete(name);
       Setattr(self, "lname", "Qnil");
@@ -2613,7 +2613,7 @@ public:
     Delete(docs);
 
     current = CONSTRUCTOR_INITIALIZE;
-    Swig_name_register((const_String_or_char_ptr ) "construct", (const_String_or_char_ptr ) "new_%c");
+    Swig_name_register("construct", "new_%c");
     Language::constructorHandler(n);
 
     /* Restore original parameter list */
@@ -2635,7 +2635,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register((const_String_or_char_ptr ) "construct", (const_String_or_char_ptr ) "%c_allocate");
+    Swig_name_register("construct", "%c_allocate");
 
     return Language::copyconstructorHandler(n);
   }
@@ -2816,7 +2816,7 @@ public:
     ParmList *superparms = Getattr(n, "parms");
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("VALUE");
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
 
@@ -3249,11 +3249,6 @@ public:
 	Setattr(n, "type", return_type);
 	tm = Swig_typemap_lookup("directorout", n, "result", w);
 	Setattr(n, "type", type);
-	if (tm == 0) {
-	  String *name = NewString("result");
-	  tm = Swig_typemap_search("directorout", return_type, name, NULL);
-	  Delete(name);
-	}
 	if (tm != 0) {
 	  if (outputs > 1 && !asvoid ) {
 	    Printf(w->code, "output = rb_ary_entry(result, %d);\n", idx++);

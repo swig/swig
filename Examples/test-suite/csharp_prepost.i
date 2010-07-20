@@ -25,7 +25,10 @@
   "$csclassname.getCPtr(d$csinput)"
 
 // post only in csin typemap
-%typemap(csin, post="      int size = $csinput.Count;\n      for (int i=0; i<size; ++i) {\n        $csinput[i] /= 100;\n      }") std::vector<double> &vpost
+%typemap(csin, post="      int size = $csinput.Count;\n"
+                    "      for (int i=0; i<size; ++i) {\n"
+                    "        $csinput[i] /= 100;\n"
+                    "      }") std::vector<double> &vpost
   "$csclassname.getCPtr($csinput)"
 
 %inline %{

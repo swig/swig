@@ -1631,11 +1631,6 @@ public:
       Setattr(n, "type", return_type);
       tm = Swig_typemap_lookup("directorout", n, "c_result", w);
       Setattr(n, "type", type);
-      if (tm == 0) {
-	String *name = NewString("c_result");
-	tm = Swig_typemap_search("directorout", return_type, name, NULL);
-	Delete(name);
-      }
       if (tm != 0) {
 	Replaceall(tm, "$input", "swig_result");
 	/* TODO check this */
@@ -1736,7 +1731,7 @@ public:
     ParmList *superparms = Getattr(n, "parms");
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("CAML_VALUE");
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     q = Copy(p);
     set_nextSibling(q, superparms);
     set_nextSibling(p, parms);
@@ -1789,7 +1784,7 @@ public:
     ParmList *superparms = Getattr(n, "parms");
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("CAML_VALUE");
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     q = Copy(p);
     set_nextSibling(p, parms);
     parms = p;

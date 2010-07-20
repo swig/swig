@@ -1,7 +1,9 @@
 %include <shared_ptr.i>
 
+// Language specific macro implementing all the customisations for handling the smart pointer
 %define SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, CONST, TYPE...)
 
+// %naturalvar is as documented for member variables
 %naturalvar TYPE;
 %naturalvar SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 
@@ -10,6 +12,7 @@
 //"if (debug_shared) { cout << \"deleting use_count: \" << (*smartarg1).use_count() << \" [\" << (boost::get_deleter<SWIG_null_deleter>(*smartarg1) ? std::string(\"CANNOT BE DETERMINED SAFELY\") : ( (*smartarg1).get() ? (*smartarg1)->getValue() : std::string(\"NULL PTR\") )) << \"]\" << endl << flush; }\n"
                                "(void)arg1; delete smartarg1;"
 
+// Typemap customisations...
 
 // plain value
 %typemap(in, canthrow=1) CONST TYPE ($&1_type argp = 0) %{

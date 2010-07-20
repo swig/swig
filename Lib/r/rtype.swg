@@ -60,11 +60,11 @@
 %typemap(scoercein) std::string, std::string *, std::string &
   %{  $input = as($input, "character");     %}
 %typemap(scoercein) enum SWIGTYPE 
-  %{  $input = enumToInteger($input, "$R_class") %}
+  %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE &
-  %{  $input = enumToInteger($input, "$R_class") %}
+  %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE *
-  %{  $input = enumToInteger($input, "$R_class") %}
+  %{  $input = enumToInteger($input, "$R_class"); %}
 
 
 %typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE &  
@@ -84,14 +84,14 @@
 %typemap(scoercein) SWIGTYPE[ANY]  
  %{
     if(is.list($input))
-      assert(all(sapply($input, class) == "$R_class"))     
+      assert(all(sapply($input, class) == "$R_class"));
  %}
 
 
 /* **************************************************************** */
 
 %typemap(scoercein) bool, bool *, bool & 
-		    "$input = as.logical($input) ";
+		    "$input = as.logical($input);";
 %typemap(scoercein) int, 
                     int *, 
 		    int &,
@@ -100,30 +100,30 @@
 		    long *,
 		    long &,
 		    long[ANY]
-  "$input = as.integer($input) ";
+  "$input = as.integer($input); ";
 
 %typemap(scoercein) char *, string, std::string,
 string &, std::string &
-%{  $input = as($input, "character") %}
+%{  $input = as($input, "character"); %}
 
 %typemap(scoerceout) enum SWIGTYPE 
-  %{  $result = enumFromInteger($result, "$R_class") %}
+  %{  $result = enumFromInteger($result, "$R_class"); %}
 
 %typemap(scoerceout) enum SWIGTYPE &
-  %{  $result = enumFromInteger($result, "$R_class") %}
+  %{  $result = enumFromInteger($result, "$R_class"); %}
 
 %typemap(scoerceout) enum SWIGTYPE *
-  %{  $result = enumToInteger($result, "$R_class") %}
+  %{  $result = enumToInteger($result, "$R_class"); %}
 
 
 %typemap(scoerceout) SWIGTYPE 
-  %{ class($result) <- "$&R_class" %}
+  %{ class($result) <- "$&R_class"; %}
 
 %typemap(scoerceout) SWIGTYPE & 
-  %{ class($result) <- "$R_class" %}
+  %{ class($result) <- "$R_class"; %}
 
 %typemap(scoerceout) SWIGTYPE * 
-  %{ class($result) <- "$R_class" %}
+  %{ class($result) <- "$R_class"; %}
 
 /* Override the SWIGTYPE * above. */
 %typemap(scoerceout) char,

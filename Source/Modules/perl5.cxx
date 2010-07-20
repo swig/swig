@@ -1511,7 +1511,7 @@ public:
 	  Printf(pcode, "sub new {\n");
 	} else {
 	  /* Constructor doesn't match classname so we'll just use the normal name  */
-	  Printv(pcode, "sub ", Swig_name_construct(symname), " () {\n", NIL);
+	  Printv(pcode, "sub ", Swig_name_construct(symname), " {\n", NIL);
 	}
 
 	Printv(pcode,

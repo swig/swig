@@ -59,8 +59,23 @@ handler. For example, you can specify the following:
         $action
     }
     catch (RangeError) {
+        ... handle error ...
+    }
+}
+</pre></div>
+
+<p>
+How the exception is handled depends on the target language, for example, Python:
+</p>
+
+<div class="code"><pre>
+%exception {
+    try {
+        $action
+    }
+    catch (RangeError) {
         PyErr_SetString(PyExc_IndexError,"index out-of-bounds");
-        return NULL;
+        SWIG_fail;
     }
 }
 </pre></div>

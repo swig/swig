@@ -17,7 +17,8 @@ char cvsroot_octave_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 Octave Options (available with -octave)\n\
-     (none yet)\n\n";
+     [no additional options]\n\
+     \n";
 
 
 class OCTAVE:public Language {
@@ -959,7 +960,7 @@ public:
       String *name = NewString("self");
       String *type = NewString("void");
       SwigType_add_pointer(type);
-      self = NewParm(type, name);
+      self = NewParm(type, name, n);
       Delete(type);
       Delete(name);
       Setattr(self, "lname", "self_obj");
@@ -1054,7 +1055,7 @@ public:
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("void");
     SwigType_add_pointer(type);
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
 
@@ -1309,11 +1310,6 @@ public:
 	Setattr(n, "type", return_type);
 	tm = Swig_typemap_lookup("directorout", n, "result", w);
 	Setattr(n, "type", type);
-	if (tm == 0) {
-	  String *name = NewString("result");
-	  tm = Swig_typemap_search("directorout", return_type, name, NULL);
-	  Delete(name);
-	}
 	if (tm != 0) {
 	  char temp[24];
 	  sprintf(temp, "out(%d)", idx);

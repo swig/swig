@@ -316,10 +316,7 @@ esac
 # Optional CFLAGS used to silence compiler warnings on some platforms.
 
 AC_SUBST(PLATFLAGS)
-case $host in
-   *-*-darwin*) PLATFLAGS="-Wno-long-double";;
-   *) PLATFLAGS="";;
-esac
+PLATFLAGS=
 
 # Add switch to enable C++0x support
 AC_SUBST(PLATCXXFLAGS)

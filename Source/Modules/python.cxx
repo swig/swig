@@ -147,8 +147,8 @@ static const char *usage3 = (char *) "\
      -proxydel       - Generate a __del__ method even though it is now redundant (default) \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -threads        - Add thread support for all the interface\n\
-     -O              - Enable all the optimization options: \n\
-                         -modern -fastdispatch -dirvtable -nosafecstrings -fvirtual -noproxydel \n\
+     -O              - Enable the following optimization options: \n\
+                         -modern -fastdispatch -nosafecstrings -fvirtual -noproxydel \n\
                          -fastproxy -fastinit -fastunpack -fastquery -modernargs -nobuildnone \n\
      -py3            - Generate code with Python 3 specific features:\n\
                          Function annotation \n\
@@ -409,7 +409,6 @@ public:
 	} else if (strcmp(argv[i], "-O") == 0) {
 	  classic = 0;
 	  modern = 1;
-	  dirvtable = 1;
 	  safecstrings = 0;
 	  buildnone = 0;
 	  nobuildnone = 1;
@@ -732,7 +731,7 @@ public:
       Printf(f_shadow, tab8 tab8 "_mod = imp.load_module('%s', fp, pathname, description)\n", module);
       Printv(f_shadow, tab4 tab8, "finally:\n", NULL);
       Printv(f_shadow, tab8 tab8, "fp.close()\n", NULL);
-      Printv(f_shadow, tab8 tab8, "return _mod\n", NULL);
+      Printv(f_shadow, tab4 tab8, "return _mod\n", NULL);
       Printf(f_shadow, tab4 "%s = swig_import_helper()\n", module);
       Printv(f_shadow, tab4, "del swig_import_helper\n", NULL);
       Printv(f_shadow, "else:\n", NULL);
@@ -1917,7 +1916,7 @@ public:
 	Printv(f->def, "SWIGINTERN PyObject *", wname, "__varargs__", "(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *varargs) {", NIL);
       }
       if (allow_kwargs) {
-	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number, "Can't use keyword arguments with overloaded functions.\n");
+	Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number, "Can't use keyword arguments with overloaded functions (%s).\n", Swig_name_decl(n));
 	allow_kwargs = 0;
       }
     } else {
@@ -2629,7 +2628,7 @@ public:
     ParmList *parms = CopyParmList(superparms);
     String *type = NewString("PyObject");
     SwigType_add_pointer(type);
-    p = NewParm(type, NewString("self"));
+    p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
 
@@ -2988,7 +2987,7 @@ public:
 	Delete(realct);
       }
       if (!have_constructor) {
-	Printv(f_shadow_file, tab4, "def __init__(self, *args, **kwargs): raise AttributeError(\"No constructor defined\")\n", NIL);
+	Printv(f_shadow_file, tab4, "def __init__(self, *args, **kwargs): raise AttributeError(\"", "No constructor defined", (Getattr(n, "abstract") ? " - class is abstract" : ""), "\")\n", NIL);
       } else if (fastinit) {
 
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
@@ -3209,7 +3208,7 @@ public:
       String *name = NewString("self");
       String *type = NewString("PyObject");
       SwigType_add_pointer(type);
-      self = NewParm(type, name);
+      self = NewParm(type, name, n);
       Delete(type);
       Delete(name);
       Setattr(self, "lname", "O");
@@ -3953,11 +3952,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       Setattr(n, "type", return_type);
       tm = Swig_typemap_lookup("directorout", n, "result", w);
       Setattr(n, "type", type);
-      if (tm == 0) {
-	String *name = NewString("result");
-	tm = Swig_typemap_search("directorout", return_type, name, NULL);
-	Delete(name);
-      }
       if (tm != 0) {
 	if (outputs > 1) {
 	  Printf(w->code, "output = PyTuple_GetItem(result, %d);\n", idx++);

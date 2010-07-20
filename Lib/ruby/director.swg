@@ -173,7 +173,7 @@ namespace Swig {
       try {
 	throw;
       } catch (DirectorException& e) {
-	std::cerr << "Swig Director exception caught:" << std::endl
+	std::cerr << "SWIG Director exception caught:" << std::endl
 		  << e.getMessage() << std::endl;
       } catch (std::exception& e) {
 	std::cerr << "std::exception caught: "<< e.what() << std::endl;
@@ -209,12 +209,12 @@ namespace Swig {
   class DirectorTypeMismatchException : public Swig::DirectorException {
   public:
     DirectorTypeMismatchException(VALUE error, const char *msg="")
-      : Swig::DirectorException(error, "Swig director type mismatch", msg) 
+      : Swig::DirectorException(error, "SWIG director type mismatch", msg) 
     {
     }
 
     DirectorTypeMismatchException(const char *msg="")
-      : Swig::DirectorException(rb_eTypeError, "Swig director type mismatch", msg) 
+      : Swig::DirectorException(rb_eTypeError, "SWIG director type mismatch", msg) 
     {
     }
 
@@ -235,7 +235,7 @@ namespace Swig {
     }
 
     DirectorMethodException(const char* msg = "") 
-      : Swig::DirectorException(rb_eRuntimeError, "Swig director method error.", msg) {
+      : Swig::DirectorException(rb_eRuntimeError, "SWIG director method error.", msg) {
     }
     
     static void raise(VALUE error)
@@ -249,7 +249,7 @@ namespace Swig {
   {
   public:
     DirectorPureVirtualException(const char* msg = "") 
-      : DirectorException(rb_eRuntimeError, "Swig director pure virtual method called", msg)
+      : DirectorException(rb_eRuntimeError, "SWIG director pure virtual method called", msg)
     { 
     }
 

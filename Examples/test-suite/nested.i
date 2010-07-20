@@ -12,6 +12,27 @@ struct TestStruct {
   int a;
 };
 
+struct OuterStructNamed {
+  struct InnerStructNamed {
+    double dd;
+  } inner_struct_named;
+  union InnerUnionNamed {
+    double ee;
+    int ff;
+  } inner_union_named;
+};
+
+struct OuterStructUnnamed {
+  struct {
+    double xx;
+  } inner_struct_unnamed;
+  union {
+    double yy;
+    int zz;
+  } inner_union_unnamed;
+};
+
+
 typedef struct OuterStruct {
   union {
 

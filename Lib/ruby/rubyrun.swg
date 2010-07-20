@@ -42,7 +42,7 @@
 /* Error manipulation */
 
 #define SWIG_ErrorType(code)                            SWIG_Ruby_ErrorType(code)               
-#define SWIG_Error(code, msg)            		rb_raise(SWIG_Ruby_ErrorType(code), msg)
+#define SWIG_Error(code, msg)            		rb_raise(SWIG_Ruby_ErrorType(code), "%s", msg)
 #define SWIG_fail                        		goto fail				 
 
 
@@ -97,7 +97,7 @@ static ID swig_call_id  = 0;
       ++swig_virtual_calls;
 #  define SWIG_RELEASE_STACK --swig_virtual_calls;
 #  define Ruby_DirectorTypeMismatchException(x) \
-          rb_raise( rb_eTypeError, x ); return c_result;
+          rb_raise( rb_eTypeError, "%s", x ); return c_result;
 
       static unsigned int swig_virtual_calls = 0;
 

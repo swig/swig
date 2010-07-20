@@ -182,7 +182,7 @@ java.actionexample:
         else							\
 	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
 	  (cd Examples/$(LANGUAGE)/java && $(MAKE) -s $(chk-set-env) $(ACTION)) \
-	fi;							\
+	fi
 
 # Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
@@ -327,7 +327,7 @@ clean-docs-main:
 	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) clean
 
 clean-docs-ccache:
-	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) clean-docs)
+	@# Use distclean-docs-ccache, else a user requires the yodl tools to generate the docs after a clean
 
 maintainer-clean: clean-libfiles
 	@cd $(SOURCE) && $(MAKE) maintainer-clean
@@ -338,7 +338,7 @@ maintainer-clean: clean-libfiles
 
 DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool
 
-distclean: distclean-objects clean-examples distclean-test-suite clean-docs distclean-dead distclean-ccache
+distclean: clean-docs distclean-objects clean-examples clean-gifplot distclean-test-suite distclean-dead distclean-ccache
 
 distclean-objects: distclean-source
 
@@ -353,6 +353,9 @@ distclean-test-suite:
 
 distclean-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s distclean)
+
+distclean-docs-ccache:
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) distclean-docs)
 
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)

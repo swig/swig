@@ -20,7 +20,8 @@ char cvsroot_scanner_c[] = "$Id$";
 #include <ctype.h>
 
 extern String *cparse_file;
-extern int     cparse_start_line;
+extern int cparse_cplusplus;
+extern int cparse_start_line;
 
 struct Scanner {
   String *text;			/* Current token value */
@@ -97,6 +98,7 @@ void Scanner_clear(Scanner * s) {
   Clear(s->scanobjs);
   Scanner_clear_brackets(s);
   Delete(s->error);
+  s->str = 0;
   s->error = 0;
   s->line = 1;
   s->nexttoken = -1;
@@ -864,7 +866,7 @@ static int look(Scanner * s) {
       }
       break;
     
-    case 7:			/* Identifier or unicode/custom delimiter string */
+    case 7:			/* Identifier or true/false or unicode/custom delimiter string */
       if (c=='R') { /* Possibly CUSTOM DELIMITER string */
 	state = 72;
 	break;
@@ -875,7 +877,7 @@ static int look(Scanner * s) {
       }
       
       if ((c = nextchar(s)) == 0) {
-	return SWIG_TOKEN_ID;
+	state = 76;
       }
       else if (c=='\"') { /* Definitely u, U or L string */
 	retract(s, 1);
@@ -895,20 +897,20 @@ static int look(Scanner * s) {
 
     case 70:			/* Identifier */
       if ((c = nextchar(s)) == 0)
-	return SWIG_TOKEN_ID;
-      if (isalnum(c) || (c == '_') || (c == '$')) {
+	state = 76;
+      else if (isalnum(c) || (c == '_') || (c == '$')) {
 	state = 70;
       } else {
 	retract(s, 1);
-	return SWIG_TOKEN_ID;
+	state = 76;
       }
       break;
     
     case 71:			/* Possibly u8 string */
       if ((c = nextchar(s)) == 0) {
-	return SWIG_TOKEN_ID;
+	state = 76;
       }
-      if (c=='\"') {
+      else if (c=='\"') {
 	retract(s, 1); /* Definitely u8 string */
 	state = 1000;
       }
@@ -926,9 +928,9 @@ static int look(Scanner * s) {
     case 73:
     case 74:
       if ((c = nextchar(s)) == 0) {
-	return SWIG_TOKEN_ID;
+	state = 76;
       }
-      if (c=='\"') {
+      else if (c=='\"') {
 	retract(s, 1); /* Definitely custom delimiter u, U or L string */
 	str_delimiter = NewStringEmpty();
 	state = 1000;
@@ -956,8 +958,18 @@ static int look(Scanner * s) {
       } else {
 	retract(s,1);
 	if (Len(s->text) == 1) return SWIG_TOKEN_DOLLAR;
-	return SWIG_TOKEN_ID;
+	state = 76;
       }
+      break;
+
+    case 76:			/* Identifier or true/false */
+      if (cparse_cplusplus) {
+	if (Strcmp(s->text, "true") == 0)
+	  return SWIG_TOKEN_BOOL;
+	else if (Strcmp(s->text, "false") == 0)
+	  return SWIG_TOKEN_BOOL;
+	}
+      return SWIG_TOKEN_ID;
       break;
 
     case 8:			/* A numerical digit */

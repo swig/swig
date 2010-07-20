@@ -12,7 +12,6 @@
 %rename(PlusPlusPostfix) operator++(int);
 #endif
 
-
 %{
 #include <iostream>
 using namespace std;
@@ -56,7 +55,7 @@ public:
 
     Op& operator++() {k++; return *this;}
 
-    void Print() {std::cerr << k << std::endl;}
+    void PrintK() {std::cerr << k << std::endl;}
 
     int k;
 };

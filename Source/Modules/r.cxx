@@ -70,40 +70,6 @@ static String * getRTypeName(SwigType *t, int *outCount = NULL) {
   */
 }
 
-#if 0
-static String * getRType(Node *n) {
-  SwigType *elType = Getattr(n, "type");
-  SwigType *elDecl = Getattr(n, "decl");
-  //XXX How can we tell if this is already done.
-  SwigType_push(elType, elDecl);
-  String *ans;
-
-  String *rtype = Swig_typemap_lookup("rtype", n, "", 0);
-  String *i = getRTypeName(elType);
-
-  if(Len(i) == 0) {
-    SwigType *td = SwigType_typedef_resolve(elType);
-    if(td) {
-      //     Printf(stderr, "Resolving typedef %s -> %s\n", elType, td);
-      i = getRTypeName(td);
-    }
-  }
-  //  Printf(stderr, "<getRType> i = %s,  rtype = %s  (for %s)\n", 
-  //	 i, rtype, elType);
-  if(rtype) {
-    ans = NewString("");
-    Printf(ans, "%s", rtype);
-    Replaceall(ans, "$R_class", Char(i));
-    //	Printf(stderr, "Found r type in typemap for %s (for %s) => %s (%s) => %s\n", 
-    //         SwigType_str(elType, 0), Getattr(n, "name"), rtype, i, ans);
-  } else {
-    ans = i;
-  }
-  
-  return(ans);
-}
-#endif
-
 /*********************
  Tries to get the name of the R class corresponding  to the given type
   e.g. struct A * is ARef,  struct A**  is  ARefRef.
@@ -534,12 +500,7 @@ int R::getFunctionPointerNumArgs(Node *n, SwigType *tt) {
   n = Getattr(n, "type");
   if (debugMode)
     Printf(stderr, "type: %s\n", n);
-#if 0
-  SwigType *tmp = SwigType_typedef_resolve(tt);
-  
-  n = SwigType_typedef_resolve(tt);
-#endif
-  
+
   ParmList *parms = Getattr(n, "parms");
   if (debugMode)
     Printf(stderr, "parms = %p\n", parms);
@@ -592,7 +553,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
   //   ParmList *parms = Getattr(n, "parms");
   // memory leak
-  ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)));
+  ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)), n);
 
 
   //  if (debugMode) {
@@ -716,10 +677,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
        XXX  Have to be a little more clever so that we can deal with struct A * - the * is getting lost.
        Is this still true? If so, will a SwigType_push() solve things?
     */
-    Node *bbase = NewHash();
-    
-    Setattr(bbase, "type", rettype);
-    Setattr(bbase, "name", NewString("result"));
+    Parm *bbase = NewParm(rettype, "result", n);
     String *returnTM = Swig_typemap_lookup("in", bbase, "result", f);
     if(returnTM) {
       String *tm = returnTM;
@@ -1105,7 +1063,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     Delete(pitem);
   }
   Delete(itemList);
-  Printf(f->code, ")\n");
+  Printf(f->code, ");\n");
   
   if (!isSet && varaccessor > 0) {
     Printf(f->code, "%svaccessors = c(", tab8);
@@ -1121,7 +1079,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
 	Printf(f->code, "'%s'%s", item, vcount < varaccessor ? ", " : "");
       }
     }
-    Printf(f->code, ")\n");
+    Printf(f->code, ");\n");
   }
   
   
@@ -1133,24 +1091,24 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
 	"stop(\"No ", (isSet ? "modifiable" : "accessible"), " field named \", name, \" in ", className,
 	": fields are \", paste(names(accessorFuns), sep = \", \")", 
 	")", "\n}\n", NIL); */
-  Printv(f->code, tab8,
-	 "idx = pmatch(name, names(accessorFuns))\n",
+  Printv(f->code, ";", tab8,
+	 "idx = pmatch(name, names(accessorFuns));\n",
 	 tab8,
 	 "if(is.na(idx)) \n",
 	 tab8, tab4, NIL);
-  Printf(f->code, "return(callNextMethod(x, name%s))\n",
+  Printf(f->code, "return(callNextMethod(x, name%s));\n",
 	 isSet ? ", value" : "");
-  Printv(f->code, tab8, "f = accessorFuns[[idx]]\n", NIL);
+  Printv(f->code, tab8, "f = accessorFuns[[idx]];\n", NIL);
   if(isSet) {
-    Printv(f->code, tab8, "f(x, value)\n", NIL);
-    Printv(f->code, tab8, "x\n", NIL); // make certain to return the S value.
+    Printv(f->code, tab8, "f(x, value);\n", NIL);
+    Printv(f->code, tab8, "x;\n", NIL); // make certain to return the S value.
   } else {
-    Printv(f->code, tab8, "formals(f)[[1]] = x\n", NIL);
+    Printv(f->code, tab8, "formals(f)[[1]] = x;\n", NIL);
     if (varaccessor) {
       Printv(f->code, tab8,
-	     "if (is.na(match(name, vaccessors))) f else f(x)\n", NIL);
+	     "if (is.na(match(name, vaccessors))) f else f(x);\n", NIL);
     } else {
-      Printv(f->code, tab8, "f\n", NIL);
+      Printv(f->code, tab8, "f;\n", NIL);
     }
   }
   Printf(f->code, "}\n");
@@ -1161,15 +1119,15 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
 	 isSet ? "<-" : "", 
 	 getRClassName(className)); 
   Wrapper_print(f, out);
-  Printf(out, ")\n");
+  Printf(out, ");\n");
   
   if(isSet) {
     Printf(out, "setMethod('[[<-', c('_p%s', 'character'),", 
 	   getRClassName(className)); 
-    Insert(f->code, 2, "name = i\n");
+    Insert(f->code, 2, "name = i;\n");
     Printf(attr->code, "%s", f->code);
     Wrapper_print(attr, out);
-    Printf(out, ")\n");
+    Printf(out, ");\n");
   }
   
   DelWrapper(attr);
@@ -1422,15 +1380,13 @@ static List * Swig_overload_rank(Node *n,
 	    String *t2 = Getattr(p2,"tmap:typecheck:precedence");
 	    if ((!t1) && (!nodes[i].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[i].n), Getline(nodes[i].n),
-			   "Overloaded %s(%s) not supported (no type checking rule for '%s').\n", 
-			   Getattr(nodes[i].n,"name"),ParmList_str_defaultargs(Getattr(nodes[i].n,"parms")),
-			   SwigType_str(Getattr(p1,"type"),0));
+			   "Overloaded method %s not supported (no type checking rule for '%s').\n",
+			   Swig_name_decl(nodes[i].n), SwigType_str(Getattr(p1, "type"), 0));
 	      nodes[i].error = 1;
 	    } else if ((!t2) && (!nodes[j].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[j].n), Getline(nodes[j].n),
-			   "Overloaded %s(%s) not supported (no type checking rule for '%s').\n", 
-			   Getattr(nodes[j].n,"name"),ParmList_str_defaultargs(Getattr(nodes[j].n,"parms")),
-			   SwigType_str(Getattr(p2,"type"),0));
+			   "xx Overloaded method %s not supported (no type checking rule for '%s').\n",
+			   Swig_name_decl(nodes[j].n), SwigType_str(Getattr(p2, "type"), 0));
 	      nodes[j].error = 1;
 	    }
 	    if (t1 && t2) {
@@ -1495,8 +1451,8 @@ static List * Swig_overload_rank(Node *n,
 	  }
 	  if (!differ) {
 	    /* See if declarations differ by const only */
-	    String *d1 = Getattr(nodes[i].n,"decl");
-	    String *d2 = Getattr(nodes[j].n,"decl");
+	    String *d1 = Getattr(nodes[i].n, "decl");
+	    String *d2 = Getattr(nodes[j].n, "decl");
 	    if (d1 && d2) {
 	      String *dq1 = Copy(d1);
 	      String *dq2 = Copy(d2);
@@ -1506,49 +1462,47 @@ static List * Swig_overload_rank(Node *n,
 	      if (SwigType_isconst(d2)) {
 		Delete(SwigType_pop(dq2));
 	      }
-	      if (Strcmp(dq1,dq2) == 0) {
-		
+	      if (Strcmp(dq1, dq2) == 0) {
+
 		if (SwigType_isconst(d1) && !SwigType_isconst(d2)) {
-                  if (script_lang_wrapping) {
-                    // Swap nodes so that the const method gets ignored (shadowed by the non-const method)
-                    Overloaded t = nodes[i];
-                    nodes[i] = nodes[j];
-                    nodes[j] = t;
-                  }
+		  if (script_lang_wrapping) {
+		    // Swap nodes so that the const method gets ignored (shadowed by the non-const method)
+		    Overloaded t = nodes[i];
+		    nodes[i] = nodes[j];
+		    nodes[j] = t;
+		  }
 		  differ = 1;
 		  if (!nodes[j].error) {
-                    if (script_lang_wrapping) {
+		    if (script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				   "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
-				   Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-				   Getfile(nodes[i].n), Getline(nodes[i].n));
-                    } else {
-                      if (!Getattr(nodes[j].n, "overload:ignore"))
-		        Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-				     "Overloaded method %s(%s) ignored. Method %s(%s) const at %s:%d used.\n",
-				     Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-			             Getattr(nodes[i].n,"name"), ParmList_errorstr(nodes[i].parms),
-				     Getfile(nodes[i].n), Getline(nodes[i].n));
-                    }
+				   "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
+				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
+		    } else {
+		      if (!Getattr(nodes[j].n, "overload:ignore"))
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
+				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		    }
 		  }
 		  nodes[j].error = 1;
 		} else if (!SwigType_isconst(d1) && SwigType_isconst(d2)) {
 		  differ = 1;
 		  if (!nodes[j].error) {
-                    if (script_lang_wrapping) {
+		    if (script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				   "Overloaded %s(%s) const ignored. Non-const method at %s:%d used.\n",
-				   Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-				   Getfile(nodes[i].n), Getline(nodes[i].n));
-                    } else {
-                      if (!Getattr(nodes[j].n, "overload:ignore"))
-		        Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-				     "Overloaded method %s(%s) const ignored. Method %s(%s) at %s:%d used.\n",
-				     Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-			             Getattr(nodes[i].n,"name"), ParmList_errorstr(nodes[i].parms),
-				     Getfile(nodes[i].n), Getline(nodes[i].n));
-                    }
-                  }
+				   "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
+				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
+		    } else {
+		      if (!Getattr(nodes[j].n, "overload:ignore"))
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
+				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		    }
+		  }
 		  nodes[j].error = 1;
 		}
 	      }
@@ -1558,24 +1512,18 @@ static List * Swig_overload_rank(Node *n,
 	  }
 	  if (!differ) {
 	    if (!nodes[j].error) {
-              if (script_lang_wrapping) {
-	        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
-			     "Overloaded %s(%s)%s is shadowed by %s(%s)%s at %s:%d.\n",
-			     Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-			     SwigType_isconst(Getattr(nodes[j].n,"decl")) ? " const" : "", 
-			     Getattr(nodes[i].n,"name"), ParmList_errorstr(nodes[i].parms),
-			     SwigType_isconst(Getattr(nodes[i].n,"decl")) ? " const" : "", 
-			     Getfile(nodes[i].n),Getline(nodes[i].n));
-              } else {
-                if (!Getattr(nodes[j].n, "overload:ignore"))
-	          Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-			       "Overloaded method %s(%s)%s ignored. Method %s(%s)%s at %s:%d used.\n",
-			       Getattr(nodes[j].n,"name"), ParmList_errorstr(nodes[j].parms),
-			       SwigType_isconst(Getattr(nodes[j].n,"decl")) ? " const" : "", 
-                               Getattr(nodes[i].n,"name"), ParmList_errorstr(nodes[i].parms),
-			       SwigType_isconst(Getattr(nodes[i].n,"decl")) ? " const" : "", 
-			       Getfile(nodes[i].n),Getline(nodes[i].n));
-              }
+	      if (script_lang_wrapping) {
+		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
+			     "Overloaded method %s effectively ignored,\n", Swig_name_decl(nodes[j].n));
+		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[i].n), Getline(nodes[i].n),
+			     "as it is shadowed by %s.\n", Swig_name_decl(nodes[i].n));
+	      } else {
+		if (!Getattr(nodes[j].n, "overload:ignore"))
+		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
+			       "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+			       "using %s instead.\n", Swig_name_decl(nodes[i].n));
+	      }
 	      nodes[j].error = 1;
 	    }
 	  }
@@ -1613,9 +1561,9 @@ void R::dispatchFunction(Node *n) {
   List *dispatch = Swig_overload_rank(n, true);
   int   nfunc = Len(dispatch);
   Printv(f->code, 
-	 "argtypes <- mapply(class, list(...))\n",
-	 "argv <- list(...)\n",
-	 "argc <- length(argtypes)\n", NIL );
+	 "argtypes <- mapply(class, list(...));\n",
+	 "argv <- list(...);\n",
+	 "argc <- length(argtypes);\n", NIL );
 
   Printf(f->code, "# dispatch functions %d\n", nfunc);
   int cur_args = -1;
@@ -1661,16 +1609,16 @@ void R::dispatchFunction(Node *n) {
 	}
 	p = Getattr(p, "tmap:in:next");
       }
-      Printf(f->code, ") { f <- %s%s }\n", sfname, overname);
+      Printf(f->code, ") { f <- %s%s; }\n", sfname, overname);
     } else {
-      Printf(f->code, "f <- %s%s", sfname, overname);
+      Printf(f->code, "f <- %s%s; ", sfname, overname);
     }
   }
   if (cur_args != -1) {
     Printv(f->code, "}", NIL);
   }
-  Printv(f->code, "\nf(...)", NIL);
-  Printv(f->code, "\n}", NIL);
+  Printv(f->code, ";\nf(...)", NIL);
+  Printv(f->code, ";\n}", NIL);
   Wrapper_print(f, sfile);
   Printv(sfile, "# Dispatch function\n", NIL);
   DelWrapper(f);
@@ -1898,16 +1846,16 @@ int R::functionWrapper(Node *n) {
 	String *snargs = NewStringf("%d", nargs);
 	Printv(sfun->code, "if(is.function(", name, ")) {", "\n",
 	       "assert('...' %in% names(formals(", name, 
-	       ")) || length(formals(", name, ")) >= ", snargs, ")\n} ", NIL);
+	       ")) || length(formals(", name, ")) >= ", snargs, ");\n} ", NIL);
 	Delete(snargs);
 
 	Printv(sfun->code, "else {\n",
 	       "if(is.character(", name, ")) {\n",
-	       name, " = getNativeSymbolInfo(", name, ")",
-	       "\n}\n",
+	       name, " = getNativeSymbolInfo(", name, ");",
+	       "\n};\n",
 	       "if(is(", name, ", \"NativeSymbolInfo\")) {\n",
-	       name, " = ", name, "$address", "\n}\n",
-	       "}\n",
+	       name, " = ", name, "$address", ";\n}\n",
+	       "}; \n",
 	       NIL);
       } else {
 	Printf(sfun->code, "%s\n", tm);
@@ -2102,10 +2050,10 @@ int R::functionWrapper(Node *n) {
   }
 
 
-  Printv(sfun->code, (Len(tm) ? "ans = " : ""), ".Call('", wname, 
-	 "', ", sargs, "PACKAGE='", Rpackage, "')\n", NIL);
+  Printv(sfun->code, ";", (Len(tm) ? "ans = " : ""), ".Call('", wname, 
+	 "', ", sargs, "PACKAGE='", Rpackage, "');\n", NIL);
   if(Len(tm))
-    Printf(sfun->code, "%s\n\nans\n", tm);
+    Printf(sfun->code, "%s\n\nans;\n", tm);
   if (destructor)
     Printv(f->code, "R_ClearExternalPtr(self);\n", NIL);
 
@@ -2464,11 +2412,11 @@ int R::generateCopyRoutines(Node *n) {
 
     /* The S functions to get and set the member value. */
     String *elNameT = replaceInitialDash(elName);
-    Printf(copyToR->code, "obj@%s = value$%s\n", elNameT, elNameT);
-    Printf(copyToC->code, "obj$%s = value@%s\n", elNameT, elNameT);
+    Printf(copyToR->code, "obj@%s = value$%s;\n", elNameT, elNameT);
+    Printf(copyToC->code, "obj$%s = value@%s;\n", elNameT, elNameT);
     Delete(elNameT);
   }
-  Printf(copyToR->code, "obj\n}\n\n");
+  Printf(copyToR->code, "obj;\n}\n\n");
   String *rclassName = getRClassNameCopyStruct(type, 0); // without the Ref.
   Printf(sfile, "# Start definition of copy functions & methods for %s\n", rclassName);  
   
@@ -2478,9 +2426,9 @@ int R::generateCopyRoutines(Node *n) {
   
   
   Printf(sfile, "# Start definition of copy methods for %s\n", rclassName);  
-  Printf(sfile, "setMethod('copyToR', '_p_%s', CopyToR%s)\n", rclassName, 
+  Printf(sfile, "setMethod('copyToR', '_p_%s', CopyToR%s);\n", rclassName, 
 	 mangledName);
-  Printf(sfile, "setMethod('copyToC', '%s', CopyToC%s)\n\n", rclassName, 
+  Printf(sfile, "setMethod('copyToC', '%s', CopyToC%s);\n\n", rclassName, 
 	 mangledName);
   
   Printf(sfile, "# End definition of copy methods for %s\n", rclassName);  

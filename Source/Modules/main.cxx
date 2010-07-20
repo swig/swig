@@ -29,7 +29,7 @@ char cvsroot_main_cxx[] = "$Id$";
 
 // Global variables
 
-Language *lang;			// Language method
+static Language *lang = 0;	// Language method
 int CPlusPlus = 0;
 int Extend = 0;			// Extend flag
 int ForceExtern = 0;		// Force extern mode
@@ -66,11 +66,17 @@ static const char *usage1 = (const char *) "\
      -copyright      - Display copyright notices\n\
      -debug-classes  - Display information about the classes found in the interface\n\
      -debug-module <n>- Display module parse tree at stages 1-4, <n> is a csv list of stages\n\
+     -debug-symtabs  - Display symbol tables information\n\
+     -debug-symbols  - Display target language symbols in the symbol tables\n\
+     -debug-csymbols - Display C symbols in the symbol tables\n\
+     -debug-lsymbols - Display target language layer symbols\n\
      -debug-tags     - Display information about the tags found in the interface\n\
      -debug-template - Display information for debugging templates\n\
      -debug-top <n>  - Display entire parse tree at stages 1-4, <n> is a csv list of stages\n\
      -debug-typedef  - Display information about the types and typedefs in the interface\n\
-     -debug-typemap  - Display information for debugging typemaps\n\
+     -debug-typemap  - Display typemap debugging information\n\
+     -debug-tmsearch - Display typemap search debugging information\n\
+     -debug-tmused   - Display typemaps used debugging information\n\
      -directors      - Turn on director mode for all the classes, mainly for testing\n\
      -dirprot        - Turn on wrapping of protected members for director classes (default)\n\
      -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
@@ -163,9 +169,13 @@ static int help = 0;
 static int checkout = 0;
 static int cpp_only = 0;
 static int no_cpp = 0;
-static char *outfile_name = 0;
-static char *outfile_name_h = 0;
+static String *outfile_name = 0;
+static String *outfile_name_h = 0;
 static int tm_debug = 0;
+static int dump_symtabs = 0;
+static int dump_symbols = 0;
+static int dump_csymbols = 0;
+static int dump_lang_symbols = 0;
 static int dump_tags = 0;
 static int dump_module = 0;
 static int dump_top = 0;
@@ -178,14 +188,13 @@ static int depend = 0;
 static int depend_only = 0;
 static int memory_debug = 0;
 static int allkw = 0;
-static DOH *libfiles = 0;
 static DOH *cpps = 0;
 static String *dependencies_file = 0;
-static File *f_dependencies_file = 0;
 static String *dependencies_target = 0;
 static int external_runtime = 0;
 static String *external_runtime_name = 0;
 enum { STAGE1=1, STAGE2=2, STAGE3=4, STAGE4=8, STAGEOVERFLOW=16 };
+static List *libfiles = 0;
 static List *all_output_files = 0;
 
 // -----------------------------------------------------------------------------
@@ -561,22 +570,23 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-swiglib") == 0) {
 	if (SwigLibWin)
-	  printf("%s\n", Char(SwigLibWin));
-	printf("%s\n", SwigLib);
+	  Printf(stdout, "%s\n", SwigLibWin);
+	Printf(stdout, "%s\n", SwigLib);
 	SWIG_exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-o") == 0) {
 	Swig_mark_arg(i);
 	if (argv[i + 1]) {
-	  outfile_name = Swig_copy_string(argv[i + 1]);
+	  outfile_name = NewString(argv[i + 1]);
+          Swig_filename_correct(outfile_name);
 	  if (!outfile_name_h || !dependencies_file) {
-	    char *ext = strrchr(outfile_name, '.');
-	    String *basename = ext ? NewStringWithSize(outfile_name, ext - outfile_name) : NewString(outfile_name);
+	    char *ext = strrchr(Char(outfile_name), '.');
+	    String *basename = ext ? NewStringWithSize(Char(outfile_name), Char(ext) - Char(outfile_name)) : NewString(outfile_name);
 	    if (!dependencies_file) {
 	      dependencies_file = NewStringf("%s.%s", basename, depends_extension);
 	    }
 	    if (!outfile_name_h) {
 	      Printf(basename, ".%s", hpp_extension);
-	      outfile_name_h = Swig_copy_string(Char(basename));
+	      outfile_name_h = NewString(basename);
 	    }
 	    Delete(basename);
 	  }
@@ -588,7 +598,8 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-oh") == 0) {
 	Swig_mark_arg(i);
 	if (argv[i + 1]) {
-	  outfile_name_h = Swig_copy_string(argv[i + 1]);
+	  outfile_name_h = NewString(argv[i + 1]);
+          Swig_filename_correct(outfile_name_h);
 	  Swig_mark_arg(i + 1);
 	  i++;
 	} else {
@@ -652,6 +663,12 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-debug-typemap") == 0) || (strcmp(argv[i], "-debug_typemap") == 0) || (strcmp(argv[i], "-tm_debug") == 0)) {
 	tm_debug = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-tmsearch") == 0) {
+	Swig_typemap_search_debug_set();
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-tmused") == 0) {
+	Swig_typemap_used_debug_set();
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-module") == 0) {
 	Swig_mark_arg(i);
@@ -720,6 +737,18 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strncmp(argv[i], "-w", 2) == 0) {
 	Swig_mark_arg(i);
 	Swig_warnfilter(argv[i] + 2, 1);
+      } else if (strcmp(argv[i], "-debug-symtabs") == 0) {
+	dump_symtabs = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-symbols") == 0) {
+	dump_symbols = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-csymbols") == 0) {
+	dump_csymbols = 1;
+	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-debug-lsymbols") == 0) {
+	dump_lang_symbols = 1;
+	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-debug-tags") == 0) || (strcmp(argv[i], "-dump_tags") == 0)) {
 	dump_tags = 1;
 	Swig_mark_arg(i);
@@ -815,7 +844,6 @@ void SWIG_getoptions(int argc, char *argv[]) {
 
 int SWIG_main(int argc, char *argv[], Language *l) {
   char *c;
-  extern void Swig_print_xml(Node *obj, String *filename);
 
   /* Initialize the SWIG core */
   Swig_init();
@@ -833,12 +861,6 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 
   Preprocessor_define((DOH *) "SWIG 1", 0);
   Preprocessor_define((DOH *) "__STDC__", 0);
-#ifdef MACSWIG
-  Preprocessor_define((DOH *) "SWIGMAC 1", 0);
-#endif
-#ifdef SWIGWIN32
-  Preprocessor_define((DOH *) "SWIGWIN32 1", 0);
-#endif
 
   // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
   String *package_version = NewString(PACKAGE_VERSION); /* Note that the fakeversion has not been set at this point */
@@ -928,8 +950,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   Swig_add_directory((String *) SwigLib);
 
   if (Verbose) {
-    printf("LangSubDir: %s\n", Char(LangSubDir));
-    printf("Search paths:\n");
+    Printf(stdout, "Language subdirectory: %s\n", LangSubDir);
+    Printf(stdout, "Search paths:\n");
     List *sp = Swig_search_path();
     Iterator s;
     for (s = First(sp); s.item; s = Next(s)) {
@@ -948,12 +970,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   // If the user has requested to check out a file, handle that
   if (checkout) {
     DOH *s;
-    char *outfile = Char(input_file);
+    String *outfile = input_file;
     if (outfile_name)
       outfile = outfile_name;
 
     if (Verbose)
-      printf("Handling checkout...\n");
+      Printf(stdout, "Handling checkout...\n");
 
     s = Swig_include(input_file);
     if (!s) {
@@ -979,7 +1001,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   } else {
     // Run the preprocessor
     if (Verbose)
-      printf("Preprocessing...\n");
+      Printf(stdout, "Preprocessing...\n");
 
     {
       int i;
@@ -1009,9 +1031,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	if (lang_config) {
 	  Printf(fs, "\n%%include <%s>\n", lang_config);
 	}
-	Printf(fs, "%%include(maininput=\"%s\") \"%s\"\n", Swig_filename_escape(input_file), Swig_last_file());
+	Printf(fs, "%%include(maininput=\"%s\") \"%s\"\n", Swig_filename_escape(input_file), Swig_filename_escape(Swig_last_file()));
 	for (i = 0; i < Len(libfiles); i++) {
-	  Printf(fs, "\n%%include \"%s\"\n", Getitem(libfiles, i));
+	  Printf(fs, "\n%%include \"%s\"\n", Swig_filename_escape(Getitem(libfiles, i)));
 	}
 	Seek(fs, 0, SEEK_SET);
 	cpps = Preprocessor_parse(fs);
@@ -1030,6 +1052,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       if (depend) {
 	if (!no_cpp) {
 	  String *outfile;
+          File *f_dependencies_file = 0;
 
 	  char *basename = Swig_file_basename(outcurrentdir ? Swig_file_filename(input_file): Char(input_file));
 	  if (!outfile_name) {
@@ -1063,9 +1086,13 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  }
 	  List *files = Preprocessor_depend();
 	  for (int i = 0; i < Len(files); i++) {
-	    if ((depend != 2) || ((depend == 2) && (Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) != 0))) {
-	      Printf(f_dependencies_file, "\\\n %s ", Getitem(files, i));
-	    }
+            int use_file = 1;
+            if (depend == 2) {
+              if ((Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) == 0) || (SwigLibWin && (Strncmp(Getitem(files, i), SwigLibWin, Len(SwigLibWin)) == 0)))
+                use_file = 0;
+            }
+            if (use_file)
+	      Printf(f_dependencies_file, "\\\n  %s ", Getitem(files, i));
 	  }
 	  Printf(f_dependencies_file, "\n");
 	  if (f_dependencies_file != stdout)
@@ -1149,6 +1176,19 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       SwigType_print_scope(0);
     }
 
+    if (dump_symtabs) {
+      Swig_symbol_print_tables(Swig_symbol_global_scope());
+      Swig_symbol_print_tables_summary();
+    }
+
+    if (dump_symbols) {
+      Swig_symbol_print_symbols();
+    }
+
+    if (dump_csymbols) {
+      Swig_symbol_print_csymbols();
+    }
+
     if (dump_tags) {
       Swig_print_tags(top, 0);
     }
@@ -1196,6 +1236,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	}
       }
     }
+    if (dump_lang_symbols) {
+      lang->dumpSymbols();
+    }
     if (dump_top & STAGE4) {
       Printf(stdout, "debug-top stage 4\n");
       Swig_print_tree(top);
@@ -1205,6 +1248,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Swig_print_tree(Getattr(top, "module"));
     }
     if (dump_xml && top) {
+      delete lang;
+      lang = 0;
       Swig_print_xml(top, xmlout);
     }
     Delete(top);
@@ -1239,6 +1284,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   if ((werror) && (Swig_warn_count())) {
     return Swig_warn_count();
   }
+
+  delete lang;
+
   return Swig_error_count();
 }
 

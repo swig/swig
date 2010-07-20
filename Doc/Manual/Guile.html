@@ -814,7 +814,7 @@ Produces the following code at the top of the generated GOOPS guile-module
 <code>Module-primitive.scm</code> (with <i>primitive</i> replaced with whatever is given with the <code>-primsuffix</code>
 argument.  The code to load the <code>.so</code> library should be located in the <code>%scheme</code> directive, 
 which will then be added to the scmstub file.
-Swig will automatically generate the line <code>(use-modules (<i>Package</i> <i>Module-primitive</i>))</code>
+SWIG will automatically generate the line <code>(use-modules (<i>Package</i> <i>Module-primitive</i>))</code>
 into the GOOPS guile-module.  So if <i>Module-primitive.scm</i> is on the autoload path for guile, the
 <code>%goops</code> directive can be empty.  Otherwise, the <code>%goops</code> directive should contain 
 whatever code is needed to load the <i>Module-primitive.scm</i> file into guile.</p>
@@ -848,7 +848,7 @@ Produces the following code at the top of the generated GOOPS guile-module
 </li>
 
 <li><p><b>Module Linkage</b>: This is very similar to passive linkage with a scmstub file.
-Swig will also automatically generate the line <code>(use-modules 
+SWIG will also automatically generate the line <code>(use-modules 
 (<i>Package</i> <i>Module-primitive</i>))</code> into the GOOPS guile-module.  Again the <code>%goops</code>
 directive should contain whatever code is needed to get that module loaded into guile.</p>
 

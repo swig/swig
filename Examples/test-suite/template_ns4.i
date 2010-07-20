@@ -8,13 +8,13 @@
     };
    
     template <class ArgType, class ResType>
-    struct Function
+    struct Function_
     {     
 	char *test() { return (char *) "test"; }
     };
    
     template <class AF, class RF>
-    struct ArithFunction : Function<AF, RF>
+    struct ArithFunction : Function_<AF, RF>
     {
     };
    
@@ -40,7 +40,7 @@
     };   
 
     template <class AF, class RF>
-    class Class : public ArithFunction< typename traits<AF, RF>::arg_type,
+    class Class_ : public ArithFunction< typename traits<AF, RF>::arg_type,
                     typename traits<AF, RF>::res_type >
     {
     };
@@ -49,7 +49,7 @@
     typename traits<AF, RF>::base
     make_Class()
     {
-      return Class<AF, RF>();
+      return Class_<AF, RF>();
     }
 
 
@@ -58,9 +58,9 @@
 
 %{  
   namespace hello {
-    template struct Function <Double, Double>;
+    template struct Function_ <Double, Double>;
     template struct ArithFunction <Double, Double>;
-    template class Class <Double, Double>;   
+    template class Class_ <Double, Double>;   
   }  
 %}
 
@@ -69,9 +69,9 @@
   // This complains only when using a namespace
   //
   %template() traits<Double,Double>;
-  %template(Function_DD) Function <Double, Double>;
+  %template(Function_DD) Function_ <Double, Double>;
   %template(ArithFunction_DD) ArithFunction <Double, Double>;
-  %template(Class_DD) Class <Double, Double>;
+  %template(Class_DD) Class_ <Double, Double>;
   %template(make_Class_DD) make_Class <Double, Double>;
  }
 

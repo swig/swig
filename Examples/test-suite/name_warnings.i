@@ -35,7 +35,9 @@ namespace std
   {
     typedef complex None;
     
+#ifndef SWIGPHP // clone() *is* an invalid method name in PHP.
     A* clone(int) { return NULL; }
+#endif
     
     virtual ~A() {}
     virtual int func() = 0;

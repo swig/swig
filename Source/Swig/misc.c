@@ -92,8 +92,8 @@ void Swig_banner_target_lang(File *f, const_String_or_char_ptr commentchar) {
 /* -----------------------------------------------------------------------------
  * Swig_strip_c_comments()
  *
- * Return a new string with C comments stripped from the input string. Null is
- * returned if there aren't any.
+ * Return a new string with C comments stripped from the input string. NULL is
+ * returned if there aren't any comments.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_strip_c_comments(const String *s) {
@@ -111,9 +111,10 @@ String *Swig_strip_c_comments(const String *s) {
         comment_begin = c-1;
     } else if (comment_begin && !comment_end && *c == '*') {
       ++c;
-      if (*c == '/')
+      if (*c == '/') {
         comment_end = c;
-      break;
+        break;
+      }
     }
     ++c;
   }
@@ -162,10 +163,23 @@ void Swig_filename_correct(String *filename) {
 String *Swig_filename_escape(String *filename) {
   String *adjusted_filename = Copy(filename);
 #if defined(_WIN32)		/* Note not on Cygwin else filename is displayed with double '/' */
-    Replaceall(adjusted_filename, "\\\\", "\\");	/* remove double '\' in case any already present */
-    Replaceall(adjusted_filename, "\\", "\\\\");
+  Replaceall(adjusted_filename, "\\\\", "\\");	/* remove double '\' in case any already present */
+  Replaceall(adjusted_filename, "\\", "\\\\");
 #endif
     return adjusted_filename;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_filename_unescape()
+ *
+ * Remove double backslash escaping in filename - for Windows
+ * ----------------------------------------------------------------------------- */
+
+void Swig_filename_unescape(String *filename) {
+  (void)filename;
+#if defined(_WIN32)
+  Replaceall(filename, "\\\\", "\\");
+#endif
 }
 
 /* -----------------------------------------------------------------------------
@@ -896,7 +910,11 @@ String *Swig_scopename_suffix(const String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_scopename_check()
  *
- * Checks to see if a name is qualified with a scope name
+ * Checks to see if a name is qualified with a scope name, examples:
+ *   foo            -> 0
+ *   ::foo          -> 1
+ *   foo::bar       -> 1
+ *   foo< ::bar >   -> 0
  * ----------------------------------------------------------------------------- */
 
 int Swig_scopename_check(const String *s) {
