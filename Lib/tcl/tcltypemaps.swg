@@ -61,7 +61,7 @@
 
 
 /* ------------------------------------------------------------
- *  Tcl extra typemaps
+ *  Tcl extra typemaps / typemap overrides
  * ------------------------------------------------------------ */
 
 #if 1
@@ -84,6 +84,7 @@
 
 %typemap(out)    SWIGTYPE    =  SWIGTYPE INSTANCE;
 %typemap(out)    SWIGTYPE *  =  SWIGTYPE *INSTANCE;
+%typemap(out)    SWIGTYPE *const  =  SWIGTYPE *;
 %typemap(out)    SWIGTYPE &  =  SWIGTYPE &INSTANCE;
 %typemap(out)    SWIGTYPE [] =  SWIGTYPE INSTANCE[];
 %typemap(varout) SWIGTYPE    =  SWIGTYPE INSTANCE;

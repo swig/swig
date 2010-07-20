@@ -17,6 +17,15 @@ char cvsroot_misc_c[] = "$Id$";
 #include <errno.h>
 #include <ctype.h>
 #include <limits.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#ifdef _WIN32
+#include <direct.h>
+#ifndef S_ISDIR
+#define S_ISDIR(mode) (((mode) & S_IFDIR) == S_IFDIR)
+#endif
+#endif
 
 static char *fake_version = 0;
 
@@ -135,11 +144,79 @@ String *Swig_strip_c_comments(const String *s) {
   return stripped;
 }
 
+/* -----------------------------------------------------------------------------
+ * is_directory()
+ * ----------------------------------------------------------------------------- */
+static int is_directory(String *directory) {
+  int last = Len(directory) - 1;
+  int statres;
+  struct stat st;
+  char *dir = Char(directory);
+  if (dir[last] == SWIG_FILE_DELIMITER[0]) {
+    /* remove trailing slash - can cause S_ISDIR to fail on Windows, at least */
+    dir[last] = 0;
+    statres = stat(dir, &st);
+    dir[last] = SWIG_FILE_DELIMITER[0];
+  } else {
+    statres = stat(dir, &st);
+  }
+  return (statres == 0 && S_ISDIR(st.st_mode));
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_new_subdirectory()
+ *
+ * Create the subdirectory only if the basedirectory already exists as a directory.
+ * basedirectory can be NULL or empty to indicate current directory.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
+  String *error = 0;
+  struct stat st;
+  int current_directory = basedirectory ? (Len(basedirectory) == 0 ? 1 : 0) : 0;
+
+  if (current_directory || is_directory(basedirectory)) {
+    Iterator it;
+    String *dir = basedirectory ? NewString(basedirectory) : NewString("");
+    List *subdirs = Split(subdirectory, SWIG_FILE_DELIMITER[0], INT_MAX);
+
+    for (it = First(subdirs); it.item; it = Next(it)) {
+      int statdir;
+      String *subdirectory = it.item;
+      Printf(dir, "%s", subdirectory);
+      statdir = stat(Char(dir), &st);
+      if (statdir == 0) {
+	Printf(dir, SWIG_FILE_DELIMITER);
+	if (S_ISDIR(st.st_mode)) {
+	  continue;
+	} else {
+	  error = NewStringf("Cannot create directory %s", dir);
+	  break;
+	}
+      } else {
+#ifdef _WIN32
+	int result = _mkdir(Char(dir));
+#else
+	int result = mkdir(Char(dir), 0777);
+#endif
+	Printf(dir, SWIG_FILE_DELIMITER);
+	if (result != 0 && errno != EEXIST) {
+	  error = NewStringf("Cannot create directory %s", dir);
+	  break;
+	}
+      }
+    }
+  } else {
+    error = NewStringf("Cannot create subdirectory %s under the base directory %s. Either the base does not exist as a directory or it is not readable.", subdirectory, basedirectory);
+  }
+  return error;
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_filename_correct()
  *
- * Corrects filenames on non-unix systems
+ * Corrects filename paths by removing duplicate delimeters and on non-unix
+ * systems use the correct delimeter across the whole name.
  * ----------------------------------------------------------------------------- */
 
 void Swig_filename_correct(String *filename) {
@@ -152,6 +229,9 @@ void Swig_filename_correct(String *filename) {
   /* accept Windows path separator in addition to Unix path separator */
   Replaceall(filename, "\\", SWIG_FILE_DELIMITER);
 #endif
+  /* remove all duplicate file name delimiters */
+  while (Replaceall(filename, SWIG_FILE_DELIMITER SWIG_FILE_DELIMITER, SWIG_FILE_DELIMITER)) {
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -163,7 +243,9 @@ void Swig_filename_correct(String *filename) {
 String *Swig_filename_escape(String *filename) {
   String *adjusted_filename = Copy(filename);
 #if defined(_WIN32)		/* Note not on Cygwin else filename is displayed with double '/' */
-  Replaceall(adjusted_filename, "\\\\", "\\");	/* remove double '\' in case any already present */
+  /* remove all double '\' in case any already present */
+  while (Replaceall(adjusted_filename, "\\\\", "\\")) {
+  }
   Replaceall(adjusted_filename, "\\", "\\\\");
 #endif
     return adjusted_filename;
@@ -1010,7 +1092,7 @@ String *Swig_string_strip(String *s) {
   } else {
     const char *cs = Char(s);
     const char *ce = Strchr(cs, ']');
-    if (*cs != '[' || ce == NULL) {
+    if (*cs != '[' || !ce) {
       ns = NewString(s);
     } else {
       String *fmt = NewStringf("%%.%ds", ce-cs-1);

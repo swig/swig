@@ -11,6 +11,49 @@
  * The jtype typemap contains the Java type used in the JNI intermediary class. 
  * The jstype typemap contains the Java type used in the Java proxy classes, type wrapper classes and module class. */
 
+/* Fragments */
+%fragment("SWIG_PackData", "header") {
+/* Pack binary data into a string */
+SWIGINTERN char * SWIG_PackData(char *c, void *ptr, size_t sz) {
+  static const char hex[17] = "0123456789abcdef";
+  register const unsigned char *u = (unsigned char *) ptr;
+  register const unsigned char *eu =  u + sz;
+  for (; u != eu; ++u) {
+    register unsigned char uu = *u;
+    *(c++) = hex[(uu & 0xf0) >> 4];
+    *(c++) = hex[uu & 0xf];
+  }
+  return c;
+}
+}
+
+%fragment("SWIG_UnPackData", "header") {
+/* Unpack binary data from a string */
+SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
+  register unsigned char *u = (unsigned char *) ptr;
+  register const unsigned char *eu = u + sz;
+  for (; u != eu; ++u) {
+    register char d = *(c++);
+    register unsigned char uu;
+    if ((d >= '0') && (d <= '9'))
+      uu = ((d - '0') << 4);
+    else if ((d >= 'a') && (d <= 'f'))
+      uu = ((d - ('a'-10)) << 4);
+    else 
+      return (char *) 0;
+    d = *(c++);
+    if ((d >= '0') && (d <= '9'))
+      uu |= (d - '0');
+    else if ((d >= 'a') && (d <= 'f'))
+      uu |= (d - ('a'-10));
+    else 
+      return (char *) 0;
+    *u = uu;
+  }
+  return c;
+}
+}
+
 /* Primitive types */
 %typemap(jni) bool,               const bool &               "jboolean"
 %typemap(jni) char,               const char &               "jchar"
@@ -143,8 +186,8 @@
 %typemap(jstype) SWIGTYPE & "$javaclassname"
 
 /* pointer to a class member */
-%typemap(jni) SWIGTYPE (CLASS::*) "jlong"
-%typemap(jtype) SWIGTYPE (CLASS::*) "long"
+%typemap(jni) SWIGTYPE (CLASS::*) "jstring"
+%typemap(jtype) SWIGTYPE (CLASS::*) "String"
 %typemap(jstype) SWIGTYPE (CLASS::*) "$javaclassname"
 
 /* The following are the in, out, freearg, argout typemaps. These are the JNI code generating typemaps for converting from Java to C and visa versa. */
@@ -592,20 +635,39 @@
 %typemap(javadirectorout) SWIGTYPE "$&javaclassname.getCPtr($javacall)"
 
 /* Generic pointers and references */
-%typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
+%typemap(in) SWIGTYPE * %{ $1 = *($&1_ltype)&$input; %}
+%typemap(in, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*) { 
+  const char *temp = 0;
+  if ($input) {
+    temp = JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!temp) return $null;
+  }
+  SWIG_UnpackData(temp, (void *)&$1, sizeof($1));
+}
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
     return $null;
   } %}
-%typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*)
+%typemap(out) SWIGTYPE *
 %{ *($&1_ltype)&$result = $1; %} 
+%typemap(out, fragment="SWIG_PackData", noblock=1) SWIGTYPE (CLASS::*) {
+  char buf[128];
+  char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
+  *data = '\0';
+  $result = JCALL1(NewStringUTF, jenv, buf);
+}
 %typemap(out) SWIGTYPE &
 %{ *($&1_ltype)&$result = $1; %} 
 
-%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *, SWIGTYPE (CLASS::*)
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *
 %{ $result = *($&1_ltype)&$input; %}
-%typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE *, SWIGTYPE (CLASS::*)
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE (CLASS::*)
+%{ $result = *($&1_ltype)&$input; %}
+
+%typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE *
+%{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
+%typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE (CLASS::*)
 %{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &
@@ -897,6 +959,7 @@
     SWIGTYPE, 
     SWIGTYPE *, 
     SWIGTYPE &, 
+    SWIGTYPE *const&, 
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)
     ""
@@ -966,7 +1029,8 @@
                  jobjectArray
     "$javainput"
 %typemap(javain) SWIGTYPE "$&javaclassname.getCPtr($javainput)"
-%typemap(javain) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "$javaclassname.getCPtr($javainput)"
+%typemap(javain) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$javaclassname.getCPtr($javainput)"
+%typemap(javain) SWIGTYPE (CLASS::*) "$javaclassname.getCMemberPtr($javainput)"
 
 /* The javaout typemap is used for converting function return types from the return type
  * used in the JNI class to the type returned by the proxy, module or type wrapper class. */
@@ -1019,28 +1083,29 @@
 %typemap(javaout) SWIGTYPE & {
     return new $javaclassname($jnicall, $owner);
   }
-%typemap(javaout) SWIGTYPE *, SWIGTYPE [], SWIGTYPE (CLASS::*) {
+%typemap(javaout) SWIGTYPE *, SWIGTYPE [] {
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : new $javaclassname(cPtr, $owner);
   }
+%typemap(javaout) SWIGTYPE (CLASS::*) {
+    String cMemberPtr = $jnicall;
+    return (cMemberPtr == null) ? null : new $javaclassname(cMemberPtr, $owner);
+  }
 
 /* Pointer reference typemaps */
-%typemap(jni) SWIGTYPE *& "jlong"
-%typemap(jtype) SWIGTYPE *& "long"
-%typemap(jstype) SWIGTYPE *& "$*javaclassname"
-%typemap(javain) SWIGTYPE *& "$*javaclassname.getCPtr($javainput)"
-%typemap(javaout) SWIGTYPE *& {
+%typemap(jni) SWIGTYPE *const& "jlong"
+%typemap(jtype) SWIGTYPE *const& "long"
+%typemap(jstype) SWIGTYPE *const& "$*javaclassname"
+%typemap(javain) SWIGTYPE *const& "$*javaclassname.getCPtr($javainput)"
+%typemap(javaout) SWIGTYPE *const& {
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : new $*javaclassname(cPtr, $owner);
   }
-%typemap(in) SWIGTYPE *& ($*1_ltype temp = 0)
+%typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
 %{ temp = *($1_ltype)&$input;
-   $1 = &temp; %}
-%typemap(out) SWIGTYPE *&
+   $1 = ($1_ltype)&temp; %}
+%typemap(out) SWIGTYPE *const&
 %{ *($1_ltype)&$result = *$1; %} 
-
-/* Array reference typemaps */
-%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(javabase)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
@@ -1072,7 +1137,7 @@
   private long swigCPtr;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
-    super($imclassname.SWIG$javaclassnameUpcast(cPtr), cMemoryOwn);
+    super($imclassname.$javaclazznameSWIGUpcast(cPtr), cMemoryOwn);
     swigCPtr = cPtr;
   }
 
@@ -1085,10 +1150,10 @@
 /* Set the default for SWIGTYPE: pointer constructor is protected,
    getCPtr is protected. Season to your own taste! */
 
-SWIG_JAVABODY_METHODS(protected, protected, SWIGTYPE)
+SWIG_JAVABODY_METHODS(public, public, SWIGTYPE)
 
 // Typewrapper classes
-%typemap(javabody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+%typemap(javabody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] %{
   private long swigCPtr;
 
   protected $javaclassname(long cPtr, boolean futureUse) {
@@ -1101,6 +1166,22 @@ SWIG_JAVABODY_METHODS(protected, protected, SWIGTYPE)
 
   protected static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
+  }
+%}
+
+%typemap(javabody) SWIGTYPE (CLASS::*) %{
+  private String swigCMemberPtr;
+
+  protected $javaclassname(String cMemberPtr, boolean futureUse) {
+    swigCMemberPtr = cMemberPtr;
+  }
+
+  protected $javaclassname() {
+    swigCMemberPtr = null;
+  }
+
+  protected static String getCMemberPtr($javaclassname obj) {
+    return obj.swigCMemberPtr;
   }
 %}
 
@@ -1132,7 +1213,7 @@ SWIG_JAVABODY_METHODS(protected, protected, SWIGTYPE)
  */
 
 %define SWIG_PROXY_CONSTRUCTOR(OWNERSHIP, WEAKREF, TYPENAME...)
-%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclassname_director_connect(this, swigCPtr, swigCMemOwn, WEAKREF);") TYPENAME {
+%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclazznamedirector_connect(this, swigCPtr, swigCMemOwn, WEAKREF);") TYPENAME {
     this($imcall, OWNERSHIP);$directorconnect
   }
 %enddef
@@ -1195,13 +1276,19 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 #define %nojavaexception            %feature("except","0",throws="")
 #define %clearjavaexception         %feature("except","",throws="")
 
-%pragma(java) jniclassclassmodifiers="class"
+%pragma(java) jniclassclassmodifiers="public class"
 %pragma(java) moduleclassmodifiers="public class"
 
 /* Some ANSI C typemaps */
 
 %apply unsigned long { size_t };
 %apply const unsigned long & { const size_t & };
+
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
 
 /* java keywords */
 %include <javakw.swg>

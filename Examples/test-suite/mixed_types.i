@@ -3,6 +3,8 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) hi; /* Ruby, wrong constant name */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) hello; /* Ruby, wrong constant name */
 
+%warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'hello' due to Go name ('Hello') conflict with 'Hello' */
+
 %inline 
 {
   const void* ref_pointer(const void*& a) {

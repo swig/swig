@@ -75,7 +75,7 @@
 %include <typemaps/swigtypemaps.swg>
 
 /*  ------------------------------------------------------------
- *  Perl extra typemaps
+ *  Perl extra typemaps / typemap overrides
  * ------------------------------------------------------------ */
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE []  
@@ -90,3 +90,6 @@
 %typemap(varout,type="$1_descriptor") SWIGTYPE (CLASS::*) {
   SWIG_MakePackedObj($result, (void *) &$1, sizeof($1_type), $1_descriptor);
 }
+
+%typemap(varout) SWIGTYPE *const = SWIGTYPE *;
+

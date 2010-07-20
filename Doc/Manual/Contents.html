@@ -15,13 +15,12 @@
 <div class="sectiontoc">
 <ul>
 <li><a href="Preface.html#Preface_nn2">Introduction</a>
-<li><a href="Preface.html#Preface_nn3">Special Introduction for Version 1.3</a>
 <li><a href="Preface.html#Preface_nn4">SWIG Versions</a>
 <li><a href="Preface.html#Preface_nn5">SWIG resources</a>
 <li><a href="Preface.html#Preface_nn6">Prerequisites</a>
 <li><a href="Preface.html#Preface_nn7">Organization of this manual</a>
 <li><a href="Preface.html#Preface_nn8">How to avoid reading the manual</a>
-<li><a href="Preface.html#Preface_nn9">Backwards Compatibility</a>
+<li><a href="Preface.html#Preface_nn9">Backwards compatibility</a>
 <li><a href="Preface.html#Preface_nn10">Credits</a>
 <li><a href="Preface.html#Preface_nn11">Bug reports</a>
 </ul>
@@ -122,7 +121,7 @@
 <li><a href="SWIG.html#SWIG_nn2">Running SWIG</a>
 <ul>
 <li><a href="SWIG.html#SWIG_nn3">Input format</a>
-<li><a href="SWIG.html#output">SWIG Output</a>
+<li><a href="SWIG.html#SWIG_output">SWIG Output</a>
 <li><a href="SWIG.html#SWIG_nn5">Comments</a>
 <li><a href="SWIG.html#SWIG_nn6">C Preprocessor</a>
 <li><a href="SWIG.html#SWIG_nn7">SWIG Directives</a>
@@ -223,21 +222,24 @@
 <ul>
 <li><a href="SWIGPlus.html#SWIGPlus_nn24">Dispatch function generation</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn25">Ambiguity in Overloading</a>
-<li><a href="SWIGPlus.html#ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>
+<li><a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn27">Comments on overloading</a>
 </ul>
 <li><a href="SWIGPlus.html#SWIGPlus_nn28">Wrapping overloaded operators</a>
 <li><a href="SWIGPlus.html#SWIGPlus_class_extension">Class extension</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a>
-<li><a href="SWIGPlus.html#SWIGPlus_nn31">Namespaces</a>
+<li><a href="SWIGPlus.html#SWIGPlus_namespaces">Namespaces</a>
+<ul>
+<li><a href="SWIGPlus.html#SWIGPlus_nspace">The nspace feature for namespaces</a>
+</ul>
 <li><a href="SWIGPlus.html#SWIGPlus_renaming_templated_types_namespaces">Renaming templated types in namespaces</a>
 <li><a href="SWIGPlus.html#SWIGPlus_exception_specifications">Exception specifications</a>
 <li><a href="SWIGPlus.html#SWIGPlus_catches">Exception handling with %catches</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn33">Pointers to Members</a>
-<li><a href="SWIGPlus.html#SWIGPlus_nn34">Smart pointers and operator-&gt;()</a>
+<li><a href="SWIGPlus.html#SWIGPlus_smart_pointers">Smart pointers and operator-&gt;()</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn35">Using declarations and inheritance</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nested_classes">Nested classes</a>
-<li><a href="SWIGPlus.html#SWIGPlus_nn37">A brief rant about const-correctness</a>
+<li><a href="SWIGPlus.html#SWIGPlus_const">A brief rant about const-correctness</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn42">Where to go for more information</a>
 </ul>
 </div>
@@ -285,9 +287,10 @@
 </ul>
 <li><a href="Library.html#Library_stl_cpp_library">STL/C++ Library</a>
 <ul>
-<li><a href="Library.html#Library_nn14">std_string.i</a>
-<li><a href="Library.html#Library_nn15">std_vector.i</a>
+<li><a href="Library.html#Library_std_string">std::string</a>
+<li><a href="Library.html#Library_std_vector">std::vector</a>
 <li><a href="Library.html#Library_stl_exceptions">STL exceptions</a>
+<li><a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a>
 </ul>
 <li><a href="Library.html#Library_nn16">Utility Libraries</a>
 <ul>
@@ -333,6 +336,7 @@
 <li><a href="Typemaps.html#Typemaps_nn6">Reusing typemaps</a>
 <li><a href="Typemaps.html#Typemaps_nn7">What can be done with typemaps?</a>
 <li><a href="Typemaps.html#Typemaps_nn8">What can't be done with typemaps?</a>
+<li><a href="Typemaps.html#Typemaps_aspects">Similarities to Aspect Oriented Programming</a>
 <li><a href="Typemaps.html#Typemaps_nn9">The rest of this chapter</a>
 </ul>
 <li><a href="Typemaps.html#Typemaps_nn10">Typemap specifications</a>
@@ -346,10 +350,10 @@
 <li><a href="Typemaps.html#Typemaps_pattern_matching">Pattern matching rules</a>
 <ul>
 <li><a href="Typemaps.html#Typemaps_nn17">Basic matching rules</a>
-<li><a href="Typemaps.html#Typemaps_typedef_reductions">Typedef reductions</a>
-<li><a href="Typemaps.html#Typemaps_nn19">Default typemaps</a>
-<li><a href="Typemaps.html#Typemaps_mixed_default">Mixed default typemaps</a>
-<li><a href="Typemaps.html#Typemaps_nn20">Multi-arguments typemaps</a>
+<li><a href="Typemaps.html#Typemaps_typedef_reductions">Typedef reductions matching</a>
+<li><a href="Typemaps.html#Typemaps_nn19">Default typemap matching rules</a>
+<li><a href="Typemaps.html#Typemaps_multi_argument_typemaps_patterns">Multi-arguments typemaps</a>
+<li><a href="Typemaps.html#Typemaps_matching_template_comparison">Matching rules compared to C++ templates</a>
 <li><a href="Typemaps.html#Typemaps_debugging_search">Debugging typemap pattern matching</a>
 </ul>
 <li><a href="Typemaps.html#Typemaps_nn21">Code generation rules</a>
@@ -387,14 +391,18 @@
 <li><a href="Typemaps.html#Typemaps_nn43">Typemaps for multiple target languages</a>
 <li><a href="Typemaps.html#Typemaps_optimal">Optimal code generation when returning by value</a>
 <li><a href="Typemaps.html#Typemaps_multi_argument_typemaps">Multi-argument typemaps</a>
-<li><a href="Typemaps.html#runtime_type_checker">The run-time type checker</a>
+<li><a href="Typemaps.html#Typemaps_fragments">Typemap fragments</a>
+<ul>
+<li><a href="Typemaps.html#Typemaps_fragment_type_specialization">Fragment type specialization</a>
+<li><a href="Typemaps.html#Typemaps_automatic_specialization">Fragments and automatic typemap specialization</a>
+</ul>
+<li><a href="Typemaps.html#Typemaps_runtime_type_checker">The run-time type checker</a>
 <ul>
 <li><a href="Typemaps.html#Typemaps_nn45">Implementation</a>
 <li><a href="Typemaps.html#Typemaps_runtime_type_checker_usage">Usage</a>
 </ul>
 <li><a href="Typemaps.html#Typemaps_overloading">Typemaps and overloading</a>
 <li><a href="Typemaps.html#Typemaps_nn48">More about <tt>%apply</tt> and <tt>%clear</tt></a>
-<li><a href="Typemaps.html#Typemaps_nn49">Reducing wrapper code size</a>
 <li><a href="Typemaps.html#Typemaps_nn47">Passing data between typemaps</a>
 <li><a href="Typemaps.html#Typemaps_nn52">C++ "this" pointer</a>
 <li><a href="Typemaps.html#Typemaps_nn51">Where to go for more information?</a>
@@ -407,7 +415,7 @@
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
-<li><a href="Customization.html#exception">Exception handling with %exception</a>
+<li><a href="Customization.html#Customization_exception">Exception handling with %exception</a>
 <ul>
 <li><a href="Customization.html#Customization_nn3">Handling exceptions in C code</a>
 <li><a href="Customization.html#Customization_nn4">Exception handling with longjmp()</a>
@@ -417,14 +425,14 @@
 <li><a href="Customization.html#Customization_exception_special_variables">Special variables for %exception</a>
 <li><a href="Customization.html#Customization_nn7">Using The SWIG exception library</a>
 </ul>
-<li><a href="Customization.html#ownership">Object ownership and %newobject</a>
-<li><a href="Customization.html#features">Features and the %feature directive</a>
+<li><a href="Customization.html#Customization_ownership">Object ownership and %newobject</a>
+<li><a href="Customization.html#Customization_features">Features and the %feature directive</a>
 <ul>
 <li><a href="Customization.html#Customization_feature_attributes">Feature attributes</a>
 <li><a href="Customization.html#Customization_feature_flags">Feature flags</a>
 <li><a href="Customization.html#Customization_clearing_features">Clearing features</a>
 <li><a href="Customization.html#Customization_features_default_args">Features and default arguments</a>
-<li><a href="Customization.html#features_example">Feature example</a>
+<li><a href="Customization.html#Customization_features_example">Feature example</a>
 </ul>
 </ul>
 </div>
@@ -497,7 +505,7 @@
 <li><a href="Modules.html#Modules_introduction">Modules Introduction</a>
 <li><a href="Modules.html#Modules_nn1">Basics</a>
 <li><a href="Modules.html#Modules_nn2">The SWIG runtime code</a>
-<li><a href="Modules.html#external_run_time">External access to the runtime</a>
+<li><a href="Modules.html#Modules_external_run_time">External access to the runtime</a>
 <li><a href="Modules.html#Modules_nn4">A word of caution about static libraries</a>
 <li><a href="Modules.html#Modules_nn5">References</a>
 <li><a href="Modules.html#Modules_nn6">Reducing the wrapper file size</a>
@@ -620,35 +628,36 @@
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
-<li><a href="CSharp.html#csharp_introduction">Introduction</a>
-<li><a href="CSharp.html#csharp_differences_java">Differences to the Java module</a>
+<li><a href="CSharp.html#CSharp_introduction">Introduction</a>
+<li><a href="CSharp.html#CSharp_differences_java">Differences to the Java module</a>
 <li><a href="CSharp.html#CSharp_arrays">C# Arrays</a>
 <ul>
 <li><a href="CSharp.html#CSharp_arrays_swig_library">The SWIG C arrays library</a>
 <li><a href="CSharp.html#CSharp_arrays_pinvoke_default_array_marshalling">Managed arrays using P/Invoke default array marshalling</a>
 <li><a href="CSharp.html#CSharp_arrays_pinning">Managed arrays using pinning</a>
 </ul>
-<li><a href="CSharp.html#csharp_exceptions">C# Exceptions</a>
+<li><a href="CSharp.html#CSharp_exceptions">C# Exceptions</a>
 <ul>
-<li><a href="CSharp.html#csharp_exception_example_check_typemap">C# exception example using "check" typemap</a>
-<li><a href="CSharp.html#csharp_exception_example_percent_exception">C# exception example using %exception</a>
-<li><a href="CSharp.html#csharp_exception_example_exception_specifications">C# exception example using exception specifications</a>
-<li><a href="CSharp.html#csharp_custom_application_exception">Custom C# ApplicationException example</a>
+<li><a href="CSharp.html#CSharp_exception_example_check_typemap">C# exception example using "check" typemap</a>
+<li><a href="CSharp.html#CSharp_exception_example_percent_exception">C# exception example using %exception</a>
+<li><a href="CSharp.html#CSharp_exception_example_exception_specifications">C# exception example using exception specifications</a>
+<li><a href="CSharp.html#CSharp_custom_application_exception">Custom C# ApplicationException example</a>
 </ul>
-<li><a href="CSharp.html#csharp_directors">C# Directors</a>
+<li><a href="CSharp.html#CSharp_directors">C# Directors</a>
 <ul>
-<li><a href="CSharp.html#csharp_directors_example">Directors example</a>
-<li><a href="CSharp.html#csharp_directors_implementation">Directors implementation</a>
-<li><a href="CSharp.html#csharp_director_caveats">Director caveats</a>
+<li><a href="CSharp.html#CSharp_directors_example">Directors example</a>
+<li><a href="CSharp.html#CSharp_directors_implementation">Directors implementation</a>
+<li><a href="CSharp.html#CSharp_director_caveats">Director caveats</a>
 </ul>
-<li><a href="CSharp.html#csharp_typemap_examples">C# Typemap examples</a>
+<li><a href="CSharp.html#CSharp_typemap_examples">C# Typemap examples</a>
 <ul>
-<li><a href="CSharp.html#csharp_memory_management_member_variables">Memory management when returning references to member variables</a>
-<li><a href="CSharp.html#csharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
-<li><a href="CSharp.html#csharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
-<li><a href="CSharp.html#csharp_date_properties">A date example demonstrating marshalling of C# properties</a>
-<li><a href="CSharp.html#csharp_partial_classes">Turning wrapped classes into partial classes</a>
-<li><a href="CSharp.html#csharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
+<li><a href="CSharp.html#CSharp_memory_management_member_variables">Memory management when returning references to member variables</a>
+<li><a href="CSharp.html#CSharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
+<li><a href="CSharp.html#CSharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
+<li><a href="CSharp.html#CSharp_date_properties">A date example demonstrating marshalling of C# properties</a>
+<li><a href="CSharp.html#CSharp_partial_classes">Turning wrapped classes into partial classes</a>
+<li><a href="CSharp.html#CSharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
+<li><a href="CSharp.html#CSharp_enum_underlying_type">Underlying type for enums</a>
 </ul>
 </ul>
 </div>
@@ -682,7 +691,7 @@
 <li><a href="Chicken.html#Chicken_nn16">Typemaps</a>
 <li><a href="Chicken.html#Chicken_nn17">Pointers</a>
 <ul>
-<li><a href="Chicken.html#collection">Garbage collection</a>
+<li><a href="Chicken.html#Chicken_collection">Garbage collection</a>
 </ul>
 <li><a href="Chicken.html#Chicken_nn18">Unsupported features and known problems</a>
 <ul>
@@ -692,7 +701,36 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Guile.html#Guile">20 SWIG and Guile</a></h3>
+<h3><a href="Go.html#Go">20 SWIG and Go</a></h3>
+
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="Go.html#Go_overview">Overview</a>
+<li><a href="Go.html#Go_running_swig">Running SWIG with Go</a>
+<ul>
+<li><a href="Go.html#Go_commandline">Additional Commandline Options</a>
+<li><a href="Go.html#Go_outputs">Go Output Files</a>
+</ul>
+<li><a href="Go.html#Go_basic_tour">A tour of basic C/C++ wrapping</a>
+<ul>
+<li><a href="Go.html#Go_package">Go Package Name</a>
+<li><a href="Go.html#Go_names">Go Names</a>
+<li><a href="Go.html#Go_constants">Go Constants</a>
+<li><a href="Go.html#Go_enumerations">Go Enumerations</a>
+<li><a href="Go.html#Go_classes">Go Classes</a>
+<ul>
+<li><a href="Go.html#Go_class_inheritance">Go Class Inheritance</a>
+</ul>
+<li><a href="Go.html#Go_templates">Go Templates</a>
+<li><a href="Go.html#Go_director_classes">Go Director Classes</a>
+<li><a href="Go.html#Go_primitive_type_mappings">Default Go primitive type mappings</a>
+</ul>
+</ul>
+</div>
+<!-- INDEX -->
+
+<h3><a href="Guile.html#Guile">21 SWIG and Guile</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -727,149 +765,149 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Java.html#Java">21 SWIG and Java</a></h3>
+<h3><a href="Java.html#Java">22 SWIG and Java</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
-<li><a href="Java.html#java_overview">Overview</a>
-<li><a href="Java.html#java_preliminaries">Preliminaries</a>
+<li><a href="Java.html#Java_overview">Overview</a>
+<li><a href="Java.html#Java_preliminaries">Preliminaries</a>
 <ul>
-<li><a href="Java.html#running_swig">Running SWIG</a>
-<li><a href="Java.html#java_commandline">Additional Commandline Options</a>
-<li><a href="Java.html#getting_right_headers">Getting the right header files</a>
-<li><a href="Java.html#compiling_dynamic">Compiling a dynamic module</a>
-<li><a href="Java.html#using_module">Using your module</a>
-<li><a href="Java.html#dynamic_linking_problems">Dynamic linking problems</a>
-<li><a href="Java.html#compilation_problems_cpp">Compilation problems and compiling with C++</a>
-<li><a href="Java.html#building_windows">Building on Windows</a>
+<li><a href="Java.html#Java_running_swig">Running SWIG</a>
+<li><a href="Java.html#Java_commandline">Additional Commandline Options</a>
+<li><a href="Java.html#Java_getting_right_headers">Getting the right header files</a>
+<li><a href="Java.html#Java_compiling_dynamic">Compiling a dynamic module</a>
+<li><a href="Java.html#Java_using_module">Using your module</a>
+<li><a href="Java.html#Java_dynamic_linking_problems">Dynamic linking problems</a>
+<li><a href="Java.html#Java_compilation_problems_cpp">Compilation problems and compiling with C++</a>
+<li><a href="Java.html#Java_building_windows">Building on Windows</a>
 <ul>
-<li><a href="Java.html#visual_studio">Running SWIG from Visual Studio</a>
-<li><a href="Java.html#nmake">Using NMAKE</a>
+<li><a href="Java.html#Java_visual_studio">Running SWIG from Visual Studio</a>
+<li><a href="Java.html#Java_nmake">Using NMAKE</a>
 </ul>
 </ul>
-<li><a href="Java.html#java_basic_tour">A tour of basic C/C++ wrapping</a>
+<li><a href="Java.html#Java_basic_tour">A tour of basic C/C++ wrapping</a>
 <ul>
-<li><a href="Java.html#module_packages_classes">Modules, packages and generated Java classes</a>
-<li><a href="Java.html#functions">Functions</a>
-<li><a href="Java.html#global_variables">Global variables</a>
-<li><a href="Java.html#constants">Constants</a>
-<li><a href="Java.html#enumerations">Enumerations</a>
+<li><a href="Java.html#Java_module_packages_classes">Modules, packages and generated Java classes</a>
+<li><a href="Java.html#Java_functions">Functions</a>
+<li><a href="Java.html#Java_global_variables">Global variables</a>
+<li><a href="Java.html#Java_constants">Constants</a>
+<li><a href="Java.html#Java_enumerations">Enumerations</a>
 <ul>
-<li><a href="Java.html#anonymous_enums">Anonymous enums</a>
-<li><a href="Java.html#typesafe_enums">Typesafe enums</a>
-<li><a href="Java.html#proper_enums">Proper Java enums</a>
-<li><a href="Java.html#typeunsafe_enums">Type unsafe enums</a>
-<li><a href="Java.html#simple_enums">Simple enums</a>
+<li><a href="Java.html#Java_anonymous_enums">Anonymous enums</a>
+<li><a href="Java.html#Java_typesafe_enums">Typesafe enums</a>
+<li><a href="Java.html#Java_proper_enums">Proper Java enums</a>
+<li><a href="Java.html#Java_typeunsafe_enums">Type unsafe enums</a>
+<li><a href="Java.html#Java_simple_enums">Simple enums</a>
 </ul>
-<li><a href="Java.html#pointers">Pointers</a>
-<li><a href="Java.html#structures">Structures</a>
-<li><a href="Java.html#classes">C++ classes</a>
-<li><a href="Java.html#inheritance">C++ inheritance</a>
-<li><a href="Java.html#pointers_refs_arrays">Pointers, references, arrays and pass by value</a>
+<li><a href="Java.html#Java_pointers">Pointers</a>
+<li><a href="Java.html#Java_structures">Structures</a>
+<li><a href="Java.html#Java_classes">C++ classes</a>
+<li><a href="Java.html#Java_inheritance">C++ inheritance</a>
+<li><a href="Java.html#Java_pointers_refs_arrays">Pointers, references, arrays and pass by value</a>
 <ul>
-<li><a href="Java.html#null_pointers">Null pointers</a>
+<li><a href="Java.html#Java_null_pointers">Null pointers</a>
 </ul>
-<li><a href="Java.html#overloaded_functions">C++ overloaded functions</a>
-<li><a href="Java.html#java_default_arguments">C++ default arguments</a>
-<li><a href="Java.html#namespaces">C++ namespaces</a>
-<li><a href="Java.html#templates">C++ templates</a>
-<li><a href="Java.html#smart_pointers">C++ Smart Pointers</a>
+<li><a href="Java.html#Java_overloaded_functions">C++ overloaded functions</a>
+<li><a href="Java.html#Java_default_arguments">C++ default arguments</a>
+<li><a href="Java.html#Java_namespaces">C++ namespaces</a>
+<li><a href="Java.html#Java_templates">C++ templates</a>
+<li><a href="Java.html#Java_smart_pointers">C++ Smart Pointers</a>
 </ul>
-<li><a href="Java.html#further_details">Further details on the generated Java classes</a>
+<li><a href="Java.html#Java_further_details">Further details on the generated Java classes</a>
 <ul>
-<li><a href="Java.html#imclass">The intermediary JNI class</a>
+<li><a href="Java.html#Java_imclass">The intermediary JNI class</a>
 <ul>
-<li><a href="Java.html#imclass_pragmas">The intermediary JNI class pragmas</a>
+<li><a href="Java.html#Java_imclass_pragmas">The intermediary JNI class pragmas</a>
 </ul>
-<li><a href="Java.html#java_module_class">The Java module class</a>
+<li><a href="Java.html#Java_module_class">The Java module class</a>
 <ul>
-<li><a href="Java.html#module_class_pragmas">The Java module class pragmas</a>
+<li><a href="Java.html#Java_module_class_pragmas">The Java module class pragmas</a>
 </ul>
-<li><a href="Java.html#java_proxy_classes">Java proxy classes</a>
+<li><a href="Java.html#Java_proxy_classes">Java proxy classes</a>
 <ul>
-<li><a href="Java.html#memory_management">Memory management</a>
-<li><a href="Java.html#inheritance_mirroring">Inheritance</a>
-<li><a href="Java.html#proxy_classes_gc">Proxy classes and garbage collection</a>
-<li><a href="Java.html#java_pgcpp">The premature garbage collection prevention parameter for proxy class marshalling</a>
-<li><a href="Java.html#java_multithread_libraries">Single threaded applications and thread safety</a>
+<li><a href="Java.html#Java_memory_management">Memory management</a>
+<li><a href="Java.html#Java_inheritance_mirroring">Inheritance</a>
+<li><a href="Java.html#Java_proxy_classes_gc">Proxy classes and garbage collection</a>
+<li><a href="Java.html#Java_pgcpp">The premature garbage collection prevention parameter for proxy class marshalling</a>
+<li><a href="Java.html#Java_multithread_libraries">Single threaded applications and thread safety</a>
 </ul>
-<li><a href="Java.html#type_wrapper_classes">Type wrapper classes</a>
-<li><a href="Java.html#enum_classes">Enum classes</a>
+<li><a href="Java.html#Java_type_wrapper_classes">Type wrapper classes</a>
+<li><a href="Java.html#Java_enum_classes">Enum classes</a>
 <ul>
-<li><a href="Java.html#typesafe_enums_classes">Typesafe enum classes</a>
-<li><a href="Java.html#proper_enums_classes">Proper Java enum classes</a>
-<li><a href="Java.html#typeunsafe_enums_classes">Type unsafe enum classes</a>
+<li><a href="Java.html#Java_typesafe_enums_classes">Typesafe enum classes</a>
+<li><a href="Java.html#Java_proper_enums_classes">Proper Java enum classes</a>
+<li><a href="Java.html#Java_typeunsafe_enums_classes">Type unsafe enum classes</a>
 </ul>
 </ul>
-<li><a href="Java.html#java_directors">Cross language polymorphism using directors</a>
+<li><a href="Java.html#Java_directors">Cross language polymorphism using directors</a>
 <ul>
-<li><a href="Java.html#java_enabling_directors">Enabling directors</a>
-<li><a href="Java.html#java_directors_classes">Director classes</a>
-<li><a href="Java.html#java_directors_overhead">Overhead and code bloat</a>
-<li><a href="Java.html#java_directors_example">Simple directors example</a>
-<li><a href="Java.html#java_directors_threading">Director threading issues</a>
+<li><a href="Java.html#Java_enabling_directors">Enabling directors</a>
+<li><a href="Java.html#Java_directors_classes">Director classes</a>
+<li><a href="Java.html#Java_directors_overhead">Overhead and code bloat</a>
+<li><a href="Java.html#Java_directors_example">Simple directors example</a>
+<li><a href="Java.html#Java_directors_threading">Director threading issues</a>
 </ul>
-<li><a href="Java.html#java_allprotected">Accessing protected members</a>
-<li><a href="Java.html#common_customization">Common customization features</a>
+<li><a href="Java.html#Java_allprotected">Accessing protected members</a>
+<li><a href="Java.html#Java_common_customization">Common customization features</a>
 <ul>
-<li><a href="Java.html#helper_functions">C/C++ helper functions</a>
-<li><a href="Java.html#class_extension">Class extension with %extend</a>
-<li><a href="Java.html#exception_handling">Exception handling with %exception and %javaexception</a>
-<li><a href="Java.html#method_access">Method access with %javamethodmodifiers</a>
+<li><a href="Java.html#Java_helper_functions">C/C++ helper functions</a>
+<li><a href="Java.html#Java_class_extension">Class extension with %extend</a>
+<li><a href="Java.html#Java_exception_handling">Exception handling with %exception and %javaexception</a>
+<li><a href="Java.html#Java_method_access">Method access with %javamethodmodifiers</a>
 </ul>
-<li><a href="Java.html#tips_techniques">Tips and techniques</a>
+<li><a href="Java.html#Java_tips_techniques">Tips and techniques</a>
 <ul>
-<li><a href="Java.html#input_output_parameters">Input and output parameters using primitive pointers and references</a>
-<li><a href="Java.html#simple_pointers">Simple pointers</a>
-<li><a href="Java.html#c_arrays">Wrapping C arrays with Java arrays</a>
-<li><a href="Java.html#unbounded_c_arrays">Unbounded C Arrays</a>
-<li><a href="Java.html#java_heap_allocations">Overriding new and delete to allocate from Java heap</a>
+<li><a href="Java.html#Java_input_output_parameters">Input and output parameters using primitive pointers and references</a>
+<li><a href="Java.html#Java_simple_pointers">Simple pointers</a>
+<li><a href="Java.html#Java_c_arrays">Wrapping C arrays with Java arrays</a>
+<li><a href="Java.html#Java_unbounded_c_arrays">Unbounded C Arrays</a>
+<li><a href="Java.html#Java_heap_allocations">Overriding new and delete to allocate from Java heap</a>
 </ul>
-<li><a href="Java.html#java_typemaps">Java typemaps</a>
+<li><a href="Java.html#Java_typemaps">Java typemaps</a>
 <ul>
-<li><a href="Java.html#default_primitive_type_mappings">Default primitive type mappings</a>
+<li><a href="Java.html#Java_default_primitive_type_mappings">Default primitive type mappings</a>
 <li><a href="Java.html#Java_default_non_primitive_typemaps">Default typemaps for non-primitive types</a>
-<li><a href="Java.html#jvm64">Sixty four bit JVMs</a>
-<li><a href="Java.html#what_is_typemap">What is a typemap?</a>
-<li><a href="Java.html#typemaps_c_to_java_types">Typemaps for mapping C/C++ types to Java types</a>
-<li><a href="Java.html#typemap_attributes">Java typemap attributes</a>
-<li><a href="Java.html#special_variables">Java special variables</a>
-<li><a href="Java.html#typemaps_for_c_and_cpp">Typemaps for both C and C++ compilation</a>
-<li><a href="Java.html#java_code_typemaps">Java code typemaps</a>
-<li><a href="Java.html#java_directors_typemaps">Director specific typemaps</a>
+<li><a href="Java.html#Java_jvm64">Sixty four bit JVMs</a>
+<li><a href="Java.html#Java_what_is_typemap">What is a typemap?</a>
+<li><a href="Java.html#Java_typemaps_c_to_java_types">Typemaps for mapping C/C++ types to Java types</a>
+<li><a href="Java.html#Java_typemap_attributes">Java typemap attributes</a>
+<li><a href="Java.html#Java_special_variables">Java special variables</a>
+<li><a href="Java.html#Java_typemaps_for_c_and_cpp">Typemaps for both C and C++ compilation</a>
+<li><a href="Java.html#Java_code_typemaps">Java code typemaps</a>
+<li><a href="Java.html#Java_directors_typemaps">Director specific typemaps</a>
 </ul>
-<li><a href="Java.html#typemap_examples">Typemap Examples</a>
+<li><a href="Java.html#Java_typemap_examples">Typemap Examples</a>
 <ul>
-<li><a href="Java.html#simpler_enum_classes">Simpler Java enums for enums without initializers</a>
-<li><a href="Java.html#exception_typemap">Handling C++ exception specifications as Java exceptions</a>
-<li><a href="Java.html#nan_exception_typemap">NaN Exception - exception handling for a particular type</a>
-<li><a href="Java.html#converting_java_string_arrays">Converting Java String arrays to char ** </a>
-<li><a href="Java.html#expanding_java_object">Expanding a Java object to multiple arguments</a>
-<li><a href="Java.html#using_typemaps_return_arguments">Using typemaps to return arguments</a>
-<li><a href="Java.html#adding_downcasts">Adding Java downcasts to polymorphic return types</a>
-<li><a href="Java.html#adding_equals_method">Adding an equals method to the Java classes</a>
-<li><a href="Java.html#void_pointers">Void pointers and a common Java base class</a>
-<li><a href="Java.html#struct_pointer_pointer">Struct pointer to pointer</a>
-<li><a href="Java.html#java_memory_management_member_variables">Memory management when returning references to member variables</a>
-<li><a href="Java.html#java_memory_management_objects">Memory management for objects passed to the C++ layer</a>
-<li><a href="Java.html#java_date_marshalling">Date marshalling using the javain typemap and associated attributes</a>
+<li><a href="Java.html#Java_simpler_enum_classes">Simpler Java enums for enums without initializers</a>
+<li><a href="Java.html#Java_exception_typemap">Handling C++ exception specifications as Java exceptions</a>
+<li><a href="Java.html#Java_nan_exception_typemap">NaN Exception - exception handling for a particular type</a>
+<li><a href="Java.html#Java_converting_java_string_arrays">Converting Java String arrays to char ** </a>
+<li><a href="Java.html#Java_expanding_java_object">Expanding a Java object to multiple arguments</a>
+<li><a href="Java.html#Java_using_typemaps_return_arguments">Using typemaps to return arguments</a>
+<li><a href="Java.html#Java_adding_downcasts">Adding Java downcasts to polymorphic return types</a>
+<li><a href="Java.html#Java_adding_equals_method">Adding an equals method to the Java classes</a>
+<li><a href="Java.html#Java_void_pointers">Void pointers and a common Java base class</a>
+<li><a href="Java.html#Java_struct_pointer_pointer">Struct pointer to pointer</a>
+<li><a href="Java.html#Java_memory_management_member_variables">Memory management when returning references to member variables</a>
+<li><a href="Java.html#Java_memory_management_objects">Memory management for objects passed to the C++ layer</a>
+<li><a href="Java.html#Java_date_marshalling">Date marshalling using the javain typemap and associated attributes</a>
 </ul>
-<li><a href="Java.html#java_directors_faq">Living with Java Directors</a>
-<li><a href="Java.html#odds_ends">Odds and ends</a>
+<li><a href="Java.html#Java_directors_faq">Living with Java Directors</a>
+<li><a href="Java.html#Java_odds_ends">Odds and ends</a>
 <ul>
-<li><a href="Java.html#javadoc_comments">JavaDoc comments</a>
-<li><a href="Java.html#functional_interface">Functional interface without proxy classes</a>
-<li><a href="Java.html#using_own_jni_functions">Using your own JNI functions</a>
-<li><a href="Java.html#performance">Performance concerns and hints</a>
-<li><a href="Java.html#java_debugging">Debugging</a>
+<li><a href="Java.html#Java_javadoc_comments">JavaDoc comments</a>
+<li><a href="Java.html#Java_functional_interface">Functional interface without proxy classes</a>
+<li><a href="Java.html#Java_using_own_jni_functions">Using your own JNI functions</a>
+<li><a href="Java.html#Java_performance">Performance concerns and hints</a>
+<li><a href="Java.html#Java_debugging">Debugging</a>
 </ul>
-<li><a href="Java.html#java_examples">Examples</a>
+<li><a href="Java.html#Java_examples">Examples</a>
 </ul>
 </div>
 <!-- INDEX -->
 
-<h3><a href="Lisp.html#Lisp">22 SWIG and Common Lisp</a></h3>
+<h3><a href="Lisp.html#Lisp">23 SWIG and Common Lisp</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -892,7 +930,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Lua.html#Lua">23 SWIG and Lua</a></h3>
+<h3><a href="Lua.html#Lua">24 SWIG and Lua</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -949,48 +987,45 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Modula3.html#Modula3">24 SWIG and Modula-3</a></h3>
+<h3><a href="Modula3.html#Modula3">25 SWIG and Modula-3</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
-<li><a href="Modula3.html#modula3_overview">Overview</a>
+<li><a href="Modula3.html#Modula3_modula3_overview">Overview</a>
 <ul>
-<li><a href="Modula3.html#whyscripting">Why not scripting ?</a>
-<li><a href="Modula3.html#whymodula3">Why Modula-3 ?</a>
-<li><a href="Modula3.html#whycpp">Why C / C++ ?</a>
-<li><a href="Modula3.html#whyswig">Why SWIG ?</a>
+<li><a href="Modula3.html#Modula3_motivation">Motivation</a>
 </ul>
-<li><a href="Modula3.html#conception">Conception</a>
+<li><a href="Modula3.html#Modula3_conception">Conception</a>
 <ul>
-<li><a href="Modula3.html#cinterface">Interfaces to C libraries</a>
-<li><a href="Modula3.html#cppinterface">Interfaces to C++ libraries</a>
+<li><a href="Modula3.html#Modula3_cinterface">Interfaces to C libraries</a>
+<li><a href="Modula3.html#Modula3_cppinterface">Interfaces to C++ libraries</a>
 </ul>
-<li><a href="Modula3.html#preliminaries">Preliminaries</a>
+<li><a href="Modula3.html#Modula3_preliminaries">Preliminaries</a>
 <ul>
-<li><a href="Modula3.html#compilers">Compilers</a>
-<li><a href="Modula3.html#commandline">Additional Commandline Options</a>
+<li><a href="Modula3.html#Modula3_compilers">Compilers</a>
+<li><a href="Modula3.html#Modula3_commandline">Additional Commandline Options</a>
 </ul>
-<li><a href="Modula3.html#modula3_typemaps">Modula-3 typemaps</a>
+<li><a href="Modula3.html#Modula3_typemaps">Modula-3 typemaps</a>
 <ul>
-<li><a href="Modula3.html#inoutparam">Inputs and outputs</a>
-<li><a href="Modula3.html#ordinals">Subranges, Enumerations, Sets</a>
-<li><a href="Modula3.html#class">Objects</a>
-<li><a href="Modula3.html#imports">Imports</a>
-<li><a href="Modula3.html#exceptions">Exceptions</a>
-<li><a href="Modula3.html#typemap_example">Example</a>
+<li><a href="Modula3.html#Modula3_inoutparam">Inputs and outputs</a>
+<li><a href="Modula3.html#Modula3_ordinals">Subranges, Enumerations, Sets</a>
+<li><a href="Modula3.html#Modula3_class">Objects</a>
+<li><a href="Modula3.html#Modula3_imports">Imports</a>
+<li><a href="Modula3.html#Modula3_exceptions">Exceptions</a>
+<li><a href="Modula3.html#Modula3_typemap_example">Example</a>
 </ul>
-<li><a href="Modula3.html#hints">More hints to the generator</a>
+<li><a href="Modula3.html#Modula3_hints">More hints to the generator</a>
 <ul>
-<li><a href="Modula3.html#features">Features</a>
-<li><a href="Modula3.html#pragmas">Pragmas</a>
+<li><a href="Modula3.html#Modula3_features">Features</a>
+<li><a href="Modula3.html#Modula3_pragmas">Pragmas</a>
 </ul>
-<li><a href="Modula3.html#remarks">Remarks</a>
+<li><a href="Modula3.html#Modula3_remarks">Remarks</a>
 </ul>
 </div>
 <!-- INDEX -->
 
-<h3><a href="Mzscheme.html#Mzscheme">25 SWIG and MzScheme</a></h3>
+<h3><a href="Mzscheme.html#Mzscheme">26 SWIG and MzScheme</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1000,7 +1035,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Ocaml.html#Ocaml">26 SWIG and Ocaml</a></h3>
+<h3><a href="Ocaml.html#Ocaml">27 SWIG and Ocaml</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1051,7 +1086,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Octave.html#Octave">27 SWIG and Octave</a></h3>
+<h3><a href="Octave.html#Octave">28 SWIG and Octave</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1086,7 +1121,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Perl5.html#Perl5">28 SWIG and Perl5</a></h3>
+<h3><a href="Perl5.html#Perl5">29 SWIG and Perl5</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1153,7 +1188,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Php.html#Php">29 SWIG and PHP</a></h3>
+<h3><a href="Php.html#Php">30 SWIG and PHP</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1193,7 +1228,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Pike.html#Pike">30 SWIG and Pike</a></h3>
+<h3><a href="Pike.html#Pike">31 SWIG and Pike</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1217,7 +1252,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Python.html#Python">31 SWIG and Python</a></h3>
+<h3><a href="Python.html#Python">32 SWIG and Python</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1320,7 +1355,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Ruby.html#Ruby">32 SWIG and Ruby</a></h3>
+<h3><a href="Ruby.html#Ruby">33 SWIG and Ruby</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1353,7 +1388,7 @@
 <li><a href="Ruby.html#Ruby_nn22">C++ namespaces</a>
 <li><a href="Ruby.html#Ruby_nn23">C++ templates</a>
 <li><a href="Ruby.html#Ruby_nn23_1">C++ Standard Template Library (STL)</a>
-<li><a href="Ruby.html#C_STL_Functors">C++ STL Functors</a>
+<li><a href="Ruby.html#Ruby_C_STL_Functors">C++ STL Functors</a>
 <li><a href="Ruby.html#Ruby_C_Iterators">C++ STL Iterators</a>
 <li><a href="Ruby.html#Ruby_nn24">C++ Smart Pointers</a>
 <li><a href="Ruby.html#Ruby_nn25">Cross-Language Polymorphism</a>
@@ -1437,7 +1472,7 @@
 </ul>
 <li><a href="Ruby.html#Ruby_nn53">Advanced Topics</a>
 <ul>
-<li><a href="Ruby.html#Ruby_nn54">Operator overloading</a>
+<li><a href="Ruby.html#Ruby_operator_overloading">Operator overloading</a>
 <li><a href="Ruby.html#Ruby_nn55">Creating Multi-Module Packages</a>
 <li><a href="Ruby.html#Ruby_nn56">Specifying Mixin Modules</a>
 </ul>
@@ -1454,7 +1489,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Tcl.html#Tcl">33 SWIG and Tcl</a></h3>
+<h3><a href="Tcl.html#Tcl">34 SWIG and Tcl</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1520,7 +1555,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="R.html#R">34 SWIG and R</a></h3>
+<h3><a href="R.html#R">35 SWIG and R</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1536,7 +1571,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Extending.html#Extending">35 Extending SWIG to support new languages</a></h3>
+<h3><a href="Extending.html#Extending">36 Extending SWIG to support new languages</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1585,7 +1620,7 @@
 <li><a href="Extending.html#Extending_nn36">Entry point to code generation</a>
 <li><a href="Extending.html#Extending_nn37">Module I/O and wrapper skeleton</a>
 <li><a href="Extending.html#Extending_nn38">Low-level code generators</a>
-<li><a href="Extending.html#Extending_nn39">Configuration files</a>
+<li><a href="Extending.html#Extending_configuration_files">Configuration files</a>
 <li><a href="Extending.html#Extending_nn40">Runtime support</a>
 <li><a href="Extending.html#Extending_nn41">Standard library files</a>
 <li><a href="Extending.html#Extending_nn42">User examples</a>

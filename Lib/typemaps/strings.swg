@@ -54,7 +54,7 @@
 
 /* out */
 
-%typemap(out,noblock=1,fragment=#SWIG_FromCharPtr) Char *, const Char* {
+%typemap(out,noblock=1,fragment=#SWIG_FromCharPtr) Char *, const Char * {
   %set_output(SWIG_FromCharPtr((const Char *)$1));
 }
 
@@ -98,7 +98,7 @@
 
 /* varout */
 
-%typemap(varout,noblock=1,fragment=#SWIG_FromCharPtr) Char*, const Char* {
+%typemap(varout,noblock=1,fragment=#SWIG_FromCharPtr) Char *, const Char * {
   %set_varoutput(SWIG_FromCharPtr($1));
 }
 
@@ -165,8 +165,7 @@
 
 /* directorout */
 
-%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG)
-  Char * (int res, Char* buf = 0, int alloc = SWIG_NEWOBJ) {
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) Char * (int res, Char *buf = 0, int alloc = SWIG_NEWOBJ) {
   res = SWIG_AsCharPtr($input, &buf, &alloc);
   if (!SWIG_IsOK(res)) {
     %dirout_fail(res, "$type");
@@ -184,9 +183,7 @@
 }
 
 
-%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) 
-  Char * const& (int res, Char* buf = 0, int alloc = SWIG_NEWOBJ),
-  Char const* const& (int res, Char* buf = 0, int alloc = SWIG_NEWOBJ) { 
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) Char *const& (int res, Char *buf = 0, int alloc = SWIG_NEWOBJ), Char const*const& (int res, Char *buf = 0, int alloc = SWIG_NEWOBJ) { 
   res = SWIG_AsCharPtr($input, &buf, &alloc);
   if (!SWIG_IsOK(res)) {
     %dirout_fail(res, "$type");
@@ -226,8 +223,8 @@
  *  Unknown size const Character array Char[ANY] handling
  * ------------------------------------------------------------ */
 
-%apply Char* { Char [] };
-%apply const Char* { const Char [] };
+%apply Char * { Char [] };
+%apply const Char * { const Char [] };
 
 %typemap(varin,noblock=1,warning="462:Unable to set variable of type Char []") Char []
 {

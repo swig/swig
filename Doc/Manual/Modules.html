@@ -13,7 +13,7 @@
 <li><a href="#Modules_introduction">Modules Introduction</a>
 <li><a href="#Modules_nn1">Basics</a>
 <li><a href="#Modules_nn2">The SWIG runtime code</a>
-<li><a href="#external_run_time">External access to the runtime</a>
+<li><a href="#Modules_external_run_time">External access to the runtime</a>
 <li><a href="#Modules_nn4">A word of caution about static libraries</a>
 <li><a href="#Modules_nn5">References</a>
 <li><a href="#Modules_nn6">Reducing the wrapper file size</a>
@@ -29,7 +29,7 @@
 <p>
 Each invocation of SWIG requires a module name to be specified.
 The module name is used to name the resulting target language extension module. 
-Exactly what this means and and what the name is used for
+Exactly what this means and what the name is used for
 depends on the target language, for example the name can define
 a target language namespace or merely be a useful name for naming files or helper classes.
 Essentially, a module comprises target language wrappers for a chosen collection of global variables/functions, structs/classes and other C/C++ types.
@@ -241,10 +241,10 @@ can peacefully coexist. So the type structures are separated by the
 is empty. Only modules compiled with the same pair will share type information.
 </p>
 
-<H2><a name="external_run_time"></a>15.4 External access to the runtime</H2>
+<H2><a name="Modules_external_run_time"></a>15.4 External access to the runtime</H2>
 
 
-<p>As described in <a href="Typemaps.html#runtime_type_checker">The run-time type checker</a>,
+<p>As described in <a href="Typemaps.html#Typemaps_runtime_type_checker">The run-time type checker</a>,
 the functions <tt>SWIG_TypeQuery</tt>, <tt>SWIG_NewPointerObj</tt>, and others sometimes need
 to be called.  Calling these functions from a typemap is supported, since the typemap code
 is embedded into the <tt>_wrap.c</tt> file, which has those declarations available.  If you need

@@ -674,7 +674,7 @@ static Hash *typemap_search_helper(int debug_display, Hash *tm, const String *tm
   if (debug_display)
     Printf(stdout, "  Looking for: %s\n", SwigType_str(ctype, 0));
   if (tm) {
-    result = Getattr(tm, tm_method);	/* See if there is simply a type match */
+    result = Getattr(tm, tm_method);	/* See if there is simply a type without name match */
     if (result && Getattr(result, "code"))
       goto ret_result;
     if (result)
@@ -698,11 +698,11 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   Hash *backup = 0;
   SwigType *primitive = 0;
   SwigType *ctype = 0;
+  SwigType *ctype_unstripped = 0;
   int ts;
   int isarray;
   const String *cname = 0;
   const String *cqualifiedname = 0;
-  SwigType *unstripped = 0;
   String *tm_method = typemap_method_name(tmap_method);
   int debug_display = (in_typemap_search_multi == 0) && typemap_search_debug;
 
@@ -718,12 +718,13 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     Delete(typestr);
   }
   while (ts >= 0) {
-    ctype = type;
+    ctype = Copy(type);
+    ctype_unstripped = Copy(ctype);
     while (ctype) {
       /* Try to get an exact type-match */
       tm = get_typemap(ts, ctype);
       result = typemap_search_helper(debug_display, tm, tm_method, ctype, cqualifiedname, cname, &backup);
-      if (result)
+      if (result && Getattr(result, "code"))
 	goto ret_result;
 
       {
@@ -733,7 +734,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	  tm = get_typemap(ts, template_prefix);
 	  result = typemap_search_helper(debug_display, tm, tm_method, template_prefix, cqualifiedname, cname, &backup);
 	  Delete(template_prefix);
-	  if (result)
+	  if (result && Getattr(result, "code"))
 	    goto ret_result;
 	}
       }
@@ -747,47 +748,43 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	tm = get_typemap(ts, noarrays);
 	result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
 	Delete(noarrays);
-	if (result)
+	if (result && Getattr(result, "code"))
 	  goto ret_result;
       }
 
-      /* No match so far.   If the type is unstripped, we'll strip its
-         qualifiers and check.   Otherwise, we'll try to resolve a typedef */
-
-      if (!unstripped) {
-	unstripped = ctype;
-	ctype = SwigType_strip_qualifiers(ctype);
-	if (!Equal(ctype, unstripped))
-	  continue;		/* Types are different */
-	Delete(ctype);
-	ctype = unstripped;
-	unstripped = 0;
-      }
+      /* No match so far - try with a qualifier stripped (strip one qualifier at a time until none remain)
+       * The order of stripping in SwigType_strip_single_qualifier is used to provide some sort of consistency
+       * with the default (SWIGTYPE) typemap matching rules for the first qualifier to be stripped. */
       {
-	String *octype;
-	if (unstripped) {
-	  Delete(ctype);
-	  ctype = unstripped;
-	  unstripped = 0;
+	SwigType *oldctype = ctype;
+	ctype = SwigType_strip_single_qualifier(oldctype);
+	if (!Equal(ctype, oldctype)) {
+	  Delete(oldctype);
+	  continue;
 	}
-	octype = ctype;
-	ctype = SwigType_typedef_resolve(ctype);
-	if (octype != type)
-	  Delete(octype);
+	Delete(oldctype);
+      }
+
+      /* Once all qualifiers are stripped try resolve a typedef */
+      {
+	SwigType *oldctype = ctype;
+	ctype = SwigType_typedef_resolve(ctype_unstripped);
+	Delete(oldctype);
+	ctype_unstripped = Copy(ctype);
       }
     }
 
     /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default (SWIGTYPE) mapping */
 
-    primitive = SwigType_default(type);
+    primitive = SwigType_default_create(type);
     while (primitive) {
       tm = get_typemap(ts, primitive);
       result = typemap_search_helper(debug_display, tm, tm_method, primitive, cqualifiedname, cname, &backup);
-      if (result)
+      if (result && Getattr(result, "code"))
 	goto ret_result;
 
       {
-	SwigType *nprim = SwigType_default(primitive);
+	SwigType *nprim = SwigType_default_deduce(primitive);
 	Delete(primitive);
 	primitive = nprim;
       }
@@ -802,12 +799,10 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 
 ret_result:
   Delete(primitive);
-  if ((unstripped) && (unstripped != type))
-    Delete(unstripped);
   if (matchtype)
     *matchtype = Copy(ctype);
-  if (type != ctype)
-    Delete(ctype);
+  Delete(ctype);
+  Delete(ctype_unstripped);
   return result;
 }
 
@@ -1945,10 +1940,16 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 #ifdef SWIG_DEBUG
 	  Printf(stdout, "Swig_typemap_attach_parms:  embedded\n");
 #endif
-	  if (!already_substituting) {
-	    already_substituting = 1;
+	  if (already_substituting < 10) {
+	    already_substituting++;
+	    if ((in_typemap_search_multi == 0) && typemap_search_debug) {
+	      String *dtypemap = NewString(dollar_typemap);
+	      Replaceall(dtypemap, "$TYPEMAP", "$typemap");
+	      Printf(stdout, "  Containing: %s\n", dtypemap);
+	      Delete(dtypemap);
+	    }
 	    Swig_typemap_attach_parms(tmap_method, to_match_parms, f);
-	    already_substituting = 0;
+	    already_substituting--;
 
 	    /* Look for the typemap code */
 	    attr = NewStringf("tmap:%s", tmap_method);
@@ -1979,10 +1980,11 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	    }
 	    Delete(attr);
 	  } else {
-	    /* simple recursive call check, but prevents using an embedded typemap that contains another embedded typemap */
+	    /* Simple recursive call check to prevent infinite recursion - this strategy only allows a limited 
+	     * number of calls by a embedded typemaps to other embedded typemaps though */
 	    String *dtypemap = NewString(dollar_typemap);
 	    Replaceall(dtypemap, "$TYPEMAP", "$typemap");
-	    Swig_error(Getfile(s), Getline(s), "Recursive $typemap calls not supported - %s\n", dtypemap);
+	    Swig_error(Getfile(s), Getline(s), "Likely recursive $typemap calls containing %s. Use -debug-tmsearch to debug.\n", dtypemap);
 	    Delete(dtypemap);
 	  }
 	  syntax_error = 0;

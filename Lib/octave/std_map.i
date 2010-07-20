@@ -92,10 +92,10 @@
     };
 
     template<class OutIterator, class FromOper, class ValueType = typename OutIterator::value_type>
-    struct OctMapIterator_T : SwigPyIteratorClosed_T<OutIterator, ValueType, FromOper>
+    struct OctMapIterator_T : OctSwigIteratorClosed_T<OutIterator, ValueType, FromOper>
     {
       OctMapIterator_T(OutIterator curr, OutIterator first, OutIterator last, octave_value seq)
-	: SwigPyIteratorClosed_T<OutIterator,ValueType,FromOper>(curr, first, last, seq)
+	: OctSwigIteratorClosed_T<OutIterator,ValueType,FromOper>(curr, first, last, seq)
       {
       }
     };
@@ -112,7 +112,7 @@
     };
 
     template<typename OutIter>
-    inline SwigPyIterator*
+    inline OctSwigIterator*
     make_output_key_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, octave_value seq = octave_value())
     {
       return new OctMapKeyIterator_T<OutIter>(current, begin, end, seq);
@@ -130,7 +130,7 @@
     
 
     template<typename OutIter>
-    inline SwigPyIterator*
+    inline OctSwigIterator*
     make_output_value_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, octave_value seq = 0)
     {
       return new OctMapValueIterator_T<OutIter>(current, begin, end, seq);

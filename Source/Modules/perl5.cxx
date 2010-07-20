@@ -308,7 +308,7 @@ public:
     if (no_pmfile) {
       f_pm = NewString(0);
     } else {
-      if (pmfile == NULL) {
+      if (!pmfile) {
 	char *m = Char(module) + Len(module);
 	while (m != Char(module)) {
 	  if (*m == ':') {
@@ -840,8 +840,8 @@ public:
     SwigType *t = Getattr(n, "type");
     Wrapper *getf, *setf;
     String *tm;
-    String *getname = Swig_name_get(iname);
-    String *setname = Swig_name_set(iname);
+    String *getname = Swig_name_get(NSPACE_TODO, iname);
+    String *setname = Swig_name_set(NSPACE_TODO, iname);
 
     String *get_name = Swig_name_wrapper(getname);
     String *set_name = Swig_name_wrapper(setname);
@@ -1432,12 +1432,12 @@ public:
 
       if (Getattr(n, "feature:shadow")) {
 	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
-	String *plaction = NewStringf("%s::%s", cmodule, Swig_name_member(class_name, symname));
+	String *plaction = NewStringf("%s::%s", cmodule, Swig_name_member(NSPACE_TODO, class_name, symname));
 	Replaceall(plcode, "$action", plaction);
 	Delete(plaction);
 	Printv(pcode, plcode, NIL);
       } else {
-	Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(class_name, symname), ";\n", NIL);
+	Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(NSPACE_TODO, class_name, symname), ";\n", NIL);
       }
     }
     return SWIG_OK;
@@ -1462,8 +1462,8 @@ public:
 
     if (blessed) {
 
-      Printv(pcode, "*swig_", symname, "_get = *", cmodule, "::", Swig_name_get(Swig_name_member(class_name, symname)), ";\n", NIL);
-      Printv(pcode, "*swig_", symname, "_set = *", cmodule, "::", Swig_name_set(Swig_name_member(class_name, symname)), ";\n", NIL);
+      Printv(pcode, "*swig_", symname, "_get = *", cmodule, "::", Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)), ";\n", NIL);
+      Printv(pcode, "*swig_", symname, "_set = *", cmodule, "::", Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)), ";\n", NIL);
 
       /* Now we need to generate a little Perl code for this */
 
@@ -1501,7 +1501,7 @@ public:
     if ((blessed) && (!Getattr(n, "sym:nextSibling"))) {
       if (Getattr(n, "feature:shadow")) {
 	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
-	String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name, symname));
+	String *plaction = NewStringf("%s::%s", module, Swig_name_member(NSPACE_TODO, class_name, symname));
 	Replaceall(plcode, "$action", plaction);
 	Delete(plaction);
 	Printv(pcode, plcode, NIL);
@@ -1511,12 +1511,12 @@ public:
 	  Printf(pcode, "sub new {\n");
 	} else {
 	  /* Constructor doesn't match classname so we'll just use the normal name  */
-	  Printv(pcode, "sub ", Swig_name_construct(symname), " {\n", NIL);
+	  Printv(pcode, "sub ", Swig_name_construct(NSPACE_TODO, symname), " {\n", NIL);
 	}
 
 	Printv(pcode,
 	       tab4, "my $pkg = shift;\n",
-	       tab4, "my $self = ", cmodule, "::", Swig_name_construct(symname), "(@_);\n", tab4, "bless $self, $pkg if defined($self);\n", "}\n\n", NIL);
+	       tab4, "my $self = ", cmodule, "::", Swig_name_construct(NSPACE_TODO, symname), "(@_);\n", tab4, "bless $self, $pkg if defined($self);\n", "}\n\n", NIL);
 
 	have_constructor = 1;
       }
@@ -1536,7 +1536,7 @@ public:
     if (blessed) {
       if (Getattr(n, "feature:shadow")) {
 	String *plcode = perlcode(Getattr(n, "feature:shadow"), 0);
-	String *plaction = NewStringf("%s::%s", module, Swig_name_member(class_name, symname));
+	String *plaction = NewStringf("%s::%s", module, Swig_name_member(NSPACE_TODO, class_name, symname));
 	Replaceall(plcode, "$action", plaction);
 	Delete(plaction);
 	Printv(pcode, plcode, NIL);
@@ -1548,7 +1548,7 @@ public:
 	       tab4, "return unless defined $self;\n",
 	       tab4, "delete $ITERATORS{$self};\n",
 	       tab4, "if (exists $OWNER{$self}) {\n",
-	       tab8, cmodule, "::", Swig_name_destroy(symname), "($self);\n", tab8, "delete $OWNER{$self};\n", tab4, "}\n}\n\n", NIL);
+	       tab8, cmodule, "::", Swig_name_destroy(NSPACE_TODO, symname), "($self);\n", tab8, "delete $OWNER{$self};\n", tab4, "}\n}\n\n", NIL);
 	have_destructor = 1;
       }
     }
@@ -1566,7 +1566,7 @@ public:
     member_func = 0;
     if ((blessed) && (!Getattr(n, "sym:nextSibling"))) {
       String *symname = Getattr(n, "sym:name");
-      Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(class_name, symname), ";\n", NIL);
+      Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(NSPACE_TODO, class_name, symname), ";\n", NIL);
     }
     return SWIG_OK;
   }
@@ -1579,7 +1579,7 @@ public:
     Language::staticmembervariableHandler(n);
     if (blessed) {
       String *symname = Getattr(n, "sym:name");
-      Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(class_name, symname), ";\n", NIL);
+      Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(NSPACE_TODO, class_name, symname), ";\n", NIL);
     }
     return SWIG_OK;
   }
@@ -1598,7 +1598,7 @@ public:
     blessed = oldblessed;
 
     if (blessed) {
-      Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(class_name, symname), ";\n", NIL);
+      Printv(pcode, "*", symname, " = *", cmodule, "::", Swig_name_member(NSPACE_TODO, class_name, symname), ";\n", NIL);
     }
     return SWIG_OK;
   }
@@ -1631,7 +1631,7 @@ public:
 	  if (value) {
 	    FILE *f = Swig_include_open(value);
 	    if (!f) {
-	      Printf(stderr, "%s : Line %d. Unable to locate file %s\n", input_file, line_number, value);
+	      Swig_error(input_file, line_number, "Unable to locate file %s\n", value);
 	    } else {
 	      char buffer[4096];
 	      while (fgets(buffer, 4095, f)) {
@@ -1641,7 +1641,7 @@ public:
 	    fclose(f);
 	  }
 	} else {
-	  Printf(stderr, "%s : Line %d. Unrecognized pragma.\n", input_file, line_number);
+	  Swig_error(input_file, line_number, "Unrecognized pragma.\n");
 	}
       }
     }

@@ -11,8 +11,8 @@ class Klass6 {};
 class Klass7 {};
 
 struct KlassMethods {
-   static void methodA(::Klass1 v, const ::Klass2 cv, const ::Klass3 *cp, ::Klass4 *p, const ::Klass5 &cr, ::Klass6 &r, ::Klass7*& pr) {}
-   static void methodB(  Klass1 v, const   Klass2 cv, const   Klass3 *cp,   Klass4 *p, const   Klass5 &cr,   Klass6 &r,   Klass7*& pr) {}
+   static void methodA(::Klass1 v, const ::Klass2 cv, const ::Klass3 *cp, ::Klass4 *p, const ::Klass5 &cr, ::Klass6 &r, ::Klass7*const& pr) {}
+   static void methodB(  Klass1 v, const   Klass2 cv, const   Klass3 *cp,   Klass4 *p, const   Klass5 &cr,   Klass6 &r,   Klass7*const& pr) {}
 };
 %}
 
@@ -28,8 +28,8 @@ class XYZ7 {};
 }
 
 struct XYZMethods {
-   static void methodA(::Space::XYZ1 v, const ::Space::XYZ2 cv, const ::Space::XYZ3 *cp, ::Space::XYZ4 *p, const ::Space::XYZ5 &cr, ::Space::XYZ6 &r, ::Space::XYZ7*& pr) {}
-   static void methodB(  Space::XYZ1 v, const   Space::XYZ2 cv, const   Space::XYZ3 *cp,   Space::XYZ4 *p, const   Space::XYZ5 &cr,   Space::XYZ6 &r,   Space::XYZ7*& pr) {}
+   static void methodA(::Space::XYZ1 v, const ::Space::XYZ2 cv, const ::Space::XYZ3 *cp, ::Space::XYZ4 *p, const ::Space::XYZ5 &cr, ::Space::XYZ6 &r, ::Space::XYZ7*const& pr) {}
+   static void methodB(  Space::XYZ1 v, const   Space::XYZ2 cv, const   Space::XYZ3 *cp,   Space::XYZ4 *p, const   Space::XYZ5 &cr,   Space::XYZ6 &r,   Space::XYZ7*const& pr) {}
 };
 %}
 

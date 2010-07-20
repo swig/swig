@@ -1,7 +1,7 @@
 %include <intrusive_ptr.i>
 
 // Language specific macro implementing all the customisations for handling the smart pointer
-%define SWIG_INTRUSIVE_PTR_TYPEMAPS(PROXYCLASS, CONST, TYPE...)
+%define SWIG_INTRUSIVE_PTR_TYPEMAPS(CONST, TYPE...)
 
 // %naturalvar is as documented for member variables
 %naturalvar TYPE;
@@ -69,12 +69,12 @@
   #endif
 %}
 
-%typemap(in) CONST TYPE *& ($*1_ltype temp = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{ 
+%typemap(in) TYPE *CONST& ($*1_ltype temp = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{ 
   // plain pointer by reference
-  temp = ((*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0);
+  temp = ($*1_ltype)((*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0);
   $1 = &temp; 
 %}
-%typemap(out, fragment="SWIG_intrusive_deleter,SWIG_null_deleter") CONST TYPE *& %{ 
+%typemap(out, fragment="SWIG_intrusive_deleter,SWIG_null_deleter") TYPE *CONST& %{ 
   // plain pointer by reference(out)
   #if ($owner)
   if (*$1) {
@@ -207,48 +207,48 @@
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                   SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > &,
                   SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *,
-                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& "PROXYCLASS"
+                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& "$typemap(jstype, TYPE)"
 %typemap(javain) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE >,
                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > &,
                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *,
-                 SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& "PROXYCLASS.getCPtr($javainput)"
+                 SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& "$typemap(jstype, TYPE).getCPtr($javainput)"
 
 %typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > & {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > * {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 
 
 %typemap(javaout) CONST TYPE {
-    return new PROXYCLASS($jnicall, true);
+    return new $typemap(jstype, TYPE)($jnicall, true);
   }
 %typemap(javaout) CONST TYPE & {
-    return new PROXYCLASS($jnicall, true);
+    return new $typemap(jstype, TYPE)($jnicall, true);
   }
 %typemap(javaout) CONST TYPE * {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
-%typemap(javaout) CONST TYPE *& {
+%typemap(javaout) TYPE *CONST& {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 
 // Base proxy classes
@@ -256,7 +256,7 @@
   private long swigCPtr;
   private boolean swigCMemOwnBase;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+  public $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwnBase = cMemoryOwn;
     swigCPtr = cPtr;
   }
@@ -271,8 +271,8 @@
   private long swigCPtr;
   private boolean swigCMemOwnDerived;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
-    super($imclassname.$javaclassname_SWIGSharedPtrUpcast(cPtr), true);
+  public $javaclassname(long cPtr, boolean cMemoryOwn) {
+    super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);
     swigCMemOwnDerived = cMemoryOwn;
     swigCPtr = cPtr;
   }
@@ -314,7 +314,7 @@
 
 %include <shared_ptr.i>
 
-%define SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(PROXYCLASS, CONST, TYPE...)
+%define SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(CONST, TYPE...)
 
 %naturalvar TYPE;
 %naturalvar SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
@@ -353,10 +353,10 @@
 %{ *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner); %}
 
 // plain pointer by reference
-%typemap(in) CONST TYPE *& ($*1_ltype temp = 0)
-%{ temp = ((*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0);
+%typemap(in) TYPE *CONST& ($*1_ltype temp = 0)
+%{ temp = ($*1_ltype)((*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0);
    $1 = &temp; %}
-%typemap(out, fragment="SWIG_null_deleter") CONST TYPE *&
+%typemap(out, fragment="SWIG_null_deleter") TYPE *CONST&
 %{ *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1 SWIG_NO_NULL_DELETER_$owner); %}
 
 %typemap(in) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > swigSharedPtrUpcast ($&1_type smartarg) %{
@@ -379,26 +379,26 @@
 
 %typemap (jni)    SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "jlong"
 %typemap (jtype)  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "long"
-%typemap (jstype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "PROXYCLASS"
-%typemap (javain) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "PROXYCLASS.getCPtr($javainput)"
+%typemap (jstype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "$typemap(jstype, TYPE)"
+%typemap (javain) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "$typemap(jstype, TYPE).getCPtr($javainput)"
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 
 %typemap(javaout) CONST TYPE {
-    return new PROXYCLASS($jnicall, true);
+    return new $typemap(jstype, TYPE)($jnicall, true);
   }
 %typemap(javaout) CONST TYPE & {
-    return new PROXYCLASS($jnicall, true);
+    return new $typemap(jstype, TYPE)($jnicall, true);
   }
 %typemap(javaout) CONST TYPE * {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
-%typemap(javaout) CONST TYPE *& {
+%typemap(javaout) TYPE *CONST& {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 
 // Base proxy classes
@@ -406,7 +406,7 @@
   private long swigCPtr;
   private boolean swigCMemOwnBase;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+  public $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwnBase = cMemoryOwn;
     swigCPtr = cPtr;
   }
@@ -421,8 +421,8 @@
   private long swigCPtr;
   private boolean swigCMemOwnDerived;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
-    super($imclassname.$javaclassname_SWIGSharedPtrUpcast(cPtr), true);
+  public $javaclassname(long cPtr, boolean cMemoryOwn) {
+    super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);
     swigCMemOwnDerived = cMemoryOwn;
     swigCPtr = cPtr;
   }

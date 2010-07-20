@@ -18,7 +18,7 @@ try:
    username = sys.argv[2]
 except:
    print "Usage: python mkrelease.py version username"
-   print "where version should be 1.3.x and username is your SF username"
+   print "where version should be x.y.z and username is your SF username"
    sys.exit(1)
 
 print "Looking for rsync"
@@ -37,11 +37,12 @@ swigwin_dir_sf = username + ",swig@frs.sourceforge.net:/home/frs/project/s/sw/sw
 
 release_notes_file = "release-notes-" + version + ".txt"
 os.system("rm -f " + release_notes_file)
-os.system("cat swig-" + version + "/README " + "swig-" + version + "/CHANGES.current > " + release_notes_file)
+os.system("cat swig-" + version + "/README " + "swig-" + version + "/CHANGES.current " + "swig-" + version + "/RELEASENOTES " + "> " + release_notes_file)
 
 os.system("rsync --archive --verbose -P --times -e ssh " + "swig-" + version + ".tar.gz " + release_notes_file + " " + swig_dir_sf) and failed("")
 os.system("rsync --archive --verbose -P --times -e ssh " + "swigwin-" + version + ".zip " + swigwin_dir_sf) and failed("")
 
+print "Tagging release"
 os.system("svn copy -m \"rel-" + version + "\" https://swig.svn.sourceforge.net/svnroot/swig/trunk https://swig.svn.sourceforge.net/svnroot/swig/tags/rel-" + version + "/")
 
 print "Finished"

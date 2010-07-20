@@ -275,10 +275,10 @@ namespace swig {
     SwigPyIterator *decr(size_t n = 1)
     {
       while (n--) {
-        if (base::current == begin) {
-          throw stop_iteration();
+	if (base::current == begin) {
+	  throw stop_iteration();
 	} else {
-          --base::current;
+	  --base::current;
 	}
       }
       return this;

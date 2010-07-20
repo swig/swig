@@ -314,3 +314,11 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %swig_enum_out(out)
 %swig_enum_out(varout)
 %swig_enum_out(directorin)
+
+
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
+

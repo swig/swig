@@ -29,13 +29,16 @@
 #
 # Note that the RUNTOOL, COMPILETOOL and SWIGTOOL variables can be used
 # for invoking tools for the runtime tests and target language 
-# compiler (eg javac) respectively. For example, valgrind can be used 
-# for memory checking of the runtime tests using:
+# compiler (eg javac), and on SWIG respectively. For example, valgrind
+# can be used for memory checking of the runtime tests using:
 #   make RUNTOOL="valgrind --leak-check=full"
 # and valgrind can be used when invoking SWIG using:
 #   make SWIGTOOL="valgrind --tool=memcheck --trace-children=yes"
 #    Note: trace-children needed because of preinst-swig shell wrapper
 #    to the swig executable.
+#
+# An individual test run can be debugged easily:
+#   make director_string.cpptest RUNTOOL="gdb --args"
 #
 # The variables below can be overridden after including this makefile
 #######################################################################
@@ -66,7 +69,7 @@ INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
 LIBPREFIX  = lib
 ACTION     = check
-INTERFACEDIR = ../
+INTERFACEDIR = $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/
 
 #
 # Please keep test cases in alphabetical order.
@@ -133,6 +136,7 @@ CPP_TEST_CASES += \
 	constructor_exception \
 	constructor_explicit \
 	constructor_ignore \
+	constructor_rename \
 	constructor_value \
 	contract \
 	conversion \
@@ -178,6 +182,7 @@ CPP_TEST_CASES += \
 	disown \
 	dynamic_cast \
 	empty \
+	enum_rename \
 	enum_scope_template \
 	enum_template \
 	enum_thorough \
@@ -194,9 +199,11 @@ CPP_TEST_CASES += \
 	extern_c \
 	extern_namespace \
 	extern_throws \
+	expressions \
 	features \
 	fragments \
 	friends \
+	funcptr_cpp \
 	fvirtual \
 	global_namespace \
 	global_ns_arg \
@@ -244,6 +251,8 @@ CPP_TEST_CASES += \
 	namespace_typemap \
 	namespace_union \
 	namespace_virtual_method \
+	nspace \
+	nspace_extend \
 	naturalvar \
 	nested_class \
 	nested_comment \
@@ -375,6 +384,7 @@ CPP_TEST_CASES += \
 	template_virtual \
 	template_whitespace \
 	threads \
+	threads_exception \
 	throw_exception \
 	typedef_array_member \
 	typedef_class \
@@ -385,12 +395,14 @@ CPP_TEST_CASES += \
 	typedef_scope \
 	typedef_sizet \
 	typedef_struct \
+	typemap_delete \
 	typemap_global_scope \
 	typemap_namespace \
 	typemap_ns_using \
 	typemap_numinputs \
 	typemap_template \
 	typemap_out_optimal \
+	typemap_qualifier_strip \
 	typemap_variables \
 	typemap_various \
 	typename \

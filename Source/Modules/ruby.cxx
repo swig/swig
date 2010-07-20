@@ -231,7 +231,7 @@ private:
 
   bool have_docstring(Node *n) {
     String *str = Getattr(n, "feature:docstring");
-    return (str != NULL && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
+    return (str && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
   }
 
   /* ------------------------------------------------------------
@@ -244,7 +244,7 @@ private:
   String *docstring(Node *n, autodoc_t ad_type) {
 
     String *str = Getattr(n, "feature:docstring");
-    bool have_ds = (str != NULL && Len(str) > 0);
+    bool have_ds = (str && Len(str) > 0);
     bool have_auto = (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
     String *autodoc = NULL;
     String *doc = NULL;
@@ -259,7 +259,7 @@ private:
 
     if (have_auto) {
       autodoc = make_autodoc(n, ad_type);
-      have_auto = (autodoc != NULL && Len(autodoc) > 0);
+      have_auto = (autodoc && Len(autodoc) > 0);
     }
     // If there is more than one line then make docstrings like this:
     //
@@ -272,14 +272,14 @@ private:
       doc = NewString("");
       Printv(doc, "\n", autodoc, "\n", str, NIL);
     } else if (!have_auto && have_ds) {	// only docstring
-      if (Strchr(str, '\n') == NULL) {
+      if (Strchr(str, '\n') == 0) {
 	doc = NewString(str);
       } else {
 	doc = NewString("");
 	Printv(doc, str, NIL);
       }
     } else if (have_auto && !have_ds) {	// only autodoc
-      if (Strchr(autodoc, '\n') == NULL) {
+      if (Strchr(autodoc, '\n') == 0) {
 	doc = NewStringf("%s", autodoc);
       } else {
 	doc = NewString("");
@@ -618,7 +618,7 @@ private:
 	  {
 	    // Only do the autodoc if there isn't a docstring for the class
 	    String *str = Getattr(n, "feature:docstring");
-	    if (counter == 0 && (str == NULL || Len(str) == 0)) {
+	    if (counter == 0 && (str == 0 || Len(str) == 0)) {
 	      if (CPlusPlus) {
 		Printf(doc, "  Proxy of C++ %s class", full_name);
 	      } else {
@@ -1248,7 +1248,11 @@ public:
 	Iterator alias = First(aliases);
 	while (alias.item) {
 	  if (Len(alias.item) > 0) {
-	    Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
+	    if (multipleInheritance) {
+	      Printv(klass->init, tab4, "rb_define_alias(", klass->mImpl, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
+	    } else {
+	      Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
+	    }
 	  }
 	  alias = Next(alias);
 	}
@@ -2115,7 +2119,7 @@ public:
 
     /* create getter */
     int addfail = 0;
-    String *getname = Swig_name_get(iname);
+    String *getname = Swig_name_get(NSPACE_TODO, iname);
     getfname = Swig_name_wrapper(getname);
     Setattr(n, "wrap:name", getfname);
     Printv(getf->def, "SWIGINTERN VALUE\n", getfname, "(", NIL);
@@ -2150,7 +2154,7 @@ public:
       Printf(f_wrappers, "%s", docs);
       Delete(docs);
 
-      String *setname = Swig_name_set(iname);
+      String *setname = Swig_name_set(NSPACE_TODO, iname);
       setfname = Swig_name_wrapper(setname);
       Setattr(n, "wrap:name", setfname);
       Printv(setf->def, "SWIGINTERN VALUE\n", setfname, "(VALUE self, ", NIL);
@@ -2578,7 +2582,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register("construct", "%c_allocate");
+    Swig_name_register("construct", "%n%c_allocate");
 
 
     Language::constructorHandler(n);
@@ -2613,7 +2617,7 @@ public:
     Delete(docs);
 
     current = CONSTRUCTOR_INITIALIZE;
-    Swig_name_register("construct", "new_%c");
+    Swig_name_register("construct", "new_%n%c");
     Language::constructorHandler(n);
 
     /* Restore original parameter list */
@@ -2621,7 +2625,7 @@ public:
     Swig_restore(n);
 
     /* Done */
-    Swig_name_unregister((const_String_or_char_ptr ) "construct");
+    Swig_name_unregister("construct");
     current = NO_CPP;
     klass->constructor_defined = 1;
     return SWIG_OK;
@@ -2635,7 +2639,7 @@ public:
 
     /* First wrap the allocate method */
     current = CONSTRUCTOR_ALLOCATE;
-    Swig_name_register("construct", "%c_allocate");
+    Swig_name_register("construct", "%n%c_allocate");
 
     return Language::copyconstructorHandler(n);
   }

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[2.0.0],[http://www.swig.org])
+AC_INIT([swig],[2.0.1],[http://www.swig.org])
 AC_PREREQ(2.58)
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
@@ -1959,6 +1959,35 @@ fi
 AC_SUBST(RBIN)
 
 #----------------------------------------------------------------
+# Look for Go compilers
+#----------------------------------------------------------------
+
+AC_ARG_WITH(go, AS_HELP_STRING([--without-go], [Disable Go])
+AS_HELP_STRING([--with-go=path], [Set location of Go compiler]),[GOBIN="$withval"], [GOBIN=yes])
+
+if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling Go])
+GO=
+GOGCC=false
+else
+
+    if test "x$GOBIN" = xyes; then
+	AC_CHECK_PROGS(GO, 6g 8g gccgo)
+    else
+	GO="$GOBIN"
+    fi
+
+    GOGCC=false
+    if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
+	GOGCC=true
+    fi
+
+fi
+
+AC_SUBST(GOGCC)
+AC_SUBST(GO)
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -2108,6 +2137,12 @@ SKIP_UFFI=
 #fi
 AC_SUBST(SKIP_UFFI)
 
+SKIP_GO=
+if test -z "$GO" ; then
+    SKIP_GO="1"
+fi
+AC_SUBST(SKIP_GO)
+
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
@@ -2186,6 +2221,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/cffi/Makefile		\
     Examples/test-suite/uffi/Makefile		\
     Examples/test-suite/r/Makefile		\
+    Examples/test-suite/go/Makefile		\
     Lib/ocaml/swigp4.ml
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])

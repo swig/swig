@@ -51,6 +51,9 @@ char cvsroot_typeobj_c[] = "$Id$";
  *  'q(str).'           = Qualifier (such as const or volatile) (const, volatile)
  *  'm(qual).'          = Pointer to member (qual::*)
  *
+ *  The complete type representation for varargs is:
+ *  'v(...)'
+ *
  * The encoding follows the order that you might describe a type in words.
  * For example "p.a(200).int" is "A pointer to array of int's" and
  * "p.q(const).char" is "a pointer to a const char".
@@ -181,6 +184,9 @@ SwigType *SwigType_del_element(SwigType *t) {
  * SwigType_pop()
  * 
  * Pop one type element off the type.
+ * Example: t in:  q(const).p.Integer
+ *          t out: p.Integer
+ *	   result: q(const).
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_pop(SwigType *t) {
@@ -1158,3 +1164,62 @@ SwigType *SwigType_strip_qualifiers(SwigType *t) {
   }
   return r;
 }
+
+/* -----------------------------------------------------------------------------
+ * SwigType_strip_single_qualifier()
+ * 
+ * If the type contains a qualifier, strip one qualifier and return a new type.
+ * The left most qualifier is stripped first (when viewed as C source code) but
+ * this is the equivalent to the right most qualifier using SwigType notation.
+ * Example: 
+ *    r.q(const).p.q(const).int => r.q(const).p.int
+ *    r.q(const).p.int          => r.p.int
+ *    r.p.int                   => r.p.int
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_strip_single_qualifier(SwigType *t) {
+  static Hash *memoize_stripped = 0;
+  SwigType *r = 0;
+  List *l;
+  int numitems;
+
+  if (!memoize_stripped)
+    memoize_stripped = NewHash();
+  r = Getattr(memoize_stripped, t);
+  if (r)
+    return Copy(r);
+
+  l = SwigType_split(t);
+
+  numitems = Len(l);
+  if (numitems >= 2) {
+    int item;
+    /* iterate backwards from last but one item */
+    for (item = numitems - 2; item >= 0; --item) {
+      String *subtype = Getitem(l, item);
+      if (SwigType_isqualifier(subtype)) {
+	Iterator it;
+	Delitem(l, item);
+	r = NewStringEmpty();
+	for (it = First(l); it.item; it = Next(it)) {
+	  Append(r, it.item);
+	}
+	break;
+      }
+    }
+  }
+  if (!r)
+    r = Copy(t);
+
+  Delete(l);
+  {
+    String *key, *value;
+    key = Copy(t);
+    value = Copy(r);
+    Setattr(memoize_stripped, key, value);
+    Delete(key);
+    Delete(value);
+  }
+  return r;
+}
+

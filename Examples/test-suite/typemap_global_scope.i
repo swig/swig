@@ -12,7 +12,7 @@
 // Structs
 /////////////////////////////////////////////////////////////////////
 
-%typemap(in) Test1, ::Test2, Space::Test3, ::Space::Test4 "/*in typemap for $type*/"
+%typemap(in) Test1, ::Test2, Space::Test3, ::Space::Test4 "$1 = $type(); /*in typemap for $type*/"
 %typemap(in) const Test1 &, const ::Test2 &, const Space::Test3 &, const ::Space::Test4 & "/*in typemap for $type*/"
 %inline %{
 struct Test1 {};
@@ -55,7 +55,7 @@ namespace Space {
 struct XX {};
 %}
 
-%typemap(in) TemplateTest1< ::XX >, ::TemplateTest2< ::XX >, Space::TemplateTest3< ::XX >, ::Space::TemplateTest4< ::XX > "/* in typemap for $type */"
+%typemap(in) TemplateTest1< ::XX >, ::TemplateTest2< ::XX >, Space::TemplateTest3< ::XX >, ::Space::TemplateTest4< ::XX > "$1 = $type(); /* in typemap for $type */"
 %typemap(in) const TemplateTest1< XX > &, const ::TemplateTest2< XX > &, const Space::TemplateTest3< XX > &, const ::Space::TemplateTest4< XX > & "/* in typemap for $type */"
 %inline %{
 template<typename T> struct TemplateTest1 { T m_t; };
@@ -99,7 +99,7 @@ namespace Space {
 // Enums
 /////////////////////////////////////////////////////////////////////
 
-%typemap(in) Enum1, ::Enum2, Space::Enum3, ::Space::Enum4 "/*in typemap for $type*/"
+%typemap(in) Enum1, ::Enum2, Space::Enum3, ::Space::Enum4 "$1 = $1_type(); /*in typemap for $type*/"
 %typemap(in) const Enum1 &, const ::Enum2 &, const Space::Enum3 &, const ::Space::Enum4 & "/*in typemap for $type*/"
 %inline %{
 enum Enum1 { enum_1 };

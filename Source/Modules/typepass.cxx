@@ -36,6 +36,7 @@ class TypePass:private Dispatcher {
   Node *module;
   int importmode;
   String *nsname;
+  String *nssymname;
   Hash *classhash;
   List *normalize;
 
@@ -230,6 +231,37 @@ class TypePass:private Dispatcher {
       Node *bclass = n;		/* Getattr(n,"class"); */
       Hash *scopes = Getattr(bclass, "typescope");
       SwigType_inherit(clsname, bname, cast, 0);
+      String *smartptr = Getattr(first, "feature:smartptr");
+      if (smartptr) {
+	SwigType *smart = 0;
+	SwigType *spt = Swig_cparse_type(smartptr);
+	if (spt) {
+	  smart = SwigType_typedef_resolve_all(spt);
+	  Delete(spt);
+	  /* Record a (fake) inheritance relationship between smart pointer
+	     and smart pointer to base class, so that smart pointer upcasts
+	     are automatically generated. */
+          SwigType *bsmart = Copy(smart);
+          SwigType *rclsname = SwigType_typedef_resolve_all(clsname);
+          SwigType *rbname = SwigType_typedef_resolve_all(bname);
+	  Replaceall(bsmart, rclsname, rbname);
+          Delete(rclsname);
+          Delete(rbname);
+	  String *smartnamestr = SwigType_namestr(smart);
+	  String *bsmartnamestr = SwigType_namestr(bsmart);
+	  /* construct casting code */
+	  String *convcode = NewStringf("\n    *newmemory = SWIG_CAST_NEW_MEMORY;\n    return (void *) new %s(*(%s *)$from);\n", bsmartnamestr, smartnamestr);
+	  Delete(bsmartnamestr);
+	  Delete(smartnamestr);
+	  /* setup inheritance relationship between smart pointer templates */
+	  SwigType_inherit(smart, bsmart, 0, convcode);
+	  Delete(convcode);
+	  Delete(bsmart);
+	  Delete(smart);
+	} else {
+	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, clsname);
+	}
+      }
       if (!importmode) {
 	String *btype = Copy(bname);
 	SwigType_add_pointer(btype);
@@ -296,6 +328,7 @@ class TypePass:private Dispatcher {
     inclass = 0;
     normalize = 0;
     nsname = 0;
+    nssymname = 0;
     classhash = Getattr(n, "classes");
     emit_children(n);
     normalize_list();
@@ -414,6 +447,10 @@ class TypePass:private Dispatcher {
 	tdname = NewStringf("%s::%s", nsname, tdname);
 	Setattr(n, "tdname", tdname);
       }
+    }
+    if (nssymname) {
+      if (GetFlag(n, "feature:nspace"))
+	Setattr(n, "sym:nspace", nssymname);
     }
     SwigType_new_scope(scopename);
     SwigType_attach_symtab(Getattr(n, "symtab"));
@@ -535,7 +572,9 @@ class TypePass:private Dispatcher {
 	}
       }
       String *oldnsname = nsname;
+      String *oldnssymname = nssymname;
       nsname = Swig_symbol_qualified(Getattr(n, "symtab"));
+      nssymname = Swig_symbol_qualified_language_scopename(Getattr(n, "symtab"));
       symtab = Swig_symbol_setscope(Getattr(n, "symtab"));
       emit_children(n);
       Swig_symbol_setscope(symtab);
@@ -557,6 +596,8 @@ class TypePass:private Dispatcher {
       }
       normalize = olist;
 
+      Delete(nssymname);
+      nssymname = oldnssymname;
       Delete(nsname);
       nsname = oldnsname;
       return SWIG_OK;
@@ -734,6 +775,11 @@ class TypePass:private Dispatcher {
     }
     Setattr(n, "enumtype", enumtype);
 
+    if (nssymname) {
+      if (GetFlag(n, "feature:nspace"))
+	Setattr(n, "sym:nspace", nssymname);
+    }
+
     // This block of code is for dealing with %ignore on an enum item where the target language
     // attempts to use the C enum value in the target language itself and expects the previous enum value
     // to be one more than the previous value... the previous enum item might not exist if it is ignored!
@@ -750,7 +796,7 @@ class TypePass:private Dispatcher {
 
 	bool reset;
 	String *enumvalue = Getattr(c, "enumvalue");
-	if (GetFlag(c, "feature:ignore")) {
+	if (GetFlag(c, "feature:ignore") || !Getattr(c, "sym:name")) {
 	  reset = enumvalue ? true : false;
 	  previous_ignored = true;
 	} else {
@@ -792,10 +838,14 @@ class TypePass:private Dispatcher {
       value = name;
     if (Strcmp(value, name) == 0) {
       String *new_value;
-      if (((nsname) || (inclass)) && cparse_cplusplus) {
+      if ((nsname || inclass) && cparse_cplusplus) {
 	new_value = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
       } else {
 	new_value = NewString(value);
+      }
+      if ((nsname || inclass) && !cparse_cplusplus) {
+	String *cppvalue = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
+	Setattr(n, "cppvalue", cppvalue); /* for target languages that always generate C++ code even when wrapping C code */
       }
       Setattr(n, "value", new_value);
       Delete(new_value);

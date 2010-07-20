@@ -11,13 +11,12 @@
 <div class="sectiontoc">
 <ul>
 <li><a href="#Preface_nn2">Introduction</a>
-<li><a href="#Preface_nn3">Special Introduction for Version 1.3</a>
 <li><a href="#Preface_nn4">SWIG Versions</a>
 <li><a href="#Preface_nn5">SWIG resources</a>
 <li><a href="#Preface_nn6">Prerequisites</a>
 <li><a href="#Preface_nn7">Organization of this manual</a>
 <li><a href="#Preface_nn8">How to avoid reading the manual</a>
-<li><a href="#Preface_nn9">Backwards Compatibility</a>
+<li><a href="#Preface_nn9">Backwards compatibility</a>
 <li><a href="#Preface_nn10">Credits</a>
 <li><a href="#Preface_nn11">Bug reports</a>
 </ul>
@@ -49,34 +48,22 @@ has since evolved into a general purpose tool that is used in a wide
 variety of applications--in fact almost anything where C/C++ programming
 is involved.
 
-<H2><a name="Preface_nn3"></a>1.2 Special Introduction for Version 1.3</H2>
+<H2><a name="Preface_nn4"></a>1.2 SWIG Versions</H2>
 
 
 <p>
-Since SWIG was released in 1996, its user base and applicability has
-continued to grow. Although its rate of development has varied, an
-active development effort has continued to make improvements to the
-system.  Today, nearly a dozen developers are working to create
-SWIG-2.0---a system that aims to provide wrapping support for nearly
-all of the ANSI C++ standard and approximately ten target languages
-including Guile, Java, Mzscheme, Ocaml, Perl, Pike, PHP, Python, Ruby,
-and Tcl.
+In the late 1990's, the most stable version of SWIG was release
+1.1p5. Versions 1.3.x were officially development versions and these were released
+over a period of 10 years starting from the year 2000. The final version in the 1.3.x
+series was 1.3.40, but in truth the 1.3.x series had been stable for many years.
+An official stable version was released along with the decision to make SWIG
+license changes and this gave rise to version 2.0.0 in 2010. The license was clarified
+so that the code that SWIG generated could be distributed
+under license terms of the user's choice/requirements and at the same time the SWIG
+source was placed under the GNU General Public License version 3.
 </p>
 
-<H2><a name="Preface_nn4"></a>1.3 SWIG Versions</H2>
-
-
-<p>
-For several years, the most stable version of SWIG has been release
-1.1p5. Starting with version 1.3, a new version numbering scheme has
-been adopted.  Odd version numbers (1.3, 1.5, etc.) represent
-development versions of SWIG.  Even version numbers (1.4, 1.6, etc.)
-represent stable releases.  Currently, developers are working to
-create a stable SWIG-2.0 release.  Don't let the development status 
-of SWIG-1.3 scare you---it is much more stable (and capable) than SWIG-1.1p5.
-</p>
-
-<H2><a name="Preface_nn5"></a>1.4 SWIG resources</H2>
+<H2><a name="Preface_nn5"></a>1.3 SWIG resources</H2>
 
 
 <p>
@@ -106,7 +93,7 @@ SWIG along with information about beta releases and future work.
 </p>
 
 <p>
-SVN access to the latest version of SWIG is also available.  More information 
+Subversion access to the latest version of SWIG is also available.  More information 
 about this can be obtained at:
 </p>
 
@@ -115,7 +102,7 @@ about this can be obtained at:
 </pre></div>
 
 
-<H2><a name="Preface_nn6"></a>1.5 Prerequisites</H2>
+<H2><a name="Preface_nn6"></a>1.4 Prerequisites</H2>
 
 
 <p>
@@ -132,7 +119,7 @@ writing a normal C program.
 </p>
 
 <p>
-Recent SWIG releases have become significantly more capable in
+Over time SWIG releases have become significantly more capable in
 their C++ handling--especially support for advanced features like
 namespaces, overloaded operators, and templates.  Whenever possible,
 this manual tries to cover the technicalities of this interface.
@@ -140,7 +127,7 @@ However, this isn't meant to be a tutorial on C++ programming.   For many
 of the gory details, you will almost certainly want to consult a good C++ reference.  If you don't program
 in C++, you may just want to skip those parts of the manual.
 
-<H2><a name="Preface_nn7"></a>1.6 Organization of this manual</H2>
+<H2><a name="Preface_nn7"></a>1.5 Organization of this manual</H2>
 
 
 <p>
@@ -149,11 +136,10 @@ provide an overview of its capabilities. The remaining chapters are
 devoted to specific SWIG language modules and are self
 contained. Thus, if you are using SWIG to build Python interfaces, you
 can probably skip to that chapter and find almost everything you need
-to know.   Caveat: we are currently working on a documentation rewrite and many
-of the older language module chapters are still somewhat out of date.
+to know. 
 </p>
 
-<H2><a name="Preface_nn8"></a>1.7 How to avoid reading the manual</H2>
+<H2><a name="Preface_nn8"></a>1.6 How to avoid reading the manual</H2>
 
 
 <p>
@@ -165,24 +151,19 @@ The SWIG distribution also comes with a large directory of
 examples that illustrate different topics.
 </p>
 
-<H2><a name="Preface_nn9"></a>1.8 Backwards Compatibility</H2>
+<H2><a name="Preface_nn9"></a>1.7 Backwards compatibility</H2>
 
 
 <p>
-If you are a previous user of SWIG, don't expect recent versions of
-SWIG to provide backwards compatibility.  In fact, backwards
-compatibility issues may arise even between successive 1.3.x releases.
-Although these incompatibilities are regrettable, SWIG-1.3 is an active
-development project.  The primary goal of this effort is to make SWIG
+If you are a previous user of SWIG, don't expect 
+SWIG to provide complete backwards compatibility.  
+Although the developers strive to the utmost to keep backwards compatibility,
+this isn't always possible as the 
+primary goal over time is to make SWIG
 better---a process that would simply be impossible if the developers
 are constantly bogged down with backwards compatibility issues.
-</p>
-
-<p>
-On a positive note, a few incompatibilities are a small price to pay
-for the large number of new features that have been
-added---namespaces, templates, smart pointers, overloaded methods,
-operators, and more.
+Potential incompatibilities are clearly marked in the detailed release notes
+(CHANGES files).
 </p>
 
 
@@ -206,33 +187,20 @@ Note: The version symbol is not defined in the generated SWIG
 wrapper file. The SWIG preprocessor has defined SWIG_VERSION since SWIG-1.3.11.
 </p>
 
-<H2><a name="Preface_nn10"></a>1.9 Credits</H2>
+<H2><a name="Preface_nn10"></a>1.8 Credits</H2>
 
 
 <p>
 SWIG is an unfunded project that would not be possible without the
-contributions of many people.  Most recent SWIG development has been
-supported by Matthias K&ouml;ppe, William Fulton, Lyle Johnson,
-Richard Palmer, Thien-Thi Nguyen, Jason Stewart, Loic Dachary, Masaki
-Fukushima, Luigi Ballabio, Sam Liddicott, Art Yerkes, Marcelo Matus, 
-Harco de Hilster, John Lenz, and Surendra Singhi.
+contributions of many people working in their spare time. 
+If you have benefitted from using SWIG, please consider
+<a href="http://www.swig.org/donate.html">Donating to SWIG</a> to keep development going.
+There have been a large varied number of people
+who have made contributions at all levels over time. Contributors
+are mentioned either in the COPYRIGHT file or CHANGES files shipped with SWIG or in submitted bugs.
 </p>
 
-<p>
-Historically, the following people contributed to early versions of SWIG.
-Peter Lomdahl, Brad Holian, Shujia Zhou, Niels Jensen, and Tim Germann
-at Los Alamos National Laboratory were the first users. Patrick
-Tullmann at the University of Utah suggested the idea of automatic
-documentation generation. John Schmidt and Kurtis Bleeker at the
-University of Utah tested out the early versions.  Chris Johnson
-supported SWIG's developed at the University of Utah. John Buckman,
-Larry Virden, and Tom Schwaller provided valuable input on the first
-releases and improving the portability of SWIG. David Fletcher and
-Gary Holt have provided a great deal of input on improving SWIG's
-Perl5 implementation. Kevin Butler contributed the first Windows NT
-port.
-
-<H2><a name="Preface_nn11"></a>1.10 Bug reports</H2>
+<H2><a name="Preface_nn11"></a>1.9 Bug reports</H2>
 
 
 <p>

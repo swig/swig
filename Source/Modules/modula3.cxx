@@ -972,8 +972,8 @@ MODULA3():
 
     Swig_name_register("wrapper", "Modula3_%f");
     if (old_variable_names) {
-      Swig_name_register("set", "set_%v");
-      Swig_name_register("get", "get_%v");
+      Swig_name_register("set", "set_%n%v");
+      Swig_name_register("get", "get_%n%v");
     }
 
     Printf(f_wrappers, "\n#ifdef __cplusplus\n");
@@ -1196,7 +1196,7 @@ MODULA3():
       Swig_restore(n);
       native_function_flag = false;
     } else {
-      Printf(stderr, "%s : Line %d. No return type for %%native method %s.\n", input_file, line_number, Getattr(n, "wrap:name"));
+      Swig_error(input_file, line_number, "No return type for %%native method %s.\n", Getattr(n, "wrap:name"));
     }
 
     return SWIG_OK;
@@ -1324,7 +1324,7 @@ MODULA3():
       Parm *p;
       attachParameterNames(n, "tmap:name", "c:wrapname", "m3arg%d");
       bool gencomma = false;
-      for (p = skipIgnored(l, "in"); p != NULL; p = skipIgnored(p, "in")) {
+      for (p = skipIgnored(l, "in"); p; p = skipIgnored(p, "in")) {
 
 	String *arg = Getattr(p, "c:wrapname");
 	{
@@ -1422,7 +1422,7 @@ MODULA3():
 
       // below based on Swig_VargetToFunction()
       SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-      Setattr(n, "wrap:action", NewStringf("result = (%s) %s;", SwigType_lstr(ty, 0), Getattr(n, "value")));
+      Setattr(n, "wrap:action", NewStringf("result = (%s)(%s);", SwigType_lstr(ty, 0), Getattr(n, "value")));
     }
 
     Setattr(n, "wrap:name", wname);
@@ -1545,7 +1545,7 @@ MODULA3():
       Parm *p;
       writeArgState state;
       attachParameterNames(n, "tmap:rawinname", "modula3:rawname", "arg%d");
-      for (p = skipIgnored(l, "m3rawintype"); p != NULL; p = skipIgnored(p, "m3rawintype")) {
+      for (p = skipIgnored(l, "m3rawintype"); p; p = skipIgnored(p, "m3rawintype")) {
 
 	/* Get argument passing mode, should be one of VALUE, VAR, READONLY */
 	String *mode = Getattr(p, "tmap:m3rawinmode");
@@ -1928,7 +1928,7 @@ MODULA3():
 	} else if (Strcmp(code, "unsafe") == 0) {
 	  unsafe_module = true;
 	} else if (Strcmp(code, "library") == 0) {
-	  if (targetlibrary != NULL) {
+	  if (targetlibrary) {
 	    Delete(targetlibrary);
 	  }
 	  targetlibrary = Copy(strvalue);
@@ -2620,7 +2620,7 @@ MODULA3():
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *intermediary_function_name = Swig_name_member(proxy_class_name, overloaded_name);
+      String *intermediary_function_name = Swig_name_member(NSPACE_TODO, proxy_class_name, overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
@@ -2641,7 +2641,7 @@ MODULA3():
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *intermediary_function_name = Swig_name_member(proxy_class_name, overloaded_name);
+      String *intermediary_function_name = Swig_name_member(NSPACE_TODO, proxy_class_name, overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
@@ -2699,7 +2699,7 @@ MODULA3():
 
     if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Properties
-      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(Swig_name_member(proxy_class_name, variable_name)))
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, proxy_class_name, variable_name)))
 		     == 0);
     }
 
@@ -2844,7 +2844,7 @@ MODULA3():
       String *imcall = NewString("");
 
       Printf(proxy_class_code, "  %s %s(", Getattr(n, "feature:modula3:methodmodifiers"), proxy_class_name);
-      Printv(imcall, " : this(", m3raw_name, ".", Swig_name_construct(overloaded_name), "(", NIL);
+      Printv(imcall, " : this(", m3raw_name, ".", Swig_name_construct(NSPACE_TODO, overloaded_name), "(", NIL);
 
       /* Attach the non-standard typemaps to the parameter list */
       Swig_typemap_attach_parms("in", l, NULL);
@@ -2935,7 +2935,7 @@ MODULA3():
     String *symname = Getattr(n, "sym:name");
 
     if (proxy_flag) {
-      Printv(destructor_call, m3raw_name, ".", Swig_name_destroy(symname), "(swigCPtr)", NIL);
+      Printv(destructor_call, m3raw_name, ".", Swig_name_destroy(NSPACE_TODO, symname), "(swigCPtr)", NIL);
     }
     return SWIG_OK;
   }

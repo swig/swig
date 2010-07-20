@@ -13,7 +13,7 @@
 <li><a href="#SWIG_nn2">Running SWIG</a>
 <ul>
 <li><a href="#SWIG_nn3">Input format</a>
-<li><a href="#output">SWIG Output</a>
+<li><a href="#SWIG_output">SWIG Output</a>
 <li><a href="#SWIG_nn5">Comments</a>
 <li><a href="#SWIG_nn6">C Preprocessor</a>
 <li><a href="#SWIG_nn7">SWIG Directives</a>
@@ -92,7 +92,7 @@ chapters.
 
 
 <p>
-To run SWIG, use the <tt>swig</tt> command with options options and a filename like this:
+To run SWIG, use the <tt>swig</tt> command with options and a filename like this:
 </p>
 
 <div class="shell"><pre>
@@ -113,6 +113,7 @@ can be obtained by typing <tt>swig -help</tt> or <tt>swig
 -clisp                Generate CLISP wrappers
 -cffi                 Generate CFFI wrappers
 -csharp               Generate C# wrappers
+-go                   Generate Go wrappers
 -guile                Generate Guile wrappers
 -java                 Generate Java wrappers
 -lua                  Generate Lua wrappers
@@ -193,7 +194,7 @@ semantics in SWIG is analogous to that of the declarations section
 used in input files to parser generation tools such as yacc or bison.
 </p>
 
-<H3><a name="output"></a>5.1.2 SWIG Output</H3>
+<H3><a name="SWIG_output"></a>5.1.2 SWIG Output</H3>
 
 
 <p>
@@ -1618,7 +1619,7 @@ double y;                       // Read-write
 
 <p>
 The <tt>%mutable</tt> and <tt>%immutable</tt> directives are actually 
-<a href="Customization.html#features">%feature directives</a> defined like this:
+<a href="Customization.html#Customization_features">%feature directives</a> defined like this:
 </p>
 
 <div class="code"><pre>
@@ -1672,7 +1673,7 @@ directive as shown :</p>
 // interface.i
 
 %rename(my_print) print;
-extern void print(char *);
+extern void print(const char *);
 
 %rename(foo) a_really_long_and_annoying_name;
 extern int a_really_long_and_annoying_name;
@@ -1725,9 +1726,10 @@ to ignore declarations that match a given identifier.  For example:
 <div class="code">
 <pre>
 %ignore print;         // Ignore all declarations named print
-%ignore _HAVE_FOO_H;   // Ignore an include guard constant
+%ignore MYMACRO;       // Ignore a macro
 ...
-%include "foo.h"       // Grab a header file
+#define MYMACRO 123
+void print(const char *);
 ...
 </pre>
 </div>
@@ -1742,7 +1744,7 @@ declarations.  If you need to remove a whole section of problematic code, the SW
 <p>
 More powerful variants of <tt>%rename</tt> and <tt>%ignore</tt> directives can be used to help 
 wrap C++ overloaded functions and methods or C++ methods which use default arguments. This is described in the 
-<a href="SWIGPlus.html#ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section in the C++ chapter.
+<a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section in the C++ chapter.
 </p>
 
 <p>
@@ -1752,7 +1754,7 @@ For example:
 
 <div class="code">
 <pre>
-%name(output) extern void print(char *);
+%name(output) extern void print(const char *);
 </pre>
 </div>
 

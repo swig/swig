@@ -44,6 +44,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/csharp.cxx		\
 		Modules/directors.cxx		\
 		Modules/emit.cxx		\
+		Modules/go.cxx			\
 		Modules/guile.cxx		\
 		Modules/java.cxx		\
 		Modules/lang.cxx		\
@@ -104,6 +105,9 @@ clean-local:
 	rm -f $(top_builddir)/swig@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 
+distclean-local:
+	rm -f $(top_builddir)/Source/Include/swigconfig.h
+	rm -f $(top_builddir)/Source/Include/stamp-h1
 
 # Beautify the code.
 # Note that this works well on C code, but does some odd joining of lines for C++ code.
@@ -111,7 +115,7 @@ clean-local:
 # swig executable as a way of checking before and after the 'beautifying'.
 # Single files can be beautified with the beautify-file target, eg: 'make beautify-file INDENTFILE=chosenfile.c'
 
-SWIGTYPEDEFS=-T File -T DohObjInfo -T Parm -T Language -T List -T Typetab -T ModuleFactory -T ErrorMessageFormat -T Symtab -T Hash -T String -T DohBase -T Node -T String_or_char -T SwigType -T Dispatcher -T Wrapper -T DohStringMethods -T DohFileMethods -T DohListMethods -T DohHashMethods -T DOH -T DohIterator -T ParmList -T FILE -T HashNode -T DOHString_or_char
+SWIGTYPEDEFS=-T bool -T File -T DohObjInfo -T Parm -T Language -T List -T Typetab -T ModuleFactory -T ErrorMessageFormat -T Symtab -T Hash -T String -T DohBase -T Node -T String_or_char -T SwigType -T Dispatcher -T Wrapper -T DohStringMethods -T DohFileMethods -T DohListMethods -T DohHashMethods -T DOH -T DohIterator -T ParmList -T FILE -T HashNode -T DOHString_or_char
 INDENTBAKSDIR=../IndentBaks
 
 beautify:

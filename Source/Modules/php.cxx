@@ -799,7 +799,7 @@ public:
       Wrapper_add_local(f, "director", "Swig::Director *director = 0");
       Printf(f->code, "director = dynamic_cast<Swig::Director*>(arg1);\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !director->is_overriden_method((char *)\"%s\", (char *)\"%s\");\n",
+      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s\", (char *)\"%s\");\n",
 	  Swig_class_name(Swig_methodclass(n)), name);
     }
 
@@ -1206,7 +1206,7 @@ public:
 	  }
 	  if (!pname_cstr) {
 	    // Unnamed parameter, e.g. int foo(int);
-	  } else if (pname == NULL) {
+	  } else if (!pname) {
 	    pname = NewString(pname_cstr);
 	  } else {
 	    size_t len = strlen(pname_cstr);
@@ -1290,7 +1290,7 @@ public:
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
-		} else if (strchr(Char(value), '.') == NULL) {
+		} else if (strchr(Char(value), '.') == 0) {
 		  // Ensure value is a double constant, not an integer one.
 		  Append(value, ".0");
 		  double val2 = strtod(Char(value), &p);
@@ -1496,7 +1496,7 @@ public:
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
 	    if (Cmp(d, "void") != 0) {
-		if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
+	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
 		Append(prepare, "$r=");
 	      } else {
 		Printf(prepare, "$this->%s=", SWIG_PTR);
@@ -1576,14 +1576,21 @@ public:
 	  }
 	  if (Getattr(n, "access") && haspublicbase) {
 	    Delete(acc);
-	    acc = NewString("public");
+	    acc = NewStringEmpty(); // implicitly public
 	    Swig_warning(WARN_PHP_PUBLIC_BASE, input_file, line_number, Char(warnmsg));
 	    Delete(warnmsg);
 	  }
 	}
-	if (Cmp(acc, "") != 0) {
+
+	if (Cmp(acc, "public") == 0) {
+	  // The default visibility for methods is public, so don't specify
+	  // that explicitly to keep the wrapper size down.
+	  Delete(acc);
+	  acc = NewStringEmpty();
+	} else if (Cmp(acc, "") != 0) {
 	  Append(acc, " ");
 	}
+
 	if (constructor) {
 	  const char * arg0;
 	  if (max_num_of_arguments > 0) {
@@ -1632,11 +1639,13 @@ public:
 	Printf(output, "%s", prepare);
       if (constructor) {
 	if (!directorsEnabled() || !Swig_directorclass(n)) {
-	  if (strcmp(methodname, "__construct") == 0) {
-	    Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
-	  } else {
-	    String *classname = Swig_class_name(current_class);
-	    Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
+	  if (!Len(prepare)) {
+	    if (strcmp(methodname, "__construct") == 0) {
+	      Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
+	    } else {
+	      String *classname = Swig_class_name(current_class);
+	      Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
+	    }
 	  }
 	} else {
 	  Node *parent = Swig_methodclass(n);
@@ -1694,7 +1703,7 @@ public:
 	      Printf(output, "\t\t\treturn new $c($r);\n");
 	    } else {
 	      Printf(output, "\t\t\t$c = new stdClass();\n");
-	      Printf(output, "\t\t\t$c->_cPtr = $r;\n");
+	      Printf(output, "\t\t\t$c->"SWIG_PTR" = $r;\n");
 	      Printf(output, "\t\t\treturn $c;\n");
 	    }
 	    Printf(output, "\t\t}\n\t\treturn $r;\n");
@@ -1780,8 +1789,6 @@ done:
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
 
-    SwigType_remember(t);
-
     /* First link C variables to PHP */
 
     tm = Swig_typemap_lookup("varinit", n, name, 0);
@@ -1789,7 +1796,7 @@ done:
       Replaceall(tm, "$target", name);
       Printf(s_vinit, "%s\n", tm);
     } else {
-      Printf(stderr, "%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
+      Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
     }
 
     /* Now generate PHP -> C sync blocks */
@@ -1799,7 +1806,7 @@ done:
        Replaceall(tm, "$symname", iname);
        Printf(f_c->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
+       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
        }
      */
     /* Now generate C -> PHP sync blocks */
@@ -1811,7 +1818,7 @@ done:
        Replaceall(tm, "$symname", iname);
        Printf(f_php->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
+       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
        }
        }
      */
@@ -2497,7 +2504,7 @@ done:
       idx = 0;
       p = l;
       int use_parse = 0;
-      while (p != NULL) {
+      while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  p = Getattr(p, "tmap:in:next");
 	  continue;
@@ -2566,7 +2573,7 @@ done:
       }
       Append(w->code, "zval *result, funcname;\n");
       Append(w->code, "MAKE_STD_ZVAL(result);\n");
-      Printf(w->code, "ZVAL_STRING(&funcname, (char *)\"%s\", 0);\n", name);
+      Printf(w->code, "ZVAL_STRING(&funcname, (char *)\"%s\", 0);\n", GetChar(n, "sym:name"));
       Append(w->code, "if (!swig_self) {\n");
       Append(w->code, "  SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");");
       Append(w->code, "}\n\n");

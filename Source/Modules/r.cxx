@@ -556,10 +556,10 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)), n);
 
 
-  //  if (debugMode) {
+  if (debugMode) {
     Printf(stderr, "Type: %s\n", t);
     Printf(stderr, "Return type: %s\n", SwigType_base(t));
-    //}
+  }
   
   bool isVoidType = Strcmp(rettype, "void") == 0;
   if (debugMode)
@@ -1299,6 +1299,8 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
     Printf(stderr, "Adding accessor: %s (%s) => %s\n", memberName, name, tmp);
 }
 
+#define Swig_overload_rank R_swig_overload_rank
+
 #define MAX_OVERLOAD 256
 
 struct Overloaded {
@@ -1673,7 +1675,7 @@ int R::functionWrapper(Node *n) {
     }
     p = nextSibling(p);
   } 
-  
+
   String *unresolved_return_type = 
     Copy(type);
   if (expandTypedef(type) &&
@@ -1731,7 +1733,7 @@ int R::functionWrapper(Node *n) {
 
   Wrapper *f = NewWrapper();
   Wrapper *sfun = NewWrapper();
-    
+  
   int isVoidReturnType = (Strcmp(type, "void") == 0);
   // Need to use the unresolved return type since 
   // typedef resolution removes the const which causes a 
@@ -2036,7 +2038,13 @@ int R::functionWrapper(Node *n) {
   Printv(f->code, cleanup, NIL);
   Delete(cleanup);
 
-
+  /* Look to see if there is any newfree cleanup code */
+  if (GetFlag(n, "feature:new")) {
+    if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
+      Replaceall(tm, "$source", "result");	/* deprecated */
+      Printf(f->code, "%s\n", tm);
+    }
+  }
 
   Printv(f->code, UnProtectWrapupCode, NIL);
 
@@ -2053,7 +2061,17 @@ int R::functionWrapper(Node *n) {
   Printv(sfun->code, ";", (Len(tm) ? "ans = " : ""), ".Call('", wname, 
 	 "', ", sargs, "PACKAGE='", Rpackage, "');\n", NIL);
   if(Len(tm))
-    Printf(sfun->code, "%s\n\nans;\n", tm);
+    {
+      Printf(sfun->code, "%s\n\n", tm); 
+      if (constructor)
+	{ 
+	  String *finalizer = NewString(iname);
+	  Replace(finalizer, "new_", "", DOH_REPLACE_FIRST);
+	  Printf(sfun->code, "reg.finalizer(ans, delete_%s)\n", finalizer);
+	}                                                                      
+      Printf(sfun->code, "ans\n");
+    }
+
   if (destructor)
     Printv(f->code, "R_ClearExternalPtr(self);\n", NIL);
 
@@ -2496,7 +2514,7 @@ int R::membervariableHandler(Node *n) {
 
   int status(Language::membervariableHandler(n));
 
-  if(opaqueClassDeclaration == NULL && debugMode)
+  if(!opaqueClassDeclaration && debugMode)
     Printf(stderr, "<membervariableHandler> %s %s\n", Getattr(n, "name"), Getattr(n, "type"));
 
   processing_member_access_function = 0;

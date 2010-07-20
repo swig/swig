@@ -106,6 +106,8 @@ SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *point
 typedef octave_value_list(*octave_func) (const octave_value_list &, int);
 class octave_swig_type;
 
+# define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
+
 namespace Swig {
   class Director;
 
@@ -1130,24 +1132,24 @@ namespace Swig {
 namespace Swig {
   class Director {
     octave_swig_type *self;
-    bool disowned;
+    bool swig_disowned;
 
     Director(const Director &x);
     Director &operator=(const Director &rhs);
   public:
 
-    Director(void *vptr):self(0), disowned(false) {
+    Director(void *vptr):self(0), swig_disowned(false) {
       set_rtdir(vptr, this);
     }
 
     ~Director() {
       swig_director_destroyed(self, this);
-      if (disowned)
+      if (swig_disowned)
 	self->decref();
     }
 
     void swig_set_self(octave_swig_type *new_self) {
-      assert(!disowned);
+      assert(!swig_disowned);
       self = new_self;
     }
 
@@ -1156,9 +1158,9 @@ namespace Swig {
     }
 
     void swig_disown() {
-      if (disowned)
+      if (swig_disowned)
 	return;
-      disowned = true;
+      swig_disowned = true;
       self->incref();
     }
   };

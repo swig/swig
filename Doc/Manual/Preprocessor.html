@@ -81,7 +81,7 @@ Such information generally includes type declarations (e.g., <tt>typedef</tt>) a
 C++ classes that might be used as base-classes for class declarations in the interface.
 The use of <tt>%import</tt> is also important when SWIG is used to generate
 extensions as a collection of related modules.   This is an advanced topic and is described
-in later in the <a href="Modules.html">Working with Modules</a> chapter.
+in later in the <a href="Modules.html#Modules">Working with Modules</a> chapter.
 </p>
 
 <P>
@@ -102,7 +102,7 @@ by SWIG when it is parsing the interface:
 <div class="code"><pre>
 SWIG                            Always defined when SWIG is processing a file
 SWIGIMPORTED                    Defined when SWIG is importing a file with <tt>%import</tt>
-SWIG_VERSION                    Hexadecimal number containing SWIG version,
+SWIG_VERSION                    Hexadecimal (binary-coded decimal) number containing SWIG version,
                                 such as 0x010311 (corresponding to SWIG-1.3.11).
 
 SWIGALLEGROCL                   Defined when using Allegro CL
@@ -377,7 +377,7 @@ SWIG will strip the extra <tt>%</tt> and leave the preprocessor directive in the
 
 
 <p>
-<a href="Typemaps.html">Typemaps</a> support a special attribute called <tt>noblock</tt> where the { ... } delimiters can be used,
+<a href="Typemaps.html#Typemaps">Typemaps</a> support a special attribute called <tt>noblock</tt> where the { ... } delimiters can be used,
 but the delimiters are not actually generated into the code.
 The effect is then similar to using "" or %{ %} delimiters but the code <b>is</b> run through the preprocessor. For example:
 </p>

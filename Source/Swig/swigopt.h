@@ -11,8 +11,6 @@
  * Header file for the SWIG command line processing functions
  * ----------------------------------------------------------------------------- */
 
-/* $Id: swig.h 9622 2006-12-19 03:49:17Z beazley $ */
-
  extern void  Swig_init_args(int argc, char **argv);
  extern void  Swig_mark_arg(int n);
  extern int   Swig_check_marked(int n);

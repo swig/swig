@@ -1,6 +1,6 @@
 %module smart_pointer_member
 
-
+%warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'foo' due to Go name ('Foo') conflict with 'Foo' */
 
 %inline %{
 

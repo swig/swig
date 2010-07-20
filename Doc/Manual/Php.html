@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Php"></a>29 SWIG and PHP</H1>
+<H1><a name="Php"></a>30 SWIG and PHP</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -75,7 +75,7 @@ your extension into php directly, you will need the complete PHP source tree
 available.
 </p>
 
-<H2><a name="Php_nn1"></a>29.1 Generating PHP Extensions</H2>
+<H2><a name="Php_nn1"></a>30.1 Generating PHP Extensions</H2>
 
 
 <p>
@@ -122,7 +122,7 @@ and it doesn't play nicely with package system.  We don't recommend
 this approach, or provide explicit support for it.
 </p>
 
-<H3><a name="Php_nn1_1"></a>29.1.1 Building a loadable extension</H3>
+<H3><a name="Php_nn1_1"></a>30.1.1 Building a loadable extension</H3>
 
 
 <p>
@@ -137,7 +137,7 @@ least work for Linux though):
 	gcc -shared example_wrap.o -o example.so
 </pre></div>
 
-<H3><a name="Php_nn1_3"></a>29.1.2 Using PHP Extensions</H3>
+<H3><a name="Php_nn1_3"></a>30.1.2 Using PHP Extensions</H3>
 
 
 <p>
@@ -168,7 +168,7 @@ attempts to do the <tt>dl()</tt> call for you:
 	include("example.php");
 </pre></div>
 
-<H2><a name="Php_nn2"></a>29.2 Basic PHP interface</H2>
+<H2><a name="Php_nn2"></a>30.2 Basic PHP interface</H2>
 
 
 <p>
@@ -178,7 +178,7 @@ possible for names of symbols in one extension module to clash with
 other symbols unless care is taken to <tt>%rename</tt> them.
 </p>
 
-<H3><a name="Php_nn2_1"></a>29.2.1 Constants</H3>
+<H3><a name="Php_nn2_1"></a>30.2.1 Constants</H3>
 
 
 <p>
@@ -303,7 +303,7 @@ both point to the same value, without the case test taking place.  (
 Apologies, this paragraph needs rewriting to make some sense. )
 </p>
 
-<H3><a name="Php_nn2_2"></a>29.2.2 Global Variables</H3>
+<H3><a name="Php_nn2_2"></a>30.2.2 Global Variables</H3>
 
 
 <p>
@@ -352,7 +352,7 @@ undefined.
 At this time SWIG does not support custom accessor methods.
 </p>
 
-<H3><a name="Php_nn2_3"></a>29.2.3 Functions</H3>
+<H3><a name="Php_nn2_3"></a>30.2.3 Functions</H3>
 
 
 <p>
@@ -405,7 +405,7 @@ print $s;      # The value of $s was not changed.
 -->
 
 
-<H3><a name="Php_nn2_4"></a>29.2.4 Overloading</H3>
+<H3><a name="Php_nn2_4"></a>30.2.4 Overloading</H3>
 
 
 <p>
@@ -413,7 +413,7 @@ Although PHP does not support overloading functions natively, swig
 will generate dispatch functions which will use <tt>%typecheck</tt>
 typemaps to allow overloading.  This dispatch function's operation and
 precedence is described in <a
-href="TypemapsSWIGPlus.html#SWIGPlus_overloaded_methods">Wrapping
+href="SWIGPlus.html#SWIGPlus_overloaded_methods">Wrapping
 Overloaded Functions and Methods</a>.
 </p>
 
@@ -461,7 +461,7 @@ taking the integer argument.
 </p>
 -->
 
-<H3><a name="Php_nn2_5"></a>29.2.5 Pointers and References</H3>
+<H3><a name="Php_nn2_5"></a>30.2.5 Pointers and References</H3>
 
 
 <p>
@@ -593,7 +593,7 @@ PHP in a number of ways: by using <tt>unset</tt> on an existing
 variable, or assigning <tt>NULL</tt> to a variable.
 </p>
 
-<H3><a name="Php_nn2_6"></a>29.2.6 Structures and C++ classes</H3>
+<H3><a name="Php_nn2_6"></a>30.2.6 Structures and C++ classes</H3>
 
 
 <p>
@@ -652,7 +652,7 @@ Would be used in the following way from PHP5:
 Member variables and methods are accessed using the <tt>-&gt;</tt> operator.
 </p>
 
-<H4><a name="Php_nn2_6_1"></a>29.2.6.1 Using <tt>-noproxy</tt></H4>
+<H4><a name="Php_nn2_6_1"></a>30.2.6.1 Using <tt>-noproxy</tt></H4>
 
 
 <p>
@@ -678,7 +678,7 @@ Complex_im_set($obj,$d);
 Complex_im_get($obj);
 </pre></div>
 
-<H4><a name="Php_nn2_6_2"></a>29.2.6.2 Constructors and Destructors</H4>
+<H4><a name="Php_nn2_6_2"></a>30.2.6.2 Constructors and Destructors</H4>
 
 
 <p>
@@ -719,7 +719,7 @@ the programmer can either reassign the variable or call
 <tt>unset($v)</tt>
 </p>
 
-<H4><a name="Php_nn2_6_3"></a>29.2.6.3 Static Member Variables</H4>
+<H4><a name="Php_nn2_6_3"></a>30.2.6.3 Static Member Variables</H4>
 
 
 <p>
@@ -762,7 +762,7 @@ Ko::threats(10);
 echo "There has now been " . Ko::threats() . " threats\n";
 
 </pre></div>
-<H4><a name="Php_nn2_6_4"></a>29.2.6.4 Static Member Functions</H4>
+<H4><a name="Php_nn2_6_4"></a>30.2.6.4 Static Member Functions</H4>
 
 
 <p>
@@ -784,7 +784,7 @@ Ko::threats();
 </pre></div>
 
 
-<H3><a name="Php_nn2_7"></a>29.2.7 PHP Pragmas, Startup and Shutdown code</H3>
+<H3><a name="Php_nn2_7"></a>30.2.7 PHP Pragmas, Startup and Shutdown code</H3>
 
 
 <p>
@@ -857,7 +857,7 @@ either <tt>%init</tt> or <tt>%minit</tt>.
 
 <p>
 To insert code into the <tt>PHP_MSHUTDOWN_FUNCTION</tt>, one can use
-either <tt>%init</tt> or <tt>%minit</tt>.
+either <tt>%shutdown</tt> or <tt>%mshutdown</tt>.
 </p>
 
 <div class="code"><pre>
@@ -868,11 +868,11 @@ either <tt>%init</tt> or <tt>%minit</tt>.
 </pre></div>
 
 <p>
-The <tt>%rinit</tt> and <tt>%rshutdown</tt> statements insert code
-into the request init and shutdown code respectively.
+The <tt>%rinit</tt> and <tt>%rshutdown</tt> statements are very similar but insert code
+into the request init (PHP_RINIT_FUNCTION) and request shutdown (PHP_RSHUTDOWN_FUNCTION) code respectively.
 </p>
 
-<H2><a name="Php_nn3"></a>29.3 Cross language polymorphism</H2>
+<H2><a name="Php_nn3"></a>30.3 Cross language polymorphism</H2>
 
 
 <p>
@@ -907,7 +907,7 @@ wrapper functions takes care of all the cross-language method routing
 transparently.
 </p>
 
-<H3><a name="Php_nn3_1"></a>29.3.1 Enabling directors</H3>
+<H3><a name="Php_nn3_1"></a>30.3.1 Enabling directors</H3>
 
 
 <p>
@@ -999,7 +999,7 @@ class MyFoo extends Foo {
 </div>
 
 
-<H3><a name="Php_nn3_2"></a>29.3.2 Director classes</H3>
+<H3><a name="Php_nn3_2"></a>30.3.2 Director classes</H3>
 
 
  
@@ -1079,7 +1079,7 @@ so there is no need for the extra overhead involved with routing the
 calls through PHP.
 </p>
 
-<H3><a name="Php_nn3_3"></a>29.3.3 Ownership and object destruction</H3>
+<H3><a name="Php_nn3_3"></a>30.3.3 Ownership and object destruction</H3>
 
 
 <p>
@@ -1135,7 +1135,7 @@ In this example, we are assuming that FooContainer will take care of
 deleting all the Foo pointers it contains at some point.
 </p>
 
-<H3><a name="Php_nn3_4"></a>29.3.4 Exception unrolling</H3>
+<H3><a name="Php_nn3_4"></a>30.3.4 Exception unrolling</H3>
 
 
 <p>
@@ -1194,7 +1194,7 @@ Swig::DirectorMethodException is thrown, PHP will register the exception
 as soon as the C wrapper function returns.
 </p>
 
-<H3><a name="Php_nn3_5"></a>29.3.5 Overhead and code bloat</H3>
+<H3><a name="Php_nn3_5"></a>30.3.5 Overhead and code bloat</H3>
 
 
 <p>
@@ -1227,7 +1227,7 @@ optimized by selectively enabling director methods (using the %feature
 directive) for only those methods that are likely to be extended in PHP.
 </p>
 
-<H3><a name="Php_nn3_6"></a>29.3.6 Typemaps</H3>
+<H3><a name="Php_nn3_6"></a>30.3.6 Typemaps</H3>
 
 
 <p>
@@ -1241,7 +1241,7 @@ need to be supported.
 </p>
 
 
-<H3><a name="Php_nn3_7"></a>29.3.7 Miscellaneous</H3>
+<H3><a name="Php_nn3_7"></a>30.3.7 Miscellaneous</H3>
 
 
 <p> Director typemaps for STL classes are mostly in place, and hence you

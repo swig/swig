@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Lisp_nn1"></a>22 SWIG and Common Lisp</H1>
+<H1><a name="Lisp"></a>23 SWIG and Common Lisp</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -41,16 +41,16 @@
       Lisp, Common Foreign Function Interface(CFFI), CLisp and UFFI
       foreign function interfaces.  
 </p>
-<H2><a name="Lisp_nn2"></a>22.1 Allegro Common Lisp</H2>
+<H2><a name="Lisp_nn2"></a>23.1 Allegro Common Lisp</H2>
 
 
 <p>
   Allegro Common Lisp support in SWIG has been updated to include
   support for both C and C++. You can read about the interface
-  <a href="Allegrocl.html#Allegrocl_nn1">here</a>
+  <a href="Allegrocl.html#Allegrocl">here</a>
 </p>
 
-<H2><a name="Lisp_nn3"></a>22.2 Common Foreign Function Interface(CFFI)</H2>
+<H2><a name="Lisp_nn3"></a>23.2 Common Foreign Function Interface(CFFI)</H2>
 
 
 <p>
@@ -77,7 +77,7 @@ swig -cffi -module <i>module-name</i>   <i>file-name</i>
       files and the various things which you can do with them.
 </p>
 
-<H3><a name="Lisp_nn4"></a>22.2.1 Additional Commandline Options </H3>
+<H3><a name="Lisp_nn4"></a>23.2.1 Additional Commandline Options </H3>
 
 
 <p>
@@ -96,14 +96,14 @@ swig -cffi -help
 
 <tr>
 <td>-generate-typedef</td>
-<td>If this option is given then defctype will be used to generate<br\>
+<td>If this option is given then defctype will be used to generate<br/>
       shortcuts according to the typedefs in the input.
 </td>
 </tr>
 
 <tr>
 <td>-[no]cwrap</td>
-<td>Turn on or turn off generation of an intermediate C file when<br\>
+<td>Turn on or turn off generation of an intermediate C file when<br/>
     creating a C interface. By default this is only done for C++ code.
 </td>
 </tr>
@@ -118,7 +118,7 @@ swig -cffi -help
 
 </table>
 
-<H3><a name="Lisp_nn5"></a>22.2.2 Generating CFFI bindings</H3>
+<H3><a name="Lisp_nn5"></a>23.2.2 Generating CFFI bindings</H3>
 
 
 As we mentioned earlier the ideal way to use SWIG is to use interface
@@ -269,7 +269,7 @@ The generated SWIG Code will be:
       want to lispify the names, also, before we forget you want to
       export the generated lisp names. To do this, we will use the
       SWIG <a
-        href="Customization.html#features">feature directive</a>. 
+        href="Customization.html#Customization_features">feature directive</a>. 
 Let's edit the interface file such that the C type "div_t*" is changed
       to Lisp type ":my-pointer", we lispify all names, 
       export everything, and do some more stuff.
@@ -392,7 +392,7 @@ The feature <i>intern_function</i> ensures that all C names are
 
 </pre></div>
 
-<H3><a name="Lisp_nn6"></a>22.2.3 Generating CFFI bindings for C++ code</H3>
+<H3><a name="Lisp_nn6"></a>23.2.3 Generating CFFI bindings for C++ code</H3>
 
 
 <p>This feature to SWIG (for CFFI) is very new and still far from
@@ -568,7 +568,7 @@ If you have any questions, suggestions, patches, etc., related to CFFI
       module feel free to contact us on the SWIG mailing list, and
       also please add a "[CFFI]" tag in the subject line.
 
-<H3><a name="Lisp_nn7"></a>22.2.4 Inserting user code into generated files</H3>
+<H3><a name="Lisp_nn7"></a>23.2.4 Inserting user code into generated files</H3>
 
 
 <p>
@@ -608,7 +608,7 @@ Note that the block <tt>%{ ... %}</tt> is effectively a shortcut for
 </p>
 
 
-<H2><a name="Lisp_nn8"></a>22.3 CLISP</H2>
+<H2><a name="Lisp_nn8"></a>23.3 CLISP</H2>
 
 
 <p>
@@ -638,7 +638,7 @@ swig -clisp -module <i>module-name</i>   <i>file-name</i>
     interface file for the CLISP module. The CLISP module tries to
     produce code which is both human readable and easily modifyable.
 </p>
-<H3><a name="Lisp_nn9"></a>22.3.1 Additional Commandline Options </H3>
+<H3><a name="Lisp_nn9"></a>23.3.1 Additional Commandline Options </H3>
 
 
 <p>
@@ -671,7 +671,7 @@ and global variables will be created otherwise only definitions for<br/>
 
 </table>
 
-<H3><a name="Lisp_nn10"></a>22.3.2 Details on CLISP bindings</H3>
+<H3><a name="Lisp_nn10"></a>23.3.2 Details on CLISP bindings</H3>
 
 
 <p>
@@ -795,7 +795,7 @@ struct bar {
 
 </pre></div>
 
-<H2><a name="Lisp_nn11"></a>22.4 UFFI </H2>
+<H2><a name="Lisp_nn11"></a>23.4 UFFI </H2>
 
 
 </body>

@@ -247,8 +247,8 @@ namespace std {
             }
             Scheme_Object* keys() {
                 Scheme_Object* result = scheme_null;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
+                                                      i!=self->rend(); ++i) {
                     K* key = new K(i->first);
                     Scheme_Object* k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                     result = scheme_make_pair(k,result);
@@ -467,8 +467,8 @@ namespace std {
             }
             Scheme_Object* keys() {
                 Scheme_Object* result = scheme_null;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
+                                                      i!=self->rend(); ++i) {
                     Scheme_Object* k = CONVERT_TO(i->first);
                     result = scheme_make_pair(k,result);
                 }
@@ -679,8 +679,8 @@ namespace std {
             }
             Scheme_Object* keys() {
                 Scheme_Object* result = scheme_null;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
+                                                      i!=self->rend(); ++i) {
                     K* key = new K(i->first);
                     Scheme_Object* k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                     result = scheme_make_pair(k,result);
@@ -891,8 +891,8 @@ namespace std {
             }
             Scheme_Object* keys() {
                 Scheme_Object* result = scheme_null;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
+                                                      i!=self->rend(); ++i) {
                     Scheme_Object* k = CONVERT_K_TO(i->first);
                     result = scheme_make_pair(k,result);
                 }

@@ -115,12 +115,12 @@
 	}
 }
 
-%typemap(in) SWIGTYPE *& ($*ltype temp)
+%typemap(in) SWIGTYPE *const& ($*ltype temp)
 {
 	if(SWIG_ConvertPtr(*$input, (void **) &temp, $*1_descriptor, 0) < 0) {
             SWIG_PHP_Error(E_ERROR, "Type error in argument $argnum of $symname. Expected $*1_descriptor");
 	}
-	$1 = &temp;
+	$1 = ($1_ltype)&temp;
 }
 
 %typemap(in) SWIGTYPE *DISOWN
@@ -339,7 +339,7 @@
   SWIG_SetPointerZval(return_value, (void *)$1, $1_descriptor, $owner);
 %}
 
-%typemap(out) SWIGTYPE *&
+%typemap(out) SWIGTYPE *const&
 %{
   SWIG_SetPointerZval(return_value, (void *)*$1, $*1_descriptor, $owner);
 %}
@@ -351,20 +351,20 @@
   SWIG_SetPointerZval($input, (void *)&$1_name, $1_descriptor, $owner);
 %}
 
-%typemap(out) SWIGTYPE (CLASS::*)
+%typemap(out, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
 {
   void * p = emalloc(sizeof($1));
   memcpy(p, &$1, sizeof($1));
   zval * resource;
   MAKE_STD_ZVAL(resource);
-  ZEND_REGISTER_RESOURCE(resource, p, le_member_ptr);
+  ZEND_REGISTER_RESOURCE(resource, p, swig_member_ptr);
 
   SWIG_SetPointerZval(return_value, (void *)&$1, $1_descriptor, $owner);
 }
 
-%typemap(in) SWIGTYPE (CLASS::*)
+%typemap(in, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
 {
-  void * p = (void*)zend_fetch_resource($input TSRMLS_CC, -1, SWIG_MEMBER_PTR, NULL, 1, le_member_ptr);
+  void * p = (void*)zend_fetch_resource($input TSRMLS_CC, -1, SWIG_MEMBER_PTR, NULL, 1, swig_member_ptr);
   memcpy(&$1, p, sizeof($1));
 }
 
@@ -393,10 +393,6 @@
 {
   SWIG_SetPointerZval($input, SWIG_as_voidptr(&$1_name), $&1_descriptor, 2);
 }
-
-/* Array reference typemaps */
-%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-
 
 %typemap(out) void "";
 
@@ -441,10 +437,11 @@
   _v = (SWIG_ConvertPtr(*$input, (void **)&tmp, $&1_descriptor, 0) >= 0);
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *,
+%typecheck(SWIG_TYPECHECK_POINTER)
+             SWIGTYPE *,
              SWIGTYPE [],
              SWIGTYPE &,
-             SWIGTYPE *&
+             SWIGTYPE *const&
 {
   void *tmp;
   _v = (SWIG_ConvertPtr(*$input, (void**)&tmp, $1_descriptor, 0) >= 0);
@@ -464,19 +461,26 @@
                  unsigned int,
                  unsigned long,
                  unsigned short {
-  char error_msg[256];
-  sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
-  SWIG_PHP_Error(E_ERROR, error_msg);
+  zend_throw_exception(NULL, const_cast<char*>("C++ $1_type exception thrown"), $1 TSRMLS_CC);
+  return;
 }
 
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] %{
   (void)$1;
-  SWIG_PHP_Error(E_ERROR, "C++ $1_type exception thrown");
+  zend_throw_exception(NULL, const_cast<char*>("C++ $1_type exception thrown"), 0 TSRMLS_CC);
+  return;
 %}
 
 %typemap(throws) char * %{
-  SWIG_PHP_Error(E_ERROR, (char *)$1);
+  zend_throw_exception(NULL, const_cast<char*>($1), 0 TSRMLS_CC);
+  return;
 %}
+
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
 
 
 /* php keywords */
