@@ -117,7 +117,7 @@ VALGRIND_OPT += --suppressions=pythonswig.supp
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.py (or _runme3.py for Python 3) appended after the testcase name.
 
-run_python = env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
+run_python = env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=.:$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 
 py2_runme = $(srcdir)/$(SCRIPTPREFIX)$*$(PY2SCRIPTSUFFIX)
 py3_runme = $(srcdir)/$(SCRIPTPREFIX)$*$(PY3SCRIPTSUFFIX)
