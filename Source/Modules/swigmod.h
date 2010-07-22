@@ -344,6 +344,7 @@ void Swig_overload_check(Node *n);
 String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *);
 String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *);
 String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *);
+List *Swig_overload_rank(Node *n, bool script_lang_wrapping);
 SwigType *cplus_value_type(SwigType *t);
 
 /* directors.cxx start */

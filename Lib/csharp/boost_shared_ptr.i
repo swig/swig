@@ -1,7 +1,7 @@
 %include <shared_ptr.i>
 
 // Language specific macro implementing all the customisations for handling the smart pointer
-%define SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, CONST, TYPE...)
+%define SWIG_SHARED_PTR_TYPEMAPS(CONST, TYPE...)
 
 // %naturalvar is as documented for member variables
 %naturalvar TYPE;
@@ -96,51 +96,51 @@
 %typemap (cstype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
-                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "PROXYCLASS"
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(cstype, TYPE)"
 
 %typemap(csin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
                SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
-               SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "PROXYCLASS.getCPtr($csinput)"
+               SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(cstype, TYPE).getCPtr($csinput)"
 
 %typemap(csout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
     IntPtr cPtr = $imcall;
-    PROXYCLASS ret = (cPtr == IntPtr.Zero) ? null : new PROXYCLASS(cPtr, true);$excode
+    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & {
     IntPtr cPtr = $imcall;
-    PROXYCLASS ret = (cPtr == IntPtr.Zero) ? null : new PROXYCLASS(cPtr, true);$excode
+    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * {
     IntPtr cPtr = $imcall;
-    PROXYCLASS ret = (cPtr == IntPtr.Zero) ? null : new PROXYCLASS(cPtr, true);$excode
+    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& {
     IntPtr cPtr = $imcall;
-    PROXYCLASS ret = (cPtr == IntPtr.Zero) ? null : new PROXYCLASS(cPtr, true);$excode
+    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 
 
 %typemap(csout, excode=SWIGEXCODE) CONST TYPE {
-    PROXYCLASS ret = new PROXYCLASS($imcall, true);$excode
+    $typemap(cstype, TYPE) ret = new $typemap(cstype, TYPE)($imcall, true);$excode
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) CONST TYPE & {
-    PROXYCLASS ret = new PROXYCLASS($imcall, true);$excode
+    $typemap(cstype, TYPE) ret = new $typemap(cstype, TYPE)($imcall, true);$excode
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) CONST TYPE * {
     IntPtr cPtr = $imcall;
-    PROXYCLASS ret = (cPtr == IntPtr.Zero) ? null : new PROXYCLASS(cPtr, true);$excode
+    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 %typemap(csout, excode=SWIGEXCODE) TYPE *CONST& {
     IntPtr cPtr = $imcall;
-    PROXYCLASS ret = (cPtr == IntPtr.Zero) ? null : new PROXYCLASS(cPtr, true);$excode
+    $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
 
@@ -159,13 +159,13 @@
 %typemap(csvarout, excode=SWIGEXCODE2) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & %{
     get {
       IntPtr cPtr = $imcall;
-      PROXYCLASS ret = (cPtr == IntPtr.Zero) ? null : new PROXYCLASS(cPtr, true);$excode
+      $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
       return ret;
     } %}
 %typemap(csvarout, excode=SWIGEXCODE2) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * %{
     get {
       IntPtr cPtr = $imcall;
-      PROXYCLASS ret = (cPtr == IntPtr.Zero) ? null : new PROXYCLASS(cPtr, true);$excode
+      $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
       return ret;
     } %}
 
@@ -190,7 +190,7 @@
   private HandleRef swigCPtr;
   private bool swigCMemOwnDerived;
 
-  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($imclassname.$csclassname_SWIGSharedPtrUpcast(cPtr), true) {
+  internal $csclassname(IntPtr cPtr, bool cMemoryOwn) : base($imclassname.$csclazznameSWIGSmartPtrUpcast(cPtr), true) {
     swigCMemOwnDerived = cMemoryOwn;
     swigCPtr = new HandleRef(this, cPtr);
   }
@@ -226,10 +226,6 @@
       base.Dispose();
     }
   }
-
-%typemap(imtype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > swigSharedPtrUpcast "IntPtr"
-%typemap(csin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > swigSharedPtrUpcast "PROXYCLASS.getCPtr($csinput).Handle"
-
 
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 %enddef

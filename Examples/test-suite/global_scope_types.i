@@ -39,6 +39,6 @@ namespace Spac {
 
 }
 
-void funcptrtest( void (*)(::Dingaling) ) {}
+extern "C" void funcptrtest( void (*)(::Dingaling) ) {}
 %}
 

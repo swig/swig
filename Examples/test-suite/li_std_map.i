@@ -1,6 +1,15 @@
 %module("templatereduce") li_std_map
 %feature("trackobjects");
 
+%inline %{
+namespace another {
+struct map {
+  int val;
+  map(int x) : val(x) {}
+};
+}
+%}
+
 %include "std_pair.i"
 %include "std_map.i"
 %include "std_string.i"

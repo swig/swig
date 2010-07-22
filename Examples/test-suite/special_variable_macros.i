@@ -3,6 +3,8 @@
 // test $typemap() special variable function
 // these tests are not typical of how $typemap() should be used, but it checks that it is mostly working
 
+%warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'NewName' due to Go name ('NewName') conflict with 'Name' */
+
 %inline %{
 struct Name {
   Name(const char *n="none") : name(n) {}

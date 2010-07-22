@@ -100,19 +100,19 @@ namespace Swig {
   class Director {
     protected:
       zval *swig_self;
-      typedef std::map<void*, GCItem_var> ownership_map;
-      mutable ownership_map owner;
+      typedef std::map<void*, GCItem_var> swig_ownership_map;
+      mutable swig_ownership_map swig_owner;
     public:
       Director(zval* self) : swig_self(self) {
       }
 
       ~Director() {
-        for (ownership_map::iterator i = owner.begin(); i != owner.end(); i++) {
-          owner.erase(i);
+        for (swig_ownership_map::iterator i = swig_owner.begin(); i != swig_owner.end(); i++) {
+          swig_owner.erase(i);
         }
       }
 
-      bool is_overriden_method(char *cname, char *lc_fname) {
+      bool swig_is_overridden_method(char *cname, char *lc_fname) {
         zval classname;
         zend_class_entry **ce;
         zend_function *mptr;
@@ -133,7 +133,7 @@ namespace Swig {
       void swig_acquire_ownership(Type *vptr) const
       {
         if (vptr) {
-          owner[vptr] = new GCItem_T<Type>(vptr);
+          swig_owner[vptr] = new GCItem_T<Type>(vptr);
         }
       }
   };

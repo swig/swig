@@ -81,7 +81,7 @@ One way to deal with this is to use the
 %include "typemaps.i"
 
 %apply double *OUTPUT { double *result };
-%inlne %{
+%inline %{
 extern void add(double a, double b, double *result);
 %}
 </pre></div>

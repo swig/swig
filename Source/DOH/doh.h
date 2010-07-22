@@ -221,7 +221,7 @@ extern int DohDelslice(DOH *obj, int sindex, int eindex);
 
 /* File methods */
 
-extern int DohWrite(DOHFile * obj, void *buffer, int length);
+extern int DohWrite(DOHFile * obj, const void *buffer, int length);
 extern int DohRead(DOHFile * obj, void *buffer, int length);
 extern int DohSeek(DOHFile * obj, long offset, int whence);
 extern long DohTell(DOHFile * obj);

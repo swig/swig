@@ -258,6 +258,9 @@
 
 /* please leave 870-889 free for PHP */
 
+#define WARN_GO_NAME_CONFLICT                 890
+
+/* please leave 890-899 free for Go */
 
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
    add an entry here */

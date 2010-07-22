@@ -9,6 +9,7 @@ extern "C" {
 #endif
 #include "zend.h"
 #include "zend_API.h"
+#include "zend_exceptions.h"
 #include "php.h"
 #include "ext/standard/php_string.h"
 
@@ -23,11 +24,11 @@ extern "C" {
 #endif
 
 #ifndef Z_SET_ISREF_P
-// For PHP < 5.3
+/* For PHP < 5.3 */
 # define Z_SET_ISREF_P(z) (z)->is_ref = 1
 #endif
 #ifndef Z_SET_REFCOUNT_P
-// For PHP < 5.3
+/* For PHP < 5.3 */
 # define Z_SET_REFCOUNT_P(z, rc) (z)->refcount = (rc)
 #endif
 
@@ -258,12 +259,3 @@ static void SWIG_Php_SetModule(swig_module_info *pointer) {
   TSRMLS_FETCH();
   REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, 0);
 }
-
-#define SWIG_MEMBER_PTR ((char*)"CLASS::*")
-
-static void member_ptr_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
-  efree(rsrc->ptr);
-}
-
-static int le_member_ptr;
-

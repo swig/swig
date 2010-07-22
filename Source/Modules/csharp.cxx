@@ -941,7 +941,7 @@ public:
 
         // below based on Swig_VargetToFunction()
         SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-        Setattr(n, "wrap:action", NewStringf("result = (%s) %s;", SwigType_lstr(ty, 0), Getattr(n, "value")));
+        Setattr(n, "wrap:action", NewStringf("result = (%s)(%s);", SwigType_lstr(ty, 0), Getattr(n, "value")));
       }
 
       Swig_director_emit_dynamic_cast(n, f);
@@ -1817,7 +1817,8 @@ public:
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
-      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, "SWIGUpcast");
+      String *smartptr = Getattr(n, "feature:smartptr");
+      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
       String *wname = Swig_name_wrapper(upcast_method);
 
       Printv(imclass_cppcasts_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
@@ -1825,10 +1826,35 @@ public:
 
       Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
 
-      Printv(upcasts_code,
-	     "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname,
-	     "(", c_classname, " *jarg1) {\n", "    return (", c_baseclass, " *)jarg1;\n" "}\n", "\n", NIL);
-
+      if (smartptr) {
+	SwigType *spt = Swig_cparse_type(smartptr);
+	if (spt) {
+	  SwigType *smart = SwigType_typedef_resolve_all(spt);
+	  Delete(spt);
+	  SwigType *bsmart = Copy(smart);
+	  SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
+	  SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
+	  Replaceall(bsmart, rclassname, rbaseclass);
+	  Delete(rclassname);
+	  Delete(rbaseclass);
+	  String *smartnamestr = SwigType_namestr(smart);
+	  String *bsmartnamestr = SwigType_namestr(bsmart);
+	  Printv(upcasts_code,
+		 "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", wname, "(", smartnamestr, " *jarg1) {\n",
+		 "    return jarg1 ? new ", bsmartnamestr, "(*jarg1) : 0;\n"
+		 "}\n", "\n", NIL);
+	  Delete(bsmartnamestr);
+	  Delete(smartnamestr);
+	  Delete(bsmart);
+	} else {
+	  Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, c_classname);
+	}
+      } else {
+	Printv(upcasts_code,
+	       "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname, "(", c_classname, " *jarg1) {\n",
+	       "    return (", c_baseclass, " *)jarg1;\n"
+	       "}\n", "\n", NIL);
+      }
       Delete(wname);
       Delete(upcast_method);
     }
@@ -3059,8 +3085,10 @@ public:
     if (Strstr(tm, "$*csclassname")) {
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
-      substituteClassnameSpecialVariable(classnametype, tm, "$*csclassname");
-      substitution_performed = true;
+      if (Len(classnametype) > 0) {
+	substituteClassnameSpecialVariable(classnametype, tm, "$*csclassname");
+	substitution_performed = true;
+      }
       Delete(classnametype);
     }
     if (Strstr(tm, "$&csclassname")) {
@@ -3886,7 +3914,7 @@ public:
 
   int classDirectorConstructor(Node *n) {
     Node *parent = parentNode(n);
-    String *decl = Getattr(n, "decl");;
+    String *decl = Getattr(n, "decl");
     String *supername = Swig_class_name(parent);
     String *classname = directorClassName(parent);
     String *sub = NewString("");

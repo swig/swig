@@ -1,0 +1,81 @@
+<html>
+<head>
+<title>SWIG:Examples:go:callback</title>
+</head>
+
+<body bgcolor="#ffffff">
+
+
+<tt>SWIG/Examples/go/callback/</tt>
+<hr>
+
+<H2>Implementing C++ callbacks in Go</H2>
+
+<p>
+This example illustrates how to use directors to implement C++
+callbacks in Go.
+</p>
+
+<p>
+Because Go and C++ use inheritance differently, you must call a
+different function to create a class which uses callbacks.  Instead of
+calling the usual constructor function whose name is <tt>New</tt>
+followed by the capitalized name of the class, you call a function
+named <tt>NewDirector</tt> followed by the capitalized name of the
+class.
+</p>
+
+<p>
+The first argument to the <tt>NewDirector</tt> function is an instance
+of a type.  The <tt>NewDirector</tt> function will return an interface
+value as usual.  However, when calling any method on the returned
+value, the program will first check whether the value passed
+to <tt>NewDirector</tt> implements that method.  If it does, the
+method will be called in Go.  This is true whether the method is
+called from Go code or C++ code.
+</p>
+
+<p>
+Note that the Go code will be called with just the Go value, not the
+C++ value.  If the Go code needs to call a C++ method on itself, you
+need to get a copy of the C++ object.  This is typically done as
+follows:
+
+<blockquote>
+<pre>
+type Child struct { abi Parent }
+func (p *Child) ChildMethod() {
+	p.abi.ParentMethod()
+}
+func f() {
+	p := &Child{nil}
+	d := NewDirectorParent(p)
+	p.abi = d
+	...
+}
+</pre>
+</blockquote>
+
+In other words, we first create the Go value.  We pass that to
+the <tt>NewDirector</tt> function to create the C++ value; this C++
+value will be created with an association to the Go value.  We then
+store the C++ value in the Go value, giving us the reverse
+association.  That permits us to call parent methods from the child.
+
+</p>
+
+<p>
+To delete a director object, use the function <tt>DeleteDirector</tt>
+followed by the capitalized name of the class.
+</p>
+
+<p>
+<ul>
+<li><a href="example.h">example.h</a>.  Header file containing some enums.
+<li><a href="example.i">example.i</a>.  Interface file.
+<li><a href="runme.go">runme.go</a>. Sample Go program.
+</ul>
+
+<hr>
+</body>
+</html>

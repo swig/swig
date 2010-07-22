@@ -973,12 +973,12 @@ public:
       Delete(self);
     }
 
-    return Language::constructorHandler(n);;
+    return Language::constructorHandler(n);
   }
 
   virtual int destructorHandler(Node *n) {
     have_destructor = 1;
-    return Language::destructorHandler(n);;
+    return Language::destructorHandler(n);
   }
 
   virtual int staticmemberfunctionHandler(Node *n) {
@@ -1244,7 +1244,7 @@ public:
       idx = 0;
       p = l;
       int use_parse = 0;
-      while (p != NULL) {
+      while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  p = Getattr(p, "tmap:in:next");
 	  continue;

@@ -83,7 +83,7 @@ How the exception is handled depends on the target language, for example, Python
 <p>
 When defined, the code enclosed in braces is inserted directly into the low-level wrapper
 functions.  The special variable <tt>$action</tt> is one of a few
-<a href="Customization.html#Customization_exception_special_variables">%exception special variable</a>
+<a href="Customization.html#Customization_exception_special_variables">%exception special variables</a>
 supported and gets replaced with the actual operation
 to be performed (a function call, method invocation, attribute access, etc.).  An exception handler
 remains in effect until it is explicitly deleted.  This is done by using either <tt>%exception</tt> 
@@ -775,7 +775,7 @@ involving <tt>%feature</tt>:
 <p>
 The name matching rules outlined in the <a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a>
 section applies to all <tt>%feature</tt> directives.
-In fact the the <tt>%rename</tt> directive is just a special form of <tt>%feature</tt>. 
+In fact the <tt>%rename</tt> directive is just a special form of <tt>%feature</tt>. 
 The matching rules mean that features are very flexible and can be applied with
 pinpoint accuracy to specific declarations if needed.
 Additionally, if no declaration name is given, a global feature is said to be defined.

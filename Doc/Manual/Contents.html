@@ -15,13 +15,12 @@
 <div class="sectiontoc">
 <ul>
 <li><a href="Preface.html#Preface_nn2">Introduction</a>
-<li><a href="Preface.html#Preface_nn3">Special Introduction for Version 1.3</a>
 <li><a href="Preface.html#Preface_nn4">SWIG Versions</a>
 <li><a href="Preface.html#Preface_nn5">SWIG resources</a>
 <li><a href="Preface.html#Preface_nn6">Prerequisites</a>
 <li><a href="Preface.html#Preface_nn7">Organization of this manual</a>
 <li><a href="Preface.html#Preface_nn8">How to avoid reading the manual</a>
-<li><a href="Preface.html#Preface_nn9">Backwards Compatibility</a>
+<li><a href="Preface.html#Preface_nn9">Backwards compatibility</a>
 <li><a href="Preface.html#Preface_nn10">Credits</a>
 <li><a href="Preface.html#Preface_nn11">Bug reports</a>
 </ul>
@@ -237,7 +236,7 @@
 <li><a href="SWIGPlus.html#SWIGPlus_exception_specifications">Exception specifications</a>
 <li><a href="SWIGPlus.html#SWIGPlus_catches">Exception handling with %catches</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn33">Pointers to Members</a>
-<li><a href="SWIGPlus.html#SWIGPlus_nn34">Smart pointers and operator-&gt;()</a>
+<li><a href="SWIGPlus.html#SWIGPlus_smart_pointers">Smart pointers and operator-&gt;()</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn35">Using declarations and inheritance</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nested_classes">Nested classes</a>
 <li><a href="SWIGPlus.html#SWIGPlus_const">A brief rant about const-correctness</a>
@@ -288,9 +287,10 @@
 </ul>
 <li><a href="Library.html#Library_stl_cpp_library">STL/C++ Library</a>
 <ul>
-<li><a href="Library.html#Library_nn14">std_string.i</a>
-<li><a href="Library.html#Library_nn15">std_vector.i</a>
+<li><a href="Library.html#Library_std_string">std::string</a>
+<li><a href="Library.html#Library_std_vector">std::vector</a>
 <li><a href="Library.html#Library_stl_exceptions">STL exceptions</a>
+<li><a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a>
 </ul>
 <li><a href="Library.html#Library_nn16">Utility Libraries</a>
 <ul>
@@ -336,6 +336,7 @@
 <li><a href="Typemaps.html#Typemaps_nn6">Reusing typemaps</a>
 <li><a href="Typemaps.html#Typemaps_nn7">What can be done with typemaps?</a>
 <li><a href="Typemaps.html#Typemaps_nn8">What can't be done with typemaps?</a>
+<li><a href="Typemaps.html#Typemaps_aspects">Similarities to Aspect Oriented Programming</a>
 <li><a href="Typemaps.html#Typemaps_nn9">The rest of this chapter</a>
 </ul>
 <li><a href="Typemaps.html#Typemaps_nn10">Typemap specifications</a>
@@ -351,8 +352,8 @@
 <li><a href="Typemaps.html#Typemaps_nn17">Basic matching rules</a>
 <li><a href="Typemaps.html#Typemaps_typedef_reductions">Typedef reductions matching</a>
 <li><a href="Typemaps.html#Typemaps_nn19">Default typemap matching rules</a>
-<li><a href="Typemaps.html#Typemaps_matching_template_comparison">Matching comparison with C++ templates</a>
 <li><a href="Typemaps.html#Typemaps_multi_argument_typemaps_patterns">Multi-arguments typemaps</a>
+<li><a href="Typemaps.html#Typemaps_matching_template_comparison">Matching rules compared to C++ templates</a>
 <li><a href="Typemaps.html#Typemaps_debugging_search">Debugging typemap pattern matching</a>
 </ul>
 <li><a href="Typemaps.html#Typemaps_nn21">Code generation rules</a>
@@ -656,6 +657,7 @@
 <li><a href="CSharp.html#CSharp_date_properties">A date example demonstrating marshalling of C# properties</a>
 <li><a href="CSharp.html#CSharp_partial_classes">Turning wrapped classes into partial classes</a>
 <li><a href="CSharp.html#CSharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
+<li><a href="CSharp.html#CSharp_enum_underlying_type">Underlying type for enums</a>
 </ul>
 </ul>
 </div>
@@ -699,7 +701,36 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Guile.html#Guile">20 SWIG and Guile</a></h3>
+<h3><a href="Go.html#Go">20 SWIG and Go</a></h3>
+
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="Go.html#Go_overview">Overview</a>
+<li><a href="Go.html#Go_running_swig">Running SWIG with Go</a>
+<ul>
+<li><a href="Go.html#Go_commandline">Additional Commandline Options</a>
+<li><a href="Go.html#Go_outputs">Go Output Files</a>
+</ul>
+<li><a href="Go.html#Go_basic_tour">A tour of basic C/C++ wrapping</a>
+<ul>
+<li><a href="Go.html#Go_package">Go Package Name</a>
+<li><a href="Go.html#Go_names">Go Names</a>
+<li><a href="Go.html#Go_constants">Go Constants</a>
+<li><a href="Go.html#Go_enumerations">Go Enumerations</a>
+<li><a href="Go.html#Go_classes">Go Classes</a>
+<ul>
+<li><a href="Go.html#Go_class_inheritance">Go Class Inheritance</a>
+</ul>
+<li><a href="Go.html#Go_templates">Go Templates</a>
+<li><a href="Go.html#Go_director_classes">Go Director Classes</a>
+<li><a href="Go.html#Go_primitive_type_mappings">Default Go primitive type mappings</a>
+</ul>
+</ul>
+</div>
+<!-- INDEX -->
+
+<h3><a href="Guile.html#Guile">21 SWIG and Guile</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -734,7 +765,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Java.html#Java">21 SWIG and Java</a></h3>
+<h3><a href="Java.html#Java">22 SWIG and Java</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -876,7 +907,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Lisp.html#Lisp">22 SWIG and Common Lisp</a></h3>
+<h3><a href="Lisp.html#Lisp">23 SWIG and Common Lisp</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -899,7 +930,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Lua.html#Lua">23 SWIG and Lua</a></h3>
+<h3><a href="Lua.html#Lua">24 SWIG and Lua</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -956,17 +987,14 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Modula3.html#Modula3">24 SWIG and Modula-3</a></h3>
+<h3><a href="Modula3.html#Modula3">25 SWIG and Modula-3</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
 <li><a href="Modula3.html#Modula3_modula3_overview">Overview</a>
 <ul>
-<li><a href="Modula3.html#Modula3_whyscripting">Why not scripting ?</a>
-<li><a href="Modula3.html#Modula3_whymodula3">Why Modula-3 ?</a>
-<li><a href="Modula3.html#Modula3_whycpp">Why C / C++ ?</a>
-<li><a href="Modula3.html#Modula3_whyswig">Why SWIG ?</a>
+<li><a href="Modula3.html#Modula3_motivation">Motivation</a>
 </ul>
 <li><a href="Modula3.html#Modula3_conception">Conception</a>
 <ul>
@@ -997,7 +1025,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Mzscheme.html#Mzscheme">25 SWIG and MzScheme</a></h3>
+<h3><a href="Mzscheme.html#Mzscheme">26 SWIG and MzScheme</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1007,7 +1035,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Ocaml.html#Ocaml">26 SWIG and Ocaml</a></h3>
+<h3><a href="Ocaml.html#Ocaml">27 SWIG and Ocaml</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1058,7 +1086,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Octave.html#Octave">27 SWIG and Octave</a></h3>
+<h3><a href="Octave.html#Octave">28 SWIG and Octave</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1093,7 +1121,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Perl5.html#Perl5">28 SWIG and Perl5</a></h3>
+<h3><a href="Perl5.html#Perl5">29 SWIG and Perl5</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1160,7 +1188,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Php.html#Php">29 SWIG and PHP</a></h3>
+<h3><a href="Php.html#Php">30 SWIG and PHP</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1200,7 +1228,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Pike.html#Pike">30 SWIG and Pike</a></h3>
+<h3><a href="Pike.html#Pike">31 SWIG and Pike</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1224,7 +1252,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Python.html#Python">31 SWIG and Python</a></h3>
+<h3><a href="Python.html#Python">32 SWIG and Python</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1327,7 +1355,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Ruby.html#Ruby">32 SWIG and Ruby</a></h3>
+<h3><a href="Ruby.html#Ruby">33 SWIG and Ruby</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1461,7 +1489,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Tcl.html#Tcl">33 SWIG and Tcl</a></h3>
+<h3><a href="Tcl.html#Tcl">34 SWIG and Tcl</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1527,7 +1555,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="R.html#R">34 SWIG and R</a></h3>
+<h3><a href="R.html#R">35 SWIG and R</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1543,7 +1571,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Extending.html#Extending">35 Extending SWIG to support new languages</a></h3>
+<h3><a href="Extending.html#Extending">36 Extending SWIG to support new languages</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">

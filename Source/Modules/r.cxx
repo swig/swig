@@ -1299,6 +1299,8 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
     Printf(stderr, "Adding accessor: %s (%s) => %s\n", memberName, name, tmp);
 }
 
+#define Swig_overload_rank R_swig_overload_rank
+
 #define MAX_OVERLOAD 256
 
 struct Overloaded {
@@ -2512,7 +2514,7 @@ int R::membervariableHandler(Node *n) {
 
   int status(Language::membervariableHandler(n));
 
-  if(opaqueClassDeclaration == NULL && debugMode)
+  if(!opaqueClassDeclaration && debugMode)
     Printf(stderr, "<membervariableHandler> %s %s\n", Getattr(n, "name"), Getattr(n, "type"));
 
   processing_member_access_function = 0;

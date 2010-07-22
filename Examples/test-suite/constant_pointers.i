@@ -5,6 +5,7 @@ This testcase primarily test constant pointers, eg int* const.  Only a getter is
 %module constant_pointers
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);                   /* memory leak when setting a ptr/ref variable */
+%warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'Foo' due to Go name ('Foo') conflict with 'foo' */
 
 %inline %{
 

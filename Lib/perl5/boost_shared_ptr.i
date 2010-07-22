@@ -7,7 +7,7 @@
 #endif
 
 // Language specific macro implementing all the customisations for handling the smart pointer
-%define SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, CONST, TYPE...)
+%define SWIG_SHARED_PTR_TYPEMAPS(CONST, TYPE...)
 
 // %naturalvar is as documented for member variables
 %naturalvar TYPE;
@@ -17,9 +17,6 @@
 %feature("unref") TYPE 
 //"if (debug_shared) { cout << \"deleting use_count: \" << (*smartarg1).use_count() << \" [\" << (boost::get_deleter<SWIG_null_deleter>(*smartarg1) ? std::string(\"CANNOT BE DETERMINED SAFELY\") : ( (*smartarg1).get() ? (*smartarg1)->getValue() : std::string(\"NULL PTR\") )) << \"]\" << endl << flush; }\n"
                                "(void)arg1; delete smartarg1;"
-
-// Feature to adapt the code generated in the swigregister functions for smart pointers
-%feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
 
 // Typemap customisations...
 
@@ -151,7 +148,7 @@
 
 // plain pointer by reference
 // Note: $disown not implemented by default as it will lead to a memory leak of the shared_ptr instance
-%typemap(in) CONST TYPE *& (void  *argp = 0, int res = 0, $*1_ltype temp = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared) {
+%typemap(in) TYPE *CONST& (void  *argp = 0, int res = 0, $*1_ltype temp = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared) {
   int newmem = 0;
   res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SHARED_PTR_DISOWN | %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
@@ -166,15 +163,15 @@
   }
   $1 = &temp;
 }
-%typemap(out, fragment="SWIG_null_deleter") CONST TYPE *& {
+%typemap(out, fragment="SWIG_null_deleter") TYPE *CONST& {
   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1 SWIG_NO_NULL_DELETER_$owner);
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
 
-%typemap(varin) CONST TYPE *& %{
+%typemap(varin) TYPE *CONST& %{
 #error "varin typemap not implemented"
 %}
-%typemap(varout) CONST TYPE *& %{
+%typemap(varout) TYPE *CONST& %{
 #error "varout typemap not implemented"
 %}
 
@@ -291,10 +288,10 @@
 // Note: SWIG_ConvertPtr with void ** parameter set to 0 instead of using SWIG_ConvertPtrAndOwn, so that the casting 
 // function is not called thereby avoiding a possible smart pointer copy constructor call when casting up the inheritance chain.
 %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) 
-                      CONST TYPE,
-                      CONST TYPE &,
-                      CONST TYPE *,
-                      CONST TYPE *&,
+                      TYPE CONST,
+                      TYPE CONST &,
+                      TYPE CONST *,
+                      TYPE *CONST&,
                       SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                       SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                       SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,

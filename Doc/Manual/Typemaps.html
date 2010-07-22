@@ -18,6 +18,7 @@
 <li><a href="#Typemaps_nn6">Reusing typemaps</a>
 <li><a href="#Typemaps_nn7">What can be done with typemaps?</a>
 <li><a href="#Typemaps_nn8">What can't be done with typemaps?</a>
+<li><a href="#Typemaps_aspects">Similarities to Aspect Oriented Programming</a>
 <li><a href="#Typemaps_nn9">The rest of this chapter</a>
 </ul>
 <li><a href="#Typemaps_nn10">Typemap specifications</a>
@@ -33,8 +34,8 @@
 <li><a href="#Typemaps_nn17">Basic matching rules</a>
 <li><a href="#Typemaps_typedef_reductions">Typedef reductions matching</a>
 <li><a href="#Typemaps_nn19">Default typemap matching rules</a>
-<li><a href="#Typemaps_matching_template_comparison">Matching comparison with C++ templates</a>
 <li><a href="#Typemaps_multi_argument_typemaps_patterns">Multi-arguments typemaps</a>
+<li><a href="#Typemaps_matching_template_comparison">Matching rules compared to C++ templates</a>
 <li><a href="#Typemaps_debugging_search">Debugging typemap pattern matching</a>
 </ul>
 <li><a href="#Typemaps_nn21">Code generation rules</a>
@@ -115,7 +116,7 @@ chapter with only a vague idea of what SWIG already does by default.
 
 <p>
 One of the most important problems in wrapper code generation is the
-conversion of datatypes between programming languages.  Specifically,
+conversion or marshalling of datatypes between programming languages.  Specifically,
 for every C/C++ declaration, SWIG must somehow generate wrapper code
 that allows values to be passed back and forth between languages.
 Since every programming language represents data differently, this is
@@ -637,7 +638,25 @@ void wrap_foo(char *s, int x) {
 </pre>
 </div>
 
-<H3><a name="Typemaps_nn9"></a>10.1.7 The rest of this chapter</H3>
+<H3><a name="Typemaps_aspects"></a>10.1.7 Similarities to Aspect Oriented Programming</H3>
+
+
+<p>
+SWIG has parallels to <a href="http://en.wikipedia.org/wiki/Aspect-oriented_programming">Aspect Oriented Software Development (AOP)</a>.
+The <a href="http://en.wikipedia.org/wiki/Aspect-oriented_programming#Terminology">AOP terminology</a> with respect to SWIG typemaps can be viewed as follows:
+</p>
+<ul>
+  <li> <b>Cross-cutting concerns</b>: The cross-cutting concerns are the modularization of the functionality that the typemaps implement, which is primarily marshalling of types from/to the target language and C/C++.
+  <li> <b>Advice</b>: The typemap body contains code which is executed whenever the marshalling is required.
+  <li> <b>Pointcut</b>: The pointcuts are the positions in the wrapper code that the typemap code is generated into.
+  <li> <b>Aspect</b>: Aspects are the combination of the pointcut and the advice, hence each typemap is an aspect.
+</ul>
+<p>
+SWIG can also be viewed as has having a second set of aspects based around <a href="Customization.html">%feature</a>.
+Features such as <tt>%exception</tt> are also cross-cutting concerns as they encapsulate code that can be used to add logging or exception handling to any function.
+</p>
+
+<H3><a name="Typemaps_nn9"></a>10.1.8 The rest of this chapter</H3>
 
 
 <p>
@@ -1418,7 +1437,7 @@ Finally the best way to view the typemap matching rules in action is via the <a 
 simpler scheme to match the current C++ class template partial specialization matching rules.
 </p>
 
-<H3><a name="Typemaps_multi_argument_typemaps_patterns"></a>10.3.5 Multi-arguments typemaps</H3>
+<H3><a name="Typemaps_multi_argument_typemaps_patterns"></a>10.3.4 Multi-arguments typemaps</H3>
 
 
 <p>
@@ -1448,7 +1467,8 @@ but all subsequent arguments must match exactly.
 </p>
 
 
-<H3><a name="Typemaps_matching_template_comparison"></a>10.3.4 Matching rules compared to C++ templates</H3>
+<H3><a name="Typemaps_matching_template_comparison"></a>10.3.5 Matching rules compared to C++ templates</H3>
+
 
 <p>
 For those intimately familiar with C++ templates, a comparison of the typemap matching rules and template type deduction is interesting.
@@ -1671,7 +1691,8 @@ example.h:3: Searching for a suitable 'in' typemap for: Row4 rows[10]
 
 <p>
 showing that the best default match supplied by SWIG is the <tt>SWIGTYPE []</tt> typemap.
-As the example shows, the successful match displays the used typemap source including typemap method, type and optional name in one of these simplified formats: <p>
+As the example shows, the successful match displays the used typemap source including typemap method, type and optional name in one of these simplified formats:
+</p>
 
 <ul>
   <li> <tt>Using: %typemap(method) type name</tt>

@@ -2697,7 +2697,7 @@ int Language::destructorDeclaration(Node *n) {
 
   if (!CurrentClass)
     return SWIG_NOWRAP;
-  if (cplus_mode != PUBLIC)
+  if (cplus_mode != PUBLIC && !Getattr(CurrentClass, "feature:unref"))
     return SWIG_NOWRAP;
   if (ImportMode)
     return SWIG_NOWRAP;
@@ -2995,7 +2995,10 @@ void Language::dumpSymbols() {
  * ----------------------------------------------------------------------------- */
 
 Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
-  Hash *symbols = Getattr(symtabs, scope);
+  Hash *symbols = Getattr(symtabs, scope ? scope : "");
+  if (!symbols) {
+    return NULL;
+  }
   return Getattr(symbols, s);
 }
 
