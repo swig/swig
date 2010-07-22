@@ -10,6 +10,17 @@ Version 2.0.1 (in progress)
             returns by reference.
 
 2010-07-13: vadz
+            Removed support for the old experimental "rxspencer" encoder and
+            "[not]rxsmatch" in %rename (see the 01/16/2006 entry). The new and
+            officially supported "regex" encoder and "[not]regexmatch" checks
+            should be used instead (see the two previous entries). Please
+            replace "%(rxspencer:[pat][subst])s" with "%(regex:/pat/subst/)s"
+            when upgrading. Notice that you will also need to replace the back-
+            references of form "@1" with the more standard "\\1" and may need to
+            adjust your regular expressions syntax as the new regex encoder uses
+            Perl-compatible syntax and not (extended) POSIX syntax as the old one.
+
+2010-07-13: vadz
             Add "regexmatch", "regextarget" and "notregexmatch" which can be
             used to apply %rename directives to the declarations matching the
             specified regular expression only. The first two can be used

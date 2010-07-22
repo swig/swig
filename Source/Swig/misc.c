@@ -1108,112 +1108,6 @@ String *Swig_string_strip(String *s) {
 }
 
 
-/* -----------------------------------------------------------------------------
- * Swig_string_rxspencer()
- *
- * Executes a regexp substitution via the RxSpencer library. For example:
- *
- *   Printf(stderr,"gsl%(rxspencer:[GSL_.*_][@1])s","GSL_Hello_") -> gslHello
- * ----------------------------------------------------------------------------- */
-#if defined(HAVE_RXSPENCER)
-#include <sys/types.h>
-#include <rxspencer/regex.h>
-#define USE_RXSPENCER
-#endif
-
-const char *skip_delim(char pb, char pe, const char *ce) {
-  int end = 0;
-  int lb = 0;
-  while (!end && *ce != '\0') {
-    if (*ce == pb) {
-      ++lb;
-    }
-    if (*ce == pe) {
-      if (!lb) {
-	end = 1;
-	--ce;
-      } else {
-	--lb;
-      }
-    }
-    ++ce;
-  }
-  return end ? ce : 0;
-}
-
-
-#if defined(USE_RXSPENCER)
-String *Swig_string_rxspencer(String *s) {
-  String *res = 0;
-  if (Len(s)) {
-    const char *cs = Char(s);
-    const char *cb;
-    const char *ce;
-    if (*cs == '[') {
-      int retval;
-      regex_t compiled;
-      cb = ++cs;
-      ce = skip_delim('[', ']', cb);
-      if (ce) {
-	char bregexp[512];
-	strncpy(bregexp, cb, ce - cb);
-	bregexp[ce - cb] = '\0';
-	++ce;
-	retval = regcomp(&compiled, bregexp, REG_EXTENDED);
-	if (retval == 0) {
-	  cs = ce;
-	  if (*cs == '[') {
-	    cb = ++cs;
-	    ce = skip_delim('[', ']', cb);
-	    if (ce) {
-	      const char *cvalue = ce + 1;
-	      int nsub = (int) compiled.re_nsub + 1;
-	      regmatch_t *pmatch = (regmatch_t *) malloc(sizeof(regmatch_t) * (nsub));
-	      retval = regexec(&compiled, cvalue, nsub, pmatch, 0);
-	      if (retval != REG_NOMATCH) {
-		char *spos = 0;
-		res = NewStringWithSize(cb, ce - cb);
-		spos = Strchr(res, '@');
-		while (spos) {
-		  char cd = *(++spos);
-		  if (isdigit(cd)) {
-		    char arg[8];
-		    size_t len;
-		    int i = cd - '0';
-		    sprintf(arg, "@%d", i);
-		    if (i < nsub && (len = pmatch[i].rm_eo - pmatch[i].rm_so)) {
-		      char value[256];
-		      strncpy(value, cvalue + pmatch[i].rm_so, len);
-		      value[len] = 0;
-		      Replaceall(res, arg, value);
-		    } else {
-		      Replaceall(res, arg, "");
-		    }
-		    spos = Strchr(res, '@');
-		  } else if (cd == '@') {
-		    spos = strchr(spos + 1, '@');
-		  }
-		}
-	      }
-	      free(pmatch);
-	    }
-	  }
-	}
-	regfree(&compiled);
-      }
-    }
-  }
-  if (!res)
-    res = NewStringEmpty();
-  return res;
-}
-#else
-String *Swig_string_rxspencer(String *s) {
-  (void) s;
-  return NewStringEmpty();
-}
-#endif
-
 #ifdef HAVE_PCRE
 #include <pcre.h>
 
@@ -1338,7 +1232,6 @@ void Swig_init() {
   DohEncoding("typecode", Swig_string_typecode);
   DohEncoding("mangle", Swig_string_emangle);
   DohEncoding("command", Swig_string_command);
-  DohEncoding("rxspencer", Swig_string_rxspencer);
   DohEncoding("schemify", Swig_string_schemify);
   DohEncoding("strip", Swig_string_strip);
   DohEncoding("regex", Swig_string_regex);
