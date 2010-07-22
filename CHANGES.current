@@ -9,6 +9,18 @@ Version 2.0.1 (in progress)
             Fix wrapping of function pointers and member function pointers when the function
             returns by reference.
 
+2010-07-13: vadz
+            Add the new "regex" encoder that can be used in %rename, e.g.
+
+                %rename("regex:/(\\w+)_(.*)/\\2/") "";
+
+            to remove any alphabetical prefix from all identifiers. The syntax
+            of the regular expressions is Perl-like and PCRE library
+            (http://www.pcre.org/) is used to implement this feature but notice
+            that backslashes need to be escaped as usual inside C strings.
+
+            Original patch from Torsten Landschoff.
+
 2010-07-08: wsfulton
             Fix #3024875 - shared_ptr of classes with non-public destructors. This also fixes
             the "unref" feature when used on classes with non-public destructors.

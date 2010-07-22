@@ -1214,6 +1214,111 @@ String *Swig_string_rxspencer(String *s) {
 }
 #endif
 
+#ifdef HAVE_PCRE
+#include <pcre.h>
+
+static int split_regex_pattern_subst(String *s, String **pattern, String **subst, const char **input)
+{
+  const char *pats, *pate;
+  const char *subs, *sube;
+
+  /* Locate the search pattern */
+  const char *p = Char(s);
+  if (*p++ != '/') goto err_out;
+  pats = p;
+  p = strchr(p, '/');
+  if (!p) goto err_out;
+  pate = p;
+
+  /* Locate the substitution string */
+  subs = ++p;
+  p = strchr(p, '/');
+  if (!p) goto err_out;
+  sube = p;
+
+  *pattern = NewStringWithSize(pats, pate - pats);
+  *subst   = NewStringWithSize(subs, sube - subs);
+  *input   = p + 1;
+  return 1;
+
+err_out:
+  Swig_error("SWIG", Getline(s), "Invalid regex substitution: '%s'.\n", s);
+  exit(1);
+}
+
+String *replace_captures(const char *input, String *subst, int captures[])
+{
+  String *result = NewStringEmpty();
+  const char *p = Char(subst);
+
+  while (*p) {
+    /* Copy part without substitutions */
+    const char *q = strchr(p, '\\');
+    if (!q) {
+      Write(result, p, strlen(p));
+      break;
+    }
+    Write(result, p, q - p);
+    p = q + 1;
+
+    /* Handle substitution */
+    if (*p == '\0') {
+      Putc('\\', result);
+    } else if (isdigit(*p)) {
+      int group = *p++ - '0';
+      int l = captures[group*2], r = captures[group*2 + 1];
+      if (l != -1) {
+        Write(result, input + l, r - l);
+      }
+    }
+  }
+
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_string_regex()
+ *
+ * Executes a regexp substitution. For example:
+ *
+ *   Printf(stderr,"gsl%(regex:/GSL_.*_/\\1/)s","GSL_Hello_") -> gslHello
+ * ----------------------------------------------------------------------------- */
+String *Swig_string_regex(String *s) {
+  const int pcre_options = 0;
+
+  String *res = 0;
+  pcre *compiled_pat = 0;
+  const char *pcre_error, *input;
+  int pcre_errorpos;
+  String *pattern = 0, *subst = 0;
+  int captures[30];
+
+  if (split_regex_pattern_subst(s, &pattern, &subst, &input)) {
+    compiled_pat = pcre_compile(
+          Char(pattern), pcre_options, &pcre_error, &pcre_errorpos, NULL);
+    if (!compiled_pat) {
+      Swig_error("SWIG", Getline(s), "PCRE compilation failed: '%s' in '%s':%i.\n",
+          pcre_error, Char(pattern), pcre_errorpos);
+      exit(1);
+    }
+    pcre_exec(compiled_pat, NULL, input, strlen(input), 0, 0, captures, 30);
+    res = replace_captures(input, subst, captures);
+  }
+
+  DohDelete(pattern);
+  DohDelete(subst);
+  pcre_free(compiled_pat);
+  return res ? res : NewStringEmpty();
+}
+
+#else
+
+String *Swig_string_regex(String *s) {
+  Swig_error("SWIG", Getline(s), "PCRE regex support not enabled in this SWIG build.\n");
+  exit(1);
+}
+
+#endif
 
 /* -----------------------------------------------------------------------------
  * Swig_init()
@@ -1236,6 +1341,7 @@ void Swig_init() {
   DohEncoding("rxspencer", Swig_string_rxspencer);
   DohEncoding("schemify", Swig_string_schemify);
   DohEncoding("strip", Swig_string_strip);
+  DohEncoding("regex", Swig_string_regex);
 
   /* aliases for the case encoders */
   DohEncoding("uppercase", Swig_string_upper);
