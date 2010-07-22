@@ -622,7 +622,14 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-version") == 0) {
 	fprintf(stdout, "\nSWIG Version %s\n", Swig_package_version());
 	fprintf(stdout, "\nCompiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
-	fprintf(stdout, "Please see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
+	fprintf(stdout, "\nConfigured options: %cpcre\n",
+#ifdef HAVE_PCRE
+		'+'
+#else
+		'-'
+#endif
+	    );
+	fprintf(stdout, "\nPlease see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
 	SWIG_exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-copyright") == 0) {
 	fprintf(stdout, "\nSWIG Version %s\n", Swig_package_version());
