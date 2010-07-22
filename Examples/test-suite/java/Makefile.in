@@ -7,8 +7,8 @@ JAVA         = java
 JAVAC        = javac
 SCRIPTSUFFIX = _runme.java
 srcdir       = @srcdir@
-top_srcdir   = @top_srcdir@/..
-top_builddir = @top_builddir@/..
+top_srcdir   = @top_srcdir@
+top_builddir = $(abspath @top_builddir@)
 
 C_TEST_CASES = \
 	java_lib_arrays \
