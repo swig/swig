@@ -285,6 +285,7 @@ CPP_TEST_CASES += \
 	rename_scope \
 	rename_strip_encoder \
 	rename_pcre_encoder \
+	rename_pcre_enum \
 	restrict_cplusplus \
 	return_const_value \
 	return_value_scope \

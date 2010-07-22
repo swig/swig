@@ -1062,10 +1062,13 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj) {
       const char **rkey;
       int isnotmatch = 0;
       int isrxsmatch = 0;
+      int isregexmatch = 0;
       if ((strncmp(ckey, "match", 5) == 0)
 	  || (isnotmatch = (strncmp(ckey, "notmatch", 8) == 0))
 	  || (isrxsmatch = (strncmp(ckey, "rxsmatch", 8) == 0))
-	  || (isnotmatch = isrxsmatch = (strncmp(ckey, "notrxsmatch", 11) == 0))) {
+	  || (isregexmatch = (strncmp(ckey, "regexmatch", 10) == 0))
+	  || (isnotmatch = isrxsmatch = (strncmp(ckey, "notrxsmatch", 11) == 0))
+	  || (isnotmatch = isregexmatch = (strncmp(ckey, "notregexmatch", 13) == 0))) {
 	Hash *mi = NewHash();
 	List *attrlist = Swig_make_attrlist(ckey);
 	if (!matchlist)
@@ -1080,6 +1083,8 @@ static void Swig_name_object_attach_keys(const char *keys[], Hash *nameobj) {
 	  SetFlag(mi, "notmatch");
 	if (isrxsmatch)
 	  SetFlag(mi, "rxsmatch");
+	if (isregexmatch)
+	  SetFlag(mi, "regexmatch");
 	Delete(attrlist);
 	Append(matchlist, mi);
 	Delete(mi);
@@ -1155,6 +1160,51 @@ static DOH *Swig_get_lattr(Node *n, List *lattr) {
   return res;
 }
 
+#ifdef HAVE_PCRE
+#include <pcre.h>
+
+int Swig_name_regexmatch_value(Node *n, String *pattern, String *s) {
+  pcre *compiled_pat;
+  const char *err;
+  int errpos;
+  int rc;
+
+  compiled_pat = pcre_compile(Char(pattern), 0, &err, &errpos, NULL);
+  if (!compiled_pat) {
+    Swig_error("SWIG", Getline(n),
+               "Invalid regex \"%s\": compilation failed at %d: %s\n",
+               Char(pattern), errpos, err);
+    exit(1);
+  }
+
+  rc = pcre_exec(compiled_pat, NULL, Char(s), Len(s), 0, 0, NULL, 0);
+  pcre_free(compiled_pat);
+
+  if (rc == PCRE_ERROR_NOMATCH)
+    return 0;
+
+  if (rc < 0 ) {
+    Swig_error("SWIG", Getline(n),
+               "Matching \"%s\" against regex \"%s\" failed: %d\n",
+               Char(s), Char(pattern), rc);
+    exit(1);
+  }
+
+  return 1;
+}
+
+#else /* !HAVE_PCRE */
+
+int Swig_name_regexmatch_value(Node *n, String *pattern, String *s) {
+  (void)pattern;
+  (void)s;
+  Swig_error("SWIG", Getline(n),
+             "PCRE regex matching is not available in this SWIG build.\n");
+  exit(1);
+}
+
+#endif /* HAVE_PCRE/!HAVE_PCRE */
+
 #if defined(HAVE_RXSPENCER)
 #include <sys/types.h>
 #include <rxspencer/regex.h>
@@ -1228,6 +1278,7 @@ int Swig_name_match_nameobj(Hash *rn, Node *n) {
       String *nval = Swig_get_lattr(n, lattr);
       int notmatch = GetFlag(mi, "notmatch");
       int rxsmatch = GetFlag(mi, "rxsmatch");
+      int regexmatch = GetFlag(mi, "regexmatch");
 #ifdef SWIG_DEBUG
       Printf(stdout, "mi %d %s re %d not %d \n", i, nval, notmatch, rxsmatch);
       if (rxsmatch) {
@@ -1238,6 +1289,7 @@ int Swig_name_match_nameobj(Hash *rn, Node *n) {
       if (nval) {
 	String *kwval = Getattr(mi, "value");
 	match = rxsmatch ? Swig_name_rxsmatch_value(kwval, nval)
+	    : regexmatch ? Swig_name_regexmatch_value(n, kwval, nval)
 	    : Swig_name_match_value(kwval, nval);
 #ifdef SWIG_DEBUG
 	Printf(stdout, "val %s %s %d %d \n", nval, kwval, match, ilen);
@@ -1278,6 +1330,7 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
 	  String *sname = 0;
 	  int fullname = GetFlag(rn, "fullname");
 	  int rxstarget = GetFlag(rn, "rxstarget");
+	  int regextarget = GetFlag(rn, "regextarget");
 	  if (sfmt) {
 	    if (fullname && prefix) {
 	      String *pname = NewStringf("%s::%s", prefix, name);
@@ -1294,7 +1347,9 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
 	      DohIncref(name);
 	    }
 	  }
-	  match = rxstarget ? Swig_name_rxsmatch_value(tname, sname) : Swig_name_match_value(tname, sname);
+	  match = rxstarget ? Swig_name_rxsmatch_value(tname, sname)
+	    : regextarget ? Swig_name_regexmatch_value(n, tname, sname)
+	    : Swig_name_match_value(tname, sname);
 	  Delete(sname);
 	} else {
 	  match = 1;
@@ -1393,7 +1448,7 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
 
   ParmList *declparms = declaratorparms;
 
-  const char *rename_keys[] = { "fullname", "sourcefmt", "targetfmt", "continue", "rxstarget", 0 };
+  const char *rename_keys[] = { "fullname", "sourcefmt", "targetfmt", "continue", "rxstarget", "regextarget", 0 };
   Swig_name_object_attach_keys(rename_keys, newname);
 
   /* Add the name */

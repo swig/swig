@@ -1949,10 +1949,12 @@ can be used to achieve the same effect as the simpler
 </pre>
 </div>
 <p>
-However <tt>match</tt> can also be applied to the declaration type, for
-example <tt>match="class"</tt> restricts the match to class declarations only
-(in C++) and <tt>match="enumitem"</tt> restricts it to the enum elements. SWIG
-also provides convenience macros for such match expressions, for example
+and so is not very interesting on its own. However <tt>match</tt> can also be
+applied to the declaration type, for example <tt>match="class"</tt> restricts
+the match to class declarations only (in C++) and <tt>match="enumitem"</tt>
+restricts it to the enum elements. SWIG also provides convenience macros for
+such match expressions, for example
+</p>
 <div class="code">
 <pre>
 %rename("%(title)s", %$isenumitem) "";
@@ -1983,7 +1985,40 @@ to rename all enums nested in the given class to lower case.
 </p>
 
 <p>
-Finally, even more powerful variants of <tt>%rename</tt> and <tt>%ignore</tt> directives can be used to help
+And in addition to literally matching some string with <tt>match</tt> you can
+also use <tt>regexmatch</tt> or <tt>notregexmatch</tt>to match a string
+against a regular expression. For example, to ignore all functions having
+"Old" suffix you could use
+</p>
+<div class="code">
+<pre>
+%rename("$ignore", regexmatch$name="Old$") "";
+</pre>
+</div>
+<p>
+For simple cases like this, specifying the regular expression for the
+declaration name directly can be preferable and can be done using
+<tt>regextarget</tt>:
+</p>
+<div class="code">
+<pre>
+%rename("$ignore", regextarget=1) "Old$";
+</pre>
+</div>
+
+<p>
+As for <tt>notregexmatch</tt>, it restricts the match only to the strings not
+matching the specified regular expression. So to rename to lower case versions
+all declarations except those consisting from capital letters only:
+</p>
+<div class="code">
+<pre>
+%rename("$(lower)s", notregexmatch$name="^[A-Z]+$") "";
+</pre>
+</div>
+
+<p>
+Finally, variants of <tt>%rename</tt> and <tt>%ignore</tt> directives can be used to help
 wrap C++ overloaded functions and methods or C++ methods which use default arguments. This is described in the
 <a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section in the C++ chapter.
 </p>
