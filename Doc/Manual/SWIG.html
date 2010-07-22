@@ -1661,6 +1661,7 @@ generate a warning message.   Simply change the directives to <tt>%immutable;</t
 
 <H3><a name="SWIG_rename_ignore"></a>5.4.7 Renaming and ignoring declarations</H3>
 
+<H4>5.4.7.1 Simple renaming of specific identifiers</H4>
 
 <p>
 Normally, the name of a C declaration is used when that declaration is
@@ -1742,12 +1743,6 @@ declarations.  If you need to remove a whole section of problematic code, the SW
 </p>
 
 <p>
-More powerful variants of <tt>%rename</tt> and <tt>%ignore</tt> directives can be used to help 
-wrap C++ overloaded functions and methods or C++ methods which use default arguments. This is described in the 
-<a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section in the C++ chapter.
-</p>
-
-<p>
 <b>Compatibility note: </b> Older versions of SWIG provided a special <tt>%name</tt> directive for renaming declarations.
 For example:
 </p>
@@ -1762,6 +1757,193 @@ For example:
 This directive is still supported, but it is deprecated and should probably be avoided.  The <tt>%rename</tt>
 directive is more powerful and better supports wrapping of raw header file information.
 </p>
+
+<H4>5.4.7.2 Advanced renaming support</H4>
+
+<p>
+While writing <tt>%rename</tt> for specific declarations is simple enough,
+sometimes the same renaming rule needs to be applied to many, maybe all,
+identifiers in the SWIG input. For example, it may be necessary to apply some
+transformation to all the names in the target language to better follow its
+naming conventions, e.g. add a specific prefix to all the functions. Doing it
+for each function is impractical so SWIG supports applying a renaming rule to
+all declarations if the name of the identifier to be renamed is not specified:
+</p>
+
+<div class="code">
+<pre>
+%rename("myprefix_%s") ""; // print&nbsp;-&gt;&nbsp;myprefix_print
+</pre>
+</div>
+
+<p>
+This also shows that the argument of <tt>%rename</tt> doesn't have to be a
+literal string but can be a <tt>printf()</tt>-like format string. In the
+simplest form, <tt>"%s"</tt> is replaced with the name of the original
+declaration, as shown above. However this is not always enough and SWIG
+provides extensions to the usual format string syntax to allow applying a
+(SWIG-defined) function to the argument. For example, to wrap all C functions
+<tt>do_something_long()</tt> as more Java-like <tt>doSomethingLong()</tt> you
+can use the <tt>"lowercamelcase"</tt> extended format specifier like this:
+</p>
+
+<div class="code">
+<pre>
+%rename("%(lowercamelcase)s") ""; // foo_bar -&gt; fooBar; FooBar -&gt; fooBar
+</pre>
+</div>
+
+<p>
+Some functions can be parametrized, for example the <tt>"strip"</tt> one
+strips the provided prefix from its argument. The prefix is specified as part
+of the format string, following a colon after the function name:
+<div class="code">
+<pre>
+%rename("%(strip:[wx])s") ""; // wxHello -&gt; Hello; FooBar -&gt; fooBar
+</pre>
+</div>
+</p>
+
+<p>
+Here is the table summarizing all currently defined functions with an example
+of applying each one (notice that some of them have two names, a shorter one
+and a more descriptive one, but the two functions are otherwise equivalent):
+</p>
+<table summary="Format string functions" border="1" cellpadding="5">
+<tr>
+    <th>Function</th><th>Returns</th><th colspan=2>Example (in/out)</th>
+</tr>
+<tr>
+    <td><tt>upper</tt> or <tt>uppercase</tt></td>
+    <td>Upper-case version of the string.</td>
+    <td><tt>Print</tt></td><td><tt>PRINT</tt></td>
+</tr>
+<tr>
+    <td><tt>lower</tt> or <tt>lowercase</tt></td>
+    <td>Lower-case version of the string.</td>
+    <td><tt>Print</tt></td><td><tt>print</tt></td>
+</tr>
+<tr>
+    <td><tt>title</tt></td>
+    <td>String with first letter capitalized and the rest in lower case.</td>
+    <td><tt>print</tt></td><td><tt>Print</tt></td>
+</tr>
+<tr>
+    <td><tt>firstuppercase</tt></td>
+    <td>String with the first letter capitalized and the rest unchanged.</td>
+    <td><tt>printIt</tt></td><td><tt>PrintIt</tt></td>
+</tr>
+<tr>
+    <td><tt>firstlowercase</tt></td>
+    <td>String with the first letter in lower case and the rest unchanged.</td>
+    <td><tt>PrintIt</tt></td><td><tt>printIt</tt></td>
+</tr>
+<tr>
+    <td><tt>ctitle</tt> or <tt>camelcase</tt></td>
+    <td>String with capitalized first letter and any letter following an
+    underscore (which are removed in the process) and rest in lower case.</td>
+    <td><tt>print_it</tt></td><td><tt>PrintIt</tt></td>
+</tr>
+<tr>
+    <td><tt>lctitle</tt> or <tt>lowercamelcase</tt></td>
+    <td>String with every letter following an underscore (which is removed in
+    the process) capitalized and rest, including the first letter, in lower
+    case.</td>
+    <td><tt>print_it</tt></td><td><tt>printIt</tt></td>
+</tr>
+<tr>
+    <td><tt>utitle</tt> or <tt>undercase</tt></td>
+    <td>Lower case string with underscores inserted before every upper-case
+    letter in the original string and any number not at the end of string.
+    Logically, this is the reverse of <tt>ccase</tt>.</td>
+    <td><tt>PrintIt</tt></td><td><tt>print_it</tt></td>
+</tr>
+<tr>
+    <td><tt>schemify</tt></td>
+    <td>String with all underscores replaced with dashes, resulting in more
+    Lispers/Schemers-pleasing name.</td>
+    <td><tt>print_it</tt></td><td><tt>print-it</tt></td>
+</tr>
+<tr>
+    <td><tt>strip:[prefix]</tt></td>
+    <td>String without the given prefix or the original string if it doesn't
+    start with this prefix. Note that square brackets should be used
+    literally, e.g. <tt>%rename("strip:[wx]")</tt></td>
+    <td><tt>wxPrint</tt></td><td><tt>Print</tt></td>
+</tr>
+<tr>
+    <td><tt>command:cmd</tt></td>
+    <td>Output of an external command <tt>cmd</tt> with the string passed to
+    it as input. Notice that this function is extremely slow compared to all
+    the other ones as it involves spawning a separate process and using it for
+    many declarations is not recommended. The <i>cmd</i> is not enclosed in
+    square brackets but must be terminated with a triple <tt>'&lt;'</tt> sign,
+    e.g. <tt>%rename("command:tr&nbsp;-d&nbsp;aeiou &lt;&lt;&lt;")</tt>
+    (nonsensical example removing all vowels)</td>
+    <td><tt>Print</tt></td><td><tt>Prnt</tt></td>
+</tr>
+</table>
+
+<p>
+As before, everything that was said above about <tt>%rename</tt> also applies to
+<tt>%ignore</tt>. In fact, the latter is just a special case of the former and
+ignoring an identifier is the same as renaming it to the special
+<tt>"$ignore"</tt> value. So the following snippets
+</p>
+
+<div class="code">
+<pre>
+%ignore print;
+</pre>
+</div>
+
+<p>
+and
+</p>
+
+<div class="code">
+<pre>
+%rename("$ignore") print;
+</pre>
+</div>
+
+<p>
+are exactly equivalent and <tt>%rename</tt> can be used to selectively ignore
+multiple declarations using the previously described matching possibilities.
+</p>
+
+<H4>5.4.7.3 Limiting global renaming rules</H4>
+
+<p>
+As explained in the previous sections, it is possible to either rename
+individual declarations or apply a rename rule to all of them at once. In
+practice, the latter is however rarely appropriate as there are always some
+exceptions to the general rules. To deal with them, the scope of an unnamed
+<tt>%rename</tt> can be limited using a second parameter.
+</p>
+
+<p>
+The simplest possibility is to match the declaration type, for example:
+</p>
+<div class="code">
+<pre>
+%rename("%(title)s", %$isenumitem) "";
+</pre>
+</div>
+<p>
+will capitalize the names of all the enum elements but not change the case of
+the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>
+and <tt>%$isvariable</tt> can be used. Many other checks are possible and this
+documentation is not exhaustive, see "%rename predicates" section of
+<tt>Lib/swig.swg</tt> for the full list of supported match expressions.
+</p>
+
+<p>
+Finally, even more powerful variants of <tt>%rename</tt> and <tt>%ignore</tt> directives can be used to help
+wrap C++ overloaded functions and methods or C++ methods which use default arguments. This is described in the
+<a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section in the C++ chapter.
+</p>
+
 
 <H3><a name="SWIG_default_args"></a>5.4.8 Default/optional arguments</H3>
 
