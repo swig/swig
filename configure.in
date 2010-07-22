@@ -49,7 +49,31 @@ else
 AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), AC_MSG_NOTICE([Disabling popen]))
 fi
 
-dnl Look for RxSpencer 
+dnl PCRE
+AC_ARG_WITH([pcre],
+  [AS_HELP_STRING([--without-pcre],
+                  [Disable support for regular expressions using PCRE])],
+  [],
+  [with_pcre=yes])
+
+AS_IF([test "x$with_pcre" != xno],
+  [AX_PATH_GENERIC([pcre],
+    [], dnl Minimal version of PCRE we need -- accept any
+    [], dnl custom sed script for version parsing is not needed
+    [AC_DEFINE([HAVE_PCRE], [1], [Define if you have PCRE library])
+     LIBS="$LIBS $PCRE_LIBS"
+     CPPFLAGS="$CPPFLAGS $PCRE_CFLAGS"
+    ],
+    [AC_MSG_FAILURE(
+        Can't find pcre-config script from PCRE (Perl Compatible Regular
+        Expressions) library package. You need to either download PCRE from
+        www.pcre.org and install it or use --without-pcre configure option to
+        disable regular expressions support in SWIG.)
+    ])
+  ])
+
+
+dnl Look for RxSpencer
 AC_ARG_WITH(rxspencer, AS_HELP_STRING([--with-rxspencer], [Enable RxSpencer]), with_rxspencer="yes")
 if test x"${with_rxspencer}" = xyes ; then 
 #check first for the header
