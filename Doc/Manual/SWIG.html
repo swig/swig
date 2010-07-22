@@ -1931,12 +1931,28 @@ As explained in the previous sections, it is possible to either rename
 individual declarations or apply a rename rule to all of them at once. In
 practice, the latter is however rarely appropriate as there are always some
 exceptions to the general rules. To deal with them, the scope of an unnamed
-<tt>%rename</tt> can be limited using a second parameter.
+<tt>%rename</tt> can be limited using subsequent <tt>match</tt> parameters.
+They can be applied to any of the attributes associated by SWIG with the
+declarations appearing in its input. One of them is the declaration name and
 </p>
-
+<div class="code">
+<pre>
+%rename("foo", match$name="bar") "";
+</pre>
+</div>
 <p>
-The simplest possibility is to match the declaration type, for example:
+can be used to achieve the same effect as the simpler
 </p>
+<div class="code">
+<pre>
+%rename("foo") bar;
+</pre>
+</div>
+<p>
+However <tt>match</tt> can also be applied to the declaration type, for
+example <tt>match="class"</tt> restricts the match to class declarations only
+(in C++) and <tt>match="enumitem"</tt> restricts it to the enum elements. SWIG
+also provides convenience macros for such match expressions, for example
 <div class="code">
 <pre>
 %rename("%(title)s", %$isenumitem) "";
@@ -1948,6 +1964,22 @@ the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>
 and <tt>%$isvariable</tt> can be used. Many other checks are possible and this
 documentation is not exhaustive, see "%rename predicates" section of
 <tt>Lib/swig.swg</tt> for the full list of supported match expressions.
+</p>
+
+<p>
+Another important feature of <tt>match</tt> is that it can be applied not
+only to the declaration itself but also to its enclosing declaration. So
+<tt>match$parentNode$name="SomeClass"</tt> would be true only for members of
+the C++ class with the specified name. This can, of course, be combined with
+more complicated matches making it possible to write
+</p>
+<div class="code">
+<pre>
+%rename("%(lower)s", match$parentNode$name="SomeClass", %$isenum) "";
+</pre>
+</div>
+<p>
+to rename all enums nested in the given class to lower case.
 </p>
 
 <p>
