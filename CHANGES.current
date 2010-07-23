@@ -20,6 +20,8 @@ Version 2.0.1 (in progress)
             adjust your regular expressions syntax as the new regex encoder uses
             Perl-compatible syntax and not (extended) POSIX syntax as the old one.
 
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2010-07-13: vadz
             Add "regexmatch", "regextarget" and "notregexmatch" which can be
             used to apply %rename directives to the declarations matching the
@@ -36,7 +38,7 @@ Version 2.0.1 (in progress)
             lower case versions all declarations except those consisting from
             capital letters only:
 
-                %rename("$(lower)s", notregexmatch$name="^[A-Z]+$") "";
+                %rename("$(lowercase)s", notregexmatch$name="^[A-Z]+$") "";
 
 2010-07-13: vadz
             Add the new "regex" encoder that can be used in %rename, e.g.

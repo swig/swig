@@ -44,6 +44,11 @@
 <li><a href="#SWIG_nn26">Arrays</a>
 <li><a href="#SWIG_readonly_variables">Creating read-only variables</a>
 <li><a href="#SWIG_rename_ignore">Renaming and ignoring declarations</a>
+<ul>
+<li><a href="#SWIG_nn29">Simple renaming of specific identifiers</a>
+<li><a href="#SWIG_advanced_renaming">Advanced renaming support</a>
+<li><a href="#SWIG_limiting_renaming">Limiting global renaming rules</a>
+</ul>
 <li><a href="#SWIG_default_args">Default/optional arguments</a>
 <li><a href="#SWIG_nn30">Pointers to functions and callbacks</a>
 </ul>
@@ -1661,7 +1666,9 @@ generate a warning message.   Simply change the directives to <tt>%immutable;</t
 
 <H3><a name="SWIG_rename_ignore"></a>5.4.7 Renaming and ignoring declarations</H3>
 
-<H4>5.4.7.1 Simple renaming of specific identifiers</H4>
+
+<H4><a name="SWIG_nn29"></a>5.4.7.1 Simple renaming of specific identifiers</H4>
+
 
 <p>
 Normally, the name of a C declaration is used when that declaration is
@@ -1758,7 +1765,8 @@ This directive is still supported, but it is deprecated and should probably be a
 directive is more powerful and better supports wrapping of raw header file information.
 </p>
 
-<H4>5.4.7.2 Advanced renaming support</H4>
+<H4><a name="SWIG_advanced_renaming"></a>5.4.7.2 Advanced renaming support</H4>
+
 
 <p>
 While writing <tt>%rename</tt> for specific declarations is simple enough,
@@ -1797,12 +1805,12 @@ can use the <tt>"lowercamelcase"</tt> extended format specifier like this:
 Some functions can be parametrized, for example the <tt>"strip"</tt> one
 strips the provided prefix from its argument. The prefix is specified as part
 of the format string, following a colon after the function name:
+</p>
 <div class="code">
 <pre>
 %rename("%(strip:[wx])s") ""; // wxHello -&gt; Hello; FooBar -&gt; FooBar
 </pre>
 </div>
-</p>
 
 <p>
 Below is the table summarizing all currently defined functions with an example
@@ -1924,7 +1932,8 @@ are exactly equivalent and <tt>%rename</tt> can be used to selectively ignore
 multiple declarations using the previously described matching possibilities.
 </p>
 
-<H4>5.4.7.3 Limiting global renaming rules</H4>
+<H4><a name="SWIG_limiting_renaming"></a>5.4.7.3 Limiting global renaming rules</H4>
+
 
 <p>
 As explained in the previous sections, it is possible to either rename
@@ -1977,7 +1986,7 @@ more complicated matches making it possible to write
 </p>
 <div class="code">
 <pre>
-%rename("%(lower)s", match$parentNode$name="SomeClass", %$isenum) "";
+%rename("%(lowercase)s", match$parentNode$name="SomeClass", %$isenum) "";
 </pre>
 </div>
 <p>
@@ -2193,7 +2202,7 @@ variation installs the callbacks as all upper case constants such as
 
 <div class="code"><pre>
 /* Some callback functions */
-%callback("%(upper)s");
+%callback("%(uppercase)s");
 int add(int,int);
 int sub(int,int);
 int mul(int,int);
@@ -2201,7 +2210,7 @@ int mul(int,int);
 </pre></div>
 
 <p>
-A format string of <tt>"%(lower)s"</tt> converts all characters to lower case.
+A format string of <tt>"%(lowercase)s"</tt> converts all characters to lower case.
 A string of <tt>"%(title)s"</tt> capitalizes the first character and converts the
 rest to lower case.
 </p>
