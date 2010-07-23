@@ -1765,7 +1765,7 @@ While writing <tt>%rename</tt> for specific declarations is simple enough,
 sometimes the same renaming rule needs to be applied to many, maybe all,
 identifiers in the SWIG input. For example, it may be necessary to apply some
 transformation to all the names in the target language to better follow its
-naming conventions, e.g. add a specific prefix to all the functions. Doing it
+naming conventions, like adding a specific prefix to all wrapped functions. Doing it individually
 for each function is impractical so SWIG supports applying a renaming rule to
 all declarations if the name of the identifier to be renamed is not specified:
 </p>
@@ -1799,28 +1799,28 @@ strips the provided prefix from its argument. The prefix is specified as part
 of the format string, following a colon after the function name:
 <div class="code">
 <pre>
-%rename("%(strip:[wx])s") ""; // wxHello -&gt; Hello; FooBar -&gt; fooBar
+%rename("%(strip:[wx])s") ""; // wxHello -&gt; Hello; FooBar -&gt; FooBar
 </pre>
 </div>
 </p>
 
 <p>
-Here is the table summarizing all currently defined functions with an example
-of applying each one (notice that some of them have two names, a shorter one
-and a more descriptive one, but the two functions are otherwise equivalent):
+Below is the table summarizing all currently defined functions with an example
+of applying each one. Note that some of them have two names, a shorter one
+and a more descriptive one, but the two functions are otherwise equivalent:
 </p>
 <table summary="Format string functions" border="1" cellpadding="5">
 <tr>
     <th>Function</th><th>Returns</th><th colspan=2>Example (in/out)</th>
 </tr>
 <tr>
-    <td><tt>upper</tt> or <tt>uppercase</tt></td>
-    <td>Upper-case version of the string.</td>
+    <td><tt>uppercase</tt> or <tt>upper</tt></td>
+    <td>Upper case version of the string.</td>
     <td><tt>Print</tt></td><td><tt>PRINT</tt></td>
 </tr>
 <tr>
-    <td><tt>lower</tt> or <tt>lowercase</tt></td>
-    <td>Lower-case version of the string.</td>
+    <td><tt>lowercase</tt> or <tt>lower</tt></td>
+    <td>Lower case version of the string.</td>
     <td><tt>Print</tt></td><td><tt>print</tt></td>
 </tr>
 <tr>
@@ -1839,23 +1839,23 @@ and a more descriptive one, but the two functions are otherwise equivalent):
     <td><tt>PrintIt</tt></td><td><tt>printIt</tt></td>
 </tr>
 <tr>
-    <td><tt>ctitle</tt> or <tt>camelcase</tt></td>
+    <td><tt>camelcase</tt> or <tt>ctitle</tt></td>
     <td>String with capitalized first letter and any letter following an
     underscore (which are removed in the process) and rest in lower case.</td>
     <td><tt>print_it</tt></td><td><tt>PrintIt</tt></td>
 </tr>
 <tr>
-    <td><tt>lctitle</tt> or <tt>lowercamelcase</tt></td>
+    <td><tt>lowercamelcase</tt> or <tt>lctitle</tt></td>
     <td>String with every letter following an underscore (which is removed in
     the process) capitalized and rest, including the first letter, in lower
     case.</td>
     <td><tt>print_it</tt></td><td><tt>printIt</tt></td>
 </tr>
 <tr>
-    <td><tt>utitle</tt> or <tt>undercase</tt></td>
-    <td>Lower case string with underscores inserted before every upper-case
+    <td><tt>undercase</tt> or <tt>utitle</tt></td>
+    <td>Lower case string with underscores inserted before every upper case
     letter in the original string and any number not at the end of string.
-    Logically, this is the reverse of <tt>ccase</tt>.</td>
+    Logically, this is the reverse of <tt>camelcase</tt>.</td>
     <td><tt>PrintIt</tt></td><td><tt>print_it</tt></td>
 </tr>
 <tr>
@@ -1933,7 +1933,7 @@ practice, the latter is however rarely appropriate as there are always some
 exceptions to the general rules. To deal with them, the scope of an unnamed
 <tt>%rename</tt> can be limited using subsequent <tt>match</tt> parameters.
 They can be applied to any of the attributes associated by SWIG with the
-declarations appearing in its input. One of them is the declaration name and
+declarations appearing in its input. For example:
 </p>
 <div class="code">
 <pre>
@@ -1965,7 +1965,7 @@ will capitalize the names of all the enum elements but not change the case of
 the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>
 and <tt>%$isvariable</tt> can be used. Many other checks are possible and this
 documentation is not exhaustive, see "%rename predicates" section of
-<tt>Lib/swig.swg</tt> for the full list of supported match expressions.
+<tt>swig.swg</tt> for the full list of supported match expressions.
 </p>
 
 <p>
@@ -1985,10 +1985,10 @@ to rename all enums nested in the given class to lower case.
 </p>
 
 <p>
-And in addition to literally matching some string with <tt>match</tt> you can
-also use <tt>regexmatch</tt> or <tt>notregexmatch</tt>to match a string
+In addition to literally matching some string with <tt>match</tt> you can
+also use <tt>regexmatch</tt> or <tt>notregexmatch</tt> to match a string
 against a regular expression. For example, to ignore all functions having
-"Old" suffix you could use
+"Old" as a suffix you could use
 </p>
 <div class="code">
 <pre>
@@ -1997,7 +1997,7 @@ against a regular expression. For example, to ignore all functions having
 </div>
 <p>
 For simple cases like this, specifying the regular expression for the
-declaration name directly can be preferable and can be done using
+declaration name directly can be preferable and can also be done using
 <tt>regextarget</tt>:
 </p>
 <div class="code">
@@ -2008,8 +2008,8 @@ declaration name directly can be preferable and can be done using
 
 <p>
 As for <tt>notregexmatch</tt>, it restricts the match only to the strings not
-matching the specified regular expression. So to rename to lower case versions
-all declarations except those consisting from capital letters only:
+matching the specified regular expression. So to rename all declarations to lower case
+except those consisting of capital letters only:
 </p>
 <div class="code">
 <pre>
@@ -2187,7 +2187,7 @@ normally, just use the original function name such as <tt>add()</tt>.
 <p>
 SWIG provides a number of extensions to standard C printf formatting
 that may be useful in this context.  For instance, the following
-variation installs the callbacks as all upper-case constants such as
+variation installs the callbacks as all upper case constants such as
 <tt>ADD</tt>, <tt>SUB</tt>, and <tt>MUL</tt>:
 </p>
 
@@ -2201,7 +2201,7 @@ int mul(int,int);
 </pre></div>
 
 <p>
-A format string of <tt>"%(lower)s"</tt> converts all characters to lower-case.
+A format string of <tt>"%(lower)s"</tt> converts all characters to lower case.
 A string of <tt>"%(title)s"</tt> capitalizes the first character and converts the
 rest to lower case.
 </p>
