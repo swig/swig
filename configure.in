@@ -56,6 +56,8 @@ AC_ARG_WITH([pcre],
   [],
   [with_pcre=yes])
 
+AC_MSG_CHECKING([whether to enable PCRE support])
+AC_MSG_RESULT([$with_pcre])
 AS_IF([test "x$with_pcre" != xno],
   [AX_PATH_GENERIC([pcre],
     [], dnl Minimal version of PCRE we need -- accept any
