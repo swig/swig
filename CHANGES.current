@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-07-28: wsfulton
+            Restore configuring out of source for the test-suite since it broke in 1.3.37.
+            As previously, if running 'make check-test-suite' out of source, it needs to be
+            done by invoking configure with a relative path. Invoking configure with an
+            absolute path will not work. Running the full 'make check' still needs to be
+            done in the source tree.
+
 2010-07-16: wsfulton
             Fix wrapping of function pointers and member function pointers when the function
             returns by reference.
