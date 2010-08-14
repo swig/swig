@@ -1905,6 +1905,28 @@ and a more descriptive one, but the two functions are otherwise equivalent:
 </table>
 
 <p>
+The most general function of all of the above ones (not counting
+<tt>command</tt> which is even more powerful in principle but which should
+generally be avoided because of performance considerations) is the
+<tt>regex</tt> one. Here are some more examples of its use:
+<div class="code">
+<pre>
+// Strip the wx prefix from all identifiers except those starting with wxEVT
+%rename("%(regex:/wx(?!EVT)(.*)/\\1/)s") ""; // wxSomeWidget -&gt; SomeWidget
+                                             // wxEVT_PAINT -&gt; wxEVT_PAINT
+
+// Apply a rule for renaming the enum elements to avoid the common prefixes
+// which are redundant in C#/Java
+%rename("%(regex:/^([A-Z][a-z]+)+_(.*)/\\2/)s", %$isenumitem) ""; // Colour_Red -&gt; Red
+
+// Remove all "Set/Get" prefixes.
+%rename("%(regex:/^(Set|Get)(.*)/\\2/)s") ""; // SetValue -&gt; Value
+                                              // GetValue -&gt; Value
+</pre>
+</div>
+</p>
+
+<p>
 As before, everything that was said above about <tt>%rename</tt> also applies to
 <tt>%ignore</tt>. In fact, the latter is just a special case of the former and
 ignoring an identifier is the same as renaming it to the special
