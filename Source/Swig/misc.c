@@ -1188,6 +1188,8 @@ String *Swig_string_regex(String *s) {
   int captures[30];
 
   if (split_regex_pattern_subst(s, &pattern, &subst, &input)) {
+    int rc;
+
     compiled_pat = pcre_compile(
           Char(pattern), pcre_options, &pcre_error, &pcre_errorpos, NULL);
     if (!compiled_pat) {
@@ -1195,8 +1197,15 @@ String *Swig_string_regex(String *s) {
           pcre_error, Char(pattern), pcre_errorpos);
       exit(1);
     }
-    pcre_exec(compiled_pat, NULL, input, strlen(input), 0, 0, captures, 30);
-    res = replace_captures(input, subst, captures);
+    rc = pcre_exec(compiled_pat, NULL, input, strlen(input), 0, 0, captures, 30);
+    if (rc >= 0) {
+      res = replace_captures(input, subst, captures);
+    }
+    else if (rc != PCRE_ERROR_NOMATCH) {
+      Swig_error("SWIG", Getline(s), "PCRE execution failed: error %d while matching \"%s\" in \"%s\".\n",
+	rc, Char(pattern), input);
+      exit(1);
+    }
   }
 
   DohDelete(pattern);
