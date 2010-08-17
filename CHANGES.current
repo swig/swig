@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-08-17: wsfulton
+            Fix make distclean when some of the more obscure languages are detected by
+            configure - fixes from Torsten Landschoff.
+
 2010-07-28: wsfulton
             Restore configuring out of source for the test-suite since it broke in 1.3.37.
             As previously, if running 'make check-test-suite' out of source, it needs to be
