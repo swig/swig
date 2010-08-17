@@ -311,6 +311,7 @@ SWIG_AsVal_dec(double)(SV *obj, double *val)
     const char *nptr = SvPV_nolen(obj);
     if (nptr) {
       char *endptr;
+      errno = 0;
       double v = strtod(nptr, &endptr);
       if (errno == ERANGE) {
 	errno = 0;
