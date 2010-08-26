@@ -33,6 +33,9 @@ static Hash *included_files = 0;
 static List *dependencies = 0;
 static Scanner *id_scan = 0;
 static int error_as_warning = 0;	/* Understand the cpp #error directive as a special #warning */
+static int macro_level = 0;
+static int macro_start_line = 0;
+static const String * macro_start_file = 0;
 
 /* Test a character to see if it starts an identifier */
 #define isidentifier(c) ((isalpha(c)) || (c == '_') || (c == '$'))
@@ -40,7 +43,7 @@ static int error_as_warning = 0;	/* Understand the cpp #error directive as a spe
 /* Test a character to see if it valid in an identifier (after the first letter) */
 #define isidchar(c) ((isalnum(c)) || (c == '_') || (c == '$'))
 
-DOH *Preprocessor_replace(DOH *);
+static DOH *Preprocessor_replace(DOH *);
 
 /* Skip whitespace */
 static void skip_whitespace(String *s, String *out) {
@@ -499,6 +502,10 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
       Setattr(macro, kpp_varargs, "1");
     }
   }
+  Setline(macrovalue, line);
+  Setfile(macrovalue, file);
+  Setline(macroname, line);
+  Setfile(macroname, file);
   Setattr(macro, kpp_value, macrovalue);
   Setline(macro, line);
   Setfile(macro, file);
@@ -710,6 +717,14 @@ static String *expand_macro(String *name, List *args) {
   macro = Getattr(symbols, name);
   if (!macro)
     return 0;
+
+  if (macro_level == 0) {
+    /* Store the start of the macro should the macro contain __LINE__ and __FILE__ for expansion */
+    macro_start_line = Getline(args);
+    macro_start_file = Getfile(args);
+  }
+  macro_level++;
+
   if (Getattr(macro, kpp_expanded)) {
     ns = NewStringEmpty();
     Append(ns, name);
@@ -725,6 +740,7 @@ static String *expand_macro(String *name, List *args) {
       if (i)
 	Putc(')', ns);
     }
+    macro_level--;
     return ns;
   }
 
@@ -764,11 +780,13 @@ static String *expand_macro(String *name, List *args) {
       Swig_error(Getfile(args), Getline(args), "Macro '%s' expects 1 argument\n", name);
     else
       Swig_error(Getfile(args), Getline(args), "Macro '%s' expects no arguments\n", name);
+    macro_level--;
     return 0;
   }
 
   /* If the macro expects arguments, but none were supplied, we leave it in place */
   if (!args && (margs) && Len(margs) > 0) {
+    macro_level--;
     return NewString(name);
   }
 
@@ -922,6 +940,7 @@ static String *expand_macro(String *name, List *args) {
     Delete(e);
     e = f;
   }
+  macro_level--;
   Delete(temp);
   Delete(tempa);
   return e;
@@ -954,7 +973,7 @@ List *evaluate_args(List *x) {
 
 /* #define SWIG_PUT_BUFF  */
 
-DOH *Preprocessor_replace(DOH *s) {
+static DOH *Preprocessor_replace(DOH *s) {
   DOH *ns, *symbols, *m;
   int c, i, state = 0;
 
@@ -999,7 +1018,7 @@ DOH *Preprocessor_replace(DOH *s) {
 	if (Equal(kpp_defined, id)) {
 	  int lenargs = 0;
 	  DOH *args = 0;
-	  /* See whether or not a paranthesis has been used */
+	  /* See whether or not a parenthesis has been used */
 	  skip_whitespace(s, 0);
 	  c = Getc(s);
 	  if (c == '(') {
@@ -1042,22 +1061,19 @@ DOH *Preprocessor_replace(DOH *s) {
 	  Delete(args);
 	  state = 0;
 	  break;
-	}
-	if (Equal(kpp_LINE, id)) {
-	  Printf(ns, "%d", Getline(s));
+	} else if (Equal(kpp_LINE, id)) {
+	  Printf(ns, "%d", macro_level > 0 ? macro_start_line : Getline(s));
 	  state = 0;
 	  break;
-	}
-	if (Equal(kpp_FILE, id)) {
-	  String *fn = Copy(Getfile(s));
+	} else if (Equal(kpp_FILE, id)) {
+	  String *fn = Copy(macro_level > 0 ? macro_start_file : Getfile(s));
 	  Replaceall(fn, "\\", "\\\\");
 	  Printf(ns, "\"%s\"", fn);
 	  Delete(fn);
 	  state = 0;
 	  break;
-	}
-	/* See if the macro is defined in the preprocessor symbol table */
-	if ((m = Getattr(symbols, id))) {
+	} else if ((m = Getattr(symbols, id))) {
+	  /* See if the macro is defined in the preprocessor symbol table */
 	  DOH *args = 0;
 	  DOH *e;
 	  /* See if the macro expects arguments */
@@ -1123,6 +1139,13 @@ DOH *Preprocessor_replace(DOH *s) {
     /* See if this is the special "defined" macro */
     if (Equal(kpp_defined, id)) {
       Swig_error(Getfile(s), Getline(s), "No arguments given to defined()\n");
+    } else if (Equal(kpp_LINE, id)) {
+      Printf(ns, "%d", macro_level > 0 ? macro_start_line : Getline(s));
+    } else if (Equal(kpp_FILE, id)) {
+      String *fn = Copy(macro_level > 0 ? macro_start_file : Getfile(s));
+      Replaceall(fn, "\\", "\\\\");
+      Printf(ns, "\"%s\"", fn);
+      Delete(fn);
     } else if ((m = Getattr(symbols, id))) {
       DOH *e;
       /* Yes.  There is a macro here */
@@ -1457,6 +1480,7 @@ String *Preprocessor_parse(String *s) {
 	  m = Preprocessor_define(value, 0);
 	  if ((m) && !(Getattr(m, kpp_args))) {
 	    v = Copy(Getattr(m, kpp_value));
+	    copy_location(m, v);
 	    if (Len(v)) {
 	      Swig_error_silent(1);
 	      v1 = Preprocessor_replace(v);

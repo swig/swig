@@ -5,9 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-08-26: wsfulton
+            Fix __LINE__ and __FILE__ expansion reported by Camille Gillot. Mostly this
+            did not work at all.
+
 2010-08-17: wsfulton
             [Perl] Fix corner case marshalling of doubles - errno was not being correctly
-            set before calling strtod - patch from Justin Vallon.
+            set before calling strtod - patch from Justin Vallon - SF Bug #3038936.
 
 2010-08-17: wsfulton
             Fix make distclean when some of the more obscure languages are detected by
