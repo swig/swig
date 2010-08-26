@@ -1,5 +1,5 @@
 %module preproc_line_file
-%javaconst(1);
+
 // Test __LINE__ and __FILE__ (don't change line numbers in here else runtime tests will need modifying)
 #define MYLINE __LINE__
 #define MYLINE_ADJUSTED __LINE__ + 100 
