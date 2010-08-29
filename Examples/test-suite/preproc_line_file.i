@@ -1,6 +1,6 @@
 %module preproc_line_file
 
-// Test __LINE__ and __FILE__ (don't change line numbers in here else runtime tests will need modifying)
+// Test __LINE__ and __FILE__ (don't change line numbering in here else runtime tests will need modifying)
 #define MYLINE __LINE__
 #define MYLINE_ADJUSTED __LINE__ + 100 
 
@@ -20,14 +20,23 @@
 #define NUMBER(a,b) NUMBER_HELP(a,b)
 #define NUMBER_UNIQUE(a) NUMBER(a,__LINE__)
 
+%{
+const int thing27 = -1;
+const int thing28 = -2;
+%}
+const int NUMBER_UNIQUE(thing) = -1; /* resolves to thing27 */
+const int NUMBER_UNIQUE(thing) = -2; /* resolves to thing28 */
+
 #define MYLINE2 __LINE__
 
-/*
-TODO: __LINE__ is wrong 
-struct Struct {
-  static const int line_num = __LINE__;
+%javaconst(1);
+%{
+struct SillyStruct {
+  int num;
+  /* static const int line_num = __LINE__; */
 };
-const int NUMBER_UNIQUE(thing) = 0;
-const int NUMBER_UNIQUE(thingamebob) = 0;
-#define MYLINE3 __LINE__
-*/
+%}
+struct SillyStruct {
+  int num;
+  static const int LINE_NUMBER = __LINE__; /* This is a C test case, but we can still use a C++ feature to wrap a constant to test __LINE__ here */
+};

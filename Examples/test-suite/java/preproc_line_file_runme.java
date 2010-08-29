@@ -34,8 +34,16 @@ public class preproc_line_file_runme {
     if (!preproc_line_file.MY_STRINGNUM_B.equals("my16"))
       throw new RuntimeException("preproc failed MY_STRINGNUM_B");
 
-    int myline2 = preproc_line_file.MYLINE2;
-    if (myline2 != 23)
+    if (preproc_line_file.getThing27() != -1)
+      throw new RuntimeException("preproc failure");
+
+    if (preproc_line_file.getThing28() != -2)
+      throw new RuntimeException("preproc failure");
+
+    if (preproc_line_file.MYLINE2 != 30)
+      throw new RuntimeException("preproc failure");
+
+    if (SillyStruct.LINE_NUMBER != 41)
       throw new RuntimeException("preproc failure");
   }
 }

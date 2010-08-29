@@ -353,8 +353,6 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
 	break;
       }
     } else {
-      /*Swig_error(Getfile(str),Getline(str),"Illegal character in macro name\n");
-         goto macro_error; */
       Ungetc(c, str);
       break;
     }
@@ -1287,8 +1285,8 @@ String *Preprocessor_parse(String *s) {
     case 0:			/* Initial state - in first column */
       /* Look for C preprocessor directives.   Otherwise, go directly to state 1 */
       if (c == '#') {
-	add_chunk(ns, chunk, allow);
 	copy_location(s, chunk);
+	add_chunk(ns, chunk, allow);
 	cpp_lines = 1;
 	state = 40;
       } else if (isspace(c)) {
@@ -1682,8 +1680,8 @@ String *Preprocessor_parse(String *s) {
       /* %{,%} block  */
       if (c == '{') {
 	start_line = Getline(s);
-	add_chunk(ns, chunk, allow);
 	copy_location(s, chunk);
+	add_chunk(ns, chunk, allow);
 	Putc('%', chunk);
 	Putc(c, chunk);
 	state = 105;
@@ -1759,8 +1757,8 @@ String *Preprocessor_parse(String *s) {
 	    s1 = cpp_include(fn, sysfile);
 	    if (s1) {
 	      char *dirname;
-	      add_chunk(ns, chunk, allow);
 	      copy_location(s, chunk);
+	      add_chunk(ns, chunk, allow);
 	      Printf(ns, "%sfile%s \"%s\" [\n", decl, opt, Swig_filename_escape(Swig_last_file()));
 	      if (Equal(decl, kpp_dimport)) {
 		push_imported();
@@ -1793,8 +1791,8 @@ String *Preprocessor_parse(String *s) {
 	} else if (Equal(decl, kpp_ddefine)) {
 	  /* Got a define directive  */
 	  dlevel++;
-	  add_chunk(ns, chunk, allow);
 	  copy_location(s, chunk);
+	  add_chunk(ns, chunk, allow);
 	  Clear(value);
 	  copy_location(s, value);
 	  state = 150;
@@ -1868,8 +1866,8 @@ String *Preprocessor_parse(String *s) {
   if ((state >= 30) && (state < 40)) {
     Swig_error(Getfile(s), -1, "Unterminated comment starting on line %d\n", start_line);
   }
-  add_chunk(ns, chunk, allow);
   copy_location(s, chunk);
+  add_chunk(ns, chunk, allow);
 
   /*  DelScope(scp); */
   Delete(decl);
