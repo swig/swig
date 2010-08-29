@@ -337,7 +337,7 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
 	  Putc(c, argstr);
       }
       if (c != ')') {
-	Swig_error(Getfile(str), Getline(str), "Missing \')\' in macro parameters\n");
+	Swig_error(Getfile(argstr), Getline(argstr), "Missing \')\' in macro parameters\n");
 	goto macro_error;
       }
       break;
@@ -372,10 +372,10 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
     argname = NewStringEmpty();
     while ((c = Getc(argstr)) != EOF) {
       if (c == ',') {
-	varargname = Macro_vararg_name(argname, str);
+	varargname = Macro_vararg_name(argname, argstr);
 	if (varargname) {
 	  Delete(varargname);
-	  Swig_error(Getfile(str), Getline(str), "Variable-length macro argument must be last parameter\n");
+	  Swig_error(Getfile(argstr), Getline(argstr), "Variable length macro argument must be last parameter\n");
 	} else {
 	  Append(arglist, argname);
 	}
@@ -385,13 +385,13 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
 	Putc(c, argname);
       } else if (!(isspace(c) || (c == '\\'))) {
 	Delete(argname);
-	Swig_error(Getfile(str), Getline(str), "Illegal character in macro argument name\n");
+	Swig_error(Getfile(argstr), Getline(argstr), "Illegal character in macro argument name\n");
 	goto macro_error;
       }
     }
     if (Len(argname)) {
       /* Check for varargs */
-      varargname = Macro_vararg_name(argname, str);
+      varargname = Macro_vararg_name(argname, argstr);
       if (varargname) {
 	Append(arglist, varargname);
 	Delete(varargname);
@@ -513,7 +513,7 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
   symbols = Getattr(cpp, kpp_symbols);
   if ((m1 = Getattr(symbols, macroname))) {
     if (!Checkattr(m1, kpp_value, macrovalue)) {
-      Swig_error(Getfile(str), Getline(str), "Macro '%s' redefined,\n", macroname);
+      Swig_error(Getfile(macroname), Getline(macroname), "Macro '%s' redefined,\n", macroname);
       Swig_error(Getfile(m1), Getline(m1), "previous definition of '%s'.\n", macroname);
       goto macro_error;
     }
