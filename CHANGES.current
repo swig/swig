@@ -5,9 +5,20 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-08-30: wsfulton
+            Fix line number and file name reporting for some macro preprocessor warnings.
+            The line number of the macro argument has been corrected and the line number
+            of the start of the macro instead of one past the end is used. Some examples:
+              file.h:11: Error: Illegal macro argument name '..'
+              file.h:19: Error: Macro 'DUPLICATE' redefined,
+              file.h:15: Error: previous definition of 'DUPLICATE'.
+              file.h:25: Error: Variable-length macro argument must be last parameter
+              file.h:32: Error: Illegal character in macro argument name
+              file.i:37: Error: Macro 'SIT' expects 2 arguments
+
 2010-08-26: wsfulton
             Fix __LINE__ and __FILE__ expansion reported by Camille Gillot. Mostly this
-            did not work at all.
+            did not work at all. Also fixes SF #2822822.
 
 2010-08-17: wsfulton
             [Perl] Fix corner case marshalling of doubles - errno was not being correctly
