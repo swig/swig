@@ -1,4 +1,5 @@
-// Tests SWIG's *default* handling of varargs.  The default behavior is to simply ignore the varargs.
+// Tests SWIG's *default* handling of varargs (function varargs, not preprocessor varargs).
+// The default behavior is to simply ignore the varargs.
 %module varargs
 
 %varargs(int mode = 0) test_def;
