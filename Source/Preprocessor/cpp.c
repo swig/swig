@@ -699,9 +699,12 @@ static String *get_options(String *str) {
  *
  * Perform macro expansion and return a new string.  Returns NULL if some sort
  * of error occurred.
+ * name - name of the macro
+ * args - arguments passed to the macro
+ * line_file - only used for line/file name when reporting errors
  * ----------------------------------------------------------------------------- */
 
-static String *expand_macro(String *name, List *args) {
+static String *expand_macro(String *name, List *args, String *line_file) {
   String *ns;
   DOH *symbols, *macro, *margs, *mvalue, *temp, *tempa, *e;
   int i, l;
@@ -718,8 +721,8 @@ static String *expand_macro(String *name, List *args) {
 
   if (macro_level == 0) {
     /* Store the start of the macro should the macro contain __LINE__ and __FILE__ for expansion */
-    macro_start_line = Getline(args);
-    macro_start_file = Getfile(args);
+    macro_start_line = Getline(args ? args : line_file);
+    macro_start_file = Getfile(args ? args : line_file);
   }
   macro_level++;
 
@@ -1085,7 +1088,7 @@ static DOH *Preprocessor_replace(DOH *s) {
 	  } else {
 	    args = 0;
 	  }
-	  e = expand_macro(id, args);
+	  e = expand_macro(id, args, s);
 	  if (e) {
 	    Append(ns, e);
 	  }
@@ -1151,8 +1154,9 @@ static DOH *Preprocessor_replace(DOH *s) {
       /*      if (Getattr(m,"args")) {
          Swig_error(Getfile(id),Getline(id),"Macro arguments expected.\n");
          } */
-      e = expand_macro(id, 0);
-      Append(ns, e);
+      e = expand_macro(id, 0, s);
+      if (e)
+	Append(ns, e);
       Delete(e);
     } else {
       Append(ns, id);

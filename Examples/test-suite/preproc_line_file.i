@@ -40,3 +40,13 @@ struct SillyStruct {
   int num;
   static const int LINE_NUMBER = __LINE__; /* This is a C test case, but we can still use a C++ feature to wrap a constant to test __LINE__ here */
 };
+
+#define SILLY_CLASS struct SillyMacroClass { int num; static const int LINE_NUM = __LINE__; };
+SILLY_CLASS
+
+%{
+#define SILLY_CLASS struct SillyMacroClass { int num; };
+SILLY_CLASS
+%}
+
+

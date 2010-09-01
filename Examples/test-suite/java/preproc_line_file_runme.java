@@ -45,5 +45,8 @@ public class preproc_line_file_runme {
 
     if (SillyStruct.LINE_NUMBER != 41)
       throw new RuntimeException("preproc failure");
+
+    if (SillyMacroClass.LINE_NUM != 45)
+      throw new RuntimeException("preproc failure");
   }
 }
