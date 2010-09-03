@@ -773,11 +773,11 @@ static String *expand_macro(String *name, List *args, String *line_file) {
   /* If there are arguments, see if they match what we were given */
   if (args && (margs) && (Len(margs) != Len(args))) {
     if (Len(margs) > (1 + isvarargs))
-      Swig_error(Getfile(args), Getline(args), "Macro '%s' expects %d arguments\n", name, Len(margs) - isvarargs);
+      Swig_error(macro_start_file, macro_start_line, "Macro '%s' expects %d arguments\n", name, Len(margs) - isvarargs);
     else if (Len(margs) == (1 + isvarargs))
-      Swig_error(Getfile(args), Getline(args), "Macro '%s' expects 1 argument\n", name);
+      Swig_error(macro_start_file, macro_start_line, "Macro '%s' expects 1 argument\n", name);
     else
-      Swig_error(Getfile(args), Getline(args), "Macro '%s' expects no arguments\n", name);
+      Swig_error(macro_start_file, macro_start_line, "Macro '%s' expects no arguments\n", name);
     macro_level--;
     return 0;
   }
