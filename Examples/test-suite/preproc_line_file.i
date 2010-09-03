@@ -50,3 +50,29 @@ SILLY_CLASS
 %}
 
 
+%inline %{
+#ifdef SWIG
+%define BODY
+  int num;
+  static const int LINE_NUM = __LINE__;
+%enddef
+%define KLASS(NAME)
+struct NAME {
+  BODY
+};
+%enddef
+#else
+#define KLASS(NAME) \
+struct NAME { \
+  int num; \
+};
+#endif
+KLASS(SillyMultipleMacroStruct)
+%}
+
+%inline %{
+
+#define INLINE_FILE __FILE__
+#define INLINE_LINE __LINE__
+%}
+

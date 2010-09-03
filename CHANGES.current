@@ -6,6 +6,15 @@ Version 2.0.1 (in progress)
 ===========================
 
 2010-09-02: wsfulton
+            Fix line numbers in error and warning messages for preprocessor messages within
+            %inline, for example:
+
+              %inline %{
+              #define FOOBAR 1
+              #define FOOBAR "hi"
+              %}
+
+2010-09-02: wsfulton
             Fix line numbers in error and warning messages which were accumulately one
             less than they should have been after parsing each %include/%import - bug
             introduced in swig-1.3.32. Also fix line numbers in error and warning messages

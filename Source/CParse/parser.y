@@ -2176,15 +2176,14 @@ inline_directive : INLINE HBLOCK {
                  String *cpps;
 		 if (Namespaceprefix) {
 		   Swig_error(cparse_file, cparse_start_line, "%%inline directive inside a namespace is disallowed.\n");
-
 		   $$ = 0;
 		 } else {
 		   $$ = new_node("insert");
 		   Setattr($$,"code",$2);
 		   /* Need to run through the preprocessor */
+		   Seek($2,0,SEEK_SET);
 		   Setline($2,cparse_start_line);
 		   Setfile($2,cparse_file);
-		   Seek($2,0,SEEK_SET);
 		   cpps = Preprocessor_parse($2);
 		   start_inline(Char(cpps), cparse_start_line);
 		   Delete($2);

@@ -11,6 +11,8 @@ public class preproc_line_file_runme {
     }
   }
 
+  public static String FILENAME_WINDOWS = "..\\..\\..\\..\\Examples\\test-suite\\preproc_line_file.i";
+  public static String FILENAME_UNIX = "../../../../Examples/test-suite/preproc_line_file.i";
   public static void main(String argv[]) throws Throwable
   {
     int myline = preproc_line_file.MYLINE;
@@ -22,10 +24,10 @@ public class preproc_line_file_runme {
 
     String myfile = preproc_line_file.MYFILE;
     String myfile_adjusted = preproc_line_file.MYFILE_ADJUSTED;
-    if (!(myfile.equals("../../../../Examples/test-suite/preproc_line_file.i") || myfile.equals("..\\..\\..\\..\\Examples\\test-suite\\preproc_line_file.i")))
+    if (!(myfile.equals(FILENAME_UNIX) || myfile.equals(FILENAME_WINDOWS)))
       throw new RuntimeException("preproc failure");
 
-    if (!(myfile_adjusted.equals("../../../../Examples/test-suite/preproc_line_file.i.bak") || myfile_adjusted.equals("..\\..\\..\\..\\Examples\\test-suite\\preproc_line_file.i.bak")))
+    if (!(myfile_adjusted.equals(FILENAME_UNIX + ".bak") || myfile_adjusted.equals(FILENAME_WINDOWS + ".bak")))
       throw new RuntimeException("preproc failure");
 
     if (!preproc_line_file.MY_STRINGNUM_A.equals("my15"))
@@ -47,6 +49,16 @@ public class preproc_line_file_runme {
       throw new RuntimeException("preproc failure");
 
     if (SillyMacroClass.LINE_NUM != 45)
+      throw new RuntimeException("preproc failure");
+
+    if (SillyMultipleMacroStruct.LINE_NUM != 70)
+      throw new RuntimeException("preproc failure");
+
+    if (preproc_line_file.INLINE_LINE != 76)
+      throw new RuntimeException("preproc failure");
+
+    String inlineFile = preproc_line_file.INLINE_FILE;
+    if (!(inlineFile.equals(FILENAME_UNIX) || inlineFile.equals(FILENAME_WINDOWS)))
       throw new RuntimeException("preproc failure");
   }
 }
