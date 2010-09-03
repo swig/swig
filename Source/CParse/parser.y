@@ -2121,7 +2121,7 @@ include_directive: includetype options string LBRACKET {
                } interface RBRACKET {
                      String *mname = 0;
                      $$ = $6;
-		     scanner_set_location($1.filename,$1.line);
+		     scanner_set_location($1.filename,$1.line+1);
 		     if (strcmp($1.type,"include") == 0) set_nodeType($$,"include");
 		     if (strcmp($1.type,"import") == 0) {
 		       mname = $2 ? Getattr($2,"module") : 0;

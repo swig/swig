@@ -5,10 +5,18 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-09-02: wsfulton
+            Fix line numbers in error and warning messages which were accumulately one
+            less than they should have been after parsing each %include/%import - bug
+            introduced in swig-1.3.32. Also fix line numbers in error and warning messages
+            when new line characters appear between the %include / %import statement and
+            the filename.
+
 2010-08-30: wsfulton
             Fix line number and file name reporting for some macro preprocessor warnings.
             The line number of the macro argument has been corrected and the line number
-            of the start of the macro instead of one past the end is used. Some examples:
+            of the start of the macro instead of one past the end of the macro is used.
+            Some examples:
               file.h:11: Error: Illegal macro argument name '..'
               file.h:19: Error: Macro 'DUPLICATE' redefined,
               file.h:15: Error: previous definition of 'DUPLICATE'.
@@ -50,7 +58,7 @@ Version 2.0.1 (in progress)
             adjust your regular expressions syntax as the new regex encoder uses
             Perl-compatible syntax and not (extended) POSIX syntax as the old one.
 
-	    *** POTENTIAL INCOMPATIBILITY ***
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2010-07-13: vadz
             Add "regexmatch", "regextarget" and "notregexmatch" which can be

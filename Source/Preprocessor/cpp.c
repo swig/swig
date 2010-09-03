@@ -642,7 +642,6 @@ static String *get_filename(String *str, int *sysfile) {
   String *fn;
   int c;
 
-  skip_whitespace(str, 0);
   fn = NewStringEmpty();
   copy_location(str, fn);
   c = Getc(str);
@@ -668,9 +667,7 @@ static String *get_filename(String *str, int *sysfile) {
 }
 
 static String *get_options(String *str) {
-
   int c;
-  skip_whitespace(str, 0);
   c = Getc(str);
   if (c == '(') {
     String *opt;
@@ -1648,8 +1645,8 @@ String *Preprocessor_parse(String *s) {
 	      pop_imported();
 	    }
 	    Delete(s2);
+	    Delete(s1);
 	  }
-	  Delete(s1);
 	  Delete(fn);
 	}
       } else if (Equal(id, kpp_pragma)) {
@@ -1749,6 +1746,8 @@ String *Preprocessor_parse(String *s) {
 	  /* Got some kind of file inclusion directive  */
 	  if (allow) {
 	    DOH *s1, *s2, *fn, *opt;
+	    String *options_whitespace = NewString("");
+	    String *filename_whitespace = NewString("");
 	    int sysfile = 0;
 
 	    if (Equal(decl, kpp_dextern)) {
@@ -1756,14 +1755,16 @@ String *Preprocessor_parse(String *s) {
 	      Clear(decl);
 	      Append(decl, "%%import");
 	    }
+	    skip_whitespace(s, options_whitespace);
 	    opt = get_options(s);
+	    skip_whitespace(s, filename_whitespace);
 	    fn = get_filename(s, &sysfile);
 	    s1 = cpp_include(fn, sysfile);
 	    if (s1) {
 	      char *dirname;
 	      copy_location(s, chunk);
 	      add_chunk(ns, chunk, allow);
-	      Printf(ns, "%sfile%s \"%s\" [\n", decl, opt, Swig_filename_escape(Swig_last_file()));
+	      Printf(ns, "%sfile%s%s%s\"%s\" [\n", decl, options_whitespace, opt, filename_whitespace, Swig_filename_escape(Swig_last_file()));
 	      if (Equal(decl, kpp_dimport)) {
 		push_imported();
 	      }
@@ -1787,6 +1788,8 @@ String *Preprocessor_parse(String *s) {
 	      Delete(s1);
 	    }
 	    Delete(fn);
+	    Delete(filename_whitespace);
+	    Delete(options_whitespace);
 	  }
 	  state = 1;
 	} else if (Equal(decl, kpp_dline)) {
