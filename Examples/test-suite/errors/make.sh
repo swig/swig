@@ -32,6 +32,7 @@ pp_macro_defined_unterminated
 pp_illegal_argument
 pp_macro_args
 pp_macro_badchar
+pp_macro_expansion
 pp_macro_nargs
 pp_macro_redef
 pp_macro_rparen
