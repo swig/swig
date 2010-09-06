@@ -1,0 +1,241 @@
+SWIG error and warning test. opts=
+-----------------------------------------------------------
+
+:::::::::::::::::::::::::::::::: c_bad_name.i :::::::::::::::::::::::::::::::::::
+c_bad_name.i:3: Warning 121: %name is deprecated.  Use %rename instead.
+c_bad_name.i:3: Error: Missing argument to %name directive.
+
+:::::::::::::::::::::::::::::::: c_bad_native.i :::::::::::::::::::::::::::::::::::
+c_bad_native.i:3: Error: %native declaration 'foo' is not a function.
+
+:::::::::::::::::::::::::::::::: c_class.i :::::::::::::::::::::::::::::::::::
+c_class.i:3: Warning 301: class keyword used, but not in C++ mode.
+
+:::::::::::::::::::::::::::::::: c_default_error.i :::::::::::::::::::::::::::::::::::
+
+:::::::::::::::::::::::::::::::: c_deprecated.i :::::::::::::::::::::::::::::::::::
+c_deprecated.i:3: Warning 102: %val directive deprecated (ignored).
+c_deprecated.i:3: Warning 103: %out directive deprecated (ignored).
+
+:::::::::::::::::::::::::::::::: c_empty_char.i :::::::::::::::::::::::::::::::::::
+c_empty_char.i:3: Error: Empty character constant
+0
+
+:::::::::::::::::::::::::::::::: c_enum_badvalue.i :::::::::::::::::::::::::::::::::::
+c_enum_badvalue.i:6: Error: Type error. Expecting an integral type
+
+:::::::::::::::::::::::::::::::: c_extra_rblock.i :::::::::::::::::::::::::::::::::::
+c_extra_rblock.i:5: Error: Syntax error in input(1).
+
+:::::::::::::::::::::::::::::::: c_extra_rbrace.i :::::::::::::::::::::::::::::::::::
+c_extra_rbrace.i:5: Error: Syntax error. Extraneous '}'
+
+:::::::::::::::::::::::::::::::: c_extra_unsigned.i :::::::::::::::::::::::::::::::::::
+c_extra_unsigned.i:3: Error: Extra unsigned specifier.
+c_extra_unsigned.i:4: Error: Extra signed specifier.
+c_extra_unsigned.i:5: Error: Extra signed specifier.
+
+:::::::::::::::::::::::::::::::: c_insert_missing.i :::::::::::::::::::::::::::::::::::
+c_insert_missing.i:3: Error: Couldn't find 'missing_file.i'.
+
+:::::::::::::::::::::::::::::::: c_long_short.i :::::::::::::::::::::::::::::::::::
+c_long_short.i:3: Error: Extra long specifier.
+c_long_short.i:4: Error: Extra short specifier.
+c_long_short.i:5: Error: Extra long specifier.
+c_long_short.i:6: Error: Extra short specifier.
+
+:::::::::::::::::::::::::::::::: c_missing_rbrace.i :::::::::::::::::::::::::::::::::::
+:168430090: Error: Missing '}'. Reached end of input.
+c_missing_rbrace.i:3: Error: Syntax error in input(1).
+
+:::::::::::::::::::::::::::::::: c_missing_semi.i :::::::::::::::::::::::::::::::::::
+c_missing_semi.i:3: Error: Syntax error in input(1).
+
+:::::::::::::::::::::::::::::::: c_redefine.i :::::::::::::::::::::::::::::::::::
+c_redefine.i:4: Warning 302: Identifier 'foo' redefined (ignored),
+c_redefine.i:3: Warning 302: previous definition of 'foo'.
+c_redefine.i:8: Warning 302: Identifier 'bar' redefined (ignored),
+c_redefine.i:6: Warning 302: previous definition of 'bar'.
+c_redefine.i:14: Warning 322: Redundant redeclaration of 'bar' (Renamed from 'spam'),
+c_redefine.i:6: Warning 322: previous declaration of 'bar'.
+
+:::::::::::::::::::::::::::::::: c_varargs.i :::::::::::::::::::::::::::::::::::
+
+:::::::::::::::::::::::::::::::: c_varargs_neg.i :::::::::::::::::::::::::::::::::::
+c_varargs_neg.i:3: Error: Argument count in %varargs must be positive.
+
+:::::::::::::::::::::::::::::::: nomodule.i :::::::::::::::::::::::::::::::::::
+No module name specified using %module or -module.
+
+:::::::::::::::::::::::::::::::: pp_badeval.i :::::::::::::::::::::::::::::::::::
+pp_badeval.i:4: Warning 202: Could not evaluate 'FOO==4+'
+pp_badeval.i:4: Warning 202: Error: 'Expected an expression'
+
+:::::::::::::::::::::::::::::::: pp_deprecated.i :::::::::::::::::::::::::::::::::::
+pp_deprecated.i:4: Warning 101: %extern is deprecated. Use %import instead.
+pp_deprecated.i:4: Error: Unable to find 'ext;'
+pp_deprecated.i:6: Warning 204: CPP #warning, Print this warning
+pp_deprecated.i:8: Error: CPP #error "This is an error". Use the -cpperraswarn option to continue swig processing.
+
+:::::::::::::::::::::::::::::::: pp_defined.i :::::::::::::::::::::::::::::::::::
+pp_defined.i:6: Error: No arguments given to defined()
+pp_defined.i:6: Warning 202: Could not evaluate 'defined'
+pp_defined.i:6: Warning 202: Error: 'Expected an expression'
+
+:::::::::::::::::::::::::::::::: pp_macro_defined_unterminated.i :::::::::::::::::::::::::::::::::::
+pp_macro_defined_unterminated.i:4: Error: Unterminated call to 'defined'
+
+:::::::::::::::::::::::::::::::: pp_illegal_argument.i :::::::::::::::::::::::::::::::::::
+pp_illegal_argument.i:6: Error: Illegal macro argument name '..'
+pp_illegal_argument.i:10: Error: Illegal macro argument name '..'
+pp_illegal_argument.i:16: Error: Illegal character in macro argument name
+
+:::::::::::::::::::::::::::::::: pp_macro_args.i :::::::::::::::::::::::::::::::::::
+
+:::::::::::::::::::::::::::::::: pp_macro_badchar.i :::::::::::::::::::::::::::::::::::
+pp_macro_badchar.i:4: Error: Illegal character in macro argument name
+
+:::::::::::::::::::::::::::::::: pp_macro_nargs.i :::::::::::::::::::::::::::::::::::
+pp_macro_nargs.i:7: Error: Macro 'foo' expects 2 arguments
+pp_macro_nargs.i:8: Error: Macro 'foo' expects 2 arguments
+pp_macro_nargs.i:10: Error: Macro 'bar' expects 1 argument
+pp_macro_nargs.i:11: Error: Macro 'spam' expects no arguments
+
+:::::::::::::::::::::::::::::::: pp_macro_redef.i :::::::::::::::::::::::::::::::::::
+pp_macro_redef.i:4: Error: Macro 'foo' redefined,
+pp_macro_redef.i:3: Error: previous definition of 'foo'.
+pp_macro_redef.i:7: Error: Macro 'foo' redefined,
+pp_macro_redef.i:3: Error: previous definition of 'foo'.
+
+:::::::::::::::::::::::::::::::: pp_macro_rparen.i :::::::::::::::::::::::::::::::::::
+pp_macro_rparen.i:3: Error: Missing ')' in macro parameters
+
+:::::::::::::::::::::::::::::::: pp_macro_unterminated.i :::::::::::::::::::::::::::::::::::
+pp_macro_unterminated.i:5: Error: Unterminated call invoking macro 'foo'
+
+:::::::::::::::::::::::::::::::: pp_misplaced_elif.i :::::::::::::::::::::::::::::::::::
+pp_misplaced_elif.i:4: Error: Misplaced #elif.
+pp_misplaced_elif.i:6: Error: Extraneous #endif.
+
+:::::::::::::::::::::::::::::::: pp_misplaced_else.i :::::::::::::::::::::::::::::::::::
+pp_misplaced_else.i:4: Error: Misplaced #else.
+pp_misplaced_else.i:6: Error: Extraneous #endif.
+
+:::::::::::::::::::::::::::::::: pp_missing_enddef.i :::::::::::::::::::::::::::::::::::
+pp_missing_enddef.i:EOF: Error: Missing %enddef for macro starting on line 3
+
+:::::::::::::::::::::::::::::::: pp_missing_endif.i :::::::::::::::::::::::::::::::::::
+pp_missing_endif.i:EOF: Error: Missing #endif for conditional starting on line 3
+
+:::::::::::::::::::::::::::::::: pp_missing_file.i :::::::::::::::::::::::::::::::::::
+pp_missing_file.i:3: Error: Unable to find 'missing_filename.i'
+
+:::::::::::::::::::::::::::::::: pp_missing_rblock.i :::::::::::::::::::::::::::::::::::
+pp_missing_rblock.i:EOF: Error: Unterminated %{ ... %} block starting on line 3
+
+:::::::::::::::::::::::::::::::: pp_pragma.i :::::::::::::::::::::::::::::::::::
+pp_pragma.i:4: Error: Unknown SWIG pragma: rubbish()
+
+:::::::::::::::::::::::::::::::: pp_unterm_char.i :::::::::::::::::::::::::::::::::::
+pp_unterm_char.i:EOF: Error: Unterminated character constant starting at line 4
+
+:::::::::::::::::::::::::::::::: pp_unterm_comment.i :::::::::::::::::::::::::::::::::::
+pp_unterm_comment.i:EOF: Error: Unterminated comment starting on line 3
+
+:::::::::::::::::::::::::::::::: pp_unterm_string.i :::::::::::::::::::::::::::::::::::
+pp_unterm_string.i:EOF: Error: Unterminated string constant starting at line 4
+
+:::::::::::::::::::::::::::::::: pp_variable_args.i :::::::::::::::::::::::::::::::::::
+pp_variable_args.i:6: Error: Variable length macro argument must be last parameter
+
+:::::::::::::::::::::::::::::::: swig_apply_nargs.i :::::::::::::::::::::::::::::::::::
+swig_apply_nargs.i:6: Error: Can't apply (char *str,int len) to (int x).  Number of arguments don't match.
+
+:::::::::::::::::::::::::::::::: swig_identifier.i :::::::::::::::::::::::::::::::::::
+swig_identifier.i:5: Warning 503: Can't wrap 'foo bar' unless renamed to a valid identifier.
+
+:::::::::::::::::::::::::::::::: swig_insert_bad.i :::::::::::::::::::::::::::::::::::
+swig_insert_bad.i:5: Error: Unknown target 'foobar' for %insert directive.
+
+:::::::::::::::::::::::::::::::: swig_typemap_copy.i :::::::::::::::::::::::::::::::::::
+swig_typemap_copy.i:3: Error: Can't copy typemap (in) blah = int
+
+:::::::::::::::::::::::::::::::: swig_typemap_old.i :::::::::::::::::::::::::::::::::::
+swig_typemap_old.i:6: Warning 450: Deprecated typemap feature ($source/$target).
+swig_typemap_old.i:6: Warning 450: The use of $source and $target in a typemap declaration is deprecated.
+For typemaps related to argument input (in,ignore,default,arginit,check), replace
+$source by $input and $target by $1.   For typemaps related to return values (out,
+argout,ret,except), replace $source by $1 and $target by $result.  See the file
+Doc/Manual/Typemaps.html for complete details.
+
+:::::::::::::::::::::::::::::::: cpp_bad_extern.i :::::::::::::::::::::::::::::::::::
+cpp_bad_extern.i:5: Warning 313: Unrecognized extern type "INTERCAL".
+cpp_bad_extern.i:7: Warning 313: Unrecognized extern type "INTERCAL".
+
+:::::::::::::::::::::::::::::::: cpp_extend_redefine.i :::::::::::::::::::::::::::::::::::
+cpp_extend_redefine.i:9: Warning 302: Identifier 'bar' redefined by %extend (ignored),
+cpp_extend_redefine.i:5: Warning 302: %extend definition of 'bar'.
+cpp_extend_redefine.i:14: Warning 322: Redundant redeclaration of 'spam',
+cpp_extend_redefine.i:10: Warning 322: previous declaration of 'spam'.
+
+:::::::::::::::::::::::::::::::: cpp_extend_undefined.i :::::::::::::::::::::::::::::::::::
+cpp_extend_undefined.i:6: Warning 303: %extend defined for an undeclared class foo.
+
+:::::::::::::::::::::::::::::::: cpp_inline_namespace.i :::::::::::::::::::::::::::::::::::
+cpp_inline_namespace.i:4: Error: %inline directive inside a namespace is disallowed.
+
+:::::::::::::::::::::::::::::::: cpp_missing_rtemplate.i :::::::::::::::::::::::::::::::::::
+cpp_missing_rtemplate.i:4: Error: Syntax error in input(1).
+
+:::::::::::::::::::::::::::::::: cpp_namespace_alias.i :::::::::::::::::::::::::::::::::::
+cpp_namespace_alias.i:8: Warning 308: Namespace alias 'B' not allowed here. Assuming 'blah'
+
+:::::::::::::::::::::::::::::::: cpp_namespace_aliasnot.i :::::::::::::::::::::::::::::::::::
+cpp_namespace_aliasnot.i:4: Error: 'blah' is not a namespace
+
+:::::::::::::::::::::::::::::::: cpp_namespace_aliasundef.i :::::::::::::::::::::::::::::::::::
+cpp_namespace_aliasundef.i:3: Error: Unknown namespace 'blah'
+
+:::::::::::::::::::::::::::::::: cpp_nested.i :::::::::::::::::::::::::::::::::::
+cpp_nested.i:6: Warning 325: Nested class not currently supported (Bar ignored)
+cpp_nested.i:12: Warning 325: Nested class not currently supported (Grok ignored)
+
+:::::::::::::::::::::::::::::::: cpp_no_access.i :::::::::::::::::::::::::::::::::::
+cpp_no_access.i:3: Warning 319: No access specifier given for base class foo (ignored).
+
+:::::::::::::::::::::::::::::::: cpp_nobase.i :::::::::::::::::::::::::::::::::::
+cpp_nobase.i:3: Warning 401: Nothing known about base class 'Bar'. Ignored.
+cpp_nobase.i:6: Warning 401: Nothing known about base class 'Bar< int >'. Ignored.
+cpp_nobase.i:6: Warning 401: Maybe you forgot to instantiate 'Bar< int >' using %template.
+
+:::::::::::::::::::::::::::::::: cpp_overload.i :::::::::::::::::::::::::::::::::::
+
+:::::::::::::::::::::::::::::::: cpp_private_defvalue.i :::::::::::::::::::::::::::::::::::
+
+:::::::::::::::::::::::::::::::: cpp_private_inherit.i :::::::::::::::::::::::::::::::::::
+cpp_private_inherit.i:6: Warning 309: private inheritance ignored.
+cpp_private_inherit.i:9: Warning 309: protected inheritance ignored.
+
+:::::::::::::::::::::::::::::::: cpp_template_argname.i :::::::::::::::::::::::::::::::::::
+
+:::::::::::::::::::::::::::::::: cpp_template_nargs.i :::::::::::::::::::::::::::::::::::
+cpp_template_nargs.i:5: Error: Template 'blah' undefined.
+cpp_template_nargs.i:6: Error: Template 'blah' undefined.
+
+:::::::::::::::::::::::::::::::: cpp_template_not.i :::::::::::::::::::::::::::::::::::
+cpp_template_not.i:5: Error: 'blah' is not defined as a template. (cdecl)
+
+:::::::::::::::::::::::::::::::: cpp_template_partial.i :::::::::::::::::::::::::::::::::::
+cpp_template_partial.i:3: Warning 317: Specialization of non-template 'vector'.
+
+:::::::::::::::::::::::::::::::: cpp_template_repeat.i :::::::::::::::::::::::::::::::::::
+
+:::::::::::::::::::::::::::::::: cpp_template_undef.i :::::::::::::::::::::::::::::::::::
+cpp_template_undef.i:3: Error: Template 'blah' undefined.
+
+:::::::::::::::::::::::::::::::: cpp_using_not.i :::::::::::::::::::::::::::::::::::
+cpp_using_not.i:4: Error: 'blah' is not a namespace.
+
+:::::::::::::::::::::::::::::::: cpp_using_undef.i :::::::::::::::::::::::::::::::::::
+cpp_using_undef.i:4: Error: Nothing known about namespace 'foo'
+cpp_using_undef.i:3: Warning 315: Nothing known about 'foo::bar'.
