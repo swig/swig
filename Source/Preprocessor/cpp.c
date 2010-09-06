@@ -325,6 +325,7 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
 
   /* Now look for a macro name */
   macroname = NewStringEmpty();
+  copy_location(str, macroname);
   while ((c = Getc(str)) != EOF) {
     if (c == '(') {
       argstr = NewStringEmpty();
@@ -360,6 +361,7 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
   if (!swigmacro)
     skip_whitespace(str, 0);
   macrovalue = NewStringEmpty();
+  copy_location(str, macrovalue);
   while ((c = Getc(str)) != EOF) {
     Putc(c, macrovalue);
   }
@@ -500,10 +502,6 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
       Setattr(macro, kpp_varargs, "1");
     }
   }
-  Setline(macrovalue, line);
-  Setfile(macrovalue, file);
-  Setline(macroname, line);
-  Setfile(macroname, file);
   Setattr(macro, kpp_value, macrovalue);
   Setline(macro, line);
   Setfile(macro, file);
@@ -556,7 +554,7 @@ void Preprocessor_undef(const_String_or_char_ptr str) {
  * Isolates macro arguments and returns them in a list.   For each argument,
  * leading and trailing whitespace is stripped (ala K&R, pg. 230).
  * ----------------------------------------------------------------------------- */
-static List *find_args(String *s) {
+static List *find_args(String *s, int ismacro, String *macro_name) {
   List *args;
   String *str;
   int c, level;
@@ -627,7 +625,10 @@ static List *find_args(String *s) {
     c = Getc(s);
   }
 unterm:
-  Swig_error(Getfile(args), Getline(args), "Unterminated macro call.\n");
+  if (ismacro)
+    Swig_error(Getfile(args), Getline(args), "Unterminated call invoking macro '%s'\n", macro_name);
+  else
+    Swig_error(Getfile(args), Getline(args), "Unterminated call to '%s'\n", macro_name);
   return args;
 }
 
@@ -1021,7 +1022,7 @@ static DOH *Preprocessor_replace(DOH *s) {
 	  c = Getc(s);
 	  if (c == '(') {
 	    Ungetc(c, s);
-	    args = find_args(s);
+	    args = find_args(s, 0, kpp_defined);
 	  } else if (isidchar(c)) {
 	    DOH *arg = NewStringEmpty();
 	    args = NewList();
@@ -1077,7 +1078,7 @@ static DOH *Preprocessor_replace(DOH *s) {
 	  /* See if the macro expects arguments */
 	  if (Getattr(m, kpp_args)) {
 	    /* Yep.  We need to go find the arguments and do a substitution */
-	    args = find_args(s);
+	    args = find_args(s, 1, id);
 	    if (!Len(args)) {
 	      Delete(args);
 	      args = 0;
