@@ -24,9 +24,12 @@ c_missing_semi
 c_redefine
 c_varargs
 c_varargs_neg
-nomodule 
+nomodule
 pp_badeval
+pp_deprecated
 pp_defined
+pp_macro_defined_unterminated
+pp_illegal_argument
 pp_macro_args
 pp_macro_badchar
 pp_macro_nargs
@@ -39,9 +42,11 @@ pp_missing_enddef
 pp_missing_endif
 pp_missing_file
 pp_missing_rblock
+pp_pragma
 pp_unterm_char
 pp_unterm_comment
 pp_unterm_string
+pp_variable_args
 swig_apply_nargs
 swig_identifier
 swig_insert_bad
