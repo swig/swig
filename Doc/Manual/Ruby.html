@@ -1,30 +1,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-
-
-
-
-  
-
-
-  
-  
-  
-  
-  
-  
-  
   <title>SWIG and Ruby</title>
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 
-
-<body style="background-color: rgb(255, 255, 255);">
-
-
-
-
+<body bgcolour="#ffffff">
 
 <H1><a name="Ruby"></a>33 SWIG and Ruby</H1>
 <!-- INDEX -->
@@ -255,7 +236,9 @@ header file. This file is usually contained in a directory such as </p>
 
 
 <div class="code shell diagram">
-<pre>/usr/lib/ruby/1.8/x86_64-linux-gnu/ruby.h<br>/usr/local/lib/ruby/1.6/i686-linux/ruby.h<br></pre>
+<pre>/usr/lib/ruby/1.8/x86_64-linux-gnu/ruby.h
+/usr/local/lib/ruby/1.6/i686-linux/ruby.h
+</pre>
 
 
 
@@ -276,7 +259,10 @@ installed, you can run Ruby to find out. For example: </p>
 
 
 <div class="code shell">
-<pre>$ <b>ruby -e 'puts $:.join("\n")'</b><br>/usr/local/lib/ruby/site_ruby/1.6 /usr/local/lib/ruby/site_ruby/1.6/i686-linux<br>/usr/local/lib/ruby/site_ruby /usr/local/lib/ruby/1.6 /usr/local/lib/ruby/1.6/i686-linux .<br> </pre>
+<pre>$ <b>ruby -e 'puts $:.join("\n")'</b>
+/usr/local/lib/ruby/site_ruby/1.6 /usr/local/lib/ruby/site_ruby/1.6/i686-linux
+/usr/local/lib/ruby/site_ruby /usr/local/lib/ruby/1.6 /usr/local/lib/ruby/1.6/i686-linux .
+</pre>
 
 
 
@@ -324,16 +310,7 @@ looks like the following:</p>
     
     
     <div class="code targetlang">
-    
-    
-    
-    
     <pre>require 'mkmf'<br>create_makefile('example')<br></pre>
-
-
-
-
-
     </div>
 
 
@@ -401,7 +378,12 @@ can add this: </p>
 
 
 <div class="code targetlang">
-<pre>open("Makefile", "a") { |mf|<br> puts &lt;&lt;EOM<br> # Your make rules go here<br> EOM<br>}<br></pre>
+<pre>open("Makefile", "a") { |mf|
+ puts &lt;&lt;EOM
+ # Your make rules go here
+ EOM
+}
+</pre>
 
 
 
@@ -424,7 +406,10 @@ operating system would look something like this: </p>
 
 
 <div class="code shell">
-<pre>$ <b>swig -ruby example.i</b><br>$ <b>gcc -c example.c</b><br>$ <b>gcc -c example_wrap.c -I/usr/local/lib/ruby/1.6/i686-linux</b> <br>$ <b>gcc -shared example.o example_wrap.o -o example.so</b>
+<pre>$ <b>swig -ruby example.i</b>
+$ <b>gcc -c example.c</b>
+$ <b>gcc -c example_wrap.c -I/usr/local/lib/ruby/1.6/i686-linux</b> 
+$ <b>gcc -shared example.o example_wrap.o -o example.so</b>
 </pre>
 
 
@@ -456,7 +441,12 @@ module is imported by requiring the <b>etc</b> feature: </p>
 
 
 <div class="code targetlang">
-<pre># The feature name begins with a lowercase letter...<br>require 'etc'<br><br># ... but the module name begins with an uppercase letter<br>puts "Your login name: #{Etc.getlogin}"<br></pre>
+<pre># The feature name begins with a lowercase letter...
+require 'etc'
+
+# ... but the module name begins with an uppercase letter
+puts "Your login name: #{Etc.getlogin}"
+</pre>
 
 
 
@@ -2733,7 +2723,7 @@ i<br>
 
 
 
-<span style="font-weight: bold;">&gt;&gt; [3, 4, 5 ]</span></div>
+<b>&gt;&gt; [3, 4, 5 ]</b></div>
 
 
 
@@ -10098,7 +10088,38 @@ classes is:</p>
 
 
 <div class="code">
-<pre>/* File RubyOwnershipExample.i */<br><br>%module RubyOwnershipExample<br><br>%{<br>#include "RubyOwnershipExample.h"<br>%}<br><br>class Foo<br>{<br>public:<br> Foo();<br> ~Foo();<br>};<br><br>class Bar<br>{<br> Foo *foo_;<br>public:<br> Bar();<br> ~Bar();<br> Foo* get_foo();<br><br><span style="font-weight: bold;"> %newobject get_new_foo;</span><br> Foo* get_new_foo();<br><br><span style="font-weight: bold;"> %apply SWIGTYPE *DISOWN {Foo *foo};</span><br> void set_foo(Foo *foo);<br><span style="font-weight: bold;"> %clear Foo *foo;</span><br>};<br><br></pre>
+<pre>/* File RubyOwnershipExample.i */
+
+%module RubyOwnershipExample
+
+%{
+#include "RubyOwnershipExample.h"
+%}
+
+class Foo
+{
+public:
+ Foo();
+ ~Foo();
+};
+
+class Bar
+{
+ Foo *foo_;
+public:
+ Bar();
+ ~Bar();
+ Foo* get_foo();
+
+<b> %newobject get_new_foo;</b>
+ Foo* get_new_foo();
+
+<b> %apply SWIGTYPE *DISOWN {Foo *foo};</b>
+ void set_foo(Foo *foo);
+<b> %clear Foo *foo;</b>
+};
+
+</pre>
 
 
 
@@ -10165,7 +10186,35 @@ class library models a zoo and the animals it contains. </p>
 
 
 <div class="code targetlang">
-<pre>$ <span style="font-weight: bold;">irb</span><br>irb(main):001:0&gt; <span style="font-weight: bold;">require 'example'</span><br>=&gt; true<br><br>irb(main):002:0&gt; <span style="font-weight: bold;">tiger1 = Example::Animal.new("tiger1")</span><br>=&gt; #&lt;Example::Animal:0x2be3820&gt;<br><br>irb(main):004:0&gt; <span style="font-weight: bold;">tiger1.get_name()</span><br>=&gt; "tiger1"<br><br>irb(main):003:0&gt; <span style="font-weight: bold;">zoo = Example::Zoo.new()</span><br>=&gt; #&lt;Example::Zoo:0x2be0a60&gt;<br><br>irb(main):006:0&gt; <span style="font-weight: bold;">zoo.add_animal(tiger)</span><br>=&gt; nil<br><br>irb(main):007:0&gt; <span style="font-weight: bold;">zoo.get_num_animals()</span><br>=&gt; 1<br><br>irb(main):007:0&gt; <span style="font-weight: bold;">tiger2 = zoo.remove_animal(0)</span><br>=&gt; #&lt;Example::Animal:0x2bd4a18&gt;<br><br>irb(main):008:0&gt; <span style="font-weight: bold;">tiger2.get_name()</span><br>=&gt; "tiger1"<br><br>irb(main):009:0&gt; <span style="font-weight: bold;">tiger1.equal?(tiger2)</span><br>=&gt; false<br><br></pre>
+<pre>$ <b>irb</b>
+irb(main):001:0&gt; <b>require 'example'</b>
+=&gt; true
+
+irb(main):002:0&gt; <b>tiger1 = Example::Animal.new("tiger1")</b>
+=&gt; #&lt;Example::Animal:0x2be3820&gt;
+
+irb(main):004:0&gt; <b>tiger1.get_name()</b>
+=&gt; "tiger1"
+
+irb(main):003:0&gt; <b>zoo = Example::Zoo.new()</b>
+=&gt; #&lt;Example::Zoo:0x2be0a60&gt;
+
+irb(main):006:0&gt; <b>zoo.add_animal(tiger)</b>
+=&gt; nil
+
+irb(main):007:0&gt; <b>zoo.get_num_animals()</b>
+=&gt; 1
+
+irb(main):007:0&gt; <b>tiger2 = zoo.remove_animal(0)</b>
+=&gt; #&lt;Example::Animal:0x2bd4a18&gt;
+
+irb(main):008:0&gt; <b>tiger2.get_name()</b>
+=&gt; "tiger1"
+
+irb(main):009:0&gt; <b>tiger1.equal?(tiger2)</b>
+=&gt; false
+
+</pre>
 
 
 
@@ -10192,7 +10241,16 @@ the same underlying C++ object. This can cause problems. For example:<br>
 
 
 <div class="code targetlang">
-<pre>irb(main):010:0&gt; <span style="font-weight: bold;">tiger1 = nil</span><br>=&gt; nil<br><br>irb(main):011:0&gt; <span style="font-weight: bold;">GC.start</span><br>=&gt; nil<br><br>irb(main):012:0&gt; <span style="font-weight: bold;">tiger2.get_name()</span><br>(irb):12: [BUG] Segmentation fault<br><br></pre>
+<pre>irb(main):010:0&gt; <b>tiger1 = nil</b>
+=&gt; nil
+
+irb(main):011:0&gt; <b>GC.start</b>
+=&gt; nil
+
+irb(main):012:0&gt; <b>tiger2.get_name()</b>
+(irb):12: [BUG] Segmentation fault
+
+</pre>
 
 
 
@@ -10251,7 +10309,7 @@ class-by-class basis if needed. To fix the example above:</p>
 
 
 <div class="code">
-<pre>%module example<br><br>%{<br>#include "example.h"<br>%}<br><br><span style="font-weight: bold;">/* Tell SWIG that create_animal creates a new object */</span><br><span style="font-weight: bold;">%newobject Zoo::create_animal;</span><br><br><span style="font-weight: bold;">/* Tell SWIG to keep track of mappings between C/C++ structs/classes. */</span><br style="font-weight: bold;"><span style="font-weight: bold;">%trackobjects;</span><br><br>%include "example.h"</pre>
+<pre>%module example<br><br>%{<br>#include "example.h"<br>%}<br><br><b>/* Tell SWIG that create_animal creates a new object */</b><br><b>%newobject Zoo::create_animal;</b><br><br><b>/* Tell SWIG to keep track of mappings between C/C++ structs/classes. */</b><br style="font-weight: bold;"><b>%trackobjects;</b><br><br>%include "example.h"</pre>
 
 
 
@@ -10282,7 +10340,7 @@ class-by-class basis if needed. To fix the example above:</p>
 
 
 <div class="code targetlang">
-<pre>$ <span style="font-weight: bold;">irb</span><br>irb(main):001:0&gt; <span style="font-weight: bold;">require 'example'</span><br>=&gt; true<br><br>irb(main):002:0&gt; <span style="font-weight: bold;">tiger1 = Example::Animal.new("tiger1")</span><br>=&gt; #&lt;Example::Animal:0x2be37d8&gt;<br><br>irb(main):003:0&gt; <span style="font-weight: bold;">zoo = Example::Zoo.new()</span><br>=&gt; #&lt;Example::Zoo:0x2be0a18&gt;<br><br>irb(main):004:0&gt; <span style="font-weight: bold;">zoo.add_animal(tiger1)</span><br>=&gt; nil<br><br>irb(main):006:0&gt; <span style="font-weight: bold;">tiger2 = zoo.remove_animal(0)</span><br>=&gt; #&lt;Example::Animal:0x2be37d8&gt;<br><br>irb(main):007:0&gt; <span style="font-weight: bold;">tiger1.equal?(tiger2)</span><br>=&gt; true<br><br>irb(main):008:0&gt; <span style="font-weight: bold;">tiger1 = nil</span><br>=&gt; nil<br><br>irb(main):009:0&gt; <span style="font-weight: bold;">GC.start</span><br>=&gt; nil<br><br>irb(main):010:0&gt; <span style="font-weight: bold;">tiger.get_name()</span><br>=&gt; "tiger1"<br>irb(main):011:0&gt;<br><br></pre>
+<pre>$ <b>irb</b><br>irb(main):001:0&gt; <b>require 'example'</b><br>=&gt; true<br><br>irb(main):002:0&gt; <b>tiger1 = Example::Animal.new("tiger1")</b><br>=&gt; #&lt;Example::Animal:0x2be37d8&gt;<br><br>irb(main):003:0&gt; <b>zoo = Example::Zoo.new()</b><br>=&gt; #&lt;Example::Zoo:0x2be0a18&gt;<br><br>irb(main):004:0&gt; <b>zoo.add_animal(tiger1)</b><br>=&gt; nil<br><br>irb(main):006:0&gt; <b>tiger2 = zoo.remove_animal(0)</b><br>=&gt; #&lt;Example::Animal:0x2be37d8&gt;<br><br>irb(main):007:0&gt; <b>tiger1.equal?(tiger2)</b><br>=&gt; true<br><br>irb(main):008:0&gt; <b>tiger1 = nil</b><br>=&gt; nil<br><br>irb(main):009:0&gt; <b>GC.start</b><br>=&gt; nil<br><br>irb(main):010:0&gt; <b>tiger.get_name()</b><br>=&gt; "tiger1"<br>irb(main):011:0&gt;<br><br></pre>
 
 
 
@@ -10359,7 +10417,7 @@ has problems. For example:<br>
 
 
 <div class="targetlang">
-<pre>$ <b>irb</b><br>irb(main):001:0&gt; <span style="font-weight: bold;">require 'example'</span><br>=&gt; true<br><br>irb(main):002:0&gt; tiger1 = <span style="font-weight: bold;">Example::Animal.new("tiger1")</span><br>=&gt; #&lt;Example::Animal:0x2bea6a8&gt;<br><br>irb(main):003:0&gt; zoo = <span style="font-weight: bold;">Example::Zoo.new()</span><br>=&gt; #&lt;Example::Zoo:0x2be7960&gt;<br><br>irb(main):004:0&gt; <span style="font-weight: bold;">zoo.add_animal(tiger1)</span><br>=&gt; nil<br><br>irb(main):007:0&gt; <span style="font-weight: bold;">tiger1 = nil</span><br>=&gt; nil<br><br>irb(main):007:0&gt; <span style="font-weight: bold;">GC.start</span><br>=&gt; nil<br><br>irb(main):005:0&gt; <span style="font-weight: bold;">tiger2 = zoo.get_animal(0)</span><br>(irb):12: [BUG] Segmentation fault</pre>
+<pre>$ <b>irb</b><br>irb(main):001:0&gt; <b>require 'example'</b><br>=&gt; true<br><br>irb(main):002:0&gt; tiger1 = <b>Example::Animal.new("tiger1")</b><br>=&gt; #&lt;Example::Animal:0x2bea6a8&gt;<br><br>irb(main):003:0&gt; zoo = <b>Example::Zoo.new()</b><br>=&gt; #&lt;Example::Zoo:0x2be7960&gt;<br><br>irb(main):004:0&gt; <b>zoo.add_animal(tiger1)</b><br>=&gt; nil<br><br>irb(main):007:0&gt; <b>tiger1 = nil</b><br>=&gt; nil<br><br>irb(main):007:0&gt; <b>GC.start</b><br>=&gt; nil<br><br>irb(main):005:0&gt; <b>tiger2 = zoo.get_animal(0)</b><br>(irb):12: [BUG] Segmentation fault</pre>
 
 
 
@@ -10407,7 +10465,7 @@ implementation is:</p>
 
 
 <div class="code">
-<pre>%module example<br><br>%{<br>#include "example.h"<br>%}<br><br>/* Keep track of mappings between C/C++ structs/classes<br> and Ruby objects so we can implement a mark function. */<br><span style="font-weight: bold;">%trackobjects;</span><br><br>/* Specify the mark function */<br><span style="font-weight: bold;">%markfunc Zoo "mark_Zoo";</span><br><br>%include "example.h"<br><br>%header %{<br><br>static void mark_Zoo(void* ptr) {<br> Zoo* zoo = (Zoo*) ptr;<br><br> /* Loop over each object and tell the garbage collector<br> that we are holding a reference to them. */<br> int count = zoo-&gt;get_num_animals();<br><br> for(int i = 0; i &lt; count; ++i) {<br> Animal* animal = zoo-&gt;get_animal(i);<br> VALUE object = SWIG_RubyInstanceFor(animal);<br><br> if (object != Qnil) {<br> rb_gc_mark(object);<br> }<br> }<br>}<br>%}<br><br></pre>
+<pre>%module example<br><br>%{<br>#include "example.h"<br>%}<br><br>/* Keep track of mappings between C/C++ structs/classes<br> and Ruby objects so we can implement a mark function. */<br><b>%trackobjects;</b><br><br>/* Specify the mark function */<br><b>%markfunc Zoo "mark_Zoo";</b><br><br>%include "example.h"<br><br>%header %{<br><br>static void mark_Zoo(void* ptr) {<br> Zoo* zoo = (Zoo*) ptr;<br><br> /* Loop over each object and tell the garbage collector<br> that we are holding a reference to them. */<br> int count = zoo-&gt;get_num_animals();<br><br> for(int i = 0; i &lt; count; ++i) {<br> Animal* animal = zoo-&gt;get_animal(i);<br> VALUE object = SWIG_RubyInstanceFor(animal);<br><br> if (object != Qnil) {<br> rb_gc_mark(object);<br> }<br> }<br>}<br>%}<br><br></pre>
 
 
 
@@ -10436,7 +10494,7 @@ test suite.</p>
 
 
 <div class="targetlang">
-<pre>$ <b>irb<br></b>irb(main):002:0&gt; <span style="font-weight: bold;">tiger1=Example::Animal.new("tiger1")</span><br>=&gt; #&lt;Example::Animal:0x2be3bf8&gt;<br><br>irb(main):003:0&gt; <span style="font-weight: bold;">Example::Zoo.new()</span><br>=&gt; #&lt;Example::Zoo:0x2be1780&gt;<br><br>irb(main):004:0&gt; <span style="font-weight: bold;">zoo = Example::Zoo.new()</span><br>=&gt; #&lt;Example::Zoo:0x2bde9c0&gt;<br><br>irb(main):005:0&gt; <span style="font-weight: bold;">zoo.add_animal(tiger1)</span><br>=&gt; nil<br><br>irb(main):009:0&gt; <span style="font-weight: bold;">tiger1 = nil</span><br>=&gt; nil<br><br>irb(main):010:0&gt; <span style="font-weight: bold;">GC.start</span><br>=&gt; nil<br>irb(main):014:0&gt; <span style="font-weight: bold;">tiger2 = zoo.get_animal(0)</span><br>=&gt; #&lt;Example::Animal:0x2be3bf8&gt;<br><br>irb(main):015:0&gt; <span style="font-weight: bold;">tiger2.get_name()</span><br>=&gt; "tiger1"<br>irb(main):016:0&gt;<br><br></pre>
+<pre>$ <b>irb<br></b>irb(main):002:0&gt; <b>tiger1=Example::Animal.new("tiger1")</b><br>=&gt; #&lt;Example::Animal:0x2be3bf8&gt;<br><br>irb(main):003:0&gt; <b>Example::Zoo.new()</b><br>=&gt; #&lt;Example::Zoo:0x2be1780&gt;<br><br>irb(main):004:0&gt; <b>zoo = Example::Zoo.new()</b><br>=&gt; #&lt;Example::Zoo:0x2bde9c0&gt;<br><br>irb(main):005:0&gt; <b>zoo.add_animal(tiger1)</b><br>=&gt; nil<br><br>irb(main):009:0&gt; <b>tiger1 = nil</b><br>=&gt; nil<br><br>irb(main):010:0&gt; <b>GC.start</b><br>=&gt; nil<br>irb(main):014:0&gt; <b>tiger2 = zoo.get_animal(0)</b><br>=&gt; #&lt;Example::Animal:0x2be3bf8&gt;<br><br>irb(main):015:0&gt; <b>tiger2.get_name()</b><br>=&gt; "tiger1"<br>irb(main):016:0&gt;<br><br></pre>
 
 
 
@@ -10512,14 +10570,22 @@ directive, let's slightly change our example. Assume that the zoo
 object is responsible for freeing animal that it contains. This means
 that the <span style="font-family: monospace;">Zoo::add_animal</span>
 function should be marked with a <span style="font-family: monospace;">DISOWN</span> typemap
-and the destructor should be updated as below::</p>
+and the destructor should be updated as below:</p>
 
 
 
 
 
 <div class="code">
-<pre>Zoo::~Zoo() {<br> IterType iter = this-&gt;animals.begin();<br> IterType end = this-&gt;animals.end();<br><br> for(iter; iter != end; ++iter) {<br> Animal* animal = *iter;<br> delete animal;<br> }<br>}</pre>
+<pre>Zoo::~Zoo() {
+ IterType iter = this-&gt;animals.begin();
+ IterType end = this-&gt;animals.end();
+
+ for(iter; iter != end; ++iter) {
+ Animal* animal = *iter;
+ delete animal;
+ }
+}</pre>
 
 
 
@@ -10538,7 +10604,29 @@ and the destructor should be updated as below::</p>
 
 
 <div class="code targetlang">
-<pre class="targetlang"><span style="font-weight: bold;">$irb</span><br>irb(main):002:0&gt; <span style="font-weight: bold;">require 'example'</span><br>=&gt; true<br><br>irb(main):003:0&gt; <span style="font-weight: bold;">zoo = Example::Zoo.new()</span><br>=&gt; #&lt;Example::Zoo:0x2be0fe8&gt;<br><br>irb(main):005:0&gt; <span style="font-weight: bold;">tiger1 = Example::Animal.new("tiger1")</span><br>=&gt; #&lt;Example::Animal:0x2bda760&gt;<br><br>irb(main):006:0&gt; <span style="font-weight: bold;">zoo.add_animal(tiger1)</span><br>=&gt; nil<br><br>irb(main):007:0&gt; <span style="font-weight: bold;">zoo = nil</span><br>=&gt; nil<br><br>irb(main):008:0&gt; <span style="font-weight: bold;">GC.start</span><br>=&gt; nil<br><br>irb(main):009:0&gt; <span style="font-weight: bold;">tiger1.get_name()</span><br>(irb):12: [BUG] Segmentation fault<br><br></pre>
+<pre class="targetlang"><b>$irb</b>
+irb(main):002:0&gt; <b>require 'example'</b>
+=&gt; true
+
+irb(main):003:0&gt; <b>zoo = Example::Zoo.new()</b>
+=&gt; #&lt;Example::Zoo:0x2be0fe8&gt;
+
+irb(main):005:0&gt; <b>tiger1 = Example::Animal.new("tiger1")</b>
+=&gt; #&lt;Example::Animal:0x2bda760&gt;
+
+irb(main):006:0&gt; <b>zoo.add_animal(tiger1)</b>
+=&gt; nil
+
+irb(main):007:0&gt; <b>zoo = nil</b>
+=&gt; nil
+
+irb(main):008:0&gt; <b>GC.start</b>
+=&gt; nil
+
+irb(main):009:0&gt; <b>tiger1.get_name()</b>
+(irb):12: [BUG] Segmentation fault
+
+</pre>
 
 
 
@@ -10571,7 +10659,49 @@ existing Ruby object to the destroyed C++ object and raise an exception.<br>
 
 
 <div class="code">
-<pre>%module example<br><br>%{<br>#include "example.h"<br>%}<br><br>/* Specify that ownership is transferred to the zoo<br>	when calling add_animal */<br>%apply SWIGTYPE *DISOWN { Animal* animal };<br><br>/* Track objects */<br>%trackobjects;<br><br>/* Specify the mark function */<br>%freefunc Zoo "free_Zoo";<br><br>%include "example.h"<br><br>%header %{<br> static void free_Zoo(void* ptr) {<br> Zoo* zoo = (Zoo*) ptr;<br><br> /* Loop over each animal */<br> int count = zoo-&gt;get_num_animals();<br><br> for(int i = 0; i &lt; count; ++i) {<br> /* Get an animal */<br> Animal* animal = zoo-&gt;get_animal(i);<br><br> /* Unlink the Ruby object from the C++ object */<br> SWIG_RubyUnlinkObjects(animal);<br><br> /* Now remove the tracking for this animal */<br> SWIG_RubyRemoveTracking(animal);<br> }<br><br> /* Now call SWIG_RubyRemoveTracking for the zoo */<br> SWIG_RubyRemoveTracking(ptr);<br> <br> /* Now free the zoo which will free the animals it contains */<br> delete zoo;<br> }<br>%} </pre>
+<pre>%module example
+
+%{
+#include "example.h"
+%}
+
+/* Specify that ownership is transferred to the zoo
+	when calling add_animal */
+%apply SWIGTYPE *DISOWN { Animal* animal };
+
+/* Track objects */
+%trackobjects;
+
+/* Specify the mark function */
+%freefunc Zoo "free_Zoo";
+
+%include "example.h"
+
+%header %{
+ static void free_Zoo(void* ptr) {
+ Zoo* zoo = (Zoo*) ptr;
+
+ /* Loop over each animal */
+ int count = zoo-&gt;get_num_animals();
+
+ for(int i = 0; i &lt; count; ++i) {
+ /* Get an animal */
+ Animal* animal = zoo-&gt;get_animal(i);
+
+ /* Unlink the Ruby object from the C++ object */
+ SWIG_RubyUnlinkObjects(animal);
+
+ /* Now remove the tracking for this animal */
+ SWIG_RubyRemoveTracking(animal);
+ }
+
+ /* Now call SWIG_RubyRemoveTracking for the zoo */
+ SWIG_RubyRemoveTracking(ptr);
+ 
+ /* Now free the zoo which will free the animals it contains */
+ delete zoo;
+ }
+%} </pre>
 
 
 
@@ -10590,7 +10720,30 @@ existing Ruby object to the destroyed C++ object and raise an exception.<br>
 
 
 <div class="code targetlang">
-<pre><span style="font-weight: bold;">$irb</span><br>irb(main):002:0&gt; <span style="font-weight: bold;">require 'example'</span><br>=&gt; true<br><br>irb(main):003:0&gt; <span style="font-weight: bold;">zoo = Example::Zoo.new()</span><br>=&gt; #&lt;Example::Zoo:0x2be0fe8&gt;<br><br>irb(main):005:0&gt; <span style="font-weight: bold;">tiger1 = Example::Animal.new("tiger1")</span><br>=&gt; #&lt;Example::Animal:0x2bda760&gt;<br><br>irb(main):006:0&gt; <span style="font-weight: bold;">zoo.add_animal(tiger1)</span><br>=&gt; nil<br><br>irb(main):007:0&gt; <span style="font-weight: bold;">zoo = nil</span><br>=&gt; nil<br><br>irb(main):008:0&gt; <span style="font-weight: bold;">GC.start</span><br>=&gt; nil<br><br>irb(main):009:0&gt; <span style="font-weight: bold;">tiger1.get_name()</span><br>RuntimeError: This Animal * already released<br> from (irb):10:in `get_name'<br> from (irb):10<br>irb(main):011:0&gt;</pre>
+<pre><b>$irb</b>
+irb(main):002:0&gt; <b>require 'example'</b>
+=&gt; true
+
+irb(main):003:0&gt; <b>zoo = Example::Zoo.new()</b>
+=&gt; #&lt;Example::Zoo:0x2be0fe8&gt;
+
+irb(main):005:0&gt; <b>tiger1 = Example::Animal.new("tiger1")</b>
+=&gt; #&lt;Example::Animal:0x2bda760&gt;
+
+irb(main):006:0&gt; <b>zoo.add_animal(tiger1)</b>
+=&gt; nil
+
+irb(main):007:0&gt; <b>zoo = nil</b>
+=&gt; nil
+
+irb(main):008:0&gt; <b>GC.start</b>
+=&gt; nil
+
+irb(main):009:0&gt; <b>tiger1.get_name()</b>
+RuntimeError: This Animal * already released
+ from (irb):10:in `get_name'
+ from (irb):10
+irb(main):011:0&gt;</pre>
 
 
 
