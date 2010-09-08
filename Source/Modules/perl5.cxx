@@ -602,7 +602,7 @@ public:
 	  return SWIG_NOWRAP;
 	}
 	Replaceall(tm, "$input", "sv");
-	Replaceall(tm, "$disown", "0");	/* TODO: verify this */
+	Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
 	Swig_director_emit_dynamic_cast(n, f);
 	emit_action_code(n, f->code, tm);
 	emit_action_code(n, f->code, Getattr(n, "wrap:action"));
@@ -1676,7 +1676,7 @@ public:
 	    tm = Getattr(p, "tmap:directorin");
 	    if (tm) {
 	      String *pav = NewStringf("av[%d]", pcount++);
-	      Printf(pstack, "  XPUSHs(%s);\n", pav);
+	      Printf(pstack, "  XPUSHs(sv_2mortal(%s));\n", pav);
 	      Replaceall(tm, "$input", pav);
 	      Replaceall(tm, "$owner", "0");
 	      Printf(w->code, "  %s\n", tm);

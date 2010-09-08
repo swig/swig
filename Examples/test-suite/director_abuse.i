@@ -29,6 +29,7 @@ struct Thing {
 
 struct Holder {
     Thing *thing;
+    Holder() : thing(0) {};
     Holder(Thing *aThing) : thing(aThing) {};
     virtual int get_attr(void) { return thing->get_attr(); }
     virtual void set_attr(int v) { thing->set_attr(v); }

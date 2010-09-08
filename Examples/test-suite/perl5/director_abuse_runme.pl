@@ -5,9 +5,8 @@ BEGIN { use_ok 'director_abuse' }
 require_ok 'director_abuse';
 
 sub mkPair { my($tc, $hc) = @_;
-    my $t = $tc->new();
-    my $h = $hc->new($t);
-    $t->_swig_disown();
+    my $h = $hc->new();
+    $h->{thing} = $tc->new();
     return $h;
 }
 

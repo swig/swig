@@ -223,24 +223,27 @@ SWIGINTERN HV *SWIG_Perl_WrapTbl(HV *stash) {
 }
 
 SWIGINTERN SV *SWIG_Perl_LookupPtr(HV *stash, void *ptr) {
-  HE *ent = hv_fetch_ent(SWIG_Perl_WrapTbl(stash),
-      sv_2mortal(newSViv(PTR2IV(ptr))), 0, 0);
+  SV *tmp = newSViv(PTR2IV(ptr));
+  HE *ent = hv_fetch_ent(SWIG_Perl_WrapTbl(stash), tmp, 0, 0);
   /*warn("lookup(%s:%p) %s\n", HvNAME(stash), ptr, ent ? "hit" : "miss");*/
+  SvREFCNT_dec(tmp);
   return ent ? HeVAL(ent) : 0;
 }
 
 SWIGINTERN void SWIG_Perl_RememberPtr(swig_perl_wrap *wrap, SV *impl) {
+  SV *tmp = newSViv(PTR2IV(wrap->ptr));
   SV *ref = newSVsv(impl);
   sv_rvweaken(ref);
   /*warn("store (%s:%p) = %p\n", HvNAME(wrap->stash), wrap->ptr, SvRV(impl));*/
-  hv_store_ent(SWIG_Perl_WrapTbl(wrap->stash),
-    sv_2mortal(newSViv(PTR2IV(wrap->ptr))), ref, 0);
+  hv_store_ent(SWIG_Perl_WrapTbl(wrap->stash), tmp, ref, 0);
+  SvREFCNT_dec(tmp);
 }
 
 SWIGINTERN void SWIG_Perl_ForgetPtr(swig_perl_wrap *wrap) {
+  SV *tmp = newSViv(PTR2IV(wrap->ptr));
   /*warn("delete(%s:%p:%d)\n", HvNAME(wrap->stash), wrap->ptr, wrap->refcnt);*/
-  hv_delete_ent(SWIG_Perl_WrapTbl(wrap->stash),
-    sv_2mortal(newSViv(PTR2IV(wrap->ptr))), G_DISCARD, 0);
+  hv_delete_ent(SWIG_Perl_WrapTbl(wrap->stash), tmp, G_DISCARD, 0);
+  SvREFCNT_dec(tmp);
   if (wrap->ti->clientdata && wrap->own & SWIG_POINTER_OWN) {
     /* not all types have ext */
     /* TODO: allprotected.i had a case where we have an ext but no
@@ -416,6 +419,7 @@ SWIG_Perl_FindFields(HV *hv, SV *proto, swig_type_info *t) {
   isa = get_av(SvPV_nolen(tmp), 0);
   if (isa) for (i = 0; i < av_len(isa); i++)
     SWIG_Perl_FindFields(hv, *(av_fetch(isa, i, 0)), t);
+  SvREFCNT_dec(tmp);
 }
 #endif /* PERL_SWIG_PSEUDOHASH */
 
@@ -426,6 +430,7 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
   swig_perl_wrap *wrap;
   SV *impl;
   swig_perl_type_ext *ext;
+  SV *tmp;
 
   if (!sv) sv = newSV(0);
 
@@ -433,8 +438,6 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
     SvSetSV(sv, &PL_sv_undef);
     return sv;
   }
-  if (!proto)
-    proto = sv_2mortal(newSVpv(SWIG_Perl_TypeProxyName(t), 0));
 
   stash = gv_stashpv(SWIG_Perl_TypeProxyName(t), GV_ADD);
 
@@ -467,10 +470,15 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
      * The good points are compelling for SWIG users, the bad points
      * complicate this wrapper, but it's managable.
      */
+    if (proto)
+      proto = newSVsv(proto);
+    else
+      proto = newSVpv(SWIG_Perl_TypeProxyName(t), 0);
 #if PERL_SWIG_PSEUDOHASH
+    tmp = newSVpvf("%s::FIELDS", SvPV_nolen(proto));
     SWIG_Perl_sv_setref(sv, (SV *)newAV(), gv_stashsv(proto, GV_ADD));
-    av_store((AV *)SvRV(sv), 0, newRV_inc((SV *)get_hv(SvPV_nolen(
-      sv_2mortal(newSVpvf("%s::FIELDS", SvPV_nolen(proto)))), TRUE)));
+    av_store((AV *)SvRV(sv), 0, newRV_inc((SV *)get_hv(SvPV_nolen(tmp), TRUE)));
+    SvREFCNT_dec(tmp);
 #else /* PERL_SWIG_PSEUDOHASH */ 
     /* this is compatible with the base.pm and fields.pm pragmas.
      * we end up having to assume some of the guts of fields::new() and
@@ -483,19 +491,22 @@ SWIG_Perl_MakePtr(SV *sv, void *ptr, swig_type_info *t, int flags,
     /* populate wrap accessors for attributes coming from c++ */
     if (ext->attr) { /* populate object attribute stubs */
       int i;
+      SV *k = newSV(0);
       for (i = 0; i < ext->nattr; i++) {
-        SV *k = sv_2mortal(newSVpv(ext->attr[i].name, 0));
+        sv_setpv(k, ext->attr[i].name);
         SV *v = SWIG_Perl_WrapVar(newSV(0), &ext->attr[i].vtbl, wrap);
 #if PERL_SWIG_PSEUDOHASH
         avhv_store_ent((AV *)SvRV(sv), k, v, 0);
 #else /* PERL_SWIG_PSEUDOHASH */ 
         hv_store_ent((HV *)SvRV(sv), k, v, 0);
-#endif /* PERL_SWIG_PSEUDOHASH */ 
+#endif /* PERL_SWIG_PSEUDOHASH */
       }
+      SvREFCNT_dec(k);
     }
 #if !PERL_SWIG_PSEUDOHASH
     SvREADONLY_on(SvRV(sv));
 #endif
+    SvREFCNT_dec(proto);
   } else {
     SWIG_Perl_sv_setref(sv, newSV(0), stash);
   }
@@ -591,7 +602,6 @@ XS(SWIG_Perl_Own) {
   SV *self;
   MAGIC *mg;
   swig_perl_wrap *wrap;
-  SV *newv;
 
   if (items > 0) {
     self = ST(0);
@@ -620,15 +630,12 @@ XS(SWIG_Perl_This) {
   dXSARGS;
   SV *self;
   MAGIC *mg;
-  swig_perl_wrap *wrap;
-  SV *newv;
 
   if (items == 1) {
     self = ST(0);
     if (SvROK(self)) {
       mg = mg_find(SvRV(self), PERL_MAGIC_ext);
       if (mg) {
-        wrap = (swig_perl_wrap *)mg->mg_ptr;
         ST(0) = newSViv(PTR2IV(((swig_perl_wrap *)mg->mg_ptr)->ptr));
         XSRETURN(1);
       }
