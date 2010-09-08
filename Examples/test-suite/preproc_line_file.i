@@ -29,11 +29,11 @@ const int NUMBER_UNIQUE(thing) = -2; /* resolves to thing28 */
 
 #define MYLINE2 __LINE__
 
+#ifdef SWIGJAVA
 %javaconst(1);
+#endif
 %{
-struct SillyStruct {
-  int num;
-  /* static const int line_num = __LINE__; */
+struct SillyStruct { int num; /* static const int line_num = __LINE__; */
 };
 %}
 struct SillyStruct {

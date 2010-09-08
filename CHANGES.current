@@ -10,7 +10,7 @@ Version 2.0.1 (in progress)
 
 2010-09-03: wsfulton
             Fix erroneous line numbers in error messages for macro expansions, for example,
-            the error message now points to instantation of the macro, ie the last line here:
+            the error message now points to instantiation of the macro, ie the last line here:
 
               #define MACRO2(a, b) 
 
@@ -28,7 +28,7 @@ Version 2.0.1 (in progress)
               %}
 
 2010-09-02: wsfulton
-            Fix line numbers in error and warning messages which were accumulately one
+            Fix line numbers in error and warning messages which were cumulatively one
             less than they should have been after parsing each %include/%import - bug
             introduced in swig-1.3.32. Also fix line numbers in error and warning messages
             when new line characters appear between the %include / %import statement and
