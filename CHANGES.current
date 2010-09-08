@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-09-08: olly
+	    [PHP] Fix handling of OUTPUT typemaps (Patch from Ryan in SF#3058394).
+
 2010-09-03: wsfulton
             Fix erroneous line numbers in error messages for macro expansions, for example,
             the error message now points to instantation of the macro, ie the last line here:
