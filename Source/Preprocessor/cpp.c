@@ -1075,10 +1075,14 @@ static DOH *Preprocessor_replace(DOH *s) {
 	  /* See if the macro is defined in the preprocessor symbol table */
 	  DOH *args = 0;
 	  DOH *e;
+	  int macro_additional_lines = 0;
 	  /* See if the macro expects arguments */
 	  if (Getattr(m, kpp_args)) {
 	    /* Yep.  We need to go find the arguments and do a substitution */
+	    int line = Getline(s);
 	    args = find_args(s, 1, id);
+	    macro_additional_lines = Getline(s) - line;
+	    assert(macro_additional_lines >= 0);
 	    if (!Len(args)) {
 	      Delete(args);
 	      args = 0;
@@ -1089,6 +1093,9 @@ static DOH *Preprocessor_replace(DOH *s) {
 	  e = expand_macro(id, args, s);
 	  if (e) {
 	    Append(ns, e);
+	  }
+	  while (macro_additional_lines--) {
+	    Putc('\n', ns);
 	  }
 	  Delete(e);
 	  Delete(args);

@@ -106,6 +106,12 @@ pp_macro_defined_unterminated.i:4: Error: Unterminated call to 'defined'
 :::::::::::::::::::::::::::::::: pp_macro_expansion.i :::::::::::::::::::::::::::::::::::
 pp_macro_expansion.i:9: Error: Macro 'MACRO2' expects 2 arguments
 
+:::::::::::::::::::::::::::::::: pp_macro_expansion_multiline.i :::::::::::::::::::::::::::::::::::
+pp_macro_expansion_multiline.i:13: Warning 509: Overloaded method foo(int const *) effectively ignored,
+pp_macro_expansion_multiline.i:12: Warning 509: as it is shadowed by foo(int *).
+pp_macro_expansion_multiline.i:31: Warning 509: Overloaded method bar(int const *) effectively ignored,
+pp_macro_expansion_multiline.i:30: Warning 509: as it is shadowed by bar(int *).
+
 :::::::::::::::::::::::::::::::: pp_macro_inline_unterminated.i :::::::::::::::::::::::::::::::::::
 pp_macro_inline_unterminated.i:9: Error: Unterminated call invoking macro 'foo'
 pp_macro_inline_unterminated.i:12: Error: Syntax error in input(3).

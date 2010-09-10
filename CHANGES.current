@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-09-11: wsfulton
+            Fix incorrect line number reporting in errors/warnings after parsing
+            macro invocations with parameters given over more than one line.
+
 2010-09-10: wsfulton
             Remove extraneous extra line in preprocessed output after including files
             which would sometimes lead to error/warning messages two lines after the

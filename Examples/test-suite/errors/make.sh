@@ -34,6 +34,7 @@ pp_macro_args
 pp_macro_badchar
 pp_macro_defined_unterminated
 pp_macro_expansion
+pp_macro_expansion_multiline
 pp_macro_inline_unterminated
 pp_macro_nargs
 pp_macro_redef
