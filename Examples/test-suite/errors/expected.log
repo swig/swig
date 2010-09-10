@@ -71,19 +71,24 @@ No module name specified using %module or -module.
 pp_badeval.i:4: Warning 202: Could not evaluate 'FOO==4+'
 pp_badeval.i:4: Warning 202: Error: 'Expected an expression'
 
-:::::::::::::::::::::::::::::::: pp_deprecated.i :::::::::::::::::::::::::::::::::::
-pp_deprecated.i:4: Warning 101: %extern is deprecated. Use %import instead.
-pp_deprecated.i:4: Error: Unable to find 'ext;'
-pp_deprecated.i:6: Warning 204: CPP #warning, Print this warning
-pp_deprecated.i:8: Error: CPP #error "This is an error". Use the -cpperraswarn option to continue swig processing.
+:::::::::::::::::::::::::::::::: pp_constant.i :::::::::::::::::::::::::::::::::::
+pp_constant.i:9: Warning 305: Bad constant value (ignored).
+pp_constant.i:15: Warning 305: Bad constant value (ignored).
+pp_constant.i:23: Warning 305: Bad constant value (ignored).
+pp_constant.i:29: Warning 305: Bad constant value (ignored).
+pp_constant.i:35: Warning 305: Bad constant value (ignored).
+pp_constant.i:42: Warning 305: Bad constant value (ignored).
 
 :::::::::::::::::::::::::::::::: pp_defined.i :::::::::::::::::::::::::::::::::::
 pp_defined.i:6: Error: No arguments given to defined()
 pp_defined.i:6: Warning 202: Could not evaluate 'defined'
 pp_defined.i:6: Warning 202: Error: 'Expected an expression'
 
-:::::::::::::::::::::::::::::::: pp_macro_defined_unterminated.i :::::::::::::::::::::::::::::::::::
-pp_macro_defined_unterminated.i:4: Error: Unterminated call to 'defined'
+:::::::::::::::::::::::::::::::: pp_deprecated.i :::::::::::::::::::::::::::::::::::
+pp_deprecated.i:4: Warning 101: %extern is deprecated. Use %import instead.
+pp_deprecated.i:4: Error: Unable to find 'ext;'
+pp_deprecated.i:6: Warning 204: CPP #warning, Print this warning
+pp_deprecated.i:8: Error: CPP #error "This is an error". Use the -cpperraswarn option to continue swig processing.
 
 :::::::::::::::::::::::::::::::: pp_illegal_argument.i :::::::::::::::::::::::::::::::::::
 pp_illegal_argument.i:6: Error: Illegal macro argument name '..'
@@ -94,6 +99,16 @@ pp_illegal_argument.i:16: Error: Illegal character in macro argument name
 
 :::::::::::::::::::::::::::::::: pp_macro_badchar.i :::::::::::::::::::::::::::::::::::
 pp_macro_badchar.i:4: Error: Illegal character in macro argument name
+
+:::::::::::::::::::::::::::::::: pp_macro_defined_unterminated.i :::::::::::::::::::::::::::::::::::
+pp_macro_defined_unterminated.i:4: Error: Unterminated call to 'defined'
+
+:::::::::::::::::::::::::::::::: pp_macro_expansion.i :::::::::::::::::::::::::::::::::::
+pp_macro_expansion.i:9: Error: Macro 'MACRO2' expects 2 arguments
+
+:::::::::::::::::::::::::::::::: pp_macro_inline_unterminated.i :::::::::::::::::::::::::::::::::::
+pp_macro_inline_unterminated.i:9: Error: Unterminated call invoking macro 'foo'
+pp_macro_inline_unterminated.i:12: Error: Syntax error in input(3).
 
 :::::::::::::::::::::::::::::::: pp_macro_nargs.i :::::::::::::::::::::::::::::::::::
 pp_macro_nargs.i:7: Error: Macro 'foo' expects 2 arguments
