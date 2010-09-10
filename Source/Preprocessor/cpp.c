@@ -1445,15 +1445,14 @@ String *Preprocessor_parse(String *s) {
 	state = 43;
       }
       break;
-    case 46:
+    case 46: /* in C++ comment */
       if (c == '\n') {
 	Ungetc(c, s);
-	cpp_lines++;
 	state = 50;
       } else
 	Putc(c, comment);
       break;
-    case 47:
+    case 47: /* in C comment */
       if (c == '*')
 	state = 48;
       else
@@ -1638,7 +1637,7 @@ String *Preprocessor_parse(String *s) {
 	    }
 	    s2 = Preprocessor_parse(s1);
 	    addline(ns, s2, allow);
-	    Append(ns, "\n]");
+	    Append(ns, "]");
 	    if (dirname) {
 	      Swig_pop_directory();
 	    }
@@ -1784,7 +1783,7 @@ String *Preprocessor_parse(String *s) {
 		pop_imported();
 	      }
 	      addline(ns, s2, allow);
-	      Append(ns, "\n]");
+	      Append(ns, "]");
 	      Delete(s2);
 	      Delete(s1);
 	    }
@@ -1845,7 +1844,6 @@ String *Preprocessor_parse(String *s) {
 		  Seek(value, 0, SEEK_SET);
 		  Preprocessor_define(value, 1);
 		}
-		/* Putc('\n',ns); */
 		addline(ns, value, 0);
 		state = 0;
 	      }
@@ -1884,6 +1882,5 @@ String *Preprocessor_parse(String *s) {
   Delete(comment);
   Delete(chunk);
 
-  /*  fprintf(stderr,"cpp: %d\n", Len(Getattr(cpp,"symbols"))); */
   return ns;
 }

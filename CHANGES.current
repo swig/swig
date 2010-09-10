@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-09-10: wsfulton
+            Remove extraneous extra line in preprocessed output after including files
+            which would sometimes lead to error/warning messages two lines after the
+            end of the file.
+
+2010-09-10: wsfulton
+            Fix #2149523 - Incorrect line number reporting in errors after parsing macros
+            containing C++ comments.
+
 2010-09-08: olly
 	    [PHP] Fix handling of OUTPUT typemaps (Patch from Ryan in SF#3058394).
 
