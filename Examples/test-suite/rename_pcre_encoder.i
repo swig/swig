@@ -9,12 +9,12 @@
 %inline %{
 
 struct wxSomeWidget {
-    void SetBorderWidth(int);
-    void SetSize(int, int);
+    void SetBorderWidth(int) {}
+    void SetSize(int, int) {}
 };
 
 struct wxAnotherWidget {
-    void wxDoSomething() {}
+    void DoSomething() {}
 };
 
 class wxEVTSomeEvent {
