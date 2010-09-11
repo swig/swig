@@ -87,3 +87,9 @@ KLASS(SillyMultipleMacroStruct)
 #define INLINE_LINE __LINE__
 %}
 
+#define MACRO_END_WITH_SLASH ABCD/
+
+%inline %{
+KLASS(Slash)
+%}
+

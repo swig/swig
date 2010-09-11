@@ -60,5 +60,9 @@ public class preproc_line_file_runme {
     String inlineFile = preproc_line_file.INLINE_FILE;
     if (!(inlineFile.equals(FILENAME_UNIX) || inlineFile.equals(FILENAME_WINDOWS)))
       throw new RuntimeException("preproc failure");
+
+    if (Slash.LINE_NUM != 93)
+      throw new RuntimeException("preproc failure");
+
   }
 }

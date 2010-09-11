@@ -78,6 +78,8 @@ pp_constant.i:23: Warning 305: Bad constant value (ignored).
 pp_constant.i:29: Warning 305: Bad constant value (ignored).
 pp_constant.i:35: Warning 305: Bad constant value (ignored).
 pp_constant.i:42: Warning 305: Bad constant value (ignored).
+pp_constant.i:46: Warning 305: Bad constant value (ignored).
+pp_constant.i:49: Warning 305: Bad constant value (ignored).
 
 :::::::::::::::::::::::::::::::: pp_defined.i :::::::::::::::::::::::::::::::::::
 pp_defined.i:6: Error: No arguments given to defined()

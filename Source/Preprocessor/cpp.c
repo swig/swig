@@ -1444,7 +1444,6 @@ String *Preprocessor_parse(String *s) {
       else if (c == '\n') {
 	Putc('/', value);
 	Ungetc(c, s);
-	cpp_lines++;
 	state = 50;
       } else {
 	Putc('/', value);

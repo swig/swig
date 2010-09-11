@@ -41,3 +41,10 @@ comment */
 
 %constant int fff=;
 
+// Test macro ending in /, that is not a C comment terminator
+#define G1 1234
+#define G2 1234 /
+#define G3 1234
+
+%constant int ggg=;
+
