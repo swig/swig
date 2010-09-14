@@ -291,10 +291,10 @@ void Swig_require(const char *ns, Node *n, ...) {
     if (view) {
       if (Strcmp(view, ns) != 0) {
 	Setattr(n, NewStringf("%s:view", ns), view);
-	Setattr(n, "view", ns);
+	Setattr(n, "view", NewString(ns));
       }
     } else {
-      Setattr(n, "view", ns);
+      Setattr(n, "view", NewString(ns));
     }
   }
 }
@@ -337,10 +337,10 @@ void Swig_save(const char *ns, Node *n, ...) {
     if (view) {
       if (Strcmp(view, ns) != 0) {
 	Setattr(n, NewStringf("%s:view", ns), view);
-	Setattr(n, "view", ns);
+	Setattr(n, "view", NewString(ns));
       }
     } else {
-      Setattr(n, "view", ns);
+      Setattr(n, "view", NewString(ns));
     }
   }
 }
