@@ -121,7 +121,6 @@ public:
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
-  AUTODOC_NOTSET,
   AUTODOC_CLASS,
   AUTODOC_CTOR,
   AUTODOC_DTOR,
@@ -581,9 +580,6 @@ private:
 	case AUTODOC_SETTER:
  	  Printf(doc, "  Document-method: %s.%s=\n\n", full_name, symname);
 	  break;
-	case AUTODOC_NOTSET:
-	  assert(0);
-	  break;
 	}
       }
 
@@ -612,9 +608,6 @@ private:
 	      if (type) Printf(doc, " -> %s", type);
 	      break;
 	    }
-	  case AUTODOC_NOTSET:
-	    assert(0);
-	    break;
 	  default:
 	    break;
 	  }
@@ -672,9 +665,6 @@ private:
 	    if (type) Printf(doc, " -> %s", type);
 	    break;
 	  }
-	case AUTODOC_NOTSET:
-	  assert(0);
-	  break;
 	}
       }
 
@@ -707,9 +697,6 @@ private:
 	break;
       case AUTODOC_SETTER:
 	Printf(doc, "Set new value for attribute.\n");
-	break;
-      case AUTODOC_NOTSET:
-	assert(0);
 	break;
       }
     }
@@ -775,7 +762,6 @@ public:
     modvar = 0;
     feature = 0;
     prefix = 0;
-    last_mode = AUTODOC_NOTSET,
     last_autodoc = NewString("");
     current = NO_CPP;
     classes = 0;
