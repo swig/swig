@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-09-15: wsfulton
+            A much improved debugging of SWIG source experience is now available and
+            documented in the "Debugging SWIG" section in the Doc/Devel/internals.html
+            file, including a swig.dbg support file for the gdb debugger.
+
 2010-09-11: wsfulton
             Fix incorrect line number reporting in errors/warnings when a macro
             definition ends with '/' and it is not the end of a C comment.

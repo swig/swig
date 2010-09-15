@@ -100,3 +100,116 @@ void clean_overloaded(Node *n) {
       Delattr(n, "sym:overloaded");
   }
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_set_max_hash_expand()
+ *
+ * Controls how many Hash objects are displayed when displaying nested Hash objects.
+ * Makes DohSetMaxHashExpand an externally callable function (for debugger).
+ * ----------------------------------------------------------------------------- */
+
+void Swig_set_max_hash_expand(int count) {
+  SetMaxHashExpand(count);
+}
+
+extern "C" {
+
+/* -----------------------------------------------------------------------------
+ * Swig_get_max_hash_expand()
+ *
+ * Returns how many Hash objects are displayed when displaying nested Hash objects.
+ * Makes DohGetMaxHashExpand an externally callable function (for debugger).
+ * ----------------------------------------------------------------------------- */
+
+int Swig_get_max_hash_expand() {
+  return GetMaxHashExpand();
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_to_doh_string()
+ *
+ * DOH version of Swig_to_string()
+ * ----------------------------------------------------------------------------- */
+
+static String *Swig_to_doh_string(DOH *object, int count) {
+  int old_count = Swig_get_max_hash_expand();
+  if (count >= 0)
+    Swig_set_max_hash_expand(count);
+
+  String *debug_string = object ? NewStringf("%s", object) : NewString("NULL");
+
+  Swig_set_max_hash_expand(old_count);
+  return debug_string;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_to_doh_string_with_location()
+ *
+ * DOH version of Swig_to_string_with_location()
+ * ----------------------------------------------------------------------------- */
+
+static String *Swig_to_doh_string_with_location(DOH *object, int count) {
+  int old_count = Swig_get_max_hash_expand();
+  if (count >= 0)
+    Swig_set_max_hash_expand(count);
+
+  String *debug_string = Swig_stringify_with_location(object);
+
+  Swig_set_max_hash_expand(old_count);
+  return debug_string;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_to_string()
+ *
+ * Swig debug - return C string representation of any DOH type.
+ * Nested Hash types expand count is value of Swig_get_max_hash_expand when count<0
+ * Note: leaks memory.
+ * ----------------------------------------------------------------------------- */
+
+const char *Swig_to_string(DOH *object, int count) {
+  return Char(Swig_to_doh_string(object, count));
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_to_string_with_location()
+ *
+ * Swig debug - return C string representation of any DOH type, within [] brackets
+ * for Hash and List types, prefixed by line and file information.
+ * Nested Hash types expand count is value of Swig_get_max_hash_expand when count<0
+ * Note: leaks memory.
+ * ----------------------------------------------------------------------------- */
+
+const char *Swig_to_string_with_location(DOH *object, int count) {
+  return Char(Swig_to_doh_string_with_location(object, count));
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_print()
+ *
+ * Swig debug - display string representation of any DOH type.
+ * Nested Hash types expand count is value of Swig_get_max_hash_expand when count<0
+ * ----------------------------------------------------------------------------- */
+
+void Swig_print(DOH *object, int count) {
+  String *output = Swig_to_doh_string(object, count);
+  Printf(stdout, "%s\n", output);
+  Delete(output);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_to_string_with_location()
+ *
+ * Swig debug - display string representation of any DOH type, within [] brackets
+ * for Hash and List types, prefixed by line and file information.
+ * Nested Hash types expand count is value of Swig_get_max_hash_expand when count<0
+ * ----------------------------------------------------------------------------- */
+
+void Swig_print_with_location(DOH *object, int count) {
+  String *output = Swig_to_doh_string_with_location(object, count);
+  Printf(stdout, "%s\n", output);
+  Delete(output);
+}
+
+} // extern "C"
+

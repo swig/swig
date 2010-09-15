@@ -252,7 +252,7 @@ static DOH *List_str(DOH *lo) {
     if ((i + 1) < l->nitems)
       Printf(s, ", ");
   }
-  Printf(s, " ]\n");
+  Printf(s, " ]");
   ObjSetMark(lo, 0);
   return s;
 }

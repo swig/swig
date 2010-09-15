@@ -380,8 +380,14 @@ void Wrapper_fast_dispatch_mode_set(int);
 void Wrapper_cast_dispatch_mode_set(int);
 void Wrapper_naturalvar_mode_set(int);
 
-
 void clean_overloaded(Node *n);
+
+extern "C" {
+  const char *Swig_to_string(DOH *object, int count = -1);
+  const char *Swig_to_string_with_location(DOH *object, int count = -1);
+  void Swig_print(DOH *object, int count = -1);
+  void Swig_print_with_location(DOH *object, int count = -1);
+}
 
 /* Contracts */
 
@@ -394,6 +400,5 @@ int Swig_contract_mode_get();
 void Swig_browser(Node *n, int);
 void Swig_default_allocators(Node *n);
 void Swig_process_types(Node *n);
-
 
 #endif

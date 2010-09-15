@@ -527,7 +527,6 @@ String *Swig_string_schemify(String *s) {
   return ns;
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_string_typecode()
  *
