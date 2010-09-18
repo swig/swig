@@ -175,10 +175,10 @@ class TypePass:private Dispatcher {
 		  }
 		}
 		if (Strcmp(nodeType(bcls), "classforward") != 0) {
-		  Swig_error(Getfile(cls), Getline(cls), "'%s' does not have a valid base class.\n", Getattr(cls, "name"));
-		  Swig_error(Getfile(bcls), Getline(bcls), "'%s' is not a valid base class.\n", SwigType_namestr(bname));
+		  Swig_error(Getfile(bname), Getline(bname), "'%s' is not a valid base class.\n", SwigType_namestr(bname));
+		  Swig_error(Getfile(bcls), Getline(bcls), "See definition of '%s'.\n", SwigType_namestr(bname));
 		} else {
-		  Swig_warning(WARN_TYPE_INCOMPLETE, Getfile(cls), Getline(cls), "Base class '%s' is incomplete.\n", SwigType_namestr(bname));
+		  Swig_warning(WARN_TYPE_INCOMPLETE, Getfile(bname), Getline(bname), "Base class '%s' is incomplete.\n", SwigType_namestr(bname));
 		  Swig_warning(WARN_TYPE_INCOMPLETE, Getfile(bcls), Getline(bcls), "Only forward declaration '%s' was found.\n", SwigType_namestr(bname));
 		  clsforward = 1;
 		}
@@ -189,7 +189,7 @@ class TypePass:private Dispatcher {
 		    ilist = alist = NewList();
 		  Append(ilist, bcls);
 		} else {
-		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(cls), Getline(cls), "Base class '%s' undefined.\n", SwigType_namestr(bname));
+		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' undefined.\n", SwigType_namestr(bname));
 		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "'%s' must be defined before it is used as a base class.\n", SwigType_namestr(bname));
 		}
 	      }
@@ -202,10 +202,9 @@ class TypePass:private Dispatcher {
 	  if (!bcls) {
 	    if (!clsforward) {
 	      if (ispublic && !Getmeta(bname, "already_warned")) {
-		Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(cls), Getline(cls), "Nothing known about base class '%s'. Ignored.\n", SwigType_namestr(bname));
+		Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Nothing known about base class '%s'. Ignored.\n", SwigType_namestr(bname));
 		if (Strchr(bname, '<')) {
-		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(cls), Getline(cls), "Maybe you forgot to instantiate '%s' using %%template.\n",
-			       SwigType_namestr(bname));
+		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Maybe you forgot to instantiate '%s' using %%template.\n", SwigType_namestr(bname));
 		}
 		Setmeta(bname, "already_warned", "1");
 	      }
@@ -259,7 +258,7 @@ class TypePass:private Dispatcher {
 	  Delete(bsmart);
 	  Delete(smart);
 	} else {
-	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, clsname);
+	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", SwigType_namestr(smartptr), SwigType_namestr(clsname));
 	}
       }
       if (!importmode) {
@@ -275,7 +274,7 @@ class TypePass:private Dispatcher {
       Symtab *st = Getattr(cls, "symtab");
       Symtab *bst = Getattr(bclass, "symtab");
       if (st == bst) {
-	Swig_warning(WARN_PARSE_REC_INHERITANCE, Getfile(cls), Getline(cls), "Recursive scope inheritance of '%s'.\n", Getattr(cls, "name"));
+	Swig_warning(WARN_PARSE_REC_INHERITANCE, Getfile(cls), Getline(cls), "Recursive scope inheritance of '%s'.\n", SwigType_namestr(Getattr(cls, "name")));
 	continue;
       }
       Symtab *s = Swig_symbol_current();

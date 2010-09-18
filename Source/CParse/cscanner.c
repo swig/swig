@@ -791,7 +791,7 @@ int yylex(void) {
 	if (strcmp(yytext, "typename") == 0)
 	  return (TYPENAME);
 	if (strcmp(yytext, "template") == 0) {
-	  yylval.ivalue = cparse_line;
+	  yylval.intvalue = cparse_line;
 	  return (TEMPLATE);
 	}
 	if (strcmp(yytext, "delete") == 0) {
@@ -833,7 +833,7 @@ int yylex(void) {
 	return (SIZEOF);
 
       if (strcmp(yytext, "typedef") == 0) {
-	yylval.ivalue = 0;
+	yylval.intvalue = 0;
 	return (TYPEDEF);
       }
 
@@ -875,7 +875,7 @@ int yylex(void) {
       if (strcmp(yytext, "%constant") == 0)
 	return (CONSTANT);
       if (strcmp(yytext, "%typedef") == 0) {
-	yylval.ivalue = 1;
+	yylval.intvalue = 1;
 	return (TYPEDEF);
       }
       if (strcmp(yytext, "%native") == 0)

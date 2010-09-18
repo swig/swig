@@ -64,6 +64,7 @@ cpp_bad_extern
 cpp_extend_redefine
 cpp_extend_undefined
 cpp_inline_namespace
+cpp_inherit
 cpp_missing_rtemplate
 cpp_namespace_alias
 cpp_namespace_aliasnot

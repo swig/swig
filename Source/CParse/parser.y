@@ -1628,7 +1628,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
   String       *str;
   Parm         *p;
   ParmList     *pl;
-  int           ivalue;
+  int           intvalue;
   Node         *node;
 };
 
@@ -1639,7 +1639,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token <loc> INCLUDE IMPORT INSERT
 %token <str> CHARCONST 
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
-%token <ivalue> TYPEDEF
+%token <intvalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
@@ -1657,7 +1657,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token QUESTIONMARK
 %token TYPES PARMS
 %token NONID DSTAR DCNOT
-%token <ivalue> TEMPLATE
+%token <intvalue> TEMPLATE
 %token <str> OPERATOR
 %token <str> COPERATOR
 %token PARSETYPE PARSEPARM PARSEPARMS
@@ -1728,7 +1728,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <id>       string stringnum ;
 %type <tparms>   template_parms;
 %type <dtype>    cpp_end cpp_vend;
-%type <ivalue>   rename_namewarn;
+%type <intvalue> rename_namewarn;
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
 %type <node>     featattr;
@@ -4540,7 +4540,8 @@ cpp_protection_decl : PUBLIC COLON {
    ------------------------------------------------------------ */
 
 cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
-		cparse_start_line = cparse_line; skip_balanced('{','}');
+		cparse_start_line = cparse_line;
+		skip_balanced('{','}');
 		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
 	      } cpp_opt_declarators {
 	        $$ = 0;
@@ -4565,7 +4566,8 @@ cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
    ------------------------------------------------------------ */
 
               | storage_class cpptype inherit LBRACE {
-		cparse_start_line = cparse_line; skip_balanced('{','}');
+		cparse_start_line = cparse_line;
+		skip_balanced('{','}');
 		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
 	      } cpp_opt_declarators {
 	        $$ = 0;
@@ -5883,28 +5885,34 @@ base_list      : base_specifier {
                }
                ;
 
-base_specifier : opt_virtual idcolon {
+base_specifier : opt_virtual {
+		 $<intvalue>$ = cparse_line;
+	       } idcolon {
 		 $$ = NewHash();
 		 Setfile($$,cparse_file);
-		 Setline($$,cparse_line);
-		 Setattr($$,"name",$2);
+		 Setline($$,$<intvalue>2);
+		 Setattr($$,"name",$3);
+		 Setfile($3,cparse_file);
+		 Setline($3,$<intvalue>2);
                  if (last_cpptype && (Strcmp(last_cpptype,"struct") != 0)) {
 		   Setattr($$,"access","private");
-		   Swig_warning(WARN_PARSE_NO_ACCESS,cparse_file,cparse_line,
-				"No access specifier given for base class %s (ignored).\n",$2);
+		   Swig_warning(WARN_PARSE_NO_ACCESS, Getfile($$), Getline($$), "No access specifier given for base class '%s' (ignored).\n", SwigType_namestr($3));
                  } else {
 		   Setattr($$,"access","public");
 		 }
                }
-	       | opt_virtual access_specifier opt_virtual idcolon {
+	       | opt_virtual access_specifier {
+		 $<intvalue>$ = cparse_line;
+	       } opt_virtual idcolon {
 		 $$ = NewHash();
 		 Setfile($$,cparse_file);
-		 Setline($$,cparse_line);
-		 Setattr($$,"name",$4);
+		 Setline($$,$<intvalue>3);
+		 Setattr($$,"name",$5);
+		 Setfile($5,cparse_file);
+		 Setline($5,$<intvalue>3);
 		 Setattr($$,"access",$2);
 	         if (Strcmp($2,"public") != 0) {
-		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, cparse_file, 
-				cparse_line,"%s inheritance ignored.\n", $2);
+		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, Getfile($$), Getline($$), "%s inheritance from base '%s' (ignored).\n", $2, SwigType_namestr($5));
 		 }
                }
                ;
