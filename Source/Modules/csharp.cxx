@@ -1640,10 +1640,10 @@ public:
               base = Next(base);
               continue;
             }
-            String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
-            String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-            Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number,
-                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", proxyclassname, baseclassname);
+            String *proxyclassname = Getattr(n, "classtypeobj");
+            String *baseclassname = Getattr(base.item, "name");
+            Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
             base = Next(base);
           }
         }
@@ -1661,9 +1661,9 @@ public:
       Delete(baseclass);
       baseclass = NULL;
       if (purebase_notderived)
-        Swig_error(input_file, line_number, "The csbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n", typemap_lookup_type);
+        Swig_error(Getfile(n), Getline(n), "The csbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n", typemap_lookup_type);
     } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
-      Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number,
+      Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#. "
 		   "Perhaps you need one of the 'replace' or 'notderived' attributes in the csbase typemap?\n", typemap_lookup_type, pure_baseclass);
     }
@@ -1704,10 +1704,10 @@ public:
     }
     if (tm && *Char(tm)) {
       if (!destruct_methodname) {
-	Swig_error(input_file, line_number, "No methodname attribute defined in csdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+	Swig_error(Getfile(n), Getline(n), "No methodname attribute defined in csdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
       }
       if (!destruct_methodmodifiers) {
-	Swig_error(input_file, line_number,
+	Swig_error(Getfile(n), Getline(n),
 		   "No methodmodifiers attribute defined in csdestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
       }
     }

@@ -2222,8 +2222,7 @@ MODULA3():
       }
       base = Next(base);
       if (base.item != NIL) {
-	Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, input_file,
-		     line_number,
+	Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 		     "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
 		     classDeclarationName, Getattr(base.item, "name"));
       }
@@ -2236,8 +2235,7 @@ MODULA3():
     // Inheritance from pure Modula 3 classes
     const String *pure_baseclass = typemapLookup(n, "m3base", classDeclarationName, WARN_NONE);
     if (hasContent(pure_baseclass) && hasContent(baseclass)) {
-      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, input_file,
-		   line_number,
+      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n", classDeclarationName, pure_baseclass);
     }
     // Pure Modula 3 interfaces
@@ -2273,7 +2271,7 @@ MODULA3():
       destruct_methodname = Getattr(attributes, "tmap:m3destruct:methodname");
     }
     if (!destruct_methodname) {
-      Swig_error(input_file, line_number, "No methodname attribute defined in m3destruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+      Swig_error(Getfile(n), Getline(n), "No methodname attribute defined in m3destruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
     }
     // Emit the Finalize and Dispose methods
     if (tm) {
@@ -2466,8 +2464,7 @@ MODULA3():
 	    Append(baseclassname, Getattr(base.item, "sym:name"));
 	    base = Next(base);
 	    if (base.item != NIL) {
-	      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, input_file,
-			   line_number,
+	      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, input_file, line_number,
 			   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
 			   proxy_class_name, Getattr(base.item, "name"));
 	    }
