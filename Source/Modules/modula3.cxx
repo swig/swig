@@ -2464,7 +2464,7 @@ MODULA3():
 	    Append(baseclassname, Getattr(base.item, "sym:name"));
 	    base = Next(base);
 	    if (base.item != NIL) {
-	      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, input_file, line_number,
+	      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 			   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
 			   proxy_class_name, Getattr(base.item, "name"));
 	    }

@@ -2395,7 +2395,7 @@ public:
 	    }
 	    String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
 	    String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-	    Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, input_file, line_number,
+	    Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 			 "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", proxyclassname, baseclassname);
 	    base = Next(base);
 	  }
