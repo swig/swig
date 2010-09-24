@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-09-24: wsfulton
+            More file and line error/warning reporting fixes where SWIG macros
+            are used within {} braces (where the preprocessor expands macros),
+            for example macros within %inline {...} and %fragment(...) {...}
+            and nested structs.
+
 2010-09-18: wsfulton
             More file and line error/warning reporting fixes for various inherited
             class problems.

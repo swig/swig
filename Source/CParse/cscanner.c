@@ -45,8 +45,6 @@ static int num_brace = 0;
 static int last_brace = 0;
 static int last_id = 0;
 static int rename_active = 0;
-static int expanding_macro = 0;
-static int follow_locators = 0;
 
 /* -----------------------------------------------------------------------------
  * Swig_cparse_cplusplus()
@@ -55,101 +53,6 @@ static int follow_locators = 0;
 void Swig_cparse_cplusplus(int v) {
   cparse_cplusplus = v;
 }
-
-/* ----------------------------------------------------------------------
- * locator()
- *
- * Support for locator strings.   These are strings of the form
- * @SWIG:filename,line,id@ emitted by the SWIG preprocessor.  They
- * are primarily used for macro line number reporting 
- * ---------------------------------------------------------------------- */
-
-typedef struct Locator {
-  String         *filename;
-  int             line_number;
-  struct Locator *next;
-} Locator;
-
-static Locator *locs = 0;
-
-/* we just use the locator to mark when active/deactive the linecounting */
-
-static void scanner_locator(String *loc) {
-  if (!follow_locators) {
-    if (Equal(loc, "/*@SWIG@*/")) {
-      /* End locator. */
-      if (expanding_macro)
-	--expanding_macro;
-    } else {
-      /* Begin locator. */
-      ++expanding_macro;
-    }
-    /* Freeze line number processing in Scanner */
-    Scanner_freeze_line(scan,expanding_macro);
-  } else {
-    int c;
-    Locator *l;
-    Seek(loc, 7, SEEK_SET);
-    c = Getc(loc);
-    if (c == '@') {
-      /* Empty locator.  We pop the last location off */
-      if (locs) {
-	Scanner_set_location(scan,locs->filename,locs->line_number);
-	cparse_file = locs->filename;
-	cparse_line = locs->line_number;
-	l = locs->next;
-	free(locs);
-	locs = l;
-      }
-      return;
-    }
-
-    /* We're going to push a new location */
-    l = (Locator *) malloc(sizeof(Locator));
-    l->filename = cparse_file;
-    l->line_number = cparse_line;
-    l->next = locs;
-    locs = l;
-
-    /* Now, parse the new location out of the locator string */
-    {
-      String *fn = NewStringEmpty();
-      /*      Putc(c, fn); */
-      
-      while ((c = Getc(loc)) != EOF) {
-	if ((c == '@') || (c == ','))
-	  break;
-	Putc(c, fn);
-      }
-      cparse_file = Swig_copy_string(Char(fn));
-      Clear(fn);
-      cparse_line = 1;
-      /* Get the line number */
-      while ((c = Getc(loc)) != EOF) {
-	if ((c == '@') || (c == ','))
-	  break;
-	Putc(c, fn);
-      }
-      cparse_line = atoi(Char(fn));
-      Clear(fn);
-      
-      /* Get the rest of it */
-      while ((c = Getc(loc)) != EOF) {
-	if (c == '@')
-	  break;
-	Putc(c, fn);
-      }
-      /*  Swig_diagnostic(cparse_file, cparse_line, "Scanner_set_location\n"); */
-      Scanner_set_location(scan,cparse_file,cparse_line);
-      Delete(fn);
-    }
-  }
-}
-
-void Swig_cparse_follow_locators(int v) {
-   follow_locators = v;
-}
-
 
 /* ----------------------------------------------------------------------------
  * scanner_init()
@@ -432,7 +335,7 @@ static int yylook(void) {
 	String *cmt = Scanner_text(scan);
 	char *loc = Char(cmt);
 	if ((strncmp(loc,"/*@SWIG",7) == 0) && (loc[Len(cmt)-3] == '@')) {
-	  scanner_locator(cmt);
+	  Scanner_locator(scan, cmt);
 	}
       }
       break;
