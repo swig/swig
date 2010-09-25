@@ -3324,8 +3324,10 @@ public:
       }
 
       Printf(f_runtime, "namespace Swig {\n");
-      Printf(f_runtime, "  static jclass jclass_%s = NULL;\n", imclass_name);
-      Printf(f_runtime, "  static jmethodID director_methids[%d];\n", n_methods);
+      Printf(f_runtime, "  namespace {\n");
+      Printf(f_runtime, "    jclass jclass_%s = NULL;\n", imclass_name);
+      Printf(f_runtime, "    jmethodID director_methids[%d];\n", n_methods);
+      Printf(f_runtime, "  }\n");
       Printf(f_runtime, "}\n");
 
       Printf(w->def, "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls) {", jnipackage, jni_imclass_name, swig_module_init_jni);

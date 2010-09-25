@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-09-25: wsfulton
+            Apply SF patch #3075150 - Java directors using static variables in
+            named namespace.
+
 2010-09-24: wsfulton
             More file and line error/warning reporting fixes where SWIG macros
             are used within {} braces (where the preprocessor expands macros),
