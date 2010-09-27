@@ -196,10 +196,15 @@
 
 /* -- Reserved (600-799) -- */
 
-/* -- Language module specific warnings (800 - 999) -- */
+/* -- Language module specific warnings (700 - 899) -- */
+
+/* Feel free to claim any number in this space that's not currently being used. Just make sure you
+   add an entry here */
 
 #define WARN_RUBY_WRONG_NAME                  801
 #define WARN_RUBY_MULTIPLE_INHERITANCE        802
+
+/* please leave 800-809 free for Ruby */
 
 #define WARN_JAVA_TYPEMAP_JNI_UNDEF           810
 #define WARN_JAVA_TYPEMAP_JTYPE_UNDEF         811
@@ -262,7 +267,6 @@
 
 /* please leave 890-899 free for Go */
 
-/* Feel free to claim any number in this space that's not currently being used. Just make sure you
-   add an entry here */
+/* -- User defined warnings (900 - 999) -- */
 
 #endif
