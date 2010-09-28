@@ -363,7 +363,7 @@ To load your shared native library module in Java, simply use Java's <tt>System.
 
 public class runme {
   static {
-    System.loadLibrary("example");
+Â    System.loadLibrary("example");
   }
 
   public static void main(String argv[]) {
@@ -6234,7 +6234,7 @@ public class runme {
 
   static {
     try {
-     System.loadLibrary("example");
+Â     System.loadLibrary("example");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. " + e);
       System.exit(1);
@@ -6453,7 +6453,7 @@ public class runme {
 
   static {
     try {
-      System.loadLibrary("example");
+Â      System.loadLibrary("example");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. " + e);
       System.exit(1);
