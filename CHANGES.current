@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-10-01: olly
+	    [Python] Allow reinitialisation to work with an embedded Python
+	    interpreter (patch from Jim Carroll in SF#3075178).
+
 2010-09-28: wsfulton
             [C#] Apply patch from Tomas Dirvanauskas for std::map wrappers to avoid
             throwing exceptions with normal usage of iterators.
