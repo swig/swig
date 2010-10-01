@@ -9,6 +9,10 @@ Version 2.0.1 (in progress)
             [C#] Apply patch from Tomas Dirvanauskas for std::map wrappers to avoid
             throwing exceptions with normal usage of iterators.
 
+2010-09-27: olly
+	    [Python] Improve error message given when a parameter of the wrong
+	    type is passed to an overloaded method (SF#3027355).
+
 2010-09-25: wsfulton
             Apply SF patch #3075150 - Java directors using static variables in
             named namespace.
