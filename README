@@ -57,6 +57,9 @@ You must use GNU `make' to build SWIG.
 
 http://www.gnu.org/software/make/
 
+PCRE needs to be installed on your system to build SWIG. The configure
+script will provide instructions for obtaining PCRE if it cannot be found.
+
 To build and install SWIG, simply type the following:
 
      % ./configure
