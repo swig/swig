@@ -2054,8 +2054,15 @@ public:
 
     // Construct real method name
     String* methodName = NewString("");
-    if ( isMethod ) 
-      Printv( methodName, Getattr(parentNode(sibl),"sym:name"), ".", NIL );
+    if ( isMethod ) {
+      // Sometimes a method node has no parent (SF#3034054).
+      // This value is used in an exception message, so just skip the class
+      // name in this case so at least we don't segfault.  This is probably
+      // just working around a problem elsewhere though.
+      Node *parent_node = parentNode(sibl);
+      if (parent_node)
+	Printv( methodName, Getattr(parent_node,"sym:name"), ".", NIL );
+    }
     Append( methodName, Getattr(sibl,"sym:name" ) );
     if ( isCtor ) Append( methodName, ".new" ); 
 
