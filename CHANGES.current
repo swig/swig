@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-10-01: wsfulton
+            Add -pcreversion option to display PCRE version information.
+
 2010-10-01: olly
 	    [Ruby] Avoid segfault when a method node has no parentNode
 	    (SF#3034054).

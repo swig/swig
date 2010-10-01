@@ -1213,11 +1213,19 @@ String *Swig_string_regex(String *s) {
   return res ? res : NewStringEmpty();
 }
 
+String *Swig_pcre_version(void) {
+  return NewStringf("PCRE Version: %s", pcre_version());
+}
+
 #else
 
 String *Swig_string_regex(String *s) {
   Swig_error("SWIG", Getline(s), "PCRE regex support not enabled in this SWIG build.\n");
   exit(1);
+}
+
+String *Swig_pcre_version(void) {
+  return NewStringf("PCRE not used");
 }
 
 #endif

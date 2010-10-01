@@ -319,6 +319,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_string_lower(String *s);
   extern String *Swig_string_upper(String *s);
   extern String *Swig_string_title(String *s);
+  extern String *Swig_pcre_version(void);
   extern void Swig_init(void);
   extern int Swig_value_wrapper_mode(int mode);
 
