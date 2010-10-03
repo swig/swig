@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.1 (in progress)
 ===========================
 
+2010-10-03: wsfulton
+            Apply patch #3066958 from Mikael Johansson to fix default smart pointer
+            handling when the smart pointer contains both a const and non-const operator->.
+
 2010-10-01: wsfulton
             Add -pcreversion option to display PCRE version information.
 

@@ -294,6 +294,7 @@ CPP_TEST_CASES += \
 	sizet \
 	smart_pointer_const \
 	smart_pointer_const2 \
+	smart_pointer_const_overload \
 	smart_pointer_extend \
 	smart_pointer_member \
 	smart_pointer_multi \

@@ -370,6 +370,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 #define  CWRAP_DIRECTOR_ONE_CALL      0x08
 #define  CWRAP_DIRECTOR_TWO_CALLS     0x10
 #define  CWRAP_ALL_PROTECTED_ACCESS   0x20
+#define  CWRAP_SMART_POINTER_OVERLOAD 0x40
 
 /* --- Director Helpers --- */
   extern Node *Swig_methodclass(Node *n);

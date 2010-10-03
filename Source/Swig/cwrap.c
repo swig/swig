@@ -783,15 +783,32 @@ int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parm
  * ----------------------------------------------------------------------------- */
 
 int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *classname, int flags, SwigType *director_type, int is_director) {
-  String *name, *qualifier;
+  String *name;
   ParmList *parms;
   SwigType *type;
   Parm *p;
   String *self = 0;
-
-  /* If smart pointer, change self dereferencing */
+  int is_smart_pointer_overload = 0;
+  String *qualifier = Getattr(n, "qualifier");
+  
+  /* If smart pointer without const overload or mutable method, change self dereferencing */
   if (flags & CWRAP_SMART_POINTER) {
-    self = NewString("(*this)->");
+    if (flags & CWRAP_SMART_POINTER_OVERLOAD) {
+      String *cname = Getattr(n, "classname") ? Getattr(n, "classname") : classname;
+      if (qualifier && strncmp(Char(qualifier), "q(const)", 8) == 0) {
+        self = NewString("(*(this))->");
+        is_smart_pointer_overload = 1;
+      }
+      else if (Cmp(Getattr(n, "storage"), "static") == 0) {
+        self = NewStringf("(*(%s const *)this)->", cname);
+        is_smart_pointer_overload = 1;
+      }
+      else {
+        self = NewString("(*this)->");
+      }
+    } else {
+      self = NewString("(*this)->");
+    }
   }
 
   /* If node is a member template expansion, we don't allow added code */
@@ -799,7 +816,6 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
     flags &= ~(CWRAP_EXTEND);
 
   name = Getattr(n, "name");
-  qualifier = Getattr(n, "qualifier");
   parms = CopyParmList(nonvoid_parms(Getattr(n, "parms")));
 
   type = NewString(classname);
@@ -921,10 +937,16 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
 
       if (Cmp(Getattr(n, "storage"), "static") != 0) {
 	String *pname = Swig_cparm_name(pp, i);
-        String *ctname = SwigType_namestr(cname);
-	String *fadd = NewStringf("(%s*)(%s)->operator ->()", ctname, pname);
+	String *ctname = SwigType_namestr(cname);
+	String *fadd = 0;
+	if (is_smart_pointer_overload) {
+	  fadd = NewStringf("(%s const *)((%s const *)%s)->operator ->()", ctname, classname, pname);
+	}
+	else {
+	  fadd = NewStringf("(%s*)(%s)->operator ->()", ctname, pname);
+	}
 	Append(func, fadd);
-        Delete(ctname);
+	Delete(ctname);
 	Delete(fadd);
 	Delete(pname);
 	pp = nextSibling(pp);
@@ -1310,6 +1332,8 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
       Node *sn = Getattr(n, "cplus:staticbase");
       String *base = Getattr(sn, "name");
       self = NewStringf("%s::", base);
+    } else if (flags & CWRAP_SMART_POINTER_OVERLOAD) {
+      self = NewStringf("(*(%s const *)this)->", classname);
     } else {
       self = NewString("(*this)->");
     }
