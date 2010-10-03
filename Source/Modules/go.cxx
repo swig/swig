@@ -1945,7 +1945,7 @@ private:
       String *ty = NewString(Getattr(ni, "type"));
       SwigType_push(ty, Getattr(ni, "decl"));
       String *fullty = SwigType_typedef_resolve_all(ty);
-      bool is_function = SwigType_isfunction(fullty);
+      bool is_function = SwigType_isfunction(fullty) ? true : false;
       Delete(ty);
       Delete(fullty);
 
@@ -2426,7 +2426,7 @@ private:
    * ------------------------------------------------------------ */
 
   int classDirectorConstructor(Node *n) {
-    bool is_ignored = GetFlag(n, "feature:ignore");
+    bool is_ignored = GetFlag(n, "feature:ignore") ? true : false;
 
     String *name = Getattr(n, "sym:name");
     if (!name) {
@@ -2667,7 +2667,7 @@ private:
       return SWIG_OK;
     }
 
-    bool is_ignored = GetFlag(n, "feature:ignore");
+    bool is_ignored = GetFlag(n, "feature:ignore") ? true : false;
 
     if (!is_ignored) {
       String *fnname = NewString("DeleteDirector");
@@ -2781,7 +2781,7 @@ private:
   int classDirectorMethod(Node *n, Node *parent, String *super) {
     (void) super;
 
-    bool is_ignored = GetFlag(n, "feature:ignore");
+    bool is_ignored = GetFlag(n, "feature:ignore") ? true : false;
     bool is_pure_virtual = (Cmp(Getattr(n, "storage"), "virtual") == 0 && Cmp(Getattr(n, "value"), "0") == 0);
 
     // We don't need explicit calls.
@@ -2869,7 +2869,7 @@ private:
    * ------------------------------------------------------------ */
 
   int oneClassDirectorMethod(Node *n, Node *parent) {
-    bool is_ignored = GetFlag(n, "feature:ignore");
+    bool is_ignored = GetFlag(n, "feature:ignore") ? true : false;
     bool is_pure_virtual = (Cmp(Getattr(n, "storage"), "virtual") == 0 && Cmp(Getattr(n, "value"), "0") == 0);
 
     String *name = Getattr(n, "sym:name");
@@ -3782,7 +3782,7 @@ private:
 
       int num_required = emit_num_required(pi);
       int num_arguments = emit_num_arguments(pi);
-      bool varargs = emit_isvarargs(pi);
+      bool varargs = emit_isvarargs(pi) ? true : false;
 
       if (varargs) {
 	Printf(f_go_wrappers, "\tif argc >= %d {\n", num_required);
@@ -4138,7 +4138,7 @@ private:
 		   n1, name, n2);
       return false;
     }
-    bool r = addSymbol(name, n, scope);
+    bool r = addSymbol(name, n, scope) ? true : false;
     assert(r);
     return true;
   }
