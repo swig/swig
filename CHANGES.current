@@ -2,8 +2,8 @@ This file contains the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.1 (in progress)
-===========================
+Version 2.0.1 (4 October 2010)
+==============================
 
 2010-10-03: wsfulton
             Apply patch #3066958 from Mikael Johansson to fix default smart pointer

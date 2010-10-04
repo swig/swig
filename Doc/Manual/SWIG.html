@@ -1885,7 +1885,8 @@ and a more descriptive one, but the two functions are otherwise equivalent:
     <td>String after (Perl-like) regex substitution operation. This function
     allows to apply arbitrary regular expressions to the identifier names. The
     <i>pattern</i> part is a regular expression in Perl syntax (as supported
-    by <a href="http://www.pcre.org/">PCRE</a>) and the <i>subst</i> string
+    by the <a href="http://www.pcre.org/">Perl Compatible Regular Expressions (PCRE)</a>)
+    library and the <i>subst</i> string
     can contain back-references introduced by <tt>'\'</tt> or, as backslashes need
     to be escaped in C strings, rather by <tt>"\\"</tt>. For example, to remove
     any alphabetic prefix before an underscore you could use the following directive:
