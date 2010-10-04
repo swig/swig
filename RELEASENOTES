@@ -6,7 +6,7 @@ Release Notes
 =============
 
 SWIG-2.0.1 summary:
-- Go language added to list of supported languages.
+- Support for the Go language has been added.
 - New regular expression (regex) encoder for renaming symbols based on
   the Perl Compatible Regular Expressions (PCRE) library.
 - Numerous fixes in reporting file and line numbers in error and warning
