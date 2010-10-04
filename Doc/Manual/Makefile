@@ -15,7 +15,7 @@
 # Note the # and " are escaped
 HTMLDOC_OPTIONS = "--book --toclevels 4 --no-numbered --toctitle \"Table of Contents\" --title --titleimage swig16.png --linkcolor \#0000ff --linkstyle underline --size Universal --left 0.50in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --footer h.1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=1 --jpeg=0 --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Times --headfootsize 10.0 --headfootfont Helvetica --charset iso-8859-1 --links --no-embedfonts --pagemode outline --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password \"\"  --user-password \"\" --browserwidth 680"
 
-.PHONY: maketoc check generate all clean validate test
+.PHONY: maketoc check generate all maintainer-clean validate test
 
 all: maketoc check generate
 
@@ -38,13 +38,13 @@ generate: swightml.book swigpdf.book
 	htmldoc --batch swigpdf.book || true
 	python fixstyle.py SWIGDocumentation.html
 
-swigpdf.book chapters Sections.html:
+swigpdf.book: chapters Sections.html
 	echo "#HTMLDOC 1.8.24" > swigpdf.book
 	echo -t pdf13 -f SWIGDocumentation.pdf $(HTMLDOC_OPTIONS) --stylesheet style.css >> swigpdf.book
 	echo "Sections.html" >> swigpdf.book
 	cat chapters >> swigpdf.book
 
-swightml.book chapters Sections.html:
+swightml.book: chapters Sections.html
 	echo "#HTMLDOC 1.8.24" > swightml.book
 	echo -t html -f SWIGDocumentation.html $(HTMLDOC_OPTIONS) >> swightml.book
 	echo "Sections.html" >> swightml.book
