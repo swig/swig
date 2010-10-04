@@ -42,7 +42,7 @@ Past SWIG developers and major contributors include:
  Tiger Feng (songyanf@cs.uchicago.edu)                  (SWIG core)
  Mark Rose (mrose@stm.lbl.gov)                          (Directors)
  Jonah Beckford (beckford@usermail.com)                 (CHICKEN)
- Ahmon Dancy (dancy@franz.com)				(Allegro CL)
+ Ahmon Dancy (dancy@franz.com)                          (Allegro CL)
  Dirk Gerrits                                           (Allegro CL)
  Neil Cawse                                             (C#)
  Harco de Hilster                                       (Java)
@@ -55,6 +55,8 @@ Past SWIG developers and major contributors include:
  Mark Gossage (mark@gossage.cjb.net)                    (Lua)
  Gonzalo Garramuno (ggarra@advancedsl.com.ar)           (Ruby, Ruby's UTL)
  John Lenz                                              (Guile, MzScheme updates, Chicken module, runtime system)
+ Ian Lance Taylor                                       (Go)
+ Vadim Zeitlin                                          (PCRE)
 
 Past contributors include:
  James Michael DuPont, Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
