@@ -175,6 +175,9 @@ Version 2.0.1 (4 October 2010)
             Fix #3024875 - shared_ptr of classes with non-public destructors. This also fixes
             the "unref" feature when used on classes with non-public destructors.
 
+2010-06-17: ianlancetaylor
+            [Go] Add the Go language module.
+
 2010-06-10: wsfulton
             [Lua] Fix SWIG_lua_isnilstring multiply defined when using multiple
             modules and wrapping strings. Patch from 'Number Cruncher'.
