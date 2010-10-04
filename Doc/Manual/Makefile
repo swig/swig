@@ -38,13 +38,13 @@ generate: swightml.book swigpdf.book
 	htmldoc --batch swigpdf.book || true
 	python fixstyle.py SWIGDocumentation.html
 
-swigpdf.book:
+swigpdf.book chapters Sections.html:
 	echo "#HTMLDOC 1.8.24" > swigpdf.book
 	echo -t pdf13 -f SWIGDocumentation.pdf $(HTMLDOC_OPTIONS) --stylesheet style.css >> swigpdf.book
 	echo "Sections.html" >> swigpdf.book
 	cat chapters >> swigpdf.book
 
-swightml.book:
+swightml.book chapters Sections.html:
 	echo "#HTMLDOC 1.8.24" > swightml.book
 	echo -t html -f SWIGDocumentation.html $(HTMLDOC_OPTIONS) >> swightml.book
 	echo "Sections.html" >> swightml.book
