@@ -1,3 +1,5 @@
+lines(0);
+
 exec loader.sce
 
 bar1(CSP_ITERATION_BWD_get())
