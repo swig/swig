@@ -1,7 +1,7 @@
 // loader the *.so
 exec loader.sce
 
-// creat a new matrix
+// create a new matrix
 x = new_matrix();
 for i = 0 : 3;
   for j = 0 : 3;
