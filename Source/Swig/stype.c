@@ -906,8 +906,9 @@ String *SwigType_manglestr_default(SwigType *s) {
   String *result = 0;
   String *base = 0;
   SwigType *lt;
-  SwigType *sr = SwigType_typedef_qualified(s);
-  SwigType *ss = SwigType_typedef_resolve_all(sr);
+  SwigType *sr = SwigType_typedef_resolve_all(s);
+  SwigType *sq = SwigType_typedef_qualified(sr);
+  SwigType *ss = SwigType_remove_global_scope_prefix(sq);
 
   s = ss;
 
@@ -917,7 +918,6 @@ String *SwigType_manglestr_default(SwigType *s) {
     ss = ty;
     s = ss;
   }
-  Delete(sr);
 
   lt = SwigType_ltype(s);
   result = SwigType_prefix(lt);
@@ -966,8 +966,9 @@ String *SwigType_manglestr_default(SwigType *s) {
   Insert(result, 0, "_");
   Delete(lt);
   Delete(base);
-  if (ss)
-    Delete(ss);
+  Delete(ss);
+  Delete(sq);
+  Delete(sr);
   return result;
 }
 
