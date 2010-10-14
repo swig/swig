@@ -11,6 +11,7 @@ catch
     mprintf("***************************\n")
     mprintf("* LOADER EXECUTION FAILED *\n");
     mprintf("***************************\n")
+    exit
 end
 
 // Error management function
