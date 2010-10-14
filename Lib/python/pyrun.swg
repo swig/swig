@@ -979,10 +979,13 @@ _SWIG_This(void)
     return SWIG_Python_str_FromChar("this");
 }
 
+static PyObject *swig_this = NULL;
+
 SWIGRUNTIME PyObject *
 SWIG_This(void)
 {
-  static PyObject *SWIG_STATIC_POINTER(swig_this) = _SWIG_This();
+  if (swig_this == NULL)
+    swig_this = _SWIG_This();
   return swig_this;
 }
 
@@ -1413,6 +1416,7 @@ SWIG_Python_DestroyModule(void *vptr)
     }
   }
   Py_DECREF(SWIG_This());
+  swig_this = NULL;
 }
 
 SWIGRUNTIME void

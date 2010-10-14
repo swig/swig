@@ -33,7 +33,7 @@
 
 %rename(awk_cmd) "";
 
-%rename("%(title)s",rxsmatch$parentNode$type="enum .*") "";
+%rename("%(title)s",regexmatch$parentNode$type="enum .*") "";
 
 %inline 
 {
@@ -59,7 +59,7 @@
   
 }
 
-%rename("%(lowercase)s",sourcefmt="%(rxspencer:[GSL_(.*)][@1])s",%$isfunction) "";
+%rename("%(lowercase)s",sourcefmt="%(regex:/GSL_(.*)/\\1/)s",%$isfunction) "";
 %inline {
   void GSL_Hello() {}
 }

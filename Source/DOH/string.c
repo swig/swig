@@ -419,7 +419,7 @@ static int String_read(DOH *so, void *buffer, int len) {
 /* -----------------------------------------------------------------------------
  * int String_write() - Write data to a string
  * ----------------------------------------------------------------------------- */
-static int String_write(DOH *so, void *buffer, int len) {
+static int String_write(DOH *so, const void *buffer, int len) {
   int newlen;
   String *s = (String *) ObjData(so);
   s->hashkey = -1;

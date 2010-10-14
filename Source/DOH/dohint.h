@@ -43,7 +43,7 @@ typedef struct {
 /* File methods */
 typedef struct {
   int (*doh_read) (DOH *obj, void *buffer, int nbytes);	/* Read bytes */
-  int (*doh_write) (DOH *obj, void *buffer, int nbytes);	/* Write bytes */
+  int (*doh_write) (DOH *obj, const void *buffer, int nbytes);	/* Write bytes */
   int (*doh_putc) (DOH *obj, int ch);	/* Put character */
   int (*doh_getc) (DOH *obj);	/* Get character */
   int (*doh_ungetc) (DOH *obj, int ch);	/* Unget character */

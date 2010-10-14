@@ -2,8 +2,12 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[2.0.0],[http://www.swig.org])
+AC_INIT([swig],[2.0.2],[http://www.swig.org])
+
+dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
+dnl     definition below can be removed
 AC_PREREQ(2.58)
+
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
 AC_CONFIG_HEADERS([Source/Include/swigconfig.h])
@@ -49,23 +53,56 @@ else
 AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), AC_MSG_NOTICE([Disabling popen]))
 fi
 
-dnl Look for RxSpencer 
-AC_ARG_WITH(rxspencer, AS_HELP_STRING([--with-rxspencer], [Enable RxSpencer]), with_rxspencer="yes")
-if test x"${with_rxspencer}" = xyes ; then 
-#check first for the header
- AC_CHECK_HEADER(rxspencer/regex.h,with_rxspencer="yes",with_rxspencer="no")
- if test x"${with_rxspencer}" = xyes ; then 
-# now check for the library
-  AC_CHECK_LIB(rxspencer, regcomp,with_rxspencer="yes",with_rxspencer="no")
- fi
- if test x"${with_rxspencer}" = xyes ; then 
-# library and header are available
-  AC_DEFINE(HAVE_RXSPENCER, 1,[Define if rxspencer is available])
-  LIBS="$LIBS -lrxspencer"
- else
-  AC_MSG_NOTICE([RxSpencer not found. Obtain it at http://arglist.com/regex or http://gnuwin32.sourceforge.net/packages.html])
- fi
+dnl PCRE
+
+dnl AX_PATH_GENERIC() relies on AC_PROG_SED() but it is defined only in
+dnl autoconf 2.60 so trivially predefine it ourselves for the older versions
+m4_ifdef([AC_PROG_SED],, [AC_DEFUN([AC_PROG_SED], [AC_PATH_PROG([SED], sed)])])
+
+AC_ARG_WITH([pcre],
+  [AS_HELP_STRING([--without-pcre],
+                  [Disable support for regular expressions using PCRE])],
+  [],
+  [with_pcre=yes])
+
+AC_MSG_CHECKING([whether to enable PCRE support])
+AC_MSG_RESULT([$with_pcre])
+
+dnl To make configuring easier, check for a locally built PCRE using the Tools/pcre-build.sh script
+if test x"${with_pcre}" = xyes ; then 
+  AC_MSG_CHECKING([whether to use local PCRE])
+  local_pcre_config=no
+  if test -z $PCRE_CONFIG; then
+    if test -f `pwd`/pcre/pcre-swig-install/bin/pcre-config; then
+      PCRE_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre-config
+      local_pcre_config=$PCRE_CONFIG
+    fi
+  fi
+  AC_MSG_RESULT([$local_pcre_config])
 fi
+AS_IF([test "x$with_pcre" != xno],
+  [AX_PATH_GENERIC([pcre],
+    [], dnl Minimal version of PCRE we need -- accept any
+    [], dnl custom sed script for version parsing is not needed
+    [AC_DEFINE([HAVE_PCRE], [1], [Define if you have PCRE library])
+     LIBS="$LIBS $PCRE_LIBS"
+     CPPFLAGS="$CPPFLAGS $PCRE_CFLAGS"
+    ],
+    [AC_MSG_FAILURE([
+        Can't find pcre-config script from PCRE (Perl Compatible Regular Expressions)
+        library package. This dependency is needed for configure to complete,
+        Either:
+        - Install the PCRE developer package on your system (preferred approach).
+        - Download the PCRE source tarball, build and install on your system
+          as you would for any package built from source distribution.
+        - Use the Tools/pcre-build.sh script to build PCRE just for SWIG to statically
+          link against. Run 'Tools/pcre-build.sh --help' for instructions.
+          (quite easy and does not require privileges to install PCRE on your system)
+        - Use configure --without-pcre to disable regular expressions support in SWIG
+          (not recommended).])
+    ])
+  ])
+
 
 dnl CCache
 AC_ARG_ENABLE([ccache], AS_HELP_STRING([--disable-ccache], [disable building and installation of ccache-swig executable (default enabled)]), [enable_ccache=$enableval], [enable_ccache=yes])
@@ -85,6 +122,20 @@ echo "Note : None of the following packages are required for users to compile an
 echo ""
 
 AC_PROG_YACC
+echo "YACC $YACC"
+if test -z "$YACC"; then
+   AC_MSG_ERROR([No implementation of Yacc (bison, yacc) detected.])
+fi
+# Actually, AC_PROG_YACC is lying. It sometimes put yacc into $YACC even it
+# hasn't been able to find it.
+#  AC_CHECK_PROG(YACC_PRESENT, $YACC, AC_MSG_ERROR([No implementation of Yacc (bison, yacc) detected. Please install it (package bison)]) )
+
+AC_CHECK_PROG(yacc_present, $YACC, "yes","no")
+if test "x$yacc_present" != "xyes"; then
+   AC_MSG_ERROR([No implementation of Yacc (bison, yacc) detected. Please install it (package bison)])
+fi
+
+
 AC_PROG_RANLIB
 AC_CHECK_PROGS(AR, ar aal, ar)
 AC_SUBST(AR)
@@ -2015,6 +2066,35 @@ fi
 AC_SUBST(RBIN)
 
 #----------------------------------------------------------------
+# Look for Go compilers
+#----------------------------------------------------------------
+
+AC_ARG_WITH(go, AS_HELP_STRING([--without-go], [Disable Go])
+AS_HELP_STRING([--with-go=path], [Set location of Go compiler]),[GOBIN="$withval"], [GOBIN=yes])
+
+if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then 
+AC_MSG_NOTICE([Disabling Go])
+GO=
+GOGCC=false
+else
+
+    if test "x$GOBIN" = xyes; then
+	AC_CHECK_PROGS(GO, 6g 8g gccgo)
+    else
+	GO="$GOBIN"
+    fi
+
+    GOGCC=false
+    if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
+	GOGCC=true
+    fi
+
+fi
+
+AC_SUBST(GOGCC)
+AC_SUBST(GO)
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -2170,6 +2250,12 @@ if test -z "$SCILAB"; then
 fi
 AC_SUBST(SKIP_SCILAB)
 
+SKIP_GO=
+if test -z "$GO" ; then
+    SKIP_GO="1"
+fi
+AC_SUBST(SKIP_GO)
+
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
@@ -2249,6 +2335,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/uffi/Makefile		\
     Examples/test-suite/r/Makefile		\
     Examples/test-suite/scilab/Makefile		\
+    Examples/test-suite/go/Makefile		\
     Lib/ocaml/swigp4.ml
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])

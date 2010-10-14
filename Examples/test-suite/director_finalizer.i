@@ -1,4 +1,7 @@
 %module(directors="1") director_finalizer
+
+%warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'deleteFoo' due to Go name ('DeleteFoo') conflict with '~Foo' */
+
 %{
 
 int status = 0;

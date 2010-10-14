@@ -13,7 +13,7 @@ if (enums.cvar.Slap != 10)
   error
 endif
 
-if (enums.cvar.My != 11)
+if (enums.cvar.Mine != 11)
   error
 endif
 

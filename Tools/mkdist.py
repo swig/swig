@@ -47,7 +47,6 @@ os.system("rm -Rf "+dirname+"/debian") == 0 or failed()
 
 print "Building system"
 os.system("cd "+dirname+" && ./autogen.sh") == 0 or failed()
-os.system("cd "+dirname+"/Tools/WAD && autoconf") == 0 or failed()
 os.system("cd "+dirname+"/Source/CParse && bison -y -d parser.y && mv y.tab.c parser.c && mv y.tab.h parser.h") == 0 or failed()
 os.system("cd "+dirname+" && make -f Makefile.in libfiles srcdir=./") == 0 or failed()
 

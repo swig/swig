@@ -7,8 +7,8 @@ JAVA         = java
 JAVAC        = javac
 SCRIPTSUFFIX = _runme.java
 srcdir       = @srcdir@
-top_srcdir   = @top_srcdir@/..
-top_builddir = @top_builddir@/..
+top_srcdir   = ../@top_srcdir@
+top_builddir = ../@top_builddir@
 
 C_TEST_CASES = \
 	java_lib_arrays \
@@ -39,7 +39,6 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 JAVA_PACKAGE = $*
 SWIGOPT += -package $(JAVA_PACKAGE)
-INTERFACEDIR = ../../
 
 # Custom tests - tests with additional commandline options
 nspace.%: JAVA_PACKAGE = $*Package

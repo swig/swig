@@ -17,6 +17,7 @@ CCache.html
 Allegrocl.html
 CSharp.html
 Chicken.html
+Go.html
 Guile.html
 Java.html
 Lisp.html
@@ -29,8 +30,7 @@ Perl5.html
 Php.html
 Pike.html
 Python.html
+R.html
 Ruby.html
 Tcl.html
-R.html
 Extending.html
-

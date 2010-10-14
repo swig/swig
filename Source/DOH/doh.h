@@ -221,7 +221,7 @@ extern int DohDelslice(DOH *obj, int sindex, int eindex);
 
 /* File methods */
 
-extern int DohWrite(DOHFile * obj, void *buffer, int length);
+extern int DohWrite(DOHFile * obj, const void *buffer, int length);
 extern int DohRead(DOHFile * obj, void *buffer, int length);
 extern int DohSeek(DOHFile * obj, long offset, int whence);
 extern long DohTell(DOHFile * obj);
@@ -267,6 +267,8 @@ extern int DohIsSequence(const DOH *obj);
 extern int DohIsString(const DOH *obj);
 extern int DohIsFile(const DOH *obj);
 
+extern void DohSetMaxHashExpand(int count);
+extern int DohGetMaxHashExpand(void);
 extern void DohSetmark(DOH *obj, int x);
 extern int DohGetmark(DOH *obj);
 
@@ -424,6 +426,8 @@ extern void DohMemoryDebug(void);
 #define SplitLines         DohSplitLines
 #define Setmark            DohSetmark
 #define Getmark            DohGetmark
+#define SetMaxHashExpand   DohSetMaxHashExpand
+#define GetMaxHashExpand   DohGetMaxHashExpand
 #define None               DohNone
 #define Call               DohCall
 #define First              DohFirst

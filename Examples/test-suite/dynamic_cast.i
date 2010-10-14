@@ -1,7 +1,7 @@
 /* File : example.i */
 %module dynamic_cast
 
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO)
 %apply SWIGTYPE *DYNAMIC { Foo * };
 #endif
 
@@ -17,7 +17,7 @@ public:
 };
 %}
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGO)
 %typemap(out) Foo *blah {
     Bar *downcast = dynamic_cast<Bar *>($1);
     *(Bar **)&$result = downcast;
@@ -37,6 +37,14 @@ public:
   }
 #endif
 
+#if defined(SWIGGO)
+%insert(go_runtime) %{
+func FooToBar(f Foo) Bar {
+	return SwigcptrBar(f.Swigcptr())
+}
+%}
+#endif
+
 %inline %{
 
 class Bar : public Foo {
@@ -54,7 +62,7 @@ char *do_test(Bar *b) {
 }
 %}
 
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO)
 // A general purpose function for dynamic casting of a Foo *
 %{
 static swig_type_info *

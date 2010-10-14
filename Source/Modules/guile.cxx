@@ -114,7 +114,7 @@ static String *memberfunction_name = 0;
 
 extern "C" {
   static int has_classname(Node *class_node) {
-    return Getattr(class_node, "guile:goopsclassname") != NULL;
+    return Getattr(class_node, "guile:goopsclassname") ? 1 : 0;
   }
 }
 
@@ -254,7 +254,7 @@ public:
     }
 
     // set default value for primsuffix
-    if (primsuffix == NULL)
+    if (!primsuffix)
       primsuffix = NewString("primitive");
 
     //goops support can only be enabled if passive or module linkage is used
@@ -628,7 +628,7 @@ public:
     if (maybe_delimiter && Len(output) > 0 && Len(tm) > 0) {
       Printv(output, maybe_delimiter, NIL);
     }
-    const String *pn = (name == NULL) ? (const String *) Getattr(p, "name") : name;
+    const String *pn = !name ? (const String *) Getattr(p, "name") : name;
     String *pt = Getattr(p, "type");
     Replaceall(tm, "$name", pn);	// legacy for $parmname
     Replaceall(tm, "$type", SwigType_str(pt, 0));
@@ -657,7 +657,7 @@ public:
     Parm *p;
     String *proc_name = 0;
     char source[256];
-    Wrapper *f = NewWrapper();;
+    Wrapper *f = NewWrapper();
     String *cleanup = NewString("");
     String *outarg = NewString("");
     String *signature = NewString("");
@@ -781,7 +781,7 @@ public:
 	    if (strcmp("void", Char(pt)) != 0) {
 	      Node *class_node = Swig_symbol_clookup_check(pb, Getattr(n, "sym:symtab"),
 							   has_classname);
-	      String *goopsclassname = (class_node == NULL) ? NULL : Getattr(class_node, "guile:goopsclassname");
+	      String *goopsclassname = !class_node ? NULL : Getattr(class_node, "guile:goopsclassname");
 	      /* do input conversion */
 	      if (goopsclassname) {
 		Printv(method_signature, " (", argname, " ", goopsclassname, ")", NIL);

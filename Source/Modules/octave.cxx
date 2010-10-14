@@ -760,6 +760,7 @@ public:
     SwigType *type = Getattr(n, "type");
     String *rawval = Getattr(n, "rawval");
     String *value = rawval ? rawval : Getattr(n, "value");
+    String *cppvalue = Getattr(n, "cppvalue");
     String *tm;
 
     if (!addSymbol(iname, n))
@@ -775,7 +776,7 @@ public:
     if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
-      Replaceall(tm, "$value", value);
+      Replaceall(tm, "$value", cppvalue ? cppvalue : value);
       Replaceall(tm, "$nsname", iname);
       Printf(f_init, "%s\n", tm);
     } else {
@@ -972,12 +973,12 @@ public:
       Delete(self);
     }
 
-    return Language::constructorHandler(n);;
+    return Language::constructorHandler(n);
   }
 
   virtual int destructorHandler(Node *n) {
     have_destructor = 1;
-    return Language::destructorHandler(n);;
+    return Language::destructorHandler(n);
   }
 
   virtual int staticmemberfunctionHandler(Node *n) {
@@ -1243,7 +1244,7 @@ public:
       idx = 0;
       p = l;
       int use_parse = 0;
-      while (p != NULL) {
+      while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  p = Getattr(p, "tmap:in:next");
 	  continue;

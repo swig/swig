@@ -319,7 +319,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_string_lower(String *s);
   extern String *Swig_string_upper(String *s);
   extern String *Swig_string_title(String *s);
-
+  extern String *Swig_pcre_version(void);
   extern void Swig_init(void);
   extern int Swig_value_wrapper_mode(int mode);
 
@@ -334,6 +334,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern int Swig_warn_count(void);
   extern void Swig_error_msg_format(ErrorMessageFormat format);
   extern void Swig_diagnostic(const_String_or_char_ptr filename, int line, const char *fmt, ...);
+  extern String *Swig_stringify_with_location(DOH *object);
 
 /* --- C Wrappers --- */
   extern String *Swig_cparm_name(Parm *p, int i);
@@ -369,6 +370,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 #define  CWRAP_DIRECTOR_ONE_CALL      0x08
 #define  CWRAP_DIRECTOR_TWO_CALLS     0x10
 #define  CWRAP_ALL_PROTECTED_ACCESS   0x20
+#define  CWRAP_SMART_POINTER_OVERLOAD 0x40
 
 /* --- Director Helpers --- */
   extern Node *Swig_methodclass(Node *n);
@@ -408,6 +410,8 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Wrapper_director_protected_mode_set(int);
   extern void Wrapper_all_protected_mode_set(int);
   extern void Language_replace_special_variables(String *method, String *tm, Parm *parm);
+  extern void Swig_print(DOH *object, int count);
+  extern void Swig_print_with_location(DOH *object, int count);
 
 
 /* -- template init -- */

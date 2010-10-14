@@ -8,8 +8,8 @@ INTERPRETER  = @CSHARPCILINTERPRETER@
 CSHARPPATHSEPARATOR = "@CSHARPPATHSEPARATOR@"
 CSHARPCYGPATH_W     = @CSHARPCYGPATH_W@
 srcdir       = @srcdir@
-top_srcdir   = @top_srcdir@/..
-top_builddir = @top_builddir@/..
+top_srcdir   = ../@top_srcdir@
+top_builddir = ../@top_builddir@
 
 CPP_TEST_CASES = \
 	csharp_attributes \
@@ -27,7 +27,6 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 SWIGOPT += -namespace $*Namespace
-INTERFACEDIR = ../../
 
 CSHARPFLAGSSPECIAL =
 

@@ -963,6 +963,9 @@ using System.Runtime.InteropServices;
 // Default enum handling
 %include <enums.swg>
 
+// For vararg handling in macros, from swigmacros.swg
+#define %arg(X...) X
+
 /*
 // Alternative char * typemaps.
 %pragma(csharp) imclasscode=%{

@@ -1,3 +1,5 @@
+// This is a helper file for shared_ptr and should not be included directly.
+
 // The main implementation detail in using this smart pointer of a type is to customise the code generated
 // to use a pointer to the smart pointer of the type, rather than the usual pointer to the underlying type.
 // So for some type T, shared_ptr<T> * is used rather than T *.
@@ -40,26 +42,23 @@ struct SWIG_null_deleter {
 }
 
 
+// Workaround empty first macro argument bug
+#define SWIGEMPTYHACK
 // Main user macro for defining shared_ptr typemaps for both const and non-const pointer types
-// For plain classes, do not use for derived classes
-%define SWIG_SHARED_PTR(PROXYCLASS, TYPE...)
-SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, , TYPE)
-SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, const, TYPE)
+%define %shared_ptr(TYPE...)
+%feature("smartptr", noblock=1) TYPE { SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > }
+SWIG_SHARED_PTR_TYPEMAPS(SWIGEMPTYHACK, TYPE)
+SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
 %enddef
 
-// Main user macro for defining shared_ptr typemaps for both const and non-const pointer types
-// For derived classes
+// Legacy macros
+%define SWIG_SHARED_PTR(PROXYCLASS, TYPE...)
+#warning "SWIG_SHARED_PTR(PROXYCLASS, TYPE) is deprecated. Please use %shared_ptr(TYPE) instead."
+%shared_ptr(TYPE)
+%enddef
+
 %define SWIG_SHARED_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE...)
-SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, , TYPE)
-SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, const, TYPE)
-%types(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > = SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >) %{
-  *newmemory = SWIG_CAST_NEW_MEMORY;
-  return (void *) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE >(*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *)$from);
-%}
-%extend TYPE {
-  static SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< BASECLASSTYPE > SWIGSharedPtrUpcast(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast) {
-    return swigSharedPtrUpcast;
-  }
-}
+#warning "SWIG_SHARED_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE) is deprecated. Please use %shared_ptr(TYPE) instead."
+%shared_ptr(TYPE)
 %enddef
 

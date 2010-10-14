@@ -319,6 +319,14 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_CSharpString
 %}
 #endif // SWIG_CSHARP_NO_STRING_HELPER
 
+#if !defined(SWIG_CSHARP_NO_IMCLASS_STATIC_CONSTRUCTOR)
+// Ensure the class is not marked beforefieldinit
+%pragma(csharp) imclasscode=%{
+  static $imclassname() {
+  }
+%}
+#endif
+
 %insert(runtime) %{
 /* Contract support */
 

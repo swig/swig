@@ -941,7 +941,7 @@ public:
 
         // below based on Swig_VargetToFunction()
         SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-        Setattr(n, "wrap:action", NewStringf("result = (%s) %s;", SwigType_lstr(ty, 0), Getattr(n, "value")));
+        Setattr(n, "wrap:action", NewStringf("result = (%s)(%s);", SwigType_lstr(ty, 0), Getattr(n, "value")));
       }
 
       Swig_director_emit_dynamic_cast(n, f);
@@ -1281,6 +1281,13 @@ public:
       tmpValue = NewString(name);
     // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
+
+    // Deal with enum values that are bools
+    if (SwigType_type(Getattr(n, "type")) == T_BOOL) {
+      String *boolValue = NewStringf("%s ? 1 : 0", Getattr(n, "enumvalue"));
+      Setattr(n, "enumvalue", boolValue);
+      Delete(boolValue);
+    }
 
     {
       EnumFeature enum_feature = decodeEnumFeature(parent);
@@ -1633,10 +1640,10 @@ public:
               base = Next(base);
               continue;
             }
-            String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
-            String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-            Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number,
-                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#.\n", proxyclassname, baseclassname);
+            String *proxyclassname = Getattr(n, "classtypeobj");
+            String *baseclassname = Getattr(base.item, "name");
+            Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
             base = Next(base);
           }
         }
@@ -1654,9 +1661,9 @@ public:
       Delete(baseclass);
       baseclass = NULL;
       if (purebase_notderived)
-        Swig_error(input_file, line_number, "The csbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n", typemap_lookup_type);
+        Swig_error(Getfile(n), Getline(n), "The csbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n", typemap_lookup_type);
     } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
-      Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, input_file, line_number,
+      Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in C#. "
 		   "Perhaps you need one of the 'replace' or 'notderived' attributes in the csbase typemap?\n", typemap_lookup_type, pure_baseclass);
     }
@@ -1697,10 +1704,10 @@ public:
     }
     if (tm && *Char(tm)) {
       if (!destruct_methodname) {
-	Swig_error(input_file, line_number, "No methodname attribute defined in csdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+	Swig_error(Getfile(n), Getline(n), "No methodname attribute defined in csdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
       }
       if (!destruct_methodmodifiers) {
-	Swig_error(input_file, line_number,
+	Swig_error(Getfile(n), Getline(n),
 		   "No methodmodifiers attribute defined in csdestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
       }
     }
@@ -1810,7 +1817,8 @@ public:
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
-      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, "SWIGUpcast");
+      String *smartptr = Getattr(n, "feature:smartptr");
+      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
       String *wname = Swig_name_wrapper(upcast_method);
 
       Printv(imclass_cppcasts_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
@@ -1818,10 +1826,35 @@ public:
 
       Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
 
-      Printv(upcasts_code,
-	     "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname,
-	     "(", c_classname, " *jarg1) {\n", "    return (", c_baseclass, " *)jarg1;\n" "}\n", "\n", NIL);
-
+      if (smartptr) {
+	SwigType *spt = Swig_cparse_type(smartptr);
+	if (spt) {
+	  SwigType *smart = SwigType_typedef_resolve_all(spt);
+	  Delete(spt);
+	  SwigType *bsmart = Copy(smart);
+	  SwigType *rclassname = SwigType_typedef_resolve_all(c_classname);
+	  SwigType *rbaseclass = SwigType_typedef_resolve_all(c_baseclass);
+	  Replaceall(bsmart, rclassname, rbaseclass);
+	  Delete(rclassname);
+	  Delete(rbaseclass);
+	  String *smartnamestr = SwigType_namestr(smart);
+	  String *bsmartnamestr = SwigType_namestr(bsmart);
+	  Printv(upcasts_code,
+		 "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", wname, "(", smartnamestr, " *jarg1) {\n",
+		 "    return jarg1 ? new ", bsmartnamestr, "(*jarg1) : 0;\n"
+		 "}\n", "\n", NIL);
+	  Delete(bsmartnamestr);
+	  Delete(smartnamestr);
+	  Delete(bsmart);
+	} else {
+	  Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, c_classname);
+	}
+      } else {
+	Printv(upcasts_code,
+	       "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname, "(", c_classname, " *jarg1) {\n",
+	       "    return (", c_baseclass, " *)jarg1;\n"
+	       "}\n", "\n", NIL);
+      }
       Delete(wname);
       Delete(upcast_method);
     }
@@ -3052,8 +3085,10 @@ public:
     if (Strstr(tm, "$*csclassname")) {
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
-      substituteClassnameSpecialVariable(classnametype, tm, "$*csclassname");
-      substitution_performed = true;
+      if (Len(classnametype) > 0) {
+	substituteClassnameSpecialVariable(classnametype, tm, "$*csclassname");
+	substitution_performed = true;
+      }
       Delete(classnametype);
     }
     if (Strstr(tm, "$&csclassname")) {
@@ -3879,7 +3914,7 @@ public:
 
   int classDirectorConstructor(Node *n) {
     Node *parent = parentNode(n);
-    String *decl = Getattr(n, "decl");;
+    String *decl = Getattr(n, "decl");
     String *supername = Swig_class_name(parent);
     String *classname = directorClassName(parent);
     String *sub = NewString("");

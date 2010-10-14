@@ -13,3 +13,11 @@
 
 %template(VectorVectorString) std::vector< std::vector<std::string> >;
 %template(PairIntPairIntString) std::pair< int, std::pair<int, std::string> >;
+
+#if defined(SWIGCSHARP)
+// Checks macro containing a type with a comma
+SWIG_STD_VECTOR_ENHANCED(std::pair< double, std::string >)
+#endif
+%template(PairDoubleString) std::pair< double, std::string >;
+%template(VectorPairDoubleString) std::vector< std::pair<double, std::string> >;
+

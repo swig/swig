@@ -3,6 +3,7 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) Hello;	/* Ruby, wrong class name */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) Hi;	/* Ruby, wrong class name */
 
+%warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'hello due to Go name ('Hello) conflict with 'Hello' */
 
 %inline %{
 

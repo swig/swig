@@ -221,6 +221,8 @@ String *Swig_read_file(FILE *f) {
     Append(str, buffer);
   }
   len = Len(str);
+  /* Add a newline if not present on last line -- the preprocessor seems to 
+   * rely on \n and not EOF terminating lines */
   if (len) {
     char *cstr = Char(str);
     if (cstr[len - 1] != '\n') {

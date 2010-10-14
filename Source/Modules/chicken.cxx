@@ -677,7 +677,7 @@ int CHICKEN::variableWrapper(Node *n) {
   String *wname = NewString("");
   String *mangle = NewString("");
   String *tm;
-  String *tm2 = NewString("");;
+  String *tm2 = NewString("");
   String *argnum = NewString("0");
   String *arg = NewString("argv[0]");
   Wrapper *f;

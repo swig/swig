@@ -735,6 +735,7 @@ String *SwigType_rcaststr(SwigType *s, const_String_or_char_ptr name) {
   int clear = 1;
   int firstarray = 1;
   int isreference = 0;
+  int isfunction = 0;
   int isarray = 0;
 
   result = NewStringEmpty();
@@ -835,6 +836,7 @@ String *SwigType_rcaststr(SwigType *s, const_String_or_char_ptr name) {
       }
       Append(result, ")");
       Delete(parms);
+      isfunction = 1;
     } else {
       String *bs = SwigType_namestr(element);
       Insert(result, 0, " ");
@@ -850,10 +852,12 @@ String *SwigType_rcaststr(SwigType *s, const_String_or_char_ptr name) {
     cast = NewStringf("(%s)", result);
   }
   if (name) {
-    if (isreference) {
-      if (isarray)
-	Clear(cast);
-      Append(cast, "*");
+    if (!isfunction) {
+      if (isreference) {
+	if (isarray)
+	  Clear(cast);
+	Append(cast, "*");
+      }
     }
     Append(cast, name);
   }
@@ -902,8 +906,9 @@ String *SwigType_manglestr_default(SwigType *s) {
   String *result = 0;
   String *base = 0;
   SwigType *lt;
-  SwigType *sr = SwigType_typedef_qualified(s);
-  SwigType *ss = SwigType_typedef_resolve_all(sr);
+  SwigType *sr = SwigType_typedef_resolve_all(s);
+  SwigType *sq = SwigType_typedef_qualified(sr);
+  SwigType *ss = SwigType_remove_global_scope_prefix(sq);
 
   s = ss;
 
@@ -913,7 +918,6 @@ String *SwigType_manglestr_default(SwigType *s) {
     ss = ty;
     s = ss;
   }
-  Delete(sr);
 
   lt = SwigType_ltype(s);
   result = SwigType_prefix(lt);
@@ -962,8 +966,9 @@ String *SwigType_manglestr_default(SwigType *s) {
   Insert(result, 0, "_");
   Delete(lt);
   Delete(base);
-  if (ss)
-    Delete(ss);
+  Delete(ss);
+  Delete(sq);
+  Delete(sr);
   return result;
 }
 

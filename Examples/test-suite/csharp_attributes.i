@@ -56,7 +56,7 @@ double MoreStations::WestonSuperMare = 0.0;
 
 %inline %{
 struct YetMoreStations {
-  virtual int Slough(int x) {}
+  virtual int Slough(int x) { return x; }
   virtual ~YetMoreStations() {}
 };
 %}

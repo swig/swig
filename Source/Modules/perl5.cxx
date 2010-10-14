@@ -308,7 +308,7 @@ public:
     if (no_pmfile) {
       f_pm = NewString(0);
     } else {
-      if (pmfile == NULL) {
+      if (!pmfile) {
 	char *m = Char(module) + Len(module);
 	while (m != Char(module)) {
 	  if (*m == ':') {

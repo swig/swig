@@ -1,0 +1,94 @@
+#######################################################################
+# Makefile for Go test-suite
+#######################################################################
+
+LANGUAGE	= go
+GO		= @GO@
+GOGCC		= false
+SCRIPTSUFFIX	= _runme.go
+
+GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; fi`
+GOC = $(GO:g=c)
+GOLD = $(GO:g=l)
+
+GOOBJEXT = $(GO:g=)
+
+SO = @SO@
+
+srcdir       = @srcdir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
+
+include $(srcdir)/../common.mk
+
+.SUFFIXES: .cpptest .ctest .multicpptest
+
+# Rules for the different types of tests
+%.cpptest: 
+	$(setup)
+	+$(swig_and_compile_cpp)
+	$(run_testcase)
+
+%.ctest:
+	$(setup)
+	+$(swig_and_compile_c)
+	$(run_testcase)
+
+%.multicpptest: 
+	$(setup)
+	+$(swig_and_compile_multi_cpp)
+	$(run_multi_testcase)
+
+multi_import.multicpptest:
+	$(setup)
+	for f in multi_import_b multi_import_a; do \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="$(CXXSRCS)" \
+	  SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" LIBS='$(LIBS)' \
+	  INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$$f.i" \
+	  $(LANGUAGE)$(VARIANT)_cpp; \
+	done
+	$(run_multi_testcase)
+
+# Runs the testcase.
+run_testcase = \
+	if test -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
+	  $(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  if $(GOGCC) ; then \
+	    $(COMPILETOOL) $(GO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $*.@OBJEXT@ $*$(SO); \
+	  else \
+	    $(COMPILETOOL) $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	  fi && \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
+	fi
+
+run_multi_testcase = \
+	if test -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
+	  $(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  if $(GOGCC) ; then \
+	    files=`cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list`; \
+	    $(COMPILETOOL) $(GO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ `for f in $$files; do echo $$f.@OBJEXT@ $$f$(SO); done`; \
+	  else \
+	    $(COMPILETOOL) $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	  fi && \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
+	fi
+
+%.clean:
+	@rm -f $*.go $*_gc.c $*_wrap.* $*_runme
+
+clean:
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile go_clean
+	rm -f mod_a.go mod_b.go imports_a.go imports_b.go
+	rm -f clientdata_prop_a.go clientdata_prop_b.go
+	rm -f multi_import_a.go multi_import_b.go
+	rm -f packageoption_a.go packageoption_b.go packageoption_c.go
+
+cvsignore:
+	@echo '*_gc.c *_wrap.* *.so *.dll *.exp *.lib'
+	@echo Makefile
+	@echo mod_a.go mod_b.go imports_a.go imports_b.go
+	@echo clientdata_prop_a.go clientdata_prop_b.go
+	@echo multi_import_a.go multi_import_b.go
+	@echo packageoption_a.go packageoption_b.go packageoption_c.go
+	@for i in ${CPP_TEST_CASES} ${C_TEST_CASES}; do echo $$i.go; done
