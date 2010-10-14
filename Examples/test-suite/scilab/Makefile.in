@@ -32,7 +32,7 @@ run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) -nwni -nb -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
 	else \
-	  (echo "**********************\n* RUNME FILE MISSING *\n**********************") \
+	  (echo "**********************\n* RUNME FILE MISSING *\n* $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) *\n**********************") \
 	fi; \
 
 
