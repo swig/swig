@@ -1,15 +1,31 @@
-exec loader.sce;
+exec("swigtest.start", -1);
 
-x = add(3, 4);
-if x <> 7 then pause, end
+try
+    x = add(3, 4);
+catch
+    swigtesterror();
+end
+if x <> 7 then swigtesterror(); end
 
-y = subtract(3,4);
-if y <> -1 then pause, end
+try
+    y = subtract(3,4);
+catch
+    swigtesterror();
+end
+if y <> -1 then swigtesterror(); end
 
-z = mul(3,4);
-if z <> 12 then pause, end
+try
+    z = mul(3,4);
+catch
+    swigtesterror();
+end
+if z <> 12 then swigtesterror(); end
 
-w = divide(3,4);
-if w <> 0 then pause, end
+try
+    w = divide(3,4);
+catch
+    swigtesterror();
+end
+if w <> 0 then swigtesterror(); end
 
-exit
+exec("swigtest.quit", -1);

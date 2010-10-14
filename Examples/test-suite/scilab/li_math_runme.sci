@@ -1,6 +1,9 @@
-exec loader.sce;
+exec("swigtest.start", -1);
 
-x = fmod(M_PI_get(), M_1_PI_get())
+try
+   x = fmod(M_PI_get(), M_1_PI_get())
+catch
+    swigtesterror();
+end
 
-exit
-
+exec("swigtest.quit", -1);

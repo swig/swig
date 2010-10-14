@@ -1,15 +1,31 @@
-exec loader.sce;
+exec("swigtest.start", -1);
 
-x = makeFoo();
-if fooCount() <> 1 then pause, end
+try
+    x = makeFoo();
+catch
+    swigtesterror();
+end
+if fooCount() <> 1 then swigtesterror(); end
 
-y = makeFoo();
-if fooCount() <> 2 then pause, end
+try
+    y = makeFoo();
+catch
+    swigtesterror();
+end
+if fooCount() <> 2 then swigtesterror(); end
 
-delete_Foo(x);
-if fooCount() <> 1 then pause, end
+try
+    delete_Foo(x);
+catch
+    swigtesterror();
+end
+if fooCount() <> 1 then swigtesterror(); end
 
-delete_Foo(y);
-if fooCount() <> 0 then pause, end
+try
+    delete_Foo(y);
+catch
+    swigtesterror();
+end
+if fooCount() <> 0 then swigtesterror(); end
 
-exit
+exec("swigtest.quit", -1);

@@ -1,7 +1,11 @@
-exec loader.sce;
+exec("swigtest.start", -1);
 
-foo_2();
-if bar_2_get() <> 17 then pause, end
-if Baz_2_get() <> 47 then pause, end
+try
+    foo_2();
+catch
+    swigtesterror();
+end
+if bar_2_get() <> 17 then swigtesterror(); end
+if Baz_2_get() <> 47 then swigtesterror(); end
 
-exit
+exec("swigtest.quit", -1);

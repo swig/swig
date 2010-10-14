@@ -1,6 +1,6 @@
-exec loader.sce;
+exec("swigtest.start", -1);
 
-if add(7, 9) <> 16 then pause, end
-if do_op(7, 9, funcvar_get()) <> 16 then pause, end
+if add(7, 9) <> 16 then swigtesterror(); end
+if do_op(7, 9, funcvar_get()) <> 16 then swigtesterror(); end
 
-exit
+exec("swigtest.quit", -1);

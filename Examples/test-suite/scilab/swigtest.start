@@ -1,0 +1,22 @@
+lines(0);
+
+// Get test name (used in swigtest.quit file)
+[units, typ, names] = file(1);
+swigtestname = strsubst(fileparts(names, "fname"), "_runme", "");
+
+// Load library
+try
+    exec("loader.sce", -1);
+catch
+    mprintf("***************************\n")
+    mprintf("* LOADER EXECUTION FAILED *\n");
+    mprintf("***************************\n")
+end
+
+// Error management function
+function swigtesterror()
+    mprintf("***************\n")
+    mprintf("* TEST FAILED *\n")
+    mprintf("***************\n")
+    exit
+endfunction

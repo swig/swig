@@ -15,22 +15,24 @@ include $(srcdir)/../common.mk
 # none!
 
 # Rules for the different types of tests
-%.cpptest: 
-		
+%.cpptest:
+	
 %.ctest:
-	$(setup)
-	cp ../$*.i $*.i
-	if [ -f ../$*.h ]; then (cp ../$*.h $*.h; ) fi;
-	+$(swig_and_compile_c)
-	$(run_testcase)
+	@$(setup)
+	@cp ../$*.i $*.i
+	@if [ -f ../$*.h ]; then (cp ../$*.h $*.h; ) fi;
+	@+$(swig_and_compile_c)
+	@$(run_testcase)
 
-%.multicpptest: 
+%.multicpptest:
 	
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.sci appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) -nwni -nb -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
+	else \
+	  (echo "**********************\n* RUNME FILE MISSING *\n**********************") \
 	fi; \
 
 

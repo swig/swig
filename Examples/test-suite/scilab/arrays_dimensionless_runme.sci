@@ -1,6 +1,6 @@
-exec loader.sce;
+exec("startswigtest.sce", -1);
 
 a = [1, 2, 3, 4]
-if arr_double(a, 4) <> 10 then pause, end
+if arr_double(a, 4) <> 10 then swigtesterror(); end
 
-exit
+exec("quitswigtest.sce", -1);
