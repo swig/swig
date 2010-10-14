@@ -242,10 +242,11 @@ public:
         String *getargs = NewString("");
     
         /* The paremeter is variable */
-        if (j >= num_required)
+        if (j >= num_required) {
           Printf(getargs, "if (Rhs > %d) {\n%s\n}", j, tm);
-        else
+        } else {
           Printv(getargs, tm, NIL);
+        }
         Printv(f->code, getargs, "\n", NIL);
         if ( Equal(SwigType_base(pt), "long long") || Equal(SwigType_base(pt), "unsigned long long")) {
           Printv(f->code, "#endif\n", NIL);
@@ -278,8 +279,9 @@ public:
         Printf(f->code, "iOutNum ++;\niVarOut ++;\n");
       }
       Printf(f->code, "%s\n", tm);
-      if (strlen(Char(tm)) != 0)
+      if (strlen(Char(tm)) != 0) {
         out_required ++;
+      }
     } 
     else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
@@ -334,8 +336,7 @@ public:
     if (out_required == 0) {
       out_required = 1;
       flag = 0;
-    }
-    else {
+    } else {
       flag = 1;
     }
   
@@ -504,13 +505,16 @@ public:
     }
     Append(setf->code, "}\n");
     if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long")) {
-      Printv(setf->def, "#endif\n", NIL);
+      Printv(setf->code, "#endif\n", NIL);
     }
     Wrapper_print(setf, f_wrappers);
     if (++ function_count % 10 == 0) {
       Printf(f_builder_code, "];\n\ntable = [table;");
     }
-    Printf(f_builder_code, "\"%s\",\"%s\";", setname, setname);
+
+    if (!( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long"))) {
+      Printf(f_builder_code, "\"%s\",\"%s\";", setname, setname);
+    }
   
     /* Deal with the get function */
     Setattr(n, "wrap:name", getname);
@@ -550,14 +554,16 @@ public:
     Printf(getf->code, "LhsVar(iOutNum) = iVarOut;\n");
     Append(getf->code, "}\n");
     if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long")) {
-      Printv(getf->def, " #endif\n", NIL);
+      Printv(getf->code, " #endif\n", NIL);
     }
     Wrapper_print(getf, f_wrappers);
     Printf(f_header,"%s", globalVar);
     if (++ function_count % 10 == 0) {
       Printf(f_builder_code, "];\n\ntable = [table;");
     }
-    Printf(f_builder_code, "\"%s\",\"%s\";", getname, getname);
+    if (!( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long"))) {
+        Printf(f_builder_code, "\"%s\",\"%s\";", getname, getname);
+    }
   
     Delete(rowname);
     Delete(colname);
