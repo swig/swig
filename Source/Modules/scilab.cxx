@@ -247,8 +247,9 @@ public:
         else
           Printv(getargs, tm, NIL);
         Printv(f->code, getargs, "\n", NIL);
-        if ( Equal(SwigType_base(pt), "long long") || Equal(SwigType_base(pt), "unsigned long long"))
+        if ( Equal(SwigType_base(pt), "long long") || Equal(SwigType_base(pt), "unsigned long long")) {
           Printv(f->code, "#endif\n", NIL);
+        }
         Delete(getargs);
         p = Getattr(p, "tmap:in:next");
         continue;
@@ -502,8 +503,9 @@ public:
       Append(setf->code, "SWIG_Error(999, \"attempt to set immutable member variable\");");
     }
     Append(setf->code, "}\n");
-    if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long"))
+    if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long")) {
       Printv(setf->def, "#endif\n", NIL);
+    }
     Wrapper_print(setf, f_wrappers);
     if (++ function_count % 10 == 0) {
       Printf(f_builder_code, "];\n\ntable = [table;");
@@ -513,8 +515,9 @@ public:
     /* Deal with the get function */
     Setattr(n, "wrap:name", getname);
     int addfail = 0;
-    if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long"))
+    if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long")) {
       Printv(getf->def, " #ifdef __SCILAB_INT64__\n", NIL);
+    }
     Printv(getf->def, "int ", getname, " (char *fname, unsigned long fname_len){\n", NIL);
    
     /* Check the number of input and output */
@@ -522,7 +525,7 @@ public:
     Printf(getf->def, "CheckLhs(1, 1);\n");
     Printf(getf->def, "SciErr sciErr;\n"); 
     /* Insert the order of output parameters */
-    Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
+    Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;\n");
     /* Insert the argument counter */
     //Printf(getf->def, "\nint scilabArgNumber=0;");
    
@@ -546,8 +549,9 @@ public:
     /* Dump the wrapper function */ 
     Printf(getf->code, "LhsVar(iOutNum) = iVarOut;\n");
     Append(getf->code, "}\n");
-    if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long"))
+    if ( Equal(SwigType_base(t), "long long") || Equal(SwigType_base(t), "unsigned long long")) {
       Printv(getf->def, " #endif\n", NIL);
+    }
     Wrapper_print(getf, f_wrappers);
     Printf(f_header,"%s", globalVar);
     if (++ function_count % 10 == 0) {
@@ -596,7 +600,7 @@ public:
     Printf(getf->def, "CheckLhs(1, 1);\n");
     Printf(getf->def, "SciErr sciErr;\n"); 
     /* Insert the order of output parameters*/
-    Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
+    Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;\n");
   
     /* Insert the argument counter */
     //Printf(getf->def, "\nint scilabArgNumber=0;");
