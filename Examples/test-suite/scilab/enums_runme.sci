@@ -18,7 +18,7 @@ end
 
 if enumInstance_get() <> int32(2) then swigtesterror(); end
 if Slap_get() <> int32(10) then swigtesterror(); end
-if My_get() <> int32(11) then swigtesterror(); end
+if Mine_get() <> int32(11) then swigtesterror(); end
 if Thigh_get() <> int32(12) then swigtesterror(); end
 
 exec("swigtest.quit", -1);
