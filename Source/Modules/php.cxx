@@ -666,7 +666,7 @@ public:
       /* We have an extra 'this' parameter. */
       SetFlag(n, "wrap:this");
     }
-    String *dispatch = Swig_overload_dispatch(n, "return %s(INTERNAL_FUNCTION_PARAM_PASSTHRU);", &maxargs);
+    String *dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 

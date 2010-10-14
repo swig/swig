@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2010-10-14: olly
+	    [PHP] Allow compilation on non-conforming Microsoft C++ compilers
+	    which don't accept: return function_returning_void();
+	    Reported by Frank Vanden Berghen on the SWIG mailing list.
+
 2010-10-12: wsfulton
             Fix unary scope operator (::) (global scope) regression introduced in 2.0.0, reported by
             Ben Walker. The mangled symbol names were incorrect, sometimes resulting in types being
