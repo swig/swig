@@ -232,6 +232,12 @@ public:
 	  p = nextSibling(p);
 	  continue;
 	}
+
+    char source[64];
+    sprintf(source, "%d", j + 1);
+    Setattr(p, "emit:input", source);
+    Replaceall(tm, "$input", Getattr(p, "emit:input"));
+
       String *getargs = NewString("");
       
       /* The paremeter is variable */
@@ -343,7 +349,7 @@ public:
       Printf(f->def, "\nint iOutNum = 1;\nint iVarOut = Rhs + 1;");
 
     /* Insert the argument counter */
-    Printf(f->def, "\nint scilabArgNumber=0;");
+    //Printf(f->def, "\nint scilabArgNumber=0;");
    
     /* Finish the the code for the function  */
     //if (flag)
@@ -400,6 +406,11 @@ public:
     Wrapper_add_local(f, "sciErr", "SciErr sciErr");
     Wrapper_add_local(f, "iOutNum", "int iOutNum = 1");
     Wrapper_add_local(f, "iVarOut", "int iVarOut = Rhs + 1");
+    Printf(tmp, "int argv[%d]={", maxargs);
+    for (int j = 0; j < maxargs; ++j)
+      Printf(tmp, "%s%d", j ? "," : " ", j + 1);
+    Printf(tmp, "}");
+    Wrapper_add_local(f, "argv", tmp);
     /* Dump the dispatch function */
     Printv(f->code, dispatch, "\n", NIL);
     Printf(f->code, "Scierror(999, _(\"No matching function for overload\"));\n");
@@ -464,7 +475,7 @@ public:
     /* Add the local variable */
     Wrapper_add_local(setf, "piAddrVar", "int *piAddrVar");
     /* Insert the argument counter */
-    Printf(setf->def, "\nint scilabArgNumber=0;");
+    //Printf(setf->def, "\nint scilabArgNumber=0;");
    
     /* Deal with the set function */
     if (is_assignable(n)) {
@@ -476,6 +487,7 @@ public:
         Replaceall(tm, "iRows", rowname);
         Replaceall(tm, "iCols", colname);
         Replaceall(tm, "isComplex", iscomplexname);
+        Replaceall(tm, "$input", "1");
 	emit_action_code(n, setf->code, tm);
 	Delete(tm);
       } else {
@@ -508,7 +520,7 @@ public:
     /* Insert the order of output parameters */
     Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
     /* Insert the argument counter */
-    Printf(getf->def, "\nint scilabArgNumber=0;");
+    //Printf(getf->def, "\nint scilabArgNumber=0;");
    
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$result", name);
@@ -581,8 +593,9 @@ public:
     Printf(getf->def, "SciErr sciErr;\n"); 
     /* Insert the order of output parameters*/
     Printf(getf->def, "\nint iOutNum=1;\nint iVarOut=Rhs+1;");
+    
     /* Insert the argument counter */
-    Printf(getf->def, "\nint scilabArgNumber=0;");
+    //Printf(getf->def, "\nint scilabArgNumber=0;");
    
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$result", value);

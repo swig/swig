@@ -1,6 +1,6 @@
 %typemap(in) (double* matrixAsInput, int rows, int cols) {
   int *piAddr = NULL;
-  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddr);
+  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddr);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return 0;

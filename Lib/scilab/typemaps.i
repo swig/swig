@@ -63,7 +63,7 @@ or you can use the %apply directive :
   int iType;
   double *_piData;
   int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, ++scilabArgNumber, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return 0;
