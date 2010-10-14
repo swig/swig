@@ -1208,7 +1208,7 @@
 }
 
 %typemap(out) SWIGTYPE {
-  sciErr = createPointer(pvApiCtx, iVarOut, (void *)&$result);
+  sciErr = createPointer(pvApiCtx, iVarOut, %new_copy($result, $1_ltype));
   if (sciErr.iErr) {
 	 printError(&sciErr, 0);
 	 return 0;
