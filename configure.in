@@ -122,6 +122,20 @@ echo "Note : None of the following packages are required for users to compile an
 echo ""
 
 AC_PROG_YACC
+echo "YACC $YACC"
+if test -z "$YACC"; then
+   AC_MSG_ERROR([No implementation of Yacc (bison, yacc) detected.])
+fi
+# Actually, AC_PROG_YACC is lying. It sometimes put yacc into $YACC even it
+# hasn't been able to find it.
+#  AC_CHECK_PROG(YACC_PRESENT, $YACC, AC_MSG_ERROR([No implementation of Yacc (bison, yacc) detected. Please install it (package bison)]) )
+
+AC_CHECK_PROG(yacc_present, $YACC, "yes","no")
+if test "x$yacc_present" != "xyes"; then
+   AC_MSG_ERROR([No implementation of Yacc (bison, yacc) detected. Please install it (package bison)])
+fi
+
+
 AC_PROG_RANLIB
 AC_CHECK_PROGS(AR, ar aal, ar)
 AC_SUBST(AR)
