@@ -7,7 +7,7 @@ if BeginString_FIX44b_get() <> "FIX.b.b" then swingtesterror(); end
 if BeginString_FIX44c_get() <> "FIX.c.c" then swingtesterror(); end
 if BeginString_FIX44d_get() <> "FIX.d.d" then swingtesterror(); end
 if BeginString_FIX44d_get() <> "FIX.d.d" then swingtesterror(); end
-if BeginString_FIX44b_set(strcat(["12","\0","45"])) <> "" then swingtesterror(); end
+BeginString_FIX44b_set(strcat(["12","\0","45"]));
 if BeginString_FIX44b_get() <> "12\045" then swingtesterror(); end
 if BeginString_FIX44d_get() <> "FIX.d.d" then swingtesterror(); end
 if BeginString_FIX44e_get() <> "FIX.e.e" then swingtesterror(); end
