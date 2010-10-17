@@ -1603,6 +1603,16 @@ void R::dispatchFunction(Node *n) {
 	       j == 0 ? "" : " && ",
 	       j+1);
 	}
+	else if (DohStrcmp(tm,"integer")==0) {
+	Printf(f->code, "%s(is.integer(argv[[%d]]) || is.numeric(argv[[%d]]))",
+	       j == 0 ? "" : " && ",
+	       j+1, j+1);
+	}
+	else if (DohStrcmp(tm,"character")==0) {
+	Printf(f->code, "%sis.character(argv[[%d]])",
+	       j == 0 ? "" : " && ",
+	       j+1);
+	}
 	else {
 	Printf(f->code, "%sextends(argtypes[%d], '%s')",
 	       j == 0 ? "" : " && ",
@@ -1617,7 +1627,9 @@ void R::dispatchFunction(Node *n) {
     }
   }
   if (cur_args != -1) {
-    Printv(f->code, "}", NIL);
+    Printf(f->code, "} else {\n"
+	   "stop(\"cannot find overloaded function for %s\");\n"
+	   "}", sfname);
   }
   Printv(f->code, ";\nf(...)", NIL);
   Printv(f->code, ";\n}", NIL);

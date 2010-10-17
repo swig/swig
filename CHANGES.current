@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2010-10-17: drjoe
+	    [R] Fix failure in overloaded functions which was breaking
+	    QuantLib-SWIG
+
 2010-10-14: olly
 	    [PHP] Allow compilation on non-conforming Microsoft C++ compilers
 	    which don't accept: return function_returning_void();
