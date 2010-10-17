@@ -1628,7 +1628,8 @@ void R::dispatchFunction(Node *n) {
   }
   if (cur_args != -1) {
     Printf(f->code, "} else {\n"
-	   "stop(\"cannot find overloaded function for %s\");\n"
+	   "stop(\"cannot find overloaded function for %s with argtypes (\","
+	   "toString(argtypes),\")\");\n"
 	   "}", sfname);
   }
   Printv(f->code, ";\nf(...)", NIL);
