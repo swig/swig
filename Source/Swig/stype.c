@@ -366,7 +366,7 @@ SwigType *SwigType_default_create(SwigType *ty) {
  * SwigType_default_create() before calling this function.
  *
  * Example deductions (matching the examples described in SwigType_default_create),
- * where the the most specialized matches are highest in the list:
+ * where the most specialized matches are highest in the list:
  *
  *    a(ANY).a(ANY).SWIGTYPE
  *    a(ANY).a().SWIGTYPE

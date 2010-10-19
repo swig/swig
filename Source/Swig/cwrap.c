@@ -216,7 +216,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	  SwigType_del_reference(tvalue);
 	  tycode = SwigType_type(tvalue);
 	  if (tycode != T_USER) {
-	    /* plain primitive type, we copy the the def value */
+	    /* plain primitive type, we copy the def value */
 	    String *lstr = SwigType_lstr(tvalue, defname);
 	    defvalue = NewStringf("%s = %s", lstr, qvalue);
 	    Delete(lstr);
