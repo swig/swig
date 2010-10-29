@@ -18,7 +18,3 @@ Version 2.0.2 (in progress)
             Fix unary scope operator (::) (global scope) regression introduced in 2.0.0, reported by
             Ben Walker. The mangled symbol names were incorrect, sometimes resulting in types being
             incorrectly treated as opaque types.
-
-2010-10-14: Sylvestre Ledru
-            Fails the configure if cannot find a yacc implementation
-            (like bison)
