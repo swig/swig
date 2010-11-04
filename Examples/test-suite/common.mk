@@ -294,6 +294,7 @@ CPP_TEST_CASES += \
 	sizet \
 	smart_pointer_const \
 	smart_pointer_const2 \
+	smart_pointer_const_overload \
 	smart_pointer_extend \
 	smart_pointer_member \
 	smart_pointer_multi \
@@ -486,6 +487,7 @@ C_TEST_CASES += \
 	overload_extendc \
 	preproc \
 	preproc_constants_c \
+	preproc_line_file \
 	ret_by_value \
 	simple_array \
 	sizeof_pointer \

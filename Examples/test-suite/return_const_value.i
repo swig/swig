@@ -42,6 +42,7 @@ public:
     _ptr = f._ptr;
     _own = f._own;
     f._own = 0;
+    return *this;
   }
 
   ~Foo_ptr() {

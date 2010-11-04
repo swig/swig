@@ -129,6 +129,7 @@ static const char *usage3 = (const char *) "\
      -oh <headfile>  - Set name of the output header file to <headfile>\n\
      -outcurrentdir  - Set default output dir to current dir instead of input file's path\n\
      -outdir <dir>   - Set language specific files output directory to <dir>\n\
+     -pcreversion    - Display PCRE version information\n\
      -small          - Compile in virtual elimination & compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates\n\
@@ -515,6 +516,12 @@ void SWIG_getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-nodirprot") == 0) {
 	Wrapper_director_protected_mode_set(0);
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-pcreversion") == 0) {
+	String *version = Swig_pcre_version();
+	Printf(stdout, "%s\n", version);
+	Delete(version);
+	Swig_mark_arg(i);
+	SWIG_exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-small") == 0) {
 	Wrapper_compact_print_mode_set(1);
 	Wrapper_virtual_elimination_mode_set(1);

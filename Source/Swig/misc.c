@@ -527,7 +527,6 @@ String *Swig_string_schemify(String *s) {
   return ns;
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_string_typecode()
  *
@@ -1173,7 +1172,7 @@ String *replace_captures(const char *input, String *subst, int captures[])
 /* -----------------------------------------------------------------------------
  * Swig_string_regex()
  *
- * Executes a regexp substitution. For example:
+ * Executes a regular expression substitution. For example:
  *
  *   Printf(stderr,"gsl%(regex:/GSL_.*_/\\1/)s","GSL_Hello_") -> gslHello
  * ----------------------------------------------------------------------------- */
@@ -1188,6 +1187,8 @@ String *Swig_string_regex(String *s) {
   int captures[30];
 
   if (split_regex_pattern_subst(s, &pattern, &subst, &input)) {
+    int rc;
+
     compiled_pat = pcre_compile(
           Char(pattern), pcre_options, &pcre_error, &pcre_errorpos, NULL);
     if (!compiled_pat) {
@@ -1195,8 +1196,15 @@ String *Swig_string_regex(String *s) {
           pcre_error, Char(pattern), pcre_errorpos);
       exit(1);
     }
-    pcre_exec(compiled_pat, NULL, input, strlen(input), 0, 0, captures, 30);
-    res = replace_captures(input, subst, captures);
+    rc = pcre_exec(compiled_pat, NULL, input, strlen(input), 0, 0, captures, 30);
+    if (rc >= 0) {
+      res = replace_captures(input, subst, captures);
+    }
+    else if (rc != PCRE_ERROR_NOMATCH) {
+      Swig_error("SWIG", Getline(s), "PCRE execution failed: error %d while matching \"%s\" in \"%s\".\n",
+	rc, Char(pattern), input);
+      exit(1);
+    }
   }
 
   DohDelete(pattern);
@@ -1205,11 +1213,19 @@ String *Swig_string_regex(String *s) {
   return res ? res : NewStringEmpty();
 }
 
+String *Swig_pcre_version(void) {
+  return NewStringf("PCRE Version: %s", pcre_version());
+}
+
 #else
 
 String *Swig_string_regex(String *s) {
   Swig_error("SWIG", Getline(s), "PCRE regex support not enabled in this SWIG build.\n");
   exit(1);
+}
+
+String *Swig_pcre_version(void) {
+  return NewStringf("PCRE not used");
 }
 
 #endif

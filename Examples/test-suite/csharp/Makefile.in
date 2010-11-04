@@ -8,8 +8,8 @@ INTERPRETER  = @CSHARPCILINTERPRETER@
 CSHARPPATHSEPARATOR = "@CSHARPPATHSEPARATOR@"
 CSHARPCYGPATH_W     = @CSHARPCYGPATH_W@
 srcdir       = @srcdir@
-top_srcdir   = @top_srcdir@
-top_builddir = $(abspath @top_builddir@)
+top_srcdir   = ../@top_srcdir@
+top_builddir = ../@top_builddir@
 
 CPP_TEST_CASES = \
 	csharp_attributes \
@@ -66,7 +66,7 @@ setup = \
 # Note C# uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows and SHLIB_PATH on HPUX.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
 	  CSHARPFLAGS='-nologo $(CSHARPFLAGSSPECIAL) -out:$*_runme.exe' \
 	  CSHARPSRCS='`$(CSHARPCYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` `find $* -name "*.cs" -exec $(CSHARPCYGPATH_W) "{}" \+`' csharp_compile && \
 	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" $(RUNTOOL) $(INTERPRETER) $*_runme.exe; \

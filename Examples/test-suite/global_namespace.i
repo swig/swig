@@ -58,3 +58,25 @@ struct TheEnumMethods {
 }
 %}
 
+%inline %{
+Klass1 getKlass1A()   { return ::Klass1(); }
+::Klass1 getKlass1B() { return ::Klass1(); }
+
+Klass2 getKlass2A()   { return ::Klass2(); }
+::Klass2 getKlass2B() { return ::Klass2(); }
+
+Klass3 getKlass3A()   { return ::Klass3(); }
+::Klass3 getKlass3B() { return ::Klass3(); }
+
+Klass4 getKlass4A()   { return ::Klass4(); }
+::Klass4 getKlass4B() { return ::Klass4(); }
+
+Klass5 getKlass5A()   { return ::Klass5(); }
+::Klass5 getKlass5B() { return ::Klass5(); }
+
+Klass6 getKlass6A()   { return ::Klass6(); }
+::Klass6 getKlass6B() { return ::Klass6(); }
+
+Klass7 getKlass7A()   { return ::Klass7(); }
+::Klass7 getKlass7B() { return ::Klass7(); }
+%}

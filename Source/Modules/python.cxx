@@ -1799,7 +1799,7 @@ public:
       } while ((sibl = Getattr(sibl, "sym:nextSibling")));
       Append(f->code, "fail:\n");
       Printf(f->code, "SWIG_SetErrorMsg(PyExc_NotImplementedError,"
-	     "\"Wrong number of arguments for overloaded function '%s'.\\n\"" "\n\"  Possible C/C++ prototypes are:\\n\"%s);\n", symname, protoTypes);
+	     "\"Wrong number or type of arguments for overloaded function '%s'.\\n\"" "\n\"  Possible C/C++ prototypes are:\\n\"%s);\n", symname, protoTypes);
       Append(f->code, "return NULL;\n");
       Delete(protoTypes);
     }
@@ -2866,7 +2866,7 @@ public:
           bool ignore = GetFlag(b.item, "feature:ignore") ? true : false;
 	  if (!bname || ignore) {
             if (!bname && !ignore) {
-              Swig_warning(WARN_TYPE_UNDEFINED_CLASS, input_file, line_number,
+              Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(n), Getline(n),
                   "Base class '%s' ignored - unknown module name for base. Either import the appropriate module interface file or specify the name of the module in the %%import directive.\n", SwigType_namestr(Getattr(b.item, "name")));
             }
 	    b = Next(b);

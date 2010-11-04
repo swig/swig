@@ -2,8 +2,12 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[2.0.1],[http://www.swig.org])
+AC_INIT([swig],[2.0.2],[http://www.swig.org])
+
+dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
+dnl     definition below can be removed
 AC_PREREQ(2.58)
+
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
 AC_CONFIG_AUX_DIR([Tools/config])
 AC_CONFIG_HEADERS([Source/Include/swigconfig.h])
@@ -50,12 +54,32 @@ AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), A
 fi
 
 dnl PCRE
+
+dnl AX_PATH_GENERIC() relies on AC_PROG_SED() but it is defined only in
+dnl autoconf 2.60 so trivially predefine it ourselves for the older versions
+m4_ifdef([AC_PROG_SED],, [AC_DEFUN([AC_PROG_SED], [AC_PATH_PROG([SED], sed)])])
+
 AC_ARG_WITH([pcre],
   [AS_HELP_STRING([--without-pcre],
                   [Disable support for regular expressions using PCRE])],
   [],
   [with_pcre=yes])
 
+AC_MSG_CHECKING([whether to enable PCRE support])
+AC_MSG_RESULT([$with_pcre])
+
+dnl To make configuring easier, check for a locally built PCRE using the Tools/pcre-build.sh script
+if test x"${with_pcre}" = xyes ; then 
+  AC_MSG_CHECKING([whether to use local PCRE])
+  local_pcre_config=no
+  if test -z $PCRE_CONFIG; then
+    if test -f `pwd`/pcre/pcre-swig-install/bin/pcre-config; then
+      PCRE_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre-config
+      local_pcre_config=$PCRE_CONFIG
+    fi
+  fi
+  AC_MSG_RESULT([$local_pcre_config])
+fi
 AS_IF([test "x$with_pcre" != xno],
   [AX_PATH_GENERIC([pcre],
     [], dnl Minimal version of PCRE we need -- accept any
@@ -64,11 +88,18 @@ AS_IF([test "x$with_pcre" != xno],
      LIBS="$LIBS $PCRE_LIBS"
      CPPFLAGS="$CPPFLAGS $PCRE_CFLAGS"
     ],
-    [AC_MSG_FAILURE(
-        Can't find pcre-config script from PCRE (Perl Compatible Regular
-        Expressions) library package. You need to either download PCRE from
-        www.pcre.org and install it or use --without-pcre configure option to
-        disable regular expressions support in SWIG.)
+    [AC_MSG_FAILURE([
+        Can't find pcre-config script from PCRE (Perl Compatible Regular Expressions)
+        library package. This dependency is needed for configure to complete,
+        Either:
+        - Install the PCRE developer package on your system (preferred approach).
+        - Download the PCRE source tarball, build and install on your system
+          as you would for any package built from source distribution.
+        - Use the Tools/pcre-build.sh script to build PCRE just for SWIG to statically
+          link against. Run 'Tools/pcre-build.sh --help' for instructions.
+          (quite easy and does not require privileges to install PCRE on your system)
+        - Use configure --without-pcre to disable regular expressions support in SWIG
+          (not recommended).])
     ])
   ])
 

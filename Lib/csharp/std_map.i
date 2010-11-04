@@ -67,12 +67,13 @@
   public System.Collections.Generic.ICollection<$typemap(cstype, K)> Keys {
     get {
       System.Collections.Generic.ICollection<$typemap(cstype, K)> keys = new System.Collections.Generic.List<$typemap(cstype, K)>();
-      IntPtr iter = create_iterator_begin();
-      try {
-        while (true) {
+      int size = this.Count;
+      if (size > 0) {
+        IntPtr iter = create_iterator_begin();
+        for (int i = 0; i < size; i++) {
           keys.Add(get_next_key(iter));
         }
-      } catch (ArgumentOutOfRangeException) {
+        destroy_iterator(iter);
       }
       return keys;
     }
@@ -258,7 +259,7 @@
         return false;
       }
 
-      // create_iterator_begin() and get_next_key() work together to provide a collection of keys to C#
+      // create_iterator_begin(), get_next_key() and destroy_iterator work together to provide a collection of keys to C#
       %apply void *VOID_INT_PTR { std::map< K, T >::iterator *create_iterator_begin }
       %apply void *VOID_INT_PTR { std::map< K, T >::iterator *swigiterator }
 
@@ -266,14 +267,14 @@
         return new std::map< K, T >::iterator($self->begin());
       }
 
-      const key_type& get_next_key(std::map< K, T >::iterator *swigiterator) throw (std::out_of_range) {
+      const key_type& get_next_key(std::map< K, T >::iterator *swigiterator) {
         std::map< K, T >::iterator iter = *swigiterator;
-        if (iter == $self->end()) {
-          delete swigiterator;
-          throw std::out_of_range("no more map elements");
-        }
-        (*swigiterator)++;
+        swigiterator++;
         return (*iter).first;
+      }
+
+      void destroy_iterator(std::map< K, T >::iterator *swigiterator) {
+        delete swigiterator;
       }
     }
 
@@ -285,6 +286,7 @@
 %csmethodmodifiers std::map::setitem "private"
 %csmethodmodifiers std::map::create_iterator_begin "private"
 %csmethodmodifiers std::map::get_next_key "private"
+%csmethodmodifiers std::map::destroy_iterator "private"
 
 // Default implementation
 namespace std {   

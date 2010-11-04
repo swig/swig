@@ -20,6 +20,7 @@ char cvsroot_scanner_c[] = "$Id$";
 #include <ctype.h>
 
 extern String *cparse_file;
+extern int cparse_line;
 extern int cparse_cplusplus;
 extern int cparse_start_line;
 
@@ -37,6 +38,13 @@ struct Scanner {
   int     error_line;           /* Error line number */
   int     freeze_line;          /* Suspend line number updates */
 };
+
+typedef struct Locator {
+  String         *filename;
+  int             line_number;
+  struct Locator *next;
+} Locator;
+static int follow_locators = 0;
 
 /* -----------------------------------------------------------------------------
  * NewScanner()
@@ -230,8 +238,7 @@ static void set_error(Scanner *s, int line, const_String_or_char_ptr msg) {
  * Returns error information (if any)
  * ----------------------------------------------------------------------------- */
 
-String *
-Scanner_errmsg(Scanner *s) {
+String *Scanner_errmsg(Scanner *s) {
   return s->error;
 }
 
@@ -241,13 +248,12 @@ Scanner_errline(Scanner *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_freeze_line()
+ * freeze_line()
  *
  * Freezes the current line number.
  * ----------------------------------------------------------------------------- */
 
-void
-Scanner_freeze_line(Scanner *s, int val) {
+static void freeze_line(Scanner *s, int val) {
   s->freeze_line = val;
 }
 
@@ -1153,6 +1159,7 @@ int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
   int l;
   int state = 0;
   char temp[2] = { 0, 0 };
+  String *locator = 0;
   l = s->line;
   temp[0] = (char) startchar;
   Clear(s->text);
@@ -1162,6 +1169,7 @@ int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
   Append(s->text, temp);
   while (num_levels > 0) {
     if ((c = nextchar(s)) == 0) {
+      Delete(locator);
       return -1;
     }
     switch (state) {
@@ -1195,17 +1203,25 @@ int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
       else
 	state = 11;
       break;
-    case 12:
+    case 12: /* first character inside C comment */
       if (c == '*')
+	state = 14;
+      else if (c == '@')
+	state = 40;
+      else
 	state = 13;
       break;
     case 13:
       if (c == '*')
-	state = 13;
+	state = 14;
+      break;
+    case 14: /* possible end of C comment */
+      if (c == '*')
+	state = 14;
       else if (c == '/')
 	state = 0;
       else
-	state = 12;
+	state = 13;
       break;
     case 20:
       if (c == '\"')
@@ -1225,10 +1241,43 @@ int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
     case 31:
       state = 30;
       break;
+    /* 40-45 SWIG locator checks - a C comment with contents starting: @SWIG */
+    case 40:
+      state = (c == 'S') ? 41 : (c == '*') ? 14 : 13;
+      break;
+    case 41:
+      state = (c == 'W') ? 42 : (c == '*') ? 14 : 13;
+      break;
+    case 42:
+      state = (c == 'I') ? 43 : (c == '*') ? 14 : 13;
+      break;
+    case 43:
+      state = (c == 'G') ? 44 : (c == '*') ? 14 : 13;
+      if (c == 'G') {
+	Delete(locator);
+	locator = NewString("/*@SWIG");
+      }
+      break;
+    case 44:
+      if (c == '*')
+	state = 45;
+      Putc(c, locator);
+      break;
+    case 45: /* end of SWIG locator in C comment */
+      if (c == '/') {
+	state = 0;
+	Putc(c, locator);
+	Scanner_locator(s, locator);
+      } else {
+	/* malformed locator */
+	state = (c == '*') ? 14 : 13;
+      }
+      break;
     default:
       break;
     }
   }
+  Delete(locator);
   return 0;
 }
 
@@ -1239,8 +1288,98 @@ int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
  * operator.
  * ----------------------------------------------------------------------------- */
 
-int
-Scanner_isoperator(int tokval) {
+int Scanner_isoperator(int tokval) {
   if (tokval >= 100) return 1;
   return 0;
 }
+
+/* ----------------------------------------------------------------------
+ * locator()
+ *
+ * Support for locator strings. These are strings of the form
+ * @SWIG:filename,line,id@ emitted by the SWIG preprocessor.  They
+ * are primarily used for macro line number reporting.
+ * We just use the locator to mark when to activate/deactivate linecounting.
+ * ---------------------------------------------------------------------- */
+
+
+void Scanner_locator(Scanner *s, String *loc) {
+  static Locator *locs = 0;
+  static int expanding_macro = 0;
+
+  if (!follow_locators) {
+    if (Equal(loc, "/*@SWIG@*/")) {
+      /* End locator. */
+      if (expanding_macro)
+	--expanding_macro;
+    } else {
+      /* Begin locator. */
+      ++expanding_macro;
+    }
+    /* Freeze line number processing in Scanner */
+    freeze_line(s,expanding_macro);
+  } else {
+    int c;
+    Locator *l;
+    Seek(loc, 7, SEEK_SET);
+    c = Getc(loc);
+    if (c == '@') {
+      /* Empty locator.  We pop the last location off */
+      if (locs) {
+	Scanner_set_location(s, locs->filename, locs->line_number);
+	cparse_file = locs->filename;
+	cparse_line = locs->line_number;
+	l = locs->next;
+	free(locs);
+	locs = l;
+      }
+      return;
+    }
+
+    /* We're going to push a new location */
+    l = (Locator *) malloc(sizeof(Locator));
+    l->filename = cparse_file;
+    l->line_number = cparse_line;
+    l->next = locs;
+    locs = l;
+
+    /* Now, parse the new location out of the locator string */
+    {
+      String *fn = NewStringEmpty();
+      /*      Putc(c, fn); */
+      
+      while ((c = Getc(loc)) != EOF) {
+	if ((c == '@') || (c == ','))
+	  break;
+	Putc(c, fn);
+      }
+      cparse_file = Swig_copy_string(Char(fn));
+      Clear(fn);
+      cparse_line = 1;
+      /* Get the line number */
+      while ((c = Getc(loc)) != EOF) {
+	if ((c == '@') || (c == ','))
+	  break;
+	Putc(c, fn);
+      }
+      cparse_line = atoi(Char(fn));
+      Clear(fn);
+      
+      /* Get the rest of it */
+      while ((c = Getc(loc)) != EOF) {
+	if (c == '@')
+	  break;
+	Putc(c, fn);
+      }
+      /*  Swig_diagnostic(cparse_file, cparse_line, "Scanner_set_location\n"); */
+      Scanner_set_location(s, cparse_file, cparse_line);
+      Delete(fn);
+    }
+  }
+}
+
+void Swig_cparse_follow_locators(int v) {
+   follow_locators = v;
+}
+
+

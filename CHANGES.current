@@ -2,67 +2,19 @@ This file contains the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.1 (in progress)
+Version 2.0.2 (in progress)
 ===========================
 
-2010-07-16: wsfulton
-            Fix wrapping of function pointers and member function pointers when the function
-            returns by reference.
+2010-10-17: drjoe
+	    [R] Fix failure in overloaded functions which was breaking
+	    QuantLib-SWIG
 
-2010-07-13: vadz
-            Removed support for the old experimental "rxspencer" encoder and
-            "[not]rxsmatch" in %rename (see the 01/16/2006 entry). The new and
-            officially supported "regex" encoder and "[not]regexmatch" checks
-            should be used instead (see the two previous entries). Please
-            replace "%(rxspencer:[pat][subst])s" with "%(regex:/pat/subst/)s"
-            when upgrading. Notice that you will also need to replace the back-
-            references of form "@1" with the more standard "\\1" and may need to
-            adjust your regular expressions syntax as the new regex encoder uses
-            Perl-compatible syntax and not (extended) POSIX syntax as the old one.
+2010-10-14: olly
+	    [PHP] Allow compilation on non-conforming Microsoft C++ compilers
+	    which don't accept: return function_returning_void();
+	    Reported by Frank Vanden Berghen on the SWIG mailing list.
 
-2010-07-13: vadz
-            Add "regexmatch", "regextarget" and "notregexmatch" which can be
-            used to apply %rename directives to the declarations matching the
-            specified regular expression only. The first two can be used
-            interchangeably, both of the %renames below do the same thing:
-
-                %rename("$ignore", regexmatch$name="Old$") "";
-                %rename("$ignore", regextarget=1) "Old$";
-
-            (namely ignore the declarations having "Old" suffix).
-
-            "notregexmatch" restricts the match to only the declarations which
-            do not match the regular expression, e.g. here is how to rename to
-            lower case versions all declarations except those consisting from
-            capital letters only:
-
-                %rename("$(lower)s", notregexmatch$name="^[A-Z]+$") "";
-
-2010-07-13: vadz
-            Add the new "regex" encoder that can be used in %rename, e.g.
-
-                %rename("regex:/(\\w+)_(.*)/\\2/") "";
-
-            to remove any alphabetical prefix from all identifiers. The syntax
-            of the regular expressions is Perl-like and PCRE library
-            (http://www.pcre.org/) is used to implement this feature but notice
-            that backslashes need to be escaped as usual inside C strings.
-
-            Original patch from Torsten Landschoff.
-
-2010-07-08: wsfulton
-            Fix #3024875 - shared_ptr of classes with non-public destructors. This also fixes
-            the "unref" feature when used on classes with non-public destructors.
-
-2010-06-10: wsfulton
-            [Lua] Fix SWIG_lua_isnilstring multiply defined when using multiple
-            modules and wrapping strings. Patch from 'Number Cruncher'.
-
-2010-06-10: olly
-	    [PHP] Fix directors to correctly call a method with has a
-	    different name in PHP to C++ (we were always using the C++ name
-	    in this case).
-
-2010-06-03: wsfulton
-            Fix uncompileable code when %rename results in two enum items
-            with the same name. Reported by Vadim Zeitlin.
+2010-10-12: wsfulton
+            Fix unary scope operator (::) (global scope) regression introduced in 2.0.0, reported by
+            Ben Walker. The mangled symbol names were incorrect, sometimes resulting in types being
+            incorrectly treated as opaque types.

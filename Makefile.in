@@ -160,7 +160,7 @@ clisp_examples     :=
 uffi_examples      :=
 cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
-go_examples	   :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
+go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
 
 # all examples
 check-%-examples :
@@ -170,6 +170,8 @@ check-%-examples :
 	fi
 	@if $(skip-$*); then					\
 	  echo skipping $* $(ACTION);				\
+	elif test -z "$($(strip $*_examples))"; then		\
+	  echo empty $* $(ACTION);				\
 	else							\
 	  $(MAKE) -k -s $($*_examples:=.actionexample) LANGUAGE=$* ACTION=$(ACTION); \
 	fi
