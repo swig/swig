@@ -1110,7 +1110,7 @@ void Swig_name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, Str
   }
 
   if (!nname || !Len(nname) || Getattr(nameobj, "fullname") ||	/* any of these options trigger a 'list' nameobj */
-      Getattr(nameobj, "sourcefmt") || Getattr(nameobj, "matchlist")) {
+      Getattr(nameobj, "sourcefmt") || Getattr(nameobj, "matchlist") || Getattr(nameobj, "regextarget")) {
     if (decl)
       Setattr(nameobj, "decl", decl);
     if (nname && Len(nname))
