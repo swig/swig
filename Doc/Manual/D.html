@@ -1,0 +1,401 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>SWIG and D</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+<body bgcolor="#FFFFFF">
+<H1><a name="D"></a>20 SWIG and D</H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#D_introduction">Introduction</a>
+<li><a href="#D_command_line_invocation">Command line invocation</a>
+<li><a href="#D_typemaps">Typemaps</a>
+<ul>
+<li><a href="#D_typemap_name_comparison">C# &lt;-&gt; D name comparison</a>
+<li><a href="#D_cwtype_dwtype_dptype">cwtype, dwtype, dptype</a>
+<li><a href="#D_in_out_directorin_direcetorout">in, out, directorin, directorout</a>
+<li><a href="#D_din_dout_ddirectorin_ddirectorout">din, dout, ddirectorin, ddirectorout</a>
+<li><a href="#D_typecheck_typemaps">typecheck typemaps</a>
+<li><a href="#D_code_injection_typemaps">Code injection typemaps</a>
+<li><a href="#D_special_variables">Special variable macros</a>
+</ul>
+<li><a href="#D_features"><tt>%feature</tt>s</a>
+<li><a href="#D_pragmas">Pragmas</a>
+<li><a href="#D_exceptions">D Exceptions</a>
+<li><a href="#D_directors">D Directors</a>
+<li><a href="#D_other_features">Other features</a>
+<li><a href="#D_typemap_examples">D Typemap examples</a>
+<li><a href="#D_planned_features">Work in progress and planned features</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<H2><a name="D_introduction"></a>20.1 Introduction</H2>
+
+
+<p>From the <a href="http://www.digitalmars.com/d/">D Programming Language</a> web site: <em>»D is a systems programming language. Its focus is on combining the power and high performance of C and C++ with the programmer productivity of modern languages like Ruby and Python. […] The D language is statically typed and compiles directly to machine code.«</em> As such, it is not very surprising that D is able to directly <a href="http://www.digitalmars.com/d/1.0/interfaceToC.html">interface with C libraries</a>. Why would a SWIG module for D be needed then in the first place?</p>
+
+<p>Well, besides the obvious downside that the C header files have to be manually converted to D modules for this to work, there is one major inconvenience with this approach: D code usually is on a higher abstraction level than C, and many of the features that make D interesting are simply not available when dealing with C libraries, requiring you e.g. to manually convert strings between pointers to <tt>\0</tt>-terminated char arrays and D char arrays, making the algorithms from the D2 standard library unusable with C arrays and data structures, and so on.</p>
+
+<p>While these issues can be worked around relatively easy by hand-coding a thin wrapper layer around the C library in question, there is another issue where writing wrapper code per hand is not feasible: C++ libraries. D did not support interfacing to C++ in version 1 at all, and even if <tt>extern(C++)</tt> has been added to D2, the support is still very limited, and a custom wrapper layer is still required in many cases. </p>
+
+<p>To help addressing these issues, the SWIG C# module has been forked to support D. Is has evolved quite a lot since then, but there are still many similarities, so if you do not find what you are looking for on this page, it might be worth having a look at the chapter on <a href="CSharp.html">C#</a> (and also on <a href="Java.html">Java</a>, since the C# module was in turn forked from it).</p>
+
+
+<H2><a name="D_command_line_invocation"></a>20.2 Command line invocation</H2>
+
+
+<p>To activate the D module, pass the <tt>-d</tt> option to SWIG at the command line. The same standard command line switches as with any other language module are available, plus the following D specific ones:</p>
+
+<dl>
+  <dt id="D_splitproxy"><tt>-splitproxy</tt></dt>
+  <dd>
+    <p>By default, SWIG generates two D modules: the <em>proxy</em> module, named like the source module (either specified via the <tt>%module</tt> directive or via the <tt>module</tt> command line switch), which contains all the proxy classes, functions, enums, etc., and the <em>wrap</em> module (named like the proxy module, but suffixed with <tt>_wrap</tt>), which contains all the <tt>extern(C)</tt> function declarations and other private parts only used internally by the proxy module.</p>
+    <p>If the split proxy mode is enabled by passing this switch at the command line, all proxy classes and enums are emitted to their own D module instead. The main proxy module only contains free functions and constants in this case.</p>
+  </dd>
+
+  <dt><tt>-package &lt;pkg&gt;</tt></dt>
+  <dd>
+    <p>By default, the proxy D modules and the wrap D module are written to the root package. Using this option, you can specify another target package instead.</p>
+  </dd>
+
+  <dt><tt>-wrapperlibrary &lt;wl&gt;</tt></dt>
+  <dd>
+    <p>The code SWIG generates to dynamically load the C/C++ wrapper layer looks for a library called <tt>$module_wrap</tt>, just like the wrap D module is. With this switch, you can override the name of the file the wrapper code loads at runtime (the <tt>lib</tt> prefix and the suffix for shared libraries are appended automatically, depending on the OS).</p>
+    <p>This might especially be useful if you want to invoke SWIG several times on separate modules, but compile the resulting code into a single shared library.</p>
+  </dd>
+</dl>
+
+
+<H2><a name="D_typemaps"></a>20.3 Typemaps</H2>
+
+
+<H3><a name="D_typemap_name_comparison"></a>20.3.1 C# &lt;-&gt; D name comparison</H3>
+
+
+<div class="diagram"><pre>
+ ctype                  &lt;-&gt;  cwtype
+ imtype                 &lt;-&gt;  dwtype
+ cstype                 &lt;-&gt;  dptype
+ csin                   &lt;-&gt;  din
+ csout                  &lt;-&gt;  dout
+ csdirectorin           &lt;-&gt;  ddirectorin
+ csdirectorout          &lt;-&gt;  ddirectorout
+ csinterfaces           &lt;-&gt;  dinterfaces
+ csinterfaces_derived   &lt;-&gt;  dinterfaces_derived
+ csbase                 &lt;-&gt;  dbase
+ csclassmodifiers       &lt;-&gt;  dclassmodifiers
+ cscode                 &lt;-&gt;  dcode
+ csimports              &lt;-&gt;  dimports
+ csbody                 &lt;-&gt;  dbody
+ csfinalize             &lt;-&gt;  ddestructor
+ csdestruct             &lt;-&gt;  ddispose
+ csdestruct_derived     &lt;-&gt;  ddispose_derived
+</pre></div>
+
+
+<H3><a name="D_cwtype_dwtype_dptype"></a>20.3.2 cwtype, dwtype, dptype</H3>
+
+
+<p>Mapping of types between the C/C++ library, the C/C++ library wrapper exposing the C functions, the D wrapper module importing these functions and the D proxy code.</p>
+
+<p>The <tt>cwtype</tt> typemap is used to determine the types to use in the C wrapper functions. The types from the <tt>dwtype</tt> typemap are used in the extern(C) declarations of these functions in the D wrap module. The <tt>dptype</tt> typemap contains the D types used in the D proxy module/class.</p>
+
+
+<H3><a name="D_in_out_directorin_direcetorout"></a>20.3.3 in, out, directorin, directorout</H3>
+
+
+<p>Used for converting between the types for C/C++ and D when generating the code for the wrapper functions (on the C++ side).</p>
+
+<p>The code from the <tt>in</tt> typemap is used to convert arguments to the C wrapper function to the type used in the wrapped code (<tt>cwtype</tt>->original C++ type), the <tt>out</tt> typemap is utilized to convert values from the wrapped code to wrapper function return types (original C++ type-><tt>cwtype</tt>).</p>
+
+<p>The <tt>directorin</tt> typemap is used to convert parameters to the type used in the D director callback function, its return value is processed by <tt>directorout</tt> (see below).</p>
+
+
+<H3><a name="D_din_dout_ddirectorin_ddirectorout"></a>20.3.4 din, dout, ddirectorin, ddirectorout</H3>
+
+
+<p>Typemaps for code generation in D proxy and type wrapper classes.</p>
+
+<p id="D_din">The <tt>din</tt> typemap is used for converting function parameter types from the type used in the proxy module or class to the type used in the D wrap module (the <a href="D.html#D_dinput"><tt>$dinput</tt></a> macro is replaced).</p>
+
+<p id="D_dout">The <tt>dout</tt> typemap is used for converting function return values from the return type used in the wrap D module to the type returned by the proxy function. The <tt>$excode</tt> special variable in <tt>dout</tt> typemaps is replaced by the <tt>excode</tt> typemap attribute code if the method can throw any exceptions from unmanaged code, otherwise by nothing (the <a href="D.html#D_wcall"><tt>$wcall</tt> and <tt>$owner</tt></a> macros are replaced).</p>
+
+<p id="D_ddirectorinout">The code from the <tt>ddirectorin</tt> and <tt>ddirectorout</tt> typemaps is used for conversion in director callback functions. Arguments are converted to the type used in the proxy class method they are calling by using the code from <tt>ddirectorin</tt>, the proxy class method return value is converted to the type the C++ code expects via the <tt>ddirectorout</tt> typemap (the <a href="D.html#D_dpcall"><tt>$dpcall</tt> and <tt>$winput</tt></a> macros are replaced).</p>
+
+<p>The full chain of type conversions when a director callback is invoked looks like this:</p>
+
+ <div class="diagram"><pre>      type CPPClass::method(type a)
+        ↑                     ↓
+   &lt;directorout&gt;         &lt;directorin&gt;
+        ↑                     ↓
+     cwtype methodCallback(cwtype a)    C++
+ ::::::::::::::::::::::::::::::::::::::::::
+     dwtype methodCallback(dwtype a)    D
+        ↑                     ↓
+  &lt;ddirectorout&gt;       &lt;ddirectorin&gt;
+        ↑                     ↓
+      dptype DClass.method(dptype a)</pre></div>
+
+
+<H3><a name="D_typecheck_typemaps"></a>20.3.5 typecheck typemaps</H3>
+
+
+<p>Because, unlike many scripting languages supported by SWIG, D does not need any dynamic dispatch helper to access an overloaded function, the purpose of these is merely to issue a warning for overloaded C++ functions that cannot be overloaded in D (as more than one C++ type maps to a single D type).</p>
+
+
+<H3><a name="D_code_injection_typemaps"></a>20.3.6 Code injection typemaps</H3>
+
+
+<p>These typemaps are used for generating the skeleton of proxy classes for C++ types.</p>
+
+<p>By overriding <tt>dbase</tt>, <tt>dinterfaces</tt> or <tt>dinterfaces_derived</tt>, the inheritance chain of the generated proxy class for a type can be modified. <tt>dclassmodifiers</tt> allows you to add any custom modifiers around the class keyword.</p>
+
+<p>Using <tt>dcode</tt> and <tt>dimports</tt>, you can specify additional D code which will be emitted into the class body respectively the imports section of the D module the class is written to.</p>
+
+<p id="D_class_code_typemaps"><tt>dconstructor</tt>, <tt>ddestructor</tt>, <tt>ddispose</tt> and <tt>ddispose_derived</tt> are used to generate the class constructor, destructor and <tt>dispose()</tt> method, respectively. The auxiliary code for handling the pointer to the C++ object is stored in <tt>dbody</tt> and <tt>dbody_derived</tt>. You can override them for specific types.</p>
+
+
+<H3><a name="D_special_variables"></a>20.3.7 Special variable macros</H3>
+
+
+<p>The standard SWIG special variables are available for use within typemaps as described in the <a href="Typemaps.html#Typemaps">Typemaps documentation</a>, for example <tt>$1</tt>, <tt>$input</tt>, <tt>$result</tt> etc.</p>
+
+<p>When generating D wrappers, a few additional macros are available:</p>
+<dl>
+  <dt><tt>$dclassname</tt> (C#: <tt>$csclassname</tt>)</dt>
+  <dd>
+    <p>This special variable works similar to <a href="Typemaps.html#Typemaps_special_variables"><tt>$n_type</tt></a> in that it returns the name of a type – it expands to the D proxy class name of the type being wrapped. If the type does not have an associated proxy class, it expands to the type wrapper class name, for example, <tt>SWIGTYPE_p_p_SomeCppClass</tt> is generated when wrapping <tt>SomeCppClass **</tt>.</p>
+    <p>There are two other variants available, <tt>$&amp;dclassname</tt> and <tt>$*dclassname</tt>. The former adds a level of indirection, while the latter removes one. For instance, when wrapping <tt>Foo **</tt>, <tt>$*dclassname</tt> would be replaced by the proxy class name corresponding to <tt>Foo *</tt>.</p>
+  </dd>
+
+  <dt><tt>$null</tt></dt>
+  <dd><p>In code inserted into the generated C/C++ wrapper functions, this variable is replaced by either <tt>0</tt> or nothing at all, depending on whether the function has a return value or not. It can be used to bail out early e.g. in case of errors (<tt>return $null;</tt>).</p></dd>
+
+  <dt id="D_dinput"><tt>$dinput</tt> (C#: <tt>$csinput</tt>)</dt>
+  <dd>
+    <p>This variable is used in <tt><a href="D.html#D_din">din</a></tt> typemaps and is replaced by the expression which is to be passed to C/C++.</p>
+    <p>For example, this input</p>
+    <div class="code"><pre>
+%typemap(din) SomeClass * "SomeClass.getCPointer($dinput)"
+
+%inline %{
+  class SomeClass {};
+  void foo(SomeClass *arg);
+%}</pre></div>
+    <p>leads to the following D proxy code being generated:</p>
+<div class="targetlang"><pre>
+void foo(SomeClass arg) {
+  example_wrap.foo(SomeClass.getCPointer(arg));
+}</pre></div></dd>
+
+  <dt id="D_wcall"><tt>$wcall</tt> and <tt>$owner</tt> (C#: <tt>$imcall</tt>)</dt>
+  <dd>
+    <p>These variables are used in <tt><a href="D.html#D_dout">dout</a></tt> typemaps. <tt>$wcall</tt> contains the call to the wrapper layer which provides the value to be used, and <tt>$owner</tt> signals if the caller is responsible for managing the object lifetime (that is, if the called method is a constructor or has been marked via <tt>%newobject</tt>).</p>
+    <p>Consider the following example:</p>
+<div class="code"><pre>
+%typemap(dout) SomeClass * {
+  return new SomeClass($wcall, $owner);
+}
+
+%inline %{
+  class SomeClass;
+  SomeClass *foo();
+
+  %newobject bar();
+  SomeClass *bar();
+%}</pre></div>
+   <p>The code generated for <tt>foo()</tt> and <tt>bar()</tt> looks like this:</p>
+<div class="targetlang"><pre>
+SomeClass foo() {
+  return new SomeClass(example_wrap.foo(), false);
+}
+
+SomeClass bar() {
+  return new SomeClass(example_wrap.bar(), true);
+}
+</pre></div>
+  </dd>
+
+  <dt><tt>$dpcall</tt> and <tt>$winput</tt> (C#: <tt>$cscall</tt>, <tt>$iminput</tt>)</dt>
+  <dd id="D_dpcall"><p>These variables are used in the director-specific typemaps <a href="D.html#D_ddirectorinout"><tt>ddirectorin</tt></a> and <a href="D.html#D_ddirectorinout"><tt>ddirectorout</tt></a>. They are more or less the reverse of the <tt>$wcall</tt> and <tt>$dinput</tt> macros: <tt>$dpcall</tt> contains the invocation of the D proxy method of which the return value is to be passed back to C++, <tt>$winput</tt> contains the parameter value from C++.</p></dd>
+
+  <dt><tt>$excode</tt></dt>
+  <dd><p>This variable is used in <tt>dout</tt> and <tt>dconstructor</tt> typemaps and is filled with the contents of the <tt>excode</tt> typemap attribute if an exception could be thrown from the C++ side. See the <a href="CSharp.html#CSharp_exceptions">C# documentation</a> for details.</p></dd>
+
+  <dt><tt>$dbaseclass</tt></dt>
+  <dd><p>Currently for internal use only, it contains the D name of the C++ base class (if any) inside proxy classes.</p></dd>
+
+  <dt><tt>$directorconnect</tt></dt>
+  <dd>
+    <p>This macro is only valid inside the <tt><a href="D.html#D_class_code_typemaps">dconstructor</a></tt> typemap and contains the value of the <tt>dconstructor</tt> typemap attribute if the currently wrapped class has directors enabled.</p>
+    <p>This is how the default <tt>dconstructor</tt> typemap looks like (you usually do not want to specify a custom one):</p>
+<div class="code"><pre>
+%typemap(dconstructor, excode=SWIGEXCODE,directorconnect="\n  swigDirectorConnect();") SWIGTYPE {
+  this($wcall, true);$excode$directorconnect
+}
+</pre></div>
+  </dd>
+
+  <dt id="D_importtype"><tt>$importtype(SomeDType)</tt></dt>
+  <dd>
+    <p>This macro is used in the <tt>dimports</tt> typemap if a dependency on another D type generated by SWIG is added by a custom typemap.</p>
+    <p>Consider the following code snippet:</p>
+<div class="code"><pre>
+%typemap(dinterfaces) SomeClass "AnInterface, AnotherInterface";
+</pre></div>
+    <p>This causes SWIG to add <tt>AnInterface</tt> and <tt>AnotherInterface</tt> to the base class list of <tt>SomeClass</tt>:</p>
+<div class="targetlang"><pre>
+class SomeClass : AnInterface, AnotherInterface {
+  …
+}
+</pre></div>
+    <p>For this to work, <tt>AnInterface</tt> and <tt>AnotherInterface</tt> have to be in scope. If SWIG is not in split proxy mode, this is already the case, but it it is, they have to be added to the import list via the <tt>dimports</tt> typemap. Additionally, the import statement depends on the package SWIG is configured to emit the modules to.</p>
+    <p>The <tt>$importtype</tt> macro helps you to elegantly solve this problem:</p>
+<div class="code"><pre>
+%typemap(dimports) RemoteMpe %{
+$importtype(AnInterface)
+$importtype(AnotherInterface)
+%}
+</pre></div>
+    <p>If SWIG is in split proxy mode, it expands to an <tt>import</tt> statement for the specified type, to nothing if not.</p>
+  </dd>
+
+  <dt><tt>$module</tt></dt>
+  <dd><p>Expands to the name of the main proxy D module.</p></dd>
+
+  <dt><tt>$wrapdmodule</tt></dt>
+  <dd><p>Contains the fully qualified name of the wrap D module.</p></dd>
+</dl>
+
+
+<H2><a name="D_features"></a>20.4 <tt>%feature</tt>s</H2>
+
+
+<p>The D module defines a number of directives which modify the <a href="Customization.html#Customization_features">SWIG features</a> set globally or for a specific declaration:</p>
+
+
+<dl>
+  <dt><tt>%dnativeconst</tt> and <tt>%dconstvalue(value)</tt></dt>
+  <dd>
+    <p>Out of the box, SWIG generates accessor methods for C <tt>#defines</tt> and C++ constants. The <tt>%dnativeconst</tt> directive enables wrapping these constants as D manifest constants (<tt>const</tt> in D1, <tt>enum</tt> in D2).</p>
+    <p>For this to work, the C/C++ code for the constant value must directly compile as D code, though. If this is not the case, you can manually override the expression written to the D wrapper using the <tt>%dconstvalue</tt> directive, passing the new value as parameter.</p>
+    <p>For <tt>enum</tt>s, again <tt>%dconstvalue</tt> can be used to override the value of an enum item if the initializer should not compile in D.</p>
+  </dd>
+
+  <dt><tt>%dmethodmodifiers</tt></dt>
+  <dd>
+    <p>This directive can be used to override the modifiers for a proxy function. For instance, you could make a <tt>public</tt> C++ member function <tt>private</tt> in D like this:</p>
+<div class="code"><pre>
+%dmethodmodifiers A::foo "private";
+
+%inline %{
+struct A {
+  void foo();
+};
+%}
+</pre></div>
+  </dd>
+</dl>
+
+
+<H2><a name="D_pragmas"></a>20.5 Pragmas</H2>
+
+
+<p>There are a few SWIG pragmas specific to the D module, which you can use to influence the D code SWIG generates:</p>
+
+<dl>
+  <dt><tt>%pragma(d) wrapdmodulecode</tt></dt>
+  <dd><p>The passed text (D code) is copied verbatim to the wrap D module. For example, it can be (and is, internally) used to emit additional private helper code for the use by proxy typemaps.</p></dd>
+
+  <dt><tt>%pragma(d) wrapdmoduleimports</tt></dt>
+  <dd><p>Additional code to be emitted to the imports section of the wrap D module (the <a href="D.html#D_importtype">$importtype</a> macro can be used here). You probably want to use this in conjunction with the <tt>wrapdmodulecode</tt> pragma.</p></dd>
+
+  <dt><tt>%pragma(d) proxydmodulecode</tt></dt>
+  <dd><p>Just like <tt>proxydmodulecode</tt>, the argument is copied to the proxy D module (if SWIG is in <a href="D.html#D_splitproxy">split proxy mode</a>, it is emitted to the main proxy D module only).</p></dd>
+
+  <dt><tt>%pragma(d) globalproxyimports</tt></dt>
+  <dd>
+    <p>The D module currently does not support specifying dependencies on external modules (e.g. from the standard library) for the D typemaps. To add the import statements to the proxy modules (resp. to <em>all</em> proxy modules if in split proxy mode), you can use the <tt>globalproxyimports</tt> directive.</p>
+    <p>For example:</p>
+<div class="code"><pre>
+%typemap(din) char[] "($dinput ? tango.stdc.stringz.toStringz($dinput) : null)"
+%pragma(d) globalproxyimports = "static import tango.stdc.stringz;";
+</pre></div>
+  </dd>
+
+  <dt><tt>%pragma(d) wrapperloadercode</tt></dt>
+  <dd>
+    <p>The D code for loading the wrapper library (it is copied to the wrap D module). The <tt>$wrapperloaderbindcode</tt> variable is replaced by the list of commands for binding the functions from the wrapper library to the symbols in the wrap D module.</p>
+    <p>Each time this pragma is specified, the previous value is overwritten.</p>
+  </dd>
+
+  <dt><tt>%pragma(d) wrapperloaderbindcommand</tt></dt>
+  <dd>
+    <p>The D command to use for binding the wrapper functions from the C/C++ library to the symbols in the wrap D module. The <tt>$function</tt> variable contains the name of the D function in the wrap module, the <tt>$symbol</tt> variable is replaced by the name of the symbol in the library.</p>
+    <p>Each time this pragma is specified, the previous value is overwritten.</p>
+  </dd>
+</dl>
+
+
+<H2><a name="D_exceptions"></a>20.6 D Exceptions</H2>
+
+
+<p>Out of the box, C++ exceptions are fundamentally incompatible to their equivalent in the D world and cannot simply be propagated to a calling D method. There is, however, an easy way to solve this problem: Just catch the exception in the C/C++ wrapper layer, pass the contents to D, and make the wrapper code rethrow the exception in the D world.</p>
+
+<p>The implementation details of this are a bit crude, but the SWIG D module automatically takes care of this, as long as it is able to detect that an exception could potentially be thrown (e.g. because the C++ method has a <tt>throw(…)</tt> exception specification).</p>
+
+<p>As this feature is implemented in exactly the same way it is for C#, please see the <a href="CSharp.html#CSharp_exceptions">C# documentation</a> for a more detailed explanation.</p>
+
+
+<H2><a name="D_directors"></a>20.7 D Directors</H2>
+
+
+<p>When the directors feature is activated, SWIG generates extra code on both the C++ and the D side to enable cross-language polymorphism. Essentially, this means that if you subclass a proxy class in D, C++ code can access any overridden virtual methods just as if you created a derived class in C++.</p>
+
+<p>There is no D specific documentation yet, but the way the feature is implemented is very similar to how it is done in <a href="Java.html#Java_directors">Java</a> and <a href="CSharp.html#CSharp_directors">C#</a>.
+</p>
+
+
+<H2><a name="D_other_features"></a>20.8 Other features</H2>
+
+
+<p>The <a href="SWIGPlus.html#SWIGPlus_nspace"><tt>nspace</tt></a> feature of SWIG is not yet supported for D – all class modules are written to the same package, regardless of which C++ namespace they are in.</p>
+
+<p>Support of pointers to primitive types.</p>
+
+
+<H2><a name="D_typemap_examples"></a>20.9 D Typemap examples</H2>
+
+
+<p>There are no D-specific typemap examples yet. However, with the above <a href="D.html#D_typemap_name_comparison">name comparison table</a>, you should be able to get an idea what can be done by looking at the <a href="CSharp.html#CSharp_typemap_examples">corresponding C# section</a>.</p>
+
+
+
+<H2><a name="D_planned_features"></a>20.10 Work in progress and planned features</H2>
+
+
+<p>There are a couple of features which are not implemented yet, but would be very useful and might be added in the near future:</p>
+
+<ul>
+  <li><em>Static linking:</em> Currently, the C wrapper code is compiled into a dynamic library, out of which the symbol addresses are looked up at runtime by the D part. If statically linking the different languages into one binary was supported, a tool-chain capable of performing IPO at link time could inline the wrapping code, effectively reducing the overhead for simple calls to zero.</li>
+  <li><em>C array handling:</em> Many data structures in some C/C++ libraries contain array containing of a pointer to the first element and the element count. Currently, one must manually writing wrapper code to be able to access these from D. It should be possible to add a set of SWIG macros to semi-automatically generate conversion code.</li>
+	<li><em>Operator overloading:</em> Currently, operator overloading is supported only to a very limited extent – many C++ operators are just ignored with a warning. The problem here is that the way D handles operator overloading differs quite a lot from the way C++ does it, both syntactically and semantically, and even more so since the advent of template-based operator overloading in D2.</li>
+</ul>
+
+<p>Some generated code might also be a bit rough around the edges, particularly in the following areas:</p>
+
+<ul>
+  <li><em>Memory management:</em> Although the currently generated wrapper code works fine with regard to the GC for the test-suite, there might be issues coming up in real-world multi-threaded usage.</li>
+  <li><em>D2 support</em>: Originally, the module has been developed for the use with D1, D2/Phobos support has been added in later. The basic features should work equally well for both, but there <em>could</em> be issues concerning const-correctness etc.</li>
+</ul>
+
+
+</body>
+</html>
+
