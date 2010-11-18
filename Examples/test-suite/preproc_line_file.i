@@ -34,7 +34,7 @@ const int NUMBER_UNIQUE(thing) = -2; /* resolves to thing28 */
 #elif defined(SWIGCSHARP)
 %csconst(1);
 #elif defined(SWIGD)
-%dnativeconst;
+%dmanifestconst;
 #else
 %ignore LINE_NUMBER;
 %ignore LINE_NUM;

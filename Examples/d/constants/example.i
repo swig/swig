@@ -4,7 +4,7 @@
 /* Force the generated D code to use the C constant values rather than
    retrieving them at runtime. You can also try disabling the feature and
    compare the generated code. */
-%dnativeconst;
+%dmanifestconst;
 
 
 /* A few preprocessor macros */

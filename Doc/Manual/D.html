@@ -281,9 +281,9 @@ $importtype(AnotherInterface)
 
 
 <dl>
-  <dt><tt>%dnativeconst</tt> and <tt>%dconstvalue(value)</tt></dt>
+  <dt><tt>%dmanifestconst</tt> and <tt>%dconstvalue(value)</tt></dt>
   <dd>
-    <p>Out of the box, SWIG generates accessor methods for C <tt>#defines</tt> and C++ constants. The <tt>%dnativeconst</tt> directive enables wrapping these constants as D manifest constants (<tt>const</tt> in D1, <tt>enum</tt> in D2).</p>
+    <p>Out of the box, SWIG generates accessor methods for C <tt>#defines</tt> and C++ constants. The <tt>%dmanifestconst</tt> directive enables wrapping these constants as D manifest constants (<tt>const</tt> in D1, <tt>enum</tt> in D2).</p>
     <p>For this to work, the C/C++ code for the constant value must directly compile as D code, though. If this is not the case, you can manually override the expression written to the D wrapper using the <tt>%dconstvalue</tt> directive, passing the new value as parameter.</p>
     <p>For <tt>enum</tt>s, again <tt>%dconstvalue</tt> can be used to override the value of an enum item if the initializer should not compile in D.</p>
   </dd>

@@ -864,7 +864,7 @@ public:
       String *value = Getattr(n, "feature:d:constvalue");
 
       // Note that in D, enum values must be compile-time constants. Thus,
-      // %dnativeconst(0) (getting the enum values at runtime) is not supported.
+      // %dmanifestconst(0) (getting the enum values at runtime) is not supported.
       value = value ? value : Getattr(n, "enumvalue");
       if (value) {
 	Printf(proxy_enum_code, " = %s", value);
@@ -976,7 +976,7 @@ public:
    * D::staticmembervariableHandler()
    * --------------------------------------------------------------------------- */
   virtual int staticmembervariableHandler(Node *n) {
-    if (GetFlag(n, "feature:d:nativeconst") != 1) {
+    if (GetFlag(n, "feature:d:manifestconst") != 1) {
       Delattr(n, "value");
     }
 
@@ -1298,7 +1298,7 @@ public:
    * Used for wrapping constants declared by #define or %constant and also for
    * (primitive) static member constants initialised inline.
    *
-   * If the %dnativeconst feature is used, the C/C++ constant value is used to
+   * If the %dmanifestconst feature is used, the C/C++ constant value is used to
    * initialize a D »const«. If not, a »getter« method is generated which
    * retrieves the value via a call to the C wrapper. However, if there is a
    * %dconstvalue specified, it overrides all other settings.
@@ -1308,9 +1308,9 @@ public:
     if (!addSymbol(symname, n))
       return SWIG_ERROR;
 
-    // The %dnativeconst feature determines if a D const or a getter function is
-    // created.
-    if (GetFlag(n, "feature:d:nativeconst") != 1) {
+    // The %dmanifestconst feature determines if a D manifest constant
+    // (const/enum) or a getter function is created.
+    if (GetFlag(n, "feature:d:manifestconst") != 1) {
       // Default constant handling will work with any type of C constant. It
       // generates a getter function (which is the same as a read only property
       // in D) which retrieves the value via by calling the C wrapper.
