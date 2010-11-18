@@ -4,7 +4,8 @@
 
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) oss::Module;	/* C#, Java, PHP multiple inheritance */
+	    SWIGWARN_D_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) oss::Module;	/* C#, D, Java, PHP multiple inheritance */
 
 %inline %{ 
  
@@ -56,7 +57,7 @@ namespace oss
 %inline %{ 
   namespace oss 
   { 
-#if defined(SWIG) && defined(SWIGCSHARP)
+#if defined(SWIG) && (defined(SWIGCSHARP) || defined(SWIGD))
 %ignore HModule<B>::get(); // Work around for lack of multiple inheritance support - base ModuleBase is ignored.
 #endif
     struct test : HModule<B> 

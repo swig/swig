@@ -1,16 +1,18 @@
 %module minherit2
 
-// A multiple inheritance example, mainly for Java and C#.
-// The example shows how it is possible to turn C++ abstract base classes into Java/C# interface.
+// A multiple inheritance example, mainly for Java, C# and D.
+// The example shows how it is possible to turn C++ abstract base classes into
+// Java/C#/D interfaces.
 // In the future, all this trouble might be more automated.
 
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
+	    SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) RemoteMpe;
 
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD)
 
 #if defined(SWIGCSHARP)
 #define javaclassmodifiers   csclassmodifiers
@@ -20,6 +22,21 @@
 #define javaout              csout
 #define javainterfaces       csinterfaces
 #define javabase             csbase
+#endif
+
+#if defined(SWIGD)
+#define javaclassmodifiers   dclassmodifiers
+#define javabody             dbody
+#define javafinalize         ddestructor
+#define javadestruct         ddispose
+#define javaout              dout
+#define javainterfaces       dinterfaces
+#define javabase             dbase
+
+%typemap(dimports) RemoteMpe %{
+$importtype(IRemoteSyncIO)
+$importtype(IRemoteAsyncIO)
+%}
 #endif
 
 // Modify multiple inherited base classes into inheriting interfaces
@@ -51,6 +68,12 @@
 // Features are inherited by derived classes, so override this
 %csmethodmodifiers RemoteMpe::syncmethod "public"
 %csmethodmodifiers RemoteMpe::asyncmethod "public"
+#elif defined(SWIGD)
+%dmethodmodifiers IRemoteSyncIO::syncmethod "";
+%dmethodmodifiers IRemoteAsyncIO::asyncmethod "";
+// Features are inherited by derived classes, so override this
+%dmethodmodifiers RemoteMpe::syncmethod "public"
+%dmethodmodifiers RemoteMpe::asyncmethod "public"
 #endif
 
 #endif

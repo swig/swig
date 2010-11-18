@@ -33,12 +33,12 @@ const int NUMBER_UNIQUE(thing) = -2; /* resolves to thing28 */
 %javaconst(1);
 #elif defined(SWIGCSHARP)
 %csconst(1);
+#elif defined(SWIGD)
+%dnativeconst;
 #else
 %ignore LINE_NUMBER;
 %ignore LINE_NUM;
 /* spare space */
-
-
 #endif
 
 %{

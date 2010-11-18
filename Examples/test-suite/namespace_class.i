@@ -2,6 +2,10 @@
 
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Ala::Ola;
 
+#ifdef SWIGD
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_LT);
+#endif
+
 %inline %{
   template<class T> void foobar(T t) {}
   namespace test {
