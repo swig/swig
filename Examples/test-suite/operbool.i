@@ -1,6 +1,6 @@
 %module operbool
 
-%rename(operbool) operator bool();
+%rename(operator_bool) operator bool();
 
 %inline %{
   class Test {
