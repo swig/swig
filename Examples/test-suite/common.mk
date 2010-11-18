@@ -466,7 +466,7 @@ C_TEST_CASES += \
 	extern_declaration \
 	funcptr \
 	function_typedef \
-	immutable \
+	immutable_values \
 	inctest \
 	integers \
         keyword_rename \

@@ -1,6 +1,6 @@
 // test to make sure setters are not generated for constants
 
-%module immutable
+%module immutable_values
 
 
 %immutable;
