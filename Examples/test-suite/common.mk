@@ -318,11 +318,11 @@ CPP_TEST_CASES += \
 	struct_initialization_cpp \
 	struct_value \
 	symbol_clash \
-	template \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \
 	template_array_numeric \
+	template_basic \
 	template_base_template \
 	template_classes \
 	template_const_ref \
