@@ -146,6 +146,7 @@ private {
       return swigToDString(err);
     }
   } else version(Windows) {
+    alias ushort WORD;
     alias uint DWORD;
     alias CCPTR LPCSTR;
     alias void* HMODULE;
@@ -160,6 +161,10 @@ private {
       DWORD GetLastError();
       DWORD FormatMessageA(DWORD, in void*, DWORD, DWORD, LPCSTR, DWORD, VA_LIST*);
       HLOCAL LocalFree(HLOCAL);
+    }
+
+    DWORD MAKELANGID(WORD p, WORD s) {
+      return (((cast(WORD)s) << 10) | cast(WORD)p);
     }
 
     enum {
