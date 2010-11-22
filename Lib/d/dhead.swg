@@ -23,7 +23,7 @@ typedef enum {
   SWIG_DNoSuchElementException,
 } SWIG_DExceptionCodes;
 
-typedef void (SWIGSTDCALL* SWIG_DExceptionCallback_t)(const char *);
+typedef void (* SWIG_DExceptionCallback_t)(const char *);
 
 typedef struct {
   SWIG_DExceptionCodes code;
@@ -49,7 +49,7 @@ static void SWIGUNUSED SWIG_DSetPendingException(SWIG_DExceptionCodes code, cons
 #ifdef __cplusplus
 extern "C"
 #endif
-SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionCallbacks_$module(
+SWIGEXPORT void SWIGRegisterExceptionCallbacks_$module(
   SWIG_DExceptionCallback_t exceptionCallback,
   SWIG_DExceptionCallback_t illegalArgumentCallback,
   SWIG_DExceptionCallback_t illegalElementCallback,
@@ -253,13 +253,13 @@ alias void function(const char* message) SwigExceptionCallback;
 #if !defined(SWIG_D_NO_STRING_HELPER)
 %insert(runtime) %{
 // Callback for returning strings to D without leaking memory.
-typedef char * (SWIGSTDCALL* SWIG_DStringHelperCallback)(const char *);
+typedef char * (* SWIG_DStringHelperCallback)(const char *);
 static SWIG_DStringHelperCallback SWIG_d_string_callback = NULL;
 
 #ifdef __cplusplus
 extern "C"
 #endif
-SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_DStringHelperCallback callback) {
+SWIGEXPORT void SWIGRegisterStringCallback_$module(SWIG_DStringHelperCallback callback) {
   SWIG_d_string_callback = callback;
 }
 %}

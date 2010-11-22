@@ -1480,7 +1480,7 @@ public:
     if (!is_void_return)
       Wrapper_add_localv(f, "jresult", c_return_type, "jresult", NIL);
 
-    Printv(f->def, " SWIGEXPORT ", c_return_type, " SWIGSTDCALL ", wname, "(", NIL);
+    Printv(f->def, " SWIGEXPORT ", c_return_type, " ", wname, "(", NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_parameter_variables(l, f);
@@ -2308,7 +2308,7 @@ public:
       // Write the global callback function pointer on the C code.
       String *methid = Getattr(udata, "class_methodidx");
 
-      Printf(director_callback_typedefs, "    typedef %s (SWIGSTDCALL* SWIG_Callback%s_t)", c_ret_type, methid);
+      Printf(director_callback_typedefs, "    typedef %s (* SWIG_Callback%s_t)", c_ret_type, methid);
       Printf(director_callback_typedefs, "(void *dobj%s);\n", callback_typedef_parms);
       Printf(director_callback_pointers, "    SWIG_Callback%s_t swig_callback_%s;\n", methid, overloaded_name);
 
@@ -3287,7 +3287,7 @@ private:
 	String *smartnamestr = SwigType_namestr(smart);
 	String *bsmartnamestr = SwigType_namestr(bsmart);
 	Printv(upcasts_code,
-	  "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", upcast_wrapper_name,
+	  "SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
 	    "(", smartnamestr, " *objectRef) {\n",
 	  "    return objectRef ? new ", bsmartnamestr, "(*objectRef) : 0;\n"
 	  "}\n",
@@ -3302,7 +3302,7 @@ private:
       }
     } else {
       Printv(upcasts_code,
-	"SWIGEXPORT ", c_base_name, " * SWIGSTDCALL ", upcast_wrapper_name,
+	"SWIGEXPORT ", c_base_name, " * ", upcast_wrapper_name,
 	  "(", c_base_name, " *objectRef) {\n",
 	"    return (", c_base_name, " *)objectRef;\n"
 	"}\n",
@@ -3480,7 +3480,7 @@ private:
     Printf(wrap_dmodule_code, "extern(C) void function(void* cObject, void* dObject");
 
     code_wrap = NewWrapper();
-    Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL D_%s(void *objarg, void *dobj", connect_name);
+    Printf(code_wrap->def, "SWIGEXPORT void D_%s(void *objarg, void *dobj", connect_name);
 
     Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
     Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n", sym_name, sym_name);
