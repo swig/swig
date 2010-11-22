@@ -2544,7 +2544,7 @@
 	 return 0;
      }
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
 }
 
 %typecheck(SWIG_TYPECHECK_UINT8) unsigned char {
@@ -2556,7 +2556,7 @@
 	 return 0;
      }
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
 }
 
 %typecheck(SWIG_TYPECHECK_INT16) short {
@@ -2564,7 +2564,7 @@
   int typearg;
   sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
 }
 
 %typecheck(SWIG_TYPECHECK_UINT16) unsigned short {
@@ -2576,7 +2576,7 @@
 	 return 0;
      }
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
 }
 
 %typecheck(SWIG_TYPECHECK_INT32) int, 
@@ -2589,7 +2589,7 @@
 	 return 0;
      }
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
 }
 
 %typecheck(SWIG_TYPECHECK_UINT32) unsigned int,
@@ -2602,9 +2602,10 @@
 	 return 0;
      }
   getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
 }
 
+/* TODO: add int64 & uint64 for Scilab 6 */
 
 %typecheck(SWIG_TYPECHECK_DOUBLE) double {
   int *piAddrVar;
