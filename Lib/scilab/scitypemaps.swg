@@ -2522,238 +2522,130 @@
 /* ------------------------------------------------------------
  * --- Typecheck typemaps ---
  * ------------------------------------------------------------ */
+
+%define SCILAB_TYPECHECK(SCITYPE)
+    int *piAddrVar = NULL;
+    int iType      = 0;
+    sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+    getVarType(pvApiCtx, piAddrVar, &iType);
+    $1 = (iType == ##SCITYPE##) ? 1 : 0;
+%enddef
+
+/* Scilab equivalent for C integers can be sci_ints or sci_matrix */
+%define SCILAB_INTEGERTYPECHECK(INTTYPE)
+    SCILAB_TYPECHECK(sci_ints)
+    if ($1 == 1) /* sci_ints type */
+    {
+        int iPrec      = 0;
+        sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
+        if (sciErr.iErr)
+        {
+            printError(&sciErr, 0);
+            return 0;
+        }
+        $1 = (iPrec == ##INTTYPE##) ? 1 : 0;
+    }
+    else /* sci_matrix type */
+    {
+        SCILAB_TYPECHECK(sci_matrix)
+    }
+%enddef
+
 /* Basic C types */
 %typecheck(SWIG_TYPECHECK_CHAR) char {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_strings) ? 1 : 0;
+    SCILAB_TYPECHECK(sci_strings)
 }
 
 %typecheck(SWIG_TYPECHECK_INT8) signed char {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
+    //SCILAB_INTEGERTYPECHECK(SCI_INT8)
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 %typecheck(SWIG_TYPECHECK_UINT8) unsigned char {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
+    //SCILAB_INTEGERTYPECHECK(SCI_UINT8)
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 %typecheck(SWIG_TYPECHECK_INT16) short {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
+    //SCILAB_INTEGERTYPECHECK(SCI_INT16)
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 %typecheck(SWIG_TYPECHECK_UINT16) unsigned short {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
+    //SCILAB_INTEGERTYPECHECK(SCI_UINT16)
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 %typecheck(SWIG_TYPECHECK_INT32) int, 
                                  long {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
+    //SCILAB_INTEGERTYPECHECK(SCI_INT32)
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 %typecheck(SWIG_TYPECHECK_UINT32) unsigned int,
                                   unsigned long {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0; /* TODO: fix this bug. should be int */
+    //SCILAB_INTEGERTYPECHECK(SCI_UINT32)
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 /* TODO: add int64 & uint64 for Scilab 6 */
 
 %typecheck(SWIG_TYPECHECK_DOUBLE) double {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 %typecheck(SWIG_TYPECHECK_FLOAT) float {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 %typecheck(SWIG_TYPECHECK_STRING) char * {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_strings) ? 1 : 0;
+    SCILAB_TYPECHECK(sci_strings)
 }
 
 /* Arrays */
 %typecheck(SWIG_TYPECHECK_CHAR_ARRAY) char [ANY] {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_strings) ? 1 : 0;
+    SCILAB_TYPECHECK(sci_strings)
 }
 
 %typecheck(SWIG_TYPECHECK_INT8_ARRAY) signed char [ANY] {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+    //SCILAB_INTEGERTYPECHECK(SCI_INT8)
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 %typecheck(SWIG_TYPECHECK_INT16_ARRAY) unsigned char [ANY],
                                        short [ANY] {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+    //SCILAB_INTEGERTYPECHECK(SCI_INT16)
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 %typecheck(SWIG_TYPECHECK_INT32_ARRAY) unsigned short [ANY],
                                        int [ANY],
                                        long [ANY] {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+    //SCILAB_INTEGERTYPECHECK(SCI_INT32)
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
-%typecheck(SWIG_TYPECHECK_INT64_ARRAY) unsigned int [ANY],
-                                        unsigned long [ANY] {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
-}
+/* TODO: add int64 for Scilab 6 */
 
 %typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) double [ANY]{
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 %typecheck(SWIG_TYPECHECK_FLOAT_ARRAY) float [ANY]{
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_matrix) ? 1 : 0;
+    SCILAB_TYPECHECK(sci_matrix)
 }
 
 %typecheck(SWIG_TYPECHECK_STRING_ARRAY) char ** {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_strings) ? 1 : 0;
+    SCILAB_TYPECHECK(sci_strings)
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE * {
-  int *piAddrVar;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  getVarType(pvApiCtx, piAddrVar, &typearg);
-  $1 = (typearg == sci_pointer) ? 1 : 0;
+    SCILAB_TYPECHECK(sci_pointer)
 }
 
 /* ------------------------------------------------------------
