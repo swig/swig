@@ -1796,6 +1796,7 @@
 
 %typemap(varin,noblock=1) unsigned int [ANY][ANY],
                           unsigned long [ANY][ANY] {
+  int iPrec;
   int iType;
   unsigned int *_piData;
   sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
