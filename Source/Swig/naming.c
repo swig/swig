@@ -1110,7 +1110,7 @@ void Swig_name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, Str
   }
 
   if (!nname || !Len(nname) || Getattr(nameobj, "fullname") ||	/* any of these options trigger a 'list' nameobj */
-      Getattr(nameobj, "sourcefmt") || Getattr(nameobj, "matchlist")) {
+      Getattr(nameobj, "sourcefmt") || Getattr(nameobj, "matchlist") || Getattr(nameobj, "regextarget")) {
     if (decl)
       Setattr(nameobj, "decl", decl);
     if (nname && Len(nname))
@@ -1302,7 +1302,13 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
 	    : Swig_name_match_value(tname, sname);
 	  Delete(sname);
 	} else {
-	  match = 1;
+	  /* Applying the renaming rule may fail if it contains a %(regex)s expression that doesn't match the given name. */
+	  String *sname = NewStringf(Getattr(rn, "name"), name);
+	  if (sname) {
+	    if (Len(sname))
+	      match = 1;
+	    Delete(sname);
+	  }
 	}
       }
       if (match) {

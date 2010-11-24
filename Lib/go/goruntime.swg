@@ -109,23 +109,23 @@ static void _swig_gopanic(const char *p) {
 extern void ·_swig_internal_allocate(void);
 #pragma dynexport _swig_gc_allocate _swig_gc_allocate
 void _swig_gc_allocate(void *a, int32 n) {
-	cgocallback(·_swig_internal_allocate, a, n);
+	runtime·cgocallback(·_swig_internal_allocate, a, n);
 }
 
 void ·_swig_allocatememory(int32 len, byte *ret) {
-	ret = mal(len);
+	ret = runtime·mal(len);
 	FLUSH(&ret);
 }
 
 extern void ·_swig_internal_makegostring(void);
 #pragma dynexport _swig_gc_makegostring _swig_gc_makegostring
 void _swig_gc_makegostring(void *a, int32 n) {
-	cgocallback(·_swig_internal_makegostring, a, n);
+	runtime·cgocallback(·_swig_internal_makegostring, a, n);
 }
 
 void ·_swig_allocatestring(byte *p, int32 l, String ret) {
-	ret.str = mal(l+1);
-	mcpy(ret.str, p, l);
+	ret.str = runtime·mal(l+1);
+	runtime·mcpy(ret.str, p, l);
 	ret.len = l;
 	FLUSH(&ret);
 }
@@ -133,7 +133,7 @@ void ·_swig_allocatestring(byte *p, int32 l, String ret) {
 extern void ·_swig_internal_gopanic(void);
 #pragma dynexport _swig_gc_gopanic _swig_gc_gopanic
 void _swig_gc_gopanic(void *a, int32 n) {
-	cgocallback(·_swig_internal_gopanic, a, n);
+	runtime·cgocallback(·_swig_internal_gopanic, a, n);
 }
 
 %}

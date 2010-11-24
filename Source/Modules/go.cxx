@@ -1068,7 +1068,7 @@ private:
     Delete(parm_size);
 
     Printv(f->code, "{\n", NULL);
-    Printv(f->code, "\tcgocall(", wname, ", &p);\n", NULL);
+    Printv(f->code, "\truntime\xc2\xb7" "cgocall(", wname, ", &p);\n", NULL);
     Printv(f->code, "}\n", NULL);
     Printv(f->code, "\n", NULL);
 
@@ -2749,7 +2749,7 @@ private:
 	Printv(f_gc_wrappers, "void\n", NULL);
 	Printv(f_gc_wrappers, wname, "(void *a, int32 n)\n", NULL);
 	Printv(f_gc_wrappers, "{\n", NULL);
-	Printv(f_gc_wrappers, "\tcgocallback(\xc2\xb7", go_name, ", a, n);\n", NULL);
+	Printv(f_gc_wrappers, "\truntime\xc2\xb7" "cgocallback(\xc2\xb7", go_name, ", a, n);\n", NULL);
 	Printv(f_gc_wrappers, "}\n\n", NULL);
       } else {
 	Printv(f_c_directors, "  ", wname, "(go_val);\n", NULL);
@@ -3475,7 +3475,7 @@ private:
 	  Printv(f_gc_wrappers, "void\n", NULL);
 	  Printv(f_gc_wrappers, callback_wname, "(void *a, int32 n)\n", NULL);
 	  Printv(f_gc_wrappers, "{\n", NULL);
-	  Printv(f_gc_wrappers, "\tcgocallback(\xc2\xb7", callback_name, ", a, n);\n", NULL);
+	  Printv(f_gc_wrappers, "\truntime\xc2\xb7" "cgocallback(\xc2\xb7", callback_name, ", a, n);\n", NULL);
 	  Printv(f_gc_wrappers, "}\n\n", NULL);
 	} else {
 	  if (SwigType_type(result) != T_VOID) {

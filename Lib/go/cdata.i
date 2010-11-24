@@ -59,8 +59,8 @@ void _swig_gc_makegobyteslice(void *a, int32 n) {
 	cgocallback(·_swig_internal_makegobyteslice, a, n);
 }
 void ·_swig_allocategobyteslice(byte *data, int32 len, swigcdata ret) {
-	ret.data = mal(len);
-	mcpy(ret.data, data, len);
+	ret.data = runtime·mal(len);
+	runtime·mcpy(ret.data, data, len);
 	ret.len = len;
 	FLUSH(&ret);
 }

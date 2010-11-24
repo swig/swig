@@ -130,7 +130,7 @@ static const char *usage2 = (char *) "\
      -nofastproxy    - Use traditional proxy mechanism for member methods (default) \n\
      -nofastquery    - Use traditional query mechanism for types (default) \n\
      -noh            - Don't generate the output header file\n\
-     -nomodern       - Don't use modern python features which are not back compatible \n\
+     -nomodern       - Don't use modern python features which are not backwards compatible \n\
      -nomodernargs   - Use classic ParseTuple/CallFunction methods to pack/unpack the function arguments (default) \n";
 static const char *usage3 = (char *) "\
      -noolddefs      - Don't emit the old method definitions even when using fastproxy (default) \n\

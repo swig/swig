@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -200,6 +200,23 @@
 
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
    add an entry here */
+
+#define WARN_D_TYPEMAP_CWTYPE_UNDEF           700
+#define WARN_D_TYPEMAP_DWTYPE_UNDEF           701
+#define WARN_D_TYPEMAP_DPTYPE_UNDEF           702
+#define WARN_D_MULTIPLE_INHERITANCE           703
+#define WARN_D_TYPEMAP_CLASSMOD_UNDEF         704
+#define WARN_D_TYPEMAP_DBODY_UNDEF            705
+#define WARN_D_TYPEMAP_DOUT_UNDEF             706
+#define WARN_D_TYPEMAP_DIN_UNDEF              707
+#define WARN_D_TYPEMAP_DDIRECTORIN_UNDEF      708
+#define WARN_D_TYPEMAP_DCONSTRUCTOR_UNDEF     709
+#define WARN_D_EXCODE_MISSING                 710
+#define WARN_D_CANTHROW_MISSING               711
+#define WARN_D_NO_DIRECTORCONNECT_ATTR        712
+#define WARN_D_NAME_COLLISION                 713
+
+/* please leave 700-719 free for D */
 
 #define WARN_RUBY_WRONG_NAME                  801
 #define WARN_RUBY_MULTIPLE_INHERITANCE        802

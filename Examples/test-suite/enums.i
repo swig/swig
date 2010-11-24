@@ -58,6 +58,11 @@ typedef struct _Foo {
   
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) _iFoo;
 
+#ifdef SWIGD
+/* Work around missing support for proper char quoting due to parser shortcomings. */
+%dconstvalue("'a'") _iFoo::Char;
+#endif
+
 #ifndef __cplusplus
 %inline %{
 typedef struct _iFoo 

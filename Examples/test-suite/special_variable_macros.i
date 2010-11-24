@@ -165,6 +165,20 @@ namespace Space {
     return new $typemap(jstype, Space::RenameMe)( new $typemap(jstype, Name)(s) ); 
   }
 %}
+#elif defined(SWIGD)
+#if (SWIG_D_VERSION == 1)
+%typemap(dcode) Space::RenameMe %{
+  public static NewName factory(char[] s) {
+    return new $typemap(dptype, Space::RenameMe)( new $typemap(dptype, Name)(s) );
+  }
+%}
+#else
+%typemap(dcode) Space::RenameMe %{
+  public static NewName factory(string s) {
+    return new $typemap(dptype, Space::RenameMe)( new $typemap(dptype, Name)(s) );
+  }
+%}
+#endif
 #endif
 
 %rename(NewName) Space::RenameMe;

@@ -2003,22 +2003,6 @@ documentation is not exhaustive, see "%rename predicates" section of
 </p>
 
 <p>
-Another important feature of <tt>match</tt> is that it can be applied not
-only to the declaration itself but also to its enclosing declaration. So
-<tt>match$parentNode$name="SomeClass"</tt> would be true only for members of
-the C++ class with the specified name. This can, of course, be combined with
-more complicated matches making it possible to write
-</p>
-<div class="code">
-<pre>
-%rename("%(lowercase)s", match$parentNode$name="SomeClass", %$isenum) "";
-</pre>
-</div>
-<p>
-to rename all enums nested in the given class to lower case.
-</p>
-
-<p>
 In addition to literally matching some string with <tt>match</tt> you can
 also use <tt>regexmatch</tt> or <tt>notregexmatch</tt> to match a string
 against a regular expression. For example, to ignore all functions having
@@ -2037,6 +2021,14 @@ declaration name directly can be preferable and can also be done using
 <div class="code">
 <pre>
 %rename("$ignore", regextarget=1) "Old$";
+</pre>
+</div>
+Notice that the check is done only against the name of the declaration
+itself, if you need to match the full name of a C++ declaration you
+must use <tt>fullname</tt> attribute:
+<div class="code">
+<pre>
+%rename("$ignore", regextarget=1, fullname=1) "NameSpace::ClassName::.*Old$";
 </pre>
 </div>
 

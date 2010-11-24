@@ -29,8 +29,15 @@ namespace Foo {
 #ifdef SWIGGO
     %typemap(gotype) Str1 * = char *;
 #endif
+#ifdef SWIGD
+    %typemap(cwtype) Str1 * = char *;
+    %typemap(dwtype) Str1 * = char *;
+    %typemap(dptype) Str1 * = char *;
+    %typemap(din) Str1 * = char *;
+    %typemap(dout) Str1 * = char *;
+#endif
     %typemap(in) Str1 * = char *;
-#if !(defined(SWIGCSHARP) || defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGMZSCHEME) || defined(SWIGOCAML) || defined(SWIGGO))
+#if !(defined(SWIGCSHARP) || defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGMZSCHEME) || defined(SWIGOCAML) || defined(SWIGGO) || defined(SWIGD))
     %typemap(freearg) Str1 * = char *;
 #endif
     %typemap(typecheck) Str1 * = char *;
