@@ -1015,6 +1015,7 @@ public:
     ParmList *l = Getattr(n, "parms");
     String *tm;
     String *proxy_constructor_code = NewString("");
+    int i;
 
     // Holds code for the constructor helper method generated only when the din
     // typemap has code in the pre or post attributes.
@@ -1060,7 +1061,7 @@ public:
 
     /* Output each parameter */
     Parm *p = l;
-    for (unsigned int i = 0; p; i++) {
+    for (i = 0; p; i++) {
       if (checkAttribute(p, "varargs:ignore", "1")) {
 	// Skip ignored varargs.
 	p = nextSibling(p);
