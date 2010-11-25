@@ -1601,10 +1601,9 @@ public:
 	    Delete(args);
 	    args = NewString("$res=null");
 	  }
-	  SwigType *t = Getattr(current_class, "classtype");
-	  String *mangled_type = SwigType_manglestr(SwigType_ltype(t));
+	  String *mangled_type = SwigType_manglestr(Getattr(n, "type"));
 	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
-	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '_p%s') {\n", arg0, arg0, mangled_type);
+	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '%s') {\n", arg0, arg0, mangled_type);
 	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
 	  Printf(output, "\t\t\treturn;\n");
 	  Printf(output, "\t\t}\n");
