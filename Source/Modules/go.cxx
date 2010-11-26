@@ -2679,7 +2679,7 @@ private:
 
       Setattr(n, "wrap:name", fnname);
 
-      Swig_DestructorToFunction(n, getNSpace(), Getattr(parentNode(n), "classtype"), CPlusPlus, Extend);
+      Swig_DestructorToFunction(n, getNSpace(), getClassType(), CPlusPlus, Extend);
 
       ParmList *parms = Getattr(n, "parms");
       Setattr(n, "wrap:parms", parms);
