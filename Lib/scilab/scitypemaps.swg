@@ -987,156 +987,71 @@
  * --- Output arguments --- 
  * ----------------------------------------------------------------------------- */
 
+%define SCILAB_OUT_SCALAR(CTYPE, SCIAPIFUNCTION)
+    iRowsOut = 1;
+    iColsOut = 1;
+    sciErr = SCIAPIFUNCTION(pvApiCtx, iVarOut, iRowsOut, iColsOut, (CTYPE *)&$result);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+    LhsVar(iOutNum) = iVarOut;
+    iOutNum++;
+    iVarOut++;
+%enddef
+%define SCILAB_OUT_SCALAR_WITHCAST(CASTTYPE, SCIAPIFUNCTION)
+    CASTTYPE temp = (CASTTYPE) $result;
+    iRowsOut = 1;
+    iColsOut = 1;
+    sciErr = SCIAPIFUNCTION(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+    LhsVar(iOutNum) = iVarOut;
+    iOutNum++;
+    iVarOut++;
+%enddef
+
 /* Basic C types */
-%typemap(out) signed char (int iRowsOut, int iColsOut) {
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfInteger8(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char *)&$result);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-}
-
-%typemap(out) unsigned char (int iRowsOut, int iColsOut) {
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfUnsignedInteger8(pvApiCtx, iVarOut, iRowsOut, iColsOut, (unsigned char *)&$result);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-
-  
-}
-
-%typemap(out) short (int iRowsOut, int iColsOut) {
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfInteger16(pvApiCtx, iVarOut, iRowsOut, iColsOut, (short *)&$result);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-
-  
-}
-
-%typemap(out) unsigned short (int iRowsOut, int iColsOut) {
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfUnsignedInteger16(pvApiCtx, iVarOut, iRowsOut, iColsOut, (unsigned short *)&$result);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-
-  
-}
-
-%typemap(out) int (int iRowsOut, int iColsOut),
-              long (int iRowsOut, int iColsOut) {
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfInteger32(pvApiCtx, iVarOut, iRowsOut, iColsOut, (int *)&$result);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-
-  
-}
-
-%typemap(out) unsigned int (int iRowsOut, int iColsOut),
-              unsigned long (int iRowsOut, int iColsOut) {
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfUnsignedInteger32(pvApiCtx, iVarOut, iRowsOut, iColsOut, (unsigned int *)&$result);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-
-  
-}
-
-%typemap(out) double (int iRowsOut, int iColsOut),
-              float (int iRowsOut, int iColsOut) {
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, (double *)&$result);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-
-  
-}
-
-%typemap(out) long long (int iRowsOut, int iColsOut) {
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfInteger64(pvApiCtx, iVarOut, iRowsOut, iColsOut, (long long *)&$result);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-}
-
-%typemap(out) unsigned long long (int iRowsOut, int iColsOut) {
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfUnsignedInteger64(pvApiCtx, iVarOut, iRowsOut, iColsOut, (unsigned long long *)&$result);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-}
+/* 'signed char' casted to 'char' because C++ refuses to call createMatrixOfInteger8 with a 'signed char' 5th input */
+%typemap(out) signed char (int iRowsOut, int iColsOut)                 { SCILAB_OUT_SCALAR_WITHCAST(char, createMatrixOfInteger8) }
+%typemap(out) unsigned char (int iRowsOut, int iColsOut)               { SCILAB_OUT_SCALAR(unsigned char, createMatrixOfUnsignedInteger8) }
+%typemap(out) short (int iRowsOut, int iColsOut)                       { SCILAB_OUT_SCALAR_WITHCAST(double, createMatrixOfDouble) }
+%typemap(out) unsigned short (int iRowsOut, int iColsOut)              { SCILAB_OUT_SCALAR(unsigned short, createMatrixOfUnsignedInteger16) }
+%typemap(out) int (int iRowsOut, int iColsOut)                         { SCILAB_OUT_SCALAR_WITHCAST(double, createMatrixOfDouble) }
+%typemap(out) long (int iRowsOut, int iColsOut)                        { SCILAB_OUT_SCALAR_WITHCAST(double, createMatrixOfDouble) }
+%typemap(out) unsigned int (int iRowsOut, int iColsOut)                { SCILAB_OUT_SCALAR(unsigned int, createMatrixOfUnsignedInteger32) }
+%typemap(out) unsigned long (int iRowsOut, int iColsOut)               { SCILAB_OUT_SCALAR_WITHCAST(unsigned int, createMatrixOfUnsignedInteger32) }
+%typemap(out) double (int iRowsOut, int iColsOut)                      { SCILAB_OUT_SCALAR(double, createMatrixOfDouble) }
+%typemap(out) float (int iRowsOut, int iColsOut)                       { SCILAB_OUT_SCALAR_WITHCAST(double, createMatrixOfDouble) }
+%typemap(out) long long (int iRowsOut, int iColsOut)                   { SCILAB_OUT_SCALAR(long long, createMatrixOfInteger64) }
+%typemap(out) unsigned long long (int iRowsOut, int iColsOut)          { SCILAB_OUT_SCALAR(unsigned long long, createMatrixOfUnsignedInteger64) }
+%typemap(out) SCI_INT16_FROM_SHORT (int iRowsOut, int iColsOut)        { SCILAB_OUT_SCALAR(short, createMatrixOfInteger16) }
+%typemap(out) SCI_INT16_FROM_SIGNED_SHORT (int iRowsOut, int iColsOut) { SCILAB_OUT_SCALAR_WITHCAST(short, createMatrixOfInteger16) }
+%typemap(out) SCI_INT32_FROM_INT (int iRowsOut, int iColsOut)          { SCILAB_OUT_SCALAR(int, createMatrixOfInteger32) }
+%typemap(out) SCI_INT32_FROM_SIGNED_INT (int iRowsOut, int iColsOut)   { SCILAB_OUT_SCALAR_WITHCAST(int, createMatrixOfInteger32) }
+%typemap(out) SCI_INT32_FROM_LONG (int iRowsOut, int iColsOut)         { SCILAB_OUT_SCALAR_WITHCAST(int, createMatrixOfInteger32) }
+%typemap(out) SCI_INT32_FROM_SIGNED_LONG (int iRowsOut, int iColsOut)  { SCILAB_OUT_SCALAR_WITHCAST(int, createMatrixOfInteger32) }
 
 %typemap(out) char (int iRowsOut, int iColsOut) {
-  char *temp;
-  temp = (char*)&($result);
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
+    iRowsOut = 1;
+    iColsOut = 1;
+    char *temp = (char*)MALLOC(sizeof(char) * (iRowsOut * iColsOut + 1));
+    temp[0] = $result;
+    temp[1] = '\0';
+    sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)&temp);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+    FREE(temp);
+    LhsVar(iOutNum) = iVarOut;
+    iOutNum++;
+    iVarOut++;
 }
 
 %typemap(out,noblock=1) void {
@@ -2028,155 +1943,58 @@
 /* -----------------------------------------------------------------------------
  * --- Variable output --- 
  * ----------------------------------------------------------------------------- */
+
+%define SCILAB_SCALAR_VAROUT(CTYPE, SCIAPIFUNCTION)
+    ##CTYPE## temp = $result;
+    sciErr = ##SCIAPIFUNCTION##(pvApiCtx, iVarOut, iRowsOut, iColsOut, (##CTYPE## *)&temp);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+    LhsVar(iOutNum) = iVarOut;
+    iOutNum++;
+    iVarOut++;
+%enddef
+
 /* Basic C types */
-%typemap(varout,noblock=1) signed char {
-  char temp = $result;
-  sciErr = createMatrixOfInteger8(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char *)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-}
-
-%typemap(varout,noblock=1) unsigned char {
-  unsigned char temp = $result;
-  sciErr = createMatrixOfUnsignedInteger8(pvApiCtx, iVarOut, iRowsOut, iColsOut, (unsigned char *)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-
-}
-
-%typemap(varout,noblock=1) short {
-  short temp = $result;
-  sciErr = createMatrixOfInteger16(pvApiCtx, iVarOut, iRowsOut, iColsOut, (short *)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-}
-
-%typemap(varout,noblock=1) unsigned short {
-  unsigned short temp = $result;
-  sciErr = createMatrixOfUnsignedInteger16(pvApiCtx, iVarOut, iRowsOut, iColsOut, (unsigned short *)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-
-}
-
-%typemap(varout,noblock=1) int,
-                           long {
-  int temp = $result;
-  sciErr = createMatrixOfInteger32(pvApiCtx, iVarOut, iRowsOut, iColsOut, (int *)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-}
-
-%typemap(varout,noblock=1) unsigned int,
-                           unsigned long {
-  unsigned int temp = $result;
-  sciErr = createMatrixOfUnsignedInteger32(pvApiCtx, iVarOut, iRowsOut, iColsOut, (unsigned int *)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-}
-
-%typemap(varout,noblock=1) double,
-                           float {
-  double temp = $result;
-  sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, (double *)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-}
-
-%typemap(varout,noblock=1) long long {
-  long long temp = $result;
-  sciErr = createMatrixOfInteger64(pvApiCtx, iVarOut, iRowsOut, iColsOut, (long long *)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-}
-
-%typemap(varout,noblock=1) unsigned long long {
-  unsigned long long temp = $result;
-  sciErr = createMatrixOfUnsignedInteger64(pvApiCtx, iVarOut, iRowsOut, iColsOut, (unsigned long long *)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-}
+%typemap(varout,noblock=1) signed char                 { SCILAB_SCALAR_VAROUT(signed char, createMatrixOfInteger8)                 }
+%typemap(varout,noblock=1) unsigned char               { SCILAB_SCALAR_VAROUT(unsigned char, createMatrixOfUnsignedInteger8)       }
+%typemap(varout,noblock=1) signed short                { SCILAB_SCALAR_VAROUT(signed short, createMatrixOfInteger16)               }
+%typemap(varout,noblock=1) unsigned short              { SCILAB_SCALAR_VAROUT(unsigned short, createMatrixOfUnsignedInteger16)     }
+%typemap(varout,noblock=1) signed int, signed long     { SCILAB_SCALAR_VAROUT(signed int, createMatrixOfInteger32)                 }
+%typemap(varout,noblock=1) unsigned int, unsigned long { SCILAB_SCALAR_VAROUT(unsigned int, createMatrixOfUnsignedInteger32)       }
+%typemap(varout,noblock=1) signed long long            { SCILAB_SCALAR_VAROUT(signed long long, createMatrixOfInteger64)           }
+%typemap(varout,noblock=1) unsigned long long          { SCILAB_SCALAR_VAROUT(unsigned long long, createMatrixOfUnsignedInteger64) }
+%typemap(varout,noblock=1) double, float               { SCILAB_SCALAR_VAROUT(double, createMatrixOfDouble)                        }
 
 %typemap(varout,noblock=1) char {
-  char *temp = (char *)malloc(sizeof($result) + 1);
-  *temp = $result;
-  *(temp+1) = '\0';
-  sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-  free(temp);
+    char *temp = (char *)malloc(sizeof($result) + 1);
+    *temp = $result;
+    *(temp+1) = '\0';
+    sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)&temp);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+    LhsVar(iOutNum) = iVarOut;
+    iOutNum++;
+    iVarOut++;
+    free(temp);
 }
 
 %typemap(varout,noblock=1) char * {
-  char *temp = $result;
-  sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)&temp);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
+    char *temp = $result;
+    sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)&temp);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+    LhsVar(iOutNum) = iVarOut;
+    iOutNum++;
+    iVarOut++;
 }
 
 /* pointer to basic C types */
@@ -2184,26 +2002,38 @@
                            short *,
                            unsigned char *,
                            unsigned short *,
-	                   int *,
-	                   unsigned int *,
-	                   long *,
-	                   unsigned long *,
+                           int *,
+                           unsigned int *,
+                           long *,
+                           unsigned long *,
                            double *,
                            float *,
                            long long *,
                            unsigned long long * {
-  sciErr = createPointer(pvApiCtx, iVarOut, (void *)$result);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
+    sciErr = createPointer(pvApiCtx, iVarOut, (void *)$result);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+    LhsVar(iOutNum) = iVarOut;
+    iOutNum++;
+    iVarOut++;
 }
 
 /* Arrays */
+%define SCILAB_VECTOR_VAROUT(CTYPE, SCIAPIFUNCTION, IROWSOUT, ICOLSOUT)
+    sciErr = ##SCIAPIFUNCTION##(pvApiCtx, iVarOut, ##IROWSOUT##, ##ICOLSOUT##, (##CTYPE## *)$result);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+    LhsVar(iOutNum) = iVarOut;
+    iOutNum++;
+    iVarOut++;
+%enddef
+
 %typemap(varout,noblock=1) char [ANY] {
   char **pstData = NULL;
   pstData = (char **)malloc(sizeof(char *));
@@ -2216,21 +2046,9 @@
   LhsVar(iOutNum) = iVarOut;
   iOutNum++;
   iVarOut++;
-  
-   
 }
 
-%typemap(varout,noblock=1) signed char [ANY] {
-  sciErr = createMatrixOfInteger8(pvApiCtx, iVarOut, 1, $1_dim0, (char *)$result);
-  if (sciErr.iErr) {
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  LhsVar(iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
-  
-}
+%typemap(varout,noblock=1) signed char [ANY] { SCILAB_VECTOR_VAROUT(char, createMatrixOfInteger8, 1, $1_dim0) }
 
 %typemap(varout,noblock=1) unsigned char [ANY] {
   sciErr = createMatrixOfUnsignedInteger8(pvApiCtx, iVarOut, 1, $1_dim0, (unsigned char *)$result);
@@ -2300,6 +2118,7 @@
 	 printError(&sciErr, 0);
 	 return 0;
      }
+     //coucou
   LhsVar(iOutNum) = iVarOut;
   iOutNum++;
   iVarOut++;
@@ -2520,9 +2339,9 @@
   
 }
 
-/* ------------------------------------------------------------
- * --- Typecheck typemaps ---
- * ------------------------------------------------------------ */
+/* -----------------------------------------------------------------------------*/
+/* Typecheck typemaps */
+/* -----------------------------------------------------------------------------*/
 
 %define SCILAB_TYPECHECK(SCITYPE)
     int *piAddrVar = NULL;
@@ -2557,102 +2376,65 @@
     }
 %enddef
 
+/* -----------------------------------------------------------------------------*/
 /* Basic C types */
-%typecheck(SWIG_TYPECHECK_CHAR) char {
-    SCILAB_TYPECHECK(sci_strings)
-}
+/* -----------------------------------------------------------------------------*/
+%typecheck(SWIG_TYPECHECK_CHAR)         char                                    { SCILAB_TYPECHECK(sci_strings)       }
 
-%typecheck(SWIG_TYPECHECK_INT8) signed char {
-    //SCILAB_INTEGERTYPECHECK(SCI_INT8)
-    SCILAB_TYPECHECK(sci_matrix)
-}
+/* * TODO: add an option to select default integers mapping? */
+/* C-integers mapped to Scilab sci_matrix (TODO: add int64 & uint64 for Scilab 6) */
+%typecheck(SWIG_TYPECHECK_INT8)         signed char                             { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_UINT8)        unsigned char                           { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_INT16)        short                                   { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_UINT16)       unsigned short                          { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_INT32)        int, long                               { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_UINT32)       unsigned int, unsigned long             { SCILAB_TYPECHECK(sci_matrix)        }
+/* C-integers mapped to Scilab integers (TODO: add int64 & uint64 for Scilab 6) */
+/*
+%typecheck(SWIG_TYPECHECK_INT8)         signed char                             { SCILAB_INTEGERTYPECHECK(SCI_INT8)   }
+%typecheck(SWIG_TYPECHECK_UINT8)        unsigned char                           { SCILAB_INTEGERTYPECHECK(SCI_UINT8)  }
+%typecheck(SWIG_TYPECHECK_INT16)        short                                   { SCILAB_INTEGERTYPECHECK(SCI_INT16)  }
+%typecheck(SWIG_TYPECHECK_UINT16)       unsigned short                          { SCILAB_INTEGERTYPECHECK(SCI_UINT16) }
+%typecheck(SWIG_TYPECHECK_INT32)        int, long                               { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
+%typecheck(SWIG_TYPECHECK_UINT32)       unsigned int, unsigned long             { SCILAB_INTEGERTYPECHECK(SCI_UINT32) }
+*/
 
-%typecheck(SWIG_TYPECHECK_UINT8) unsigned char {
-    //SCILAB_INTEGERTYPECHECK(SCI_UINT8)
-    SCILAB_TYPECHECK(sci_matrix)
-}
+%typecheck(SWIG_TYPECHECK_DOUBLE)       double                                  { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_FLOAT)        float                                   { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_STRING)       char *                                  { SCILAB_TYPECHECK(sci_strings)       }
 
-%typecheck(SWIG_TYPECHECK_INT16) short {
-    //SCILAB_INTEGERTYPECHECK(SCI_INT16)
-    SCILAB_TYPECHECK(sci_matrix)
-}
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE * { SCILAB_TYPECHECK(sci_pointer) }
 
-%typecheck(SWIG_TYPECHECK_UINT16) unsigned short {
-    //SCILAB_INTEGERTYPECHECK(SCI_UINT16)
-    SCILAB_TYPECHECK(sci_matrix)
-}
-
-%typecheck(SWIG_TYPECHECK_INT32) int, 
-                                 long {
-    //SCILAB_INTEGERTYPECHECK(SCI_INT32)
-    SCILAB_TYPECHECK(sci_matrix)
-}
-
-%typecheck(SWIG_TYPECHECK_UINT32) unsigned int,
-                                  unsigned long {
-    //SCILAB_INTEGERTYPECHECK(SCI_UINT32)
-    SCILAB_TYPECHECK(sci_matrix)
-}
-
-/* TODO: add int64 & uint64 for Scilab 6 */
-
-%typecheck(SWIG_TYPECHECK_DOUBLE) double {
-    SCILAB_TYPECHECK(sci_matrix)
-}
-
-%typecheck(SWIG_TYPECHECK_FLOAT) float {
-    SCILAB_TYPECHECK(sci_matrix)
-}
-
-%typecheck(SWIG_TYPECHECK_STRING) char * {
-    SCILAB_TYPECHECK(sci_strings)
-}
-
+/* -----------------------------------------------------------------------------*/
 /* Arrays */
-%typecheck(SWIG_TYPECHECK_CHAR_ARRAY) char [ANY] {
-    SCILAB_TYPECHECK(sci_strings)
-}
+/* -----------------------------------------------------------------------------*/
+%typecheck(SWIG_TYPECHECK_CHAR_ARRAY)   char [ANY]                              { SCILAB_TYPECHECK(sci_strings)       }
 
-%typecheck(SWIG_TYPECHECK_INT8_ARRAY) signed char [ANY] {
-    //SCILAB_INTEGERTYPECHECK(SCI_INT8)
-    SCILAB_TYPECHECK(sci_matrix)
-}
+/* * TODO: add an option to select default integers mapping? */
+/* C-integers mapped to Scilab sci_matrix (TODO: add int64 & uint64 for Scilab 6) */
+%typecheck(SWIG_TYPECHECK_INT8_ARRAY)   signed char [ANY]                       { SCILAB_TYPECHECK(sci_matrix)        }
+//%typecheck(SWIG_TYPECHECK_UINT8_ARRAY)  unsigned char [ANY]                     { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_INT16_ARRAY)  short [ANY]                             { SCILAB_TYPECHECK(sci_matrix)        }
+//%typecheck(SWIG_TYPECHECK_UINT16_ARRAY) unsigned short [ANY]                    { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_INT32_ARRAY)  int [ANY], long [ANY]                   { SCILAB_TYPECHECK(sci_matrix)        }
+//%typecheck(SWIG_TYPECHECK_UINT32_ARRAY) unsigned int [ANY], unsigned long [ANY] { SCILAB_TYPECHECK(sci_matrix)        }
+/* C-integers mapped to Scilab integers (TODO: add int64 & uint64 for Scilab 6) */
+/*
+%typecheck(SWIG_TYPECHECK_INT8_ARRAY)   signed char [ANY]                       { SCILAB_INTEGERTYPECHECK(SCI_INT8)   }
+%typecheck(SWIG_TYPECHECK_UINT8_ARRAY)  unsigned char [ANY]                     { SCILAB_INTEGERTYPECHECK(SCI_UINT8)  }
+%typecheck(SWIG_TYPECHECK_INT16_ARRAY)  short [ANY]                             { SCILAB_INTEGERTYPECHECK(SCI_INT16)  }
+%typecheck(SWIG_TYPECHECK_UINT16_ARRAY) unsigned short [ANY]                    { SCILAB_INTEGERTYPECHECK(SCI_UINT16) }
+%typecheck(SWIG_TYPECHECK_INT32_ARRAY)  int [ANY], long [ANY]                   { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
+%typecheck(SWIG_TYPECHECK_UINT32_ARRAY) unsigned int [ANY], unsigned long [ANY] { SCILAB_INTEGERTYPECHECK(SCI_INT32)  }
+*/
 
-%typecheck(SWIG_TYPECHECK_INT16_ARRAY) unsigned char [ANY],
-                                       short [ANY] {
-    //SCILAB_INTEGERTYPECHECK(SCI_INT16)
-    SCILAB_TYPECHECK(sci_matrix)
-}
+%typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) double [ANY]                            { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_FLOAT_ARRAY)  float [ANY]                             { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_STRING_ARRAY) char **                                 { SCILAB_TYPECHECK(sci_strings)       }
 
-%typecheck(SWIG_TYPECHECK_INT32_ARRAY) unsigned short [ANY],
-                                       int [ANY],
-                                       long [ANY] {
-    //SCILAB_INTEGERTYPECHECK(SCI_INT32)
-    SCILAB_TYPECHECK(sci_matrix)
-}
-
-/* TODO: add int64 for Scilab 6 */
-
-%typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) double [ANY]{
-    SCILAB_TYPECHECK(sci_matrix)
-}
-
-%typecheck(SWIG_TYPECHECK_FLOAT_ARRAY) float [ANY]{
-    SCILAB_TYPECHECK(sci_matrix)
-}
-
-%typecheck(SWIG_TYPECHECK_STRING_ARRAY) char ** {
-    SCILAB_TYPECHECK(sci_strings)
-}
-
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE * {
-    SCILAB_TYPECHECK(sci_pointer)
-}
-
-/* ------------------------------------------------------------
- *  size_t mapped as int
- * ------------------------------------------------------------ */
-
+/* -----------------------------------------------------------------------------*/
+/* size_t mapped as int */
+/* -----------------------------------------------------------------------------*/
 %apply int { size_t };
 
 
