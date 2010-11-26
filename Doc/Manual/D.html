@@ -27,6 +27,10 @@
 <li><a href="#D_exceptions">D Exceptions</a>
 <li><a href="#D_directors">D Directors</a>
 <li><a href="#D_other_features">Other features</a>
+<ul>
+<li><a href="#D_native_pointer_support">Native pointer support</a>
+<li><a href="#D_test_suite">Running the test-suite</a>
+</ul>
 <li><a href="#D_typemap_examples">D Typemap examples</a>
 <li><a href="#D_planned_features">Work in progress and planned features</a>
 </ul>
@@ -53,6 +57,11 @@
 <p>To activate the D module, pass the <tt>-d</tt> option to SWIG at the command line. The same standard command line switches as with any other language module are available, plus the following D specific ones:</p>
 
 <dl>
+  <dt><tt>-d2</tt></dt>
+  <dd>
+    <p>By default, SWIG generates code for D1/Tango. Use the <tt>-d2</tt> flag to target D2/Phobos instead.</p>
+  </dd>
+
   <dt id="D_splitproxy"><tt>-splitproxy</tt></dt>
   <dd>
     <p>By default, SWIG generates two D modules: the <em>proxy</em> module, named like the source module (either specified via the <tt>%module</tt> directive or via the <tt>module</tt> command line switch), which contains all the proxy classes, functions, enums, etc., and the <em>wrap</em> module (named like the proxy module, but suffixed with <tt>_wrap</tt>), which contains all the <tt>extern(C)</tt> function declarations and other private parts only used internally by the proxy module.</p>
@@ -77,6 +86,8 @@
 
 <H3><a name="D_typemap_name_comparison"></a>20.3.1 C# &lt;-&gt; D name comparison</H3>
 
+
+<p>If you already know the SWIG C# module, you might find the following name comparison table useful:</p>
 
 <div class="diagram"><pre>
  ctype                  &lt;-&gt;  cwtype
@@ -367,7 +378,25 @@ struct A {
 
 <p>The <a href="SWIGPlus.html#SWIGPlus_nspace"><tt>nspace</tt></a> feature of SWIG is not yet supported for D – all class modules are written to the same package, regardless of which C++ namespace they are in.</p>
 
-<p>Support of pointers to primitive types.</p>
+
+<H3><a name="D_native_pointer_support"></a>20.8.1 Native pointer support</H3>
+
+
+<p>Contrary to many of the scripting languages supported by SWIG, D fully supports C-style pointers. The D module thus includes a custom mechanism to wrap C pointers directly as D pointers where applicable, that is, if the type that is pointed to is represented the same in C and D (on the bit-level), dubbed a »primtive type« below.</p>
+
+<p>Central to this custom pointer handling scheme are two typemap attributes: the <tt>cprimitive</tt> attribute on the <tt>dptype</tt> typemap and the <tt>nativepointer</tt> attribute on all the typemaps which influence the D side of the code (<tt>dptype</tt>, <tt>din</tt>, <tt>dout</tt>, …). When a D typemap is looked up, the following happens behind the scenes:</p>
+
+<p>First, the matching typemap is determined by the usual typemap lookup rules. Then, it is checked if the result has the <tt>nativepointer</tt> attribute set. If it is present, it means that its value should replace the typemap value <em>if and only if</em> the actual type the typemap is looked up for is a primitive type, a pointer to a primitive type (through an arbitrary level of indirections), or a function pointer with only primitive types in its signature.</p>
+
+<p>To determine if a type should be considered primitive, the <tt>cprimitive</tt> attribute on its <tt>dptype</tt> attribute is used. For example, the <tt>dptype</tt> typemap for <tt>float</tt> has <tt>cprimitive="1"</tt>, so the code from the <tt>nativepointer</tt> attribute is taken into account e.g. for <tt>float **</tt> or the function pointer <tt>float (*)(float *)</tt>.</p>
+
+
+<H3><a name="D_test_suite"></a>20.8.2 Running the test-suite</H3>
+
+
+<p>As with any other language, the SWIG test-suite can be built for D using the <tt>*-d-test-suite</tt> targets of the top-level Makefile. By default, D1 is targeted, to build it with D2, use the optional <tt>D_VERSION</tt> variable, e.g. <tt>make check-d-test-suite D_VERSION=2</tt>.</p>
+
+<p>Note: If you want to use GDC on Linux or another platform which requires you to link <tt>libdl</tt> for dynamically loading the shared library, you might have to add <tt>-ldl</tt> manually to the <tt>d_compile</tt> target in <tt>Examples/Makefile</tt>, because GDC does not currently honor the <tt>pragma(lib,…)</tt> statement.</p>
 
 
 <H2><a name="D_typemap_examples"></a>20.9 D Typemap examples</H2>
