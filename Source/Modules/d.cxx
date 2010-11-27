@@ -3216,7 +3216,7 @@ private:
       if (*Char(destructor_call)) {
 	Replaceall(dispose_code, "$wcall", destructor_call);
       } else {
-	Replaceall(dispose_code, "$wcall", "throw new Exception(\"C++ destructor does not have public access\")");
+	Replaceall(dispose_code, "$wcall", "throw new object.Exception(\"C++ destructor does not have public access\")");
       }
 
       if (*Char(dispose_code)) {

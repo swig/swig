@@ -16,6 +16,7 @@ endif
 TESTSUFFIX = _runme$(VERSIONSUFFIX).d
 
 CPP_TEST_CASES = \
+	d_exception_name \
 	d_nativepointers \
 	exception_partial_info
 
