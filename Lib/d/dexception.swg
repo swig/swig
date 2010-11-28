@@ -6,7 +6,7 @@
 
 // Code which is inserted into the dout typemaps and class constructors via
 // excode if exceptions can be thrown.
-%define SWIGEXCODE "\n  if ($wrapdmodule.SwigPendingException.isPending) throw $wrapdmodule.SwigPendingException.retrieve();" %enddef
+%define SWIGEXCODE "\n  if ($imdmodule.SwigPendingException.isPending) throw $imdmodule.SwigPendingException.retrieve();" %enddef
 
 %typemap(throws, canthrow=1) int,
                  long,

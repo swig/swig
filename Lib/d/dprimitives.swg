@@ -10,16 +10,16 @@
  * cases are handeled below.
  */
 %define SWIG_D_PRIMITIVE(TYPE, DTYPE)
-%typemap(cwtype) TYPE, const TYPE & "TYPE"
-%typemap(dwtype) TYPE, const TYPE & "DTYPE"
-%typemap(dptype, cprimitive="1") TYPE, const TYPE & "DTYPE"
+%typemap(ctype) TYPE, const TYPE & "TYPE"
+%typemap(imtype) TYPE, const TYPE & "DTYPE"
+%typemap(dtype, cprimitive="1") TYPE, const TYPE & "DTYPE"
 
 %typemap(in) TYPE "$1 = ($1_ltype)$input;"
 %typemap(out) TYPE "$result = $1;"
 %typemap(directorin) TYPE "$input = $1;"
 %typemap(directorout) TYPE "$result = ($1_ltype)$input;"
 %typemap(ddirectorin) TYPE "$winput"
-%typemap(ddirectorout) TYPE "$dpcall"
+%typemap(ddirectorout) TYPE "$dcall"
 
 %typemap(in) const TYPE & ($*1_ltype temp)
 %{ temp = ($*1_ltype)$input;
@@ -31,11 +31,11 @@
    temp = ($*1_ltype)$input;
    $result = &temp; %}
 %typemap(ddirectorin) const TYPE & "$winput"
-%typemap(ddirectorout) const TYPE & "$dpcall"
+%typemap(ddirectorout) const TYPE & "$dcall"
 
 %typemap(din) TYPE, const TYPE & "$dinput"
 %typemap(dout, excode=SWIGEXCODE) TYPE, const TYPE & {
-  auto ret = $wcall;$excode
+  auto ret = $imcall;$excode
   return ret;
 }
 %enddef
@@ -60,8 +60,8 @@ SWIG_D_PRIMITIVE(double, double)
 
 // The C++ boolean type needs some special casing since it is not part of the
 // C standard and is thus represented as unsigned int in the C wrapper layer.
-%typemap(cwtype) bool, const bool & "unsigned int"
-%typemap(dwtype) bool, const bool & "uint"
+%typemap(ctype) bool, const bool & "unsigned int"
+%typemap(imtype) bool, const bool & "uint"
 
 %typemap(in) bool "$1 = $input ? true : false;"
 %typemap(in) const bool & ($*1_ltype temp)
@@ -78,7 +78,7 @@ SWIG_D_PRIMITIVE(double, double)
 %typemap(ddirectorin) bool "($winput ? true : false)"
 
 %typemap(dout, excode=SWIGEXCODE) bool, const bool & {
-  bool ret = $wcall ? true : false;$excode
+  bool ret = $imcall ? true : false;$excode
   return ret;
 }
 

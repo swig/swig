@@ -64,7 +64,7 @@ SWIGEXPORT void SWIGRegisterExceptionCallbacks_$module(
 %}
 
 #if (SWIG_D_VERSION == 1)
-%pragma(d) wrapdmoduleimports=%{
+%pragma(d) imdmoduleimports=%{
 // Exception throwing support currently requires Tango, but there is no reason
 // why it could not support Phobos.
 static import tango.core.Exception;
@@ -72,7 +72,7 @@ static import tango.core.Thread;
 static import tango.stdc.stringz;
 %}
 
-%pragma(d) wrapdmodulecode=%{
+%pragma(d) imdmodulecode=%{
 private class SwigExceptionHelper {
   static this() {
     swigRegisterExceptionCallbacks(
@@ -169,11 +169,11 @@ private:
 alias void function(char* message) SwigExceptionCallback;
 %}
 #else
-%pragma(d) wrapdmoduleimports=%{
+%pragma(d) imdmoduleimports=%{
 static import std.conv;
 %}
 
-%pragma(d) wrapdmodulecode=%{
+%pragma(d) imdmodulecode=%{
 private class SwigExceptionHelper {
   static this() {
 	// The D1/Tango version maps C++ exceptions to multiple exception types.
@@ -265,9 +265,9 @@ SWIGEXPORT void SWIGRegisterStringCallback_$module(SWIG_DStringHelperCallback ca
 %}
 
 #if (SWIG_D_VERSION == 1)
-%pragma(d) wrapdmoduleimports = "static import tango.stdc.stringz;";
+%pragma(d) imdmoduleimports = "static import tango.stdc.stringz;";
 
-%pragma(d) wrapdmodulecode = %{
+%pragma(d) imdmodulecode = %{
 private class SwigStringHelper {
   static this() {
     swigRegisterStringCallback(&createString);
@@ -281,12 +281,12 @@ private class SwigStringHelper {
 alias char* function(char* cString) SwigStringCallback;
 %}
 #else
-%pragma(d) wrapdmoduleimports = %{
+%pragma(d) imdmoduleimports = %{
 static import std.conv;
 static import std.string;
 %}
 
-%pragma(d) wrapdmodulecode = %{
+%pragma(d) imdmodulecode = %{
 private class SwigStringHelper {
   static this() {
     swigRegisterStringCallback(&createString);

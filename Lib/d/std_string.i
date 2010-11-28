@@ -21,9 +21,9 @@ class string;
 
 %define SWIGD_STD_STRING_TYPEMAPS(DW_STRING_TYPE, DP_STRING_TYPE, FROM_STRINGZ, TO_STRINGZ)
 // string
-%typemap(cwtype) string, const string & "char *"
-%typemap(dwtype) string, const string & #DW_STRING_TYPE
-%typemap(dptype) string, const string & #DP_STRING_TYPE
+%typemap(ctype) string, const string & "char *"
+%typemap(imtype) string, const string & #DW_STRING_TYPE
+%typemap(dtype) string, const string & #DP_STRING_TYPE
 
 %typemap(in, canthrow=1) string, const string &
 %{ if (!$input) {
@@ -44,7 +44,7 @@ class string;
 
 %typemap(din) string, const string & "($dinput ? TO_STRINGZ($dinput) : null)"
 %typemap(dout, excode=SWIGEXCODE) string, const string & {
-  DP_STRING_TYPE ret = FROM_STRINGZ($wcall);$excode
+  DP_STRING_TYPE ret = FROM_STRINGZ($imcall);$excode
   return ret;
 }
 
@@ -68,7 +68,7 @@ class string;
   $result = &$1_str; %}
 
 %typemap(ddirectorin) string, const string & "FROM_STRINGZ($winput)"
-%typemap(ddirectorout) string, const string & "TO_STRINGZ($dpcall)"
+%typemap(ddirectorout) string, const string & "TO_STRINGZ($dcall)"
 
 %typemap(throws, canthrow=1) string, const string &
 %{ SWIG_DSetPendingException(SWIG_DException, $1.c_str());

@@ -169,13 +169,13 @@ namespace Space {
 #if (SWIG_D_VERSION == 1)
 %typemap(dcode) Space::RenameMe %{
   public static NewName factory(char[] s) {
-    return new $typemap(dptype, Space::RenameMe)( new $typemap(dptype, Name)(s) );
+    return new $typemap(dtype, Space::RenameMe)( new $typemap(dtype, Name)(s) );
   }
 %}
 #else
 %typemap(dcode) Space::RenameMe %{
   public static NewName factory(string s) {
-    return new $typemap(dptype, Space::RenameMe)( new $typemap(dptype, Name)(s) );
+    return new $typemap(dtype, Space::RenameMe)( new $typemap(dtype, Name)(s) );
   }
 %}
 #endif

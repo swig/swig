@@ -5,9 +5,9 @@
  * ----------------------------------------------------------------------------- */
 
 %define SWIGD_STRING_TYPEMAPS(DW_STRING_TYPE, DP_STRING_TYPE, FROM_STRINGZ, TO_STRINGZ)
-%typemap(cwtype) char *, char *&, char[ANY], char[]   "char *"
-%typemap(dwtype) char *, char *&, char[ANY], char[]   #DW_STRING_TYPE
-%typemap(dptype) char *, char *&, char[ANY], char[]   #DP_STRING_TYPE
+%typemap(ctype) char *, char *&, char[ANY], char[]   "char *"
+%typemap(imtype) char *, char *&, char[ANY], char[]   #DW_STRING_TYPE
+%typemap(dtype) char *, char *&, char[ANY], char[]   #DP_STRING_TYPE
 
 
 /*
@@ -19,7 +19,7 @@
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) char * %{ $result = ($1_ltype)$input; %}
 %typemap(directorin) char * %{ $input = SWIG_d_string_callback((const char *)$1); %}
 %typemap(ddirectorin) char * "FROM_STRINGZ($winput)"
-%typemap(ddirectorout) char * "TO_STRINGZ($dpcall)"
+%typemap(ddirectorout) char * "TO_STRINGZ($dcall)"
 
 
 /*
@@ -44,12 +44,12 @@
 %typemap(directorin) char[ANY], char[] %{ $input = SWIG_d_string_callback((const char *)$1); %}
 
 %typemap(ddirectorin) char[ANY], char[] "$winput"
-%typemap(ddirectorout) char[ANY], char[] "$dpcall"
+%typemap(ddirectorout) char[ANY], char[] "$dcall"
 
 
 %typemap(din) char *, char *&, char[ANY], char[] "($dinput ? TO_STRINGZ($dinput) : null)"
 %typemap(dout, excode=SWIGEXCODE) char *, char *&, char[ANY], char[] {
-  DP_STRING_TYPE ret = FROM_STRINGZ ## ($wcall);$excode
+  DP_STRING_TYPE ret = FROM_STRINGZ ## ($imcall);$excode
   return ret;
 }
 

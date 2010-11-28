@@ -201,9 +201,9 @@
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
    add an entry here */
 
-#define WARN_D_TYPEMAP_CWTYPE_UNDEF           700
-#define WARN_D_TYPEMAP_DWTYPE_UNDEF           701
-#define WARN_D_TYPEMAP_DPTYPE_UNDEF           702
+#define WARN_D_TYPEMAP_CTYPE_UNDEF           700
+#define WARN_D_TYPEMAP_IMTYPE_UNDEF           701
+#define WARN_D_TYPEMAP_DTYPE_UNDEF           702
 #define WARN_D_MULTIPLE_INHERITANCE           703
 #define WARN_D_TYPEMAP_CLASSMOD_UNDEF         704
 #define WARN_D_TYPEMAP_DBODY_UNDEF            705

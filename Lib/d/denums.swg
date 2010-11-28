@@ -9,9 +9,9 @@
  * Typemaps for enumeration types.
  */
 
-%typemap(cwtype) enum SWIGTYPE "int"
-%typemap(dwtype) enum SWIGTYPE "int"
-%typemap(dptype, cprimitive="1") enum SWIGTYPE "$dclassname"
+%typemap(ctype) enum SWIGTYPE "int"
+%typemap(imtype) enum SWIGTYPE "int"
+%typemap(dtype, cprimitive="1") enum SWIGTYPE "$dclassname"
 
 %typecheck(SWIG_TYPECHECK_POINTER) enum SWIGTYPE ""
 
@@ -21,11 +21,11 @@
 %typemap(directorout) enum SWIGTYPE %{ $result = ($1_ltype)$input; %}
 %typemap(directorin) enum SWIGTYPE "$input = $1;"
 %typemap(ddirectorin) enum SWIGTYPE "cast($dclassname)$winput"
-%typemap(ddirectorout) enum SWIGTYPE "cast(int)$dpcall"
+%typemap(ddirectorout) enum SWIGTYPE "cast(int)$dcall"
 
 %typemap(din) enum SWIGTYPE "cast(int)$dinput"
 %typemap(dout, excode=SWIGEXCODE) enum SWIGTYPE {
-  $dclassname ret = cast($dclassname)$wcall;$excode
+  $dclassname ret = cast($dclassname)$imcall;$excode
   return ret;
 }
 
@@ -34,9 +34,9 @@
  * Typemaps for (const) references to enumeration types.
  */
 
-%typemap(cwtype) const enum SWIGTYPE & "int"
-%typemap(dwtype) const enum SWIGTYPE & "int"
-%typemap(dptype) const enum SWIGTYPE & "$*dclassname"
+%typemap(ctype) const enum SWIGTYPE & "int"
+%typemap(imtype) const enum SWIGTYPE & "int"
+%typemap(dtype) const enum SWIGTYPE & "$*dclassname"
 
 %typecheck(SWIG_TYPECHECK_POINTER) const enum SWIGTYPE & ""
 
@@ -51,10 +51,10 @@
    $result = &temp; %}
 
 %typemap(ddirectorin) const enum SWIGTYPE & "cast($*dclassname)$winput"
-%typemap(ddirectorout) const enum SWIGTYPE & "cast(int)$dpcall"
+%typemap(ddirectorout) const enum SWIGTYPE & "cast(int)$dcall"
 
 %typemap(din) const enum SWIGTYPE & "cast(int)$dinput"
 %typemap(dout, excode=SWIGEXCODE) const enum SWIGTYPE & {
-  $*dclassname ret = cast($*dclassname)$wcall;$excode
+  $*dclassname ret = cast($*dclassname)$imcall;$excode
   return ret;
 }

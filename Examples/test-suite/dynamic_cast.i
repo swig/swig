@@ -39,7 +39,7 @@ public:
 
 #if defined(SWIGD)
 %typemap(dout, excode=SWIGEXCODE) Foo * {
-  Bar ret = new Bar($wcall, $owner);$excode
+  Bar ret = new Bar($imcall, $owner);$excode
   return ret;
 }
 #endif

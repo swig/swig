@@ -30,9 +30,9 @@ namespace Foo {
     %typemap(gotype) Str1 * = char *;
 #endif
 #ifdef SWIGD
-    %typemap(cwtype) Str1 * = char *;
-    %typemap(dwtype) Str1 * = char *;
-    %typemap(dptype) Str1 * = char *;
+    %typemap(ctype) Str1 * = char *;
+    %typemap(imtype) Str1 * = char *;
+    %typemap(dtype) Str1 * = char *;
     %typemap(din) Str1 * = char *;
     %typemap(dout) Str1 * = char *;
 #endif

@@ -82,62 +82,62 @@
 %}
 
 
-%typemap (cwtype)  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+%typemap (ctype)  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "void *"
-%typemap (dwtype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+%typemap (imtype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "void*"
-%typemap (dptype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+%typemap (dtype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
-                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(dptype, TYPE)"
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(dtype, TYPE)"
 
 %typemap(din) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
-               SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(dptype, TYPE).swigGetCPtr($dinput)"
+               SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(dtype, TYPE).swigGetCPtr($dinput)"
 
 %typemap(dout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
-  void* cPtr = $wcall;
-  auto ret = (cPtr is null) ? null : new $typemap(dptype, TYPE)(cPtr, true);$excode
+  void* cPtr = $imcall;
+  auto ret = (cPtr is null) ? null : new $typemap(dtype, TYPE)(cPtr, true);$excode
   return ret;
 }
 %typemap(dout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & {
-  void* cPtr = $wcall;
-  auto ret = (cPtr is null) ? null : new $typemap(dptype, TYPE)(cPtr, true);$excode
+  void* cPtr = $imcall;
+  auto ret = (cPtr is null) ? null : new $typemap(dtype, TYPE)(cPtr, true);$excode
   return ret;
 }
 %typemap(dout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * {
-  void* cPtr = $wcall;
-  auto ret = (cPtr is null) ? null : new $typemap(dptype, TYPE)(cPtr, true);$excode
+  void* cPtr = $imcall;
+  auto ret = (cPtr is null) ? null : new $typemap(dtype, TYPE)(cPtr, true);$excode
   return ret;
 }
 %typemap(dout, excode=SWIGEXCODE) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& {
-  void* cPtr = $wcall;
-  auto ret = (cPtr is null) ? null : new $typemap(dptype, TYPE)(cPtr, true);$excode
+  void* cPtr = $imcall;
+  auto ret = (cPtr is null) ? null : new $typemap(dtype, TYPE)(cPtr, true);$excode
   return ret;
 }
 
 
 %typemap(dout, excode=SWIGEXCODE) CONST TYPE {
-  auto ret = new $typemap(dptype, TYPE)($wcall, true);$excode
+  auto ret = new $typemap(dtype, TYPE)($imcall, true);$excode
   return ret;
 }
 %typemap(dout, excode=SWIGEXCODE) CONST TYPE & {
-  auto ret = new $typemap(dptype, TYPE)($wcall, true);$excode
+  auto ret = new $typemap(dtype, TYPE)($imcall, true);$excode
   return ret;
 }
 %typemap(dout, excode=SWIGEXCODE) CONST TYPE * {
-  void* cPtr = $wcall;
-  auto ret = (cPtr is null) ? null : new $typemap(dptype, TYPE)(cPtr, true);$excode
+  void* cPtr = $imcall;
+  auto ret = (cPtr is null) ? null : new $typemap(dtype, TYPE)(cPtr, true);$excode
   return ret;
 }
 %typemap(dout, excode=SWIGEXCODE) TYPE *CONST& {
-  void* cPtr = $wcall;
-  auto ret = (cPtr is null) ? null : new $typemap(dptype, TYPE)(cPtr, true);$excode
+  void* cPtr = $imcall;
+  auto ret = (cPtr is null) ? null : new $typemap(dtype, TYPE)(cPtr, true);$excode
   return ret;
 }
 
@@ -162,7 +162,7 @@ private void* swigCPtr;
 private bool swigCMemOwn;
 
 public this(void* cObject, bool ownCObject) {
-  super($wrapdmodule.$dclassnameSmartPtrUpcast(cObject), ownCObject);
+  super($imdmodule.$dclassnameSmartPtrUpcast(cObject), ownCObject);
   swigCPtr = cObject;
   swigCMemOwn = ownCObject;
 }
@@ -177,7 +177,7 @@ public static void* swigGetCPtr($dclassname obj) {
     if (swigCPtr !is null) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        $wcall;
+        $imcall;
       }
       swigCPtr = null;
     }
@@ -189,7 +189,7 @@ public static void* swigGetCPtr($dclassname obj) {
     if (swigCPtr !is null) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        $wcall;
+        $imcall;
       }
       swigCPtr = null;
       super.dispose();

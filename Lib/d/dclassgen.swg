@@ -21,7 +21,7 @@
  */
 
 %typemap(dconstructor, excode=SWIGEXCODE,directorconnect="\n  swigDirectorConnect();") SWIGTYPE {
-  this($wcall, true);$excode$directorconnect
+  this($imcall, true);$excode$directorconnect
 }
 
 %typemap(ddestructor) SWIGTYPE %{
@@ -38,7 +38,7 @@
     if (swigCPtr !is null) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        $wcall;
+        $imcall;
       }
       swigCPtr = null;
     }
@@ -50,7 +50,7 @@
     if (swigCPtr !is null) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        $wcall;
+        $imcall;
       }
       swigCPtr = null;
       super.dispose();
@@ -88,7 +88,7 @@ public static void* swigGetCPtr($dclassname obj) {
 private void* swigCPtr;
 
 public this(void* cObject, bool ownCObject) {
-  super($wrapdmodule.$dclassnameUpcast(cObject), ownCObject);
+  super($imdmodule.$dclassnameUpcast(cObject), ownCObject);
   swigCPtr = cObject;
 }
 

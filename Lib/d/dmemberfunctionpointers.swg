@@ -5,9 +5,9 @@
  * ----------------------------------------------------------------------------- */
 
 
-%typemap(cwtype) SWIGTYPE (CLASS::*) "char *"
-%typemap(dwtype) SWIGTYPE (CLASS::*) "char*"
-%typemap(dptype) SWIGTYPE (CLASS::*) "$dclassname"
+%typemap(ctype) SWIGTYPE (CLASS::*) "char *"
+%typemap(imtype) SWIGTYPE (CLASS::*) "char*"
+%typemap(dtype) SWIGTYPE (CLASS::*) "$dclassname"
 
 %typecheck(SWIG_TYPECHECK_POINTER)
   SWIGTYPE (CLASS::*)
@@ -34,11 +34,11 @@
 
 %typemap(ddirectorin) SWIGTYPE (CLASS::*)
   "($winput is null) ? null : new $dclassname($winput, false)"
-%typemap(ddirectorout) SWIGTYPE (CLASS::*) "$dclassname.swigGetCPtr($dpcall)"
+%typemap(ddirectorout) SWIGTYPE (CLASS::*) "$dclassname.swigGetCPtr($dcall)"
 
 %typemap(din) SWIGTYPE (CLASS::*) "$dclassname.swigGetCMemberPtr($dinput)"
 %typemap(dout, excode=SWIGEXCODE) SWIGTYPE (CLASS::*) {
-  char* cMemberPtr = $wcall;
+  char* cMemberPtr = $imcall;
   $dclassname ret = (cMemberPtr is null) ? null : new $dclassname(cMemberPtr, $owner);$excode
   return ret;
 }
