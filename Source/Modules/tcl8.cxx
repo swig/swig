@@ -783,10 +783,7 @@ public:
     String *wrap_class = NewStringf("&_wrap_class_%s", mangled_classname);
     SwigType_remember_clientdata(t, wrap_class);
 
-    //    t = Copy(Getattr(n,"classtype"));
-    //    SwigType_add_pointer(t);
-
-    String *rt = Copy(Getattr(n, "classtype"));
+    String *rt = Copy(getClassType());
     SwigType_add_pointer(rt);
 
     // Register the class structure with the type checker

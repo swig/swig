@@ -1128,7 +1128,7 @@ private:
 
     Parm *base_parm = NULL;
     if (base && !isStatic(n)) {
-      SwigType *base_type = Copy(Getattr(class_node, "classtype"));
+      SwigType *base_type = Copy(getClassType());
       SwigType_add_pointer(base_type);
       base_parm = NewParm(base_type, NewString("arg1"), n);
       set_nextSibling(base_parm, parms);
@@ -1244,7 +1244,7 @@ private:
 
     Parm *base_parm = NULL;
     if (base && !isStatic(n)) {
-      SwigType *base_type = Copy(Getattr(class_node, "classtype"));
+      SwigType *base_type = Copy(getClassType());
       SwigType_add_pointer(base_type);
       base_parm = NewParm(base_type, NewString("arg1"), n);
       set_nextSibling(base_parm, parms);

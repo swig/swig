@@ -682,7 +682,7 @@ public:
     String *mangled_classname = 0;
     String *real_classname = 0;
     String *scm_structname = NewString("");
-    SwigType *ctype_ptr = NewStringf("p.%s", Getattr(n, "classtype"));
+    SwigType *ctype_ptr = NewStringf("p.%s", getClassType());
 
     SwigType *t = NewStringf("p.%s", Getattr(n, "name"));
     swigtype_ptr = SwigType_manglestr(t);
