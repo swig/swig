@@ -3477,6 +3477,24 @@ A debugger can also be invoked easily on an individual test, for example gdb:
 make ret_by_value.ctest RUNTOOL="gdb --args"
 </pre></div>
 
+<p>
+SWIG reads the <tt>SWIG_FEATURES</tt> environment variable to obtain options in addition to those passed on the command line.
+This is particularly useful as the entire test-suite or a particular testcase can be run customized by using additional 
+arguments, for example the -O optimization flag can be added in, as shown below for the bash shell:
+</p>
+
+<div class="shell"><pre>
+env SWIG_FEATURES=-O make check-python-test-suite
+</pre></div>
+
+<p>
+The syntax for setting environment variables varies from one shell to the next, but it also works as shown in the example below, where some typemap debugging is added in:
+</p>
+
+<div class="shell"><pre>
+make ret_by_value.ctest SWIG_FEATURES="-debug-tmsearch"
+</pre></div>
+
 <H3><a name="Extending_nn43"></a>36.10.13 Documentation</H3>
 
 
