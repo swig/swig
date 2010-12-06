@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2010-12-06: wsfulton
+            Fix #3127394 - use of network paths on Windows/MSys.
+
 2010-11-18: klickverbot
 	    [D] Added the D language module.
 

@@ -220,7 +220,14 @@ String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
  * ----------------------------------------------------------------------------- */
 
 void Swig_filename_correct(String *filename) {
-  (void)filename;
+  int network_path = 0;
+  if (Len(filename) >= 2) {
+    const char *fname = Char(filename);
+    if (fname[0] == '\\' && fname[1] == '\\')
+      network_path = 1;
+    if (fname[0] == '/' && fname[1] == '/')
+      network_path = 1;
+  }
 #if defined(_WIN32) || defined(MACSWIG)
   /* accept Unix path separator on non-Unix systems */
   Replaceall(filename, "/", SWIG_FILE_DELIMITER);
@@ -232,6 +239,9 @@ void Swig_filename_correct(String *filename) {
   /* remove all duplicate file name delimiters */
   while (Replaceall(filename, SWIG_FILE_DELIMITER SWIG_FILE_DELIMITER, SWIG_FILE_DELIMITER)) {
   }
+  /* Network paths can start with a double slash on Windows - unremove the duplicate slash we just removed */
+  if (network_path)
+    Insert(filename, 0, SWIG_FILE_DELIMITER);
 }
 
 /* -----------------------------------------------------------------------------
@@ -242,13 +252,11 @@ void Swig_filename_correct(String *filename) {
 
 String *Swig_filename_escape(String *filename) {
   String *adjusted_filename = Copy(filename);
+  Swig_filename_correct(adjusted_filename);
 #if defined(_WIN32)		/* Note not on Cygwin else filename is displayed with double '/' */
-  /* remove all double '\' in case any already present */
-  while (Replaceall(adjusted_filename, "\\\\", "\\")) {
-  }
   Replaceall(adjusted_filename, "\\", "\\\\");
 #endif
-    return adjusted_filename;
+  return adjusted_filename;
 }
 
 /* -----------------------------------------------------------------------------
