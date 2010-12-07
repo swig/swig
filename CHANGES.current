@@ -1,0 +1,41 @@
+This file contains the changes for the current release.
+See the CHANGES file for changes in older releases.
+See the RELEASENOTES file for a summary of changes in each release.
+
+Version 2.0.2 (in progress)
+===========================
+
+2010-12-07: iant
+	    *** POTENTIAL INCOMPATIBILITY ***
+	    Check that we are using a sufficiently new version of the
+	    6g or 8g Go compiler.  If not, disable Go.
+
+2010-12-06: wsfulton
+            Fix #3127394 - use of network paths on Windows/MSys.
+
+2010-11-18: klickverbot
+	    [D] Added the D language module.
+
+2010-11-12: vadz
+	    Fix handling of multiple regex-using %renames attached to the same
+	    declaration. For example, now
+
+	      %rename("%(regex/^Set(.*)/put\\1/)s") "";
+	      %rename("%(regex/^Get(.*)/get\\1/)s") "";
+
+	    works as expected whereas before only the last anonymous rename was
+	    taken into account.
+
+2010-10-17: drjoe
+	    [R] Fix failure in overloaded functions which was breaking
+	    QuantLib-SWIG
+
+2010-10-14: olly
+	    [PHP] Allow compilation on non-conforming Microsoft C++ compilers
+	    which don't accept: return function_returning_void();
+	    Reported by Frank Vanden Berghen on the SWIG mailing list.
+
+2010-10-12: wsfulton
+            Fix unary scope operator (::) (global scope) regression introduced in 2.0.0, reported by
+            Ben Walker. The mangled symbol names were incorrect, sometimes resulting in types being
+            incorrectly treated as opaque types.
