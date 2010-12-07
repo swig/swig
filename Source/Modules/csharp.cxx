@@ -3641,17 +3641,13 @@ public:
 	if (ctypeout)
 	  c_param_type = ctypeout;
 
-	Parm *tp = NewParm(c_param_type, empty_str, n);
-	String *desc_tm = NULL;
-
 	/* Add to local variables */
 	Printf(c_decl, "%s %s", c_param_type, arg);
 	if (!ignored_method)
 	  Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
 
 	/* Add input marshalling code */
-	if ((desc_tm = Swig_typemap_lookup("directorin", tp, "", 0))
-	    && (tm = Getattr(p, "tmap:directorin"))) {
+	if ((tm = Getattr(p, "tmap:directorin"))) {
 
 	  Replaceall(tm, "$input", arg);
 	  Replaceall(tm, "$owner", "0");
@@ -3716,24 +3712,13 @@ public:
 
 	  p = Getattr(p, "tmap:directorin:next");
 
-	  Delete(desc_tm);
 	} else {
-	  if (!desc_tm) {
-	    Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number,
-			 "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
-			 SwigType_str(c_param_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
-	    p = nextSibling(p);
-	  } else if (!tm) {
-	    Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number,
-			 "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n", 
-			 SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
-	    p = nextSibling(p);
-	  }
-
+	  Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number,
+		       "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n", 
+		       SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+	  p = nextSibling(p);
 	  output_director = false;
 	}
-
-	Delete(tp);
       } else {
 	Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n", 
 	    SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
