@@ -11,3 +11,4 @@
 %insert(runtime) "pyapi.swg";           /* Python API */
 %insert(runtime) "pyrun.swg";           /* Python run-time code */
 
+%insert(runtime) "builtin.swg";		/* Specialization for classes with single inheritance */

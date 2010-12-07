@@ -580,6 +580,9 @@ namespace swig
 
   %fragment("SwigPySequence_Cont");
 
+# if defined(SWIGPYTHON_BUILTIN)
+  %feature("tp_iter") Sequence "&swig::make_output_iterator_builtin< Sequence >";
+# else
   %newobject iterator(PyObject **PYTHON_SELF);
   %extend  {
     swig::SwigPyIterator* iterator(PyObject **PYTHON_SELF) {
@@ -588,6 +591,8 @@ namespace swig
 
     %pythoncode {def __iter__(self): return self.iterator()}
   }
+# endif // SWIGPYTHON_BUILTIN
+
 #endif //SWIG_EXPORT_ITERATOR_METHODS
 %enddef
 

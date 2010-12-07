@@ -244,6 +244,7 @@ typedef struct {
   PyObject *destroy;
   int delargs;
   int implicitconv;
+  PyTypeObject *pytype;
 } SwigPyClientData;
 
 SWIGRUNTIMEINLINE int 
@@ -310,6 +311,7 @@ SwigPyClientData_New(PyObject* obj)
       data->delargs = 0;
     }
     data->implicitconv = 0;
+    data->pytype = 0;
     return data;
   }
 }
@@ -1064,91 +1066,101 @@ SWIG_Python_AcquirePtr(PyObject *obj, int own) {
 
 SWIGRUNTIME int
 SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int flags, int *own) {
-  if (!obj) return SWIG_ERROR;
-  if (obj == Py_None) {
-    if (ptr) *ptr = 0;
-    return SWIG_OK;
-  } else {
+    if (!obj) return SWIG_ERROR;
+    if (obj == Py_None) {
+	if (ptr) *ptr = 0;
+	return SWIG_OK;
+    }
+    if (ty && ty->clientdata && ((SwigPyClientData*) ty->clientdata)->pytype) {
+	PyTypeObject *target_tp = ((SwigPyClientData*) ty->clientdata)->pytype;
+	PyTypeObject *obj_tp;
+	for (obj_tp = obj->ob_type; obj_tp; obj_tp = obj_tp->tp_base) {
+	    if (obj_tp == target_tp) {
+	        if (ptr)
+		    *ptr = ((SwigPyObject*) obj)->ptr;
+		return SWIG_OK;
+	    }
+	}
+    }
     SwigPyObject *sobj = SWIG_Python_GetSwigThis(obj);
     if (own)
-      *own = 0;
+	*own = 0;
     while (sobj) {
-      void *vptr = sobj->ptr;
-      if (ty) {
-	swig_type_info *to = sobj->ty;
-	if (to == ty) {
-	  /* no type cast needed */
-	  if (ptr) *ptr = vptr;
-	  break;
+	void *vptr = sobj->ptr;
+	if (ty) {
+	    swig_type_info *to = sobj->ty;
+	    if (to == ty) {
+		/* no type cast needed */
+		if (ptr) *ptr = vptr;
+		break;
+	    } else {
+		swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
+		if (!tc) {
+		    sobj = (SwigPyObject *)sobj->next;
+		} else {
+		    if (ptr) {
+			int newmemory = 0;
+			*ptr = SWIG_TypeCast(tc,vptr,&newmemory);
+			if (newmemory == SWIG_CAST_NEW_MEMORY) {
+			    assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+			    if (own)
+				*own = *own | SWIG_CAST_NEW_MEMORY;
+			}
+		    }
+		    break;
+		}
+	    }
 	} else {
-	  swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
-	  if (!tc) {
-	    sobj = (SwigPyObject *)sobj->next;
-	  } else {
-	    if (ptr) {
-              int newmemory = 0;
-              *ptr = SWIG_TypeCast(tc,vptr,&newmemory);
-              if (newmemory == SWIG_CAST_NEW_MEMORY) {
-                assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
-                if (own)
-                  *own = *own | SWIG_CAST_NEW_MEMORY;
-              }
-            }
+	    if (ptr) *ptr = vptr;
 	    break;
-	  }
 	}
-      } else {
-	if (ptr) *ptr = vptr;
-	break;
-      }
     }
     if (sobj) {
-      if (own)
-        *own = *own | sobj->own;
-      if (flags & SWIG_POINTER_DISOWN) {
-	sobj->own = 0;
-      }
-      return SWIG_OK;
-    } else {
-      int res = SWIG_ERROR;
-      if (flags & SWIG_POINTER_IMPLICIT_CONV) {
-	SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;
-	if (data && !data->implicitconv) {
-	  PyObject *klass = data->klass;
-	  if (klass) {
-	    PyObject *impconv;
-	    data->implicitconv = 1; /* avoid recursion and call 'explicit' constructors*/
-	    impconv = SWIG_Python_CallFunctor(klass, obj);
-	    data->implicitconv = 0;
-	    if (PyErr_Occurred()) {
-	      PyErr_Clear();
-	      impconv = 0;
-	    }
-	    if (impconv) {
-	      SwigPyObject *iobj = SWIG_Python_GetSwigThis(impconv);
-	      if (iobj) {
-		void *vptr;
-		res = SWIG_Python_ConvertPtrAndOwn((PyObject*)iobj, &vptr, ty, 0, 0);
-		if (SWIG_IsOK(res)) {
-		  if (ptr) {
-		    *ptr = vptr;
-		    /* transfer the ownership to 'ptr' */
-		    iobj->own = 0;
-		    res = SWIG_AddCast(res);
-		    res = SWIG_AddNewMask(res);
-		  } else {
-		    res = SWIG_AddCast(res);		    
-		  }
-		}
-	      }
-	      Py_DECREF(impconv);
-	    }
-	  }
+	if (own)
+	    *own = *own | sobj->own;
+	if (flags & SWIG_POINTER_DISOWN) {
+	    sobj->own = 0;
 	}
-      }
-      return res;
+	return SWIG_OK;
+    } else {
+	int res = SWIG_ERROR;
+	if (flags & SWIG_POINTER_IMPLICIT_CONV) {
+	    SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;
+	    if (data && !data->implicitconv) {
+		PyObject *klass = data->klass;
+		if (klass) {
+		    PyObject *impconv;
+		    data->implicitconv = 1; /* avoid recursion and call 'explicit' constructors*/
+		    impconv = SWIG_Python_CallFunctor(klass, obj);
+		    data->implicitconv = 0;
+		    if (PyErr_Occurred()) {
+			PyErr_Clear();
+			impconv = 0;
+		    }
+		    if (impconv) {
+			SwigPyObject *iobj = SWIG_Python_GetSwigThis(impconv);
+			if (iobj) {
+			    void *vptr;
+			    res = SWIG_Python_ConvertPtrAndOwn((PyObject*)iobj, &vptr, ty, 0, 0);
+			    if (SWIG_IsOK(res)) {
+				if (ptr) {
+				    *ptr = vptr;
+				    /* transfer the ownership to 'ptr' */
+				    iobj->own = 0;
+				    res = SWIG_AddCast(res);
+				    res = SWIG_AddNewMask(res);
+				} else {
+				    res = SWIG_AddCast(res);		    
+				}
+			    }
+			}
+			Py_DECREF(impconv);
+		    }
+		}
+	    }
+	}
+	return res;
     }
-  }
 }
 
 /* Convert a function ptr value */
@@ -1319,21 +1331,32 @@ SWIG_Python_InitShadowInstance(PyObject *args) {
 
 SWIGRUNTIME PyObject *
 SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
-  if (!ptr) {
-    return SWIG_Py_Void();
-  } else {
-    int own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
-    PyObject *robj = SwigPyObject_New(ptr, type, own);
+    if (!ptr)
+	return SWIG_Py_Void();
+
     SwigPyClientData *clientdata = type ? (SwigPyClientData *)(type->clientdata) : 0;
+    int own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
+    if (clientdata && clientdata->pytype) {
+	SwigPyObject *newobj = PyObject_New(SwigPyObject, clientdata->pytype);
+	if (newobj) {
+	    newobj->ptr = ptr;
+	    newobj->ty = type;
+	    newobj->own = own;
+	    newobj->next = 0;
+	    return (PyObject*) newobj;
+	}
+	return SWIG_Py_Void();
+    }
+
+    PyObject *robj = SwigPyObject_New(ptr, type, own);
     if (clientdata && !(flags & SWIG_POINTER_NOSHADOW)) {
-      PyObject *inst = SWIG_Python_NewShadowInstance(clientdata, robj);
-      if (inst) {
-	Py_DECREF(robj);
-	robj = inst;
-      }
+	PyObject *inst = SWIG_Python_NewShadowInstance(clientdata, robj);
+	if (inst) {
+	    Py_DECREF(robj);
+	    robj = inst;
+	}
     }
     return robj;
-  }
 }
 
 /* Create a new packed object */
@@ -1341,6 +1364,19 @@ SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
 SWIGRUNTIMEINLINE PyObject *
 SWIG_Python_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
   return ptr ? SwigPyPacked_New((void *) ptr, sz, type) : SWIG_Py_Void();
+}
+
+SWIGRUNTIME int
+SWIG_Python_NewBuiltinObj(PyObject *self, void *ptr, swig_type_info *type, int flags) {
+    assert(self);
+    SwigPyClientData *clientdata = (SwigPyClientData *)(type->clientdata);
+    assert(clientdata);
+    assert(clientdata->pytype);
+    int own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
+    SwigPyObject *newobj = (SwigPyObject*) self;
+    newobj->ptr = ptr;
+    newobj->own = own;
+    return 0;
 }
 
 /* -----------------------------------------------------------------------------*

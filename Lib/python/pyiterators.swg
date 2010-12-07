@@ -302,6 +302,24 @@ namespace swig {
   {
     return new SwigPyIteratorOpen_T<OutIter>(current, seq);
   }
+
+  template <typename Sequence>
+  inline PyObject* make_output_iterator_builtin (PyObject *pyself)
+  {
+      SwigPyObject *builtin_obj = (SwigPyObject*) pyself;
+      Sequence *seq = reinterpret_cast< Sequence * >(builtin_obj->ptr);
+      if (!seq)
+        return SWIG_Py_Void();
+      SwigPyIterator *iter = make_output_iterator(seq->begin(), seq->begin(), seq->end(), pyself);
+      return SWIG_NewPointerObj(iter, SWIGTYPE_p_swig__SwigPyIterator, SWIG_POINTER_OWN);
+  }
+
+  template <>
+  inline PyObject* make_output_iterator_builtin<SwigPyIterator> (PyObject *pyself)
+  {
+    Py_INCREF(pyself);
+    return pyself;
+  }
 }
 }
 
@@ -329,9 +347,14 @@ namespace swig
   %newobject SwigPyIterator::operator - (ptrdiff_t n) const;
 
   %nodirector SwigPyIterator;
+
+#if defined(SWIGPYTHON_BUILTIN)
+  %feature("tp_iter") SwigPyIterator "&swig::make_output_iterator_builtin<swig::SwigPyIterator>";
+#else
   %extend SwigPyIterator {
   %pythoncode {def __iter__(self): return self}
   }
+#endif
 
   %catches(swig::stop_iteration) SwigPyIterator::value() const;
   %catches(swig::stop_iteration) SwigPyIterator::incr(size_t n = 1);

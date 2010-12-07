@@ -320,7 +320,8 @@ SWIGEXPORT
   void
 #endif
 SWIG_init(void) {
-  PyObject *m, *d;  
+  PyObject *m, *d, *md;
+  PyTypeObject *builtin_type;
 #if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
     PyModuleDef_HEAD_INIT,
@@ -335,6 +336,13 @@ SWIG_init(void) {
   };
 #endif
 
+#if defined(SWIGPYTHON_BUILTIN)
+  PyTypeObject *builtin_pytype = 0;
+  swig_type_info *builtin_basetype = 0;
+
+  SWIG_Python_builtin_imports();
+#endif
+
   /* Fix SwigMethods to carry the callback ptrs when needed */
   SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
 
@@ -343,7 +351,7 @@ SWIG_init(void) {
 #else
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
 #endif
-  d = PyModule_GetDict(m);
+  md = d = PyModule_GetDict(m);
   
   SWIG_InitializeModule(0);
   SWIG_InstallConstants(d,swig_const_table);
