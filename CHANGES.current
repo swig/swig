@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2010-12-07: iant
+	    *** POTENTIAL INCOMPATIBILITY ***
+	    Check that we are using a sufficiently new version of the
+	    6g or 8g Go compiler.  If not, disable Go.
+
 2010-12-06: wsfulton
             Fix #3127394 - use of network paths on Windows/MSys.
 
