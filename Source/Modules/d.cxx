@@ -2033,17 +2033,13 @@ public:
 	  c_param_type = ctypeout;
 	}
 
-	Parm *tp = NewParm(c_param_type, empty_str, n);
-	String *desc_tm = NULL;
-
 	/* Add to local variables */
 	Printf(c_decl, "%s %s", c_param_type, arg);
 	if (!ignored_method)
 	  Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
 
 	/* Add input marshalling code */
-	if ((desc_tm = Swig_typemap_lookup("directorin", tp, "", 0))
-	    && (tm = Getattr(p, "tmap:directorin"))) {
+	if ((tm = Getattr(p, "tmap:directorin"))) {
 
 	  Replaceall(tm, "$input", arg);
 	  Replaceall(tm, "$owner", "0");
@@ -2068,7 +2064,7 @@ public:
 	    }
 	    const String *im_directorinattributes = Getattr(p, "tmap:imtype:directorinattributes");
 
-      // TODO: Is this copy really needed?
+	    // TODO: Is this copy really needed?
 	    String *din = Copy(lookupDTypemap(p, "ddirectorin", true));
 
 	    if (din) {
@@ -2087,7 +2083,7 @@ public:
 		Printv(imcall_args, ln, NIL);
 	      }
 
-        Delete(din);
+	      Delete(din);
 
 	      // Get the parameter type in the proxy D class (used later when
 	      // generating the overload checking code for the directorConnect
@@ -2112,25 +2108,13 @@ public:
 	  }
 
 	  p = Getattr(p, "tmap:directorin:next");
-
-	  Delete(desc_tm);
 	} else {
-	  if (!desc_tm) {
-	    Swig_warning(WARN_D_TYPEMAP_DDIRECTORIN_UNDEF, input_file, line_number,
-	      "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
-	      SwigType_str(c_param_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
-	    p = nextSibling(p);
-	  } else if (!tm) {
-	    Swig_warning(WARN_D_TYPEMAP_DDIRECTORIN_UNDEF, input_file, line_number,
-	      "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n",
-	      SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
-	    p = nextSibling(p);
-	  }
-
+	  Swig_warning(WARN_D_TYPEMAP_DDIRECTORIN_UNDEF, input_file, line_number,
+	    "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n",
+	    SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+	  p = nextSibling(p);
 	  output_director = false;
 	}
-
-	Delete(tp);
       } else {
 	Swig_warning(WARN_D_TYPEMAP_CTYPE_UNDEF, input_file, line_number,
 	  "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n",
