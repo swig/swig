@@ -1219,6 +1219,10 @@ go_clean:
 
 DLIBPREFIX = @DLIBPREFIX@
 
+ifeq (,$(D_VERSION))
+  D_VERSION = @DDEFAULTVERSION@
+endif
+
 ifeq (2,$(D_VERSION))
   SWIGD = $(SWIG) -d -d2
   DCOMPILER = @D2COMPILER@
@@ -1229,7 +1233,7 @@ endif
 
 ifeq (dmd,$(DCOMPILER))
   # DMD is 32bit only by now
-  CFLAGS += -m32
+  DCFLAGS = -m32
 endif
 
 # ----------------------------------------------------------------
@@ -1238,8 +1242,8 @@ endif
 
 d: $(SRCS)
 	$(SWIGD) $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(EXTRA_CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
-	$(LDSHARED) $(CFLAGS) $(EXTRA_LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(DLIBPREFIX)$(TARGET)$(SO)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(DCFLAGS) $(EXTRA_CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
+	$(LDSHARED) $(CFLAGS) $(DCFLAGS) $(EXTRA_LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(DLIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Build a dynamically loadable D wrapper for a C++ module
@@ -1247,8 +1251,8 @@ d: $(SRCS)
 
 d_cpp: $(SRCS)
 	$(SWIGD) -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(EXTRA_CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
-	$(CXXSHARED) $(CFLAGS) $(EXTRA_LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(DLIBPREFIX)$(TARGET)$(SO)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(DCFLAGS) $(EXTRA_CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
+	$(CXXSHARED) $(CFLAGS) $(DCFLAGS) $(EXTRA_LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(DLIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Compile D files
