@@ -873,11 +873,6 @@ public:
     /* the method exported for replacement of new.instancemethod in Python 3 */
     add_pyinstancemethod_new();
 
-    if (builtin) {
-	Printf(f_init, "PyTypeObject *builtin_pytype = 0;\n");
-	Printf(f_init, "swig_type_info *builtin_basetype = 0;\n");
-    }
-
     /* emit code */
     Language::top(n);
 
@@ -1826,7 +1821,8 @@ public:
     Wrapper_add_local(f, "argv", tmp);
 
     if (!fastunpack) {
-	bool add_self = builtin_self && !constructor;
+	bool director_class = (getCurrentClass() && Swig_directorclass(getCurrentClass()));
+	bool add_self = builtin_self && (!constructor || director_class);
 	Wrapper_add_local(f, "ii", "int ii");
 	if (maxargs - (add_self ? 1 : 0) > 0)
 	    Append(f->code, "if (!PyTuple_Check(args)) SWIG_fail;\n");
@@ -1943,6 +1939,7 @@ public:
     }
     bool builtin_self = builtin && in_class && (constructor || (l && Getattr(l, "self")));
     bool builtin_ctor = builtin_self && constructor;
+    bool director_class = (getCurrentClass() && Swig_directorclass(getCurrentClass()));
     char const *self_param = builtin_self ? "self" : "SWIGUNUSEDPARM(self)";
     char const *wrap_return = builtin_ctor ? "int " : "PyObject *";
 
@@ -1978,7 +1975,7 @@ public:
     /* Get number of required and total arguments */
     tuple_arguments = num_arguments = emit_num_arguments(l);
     tuple_required = num_required = emit_num_required(l);
-    if (builtin_self && !constructor) {
+    if (builtin_self && (!constructor || (constructor && director_class))) {
 	--tuple_arguments;
 	--tuple_required;
     }
@@ -2051,9 +2048,13 @@ public:
     if (builtin_self && !builtin_ctor)
 	Printf(self_parse, "%s = self;\n", funpack ? "swig_obj[0]" : "obj0");
 
+    if (constructor && director_class)
+	Printv(self_parse, funpack ? "swig_obj[1]" : "obj1", " = self;\n", NIL);
+
     int use_parse = 0;
     Append(kwargs, "{");
     for (i = 0, p = l; i < num_arguments; i++) {
+      bool parse_from_tuple = (i > 0 || !builtin_self || (builtin_ctor && !director_class));
       while (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	p = Getattr(p, "tmap:in:next");
       }
@@ -2066,7 +2067,7 @@ public:
       else
 	sprintf(source, "obj%d", builtin_ctor ? i + 1 : i);
 
-      if (!builtin_self || builtin_ctor || i > 0) {
+      if (parse_from_tuple) {
 	  Putc(',', arglist);
 	  if (i == num_required)
 	      Putc('|', parse_args);	/* Optional argument separator */
@@ -2118,11 +2119,13 @@ public:
 	    Setattr(p, "implicitconv", convflag);
 	  }
 
-	  if (i > 0 || !builtin_self || builtin_ctor)
+	  bool parse_from_tuple = (i > 0 || !builtin_self || (builtin_ctor && !director_class));
+
+	  if (parse_from_tuple)
 	      Putc('O', parse_args);
 	  if (!funpack) {
 	    Wrapper_add_localv(f, source, "PyObject *", source, "= 0", NIL);
-	    if (!builtin_self || builtin_ctor || i > 0)
+	    if (parse_from_tuple)
 		Printf(arglist, "&%s", source);
 	  }
 	  if (i >= num_required)
@@ -2134,7 +2137,7 @@ public:
 	} else {
 	  use_parse = 1;
 	  Append(parse_args, parse);
-	  if (!builtin_self || builtin_ctor || i > 0)
+	  if (parse_from_tuple)
 	      Printf(arglist, "&%s", ln);
 	}
 	p = Getattr(p, "tmap:in:next");
@@ -2882,17 +2885,21 @@ public:
     result = Language::classDirectorDisown(n);
     shadow = oldshadow;
     if (shadow) {
-      String *symname = Getattr(n, "sym:name");
-      String *mrename = Swig_name_disown(NSPACE_TODO, symname);	//Getattr(n, "name"));
-      Printv(f_shadow, tab4, "def __disown__(self):\n", NIL);
+	if (builtin) {
+	    Printf(f_shadow, tab4, "{ \"disown\", (PyCFunction) Swig::Director::pyobj_disown< %s >, METH_NOARGS, \"\" },\n", real_classname);
+	} else {
+	    String *symname = Getattr(n, "sym:name");
+	    String *mrename = Swig_name_disown(NSPACE_TODO, symname);	//Getattr(n, "name"));
+	    Printv(f_shadow, tab4, "def __disown__(self):\n", NIL);
 #ifdef USE_THISOWN
-      Printv(f_shadow, tab8, "self.thisown = 0\n", NIL);
+	    Printv(f_shadow, tab8, "self.thisown = 0\n", NIL);
 #else
-      Printv(f_shadow, tab8, "self.this.disown()\n", NIL);
+	    Printv(f_shadow, tab8, "self.this.disown()\n", NIL);
 #endif
-      Printv(f_shadow, tab8, module, ".", mrename, "(self)\n", NIL);
-      Printv(f_shadow, tab8, "return weakref_proxy(self)\n", NIL);
-      Delete(mrename);
+	    Printv(f_shadow, tab8, module, ".", mrename, "(self)\n", NIL);
+	    Printv(f_shadow, tab8, "return weakref_proxy(self)\n", NIL);
+	    Delete(mrename);
+	}
     }
     return result;
   }
@@ -2960,20 +2967,23 @@ public:
     {
 	String *name = Getattr(n, "name");
 	String *rname = SwigType_namestr(name);
-	Printf(f_init, "    builtin_pytype = &PySwigBuiltin< %s >::pytype;\n", rname);
-	Printf(f_init, "    builtin_pytype->tp_new = PyType_GenericNew;\n");
+	Printf(f_init, tab4 "builtin_pytype = &PySwigBuiltin< %s >::pytype;\n", rname);
+	Printf(f_init, tab4 "builtin_pytype->tp_new = PyType_GenericNew;\n");
 	if (base_node) {
 	    String *base_name = Copy(Getattr(base_node, "name"));
 	    SwigType_add_pointer(base_name);
 	    String *base_mname = SwigType_manglestr(base_name);
-	    Printf(f_init, "    builtin_basetype = SWIG_MangledTypeQuery(\"%s\");\n", base_mname);
-	    Printf(f_init, "    if (builtin_basetype && builtin_basetype->clientdata && ((SwigPyClientData*) builtin_basetype->clientdata)->pytype) {\n");
-	    Printf(f_init, "        builtin_pytype->tp_base = ((SwigPyClientData*) builtin_basetype->clientdata)->pytype;\n");
-	    Printf(f_init, "    }\n");
+	    Printf(f_init, tab4 "builtin_basetype = SWIG_MangledTypeQuery(\"%s\");\n", base_mname);
+	    Printf(f_init, tab4 "if (builtin_basetype && builtin_basetype->clientdata && ((SwigPyClientData*) builtin_basetype->clientdata)->pytype) {\n");
+	    Printf(f_init, tab8 "builtin_pytype->tp_base = ((SwigPyClientData*) builtin_basetype->clientdata)->pytype;\n");
+	    Printf(f_init, tab4 "}\n");
 	    Delete(base_mname);
 	    Delete(base_name);
+	} else {
+	    //Printv(f_init, tab4, "builtin_pytype->tp_base = SwigPyObject_type();\n", NIL);
+	    Printv(f_init, tab4, "builtin_pytype->tp_base = &PyBaseObject_Type;\n", NIL);
 	}
-	Printf(f_init, "    builtin_pytype->tp_dict = d = PyDict_New();\n");
+	Printf(f_init, tab4 "builtin_pytype->tp_dict = d = PyDict_New();\n");
 	Delete(rname);
     }
 
@@ -3019,7 +3029,7 @@ public:
 	Printf(f, "    %s,				/*tp_getattro*/\n", getSlot(n, "feature:tp_getattro"));
 	Printf(f, "    %s,				/*tp_setattro*/\n", getSlot(n, "feature:tp_setattro"));
 	Printf(f, "    %s,				/*tp_as_buffer*/\n", getSlot(n, "feature:tp_as_buffer"));
-	Printf(f, "    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_RICHCOMPARE, /*tp_flags*/\n");
+	Printf(f, "    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_HAVE_RICHCOMPARE, /*tp_flags*/\n");
 	Printf(f, "    \"%s\",				/* tp_doc */\n", rname);
 	Printf(f, "    %s,				/* tp_traverse */\n", getSlot(n, "feature:tp_traverse"));
 	Printf(f, "    %s,				/* tp_clear */\n", getSlot(n, "feature:tp_clear"));
@@ -3199,6 +3209,21 @@ public:
 
 	/* Overide the shadow file so we can capture its methods */
 	f_shadow = NewString("");
+
+	// Set up type check for director class constructor
+	Clear(none_comparison);
+	if (builtin && Swig_directorclass(n)) {
+	    String *p_real_classname = Copy(real_classname);
+	    SwigType_add_pointer(p_real_classname);
+	    String *mangle = SwigType_manglestr(p_real_classname);
+	    String *descriptor = NewStringf("SWIGTYPE%s", mangle);
+	    Printv(none_comparison, "self->ob_type != ((SwigPyClientData*) (", descriptor, ")->clientdata)->pytype", NIL);
+	    Delete(descriptor);
+	    Delete(mangle);
+	    Delete(p_real_classname);
+	} else {
+	    Printv(none_comparison, "$arg != Py_None", NIL);
+	}
 
 	Language::classHandler(n);
 
@@ -3551,7 +3576,7 @@ public:
 	if (!Getattr(n, "sym:nextSibling")) {
 	    if (builtin && in_class) {
 		String *name = NewString("new");
-		if (checkAttribute(n, "access", "public") && !Getattr(class_members, name)) {
+		if ((use_director || checkAttribute(n, "access", "public")) && !Getattr(class_members, name)) {
 		    Setattr(class_members, name, name);
 		    String *fullname = Swig_name_member(NULL, name, class_name);
 		    if (!builtin_tp_init)

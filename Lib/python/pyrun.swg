@@ -1376,6 +1376,8 @@ SWIG_Python_NewBuiltinObj(PyObject *self, void *ptr, swig_type_info *type, int f
     SwigPyObject *newobj = (SwigPyObject*) self;
     newobj->ptr = ptr;
     newobj->own = own;
+    newobj->ty = type;
+    newobj->next = 0;
     return 0;
 }
 
