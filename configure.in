@@ -2006,17 +2006,18 @@ else
 	GO="$GOBIN"
     fi
 
-    GOGCC=false
-    if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
-	GOGCC=true
-    else
-	go_version=`$GO -V | sed -e 's/.*version \([[0-9]]*\).*/\1/'`
-	if test "$go_version" -lt 6707; then
-	    AC_MSG_NOTICE([Installed Go too old; disabling Go])
-	    GO=
-	fi
+    if test -n "$GO" ; then
+      GOGCC=false
+      if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
+  	GOGCC=true
+      else
+  	go_version=`$GO -V | sed -e 's/.*version \([[0-9]]*\).*/\1/'`
+  	if test "$go_version" -lt 6707; then
+  	    AC_MSG_NOTICE([Installed Go too old; disabling Go])
+  	    GO=
+  	fi
+      fi
     fi
-
 fi
 
 AC_SUBST(GOGCC)
