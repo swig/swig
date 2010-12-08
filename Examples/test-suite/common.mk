@@ -231,6 +231,7 @@ CPP_TEST_CASES += \
 	li_windows \
 	long_long_apply \
 	memberin_extend \
+	member_funcptr_galore \
 	member_pointer \
 	member_template \
 	minherit \
