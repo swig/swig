@@ -1258,8 +1258,10 @@ d_cpp: $(SRCS)
 # Compile D files
 # ----------------------------------------------------------------
 
+# Clear the DFLAGS environment variable for the compiler call itself
+# to work around a discrepancy in argument handling between DMD and LDC.
 d_compile: $(SRCS)
-	$(COMPILETOOL) $(DCOMPILER) $(DFLAGS) $(DSRCS)
+	DFLAGS="" $(COMPILETOOL) $(DCOMPILER) $(DFLAGS) $(DSRCS)
 
 # -----------------------------------------------------------------
 # Clean the D examples
