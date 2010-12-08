@@ -1073,7 +1073,7 @@ DOHString *DohNewStringEmpty(void) {
 }
 
 /* -----------------------------------------------------------------------------
- * NewStringWithSize(const char *c, int len) - Create a new string
+ * NewStringWithSize(const DOH *so, int len) - Create a new string
  * ----------------------------------------------------------------------------- */
 
 DOHString *DohNewStringWithSize(const DOH *so, int len) {
