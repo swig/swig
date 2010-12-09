@@ -6,9 +6,11 @@ Version 2.0.2 (in progress)
 ===========================
 
 2010-12-07: iant
-	    *** POTENTIAL INCOMPATIBILITY ***
 	    Check that we are using a sufficiently new version of the
-	    6g or 8g Go compiler.  If not, disable Go.
+	    6g or 8g Go compiler during configure time. If not, disable Go.
+            Minimum version is now 6707.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
 
 2010-12-06: wsfulton
             Fix #3127394 - use of network paths on Windows/MSys.
