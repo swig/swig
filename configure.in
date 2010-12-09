@@ -1995,29 +1995,33 @@ AC_ARG_WITH(go, AS_HELP_STRING([--without-go], [Disable Go])
 AS_HELP_STRING([--with-go=path], [Set location of Go compiler]),[GOBIN="$withval"], [GOBIN=yes])
 
 if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Go])
-GO=
-GOGCC=false
+  AC_MSG_NOTICE([Disabling Go])
+  GO=
+  GOGCC=false
 else
 
-    if test "x$GOBIN" = xyes; then
-	AC_CHECK_PROGS(GO, 6g 8g gccgo)
-    else
-	GO="$GOBIN"
-    fi
+  if test "x$GOBIN" = xyes; then
+    AC_CHECK_PROGS(GO, 6g 8g gccgo)
+  else
+    GO="$GOBIN"
+  fi
 
-    if test -n "$GO" ; then
-      GOGCC=false
-      if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
-  	GOGCC=true
+  if test -n "$GO" ; then
+    GOGCC=false
+    if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
+      GOGCC=true
+    else
+      AC_MSG_CHECKING([whether Go ($GO) version is too old])
+      go_version=`$GO -V | sed -e 's/.*version \([[0-9]]*\).*/\1/'`
+      go_min_version=6707
+      if test "$go_version" -lt $go_min_version; then
+        AC_MSG_RESULT([yes - minimum version is $go_min_version])
+        GO=
       else
-  	go_version=`$GO -V | sed -e 's/.*version \([[0-9]]*\).*/\1/'`
-  	if test "$go_version" -lt 6707; then
-  	    AC_MSG_NOTICE([Installed Go too old; disabling Go])
-  	    GO=
-  	fi
+        AC_MSG_RESULT([no])
       fi
     fi
+  fi
 fi
 
 AC_SUBST(GOGCC)
