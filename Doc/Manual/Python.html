@@ -4592,7 +4592,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 %}
 
 %typemap(in) double [ANY](double temp[$1_dim0]) {
-   if (!convert_darray($input,temp,$1_dim0))) {
+   if (!convert_darray($input,temp,$1_dim0)) {
       return NULL;
    }
    $1 = &amp;temp[0];
