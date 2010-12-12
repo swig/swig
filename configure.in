@@ -2048,20 +2048,22 @@ else
   if test -z "$D1COMPILERBIN" ; then
     AC_CHECK_PROGS(D1COMPILER, dmd ldmd gdmd)
 
-    AC_MSG_CHECKING(whether the D1/Tango compiler works)
-    cat > conftest.$ac_ext <<_ACEOF
+    if test -n "$D1COMPILER" ; then
+      AC_MSG_CHECKING(whether the D1/Tango compiler works)
+      cat > conftest.$ac_ext <<_ACEOF
 import tango.io.Stdout;
 void main() {
 }
 _ACEOF
-    rm -f conftest.$ac_objext
-    AS_IF(
-      [_AC_DO_STDERR($D1COMPILER conftest.$ac_ext) && test ! -s conftest.err && test -s conftest.$ac_objext],
-      [AC_MSG_RESULT([yes])],
-      [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
-      D1COMPILER=]
-    )
-    rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+      rm -f conftest.$ac_objext
+      AS_IF(
+        [_AC_DO_STDERR($D1COMPILER conftest.$ac_ext) && test ! -s conftest.err && test -s conftest.$ac_objext],
+        [AC_MSG_RESULT([yes])],
+        [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
+        D1COMPILER=]
+      )
+      rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+    fi
   else
     D1COMPILER="$D1COMPILERBIN"
   fi
@@ -2069,20 +2071,22 @@ _ACEOF
   if test -z "$D2COMPILERBIN" ; then
     AC_CHECK_PROGS(D2COMPILER, dmd gdmd)
 
-    AC_MSG_CHECKING(whether the D2 compiler works)
-    cat > conftest.$ac_ext <<_ACEOF
+    if test -n "$D2COMPILER" ; then
+      AC_MSG_CHECKING(whether the D2 compiler works)
+      cat > conftest.$ac_ext <<_ACEOF
 import std.algorithm;
 void main() {
 }
 _ACEOF
-    rm -f conftest.$ac_objext
-    AS_IF(
-      [_AC_DO_STDERR($D2COMPILER conftest.$ac_ext) && test ! -s conftest.err && test -s conftest.$ac_objext],
-      [AC_MSG_RESULT([yes])],
-      [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
-      D2COMPILER=]
-    )
-    rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+      rm -f conftest.$ac_objext
+      AS_IF(
+        [_AC_DO_STDERR($D2COMPILER conftest.$ac_ext) && test ! -s conftest.err && test -s conftest.$ac_objext],
+        [AC_MSG_RESULT([yes])],
+        [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
+        D2COMPILER=]
+      )
+      rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+    fi
   else
     D2COMPILER="$D2COMPILERBIN"
   fi
