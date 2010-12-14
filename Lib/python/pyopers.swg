@@ -13,20 +13,20 @@
 #define %pycompare(pyname,oper,comptype) %pybinoperator(pyname,oper,,comptype)
 #endif
 
-%pybinoperator(__add__,      *::operator+,		binary_func, nb_add);
-%pybinoperator(__pos__,      *::operator+(),		unary_func, nb_positive);
-%pybinoperator(__pos__,      *::operator+() const,	unary_func, nb_positive);
-%pybinoperator(__sub__,      *::operator-,		binary_func, nb_subtract);
-%pybinoperator(__neg__,      *::operator-(),		unary_func, nb_negative);
-%pybinoperator(__neg__,      *::operator-() const,	unary_func, nb_negative);
-%pybinoperator(__mul__,      *::operator*,		binary_func, nb_multiply);
-%pybinoperator(__div__,      *::operator/,		binary_func, nb_div);
-%pybinoperator(__mod__,      *::operator%,		binary_func, nb_remainder);
-%pybinoperator(__lshift__,   *::operator<<,		binary_func, nb_lshift);
-%pybinoperator(__rshift__,   *::operator>>,		binary_func, nb_rshift);
-%pybinoperator(__and__,      *::operator&,		binary_func, nb_and);
-%pybinoperator(__or__,       *::operator|,		binary_func, nb_or);
-%pybinoperator(__xor__,      *::operator^,		binary_func, nb_xor);
+%pybinoperator(__add__,      *::operator+,		binaryfunc, nb_add);
+%pybinoperator(__pos__,      *::operator+(),		unaryfunc, nb_positive);
+%pybinoperator(__pos__,      *::operator+() const,	unaryfunc, nb_positive);
+%pybinoperator(__sub__,      *::operator-,		binaryfunc, nb_subtract);
+%pybinoperator(__neg__,      *::operator-(),		unaryfunc, nb_negative);
+%pybinoperator(__neg__,      *::operator-() const,	unaryfunc, nb_negative);
+%pybinoperator(__mul__,      *::operator*,		binaryfunc, nb_multiply);
+%pybinoperator(__div__,      *::operator/,		binaryfunc, nb_div);
+%pybinoperator(__mod__,      *::operator%,		binaryfunc, nb_remainder);
+%pybinoperator(__lshift__,   *::operator<<,		binaryfunc, nb_lshift);
+%pybinoperator(__rshift__,   *::operator>>,		binaryfunc, nb_rshift);
+%pybinoperator(__and__,      *::operator&,		binaryfunc, nb_and);
+%pybinoperator(__or__,       *::operator|,		binaryfunc, nb_or);
+%pybinoperator(__xor__,      *::operator^,		binaryfunc, nb_xor);
 %pycompare(__lt__,           *::operator<,		Py_LT);
 %pycompare(__le__,           *::operator<=,		Py_LE);
 %pycompare(__gt__,           *::operator>,		Py_GT);
@@ -34,16 +34,16 @@
 %pycompare(__eq__,           *::operator==,		Py_EQ);
 %pycompare(__ne__,           *::operator!=,		Py_NE);
 
-%feature("pyslot", "nb_truediv", functype="binary_func") *::operator/;
+%feature("pyslot", "nb_truediv", functype="binaryfunc") *::operator/;
 
 /* Special cases */
 %rename(__invert__)     *::operator~;
-%feature("pyslot", "nb_invert", functype="unary_func") *::operator~;
+%feature("pyslot", "nb_invert", functype="unaryfunc") *::operator~;
 %rename(__call__)       *::operator();
-%feature("pyslot", "tp_call", functype="ternary_func") *::operator();
+%feature("pyslot", "tp_call", functype="ternaryfunc") *::operator();
 
 #if defined(SWIGPYTHON_BUILTIN)
-%pybinoperator(__nonzero__,   *::operator bool,		unary_func, nb_nonzero);
+%pybinoperator(__nonzero__,   *::operator bool,		unaryfunc, nb_nonzero);
 #else
 %feature("shadow")      *::operator bool %{
 def __nonzero__(self):
@@ -103,21 +103,21 @@ __bool__ = __nonzero__
 */
 
 #if defined(SWIGPYTHON_BUILTIN)
-#define %pyinplaceoper(SwigPyOper, Oper, functp, slot) %rename(SwigPyOper) Oper; %feature("pyslot", #slot, functype=#functp) Oper;
+#define %pyinplaceoper(SwigPyOper, Oper, functp, slot) %delobject Oper; %newobject Oper; %feature("pyslot", #slot, functype=#functp) Oper; %rename(SwigPyOper) Oper
 #else
 #define %pyinplaceoper(SwigPyOper, Oper, functp, slot) %delobject Oper; %newobject Oper; %rename(SwigPyOper) Oper
 #endif
 
-%pyinplaceoper(__iadd__   , *::operator +=,	binary_func, nb_inplace_add);
-%pyinplaceoper(__isub__   , *::operator -=,	binary_func, nb_inplace_subtract);
-%pyinplaceoper(__imul__   , *::operator *=,	binary_func, nb_inplace_multiply);
-%pyinplaceoper(__idiv__   , *::operator /=,	binary_func, nb_inplace_divide);
-%pyinplaceoper(__imod__   , *::operator %=,	binary_func, nb_inplace_remainder);
-%pyinplaceoper(__iand__   , *::operator &=,	binary_func, nb_inplace_and);
-%pyinplaceoper(__ior__    , *::operator |=,	binary_func, nb_inplace_or);
-%pyinplaceoper(__ixor__   , *::operator ^=,	binary_func, nb_inplace_xor);
-%pyinplaceoper(__ilshift__, *::operator <<=,	binary_func, nb_inplace_lshift);
-%pyinplaceoper(__irshift__, *::operator >>=,	binary_func, nb_inplace_rshift);
+%pyinplaceoper(__iadd__   , *::operator +=,	binaryfunc, nb_inplace_add);
+%pyinplaceoper(__isub__   , *::operator -=,	binaryfunc, nb_inplace_subtract);
+%pyinplaceoper(__imul__   , *::operator *=,	binaryfunc, nb_inplace_multiply);
+%pyinplaceoper(__idiv__   , *::operator /=,	binaryfunc, nb_inplace_divide);
+%pyinplaceoper(__imod__   , *::operator %=,	binaryfunc, nb_inplace_remainder);
+%pyinplaceoper(__iand__   , *::operator &=,	binaryfunc, nb_inplace_and);
+%pyinplaceoper(__ior__    , *::operator |=,	binaryfunc, nb_inplace_or);
+%pyinplaceoper(__ixor__   , *::operator ^=,	binaryfunc, nb_inplace_xor);
+%pyinplaceoper(__ilshift__, *::operator <<=,	binaryfunc, nb_inplace_lshift);
+%pyinplaceoper(__irshift__, *::operator >>=,	binaryfunc, nb_inplace_rshift);
 
 
 /* Finally, in python we need to mark the binary operations to fail as

@@ -599,7 +599,6 @@ namespace swig
 
 /**** The python container methods  ****/
 
-
 %define %swig_container_methods(Container...)
 
   %newobject __getslice__;
@@ -618,7 +617,15 @@ namespace swig
       return self->size();
     }
   }
+
+#if defined(SWIGPYTHON_BUILTIN)
+%pybinoperator(__nonzero__, __nonzero__, unaryfunc, nb_nonzero);
+%pybinoperator(__len__, __len__, lenfunc, sq_length);
+#endif // SWIGPYTHON_BUILTIN
+
 %enddef
+
+
 
 %define %swig_sequence_methods_common(Sequence...)
   %swig_sequence_iterator(%arg(Sequence))
@@ -697,6 +704,14 @@ namespace swig
     }
      
   }
+
+#if defined(SWIGPYTHON_BUILTIN)
+%pybinoperator(__getitem__, __getitem__, ssizeargfunc, sq_item);
+%pybinoperator(__getslice__, __getslice__, ssizessizeargfunc, sq_slice);
+%pybinoperator(__setitem__, __setitem__, ssizeobjargproc, sq_ass_item);
+%pybinoperator(__setslice__, __setslice__, ssizessizeobjargproc, sq_ass_slice);
+#endif // SWIGPYTHON_BUILTIN
+
 %enddef
 
 %define %swig_sequence_methods(Sequence...)
@@ -714,6 +729,7 @@ namespace swig
       self->push_back(x);
     }
  }
+
 %enddef
 
 %define %swig_sequence_methods_val(Sequence...)
@@ -731,6 +747,7 @@ namespace swig
       self->push_back(x);
     }
  }
+
 %enddef
 
 

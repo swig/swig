@@ -172,6 +172,30 @@ getSlot (Node *n, const char *key)
   return val ? val : slot_default;
 }
 
+static String*
+getClosure (String *functype, String *wrapper)
+{
+    static const char *functypes[] = {
+	"binaryfunc",			"PYSWIG_BINARYFUNC_CLOSURE",
+	"ternaryfunc",			"PYSWIG_TERNARYFUNC_CLOSURE",
+	"lenfunc",			"PYSWIG_LENFUNC_CLOSURE",
+	"ssizeargfunc",			"PYSWIG_SSIZEARGFUNC_CLOSURE",
+	"ssizessizeargfunc",		"PYSWIG_SSIZESSIZEARGFUNC_CLOSURE",
+	"ssizeobjargproc",		"PYSWIG_SSIZEOBJARGPROC_CLOSURE",
+	"ssizessizeobjargproc",		"PYSWIG_SSIZESSIZEOBJARGPROC_CLOSURE",
+	NULL
+    };
+
+    if (!functype)
+	return NULL;
+    char *c = Char(functype);
+    int i;
+    for (i = 0; functypes[i] != NULL; i += 2) {
+	if (!strcmp(c, functypes[i]))
+	    return NewStringf("%s(%s)", functypes[i+1], wrapper);
+    }
+    return NULL;
+}
 
 class PYTHON:public Language {
 public:
@@ -1947,18 +1971,18 @@ public:
     char const *self_param = builtin_self ? "self" : "SWIGUNUSEDPARM(self)";
     char const *wrap_return = builtin_ctor ? "int " : "PyObject *";
     String *linkage = NewString("SWIGINTERN ");
+    String *wrapper_name = Swig_name_wrapper(iname);
     String *slot = Getattr(n, "feature:pyslot");
+    String *closure_decl = NULL;
+    if (slot)
+	closure_decl = getClosure(Getattr(n, "feature:pyslot:functype"), wrapper_name);
+
+    /*
     if (builtin_setter || builtin_getter) {
       Clear(linkage);
       Printv(linkage, "extern ", NIL);
     }
-    if (slot) {
-      String *functype = Getattr(n, "feature:pyslot:functype");
-      if (!strcmp(Char(functype), "binary_func") || !strcmp(Char(functype), "ternary_func")) {
-	Clear(linkage);
-	Printv(linkage, "extern ", NIL);
-      }
-    }
+    */
 
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
@@ -2000,7 +2024,7 @@ public:
       allow_kwargs = 0;
     varargs = emit_isvarargs(l);
 
-    String *wname = Swig_name_wrapper(iname);
+    String *wname = Copy(wrapper_name);
     if (overname) {
       Append(wname, overname);
     }
@@ -2510,8 +2534,6 @@ public:
       }
     }
 
-    String *wrapper_name = Swig_name_wrapper(iname);
-
     /* If this is a builtin type, create a PyGetSetDef entry for this member variable. */
     if (builtin_getter) {
       Hash *h = Getattr(builtin_getset, name);
@@ -2534,15 +2556,12 @@ public:
 
     /* Handle builtin operator overloads */
     if (slot) {
-      String *functype = Getattr(n, "feature:pyslot:functype");
       String *feature_name = NewStringf("feature:%s", slot);
-      String *closure_name = NewString("");
-      if (!strcmp(Char(functype), "binary_func")) {
-	Printf(closure_name, "pyswig_binaryfunc_closure< %s >", wrapper_name);
-      } else if (!strcmp(Char(functype), "ternary_func")) {
-	Printf(closure_name, "pyswig_ternaryfunc_closure< %s >", wrapper_name);
-      } else {
-	Append(closure_name, wrapper_name);
+      String *closure_name = Copy(wrapper_name);
+      if (closure_decl) {
+	  if (!Getattr(n, "sym:overloaded") || !Getattr(n, "sym:nextSibling"))
+	      Printv(f_wrappers, closure_decl, "\n\n", NIL);
+	  Append(closure_name, "_closure");
       }
       Node *parent = Swig_methodclass(n);
       Setattr(parent, feature_name, closure_name);
@@ -2561,6 +2580,8 @@ public:
     Delete(wname);
     DelWrapper(f);
     Delete(wrapper_name);
+    if (closure_decl)
+	Delete(closure_decl);
     return SWIG_OK;
   }
 
@@ -3123,6 +3144,25 @@ public:
     Printf(f, "    (unaryfunc)   %s,    // nb_index;\n", getSlot(n, "feature:nb_index"));
     Printf(f, "};\n\n");
 	
+    Printf(f, "template <> PySequenceMethods PySwigBuiltin< %s >::sequence_methods = {\n", rname);
+    Printf(f, "    (lenfunc)		%s,	// sq_length\n", getSlot(n, "sq_length"));
+    Printf(f, "    (binaryfunc)		%s,	// sq_concat\n", getSlot(n, "sq_concat"));
+    Printf(f, "    (ssizeargfunc)	%s,	// sq_repeat\n", getSlot(n, "sq_repeat"));
+    Printf(f, "    (ssizeargfunc)	%s,	// sq_item\n", getSlot(n, "sq_item"));
+    Printf(f, "    (ssizessizeargfunc)	%s,	// sq_slice\n", getSlot(n, "sq_slice"));
+    Printf(f, "    (ssizeobjargproc)	%s,	// sq_ass_item\n", getSlot(n, "sq_ass_item"));
+    Printf(f, "    (ssizessizeobjargproc) %s,	// sq_ass_slice\n", getSlot(n, "sq_ass_slice"));
+    Printf(f, "    (objobjproc)		%s,	// sq_contains\n", getSlot(n, "sq_contains"));
+    Printf(f, "    (binaryfunc)		%s,	// sq_inplace_concat\n", getSlot(n, "sq_inplace_concat"));
+    Printf(f, "    (ssizeargfunc)	%s,	// sq_inplace_repeat\n", getSlot(n, "sq_inplace_repeat"));
+    Printf(f, "};\n\n");
+
+    Printf(f, "template <> PyMappingMethods PySwigBuiltin< %s >::mapping_methods = {\n", rname);
+    Printf(f, "    (lenfunc)		%s,	// mp_length;\n", getSlot(n, "mp_length"));
+    Printf(f, "    (binaryfunc)		%s,	// mp_subscript;\n", getSlot(n, "mp_subscript"));
+    Printf(f, "    (objobjargproc)	%s,	//  mp_ass_subscript;\n", getSlot(n, "mp_ass_subscript"));
+    Printf(f, "};\n\n");
+
     String *tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES");
     // TODO: Add more flags based on slots
     Printf(f, "template <> PyTypeObject PySwigBuiltin< %s >::pytype = {\n", rname);
@@ -3138,8 +3178,8 @@ public:
     Printf(f, "    %s,				/*tp_compare*/\n", getSlot(n, "feature:tp_compare"));
     Printf(f, "    %s,				/*tp_repr*/\n", getSlot(n, "feature:tp_repr"));
     Printf(f, "    &%s::number_methods,		/*tp_as_number*/\n", templ);
-    Printf(f, "    %s,				/*tp_as_sequence*/\n", getSlot(n, "feature:tp_as_sequence"));
-    Printf(f, "    %s,				/*tp_as_mapping*/\n", getSlot(n, "feature:tp_as_mapping"));
+    Printf(f, "    &%s::sequence_methods,	/*tp_as_sequence*/\n", templ);
+    Printf(f, "    &%s::mapping_methods,	/*tp_as_mapping*/\n", templ);
     Printf(f, "    %s,				/*tp_hash */\n", getSlot(n, "feature:tp_hash"));
     Printf(f, "    %s,				/*tp_call*/\n", getSlot(n, "feature:tp_call"));
     Printf(f, "    %s,				/*tp_str*/\n", getSlot(n, "feature:tp_str"));
@@ -3519,8 +3559,6 @@ public:
 	  String *fullname = Swig_name_member(NULL, class_name, symname);
 	  String *wname = Swig_name_wrapper(fullname);
 	  Setattr(class_members, name, name);
-	  ParmList *parms = Getattr(n, "parms");
-	  bool noArgs = !parms || Len(parms) == 0;
 	  String *pyflags = NewString("METH_VARARGS");
 	  Printf(f_shadow, "    { \"%s\", (PyCFunction) %s, %s, \"\" },\n", Char(name), wname, Char(pyflags));
 	  Delete(name);
