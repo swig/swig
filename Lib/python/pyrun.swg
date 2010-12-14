@@ -1076,8 +1076,13 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 	PyTypeObject *obj_tp;
 	for (obj_tp = obj->ob_type; obj_tp; obj_tp = obj_tp->tp_base) {
 	    if (obj_tp == target_tp) {
+		SwigPyObject *sobj = (SwigPyObject*) obj;
+	    	if (own)
+		    *own = *own | sobj->own;
+		if (flags & SWIG_POINTER_DISOWN)
+		    sobj->own = 0;
 	        if (ptr)
-		    *ptr = ((SwigPyObject*) obj)->ptr;
+		    *ptr = sobj->ptr;
 		return SWIG_OK;
 	    }
 	}
