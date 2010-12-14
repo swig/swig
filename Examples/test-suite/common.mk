@@ -397,6 +397,7 @@ CPP_TEST_CASES += \
 	typedef_scope \
 	typedef_sizet \
 	typedef_struct \
+	typemap_arrays \
 	typemap_delete \
 	typemap_global_scope \
 	typemap_namespace \
