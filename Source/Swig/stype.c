@@ -900,6 +900,145 @@ String *SwigType_lcaststr(const SwigType *s, const_String_or_char_ptr name) {
   return result;
 }
 
+#if 0
+/* Alternative implementation for manglestr_default. Mangling is similar to the original
+   except for a few subtle differences for example in templates:
+    namespace foo {
+      template<class T> class bar {};
+      typedef int Integer;
+      void test2(bar<Integer *> *x);
+    }
+    Mangling is more consistent and changes from 
+    _p_foo__barT_int_p_t to 
+    _p_foo__barT_p_int_t.
+*/
+static void mangle_stringcopy(String *destination, const char *source, int count) {
+  while (count-- > 0) {
+    char newc = '_';
+    if (!(*source == '.' || *source == ':' || *source == ' '))
+      newc = *source;
+    /* TODO: occasionally '*' or numerics need converting to '_', eg in array dimensions and template expressions */
+    Putc(newc, destination);
+    source++;
+  }
+}
+
+static void mangle_subtype(String *mangled, SwigType *s);
+
+/* -----------------------------------------------------------------------------
+ * mangle_namestr()
+ *
+ * Mangles a type taking care of template expansions. Similar to SwigType_namestr().
+ * The type may include a trailing '.', for example "p."
+ * ----------------------------------------------------------------------------- */
+
+static void mangle_namestr(String *mangled, SwigType *t) {
+  int length = Len(t);
+  if (SwigType_isqualifier(t)) {
+    Append(mangled, "q_");
+    mangle_stringcopy(mangled, Char(t)+2, length-4);
+    Append(mangled, "__");
+  } else if (SwigType_ismemberpointer(t)) {
+    Append(mangled, "m_");
+    mangle_stringcopy(mangled, Char(t)+2, length-4);
+    Append(mangled, "__");
+  } else if (SwigType_isarray(t)) {
+    Append(mangled, "a_");
+    mangle_stringcopy(mangled, Char(t)+2, length-4);
+    Append(mangled, "__");
+  } else if (SwigType_isfunction(t)) {
+    List *p = SwigType_parmlist(t);
+    int sz = Len(p);
+    int i;
+    Append(mangled, "f_");
+    for (i = 0; i < sz; i++) {
+      mangle_subtype(mangled, Getitem(p, i));
+      Putc('_', mangled);
+    }
+    Append(mangled, (sz > 0) ? "_" : "__");
+  } else if (SwigType_isvarargs(t)) {
+    Append(mangled, "___");
+  } else {
+    char *d = Char(t);
+    char *c = strstr(d, "<(");
+    if (!c || !strstr(c + 2, ")>")) {
+      /* not a template type */
+      mangle_stringcopy(mangled, Char(t), Len(t));
+    } else {
+      /* a template type */
+      String *suffix;
+      List *p;
+      int i, sz;
+      mangle_stringcopy(mangled, d, c-d);
+      Putc('T', mangled);
+      Putc('_', mangled);
+
+      p = SwigType_parmlist(c + 1);
+      sz = Len(p);
+      for (i = 0; i < sz; i++) {
+	mangle_subtype(mangled, Getitem(p, i));
+	Putc('_', mangled);
+      }
+      Putc('t', mangled);
+      suffix = SwigType_templatesuffix(t);
+      if (Len(suffix) > 0) {
+	mangle_namestr(mangled, suffix);
+      } else {
+	Append(mangled, suffix);
+      }
+      Delete(suffix);
+      Delete(p);
+    }
+  }
+}
+
+static void mangle_subtype(String *mangled, SwigType *s) {
+  List *elements;
+  int nelements, i;
+
+  assert(s);
+  elements = SwigType_split(s);
+  nelements = Len(elements);
+  for (i = 0; i < nelements; i++) {
+    SwigType *element = Getitem(elements, i);
+    mangle_namestr(mangled, element);
+  }
+  Delete(elements);
+}
+
+static String *manglestr_default(const SwigType *s) {
+  String *mangled = NewString("_");
+  SwigType *sr = SwigType_typedef_resolve_all(s);
+  SwigType *sq = SwigType_typedef_qualified(sr);
+  SwigType *ss = SwigType_remove_global_scope_prefix(sq);
+  SwigType *type = ss;
+  SwigType *lt;
+
+  if (SwigType_istemplate(ss)) {
+    SwigType *ty = Swig_symbol_template_deftype(ss, 0);
+    Delete(ss);
+    ss = ty;
+    type = ss;
+  }
+
+  lt = SwigType_ltype(type);
+
+  Replace(lt, "struct ", "", DOH_REPLACE_ANY);
+  Replace(lt, "class ", "", DOH_REPLACE_ANY);
+  Replace(lt, "union ", "", DOH_REPLACE_ANY);
+  Replace(lt, "enum ", "", DOH_REPLACE_ANY);
+
+  mangle_subtype(mangled, lt);
+
+  Delete(ss);
+  Delete(sq);
+  Delete(sr);
+
+  return mangled;
+}
+
+#else
+
 static String *manglestr_default(const SwigType *s) {
   char *c;
   String *result = 0;
@@ -969,8 +1108,17 @@ static String *manglestr_default(const SwigType *s) {
   Delete(sr);
   return result;
 }
+#endif
 
 String *SwigType_manglestr(const SwigType *s) {
+#if 0
+  /* Debugging checks to ensure a proper SwigType is passed in and not a stringified type */
+  String *angle = Strstr(s, "<");
+  if (angle && Strncmp(angle, "<(", 2) != 0)
+    Printf(stderr, "SwigType_manglestr error: %s\n", s);
+  else if (Strstr(s, "*") || Strstr(s, "&") || Strstr(s, "["))
+    Printf(stderr, "SwigType_manglestr error: %s\n", s);
+#endif
   return manglestr_default(s);
 }
 
