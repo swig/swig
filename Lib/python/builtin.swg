@@ -31,7 +31,7 @@ SWIGINTERN Py_ssize_t					\
 wrapper##_closure (PyObject *a)				\
 {							\
     PyObject *resultobj = wrapper(a, NULL);		\
-    Py_ssize_t result = _PyLong_AsSsize_t(resultobj);	\
+    Py_ssize_t result = PyNumber_AsSsize_t(resultobj, NULL);	\
     Py_DECREF(resultobj);				\
     return result;					\
 }
@@ -53,12 +53,14 @@ wrapper##_closure (PyObject *a, Py_ssize_t b, Py_ssize_t c)	\
 SWIGINTERN int								\
 wrapper##_closure (PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) \
 {									\
-    PyObject *tuple = PyTuple_New(3);					\
+    PyObject *tuple = PyTuple_New(d ? 3 : 2);				\
     assert(tuple);							\
     PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));			\
     PyTuple_SET_ITEM(tuple, 1, _PyLong_FromSsize_t(c));			\
-    PyTuple_SET_ITEM(tuple, 2, d);					\
-    Py_XINCREF(d);							\
+    if (d) {								\
+        PyTuple_SET_ITEM(tuple, 2, d);					\
+        Py_INCREF(d);							\
+    }									\
     PyObject *resultobj = wrapper(a, tuple);				\
     int result = resultobj ? 0 : -1;					\
     Py_DECREF(tuple);							\
@@ -94,6 +96,25 @@ wrapper##_closure (PyObject *a, Py_ssize_t b, PyObject *c)	\
     return result;						\
 }
 
+#define PYSWIG_OBJOBJARGPROC_CLOSURE(wrapper)			\
+SWIGINTERN int							\
+wrapper##_closure (PyObject *a, PyObject *b, PyObject *c)	\
+{								\
+    PyObject *tuple = PyTuple_New(c ? 2 : 1);			\
+    assert(tuple);						\
+    PyTuple_SET_ITEM(tuple, 0, b);				\
+    Py_XINCREF(b);						\
+    if (c) {							\
+        PyTuple_SET_ITEM(tuple, 1, c);				\
+        Py_XINCREF(c);						\
+    }								\
+    PyObject *resultobj = wrapper(a, tuple);			\
+    int result = resultobj ? 0 : -1;				\
+    Py_XDECREF(resultobj);					\
+    Py_DECREF(tuple);						\
+    return result;						\
+}
+
 #ifdef __cplusplus
 
 namespace {
@@ -104,6 +125,8 @@ template <typename _Tp> struct PySwigBuiltin : public SwigPyObject {
     typedef _Tp obj_type;
     typedef obj_type* pointer;
     typedef obj_type& reference;
+
+    static PyObject* richcompare (PyObject *self, PyObject *other, int op);
 
     static PyMethodDef methods[];
     static PyGetSetDef getset[];

@@ -116,9 +116,58 @@
       }
     };
   }
+
+#if defined(SWIGPYTHON_BUILTIN)
+SWIGINTERN Py_ssize_t
+SwigPython_std_pair_len (PyObject *a)
+{
+    return 2;
+}
+
+SWIGINTERN PyObject*
+SwigPython_std_pair_repr (PyObject *o)
+{
+    static PyObject *first = PyString_FromString("first");
+    static PyObject *second = PyString_FromString("second");
+    PyObject *tuple = PyTuple_New(2);
+    assert(tuple);
+    PyTuple_SET_ITEM(tuple, 0, PyObject_GetAttr(o, first));
+    PyTuple_SET_ITEM(tuple, 1, PyObject_GetAttr(o, second));
+    PyObject *result = PyObject_Repr(tuple);
+    Py_DECREF(tuple);
+    return result;
+}
+
+SWIGINTERN PyObject*
+SwigPython_std_pair_getitem (PyObject *a, Py_ssize_t b)
+{
+    static PyObject *first = PyString_FromString("first");
+    static PyObject *second = PyString_FromString("second");
+    PyObject *attr_name = b % 2 ? second : first;
+    PyObject *result = PyObject_GetAttr(a, attr_name);
+    return result;
+}
+
+SWIGINTERN int
+SwigPython_std_pair_setitem (PyObject *a, Py_ssize_t b, PyObject *c)
+{
+    static PyObject *first = PyString_FromString("first");
+    static PyObject *second = PyString_FromString("second");
+    PyObject *attr_name = b % 2 ? second : first;
+    int result = PyObject_SetAttr(a, attr_name, c);
+    return result;
+}
+#endif
+
 }
 
 %define %swig_pair_methods(pair...)
+#if defined(SWIGPYTHON_BUILTIN)
+%feature("sq_length") pair "SwigPython_std_pair_len";
+%feature("tp_repr") pair "SwigPython_std_pair_repr";
+%feature("sq_item") pair "SwigPython_std_pair_getitem";
+%feature("sq_ass_item") pair "SwigPython_std_pair_setitem";
+#else
 %extend {      
 %pythoncode {def __len__(self): return 2
 def __repr__(self): return str((self.first, self.second))
@@ -133,6 +182,7 @@ def __setitem__(self, index, val):
   else:
     self.second = val}
 }
+#endif
 %enddef
 
 %include <std/std_pair.i>

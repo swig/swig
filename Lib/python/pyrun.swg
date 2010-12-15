@@ -465,8 +465,17 @@ SwigPyObject_type(void) {
 
 SWIGRUNTIMEINLINE int
 SwigPyObject_Check(PyObject *op) {
+#ifdef SWIGPYTHON_BUILTIN
+  PyTypeObject *target_tp = SwigPyObject_type();
+  PyTypeObject *obj_tp;
+  for (obj_tp = op->ob_type; obj_tp; obj_tp = obj_tp->tp_base)
+    if (obj_tp == target_tp)
+      return 1;
+  return (strcmp(op->ob_type->tp_name, "SwigPyObject") == 0);
+#else
   return (Py_TYPE(op) == SwigPyObject_type())
     || (strcmp(Py_TYPE(op)->tp_name,"SwigPyObject") == 0);
+#endif
 }
 
 SWIGRUNTIME PyObject *

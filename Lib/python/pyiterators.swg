@@ -350,6 +350,7 @@ namespace swig
 
 #if defined(SWIGPYTHON_BUILTIN)
   %feature("tp_iter") SwigPyIterator "&swig::make_output_iterator_builtin<swig::SwigPyIterator>";
+  %feature("pyslot", "tp_iternext", functype="iternextfunc") SwigPyIterator::__next__;
 #else
   %extend SwigPyIterator {
   %pythoncode {def __iter__(self): return self}
@@ -369,7 +370,6 @@ namespace swig
   %catches(swig::stop_iteration) SwigPyIterator::operator -= (ptrdiff_t n);
   %catches(swig::stop_iteration) SwigPyIterator::operator + (ptrdiff_t n) const;
   %catches(swig::stop_iteration) SwigPyIterator::operator - (ptrdiff_t n) const;
-
 
   struct SwigPyIterator
   {
