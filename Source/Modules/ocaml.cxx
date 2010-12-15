@@ -35,7 +35,7 @@ static String *classname = 0;
 static String *module = 0;
 static String *init_func_def = 0;
 static String *f_classtemplate = 0;
-static String *name_qualifier = 0;
+static SwigType *name_qualifier_type = 0;
 
 static Hash *seen_enums = 0;
 static Hash *seen_enumvalues = 0;
@@ -898,12 +898,12 @@ public:
     String *name = Getattr(n, "feature:symname");
     SwigType *type = Getattr(n, "type");
     String *value = Getattr(n, "value");
-    String *qvalue = Getattr(n, "qualified:value");
+    SwigType *qname = Getattr(n, "qualified:name");
     String *rvalue = NewString("");
     String *temp = 0;
 
-    if (qvalue)
-      value = qvalue;
+    if (qname)
+      value = qname;
 
     if (!name) {
       name = mangleNameForCaml(Getattr(n, "name"));
@@ -1228,20 +1228,18 @@ public:
     return out;
   }
 
-  String *fully_qualify_enum_name(Node *n, String *name) {
+  SwigType *fully_qualified_enum_type(Node *n) {
     Node *parent = 0;
-    String *qualification = NewString("");
     String *fully_qualified_name = NewString("");
     String *parent_type = 0;
-    String *normalized_name;
 
     parent = parentNode(n);
     while (parent) {
       parent_type = nodeType(parent);
       if (Getattr(parent, "name")) {
 	String *parent_copy = NewStringf("%s::", Getattr(parent, "name"));
-	if (!Cmp(parent_type, "class") || !Cmp(parent_type, "namespace"))
-	  Insert(qualification, 0, parent_copy);
+	if (Cmp(parent_type, "class") == 0 || Cmp(parent_type, "namespace") == 0)
+	  Insert(fully_qualified_name, 0, parent_copy);
 	Delete(parent_copy);
       }
       if (!Cmp(parent_type, "class"))
@@ -1249,25 +1247,18 @@ public:
       parent = parentNode(parent);
     }
 
-    Printf(fully_qualified_name, "%s%s", qualification, name);
-
-    normalized_name = normalizeTemplatedClassName(fully_qualified_name);
-    if (!strncmp(Char(normalized_name), "enum ", 5)) {
-      Insert(normalized_name, 5, qualification);
-    }
-
-    return normalized_name;
+    return fully_qualified_name;
   }
 
   /* Benedikt Grundmann inspired --> Enum wrap styles */
 
   int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "name");
-    String *qvalue = 0;
+    SwigType *qtype = 0;
 
-    if (name_qualifier) {
-      qvalue = Copy(name_qualifier);
-      Printv(qvalue, name, NIL);
+    if (name_qualifier_type) {
+      qtype = Copy(name_qualifier_type);
+      Printv(qtype, name, NIL);
     }
 
     if (const_enum && name && !Getattr(seen_enumvalues, name)) {
@@ -1275,10 +1266,10 @@ public:
       SetFlag(n, "feature:immutable");
       Setattr(n, "feature:enumvalue", "1");	// this does not appear to be used
 
-      if (qvalue)
-	Setattr(n, "qualified:value", qvalue);
+      if (qtype)
+	Setattr(n, "qualified:name", SwigType_namestr(qtype));
 
-      String *evname = SwigType_manglestr(qvalue);
+      String *evname = SwigType_manglestr(qtype);
       Insert(evname, 0, "SWIG_ENUM_");
 
       Setattr(n, "feature:enumvname", name);
@@ -1309,10 +1300,10 @@ public:
       /* name is now fully qualified */
       String *fully_qualified_name = NewString(name);
       bool seen_enum = false;
-      if (name_qualifier)
-        Delete(name_qualifier);
+      if (name_qualifier_type)
+        Delete(name_qualifier_type);
       char *strip_position;
-      name_qualifier = fully_qualify_enum_name(n, NewString(""));
+      name_qualifier_type = fully_qualified_enum_type(n);
 
       strip_position = strstr(Char(oname), "::");
 
