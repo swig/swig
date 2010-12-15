@@ -1642,7 +1642,7 @@ SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab) {
  * Chase a typedef through symbol tables looking for a match.
  * ----------------------------------------------------------------------------- */
 
-SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
+SwigType *Swig_symbol_typedef_reduce(const SwigType *ty, Symtab *tab) {
   SwigType *prefix, *base;
   Node *n;
   String *nt;

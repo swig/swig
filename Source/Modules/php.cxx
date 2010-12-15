@@ -126,7 +126,7 @@ static enum {
 } wrapperType = standard;
 
 extern "C" {
-  static void (*r_prevtracefunc) (SwigType *t, String *mangled, String *clientdata) = 0;
+  static void (*r_prevtracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
 }
 
 static void SwigPHP_emit_resource_registrations() {
@@ -2710,7 +2710,7 @@ static PHP *maininstance = 0;
 // We use this function to be able to write out zend_register_list_destructor_ex
 // lines for most things in the type table
 // NOTE: it's a function NOT A PHP::METHOD
-extern "C" void typetrace(SwigType *ty, String *mangled, String *clientdata) {
+extern "C" void typetrace(const SwigType *ty, String *mangled, String *clientdata) {
   Node *class_node;
   if (!zend_types) {
     zend_types = NewHash();

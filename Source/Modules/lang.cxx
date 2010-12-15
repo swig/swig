@@ -3011,7 +3011,7 @@ Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
  * Tries to locate a class from a type definition
  * ----------------------------------------------------------------------------- */
 
-Node *Language::classLookup(SwigType *s) {
+Node *Language::classLookup(const SwigType *s) {
   Node *n = 0;
 
   /* Look in hash of cached values */

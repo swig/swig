@@ -177,7 +177,7 @@ void SwigType_push(SwigType *t, String *cons) {
  * Testing functions for querying a raw datatype
  * ----------------------------------------------------------------------------- */
 
-int SwigType_ispointer_return(SwigType *t) {
+int SwigType_ispointer_return(const SwigType *t) {
   char *c;
   int idx;
   if (!t)
@@ -190,7 +190,7 @@ int SwigType_ispointer_return(SwigType *t) {
   return 0;
 }
 
-int SwigType_isreference_return(SwigType *t) {
+int SwigType_isreference_return(const SwigType *t) {
   char *c;
   int idx;
   if (!t)
@@ -203,7 +203,7 @@ int SwigType_isreference_return(SwigType *t) {
   return 0;
 }
 
-int SwigType_isconst(SwigType *t) {
+int SwigType_isconst(const SwigType *t) {
   char *c;
   if (!t)
     return 0;
@@ -229,7 +229,7 @@ int SwigType_isconst(SwigType *t) {
   return 0;
 }
 
-int SwigType_ismutable(SwigType *t) {
+int SwigType_ismutable(const SwigType *t) {
   int r;
   SwigType *qt = SwigType_typedef_resolve_all(t);
   if (SwigType_isreference(qt) || SwigType_isarray(qt)) {
@@ -240,7 +240,7 @@ int SwigType_ismutable(SwigType *t) {
   return r ? 0 : 1;
 }
 
-int SwigType_isenum(SwigType *t) {
+int SwigType_isenum(const SwigType *t) {
   char *c = Char(t);
   if (!t)
     return 0;
@@ -250,7 +250,7 @@ int SwigType_isenum(SwigType *t) {
   return 0;
 }
 
-int SwigType_issimple(SwigType *t) {
+int SwigType_issimple(const SwigType *t) {
   char *c = Char(t);
   if (!t)
     return 0;
@@ -308,7 +308,7 @@ int SwigType_issimple(SwigType *t) {
  *    r.q(const).enum SWIGTYPE
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_default_create(SwigType *ty) {
+SwigType *SwigType_default_create(const SwigType *ty) {
   SwigType *r = 0;
   List *l;
   Iterator it;
@@ -387,7 +387,7 @@ SwigType *SwigType_default_create(SwigType *ty) {
  *    SWIGTYPE
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_default_deduce(SwigType *t) {
+SwigType *SwigType_default_deduce(const SwigType *t) {
   SwigType *r = NewStringEmpty();
   List *l;
   Iterator it;
@@ -511,7 +511,7 @@ String *SwigType_namestr(const SwigType *t) {
  * Create a C string representation of a datatype.
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_str(SwigType *s, const_String_or_char_ptr id) {
+String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
   String *result;
   String *element = 0, *nextelement;
   List *elements;
@@ -606,12 +606,12 @@ String *SwigType_str(SwigType *s, const_String_or_char_ptr id) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_ltype(SwigType *ty)
+ * SwigType_ltype(const SwigType *ty)
  *
  * Create a locally assignable type
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_ltype(SwigType *s) {
+SwigType *SwigType_ltype(const SwigType *s) {
   String *result;
   String *element;
   SwigType *td, *tc = 0;
@@ -709,7 +709,7 @@ SwigType *SwigType_ltype(SwigType *s) {
  *          with an equivalent assignable version.
  * -------------------------------------------------------------------- */
 
-String *SwigType_lstr(SwigType *s, const_String_or_char_ptr id) {
+String *SwigType_lstr(const SwigType *s, const_String_or_char_ptr id) {
   String *result;
   SwigType *tc;
 
@@ -726,10 +726,11 @@ String *SwigType_lstr(SwigType *s, const_String_or_char_ptr id) {
  * datatype printed by str().
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_rcaststr(SwigType *s, const_String_or_char_ptr name) {
+String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   String *result, *cast;
   String *element = 0, *nextelement;
-  SwigType *td, *rs, *tc = 0;
+  SwigType *td, *tc = 0;
+  const SwigType *rs;
   List *elements;
   int nelements, i;
   int clear = 1;
@@ -873,7 +874,7 @@ String *SwigType_rcaststr(SwigType *s, const_String_or_char_ptr name) {
  * Casts a variable from the real type to the local datatype.
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_lcaststr(SwigType *s, const_String_or_char_ptr name) {
+String *SwigType_lcaststr(const SwigType *s, const_String_or_char_ptr name) {
   String *result;
 
   result = NewStringEmpty();
@@ -899,9 +900,7 @@ String *SwigType_lcaststr(SwigType *s, const_String_or_char_ptr name) {
   return result;
 }
 
-
-/* keep old mangling since Java codes need it */
-String *SwigType_manglestr_default(SwigType *s) {
+static String *manglestr_default(const SwigType *s) {
   char *c;
   String *result = 0;
   String *base = 0;
@@ -909,17 +908,16 @@ String *SwigType_manglestr_default(SwigType *s) {
   SwigType *sr = SwigType_typedef_resolve_all(s);
   SwigType *sq = SwigType_typedef_qualified(sr);
   SwigType *ss = SwigType_remove_global_scope_prefix(sq);
-
-  s = ss;
+  SwigType *type = ss;
 
   if (SwigType_istemplate(ss)) {
     SwigType *ty = Swig_symbol_template_deftype(ss, 0);
     Delete(ss);
     ss = ty;
-    s = ss;
+    type = ss;
   }
 
-  lt = SwigType_ltype(s);
+  lt = SwigType_ltype(type);
   result = SwigType_prefix(lt);
   base = SwigType_base(lt);
 
@@ -972,8 +970,8 @@ String *SwigType_manglestr_default(SwigType *s) {
   return result;
 }
 
-String *SwigType_manglestr(SwigType *s) {
-  return SwigType_manglestr_default(s);
+String *SwigType_manglestr(const SwigType *s) {
+  return manglestr_default(s);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1092,7 +1090,7 @@ SwigType *SwigType_remove_global_scope_prefix(const SwigType *t) {
  * Checks type declarators for a match
  * ----------------------------------------------------------------------------- */
 
-int SwigType_check_decl(SwigType *ty, const SwigType *decl) {
+int SwigType_check_decl(const SwigType *ty, const SwigType *decl) {
   SwigType *t, *t1, *t2;
   int r;
   t = SwigType_typedef_resolve_all(ty);

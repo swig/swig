@@ -5,6 +5,28 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2010-12-08: wsfulton
+            The name mangling for some complex types was incorrect. This is now fixed and results
+            in types being more interchangeable when there are typedefs involved.
+            namespace foo {
+              template<class T> class bar {};
+              typedef int Integer;
+              void test2(bar<Integer *> *x) { return x; }
+            }
+            The typewrapper class for x changes from 
+            SWIGTYPE_p_foo__barT_int_p_t to 
+            SWIGTYPE_p_foo__barT_p_int_t.
+
+            The name mangling involving qualifiers was not consistent, for example with the const qualifier in
+            MyTemplate< const ::DD * > the type wrapper class changes from
+            SWIGTYPE_p_MyTemplateT_DD_const_p_t to
+            SWIGTYPE_p_MyTemplateT_p_q_const__DD_t
+
+            There a number of other subtle name mangling changes not listed. The runtime version
+            has hence been changed from 4 to 5.
+
+TODO: write a testcase in Java showing reference_type working or whatever I fixed in STL.
+
 2010-12-14: wsfulton
             Fix $basemangle expansion in array typemaps. For example if type is int *[3],
             $basemangle expands to _p_int.
