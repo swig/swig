@@ -6,8 +6,8 @@
 #ifdef __cplusplus
 
 #if defined(SWIGPYTHON_BUILTIN)
-#define %pybinoperator(pyname,oper,functp,slot) %rename(pyname) oper; %pythonmaybecall oper; %feature("pyslot", #slot, functype=#functp) oper;
-#define %pycompare(pyname,oper,comptype) %rename(pyname) oper; %pythonmaybecall oper; %feature("pycompare", #comptype) oper;
+#define %pybinoperator(pyname,oper,functp,slot) %rename(pyname) oper; %pythonmaybecall oper; %feature("pyslot", #slot, functype=#functp) oper; %feature("pyslot", #slot, functype=#functp) pyname;
+#define %pycompare(pyname,oper,comptype) %rename(pyname) oper; %pythonmaybecall oper; %feature("pycompare", #comptype) oper; %feature("pycompare", #comptype) pyname;
 #else
 #define %pybinoperator(pyname,oper,functp,slot) %rename(pyname) oper; %pythonmaybecall oper
 #define %pycompare(pyname,oper,comptype) %pybinoperator(pyname,oper,,comptype)

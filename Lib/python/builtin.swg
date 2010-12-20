@@ -115,6 +115,21 @@ wrapper##_closure (PyObject *a, PyObject *b, PyObject *c)	\
     return result;						\
 }
 
+SWIGINTERN int
+pyswig_setter_closure (PyObject *obj, PyObject *val, void *closure)
+{
+    if (!closure)
+        return -1;
+    PyObject *tuple = PyTuple_New(1);
+    assert(tuple);
+    PyTuple_SET_ITEM(tuple, 0, val);
+    Py_XINCREF(val);
+    PyObject *result = ((PyCFunction) closure)(obj, tuple);
+    Py_DECREF(tuple);
+    Py_XDECREF(result);
+    return result ? 0 : -1;
+}
+
 #ifdef __cplusplus
 
 namespace {
@@ -144,21 +159,6 @@ template <typename _Tp> void py_builtin_dealloc (PyObject *pyobj)
     if (obj->own)
 	delete reinterpret_cast<_Tp*>(obj->ptr);
     (*pyobj->ob_type->tp_free)(pyobj);
-}
-
-SWIGINTERN int
-pyswig_setter_closure (PyObject *obj, PyObject *val, void *closure)
-{
-    if (!closure)
-        return -1;
-    PyObject *tuple = PyTuple_New(1);
-    assert(tuple);
-    PyTuple_SET_ITEM(tuple, 0, val);
-    Py_XINCREF(val);
-    PyObject *result = ((PyCFunction) closure)(obj, tuple);
-    Py_DECREF(tuple);
-    Py_XDECREF(result);
-    return result ? 0 : -1;
 }
 
 } // namespace {

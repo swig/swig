@@ -7,6 +7,8 @@
 %init %{
 
 #ifdef __cplusplus
+#include <vector>
+
 extern "C" {
 #endif
 
@@ -338,7 +340,11 @@ SWIG_init(void) {
 
 #if defined(SWIGPYTHON_BUILTIN)
   PyTypeObject *builtin_pytype = 0;
+  PyObject *propargs = NULL, *propget = NULL, *propset = NULL, *propobj = NULL;
+  std::vector<PyTypeObject*> builtin_bases;
   swig_type_info *builtin_basetype = 0;
+  PyObject *base_tuple = NULL;
+  int i;
 
   SWIG_Python_builtin_imports();
 #endif

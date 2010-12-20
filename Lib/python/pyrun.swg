@@ -1628,6 +1628,55 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
   return result;
 }
 
+// Cribbed from Objects/object.c in the python source code and modified
+SWIGRUNTIME int
+SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value)
+{
+    PyTypeObject *tp = obj->ob_type;
+    PyObject *descr;
+    descrsetfunc f;
+    int res = -1;
+
+    if (!PyString_Check(name)) {
+#ifdef Py_USING_UNICODE
+	if (PyUnicode_Check(name)) {
+	    name = PyUnicode_AsEncodedString(name, NULL, NULL);
+	    if (name == NULL)
+		return -1;
+	}
+	else
+#endif
+	    {
+		PyErr_Format(PyExc_TypeError,
+			     "attribute name must be string, not '%.200s'",
+			     name->ob_type->tp_name);
+		return -1;
+	    }
+    }
+    else
+	Py_INCREF(name);
+
+    if (tp->tp_dict == NULL) {
+	if (PyType_Ready(tp) < 0)
+	    goto done;
+    }
+
+    descr = _PyType_Lookup(tp, name);
+    f = NULL;
+    if (descr != NULL && PyType_HasFeature(descr->ob_type, Py_TPFLAGS_HAVE_CLASS))
+	f = descr->ob_type->tp_descr_set;
+    if (f == NULL)
+	PyErr_Format(PyExc_AttributeError,
+		     "'%.100s' object has no attribute '%.200s'",
+		     tp->tp_name, PyString_AS_STRING(name));
+    else
+	res = f(descr, obj, value);
+
+done:
+    Py_DECREF(name);
+    return res;
+}
+
 
 #ifdef __cplusplus
 #if 0
