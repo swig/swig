@@ -2343,6 +2343,7 @@ public:
 	SwigType *pt = Getattr(p, "type");
 	if ((tm = Getattr(p, "tmap:csvarin"))) {
 	  substituteClassname(pt, tm);
+	  Replaceall(tm, "$csinput", "value");
 	  Replaceall(tm, "$imcall", imcall);
 	  excodeSubstitute(n, tm, "csvarin", p);
 	  Printf(proxy_class_code, "%s", tm);
