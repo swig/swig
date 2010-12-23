@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2010-12-23: wsfulton
+            [C#] Fix $csinput special variable not being expanded for csvarin typemaps
+            when used for global variables. Reported by Vadim Zeitlin.
+
 2010-12-14: wsfulton
             Fix $basemangle expansion in array typemaps. For example if type is int *[3],
             $basemangle expands to _p_int.
