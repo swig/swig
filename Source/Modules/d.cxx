@@ -1867,7 +1867,6 @@ public:
     String *callback_def = NewString("");
     String *callback_code = NewString("");
     String *imcall_args = NewString("");
-    int gencomma = 0;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
@@ -2007,14 +2006,14 @@ public:
       Printf(w->code, "} else {\n");
 
     // Go through argument list.
-    for (p = l; p; /* empty */) {
+    for (i = 0, p = l; p; ++i) {
       /* Is this superfluous? */
       while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
 	p = Getattr(p, "tmap:directorin:next");
       }
 
       SwigType *pt = Getattr(p, "type");
-      String *ln = Copy(Getattr(p, "name"));
+      String *ln = makeParameterName(n, p, i, false);
       String *c_param_type = NULL;
       String *c_decl = NewString("");
       String *arg = NewString("");
@@ -2071,7 +2070,7 @@ public:
 	      Replaceall(din, "$winput", ln);
 
 	      Printf(delegate_parms, ", ");
-	      if (gencomma > 0) {
+	      if (i > 0) {
 		Printf(proxy_method_param_list, ", ");
 		Printf(imcall_args, ", ");
 	      }
@@ -2123,10 +2122,10 @@ public:
 	p = nextSibling(p);
       }
 
-      gencomma++;
       Delete(arg);
       Delete(c_decl);
       Delete(c_param_type);
+      Delete(ln);
     }
 
     /* header declaration, start wrapper definition */

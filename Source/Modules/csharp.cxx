@@ -3473,7 +3473,6 @@ public:
     String *callback_def = NewString("");
     String *callback_code = NewString("");
     String *imcall_args = NewString("");
-    int gencomma = 0;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
@@ -3617,14 +3616,14 @@ public:
       Printf(w->code, "} else {\n");
 
     /* Go through argument list, convert from native to Java */
-    for (p = l; p; /* empty */ ) {
+    for (i = 0, p = l; p; ++i) {
       /* Is this superfluous? */
       while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
 	p = Getattr(p, "tmap:directorin:next");
       }
 
       SwigType *pt = Getattr(p, "type");
-      String *ln = Copy(Getattr(p, "name"));
+      String *ln = makeParameterName(n, p, i, false);
       String *c_param_type = NULL;
       String *c_decl = NewString("");
       String *arg = NewString("");
@@ -3632,7 +3631,7 @@ public:
       Printf(arg, "j%s", ln);
 
       /* And add to the upcall args */
-      if (gencomma > 0)
+      if (i > 0)
 	Printf(jupcall_args, ", ");
       Printf(jupcall_args, "%s", arg);
 
@@ -3660,7 +3659,7 @@ public:
 	  Delete(tm);
 
 	  /* Add C type to callback typedef */
-	  if (gencomma > 0)
+	  if (i > 0)
 	    Printf(callback_typedef_parms, ", ");
 	  Printf(callback_typedef_parms, "%s", c_param_type);
 
@@ -3681,7 +3680,7 @@ public:
 	      substituteClassname(pt, din);
 	      Replaceall(din, "$iminput", ln);
 
-	      if (gencomma > 0) {
+	      if (i > 0) {
 		Printf(delegate_parms, ", ");
 		Printf(proxy_method_types, ", ");
 		Printf(imcall_args, ", ");
@@ -3727,7 +3726,7 @@ public:
 	p = nextSibling(p);
       }
 
-      gencomma++;
+      Delete(ln);
       Delete(arg);
       Delete(c_decl);
       Delete(c_param_type);

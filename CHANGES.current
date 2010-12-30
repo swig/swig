@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2010-12-30: klickverbot
+            [C#, D, Java] Check for collision of parameter names with target
+            language keywords when generating the director glue code.
+            
+            The situation in which the generated could would previously be
+            invalid is illustrated in the new 'director_keywords' test case.
+
 2010-12-23: wsfulton
             [C#] Fix $csinput special variable not being expanded for csvarin typemaps
             when used for global variables. Reported by Vadim Zeitlin.

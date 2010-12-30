@@ -166,6 +166,7 @@ CPP_TEST_CASES += \
 	director_finalizer \
 	director_frob \
 	director_ignore \
+	director_keywords \
 	director_namespace_clash \
 	director_nested \
 	director_overload \
