@@ -29,6 +29,7 @@
 <li><a href="#D_other_features">Other features</a>
 <ul>
 <li><a href="#D_native_pointer_support">Native pointer support</a>
+<li><a href="#D_operator_overloading">Operator overloading</a>
 <li><a href="#D_test_suite">Running the test-suite</a>
 </ul>
 <li><a href="#D_typemap_examples">D Typemap examples</a>
@@ -391,7 +392,19 @@ struct A {
 <p>To determine if a type should be considered primitive, the <tt>cprimitive</tt> attribute on its <tt>dtype</tt> attribute is used. For example, the <tt>dtype</tt> typemap for <tt>float</tt> has <tt>cprimitive="1"</tt>, so the code from the <tt>nativepointer</tt> attribute is taken into account e.g. for <tt>float **</tt> or the function pointer <tt>float (*)(float *)</tt>.</p>
 
 
-<H3><a name="D_test_suite"></a>20.8.2 Running the test-suite</H3>
+<H3><a name="D_operator_overloading"></a>20.8.2 Operator overloading</H3>
+
+
+<p>The D module comes with basic operator overloading support for both D1 and D2. There are, however, a few limitations arising from conceptual differences between C++ and D:</p>
+
+<p>The first key difference is that C++ supports free functions as operators (along with argument-dependent lookup), while D requires operators to be member functions of the class they are operating on. SWIG can only automatically generate wrapping code for member function operators; if you want to use operators defined as free functions in D, you need to handle them manually.</p>
+
+<p>Another set of differences between C++ and D concerns individual operators. For example, there are quite a few operators which are overloadable in C++, but not in D, for example <tt>&&</tt> and <tt>||</tt>, but also <tt>!</tt>, and prefix increment/decrement operators in <a href="http://www.digitalmars.com/d/1.0/operatoroverloading.html">D1</a> resp. their postfix pendants in <a href="http://www.digitalmars.com/d/2.0/operatoroverloading.html">D2</a>.</p>
+
+<p>There are also some cases where the operators can be translated to D, but the differences in the implementation details are big enough that a rather involved scheme would be required for automatic wrapping them, which has not been implemented yet. This affects, for example, the array subscript operator, <tt>[]</tt>, in combination with assignments – while <tt>operator []</tt> in C++ simply returns a reference which is then written to, D resorts to a separate <tt>opIndexAssign</tt> method –, or implicit casting (which was introduced in D2 via <tt>alias this</tt>). Despite the lack of automatic support, manually handling these cases should be perfectly possible.</p>
+
+
+<H3><a name="D_test_suite"></a>20.8.3 Running the test-suite</H3>
 
 
 <p>As with any other language, the SWIG test-suite can be built for D using the <tt>*-d-test-suite</tt> targets of the top-level Makefile. By default, D1 is targeted, to build it with D2, use the optional <tt>D_VERSION</tt> variable, e.g. <tt>make check-d-test-suite D_VERSION=2</tt>.</p>
@@ -414,7 +427,6 @@ struct A {
 <ul>
   <li><em>Static linking:</em> Currently, the C wrapper code is compiled into a dynamic library, out of which the symbol addresses are looked up at runtime by the D part. If statically linking the different languages into one binary was supported, a tool-chain capable of performing IPO at link time could inline the wrapping code, effectively reducing the overhead for simple calls to zero.</li>
   <li><em>C array handling:</em> Many data structures in some C/C++ libraries contain array containing of a pointer to the first element and the element count. Currently, one must manually writing wrapper code to be able to access these from D. It should be possible to add a set of SWIG macros to semi-automatically generate conversion code.</li>
-	<li><em>Operator overloading:</em> Currently, operator overloading is supported only to a very limited extent – many C++ operators are just ignored with a warning. The problem here is that the way D handles operator overloading differs quite a lot from the way C++ does it, both syntactically and semantically, and even more so since the advent of template-based operator overloading in D2.</li>
 </ul>
 
 <p>Some generated code might also be a bit rough around the edges, particularly in the following areas:</p>
