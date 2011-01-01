@@ -26,3 +26,5 @@ clean::
 	$(MAKE) -f $(TOP)/Makefile d_clean
 
 check: all
+	cd $(WORKING_DIR); \
+	$(MAKE) -f $(TOP)/Makefile d_run
