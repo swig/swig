@@ -8,6 +8,11 @@ y = 105;
 g = gcd(x,y);
 printf("The gcd of %d and %d is %d\n",x,y,g);
 
+x = [42 43];
+y = 105;
+g = gcd(x,y);
+printf("The gcd of %d and %d is %d\n",x,y,g);
+
 // Manipulate the Foo global variable
 
 // Output its current value
