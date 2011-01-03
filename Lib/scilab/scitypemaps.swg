@@ -1,31 +1,31 @@
 /* -----------------------------------------------------------------------------
- * --- Input arguments --- 
+ * --- Input arguments ---
  * ----------------------------------------------------------------------------- */
 
 /* Basic C types */
 %typemap(in) signed char (int iRows, int iCols),
-	     unsigned char (int iRows, int iCols),
-	     short (int iRows, int iCols),
-	     unsigned short (int iRows, int iCols),
-	     int (int iRows, int iCols),
-	     unsigned int (int iRows, int iCols),
-	     long (int iRows, int iCols),
-	     unsigned long (int iRows, int iCols),
-	     float (int iRows, int iCols),
-	     double (int iRows, int iCols),
-         long long (int iRows, int iCols),
-         unsigned long long (int iRows, int iCols) {
+             unsigned char (int iRows, int iCols),
+             short (int iRows, int iCols),
+             unsigned short (int iRows, int iCols),
+             int (int iRows, int iCols),
+             unsigned int (int iRows, int iCols),
+             long (int iRows, int iCols),
+             unsigned long (int iRows, int iCols),
+             float (int iRows, int iCols),
+             double (int iRows, int iCols),
+             long long (int iRows, int iCols),
+             unsigned long long (int iRows, int iCols) {
     int iType = 0;
     int *piAddrVar = NULL;
     double *_piData = NULL;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
     if (sciErr.iErr || iType != sci_matrix)
     {
@@ -44,20 +44,20 @@
     $1 = ($1_ltype)*_piData;
 }
 
-%typemap(in) char (int iRows, int iCols) {   
+%typemap(in) char (int iRows, int iCols) {
     int iType = 0;
     int *piAddrVar = NULL;
     int typearg = 0;
     char *_pstStrings = NULL;
     int _piLength = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
     if (sciErr.iErr || iType != sci_strings)
     {
@@ -65,7 +65,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     _pstStrings = (char *)malloc(sizeof(char));
     sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, (char **)&_pstStrings);
     if (sciErr.iErr || iRows * iCols != 1)
@@ -75,7 +75,7 @@
         return 0;
     }
     $1 = ($1_ltype)*_pstStrings;
-  
+
     free(_pstStrings);
 }
 
@@ -84,9 +84,9 @@
              short * (int iRows, int iCols),
              unsigned char * (int iRows, int iCols),
              unsigned short * (int iRows, int iCols),
-	         int * (int iRows, int iCols),
-	         unsigned int * (int iRows, int iCols),
-	         long * (int iRows, int iCols),
+             int * (int iRows, int iCols),
+             unsigned int * (int iRows, int iCols),
+             long * (int iRows, int iCols),
              unsigned long * (int iRows, int iCols),
              double * (int iRows, int iCols),
              float * (int iRows, int iCols),
@@ -95,9 +95,9 @@
     int iType = 0;
     int *piAddrVar = NULL;
     void *_piData = NULL;
-  
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
@@ -110,7 +110,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols, (double **)&_piData);
     if (sciErr.iErr || iRows * iCols != 1)
     {
@@ -126,31 +126,31 @@
     int *piAddrVar = NULL;
     char *_pstStrings = NULL;
     int _piLength = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
     if (sciErr.iErr || iType != sci_strings)
     {
         Scierror(999, _("%s: Wrong type for input argument #%d: A string expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
         return 0;
-    }  
-    
+    }
+
     sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, NULL);
-    if (sciErr.iErr || iRows * iCols != 1) 
+    if (sciErr.iErr || iRows * iCols != 1)
     {
         Scierror(999, _("%s: Wrong size for input argument #%d: A string expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
         return 0;
     }
-    
-    _pstStrings = (char *)malloc(sizeof(char) * _piLength + 1);  
+
+    _pstStrings = (char *)malloc(sizeof(char) * _piLength + 1);
     sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, (char **)&_pstStrings);
     if (sciErr.iErr)
     {
@@ -158,7 +158,7 @@
         return 0;
     }
     $1 = ($1_ltype)strdup(_pstStrings);
-    
+
     free(_pstStrings);
 }
 
@@ -167,28 +167,28 @@
     int *piAddrVar = NULL;
     CTYPE *_piData = NULL;
     size_t ii = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
-    }  
-  
+    }
+
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
     if (sciErr.iErr || iPrec != INTTYPE)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = SCIAPIFUNCTION(pvApiCtx, piAddrVar, &iRows, &iCols, (CTYPE **)&_piData);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     for (ii = 0; ii < (size_t)iCols; ii++)
     {
         $1[ii] = ($*1_ltype)_piData[ii];
@@ -212,7 +212,7 @@
     int *piAddrVar = NULL;
     double *_piData = NULL;
     size_t ii = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
@@ -227,14 +227,14 @@
         printError(&sciErr, 0);
         return 0;
     }
- 
+
     sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols, (double **)&_piData);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     for (ii = 0; ii < (size_t)iCols; ii++)
     {
         $1[ii] = ($*1_ltype)_piData[ii];
@@ -246,39 +246,39 @@
     int *piAddrVar = NULL;
     char *_pstStrings = NULL;
     int _piLength = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-    if (sciErr.iErr || iType != sci_strings) 
+    if (sciErr.iErr || iType != sci_strings)
     {
         Scierror(999, _("%s: Wrong type for input argument #%d: A string expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
         return 0;
-    }  
-    
+    }
+
     sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, NULL);
-    if (sciErr.iErr || iRows * iCols != 1) 
+    if (sciErr.iErr || iRows * iCols != 1)
     {
         Scierror(999, _("%s: Wrong size for input argument #%d: A string expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     _pstStrings = (char *)malloc(sizeof(char) * _piLength + 1);
     sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, (char **)&_pstStrings);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
     $1 = ($1_ltype)strdup(_pstStrings);
-    
+
     free(_pstStrings);
 }
 
@@ -287,28 +287,28 @@
     int *piAddrVar = NULL;
     CTYPE *_piData = NULL;
     size_t ii = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
-    }  
-  
+    }
+
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
     if (sciErr.iErr || iPrec != INTTYPE)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = SCIAPIFUNCTION(pvApiCtx, piAddrVar, &iRows, &iCols, (CTYPE **)&_piData);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     $1 = ($1_ltype)malloc(sizeof($*1_ltype) * iCols);
     for (ii = 0; ii < (size_t)iCols; ii++)
     {
@@ -333,16 +333,16 @@
     int *piAddrVar = NULL;
     double *_piData = NULL;
     size_t ii = 0;
-  
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-    if (sciErr.iErr || iType != sci_matrix) 
+    if (sciErr.iErr || iType != sci_matrix)
     {
         Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar  expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
@@ -355,7 +355,7 @@
         printError(&sciErr, 0);
         return 0;
     }
- 
+
     $1 = ($1_ltype)malloc(sizeof($*1_ltype) * iCols);
     for (ii = 0; ii < (size_t)iCols; ii++)
     {
@@ -370,14 +370,14 @@
     CTYPE *_piData = NULL;
     size_t ii = 0;
     size_t jj = 0;
-  
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
     if (sciErr.iErr || iPrec != INTTYPE)
     {
@@ -391,7 +391,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     for (ii = 0; ii < (size_t)iRows; ii++)
     {
         for (jj = 0; jj < (size_t)iCols; jj++)
@@ -399,7 +399,8 @@
             $1[ii][jj] = ($1_basetype)_piData[jj * iRows + ii];
         }
     }
-}
+%enddef
+
 %typemap(in) signed char [ANY][ANY] (int iRows, int iCols)        { SCILAB_IN_INTEGERMATRIX(char, SCI_INT8, getMatrixOfInteger8) }
 %typemap(in) unsigned char [ANY][ANY] (int iRows, int iCols)      { SCILAB_IN_INTEGERMATRIX(unsigned char, SCI_UINT8, getMatrixOfUnsignedInteger8) }
 %typemap(in) short [ANY][ANY] (int iRows, int iCols)              { SCILAB_IN_INTEGERMATRIX(short, SCI_INT16, getMatrixOfInteger16) }
@@ -418,16 +419,16 @@
     double *_piData = NULL;
     size_t ii = 0;
     size_t jj = 0;
-  
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-    if (sciErr.iErr || iType != sci_matrix) 
+    if (sciErr.iErr || iType != sci_matrix)
     {
         Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar  expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
@@ -440,7 +441,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     for (ii = 0; ii < (size_t)iRows; ii++)
     {
         for (jj = 0; jj < (size_t)iCols; jj++)
@@ -454,23 +455,23 @@
     int iPrec = 0;
     int *piAddrVar = NULL;
     int *_piData = NULL;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
-    if (sciErr.iErr || iPrec != SCI_INT32) 
+    if (sciErr.iErr || iPrec != SCI_INT32)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getMatrixOfInteger32(pvApiCtx, piAddrVar, &iRows, &iCols, (int **)&_piData);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
@@ -483,16 +484,16 @@
     int iType = 0;
     int *piAddrVar = NULL;
     void *_piData = NULL;
-  
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-    if (sciErr.iErr || iType != sci_pointer) 
+    if (sciErr.iErr || iType != sci_pointer)
     {
         Scierror(999, _("%s: Wrong type for input argument #%d: Pointer  expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
@@ -512,14 +513,14 @@
     int iType = 0;
     int *piAddrVar = NULL;
     void *_piData = NULL;
-  
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
     if (sciErr.iErr || iType != sci_pointer)
     {
@@ -538,20 +539,20 @@
 }
 
 /* -----------------------------------------------------------------------------
- * --- Output arguments --- 
+ * --- Output arguments ---
  * ----------------------------------------------------------------------------- */
 
 %define SCILAB_OUT_SCALAR(CTYPE, SCIAPIFUNCTION)
     iRowsOut = 1;
     iColsOut = 1;
-    
+
     sciErr = SCIAPIFUNCTION(pvApiCtx, iVarOut, iRowsOut, iColsOut, (CTYPE *)&$result);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -560,14 +561,14 @@
     CASTTYPE temp = (CASTTYPE) $result;
     iRowsOut = 1;
     iColsOut = 1;
-    
+
     sciErr = SCIAPIFUNCTION(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -597,11 +598,11 @@
 %typemap(out) char (int iRowsOut, int iColsOut) {
     iRowsOut = 1;
     iColsOut = 1;
-    
+
     char *temp = (char*)MALLOC(sizeof(char) * (iRowsOut * iColsOut + 1));
     temp[0] = $result;
     temp[1] = '\0';
-    
+
     sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)&temp);
     if (sciErr.iErr)
     {
@@ -609,7 +610,7 @@
         return 0;
     }
     FREE(temp);
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -620,14 +621,14 @@
 
 
 /* Pointers */
-%typemap(out, warning="Pointers") signed char * (int iRowsOut, int iColsOut),
+%typemap(out) signed char * (int iRowsOut, int iColsOut),
               short * (int iRowsOut, int iColsOut),
               unsigned char * (int iRowsOut, int iColsOut),
               unsigned short * (int iRowsOut, int iColsOut),
-	      int * (int iRowsOut, int iColsOut),
-	      unsigned int * (int iRowsOut, int iColsOut),
-	      long * (int iRowsOut, int iColsOut),
-	      unsigned long * (int iRowsOut, int iColsOut),
+              int * (int iRowsOut, int iColsOut),
+              unsigned int * (int iRowsOut, int iColsOut),
+              long * (int iRowsOut, int iColsOut),
+              unsigned long * (int iRowsOut, int iColsOut),
               double * (int iRowsOut, int iColsOut),
               float * (int iRowsOut, int iColsOut),
               long long * (int iRowsOut, int iColsOut),
@@ -638,10 +639,10 @@
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
-    iVarOut++;  
+    iVarOut++;
 }
 
 %typemap(out) double * (int iRowsOut, int iColsOut) {
@@ -650,39 +651,39 @@
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
 }
 
 %typemap(out) char * (int iRowsOut, int iColsOut) {
-    iRowsOut = 1; 
+    iRowsOut = 1;
     iColsOut = 1;
-  
+
     sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)&($result));
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
 }
 
 %typemap(out) enum SWIGTYPE (int iRowsOut, int iColsOut) {
-    iRowsOut = 1; 
+    iRowsOut = 1;
     iColsOut = 1;
-  
+
     sciErr = createMatrixOfInteger32(pvApiCtx, iVarOut, iRowsOut, iColsOut, (int *)&$result);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -695,10 +696,10 @@
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
-    iVarOut++;  
+    iVarOut++;
 }
 
 %typemap(out) SWIGTYPE {
@@ -708,38 +709,38 @@
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
-    iVarOut++;  
+    iVarOut++;
 }
 
 /* -----------------------------------------------------------------------------
- * --- Variable input --- 
+ * --- Variable input ---
  * ----------------------------------------------------------------------------- */
 
 %typemap(varin,noblock=1) signed char,
-	                  unsigned char,
-	                  short,
-	                  unsigned short,
-	                  int,
-	                  unsigned int,
-	                  long,
-	                  unsigned long,
-	                  float,
-	                  double,
+                          unsigned char,
+                          short,
+                          unsigned short,
+                          int,
+                          unsigned int,
+                          long,
+                          unsigned long,
+                          float,
+                          double,
                           long long,
                           unsigned long long {
     int iType = 0;
     double *_piData = NULL;
-  
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
     if (sciErr.iErr || iType != sci_matrix)
     {
@@ -758,36 +759,36 @@
     $1 = ($1_ltype)*_piData;
 }
 
-%typemap(varin,noblock=1) char {   
+%typemap(varin,noblock=1) char {
     int iType = 0;
     char *_pstStrings = NULL;
     int _piLength = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-    if (sciErr.iErr || iType != sci_strings) 
+    if (sciErr.iErr || iType != sci_strings)
     {
         Scierror(999, _("%s: Wrong type for input argument #%d: A char string expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     _pstStrings = (char *) malloc(sizeof(char));
     sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, (char **)&_pstStrings);
-    if (sciErr.iErr || iRows * iCols != 1) 
+    if (sciErr.iErr || iRows * iCols != 1)
     {
         Scierror(999, _("%s: Wrong size for input argument #%d: A char string expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
         return 0;
     }
     $1 = ($1_ltype)*_pstStrings;
-    
+
     free(_pstStrings);
 }
 
@@ -795,54 +796,14 @@
     int iType = 0;
     char *_pstStrings = NULL;
     int _piLength = 0;
-    
-    sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-    if (sciErr.iErr) 
-    {
-        printError(&sciErr, 0);
-        return 0;
-    }
-    
-    sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-    if (sciErr.iErr || iType != sci_strings) 
-    {
-        Scierror(999, _("%s: Wrong type for input argument #%d: A string expected.\n"), fname, $argnum);
-        printError(&sciErr, 0);
-        return 0;
-    }
-    
-    sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, NULL);
-    if (sciErr.iErr || iRows * iCols != 1) 
-    {
-        Scierror(999, _("%s: Wrong size for input argument #%d: A string expected.\n"), fname, $argnum);
-        printError(&sciErr, 0);
-        return 0;
-    }
-    
-    _pstStrings = (char *)malloc(sizeof(char) * _piLength + 1);
-    sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, (char **)&_pstStrings);
-    if (sciErr.iErr) 
-    {
-        printError(&sciErr, 0);
-        return 0;
-    }
-    $1 = ($1_ltype)strdup(_pstStrings);
-    
-    free(_pstStrings);
-}
 
-%typemap(varin,noblock=1) char [ANY] {
-    int iType = 0;
-    char *_pstStrings = NULL;
-    int _piLength = 0;
-  
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
     if (sciErr.iErr || iType != sci_strings)
     {
@@ -858,7 +819,47 @@
         printError(&sciErr, 0);
         return 0;
     }
-  
+
+    _pstStrings = (char *)malloc(sizeof(char) * _piLength + 1);
+    sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, (char **)&_pstStrings);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+    $1 = ($1_ltype)strdup(_pstStrings);
+
+    free(_pstStrings);
+}
+
+%typemap(varin,noblock=1) char [ANY] {
+    int iType = 0;
+    char *_pstStrings = NULL;
+    int _piLength = 0;
+
+    sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+
+    sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
+    if (sciErr.iErr || iType != sci_strings)
+    {
+        Scierror(999, _("%s: Wrong type for input argument #%d: A string expected.\n"), fname, $argnum);
+        printError(&sciErr, 0);
+        return 0;
+    }
+
+    sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, NULL);
+    if (sciErr.iErr || iRows * iCols != 1)
+    {
+        Scierror(999, _("%s: Wrong size for input argument #%d: A string expected.\n"), fname, $argnum);
+        printError(&sciErr, 0);
+        return 0;
+    }
+
     _pstStrings = (char *)malloc(sizeof(char) * _piLength);
     sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, (char **)&_pstStrings);
     if (sciErr.iErr)
@@ -867,22 +868,22 @@
         return 0;
     }
     strcpy($1, _pstStrings);
-  
+
     free(_pstStrings);
 }
 
-%define SCILAB_VARIN_INTEGERVECTOR(CTYPE, INTTYPE, SCIAPIFUNCTION) 
+%define SCILAB_VARIN_INTEGERVECTOR(CTYPE, INTTYPE, SCIAPIFUNCTION)
     int iPrec = 0;
     CTYPE *_piData = NULL;
     size_t ii = 0;
-  
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
- 
+
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
     if (sciErr.iErr || iPrec != INTTYPE)
     {
@@ -896,7 +897,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     for (ii = 0; ii < (size_t)$1_dim0; ii++)
     {
         $1[ii] = ($*1_ltype)_piData[ii];
@@ -919,14 +920,14 @@
     int iType = 0;
     double *_piData = NULL;
     size_t ii = 0;
-  
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
     if (sciErr.iErr || iType != sci_matrix)
     {
@@ -941,7 +942,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     for (ii = 0; ii < (size_t)$1_dim0; ii++)
     {
         $1[ii] = ($*1_ltype)_piData[ii];
@@ -953,16 +954,16 @@
                           unsigned char *,
                           unsigned short *,
                           int *,
-	                      unsigned int *,
-	                      long *,
-	                      unsigned long *,
+                          unsigned int *,
+                          long *,
+                          unsigned long *,
                           double *,
-                          float *, 
+                          float *,
                           long long *,
                           unsigned long long * {
     int iType = 0;
     void *_piData = NULL;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
@@ -992,14 +993,14 @@
     char **_pstStrings = NULL;
     int *_piLength = NULL;
     int i = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
     if (sciErr.iErr || iType != sci_strings)
     {
@@ -1007,7 +1008,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     _piLength = (int*)malloc(sizeof(int) * iRows * iCols);
     sciErr = getMatrixOfString(pvApiCtxpiAddrVar, &iRows, &iCols, _piLength, NULL);
     if (sciErr.iErr)
@@ -1015,13 +1016,13 @@
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     _pstStrings = (char**)malloc(iRows * iCols * sizeof(char*));
     for(i = 0; i < iRows * iCols; i++)
     {
         _pstStrings[i] = (char*)malloc((_piLength[i] + 1) * sizeof(char));
     }
-    
+
     sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, _piLength, (char **)_pstStrings);
     if (sciErr.iErr)
     {
@@ -1039,28 +1040,28 @@
     CTYPE *_piData = NULL;
     size_t ii = 0;
     size_t jj = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
     if (sciErr.iErr || iPrec != INTTYPE)
     {
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     sciErr = SCIAPIFUNCTION(pvApiCtx, piAddrVar, &iRows, &iCols, (CTYPE **)&_piData);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-   
+
     for (ii = 0; ii < (size_t)$1_dim0; ii++)
     {
         for (jj = 0; jj < (size_t)$1_dim1; jj++)
@@ -1086,29 +1087,29 @@
     double *_piData = NULL;
     size_t ii = 0;
     size_t jj = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-    if (sciErr.iErr || iType != sci_matrix) 
+    if (sciErr.iErr || iType != sci_matrix)
     {
         Scierror(999, _("%s: Wrong type for input argument #%d: Real scalar  expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols, (double **)&_piData);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     for (ii = 0; ii < (size_t)$1_dim0; ii++)
     {
         for (jj = 0; jj < (size_t)$1_dim1; jj++)
@@ -1121,23 +1122,23 @@
 %typemap(varin,noblock=1) enum SWIGTYPE {
     int iPrec = 0;
     int *_piData = NULL;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
-    if (sciErr.iErr || iPrec != SCI_INT32) 
+    if (sciErr.iErr || iPrec != SCI_INT32)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getMatrixOfInteger32(pvApiCtx, piAddrVar, &iRows, &iCols, (int **)&_piData);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
@@ -1147,24 +1148,24 @@
 %typemap(varin,noblock=1) SWIGTYPE * {
     int iType = 0;
     void *_piData = NULL;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-    if (sciErr.iErr || iType != sci_pointer) 
+    if (sciErr.iErr || iType != sci_pointer)
     {
         Scierror(999, _("%s: Wrong type for input argument #%d: Pointer  expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getPointer(pvApiCtx, piAddrVar, (void **)&_piData);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
@@ -1176,29 +1177,29 @@
     int iType = 0;
     void *_piData = NULL;
     size_t ii = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
-    }  
-    
+    }
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-    if (sciErr.iErr || iType != sci_pointer) 
+    if (sciErr.iErr || iType != sci_pointer)
     {
         Scierror(999, _("%s: Wrong type for input argument #%d: Pointer  expected.\n"), fname, $argnum);
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getPointer(pvApiCtx, piAddrVar, (void **)&_piData);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     for (ii = 0; ii < $1_dim0; ii++)
     {
         $1[ii] = (($1_ltype)_piData)[ii];
@@ -1210,14 +1211,14 @@
     void *_piData = NULL;
     size_t ii = 0;
     size_t jj = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
     if (sciErr.iErr || iType != sci_pointer)
     {
@@ -1225,14 +1226,14 @@
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getPointer(pvApiCtx, piAddrVar, (void **)&_piData);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     for (ii = 0; ii < (size_t)$1_dim0; ii++)
     {
         for (jj = 0; jj < (size_t)$1_dim1; jj++)
@@ -1245,14 +1246,14 @@
 %typemap(varin,nobloack=1) SWIGTYPE {
     int iType = 0;
     void *_piData = NULL;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
     if (sciErr.iErr || iType != sci_pointer)
     {
@@ -1260,7 +1261,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     sciErr = getPointer(pvApiCtx, piAddrVar, (void **)&_piData);
     if (sciErr.iErr)
     {
@@ -1271,19 +1272,19 @@
 }
 
 /* -----------------------------------------------------------------------------
- * --- Variable output --- 
+ * --- Variable output ---
  * ----------------------------------------------------------------------------- */
 
 %define SCILAB_SCALAR_VAROUT(CTYPE, SCIAPIFUNCTION)
     CTYPE temp = $result;
-    
+
     sciErr = SCIAPIFUNCTION(pvApiCtx, iVarOut, iRowsOut, iColsOut, (CTYPE *)&temp);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -1304,14 +1305,14 @@
     char *temp = (char *)malloc(sizeof($result) + 1);
     *temp = $result;
     *(temp+1) = '\0';
-    
+
     sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)&temp);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -1320,14 +1321,14 @@
 
 %typemap(varout,noblock=1) char * {
     char *temp = $result;
-    
+
     sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)&temp);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -1352,7 +1353,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -1366,7 +1367,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -1376,14 +1377,14 @@
     char **pstData = NULL;
     pstData = (char **)malloc(sizeof(char *));
     pstData[0] = $result;
-    
+
     sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)pstData);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -1403,14 +1404,14 @@
     char **pstData = NULL;
     pstData = (char **)malloc(iRowsOut * iColsOut * sizeof(char*));
     pstData = $result;
-  
+
     sciErr = createMatrixOfString(pvApiCtx, iVarOut, iRowsOut, iColsOut, (char **)pstData);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -1434,7 +1435,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-  
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -1448,7 +1449,7 @@
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -1456,12 +1457,12 @@
 
 %typemap(varout,noblock=1) SWIGTYPE {
     sciErr = createPointer(pvApiCtx, iVarOut, (void *)&$result);
-    if (sciErr.iErr) 
+    if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
@@ -1474,16 +1475,16 @@
 %define SCILAB_TYPECHECK(SCITYPE)
     int *piAddrVar = NULL;
     int iType      = 0;
-    
+
     sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
         return 0;
     }
-    
+
     getVarType(pvApiCtx, piAddrVar, &iType);
-    
+
     $1 = (iType == SCITYPE) ? 1 : 0;
 %enddef
 
@@ -1493,14 +1494,14 @@
     if ($1 == 1) /* sci_ints type */
     {
         int iPrec = 0;
-        
+
         sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
         if (sciErr.iErr)
         {
             printError(&sciErr, 0);
             return 0;
         }
-        
+
         $1 = (iPrec == INTTYPE) ? 1 : 0;
     }
     else /* sci_matrix type */
@@ -1545,11 +1546,11 @@
 
 /* * TODO: add an option to select default integers mapping? */
 /* C-integers mapped to Scilab sci_matrix (TODO: add int64 & uint64 for Scilab 6) */
-%typecheck(SWIG_TYPECHECK_INT8_ARRAY)   signed char [ANY]                       { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_INT8_ARRAY)   signed char [ANY]                         { SCILAB_TYPECHECK(sci_matrix)        }
 //%typecheck(SWIG_TYPECHECK_UINT8_ARRAY)  unsigned char [ANY]                     { SCILAB_TYPECHECK(sci_matrix)        }
-%typecheck(SWIG_TYPECHECK_INT16_ARRAY)  short [ANY]                             { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_INT16_ARRAY)  short [ANY]                               { SCILAB_TYPECHECK(sci_matrix)        }
 //%typecheck(SWIG_TYPECHECK_UINT16_ARRAY) unsigned short [ANY]                    { SCILAB_TYPECHECK(sci_matrix)        }
-%typecheck(SWIG_TYPECHECK_INT32_ARRAY)  int [ANY], long [ANY]                   { SCILAB_TYPECHECK(sci_matrix)        }
+%typecheck(SWIG_TYPECHECK_INT32_ARRAY)  int [ANY], long [ANY]                     { SCILAB_TYPECHECK(sci_matrix)        }
 //%typecheck(SWIG_TYPECHECK_UINT32_ARRAY) unsigned int [ANY], unsigned long [ANY] { SCILAB_TYPECHECK(sci_matrix)        }
 /* C-integers mapped to Scilab integers (TODO: add int64 & uint64 for Scilab 6) */
 /*
@@ -1569,5 +1570,3 @@
 /* size_t mapped as int */
 /* -----------------------------------------------------------------------------*/
 %apply int { size_t };
-
-
