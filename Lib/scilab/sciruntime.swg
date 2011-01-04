@@ -24,5 +24,54 @@ void SWIG_Error(int code, const char *msg)
 #endif
 
 #define SWIG_contract_assert(expr, msg) if (!(expr)) { SWIG_Error(999, msg); } else 
+#define SWIG_fail                                    return 0
+
+#define SWIG_ConvertPtr(obj, vptr, descriptor, flags)     SWIG_Scilab_ConvertPtr(pvApiCtx, obj, vptr, descriptor, flags)
+#define SWIG_NewPointerObj(ptr, type, flags)              SWIG_Scilab_NewPointerObj(pvApiCtx, iVarOut, ptr, type, flags)
+
+/* Convert a pointer value */
+SWIGRUNTIMEINLINE int
+SWIG_Scilab_ConvertPtr(StrCtx* pvApiCtx, int obj, void **ptr, swig_type_info* descriptor, int flags) {
+    SciErr sciErr;
+    int* piAddrVar = NULL;
+    int iType = 0;
+    void *_piData = NULL;
+
+    sciErr = getVarAddressFromPosition(pvApiCtx, obj, &piAddrVar);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return SWIG_ERROR;
+    }
+
+    sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
+    if (sciErr.iErr || iType != sci_pointer)
+    {
+        Scierror(999, _("%s: Wrong type for input argument #%d: Pointer  expected.\n"), "SWIG_Scilab_ConvertPtr", obj);
+        printError(&sciErr, 0);
+        return SWIG_ERROR;
+    }
+
+    sciErr = getPointer(pvApiCtx, piAddrVar, ptr);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return SWIG_ERROR;
+    }
+    return SWIG_OK;
+}
+
+/* Create a new pointer object */
+SWIGRUNTIMEINLINE int
+SWIG_Scilab_NewPointerObj(StrCtx* pvApiCtx, int iVarOut, void *ptr, swig_type_info *type, int flags) {
+    SciErr sciErr;
+    sciErr = createPointer(pvApiCtx, iVarOut, (void *)ptr);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
+  return iVarOut;
+}
 
 %}

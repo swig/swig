@@ -1,3 +1,25 @@
+// Scilab fragments for primitive types
+%include <sciprimtypes.swg>
+
+// Include fundamental fragments definitions
+%include <typemaps/fragments.swg>
+// Scilab types
+#define SWIG_Object                      int
+#define VOID_Object                      int
+
+// Append output
+#define SWIG_AppendOutput(result, obj)  SWIG_Scilab_AppendOutput(result, obj)
+
+// Set constant
+#define SWIG_SetConstant(name, obj)     SWIG_Scilab_SetConstant(module_ns,name,obj) 
+
+// Raise
+#define SWIG_Scilab_Raise(OBJ, TYPE, DESC) error("C++ side threw an exception of type " TYPE)
+#define SWIG_Raise(obj, type, desc)     SWIG_Scilab_Raise(obj, type, desc)
+
+// Include the unified typemap library
+%include <typemaps/swigtypemaps.swg>
+
 /* -----------------------------------------------------------------------------
  * --- Input arguments ---
  * ----------------------------------------------------------------------------- */
@@ -121,7 +143,7 @@
     $1 = ($1_ltype)_piData;
 }
 
-%typemap(in) char * (int iRows, int iCols) {
+/*%typemap(in) char * (int iRows, int iCols) {
     int iType = 0;
     int *piAddrVar = NULL;
     char *_pstStrings = NULL;
@@ -160,7 +182,7 @@
     $1 = ($1_ltype)strdup(_pstStrings);
 
     free(_pstStrings);
-}
+}*/
 
 %define SCILAB_IN_INTEGERVECTOR(CTYPE, INTTYPE, SCIAPIFUNCTION)
     int iPrec = 0;
@@ -479,7 +501,7 @@
     $1 = ($1_ltype)*_piData;
 }
 
-%typemap(in) SWIGTYPE *,
+/*%typemap(in) SWIGTYPE *,
              SWIGTYPE [] {
     int iType = 0;
     int *piAddrVar = NULL;
@@ -507,7 +529,7 @@
         return 0;
     }
     $1 = ($1_ltype)_piData;
-}
+}*/
 
 %typemap(in) SWIGTYPE {
     int iType = 0;
@@ -689,7 +711,7 @@
     iVarOut++;
 }
 
-%typemap(out) SWIGTYPE * {
+/*%typemap(out) SWIGTYPE * {
     sciErr = createPointer(pvApiCtx, iVarOut, (void *)$result);
     if (sciErr.iErr)
     {
@@ -700,9 +722,9 @@
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
-}
+}*/
 
-%typemap(out) SWIGTYPE {
+/*%typemap(out) SWIGTYPE {
     sciErr = createPointer(pvApiCtx, iVarOut, %new_copy($result, $1_ltype));
     if (sciErr.iErr)
     {
@@ -713,7 +735,7 @@
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
-}
+}*/
 
 /* -----------------------------------------------------------------------------
  * --- Variable input ---
@@ -898,7 +920,7 @@
         return 0;
     }
 
-    for (ii = 0; ii < (size_t)$1_dim0; ii++)
+    for (ii = 0; ii < (size_t) (iRows * iCols); ii++)
     {
         $1[ii] = ($*1_ltype)_piData[ii];
     }
@@ -1010,7 +1032,7 @@
     }
 
     _piLength = (int*)malloc(sizeof(int) * iRows * iCols);
-    sciErr = getMatrixOfString(pvApiCtxpiAddrVar, &iRows, &iCols, _piLength, NULL);
+    sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, _piLength, NULL);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
@@ -1389,12 +1411,23 @@
     iOutNum++;
     iVarOut++;
 }
+%typemap(varout,noblock=1) int [ANY] {
+    sciErr = createMatrixOfInteger32(pvApiCtx, iVarOut, 1, $1_dim0, (int *)$result);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return 0;
+    }
 
+    LhsVar(iOutNum) = iVarOut;
+    iOutNum++;
+    iVarOut++;
+}
 %typemap(varout,noblock=1) signed char [ANY]                       { SCILAB_VAROUT(char, createMatrixOfInteger8, 1, $1_dim0) }
 %typemap(varout,noblock=1) unsigned char [ANY]                     { SCILAB_VAROUT(unsigned char, createMatrixOfUnsignedInteger8, 1, $1_dim0) }
 %typemap(varout,noblock=1) short [ANY]                             { SCILAB_VAROUT(short, createMatrixOfInteger16, 1, $1_dim0) }
 %typemap(varout,noblock=1) unsigned short [ANY]                    { SCILAB_VAROUT(unsigned short, createMatrixOfUnsignedInteger16, 1, $1_dim0) }
-%typemap(varout,noblock=1) int [ANY], long [ANY]                   { SCILAB_VAROUT(int, createMatrixOfInteger32, 1, $1_dim0) }
+//%typemap(varout,noblock=1) int [ANY], long [ANY]                   { SCILAB_VAROUT(int, createMatrixOfInteger32, 1, $1_dim0) }
 %typemap(varout,noblock=1) unsigned int [ANY], unsigned long [ANY] { SCILAB_VAROUT(int, createMatrixOfUnsignedInteger32, 1, $1_dim0) }
 %typemap(varout,noblock=1) long long [ANY]                         { SCILAB_VAROUT(long long, createMatrixOfInteger64, 1, $1_dim0) }
 %typemap(varout,noblock=1) unsigned long long [ANY]                { SCILAB_VAROUT(unsigned long long, createMatrixOfUnsignedInteger64, 1, $1_dim0) }

@@ -239,9 +239,15 @@ public:
         Setattr(p, "emit:input", source);
         Replaceall(tm, "$input", Getattr(p, "emit:input"));
 
+        if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
+            Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
+        } else {
+            Replaceall(tm, "$disown", "0");
+        }
+
         String *getargs = NewString("");
     
-        /* The paremeter is variable */
+        /* The parameter is variable */
         if (j >= num_required) {
           Printf(getargs, "if (Rhs > %d) {\n%s\n}", j, tm);
         } else {
@@ -270,19 +276,30 @@ public:
     /* Insert the return variable */ 
     emit_return_variable(n, d, f);
 
+    Wrapper_add_local(f, "_outv", "int _outv");
+
     if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-      Replaceall(tm, "$result", "result");
-    
-      /* There are more than one output */
-      if (out_required > 0) {
-        Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
-        Printf(f->code, "iOutNum ++;\niVarOut ++;\n");
-      }
-      Printf(f->code, "%s\n", tm);
-      if (strlen(Char(tm)) != 0) {
-        out_required ++;
-      }
-    } 
+        Replaceall(tm, "$source", "result");
+        Replaceall(tm, "$target", "_outv");
+        Replaceall(tm, "$result", "_outv");
+
+        if (GetFlag(n, "feature:new"))
+            Replaceall(tm, "$owner", "1");
+        else
+            Replaceall(tm, "$owner", "0");
+ 
+       /* There are more than one output */
+        if (out_required > 0) {
+            Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
+            Printf(f->code, "iOutNum ++;\niVarOut ++;\n");
+        }
+        Printf(f->code, "%s\n", tm);
+        if ((strlen(Char(tm)) != 0) && (out_required <= 0)) {
+            Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
+            Printf(f->code, "iOutNum ++;\niVarOut ++;\n");
+            out_required ++;
+        }
+    }
     else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
     }
@@ -356,7 +373,6 @@ public:
    
     /* Finish the the code for the function  */
     //if (flag)
-    Printf(f->code, "//PutLhsVar();\n");
     Printf(f->code, "return 0;\n");  
     Printf(f->code, "}\n");
 
