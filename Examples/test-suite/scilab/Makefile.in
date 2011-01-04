@@ -16,16 +16,20 @@ include $(srcdir)/../common.mk
 
 # Rules for the different types of tests
 %.cpptest:
-	
+	@$(setup)
+	@+$(swig_and_compile_cpp)
+	@$(run_testcase)
+
 %.ctest:
 	@$(setup)
-	@cp ../$*.i $*.i
-	@if [ -f ../$*.h ]; then (cp ../$*.h $*.h; ) fi;
 	@+$(swig_and_compile_c)
 	@$(run_testcase)
 
 %.multicpptest:
-	
+	@$(setup)
+	@+$(swig_and_compile_multi_cpp)
+	@$(run_testcase)
+
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.sci appended after the testcase name.
 run_testcase = \
@@ -38,7 +42,7 @@ run_testcase = \
 
 # Clean: remove the generated .sci file
 %.clean:
-	@rm -f $*.sci *_wrap.c *.i *.h *_wrap.cxx
+	@rm -f $*.sci *_wrap.c *.h *_wrap.cxx
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile scilab_clean
