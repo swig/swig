@@ -4,6 +4,14 @@ lines(0);
 [units, typ, names] = file(1);
 swigtestname = strsubst(fileparts(names, "fname"), "_runme", "");
 
+// Does the library exists? If not then exit!
+if ~isfile("lib" + fileparts(names, "fname") + "lib" + getdynlibext()) then
+    mprintf("**************************\n")
+    mprintf("* LIBRARY DOES NOT EXIST *\n");
+    mprintf("**************************\n")
+    exit
+end
+
 // Load library
 try
     exec("loader.sce", -1);
