@@ -332,6 +332,9 @@ typedef struct {
   swig_type_info *ty;
   int own;
   PyObject *next;
+#ifdef SWIGPYTHON_BUILTIN
+  PyObject *dict;
+#endif
 } SwigPyObject;
 
 SWIGRUNTIME PyObject *
@@ -384,19 +387,19 @@ SwigPyObject_repr(SwigPyObject *v, PyObject *args)
   const char *name = SWIG_TypePrettyName(v->ty);
   PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at %p>", name, v);
   if (v->next) {
-#ifdef METH_NOARGS
+# ifdef METH_NOARGS
     PyObject *nrep = SwigPyObject_repr((SwigPyObject *)v->next);
-#else
+# else
     PyObject *nrep = SwigPyObject_repr((SwigPyObject *)v->next, args);
-#endif
-#if PY_VERSION_HEX >= 0x03000000
+# endif
+# if PY_VERSION_HEX >= 0x03000000
     PyObject *joined = PyUnicode_Concat(repr, nrep);
     Py_DecRef(repr);
     Py_DecRef(nrep);
     repr = joined;
-#else
+# else
     PyString_ConcatAndDel(&repr,nrep);
-#endif
+# endif
   }
   return repr;  
 }
@@ -468,9 +471,8 @@ SwigPyObject_Check(PyObject *op) {
 #ifdef SWIGPYTHON_BUILTIN
   PyTypeObject *target_tp = SwigPyObject_type();
   PyTypeObject *obj_tp;
-  for (obj_tp = op->ob_type; obj_tp; obj_tp = obj_tp->tp_base)
-    if (obj_tp == target_tp)
-      return 1;
+  if (PyType_IsSubtype(op->ob_type, target_tp))
+    return 1;
   return (strcmp(op->ob_type->tp_name, "SwigPyObject") == 0);
 #else
   return (Py_TYPE(op) == SwigPyObject_type())
@@ -1080,6 +1082,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 	if (ptr) *ptr = 0;
 	return SWIG_OK;
     }
+
     if (ty && ty->clientdata && ((SwigPyClientData*) ty->clientdata)->pytype) {
 	PyTypeObject *target_tp = ((SwigPyClientData*) ty->clientdata)->pytype;
 	PyTypeObject *obj_tp;
@@ -1096,6 +1099,9 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 	    }
 	}
     }
+
+    int res = SWIG_ERROR;
+
     SwigPyObject *sobj = SWIG_Python_GetSwigThis(obj);
     if (own)
 	*own = 0;
@@ -1135,9 +1141,8 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 	if (flags & SWIG_POINTER_DISOWN) {
 	    sobj->own = 0;
 	}
-	return SWIG_OK;
+	res = SWIG_OK;
     } else {
-	int res = SWIG_ERROR;
 	if (flags & SWIG_POINTER_IMPLICIT_CONV) {
 	    SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;
 	    if (data && !data->implicitconv) {
@@ -1173,8 +1178,8 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 		}
 	    }
 	}
-	return res;
     }
+    return res;
 }
 
 /* Convert a function ptr value */
@@ -1357,6 +1362,9 @@ SWIG_Python_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
 	    newobj->ty = type;
 	    newobj->own = own;
 	    newobj->next = 0;
+#ifdef SWIGPYTHON_BUILTIN
+	    newobj->dict = 0;
+#endif
 	    return (PyObject*) newobj;
 	}
 	return SWIG_Py_Void();
@@ -1388,10 +1396,19 @@ SWIG_Python_NewBuiltinObj(PyObject *self, void *ptr, swig_type_info *type, int f
     assert(clientdata->pytype);
     int own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
     SwigPyObject *newobj = (SwigPyObject*) self;
+    if (newobj->ptr) {
+      PyObject *next_self = clientdata->pytype->tp_alloc(clientdata->pytype, 0);
+      while (newobj->next) newobj = (SwigPyObject*) newobj->next;
+      newobj->next = next_self;
+      newobj = (SwigPyObject*) next_self;
+    }
     newobj->ptr = ptr;
     newobj->own = own;
     newobj->ty = type;
     newobj->next = 0;
+#ifdef SWIGPYTHON_BUILTIN
+    newobj->dict = 0;
+#endif
     return 0;
 }
 

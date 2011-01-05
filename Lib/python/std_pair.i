@@ -161,13 +161,28 @@ SwigPython_std_pair_setitem (PyObject *a, Py_ssize_t b, PyObject *c)
 
 }
 
+%feature("sq_length") std::pair "SwigPython_std_pair_len";
+%feature("sq_length") std::pair<T*,U> "SwigPython_std_pair_len";
+%feature("sq_length") std::pair<T,U*> "SwigPython_std_pair_len";
+%feature("sq_length") std::pair<T*,U*> "SwigPython_std_pair_len";
+
+%feature("tp_repr") std::pair "SwigPython_std_pair_repr";
+%feature("tp_repr") std::pair<T*,U> "SwigPython_std_pair_repr";
+%feature("tp_repr") std::pair<T,U*> "SwigPython_std_pair_repr";
+%feature("tp_repr") std::pair<T*,U*> "SwigPython_std_pair_repr";
+
+%feature("sq_item") std::pair "SwigPython_std_pair_getitem";
+%feature("sq_item") std::pair<T*,U> "SwigPython_std_pair_getitem";
+%feature("sq_item") std::pair<T,U*> "SwigPython_std_pair_getitem";
+%feature("sq_item") std::pair<T*,U*> "SwigPython_std_pair_getitem";
+
+%feature("sq_ass_item") std::pair "SwigPython_std_pair_setitem";
+%feature("sq_ass_item") std::pair<T*,U> "SwigPython_std_pair_setitem";
+%feature("sq_ass_item") std::pair<T,U*> "SwigPython_std_pair_setitem";
+%feature("sq_ass_item") std::pair<T*,U*> "SwigPython_std_pair_setitem";
+
 %define %swig_pair_methods(pair...)
-#if defined(SWIGPYTHON_BUILTIN)
-%feature("sq_length") pair "SwigPython_std_pair_len";
-%feature("tp_repr") pair "SwigPython_std_pair_repr";
-%feature("sq_item") pair "SwigPython_std_pair_getitem";
-%feature("sq_ass_item") pair "SwigPython_std_pair_setitem";
-#else
+#if !defined(SWIGPYTHON_BUILTIN)
 %extend {      
 %pythoncode {def __len__(self): return 2
 def __repr__(self): return str((self.first, self.second))

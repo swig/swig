@@ -340,11 +340,24 @@ SWIG_init(void) {
 
 #if defined(SWIGPYTHON_BUILTIN)
   PyTypeObject *builtin_pytype = 0;
-  PyObject *propargs = NULL, *propget = NULL, *propset = NULL, *propobj = NULL;
+#ifdef __cplusplus
   std::vector<PyTypeObject*> builtin_bases;
+#endif
   swig_type_info *builtin_basetype = 0;
-  PyObject *base_tuple = NULL;
+  PyObject *tuple = NULL;
+  PyGetSetDescrObject *static_getset = NULL;
+
   int i;
+
+  // metatype is used to implement static member variables.
+  
+  PyObject *metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
+  assert(metatype_args);
+  PyTypeObject *metatype = (PyTypeObject*) PyType_Type.tp_call((PyObject*) &PyType_Type, metatype_args, NULL);
+  assert(metatype);
+  Py_DECREF(metatype_args);
+  metatype->tp_setattro = (setattrofunc) &SwigPyObjectType_setattro;
+  assert(PyType_Ready(metatype) >= 0);
 
   SWIG_Python_builtin_imports();
 #endif
@@ -361,6 +374,6 @@ SWIG_init(void) {
   
   SWIG_InitializeModule(0);
   SWIG_InstallConstants(d,swig_const_table);
-  
+
 %}
 
