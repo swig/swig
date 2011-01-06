@@ -467,7 +467,7 @@ namespace Swig {
       sobj->own = 0;
       Director *d = SWIG_DIRECTOR_CAST(reinterpret_cast<_Tp*>(sobj->ptr));
       if (d) d->swig_disown();
-      return SWIG_Py_Void();
+      return PyWeakref_NewProxy(pyobj, NULL);
     }
 
   };

@@ -350,7 +350,6 @@ SWIG_init(void) {
   int i;
 
   // metatype is used to implement static member variables.
-  
   PyObject *metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
   assert(metatype_args);
   PyTypeObject *metatype = (PyTypeObject*) PyType_Type.tp_call((PyObject*) &PyType_Type, metatype_args, NULL);
@@ -358,6 +357,16 @@ SWIG_init(void) {
   Py_DECREF(metatype_args);
   metatype->tp_setattro = (setattrofunc) &SwigPyObjectType_setattro;
   assert(PyType_Ready(metatype) >= 0);
+
+  // All objects have a 'thisown' attribute
+  static SwigPyGetSet thisown_getset_closure = {
+    (PyCFunction) SwigPyObject_own,
+    (PyCFunction) SwigPyObject_own
+  };
+  static PyGetSetDef thisown_getset_def = {
+    const_cast<char*>("thisown"), pyswig_getter_closure, pyswig_setter_closure, NULL, &thisown_getset_closure
+  };
+  PyObject *thisown_descr = PyDescr_NewGetSet(SwigPyObject_type(), &thisown_getset_def);
 
   SWIG_Python_builtin_imports();
 #endif
@@ -371,9 +380,20 @@ SWIG_init(void) {
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
 #endif
   md = d = PyModule_GetDict(m);
-  
+
   SWIG_InitializeModule(0);
   SWIG_InstallConstants(d,swig_const_table);
+
+#if defined(SWIGPYTHON_BUILTIN)
+  PyObject *public_interface = PyList_New(0);
+  PyObject *public_symbol = 0;
+  PyDict_SetItemString(md, "__all__", public_interface);
+  Py_DECREF(public_interface);
+  for (i = 0; SwigMethods[i].ml_name != NULL; ++i)
+    pyswig_add_public_symbol(public_interface, SwigMethods[i].ml_name);
+  for (i = 0; swig_const_table[i].name != 0; ++i)
+    pyswig_add_public_symbol(public_interface, swig_const_table[i].name);
+#endif
 
 %}
 

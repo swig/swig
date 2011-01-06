@@ -369,3 +369,25 @@ SwigPyStaticVar_new_getset (PyTypeObject *type, PyGetSetDef *getset)
     }
     return descr;
 }
+
+#ifdef __cplusplus
+
+#include <vector>
+
+SWIGINTERN void
+pyswig_builtin_init_bases (PyTypeObject *type, std::vector<PyTypeObject*>& bases)
+{
+    if (!bases.size())
+	bases.push_back(SwigPyObject_type());
+    type->tp_base = bases[0];
+    Py_INCREF((PyObject*) bases[0]);
+    PyObject *tuple = PyTuple_New(bases.size());
+    int i;
+    for (i = 0; i < bases.size(); ++i) {
+	PyTuple_SET_ITEM(tuple, i, (PyObject*) bases[i]);
+	Py_INCREF((PyObject*) bases[i]);
+    }
+    type->tp_bases = tuple;
+}
+
+#endif

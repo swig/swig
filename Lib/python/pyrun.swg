@@ -71,11 +71,32 @@ SWIG_Python_SetErrorMsg(PyObject *errtype, const char *msg) {
 
 /* Set a constant value */
 
+#if defined(SWIGPYTHON_BUILTIN)
+
+SWIGINTERN void
+pyswig_add_public_symbol (PyObject *seq, const char *key) {
+  PyObject *s = PyString_InternFromString(key);
+  PyList_Append(seq, s);
+  Py_DECREF(s);
+}
+
+SWIGINTERN void
+SWIG_Python_SetConstant(PyObject *d, PyObject *public_interface, const char *name, PyObject *obj) {   
+  PyDict_SetItemString(d, (char*) name, obj);
+  Py_DECREF(obj);
+  if (public_interface)
+    pyswig_add_public_symbol(public_interface, name);
+}
+
+#else
+
 SWIGINTERN void
 SWIG_Python_SetConstant(PyObject *d, const char *name, PyObject *obj) {   
   PyDict_SetItemString(d, (char*) name, obj);
   Py_DECREF(obj);                            
 }
+
+#endif
 
 /* Append a value to the result obj */
 

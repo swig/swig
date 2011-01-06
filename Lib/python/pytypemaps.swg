@@ -51,7 +51,11 @@
 #define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj)
 
 /* set constant */
-#define SWIG_SetConstant(name, obj)     SWIG_Python_SetConstant(d, name,obj) 
+#if defined(SWIGPYTHON_BUILTIN)
+#define SWIG_SetConstant(name, obj) SWIG_Python_SetConstant(d, d == md ? public_interface : NULL, name,obj) 
+#else
+#define SWIG_SetConstant(name, obj) SWIG_Python_SetConstant(d, name,obj) 
+#endif
 
 /* raise */
 #define SWIG_Raise(obj, type, desc)     SWIG_Python_Raise(obj, type, desc)
@@ -82,6 +86,10 @@
 /* Smart Pointers */
 %typemap(out,noblock=1) const SWIGTYPE & SMARTPOINTER  {
   $result = SWIG_NewPointerObj(%new_copy(*$1, $*ltype), $descriptor, SWIG_POINTER_OWN | %newpointer_flags);
+}
+
+%typemap(builtin_init,noblock=1) const SWIGTYPE & SMARTPOINTER  {
+  $result = SWIG_NewBuiltinObj(self, %new_copy(*$1, $*ltype), $descriptor, SWIG_POINTER_OWN | %newpointer_flags);
 }
 
 %typemap(ret,noblock=1) const SWIGTYPE & SMARTPOINTER, SWIGTYPE SMARTPOINTER {

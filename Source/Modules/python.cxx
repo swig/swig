@@ -469,8 +469,10 @@ public:
 	  py3 = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-builtin") == 0) {
-	  builtin = 1;
-	  Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
+	  if (CPlusPlus) {
+	    builtin = 1;
+	    Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
+	  }
 	  Swig_mark_arg(i);
 	}
 
@@ -2616,6 +2618,8 @@ public:
 
     if (!have_globals) {
       Printf(f_init, "\t PyDict_SetItemString(md,(char*)\"%s\", SWIG_globals());\n", global_name);
+      if (builtin)
+	Printf(f_init, "\t pyswig_add_public_symbol(public_interface, \"%s\");\n", global_name);
       have_globals = 1;
       if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
 	Printf(f_shadow_stubs, "%s = %s.%s\n", global_name, module, global_name);
@@ -2698,9 +2702,11 @@ public:
 
     /* Now add this to the variable linking mechanism */
     Printf(f_init, "\t SWIG_addvarlink(SWIG_globals(),(char*)\"%s\",%s, %s);\n", iname, vargetname, varsetname);
-    if (builtin && shadow && !assignable && !in_class)
-	Printf(f_init, "\t PyDict_SetItemString(md, (char*)\"%s\", PyObject_GetAttrString(SWIG_globals(), \"%s\"));\n",
-	       iname, iname);
+    if (builtin && shadow && !assignable && !in_class) {
+      Printf(f_init, "\t PyDict_SetItemString(md, (char*)\"%s\", PyObject_GetAttrString(SWIG_globals(), \"%s\"));\n",
+	     iname, iname);
+      Printf(f_init, "\t pyswig_add_public_symbol(public_interface, \"%s\");\n", iname);
+    }
     Delete(vargetname);
     Delete(varsetname);
     Delete(getname);
@@ -2984,7 +2990,9 @@ public:
     shadow = oldshadow;
     if (shadow) {
       if (builtin) {
-	Printf(f_shadow, tab4 "{ \"__disown__\", (PyCFunction) Swig::Director::pyobj_disown< %s >, METH_NOARGS, \"\" },\n", real_classname);
+	String *rname = SwigType_namestr(real_classname);
+	Printf(f_shadow, tab4 "{ \"__disown__\", (PyCFunction) Swig::Director::pyobj_disown< %s >, METH_NOARGS, \"\" },\n", rname);
+	Delete(rname);
       } else {
 	String *symname = Getattr(n, "sym:name");
 	String *mrename = Swig_name_disown(NSPACE_TODO, symname);	//Getattr(n, "name"));
@@ -3060,9 +3068,19 @@ public:
    * classHandler()
    * ------------------------------------------------------------ */
 
+    String* add_explicit_scope (String *s) {
+      if (!Strstr(s, "::")) {
+	String *ss = NewStringf("::%s", s);
+	Delete(s);
+	s = ss;
+      }
+      return s;
+    }
+
   void builtin_pre_decl(Node *n, Node *) {
     String *name = Getattr(n, "name");
-    String *rname = SwigType_namestr(name);
+    String *rname = add_explicit_scope(SwigType_namestr(name));
+    Printf(f_init, "\n// type '%s'\n", rname);
     Printf(f_init, tab4 "builtin_pytype = &SwigPyBuiltin< %s >::pytype;\n", rname);
     Printf(f_init, tab4 "builtin_pytype->ob_type = metatype;\n");
     Printf(f_init, tab4 "builtin_pytype->tp_new = PyType_GenericNew;\n");
@@ -3076,23 +3094,16 @@ public:
 	    SwigType_add_pointer(base_name);
 	    String *base_mname = SwigType_manglestr(base_name);
 	    Printf(f_init, "    builtin_basetype = SWIG_MangledTypeQuery(\"%s\");\n", base_mname);
-	    Printv(f_init, "    if (builtin_basetype && builtin_basetype->clientdata && ((SwigPyClientData*) builtin_basetype->clientdata)->pytype)\n", NIL);
+	    Printv(f_init, "    if (builtin_basetype && builtin_basetype->clientdata && ((SwigPyClientData*) builtin_basetype->clientdata)->pytype) {\n", NIL);
 	    Printv(f_init, "        builtin_bases.push_back(((SwigPyClientData*) builtin_basetype->clientdata)->pytype);\n", NIL);
+	    Printv(f_init, "    }\n", NIL);
 	    Delete(base_name);
 	    Delete(base_mname);
 	}
     }
-    Printv(f_init, "    if (!builtin_bases.size())\n", NIL);
-    Printv(f_init, "        builtin_bases.push_back(SwigPyObject_type());\n", NIL);
-    Printv(f_init, "    builtin_pytype->tp_base = builtin_bases[0];\n", NIL);
-    Printv(f_init, "    Py_INCREF((PyObject*) builtin_bases[0]);\n", NIL);
-    Printv(f_init, "    tuple = PyTuple_New(builtin_bases.size());\n", NIL);
-    Printv(f_init, "    for (i = 0; i < builtin_bases.size(); ++i) {\n", NIL);
-    Printv(f_init, "        PyTuple_SET_ITEM(tuple, i, (PyObject*) builtin_bases[i]);\n", NIL);
-    Printv(f_init, "        Py_INCREF((PyObject*) builtin_bases[i]);\n", NIL);
-    Printv(f_init, "    }\n", NIL);
+    Printv(f_init, "    pyswig_builtin_init_bases(builtin_pytype, builtin_bases);\n", NIL);
     Printv(f_init, "    builtin_bases.clear();\n", NIL);
-    Printf(f_init, tab4 "builtin_pytype->tp_dict = d = PyDict_New();\n");
+    Printf(f_init, "    builtin_pytype->tp_dict = d = PyDict_New();\n");
     Delete(rname);
   }
 
@@ -3115,7 +3126,7 @@ public:
     String *pname = Copy(name);
     SwigType_add_pointer(pname);
     String *symname = Getattr(n, "sym:name");
-    String *rname = SwigType_namestr(name);
+    String *rname = add_explicit_scope(SwigType_namestr(name));
     String *templ = NewString("");
     Printf(templ, "SwigPyBuiltin< %s >", rname);
     char const *tp_init = builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "py_builtin_bad_init";
@@ -3131,6 +3142,11 @@ public:
 
     String *getset_def = NewString("");
     Printf(getset_def, "template <> PyGetSetDef SwigPyBuiltin< %s >::getset[] = {\n", rname);
+
+    // All objects have a 'thisown' attribute
+    Printv(f_init, "PyDict_SetItemString(d, \"thisown\", thisown_descr);\n", NIL);
+
+    // Now, the rest of the attributes
     for (DohIterator member_iter = First(builtin_getset); member_iter.item; member_iter = Next(member_iter)) {
       String *memname = member_iter.key;
       Hash *mgetset = member_iter.item;
@@ -3294,13 +3310,14 @@ public:
 
     Printf(f, "template <> SwigPyClientData %s::clientdata = {0, 0, 0, 0, 0, 0, &%s::pytype};\n\n", templ, templ);
 
-    Printv(f_init, "    d = md;\n", NIL);
     Printv(f_init, "    if (PyType_Ready(builtin_pytype) < 0) {\n", NIL);
-    Printf(f_init, "        fprintf(stderr, \"Couldn't create type %s\");\n", symname);
-    Printv(f_init, "        return;\n", NIL);
+    Printf(f_init, "      PyErr_Format(PyExc_TypeError, \"Couldn't create type '.300%s'\");\n", symname);
+    Printv(f_init, "      return;\n", NIL);
     Printv(f_init, "    }\n", NIL);
     Printv(f_init, "    Py_INCREF(builtin_pytype);\n", NIL);
     Printf(f_init, "    PyModule_AddObject(m, \"%s\", (PyObject*) builtin_pytype);\n", symname);
+    Printf(f_init, "    pyswig_add_public_symbol(public_interface, \"%s\");\n", symname);
+    Printv(f_init, "    d = md;\n", NIL);
 
     Delete(clientdata);
     Delete(templ);
@@ -3396,7 +3413,9 @@ public:
 	Printv(base_class, abcs, NIL);
       }
 
-      if (!builtin) {
+      if (builtin) {
+	
+      } else {
 	Printv(f_shadow, "class ", class_name, NIL);
 
 	if (Len(base_class)) {
@@ -3545,7 +3564,7 @@ public:
 
       if (builtin) {
 	builtin_post_decl(f_builtins, n);
-	String *rname = SwigType_namestr(real_classname);
+	String *rname = add_explicit_scope(SwigType_namestr(real_classname));
 	Printf(f_builtins, "template <> PyMethodDef SwigPyBuiltin< %s >::methods[] = {\n", rname);
 	Delete(rname);
       }
