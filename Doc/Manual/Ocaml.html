@@ -6,7 +6,7 @@
 </head>
   <body bgcolor="#ffffff">
           <a name="n1"></a>         
-<H1><a name="Ocaml"></a>27 SWIG and Ocaml</H1>
+<H1><a name="Ocaml"></a>28 SWIG and Ocaml</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -80,7 +80,7 @@ If you're not familiar with the Objective Caml language, you can visit
 <a href="http://www.ocaml.org/">The Ocaml Website</a>.
 </p>
 
-<H2><a name="Ocaml_nn2"></a>27.1 Preliminaries</H2>
+<H2><a name="Ocaml_nn2"></a>28.1 Preliminaries</H2>
 
 
 <p>
@@ -99,7 +99,7 @@ file Examples/Makefile illustrate how to compile and link SWIG modules that
 will be loaded dynamically.  This has only been tested on Linux so far.
 </p>
 
-<H3><a name="Ocaml_nn3"></a>27.1.1 Running SWIG</H3>
+<H3><a name="Ocaml_nn3"></a>28.1.1 Running SWIG</H3>
 
 
 <p>
@@ -122,7 +122,7 @@ you will compile the file  <tt>example_wrap.c</tt> with <tt>ocamlc</tt> or
 the resulting .ml and .mli files as well, and do the final link with -custom
 (not needed for native link). </p>
                
-<H3><a name="Ocaml_nn4"></a>27.1.2 Compiling the code</H3>
+<H3><a name="Ocaml_nn4"></a>28.1.2 Compiling the code</H3>
 
 
 <p>
@@ -158,7 +158,7 @@ the user more freedom with respect to custom typing.
   </pre>
 </div>
 
-<H3><a name="Ocaml_nn5"></a>27.1.3 The camlp4 module</H3>
+<H3><a name="Ocaml_nn5"></a>28.1.3 The camlp4 module</H3>
 
 
 <p>
@@ -234,7 +234,7 @@ let b = C_string (getenv "PATH")
 </td></tr>
 </table>
 
-<H3><a name="Ocaml_nn6"></a>27.1.4 Using your module</H3>
+<H3><a name="Ocaml_nn6"></a>28.1.4 Using your module</H3>
 
 
 <p>
@@ -248,7 +248,7 @@ When linking any ocaml bytecode with your module, use the -custom
       option is not needed when you build native code.
 </p>
 
-<H3><a name="Ocaml_nn7"></a>27.1.5 Compilation problems and compiling with C++</H3>
+<H3><a name="Ocaml_nn7"></a>28.1.5 Compilation problems and compiling with C++</H3>
 
 
 <p>
@@ -259,7 +259,7 @@ liberal with pointer types may not compile under the C++ compiler.
 Most code meant to be compiled as C++ will not have problems.
 </p>
 
-<H2><a name="Ocaml_nn8"></a>27.2 The low-level Ocaml/C interface</H2>
+<H2><a name="Ocaml_nn8"></a>28.2 The low-level Ocaml/C interface</H2>
 
 
 <p>
@@ -360,7 +360,7 @@ is that  you  must append them to the return list with swig_result = caml_list_a
     signature for a function that uses value in this way.
     </p>
 
-<H3><a name="Ocaml_nn9"></a>27.2.1 The generated module</H3>
+<H3><a name="Ocaml_nn9"></a>28.2.1 The generated module</H3>
 
 
 <p>
@@ -394,7 +394,7 @@ it describes the output SWIG will generate for class definitions.
 </td></tr>
 </table>
                
-<H3><a name="Ocaml_nn10"></a>27.2.2 Enums</H3>
+<H3><a name="Ocaml_nn10"></a>28.2.2 Enums</H3>
 
 
 <p>
@@ -457,7 +457,7 @@ val x : Enum_test.c_obj = C_enum `a
 </pre>
   </div>
 
-<H4><a name="Ocaml_nn11"></a>27.2.2.1 Enum typing in Ocaml</H4>
+<H4><a name="Ocaml_nn11"></a>28.2.2.1 Enum typing in Ocaml</H4>
 
 
 <p>
@@ -470,10 +470,10 @@ functions imported from different modules.  You must convert values to master
 values using the swig_val function before sharing them with another module.
 </p>
 
-<H3><a name="Ocaml_nn12"></a>27.2.3 Arrays</H3>
+<H3><a name="Ocaml_nn12"></a>28.2.3 Arrays</H3>
 
 
-<H4><a name="Ocaml_nn13"></a>27.2.3.1 Simple types of bounded arrays</H4>
+<H4><a name="Ocaml_nn13"></a>28.2.3.1 Simple types of bounded arrays</H4>
 
 
 <p>
@@ -494,7 +494,7 @@ arrays of simple types with known bounds in your code, but this only works
 for arrays whose bounds are completely specified.
 </p>
 
-<H4><a name="Ocaml_nn14"></a>27.2.3.2 Complex and unbounded arrays</H4>
+<H4><a name="Ocaml_nn14"></a>28.2.3.2 Complex and unbounded arrays</H4>
 
 
 <p>
@@ -507,7 +507,7 @@ SWIG can't predict which of these methods will be used in the array,
 so you have to specify it for yourself in the form of a typemap.
 </p>
 
-<H4><a name="Ocaml_nn15"></a>27.2.3.3 Using an object</H4>
+<H4><a name="Ocaml_nn15"></a>28.2.3.3 Using an object</H4>
 
 
 <p>
@@ -521,7 +521,7 @@ Consider writing an object when the ending condition of your array is complex,
 such as using a required sentinel, etc.
 </p>
 
-<H4><a name="Ocaml_nn16"></a>27.2.3.4 Example typemap for a function taking float * and int</H4>
+<H4><a name="Ocaml_nn16"></a>28.2.3.4 Example typemap for a function taking float * and int</H4>
 
 
 <p>
@@ -572,7 +572,7 @@ void printfloats( float *tab, int len );
 </pre></td></tr></table>
 
 
-<H3><a name="Ocaml_nn17"></a>27.2.4 C++ Classes</H3>
+<H3><a name="Ocaml_nn17"></a>28.2.4 C++ Classes</H3>
 
 
 <p>
@@ -615,7 +615,7 @@ the underlying pointer, so using create_[x]_from_ptr alters the
 returned value for the same object.
 </p>
 
-<H4><a name="Ocaml_nn18"></a>27.2.4.1 STL vector and string Example</H4>
+<H4><a name="Ocaml_nn18"></a>28.2.4.1 STL vector and string Example</H4>
 
 
 <p>
@@ -695,7 +695,7 @@ baz
 # 
 </pre></div>
 
-<H4><a name="Ocaml_nn19"></a>27.2.4.2 C++ Class Example</H4>
+<H4><a name="Ocaml_nn19"></a>28.2.4.2 C++ Class Example</H4>
 
 
 <p>
@@ -725,7 +725,7 @@ public:
 };
 </pre></td></tr></table>
 
-<H4><a name="Ocaml_nn20"></a>27.2.4.3 Compiling the example</H4>
+<H4><a name="Ocaml_nn20"></a>28.2.4.3 Compiling the example</H4>
 
 
 <div class="code"><pre>
@@ -743,7 +743,7 @@ bash-2.05a$ ocamlmktop -custom swig.cmo -I `camlp4 -where` \
   -L$QTPATH/lib -cclib -lqt
 </pre></div>
 
-<H4><a name="Ocaml_nn21"></a>27.2.4.4 Sample Session</H4>
+<H4><a name="Ocaml_nn21"></a>28.2.4.4 Sample Session</H4>
 
 
 <div class="code"><pre>
@@ -770,10 +770,10 @@ Assuming you have a working installation of QT, you will see a window
 containing the string "hi" in a button.  
 </p>
 
-<H3><a name="Ocaml_nn22"></a>27.2.5 Director Classes</H3>
+<H3><a name="Ocaml_nn22"></a>28.2.5 Director Classes</H3>
 
 
-<H4><a name="Ocaml_nn23"></a>27.2.5.1 Director Introduction</H4>
+<H4><a name="Ocaml_nn23"></a>28.2.5.1 Director Introduction</H4>
 
 
 <p>
@@ -800,7 +800,7 @@ class foo {
 };
 </pre></div>
 
-<H4><a name="Ocaml_nn24"></a>27.2.5.2 Overriding Methods in Ocaml</H4>
+<H4><a name="Ocaml_nn24"></a>28.2.5.2 Overriding Methods in Ocaml</H4>
 
 
 <p>
@@ -828,7 +828,7 @@ In this example, I'll examine the objective caml code involved in providing
 an overloaded class.  This example is contained in Examples/ocaml/shapes.
 </p>
 
-<H4><a name="Ocaml_nn25"></a>27.2.5.3 Director Usage Example</H4>
+<H4><a name="Ocaml_nn25"></a>28.2.5.3 Director Usage Example</H4>
 
 
 <table border="1" bgcolor="#dddddd" summary="Director usage example">
@@ -887,7 +887,7 @@ in a more effortless style in ocaml, while leaving the "engine" part of the
 program in C++.
 </p>
 
-<H4><a name="Ocaml_nn26"></a>27.2.5.4 Creating director objects</H4>
+<H4><a name="Ocaml_nn26"></a>28.2.5.4 Creating director objects</H4>
 
 
 <p>
@@ -928,7 +928,7 @@ object from causing a core dump, as long as the object is destroyed
 properly.
 </p>
 
-<H4><a name="Ocaml_nn27"></a>27.2.5.5 Typemaps for directors, <tt>directorin, directorout, directorargout</tt></H4>
+<H4><a name="Ocaml_nn27"></a>28.2.5.5 Typemaps for directors, <tt>directorin, directorout, directorargout</tt></H4>
 
 
 <p>
@@ -939,7 +939,7 @@ well as a function return value in the same way you provide function arguments,
 and to receive arguments the same way you normally receive function returns.
 </p>
 
-<H4><a name="Ocaml_nn28"></a>27.2.5.6 <tt>directorin</tt> typemap</H4>
+<H4><a name="Ocaml_nn28"></a>28.2.5.6 <tt>directorin</tt> typemap</H4>
 
 
 <p>
@@ -950,7 +950,7 @@ code receives when you are called.  In general, a simple <tt>directorin</tt> typ
 can use the same body as a simple <tt>out</tt> typemap.
 </p>
 
-<H4><a name="Ocaml_nn29"></a>27.2.5.7 <tt>directorout</tt> typemap</H4>
+<H4><a name="Ocaml_nn29"></a>28.2.5.7 <tt>directorout</tt> typemap</H4>
 
 
 <p>
@@ -961,7 +961,7 @@ for the same type, except when there are special requirements for object
 ownership, etc.
 </p>
 
-<H4><a name="Ocaml_nn30"></a>27.2.5.8 <tt>directorargout</tt> typemap</H4>
+<H4><a name="Ocaml_nn30"></a>28.2.5.8 <tt>directorargout</tt> typemap</H4>
 
 
 <p>
@@ -978,7 +978,7 @@ In the event that you don't specify all of the necessary values, integral
 values will read zero, and struct or object returns have undefined results.
 </p>
 
-<H3><a name="Ocaml_nn31"></a>27.2.6 Exceptions</H3>
+<H3><a name="Ocaml_nn31"></a>28.2.6 Exceptions</H3>
 
 
 <p>

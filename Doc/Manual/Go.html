@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="Go"></a>20 SWIG and Go</H1>
+<H1><a name="Go"></a>21 SWIG and Go</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -41,7 +41,7 @@ the Go programming language
 see <a href="http://golang.org/">golang.org</a>.
 </p>
 
-<H2><a name="Go_overview"></a>20.1 Overview</H2>
+<H2><a name="Go_overview"></a>21.1 Overview</H2>
 
 
 <p>
@@ -65,7 +65,7 @@ checking and runtime library are not used with Go.  This should be
 borne in mind when reading the rest of the SWIG documentation.
 </p>
 
-<H2><a name="Go_running_swig"></a>20.2 Running SWIG with Go</H2>
+<H2><a name="Go_running_swig"></a>21.2 Running SWIG with Go</H2>
 
 
 <p>
@@ -74,7 +74,7 @@ default SWIG will generate code for the gc compilers.  To generate
 code for gccgo, you should also use the <tt>-gccgo</tt> option.
 </p>
 
-<H3><a name="Go_commandline"></a>20.2.1 Additional Commandline Options</H3>
+<H3><a name="Go_commandline"></a>21.2.1 Additional Commandline Options</H3>
 
 
 <p>
@@ -118,7 +118,7 @@ swig -go -help
 
 </table>
 
-<H3><a name="Go_outputs"></a>20.2.2 Go Output Files</H3>
+<H3><a name="Go_outputs"></a>21.2.2 Go Output Files</H3>
 
 
 <p> When generating Go code, SWIG will generate the following
@@ -163,7 +163,7 @@ A typical command sequence would look like this:
 % 6l main.6
 </pre></div>
 
-<H2><a name="Go_basic_tour"></a>20.3 A tour of basic C/C++ wrapping</H2>
+<H2><a name="Go_basic_tour"></a>21.3 A tour of basic C/C++ wrapping</H2>
 
 
 <p>
@@ -173,7 +173,7 @@ modifications have to occur.  This section briefly covers the
 essential aspects of this wrapping.
 </p>
 
-<H3><a name="Go_package"></a>20.3.1 Go Package Name</H3>
+<H3><a name="Go_package"></a>21.3.1 Go Package Name</H3>
 
 
 <p>
@@ -183,7 +183,7 @@ directive.  You may override this by using SWIG's <tt>-package</tt>
 command line option.
 </p>
 
-<H3><a name="Go_names"></a>20.3.2 Go Names</H3>
+<H3><a name="Go_names"></a>21.3.2 Go Names</H3>
 
 
 <p>
@@ -215,7 +215,7 @@ followed by that name, and the destructor will be
 named <tt>Delete</tt> followed by that name.
 </p>
 
-<H3><a name="Go_constants"></a>20.3.3 Go Constants</H3>
+<H3><a name="Go_constants"></a>21.3.3 Go Constants</H3>
 
 
 <p>
@@ -223,7 +223,7 @@ C/C++ constants created via <tt>#define</tt> or the <tt>%constant</tt>
 directive become Go constants, declared with a <tt>const</tt>
 declaration.
 
-<H3><a name="Go_enumerations"></a>20.3.4 Go Enumerations</H3>
+<H3><a name="Go_enumerations"></a>21.3.4 Go Enumerations</H3>
 
 
 <p>
@@ -233,7 +233,7 @@ usual).  The values of the enumeration will become variables in Go;
 code should avoid modifying those variables.
 </p>
 
-<H3><a name="Go_classes"></a>20.3.5 Go Classes</H3>
+<H3><a name="Go_classes"></a>21.3.5 Go Classes</H3>
 
 
 <p>
@@ -280,7 +280,7 @@ to <tt>reinterpret_cast</tt>.  This should only be used for very
 special cases, such as where C++ would use a <tt>dynamic_cast</tt>.
 </p>
 
-<H4><a name="Go_class_inheritance"></a>20.3.5.1 Go Class Inheritance</H4>
+<H4><a name="Go_class_inheritance"></a>21.3.5.1 Go Class Inheritance</H4>
 
 
 <p>
@@ -292,7 +292,7 @@ Doing the reverse will require an explicit type assertion, which will
 be checked dynamically.
 </p>
 
-<H3><a name="Go_templates"></a>20.3.6 Go Templates</H3>
+<H3><a name="Go_templates"></a>21.3.6 Go Templates</H3>
 
 
 <p>
@@ -300,7 +300,7 @@ In order to use C++ templates in Go, you must tell SWIG to create
 wrappers for a particular template instantation.  To do this, use
 the <tt>%template</tt> directive.
 
-<H3><a name="Go_director_classes"></a>20.3.7 Go Director Classes</H3>
+<H3><a name="Go_director_classes"></a>21.3.7 Go Director Classes</H3>
 
 
 <p>
@@ -343,7 +343,7 @@ method defined in Go.  The Go code may of course call other methods on
 itself, and those methods may be defined either in Go or in C++.
 </p>
 
-<H3><a name="Go_primitive_type_mappings"></a>20.3.8 Default Go primitive type mappings</H3>
+<H3><a name="Go_primitive_type_mappings"></a>21.3.8 Default Go primitive type mappings</H3>
 
 
 <p>
