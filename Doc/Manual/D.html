@@ -142,17 +142,18 @@
 
 <p>The full chain of type conversions when a director callback is invoked looks like this:</p>
 
- <div class="diagram"><pre>      type CPPClass::method(type a)
+ <div class="diagram"><pre>
+      type              CPPClass::method(type a)
+        &uarr;                       &darr;
+   &lt;directorout&gt;          &lt;directorin&gt;
         &uarr;                     &darr;
-   &lt;directorout&gt;         &lt;directorin&gt;
-        &uarr;                     &darr;
-     ctype methodCallback(ctype a)    C++
- ::::::::::::::::::::::::::::::::::::::::::
-     imtype methodCallback(imtype a)    D
-        &uarr;                     &darr;
-  &lt;ddirectorout&gt;       &lt;ddirectorin&gt;
-        &uarr;                     &darr;
-      dtype DClass.method(dtype a)</pre></div>
+      ctype             methodCallback(ctype a)           C++
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+      imtype            methodCallback(imtype a)           D
+        &uarr;                       &darr;
+  &lt;ddirectorout&gt;          &lt;ddirectorin&gt;
+        &uarr;                       &darr;
+      dtype             DClass.method(dtype a)</pre></div>
 
 
 <H3><a name="D_typecheck_typemaps"></a>20.3.5 typecheck typemaps</H3>
