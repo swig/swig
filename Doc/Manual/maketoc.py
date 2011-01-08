@@ -12,7 +12,7 @@ print >>f, """
 <TITLE>SWIG Users Manual</TITLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff">
-<H1>SWIG Users Manual</H1>
+<H1><a name="Contents"></a>SWIG Users Manual</H1>
 
 <p>
 """

@@ -142,7 +142,7 @@ Modula-3 has integrated support for calling C functions.
 This is also extensively used by the standard Modula-3 libraries
 to call OS functions.
 The Modula-3 part of SWIG and the corresponding SWIG library
-<a href="../../Lib/modula3/modula3.swg"><tt>modula3.swg</tt></a>
+modula3.swg
 contain code that uses these features.
 Because of the built-in support there is no need
 for calling the SWIG kernel to generate wrappers written in C.
@@ -394,8 +394,7 @@ so I'm not sure if this is possible or sensible, yet.
 There are different Modula-3 compilers around:
 cm3, pm3, ezm3, Klagenfurth Modula-3, Cambridge Modula-3.
 SWIG itself does not contain compiler specific code
-but the library file
-<a href="../../Lib/modula3/modula3.swg"><tt>modula3.swg</tt></a>
+but the modula3.swg library file
 may do so.
 For testing examples I use Critical Mass cm3.
 </p>
@@ -499,9 +498,7 @@ or for a return value.
 A further typemap may specify
 the direction that is used for certain parameters.
 I have chosen this separation
-in order to be able to write general typemaps for the typemap library
-<a href="../../Lib/modula3/modula3.swg"><tt>modula3.swg</tt></a>
-.
+in order to be able to write general typemaps for the modula3.swg typemap library.
 In the library code the final usage of the type is not known.
 Using separate typemaps for each possible use
 allows appropriate definitions for each case.
@@ -782,9 +779,7 @@ Unqualified import is not supported.
 <p>
 It is cumbersome to add this typemap to each piece of Modula-3 code.
 It is especially useful when writing general typemaps
-for the typemap library
-<a href="../../Lib/modula3/modula3.swg"><tt>modula3.swg</tt></a>
-.
+for the modula3.swg typemap library.
 For a monolithic module you might be better off
 if you add the imports directly:
 </p>
