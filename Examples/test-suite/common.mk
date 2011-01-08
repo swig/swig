@@ -154,6 +154,7 @@ CPP_TEST_CASES += \
 	derived_nested \
 	destructor_reprotected \
 	director_abstract \
+	director_alternating \
 	director_basic \
 	director_classes \
 	director_classic \

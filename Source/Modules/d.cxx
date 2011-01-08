@@ -2630,6 +2630,8 @@ private:
     if (!static_flag) {
       Printf(imcall, "cast(void*)swigCPtr");
     }
+    
+    String *proxy_param_types = NewString("");
 
     // Write the parameter list for the proxy function declaration and the
     // wrapper function call.
@@ -2704,10 +2706,13 @@ private:
 	      "No dtype typemap defined for %s\n", SwigType_str(pt, 0));
 	  }
 
-	  if (gencomma >= 2)
+	  if (gencomma >= 2) {
 	    Printf(function_code, ", ");
+	    Printf(proxy_param_types, ", ");
+	  }
 	  gencomma = 2;
 	  Printf(function_code, "%s %s", proxy_type, param_name);
+	  Append(proxy_param_types, proxy_type);
 
 	  Delete(proxy_type);
 	}
@@ -2772,9 +2777,11 @@ private:
 
 	String *excode = NewString("");
 	if (!Cmp(return_type, "void"))
-	  Printf(excode, "if (this.classinfo == %s.classinfo) %s; else %s", proxy_class_name, imcall, ex_imcall);
+	  Printf(excode, "if (swigIsMethodOverridden!(%s delegate(%s), %s function(%s), %s)()) %s; else %s",
+	    return_type, proxy_param_types, return_type, proxy_param_types, proxy_function_name, ex_imcall, imcall);
 	else
-	  Printf(excode, "((this.classinfo == %s.classinfo) ? %s : %s)", proxy_class_name, imcall, ex_imcall);
+	  Printf(excode, "((swigIsMethodOverridden!(%s delegate(%s), %s function(%s), %s)()) ? %s : %s)",
+	    return_type, proxy_param_types, return_type, proxy_param_types, proxy_function_name, ex_imcall, imcall);
 
 	Clear(imcall);
 	Printv(imcall, excode, NIL);
@@ -2788,6 +2795,8 @@ private:
       Swig_warning(WARN_D_TYPEMAP_DOUT_UNDEF, input_file, line_number,
 	"No dout typemap defined for %s\n", SwigType_str(t, 0));
     }
+    
+    Delete(proxy_param_types);
 
     // The whole function body is now in stored tm (if there was a matching type
     // map, of course), so simply append it to the code buffer. The braces are
@@ -3418,7 +3427,7 @@ private:
     // Only emit it if the proxy class has at least one method.
     if (first_class_dmethod < curr_class_dmethod) {
       Printf(proxy_class_body_code, "\n");
-      Printf(proxy_class_body_code, "private bool swigIsMethodOverridden(DelegateType, FunctionType, alias fn)() {\n");
+      Printf(proxy_class_body_code, "private bool swigIsMethodOverridden(DelegateType, FunctionType, alias fn)() %s{\n", (d_version > 1) ? "const " : "");
       Printf(proxy_class_body_code, "  DelegateType dg = &fn;\n");
       Printf(proxy_class_body_code, "  return dg.funcptr != SwigNonVirtualAddressOf!(FunctionType, fn);\n");
       Printf(proxy_class_body_code, "}\n");
