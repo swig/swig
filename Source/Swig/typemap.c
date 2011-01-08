@@ -1440,8 +1440,8 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     num_substitutions = typemap_replace_vars(s, locals, type, type, pname, (char *) lname, 1);
   }
   if (optimal_substitution && num_substitutions > 1) {
-    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(node), Getline(node), "Multiple calls to %s might be generated due to optimal attribute usage in\n", Swig_name_decl(node));
-    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(s), Getline(s), "the out typemap.\n");
+    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(node), Getline(node), "Multiple calls to %s might be generated due to\n", Swig_name_decl(node));
+    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(s), Getline(s), "optimal attribute usage in the out typemap.\n");
   }
 
   if (locals && f) {

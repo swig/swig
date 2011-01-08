@@ -575,7 +575,8 @@ marshalling for the arrays:
 <pre>
 [DllImport("example", EntryPoint="CSharp_myArrayCopy")]
 public static extern void myArrayCopy([In, MarshalAs(UnmanagedType.LPArray)]int[] jarg1, 
-                                      [Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2, int jarg3);
+                                      [Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2,
+                                       int jarg3);
 </pre>
 </div>
 
@@ -624,7 +625,8 @@ and intermediate class method
 <pre>
   [DllImport("example", EntryPoint="CSharp_myArraySwap")]
   public static extern void myArraySwap([In, Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg1, 
-                                        [In, Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2, int jarg3);
+                                        [In, Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2,
+                                         int jarg3);
 </pre>
 </div>
 
@@ -696,7 +698,8 @@ As a result, we get the following method in the module class:
     fixed ( int *swig_ptrTo_sourceArray = sourceArray ) {
     fixed ( int *swig_ptrTo_targetArray = targetArray ) {
     {
-      examplePINVOKE.myArrayCopy((IntPtr)swig_ptrTo_sourceArray, (IntPtr)swig_ptrTo_targetArray, nitems);
+      examplePINVOKE.myArrayCopy((IntPtr)swig_ptrTo_sourceArray, (IntPtr)swig_ptrTo_targetArray,
+                                 nitems);
     }
     }
     }
@@ -2109,7 +2112,8 @@ public class example {
     try {
       examplePINVOKE.addYears(CDate.getCPtr(temppDate), years);
     } finally {
-      pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(), 0, 0, 0);
+      pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(),
+                                  0, 0, 0);
     }
   }
   ...
@@ -2126,13 +2130,13 @@ The <tt>subtractYears</tt> method is nearly identical to the above <tt>addYears<
 <div class="code">
 <pre>
 %typemap(csin,
-         pre="    using (CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day)) {",
-         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
-              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
-         terminator="    } // terminate temp$csinput using block",
-         cshin="ref $csinput"
-        ) CDate *
-         "$csclassname.getCPtr(temp$csinput)"
+  pre="    using (CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day)) {",
+  post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+       " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+  terminator="    } // terminate temp$csinput using block",
+  cshin="ref $csinput"
+ ) CDate *
+  "$csclassname.getCPtr(temp$csinput)"
 
 void subtractYears(CDate *pDate, int years) {
   *pDate = CDate(pDate-&gt;getYear() - years, pDate-&gt;getMonth(), pDate-&gt;getDay());
@@ -2152,7 +2156,8 @@ public class example {
     try {
       examplePINVOKE.subtractYears(CDate.getCPtr(temppDate), years);
     } finally {
-      pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(), 0, 0, 0);
+      pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(),
+                                  0, 0, 0);
     }
     } // terminate temppDate using block
   }

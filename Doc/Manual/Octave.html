@@ -755,7 +755,8 @@ Note that you have to enable directors via the %feature directive (see other mod
 <tt>subclass()</tt> will accept any number of C++ bases or other <tt>subclass()</tt>'ed objects, <tt>(string,octave_value)</tt> pairs, and <tt>function_handles</tt>. In the first case, these are taken as base classes; in the second case, as named members (either variables or functions, depending on whether the given value is a function handle); in the third case, as member functions whose name is taken from the given function handle. E.g.,
 </p>
 <div class="targetlang"><pre>
-octave:1&gt; B=@(some_var=2) subclass(A(),'some_var',some_var,@some_func,'another_func',@(self) do_stuff())
+octave:1&gt; B=@(some_var=2) subclass(A(),'some_var',some_var,@some_func,'another_func',
+@(self) do_stuff())
 </pre></div>
 <p>
 You can also assign non-C++ member variables and functions after construct time. There is no support for non-C++ static members.

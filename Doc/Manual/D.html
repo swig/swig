@@ -248,7 +248,8 @@ SomeClass bar() {
     <p>This macro is only valid inside the <tt><a href="D.html#D_class_code_typemaps">dconstructor</a></tt> typemap and contains the value of the <tt>dconstructor</tt> typemap attribute if the currently wrapped class has directors enabled.</p>
     <p>This is how the default <tt>dconstructor</tt> typemap looks like (you usually do not want to specify a custom one):</p>
 <div class="code"><pre>
-%typemap(dconstructor, excode=SWIGEXCODE,directorconnect="\n  swigDirectorConnect();") SWIGTYPE {
+%typemap(dconstructor, excode=SWIGEXCODE, 
+         directorconnect="\n  swigDirectorConnect();") SWIGTYPE {
   this($imcall, true);$excode$directorconnect
 }
 </pre></div>
