@@ -5,10 +5,8 @@ lines(0);
 swigtestname = strsubst(fileparts(names, "fname"), "_runme", "");
 
 // Does the library exists? If not then exit!
-if ~isfile("lib" + fileparts(names, "fname") + "lib" + getdynlibext()) then
-    mprintf("**************************\n")
-    mprintf("* LIBRARY DOES NOT EXIST *\n");
-    mprintf("**************************\n")
+if ~isfile("lib" + swigtestname + "lib" + getdynlibext()) then
+    mprintf("*** LIBRARY NOT FOUND: %s ***\n", "lib" + swigtestname + "lib" + getdynlibext());
     exit
 end
 
@@ -16,16 +14,12 @@ end
 try
     exec("loader.sce", -1);
 catch
-    mprintf("***************************\n")
-    mprintf("* LOADER EXECUTION FAILED *\n");
-    mprintf("***************************\n")
+    mprintf("*** LOADER EXECUTION FAILED ***\n");
     exit
 end
 
 // Error management function
 function swigtesterror()
-    mprintf("***************\n")
-    mprintf("* TEST FAILED *\n")
-    mprintf("***************\n")
+    mprintf("*** TEST FAILED ***\n")
     exit
 endfunction
