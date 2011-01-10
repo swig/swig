@@ -17,17 +17,17 @@ include $(srcdir)/../common.mk
 # Rules for the different types of tests
 %.cpptest:
 	@$(setup)
-	@+$(swig_and_compile_cpp)
+	@+$(swig_and_compile_cpp) > scilab.log
 	@$(run_testcase)
 
 %.ctest:
 	@$(setup)
-	@+$(swig_and_compile_c)
+	@+$(swig_and_compile_c) > scilab.log
 	@$(run_testcase)
 
 %.multicpptest:
 	@$(setup)
-	@+$(swig_and_compile_multi_cpp)
+	@+$(swig_and_compile_multi_cpp) > scilab.log
 	@$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
@@ -36,7 +36,7 @@ run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) -nwni -nb -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
 	else \
-	  (echo "**********************\n* RUNME FILE MISSING *\n* $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) *\n**********************") \
+	  (echo "*** RUNME FILE NOT FOUND: $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ***") \
 	fi; \
 
 
