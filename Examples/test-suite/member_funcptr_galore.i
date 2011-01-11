@@ -1,4 +1,4 @@
-%module member_pointer
+%module member_funcptr_galore
 
 %inline %{
 
