@@ -43,7 +43,7 @@
 %feature("pyslot", "tp_call", functype="ternaryfunc") *::operator();
 
 #if defined(SWIGPYTHON_BUILTIN)
-%pybinoperator(__nonzero__,   *::operator bool,		unaryfunc, nb_nonzero);
+%pybinoperator(__nonzero__,   *::operator bool,		inquiry, nb_nonzero);
 #else
 %feature("shadow")      *::operator bool %{
 def __nonzero__(self):

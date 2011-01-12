@@ -1033,50 +1033,61 @@ SWIG_This(void)
 SWIGRUNTIME SwigPyObject *
 SWIG_Python_GetSwigThis(PyObject *pyobj) 
 {
-  if (SwigPyObject_Check(pyobj)) {
+  if (SwigPyObject_Check(pyobj))
     return (SwigPyObject *) pyobj;
-  } else {
-    PyObject *obj = 0;
-#if (!defined(SWIG_PYTHON_SLOW_GETSET_THIS) && (PY_VERSION_HEX >= 0x02030000))
-    if (PyInstance_Check(pyobj)) {
-      obj = _PyInstance_Lookup(pyobj, SWIG_This());      
-    } else {
-      PyObject **dictptr = _PyObject_GetDictPtr(pyobj);
-      if (dictptr != NULL) {
-	PyObject *dict = *dictptr;
-	obj = dict ? PyDict_GetItem(dict, SWIG_This()) : 0;
-      } else {
-#ifdef PyWeakref_CheckProxy
-	if (PyWeakref_CheckProxy(pyobj)) {
-	  PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
-	  return wobj ? SWIG_Python_GetSwigThis(wobj) : 0;
-	}
+
+#ifdef SWIGPYTHON_BUILTIN
+# ifdef PyWeakref_CheckProxy
+  if (PyWeakref_CheckProxy(pyobj)) {
+    pyobj = PyWeakref_GET_OBJECT(pyobj);
+    if (pyobj && SwigPyObject_Check(pyobj))
+      return (SwigPyObject*) pyobj;
+  }
+# endif
+  return NULL;
 #endif
-	obj = PyObject_GetAttr(pyobj,SWIG_This());
-	if (obj) {
-	  Py_DECREF(obj);
-	} else {
-	  if (PyErr_Occurred()) PyErr_Clear();
-	  return 0;
-	}
+
+  PyObject *obj = 0;
+
+#if (!defined(SWIG_PYTHON_SLOW_GETSET_THIS) && (PY_VERSION_HEX >= 0x02030000))
+  if (PyInstance_Check(pyobj)) {
+    obj = _PyInstance_Lookup(pyobj, SWIG_This());      
+  } else {
+    PyObject **dictptr = _PyObject_GetDictPtr(pyobj);
+    if (dictptr != NULL) {
+      PyObject *dict = *dictptr;
+      obj = dict ? PyDict_GetItem(dict, SWIG_This()) : 0;
+    } else {
+#ifdef PyWeakref_CheckProxy
+      if (PyWeakref_CheckProxy(pyobj)) {
+	PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
+	return wobj ? SWIG_Python_GetSwigThis(wobj) : 0;
+      }
+#endif
+      obj = PyObject_GetAttr(pyobj,SWIG_This());
+      if (obj) {
+	Py_DECREF(obj);
+      } else {
+	if (PyErr_Occurred()) PyErr_Clear();
+	return 0;
       }
     }
-#else
-    obj = PyObject_GetAttr(pyobj,SWIG_This());
-    if (obj) {
-      Py_DECREF(obj);
-    } else {
-      if (PyErr_Occurred()) PyErr_Clear();
-      return 0;
-    }
-#endif
-    if (obj && !SwigPyObject_Check(obj)) {
-      /* a PyObject is called 'this', try to get the 'real this'
-	 SwigPyObject from it */ 
-      return SWIG_Python_GetSwigThis(obj);
-    }
-    return (SwigPyObject *)obj;
   }
+#else
+  obj = PyObject_GetAttr(pyobj,SWIG_This());
+  if (obj) {
+    Py_DECREF(obj);
+  } else {
+    if (PyErr_Occurred()) PyErr_Clear();
+    return 0;
+  }
+#endif
+  if (obj && !SwigPyObject_Check(obj)) {
+    /* a PyObject is called 'this', try to get the 'real this'
+       SwigPyObject from it */ 
+    return SWIG_Python_GetSwigThis(obj);
+  }
+  return (SwigPyObject *)obj;
 }
 
 /* Acquire a pointer value */
@@ -1104,22 +1115,27 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 	return SWIG_OK;
     }
 
+    /*
     if (ty && ty->clientdata && ((SwigPyClientData*) ty->clientdata)->pytype) {
-	PyTypeObject *target_tp = ((SwigPyClientData*) ty->clientdata)->pytype;
-	PyTypeObject *obj_tp;
-	for (obj_tp = obj->ob_type; obj_tp; obj_tp = obj_tp->tp_base) {
-	    if (obj_tp == target_tp) {
-		SwigPyObject *sobj = (SwigPyObject*) obj;
-	    	if (own)
-		    *own = *own | sobj->own;
-		if (flags & SWIG_POINTER_DISOWN)
-		    sobj->own = 0;
-	        if (ptr)
-		    *ptr = sobj->ptr;
-		return SWIG_OK;
-	    }
+      PyTypeObject *target_tp = ((SwigPyClientData*) ty->clientdata)->pytype;
+      SwigPyObject *sobj = SWIG_Python_GetSwigThis(obj);
+      for (; sobj; sobj = (SwigPyObject*) sobj->next) {
+	if (!sobj->ty->clientdata)
+	  continue;
+	PyTypeObject *candidate_tp = ((SwigPyClientData*) sobj->ty->clientdata)->pytype;
+	if (candidate_tp && PyType_IsSubtype(candidate_tp, target_tp)) {
+	  if (own)
+	    *own = *own | sobj->own;
+	  if (flags & SWIG_POINTER_DISOWN)
+	    sobj->own = 0;
+	  if (ptr)
+	    *ptr = sobj->ptr;
+	  return SWIG_OK;
 	}
+      }
+      return SWIG_ERROR;
     }
+    */
 
     int res = SWIG_ERROR;
 

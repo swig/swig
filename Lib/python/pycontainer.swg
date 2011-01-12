@@ -604,7 +604,7 @@ namespace swig
   %newobject __getslice__;
 
 #if defined(SWIGPYTHON_BUILTIN)
-  %feature("pyslot", "nb_nonzero", functype="unaryfunc") __nonzero__;
+  %feature("pyslot", "nb_nonzero", functype="inquiry") __nonzero__;
   %feature("pyslot", "sq_length", functype="lenfunc") __len__;
 #endif // SWIGPYTHON_BUILTIN
 

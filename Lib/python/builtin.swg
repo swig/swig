@@ -5,6 +5,16 @@ wrapper##_closure (PyObject *a)			\
     return wrapper(a, NULL);			\
 }
 
+#define PYSWIG_INQUIRY_CLOSURE(wrapper)				\
+SWIGINTERN int							\
+wrapper##_closure (PyObject *a)					\
+{								\
+    PyObject *pyresult = wrapper(a, NULL);			\
+    int result = pyresult && PyObject_IsTrue(pyresult) ? 1 : 0;	\
+    Py_XDECREF(pyresult);					\
+    return result;						\
+}
+
 #define PYSWIG_BINARYFUNC_CLOSURE(wrapper)	\
 SWIGINTERN PyObject*				\
 wrapper##_closure (PyObject *a, PyObject *b)	\
@@ -126,28 +136,9 @@ wrapper##_closure (PyObject *a, PyObject *b, PyObject *c)	\
 
 namespace {
 
-template <typename _Tp> struct SwigPyBuiltin : public SwigPyObject {
-
-    typedef SwigPyBuiltin<_Tp> this_type;
-    typedef _Tp obj_type;
-    typedef obj_type* pointer;
-    typedef obj_type& reference;
-
-    static PyObject* richcompare (PyObject *self, PyObject *other, int op);
-
-    static PyMethodDef methods[];
-    static PyGetSetDef getset[];
-    static PyNumberMethods number_methods;
-    static PySequenceMethods sequence_methods;
-    static PyMappingMethods mapping_methods;
-    static PyTypeObject pytype;
-    static SwigPyClientData clientdata;
-};
-
 template <typename _Tp> void py_builtin_dealloc (PyObject *pyobj)
 {
-    typedef SwigPyBuiltin<_Tp> builtin_type;
-    builtin_type *obj = (builtin_type*) pyobj;
+    SwigPyObject *obj = (SwigPyObject*) pyobj;
     if (obj->own)
 	delete reinterpret_cast<_Tp*>(obj->ptr);
     (*pyobj->ob_type->tp_free)(pyobj);
@@ -168,7 +159,7 @@ SWIGRUNTIME void py_builtin_bad_dealloc (PyObject *pyobj)
     SwigPyObject *sobj = (SwigPyObject*) pyobj;
     if (sobj->own) {
 	PyErr_Format(PyExc_TypeError,
-		     "Swig detected a memory leak in type '%s': no callable destructor found.",
+		     "Swig detected a memory leak in type '%.300s': no callable destructor found.",
 		     pyobj->ob_type->tp_name);
     }
 }
