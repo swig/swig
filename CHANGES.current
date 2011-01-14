@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2010-01-14: wsfulton
+            Added some missing multi-argument typemaps: (char *STRING, size_t LENGTH) and 
+            (char *STRING, int LENGTH). Documentation for this updated. Java patch from
+            Volker Grabsch.
+
 2010-12-30: klickverbot
             [C#, D, Java] Check for collision of parameter names with target
             language keywords when generating the director glue code.

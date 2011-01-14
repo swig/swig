@@ -348,7 +348,7 @@ typedef unsigned long SCM;
  * String & length
  * ------------------------------------------------------------ */
 
-%typemap(in) (char *STRING, int LENGTH) {
+%typemap(in) (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) {
     size_t temp;
     $1 = ($1_ltype) gh_scm2newstr($input, &temp);
     $2 = ($2_ltype) temp;

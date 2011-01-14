@@ -76,8 +76,7 @@
    $1 = ($1_ltype) Z_STRVAL_PP($input);
 }
 
-%typemap(in) (char *STRING, int LENGTH)
-{
+%typemap(in) (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) {
    convert_to_string_ex($input);
    $1 = ($1_ltype) Z_STRVAL_PP($input);
    $2 = ($2_ltype) Z_STRLEN_PP($input);

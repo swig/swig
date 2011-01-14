@@ -824,20 +824,20 @@ If you have a function that expects binary data,
 
 <div class="code">
 <pre>
-int parity(char *str, int len, int initial);
+size_t parity(char *str, size_t len, size_t initial);
 </pre>
 </div>
 
 <p>
-you can wrap the parameters <tt>(char *str, int len)</tt> as a single
+you can wrap the parameters <tt>(char *str, size_t len)</tt> as a single
 argument using a typemap.   Just do this:
 </p>
 
 <div class="code">
 <pre>
-%apply (char *STRING, int LENGTH) { (char *str, int len) };
+%apply (char *STRING, size_t LENGTH) { (char *str, size_t len) };
 ...
-int parity(char *str, int len, int initial);
+size_t parity(char *str, size_t len, size_t initial);
 </pre>
 </div>
 
@@ -854,6 +854,7 @@ Now, in the target language, you can use binary string data like this:
 
 <p>
 In the wrapper function, the passed string will be expanded to a pointer and length parameter.
+The <tt>(char *STRING, int LENGTH)</tt> multi-argument typemap is also available in addition to <tt>(char *STRING, size_t LENGTH)</tt>.
 </p>
 
 <H3><a name="Library_nn11"></a>8.3.3 Using %newobject to release memory</H3>

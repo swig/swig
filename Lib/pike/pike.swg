@@ -185,7 +185,7 @@ extern "C" {
  * String & length
  * ------------------------------------------------------------ */
 
-%typemap(in, pikedesc="tStr") (char *STRING, int LENGTH) {
+%typemap(in) (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) {
     if ($input.type != T_STRING)
         Pike_error("Bad argument: Expected a string.\n");
     $1 = ($1_ltype) STR0($input.u.string);

@@ -4401,6 +4401,49 @@ well suited for applications in which you need to create buffers,
 package binary data, etc.
 </p>
 
+<H3><a name="Java_binary_char"></a>Binary data vs Strings</H3>
+
+<p>
+By default SWIG handles <tt>char *</tt> as a string but there is a handy multi-argument typemap available as mentioned in <a href="Library.html#Library_nn10">Passing binary data</a>.
+The following simple example demonstrates using a byte array instead of passing the default string type and length to the wrapped function.
+</p>
+
+
+<div class="code">
+<pre>
+%apply (char *STRING, size_t LENGTH) { (const char data[], size_t len) }
+%inline %{
+void binaryChar1(const char data[], size_t len) {
+  printf("len: %d data: ", len);
+  for (size_t i=0; i&lt;len; ++i)
+    printf("%x ", data[i]);
+  printf("\n");
+}
+%}
+</pre>
+</div>
+
+<p>
+Calling from Java requires just the byte array to be passed in as the multi-argument typemap being applied reduces the number of arguments in the target language to one, from the original two:
+</p>
+
+<div class="code">
+<pre>
+byte[] data = "hi\0jk".getBytes();
+example.binaryChar1(data);     
+</pre>
+</div>
+
+<p>
+resulting in the output
+</p>
+
+<div class="code"><pre>
+$ java runme
+len: 5 data: 68 69 0 6a 6b
+</pre></div>
+
+
 <H3><a name="Java_heap_allocations"></a>23.8.5 Overriding new and delete to allocate from Java heap</H3>
 
 
