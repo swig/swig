@@ -333,6 +333,28 @@
 	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
 %{ $result = ($1_ltype)$input.p; %}
 
+/* String & length */
+
+%typemap(gotype) (char *STRING, size_t LENGTH) "string"
+
+%typemap(in) (char *STRING, size_t LENGTH)
+%{
+  $1 = ($1_ltype)$input.p;
+  $2 = ($2_ltype)$input.n;
+%}
+
+%typemap(out) (char *STRING, size_t LENGTH)
+%{ $result = _swig_makegostring((char*)$1, (size_t)$2); %}
+
+%typemap(directorin) (char *STRING, size_t LENGTH)
+%{ $input = _swig_makegostring((char*)$1_name, $2_name); %}
+
+%typemap(directorout) (char *STRING, size_t LENGTH)
+%{
+  $1 = ($1_ltype)$input.p;
+  $2 = ($2_ltype)$input.n;
+%}
+
 /* Enums.  We can't do the right thing for enums in typemap(gotype) so
    we deliberately don't define them.  The right thing would be to
    capitalize the name.  This is instead done in go.cxx.  */
@@ -500,6 +522,7 @@
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)
     ""
+
 /* Go keywords.  */
 %include <gokw.swg>
 
