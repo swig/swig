@@ -1803,20 +1803,6 @@ struct DerivedIntValue : IntValue {
 </div>
 
 <p>
-Note that if the <tt>%shared_ptr</tt> macro is omitted for any class in the inheritance hierarchy, it will
-result in a C++ compiler error.
-For example if the above <tt>%shared_ptr(DerivedIntValue)</tt> is omitted, the following is typical of the compiler error that will result:
-</p>
-
-<div class="shell">
-<pre>
-example_wrap.cxx: In function 'void Java_exampleJNI_delete_1DerivedIntValue(JNIEnv*,
-_jclass*, jlong)':
-example_wrap.cxx:3169: error: 'smartarg1' was not declared in this scope
-</pre>
-</div>
-
-<p>
 A shared_ptr of the derived class can now be passed to a method where the base is expected in the target language, just as it can in C++:
 </p>
 
@@ -1825,6 +1811,59 @@ A shared_ptr of the derived class can now be passed to a method where the base i
 DerivedIntValue div = new DerivedIntValue(5678);
 int val3 = example.extractValue(div);
 int val4 = example.extractValueSmart(div);
+</pre>
+</div>
+
+<p>
+If the <tt>%shared_ptr</tt> macro is omitted for any class in the inheritance hierarchy, SWIG will warn about this and the generated code may or may not result in a C++ compilation error.
+For example, the following input: 
+</p>
+
+<div class="code">
+<pre>
+%include "boost_shared_ptr.i"
+%shared_ptr(Parent);
+
+%inline %{
+  #include &lt;boost/shared_ptr.hpp&gt;
+  struct GrandParent {
+    virtual ~GrandParent() {}
+  };
+
+  struct Parent : GrandParent {
+    virtual ~Parent() {}
+  };
+
+  struct Child : Parent {
+    virtual ~Child() {}
+  };
+%}
+</pre>
+</div>
+
+<p>
+warns about the missing smart pointer information:
+</p>
+
+<div class="shell">
+<pre>
+example.i:12: Warning 520: Base class 'GrandParent' of 'Parent' is not similarly marked as a smart pointer.
+example.i:16: Warning 520: Derived class 'Child' of 'Parent' is not similarly marked as a smart pointer.
+</pre>
+</div>
+
+<p>
+Adding the missing <tt>%shared_ptr</tt> macros will fix this:
+</p>
+
+<div class="code">
+<pre>
+%include "boost_shared_ptr.i"
+%shared_ptr(GrandParent);
+%shared_ptr(Parent);
+%shared_ptr(Child);
+
+... as before ...
 </pre>
 </div>
 

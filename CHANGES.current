@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2010-01-17: wsfulton
+            New warning for smart pointers if only some of the classes in the inheritance
+            chain are marked as smart pointer, eg, %shared_ptr should be used for all classes
+            in an inheritance hierarchy, so this new warning highlights code where this is
+            not the case.
+
+              example.i:12: Warning 520: Base class 'A' of 'B' is not similarly marked as a smart pointer.
+              example.i:16: Warning 520: Derived class 'C' of 'B' is not similarly marked as a smart pointer.
+
 2010-01-14: wsfulton
             Added some missing multi-argument typemaps: (char *STRING, size_t LENGTH) and 
             (char *STRING, int LENGTH). Documentation for this updated. Java patch from

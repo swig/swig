@@ -76,6 +76,7 @@ cpp_nobase
 cpp_overload
 cpp_private_defvalue
 cpp_private_inherit
+cpp_shared_ptr
 cpp_template_argname
 cpp_template_nargs
 cpp_template_not
@@ -98,14 +99,14 @@ for i in ${CFILES}; do
    echo "    Testing : ${i}.i"; 
    echo "" >> ${LOGFILE};
    echo ":::::::::::::::::::::::::::::::: ${i}.i :::::::::::::::::::::::::::::::::::" >> ${LOGFILE};
-   ${SWIG} -Wall ${SWIGOPT} ${i}.i >>${LOGFILE} 2>&1
+   ${SWIG} -python -Wall ${SWIGOPT} ${i}.i >>${LOGFILE} 2>&1
 done
 
 for i in ${CPPFILES}; do 
    echo "    Testing : ${i}.i"; 
    echo "" >> ${LOGFILE}
    echo ":::::::::::::::::::::::::::::::: ${i}.i :::::::::::::::::::::::::::::::::::" >> ${LOGFILE};
-   ${SWIG} -Wall -c++ ${SWIGOPT} ${i}.i >>${LOGFILE} 2>&1
+   ${SWIG} -python -Wall -c++ ${SWIGOPT} ${i}.i >>${LOGFILE} 2>&1
 done
 
 echo ""
