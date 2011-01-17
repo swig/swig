@@ -19,6 +19,9 @@ Version 2.0.2 (in progress)
             (char *STRING, int LENGTH). Documentation for this updated. Java patch from
             Volker Grabsch.
 
+2010-01-11: iant
+	    Require Go version 7077 or later.
+
 2010-12-30: klickverbot
             [C#, D, Java] Check for collision of parameter names with target
             language keywords when generating the director glue code.
