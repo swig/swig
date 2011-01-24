@@ -51,13 +51,12 @@ or you can use the %apply directive :
 
 In C# you could then use it like this:
         double answer = modulename.fadd(10.0, 20.0);
-
 */
 
 %define INPUT_TYPEMAP(TYPE, CTYPE, CSTYPE)
-%typemap(ctype) TYPE *INPUT, TYPE &INPUT "CTYPE"
-%typemap(imtype) TYPE *INPUT, TYPE &INPUT "CSTYPE"
-%typemap(cstype) TYPE *INPUT, TYPE &INPUT "CSTYPE"
+%typemap(ctype, out="void *") TYPE *INPUT, TYPE &INPUT "CTYPE"
+%typemap(imtype, out="IntPtr") TYPE *INPUT, TYPE &INPUT "CSTYPE"
+%typemap(cstype, out="$csclassname") TYPE *INPUT, TYPE &INPUT "CSTYPE"
 %typemap(csin) TYPE *INPUT, TYPE &INPUT "$csinput"
 %typemap(csdirectorin) TYPE *INPUT, TYPE &INPUT "$iminput"
 %typemap(csdirectorout) TYPE *INPUT, TYPE &INPUT "$cscall"
@@ -143,17 +142,15 @@ value returned in the second output parameter. In C# you would use it like this:
 
     double dptr;
     double fraction = modulename.modf(5, out dptr);
-
 */
 
 %define OUTPUT_TYPEMAP(TYPE, CTYPE, CSTYPE, TYPECHECKPRECEDENCE)
-%typemap(ctype) TYPE *OUTPUT, TYPE &OUTPUT "CTYPE *"
-%typemap(imtype) TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
-%typemap(cstype) TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
+%typemap(ctype, out="void *") TYPE *OUTPUT, TYPE &OUTPUT "CTYPE *"
+%typemap(imtype, out="IntPtr") TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
+%typemap(cstype, out="$csclassname") TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
 %typemap(csin) TYPE *OUTPUT, TYPE &OUTPUT "out $csinput"
 %typemap(csdirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$iminput"
 %typemap(csdirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$cscall"
-
 
 %typemap(in) TYPE *OUTPUT, TYPE &OUTPUT
 %{ $1 = ($1_ltype)$input; %}
@@ -250,9 +247,9 @@ of the function return value.
 */
 
 %define INOUT_TYPEMAP(TYPE, CTYPE, CSTYPE, TYPECHECKPRECEDENCE)
-%typemap(ctype) TYPE *INOUT, TYPE &INOUT "CTYPE *"
-%typemap(imtype) TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
-%typemap(cstype) TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
+%typemap(ctype, out="void *") TYPE *INOUT, TYPE &INOUT "CTYPE *"
+%typemap(imtype, out="IntPtr") TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
+%typemap(cstype, out="$csclassname") TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
 %typemap(csin) TYPE *INOUT, TYPE &INOUT "ref $csinput"
 %typemap(csdirectorin) TYPE *INOUT, TYPE &INOUT "$iminput"
 %typemap(csdirectorout) TYPE *INOUT, TYPE &INOUT "$cscall"
