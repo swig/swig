@@ -17,7 +17,7 @@ include $(srcdir)/../common.mk
 # Rules for the different types of tests
 %.cpptest:
 	@$(setup)
-	@+$(swig_and_compile_cpp) > scilab.log
+	+$(swig_and_compile_cpp) > scilab.log
 	@$(run_testcase)
 
 %.ctest:
