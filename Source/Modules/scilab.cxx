@@ -171,238 +171,281 @@ public:
    * ---------------------------------------------------------------------- */
 
   virtual int functionWrapper(Node *n) {
-  
+
     hasfunction_flag = true;
-   
+
     /* A new wrapper function object */
     Wrapper *f = NewWrapper();
-    Parm *p;
-    String *tm;
+    Parm *parm;
+    String *typemap;
     int j;
 
     /* Determine whether the function is overloaded or not */
     bool overloaded = !!Getattr(n, "sym:overloaded");
-  
-    /* Determine whether the function is the last overloaded */   
+
+    /* Determine whether the function is the last overloaded */
     bool last_overload = overloaded && !Getattr(n, "sym:nextSibling");
-  
+
     String *iname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(iname);
     String *overname = Copy(wname);
-    SwigType *d = Getattr(n, "type");
-    ParmList *l = Getattr(n, "parms");
+    SwigType *nodeType = Getattr(n, "type");
+    ParmList *parmList = Getattr(n, "parms");
 
     if (!overloaded && !addSymbol(iname, n))
-      return SWIG_ERROR;
+    {
+        return SWIG_ERROR;
+    }
 
     if (overloaded)
-      Append(overname, Getattr(n, "sym:overname"));
+    {
+        Append(overname, Getattr(n, "sym:overname"));
+    }
 
     Printv(f->def, "int ", overname, " (char *fname, unsigned long fname_len) {\n", NIL);
-   
+
     /* Emit all of the local variables for holding arguments */
-    emit_parameter_variables(l, f);
-  
+    emit_parameter_variables(parmList, f);
+
     /* Attach typemaps to the parameter list */
-    emit_attach_parmmaps(l, f);
-    Setattr(n, "wrap:parms", l);
-   
+    emit_attach_parmmaps(parmList, f);
+    Setattr(n, "wrap:parms", parmList);
+
     /* Get number of required and total arguments */
-    int num_arguments = emit_num_arguments(l);
-    int num_required = emit_num_required(l);
-  
+    int num_arguments = emit_num_arguments(parmList);
+    int num_required = emit_num_required(parmList);
+
     /* The number of the output */
     int out_required = 0;
-  
+
     /* Walk the function parameter list and generate code to get arguments */
-    for (j = 0, p = l; j < num_arguments; ++j) {
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
-      }
-
-      SwigType *pt = Getattr(p, "type");
-      if ( Equal(SwigType_base(pt), "long long") || Equal(SwigType_base(pt), "unsigned long long")) {
-        Printv(f->code, " #ifdef __SCILAB_INT64__\n", NIL);
-      }
-
-      /* Get typemap for this argument */
-      String *tm = Getattr(p, "tmap:in");
-     
-      if (tm) {
-        if (!tm || checkAttribute(p, "tmap:in:numinputs", "0")) {
-          p = nextSibling(p);
-          continue;
+    for (j = 0, parm = parmList; j < num_arguments; ++j)
+    {
+        while (checkAttribute(parm, "tmap:in:numinputs", "0"))
+        {
+            parm = Getattr(parm, "tmap:in:next");
         }
 
-        char source[64];
-        sprintf(source, "%d", j + 1);
-        Setattr(p, "emit:input", source);
-        Replaceall(tm, "$input", Getattr(p, "emit:input"));
-
-        if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
-            Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
-        } else {
-            Replaceall(tm, "$disown", "0");
+        SwigType *parmType = Getattr(parm, "type");
+        if ( Equal(SwigType_base(parmType), "long long") || Equal(SwigType_base(parmType), "unsigned long long"))
+        {
+            Printv(f->code, " #ifdef __SCILAB_INT64__\n", NIL);
         }
 
-        String *getargs = NewString("");
-    
-        /* The parameter is variable */
-        if (j >= num_required) {
-          Printf(getargs, "if (Rhs > %d) {\n%s\n}", j, tm);
-        } else {
-          Printv(getargs, tm, NIL);
+        /* Get typemap for this argument */
+        String *parmTypemap = Getattr(parm, "tmap:in");
+
+        if (parmTypemap) {
+            if (!parmTypemap || checkAttribute(parm, "tmap:in:numinputs", "0")) {
+                parm = nextSibling(parm);
+                continue;
+            }
+
+            char source[64];
+            sprintf(source, "%d", j + 1);
+            Setattr(parm, "emit:input", source);
+            Replaceall(parmTypemap, "$input", Getattr(parm, "emit:input"));
+
+            if (Getattr(parm, "wrap:disown") || (Getattr(parm, "tmap:in:disown")))
+            {
+                Replaceall(parmTypemap, "$disown", "SWIG_POINTER_DISOWN");
+            }
+            else
+            {
+                Replaceall(parmTypemap, "$disown", "0");
+            }
+
+            String *getargs = NewString("");
+
+            /* The parameter is variable */
+            if (j >= num_required) {
+                Printf(getargs, "if (Rhs > %d) {\n%s\n}", j, parmTypemap);
+            }
+            else
+            {
+                Printv(getargs, parmTypemap, NIL);
+            }
+            Printv(f->code, getargs, "\n", NIL);
+            if ( Equal(SwigType_base(parmType), "long long") || Equal(SwigType_base(parmType), "unsigned long long"))
+            {
+                Printv(f->code, "#endif\n", NIL);
+            }
+            Delete(getargs);
+            parm = Getattr(parm, "tmap:in:next");
+            continue;
         }
-        Printv(f->code, getargs, "\n", NIL);
-        if ( Equal(SwigType_base(pt), "long long") || Equal(SwigType_base(pt), "unsigned long long")) {
-          Printv(f->code, "#endif\n", NIL);
+        else
+        {
+            Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(parmType, 0));
+            break;
         }
-        Delete(getargs);
-        p = Getattr(p, "tmap:in:next");
-        continue;
-      } 
-      else {
-        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
-        break;
-      }
     }
-  
-    Setattr(n, "wrap:name", overname);   
-   
+
+    Setattr(n, "wrap:name", overname);
+
     /* Now write code to make the function call */
     Swig_director_emit_dynamic_cast(n, f);
     String *actioncode = emit_action(n);
-  
-    /* Insert the return variable */ 
-    emit_return_variable(n, d, f);
+
+    /* Insert the return variable */
+    emit_return_variable(n, nodeType, f);
 
     Wrapper_add_local(f, "_outv", "int _outv");
 
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-        Replaceall(tm, "$source", "result");
-        Replaceall(tm, "$target", "_outv");
-        Replaceall(tm, "$result", "_outv");
+    if ((typemap = Swig_typemap_lookup_out("out", n, "result", f, actioncode)))
+    {
+        Replaceall(typemap, "$source", "result");
+        Replaceall(typemap, "$target", "result");
+        Replaceall(typemap, "$result", "_outv");
 
         if (GetFlag(n, "feature:new"))
-            Replaceall(tm, "$owner", "1");
+        {
+            Replaceall(typemap, "$owner", "1");
+        }
         else
-            Replaceall(tm, "$owner", "0");
- 
+        {
+            Replaceall(typemap, "$owner", "0");
+        }
+
        /* There are more than one output */
-        if (out_required > 0) {
+        if (out_required > 0)
+        {
             Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
             Printf(f->code, "iOutNum ++;\niVarOut ++;\n");
         }
-        Printf(f->code, "%s\n", tm);
-        if ((strlen(Char(tm)) != 0) && (out_required <= 0)) {
+        Printf(f->code, "%s\n", typemap);
+        if ((strlen(Char(typemap)) != 0) && (out_required <= 0))
+        {
             Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
             Printf(f->code, "iOutNum ++;\niVarOut ++;\n");
             out_required ++;
         }
     }
-    else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
+    else
+    {
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(nodeType, 0), iname);
     }
-  
+
     /* Insert argument output code */
     String *outarg = NewString("");
-    for (p = l; p;) {
-      if ((tm = Getattr(p, "tmap:argout"))) {
-        //if (out_required > 0) {
-        //  Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
-        //  Printf(f->code,"iOutNum ++;\niVarOut ++;\n");
-        //}
-        Printv(outarg, tm, "\n", NIL);
-        p = Getattr(p, "tmap:argout:next");
-        out_required ++;
-      } else {
-        p = nextSibling(p);
-      }
+    for (parm = parmList; parm != NULL;)
+    {
+        if ((typemap = Getattr(parm, "tmap:argout")))
+        {
+            //if (out_required > 0) {
+            //  Printf(f->code, "LhsVar(iOutNum) = iVarOut;\n");
+            //  Printf(f->code,"iOutNum ++;\niVarOut ++;\n");
+            //}
+            Printv(outarg, typemap, "\n", NIL);
+            parm = Getattr(parm, "tmap:argout:next");
+            out_required ++;
+        }
+        else
+        {
+            parm = nextSibling(parm);
+        }
     }
     Printv(f->code, outarg, NIL);
 
     /* Insert constraint checking code */
-    for (p = l; p;) {
-      if ((tm = Getattr(p, "tmap:check"))) {
-        Printv(f->code, tm, "\n", NIL);
-        p = Getattr(p, "tmap:check:next");
-      } else {
-        p = nextSibling(p);
-      }
+    for (parm = parmList; parm != NULL;)
+    {
+        if ((typemap = Getattr(parm, "tmap:check")))
+        {
+            Printv(f->code, typemap, "\n", NIL);
+            parm = Getattr(parm, "tmap:check:next");
+        }
+        else
+        {
+            parm = nextSibling(parm);
+        }
     }
 
     /* Insert cleanup code */
     String *cleanup = NewString("");
-    for (p = l; p;) {
-      if ((tm = Getattr(p, "tmap:freearg"))) {
-        if (tm && (Len(tm) != 0)) {
-          Printv(cleanup, tm, "\n", NIL);
+    for (parm = parmList; parm != NULL ;)
+    {
+        if ((typemap = Getattr(parm, "tmap:freearg")))
+        {
+            if (typemap && (Len(typemap) != 0))
+            {
+                Printv(cleanup, typemap, "\n", NIL);
+            }
+            parm = Getattr(parm, "tmap:freearg:next");
         }
-        p = Getattr(p, "tmap:freearg:next");
-      } else {
-        p = nextSibling(p);
-      }
+        else
+        {
+            parm = nextSibling(parm);
+        }
     }
-  
+
     /* Output cleanup code */
     Printv(f->code, cleanup, NIL);
     Delete(cleanup);
 
     /* Insert the code checking for the number of input and output */
     int flag;
-    if (out_required == 0) {
-      out_required = 1;
-      flag = 0;
-    } else {
-      flag = 1;
+    if (out_required == 0)
+    {
+        out_required = 1;
+        flag = 0;
     }
-  
+    else
+    {
+        flag = 1;
+    }
+
 
 
     /* Insert the code checking the number of input */
     Printf(f->def, "CheckRhs(%d, %d);\n",num_required,num_arguments);
     Printf(f->def, "CheckLhs(%d, %d);\n",out_required,out_required);
     Printf(f->def, "SciErr sciErr;\n");
-   
+
     /* Insert the order of output parameters*/
     if (flag)
-      Printf(f->def, "\nint iOutNum = 1;\nint iVarOut = Rhs + 1;");
+    {
+        Printf(f->def, "\nint iOutNum = 1;\nint iVarOut = Rhs + 1;");
+    }
 
     /* Insert the argument counter */
     //Printf(f->def, "\nint scilabArgNumber=0;");
-   
+
     /* Finish the the code for the function  */
     //if (flag)
-    Printf(f->code, "return 0;\n");  
+    Printf(f->code, "return 0;\n");
     Printf(f->code, "}\n");
 
     Replaceall(f->code, "$symname", iname);
-  
+
     /* Dump the wrapper function */
     Wrapper_print(f, f_wrappers);
     DelWrapper(f);
-  
-    if (last_overload) {
-      if (++ function_count % 10 == 0) {
-        Printf(f_builder_code, "];\n\ntable = [table;");
-      }
-      Printf(f_builder_code, "\"%s\",\"%s\";", iname, wname);  
-      dispatchFunction(n);
+
+    if (last_overload)
+    {
+        if (++ function_count % 10 == 0)
+        {
+            Printf(f_builder_code, "];\n\ntable = [table;");
+        }
+        Printf(f_builder_code, "\"%s\",\"%s\";", iname, wname);
+        dispatchFunction(n);
     }
-   
-    if (!overloaded) {
-      if (++ function_count % 10 == 0) {
-        Printf(f_builder_code, "];\n\ntable = [table;");
-      }
-      Printf(f_builder_code, "\"%s\",\"%s\";", iname, wname);
+
+    if (!overloaded)
+    {
+        if (++ function_count % 10 == 0) {
+            Printf(f_builder_code, "];\n\ntable = [table;");
+        }
+        Printf(f_builder_code, "\"%s\",\"%s\";", iname, wname);
     }
     Delete(overname);
     Delete(wname);
     Delete(outarg);
-  
+
     return SWIG_OK;
   }
-  
+
   /* -----------------------------------------------------------------------
    * dispatchFunctionWrapper()
    * ----------------------------------------------------------------------- */

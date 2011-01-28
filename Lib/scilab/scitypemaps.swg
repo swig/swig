@@ -580,7 +580,7 @@
     iVarOut++;
 %enddef
 %define SCILAB_OUT_SCALAR_WITHCAST(CASTTYPE, SCIAPIFUNCTION)
-    CASTTYPE temp = (CASTTYPE) $result;
+    CASTTYPE temp = (CASTTYPE) $1;
     iRowsOut = 1;
     iColsOut = 1;
 
@@ -590,10 +590,6 @@
         printError(&sciErr, 0);
         return 0;
     }
-
-    LhsVar(iOutNum) = iVarOut;
-    iOutNum++;
-    iVarOut++;
 %enddef
 
 /* Basic C types */
