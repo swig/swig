@@ -79,6 +79,13 @@ SWIGINTERN int SWIG_AsVal_dec(long)(int iPos, long* val)
 }
 }
 
+%fragment(SWIG_From_frag(long),"header") {
+  SWIGINTERNINLINE int SWIG_From_dec(long)  (long value)
+    {
+      return 0;
+    }
+}
+
 /*%fragment(SWIG_AsPtr_frag(std::string),"header") {
 SWIGINTERN int
 SWIG_AsPtr_std_string(int iPos, std::string **val)

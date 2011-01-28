@@ -568,7 +568,7 @@
     iRowsOut = 1;
     iColsOut = 1;
 
-    sciErr = SCIAPIFUNCTION(pvApiCtx, iVarOut, iRowsOut, iColsOut, (CTYPE *)&$result);
+    sciErr = SCIAPIFUNCTION(pvApiCtx, iVarOut, iRowsOut, iColsOut, (CTYPE *)&$1);
     if (sciErr.iErr)
     {
         printError(&sciErr, 0);
