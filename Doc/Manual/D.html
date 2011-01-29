@@ -136,7 +136,7 @@
 
 <p id="D_din">The <tt>din</tt> typemap is used for converting function parameter types from the type used in the proxy module or class to the type used in the intermediary D module (the <a href="D.html#D_dinput"><tt>$dinput</tt></a> macro is replaced).</p>
 
-<p id="D_dout">The <tt>dout</tt> typemap is used for converting function return values from the return type used in the intermediary D module to the type returned by the proxy function. The <tt>$excode</tt> special variable in <tt>dout</tt> typemaps is replaced by the <tt>excode</tt> typemap attribute code if the method can throw any exceptions from unmanaged code, otherwise by nothing (the <a href="D.html#D_wcall"><tt>$imcall</tt> and <tt>$owner</tt></a> macros are replaced).</p>
+<p id="D_dout">The <tt>dout</tt> typemap is used for converting function return values from the return type used in the intermediary D module to the type returned by the proxy function. The <tt>$excode</tt> special variable in <tt>dout</tt> typemaps is replaced by the <tt>excode</tt> typemap attribute code if the method can throw any exceptions from unmanaged code, otherwise by nothing (the <a href="D.html#D_imcall"><tt>$imcall</tt> and <tt>$owner</tt></a> macros are replaced).</p>
 
 <p id="D_ddirectorinout">The code from the <tt>ddirectorin</tt> and <tt>ddirectorout</tt> typemaps is used for conversion in director callback functions. Arguments are converted to the type used in the proxy class method they are calling by using the code from <tt>ddirectorin</tt>, the proxy class method return value is converted to the type the C++ code expects via the <tt>ddirectorout</tt> typemap (the <a href="D.html#D_dpcall"><tt>$dcall</tt> and <tt>$winput</tt></a> macros are replaced).</p>
 
@@ -207,7 +207,7 @@ void foo(SomeClass arg) {
   example_im.foo(SomeClass.getCPointer(arg));
 }</pre></div></dd>
 
-  <dt id="D_wcall"><tt>$imcall</tt> and <tt>$owner</tt> (C#: <tt>$imcall</tt>)</dt>
+  <dt id="D_imcall"><tt>$imcall</tt> and <tt>$owner</tt> (C#: <tt>$imcall</tt>)</dt>
   <dd>
     <p>These variables are used in <tt><a href="D.html#D_dout">dout</a></tt> typemaps. <tt>$imcall</tt> contains the call to the intermediary module which provides the value to be used, and <tt>$owner</tt> signals if the caller is responsible for managing the object lifetime (that is, if the called method is a constructor or has been marked via <tt>%newobject</tt>).</p>
     <p>Consider the following example:</p>
