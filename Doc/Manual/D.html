@@ -134,7 +134,7 @@
 
 <p>Typemaps for code generation in D proxy and type wrapper classes.</p>
 
-<p id="D_din">The <tt>din</tt> typemap is used for converting function parameter types from the type used in the proxy module or class to the type used in the intermediary D module (the <a href="D.html#D_dinput"><tt>$dinput</tt></a> macro is replaced).</p>
+<p id="D_din">The <tt>din</tt> typemap is used for converting function parameter types from the type used in the proxy module or class to the type used in the intermediary D module (the <a href="D.html#D_dinput"><tt>$dinput</tt></a> macro is replaced). To inject further parameter processing code before or after the call to the intermediary layer, the <tt>pre</tt>, <tt>post</tt> and <tt>terminator</tt> attributes can be used (please refer to the <a href="CSharp.html#CSharp_date_marshalling">C# date marshalling example</a> for more information on these).</p>
 
 <p id="D_dout">The <tt>dout</tt> typemap is used for converting function return values from the return type used in the intermediary D module to the type returned by the proxy function. The <tt>$excode</tt> special variable in <tt>dout</tt> typemaps is replaced by the <tt>excode</tt> typemap attribute code if the method can throw any exceptions from unmanaged code, otherwise by nothing (the <a href="D.html#D_imcall"><tt>$imcall</tt> and <tt>$owner</tt></a> macros are replaced).</p>
 
@@ -146,7 +146,7 @@
       type              CPPClass::method(type a)
         &uarr;                       &darr;
    &lt;directorout&gt;          &lt;directorin&gt;
-        &uarr;                     &darr;
+        &uarr;                       &darr;
       ctype             methodCallback(ctype a)           C++
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       imtype            methodCallback(imtype a)           D
