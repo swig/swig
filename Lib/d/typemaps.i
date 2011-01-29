@@ -176,8 +176,8 @@ value returned in the second output parameter. In D you would use it like this:
 
 OUTPUT_TYPEMAP(bool,               unsigned int,         bool,     BOOL_PTR)
 //OUTPUT_TYPEMAP(char,               char,                 char,     CHAR_PTR) // Why was this commented out?
-OUTPUT_TYPEMAP(signed char,        signed char,          ubyte,    INT8_PTR)
-OUTPUT_TYPEMAP(unsigned char,      unsigned char,        byte,     UINT8_PTR)
+OUTPUT_TYPEMAP(signed char,        signed char,          byte,     INT8_PTR)
+OUTPUT_TYPEMAP(unsigned char,      unsigned char,        ubyte,    UINT8_PTR)
 OUTPUT_TYPEMAP(short,              short,                short,    INT16_PTR)
 OUTPUT_TYPEMAP(unsigned short,     unsigned short,       ushort,   UINT16_PTR)
 OUTPUT_TYPEMAP(int,                int,                  int,      INT32_PTR)
@@ -279,8 +279,8 @@ of the function return value.
 
 INOUT_TYPEMAP(bool,               unsigned int,         bool,     BOOL_PTR)
 //INOUT_TYPEMAP(char,               char,                 char,     CHAR_PTR)
-INOUT_TYPEMAP(signed char,        signed char,          ubyte,    INT8_PTR)
-INOUT_TYPEMAP(unsigned char,      unsigned char,        byte,     UINT8_PTR)
+INOUT_TYPEMAP(signed char,        signed char,          byte,     INT8_PTR)
+INOUT_TYPEMAP(unsigned char,      unsigned char,        ubyte,    UINT8_PTR)
 INOUT_TYPEMAP(short,              short,                short,    INT16_PTR)
 INOUT_TYPEMAP(unsigned short,     unsigned short,       ushort,   UINT16_PTR)
 INOUT_TYPEMAP(int,                int,                  int,      INT32_PTR)
