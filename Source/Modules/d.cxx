@@ -3661,7 +3661,7 @@ private:
   String *getPrimitiveDptype(Node *node, SwigType *type) {
     SwigType *stripped_type = SwigType_typedef_resolve_all(type);
 
-    // A reference can only be the »outermost element« of a typ.
+    // A reference can only be the »outermost element« of a type.
     bool mutable_ref = false;
     if (SwigType_isreference(stripped_type)) {
       SwigType_del_reference(stripped_type);
