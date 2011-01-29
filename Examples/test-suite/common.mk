@@ -230,6 +230,7 @@ CPP_TEST_CASES += \
 	li_cpointer \
 	li_stdint \
 	li_typemaps \
+	li_typemaps_apply \
 	li_windows \
 	long_long_apply \
 	memberin_extend \
