@@ -54,9 +54,9 @@ In D you could then use it like this:
 */
 
 %define INPUT_TYPEMAP(TYPE, CTYPE, DTYPE)
-%typemap(ctype) TYPE *INPUT, TYPE &INPUT "CTYPE"
-%typemap(imtype) TYPE *INPUT, TYPE &INPUT "DTYPE"
-%typemap(dtype) TYPE *INPUT, TYPE &INPUT "DTYPE"
+%typemap(ctype, out="void *") TYPE *INPUT, TYPE &INPUT "CTYPE"
+%typemap(imtype, out="void*") TYPE *INPUT, TYPE &INPUT "DTYPE"
+%typemap(dtype, out="DTYPE*") TYPE *INPUT, TYPE &INPUT "DTYPE"
 %typemap(din) TYPE *INPUT, TYPE &INPUT "$dinput"
 %typemap(ddirectorin) TYPE *INPUT, TYPE &INPUT "$winput"
 %typemap(ddirectorout) TYPE *INPUT, TYPE &INPUT "$dcall"
@@ -149,9 +149,9 @@ value returned in the second output parameter. In D you would use it like this:
 */
 
 %define OUTPUT_TYPEMAP(TYPE, CTYPE, DTYPE, TYPECHECKPRECEDENCE)
-%typemap(ctype) TYPE *OUTPUT, TYPE &OUTPUT "CTYPE *"
-%typemap(imtype) TYPE *OUTPUT, TYPE &OUTPUT "out DTYPE"
-%typemap(dtype) TYPE *OUTPUT, TYPE &OUTPUT "out DTYPE"
+%typemap(ctype, out="void *") TYPE *OUTPUT, TYPE &OUTPUT "CTYPE *"
+%typemap(imtype, out="void*") TYPE *OUTPUT, TYPE &OUTPUT "out DTYPE"
+%typemap(dtype, out="DTYPE*") TYPE *OUTPUT, TYPE &OUTPUT "out DTYPE"
 %typemap(din) TYPE *OUTPUT, TYPE &OUTPUT "$dinput"
 %typemap(ddirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$winput"
 %typemap(ddirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$dcall"
@@ -254,9 +254,9 @@ of the function return value.
 */
 
 %define INOUT_TYPEMAP(TYPE, CTYPE, DTYPE, TYPECHECKPRECEDENCE)
-%typemap(ctype) TYPE *INOUT, TYPE &INOUT "CTYPE *"
-%typemap(imtype) TYPE *INOUT, TYPE &INOUT "ref DTYPE"
-%typemap(dtype) TYPE *INOUT, TYPE &INOUT "ref DTYPE"
+%typemap(ctype, out="void *") TYPE *INOUT, TYPE &INOUT "CTYPE *"
+%typemap(imtype, out="void*") TYPE *INOUT, TYPE &INOUT "ref DTYPE"
+%typemap(dtype, out="DTYPE*") TYPE *INOUT, TYPE &INOUT "ref DTYPE"
 %typemap(din) TYPE *INOUT, TYPE &INOUT "$dinput"
 %typemap(ddirectorin) TYPE *INOUT, TYPE &INOUT "$winput"
 %typemap(ddirectorout) TYPE *INOUT, TYPE &INOUT "$dcall"
