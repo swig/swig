@@ -446,6 +446,12 @@
   _v = (SWIG_ConvertPtr(*$input, (void**)&tmp, $1_descriptor, 0) >= 0);
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
+{
+  void *tmp;
+  _v = (SWIG_ConvertPtr(*$input, (void**)&tmp, $*1_descriptor, 0) >= 0);
+}
+
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *
 {
   void *tmp;
