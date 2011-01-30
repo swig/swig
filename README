@@ -88,6 +88,10 @@ uses.  Don't panic if you get 'not found' messages--SWIG does not need these
 packages to compile or run.   The configure script is actually looking for
 these packages so that you can try out the SWIG examples contained
 in the 'Examples' directory without having to hack Makefiles.
+Note that the --without-xxx options, where xxx is a target language, have 
+minimal effect. All they do is reduce the amount of testing done with 
+'make check'. The SWIG executable and library files installed cannot currently
+be configured with a subset of target languages.
 
 Please see the Documentation section below on installing documentation as
 none is installed by default.
