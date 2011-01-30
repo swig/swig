@@ -3548,7 +3548,6 @@ public:
     String *callback_def = NewString("");
     String *callback_code = NewString("");
     String *imcall_args = NewString("");
-    int gencomma = 0;
     int classmeth_off = curr_class_dmethod - first_class_dmethod;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
 
@@ -3767,14 +3766,14 @@ public:
     Delete(tp);
 
     /* Go through argument list, convert from native to Java */
-    for (p = l; p; /* empty */ ) {
+    for (i = 0, p = l; p; ++i) {
       /* Is this superfluous? */
       while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
 	p = Getattr(p, "tmap:directorin:next");
       }
 
       SwigType *pt = Getattr(p, "type");
-      String *ln = Copy(Getattr(p, "name"));
+      String *ln = makeParameterName(n, p, i, false);
       String *c_param_type = NULL;
       String *c_decl = NewString("");
       String *arg = NewString("");
@@ -3833,7 +3832,7 @@ public:
 	      substituteClassname(pt, din);
 	      Replaceall(din, "$jniinput", ln);
 
-	      if (++gencomma > 1)
+	      if (i > 0)
 		Printf(imcall_args, ", ");
 	      Printf(callback_def, ", %s %s", tm, ln);
 
@@ -3896,6 +3895,7 @@ public:
       Delete(arg);
       Delete(c_decl);
       Delete(c_param_type);
+      Delete(ln);
     }
 
     /* header declaration, start wrapper definition */

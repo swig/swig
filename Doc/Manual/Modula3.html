@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="Modula3"></a>25 SWIG and Modula-3</H1>
+<H1><a name="Modula3"></a>26 SWIG and Modula-3</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -54,7 +54,7 @@ especially
 <a href="Typemaps.html#Typemaps">typemaps</a>.
 </p>
 
-<H2><a name="Modula3_modula3_overview"></a>25.1 Overview</H2>
+<H2><a name="Modula3_modula3_overview"></a>26.1 Overview</H2>
 
 
 <p>
@@ -84,7 +84,7 @@ FFTW
 </li>
 </ol>
 
-<H3><a name="Modula3_motivation"></a>25.1.1 Motivation</H3>
+<H3><a name="Modula3_motivation"></a>26.1.1 Motivation</H3>
 
 
 <p>
@@ -131,10 +131,10 @@ functions), but it doesn't allow you to easily integrate a Module-3 module into
 a C/C++ project.
 </p>
 
-<H2><a name="Modula3_conception"></a>25.2 Conception</H2>
+<H2><a name="Modula3_conception"></a>26.2 Conception</H2>
 
 
-<H3><a name="Modula3_cinterface"></a>25.2.1 Interfaces to C libraries</H3>
+<H3><a name="Modula3_cinterface"></a>26.2.1 Interfaces to C libraries</H3>
 
 
 <p>
@@ -142,7 +142,7 @@ Modula-3 has integrated support for calling C functions.
 This is also extensively used by the standard Modula-3 libraries
 to call OS functions.
 The Modula-3 part of SWIG and the corresponding SWIG library
-<a href="../../Lib/modula3/modula3.swg"><tt>modula3.swg</tt></a>
+modula3.swg
 contain code that uses these features.
 Because of the built-in support there is no need
 for calling the SWIG kernel to generate wrappers written in C.
@@ -283,7 +283,7 @@ and the principal type must be renamed (<tt>%typemap</tt>).
 </p>
 
 
-<H3><a name="Modula3_cppinterface"></a>25.2.2 Interfaces to C++ libraries</H3>
+<H3><a name="Modula3_cppinterface"></a>26.2.2 Interfaces to C++ libraries</H3>
 
 
 <p>
@@ -384,24 +384,23 @@ There is no C++ library I wrote a SWIG interface for,
 so I'm not sure if this is possible or sensible, yet.
 </p>
 
-<H2><a name="Modula3_preliminaries"></a>25.3 Preliminaries</H2>
+<H2><a name="Modula3_preliminaries"></a>26.3 Preliminaries</H2>
 
 
-<H3><a name="Modula3_compilers"></a>25.3.1 Compilers</H3>
+<H3><a name="Modula3_compilers"></a>26.3.1 Compilers</H3>
 
 
 <p>
 There are different Modula-3 compilers around:
 cm3, pm3, ezm3, Klagenfurth Modula-3, Cambridge Modula-3.
 SWIG itself does not contain compiler specific code
-but the library file
-<a href="../../Lib/modula3/modula3.swg"><tt>modula3.swg</tt></a>
+but the modula3.swg library file
 may do so.
 For testing examples I use Critical Mass cm3.
 </p>
 
 
-<H3><a name="Modula3_commandline"></a>25.3.2 Additional Commandline Options</H3>
+<H3><a name="Modula3_commandline"></a>26.3.2 Additional Commandline Options</H3>
 
 
 <p>
@@ -478,10 +477,10 @@ Instead generate templates for some basic typemaps.
 </tr>
 </table>
 
-<H2><a name="Modula3_typemaps"></a>25.4 Modula-3 typemaps</H2>
+<H2><a name="Modula3_typemaps"></a>26.4 Modula-3 typemaps</H2>
 
 
-<H3><a name="Modula3_inoutparam"></a>25.4.1 Inputs and outputs</H3>
+<H3><a name="Modula3_inoutparam"></a>26.4.1 Inputs and outputs</H3>
 
 
 <p>
@@ -499,9 +498,7 @@ or for a return value.
 A further typemap may specify
 the direction that is used for certain parameters.
 I have chosen this separation
-in order to be able to write general typemaps for the typemap library
-<a href="../../Lib/modula3/modula3.swg"><tt>modula3.swg</tt></a>
-.
+in order to be able to write general typemaps for the modula3.swg typemap library.
 In the library code the final usage of the type is not known.
 Using separate typemaps for each possible use
 allows appropriate definitions for each case.
@@ -697,7 +694,7 @@ consist of the following parts:
 </table>
 
 
-<H3><a name="Modula3_ordinals"></a>25.4.2 Subranges, Enumerations, Sets</H3>
+<H3><a name="Modula3_ordinals"></a>26.4.2 Subranges, Enumerations, Sets</H3>
 
 
 <p>
@@ -749,7 +746,7 @@ that I'd like to automate.
 </p>
 
 
-<H3><a name="Modula3_class"></a>25.4.3 Objects</H3>
+<H3><a name="Modula3_class"></a>26.4.3 Objects</H3>
 
 
 <p>
@@ -762,7 +759,7 @@ is not really useful, yet.
 </p>
 
 
-<H3><a name="Modula3_imports"></a>25.4.4 Imports</H3>
+<H3><a name="Modula3_imports"></a>26.4.4 Imports</H3>
 
 
 <p>
@@ -782,9 +779,7 @@ Unqualified import is not supported.
 <p>
 It is cumbersome to add this typemap to each piece of Modula-3 code.
 It is especially useful when writing general typemaps
-for the typemap library
-<a href="../../Lib/modula3/modula3.swg"><tt>modula3.swg</tt></a>
-.
+for the modula3.swg typemap library.
 For a monolithic module you might be better off
 if you add the imports directly:
 </p>
@@ -797,7 +792,7 @@ IMPORT M3toC;
 </pre></div>
 
 
-<H3><a name="Modula3_exceptions"></a>25.4.5 Exceptions</H3>
+<H3><a name="Modula3_exceptions"></a>26.4.5 Exceptions</H3>
 
 
 <p>
@@ -821,7 +816,7 @@ you should declare
 <tt>%typemap("m3wrapinconv:throws") blah * %{OSError.E%}</tt>.
 </p>
 
-<H3><a name="Modula3_typemap_example"></a>25.4.6 Example</H3>
+<H3><a name="Modula3_typemap_example"></a>26.4.6 Example</H3>
 
 
 <p>
@@ -868,10 +863,10 @@ where almost everything is generated by a typemap:
 </pre></div>
 
 
-<H2><a name="Modula3_hints"></a>25.5 More hints to the generator</H2>
+<H2><a name="Modula3_hints"></a>26.5 More hints to the generator</H2>
 
 
-<H3><a name="Modula3_features"></a>25.5.1 Features</H3>
+<H3><a name="Modula3_features"></a>26.5.1 Features</H3>
 
 
 <table border summary="Modula-3 features">
@@ -908,7 +903,7 @@ where almost everything is generated by a typemap:
 </tr>
 </table>
 
-<H3><a name="Modula3_pragmas"></a>25.5.2 Pragmas</H3>
+<H3><a name="Modula3_pragmas"></a>26.5.2 Pragmas</H3>
 
 
 <table border summary="Modula-3 pragmas">
@@ -931,7 +926,7 @@ where almost everything is generated by a typemap:
 </tr>
 </table>
 
-<H2><a name="Modula3_remarks"></a>25.6 Remarks</H2>
+<H2><a name="Modula3_remarks"></a>26.6 Remarks</H2>
 
 
 <ul>

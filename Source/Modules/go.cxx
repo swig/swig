@@ -43,11 +43,9 @@ class GO:public Language {
   File *f_go_runtime;
   File *f_go_header;
   File *f_go_wrappers;
-  File *f_go_once;
   File *f_gc_runtime;
   File *f_gc_header;
   File *f_gc_wrappers;
-  File *f_gc_once;
 
   // True if we imported a module.
   bool saw_import;
@@ -100,11 +98,9 @@ public:
      f_go_runtime(NULL),
      f_go_header(NULL),
      f_go_wrappers(NULL),
-     f_go_once(NULL),
      f_gc_runtime(NULL),
      f_gc_header(NULL),
      f_gc_wrappers(NULL),
-     f_gc_once(NULL),
      saw_import(false),
      imported_package(NULL),
      interfaces(NULL),
@@ -303,12 +299,10 @@ private:
     f_go_runtime = NewString("");
     f_go_header = NewString("");
     f_go_wrappers = NewString("");
-    f_go_once = NewString("");
     if (!gccgo_flag) {
       f_gc_runtime = NewString("");
       f_gc_header = NewString("");
       f_gc_wrappers = NewString("");
-      f_gc_once = NewString("");
     }
 
     Swig_register_filebyname("begin", f_c_begin);
@@ -322,13 +316,11 @@ private:
     Swig_register_filebyname("go_runtime", f_go_runtime);
     Swig_register_filebyname("go_header", f_go_header);
     Swig_register_filebyname("go_wrapper", f_go_wrappers);
-    Swig_register_filebyname("go_once", f_go_once);
     if (!gccgo_flag) {
       Swig_register_filebyname("gc_begin", f_gc_begin);
       Swig_register_filebyname("gc_runtime", f_gc_runtime);
       Swig_register_filebyname("gc_header", f_gc_header);
       Swig_register_filebyname("gc_wrapper", f_gc_wrappers);
-      Swig_register_filebyname("gc_once", f_gc_once);
     }
 
     Swig_banner(f_c_begin);
@@ -349,6 +341,7 @@ private:
     if (!gccgo_flag) {
       Swig_banner(f_gc_begin);
       Printf(f_gc_begin, "\n/* This file should be compiled with 6c/8c.  */\n");
+      Printf(f_gc_begin, "#pragma dynimport _ _ \"%s\"\n", soname);
     }
 
     // Output module initialization code.
@@ -414,16 +407,10 @@ private:
     Dump(f_c_wrappers, f_c_begin);
     Dump(f_c_init, f_c_begin);
     Dump(f_go_header, f_go_begin);
-    if (!saw_import) {
-      Dump(f_go_once, f_go_begin);
-    }
     Dump(f_go_runtime, f_go_begin);
     Dump(f_go_wrappers, f_go_begin);
     if (!gccgo_flag) {
       Dump(f_gc_header, f_gc_begin);
-      if (!saw_import) {
-	Dump(f_gc_once, f_gc_begin);
-      }
       Dump(f_gc_runtime, f_gc_begin);
       Dump(f_gc_wrappers, f_gc_begin);
     }
@@ -1011,8 +998,9 @@ private:
   int gcFunctionWrapper(Node *n, String *name, String *go_name, String *overname, String *wname, ParmList *parms, SwigType *result, bool is_static, bool needs_wrapper) {
     Wrapper *f = NewWrapper();
 
-    Printv(f->def, "#pragma dynimport ", wname, " ", wname, " \"", soname, "\"\n", NULL);
-    Printv(f->def, "void (*", wname, ")(void*);\n", NULL);
+    Printv(f->def, "#pragma dynimport ", wname, " ", wname, " \"\"\n", NULL);
+    Printv(f->def, "extern void (*", wname, ")(void*);\n", NULL);
+    Printv(f->def, "static void (*x", wname, ")(void*) = ", wname, ";\n", NULL);
     Printv(f->def, "\n", NULL);
     Printv(f->def, "void\n", NULL);
 
@@ -1068,7 +1056,7 @@ private:
     Delete(parm_size);
 
     Printv(f->code, "{\n", NULL);
-    Printv(f->code, "\truntime\xc2\xb7" "cgocall(", wname, ", &p);\n", NULL);
+    Printv(f->code, "\truntime\xc2\xb7" "cgocall(x", wname, ", &p);\n", NULL);
     Printv(f->code, "}\n", NULL);
     Printv(f->code, "\n", NULL);
 
@@ -1166,7 +1154,7 @@ private:
       p = nextParm(p);
     }
     if (SwigType_type(result) != T_VOID) {
-      Printv(f->code, "\t\tint : 0;\n", NULL);
+      Printv(f->code, "\t\tlong : 0;\n", NULL);
       String *ln = NewString("result");
       String *ct = gcCTypeForGoValue(n, result, ln);
       Delete(ln);
@@ -1270,7 +1258,11 @@ private:
     Parm *p = parms;
     for (int i = 0; i < parm_count; ++i) {
       p = getParm(p);
-      SwigType *pt = Getattr(p, "type");
+      SwigType *pt = Copy(Getattr(p, "type"));
+      if (SwigType_isarray(pt)) {
+	SwigType_del_array(pt);
+	SwigType_add_pointer(pt);
+      }
       String *pn = NewString("g");
       Append(pn, Getattr(p, "lname"));
       String *ct = gccgoCTypeForGoValue(p, pt, pn);
@@ -1280,6 +1272,7 @@ private:
       Printv(fnname, ct, NULL);
       Delete(ct);
       Delete(pn);
+      Delete(pt);
       p = nextParm(p);
     }
 
@@ -3415,7 +3408,7 @@ private:
 	    p = Getattr(p, "tmap:directorin:next");
 	  }
 	  if (SwigType_type(result) != T_VOID) {
-	    Printv(f->code, "    int : 0;\n", NULL);
+	    Printv(f->code, "    long : 0;\n", NULL);
 	    String *rname = NewString("result");
 	    String *cg = gcCTypeForGoValue(n, result, rname);
 	    Printv(f->code, "    ", cg, ";\n", NULL);
@@ -3545,7 +3538,7 @@ private:
 	}
       } else {
 	assert(is_pure_virtual);
-	Printv(f->code, "  _swig_gopanic(\"call to pure virtual function ", Getattr(parent, "sym:name"), name, "\");\n");
+	Printv(f->code, "  _swig_gopanic(\"call to pure virtual function ", Getattr(parent, "sym:name"), name, "\");\n", NULL);
 	if (SwigType_type(result) != T_VOID) {
 	  String *retstr = SwigType_rcaststr(Getattr(n, "returntype"), "c_result");
 	  Printv(f->code, "  return ", retstr, ";\n", NULL);

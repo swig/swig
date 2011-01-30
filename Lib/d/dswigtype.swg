@@ -18,7 +18,7 @@
 
 %typemap(ctype) SWIGTYPE & "void *"
 %typemap(imtype) SWIGTYPE & "void*"
-%typemap(dtype) SWIGTYPE & "$dclassname"
+%typemap(dtype, nativepointer="$dtype") SWIGTYPE & "$dclassname"
 
 %typemap(ctype) SWIGTYPE *const& "void *"
 %typemap(imtype) SWIGTYPE *const& "void*"
@@ -131,11 +131,18 @@
    }
    $result = ($1_ltype)$input; %}
 
-%typemap(ddirectorin) SWIGTYPE & "new $dclassname($winput, false)"
-%typemap(ddirectorout) SWIGTYPE & "$dclassname.swigGetCPtr($dcall)"
+%typemap(ddirectorin,
+  nativepointer="cast($dtype)$winput"
+) SWIGTYPE & "new $dclassname($winput, false)"
+%typemap(ddirectorout,
+  nativepointer="cast(void*)$dcall"
+) SWIGTYPE & "$dclassname.swigGetCPtr($dcall)"
 
-%typemap(din) SWIGTYPE & "$dclassname.swigGetCPtr($dinput)"
-%typemap(dout, excode=SWIGEXCODE) SWIGTYPE & {
+%typemap(din,
+  nativepointer="cast(void*)$dinput"
+) SWIGTYPE & "$dclassname.swigGetCPtr($dinput)"
+%typemap(dout, excode=SWIGEXCODE,
+  nativepointer="{\n  auto ret = cast($dtype)$imcall;$excode\n  return ret;\n}") SWIGTYPE & {
   $dclassname ret = new $dclassname($imcall, $owner);$excode
   return ret;
 }

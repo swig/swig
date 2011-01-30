@@ -963,7 +963,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
   {
     SwigType *star_type, *amp_type, *base_type, *lex_type;
     SwigType *ltype, *star_ltype, *amp_ltype;
-    String *mangle, *star_mangle, *amp_mangle, *base_mangle, *base_name;
+    String *mangle, *star_mangle, *amp_mangle, *base_mangle, *base_name, *base_type_str;
     String *descriptor, *star_descriptor, *amp_descriptor;
     String *ts;
     char *sc;
@@ -1132,21 +1132,20 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
 
     /* Base type */
     if (SwigType_isarray(type)) {
-      SwigType *bt = Copy(type);
-      Delete(SwigType_pop_arrays(bt));
-      base_type = SwigType_str(bt, 0);
-      Delete(bt);
+      base_type = Copy(type);
+      Delete(SwigType_pop_arrays(base_type));
     } else {
       base_type = SwigType_base(type);
     }
 
-    base_name = SwigType_namestr(base_type);
+    base_type_str = SwigType_str(base_type, 0);
+    base_name = SwigType_namestr(base_type_str);
     if (index == 1) {
       Replace(s, "$basetype", base_name, DOH_REPLACE_ANY);
       replace_local_types(locals, "$basetype", base_name);
     }
     strcpy(varname, "basetype");
-    Replace(s, var, base_type, DOH_REPLACE_ANY);
+    Replace(s, var, base_type_str, DOH_REPLACE_ANY);
     replace_local_types(locals, var, base_name);
 
     base_mangle = SwigType_manglestr(base_type);
@@ -1155,8 +1154,9 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     strcpy(varname, "basemangle");
     Replace(s, var, base_mangle, DOH_REPLACE_ANY);
     Delete(base_mangle);
-    Delete(base_type);
     Delete(base_name);
+    Delete(base_type_str);
+    Delete(base_type);
 
     lex_type = SwigType_base(rtype);
     if (index == 1)
@@ -1440,8 +1440,8 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     num_substitutions = typemap_replace_vars(s, locals, type, type, pname, (char *) lname, 1);
   }
   if (optimal_substitution && num_substitutions > 1) {
-    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(node), Getline(node), "Multiple calls to %s might be generated due to optimal attribute usage in\n", Swig_name_decl(node));
-    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(s), Getline(s), "the out typemap.\n");
+    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(node), Getline(node), "Multiple calls to %s might be generated due to\n", Swig_name_decl(node));
+    Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(s), Getline(s), "optimal attribute usage in the out typemap.\n");
   }
 
   if (locals && f) {

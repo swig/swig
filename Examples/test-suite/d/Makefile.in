@@ -76,6 +76,6 @@ run_testcase = \
 
 # Clean: remove testcase directories
 %.clean:
-	@if [ -d $* ]; then \
-	  rm -rf $*; \
+	@if [ -d $*$(VERSIONSUFFIX) ]; then \
+	  rm -rf $*$(VERSIONSUFFIX); \
 	fi

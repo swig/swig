@@ -1867,7 +1867,6 @@ public:
     String *callback_def = NewString("");
     String *callback_code = NewString("");
     String *imcall_args = NewString("");
-    int gencomma = 0;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
@@ -2007,14 +2006,14 @@ public:
       Printf(w->code, "} else {\n");
 
     // Go through argument list.
-    for (p = l; p; /* empty */) {
+    for (i = 0, p = l; p; ++i) {
       /* Is this superfluous? */
       while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
 	p = Getattr(p, "tmap:directorin:next");
       }
 
       SwigType *pt = Getattr(p, "type");
-      String *ln = Copy(Getattr(p, "name"));
+      String *ln = makeParameterName(n, p, i, false);
       String *c_param_type = NULL;
       String *c_decl = NewString("");
       String *arg = NewString("");
@@ -2071,7 +2070,7 @@ public:
 	      Replaceall(din, "$winput", ln);
 
 	      Printf(delegate_parms, ", ");
-	      if (gencomma > 0) {
+	      if (i > 0) {
 		Printf(proxy_method_param_list, ", ");
 		Printf(imcall_args, ", ");
 	      }
@@ -2123,10 +2122,10 @@ public:
 	p = nextSibling(p);
       }
 
-      gencomma++;
       Delete(arg);
       Delete(c_decl);
       Delete(c_param_type);
+      Delete(ln);
     }
 
     /* header declaration, start wrapper definition */
@@ -2631,6 +2630,8 @@ private:
     if (!static_flag) {
       Printf(imcall, "cast(void*)swigCPtr");
     }
+    
+    String *proxy_param_types = NewString("");
 
     // Write the parameter list for the proxy function declaration and the
     // wrapper function call.
@@ -2705,10 +2706,13 @@ private:
 	      "No dtype typemap defined for %s\n", SwigType_str(pt, 0));
 	  }
 
-	  if (gencomma >= 2)
+	  if (gencomma >= 2) {
 	    Printf(function_code, ", ");
+	    Printf(proxy_param_types, ", ");
+	  }
 	  gencomma = 2;
 	  Printf(function_code, "%s %s", proxy_type, param_name);
+	  Append(proxy_param_types, proxy_type);
 
 	  Delete(proxy_type);
 	}
@@ -2773,9 +2777,11 @@ private:
 
 	String *excode = NewString("");
 	if (!Cmp(return_type, "void"))
-	  Printf(excode, "if (this.classinfo == %s.classinfo) %s; else %s", proxy_class_name, imcall, ex_imcall);
+	  Printf(excode, "if (swigIsMethodOverridden!(%s delegate(%s), %s function(%s), %s)()) %s; else %s",
+	    return_type, proxy_param_types, return_type, proxy_param_types, proxy_function_name, ex_imcall, imcall);
 	else
-	  Printf(excode, "((this.classinfo == %s.classinfo) ? %s : %s)", proxy_class_name, imcall, ex_imcall);
+	  Printf(excode, "((swigIsMethodOverridden!(%s delegate(%s), %s function(%s), %s)()) ? %s : %s)",
+	    return_type, proxy_param_types, return_type, proxy_param_types, proxy_function_name, ex_imcall, imcall);
 
 	Clear(imcall);
 	Printv(imcall, excode, NIL);
@@ -2789,6 +2795,8 @@ private:
       Swig_warning(WARN_D_TYPEMAP_DOUT_UNDEF, input_file, line_number,
 	"No dout typemap defined for %s\n", SwigType_str(t, 0));
     }
+    
+    Delete(proxy_param_types);
 
     // The whole function body is now in stored tm (if there was a matching type
     // map, of course), so simply append it to the code buffer. The braces are
@@ -3419,7 +3427,7 @@ private:
     // Only emit it if the proxy class has at least one method.
     if (first_class_dmethod < curr_class_dmethod) {
       Printf(proxy_class_body_code, "\n");
-      Printf(proxy_class_body_code, "private bool swigIsMethodOverridden(DelegateType, FunctionType, alias fn)() {\n");
+      Printf(proxy_class_body_code, "private bool swigIsMethodOverridden(DelegateType, FunctionType, alias fn)() %s{\n", (d_version > 1) ? "const " : "");
       Printf(proxy_class_body_code, "  DelegateType dg = &fn;\n");
       Printf(proxy_class_body_code, "  return dg.funcptr != SwigNonVirtualAddressOf!(FunctionType, fn);\n");
       Printf(proxy_class_body_code, "}\n");
@@ -3653,7 +3661,7 @@ private:
   String *getPrimitiveDptype(Node *node, SwigType *type) {
     SwigType *stripped_type = SwigType_typedef_resolve_all(type);
 
-    // A reference can only be the »outermost element« of a typ.
+    // A reference can only be the »outermost element« of a type.
     bool mutable_ref = false;
     if (SwigType_isreference(stripped_type)) {
       SwigType_del_reference(stripped_type);

@@ -301,7 +301,7 @@
 
 %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE *const& {
   void *vptr = 0;
-  int res = SWIG_ConvertPtr($input, &vptr, $descriptor, 0);
+  int res = SWIG_ConvertPtr($input, &vptr, $*descriptor, 0);
   $1 = SWIG_CheckState(res);
 }
 

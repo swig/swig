@@ -254,12 +254,17 @@ class TypePass:private Dispatcher {
 	  Delete(smartnamestr);
 	  /* setup inheritance relationship between smart pointer templates */
 	  SwigType_inherit(smart, bsmart, 0, convcode);
+	  if (!GetFlag(bclass, "feature:smartptr"))
+	    Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
 	  Delete(convcode);
 	  Delete(bsmart);
 	  Delete(smart);
 	} else {
 	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", SwigType_namestr(smartptr), SwigType_namestr(clsname));
 	}
+      } else {
+	if (GetFlag(bclass, "feature:smartptr"))
+	  Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));
       }
       if (!importmode) {
 	String *btype = Copy(bname);

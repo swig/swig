@@ -112,7 +112,7 @@ static Hash *typedef_resolve_cache = 0;
 static Hash *typedef_all_cache = 0;
 static Hash *typedef_qualified_cache = 0;
 
-static Typetab *SwigType_find_scope(Typetab *s, String *nameprefix);
+static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix);
 
 /* common attribute keys, to avoid calling find_key all the times */
 
@@ -167,7 +167,7 @@ void SwigType_typesystem_init() {
  * already defined.  
  * ----------------------------------------------------------------------------- */
 
-int SwigType_typedef(SwigType *type, const_String_or_char_ptr name) {
+int SwigType_typedef(const SwigType *type, const_String_or_char_ptr name) {
   if (Getattr(current_typetab, name))
     return -1;			/* Already defined */
   if (Strcmp(type, name) == 0) {	/* Can't typedef a name to itself */
@@ -414,7 +414,7 @@ void SwigType_print_scope(Typetab *t) {
   }
 }
 
-static Typetab *SwigType_find_scope(Typetab *s, String *nameprefix) {
+static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
   Typetab *ss;
   String *nnameprefix = 0;
   static int check_parent = 1;
@@ -806,7 +806,7 @@ return_result:
  * Fully resolve a type down to its most basic datatype
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_typedef_resolve_all(SwigType *t) {
+SwigType *SwigType_typedef_resolve_all(const SwigType *t) {
   SwigType *n;
   SwigType *r;
 
@@ -848,7 +848,7 @@ SwigType *SwigType_typedef_resolve_all(SwigType *t) {
  * scope, it is left in place.
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_typedef_qualified(SwigType *t) {
+SwigType *SwigType_typedef_qualified(const SwigType *t) {
   List *elements;
   String *result;
   int i, len;
@@ -1049,7 +1049,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
  * Checks a typename to see if it is a typedef.
  * ----------------------------------------------------------------------------- */
 
-int SwigType_istypedef(SwigType *t) {
+int SwigType_istypedef(const SwigType *t) {
   String *type;
 
   type = SwigType_typedef_resolve(t);
@@ -1150,7 +1150,7 @@ int SwigType_typedef_using(const_String_or_char_ptr name) {
  * a class.
  * ----------------------------------------------------------------------------- */
 
-int SwigType_isclass(SwigType *t) {
+int SwigType_isclass(const SwigType *t) {
   SwigType *qty, *qtys;
   int isclass = 0;
 
@@ -1186,7 +1186,7 @@ int SwigType_isclass(SwigType *t) {
  * everything is based on typemaps.
  * ----------------------------------------------------------------------------- */
 
-int SwigType_type(SwigType *t) {
+int SwigType_type(const SwigType *t) {
   char *c;
   /* Check for the obvious stuff */
   c = Char(t);
@@ -1295,7 +1295,7 @@ int SwigType_type(SwigType *t) {
  * %feature("valuewrapper").
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
+SwigType *SwigType_alttype(const SwigType *t, int local_tmap) {
   Node *n;
   SwigType *w = 0;
   int use_wrapper = 0;
@@ -1413,7 +1413,7 @@ static Hash *r_clientdata = 0;	/* Hash mapping resolved types to client data    
 static Hash *r_mangleddata = 0;	/* Hash mapping mangled types to client data         */
 static Hash *r_remembered = 0;	/* Hash of types we remembered already */
 
-static void (*r_tracefunc) (SwigType *t, String *mangled, String *clientdata) = 0;
+static void (*r_tracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
 
 void SwigType_remember_mangleddata(String *mangled, const_String_or_char_ptr clientdata) {
   if (!r_mangleddata) {
@@ -1423,7 +1423,7 @@ void SwigType_remember_mangleddata(String *mangled, const_String_or_char_ptr cli
 }
 
 
-void SwigType_remember_clientdata(SwigType *t, const_String_or_char_ptr clientdata) {
+void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr clientdata) {
   String *mt;
   SwigType *lt;
   Hash *h;
@@ -1536,12 +1536,12 @@ void SwigType_remember_clientdata(SwigType *t, const_String_or_char_ptr clientda
   }
 }
 
-void SwigType_remember(SwigType *ty) {
+void SwigType_remember(const SwigType *ty) {
   SwigType_remember_clientdata(ty, 0);
 }
 
-void (*SwigType_remember_trace(void (*tf) (SwigType *, String *, String *))) (SwigType *, String *, String *) {
-  void (*o) (SwigType *, String *, String *) = r_tracefunc;
+void (*SwigType_remember_trace(void (*tf) (const SwigType *, String *, String *))) (const SwigType *, String *, String *) {
+  void (*o) (const SwigType *, String *, String *) = r_tracefunc;
   r_tracefunc = tf;
   return o;
 }
@@ -1713,7 +1713,7 @@ void SwigType_inherit(String *derived, String *base, String *cast, String *conve
  * Determines if a t1 is a subtype of t2, ie, is t1 derived from t2
  * ----------------------------------------------------------------------------- */
 
-int SwigType_issubtype(SwigType *t1, SwigType *t2) {
+int SwigType_issubtype(const SwigType *t1, const SwigType *t2) {
   SwigType *ft1, *ft2;
   String *b1, *b2;
   Hash *h;

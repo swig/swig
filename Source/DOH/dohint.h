@@ -54,7 +54,7 @@ typedef struct {
 
 /* String methods */
 typedef struct {
-  int (*doh_replace) (DOH *obj, DOH *old, DOH *rep, int flags);
+  int (*doh_replace) (DOH *obj, const DOHString_or_char *old, const DOHString_or_char *rep, int flags);
   void (*doh_chop) (DOH *obj);
 } DohStringMethods;
 

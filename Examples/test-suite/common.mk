@@ -154,6 +154,7 @@ CPP_TEST_CASES += \
 	derived_nested \
 	destructor_reprotected \
 	director_abstract \
+	director_alternating \
 	director_basic \
 	director_classes \
 	director_classic \
@@ -166,6 +167,7 @@ CPP_TEST_CASES += \
 	director_finalizer \
 	director_frob \
 	director_ignore \
+	director_keywords \
 	director_namespace_clash \
 	director_nested \
 	director_overload \
@@ -228,9 +230,11 @@ CPP_TEST_CASES += \
 	li_cpointer \
 	li_stdint \
 	li_typemaps \
+	li_typemaps_apply \
 	li_windows \
 	long_long_apply \
 	memberin_extend \
+	member_funcptr_galore \
 	member_pointer \
 	member_template \
 	minherit \
@@ -396,6 +400,7 @@ CPP_TEST_CASES += \
 	typedef_scope \
 	typedef_sizet \
 	typedef_struct \
+	typemap_arrays \
 	typemap_delete \
 	typemap_global_scope \
 	typemap_namespace \
