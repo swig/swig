@@ -358,17 +358,8 @@ SWIG_init(void) {
   metatype->tp_setattro = (setattrofunc) &SwigPyObjectType_setattro;
   assert(PyType_Ready(metatype) >= 0);
 
-  // All objects have a 'thisown' attribute
-  static SwigPyGetSet thisown_getset_closure = {
-    (PyCFunction) SwigPyObject_own,
-    (PyCFunction) SwigPyObject_own
-  };
-  static PyGetSetDef thisown_getset_def = {
-    const_cast<char*>("thisown"), pyswig_getter_closure, pyswig_setter_closure, NULL, &thisown_getset_closure
-  };
-  PyObject *thisown_descr = PyDescr_NewGetSet(SwigPyObject_type(), &thisown_getset_def);
-
   SWIG_Python_builtin_imports();
+
 #endif
 
   /* Fix SwigMethods to carry the callback ptrs when needed */
@@ -382,9 +373,33 @@ SWIG_init(void) {
   md = d = PyModule_GetDict(m);
 
   SWIG_InitializeModule(0);
-  SWIG_InstallConstants(d,swig_const_table);
 
-#if defined(SWIGPYTHON_BUILTIN)
+#ifdef SWIGPYTHON_BUILTIN
+  static SwigPyClientData SwigPyObject_clientdata = {0};
+  SwigPyObject_stype = SWIG_MangledTypeQuery("_p_SwigPyObject");
+  assert(SwigPyObject_stype);
+  SwigPyClientData *cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
+  if (!cd) {
+    SwigPyObject_stype->clientdata = &SwigPyObject_clientdata;
+    SwigPyObject_clientdata.pytype = _PySwigObject_type();
+  }
+
+  // All objects have a 'this' attribute
+  static PyGetSetDef this_getset_def = {
+    const_cast<char*>("this"), pyswig_this_closure, NULL, NULL, NULL
+  };
+  PyObject *this_descr = PyDescr_NewGetSet(SwigPyObject_type(), &this_getset_def);
+
+  // All objects have a 'thisown' attribute
+  static SwigPyGetSet thisown_getset_closure = {
+    (PyCFunction) SwigPyObject_own,
+    (PyCFunction) SwigPyObject_own
+  };
+  static PyGetSetDef thisown_getset_def = {
+    const_cast<char*>("thisown"), pyswig_getter_closure, pyswig_setter_closure, NULL, &thisown_getset_closure
+  };
+  PyObject *thisown_descr = PyDescr_NewGetSet(SwigPyObject_type(), &thisown_getset_def);
+
   PyObject *public_interface = PyList_New(0);
   PyObject *public_symbol = 0;
   PyDict_SetItemString(md, "__all__", public_interface);
@@ -395,5 +410,6 @@ SWIG_init(void) {
     pyswig_add_public_symbol(public_interface, swig_const_table[i].name);
 #endif
 
+  SWIG_InstallConstants(d,swig_const_table);
 %}
 

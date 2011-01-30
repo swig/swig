@@ -68,6 +68,12 @@
  *  Python extra typemaps / typemap overrides
  * ------------------------------------------------------------ */
 
+%typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE *const& {
+  void *vptr = 0;
+  int res = SWIG_ConvertPtr($input, &vptr, $*descriptor, 0);
+  $1 = SWIG_CheckState(res);
+}
+
 /* Get the address of the 'python self' object */
 
 %typemap(in,numinputs=0,noblock=1) PyObject **PYTHON_SELF {
@@ -102,7 +108,6 @@
     }
   }
 }
-
 
 /* -------------------------------------------------------------
  * Output typemap for the __init__ method of a built-in type.

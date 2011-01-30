@@ -128,6 +128,13 @@ namespace swig {
       return desc;
     }    
   };
+
+  inline PyObject* make_output_iterator_builtin (PyObject *pyself)
+  {
+    Py_INCREF(pyself);
+    return pyself;
+  }
+
 }
 }
 
@@ -304,7 +311,7 @@ namespace swig {
   }
 
   template <typename Sequence>
-  inline PyObject* make_output_iterator_builtin (PyObject *pyself)
+  inline PyObject* make_output_iterator_builtin_T (PyObject *pyself)
   {
       SwigPyObject *builtin_obj = (SwigPyObject*) pyself;
       Sequence *seq = reinterpret_cast< Sequence * >(builtin_obj->ptr);
@@ -314,12 +321,6 @@ namespace swig {
       return SWIG_NewPointerObj(iter, SWIGTYPE_p_swig__SwigPyIterator, SWIG_POINTER_OWN);
   }
 
-  template <>
-  inline PyObject* make_output_iterator_builtin<SwigPyIterator> (PyObject *pyself)
-  {
-    Py_INCREF(pyself);
-    return pyself;
-  }
 }
 }
 
@@ -349,7 +350,7 @@ namespace swig
   %nodirector SwigPyIterator;
 
 #if defined(SWIGPYTHON_BUILTIN)
-  %feature("tp_iter") SwigPyIterator "&swig::make_output_iterator_builtin<swig::SwigPyIterator>";
+  %feature("tp_iter") SwigPyIterator "&swig::make_output_iterator_builtin";
   %feature("pyslot", "tp_iternext", functype="iternextfunc") SwigPyIterator::__next__;
 #else
   %extend SwigPyIterator {

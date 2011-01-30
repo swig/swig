@@ -481,11 +481,23 @@ SwigPyObject_richcompare(SwigPyObject *v, SwigPyObject *w, int op)
 
 SWIGRUNTIME PyTypeObject* _PySwigObject_type(void);
 
+#ifdef SWIGPYTHON_BUILTIN
+static swig_type_info *SwigPyObject_stype = 0;
+SWIGRUNTIME PyTypeObject*
+SwigPyObject_type(void) {
+    assert(SwigPyObject_stype);
+    SwigPyClientData *cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
+    assert(cd);
+    assert(cd->pytype);
+    return cd->pytype;
+}
+#else
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_type(void) {
   static PyTypeObject *SWIG_STATIC_POINTER(type) = _PySwigObject_type();
   return type;
 }
+#endif
 
 SWIGRUNTIMEINLINE int
 SwigPyObject_Check(PyObject *op) {

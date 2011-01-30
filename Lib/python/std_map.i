@@ -158,7 +158,7 @@
 #if defined(SWIGPYTHON_BUILTIN)
   %feature("pyslot", "mp_length", functype="lenfunc") __len__;
   %feature("pyslot", "mp_subscript", functype="binaryfunc") __getitem__;
-  %feature("tp_iter") Map "&swig::make_output_key_iterator_builtin< Map >";
+  %feature("pyslot", "tp_iter", functype="getiterfunc") key_iterator;
 
   %extend {
     %newobject iterkeys(PyObject **PYTHON_SELF);
@@ -288,20 +288,21 @@
 
 #if defined(SWIGPYTHON_BUILTIN)
   %feature("pyslot", "mp_ass_subscript", functype="objobjargproc") __setitem__;
+#endif
 
   %extend {
       // This will be called through the mp_ass_subscript slot to delete an entry.
       void __setitem__(const key_type& key) {
 	  self->erase(key);
       }
-   }
-#endif
+  }
 
   %extend {
     void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
       (*self)[key] = x;
     }
   }
+
 %enddef
 
 

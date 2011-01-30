@@ -5,6 +5,17 @@ wrapper##_closure (PyObject *a)			\
     return wrapper(a, NULL);			\
 }
 
+#define PYSWIG_DESTRUCTOR_CLOSURE(wrapper)	\
+SWIGINTERN void					\
+wrapper##_closure (PyObject *a)			\
+{						\
+    SwigPyObject *sobj = (SwigPyObject*) a;	\
+    if (sobj->own) {				\
+	PyObject *o = wrapper(a, NULL);		\
+	Py_XDECREF(o);				\
+    }						\
+}
+
 #define PYSWIG_INQUIRY_CLOSURE(wrapper)				\
 SWIGINTERN int							\
 wrapper##_closure (PyObject *a)					\
@@ -132,22 +143,6 @@ wrapper##_closure (PyObject *a, PyObject *b, PyObject *c)	\
     return result;						\
 }
 
-#ifdef __cplusplus
-
-namespace {
-
-template <typename _Tp> void py_builtin_dealloc (PyObject *pyobj)
-{
-    SwigPyObject *obj = (SwigPyObject*) pyobj;
-    if (obj->own)
-	delete reinterpret_cast<_Tp*>(obj->ptr);
-    (*pyobj->ob_type->tp_free)(pyobj);
-}
-
-} // namespace {
-
-#endif
-
 SWIGRUNTIME int py_builtin_bad_init (PyObject *self, PyObject *args, PyObject *kwds)
 {
     PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", self->ob_type->tp_name);
@@ -187,11 +182,15 @@ pyswig_getter_closure (PyObject *obj, void *closure)
 SWIGRUNTIME int
 pyswig_setter_closure (PyObject *obj, PyObject *val, void *closure)
 {
-    if (!closure)
+    if (!closure) {
+	PyErr_Format(PyExc_TypeError, "Missing getset closure");
         return -1;
+    }
     SwigPyGetSet *getset = (SwigPyGetSet*) closure;
-    if (!getset->set)
+    if (!getset->set) {
+	PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", obj->ob_type->tp_name);
 	return -1;
+    }
     PyObject *tuple = PyTuple_New(1);
     assert(tuple);
     PyTuple_SET_ITEM(tuple, 0, val);
@@ -220,11 +219,15 @@ pyswig_static_getter_closure (PyObject *obj, void *closure)
 SWIGRUNTIME int
 pyswig_static_setter_closure (PyObject *obj, PyObject *val, void *closure)
 {
-    if (!closure)
+    if (!closure) {
+	PyErr_Format(PyExc_TypeError, "Missing getset closure");
         return -1;
+    }
     SwigPyGetSet *getset = (SwigPyGetSet*) closure;
-    if (!getset->set)
+    if (!getset->set) {
+	PyErr_Format(PyExc_TypeError, "Illegal static variable assignment.");
 	return -1;
+    }
     PyObject *tuple = PyTuple_New(1);
     assert(tuple);
     PyTuple_SET_ITEM(tuple, 0, val);
@@ -380,5 +383,13 @@ pyswig_builtin_init_bases (PyTypeObject *type, std::vector<PyTypeObject*>& bases
     }
     type->tp_bases = tuple;
 }
+
+SWIGINTERN PyObject*
+pyswig_this_closure (PyObject *self, void *closure)
+{
+    PyObject *result = (PyObject*) SWIG_Python_GetSwigThis(self);
+    Py_XINCREF(result);
+    return result;
+}	
 
 #endif

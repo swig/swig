@@ -53,6 +53,7 @@ static Hash *class_members = 0;
 static File *f_builtins = 0;
 static String *builtin_tp_init = 0;
 static String *builtin_methods = 0;
+static String *builtin_default_unref = 0;
 
 static String *methods;
 static String *class_name;
@@ -172,6 +173,7 @@ static String *getSlot(Node *n, const char *key) {
 static String *getClosure(String *functype, String *wrapper) {
   static const char *functypes[] = {
     "unaryfunc", "PYSWIG_UNARYFUNC_CLOSURE",
+    "destructor", "PYSWIG_DESTRUCTOR_CLOSURE",
     "inquiry", "PYSWIG_INQUIRY_CLOSURE",
     "getiterfunc", "PYSWIG_UNARYFUNC_CLOSURE",
     "iternextfunc", "PYSWIG_UNARYFUNC_CLOSURE",
@@ -213,7 +215,8 @@ public:
    * Thread Implementation
    * ------------------------------------------------------------ */ int threads_enable(Node *n) const {
     return threads && !GetFlagAttr(n, "feature:nothread");
-  } int initialize_threads(String *f_init) {
+  }
+  int initialize_threads(String *f_init) {
     if (!threads) {
       return SWIG_OK;
     }
@@ -270,6 +273,7 @@ public:
       Append(f, "\n}");
     }
   }
+
 
   /* ------------------------------------------------------------
    * main()
@@ -578,6 +582,7 @@ public:
     builtin_getset = NewHash();
     class_members = NewHash();
     builtin_methods = NewString("");
+    builtin_default_unref = NewString("delete $self;");
 
     if (builtin) {
       f_builtins = NewString("");
@@ -895,6 +900,12 @@ public:
 
     /* the method exported for replacement of new.instancemethod in Python 3 */
     add_pyinstancemethod_new();
+
+    if (builtin) {
+      String *s = NewString("p.SwigPyObject");
+      SwigType_remember(s);
+      Delete(s);
+    }
 
     /* emit code */
     Language::top(n);
@@ -1808,7 +1819,7 @@ public:
   /* ------------------------------------------------------------
    * dispatchFunction()
    * ------------------------------------------------------------ */
-    void dispatchFunction(Node *n, String *linkage, int funpack = 0, bool return_int = false, bool add_self = false, bool addmeth = true) {
+  void dispatchFunction(Node *n, String *linkage, int funpack = 0, bool return_int = false, bool add_self = false, bool addmeth = true) {
     /* Last node in overloaded chain */
 
     int maxargs;
@@ -1954,12 +1965,12 @@ public:
     bool builtin_self = builtin && in_class && (constructor || (l && Getattr(l, "self")));
     bool builtin_ctor = false;
     if (builtin_self && constructor) {
-	String *class_mname = Getattr(getCurrentClass(), "sym:name");
-	String *mrename = Swig_name_construct(getNSpace(), class_mname);
-	if (Cmp(iname, mrename))
-	    builtin_self = false;
-	else
-	    builtin_ctor = true;
+      String *class_mname = Getattr(getCurrentClass(), "sym:name");
+      String *mrename = Swig_name_construct(getNSpace(), class_mname);
+      if (Cmp(iname, mrename))
+	builtin_self = false;
+      else
+	builtin_ctor = true;
     }
     bool director_class = (getCurrentClass() && Swig_directorclass(getCurrentClass()));
     bool builtin_getter = (builtin && GetFlag(n, "memberget"));
@@ -2075,11 +2086,11 @@ public:
     }
 
     if (builtin_ctor && checkAttribute(n, "access", "protected")) {
-	String *tmp_none_comparison = Copy(none_comparison);
-	Replaceall(tmp_none_comparison, "$arg", "self");
-	Printf(self_parse, "if (!(%s)) {\n", tmp_none_comparison);
-	Printv(self_parse, "  SWIG_SetErrorMsg(PyExc_RuntimeError, \"accessing abstract class or protected constructor\");\n  SWIG_fail;\n}\n", NIL);
-	Delete(tmp_none_comparison);
+      String *tmp_none_comparison = Copy(none_comparison);
+      Replaceall(tmp_none_comparison, "$arg", "self");
+      Printf(self_parse, "if (!(%s)) {\n", tmp_none_comparison);
+      Printv(self_parse, "  SWIG_SetErrorMsg(PyExc_RuntimeError, \"accessing abstract class or protected constructor\");\n  SWIG_fail;\n}\n", NIL);
+      Delete(tmp_none_comparison);
     }
 
     if (builtin_self && !builtin_ctor)
@@ -2192,13 +2203,13 @@ public:
     }
 
     if (use_parse || allow_kwargs || !modernargs) {
-	if (builtin && in_class && tuple_arguments == 0) {
-	    Printf(parse_args, "    if (args && PyTuple_Check(args) && PyTuple_GET_SIZE(args) > 0) SWIG_fail;\n");
-	} else {
-	    Printf(parse_args, ":%s\"", iname);
-	    Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
-	    funpack = 0;
-	}
+      if (builtin && in_class && tuple_arguments == 0) {
+	Printf(parse_args, "    if (args && PyTuple_Check(args) && PyTuple_GET_SIZE(args) > 0) SWIG_fail;\n");
+      } else {
+	Printf(parse_args, ":%s\"", iname);
+	Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
+	funpack = 0;
+      }
     } else {
       Clear(parse_args);
       if (funpack) {
@@ -2507,9 +2518,8 @@ public:
       Wrapper_add_local(f, "resultobj", builtin_ctor ? "int resultobj" : "PyObject *resultobj");
       Wrapper_add_local(f, "varargs", "PyObject *varargs");
       Wrapper_add_local(f, "newargs", "PyObject *newargs");
-      int first_arg = builtin_self ? 1 : 0;
-      Printf(f->code, "newargs = PyTuple_GetSlice(args,%d,%d);\n", first_arg, first_arg + num_arguments);
-      Printf(f->code, "varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args)+1);\n", first_arg + num_arguments);
+      Printf(f->code, "newargs = PyTuple_GetSlice(args,0,%d);\n", num_arguments);
+      Printf(f->code, "varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args)+1);\n", num_arguments);
       Printf(f->code, "resultobj = %s__varargs__(self,newargs,varargs);\n", wname);
       Append(f->code, "Py_XDECREF(newargs);\n");
       Append(f->code, "Py_XDECREF(varargs);\n");
@@ -2529,23 +2539,21 @@ public:
       }
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
-	  dispatchFunction(n, linkage, funpack,
-			   builtin_ctor,  // return_int
-			   builtin_self && (!builtin_ctor || director_class),  // add_self
-			   !builtin_self);  // addmeth
+	dispatchFunction(n, linkage, funpack, builtin_ctor,	// return_int
+			 builtin_self && (!builtin_ctor || director_class),	// add_self
+			 !builtin_self);	// addmeth
       }
     }
 
     // Put this in tp_init of the PyTypeObject
     if (builtin_ctor) {
-	// Can't use checkAttribute(n, "access", "public") because
-	// "access" attr isn't set on %extend methods
-	if ((director_method || !checkAttribute(n, "access", "private")) &&
-	    !Getattr(class_members, iname)) {
-	    Setattr(class_members, iname, n);
-	    if (!builtin_tp_init)
-		builtin_tp_init = Swig_name_wrapper(iname);
-	}
+      // Can't use checkAttribute(n, "access", "public") because
+      // "access" attr isn't set on %extend methods
+      if ((director_method || !checkAttribute(n, "access", "private")) && !Getattr(class_members, iname)) {
+	Setattr(class_members, iname, n);
+	if (!builtin_tp_init)
+	  builtin_tp_init = Swig_name_wrapper(iname);
+      }
     }
 
     /* If this is a builtin type, create a PyGetSetDef entry for this member variable. */
@@ -2557,6 +2565,7 @@ public:
 	Delete(h);
       }
       Setattr(h, "getter", wrapper_name);
+      Delattr(n, "memberget");
     }
     if (builtin_setter) {
       Hash *h = Getattr(builtin_getset, name);
@@ -2566,6 +2575,7 @@ public:
 	Delete(h);
       }
       Setattr(h, "setter", wrapper_name);
+      Delattr(n, "memberset");
     }
 
     /* Handle builtin operator overloads */
@@ -2585,9 +2595,9 @@ public:
     /* Handle comparison operators for builtin types */
     String *compare = Getattr(n, "feature:pycompare");
     if (compare) {
-	Hash *richcompare = Getattr(parent, "richcompare");
-	assert(richcompare);
-	Setattr(richcompare, compare, wrapper_name);
+      Hash *richcompare = Getattr(parent, "richcompare");
+      assert(richcompare);
+      Setattr(richcompare, compare, wrapper_name);
     }
 
     Delete(self_parse);
@@ -2642,7 +2652,7 @@ public:
     int assignable = is_assignable(n);
 
     if (!builtin && shadow && !assignable && !in_class)
-	Printf(f_shadow_stubs, "%s = %s.%s\n", iname, global_name, iname);
+      Printf(f_shadow_stubs, "%s = %s.%s\n", iname, global_name, iname);
 
     String *getname = Swig_name_get(NSPACE_TODO, iname);
     String *setname = Swig_name_set(NSPACE_TODO, iname);
@@ -2653,9 +2663,9 @@ public:
     if (assignable) {
       Setattr(n, "wrap:name", varsetname);
       if (builtin && in_class) {
-	  String *set_wrapper = Swig_name_wrapper(setname);
-	  Setattr(n, "builtin:setter", set_wrapper);
-	  Delete(set_wrapper);
+	String *set_wrapper = Swig_name_wrapper(setname);
+	Setattr(n, "builtin:setter", set_wrapper);
+	Delete(set_wrapper);
       }
       Printf(setf->def, "SWIGINTERN int %s(PyObject *_val) {", varsetname);
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
@@ -2717,8 +2727,7 @@ public:
     /* Now add this to the variable linking mechanism */
     Printf(f_init, "\t SWIG_addvarlink(SWIG_globals(),(char*)\"%s\",%s, %s);\n", iname, vargetname, varsetname);
     if (builtin && shadow && !assignable && !in_class) {
-      Printf(f_init, "\t PyDict_SetItemString(md, (char*)\"%s\", PyObject_GetAttrString(SWIG_globals(), \"%s\"));\n",
-	     iname, iname);
+      Printf(f_init, "\t PyDict_SetItemString(md, (char*)\"%s\", PyObject_GetAttrString(SWIG_globals(), \"%s\"));\n", iname, iname);
       Printf(f_init, "\t pyswig_add_public_symbol(public_interface, \"%s\");\n", iname);
     }
     Delete(vargetname);
@@ -3060,7 +3069,7 @@ public:
    * classHandler()
    * ------------------------------------------------------------ */
 
-  String* add_explicit_scope (String *s) {
+  String *add_explicit_scope(String *s) {
     if (!Strstr(s, "::")) {
       String *ss = NewStringf("::%s", s);
       Delete(s);
@@ -3082,20 +3091,6 @@ public:
     Delete(mname);
   }
 
-  virtual bool has_callable_dtor (Node *n, bool protected_ok = false) {
-    if (GetFlag(n, "private_dtor"))
-      return false;
-    if (!protected_ok && GetFlag(n, "protected_dtor"))
-      return false;
-    List *baselist = Getattr(n, "bases");
-    if (!baselist || Len(baselist) == 0)
-      return true;
-    for (Iterator b = First(baselist); b.item; b = Next(b))
-      if (!has_callable_dtor(b.item, true))
-	return false;
-    return true;
-  }
-
   void builtin_post_decl(File *f, Node *n) {
     String *name = Getattr(n, "name");
     String *pname = Copy(name);
@@ -3103,6 +3098,7 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *rname = add_explicit_scope(SwigType_namestr(name));
     String *mname = SwigType_manglestr(rname);
+    String *pmname = SwigType_manglestr(pname);
     String *templ = NewStringf("SwigPyBuiltin_%s", mname);
 
     Printf(f_init, tab4 "builtin_pytype->ob_type = metatype;\n");
@@ -3130,18 +3126,19 @@ public:
     // Check for non-public destructor, in which case tp_dealloc will issue
     // a warning and allow the memory to leak.  Any class that doesn't explicitly
     // have a private/protected destructor has an implicit public destructor.
-    String *tp_dealloc = NewString("");
-    if (has_callable_dtor(n)) {
-      String *smartptr = Getattr(n, "feature:smartptr");
-      Printf(tp_dealloc, "py_builtin_dealloc< %s >", smartptr ? smartptr : rname);
+    String *tp_dealloc = Getattr(n, "feature:tp_dealloc");
+    if (tp_dealloc) {
+      Printf(f, "PYSWIG_DESTRUCTOR_CLOSURE(%s);\n", tp_dealloc);
+      tp_dealloc = NewStringf("%s_closure", tp_dealloc);
     } else {
-      Printv(tp_dealloc, "py_builtin_bad_dealloc", NIL);
+      tp_dealloc = NewString("py_builtin_bad_dealloc");
     }
 
     String *getset_def = NewString("");
     Printf(getset_def, "SWIGINTERN PyGetSetDef %s_getset[] = {\n", templ);
 
-    // All objects have a 'thisown' attribute
+    // All objects have 'this' and 'thisown' attributes
+    Printv(f_init, "PyDict_SetItemString(d, \"this\", this_descr);\n", NIL);
     Printv(f_init, "PyDict_SetItemString(d, \"thisown\", thisown_descr);\n", NIL);
 
     // Now, the rest of the attributes
@@ -3151,14 +3148,17 @@ public:
       String *getter = Getattr(mgetset, "getter");
       String *setter = Getattr(mgetset, "setter");
       const char *getter_closure = getter ? "pyswig_getter_closure" : "0";
-      const char *setter_closure = getter ? "pyswig_setter_closure" : "0";
+      const char *setter_closure = setter ? "pyswig_setter_closure" : "0";
       String *gspair = NewStringf("%s_%s_getset", symname, memname);
       Printf(f, "static SwigPyGetSet %s = { %s, %s };\n", gspair, getter ? getter : "0", setter ? setter : "0");
-      String *entry = NewStringf("{ const_cast<char*>(\"%s\"), (getter) %s, (setter) %s, const_cast<char*>(\"%s.%s\"), (void*) &%s }\n", memname, getter_closure, setter_closure, name, memname, gspair);
+      String *entry =
+	  NewStringf("{ const_cast<char*>(\"%s\"), (getter) %s, (setter) %s, const_cast<char*>(\"%s.%s\"), (void*) &%s }\n", memname, getter_closure,
+		     setter_closure, name, memname, gspair);
       if (GetFlag(mgetset, "static")) {
 	Printf(f, "static PyGetSetDef %s_def = %s;\n", gspair, entry);
 	Printf(f_init, "static_getset = SwigPyStaticVar_new_getset(metatype, &%s_def);\n", gspair);
-	Printf(f_init, "PyDict_SetItemString(d, static_getset->d_getset->name, (PyObject*) static_getset);\n", memname);	  Printf(f_init, "Py_DECREF(static_getset);\n");
+	Printf(f_init, "PyDict_SetItemString(d, static_getset->d_getset->name, (PyObject*) static_getset);\n", memname);
+	Printf(f_init, "Py_DECREF(static_getset);\n");
       } else {
 	Printf(getset_def, "    %s,\n", entry);
       }
@@ -3181,9 +3181,16 @@ public:
     Printf(f, "    switch (op) {\n");
     for (Iterator i = First(richcompare); i.item; i = Next(i))
       Printf(f, "    case %s : result = %s(self, tuple); break;\n", i.key, i.item);
-    Printv(f, "    default : PyErr_Format(PyExc_TypeError, \"Cannot compare a(n) '%s' to a(n) '%s'\",", NIL);
-    Printv(f, " self->ob_type->tp_name, other ? other->ob_type->tp_name : \"NULL\");\n", NIL);
+    Printv(f, "    default : break;\n", NIL);
     Printf(f, "    }\n");
+    Printv(f, "    if (result == NULL) {\n", NIL);
+    Printv(f, "        if (SwigPyObject_Check(self) && SwigPyObject_Check(other)) {\n", NIL);
+    Printv(f, "            result = SwigPyObject_richcompare((SwigPyObject*) self, (SwigPyObject*) other, op);\n", NIL);
+    Printv(f, "        } else {\n", NIL);
+    Printv(f, "            result = Py_NotImplemented;\n", NIL);
+    Printv(f, "            Py_INCREF(result);\n", NIL);
+    Printv(f, "        }\n", NIL);
+    Printv(f, "    }\n", NIL);
     Printf(f, "    Py_DECREF(tuple);\n");
     Printf(f, "    return result;\n");
     Printf(f, "}\n\n");
@@ -3195,7 +3202,7 @@ public:
 
     // No instance dict for nondynamic objects
     if (GetFlag(n, "feature:python:nondynamic"))
-	Setattr(n, "feature:tp_setattro", "SWIG_Python_NonDynamicSetAttr");
+      Setattr(n, "feature:tp_setattro", "SWIG_Python_NonDynamicSetAttr");
 
     char const *tp_init = builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "py_builtin_bad_init";
     String *tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES");
@@ -3317,7 +3324,7 @@ public:
     // PyBufferProcs as_buffer;
     Printf(f, "  {\n");
     Printf(f, "    (readbufferproc)	%s,	// bf_getreadbuffer\n", getSlot(n, "feature:bf_getreadbuffer"));
-    Printf(f, "    (writebufferproc)	%s,	// bf_getwritebuffer\n", getSlot(n, "feature:bf_getwritebuffer")); 
+    Printf(f, "    (writebufferproc)	%s,	// bf_getwritebuffer\n", getSlot(n, "feature:bf_getwritebuffer"));
     Printf(f, "    (segcountproc)	%s,	// bf_getsegcount\n", getSlot(n, "feature:bf_getsegcount"));
     Printf(f, "    (charbufferproc)	%s,	// bf_getcharbuffer\n", getSlot(n, "feature:bf_getcharbuffer"));
     Printf(f, "  },\n");
@@ -3329,19 +3336,29 @@ public:
 
     String *clientdata = NewString("");
     Printf(clientdata, "&%s_clientdata", templ);
-    SwigType_remember_clientdata(pname, clientdata);
+    //SwigType_remember_clientdata(pname, clientdata);
+    SwigType_remember_mangleddata(pmname, clientdata);
 
     String *smartptr = Getattr(n, "feature:smartptr");
     if (smartptr) {
       SwigType *spt = Swig_cparse_type(smartptr);
       SwigType *smart = SwigType_typedef_resolve_all(spt);
       SwigType_add_pointer(smart);
-      SwigType_remember_clientdata(smart, clientdata);
+      String *smart_pmname = SwigType_manglestr(smart);
+      //SwigType_remember_clientdata(smart, clientdata);
+      SwigType_remember_mangleddata(smart_pmname, clientdata);
       Delete(spt);
       Delete(smart);
+      Delete(smart_pmname);
     }
 
-    Printf(f, "SWIGINTERN SwigPyClientData %s_clientdata = {0, 0, 0, 0, 0, 0, (PyTypeObject*) &%s_type};\n\n", templ, templ);
+    String *clientdata_klass = NewString("0");
+    if (GetFlag(n, "feature:implicitconv")) {
+      Clear(clientdata_klass);
+      Printf(clientdata_klass, "(PyObject*) &%s_type", templ);
+    }
+
+    Printf(f, "SWIGINTERN SwigPyClientData %s_clientdata = {%s, 0, 0, 0, 0, 0, (PyTypeObject*) &%s_type};\n\n", templ, clientdata_klass, templ);
 
     Printv(f_init, "    if (PyType_Ready(builtin_pytype) < 0) {\n", NIL);
     Printf(f_init, "      PyErr_SetString(PyExc_TypeError, \"Couldn't create type '%s'\");\n", symname);
@@ -3356,9 +3373,11 @@ public:
     Delete(rname);
     Delete(pname);
     Delete(mname);
+    Delete(pmname);
     Delete(templ);
     Delete(tp_dealloc);
     Delete(tp_flags);
+    Delete(clientdata_klass);
   }
 
   virtual int classHandler(Node *n) {
@@ -3429,15 +3448,15 @@ public:
       }
 
       if (builtin) {
-	  Hash *base_richcompare = NULL;
-	  Hash *richcompare = NULL;
-	  if (base_node)
-	      base_richcompare = Getattr(base_node, "richcompare");
-	  if (base_richcompare)
-	      richcompare = Copy(base_richcompare);
-	  else
-	      richcompare = NewHash();
-	  Setattr(n, "richcompare", richcompare);
+	Hash *base_richcompare = NULL;
+	Hash *richcompare = NULL;
+	if (base_node)
+	  base_richcompare = Getattr(base_node, "richcompare");
+	if (base_richcompare)
+	  richcompare = Copy(base_richcompare);
+	else
+	  richcompare = NewHash();
+	Setattr(n, "richcompare", richcompare);
       }
 
       /* dealing with abstract base class */
@@ -3450,7 +3469,7 @@ public:
       }
 
       if (builtin) {
-	
+
       } else {
 	Printv(f_shadow, "class ", class_name, NIL);
 
@@ -3526,9 +3545,6 @@ public:
       Printv(none_comparison, "$arg != Py_None", NIL);
     }
 
-    if (builtin)
-	Setattr(n, "feature:unref", "1");
-
     Language::classHandler(n);
 
     in_class = 0;
@@ -3536,24 +3552,24 @@ public:
     /* Complete the class */
     if (shadow) {
       /* Generate a class registration function */
-      if (!builtin) {
-	String *smartptr = Getattr(n, "feature:smartptr");	// Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
-	SwigType *smart = 0;
-	if (smartptr) {
-	  SwigType *cpt = Swig_cparse_type(smartptr);
-	  if (cpt) {
-	    smart = SwigType_typedef_resolve_all(cpt);
-	    Delete(cpt);
-	  } else {
-	    // TODO: report line number of where the feature comes from
-	    Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, real_classname);
-	  }
+      String *smartptr = Getattr(n, "feature:smartptr");	// Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
+      SwigType *smart = 0;
+      if (smartptr) {
+	SwigType *cpt = Swig_cparse_type(smartptr);
+	if (cpt) {
+	  smart = SwigType_typedef_resolve_all(cpt);
+	  Delete(cpt);
+	} else {
+	  // TODO: report line number of where the feature comes from
+	  Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, real_classname);
 	}
-	SwigType *ct = Copy(smart ? smart : real_classname);
-	SwigType_add_pointer(ct);
-	SwigType *realct = Copy(real_classname);
-	SwigType_add_pointer(realct);
-	SwigType_remember(realct);
+      }
+      SwigType *ct = Copy(smart ? smart : real_classname);
+      SwigType_add_pointer(ct);
+      SwigType *realct = Copy(real_classname);
+      SwigType_add_pointer(realct);
+      SwigType_remember(realct);
+      if (!builtin) {
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
 	Printv(f_wrappers, "  PyObject *obj;\n", NIL);
 	if (modernargs) {
@@ -3570,11 +3586,11 @@ public:
 	       "  SWIG_TypeNewClientData(SWIGTYPE", SwigType_manglestr(ct), ", SWIG_NewClientData(obj));\n", "  return SWIG_Py_Void();\n", "}\n\n", NIL);
 	String *cname = NewStringf("%s_swigregister", class_name);
 	add_method(cname, cname, 0);
-	Delete(smart);
 	Delete(cname);
-	Delete(ct);
-	Delete(realct);
       }
+      Delete(smart);
+      Delete(ct);
+      Delete(realct);
       if (!have_constructor) {
 	if (!builtin)
 	  Printv(f_shadow_file, tab4, "def __init__(self, *args, **kwargs): raise AttributeError(\"", "No constructor defined",
@@ -3636,7 +3652,7 @@ public:
 	Printf(f_shadow_file, "%s_swigregister = %s.%s_swigregister\n", class_name, module, class_name);
 	Printf(f_shadow_file, "%s_swigregister(%s)\n", class_name, class_name);
       }
-      
+
       shadow_indent = 0;
       Printf(f_shadow_file, "%s\n", f_shadow_stubs);
       Clear(f_shadow_stubs);
@@ -3697,27 +3713,21 @@ public:
     shadow = oldshadow;
 
     if (builtin && in_class) {
-	String *name = Getattr(n, "name");
-	
-	// Can't use checkAttribute(n, "access", "public") because
-	// "access" attr isn't set on %extend methods
-	if (!checkAttribute(n, "access", "private") &&
-	    //!checkAttribute(n, "access", "protected") &&
-	    strncmp(Char(name), "operator ", 9) &&
-	    !Getattr(class_members, symname)) {
-	    String *fullname = Swig_name_member(NULL, class_name, symname);
-	    String *wname = Swig_name_wrapper(fullname);
-	    Setattr(class_members, symname, n);
-	    int allow_kwargs = check_kwargs(n);
-	    Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS%s, \"\" },\n",
-		   symname, wname, allow_kwargs ? "|METH_KEYWORDS" : "");
-	    Delete(fullname);
-	    Delete(wname);
-	}
+      // Can't use checkAttribute(n, "access", "public") because
+      // "access" attr isn't set on %extend methods
+      if (!checkAttribute(n, "access", "private") && strncmp(Char(symname), "operator ", 9) && !Getattr(class_members, symname)) {
+	String *fullname = Swig_name_member(NULL, class_name, symname);
+	String *wname = Swig_name_wrapper(fullname);
+	Setattr(class_members, symname, n);
+	int allow_kwargs = check_kwargs(n);
+	Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS%s, \"\" },\n", symname, wname, allow_kwargs ? "|METH_KEYWORDS" : "");
+	Delete(fullname);
+	Delete(wname);
+      }
     }
 
     if (!Getattr(n, "sym:nextSibling")) {
-	if (shadow && !builtin) {
+      if (shadow && !builtin) {
 	int fproxy = fastproxy;
 	if (Strcmp(symname, "__repr__") == 0) {
 	  have_repr = 1;
@@ -3787,12 +3797,9 @@ public:
       Swig_restore(n);
     }
 
-    if (Getattr(n, "sym:nextSibling")) {
-      return SWIG_OK;
-    }
-
     if (builtin && in_class) {
-      if (checkAttribute(n, "access", "public") && !Getattr(class_members, symname)) {
+      if ((GetFlagAttr(n, "feature:extend") || checkAttribute(n, "access", "public"))
+	  && !Getattr(class_members, symname)) {
 	String *fullname = Swig_name_member(NULL, class_name, symname);
 	String *wname = Swig_name_wrapper(fullname);
 	Setattr(class_members, symname, n);
@@ -3802,7 +3809,14 @@ public:
 	Delete(wname);
 	Delete(pyflags);
       }
-    } else if (shadow) {
+      return SWIG_OK;
+    }
+
+    if (Getattr(n, "sym:nextSibling")) {
+      return SWIG_OK;
+    }
+
+    if (shadow) {
       if (!classic && !Getattr(n, "feature:python:callback") && have_addtofunc(n)) {
 	int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
 	String *parms = make_pyParmList(n, false, false, kw);
@@ -3881,102 +3895,102 @@ public:
     Swig_restore(n);
 
     if (!Getattr(n, "sym:nextSibling")) {
-	if (shadow) {
-	    int allow_kwargs = (check_kwargs(n) && (!Getattr(n, "sym:overloaded"))) ? 1 : 0;
-	    int handled_as_init = 0;
-	    if (!have_constructor) {
-		String *nname = Getattr(n, "sym:name");
-		String *sname = Getattr(getCurrentClass(), "sym:name");
-		String *cname = Swig_name_construct(NSPACE_TODO, sname);
-		handled_as_init = (Strcmp(nname, sname) == 0) || (Strcmp(nname, cname) == 0);
-		Delete(cname);
-	    }
-        
-	    if (!have_constructor && handled_as_init) {
-		if (!builtin) {
-		    if (Getattr(n, "feature:shadow")) {
-			String *pycode = pythoncode(Getattr(n, "feature:shadow"), tab4);
-			String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
-			Replaceall(pycode, "$action", pyaction);
-			Delete(pyaction);
-			Printv(f_shadow, pycode, "\n", NIL);
-			Delete(pycode);
-		    } else {
-			String *pass_self = NewString("");
-			Node *parent = Swig_methodclass(n);
-			String *classname = Swig_class_name(parent);
-			String *rclassname = Swig_class_name(getCurrentClass());
-			assert(rclassname);
-            
-
-			String *parms = make_pyParmList(n, true, false, allow_kwargs);
-			/* Pass 'self' only if using director */
-			String *callParms = make_pyParmList(n, false, true, allow_kwargs);
-
-			if (use_director) {
-			    Insert(callParms, 0, "_self, ");
-			    Printv(pass_self, tab8, NIL);
-			    Printf(pass_self, "if self.__class__ == %s:\n", classname);
-			    //Printv(pass_self, tab8, tab4, "args = (None,) + args\n", tab8, "else:\n", tab8, tab4, "args = (self,) + args\n", NIL);
-			    Printv(pass_self, tab8, tab4, "_self = None\n", tab8, "else:\n", tab8, tab4, "_self = self\n", NIL);
-			}
-
-			Printv(f_shadow, tab4, "def __init__(", parms, ")", returnTypeAnnotation(n), ": \n", NIL);
-			if (have_docstring(n))
-			    Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
-			if (have_pythonprepend(n))
-			    Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
-			Printv(f_shadow, pass_self, NIL);
-			if (fastinit) {
-			    Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self,", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), ")\n", NIL);
-			} else {
-			    Printv(f_shadow,
-				   tab8, "this = ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), "\n",
-				   tab8, "try: self.this.append(this)\n", tab8, "except: self.this = this\n", NIL);
-			}
-			if (have_pythonappend(n))
-			    Printv(f_shadow, pythoncode(pythonappend(n), tab8), "\n\n", NIL);
-			Delete(pass_self);
-		    }
-		    have_constructor = 1;
-		}
-	    } else {
-		/* Hmmm. We seem to be creating a different constructor.  We're just going to create a
-		   function for it. */
-		if (Getattr(n, "feature:shadow")) {
-		    String *pycode = pythoncode(Getattr(n, "feature:shadow"), "");
-		    String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
-		    Replaceall(pycode, "$action", pyaction);
-		    Delete(pyaction);
-		    Printv(f_shadow_stubs, pycode, "\n", NIL);
-		    Delete(pycode);
-		} else {
-		    String *parms = make_pyParmList(n, false, false, allow_kwargs);
-		    String *callParms = make_pyParmList(n, false, true, allow_kwargs);
-
-		    Printv(f_shadow_stubs, "\ndef ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-		    if (have_docstring(n))
-			Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
-		    if (have_pythonprepend(n))
-			Printv(f_shadow_stubs, pythoncode(pythonprepend(n), tab4), "\n", NIL);
-		    String *subfunc = NULL;
-		    /*
-		    if (builtin)
-			subfunc = Copy(Getattr(getCurrentClass(), "sym:name"));
-		    else
-		    */
-			subfunc = Swig_name_construct(NSPACE_TODO, symname);
-		    Printv(f_shadow_stubs, tab4, "val = ", funcCall(subfunc, callParms), "\n", NIL);
-#ifdef USE_THISOWN
-		    Printv(f_shadow_stubs, tab4, "val.thisown = 1\n", NIL);
-#endif
-		    if (have_pythonappend(n))
-			Printv(f_shadow_stubs, pythoncode(pythonappend(n), tab4), "\n", NIL);
-		    Printv(f_shadow_stubs, tab4, "return val\n", NIL);
-		    Delete(subfunc);
-		}
-	    }
+      if (shadow) {
+	int allow_kwargs = (check_kwargs(n) && (!Getattr(n, "sym:overloaded"))) ? 1 : 0;
+	int handled_as_init = 0;
+	if (!have_constructor) {
+	  String *nname = Getattr(n, "sym:name");
+	  String *sname = Getattr(getCurrentClass(), "sym:name");
+	  String *cname = Swig_name_construct(NSPACE_TODO, sname);
+	  handled_as_init = (Strcmp(nname, sname) == 0) || (Strcmp(nname, cname) == 0);
+	  Delete(cname);
 	}
+
+	if (!have_constructor && handled_as_init) {
+	  if (!builtin) {
+	    if (Getattr(n, "feature:shadow")) {
+	      String *pycode = pythoncode(Getattr(n, "feature:shadow"), tab4);
+	      String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
+	      Replaceall(pycode, "$action", pyaction);
+	      Delete(pyaction);
+	      Printv(f_shadow, pycode, "\n", NIL);
+	      Delete(pycode);
+	    } else {
+	      String *pass_self = NewString("");
+	      Node *parent = Swig_methodclass(n);
+	      String *classname = Swig_class_name(parent);
+	      String *rclassname = Swig_class_name(getCurrentClass());
+	      assert(rclassname);
+
+
+	      String *parms = make_pyParmList(n, true, false, allow_kwargs);
+	      /* Pass 'self' only if using director */
+	      String *callParms = make_pyParmList(n, false, true, allow_kwargs);
+
+	      if (use_director) {
+		Insert(callParms, 0, "_self, ");
+		Printv(pass_self, tab8, NIL);
+		Printf(pass_self, "if self.__class__ == %s:\n", classname);
+		//Printv(pass_self, tab8, tab4, "args = (None,) + args\n", tab8, "else:\n", tab8, tab4, "args = (self,) + args\n", NIL);
+		Printv(pass_self, tab8, tab4, "_self = None\n", tab8, "else:\n", tab8, tab4, "_self = self\n", NIL);
+	      }
+
+	      Printv(f_shadow, tab4, "def __init__(", parms, ")", returnTypeAnnotation(n), ": \n", NIL);
+	      if (have_docstring(n))
+		Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
+	      if (have_pythonprepend(n))
+		Printv(f_shadow, pythoncode(pythonprepend(n), tab8), "\n", NIL);
+	      Printv(f_shadow, pass_self, NIL);
+	      if (fastinit) {
+		Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self,", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), ")\n", NIL);
+	      } else {
+		Printv(f_shadow,
+		       tab8, "this = ", funcCall(Swig_name_construct(NSPACE_TODO, symname), callParms), "\n",
+		       tab8, "try: self.this.append(this)\n", tab8, "except: self.this = this\n", NIL);
+	      }
+	      if (have_pythonappend(n))
+		Printv(f_shadow, pythoncode(pythonappend(n), tab8), "\n\n", NIL);
+	      Delete(pass_self);
+	    }
+	    have_constructor = 1;
+	  }
+	} else {
+	  /* Hmmm. We seem to be creating a different constructor.  We're just going to create a
+	     function for it. */
+	  if (Getattr(n, "feature:shadow")) {
+	    String *pycode = pythoncode(Getattr(n, "feature:shadow"), "");
+	    String *pyaction = NewStringf("%s.%s", module, Swig_name_construct(NSPACE_TODO, symname));
+	    Replaceall(pycode, "$action", pyaction);
+	    Delete(pyaction);
+	    Printv(f_shadow_stubs, pycode, "\n", NIL);
+	    Delete(pycode);
+	  } else {
+	    String *parms = make_pyParmList(n, false, false, allow_kwargs);
+	    String *callParms = make_pyParmList(n, false, true, allow_kwargs);
+
+	    Printv(f_shadow_stubs, "\ndef ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+	    if (have_docstring(n))
+	      Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
+	    if (have_pythonprepend(n))
+	      Printv(f_shadow_stubs, pythoncode(pythonprepend(n), tab4), "\n", NIL);
+	    String *subfunc = NULL;
+	    /*
+	       if (builtin)
+	       subfunc = Copy(Getattr(getCurrentClass(), "sym:name"));
+	       else
+	     */
+	    subfunc = Swig_name_construct(NSPACE_TODO, symname);
+	    Printv(f_shadow_stubs, tab4, "val = ", funcCall(subfunc, callParms), "\n", NIL);
+#ifdef USE_THISOWN
+	    Printv(f_shadow_stubs, tab4, "val.thisown = 1\n", NIL);
+#endif
+	    if (have_pythonappend(n))
+	      Printv(f_shadow_stubs, pythoncode(pythonappend(n), tab4), "\n", NIL);
+	    Printv(f_shadow_stubs, tab4, "return val\n", NIL);
+	    Delete(subfunc);
+	  }
+	}
+      }
     }
     return SWIG_OK;
   }
@@ -3987,11 +4001,14 @@ public:
 
   virtual int destructorHandler(Node *n) {
     if (builtin && in_class) {
-      if (checkAttribute(n, "access", "private"))
-	SetFlag(Swig_methodclass(n), "private_dtor");
-      if (checkAttribute(n, "access", "protected"))
-	SetFlag(Swig_methodclass(n), "protected_dtor");
-      return SWIG_OK;
+      Node *cls = Swig_methodclass(n);
+      if (!Getattr(cls, "feature:tp_dealloc")) {
+	String *dealloc = Swig_name_destroy(NSPACE_TODO, Getattr(cls, "sym:name"));
+	String *wdealloc = Swig_name_wrapper(dealloc);
+	Setattr(cls, "feature:tp_dealloc", wdealloc);
+	Delete(wdealloc);
+	Delete(dealloc);
+      }
     }
 
     String *symname = Getattr(n, "sym:name");
@@ -4144,19 +4161,19 @@ public:
 	String *setter = Getattr(n, "builtin:setter");
 	Hash *h = NULL;
 	if (getter || setter) {
-	    h = Getattr(builtin_getset, symname);
-	    if (!h) {
-		h = NewHash();
-		Setattr(h, "static", "1");
-		Setattr(builtin_getset, symname, h);
-	    }
+	  h = Getattr(builtin_getset, symname);
+	  if (!h) {
+	    h = NewHash();
+	    Setattr(h, "static", "1");
+	    Setattr(builtin_getset, symname, h);
+	  }
 	}
 	if (getter)
-	    Setattr(h, "getter", getter);
+	  Setattr(h, "getter", getter);
 	if (setter)
-	    Setattr(h, "setter", setter);
+	  Setattr(h, "setter", setter);
 	if (h)
-	    Delete(h);
+	  Delete(h);
 	Delete(mname);
 	Delete(getname);
 	Delete(wrapgetname);
