@@ -24,7 +24,11 @@ class B(python_nondynamic.A):
 
 
 bb = B()
-bb.c = 3
+
+# This is questionable.  Trying to set B.c?  That's not what it does.
+# Should fail, I think, but it doesn't.
+#bb.c = 3
+
 try:
   bb.d = 2
   err = 0

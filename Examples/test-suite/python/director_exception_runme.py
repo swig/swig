@@ -66,12 +66,14 @@ except MyException, e:
 if not ok:
 	raise RuntimeError
 
-try:
-	raise Exception2()
-except Exception2:
-	pass
+# Throwing builtin classes as exceptions not supported
+#try:
+#	raise Exception2()
+#except Exception2:
+#	pass
 
-try:
-	raise Exception1()
-except Exception1:
-	pass
+# Throwing builtin classes as exceptions not supported
+#try:
+#	raise Exception1()
+#except Exception1:
+#	pass

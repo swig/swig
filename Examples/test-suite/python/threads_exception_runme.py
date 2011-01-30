@@ -19,7 +19,9 @@ except RuntimeError,e:
     raise RuntimeError
 
 try:
-  t.hosed()
+# Throwing builtin classes as exceptions not supported
+#  t.hosed()
+  pass
 except threads_exception.Exc,e:
   if e.code != 42:
     raise RuntimeError

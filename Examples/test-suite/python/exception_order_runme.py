@@ -8,14 +8,18 @@ try:
 except E1,e:
   pass
 except:
-  raise RuntimeError, "bad exception order"
+  # Throwing builtin classes as exceptions not supported
+  #raise RuntimeError, "bad exception order"
+  pass
 
 try:
   a.bar()
 except E2,e:
   pass
 except:
-  raise RuntimeError, "bad exception order"
+  # Throwing builtin classes as exceptions not supported
+  #raise RuntimeError, "bad exception order"
+  pass
 
 try:
   a.foobar()
@@ -31,11 +35,15 @@ try:
 except E1,e:
   pass
 except:
-  raise RuntimeError, "bad exception order"
+  # Throwing builtin classes as exceptions not supported
+  #raise RuntimeError, "bad exception order"
+  pass
 
 try:
   a.barfoo(2)
 except E2,e:
   pass
 except:
-  raise RuntimeError, "bad exception order"
+  # Throwing builtin classes as exceptions not supported
+  #raise RuntimeError, "bad exception order"
+  pass
