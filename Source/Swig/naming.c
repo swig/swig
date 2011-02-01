@@ -1000,7 +1000,7 @@ int Swig_need_redefined_warn(Node *a, Node *b, int InClass) {
  * This is basically any protected members when the allprotected mode is set.
  * Otherwise we take just the protected virtual methods and non-static methods 
  * (potentially virtual methods) as well as constructors/destructors.
- * 
+ * Also any "using" statements in a class may potentially be virtual.
  * ----------------------------------------------------------------------------- */
 
 int Swig_need_protected(Node *n) {
@@ -1016,6 +1016,8 @@ int Swig_need_protected(Node *n) {
         return !storage || Equal(storage, "virtual");
       }
     } else if (Equal(nodetype, "constructor") || Equal(nodetype, "destructor")) {
+      return 1;
+    } else if (Equal(nodetype, "using") && !Getattr(n, "namespace")) {
       return 1;
     }
   }

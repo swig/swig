@@ -2292,17 +2292,24 @@ public:
 	String *ex_imcall = Copy(imcall);
 	Replaceall(ex_imcall, "$imfuncname", ex_intermediary_function_name);
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
-
 	String *excode = NewString("");
-	if (!Cmp(return_type, "void"))
-	  Printf(excode, "if (this.GetType() == typeof(%s)) %s; else %s", proxy_class_name, imcall, ex_imcall);
-	else
-	  Printf(excode, "((this.GetType() == typeof(%s)) ? %s : %s)", proxy_class_name, imcall, ex_imcall);
+	Node *directorNode = Getattr(n, "directorNode");
+	if (directorNode) {
+	  UpcallData *udata = Getattr(directorNode, "upcalldata");
+	  String *methid = Getattr(udata, "class_methodidx");
 
-	Clear(imcall);
-	Printv(imcall, excode, NIL);
-	Delete(ex_overloaded_name);
+	  if (!Cmp(return_type, "void"))
+	    Printf(excode, "if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s)) %s; else %s", proxy_function_name, methid, ex_imcall, imcall);
+	  else
+	    Printf(excode, "(SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s) ? %s : %s)", proxy_function_name, methid, ex_imcall, imcall);
+
+	  Clear(imcall);
+	  Printv(imcall, excode, NIL);
+	} else {
+	  // probably an ignored method or nodirector
+	}
 	Delete(excode);
+	Delete(ex_overloaded_name);
       } else {
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
       }
@@ -3869,6 +3876,10 @@ public:
       /* Emit the actual upcall through */
       UpcallData *udata = addUpcallMethod(imclass_dmethod, symname, decl, overloaded_name);
       String *methid = Getattr(udata, "class_methodidx");
+      Setattr(n, "upcalldata", udata);
+      /*
+      Printf(stdout, "setting upcalldata, nodeType: %s %s::%s %p\n", nodeType(n), classname, Getattr(n, "name"), n);
+      */
 
       Printf(director_callback_typedefs, "    typedef %s (SWIGSTDCALL* SWIG_Callback%s_t)(", c_ret_type, methid);
       Printf(director_callback_typedefs, "%s);\n", callback_typedef_parms);

@@ -53,6 +53,10 @@ protected:
   virtual std::string used() {
     return pang() + pong();
   }
+
+  virtual std::string cheer() {
+    return pang() + pong();
+  }
 };
 
 class Bar : public Foo 
@@ -61,6 +65,14 @@ public:
   Foo* create() 
   {
     return new Bar();
+  }
+
+  std::string callping() {
+    return ping();
+  }
+
+  std::string callcheer() {
+    return cheer();
   }
 
   std::string pong() {
@@ -75,6 +87,7 @@ protected:
   std::string ping() { 
     return "Bar::ping();"; 
   };
+  using Foo::cheer;
 
   enum Hello {hola, chao};
 

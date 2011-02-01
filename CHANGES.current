@@ -5,6 +5,16 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2011-02-01: wsfulton
+            [C#] Directors - a call to a method being defined in the base class, not
+            overridden in a subclass, but again overridden in a class derived from
+            the first subclass was not being dispatched correctly to the most derived class.
+            See director_alternating.i for an example.
+
+2011-02-01: wsfulton
+            [C#, Java] Any 'using' statements in the protected section of a class were previously
+            ignored with director protected (dirprot) mode.
+
 2011-01-30: wsfulton
             Fix overloading with const pointer reference (SWIGTYPE *const&) parameters for a
             number of scripting languages.

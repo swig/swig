@@ -1806,17 +1806,25 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
   classname = Getattr(n, "name");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     /* we only need to check the virtual members */
-    if (!checkAttribute(ni, "storage", "virtual"))
-      continue;
     nodeType = Getattr(ni, "nodeType");
+    int is_using = (Cmp(nodeType, "using") == 0);
+    Node *nn = is_using ? firstChild(ni) : ni; /* assume there is only one child node for "using" nodes */
+    if (is_using) {
+      if (nn)
+	nodeType = Getattr(nn, "nodeType");
+      else
+	continue; // A private "using" node
+    }
+    if (!checkAttribute(nn, "storage", "virtual"))
+      continue;
     /* we need to add methods(cdecl) and destructor (to check for throw decl) */
     int is_destructor = (Cmp(nodeType, "destructor") == 0);
     if ((Cmp(nodeType, "cdecl") == 0) || is_destructor) {
-      decl = Getattr(ni, "decl");
+      decl = Getattr(nn, "decl");
       /* extra check for function type and proper access */
-      if (SwigType_isfunction(decl) && (((!protectedbase || dirprot_mode()) && is_public(ni)) || need_nonpublic_member(ni))) {
-	String *name = Getattr(ni, "name");
-	Node *method_id = is_destructor ? NewStringf("~destructor") : vtable_method_id(ni);
+      if (SwigType_isfunction(decl) && (((!protectedbase || dirprot_mode()) && is_public(nn)) || need_nonpublic_member(nn))) {
+	String *name = Getattr(nn, "name");
+	Node *method_id = is_destructor ? NewStringf("~destructor") : vtable_method_id(nn);
 	/* Make sure that the new method overwrites the existing: */
 	int len = Len(vm);
 	const int DO_NOT_REPLACE = -1;
@@ -1834,7 +1842,7 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
 	String *fqdname = NewStringf("%s::%s", classname, name);
 	Hash *item = NewHash();
 	Setattr(item, "fqdname", fqdname);
-	Node *m = Copy(ni);
+	Node *m = Copy(nn);
 
 	/* Store the complete return type - needed for non-simple return types (pointers, references etc.) */
 	SwigType *ty = NewString(Getattr(m, "type"));
@@ -1854,6 +1862,7 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
 	  Append(vm, item);
 	else
 	  Setitem(vm, replace, item);
+	Setattr(nn, "directorNode", m);
 
 	Delete(mname);
       }
@@ -2806,7 +2815,7 @@ int Language::validIdentifier(String *s) {
  * ----------------------------------------------------------------------------- */
 
 int Language::usingDeclaration(Node *n) {
-  if ((cplus_mode == PUBLIC)) {
+  if ((cplus_mode == PUBLIC) || (!is_public(n) && dirprot_mode())) {
     Node *np = Copy(n);
     Node *c;
     for (c = firstChild(np); c; c = nextSibling(c)) {
