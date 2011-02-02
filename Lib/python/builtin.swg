@@ -108,6 +108,16 @@ wrapper##_closure (PyObject *a, Py_ssize_t b)		\
     return result;					\
 }
 
+#define PYSWIG_FUNPACK_SSIZEARGFUNC_CLOSURE(wrapper)		\
+SWIGINTERN PyObject*					\
+wrapper##_closure (PyObject *a, Py_ssize_t b)		\
+{							\
+    PyObject *arg = _PyLong_FromSsize_t(b);		\
+    PyObject *result = wrapper(a, arg);			\
+    Py_DECREF(arg);					\
+    return result;					\
+}
+
 #define PYSWIG_SSIZEOBJARGPROC_CLOSURE(wrapper)			\
 SWIGINTERN int							\
 wrapper##_closure (PyObject *a, Py_ssize_t b, PyObject *c)	\
@@ -179,6 +189,18 @@ pyswig_getter_closure (PyObject *obj, void *closure)
     return result;
 }
 
+SWIGRUNTIME PyObject*
+pyswig_funpack_getter_closure (PyObject *obj, void *closure)
+{
+    if (!closure)
+       return SWIG_Py_Void();
+    SwigPyGetSet *getset = (SwigPyGetSet*) closure;
+    if (!getset->get)
+	return SWIG_Py_Void();
+    PyObject *result = (*getset->get)(obj, NULL);
+    return result;
+}
+
 SWIGRUNTIME int
 pyswig_setter_closure (PyObject *obj, PyObject *val, void *closure)
 {
@@ -197,6 +219,23 @@ pyswig_setter_closure (PyObject *obj, PyObject *val, void *closure)
     Py_XINCREF(val);
     PyObject *result = (*getset->set)(obj, tuple);
     Py_DECREF(tuple);
+    Py_XDECREF(result);
+    return result ? 0 : -1;
+}
+
+SWIGRUNTIME int
+pyswig_funpack_setter_closure (PyObject *obj, PyObject *val, void *closure)
+{
+    if (!closure) {
+	PyErr_Format(PyExc_TypeError, "Missing getset closure");
+        return -1;
+    }
+    SwigPyGetSet *getset = (SwigPyGetSet*) closure;
+    if (!getset->set) {
+	PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", obj->ob_type->tp_name);
+	return -1;
+    }
+    PyObject *result = (*getset->set)(obj, val);
     Py_XDECREF(result);
     return result ? 0 : -1;
 }

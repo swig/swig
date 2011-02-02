@@ -170,7 +170,7 @@ static String *getSlot(Node *n, const char *key) {
   return val ? val : slot_default;
 }
 
-static String *getClosure(String *functype, String *wrapper) {
+static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
   static const char *functypes[] = {
     "unaryfunc", "PYSWIG_UNARYFUNC_CLOSURE",
     "destructor", "PYSWIG_DESTRUCTOR_CLOSURE",
@@ -188,13 +188,36 @@ static String *getClosure(String *functype, String *wrapper) {
     NULL
   };
 
+  static const char *funpack_functypes[] = {
+    "unaryfunc", "PYSWIG_UNARYFUNC_CLOSURE",
+    "destructor", "PYSWIG_DESTRUCTOR_CLOSURE",
+    "inquiry", "PYSWIG_INQUIRY_CLOSURE",
+    "getiterfunc", "PYSWIG_UNARYFUNC_CLOSURE",
+    "iternextfunc", "PYSWIG_UNARYFUNC_CLOSURE",
+    "ternaryfunc", "PYSWIG_TERNARYFUNC_CLOSURE",
+    "lenfunc", "PYSWIG_LENFUNC_CLOSURE",
+    "ssizeargfunc", "PYSWIG_FUNPACK_SSIZEARGFUNC_CLOSURE",
+    "ssizessizeargfunc", "PYSWIG_SSIZESSIZEARGFUNC_CLOSURE",
+    "ssizeobjargproc", "PYSWIG_SSIZEOBJARGPROC_CLOSURE",
+    "ssizessizeobjargproc", "PYSWIG_SSIZESSIZEOBJARGPROC_CLOSURE",
+    "objobjargproc", "PYSWIG_OBJOBJARGPROC_CLOSURE",
+    NULL
+  };
+
   if (!functype)
     return NULL;
   char *c = Char(functype);
   int i;
-  for (i = 0; functypes[i] != NULL; i += 2) {
-    if (!strcmp(c, functypes[i]))
-      return NewStringf("%s(%s)", functypes[i + 1], wrapper);
+  if (funpack) {
+    for (i = 0; funpack_functypes[i] != NULL; i += 2) {
+      if (!strcmp(c, funpack_functypes[i]))
+	return NewStringf("%s(%s)", funpack_functypes[i + 1], wrapper);
+    }
+  } else {
+    for (i = 0; functypes[i] != NULL; i += 2) {
+      if (!strcmp(c, functypes[i]))
+	return NewStringf("%s(%s)", functypes[i + 1], wrapper);
+    }
   }
   return NULL;
 }
@@ -1784,9 +1807,19 @@ public:
    * add_method()
    * ------------------------------------------------------------ */
 
-  void add_method(String *name, String *function, int kw, Node *n = 0, int = 0, int = -1, int = -1) {
+  void add_method(String *name, String *function, int kw, Node *n = 0, int funpack= 0, int num_required= -1, int num_arguments = -1) {
     if (!kw) {
-      Printf(methods, "\t { (char *)\"%s\", %s, METH_VARARGS, ", name, function);
+      if (n && funpack) {
+	if (num_required == 0 && num_arguments == 0) {
+	  Printf(methods, "\t { (char *)\"%s\", (PyCFunction)%s, METH_NOARGS, ", name, function);
+	} else if (num_required == 1 && num_arguments == 1) {
+	  Printf(methods, "\t { (char *)\"%s\", (PyCFunction)%s, METH_O, ", name, function);
+	} else {
+	  Printf(methods, "\t { (char *)\"%s\", %s, METH_VARARGS, ", name, function);
+	}
+      } else {
+	Printf(methods, "\t { (char *)\"%s\", %s, METH_VARARGS, ", name, function);
+      }
     } else {
       Printf(methods, "\t { (char *)\"%s\", (PyCFunction) %s, METH_VARARGS | METH_KEYWORDS, ", name, function);
     }
@@ -1819,8 +1852,10 @@ public:
   /* ------------------------------------------------------------
    * dispatchFunction()
    * ------------------------------------------------------------ */
-  void dispatchFunction(Node *n, String *linkage, int funpack = 0, bool return_int = false, bool add_self = false, bool addmeth = true) {
+  void dispatchFunction(Node *n, String *linkage, int funpack = 0, bool builtin_self = false, bool builtin_ctor = false, bool director_class = false) {
     /* Last node in overloaded chain */
+
+    bool add_self = builtin_self && (!builtin_ctor || director_class);
 
     int maxargs;
 
@@ -1840,7 +1875,7 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(symname);
 
-    Printv(f->def, linkage, return_int ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args) {", NIL);
+    Printv(f->def, linkage, builtin_ctor ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args) {", NIL);
 
     Wrapper_add_local(f, "argc", "int argc");
     Printf(tmp, "PyObject *argv[%d]", maxargs + 1);
@@ -1860,8 +1895,11 @@ public:
 	Append(f->code, "argc++;\n");
     } else {
       String *iname = Getattr(n, "sym:name");
-      Printf(f->code, "if (!(argc = SWIG_Python_UnpackTuple(args,\"%s\",0,%d,argv))) SWIG_fail;\n", iname, maxargs);
-      Append(f->code, "--argc;\n");
+      Printf(f->code, "if (!(argc = SWIG_Python_UnpackTuple(args,\"%s\",0,%d,argv%s))) SWIG_fail;\n", iname, maxargs, add_self ? "+1" : "");
+      if (add_self)
+	Append(f->code, "argv[0] = self;\n");
+      else
+	Append(f->code, "--argc;\n");
     }
 
     Replaceall(dispatch, "$args", "self,args");
@@ -1883,13 +1921,13 @@ public:
       Append(f->code, "fail:\n");
       Printf(f->code, "SWIG_SetErrorMsg(PyExc_NotImplementedError,"
 	     "\"Wrong number or type of arguments for overloaded function '%s'.\\n\"" "\n\"  Possible C/C++ prototypes are:\\n\"%s);\n", symname, protoTypes);
-      Printf(f->code, "return %s;\n", return_int ? "-1" : "0");
+      Printf(f->code, "return %s;\n", builtin_ctor ? "-1" : "0");
       Delete(protoTypes);
     }
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
     Node *p = Getattr(n, "sym:previousSibling");
-    if (addmeth)
+    if (!builtin_self)
       add_method(symname, wname, 0, p);
 
     /* Create a shadow for this function (if enabled and not in a member function) */
@@ -1906,6 +1944,24 @@ public:
    * functionWrapper()
    * ------------------------------------------------------------ */
 
+  /*
+    A note about argument marshalling with built-in types.
+    There are three distinct cases for member (non-static) methods:
+
+    1) An ordinary member function.  In this case, the first param in
+    the param list is 'this'.  For builtin types, 'this' is taken from
+    the first argument to the wrapper (usually called 'self); it's not
+    extracted from the second argument (which is usually a tuple).
+
+    2) A constructor for a non-director class.  In this case, the
+    param list doesn't contain an entry for 'this', but the first ('self')
+    argument to the wrapper *does* contain the newly-allocated,
+    uninitialized object.
+
+    3) A constructor for a director class.  In this case, the param
+    list contains a 'self' param, which comes from the first argument
+    to the wrapper function.
+  */
 
   const char *get_implicitconv_flag(Node *klass) {
     int conv = 0;
@@ -1973,16 +2029,13 @@ public:
 	builtin_ctor = true;
     }
     bool director_class = (getCurrentClass() && Swig_directorclass(getCurrentClass()));
+    bool add_self = builtin_self && (!builtin_ctor || director_class);
     bool builtin_getter = (builtin && GetFlag(n, "memberget"));
     bool builtin_setter = (builtin && GetFlag(n, "memberset") && !builtin_getter);
     char const *self_param = builtin_self ? "self" : "SWIGUNUSEDPARM(self)";
     char const *wrap_return = builtin_ctor ? "int " : "PyObject *";
     String *linkage = NewString("SWIGINTERN ");
     String *wrapper_name = Swig_name_wrapper(iname);
-    String *slot = Getattr(n, "feature:pyslot");
-    String *closure_decl = NULL;
-    if (slot)
-      closure_decl = getClosure(Getattr(n, "feature:pyslot:functype"), wrapper_name);
 
     if (Getattr(n, "sym:overloaded")) {
       overname = Getattr(n, "sym:overname");
@@ -2016,7 +2069,7 @@ public:
     /* Get number of required and total arguments */
     tuple_arguments = num_arguments = emit_num_arguments(l);
     tuple_required = num_required = emit_num_required(l);
-    if (builtin_self && (!builtin_ctor || (builtin_ctor && director_class))) {
+    if (add_self) {
       --tuple_arguments;
       --tuple_required;
     }
@@ -2029,7 +2082,7 @@ public:
       Append(wname, overname);
     }
 
-    if (!allow_kwargs || Getattr(n, "sym:overloaded")) {
+    if (!allow_kwargs || overname) {
       if (!varargs) {
 	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args) {", NIL);
       } else {
@@ -2056,8 +2109,15 @@ public:
     }
 
     int funpack = modernargs && fastunpack && !varargs && !allow_kwargs;
-    int noargs = funpack && (num_required == 0 && num_arguments == 0);
-    int onearg = funpack && (num_required == 1 && num_arguments == 1);
+    int noargs = funpack && (tuple_required == 0 && tuple_arguments == 0);
+    int onearg = funpack && (tuple_required == 1 && tuple_arguments == 1);
+
+    if (builtin && funpack && !overname && !builtin_ctor) {
+      if (noargs)
+	SetFlag(n, "noargs");
+      else if (onearg)
+	SetFlag(n, "onearg");
+    }
 
     /* Generate code for argument marshalling */
     if (funpack) {
@@ -2093,16 +2153,10 @@ public:
       Delete(tmp_none_comparison);
     }
 
-    if (builtin_self && !builtin_ctor)
-      Printf(self_parse, "%s = self;\n", funpack ? "swig_obj[0]" : "obj0");
-
-    if (builtin_ctor && director_class)
-      Printv(self_parse, funpack ? "swig_obj[1]" : "obj1", " = self;\n", NIL);
-
     int use_parse = 0;
     Append(kwargs, "{");
     for (i = 0, p = l; i < num_arguments; i++) {
-      bool parse_from_tuple = (i > 0 || !builtin_self || (builtin_ctor && !director_class));
+      bool parse_from_tuple = (i > 0 || !add_self);
       while (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	p = Getattr(p, "tmap:in:next");
       }
@@ -2110,8 +2164,10 @@ public:
       SwigType *pt = Getattr(p, "type");
       String *pn = Getattr(p, "name");
       String *ln = Getattr(p, "lname");
-      if (funpack)
-	sprintf(source, "swig_obj[%d]", builtin_ctor ? i + 1 : i);
+      if (!parse_from_tuple)
+	sprintf(source, "self");
+      else if (funpack)
+	sprintf(source, "swig_obj[%d]", add_self && !overname ? i - 1 : i);
       else
 	sprintf(source, "obj%d", builtin_ctor ? i + 1 : i);
 
@@ -2141,7 +2197,9 @@ public:
       if ((tm = Getattr(p, "tmap:in"))) {
 	String *parse = Getattr(p, "tmap:in:parse");
 	if (!parse) {
-	  if (funpack) {
+	  if (builtin_self) {
+	    Replaceall(tm, "$self", "self");
+	  } else if (funpack) {
 	    Replaceall(tm, "$self", "swig_obj[0]");
 	  } else {
 	    Replaceall(tm, "$self", "obj0");
@@ -2167,14 +2225,11 @@ public:
 	    Setattr(p, "implicitconv", convflag);
 	  }
 
-	  bool parse_from_tuple = (i > 0 || !builtin_self || (builtin_ctor && !director_class));
-
 	  if (parse_from_tuple)
 	    Putc('O', parse_args);
-	  if (!funpack) {
+	  if (!funpack && parse_from_tuple) {
 	    Wrapper_add_localv(f, source, "PyObject *", source, "= 0", NIL);
-	    if (parse_from_tuple)
-	      Printf(arglist, "&%s", source);
+	    Printf(arglist, "&%s", source);
 	  }
 	  if (i >= num_required)
 	    Printv(get_pointers, "if (", source, ") {\n", NIL);
@@ -2227,13 +2282,13 @@ public:
 	  } else {
 	    Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args) {", NIL);
 	  }
-	  if (onearg) {
+	  if (onearg && !builtin_ctor) {
 	    Printf(parse_args, "if (!args) SWIG_fail;\n");
-	    Printf(parse_args, "swig_obj[0] = args;\n");
+	    Append(parse_args, "swig_obj[0] = args;\n");
 	  } else if (!noargs) {
-	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) SWIG_fail;\n", iname, num_required, num_arguments);
+	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) SWIG_fail;\n", iname, tuple_required, tuple_arguments);
 	  } else if (noargs) {
-	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,0)) SWIG_fail;\n", iname, num_required, num_arguments);
+	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,0)) SWIG_fail;\n", iname, tuple_required, tuple_arguments);
 	  }
 	}
       } else if (tuple_arguments > 0) {
@@ -2334,9 +2389,11 @@ public:
       }
       Wrapper_add_local(f, "upcall", "bool upcall = false");
       if (funpack) {
-	Append(f->code, "upcall = (director && (director->swig_get_self()==swig_obj[0]));\n");
+	const char *self_parm = builtin_self ? "self" : "swig_obj[0]";
+	Printf(f->code, "upcall = (director && (director->swig_get_self()==%s));\n", self_parm);
       } else {
-	Append(f->code, "upcall = (director && (director->swig_get_self()==obj0));\n");
+	const char *self_parm = builtin_self ? "self" : "obj0";
+	Printf(f->code, "upcall = (director && (director->swig_get_self()==%s));\n", self_parm);
       }
     }
 
@@ -2377,7 +2434,9 @@ public:
     }
 
     if (tm) {
-      if (funpack) {
+      if (builtin_self) {
+	Replaceall(tm, "$self", "self");
+      } else if (funpack) {
 	Replaceall(tm, "$self", "swig_obj[0]");
       } else {
 	Replaceall(tm, "$self", "obj0");
@@ -2501,7 +2560,9 @@ public:
     Replaceall(f->code, "$symname", iname);
     Replaceall(f->code, "$result", "resultobj");
 
-    if (funpack) {
+    if (builtin_self) {
+      Replaceall(f->code, "$self", "self");
+    } else if (funpack) {
       Replaceall(f->code, "$self", "swig_obj[0]");
     } else {
       Replaceall(f->code, "$self", "obj0");
@@ -2539,9 +2600,7 @@ public:
       }
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
-	dispatchFunction(n, linkage, funpack, builtin_ctor,	// return_int
-			 builtin_self && (!builtin_ctor || director_class),	// add_self
-			 !builtin_self);	// addmeth
+	dispatchFunction(n, linkage, funpack, builtin_self, builtin_ctor, director_class);
       }
     }
 
@@ -2579,13 +2638,16 @@ public:
     }
 
     /* Handle builtin operator overloads */
+    String *slot = Getattr(n, "feature:pyslot");
     if (slot) {
+      String *closure_decl = getClosure(Getattr(n, "feature:pyslot:functype"), wrapper_name, overname ? 0 : funpack);
       String *feature_name = NewStringf("feature:%s", slot);
       String *closure_name = Copy(wrapper_name);
       if (closure_decl) {
 	if (!Getattr(n, "sym:overloaded") || !Getattr(n, "sym:nextSibling"))
 	  Printv(f_wrappers, closure_decl, "\n\n", NIL);
 	Append(closure_name, "_closure");
+	Delete(closure_decl);
       }
       Setattr(parent, feature_name, closure_name);
       Delete(feature_name);
@@ -2611,8 +2673,6 @@ public:
     Delete(wname);
     DelWrapper(f);
     Delete(wrapper_name);
-    if (closure_decl)
-      Delete(closure_decl);
     return SWIG_OK;
   }
 
@@ -3100,6 +3160,7 @@ public:
     String *mname = SwigType_manglestr(rname);
     String *pmname = SwigType_manglestr(pname);
     String *templ = NewStringf("SwigPyBuiltin_%s", mname);
+    int funpack = modernargs && fastunpack;
 
     Printf(f_init, tab4 "builtin_pytype->ob_type = metatype;\n");
     Printf(f_init, tab4 "builtin_pytype->tp_new = PyType_GenericNew;\n");
@@ -3147,8 +3208,8 @@ public:
       Hash *mgetset = member_iter.item;
       String *getter = Getattr(mgetset, "getter");
       String *setter = Getattr(mgetset, "setter");
-      const char *getter_closure = getter ? "pyswig_getter_closure" : "0";
-      const char *setter_closure = setter ? "pyswig_setter_closure" : "0";
+      const char *getter_closure = getter ? funpack ? "pyswig_funpack_getter_closure" : "pyswig_getter_closure" : "0";
+      const char *setter_closure = setter ? funpack ? "pyswig_funpack_setter_closure" : "pyswig_setter_closure" : "0";
       String *gspair = NewStringf("%s_%s_getset", symname, memname);
       Printf(f, "static SwigPyGetSet %s = { %s, %s };\n", gspair, getter ? getter : "0", setter ? setter : "0");
       String *entry =
@@ -3174,13 +3235,15 @@ public:
     Printf(f, "%s_richcompare (PyObject *self, PyObject *other, int op)\n", templ);
     Printf(f, "{\n");
     Printf(f, "    PyObject *result = NULL;\n");
-    Printf(f, "    PyObject *tuple = PyTuple_New(1);\n");
-    Printf(f, "    assert(tuple);\n");
-    Printf(f, "    PyTuple_SET_ITEM(tuple, 0, other);\n");
-    Printf(f, "    Py_XINCREF(other);\n");
+    if (!funpack) {
+      Printf(f, "    PyObject *tuple = PyTuple_New(1);\n");
+      Printf(f, "    assert(tuple);\n");
+      Printf(f, "    PyTuple_SET_ITEM(tuple, 0, other);\n");
+      Printf(f, "    Py_XINCREF(other);\n");
+    }
     Printf(f, "    switch (op) {\n");
     for (Iterator i = First(richcompare); i.item; i = Next(i))
-      Printf(f, "    case %s : result = %s(self, tuple); break;\n", i.key, i.item);
+      Printf(f, "    case %s : result = %s(self, %s); break;\n", i.key, i.item, funpack ? "other" : "tuple");
     Printv(f, "    default : break;\n", NIL);
     Printf(f, "    }\n");
     Printv(f, "    if (result == NULL) {\n", NIL);
@@ -3191,7 +3254,8 @@ public:
     Printv(f, "            Py_INCREF(result);\n", NIL);
     Printv(f, "        }\n", NIL);
     Printv(f, "    }\n", NIL);
-    Printf(f, "    Py_DECREF(tuple);\n");
+    if (!funpack)
+      Printf(f, "    Py_DECREF(tuple);\n");
     Printf(f, "    return result;\n");
     Printf(f, "}\n\n");
 
@@ -3705,6 +3769,9 @@ public:
     String *symname = Getattr(n, "sym:name");
     int oldshadow;
 
+    if (builtin)
+      Swig_save("builtin_memberfunc", n, "noargs", "onearg", NIL);
+
     /* Create the default member function */
     oldshadow = shadow;		/* Disable shadowing when wrapping member functions */
     if (shadow)
@@ -3719,12 +3786,22 @@ public:
 	String *fullname = Swig_name_member(NULL, class_name, symname);
 	String *wname = Swig_name_wrapper(fullname);
 	Setattr(class_members, symname, n);
-	int allow_kwargs = check_kwargs(n);
-	Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS%s, \"\" },\n", symname, wname, allow_kwargs ? "|METH_KEYWORDS" : "");
+	if (check_kwargs(n)) {
+	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS|METH_KEYWORDS, \"\" },\n", symname, wname);
+	} else if (GetFlagAttr(n, "noargs")) {
+	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_NOARGS, \"\" },\n", symname, wname);
+	} else if (GetFlagAttr(n, "onearg")) {
+	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_O, \"\" },\n", symname, wname);
+	} else {
+	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS, \"\" },\n", symname, wname);
+	}
 	Delete(fullname);
 	Delete(wname);
       }
     }
+
+    if (builtin)
+      Swig_restore(n);
 
     if (!Getattr(n, "sym:nextSibling")) {
       if (shadow && !builtin) {
@@ -3782,6 +3859,7 @@ public:
     return SWIG_OK;
   }
 
+
   /* ------------------------------------------------------------
    * staticmemberfunctionHandler()
    * ------------------------------------------------------------ */
@@ -3803,7 +3881,14 @@ public:
 	String *fullname = Swig_name_member(NULL, class_name, symname);
 	String *wname = Swig_name_wrapper(fullname);
 	Setattr(class_members, symname, n);
-	String *pyflags = NewString("METH_VARARGS|METH_STATIC");
+	int funpack = modernargs && fastunpack && !Getattr(n, "sym:overloaded");
+	String *pyflags = NewString("METH_STATIC|");
+	if (funpack && GetFlagAttr(n, "noargs"))
+	  Append(pyflags, "METH_NOARGS");
+	else if (funpack && GetFlagAttr(n, "onearg"))
+	  Append(pyflags, "METH_O");
+	else
+	  Append(pyflags, "METH_VARARGS");
 	Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, %s, \"\" },\n", symname, wname, pyflags);
 	Delete(fullname);
 	Delete(wname);
@@ -4132,16 +4217,19 @@ public:
 	DelWrapper(f);
 	int assignable = is_assignable(n);
 	if (assignable) {
+	  int funpack = modernargs && fastunpack;
 	  Wrapper *f = NewWrapper();
 	  Printv(f->def, "SWIGINTERN PyObject *", wrapsetname, "(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {", NIL);
-	  Wrapper_add_local(f, "value", "PyObject *value");
 	  Wrapper_add_local(f, "res", "int res");
-	  Append(f->code, "if (!PyArg_ParseTuple(args,(char *)\"O:set\",&value)) return NULL;\n");
-	  Printv(f->code, "res = ", varsetname, "(value);\n", NIL);
+	  if (!funpack) {
+	    Wrapper_add_local(f, "value", "PyObject *value");
+	    Append(f->code, "if (!PyArg_ParseTuple(args,(char *)\"O:set\",&value)) return NULL;\n");
+	  }
+	  Printf(f->code, "res = %s(%s);\n", varsetname, funpack ? "args" : "value");
 	  Append(f->code, "return !res ? SWIG_Py_Void() : NULL;\n");
 	  Append(f->code, "}\n");
 	  Wrapper_print(f, f_wrappers);
-	  add_method(setname, wrapsetname, 0);
+	  add_method(setname, wrapsetname, 0, 0, funpack, 1, 1);
 	  DelWrapper(f);
 	}
 	if (!modern && !builtin) {
