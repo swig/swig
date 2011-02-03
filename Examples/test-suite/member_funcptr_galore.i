@@ -18,8 +18,8 @@ public:
   double  *z;
 
   void    move(double dx, double dy);
-  virtual double area(Shape &ref, int & (FunkSpace::Funktions::*d)(const int &, int));
-  virtual double abc(Thing<short> ts, Thing< const Space::Shape * > tda[]);
+  virtual double area(Shape &ref, int & (FunkSpace::Funktions::*d)(const int &, int)) { return 0.0; }
+  virtual double abc(Thing<short> ts, Thing< const Space::Shape * > tda[]) { return 0.0; }
 };
 }
 

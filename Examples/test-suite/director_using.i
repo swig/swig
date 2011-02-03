@@ -59,9 +59,22 @@
     public:
       virtual C get_value() const = 0;
       using Bar::do_advance;
-      
     };
+
 }
 
 %template(FooBar_int) FooBar<int>;
 
+%inline %{
+  struct SomeBase {
+    virtual ~SomeBase() {}
+    virtual void method1() {}
+    virtual void method2() {}
+  };
+
+  struct PrivateDerived : SomeBase {
+  private:
+    virtual void method1() {}
+    using SomeBase::method2;
+  };
+%}

@@ -999,6 +999,7 @@ class TypePass:private Dispatcher {
 		      }
 		      Node *nn = copyNode(c);
 		      Delattr(nn, "access");	// access might be different from the method in the base class
+		      Setattr(nn, "access", Getattr(n, "access"));
 		      if (!Getattr(nn, "sym:name"))
 			Setattr(nn, "sym:name", symname);
 
