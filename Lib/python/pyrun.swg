@@ -1729,12 +1729,16 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value)
 
     descr = _PyType_Lookup(tp, name);
     f = NULL;
-    if (descr != NULL && PyType_HasFeature(descr->ob_type, Py_TPFLAGS_HAVE_CLASS))
+    if (descr != NULL)
 	f = descr->ob_type->tp_descr_set;
     if (f == NULL)
 	PyErr_Format(PyExc_AttributeError,
-		     "'%.100s' object has no attribute '%.200s'",
-		     tp->tp_name, PyString_AS_STRING(name));
+#if PY_VERSION_HEX >= 0x03000000
+		     "'%.100s' object has no attribute '%.200U'",
+#else
+		     "'%.100s' object has no attribute '%.200S'",
+#endif
+		     tp->tp_name, name);
     else
 	res = f(descr, obj, value);
 

@@ -289,9 +289,15 @@ SwigPyStaticVar_dealloc(PyDescrObject *descr)
 SWIGRUNTIME PyObject *
 SwigPyStaticVar_repr(PyGetSetDescrObject *descr)
 {
-    return PyString_FromFormat("<class attribute '%s' of type '%s'>",
-			       PyString_AsString(descr->d_name),
-			       descr->d_type->tp_name);
+#if PY_VERSION_HEX >= 0x03000000
+    return PyUnicode_FromFormat
+	("<class attribute '%U' of type '%s'>",
+	 descr->d_name, descr->d_type->tp_name);
+#else
+    return PyString_FromFormat
+	("<class attribute '%s' of type '%s'>",
+	 PyString_AsString(descr->d_name), descr->d_type->tp_name);
+#endif
 }
 
 SWIGRUNTIME int
@@ -307,10 +313,15 @@ SwigPyStaticVar_get (PyGetSetDescrObject *descr, PyObject *obj, PyObject *type)
 {
     if (descr->d_getset->get != NULL)
 	return descr->d_getset->get(obj, descr->d_getset->closure);
+#if PY_VERSION_HEX >= 0x03000000
+    PyErr_Format(PyExc_AttributeError,
+		 "attribute '%.300U' of '%.100s' objects is not readable",
+		 descr->d_name, descr->d_type->tp_name);
+#else
     PyErr_Format(PyExc_AttributeError,
 		 "attribute '%.300s' of '%.100s' objects is not readable",
-		 PyString_AsString(descr->d_name),
-		 descr->d_type->tp_name);
+		 PyString_AsString(descr->d_name), descr->d_type->tp_name);
+#endif
     return NULL;
 }
 
@@ -321,16 +332,27 @@ SwigPyStaticVar_set (PyGetSetDescrObject *descr, PyObject *obj, PyObject *value)
 
     if (descr->d_getset->set != NULL)
 	return descr->d_getset->set(obj, value, descr->d_getset->closure);
+#if PY_VERSION_HEX >= 0x03000000
+    PyErr_Format(PyExc_AttributeError,
+		 "attribute '%.300U' of '%.100s' objects is not writable",
+		 descr->d_name,
+		 descr->d_type->tp_name);
+#else
     PyErr_Format(PyExc_AttributeError,
 		 "attribute '%.300s' of '%.100s' objects is not writable",
 		 PyString_AsString(descr->d_name),
 		 descr->d_type->tp_name);
+#endif
     return -1;
 }
 
 SWIGRUNTIME PyTypeObject SwigPyStaticVar_Type = {
+#if PY_VERSION_HEX >= 0x03000000
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+#else
     PyObject_HEAD_INIT(&PyType_Type)
     0,
+#endif
     "swig_static_var_getset_descriptor",
     sizeof(PyGetSetDescrObject),
     0,
@@ -349,7 +371,7 @@ SWIGRUNTIME PyTypeObject SwigPyStaticVar_Type = {
     PyObject_GenericGetAttr,		/* tp_getattro */
     0,					/* tp_setattro */
     0,					/* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC, /* tp_flags */
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_HAVE_CLASS, /* tp_flags */
     0,					/* tp_doc */
     SwigPyStaticVar_traverse,		/* tp_traverse */
     0,					/* tp_clear */
@@ -375,13 +397,25 @@ SwigPyObjectType_setattro(PyTypeObject *type, PyObject *name, PyObject *value)
 	descrsetfunc local_set = attribute->ob_type->tp_descr_set;
 	if (local_set != NULL)
 	    return local_set(attribute, (PyObject*) type, value);
+#if PY_VERSION_HEX >= 0x03000000
+	PyErr_Format(PyExc_AttributeError,
+		     "cannot modify read-only attribute '%.50s.%.400U'",
+		     type->tp_name, name);
+#else    
 	PyErr_Format(PyExc_AttributeError,
 		     "cannot modify read-only attribute '%.50s.%.400s'",
 		     type->tp_name, PyString_AS_STRING(name));
+#endif
     } else {
+#if PY_VERSION_HEX >= 0x03000000
+	PyErr_Format(PyExc_AttributeError,
+		     "type '%.50s' has no attribute '%.400U'",
+		     type->tp_name, name);
+#else
 	PyErr_Format(PyExc_AttributeError,
 		     "type '%.50s' has no attribute '%.400s'",
 		     type->tp_name, PyString_AS_STRING(name));
+#endif
     }
 
     return -1;

@@ -3162,7 +3162,11 @@ public:
     String *templ = NewStringf("SwigPyBuiltin_%s", mname);
     int funpack = modernargs && fastunpack;
 
+    Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+    Printf(f_init, tab4 "builtin_pytype->ob_base.ob_base.ob_type = metatype;\n");
+    Printv(f_init, "#else\n", NIL);
     Printf(f_init, tab4 "builtin_pytype->ob_type = metatype;\n");
+    Printv(f_init, "#endif\n", NIL);
     Printf(f_init, tab4 "builtin_pytype->tp_new = PyType_GenericNew;\n");
     List *baselist = Getattr(n, "bases");
     if (baselist) {
@@ -3270,14 +3274,19 @@ public:
 
     char const *tp_init = builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "py_builtin_bad_init";
     String *tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES");
+    String *py3_tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE");
 
     Printf(f, "static PyHeapTypeObject %s_type = {\n", templ);
 
     // PyTypeObject ht_type
     //Printf(f, "template <> PyTypeObject %s::pytype = {\n", templ);
     Printf(f, "  {\n");
+    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+    Printv(f, "    PyVarObject_HEAD_INIT(&PyType_Type, 0)\n", NIL);
+    Printv(f, "#else\n", NIL);
     Printf(f, "    PyObject_HEAD_INIT(NULL)\n");
     Printf(f, "    0,				/*ob_size*/\n");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "    \"%s\",			/*tp_name*/\n", symname);
     Printf(f, "    sizeof(SwigPyObject),        /*tp_basicsize*/\n", templ);
     Printf(f, "    %s,				/*tp_itemsize*/\n", getSlot(n, "feature:tp_itemsize"));
@@ -3296,7 +3305,11 @@ public:
     Printf(f, "    %s,				/*tp_getattro*/\n", getSlot(n, "feature:tp_getattro"));
     Printf(f, "    %s,				/*tp_setattro*/\n", getSlot(n, "feature:tp_setattro"));
     Printf(f, "    &%s_type.as_buffer,		/*tp_as_buffer*/\n", templ);
+    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+    Printf(f, "    %s, /*tp_flags*/\n", py3_tp_flags);
+    Printv(f, "#else\n", NIL);
     Printf(f, "    %s, /*tp_flags*/\n", tp_flags);
+    Printv(f, "#endif\n", NIL);
     Printf(f, "    \"%s\",				/* tp_doc */\n", rname);
     Printf(f, "    %s,				/* tp_traverse */\n", getSlot(n, "feature:tp_traverse"));
     Printf(f, "    %s,				/* tp_clear */\n", getSlot(n, "feature:tp_clear"));
@@ -3324,7 +3337,9 @@ public:
     Printf(f, "    (binaryfunc)  %s,    // nb_add;\n", getSlot(n, "feature:nb_add"));
     Printf(f, "    (binaryfunc)  %s,    // nb_subtract;\n", getSlot(n, "feature:nb_subtract"));
     Printf(f, "    (binaryfunc)  %s,    // nb_multiply;\n", getSlot(n, "feature:nb_multiply"));
+    Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
     Printf(f, "    (binaryfunc)  %s,    // nb_divide;\n", getSlot(n, "feature:nb_divide"));
+    Printv(f, "#endif\n", NIL);
     Printf(f, "    (binaryfunc)  %s,    // nb_remainder;\n", getSlot(n, "feature:nb_remainder"));
     Printf(f, "    (binaryfunc)  %s,    // nb_divmod;\n", getSlot(n, "feature:nb_divmod"));
     Printf(f, "    (ternaryfunc) %s,    // nb_power;\n", getSlot(n, "feature:nb_power"));
@@ -3338,16 +3353,26 @@ public:
     Printf(f, "    (binaryfunc)  %s,    // nb_and;\n", getSlot(n, "feature:nb_and"));
     Printf(f, "    (binaryfunc)  %s,    // nb_xor;\n", getSlot(n, "feature:nb_xor"));
     Printf(f, "    (binaryfunc)  %s,    // nb_or;\n", getSlot(n, "feature:nb_or"));
+    Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
     Printf(f, "    (coercion)    %s,    // nb_coerce;\n", getSlot(n, "feature:nb_coerce"));
+    Printv(f, "#endif\n", NIL);
     Printf(f, "    (unaryfunc)   %s,    // nb_int;\n", getSlot(n, "feature:nb_int"));
+    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+    Printf(f, "    (void*)   %s,    // nb_reserved;\n", getSlot(n, "feature:nb_reserved"));
+    Printv(f, "#else\n", NIL);
     Printf(f, "    (unaryfunc)   %s,    // nb_long;\n", getSlot(n, "feature:nb_long"));
+    Printv(f, "#endif\n", NIL);
     Printf(f, "    (unaryfunc)   %s,    // nb_float;\n", getSlot(n, "feature:nb_float"));
+    Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
     Printf(f, "    (unaryfunc)   %s,    // nb_oct;\n", getSlot(n, "feature:nb_oct"));
     Printf(f, "    (unaryfunc)   %s,    // nb_hex;\n", getSlot(n, "feature:nb_hex"));
+    Printv(f, "#endif\n", NIL);
     Printf(f, "    (binaryfunc)  %s,    // nb_inplace_add;\n", getSlot(n, "feature:nb_inplace_add"));
     Printf(f, "    (binaryfunc)  %s,    // nb_inplace_subtract;\n", getSlot(n, "feature:nb_inplace_subtract"));
     Printf(f, "    (binaryfunc)  %s,    // nb_inplace_multiply;\n", getSlot(n, "feature:nb_inplace_multiply"));
+    Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
     Printf(f, "    (binaryfunc)  %s,    // nb_inplace_divide;\n", getSlot(n, "feature:nb_inplace_divide"));
+    Printv(f, "#endif\n", NIL);
     Printf(f, "    (binaryfunc)  %s,    // nb_inplace_remainder;\n", getSlot(n, "feature:nb_inplace_remainder"));
     Printf(f, "    (ternaryfunc) %s,    // nb_inplace_power;\n", getSlot(n, "feature:nb_inplace_power"));
     Printf(f, "    (binaryfunc)  %s,    // nb_inplace_lshift;\n", getSlot(n, "feature:nb_inplace_lshift"));
@@ -3377,9 +3402,17 @@ public:
     Printf(f, "    (binaryfunc)		%s,	// sq_concat\n", getSlot(n, "feature:sq_concat"));
     Printf(f, "    (ssizeargfunc)	%s,	// sq_repeat\n", getSlot(n, "feature:sq_repeat"));
     Printf(f, "    (ssizeargfunc)	%s,	// sq_item\n", getSlot(n, "feature:sq_item"));
+    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+    Printf(f, "    (void*)	%s,	// was_sq_slice\n", getSlot(n, "feature:was_sq_slice"));
+    Printv(f, "#else\n", NIL);
     Printf(f, "    (ssizessizeargfunc)	%s,	// sq_slice\n", getSlot(n, "feature:sq_slice"));
+    Printv(f, "#endif\n", NIL);
     Printf(f, "    (ssizeobjargproc)	%s,	// sq_ass_item\n", getSlot(n, "feature:sq_ass_item"));
+    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+    Printf(f, "    (void*) %s,	// was_sq_ass_slice\n", getSlot(n, "feature:was_sq_ass_slice"));
+    Printv(f, "#else\n", NIL);
     Printf(f, "    (ssizessizeobjargproc) %s,	// sq_ass_slice\n", getSlot(n, "feature:sq_ass_slice"));
+    Printv(f, "#endif\n", NIL);
     Printf(f, "    (objobjproc)		%s,	// sq_contains\n", getSlot(n, "feature:sq_contains"));
     Printf(f, "    (binaryfunc)		%s,	// sq_inplace_concat\n", getSlot(n, "feature:sq_inplace_concat"));
     Printf(f, "    (ssizeargfunc)	%s,	// sq_inplace_repeat\n", getSlot(n, "feature:sq_inplace_repeat"));
@@ -3387,10 +3420,15 @@ public:
 
     // PyBufferProcs as_buffer;
     Printf(f, "  {\n");
+    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+    Printf(f, "    (getbufferproc)	%s,	// bf_getbuffer\n", getSlot(n, "feature:bf_getbuffer"));
+    Printf(f, "    (releasebufferproc)	%s,	// bf_releasebuffer\n", getSlot(n, "feature:bf_releasebuffer"));
+    Printv(f, "#else\n", NIL);
     Printf(f, "    (readbufferproc)	%s,	// bf_getreadbuffer\n", getSlot(n, "feature:bf_getreadbuffer"));
     Printf(f, "    (writebufferproc)	%s,	// bf_getwritebuffer\n", getSlot(n, "feature:bf_getwritebuffer"));
     Printf(f, "    (segcountproc)	%s,	// bf_getsegcount\n", getSlot(n, "feature:bf_getsegcount"));
     Printf(f, "    (charbufferproc)	%s,	// bf_getcharbuffer\n", getSlot(n, "feature:bf_getcharbuffer"));
+    Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
     // PyObject *ht_name, *ht_slots
@@ -3426,7 +3464,11 @@ public:
 
     Printv(f_init, "    if (PyType_Ready(builtin_pytype) < 0) {\n", NIL);
     Printf(f_init, "      PyErr_SetString(PyExc_TypeError, \"Couldn't create type '%s'\");\n", symname);
+    Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+    Printv(f_init, "      return NULL;\n", NIL);
+    Printv(f_init, "#else\n", NIL);
     Printv(f_init, "      return;\n", NIL);
+    Printv(f_init, "#endif\n", NIL);
     Printv(f_init, "    }\n", NIL);
     Printv(f_init, "    Py_INCREF(builtin_pytype);\n", NIL);
     Printf(f_init, "    PyModule_AddObject(m, \"%s\", (PyObject*) builtin_pytype);\n", symname);
@@ -3441,6 +3483,7 @@ public:
     Delete(templ);
     Delete(tp_dealloc);
     Delete(tp_flags);
+    Delete(py3_tp_flags);
     Delete(clientdata_klass);
   }
 

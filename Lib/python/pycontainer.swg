@@ -634,10 +634,12 @@ namespace swig
   %fragment("SwigPySequence_Base");
 
 #if defined(SWIGPYTHON_BUILTIN)
-  %feature("pyslot", "sq_item", functype="ssizeargfunc") __getitem__;
-  %feature("pyslot", "sq_slice", functype="ssizessizeargfunc") __getslice__;
-  %feature("pyslot", "sq_ass_item", functype="ssizeobjargproc") __setitem__;
-  %feature("pyslot", "sq_ass_slice", functype="ssizessizeobjargproc") __setslice__;
+  //%feature("pyslot", "sq_item", functype="ssizeargfunc") __getitem__;
+  //%feature("pyslot", "sq_slice", functype="ssizessizeargfunc") __getslice__;
+  //%feature("pyslot", "sq_ass_item", functype="ssizeobjargproc") __setitem__;
+  //%feature("pyslot", "sq_ass_slice", functype="ssizessizeobjargproc") __setslice__;
+  %feature("pyslot", "mp_subscript", functype="binaryfunc") __getitem__;
+  %feature("pyslot", "mp_ass_subscript", functype="objobjargproc") __setitem__;
 #endif // SWIGPYTHON_BUILTIN
 
   %extend {
@@ -651,6 +653,9 @@ namespace swig
 
     /* typemap for slice object support */
     %typemap(in) PySliceObject* {
+      if (!PySlice_Check($input)) {
+        %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+      }
       $1 = (PySliceObject *) $input;
     }
     %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) PySliceObject* {
@@ -697,6 +702,17 @@ namespace swig
       }
       PySlice_GetIndices(slice, self->size(), &i, &j, &step);
       swig::setslice(self, i, j, v);
+    }
+
+    void __setitem__(PySliceObject *slice)
+      throw (std::out_of_range) {
+      Py_ssize_t i, j, step;
+      if( !PySlice_Check(slice) ) {
+        SWIG_Error(SWIG_TypeError, "Slice object expected.");
+        return;
+      }
+      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
+      swig::delslice(self, i,j);
     }
 
     void __delitem__(PySliceObject *slice)
