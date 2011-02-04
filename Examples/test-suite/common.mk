@@ -287,6 +287,7 @@ CPP_TEST_CASES += \
 	rename3 \
 	rename4 \
 	rename_scope \
+	rename_simple \
 	rename_strip_encoder \
 	rename_pcre_encoder \
 	rename_pcre_enum \

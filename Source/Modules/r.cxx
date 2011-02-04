@@ -300,7 +300,7 @@ public:
       Printf(stderr, "<memberfunctionHandler> %s %s\n", 
 	     Getattr(n, "name"),
 	     Getattr(n, "type"));
-    member_name = Getattr(n, "name");
+    member_name = Getattr(n, "sym:name");
     processing_class_member_function = 1;
     int status = Language::memberfunctionHandler(n);    
     processing_class_member_function = 0;
