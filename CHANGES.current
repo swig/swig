@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2011-02-04: wsfulton
+            [clisp] SF #3148200 Fix segfault parsing nested unions.
+
 2011-02-01: wsfulton
             [C#] Directors - a call to a method being defined in the base class, not
             overridden in a subclass, but again overridden in a class derived from

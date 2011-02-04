@@ -293,16 +293,18 @@ int CLISP::classDeclaration(Node *n) {
     }
 
     String *temp = Copy(Getattr(c, "decl"));
-    Append(temp, Getattr(c, "type"));	//appending type to the end, otherwise wrong type
-    String *lisp_type = get_ffi_type(n, temp);
-    Delete(temp);
+    if (temp) {
+      Append(temp, Getattr(c, "type"));	//appending type to the end, otherwise wrong type
+      String *lisp_type = get_ffi_type(n, temp);
+      Delete(temp);
 
-    String *slot_name = Getattr(c, "sym:name");
-    Printf(f_cl, "\n\t(%s %s)", slot_name, lisp_type);
+      String *slot_name = Getattr(c, "sym:name");
+      Printf(f_cl, "\n\t(%s %s)", slot_name, lisp_type);
 
-    Append(entries, NewStringf("%s-%s", name, slot_name));
+      Append(entries, NewStringf("%s-%s", name, slot_name));
 
-    Delete(lisp_type);
+      Delete(lisp_type);
+    }
   }
 
   Printf(f_cl, ")\n");
