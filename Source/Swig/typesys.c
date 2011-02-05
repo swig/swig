@@ -107,7 +107,7 @@ static Typetab *global_scope = 0;	/* The global scope                           
 static Hash *scopes = 0;	/* Hash table containing fully qualified scopes */
 
 /* Performance optimization */
-#define SWIG_TYPEDEF_RESOLVE_CACHE
+#define SWIG_TYPEDEF_RESOLVE_CACHE 
 static Hash *typedef_resolve_cache = 0;
 static Hash *typedef_all_cache = 0;
 static Hash *typedef_qualified_cache = 0;
@@ -809,6 +809,7 @@ return_result:
 SwigType *SwigType_typedef_resolve_all(const SwigType *t) {
   SwigType *n;
   SwigType *r;
+  int count = 0;
 
   /* Check to see if the typedef resolve has been done before by checking the cache */
   if (!typedef_all_cache) {
@@ -824,6 +825,10 @@ SwigType *SwigType_typedef_resolve_all(const SwigType *t) {
   while ((n = SwigType_typedef_resolve(r))) {
     Delete(r);
     r = n;
+    if (++count >= 512) {
+      Swig_error(Getfile(t), Getline(t), "Recursive typedef detected resolving '%s' to '%s' to '%s' and so on...\n", SwigType_str(t, 0), SwigType_str(SwigType_typedef_resolve(t), 0), SwigType_str(SwigType_typedef_resolve(SwigType_typedef_resolve(t)), 0));
+      break;
+    }
   }
 
   /* Add the typedef to the cache for next time it is looked up */

@@ -76,6 +76,7 @@ cpp_nobase
 cpp_overload
 cpp_private_defvalue
 cpp_private_inherit
+cpp_recursive_typedef
 cpp_shared_ptr
 cpp_template_argname
 cpp_template_nargs

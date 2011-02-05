@@ -281,6 +281,9 @@ cpp_nobase.i:6: Warning 401: Maybe you forgot to instantiate 'Bar< int >' using 
 cpp_private_inherit.i:6: Warning 309: private inheritance from base 'Foo' (ignored).
 cpp_private_inherit.i:9: Warning 309: protected inheritance from base 'Foo' (ignored).
 
+:::::::::::::::::::::::::::::::: cpp_recursive_typedef.i :::::::::::::::::::::::::::::::::::
+:1: Error: Recursive typedef detected resolving 'pds *' to 'std::set< pds > *' to 'std::set< std::set< pds > > *' and so on...
+
 :::::::::::::::::::::::::::::::: cpp_shared_ptr.i :::::::::::::::::::::::::::::::::::
 cpp_shared_ptr.i:20: Warning 520: Base class 'A' of 'C' is not similarly marked as a smart pointer.
 cpp_shared_ptr.i:24: Warning 520: Derived class 'D' of 'C' is not similarly marked as a smart pointer.
