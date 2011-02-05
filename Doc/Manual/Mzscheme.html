@@ -14,7 +14,7 @@
 <ul>
 <li><a href="#MzScheme_nn2">Creating native structures</a>
 <li><a href="#MzScheme_simple">Simple example</a>
-<li><a href="#MzScheme_c_documentation">External documentation</a>
+<li><a href="#MzScheme_external_docs">External documentation</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -163,9 +163,10 @@ Some points of interest:
   <li> If you want to declare a scheme module (and you probably do), it's important that you include the -declaremodule option to swig (if you miss this out, it'll appear to work, but fail later).
   <li> Use mzc to compile and then link the wrapped code. You'll probably need to adjust the link flags to refer to the library you're wrapping (you can either do this with an LDFLAGS declaration, as here, or with multiple ++ldf options to mzc).
   <li> Create the directory with path (build-path "compiled" "native" (system-library-subpath)) and move the freshly-generated .dylib to there, changing its name to module-name_ss.dylib. After that, you can REQUIRE the new module with (require "module-name.ss").
+  <li> The above requests mzc to create an extension using the CGC garbage-collector. The alternative -- the 3m collector -- has generally better performance, but work is still required for SWIG to emit code which is compatible with it.
 </ul>
 
-<H2><a name="MzScheme_c_documentation"></a>27.3 External documentation</H2>
+<H2><a name="MzScheme_external_docs"></a>27.3 External documentation</H2>
 
 
 <p>
