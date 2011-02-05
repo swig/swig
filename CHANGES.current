@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+
+2011-02-05: wsfulton
+            [C#] SF #3085906 - Possible fix running test-suite on Mac OSX.
+
 2011-02-05: wsfulton
             SF #3173367 Better information during configure about Boost prerequisite for running
             the test-suite.
