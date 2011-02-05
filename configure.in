@@ -19,7 +19,7 @@ AH_BOTTOM([
 /* Default language */
 #define SWIG_LANG               "-tcl"
 
-/* Deal with Microsoft's attempt at deprecating C standard runtime functions */
+/* Deal with Microsofts attempt at deprecating C standard runtime functions */
 #if defined(_MSC_VER)
 # define _CRT_SECURE_NO_DEPRECATE
 #endif
@@ -89,7 +89,7 @@ AS_IF([test "x$with_pcre" != xno],
      CPPFLAGS="$CPPFLAGS $PCRE_CFLAGS"
     ],
     [AC_MSG_FAILURE([
-        Can't find pcre-config script from PCRE (Perl Compatible Regular Expressions)
+        Cannot find pcre-config script from PCRE (Perl Compatible Regular Expressions)
         library package. This dependency is needed for configure to complete,
         Either:
         - Install the PCRE developer package on your system (preferred approach).
@@ -130,10 +130,14 @@ AC_CHECK_PROGS(YODL2HTML, yodl2html)
 
 
 echo ""
-echo "Checking for installed target languages and other information in order to compile and run the examples."
+echo "Checking for installed target languages and other information in order to compile and run"
+echo "the examples and test-suite invoked by 'make check'."
 echo "Note : None of the following packages are required for users to compile and install SWIG"
 echo ""
 
+dnl Some test cases require Boost
+AX_BOOST_BASE(,,,)
+AC_SUBST(BOOST_CPPFLAGS)
 
 dnl How to specify include directories that may be system directories.
 # -I should not be used on system directories (GCC)

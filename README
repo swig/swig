@@ -142,6 +142,8 @@ incorrectly configured.  It may also fail due to compiler issues such
 as broken C++ compiler.  Even if 'make -k check' fails, there is a
 pretty good chance SWIG still works correctly---you will just have to
 mess around with one of the examples and some makefiles to get it to work.
+Some tests may also fail due to missing dependency packages, eg PCRE
+or Boost, but this will require careful analysis of the configure output.
 
 The testing suite executed by 'make -k check' is designed to stress-test
 many parts of the implementation including obscure corner cases. If some
@@ -149,8 +151,8 @@ of these tests fail or generate warning messages, there is no reason for
 alarm---the test may be related to some new SWIG feature or a difficult bug
 that we're trying to resolve.  Chances are that SWIG will work just fine
 for you. Note that if you have more than one CPU/core, then you can use
-parallel make can be used to speed up the check as it does take quite some
-time to run, for example:
+parallel make to speed up the check as it does take quite some time to run,
+for example:
 
     % make -j2 -k check
 
