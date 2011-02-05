@@ -7,6 +7,10 @@ Version 2.0.2 (in progress)
 
 
 2011-02-05: wsfulton
+            [MzScheme] SF #2942899 Add user supplied documentation to help getting started with MzScheme.
+            Update chapter name to MzScheme/Racket accounting for the rename of MzScheme to Racket.
+
+2011-02-05: wsfulton
             [C#] SF #3085906 - Possible fix running test-suite on Mac OSX.
 
 2011-02-05: wsfulton
