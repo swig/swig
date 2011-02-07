@@ -33,6 +33,7 @@ static Hash *included_files = 0;
 static List *dependencies = 0;
 static Scanner *id_scan = 0;
 static int error_as_warning = 0;	/* Understand the cpp #error directive as a special #warning */
+static int defined_operator_accepted = 0;
 static int macro_level = 0;
 static int macro_start_line = 0;
 static const String * macro_start_file = 0;
@@ -1013,8 +1014,8 @@ static DOH *Preprocessor_replace(DOH *s) {
       } else {
 	/* We found the end of a valid identifier */
 	Ungetc(c, s);
-	/* See if this is the special "defined" macro */
-	if (Equal(kpp_defined, id)) {
+	/* See if this is the special "defined" operator */
+	if (Equal(kpp_defined, id) && defined_operator_accepted) {
 	  int lenargs = 0;
 	  DOH *args = 0;
 	  /* See whether or not a parenthesis has been used */
@@ -1042,7 +1043,7 @@ static DOH *Preprocessor_replace(DOH *s) {
 	  }
 	  lenargs = Len(args);
 	  if ((!args) || (!lenargs)) {
-	    /* This is not a defined() macro. */
+	    /* This is not a defined() operator. */
 	    Append(ns, id);
 	    state = 0;
 	    break;
@@ -1554,7 +1555,9 @@ String *Preprocessor_parse(String *s) {
 	level++;
 	if (allow) {
 	  int val;
-	  String *sval = Preprocessor_replace(value);
+	  String *sval;
+	  defined_operator_accepted = 1;
+	  sval = Preprocessor_replace(value);
 	  start_level = level;
 	  Seek(sval, 0, SEEK_SET);
 	  /*      Printf(stdout,"Evaluating '%s'\n", sval); */
@@ -1570,6 +1573,7 @@ String *Preprocessor_parse(String *s) {
 	    if (val == 0)
 	      allow = 0;
 	  }
+	  defined_operator_accepted = 0;
 	  mask = 1;
 	}
       } else if (Equal(id, kpp_elif)) {
@@ -1577,6 +1581,7 @@ String *Preprocessor_parse(String *s) {
 	  Swig_error(Getfile(s), Getline(id), "Misplaced #elif.\n");
 	} else {
 	  cond_lines[level - 1] = Getline(id);
+	  defined_operator_accepted = 1;
 	  if (allow) {
 	    allow = 0;
 	    mask = 0;
@@ -1599,6 +1604,7 @@ String *Preprocessor_parse(String *s) {
 		allow = 0;
 	    }
 	  }
+	  defined_operator_accepted = 0;
 	}
       } else if (Equal(id, kpp_warning)) {
 	if (allow) {

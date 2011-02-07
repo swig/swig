@@ -493,6 +493,7 @@ C_TEST_CASES += \
 	overload_extendc \
 	preproc \
 	preproc_constants_c \
+	preproc_defined \
 	preproc_line_file \
 	ret_by_value \
 	simple_array \

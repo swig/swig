@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2011-02-07: wsfulton
+            Fix #1940536, overactive preprocessor which was expanding defined(...) outside of #if and #elif
+            preprocessor directives.
 
 2011-02-05: wsfulton
             [MzScheme] SF #2942899 Add user supplied documentation to help getting started with MzScheme.
