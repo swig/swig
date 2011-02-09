@@ -14,9 +14,7 @@ SUBDIRS := constructor func deep_hierarchy
 
 default : all
 
-.PHONY : $(SUBDIRS) all clean
-
-all : $(SUBDIRS)
+all : $(SUBDIRS:%=%-build)
 	@for subdir in $(SUBDIRS); do \
 		echo Running $$subdir test... ; \
 		echo -------------------------------------------------------------------------------- ; \
@@ -31,10 +29,10 @@ $(SUBDIRS) :
 	@echo --------------------------------------------------------------------------------
 	cd $@ && env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH $(PYTHON) $(PYSCRIPT)
 
+%-build :
+	$(MAKE) -C $*
+
 %-clean :
 	$(MAKE) -s -C $* clean
-
-$(SUBDIRS:%=%-check) :
-	$(MAKE) -C $* check
 
 clean : $(SUBDIRS:%=%-clean)
