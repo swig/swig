@@ -153,6 +153,37 @@ wrapper##_closure (PyObject *a, PyObject *b, PyObject *c)	\
     return result;						\
 }
 
+#define PYSWIG_REPRFUNC_CLOSURE(wrapper)	\
+SWIGINTERN PyObject*				\
+wrapper##_closure (PyObject *a)			\
+{						\
+    return wrapper(a, NULL);			\
+}
+
+#define PYSWIG_HASHFUNC_CLOSURE(wrapper)	\
+SWIGINTERN long					\
+wrapper##_closure (PyObject *a)			\
+{						\
+    PyObject *pyresult = wrapper(a, NULL);	\
+    if (!pyresult || !PyLong_Check(pyresult))	\
+	return -1;				\
+    long result = PyLong_AsLong(pyresult);	\
+    Py_DECREF(pyresult);			\
+    return result;				\
+}
+
+#define PYSWIG_ITERNEXT_CLOSURE(wrapper)	\
+SWIGINTERN PyObject*				\
+wrapper##_closure (PyObject *a)			\
+{						\
+    PyObject *result = wrapper(a, NULL);	\
+    if (result && result == Py_None) {		\
+	Py_DECREF(result);			\
+	result = NULL;				\
+    }						\
+    return result;				\
+}
+
 SWIGRUNTIME int py_builtin_bad_init (PyObject *self, PyObject *args, PyObject *kwds)
 {
     PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", self->ob_type->tp_name);

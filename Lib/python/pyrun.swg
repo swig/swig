@@ -1703,24 +1703,22 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value)
     descrsetfunc f;
     int res = -1;
 
-    if (!PyString_Check(name)) {
 #ifdef Py_USING_UNICODE
-	if (PyUnicode_Check(name)) {
-	    name = PyUnicode_AsEncodedString(name, NULL, NULL);
-	    if (name == NULL)
-		return -1;
-	}
-	else
+    if (PyString_Check(name)) {
+	name = PyUnicode_Decode(PyString_AsString(name), PyBytes_Size(name), NULL, NULL);
+	if (name == NULL)
+	    return -1;
+    } else if (!PyUnicode_Check(name)) {
+#else
+    if (!PyString_Check(name)) {
 #endif
-	    {
-		PyErr_Format(PyExc_TypeError,
-			     "attribute name must be string, not '%.200s'",
-			     name->ob_type->tp_name);
-		return -1;
-	    }
-    }
-    else
+	PyErr_Format(PyExc_TypeError,
+		     "attribute name must be string, not '%.200s'",
+		     name->ob_type->tp_name);
+	return -1;
+    } else {
 	Py_INCREF(name);
+    }
 
     if (tp->tp_dict == NULL) {
 	if (PyType_Ready(tp) < 0)
@@ -1731,21 +1729,22 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value)
     f = NULL;
     if (descr != NULL)
 	f = descr->ob_type->tp_descr_set;
-    if (f == NULL)
+    if (f == NULL) {
 	PyErr_Format(PyExc_AttributeError,
-#if PY_VERSION_HEX >= 0x03000000
+#ifdef Py_USING_UNICODE
 		     "'%.100s' object has no attribute '%.200U'",
 #else
 		     "'%.100s' object has no attribute '%.200S'",
 #endif
 		     tp->tp_name, name);
-    else
+    } else {
 	res = f(descr, obj, value);
-
-done:
+    }
+    
+ done:
     Py_DECREF(name);
     return res;
-}
+ }
 
 
 #ifdef __cplusplus

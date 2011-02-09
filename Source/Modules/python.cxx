@@ -176,7 +176,6 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "destructor", "PYSWIG_DESTRUCTOR_CLOSURE",
     "inquiry", "PYSWIG_INQUIRY_CLOSURE",
     "getiterfunc", "PYSWIG_UNARYFUNC_CLOSURE",
-    "iternextfunc", "PYSWIG_UNARYFUNC_CLOSURE",
     "binaryfunc", "PYSWIG_BINARYFUNC_CLOSURE",
     "ternaryfunc", "PYSWIG_TERNARYFUNC_CLOSURE",
     "lenfunc", "PYSWIG_LENFUNC_CLOSURE",
@@ -185,6 +184,9 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "ssizeobjargproc", "PYSWIG_SSIZEOBJARGPROC_CLOSURE",
     "ssizessizeobjargproc", "PYSWIG_SSIZESSIZEOBJARGPROC_CLOSURE",
     "objobjargproc", "PYSWIG_OBJOBJARGPROC_CLOSURE",
+    "reprfunc", "PYSWIG_REPRFUNC_CLOSURE",
+    "hashfunc", "PYSWIG_HASHFUNC_CLOSURE",
+    "iternextfunc", "PYSWIG_ITERNEXT_CLOSURE",
     NULL
   };
 
@@ -193,7 +195,6 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "destructor", "PYSWIG_DESTRUCTOR_CLOSURE",
     "inquiry", "PYSWIG_INQUIRY_CLOSURE",
     "getiterfunc", "PYSWIG_UNARYFUNC_CLOSURE",
-    "iternextfunc", "PYSWIG_UNARYFUNC_CLOSURE",
     "ternaryfunc", "PYSWIG_TERNARYFUNC_CLOSURE",
     "lenfunc", "PYSWIG_LENFUNC_CLOSURE",
     "ssizeargfunc", "PYSWIG_FUNPACK_SSIZEARGFUNC_CLOSURE",
@@ -201,6 +202,9 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "ssizeobjargproc", "PYSWIG_SSIZEOBJARGPROC_CLOSURE",
     "ssizessizeobjargproc", "PYSWIG_SSIZESSIZEOBJARGPROC_CLOSURE",
     "objobjargproc", "PYSWIG_OBJOBJARGPROC_CLOSURE",
+    "reprfunc", "PYSWIG_REPRFUNC_CLOSURE",
+    "hashfunc", "PYSWIG_HASHFUNC_CLOSURE",
+    "iternextfunc", "PYSWIG_ITERNEXT_CLOSURE",
     NULL
   };
 
@@ -2637,29 +2641,31 @@ public:
       Delattr(n, "memberset");
     }
 
-    /* Handle builtin operator overloads */
-    String *slot = Getattr(n, "feature:pyslot");
-    if (slot) {
-      String *closure_decl = getClosure(Getattr(n, "feature:pyslot:functype"), wrapper_name, overname ? 0 : funpack);
-      String *feature_name = NewStringf("feature:%s", slot);
-      String *closure_name = Copy(wrapper_name);
-      if (closure_decl) {
-	if (!Getattr(n, "sym:overloaded") || !Getattr(n, "sym:nextSibling"))
-	  Printv(f_wrappers, closure_decl, "\n\n", NIL);
-	Append(closure_name, "_closure");
-	Delete(closure_decl);
+    if (in_class && builtin) {
+      /* Handle operator overloads overloads for builtin types */
+      String *slot = Getattr(n, "feature:pyslot");
+      if (slot) {
+	String *closure_decl = getClosure(Getattr(n, "feature:pyslot:functype"), wrapper_name, overname ? 0 : funpack);
+	String *feature_name = NewStringf("feature:%s", slot);
+	String *closure_name = Copy(wrapper_name);
+	if (closure_decl) {
+	  if (!Getattr(n, "sym:overloaded") || !Getattr(n, "sym:nextSibling"))
+	    Printv(f_wrappers, closure_decl, "\n\n", NIL);
+	  Append(closure_name, "_closure");
+	  Delete(closure_decl);
+	}
+	Setattr(parent, feature_name, closure_name);
+	Delete(feature_name);
+	Delete(closure_name);
       }
-      Setattr(parent, feature_name, closure_name);
-      Delete(feature_name);
-      Delete(closure_name);
-    }
 
-    /* Handle comparison operators for builtin types */
-    String *compare = Getattr(n, "feature:pycompare");
-    if (compare) {
-      Hash *richcompare = Getattr(parent, "richcompare");
-      assert(richcompare);
-      Setattr(richcompare, compare, wrapper_name);
+      /* Handle comparison operators for builtin types */
+      String *compare = Getattr(n, "feature:pycompare");
+      if (compare) {
+	Hash *richcompare = Getattr(parent, "richcompare");
+	assert(richcompare);
+	Setattr(richcompare, compare, wrapper_name);
+      }
     }
 
     Delete(self_parse);
