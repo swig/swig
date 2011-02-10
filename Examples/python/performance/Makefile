@@ -10,7 +10,7 @@ else
   PYSCRIPT = runme3.py
 endif
 
-SUBDIRS := constructor func deep_hierarchy
+SUBDIRS := constructor func hierarchy operator
 
 default : all
 
