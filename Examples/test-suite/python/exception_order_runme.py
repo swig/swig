@@ -5,20 +5,20 @@ a = A()
 
 try:
   a.foo()
-except E1,e:
-  pass
+# Throwing builtin classes as exceptions not supported
+#except E1,e:
+#  pass
 except:
-  # Throwing builtin classes as exceptions not supported
-  #raise RuntimeError, "bad exception order"
+#  raise RuntimeError, "bad exception order"
   pass
 
 try:
   a.bar()
-except E2,e:
-  pass
+# Throwing builtin classes as exceptions not supported
+#except E2,e:
+#  pass
 except:
-  # Throwing builtin classes as exceptions not supported
-  #raise RuntimeError, "bad exception order"
+#  raise RuntimeError, "bad exception order"
   pass
 
 try:
@@ -32,18 +32,18 @@ except RuntimeError,e:
 
 try:
   a.barfoo(1)
-except E1,e:
-  pass
+# Throwing builtin classes as exceptions not supported
+#except E1,e:
+#  pass
 except:
-  # Throwing builtin classes as exceptions not supported
-  #raise RuntimeError, "bad exception order"
+#  raise RuntimeError, "bad exception order"
   pass
 
 try:
   a.barfoo(2)
-except E2,e:
-  pass
+# Throwing builtin classes as exceptions not supported
+#except E2,e:
+#  pass
 except:
-  # Throwing builtin classes as exceptions not supported
-  #raise RuntimeError, "bad exception order"
+#  raise RuntimeError, "bad exception order"
   pass
