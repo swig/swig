@@ -43,6 +43,7 @@
 <li><a href="#Python_nn28">Further details on the Python class interface</a>
 <ul>
 <li><a href="#Python_nn29">Proxy classes</a>
+<li><a href="#BuiltinClasses">Built-in classes</a>
 <li><a href="#Python_nn30">Memory management</a>
 <li><a href="#Python_nn31">Python 2.2 and classic classes</a>
 </ul>
@@ -2203,6 +2204,16 @@ of low-level details were omitted.  This section provides a brief overview
 of how the proxy classes work.
 </p>
 
+<p><b>New in swig version 2.0.3:</b>
+The use of Python proxy classes has performance implications that may be
+unacceptable for a high-performance library.  The new <tt>-builtin</tt>
+option instructs swig to forego the use of proxy classes, and instead
+create wrapped types as new built-in Python types.  When this option is used,
+the following section ("Proxy classes") does not apply.  Details on the use of
+the <tt>-builtin</tt> option are in the <a href="#BuiltinClasses">Built-in Classes</a>
+section.
+</p>
+
 <H3><a name="Python_nn29"></a>33.4.1 Proxy classes</H3>
 
 
@@ -2292,7 +2303,77 @@ you can attach new Python methods to the class and you can even inherit from it 
 by Python built-in types until Python 2.2).
 </p>
 
-<H3><a name="Python_nn30"></a>33.4.2 Memory management</H3>
+<H3><a name="BuiltinClasses"></a>33.4.2 Built-in Classes</H3>
+
+<p>
+The <tt>-builtin</tt> option gives a significant performance improvement
+in the wrapped code.  More information about python built-in extensions is available
+<a href="http://docs.python.org/extending/extending.html">here</a>.
+</p>
+
+<H4>33.4.2.1 Limitations</H4>
+
+<p>Use of the <tt>-builtin</tt> option implies a couple of limitations:
+<ul>
+<li>Wrapped types may not be thrown as python exceptions</li>
+<li>Reverse operators are not supported.</li>
+</ul>
+</p>
+
+<p>
+To illustrate the second point, if you have a wrapped class called MyString,
+and you want to use instances of MyString interchangeably with native python
+strings, you can define an <tt>'operator+ (const char*)'</tt> method :
+</p>
+
+<div class="code">
+<pre>
+class MyString {
+public:
+    MyString (const char *init);
+    MyString operator+ (const char *other);
+    ...
+};
+</pre>
+</div>
+
+<p>
+swig will automatically create an operator overload in python that will allow this:
+</p>
+
+<div class="code">
+<pre>
+from MyModule import MyString
+
+mystr = MyString("Nobody expects")
+episode = mystr + " the Spanish Inquisition"
+</pre>
+</div>
+
+<p>
+This works because the first operand -- the instance of MyString -- defines a way
+to add a MyString and a native string.  However, the following will <b>not</b> work:
+</p>
+
+<div class="code">
+<pre>
+from MyModule import MyString
+
+mystr = MyString("Parrot")
+episode = "Dead " + mystr
+</pre>
+</div>
+
+<p>
+The above code fails, because the first operand -- a native python string --
+doesn't know how to add itself to an instance of MyString.
+</p>
+
+<H4>33.4.2.2 Getting the most out of builtin-types</H4>
+
+<p>TODO</p>
+
+<H3><a name="Python_nn30"></a>33.4.3 Memory management</H3>
 
 
 <p>
@@ -2484,7 +2565,7 @@ It is also possible to deal with situations like this using
 typemaps--an advanced topic discussed later.
 </p>
 
-<H3><a name="Python_nn31"></a>33.4.3 Python 2.2 and classic classes</H3>
+<H3><a name="Python_nn31"></a>33.4.4 Python 2.2 and classic classes</H3>
 
 
 <p>
