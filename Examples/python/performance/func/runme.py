@@ -1,17 +1,12 @@
 #!/usr/bin/env
 
 import sys
-from subprocess import *
+sys.path.append('..')
+import harness
 
-proc = Popen([sys.executable, 'runme_baseline.py'], stdout=PIPE)
-(stdout, stderr) = proc.communicate()
-print stdout
+def proc (mod) :
+    x = mod.MyClass()
+    for i in range(10000000) :
+        x.func()
 
-proc = Popen([sys.executable, 'runme_optimized.py'], stdout=PIPE)
-(stdout, stderr) = proc.communicate()
-print stdout
-
-proc = Popen([sys.executable, 'runme_builtin.py'], stdout=PIPE)
-(stdout, stderr) = proc.communicate()
-print stdout
-
+harness.run(proc)

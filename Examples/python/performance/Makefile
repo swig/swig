@@ -10,7 +10,7 @@ else
   PYSCRIPT = runme3.py
 endif
 
-SUBDIRS := constructor func hierarchy operator
+SUBDIRS := constructor func hierarchy operator hierarchy_operator
 
 default : all
 
@@ -36,3 +36,4 @@ $(SUBDIRS) :
 	$(MAKE) -s -C $* clean
 
 clean : $(SUBDIRS:%=%-clean)
+	rm -f *.pyc
