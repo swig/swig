@@ -5,7 +5,7 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
-2011-02-07: wsfulton
+2011-02-12: wsfulton
             Fix #1940536, overactive preprocessor which was expanding defined(...) outside of #if and #elif
             preprocessor directives.
 

@@ -34,3 +34,75 @@ int call_checking(void) {
   return checking();
 }
 %}
+
+/*****************************************************************************/
+/* Check #if/#elif defined() macro expansions
+   Also checks #if/#elif defined() works correctly within macros... this is not
+   standard C, but is now relied on in the SWIG library. */
+/*****************************************************************************/
+
+#define AAA
+#define BBB
+#define CCC
+
+#if defined(AAA)\
+&& defined(BBB) \
+&& defined(CCC)
+%{
+void thing(int i) {}
+void stuff(int i) {}
+struct Defined {
+  int defined;
+};
+void bumpf(int i) {}
+%}
+#else
+#endif
+
+%define ANOTHER_MACRO(TYPE)
+
+#if defined(AAA) && defined(BBB) && defined(CCC)
+void thing(TYPE) {}
+#else
+void thing_not(TYPE) {}
+#endif
+
+#if defined(AAA) &&\
+ defined(BBB) \\
+&& defined(CCC)
+void stuff(TYPE) {}
+#else
+void stuff_not(TYPE);
+#endif
+
+#if defined(0)
+void defined_not(TYPE);
+#elif defined(AAA) && defined( BBB ) && defined(CCC)
+struct Defined {
+  int defined;
+};
+#else
+void defined_not(TYPE);
+#endif
+
+#if !( defined(AAA) \
+ defined(BBB) \\
+&& defined(CCC) )
+void bumpf_not(TYPE);
+#else
+void bumpf(TYPE) {}
+#endif
+
+%enddef
+
+ANOTHER_MACRO(int)
+
+%{
+void another_macro_checking(void) {
+  struct Defined d;
+  d.defined = 10;
+  thing(10);
+  stuff(10);
+  bumpf(10);
+}
+%}

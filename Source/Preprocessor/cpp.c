@@ -33,7 +33,7 @@ static Hash *included_files = 0;
 static List *dependencies = 0;
 static Scanner *id_scan = 0;
 static int error_as_warning = 0;	/* Understand the cpp #error directive as a special #warning */
-static int defined_operator_accepted = 0;
+static int expand_defined_operator = 0;
 static int macro_level = 0;
 static int macro_start_line = 0;
 static const String * macro_start_file = 0;
@@ -152,6 +152,9 @@ static String *kpp_dextern = 0;
 static String *kpp_LINE = 0;
 static String *kpp_FILE = 0;
 
+static String *kpp_hash_if = 0;
+static String *kpp_hash_elif = 0;
+
 void Preprocessor_init(void) {
   Hash *s;
 
@@ -187,6 +190,9 @@ void Preprocessor_init(void) {
 
   kpp_LINE = NewString("__LINE__");
   kpp_FILE = NewString("__FILE__");
+
+  kpp_hash_if = NewString("#if");
+  kpp_hash_elif = NewString("#elif");
 
   cpp = NewHash();
   s = NewHash();
@@ -229,9 +235,12 @@ void Preprocessor_delete(void) {
   Delete(kpp_ddefine);
   Delete(kpp_dline);
 
-
   Delete(kpp_LINE);
   Delete(kpp_FILE);
+
+  Delete(kpp_hash_if);
+  Delete(kpp_hash_elif);
+
   Delete(cpp);
   Delete(included_files);
   Preprocessor_expr_delete();
@@ -947,22 +956,6 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 }
 
 /* -----------------------------------------------------------------------------
- * evaluate_args()
- *
- * Evaluate the arguments of a macro 
- * ----------------------------------------------------------------------------- */
-
-List *evaluate_args(List *x) {
-  Iterator i;
-  List *nl = NewList();
-
-  for (i = First(x); i.item; i = Next(i)) {
-    Append(nl, Preprocessor_replace(i.item));
-  }
-  return nl;
-}
-
-/* -----------------------------------------------------------------------------
  * DOH *Preprocessor_replace(DOH *s)
  *
  * Performs a macro substitution on a string s.  Returns a new string with
@@ -976,7 +969,6 @@ List *evaluate_args(List *x) {
 static DOH *Preprocessor_replace(DOH *s) {
   DOH *ns, *symbols, *m;
   int c, i, state = 0;
-
   String *id = NewStringEmpty();
 
   assert(cpp);
@@ -990,10 +982,18 @@ static DOH *Preprocessor_replace(DOH *s) {
   while ((c = Getc(s)) != EOF) {
     switch (state) {
     case 0:
-      if (isidentifier(c) || (c == '%')) {
+      if (isidentifier(c)) {
 	Clear(id);
 	Putc(c, id);
-	state = 1;
+	state = 4;
+      } else if (c == '%') {
+	Clear(id);
+	Putc(c, id);
+	state = 2;
+      } else if (c == '#') {
+	Clear(id);
+	Putc(c, id);
+	state = 4;
       } else if (c == '\"') {
 	Putc(c, ns);
 	skip_tochar(s, '\"', ns);
@@ -1003,62 +1003,87 @@ static DOH *Preprocessor_replace(DOH *s) {
       } else if (c == '/') {
 	Putc(c, ns);
 	state = 10;
+      } else if (c == '\\') {
+	Putc(c, ns);
+	c = Getc(s);
+	if (c == '\n') {
+	  Putc(c, ns);
+	} else {
+	  Ungetc(c, s);
+	}
+      } else if (c == '\n') {
+	Putc(c, ns);
+	expand_defined_operator = 0;
       } else {
 	Putc(c, ns);
       }
       break;
-    case 1:			/* An identifier */
+    case 2:
+      /* Found '%#' */
+      if (c == '#') {
+	Putc(c, id);
+	state = 4;
+      } else {
+	Ungetc(c, s);
+	state = 4;
+      }
+      break;
+    case 4:			/* An identifier */
       if (isidchar(c)) {
 	Putc(c, id);
-	state = 1;
+	state = 4;
       } else {
 	/* We found the end of a valid identifier */
 	Ungetc(c, s);
 	/* See if this is the special "defined" operator */
-	if (Equal(kpp_defined, id) && defined_operator_accepted) {
-	  int lenargs = 0;
-	  DOH *args = 0;
-	  /* See whether or not a parenthesis has been used */
-	  skip_whitespace(s, 0);
-	  c = Getc(s);
-	  if (c == '(') {
-	    Ungetc(c, s);
-	    args = find_args(s, 0, kpp_defined);
-	  } else if (isidchar(c)) {
-	    DOH *arg = NewStringEmpty();
-	    args = NewList();
-	    Putc(c, arg);
-	    while (((c = Getc(s)) != EOF)) {
-	      if (!isidchar(c)) {
-		Ungetc(c, s);
-		break;
-	      }
+       	if (Equal(kpp_defined, id)) {
+	  if (expand_defined_operator) {
+	    int lenargs = 0;
+	    DOH *args = 0;
+	    /* See whether or not a parenthesis has been used */
+	    skip_whitespace(s, 0);
+	    c = Getc(s);
+	    if (c == '(') {
+	      Ungetc(c, s);
+	      args = find_args(s, 0, kpp_defined);
+	    } else if (isidchar(c)) {
+	      DOH *arg = NewStringEmpty();
+	      args = NewList();
 	      Putc(c, arg);
+	      while (((c = Getc(s)) != EOF)) {
+		if (!isidchar(c)) {
+		  Ungetc(c, s);
+		  break;
+		}
+		Putc(c, arg);
+	      }
+	      if (Len(arg))
+		Append(args, arg);
+	      Delete(arg);
+	    } else {
+	      Seek(s, -1, SEEK_CUR);
 	    }
-	    if (Len(arg))
-	      Append(args, arg);
-	    Delete(arg);
-	  } else {
-	    Seek(s, -1, SEEK_CUR);
-	  }
-	  lenargs = Len(args);
-	  if ((!args) || (!lenargs)) {
-	    /* This is not a defined() operator. */
-	    Append(ns, id);
-	    state = 0;
-	    break;
-	  }
-	  for (i = 0; i < lenargs; i++) {
-	    DOH *o = Getitem(args, i);
-	    if (!Getattr(symbols, o)) {
+	    lenargs = Len(args);
+	    if ((!args) || (!lenargs)) {
+	      /* This is not a defined() operator. */
+	      Append(ns, id);
+	      state = 0;
 	      break;
 	    }
+	    for (i = 0; i < lenargs; i++) {
+	      DOH *o = Getitem(args, i);
+	      if (!Getattr(symbols, o)) {
+		break;
+	      }
+	    }
+	    if (i < lenargs)
+	      Putc('0', ns);
+	    else
+	      Putc('1', ns);
+	    Delete(args);
+	  } else {
+	    Append(ns, id);
 	  }
-	  if (i < lenargs)
-	    Putc('0', ns);
-	  else
-	    Putc('1', ns);
-	  Delete(args);
 	  state = 0;
 	  break;
 	} else if (Equal(kpp_LINE, id)) {
@@ -1072,6 +1097,9 @@ static DOH *Preprocessor_replace(DOH *s) {
 	  Delete(fn);
 	  state = 0;
 	  break;
+	} else if (Equal(kpp_hash_if, id) || Equal(kpp_hash_elif, id)) {
+	  expand_defined_operator = 1;
+	  Append(ns, id);
 	} else if ((m = Getattr(symbols, id))) {
 	  /* See if the macro is defined in the preprocessor symbol table */
 	  DOH *args = 0;
@@ -1119,11 +1147,15 @@ static DOH *Preprocessor_replace(DOH *s) {
       Putc(c, ns);
       break;
     case 11:
+      /* in C++ comment */
       Putc(c, ns);
-      if (c == '\n')
+      if (c == '\n') {
+	expand_defined_operator = 0;
 	state = 0;
+      }
       break;
     case 12:
+      /* in C comment */
       Putc(c, ns);
       if (c == '*')
 	state = 13;
@@ -1142,8 +1174,8 @@ static DOH *Preprocessor_replace(DOH *s) {
   }
 
   /* Identifier at the end */
-  if (state == 1) {
-    /* See if this is the special "defined" macro */
+  if (state == 2 || state == 4) {
+    /* See if this is the special "defined" operator */
     if (Equal(kpp_defined, id)) {
       Swig_error(Getfile(s), Getline(s), "No arguments given to defined()\n");
     } else if (Equal(kpp_LINE, id)) {
@@ -1556,7 +1588,7 @@ String *Preprocessor_parse(String *s) {
 	if (allow) {
 	  int val;
 	  String *sval;
-	  defined_operator_accepted = 1;
+	  expand_defined_operator = 1;
 	  sval = Preprocessor_replace(value);
 	  start_level = level;
 	  Seek(sval, 0, SEEK_SET);
@@ -1573,7 +1605,7 @@ String *Preprocessor_parse(String *s) {
 	    if (val == 0)
 	      allow = 0;
 	  }
-	  defined_operator_accepted = 0;
+	  expand_defined_operator = 0;
 	  mask = 1;
 	}
       } else if (Equal(id, kpp_elif)) {
@@ -1581,7 +1613,7 @@ String *Preprocessor_parse(String *s) {
 	  Swig_error(Getfile(s), Getline(id), "Misplaced #elif.\n");
 	} else {
 	  cond_lines[level - 1] = Getline(id);
-	  defined_operator_accepted = 1;
+	  expand_defined_operator = 1;
 	  if (allow) {
 	    allow = 0;
 	    mask = 0;
@@ -1604,7 +1636,7 @@ String *Preprocessor_parse(String *s) {
 		allow = 0;
 	    }
 	  }
-	  defined_operator_accepted = 0;
+	  expand_defined_operator = 0;
 	}
       } else if (Equal(id, kpp_warning)) {
 	if (allow) {
@@ -1884,6 +1916,7 @@ String *Preprocessor_parse(String *s) {
   if ((state >= 30) && (state < 40)) {
     Swig_error(Getfile(s), -1, "Unterminated comment starting on line %d\n", start_line);
   }
+
   copy_location(s, chunk);
   add_chunk(ns, chunk, allow);
 
