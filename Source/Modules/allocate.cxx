@@ -216,7 +216,7 @@ class Allocate:public Dispatcher {
 
 	      if (!most_base_covariant_type) {
 		// Eliminate the derived virtual method.
-		if (virtual_elimination_mode)
+		if (virtual_elimination_mode && !is_member_director(n))
 		  if (both_have_public_access)
 		    if (!is_non_public_base(inclass, b))
 		      if (!Swig_symbol_isoverloaded(n)) {

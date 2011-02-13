@@ -6,7 +6,10 @@ Version 2.0.2 (in progress)
 ===========================
 
 2011-02-13: wsfulton
-            Fix #1927852 #include directives don't preprocess the file passed to it. The fix is for
+            Apply patch #3171793 from szager - protected director methods failing when -fvirtual is used.
+
+2011-02-13: wsfulton
+            Fix #1927852 - #include directives don't preprocess the file passed to it. The fix is for
             #include with -importall or -includeall, %include and %import, for example:
               #define FILENAME "abc.h"
               %include FILENAME
