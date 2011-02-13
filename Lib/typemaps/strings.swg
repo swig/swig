@@ -577,8 +577,6 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 }
 }
 
-%typemaps_asvalfromn(CharCode, Char);
-
 %_typemap_string(StringCode, 
 		 Char,
 		 SWIG_AsCharPtrAndSize,
