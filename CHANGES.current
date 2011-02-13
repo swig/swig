@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2011-02-13: wsfulton
+            Fix #1927852 #include directives don't preprocess the file passed to it. The fix is for
+            #include with -importall or -includeall, %include and %import, for example:
+              #define FILENAME "abc.h"
+              %include FILENAME
+
 2011-02-12: wsfulton
             Fix #1940536, overactive preprocessor which was expanding defined(...) outside of #if and #elif
             preprocessor directives.

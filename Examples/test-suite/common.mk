@@ -494,6 +494,7 @@ C_TEST_CASES += \
 	preproc \
 	preproc_constants_c \
 	preproc_defined \
+	preproc_include \
 	preproc_line_file \
 	ret_by_value \
 	simple_array \
@@ -518,6 +519,7 @@ MULTI_CPP_TEST_CASES += \
 
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw
+preproc_include.ctest: SWIGOPT += -includeall
 
 
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \

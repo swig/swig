@@ -643,7 +643,7 @@ unterm:
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *get_filename(DOH *str)
+ * DOH *get_filename()
  *
  * Read a filename from str.   A filename can be enclosed in quotes, angle brackets,
  * or bare.
@@ -1656,12 +1656,14 @@ String *Preprocessor_parse(String *s) {
 	  String *s1, *s2, *fn;
 	  char *dirname;
 	  int sysfile = 0;
+	  String *filename_processed;
 	  if (include_all && import_all) {
 	    Swig_warning(WARN_PP_INCLUDEALL_IMPORTALL, Getfile(s), Getline(id), "Both includeall and importall are defined: using includeall\n");
 	    import_all = 0;
 	  }
-	  Seek(value, 0, SEEK_SET);
-	  fn = get_filename(value, &sysfile);
+	  filename_processed = Preprocessor_replace(value);
+	  Seek(filename_processed, 0, SEEK_SET);
+	  fn = get_filename(filename_processed, &sysfile);
 	  s1 = cpp_include(fn, sysfile);
 	  if (s1) {
 	    if (include_all)
@@ -1787,11 +1789,13 @@ String *Preprocessor_parse(String *s) {
 	Ungetc(c, s);
 	/* Look for common SWIG directives  */
 	if (Equal(decl, kpp_dinclude) || Equal(decl, kpp_dimport) || Equal(decl, kpp_dextern)) {
-	  /* Got some kind of file inclusion directive  */
+	  /* Got some kind of file inclusion directive, eg: %import(option1="value1") "filename" */
 	  if (allow) {
 	    DOH *s1, *s2, *fn, *opt;
-	    String *options_whitespace = NewString("");
-	    String *filename_whitespace = NewString("");
+	    String *options_whitespace = NewStringEmpty();
+	    String *filename_whitespace = NewStringEmpty();
+	    String *filename_unprocessed = NewStringEmpty();
+	    String *filename_processed;
 	    int sysfile = 0;
 
 	    if (Equal(decl, kpp_dextern)) {
@@ -1801,8 +1805,17 @@ String *Preprocessor_parse(String *s) {
 	    }
 	    skip_whitespace(s, options_whitespace);
 	    opt = get_options(s);
+
 	    skip_whitespace(s, filename_whitespace);
-	    fn = get_filename(s, &sysfile);
+	    copy_location(s, filename_unprocessed);
+	    while (((c = Getc(s)) != EOF) && (!isspace(c)))
+	      Putc(c, filename_unprocessed);
+	    if (isspace(c))
+	      Ungetc(c, s);
+	    filename_processed = Preprocessor_replace(filename_unprocessed);
+	    Seek(filename_processed, 0, SEEK_SET);
+
+	    fn = get_filename(filename_processed, &sysfile);
 	    s1 = cpp_include(fn, sysfile);
 	    if (s1) {
 	      char *dirname;
@@ -1832,6 +1845,8 @@ String *Preprocessor_parse(String *s) {
 	      Delete(s1);
 	    }
 	    Delete(fn);
+	    Delete(filename_processed);
+	    Delete(filename_unprocessed);
 	    Delete(filename_whitespace);
 	    Delete(options_whitespace);
 	  }
