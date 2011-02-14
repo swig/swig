@@ -632,7 +632,7 @@ ocaml_static_cpp: $(SRCS)
 	$(OCAMLCORE)
 	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
+	$(OCC) -cc '$(CXX) -Wno-write-strings' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
@@ -643,13 +643,13 @@ ocaml_static_cpp: $(SRCS)
 		$(INTERFACE:%.i=%.cmo) \
 		$(PROGFILE:%.ml=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) \
-		-cclib "$(LIBS)" -cc '$(CXX)'
+		-cclib "$(LIBS)" -cc '$(CXX) -Wno-write-strings'
 
 ocaml_static_cpp_toplevel: $(SRCS)
 	$(OCAMLCORE)
 	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
+	$(OCC) -cc '$(CXX) -Wno-write-strings' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -g -c $(INTERFACE:%.i=%.ml)
@@ -657,17 +657,17 @@ ocaml_static_cpp_toplevel: $(SRCS)
 		$(OCC) $(OCAMLPP) -c $(PROGFILE)
 	$(NOLINK) || $(OCAMLMKTOP) \
 		swig.cmo \
-		-I $(OCAMLP4WHERE) camlp4o.cma swigp4.cmo \
+		-I $(OCAMLP4WHERE) dynlink.cma camlp4o.cma swigp4.cmo \
 		-g -ccopt -g -cclib -g -custom -o $(TARGET)_top \
 		$(INTERFACE:%.i=%.cmo) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) \
-		-cclib "$(LIBS)" -cc '$(CXX)'
+		-cclib "$(LIBS)" -cc '$(CXX) -Wno-write-strings'
 
 ocaml_dynamic_cpp: $(SRCS)
 	$(OCAMLCORE)
 	$(SWIG) -ocaml -c++ $(SWIGOPT) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -cc '$(CXX)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
+	$(OCC) -cc '$(CXX) -Wno-write-strings' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" \
 		$(ICXXSRCS:%.cxx=%.c) $(SRCS) $(CXXSRCS) -ccopt -fPIC
 	$(CXXSHARED) $(CFLAGS) -o $(INTERFACE:%.i=%@SO@) \
 		$(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) \
@@ -684,7 +684,7 @@ ocaml_dynamic_cpp: $(SRCS)
 		$(OCC) -cclib -export-dynamic -g -ccopt -g -cclib -g -custom \
 		-o $(TARGET) \
 		-package dl -linkpkg \
-		$(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) -cc '$(CXX)'
+		$(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) -cc '$(CXX) -Wno-write-strings'
 
 ocaml_clean:
 	rm -f *_wrap* *~ .~* *.cmo *.cmi $(MLFILE) $(MLFILE)i swig.mli swig.cmi swig.ml swig.cmo swigp4.ml swigp4.cmo
