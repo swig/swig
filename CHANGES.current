@@ -131,3 +131,9 @@ Version 2.0.2 (in progress)
             Fix unary scope operator (::) (global scope) regression introduced in 2.0.0, reported by
             Ben Walker. The mangled symbol names were incorrect, sometimes resulting in types being
             incorrectly treated as opaque types.
+
+            Also fixes #2958781 and some other type problems due to better typedef resolution, eg 
+            std::vector<T *>::value_type didn't resolve to T * when it should have. The mangled type
+            was incorrectly SWIGTYPE_std__vectorT_Test_p_std__allocatorT_Test_p_t_t__value_type and now
+            it is correctly SWIGTYPE_p_Test.
+
