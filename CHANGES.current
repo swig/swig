@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2011-02-14: wsfulton
+            [Ocaml] Apply patch #3151788 from Joel Reymont. Brings Ocaml support a up to date 
+            (ver 3.11 and 3.12), including std::string.
+
 2011-02-13: wsfulton
             [Ruby] Apply patch #3176274 from James Masters - typecheck typemap for time_t.
 
