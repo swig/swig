@@ -1100,6 +1100,14 @@ static DOH *Preprocessor_replace(DOH *s) {
 	} else if (Equal(kpp_hash_if, id) || Equal(kpp_hash_elif, id)) {
 	  expand_defined_operator = 1;
 	  Append(ns, id);
+	  /*
+	} else if (Equal("%#if", id) || Equal("%#ifdef", id)) {
+	  Swig_warning(998, Getfile(s), Getline(s), "Found: %s preprocessor directive.\n", id);
+	  Append(ns, id);
+	} else if (Equal("#ifdef", id) || Equal("#ifndef", id)) {
+	  Swig_warning(998, Getfile(s), Getline(s), "The %s preprocessor directive does not work in macros, try #if instead.\n", id);
+	  Append(ns, id);
+	  */
 	} else if ((m = Getattr(symbols, id))) {
 	  /* See if the macro is defined in the preprocessor symbol table */
 	  DOH *args = 0;
@@ -1544,9 +1552,14 @@ String *Preprocessor_parse(String *s) {
 	level++;
 	if (allow) {
 	  start_level = level;
-	  /* See if the identifier is in the hash table */
-	  if (!Getattr(symbols, value))
+	  if (Len(value) > 0) {
+	    /* See if the identifier is in the hash table */
+	    if (!Getattr(symbols, value))
+	      allow = 0;
+	  } else {
+	    Swig_error(Getfile(s), Getline(id), "Missing identifier for #ifdef.\n");
 	    allow = 0;
+	  }
 	  mask = 1;
 	}
       } else if (Equal(id, kpp_ifndef)) {
@@ -1554,9 +1567,14 @@ String *Preprocessor_parse(String *s) {
 	level++;
 	if (allow) {
 	  start_level = level;
-	  /* See if the identifier is in the hash table */
-	  if (Getattr(symbols, value))
+	  if (Len(value) > 0) {
+	    /* See if the identifier is in the hash table */
+	    if (Getattr(symbols, value))
+	      allow = 0;
+	  } else {
+	    Swig_error(Getfile(s), Getline(id), "Missing identifier for #ifndef.\n");
 	    allow = 0;
+	  }
 	  mask = 1;
 	}
       } else if (Equal(id, kpp_else)) {
@@ -1564,6 +1582,8 @@ String *Preprocessor_parse(String *s) {
 	  Swig_error(Getfile(s), Getline(id), "Misplaced #else.\n");
 	} else {
 	  cond_lines[level - 1] = Getline(id);
+	  if (Len(value) != 0)
+	    Swig_error(Getfile(s), Getline(id), "Unexpected tokens after #else.\n");
 	  if (allow) {
 	    allow = 0;
 	    mask = 0;
@@ -1578,6 +1598,8 @@ String *Preprocessor_parse(String *s) {
 	  level = 0;
 	} else {
 	  if (level < start_level) {
+	    if (Len(value) != 0)
+	      Swig_error(Getfile(s), Getline(id), "Unexpected tokens after #endif.\n");
 	    allow = 1;
 	    start_level--;
 	  }
@@ -1593,17 +1615,22 @@ String *Preprocessor_parse(String *s) {
 	  start_level = level;
 	  Seek(sval, 0, SEEK_SET);
 	  /*      Printf(stdout,"Evaluating '%s'\n", sval); */
-	  val = Preprocessor_expr(sval, &e);
-	  if (e) {
-	    char *msg = Preprocessor_expr_error();
-	    Seek(value, 0, SEEK_SET);
-	    Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Could not evaluate '%s'\n", value);
-	    if (msg)
-	      Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Error: '%s'\n", msg);
-	    allow = 0;
-	  } else {
-	    if (val == 0)
+	  if (Len(sval) > 0) {
+	    val = Preprocessor_expr(sval, &e);
+	    if (e) {
+	      char *msg = Preprocessor_expr_error();
+	      Seek(value, 0, SEEK_SET);
+	      Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Could not evaluate expression '%s'\n", value);
+	      if (msg)
+		Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Error: '%s'\n", msg);
 	      allow = 0;
+	    } else {
+	      if (val == 0)
+		allow = 0;
+	    }
+	  } else {
+	    Swig_error(Getfile(s), Getline(id), "Missing expression for #if.\n");
+	    allow = 0;
 	  }
 	  expand_defined_operator = 0;
 	  mask = 1;
@@ -1613,30 +1640,36 @@ String *Preprocessor_parse(String *s) {
 	  Swig_error(Getfile(s), Getline(id), "Misplaced #elif.\n");
 	} else {
 	  cond_lines[level - 1] = Getline(id);
-	  expand_defined_operator = 1;
 	  if (allow) {
 	    allow = 0;
 	    mask = 0;
 	  } else if (level == start_level) {
 	    int val;
-	    String *sval = Preprocessor_replace(value);
+	    String *sval;
+	    expand_defined_operator = 1;
+	    sval = Preprocessor_replace(value);
 	    Seek(sval, 0, SEEK_SET);
-	    val = Preprocessor_expr(sval, &e);
-	    if (e) {
-	      char *msg = Preprocessor_expr_error();
-	      Seek(value, 0, SEEK_SET);
-	      Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Could not evaluate '%s'\n", value);
-	      if (msg)
-		Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Error: '%s'\n", msg);
-	      allow = 0;
-	    } else {
-	      if (val)
-		allow = 1 * mask;
-	      else
+	    if (Len(sval) > 0) {
+	      val = Preprocessor_expr(sval, &e);
+	      if (e) {
+		char *msg = Preprocessor_expr_error();
+		Seek(value, 0, SEEK_SET);
+		Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Could not evaluate expression '%s'\n", value);
+		if (msg)
+		  Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Error: '%s'\n", msg);
 		allow = 0;
+	      } else {
+		if (val)
+		  allow = 1 * mask;
+		else
+		  allow = 0;
+	      }
+	    } else {
+	      Swig_error(Getfile(s), Getline(id), "Missing expression for #elif.\n");
+	      allow = 0;
 	    }
+	    expand_defined_operator = 0;
 	  }
-	  expand_defined_operator = 0;
 	}
       } else if (Equal(id, kpp_warning)) {
 	if (allow) {

@@ -84,8 +84,7 @@ pp_constant.i:49: Warning 305: Bad constant value (ignored).
 
 :::::::::::::::::::::::::::::::: pp_defined.i :::::::::::::::::::::::::::::::::::
 pp_defined.i:6: Error: No arguments given to defined()
-pp_defined.i:6: Warning 202: Could not evaluate 'defined'
-pp_defined.i:6: Warning 202: Error: 'Expected an expression'
+pp_defined.i:6: Error: Missing expression for #if.
 
 :::::::::::::::::::::::::::::::: pp_deprecated.i :::::::::::::::::::::::::::::::::::
 pp_deprecated.i:4: Warning 101: %extern is deprecated. Use %import instead.
@@ -118,6 +117,20 @@ pp_macro_expansion_multiline.i:30: Warning 509: as it is shadowed by bar(int *).
 :::::::::::::::::::::::::::::::: pp_macro_inline_unterminated.i :::::::::::::::::::::::::::::::::::
 pp_macro_inline_unterminated.i:9: Error: Unterminated call invoking macro 'foo'
 pp_macro_inline_unterminated.i:12: Error: Syntax error in input(3).
+
+:::::::::::::::::::::::::::::::: pp_macro_missing_expression.i :::::::::::::::::::::::::::::::::::
+pp_macro_missing_expression.i:4: Error: Missing identifier for #ifdef.
+pp_macro_missing_expression.i:7: Error: Missing identifier for #ifndef.
+pp_macro_missing_expression.i:10: Error: Missing expression for #if.
+pp_macro_missing_expression.i:14: Error: Missing expression for #elif.
+pp_macro_missing_expression.i:21: Error: Missing expression for #elif.
+
+:::::::::::::::::::::::::::::::: pp_macro_unexpected_tokens.i :::::::::::::::::::::::::::::::::::
+pp_macro_unexpected_tokens.i:5: Error: Unexpected tokens after #endif.
+pp_macro_unexpected_tokens.i:8: Error: Unexpected tokens after #endif.
+pp_macro_unexpected_tokens.i:11: Error: Unexpected tokens after #else.
+pp_macro_unexpected_tokens.i:18: Error: Unexpected tokens after #endif.
+pp_macro_unexpected_tokens.i:21: Error: Unexpected tokens after #else.
 
 :::::::::::::::::::::::::::::::: pp_macro_nargs.i :::::::::::::::::::::::::::::::::::
 pp_macro_nargs.i:7: Error: Macro 'foo' expects 2 arguments
