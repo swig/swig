@@ -1583,7 +1583,7 @@ String *Preprocessor_parse(String *s) {
 	} else {
 	  cond_lines[level - 1] = Getline(id);
 	  if (Len(value) != 0)
-	    Swig_error(Getfile(s), Getline(id), "Unexpected tokens after #else.\n");
+	    Swig_warning(WARN_PP_UNEXPECTED_TOKENS, Getfile(s), Getline(id), "Unexpected tokens after #else directive.\n");
 	  if (allow) {
 	    allow = 0;
 	    mask = 0;
@@ -1599,7 +1599,7 @@ String *Preprocessor_parse(String *s) {
 	} else {
 	  if (level < start_level) {
 	    if (Len(value) != 0)
-	      Swig_error(Getfile(s), Getline(id), "Unexpected tokens after #endif.\n");
+	      Swig_warning(WARN_PP_UNEXPECTED_TOKENS, Getfile(s), Getline(id), "Unexpected tokens after #endif directive.\n");
 	    allow = 1;
 	    start_level--;
 	  }
@@ -1673,7 +1673,7 @@ String *Preprocessor_parse(String *s) {
 	}
       } else if (Equal(id, kpp_warning)) {
 	if (allow) {
-	  Swig_warning(WARN_PP_CPP_WARNING, Getfile(s), Getline(id), "CPP #warning, %s\n", value);
+	  Swig_warning(WARN_PP_CPP_WARNING, Getfile(s), Getline(id), "CPP #warning, \"%s\".\n", value);
 	}
       } else if (Equal(id, kpp_error)) {
 	if (allow) {
@@ -1691,7 +1691,7 @@ String *Preprocessor_parse(String *s) {
 	  int sysfile = 0;
 	  String *filename_processed;
 	  if (include_all && import_all) {
-	    Swig_warning(WARN_PP_INCLUDEALL_IMPORTALL, Getfile(s), Getline(id), "Both includeall and importall are defined: using includeall\n");
+	    Swig_warning(WARN_PP_INCLUDEALL_IMPORTALL, Getfile(s), Getline(id), "Both includeall and importall are defined: using includeall.\n");
 	    import_all = 0;
 	  }
 	  filename_processed = Preprocessor_replace(value);

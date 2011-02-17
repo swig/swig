@@ -69,7 +69,7 @@ c_varargs_neg.i:3: Error: Argument count in %varargs must be positive.
 No module name specified using %module or -module.
 
 :::::::::::::::::::::::::::::::: pp_badeval.i :::::::::::::::::::::::::::::::::::
-pp_badeval.i:4: Warning 202: Could not evaluate 'FOO==4+'
+pp_badeval.i:4: Warning 202: Could not evaluate expression 'FOO==4+'
 pp_badeval.i:4: Warning 202: Error: 'Expected an expression'
 
 :::::::::::::::::::::::::::::::: pp_constant.i :::::::::::::::::::::::::::::::::::
@@ -89,7 +89,7 @@ pp_defined.i:6: Error: Missing expression for #if.
 :::::::::::::::::::::::::::::::: pp_deprecated.i :::::::::::::::::::::::::::::::::::
 pp_deprecated.i:4: Warning 101: %extern is deprecated. Use %import instead.
 pp_deprecated.i:4: Error: Unable to find 'ext;'
-pp_deprecated.i:6: Warning 204: CPP #warning, Print this warning
+pp_deprecated.i:6: Warning 204: CPP #warning, "Print this warning".
 pp_deprecated.i:8: Error: CPP #error "This is an error". Use the -cpperraswarn option to continue swig processing.
 
 :::::::::::::::::::::::::::::::: pp_illegal_argument.i :::::::::::::::::::::::::::::::::::
@@ -126,11 +126,11 @@ pp_macro_missing_expression.i:14: Error: Missing expression for #elif.
 pp_macro_missing_expression.i:21: Error: Missing expression for #elif.
 
 :::::::::::::::::::::::::::::::: pp_macro_unexpected_tokens.i :::::::::::::::::::::::::::::::::::
-pp_macro_unexpected_tokens.i:5: Error: Unexpected tokens after #endif.
-pp_macro_unexpected_tokens.i:8: Error: Unexpected tokens after #endif.
-pp_macro_unexpected_tokens.i:11: Error: Unexpected tokens after #else.
-pp_macro_unexpected_tokens.i:18: Error: Unexpected tokens after #endif.
-pp_macro_unexpected_tokens.i:21: Error: Unexpected tokens after #else.
+pp_macro_unexpected_tokens.i:5: Warning 206: Unexpected tokens after #endif directive.
+pp_macro_unexpected_tokens.i:8: Warning 206: Unexpected tokens after #endif directive.
+pp_macro_unexpected_tokens.i:11: Warning 206: Unexpected tokens after #else directive.
+pp_macro_unexpected_tokens.i:18: Warning 206: Unexpected tokens after #endif directive.
+pp_macro_unexpected_tokens.i:21: Warning 206: Unexpected tokens after #else directive.
 
 :::::::::::::::::::::::::::::::: pp_macro_nargs.i :::::::::::::::::::::::::::::::::::
 pp_macro_nargs.i:7: Error: Macro 'foo' expects 2 arguments
@@ -240,8 +240,8 @@ cpp_inherit.i:26: Warning 401: Maybe you forgot to instantiate 'A7< int >' using
 cpp_inherit.i:45: Warning 323: Recursive scope inheritance of 'Recursive'.
 
 :::::::::::::::::::::::::::::::: cpp_macro_locator.i :::::::::::::::::::::::::::::::::::
-cpp_macro_locator.i:66: Warning 204: CPP #warning, inline warning message one
-cpp_macro_locator.i:96: Warning 204: CPP #warning, an inline warning message 2
+cpp_macro_locator.i:66: Warning 204: CPP #warning, "inline warning message one".
+cpp_macro_locator.i:96: Warning 204: CPP #warning, "an inline warning message 2".
 cpp_macro_locator.i:50: Warning 325: Nested struct not currently supported (Inner ignored)
 cpp_macro_locator.i:53: Warning 509: Overloaded method overload1(int const *) effectively ignored,
 cpp_macro_locator.i:52: Warning 509: as it is shadowed by overload1(int *).

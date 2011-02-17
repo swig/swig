@@ -5,8 +5,8 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
-2011-02-16: wsfulton
-            Preprocessing now errors out if extra tokens appear after #else and #end.
+2011-02-17: wsfulton
+            Preprocessing now warns if extra tokens appear after #else and #end.
 
 2011-02-16: wsfulton
             Fix #1653092 Preprocessor does not error out when #elif is missing an expression.
