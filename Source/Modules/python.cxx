@@ -2036,6 +2036,7 @@ public:
     bool add_self = builtin_self && (!builtin_ctor || director_class);
     bool builtin_getter = (builtin && GetFlag(n, "memberget"));
     bool builtin_setter = (builtin && GetFlag(n, "memberset") && !builtin_getter);
+    bool over_varargs = false;
     char const *self_param = builtin_self ? "self" : "SWIGUNUSEDPARM(self)";
     char const *wrap_return = builtin_ctor ? "int " : "PyObject *";
     String *linkage = NewString("SWIGINTERN ");
@@ -2112,7 +2113,24 @@ public:
       }
     }
 
-    int funpack = modernargs && fastunpack && !varargs && !allow_kwargs;
+    if (overname) {
+      String *over_varargs_attr = Getattr(n, "sym:over_varargs");
+      if (!over_varargs_attr) {
+	for (Node *sibling = n; sibling; sibling = Getattr(sibling, "sym:nextSibling")) {
+	  if (emit_isvarargs(Getattr(sibling, "parms"))) {
+	    over_varargs = true;
+	    break;
+	  }
+	}
+	over_varargs_attr = NewString(over_varargs ? "1" : "0");
+	for (Node *sibling = n; sibling; sibling = Getattr(sibling, "sym:nextSibling"))
+	  Setattr(sibling, "sym:over_varargs", over_varargs_attr);
+      }
+      if (strcmp(Char(over_varargs_attr), "0"))
+	over_varargs = true;
+    }
+
+    int funpack = modernargs && fastunpack && !varargs && !over_varargs && !allow_kwargs;
     int noargs = funpack && (tuple_required == 0 && tuple_arguments == 0);
     int onearg = funpack && (tuple_required == 1 && tuple_arguments == 1);
 
@@ -2579,12 +2597,30 @@ public:
     if (varargs) {
       DelWrapper(f);
       f = NewWrapper();
-      Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, PyObject *args) {", NIL);
+      if (funpack) {
+	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", int nobjs, PyObject **swig_obj) {", NIL);
+      } else {
+	Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, PyObject *args) {", NIL);
+      }
       Wrapper_add_local(f, "resultobj", builtin_ctor ? "int resultobj" : "PyObject *resultobj");
       Wrapper_add_local(f, "varargs", "PyObject *varargs");
       Wrapper_add_local(f, "newargs", "PyObject *newargs");
-      Printf(f->code, "newargs = PyTuple_GetSlice(args,0,%d);\n", num_arguments);
-      Printf(f->code, "varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args)+1);\n", num_arguments);
+      if (funpack) {
+	Wrapper_add_local(f, "i", "int i");
+	Printf(f->code, "newargs = PyTuple_New(%d);\n", num_arguments);
+	Printf(f->code, "for (i = 0; i < %d; ++i) {\n", num_arguments);
+	Printf(f->code, "  PyTuple_SET_ITEM(newargs, i, swig_obj[i]);\n");
+	Printf(f->code, "  Py_XINCREF(swig_obj[i]);\n");
+	Printf(f->code, "}\n");
+	Printf(f->code, "varargs = PyTuple_New(nobjs > %d ? nobjs - %d : 0);\n", num_arguments, num_arguments);
+	Printf(f->code, "for (i = 0; i < nobjs - %d; ++i) {\n", num_arguments);
+	Printf(f->code, "  PyTuple_SET_ITEM(newargs, i, swig_obj[i + %d]);\n", num_arguments);
+	Printf(f->code, "  Py_XINCREF(swig_obj[i + %d]);\n", num_arguments);
+	Printf(f->code, "}\n");
+      } else {
+	Printf(f->code, "newargs = PyTuple_GetSlice(args,0,%d);\n", num_arguments);
+	Printf(f->code, "varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args)+1);\n", num_arguments);
+      }
       Printf(f->code, "resultobj = %s__varargs__(self,newargs,varargs);\n", wname);
       Append(f->code, "Py_XDECREF(newargs);\n");
       Append(f->code, "Py_XDECREF(varargs);\n");

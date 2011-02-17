@@ -1705,7 +1705,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value)
 
 #ifdef Py_USING_UNICODE
     if (PyString_Check(name)) {
-	name = PyUnicode_Decode(PyString_AsString(name), PyBytes_Size(name), NULL, NULL);
+	name = PyUnicode_Decode(PyString_AsString(name), PyString_Size(name), NULL, NULL);
 	if (name == NULL)
 	    return -1;
     } else if (!PyUnicode_Check(name)) {
