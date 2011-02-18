@@ -6,6 +6,11 @@ Version 2.0.2 (in progress)
 ===========================
 
 2011-02-18: olly
+	    [PHP] An overloaded method which can return an object or a
+	    primitive type no longer causes SWIG to segfault.  Reported by Paul
+	    Colby in SF#3168531.
+
+2011-02-18: olly
 	    [PHP] Fix invalid erase during iteration of std::map in generated
 	    director code.  Reported by Cory Bennett in SF#3175820.
 

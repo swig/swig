@@ -1718,7 +1718,6 @@ public:
 	  while (i.item) {
 	    SwigType *ret_type = i.item;
 	    i = Next(i);
-	    Printf(output, "\t\t");
 	    String *mangled = NewString("_p");
 	    Printf(mangled, "%s", SwigType_manglestr(ret_type));
 	    Node *class_node = Getattr(zend_types, mangled);
@@ -1729,7 +1728,13 @@ public:
 	      Delete(mangled);
 	      mangled = NewString(SwigType_manglestr(ret_type));
 	      class_node = Getattr(zend_types, mangled);
+	      if (!class_node) {
+		// Return type isn't an object, so will be handled by the
+		// !is_resource() check before the switch.
+		continue;
+	      }
 	    }
+	    Printf(output, "\t\t");
 	    if (i.item) {
 	      Printf(output, "case '%s': ", mangled);
 	    } else {

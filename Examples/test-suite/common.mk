@@ -140,6 +140,7 @@ CPP_TEST_CASES += \
 	conversion \
 	conversion_namespace \
 	conversion_ns_template \
+	covariant_return \
 	cplusplus_throw \
 	cpp_basic \
 	cpp_enum \
