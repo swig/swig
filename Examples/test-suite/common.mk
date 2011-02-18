@@ -140,7 +140,6 @@ CPP_TEST_CASES += \
 	conversion \
 	conversion_namespace \
 	conversion_ns_template \
-	covariant_return \
 	cplusplus_throw \
 	cpp_basic \
 	cpp_enum \
@@ -269,6 +268,7 @@ CPP_TEST_CASES += \
 	overload_copy \
 	overload_extend \
 	overload_rename \
+	overload_return_type \
 	overload_simple \
 	overload_subtype \
 	overload_template \
