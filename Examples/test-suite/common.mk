@@ -430,6 +430,7 @@ CPP_TEST_CASES += \
 	valuewrapper_const \
 	valuewrapper_opaque \
 	varargs \
+	varargs_overload \
 	virtual_destructor \
 	virtual_poly \
 	voidtest \

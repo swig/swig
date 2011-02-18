@@ -386,16 +386,11 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
     int num_arguments = emit_num_arguments(pi);
     if (num_arguments > *maxargs)
       *maxargs = num_arguments;
-    int varargs = emit_isvarargs(pi);
 
-    if (!varargs) {
-      if (num_required == num_arguments) {
-	Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
-      } else {
-	Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
-      }
+    if (num_required == num_arguments) {
+      Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
     } else {
-      Printf(f, "if (%s >= %d) {\n", argc_template_string, num_required);
+      Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
     }
     Printf(f, "SWIG_TypeRank _ranki = 0;\n");
     Printf(f, "SWIG_TypeRank _rankm = 0;\n");
@@ -565,16 +560,11 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
     int num_arguments = emit_num_arguments(pi);
     if (num_arguments > *maxargs)
       *maxargs = num_arguments;
-    int varargs = emit_isvarargs(pi);
 
-    if (!varargs) {
-      if (num_required == num_arguments) {
-	Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
-      } else {
-	Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
-      }
+    if (num_required == num_arguments) {
+      Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
     } else {
-      Printf(f, "if (%s >= %d) {\n", argc_template_string, num_required);
+      Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
     }
 
     /* create a list with the wrappers that collide with the
@@ -732,16 +722,11 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
     }
     if (num_arguments > *maxargs)
       *maxargs = num_arguments;
-    int varargs = emit_isvarargs(pi);
 
-    if (!varargs) {
-      if (num_required == num_arguments) {
-	Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
-      } else {
-	Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
-      }
+    if (num_required == num_arguments) {
+      Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
     } else {
-      Printf(f, "if (%s >= %d) {\n", argc_template_string, num_required);
+      Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
     }
 
     if (num_arguments) {
