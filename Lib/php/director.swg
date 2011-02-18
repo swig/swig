@@ -106,12 +106,6 @@ namespace Swig {
       Director(zval* self) : swig_self(self) {
       }
 
-      ~Director() {
-        for (swig_ownership_map::iterator i = swig_owner.begin(); i != swig_owner.end(); i++) {
-          swig_owner.erase(i);
-        }
-      }
-
       bool swig_is_overridden_method(char *cname, char *lc_fname) {
         zval classname;
         zend_class_entry **ce;
