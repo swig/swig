@@ -30,3 +30,15 @@ const char *vararg_over3(int i, double j, const char *s) {
   return buffer;
 }
 %}
+
+%varargs(int mode = 0) vararg_over4;
+%inline %{
+const char *vararg_over4(const char *fmt, ...) {
+  return fmt;
+}
+const char *vararg_over4(int i) {
+  static char buffer[256];
+  sprintf(buffer, "%d", i);
+  return buffer;
+}
+%}
