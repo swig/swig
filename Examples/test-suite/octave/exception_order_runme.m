@@ -1,44 +1,42 @@
 exception_order
 
+function check_lasterror(expected)
+  if (!strcmp(lasterror.message, expected))
+    # Take account of older versions adding a newline at the end
+    if (!strcmp(regexprep(lasterror.message, '(.*)\n$', '$1'), expected))
+      error(["Bad exception order. Expected: \"", expected, "\" Got: \"", lasterror.message, "\""])
+    endif
+  endif
+endfunction
 
 a = A();
 
 try
   a.foo()
 catch
-  if (!strcmp(lasterror.message, "error: C++ side threw an exception of type E1\n"))
-    error("bad exception order")
-  endif
+  check_lasterror("error: C++ side threw an exception of type E1")
 end_try_catch
 
 try
   a.bar()
 catch
-  if (!strcmp(lasterror.message, "error: C++ side threw an exception of type E2\n"))
-    error("bad exception order")
-  endif
+  check_lasterror("error: C++ side threw an exception of type E2")
 end_try_catch
 
 try
   a.foobar()
 catch
-  if (!strcmp(lasterror.message, "error: postcatch unknown (SWIG_RuntimeError)\n"))
-    error("bad exception order")
-  endif
+  check_lasterror("error: postcatch unknown (SWIG_RuntimeError)")
 end_try_catch
 
 try
   a.barfoo(1)
 catch
-  if (!strcmp(lasterror.message, "error: C++ side threw an exception of type E1\n"))
-    error("bad exception order")
-  endif
+  check_lasterror("error: C++ side threw an exception of type E1")
 end_try_catch
 
 try
   a.barfoo(2)
 catch
-  if (!strcmp(lasterror.message, "error: C++ side threw an exception of type E2 *\n"))
-    error("bad exception order")
-  endif
+  check_lasterror("error: C++ side threw an exception of type E2 *")
 end_try_catch
