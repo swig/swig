@@ -16,7 +16,7 @@ func main() {
 	if f.Test(float64(3), float64(2)).(float64) != 5 {
 		panic(0)
 	}
-	if f.Test(float64(3.0)).(float64) != 1003 {
+	if f.Test(3.0).(float64) != 1003 {
 		panic(0)
 	}
 }

@@ -95,7 +95,7 @@ INPUT_TYPEMAP(long, int64);
 INPUT_TYPEMAP(unsigned long, uint64);
 INPUT_TYPEMAP(long long, int64);
 INPUT_TYPEMAP(unsigned long long, uint64);
-INPUT_TYPEMAP(float, float);
+INPUT_TYPEMAP(float, float32);
 INPUT_TYPEMAP(double, float64);
 
 #undef INPUT_TYPEMAP
@@ -219,7 +219,7 @@ OUTPUT_TYPEMAP(long, int64);
 OUTPUT_TYPEMAP(unsigned long, uint64);
 OUTPUT_TYPEMAP(long long, int64);
 OUTPUT_TYPEMAP(unsigned long long, uint64);
-OUTPUT_TYPEMAP(float, float);
+OUTPUT_TYPEMAP(float, float32);
 OUTPUT_TYPEMAP(double, float64);
 
 #undef OUTPUT_TYPEMAP
@@ -329,7 +329,7 @@ INOUT_TYPEMAP(long, int64);
 INOUT_TYPEMAP(unsigned long, uint64);
 INOUT_TYPEMAP(long long, int64);
 INOUT_TYPEMAP(unsigned long long, uint64);
-INOUT_TYPEMAP(float, float);
+INOUT_TYPEMAP(float, float32);
 INOUT_TYPEMAP(double, float64);
 
 #undef INOUT_TYPEMAP

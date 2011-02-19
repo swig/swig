@@ -1087,9 +1087,9 @@ private:
       // A slice has a pointer, a length, and a capacity.  The
       // length and capacity are always 4 bytes.
       Append(orig, "(SWIG_PARM_SIZE + 8)");
-    } else if (Strcmp(go, "float") == 0 || Strcmp(go, "float64") == 0) {
+    } else if (Strcmp(go, "float64") == 0) {
       Append(orig, "8");
-    } else if (Strcmp(go, "complex") == 0 || Strcmp(go, "complex64") == 0) {
+    } else if (Strcmp(go, "complex64") == 0) {
       Append(orig, "8");
     } else if (Strcmp(go, "complex128") == 0) {
       Append(orig, "16");
@@ -4513,7 +4513,6 @@ private:
     bool is_slice = Strncmp(gt, "[]", 2) == 0;
     bool is_function = Strcmp(gt, "_swig_fnptr") == 0;
     bool is_member = Strcmp(gt, "_swig_memberptr") == 0;
-    bool is_complex = Strcmp(gt, "complex") == 0;
     bool is_complex64 = Strcmp(gt, "complex64") == 0;
     bool is_complex128 = Strcmp(gt, "complex128") == 0;
     Delete(gt);
@@ -4531,7 +4530,7 @@ private:
       ret = NewString("void *");
       Append(ret, name);
       return ret;
-    } else if (is_complex || is_complex64) {
+    } else if (is_complex64) {
       ret = NewString("_Complex float ");
     } else if (is_complex128) {
       ret = NewString("_Complex double ");
