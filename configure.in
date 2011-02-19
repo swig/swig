@@ -2016,7 +2016,7 @@ else
       GOGCC=true
     else
       AC_MSG_CHECKING([whether Go ($GO) version is too old])
-      go_version=`$GO -V | sed -e 's/.*version \([[0-9]]*\).*/\1/'`
+      go_version=`$GO -V | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
       go_min_version=7077
       if test "$go_version" -lt $go_min_version; then
         AC_MSG_RESULT([yes - minimum version is $go_min_version])
