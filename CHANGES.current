@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2011-02-19: olly
+	    [PHP] Address bug in PHP on some platforms/architectures which
+	    results in zend_error_noreturn() not being available using
+	    SWIG_ZEND_ERROR_NORETURN which defaults to zend_error_noreturn but
+	    can be overridden when building the module by passing
+	    -DSWIG_ZEND_ERROR_NORETURN=zend_error to the compiler.  This may
+	    result in compiler warnings, but should at least allow a module
+	    to be built on those platforms/architectures (SF#3166423).
+
 2011-02-18: wsfulton
             Fix #3184549 - vararg functions and function overloading when using the -fastdispatch option.
 
@@ -60,10 +69,6 @@ Version 2.0.2 (in progress)
 
 2011-02-04: wsfulton
             [R] SF #3168676 Fix %rename not working for member variables and methods.
-
-2011-02-04: wsfulton
-            [PHP] SF #3166423 Recent PHP versions no longer define zend_error_noreturn - calls to this
-            have been replaced with zend_error.
 
 2011-02-04: wsfulton
             [clisp] SF #3148200 Fix segfault parsing nested unions.
