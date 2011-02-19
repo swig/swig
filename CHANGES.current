@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.2 (in progress)
 ===========================
 
+2011-02-19: wsfulton
+	    [PHP] Add missing INPUT, OUTPUT and INOUT typemaps in the typemaps.i library
+            for primitive reference types as well as signed char * and bool *.
+
 2011-02-19: olly
 	    [PHP] Address bug in PHP on some platforms/architectures which
 	    results in zend_error_noreturn() not being available using
