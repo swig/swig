@@ -5,6 +5,12 @@ and CHANGES files.
 Release Notes
 =============
 
+SWIG-2.0.2 summary:
+- Support for the D language has been added.
+- Various bug fixes and minor enhancements.
+- Bug fixes particular to the Clisp, C#, Go, MzScheme, Ocaml, PHP, R,
+  Ruby target languages.
+
 SWIG-2.0.1 summary:
 - Support for the Go language has been added.
 - New regular expression (regex) encoder for renaming symbols based on
