@@ -68,7 +68,11 @@ char * typemaps instead:
 %typemap(in) TYPE &INPUT
 %{ $1 = ($1_ltype)$input; %}
 
+%typemap(out) TYPE *INPUT, TYPE &INPUT ""
+
 %typemap(freearg) TYPE *INPUT, TYPE &INPUT ""
+
+%typemap(argout) TYPE *INPUT, TYPE &INPUT ""
 
 %typemap(directorout) TYPE *INPUT
 %{ $result = ($1_ltype)&$input; %}
@@ -180,6 +184,8 @@ char * typemaps instead:
   }
   $1 = &temp;
 }
+
+%typemap(out) TYPE *OUTPUT, TYPE &OUTPUT ""
 
 %typemap(freearg) TYPE *OUTPUT, TYPE &OUTPUT ""
 
@@ -303,7 +309,11 @@ char * typemaps instead:
   $1 = ($1_ltype) $input->array;
 }
 
+%typemap(out) TYPE *INOUT, TYPE &INOUT ""
+
 %typemap(freearg) TYPE *INOUT, TYPE &INOUT ""
+
+%typemap(argout) TYPE *INOUT, TYPE &INOUT ""
 
 %typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
 }
