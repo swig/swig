@@ -573,7 +573,7 @@ private:
       result = NewString("void");
       r1 = result;
     } else {
-      if (!is_public(n)) {
+      if (!checkFunctionVisibility(n, NULL)) {
 	return SWIG_OK;
       }
 
@@ -647,7 +647,7 @@ private:
   }
 
   /* ----------------------------------------------------------------------
-   * staticmemberfunctionHandler
+   * staticmemberfunctionHandler()
    *
    * For some reason the language code removes the "storage" attribute
    * for a static function before calling functionWrapper, which means
@@ -746,7 +746,7 @@ private:
       receiver = NULL;
     }
 
-    bool add_to_interface = (interfaces && !is_constructor && !is_destructor && !is_static && !overname && is_public(n));
+    bool add_to_interface = (interfaces && !is_constructor && !is_destructor && !is_static && !overname && checkFunctionVisibility(n, NULL));
 
     bool needs_wrapper = (gccgo_flag || receiver || is_constructor || is_destructor || parm_count > required_count);
 
@@ -2772,8 +2772,6 @@ private:
    * ------------------------------------------------------------ */
 
   int classDirectorMethod(Node *n, Node *parent, String *super) {
-    (void) super;
-
     bool is_ignored = GetFlag(n, "feature:ignore") ? true : false;
     bool is_pure_virtual = (Cmp(Getattr(n, "storage"), "virtual") == 0 && Cmp(Getattr(n, "value"), "0") == 0);
 
@@ -2800,7 +2798,7 @@ private:
     Setattr(class_methods, name, NewString(""));
 
     if (!Getattr(n, "sym:overloaded")) {
-      int r = oneClassDirectorMethod(n, parent);
+      int r = oneClassDirectorMethod(n, parent, super);
       if (r != SWIG_OK) {
 	return r;
       }
@@ -2811,7 +2809,7 @@ private:
       // function in one class hides a function of the same name in a
       // parent class.
       for (Node *on = Getattr(n, "sym:overloaded"); on; on = Getattr(on, "sym:nextSibling")) {
-	int r = oneClassDirectorMethod(on, parent);
+	int r = oneClassDirectorMethod(on, parent, super);
 	if (r != SWIG_OK) {
 	  return r;
 	}
@@ -2861,7 +2859,11 @@ private:
    * Emit a method for a director class.
    * ------------------------------------------------------------ */
 
-  int oneClassDirectorMethod(Node *n, Node *parent) {
+  int oneClassDirectorMethod(Node *n, Node *parent, String *super) {
+    if (!checkFunctionVisibility(n, parent)) {
+      return SWIG_OK;
+    }
+
     bool is_ignored = GetFlag(n, "feature:ignore") ? true : false;
     bool is_pure_virtual = (Cmp(Getattr(n, "storage"), "virtual") == 0 && Cmp(Getattr(n, "value"), "0") == 0);
 
@@ -3104,23 +3106,12 @@ private:
       if (SwigType_type(result) != T_VOID) {
 	Printv(f_c_directors_h, "return ", NULL);
       }
-      Printv(f_c_directors_h, Getattr(parent, "classtype"), "::", Getattr(n, "name"), "(", NULL);
 
-      p = parms;
-      for (int i = 0; i < parm_count; ++i) {
-	p = getParm(p);
-	if (i > 0) {
-	  Printv(f_c_directors_h, ", ", NULL);
-	}
-	String *pn = Getattr(p, "name");
-	assert(pn);
-	Printv(f_c_directors_h, pn, NULL);
-	p = nextParm(p);
-      }
+      String *super_call = Swig_method_call(super, parms);
+      Printv(f_c_directors_h, super_call, ";\n", NULL);
+      Delete(super_call);
 
-      Printv(f_c_directors_h, ");\n", NULL);
       Printv(f_c_directors_h, "  }\n", NULL);
-
 
       // Define the C++ function that the Go function calls.
 
@@ -4001,6 +3992,32 @@ private:
 
     return SWIG_OK;
   }
+
+  /* ----------------------------------------------------------------------
+   * checkFunctionVisibility()
+   *
+   * Return true if we should write out a function based on its
+   * visibility, false otherwise.
+   * ---------------------------------------------------------------------- */
+
+  bool checkFunctionVisibility(Node *n, Node *parent) {
+    // Write out a public function.
+    if (is_public(n))
+      return true;
+    // Don't write out a private function.
+    if (is_private(n))
+      return false;
+    // Write a protected function for a director class in
+    // dirprot_mode.
+    if (parent == NULL) {
+      return false;
+    }
+    if (dirprot_mode() && Swig_directorclass(parent))
+      return true;
+    // Otherwise don't write out a protected function.
+    return false;
+  }
+
 
   /* ----------------------------------------------------------------------
    * exportedName()
