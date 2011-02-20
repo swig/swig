@@ -3,6 +3,169 @@ SWIG (Simplified Wrapper and Interface Generator)
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
 
+Version 2.0.2 (20 February 2011)
+================================
+
+2011-02-19: wsfulton
+	    [PHP] Add missing INPUT, OUTPUT and INOUT typemaps in the typemaps.i library
+            for primitive reference types as well as signed char * and bool *.
+
+2011-02-19: olly
+	    [PHP] Address bug in PHP on some platforms/architectures which
+	    results in zend_error_noreturn() not being available using
+	    SWIG_ZEND_ERROR_NORETURN which defaults to zend_error_noreturn but
+	    can be overridden when building the module by passing
+	    -DSWIG_ZEND_ERROR_NORETURN=zend_error to the compiler.  This may
+	    result in compiler warnings, but should at least allow a module
+	    to be built on those platforms/architectures (SF#3166423).
+
+2011-02-18: wsfulton
+            Fix #3184549 - vararg functions and function overloading when using the -fastdispatch option.
+
+2011-02-18: olly
+	    [PHP] An overloaded method which can return an object or a
+	    primitive type no longer causes SWIG to segfault.  Reported by Paul
+	    Colby in SF#3168531.
+
+2011-02-18: olly
+	    [PHP] Fix invalid erase during iteration of std::map in generated
+	    director code.  Reported by Cory Bennett in SF#3175820.
+
+2011-02-17: wsfulton
+            Preprocessing now warns if extra tokens appear after #else and #end.
+
+2011-02-16: wsfulton
+            Fix #1653092 Preprocessor does not error out when #elif is missing an expression.
+            This and other cases of missing preprocessor expressions now result in an error.
+
+2011-02-14: wsfulton
+            [Ocaml] Apply patch #3151788 from Joel Reymont. Brings Ocaml support up to date 
+            (ver 3.11 and 3.12), including std::string.
+
+2011-02-13: wsfulton
+            [Ruby] Apply patch #3176274 from James Masters - typecheck typemap for time_t.
+
+2011-02-13: wsfulton
+            Apply patch #3171793 from szager - protected director methods failing when -fvirtual is used.
+
+2011-02-13: wsfulton
+            Fix #1927852 - #include directives don't preprocess the file passed to it. The fix is for
+            #include with -importall or -includeall, %include and %import, for example:
+              #define FILENAME "abc.h"
+              %include FILENAME
+
+2011-02-12: wsfulton
+            Fix #1940536, overactive preprocessor which was expanding defined(...) outside of #if and #elif
+            preprocessor directives.
+
+2011-02-05: wsfulton
+            [MzScheme] SF #2942899 Add user supplied documentation to help getting started with MzScheme.
+            Update chapter name to MzScheme/Racket accounting for the rename of MzScheme to Racket.
+
+2011-02-05: wsfulton
+            [C#] SF #3085906 - Possible fix running test-suite on Mac OSX.
+
+2011-02-05: wsfulton
+            SF #3173367 Better information during configure about Boost prerequisite for running
+            the test-suite.
+
+2011-02-05: wsfulton
+            SF #3127633 Fix infinite loop in recursive typedef resolution.
+
+2011-02-04: wsfulton
+            [R] SF #3168676 Fix %rename not working for member variables and methods.
+
+2011-02-04: wsfulton
+            [clisp] SF #3148200 Fix segfault parsing nested unions.
+
+2011-02-01: wsfulton
+            [C#] Directors - a call to a method being defined in the base class, not
+            overridden in a subclass, but again overridden in a class derived from
+            the first subclass was not being dispatched correctly to the most derived class.
+            See director_alternating.i for an example.
+
+2011-02-01: wsfulton
+            [C#, Java] Any 'using' statements in the protected section of a class were previously
+            ignored with director protected (dirprot) mode.
+
+2011-01-30: wsfulton
+            Fix overloading with const pointer reference (SWIGTYPE *const&) parameters for a
+            number of scripting languages.
+
+2011-01-17: wsfulton
+            New warning for smart pointers if only some of the classes in the inheritance
+            chain are marked as smart pointer, eg, %shared_ptr should be used for all classes
+            in an inheritance hierarchy, so this new warning highlights code where this is
+            not the case.
+
+              example.i:12: Warning 520: Base class 'A' of 'B' is not similarly marked as a smart pointer.
+              example.i:16: Warning 520: Derived class 'C' of 'B' is not similarly marked as a smart pointer.
+
+2011-01-14: wsfulton
+            Added some missing multi-argument typemaps: (char *STRING, size_t LENGTH) and 
+            (char *STRING, int LENGTH). Documentation for this updated. Java patch from
+            Volker Grabsch.
+
+2011-01-11: iant
+	    Require Go version 7077 or later.
+
+2010-12-30: klickverbot
+            [C#, D, Java] Check for collision of parameter names with target
+            language keywords when generating the director glue code.
+            
+            The situation in which the generated could would previously be
+            invalid is illustrated in the new 'director_keywords' test case.
+
+2010-12-23: wsfulton
+            [C#] Fix $csinput special variable not being expanded for csvarin typemaps
+            when used for global variables. Reported by Vadim Zeitlin.
+
+2010-12-14: wsfulton
+            Fix $basemangle expansion in array typemaps. For example if type is int *[3],
+            $basemangle expands to _p_int.
+
+2010-12-07: iant
+	    Check that we are using a sufficiently new version of the
+	    6g or 8g Go compiler during configure time. If not, disable Go.
+            Minimum version is now 6707.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2010-12-06: wsfulton
+            Fix #3127394 - use of network paths on Windows/MSys.
+
+2010-11-18: klickverbot
+	    [D] Added the D language module.
+
+2010-11-12: vadz
+	    Fix handling of multiple regex-using %renames attached to the same
+	    declaration. For example, now
+
+	      %rename("%(regex/^Set(.*)/put\\1/)s") "";
+	      %rename("%(regex/^Get(.*)/get\\1/)s") "";
+
+	    works as expected whereas before only the last anonymous rename was
+	    taken into account.
+
+2010-10-17: drjoe
+	    [R] Fix failure in overloaded functions which was breaking
+	    QuantLib-SWIG
+
+2010-10-14: olly
+	    [PHP] Allow compilation on non-conforming Microsoft C++ compilers
+	    which don't accept: return function_returning_void();
+	    Reported by Frank Vanden Berghen on the SWIG mailing list.
+
+2010-10-12: wsfulton
+            Fix unary scope operator (::) (global scope) regression introduced in 2.0.0, reported by
+            Ben Walker. The mangled symbol names were incorrect, sometimes resulting in types being
+            incorrectly treated as opaque types.
+
+            Also fixes #2958781 and some other type problems due to better typedef resolution, eg 
+            std::vector<T *>::value_type didn't resolve to T * when it should have. The mangled type
+            was incorrectly SWIGTYPE_std__vectorT_Test_p_std__allocatorT_Test_p_t_t__value_type and now
+            it is correctly SWIGTYPE_p_Test.
+
 Version 2.0.1 (4 October 2010)
 ==============================
 
