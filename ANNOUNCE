@@ -2,7 +2,7 @@
 
 http://www.swig.org
 
-We're pleased to announce SWIG-2.0.1, the latest SWIG release.
+We're pleased to announce SWIG-2.0.2, the latest SWIG release.
 
 What is SWIG?
 =============
@@ -10,22 +10,22 @@ What is SWIG?
 SWIG is a software development tool that reads C/C++ header files and
 generates the wrapper code needed to make C and C++ code accessible
 from other languages including Perl, Python, Tcl, Ruby, PHP, Java,
-Scheme (Guile, MzScheme, CHICKEN), Ocaml, Lua, Pike, C#, Modula-3, Octave, R,
-Common Lisp (CLISP, Allegro CL, CFFI, UFFI). SWIG can also export its parse
-tree in the form of XML and Lisp s-expressions.  Major applications of
-SWIG include generation of scripting language extension modules, rapid
-prototyping, testing, and user interface development for large C/C++
-systems.
+Scheme (Guile, MzScheme, CHICKEN), D, Ocaml, Lua, Pike, C#, Modula-3,
+Octave, R, Common Lisp (CLISP, Allegro CL, CFFI, UFFI). SWIG can also
+export its parse tree in the form of XML and Lisp s-expressions.  Major
+applications of SWIG include generation of scripting language extension
+modules, rapid prototyping, testing, and user interface development for
+large C/C++ systems.
 
 Availability
 ============
 The release is available for download on Sourceforge at
 
-     http://prdownloads.sourceforge.net/swig/swig-2.0.1.tar.gz
+     http://prdownloads.sourceforge.net/swig/swig-2.0.2.tar.gz
 
 A Windows version is also available at
 
-     http://prdownloads.sourceforge.net/swig/swigwin-2.0.1.zip
+     http://prdownloads.sourceforge.net/swig/swigwin-2.0.2.zip
 
 Please report problems with this release to the swig-devel mailing list,
 details at http://www.swig.org/mail.html.
