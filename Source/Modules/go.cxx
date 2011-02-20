@@ -4420,6 +4420,8 @@ private:
       SwigType_del_qualifier(r);
       ret = goTypeWithInfo(n, r, p_is_interface);
       Delete(r);
+    } else if (SwigType_isvarargs(t)) {
+      ret = NewString("[]interface{}");
     }
 
     Delete(t);
