@@ -21,8 +21,9 @@ DEFINED_MACRO
 
 %{
 int checking(void) {
+  int okay;
   fn(11);
-  int okay = (vvv == 1);
+  okay = (vvv == 1);
   fn(9);
   okay = okay && (vvv == 0);
   return okay; /* should be 1 */
