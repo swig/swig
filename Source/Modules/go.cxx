@@ -12,7 +12,6 @@ char cvsroot_go_cxx[] = "$Id";
 #include "swigmod.h"
 #include "cparse.h"
 #include <ctype.h>
-#include <string>
 
 class GO:public Language {
   static const char *const usage;
