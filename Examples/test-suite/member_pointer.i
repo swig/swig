@@ -3,6 +3,8 @@
 %{
 #if defined(__SUNPRO_CC)
 #pragma error_messages (off, badargtype2w) /* Formal argument ... is being passed extern "C" ... */
+#pragma error_messages (off, wbadinit) /* Using extern "C" ... to initialize ... */
+#pragma error_messages (off, wbadasg) /* Assigning extern "C" ... */
 #endif
 %}
 
