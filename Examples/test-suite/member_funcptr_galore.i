@@ -50,6 +50,10 @@ double (Space::Shape::*areapt(Space::Shape &ref, int & (FunkSpace::Funktions::*d
   return &Space::Shape::area;
 }
 
+double (Space::Shape::*areapt())(Space::Shape &, int & (FunkSpace::Funktions::*)(const int &, int)) {
+  return 0;
+}
+
 double (Space::Shape::*abcpt())(Thing<short>, Thing< const Space::Shape * >[]) {
   return &Space::Shape::abc;
 }
