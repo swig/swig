@@ -12,5 +12,9 @@ class B {
         int foo(int x);
         A foo(string y);
 };
+%}
 
+%{
+int B::foo(int x) { return 0; }
+A B::foo(string y) { return A(); }
 %}
