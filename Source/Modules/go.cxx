@@ -3793,7 +3793,8 @@ private:
 	int nak = emit_num_arguments(pk);
 	if ((nrk >= num_required && nrk <= num_arguments)
 	    || (nak >= num_required && nak <= num_arguments)
-	    || (nrk <= num_required && nak >= num_arguments)) {
+	    || (nrk <= num_required && nak >= num_arguments)
+	    || (varargs && nrk >= num_required)) {
 	  Append(coll, nk);
 	}
       }
