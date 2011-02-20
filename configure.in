@@ -306,14 +306,27 @@ then
 fi
 AC_MSG_RESULT($LINKFORSHARED)
 
+# Optional CFLAGS used to silence/enhance compiler warnings on some platforms.
+AC_MSG_CHECKING(PLATFLAGS)
+case $host in
+  *-*-solaris*) if test "$GCC" = yes;
+    then PLATFLAGS=
+    else PLATFLAGS=
+      #    else PLATFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
+    fi;;
+  *) PLATFLAGS=
+esac
+AC_MSG_RESULT($PLATFLAGS)
+
 # Set info about shared libraries.
 AC_SUBST(SO)
 AC_SUBST(LDSHARED)
 AC_SUBST(CCSHARED)
 AC_SUBST(CXXSHARED)
 AC_SUBST(TRYLINKINGWITHCXX)
-AC_SUBST(LINKFORSHARED)
 AC_SUBST(RPATH)
+AC_SUBST(PLATFLAGS)
+AC_SUBST(LINKFORSHARED)
 
 # This variation is needed on OS-X because there is no (apparent) consistency in shared library naming.
 # Sometimes .bundle works, but sometimes .so is needed.  It depends on the target language
@@ -353,11 +366,6 @@ case $host in
    *-*-darwin*) LUA_SO=.so;;
    *) LUA_SO=$SO;;
 esac
-
-# Optional CFLAGS used to silence compiler warnings on some platforms.
-
-AC_SUBST(PLATFLAGS)
-PLATFLAGS=
 
 # Check for specific libraries.   Used for SWIG examples
 AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
