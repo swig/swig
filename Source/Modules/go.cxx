@@ -4533,6 +4533,20 @@ private:
     bool is_member = Strcmp(gt, "_swig_memberptr") == 0;
     bool is_complex64 = Strcmp(gt, "complex64") == 0;
     bool is_complex128 = Strcmp(gt, "complex128") == 0;
+    bool is_char = false;
+    bool is_short = false;
+    bool is_int = false;
+    bool is_long = false;
+    bool is_float = false;
+    bool is_double = false;
+    if ((n != NULL && Getattr(n, "tmap:gotype") != NULL) || hasGoTypemap(type)) {
+      is_char = Strcmp(gt, "int8") == 0 || Strcmp(gt, "uint8") == 0 || Strcmp(gt, "byte") == 0;
+      is_short = Strcmp(gt, "int16") == 0 || Strcmp(gt, "uint16") == 0;
+      is_int = Strcmp(gt, "int") == 0 || Strcmp(gt, "int32") == 0 || Strcmp(gt, "uint32") == 0;
+      is_long = Strcmp(gt, "int64") == 0 || Strcmp(gt, "uint64") == 0;
+      is_float = Strcmp(gt, "float32") == 0;
+      is_double = Strcmp(gt, "float64") == 0;
+    }
     Delete(gt);
 
     String *ret;
@@ -4588,7 +4602,21 @@ private:
 	}
       }
       Delete(t);
-      return SwigType_lstr(type, name);
+      if (is_char) {
+	ret = NewString("char ");
+      } else if (is_short) {
+	ret = NewString("short ");
+      } else if (is_int) {
+	ret = NewString("int ");
+      } else if (is_long) {
+	ret = NewString("long long ");
+      } else if (is_float) {
+	ret = NewString("float ");
+      } else if (is_double) {
+	ret = NewString("double ");
+      } else {
+	return SwigType_lstr(type, name);
+      }
     }
 
     if (SwigType_isreference(type)) {
