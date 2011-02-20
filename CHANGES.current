@@ -2,8 +2,8 @@ This file contains the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.2 (in progress)
-===========================
+Version 2.0.2 (20 February 2011)
+================================
 
 2011-02-19: wsfulton
 	    [PHP] Add missing INPUT, OUTPUT and INOUT typemaps in the typemaps.i library
@@ -38,7 +38,7 @@ Version 2.0.2 (in progress)
             This and other cases of missing preprocessor expressions now result in an error.
 
 2011-02-14: wsfulton
-            [Ocaml] Apply patch #3151788 from Joel Reymont. Brings Ocaml support a up to date 
+            [Ocaml] Apply patch #3151788 from Joel Reymont. Brings Ocaml support up to date 
             (ver 3.11 and 3.12), including std::string.
 
 2011-02-13: wsfulton
