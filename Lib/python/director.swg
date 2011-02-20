@@ -404,11 +404,11 @@ namespace Swig {
     }
 
     /* methods to implement pseudo protected director members */
-    virtual bool swig_get_inner(const char* /* protected_method_name */) const {
+    virtual bool swig_get_inner(const char* /* swig_protected_method_name */) const {
       return true;
     }
     
-    virtual void swig_set_inner(const char* /* protected_method_name */, bool /* val */) const {
+    virtual void swig_set_inner(const char* /* swig_protected_method_name */, bool /* swig_val */) const {
     }
 
   /* ownership management */
