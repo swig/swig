@@ -794,14 +794,16 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   /* If smart pointer without const overload or mutable method, change self dereferencing */
   if (flags & CWRAP_SMART_POINTER) {
     if (flags & CWRAP_SMART_POINTER_OVERLOAD) {
-      String *cname = Getattr(n, "classname") ? Getattr(n, "classname") : classname;
       if (qualifier && strncmp(Char(qualifier), "q(const)", 8) == 0) {
         self = NewString("(*(this))->");
         is_smart_pointer_overload = 1;
       }
       else if (Cmp(Getattr(n, "storage"), "static") == 0) {
-        self = NewStringf("(*(%s const *)this)->", cname);
+	String *cname = Getattr(n, "classname") ? Getattr(n, "classname") : classname;
+	String *ctname = SwigType_namestr(cname);
+        self = NewStringf("(*(%s const *)this)->", ctname);
         is_smart_pointer_overload = 1;
+	Delete(ctname);
       }
       else {
         self = NewString("(*this)->");
@@ -940,7 +942,9 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
 	String *ctname = SwigType_namestr(cname);
 	String *fadd = 0;
 	if (is_smart_pointer_overload) {
-	  fadd = NewStringf("(%s const *)((%s const *)%s)->operator ->()", ctname, classname, pname);
+	  String *nclassname = SwigType_namestr(classname);
+	  fadd = NewStringf("(%s const *)((%s const *)%s)->operator ->()", ctname, nclassname, pname);
+	  Delete(nclassname);
 	}
 	else {
 	  fadd = NewStringf("(%s*)(%s)->operator ->()", ctname, pname);
@@ -1333,7 +1337,9 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
       String *base = Getattr(sn, "name");
       self = NewStringf("%s::", base);
     } else if (flags & CWRAP_SMART_POINTER_OVERLOAD) {
-      self = NewStringf("(*(%s const *)this)->", classname);
+      String *nclassname = SwigType_namestr(classname);
+      self = NewStringf("(*(%s const *)this)->", nclassname);
+      Delete(nclassname);
     } else {
       self = NewString("(*this)->");
     }
