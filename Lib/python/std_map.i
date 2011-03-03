@@ -291,10 +291,10 @@
 #endif
 
   %extend {
-      // This will be called through the mp_ass_subscript slot to delete an entry.
-      void __setitem__(const key_type& key) {
-	  self->erase(key);
-      }
+    // This will be called through the mp_ass_subscript slot to delete an entry.
+    void __setitem__(const key_type& key) {
+      self->erase(key);
+    }
   }
 
   %extend {

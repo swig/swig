@@ -352,7 +352,7 @@ SWIG_init(void) {
   // metatype is used to implement static member variables.
   PyObject *metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
   assert(metatype_args);
-  PyTypeObject *metatype = (PyTypeObject*) PyType_Type.tp_call((PyObject*) &PyType_Type, metatype_args, NULL);
+  PyTypeObject *metatype = (PyTypeObject *) PyType_Type.tp_call((PyObject *) &PyType_Type, metatype_args, NULL);
   assert(metatype);
   Py_DECREF(metatype_args);
   metatype->tp_setattro = (setattrofunc) &SwigPyObjectType_setattro;
@@ -386,7 +386,7 @@ SWIG_init(void) {
 
   // All objects have a 'this' attribute
   static PyGetSetDef this_getset_def = {
-    const_cast<char*>("this"), pyswig_this_closure, NULL, NULL, NULL
+    const_cast<char *>("this"), pyswig_this_closure, NULL, NULL, NULL
   };
   PyObject *this_descr = PyDescr_NewGetSet(SwigPyObject_type(), &this_getset_def);
 

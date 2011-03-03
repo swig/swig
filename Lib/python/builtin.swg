@@ -1,15 +1,13 @@
 #define PYSWIG_UNARYFUNC_CLOSURE(wrapper)	\
-SWIGINTERN PyObject*				\
-wrapper##_closure (PyObject *a)			\
-{						\
-    return wrapper(a, NULL);			\
+SWIGINTERN PyObject *				\
+wrapper##_closure(PyObject *a) {		\
+  return wrapper(a, NULL);			\
 }
 
 #define PYSWIG_DESTRUCTOR_CLOSURE(wrapper)	\
 SWIGINTERN void					\
-wrapper##_closure (PyObject *a)			\
-{						\
-    SwigPyObject *sobj = (SwigPyObject*) a;	\
+wrapper##_closure(PyObject *a) {		\
+    SwigPyObject *sobj = (SwigPyObject *)a;	\
     if (sobj->own) {				\
 	PyObject *o = wrapper(a, NULL);		\
 	Py_XDECREF(o);				\
@@ -18,8 +16,7 @@ wrapper##_closure (PyObject *a)			\
 
 #define PYSWIG_INQUIRY_CLOSURE(wrapper)				\
 SWIGINTERN int							\
-wrapper##_closure (PyObject *a)					\
-{								\
+wrapper##_closure(PyObject *a) {				\
     PyObject *pyresult = wrapper(a, NULL);			\
     int result = pyresult && PyObject_IsTrue(pyresult) ? 1 : 0;	\
     Py_XDECREF(pyresult);					\
@@ -27,9 +24,8 @@ wrapper##_closure (PyObject *a)					\
 }
 
 #define PYSWIG_BINARYFUNC_CLOSURE(wrapper)	\
-SWIGINTERN PyObject*				\
-wrapper##_closure (PyObject *a, PyObject *b)	\
-{						\
+SWIGINTERN PyObject *				\
+wrapper##_closure(PyObject *a, PyObject *b) {	\
     PyObject *tuple = PyTuple_New(1);		\
     assert(tuple);				\
     PyTuple_SET_ITEM(tuple, 0, b);		\
@@ -40,9 +36,8 @@ wrapper##_closure (PyObject *a, PyObject *b)	\
 }
 
 #define PYSWIG_TERNARYFUNC_CLOSURE(wrapper)			\
-SWIGINTERN PyObject*						\
-wrapper##_closure (PyObject *a, PyObject *b, PyObject *c)	\
-{								\
+SWIGINTERN PyObject *						\
+wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
     PyObject *tuple = PyTuple_New(2);				\
     assert(tuple);						\
     PyTuple_SET_ITEM(tuple, 0, b);				\
@@ -56,8 +51,7 @@ wrapper##_closure (PyObject *a, PyObject *b, PyObject *c)	\
 
 #define PYSWIG_LENFUNC_CLOSURE(wrapper)			\
 SWIGINTERN Py_ssize_t					\
-wrapper##_closure (PyObject *a)				\
-{							\
+wrapper##_closure(PyObject *a) {			\
     PyObject *resultobj = wrapper(a, NULL);		\
     Py_ssize_t result = PyNumber_AsSsize_t(resultobj, NULL);	\
     Py_DECREF(resultobj);				\
@@ -65,9 +59,8 @@ wrapper##_closure (PyObject *a)				\
 }
 
 #define PYSWIG_SSIZESSIZEARGFUNC_CLOSURE(wrapper)		\
-SWIGINTERN PyObject*						\
-wrapper##_closure (PyObject *a, Py_ssize_t b, Py_ssize_t c)	\
-{								\
+SWIGINTERN PyObject *						\
+wrapper##_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c) {	\
     PyObject *tuple = PyTuple_New(2);				\
     assert(tuple);						\
     PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));		\
@@ -79,8 +72,7 @@ wrapper##_closure (PyObject *a, Py_ssize_t b, Py_ssize_t c)	\
 
 #define PYSWIG_SSIZESSIZEOBJARGPROC_CLOSURE(wrapper)			\
 SWIGINTERN int								\
-wrapper##_closure (PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) \
-{									\
+wrapper##_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) { \
     PyObject *tuple = PyTuple_New(d ? 3 : 2);				\
     assert(tuple);							\
     PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));			\
@@ -97,9 +89,8 @@ wrapper##_closure (PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) \
 }
 
 #define PYSWIG_SSIZEARGFUNC_CLOSURE(wrapper)		\
-SWIGINTERN PyObject*					\
-wrapper##_closure (PyObject *a, Py_ssize_t b)		\
-{							\
+SWIGINTERN PyObject *					\
+wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
     PyObject *tuple = PyTuple_New(1);			\
     assert(tuple);					\
     PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));	\
@@ -109,9 +100,8 @@ wrapper##_closure (PyObject *a, Py_ssize_t b)		\
 }
 
 #define PYSWIG_FUNPACK_SSIZEARGFUNC_CLOSURE(wrapper)		\
-SWIGINTERN PyObject*					\
-wrapper##_closure (PyObject *a, Py_ssize_t b)		\
-{							\
+SWIGINTERN PyObject *					\
+wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
     PyObject *arg = _PyLong_FromSsize_t(b);		\
     PyObject *result = wrapper(a, arg);			\
     Py_DECREF(arg);					\
@@ -120,8 +110,7 @@ wrapper##_closure (PyObject *a, Py_ssize_t b)		\
 
 #define PYSWIG_SSIZEOBJARGPROC_CLOSURE(wrapper)			\
 SWIGINTERN int							\
-wrapper##_closure (PyObject *a, Py_ssize_t b, PyObject *c)	\
-{								\
+wrapper##_closure(PyObject *a, Py_ssize_t b, PyObject *c) {	\
     PyObject *tuple = PyTuple_New(2);				\
     assert(tuple);						\
     PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));		\
@@ -136,8 +125,7 @@ wrapper##_closure (PyObject *a, Py_ssize_t b, PyObject *c)	\
 
 #define PYSWIG_OBJOBJARGPROC_CLOSURE(wrapper)			\
 SWIGINTERN int							\
-wrapper##_closure (PyObject *a, PyObject *b, PyObject *c)	\
-{								\
+wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
     PyObject *tuple = PyTuple_New(c ? 2 : 1);			\
     assert(tuple);						\
     PyTuple_SET_ITEM(tuple, 0, b);				\
@@ -154,16 +142,14 @@ wrapper##_closure (PyObject *a, PyObject *b, PyObject *c)	\
 }
 
 #define PYSWIG_REPRFUNC_CLOSURE(wrapper)	\
-SWIGINTERN PyObject*				\
-wrapper##_closure (PyObject *a)			\
-{						\
+SWIGINTERN PyObject *				\
+wrapper##_closure(PyObject *a) {		\
     return wrapper(a, NULL);			\
 }
 
 #define PYSWIG_HASHFUNC_CLOSURE(wrapper)	\
 SWIGINTERN long					\
-wrapper##_closure (PyObject *a)			\
-{						\
+wrapper##_closure(PyObject *a) {		\
     PyObject *pyresult = wrapper(a, NULL);	\
     if (!pyresult || !PyLong_Check(pyresult))	\
 	return -1;				\
@@ -173,9 +159,8 @@ wrapper##_closure (PyObject *a)			\
 }
 
 #define PYSWIG_ITERNEXT_CLOSURE(wrapper)	\
-SWIGINTERN PyObject*				\
-wrapper##_closure (PyObject *a)			\
-{						\
+SWIGINTERN PyObject *				\
+wrapper##_closure(PyObject *a) {		\
     PyObject *result = wrapper(a, NULL);	\
     if (result && result == Py_None) {		\
 	Py_DECREF(result);			\
@@ -184,288 +169,251 @@ wrapper##_closure (PyObject *a)			\
     return result;				\
 }
 
-SWIGINTERN int py_builtin_bad_init (PyObject *self, PyObject *args, PyObject *kwds)
-{
-    PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", self->ob_type->tp_name);
-    return -1;
-}
-
-SWIGINTERN void py_builtin_bad_dealloc (PyObject *pyobj)
-{
-    SwigPyObject *sobj = (SwigPyObject*) pyobj;
-    if (sobj->own) {
-	PyErr_Format(PyExc_TypeError,
-		     "Swig detected a memory leak in type '%.300s': no callable destructor found.",
-		     pyobj->ob_type->tp_name);
-    }
-}
-
-typedef struct {
-    PyCFunction get;
-    PyCFunction set;
-} SwigPyGetSet;
-
-SWIGINTERN PyObject*
-pyswig_getter_closure (PyObject *obj, void *closure)
-{
-    if (!closure)
-       return SWIG_Py_Void();
-    SwigPyGetSet *getset = (SwigPyGetSet*) closure;
-    if (!getset->get)
-	return SWIG_Py_Void();
-    PyObject *tuple = PyTuple_New(0);
-    assert(tuple);
-    PyObject *result = (*getset->get)(obj, tuple);
-    Py_DECREF(tuple);
-    return result;
-}
-
-SWIGINTERN PyObject*
-pyswig_funpack_getter_closure (PyObject *obj, void *closure)
-{
-    if (!closure)
-       return SWIG_Py_Void();
-    SwigPyGetSet *getset = (SwigPyGetSet*) closure;
-    if (!getset->get)
-	return SWIG_Py_Void();
-    PyObject *result = (*getset->get)(obj, NULL);
-    return result;
-}
-
 SWIGINTERN int
-pyswig_setter_closure (PyObject *obj, PyObject *val, void *closure)
-{
-    if (!closure) {
-	PyErr_Format(PyExc_TypeError, "Missing getset closure");
-        return -1;
-    }
-    SwigPyGetSet *getset = (SwigPyGetSet*) closure;
-    if (!getset->set) {
-	PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", obj->ob_type->tp_name);
-	return -1;
-    }
-    PyObject *tuple = PyTuple_New(1);
-    assert(tuple);
-    PyTuple_SET_ITEM(tuple, 0, val);
-    Py_XINCREF(val);
-    PyObject *result = (*getset->set)(obj, tuple);
-    Py_DECREF(tuple);
-    Py_XDECREF(result);
-    return result ? 0 : -1;
-}
-
-SWIGINTERN int
-pyswig_funpack_setter_closure (PyObject *obj, PyObject *val, void *closure)
-{
-    if (!closure) {
-	PyErr_Format(PyExc_TypeError, "Missing getset closure");
-        return -1;
-    }
-    SwigPyGetSet *getset = (SwigPyGetSet*) closure;
-    if (!getset->set) {
-	PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", obj->ob_type->tp_name);
-	return -1;
-    }
-    PyObject *result = (*getset->set)(obj, val);
-    Py_XDECREF(result);
-    return result ? 0 : -1;
-}
-
-SWIGINTERN PyObject*
-pyswig_static_getter_closure (PyObject *obj, void *closure)
-{
-    if (!closure)
-       return SWIG_Py_Void();
-    SwigPyGetSet *getset = (SwigPyGetSet*) closure;
-    if (!getset->get)
-	return SWIG_Py_Void();
-    PyObject *tuple = PyTuple_New(0);
-    assert(tuple);
-    PyObject *result = (*getset->get)(obj, tuple);
-    Py_DECREF(tuple);
-    return result;
-}
-
-SWIGINTERN int
-pyswig_static_setter_closure (PyObject *obj, PyObject *val, void *closure)
-{
-    if (!closure) {
-	PyErr_Format(PyExc_TypeError, "Missing getset closure");
-        return -1;
-    }
-    SwigPyGetSet *getset = (SwigPyGetSet*) closure;
-    if (!getset->set) {
-	PyErr_Format(PyExc_TypeError, "Illegal static variable assignment.");
-	return -1;
-    }
-    PyObject *tuple = PyTuple_New(1);
-    assert(tuple);
-    PyTuple_SET_ITEM(tuple, 0, val);
-    Py_XINCREF(val);
-    PyObject *result = (*getset->set)(obj, tuple);
-    Py_DECREF(tuple);
-    Py_XDECREF(result);
-    return result ? 0 : -1;
+py_builtin_bad_init(PyObject *self, PyObject *args, PyObject *kwds) {
+  PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", self->ob_type->tp_name);
+  return -1;
 }
 
 SWIGINTERN void
-SwigPyStaticVar_dealloc(PyDescrObject *descr)
-{
-    _PyObject_GC_UNTRACK(descr);
-    Py_XDECREF(descr->d_type);
-    Py_XDECREF(descr->d_name);
-    PyObject_GC_Del(descr);
+py_builtin_bad_dealloc(PyObject *pyobj) {
+  SwigPyObject *sobj = (SwigPyObject *)pyobj;
+  if (sobj->own) {
+    PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%.300s': no callable destructor found.", pyobj->ob_type->tp_name);
+  }
+}
+
+typedef struct {
+  PyCFunction get;
+  PyCFunction set;
+} SwigPyGetSet;
+
+SWIGINTERN PyObject *
+pyswig_getter_closure(PyObject *obj, void *closure) {
+  if (!closure)
+    return SWIG_Py_Void();
+  SwigPyGetSet *getset = (SwigPyGetSet *)closure;
+  if (!getset->get)
+    return SWIG_Py_Void();
+  PyObject *tuple = PyTuple_New(0);
+  assert(tuple);
+  PyObject *result = (*getset->get)(obj, tuple);
+  Py_DECREF(tuple);
+  return result;
 }
 
 SWIGINTERN PyObject *
-SwigPyStaticVar_repr(PyGetSetDescrObject *descr)
-{
-#if PY_VERSION_HEX >= 0x03000000
-    return PyUnicode_FromFormat
-	("<class attribute '%U' of type '%s'>",
-	 descr->d_name, descr->d_type->tp_name);
-#else
-    return PyString_FromFormat
-	("<class attribute '%s' of type '%s'>",
-	 PyString_AsString(descr->d_name), descr->d_type->tp_name);
-#endif
+pyswig_funpack_getter_closure(PyObject *obj, void *closure) {
+  if (!closure)
+    return SWIG_Py_Void();
+  SwigPyGetSet *getset = (SwigPyGetSet *)closure;
+  if (!getset->get)
+    return SWIG_Py_Void();
+  PyObject *result = (*getset->get)(obj, NULL);
+  return result;
 }
 
 SWIGINTERN int
-SwigPyStaticVar_traverse(PyObject *self, visitproc visit, void *arg)
-{
-    PyDescrObject *descr = (PyDescrObject *)self;
-    Py_VISIT(descr->d_type);
-    return 0;
-}
-
-SWIGINTERN PyObject *
-SwigPyStaticVar_get (PyGetSetDescrObject *descr, PyObject *obj, PyObject *type)
-{
-    if (descr->d_getset->get != NULL)
-	return descr->d_getset->get(obj, descr->d_getset->closure);
-#if PY_VERSION_HEX >= 0x03000000
-    PyErr_Format(PyExc_AttributeError,
-		 "attribute '%.300U' of '%.100s' objects is not readable",
-		 descr->d_name, descr->d_type->tp_name);
-#else
-    PyErr_Format(PyExc_AttributeError,
-		 "attribute '%.300s' of '%.100s' objects is not readable",
-		 PyString_AsString(descr->d_name), descr->d_type->tp_name);
-#endif
-    return NULL;
-}
-
-SWIGINTERN int
-SwigPyStaticVar_set (PyGetSetDescrObject *descr, PyObject *obj, PyObject *value)
-{
-    int res;
-
-    if (descr->d_getset->set != NULL)
-	return descr->d_getset->set(obj, value, descr->d_getset->closure);
-#if PY_VERSION_HEX >= 0x03000000
-    PyErr_Format(PyExc_AttributeError,
-		 "attribute '%.300U' of '%.100s' objects is not writable",
-		 descr->d_name,
-		 descr->d_type->tp_name);
-#else
-    PyErr_Format(PyExc_AttributeError,
-		 "attribute '%.300s' of '%.100s' objects is not writable",
-		 PyString_AsString(descr->d_name),
-		 descr->d_type->tp_name);
-#endif
+pyswig_setter_closure(PyObject *obj, PyObject *val, void *closure) {
+  if (!closure) {
+    PyErr_Format(PyExc_TypeError, "Missing getset closure");
     return -1;
+  }
+  SwigPyGetSet *getset = (SwigPyGetSet *)closure;
+  if (!getset->set) {
+    PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", obj->ob_type->tp_name);
+    return -1;
+  }
+  PyObject *tuple = PyTuple_New(1);
+  assert(tuple);
+  PyTuple_SET_ITEM(tuple, 0, val);
+  Py_XINCREF(val);
+  PyObject *result = (*getset->set)(obj, tuple);
+  Py_DECREF(tuple);
+  Py_XDECREF(result);
+  return result ? 0 : -1;
+}
+
+SWIGINTERN int
+pyswig_funpack_setter_closure(PyObject *obj, PyObject *val, void *closure) {
+  if (!closure) {
+    PyErr_Format(PyExc_TypeError, "Missing getset closure");
+    return -1;
+  }
+  SwigPyGetSet *getset = (SwigPyGetSet *)closure;
+  if (!getset->set) {
+    PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", obj->ob_type->tp_name);
+    return -1;
+  }
+  PyObject *result = (*getset->set)(obj, val);
+  Py_XDECREF(result);
+  return result ? 0 : -1;
+}
+
+SWIGINTERN PyObject *
+pyswig_static_getter_closure(PyObject *obj, void *closure) {
+  if (!closure)
+    return SWIG_Py_Void();
+  SwigPyGetSet *getset = (SwigPyGetSet *)closure;
+  if (!getset->get)
+    return SWIG_Py_Void();
+  PyObject *tuple = PyTuple_New(0);
+  assert(tuple);
+  PyObject *result = (*getset->get)(obj, tuple);
+  Py_DECREF(tuple);
+  return result;
+}
+
+SWIGINTERN int
+pyswig_static_setter_closure(PyObject *obj, PyObject *val, void *closure) {
+  if (!closure) {
+    PyErr_Format(PyExc_TypeError, "Missing getset closure");
+    return -1;
+  }
+  SwigPyGetSet *getset = (SwigPyGetSet *)closure;
+  if (!getset->set) {
+    PyErr_Format(PyExc_TypeError, "Illegal static variable assignment.");
+    return -1;
+  }
+  PyObject *tuple = PyTuple_New(1);
+  assert(tuple);
+  PyTuple_SET_ITEM(tuple, 0, val);
+  Py_XINCREF(val);
+  PyObject *result = (*getset->set)(obj, tuple);
+  Py_DECREF(tuple);
+  Py_XDECREF(result);
+  return result ? 0 : -1;
+}
+
+SWIGINTERN void
+SwigPyStaticVar_dealloc(PyDescrObject *descr) {
+  _PyObject_GC_UNTRACK(descr);
+  Py_XDECREF(descr->d_type);
+  Py_XDECREF(descr->d_name);
+  PyObject_GC_Del(descr);
+}
+
+SWIGINTERN PyObject *
+SwigPyStaticVar_repr(PyGetSetDescrObject *descr) {
+#if PY_VERSION_HEX >= 0x03000000
+  return PyUnicode_FromFormat("<class attribute '%U' of type '%s'>", descr->d_name, descr->d_type->tp_name);
+#else
+  return PyString_FromFormat("<class attribute '%s' of type '%s'>", PyString_AsString(descr->d_name), descr->d_type->tp_name);
+#endif
+}
+
+SWIGINTERN int
+SwigPyStaticVar_traverse(PyObject *self, visitproc visit, void *arg) {
+  PyDescrObject *descr = (PyDescrObject *)self;
+  Py_VISIT(descr->d_type);
+  return 0;
+}
+
+SWIGINTERN PyObject *
+SwigPyStaticVar_get(PyGetSetDescrObject *descr, PyObject *obj, PyObject *type) {
+  if (descr->d_getset->get != NULL)
+    return descr->d_getset->get(obj, descr->d_getset->closure);
+#if PY_VERSION_HEX >= 0x03000000
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300U' of '%.100s' objects is not readable", descr->d_name, descr->d_type->tp_name);
+#else
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not readable", PyString_AsString(descr->d_name), descr->d_type->tp_name);
+#endif
+  return NULL;
+}
+
+SWIGINTERN int
+SwigPyStaticVar_set(PyGetSetDescrObject *descr, PyObject *obj, PyObject *value) {
+  int res;
+
+  if (descr->d_getset->set != NULL)
+    return descr->d_getset->set(obj, value, descr->d_getset->closure);
+#if PY_VERSION_HEX >= 0x03000000
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300U' of '%.100s' objects is not writable", descr->d_name, descr->d_type->tp_name);
+#else
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not writable", PyString_AsString(descr->d_name), descr->d_type->tp_name);
+#endif
+  return -1;
 }
 
 SWIGINTERN PyTypeObject SwigPyStaticVar_Type = {
 #if PY_VERSION_HEX >= 0x03000000
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+  PyVarObject_HEAD_INIT(&PyType_Type, 0)
 #else
-    PyObject_HEAD_INIT(&PyType_Type)
-    0,
+  PyObject_HEAD_INIT(&PyType_Type)
+  0,
 #endif
-    "swig_static_var_getset_descriptor",
-    sizeof(PyGetSetDescrObject),
-    0,
-    (destructor)SwigPyStaticVar_dealloc, /* tp_dealloc */
-    0,					/* tp_print */
-    0,					/* tp_getattr */
-    0,					/* tp_setattr */
-    0,					/* tp_compare */
-    (reprfunc)SwigPyStaticVar_repr,	/* tp_repr */
-    0,					/* tp_as_number */
-    0,					/* tp_as_sequence */
-    0,					/* tp_as_mapping */
-    0,					/* tp_hash */
-    0,					/* tp_call */
-    0,					/* tp_str */
-    PyObject_GenericGetAttr,		/* tp_getattro */
-    0,					/* tp_setattro */
-    0,					/* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_HAVE_CLASS, /* tp_flags */
-    0,					/* tp_doc */
-    SwigPyStaticVar_traverse,		/* tp_traverse */
-    0,					/* tp_clear */
-    0,					/* tp_richcompare */
-    0,					/* tp_weaklistoffset */
-    0,					/* tp_iter */
-    0,					/* tp_iternext */
-    0,					/* tp_methods */
-    0,					/* tp_members */
-    0,					/* tp_getset */
-    0,					/* tp_base */
-    0,					/* tp_dict */
-    (descrgetfunc)SwigPyStaticVar_get,	/* tp_descr_get */
-    (descrsetfunc)SwigPyStaticVar_set,	/* tp_descr_set */
+  "swig_static_var_getset_descriptor",
+  sizeof(PyGetSetDescrObject),
+  0,
+  (destructor)SwigPyStaticVar_dealloc,  /* tp_dealloc */
+  0,					/* tp_print */
+  0,					/* tp_getattr */
+  0,					/* tp_setattr */
+  0,					/* tp_compare */
+  (reprfunc)SwigPyStaticVar_repr,	/* tp_repr */
+  0,					/* tp_as_number */
+  0,					/* tp_as_sequence */
+  0,					/* tp_as_mapping */
+  0,					/* tp_hash */
+  0,					/* tp_call */
+  0,					/* tp_str */
+  PyObject_GenericGetAttr,		/* tp_getattro */
+  0,					/* tp_setattro */
+  0,					/* tp_as_buffer */
+  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_HAVE_CLASS, /* tp_flags */
+  0,					/* tp_doc */
+  SwigPyStaticVar_traverse,		/* tp_traverse */
+  0,					/* tp_clear */
+  0,					/* tp_richcompare */
+  0,					/* tp_weaklistoffset */
+  0,					/* tp_iter */
+  0,					/* tp_iternext */
+  0,					/* tp_methods */
+  0,					/* tp_members */
+  0,					/* tp_getset */
+  0,					/* tp_base */
+  0,					/* tp_dict */
+  (descrgetfunc)SwigPyStaticVar_get,	/* tp_descr_get */
+  (descrsetfunc)SwigPyStaticVar_set,	/* tp_descr_set */
 };
 
 SWIGINTERN int
-SwigPyObjectType_setattro(PyTypeObject *type, PyObject *name, PyObject *value)
-{
-    PyObject *attribute = _PyType_Lookup(type, name);
-    if (attribute != NULL) {
-	/* Implement descriptor functionality, if any */
-	descrsetfunc local_set = attribute->ob_type->tp_descr_set;
-	if (local_set != NULL)
-	    return local_set(attribute, (PyObject*) type, value);
+SwigPyObjectType_setattro(PyTypeObject *type, PyObject *name, PyObject *value) {
+  PyObject *attribute = _PyType_Lookup(type, name);
+  if (attribute != NULL) {
+    /* Implement descriptor functionality, if any */
+    descrsetfunc local_set = attribute->ob_type->tp_descr_set;
+    if (local_set != NULL)
+      return local_set(attribute, (PyObject *)type, value);
 #if PY_VERSION_HEX >= 0x03000000
-	PyErr_Format(PyExc_AttributeError,
-		     "cannot modify read-only attribute '%.50s.%.400U'",
-		     type->tp_name, name);
-#else    
-	PyErr_Format(PyExc_AttributeError,
-		     "cannot modify read-only attribute '%.50s.%.400s'",
-		     type->tp_name, PyString_AS_STRING(name));
+    PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%.50s.%.400U'", type->tp_name, name);
+#else 
+    PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%.50s.%.400s'", type->tp_name, PyString_AS_STRING(name));
 #endif
-    } else {
+  } else {
 #if PY_VERSION_HEX >= 0x03000000
-	PyErr_Format(PyExc_AttributeError,
-		     "type '%.50s' has no attribute '%.400U'",
-		     type->tp_name, name);
+    PyErr_Format(PyExc_AttributeError, "type '%.50s' has no attribute '%.400U'", type->tp_name, name);
 #else
-	PyErr_Format(PyExc_AttributeError,
-		     "type '%.50s' has no attribute '%.400s'",
-		     type->tp_name, PyString_AS_STRING(name));
+    PyErr_Format(PyExc_AttributeError, "type '%.50s' has no attribute '%.400s'", type->tp_name, PyString_AS_STRING(name));
 #endif
-    }
+  }
 
-    return -1;
+  return -1;
 }
 
-SWIGINTERN PyGetSetDescrObject*
-SwigPyStaticVar_new_getset (PyTypeObject *type, PyGetSetDef *getset)
-{
-    PyGetSetDescrObject *descr = (PyGetSetDescrObject*) PyType_GenericAlloc(&SwigPyStaticVar_Type, 0);
-    assert(descr);
-    Py_XINCREF(type);
-    descr->d_type = type;
-    descr->d_name = PyString_InternFromString(getset->name);
-    descr->d_getset = getset;
-    if (descr->d_name == NULL) {
-	Py_DECREF(descr);
-	descr = NULL;
-    }
-    return descr;
+SWIGINTERN PyGetSetDescrObject *
+SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
+  PyGetSetDescrObject *descr = (PyGetSetDescrObject *)PyType_GenericAlloc(&SwigPyStaticVar_Type, 0);
+  assert(descr);
+  Py_XINCREF(type);
+  descr->d_type = type;
+  descr->d_name = PyString_InternFromString(getset->name);
+  descr->d_getset = getset;
+  if (descr->d_name == NULL) {
+    Py_DECREF(descr);
+    descr = NULL;
+  }
+  return descr;
 }
 
 #ifdef __cplusplus
@@ -473,27 +421,25 @@ SwigPyStaticVar_new_getset (PyTypeObject *type, PyGetSetDef *getset)
 #include <vector>
 
 SWIGINTERN void
-pyswig_builtin_init_bases (PyTypeObject *type, std::vector<PyTypeObject*>& bases)
-{
-    if (!bases.size())
-	bases.push_back(SwigPyObject_type());
-    type->tp_base = bases[0];
-    Py_INCREF((PyObject*) bases[0]);
-    PyObject *tuple = PyTuple_New(bases.size());
-    int i;
-    for (i = 0; i < bases.size(); ++i) {
-	PyTuple_SET_ITEM(tuple, i, (PyObject*) bases[i]);
-	Py_INCREF((PyObject*) bases[i]);
-    }
-    type->tp_bases = tuple;
+pyswig_builtin_init_bases(PyTypeObject *type, std::vector<PyTypeObject *> &bases) {
+  if (!bases.size())
+    bases.push_back(SwigPyObject_type());
+  type->tp_base = bases[0];
+  Py_INCREF((PyObject *)bases[0]);
+  PyObject *tuple = PyTuple_New(bases.size());
+  int i;
+  for (i = 0; i < bases.size(); ++i) {
+    PyTuple_SET_ITEM(tuple, i, (PyObject *)bases[i]);
+    Py_INCREF((PyObject *)bases[i]);
+  }
+  type->tp_bases = tuple;
 }
 
-SWIGINTERN PyObject*
-pyswig_this_closure (PyObject *self, void *closure)
-{
-    PyObject *result = (PyObject*) SWIG_Python_GetSwigThis(self);
-    Py_XINCREF(result);
-    return result;
-}	
+SWIGINTERN PyObject *
+pyswig_this_closure(PyObject *self, void *closure) {
+  PyObject *result = (PyObject *)SWIG_Python_GetSwigThis(self);
+  Py_XINCREF(result);
+  return result;
+}
 
 #endif

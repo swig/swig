@@ -240,9 +240,11 @@ public:
   }
   /* ------------------------------------------------------------
    * Thread Implementation
-   * ------------------------------------------------------------ */ int threads_enable(Node *n) const {
+   * ------------------------------------------------------------ */
+  int threads_enable(Node *n) const {
     return threads && !GetFlagAttr(n, "feature:nothread");
   }
+
   int initialize_threads(String *f_init) {
     if (!threads) {
       return SWIG_OK;
@@ -510,7 +512,7 @@ public:
 	}
 
       }
-    }				/* for */
+    }
 
     if (py3) {
       /* force disable features that not compatible with Python 3.x */
@@ -882,11 +884,11 @@ public:
 	   * But don't sure wether this would broken old Python?
 	   */
 	  Printv(f_shadow,
-		 //              "import types\n",
+//              "import types\n",
 		 "try:\n",
-		 //              "    _object = types.ObjectType\n",
+//              "    _object = types.ObjectType\n",
 		 "    _object = object\n", "    _newclass = 1\n", "except AttributeError:\n", "    class _object : pass\n", "    _newclass = 0\n",
-		 //                 "del types\n", 
+//                 "del types\n", 
 		 "\n\n", NIL);
 	}
       }
@@ -995,8 +997,6 @@ public:
     }
 
     Dump(f_wrappers, f_begin);
-    //if (builtin)
-    //Dump(f_builtins, f_begin);
     Wrapper_pretty_print(f_init, f_begin);
 
     Delete(f_header);
@@ -3186,7 +3186,7 @@ public:
     String *mname = SwigType_manglestr(rname);
 
     Printf(f_init, "\n// type '%s'\n", rname);
-    Printf(f_init, "    builtin_pytype = (PyTypeObject*) &SwigPyBuiltin_%s_type;\n", mname);
+    Printf(f_init, "    builtin_pytype = (PyTypeObject *)&SwigPyBuiltin_%s_type;\n", mname);
     Printf(f_init, "    builtin_pytype->tp_dict = d = PyDict_New();\n");
 
     Delete(rname);
@@ -3277,38 +3277,37 @@ public:
     // Rich compare function
     Hash *richcompare = Getattr(n, "richcompare");
     assert(richcompare);
-    Printf(f, "SWIGINTERN PyObject*\n");
-    Printf(f, "%s_richcompare (PyObject *self, PyObject *other, int op)\n", templ);
-    Printf(f, "{\n");
-    Printf(f, "    PyObject *result = NULL;\n");
+    Printf(f, "SWIGINTERN PyObject *\n");
+    Printf(f, "%s_richcompare(PyObject *self, PyObject *other, int op) {\n", templ);
+    Printf(f, "  PyObject *result = NULL;\n");
     if (!funpack) {
-      Printf(f, "    PyObject *tuple = PyTuple_New(1);\n");
-      Printf(f, "    assert(tuple);\n");
-      Printf(f, "    PyTuple_SET_ITEM(tuple, 0, other);\n");
-      Printf(f, "    Py_XINCREF(other);\n");
+      Printf(f, "  PyObject *tuple = PyTuple_New(1);\n");
+      Printf(f, "  assert(tuple);\n");
+      Printf(f, "  PyTuple_SET_ITEM(tuple, 0, other);\n");
+      Printf(f, "  Py_XINCREF(other);\n");
     }
-    Printf(f, "    switch (op) {\n");
+    Printf(f, "  switch (op) {\n");
     for (Iterator i = First(richcompare); i.item; i = Next(i))
       Printf(f, "    case %s : result = %s(self, %s); break;\n", i.key, i.item, funpack ? "other" : "tuple");
     Printv(f, "    default : break;\n", NIL);
-    Printf(f, "    }\n");
-    Printv(f, "    if (result == NULL) {\n", NIL);
-    Printv(f, "        if (SwigPyObject_Check(self) && SwigPyObject_Check(other)) {\n", NIL);
-    Printv(f, "            result = SwigPyObject_richcompare((SwigPyObject*) self, (SwigPyObject*) other, op);\n", NIL);
-    Printv(f, "        } else {\n", NIL);
-    Printv(f, "            result = Py_NotImplemented;\n", NIL);
-    Printv(f, "            Py_INCREF(result);\n", NIL);
-    Printv(f, "        }\n", NIL);
+    Printf(f, "  }\n");
+    Printv(f, "  if (!result) {\n", NIL);
+    Printv(f, "    if (SwigPyObject_Check(self) && SwigPyObject_Check(other)) {\n", NIL);
+    Printv(f, "      result = SwigPyObject_richcompare((SwigPyObject *)self, (SwigPyObject *)other, op);\n", NIL);
+    Printv(f, "    } else {\n", NIL);
+    Printv(f, "      result = Py_NotImplemented;\n", NIL);
+    Printv(f, "      Py_INCREF(result);\n", NIL);
     Printv(f, "    }\n", NIL);
+    Printv(f, "  }\n", NIL);
     if (!funpack)
-      Printf(f, "    Py_DECREF(tuple);\n");
-    Printf(f, "    return result;\n");
+      Printf(f, "  Py_DECREF(tuple);\n");
+    Printf(f, "  return result;\n");
     Printf(f, "}\n\n");
 
     // Methods
     Printf(f, "SWIGINTERN PyMethodDef %s_methods[] = {\n", templ);
     Dump(builtin_methods, f);
-    Printf(f, "    {NULL} // Sentinel\n};\n\n");
+    Printf(f, "  {NULL} // Sentinel\n};\n\n");
 
     // No instance dict for nondynamic objects
     if (GetFlag(n, "feature:python:nondynamic"))
@@ -3502,7 +3501,7 @@ public:
       Printf(clientdata_klass, "(PyObject*) &%s_type", templ);
     }
 
-    Printf(f, "SWIGINTERN SwigPyClientData %s_clientdata = {%s, 0, 0, 0, 0, 0, (PyTypeObject*) &%s_type};\n\n", templ, clientdata_klass, templ);
+    Printf(f, "SWIGINTERN SwigPyClientData %s_clientdata = {%s, 0, 0, 0, 0, 0, (PyTypeObject *)&%s_type};\n\n", templ, clientdata_klass, templ);
 
     Printv(f_init, "    if (PyType_Ready(builtin_pytype) < 0) {\n", NIL);
     Printf(f_init, "      PyErr_SetString(PyExc_TypeError, \"Couldn't create type '%s'\");\n", symname);
