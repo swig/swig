@@ -931,7 +931,8 @@ public:
     add_pyinstancemethod_new();
 
     if (builtin) {
-      String *s = NewString("p.SwigPyObject");
+      SwigType *s = NewString("SwigPyObject");
+      SwigType_add_pointer(s);
       SwigType_remember(s);
       Delete(s);
     }
@@ -2126,7 +2127,7 @@ public:
 	for (Node *sibling = n; sibling; sibling = Getattr(sibling, "sym:nextSibling"))
 	  Setattr(sibling, "sym:over_varargs", over_varargs_attr);
       }
-      if (strcmp(Char(over_varargs_attr), "0"))
+      if (Strcmp(over_varargs_attr, "0") != 0)
 	over_varargs = true;
     }
 
@@ -3249,7 +3250,7 @@ public:
     Printv(f_init, "PyDict_SetItemString(d, \"thisown\", thisown_descr);\n", NIL);
 
     // Now, the rest of the attributes
-    for (DohIterator member_iter = First(builtin_getset); member_iter.item; member_iter = Next(member_iter)) {
+    for (Iterator member_iter = First(builtin_getset); member_iter.item; member_iter = Next(member_iter)) {
       String *memname = member_iter.key;
       Hash *mgetset = member_iter.item;
       String *getter = Getattr(mgetset, "getter");
@@ -4169,19 +4170,19 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int destructorHandler(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+    int oldshadow = shadow;
+
     if (builtin && in_class) {
       Node *cls = Swig_methodclass(n);
       if (!Getattr(cls, "feature:tp_dealloc")) {
-	String *dealloc = Swig_name_destroy(NSPACE_TODO, Getattr(cls, "sym:name"));
+	String *dealloc = Swig_name_destroy(NSPACE_TODO, symname);
 	String *wdealloc = Swig_name_wrapper(dealloc);
 	Setattr(cls, "feature:tp_dealloc", wdealloc);
 	Delete(wdealloc);
 	Delete(dealloc);
       }
     }
-
-    String *symname = Getattr(n, "sym:name");
-    int oldshadow = shadow;
 
     if (shadow)
       shadow = shadow | PYSHADOW_MEMBER;
