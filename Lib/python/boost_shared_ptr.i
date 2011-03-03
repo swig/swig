@@ -314,10 +314,6 @@
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 
 
-// Separate out the code for builtin types, since it's pretty extensive.
-// I feel compelled to point out that the functionality provided by
-// smart pointers is utterly redundant when using builtin types.
-
 #if defined(SWIGPYTHON_BUILTIN)
 
 %typemap(builtin_init, fragment="SWIG_null_deleter") CONST TYPE * {

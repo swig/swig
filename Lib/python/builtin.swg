@@ -184,13 +184,13 @@ wrapper##_closure (PyObject *a)			\
     return result;				\
 }
 
-SWIGRUNTIME int py_builtin_bad_init (PyObject *self, PyObject *args, PyObject *kwds)
+SWIGINTERN int py_builtin_bad_init (PyObject *self, PyObject *args, PyObject *kwds)
 {
     PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", self->ob_type->tp_name);
     return -1;
 }
 
-SWIGRUNTIME void py_builtin_bad_dealloc (PyObject *pyobj)
+SWIGINTERN void py_builtin_bad_dealloc (PyObject *pyobj)
 {
     SwigPyObject *sobj = (SwigPyObject*) pyobj;
     if (sobj->own) {
@@ -205,7 +205,7 @@ typedef struct {
     PyCFunction set;
 } SwigPyGetSet;
 
-SWIGRUNTIME PyObject*
+SWIGINTERN PyObject*
 pyswig_getter_closure (PyObject *obj, void *closure)
 {
     if (!closure)
@@ -220,7 +220,7 @@ pyswig_getter_closure (PyObject *obj, void *closure)
     return result;
 }
 
-SWIGRUNTIME PyObject*
+SWIGINTERN PyObject*
 pyswig_funpack_getter_closure (PyObject *obj, void *closure)
 {
     if (!closure)
@@ -232,7 +232,7 @@ pyswig_funpack_getter_closure (PyObject *obj, void *closure)
     return result;
 }
 
-SWIGRUNTIME int
+SWIGINTERN int
 pyswig_setter_closure (PyObject *obj, PyObject *val, void *closure)
 {
     if (!closure) {
@@ -254,7 +254,7 @@ pyswig_setter_closure (PyObject *obj, PyObject *val, void *closure)
     return result ? 0 : -1;
 }
 
-SWIGRUNTIME int
+SWIGINTERN int
 pyswig_funpack_setter_closure (PyObject *obj, PyObject *val, void *closure)
 {
     if (!closure) {
@@ -271,7 +271,7 @@ pyswig_funpack_setter_closure (PyObject *obj, PyObject *val, void *closure)
     return result ? 0 : -1;
 }
 
-SWIGRUNTIME PyObject*
+SWIGINTERN PyObject*
 pyswig_static_getter_closure (PyObject *obj, void *closure)
 {
     if (!closure)
@@ -286,7 +286,7 @@ pyswig_static_getter_closure (PyObject *obj, void *closure)
     return result;
 }
 
-SWIGRUNTIME int
+SWIGINTERN int
 pyswig_static_setter_closure (PyObject *obj, PyObject *val, void *closure)
 {
     if (!closure) {
@@ -308,7 +308,7 @@ pyswig_static_setter_closure (PyObject *obj, PyObject *val, void *closure)
     return result ? 0 : -1;
 }
 
-SWIGRUNTIME void
+SWIGINTERN void
 SwigPyStaticVar_dealloc(PyDescrObject *descr)
 {
     _PyObject_GC_UNTRACK(descr);
@@ -317,7 +317,7 @@ SwigPyStaticVar_dealloc(PyDescrObject *descr)
     PyObject_GC_Del(descr);
 }
 
-SWIGRUNTIME PyObject *
+SWIGINTERN PyObject *
 SwigPyStaticVar_repr(PyGetSetDescrObject *descr)
 {
 #if PY_VERSION_HEX >= 0x03000000
@@ -331,7 +331,7 @@ SwigPyStaticVar_repr(PyGetSetDescrObject *descr)
 #endif
 }
 
-SWIGRUNTIME int
+SWIGINTERN int
 SwigPyStaticVar_traverse(PyObject *self, visitproc visit, void *arg)
 {
     PyDescrObject *descr = (PyDescrObject *)self;
@@ -339,7 +339,7 @@ SwigPyStaticVar_traverse(PyObject *self, visitproc visit, void *arg)
     return 0;
 }
 
-SWIGRUNTIME PyObject *
+SWIGINTERN PyObject *
 SwigPyStaticVar_get (PyGetSetDescrObject *descr, PyObject *obj, PyObject *type)
 {
     if (descr->d_getset->get != NULL)
@@ -356,7 +356,7 @@ SwigPyStaticVar_get (PyGetSetDescrObject *descr, PyObject *obj, PyObject *type)
     return NULL;
 }
 
-SWIGRUNTIME int
+SWIGINTERN int
 SwigPyStaticVar_set (PyGetSetDescrObject *descr, PyObject *obj, PyObject *value)
 {
     int res;
@@ -377,7 +377,7 @@ SwigPyStaticVar_set (PyGetSetDescrObject *descr, PyObject *obj, PyObject *value)
     return -1;
 }
 
-SWIGRUNTIME PyTypeObject SwigPyStaticVar_Type = {
+SWIGINTERN PyTypeObject SwigPyStaticVar_Type = {
 #if PY_VERSION_HEX >= 0x03000000
     PyVarObject_HEAD_INIT(&PyType_Type, 0)
 #else
@@ -419,7 +419,7 @@ SWIGRUNTIME PyTypeObject SwigPyStaticVar_Type = {
     (descrsetfunc)SwigPyStaticVar_set,	/* tp_descr_set */
 };
 
-SWIGRUNTIME int
+SWIGINTERN int
 SwigPyObjectType_setattro(PyTypeObject *type, PyObject *name, PyObject *value)
 {
     PyObject *attribute = _PyType_Lookup(type, name);
