@@ -982,7 +982,11 @@ public:
     /* Error handling code */
     Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
-    Printv(f->code, "SWIG_ZEND_ERROR_NORETURN(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
+    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+     * using zend_error() here shouldn't generate a warning, so just use that.
+     * At worst this may result in slightly less good code.
+     */
+    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
 
     Printf(f->code, "}\n");
 
@@ -2301,7 +2305,11 @@ done:
 
     Append(f->code, "return;\n");
     Append(f->code, "fail:\n");
-    Append(f->code, "SWIG_ZEND_ERROR_NORETURN(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+     * using zend_error() here shouldn't generate a warning, so just use that.
+     * At worst this may result in slightly less good code.
+     */
+    Append(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
     Printf(f->code, "}\n");
 
     Wrapper_print(f, s_wrappers);
@@ -2676,7 +2684,15 @@ done:
     }
 
     Append(w->code, "fail:\n");
-    Append(w->code, "SWIG_ZEND_ERROR_NORETURN(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    if (!is_void) {
+      Append(w->code, "SWIG_ZEND_ERROR_NORETURN(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    } else {
+      /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+       * using zend_error() here shouldn't generate a warning, so just use that.
+       * At worst this may result in slightly less good code.
+       */
+      Append(w->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    }
     Append(w->code, "}\n");
 
     // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method

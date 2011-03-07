@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.3 (in progress)
 ===========================
 
+2011-03-07: olly
+	    [PHP] Don't use zend_error_noreturn() for cases where the function
+	    returns void - now this issue can only matter if you have a function
+	    or method which is directed and returns non-void.
+
 2011-03-06: olly
 	    [PHP] Add casts to the typemaps for long long and unsigned long
 	    long to avoid issues when they are used with shorter types via
