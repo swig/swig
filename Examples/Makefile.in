@@ -781,7 +781,7 @@ PHP=@PHP@
 PHPSCRIPT ?= runme.php
 
 php_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off $(PHPSCRIPT)
+	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off $(PHPSCRIPT)
 
 # -----------------------------------------------------------------
 # Cleaning the PHP examples
