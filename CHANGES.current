@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.3 (in progress)
 ===========================
 
+2011-03-06: olly
+	    [PHP] Add casts to the typemaps for long long and unsigned long
+	    long to avoid issues when they are used with shorter types via
+	    %apply.
+
 2011-03-02: wsfulton
 	    Templated smart pointers overloaded with both const and non const operator-> generated uncompilable
 	    code when the pointee was a class with either public member variables or static methods.

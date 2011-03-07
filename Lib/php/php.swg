@@ -201,7 +201,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%lld", $1);
+    sprintf(temp, "%lld", (long long)$1);
     ZVAL_STRING(return_value, temp, 1);
   }
 %}
@@ -212,7 +212,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%llu", $1);
+    sprintf(temp, "%llu", (unsigned long long)$1);
     ZVAL_STRING(return_value, temp, 1);
   }
 %}
@@ -239,7 +239,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%lld", *$1);
+    sprintf(temp, "%lld", (long long)(*$1));
     ZVAL_STRING(return_value, temp, 1);
   }
 %}
@@ -250,7 +250,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%llu", *$1);
+    sprintf(temp, "%llu", (unsigned long long)(*$1));
     ZVAL_STRING(return_value, temp, 1);
   }
 %}

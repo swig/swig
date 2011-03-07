@@ -134,7 +134,7 @@ INT_TYPEMAP(long long);
     ZVAL_LONG(o, temp$argnum);
   } else {
     char temp[256];
-    sprintf(temp, "%lld", temp$argnum);
+    sprintf(temp, "%lld", (long long)temp$argnum);
     ZVAL_STRING(o, temp, 1);
   }
   t_output_helper( &$result, o );
@@ -151,7 +151,7 @@ INT_TYPEMAP(long long);
     (*$arg)->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%lld", lvalue$argnum);
+    sprintf(temp, "%lld", (long long)lvalue$argnum);
     ZVAL_STRING((*$arg), temp, 1);
   }
 %}
@@ -162,7 +162,7 @@ INT_TYPEMAP(long long);
     ($result)->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%lld", *arg$argnum);
+    sprintf(temp, "%lld", (long long)(*arg$argnum));
     ZVAL_STRING($result, temp, 1);
   }
 %}
@@ -175,7 +175,7 @@ INT_TYPEMAP(unsigned long long);
     ZVAL_LONG(o, temp$argnum);
   } else {
     char temp[256];
-    sprintf(temp, "%llu", temp$argnum);
+    sprintf(temp, "%llu", (unsigned long long)temp$argnum);
     ZVAL_STRING(o, temp, 1);
   }
   t_output_helper( &$result, o );
@@ -192,7 +192,7 @@ INT_TYPEMAP(unsigned long long);
     (*$arg)->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%llu", lvalue$argnum);
+    sprintf(temp, "%llu", (unsigned long long)lvalue$argnum);
     ZVAL_STRING((*$arg), temp, 1);
   }
 %}
@@ -203,7 +203,7 @@ INT_TYPEMAP(unsigned long long);
     ($result)->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%llu", *arg$argnum);
+    sprintf(temp, "%llu", (unsigned long long)(*arg$argnum));
     ZVAL_STRING($result, temp, 1);
   }
 %}
