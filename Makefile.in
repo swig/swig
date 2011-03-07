@@ -496,7 +496,7 @@ srcrpm:
 
 # Update the autoconf files for detecting host/targets. Automake will do this in
 # version 1.10 for our case of not having a top level Makefile.am. Until then we
-# can fetch them manually and will have to commit them to CVS.
+# can fetch them manually and will have to commit them to SVN.
 configfiles:
 	wget ftp://ftp.gnu.org/pub/gnu/config/config.guess -O Tools/config/config.guess
 	chmod a+x Tools/config/config.guess
