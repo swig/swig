@@ -4172,5 +4172,5 @@ C# Options (available with -csharp)\n\
      -namespace <nm> - Generate wrappers into C# namespace <nm>\n\
      -noproxy        - Generate the low-level functional interface instead\n\
                        of proxy classes\n\
-     -oldvarnames    - old intermediary method names for variable wrappers\n\
+     -oldvarnames    - Old intermediary method names for variable wrappers\n\
 \n";

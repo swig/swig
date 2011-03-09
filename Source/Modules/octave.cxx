@@ -18,7 +18,7 @@ char cvsroot_octave_cxx[] = "$Id$";
 static const char *usage = (char *) "\
 Octave Options (available with -octave)\n\
      [no additional options]\n\
-     \n";
+\n";
 
 
 class OCTAVE:public Language {
@@ -64,7 +64,7 @@ public:
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
-	  fputs(usage, stderr);
+	  fputs(usage, stdout);
 	}
       }
     }

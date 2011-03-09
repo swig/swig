@@ -17,17 +17,17 @@ char cvsroot_chicken_cxx[] = "$Id$";
 
 #include <ctype.h>
 
-static const char *chicken_usage = (char *) "\
+static const char *usage = (char *) "\
 \
 CHICKEN Options (available with -chicken)\n\
-     -proxy                 - Export TinyCLOS class definitions\n\
      -closprefix <prefix>   - Prepend <prefix> to all clos identifiers\n\
-     -useclassprefix        - Prepend the class name to all clos identifiers\n\
-     -unhideprimitive       - Unhide the primitive: symbols\n\
-     -nounit                - Do not (declare (unit ...)) in scheme file\n\
      -noclosuses            - Do not (declare (uses ...)) in scheme file\n\
      -nocollection          - Do not register pointers with chicken garbage\n\
                               collector and export destructors\n\
+     -nounit                - Do not (declare (unit ...)) in scheme file\n\
+     -proxy                 - Export TinyCLOS class definitions\n\
+     -unhideprimitive       - Unhide the primitive: symbols\n\
+     -useclassprefix        - Prepend the class name to all clos identifiers\n\
 \n";
 
 static char *module = 0;
@@ -137,7 +137,7 @@ void CHICKEN::main(int argc, char *argv[]) {
   for (i = 1; i < argc; i++) {
     if (argv[i]) {
       if (strcmp(argv[i], "-help") == 0) {
-	fputs(chicken_usage, stdout);
+	fputs(usage, stdout);
 	SWIG_exit(0);
       } else if (strcmp(argv[i], "-proxy") == 0) {
 	clos = 1;

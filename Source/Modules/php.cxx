@@ -46,7 +46,7 @@ char cvsroot_php_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 PHP Options (available with -php)\n\
-     -cppext          - cpp file extension (default to .cpp)\n\
+     -cppext <ext>    - Change C++ file extension to <ext> (default is cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";

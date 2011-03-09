@@ -3975,10 +3975,10 @@ extern "C" Language *swig_modula3(void) {
 
 const char *MODULA3::usage = (char *) "\
 Modula 3 Options (available with -modula3)\n\
-     -generateconst <file>   - generate code for computing numeric values of constants\n\
-     -generaterename <file>  - generate suggestions for %rename\n\
-     -generatetypemap <file> - generate templates for some basic typemaps\n\
-     -oldvarnames    - old intermediary method names for variable wrappers\n\
+     -generateconst <file>   - Generate code for computing numeric values of constants\n\
+     -generaterename <file>  - Generate suggestions for %rename\n\
+     -generatetypemap <file> - Generate templates for some basic typemaps\n\
+     -oldvarnames            - Old intermediary method names for variable wrappers\n\
 \n";
 
 /*

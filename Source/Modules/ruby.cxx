@@ -131,16 +131,17 @@ enum autodoc_t {
   AUTODOC_SETTER
 };
 
-static const char *usage = "\
+static const char *usage = (char *) "\
 Ruby Options (available with -ruby)\n\
-     -globalmodule   - Wrap everything into the global module\n\
-     -minherit       - Attempt to support multiple inheritance\n\
-     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
-     -cppcast        - Enable C++ casting operators (default)\n\
      -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
+     -cppcast        - Enable C++ casting operators (default)\n\
+     -globalmodule   - Wrap everything into the global module\n\
+     -initname <name>- Set entry function to Init_<name> (used by `require')\n\
+     -minherit       - Attempt to support multiple inheritance\n\
      -noautorename   - Disable renaming of classes and methods (default)\n\
+     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
-     -initname <name> - Set entry function to Init_<name> (used by `require')\n";
+";
 
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)

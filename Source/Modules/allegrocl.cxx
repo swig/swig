@@ -22,6 +22,21 @@ char cvsroot_allegrocl_cxx[] = "$Id$";
 // #define ALLEGROCL_TYPE_DEBUG
 // #define ALLEGROCL_CLASS_DEBUG
 
+static const char *usage = (char *) "\
+Allegro CL Options (available with -allegrocl)\n\
+     -identifier-converter <type or funcname> - \n\
+                       Specifies the type of conversion to do on C identifiers to convert\n\
+                       them to symbols. There are two built-in converters: 'null' and\n\
+                       'lispify'. The default is 'null'. If you supply a name other\n\
+                       than one of the built-ins, then a function by that name will be\n\
+                       called to convert identifiers to symbols.\n\
+     -[no]cwrap      - Turn on or turn off generation of an intermediate C file when\n\
+                       creating a C interface. By default this is only done for C++ code.\n\
+     -isolate        - Define all SWIG helper functions in a package unique to this\n\
+                       module. Avoids redefinition warnings when loading multiple\n\
+                       SWIGged modules into the same running Allegro CL image.\n\
+";
+
 static File *f_cl = 0;
 String *f_clhead = NewString("");
 String *f_clwrap = NewString("(swig-in-package ())\n\n");
@@ -1587,21 +1602,7 @@ void ALLEGROCL::main(int argc, char *argv[]) {
     }
 
     if (!strcmp(argv[i], "-help")) {
-      fprintf(stdout, "Allegro CL Options (available with -allegrocl)\n");
-      fprintf(stdout,
-	      "    -identifier-converter <type or funcname>\n"
-	      "\tSpecifies the type of conversion to do on C identifiers to convert\n"
-	      "\tthem to symbols.  There are two built-in converters:  'null' and\n"
-	      "\t 'lispify'.  The default is 'null'.  If you supply a name other\n"
-	      "\tthan one of the built-ins, then a function by that name will be\n"
-	      "\tcalled to convert identifiers to symbols.\n"
-	      "\n"
-	      "   -[no]cwrap\n"
-	      "\tTurn on or turn off generation of an intermediate C file when\n" "\tcreating a C interface. By default this is only done for C++ code.\n"
-	      "   -isolate\n"
-	      "Define all SWIG helper functions in a package unique to this module. Avoids redefinition warnings when loading multiple SWIGged modules\n"
-	      "into the same running Allegro CL image.\n");
-
+      Printf(stdout, "%s\n", usage);
     }
 
   }
@@ -3230,3 +3231,4 @@ int ALLEGROCL::templateDeclaration(Node *n) {
 
   return SWIG_OK;
 }
+

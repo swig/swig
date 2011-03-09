@@ -82,8 +82,9 @@ void display_mapping(DOH *d) {
  (though for now I have not bothered)
 NEW LANGUAGE NOTE:END ************************************************/
 static const char *usage = (char *) "\
-                           Lua Options (available with -lua)\n\
-                           (coming soon.)\n\n";
+Lua Options (available with -lua)\n\
+     [no additional options]\n\
+\n";
 
 
 
@@ -170,7 +171,7 @@ public:
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {	// usage flags
-          fputs(usage, stderr);
+          fputs(usage, stdout);
         }
       }
     }

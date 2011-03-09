@@ -17,6 +17,17 @@ char cvsroot_uffi_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
+static const char *usage = (char *) "\
+UFFI Options (available with -uffi)\n\
+     -identifier-converter <type or funcname> - \n\
+                       Specifies the type of conversion to do on C identifiers\n\
+                       to convert them to symbols. There are two built-in\n\
+                       converters: 'null' and 'lispify'. The default is\n\
+                       'null'. If you supply a name other than one of the\n\
+                       built-ins, then a function by that name will be\n\
+                       called to convert identifiers to symbols.\n\
+";
+
 class UFFI:public Language {
 public:
 
@@ -222,14 +233,7 @@ void UFFI::main(int argc, char *argv[]) {
     }
 
     if (!strcmp(argv[i], "-help")) {
-      fprintf(stdout, "UFFI Options (available with -uffi)\n");
-      fprintf(stdout,
-	      "    -identifier-converter <type or funcname>\n"
-	      "\tSpecifies the type of conversion to do on C identifiers to convert\n"
-	      "\tthem to symbols.  There are two built-in converters:  'null' and\n"
-	      "\t 'lispify'.  The default is 'null'.  If you supply a name other\n"
-	      "\tthan one of the built-ins, then a function by that name will be\n"
-	      "\tcalled to convert identifiers to symbols.\n");
+      Printf(stdout, "%s\n", usage);
     }
   }
 }

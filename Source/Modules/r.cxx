@@ -215,12 +215,15 @@ R Options (available with -r)\n\
      -copystruct      - Emit R code to copy C structs (on by default)\n\
      -cppcast         - Enable C++ casting operators (default) \n\
      -debug           - Output debug\n\
-     -dll <name>      - Name of the DLL (without the .dll or .so suffix). Default is the module name.\n\
+     -dll <name>      - Name of the DLL (without the .dll or .so suffix).\n\
+                        Default is the module name.\n\
      -gc              - Aggressive garbage collection\n\
      -memoryprof      - Add memory profile\n\
      -namespace       - Output NAMESPACE file\n\
-     -no-init-code    - Turn off the generation of the R_init_<pkgname> code (registration information still generated)\n\
-     -package <name>  - Package name for the PACKAGE argument of the R .Call() invocations. Default is the module name.\n\
+     -no-init-code    - Turn off the generation of the R_init_<pkgname> code\n\
+                        (registration information still generated)\n\
+     -package <name>  - Package name for the PACKAGE argument of the R .Call()\n\
+                        invocations. Default is the module name.\n\
 ";
 
 

@@ -18,19 +18,15 @@ char cvsroot_guile_cxx[] = "$Id$";
 #include <ctype.h>
 
 // Note string broken in half for compilers that can't handle long strings
-static const char *guile_usage = (char *) "\
+static const char *usage = (char *) "\
 Guile Options (available with -guile)\n\
-     -prefix <name>          - Use <name> as prefix [default \"gswig_\"]\n\
-     -package <name>         - Set the path of the module to <name>\n\
-                               (default NULL)\n\
      -emitsetters            - Emit procedures-with-setters for variables\n\
                                and structure slots.\n\
-     -onlysetters            - Don't emit traditional getter and setter\n\
-                               procedures for structure slots,\n\
-                               only emit procedures-with-setters.\n\
-     -procdoc <file>         - Output procedure documentation to <file>\n\
-     -procdocformat <format> - Output procedure documentation in <format>;\n\
-                               one of `guile-1.4', `plain', `texinfo'\n\
+     -emitslotaccessors      - Emit accessor methods for all GOOPS slots\n" "\
+     -exportprimitive        - Add the (export ...) code from scmstub into the\n\
+                               GOOPS file.\n\
+     -gh                     - Use the gh_ Guile API. (Guile <= 1.8) \n\
+     -goopsprefix <prefix>   - Prepend <prefix> to all goops identifiers\n\
      -linkage <lstyle>       - Use linkage protocol <lstyle> (default `simple')\n\
                                Use `module' for native Guile module linking\n\
                                (requires Guile >= 1.5.0).  Use `passive' for\n\
@@ -38,18 +34,23 @@ Guile Options (available with -guile)\n\
                                `ltdlmod' for Guile's old dynamic module\n\
                                convention (Guile <= 1.4), or `hobbit' for hobbit\n\
                                modules.\n\
-     -scmstub                - Output Scheme file with module declaration and\n\
-                               exports; only with `passive' and `simple' linkage\n\
-     -gh                     - Use the gh_ Guile API. (Guile <= 1.8) \n\
-     -scm                    - Use the scm Guile API. (Guile >= 1.6, default) \n\
+     -onlysetters            - Don't emit traditional getter and setter\n\
+                               procedures for structure slots,\n\
+                               only emit procedures-with-setters.\n\
+     -package <name>         - Set the path of the module to <name>\n\
+                               (default NULL)\n\
+     -prefix <name>          - Use <name> as prefix [default \"gswig_\"]\n\
+     -procdoc <file>         - Output procedure documentation to <file>\n\
+     -procdocformat <format> - Output procedure documentation in <format>;\n\
+                               one of `guile-1.4', `plain', `texinfo'\n\
      -proxy                  - Export GOOPS class definitions\n\
-     -emitslotaccessors      - Emit accessor methods for all GOOPS slots\n" "\
      -primsuffix <suffix>    - Name appended to primitive module when exporting\n\
                                GOOPS classes. (default = \"primitive\")\n\
-     -goopsprefix <prefix>   - Prepend <prefix> to all goops identifiers\n\
+     -scm                    - Use the scm Guile API. (Guile >= 1.6, default) \n\
+     -scmstub                - Output Scheme file with module declaration and\n\
+                               exports; only with `passive' and `simple' linkage\n\
      -useclassprefix         - Prepend the class name to all goops identifiers\n\
-     -exportprimitive        - Add the (export ...) code from scmstub into the\n\
-                               GOOPS file.\n";
+\n";
 
 static File *f_begin = 0;
 static File *f_runtime = 0;
@@ -135,7 +136,7 @@ public:
     for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
-	  fputs(guile_usage, stdout);
+	  fputs(usage, stdout);
 	  SWIG_exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {

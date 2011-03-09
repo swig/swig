@@ -37,7 +37,7 @@ char cvsroot_pike_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 Pike Options (available with -pike)\n\
-     [None]\n\
+     [no additional options]\n\
 \n";
 
 class PIKE:public Language {

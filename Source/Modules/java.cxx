@@ -4394,6 +4394,6 @@ Java Options (available with -java)\n\
      -nopgcpp        - Suppress premature garbage collection prevention parameter\n\
      -noproxy        - Generate the low-level functional interface instead\n\
                        of proxy classes\n\
-     -oldvarnames    - old intermediary method names for variable wrappers\n\
-     -package <name> - set name of the Java package to <name>\n\
+     -oldvarnames    - Old intermediary method names for variable wrappers\n\
+     -package <name> - Set name of the Java package to <name>\n\
 \n";

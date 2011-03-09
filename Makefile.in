@@ -96,24 +96,28 @@ check-aliveness:
 	test -x ./$(TARGET)
 	./$(TARGET) -version
 	./$(TARGET) -help
-	@$(skip-tcl)      || ./$(TARGET) -tcl      -help
-	@$(skip-perl5)    || ./$(TARGET) -perl     -help
-	@$(skip-python)   || ./$(TARGET) -python   -help
-	@$(skip-java)     || ./$(TARGET) -java     -help
-	@$(skip-guile)    || ./$(TARGET) -guile    -help
-	@$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
-	@$(skip-ruby)     || ./$(TARGET) -ruby     -help
-	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
-	@$(skip-octave)   || ./$(TARGET) -octave   -help
-	@$(skip-php)      || ./$(TARGET) -php      -help
-	@$(skip-pike)     || ./$(TARGET) -pike     -help
-	@$(skip-chicken)  || ./$(TARGET) -chicken  -help
-	@$(skip-csharp)   || ./$(TARGET) -csharp   -help
-	@$(skip-modula3)  || ./$(TARGET) -modula3  -help
-	@$(skip-lua)      || ./$(TARGET) -lua      -help
-	@$(skip-r) 	  || ./$(TARGET) -r        -help
-	@$(skip-go)	  || ./$(TARGET) -go       -help
-	@$(skip-d) 	  || ./$(TARGET) -d        -help
+	@$(skip-tcl)      || ./$(TARGET) -tcl        -help
+	@$(skip-perl5)    || ./$(TARGET) -perl       -help
+	@$(skip-python)   || ./$(TARGET) -python     -help
+	@$(skip-java)     || ./$(TARGET) -java       -help
+	@$(skip-guile)    || ./$(TARGET) -guile      -help
+	@$(skip-mzscheme) || ./$(TARGET) -mzscheme   -help
+	@$(skip-ruby)     || ./$(TARGET) -ruby       -help
+	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
+	@$(skip-octave)   || ./$(TARGET) -octave     -help
+	@$(skip-php)      || ./$(TARGET) -php        -help
+	@$(skip-pike)     || ./$(TARGET) -pike       -help
+	@$(skip-chicken)  || ./$(TARGET) -chicken    -help
+	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
+	@$(skip-modula3)  || ./$(TARGET) -modula3    -help
+	@$(skip-allegrocl)|| ./$(TARGET) -allegrocl  -help
+	@$(skip-clisp)    || ./$(TARGET) -clisp      -help
+	@$(skip-uffi)     || ./$(TARGET) -uffi       -help
+	@$(skip-cffi)     || ./$(TARGET) -cffi       -help
+	@$(skip-lua)      || ./$(TARGET) -lua        -help
+	@$(skip-r) 	  || ./$(TARGET) -r          -help
+	@$(skip-go)	  || ./$(TARGET) -go         -help
+	@$(skip-d) 	  || ./$(TARGET) -d          -help
 
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)

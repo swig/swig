@@ -20,6 +20,19 @@ char cvsroot_cffi_cxx[] = "$Id$";
 //#define CFFI_DEBUG
 //#define CFFI_WRAP_DEBUG
 
+static const char *usage = (char *) "\
+CFFI Options (available with -cffi)\n\
+     -generate-typedef - Use defctype to generate shortcuts according to the\n\
+                         typedefs in the input.\n\
+     -[no]cwrap        - Turn on or turn off generation of an intermediate C\n\
+                         file when creating a C interface. By default this is\n\
+                         only done for C++ code.\n\
+     -[no]swig-lisp    - Turn on or off generation of code for helper lisp\n\
+                         macro, functions, etc. which SWIG uses while\n\
+                         generating wrappers. These macros, functions may still\n\
+                         be used by generated wrapper code.\n\
+";
+
 class CFFI:public Language {
 public:
   String *f_cl;
@@ -80,17 +93,7 @@ void CFFI::main(int argc, char *argv[]) {
   CWrap = false;
   for (i = 1; i < argc; i++) {
     if (!Strcmp(argv[i], "-help")) {
-      Printf(stdout, "cffi Options (available with -cffi)\n");
-      Printf(stdout,
-       "   -generate-typedef\n"
-       "\tIf this option is given then defctype will be used to generate\n"
-       "\tshortcuts according to the typedefs in the input.\n"
-       "   -[no]cwrap\n"
-       "\tTurn on or turn off generation of an intermediate C file when\n"
-       "\tcreating a C interface. By default this is only done for C++ code.\n"
-       "   -[no]swig-lisp\n"
-       "\tTurns on or off generation of code for helper lisp macro, functions,\n"
-       "\tetc. which SWIG uses while generating wrappers. These macros, functions\n" "\tmay still be used by generated wrapper code.\n");
+      Printf(stdout, "%s\n", usage);
     } else if (!strcmp(argv[i], "-cwrap")) {
       CWrap = true;
       Swig_mark_arg(i);
