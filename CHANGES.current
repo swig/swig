@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.3 (in progress)
 ===========================
 
+2011-03-09: wsfulton
+	    [Python] Fix SF #3194294 - corner case bug when 'NULL' is used as the default value
+            for a primitive type parameter in a method declaration.
+
 2011-03-07: olly
 	    [PHP] Don't use zend_error_noreturn() for cases where the function
 	    returns void - now this issue can only matter if you have a function

@@ -148,6 +148,7 @@ CPP_TEST_CASES += \
 	cpp_static \
 	cpp_typedef \
 	default_args \
+	default_arg_values \
 	default_constructor \
 	defvalue_constructor \
 	derived_byvalue \

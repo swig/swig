@@ -1437,7 +1437,7 @@ public:
       if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
 	return NewString("False");
       if (Strcmp(v, "NULL") == 0)
-	return NewString("None");
+	return SwigType_ispointer(t) ? NewString("None") : NewString("0");
     }
     return 0;
   }
