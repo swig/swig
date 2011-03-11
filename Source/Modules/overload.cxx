@@ -231,11 +231,12 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
 				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
 		    } else {
-		      if (!Getattr(nodes[j].n, "overload:ignore"))
+		      if (!Getattr(nodes[j].n, "overload:ignore")) {
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
 				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		      }
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -248,11 +249,12 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
 				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
 		    } else {
-		      if (!Getattr(nodes[j].n, "overload:ignore"))
+		      if (!Getattr(nodes[j].n, "overload:ignore")) {
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
 				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		      }
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -270,11 +272,12 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[i].n), Getline(nodes[i].n),
 			     "as it is shadowed by %s.\n", Swig_name_decl(nodes[i].n));
 	      } else {
-		if (!Getattr(nodes[j].n, "overload:ignore"))
+		if (!Getattr(nodes[j].n, "overload:ignore")) {
 		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 			       "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
 		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
 			       "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		}
 	      }
 	      nodes[j].error = 1;
 	    }

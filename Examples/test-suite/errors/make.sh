@@ -76,6 +76,7 @@ cpp_nested
 cpp_no_access
 cpp_nobase
 cpp_overload
+cpp_overload_const
 cpp_private_defvalue
 cpp_private_inherit
 cpp_recursive_typedef
