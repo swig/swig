@@ -246,7 +246,7 @@ static swig_module_info *SWIG_Php_GetModule() {
 
   TSRMLS_FETCH();
 
-  if (zend_get_constant(const_name, sizeof(const_name), pointer TSRMLS_CC)) {
+  if (zend_get_constant(const_name, sizeof(const_name) - 1, pointer TSRMLS_CC)) {
     if (pointer->type == IS_LONG) {
       ret = (swig_module_info *) pointer->value.lval;
     }

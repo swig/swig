@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.3 (in progress)
 ===========================
 
+2011-03-12: olly
+	    [PHP] Fix sharing of type information between multiple SWIG-wrapped
+	    modules (SF#3202463).
+
 2011-03-09: wsfulton
 	    [Python] Fix SF #3194294 - corner case bug when 'NULL' is used as the default value
             for a primitive type parameter in a method declaration.
