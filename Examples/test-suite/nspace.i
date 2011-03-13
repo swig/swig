@@ -2,7 +2,7 @@
 %module nspace
 
 // nspace feature only supported by these languages
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD)
 
 %nspace;
 %nonspace Outer::Inner2::NoNSpacePlease;
@@ -15,7 +15,7 @@
 %inline %{
 
 namespace Outer {
-  class nspace {
+  class namespce {
   };
   namespace Inner1 {
     enum Channel { Diffuse, Specular = 0x10, Transmission1 };
@@ -33,12 +33,12 @@ namespace Outer {
       static const Channel staticConstEnumMemberVariable = Transmission;
       void colorInstanceMethod(double d) {}
       static void colorStaticMethod(double d) {}
-    }; // Color 
+    }; // Color
     int Color::staticMemberVariable = 0;
 
     Color namespaceFunction(Color k) { return k; }
     int namespaceVar = 0;
-  } // Inner1 
+  } // Inner1
 
   namespace Inner2 {
     enum Channel { Diffuse, Specular = 0x30, Transmission2 };
@@ -56,12 +56,12 @@ namespace Outer {
       static const Channel staticConstEnumMemberVariable = Transmission;
       void colorInstanceMethod(double d) {}
       static void colorStaticMethod(double d) {}
-      void colors(const Inner1::Color& col1a, 
-                  const Outer::Inner1::Color& col1b, 
-                  const Color &col2a, 
-                  const Inner2::Color& col2b, 
+      void colors(const Inner1::Color& col1a,
+                  const Outer::Inner1::Color& col1b,
+                  const Color &col2a,
+                  const Inner2::Color& col2b,
                   const Outer::Inner2::Color& col2c) {}
-    }; // Color 
+    }; // Color
     int Color::staticMemberVariable = 0;
     class NoNSpacePlease {};
   } // Inner2

@@ -2,7 +2,7 @@ using System;
 
 public class runme
 {
-    static void Main() 
+    static void Main()
     {
       // constructors and destructors
       nspaceNamespace.Outer.Inner1.Color color1 = new nspaceNamespace.Outer.Inner1.Color();
@@ -62,7 +62,7 @@ public class runme
         throw new ApplicationException("Transmission2 wrong");
 
       // turn feature off / ignoring
-      nspaceNamespace.Outer.nspace ns = new nspaceNamespace.Outer.nspace();
+      nspaceNamespace.Outer.namespce ns = new nspaceNamespace.Outer.namespce();
       ns.Dispose();
       nspaceNamespace.NoNSpacePlease nons = new nspaceNamespace.NoNSpacePlease();
       nons.Dispose();

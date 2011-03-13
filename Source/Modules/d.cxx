@@ -131,23 +131,37 @@ class D : public Language {
   // split proxy module mode, the proxy class modules) from
   // %pragma(d) globalproxyimports.
   String *global_proxy_imports;
-
-  // Imports written to the proxy D module header from global_proxy_imports
-  // and, if in split proxy module mode, from D::requireDType().
+  
+  // The D code for the main proxy modules. nspace_proxy_dmodules is a hash from
+  // the namespace name as key to an {"imports", "code"}. If the nspace feature
+  // is not active, only proxy_dmodule_imports and proxy_dmodule_code are used,
+  // which contain the code for the root proxy module.
+  // 
+  // These variables should not be accessed directly but rather via the
+  // proxy{Imports, Code}Buffer)() helper functions which return the right
+  // buffer for a given namespace. If not in split proxy mode, they contain the
+  // whole proxy code.
   String *proxy_dmodule_imports;
-
-  // The D code for proxy functions/classes which is written to the proxy D
-  // module. If not in split proxy mode, this contains the whole proxy code.
   String *proxy_dmodule_code;
-
+  Hash *nspace_proxy_dmodules;
+  
   // The D code generated for the currently processed enum.
   String *proxy_enum_code;
 
   /*
    * D data for the current proxy class.
+   *
+   * These strings are mainly used to temporarily accumulate code from the
+   * various member handling functions while a single class is processed and are
+   * no longer relevant once that class has been finished, i.e. after 
+   * classHandler() has returned.
    */
-  // The name of the current proxy class.
+  // The unqualified name of the current proxy class.
   String *proxy_class_name;
+  
+  // The name of the current proxy class, qualified with the name of the
+  // namespace it is in, if any.
+  String *proxy_class_qname;
 
   // The import directives for the current proxy class. They are written to the
   // same D module the proxy class is written to.
@@ -243,8 +257,10 @@ public:
       global_proxy_imports(NULL),
       proxy_dmodule_imports(NULL),
       proxy_dmodule_code(NULL),
+      nspace_proxy_dmodules(NULL),
       proxy_enum_code(NULL),
       proxy_class_name(NULL),
+      proxy_class_qname(NULL),
       proxy_class_imports(NULL),
       proxy_class_enums_code(NULL),
       proxy_class_body_code(NULL),
@@ -439,6 +455,7 @@ public:
     destructor_call = NewString("");
     proxy_dmodule_code = NewString("");
     proxy_dmodule_imports = NewString("");
+    nspace_proxy_dmodules = NewHash();
     im_dmodule_imports = NewString("");
     upcasts_code = NewString("");
     global_proxy_imports = NewString("");
@@ -524,7 +541,7 @@ public:
       Close(im_d_file);
     }
 
-    // Generate the D proxy module for the wrapped module.
+    // Generate the main D proxy module.
     {
       String *filen = NewStringf("%s%s.d", dmodule_directory, proxy_dmodule_name);
       File *proxy_d_file = NewFile(filen, "w", SWIG_output_files());
@@ -555,6 +572,34 @@ public:
       Printv(proxy_d_file, proxy_dmodule_code, NIL);
 
       Close(proxy_d_file);
+    }
+    
+    // Generate the additional proxy modules for nspace support.
+    for (Iterator it = First(nspace_proxy_dmodules); it.key; it = Next(it)) {
+      String *module_name = createLastNamespaceName(it.key);
+      
+      String *filename = NewStringf("%s%s.d", outputDirectory(it.key), module_name);
+      File *file = NewFile(filename, "w", SWIG_output_files());
+      if (!file) {
+	FileErrorDisplay(filename);
+	SWIG_exit(EXIT_FAILURE);
+      }
+      Delete(filename);
+      
+      emitBanner(file);
+      
+      Printf(file, "module %s%s.%s;\n", package, it.key, module_name);
+      Printf(file, "\nstatic import %s;\n", im_dmodule_fq_name);
+      Printv(file, global_proxy_imports, NIL);
+      Printv(file, Getattr(it.item, "imports"), NIL);
+      Printv(file, "\n", NIL);
+      
+      String *code = Getattr(it.item, "code");
+      replaceModuleVariables(code);
+      Printv(file, code, NIL);
+
+      Close(file);
+      Delete(module_name);
     }
 
     if (upcasts_code)
@@ -613,6 +658,8 @@ public:
     proxy_dmodule_code = NULL;
     Delete(proxy_dmodule_imports);
     proxy_dmodule_imports = NULL;
+    Delete(nspace_proxy_dmodules);
+    nspace_proxy_dmodules = NULL;
     Delete(im_dmodule_imports);
     im_dmodule_imports = NULL;
     Delete(upcasts_code);
@@ -709,7 +756,7 @@ public:
 	  Chop(strvalue);
 	  Printf(im_dmodule_imports, "%s\n", strvalue);
 	} else if (Strcmp(code, "proxydmodulecode") == 0) {
-	  Printf(proxy_dmodule_code, "%s\n", strvalue);
+	  Printf(proxyCodeBuffer(0), "%s\n", strvalue);
 	} else if (Strcmp(code, "globalproxyimports") == 0) {
 	  replaceImportTypeMacros(strvalue);
 	  Chop(strvalue);
@@ -798,7 +845,11 @@ public:
       if (split_proxy_dmodule && typemap_lookup_type) {
 	assertClassNameValidity(proxy_class_name);
 
-	String *filename = NewStringf("%s%s.d", dmodule_directory, symname);
+	String *nspace = Getattr(n, "sym:nspace");
+	String *output_directory = outputDirectory(nspace);
+	String *filename = NewStringf("%s%s.d", output_directory, symname);
+	Delete(output_directory);
+
 	File *class_file = NewFile(filename, "w", SWIG_output_files());
 	if (!class_file) {
 	  FileErrorDisplay(filename);
@@ -808,7 +859,11 @@ public:
 	Delete(filename);
 
 	emitBanner(class_file);
-	Printf(class_file, "module %s%s;\n", package, symname);
+	if (nspace) {
+	  Printf(class_file, "module %s%s.%s;\n", package, nspace, symname); 
+	} else {
+	  Printf(class_file, "module %s%s;\n", package, symname);
+	}
 	Printv(class_file, imports_trimmed, NIL);
 
 	Printv(class_file, proxy_enum_code, NIL);
@@ -816,8 +871,9 @@ public:
 	Close(class_file);
 	Delete(class_file);
       } else {
-	Printv(proxy_dmodule_imports, imports, NIL);
-	Printv(proxy_dmodule_code, proxy_enum_code, NIL);
+	String *nspace = Getattr(n, "sym:nspace");
+	Printv(proxyImportsBuffer(nspace), imports, NIL);
+	Printv(proxyCodeBuffer(nspace), proxy_enum_code, NIL);
       }
     }
 
@@ -834,7 +890,7 @@ public:
   virtual int enumvalueDeclaration(Node *n) {
     if (getCurrentClass() && (cplus_mode != PUBLIC))
       return SWIG_NOWRAP;
-
+  
     Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
     String *value = Getattr(n, "value");
     String *name = Getattr(n, "name");
@@ -850,14 +906,12 @@ public:
     // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
 
-    String *proxy_name = Getattr(n, "sym:name");
-
     // Emit the enum item.
     {
       if (!GetFlag(n, "firstenumitem"))
 	Printf(proxy_enum_code, ",\n");
 
-      Printf(proxy_enum_code, "  %s", proxy_name);
+      Printf(proxy_enum_code, "  %s", Getattr(n, "sym:name"));
 
       // Check for the %dconstvalue feature
       String *value = Getattr(n, "feature:d:constvalue");
@@ -886,7 +940,7 @@ public:
 
     String *overloaded_name = getOverloadedName(n);
     String *intermediary_function_name =
-      Swig_name_member(NSPACE_TODO,proxy_class_name, overloaded_name);
+      Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
     Setattr(n, "imfuncname", intermediary_function_name);
 
     String *proxy_func_name = Getattr(n, "sym:name");
@@ -897,6 +951,7 @@ public:
       // If we are in split proxy mode and the function is named like the
       // target package, the D compiler is unable to resolve the ambiguity
       // between the package name and an argument-less function call.
+      // TODO: This might occur with nspace as well, augment the check.
       Swig_warning(WARN_D_NAME_COLLISION, input_file, line_number,
 	"%s::%s might collide with the package name, consider using %%rename to resolve the ambiguity.\n",
 	proxy_class_name, proxy_func_name);
@@ -935,7 +990,7 @@ public:
 
     String *overloaded_name = getOverloadedName(n);
     String *intermediary_function_name =
-      Swig_name_member(NSPACE_TODO,proxy_class_name, overloaded_name);
+      Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
     Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
     Setattr(n, "imfuncname", intermediary_function_name);
     writeProxyClassFunction(n);
@@ -1006,7 +1061,7 @@ public:
   virtual int constructorHandler(Node *n) {
     Language::constructorHandler(n);
 
-    // Wrappers not wanted for some methods where the parameters cannot be overloaded in D.
+    // Wrappers not wanted for some methods where the parameters cannot be overloadedprocess in D.
     if (Getattr(n, "overload:ignore")) {
       return SWIG_OK;
     }
@@ -1026,7 +1081,7 @@ public:
     NewString("");
 
     String *overloaded_name = getOverloadedName(n);
-    String *mangled_overname = Swig_name_construct(NSPACE_TODO,overloaded_name);
+    String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
     String *imcall = NewString("");
 
     const String *methodmods = Getattr(n, "feature:d:methodmodifiers");
@@ -1223,7 +1278,7 @@ public:
   virtual int destructorHandler(Node *n) {
     Language::destructorHandler(n);
     String *symname = Getattr(n, "sym:name");
-    Printv(destructor_call, im_dmodule_fq_name, ".", Swig_name_destroy(NSPACE_TODO,symname), "(cast(void*)swigCPtr)", NIL);
+    Printv(destructor_call, im_dmodule_fq_name, ".", Swig_name_destroy(getNSpace(),symname), "(cast(void*)swigCPtr)", NIL);
     return SWIG_OK;
   }
 
@@ -1231,19 +1286,27 @@ public:
    * D::classHandler()
    * --------------------------------------------------------------------------- */
   virtual int classHandler(Node *n) {
+    String *nspace = getNSpace();
     File *class_file = NULL;
 
     proxy_class_name = Copy(Getattr(n, "sym:name"));
+    if (nspace) {
+      proxy_class_qname = NewStringf("%s.%s", nspace, proxy_class_name);
+    } else {
+      proxy_class_qname = Copy(proxy_class_name);
+    }
 
-    if (!addSymbol(proxy_class_name, n)) {
+    if (!addSymbol(proxy_class_name, n, nspace)) {
       return SWIG_ERROR;
     }
 
     assertClassNameValidity(proxy_class_name);
 
     if (split_proxy_dmodule) {
-      String *filename = NewStringf("%s%s.d", dmodule_directory, proxy_class_name);
+      String *output_directory = outputDirectory(nspace);
+      String *filename = NewStringf("%s%s.d", output_directory, proxy_class_name);
       class_file = NewFile(filename, "w", SWIG_output_files());
+      Delete(output_directory);
       if (!class_file) {
 	FileErrorDisplay(filename);
 	SWIG_exit(EXIT_FAILURE);
@@ -1252,7 +1315,11 @@ public:
       Delete(filename);
 
       emitBanner(class_file);
-      Printf(class_file, "module %s%s;\n", package, proxy_class_name);
+      if (nspace) {
+        Printf(class_file, "module %s%s.%s;\n", package, nspace, proxy_class_name);
+      } else {
+        Printf(class_file, "module %s%s;\n", package, proxy_class_name);
+      }
       Printf(class_file, "\nstatic import %s;\n", im_dmodule_fq_name);
     }
 
@@ -1264,6 +1331,8 @@ public:
     Clear(destructor_call);
 
 
+    // Traverse the tree for this class, using the *Handler()s to generate code
+    // to the proxy_class_* variables.
     Language::classHandler(n);
 
 
@@ -1271,6 +1340,10 @@ public:
     writeDirectorConnectWrapper(n);
 
     Replaceall(proxy_class_code, "$dclassname", proxy_class_name);
+    
+    String *dclazzname = Swig_name_member(getNSpace(), proxy_class_name, "");    
+    Replaceall(proxy_class_code, "$dclazzname", dclazzname);
+    Delete(dclazzname);
 
     if (split_proxy_dmodule) {
       Printv(class_file, global_proxy_imports, NIL);
@@ -1282,10 +1355,12 @@ public:
       Close(class_file);
       Delete(class_file);
     } else {
-      Printv(proxy_dmodule_imports, proxy_class_imports, NIL);
-      Printv(proxy_dmodule_code, proxy_class_code, NIL);
+      Printv(proxyImportsBuffer(getNSpace()), proxy_class_imports, NIL);
+      Printv(proxyCodeBuffer(getNSpace()), proxy_class_code, NIL);
     }
 
+    Delete(proxy_class_qname);
+    proxy_class_qname = NULL;
     Delete(proxy_class_name);
     proxy_class_name = NULL;
 
@@ -1402,7 +1477,7 @@ public:
     if (wrapping_member_flag) {
       Printv(proxy_class_body_code, constants_code, NIL);
     } else {
-      Printv(proxy_dmodule_code, constants_code, NIL);
+      Printv(proxyCodeBuffer(getNSpace()), constants_code, NIL);
     }
 
     // Cleanup.
@@ -1780,10 +1855,18 @@ public:
    * D::classDirector()
    * --------------------------------------------------------------------------- */
   virtual int classDirector(Node *n) {
+    String *nspace = Getattr(n, "sym:nspace");
     proxy_class_name = NewString(Getattr(n, "sym:name"));
+    if (nspace) {
+      proxy_class_qname = NewStringf("%s.%s", nspace, proxy_class_name);
+    } else {
+      proxy_class_qname = Copy(proxy_class_name);
+    }
 
     int success = Language::classDirector(n);
 
+    Delete(proxy_class_qname);
+    proxy_class_qname = NULL;
     Delete(proxy_class_name);
     proxy_class_name = NULL;
 
@@ -1874,7 +1957,8 @@ public:
     // we're consistent with the sym:overload name in functionWrapper. (?? when
     // does the overloaded method name get set?)
 
-    imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(NSPACE_TODO,classname, overloaded_name));
+    imclass_dmethod = NewStringf("SwigDirector_%s",
+      Swig_name_member(getNSpace(), classname, overloaded_name));
 
     if (returntype) {
       qualified_return = SwigType_rcaststr(returntype, "c_result");
@@ -2507,6 +2591,8 @@ private:
    * intermediary D module.
    *
    * d_name - The name the function in the intermediary D module will get.
+   * return type - The return type of the function in the C wrapper.
+   * parameters - The parameter list of the C wrapper function.
    * wrapper_function_name - The name of the exported function in the C wrapper
    *                         (usually d_name prefixed by »D_«).
    * --------------------------------------------------------------------------- */
@@ -2587,8 +2673,12 @@ private:
 
     if (wrapping_member_flag) {
       // Check if this is a setter method for a public member.
-      setter_flag = (Cmp(Getattr(n, "sym:name"),
-	Swig_name_set(NSPACE_TODO,Swig_name_member(NSPACE_TODO,proxy_class_name, variable_name))) == 0);
+      const String *setter_name = Swig_name_set(getNSpace(),
+        Swig_name_member(0, proxy_class_name, variable_name));
+
+      if (Cmp(Getattr(n, "sym:name"), setter_name) == 0) {
+        setter_flag = true;
+      }
     }
 
     // Write function modifiers.
@@ -2630,7 +2720,7 @@ private:
     if (!static_flag) {
       Printf(imcall, "cast(void*)swigCPtr");
     }
-    
+
     String *proxy_param_types = NewString("");
 
     // Write the parameter list for the proxy function declaration and the
@@ -2769,7 +2859,7 @@ private:
       Node *explicit_n = Getattr(n, "explicitcallnode");
       if (explicit_n) {
 	String *ex_overloaded_name = getOverloadedName(explicit_n);
-	String *ex_intermediary_function_name = Swig_name_member(NSPACE_TODO,proxy_class_name, ex_overloaded_name);
+	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, ex_overloaded_name);
 
 	String *ex_imcall = Copy(imcall);
 	Replaceall(ex_imcall, "$imfuncname", ex_intermediary_function_name);
@@ -2795,7 +2885,7 @@ private:
       Swig_warning(WARN_D_TYPEMAP_DOUT_UNDEF, input_file, line_number,
 	"No dout typemap defined for %s\n", SwigType_str(t, 0));
     }
-    
+
     Delete(proxy_param_types);
 
     // The whole function body is now in stored tm (if there was a matching type
@@ -3003,7 +3093,7 @@ private:
     // The whole function code is now stored in tm (if there was a matching
     // type map, of course), so simply append it to the code buffer.
     Printf(function_code, "%s\n", tm ? (const String *) tm : empty_string);
-    Printv(proxy_dmodule_code, function_code, NIL);
+    Printv(proxyCodeBuffer(getNSpace()), function_code, NIL);
 
     Delete(pre_code);
     Delete(post_code);
@@ -3016,6 +3106,16 @@ private:
 
   /* ---------------------------------------------------------------------------
    * D::writeProxyClassAndUpcasts()
+   *
+   * Collects all the code fragments generated by the handler function while
+   * traversing the tree from the proxy_class_* variables and writes the
+   * class definition (including any epilogue code) to proxy_class_code.
+   *
+   * Also writes the upcast function to the wrapper layer when processing a
+   * derived class.
+   *
+   * Inputs:
+   *  n – The class node currently processed.
    * --------------------------------------------------------------------------- */
   void writeProxyClassAndUpcasts(Node *n) {
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
@@ -3026,7 +3126,8 @@ private:
 
     String *c_classname = SwigType_namestr(Getattr(n, "name"));
     String *c_baseclass = NULL;
-    String *baseclass = NULL;
+    Node *basenode = NULL;
+    String *basename = NULL;
     String *c_baseclassname = NULL;
 
     // Inheritance from pure D classes.
@@ -3046,9 +3147,10 @@ private:
 	  base = Next(base);
 	}
 	if (base.item) {
+	  basenode = base.item;
 	  c_baseclassname = Getattr(base.item, "name");
-	  baseclass = Copy(getProxyName(c_baseclassname));
-	  if (baseclass)
+	  basename = Copy(getProxyName(c_baseclassname));
+	  if (basename)
 	    c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
 	  base = Next(base);
 	  /* Warn about multiple inheritance for additional base class(es) */
@@ -3067,24 +3169,25 @@ private:
       }
     }
 
-    bool derived = baseclass && getProxyName(c_baseclassname);
+    bool derived = (basename != NULL);
 
     if (derived && purebase_notderived) {
       pure_baseclass = empty_string;
     }
-    const String *wanted_base = baseclass ? baseclass : pure_baseclass;
+    const String *wanted_base = basename ? basename : pure_baseclass;
 
     if (purebase_replace) {
       wanted_base = pure_baseclass;
       derived = false;
-      Delete(baseclass);
-      baseclass = NULL;
+      basenode = NULL;
+      Delete(basename);
+      basename = NULL;
       if (purebase_notderived) {
 	Swig_error(Getfile(n), Getline(n),
 	  "The dbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n",
 	  typemap_lookup_type);
       }
-    } else if (baseclass && Len(pure_baseclass) > 0) {
+    } else if (basename && Len(pure_baseclass) > 0) {
       Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 	"Warning for %s proxy: Base class %s ignored. Multiple inheritance is not supported in D. "
 	"Perhaps you need one of the 'replace' or 'notderived' attributes in the dbase typemap?\n", typemap_lookup_type, pure_baseclass);
@@ -3101,14 +3204,10 @@ private:
     // If this class is derived from a C++ class, we need to have the D class
     // generated for it in scope.
     if (derived) {
-      requireDType(baseclass);
+      requireDType(Getattr(basenode, "sym:nspace"), Getattr(basenode, "sym:name"));
 
-      if (split_proxy_dmodule) {
-	// Fully qualify the baseclass name.
-	String *module = NewStringf("%s%s.", package, baseclass);
-	Insert(baseclass, 0, module);
-	Delete(module);
-      }
+      // Fully qualify the baseclass name.
+      Insert(basename, 0, package);
     }
 
     // Write any custom import statements to the proxy module header.
@@ -3238,8 +3337,8 @@ private:
     // Write the class body and the curly bracket closing the class definition
     // to the proxy module.
     indentCode(body);
-    Replaceall(body, "$dbaseclass", baseclass);
-    Delete(baseclass);
+    Replaceall(body, "$dbaseclass", basename);
+    Delete(basename);
 
     Printv(proxy_class_code, body, "\n}\n", NIL);
     Delete(body);
@@ -3256,9 +3355,8 @@ private:
     String* c_class_name, String* c_base_name) {
 
     String *smartptr = Getattr(n, "feature:smartptr");
-    String *upcast_name = NewString("");
-    Printv(upcast_name, d_class_name,
-      (smartptr != 0 ? "SmartPtrUpcast" : "Upcast"), NIL);
+    String *upcast_name = Swig_name_member(getNSpace(), d_class_name,
+      (smartptr != 0 ? "SmartPtrUpcast" : "Upcast"));
 
     String *upcast_wrapper_name = Swig_name_wrapper(upcast_name);
 
@@ -3338,8 +3436,8 @@ private:
       imports_target = NewString("");
       code_target = NewString("");
     } else {
-      imports_target = proxy_dmodule_imports;
-      code_target = proxy_dmodule_code;
+      imports_target = proxyImportsBuffer(0);
+      code_target = proxyCodeBuffer(0);
     }
 
     // Import statements.
@@ -3461,7 +3559,8 @@ private:
 
     // Output the director connect method.
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
-    String *connect_name = NewStringf("%s_director_connect", proxy_class_name);
+    String *connect_name = Swig_name_member(getNSpace(),
+      proxy_class_name, "director_connect");
     String *sym_name = Getattr(n, "sym:name");
     Wrapper *code_wrap;
 
@@ -3504,19 +3603,40 @@ private:
   /* ---------------------------------------------------------------------------
    * D::requireDType()
    *
-   * Adds an import statement for the given module to the header of current
-   * module. This is only used for dependencies created in generated code, user-
-   * (read: typemap-) specified import statements are handeled seperately.
+   * If the given type is not already in scope in the current module, adds an
+   * import statement for it. The name is considered relative to the global root
+   * package if one is set.
+   * 
+   * This is only used for dependencies created in generated code, user-
+   * (i.e. typemap-) specified import statements are handeled seperately.
    * --------------------------------------------------------------------------- */
-  void requireDType(const String *dmodule_name) {
-    String *import = createImportStatement(dmodule_name);
-    Append(import, "\n");
-    if (is_wrapping_class()) {
-      addImportStatement(proxy_class_imports, import);
+  void requireDType(const String *nspace, const String *symname) {
+    String *dmodule;
+    if (nspace) {
+      dmodule = NewStringf("%s.", nspace);
     } else {
-      addImportStatement(proxy_dmodule_imports, import);
+      dmodule = NewString("");
     }
-    Delete(import);
+
+    if (split_proxy_dmodule) {
+      Printv(dmodule, symname, NIL); 
+    } else {
+      String *inner = createLastNamespaceName(nspace);
+      Printv(dmodule, inner, NIL);
+      Delete(inner);
+    }
+
+    if (!inProxyModule(dmodule)) {
+      String *import = createImportStatement(dmodule);
+      Append(import, "\n");
+      if (is_wrapping_class()) {
+	addImportStatement(proxy_class_imports, import);
+      } else {
+	addImportStatement(proxyImportsBuffer(getNSpace()), import);
+      }
+      Delete(import);
+    }
+    Delete(dmodule);
   }
 
   /* ---------------------------------------------------------------------------
@@ -3550,46 +3670,41 @@ private:
   /* ---------------------------------------------------------------------------
    * D::createImportStatement()
    *
-   * Creates a string containing an import statement for the given module if it
-   * is needed in the currently generated proxy D module (i.e. if it is not the
-   * current module itself).
+   * Creates a string containing an import statement for the given module.
    * --------------------------------------------------------------------------- */
   String *createImportStatement(const String *dmodule_name,
     bool static_import = true) const {
 
-    if (inProxyModule(dmodule_name)) {
-      return NewStringf("");
+    if (static_import) {
+      return NewStringf("static import %s%s;", package, dmodule_name);
     } else {
-      if (static_import) {
-	return NewStringf("static import %s%s;", package, dmodule_name);
-      } else {
-	return NewStringf("import %s%s;", package, dmodule_name);
-      }
+      return NewStringf("import %s%s;", package, dmodule_name);
     }
   }
 
   /* ---------------------------------------------------------------------------
    * D::inProxyModule()
    *
-   * Determines if the specified proxy class is decleared in the currently
+   * Determines if the specified proxy type is declared in the currently
    * processed proxy D module.
    *
    * This function is used to determine if fully qualified type names have to be
-   * used (package, module and type name). This is never the case if the split
-   * proxy mode is not used, all proxy types are written to the same module then.
+   * used (package, module and type name). If the split proxy mode is not used,
+   * this solely depends on whether the type is in the current namespace or.
    * --------------------------------------------------------------------------- */
   bool inProxyModule(const String *type_name) const {
     if (!split_proxy_dmodule) {
-      // If we are not in split proxy module mode, proxy code is always written
-      // to the same module.
-      return true;
+      String *nspace = createOuterNamespaceNames(type_name);
+      bool result = (getNSpace() || !nspace) && (Strcmp(nspace, getNSpace()) == 0);
+      Delete(nspace);
+      return result;
     }
 
-    if (!Len(proxy_class_name)) {
+    if (!Len(proxy_class_qname)) {
       return false;
     }
 
-    return (Strcmp(proxy_class_name, type_name) == 0);
+    return (Strcmp(proxy_class_qname, type_name) == 0);
   }
 
   /* ---------------------------------------------------------------------------
@@ -3637,17 +3752,57 @@ private:
    * D::assertClassNameValidity()
    * --------------------------------------------------------------------------- */
   void assertClassNameValidity(const String* class_name) const {
+    // TODO: With nspace support, there could arise problems also when not in
+    // split proxy mode, warnings for these should be added.
     if (split_proxy_dmodule) {
       if (Cmp(class_name, im_dmodule_name) == 0) {
-	Swig_error(input_file, line_number, "Class name cannot be equal to intermediary D module name: %s\n",
+	Swig_error(input_file, line_number,
+	  "Class name cannot be equal to intermediary D module name: %s\n",
 	  class_name);
 	SWIG_exit(EXIT_FAILURE);
       }
 
-      if (Cmp(class_name, proxy_dmodule_name) == 0) {
-	Swig_error(input_file, line_number, "Class name cannot be equal to proxy D module name: %s\n",
-	  class_name);
-	SWIG_exit(EXIT_FAILURE);
+      String *nspace = getNSpace();
+      if (nspace) {
+	// Check the root package/outermost namespace (a class A in module
+	// A.B leads to problems if another module A.C is also imported)…
+	if (Len(package) > 0) {
+	  String *dotless_package = NewStringWithSize(package, Len(package) - 1);
+	  if (Cmp(class_name, dotless_package) == 0) {
+	    Swig_error(input_file, line_number,
+	      "Class name cannot be the same as the root package it is in: %s\n",
+	      class_name);
+	    SWIG_exit(EXIT_FAILURE);
+	  }
+	  Delete(dotless_package);
+	} else {
+	  String *outer = createFirstNamespaceName(nspace);
+	  if (Cmp(class_name, outer) == 0) {
+	    Swig_error(input_file, line_number,
+	      "Class name cannot be the same as the outermost namespace it is in: %s\n",
+	      class_name);
+	    SWIG_exit(EXIT_FAILURE);
+	  }
+	  Delete(outer);
+	}
+	
+	// … and the innermost one (because of the conflict with the main proxy
+	// module named like the namespace).
+	String *inner = createLastNamespaceName(nspace);
+	if (Cmp(class_name, inner) == 0) {
+	  Swig_error(input_file, line_number,
+	    "Class name cannot be the same as the innermost namespace it is in: %s\n",
+	    class_name);
+	  SWIG_exit(EXIT_FAILURE);
+	}
+	Delete(inner);
+      } else {
+	if (Cmp(class_name, proxy_dmodule_name) == 0) {
+	  Swig_error(input_file, line_number,
+	    "Class name cannot be equal to proxy D module name: %s\n",
+	    class_name);
+	  SWIG_exit(EXIT_FAILURE);
+	}	
       }
     }
   }
@@ -3927,48 +4082,69 @@ private:
     // import when a type is used in another generated module. If we are not
     // working in split proxy module mode, this is not relevant and the
     // generated module name is discarded.
-    String *import_name;
+    String *type_name;
 
-    String *qualified_type_name;
     if (SwigType_isenum(type)) {
       // RESEARCH: Make sure that we really cannot get here for anonymous enums.
       Node *n = enumLookup(type);
-      const String *symname = Getattr(n, "sym:name");
-
-      // Add in class scope when referencing enum if not a global enum.
-      const String *parent_name = NULL;
-      String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
-      if (scopename_prefix) {
-	parent_name = getProxyName(scopename_prefix);
-	Delete(scopename_prefix);
-      }
-
-      if (parent_name) {
-	qualified_type_name = createQualifiedName(parent_name);
-	Printv(qualified_type_name, ".", symname, NIL);
+      String *enum_name = Getattr(n, "sym:name");
+      
+      Node *p = parentNode(n);
+      if (p && !Strcmp(nodeType(p), "class")) {
+	// This is a nested enum.
+	String *parent_name = Getattr(p, "sym:name");
+	String *nspace = Getattr(p, "sym:nspace");
 
 	// An enum nested in a class is not written to a seperate module (this
 	// would not even be possible in D), so just import the parent.
-	import_name = Copy(parent_name);
-      } else {
-	qualified_type_name = createQualifiedName(symname);
+	requireDType(nspace, parent_name);
 
+	String *module = createModuleName(nspace, parent_name);	
+	if (inProxyModule(module)) {
+	  type_name = NewStringf("%s.%s", parent_name, enum_name);
+	} else {
+	  type_name = NewStringf("%s%s.%s.%s", package, module, parent_name, enum_name);
+	}
+      } else {
 	// A non-nested enum is written to a seperate module, import it.
-	import_name = Copy(symname);
+	String *nspace = Getattr(n, "sym:nspace");
+	requireDType(nspace, enum_name);
+	
+	String *module = createModuleName(nspace, enum_name);
+	if (inProxyModule(module)) {
+	  type_name = Copy(enum_name);
+	} else {
+	  type_name = NewStringf("%s%s.%s", package, module, enum_name);
+	}
       }
     } else {
-      const String *class_name = getProxyName(type);
-      if (class_name) {
-	// This is something wrapped as a proxy class (getProxyName() works for
-	// pointers to classes too).
-	qualified_type_name = createQualifiedName(class_name);
-	import_name = Copy(class_name);
+      Node *n = classLookup(type);
+      if (n) {
+	String *class_name = Getattr(n, "sym:name");
+	String *nspace = Getattr(n, "sym:nspace");
+	requireDType(nspace, class_name);
+	
+	String *module = createModuleName(nspace, class_name);
+	if (inProxyModule(module)) {
+	  type_name = Copy(class_name);
+	} else {
+	  type_name = NewStringf("%s%s.%s", package, module, class_name);
+	}
       } else {
 	// SWIG does not know anything about the type (after resolving typedefs).
 	// Just mangle the type name string like $descriptor(type) would do.
 	String *descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
-	qualified_type_name = createQualifiedName(descriptor);
-	import_name = Copy(descriptor);
+	requireDType(NULL, descriptor);
+
+	String *module = NULL;
+	if (split_proxy_dmodule) {
+	  module = Copy(descriptor);
+	}
+	if (inProxyModule(module)) {
+	  type_name = Copy(descriptor);
+	} else {
+	  type_name = NewStringf("%s%s.%s", package, module, descriptor);
+	}
 
 	// Add to hash table so that a type wrapper class can be created later.
 	Setattr(unknown_types, descriptor, type);
@@ -3977,23 +4153,36 @@ private:
       }
     }
 
-    Replaceall(target, variable, qualified_type_name);
-    Delete(qualified_type_name);
-
-    requireDType(import_name);
-    Delete(import_name);
+    Replaceall(target, variable, type_name);
+    Delete(type_name);
   }
 
   /* ---------------------------------------------------------------------------
-   * D::createQualifiedName()
+   * D::createModuleName()
+   *
+   * Returns a string holding the name of the module to import to bring the
+   * given type in scope.
    * --------------------------------------------------------------------------- */
-  String *createQualifiedName(const String *class_name) const {
-    if (inProxyModule(class_name)) {
-      return Copy(class_name);
+  String *createModuleName(const String *nspace, const String *type_name) const {
+    String *module;
+    if (nspace) {
+      module = NewStringf("%s.", nspace);
+      if (split_proxy_dmodule) {
+	Printv(module, type_name, NIL);
+      } else {
+	String *inner = createLastNamespaceName(nspace);
+	Printv(module, inner, NIL);
+	Delete(inner);
+      }
     } else {
-      return NewStringf("%s%s.%s", package, class_name, class_name);
+      if (split_proxy_dmodule) {
+	module = Copy(type_name);
+      } else {
+	module = proxy_dmodule_name;
+      }
     }
-}
+    return module;
+  }
 
   /* ---------------------------------------------------------------------------
    * D::replaceModuleVariables()
@@ -4070,9 +4259,14 @@ private:
 	String *current_macro = NewStringWithSize(start, (int)(end - start));
 	String *current_param = NewStringWithSize(param_start, (int)(param_end - param_start));
 
-	String *import = createImportStatement(current_param, false);
-	Replace(target, current_macro, import, DOH_REPLACE_ANY);
-	Delete(import);
+	
+	if (inProxyModule(current_param)) {
+	  Replace(target, current_macro, "", DOH_REPLACE_ANY);
+	} else {
+	  String *import = createImportStatement(current_param, false);
+	  Replace(target, current_macro, import, DOH_REPLACE_ANY);
+	  Delete(import);
+	}
 
 	Delete(current_param);
 	Delete(current_macro);
@@ -4107,13 +4301,35 @@ private:
    * Returns the D class name if a type corresponds to something wrapped with a
    * proxy class, NULL otherwise.
    * --------------------------------------------------------------------------- */
-   const String *getProxyName(SwigType *t) {
+  const String *getProxyName(SwigType *t) {
+    String *proxyname = NULL;
     Node *n = classLookup(t);
     if (n) {
-	    return Getattr(n, "sym:name");
-    } else {
-      return NULL;
+      proxyname = Getattr(n, "proxyname");
+      if (!proxyname) {
+	String *nspace = Getattr(n, "sym:nspace");
+	String *symname = Getattr(n, "sym:name");
+	
+	if (nspace) {
+          proxyname = NewStringf("%s.%s", nspace, symname);
+        } else {
+          proxyname = Copy(symname);
+        }
+	if (split_proxy_dmodule) {
+	  Printf(proxyname, ".%s", symname);
+	} else {
+	  if (!inProxyModule(proxyname)) {
+	    Delete(proxyname);
+	    String *inner = createLastNamespaceName(nspace);
+	    proxyname = NewStringf("%s.%s.%s", nspace, inner, symname);
+	    Delete(inner);
+	  }
+	}
+        Setattr(n, "proxyname", proxyname);
+        Delete(proxyname); // Return value still valid because of the ref from n. 
+      }
     }
+    return proxyname;
   }
 
   /* ---------------------------------------------------------------------------
@@ -4323,6 +4539,145 @@ private:
     Printf(f, "/* ----------------------------------------------------------------------------\n");
     Swig_banner_target_lang(f, " *");
     Printf(f, " * ----------------------------------------------------------------------------- */\n\n");
+  }
+
+  /* ---------------------------------------------------------------------------
+   * D::outputDirectory()
+   *
+   * Returns the directory to write the D modules for the given namespace to and
+   * and creates the subdirectory if it doesn't exist.
+   * --------------------------------------------------------------------------- */
+  String *outputDirectory(String *nspace) {
+    String *output_directory = Copy(dmodule_directory);
+    if (nspace) {
+      String *nspace_subdirectory = Copy(nspace);
+      Replaceall(nspace_subdirectory, ".", SWIG_FILE_DELIMITER);
+      String *newdir_error = Swig_new_subdirectory(output_directory, nspace_subdirectory);
+      if (newdir_error) {
+	Printf(stderr, "%s\n", newdir_error);
+	Delete(newdir_error);
+	SWIG_exit(EXIT_FAILURE);
+      }
+      Printv(output_directory, nspace_subdirectory, SWIG_FILE_DELIMITER, 0);
+      Delete(nspace_subdirectory);
+    }
+    return output_directory;
+  }
+
+  /* ---------------------------------------------------------------------------
+   * D::proxyCodeBuffer()
+   *
+   * Returns the buffer to write proxy code for the given namespace to. 
+   * --------------------------------------------------------------------------- */
+  String *proxyCodeBuffer(String *nspace) {
+    if (!nspace) {
+      return proxy_dmodule_code;
+    }
+
+    Hash *hash = Getattr(nspace_proxy_dmodules, nspace);
+    if (!hash) {
+      hash = NewHash();
+      Setattr(hash, "code", NewString(""));
+      Setattr(hash, "imports", NewString(""));
+      Setattr(nspace_proxy_dmodules, nspace, hash);
+    }
+    return Getattr(hash, "code");
+  }
+
+  /* ---------------------------------------------------------------------------
+   * D::proxyCodeBuffer()
+   *
+   * Returns the buffer to write imports for the proxy code for the given
+   * namespace to. 
+   * --------------------------------------------------------------------------- */
+  String *proxyImportsBuffer(String *nspace) {
+    if (!nspace) {
+      return proxy_dmodule_imports;
+    }
+    
+    Hash *hash = Getattr(nspace_proxy_dmodules, nspace);
+    if (!hash) {
+      hash = NewHash();
+      Setattr(hash, "code", NewString(""));
+      Setattr(hash, "imports", NewString(""));
+      Setattr(nspace_proxy_dmodules, nspace, hash);
+    }
+    return Getattr(hash, "imports");
+  }
+
+  /* ---------------------------------------------------------------------------
+   * D::createFirstNamespaceName()
+   *
+   * Returns a new string containing the name of the outermost namespace, e.g.
+   * »A« for the argument »A.B.C«. 
+   * --------------------------------------------------------------------------- */
+  String *createFirstNamespaceName(const String *nspace) const {
+    char *tmp = Char(nspace);
+    char *c = tmp;
+    char *co = 0;
+    if (!strstr(c, "."))
+      return 0;
+    
+    co = c + Len(nspace);
+    
+    while (*c && (c != co)) {
+      if ((*c == '.')) {
+	break;
+      }
+      c++;
+    }
+    if (!*c || (c == tmp)) {
+      return NULL;
+    }
+    return NewStringWithSize(tmp, (int)(c - tmp));
+  }
+  
+  /* ---------------------------------------------------------------------------
+   * D::createLastNamespaceName()
+   *
+   * Returns a new string containing the name of the innermost namespace, e.g.
+   * »C« for the argument »A.B.C«. 
+   * --------------------------------------------------------------------------- */
+  String *createLastNamespaceName(const String *nspace) const {
+    if (!nspace) return NULL;
+    char *c = Char(nspace);
+    char *cc = c;
+    if (!strstr(c, "."))
+      return NewString(nspace);
+    
+    while (*c) {
+      if (*c == '.') {
+	cc = c;
+      }
+      ++c;
+    }
+    return NewString(cc + 1);
+  }
+  
+  /* ---------------------------------------------------------------------------
+   * D::createOuterNamespaceNames()
+   *
+   * Returns a new string containing the name of the outer namespace, e.g.
+   * »A.B« for the argument »A.B.C«. 
+   * --------------------------------------------------------------------------- */  
+  String *createOuterNamespaceNames(const String *nspace) const {
+    if (!nspace) return NULL;
+    char *tmp = Char(nspace);
+    char *c = tmp;
+    char *cc = c;
+    if (!strstr(c, "."))
+      return NULL;
+    
+    while (*c) {
+      if (*c == '.') {
+	cc = c;
+      }
+      ++c;
+    }
+    if (cc == tmp) {
+      return NULL;
+    }
+    return NewStringWithSize(tmp, (int)(cc - tmp));
   }
 };
 

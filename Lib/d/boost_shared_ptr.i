@@ -162,7 +162,7 @@ private void* swigCPtr;
 private bool swigCMemOwn;
 
 public this(void* cObject, bool ownCObject) {
-  super($imdmodule.$dclassnameSmartPtrUpcast(cObject), ownCObject);
+  super($imdmodule.$dclazznameSmartPtrUpcast(cObject), ownCObject);
   swigCPtr = cObject;
   swigCMemOwn = ownCObject;
 }
