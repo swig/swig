@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.3 (in progress)
 ===========================
 
+2011-03-13: klickverbot
+            [D] Extended support for C++ namespaces (nspace feature).
+
 2011-03-12: olly
 	    [PHP] Fix sharing of type information between multiple SWIG-wrapped
 	    modules (SF#3202463).
