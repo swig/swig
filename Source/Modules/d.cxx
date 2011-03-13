@@ -4067,8 +4067,8 @@ private:
       }
 
       if (end) {
-	String *current_macro = NewStringWithSize(start, (end - start));
-	String *current_param = NewStringWithSize(param_start, (param_end - param_start));
+	String *current_macro = NewStringWithSize(start, (int)(end - start));
+	String *current_param = NewStringWithSize(param_start, (int)(param_end - param_start));
 
 	String *import = createImportStatement(current_param, false);
 	Replace(target, current_macro, import, DOH_REPLACE_ANY);
@@ -4077,7 +4077,7 @@ private:
 	Delete(current_param);
 	Delete(current_macro);
       } else {
-	String *current_macro = NewStringWithSize(start, (c - start));
+	String *current_macro = NewStringWithSize(start, (int)(c - start));
 	Swig_error(Getfile(target), Getline(target), "Syntax error in: %s\n", current_macro);
 	Replace(target, current_macro, "<error in $importtype macro>", DOH_REPLACE_ANY);
 	Delete(current_macro);
