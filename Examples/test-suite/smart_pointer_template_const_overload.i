@@ -17,9 +17,11 @@
     int constmingy() const {}
     static int thingy() {}
     static int svariable;
-    static const int constsvariable = 2;
+    static const int constsvariable;
     int normalvariable;
   };
+  int FooImplementation::svariable = 0;
+  const int FooImplementation::constsvariable = 2;
 
   void tester() {
     SmartPointer<FooImplementation> p;
