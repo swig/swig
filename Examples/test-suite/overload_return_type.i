@@ -4,17 +4,10 @@
 
 %inline %{
 
-#include <string>
-using namespace std;
 class A { };
 class B {
     public:
-        int foo(int x);
-        A foo(string y);
+        int foo(int x) { return 0; }
+        A foo(const char * y) { return A(); }
 };
-%}
-
-%{
-int B::foo(int x) { return 0; }
-A B::foo(string y) { return A(); }
 %}
