@@ -1077,6 +1077,8 @@ public:
       Hash *ret_types = NewHash();
       Setattr(ret_types, d, d);
 
+      bool non_void_return = (Cmp(d, "void") != 0);
+
       if (overloaded) {
 	// Look at all the overloaded versions of this method in turn to
 	// decide if it's really an overloaded method, or just one where some
@@ -1093,6 +1095,7 @@ public:
 	    assert(constructor);
 	  } else if (!Getattr(ret_types, d2)) {
 	    Setattr(ret_types, d2, d2);
+	    non_void_return = non_void_return || (Cmp(d2, "void") != 0);
 	  }
 
 	  ParmList *l2 = Getattr(o, "wrap:parms");
@@ -1504,7 +1507,7 @@ public:
 	    while (last_handled_i < i) {
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
-	    if (Cmp(d, "void") != 0) {
+	    if (non_void_return) {
 	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
 		Append(prepare, "$r=");
 	      } else {
@@ -1526,7 +1529,7 @@ public:
 	Printf(prepare, "\t\t");
 	if (had_a_case)
 	  Printf(prepare, "default: ");
-	if (Cmp(d, "void") != 0) {
+	if (non_void_return) {
 	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
 	    Append(prepare, "$r=");
 	  } else {
@@ -1672,7 +1675,7 @@ public:
 	  }
 	}
 	Printf(output, "%s", prepare);
-      } else if (Cmp(d, "void") == 0 && !hasargout) {
+      } else if (!non_void_return && !hasargout) {
 	if (Cmp(invoke, "$r") != 0)
 	  Printf(output, "\t\t%s;\n", invoke);
       } else if (is_class(d)) {
