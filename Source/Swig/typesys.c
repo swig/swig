@@ -389,12 +389,11 @@ void SwigType_attach_symtab(Symtab *sym) {
  * Debugging function for printing out current scope
  * ----------------------------------------------------------------------------- */
 
-void SwigType_print_scope(Typetab *t) {
+void SwigType_print_scope(void) {
   Hash *ttab;
   Iterator i, j;
 
   for (i = First(scopes); i.key; i = Next(i)) {
-    t = i.item;
     ttab = Getattr(i.item, "typetab");
 
     Printf(stdout, "Type scope '%s' (%x)\n", i.key, i.item);

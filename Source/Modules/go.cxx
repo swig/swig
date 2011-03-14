@@ -1397,7 +1397,6 @@ private:
       }
       Printv(current, Getattr(parms, "lname"), NULL);
 
-      String *last = NULL;
       int vc = 0;
       for (Iterator bi = First(base); bi.item; bi = Next(bi)) {
 	Printf(actioncode, "  %s *swig_b%d = (%s *)%s;\n", bi.item, vc, bi.item, current);
@@ -1405,7 +1404,6 @@ private:
 	current = NewString("");
 	Printf(current, "swig_b%d", vc);
 	++vc;
-	last = bi.item;
       }
 
       String *code = Copy(Getattr(n, "wrap:action"));

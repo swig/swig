@@ -278,7 +278,8 @@ int UFFI::functionWrapper(Node *n) {
   String *funcname = Getattr(n, "sym:name");
   ParmList *pl = Getattr(n, "parms");
   Parm *p;
-  int argnum = 0, first = 1, varargs = 0;
+  int argnum = 0, first = 1;
+//  int varargs = 0;
 
   //Language::functionWrapper(n);
 
@@ -291,7 +292,7 @@ int UFFI::functionWrapper(Node *n) {
     Printf(f_cl, ":void");
   } else if (any_varargs(pl)) {
     Printf(f_cl, "#| varargs |#");
-    varargs = 1;
+//    varargs = 1;
   } else {
     for (p = pl; p; p = nextSibling(p), argnum++) {
       String *argname = Getattr(p, "name");

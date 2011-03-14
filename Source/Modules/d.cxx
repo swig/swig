@@ -1506,7 +1506,6 @@ public:
     String *outarg = NewString("");
     String *body = NewString("");
     int num_arguments = 0;
-    int num_required = 0;
     bool is_void_return;
     String *overloaded_name = getOverloadedName(n);
 
@@ -1581,7 +1580,6 @@ public:
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
     int gencomma = 0;
 
     // Now walk the function parameter list and generate code to get arguments
@@ -2917,7 +2915,6 @@ private:
     String *return_type = NewString("");
     String *function_code = NewString("");
     int num_arguments = 0;
-    int num_required = 0;
     String *overloaded_name = getOverloadedName(n);
     String *func_name = NULL;
     String *pre_code = NewString("");
@@ -2973,7 +2970,6 @@ private:
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
 
     int gencomma = 0;
 
@@ -3716,7 +3712,6 @@ private:
     String *decl, String *overloaded_name, String *return_type, String *param_list) {
 
     UpcallData *udata;
-    String *imclass_methodidx;
     String *class_methodidx;
     Hash *new_udata;
     String *key = NewStringf("%s|%s", imclass_method, decl);
@@ -3729,7 +3724,6 @@ private:
       return Getattr(udata, "methodoff");
     }
 
-    imclass_methodidx = NewStringf("%d", n_dmethods);
     class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
     n_dmethods++;
 

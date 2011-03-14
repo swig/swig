@@ -1215,13 +1215,11 @@ public:
       String *name = 0;
       String *type = 0;
       String *value = 0;
-      String *ptype = 0;
       String *pdoc = Getattr(p, "tmap:doc");
       if (pdoc) {
 	name = Getattr(p, "tmap:doc:name");
 	type = Getattr(p, "tmap:doc:type");
 	value = Getattr(p, "tmap:doc:value");
-	ptype = Getattr(p, "tmap:doc:pytype");
       }
 
       name = name ? name : Getattr(p, "name");

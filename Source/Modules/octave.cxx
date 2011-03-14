@@ -359,13 +359,11 @@ public:
       String *name = 0;
       String *type = 0;
       String *value = 0;
-      String *ptype = 0;
       String *pdoc = Getattr(p, "tmap:doc");
       if (pdoc) {
 	name = Getattr(p, "tmap:doc:name");
 	type = Getattr(p, "tmap:doc:type");
 	value = Getattr(p, "tmap:doc:value");
-	ptype = Getattr(p, "tmap:doc:pytype");
       }
 
       name = name ? name : Getattr(p, "name");
@@ -1243,7 +1241,6 @@ public:
       // build argument list and type conversion string
       idx = 0;
       p = l;
-      int use_parse = 0;
       while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  p = Getattr(p, "tmap:in:next");
@@ -1266,7 +1263,6 @@ public:
 	    Printf(wrap_args, "args.append(tmpv);\n");
 	    Putc('O', parse_args);
 	  } else {
-	    use_parse = 1;
 	    Append(parse_args, parse);
 	    Replaceall(tm, "$input", pname);
 	    Replaceall(tm, "$owner", "0");

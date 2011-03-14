@@ -269,7 +269,6 @@ static void String_clear(DOH *so) {
 
 static int String_insert(DOH *so, int pos, DOH *str) {
   String *s;
-  char *nstr;
   int len;
   char *data;
 
@@ -289,7 +288,6 @@ static int String_insert(DOH *so, int pos, DOH *str) {
     data = (char *) (str);
     len = (int) strlen(data);
   }
-  nstr = s->str;
 
   if (pos < 0)
     pos = 0;

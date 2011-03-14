@@ -1041,10 +1041,8 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
   Parm *p;
   ParmList *directorparms;
   SwigType *type;
-  Node *classNode;
   int use_director;
 
-  classNode = Swig_methodclass(n);
   use_director = Swig_directorclass(n);
 
   parms = CopyParmList(nonvoid_parms(Getattr(n, "parms")));

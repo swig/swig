@@ -1062,11 +1062,11 @@ class TypePass:private Dispatcher {
 	       * which is hacked. */
 	      if (Getattr(n, "sym:overloaded"))
 	      {
-#ifdef DEBUG_OVERLOADED
-show_overloaded(n);
-#endif
 		int cnt = 0;
+#ifdef DEBUG_OVERLOADED
 		Node *debugnode = n;
+		show_overloaded(n);
+#endif
 		if (!firstChild(n)) {
 		  // Remove from overloaded list ('using' node does not actually end up adding in any methods)
 		  Node *ps = Getattr(n, "sym:previousSibling");
@@ -1113,14 +1113,16 @@ show_overloaded(n);
 		    Setattr(ns, "sym:previousSibling", pp);
 		    Setattr(pp, "sym:nextSibling", ns);
 		  }
+#ifdef DEBUG_OVERLOADED
 		  debugnode = firstoverloaded;
+#endif
 		}
 		Delattr(n, "sym:previousSibling");
 		Delattr(n, "sym:nextSibling");
 		Delattr(n, "sym:overloaded");
 		Delattr(n, "sym:overname");
 #ifdef DEBUG_OVERLOADED
-show_overloaded(debugnode);
+		show_overloaded(debugnode);
 #endif
 		clean_overloaded(n); // Needed?
 	      }

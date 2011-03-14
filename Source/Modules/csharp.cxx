@@ -646,7 +646,6 @@ public:
 
   UpcallData *addUpcallMethod(String *imclass_method, String *class_method, String *decl, String *overloaded_name) {
     UpcallData *udata;
-    String *imclass_methodidx;
     String *class_methodidx;
     Hash *new_udata;
     String *key = NewStringf("%s|%s", imclass_method, decl);
@@ -659,7 +658,6 @@ public:
       return Getattr(udata, "methodoff");
     }
 
-    imclass_methodidx = NewStringf("%d", n_dmethods);
     class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
     n_dmethods++;
 
@@ -668,10 +666,6 @@ public:
     Setattr(dmethods_table, key, new_udata);
 
     Setattr(new_udata, "method", Copy(class_method));
-    // TODO: remove fdesc
-//    Setattr(new_udata, "fdesc", Copy(class_desc));
-//    Setattr(new_udata, "imclass_method", Copy(imclass_method));
-//    Setattr(new_udata, "imclass_methodidx", imclass_methodidx);
     Setattr(new_udata, "class_methodidx", class_methodidx);
     Setattr(new_udata, "decl", Copy(decl));
     Setattr(new_udata, "overname", Copy(overloaded_name));
@@ -736,7 +730,6 @@ public:
     String *body = NewString("");
     String *im_outattributes = 0;
     int num_arguments = 0;
-    int num_required = 0;
     bool is_void_return;
     String *overloaded_name = getOverloadedName(n);
 
@@ -815,7 +808,6 @@ public:
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
     int gencomma = 0;
 
     // Now walk the function parameter list and generate code to get arguments
@@ -2707,7 +2699,6 @@ public:
     String *return_type = NewString("");
     String *function_code = NewString("");
     int num_arguments = 0;
-    int num_required = 0;
     String *overloaded_name = getOverloadedName(n);
     String *func_name = NULL;
     bool setter_flag = false;
@@ -2767,7 +2758,6 @@ public:
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
 
     bool global_or_member_variable = global_variable_flag || (wrapping_member_flag && !enum_constant_flag);
     int gencomma = 0;
@@ -4020,7 +4010,6 @@ public:
 
   int classDirectorDestructor(Node *n) {
     Node *current_class = getCurrentClass();
-    String *full_classname = Getattr(current_class, "name");
     String *classname = Swig_class_name(current_class);
     Wrapper *w = NewWrapper();
 
@@ -4032,22 +4021,11 @@ public:
       Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() {\n", classname, classname);
     }
 
-    /* Ensure that correct directordisconnect typemap's method name is called
-     * here: */
-
-    const String *disconn_tm = NULL;
-    Node *disconn_attr = NewHash();
-    String *disconn_methodname = NULL;
-
-    disconn_tm = typemapLookup(n, "directordisconnect", full_classname, WARN_NONE, disconn_attr);
-    disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
-
     Printv(w->code, "}\n", NIL);
 
     Wrapper_print(w, f_directors);
 
     DelWrapper(w);
-    Delete(disconn_attr);
     Delete(classname);
     return SWIG_OK;
   }

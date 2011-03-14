@@ -1206,19 +1206,17 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
-  Hash *h, *hsym;
+  Hash *hsym;
   Node *s = 0;
 
   if (!n) {
     hsym = current_symtab;
-    h = ccurrent;
   } else {
     if (!Checkattr(n, "nodeType", "symboltable")) {
       n = Getattr(n, "sym:symtab");
     }
     assert(n);
     hsym = n;
-    h = Getattr(n, "csymtab");
   }
 
   if (Swig_scopename_check(name)) {
@@ -1256,19 +1254,17 @@ Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, int (*checkfunc) (Node *)) {
-  Hash *h, *hsym;
+  Hash *hsym;
   Node *s = 0;
 
   if (!n) {
     hsym = current_symtab;
-    h = ccurrent;
   } else {
     if (!Checkattr(n, "nodeType", "symboltable")) {
       n = Getattr(n, "sym:symtab");
     }
     assert(n);
     hsym = n;
-    h = Getattr(n, "csymtab");
   }
 
   if (Swig_scopename_check(name)) {

@@ -15,8 +15,6 @@ char cvsroot_r_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
-#define UNUSED(a)  (void)a
-
 static const double DEFAULT_NUMBER = .0000123456712312312323;
 static const int MAX_OVERLOAD_ARGS = 5;
 
@@ -268,12 +266,9 @@ static void replaceRClass(String *tm, SwigType *type) {
   Delete(tmp); Delete(tmp_base); Delete(tmp_ref);
 }
 
-static double getNumber(String *value, String *type) {
-  UNUSED(type);
-
+static double getNumber(String *value) {
   double d = DEFAULT_NUMBER;
   if(Char(value)) {
-    //        Printf(stderr, "getNumber %s %s\n", Char(value), type);
     if(sscanf(Char(value), "%lf", &d) != 1)
       return(DEFAULT_NUMBER);
   }
@@ -1016,7 +1011,6 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
 int R::OutputMemberReferenceMethod(String *className, int isSet, 
 				   List *el, File *out) {
   int numMems = Len(el), j;
-  int has_getitem = 0, has_setitem = 0, has_str = 0;
   int varaccessor = 0;
   if (numMems == 0) 
     return SWIG_OK;
@@ -1036,9 +1030,6 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     if (Getattr(itemList, item)) 
       continue;
     Setattr(itemList, item, "1");
-    if (!Strcmp(item, "__getitem__")) has_getitem = 1;
-    if (!Strcmp(item, "__setitem__")) has_setitem = 1;
-    if (!Strcmp(item, "__str__")) has_str = 1;
     
     String *dup = Getitem(el, j + 1);
     char *ptr = Char(dup);
@@ -1212,10 +1203,9 @@ int R::enumDeclaration(Node *n) {
     //      const char *tag = Char(nodeType(c));
     //      if (Strcmp(tag,"cdecl") == 0) {        
     name = Getattr(c, "name");
-    String *type = Getattr(c, "type");
     String *val = Getattr(c, "enumvalue");
     if(val && Char(val)) {
-      int inval = (int) getNumber(val, type);
+      int inval = (int) getNumber(val);
       if(inval == DEFAULT_NUMBER) 
 	value++;
       else 
@@ -1738,8 +1728,7 @@ int R::functionWrapper(Node *n) {
   }
   
   int i;
-  int nargs, num_required, varargs;
-  UNUSED(varargs);
+  int nargs;
   
   String *wname = Swig_name_wrapper(iname);
   Replace(wname, "_wrap", "R_swig", DOH_REPLACE_FIRST);
@@ -1788,8 +1777,6 @@ int R::functionWrapper(Node *n) {
   Setattr(n,"wrap:parms",l);
 
   nargs = emit_num_arguments(l);
-  num_required = emit_num_required(l);
-  varargs = emit_isvarargs(l);
 
   Wrapper_add_local(f, "r_nprotect", "unsigned int r_nprotect = 0");
   Wrapper_add_localv(f, "r_ans", "SEXP", "r_ans = R_NilValue", NIL);
@@ -2134,11 +2121,6 @@ int R::functionWrapper(Node *n) {
      Would like to be able to do this so that we can potentialy insert
   */
   if(processing_member_access_function || processing_class_member_function) {
-    String *tmp;
-    if(member_name)
-      tmp = member_name;
-    else
-      tmp = Getattr(n, "memberfunctionHandler:name");
     addAccessor(member_name, sfun, iname);
   }
 

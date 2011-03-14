@@ -445,7 +445,6 @@ public:
     String *outarg = NewString("");
     String *build = NewString("");
     String *tm;
-    int argout_set = 0;
     int i = 0;
     int numargs;
     int numreq;
@@ -608,7 +607,6 @@ public:
 	Replaceall(tm, "$ntype", normalizeTemplatedClassName(Getattr(p, "type")));
 	Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
-	argout_set = 1;
       } else {
 	p = nextSibling(p);
       }
@@ -881,9 +879,8 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmemberfunctionHandler(Node *n) {
-    int rv;
     static_member_function = 1;
-    rv = Language::staticmemberfunctionHandler(n);
+    Language::staticmemberfunctionHandler(n);
     static_member_function = 0;
     return SWIG_OK;
   }

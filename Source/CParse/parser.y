@@ -2768,7 +2768,6 @@ types_directive : TYPES LPAREN parms RPAREN stringbracesemi {
 template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
                   Parm *p, *tp;
 		  Node *n;
-		  Node *tnode = 0;
 		  Symtab *tscope = 0;
 		  int     specialized = 0;
 
@@ -2929,7 +2928,6 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           }
                           Delattr(templnode,"templatetype");
                           Setattr(templnode,"template",nn);
-                          tnode = templnode;
                           Setfile(templnode,cparse_file);
                           Setline(templnode,cparse_line);
                           Delete(temparms);

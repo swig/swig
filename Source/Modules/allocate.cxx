@@ -386,10 +386,6 @@ class Allocate:public Dispatcher {
     }
 
     Node *c = firstChild(cls);
-    String *kind = Getattr(cls, "kind");
-    int mode = PUBLIC;
-    if (kind && (Strcmp(kind, "class") == 0))
-      mode = PRIVATE;
 
     while (c) {
       if (Getattr(c, "error") || GetFlag(c, "feature:ignore")) {
@@ -457,13 +453,6 @@ class Allocate:public Dispatcher {
 	}
       }
 
-      if (Strcmp(nodeType(c), "access") == 0) {
-	kind = Getattr(c, "kind");
-	if (Strcmp(kind, "public") == 0)
-	  mode = PUBLIC;
-	else
-	  mode = PRIVATE;
-      }
       c = nextSibling(c);
     }
     /* Look for methods in base classes */

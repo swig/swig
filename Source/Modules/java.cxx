@@ -808,7 +808,6 @@ public:
     String *outarg = NewString("");
     String *body = NewString("");
     int num_arguments = 0;
-    int num_required = 0;
     int gencomma = 0;
     bool is_void_return;
     String *overloaded_name = getOverloadedName(n);
@@ -885,9 +884,7 @@ public:
 
     Printf(imclass_class_code, "  public final static native %s %s(", im_return_type, overloaded_name);
 
-    /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
 
     // Now walk the function parameter list and generate code to get arguments
     for (i = 0, p = l; i < num_arguments; i++) {
@@ -2619,7 +2616,6 @@ public:
     String *return_type = NewString("");
     String *function_code = NewString("");
     int num_arguments = 0;
-    int num_required = 0;
     String *overloaded_name = getOverloadedName(n);
     String *func_name = NULL;
     bool setter_flag = false;
@@ -2667,7 +2663,6 @@ public:
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
 
     bool global_or_member_variable = global_variable_flag || (wrapping_member_flag && !enum_constant_flag);
     int gencomma = 0;
@@ -4227,11 +4222,10 @@ public:
     /* Ensure that correct directordisconnect typemap's method name is called
      * here: */
 
-    const String *disconn_tm = NULL;
     Node *disconn_attr = NewHash();
     String *disconn_methodname = NULL;
 
-    disconn_tm = typemapLookup(n, "directordisconnect", full_classname, WARN_NONE, disconn_attr);
+    typemapLookup(n, "directordisconnect", full_classname, WARN_NONE, disconn_attr);
     disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
 
     Printv(w->code, "  swig_disconnect_director_self(\"", disconn_methodname, "\");\n", "}\n", NIL);

@@ -322,13 +322,11 @@ private:
       String *name = 0;
       String *type = 0;
       String *value = 0;
-      String *ptype = 0;
       String *pdoc = Getattr(p, "tmap:doc");
       if (pdoc) {
 	name = Getattr(p, "tmap:doc:name");
 	type = Getattr(p, "tmap:doc:type");
 	value = Getattr(p, "tmap:doc:value");
-	ptype = Getattr(p, "tmap:doc:pytype");
       }
 
       name = name ? name : Getattr(p, "name");
@@ -1608,9 +1606,7 @@ public:
   virtual int functionWrapper(Node *n) {
 
     String *nodeType;
-    bool constructor;
     bool destructor;
-    String *storage;
 
     String *symname = Copy(Getattr(n, "sym:name"));
     SwigType *t = Getattr(n, "type");
@@ -1625,9 +1621,7 @@ public:
       return SWIG_NOWRAP;
 
     nodeType = Getattr(n, "nodeType");
-    constructor = (!Cmp(nodeType, "constructor"));
     destructor = (!Cmp(nodeType, "destructor"));
-    storage = Getattr(n, "storage");
 
     /* If the C++ class constructor is overloaded, we only want to
      * write out the "new" singleton method once since it is always

@@ -250,7 +250,6 @@ public:
   virtual int top(Node *n) {
 
     String *filen;
-    String *s_type;
 
     /* Check if directors are enabled for this module. */
     Node *mod = Getattr(n, "module");
@@ -283,7 +282,6 @@ public:
     r_shutdown = NewString("/* rshutdown section */\n");
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
-    s_type = NewStringEmpty();
     /* subsections of the init section */
     s_vinit = NewString("/* vinit subsection */\n");
     s_vdecl = NewString("/* vdecl subsection */\n");
@@ -2522,7 +2520,6 @@ done:
       /* build argument list and type conversion string */
       idx = 0;
       p = l;
-      int use_parse = 0;
       while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  p = Getattr(p, "tmap:in:next");
@@ -2549,7 +2546,6 @@ done:
 	    Printv(wrap_args, tm, "\n", NIL);
 	    Putc('O', parse_args);
 	  } else {
-	    use_parse = 1;
 	    Append(parse_args, parse);
 	    Replaceall(tm, "$input", pname);
 	    Replaceall(tm, "$owner", "0");

@@ -2500,11 +2500,8 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
 
   Delete(parsed);
 
-  int isPtrReturn = 0;
-
   if (cl_t) {
     lclass = lookup_defined_foreign_ltype(cl_t);
-    isPtrReturn = 1;
   }
 
   int ff_foreign_ptr = 0;
@@ -2523,17 +2520,8 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
     Replaceall(wrap->code, "$out_fftype", out_ffitype);
   if (deref_out_ffitype)
     Replaceall(wrap->code, "$*out_fftype", deref_out_ffitype);
-  //  if(Replaceall(wrap->code,"$lclass", lclass) && !isPtrReturn) {
-  //    Swig_warning(WARN_LANG_RETURN_TYPE,Getfile(n), Getline(n),
-  //                 "While Wrapping %s, replaced a $lclass reference when return type is non-pointer %s!\n",
-  //                 Getattr(n,"name"), cl_t);
-  //  }
 
   Replaceall(wrap->code, "$body", NewStringf("(swig-ff-call%s)", wrap->locals));
-//   Replaceall(wrap->code,"$body", 
-//           (!Strcmp(result_type,"void") ?
-//            NewStringf("(swig-ff-call%s)", wrap->locals) :
-//            NewStringf("(push (swig-ff-call%s) ACL_result)", wrap->locals)));
   String *ldestructor = Copy(lclass);
   if (ff_foreign_ptr)
     Replaceall(ldestructor, ldestructor, "cl::identity");
@@ -2870,22 +2858,12 @@ int ALLEGROCL::globalvariableHandler(Node *n) {
 
   // String *name = Getattr(n, "name");
   SwigType *type = Getattr(n, "type");
-  SwigType *ctype;
   SwigType *rtype = SwigType_typedef_resolve_all(type);
-
-  int pointer_added = 0;
 
   if (SwigType_isclass(rtype)) {
     SwigType_add_pointer(type);
     SwigType_add_pointer(rtype);
-    pointer_added = 1;
   }
-
-  ctype = SwigType_str(type, 0);
-  // EXPORT <SwigType_str> <mangled_name>;
-  // <SwigType_str> <mangled_name> = <name>;
-  //  Printf(f_runtime, "EXPORT %s %s;\n%s %s = %s%s;\n", ctype, mangled_name,
-  //     ctype, mangled_name, (pointer_added ? "&" : ""), name);
 
   Printf(f_clwrap, "(swig-defvar \"%s\" \"%s\" :type %s)\n",
 	 Getattr(n, "sym:name"), Getattr(n, "sym:name"), ((SwigType_isconst(type)) ? ":constant" : ":variable"));
