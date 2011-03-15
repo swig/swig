@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.3 (in progress)
 ===========================
 
+2011-03-15: wsfulton
+	    [C#] Apply patch #3212624 fixing std::map Keys property.
+
 2011-03-14: olly
 	    [PHP] Fix handling of overloaded methods/functions where some
 	    return void and others don't - whether this worked or not depended

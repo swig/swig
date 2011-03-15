@@ -68,6 +68,7 @@ public class li_std_map_runme {
         {
             IList<string> keys = new List<string>(simap.Keys);
             IList<int> values = new List<int>(simap.Values);
+            Dictionary<string, int> check = new Dictionary<string, int>();
             if (keys.Count != collectionSize)
                 throw new Exception("Keys count test failed");
 
@@ -78,6 +79,13 @@ public class li_std_map_runme {
             {
                 if (simap[keys[i]] != values[i])
                     throw new Exception("Keys and values test failed for index " + i);
+                check.Add(keys[i], values[i]);
+            }
+
+            for (int i = 0; i < collectionSize; i++)
+            {
+                if (!check.ContainsKey(i.ToString()))
+                  throw new Exception("Keys and Values ContainsKey test " + i + " failed");
             }
         }
 
