@@ -206,7 +206,7 @@
 /* typecheck */
 
 %typemap(typecheck,noblock=1,precedence=StringCode,
-	 fragment=#SWIG_AsCharPtr) Char *, Char const*& {
+	 fragment=#SWIG_AsCharPtr) Char *, const Char *, Char const*& {
   int res = SWIG_AsCharPtr($input, 0, 0);
   $1 = SWIG_CheckState(res);
 }
@@ -351,7 +351,7 @@
 %typemap(typecheck,noblock=1,precedence=StringCode,
 	 fragment=#SWIG_AsCharArray)  
   Char [ANY], const Char[ANY] {
-  int res = SWIG_AsCharArray($input, (Char *)0, 0);
+  int res = SWIG_AsCharArray($input, (Char *)0, $1_dim0);
   $1 = SWIG_CheckState(res);
 }
 
