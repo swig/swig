@@ -4691,8 +4691,9 @@ extern "C" Language *swig_d(void) {
  * ----------------------------------------------------------------------------- */
 const char *D::usage = (char *) "\
 D Options (available with -d)\n\
+     -d2                  - Generate code for D2/Phobos (default: D1/Tango)\n\
      -package <pkg>       - Write generated D modules into package <pkg>\n\
      -splitproxy          - Write each D type to a dedicated file instead of\n\
                             generating a single proxy D module.\n\
-     -wrapperlibrary <wl> - Sets the name of the wrapper library to <wl>\n\
+     -wrapperlibrary <wl> - Set the name of the wrapper library to <wl>\n\
 \n";
