@@ -3981,7 +3981,6 @@ private:
       Delete(coll);
     }
 
-    Printv(f_go_wrappers, "fail:\n", NULL);
     Printv(f_go_wrappers, "\tpanic(\"No match for overloaded function call\")\n", NULL);
     Printv(f_go_wrappers, "}\n\n", NULL);
 
