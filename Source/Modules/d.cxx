@@ -131,12 +131,12 @@ class D : public Language {
   // split proxy module mode, the proxy class modules) from
   // %pragma(d) globalproxyimports.
   String *global_proxy_imports;
-  
+
   // The D code for the main proxy modules. nspace_proxy_dmodules is a hash from
   // the namespace name as key to an {"imports", "code"}. If the nspace feature
   // is not active, only proxy_dmodule_imports and proxy_dmodule_code are used,
   // which contain the code for the root proxy module.
-  // 
+  //
   // These variables should not be accessed directly but rather via the
   // proxy{Imports, Code}Buffer)() helper functions which return the right
   // buffer for a given namespace. If not in split proxy mode, they contain the
@@ -144,7 +144,7 @@ class D : public Language {
   String *proxy_dmodule_imports;
   String *proxy_dmodule_code;
   Hash *nspace_proxy_dmodules;
-  
+
   // The D code generated for the currently processed enum.
   String *proxy_enum_code;
 
@@ -153,12 +153,12 @@ class D : public Language {
    *
    * These strings are mainly used to temporarily accumulate code from the
    * various member handling functions while a single class is processed and are
-   * no longer relevant once that class has been finished, i.e. after 
+   * no longer relevant once that class has been finished, i.e. after
    * classHandler() has returned.
    */
   // The unqualified name of the current proxy class.
   String *proxy_class_name;
-  
+
   // The name of the current proxy class, qualified with the name of the
   // namespace it is in, if any.
   String *proxy_class_qname;
@@ -573,11 +573,11 @@ public:
 
       Close(proxy_d_file);
     }
-    
+
     // Generate the additional proxy modules for nspace support.
     for (Iterator it = First(nspace_proxy_dmodules); it.key; it = Next(it)) {
       String *module_name = createLastNamespaceName(it.key);
-      
+
       String *filename = NewStringf("%s%s.d", outputDirectory(it.key), module_name);
       File *file = NewFile(filename, "w", SWIG_output_files());
       if (!file) {
@@ -585,15 +585,15 @@ public:
 	SWIG_exit(EXIT_FAILURE);
       }
       Delete(filename);
-      
+
       emitBanner(file);
-      
+
       Printf(file, "module %s%s.%s;\n", package, it.key, module_name);
       Printf(file, "\nstatic import %s;\n", im_dmodule_fq_name);
       Printv(file, global_proxy_imports, NIL);
       Printv(file, Getattr(it.item, "imports"), NIL);
       Printv(file, "\n", NIL);
-      
+
       String *code = Getattr(it.item, "code");
       replaceModuleVariables(code);
       Printv(file, code, NIL);
@@ -860,7 +860,7 @@ public:
 
 	emitBanner(class_file);
 	if (nspace) {
-	  Printf(class_file, "module %s%s.%s;\n", package, nspace, symname); 
+	  Printf(class_file, "module %s%s.%s;\n", package, nspace, symname);
 	} else {
 	  Printf(class_file, "module %s%s;\n", package, symname);
 	}
@@ -890,7 +890,7 @@ public:
   virtual int enumvalueDeclaration(Node *n) {
     if (getCurrentClass() && (cplus_mode != PUBLIC))
       return SWIG_NOWRAP;
-  
+
     Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
     String *value = Getattr(n, "value");
     String *name = Getattr(n, "name");
@@ -1340,8 +1340,8 @@ public:
     writeDirectorConnectWrapper(n);
 
     Replaceall(proxy_class_code, "$dclassname", proxy_class_name);
-    
-    String *dclazzname = Swig_name_member(getNSpace(), proxy_class_name, "");    
+
+    String *dclazzname = Swig_name_member(getNSpace(), proxy_class_name, "");
     Replaceall(proxy_class_code, "$dclazzname", dclazzname);
     Delete(dclazzname);
 
@@ -3602,7 +3602,7 @@ private:
    * If the given type is not already in scope in the current module, adds an
    * import statement for it. The name is considered relative to the global root
    * package if one is set.
-   * 
+   *
    * This is only used for dependencies created in generated code, user-
    * (i.e. typemap-) specified import statements are handeled seperately.
    * --------------------------------------------------------------------------- */
@@ -3615,7 +3615,7 @@ private:
     }
 
     if (split_proxy_dmodule) {
-      Printv(dmodule, symname, NIL); 
+      Printv(dmodule, symname, NIL);
     } else {
       String *inner = createLastNamespaceName(nspace);
       Printv(dmodule, inner, NIL);
@@ -3779,7 +3779,7 @@ private:
 	  }
 	  Delete(outer);
 	}
-	
+
 	// … and the innermost one (because of the conflict with the main proxy
 	// module named like the namespace).
 	String *inner = createLastNamespaceName(nspace);
@@ -3796,7 +3796,7 @@ private:
 	    "Class name cannot be equal to proxy D module name: %s\n",
 	    class_name);
 	  SWIG_exit(EXIT_FAILURE);
-	}	
+	}
       }
     }
   }
@@ -4082,7 +4082,7 @@ private:
       // RESEARCH: Make sure that we really cannot get here for anonymous enums.
       Node *n = enumLookup(type);
       String *enum_name = Getattr(n, "sym:name");
-      
+
       Node *p = parentNode(n);
       if (p && !Strcmp(nodeType(p), "class")) {
 	// This is a nested enum.
@@ -4093,7 +4093,7 @@ private:
 	// would not even be possible in D), so just import the parent.
 	requireDType(nspace, parent_name);
 
-	String *module = createModuleName(nspace, parent_name);	
+	String *module = createModuleName(nspace, parent_name);
 	if (inProxyModule(module)) {
 	  type_name = NewStringf("%s.%s", parent_name, enum_name);
 	} else {
@@ -4103,7 +4103,7 @@ private:
 	// A non-nested enum is written to a seperate module, import it.
 	String *nspace = Getattr(n, "sym:nspace");
 	requireDType(nspace, enum_name);
-	
+
 	String *module = createModuleName(nspace, enum_name);
 	if (inProxyModule(module)) {
 	  type_name = Copy(enum_name);
@@ -4117,7 +4117,7 @@ private:
 	String *class_name = Getattr(n, "sym:name");
 	String *nspace = Getattr(n, "sym:nspace");
 	requireDType(nspace, class_name);
-	
+
 	String *module = createModuleName(nspace, class_name);
 	if (inProxyModule(module)) {
 	  type_name = Copy(class_name);
@@ -4253,7 +4253,7 @@ private:
 	String *current_macro = NewStringWithSize(start, (int)(end - start));
 	String *current_param = NewStringWithSize(param_start, (int)(param_end - param_start));
 
-	
+
 	if (inProxyModule(current_param)) {
 	  Replace(target, current_macro, "", DOH_REPLACE_ANY);
 	} else {
@@ -4303,7 +4303,7 @@ private:
       if (!proxyname) {
 	String *nspace = Getattr(n, "sym:nspace");
 	String *symname = Getattr(n, "sym:name");
-	
+
 	if (nspace) {
           proxyname = NewStringf("%s.%s", nspace, symname);
         } else {
@@ -4320,7 +4320,7 @@ private:
 	  }
 	}
         Setattr(n, "proxyname", proxyname);
-        Delete(proxyname); // Return value still valid because of the ref from n. 
+        Delete(proxyname); // Return value still valid because of the ref from n.
       }
     }
     return proxyname;
@@ -4561,7 +4561,7 @@ private:
   /* ---------------------------------------------------------------------------
    * D::proxyCodeBuffer()
    *
-   * Returns the buffer to write proxy code for the given namespace to. 
+   * Returns the buffer to write proxy code for the given namespace to.
    * --------------------------------------------------------------------------- */
   String *proxyCodeBuffer(String *nspace) {
     if (!nspace) {
@@ -4582,13 +4582,13 @@ private:
    * D::proxyCodeBuffer()
    *
    * Returns the buffer to write imports for the proxy code for the given
-   * namespace to. 
+   * namespace to.
    * --------------------------------------------------------------------------- */
   String *proxyImportsBuffer(String *nspace) {
     if (!nspace) {
       return proxy_dmodule_imports;
     }
-    
+
     Hash *hash = Getattr(nspace_proxy_dmodules, nspace);
     if (!hash) {
       hash = NewHash();
@@ -4603,7 +4603,7 @@ private:
    * D::createFirstNamespaceName()
    *
    * Returns a new string containing the name of the outermost namespace, e.g.
-   * »A« for the argument »A.B.C«. 
+   * »A« for the argument »A.B.C«.
    * --------------------------------------------------------------------------- */
   String *createFirstNamespaceName(const String *nspace) const {
     char *tmp = Char(nspace);
@@ -4611,9 +4611,9 @@ private:
     char *co = 0;
     if (!strstr(c, "."))
       return 0;
-    
+
     co = c + Len(nspace);
-    
+
     while (*c && (c != co)) {
       if ((*c == '.')) {
 	break;
@@ -4625,12 +4625,12 @@ private:
     }
     return NewStringWithSize(tmp, (int)(c - tmp));
   }
-  
+
   /* ---------------------------------------------------------------------------
    * D::createLastNamespaceName()
    *
    * Returns a new string containing the name of the innermost namespace, e.g.
-   * »C« for the argument »A.B.C«. 
+   * »C« for the argument »A.B.C«.
    * --------------------------------------------------------------------------- */
   String *createLastNamespaceName(const String *nspace) const {
     if (!nspace) return NULL;
@@ -4638,7 +4638,7 @@ private:
     char *cc = c;
     if (!strstr(c, "."))
       return NewString(nspace);
-    
+
     while (*c) {
       if (*c == '.') {
 	cc = c;
@@ -4647,13 +4647,13 @@ private:
     }
     return NewString(cc + 1);
   }
-  
+
   /* ---------------------------------------------------------------------------
    * D::createOuterNamespaceNames()
    *
    * Returns a new string containing the name of the outer namespace, e.g.
-   * »A.B« for the argument »A.B.C«. 
-   * --------------------------------------------------------------------------- */  
+   * »A.B« for the argument »A.B.C«.
+   * --------------------------------------------------------------------------- */
   String *createOuterNamespaceNames(const String *nspace) const {
     if (!nspace) return NULL;
     char *tmp = Char(nspace);
@@ -4661,7 +4661,7 @@ private:
     char *cc = c;
     if (!strstr(c, "."))
       return NULL;
-    
+
     while (*c) {
       if (*c == '.') {
 	cc = c;
