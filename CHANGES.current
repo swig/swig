@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.3 (in progress)
 ===========================
 
+2011-03-17: wsfulton
+	    Fix regression introduced in swig-2.0.2 where filenames with spaces were not found
+	    when used with %include and %import. Reported by Shane Liesegang.
+
 2011-03-15: wsfulton
 	    [UTL] Fix overloading when using const char[], problem reported by David Maxwell.
             Similarly for char[ANY] and const char[ANY].

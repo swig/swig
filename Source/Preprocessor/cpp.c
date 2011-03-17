@@ -93,8 +93,6 @@ static String *cpp_include(const_String_or_char_ptr fn, int sysfile) {
     Setattr(included_files, file, file);
   }
   if (!s) {
-    /* XXX(bhy) may not need the seek */
-    /* Seek(fn, 0, SEEK_SET); */
     if (ignore_missing) {
       Swig_warning(WARN_PP_MISSING_FILE, Getfile(fn), Getline(fn), "Unable to find '%s'\n", fn);
     } else {
@@ -665,11 +663,30 @@ static String *get_filename(String *str, int *sysfile) {
     while (((c = Getc(str)) != EOF) && (c != '>'))
       Putc(c, fn);
   } else {
+    String *preprocessed_str;
     Putc(c, fn);
     while (((c = Getc(str)) != EOF) && (!isspace(c)))
       Putc(c, fn);
     if (isspace(c))
       Ungetc(c, str);
+    preprocessed_str = Preprocessor_replace(fn);
+    Seek(preprocessed_str, 0, SEEK_SET);
+    Delete(fn);
+
+    fn = NewStringEmpty();
+    copy_location(preprocessed_str, fn);
+    c = Getc(preprocessed_str);
+    if (c == '\"') {
+      while (((c = Getc(preprocessed_str)) != EOF) && (c != '\"'))
+	Putc(c, fn);
+    } else if (c == '<') {
+      *sysfile = 1;
+      while (((c = Getc(preprocessed_str)) != EOF) && (c != '>'))
+	Putc(c, fn);
+    } else {
+      fn = Copy(preprocessed_str);
+    }
+    Delete(preprocessed_str);
   }
   Swig_filename_unescape(fn);
   Swig_filename_correct(fn);
@@ -1689,14 +1706,12 @@ String *Preprocessor_parse(String *s) {
 	  String *s1, *s2, *fn;
 	  char *dirname;
 	  int sysfile = 0;
-	  String *filename_processed;
 	  if (include_all && import_all) {
 	    Swig_warning(WARN_PP_INCLUDEALL_IMPORTALL, Getfile(s), Getline(id), "Both includeall and importall are defined: using includeall.\n");
 	    import_all = 0;
 	  }
-	  filename_processed = Preprocessor_replace(value);
-	  Seek(filename_processed, 0, SEEK_SET);
-	  fn = get_filename(filename_processed, &sysfile);
+	  Seek(value, 0, SEEK_SET);
+	  fn = get_filename(value, &sysfile);
 	  s1 = cpp_include(fn, sysfile);
 	  if (s1) {
 	    if (include_all)
@@ -1827,8 +1842,6 @@ String *Preprocessor_parse(String *s) {
 	    DOH *s1, *s2, *fn, *opt;
 	    String *options_whitespace = NewStringEmpty();
 	    String *filename_whitespace = NewStringEmpty();
-	    String *filename_unprocessed = NewStringEmpty();
-	    String *filename_processed;
 	    int sysfile = 0;
 
 	    if (Equal(decl, kpp_dextern)) {
@@ -1840,15 +1853,7 @@ String *Preprocessor_parse(String *s) {
 	    opt = get_options(s);
 
 	    skip_whitespace(s, filename_whitespace);
-	    copy_location(s, filename_unprocessed);
-	    while (((c = Getc(s)) != EOF) && (!isspace(c)))
-	      Putc(c, filename_unprocessed);
-	    if (isspace(c))
-	      Ungetc(c, s);
-	    filename_processed = Preprocessor_replace(filename_unprocessed);
-	    Seek(filename_processed, 0, SEEK_SET);
-
-	    fn = get_filename(filename_processed, &sysfile);
+	    fn = get_filename(s, &sysfile);
 	    s1 = cpp_include(fn, sysfile);
 	    if (s1) {
 	      char *dirname;
@@ -1878,8 +1883,6 @@ String *Preprocessor_parse(String *s) {
 	      Delete(s1);
 	    }
 	    Delete(fn);
-	    Delete(filename_processed);
-	    Delete(filename_unprocessed);
 	    Delete(filename_whitespace);
 	    Delete(options_whitespace);
 	  }
