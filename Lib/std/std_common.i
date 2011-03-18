@@ -20,12 +20,13 @@
 %}
 
 //
-// Common code for supporting the STD C++ namespace
+// Common code for supporting the C++ std namespace
 //
 
 %{
 #include <string>
 #include <stdexcept>
+#include <stddef.h>
 %}
 
 
