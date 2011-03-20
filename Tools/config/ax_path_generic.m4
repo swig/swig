@@ -9,7 +9,7 @@
 # DESCRIPTION
 #
 #   Runs the LIBRARY-config script and defines LIBRARY_CFLAGS and
-#   LIBRARY_LIBS
+#   LIBRARY_LIBS unless the user had predefined them in the environment.
 #
 #   The script must support `--cflags' and `--libs' args. If MINIMUM-VERSION
 #   is specified, the script must also support the `--version' arg. If the
@@ -21,6 +21,12 @@
 #   The SED-EXPR-EXTRACTOR parameter representes the expression used in sed
 #   to extract the version number. Use it if your 'foo-config --version'
 #   dumps something like 'Foo library v1.0.0 (alfa)' instead of '1.0.0'.
+#
+#   The macro respects LIBRARY_CONFIG, LIBRARY_CFLAGS and LIBRARY_LIBS
+#   variables. If the first one is defined, it specifies the name of the
+#   config script to use. If the latter two are defined, the script is not
+#   ran at all and their values are used instead (if only one of them is
+#   defined, the empty value of the remaining one is still used).
 #
 #   Example:
 #
@@ -44,6 +50,14 @@
 #     BAR_CFLAGS to `bar-config --cflags`
 #     BAR_LIBS   to `bar-config --libs`
 #
+#   Example:
+#
+#     ./configure BAZ_LIBS=/usr/lib/libbaz.a
+#
+#   would link with a static version of baz library even if `baz-config
+#   --libs` returns just "-lbaz" that would normally result in using the
+#   shared library.
+#
 #   This macro is a rearranged version of AC_PATH_GENERIC from Angus Lees.
 #
 # LICENSE
@@ -55,7 +69,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 10
+#serial 11
 
 AU_ALIAS([AC_PATH_GENERIC], [AX_PATH_GENERIC])
 AC_DEFUN([AX_PATH_GENERIC],[
@@ -75,65 +89,73 @@ AC_DEFUN([AX_PATH_GENERIC],[
   AC_ARG_VAR(UP[]_CFLAGS, [CFLAGS used for $1])
   AC_ARG_VAR(UP[]_LIBS,   [LIBS used for $1])
 
-  AS_IF([test x$DOWN[]_config_exec_prefix != x],[
-    DOWN[]_config_args="$DOWN[]_config_args --exec-prefix=$DOWN[]_config_exec_prefix"
-    AS_IF([test x${UP[]_CONFIG+set} != xset],[
-      UP[]_CONFIG=$DOWN[]_config_exec_prefix/bin/DOWN-config
-    ])
-  ])
-  AS_IF([test x$DOWN[]_config_prefix != x],[
-    DOWN[]_config_args="$DOWN[]_config_args --prefix=$DOWN[]_config_prefix"
-    AS_IF([test x${UP[]_CONFIG+set} != xset],[
-      UP[]_CONFIG=$DOWN[]_config_prefix/bin/DOWN-config
-    ])
-  ])
-
-  AC_PATH_PROGS(UP[]_CONFIG,[$6 DOWN-config],[no])
-  AS_IF([test "$UP[]_CONFIG" == "no"],[
+  AS_IF([test x$UP[]_CFLAGS != x -o x$UP[]_LIBS != x],[
+    dnl Don't run config script at all, use user-provided values instead.
+    AC_SUBST(UP[]_CFLAGS)
+    AC_SUBST(UP[]_LIBS)
     :
-    $5
+    $4
   ],[
-    dnl Get the CFLAGS from LIBRARY-config script
-    AS_IF([test x"$7" == x],[
-      UP[]_CFLAGS="`$UP[]_CONFIG $DOWN[]_config_args --cflags`"
-    ],[
-      UP[]_CFLAGS="`$UP[]_CONFIG $DOWN[]_config_args $7`"
+    AS_IF([test x$DOWN[]_config_exec_prefix != x],[
+      DOWN[]_config_args="$DOWN[]_config_args --exec-prefix=$DOWN[]_config_exec_prefix"
+      AS_IF([test x${UP[]_CONFIG+set} != xset],[
+	UP[]_CONFIG=$DOWN[]_config_exec_prefix/bin/DOWN-config
+      ])
+    ])
+    AS_IF([test x$DOWN[]_config_prefix != x],[
+      DOWN[]_config_args="$DOWN[]_config_args --prefix=$DOWN[]_config_prefix"
+      AS_IF([test x${UP[]_CONFIG+set} != xset],[
+	UP[]_CONFIG=$DOWN[]_config_prefix/bin/DOWN-config
+      ])
     ])
 
-    dnl Get the LIBS from LIBRARY-config script
-    AS_IF([test x"$8" == x],[
-      UP[]_LIBS="`$UP[]_CONFIG $DOWN[]_config_args --libs`"
-    ],[
-      UP[]_LIBS="`$UP[]_CONFIG $DOWN[]_config_args $8`"
-    ])
-
-    AS_IF([test x"$2" != x],[
-      dnl Check for provided library version
-      AS_IF([test x"$3" != x],[
-        dnl Use provided sed expression
-        DOWN[]_version="`$UP[]_CONFIG $DOWN[]_config_args --version | $SED -e $3`"
-      ],[
-        DOWN[]_version="`$UP[]_CONFIG $DOWN[]_config_args --version | $SED -e 's/^\ *\(.*\)\ *$/\1/'`"
-      ])
-
-      AC_MSG_CHECKING([for $1 ($DOWN[]_version) >= $2])
-      AX_COMPARE_VERSION($DOWN[]_version,[ge],[$2],[
-        AC_MSG_RESULT([yes])
-
-        AC_SUBST(UP[]_CFLAGS)
-        AC_SUBST(UP[]_LIBS)
-        :
-        $4
-      ],[
-        AC_MSG_RESULT([no])
-        :
-        $5
-      ])
-    ],[
-      AC_SUBST(UP[]_CFLAGS)
-      AC_SUBST(UP[]_LIBS)
+    AC_PATH_PROGS(UP[]_CONFIG,[$6 DOWN-config],[no])
+    AS_IF([test "$UP[]_CONFIG" == "no"],[
       :
-      $4
+      $5
+    ],[
+      dnl Get the CFLAGS from LIBRARY-config script
+      AS_IF([test x"$7" == x],[
+	UP[]_CFLAGS="`$UP[]_CONFIG $DOWN[]_config_args --cflags`"
+      ],[
+	UP[]_CFLAGS="`$UP[]_CONFIG $DOWN[]_config_args $7`"
+      ])
+
+      dnl Get the LIBS from LIBRARY-config script
+      AS_IF([test x"$8" == x],[
+	UP[]_LIBS="`$UP[]_CONFIG $DOWN[]_config_args --libs`"
+      ],[
+	UP[]_LIBS="`$UP[]_CONFIG $DOWN[]_config_args $8`"
+      ])
+
+      AS_IF([test x"$2" != x],[
+	dnl Check for provided library version
+	AS_IF([test x"$3" != x],[
+	  dnl Use provided sed expression
+	  DOWN[]_version="`$UP[]_CONFIG $DOWN[]_config_args --version | $SED -e $3`"
+	],[
+	  DOWN[]_version="`$UP[]_CONFIG $DOWN[]_config_args --version | $SED -e 's/^\ *\(.*\)\ *$/\1/'`"
+	])
+
+	AC_MSG_CHECKING([for $1 ($DOWN[]_version) >= $2])
+	AX_COMPARE_VERSION($DOWN[]_version,[ge],[$2],[
+	  AC_MSG_RESULT([yes])
+
+	  AC_SUBST(UP[]_CFLAGS)
+	  AC_SUBST(UP[]_LIBS)
+	  :
+	  $4
+	],[
+	  AC_MSG_RESULT([no])
+	  :
+	  $5
+	])
+      ],[
+	AC_SUBST(UP[]_CFLAGS)
+	AC_SUBST(UP[]_LIBS)
+	:
+	$4
+      ])
     ])
   ])
 
