@@ -1309,7 +1309,8 @@
 %enddef
 
 /* Basic C types */
-%typemap(varout,noblock=1) signed char                 { SCILAB_SCALAR_VAROUT(signed char, createMatrixOfInteger8)                 }
+/* 'signed char' casted to 'char' because C++ refuses to call createMatrixOfInteger8 with a 'signed char' 5th input */
+%typemap(varout,noblock=1) signed char                 { SCILAB_SCALAR_VAROUT(char, createMatrixOfInteger8)                 }
 %typemap(varout,noblock=1) unsigned char               { SCILAB_SCALAR_VAROUT(unsigned char, createMatrixOfUnsignedInteger8)       }
 %typemap(varout,noblock=1) signed short                { SCILAB_SCALAR_VAROUT(signed short, createMatrixOfInteger16)               }
 %typemap(varout,noblock=1) unsigned short              { SCILAB_SCALAR_VAROUT(unsigned short, createMatrixOfUnsignedInteger16)     }
