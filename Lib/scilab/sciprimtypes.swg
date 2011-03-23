@@ -75,7 +75,60 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 %fragment(SWIG_AsVal_frag(long),"header") {
 SWIGINTERN int SWIG_AsVal_dec(long)(int iPos, long* val)
 {
-    return 0;
+    SciErr sciErr;
+    int iRows = 1;
+    int iCols = 1;
+    int iType = 0;
+    int* piAddrVar = NULL;
+    double* piData = NULL;
+    double v = 0.0;
+
+    sciErr = getVarAddressFromPosition(pvApiCtx, iPos, &piAddrVar);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return SWIG_TypeError;
+    }
+
+    sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return SWIG_TypeError;
+    }
+    if (iType != sci_matrix)
+    {
+        return SWIG_TypeError;
+    }
+
+    if (isVarComplex(pvApiCtx, piAddrVar))
+    {
+        return SWIG_TypeError;
+    }
+
+    sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols, (double **)&piData);
+    if (sciErr.iErr)
+    {
+        printError(&sciErr, 0);
+        return SWIG_TypeError;
+    }
+    if (iRows * iCols != 1)
+    {
+        return SWIG_TypeError;
+    }
+
+    v = piData[0];
+    if (v != floor(v))
+    {
+        return SWIG_TypeError;
+    }
+
+    if (val != NULL)
+    {
+        *val = (long) piData[0];
+    }
+
+    return SWIG_OK;
 }
 }
 
