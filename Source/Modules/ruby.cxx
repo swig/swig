@@ -131,16 +131,17 @@ enum autodoc_t {
   AUTODOC_SETTER
 };
 
-static const char *usage = "\
+static const char *usage = (char *) "\
 Ruby Options (available with -ruby)\n\
-     -globalmodule   - Wrap everything into the global module\n\
-     -minherit       - Attempt to support multiple inheritance\n\
-     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
-     -cppcast        - Enable C++ casting operators (default)\n\
      -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
+     -cppcast        - Enable C++ casting operators (default)\n\
+     -globalmodule   - Wrap everything into the global module\n\
+     -initname <name>- Set entry function to Init_<name> (used by `require')\n\
+     -minherit       - Attempt to support multiple inheritance\n\
      -noautorename   - Disable renaming of classes and methods (default)\n\
+     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
-     -initname <name> - Set entry function to Init_<name> (used by `require')\n";
+";
 
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
@@ -321,13 +322,11 @@ private:
       String *name = 0;
       String *type = 0;
       String *value = 0;
-      String *ptype = 0;
       String *pdoc = Getattr(p, "tmap:doc");
       if (pdoc) {
 	name = Getattr(p, "tmap:doc:name");
 	type = Getattr(p, "tmap:doc:type");
 	value = Getattr(p, "tmap:doc:value");
-	ptype = Getattr(p, "tmap:doc:pytype");
       }
 
       name = name ? name : Getattr(p, "name");
@@ -1607,9 +1606,7 @@ public:
   virtual int functionWrapper(Node *n) {
 
     String *nodeType;
-    bool constructor;
     bool destructor;
-    String *storage;
 
     String *symname = Copy(Getattr(n, "sym:name"));
     SwigType *t = Getattr(n, "type");
@@ -1624,9 +1621,7 @@ public:
       return SWIG_NOWRAP;
 
     nodeType = Getattr(n, "nodeType");
-    constructor = (!Cmp(nodeType, "constructor"));
     destructor = (!Cmp(nodeType, "destructor"));
-    storage = Getattr(n, "storage");
 
     /* If the C++ class constructor is overloaded, we only want to
      * write out the "new" singleton method once since it is always

@@ -65,13 +65,13 @@ run_testcase = \
 	  cd $*$(VERSIONSUFFIX) && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
 	  DFLAGS='-of$*_runme' \
-	  DSRCS='../$(srcdir)/$(TESTPREFIX)$*$(TESTSUFFIX) $*/*.d' d_compile && \
+	  DSRCS='../$(srcdir)/$(TESTPREFIX)$*$(TESTSUFFIX) `find $* -name *.d`' d_compile && \
 	  env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" $(RUNTOOL) ./$*_runme; \
 	else \
 	  cd $*$(VERSIONSUFFIX) && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
 	  DFLAGS='-c' \
-	  DSRCS='$*/*.d' d_compile && cd .. ; \
+	  DSRCS='`find $* -name *.d`' d_compile && cd .. ; \
 	fi
 
 # Clean: remove testcase directories

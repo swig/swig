@@ -1,5 +1,13 @@
 %module member_funcptr_galore
 
+%{
+#if defined(__SUNPRO_CC)
+#pragma error_messages (off, badargtype2w) /* Formal argument ... is being passed extern "C" ... */
+#pragma error_messages (off, wbadinit) /* Using extern "C" ... to initialize ... */
+#pragma error_messages (off, wbadasg) /* Assigning extern "C" ... */
+#endif
+%}
+
 %inline %{
 
 namespace FunkSpace {
@@ -48,6 +56,10 @@ double do_op(Space::Shape *s, double (Space::Shape::*m)(void)) {
 
 double (Space::Shape::*areapt(Space::Shape &ref, int & (FunkSpace::Funktions::*d)(const int &, int)))(Space::Shape &, int & (FunkSpace::Funktions::*d)(const int &, int)) {
   return &Space::Shape::area;
+}
+
+double (Space::Shape::*areapt())(Space::Shape &, int & (FunkSpace::Funktions::*)(const int &, int)) {
+  return 0;
 }
 
 double (Space::Shape::*abcpt())(Thing<short>, Thing< const Space::Shape * >[]) {

@@ -46,7 +46,7 @@ char cvsroot_php_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 PHP Options (available with -php)\n\
-     -cppext          - cpp file extension (default to .cpp)\n\
+     -cppext <ext>    - Change C++ file extension to <ext> (default is cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
@@ -250,7 +250,6 @@ public:
   virtual int top(Node *n) {
 
     String *filen;
-    String *s_type;
 
     /* Check if directors are enabled for this module. */
     Node *mod = Getattr(n, "module");
@@ -283,7 +282,6 @@ public:
     r_shutdown = NewString("/* rshutdown section */\n");
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
-    s_type = NewStringEmpty();
     /* subsections of the init section */
     s_vinit = NewString("/* vinit subsection */\n");
     s_vdecl = NewString("/* vdecl subsection */\n");
@@ -389,6 +387,12 @@ public:
     Printf(s_header, "#else\n");
     Printf(s_header, "#define SWIG_ErrorMsg() (%s_globals.error_msg)\n", module);
     Printf(s_header, "#define SWIG_ErrorCode() (%s_globals.error_code)\n", module);
+    Printf(s_header, "#endif\n\n");
+
+    Printf(s_header, "// Allow the user to workaround a PHP bug on some platforms/architectures by\n");
+    Printf(s_header, "// compiling with -DSWIG_ZEND_ERROR_NORETURN=zend_error\n");
+    Printf(s_header, "#ifndef SWIG_ZEND_ERROR_NORETURN\n");
+    Printf(s_header, "# define SWIG_ZEND_ERROR_NORETURN zend_error_noreturn\n");
     Printf(s_header, "#endif\n\n");
 
     Printf(s_header, "static void %s_init_globals(zend_%s_globals *globals ) {\n", module, module);
@@ -976,7 +980,11 @@ public:
     /* Error handling code */
     Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
-    Printv(f->code, "zend_error_noreturn(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
+    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+     * using zend_error() here shouldn't generate a warning, so just use that.
+     * At worst this may result in slightly less good code.
+     */
+    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
 
     Printf(f->code, "}\n");
 
@@ -1069,6 +1077,8 @@ public:
       Hash *ret_types = NewHash();
       Setattr(ret_types, d, d);
 
+      bool non_void_return = (Cmp(d, "void") != 0);
+
       if (overloaded) {
 	// Look at all the overloaded versions of this method in turn to
 	// decide if it's really an overloaded method, or just one where some
@@ -1085,6 +1095,7 @@ public:
 	    assert(constructor);
 	  } else if (!Getattr(ret_types, d2)) {
 	    Setattr(ret_types, d2, d2);
+	    non_void_return = non_void_return || (Cmp(d2, "void") != 0);
 	  }
 
 	  ParmList *l2 = Getattr(o, "wrap:parms");
@@ -1496,7 +1507,7 @@ public:
 	    while (last_handled_i < i) {
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
-	    if (Cmp(d, "void") != 0) {
+	    if (non_void_return) {
 	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
 		Append(prepare, "$r=");
 	      } else {
@@ -1518,7 +1529,7 @@ public:
 	Printf(prepare, "\t\t");
 	if (had_a_case)
 	  Printf(prepare, "default: ");
-	if (Cmp(d, "void") != 0) {
+	if (non_void_return) {
 	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
 	    Append(prepare, "$r=");
 	  } else {
@@ -1664,7 +1675,7 @@ public:
 	  }
 	}
 	Printf(output, "%s", prepare);
-      } else if (Cmp(d, "void") == 0 && !hasargout) {
+      } else if (!non_void_return && !hasargout) {
 	if (Cmp(invoke, "$r") != 0)
 	  Printf(output, "\t\t%s;\n", invoke);
       } else if (is_class(d)) {
@@ -1718,7 +1729,6 @@ public:
 	  while (i.item) {
 	    SwigType *ret_type = i.item;
 	    i = Next(i);
-	    Printf(output, "\t\t");
 	    String *mangled = NewString("_p");
 	    Printf(mangled, "%s", SwigType_manglestr(ret_type));
 	    Node *class_node = Getattr(zend_types, mangled);
@@ -1729,7 +1739,13 @@ public:
 	      Delete(mangled);
 	      mangled = NewString(SwigType_manglestr(ret_type));
 	      class_node = Getattr(zend_types, mangled);
+	      if (!class_node) {
+		// Return type isn't an object, so will be handled by the
+		// !is_resource() check before the switch.
+		continue;
+	      }
 	    }
+	    Printf(output, "\t\t");
 	    if (i.item) {
 	      Printf(output, "case '%s': ", mangled);
 	    } else {
@@ -2290,7 +2306,11 @@ done:
 
     Append(f->code, "return;\n");
     Append(f->code, "fail:\n");
-    Append(f->code, "zend_error_noreturn(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+     * using zend_error() here shouldn't generate a warning, so just use that.
+     * At worst this may result in slightly less good code.
+     */
+    Append(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
     Printf(f->code, "}\n");
 
     Wrapper_print(f, s_wrappers);
@@ -2503,7 +2523,6 @@ done:
       /* build argument list and type conversion string */
       idx = 0;
       p = l;
-      int use_parse = 0;
       while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  p = Getattr(p, "tmap:in:next");
@@ -2530,7 +2549,6 @@ done:
 	    Printv(wrap_args, tm, "\n", NIL);
 	    Putc('O', parse_args);
 	  } else {
-	    use_parse = 1;
 	    Append(parse_args, parse);
 	    Replaceall(tm, "$input", pname);
 	    Replaceall(tm, "$owner", "0");
@@ -2665,7 +2683,15 @@ done:
     }
 
     Append(w->code, "fail:\n");
-    Append(w->code, "zend_error_noreturn(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    if (!is_void) {
+      Append(w->code, "SWIG_ZEND_ERROR_NORETURN(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    } else {
+      /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+       * using zend_error() here shouldn't generate a warning, so just use that.
+       * At worst this may result in slightly less good code.
+       */
+      Append(w->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    }
     Append(w->code, "}\n");
 
     // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method

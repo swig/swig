@@ -194,7 +194,7 @@ extern "C" {
   extern void SwigType_inherit_scope(Typetab *scope);
   extern Typetab *SwigType_pop_scope(void);
   extern Typetab *SwigType_set_scope(Typetab *h);
-  extern void SwigType_print_scope(Typetab *t);
+  extern void SwigType_print_scope(void);
   extern SwigType *SwigType_typedef_resolve(const SwigType *t);
   extern SwigType *SwigType_typedef_resolve_all(const SwigType *t);
   extern SwigType *SwigType_typedef_qualified(const SwigType *t);

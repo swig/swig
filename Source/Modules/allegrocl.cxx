@@ -22,6 +22,21 @@ char cvsroot_allegrocl_cxx[] = "$Id$";
 // #define ALLEGROCL_TYPE_DEBUG
 // #define ALLEGROCL_CLASS_DEBUG
 
+static const char *usage = (char *) "\
+Allegro CL Options (available with -allegrocl)\n\
+     -identifier-converter <type or funcname> - \n\
+                       Specifies the type of conversion to do on C identifiers to convert\n\
+                       them to symbols. There are two built-in converters: 'null' and\n\
+                       'lispify'. The default is 'null'. If you supply a name other\n\
+                       than one of the built-ins, then a function by that name will be\n\
+                       called to convert identifiers to symbols.\n\
+     -[no]cwrap      - Turn on or turn off generation of an intermediate C file when\n\
+                       creating a C interface. By default this is only done for C++ code.\n\
+     -isolate        - Define all SWIG helper functions in a package unique to this\n\
+                       module. Avoids redefinition warnings when loading multiple\n\
+                       SWIGged modules into the same running Allegro CL image.\n\
+";
+
 static File *f_cl = 0;
 String *f_clhead = NewString("");
 String *f_clwrap = NewString("(swig-in-package ())\n\n");
@@ -1587,21 +1602,7 @@ void ALLEGROCL::main(int argc, char *argv[]) {
     }
 
     if (!strcmp(argv[i], "-help")) {
-      fprintf(stdout, "Allegro CL Options (available with -allegrocl)\n");
-      fprintf(stdout,
-	      "    -identifier-converter <type or funcname>\n"
-	      "\tSpecifies the type of conversion to do on C identifiers to convert\n"
-	      "\tthem to symbols.  There are two built-in converters:  'null' and\n"
-	      "\t 'lispify'.  The default is 'null'.  If you supply a name other\n"
-	      "\tthan one of the built-ins, then a function by that name will be\n"
-	      "\tcalled to convert identifiers to symbols.\n"
-	      "\n"
-	      "   -[no]cwrap\n"
-	      "\tTurn on or turn off generation of an intermediate C file when\n" "\tcreating a C interface. By default this is only done for C++ code.\n"
-	      "   -isolate\n"
-	      "Define all SWIG helper functions in a package unique to this module. Avoids redefinition warnings when loading multiple SWIGged modules\n"
-	      "into the same running Allegro CL image.\n");
-
+      Printf(stdout, "%s\n", usage);
     }
 
   }
@@ -2499,11 +2500,8 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
 
   Delete(parsed);
 
-  int isPtrReturn = 0;
-
   if (cl_t) {
     lclass = lookup_defined_foreign_ltype(cl_t);
-    isPtrReturn = 1;
   }
 
   int ff_foreign_ptr = 0;
@@ -2522,17 +2520,8 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
     Replaceall(wrap->code, "$out_fftype", out_ffitype);
   if (deref_out_ffitype)
     Replaceall(wrap->code, "$*out_fftype", deref_out_ffitype);
-  //  if(Replaceall(wrap->code,"$lclass", lclass) && !isPtrReturn) {
-  //    Swig_warning(WARN_LANG_RETURN_TYPE,Getfile(n), Getline(n),
-  //                 "While Wrapping %s, replaced a $lclass reference when return type is non-pointer %s!\n",
-  //                 Getattr(n,"name"), cl_t);
-  //  }
 
   Replaceall(wrap->code, "$body", NewStringf("(swig-ff-call%s)", wrap->locals));
-//   Replaceall(wrap->code,"$body", 
-//           (!Strcmp(result_type,"void") ?
-//            NewStringf("(swig-ff-call%s)", wrap->locals) :
-//            NewStringf("(push (swig-ff-call%s) ACL_result)", wrap->locals)));
   String *ldestructor = Copy(lclass);
   if (ff_foreign_ptr)
     Replaceall(ldestructor, ldestructor, "cl::identity");
@@ -2869,22 +2858,12 @@ int ALLEGROCL::globalvariableHandler(Node *n) {
 
   // String *name = Getattr(n, "name");
   SwigType *type = Getattr(n, "type");
-  SwigType *ctype;
   SwigType *rtype = SwigType_typedef_resolve_all(type);
-
-  int pointer_added = 0;
 
   if (SwigType_isclass(rtype)) {
     SwigType_add_pointer(type);
     SwigType_add_pointer(rtype);
-    pointer_added = 1;
   }
-
-  ctype = SwigType_str(type, 0);
-  // EXPORT <SwigType_str> <mangled_name>;
-  // <SwigType_str> <mangled_name> = <name>;
-  //  Printf(f_runtime, "EXPORT %s %s;\n%s %s = %s%s;\n", ctype, mangled_name,
-  //     ctype, mangled_name, (pointer_added ? "&" : ""), name);
 
   Printf(f_clwrap, "(swig-defvar \"%s\" \"%s\" :type %s)\n",
 	 Getattr(n, "sym:name"), Getattr(n, "sym:name"), ((SwigType_isconst(type)) ? ":constant" : ":variable"));
@@ -3230,3 +3209,4 @@ int ALLEGROCL::templateDeclaration(Node *n) {
 
   return SWIG_OK;
 }
+

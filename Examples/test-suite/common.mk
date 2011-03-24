@@ -148,6 +148,7 @@ CPP_TEST_CASES += \
 	cpp_static \
 	cpp_typedef \
 	default_args \
+	default_arg_values \
 	default_constructor \
 	defvalue_constructor \
 	derived_byvalue \
@@ -268,6 +269,7 @@ CPP_TEST_CASES += \
 	overload_copy \
 	overload_extend \
 	overload_rename \
+	overload_return_type \
 	overload_simple \
 	overload_subtype \
 	overload_template \
@@ -287,6 +289,7 @@ CPP_TEST_CASES += \
 	rename3 \
 	rename4 \
 	rename_scope \
+	rename_simple \
 	rename_strip_encoder \
 	rename_pcre_encoder \
 	rename_pcre_enum \
@@ -311,6 +314,7 @@ CPP_TEST_CASES += \
 	smart_pointer_rename \
 	smart_pointer_simple \
 	smart_pointer_static \
+	smart_pointer_template_const_overload \
 	smart_pointer_templatemethods \
 	smart_pointer_templatevariables \
 	smart_pointer_typedef \
@@ -428,6 +432,7 @@ CPP_TEST_CASES += \
 	valuewrapper_const \
 	valuewrapper_opaque \
 	varargs \
+	varargs_overload \
 	virtual_destructor \
 	virtual_poly \
 	voidtest \
@@ -492,6 +497,8 @@ C_TEST_CASES += \
 	overload_extendc \
 	preproc \
 	preproc_constants_c \
+	preproc_defined \
+	preproc_include \
 	preproc_line_file \
 	ret_by_value \
 	simple_array \
@@ -516,6 +523,7 @@ MULTI_CPP_TEST_CASES += \
 
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw
+preproc_include.ctest: SWIGOPT += -includeall
 
 
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \

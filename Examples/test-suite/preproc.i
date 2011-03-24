@@ -6,8 +6,10 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) __GMP_HAVE_CONST; /* Ruby, wrong constant name */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) __GMP_HAVE_PROTOTYPES; /* Ruby, wrong constant name */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) __GMP_HAVE_TOKEN_PASTE; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) __GMP_HAVE_TOKEN_PASTE; /* Ruby, wrong constant name */
 
 #pragma SWIG nowarn=890                                      /* lots of Go name conflicts */
+#pragma SWIG nowarn=206                                      /* Unexpected tokens after #endif directive. */
 
 /* check __cplusplus case */
 %header

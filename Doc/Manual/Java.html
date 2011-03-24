@@ -101,6 +101,7 @@
 <li><a href="#Java_simple_pointers">Simple pointers</a>
 <li><a href="#Java_c_arrays">Wrapping C arrays with Java arrays</a>
 <li><a href="#Java_unbounded_c_arrays">Unbounded C Arrays</a>
+<li><a href="#Java_binary_char">Binary data vs Strings</a>
 <li><a href="#Java_heap_allocations">Overriding new and delete to allocate from Java heap</a>
 </ul>
 <li><a href="#Java_typemaps">Java typemaps</a>
@@ -4401,7 +4402,8 @@ well suited for applications in which you need to create buffers,
 package binary data, etc.
 </p>
 
-<H3><a name="Java_binary_char"></a>Binary data vs Strings</H3>
+<H3><a name="Java_binary_char"></a>23.8.5 Binary data vs Strings</H3>
+
 
 <p>
 By default SWIG handles <tt>char *</tt> as a string but there is a handy multi-argument typemap available as mentioned in <a href="Library.html#Library_nn10">Passing binary data</a>.
@@ -4444,7 +4446,7 @@ len: 5 data: 68 69 0 6a 6b
 </pre></div>
 
 
-<H3><a name="Java_heap_allocations"></a>23.8.5 Overriding new and delete to allocate from Java heap</H3>
+<H3><a name="Java_heap_allocations"></a>23.8.6 Overriding new and delete to allocate from Java heap</H3>
 
 
 <p>

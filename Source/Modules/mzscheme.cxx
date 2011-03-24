@@ -19,12 +19,12 @@ char cvsroot_mzscheme_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 Mzscheme Options (available with -mzscheme)\n\
-     -prefix <name>                         - Set a prefix <name> to be prepended to all names\n\
      -declaremodule                         - Create extension that declares a module\n\
-     -noinit                                - Do not emit scheme_initialize, scheme_reload,\n\
-                                              scheme_module_name functions\n\
      -dynamic-load <library>,[library,...]  - Do not link with these libraries, dynamic load\n\
                                               them\n\
+     -noinit                                - Do not emit scheme_initialize, scheme_reload,\n\
+                                              scheme_module_name functions\n\
+     -prefix <name>                         - Set a prefix <name> to be prepended to all names\n\
 ";
 
 static String *fieldnames_tab = 0;
@@ -240,7 +240,6 @@ public:
     String *outarg = NewString("");
     String *build = NewString("");
     String *tm;
-    int argout_set = 0;
     int i = 0;
     int numargs;
     int numreq;
@@ -381,7 +380,6 @@ public:
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
-	argout_set = 1;
       } else {
 	p = nextSibling(p);
       }

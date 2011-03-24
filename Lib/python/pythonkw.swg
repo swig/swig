@@ -124,7 +124,8 @@ PYTHONBN(zip);
 */
 PYTHONBN(True);
 PYTHONBN(False);
-PYTHONBN(None);
+
+PYTHONKW(None);
 
 
 /* 

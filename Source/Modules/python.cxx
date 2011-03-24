@@ -883,9 +883,9 @@ public:
 	   * But don't sure wether this would broken old Python?
 	   */
 	  Printv(f_shadow,
-//              "import types\n",
+//               "import types\n",
 		 "try:\n",
-//              "    _object = types.ObjectType\n",
+//               "    _object = types.ObjectType\n",
 		 "    _object = object\n", "    _newclass = 1\n", "except AttributeError:\n", "    class _object : pass\n", "    _newclass = 0\n",
 //                 "del types\n", 
 		 "\n\n", NIL);
@@ -1344,13 +1344,11 @@ public:
       String *name = 0;
       String *type = 0;
       String *value = 0;
-      String *ptype = 0;
       String *pdoc = Getattr(p, "tmap:doc");
       if (pdoc) {
 	name = Getattr(p, "tmap:doc:name");
 	type = Getattr(p, "tmap:doc:type");
 	value = Getattr(p, "tmap:doc:value");
-	ptype = Getattr(p, "tmap:doc:pytype");
       }
 
       name = name ? name : Getattr(p, "name");
@@ -1566,7 +1564,7 @@ public:
       if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
 	return NewString("False");
       if (Strcmp(v, "NULL") == 0)
-	return NewString("None");
+	return SwigType_ispointer(t) ? NewString("None") : NewString("0");
     }
     return 0;
   }
@@ -3062,13 +3060,13 @@ public:
       Printf(f_directors_h, "\n\n");
       Printf(f_directors_h, "/* Internal Director utilities */\n");
       Printf(f_directors_h, "public:\n");
-      Printf(f_directors_h, "    bool swig_get_inner(const char* protected_method_name) const {\n");
-      Printf(f_directors_h, "      std::map<std::string, bool>::const_iterator iv = swig_inner.find(protected_method_name);\n");
+      Printf(f_directors_h, "    bool swig_get_inner(const char* swig_protected_method_name) const {\n");
+      Printf(f_directors_h, "      std::map<std::string, bool>::const_iterator iv = swig_inner.find(swig_protected_method_name);\n");
       Printf(f_directors_h, "      return (iv != swig_inner.end() ? iv->second : false);\n");
       Printf(f_directors_h, "    }\n\n");
 
-      Printf(f_directors_h, "    void swig_set_inner(const char* protected_method_name, bool val) const\n");
-      Printf(f_directors_h, "    { swig_inner[protected_method_name] = val;}\n\n");
+      Printf(f_directors_h, "    void swig_set_inner(const char* swig_protected_method_name, bool val) const\n");
+      Printf(f_directors_h, "    { swig_inner[swig_protected_method_name] = val;}\n\n");
       Printf(f_directors_h, "private:\n");
       Printf(f_directors_h, "    mutable std::map<std::string, bool> swig_inner;\n");
 
@@ -3793,8 +3791,8 @@ public:
 	  List *shadow_list = Getattr(n, "shadow_methods");
 	  for (int i = 0; i < Len(shadow_list); ++i) {
 	    String *symname = Getitem(shadow_list, i);
-	    Printf(f_shadow_file, "%s.%s = new_instancemethod(%s.%s,None,%s)\n", class_name, symname, module,
-		   Swig_name_member(NSPACE_TODO, class_name, symname), class_name);
+	    Printf(f_shadow_file, "%s.%s = new_instancemethod(%s.%s,None,%s)\n", class_name, symname, module, Swig_name_member(NSPACE_TODO, class_name, symname),
+		   class_name);
 	  }
 	}
 	Printf(f_shadow_file, "%s_swigregister = %s.%s_swigregister\n", class_name, module, class_name);
@@ -4090,7 +4088,6 @@ public:
 	      String *classname = Swig_class_name(parent);
 	      String *rclassname = Swig_class_name(getCurrentClass());
 	      assert(rclassname);
-
 
 	      String *parms = make_pyParmList(n, true, false, allow_kwargs);
 	      /* Pass 'self' only if using director */

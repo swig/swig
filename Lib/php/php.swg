@@ -201,7 +201,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%lld", $1);
+    sprintf(temp, "%lld", (long long)$1);
     ZVAL_STRING(return_value, temp, 1);
   }
 %}
@@ -212,7 +212,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%llu", $1);
+    sprintf(temp, "%llu", (unsigned long long)$1);
     ZVAL_STRING(return_value, temp, 1);
   }
 %}
@@ -239,7 +239,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%lld", *$1);
+    sprintf(temp, "%lld", (long long)(*$1));
     ZVAL_STRING(return_value, temp, 1);
   }
 %}
@@ -250,7 +250,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%llu", *$1);
+    sprintf(temp, "%llu", (unsigned long long)(*$1));
     ZVAL_STRING(return_value, temp, 1);
   }
 %}
@@ -414,17 +414,17 @@
 %php_typecheck(unsigned int,SWIG_TYPECHECK_UINT32,IS_LONG)
 %php_typecheck(short,SWIG_TYPECHECK_INT16,IS_LONG)
 %php_typecheck(unsigned short,SWIG_TYPECHECK_UINT16,IS_LONG)
-%php_typecheck(long,SWIG_TYPECHECK_INT64,IS_LONG)
-%php_typecheck(unsigned long,SWIG_TYPECHECK_UINT64,IS_LONG)
+%php_typecheck(long,SWIG_TYPECHECK_INT32,IS_LONG)
+%php_typecheck(unsigned long,SWIG_TYPECHECK_UINT32,IS_LONG)
 %php_typecheck(long long,SWIG_TYPECHECK_INT64,IS_LONG)
 %php_typecheck(unsigned long long,SWIG_TYPECHECK_UINT64,IS_LONG)
 %php_typecheck(signed char,SWIG_TYPECHECK_INT8,IS_LONG)
 %php_typecheck(unsigned char,SWIG_TYPECHECK_UINT8,IS_LONG)
-%php_typecheck(size_t,SWIG_TYPECHECK_INT16,IS_LONG)
-%php_typecheck(enum SWIGTYPE,SWIG_TYPECHECK_INT8,IS_LONG)
+%php_typecheck(size_t,SWIG_TYPECHECK_SIZE,IS_LONG)
+%php_typecheck(enum SWIGTYPE,SWIG_TYPECHECK_INTEGER,IS_LONG)
 %php_typecheck(bool,SWIG_TYPECHECK_BOOL,IS_BOOL)
 %php_typecheck(float,SWIG_TYPECHECK_FLOAT,IS_DOUBLE)
-%php_typecheck(double,SWIG_TYPECHECK_BOOL,IS_DOUBLE)
+%php_typecheck(double,SWIG_TYPECHECK_DOUBLE,IS_DOUBLE)
 %php_typecheck(char,SWIG_TYPECHECK_CHAR,IS_STRING)
 
 %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char *, char *&, char []

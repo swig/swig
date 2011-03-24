@@ -6,18 +6,18 @@ func main() {
 	_ = Foo()
 
 	_ = Maximum(3, 4)
-	_ = Maximum(float64(3.4), float64(5.2))
+	_ = Maximum(3.4, 5.2)
 
 	// mix 1
 	if Mix1("hi") != 101 {
 		panic("mix1(const char*)")
 	}
 
-	if Mix1(float64(1.0), float64(1.0)) != 102 {
+	if Mix1(1.0, 1.0) != 102 {
 		panic("mix1(double, const double &)")
 	}
 
-	if Mix1(float64(1.0)) != 103 {
+	if Mix1(1.0) != 103 {
 		panic("mix1(double)")
 	}
 
@@ -26,11 +26,11 @@ func main() {
 		panic("mix2(const char*)")
 	}
 
-	if Mix2(float64(1.0), float64(1.0)) != 102 {
+	if Mix2(1.0, 1.0) != 102 {
 		panic("mix2(double, const double &)")
 	}
 
-	if Mix2(float64(1.0)) != 103 {
+	if Mix2(1.0) != 103 {
 		panic("mix2(double)")
 	}
 
@@ -39,11 +39,11 @@ func main() {
 		panic("mix3(const char*)")
 	}
 
-	if Mix3(float64(1.0), float64(1.0)) != 102 {
+	if Mix3(1.0, 1.0) != 102 {
 		panic("mix3(double, const double &)")
 	}
 
-	if Mix3(float64(1.0)) != 103 {
+	if Mix3(1.0) != 103 {
 		panic("mix3(double)")
 	}
 
@@ -52,12 +52,12 @@ func main() {
 		panic("overtparams1(int)")
 	}
 
-	if Overtparams1(float64(100.0), 100) != 20 {
+	if Overtparams1(100.0, 100) != 20 {
 		panic("overtparams1(double, int)")
 	}
 
 	// Combination 2
-	if Overtparams2(float64(100.0), 100) != 40 {
+	if Overtparams2(100.0, 100) != 40 {
 		panic("overtparams2(double, int)")
 	}
 
@@ -66,7 +66,7 @@ func main() {
 		panic("overloaded()")
 	}
 
-	if Overloaded(float64(100.0), 100) != 70 {
+	if Overloaded(100.0, 100) != 70 {
 		panic("overloaded(double, int)")
 	}
 
@@ -84,7 +84,7 @@ func main() {
 		panic("specialization(int)")
 	}
 
-	if Specialization(float64(10.0)) != 203 {
+	if Specialization(10.0) != 203 {
 		panic("specialization(double)")
 	}
 
@@ -92,7 +92,7 @@ func main() {
 		panic("specialization(int, int)")
 	}
 
-	if Specialization(float64(10.0), float64(10.0)) != 205 {
+	if Specialization(10.0, 10.0) != 205 {
 		panic("specialization(double, double)")
 	}
 
@@ -136,7 +136,7 @@ func main() {
 		panic("overload(Klass t, const char *)")
 	}
 
-	if Overload(float64(10.0), "hi") != 40 {
+	if Overload(10.0, "hi") != 40 {
 		panic("overload(double t, const char *)")
 	}
 
@@ -174,7 +174,7 @@ func main() {
 		panic("nsoverload(Klass t, const char *)")
 	}
 
-	if Nsoverload(float64(10.0), "hi") != 1040 {
+	if Nsoverload(10.0, "hi") != 1040 {
 		panic("nsoverload(double t, const char *)")
 	}
 

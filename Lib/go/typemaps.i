@@ -68,7 +68,11 @@ char * typemaps instead:
 %typemap(in) TYPE &INPUT
 %{ $1 = ($1_ltype)$input; %}
 
+%typemap(out) TYPE *INPUT, TYPE &INPUT ""
+
 %typemap(freearg) TYPE *INPUT, TYPE &INPUT ""
+
+%typemap(argout) TYPE *INPUT, TYPE &INPUT ""
 
 %typemap(directorout) TYPE *INPUT
 %{ $result = ($1_ltype)&$input; %}
@@ -95,7 +99,7 @@ INPUT_TYPEMAP(long, int64);
 INPUT_TYPEMAP(unsigned long, uint64);
 INPUT_TYPEMAP(long long, int64);
 INPUT_TYPEMAP(unsigned long long, uint64);
-INPUT_TYPEMAP(float, float);
+INPUT_TYPEMAP(float, float32);
 INPUT_TYPEMAP(double, float64);
 
 #undef INPUT_TYPEMAP
@@ -181,6 +185,8 @@ char * typemaps instead:
   $1 = &temp;
 }
 
+%typemap(out) TYPE *OUTPUT, TYPE &OUTPUT ""
+
 %typemap(freearg) TYPE *OUTPUT, TYPE &OUTPUT ""
 
 %typemap(argout) TYPE *OUTPUT
@@ -219,7 +225,7 @@ OUTPUT_TYPEMAP(long, int64);
 OUTPUT_TYPEMAP(unsigned long, uint64);
 OUTPUT_TYPEMAP(long long, int64);
 OUTPUT_TYPEMAP(unsigned long long, uint64);
-OUTPUT_TYPEMAP(float, float);
+OUTPUT_TYPEMAP(float, float32);
 OUTPUT_TYPEMAP(double, float64);
 
 #undef OUTPUT_TYPEMAP
@@ -303,7 +309,11 @@ char * typemaps instead:
   $1 = ($1_ltype) $input->array;
 }
 
+%typemap(out) TYPE *INOUT, TYPE &INOUT ""
+
 %typemap(freearg) TYPE *INOUT, TYPE &INOUT ""
+
+%typemap(argout) TYPE *INOUT, TYPE &INOUT ""
 
 %typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
 }
@@ -329,7 +339,7 @@ INOUT_TYPEMAP(long, int64);
 INOUT_TYPEMAP(unsigned long, uint64);
 INOUT_TYPEMAP(long long, int64);
 INOUT_TYPEMAP(unsigned long long, uint64);
-INOUT_TYPEMAP(float, float);
+INOUT_TYPEMAP(float, float32);
 INOUT_TYPEMAP(double, float64);
 
 #undef INOUT_TYPEMAP

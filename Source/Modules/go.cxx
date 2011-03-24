@@ -12,7 +12,6 @@ char cvsroot_go_cxx[] = "$Id";
 #include "swigmod.h"
 #include "cparse.h"
 #include <ctype.h>
-#include <string>
 
 class GO:public Language {
   static const char *const usage;
@@ -573,7 +572,7 @@ private:
       result = NewString("void");
       r1 = result;
     } else {
-      if (!is_public(n)) {
+      if (!checkFunctionVisibility(n, NULL)) {
 	return SWIG_OK;
       }
 
@@ -647,7 +646,7 @@ private:
   }
 
   /* ----------------------------------------------------------------------
-   * staticmemberfunctionHandler
+   * staticmemberfunctionHandler()
    *
    * For some reason the language code removes the "storage" attribute
    * for a static function before calling functionWrapper, which means
@@ -746,7 +745,7 @@ private:
       receiver = NULL;
     }
 
-    bool add_to_interface = (interfaces && !is_constructor && !is_destructor && !is_static && !overname && is_public(n));
+    bool add_to_interface = (interfaces && !is_constructor && !is_destructor && !is_static && !overname && checkFunctionVisibility(n, NULL));
 
     bool needs_wrapper = (gccgo_flag || receiver || is_constructor || is_destructor || parm_count > required_count);
 
@@ -1087,9 +1086,9 @@ private:
       // A slice has a pointer, a length, and a capacity.  The
       // length and capacity are always 4 bytes.
       Append(orig, "(SWIG_PARM_SIZE + 8)");
-    } else if (Strcmp(go, "float") == 0 || Strcmp(go, "float64") == 0) {
+    } else if (Strcmp(go, "float64") == 0) {
       Append(orig, "8");
-    } else if (Strcmp(go, "complex") == 0 || Strcmp(go, "complex64") == 0) {
+    } else if (Strcmp(go, "complex64") == 0) {
       Append(orig, "8");
     } else if (Strcmp(go, "complex128") == 0) {
       Append(orig, "16");
@@ -1398,7 +1397,6 @@ private:
       }
       Printv(current, Getattr(parms, "lname"), NULL);
 
-      String *last = NULL;
       int vc = 0;
       for (Iterator bi = First(base); bi.item; bi = Next(bi)) {
 	Printf(actioncode, "  %s *swig_b%d = (%s *)%s;\n", bi.item, vc, bi.item, current);
@@ -1406,7 +1404,6 @@ private:
 	current = NewString("");
 	Printf(current, "swig_b%d", vc);
 	++vc;
-	last = bi.item;
       }
 
       String *code = Copy(Getattr(n, "wrap:action"));
@@ -2772,8 +2769,6 @@ private:
    * ------------------------------------------------------------ */
 
   int classDirectorMethod(Node *n, Node *parent, String *super) {
-    (void) super;
-
     bool is_ignored = GetFlag(n, "feature:ignore") ? true : false;
     bool is_pure_virtual = (Cmp(Getattr(n, "storage"), "virtual") == 0 && Cmp(Getattr(n, "value"), "0") == 0);
 
@@ -2800,7 +2795,7 @@ private:
     Setattr(class_methods, name, NewString(""));
 
     if (!Getattr(n, "sym:overloaded")) {
-      int r = oneClassDirectorMethod(n, parent);
+      int r = oneClassDirectorMethod(n, parent, super);
       if (r != SWIG_OK) {
 	return r;
       }
@@ -2811,7 +2806,7 @@ private:
       // function in one class hides a function of the same name in a
       // parent class.
       for (Node *on = Getattr(n, "sym:overloaded"); on; on = Getattr(on, "sym:nextSibling")) {
-	int r = oneClassDirectorMethod(on, parent);
+	int r = oneClassDirectorMethod(on, parent, super);
 	if (r != SWIG_OK) {
 	  return r;
 	}
@@ -2861,7 +2856,11 @@ private:
    * Emit a method for a director class.
    * ------------------------------------------------------------ */
 
-  int oneClassDirectorMethod(Node *n, Node *parent) {
+  int oneClassDirectorMethod(Node *n, Node *parent, String *super) {
+    if (!checkFunctionVisibility(n, parent)) {
+      return SWIG_OK;
+    }
+
     bool is_ignored = GetFlag(n, "feature:ignore") ? true : false;
     bool is_pure_virtual = (Cmp(Getattr(n, "storage"), "virtual") == 0 && Cmp(Getattr(n, "value"), "0") == 0);
 
@@ -3104,23 +3103,12 @@ private:
       if (SwigType_type(result) != T_VOID) {
 	Printv(f_c_directors_h, "return ", NULL);
       }
-      Printv(f_c_directors_h, Getattr(parent, "classtype"), "::", Getattr(n, "name"), "(", NULL);
 
-      p = parms;
-      for (int i = 0; i < parm_count; ++i) {
-	p = getParm(p);
-	if (i > 0) {
-	  Printv(f_c_directors_h, ", ", NULL);
-	}
-	String *pn = Getattr(p, "name");
-	assert(pn);
-	Printv(f_c_directors_h, pn, NULL);
-	p = nextParm(p);
-      }
+      String *super_call = Swig_method_call(super, parms);
+      Printv(f_c_directors_h, super_call, ";\n", NULL);
+      Delete(super_call);
 
-      Printv(f_c_directors_h, ");\n", NULL);
       Printv(f_c_directors_h, "  }\n", NULL);
-
 
       // Define the C++ function that the Go function calls.
 
@@ -3802,7 +3790,8 @@ private:
 	int nak = emit_num_arguments(pk);
 	if ((nrk >= num_required && nrk <= num_arguments)
 	    || (nak >= num_required && nak <= num_arguments)
-	    || (nrk <= num_required && nak >= num_arguments)) {
+	    || (nrk <= num_required && nak >= num_arguments)
+	    || (varargs && nrk >= num_required)) {
 	  Append(coll, nk);
 	}
       }
@@ -3992,7 +3981,6 @@ private:
       Delete(coll);
     }
 
-    Printv(f_go_wrappers, "fail:\n", NULL);
     Printv(f_go_wrappers, "\tpanic(\"No match for overloaded function call\")\n", NULL);
     Printv(f_go_wrappers, "}\n\n", NULL);
 
@@ -4001,6 +3989,32 @@ private:
 
     return SWIG_OK;
   }
+
+  /* ----------------------------------------------------------------------
+   * checkFunctionVisibility()
+   *
+   * Return true if we should write out a function based on its
+   * visibility, false otherwise.
+   * ---------------------------------------------------------------------- */
+
+  bool checkFunctionVisibility(Node *n, Node *parent) {
+    // Write out a public function.
+    if (is_public(n))
+      return true;
+    // Don't write out a private function.
+    if (is_private(n))
+      return false;
+    // Write a protected function for a director class in
+    // dirprot_mode.
+    if (parent == NULL) {
+      return false;
+    }
+    if (dirprot_mode() && Swig_directorclass(parent))
+      return true;
+    // Otherwise don't write out a protected function.
+    return false;
+  }
+
 
   /* ----------------------------------------------------------------------
    * exportedName()
@@ -4402,6 +4416,8 @@ private:
       SwigType_del_qualifier(r);
       ret = goTypeWithInfo(n, r, p_is_interface);
       Delete(r);
+    } else if (SwigType_isvarargs(t)) {
+      ret = NewString("[]interface{}");
     }
 
     Delete(t);
@@ -4513,9 +4529,22 @@ private:
     bool is_slice = Strncmp(gt, "[]", 2) == 0;
     bool is_function = Strcmp(gt, "_swig_fnptr") == 0;
     bool is_member = Strcmp(gt, "_swig_memberptr") == 0;
-    bool is_complex = Strcmp(gt, "complex") == 0;
     bool is_complex64 = Strcmp(gt, "complex64") == 0;
     bool is_complex128 = Strcmp(gt, "complex128") == 0;
+    bool is_char = false;
+    bool is_short = false;
+    bool is_int = false;
+    bool is_long = false;
+    bool is_float = false;
+    bool is_double = false;
+    if ((n != NULL && Getattr(n, "tmap:gotype") != NULL) || hasGoTypemap(type)) {
+      is_char = Strcmp(gt, "int8") == 0 || Strcmp(gt, "uint8") == 0 || Strcmp(gt, "byte") == 0;
+      is_short = Strcmp(gt, "int16") == 0 || Strcmp(gt, "uint16") == 0;
+      is_int = Strcmp(gt, "int") == 0 || Strcmp(gt, "int32") == 0 || Strcmp(gt, "uint32") == 0;
+      is_long = Strcmp(gt, "int64") == 0 || Strcmp(gt, "uint64") == 0;
+      is_float = Strcmp(gt, "float32") == 0;
+      is_double = Strcmp(gt, "float64") == 0;
+    }
     Delete(gt);
 
     String *ret;
@@ -4531,7 +4560,7 @@ private:
       ret = NewString("void *");
       Append(ret, name);
       return ret;
-    } else if (is_complex || is_complex64) {
+    } else if (is_complex64) {
       ret = NewString("_Complex float ");
     } else if (is_complex128) {
       ret = NewString("_Complex double ");
@@ -4571,7 +4600,21 @@ private:
 	}
       }
       Delete(t);
-      return SwigType_lstr(type, name);
+      if (is_char) {
+	ret = NewString("char ");
+      } else if (is_short) {
+	ret = NewString("short ");
+      } else if (is_int) {
+	ret = NewString("int ");
+      } else if (is_long) {
+	ret = NewString("long long ");
+      } else if (is_float) {
+	ret = NewString("float ");
+      } else if (is_double) {
+	ret = NewString("double ");
+      } else {
+	return SwigType_lstr(type, name);
+      }
     }
 
     if (SwigType_isreference(type)) {
@@ -4738,9 +4781,9 @@ extern "C" Language *swig_go(void) {
 // Usage message.
 const char * const GO::usage = (char *) "\
 Go Options (available with -go)\n\
-     -package <name>     - Set name of the Go package to <name>\n\
      -gccgo              - Generate code for gccgo rather than 6g/8g\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
-     -soname <name>      - Set shared library holding C/C++ code to <name>\n\
      -longsize <s>       - Set size of C/C++ long type--32 or 64 bits\n\
+     -package <name>     - Set name of the Go package to <name>\n\
+     -soname <name>      - Set shared library holding C/C++ code to <name>\n\
 \n";

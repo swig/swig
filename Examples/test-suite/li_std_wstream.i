@@ -1,5 +1,11 @@
 %module li_std_wstream
 
+%{
+#if defined(__SUNPRO_CC)
+#pragma error_messages (off, badargtype2w) /* Formal argument ... is being passed extern "C" ... */
+#endif
+%}
+
 %inline %{
   struct A;  
 %}
@@ -49,6 +55,7 @@
 %}
 
 %extend std::basic_ostream<wchar_t>{
+  extern "C"
   std::basic_ostream<wchar_t>& 
     operator<<(const A& a)
     {

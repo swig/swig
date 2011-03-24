@@ -1192,7 +1192,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     if (dump_typedef) {
-      SwigType_print_scope(0);
+      SwigType_print_scope();
     }
 
     if (dump_symtabs) {

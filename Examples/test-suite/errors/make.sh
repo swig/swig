@@ -36,6 +36,8 @@ pp_macro_defined_unterminated
 pp_macro_expansion
 pp_macro_expansion_multiline
 pp_macro_inline_unterminated
+pp_macro_missing_expression
+pp_macro_unexpected_tokens
 pp_macro_nargs
 pp_macro_redef
 pp_macro_rparen
@@ -74,8 +76,10 @@ cpp_nested
 cpp_no_access
 cpp_nobase
 cpp_overload
+cpp_overload_const
 cpp_private_defvalue
 cpp_private_inherit
+cpp_recursive_typedef
 cpp_shared_ptr
 cpp_template_argname
 cpp_template_nargs

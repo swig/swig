@@ -28,6 +28,7 @@
 <li><a href="#D_directors">D Directors</a>
 <li><a href="#D_other_features">Other features</a>
 <ul>
+<li><a href="#D_nspace">Extended namespace support (<tt>nspace</tt>)</a></li>
 <li><a href="#D_native_pointer_support">Native pointer support</a>
 <li><a href="#D_operator_overloading">Operator overloading</a>
 <li><a href="#D_test_suite">Running the test-suite</a>
@@ -187,6 +188,12 @@
     <p>There are two other variants available, <tt>$&amp;dclassname</tt> and <tt>$*dclassname</tt>. The former adds a level of indirection, while the latter removes one. For instance, when wrapping <tt>Foo **</tt>, <tt>$*dclassname</tt> would be replaced by the proxy class name corresponding to <tt>Foo *</tt>.</p>
   </dd>
 
+  <dt><tt>$dclazzname</tt> (C#: <tt>$csclazzname</tt>)</dt>
+  <dd>
+    <p>This special variable expands the fully qualified C++ class into the package name, if used by the <a href="SWIGPlus.html#SWIGPlus_nspace"><tt>nspace</tt> feature</a>, and the proxy class name, mangled for use as a function name. For example, <tt>Namespace1::Namespace2::Klass</tt> is expanded into <tt>Namespace1_Namespace2_Klass_</tt>.</p>
+    <p>This special variable might be useful for calling certain functions in the wrapper layer (e.g. upcast wrappers) which are mangled like this.</p>
+  </dd>
+
   <dt><tt>$null</tt></dt>
   <dd><p>In code inserted into the generated C/C++ wrapper functions, this variable is replaced by either <tt>0</tt> or nothing at all, depending on whether the function has a return value or not. It can be used to bail out early e.g. in case of errors (<tt>return $null;</tt>).</p></dd>
 
@@ -249,7 +256,7 @@ SomeClass bar() {
     <p>This macro is only valid inside the <tt><a href="D.html#D_class_code_typemaps">dconstructor</a></tt> typemap and contains the value of the <tt>dconstructor</tt> typemap attribute if the currently wrapped class has directors enabled.</p>
     <p>This is how the default <tt>dconstructor</tt> typemap looks like (you usually do not want to specify a custom one):</p>
 <div class="code"><pre>
-%typemap(dconstructor, excode=SWIGEXCODE, 
+%typemap(dconstructor, excode=SWIGEXCODE,
          directorconnect="\n  swigDirectorConnect();") SWIGTYPE {
   this($imcall, true);$excode$directorconnect
 }
@@ -331,7 +338,7 @@ struct A {
   <dd><p>Additional code to be emitted to the imports section of the intermediary D module (the <a href="D.html#D_importtype">$importtype</a> macro can be used here). You probably want to use this in conjunction with the <tt>imdmodulecode</tt> pragma.</p></dd>
 
   <dt><tt>%pragma(d) proxydmodulecode</tt></dt>
-  <dd><p>Just like <tt>proxydmodulecode</tt>, the argument is copied to the proxy D module (if SWIG is in <a href="D.html#D_splitproxy">split proxy mode</a>, it is emitted to the main proxy D module only).</p></dd>
+  <dd><p>Just like <tt>proxydmodulecode</tt>, the argument is copied to the proxy D module (if SWIG is in <a href="D.html#D_splitproxy">split proxy mode</a> and/or the <tt>nspace</tt> feature is used, it is emitted to the main proxy D module only).</p></dd>
 
   <dt><tt>%pragma(d) globalproxyimports</tt></dt>
   <dd>
@@ -379,10 +386,13 @@ struct A {
 <H2><a name="D_other_features"></a>20.8 Other features</H2>
 
 
-<p>The <a href="SWIGPlus.html#SWIGPlus_nspace"><tt>nspace</tt></a> feature of SWIG is not yet supported for D - all class modules are written to the same package, regardless of which C++ namespace they are in.</p>
+<H3><a name="D_nspace"></a>20.8.1 Extended namespace support (<tt>nspace</tt>)</H3>
 
 
-<H3><a name="D_native_pointer_support"></a>20.8.1 Native pointer support</H3>
+<p>By default, SWIG flattens all C++ namespaces into a single target language namespace, but as for Java and C#, the <a href="SWIGPlus.html#SWIGPlus_nspace"><tt>nspace</tt></a> feature is supported for D. If it is active, C++ namespaces are mapped to D packages/modules. Note, however, that like for the other languages, <em>free</em> variables and functions are not supported yet; currently, they are all allows written to the main proxy D module.</p>
+
+
+<H3><a name="D_native_pointer_support"></a>20.8.2 Native pointer support</H3>
 
 
 <p>Contrary to many of the scripting languages supported by SWIG, D fully supports C-style pointers. The D module thus includes a custom mechanism to wrap C pointers directly as D pointers where applicable, that is, if the type that is pointed to is represented the same in C and D (on the bit-level), dubbed a »primtive type« below.</p>
@@ -394,7 +404,7 @@ struct A {
 <p>To determine if a type should be considered primitive, the <tt>cprimitive</tt> attribute on its <tt>dtype</tt> attribute is used. For example, the <tt>dtype</tt> typemap for <tt>float</tt> has <tt>cprimitive="1"</tt>, so the code from the <tt>nativepointer</tt> attribute is taken into account e.g. for <tt>float **</tt> or the function pointer <tt>float (*)(float *)</tt>.</p>
 
 
-<H3><a name="D_operator_overloading"></a>20.8.2 Operator overloading</H3>
+<H3><a name="D_operator_overloading"></a>20.8.3 Operator overloading</H3>
 
 
 <p>The D module comes with basic operator overloading support for both D1 and D2. There are, however, a few limitations arising from conceptual differences between C++ and D:</p>
@@ -406,7 +416,7 @@ struct A {
 <p>There are also some cases where the operators can be translated to D, but the differences in the implementation details are big enough that a rather involved scheme would be required for automatic wrapping them, which has not been implemented yet. This affects, for example, the array subscript operator, <tt>[]</tt>, in combination with assignments - while <tt>operator []</tt> in C++ simply returns a reference which is then written to, D resorts to a separate <tt>opIndexAssign</tt> method -, or implicit casting (which was introduced in D2 via <tt>alias this</tt>). Despite the lack of automatic support, manually handling these cases should be perfectly possible.</p>
 
 
-<H3><a name="D_test_suite"></a>20.8.3 Running the test-suite</H3>
+<H3><a name="D_test_suite"></a>20.8.4 Running the test-suite</H3>
 
 
 <p>As with any other language, the SWIG test-suite can be built for D using the <tt>*-d-test-suite</tt> targets of the top-level Makefile. By default, D1 is targeted, to build it with D2, use the optional <tt>D_VERSION</tt> variable, e.g. <tt>make check-d-test-suite D_VERSION=2</tt>.</p>

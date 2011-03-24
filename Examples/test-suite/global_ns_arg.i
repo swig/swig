@@ -8,7 +8,7 @@ typedef int Integer;
    return x;
 }
 
-::Integer bar() {
+::Integer bar_fn() {
    return 1;
 }
 

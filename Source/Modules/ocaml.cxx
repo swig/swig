@@ -17,11 +17,13 @@ char cvsroot_ocaml_cxx[] = "$Id$";
 
 #include <ctype.h>
 
-static const char *usage = (char *)
-    ("Ocaml Options (available with -ocaml)\n"
-     "-prefix <name>  - Set a prefix <name> to be prepended to all names\n"
-     "-where          - Emit library location\n"
-     "-suffix <name>  - Change .cxx to something else\n" "-oldvarnames    - old intermediary method names for variable wrappers\n" "\n");
+static const char *usage = (char *) "\
+Ocaml Options (available with -ocaml)\n\
+     -oldvarnames    - Old intermediary method names for variable wrappers\n\
+     -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
+     -suffix <name>  - Change .cxx to something else\n\
+     -where          - Emit library location\n\
+\n";
 
 static int classmode = 0;
 static int in_constructor = 0, in_destructor = 0, in_copyconst = 0;
@@ -443,7 +445,6 @@ public:
     String *outarg = NewString("");
     String *build = NewString("");
     String *tm;
-    int argout_set = 0;
     int i = 0;
     int numargs;
     int numreq;
@@ -606,7 +607,6 @@ public:
 	Replaceall(tm, "$ntype", normalizeTemplatedClassName(Getattr(p, "type")));
 	Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
-	argout_set = 1;
       } else {
 	p = nextSibling(p);
       }
@@ -879,9 +879,8 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmemberfunctionHandler(Node *n) {
-    int rv;
     static_member_function = 1;
-    rv = Language::staticmemberfunctionHandler(n);
+    Language::staticmemberfunctionHandler(n);
     static_member_function = 0;
     return SWIG_OK;
   }

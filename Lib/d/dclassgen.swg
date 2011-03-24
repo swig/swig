@@ -84,7 +84,7 @@ mixin $imdmodule.SwigOperatorDefinitions;
 private void* swigCPtr;
 
 public this(void* cObject, bool ownCObject) {
-  super($imdmodule.$dclassnameUpcast(cObject), ownCObject);
+  super($imdmodule.$dclazznameUpcast(cObject), ownCObject);
   swigCPtr = cObject;
 }
 

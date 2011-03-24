@@ -60,6 +60,7 @@
 #define WARN_PP_INCLUDEALL_IMPORTALL  203
 #define WARN_PP_CPP_WARNING           204
 #define WARN_PP_CPP_ERROR             205
+#define WARN_PP_UNEXPECTED_TOKENS     206
 
 /* -- C/C++ Parser -- */
 

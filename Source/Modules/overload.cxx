@@ -231,11 +231,12 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
 				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
 		    } else {
-		      if (!Getattr(nodes[j].n, "overload:ignore"))
+		      if (!Getattr(nodes[j].n, "overload:ignore")) {
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
 				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		      }
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -248,11 +249,12 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
 				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
 		    } else {
-		      if (!Getattr(nodes[j].n, "overload:ignore"))
+		      if (!Getattr(nodes[j].n, "overload:ignore")) {
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
 				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		      }
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -270,11 +272,12 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[i].n), Getline(nodes[i].n),
 			     "as it is shadowed by %s.\n", Swig_name_decl(nodes[i].n));
 	      } else {
-		if (!Getattr(nodes[j].n, "overload:ignore"))
+		if (!Getattr(nodes[j].n, "overload:ignore")) {
 		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
 			       "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
 		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
 			       "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		}
 	      }
 	      nodes[j].error = 1;
 	    }
@@ -386,16 +389,11 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
     int num_arguments = emit_num_arguments(pi);
     if (num_arguments > *maxargs)
       *maxargs = num_arguments;
-    int varargs = emit_isvarargs(pi);
 
-    if (!varargs) {
-      if (num_required == num_arguments) {
-	Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
-      } else {
-	Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
-      }
+    if (num_required == num_arguments) {
+      Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
     } else {
-      Printf(f, "if (%s >= %d) {\n", argc_template_string, num_required);
+      Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
     }
     Printf(f, "SWIG_TypeRank _ranki = 0;\n");
     Printf(f, "SWIG_TypeRank _rankm = 0;\n");
@@ -565,16 +563,11 @@ String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *
     int num_arguments = emit_num_arguments(pi);
     if (num_arguments > *maxargs)
       *maxargs = num_arguments;
-    int varargs = emit_isvarargs(pi);
 
-    if (!varargs) {
-      if (num_required == num_arguments) {
-	Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
-      } else {
-	Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
-      }
+    if (num_required == num_arguments) {
+      Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
     } else {
-      Printf(f, "if (%s >= %d) {\n", argc_template_string, num_required);
+      Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
     }
 
     /* create a list with the wrappers that collide with the
@@ -732,16 +725,11 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
     }
     if (num_arguments > *maxargs)
       *maxargs = num_arguments;
-    int varargs = emit_isvarargs(pi);
 
-    if (!varargs) {
-      if (num_required == num_arguments) {
-	Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
-      } else {
-	Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
-      }
+    if (num_required == num_arguments) {
+      Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
     } else {
-      Printf(f, "if (%s >= %d) {\n", argc_template_string, num_required);
+      Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
     }
 
     if (num_arguments) {

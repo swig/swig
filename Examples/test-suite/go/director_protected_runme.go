@@ -15,11 +15,17 @@ func (p *FooBar2) Pang() string {
 	return "FooBar2::pang();"
 }
 
+type FooBar3 struct{} // From Bar
+func (p *FooBar3) Cheer() string {
+	return "FooBar3::cheer();"
+}
+
 func main() {
 	b := NewBar()
 	f := b.Create()
 	fb := NewDirectorBar(&FooBar{})
 	fb2 := NewDirectorBar(&FooBar2{})
+	fb3 := NewDirectorBar(&FooBar3{})
 
 	s := fb.Used()
 	if s != "Foo::pang();Bar::pong();Foo::pong();FooBar::ping();" {
@@ -44,5 +50,24 @@ func main() {
 	s = fb.Pong()
 	if s != "Bar::pong();Foo::pong();FooBar::ping();" {
 		panic(0)
+	}
+
+	s = fb3.DirectorInterface().(*FooBar3).Cheer()
+	if s != "FooBar3::cheer();" {
+		panic(s)
+	}
+	if fb2.Callping() != "FooBar2::ping();" {
+		panic("bad fb2.callping")
+	}
+	if fb2.Callcheer() != "FooBar2::pang();Bar::pong();Foo::pong();FooBar2::ping();" {
+		panic("bad fb2.callcheer")
+	}
+
+	if fb3.Callping() != "Bar::ping();" {
+		panic("bad fb3.callping")
+	}
+
+	if fb3.Callcheer() != "FooBar3::cheer();" {
+		panic("bad fb3.callcheer")
 	}
 }

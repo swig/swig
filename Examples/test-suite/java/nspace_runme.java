@@ -68,7 +68,7 @@ public class nspace_runme {
       throw new RuntimeException("Transmission2 wrong");
 
     // turn feature off / ignoring
-    nspacePackage.Outer.nspace ns = new nspacePackage.Outer.nspace();
+    nspacePackage.Outer.namespce ns = new nspacePackage.Outer.namespce();
     nspacePackage.NoNSpacePlease nons = new nspacePackage.NoNSpacePlease();
 
     // Derived class
