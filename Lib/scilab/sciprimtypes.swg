@@ -133,10 +133,15 @@ SWIGINTERN int SWIG_AsVal_dec(long)(int iPos, long* val)
 }
 
 %fragment(SWIG_From_frag(long),"header") {
-  SWIGINTERNINLINE int SWIG_From_dec(long)  (long value)
+SWIGINTERNINLINE int SWIG_From_dec(long)  (long value)
+{
+    double dblValue = (double) value;
+    if (createScalarDouble(pvApiCtx, Rhs + 1, dblValue) == 0)
     {
-      return 0;
+        return SWIG_OK;
     }
+    return SWIG_ERROR;
+}
 }
 
 /*%fragment(SWIG_AsPtr_frag(std::string),"header") {
