@@ -35,10 +35,10 @@
 // note: char is treated as a seperate special type
 // signed char & unsigned char are numbers
 %typemap(consttab) char
-       { SWIG_LUA_CHAR,  (char *)"$symname", (long)$value, 0, 0, 0}
+       { SWIG_LUA_CHAR,    (char *)"$symname", (long)$value, 0, 0, 0}
 
 %typemap(consttab) long long, unsigned long long
-       { SWIG_LUA_STRING, (char *) "$symname", 0, 0, (void *)"$value", 0}
+       { SWIG_LUA_STRING,  (char *) "$symname", 0, 0, (void *)"$value", 0}
 
 %typemap(consttab) SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &, SWIGTYPE []
        { SWIG_LUA_POINTER, (char *)"$symname", 0, 0, (void *)$value, &$1_descriptor}
