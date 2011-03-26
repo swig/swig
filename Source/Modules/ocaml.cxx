@@ -927,9 +927,10 @@ public:
     // Create variable and assign it a value
 
     Printf(f_header, "static %s = ", SwigType_lstr(type, name));
+    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
     if ((SwigType_type(type) == T_STRING)) {
       Printf(f_header, "\"%s\";\n", value);
-    } else if (SwigType_type(type) == T_CHAR) {
+    } else if (SwigType_type(type) == T_CHAR && !is_enum_item) {
       Printf(f_header, "\'%s\';\n", value);
     } else {
       Printf(f_header, "%s;\n", value);

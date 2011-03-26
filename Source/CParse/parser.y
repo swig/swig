@@ -5591,21 +5591,14 @@ edecl          :  ID {
 		   Delete(type);
 		 }
                  | ID EQUAL etype {
+		   SwigType *type = NewSwigType($3.type == T_BOOL ? T_BOOL : ($3.type == T_CHAR ? T_CHAR : T_INT));
 		   $$ = new_node("enumitem");
 		   Setattr($$,"name",$1);
-		   Setattr($$,"enumvalue", $3.val);
-	           if ($3.type == T_CHAR) {
-		     SwigType *type = NewSwigType(T_CHAR);
-		     Setattr($$,"value",NewStringf("\'%(escape)s\'", $3.val));
-		     Setattr($$,"type",type);
-		     Delete(type);
-		   } else {
-		     SwigType *type = NewSwigType($3.type == T_BOOL ? T_BOOL : T_INT);
-		     Setattr($$,"value",$1);
-		     Setattr($$,"type",type);
-		     Delete(type);
-		   }
+		   Setattr($$,"type",type);
 		   SetFlag($$,"feature:immutable");
+		   Setattr($$,"enumvalue", $3.val);
+		   Setattr($$,"value",$1);
+		   Delete(type);
                  }
                  | empty { $$ = 0; }
                  ;
