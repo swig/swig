@@ -1274,11 +1274,15 @@ public:
     // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
 
-    // Deal with enum values that are bools
-    if (SwigType_type(Getattr(n, "type")) == T_BOOL) {
-      String *boolValue = NewStringf("%s ? 1 : 0", Getattr(n, "enumvalue"));
-      Setattr(n, "enumvalue", boolValue);
-      Delete(boolValue);
+    // Deal with enum values that are not int
+    int swigtype = SwigType_type(Getattr(n, "type"));
+    if (swigtype == T_BOOL) {
+      const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
+      Setattr(n, "enumvalue", val);
+    } else if (swigtype == T_CHAR) {
+      String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
+      Setattr(n, "enumvalue", val);
+      Delete(val);
     }
 
     {
@@ -1329,11 +1333,12 @@ public:
 	}
       } else {
 	// Wrap C/C++ enums with constant integers or use the typesafe enum pattern
-	String *type = Getattr(n, "type"); /* should be int unless explicitly specified in a C++0x enum class */
-	SwigType *typemap_lookup_type = parent_name ? parent_name : type;
+	SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
+	Setattr(n, "type", typemap_lookup_type);
 	const String *tm = typemapLookup(n, "cstype", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF);
 
 	String *return_type = Copy(tm);
+	substituteClassname(typemap_lookup_type, return_type);
         const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
         methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
@@ -1362,6 +1367,7 @@ public:
 	  Printf(enum_code, "  %s %s %s %s = %s;\n", methodmods, const_readonly, return_type, symname, value);
 	  Delete(value);
 	}
+	Delete(return_type);
       }
 
       // Add the enum value to the comma separated list being constructed in the enum declaration.
@@ -1396,6 +1402,7 @@ public:
     String *tm;
     String *return_type = NewString("");
     String *constants_code = NewString("");
+    Swig_save("constantWrapper", n, "value", NIL);
 
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
@@ -1444,7 +1451,6 @@ public:
 
     // Add the stripped quotes back in
     String *new_value = NewString("");
-    Swig_save("constantWrapper", n, "value", NIL);
     if (SwigType_type(t) == T_STRING) {
       Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
       Setattr(n, "value", new_value);

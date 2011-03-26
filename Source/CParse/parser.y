@@ -5619,7 +5619,6 @@ etype            : expr {
 		       ($$.type != T_CHAR) && ($$.type != T_BOOL)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an integral type\n");
 		   }
-		   if ($$.type == T_CHAR) $$.type = T_INT;
                 }
                ;
 

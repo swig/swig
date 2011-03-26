@@ -5,8 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.3 (in progress)
 ===========================
 
+2011-03-26: wsfulton
+	    [C#, Java] SF bug #3195112 - fix wrapping of enums that are type char, for example:
+              enum { X = 'X'; }
+
 2011-03-21: vadz
-	    [build] Allow setting PCRE_CFLAGS and PCRE_LIBS to override the values returned by
+	    Allow setting PCRE_CFLAGS and PCRE_LIBS during configuration to override the values returned by
 	    pcre-config, e.g. to allow using a static version of PCRE library.
 
 2011-03-17: wsfulton
