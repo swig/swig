@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.3 (in progress)
 ===========================
 
+2011-03-29: wsfulton
+            [Tcl] Apply patch #3224663 from Christian Delbaere.
+            1. Fix when function returns a NULL value, a "NULL" command will be created in the Tcl interpreter
+            and calling this command will cause a segmentation fault. 
+
+            2. Previous implementation searches for class methods using a linear search causing performance issues
+            in wrappers for classes with many member functions. The patch adds a method hash table to classes and
+            changes method name lookup to use the hash table instead of doing a linear search.
+
 2011-03-26: wsfulton
 	    [C#, Java] SF bug #3195112 - fix wrapping of enums that are type char, for example:
               enum { X = 'X'; }
