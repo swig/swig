@@ -6,6 +6,9 @@ Version 2.0.3 (in progress)
 ===========================
 
 2011-03-29: wsfulton
+            [R] Apply patch #3239076 from Marie White fixing strings for R >= 2.7.0
+
+2011-03-29: wsfulton
             [Tcl] Apply patch #3248280 from Christian Delbaere which adds better error messages when
             the incorrect number or type of arguments are passed to overloaded methods.
 
