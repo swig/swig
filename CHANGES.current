@@ -6,6 +6,10 @@ Version 2.0.3 (in progress)
 ===========================
 
 2011-03-29: wsfulton
+            [Tcl] Apply patch #3248280 from Christian Delbaere which adds better error messages when
+            the incorrect number or type of arguments are passed to overloaded methods.
+
+2011-03-29: wsfulton
             [Tcl] Apply patch #3224663 from Christian Delbaere.
             1. Fix when function returns a NULL value, a "NULL" command will be created in the Tcl interpreter
             and calling this command will cause a segmentation fault. 
