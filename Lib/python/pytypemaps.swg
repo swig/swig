@@ -88,9 +88,11 @@
   $result = SWIG_NewPointerObj(%new_copy(*$1, $*ltype), $descriptor, SWIG_POINTER_OWN | %newpointer_flags);
 }
 
+/*
 %typemap(builtin_init,noblock=1) const SWIGTYPE & SMARTPOINTER  {
   $result = SWIG_NewBuiltinObj(self, %new_copy(*$1, $*ltype), $descriptor, SWIG_POINTER_OWN | %newpointer_flags);
 }
+*/
 
 %typemap(ret,noblock=1) const SWIGTYPE & SMARTPOINTER, SWIGTYPE SMARTPOINTER {
   if ($result) {
@@ -108,15 +110,19 @@
  * ------------------------------------------------------------ */
 
 /* Pointers, references */
+/*
 %typemap(builtin_init,noblock=1) SWIGTYPE *, SWIGTYPE &, SWIGTYPE[] {
   %set_output(SWIG_Python_NewBuiltinObj(self, %as_voidptr($1), $descriptor, $owner | %newpointer_flags));
 }
-
+*/
+/*
 %typemap(builtin_init, noblock=1) SWIGTYPE *const& {
   %set_output(SWIG_Python_NewBuiltinObj(self, %as_voidptr(*$1), $*descriptor, $owner | %newpointer_flags));
 }
-
+*/
 /* Return by value */
+/*
 %typemap(builtin_init, noblock=1) SWIGTYPE {
-  %set_output(SWIG_Python_NewBuiltinObj(self, %new_copy($1, $ltype), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags));
+  %set_output(SWIG_Python_NewBuiltinObj(self, %new_copy($1, $ltype), $&descriptor, $owner | %newpointer_flags));
 }
+*/

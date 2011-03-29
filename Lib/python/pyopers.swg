@@ -6,10 +6,10 @@
 #ifdef __cplusplus
 
 #if defined(SWIGPYTHON_BUILTIN)
-#define %pybinoperator(pyname,oper,functp,slot) %rename(pyname) oper; %pythonmaybecall oper; %feature("pyslot", #slot, functype=#functp) oper; %feature("pyslot", #slot, functype=#functp) pyname;
-#define %pycompare(pyname,oper,comptype) %rename(pyname) oper; %pythonmaybecall oper; %feature("pycompare", #comptype) oper; %feature("pycompare", #comptype) pyname;
+#define %pybinoperator(pyname,oper,functp,slt) %rename(pyname) oper; %pythonmaybecall oper; %feature("python:slot", #slt, functype=#functp) oper; %feature("python:slot", #slt, functype=#functp) pyname;
+#define %pycompare(pyname,oper,comptype) %rename(pyname) oper; %pythonmaybecall oper; %feature("python:compare", #comptype) oper; %feature("python:compare", #comptype) pyname;
 #else
-#define %pybinoperator(pyname,oper,functp,slot) %rename(pyname) oper; %pythonmaybecall oper
+#define %pybinoperator(pyname,oper,functp,slt) %rename(pyname) oper; %pythonmaybecall oper
 #define %pycompare(pyname,oper,comptype) %pybinoperator(pyname,oper,,comptype)
 #endif
 
@@ -34,13 +34,13 @@
 %pycompare(__eq__,           *::operator==,		Py_EQ);
 %pycompare(__ne__,           *::operator!=,		Py_NE);
 
-%feature("pyslot", "nb_truediv", functype="binaryfunc") *::operator/;
+%feature("python:slot", "nb_truediv", functype="binaryfunc") *::operator/;
 
 /* Special cases */
 %rename(__invert__)     *::operator~;
-%feature("pyslot", "nb_invert", functype="unaryfunc") *::operator~;
+%feature("python:slot", "nb_invert", functype="unaryfunc") *::operator~;
 %rename(__call__)       *::operator();
-%feature("pyslot", "tp_call", functype="ternaryfunc") *::operator();
+%feature("python:slot", "tp_call", functype="ternaryfunc") *::operator();
 
 #if defined(SWIGPYTHON_BUILTIN)
 %pybinoperator(__nonzero__,   *::operator bool,		inquiry, nb_nonzero);
@@ -103,9 +103,9 @@ __bool__ = __nonzero__
 */
 
 #if defined(SWIGPYTHON_BUILTIN)
-#define %pyinplaceoper(SwigPyOper, Oper, functp, slot) %delobject Oper; %newobject Oper; %feature("pyslot", #slot, functype=#functp) Oper; %rename(SwigPyOper) Oper
+#define %pyinplaceoper(SwigPyOper, Oper, functp, slt) %delobject Oper; %newobject Oper; %feature("python:slot", #slt, functype=#functp) Oper; %rename(SwigPyOper) Oper
 #else
-#define %pyinplaceoper(SwigPyOper, Oper, functp, slot) %delobject Oper; %newobject Oper; %rename(SwigPyOper) Oper
+#define %pyinplaceoper(SwigPyOper, Oper, functp, slt) %delobject Oper; %newobject Oper; %rename(SwigPyOper) Oper
 #endif
 
 %pyinplaceoper(__iadd__   , *::operator +=,	binaryfunc, nb_inplace_add);

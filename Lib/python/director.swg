@@ -460,12 +460,12 @@ namespace Swig {
       return own;
     }
 
-    template <typename _Tp>
-    static PyObject* pyobj_disown(PyObject *pyobj, PyObject *SWIGUNUSEDPARM(args))
+    template <typename Type>
+    static PyObject* swig_pyobj_disown(PyObject *pyobj, PyObject *SWIGUNUSEDPARM(args))
     {
       SwigPyObject *sobj = (SwigPyObject *)pyobj;
       sobj->own = 0;
-      Director *d = SWIG_DIRECTOR_CAST(reinterpret_cast<_Tp *>(sobj->ptr));
+      Director *d = SWIG_DIRECTOR_CAST(reinterpret_cast<Type *>(sobj->ptr));
       if (d)
         d->swig_disown();
       return PyWeakref_NewProxy(pyobj, NULL);

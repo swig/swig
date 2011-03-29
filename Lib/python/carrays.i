@@ -1,7 +1,7 @@
 %define %array_class(TYPE,NAME)
 #if defined(SWIGPYTHON_BUILTIN)
-  %feature("pyslot", "sq_item", functype="ssizeargfunc") NAME::__getitem__;
-  %feature("pyslot", "sq_ass_item", functype="ssizeobjargproc") NAME::__setitem__;
+  %feature("python:slot", "sq_item", functype="ssizeargfunc") NAME::__getitem__;
+  %feature("python:slot", "sq_ass_item", functype="ssizeobjargproc") NAME::__setitem__;
 
 %inline %{
 typedef struct NAME {

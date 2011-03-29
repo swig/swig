@@ -587,7 +587,7 @@ namespace swig
     }
 
 #if defined(SWIGPYTHON_BUILTIN)
-  %feature("pyslot", "tp_iter", functype="getiterfunc") iterator;
+  %feature("python:slot", "tp_iter", functype="getiterfunc") iterator;
 #else
   %pythoncode {def __iter__(self): return self.iterator()}
 #endif
@@ -604,8 +604,8 @@ namespace swig
   %newobject __getslice__;
 
 #if defined(SWIGPYTHON_BUILTIN)
-  %feature("pyslot", "nb_nonzero", functype="inquiry") __nonzero__;
-  %feature("pyslot", "sq_length", functype="lenfunc") __len__;
+  %feature("python:slot", "nb_nonzero", functype="inquiry") __nonzero__;
+  %feature("python:slot", "sq_length", functype="lenfunc") __len__;
 #endif // SWIGPYTHON_BUILTIN
 
   %extend {
@@ -634,12 +634,12 @@ namespace swig
   %fragment("SwigPySequence_Base");
 
 #if defined(SWIGPYTHON_BUILTIN)
-  //%feature("pyslot", "sq_item", functype="ssizeargfunc") __getitem__;
-  //%feature("pyslot", "sq_slice", functype="ssizessizeargfunc") __getslice__;
-  //%feature("pyslot", "sq_ass_item", functype="ssizeobjargproc") __setitem__;
-  //%feature("pyslot", "sq_ass_slice", functype="ssizessizeobjargproc") __setslice__;
-  %feature("pyslot", "mp_subscript", functype="binaryfunc") __getitem__;
-  %feature("pyslot", "mp_ass_subscript", functype="objobjargproc") __setitem__;
+  //%feature("python:slot", "sq_item", functype="ssizeargfunc") __getitem__;
+  //%feature("python:slot", "sq_slice", functype="ssizessizeargfunc") __getslice__;
+  //%feature("python:slot", "sq_ass_item", functype="ssizeobjargproc") __setitem__;
+  //%feature("python:slot", "sq_ass_slice", functype="ssizessizeobjargproc") __setslice__;
+  %feature("python:slot", "mp_subscript", functype="binaryfunc") __getitem__;
+  %feature("python:slot", "mp_ass_subscript", functype="objobjargproc") __setitem__;
 #endif // SWIGPYTHON_BUILTIN
 
   %extend {

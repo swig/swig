@@ -318,7 +318,7 @@ namespace swig {
       if (!seq)
         return SWIG_Py_Void();
       SwigPyIterator *iter = make_output_iterator(seq->begin(), seq->begin(), seq->end(), pyself);
-      return SWIG_NewPointerObj(iter, SWIGTYPE_p_swig__SwigPyIterator, SWIG_POINTER_OWN);
+      return SWIG_InternalNewPointerObj(iter, SWIGTYPE_p_swig__SwigPyIterator, SWIG_POINTER_OWN);
   }
 
 }
@@ -350,8 +350,8 @@ namespace swig
   %nodirector SwigPyIterator;
 
 #if defined(SWIGPYTHON_BUILTIN)
-  %feature("tp_iter") SwigPyIterator "&swig::make_output_iterator_builtin";
-  %feature("pyslot", "tp_iternext", functype="iternextfunc") SwigPyIterator::__next__;
+  %feature("python:tp_iter") SwigPyIterator "&swig::make_output_iterator_builtin";
+  %feature("python:slot", "tp_iternext", functype="iternextfunc") SwigPyIterator::__next__;
 #else
   %extend SwigPyIterator {
   %pythoncode {def __iter__(self): return self}

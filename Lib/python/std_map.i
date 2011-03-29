@@ -47,7 +47,7 @@
       static PyObject *from(const map_type& map) {
 	swig_type_info *desc = swig::type_info<map_type>();
 	if (desc && desc->clientdata) {
-	  return SWIG_NewPointerObj(new map_type(map), desc, SWIG_POINTER_OWN);
+	  return SWIG_InternalNewPointerObj(new map_type(map), desc, SWIG_POINTER_OWN);
 	} else {
 	  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	  size_type size = map.size();
@@ -127,7 +127,7 @@
       if (!seq)
         return SWIG_Py_Void();
       SwigPyIterator *iter = make_output_key_iterator(seq->begin(), seq->begin(), seq->end(), pyself);
-      return SWIG_NewPointerObj(iter, SWIGTYPE_p_swig__SwigPyIterator, SWIG_POINTER_OWN);
+      return SWIG_InternalNewPointerObj(iter, SWIGTYPE_p_swig__SwigPyIterator, SWIG_POINTER_OWN);
     }
 
     template<class OutIterator,
@@ -156,9 +156,9 @@
   %swig_container_methods(Map)
 
 #if defined(SWIGPYTHON_BUILTIN)
-  %feature("pyslot", "mp_length", functype="lenfunc") __len__;
-  %feature("pyslot", "mp_subscript", functype="binaryfunc") __getitem__;
-  %feature("pyslot", "tp_iter", functype="getiterfunc") key_iterator;
+  %feature("python:slot", "mp_length", functype="lenfunc") __len__;
+  %feature("python:slot", "mp_subscript", functype="binaryfunc") __getitem__;
+  %feature("python:slot", "tp_iter", functype="getiterfunc") key_iterator;
 
   %extend {
     %newobject iterkeys(PyObject **PYTHON_SELF);
@@ -287,7 +287,7 @@
   %swig_map_common(Map)
 
 #if defined(SWIGPYTHON_BUILTIN)
-  %feature("pyslot", "mp_ass_subscript", functype="objobjargproc") __setitem__;
+  %feature("python:slot", "mp_ass_subscript", functype="objobjargproc") __setitem__;
 #endif
 
   %extend {

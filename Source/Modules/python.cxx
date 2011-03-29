@@ -62,6 +62,7 @@ static int classic = 0;
 static int modern = 0;
 static int new_repr = 1;
 static int no_header_file = 0;
+static int max_bases = 0;
 
 static int py3 = 0;
 
@@ -163,47 +164,57 @@ static const char *usage3 = (char *) "\
                          Function annotation \n\
 \n";
 
-static String *getSlot(Node *n, const char *key) {
+static String *getSlot(Node *n = NULL, const char *key = NULL) {
   static String *slot_default = NewString("0");
-  String *val = Getattr(n, key);
+  String *val = key && *key ? Getattr(n, key) : NULL;
   return val ? val : slot_default;
+}
+
+static void printSlot (File *f, DOH const *slotval, DOH const *slotname, DOH const *functype = NULL, bool comma=true) {
+  if (functype)
+    slotval = NewStringf("(%s) %s", functype, slotval);
+  int len = Len(slotval);
+  int fieldwidth = len > 40 ? 0 : 40 - len;
+  Printf(f, "    %s%s%*s/* %s */\n", slotval, comma ? "," : "", fieldwidth, "", slotname);
+  if (functype)
+    Delete((DOH*) slotval);
 }
 
 static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
   static const char *functypes[] = {
-    "unaryfunc", "PYSWIG_UNARYFUNC_CLOSURE",
-    "destructor", "PYSWIG_DESTRUCTOR_CLOSURE",
-    "inquiry", "PYSWIG_INQUIRY_CLOSURE",
-    "getiterfunc", "PYSWIG_UNARYFUNC_CLOSURE",
-    "binaryfunc", "PYSWIG_BINARYFUNC_CLOSURE",
-    "ternaryfunc", "PYSWIG_TERNARYFUNC_CLOSURE",
-    "lenfunc", "PYSWIG_LENFUNC_CLOSURE",
-    "ssizeargfunc", "PYSWIG_SSIZEARGFUNC_CLOSURE",
-    "ssizessizeargfunc", "PYSWIG_SSIZESSIZEARGFUNC_CLOSURE",
-    "ssizeobjargproc", "PYSWIG_SSIZEOBJARGPROC_CLOSURE",
-    "ssizessizeobjargproc", "PYSWIG_SSIZESSIZEOBJARGPROC_CLOSURE",
-    "objobjargproc", "PYSWIG_OBJOBJARGPROC_CLOSURE",
-    "reprfunc", "PYSWIG_REPRFUNC_CLOSURE",
-    "hashfunc", "PYSWIG_HASHFUNC_CLOSURE",
-    "iternextfunc", "PYSWIG_ITERNEXT_CLOSURE",
+    "unaryfunc", "SWIGPY_UNARYFUNC_CLOSURE",
+    "destructor", "SWIGPY_DESTRUCTOR_CLOSURE",
+    "inquiry", "SWIGPY_INQUIRY_CLOSURE",
+    "getiterfunc", "SWIGPY_UNARYFUNC_CLOSURE",
+    "binaryfunc", "SWIGPY_BINARYFUNC_CLOSURE",
+    "ternaryfunc", "SWIGPY_TERNARYFUNC_CLOSURE",
+    "lenfunc", "SWIGPY_LENFUNC_CLOSURE",
+    "ssizeargfunc", "SWIGPY_SSIZEARGFUNC_CLOSURE",
+    "ssizessizeargfunc", "SWIGPY_SSIZESSIZEARGFUNC_CLOSURE",
+    "ssizeobjargproc", "SWIGPY_SSIZEOBJARGPROC_CLOSURE",
+    "ssizessizeobjargproc", "SWIGPY_SSIZESSIZEOBJARGPROC_CLOSURE",
+    "objobjargproc", "SWIGPY_OBJOBJARGPROC_CLOSURE",
+    "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
+    "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
+    "iternextfunc", "SWIGPY_ITERNEXT_CLOSURE",
     NULL
   };
 
   static const char *funpack_functypes[] = {
-    "unaryfunc", "PYSWIG_UNARYFUNC_CLOSURE",
-    "destructor", "PYSWIG_DESTRUCTOR_CLOSURE",
-    "inquiry", "PYSWIG_INQUIRY_CLOSURE",
-    "getiterfunc", "PYSWIG_UNARYFUNC_CLOSURE",
-    "ternaryfunc", "PYSWIG_TERNARYFUNC_CLOSURE",
-    "lenfunc", "PYSWIG_LENFUNC_CLOSURE",
-    "ssizeargfunc", "PYSWIG_FUNPACK_SSIZEARGFUNC_CLOSURE",
-    "ssizessizeargfunc", "PYSWIG_SSIZESSIZEARGFUNC_CLOSURE",
-    "ssizeobjargproc", "PYSWIG_SSIZEOBJARGPROC_CLOSURE",
-    "ssizessizeobjargproc", "PYSWIG_SSIZESSIZEOBJARGPROC_CLOSURE",
-    "objobjargproc", "PYSWIG_OBJOBJARGPROC_CLOSURE",
-    "reprfunc", "PYSWIG_REPRFUNC_CLOSURE",
-    "hashfunc", "PYSWIG_HASHFUNC_CLOSURE",
-    "iternextfunc", "PYSWIG_ITERNEXT_CLOSURE",
+    "unaryfunc", "SWIGPY_UNARYFUNC_CLOSURE",
+    "destructor", "SWIGPY_DESTRUCTOR_CLOSURE",
+    "inquiry", "SWIGPY_INQUIRY_CLOSURE",
+    "getiterfunc", "SWIGPY_UNARYFUNC_CLOSURE",
+    "ternaryfunc", "SWIGPY_TERNARYFUNC_CLOSURE",
+    "lenfunc", "SWIGPY_LENFUNC_CLOSURE",
+    "ssizeargfunc", "SWIGPY_FUNPACK_SSIZEARGFUNC_CLOSURE",
+    "ssizessizeargfunc", "SWIGPY_SSIZESSIZEARGFUNC_CLOSURE",
+    "ssizeobjargproc", "SWIGPY_SSIZEOBJARGPROC_CLOSURE",
+    "ssizessizeobjargproc", "SWIGPY_SSIZESSIZEOBJARGPROC_CLOSURE",
+    "objobjargproc", "SWIGPY_OBJOBJARGPROC_CLOSURE",
+    "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
+    "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
+    "iternextfunc", "SWIGPY_ITERNEXT_CLOSURE",
     NULL
   };
 
@@ -614,7 +625,6 @@ public:
 
     if (builtin) {
       f_builtins = NewString("");
-      Printf(f_builtins, "#ifdef __cplusplus\nnamespace {\n#endif\n\n");
     }
 
     if (directorsEnabled()) {
@@ -949,8 +959,11 @@ public:
     Append(methods, "};\n");
     Printf(f_wrappers, "%s\n", methods);
 
+    Printf(f_wrappers, "#ifdef __cplusplus\n");
+    Printf(f_wrappers, "} /* extern \"C\" */\n");
+    Printf(f_wrappers, "#endif\n");
+
     if (builtin) {
-      Printv(f_builtins, "#ifdef __cplusplus\n} // namespace {\n#endif\n\n", NIL);
       Dump(f_builtins, f_wrappers);
     }
 
@@ -966,10 +979,6 @@ public:
     Printf(f_init, "  return;\n");
     Printf(f_init, "#endif\n");
     Printf(f_init, "}\n");
-
-    Printf(f_wrappers, "#ifdef __cplusplus\n");
-    Printf(f_wrappers, "}\n");
-    Printf(f_wrappers, "#endif\n");
 
     if (shadow) {
       if (builtin) {
@@ -997,6 +1006,8 @@ public:
     }
 
     Dump(f_wrappers, f_begin);
+    if (builtin)
+      Printf(f_begin, "static PyTypeObject *builtin_bases[%d];\n\n", max_bases + 2);
     Wrapper_pretty_print(f_init, f_begin);
 
     Delete(f_header);
@@ -1261,6 +1272,21 @@ public:
     Setattr(n, "python:docstring", doc);
     Setattr(n, "python:autodoc", autodoc);
     return doc;
+  }   
+
+  /* ------------------------------------------------------------
+   * cdocstring()
+   *    Get the docstring text as it would appear in C-language
+   *	source code.
+   * ------------------------------------------------------------ */
+
+  String *cdocstring(Node *n, autodoc_t ad_type)
+  {
+    String *ds = docstring(n, ad_type, "", false);
+    Replaceall(ds, "\\", "\\\\");
+    Replaceall(ds, "\"", "\\\"");
+    Replaceall(ds, "\n", "\\n\"\n\t\t\"");
+    return ds;
   }
 
   /* -----------------------------------------------------------------------------
@@ -1830,20 +1856,16 @@ public:
       Append(methods, "NULL");
     } else if (Getattr(n, "feature:callback")) {
       if (have_docstring(n)) {
-	String *ds = docstring(n, AUTODOC_FUNC, "", false);
-	Replaceall(ds, "\\", "\\\\");
-	Replaceall(ds, "\"", "\\\"");
-	Replaceall(ds, "\n", "\\n\"\n\t\t\"");
+	String *ds = cdocstring(n, AUTODOC_FUNC);
 	Printf(methods, "(char *)\"%s\\nswig_ptr: %s\"", ds, Getattr(n, "feature:callback:name"));
+	Delete(ds);
       } else {
 	Printf(methods, "(char *)\"swig_ptr: %s\"", Getattr(n, "feature:callback:name"));
       }
     } else if (have_docstring(n)) {
-      String *ds = docstring(n, AUTODOC_FUNC, "", false);
-      Replaceall(ds, "\\", "\\\\");
-      Replaceall(ds, "\"", "\\\"");
-      Replaceall(ds, "\n", "\\n\"\n\t\t\"");
+      String *ds = cdocstring(n, AUTODOC_FUNC);
       Printf(methods, "(char *)\"%s\"", ds);
+      Delete(ds);
     } else {
       Append(methods, "NULL");
     }
@@ -2035,7 +2057,7 @@ public:
     bool builtin_getter = (builtin && GetFlag(n, "memberget"));
     bool builtin_setter = (builtin && GetFlag(n, "memberset") && !builtin_getter);
     bool over_varargs = false;
-    char const *self_param = builtin_self ? "self" : "SWIGUNUSEDPARM(self)";
+    char const *self_param = builtin ? "self" : "SWIGUNUSEDPARM(self)";
     char const *wrap_return = builtin_ctor ? "int " : "PyObject *";
     String *linkage = NewString("SWIGINTERN ");
     String *wrapper_name = Swig_name_wrapper(iname);
@@ -2058,10 +2080,7 @@ public:
 
     int allow_thread = threads_enable(n);
 
-    if (builtin_ctor)
-      Wrapper_add_local(f, "resultobj", "int resultobj = 0");
-    else
-      Wrapper_add_local(f, "resultobj", "PyObject *resultobj = 0");
+    Wrapper_add_local(f, "resultobj", "PyObject *resultobj = 0");
 
     // Emit all of the local variables for holding arguments.
     emit_parameter_variables(l, f);
@@ -2112,7 +2131,7 @@ public:
     }
 
     if (overname) {
-      String *over_varargs_attr = Getattr(n, "sym:over_varargs");
+      String *over_varargs_attr = Getattr(n, "python:overvarargs");
       if (!over_varargs_attr) {
 	for (Node *sibling = n; sibling; sibling = Getattr(sibling, "sym:nextSibling")) {
 	  if (emit_isvarargs(Getattr(sibling, "parms"))) {
@@ -2122,7 +2141,7 @@ public:
 	}
 	over_varargs_attr = NewString(over_varargs ? "1" : "0");
 	for (Node *sibling = n; sibling; sibling = Getattr(sibling, "sym:nextSibling"))
-	  Setattr(sibling, "sym:over_varargs", over_varargs_attr);
+	  Setattr(sibling, "python:overvarargs", over_varargs_attr);
       }
       if (Strcmp(over_varargs_attr, "0") != 0)
 	over_varargs = true;
@@ -2133,10 +2152,9 @@ public:
     int onearg = funpack && (tuple_required == 1 && tuple_arguments == 1);
 
     if (builtin && funpack && !overname && !builtin_ctor) {
-      if (noargs)
-	SetFlag(n, "noargs");
-      else if (onearg)
-	SetFlag(n, "onearg");
+      String *argattr = NewStringf("%d", tuple_arguments);
+      Setattr(n, "python:argcount", argattr);
+      Delete(argattr);
     }
 
     /* Generate code for argument marshalling */
@@ -2446,12 +2464,7 @@ public:
     /* This part below still needs cleanup */
 
     /* Return the function value */
-    if (builtin_ctor) {
-      Printf(f->code, "%s\n", actioncode);
-      tm = Swig_typemap_lookup("builtin_init", n, "result", f);
-    } else {
-      tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
-    }
+    tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
 
     if (tm) {
       if (builtin_self) {
@@ -2464,7 +2477,9 @@ public:
       Replaceall(tm, "$source", "result");
       Replaceall(tm, "$target", "resultobj");
       Replaceall(tm, "$result", "resultobj");
-      if (handled_as_init) {
+      if (builtin_ctor) {
+	Replaceall(tm, "$owner", "SWIG_BUILTIN_INIT");
+      } else if (handled_as_init) {
 	Replaceall(tm, "$owner", "SWIG_POINTER_NEW");
       } else {
 	if (GetFlag(n, "feature:new")) {
@@ -2548,7 +2563,10 @@ public:
       }
     }
 
-    Append(f->code, "    return resultobj;\n");
+    if (builtin_ctor)
+      Append(f->code, "    return resultobj == Py_None ? 1 : 0;\n");
+    else
+      Append(f->code, "    return resultobj;\n");
 
     /* Error handling code */
 
@@ -2598,7 +2616,7 @@ public:
       if (funpack) {
 	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", int nobjs, PyObject **swig_obj) {", NIL);
       } else {
-	Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, PyObject *args) {", NIL);
+	Printv(f->def, linkage, wrap_return, wname, "(PyObject *", self_param, ", PyObject *args) {", NIL);
       }
       Wrapper_add_local(f, "resultobj", builtin_ctor ? "int resultobj" : "PyObject *resultobj");
       Wrapper_add_local(f, "varargs", "PyObject *varargs");
@@ -2619,7 +2637,7 @@ public:
 	Printf(f->code, "newargs = PyTuple_GetSlice(args,0,%d);\n", num_arguments);
 	Printf(f->code, "varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args)+1);\n", num_arguments);
       }
-      Printf(f->code, "resultobj = %s__varargs__(self,newargs,varargs);\n", wname);
+      Printf(f->code, "resultobj = %s__varargs__(%s,newargs,varargs);\n", wname, builtin ? "self" : "NULL");
       Append(f->code, "Py_XDECREF(newargs);\n");
       Append(f->code, "Py_XDECREF(varargs);\n");
       Append(f->code, "return resultobj;\n");
@@ -2644,9 +2662,7 @@ public:
 
     // Put this in tp_init of the PyTypeObject
     if (builtin_ctor) {
-      // Can't use checkAttribute(n, "access", "public") because
-      // "access" attr isn't set on %extend methods
-      if ((director_method || !checkAttribute(n, "access", "private")) && !Getattr(class_members, iname)) {
+      if ((director_method || !is_private(n)) && !Getattr(class_members, iname)) {
 	Setattr(class_members, iname, n);
 	if (!builtin_tp_init)
 	  builtin_tp_init = Swig_name_wrapper(iname);
@@ -2677,10 +2693,11 @@ public:
 
     if (in_class && builtin) {
       /* Handle operator overloads overloads for builtin types */
-      String *slot = Getattr(n, "feature:pyslot");
+      String *slot = Getattr(n, "feature:python:slot");
       if (slot) {
-	String *closure_decl = getClosure(Getattr(n, "feature:pyslot:functype"), wrapper_name, overname ? 0 : funpack);
-	String *feature_name = NewStringf("feature:%s", slot);
+	String *func_type = Getattr(n, "feature:python:slot:functype");
+	String *closure_decl = getClosure(func_type, wrapper_name, overname ? 0 : funpack);
+	String *feature_name = NewStringf("feature:python:%s", slot);
 	String *closure_name = Copy(wrapper_name);
 	if (closure_decl) {
 	  if (!Getattr(n, "sym:overloaded") || !Getattr(n, "sym:nextSibling"))
@@ -2688,15 +2705,20 @@ public:
 	  Append(closure_name, "_closure");
 	  Delete(closure_decl);
 	}
+	if (func_type) {
+	  String *s = NewStringf("(%s) %s", func_type, closure_name);
+	  Delete(closure_name);
+	  closure_name = s;
+	}
 	Setattr(parent, feature_name, closure_name);
 	Delete(feature_name);
 	Delete(closure_name);
       }
 
       /* Handle comparison operators for builtin types */
-      String *compare = Getattr(n, "feature:pycompare");
+      String *compare = Getattr(n, "feature:python:compare");
       if (compare) {
-	Hash *richcompare = Getattr(parent, "richcompare");
+	Hash *richcompare = Getattr(parent, "python:richcompare");
 	assert(richcompare);
 	Setattr(richcompare, compare, wrapper_name);
       }
@@ -2743,7 +2765,7 @@ public:
     if (!have_globals) {
       Printf(f_init, "\t PyDict_SetItemString(md,(char*)\"%s\", SWIG_globals());\n", global_name);
       if (builtin)
-	Printf(f_init, "\t pyswig_add_public_symbol(public_interface, \"%s\");\n", global_name);
+	Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", global_name);
       have_globals = 1;
       if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
 	Printf(f_shadow_stubs, "%s = %s.%s\n", global_name, module, global_name);
@@ -2764,7 +2786,7 @@ public:
       Setattr(n, "wrap:name", varsetname);
       if (builtin && in_class) {
 	String *set_wrapper = Swig_name_wrapper(setname);
-	Setattr(n, "builtin:setter", set_wrapper);
+	Setattr(n, "pybuiltin:setter", set_wrapper);
 	Delete(set_wrapper);
       }
       Printf(setf->def, "SWIGINTERN int %s(PyObject *_val) {", varsetname);
@@ -2800,12 +2822,14 @@ public:
     Setattr(n, "wrap:name", vargetname);
     if (builtin && in_class) {
       String *get_wrapper = Swig_name_wrapper(getname);
-      Setattr(n, "builtin:getter", get_wrapper);
+      Setattr(n, "pybuiltin:getter", get_wrapper);
       Delete(get_wrapper);
     }
     int addfail = 0;
     Printf(getf->def, "SWIGINTERN PyObject *%s(void) {", vargetname);
     Wrapper_add_local(getf, "pyobj", "PyObject *pyobj = 0");
+    if (builtin)
+      Wrapper_add_local(getf, "self", "PyObject *self = 0");
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "pyobj");
@@ -2828,7 +2852,7 @@ public:
     Printf(f_init, "\t SWIG_addvarlink(SWIG_globals(),(char*)\"%s\",%s, %s);\n", iname, vargetname, varsetname);
     if (builtin && shadow && !assignable && !in_class) {
       Printf(f_init, "\t PyDict_SetItemString(md, (char*)\"%s\", PyObject_GetAttrString(SWIG_globals(), \"%s\"));\n", iname, iname);
-      Printf(f_init, "\t pyswig_add_public_symbol(public_interface, \"%s\");\n", iname);
+      Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", iname);
     }
     Delete(vargetname);
     Delete(varsetname);
@@ -2874,8 +2898,8 @@ public:
     }
 
     if (builtin && in_class) {
-      Swig_require("builtin_constantWrapper", n, "*sym:name", "builtin_sym:name", NIL);
-      Setattr(n, "sym:name", Getattr(n, "builtin_sym:name"));
+      Swig_require("builtin_constantWrapper", n, "*sym:name", "pybuiltin:symname", NIL);
+      Setattr(n, "sym:name", Getattr(n, "pybuiltin:symname"));
     }
 
     if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
@@ -3114,7 +3138,7 @@ public:
     if (shadow) {
       if (builtin) {
 	String *rname = SwigType_namestr(real_classname);
-	Printf(builtin_methods, tab4 "{ \"__disown__\", (PyCFunction) Swig::Director::pyobj_disown< %s >, METH_NOARGS, \"\" },\n", rname);
+	Printf(builtin_methods, tab4 "{ \"__disown__\", (PyCFunction) Swig::Director::swig_pyobj_disown< %s >, METH_NOARGS, \"\" },\n", rname);
 	Delete(rname);
       } else {
 	String *symname = Getattr(n, "sym:name");
@@ -3183,7 +3207,7 @@ public:
     String *rname = add_explicit_scope(SwigType_namestr(name));
     String *mname = SwigType_manglestr(rname);
 
-    Printf(f_init, "\n// type '%s'\n", rname);
+    Printf(f_init, "\n/* type '%s' */\n", rname);
     Printf(f_init, "    builtin_pytype = (PyTypeObject *)&SwigPyBuiltin_%s_type;\n", mname);
     Printf(f_init, "    builtin_pytype->tp_dict = d = PyDict_New();\n");
 
@@ -3203,44 +3227,51 @@ public:
     int funpack = modernargs && fastunpack;
 
     Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    Printf(f_init, tab4 "builtin_pytype->ob_base.ob_base.ob_type = metatype;\n");
+    Printf(f_init, "  builtin_pytype->ob_base.ob_base.ob_type = metatype;\n");
     Printv(f_init, "#else\n", NIL);
-    Printf(f_init, tab4 "builtin_pytype->ob_type = metatype;\n");
+    Printf(f_init, "  builtin_pytype->ob_type = metatype;\n");
     Printv(f_init, "#endif\n", NIL);
-    Printf(f_init, tab4 "builtin_pytype->tp_new = PyType_GenericNew;\n");
+    Printf(f_init, "  builtin_pytype->tp_new = PyType_GenericNew;\n");
+    Printv(f_init, "  builtin_base_count = 0;\n", NIL);
     List *baselist = Getattr(n, "bases");
     if (baselist) {
+      int base_count = 0;
       for (Iterator b = First(baselist); b.item; b = Next(b)) {
 	String *bname = Getattr(b.item, "name");
 	if (!bname || GetFlag(b.item, "feature:ignore"))
 	  continue;
+	base_count++;
 	String *base_name = Copy(bname);
 	SwigType_add_pointer(base_name);
 	String *base_mname = SwigType_manglestr(base_name);
-	Printf(f_init, "    builtin_basetype = SWIG_MangledTypeQuery(\"%s\");\n", base_mname);
-	Printv(f_init, "    if (builtin_basetype && builtin_basetype->clientdata && ((SwigPyClientData*) builtin_basetype->clientdata)->pytype) {\n", NIL);
-	Printv(f_init, "        builtin_bases.push_back(((SwigPyClientData*) builtin_basetype->clientdata)->pytype);\n", NIL);
-	Printv(f_init, "    }\n", NIL);
+	Printf(f_init, "  builtin_basetype = SWIG_MangledTypeQuery(\"%s\");\n", base_mname);
+	Printv(f_init, "  if (builtin_basetype && builtin_basetype->clientdata && ((SwigPyClientData*) builtin_basetype->clientdata)->pytype) {\n", NIL);
+	Printv(f_init, "    builtin_bases[builtin_base_count++] = ((SwigPyClientData*) builtin_basetype->clientdata)->pytype;\n", NIL);
+	Printv(f_init, "  }\n", NIL);
 	Delete(base_name);
 	Delete(base_mname);
       }
+      if (base_count > max_bases)
+	max_bases = base_count;
     }
-    Printv(f_init, "    pyswig_builtin_init_bases(builtin_pytype, builtin_bases);\n", NIL);
-    Printv(f_init, "    builtin_bases.clear();\n", NIL);
+    Printv(f_init, "  builtin_bases[builtin_base_count] = NULL;\n", NIL);
+    Printv(f_init, "  SwigPyBuiltin_InitBases(builtin_pytype, builtin_bases);\n", NIL);
 
     // Check for non-public destructor, in which case tp_dealloc will issue
     // a warning and allow the memory to leak.  Any class that doesn't explicitly
     // have a private/protected destructor has an implicit public destructor.
-    String *tp_dealloc = Getattr(n, "feature:tp_dealloc");
+    String *tp_dealloc = Getattr(n, "feature:python:tp_dealloc");
     if (tp_dealloc) {
-      Printf(f, "PYSWIG_DESTRUCTOR_CLOSURE(%s);\n", tp_dealloc);
+      Printf(f, "SWIGPY_DESTRUCTOR_CLOSURE(%s);\n", tp_dealloc);
       tp_dealloc = NewStringf("%s_closure", tp_dealloc);
     } else {
-      tp_dealloc = NewString("py_builtin_bad_dealloc");
+      tp_dealloc = NewString("SwigPyBuiltin_BadDealloc");
     }
 
+    String *getset_name = NewStringf("%s_getset", templ);
+    String *methods_name = NewStringf("%s_methods", templ);
     String *getset_def = NewString("");
-    Printf(getset_def, "SWIGINTERN PyGetSetDef %s_getset[] = {\n", templ);
+    Printf(getset_def, "SWIGINTERN PyGetSetDef %s[] = {\n", getset_name);
 
     // All objects have 'this' and 'thisown' attributes
     Printv(f_init, "PyDict_SetItemString(d, \"this\", this_descr);\n", NIL);
@@ -3252,8 +3283,8 @@ public:
       Hash *mgetset = member_iter.item;
       String *getter = Getattr(mgetset, "getter");
       String *setter = Getattr(mgetset, "setter");
-      const char *getter_closure = getter ? funpack ? "pyswig_funpack_getter_closure" : "pyswig_getter_closure" : "0";
-      const char *setter_closure = setter ? funpack ? "pyswig_funpack_setter_closure" : "pyswig_setter_closure" : "0";
+      const char *getter_closure = getter ? funpack ? "SwigPyBuiltin_FunpackGetterClosure" : "SwigPyBuiltin_GetterClosure" : "0";
+      const char *setter_closure = setter ? funpack ? "SwigPyBuiltin_FunpackSetterClosure" : "SwigPyBuiltin_SetterClosure" : "0";
       String *gspair = NewStringf("%s_%s_getset", symname, memname);
       Printf(f, "static SwigPyGetSet %s = { %s, %s };\n", gspair, getter ? getter : "0", setter ? setter : "0");
       String *entry =
@@ -3270,13 +3301,14 @@ public:
       Delete(gspair);
       Delete(entry);
     }
-    Printv(f, getset_def, "    {NULL} // Sentinel\n", "};\n\n", NIL);
+    Printv(f, getset_def, "    {NULL} /* Sentinel */\n", "};\n\n", NIL);
 
     // Rich compare function
-    Hash *richcompare = Getattr(n, "richcompare");
+    Hash *richcompare = Getattr(n, "python:richcompare");
+    String *richcompare_func = NewStringf("%s_richcompare", templ);
     assert(richcompare);
     Printf(f, "SWIGINTERN PyObject *\n");
-    Printf(f, "%s_richcompare(PyObject *self, PyObject *other, int op) {\n", templ);
+    Printf(f, "%s(PyObject *self, PyObject *other, int op) {\n", richcompare_func);
     Printf(f, "  PyObject *result = NULL;\n");
     if (!funpack) {
       Printf(f, "  PyObject *tuple = PyTuple_New(1);\n");
@@ -3309,175 +3341,177 @@ public:
 
     // No instance dict for nondynamic objects
     if (GetFlag(n, "feature:python:nondynamic"))
-      Setattr(n, "feature:tp_setattro", "SWIG_Python_NonDynamicSetAttr");
+      Setattr(n, "feature:python:tp_setattro", "SWIG_Python_NonDynamicSetAttr");
 
-    char const *tp_init = builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "py_builtin_bad_init";
+    String *quoted_symname = NewStringf("\"%s\"", symname);
+    String *quoted_rname = NewStringf("\"%s\"", rname);
+    char const *tp_init = builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "SwigPyBuiltin_BadInit";
     String *tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES");
     String *py3_tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE");
+
 
     Printf(f, "static PyHeapTypeObject %s_type = {\n", templ);
 
     // PyTypeObject ht_type
-    //Printf(f, "template <> PyTypeObject %s::pytype = {\n", templ);
     Printf(f, "  {\n");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     Printv(f, "    PyVarObject_HEAD_INIT(&PyType_Type, 0)\n", NIL);
     Printv(f, "#else\n", NIL);
     Printf(f, "    PyObject_HEAD_INIT(NULL)\n");
-    Printf(f, "    0,				/*ob_size*/\n");
+    printSlot(f, getSlot(), "ob_size");
     Printv(f, "#endif\n", NIL);
-    Printf(f, "    \"%s\",			/*tp_name*/\n", symname);
-    Printf(f, "    sizeof(SwigPyObject),        /*tp_basicsize*/\n", templ);
-    Printf(f, "    %s,				/*tp_itemsize*/\n", getSlot(n, "feature:tp_itemsize"));
-    Printf(f, "    %s,				/*tp_dealloc*/\n", tp_dealloc);
-    Printf(f, "    %s,				/*tp_print*/\n", getSlot(n, "feature:tp_print"));
-    Printf(f, "    %s,				/*tp_getattr*/\n", getSlot(n, "feature:tp_getattr"));
-    Printf(f, "    %s,				/*tp_setattr*/\n", getSlot(n, "feature:tp_setattr"));
-    Printf(f, "    %s,				/*tp_compare*/\n", getSlot(n, "feature:tp_compare"));
-    Printf(f, "    %s,				/*tp_repr*/\n", getSlot(n, "feature:tp_repr"));
+    printSlot(f, quoted_symname, "tp_name");
+    printSlot(f, "sizeof(SwigPyObject)", "tp_basicsize");
+    printSlot(f, getSlot(n, "feature:python:tp_itemsize"), "tp_itemsize");
+    printSlot(f, tp_dealloc, "tp_dealloc", "destructor");
+    printSlot(f, getSlot(n, "feature:python:tp_print"), "tp_print", "printfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_getattr"), "tp_getattr", "getattrfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_setattr"), "tp_setattr", "setattrfunc");
+    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:tp_compare"), "tp_compare");
+    Printv(f, "#else\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:tp_compare"), "tp_compare", "cmpfunc");
+    Printv(f, "#endif\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:tp_repr"), "tp_repr", "reprfunc");
     Printf(f, "    &%s_type.as_number,		/*tp_as_number*/\n", templ);
     Printf(f, "    &%s_type.as_sequence,	/*tp_as_sequence*/\n", templ);
     Printf(f, "    &%s_type.as_mapping,		/*tp_as_mapping*/\n", templ);
-    Printf(f, "    %s,				/*tp_hash */\n", getSlot(n, "feature:tp_hash"));
-    Printf(f, "    %s,				/*tp_call*/\n", getSlot(n, "feature:tp_call"));
-    Printf(f, "    %s,				/*tp_str*/\n", getSlot(n, "feature:tp_str"));
-    Printf(f, "    %s,				/*tp_getattro*/\n", getSlot(n, "feature:tp_getattro"));
-    Printf(f, "    %s,				/*tp_setattro*/\n", getSlot(n, "feature:tp_setattro"));
+    printSlot(f, getSlot(n, "feature:python:tp_hash"), "tp_hash", "hashfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_call"), "tp_call", "ternaryfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_str"), "tp_str", "reprfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_getattro"), "tp_getattro", "getattrofunc");
+    printSlot(f, getSlot(n, "feature:python:tp_setattro"), "tp_setattro", "setattrofunc");
     Printf(f, "    &%s_type.as_buffer,		/*tp_as_buffer*/\n", templ);
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    Printf(f, "    %s, /*tp_flags*/\n", py3_tp_flags);
+    printSlot(f, py3_tp_flags, "tp_flags");
     Printv(f, "#else\n", NIL);
-    Printf(f, "    %s, /*tp_flags*/\n", tp_flags);
+    printSlot(f, tp_flags, "tp_flags");
     Printv(f, "#endif\n", NIL);
-    Printf(f, "    \"%s\",				/* tp_doc */\n", rname);
-    Printf(f, "    %s,				/* tp_traverse */\n", getSlot(n, "feature:tp_traverse"));
-    Printf(f, "    %s,				/* tp_clear */\n", getSlot(n, "feature:tp_clear"));
-    Printf(f, "    %s_richcompare,		/* tp_richcompare */\n", templ);
-    Printf(f, "    %s,				/* tp_weaklistoffset */\n", getSlot(n, "feature:tp_weaklistoffset"));
-    Printf(f, "    (getiterfunc) %s,				/* tp_iter */\n", getSlot(n, "feature:tp_iter"));
-    Printf(f, "    (iternextfunc) %s,				/* tp_iternext */\n", getSlot(n, "feature:tp_iternext"));
-    Printf(f, "    %s_methods,	/* tp_methods */\n", templ);
-    Printf(f, "    %s,		                /* tp_members */\n", getSlot(n, "feature:tp_members"));
-    Printf(f, "    %s_getset,			/* tp_getset */\n", templ);
-    Printf(f, "    %s,				/* tp_base */\n", getSlot(n, "feature:tp_base"));
-    Printf(f, "    %s,				/* tp_dict */\n", getSlot(n, "feature:tp_dict"));
-    Printf(f, "    %s,				/* tp_descr_get */\n", getSlot(n, "feature:tp_descr_get"));
-    Printf(f, "    %s,				/* tp_descr_set */\n", getSlot(n, "feature:tp_descr_set"));
+    printSlot(f, quoted_rname, "tp_doc");
+    printSlot(f, getSlot(n, "feature:python:tp_traverse"), "tp_traverse", "traverseproc");
+    printSlot(f, getSlot(n, "feature:python:tp_clear"), "tp_clear", "inquiry");
+    printSlot(f, richcompare_func, "feature:python:tp_richcompare", "richcmpfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_weaklistoffset"), "tp_weaklistoffset");
+    printSlot(f, getSlot(n, "feature:python:tp_iter"), "tp_iter", "getiterfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_iternext"), "tp_iternext", "iternextfunc");
+    printSlot(f, methods_name, "tp_methods");
+    printSlot(f, getSlot(n, "feature:python:tp_members"), "tp_members");
+    printSlot(f, getset_name, " tp_getset");
+    printSlot(f, getSlot(n, "feature:python:tp_base"), "tp_base");
+    printSlot(f, getSlot(n, "feature:python:tp_dict"), "tp_dict");
+    printSlot(f, getSlot(n, "feature:python:tp_descr_get"), "tp_descr_get", "descrgetfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_descr_set"), "tp_descr_set", "descrsetfunc");
     Printf(f, "    (size_t)(((char*)&((SwigPyObject *) 64L)->dict) - (char*) 64L), /* tp_dictoffset */\n");
-    Printf(f, "    (initproc)%s,		/* tp_init */\n", tp_init);
-    Printf(f, "    %s,				/* tp_alloc */\n", getSlot(n, "feature:tp_alloc"));
-    Printf(f, "    0,				/* tp_new */\n");
-    Printf(f, "    %s				/* tp_free */\n", getSlot(n, "feature:tp_free"));
+    printSlot(f, tp_init, "tp_init", "initproc");
+    printSlot(f, getSlot(n, "feature:python:tp_alloc"), "tp_alloc", "allocfunc");
+    printSlot(f, "0", "tp_new", "newfunc");
+    printSlot(f, getSlot(n, "feature:python:tp_free"), "tp_free", "freefunc");
     Printf(f, "  },\n");
 
     // PyNumberMethods as_number
-    //Printf(f, "template <> PyNumberMethods %s::number_methods = {\n", templ);
     Printf(f, "  {\n");
-    Printf(f, "    (binaryfunc)  %s,    // nb_add;\n", getSlot(n, "feature:nb_add"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_subtract;\n", getSlot(n, "feature:nb_subtract"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_multiply;\n", getSlot(n, "feature:nb_multiply"));
+    printSlot(f, getSlot(n, "feature:python:nb_add"), "nb_add", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_subtract"), "nb_subtract", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_multiply"), "nb_multiply", "binaryfunc");
     Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
-    Printf(f, "    (binaryfunc)  %s,    // nb_divide;\n", getSlot(n, "feature:nb_divide"));
+    printSlot(f, getSlot(n, "feature:python:nb_divide"), "nb_divide", "binaryfunc");
     Printv(f, "#endif\n", NIL);
-    Printf(f, "    (binaryfunc)  %s,    // nb_remainder;\n", getSlot(n, "feature:nb_remainder"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_divmod;\n", getSlot(n, "feature:nb_divmod"));
-    Printf(f, "    (ternaryfunc) %s,    // nb_power;\n", getSlot(n, "feature:nb_power"));
-    Printf(f, "    (unaryfunc)   %s,    // nb_negative;\n", getSlot(n, "feature:nb_negative"));
-    Printf(f, "    (unaryfunc)   %s,    // nb_positive;\n", getSlot(n, "feature:nb_positive"));
-    Printf(f, "    (unaryfunc)   %s,    // nb_absolute;\n", getSlot(n, "feature:nb_absolute"));
-    Printf(f, "    (inquiry)     %s,    // nb_nonzero;\n", getSlot(n, "feature:nb_nonzero"));
-    Printf(f, "    (unaryfunc)   %s,    // nb_invert;\n", getSlot(n, "feature:nb_invert"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_lshift;\n", getSlot(n, "feature:nb_lshift"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_rshift;\n", getSlot(n, "feature:nb_rshift"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_and;\n", getSlot(n, "feature:nb_and"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_xor;\n", getSlot(n, "feature:nb_xor"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_or;\n", getSlot(n, "feature:nb_or"));
+    printSlot(f, getSlot(n, "feature:python:nb_remainder"), "nb_remainder", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_divmod"), "nb_divmod", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_power"), "nb_power", "ternaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_negative"), "nb_negative", "unaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_positive"), "nb_positive", "unaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_absolute"), "nb_absolute", "unaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_nonzero"), "nb_nonzero", "inquiry");
+    printSlot(f, getSlot(n, "feature:python:nb_invert"), "nb_invert", "unaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_lshift"), "nb_lshift", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_rshift"), "nb_rshift", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_and"), "nb_and", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_xor"), "nb_xor", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_or"), "nb_or", "binaryfunc");
     Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
-    Printf(f, "    (coercion)    %s,    // nb_coerce;\n", getSlot(n, "feature:nb_coerce"));
+    printSlot(f, getSlot(n, "feature:python:nb_coerce"), "nb_coerce", "coercion");
     Printv(f, "#endif\n", NIL);
-    Printf(f, "    (unaryfunc)   %s,    // nb_int;\n", getSlot(n, "feature:nb_int"));
+    printSlot(f, getSlot(n, "feature:python:nb_int"), "nb_int", "unaryfunc");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    Printf(f, "    (void*)   %s,    // nb_reserved;\n", getSlot(n, "feature:nb_reserved"));
+    printSlot(f, getSlot(n, "feature:python:nb_reserved"), "nb_reserved", "void*");
     Printv(f, "#else\n", NIL);
-    Printf(f, "    (unaryfunc)   %s,    // nb_long;\n", getSlot(n, "feature:nb_long"));
+    printSlot(f, getSlot(n, "feature:python:nb_long"), "nb_long", "unaryfunc");
     Printv(f, "#endif\n", NIL);
-    Printf(f, "    (unaryfunc)   %s,    // nb_float;\n", getSlot(n, "feature:nb_float"));
+    printSlot(f, getSlot(n, "feature:python:nb_float"), "nb_float", "unaryfunc");
     Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
-    Printf(f, "    (unaryfunc)   %s,    // nb_oct;\n", getSlot(n, "feature:nb_oct"));
-    Printf(f, "    (unaryfunc)   %s,    // nb_hex;\n", getSlot(n, "feature:nb_hex"));
+    printSlot(f, getSlot(n, "feature:python:nb_oct"), "nb_oct", "unaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_hex"), "nb_hex", "unaryfunc");
     Printv(f, "#endif\n", NIL);
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_add;\n", getSlot(n, "feature:nb_inplace_add"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_subtract;\n", getSlot(n, "feature:nb_inplace_subtract"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_multiply;\n", getSlot(n, "feature:nb_inplace_multiply"));
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_add"), "nb_inplace_add", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_subtract"), "nb_inplace_subtract", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_multiply"), "nb_inplace_multiply", "binaryfunc");
     Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_divide;\n", getSlot(n, "feature:nb_inplace_divide"));
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_divide"), "nb_inplace_divide", "binaryfunc");
     Printv(f, "#endif\n", NIL);
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_remainder;\n", getSlot(n, "feature:nb_inplace_remainder"));
-    Printf(f, "    (ternaryfunc) %s,    // nb_inplace_power;\n", getSlot(n, "feature:nb_inplace_power"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_lshift;\n", getSlot(n, "feature:nb_inplace_lshift"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_rshift;\n", getSlot(n, "feature:nb_inplace_rshift"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_and;\n", getSlot(n, "feature:nb_inplace_and"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_xor;\n", getSlot(n, "feature:nb_inplace_xor"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_or;\n", getSlot(n, "feature:nb_inplace_or"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_floor_divide;\n", getSlot(n, "feature:nb_floor_divide"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_true_divide;\n", getSlot(n, "feature:nb_true_divide"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_floor_divide;\n", getSlot(n, "feature:nb_inplace_floor_divide"));
-    Printf(f, "    (binaryfunc)  %s,    // nb_inplace_true_divide;\n", getSlot(n, "feature:nb_inplace_true_divide"));
-    Printf(f, "    (unaryfunc)   %s,    // nb_index;\n", getSlot(n, "feature:nb_index"));
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_remainder"), "nb_inplace_remainder", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_power"), "nb_inplace_power", "ternaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_lshift"), "nb_inplace_lshift", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_rshift"), "nb_inplace_rshift", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_and"), "nb_inplace_and", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_xor"), "nb_inplace_xor", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_or"), "nb_inplace_or", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_floor_divide"), "nb_floor_divide", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_true_divide"), "nb_true_divide", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_floor_divide"), "nb_inplace_floor_divide", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_inplace_true_divide"), "nb_inplace_true_divide", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:nb_index"), "nb_index", "unaryfunc");
     Printf(f, "  },\n");
 
     // PyMappingMethods as_mapping;
-    //Printf(f, "template <> PyMappingMethods %s::mapping_methods = {\n", templ);
     Printf(f, "  {\n");
-    Printf(f, "    (lenfunc)		%s,	// mp_length;\n", getSlot(n, "feature:mp_length"));
-    Printf(f, "    (binaryfunc)		%s,	// mp_subscript;\n", getSlot(n, "feature:mp_subscript"));
-    Printf(f, "    (objobjargproc)	%s,	//  mp_ass_subscript;\n", getSlot(n, "feature:mp_ass_subscript"));
+    printSlot(f, getSlot(n, "feature:python:mp_length"), "mp_length", "lenfunc");
+    printSlot(f, getSlot(n, "feature:python:mp_subscript"), "mp_subscript", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:mp_ass_subscript"), " mp_ass_subscript", "objobjargproc");
     Printf(f, "  },\n");
 
     // PySequenceMethods as_sequence;
-    //Printf(f, "template <> PySequenceMethods %s::sequence_methods = {\n", templ);
     Printf(f, "  {\n");
-    Printf(f, "    (lenfunc)		%s,	// sq_length\n", getSlot(n, "feature:sq_length"));
-    Printf(f, "    (binaryfunc)		%s,	// sq_concat\n", getSlot(n, "feature:sq_concat"));
-    Printf(f, "    (ssizeargfunc)	%s,	// sq_repeat\n", getSlot(n, "feature:sq_repeat"));
-    Printf(f, "    (ssizeargfunc)	%s,	// sq_item\n", getSlot(n, "feature:sq_item"));
+    Printf(f, "    (lenfunc)		%s,	// sq_length\n", getSlot(n, "feature:python:sq_length"));
+    Printf(f, "    (binaryfunc)		%s,	// sq_concat\n", getSlot(n, "feature:python:sq_concat"));
+    Printf(f, "    (ssizeargfunc)	%s,	// sq_repeat\n", getSlot(n, "feature:python:sq_repeat"));
+    Printf(f, "    (ssizeargfunc)	%s,	// sq_item\n", getSlot(n, "feature:python:sq_item"));
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     Printf(f, "    (void*)	%s,	// was_sq_slice\n", getSlot(n, "feature:was_sq_slice"));
     Printv(f, "#else\n", NIL);
-    Printf(f, "    (ssizessizeargfunc)	%s,	// sq_slice\n", getSlot(n, "feature:sq_slice"));
+    Printf(f, "    (ssizessizeargfunc)	%s,	// sq_slice\n", getSlot(n, "feature:python:sq_slice"));
     Printv(f, "#endif\n", NIL);
-    Printf(f, "    (ssizeobjargproc)	%s,	// sq_ass_item\n", getSlot(n, "feature:sq_ass_item"));
+    Printf(f, "    (ssizeobjargproc)	%s,	// sq_ass_item\n", getSlot(n, "feature:python:sq_ass_item"));
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     Printf(f, "    (void*) %s,	// was_sq_ass_slice\n", getSlot(n, "feature:was_sq_ass_slice"));
     Printv(f, "#else\n", NIL);
-    Printf(f, "    (ssizessizeobjargproc) %s,	// sq_ass_slice\n", getSlot(n, "feature:sq_ass_slice"));
+    Printf(f, "    (ssizessizeobjargproc) %s,	// sq_ass_slice\n", getSlot(n, "feature:python:sq_ass_slice"));
     Printv(f, "#endif\n", NIL);
-    Printf(f, "    (objobjproc)		%s,	// sq_contains\n", getSlot(n, "feature:sq_contains"));
-    Printf(f, "    (binaryfunc)		%s,	// sq_inplace_concat\n", getSlot(n, "feature:sq_inplace_concat"));
-    Printf(f, "    (ssizeargfunc)	%s,	// sq_inplace_repeat\n", getSlot(n, "feature:sq_inplace_repeat"));
+    Printf(f, "    (objobjproc)		%s,	// sq_contains\n", getSlot(n, "feature:python:sq_contains"));
+    Printf(f, "    (binaryfunc)		%s,	// sq_inplace_concat\n", getSlot(n, "feature:python:sq_inplace_concat"));
+    Printf(f, "    (ssizeargfunc)	%s,	// sq_inplace_repeat\n", getSlot(n, "feature:python:sq_inplace_repeat"));
     Printf(f, "  },\n");
 
     // PyBufferProcs as_buffer;
     Printf(f, "  {\n");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    Printf(f, "    (getbufferproc)	%s,	// bf_getbuffer\n", getSlot(n, "feature:bf_getbuffer"));
-    Printf(f, "    (releasebufferproc)	%s,	// bf_releasebuffer\n", getSlot(n, "feature:bf_releasebuffer"));
+    Printf(f, "    (getbufferproc)	%s,	// bf_getbuffer\n", getSlot(n, "feature:python:bf_getbuffer"));
+    Printf(f, "    (releasebufferproc)	%s,	// bf_releasebuffer\n", getSlot(n, "feature:python:bf_releasebuffer"));
     Printv(f, "#else\n", NIL);
-    Printf(f, "    (readbufferproc)	%s,	// bf_getreadbuffer\n", getSlot(n, "feature:bf_getreadbuffer"));
-    Printf(f, "    (writebufferproc)	%s,	// bf_getwritebuffer\n", getSlot(n, "feature:bf_getwritebuffer"));
-    Printf(f, "    (segcountproc)	%s,	// bf_getsegcount\n", getSlot(n, "feature:bf_getsegcount"));
-    Printf(f, "    (charbufferproc)	%s,	// bf_getcharbuffer\n", getSlot(n, "feature:bf_getcharbuffer"));
+    Printf(f, "    (readbufferproc)	%s,	// bf_getreadbuffer\n", getSlot(n, "feature:python:bf_getreadbuffer"));
+    Printf(f, "    (writebufferproc)	%s,	// bf_getwritebuffer\n", getSlot(n, "feature:python:bf_getwritebuffer"));
+    Printf(f, "    (segcountproc)	%s,	// bf_getsegcount\n", getSlot(n, "feature:python:bf_getsegcount"));
+    Printf(f, "    (charbufferproc)	%s,	// bf_getcharbuffer\n", getSlot(n, "feature:python:bf_getcharbuffer"));
     Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
     // PyObject *ht_name, *ht_slots
-    Printf(f, "  (PyObject*)		%s,	// ht_name\n", getSlot(n, "feature:ht_name"));
-    Printf(f, "  (PyObject*)		%s,	// ht_slots\n", getSlot(n, "feature:ht_slots"));
+    Printf(f, "  (PyObject*)		%s,	// ht_name\n", getSlot(n, "feature:python:ht_name"));
+    Printf(f, "  (PyObject*)		%s,	// ht_slots\n", getSlot(n, "feature:python:ht_slots"));
     Printf(f, "};\n\n");
 
     String *clientdata = NewString("");
     Printf(clientdata, "&%s_clientdata", templ);
-    //SwigType_remember_clientdata(pname, clientdata);
     SwigType_remember_mangleddata(pmname, clientdata);
 
     String *smartptr = Getattr(n, "feature:smartptr");
@@ -3486,7 +3520,6 @@ public:
       SwigType *smart = SwigType_typedef_resolve_all(spt);
       SwigType_add_pointer(smart);
       String *smart_pmname = SwigType_manglestr(smart);
-      //SwigType_remember_clientdata(smart, clientdata);
       SwigType_remember_mangleddata(smart_pmname, clientdata);
       Delete(spt);
       Delete(smart);
@@ -3511,7 +3544,7 @@ public:
     Printv(f_init, "    }\n", NIL);
     Printv(f_init, "    Py_INCREF(builtin_pytype);\n", NIL);
     Printf(f_init, "    PyModule_AddObject(m, \"%s\", (PyObject*) builtin_pytype);\n", symname);
-    Printf(f_init, "    pyswig_add_public_symbol(public_interface, \"%s\");\n", symname);
+    Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", symname);
     Printv(f_init, "    d = md;\n", NIL);
 
     Delete(clientdata);
@@ -3523,7 +3556,12 @@ public:
     Delete(tp_dealloc);
     Delete(tp_flags);
     Delete(py3_tp_flags);
+    Delete(quoted_symname);
+    Delete(quoted_rname);
     Delete(clientdata_klass);
+    Delete(richcompare_func);
+    Delete(getset_name);
+    Delete(methods_name);
   }
 
   virtual int classHandler(Node *n) {
@@ -3597,12 +3635,12 @@ public:
 	Hash *base_richcompare = NULL;
 	Hash *richcompare = NULL;
 	if (base_node)
-	  base_richcompare = Getattr(base_node, "richcompare");
+	  base_richcompare = Getattr(base_node, "python:richcompare");
 	if (base_richcompare)
 	  richcompare = Copy(base_richcompare);
 	else
 	  richcompare = NewHash();
-	Setattr(n, "richcompare", richcompare);
+	Setattr(n, "python:richcompare", richcompare);
       }
 
       /* dealing with abstract base class */
@@ -3615,7 +3653,11 @@ public:
       }
 
       if (builtin) {
-
+	if (have_docstring(n)) {
+	  String *str = cdocstring(n, AUTODOC_CLASS);
+	  Setattr(n, "feature:python:tp_doc", str);
+	  Delete(str);
+	}
       } else {
 	Printv(f_shadow, "class ", class_name, NIL);
 
@@ -3852,7 +3894,7 @@ public:
     int oldshadow;
 
     if (builtin)
-      Swig_save("builtin_memberfunc", n, "noargs", "onearg", NIL);
+      Swig_save("builtin_memberfunc", n, "python:argcount", NIL);
 
     /* Create the default member function */
     oldshadow = shadow;		/* Disable shadowing when wrapping member functions */
@@ -3868,17 +3910,20 @@ public:
 	String *fullname = Swig_name_member(NULL, class_name, symname);
 	String *wname = Swig_name_wrapper(fullname);
 	Setattr(class_members, symname, n);
+	int argcount = Getattr(n, "python:argcount") ? atoi(Char(Getattr(n, "python:argcount"))) : 2;
+	String *ds = have_docstring(n) ? cdocstring(n, AUTODOC_FUNC) : NewString("");
 	if (check_kwargs(n)) {
-	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS|METH_KEYWORDS, \"\" },\n", symname, wname);
-	} else if (GetFlagAttr(n, "noargs")) {
-	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_NOARGS, \"\" },\n", symname, wname);
-	} else if (GetFlagAttr(n, "onearg")) {
-	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_O, \"\" },\n", symname, wname);
+	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS|METH_KEYWORDS, (char*) \"%s\" },\n", symname, wname, ds);
+	} else if (argcount == 0) {
+	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_NOARGS, (char*) \"%s },\n", symname, wname, ds);
+	} else if (argcount == 1) {
+	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_O, (char*) \"%s\" },\n", symname, wname, ds);
 	} else {
-	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS, \"\" },\n", symname, wname);
+	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS, (char*) \"%s\" },\n", symname, wname, ds);
 	}
 	Delete(fullname);
 	Delete(wname);
+	Delete(ds);
       }
     }
 
@@ -3949,8 +3994,8 @@ public:
   virtual int staticmemberfunctionHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
     if (builtin && in_class) {
-      Swig_save("builtin_memberconstantHandler", n, "builtin_sym:name", NIL);
-      Setattr(n, "builtin_sym:name", symname);
+      Swig_save("builtin_memberconstantHandler", n, "pybuiltin:symname", NIL);
+      Setattr(n, "pybuiltin:symname", symname);
     }
     Language::staticmemberfunctionHandler(n);
     if (builtin && in_class) {
@@ -3965,13 +4010,20 @@ public:
 	Setattr(class_members, symname, n);
 	int funpack = modernargs && fastunpack && !Getattr(n, "sym:overloaded");
 	String *pyflags = NewString("METH_STATIC|");
-	if (funpack && GetFlagAttr(n, "noargs"))
+	int argcount = Getattr(n, "python:argcount") ? atoi(Char(Getattr(n, "python:argcount"))) : 2;
+	if (funpack && argcount == 0)
 	  Append(pyflags, "METH_NOARGS");
-	else if (funpack && GetFlagAttr(n, "onearg"))
+	else if (funpack && argcount == 1)
 	  Append(pyflags, "METH_O");
 	else
 	  Append(pyflags, "METH_VARARGS");
-	Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, %s, \"\" },\n", symname, wname, pyflags);
+	if (have_docstring(n)) {
+	  String *ds = cdocstring(n, AUTODOC_STATICFUNC);
+	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, %s, (char*) \"%s\" },\n", symname, wname, pyflags, ds);
+	  Delete(ds);
+	} else {
+	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, %s, \"\" },\n", symname, wname, pyflags);
+	}
 	Delete(fullname);
 	Delete(wname);
 	Delete(pyflags);
@@ -4171,10 +4223,10 @@ public:
 
     if (builtin && in_class) {
       Node *cls = Swig_methodclass(n);
-      if (!Getattr(cls, "feature:tp_dealloc")) {
+      if (!Getattr(cls, "feature:python:tp_dealloc")) {
 	String *dealloc = Swig_name_destroy(NSPACE_TODO, symname);
 	String *wdealloc = Swig_name_wrapper(dealloc);
-	Setattr(cls, "feature:tp_dealloc", wdealloc);
+	Setattr(cls, "feature:python:tp_dealloc", wdealloc);
 	Delete(wdealloc);
 	Delete(dealloc);
       }
@@ -4326,8 +4378,8 @@ public:
 	    Printv(f_shadow, tab4, modern ? "" : "if _newclass:", symname, " = _swig_property(", module, ".", getname, ", ", module, ".", setname, ")\n", NIL);
 	  }
 	}
-	String *getter = Getattr(n, "builtin:getter");
-	String *setter = Getattr(n, "builtin:setter");
+	String *getter = Getattr(n, "pybuiltin:getter");
+	String *setter = Getattr(n, "pybuiltin:setter");
 	Hash *h = NULL;
 	if (getter || setter) {
 	  h = Getattr(builtin_getset, symname);
@@ -4362,8 +4414,8 @@ public:
   virtual int memberconstantHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
     if (builtin && in_class) {
-      Swig_save("builtin_memberconstantHandler", n, "builtin_sym:name", NIL);
-      Setattr(n, "builtin_sym:name", symname);
+      Swig_save("builtin_memberconstantHandler", n, "pybuiltin:symname", NIL);
+      Setattr(n, "pybuiltin:symname", symname);
     }
     int oldshadow = shadow;
     if (shadow)
@@ -4571,6 +4623,9 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     }
   }
 
+  if (builtin)
+    Printv(w->code, "PyObject *self = NULL;\n", NIL);
+
   if (ignored_method) {
     if (!pure_virtual) {
       if (!is_void)
@@ -4692,7 +4747,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	    Wrapper_add_localv(w, source, "swig::SwigVar_PyObject", source, "= 0", NIL);
 	    Printf(wrap_args, "%s = SWIG_DIRECTOR_CAST(%s);\n", director, nonconst);
 	    Printf(wrap_args, "if (!%s) {\n", director);
-	    Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
+	    Printf(wrap_args, "%s = SWIG_InternalNewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
 	    Append(wrap_args, "} else {\n");
 	    Printf(wrap_args, "%s = %s->swig_get_self();\n", source, director);
 	    Printf(wrap_args, "Py_INCREF((PyObject *)%s);\n", source);
@@ -4701,7 +4756,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	    Printv(arglist, source, NIL);
 	  } else {
 	    Wrapper_add_localv(w, source, "swig::SwigVar_PyObject", source, "= 0", NIL);
-	    Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
+	    Printf(wrap_args, "%s = SWIG_InternalNewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
 	    //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
 	    //       source, nonconst, base);
 	    Printv(arglist, source, NIL);

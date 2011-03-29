@@ -127,12 +127,10 @@ SwigPython_std_pair_len (PyObject *a)
 SWIGINTERN PyObject*
 SwigPython_std_pair_repr (PyObject *o)
 {
-    static PyObject *first = PyString_FromString("first");
-    static PyObject *second = PyString_FromString("second");
     PyObject *tuple = PyTuple_New(2);
     assert(tuple);
-    PyTuple_SET_ITEM(tuple, 0, PyObject_GetAttr(o, first));
-    PyTuple_SET_ITEM(tuple, 1, PyObject_GetAttr(o, second));
+    PyTuple_SET_ITEM(tuple, 0, PyObject_GetAttrString(o, "first"));
+    PyTuple_SET_ITEM(tuple, 1, PyObject_GetAttrString(o, "second"));
     PyObject *result = PyObject_Repr(tuple);
     Py_DECREF(tuple);
     return result;
@@ -141,45 +139,39 @@ SwigPython_std_pair_repr (PyObject *o)
 SWIGINTERN PyObject*
 SwigPython_std_pair_getitem (PyObject *a, Py_ssize_t b)
 {
-    static PyObject *first = PyString_FromString("first");
-    static PyObject *second = PyString_FromString("second");
-    PyObject *attr_name = b % 2 ? second : first;
-    PyObject *result = PyObject_GetAttr(a, attr_name);
+    PyObject *result = PyObject_GetAttrString(a, b % 2 ? "second" : "first");
     return result;
 }
 
 SWIGINTERN int
 SwigPython_std_pair_setitem (PyObject *a, Py_ssize_t b, PyObject *c)
 {
-    static PyObject *first = PyString_FromString("first");
-    static PyObject *second = PyString_FromString("second");
-    PyObject *attr_name = b % 2 ? second : first;
-    int result = PyObject_SetAttr(a, attr_name, c);
+    int result = PyObject_SetAttrString(a, b % 2 ? "second" : "first", c);
     return result;
 }
 #endif
 
 }
 
-%feature("sq_length") std::pair "SwigPython_std_pair_len";
-%feature("sq_length") std::pair<T*,U> "SwigPython_std_pair_len";
-%feature("sq_length") std::pair<T,U*> "SwigPython_std_pair_len";
-%feature("sq_length") std::pair<T*,U*> "SwigPython_std_pair_len";
+%feature("python:sq_length") std::pair "SwigPython_std_pair_len";
+%feature("python:sq_length") std::pair<T*,U> "SwigPython_std_pair_len";
+%feature("python:sq_length") std::pair<T,U*> "SwigPython_std_pair_len";
+%feature("python:sq_length") std::pair<T*,U*> "SwigPython_std_pair_len";
 
-%feature("tp_repr") std::pair "SwigPython_std_pair_repr";
-%feature("tp_repr") std::pair<T*,U> "SwigPython_std_pair_repr";
-%feature("tp_repr") std::pair<T,U*> "SwigPython_std_pair_repr";
-%feature("tp_repr") std::pair<T*,U*> "SwigPython_std_pair_repr";
+%feature("python:tp_repr") std::pair "SwigPython_std_pair_repr";
+%feature("python:tp_repr") std::pair<T*,U> "SwigPython_std_pair_repr";
+%feature("python:tp_repr") std::pair<T,U*> "SwigPython_std_pair_repr";
+%feature("python:tp_repr") std::pair<T*,U*> "SwigPython_std_pair_repr";
 
-%feature("sq_item") std::pair "SwigPython_std_pair_getitem";
-%feature("sq_item") std::pair<T*,U> "SwigPython_std_pair_getitem";
-%feature("sq_item") std::pair<T,U*> "SwigPython_std_pair_getitem";
-%feature("sq_item") std::pair<T*,U*> "SwigPython_std_pair_getitem";
+%feature("python:sq_item") std::pair "SwigPython_std_pair_getitem";
+%feature("python:sq_item") std::pair<T*,U> "SwigPython_std_pair_getitem";
+%feature("python:sq_item") std::pair<T,U*> "SwigPython_std_pair_getitem";
+%feature("python:sq_item") std::pair<T*,U*> "SwigPython_std_pair_getitem";
 
-%feature("sq_ass_item") std::pair "SwigPython_std_pair_setitem";
-%feature("sq_ass_item") std::pair<T*,U> "SwigPython_std_pair_setitem";
-%feature("sq_ass_item") std::pair<T,U*> "SwigPython_std_pair_setitem";
-%feature("sq_ass_item") std::pair<T*,U*> "SwigPython_std_pair_setitem";
+%feature("python:sq_ass_item") std::pair "SwigPython_std_pair_setitem";
+%feature("python:sq_ass_item") std::pair<T*,U> "SwigPython_std_pair_setitem";
+%feature("python:sq_ass_item") std::pair<T,U*> "SwigPython_std_pair_setitem";
+%feature("python:sq_ass_item") std::pair<T*,U*> "SwigPython_std_pair_setitem";
 
 %define %swig_pair_methods(pair...)
 #if !defined(SWIGPYTHON_BUILTIN)

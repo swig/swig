@@ -2,16 +2,16 @@ from argcargvtest import *
 
 largs=['hi','hola','hello']
 if mainc(largs) != 3:
-  raise RuntimeError, "bad main typemap"
+  raise RuntimeError("bad main typemap")
 
 targs=('hi','hola')
 if mainv(targs,1) != 'hola':
-  print mainv(targs,1)
-  raise RuntimeError, "bad main typemap"
+  print(mainv(targs,1))
+  raise RuntimeError("bad main typemap")
 
 targs=('hi', 'hola')
 if mainv(targs,1) != 'hola':
-  raise RuntimeError, "bad main typemap"
+  raise RuntimeError("bad main typemap")
 
 try:
   error = 0
@@ -20,7 +20,7 @@ try:
 except TypeError:
   pass
 if error:
-  raise RuntimeError, "bad main typemap"
+  raise RuntimeError("bad main typemap")
 
 
 

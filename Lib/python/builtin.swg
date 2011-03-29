@@ -1,10 +1,10 @@
-#define PYSWIG_UNARYFUNC_CLOSURE(wrapper)	\
+#define SWIGPY_UNARYFUNC_CLOSURE(wrapper)	\
 SWIGINTERN PyObject *				\
 wrapper##_closure(PyObject *a) {		\
   return wrapper(a, NULL);			\
 }
 
-#define PYSWIG_DESTRUCTOR_CLOSURE(wrapper)	\
+#define SWIGPY_DESTRUCTOR_CLOSURE(wrapper)	\
 SWIGINTERN void					\
 wrapper##_closure(PyObject *a) {		\
     SwigPyObject *sobj = (SwigPyObject *)a;	\
@@ -14,7 +14,7 @@ wrapper##_closure(PyObject *a) {		\
     }						\
 }
 
-#define PYSWIG_INQUIRY_CLOSURE(wrapper)				\
+#define SWIGPY_INQUIRY_CLOSURE(wrapper)				\
 SWIGINTERN int							\
 wrapper##_closure(PyObject *a) {				\
     PyObject *pyresult = wrapper(a, NULL);			\
@@ -23,7 +23,7 @@ wrapper##_closure(PyObject *a) {				\
     return result;						\
 }
 
-#define PYSWIG_BINARYFUNC_CLOSURE(wrapper)	\
+#define SWIGPY_BINARYFUNC_CLOSURE(wrapper)	\
 SWIGINTERN PyObject *				\
 wrapper##_closure(PyObject *a, PyObject *b) {	\
     PyObject *tuple = PyTuple_New(1);		\
@@ -35,7 +35,7 @@ wrapper##_closure(PyObject *a, PyObject *b) {	\
     return result;				\
 }
 
-#define PYSWIG_TERNARYFUNC_CLOSURE(wrapper)			\
+#define SWIGPY_TERNARYFUNC_CLOSURE(wrapper)			\
 SWIGINTERN PyObject *						\
 wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
     PyObject *tuple = PyTuple_New(2);				\
@@ -49,7 +49,7 @@ wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
     return result;						\
 }
 
-#define PYSWIG_LENFUNC_CLOSURE(wrapper)			\
+#define SWIGPY_LENFUNC_CLOSURE(wrapper)			\
 SWIGINTERN Py_ssize_t					\
 wrapper##_closure(PyObject *a) {			\
     PyObject *resultobj = wrapper(a, NULL);		\
@@ -58,7 +58,7 @@ wrapper##_closure(PyObject *a) {			\
     return result;					\
 }
 
-#define PYSWIG_SSIZESSIZEARGFUNC_CLOSURE(wrapper)		\
+#define SWIGPY_SSIZESSIZEARGFUNC_CLOSURE(wrapper)		\
 SWIGINTERN PyObject *						\
 wrapper##_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c) {	\
     PyObject *tuple = PyTuple_New(2);				\
@@ -70,7 +70,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c) {	\
     return result;						\
 }
 
-#define PYSWIG_SSIZESSIZEOBJARGPROC_CLOSURE(wrapper)			\
+#define SWIGPY_SSIZESSIZEOBJARGPROC_CLOSURE(wrapper)			\
 SWIGINTERN int								\
 wrapper##_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) { \
     PyObject *tuple = PyTuple_New(d ? 3 : 2);				\
@@ -88,7 +88,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b, Py_ssize_t c, PyObject *d) { \
     return result;							\
 }
 
-#define PYSWIG_SSIZEARGFUNC_CLOSURE(wrapper)		\
+#define SWIGPY_SSIZEARGFUNC_CLOSURE(wrapper)		\
 SWIGINTERN PyObject *					\
 wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
     PyObject *tuple = PyTuple_New(1);			\
@@ -99,7 +99,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
     return result;					\
 }
 
-#define PYSWIG_FUNPACK_SSIZEARGFUNC_CLOSURE(wrapper)		\
+#define SWIGPY_FUNPACK_SSIZEARGFUNC_CLOSURE(wrapper)		\
 SWIGINTERN PyObject *					\
 wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
     PyObject *arg = _PyLong_FromSsize_t(b);		\
@@ -108,7 +108,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b) {		\
     return result;					\
 }
 
-#define PYSWIG_SSIZEOBJARGPROC_CLOSURE(wrapper)			\
+#define SWIGPY_SSIZEOBJARGPROC_CLOSURE(wrapper)			\
 SWIGINTERN int							\
 wrapper##_closure(PyObject *a, Py_ssize_t b, PyObject *c) {	\
     PyObject *tuple = PyTuple_New(2);				\
@@ -123,7 +123,7 @@ wrapper##_closure(PyObject *a, Py_ssize_t b, PyObject *c) {	\
     return result;						\
 }
 
-#define PYSWIG_OBJOBJARGPROC_CLOSURE(wrapper)			\
+#define SWIGPY_OBJOBJARGPROC_CLOSURE(wrapper)			\
 SWIGINTERN int							\
 wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
     PyObject *tuple = PyTuple_New(c ? 2 : 1);			\
@@ -141,13 +141,13 @@ wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
     return result;						\
 }
 
-#define PYSWIG_REPRFUNC_CLOSURE(wrapper)	\
+#define SWIGPY_REPRFUNC_CLOSURE(wrapper)	\
 SWIGINTERN PyObject *				\
 wrapper##_closure(PyObject *a) {		\
     return wrapper(a, NULL);			\
 }
 
-#define PYSWIG_HASHFUNC_CLOSURE(wrapper)	\
+#define SWIGPY_HASHFUNC_CLOSURE(wrapper)	\
 SWIGINTERN long					\
 wrapper##_closure(PyObject *a) {		\
     PyObject *pyresult = wrapper(a, NULL);	\
@@ -158,7 +158,7 @@ wrapper##_closure(PyObject *a) {		\
     return result;				\
 }
 
-#define PYSWIG_ITERNEXT_CLOSURE(wrapper)	\
+#define SWIGPY_ITERNEXT_CLOSURE(wrapper)	\
 SWIGINTERN PyObject *				\
 wrapper##_closure(PyObject *a) {		\
     PyObject *result = wrapper(a, NULL);	\
@@ -170,13 +170,13 @@ wrapper##_closure(PyObject *a) {		\
 }
 
 SWIGINTERN int
-py_builtin_bad_init(PyObject *self, PyObject *args, PyObject *kwds) {
+SwigPyBuiltin_BadInit(PyObject *self, PyObject *args, PyObject *kwds) {
   PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", self->ob_type->tp_name);
   return -1;
 }
 
 SWIGINTERN void
-py_builtin_bad_dealloc(PyObject *pyobj) {
+SwigPyBuiltin_BadDealloc(PyObject *pyobj) {
   SwigPyObject *sobj = (SwigPyObject *)pyobj;
   if (sobj->own) {
     PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%.300s': no callable destructor found.", pyobj->ob_type->tp_name);
@@ -189,7 +189,7 @@ typedef struct {
 } SwigPyGetSet;
 
 SWIGINTERN PyObject *
-pyswig_getter_closure(PyObject *obj, void *closure) {
+SwigPyBuiltin_GetterClosure (PyObject *obj, void *closure) {
   if (!closure)
     return SWIG_Py_Void();
   SwigPyGetSet *getset = (SwigPyGetSet *)closure;
@@ -203,7 +203,7 @@ pyswig_getter_closure(PyObject *obj, void *closure) {
 }
 
 SWIGINTERN PyObject *
-pyswig_funpack_getter_closure(PyObject *obj, void *closure) {
+SwigPyBuiltin_FunpackGetterClosure (PyObject *obj, void *closure) {
   if (!closure)
     return SWIG_Py_Void();
   SwigPyGetSet *getset = (SwigPyGetSet *)closure;
@@ -214,7 +214,7 @@ pyswig_funpack_getter_closure(PyObject *obj, void *closure) {
 }
 
 SWIGINTERN int
-pyswig_setter_closure(PyObject *obj, PyObject *val, void *closure) {
+SwigPyBuiltin_SetterClosure (PyObject *obj, PyObject *val, void *closure) {
   if (!closure) {
     PyErr_Format(PyExc_TypeError, "Missing getset closure");
     return -1;
@@ -235,7 +235,7 @@ pyswig_setter_closure(PyObject *obj, PyObject *val, void *closure) {
 }
 
 SWIGINTERN int
-pyswig_funpack_setter_closure(PyObject *obj, PyObject *val, void *closure) {
+SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure) {
   if (!closure) {
     PyErr_Format(PyExc_TypeError, "Missing getset closure");
     return -1;
@@ -246,41 +246,6 @@ pyswig_funpack_setter_closure(PyObject *obj, PyObject *val, void *closure) {
     return -1;
   }
   PyObject *result = (*getset->set)(obj, val);
-  Py_XDECREF(result);
-  return result ? 0 : -1;
-}
-
-SWIGINTERN PyObject *
-pyswig_static_getter_closure(PyObject *obj, void *closure) {
-  if (!closure)
-    return SWIG_Py_Void();
-  SwigPyGetSet *getset = (SwigPyGetSet *)closure;
-  if (!getset->get)
-    return SWIG_Py_Void();
-  PyObject *tuple = PyTuple_New(0);
-  assert(tuple);
-  PyObject *result = (*getset->get)(obj, tuple);
-  Py_DECREF(tuple);
-  return result;
-}
-
-SWIGINTERN int
-pyswig_static_setter_closure(PyObject *obj, PyObject *val, void *closure) {
-  if (!closure) {
-    PyErr_Format(PyExc_TypeError, "Missing getset closure");
-    return -1;
-  }
-  SwigPyGetSet *getset = (SwigPyGetSet *)closure;
-  if (!getset->set) {
-    PyErr_Format(PyExc_TypeError, "Illegal static variable assignment.");
-    return -1;
-  }
-  PyObject *tuple = PyTuple_New(1);
-  assert(tuple);
-  PyTuple_SET_ITEM(tuple, 0, val);
-  Py_XINCREF(val);
-  PyObject *result = (*getset->set)(obj, tuple);
-  Py_DECREF(tuple);
   Py_XDECREF(result);
   return result ? 0 : -1;
 }
@@ -296,7 +261,7 @@ SwigPyStaticVar_dealloc(PyDescrObject *descr) {
 SWIGINTERN PyObject *
 SwigPyStaticVar_repr(PyGetSetDescrObject *descr) {
 #if PY_VERSION_HEX >= 0x03000000
-  return PyUnicode_FromFormat("<class attribute '%U' of type '%s'>", descr->d_name, descr->d_type->tp_name);
+  return PyUnicode_FromFormat("<class attribute '%S' of type '%s'>", descr->d_name, descr->d_type->tp_name);
 #else
   return PyString_FromFormat("<class attribute '%s' of type '%s'>", PyString_AsString(descr->d_name), descr->d_type->tp_name);
 #endif
@@ -416,19 +381,22 @@ SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
   return descr;
 }
 
-#ifdef __cplusplus
-
-#include <vector>
-
 SWIGINTERN void
-pyswig_builtin_init_bases(PyTypeObject *type, std::vector<PyTypeObject *> &bases) {
-  if (!bases.size())
-    bases.push_back(SwigPyObject_type());
+SwigPyBuiltin_InitBases (PyTypeObject *type, PyTypeObject **bases) {
+  int base_count = 0;
+  PyTypeObject **b;
+  int i;
+
+  if (!bases[0]) {
+    bases[0] = SwigPyObject_type();
+    bases[1] = NULL;
+  }
   type->tp_base = bases[0];
   Py_INCREF((PyObject *)bases[0]);
-  PyObject *tuple = PyTuple_New(bases.size());
-  int i;
-  for (i = 0; i < bases.size(); ++i) {
+  for (b = bases; *b != NULL; ++b)
+    ++base_count;
+  PyObject *tuple = PyTuple_New(base_count);
+  for (i = 0; i < base_count; ++i) {
     PyTuple_SET_ITEM(tuple, i, (PyObject *)bases[i]);
     Py_INCREF((PyObject *)bases[i]);
   }
@@ -436,10 +404,8 @@ pyswig_builtin_init_bases(PyTypeObject *type, std::vector<PyTypeObject *> &bases
 }
 
 SWIGINTERN PyObject *
-pyswig_this_closure(PyObject *self, void *closure) {
+SwigPyBuiltin_ThisClosure (PyObject *self, void *closure) {
   PyObject *result = (PyObject *)SWIG_Python_GetSwigThis(self);
   Py_XINCREF(result);
   return result;
 }
-
-#endif

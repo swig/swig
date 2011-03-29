@@ -1,6 +1,6 @@
-import _default_constructor
+import default_constructor
 
-dc = _default_constructor
+dc = default_constructor
 
 # Old static syntax not supported
 #a = dc.new_A()

@@ -7,8 +7,6 @@
 %init %{
 
 #ifdef __cplusplus
-#include <vector>
-
 extern "C" {
 #endif
 
@@ -241,7 +239,7 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
   for (i = 0; constants[i].type; ++i) {
     switch(constants[i].type) {
     case SWIG_PY_POINTER:
-      obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype,0);
+      obj = SWIG_InternalNewPointerObj(constants[i].pvalue, *(constants[i]).ptype,0);
       break;
     case SWIG_PY_BINARY:
       obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype));
@@ -340,16 +338,14 @@ SWIG_init(void) {
 
 #if defined(SWIGPYTHON_BUILTIN)
   PyTypeObject *builtin_pytype = 0;
-#ifdef __cplusplus
-  std::vector<PyTypeObject*> builtin_bases;
-#endif
+  int builtin_base_count = 0;
   swig_type_info *builtin_basetype = 0;
   PyObject *tuple = NULL;
   PyGetSetDescrObject *static_getset = NULL;
 
   int i;
 
-  // metatype is used to implement static member variables.
+  /* metatype is used to implement static member variables. */
   PyObject *metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
   assert(metatype_args);
   PyTypeObject *metatype = (PyTypeObject *) PyType_Type.tp_call((PyObject *) &PyType_Type, metatype_args, NULL);
@@ -381,22 +377,29 @@ SWIG_init(void) {
   SwigPyClientData *cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
   if (!cd) {
     SwigPyObject_stype->clientdata = &SwigPyObject_clientdata;
-    SwigPyObject_clientdata.pytype = _PySwigObject_type();
+    SwigPyObject_clientdata.pytype = SwigPyObject_TypeOnce();
+  } else if (SwigPyObject_TypeOnce()->tp_basicsize != cd->pytype->tp_basicsize) {
+    PyErr_SetString(PyExc_RuntimeError, "Import error: attempted to load two incompatible swig-generated modules.");
+# if PY_VERSION_HEX >= 0x03000000
+    return NULL;
+# else
+    return;
+# endif
   }
 
-  // All objects have a 'this' attribute
+  /* All objects have a 'this' attribute */
   static PyGetSetDef this_getset_def = {
-    const_cast<char *>("this"), pyswig_this_closure, NULL, NULL, NULL
+    (char*) "this", SwigPyBuiltin_ThisClosure, NULL, NULL, NULL
   };
   PyObject *this_descr = PyDescr_NewGetSet(SwigPyObject_type(), &this_getset_def);
 
-  // All objects have a 'thisown' attribute
+  /* All objects have a 'thisown' attribute */
   static SwigPyGetSet thisown_getset_closure = {
     (PyCFunction) SwigPyObject_own,
     (PyCFunction) SwigPyObject_own
   };
   static PyGetSetDef thisown_getset_def = {
-    const_cast<char*>("thisown"), pyswig_getter_closure, pyswig_setter_closure, NULL, &thisown_getset_closure
+    const_cast<char*>("thisown"), SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
   };
   PyObject *thisown_descr = PyDescr_NewGetSet(SwigPyObject_type(), &thisown_getset_def);
 
@@ -405,9 +408,9 @@ SWIG_init(void) {
   PyDict_SetItemString(md, "__all__", public_interface);
   Py_DECREF(public_interface);
   for (i = 0; SwigMethods[i].ml_name != NULL; ++i)
-    pyswig_add_public_symbol(public_interface, SwigMethods[i].ml_name);
+    SwigPyBuiltin_AddPublicSymbol(public_interface, SwigMethods[i].ml_name);
   for (i = 0; swig_const_table[i].name != 0; ++i)
-    pyswig_add_public_symbol(public_interface, swig_const_table[i].name);
+    SwigPyBuiltin_AddPublicSymbol(public_interface, swig_const_table[i].name);
 #endif
 
   SWIG_InstallConstants(d,swig_const_table);
