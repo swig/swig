@@ -1,8 +1,8 @@
-*** ANNOUNCE: SWIG 2.0.3 (29 March 2011) ***
+*** ANNOUNCE: SWIG 2.0.4 (29 March 2011) ***
 
 http://www.swig.org
 
-We're pleased to announce SWIG-2.0.3, the latest SWIG release.
+We're pleased to announce SWIG-2.0.4, the latest SWIG release.
 
 What is SWIG?
 =============
@@ -21,11 +21,11 @@ Availability
 ============
 The release is available for download on Sourceforge at
 
-     http://prdownloads.sourceforge.net/swig/swig-2.0.3.tar.gz
+     http://prdownloads.sourceforge.net/swig/swig-2.0.4.tar.gz
 
 A Windows version is also available at
 
-     http://prdownloads.sourceforge.net/swig/swigwin-2.0.3.zip
+     http://prdownloads.sourceforge.net/swig/swigwin-2.0.4.zip
 
 Please report problems with this release to the swig-devel mailing list,
 details at http://www.swig.org/mail.html.

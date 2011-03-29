@@ -3,6 +3,78 @@ SWIG (Simplified Wrapper and Interface Generator)
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
 
+Version 2.0.3 (29 March 2011)
+=============================
+
+2011-03-29: wsfulton
+            [R] Apply patch #3239076 from Marie White fixing strings for R >= 2.7.0
+
+2011-03-29: wsfulton
+            [Tcl] Apply patch #3248280 from Christian Delbaere which adds better error messages when
+            the incorrect number or type of arguments are passed to overloaded methods.
+
+2011-03-29: wsfulton
+            [Tcl] Apply patch #3224663 from Christian Delbaere.
+            1. Fix when function returns a NULL value, a "NULL" command will be created in the Tcl interpreter
+            and calling this command will cause a segmentation fault. 
+
+            2. Previous implementation searches for class methods using a linear search causing performance issues
+            in wrappers for classes with many member functions. The patch adds a method hash table to classes and
+            changes method name lookup to use the hash table instead of doing a linear search.
+
+2011-03-26: wsfulton
+	    [C#, Java] SF bug #3195112 - fix wrapping of enums that are type char, for example:
+              enum { X = 'X'; }
+
+2011-03-21: vadz
+	    Allow setting PCRE_CFLAGS and PCRE_LIBS during configuration to override the values returned by
+	    pcre-config, e.g. to allow using a static version of PCRE library.
+
+2011-03-17: wsfulton
+	    [UTL] Add missing headers in generated STL wrappers to fix compilation with gcc-4.6.
+
+2011-03-17: wsfulton
+	    Fix regression introduced in swig-2.0.2 where filenames with spaces were not found
+	    when used with %include and %import. Reported by Shane Liesegang.
+
+2011-03-15: wsfulton
+	    [UTL] Fix overloading when using const char[], problem reported by David Maxwell.
+            Similarly for char[ANY] and const char[ANY].
+
+2011-03-15: wsfulton
+	    [C#] Apply patch #3212624 fixing std::map Keys property.
+
+2011-03-14: olly
+	    [PHP] Fix handling of overloaded methods/functions where some
+	    return void and others don't - whether this worked or not depended
+	    on the order they were encountered in (SF#3208299).
+	
+2011-03-13: klickverbot
+            [D] Extended support for C++ namespaces (nspace feature).
+
+2011-03-12: olly
+	    [PHP] Fix sharing of type information between multiple SWIG-wrapped
+	    modules (SF#3202463).
+
+2011-03-09: wsfulton
+	    [Python] Fix SF #3194294 - corner case bug when 'NULL' is used as the default value
+            for a primitive type parameter in a method declaration.
+
+2011-03-07: olly
+	    [PHP] Don't use zend_error_noreturn() for cases where the function
+	    returns void - now this issue can only matter if you have a function
+	    or method which is directed and returns non-void.
+
+2011-03-06: olly
+	    [PHP] Add casts to the typemaps for long long and unsigned long
+	    long to avoid issues when they are used with shorter types via
+	    %apply.
+
+2011-03-02: wsfulton
+	    Templated smart pointers overloaded with both const and non const operator-> generated uncompilable
+	    code when the pointee was a class with either public member variables or static methods.
+	    Regression in 2.0.x reported as working in 1.3.40 by xantares on swig-user mailing list.
+
 Version 2.0.2 (20 February 2011)
 ================================
 
