@@ -13,9 +13,9 @@
 
   class FooImplementation {
   public:
-    int mingy() {}
-    int constmingy() const {}
-    static int thingy() {}
+    int mingy() { return 0; }
+    int constmingy() const { return 0; }
+    static int thingy() { return 0; }
     static int svariable;
     static const int constsvariable;
     int normalvariable;
