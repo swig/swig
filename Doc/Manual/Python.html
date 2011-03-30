@@ -2306,15 +2306,56 @@ by Python built-in types until Python 2.2).
 <H3><a name="BuiltinClasses"></a>33.4.2 Built-in Classes</H3>
 
 <p>
-The <tt>-builtin</tt> option gives a significant performance improvement
-in the wrapped code.  More information about python built-in extensions is available
-<a href="http://docs.python.org/extending/extending.html">here</a>.
+The <tt>-builtin</tt> option provides a significant performance improvement
+in the wrapped code.  To understand the difference between proxy classes
+and built-in types, let's take a look at what a wrapped object looks like
+under both circumstances.
+</p>
+
+<p>When proxy classes are used, each wrapped object in python is an instance
+of a pure python class.  As a reminder, here is what the __init__ method looks
+like in a proxy class:
+</p>
+
+<div class="targetlang">
+<pre>
+class Foo(object):
+     def __init__(self):
+         self.this = _example.new_Foo()
+         self.thisown = 1
+</pre>
+</div>
+
+<p>When a <tt>Foo</tt> instance is created, the call to <tt>_example.new_Foo()</tt>
+creates a new C++ <tt>Foo</tt> instance; wraps that C++ instance inside an instance of 
+a python built-in type called <tt>SwigPyObject</tt>; and stores the <tt>SwigPyObject</tt>
+instance in the 'this' field of the python Foo object.  Did you get all that?  So, the
+python <tt>Foo</tt> object is composed of three parts:</p>
+
+<ul>
+<li> The python <tt>Foo</tt> instance, which contains...</li>
+<li> ... an instance of <tt>struct SwigPyObject</tt>, which contains...</li>
+<li> ... a C++ <tt>Foo</tt> instance</li>
+</ul>
+
+<p>When <tt>-builtin</tt> is used, the pure python layer is stripped off.  Each
+wrapped class is turned into a new python built-in type which inherits from
+<tt>SwigPyObject</tt>, and <tt>SwigPyObject</tt> instances are returned directly
+from the wrapped methods.  For more information about python built-in extensions,
+please refer to the python documentation:</p>
+<p><a href="http://docs.python.org/extending/extending.html">docs.python.org/extending/extending.html</a>.
 </p>
 
 <H4>33.4.2.1 Limitations</H4>
 
 <p>Use of the <tt>-builtin</tt> option implies a couple of limitations:
 <ul>
+<li>Some legacy syntax is no longer supported; in particular:</li>
+<ul>
+<li>The functional interface is no longer exposed.  For example, you may no longer call <tt>Whizzo.new_CrunchyFrog()</tt>.  Instead, you must use <tt>Whizzo.CrunchyFrog()</tt>.</li>
+<li>Static member variables are no longer accessed through the 'cvar' field (e.g., <tt>Dances.cvar.FishSlap</tt>).
+They are instead accessed in the idiomatic way (<tt>Dances.FishSlap</tt>).</li>
+</ul>
 <li>Wrapped types may not be thrown as python exceptions</li>
 <li>Reverse operators are not supported.</li>
 </ul>
@@ -2331,7 +2372,7 @@ strings, you can define an <tt>'operator+ (const char*)'</tt> method :
 class MyString {
 public:
     MyString (const char *init);
-    MyString operator+ (const char *other);
+    MyString operator+ (const char *other) const;
     ...
 };
 </pre>
@@ -2341,21 +2382,21 @@ public:
 swig will automatically create an operator overload in python that will allow this:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 from MyModule import MyString
 
-mystr = MyString("Nobody expects")
+mystr = MyString("No one expects")
 episode = mystr + " the Spanish Inquisition"
 </pre>
 </div>
 
 <p>
 This works because the first operand -- the instance of MyString -- defines a way
-to add a MyString and a native string.  However, the following will <b>not</b> work:
+to add a native string to itself.  However, the following will <b>not</b> work:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 from MyModule import MyString
 
@@ -2366,12 +2407,108 @@ episode = "Dead " + mystr
 
 <p>
 The above code fails, because the first operand -- a native python string --
-doesn't know how to add itself to an instance of MyString.
+doesn't know how to add an instance of MyString to itself.
 </p>
 
-<H4>33.4.2.2 Getting the most out of builtin-types</H4>
+<H4>33.4.2.2 Operator overloads -- use them!</H4>
 
-<p>TODO</p>
+<p>The entire justification for the <tt>-builtin</tt> option is improved
+performance.  To that end, the best way to squeeze maximum performance out
+of your wrappers is to <b>use operator overloads.</b>
+Named method dispatch is slow in python, even when compared to other scripting languages.
+However, python built-in types have a large number of "slots",
+analogous to C++ operator overloads, which allow you to short-circuit name method dispatch
+for certain common operations.
+</p>
+
+<p>By default, swig will translate most C++ arithmetic operator overloads into python
+slot entries.  For example, suppose you have this class:
+
+<div class="code">
+<pre>
+class DeadParrot {
+public:
+    DeadParrot operator+ (const DeadParrot& dp) const;
+
+    // Dispatch to operator+
+    DeadParrot add (const DeadParrot& dp) const
+    { return *this + dp; }
+};
+</pre>
+</div>
+
+<p>... then you may write python code like this:</p>
+
+<div class="targetlang">
+<pre>
+from MyModule import DeadParrot
+
+dp1 = DeadParrot()
+dp2 = DeadParrot()
+dp3 = dp1 + dp2
+dp4 = dp1.add(dp2)
+</pre>
+</div>
+
+<p>The last two lines of the python code are equivalent,
+but <b>the line that uses the '+' operator is much faster</b>.
+</p>
+
+<p>In-place operators (e.g., <tt>operator+=</tt>) and comparison operators
+(<tt>operator==, operator&lt;</tt>, etc.) are also converted to python
+slot operators.  For a complete list of C++ operators that are
+automatically converted to python slot operators, refer to the file
+<tt>python/pyopers.swig</tt> in the SWIG library.
+</p>
+
+<p>There are other very useful python slots that you
+may explicitly define using <tt>%feature</tt> directives.  For example,
+suppose you want to use instances of a wrapped class as keys in a native python
+<tt>dict</tt>.  That will work as long as you define a hash function for
+instances of your class, and use it to define the python <tt>tp_hash</tt>
+slot:
+</p>
+
+<div class="code">
+<pre>
+class Cheese {
+public:
+    Cheese (const char *name);
+    long cheeseHashFunc () const;
+};
+
+%feature("python:slot", "tp_hash", functype="hashfunc") Cheese::cheeseHashFunc;
+</pre>
+</div>
+
+<p>This will allow you to write python code like this:</p>
+
+<div class="targetlang">
+<pre>
+from my MyPackage import Cheese
+
+inventory = {
+    Cheese("cheddar") : 0,
+    Cheese("gouda") : 0,
+    Cheese("camembert") : 0
+}
+</pre>
+</div>
+
+<p>Because you defined the <tt>tp_hash</tt> slot, <tt>Cheese</tt> objects may
+be used as hash keys; and when the <tt>cheeseHashFunc</tt> method is invoked
+by a python <tt>dict</tt>, it will <b>not</b> go through named method dispatch.
+A more detailed discussion about <tt>%feature("python:slot")</tt> can be found
+in the file <tt>python/pyopers.swig</tt> in the SWIG library.
+You can read about all of the available python slots here:</p>
+
+<p><a href="http://docs.python.org/c-api/typeobj.html">docs.python.org/c-api/typeobj.html</a></p>
+
+<p>You may override (almost) all of the slots defined in the <tt>PyTypeObject,
+PyNumberMethods, PyMappingMethods, PySequenceMethods</tt>, and <tt>PyBufferProcs</tt>
+structs.
+</p>
+
 
 <H3><a name="Python_nn30"></a>33.4.3 Memory management</H3>
 

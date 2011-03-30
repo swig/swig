@@ -1,5 +1,61 @@
 /* ------------------------------------------------------------
  * Overloaded operator support
+
+ The directives in this file apply whether or not you use the
+ -builtin option to swig, but operator overloads are particularly
+ attractive when using -builtin, because they are much faster
+ than named methods.
+
+ If you're using the -builtin option to swig, and you want to define
+ python operator overloads beyond the defaults defined in this file,
+ here's what you need to know:
+
+ There are two ways to define a python slot function: dispatch to a
+ statically defined function; or dispatch to a method defined on the
+ operand.
+
+ To dispatch to a statically defined function, use %feature("python:<slot>"),
+ where <slot> is the name of a field in a PyTypeObject, PyNumberMethods,
+ PyMappingMethods, PySequenceMethods, or PyBufferProcs.  For example:
+
+   %{
+   
+   static long myHashFunc (PyObject *pyobj) {
+     MyClass *cobj;
+     // Convert pyobj to cobj
+     return (cobj->field1 * (cobj->field2 << 7));
+   }
+   
+   %}
+
+   %feature("python:tp_hash") MyClass "myHashFunc";
+
+ NOTE: It is the responsibility of the programmer (that's you) to ensure
+ that a statically defined slot function has the correct signature.
+
+ If, instead, you want to dispatch to an instance method, you can
+ use %feature("python:slot").  For example:
+
+   class MyClass {
+     public:
+       long myHashFunc () const;
+       ...
+   };
+   
+   %feature("python:slot", "tp_hash", functype="hashfunc") MyClass::myHashFunc;
+
+ NOTE: Some python slots use a method signature which does not
+ match the signature of swig-wrapped methods.  For those slots,
+ swig will automatically generate a "closure" function to re-marshall
+ the arguments before dispatching to the wrapped method.  Setting
+ the "functype" attribute of the feature enables swig to generate
+ a correct closure function.
+
+ For more information about python slots, including their names and
+ signatures, you may refer to the python documentation :
+
+   http://docs.python.org/c-api/typeobj.html
+
  * ------------------------------------------------------------ */
 
 
