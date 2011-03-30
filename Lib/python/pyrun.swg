@@ -1685,6 +1685,7 @@ SWIGRUNTIME int
 SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   PyTypeObject *tp = obj->ob_type;
   PyObject *descr;
+  PyObject *encoded_name;
   descrsetfunc f;
   int res;
 
@@ -1714,7 +1715,14 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   if (descr != NULL)
     f = descr->ob_type->tp_descr_set;
   if (!f) {
-    PyErr_Format(PyExc_AttributeError, "'%.100s' object has no attribute '%.200S'", tp->tp_name, name);
+    if (PyString_Check(name)) {
+      encoded_name = name;
+      Py_INCREF(name);
+    } else {
+      encoded_name = PyUnicode_AsUTF8String(name);
+    }
+    PyErr_Format(PyExc_AttributeError, "'%.100s' object has no attribute '%.200s'", tp->tp_name, PyString_AsString(encoded_name));
+    Py_DECREF(encoded_name);
   } else {
     res = f(descr, obj, value);
   }
