@@ -2204,10 +2204,10 @@ of low-level details were omitted.  This section provides a brief overview
 of how the proxy classes work.
 </p>
 
-<p><b>New in swig version 2.0.3:</b>
+<p><b>New in SWIG version 2.0.3:</b>
 The use of Python proxy classes has performance implications that may be
 unacceptable for a high-performance library.  The new <tt>-builtin</tt>
-option instructs swig to forego the use of proxy classes, and instead
+option instructs SWIG to forego the use of proxy classes, and instead
 create wrapped types as new built-in Python types.  When this option is used,
 the following section ("Proxy classes") does not apply.  Details on the use of
 the <tt>-builtin</tt> option are in the <a href="#BuiltinClasses">Built-in Classes</a>
@@ -2343,8 +2343,8 @@ wrapped class is turned into a new python built-in type which inherits from
 <tt>SwigPyObject</tt>, and <tt>SwigPyObject</tt> instances are returned directly
 from the wrapped methods.  For more information about python built-in extensions,
 please refer to the python documentation:</p>
-<p><a href="http://docs.python.org/extending/extending.html">docs.python.org/extending/extending.html</a>.
-</p>
+
+<p><a href="http://docs.python.org/extending/newtypes.html">docs.python.org/extending/newtypes.html</a></p>
 
 <H4>33.4.2.1 Limitations</H4>
 
@@ -2362,7 +2362,7 @@ They are instead accessed in the idiomatic way (<tt>Dances.FishSlap</tt>).</li>
 </p>
 
 <p>
-To illustrate the second point, if you have a wrapped class called MyString,
+To illustrate the last point, if you have a wrapped class called MyString,
 and you want to use instances of MyString interchangeably with native python
 strings, you can define an <tt>'operator+ (const char*)'</tt> method :
 </p>
@@ -2379,7 +2379,7 @@ public:
 </div>
 
 <p>
-swig will automatically create an operator overload in python that will allow this:
+SWIG will automatically create an operator overload in python that will allow this:
 </p>
 
 <div class="targetlang">
@@ -2392,7 +2392,7 @@ episode = mystr + " the Spanish Inquisition"
 </div>
 
 <p>
-This works because the first operand -- the instance of MyString -- defines a way
+This works because the first operand (<tt>mystr</tt>) defines a way
 to add a native string to itself.  However, the following will <b>not</b> work:
 </p>
 
@@ -2417,36 +2417,36 @@ performance.  To that end, the best way to squeeze maximum performance out
 of your wrappers is to <b>use operator overloads.</b>
 Named method dispatch is slow in python, even when compared to other scripting languages.
 However, python built-in types have a large number of "slots",
-analogous to C++ operator overloads, which allow you to short-circuit name method dispatch
+analogous to C++ operator overloads, which allow you to short-circuit named method dispatch
 for certain common operations.
 </p>
 
-<p>By default, swig will translate most C++ arithmetic operator overloads into python
+<p>By default, SWIG will translate most C++ arithmetic operator overloads into python
 slot entries.  For example, suppose you have this class:
 
 <div class="code">
 <pre>
-class DeadParrot {
+class Twit {
 public:
-    DeadParrot operator+ (const DeadParrot& dp) const;
+    Twit operator+ (const Twit& twit) const;
 
     // Dispatch to operator+
-    DeadParrot add (const DeadParrot& dp) const
-    { return *this + dp; }
+    Twit add (const Twit& twit) const
+    { return *this + twit; }
 };
 </pre>
 </div>
 
-<p>... then you may write python code like this:</p>
+<p>SWIG will automatically register <tt>operator+</tt> as a python slot operator for addition.  You may write python code like this:</p>
 
 <div class="targetlang">
 <pre>
-from MyModule import DeadParrot
+from MyModule import Twit
 
-dp1 = DeadParrot()
-dp2 = DeadParrot()
-dp3 = dp1 + dp2
-dp4 = dp1.add(dp2)
+nigel = Twit()
+emily = Twit()
+william = nigel + emily
+william = nigel.add(emily)
 </pre>
 </div>
 

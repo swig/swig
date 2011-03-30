@@ -110,6 +110,7 @@ static const char *usage1 = (char *) "\
 Python Options (available with -python)\n\
      -aliasobj0      - Alias obj0 when using fastunpack, needed for some old typemaps \n\
      -buildnone      - Use Py_BuildValue(" ") to obtain Py_None (default in Windows)\n\
+     -builtin        - Create new python built-in types, rather than proxy classes, for better performance\n\
      -castmode       - Enable the casting mode, which allows implicit cast between types in python\n\
      -classic        - Use classic classes only\n\
      -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
