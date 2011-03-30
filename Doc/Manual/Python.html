@@ -2313,7 +2313,7 @@ under both circumstances.
 </p>
 
 <p>When proxy classes are used, each wrapped object in python is an instance
-of a pure python class.  As a reminder, here is what the __init__ method looks
+of a pure python class.  As a reminder, here is what the <tt>__init__</tt> method looks
 like in a proxy class:
 </p>
 
@@ -2362,8 +2362,8 @@ They are instead accessed in the idiomatic way (<tt>Dances.FishSlap</tt>).</li>
 </p>
 
 <p>
-To illustrate the last point, if you have a wrapped class called MyString,
-and you want to use instances of MyString interchangeably with native python
+To illustrate the last point, if you have a wrapped class called <tt>MyString</tt>,
+and you want to use instances of <tt>MyString</tt> interchangeably with native python
 strings, you can define an <tt>'operator+ (const char*)'</tt> method :
 </p>
 
@@ -2407,7 +2407,7 @@ episode = "Dead " + mystr
 
 <p>
 The above code fails, because the first operand -- a native python string --
-doesn't know how to add an instance of MyString to itself.
+doesn't know how to add an instance of <tt>MyString</tt> to itself.
 </p>
 
 <H4>33.4.2.2 Operator overloads -- use them!</H4>
@@ -2430,7 +2430,7 @@ class Twit {
 public:
     Twit operator+ (const Twit& twit) const;
 
-    // Dispatch to operator+
+    // Forward to operator+
     Twit add (const Twit& twit) const
     { return *this + twit; }
 };
@@ -2445,8 +2445,8 @@ from MyModule import Twit
 
 nigel = Twit()
 emily = Twit()
-william = nigel + emily
-william = nigel.add(emily)
+percival = nigel + emily
+percival = nigel.add(emily)
 </pre>
 </div>
 
