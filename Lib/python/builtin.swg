@@ -279,7 +279,7 @@ SwigPyStaticVar_get(PyGetSetDescrObject *descr, PyObject *obj, PyObject *type) {
   if (descr->d_getset->get != NULL)
     return descr->d_getset->get(obj, descr->d_getset->closure);
 #if PY_VERSION_HEX >= 0x03000000
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300U' of '%.100s' objects is not readable", descr->d_name, descr->d_type->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not readable", descr->d_name, descr->d_type->tp_name);
 #else
   PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not readable", PyString_AsString(descr->d_name), descr->d_type->tp_name);
 #endif
@@ -293,7 +293,7 @@ SwigPyStaticVar_set(PyGetSetDescrObject *descr, PyObject *obj, PyObject *value) 
   if (descr->d_getset->set != NULL)
     return descr->d_getset->set(obj, value, descr->d_getset->closure);
 #if PY_VERSION_HEX >= 0x03000000
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300U' of '%.100s' objects is not writable", descr->d_name, descr->d_type->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not writable", descr->d_name, descr->d_type->tp_name);
 #else
   PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not writable", PyString_AsString(descr->d_name), descr->d_type->tp_name);
 #endif
@@ -351,13 +351,13 @@ SwigPyObjectType_setattro(PyTypeObject *type, PyObject *name, PyObject *value) {
     if (local_set != NULL)
       return local_set(attribute, (PyObject *)type, value);
 #if PY_VERSION_HEX >= 0x03000000
-    PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%.50s.%.400U'", type->tp_name, name);
+    PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%.50s.%.400S'", type->tp_name, name);
 #else 
     PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%.50s.%.400s'", type->tp_name, PyString_AS_STRING(name));
 #endif
   } else {
 #if PY_VERSION_HEX >= 0x03000000
-    PyErr_Format(PyExc_AttributeError, "type '%.50s' has no attribute '%.400U'", type->tp_name, name);
+    PyErr_Format(PyExc_AttributeError, "type '%.50s' has no attribute '%.400S'", type->tp_name, name);
 #else
     PyErr_Format(PyExc_AttributeError, "type '%.50s' has no attribute '%.400s'", type->tp_name, PyString_AS_STRING(name));
 #endif

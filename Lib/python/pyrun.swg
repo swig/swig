@@ -1448,32 +1448,6 @@ SWIG_Python_NewPackedObj(void *ptr, size_t sz, swig_type_info *type) {
   return ptr ? SwigPyPacked_New((void *) ptr, sz, type) : SWIG_Py_Void();
 }
 
-/*
-SWIGRUNTIME int
-SWIG_Python_NewBuiltinObj(PyObject *self, void *ptr, swig_type_info *type, int flags) {
-    assert(self);
-    SwigPyClientData *clientdata = (SwigPyClientData *)(type->clientdata);
-    assert(clientdata);
-    assert(clientdata->pytype);
-    int own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
-    SwigPyObject *newobj = (SwigPyObject *)self;
-    if (newobj->ptr) {
-      PyObject *next_self = clientdata->pytype->tp_alloc(clientdata->pytype, 0);
-      while (newobj->next) newobj = (SwigPyObject *)newobj->next;
-      newobj->next = next_self;
-      newobj = (SwigPyObject *)next_self;
-    }
-    newobj->ptr = ptr;
-    newobj->own = own;
-    newobj->ty = type;
-    newobj->next = 0;
-#ifdef SWIGPYTHON_BUILTIN
-    newobj->dict = 0;
-#endif
-    return 0;
-}
-*/
-
 /* -----------------------------------------------------------------------------*
  *  Get type list 
  * -----------------------------------------------------------------------------*/
@@ -1712,7 +1686,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   PyTypeObject *tp = obj->ob_type;
   PyObject *descr;
   descrsetfunc f;
-  int res = -1;
+  int res;
 
 #ifdef Py_USING_UNICODE
   if (PyString_Check(name)) {
@@ -1721,39 +1695,34 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
       return -1;
   } else if (!PyUnicode_Check(name)) {
 #else
-    if (!PyString_Check(name)) {
+  if (!PyString_Check(name)) {
 #endif
       PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%.200s'", name->ob_type->tp_name);
       return -1;
-    } else {
+  } else {
       Py_INCREF(name);
-    }
-
-    if (!tp->tp_dict) {
-      if (PyType_Ready(tp) < 0)
-        goto done;
-    }
-
-    descr = _PyType_Lookup(tp, name);
-    f = NULL;
-    if (descr != NULL)
-      f = descr->ob_type->tp_descr_set;
-    if (!f) {
-      PyErr_Format(PyExc_AttributeError,
-#ifdef Py_USING_UNICODE
-          "'%.100s' object has no attribute '%.200U'",
-#else
-          "'%.100s' object has no attribute '%.200S'",
-#endif
-          tp->tp_name, name);
-    } else {
-      res = f(descr, obj, value);
-    }
-
-done:
-    Py_DECREF(name);
-    return res;
   }
+
+  if (!tp->tp_dict) {
+    if (PyType_Ready(tp) < 0)
+      goto done;
+  }
+
+  res = -1;
+  descr = _PyType_Lookup(tp, name);
+  f = NULL;
+  if (descr != NULL)
+    f = descr->ob_type->tp_descr_set;
+  if (!f) {
+    PyErr_Format(PyExc_AttributeError, "'%.100s' object has no attribute '%.200S'", tp->tp_name, name);
+  } else {
+    res = f(descr, obj, value);
+  }
+  
+  done:
+  Py_DECREF(name);
+  return res;
+}
 
 
 #ifdef __cplusplus
