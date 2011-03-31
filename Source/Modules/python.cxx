@@ -3916,7 +3916,7 @@ public:
 	if (check_kwargs(n)) {
 	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS|METH_KEYWORDS, (char*) \"%s\" },\n", symname, wname, ds);
 	} else if (argcount == 0) {
-	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_NOARGS, (char*) \"%s },\n", symname, wname, ds);
+	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_NOARGS, (char*) \"%s\" },\n", symname, wname, ds);
 	} else if (argcount == 1) {
 	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_O, (char*) \"%s\" },\n", symname, wname, ds);
 	} else {
