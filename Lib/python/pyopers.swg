@@ -2,11 +2,11 @@
  * Overloaded operator support
 
  The directives in this file apply whether or not you use the
- -builtin option to swig, but operator overloads are particularly
+ -builtin option to SWIG, but operator overloads are particularly
  attractive when using -builtin, because they are much faster
  than named methods.
 
- If you're using the -builtin option to swig, and you want to define
+ If you're using the -builtin option to SWIG, and you want to define
  python operator overloads beyond the defaults defined in this file,
  here's what you need to know:
 
@@ -45,11 +45,38 @@
    %feature("python:slot", "tp_hash", functype="hashfunc") MyClass::myHashFunc;
 
  NOTE: Some python slots use a method signature which does not
- match the signature of swig-wrapped methods.  For those slots,
- swig will automatically generate a "closure" function to re-marshall
+ match the signature of SWIG-wrapped methods.  For those slots,
+ SWIG will automatically generate a "closure" function to re-marshall
  the arguments before dispatching to the wrapped method.  Setting
- the "functype" attribute of the feature enables swig to generate
+ the "functype" attribute of the feature enables SWIG to generate
  a correct closure function.
+
+ --------------------------------------------------------------
+
+ The tp_richcompare slot is a special case: SWIG automatically generates
+ a rich compare function for all wrapped types.  If a type defines C++
+ operator overloads for comparison (operator==, operator<, etc.), they
+ will be called from the generated rich compare function.  If you
+ want to explicitly choose a method to handle a certain comparison
+ operation, you may use %feature("python:slot") like this:
+
+   class MyClass {
+     public:
+       bool lessThan (const MyClass& x) const;
+       ...
+   };
+   
+   %feature("python:slot", "Py_LT") MyClass::lessThan;
+
+ ... where "Py_LT" is one of rich comparison opcodes defined in the
+ python header file object.h.
+
+ If there's no method defined to handle a particular comparsion operation,
+ the default behavior is to compare pointer values of the wrapped
+ C++ objects.
+
+ --------------------------------------------------------------
+
 
  For more information about python slots, including their names and
  signatures, you may refer to the python documentation :
