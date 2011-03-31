@@ -3473,42 +3473,42 @@ public:
 
     // PySequenceMethods as_sequence;
     Printf(f, "  {\n");
-    Printf(f, "    (lenfunc)		%s,	// sq_length\n", getSlot(n, "feature:python:sq_length"));
-    Printf(f, "    (binaryfunc)		%s,	// sq_concat\n", getSlot(n, "feature:python:sq_concat"));
-    Printf(f, "    (ssizeargfunc)	%s,	// sq_repeat\n", getSlot(n, "feature:python:sq_repeat"));
-    Printf(f, "    (ssizeargfunc)	%s,	// sq_item\n", getSlot(n, "feature:python:sq_item"));
+    printSlot(f, getSlot(n, "feature:python:sq_length"), "sq_length", "lenfunc");
+    printSlot(f, getSlot(n, "feature:python:sq_concat"), "sq_concat", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:sq_repeat"), "sq_repeat", "ssizeargfunc");
+    printSlot(f, getSlot(n, "feature:python:sq_item"), "sq_item", "ssizeargfunc");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    Printf(f, "    (void*)	%s,	// was_sq_slice\n", getSlot(n, "feature:was_sq_slice"));
+    printSlot(f, getSlot(n, "feature:was_sq_slice"), "was_sq_slice", "void*");
     Printv(f, "#else\n", NIL);
-    Printf(f, "    (ssizessizeargfunc)	%s,	// sq_slice\n", getSlot(n, "feature:python:sq_slice"));
+    printSlot(f, getSlot(n, "feature:python:sq_slice"), "sq_slice", "ssizessizeargfunc");
     Printv(f, "#endif\n", NIL);
-    Printf(f, "    (ssizeobjargproc)	%s,	// sq_ass_item\n", getSlot(n, "feature:python:sq_ass_item"));
+    printSlot(f, getSlot(n, "feature:python:sq_ass_item"), "sq_ass_item", "ssizeobjargproc");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    Printf(f, "    (void*) %s,	// was_sq_ass_slice\n", getSlot(n, "feature:was_sq_ass_slice"));
+    printSlot(f, getSlot(n, "feature:was_sq_ass_slice"), "was_sq_ass_slice", "void*");
     Printv(f, "#else\n", NIL);
-    Printf(f, "    (ssizessizeobjargproc) %s,	// sq_ass_slice\n", getSlot(n, "feature:python:sq_ass_slice"));
+    printSlot(f, getSlot(n, "feature:python:sq_ass_slice"), "sq_ass_slice", "ssizessizeobjargproc");
     Printv(f, "#endif\n", NIL);
-    Printf(f, "    (objobjproc)		%s,	// sq_contains\n", getSlot(n, "feature:python:sq_contains"));
-    Printf(f, "    (binaryfunc)		%s,	// sq_inplace_concat\n", getSlot(n, "feature:python:sq_inplace_concat"));
-    Printf(f, "    (ssizeargfunc)	%s,	// sq_inplace_repeat\n", getSlot(n, "feature:python:sq_inplace_repeat"));
+    printSlot(f, getSlot(n, "feature:python:sq_contains"), "sq_contains", "objobjproc");
+    printSlot(f, getSlot(n, "feature:python:sq_inplace_concat"), "sq_inplace_concat", "binaryfunc");
+    printSlot(f, getSlot(n, "feature:python:sq_inplace_repeat"), "sq_inplace_repeat", "ssizeargfunc");
     Printf(f, "  },\n");
 
     // PyBufferProcs as_buffer;
     Printf(f, "  {\n");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    Printf(f, "    (getbufferproc)	%s,	// bf_getbuffer\n", getSlot(n, "feature:python:bf_getbuffer"));
-    Printf(f, "    (releasebufferproc)	%s,	// bf_releasebuffer\n", getSlot(n, "feature:python:bf_releasebuffer"));
+    printSlot(f, getSlot(n, "feature:python:bf_getbuffer"), "bf_getbuffer", "getbufferproc");
+    printSlot(f, getSlot(n, "feature:python:bf_releasebuffer"), "bf_releasebuffer", "releasebufferproc");
     Printv(f, "#else\n", NIL);
-    Printf(f, "    (readbufferproc)	%s,	// bf_getreadbuffer\n", getSlot(n, "feature:python:bf_getreadbuffer"));
-    Printf(f, "    (writebufferproc)	%s,	// bf_getwritebuffer\n", getSlot(n, "feature:python:bf_getwritebuffer"));
-    Printf(f, "    (segcountproc)	%s,	// bf_getsegcount\n", getSlot(n, "feature:python:bf_getsegcount"));
-    Printf(f, "    (charbufferproc)	%s,	// bf_getcharbuffer\n", getSlot(n, "feature:python:bf_getcharbuffer"));
+    printSlot(f, getSlot(n, "feature:python:bf_getreadbuffer"), "bf_getreadbuffer", "readbufferproc");
+    printSlot(f, getSlot(n, "feature:python:bf_getwritebuffer"), "bf_getwritebuffer", "writebufferproc");
+    printSlot(f, getSlot(n, "feature:python:bf_getsegcount"), "bf_getsegcount", "segcountproc");
+    printSlot(f, getSlot(n, "feature:python:bf_getcharbuffer"), "bf_getcharbuffer", "charbufferproc");
     Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
     // PyObject *ht_name, *ht_slots
-    Printf(f, "  (PyObject*)		%s,	// ht_name\n", getSlot(n, "feature:python:ht_name"));
-    Printf(f, "  (PyObject*)		%s,	// ht_slots\n", getSlot(n, "feature:python:ht_slots"));
+    printSlot(f, getSlot(n, "feature:python:ht_name"), "ht_name", "PyObject*");
+    printSlot(f, getSlot(n, "feature:python:ht_slots"), "ht_slots", "PyObject*");
     Printf(f, "};\n\n");
 
     String *clientdata = NewString("");
