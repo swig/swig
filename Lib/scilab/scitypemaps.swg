@@ -675,7 +675,7 @@
     iVarOut++;
 }
 
-%typemap(out) char * (int iRowsOut, int iColsOut) {
+/*%typemap(out) char * (int iRowsOut, int iColsOut) {
     iRowsOut = 1;
     iColsOut = 1;
 
@@ -689,7 +689,7 @@
     LhsVar(iOutNum) = iVarOut;
     iOutNum++;
     iVarOut++;
-}
+}*/
 
 %typemap(out) enum SWIGTYPE (int iRowsOut, int iColsOut) {
     iRowsOut = 1;
@@ -1421,7 +1421,7 @@
     iVarOut++;
 }
 %typemap(varout,noblock=1) signed char [ANY]                       { SCILAB_VAROUT(char, createMatrixOfInteger8, 1, $1_dim0) }
-%typemap(varout,noblock=1) unsigned char [ANY]                     { SCILAB_VAROUT(unsigned char, createMatrixOfUnsignedInteger8, 1, $1_dim0) }
+//%typemap(varout,noblock=1) unsigned char [ANY]                     { SCILAB_VAROUT(unsigned char, createMatrixOfUnsignedInteger8, 1, $1_dim0) }
 %typemap(varout,noblock=1) short [ANY]                             { SCILAB_VAROUT(short, createMatrixOfInteger16, 1, $1_dim0) }
 %typemap(varout,noblock=1) unsigned short [ANY]                    { SCILAB_VAROUT(unsigned short, createMatrixOfUnsignedInteger16, 1, $1_dim0) }
 //%typemap(varout,noblock=1) int [ANY], long [ANY]                   { SCILAB_VAROUT(int, createMatrixOfInteger32, 1, $1_dim0) }

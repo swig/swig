@@ -592,8 +592,10 @@ public:
     /* Insert the argument counter */
     //Printf(getf->def, "\nint scilabArgNumber=0;");
    
+    Wrapper_add_local(getf, "_outv", "int _outv");
+
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-      Replaceall(tm, "$result", name);
+      Replaceall(tm, "$result", "_outv");
       if (is_assignable(n)) {
         Replaceall(tm, "iRowsOut", rowname);
         Replaceall(tm, "iColsOut", colname);

@@ -45,10 +45,14 @@ SWIG_Scilab_ConvertPtr(StrCtx* pvApiCtx, int obj, void **ptr, swig_type_info* de
     }
 
     sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-    if (sciErr.iErr || iType != sci_pointer)
+    if (sciErr.iErr)
     {
-        Scierror(999, _("%s: Wrong type for input argument #%d: Pointer  expected.\n"), "SWIG_Scilab_ConvertPtr", obj);
         printError(&sciErr, 0);
+        return SWIG_ERROR;
+    }
+    if (iType != sci_pointer)
+    {
+        Scierror(999, _("%s: Wrong type for input argument #%d: Pointer expected.\n"), "SWIG_Scilab_ConvertPtr", obj);
         return SWIG_ERROR;
     }
 
