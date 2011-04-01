@@ -138,7 +138,7 @@ SWIGINTERN PyTypeObject*
 swig_varlink_type(void) {
   static char varlink__doc__[] = "Swig var link object";
   static PyTypeObject varlink_type;
-  static int type_init = 0;  
+  static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp
       = {
@@ -152,7 +152,7 @@ swig_varlink_type(void) {
       (char *)"swigvarlink",              /* Type name (tp_name) */
       sizeof(swig_varlinkobject),         /* Basic size (tp_basicsize) */
       0,                                  /* Itemsize (tp_itemsize) */
-      (destructor) swig_varlink_dealloc,  /* Deallocator (tp_dealloc) */ 
+      (destructor) swig_varlink_dealloc,  /* Deallocator (tp_dealloc) */
       (printfunc) swig_varlink_print,     /* Print (tp_print) */
       (getattrfunc) swig_varlink_getattr, /* get attr (tp_getattr) */
       (setattrfunc) swig_varlink_setattr, /* Set attr (tp_setattr) */
@@ -178,6 +178,9 @@ swig_varlink_type(void) {
 #endif
 #if PY_VERSION_HEX >= 0x02030000
       0,                                  /* tp_del */
+#endif
+#if PY_VERSION_HEX >= 0x02060000
+      0,                                  /* tp_version */
 #endif
 #ifdef COUNT_ALLOCS
       0,0,0,0                             /* tp_alloc -> tp_next */
@@ -321,7 +324,6 @@ SWIGEXPORT
 #endif
 SWIG_init(void) {
   PyObject *m, *d, *md;
-  PyTypeObject *builtin_type;
 #if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
     PyModuleDef_HEAD_INIT,

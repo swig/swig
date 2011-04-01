@@ -416,7 +416,7 @@ SwigPyObject_repr(SwigPyObject *v, PyObject *args)
 #endif
 {
   const char *name = SWIG_TypePrettyName(v->ty);
-  PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at %p>", name, v);
+  PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at %p>", name, (void *)v);
   if (v->next) {
 # ifdef METH_NOARGS
     PyObject *nrep = SwigPyObject_repr((SwigPyObject *)v->next);
@@ -688,7 +688,7 @@ SwigPyObject_getattr(SwigPyObject *sobj,char *name)
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_TypeOnce(void) {
   static char swigobject_doc[] = "Swig object carries a C/C++ instance pointer";
-  
+
   static PyNumberMethods SwigPyObject_as_number = {
     (binaryfunc)0, /*nb_add*/
     (binaryfunc)0, /*nb_subtract*/
@@ -735,7 +735,7 @@ SwigPyObject_TypeOnce(void) {
 #endif
   };
 
-  static PyTypeObject swigpyobject_type;  
+  static PyTypeObject swigpyobject_type;
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp
@@ -743,7 +743,7 @@ SwigPyObject_TypeOnce(void) {
 	/* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
 	PyVarObject_HEAD_INIT(&PyType_Type, 0)
-#else    
+#else
 	PyObject_HEAD_INIT(NULL)
 	0,				    /* ob_size */
 #endif
@@ -753,17 +753,17 @@ SwigPyObject_TypeOnce(void) {
 	(destructor)SwigPyObject_dealloc,   /* tp_dealloc */
 	(printfunc)SwigPyObject_print,	    /* tp_print */
 #if PY_VERSION_HEX < 0x02020000
-	(getattrfunc)SwigPyObject_getattr,  /* tp_getattr */ 
+	(getattrfunc)SwigPyObject_getattr,  /* tp_getattr */
 #else
-	(getattrfunc)0,			    /* tp_getattr */ 
+	(getattrfunc)0,			    /* tp_getattr */
 #endif
-	(setattrfunc)0,			    /* tp_setattr */ 
+	(setattrfunc)0,			    /* tp_setattr */
 #if PY_VERSION_HEX >= 0x03000000
     0, /* tp_reserved in 3.0.1, tp_compare in 3.0.0 but not used */
 #else
 	(cmpfunc)SwigPyObject_compare,	    /* tp_compare */
 #endif
-	(reprfunc)SwigPyObject_repr,	    /* tp_repr */    
+	(reprfunc)SwigPyObject_repr,	    /* tp_repr */
 	&SwigPyObject_as_number,	    /* tp_as_number */
 	0,				    /* tp_as_sequence */
 	0,				    /* tp_as_mapping */
@@ -774,7 +774,7 @@ SwigPyObject_TypeOnce(void) {
 	0,				    /* tp_setattro */
 	0,		                    /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,	            /* tp_flags */
-	swigobject_doc, 	            /* tp_doc */        
+	swigobject_doc, 	            /* tp_doc */
 	0,                                  /* tp_traverse */
 	0,                                  /* tp_clear */
 	(richcmpfunc)SwigPyObject_richcompare,           /* tp_richcompare */
@@ -782,27 +782,30 @@ SwigPyObject_TypeOnce(void) {
 #if PY_VERSION_HEX >= 0x02020000
 	0,                                  /* tp_iter */
 	0,                                  /* tp_iternext */
-	swigobject_methods,		    /* tp_methods */ 
+	swigobject_methods,		    /* tp_methods */
 	0,			            /* tp_members */
-	0,				    /* tp_getset */	    	
-	0,			            /* tp_base */	        
-	0,				    /* tp_dict */	    	
-	0,				    /* tp_descr_get */  	
-	0,				    /* tp_descr_set */  	
-	0,				    /* tp_dictoffset */ 	
-	0,				    /* tp_init */	    	
-	0,				    /* tp_alloc */	    	
-	0,			            /* tp_new */	    	
-	0,	                            /* tp_free */	   
-	0,                                  /* tp_is_gc */  
-	0,				    /* tp_bases */   
+	0,				    /* tp_getset */
+	0,			            /* tp_base */
+	0,				    /* tp_dict */
+	0,				    /* tp_descr_get */
+	0,				    /* tp_descr_set */
+	0,				    /* tp_dictoffset */
+	0,				    /* tp_init */
+	0,				    /* tp_alloc */
+	0,			            /* tp_new */
+	0,	                            /* tp_free */
+	0,                                  /* tp_is_gc */
+	0,				    /* tp_bases */
 	0,				    /* tp_mro */
-	0,				    /* tp_cache */   
+	0,				    /* tp_cache */
 	0,				    /* tp_subclasses */
 	0,				    /* tp_weaklist */
 #endif
 #if PY_VERSION_HEX >= 0x02030000
 	0,                                  /* tp_del */
+#endif
+#if PY_VERSION_HEX >= 0x02060000
+	0,                                  /* tp_version */
 #endif
 #ifdef COUNT_ALLOCS
 	0,0,0,0                             /* tp_alloc -> tp_next */
@@ -915,7 +918,7 @@ SWIGRUNTIME PyTypeObject*
 SwigPyPacked_TypeOnce(void) {
   static char swigpacked_doc[] = "Swig object carries a C/C++ instance pointer";
   static PyTypeObject swigpypacked_type;
-  static int type_init = 0;  
+  static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp
       = {
@@ -957,27 +960,30 @@ SwigPyPacked_TypeOnce(void) {
 #if PY_VERSION_HEX >= 0x02020000
 	0,                                  /* tp_iter */
 	0,                                  /* tp_iternext */
-	0,		                    /* tp_methods */ 
+	0,		                    /* tp_methods */
 	0,			            /* tp_members */
-	0,				    /* tp_getset */	    	
-	0,			            /* tp_base */	        
-	0,				    /* tp_dict */	    	
-	0,				    /* tp_descr_get */  	
-	0,				    /* tp_descr_set */  	
-	0,				    /* tp_dictoffset */ 	
-	0,				    /* tp_init */	    	
-	0,				    /* tp_alloc */	    	
-	0,			            /* tp_new */	    	
-	0, 	                            /* tp_free */	   
-        0,                                  /* tp_is_gc */  
-	0,				    /* tp_bases */   
+	0,				    /* tp_getset */
+	0,			            /* tp_base */
+	0,				    /* tp_dict */
+	0,				    /* tp_descr_get */
+	0,				    /* tp_descr_set */
+	0,				    /* tp_dictoffset */
+	0,				    /* tp_init */
+	0,				    /* tp_alloc */
+	0,			            /* tp_new */
+	0, 	                            /* tp_free */
+        0,                                  /* tp_is_gc */
+	0,				    /* tp_bases */
 	0,				    /* tp_mro */
-	0,				    /* tp_cache */   
- 	0,				    /* tp_subclasses */
+	0,				    /* tp_cache */
+	0,				    /* tp_subclasses */
 	0,				    /* tp_weaklist */
 #endif
 #if PY_VERSION_HEX >= 0x02030000
 	0,                                  /* tp_del */
+#endif
+#if PY_VERSION_HEX >= 0x02060000
+	0,                                  /* tp_version */
 #endif
 #ifdef COUNT_ALLOCS
 	0,0,0,0                             /* tp_alloc -> tp_next */
@@ -1136,10 +1142,12 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
   int res;
   SwigPyObject *sobj;
 
-  if (!obj) return SWIG_ERROR;
+  if (!obj)
+    return SWIG_ERROR;
   if (obj == Py_None) {
-	if (ptr) *ptr = 0;
-	return SWIG_OK;
+    if (ptr)
+      *ptr = 0;
+    return SWIG_OK;
   }
 
   res = SWIG_ERROR;
@@ -1667,7 +1675,7 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 
 /* Convert a pointer value, signal an exception on a type mismatch */
 SWIGRUNTIME void *
-SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags) {
+SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int SWIGUNUSEDPARM(argnum), int flags) {
   void *result;
   if (SWIG_Python_ConvertPtr(obj, &result, ty, flags) == -1) {
     PyErr_Clear();
