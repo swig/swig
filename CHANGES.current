@@ -5,3 +5,7 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.4 (in progress)
 ===========================
 
+2011-04-01: wsfulton
+            Add in missing wrappers for friend functions for some target languages, mostly
+            the non-scripting languages like Java and C#.
+
