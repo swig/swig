@@ -2350,14 +2350,71 @@ please refer to the python documentation:</p>
 
 <p>Use of the <tt>-builtin</tt> option implies a couple of limitations:
 <ul>
-<li>Some legacy syntax is no longer supported; in particular:</li>
+<li><p>Some legacy syntax is no longer supported; in particular:</p></li>
 <ul>
 <li>The functional interface is no longer exposed.  For example, you may no longer call <tt>Whizzo.new_CrunchyFrog()</tt>.  Instead, you must use <tt>Whizzo.CrunchyFrog()</tt>.</li>
 <li>Static member variables are no longer accessed through the 'cvar' field (e.g., <tt>Dances.cvar.FishSlap</tt>).
 They are instead accessed in the idiomatic way (<tt>Dances.FishSlap</tt>).</li>
 </ul>
-<li>Wrapped types may not be thrown as python exceptions</li>
-<li>Reverse operators are not supported.</li>
+<li><p>Wrapped types may not be thrown as python exceptions.  Here's why: the python internals expect that all sub-classes of Exception will have this struct layout:</p>
+
+<div class="code">
+<pre>
+typedef struct {
+    PyObject_HEAD
+    PyObject *dict;
+    PyObject *args;
+    PyObject *message;
+} PyBaseExceptionObject;
+</pre>
+</div>
+
+<p>But swig-generated wrappers expect that all swig-wrapped classes will have this struct layout:</p>
+
+<div class="code">
+<pre>
+typedef struct {
+    PyObject_HEAD
+    void *ptr;
+    swig_type_info *ty;
+    int own;
+    PyObject *next;
+    PyObject *dict;
+} SwigPyObject;
+</pre>
+</div>
+
+<p>There are workarounds for this.  For example, if you wrap this class:
+
+<div class="code">
+<pre>
+class MyException {
+public:
+    MyException (const char *msg_);
+    ~MyException ();
+
+    const char *what () const;
+
+private:
+    char *msg;
+};
+</pre>
+</div>
+
+<p>... you can define this python class, which may be raised as an exception:</p>
+
+<div class="targetlang">
+<pre>
+class MyPyException (Exception, MyException) :
+    def __init__(self, msg, *args) :
+        Exception.__init__(self, *args)
+        self.myexc = MyException(msg)
+    def what (self) :
+        return self.myexc.what()
+</pre>
+</div>
+</li>
+<li><p>Reverse binary operators (e.g., <tt>__radd__</tt>) are not supported.</p></li>
 </ul>
 </p>
 

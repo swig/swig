@@ -355,9 +355,6 @@ SWIG_init(void) {
   Py_DECREF(metatype_args);
   metatype->tp_setattro = (setattrofunc) &SwigPyObjectType_setattro;
   assert(PyType_Ready(metatype) >= 0);
-
-  SWIG_Python_builtin_imports();
-
 #endif
 
   /* Fix SwigMethods to carry the callback ptrs when needed */

@@ -44,8 +44,8 @@ static File *f_directors_h = 0;
 static File *f_init = 0;
 static File *f_shadow_py = 0;
 static String *f_shadow = 0;
-static String *f_shadow_imports = 0;
-static String *f_shadow_import_stmts = 0;
+static Hash *f_shadow_imports = 0;
+static String *f_shadow_builtin_imports = 0;
 static String *f_shadow_stubs = 0;
 static Hash *builtin_getset = 0;
 static Hash *class_members = 0;
@@ -782,23 +782,12 @@ public:
       filen = NULL;
 
       f_shadow = NewString("");
-      f_shadow_imports = NewString("");
-      f_shadow_import_stmts = NewString("");
+      f_shadow_imports = NewHash();
+      f_shadow_builtin_imports = NewString("");
       f_shadow_stubs = NewString("");
-
-      Printv(f_shadow_import_stmts, "SWIGINTERN void\n", NIL);
-      Printv(f_shadow_import_stmts, "SWIG_Python_builtin_imports()\n", NIL);
-      Printv(f_shadow_import_stmts, "{\n", NIL);
-      Printv(f_shadow_import_stmts, tab4 "PyObject *import_str = NULL;\n", NIL);
 
       Swig_register_filebyname("shadow", f_shadow);
       Swig_register_filebyname("python", f_shadow);
-
-      Swig_banner_target_lang(f_shadow, "#");
-
-      if (!modern) {
-	Printv(f_shadow, "# This file is compatible with both classic and new-style classes.\n", NIL);
-      }
 
       if (mod_docstring && Len(mod_docstring)) {
 	Printv(f_shadow, "\"\"\"\n", mod_docstring, "\n\"\"\"\n\n", NIL);
@@ -982,13 +971,13 @@ public:
     Printf(f_init, "}\n");
 
     if (shadow) {
-      if (builtin) {
-	Printv(f_shadow_import_stmts, "}\n", NIL);
-	Printv(f_header, f_shadow_import_stmts, NIL);
+      Swig_banner_target_lang(f_shadow_py, "#");
+      if (!modern) {
+	Printv(f_shadow, "# This file is compatible with both classic and new-style classes.\n", NIL);
       }
+      Printv(f_shadow_py, "\n", f_shadow_builtin_imports, "\n", NIL);
       Printv(f_shadow_py, f_shadow, "\n", NIL);
       Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
-
       Close(f_shadow_py);
       Delete(f_shadow_py);
     }
@@ -1066,25 +1055,13 @@ public:
 	if (shadowimport) {
 	  if (!options || (!Getattr(options, "noshadow") && !Getattr(options, "noproxy"))) {
 	    Printf(import, "_%s\n", modname);
-	    if (!Strstr(f_shadow_imports, import)) {
+	    if (!GetFlagAttr(f_shadow_imports, import)) {
 	      if (pkg && (!package || Strcmp(pkg, package) != 0)) {
-		if (builtin) {
-		  Printf(f_shadow_import_stmts, tab4 "import_str = PyString_FromString(\"%s.%s\");\n", pkg, modname);
-		  Printf(f_shadow_import_stmts, tab4 "PyImport_Import(import_str);\n");
-		  Printf(f_shadow_import_stmts, tab4 "Py_XDECREF(import_str);\n");
-		} else {
-		  Printf(f_shadow, "import %s.%s\n", pkg, modname);
-		}
+		Printf(builtin ? f_shadow_builtin_imports : f_shadow, "import %s.%s\n", pkg, modname);
 	      } else {
-		if (builtin) {
-		  Printf(f_shadow_import_stmts, tab4 "import_str = PyString_FromString(\"%s\");\n", modname);
-		  Printf(f_shadow_import_stmts, tab4 "PyImport_Import(import_str);\n");
-		  Printf(f_shadow_import_stmts, tab4 "Py_XDECREF(import_str);\n");
-		} else {
-		  Printf(f_shadow, "import %s\n", modname);
-		}
+		Printf(builtin ? f_shadow_builtin_imports : f_shadow, "import %s\n", modname);
 	      }
-	      Printv(f_shadow_imports, import, NULL);
+	      SetFlag(f_shadow_imports, import);
 	    }
 	  }
 	}
@@ -3227,11 +3204,7 @@ public:
     String *templ = NewStringf("SwigPyBuiltin_%s", mname);
     int funpack = modernargs && fastunpack;
 
-    Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    Printf(f_init, "  builtin_pytype->ob_base.ob_base.ob_type = metatype;\n");
-    Printv(f_init, "#else\n", NIL);
-    Printf(f_init, "  builtin_pytype->ob_type = metatype;\n");
-    Printv(f_init, "#endif\n", NIL);
+    Printv(f_init, "  SwigPyBuiltin_SetMetaType(builtin_pytype, metatype);\n", NIL);
     Printf(f_init, "  builtin_pytype->tp_new = PyType_GenericNew;\n");
     Printv(f_init, "  builtin_base_count = 0;\n", NIL);
     List *baselist = Getattr(n, "bases");
@@ -3848,9 +3821,6 @@ public:
     }
 
     if (builtin) {
-      //Dump(f_shadow, f_builtins);
-      //Printf(f_builtins, "    {NULL} // Sentinel\n};\n\n");
-      //Dump(builtin_methods, f_builtins);
       Clear(class_members);
       Clear(builtin_getset);
       Clear(builtin_methods);
