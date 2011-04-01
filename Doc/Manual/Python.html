@@ -2356,7 +2356,7 @@ please refer to the python documentation:</p>
 <li>Static member variables are no longer accessed through the 'cvar' field (e.g., <tt>Dances.cvar.FishSlap</tt>).
 They are instead accessed in the idiomatic way (<tt>Dances.FishSlap</tt>).</li>
 </ul>
-<li><p>Wrapped types may not be thrown as python exceptions.  Here's why: the python internals expect that all sub-classes of Exception will have this struct layout:</p>
+<li><p>Wrapped types may not be raised as python exceptions.  Here's why: the python internals expect that all sub-classes of Exception will have this struct layout:</p>
 
 <div class="code">
 <pre>
@@ -2405,7 +2405,7 @@ private:
 
 <div class="targetlang">
 <pre>
-class MyPyException (Exception, MyException) :
+class MyPyException (Exception) :
     def __init__(self, msg, *args) :
         Exception.__init__(self, *args)
         self.myexc = MyException(msg)
