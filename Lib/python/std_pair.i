@@ -129,8 +129,8 @@ SwigPython_std_pair_repr (PyObject *o)
 {
     PyObject *tuple = PyTuple_New(2);
     assert(tuple);
-    PyTuple_SET_ITEM(tuple, 0, PyObject_GetAttrString(o, "first"));
-    PyTuple_SET_ITEM(tuple, 1, PyObject_GetAttrString(o, "second"));
+    PyTuple_SET_ITEM(tuple, 0, PyObject_GetAttrString(o, (char*) "first"));
+    PyTuple_SET_ITEM(tuple, 1, PyObject_GetAttrString(o, (char*) "second"));
     PyObject *result = PyObject_Repr(tuple);
     Py_DECREF(tuple);
     return result;
@@ -139,14 +139,14 @@ SwigPython_std_pair_repr (PyObject *o)
 SWIGINTERN PyObject*
 SwigPython_std_pair_getitem (PyObject *a, Py_ssize_t b)
 {
-    PyObject *result = PyObject_GetAttrString(a, b % 2 ? "second" : "first");
+    PyObject *result = PyObject_GetAttrString(a, b % 2 ? (char*) "second" : (char*) "first");
     return result;
 }
 
 SWIGINTERN int
 SwigPython_std_pair_setitem (PyObject *a, Py_ssize_t b, PyObject *c)
 {
-    int result = PyObject_SetAttrString(a, b % 2 ? "second" : "first", c);
+    int result = PyObject_SetAttrString(a, b % 2 ? (char*) "second" : (char*) "first", c);
     return result;
 }
 #endif

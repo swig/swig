@@ -153,4 +153,49 @@ PyObject *PyBool_FromLong(long ok)
 typedef int Py_ssize_t;
 # define PY_SSIZE_T_MAX INT_MAX
 # define PY_SSIZE_T_MIN INT_MIN
+typedef inquiry lenfunc;
+typedef intargfunc ssizeargfunc;
+typedef intintargfunc ssizessizeargfunc;
+typedef intobjargproc ssizeobjargproc;
+typedef intintobjargproc ssizessizeobjargproc;
+typedef getreadbufferproc readbufferproc;
+typedef getwritebufferproc writebufferproc;
+typedef getsegcountproc segcountproc;
+typedef getcharbufferproc charbufferproc;
+static inline long PyNumber_AsSsize_t (PyObject *x, void*)
+{
+  long result = 0;
+  PyObject *i = PyNumber_Int(x);
+  if (i) {
+    result = PyInt_AsLong(i);
+    Py_DECREF(i);
+  }
+  return result;
+}
+#endif
+
+#if PY_VERSION_HEX < 0x02040000
+#define Py_VISIT(op)				\
+  do { 						\
+    if (op) {					\
+      int vret = visit((op), arg);		\
+      if (vret)					\
+        return vret;				\
+    }						\
+  } while (0)
+#endif
+
+#if PY_VERSION_HEX < 0x02030000
+typedef struct {
+  PyTypeObject type;
+  PyNumberMethods as_number;
+  PyMappingMethods as_mapping;
+  PySequenceMethods as_sequence;
+  PyBufferProcs as_buffer;
+  PyObject *name, *slots;
+} PyHeapTypeObject;
+#endif
+
+#if PY_VERSION_HEX < 0x02030000
+typedef destructor freefunc;
 #endif

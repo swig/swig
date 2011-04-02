@@ -156,7 +156,6 @@ CPP_TEST_CASES += \
 	destructor_reprotected \
 	director_abstract \
 	director_alternating \
-	director_basic \
 	director_classes \
 	director_classic \
 	director_constructor \
@@ -438,6 +437,8 @@ CPP_TEST_CASES += \
 	voidtest \
 	wallkw \
 	wrapmacro
+
+#	director_basic \
 
 #
 # Put all the heavy STD/STL cases here, where they can be skipped if needed

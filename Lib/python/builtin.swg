@@ -270,7 +270,7 @@ SwigPyStaticVar_repr(PyGetSetDescrObject *descr) {
 SWIGINTERN int
 SwigPyStaticVar_traverse(PyObject *self, visitproc visit, void *arg) {
   PyDescrObject *descr = (PyDescrObject *)self;
-  Py_VISIT(descr->d_type);
+  Py_VISIT((PyObject*) descr->d_type);
   return 0;
 }
 

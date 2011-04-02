@@ -2129,7 +2129,7 @@ public:
     int noargs = funpack && (tuple_required == 0 && tuple_arguments == 0);
     int onearg = funpack && (tuple_required == 1 && tuple_arguments == 1);
 
-    if (builtin && funpack && !overname && !builtin_ctor) {
+    if (builtin && funpack && !overname && !builtin_ctor && !GetFlag(n, "feature:compactdefaultargs")) {
       String *argattr = NewStringf("%d", tuple_arguments);
       Setattr(n, "python:argcount", argattr);
       Delete(argattr);
@@ -3434,7 +3434,9 @@ public:
     printSlot(f, getSlot(n, "feature:python:nb_true_divide"), "nb_true_divide", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_floor_divide"), "nb_inplace_floor_divide", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_true_divide"), "nb_inplace_true_divide", "binaryfunc");
+    Printv(f, "#if PY_VERSION_HEX >= 0x02050000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:nb_index"), "nb_index", "unaryfunc");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
     // PyMappingMethods as_mapping;
