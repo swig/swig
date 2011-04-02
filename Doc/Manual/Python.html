@@ -2350,6 +2350,12 @@ please refer to the python documentation:</p>
 
 <p>Use of the <tt>-builtin</tt> option implies a couple of limitations:
 <ul>
+<li><p>python version support:</p></li>
+<ul>
+<li>Versions 2.5 and up are fully supported</li>
+<li>Versions 2.3 and 2.4 are mostly supported; there are problems with director classes and/or sub-classing a wrapped type in python.</li>
+<li>Versions older than 2.3 are not supported.</li>
+</ul>
 <li><p>Some legacy syntax is no longer supported; in particular:</p></li>
 <ul>
 <li>The functional interface is no longer exposed.  For example, you may no longer call <tt>Whizzo.new_CrunchyFrog()</tt>.  Instead, you must use <tt>Whizzo.CrunchyFrog()</tt>.</li>
