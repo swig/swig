@@ -167,8 +167,8 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
   }  
   if (!PyTuple_Check(args)) {
     if (min <= 1 && max >= 1) {
-      objs[0] = args;
       register int i;
+      objs[0] = args;
       for (i = 1; i < max; ++i) {
 	objs[i] = 0;
       }
