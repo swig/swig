@@ -3290,11 +3290,14 @@ public:
       Printf(f, "  PyTuple_SET_ITEM(tuple, 0, other);\n");
       Printf(f, "  Py_XINCREF(other);\n");
     }
-    Printf(f, "  switch (op) {\n");
-    for (Iterator i = First(richcompare); i.item; i = Next(i))
-      Printf(f, "    case %s : result = %s(self, %s); break;\n", i.key, i.item, funpack ? "other" : "tuple");
-    Printv(f, "    default : break;\n", NIL);
-    Printf(f, "  }\n");
+    Iterator rich_iter = First(richcompare);
+    if (rich_iter.item) {
+      Printf(f, "  switch (op) {\n");
+      for (; rich_iter.item; rich_iter = Next(rich_iter))
+	Printf(f, "    case %s : result = %s(self, %s); break;\n", rich_iter.key, rich_iter.item, funpack ? "other" : "tuple");
+      Printv(f, "    default : break;\n", NIL);
+      Printf(f, "  }\n");
+    }
     Printv(f, "  if (!result) {\n", NIL);
     Printv(f, "    if (SwigPyObject_Check(self) && SwigPyObject_Check(other)) {\n", NIL);
     Printv(f, "      result = SwigPyObject_richcompare((SwigPyObject *)self, (SwigPyObject *)other, op);\n", NIL);
