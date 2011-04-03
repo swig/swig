@@ -162,7 +162,7 @@ typedef getreadbufferproc readbufferproc;
 typedef getwritebufferproc writebufferproc;
 typedef getsegcountproc segcountproc;
 typedef getcharbufferproc charbufferproc;
-static inline long PyNumber_AsSsize_t (PyObject *x, void*)
+static long PyNumber_AsSsize_t (PyObject *x, void *SWIGUNUSEDPARM(exc))
 {
   long result = 0;
   PyObject *i = PyNumber_Int(x);
