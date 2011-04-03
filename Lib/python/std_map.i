@@ -47,7 +47,7 @@
       static PyObject *from(const map_type& map) {
 	swig_type_info *desc = swig::type_info<map_type>();
 	if (desc && desc->clientdata) {
-	  return SWIG_NewPointerObj(new map_type(map), desc, SWIG_POINTER_OWN);
+	  return SWIG_InternalNewPointerObj(new map_type(map), desc, SWIG_POINTER_OWN);
 	} else {
 	  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	  size_type size = map.size();
@@ -119,6 +119,17 @@
       return new SwigPyMapKeyIterator_T<OutIter>(current, begin, end, seq);
     }
 
+    template<typename Sequence>
+    inline PyObject* make_output_key_iterator_builtin (PyObject *pyself)
+    {
+      SwigPyObject *builtin_obj = (SwigPyObject*) pyself;
+      Sequence *seq = reinterpret_cast< Sequence * >(builtin_obj->ptr);
+      if (!seq)
+        return SWIG_Py_Void();
+      SwigPyIterator *iter = make_output_key_iterator(seq->begin(), seq->begin(), seq->end(), pyself);
+      return SWIG_InternalNewPointerObj(iter, SWIGTYPE_p_swig__SwigPyIterator, SWIG_POINTER_OWN);
+    }
+
     template<class OutIterator,
 	     class FromOper = from_value_oper<typename OutIterator::value_type> >
     struct SwigPyMapValueITerator_T : SwigPyMapIterator_T<OutIterator, FromOper>
@@ -136,12 +147,44 @@
     {
       return new SwigPyMapValueITerator_T<OutIter>(current, begin, end, seq);
     }
+
   }
 }
 
 %define %swig_map_common(Map...)
   %swig_sequence_iterator(Map);
   %swig_container_methods(Map)
+
+#if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:slot", "mp_length", functype="lenfunc") __len__;
+  %feature("python:slot", "mp_subscript", functype="binaryfunc") __getitem__;
+  %feature("python:slot", "tp_iter", functype="getiterfunc") key_iterator;
+
+  %extend {
+    %newobject iterkeys(PyObject **PYTHON_SELF);
+    swig::SwigPyIterator* iterkeys(PyObject **PYTHON_SELF) {
+      return swig::make_output_key_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
+    }
+      
+    %newobject itervalues(PyObject **PYTHON_SELF);
+    swig::SwigPyIterator* itervalues(PyObject **PYTHON_SELF) {
+      return swig::make_output_value_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
+    }
+
+    %newobject iteritems(PyObject **PYTHON_SELF);
+    swig::SwigPyIterator* iteritems(PyObject **PYTHON_SELF) {
+      return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
+    }
+  }
+
+#else
+  %extend {
+    %pythoncode {def __iter__(self): return self.key_iterator()}    
+    %pythoncode {def iterkeys(self): return self.key_iterator()}
+    %pythoncode {def itervalues(self): return self.value_iterator()}
+    %pythoncode {def iteritems(self): return self.iterator()}
+  }
+#endif
 
   %extend {
     mapped_type __getitem__(const key_type& key) const throw (std::out_of_range) {
@@ -151,7 +194,7 @@
       else
 	throw std::out_of_range("key not found");
     }
-    
+
     void __delitem__(const key_type& key) throw (std::out_of_range) {
       Map::iterator i = self->find(key);
       if (i != self->end())
@@ -236,21 +279,30 @@
     swig::SwigPyIterator* value_iterator(PyObject **PYTHON_SELF) {
       return swig::make_output_value_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
-
-    %pythoncode {def __iter__(self): return self.key_iterator()}    
-    %pythoncode {def iterkeys(self): return self.key_iterator()}
-    %pythoncode {def itervalues(self): return self.value_iterator()}
-    %pythoncode {def iteritems(self): return self.iterator()}
   }
+
 %enddef
 
 %define %swig_map_methods(Map...)
   %swig_map_common(Map)
+
+#if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:slot", "mp_ass_subscript", functype="objobjargproc") __setitem__;
+#endif
+
+  %extend {
+    // This will be called through the mp_ass_subscript slot to delete an entry.
+    void __setitem__(const key_type& key) {
+      self->erase(key);
+    }
+  }
+
   %extend {
     void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
       (*self)[key] = x;
     }
   }
+
 %enddef
 
 

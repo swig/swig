@@ -6,7 +6,7 @@ namespace swig {
   */
   template <class Type> struct traits_from_ptr {
     static PyObject *from(Type *val, int owner = 0) {
-      return SWIG_NewPointerObj(val, type_info<Type>(), owner);
+      return SWIG_InternalNewPointerObj(val, type_info<Type>(), owner);
     }
   };
 

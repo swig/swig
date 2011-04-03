@@ -11,3 +11,4 @@ if x != -37:
     raise RuntimeError
 
 grouping.cvar.test3 = 42
+grouping.test3 = 42

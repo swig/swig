@@ -61,6 +61,7 @@ CPP_TEST_CASES += \
 	python_kwargs \
 	python_nondynamic \
 	python_overload_simple_cast \
+	python_richcompare \
 	std_containers \
 	swigobject \
 	template_matrix \

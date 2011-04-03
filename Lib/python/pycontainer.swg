@@ -245,7 +245,7 @@ namespace swig {
 
   template <class Sequence, class Difference, class InputSeq>
   inline void
-  setslice(Sequence* self, Difference i, Difference j, const InputSeq& v) {
+  setslice(Sequence* self, Difference i, Difference j, const InputSeq& v = InputSeq()) {
     typename Sequence::size_type size = self->size();
     typename Sequence::size_type ii = swig::check_index(i, size, true);
     typename Sequence::size_type jj = swig::slice_index(j, size);
@@ -586,18 +586,27 @@ namespace swig
       return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
 
-    %pythoncode {def __iter__(self): return self.iterator()}
+#if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:slot", "tp_iter", functype="getiterfunc") iterator;
+#else
+  %pythoncode {def __iter__(self): return self.iterator()}
+#endif
   }
+
 #endif //SWIG_EXPORT_ITERATOR_METHODS
 %enddef
 
 
 /**** The python container methods  ****/
 
-
 %define %swig_container_methods(Container...)
 
   %newobject __getslice__;
+
+#if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:slot", "nb_nonzero", functype="inquiry") __nonzero__;
+  %feature("python:slot", "sq_length", functype="lenfunc") __len__;
+#endif // SWIGPYTHON_BUILTIN
 
   %extend {
     bool __nonzero__() const {
@@ -613,13 +622,25 @@ namespace swig
       return self->size();
     }
   }
+
 %enddef
+
+
 
 %define %swig_sequence_methods_common(Sequence...)
   %swig_sequence_iterator(%arg(Sequence))
   %swig_container_methods(%arg(Sequence))
   
   %fragment("SwigPySequence_Base");
+
+#if defined(SWIGPYTHON_BUILTIN)
+  //%feature("python:slot", "sq_item", functype="ssizeargfunc") __getitem__;
+  //%feature("python:slot", "sq_slice", functype="ssizessizeargfunc") __getslice__;
+  //%feature("python:slot", "sq_ass_item", functype="ssizeobjargproc") __setitem__;
+  //%feature("python:slot", "sq_ass_slice", functype="ssizessizeobjargproc") __setslice__;
+  %feature("python:slot", "mp_subscript", functype="binaryfunc") __getitem__;
+  %feature("python:slot", "mp_ass_subscript", functype="objobjargproc") __setitem__;
+#endif // SWIGPYTHON_BUILTIN
 
   %extend {
     value_type pop() throw (std::out_of_range) {
@@ -632,6 +653,9 @@ namespace swig
 
     /* typemap for slice object support */
     %typemap(in) PySliceObject* {
+      if (!PySlice_Check($input)) {
+        %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+      }
       $1 = (PySliceObject *) $input;
     }
     %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) PySliceObject* {
@@ -642,7 +666,7 @@ namespace swig
       return swig::getslice(self, i, j);
     }
 
-    void __setslice__(difference_type i, difference_type j, const Sequence& v) 
+    void __setslice__(difference_type i, difference_type j, const Sequence& v = Sequence()) 
       throw (std::out_of_range, std::invalid_argument) {
       swig::setslice(self, i, j, v);
     }
@@ -680,6 +704,17 @@ namespace swig
       swig::setslice(self, i, j, v);
     }
 
+    void __setitem__(PySliceObject *slice)
+      throw (std::out_of_range) {
+      Py_ssize_t i, j, step;
+      if( !PySlice_Check(slice) ) {
+        SWIG_Error(SWIG_TypeError, "Slice object expected.");
+        return;
+      }
+      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
+      swig::delslice(self, i,j);
+    }
+
     void __delitem__(PySliceObject *slice)
       throw (std::out_of_range) {
       Py_ssize_t i, j, step;
@@ -692,6 +727,7 @@ namespace swig
     }
      
   }
+
 %enddef
 
 %define %swig_sequence_methods(Sequence...)
@@ -709,6 +745,7 @@ namespace swig
       self->push_back(x);
     }
  }
+
 %enddef
 
 %define %swig_sequence_methods_val(Sequence...)
@@ -726,6 +763,7 @@ namespace swig
       self->push_back(x);
     }
  }
+
 %enddef
 
 

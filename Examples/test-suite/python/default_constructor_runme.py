@@ -1,3 +1,7 @@
+# This test is expected to fail with -builtin option.
+# It uses the old static syntax (e.g., dc.new_A() rather than dc.A()),
+# which is not provided with the -builtin option.
+
 import _default_constructor
 
 dc = _default_constructor
