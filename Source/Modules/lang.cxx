@@ -1044,7 +1044,10 @@ int Language::functionHandler(Node *n) {
     if (isstatic) {
       staticmemberfunctionHandler(n);
     } else if (isfriend) {
+      int oldInClass = InClass;
+      InClass = 0;
       globalfunctionHandler(n);
+      InClass = oldInClass;
     } else {
       Node *explicit_n = 0;
       if (directorsEnabled() && is_member_director(CurrentClass, n) && !extraDirectorProtectedCPPMethodsRequired()) {

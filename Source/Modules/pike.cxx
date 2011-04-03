@@ -578,12 +578,16 @@ public:
     String *symname = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
     String *value = Getattr(n, "value");
+    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
-    /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
+      /* Special hook for member pointer */
       String *wname = Swig_name_wrapper(symname);
       Printf(f_header, "static %s = %s;\n", SwigType_str(type, wname), value);
       value = wname;
+    } else if (SwigType_type(type) == T_CHAR && is_enum_item) {
+      type = NewSwigType(T_INT);
+      Setattr(n, "type", type);
     }
 
     /* Perform constant typemap substitution */

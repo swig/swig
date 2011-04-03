@@ -5,6 +5,7 @@
 LANGUAGE     = csharp
 SCRIPTSUFFIX = _runme.cs
 INTERPRETER  = @CSHARPCILINTERPRETER@
+INTERPRETER_FLAGS   = @CSHARPCILINTERPRETER_FLAGS@
 CSHARPPATHSEPARATOR = "@CSHARPPATHSEPARATOR@"
 CSHARPCYGPATH_W     = @CSHARPCYGPATH_W@
 srcdir       = @srcdir@
@@ -68,13 +69,13 @@ setup = \
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
-	  CSHARPFLAGS='-nologo $(CSHARPFLAGSSPECIAL) -out:$*_runme.exe' \
+	  CSHARPFLAGS='-nologo -debug+ $(CSHARPFLAGSSPECIAL) -out:$*_runme.exe' \
 	  CSHARPSRCS='`$(CSHARPCYGPATH_W) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` `find $* -name "*.cs" -exec $(CSHARPCYGPATH_W) "{}" \+`' csharp_compile && \
-	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_FALLBACK_LIBRARY_PATH= $(RUNTOOL) $(INTERPRETER) $*_runme.exe; \
+	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_FALLBACK_LIBRARY_PATH= $(RUNTOOL) $(INTERPRETER) $(INTERPRETER_FLAGS) $*_runme.exe; \
 	else \
 	  cd $* && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
-	  CSHARPFLAGS='-nologo $(CSHARPFLAGSSPECIAL) -t:module -out:$*.netmodule' \
+	  CSHARPFLAGS='-nologo -debug+ $(CSHARPFLAGSSPECIAL) -t:module -out:$*.netmodule' \
 	  CSHARPSRCS='`find . -name "*.cs" -exec $(CSHARPCYGPATH_W) "{}" \+`' csharp_compile; \
 	fi
 

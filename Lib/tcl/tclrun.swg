@@ -367,19 +367,17 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     }
     cls_stack_bi[cls_stack_top]++;
 
-    meth = cls->methods;
-    /* Check for methods */
-    while (meth && meth->name) {
-      if (strcmp(meth->name,method) == 0) {
+    Tcl_HashEntry* hashentry = Tcl_FindHashEntry(&(cls->hashtable), method);
+    if (hashentry) {
+        ClientData cd = Tcl_GetHashValue(hashentry);
+        swig_wrapper method_wrapper = (swig_wrapper)cd;
         oldarg = objv[1];
         objv[1] = inst->thisptr;
         Tcl_IncrRefCount(inst->thisptr);
-        rcode = (*meth->method)(clientData,interp,objc,objv);
+        rcode = (method_wrapper)(clientData,interp,objc,objv);
         objv[1] = oldarg;
         Tcl_DecrRefCount(inst->thisptr);
         return rcode;
-      }
-      meth++;
     }
     /* Check class methods for a match */
     if (strcmp(method,"cget") == 0) {
@@ -486,7 +484,7 @@ SWIGRUNTIME Tcl_Obj *
 SWIG_Tcl_NewInstanceObj(Tcl_Interp *interp, void *thisvalue, swig_type_info *type, int flags) {
   Tcl_Obj *robj = SWIG_NewPointerObj(thisvalue, type,0);
   /* Check to see if this pointer belongs to a class or not */
-  if ((type->clientdata) && (interp)) {
+  if (thisvalue && (type->clientdata) && (interp)) {
     Tcl_CmdInfo    ci;
     char          *name;
     name = Tcl_GetStringFromObj(robj,NULL);

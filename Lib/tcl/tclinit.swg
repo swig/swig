@@ -67,6 +67,28 @@ SWIG_Tcl_InstallConstants(Tcl_Interp *interp, swig_const_info constants[]) {
   }
 }
 
+/* Create fast method lookup tables */
+
+SWIGINTERN void
+SWIG_Tcl_InstallMethodLookupTables(Tcl_Interp *interp) {
+  int i;
+
+  for (i = 0; i < swig_module.size; ++i) {
+    swig_type_info *type = swig_module.type_initial[i];
+    if (type->clientdata) {
+      swig_class* klass = (swig_class*) type->clientdata;
+      Tcl_InitHashTable(&(klass->hashtable), TCL_STRING_KEYS);
+      swig_method* meth = klass->methods;
+      while (meth && meth->name) {
+        int newEntry;
+        Tcl_HashEntry* hashentry = Tcl_CreateHashEntry(&(klass->hashtable), meth->name, &newEntry);
+        Tcl_SetHashValue(hashentry, (ClientData)meth->method);
+        ++meth;
+      }
+    }
+  }
+}
+
 #ifdef __cplusplus
 }
 #endif
@@ -113,6 +135,7 @@ SWIGEXPORT int SWIG_init(Tcl_Interp *interp) {
   }
 
   SWIG_Tcl_InstallConstants(interp, swig_constants);
+  SWIG_Tcl_InstallMethodLookupTables(interp);
 
 %}
 

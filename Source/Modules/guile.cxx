@@ -1393,9 +1393,10 @@ public:
     }
     // See if there's a typemap
 
+    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
     if (SwigType_type(nctype) == T_STRING) {
       rvalue = NewStringf("\"%s\"", value);
-    } else if (SwigType_type(nctype) == T_CHAR) {
+    } else if (SwigType_type(nctype) == T_CHAR && !is_enum_item) {
       rvalue = NewStringf("\'%s\'", value);
     } else {
       rvalue = NewString(value);
