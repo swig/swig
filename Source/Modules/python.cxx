@@ -757,9 +757,9 @@ public:
 #endif
 	       tab4, tab8, "return\n", tab4, "method = class_type.__swig_setmethods__.get(name,None)\n", tab4, "if method: return method(self,value)\n",
 #ifdef USE_THISOWN
-	       tab4, "if (not static) or hasattr(self,name) or (name == \"thisown\"):\n",
+	       tab4, "if (not static) or (name == \"thisown\"):\n",
 #else
-	       tab4, "if (not static) or hasattr(self,name):\n",
+	       tab4, "if (not static):\n",
 #endif
 	       tab4, tab4, "self.__dict__[name] = value\n",
 	       tab4, "else:\n",
