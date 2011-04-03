@@ -18,9 +18,10 @@ except RuntimeError,e:
   if e.args[0] != "I died.":
     raise RuntimeError
 
-try:
+# This is expected fail with -builtin option
 # Throwing builtin classes as exceptions not supported
-#  t.hosed()
+try:
+  t.hosed()
   pass
 except threads_exception.Exc,e:
   if e.code != 42:

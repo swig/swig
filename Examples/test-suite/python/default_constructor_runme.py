@@ -1,124 +1,83 @@
-import default_constructor
+# This test is expected to fail with -builtin option.
+# It uses the old static syntax (e.g., dc.new_A() rather than dc.A()),
+# which is not provided with the -builtin option.
 
-dc = default_constructor
+import _default_constructor
 
-# Old static syntax not supported
-#a = dc.new_A()
-#dc.delete_A(a)
-a = dc.A()
-del a
+dc = _default_constructor
 
-# Old static syntax not supported
-#aa = dc.new_AA()
-#dc.delete_AA(aa)
-aa = dc.AA()
-del aa
+a = dc.new_A()
+dc.delete_A(a)
+
+aa = dc.new_AA()
+dc.delete_AA(aa)
 
 try:
-    # Old static syntax not supported
-    #b = dc.new_B()
-    b = dc.B()
+    b = dc.new_B()
     print "Whoa. new_BB created."
 except:
     pass
 
-# Old static syntax not supported.
-# Swig builtin types have no tp_del entry (only tp_dealloc).
-#del_b = dc.delete_B
+del_b = dc.delete_B
 
 try:
-    # Old static syntax not supported.
-    #bb = dc.new_BB();
-    bb = dc.BB()
+    bb = dc.new_BB();
     print "Whoa. new_BB created."
 except:
     pass
 
-# Old static syntax not supported.
-# Swig builtin types have no tp_del entry (only tp_dealloc).
-#del_bb = dc.delete_BB
+del_bb = dc.delete_BB
 
 try:
-    # Old static syntax not supported
-    #c = dc.new_C()
-    c = dc.C()
+    c = dc.new_C()
     print "Whoa. new_C created."
 except:
     pass
 
-# Old static syntax not supported.
-# Swig builtin types have no tp_del entry (only tp_dealloc).
-#del_c = dc.delete_C
+del_c = dc.delete_C
 
-# Old static syntax not supported.
-#cc = dc.new_CC()
-#dc.delete_CC(cc)
-cc = dc.CC()
-del cc
+cc = dc.new_CC()
+dc.delete_CC(cc)
 
 try:
-    # Old static syntax not supported.
-    #d = dc.new_D();
-    d = dc.D()
+    d = dc.new_D();
     print "Whoa. new_D created"
 except:
     pass
 
-# Old static syntax not supported.
-# Swig builtin types have no tp_del entry (only tp_dealloc).
-#del_d = dc.delete_D
+del_d = dc.delete_D
 
 try:
-    # Old static syntax not supported.
-    #dd = dc.new_DD()
-    dd = dc.DD()
+    dd = dc.new_DD()
     print "Whoa. new_DD created"
 except:
     pass
 
-# Old static syntax not supported.
-# Swig builtin types have no tp_del entry (only tp_dealloc).
-#dd = dc.delete_DD
+dd = dc.delete_DD
 
 try:
-    # Old static syntax not supported.
-    #ad = dc.new_AD()
-    ad = dc.AD()
+    ad = dc.new_AD()
     print "Whoa. new_AD created"
 except:
     pass
 
-# Old static syntax not supported.
-# Swig builtin types have no tp_del entry (only tp_dealloc).
-#del_ad = dc.delete_AD
+del_ad = dc.delete_AD
 
-# Old static syntax not supported.
-#e = dc.new_E()
-#dc.delete_E(e)
-e = dc.E()
-del e
+e = dc.new_E()
+dc.delete_E(e)
 
-# Old static syntax not supported.
-#ee = dc.new_EE()
-#dc.delete_EE(ee)
-ee = dc.EE()
-del ee
+ee = dc.new_EE()
+dc.delete_EE(ee)
 
 try:
-    # Old static syntax not supported.
-    #eb = dc.new_EB()
-    eb = dc.EB()
+    eb = dc.new_EB()
     print "Whoa. new_EB created"
 except:
     pass
 
-# Old static syntax not supported.
-# Swig builtin types have no tp_del entry (only tp_dealloc).
-#del_eb = dc.delete_EB
+del_eb = dc.delete_EB
 
-# Old static syntax not supported.
-#f = dc.new_F()
-f = dc.F()
+f = dc.new_F()
 
 try:
     del_f = dc.delete_F
@@ -126,27 +85,18 @@ try:
 except AttributeError:
     pass
 
-# Old static syntax not supported.
-#dc.F_destroy(f)
-f.destroy()
+dc.F_destroy(f)
 
-# Old static syntax not supported.
-#ff = dc.new_FFF()
-ff = dc.FFF()
-
+ff = dc.new_FFF()
 try:
     del_ff = dc.delete_FFF
     print "Whoa. delete_FFF created"
 except AttributeError:
     pass
 
-# Old static syntax not supported.
-#dc.F_destroy(ff)
-ff.destroy()
+dc.F_destroy(ff)
 
-# Old static syntax not supported.
-#g = dc.new_G()
-g = dc.G()
+g = dc.new_G()
 
 try:
     del_g = dc.delete_G
@@ -154,13 +104,11 @@ try:
 except AttributeError:
     pass
 
-dc.G.destroy(g)
+dc.G_destroy(g)
 
-# Old static syntax not supported.
-#gg = dc.new_GG()
-#dc.delete_GG(gg)
-gg = dc.GG()
-del gg
+gg = dc.new_GG()
+dc.delete_GG(gg)
+
 
 import default_constructor
 hh = default_constructor.HH(1,1)

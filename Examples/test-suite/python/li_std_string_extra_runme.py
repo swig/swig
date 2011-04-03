@@ -54,14 +54,16 @@ if a + b != "hello world":
 if a + " world" != "hello world":
   raise RuntimeError, "bad string mapping"
 
+# This is expected to fail with -builtin option
 # Reverse operators not supported in builtin types
-#if "hello" + b != "hello world":
-#  raise RuntimeError, "bad string mapping"
+if "hello" + b != "hello world":
+  raise RuntimeError, "bad string mapping"
 
+# This is expected to fail with -builtin option
 # Reverse operators not supported in builtin types
-#c = "hello" + b
-#if c.find_last_of("l") != 9:
-#  raise RuntimeError, "bad string mapping"
+c = "hello" + b
+if c.find_last_of("l") != 9:
+  raise RuntimeError, "bad string mapping"
   
 s = "hello world"
 

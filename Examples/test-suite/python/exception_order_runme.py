@@ -1,25 +1,23 @@
 from exception_order import *
 
+# This test is expected to fail with -builtin option.
+# Throwing builtin classes as exceptions not supported
 
 a = A()
 
 try:
   a.foo()
-# Throwing builtin classes as exceptions not supported
-#except E1,e:
-#  pass
-except:
-#  raise RuntimeError, "bad exception order"
+except E1,e:
   pass
+except:
+  raise RuntimeError, "bad exception order"
 
 try:
   a.bar()
-# Throwing builtin classes as exceptions not supported
-#except E2,e:
-#  pass
-except:
-#  raise RuntimeError, "bad exception order"
+except E2,e:
   pass
+except:
+  raise RuntimeError, "bad exception order"
 
 try:
   a.foobar()
@@ -32,18 +30,14 @@ except RuntimeError,e:
 
 try:
   a.barfoo(1)
-# Throwing builtin classes as exceptions not supported
-#except E1,e:
-#  pass
-except:
-#  raise RuntimeError, "bad exception order"
+except E1,e:
   pass
+except:
+  raise RuntimeError, "bad exception order"
 
 try:
   a.barfoo(2)
-# Throwing builtin classes as exceptions not supported
-#except E2,e:
-#  pass
-except:
-#  raise RuntimeError, "bad exception order"
+except E2,e:
   pass
+except:
+  raise RuntimeError, "bad exception order"

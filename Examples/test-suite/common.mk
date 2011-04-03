@@ -526,8 +526,6 @@ wallkw.cpptest: SWIGOPT += -Wallkw
 preproc_include.ctest: SWIGOPT += -includeall
 
 
-NOT_BROKEN_C_TEST_CASES = $(C_TEST_CASES:=.ctest)
-
 NOT_BROKEN_TEST_CASES =	$(CPP_TEST_CASES:=.cpptest) \
 			$(C_TEST_CASES:=.ctest) \
 			$(MULTI_CPP_TEST_CASES:=.multicpptest) \
@@ -548,8 +546,6 @@ ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
 all:	$(BROKEN_TEST_CASES) $(NOT_BROKEN_TEST_CASES)
 
 check: 	$(NOT_BROKEN_TEST_CASES)
-
-check-c : $(NOT_BROKEN_C_TEST_CASES)
 
 # partialcheck target runs SWIG only, ie no compilation or running of tests (for a subset of languages)
 partialcheck:
