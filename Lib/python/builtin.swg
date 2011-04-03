@@ -288,8 +288,6 @@ SwigPyStaticVar_get(PyGetSetDescrObject *descr, PyObject *obj, PyObject *type) {
 
 SWIGINTERN int
 SwigPyStaticVar_set(PyGetSetDescrObject *descr, PyObject *obj, PyObject *value) {
-  int res;
-
   if (descr->d_getset->set != NULL)
     return descr->d_getset->set(obj, value, descr->d_getset->closure);
 #if PY_VERSION_HEX >= 0x03000000
