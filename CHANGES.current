@@ -9,3 +9,12 @@ Version 2.0.4 (in progress)
             Add in missing wrappers for friend functions for some target languages, mostly
             the non-scripting languages like Java and C#.
 
+2011-04-03: szager
+	    Fixed the behavior of %pythonnondynamic to conform to the spec in Lib/pyuserdir.swg.
+
+2011-04-03: szager
+	    Merged in the szager-python-builtin branch, adding the -builtin feature
+	    for python.  The -builtin option may provide a significant performance gain
+	    in python wrappers.  For full details and limitations, refer to Doc/Manual/Python.html.
+	    A small test suite designed to demonstrate the performance gain is in
+	    Examples/python/performance.
