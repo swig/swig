@@ -370,7 +370,7 @@ SWIG_init(void) {
   SWIG_InitializeModule(0);
 
 #ifdef SWIGPYTHON_BUILTIN
-  static SwigPyClientData SwigPyObject_clientdata = {0};
+  static SwigPyClientData SwigPyObject_clientdata = {0, 0, 0, 0, 0, 0, 0};
   SwigPyObject_stype = SWIG_MangledTypeQuery("_p_SwigPyObject");
   assert(SwigPyObject_stype);
   SwigPyClientData *cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
