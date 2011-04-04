@@ -171,14 +171,14 @@ static String *getSlot(Node *n = NULL, const char *key = NULL) {
   return val ? val : slot_default;
 }
 
-static void printSlot (File *f, DOH const *slotval, DOH const *slotname, DOH const *functype = NULL, bool comma=true) {
-  if (functype)
-    slotval = NewStringf("(%s) %s", functype, slotval);
+static void printSlot(File *f, const String *slotval, const char *slotname, const char *functype = NULL, bool comma=true) {
+  String *slotval_override = functype ? NewStringf("(%s) %s", functype, slotval) : 0;
+  if (slotval_override)
+    slotval = slotval_override;
   int len = Len(slotval);
   int fieldwidth = len > 40 ? 0 : 40 - len;
   Printf(f, "    %s%s%*s/* %s */\n", slotval, comma ? "," : "", fieldwidth, "", slotname);
-  if (functype)
-    Delete((DOH*) slotval);
+  Delete(slotval_override);
 }
 
 static String *getClosure(String *functype, String *wrapper, int funpack = 0) {

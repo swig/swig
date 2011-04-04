@@ -388,7 +388,7 @@ SWIG_init(void) {
 
   /* All objects have a 'this' attribute */
   static PyGetSetDef this_getset_def = {
-    (char*) "this", SwigPyBuiltin_ThisClosure, NULL, NULL, NULL
+    (char *)"this", SwigPyBuiltin_ThisClosure, NULL, NULL, NULL
   };
   PyObject *this_descr = PyDescr_NewGetSet(SwigPyObject_type(), &this_getset_def);
 
@@ -398,7 +398,7 @@ SWIG_init(void) {
     (PyCFunction) SwigPyObject_own
   };
   static PyGetSetDef thisown_getset_def = {
-    const_cast<char*>("thisown"), SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
+    (char *)"thisown", SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
   };
   PyObject *thisown_descr = PyDescr_NewGetSet(SwigPyObject_type(), &thisown_getset_def);
 
