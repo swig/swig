@@ -172,13 +172,13 @@ static String *getSlot(Node *n = NULL, const char *key = NULL) {
   return val ? val : slot_default;
 }
 
-static void printSlot(File *f, const String *slotval, const char *slotname, const char *functype = NULL, bool comma=true) {
+static void printSlot(File *f, const String *slotval, const char *slotname, const char *functype = NULL) {
   String *slotval_override = functype ? NewStringf("(%s) %s", functype, slotval) : 0;
   if (slotval_override)
     slotval = slotval_override;
   int len = Len(slotval);
   int fieldwidth = len > 40 ? 0 : 40 - len;
-  Printf(f, "    %s%s%*s/* %s */\n", slotval, comma ? "," : "", fieldwidth, "", slotname);
+  Printf(f, "    %s, %*s/* %s */\n", slotval, fieldwidth, "", slotname);
   Delete(slotval_override);
 }
 
@@ -3387,6 +3387,16 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_alloc"), "tp_alloc", "allocfunc");
     printSlot(f, "0", "tp_new", "newfunc");
     printSlot(f, getSlot(n, "feature:python:tp_free"), "tp_free", "freefunc");
+    printSlot(f, getSlot(), "tp_is_gc", "inquiry");
+    printSlot(f, getSlot(), "tp_bases", "PyObject*");
+    printSlot(f, getSlot(), "tp_mro", "PyObject*");
+    printSlot(f, getSlot(), "tp_cache", "PyObject*");
+    printSlot(f, getSlot(), "tp_subclasses", "PyObject*");
+    printSlot(f, getSlot(), "tp_weaklist", "PyObject*");
+    printSlot(f, getSlot(), "tp_del", "destructor");
+    Printv(f, "#if PY_VERSION_HEX >= 0x02060000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:tp_version_tag"), "tp_version_tag", "int");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
     // PyNumberMethods as_number
@@ -3477,14 +3487,15 @@ public:
 
     // PyBufferProcs as_buffer;
     Printf(f, "  {\n");
-    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:bf_getbuffer"), "bf_getbuffer", "getbufferproc");
-    printSlot(f, getSlot(n, "feature:python:bf_releasebuffer"), "bf_releasebuffer", "releasebufferproc");
-    Printv(f, "#else\n", NIL);
+    Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:bf_getreadbuffer"), "bf_getreadbuffer", "readbufferproc");
     printSlot(f, getSlot(n, "feature:python:bf_getwritebuffer"), "bf_getwritebuffer", "writebufferproc");
     printSlot(f, getSlot(n, "feature:python:bf_getsegcount"), "bf_getsegcount", "segcountproc");
     printSlot(f, getSlot(n, "feature:python:bf_getcharbuffer"), "bf_getcharbuffer", "charbufferproc");
+    Printv(f, "#endif\n", NIL);
+    Printv(f, "#if PY_VERSION_HEX >= 0x02060000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:bf_getbuffer"), "bf_getbuffer", "getbufferproc");
+    printSlot(f, getSlot(n, "feature:python:bf_releasebuffer"), "bf_releasebuffer", "releasebufferproc");
     Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 

@@ -68,7 +68,7 @@
    
    %feature("python:slot", "Py_LT") MyClass::lessThan;
 
- ... where "Py_LT" is one of rich comparison opcodes defined in the
+ ... where "Py_LT" is one of the rich comparison opcodes defined in the
  python header file object.h.
 
  If there's no method defined to handle a particular comparsion operation,
