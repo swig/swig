@@ -63,6 +63,7 @@ static int modern = 0;
 static int new_repr = 1;
 static int no_header_file = 0;
 static int max_bases = 0;
+static int builtin_bases_needed = 0;
 
 static int py3 = 0;
 
@@ -996,7 +997,7 @@ public:
     }
 
     Dump(f_wrappers, f_begin);
-    if (builtin)
+    if (builtin && builtin_bases_needed)
       Printf(f_begin, "static PyTypeObject *builtin_bases[%d];\n\n", max_bases + 2);
     Wrapper_pretty_print(f_init, f_begin);
 
@@ -2806,8 +2807,10 @@ public:
     int addfail = 0;
     Printf(getf->def, "SWIGINTERN PyObject *%s(void) {", vargetname);
     Wrapper_add_local(getf, "pyobj", "PyObject *pyobj = 0");
-    if (builtin)
+    if (builtin) {
       Wrapper_add_local(getf, "self", "PyObject *self = 0");
+      Append(getf->code, "  (void)self;\n");
+    }
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$source", name);
       Replaceall(tm, "$target", "pyobj");
@@ -3116,7 +3119,7 @@ public:
     if (shadow) {
       if (builtin) {
 	String *rname = SwigType_namestr(real_classname);
-	Printf(builtin_methods, tab4 "{ \"__disown__\", (PyCFunction) Swig::Director::swig_pyobj_disown< %s >, METH_NOARGS, \"\" },\n", rname);
+	Printf(builtin_methods, "  { \"__disown__\", (PyCFunction) Swig::Director::swig_pyobj_disown< %s >, METH_NOARGS, \"\" },\n", rname);
 	Delete(rname);
       } else {
 	String *symname = Getattr(n, "sym:name");
@@ -3230,6 +3233,7 @@ public:
     }
     Printv(f_init, "  builtin_bases[builtin_base_count] = NULL;\n", NIL);
     Printv(f_init, "  SwigPyBuiltin_InitBases(builtin_pytype, builtin_bases);\n", NIL);
+    builtin_bases_needed = 1;
 
     // Check for non-public destructor, in which case tp_dealloc will issue
     // a warning and allow the memory to leak.  Any class that doesn't explicitly
@@ -3275,7 +3279,7 @@ public:
       Delete(gspair);
       Delete(entry);
     }
-    Printv(f, getset_def, "    {NULL} /* Sentinel */\n", "};\n\n", NIL);
+    Printv(f, getset_def, "    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */\n", "};\n\n", NIL);
 
     // Rich compare function
     Hash *richcompare = Getattr(n, "python:richcompare");
@@ -3314,7 +3318,7 @@ public:
     // Methods
     Printf(f, "SWIGINTERN PyMethodDef %s_methods[] = {\n", templ);
     Dump(builtin_methods, f);
-    Printf(f, "  {NULL} // Sentinel\n};\n\n");
+    Printf(f, "  { NULL, NULL, 0, NULL } /* Sentinel */\n};\n\n");
 
     // No instance dict for nondynamic objects
     if (GetFlag(n, "feature:python:nondynamic"))
@@ -3350,15 +3354,15 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_compare"), "tp_compare", "cmpfunc");
     Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_repr"), "tp_repr", "reprfunc");
-    Printf(f, "    &%s_type.as_number,		/*tp_as_number*/\n", templ);
-    Printf(f, "    &%s_type.as_sequence,	/*tp_as_sequence*/\n", templ);
-    Printf(f, "    &%s_type.as_mapping,		/*tp_as_mapping*/\n", templ);
+    Printf(f, "    &%s_type.as_number,      /* tp_as_number */\n", templ);
+    Printf(f, "    &%s_type.as_sequence,    /* tp_as_sequence */\n", templ);
+    Printf(f, "    &%s_type.as_mapping,     /* tp_as_mapping */\n", templ);
     printSlot(f, getSlot(n, "feature:python:tp_hash"), "tp_hash", "hashfunc");
     printSlot(f, getSlot(n, "feature:python:tp_call"), "tp_call", "ternaryfunc");
     printSlot(f, getSlot(n, "feature:python:tp_str"), "tp_str", "reprfunc");
     printSlot(f, getSlot(n, "feature:python:tp_getattro"), "tp_getattro", "getattrofunc");
     printSlot(f, getSlot(n, "feature:python:tp_setattro"), "tp_setattro", "setattrofunc");
-    Printf(f, "    &%s_type.as_buffer,		/*tp_as_buffer*/\n", templ);
+    Printf(f, "    &%s_type.as_buffer,      /* tp_as_buffer */\n", templ);
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     printSlot(f, py3_tp_flags, "tp_flags");
     Printv(f, "#else\n", NIL);
@@ -3373,7 +3377,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_iternext"), "tp_iternext", "iternextfunc");
     printSlot(f, methods_name, "tp_methods");
     printSlot(f, getSlot(n, "feature:python:tp_members"), "tp_members");
-    printSlot(f, getset_name, " tp_getset");
+    printSlot(f, getset_name, "tp_getset");
     printSlot(f, getSlot(n, "feature:python:tp_base"), "tp_base");
     printSlot(f, getSlot(n, "feature:python:tp_dict"), "tp_dict");
     printSlot(f, getSlot(n, "feature:python:tp_descr_get"), "tp_descr_get", "descrgetfunc");
@@ -3446,7 +3450,7 @@ public:
     Printf(f, "  {\n");
     printSlot(f, getSlot(n, "feature:python:mp_length"), "mp_length", "lenfunc");
     printSlot(f, getSlot(n, "feature:python:mp_subscript"), "mp_subscript", "binaryfunc");
-    printSlot(f, getSlot(n, "feature:python:mp_ass_subscript"), " mp_ass_subscript", "objobjargproc");
+    printSlot(f, getSlot(n, "feature:python:mp_ass_subscript"), "mp_ass_subscript", "objobjargproc");
     Printf(f, "  },\n");
 
     // PySequenceMethods as_sequence;
@@ -3889,13 +3893,13 @@ public:
 	int argcount = Getattr(n, "python:argcount") ? atoi(Char(Getattr(n, "python:argcount"))) : 2;
 	String *ds = have_docstring(n) ? cdocstring(n, AUTODOC_FUNC) : NewString("");
 	if (check_kwargs(n)) {
-	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS|METH_KEYWORDS, (char*) \"%s\" },\n", symname, wname, ds);
+	  Printf(builtin_methods, "  { \"%s\", (PyCFunction) %s, METH_VARARGS|METH_KEYWORDS, (char*) \"%s\" },\n", symname, wname, ds);
 	} else if (argcount == 0) {
-	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_NOARGS, (char*) \"%s\" },\n", symname, wname, ds);
+	  Printf(builtin_methods, "  { \"%s\", (PyCFunction) %s, METH_NOARGS, (char*) \"%s\" },\n", symname, wname, ds);
 	} else if (argcount == 1) {
-	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_O, (char*) \"%s\" },\n", symname, wname, ds);
+	  Printf(builtin_methods, "  { \"%s\", (PyCFunction) %s, METH_O, (char*) \"%s\" },\n", symname, wname, ds);
 	} else {
-	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, METH_VARARGS, (char*) \"%s\" },\n", symname, wname, ds);
+	  Printf(builtin_methods, "  { \"%s\", (PyCFunction) %s, METH_VARARGS, (char*) \"%s\" },\n", symname, wname, ds);
 	}
 	Delete(fullname);
 	Delete(wname);
@@ -3995,10 +3999,10 @@ public:
 	  Append(pyflags, "METH_VARARGS");
 	if (have_docstring(n)) {
 	  String *ds = cdocstring(n, AUTODOC_STATICFUNC);
-	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, %s, (char*) \"%s\" },\n", symname, wname, pyflags, ds);
+	  Printf(builtin_methods, "  { \"%s\", (PyCFunction) %s, %s, (char*) \"%s\" },\n", symname, wname, pyflags, ds);
 	  Delete(ds);
 	} else {
-	  Printf(builtin_methods, "    { \"%s\", (PyCFunction) %s, %s, \"\" },\n", symname, wname, pyflags);
+	  Printf(builtin_methods, "  { \"%s\", (PyCFunction) %s, %s, \"\" },\n", symname, wname, pyflags);
 	}
 	Delete(fullname);
 	Delete(wname);
@@ -4599,8 +4603,10 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     }
   }
 
-  if (builtin)
+  if (builtin) {
     Printv(w->code, "PyObject *self = NULL;\n", NIL);
+    Printv(w->code, "(void)self;\n", NIL);
+  }
 
   if (ignored_method) {
     if (!pure_virtual) {

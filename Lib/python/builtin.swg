@@ -338,6 +338,26 @@ SWIGINTERN PyTypeObject SwigPyStaticVar_Type = {
   0,					/* tp_dict */
   (descrgetfunc)SwigPyStaticVar_get,	/* tp_descr_get */
   (descrsetfunc)SwigPyStaticVar_set,	/* tp_descr_set */
+  0,					/* tp_dictoffset */
+  0,					/* tp_init */
+  0,					/* tp_alloc */
+  0,					/* tp_new */
+  0,					/* tp_free */
+  0,					/* tp_is_gc */
+  0,					/* tp_bases */
+  0,					/* tp_mro */
+  0,					/* tp_cache */
+  0,					/* tp_subclasses */
+  0,					/* tp_weaklist */
+#if PY_VERSION_HEX >= 0x02030000
+  0,					/* tp_del */
+#endif
+#if PY_VERSION_HEX >= 0x02060000
+  0,					/* tp_version */
+#endif
+#ifdef COUNT_ALLOCS
+  0,0,0,0				/* tp_alloc -> tp_next */
+#endif
 };
 
 SWIGINTERN int

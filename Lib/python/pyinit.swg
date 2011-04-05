@@ -344,8 +344,13 @@ SWIG_init(void) {
   swig_type_info *builtin_basetype = 0;
   PyObject *tuple = NULL;
   PyGetSetDescrObject *static_getset = NULL;
-
   int i;
+
+  (void)builtin_pytype;
+  (void)builtin_base_count;
+  (void)builtin_basetype;
+  (void)tuple;
+  (void)static_getset;
 
   /* metatype is used to implement static member variables. */
   PyObject *metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
@@ -391,6 +396,7 @@ SWIG_init(void) {
     (char *)"this", SwigPyBuiltin_ThisClosure, NULL, NULL, NULL
   };
   PyObject *this_descr = PyDescr_NewGetSet(SwigPyObject_type(), &this_getset_def);
+  (void)this_descr;
 
   /* All objects have a 'thisown' attribute */
   static SwigPyGetSet thisown_getset_closure = {
@@ -401,9 +407,12 @@ SWIG_init(void) {
     (char *)"thisown", SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
   };
   PyObject *thisown_descr = PyDescr_NewGetSet(SwigPyObject_type(), &thisown_getset_def);
+  (void)thisown_descr;
 
   PyObject *public_interface = PyList_New(0);
   PyObject *public_symbol = 0;
+  (void)public_symbol;
+
   PyDict_SetItemString(md, "__all__", public_interface);
   Py_DECREF(public_interface);
   for (i = 0; SwigMethods[i].ml_name != NULL; ++i)

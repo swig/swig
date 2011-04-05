@@ -12,7 +12,7 @@
 
 %inline %{
 template <typename ImageT> int convolve1() { return 0; }
-template <typename ImageT> void convolve1(ImageT a) { ImageT t = a; }
+template <typename ImageT> void convolve1(ImageT a) { ImageT t = a; (void)t; }
 %}
 
 %template() convolve1<float>;
@@ -24,7 +24,7 @@ template <typename ImageT> void convolve1(ImageT a) { ImageT t = a; }
 
 %inline %{
 template <typename ImageT> int convolve2() { return 0; }
-template <typename ImageT> void convolve2(ImageT a) { ImageT t = a; }
+template <typename ImageT> void convolve2(ImageT a) { ImageT t = a; (void)t; }
 %}
 
 %template(convolve2Float) convolve2<float>;
@@ -34,7 +34,7 @@ template <typename ImageT> void convolve2(ImageT a) { ImageT t = a; }
 
 %inline %{
 template <typename ImageT> int convolve3() { return 0; }
-template <typename ImageT> void convolve3(ImageT a) { ImageT t = a; }
+template <typename ImageT> void convolve3(ImageT a) { ImageT t = a; (void)t; }
 %}
 
 %template() convolve3<float>;
@@ -44,7 +44,7 @@ template <typename ImageT> void convolve3(ImageT a) { ImageT t = a; }
 
 %inline %{
 template <typename ImageT> int convolve4() { return 0; }
-template <typename ImageT> void convolve4(ImageT a) { ImageT t = a; }
+template <typename ImageT> void convolve4(ImageT a) { ImageT t = a; (void)t; }
 %}
 
 %template(convolve4Float) convolve4<float>;
@@ -56,7 +56,7 @@ template <typename ImageT> void convolve4(ImageT a) { ImageT t = a; }
 
 %inline %{
 template <typename ImageT> int convolve5() { return 0; }
-template <typename ImageT> void convolve5(ImageT a) { ImageT t = a; }
+template <typename ImageT> void convolve5(ImageT a) { ImageT t = a; (void)t; }
 %}
 
 %template() convolve5<float>;
