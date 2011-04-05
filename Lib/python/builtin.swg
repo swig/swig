@@ -170,7 +170,7 @@ wrapper##_closure(PyObject *a) {		\
 }
 
 SWIGINTERN int
-SwigPyBuiltin_BadInit(PyObject *self, PyObject *args, PyObject *kwds) {
+SwigPyBuiltin_BadInit(PyObject *self, PyObject *SWIGUNUSEDPARM(args), PyObject *SWIGUNUSEDPARM(kwds)) {
   PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", self->ob_type->tp_name);
   return -1;
 }
@@ -275,7 +275,7 @@ SwigPyStaticVar_traverse(PyObject *self, visitproc visit, void *arg) {
 }
 
 SWIGINTERN PyObject *
-SwigPyStaticVar_get(PyGetSetDescrObject *descr, PyObject *obj, PyObject *type) {
+SwigPyStaticVar_get(PyGetSetDescrObject *descr, PyObject *obj, PyObject *SWIGUNUSEDPARM(type)) {
   if (descr->d_getset->get != NULL)
     return descr->d_getset->get(obj, descr->d_getset->closure);
 #if PY_VERSION_HEX >= 0x03000000
@@ -422,7 +422,7 @@ SwigPyBuiltin_InitBases (PyTypeObject *type, PyTypeObject **bases) {
 }
 
 SWIGINTERN PyObject *
-SwigPyBuiltin_ThisClosure (PyObject *self, void *closure) {
+SwigPyBuiltin_ThisClosure (PyObject *self, void *SWIGUNUSEDPARM(closure)) {
   PyObject *result = (PyObject *)SWIG_Python_GetSwigThis(self);
   Py_XINCREF(result);
   return result;
