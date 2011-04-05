@@ -140,22 +140,21 @@ swig_varlink_type(void) {
   static PyTypeObject varlink_type;
   static int type_init = 0;
   if (!type_init) {
-    const PyTypeObject tmp
-      = {
+    const PyTypeObject tmp = {
       /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
       PyVarObject_HEAD_INIT(&PyType_Type, 0)
 #else
       PyObject_HEAD_INIT(NULL)
-      0,                                  /* Number of items in variable part (ob_size) */
+      0,                                  /* ob_size */
 #endif
-      (char *)"swigvarlink",              /* Type name (tp_name) */
-      sizeof(swig_varlinkobject),         /* Basic size (tp_basicsize) */
-      0,                                  /* Itemsize (tp_itemsize) */
-      (destructor) swig_varlink_dealloc,  /* Deallocator (tp_dealloc) */
-      (printfunc) swig_varlink_print,     /* Print (tp_print) */
-      (getattrfunc) swig_varlink_getattr, /* get attr (tp_getattr) */
-      (setattrfunc) swig_varlink_setattr, /* Set attr (tp_setattr) */
+      (char *)"swigvarlink",              /* tp_name */
+      sizeof(swig_varlinkobject),         /* tp_basicsize */
+      0,                                  /* tp_itemsize */
+      (destructor) swig_varlink_dealloc,  /* tp_dealloc */
+      (printfunc) swig_varlink_print,     /* tp_print */
+      (getattrfunc) swig_varlink_getattr, /* tp_getattr */
+      (setattrfunc) swig_varlink_setattr, /* tp_setattr */
       0,                                  /* tp_compare */
       (reprfunc) swig_varlink_repr,       /* tp_repr */
       0,                                  /* tp_as_number */

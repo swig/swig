@@ -745,79 +745,78 @@ SwigPyObject_TypeOnce(void) {
   static PyTypeObject swigpyobject_type;
   static int type_init = 0;
   if (!type_init) {
-    const PyTypeObject tmp
-      = {
-	/* PyObject header changed in Python 3 */
+    const PyTypeObject tmp = {
+      /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
-	PyVarObject_HEAD_INIT(&PyType_Type, 0)
+      PyVarObject_HEAD_INIT(&PyType_Type, 0)
 #else
-	PyObject_HEAD_INIT(NULL)
-	0,				    /* ob_size */
+      PyObject_HEAD_INIT(NULL)
+      0,                                    /* ob_size */
 #endif
-	(char *)"SwigPyObject",		    /* tp_name */
-	sizeof(SwigPyObject),		    /* tp_basicsize */
-	0,			            /* tp_itemsize */
-	(destructor)SwigPyObject_dealloc,   /* tp_dealloc */
-	(printfunc)SwigPyObject_print,	    /* tp_print */
+      (char *)"SwigPyObject",               /* tp_name */
+      sizeof(SwigPyObject),                 /* tp_basicsize */
+      0,                                    /* tp_itemsize */
+      (destructor)SwigPyObject_dealloc,     /* tp_dealloc */
+      (printfunc)SwigPyObject_print,        /* tp_print */
 #if PY_VERSION_HEX < 0x02020000
-	(getattrfunc)SwigPyObject_getattr,  /* tp_getattr */
+      (getattrfunc)SwigPyObject_getattr,    /* tp_getattr */
 #else
-	(getattrfunc)0,			    /* tp_getattr */
+      (getattrfunc)0,                       /* tp_getattr */
 #endif
-	(setattrfunc)0,			    /* tp_setattr */
+      (setattrfunc)0,                       /* tp_setattr */
 #if PY_VERSION_HEX >= 0x03000000
     0, /* tp_reserved in 3.0.1, tp_compare in 3.0.0 but not used */
 #else
-	(cmpfunc)SwigPyObject_compare,	    /* tp_compare */
+      (cmpfunc)SwigPyObject_compare,        /* tp_compare */
 #endif
-	(reprfunc)SwigPyObject_repr,	    /* tp_repr */
-	&SwigPyObject_as_number,	    /* tp_as_number */
-	0,				    /* tp_as_sequence */
-	0,				    /* tp_as_mapping */
-	(hashfunc)0,			    /* tp_hash */
-	(ternaryfunc)0,			    /* tp_call */
-	(reprfunc)SwigPyObject_str,	    /* tp_str */
-	PyObject_GenericGetAttr,            /* tp_getattro */
-	0,				    /* tp_setattro */
-	0,		                    /* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT,	            /* tp_flags */
-	swigobject_doc, 	            /* tp_doc */
-	0,                                  /* tp_traverse */
-	0,                                  /* tp_clear */
-	(richcmpfunc)SwigPyObject_richcompare,           /* tp_richcompare */
-	0,                                  /* tp_weaklistoffset */
+      (reprfunc)SwigPyObject_repr,          /* tp_repr */
+      &SwigPyObject_as_number,              /* tp_as_number */
+      0,                                    /* tp_as_sequence */
+      0,                                    /* tp_as_mapping */
+      (hashfunc)0,                          /* tp_hash */
+      (ternaryfunc)0,                       /* tp_call */
+      (reprfunc)SwigPyObject_str,           /* tp_str */
+      PyObject_GenericGetAttr,              /* tp_getattro */
+      0,                                    /* tp_setattro */
+      0,                                    /* tp_as_buffer */
+      Py_TPFLAGS_DEFAULT,                   /* tp_flags */
+      swigobject_doc,                       /* tp_doc */
+      0,                                    /* tp_traverse */
+      0,                                    /* tp_clear */
+      (richcmpfunc)SwigPyObject_richcompare,/* tp_richcompare */
+      0,                                    /* tp_weaklistoffset */
 #if PY_VERSION_HEX >= 0x02020000
-	0,                                  /* tp_iter */
-	0,                                  /* tp_iternext */
-	swigobject_methods,		    /* tp_methods */
-	0,			            /* tp_members */
-	0,				    /* tp_getset */
-	0,			            /* tp_base */
-	0,				    /* tp_dict */
-	0,				    /* tp_descr_get */
-	0,				    /* tp_descr_set */
-	0,				    /* tp_dictoffset */
-	0,				    /* tp_init */
-	0,				    /* tp_alloc */
-	0,			            /* tp_new */
-	0,	                            /* tp_free */
-	0,                                  /* tp_is_gc */
-	0,				    /* tp_bases */
-	0,				    /* tp_mro */
-	0,				    /* tp_cache */
-	0,				    /* tp_subclasses */
-	0,				    /* tp_weaklist */
+      0,                                    /* tp_iter */
+      0,                                    /* tp_iternext */
+      swigobject_methods,                   /* tp_methods */
+      0,                                    /* tp_members */
+      0,                                    /* tp_getset */
+      0,                                    /* tp_base */
+      0,                                    /* tp_dict */
+      0,                                    /* tp_descr_get */
+      0,                                    /* tp_descr_set */
+      0,                                    /* tp_dictoffset */
+      0,                                    /* tp_init */
+      0,                                    /* tp_alloc */
+      0,                                    /* tp_new */
+      0,                                    /* tp_free */
+      0,                                    /* tp_is_gc */
+      0,                                    /* tp_bases */
+      0,                                    /* tp_mro */
+      0,                                    /* tp_cache */
+      0,                                    /* tp_subclasses */
+      0,                                    /* tp_weaklist */
 #endif
 #if PY_VERSION_HEX >= 0x02030000
-	0,                                  /* tp_del */
+      0,                                    /* tp_del */
 #endif
 #if PY_VERSION_HEX >= 0x02060000
-	0,                                  /* tp_version */
+      0,                                    /* tp_version */
 #endif
 #ifdef COUNT_ALLOCS
-	0,0,0,0                             /* tp_alloc -> tp_next */
+      0,0,0,0                               /* tp_alloc -> tp_next */
 #endif
-      };
+    };
     swigpyobject_type = tmp;
     /* for Python 3 we already assigned ob_type in PyVarObject_HEAD_INIT() */
 #if PY_VERSION_HEX < 0x03000000
@@ -927,77 +926,76 @@ SwigPyPacked_TypeOnce(void) {
   static PyTypeObject swigpypacked_type;
   static int type_init = 0;
   if (!type_init) {
-    const PyTypeObject tmp
-      = {
-    /* PyObject header changed in Python 3 */
+    const PyTypeObject tmp = {
+      /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX>=0x03000000
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+      PyVarObject_HEAD_INIT(&PyType_Type, 0)
 #else
-	PyObject_HEAD_INIT(NULL)
-    0,				    /* ob_size */	
+      PyObject_HEAD_INIT(NULL)
+      0,                                    /* ob_size */
 #endif
-	(char *)"SwigPyPacked",		    /* tp_name */	
-	sizeof(SwigPyPacked),		    /* tp_basicsize */	
-	0,				    /* tp_itemsize */	
-	(destructor)SwigPyPacked_dealloc,   /* tp_dealloc */	
-	(printfunc)SwigPyPacked_print,	    /* tp_print */   	
-	(getattrfunc)0,			    /* tp_getattr */ 	
-	(setattrfunc)0,			    /* tp_setattr */ 	
+      (char *)"SwigPyPacked",               /* tp_name */
+      sizeof(SwigPyPacked),                 /* tp_basicsize */
+      0,                                    /* tp_itemsize */
+      (destructor)SwigPyPacked_dealloc,     /* tp_dealloc */
+      (printfunc)SwigPyPacked_print,        /* tp_print */
+      (getattrfunc)0,                       /* tp_getattr */
+      (setattrfunc)0,                       /* tp_setattr */
 #if PY_VERSION_HEX>=0x03000000
-    0, /* tp_reserved in 3.0.1 */
+      0, /* tp_reserved in 3.0.1 */
 #else
-    (cmpfunc)SwigPyPacked_compare,	    /* tp_compare */
+      (cmpfunc)SwigPyPacked_compare,        /* tp_compare */
 #endif
-	(reprfunc)SwigPyPacked_repr,	    /* tp_repr */
-	0,	                            /* tp_as_number */
-	0,				    /* tp_as_sequence */
-	0,				    /* tp_as_mapping */
-	(hashfunc)0,			    /* tp_hash */
-	(ternaryfunc)0,			    /* tp_call */
-	(reprfunc)SwigPyPacked_str,	    /* tp_str */
-	PyObject_GenericGetAttr,            /* tp_getattro */
-	0,				    /* tp_setattro */
-	0,		                    /* tp_as_buffer */
-	Py_TPFLAGS_DEFAULT,	            /* tp_flags */
-	swigpacked_doc, 	            /* tp_doc */
-	0,                                  /* tp_traverse */
-	0,                                  /* tp_clear */
-	0,                                  /* tp_richcompare */
-	0,                                  /* tp_weaklistoffset */
+      (reprfunc)SwigPyPacked_repr,          /* tp_repr */
+      0,                                    /* tp_as_number */
+      0,                                    /* tp_as_sequence */
+      0,                                    /* tp_as_mapping */
+      (hashfunc)0,                          /* tp_hash */
+      (ternaryfunc)0,                       /* tp_call */
+      (reprfunc)SwigPyPacked_str,           /* tp_str */
+      PyObject_GenericGetAttr,              /* tp_getattro */
+      0,                                    /* tp_setattro */
+      0,                                    /* tp_as_buffer */
+      Py_TPFLAGS_DEFAULT,                   /* tp_flags */
+      swigpacked_doc,                       /* tp_doc */
+      0,                                    /* tp_traverse */
+      0,                                    /* tp_clear */
+      0,                                    /* tp_richcompare */
+      0,                                    /* tp_weaklistoffset */
 #if PY_VERSION_HEX >= 0x02020000
-	0,                                  /* tp_iter */
-	0,                                  /* tp_iternext */
-	0,		                    /* tp_methods */
-	0,			            /* tp_members */
-	0,				    /* tp_getset */
-	0,			            /* tp_base */
-	0,				    /* tp_dict */
-	0,				    /* tp_descr_get */
-	0,				    /* tp_descr_set */
-	0,				    /* tp_dictoffset */
-	0,				    /* tp_init */
-	0,				    /* tp_alloc */
-	0,			            /* tp_new */
-	0, 	                            /* tp_free */
-        0,                                  /* tp_is_gc */
-	0,				    /* tp_bases */
-	0,				    /* tp_mro */
-	0,				    /* tp_cache */
-	0,				    /* tp_subclasses */
-	0,				    /* tp_weaklist */
+      0,                                    /* tp_iter */
+      0,                                    /* tp_iternext */
+      0,                                    /* tp_methods */
+      0,                                    /* tp_members */
+      0,                                    /* tp_getset */
+      0,                                    /* tp_base */
+      0,                                    /* tp_dict */
+      0,                                    /* tp_descr_get */
+      0,                                    /* tp_descr_set */
+      0,                                    /* tp_dictoffset */
+      0,                                    /* tp_init */
+      0,                                    /* tp_alloc */
+      0,                                    /* tp_new */
+      0,                                    /* tp_free */
+      0,                                    /* tp_is_gc */
+      0,                                    /* tp_bases */
+      0,                                    /* tp_mro */
+      0,                                    /* tp_cache */
+      0,                                    /* tp_subclasses */
+      0,                                    /* tp_weaklist */
 #endif
 #if PY_VERSION_HEX >= 0x02030000
-	0,                                  /* tp_del */
+      0,                                    /* tp_del */
 #endif
 #if PY_VERSION_HEX >= 0x02060000
-	0,                                  /* tp_version */
+      0,                                    /* tp_version */
 #endif
 #ifdef COUNT_ALLOCS
-	0,0,0,0                             /* tp_alloc -> tp_next */
+      0,0,0,0                               /* tp_alloc -> tp_next */
 #endif
-      };
+    };
     swigpypacked_type = tmp;
-    /* for Python 3 the ob_type already assigned in PyVarObject_HEAD_INIT() */
+    /* for Python 3 we already assigned ob_type in PyVarObject_HEAD_INIT() */
 #if PY_VERSION_HEX < 0x03000000
     swigpypacked_type.ob_type = &PyType_Type;
 #endif
