@@ -2534,13 +2534,13 @@ slot:
 
 <div class="code">
 <pre>
+%feature("python:slot", "tp_hash", functype="hashfunc") Cheese::cheeseHashFunc;
+
 class Cheese {
 public:
     Cheese (const char *name);
     long cheeseHashFunc () const;
 };
-
-%feature("python:slot", "tp_hash", functype="hashfunc") Cheese::cheeseHashFunc;
 </pre>
 </div>
 
