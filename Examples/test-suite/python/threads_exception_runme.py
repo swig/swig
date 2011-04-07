@@ -22,7 +22,6 @@ except RuntimeError,e:
 # Throwing builtin classes as exceptions not supported
 try:
   t.hosed()
-  pass
 except threads_exception.Exc,e:
   if e.code != 42:
     raise RuntimeError
