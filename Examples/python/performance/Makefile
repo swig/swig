@@ -10,6 +10,8 @@ include ../../Makefile
 
 SUBDIRS := constructor func hierarchy operator hierarchy_operator
 
+.PHONY : all $(SUBDIRS)
+
 all : $(SUBDIRS:%=%-build)
 	@for subdir in $(SUBDIRS); do \
 		echo Running $$subdir test... ; \
