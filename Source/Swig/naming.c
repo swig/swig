@@ -1620,10 +1620,12 @@ void Swig_name_inherit(String *base, String *derived) {
  * void Swig_name_decl()
  *
  * Return a stringified version of a C/C++ declaration without the return type.
- * The node passed in is expected to be a function. Some example return values:
+ * The node passed in is expected to be a function, constructor, destructor or
+ * variable. Some example return values:
  *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
  *   "MyNameSpace::ABC::constmethod(int) const"
+ *   "MyNameSpace::ABC::variablename"
  * 
  * ----------------------------------------------------------------------------- */
 
@@ -1655,7 +1657,10 @@ String *Swig_name_decl(Node *n) {
     Printf(qname, "%s::", qualifier);
   Printf(qname, "%s", SwigType_str(name, 0));
 
-  decl = NewStringf("%s(%s)%s", qname, ParmList_errorstr(Getattr(n, "parms")), SwigType_isconst(Getattr(n, "decl")) ? " const" : "");
+  if (checkAttribute(n, "kind", "variable"))
+    decl = NewStringf("%s", qname);
+  else
+    decl = NewStringf("%s(%s)%s", qname, ParmList_errorstr(Getattr(n, "parms")), SwigType_isconst(Getattr(n, "decl")) ? " const" : "");
 
   Delete(name);
   Delete(qualifier);
@@ -1668,7 +1673,8 @@ String *Swig_name_decl(Node *n) {
  * void Swig_name_fulldecl()
  *
  * Return a stringified version of a C/C++ declaration including the return type.
- * The node passed in is expected to be a function. Some example return values:
+ * The node passed in is expected to be a function, constructor or destructor.
+ * Some example return values:
  *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
  *   "int * MyNameSpace::ABC::constmethod(int) const"
