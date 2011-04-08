@@ -516,10 +516,8 @@ public:
 	  py3 = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-builtin") == 0) {
-	  if (CPlusPlus) {
-	    builtin = 1;
-	    Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
-	  }
+	  builtin = 1;
+	  Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
 	  Swig_mark_arg(i);
 	}
 
@@ -2856,6 +2854,7 @@ public:
     String *value = rawval ? rawval : Getattr(n, "value");
     String *tm;
     int have_tm = 0;
+    int have_builtin_symname = 0;
 
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
@@ -2878,7 +2877,9 @@ public:
       have_tm = 1;
     }
 
-    if (builtin && in_class) {
+
+    if (builtin && in_class && Getattr(n, "pybuiltin:symname")) {
+      have_builtin_symname = 1;
       Swig_require("builtin_constantWrapper", n, "*sym:name", "pybuiltin:symname", NIL);
       Setattr(n, "sym:name", Getattr(n, "pybuiltin:symname"));
     }
@@ -2892,7 +2893,7 @@ public:
       have_tm = 1;
     }
 
-    if (builtin && in_class)
+    if (have_builtin_symname)
       Swig_restore(n);
 
     if (!have_tm) {
@@ -3266,7 +3267,7 @@ public:
       String *gspair = NewStringf("%s_%s_getset", symname, memname);
       Printf(f, "static SwigPyGetSet %s = { %s, %s };\n", gspair, getter ? getter : "0", setter ? setter : "0");
       String *entry =
-	  NewStringf("{ const_cast<char*>(\"%s\"), (getter) %s, (setter) %s, const_cast<char*>(\"%s.%s\"), (void*) &%s }\n", memname, getter_closure,
+	  NewStringf("{ (char*) \"%s\", (getter) %s, (setter) %s, (char*)\"%s.%s\", (void*) &%s }\n", memname, getter_closure,
 		     setter_closure, name, memname, gspair);
       if (GetFlag(mgetset, "static")) {
 	Printf(f, "static PyGetSetDef %s_def = %s;\n", gspair, entry);
