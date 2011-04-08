@@ -513,7 +513,9 @@ String *SwigType_namestr(const SwigType *t) {
 
 String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
   String *result;
-  String *element = 0, *nextelement;
+  String *element = 0;
+  String *nextelement;
+  String *forwardelement;
   List *elements;
   int nelements, i;
 
@@ -536,8 +538,14 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
   for (i = 0; i < nelements; i++) {
     if (i < (nelements - 1)) {
       nextelement = Getitem(elements, i + 1);
+      forwardelement = nextelement;
+      if (SwigType_isqualifier(nextelement)) {
+	if (i < (nelements - 2))
+	  forwardelement = Getitem(elements, i + 2);
+      }
     } else {
       nextelement = 0;
+      forwardelement = 0;
     }
     if (SwigType_isqualifier(element)) {
       DOH *q = 0;
@@ -547,7 +555,7 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
       Delete(q);
     } else if (SwigType_ispointer(element)) {
       Insert(result, 0, "*");
-      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+      if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
@@ -556,14 +564,14 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
       q = SwigType_parm(element);
       Insert(result, 0, "::*");
       Insert(result, 0, q);
-      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+      if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
       Delete(q);
     } else if (SwigType_isreference(element)) {
       Insert(result, 0, "&");
-      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+      if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
@@ -728,7 +736,9 @@ String *SwigType_lstr(const SwigType *s, const_String_or_char_ptr id) {
 
 String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   String *result, *cast;
-  String *element = 0, *nextelement;
+  String *element = 0;
+  String *nextelement;
+  String *forwardelement;
   SwigType *td, *tc = 0;
   const SwigType *rs;
   List *elements;
@@ -773,8 +783,14 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   for (i = 0; i < nelements; i++) {
     if (i < (nelements - 1)) {
       nextelement = Getitem(elements, i + 1);
+      forwardelement = nextelement;
+      if (SwigType_isqualifier(nextelement)) {
+	if (i < (nelements - 2))
+	  forwardelement = Getitem(elements, i + 2);
+      }
     } else {
       nextelement = 0;
+      forwardelement = 0;
     }
     if (SwigType_isqualifier(element)) {
       DOH *q = 0;
@@ -785,7 +801,7 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       clear = 0;
     } else if (SwigType_ispointer(element)) {
       Insert(result, 0, "*");
-      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+      if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
@@ -796,14 +812,14 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       q = SwigType_parm(element);
       Insert(result, 0, q);
       Delete(q);
-      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+      if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
       firstarray = 0;
     } else if (SwigType_isreference(element)) {
       Insert(result, 0, "&");
-      if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
+      if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
@@ -855,8 +871,6 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   if (name) {
     if (!isfunction) {
       if (isreference) {
-	if (isarray)
-	  Clear(cast);
 	Append(cast, "*");
       }
     }
