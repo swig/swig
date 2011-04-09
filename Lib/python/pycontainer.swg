@@ -13,6 +13,12 @@
 
 %{
 #include <iostream>
+
+#if PY_VERSION_HEX >= 0x03020000
+# define SWIGPY_SLICE_ARG(obj) ((PyObject*) (obj))
+#else
+# define SWIGPY_SLICE_ARG(obj) ((PySliceObject*) (obj))
+#endif
 %}
 
 
@@ -689,7 +695,7 @@ namespace swig
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
         return NULL;
       }
-      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
+      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), self->size(), &i, &j, &step);
       return swig::getslice(self, i, j);
     }
 
@@ -700,7 +706,7 @@ namespace swig
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
         return;
       }
-      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
+      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), self->size(), &i, &j, &step);
       swig::setslice(self, i, j, v);
     }
 
@@ -711,7 +717,7 @@ namespace swig
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
         return;
       }
-      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
+      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), self->size(), &i, &j, &step);
       swig::delslice(self, i,j);
     }
 
@@ -722,7 +728,7 @@ namespace swig
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
         return;
       }
-      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
+      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), self->size(), &i, &j, &step);
       swig::delslice(self, i,j);
     }
      

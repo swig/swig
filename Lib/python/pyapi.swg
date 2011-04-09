@@ -32,14 +32,17 @@ typedef struct swig_const_info {
  * Wrapper of PyInstanceMethod_New() used in Python 3
  * It is exported to the generated module, used for -fastproxy
  * ----------------------------------------------------------------------------- */
+#if PY_VERSION_HEX >= 0x03000000
+SWIGRUNTIME PyObject* SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func)
+{
+  return PyInstanceMethod_New(func);
+}
+#else
 SWIGRUNTIME PyObject* SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *SWIGUNUSEDPARM(func))
 {
-#if PY_VERSION_HEX >= 0x03000000
-  return PyInstanceMethod_New(func);
-#else
   return NULL;
-#endif
 }
+#endif
 
 #ifdef __cplusplus
 #if 0

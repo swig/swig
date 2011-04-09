@@ -199,3 +199,10 @@ typedef struct {
 #if PY_VERSION_HEX < 0x02030000
 typedef destructor freefunc;
 #endif
+
+#if ((PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION > 6) || \
+     (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION > 0) || \
+     (PY_MAJOR_VERSION > 3))
+# define SWIGPY_USE_CAPSULE
+# define SWIGPY_CAPSULE_NAME ((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION ".type_pointer_capsule" SWIG_TYPE_TABLE_NAME)
+#endif
