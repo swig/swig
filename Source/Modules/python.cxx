@@ -948,10 +948,6 @@ public:
     Append(methods, "};\n");
     Printf(f_wrappers, "%s\n", methods);
 
-    Printf(f_wrappers, "#ifdef __cplusplus\n");
-    Printf(f_wrappers, "} /* extern \"C\" */\n");
-    Printf(f_wrappers, "#endif\n");
-
     if (builtin) {
       Dump(f_builtins, f_wrappers);
     }
@@ -968,6 +964,10 @@ public:
     Printf(f_init, "  return;\n");
     Printf(f_init, "#endif\n");
     Printf(f_init, "}\n");
+
+    Printf(f_wrappers, "#ifdef __cplusplus\n");
+    Printf(f_wrappers, "}\n");
+    Printf(f_wrappers, "#endif\n");
 
     if (shadow) {
       Swig_banner_target_lang(f_shadow_py, "#");
