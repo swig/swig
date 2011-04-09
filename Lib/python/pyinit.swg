@@ -338,11 +338,28 @@ SWIG_init(void) {
 #endif
 
 #if defined(SWIGPYTHON_BUILTIN)
-  PyTypeObject *builtin_pytype = 0;
-  int builtin_base_count = 0;
-  swig_type_info *builtin_basetype = 0;
-  PyObject *tuple = NULL;
-  PyGetSetDescrObject *static_getset = NULL;
+  static SwigPyClientData SwigPyObject_clientdata = {0, 0, 0, 0, 0, 0, 0};
+  static PyGetSetDef this_getset_def = {
+    (char *)"this", &SwigPyBuiltin_ThisClosure, NULL, NULL, NULL
+  };
+  static SwigPyGetSet thisown_getset_closure = {
+    (PyCFunction) SwigPyObject_own,
+    (PyCFunction) SwigPyObject_own
+  };
+  static PyGetSetDef thisown_getset_def = {
+    (char *)"thisown", SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
+  };
+  PyObject *metatype_args;
+  PyTypeObject *builtin_pytype;
+  int builtin_base_count;
+  swig_type_info *builtin_basetype;
+  PyObject *tuple;
+  PyGetSetDescrObject *static_getset;
+  PyTypeObject *metatype;
+  SwigPyClientData *cd;
+  PyObject *public_interface, *public_symbol;
+  PyObject *this_descr;
+  PyObject *thisown_descr;
   int i;
 
   (void)builtin_pytype;
@@ -352,9 +369,9 @@ SWIG_init(void) {
   (void)static_getset;
 
   /* metatype is used to implement static member variables. */
-  PyObject *metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
+  metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
   assert(metatype_args);
-  PyTypeObject *metatype = (PyTypeObject *) PyType_Type.tp_call((PyObject *) &PyType_Type, metatype_args, NULL);
+  metatype = (PyTypeObject *) PyType_Type.tp_call((PyObject *) &PyType_Type, metatype_args, NULL);
   assert(metatype);
   Py_DECREF(metatype_args);
   metatype->tp_setattro = (setattrofunc) &SwigPyObjectType_setattro;
@@ -374,10 +391,9 @@ SWIG_init(void) {
   SWIG_InitializeModule(0);
 
 #ifdef SWIGPYTHON_BUILTIN
-  static SwigPyClientData SwigPyObject_clientdata = {0, 0, 0, 0, 0, 0, 0};
   SwigPyObject_stype = SWIG_MangledTypeQuery("_p_SwigPyObject");
   assert(SwigPyObject_stype);
-  SwigPyClientData *cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
+  cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
   if (!cd) {
     SwigPyObject_stype->clientdata = &SwigPyObject_clientdata;
     SwigPyObject_clientdata.pytype = SwigPyObject_TypeOnce();
@@ -391,25 +407,15 @@ SWIG_init(void) {
   }
 
   /* All objects have a 'this' attribute */
-  static PyGetSetDef this_getset_def = {
-    (char *)"this", SwigPyBuiltin_ThisClosure, NULL, NULL, NULL
-  };
-  PyObject *this_descr = PyDescr_NewGetSet(SwigPyObject_type(), &this_getset_def);
+  this_descr = PyDescr_NewGetSet(SwigPyObject_type(), &this_getset_def);
   (void)this_descr;
 
   /* All objects have a 'thisown' attribute */
-  static SwigPyGetSet thisown_getset_closure = {
-    (PyCFunction) SwigPyObject_own,
-    (PyCFunction) SwigPyObject_own
-  };
-  static PyGetSetDef thisown_getset_def = {
-    (char *)"thisown", SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
-  };
-  PyObject *thisown_descr = PyDescr_NewGetSet(SwigPyObject_type(), &thisown_getset_def);
+  thisown_descr = PyDescr_NewGetSet(SwigPyObject_type(), &thisown_getset_def);
   (void)thisown_descr;
 
-  PyObject *public_interface = PyList_New(0);
-  PyObject *public_symbol = 0;
+  public_interface = PyList_New(0);
+  public_symbol = 0;
   (void)public_symbol;
 
   PyDict_SetItemString(md, "__all__", public_interface);

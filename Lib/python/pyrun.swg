@@ -216,6 +216,8 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
 #define SWIG_STATIC_POINTER(var)  var = 0; if (!var) var
 #endif
 
+#define SWIG_PYTHON_CAPSULE_NAME (char*) "swig_runtime_data" SWIG_RUNTIME_VERSION ".type_pointer" SWIG_TYPE_TABLE_NAME
+
 /* -----------------------------------------------------------------------------
  * Pointer declarations
  * ----------------------------------------------------------------------------- */
@@ -503,8 +505,9 @@ SWIGRUNTIME PyTypeObject* SwigPyObject_TypeOnce(void);
 static swig_type_info *SwigPyObject_stype = 0;
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_type(void) {
+    SwigPyClientData *cd;
     assert(SwigPyObject_stype);
-    SwigPyClientData *cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
+    cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
     assert(cd);
     assert(cd->pytype);
     return cd->pytype;
@@ -1477,8 +1480,12 @@ SWIG_Python_GetModule(void) {
 #ifdef SWIG_LINK_RUNTIME
     type_pointer = SWIG_ReturnGlobalTypeList((void *)0);
 #else
+# if PY_VERSION_HEX >= 0x02070000
+    type_pointer = PyCapsule_Import(SWIG_PYTHON_CAPSULE_NAME, 0);
+# else
     type_pointer = PyCObject_Import((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION,
 				    (char*)"type_pointer" SWIG_TYPE_TABLE_NAME);
+# endif
     if (PyErr_Occurred()) {
       PyErr_Clear();
       type_pointer = (void *)0;
@@ -1521,9 +1528,15 @@ PyModule_AddObject(PyObject *m, char *name, PyObject *o)
 #endif
 
 SWIGRUNTIME void
+#if PY_VERSION_HEX >= 0x02070000
+SWIG_Python_DestroyModule(PyObject *obj)
+{
+  swig_module_info *swig_module = (swig_module_info *) PyCapsule_GetPointer(obj, SWIG_PYTHON_CAPSULE_NAME);
+#else
 SWIG_Python_DestroyModule(void *vptr)
 {
   swig_module_info *swig_module = (swig_module_info *) vptr;
+#endif
   swig_type_info **types = swig_module->types;
   size_t i;
   for (i =0; i < swig_module->size; ++i) {
@@ -1546,7 +1559,11 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
   static PyMethodDef swig_empty_runtime_method_table[] = { {NULL, NULL, 0, NULL} }; /* Sentinel */
   PyObject *module = Py_InitModule((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION, swig_empty_runtime_method_table);
 #endif
+#if PY_VERSION_HEX >= 0x02070000
+  PyObject *pointer = PyCapsule_New((void *) swig_module, SWIG_PYTHON_CAPSULE_NAME, SWIG_Python_DestroyModule);
+#else
   PyObject *pointer = PyCObject_FromVoidPtr((void *) swig_module, SWIG_Python_DestroyModule);
+#endif
   if (pointer && module) {
     PyModule_AddObject(module, (char*)"type_pointer" SWIG_TYPE_TABLE_NAME, pointer);
   } else {
@@ -1569,12 +1586,20 @@ SWIG_Python_TypeQuery(const char *type)
   PyObject *obj = PyDict_GetItem(cache, key);
   swig_type_info *descriptor;
   if (obj) {
+#if PY_VERSION_HEX >= 0x02070000
+    descriptor = (swig_type_info *) PyCapsule_GetPointer(obj, NULL);
+#else
     descriptor = (swig_type_info *) PyCObject_AsVoidPtr(obj);
+#endif
   } else {
     swig_module_info *swig_module = SWIG_Python_GetModule();
     descriptor = SWIG_TypeQueryModule(swig_module, swig_module, type);
     if (descriptor) {
+#if PY_VERSION_HEX >= 0x02070000
+      obj = PyCapsule_New((void*) descriptor, NULL, NULL);
+#else
       obj = PyCObject_FromVoidPtr(descriptor, NULL);
+#endif
       PyDict_SetItem(cache, key, obj);
       Py_DECREF(obj);
     }
