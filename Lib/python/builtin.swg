@@ -188,6 +188,10 @@ wrapper##_closure(PyObject *a) {		\
     return result;				\
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 SWIGINTERN int
 SwigPyBuiltin_BadInit(PyObject *self, PyObject *SWIGUNUSEDPARM(args), PyObject *SWIGUNUSEDPARM(kwds)) {
   PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", self->ob_type->tp_name);
@@ -471,3 +475,7 @@ SwigPyBuiltin_SetMetaType (PyTypeObject *type, PyTypeObject *metatype)
     type->ob_type = metatype;
 #endif
 }
+
+#ifdef __cplusplus
+}
+#endif

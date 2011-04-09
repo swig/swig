@@ -71,9 +71,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#if 0
-} /* cc-mode */
-#endif
 #endif
 
 /* Object support */
@@ -683,8 +680,5 @@ SWIG_Tcl_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char
 }
 
 #ifdef __cplusplus
-#if 0
-{ /* cc-mode */
-#endif
 }
 #endif

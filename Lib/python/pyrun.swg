@@ -231,9 +231,6 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
 
 #ifdef __cplusplus
 extern "C" {
-#if 0
-} /* cc-mode */
-#endif
 #endif
 
 /*  How to access Py_None */
@@ -1528,11 +1525,13 @@ PyModule_AddObject(PyObject *m, char *name, PyObject *o)
 SWIGRUNTIME void
 #ifdef SWIGPY_USE_CAPSULE
 SWIG_Python_DestroyModule(PyObject *obj)
-{
-  swig_module_info *swig_module = (swig_module_info *) PyCapsule_GetPointer(obj, SWIGPY_CAPSULE_NAME);
 #else
 SWIG_Python_DestroyModule(void *vptr)
+#endif
 {
+#ifdef SWIGPY_USE_CAPSULE
+  swig_module_info *swig_module = (swig_module_info *) PyCapsule_GetPointer(obj, SWIGPY_CAPSULE_NAME);
+#else
   swig_module_info *swig_module = (swig_module_info *) vptr;
 #endif
   swig_type_info **types = swig_module->types;
@@ -1561,14 +1560,17 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
   PyObject *pointer = PyCapsule_New((void *) swig_module, SWIGPY_CAPSULE_NAME, SWIG_Python_DestroyModule);
   if (pointer && module) {
     PyModule_AddObject(module, (char*)"type_pointer_capsule" SWIG_TYPE_TABLE_NAME, pointer);
+  } else {
+    Py_XDECREF(pointer);
+  }
 #else
   PyObject *pointer = PyCObject_FromVoidPtr((void *) swig_module, SWIG_Python_DestroyModule);
   if (pointer && module) {
     PyModule_AddObject(module, (char*)"type_pointer" SWIG_TYPE_TABLE_NAME, pointer);
-#endif
   } else {
     Py_XDECREF(pointer);
   }
+#endif
 }
 
 /* The python cached type query */
@@ -1730,14 +1732,15 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
     name = PyUnicode_Decode(PyString_AsString(name), PyString_Size(name), NULL, NULL);
     if (!name)
       return -1;
-  } else if (!PyUnicode_Check(name)) {
+  } else if (!PyUnicode_Check(name))
 #else
-  if (!PyString_Check(name)) {
+  if (!PyString_Check(name))
 #endif
-      PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%.200s'", name->ob_type->tp_name);
-      return -1;
+  {
+    PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%.200s'", name->ob_type->tp_name);
+    return -1;
   } else {
-      Py_INCREF(name);
+    Py_INCREF(name);
   }
 
   if (!tp->tp_dict) {
@@ -1770,8 +1773,5 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 
 
 #ifdef __cplusplus
-#if 0
-{ /* cc-mode */
-#endif
 }
 #endif

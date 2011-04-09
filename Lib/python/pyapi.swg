@@ -4,9 +4,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#if 0
-} /* cc-mode */
-#endif
 #endif
 
 /* -----------------------------------------------------------------------------
@@ -45,9 +42,6 @@ SWIGRUNTIME PyObject* SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), 
 #endif
 
 #ifdef __cplusplus
-#if 0
-{ /* cc-mode */
-#endif
 }
 #endif
 
