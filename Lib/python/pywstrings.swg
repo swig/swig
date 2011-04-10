@@ -3,8 +3,6 @@
  * ------------------------------------------------------------ */
 
 %{
-#include <iostream>
-
 #if PY_VERSION_HEX >= 0x03020000
 # define SWIGPY_UNICODE_ARG(obj) ((PyObject*) (obj))
 #else
