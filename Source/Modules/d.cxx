@@ -3607,20 +3607,7 @@ private:
    * (i.e. typemap-) specified import statements are handeled seperately.
    * --------------------------------------------------------------------------- */
   void requireDType(const String *nspace, const String *symname) {
-    String *dmodule;
-    if (nspace) {
-      dmodule = NewStringf("%s.", nspace);
-    } else {
-      dmodule = NewString("");
-    }
-
-    if (split_proxy_dmodule) {
-      Printv(dmodule, symname, NIL);
-    } else {
-      String *inner = createLastNamespaceName(nspace);
-      Printv(dmodule, inner, NIL);
-      Delete(inner);
-    }
+    String *dmodule = createModuleName(nspace, symname);
 
     if (!inProxyModule(dmodule)) {
       String *import = createImportStatement(dmodule);
@@ -3684,9 +3671,9 @@ private:
    * Determines if the specified proxy type is declared in the currently
    * processed proxy D module.
    *
-   * This function is used to determine if fully qualified type names have to be
-   * used (package, module and type name). If the split proxy mode is not used,
-   * this solely depends on whether the type is in the current namespace or.
+   * This function is used to determine if fully qualified type names have to
+   * be used (package, module and type name). If the split proxy mode is not
+   * used, this solely depends on whether the type is in the current namespace.
    * --------------------------------------------------------------------------- */
   bool inProxyModule(const String *type_name) const {
     if (!split_proxy_dmodule) {
@@ -4124,21 +4111,20 @@ private:
 	} else {
 	  type_name = NewStringf("%s%s.%s", package, module, class_name);
 	}
+        Delete(module);
       } else {
 	// SWIG does not know anything about the type (after resolving typedefs).
 	// Just mangle the type name string like $descriptor(type) would do.
 	String *descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(type));
 	requireDType(NULL, descriptor);
 
-	String *module = NULL;
-	if (split_proxy_dmodule) {
-	  module = Copy(descriptor);
-	}
+	String *module = createModuleName(NULL, descriptor);
 	if (inProxyModule(module)) {
 	  type_name = Copy(descriptor);
 	} else {
 	  type_name = NewStringf("%s%s.%s", package, module, descriptor);
 	}
+	Delete(module);
 
 	// Add to hash table so that a type wrapper class can be created later.
 	Setattr(unknown_types, descriptor, type);
@@ -4172,7 +4158,7 @@ private:
       if (split_proxy_dmodule) {
 	module = Copy(type_name);
       } else {
-	module = proxy_dmodule_name;
+	module = Copy(proxy_dmodule_name);
       }
     }
     return module;

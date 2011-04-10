@@ -4,6 +4,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.4 (in progress)
 ===========================
+2011-04-10: klickverbot
+            [D] nspace: Fixed referencing types in the root namespace when
+            not in split proxy mode.
 
 2011-04-07: wsfulton
             Fix wrapping of const array typedefs which were generating uncompileable code as
