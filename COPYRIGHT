@@ -15,6 +15,7 @@ Active SWIG Developers:
  Olly Betts (olly@survex.com)                           (PHP)
  Joseph Wang (joequant@gmail.com)                       (R)
  Xavier Delacour (xavier.delacour@gmail.com)            (Octave)
+ David Nadlinger (code@klickverbot.at)                  (D)
 
 Past SWIG developers and major contributors include:
  Dave Beazley (dave-swig@dabeaz.com)                    (SWIG core, Python, Tcl, Perl)
@@ -68,7 +69,7 @@ Past contributors include:
 
 Past students:
  Songyan Feng (Chicago).
- Xinghua Shi (Chicago). 
+ Xinghua Shi (Chicago).
  Jing Cao (Chicago).
  Aquinas Hobor (Chicago).
 
@@ -98,5 +99,5 @@ Mike Weiblen, Paul Brannan, Ram Bhamidipaty, Reinhard Fobbe, Rich Wales,
 Richard Salz, Roy Lecates, Rudy Albachten, Scott Drummonds
 Scott Michel, Shaun Lowry, Steve Galser, Tarn Weisner Burton,
 Thomas Weidner, Tony Seward, Uwe Steinmann, Vadim Chugunov, Wyss Clemens,
-Zhong Ren. 
+Zhong Ren.
 
