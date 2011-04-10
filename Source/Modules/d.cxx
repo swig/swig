@@ -906,6 +906,17 @@ public:
     // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
 
+    // Deal with enum values that are not int
+    int swigtype = SwigType_type(Getattr(n, "type"));
+    if (swigtype == T_BOOL) {
+      const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
+      Setattr(n, "enumvalue", val);
+    } else if (swigtype == T_CHAR) {
+      String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
+      Setattr(n, "enumvalue", val);
+      Delete(val);
+    }
+
     // Emit the enum item.
     {
       if (!GetFlag(n, "firstenumitem"))
