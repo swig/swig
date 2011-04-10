@@ -1078,7 +1078,7 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
   }
 # endif
   return NULL;
-#endif
+#else
 
   obj = 0;
 
@@ -1121,6 +1121,7 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     return SWIG_Python_GetSwigThis(obj);
   }
   return (SwigPyObject *)obj;
+#endif
 }
 
 /* Acquire a pointer value */

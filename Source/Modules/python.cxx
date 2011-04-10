@@ -3241,7 +3241,7 @@ public:
     // have a private/protected destructor has an implicit public destructor.
     String *tp_dealloc = Getattr(n, "feature:python:tp_dealloc");
     if (tp_dealloc) {
-      Printf(f, "SWIGPY_DESTRUCTOR_CLOSURE(%s);\n", tp_dealloc);
+      Printf(f, "SWIGPY_DESTRUCTOR_CLOSURE(%s)\n", tp_dealloc);
       tp_dealloc = NewStringf("%s_closure", tp_dealloc);
     } else {
       tp_dealloc = NewString("SwigPyBuiltin_BadDealloc");
