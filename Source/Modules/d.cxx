@@ -3696,7 +3696,7 @@ private:
       return result;
     }
 
-    if (!Len(proxy_class_qname)) {
+    if (!is_wrapping_class()) {
       return false;
     }
 
