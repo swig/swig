@@ -7,17 +7,24 @@ Version 2.0.4 (in progress)
 2011-04-11: wsfulton
             [Tcl] Apply patch #3284326 from Colin McDonald to fix some compiler warnings.
 
+2011-04-11: szager
+	    Fixed PyVarObject_HEAD_INIT to eliminate VC++ compiler errors about
+	    static initialization of struct members with pointers.
+
 2011-04-10: klickverbot
             [D] nspace: Fixed referencing types in the root namespace when
             not in split proxy mode.
 
+2011-04-09: szager
+	    Applied patch #1932484: migrate PyCObject to PyCapsule.
+
+2011-04-09: szager
+	    Added preprocessor guards for python functions PyUnicode_AsWideChar and
+	    PySlice_GetIndices, which changed signatures in python3.2.
+
 2011-04-07: wsfulton
             Fix wrapping of const array typedefs which were generating uncompileable code as
             reported by Karl Wette.
-
-2011-04-01: wsfulton
-            Add in missing wrappers for friend functions for some target languages, mostly
-            the non-scripting languages like Java and C#.
 
 2011-04-03: szager
 	    Fixed the behavior of %pythonnondynamic to conform to the spec in Lib/pyuserdir.swg.
@@ -29,13 +36,7 @@ Version 2.0.4 (in progress)
 	    A small test suite designed to demonstrate the performance gain is in
 	    Examples/python/performance.
 
-2011-04-09: szager
-	    Applied patch #1932484: migrate PyCObject to PyCapsule.
+2011-04-01: wsfulton
+            Add in missing wrappers for friend functions for some target languages, mostly
+            the non-scripting languages like Java and C#.
 
-2011-04-09: szager
-	    Added preprocessor guards for python functions PyUnicode_AsWideChar and
-	    PySlice_GetIndices, which changed signatures in python3.2.
-
-2011-04-11: szager
-	    Fixed PyVarObject_HEAD_INIT to eliminate VC++ compiler errors about
-	    static initialization of struct members with pointers.
