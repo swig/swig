@@ -4,6 +4,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.4 (in progress)
 ===========================
+2011-04-11: wsfulton
+            [Tcl] Apply patch #3284326 from Colin McDonald to fix some compiler warnings.
+
 2011-04-10: klickverbot
             [D] nspace: Fixed referencing types in the root namespace when
             not in split proxy mode.

@@ -42,7 +42,7 @@ extern "C" {
 
 SWIGINTERN void
 SWIG_Tcl_InstallConstants(Tcl_Interp *interp, swig_const_info constants[]) {
-  int i;
+  size_t i;
   Tcl_Obj *obj;
 
   if (!swigconstTableinit) {
@@ -70,8 +70,8 @@ SWIG_Tcl_InstallConstants(Tcl_Interp *interp, swig_const_info constants[]) {
 /* Create fast method lookup tables */
 
 SWIGINTERN void
-SWIG_Tcl_InstallMethodLookupTables(Tcl_Interp *interp) {
-  int i;
+SWIG_Tcl_InstallMethodLookupTables(void) {
+  size_t i;
 
   for (i = 0; i < swig_module.size; ++i) {
     swig_type_info *type = swig_module.type_initial[i];
@@ -98,7 +98,7 @@ SWIG_Tcl_InstallMethodLookupTables(Tcl_Interp *interp) {
  * -----------------------------------------------------------------------------*/
 
 SWIGEXPORT int SWIG_init(Tcl_Interp *interp) {
-  int i;
+  size_t i;
   if (interp == 0) return TCL_ERROR;
 #ifdef USE_TCL_STUBS
   /* (char*) cast is required to avoid compiler warning/error for Tcl < 8.4. */
@@ -135,7 +135,7 @@ SWIGEXPORT int SWIG_init(Tcl_Interp *interp) {
   }
 
   SWIG_Tcl_InstallConstants(interp, swig_constants);
-  SWIG_Tcl_InstallMethodLookupTables(interp);
+  SWIG_Tcl_InstallMethodLookupTables();
 
 %}
 
