@@ -3337,7 +3337,7 @@ public:
     // PyTypeObject ht_type
     Printf(f, "  {\n");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    Printv(f, "    PyVarObject_HEAD_INIT(&PyType_Type, 0)\n", NIL);
+    Printv(f, "    PyVarObject_HEAD_INIT(NULL, 0)\n", NIL);
     Printv(f, "#else\n", NIL);
     Printf(f, "    PyObject_HEAD_INIT(NULL)\n");
     printSlot(f, getSlot(), "ob_size");

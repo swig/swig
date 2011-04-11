@@ -25,3 +25,14 @@ Version 2.0.4 (in progress)
 	    in python wrappers.  For full details and limitations, refer to Doc/Manual/Python.html.
 	    A small test suite designed to demonstrate the performance gain is in
 	    Examples/python/performance.
+
+2011-04-09: szager
+	    Applied patch #1932484: migrate PyCObject to PyCapsule.
+
+2011-04-09: szager
+	    Added preprocessor guards for python functions PyUnicode_AsWideChar and
+	    PySlice_GetIndices, which changed signatures in python3.2.
+
+2011-04-11: szager
+	    Fixed PyVarObject_HEAD_INIT to eliminate VC++ compiler errors about
+	    static initialization of struct members with pointers.

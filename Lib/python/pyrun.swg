@@ -742,7 +742,7 @@ SwigPyObject_TypeOnce(void) {
     const PyTypeObject tmp = {
       /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
-      PyVarObject_HEAD_INIT(&PyType_Type, 0)
+      PyVarObject_HEAD_INIT(NULL, 0)
 #else
       PyObject_HEAD_INIT(NULL)
       0,                                    /* ob_size */
@@ -812,11 +812,13 @@ SwigPyObject_TypeOnce(void) {
 #endif
     };
     swigpyobject_type = tmp;
-    /* for Python 3 we already assigned ob_type in PyVarObject_HEAD_INIT() */
-#if PY_VERSION_HEX < 0x03000000
-    swigpyobject_type.ob_type = &PyType_Type;
-#endif
     type_init = 1;
+#if PY_VERSION_HEX < 0x02020000
+    swigpyobject_type.ob_type = &PyType_Type;
+#else
+    if (PyType_Ready(&swigpyobject_type) < 0)
+      return NULL;
+#endif
   }
   return &swigpyobject_type;
 }
@@ -923,7 +925,7 @@ SwigPyPacked_TypeOnce(void) {
     const PyTypeObject tmp = {
       /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX>=0x03000000
-      PyVarObject_HEAD_INIT(&PyType_Type, 0)
+      PyVarObject_HEAD_INIT(NULL, 0)
 #else
       PyObject_HEAD_INIT(NULL)
       0,                                    /* ob_size */
@@ -989,11 +991,13 @@ SwigPyPacked_TypeOnce(void) {
 #endif
     };
     swigpypacked_type = tmp;
-    /* for Python 3 we already assigned ob_type in PyVarObject_HEAD_INIT() */
-#if PY_VERSION_HEX < 0x03000000
-    swigpypacked_type.ob_type = &PyType_Type;
-#endif
     type_init = 1;
+#if PY_VERSION_HEX < 0x02020000
+    swigpypacked_type.ob_type = &PyType_Type;
+#else
+    if (PyType_Ready(&swigpypacked_type) < 0)
+      return NULL;
+#endif
   }
   return &swigpypacked_type;
 }
