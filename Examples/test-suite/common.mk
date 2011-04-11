@@ -516,6 +516,7 @@ C_TEST_CASES += \
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
 	imports \
+	import_stl \
 	packageoption \
 	mod \
 	template_typedef_import \
