@@ -485,11 +485,7 @@ SwigPyObject_richcompare(SwigPyObject *v, SwigPyObject *w, int op)
     Py_INCREF(Py_NotImplemented);
     return Py_NotImplemented;
   }
-  if( (SwigPyObject_compare(v, w)==0) == (op == Py_EQ) )
-    res = Py_True;
-  else
-    res = Py_False;
-  Py_INCREF(res);
+  res = PyBool_FromLong( (SwigPyObject_compare(v, w)==0) == (op == Py_EQ) ? 1 : 0);
   return res;  
 }
 
