@@ -1889,7 +1889,7 @@ public:
       Append(f->code, "argc = args ? (int)PyObject_Length(args) : 0;\n");
       if (add_self)
 	Append(f->code, "argv[0] = self;\n");
-      Printf(f->code, "for (ii = 0; (ii < argc) && (ii < %d); ii++) {\n", add_self ? maxargs - 1 : maxargs);
+      Printf(f->code, "for (ii = 0; (ii < %d) && (ii < argc); ii++) {\n", add_self ? maxargs - 1 : maxargs);
       Printf(f->code, "argv[ii%s] = PyTuple_GET_ITEM(args,ii);\n", add_self ? " + 1" : "");
       Append(f->code, "}\n");
       if (add_self)
