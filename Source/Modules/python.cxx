@@ -1999,6 +1999,7 @@ public:
 
     int num_required;
     int num_arguments;
+    int num_fixed_arguments;
     int tuple_required;
     int tuple_arguments;
     int varargs = 0;
@@ -2066,7 +2067,7 @@ public:
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
     /* Get number of required and total arguments */
-    tuple_arguments = num_arguments = emit_num_arguments(l);
+    tuple_arguments = num_fixed_arguments = num_arguments = emit_num_arguments(l);
     tuple_required = num_required = emit_num_required(l);
     if (add_self) {
       --tuple_arguments;
@@ -2171,7 +2172,6 @@ public:
     int use_parse = 0;
     Append(kwargs, "{");
     for (i = 0, p = l; i < num_arguments; i++) {
-      bool parse_from_tuple = (i > 0 || !add_self);
       while (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	p = Getattr(p, "tmap:in:next");
       }
@@ -2179,6 +2179,11 @@ public:
       SwigType *pt = Getattr(p, "type");
       String *pn = Getattr(p, "name");
       String *ln = Getattr(p, "lname");
+      bool parse_from_tuple = (i > 0 || !add_self);
+      if (SwigType_type(pt) == T_VARARGS) {
+	parse_from_tuple = false;
+	num_fixed_arguments -= atoi(Char(Getattr(p, "tmap:in:numinputs")));
+      }
       if (!parse_from_tuple)
 	sprintf(source, "self");
       else if (funpack)
@@ -2600,19 +2605,19 @@ public:
       Wrapper_add_local(f, "newargs", "PyObject *newargs");
       if (funpack) {
 	Wrapper_add_local(f, "i", "int i");
-	Printf(f->code, "newargs = PyTuple_New(%d);\n", num_arguments);
-	Printf(f->code, "for (i = 0; i < %d; ++i) {\n", num_arguments);
+	Printf(f->code, "newargs = PyTuple_New(%d);\n", num_fixed_arguments);
+	Printf(f->code, "for (i = 0; i < %d; ++i) {\n", num_fixed_arguments);
 	Printf(f->code, "  PyTuple_SET_ITEM(newargs, i, swig_obj[i]);\n");
 	Printf(f->code, "  Py_XINCREF(swig_obj[i]);\n");
 	Printf(f->code, "}\n");
-	Printf(f->code, "varargs = PyTuple_New(nobjs > %d ? nobjs - %d : 0);\n", num_arguments, num_arguments);
-	Printf(f->code, "for (i = 0; i < nobjs - %d; ++i) {\n", num_arguments);
-	Printf(f->code, "  PyTuple_SET_ITEM(newargs, i, swig_obj[i + %d]);\n", num_arguments);
-	Printf(f->code, "  Py_XINCREF(swig_obj[i + %d]);\n", num_arguments);
+	Printf(f->code, "varargs = PyTuple_New(nobjs > %d ? nobjs - %d : 0);\n", num_fixed_arguments, num_fixed_arguments);
+	Printf(f->code, "for (i = 0; i < nobjs - %d; ++i) {\n", num_fixed_arguments);
+	Printf(f->code, "  PyTuple_SET_ITEM(newargs, i, swig_obj[i + %d]);\n", num_fixed_arguments);
+	Printf(f->code, "  Py_XINCREF(swig_obj[i + %d]);\n", num_fixed_arguments);
 	Printf(f->code, "}\n");
       } else {
-	Printf(f->code, "newargs = PyTuple_GetSlice(args,0,%d);\n", num_arguments);
-	Printf(f->code, "varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args)+1);\n", num_arguments);
+	Printf(f->code, "newargs = PyTuple_GetSlice(args,0,%d);\n", num_fixed_arguments);
+	Printf(f->code, "varargs = PyTuple_GetSlice(args,%d,PyTuple_Size(args)+1);\n", num_fixed_arguments);
       }
       Printf(f->code, "resultobj = %s__varargs__(%s,newargs,varargs);\n", wname, builtin ? "self" : "NULL");
       Append(f->code, "Py_XDECREF(newargs);\n");
