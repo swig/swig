@@ -415,8 +415,13 @@ void SwigType_print_scope(void) {
 
 static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
   Typetab *ss;
+  Typetab *s_orig = s;
   String *nnameprefix = 0;
   static int check_parent = 1;
+
+  if (Getmark(s))
+    return 0;
+  Setmark(s, 1);
 
   /*  Printf(stdout,"find_scope: %x(%s) '%s'\n", s, Getattr(s,"name"), nameprefix); */
 
@@ -443,6 +448,7 @@ static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
     if (s) {
       if (nnameprefix)
 	Delete(nnameprefix);
+      Setmark(s_orig, 0);
       return s;
     }
     if (!s) {
@@ -462,6 +468,7 @@ static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
 	  if (s) {
 	    if (nnameprefix)
 	      Delete(nnameprefix);
+	    Setmark(s_orig, 0);
 	    return s;
 	  }
 	}
@@ -473,6 +480,7 @@ static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
   }
   if (nnameprefix)
     Delete(nnameprefix);
+  Setmark(s_orig, 0);
   return 0;
 }
 

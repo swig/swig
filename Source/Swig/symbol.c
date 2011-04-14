@@ -960,6 +960,7 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
     Delete(dname);
     if (n)
       return n;
+    Setmark(symtab, 1);
   }
 
   inherit = Getattr(symtab, "inherit");

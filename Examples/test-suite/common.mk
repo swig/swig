@@ -425,6 +425,7 @@ CPP_TEST_CASES += \
 	using_extend \
 	using_inherit \
 	using_namespace \
+	using_namespace_loop \
 	using_pointers \
 	using_private \
 	using_protected \

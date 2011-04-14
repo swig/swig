@@ -4,6 +4,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.4 (in progress)
 ===========================
+2011-04-13: szager
+	    Fixed bug 3286333: infite recursion with mutual 'using namespace' clauses.
+
 2011-04-12: szager
 	    Fixed bug 1163440: vararg typemaps.
 
