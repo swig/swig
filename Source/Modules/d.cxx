@@ -3156,7 +3156,7 @@ private:
 	if (base.item) {
 	  basenode = base.item;
 	  c_baseclassname = Getattr(base.item, "name");
-	  basename = Copy(getProxyName(c_baseclassname));
+	  basename = createProxyName(c_baseclassname);
 	  if (basename)
 	    c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
 	  base = Next(base);
@@ -3212,9 +3212,6 @@ private:
     // generated for it in scope.
     if (derived) {
       requireDType(Getattr(basenode, "sym:nspace"), Getattr(basenode, "sym:name"));
-
-      // Fully qualify the baseclass name.
-      Insert(basename, 0, package);
     }
 
     // Write any custom import statements to the proxy module header.
@@ -4287,37 +4284,23 @@ private:
   }
 
   /* ---------------------------------------------------------------------------
-   * D::getProxyName()
+   * D::createProxyName()
    *
    * Returns the D class name if a type corresponds to something wrapped with a
    * proxy class, NULL otherwise.
    * --------------------------------------------------------------------------- */
-  const String *getProxyName(SwigType *t) {
+  String *createProxyName(SwigType *t) {
     String *proxyname = NULL;
     Node *n = classLookup(t);
     if (n) {
-      proxyname = Getattr(n, "proxyname");
-      if (!proxyname) {
-	String *nspace = Getattr(n, "sym:nspace");
-	String *symname = Getattr(n, "sym:name");
+      String *nspace = Getattr(n, "sym:nspace");
+      String *symname = Getattr(n, "sym:name");
 
-	if (nspace) {
-          proxyname = NewStringf("%s.%s", nspace, symname);
-        } else {
-          proxyname = Copy(symname);
-        }
-	if (split_proxy_dmodule) {
-	  Printf(proxyname, ".%s", symname);
-	} else {
-	  if (!inProxyModule(proxyname)) {
-	    Delete(proxyname);
-	    String *inner = createLastNamespaceName(nspace);
-	    proxyname = NewStringf("%s.%s.%s", nspace, inner, symname);
-	    Delete(inner);
-	  }
-	}
-        Setattr(n, "proxyname", proxyname);
-        Delete(proxyname); // Return value still valid because of the ref from n.
+      String *module = createModuleName(nspace, symname);
+      if (inProxyModule(module)) {
+	proxyname = Copy(symname);
+      } else {
+	proxyname = NewStringf("%s%s.%s", package, module, symname);
       }
     }
     return proxyname;
