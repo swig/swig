@@ -30,6 +30,10 @@ Version 2.0.4 (in progress)
 	    static initialization of struct members with pointers.
 
 2011-04-10: klickverbot
+            [D] Fixed wrapping of enums that are type char, for example:
+            enum { X = 'X'; } (this was already in 2.0.3 for C# and Java)
+
+2011-04-10: klickverbot
             [D] nspace: Fixed referencing types in the root namespace when
             not in split proxy mode.
 
