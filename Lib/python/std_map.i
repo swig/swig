@@ -187,7 +187,7 @@
 #endif
 
   %extend {
-    mapped_type __getitem__(const key_type& key) const throw (std::out_of_range) {
+    mapped_type const & __getitem__(const key_type& key) throw (std::out_of_range) {
       Map::const_iterator i = self->find(key);
       if (i != self->end())
 	return i->second;
