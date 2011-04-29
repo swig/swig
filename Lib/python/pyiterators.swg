@@ -311,18 +311,6 @@ namespace swig {
     return new SwigPyIteratorOpen_T<OutIter>(current, seq);
   }
 
-%#if defined(SWIGPYTHON_BUILTIN)
-  template <typename Sequence>
-  inline PyObject* make_output_iterator_builtin_T (PyObject *pyself)
-  {
-      SwigPyObject *builtin_obj = (SwigPyObject*) pyself;
-      Sequence *seq = reinterpret_cast< Sequence * >(builtin_obj->ptr);
-      if (!seq)
-        return SWIG_Py_Void();
-      SwigPyIterator *iter = make_output_iterator(seq->begin(), seq->begin(), seq->end(), pyself);
-      return SWIG_InternalNewPointerObj(iter, SWIGTYPE_p_swig__SwigPyIterator, SWIG_POINTER_OWN);
-  }
-%#endif
 }
 }
 

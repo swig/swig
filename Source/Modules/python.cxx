@@ -2067,12 +2067,13 @@ public:
     emit_attach_parmmaps(l, f);
     Setattr(n, "wrap:parms", l);
     /* Get number of required and total arguments */
-    tuple_arguments = num_fixed_arguments = num_arguments = emit_num_arguments(l);
+    tuple_arguments = num_arguments = emit_num_arguments(l);
     tuple_required = num_required = emit_num_required(l);
     if (add_self) {
       --tuple_arguments;
       --tuple_required;
     }
+    num_fixed_arguments = tuple_required;
     if (((num_arguments == 0) && (num_required == 0)) || ((num_arguments == 1) && (num_required == 1) && Getattr(l, "self")))
       allow_kwargs = 0;
     varargs = emit_isvarargs(l);
@@ -2306,13 +2307,13 @@ public:
 	    Printf(parse_args, "if (!args) SWIG_fail;\n");
 	    Append(parse_args, "swig_obj[0] = args;\n");
 	  } else if (!noargs) {
-	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) SWIG_fail;\n", iname, tuple_required, tuple_arguments);
+	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,swig_obj)) SWIG_fail;\n", iname, num_fixed_arguments, tuple_arguments);
 	  } else if (noargs) {
-	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,0)) SWIG_fail;\n", iname, tuple_required, tuple_arguments);
+	    Printf(parse_args, "if (!SWIG_Python_UnpackTuple(args,\"%s\",%d,%d,0)) SWIG_fail;\n", iname, num_fixed_arguments, tuple_arguments);
 	  }
 	}
       } else if (tuple_arguments > 0) {
-	Printf(parse_args, "if(!PyArg_UnpackTuple(args,(char *)\"%s\",%d,%d", iname, tuple_required, tuple_arguments);
+	Printf(parse_args, "if(!PyArg_UnpackTuple(args,(char *)\"%s\",%d,%d", iname, num_fixed_arguments, tuple_arguments);
 	Printv(parse_args, arglist, ")) SWIG_fail;\n", NIL);
       }
     }

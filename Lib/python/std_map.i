@@ -119,17 +119,6 @@
       return new SwigPyMapKeyIterator_T<OutIter>(current, begin, end, seq);
     }
 
-    template<typename Sequence>
-    inline PyObject* make_output_key_iterator_builtin (PyObject *pyself)
-    {
-      SwigPyObject *builtin_obj = (SwigPyObject*) pyself;
-      Sequence *seq = reinterpret_cast< Sequence * >(builtin_obj->ptr);
-      if (!seq)
-        return SWIG_Py_Void();
-      SwigPyIterator *iter = make_output_key_iterator(seq->begin(), seq->begin(), seq->end(), pyself);
-      return SWIG_InternalNewPointerObj(iter, SWIGTYPE_p_swig__SwigPyIterator, SWIG_POINTER_OWN);
-    }
-
     template<class OutIterator,
 	     class FromOper = from_value_oper<typename OutIterator::value_type> >
     struct SwigPyMapValueITerator_T : SwigPyMapIterator_T<OutIterator, FromOper>

@@ -86,6 +86,18 @@ C_TEST_CASES += \
 
 include $(srcdir)/../common.mk
 
+BUILTIN_BROKEN = \
+    li_std_string_extra.cpptest \
+    li_std_wstring.cpptest \
+    default_constructor.cpptest \
+    director_exception.cpptest \
+    exception_order.cpptest \
+    threads_exception.cpptest
+
+BUILTIN_NOT_BROKEN = $(filter-out $(BUILTIN_BROKEN),$(NOT_BROKEN_TEST_CASES))
+
+builtin-check : $(BUILTIN_NOT_BROKEN)
+
 # Overridden variables here
 LIBS       = -L.
 VALGRIND_OPT += --suppressions=pythonswig.supp

@@ -1,7 +1,9 @@
 %module using_namespace_loop
 
 %inline {
-namespace A {}
+namespace A {
+struct Foo;
+}
 
 namespace B {
 using namespace A;
