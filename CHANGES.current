@@ -4,6 +4,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.4 (in progress)
 ===========================
+2011-04-29: szager
+	    Fixed bug 2811549: return non-const iterators from STL
+	    methods begin(), end(), rbegin(), rend().
+
 2011-04-25: szager
 	    Fixed bug 1498929: Access to member fields in map elements
 
