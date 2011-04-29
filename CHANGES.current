@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.4 (in progress)
 ===========================
 2011-04-29: szager
+	    Bug 2635919: Convenience method to convert std::map to a python dict.
+
+2011-04-29: szager
 	    Fixed bug 2811549: return non-const iterators from STL
 	    methods begin(), end(), rbegin(), rend().
 

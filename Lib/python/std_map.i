@@ -43,29 +43,33 @@
       typedef std::map<K,T> map_type;
       typedef typename map_type::const_iterator const_iterator;
       typedef typename map_type::size_type size_type;
-            
+
+      static PyObject *asdict(const map_type& map) {
+	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+	size_type size = map.size();
+	int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
+	if (pysize < 0) {
+	  PyErr_SetString(PyExc_OverflowError,
+			  "map size not valid in python");
+	  SWIG_PYTHON_THREAD_END_BLOCK;
+	  return NULL;
+	}
+	PyObject *obj = PyDict_New();
+	for (const_iterator i= map.begin(); i!= map.end(); ++i) {
+	  swig::SwigVar_PyObject key = swig::from(i->first);
+	  swig::SwigVar_PyObject val = swig::from(i->second);
+	  PyDict_SetItem(obj, key, val);
+	}
+	SWIG_PYTHON_THREAD_END_BLOCK;
+	return obj;
+      }
+                
       static PyObject *from(const map_type& map) {
 	swig_type_info *desc = swig::type_info<map_type>();
 	if (desc && desc->clientdata) {
 	  return SWIG_InternalNewPointerObj(new map_type(map), desc, SWIG_POINTER_OWN);
 	} else {
-	  SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-	  size_type size = map.size();
-	  int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;
-	  if (pysize < 0) {
-	    PyErr_SetString(PyExc_OverflowError,
-			    "map size not valid in python");
-	    SWIG_PYTHON_THREAD_END_BLOCK;
-	    return NULL;
-	  }
-	  PyObject *obj = PyDict_New();
-	  for (const_iterator i= map.begin(); i!= map.end(); ++i) {
-	    swig::SwigVar_PyObject key = swig::from(i->first);
-	    swig::SwigVar_PyObject val = swig::from(i->second);
-	    PyDict_SetItem(obj, key, val);
-	  }
-	  SWIG_PYTHON_THREAD_END_BLOCK;
-	  return obj;
+	  return asdict(map);
 	}
       }
     };
@@ -163,6 +167,10 @@
     %newobject iteritems(PyObject **PYTHON_SELF);
     swig::SwigPyIterator* iteritems(PyObject **PYTHON_SELF) {
       return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
+    }
+
+    PyObject* asdict() {
+      return swig::traits_from< Map >::asdict(*self);
     }
   }
 
