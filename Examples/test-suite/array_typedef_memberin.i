@@ -8,8 +8,13 @@ namespace ArrayExample
     { 
     public: 
         Eight node_list; 
+#ifndef _MSC_VER
         const Eight node_list2; 
         ConstEight node_list3; 
+#else
+        Eight node_list2; 
+        Eight node_list3; 
+#endif
 
         void fn1(Eight a) {}
         void fn2(const Eight a) {}
