@@ -103,6 +103,8 @@ public:
      saw_import(false),
      imported_package(NULL),
      interfaces(NULL),
+     class_node(NULL),
+     class_name(NULL),
      class_receiver(NULL),
      class_methods(NULL),
      making_variable_wrappers(false),
