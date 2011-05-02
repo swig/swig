@@ -94,13 +94,22 @@ swig -go -help
 <tr>
 <td>-gccgo</td>
 <td>Generate code for gccgo.  The default is to generate code for
-  6g/8g/6g.</td>
+  6g/8g/5g.</td>
 </tr>
 
 <tr>
 <td>-package &lt;name&gt;</td>
 <td>Set the name of the Go package to &lt;name&gt;.  The default
   package name is the SWIG module name.</td>
+</tr>
+
+<tr>
+<td>-soname %lt;name%gt;</td>
+<td>Set the runtime name of the shared library that the dynamic linker
+  should include at runtime.  The default is the package name with
+  ".so" appended.  This is only used when generating code for
+  6g/8g/5g; when using gccgo, the equivalent name will be taken from
+  the <code>-soname</code> option passed to the linker.</td>
 </tr>
 
 <tr>
