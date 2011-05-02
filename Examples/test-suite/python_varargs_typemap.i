@@ -1,4 +1,4 @@
-%module varargs_typemap
+%module python_varargs_typemap
 
  /* The typemap and action are taken from the "Variable length arguments"
   * chapter of the SWIG manual.

@@ -511,8 +511,7 @@ C_TEST_CASES += \
 	typedef_struct \
 	typemap_subst \
 	union_parameter \
-	unions \
-	varargs_typemap
+	unions
 
 
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)

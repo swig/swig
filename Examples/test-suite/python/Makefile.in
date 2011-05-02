@@ -76,7 +76,8 @@ C_TEST_CASES += \
 	file_test \
 	li_cstring \
 	li_cwstring \
-	python_nondynamic
+	python_nondynamic \
+	python_varargs_typemap
 
 #
 # This test only works with modern C compilers
