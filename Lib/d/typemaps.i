@@ -59,13 +59,9 @@ In D you could then use it like this:
 %typemap(dtype, out="DTYPE*") TYPE *INPUT, TYPE &INPUT "DTYPE"
 %typemap(din) TYPE *INPUT, TYPE &INPUT "$dinput"
 %typemap(ddirectorin) TYPE *INPUT, TYPE &INPUT "$winput"
-%typemap(ddirectorout) TYPE *INPUT, TYPE &INPUT "$dcall"
 
 %typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
-
-%typemap(directorout) TYPE *INPUT, TYPE &INPUT
-%{ $result = ($1_ltype)&$input; %}
 
 %typemap(directorin) TYPE &INPUT
 %{ $input = (CTYPE *)$1; %}
@@ -154,14 +150,9 @@ value returned in the second output parameter. In D you would use it like this:
 %typemap(dtype, out="DTYPE*") TYPE *OUTPUT, TYPE &OUTPUT "out DTYPE"
 %typemap(din) TYPE *OUTPUT, TYPE &OUTPUT "$dinput"
 %typemap(ddirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$winput"
-%typemap(ddirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$dcall"
-
 
 %typemap(in) TYPE *OUTPUT, TYPE &OUTPUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorout,warning="Need to provide TYPE *OUTPUT directorout typemap") TYPE *OUTPUT, TYPE &OUTPUT {
-}
 
 %typemap(directorin) TYPE &OUTPUT
 %{ $input = &$1; %}
@@ -259,13 +250,9 @@ of the function return value.
 %typemap(dtype, out="DTYPE*") TYPE *INOUT, TYPE &INOUT "ref DTYPE"
 %typemap(din) TYPE *INOUT, TYPE &INOUT "$dinput"
 %typemap(ddirectorin) TYPE *INOUT, TYPE &INOUT "$winput"
-%typemap(ddirectorout) TYPE *INOUT, TYPE &INOUT "$dcall"
 
 %typemap(in) TYPE *INOUT, TYPE &INOUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
-}
 
 %typemap(directorin) TYPE &INOUT
 %{ $input = &$1; %}

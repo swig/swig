@@ -59,13 +59,9 @@ In C# you could then use it like this:
 %typemap(cstype, out="$csclassname") TYPE *INPUT, TYPE &INPUT "CSTYPE"
 %typemap(csin) TYPE *INPUT, TYPE &INPUT "$csinput"
 %typemap(csdirectorin) TYPE *INPUT, TYPE &INPUT "$iminput"
-%typemap(csdirectorout) TYPE *INPUT, TYPE &INPUT "$cscall"
 
 %typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
-
-%typemap(directorout) TYPE *INPUT, TYPE &INPUT
-%{ $result = ($1_ltype)&$input; %}
 
 %typemap(directorin) TYPE &INPUT
 %{ $input = (CTYPE *)$1; %}
@@ -150,13 +146,9 @@ value returned in the second output parameter. In C# you would use it like this:
 %typemap(cstype, out="$csclassname") TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
 %typemap(csin) TYPE *OUTPUT, TYPE &OUTPUT "out $csinput"
 %typemap(csdirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$iminput"
-%typemap(csdirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$cscall"
 
 %typemap(in) TYPE *OUTPUT, TYPE &OUTPUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorout,warning="Need to provide TYPE *OUTPUT directorout typemap") TYPE *OUTPUT, TYPE &OUTPUT {
-}
 
 %typemap(directorin) TYPE &OUTPUT
 %{ $input = &$1; %}
@@ -252,13 +244,9 @@ of the function return value.
 %typemap(cstype, out="$csclassname") TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
 %typemap(csin) TYPE *INOUT, TYPE &INOUT "ref $csinput"
 %typemap(csdirectorin) TYPE *INOUT, TYPE &INOUT "$iminput"
-%typemap(csdirectorout) TYPE *INOUT, TYPE &INOUT "$cscall"
 
 %typemap(in) TYPE *INOUT, TYPE &INOUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
-}
 
 %typemap(directorin) TYPE &INOUT
 %{ $input = &$1; %}

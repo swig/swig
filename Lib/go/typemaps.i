@@ -74,12 +74,6 @@ char * typemaps instead:
 
 %typemap(argout) TYPE *INPUT, TYPE &INPUT ""
 
-%typemap(directorout) TYPE *INPUT
-%{ $result = ($1_ltype)&$input; %}
-
-%typemap(directorout) TYPE &INPUT
-%{ $result = ($1_ltype)$input; %}
-
 %typemap(directorin) TYPE &INPUT
 %{ $1 = ($input_ltype)&$input; %}
 
@@ -201,9 +195,6 @@ char * typemaps instead:
   a[0] = temp$argnum;
 }
 
-%typemap(directorout,warning="Need to provide TYPE *OUTPUT directorout typemap") TYPE *OUTPUT, TYPE &OUTPUT {
-}
-
 %typemap(directorin) TYPE &OUTPUT
 %{ *(($&1_ltype) $input = &$1; %}
 
@@ -314,9 +305,6 @@ char * typemaps instead:
 %typemap(freearg) TYPE *INOUT, TYPE &INOUT ""
 
 %typemap(argout) TYPE *INOUT, TYPE &INOUT ""
-
-%typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
-}
 
 %typemap(directorin) TYPE &INOUT
 %{ *(($&1_ltype)&$input) = &$1; %}
