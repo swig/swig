@@ -58,16 +58,9 @@ In D you could then use it like this:
 %typemap(imtype, out="void*") TYPE *INPUT, TYPE &INPUT "DTYPE"
 %typemap(dtype, out="DTYPE*") TYPE *INPUT, TYPE &INPUT "DTYPE"
 %typemap(din) TYPE *INPUT, TYPE &INPUT "$dinput"
-%typemap(ddirectorin) TYPE *INPUT, TYPE &INPUT "$winput"
 
 %typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
-
-%typemap(directorin) TYPE &INPUT
-%{ $input = (CTYPE *)$1; %}
-
-%typemap(directorin) TYPE *INPUT
-%{ $input = (CTYPE *)$1; %}
 
 %typemap(typecheck) TYPE *INPUT = TYPE;
 %typemap(typecheck) TYPE &INPUT = TYPE;
@@ -149,18 +142,9 @@ value returned in the second output parameter. In D you would use it like this:
 %typemap(imtype, out="void*") TYPE *OUTPUT, TYPE &OUTPUT "out DTYPE"
 %typemap(dtype, out="DTYPE*") TYPE *OUTPUT, TYPE &OUTPUT "out DTYPE"
 %typemap(din) TYPE *OUTPUT, TYPE &OUTPUT "$dinput"
-%typemap(ddirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$winput"
 
 %typemap(in) TYPE *OUTPUT, TYPE &OUTPUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorin) TYPE &OUTPUT
-%{ $input = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *OUTPUT directorin typemap, TYPE array length is unknown") TYPE *OUTPUT
-{
-}
-
 
 %typecheck(SWIG_TYPECHECK_##TYPECHECKPRECEDENCE) TYPE *OUTPUT, TYPE &OUTPUT ""
 %enddef
@@ -249,17 +233,9 @@ of the function return value.
 %typemap(imtype, out="void*") TYPE *INOUT, TYPE &INOUT "ref DTYPE"
 %typemap(dtype, out="DTYPE*") TYPE *INOUT, TYPE &INOUT "ref DTYPE"
 %typemap(din) TYPE *INOUT, TYPE &INOUT "$dinput"
-%typemap(ddirectorin) TYPE *INOUT, TYPE &INOUT "$winput"
 
 %typemap(in) TYPE *INOUT, TYPE &INOUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorin) TYPE &INOUT
-%{ $input = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *INOUT directorin typemap, TYPE array length is unknown") TYPE *INOUT, TYPE &INOUT
-{
-}
 
 %typecheck(SWIG_TYPECHECK_##TYPECHECKPRECEDENCE) TYPE *INOUT, TYPE &INOUT ""
 %enddef

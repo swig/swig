@@ -74,9 +74,6 @@ char * typemaps instead:
 
 %typemap(argout) TYPE *INPUT, TYPE &INPUT ""
 
-%typemap(directorin) TYPE &INPUT
-%{ $1 = ($input_ltype)&$input; %}
-
 // %typemap(typecheck) TYPE *INPUT = TYPE;
 // %typemap(typecheck) TYPE &INPUT = TYPE;
 %enddef
@@ -195,13 +192,6 @@ char * typemaps instead:
   a[0] = temp$argnum;
 }
 
-%typemap(directorin) TYPE &OUTPUT
-%{ *(($&1_ltype) $input = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *OUTPUT directorin typemap, TYPE array length is unknown") TYPE *OUTPUT
-{
-}
-
 %enddef
 
 OUTPUT_TYPEMAP(bool, bool);
@@ -305,13 +295,6 @@ char * typemaps instead:
 %typemap(freearg) TYPE *INOUT, TYPE &INOUT ""
 
 %typemap(argout) TYPE *INOUT, TYPE &INOUT ""
-
-%typemap(directorin) TYPE &INOUT
-%{ *(($&1_ltype)&$input) = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *INOUT directorin typemap, TYPE array length is unknown") TYPE *INOUT, TYPE &INOUT
-{
-}
 
 %enddef
 

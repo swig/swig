@@ -58,16 +58,9 @@ In C# you could then use it like this:
 %typemap(imtype, out="IntPtr") TYPE *INPUT, TYPE &INPUT "CSTYPE"
 %typemap(cstype, out="$csclassname") TYPE *INPUT, TYPE &INPUT "CSTYPE"
 %typemap(csin) TYPE *INPUT, TYPE &INPUT "$csinput"
-%typemap(csdirectorin) TYPE *INPUT, TYPE &INPUT "$iminput"
 
 %typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
-
-%typemap(directorin) TYPE &INPUT
-%{ $input = (CTYPE *)$1; %}
-
-%typemap(directorin) TYPE *INPUT
-%{ $input = (CTYPE *)$1; %}
 
 %typemap(typecheck) TYPE *INPUT = TYPE;
 %typemap(typecheck) TYPE &INPUT = TYPE;
@@ -145,18 +138,9 @@ value returned in the second output parameter. In C# you would use it like this:
 %typemap(imtype, out="IntPtr") TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
 %typemap(cstype, out="$csclassname") TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
 %typemap(csin) TYPE *OUTPUT, TYPE &OUTPUT "out $csinput"
-%typemap(csdirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$iminput"
 
 %typemap(in) TYPE *OUTPUT, TYPE &OUTPUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorin) TYPE &OUTPUT
-%{ $input = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *OUTPUT directorin typemap, TYPE array length is unknown") TYPE *OUTPUT
-{
-}
-
 
 %typecheck(SWIG_TYPECHECK_##TYPECHECKPRECEDENCE) TYPE *OUTPUT, TYPE &OUTPUT ""
 %enddef
@@ -243,17 +227,9 @@ of the function return value.
 %typemap(imtype, out="IntPtr") TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
 %typemap(cstype, out="$csclassname") TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
 %typemap(csin) TYPE *INOUT, TYPE &INOUT "ref $csinput"
-%typemap(csdirectorin) TYPE *INOUT, TYPE &INOUT "$iminput"
 
 %typemap(in) TYPE *INOUT, TYPE &INOUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorin) TYPE &INOUT
-%{ $input = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *INOUT directorin typemap, TYPE array length is unknown") TYPE *INOUT, TYPE &INOUT
-{
-}
 
 %typecheck(SWIG_TYPECHECK_##TYPECHECKPRECEDENCE) TYPE *INOUT, TYPE &INOUT ""
 %enddef
