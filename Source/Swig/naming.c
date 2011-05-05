@@ -1617,21 +1617,20 @@ void Swig_name_inherit(String *base, String *derived) {
 }
 
 /* -----------------------------------------------------------------------------
- * void Swig_name_decl()
+ * void Swig_name_str()
  *
- * Return a stringified version of a C/C++ declaration without the return type.
+ * Return a stringified version of a C/C++ symbol from a node.
  * The node passed in is expected to be a function, constructor, destructor or
  * variable. Some example return values:
- *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
- *   "MyNameSpace::ABC::ABC(int,double)"
- *   "MyNameSpace::ABC::constmethod(int) const"
+ *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate"
+ *   "MyNameSpace::ABC::ABC"
+ *   "MyNameSpace::ABC::constmethod"
  *   "MyNameSpace::ABC::variablename"
  * 
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_decl(Node *n) {
+String *Swig_name_str(Node *n) {
   String *qname;
-  String *decl;
   String *qualifier = Swig_symbol_qualified(n);
   String *name = Swig_scopename_last(Getattr(n, "name"));
   if (qualifier)
@@ -1657,13 +1656,36 @@ String *Swig_name_decl(Node *n) {
     Printf(qname, "%s::", qualifier);
   Printf(qname, "%s", SwigType_str(name, 0));
 
+  Delete(name);
+  Delete(qualifier);
+
+  return qname;
+}
+
+/* -----------------------------------------------------------------------------
+ * void Swig_name_decl()
+ *
+ * Return a stringified version of a C/C++ declaration without the return type.
+ * The node passed in is expected to be a function, constructor, destructor or
+ * variable. Some example return values:
+ *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
+ *   "MyNameSpace::ABC::ABC(int,double)"
+ *   "MyNameSpace::ABC::constmethod(int) const"
+ *   "MyNameSpace::ABC::variablename"
+ * 
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_name_decl(Node *n) {
+  String *qname;
+  String *decl;
+
+  qname = Swig_name_str(n);
+
   if (checkAttribute(n, "kind", "variable"))
     decl = NewStringf("%s", qname);
   else
     decl = NewStringf("%s(%s)%s", qname, ParmList_errorstr(Getattr(n, "parms")), SwigType_isconst(Getattr(n, "decl")) ? " const" : "");
 
-  Delete(name);
-  Delete(qualifier);
   Delete(qname);
 
   return decl;

@@ -285,6 +285,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, SwigType *decl, String *oldname);
   extern String *Swig_name_warning(Node *n, String *prefix, String *name, SwigType *decl);
+  extern String *Swig_name_str(Node *n);
   extern String *Swig_name_decl(Node *n);
   extern String *Swig_name_fulldecl(Node *n);
 

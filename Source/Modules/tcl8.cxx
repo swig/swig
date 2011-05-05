@@ -536,7 +536,9 @@ public:
 	  sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
 	String *protoTypes = NewString("");
 	do {
-	  Printf(protoTypes, "\n\"    %s(%s)\\n\"", SwigType_str(Getattr(sibl, "name"), 0), ParmList_protostr(Getattr(sibl, "wrap:parms")));
+	  String *fulldecl = Swig_name_decl(sibl);
+	  Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
+	  Delete(fulldecl);
 	} while ((sibl = Getattr(sibl, "sym:nextSibling")));
 	Printf(df->code, "Tcl_SetResult(interp,(char *) "
 	       "\"Wrong number or type of arguments for overloaded function '%s'.\\n\""
