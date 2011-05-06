@@ -77,7 +77,7 @@ int ParmList_is_compactdefargs(ParmList *p) {
  * ParmList_errorstr()
  *
  * Generate a prototype string suitable for use in error/warning messages.
- * This function is aware of hidden parameters.
+ * Similar to ParmList_protostr() but is also aware of hidden parameters.
  * ---------------------------------------------------------------------- */
 
 /* Discussion.  This function is used to generate error messages, but take 

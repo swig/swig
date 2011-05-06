@@ -1156,11 +1156,9 @@ void Scanner_skip_line(Scanner * s) {
 int Scanner_skip_balanced(Scanner * s, int startchar, int endchar) {
   char c;
   int num_levels = 1;
-  int l;
   int state = 0;
   char temp[2] = { 0, 0 };
   String *locator = 0;
-  l = s->line;
   temp[0] = (char) startchar;
   Clear(s->text);
   Setfile(s->text, Getfile(s->str));

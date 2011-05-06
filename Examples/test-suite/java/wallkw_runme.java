@@ -19,7 +19,9 @@ public class wallkw_runme {
       throw new RuntimeException("delegate keyword fail");
     if (!wallkw._pass().equals("pass"))
       throw new RuntimeException("pass keyword fail");
-    if (!wallkw.C_alias().equals("alias"))
+    if (!wallkw._alias().equals("alias"))
       throw new RuntimeException("alias keyword fail");
+    if (!wallkw.C_rescue().equals("rescue"))
+      throw new RuntimeException("rescue keyword fail");
   }
 }

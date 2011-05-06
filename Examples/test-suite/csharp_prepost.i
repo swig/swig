@@ -79,7 +79,7 @@ struct PrePost2 {
 
 // Check attributes in the typemaps
 %typemap(cstype, inattributes="[CustomInt]") int val "int"
-%typemap(csin, pre="    int tmp_$csinput = $csinput * 100;") int "tmp_$csinput"
+%typemap(csin, pre="    int tmp_$csinput = $csinput * 100;") int val "tmp_$csinput"
 %typemap(imtype, out="IntPtr/*overridden*/", outattributes="[CustomIntPtr]") CsinAttributes * "HandleRef/*overridden*/"
 
 %inline %{
@@ -188,5 +188,8 @@ void subtractYears(CDate *pDate, int years) {
 
 %inline %{
 CDate ImportantDate = CDate(1999, 12, 31);
+struct Person {
+  CDate Birthday;
+};
 %}
 

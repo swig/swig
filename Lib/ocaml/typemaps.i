@@ -82,6 +82,17 @@
     }
 }
 
+%typemap(in) char *& (char *temp) {
+  /* %typemap(in) char *& */
+  temp = (char*)caml_val_ptr($1,$descriptor);
+  $1 = &temp;
+}
+
+%typemap(argout) char *& {
+  /* %typemap(argout) char *& */
+  swig_result =	caml_list_append(swig_result,caml_val_string_len(*$1, strlen(*$1)));
+}
+
 #else
 
 %typemap(in) SWIGTYPE {

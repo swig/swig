@@ -51,7 +51,7 @@ func main() {
 		panic(0)
 	}
 
-	c := cmplx(float64(2), float64(3))
+	c := complex(2, 3)
 	r := real(c)
 
 	if Ctest1(c) != r {

@@ -38,8 +38,8 @@ func main() {
 		panic(0)
 	}
 
-	friends.Set(di, float64(4.0))
-	friends.Set(dd, float64(1.3))
+	friends.Set(di, 4.0)
+	friends.Set(dd, 1.3)
 
 	if friends.Get_val1(di).(float64) != 4 {
 		panic(0)

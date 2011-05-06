@@ -15,19 +15,14 @@
 %rename(foo_u) *::foo(unsigned);
 
 /* Rename classes in a class hierarchy */
-%rename (RenamedBase) Base;
-%rename (RenamedDerived) Derived;
+%rename (RenamedBase) Space::Base;
+%rename (RenamedDerived) Space::Derived;
 
 /* Rename base class method applies to derived classes too */#
-%rename (newname) Base::oldname(double d) const;
+%rename (newname) Space::Base::oldname(double d) const;
 
 /* Rename derived class method only */
-#ifndef SWIGGO
-%rename (func) Derived::fn(Base baseValue, Base* basePtr, Base& baseRef);
-#else
-/* func is a keyword in Go. */
-%rename (Xfunc) Derived::fn(Base baseValue, Base* basePtr, Base& baseRef);
-#endif
+%rename (Xfunc) Space::Derived::fn(Base baseValue, Base* basePtr, Base& baseRef);
 
 %inline %{
 class Bar {
@@ -43,20 +38,22 @@ char *foo(double)   { return (char *) "foo-double"; }
 char *foo(short)    { return (char *) "foo-short"; }
 char *foo(unsigned) { return (char *) "foo-unsigned"; }
 
+namespace Space {
 class Base {
 public: 
   Base(){}; 
   virtual ~Base(){};
   void fn(Base baseValue, Base* basePtr, Base& baseRef){}
-  virtual const char * oldname(double d) const { return (char*) "Base"; }
+  virtual const char * oldname(double d) const { return "Base"; }
 };
 class Derived : public Base {
 public:
   Derived(){}
   ~Derived(){}
   void fn(Base baseValue, Base* basePtr, Base& baseRef){}
-  virtual const char * oldname(double d) const { return (char*) "Derived"; }
+  virtual const char * oldname(double d) const { return "Derived"; }
 };
+}
 
 %}
 

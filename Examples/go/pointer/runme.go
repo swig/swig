@@ -32,7 +32,7 @@ func main() {
 
 	// Now try the typemap library
 	// Now it is no longer necessary to manufacture pointers.
-	// Instead we use a single element array which in Java is modifiable.
+	// Instead we use a single element slice which in Go is modifiable.
 
 	fmt.Println("Trying the typemap library")
 	r := []int{0}

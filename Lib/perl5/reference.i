@@ -195,7 +195,7 @@ as follows :
   if (!SvIOK(tempsv)) {
     SWIG_croak("expected a integer reference");
   }
-  dvalue = (bool) SvIV(tempsv);
+  dvalue = SvIV(tempsv) ? true : false;
   $1 = &dvalue;
 }
 

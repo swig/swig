@@ -1000,7 +1000,7 @@ int Swig_need_redefined_warn(Node *a, Node *b, int InClass) {
  * This is basically any protected members when the allprotected mode is set.
  * Otherwise we take just the protected virtual methods and non-static methods 
  * (potentially virtual methods) as well as constructors/destructors.
- * 
+ * Also any "using" statements in a class may potentially be virtual.
  * ----------------------------------------------------------------------------- */
 
 int Swig_need_protected(Node *n) {
@@ -1016,6 +1016,8 @@ int Swig_need_protected(Node *n) {
         return !storage || Equal(storage, "virtual");
       }
     } else if (Equal(nodetype, "constructor") || Equal(nodetype, "destructor")) {
+      return 1;
+    } else if (Equal(nodetype, "using") && !Getattr(n, "namespace")) {
       return 1;
     }
   }
@@ -1110,7 +1112,7 @@ void Swig_name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, Str
   }
 
   if (!nname || !Len(nname) || Getattr(nameobj, "fullname") ||	/* any of these options trigger a 'list' nameobj */
-      Getattr(nameobj, "sourcefmt") || Getattr(nameobj, "matchlist")) {
+      Getattr(nameobj, "sourcefmt") || Getattr(nameobj, "matchlist") || Getattr(nameobj, "regextarget")) {
     if (decl)
       Setattr(nameobj, "decl", decl);
     if (nname && Len(nname))
@@ -1302,7 +1304,13 @@ Hash *Swig_name_nameobj_lget(List *namelist, Node *n, String *prefix, String *na
 	    : Swig_name_match_value(tname, sname);
 	  Delete(sname);
 	} else {
-	  match = 1;
+	  /* Applying the renaming rule may fail if it contains a %(regex)s expression that doesn't match the given name. */
+	  String *sname = NewStringf(Getattr(rn, "name"), name);
+	  if (sname) {
+	    if (Len(sname))
+	      match = 1;
+	    Delete(sname);
+	  }
 	}
       }
       if (match) {
@@ -1609,19 +1617,20 @@ void Swig_name_inherit(String *base, String *derived) {
 }
 
 /* -----------------------------------------------------------------------------
- * void Swig_name_decl()
+ * void Swig_name_str()
  *
- * Return a stringified version of a C/C++ declaration without the return type.
- * The node passed in is expected to be a function. Some example return values:
- *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
- *   "MyNameSpace::ABC::ABC(int,double)"
- *   "MyNameSpace::ABC::constmethod(int) const"
+ * Return a stringified version of a C/C++ symbol from a node.
+ * The node passed in is expected to be a function, constructor, destructor or
+ * variable. Some example return values:
+ *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate"
+ *   "MyNameSpace::ABC::ABC"
+ *   "MyNameSpace::ABC::constmethod"
+ *   "MyNameSpace::ABC::variablename"
  * 
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_decl(Node *n) {
+String *Swig_name_str(Node *n) {
   String *qname;
-  String *decl;
   String *qualifier = Swig_symbol_qualified(n);
   String *name = Swig_scopename_last(Getattr(n, "name"));
   if (qualifier)
@@ -1647,10 +1656,36 @@ String *Swig_name_decl(Node *n) {
     Printf(qname, "%s::", qualifier);
   Printf(qname, "%s", SwigType_str(name, 0));
 
-  decl = NewStringf("%s(%s)%s", qname, ParmList_errorstr(Getattr(n, "parms")), SwigType_isconst(Getattr(n, "decl")) ? " const" : "");
-
   Delete(name);
   Delete(qualifier);
+
+  return qname;
+}
+
+/* -----------------------------------------------------------------------------
+ * void Swig_name_decl()
+ *
+ * Return a stringified version of a C/C++ declaration without the return type.
+ * The node passed in is expected to be a function, constructor, destructor or
+ * variable. Some example return values:
+ *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
+ *   "MyNameSpace::ABC::ABC(int,double)"
+ *   "MyNameSpace::ABC::constmethod(int) const"
+ *   "MyNameSpace::ABC::variablename"
+ * 
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_name_decl(Node *n) {
+  String *qname;
+  String *decl;
+
+  qname = Swig_name_str(n);
+
+  if (checkAttribute(n, "kind", "variable"))
+    decl = NewStringf("%s", qname);
+  else
+    decl = NewStringf("%s(%s)%s", qname, ParmList_errorstr(Getattr(n, "parms")), SwigType_isconst(Getattr(n, "decl")) ? " const" : "");
+
   Delete(qname);
 
   return decl;
@@ -1660,7 +1695,8 @@ String *Swig_name_decl(Node *n) {
  * void Swig_name_fulldecl()
  *
  * Return a stringified version of a C/C++ declaration including the return type.
- * The node passed in is expected to be a function. Some example return values:
+ * The node passed in is expected to be a function, constructor or destructor.
+ * Some example return values:
  *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
  *   "int * MyNameSpace::ABC::constmethod(int) const"

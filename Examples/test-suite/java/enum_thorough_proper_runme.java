@@ -416,6 +416,28 @@ public class enum_thorough_proper_runme {
       if (enum_thorough_proper.repeatTest(repeat.llast).swigValue() != 3) throw new RuntimeException("repeatTest 5 failed");
       if (enum_thorough_proper.repeatTest(repeat.end).swigValue() != 3) throw new RuntimeException("repeatTest 6 failed");
     }
+    // different types
+    {
+      if (enum_thorough_proper.differentTypesTest(DifferentTypes.typeint).swigValue() != 10) throw new RuntimeException("differentTypes 1 failed");
+      if (enum_thorough_proper.differentTypesTest(DifferentTypes.typeboolfalse).swigValue() != 0) throw new RuntimeException("differentTypes 2 failed");
+      if (enum_thorough_proper.differentTypesTest(DifferentTypes.typebooltrue).swigValue() != 1) throw new RuntimeException("differentTypes 3 failed");
+      if (enum_thorough_proper.differentTypesTest(DifferentTypes.typebooltwo).swigValue() != 2) throw new RuntimeException("differentTypes 4 failed");
+      if (enum_thorough_proper.differentTypesTest(DifferentTypes.typechar).swigValue() != 'C') throw new RuntimeException("differentTypes 5 failed");
+      if (enum_thorough_proper.differentTypesTest(DifferentTypes.typedefaultint).swigValue() != 'D') throw new RuntimeException("differentTypes 6 failed");
+
+      int global_enum = enum_thorough_proper.global_typeint;
+      if (enum_thorough_proper.globalDifferentTypesTest(global_enum) != 10) throw new RuntimeException("global differentTypes 1 failed");
+      global_enum = enum_thorough_proper.global_typeboolfalse;
+      if (enum_thorough_proper.globalDifferentTypesTest(global_enum) != 0) throw new RuntimeException("global differentTypes 2 failed");
+      global_enum = enum_thorough_proper.global_typebooltrue;
+      if (enum_thorough_proper.globalDifferentTypesTest(global_enum) != 1) throw new RuntimeException("global differentTypes 3 failed");
+      global_enum = enum_thorough_proper.global_typebooltwo;
+      if (enum_thorough_proper.globalDifferentTypesTest(global_enum) != 2) throw new RuntimeException("global differentTypes 4 failed");
+      global_enum = enum_thorough_proper.global_typechar;
+      if (enum_thorough_proper.globalDifferentTypesTest(global_enum) != 'C') throw new RuntimeException("global differentTypes 5 failed");
+      global_enum = enum_thorough_proper.global_typedefaultint;
+      if (enum_thorough_proper.globalDifferentTypesTest(global_enum) != 'D') throw new RuntimeException("global differentTypes 6 failed");
+    }
   }
 }
 

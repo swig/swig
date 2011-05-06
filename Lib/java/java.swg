@@ -1290,6 +1290,21 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
 
+/* String & length */
+%typemap(jni)     (char *STRING, size_t LENGTH) "jbyteArray"
+%typemap(jtype)   (char *STRING, size_t LENGTH) "byte[]"
+%typemap(jstype)  (char *STRING, size_t LENGTH) "byte[]"
+%typemap(javain)  (char *STRING, size_t LENGTH) "$javainput"
+%typemap(freearg) (char *STRING, size_t LENGTH) ""
+%typemap(in)      (char *STRING, size_t LENGTH) {
+    $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0);
+    $2 = (size_t) JCALL1(GetArrayLength,       jenv, $input);
+}
+%typemap(argout)  (char *STRING, size_t LENGTH) {
+    JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0);
+}
+%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
+
 /* java keywords */
 %include <javakw.swg>
 

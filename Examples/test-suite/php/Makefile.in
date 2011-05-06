@@ -50,7 +50,7 @@ missingtests: missingcpptests missingctests
 	    $(MAKE) $*.ctest
 	@echo ' $(CPP_TEST_CASES) '|grep -F -v ' $* ' >/dev/null ||\
 	    $(MAKE) $*.cpptest
-	@echo ' $(MULTICPP_TEST_CASES) '|grep -F -v ' $* ' >/dev/null ||\
+	@echo ' $(MULTI_CPP_TEST_CASES) '|grep -F -v ' $* ' >/dev/null ||\
 	    $(MAKE) $*.multicpptest
 
 # Runs the testcase. Tries to run testcase_runme.php, and if that's not

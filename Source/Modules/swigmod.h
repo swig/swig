@@ -213,7 +213,7 @@ public:
   virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");	/* Add symbol        */
   virtual void dumpSymbols();
   virtual Node *symbolLookup(String *s, const_String_or_char_ptr scope = "");			/* Symbol lookup     */
-  virtual Node *classLookup(SwigType *s);	/* Class lookup      */
+  virtual Node *classLookup(const SwigType *s);	/* Class lookup      */
   virtual Node *enumLookup(SwigType *s);	/* Enum lookup       */
   virtual int abstractClassTest(Node *n);	/* Is class really abstract? */
   virtual int is_assignable(Node *n);	/* Is variable assignable? */

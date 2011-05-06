@@ -1,5 +1,11 @@
 %module li_std_stream
 
+%{
+#if defined(__SUNPRO_CC)
+#pragma error_messages (off, badargtype2w) /* Formal argument ... is being passed extern "C" ... */
+#endif
+%}
+
 %inline %{
   struct A;  
 %}

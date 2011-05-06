@@ -404,11 +404,11 @@ namespace Swig {
     }
 
     /* methods to implement pseudo protected director members */
-    virtual bool swig_get_inner(const char* /* protected_method_name */) const {
+    virtual bool swig_get_inner(const char* /* swig_protected_method_name */) const {
       return true;
     }
     
-    virtual void swig_set_inner(const char* /* protected_method_name */, bool /* val */) const {
+    virtual void swig_set_inner(const char* /* swig_protected_method_name */, bool /* swig_val */) const {
     }
 
   /* ownership management */
@@ -459,6 +459,18 @@ namespace Swig {
       }
       return own;
     }
+
+    template <typename Type>
+    static PyObject* swig_pyobj_disown(PyObject *pyobj, PyObject *SWIGUNUSEDPARM(args))
+    {
+      SwigPyObject *sobj = (SwigPyObject *)pyobj;
+      sobj->own = 0;
+      Director *d = SWIG_DIRECTOR_CAST(reinterpret_cast<Type *>(sobj->ptr));
+      if (d)
+        d->swig_disown();
+      return PyWeakref_NewProxy(pyobj, NULL);
+    }
+
   };
 
 #ifdef __THREAD__

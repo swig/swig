@@ -2768,7 +2768,6 @@ types_directive : TYPES LPAREN parms RPAREN stringbracesemi {
 template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
                   Parm *p, *tp;
 		  Node *n;
-		  Node *tnode = 0;
 		  Symtab *tscope = 0;
 		  int     specialized = 0;
 
@@ -2929,7 +2928,6 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           }
                           Delattr(templnode,"templatetype");
                           Setattr(templnode,"template",nn);
-                          tnode = templnode;
                           Setfile(templnode,cparse_file);
                           Setline(templnode,cparse_line);
                           Delete(temparms);
@@ -4477,6 +4475,25 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 		 add_symbols($$);
 	       }
 
+               | storage_class COPERATOR type pointer AND LPAREN parms RPAREN cpp_vend {
+		 SwigType *decl;
+                 $$ = new_node("cdecl");
+                 Setattr($$,"type",$3);
+		 Setattr($$,"name",$2);
+		 Setattr($$,"storage",$1);
+		 decl = NewStringEmpty();
+		 SwigType_add_pointer(decl);
+		 SwigType_add_reference(decl);
+		 SwigType_add_function(decl,$7);
+		 if ($9.qualifier) {
+		   SwigType_push(decl,$9.qualifier);
+		 }
+		 Setattr($$,"decl",decl);
+		 Setattr($$,"parms",$7);
+		 Setattr($$,"conversion_operator","1");
+		 add_symbols($$);
+	       }
+
               | storage_class COPERATOR type LPAREN parms RPAREN cpp_vend {
 		String *t = NewStringEmpty();
 		$$ = new_node("cdecl");
@@ -5593,21 +5610,14 @@ edecl          :  ID {
 		   Delete(type);
 		 }
                  | ID EQUAL etype {
+		   SwigType *type = NewSwigType($3.type == T_BOOL ? T_BOOL : ($3.type == T_CHAR ? T_CHAR : T_INT));
 		   $$ = new_node("enumitem");
 		   Setattr($$,"name",$1);
-		   Setattr($$,"enumvalue", $3.val);
-	           if ($3.type == T_CHAR) {
-		     SwigType *type = NewSwigType(T_CHAR);
-		     Setattr($$,"value",NewStringf("\'%(escape)s\'", $3.val));
-		     Setattr($$,"type",type);
-		     Delete(type);
-		   } else {
-		     SwigType *type = NewSwigType($3.type == T_BOOL ? T_BOOL : T_INT);
-		     Setattr($$,"value",$1);
-		     Setattr($$,"type",type);
-		     Delete(type);
-		   }
+		   Setattr($$,"type",type);
 		   SetFlag($$,"feature:immutable");
+		   Setattr($$,"enumvalue", $3.val);
+		   Setattr($$,"value",$1);
+		   Delete(type);
                  }
                  | empty { $$ = 0; }
                  ;
@@ -5621,7 +5631,6 @@ etype            : expr {
 		       ($$.type != T_CHAR) && ($$.type != T_BOOL)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an integral type\n");
 		   }
-		   if ($$.type == T_CHAR) $$.type = T_INT;
                 }
                ;
 

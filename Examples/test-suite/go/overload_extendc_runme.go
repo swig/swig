@@ -10,7 +10,7 @@ func main() {
 	if f.Test("hello") != 2 {
 		panic(0)
 	}
-	if f.Test(float64(3.5), float64(2.5)) != 3 {
+	if f.Test(3.5, 2.5) != 3 {
 		panic(0)
 	}
 	if f.Test("hello", 20) != 1020 {

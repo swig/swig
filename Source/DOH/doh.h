@@ -277,9 +277,9 @@ extern int DohGetmark(DOH *obj);
  * ----------------------------------------------------------------------------- */
 
 extern DOHString *DohNewStringEmpty(void);
-extern DOHString *DohNewString(const DOH *c);
-extern DOHString *DohNewStringWithSize(const DOH *c, int len);
-extern DOHString *DohNewStringf(const DOH *fmt, ...);
+extern DOHString *DohNewString(const DOHString_or_char *c);
+extern DOHString *DohNewStringWithSize(const DOHString_or_char *c, int len);
+extern DOHString *DohNewStringf(const DOHString_or_char *fmt, ...);
 
 extern int DohStrcmp(const DOHString_or_char *s1, const DOHString_or_char *s2);
 extern int DohStrncmp(const DOHString_or_char *s1, const DOHString_or_char *s2, int n);

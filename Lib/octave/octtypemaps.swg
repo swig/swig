@@ -38,11 +38,6 @@
 // Include the unified typemap library
 %include <typemaps/swigtypemaps.swg>
 
-
-%typemap(constcode,noblock=1) int double {
-  SWIG_Octave_SetConstant(module_ns,"$symname",octave_value($value));
-}
-
 %typecheck(SWIG_TYPECHECK_SWIGOBJECT) SWIG_Object "$1 = (*$input).is_defined();";
 %typecheck(SWIG_TYPECHECK_SWIGOBJECT) octave_value_list "$1 = true;";
 

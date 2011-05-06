@@ -7,7 +7,7 @@ func main() {
 	helloInt.Foo(template_default_arg.Hello_intHi)
 
 	x := template_default_arg.NewX_int()
-	if x.Meth(float64(20.0), 200).(int) != 200 {
+	if x.Meth(20.0, 200).(int) != 200 {
 		panic("X_int test 1 failed")
 	}
 	if x.Meth(20).(int) != 20 {
@@ -18,7 +18,7 @@ func main() {
 	}
 
 	y := template_default_arg.NewY_unsigned()
-	if y.Meth(float64(20.0), uint(200)).(uint) != 200 {
+	if y.Meth(20.0, uint(200)).(uint) != 200 {
 		panic("Y_unsigned test 1 failed")
 	}
 	if y.Meth(uint(20)).(uint) != 20 {
@@ -29,19 +29,19 @@ func main() {
 	}
 
 	_ = template_default_arg.NewX_longlong()
-	_ = template_default_arg.NewX_longlong(float64(20.0))
-	_ = template_default_arg.NewX_longlong(float64(20.0), int64(200))
+	_ = template_default_arg.NewX_longlong(20.0)
+	_ = template_default_arg.NewX_longlong(20.0, int64(200))
 
 	_ = template_default_arg.NewX_int()
-	_ = template_default_arg.NewX_int(float64(20.0))
-	_ = template_default_arg.NewX_int(float64(20.0), 200)
+	_ = template_default_arg.NewX_int(20.0)
+	_ = template_default_arg.NewX_int(20.0, 200)
 
 	_ = template_default_arg.NewX_hello_unsigned()
-	_ = template_default_arg.NewX_hello_unsigned(float64(20.0))
-	_ = template_default_arg.NewX_hello_unsigned(float64(20.0), template_default_arg.NewHello_int())
+	_ = template_default_arg.NewX_hello_unsigned(20.0)
+	_ = template_default_arg.NewX_hello_unsigned(20.0, template_default_arg.NewHello_int())
 
 	yy := template_default_arg.NewY_hello_unsigned()
-	yy.Meth(float64(20.0), template_default_arg.NewHello_int())
+	yy.Meth(20.0, template_default_arg.NewHello_int())
 	yy.Meth(template_default_arg.NewHello_int())
 	yy.Meth()
 
@@ -97,7 +97,7 @@ func main() {
 	}
 
 	// %template(ott) ott<double>
-	if template_default_arg.Ott(template_default_arg.NewHello_int(), float64(1.0)) != 60 {
+	if template_default_arg.Ott(template_default_arg.NewHello_int(), 1.0) != 60 {
 		panic("ott test 12 failed")
 	}
 

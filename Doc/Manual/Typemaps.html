@@ -1711,7 +1711,8 @@ you'll find the full typemap contents (example shown below for Python):
 %typemap(in, noblock=1) SWIGTYPE [] (void *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr($input, &amp;argp,$descriptor, $disown |  0 );
   if (!SWIG_IsOK(res)) { 
-    SWIG_exception_fail(SWIG_ArgError(res), "in method '" "$symname" "', argument " "$argnum"" of type '" "$type""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res), "in method '" "$symname" "', argument "
+                       "$argnum"" of type '" "$type""'"); 
   } 
   $1 = ($ltype)(argp);
 }
@@ -1732,7 +1733,8 @@ SWIGINTERN PyObject *_wrap_foo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
 ...
   res1 = SWIG_ConvertPtr(obj0, &amp;argp1,SWIGTYPE_p_a_4__int, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "foo" "', argument " "1"" of type '" "int [10][4]""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "foo" "', argument "
+                       "1"" of type '" "int [10][4]""'"); 
   } 
   arg1 = (int (*)[4])(argp1);
 ...
@@ -1791,7 +1793,8 @@ void set_value(const char* val) {}
   }
 }
 
-%apply SWIGTYPE * { const char* val, const char* another_value } // use default pointer handling instead of strings
+// use default pointer handling instead of strings
+%apply SWIGTYPE * { const char* val, const char* another_value }
 
 %typemap(check) const char* val = char* NON_NULL;
 
@@ -3296,7 +3299,8 @@ SWIG can detect when the "optimal" attribute cannot be used and will ignore it a
 <div class="targetlang">
 <pre>
 example.i:28: Warning 474: Method XX::create() usage of the optimal attribute ignored
-example.i:14: Warning 474: in the out typemap as the following cannot be used to generate optimal code: 
+example.i:14: Warning 474: in the out typemap as the following cannot be used to generate
+optimal code: 
 try {
   result = XX::create();
 } catch(const std::exception &amp;e) {
@@ -3317,8 +3321,8 @@ In fact SWIG attempts to detect this and will issue a warning something like:
 
 <div class="targetlang">
 <pre>
-example.i:21: Warning 475: Multiple calls to XX::create() might be generated due to optimal attribute usage in
-example.i:7: Warning 475: the out typemap.
+example.i:21: Warning 475: Multiple calls to XX::create() might be generated due to
+example.i:7: Warning 475: optimal attribute usage in the out typemap.
 </pre>
 </div>
 

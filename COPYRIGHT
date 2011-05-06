@@ -1,7 +1,7 @@
 SWIG Copyright and Authors
 --------------------------
 
-Copyright (c) 1995-2010 The SWIG Developers
+Copyright (c) 1995-2011 The SWIG Developers
 Copyright (c) 2005-2006 Arizona Board of Regents (University of Arizona).
 Copyright (c) 1998-2005 University of Chicago.
 Copyright (c) 1995-1998 The University of Utah and the Regents of the University of California
@@ -15,6 +15,7 @@ Active SWIG Developers:
  Olly Betts (olly@survex.com)                           (PHP)
  Joseph Wang (joequant@gmail.com)                       (R)
  Xavier Delacour (xavier.delacour@gmail.com)            (Octave)
+ David Nadlinger (code@klickverbot.at)                  (D)
 
 Past SWIG developers and major contributors include:
  Dave Beazley (dave-swig@dabeaz.com)                    (SWIG core, Python, Tcl, Perl)
@@ -58,6 +59,7 @@ Past SWIG developers and major contributors include:
  Baozeng Ding  <sploving1@163.com>                      (Scilab)
  Ian Lance Taylor                                       (Go)
  Vadim Zeitlin                                          (PCRE)
+ Stefan Zager (szager@gmail.com)			(Python)
 
 Past contributors include:
  James Michael DuPont, Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran
@@ -68,7 +70,7 @@ Past contributors include:
 
 Past students:
  Songyan Feng (Chicago).
- Xinghua Shi (Chicago). 
+ Xinghua Shi (Chicago).
  Jing Cao (Chicago).
  Aquinas Hobor (Chicago).
 
@@ -98,5 +100,5 @@ Mike Weiblen, Paul Brannan, Ram Bhamidipaty, Reinhard Fobbe, Rich Wales,
 Richard Salz, Roy Lecates, Rudy Albachten, Scott Drummonds
 Scott Michel, Shaun Lowry, Steve Galser, Tarn Weisner Burton,
 Thomas Weidner, Tony Seward, Uwe Steinmann, Vadim Chugunov, Wyss Clemens,
-Zhong Ren. 
+Zhong Ren.
 

@@ -77,6 +77,7 @@ skip-uffi	= test -n "@SKIP_UFFI@"
 skip-r		= test -n "@SKIP_R@"
 skip-scilab     = test -n "@SKIP_SCILAB@"
 skip-go		= test -n "@SKIP_GO@"
+skip-d		= test -n "@SKIP_D@"
 
 # Additional dependencies for some tests
 skip-gcj        = test -n "@SKIP_GCJ@"
@@ -96,24 +97,30 @@ check-aliveness:
 	test -x ./$(TARGET)
 	./$(TARGET) -version
 	./$(TARGET) -help
-	@$(skip-tcl)      || ./$(TARGET) -tcl      -help
-	@$(skip-perl5)    || ./$(TARGET) -perl     -help
-	@$(skip-python)   || ./$(TARGET) -python   -help
-	@$(skip-java)     || ./$(TARGET) -java     -help
-	@$(skip-guile)    || ./$(TARGET) -guile    -help
-	@$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
-	@$(skip-ruby)     || ./$(TARGET) -ruby     -help
-	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
-	@$(skip-octave)   || ./$(TARGET) -octave   -help
-	@$(skip-php)      || ./$(TARGET) -php      -help
-	@$(skip-pike)     || ./$(TARGET) -pike     -help
-	@$(skip-chicken)  || ./$(TARGET) -chicken  -help
-	@$(skip-csharp)   || ./$(TARGET) -csharp   -help
-	@$(skip-modula3)  || ./$(TARGET) -modula3  -help
-	@$(skip-lua)      || ./$(TARGET) -lua      -help
-	@$(skip-r) 	  || ./$(TARGET) -r        -help
-	@$(skip-scilab)   || ./$(TARGET) -scilab    -help
-	@$(skip-go)	  || ./$(TARGET) -go       -help
+	@$(skip-tcl)      || ./$(TARGET) -tcl        -help
+	@$(skip-perl5)    || ./$(TARGET) -perl       -help
+	@$(skip-python)   || ./$(TARGET) -python     -help
+	@$(skip-java)     || ./$(TARGET) -java       -help
+	@$(skip-guile)    || ./$(TARGET) -guile      -help
+	@$(skip-mzscheme) || ./$(TARGET) -mzscheme   -help
+	@$(skip-ruby)     || ./$(TARGET) -ruby       -help
+	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
+	@$(skip-octave)   || ./$(TARGET) -octave     -help
+	@$(skip-php)      || ./$(TARGET) -php        -help
+	@$(skip-pike)     || ./$(TARGET) -pike       -help
+	@$(skip-chicken)  || ./$(TARGET) -chicken    -help
+	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
+	@$(skip-modula3)  || ./$(TARGET) -modula3    -help
+	@$(skip-allegrocl)|| ./$(TARGET) -allegrocl  -help
+	@$(skip-clisp)    || ./$(TARGET) -clisp      -help
+	@$(skip-uffi)     || ./$(TARGET) -uffi       -help
+	@$(skip-cffi)     || ./$(TARGET) -cffi       -help
+	@$(skip-lua)      || ./$(TARGET) -lua        -help
+	@$(skip-r) 	  || ./$(TARGET) -r          -help
+	@$(skip-go)	  || ./$(TARGET) -go         -help
+	@$(skip-d) 	  || ./$(TARGET) -d          -help
+	@$(skip-scilab) 	  || ./$(TARGET) -scilab          -help
+
 
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
@@ -140,8 +147,9 @@ check-examples:					\
 	check-uffi-examples			\
 	check-cffi-examples			\
 	check-r-examples			\
-	check-scilab-examples       		\
-	check-go-examples
+	check-go-examples			\
+	check-d-examples			\
+	check-scilab-examples
 
 tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
@@ -165,6 +173,7 @@ cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
 go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
+d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
 
 # all examples
 check-%-examples :
@@ -218,7 +227,8 @@ check-test-suite:				\
 	check-chicken-test-suite		\
 	check-r-test-suite               	\
 	check-scilab-test-suite			\
-	check-go-test-suite
+	check-go-test-suite			\
+	check-d-test-suite
 
 check-%-test-suite:
 	@if test -z "$(skip-$*)"; then					\
@@ -271,7 +281,8 @@ all-test-suite:					\
 	all-chicken-test-suite			\
 	all-r-test-suite                   	\
 	all-scilab-test-suite   		\
-	all-go-test-suite
+	all-go-test-suite			\
+	all-d-test-suite
 
 all-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=all
@@ -299,8 +310,10 @@ broken-test-suite:				\
 	broken-cffi-test-suite			\
 	broken-chicken-test-suite		\
 	broken-r-test-suite			\
-	broken-scilab-test-suite           	\
 	broken-go-test-suite
+	broken-go-test-suite			\
+	broken-scilab-test-suite           	\
+	broken-d-test-suite
 
 broken-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=broken
@@ -417,7 +430,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r scilab go
+	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d scilab
 
 lib-modules = std
 
@@ -496,7 +509,7 @@ srcrpm:
 
 # Update the autoconf files for detecting host/targets. Automake will do this in
 # version 1.10 for our case of not having a top level Makefile.am. Until then we
-# can fetch them manually and will have to commit them to CVS.
+# can fetch them manually and will have to commit them to SVN.
 configfiles:
 	wget ftp://ftp.gnu.org/pub/gnu/config/config.guess -O Tools/config/config.guess
 	chmod a+x Tools/config/config.guess

@@ -538,7 +538,7 @@ $result = C_SCHEME_UNDEFINED;
  * String & length
  * ------------------------------------------------------------ */
 
-%typemap(in) (char *STRING, int LENGTH) {
+%typemap(in) (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) {
   if ($input == C_SCHEME_FALSE) {
     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Cannot use a null/#f string for a char*, int arguments");
   }

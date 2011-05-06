@@ -254,12 +254,17 @@ class TypePass:private Dispatcher {
 	  Delete(smartnamestr);
 	  /* setup inheritance relationship between smart pointer templates */
 	  SwigType_inherit(smart, bsmart, 0, convcode);
+	  if (!GetFlag(bclass, "feature:smartptr"))
+	    Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
 	  Delete(convcode);
 	  Delete(bsmart);
 	  Delete(smart);
 	} else {
 	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", SwigType_namestr(smartptr), SwigType_namestr(clsname));
 	}
+      } else {
+	if (GetFlag(bclass, "feature:smartptr"))
+	  Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));
       }
       if (!importmode) {
 	String *btype = Copy(bname);
@@ -994,6 +999,7 @@ class TypePass:private Dispatcher {
 		      }
 		      Node *nn = copyNode(c);
 		      Delattr(nn, "access");	// access might be different from the method in the base class
+		      Setattr(nn, "access", Getattr(n, "access"));
 		      if (!Getattr(nn, "sym:name"))
 			Setattr(nn, "sym:name", symname);
 
@@ -1056,11 +1062,11 @@ class TypePass:private Dispatcher {
 	       * which is hacked. */
 	      if (Getattr(n, "sym:overloaded"))
 	      {
-#ifdef DEBUG_OVERLOADED
-show_overloaded(n);
-#endif
 		int cnt = 0;
+#ifdef DEBUG_OVERLOADED
 		Node *debugnode = n;
+		show_overloaded(n);
+#endif
 		if (!firstChild(n)) {
 		  // Remove from overloaded list ('using' node does not actually end up adding in any methods)
 		  Node *ps = Getattr(n, "sym:previousSibling");
@@ -1107,14 +1113,16 @@ show_overloaded(n);
 		    Setattr(ns, "sym:previousSibling", pp);
 		    Setattr(pp, "sym:nextSibling", ns);
 		  }
+#ifdef DEBUG_OVERLOADED
 		  debugnode = firstoverloaded;
+#endif
 		}
 		Delattr(n, "sym:previousSibling");
 		Delattr(n, "sym:nextSibling");
 		Delattr(n, "sym:overloaded");
 		Delattr(n, "sym:overname");
 #ifdef DEBUG_OVERLOADED
-show_overloaded(debugnode);
+		show_overloaded(debugnode);
 #endif
 		clean_overloaded(n); // Needed?
 	      }

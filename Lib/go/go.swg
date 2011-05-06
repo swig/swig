@@ -157,8 +157,8 @@
 		      const float &,
 		      const double &
 %{
-  $result = ($1_ltype)_swig_allocate(sizeof($*1_ltype));
-  *$result = *($1_ltype)$input;
+  $result = ($1_ltype)_swig_goallocate(sizeof($*1_ltype));
+  *$result = *($1_ltype)&$input;
 %}
 
 /* The size_t type.  */
@@ -192,7 +192,7 @@
 
 %typemap(directorout) const size_t &
 %{
-  $result = ($1_ltype)_swig_allocate(sizeof($*1_ltype));
+  $result = ($1_ltype)_swig_goallocate(sizeof($*1_ltype));
   *$result = *($1_ltype)$input;
 %}
 
@@ -206,7 +206,7 @@
 
 %typemap(out) SWIGTYPE (CLASS::*)
 %{
-  $result = _swig_allocate(sizeof($1_ltype));
+  $result = _swig_goallocate(sizeof($1_ltype));
   *($&1_ltype)$result = $1;
 %}
 
@@ -215,7 +215,7 @@
 
 %typemap(directorout) SWIGTYPE (CLASS::*)
 %{
-  $result = _swig_allocate(sizeof($1_ltype));
+  $result = _swig_goallocate(sizeof($1_ltype));
   *($&1_ltype)$result = $input;
 %}
 
@@ -253,14 +253,6 @@
 
 %typemap(out) SWIGTYPE *const&
 %{ *($1_ltype)&$result = *$1; %}
-
-/* Function pointers are translated by the code in go.cxx into
-   _swig_fnptr.  Member pointers are translated to _swig_memberptr.  */
-
-%insert(go_header) %{
-type _swig_fnptr *byte
-type _swig_memberptr *byte
-%}
 
 /* References.  */
 
@@ -340,6 +332,28 @@ type _swig_memberptr *byte
 	signed char *, signed char *&, signed char[ANY], signed char[],
 	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
 %{ $result = ($1_ltype)$input.p; %}
+
+/* String & length */
+
+%typemap(gotype) (char *STRING, size_t LENGTH) "string"
+
+%typemap(in) (char *STRING, size_t LENGTH)
+%{
+  $1 = ($1_ltype)$input.p;
+  $2 = ($2_ltype)$input.n;
+%}
+
+%typemap(out) (char *STRING, size_t LENGTH)
+%{ $result = _swig_makegostring((char*)$1, (size_t)$2); %}
+
+%typemap(directorin) (char *STRING, size_t LENGTH)
+%{ $input = _swig_makegostring((char*)$1_name, $2_name); %}
+
+%typemap(directorout) (char *STRING, size_t LENGTH)
+%{
+  $1 = ($1_ltype)$input.p;
+  $2 = ($2_ltype)$input.n;
+%}
 
 /* Enums.  We can't do the right thing for enums in typemap(gotype) so
    we deliberately don't define them.  The right thing would be to
@@ -508,6 +522,7 @@ type _swig_memberptr *byte
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)
     ""
+
 /* Go keywords.  */
 %include <gokw.swg>
 

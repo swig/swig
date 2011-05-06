@@ -1,6 +1,6 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 2.0.2 (in progress)
+Version: 2.0.4 (in progress)
 
 Tagline: SWIG is a compiler that integrates C and C++ with languages
          including Perl, Python, Tcl, Ruby, PHP, Java, Ocaml, Lua,
@@ -57,8 +57,12 @@ You must use GNU `make' to build SWIG.
 
 http://www.gnu.org/software/make/
 
-PCRE needs to be installed on your system to build SWIG. The configure
-script will provide instructions for obtaining PCRE if it cannot be found.
+PCRE needs to be installed on your system to build SWIG, in particular
+pcre-config must be available. If you have PCRE headers and libraries but not
+pcre-config itself or, alternatively, wish to override the compiler or linker
+flags returned by pcre-config, you may set PCRE_LIBS and PCRE_CFLAGS variables
+to be used instead. And if you don't have PCRE at all, the configure script
+will provide instructions for obtaining it.
 
 To build and install SWIG, simply type the following:
 
@@ -88,6 +92,10 @@ uses.  Don't panic if you get 'not found' messages--SWIG does not need these
 packages to compile or run.   The configure script is actually looking for
 these packages so that you can try out the SWIG examples contained
 in the 'Examples' directory without having to hack Makefiles.
+Note that the --without-xxx options, where xxx is a target language, have 
+minimal effect. All they do is reduce the amount of testing done with 
+'make check'. The SWIG executable and library files installed cannot currently
+be configured with a subset of target languages.
 
 Please see the Documentation section below on installing documentation as
 none is installed by default.
@@ -138,6 +146,8 @@ incorrectly configured.  It may also fail due to compiler issues such
 as broken C++ compiler.  Even if 'make -k check' fails, there is a
 pretty good chance SWIG still works correctly---you will just have to
 mess around with one of the examples and some makefiles to get it to work.
+Some tests may also fail due to missing dependency packages, eg PCRE
+or Boost, but this will require careful analysis of the configure output.
 
 The testing suite executed by 'make -k check' is designed to stress-test
 many parts of the implementation including obscure corner cases. If some
@@ -145,8 +155,8 @@ of these tests fail or generate warning messages, there is no reason for
 alarm---the test may be related to some new SWIG feature or a difficult bug
 that we're trying to resolve.  Chances are that SWIG will work just fine
 for you. Note that if you have more than one CPU/core, then you can use
-parallel make can be used to speed up the check as it does take quite some
-time to run, for example:
+parallel make to speed up the check as it does take quite some time to run,
+for example:
 
     % make -j2 -k check
 

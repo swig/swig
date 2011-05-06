@@ -82,8 +82,9 @@ void display_mapping(DOH *d) {
  (though for now I have not bothered)
 NEW LANGUAGE NOTE:END ************************************************/
 static const char *usage = (char *) "\
-                           Lua Options (available with -lua)\n\
-                           (coming soon.)\n\n";
+Lua Options (available with -lua)\n\
+     [no additional options]\n\
+\n";
 
 
 
@@ -170,7 +171,7 @@ public:
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {	// usage flags
-          fputs(usage, stderr);
+          fputs(usage, stdout);
         }
       }
     }
@@ -445,10 +446,8 @@ public:
     String *argument_check = NewString("");
     String *argument_parse = NewString("");
     String *checkfn = NULL;
-    //    String *numoutputs=NULL;
     char source[64];
-    //Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n",name,num_required,num_arguments);
-    Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n",name,num_required+args_to_ignore,num_arguments+args_to_ignore);
+    Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n",Swig_name_str(n),num_required+args_to_ignore,num_arguments+args_to_ignore);
 
     for (i = 0, p = l; i < num_arguments; i++) {
 
@@ -484,7 +483,7 @@ public:
           } else {
             Printf(argument_check, "if(lua_gettop(L)>=%s && !%s(L,%s))", source, checkfn, source);
           }
-          Printf(argument_check, " SWIG_fail_arg(\"%s\",%s,\"%s\");\n", name, source, SwigType_str(pt, 0));
+          Printf(argument_check, " SWIG_fail_arg(\"%s\",%s,\"%s\");\n", Swig_name_str(n), source, SwigType_str(pt, 0));
         }
         /* NEW LANGUAGE NOTE:***********************************************
            lua states the number of arguments passed to a function using the fn
@@ -718,7 +717,9 @@ public:
       sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
     String *protoTypes = NewString("");
     do {
-      Printf(protoTypes, "\n\"    %s(%s)\\n\"", SwigType_str(Getattr(sibl, "name"), 0), ParmList_protostr(Getattr(sibl, "wrap:parms")));
+      String *fulldecl = Swig_name_decl(sibl);
+      Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
+      Delete(fulldecl);
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
     Printf(f->code, "lua_pushstring(L,\"Wrong arguments for overloaded function '%s'\\n\"\n"
         "\"  Possible C/C++ prototypes are:\\n\"%s);\n",symname,protoTypes);
@@ -919,7 +920,7 @@ public:
     String *wrap_class = NewStringf("&_wrap_class_%s", mangled_classname);
     SwigType_remember_clientdata(t, wrap_class);
 
-    String *rt = Copy(Getattr(n, "classtype"));
+    String *rt = Copy(getClassType());
     SwigType_add_pointer(rt);
 
     // Register the class structure with the type checker

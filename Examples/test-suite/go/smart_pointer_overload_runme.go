@@ -9,7 +9,7 @@ func main() {
 	if f.Test(3) != 1 {
 		panic(0)
 	}
-	if f.Test(float64(3.5)) != 2 {
+	if f.Test(3.5) != 2 {
 		panic(0)
 	}
 	if f.Test("hello") != 3 {
@@ -19,7 +19,7 @@ func main() {
 	if b.Test(3) != 1 {
 		panic(0)
 	}
-	if b.Test(float64(3.5)) != 2 {
+	if b.Test(3.5) != 2 {
 		panic(0)
 	}
 	if b.Test("hello") != 3 {

@@ -17,11 +17,13 @@ char cvsroot_ocaml_cxx[] = "$Id$";
 
 #include <ctype.h>
 
-static const char *usage = (char *)
-    ("Ocaml Options (available with -ocaml)\n"
-     "-prefix <name>  - Set a prefix <name> to be prepended to all names\n"
-     "-where          - Emit library location\n"
-     "-suffix <name>  - Change .cxx to something else\n" "-oldvarnames    - old intermediary method names for variable wrappers\n" "\n");
+static const char *usage = (char *) "\
+Ocaml Options (available with -ocaml)\n\
+     -oldvarnames    - Old intermediary method names for variable wrappers\n\
+     -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
+     -suffix <name>  - Change .cxx to something else\n\
+     -where          - Emit library location\n\
+\n";
 
 static int classmode = 0;
 static int in_constructor = 0, in_destructor = 0, in_copyconst = 0;
@@ -35,7 +37,7 @@ static String *classname = 0;
 static String *module = 0;
 static String *init_func_def = 0;
 static String *f_classtemplate = 0;
-static String *name_qualifier = 0;
+static SwigType *name_qualifier_type = 0;
 
 static Hash *seen_enums = 0;
 static Hash *seen_enumvalues = 0;
@@ -443,7 +445,6 @@ public:
     String *outarg = NewString("");
     String *build = NewString("");
     String *tm;
-    int argout_set = 0;
     int i = 0;
     int numargs;
     int numreq;
@@ -606,7 +607,6 @@ public:
 	Replaceall(tm, "$ntype", normalizeTemplatedClassName(Getattr(p, "type")));
 	Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
-	argout_set = 1;
       } else {
 	p = nextSibling(p);
       }
@@ -879,9 +879,8 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmemberfunctionHandler(Node *n) {
-    int rv;
     static_member_function = 1;
-    rv = Language::staticmemberfunctionHandler(n);
+    Language::staticmemberfunctionHandler(n);
     static_member_function = 0;
     return SWIG_OK;
   }
@@ -898,12 +897,12 @@ public:
     String *name = Getattr(n, "feature:symname");
     SwigType *type = Getattr(n, "type");
     String *value = Getattr(n, "value");
-    String *qvalue = Getattr(n, "qualified:value");
+    SwigType *qname = Getattr(n, "qualified:name");
     String *rvalue = NewString("");
     String *temp = 0;
 
-    if (qvalue)
-      value = qvalue;
+    if (qname)
+      value = qname;
 
     if (!name) {
       name = mangleNameForCaml(Getattr(n, "name"));
@@ -928,9 +927,10 @@ public:
     // Create variable and assign it a value
 
     Printf(f_header, "static %s = ", SwigType_lstr(type, name));
+    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
     if ((SwigType_type(type) == T_STRING)) {
       Printf(f_header, "\"%s\";\n", value);
-    } else if (SwigType_type(type) == T_CHAR) {
+    } else if (SwigType_type(type) == T_CHAR && !is_enum_item) {
       Printf(f_header, "\'%s\';\n", value);
     } else {
       Printf(f_header, "%s;\n", value);
@@ -1228,20 +1228,18 @@ public:
     return out;
   }
 
-  String *fully_qualify_enum_name(Node *n, String *name) {
+  SwigType *fully_qualified_enum_type(Node *n) {
     Node *parent = 0;
-    String *qualification = NewString("");
     String *fully_qualified_name = NewString("");
     String *parent_type = 0;
-    String *normalized_name;
 
     parent = parentNode(n);
     while (parent) {
       parent_type = nodeType(parent);
       if (Getattr(parent, "name")) {
 	String *parent_copy = NewStringf("%s::", Getattr(parent, "name"));
-	if (!Cmp(parent_type, "class") || !Cmp(parent_type, "namespace"))
-	  Insert(qualification, 0, parent_copy);
+	if (Cmp(parent_type, "class") == 0 || Cmp(parent_type, "namespace") == 0)
+	  Insert(fully_qualified_name, 0, parent_copy);
 	Delete(parent_copy);
       }
       if (!Cmp(parent_type, "class"))
@@ -1249,25 +1247,18 @@ public:
       parent = parentNode(parent);
     }
 
-    Printf(fully_qualified_name, "%s%s", qualification, name);
-
-    normalized_name = normalizeTemplatedClassName(fully_qualified_name);
-    if (!strncmp(Char(normalized_name), "enum ", 5)) {
-      Insert(normalized_name, 5, qualification);
-    }
-
-    return normalized_name;
+    return fully_qualified_name;
   }
 
   /* Benedikt Grundmann inspired --> Enum wrap styles */
 
   int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "name");
-    String *qvalue = 0;
+    SwigType *qtype = 0;
 
-    if (name_qualifier) {
-      qvalue = Copy(name_qualifier);
-      Printv(qvalue, name, NIL);
+    if (name_qualifier_type) {
+      qtype = Copy(name_qualifier_type);
+      Printv(qtype, name, NIL);
     }
 
     if (const_enum && name && !Getattr(seen_enumvalues, name)) {
@@ -1275,10 +1266,10 @@ public:
       SetFlag(n, "feature:immutable");
       Setattr(n, "feature:enumvalue", "1");	// this does not appear to be used
 
-      if (qvalue)
-	Setattr(n, "qualified:value", qvalue);
+      if (qtype)
+	Setattr(n, "qualified:name", SwigType_namestr(qtype));
 
-      String *evname = SwigType_manglestr(qvalue);
+      String *evname = SwigType_manglestr(qtype);
       Insert(evname, 0, "SWIG_ENUM_");
 
       Setattr(n, "feature:enumvname", name);
@@ -1309,10 +1300,10 @@ public:
       /* name is now fully qualified */
       String *fully_qualified_name = NewString(name);
       bool seen_enum = false;
-      if (name_qualifier)
-        Delete(name_qualifier);
+      if (name_qualifier_type)
+        Delete(name_qualifier_type);
       char *strip_position;
-      name_qualifier = fully_qualify_enum_name(n, NewString(""));
+      name_qualifier_type = fully_qualified_enum_type(n);
 
       strip_position = strstr(Char(oname), "::");
 

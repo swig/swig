@@ -13,7 +13,7 @@ func main() {
 		panic(0)
 	}
 
-	p3 := NewPairdd(float64(3.5), float64(2.5))
+	p3 := NewPairdd(3.5, 2.5)
 	p4 := NewPairdd(p3)
 
 	if p4.GetFirst() != 3.5 {

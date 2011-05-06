@@ -69,7 +69,10 @@ test:
 validate:
 	all=`sed '/^#/d' chapters`; for a in $$all; do validate --emacs $$a; done;
 
-# Link checking using linkchecker (can take a while - 30 mins)
+# Link checking using linkchecker
 linkchecker:
-	linkchecker --anchors Contents.html
+	@echo -----------------------------------------------------------------------
+	@echo Note linkchecker versions prior to 6.1 do not work properly wrt anchors
+	@echo -----------------------------------------------------------------------
+	linkchecker --config=./linkchecker.config index.html
 
