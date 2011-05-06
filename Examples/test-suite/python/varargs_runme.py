@@ -27,8 +27,11 @@ if varargs.test_plenty("Hello", 1) != "Hello":
 if varargs.test_plenty("Hello", 1, 2) != "Hello":
     raise RuntimeError, "Failed"
 
+if varargs.test_plenty("Hello", 1, 2, 3) != "Hello":
+    raise RuntimeError, "Failed"
+
 try:
-    varargs.test_plenty("Hello", 1, 2, 3)
+    varargs.test_plenty("Hello", 1, 2, 3, 4)
     raise RuntimeError
 except NotImplementedError:
     pass
