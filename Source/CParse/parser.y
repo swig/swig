@@ -2628,8 +2628,7 @@ varargs_parms   : parms { $$ = $1; }
 		    $$ = 0;
 		  } else {
 		    $$ = Copy($3);
-		    Setattr($$,"name","VARARGS_SENTINEL");
-		    for (i = 0; i < n; i++) {
+		    for (i = 0; i < n-1; i++) {
 		      p = Copy($3);
 		      set_nextSibling(p,$$);
 		      Delete($$);

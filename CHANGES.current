@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.4 (in progress)
 ===========================
 2011-05-05: wsfulton
+            Fix %varargs when used with a numerical argument, eg %varargs(3, char *arg = NULL).
+            It was possible to use one extra optional argument than document. Now the above only
+            generates 3 optional char * arguments. Reported by Karl Wette.
+
+2011-05-05: wsfulton
             [Lua, Python, Tcl] C/C++ prototypes shown in error message when calling an overloaded
             method with incorrect arguments improved to show always show fully qualified name
             and if a const method. 
