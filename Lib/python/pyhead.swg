@@ -206,3 +206,8 @@ typedef destructor freefunc;
 # define SWIGPY_USE_CAPSULE
 # define SWIGPY_CAPSULE_NAME ((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION ".type_pointer_capsule" SWIG_TYPE_TABLE_NAME)
 #endif
+
+#if PY_VERSION_HEX < 0x03020000
+#define PyDescr_TYPE(x) (((PyDescrObject *)(x))->d_type)
+#define PyDescr_NAME(x) (((PyDescrObject *)(x))->d_name)
+#endif

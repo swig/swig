@@ -325,7 +325,16 @@ SWIG_init(void) {
   PyObject *m, *d, *md;
 #if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
+# if PY_VERSION_HEX >= 0x03020000
     PyModuleDef_HEAD_INIT,
+# else
+    {
+      PyObject_HEAD_INIT(NULL)
+      NULL, /* m_init */
+      0,    /* m_index */
+      NULL, /* m_copy */
+    },
+# endif
     (char *) SWIG_name,
     NULL,
     -1,

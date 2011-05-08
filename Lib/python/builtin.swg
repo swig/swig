@@ -285,17 +285,22 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
 SWIGINTERN void
 SwigPyStaticVar_dealloc(PyDescrObject *descr) {
   _PyObject_GC_UNTRACK(descr);
+  /*
   Py_XDECREF(descr->d_type);
   Py_XDECREF(descr->d_name);
+  */
+  Py_XDECREF(PyDescr_TYPE(descr));
+  Py_XDECREF(PyDescr_NAME(descr));
   PyObject_GC_Del(descr);
 }
 
 SWIGINTERN PyObject *
 SwigPyStaticVar_repr(PyGetSetDescrObject *descr) {
 #if PY_VERSION_HEX >= 0x03000000
-  return PyUnicode_FromFormat("<class attribute '%S' of type '%s'>", descr->d_name, descr->d_type->tp_name);
+
+  return PyUnicode_FromFormat("<class attribute '%S' of type '%s'>", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
 #else
-  return PyString_FromFormat("<class attribute '%s' of type '%s'>", PyString_AsString(descr->d_name), descr->d_type->tp_name);
+  return PyString_FromFormat("<class attribute '%s' of type '%s'>", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
 #endif
 }
 
@@ -303,7 +308,7 @@ SWIGINTERN int
 SwigPyStaticVar_traverse(PyObject *self, visitproc visit, void *arg) {
   PyDescrObject *descr;
   descr = (PyDescrObject *)self;
-  Py_VISIT((PyObject*) descr->d_type);
+  Py_VISIT((PyObject*) PyDescr_TYPE(descr));
   return 0;
 }
 
@@ -312,9 +317,9 @@ SwigPyStaticVar_get(PyGetSetDescrObject *descr, PyObject *obj, PyObject *SWIGUNU
   if (descr->d_getset->get != NULL)
     return descr->d_getset->get(obj, descr->d_getset->closure);
 #if PY_VERSION_HEX >= 0x03000000
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not readable", descr->d_name, descr->d_type->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not readable", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
 #else
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not readable", PyString_AsString(descr->d_name), descr->d_type->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not readable", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
 #endif
   return NULL;
 }
@@ -324,9 +329,9 @@ SwigPyStaticVar_set(PyGetSetDescrObject *descr, PyObject *obj, PyObject *value) 
   if (descr->d_getset->set != NULL)
     return descr->d_getset->set(obj, value, descr->d_getset->closure);
 #if PY_VERSION_HEX >= 0x03000000
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not writable", descr->d_name, descr->d_type->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not writable", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
 #else
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not writable", PyString_AsString(descr->d_name), descr->d_type->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not writable", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
 #endif
   return -1;
 }
@@ -425,10 +430,10 @@ SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
   descr = (PyGetSetDescrObject *)PyType_GenericAlloc(&SwigPyStaticVar_Type, 0);
   assert(descr);
   Py_XINCREF(type);
-  descr->d_type = type;
-  descr->d_name = PyString_InternFromString(getset->name);
+  PyDescr_TYPE(descr) = type;
+  PyDescr_NAME(descr) = PyString_InternFromString(getset->name);
   descr->d_getset = getset;
-  if (descr->d_name == NULL) {
+  if (PyDescr_NAME(descr) == NULL) {
     Py_DECREF(descr);
     descr = NULL;
   }

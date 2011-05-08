@@ -168,10 +168,6 @@
     swig::SwigPyIterator* iteritems(PyObject **PYTHON_SELF) {
       return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
-
-    PyObject* asdict() {
-      return swig::traits_from< Map >::asdict(*self);
-    }
   }
 
 #else
@@ -292,13 +288,16 @@
     void __setitem__(const key_type& key) {
       self->erase(key);
     }
-  }
 
-  %extend {
     void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
       (*self)[key] = x;
     }
+
+    PyObject* asdict() {
+      return swig::traits_from< Map >::asdict(*self);
+    }
   }
+
 
 %enddef
 

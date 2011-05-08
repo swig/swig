@@ -93,7 +93,8 @@ BUILTIN_BROKEN = \
     default_constructor.cpptest \
     director_exception.cpptest \
     exception_order.cpptest \
-    threads_exception.cpptest
+    threads_exception.cpptest \
+    python_abstractbase.cpptest
 
 BUILTIN_NOT_BROKEN = $(filter-out $(BUILTIN_BROKEN),$(NOT_BROKEN_TEST_CASES))
 
