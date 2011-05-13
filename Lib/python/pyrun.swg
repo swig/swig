@@ -1070,6 +1070,7 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     return (SwigPyObject *) pyobj;
 
 #ifdef SWIGPYTHON_BUILTIN
+  (void)obj;
 # ifdef PyWeakref_CheckProxy
   if (PyWeakref_CheckProxy(pyobj)) {
     pyobj = PyWeakref_GET_OBJECT(pyobj);
