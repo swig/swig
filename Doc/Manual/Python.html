@@ -43,7 +43,11 @@
 <li><a href="#Python_nn28">Further details on the Python class interface</a>
 <ul>
 <li><a href="#Python_nn29">Proxy classes</a>
-<li><a href="#Python_BuiltinClasses">Built-in classes</a>
+<li><a href="#Python_builtin_classes">Built-in Classes</a>
+<ul>
+<li><a href="#Python_builtin_limitations">Limitations</a>
+<li><a href="#Python_builtin_overloads">Operator overloads -- use them!</a>
+</ul>
 <li><a href="#Python_nn30">Memory management</a>
 <li><a href="#Python_nn31">Python 2.2 and classic classes</a>
 </ul>
@@ -2210,7 +2214,7 @@ unacceptable for a high-performance library.  The new <tt>-builtin</tt>
 option instructs SWIG to forego the use of proxy classes, and instead
 create wrapped types as new built-in Python types.  When this option is used,
 the following section ("Proxy classes") does not apply.  Details on the use of
-the <tt>-builtin</tt> option are in the <a href="#Python_BuiltinClasses">Built-in Classes</a>
+the <tt>-builtin</tt> option are in the <a href="#Python_builtin_classes">Built-in Classes</a>
 section.
 </p>
 
@@ -2303,7 +2307,8 @@ you can attach new Python methods to the class and you can even inherit from it 
 by Python built-in types until Python 2.2).
 </p>
 
-<H3><a name="Python_BuiltinClasses"></a>33.4.2 Built-in Classes</H3>
+<H3><a name="Python_builtin_classes"></a>33.4.2 Built-in Classes</H3>
+
 
 <p>
 The <tt>-builtin</tt> option provides a significant performance improvement
@@ -2346,23 +2351,25 @@ please refer to the python documentation:</p>
 
 <p><a href="http://docs.python.org/extending/newtypes.html">http://docs.python.org/extending/newtypes.html</a></p>
 
-<H4>33.4.2.1 Limitations</H4>
+<H4><a name="Python_builtin_limitations"></a>33.4.2.1 Limitations</H4>
+
 
 <p>Use of the <tt>-builtin</tt> option implies a couple of limitations:
 <ul>
-<li><p>python version support:</p></li>
-<ul>
-<li>Versions 2.5 and up are fully supported</li>
-<li>Versions 2.3 and 2.4 are mostly supported; there are problems with director classes and/or sub-classing a wrapped type in python.</li>
-<li>Versions older than 2.3 are not supported.</li>
-</ul>
-<li><p>Some legacy syntax is no longer supported; in particular:</p></li>
-<ul>
-<li>The functional interface is no longer exposed.  For example, you may no longer call <tt>Whizzo.new_CrunchyFrog()</tt>.  Instead, you must use <tt>Whizzo.CrunchyFrog()</tt>.</li>
-<li>Static member variables are no longer accessed through the 'cvar' field (e.g., <tt>Dances.cvar.FishSlap</tt>).
-They are instead accessed in the idiomatic way (<tt>Dances.FishSlap</tt>).</li>
-</ul>
-<li><p>Wrapped types may not be raised as python exceptions.  Here's why: the python internals expect that all sub-classes of Exception will have this struct layout:</p>
+  <li><p>python version support:</p>
+  <ul>
+    <li>Versions 2.5 and up are fully supported</li>
+    <li>Versions 2.3 and 2.4 are mostly supported; there are problems with director classes and/or sub-classing a wrapped type in python.</li>
+    <li>Versions older than 2.3 are not supported.</li>
+  </ul>
+  </li>
+  <li><p>Some legacy syntax is no longer supported; in particular:</p>
+  <ul>
+    <li>The functional interface is no longer exposed.  For example, you may no longer call <tt>Whizzo.new_CrunchyFrog()</tt>.  Instead, you must use <tt>Whizzo.CrunchyFrog()</tt>.</li>
+    <li>Static member variables are no longer accessed through the 'cvar' field (e.g., <tt>Dances.cvar.FishSlap</tt>).
+    They are instead accessed in the idiomatic way (<tt>Dances.FishSlap</tt>).</li>
+  </ul>
+<p>Wrapped types may not be raised as python exceptions.  Here's why: the python internals expect that all sub-classes of Exception will have this struct layout:</p>
 
 <div class="code">
 <pre>
@@ -2422,7 +2429,6 @@ class MyPyException (Exception) :
 </li>
 <li><p>Reverse binary operators (e.g., <tt>__radd__</tt>) are not supported.</p></li>
 </ul>
-</p>
 
 <p>
 To illustrate the last point, if you have a wrapped class called <tt>MyString</tt>,
@@ -2473,7 +2479,8 @@ The above code fails, because the first operand -- a native python string --
 doesn't know how to add an instance of <tt>MyString</tt> to itself.
 </p>
 
-<H4>33.4.2.2 Operator overloads -- use them!</H4>
+<H4><a name="Python_builtin_overloads"></a>33.4.2.2 Operator overloads -- use them!</H4>
+
 
 <p>The entire justification for the <tt>-builtin</tt> option is improved
 performance.  To that end, the best way to squeeze maximum performance out
@@ -2491,10 +2498,10 @@ slot entries.  For example, suppose you have this class:
 <pre>
 class Twit {
 public:
-    Twit operator+ (const Twit& twit) const;
+    Twit operator+ (const Twit&amp; twit) const;
 
     // Forward to operator+
-    Twit add (const Twit& twit) const
+    Twit add (const Twit&amp; twit) const
     { return *this + twit; }
 };
 </pre>
@@ -2574,6 +2581,7 @@ structs.
 
 
 <H3><a name="Python_nn30"></a>33.4.3 Memory management</H3>
+
 
 <p>NOTE: Although this section refers to proxy objects, everything here also applies
 when the <tt>-builtin</tt> option is used.</p>
