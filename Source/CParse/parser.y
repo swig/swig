@@ -2627,10 +2627,15 @@ varargs_parms   : parms { $$ = $1; }
 		    Swig_error(cparse_file, cparse_line,"Argument count in %%varargs must be positive.\n");
 		    $$ = 0;
 		  } else {
+		    String *name = Getattr($3, "name");
 		    $$ = Copy($3);
-		    Setattr($$,"name","VARARGS_SENTINEL");
-		    for (i = 0; i < n; i++) {
+		    if (name)
+		      Setattr($$, "name", NewStringf("%s%d", name, n));
+		    for (i = 1; i < n; i++) {
 		      p = Copy($3);
+		      name = Getattr(p, "name");
+		      if (name)
+		        Setattr(p, "name", NewStringf("%s%d", name, n-i));
 		      set_nextSibling(p,$$);
 		      Delete($$);
 		      $$ = p;

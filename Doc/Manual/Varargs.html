@@ -331,33 +331,62 @@ int open(const char *path, int oflags, int mode = 0);
 <p>
 In this case, <tt>%varargs</tt> is simply providing more specific information about the
 extra arguments that might be passed to a function.  
-If the parameters to a varargs function are of uniform type, <tt>%varargs</tt> can also
+If the arguments to a varargs function are of uniform type, <tt>%varargs</tt> can also
 accept a numerical argument count as follows:
 </p>
 
 <div class="code">
 <pre>
-%varargs(10,char *arg = NULL) execlp;
+%varargs(3, char *str = NULL) execlp;
 ...
-int execlp(const char *path, const char *arg1, ...);
+int execlp(const char *path, const char *arg, ...);
 </pre>
 </div>
 
 <p>
-This would wrap <tt>execlp()</tt> as a function that accepted up to 10 optional arguments.
+and is effectively seen as:
+</p>
+
+<div class="code">
+<pre>
+int execlp(const char *path, const char *arg, 
+           char *str1 = NULL, 
+           char *str2 = NULL, 
+           char *str3 = NULL);
+</pre>
+</div>
+
+<p>
+This would wrap <tt>execlp()</tt> as a function that accepted up to 3 optional arguments.
 Depending on the application, this may be more than enough for practical purposes.
 </p>
 
 <p>
-Argument replacement is most appropriate in cases where the types of
-the extra arguments is uniform and the maximum number of arguments is
-known.  When replicated argument replacement is used, at least one extra
-argument is added to the end of the arguments when making the function call. 
-This argument serves as a sentinel to make sure the list is properly terminated.
-It has the same value as that supplied to the <tt>%varargs</tt> directive.
+The handling of <a href="SWIGPlus.html#SWIGPlus_default_args">default arguments</a> can be changed via the
+<tt>compactdefaultargs</tt> feature. If this feature is used, for example
+</p>
+
+<div class="code">
+<pre>
+%feature("compactdefaultargs") execlp;
+%varargs(3, char *str = NULL) execlp;
+...
+int execlp(const char *path, const char *arg, ...);
+</pre>
+</div>
+
+<p>
+a call from the target language which does not provide the maximum number of arguments, such as,
+<tt>execlp("a", "b", "c")</tt>
+will generate C code which includes the missing default values, that is, <tt>execlp("a", "b", "c", NULL, NULL)</tt>. 
+If <tt>compactdefaultargs</tt> is not used, then the generated code will be
+<tt>execlp("a", "b", "c")</tt>. The former is useful for helping providing a sentinel to terminate the argument list.
 </p>
 
 <p>
+Argument replacement is most appropriate in cases where the types of
+the extra arguments are uniform and the maximum number of arguments are
+known. 
 Argument replacement is not as useful when working with functions that accept
 mixed argument types such as <tt>printf()</tt>.  Providing general purpose
 wrappers to such functions presents special problems (covered shortly).  

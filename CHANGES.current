@@ -4,6 +4,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.4 (in progress)
 ===========================
+2011-05-14: wsfulton
+	    %varargs when used with a numeric argument used to create an additional argument 
+            which was intended to provide a guaranteed sentinel value. This never worked and now
+            the additional argument is not generated.
+
+2011-05-13: wsfulton
+	    [python] Additional fixes for python3.2 support.
+
 2011-05-07: szager
 	    [python] Fixed PyGetSetDescr for python3.2.
 
