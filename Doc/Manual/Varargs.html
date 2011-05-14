@@ -381,6 +381,26 @@ a call from the target language which does not provide the maximum number of arg
 will generate C code which includes the missing default values, that is, <tt>execlp("a", "b", "c", NULL, NULL)</tt>. 
 If <tt>compactdefaultargs</tt> is not used, then the generated code will be
 <tt>execlp("a", "b", "c")</tt>. The former is useful for helping providing a sentinel to terminate the argument list.
+However, this is not guaranteed, for example when a user passes a non-NULL value for all the parameters.
+When using <tt>compactdefaultargs</tt> it is possible to guarantee the NULL sentinel is passed through the, 
+<tt>numinputs=0</tt> <a href="Typemaps.html#Typemaps_nn26">'in' typemap attribute</a>, naming the <b>last parameter</b>.
+For example,
+</p>
+
+<div class="code">
+<pre>
+%feature("compactdefaultargs") execlp;
+%varargs(3, char *str = NULL) execlp;
+%typemap(in, numinputs=0) char *str3 ""
+...
+int execlp(const char *path, const char *arg, ...);
+</pre>
+</div>
+
+<p>
+Note that <tt>str3</tt> is the name of the last argument, as we have used <tt>%vargars</tt> with 3.
+Now <tt>execlp("a", "b", "c", "d", "e")</tt> will result in an error as one too many arguments has been passed,
+as now only 2 additional 'str' arguments can be passed with the 3rd one always using the specified default <tt>NULL</tt>.
 </p>
 
 <p>
