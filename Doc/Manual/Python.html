@@ -2369,7 +2369,8 @@ please refer to the python documentation:</p>
     <li>Static member variables are no longer accessed through the 'cvar' field (e.g., <tt>Dances.cvar.FishSlap</tt>).
     They are instead accessed in the idiomatic way (<tt>Dances.FishSlap</tt>).</li>
   </ul>
-<p>Wrapped types may not be raised as python exceptions.  Here's why: the python internals expect that all sub-classes of Exception will have this struct layout:</p>
+  </li>
+  <li><p>Wrapped types may not be raised as python exceptions.  Here's why: the python internals expect that all sub-classes of Exception will have this struct layout:</p>
 
 <div class="code">
 <pre>
@@ -2427,14 +2428,10 @@ class MyPyException (Exception) :
 </pre>
 </div>
 </li>
-<li><p>Reverse binary operators (e.g., <tt>__radd__</tt>) are not supported.</p></li>
-</ul>
-
-<p>
-To illustrate the last point, if you have a wrapped class called <tt>MyString</tt>,
+<li><p>Reverse binary operators (e.g., <tt>__radd__</tt>) are not supported.</p>
+<p>To illustrate this point, if you have a wrapped class called <tt>MyString</tt>,
 and you want to use instances of <tt>MyString</tt> interchangeably with native python
-strings, you can define an <tt>'operator+ (const char*)'</tt> method :
-</p>
+strings, you can define an <tt>'operator+ (const char*)'</tt> method :</p>
 
 <div class="code">
 <pre>
@@ -2478,6 +2475,83 @@ episode = "Dead " + mystr
 The above code fails, because the first operand -- a native python string --
 doesn't know how to add an instance of <tt>MyString</tt> to itself.
 </p>
+</li>
+
+<li><p>If you have multiple SWIG modules that share type information (<a href="Modules.html#Modules_nn2">more info</a>),
+the <tt>-builtin</tt> option requiress a bit of extra discipline to ensure that base classes are initialized before derived classes.  Specifically:</p>
+<ul>
+<li>There must be an unambiguous non-looping dependency graph for the modules.</li>
+<li>Module dependencies must be explicitly stated with <tt>%import</tt> statements in the SWIG interface file.</li>
+</li>
+</ul>
+
+<p>As an example, suppose module <tt>A</tt> has this interface in <tt>A.i</tt> :</p>
+
+<div class="code"><pre>
+%module "A";
+
+class Base {
+...
+};
+</pre></div>
+
+<p>If you want to wrap another module containing a class that inherits from <tt>A</tt>, this is how it would look :</p>
+
+<div class="code"><pre>
+%module "B";
+
+%import "A.i"
+
+class Derived : public Base {
+...
+};
+</pre></div>
+
+<p>The <tt>import "A.i"</tt> statement is required, because module <tt>B</tt> depends on module <tt>A</tt>.</p>
+
+<p>As long as you obey these requirements, your python code may import the modules in any order :</p>
+
+<div class="targetlang"><pre>
+import B
+import A
+
+d = B.Derived()
+</pre></div>
+
+<p>Here's an example of two interface files that have a dependency loop:</p>
+
+<p><tt>A.i:</tt></p>
+
+<div class="code"><pre>
+%module "A";
+
+class BaseA {
+...
+};
+
+class DerivedA : public BaseB {
+...
+};
+</pre></div>
+
+<p><tt>B.i:</tt></p>
+
+<div class="code"><pre>
+%module "B";
+
+class BaseB {
+...
+};
+
+class DerivedB : public BaseA {
+...
+};
+</pre></div>
+
+<p>These modules are incompatible with the <tt>-builtin</tt> option.</p>
+
+</li>
+</ul>
 
 <H4><a name="Python_builtin_overloads"></a>33.4.2.2 Operator overloads -- use them!</H4>
 
