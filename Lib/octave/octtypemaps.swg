@@ -61,7 +61,7 @@
 %typemap(out) octave_value_list {
   _outp->append($1);
 }
-%typemap(out,noblock=1) Octave_map {
+%typemap(out,noblock=1) octave_map, Octave_map {
   $result=$1;
 }
 %typemap(out,noblock=1) NDArray {

@@ -715,9 +715,15 @@ namespace Swig {
       return outarg(0).string_value();
     }
 
+#if OCTAVE_API_VERSION_NUMBER >= 40
+    virtual octave_map map_value() const {
+      return octave_map();
+    }
+#else
     virtual Octave_map map_value() const {
       return Octave_map();
     }
+#endif
 
     virtual string_vector map_keys() const {
       member_map tmp;
@@ -929,8 +935,13 @@ namespace Swig {
     virtual std::string string_value(bool force = false) const 
       { return ptr->string_value(force); }
 
+#if OCTAVE_API_VERSION_NUMBER >= 40
+    virtual octave_map map_value() const
+      { return ptr->map_value(); }
+#else
     virtual Octave_map map_value() const
       { return ptr->map_value(); }
+#endif
 
     virtual string_vector map_keys() const
       { return ptr->map_keys(); }
