@@ -4,6 +4,14 @@ and CHANGES files.
 
 Release Notes
 =============
+SWIG-2.0.4 summary:
+This is mainly a Python oriented release including support for Python
+built-in types for superior performance with the new -builtin option.
+Python 3.2 support has also been added and various Python bugs have
+been fixed. There are also the usual minor generic improvements, as
+well as bug fixes and enhancements for D, Lua, Octave, and Tcl.
+Octave 3.4 support has also been added.
+
 SWIG-2.0.3 summary:
 - A bug fix release including a couple of fixes for regressions in the
   2.0 series.
