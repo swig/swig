@@ -4,6 +4,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.4 (in progress)
 ===========================
+2011-05-17: wsfulton
+	    [Tcl] Apply #3300072 from Christian Delbaere to fix multiple module loading not
+            always sharing variables across modules.
+
 2011-05-16: xavier98
 	    [octave] Fix an incompatibility with never versions of Octave. Case on Octave
 	    API >= 40 to handle rename of Octave_map to octave_map.

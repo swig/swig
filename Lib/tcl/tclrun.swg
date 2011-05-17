@@ -277,7 +277,7 @@ SWIG_Tcl_SetModule(Tcl_Interp *interp, swig_module_info *module) {
   /* create a new pointer */
   data = SWIG_PackData(buf, &module, sizeof(swig_type_info **));
   *data = 0;
-  Tcl_SetVar(interp, (char *)"swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, buf, 0);
+  Tcl_SetVar(interp, (char *)"swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, buf, TCL_GLOBAL_ONLY);
 }
 
 /* -----------------------------------------------------------------------------*
