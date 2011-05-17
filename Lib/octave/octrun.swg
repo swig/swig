@@ -809,6 +809,16 @@ namespace Swig {
       octave_value ret;
       if (lhs_ost && lhs_ost->dispatch_binary_op(std::string("__") + op_name + std::string("__"), rhs, ret))
 	return ret;
+      if (rhs_ost) {
+        if (strlen(op_name) == 2  && (op_name[1] == 't' || op_name[1] == 'e')) {
+          if (op_name[0] == 'l' && rhs_ost->dispatch_binary_op(std::string("__g") + op_name[1] + std::string("__"), lhs, ret))
+            return ret;
+          if (op_name[0] == 'g' && rhs_ost->dispatch_binary_op(std::string("__l") + op_name[1] + std::string("__"), lhs, ret))
+            return ret;
+        }
+        if (rhs_ost->dispatch_binary_op(std::string("__r") + op_name + std::string("__"), lhs, ret))
+          return ret;
+      }
 
       std::string symbol;
       octave_value_list args;
