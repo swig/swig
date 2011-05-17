@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.4 (in progress)
 ===========================
 2011-05-17: wsfulton
+	    [Java] Apply #3289851 from Alan Harder to fix memory leak in directors when checking
+            for pending exceptions.
+
+2011-05-17: wsfulton
 	    [Tcl] Apply #3300072 from Christian Delbaere to fix multiple module loading not
             always sharing variables across modules.
 
