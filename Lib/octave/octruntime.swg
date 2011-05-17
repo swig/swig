@@ -1,4 +1,5 @@
 %insert(runtime) %{
+#include <iostream>
 #include <octave/oct.h>
 #include <octave/parse.h>
 #include <octave/ov-fcn-handle.h>
@@ -20,6 +21,45 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
   static bool already_init=false;
   if (already_init)
     return octave_value_list();
+
+  // parse command line
+  const char* usage="usage: " SWIG_name_d " [-global|-noglobal] [-globals <name>]";
+  bool global_load=SWIG_global_load;
+  std::string global_name=SWIG_global_name;
+  for (int j=0;j<args.length();++j)
+    if (args(j).is_string()) {
+      if (args(j).string_value()=="-help") {
+        std::cout << usage << std::endl;
+        return octave_value_list();
+      } else if (args(j).string_value()=="-global") {
+        global_load = true;
+      } else if (args(j).string_value()=="-noglobal") {
+        global_load = false;
+      } else if (args(j).string_value()=="-globals") {
+        if (j+1<args.length()&&args(j+1).is_string()) {
+          global_name = args(j+1).string_value();
+          ++j;
+        } else {
+          std::cerr << "error: " SWIG_name_d ": option '-globals' requires an argument." << std::endl;
+          std::cerr << usage << std::endl;
+          return octave_value_list();
+        }
+      } else {
+        std::cerr << "error: " SWIG_name_d ": unrecognised argument '" << args(j).string_value() << "'." << std::endl;
+        std::cerr << usage << std::endl;
+        return octave_value_list();
+      }
+    } else {
+      std::cerr << "error: " SWIG_name_d ": unrecognised non-string argument." << std::endl;
+      std::cerr << usage << std::endl;
+      return octave_value_list();
+    }
+
+  if (!valid_identifier(global_name)) {
+    std::cerr << "error: " SWIG_name_d ": '" << global_name << "' is not a valid Octave identifier." << std::endl;
+    return octave_value_list();
+  }
+
   already_init=true;
 
   octave_swig_ref::register_type();
@@ -32,20 +72,13 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
   install_builtin_function(swig_this,"swig_this",std::string());
   install_builtin_function(swig_subclass,"subclass",std::string());
 
-  bool global_option=true; // * swig cli option should control this default
-  for (int j=0;j<args.length();++j)
-    if (args(j).is_string()&&args(j).string_value()=="noglobal")
-      global_option=true;
-    else if (args(j).is_string()&&args(j).string_value()=="noglobal")
-      global_option=false;
-
   octave_swig_type* cvar_ns=new octave_swig_type;
   for (int j=0;swig_globals[j].name;++j)
     if (swig_globals[j].get_method)
       cvar_ns->assign(swig_globals[j].name,&swig_globals[j]);
 
   octave_swig_type* module_ns=new octave_swig_type(0, 0, 0, true);
-  module_ns->assign("cvar",Swig::swig_value_ref(cvar_ns));
+  module_ns->assign(global_name,Swig::swig_value_ref(cvar_ns));
   for (int j=0;swig_globals[j].name;++j)
     if (swig_globals[j].method)
       module_ns->assign(swig_globals[j].name,&swig_globals[j]);
@@ -68,7 +101,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
   // the incref is necessary so install_global doesn't destroy module_ns,
   // as it would if it installed something with the same name as the module.
   module_ns->incref();
-  if (global_option)
+  if (global_load)
     module_ns->install_global();
   module_ns->decref();
 
