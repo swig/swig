@@ -15,7 +15,7 @@ char cvsroot_octave_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
-static bool    global_load = true;
+static bool global_load = true;
 static String *global_name = 0;
 static String *op_prefix   = 0;
 
@@ -71,7 +71,7 @@ public:
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
-	  fputs(usage, stderr);
+	  fputs(usage, stdout);
 	} else if (strcmp(argv[i], "-global") == 0) {
           global_load = true;
           Swig_mark_arg(i);
