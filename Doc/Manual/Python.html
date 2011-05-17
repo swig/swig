@@ -2480,7 +2480,7 @@ doesn't know how to add an instance of <tt>MyString</tt> to itself.
 <li><p>If you have multiple SWIG modules that share type information (<a href="Modules.html#Modules_nn2">more info</a>),
 the <tt>-builtin</tt> option requiress a bit of extra discipline to ensure that base classes are initialized before derived classes.  Specifically:</p>
 <ul>
-<li>There must be an unambiguous non-looping dependency graph for the modules.</li>
+<li>There must be an unambiguous dependency graph for the modules.</li>
 <li>Module dependencies must be explicitly stated with <tt>%import</tt> statements in the SWIG interface file.</li>
 </li>
 </ul>
@@ -2515,41 +2515,8 @@ class Derived : public Base {
 import B
 import A
 
-d = B.Derived()
+assert(issubclass(B.Derived, A.Base))
 </pre></div>
-
-<p>Here's an example of two interface files that have a dependency loop:</p>
-
-<p><tt>A.i:</tt></p>
-
-<div class="code"><pre>
-%module "A";
-
-class BaseA {
-...
-};
-
-class DerivedA : public BaseB {
-...
-};
-</pre></div>
-
-<p><tt>B.i:</tt></p>
-
-<div class="code"><pre>
-%module "B";
-
-class BaseB {
-...
-};
-
-class DerivedB : public BaseA {
-...
-};
-</pre></div>
-
-<p>These modules are incompatible with the <tt>-builtin</tt> option.</p>
-
 </li>
 </ul>
 
