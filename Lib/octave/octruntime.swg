@@ -101,8 +101,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
   // the incref is necessary so install_global doesn't destroy module_ns,
   // as it would if it installed something with the same name as the module.
   module_ns->incref();
-  if (global_load)
-    module_ns->install_global();
+  module_ns->install_global(global_load);
   module_ns->decref();
 
 #if OCTAVE_API_VERSION_NUMBER<37
