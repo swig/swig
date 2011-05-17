@@ -849,26 +849,32 @@ namespace Swig {
       member_map tmp;
       load_members(tmp);
 
-      os << "{" << std::endl;
+      indent(os);
+      os << "{"; newline(os);
+      increment_indent_level();
       for (unsigned int j = 0; j < types.size(); ++j) {
+        indent(os);
 	if (types[j].first->clientdata) {
 	  const swig_octave_class *c = (const swig_octave_class *) types[j].first->clientdata;
-	  os << "  " << c->name << ", ptr = " << types[j].second.ptr << std::endl;
+	  os << c->name << ", ptr = " << types[j].second.ptr; newline(os);
 	} else {
-	  os << "  " << types[j].first->name << ", ptr = " << types[j].second.ptr << std::endl;
+	  os << types[j].first->name << ", ptr = " << types[j].second.ptr; newline(os);
 	}
       }
       for (member_map::const_iterator it = tmp.begin(); it != tmp.end(); ++it) {
+        indent(os);
 	if (it->second.first) {
 	  const char *objtype = it->second.first->method ? "method" : "variable";
 	  const char *modifier = (it->second.first->flags &1) ? "static " : (it->second.first->flags &2) ? "global " : "";
-	  os << "  " << it->second.first->name << " (" << modifier << objtype << ")" << std::endl;
+	  os << it->second.first->name << " (" << modifier << objtype << ")"; newline(os);
 	  assert(it->second.first->name == it->first);
 	} else {
-	  os << "  " << it->first << std::endl;
+	  os << it->first; newline(os);
 	}
       }
-      os << "}" << std::endl;
+      decrement_indent_level();
+      indent(os);
+      os << "}"; newline(os);
     }
   };
 
@@ -998,7 +1004,8 @@ namespace Swig {
     }
 
     void print(std::ostream &os, bool pr_as_read_syntax = false) const {
-      os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size() << std::endl;
+      indent(os);
+      os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size(); newline(os);
     }
 
 
