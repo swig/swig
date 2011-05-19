@@ -406,7 +406,7 @@ typedef unsigned long SCM;
          const std::size_t &, const std::ptrdiff_t &,
 	 enum SWIGTYPE
 {
-  $1 = SCM_NFALSEP(scm_integer_p($input)) ? 1 : 0;
+  $1 = SCM_NFALSEP(scm_integer_p($input)) && SCM_NFALSEP(scm_exact_p($input))? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_BOOL)

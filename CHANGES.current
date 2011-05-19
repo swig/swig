@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.4 (in progress)
 ===========================
 2011-05-19: wsfulton
+	    [Guile] Patch #3191625 fixing overloading of integer types.
+
+2011-05-19: wsfulton
 	    [Perl] Patch #3260265 fixing overloading of non-primitive types and integers in 
             Perl 5.12 and later.
 
