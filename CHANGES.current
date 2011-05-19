@@ -2,8 +2,12 @@ This file contains the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.4 (17 May 2011)
+Version 2.0.4 (in progress)
 ===========================
+2011-05-19: wsfulton
+	    [Ruby] Fix %import where one of the imported files %include one of the STL include
+            files such as std_vector.i.
+
 2011-05-17: wsfulton
 	    [Java] Apply #3289851 from Alan Harder to fix memory leak in directors when checking
             for pending exceptions.
