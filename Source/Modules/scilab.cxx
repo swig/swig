@@ -248,6 +248,9 @@ public:
     int minInputArguments = emit_num_required(functionParamsList);
     int minOutputArguments = 0;
     int maxOutputArguments = 0;
+    /* Insert calls to CheckRhs and CheckLhs */
+    Printf(wrapper->code, "CheckRhs($mininputarguments, $maxinputarguments);\n");
+    Printf(wrapper->code, "CheckLhs($minoutputarguments, $maxoutputarguments);\n");
 
     for (paramIndex = 0, param = functionParamsList; paramIndex < maxInputArguments; ++paramIndex) {
 
@@ -310,7 +313,7 @@ public:
         Replaceall(functionReturnTypemap, "$owner", "0");
       }
 
-      Printf(wrapper->code, "\n%s\n", functionReturnTypemap); //TODO: is first \n needed
+      Printf(wrapper->code, "%s\n", functionReturnTypemap);
 
       /* If the typemap is not empty, the function return one more argument than the typemaps gives */
       if (Len(functionReturnTypemap) > 0) {
@@ -350,17 +353,22 @@ public:
     /* TODO */
 
     /* Final substititions if applicable */
-    /* TODO */
+    Replaceall(wrapper->code, "$symname", functionName);
 
-    /* Insert the code checking the number of input */
-    Printf(wrapper->def, "\nCheckRhs(%d, %d);", minInputArguments, maxInputArguments);
-    // In Scilab there is always one output even if not defined
+    /* Set CheckLhs and CheckRhs input arguments */
+    /* In Scilab there is always one output even if not defined */
     if (minOutputArguments == 0) {
       maxOutputArguments = 1;
     }
-    Printf(wrapper->def, "\nCheckLhs(%d, %d);", minOutputArguments, maxOutputArguments);
-
-    Replaceall(wrapper->code, "$symname", functionName);
+    char argnumber[64] = {};
+    sprintf(argnumber, "%d", minInputArguments);
+    Replaceall(wrapper->code, "$mininputarguments", argnumber);
+    sprintf(argnumber, "%d", maxInputArguments);
+    Replaceall(wrapper->code, "$maxinputarguments", argnumber);
+    sprintf(argnumber, "%d", minOutputArguments);
+    Replaceall(wrapper->code, "$minoutputarguments", argnumber);
+    sprintf(argnumber, "%d", maxOutputArguments);
+    Replaceall(wrapper->code, "$maxoutputarguments", argnumber);
 
     /* Dump the function out */
     Wrapper_print(wrapper, wrappersSection);
