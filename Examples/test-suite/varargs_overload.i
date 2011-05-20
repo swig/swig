@@ -2,6 +2,12 @@
 // The default behavior is to simply ignore the varargs.
 %module varargs_overload
 
+#if defined(SWIGSCILAB)
+%{
+#include <stdio.h>
+%}
+#endif
+
 %inline %{
 const char *vararg_over1(const char *fmt, ...) {
   return fmt;

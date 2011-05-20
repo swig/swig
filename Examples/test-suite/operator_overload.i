@@ -73,7 +73,7 @@ see bottom for a set of possible tests
 %rename(OrOperator) operator ||;
 #endif
 
-#ifdef SWIG_ALLEGRO_CL
+#if defined(SWIG_ALLEGRO_CL) || defined(SWIGSCILAB)
 %{
 #include <stdio.h>
 %}
