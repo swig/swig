@@ -10,11 +10,11 @@ SWIG-2.0.4 summary:
   The -builtin option is especially suitable for performance-critical
   libraries and applications that call wrapped methods repeatedly.
   See the python-specific chapter of the SWIG manual for more info.
-
 - Python 3.2 support has also been added and various Python bugs have
-  been fixed. There are also the usual minor generic improvements, as
-  well as bug fixes and enhancements for D, Lua, Octave, and Tcl.
-  Octave 3.4 support has also been added.
+  been fixed.
+- Octave 3.4 support has also been added.
+- There are also the usual minor generic improvements, as well as bug
+  fixes and enhancements for D, Guile, Lua, Octave, Perl and Tcl. 
 
 SWIG-2.0.3 summary:
 - A bug fix release including a couple of fixes for regressions in the
