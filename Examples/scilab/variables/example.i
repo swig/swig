@@ -20,7 +20,7 @@
     extern float            fvar;
     extern double           dvar;
     extern char            *strvar;
-    //    extern const char       cstrvar[];
+    extern const char       cstrvar[];
     extern int             *iptrvar;
     extern char             name[256];
 
@@ -45,6 +45,7 @@ extern char path[256];
 %inline %{
 extern void  print_vars();
 extern int  *new_int(int value);
+extern int  value_int(int *value);
 extern Point *new_Point(int x, int y);
 extern char  *Point_print(Point *p);
 extern void  pt_print();

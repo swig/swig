@@ -30,7 +30,7 @@ you would use a real value instead.
          bool           *INPUT
          float          *INPUT
          double         *INPUT
-         
+
 To use these, suppose you had a C function like this :
 
         double fadd(double *a, double *b) {
@@ -38,7 +38,7 @@ To use these, suppose you had a C function like this :
         }
 
 You could wrap it with SWIG as follows :
-        
+
         %include typemaps.i
         double fadd(double *INPUT, double *INPUT);
 
@@ -49,44 +49,31 @@ or you can use the %apply directive :
         double fadd(double *a, double *b);
 
 */
-
-%typemap(in) signed char *INPUT (int *piAddrVar, int iRows, int iCols, signed char temp),
-	     unsigned char *INPUT (int *piAddrVar, int iRows, int iCols, unsigned char temp),
-	     short *INPUT (int *piAddrVar, int iRows, int iCols, short temp),
-	     unsigned short *INPUT (int *piAddrVar, int iRows, int iCols, unsigned short temp),
-	     int *INPUT (int *piAddrVar, int iRows, int iCols, int temp),
-	     unsigned int *INPUT (int *piAddrVar, int iRows, int iCols, unsigned int temp),
-	     long *INPUT (int *piAddrVar, int iRows, int iCols, long temp),
-	     unsigned long *INPUT (int *piAddrVar, int iRows, int iCols, unsigned long temp),
-	     float *INPUT (int *piAddrVar, int iRows, int iCols, float temp),
-	     double *INPUT (int *piAddrVar, int iRows, int iCols, double temp) {
-  int iType;
-  double *_piData;
-  int typearg;
-  sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddrVar);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return 0;
+%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsInt") int *INPUT(int temp), int &INPUT(int temp) {
+  if (SWIG_SciDouble_AsInt(pvApiCtx, $input, &temp, fname) != SWIG_OK) {
+    SWIG_fail;
   }
-  
-  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
-  if (sciErr.iErr || iType != sci_matrix) {
-	 Scierror(999, _("%s: Wrong type for input argument #%d: A real expected.\n"), fname, $argnum);
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-
-  sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, &iRows, &iCols,  &_piData);
-  if (sciErr.iErr || iRows * iCols != 1) {
-	 Scierror(999, _("%s: Wrong size for input argument #%d: A real expected.\n"), fname, $argnum);
-	 printError(&sciErr, 0);
-	 return 0;
-     }
-  temp = ($*1_ltype)*_piData;
   $1 = &temp;
 }
-#undef INPUT_TYPEMAP
-                 
+//short          *INPUT
+//long           *INPUT
+//long long      *INPUT
+//unsigned int   *INPUT
+//unsigned short *INPUT
+//unsigned long  *INPUT
+//unsigned long long *INPUT
+//unsigned char  *INPUT
+//bool           *INPUT
+//float          *INPUT
+%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsDouble") double *INPUT(double temp), double &INPUT(double temp) {
+  if (SWIG_SciDouble_AsDouble(pvApiCtx, $input, &temp, fname) != SWIG_OK) {
+    SWIG_fail;
+  }
+  $1 = &temp;
+}
+
+
+
 // OUTPUT typemaps.   These typemaps are used for parameters that
 // are output only.   The output value is appended to the result as
 // a list element.
@@ -95,7 +82,7 @@ or you can use the %apply directive :
 The following methods can be applied to turn a pointer into an "output"
 value.  When calling a function, no input value would be given for
 a parameter, but an output value would be returned.  In the case of
-multiple output values, functions will return a Perl array.
+multiple output values, functions will return a Scilab array.
 
          int            *OUTPUT
          short          *OUTPUT
@@ -109,7 +96,7 @@ multiple output values, functions will return a Perl array.
          bool           *OUTPUT
          float          *OUTPUT
          double         *OUTPUT
-         
+
 For example, suppose you were trying to wrap the modf() function in the
 C math library which splits x into integral and fractional parts (and
 returns the integer part in one of its parameters).:
@@ -127,83 +114,28 @@ or you can use the %apply directive :
         %apply double *OUTPUT { double *ip };
         double modf(double x, double *ip);
 
-The Perl output of the function would be an array containing both
-output values. 
+The Scilab output of the function would be an array containing both
+output values.
 
 */
 
-// Force the argument to be ignored.
-
-%typemap(in,numinputs=0) signed char *OUTPUT (signed temp),
-	     unsigned char *OUTPUT (unsigned temp),
-	     short *OUTPUT (short temp),
-	     unsigned short *OUTPUT (unsigned short temp),
-	     int *OUTPUT (int temp),
-	     unsigned int *OUTPUT (unsigned int temp),
-	     long *OUTPUT (long temp),
-	     unsigned long *OUTPUT (unsigned long temp),
-	     float *OUTPUT (float temp),
-	     double *OUTPUT (double temp) {
-  $1 = ($1_ltype)&temp;
+%typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromInt") int *OUTPUT, int &OUTPUT {
+  SwigScilabSetOutput($result, SWIG_SciDouble_FromInt(pvApiCtx, $result, *$1));
 }
-
-%typemap(argout) signed char *OUTPUT(int iRowsOut, int iColsOut) {
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfInteger8(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return 0;
-  }
-  iOutNum++;
-  iVarOut++;
+//short          *OUTPUT
+//long           *OUTPUT
+//long long      *OUTPUT
+//unsigned int   *OUTPUT
+//unsigned short *OUTPUT
+//unsigned long  *OUTPUT
+//unsigned long long *OUTPUT
+//unsigned char  *OUTPUT
+//bool           *OUTPUT
+//float          *OUTPUT
+//double         *OUTPUT
+%typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromDouble") double *OUTPUT, double &OUTPUT {
+  SwigScilabSetOutput($result, SWIG_SciDouble_FromDouble(pvApiCtx, $result, *$1));
 }
-
-%typemap(argout) short *OUTPUT(int iRowsOut, int iColsOut),
-              unsigned char *OUTPUT(int iRowsOut, int iColsOut) {
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfInteger16(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return 0;
-  }
-  iOutNum++;
-  iVarOut++;
-}
-
-%typemap(argout) int *OUTPUT(int iRowsOut,int iColsOut),
-              unsigned int *OUTPUT(int iRowsOut,int iColsOut),
-              unsigned short *OUTPUT(int iRowsOut,int iColsOut),
-              unsigned long *OUTPUT(int iRowsOut,int iColsOut),
-              long *OUTPUT(int iRowsOut,int iColsOut) {
-  iRowsOut=1; 
-  iColsOut=1;
-  sciErr = createMatrixOfInteger32(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return 0;
-  }
-  iOutNum++;
-  iVarOut++;
-}
-
-
-%typemap(argout) double *OUTPUT(int iRowsOut, int iColsOut),
-              float *OUTPUT(int iRowsOut, int iColsOut) {
-  double temp;
-  temp = (double)(*$result);
-  iRowsOut = 1; 
-  iColsOut = 1;
-  sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, &temp$argnum);
-  if (sciErr.iErr) {
-    printError(&sciErr, 0);
-    return 0;
-  }
-  iOutNum++;
-  iVarOut++;
-}
-
 
 // INOUT
 // Mappings for an argument that is both an input and output
@@ -213,7 +145,7 @@ output values.
 The following methods can be applied to make a function parameter both
 an input and output value.  This combines the behavior of both the
 "INPUT" and "OUTPUT" methods described earlier.  Output values are
-returned in the form of a Perl array.
+returned in the form of a Scilab array.
 
          int            *INOUT
          short          *INOUT
@@ -227,7 +159,7 @@ returned in the form of a Perl array.
          bool           *INOUT
          float          *INOUT
          double         *INOUT
-         
+
 For example, suppose you were trying to wrap the following function :
 
         void neg(double *x) {
@@ -247,7 +179,7 @@ or you can use the %apply directive :
 
 Unlike C, this mapping does not directly modify the input value.
 Rather, the modified input value shows up as the return value of the
-function.  Thus, to apply this function to a Perl variable you might
+function.  Thus, to apply this function to a Scilab variable you might
 do this :
 
        $x = neg($x);
@@ -275,6 +207,3 @@ do this :
 %typemap(in) signed char *INOUT = signed char *OUTPUT;
 %typemap(in) float *INOUT = float *OUTPUT;
 %typemap(in) double *INOUT = double *OUTPUT;
-
-
-

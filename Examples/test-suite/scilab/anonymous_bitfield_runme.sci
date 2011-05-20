@@ -36,7 +36,7 @@ end
 if Foo_y_get(foo)<>5 then swigtesterror(); end
 
 try
-    Foo_f_set(foo, 5);
+    Foo_f_set(foo, uint32(5));
 catch
     swigtesterror();
 end
@@ -50,7 +50,7 @@ end
 if Foo_z_get(foo)<>13 then swigtesterror(); end
 
 try
-    Foo_seq_set(foo, 3);
+    Foo_seq_set(foo, uint32(3));
 catch
     swigtesterror();
 end

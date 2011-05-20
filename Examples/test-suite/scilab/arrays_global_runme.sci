@@ -16,5 +16,5 @@ if BeginString_FIX44f_get() <> "FIX.f.f" then swigtesterror(); end
 if test_a("hello","hi","chello","chi") <> "hi" then swigtesterror(); end
 
 if test_b("1234567","hi") <> "1234567" then swigtesterror(); end
-
+exit
 exec("swigtest.quit", -1);

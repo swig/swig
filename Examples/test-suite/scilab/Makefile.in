@@ -9,34 +9,51 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-include $(srcdir)/../common.mk
-
 # Overridden variables here
-# none!
+# None!
+# - constructor_copy (Vectors/C++)
+# - dynamic_cast (Vectors/C++)
+# - li_boost_shared_ptr_bits (Vectors/C++)
+# - member_funcptr_galore (Vectors/C++)
+# - member_pointer (Vectors/C++)
+# - minherit (Vectors/C++)
+# - typemap_variables (weird error/C++)
+# - director_string (Vectors/C++)
+# - ignore_template_constructor (Vectors/C++)
+# - li_std_combinations (std_pair.i/C++)
+# - li_std_deque (std_deque.i/C++)
+# - li_std_except (This version of std_except.i should not be used/C++)
+# - li_std_map (std_pair.i/std_map.i/C++)
+# - li_std_pair (std_pair.i/C++)
+# - li_std_vector (Vectors/C++)
+# - smart_pointer_inherit (Vectors/C++)
+# - template_typedef_fnc (Vectors/C++)
+# - template_type_namespace (Vectors/C++)
+# - template_opaque (Vectors/C++)
+
+include $(srcdir)/../common.mk
 
 # Rules for the different types of tests
 %.cpptest:
 	@$(setup)
-	+$(swig_and_compile_cpp) > scilab.log
+	@+$(swig_and_compile_cpp) #> scilab.log
 	@$(run_testcase)
 
 %.ctest:
 	@$(setup)
-	@+$(swig_and_compile_c) > scilab.log
+	@+$(swig_and_compile_c) #> scilab.log
 	@$(run_testcase)
 
 %.multicpptest:
 	@$(setup)
-	@+$(swig_and_compile_multi_cpp) > scilab.log
+	@+$(swig_and_compile_multi_cpp) > #scilab.log
 	@$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.sci appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) -nwni -nb -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
-	else \
-	  (echo "*** RUNME FILE NOT FOUND: $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ***") \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then ( \
+		env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(SCILAB) -nwni -nb -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ; ) \
 	fi; \
 
 

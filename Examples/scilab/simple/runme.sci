@@ -8,15 +8,11 @@ y = 105;
 g = gcd(x,y);
 printf("The gcd of %d and %d is %d\n",x,y,g);
 
-x = [42 43];
-y = 105;
-g = gcd(x,y);
-printf("The gcd of %d and %d is %d\n",x,y,g);
-
 // Manipulate the Foo global variable
 
-// Output its current value
-Foo_get()
+// Get its default value (see in example.c)
+defaultValue = Foo_get()
+if defaultValue <> 3 then pause; end
 
 // Change its value
 Foo_set(3.1415926)

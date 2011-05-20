@@ -1,16 +1,16 @@
 exec("swigtest.start", -1);
 
-if UP_get()<>int32(1) then swigtesterror(); end
-if typeof(UP_get())<>"int32" then swigtesterror(); end
+if UP_get()<>1 then swigtesterror(); end
+if typeof(UP_get())<>"constant" then pause; end
 
-if DOWN_get()<>int32(2) then swigtesterror(); end
-if typeof(DOWN_get())<>"int32" then swigtesterror(); end
+if DOWN_get()<>2 then swigtesterror(); end
+if typeof(DOWN_get())<>"constant" then pause; end
 
-if LEFT_get()<>int32(3) then swigtesterror(); end
-if typeof(LEFT_get())<>"int32" then swigtesterror(); end
+if LEFT_get()<>3 then swigtesterror(); end
+if typeof(LEFT_get())<>"constant" then pause; end
 
-if RIGHT_get()<>int32(4) then swigtesterror(); end
-if typeof(RIGHT_get())<>"int32" then swigtesterror(); end
+if RIGHT_get()<>4 then swigtesterror(); end
+if typeof(RIGHT_get())<>"constant" then pause; end
 
 // TODO: move is a Scilab function...
 //result = move(UP_get());

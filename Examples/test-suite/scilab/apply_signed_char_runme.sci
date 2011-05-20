@@ -1,6 +1,6 @@
 exec("swigtest.start", -1);
 
-smallnum = -127;
+smallnum = int8(-127);
 if CharValFunction(smallnum) <> smallnum then swigtesterror(); end
 if CCharValFunction(smallnum) <> smallnum then swigtesterror(); end
 if CCharRefFunction(smallnum) <> smallnum then swigtesterror(); end
