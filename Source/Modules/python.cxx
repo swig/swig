@@ -3233,6 +3233,13 @@ public:
 	Printf(f_init, "  builtin_basetype = SWIG_MangledTypeQuery(\"%s\");\n", base_mname);
 	Printv(f_init, "  if (builtin_basetype && builtin_basetype->clientdata && ((SwigPyClientData*) builtin_basetype->clientdata)->pytype) {\n", NIL);
 	Printv(f_init, "    builtin_bases[builtin_base_count++] = ((SwigPyClientData*) builtin_basetype->clientdata)->pytype;\n", NIL);
+	Printv(f_init, "  } else {\n", NIL);
+	Printf(f_init, "    PyErr_SetString(PyExc_TypeError, \"Could not create type '%s' as base '%s' has not been initialized.\\n\");\n", symname, bname);
+	Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+	Printv(f_init, "      return NULL;\n", NIL);
+	Printv(f_init, "#else\n", NIL);
+	Printv(f_init, "      return;\n", NIL);
+	Printv(f_init, "#endif\n", NIL);
 	Printv(f_init, "  }\n", NIL);
 	Delete(base_name);
 	Delete(base_mname);
@@ -3538,7 +3545,7 @@ public:
     Printf(f, "SWIGINTERN SwigPyClientData %s_clientdata = {%s, 0, 0, 0, 0, 0, (PyTypeObject *)&%s_type};\n\n", templ, clientdata_klass, templ);
 
     Printv(f_init, "    if (PyType_Ready(builtin_pytype) < 0) {\n", NIL);
-    Printf(f_init, "      PyErr_SetString(PyExc_TypeError, \"Couldn't create type '%s'\");\n", symname);
+    Printf(f_init, "      PyErr_SetString(PyExc_TypeError, \"Could not create type '%s'.\");\n", symname);
     Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     Printv(f_init, "      return NULL;\n", NIL);
     Printv(f_init, "#else\n", NIL);
