@@ -348,7 +348,7 @@ typedef unsigned long SCM;
  * String & length
  * ------------------------------------------------------------ */
 
-%typemap(in) (char *STRING, int LENGTH) {
+%typemap(in) (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) {
     size_t temp;
     $1 = ($1_ltype) gh_scm2newstr($input, &temp);
     $2 = ($2_ltype) temp;
@@ -406,7 +406,7 @@ typedef unsigned long SCM;
          const std::size_t &, const std::ptrdiff_t &,
 	 enum SWIGTYPE
 {
-  $1 = SCM_NFALSEP(scm_integer_p($input)) ? 1 : 0;
+  $1 = SCM_NFALSEP(scm_integer_p($input)) && SCM_NFALSEP(scm_exact_p($input))? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_BOOL)

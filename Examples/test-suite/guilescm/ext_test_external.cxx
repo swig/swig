@@ -10,7 +10,7 @@ SCM test_create()
   
   newobj = new A();
   type = SWIG_TypeQuery("A *");
-  result = SWIG_NewPointerObj(result, type, 1);
+  result = SWIG_NewPointerObj(newobj, type, 1);
   
   return result;
 #undef FUNC_NAME

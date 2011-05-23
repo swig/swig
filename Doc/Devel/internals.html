@@ -7,11 +7,6 @@
 <center>
 <h1>SWIG Internals Manual</h1>
 
-<b>Thien-Thi Nguyen <br>
-
-<p>
-David M. Beazley <br>
-
 </b>
 </center>
 
@@ -45,6 +40,9 @@ David M. Beazley <br>
 <li><a name="i5" href="#5">5. C/C++ Wrapper Support Functions</a>
 <li><a name="i6" href="#6">6. Symbol Naming Guidelines for Generated C/C++ Code</a>
 <li><a name="i7" href="#7">7. Debugging SWIG</a>
+<ul>
+<li><a name="i7.1" href="#7.1">7.1 Debugging DOH Types The Hard Way</a>
+</ul>
 </ul>
 
 <a name="1" href="#i1">
@@ -1015,15 +1013,139 @@ In the past SWIG has generated many symbols which flout the standard especially 
 <a name="7" href="#i7">
 <h2>7. Debugging SWIG</h2>
 </a>
-Warning. Debugging SWIG is for the very patient.
+
+<p>
+The DOH types used in the SWIG source code are all typedefined to void. 
+Consequently, it is impossible for debuggers to automatically extract any information about DOH objects.
+The easiest approach to debugging and viewing the contents of DOH objects is to make a call into one of the family of SWIG print functions from the debugger.
+The "Debugging Functions" section in <a href="tree.html">SWIG Parse Tree Handling</a> lists them.
+It is sometimes easier to debug by placing a few calls to these functions in code of interest and recompile, especially if your debugger cannot easily make calls into functions within a debugged binary.
+</p>
+
+<p>
+The SWIG distribution comes with some additional support for the gdb debugger in the <tt>Tools/swig.gdb</tt> file.
+Follow the instructions in this file for 'installing'.
+This support file provides an easy way to call into some of the family of SWIG print functions via additional user-defined gdb commands.
+Some usage of the <tt>swigprint</tt> and <tt>locswigprint</tt> user-defined commands are demonstrated below.
+</p>
+
+<p>
+More often than not, a parse tree node needs to be examined.
+The session below displays the node <tt>n</tt> in one of the Java language module wrapper functions.
+The <tt>swigprint</tt> method is used to show the symbol name (<tt>symname</tt> - a DOH String type) and the node (<tt>n</tt> - a DOH Hash type).
+</p>
+<blockquote>
+<pre>
+Breakpoint 1, JAVA::functionWrapper (this=0x97ea5f0, n=0xb7d2afc8) at Modules/java.cxx:799
+799	    String *symname = Getattr(n, "sym:name");
+(gdb) next
+800	    SwigType *t = Getattr(n, "type");
+(gdb) swigprint symname
+Shape_x_set
+(gdb) swigprint n
+Hash(0xb7d2afc8) {
+  'membervariableHandler:view' : variableHandler, 
+  'feature:except' : 0, 
+  'name' : x, 
+  'ismember' : 1, 
+  'sym:symtab' : Hash(0xb7d2aca8) {......}, 
+  'nodeType' : cdecl, 
+  'nextSibling' : Hash(0xb7d2af98) {.............}, 
+  'kind' : variable, 
+  'variableHandler:feature:immutable' : &lt;Object 'VoidObj' at 0xb7cfa008&gt;, 
+  'sym:name' : Shape_x_set, 
+  'view' : membervariableHandler, 
+  'membervariableHandler:sym:name' : x, 
+  'membervariableHandler:type' : double, 
+  'membervariableHandler:parms' : &lt;Object 'VoidObj' at 0xb7cfa008&gt;, 
+  'parentNode' : Hash(0xb7d2abc8) {..............................}, 
+  'feature:java:enum' : typesafe, 
+  'access' : public, 
+  'parms' : Hash(0xb7cb9408) {......}, 
+  'wrap:action' : if (arg1) (arg1)-&gt;x = arg2;, 
+  'type' : void, 
+  'memberset' : 1, 
+  'sym:overname' : __SWIG_0, 
+  'membervariableHandler:name' : x, 
+}
+</pre>
+</blockquote>
+
+<p>
+Note that all the attributes in the Hash are shown, including the 'sym:name' attribute which was assigned to the <tt>symname</tt> variable.
+</p>
+
+<p>
+Hash types can be shown either expanded or collapsed.
+When a Hash is shown expanded, all the attributes are displayed along with their values, otherwise a '.' replaces each attribute when collapsed.
+Therefore a count of the dots provides the number of attributes within an unexpanded Hash.
+Below shows the 'parms' Hash being displayed with the default Hash expansion of 1, then with 2 provided as the second argument to <tt>swigprint</tt> to expand to two Hash levels in order to view the contents of the collapsed 'nextSibling' Hash.
+</p>
+
+<blockquote>
+<pre>
+(gdb) swigprint 0xb7cb9408
+Hash(0xb7cb9408) {
+  'name' : self, 
+  'type' : p.Shape, 
+  'self' : 1, 
+  'nextSibling' : Hash(0xb7cb9498) {...}, 
+  'hidden' : 1, 
+  'nodeType' : parm, 
+}
+(gdb) swigprint 0xb7cb9408 2
+Hash(0xb7cb9408) {
+  'name' : self, 
+  'type' : p.Shape, 
+  'self' : 1, 
+  'nextSibling' : Hash(0xb7cb9498) {
+    'name' : x, 
+    'type' : double, 
+    'nodeType' : parm, 
+  }, 
+  'hidden' : 1, 
+  'nodeType' : parm, 
+}
+</pre>
+</blockquote>
+
+<p>
+The same Hash can also be displayed with file and line location information via the <tt>locswigprint</tt> command.
+</p>
+
+<blockquote>
+<pre>
+(gdb) locswigprint 0xb7cb9408
+example.h:11: [Hash(0xb7cb9408) {
+Hash(0xb7cb9408) {
+  'name' : self, 
+  'type' : p.Shape, 
+  'self' : 1, 
+  'nextSibling' : Hash(0xb7cb9498) {...}, 
+  'hidden' : 1, 
+  'nodeType' : parm, 
+}]
+</pre>
+</blockquote>
+
+<p>
+<b>Tip</b>: Commands in gdb can be shortened with whatever makes them unique and can be command completed with the tab key.
+Thus <tt>swigprint</tt> can usually be shortened to <tt>sw</tt> and <tt>locswigprint</tt> to <tt>loc</tt>.
+The help for each command can also be obtained within the debugging session, for example, 'help swigprint'.
+</p>
+
+<p>
+The sub-section below gives pointers for debugging DOH objects using casts and provides an insight into why it can be hard to debug SWIG without the family of print functions.
 <p>
 
-The DOH types are all typedefined to void. 
-Consequently, it is impossible for debuggers to extract any information about DOH objects.
-Most debuggers will be able to display useful variable information when an object is cast to the appropriate type.
-Below are some tips for displaying some of the DOH objects.
-Be sure to compile with compiler optimisations turned off before attempting the casts shown in a debugger window else they are unlikely to work.
-Even displaying the underlying string in a String* doesn't work straight off in all debuggers due to the multiple definition of String as a struct and a void.
+<a name="7.1" href="#i7.1">
+<h3>7.1 Debugging DOH Types The Hard Way</h3>
+</a>
+The DOH types used in SWIG are all typedefined to void and hence the lack of type information for inspecting types within a debugger. 
+Most debuggers will however be able to display useful variable information when an object is cast to the appropriate type.
+Getting at the underlying C string within DOH types is cumbersome, but possible with appropriate casts.
+The casts below can be used in a debugger windows, but be sure to compile with compiler optimisations turned off before attempting the casts else they are unlikely to work.
+Even displaying the underlying string in a String * doesn't work straight off in all debuggers due to the multiple definitions of String as a struct and a void.
 <p>
 
 Below are a list of common SWIG types.
@@ -1033,35 +1155,29 @@ With each is the cast that can be used in the debugger to extract the underlying
 
 <p>
 <li>String *s;</li>
-<br>
-(struct String *)((DohBase *)s)-&gt;data
+<tt>(struct String *)((DohBase *)s)-&gt;data</tt>
 <br>
 The underlying char * string can be displayed with
 <br>
-(*(struct String *)(((DohBase *)s)-&gt;data)).str
+<tt>(*(struct String *)(((DohBase *)s)-&gt;data)).str</tt>
 
 <p>
 <li>SwigType *t;</li>
-<br>
-(struct String *)((DohBase *)t)-&gt;data
+<tt>(struct String *)((DohBase *)t)-&gt;data</tt>
 <br>
 The underlying char * string can be displayed with
 <br>
-(*(struct String *)(((DohBase *)t)-&gt;data)).str
+<tt>(*(struct String *)(((DohBase *)t)-&gt;data)).str</tt>
 
 <p>
 <li>const_String_or_char_ptr sc;</li>
 Either <br>
-(*(struct String *)(((DohBase *)sc)-&gt;data)).str
+<tt>(*(struct String *)(((DohBase *)sc)-&gt;data)).str</tt>
 <br> or <br>
-(char *)sc
+<tt>(char *)sc</tt>
 <br> will work depending on whether the underlying type is really a String * or char *.
 
 </ul>
-
-<p>
-Please also read the Debugging Functions section in <a href="tree.html">SWIG Parse Tree Handling</a> for the <tt>Swig_print_node()</tt>, <tt>Swig_print_tree()</tt> and <tt>Swig_print_tags()</tt> functions for displaying node contents. It is often easier to place a few calls to these functions in code of interest and recompile than use the debugger.
-</p>
 
 <hr>
 Copyright (C) 1999-2010 SWIG Development Team.

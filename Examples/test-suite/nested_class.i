@@ -39,6 +39,8 @@ struct Outer {
   };
 
   ///////////////////////////////////////////
+#ifdef SWIG
+/* some compilers do not accept these */
   class {
   public:
     Integer a;
@@ -47,6 +49,7 @@ struct Outer {
   struct {
     Integer b;
   };
+#endif
 
   union {
     Integer c;
@@ -151,6 +154,8 @@ struct Outer {
     Integer xx;
   } MultipleInstanceAnonDerived1, MultipleInstanceAnonDerived2, *MultipleInstanceAnonDerived3, MultipleInstanceAnonDerived4[2];
 
+#ifdef SWIG
+/* some compilers do not accept these */
   struct : public InnerMultiple {
     Integer xx;
   };
@@ -159,6 +164,7 @@ struct Outer {
   public:
     Integer yy;
   };
+#endif
 
   ///////////////////////////////////////////
   typedef struct {

@@ -645,7 +645,7 @@ int DohRead(DOH *obj, void *buffer, int length) {
  * DohWrite()
  * ----------------------------------------------------------------------------- */
 
-int DohWrite(DOH *obj, void *buffer, int length) {
+int DohWrite(DOH *obj, const void *buffer, int length) {
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
   if (DohCheck(obj)) {

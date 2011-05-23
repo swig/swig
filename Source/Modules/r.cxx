@@ -15,8 +15,6 @@ char cvsroot_r_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
-#define UNUSED(a)  (void)a
-
 static const double DEFAULT_NUMBER = .0000123456712312312323;
 static const int MAX_OVERLOAD_ARGS = 5;
 
@@ -215,12 +213,15 @@ R Options (available with -r)\n\
      -copystruct      - Emit R code to copy C structs (on by default)\n\
      -cppcast         - Enable C++ casting operators (default) \n\
      -debug           - Output debug\n\
-     -dll <name>      - Name of the DLL (without the .dll or .so suffix). Default is the module name.\n\
+     -dll <name>      - Name of the DLL (without the .dll or .so suffix).\n\
+                        Default is the module name.\n\
      -gc              - Aggressive garbage collection\n\
      -memoryprof      - Add memory profile\n\
      -namespace       - Output NAMESPACE file\n\
-     -no-init-code    - Turn off the generation of the R_init_<pkgname> code (registration information still generated)\n\
-     -package <name>  - Package name for the PACKAGE argument of the R .Call() invocations. Default is the module name.\n\
+     -no-init-code    - Turn off the generation of the R_init_<pkgname> code\n\
+                        (registration information still generated)\n\
+     -package <name>  - Package name for the PACKAGE argument of the R .Call()\n\
+                        invocations. Default is the module name.\n\
 ";
 
 
@@ -265,12 +266,9 @@ static void replaceRClass(String *tm, SwigType *type) {
   Delete(tmp); Delete(tmp_base); Delete(tmp_ref);
 }
 
-static double getNumber(String *value, String *type) {
-  UNUSED(type);
-
+static double getNumber(String *value) {
   double d = DEFAULT_NUMBER;
   if(Char(value)) {
-    //        Printf(stderr, "getNumber %s %s\n", Char(value), type);
     if(sscanf(Char(value), "%lf", &d) != 1)
       return(DEFAULT_NUMBER);
   }
@@ -300,7 +298,7 @@ public:
       Printf(stderr, "<memberfunctionHandler> %s %s\n", 
 	     Getattr(n, "name"),
 	     Getattr(n, "type"));
-    member_name = Getattr(n, "name");
+    member_name = Getattr(n, "sym:name");
     processing_class_member_function = 1;
     int status = Language::memberfunctionHandler(n);    
     processing_class_member_function = 0;
@@ -1013,7 +1011,6 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
 int R::OutputMemberReferenceMethod(String *className, int isSet, 
 				   List *el, File *out) {
   int numMems = Len(el), j;
-  int has_getitem = 0, has_setitem = 0, has_str = 0;
   int varaccessor = 0;
   if (numMems == 0) 
     return SWIG_OK;
@@ -1033,9 +1030,6 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     if (Getattr(itemList, item)) 
       continue;
     Setattr(itemList, item, "1");
-    if (!Strcmp(item, "__getitem__")) has_getitem = 1;
-    if (!Strcmp(item, "__setitem__")) has_setitem = 1;
-    if (!Strcmp(item, "__str__")) has_str = 1;
     
     String *dup = Getitem(el, j + 1);
     char *ptr = Char(dup);
@@ -1209,10 +1203,9 @@ int R::enumDeclaration(Node *n) {
     //      const char *tag = Char(nodeType(c));
     //      if (Strcmp(tag,"cdecl") == 0) {        
     name = Getattr(c, "name");
-    String *type = Getattr(c, "type");
     String *val = Getattr(c, "enumvalue");
     if(val && Char(val)) {
-      int inval = (int) getNumber(val, type);
+      int inval = (int) getNumber(val);
       if(inval == DEFAULT_NUMBER) 
 	value++;
       else 
@@ -1298,6 +1291,8 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
   if (debugMode)
     Printf(stderr, "Adding accessor: %s (%s) => %s\n", memberName, name, tmp);
 }
+
+#define Swig_overload_rank R_swig_overload_rank
 
 #define MAX_OVERLOAD 256
 
@@ -1601,6 +1596,16 @@ void R::dispatchFunction(Node *n) {
 	       j == 0 ? "" : " && ",
 	       j+1);
 	}
+	else if (DohStrcmp(tm,"integer")==0) {
+	Printf(f->code, "%s(is.integer(argv[[%d]]) || is.numeric(argv[[%d]]))",
+	       j == 0 ? "" : " && ",
+	       j+1, j+1);
+	}
+	else if (DohStrcmp(tm,"character")==0) {
+	Printf(f->code, "%sis.character(argv[[%d]])",
+	       j == 0 ? "" : " && ",
+	       j+1);
+	}
 	else {
 	Printf(f->code, "%sextends(argtypes[%d], '%s')",
 	       j == 0 ? "" : " && ",
@@ -1615,7 +1620,10 @@ void R::dispatchFunction(Node *n) {
     }
   }
   if (cur_args != -1) {
-    Printv(f->code, "}", NIL);
+    Printf(f->code, "} else {\n"
+	   "stop(\"cannot find overloaded function for %s with argtypes (\","
+	   "toString(argtypes),\")\");\n"
+	   "}", sfname);
   }
   Printv(f->code, ";\nf(...)", NIL);
   Printv(f->code, ";\n}", NIL);
@@ -1720,8 +1728,7 @@ int R::functionWrapper(Node *n) {
   }
   
   int i;
-  int nargs, num_required, varargs;
-  UNUSED(varargs);
+  int nargs;
   
   String *wname = Swig_name_wrapper(iname);
   Replace(wname, "_wrap", "R_swig", DOH_REPLACE_FIRST);
@@ -1770,8 +1777,6 @@ int R::functionWrapper(Node *n) {
   Setattr(n,"wrap:parms",l);
 
   nargs = emit_num_arguments(l);
-  num_required = emit_num_required(l);
-  varargs = emit_isvarargs(l);
 
   Wrapper_add_local(f, "r_nprotect", "unsigned int r_nprotect = 0");
   Wrapper_add_localv(f, "r_ans", "SEXP", "r_ans = R_NilValue", NIL);
@@ -2116,11 +2121,6 @@ int R::functionWrapper(Node *n) {
      Would like to be able to do this so that we can potentialy insert
   */
   if(processing_member_access_function || processing_class_member_function) {
-    String *tmp;
-    if(member_name)
-      tmp = member_name;
-    else
-      tmp = Getattr(n, "memberfunctionHandler:name");
     addAccessor(member_name, sfun, iname);
   }
 
@@ -2512,7 +2512,7 @@ int R::membervariableHandler(Node *n) {
 
   int status(Language::membervariableHandler(n));
 
-  if(opaqueClassDeclaration == NULL && debugMode)
+  if(!opaqueClassDeclaration && debugMode)
     Printf(stderr, "<membervariableHandler> %s %s\n", Getattr(n, "name"), Getattr(n, "type"));
 
   processing_member_access_function = 0;

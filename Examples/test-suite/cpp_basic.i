@@ -8,6 +8,12 @@
 
 %newobject Bar::testFoo;
 
+%{
+#if defined(__SUNPRO_CC)
+#pragma error_messages (off, wbadasg) /* Assigning extern "C" ... */
+#endif
+%}
+
 %inline %{
 
 class Foo {

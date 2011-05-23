@@ -1324,7 +1324,7 @@ MODULA3():
       Parm *p;
       attachParameterNames(n, "tmap:name", "c:wrapname", "m3arg%d");
       bool gencomma = false;
-      for (p = skipIgnored(l, "in"); p != NULL; p = skipIgnored(p, "in")) {
+      for (p = skipIgnored(l, "in"); p; p = skipIgnored(p, "in")) {
 
 	String *arg = Getattr(p, "c:wrapname");
 	{
@@ -1545,7 +1545,7 @@ MODULA3():
       Parm *p;
       writeArgState state;
       attachParameterNames(n, "tmap:rawinname", "modula3:rawname", "arg%d");
-      for (p = skipIgnored(l, "m3rawintype"); p != NULL; p = skipIgnored(p, "m3rawintype")) {
+      for (p = skipIgnored(l, "m3rawintype"); p; p = skipIgnored(p, "m3rawintype")) {
 
 	/* Get argument passing mode, should be one of VALUE, VAR, READONLY */
 	String *mode = Getattr(p, "tmap:m3rawinmode");
@@ -1928,7 +1928,7 @@ MODULA3():
 	} else if (Strcmp(code, "unsafe") == 0) {
 	  unsafe_module = true;
 	} else if (Strcmp(code, "library") == 0) {
-	  if (targetlibrary != NULL) {
+	  if (targetlibrary) {
 	    Delete(targetlibrary);
 	  }
 	  targetlibrary = Copy(strvalue);
@@ -2222,8 +2222,7 @@ MODULA3():
       }
       base = Next(base);
       if (base.item != NIL) {
-	Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, input_file,
-		     line_number,
+	Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 		     "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
 		     classDeclarationName, Getattr(base.item, "name"));
       }
@@ -2236,8 +2235,7 @@ MODULA3():
     // Inheritance from pure Modula 3 classes
     const String *pure_baseclass = typemapLookup(n, "m3base", classDeclarationName, WARN_NONE);
     if (hasContent(pure_baseclass) && hasContent(baseclass)) {
-      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, input_file,
-		   line_number,
+      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 		   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n", classDeclarationName, pure_baseclass);
     }
     // Pure Modula 3 interfaces
@@ -2273,7 +2271,7 @@ MODULA3():
       destruct_methodname = Getattr(attributes, "tmap:m3destruct:methodname");
     }
     if (!destruct_methodname) {
-      Swig_error(input_file, line_number, "No methodname attribute defined in m3destruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+      Swig_error(Getfile(n), Getline(n), "No methodname attribute defined in m3destruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
     }
     // Emit the Finalize and Dispose methods
     if (tm) {
@@ -2466,8 +2464,7 @@ MODULA3():
 	    Append(baseclassname, Getattr(base.item, "sym:name"));
 	    base = Next(base);
 	    if (base.item != NIL) {
-	      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, input_file,
-			   line_number,
+	      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 			   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
 			   proxy_class_name, Getattr(base.item, "name"));
 	    }
@@ -3978,10 +3975,10 @@ extern "C" Language *swig_modula3(void) {
 
 const char *MODULA3::usage = (char *) "\
 Modula 3 Options (available with -modula3)\n\
-     -generateconst <file>   - generate code for computing numeric values of constants\n\
-     -generaterename <file>  - generate suggestions for %rename\n\
-     -generatetypemap <file> - generate templates for some basic typemaps\n\
-     -oldvarnames    - old intermediary method names for variable wrappers\n\
+     -generateconst <file>   - Generate code for computing numeric values of constants\n\
+     -generaterename <file>  - Generate suggestions for %rename\n\
+     -generatetypemap <file> - Generate templates for some basic typemaps\n\
+     -oldvarnames            - Old intermediary method names for variable wrappers\n\
 \n";
 
 /*

@@ -13,5 +13,8 @@ public class runme
     int sum = li_boost_shared_ptr_bits.sum(v);
     if (sum != 66)
       throw new ApplicationException("sum is wrong");
+
+    HiddenDestructor hidden = HiddenDestructor.create();
+    hidden.Dispose();
   }
 }

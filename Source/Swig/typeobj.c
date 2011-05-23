@@ -210,7 +210,7 @@ SwigType *SwigType_pop(SwigType *t) {
  * Returns the parameter of an operator as a string
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_parm(SwigType *t) {
+String *SwigType_parm(const SwigType *t) {
   char *start, *c;
   int nparens = 0;
 
@@ -362,7 +362,7 @@ SwigType *SwigType_del_pointer(SwigType *t) {
   return t;
 }
 
-int SwigType_ispointer(SwigType *t) {
+int SwigType_ispointer(const SwigType *t) {
   char *c;
   if (!t)
     return 0;
@@ -404,7 +404,7 @@ SwigType *SwigType_del_reference(SwigType *t) {
   return t;
 }
 
-int SwigType_isreference(SwigType *t) {
+int SwigType_isreference(const SwigType *t) {
   char *c;
   if (!t)
     return 0;
@@ -494,7 +494,7 @@ SwigType *SwigType_del_qualifier(SwigType *t) {
   return t;
 }
 
-int SwigType_isqualifier(SwigType *t) {
+int SwigType_isqualifier(const SwigType *t) {
   char *c;
   if (!t)
     return 0;
@@ -509,7 +509,7 @@ int SwigType_isqualifier(SwigType *t) {
  *                                Function Pointers
  * ----------------------------------------------------------------------------- */
 
-int SwigType_isfunctionpointer(SwigType *t) {
+int SwigType_isfunctionpointer(const SwigType *t) {
   char *c;
   if (!t)
     return 0;
@@ -562,7 +562,7 @@ SwigType *SwigType_del_memberpointer(SwigType *t) {
   return t;
 }
 
-int SwigType_ismemberpointer(SwigType *t) {
+int SwigType_ismemberpointer(const SwigType *t) {
   char *c;
   if (!t)
     return 0;
@@ -606,7 +606,7 @@ SwigType *SwigType_del_array(SwigType *t) {
   return t;
 }
 
-int SwigType_isarray(SwigType *t) {
+int SwigType_isarray(const SwigType *t) {
   char *c;
   if (!t)
     return 0;
@@ -622,7 +622,7 @@ int SwigType_isarray(SwigType *t) {
  * Determine if the type is a 1D array type that is treated as a pointer within SWIG
  * eg Foo[], Foo[3] return true, but Foo[3][3], Foo*[], Foo*[3], Foo**[] return false
  */
-int SwigType_prefix_is_simple_1D_array(SwigType *t) {
+int SwigType_prefix_is_simple_1D_array(const SwigType *t) {
   char *c = Char(t);
 
   if (c && (strncmp(c, "a(", 2) == 0)) {
@@ -648,7 +648,7 @@ SwigType *SwigType_pop_arrays(SwigType *t) {
 }
 
 /* Return number of array dimensions */
-int SwigType_array_ndim(SwigType *t) {
+int SwigType_array_ndim(const SwigType *t) {
   int ndim = 0;
   char *c = Char(t);
 
@@ -661,7 +661,7 @@ int SwigType_array_ndim(SwigType *t) {
 }
 
 /* Get nth array dimension */
-String *SwigType_array_getdim(SwigType *t, int n) {
+String *SwigType_array_getdim(const SwigType *t, int n) {
   char *c = Char(t);
   while (c && (strncmp(c, "a(", 2) == 0) && (n > 0)) {
     c = strchr(c, '.');
@@ -713,7 +713,7 @@ void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
 }
 
 /* Return base type of an array */
-SwigType *SwigType_array_type(SwigType *ty) {
+SwigType *SwigType_array_type(const SwigType *ty) {
   SwigType *t;
   t = Copy(ty);
   while (SwigType_isarray(t)) {
@@ -771,7 +771,7 @@ SwigType *SwigType_pop_function(SwigType *t) {
   return g;
 }
 
-int SwigType_isfunction(SwigType *t) {
+int SwigType_isfunction(const SwigType *t) {
   char *c;
   if (!t) {
     return 0;
@@ -793,7 +793,7 @@ int SwigType_isfunction(SwigType *t) {
 
 /* Create a list of parameters from the type t, using the file_line_node Node for 
  * file and line numbering for the parameters */
-ParmList *SwigType_function_parms(SwigType *t, Node *file_line_node) {
+ParmList *SwigType_function_parms(const SwigType *t, Node *file_line_node) {
   List *l = SwigType_parmlist(t);
   Hash *p, *pp = 0, *firstp = 0;
   Iterator o;
@@ -1094,7 +1094,7 @@ String *SwigType_prefix(const SwigType *t) {
  * Strip all qualifiers from a type and return a new type
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_strip_qualifiers(SwigType *t) {
+SwigType *SwigType_strip_qualifiers(const SwigType *t) {
   static Hash *memoize_stripped = 0;
   SwigType *r;
   List *l;
@@ -1138,7 +1138,7 @@ SwigType *SwigType_strip_qualifiers(SwigType *t) {
  *    r.p.int                   => r.p.int
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_strip_single_qualifier(SwigType *t) {
+SwigType *SwigType_strip_single_qualifier(const SwigType *t) {
   static Hash *memoize_stripped = 0;
   SwigType *r = 0;
   List *l;

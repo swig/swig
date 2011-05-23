@@ -77,7 +77,7 @@
 #define %clearoldnodefault  %feature("oldnodefault","")
 
 /* the %exception directive */
-#ifdef SWIGCSHARP
+#if defined(SWIGCSHARP) || defined(SWIGD)
 #define %exception      %feature("except", canthrow=1)
 #else
 #define %exception      %feature("except")
@@ -95,7 +95,7 @@
    to set/get variable methods. You don't need to use the
    %allowexception directive when using %exceptionvar.
 */
-#ifdef SWIGCSHARP
+#if defined(SWIGCSHARP) || defined(SWIGD)
 #define %exceptionvar      %feature("exceptvar", canthrow=1)
 #else
 #define %exceptionvar      %feature("exceptvar")
@@ -268,7 +268,6 @@ static int NAME(TYPE x) {
 %define %$isenumitem     "match"="enumitem"  %enddef
 %define %$isaccess       "match"="access"   %enddef
 %define %$isclass        "match"="class","notmatch$template$templatetype"="class"   %enddef
-%define %$isextend       "match"="extend"  %enddef
 %define %$isextend       "match"="extend"  %enddef
 %define %$isconstructor  "match"="constructor"  %enddef
 %define %$isdestructor   "match"="destructor"  %enddef
@@ -500,12 +499,6 @@ namespace std {
     for (; jj < $1_dim1; ++jj) dp[jj] = ip[jj];
   }
 }
-
-/* Typemap for variable length arguments sentinel value.  Used
-   by the %varargs directive. */
-
-%typemap(in,numinputs=0) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
-
 
 /* -----------------------------------------------------------------------------
  * Overloading support

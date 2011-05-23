@@ -131,16 +131,17 @@ enum autodoc_t {
   AUTODOC_SETTER
 };
 
-static const char *usage = "\
+static const char *usage = (char *) "\
 Ruby Options (available with -ruby)\n\
-     -globalmodule   - Wrap everything into the global module\n\
-     -minherit       - Attempt to support multiple inheritance\n\
-     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
-     -cppcast        - Enable C++ casting operators (default)\n\
      -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
+     -cppcast        - Enable C++ casting operators (default)\n\
+     -globalmodule   - Wrap everything into the global module\n\
+     -initname <name>- Set entry function to Init_<name> (used by `require')\n\
+     -minherit       - Attempt to support multiple inheritance\n\
      -noautorename   - Disable renaming of classes and methods (default)\n\
+     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
-     -initname <name> - Set entry function to Init_<name> (used by `require')\n";
+";
 
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
@@ -231,7 +232,7 @@ private:
 
   bool have_docstring(Node *n) {
     String *str = Getattr(n, "feature:docstring");
-    return (str != NULL && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
+    return (str && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
   }
 
   /* ------------------------------------------------------------
@@ -244,7 +245,7 @@ private:
   String *docstring(Node *n, autodoc_t ad_type) {
 
     String *str = Getattr(n, "feature:docstring");
-    bool have_ds = (str != NULL && Len(str) > 0);
+    bool have_ds = (str && Len(str) > 0);
     bool have_auto = (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
     String *autodoc = NULL;
     String *doc = NULL;
@@ -259,7 +260,7 @@ private:
 
     if (have_auto) {
       autodoc = make_autodoc(n, ad_type);
-      have_auto = (autodoc != NULL && Len(autodoc) > 0);
+      have_auto = (autodoc && Len(autodoc) > 0);
     }
     // If there is more than one line then make docstrings like this:
     //
@@ -272,14 +273,14 @@ private:
       doc = NewString("");
       Printv(doc, "\n", autodoc, "\n", str, NIL);
     } else if (!have_auto && have_ds) {	// only docstring
-      if (Strchr(str, '\n') == NULL) {
+      if (Strchr(str, '\n') == 0) {
 	doc = NewString(str);
       } else {
 	doc = NewString("");
 	Printv(doc, str, NIL);
       }
     } else if (have_auto && !have_ds) {	// only autodoc
-      if (Strchr(autodoc, '\n') == NULL) {
+      if (Strchr(autodoc, '\n') == 0) {
 	doc = NewStringf("%s", autodoc);
       } else {
 	doc = NewString("");
@@ -321,13 +322,11 @@ private:
       String *name = 0;
       String *type = 0;
       String *value = 0;
-      String *ptype = 0;
       String *pdoc = Getattr(p, "tmap:doc");
       if (pdoc) {
 	name = Getattr(p, "tmap:doc:name");
 	type = Getattr(p, "tmap:doc:type");
 	value = Getattr(p, "tmap:doc:value");
-	ptype = Getattr(p, "tmap:doc:pytype");
       }
 
       name = name ? name : Getattr(p, "name");
@@ -618,7 +617,7 @@ private:
 	  {
 	    // Only do the autodoc if there isn't a docstring for the class
 	    String *str = Getattr(n, "feature:docstring");
-	    if (counter == 0 && (str == NULL || Len(str) == 0)) {
+	    if (counter == 0 && (str == 0 || Len(str) == 0)) {
 	      if (CPlusPlus) {
 		Printf(doc, "  Proxy of C++ %s class", full_name);
 	      } else {
@@ -1607,9 +1606,7 @@ public:
   virtual int functionWrapper(Node *n) {
 
     String *nodeType;
-    bool constructor;
     bool destructor;
-    String *storage;
 
     String *symname = Copy(Getattr(n, "sym:name"));
     SwigType *t = Getattr(n, "type");
@@ -1624,9 +1621,7 @@ public:
       return SWIG_NOWRAP;
 
     nodeType = Getattr(n, "nodeType");
-    constructor = (!Cmp(nodeType, "constructor"));
     destructor = (!Cmp(nodeType, "destructor"));
-    storage = Getattr(n, "storage");
 
     /* If the C++ class constructor is overloaded, we only want to
      * write out the "new" singleton method once since it is always
@@ -2054,8 +2049,15 @@ public:
 
     // Construct real method name
     String* methodName = NewString("");
-    if ( isMethod ) 
-      Printv( methodName, Getattr(parentNode(sibl),"sym:name"), ".", NIL );
+    if ( isMethod ) {
+      // Sometimes a method node has no parent (SF#3034054).
+      // This value is used in an exception message, so just skip the class
+      // name in this case so at least we don't segfault.  This is probably
+      // just working around a problem elsewhere though.
+      Node *parent_node = parentNode(sibl);
+      if (parent_node)
+	Printv( methodName, Getattr(parent_node,"sym:name"), ".", NIL );
+    }
     Append( methodName, Getattr(sibl,"sym:name" ) );
     if ( isCtor ) Append( methodName, ".new" ); 
 
@@ -2395,7 +2397,7 @@ public:
 	    }
 	    String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
 	    String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-	    Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, input_file, line_number,
+	    Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
 			 "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Ruby.\n", proxyclassname, baseclassname);
 	    base = Next(base);
 	  }

@@ -4,6 +4,36 @@ and CHANGES files.
 
 Release Notes
 =============
+SWIG-2.0.4 summary:
+- This is mainly a Python oriented release including support for Python
+  built-in types for superior performance with the new -builtin option.
+  The -builtin option is especially suitable for performance-critical
+  libraries and applications that call wrapped methods repeatedly.
+  See the python-specific chapter of the SWIG manual for more info.
+- Python 3.2 support has also been added and various Python bugs have
+  been fixed.
+- Octave 3.4 support has also been added.
+- There are also the usual minor generic improvements, as well as bug
+  fixes and enhancements for D, Guile, Lua, Octave, Perl and Tcl. 
+
+SWIG-2.0.3 summary:
+- A bug fix release including a couple of fixes for regressions in the
+  2.0 series.
+
+SWIG-2.0.2 summary:
+- Support for the D language has been added.
+- Various bug fixes and minor enhancements.
+- Bug fixes particular to the Clisp, C#, Go, MzScheme, Ocaml, PHP, R,
+  Ruby target languages.
+
+SWIG-2.0.1 summary:
+- Support for the Go language has been added.
+- New regular expression (regex) encoder for renaming symbols based on
+  the Perl Compatible Regular Expressions (PCRE) library.
+- Numerous fixes in reporting file and line numbers in error and warning
+  messages.
+- Various bug fixes and improvements in the C#, Lua, Perl, PHP, Ruby
+  and Python language modules.
 
 SWIG-2.0.0 summary:
 - License changes, see LICENSE file and http://www.swig.org/legal.html.

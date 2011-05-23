@@ -1,10 +1,6 @@
-This file contains the changes for the current release.
+Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.1 (in progress)
+Version 2.0.5 (in progress)
 ===========================
-
-2010-06-03: wsfulton
-            Fix uncompileable code when %rename results in two enum items
-            with the same name. Reported by Vadim Zeitlin.

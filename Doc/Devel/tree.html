@@ -6,13 +6,6 @@
 <body>
 <center>
 <h1>SWIG Parse Tree Handling</h1>
-
-<p>
-David M. Beazley <br>
-dave-swig@dabeaz.com<br>
-December, 2006<br>
-
-</b>
 </center>
 
 <h2>Introduction</h2>
@@ -210,7 +203,33 @@ This function restores a node to the state it was in prior to the last <tt>Swig_
 
 <h2>Debugging Functions</h2>
 
-The following functions are used to help debug SWIG parse trees.
+<p>
+The following functions can be used to help debug any SWIG DOH object.
+</p>
+
+<b><tt>void Swig_print(DOH *object, int count = -1)</tt></b>
+
+<blockquote>
+Prints to stdout a string representation of any DOH type.
+The number of nested Hash types to expand is set by count (default is 1 if count&lt;0). See Swig_set_max_hash_expand() to change default.
+<pre>
+</pre>
+</blockquote>
+
+<b><tt>void Swig_print_with_location(DOH *object, int count = -1)</tt></b>
+
+<blockquote>
+Prints to stdout a string representation of any DOH type, within [] brackets
+for Hash and List types, prefixed by line and file information.
+The number of nested Hash types to expand is set by count (default is 1 if count&lt;0). See Swig_set_max_hash_expand() to change default.
+<pre>
+</pre>
+</blockquote>
+
+
+<p>
+The following functions can be used to help debug SWIG parse trees.
+</p>
 
 <p>
 <b><tt>void Swig_print_tags(Node *node, String_or_char *prefix)</tt></b>

@@ -35,12 +35,13 @@ print "Uploading to SourceForge"
 swig_dir_sf = username + ",swig@frs.sourceforge.net:/home/frs/project/s/sw/swig/swig/swig-" + version + "/"
 swigwin_dir_sf = username + ",swig@frs.sourceforge.net:/home/frs/project/s/sw/swig/swigwin/swigwin-" + version + "/"
 
-release_notes_file = "release-notes-" + version + ".txt"
-os.system("rm -f " + release_notes_file)
-os.system("cat swig-" + version + "/README " + "swig-" + version + "/CHANGES.current " + "swig-" + version + "/RELEASENOTES " + "> " + release_notes_file)
+# If a file with 'readme' in the name exists in the same folder as the zip/tarball, it gets automatically displayed as the release notes by SF
+full_readme_file = "readme-" + version + ".txt"
+os.system("rm -f " + full_readme_file)
+os.system("cat swig-" + version + "/README " + "swig-" + version + "/CHANGES.current " + "swig-" + version + "/RELEASENOTES " + "> " + full_readme_file)
 
-os.system("rsync --archive --verbose -P --times -e ssh " + "swig-" + version + ".tar.gz " + release_notes_file + " " + swig_dir_sf) and failed("")
-os.system("rsync --archive --verbose -P --times -e ssh " + "swigwin-" + version + ".zip " + swigwin_dir_sf) and failed("")
+os.system("rsync --archive --verbose -P --times -e ssh " + "swig-" + version + ".tar.gz " + full_readme_file + " " + swig_dir_sf) and failed("")
+os.system("rsync --archive --verbose -P --times -e ssh " + "swigwin-" + version + ".zip " + full_readme_file + " " + swigwin_dir_sf) and failed("")
 
 print "Tagging release"
 os.system("svn copy -m \"rel-" + version + "\" https://swig.svn.sourceforge.net/svnroot/swig/trunk https://swig.svn.sourceforge.net/svnroot/swig/tags/rel-" + version + "/")

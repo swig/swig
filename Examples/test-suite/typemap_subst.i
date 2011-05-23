@@ -61,8 +61,8 @@
   $1 = ($ltype) temp;  
 }
 
-/* Java and C# modules don't use SWIG's runtime type system */
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP)
+/* Java, C#, Go and D modules don't use SWIG's runtime type system */
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD)
 %inline %{
   void foo(const struct xyzzy **TEST) {}
 %}

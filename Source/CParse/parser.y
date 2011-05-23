@@ -1628,7 +1628,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
   String       *str;
   Parm         *p;
   ParmList     *pl;
-  int           ivalue;
+  int           intvalue;
   Node         *node;
 };
 
@@ -1639,7 +1639,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token <loc> INCLUDE IMPORT INSERT
 %token <str> CHARCONST 
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
-%token <ivalue> TYPEDEF
+%token <intvalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
@@ -1657,7 +1657,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token QUESTIONMARK
 %token TYPES PARMS
 %token NONID DSTAR DCNOT
-%token <ivalue> TEMPLATE
+%token <intvalue> TEMPLATE
 %token <str> OPERATOR
 %token <str> COPERATOR
 %token PARSETYPE PARSEPARM PARSEPARMS
@@ -1728,7 +1728,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <id>       string stringnum ;
 %type <tparms>   template_parms;
 %type <dtype>    cpp_end cpp_vend;
-%type <ivalue>   rename_namewarn;
+%type <intvalue> rename_namewarn;
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
 %type <node>     featattr;
@@ -2121,7 +2121,7 @@ include_directive: includetype options string LBRACKET {
                } interface RBRACKET {
                      String *mname = 0;
                      $$ = $6;
-		     scanner_set_location($1.filename,$1.line);
+		     scanner_set_location($1.filename,$1.line+1);
 		     if (strcmp($1.type,"include") == 0) set_nodeType($$,"include");
 		     if (strcmp($1.type,"import") == 0) {
 		       mname = $2 ? Getattr($2,"module") : 0;
@@ -2176,15 +2176,14 @@ inline_directive : INLINE HBLOCK {
                  String *cpps;
 		 if (Namespaceprefix) {
 		   Swig_error(cparse_file, cparse_start_line, "%%inline directive inside a namespace is disallowed.\n");
-
 		   $$ = 0;
 		 } else {
 		   $$ = new_node("insert");
 		   Setattr($$,"code",$2);
 		   /* Need to run through the preprocessor */
+		   Seek($2,0,SEEK_SET);
 		   Setline($2,cparse_start_line);
 		   Setfile($2,cparse_file);
-		   Seek($2,0,SEEK_SET);
 		   cpps = Preprocessor_parse($2);
 		   start_inline(Char(cpps), cparse_start_line);
 		   Delete($2);
@@ -2628,10 +2627,15 @@ varargs_parms   : parms { $$ = $1; }
 		    Swig_error(cparse_file, cparse_line,"Argument count in %%varargs must be positive.\n");
 		    $$ = 0;
 		  } else {
+		    String *name = Getattr($3, "name");
 		    $$ = Copy($3);
-		    Setattr($$,"name","VARARGS_SENTINEL");
-		    for (i = 0; i < n; i++) {
+		    if (name)
+		      Setattr($$, "name", NewStringf("%s%d", name, n));
+		    for (i = 1; i < n; i++) {
 		      p = Copy($3);
+		      name = Getattr(p, "name");
+		      if (name)
+		        Setattr(p, "name", NewStringf("%s%d", name, n-i));
 		      set_nextSibling(p,$$);
 		      Delete($$);
 		      $$ = p;
@@ -2769,7 +2773,6 @@ types_directive : TYPES LPAREN parms RPAREN stringbracesemi {
 template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
                   Parm *p, *tp;
 		  Node *n;
-		  Node *tnode = 0;
 		  Symtab *tscope = 0;
 		  int     specialized = 0;
 
@@ -2930,7 +2933,6 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           }
                           Delattr(templnode,"templatetype");
                           Setattr(templnode,"template",nn);
-                          tnode = templnode;
                           Setfile(templnode,cparse_file);
                           Setline(templnode,cparse_line);
                           Delete(temparms);
@@ -4478,6 +4480,25 @@ cpp_conversion_operator : storage_class COPERATOR type pointer LPAREN parms RPAR
 		 add_symbols($$);
 	       }
 
+               | storage_class COPERATOR type pointer AND LPAREN parms RPAREN cpp_vend {
+		 SwigType *decl;
+                 $$ = new_node("cdecl");
+                 Setattr($$,"type",$3);
+		 Setattr($$,"name",$2);
+		 Setattr($$,"storage",$1);
+		 decl = NewStringEmpty();
+		 SwigType_add_pointer(decl);
+		 SwigType_add_reference(decl);
+		 SwigType_add_function(decl,$7);
+		 if ($9.qualifier) {
+		   SwigType_push(decl,$9.qualifier);
+		 }
+		 Setattr($$,"decl",decl);
+		 Setattr($$,"parms",$7);
+		 Setattr($$,"conversion_operator","1");
+		 add_symbols($$);
+	       }
+
               | storage_class COPERATOR type LPAREN parms RPAREN cpp_vend {
 		String *t = NewStringEmpty();
 		$$ = new_node("cdecl");
@@ -4541,7 +4562,8 @@ cpp_protection_decl : PUBLIC COLON {
    ------------------------------------------------------------ */
 
 cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
-		cparse_start_line = cparse_line; skip_balanced('{','}');
+		cparse_start_line = cparse_line;
+		skip_balanced('{','}');
 		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
 	      } cpp_opt_declarators {
 	        $$ = 0;
@@ -4566,7 +4588,8 @@ cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
    ------------------------------------------------------------ */
 
               | storage_class cpptype inherit LBRACE {
-		cparse_start_line = cparse_line; skip_balanced('{','}');
+		cparse_start_line = cparse_line;
+		skip_balanced('{','}');
 		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
 	      } cpp_opt_declarators {
 	        $$ = 0;
@@ -5592,21 +5615,14 @@ edecl          :  ID {
 		   Delete(type);
 		 }
                  | ID EQUAL etype {
+		   SwigType *type = NewSwigType($3.type == T_BOOL ? T_BOOL : ($3.type == T_CHAR ? T_CHAR : T_INT));
 		   $$ = new_node("enumitem");
 		   Setattr($$,"name",$1);
-		   Setattr($$,"enumvalue", $3.val);
-	           if ($3.type == T_CHAR) {
-		     SwigType *type = NewSwigType(T_CHAR);
-		     Setattr($$,"value",NewStringf("\'%(escape)s\'", $3.val));
-		     Setattr($$,"type",type);
-		     Delete(type);
-		   } else {
-		     SwigType *type = NewSwigType($3.type == T_BOOL ? T_BOOL : T_INT);
-		     Setattr($$,"value",$1);
-		     Setattr($$,"type",type);
-		     Delete(type);
-		   }
+		   Setattr($$,"type",type);
 		   SetFlag($$,"feature:immutable");
+		   Setattr($$,"enumvalue", $3.val);
+		   Setattr($$,"value",$1);
+		   Delete(type);
                  }
                  | empty { $$ = 0; }
                  ;
@@ -5620,7 +5636,6 @@ etype            : expr {
 		       ($$.type != T_CHAR) && ($$.type != T_BOOL)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an integral type\n");
 		   }
-		   if ($$.type == T_CHAR) $$.type = T_INT;
                 }
                ;
 
@@ -5884,28 +5899,34 @@ base_list      : base_specifier {
                }
                ;
 
-base_specifier : opt_virtual idcolon {
+base_specifier : opt_virtual {
+		 $<intvalue>$ = cparse_line;
+	       } idcolon {
 		 $$ = NewHash();
 		 Setfile($$,cparse_file);
-		 Setline($$,cparse_line);
-		 Setattr($$,"name",$2);
+		 Setline($$,$<intvalue>2);
+		 Setattr($$,"name",$3);
+		 Setfile($3,cparse_file);
+		 Setline($3,$<intvalue>2);
                  if (last_cpptype && (Strcmp(last_cpptype,"struct") != 0)) {
 		   Setattr($$,"access","private");
-		   Swig_warning(WARN_PARSE_NO_ACCESS,cparse_file,cparse_line,
-				"No access specifier given for base class %s (ignored).\n",$2);
+		   Swig_warning(WARN_PARSE_NO_ACCESS, Getfile($$), Getline($$), "No access specifier given for base class '%s' (ignored).\n", SwigType_namestr($3));
                  } else {
 		   Setattr($$,"access","public");
 		 }
                }
-	       | opt_virtual access_specifier opt_virtual idcolon {
+	       | opt_virtual access_specifier {
+		 $<intvalue>$ = cparse_line;
+	       } opt_virtual idcolon {
 		 $$ = NewHash();
 		 Setfile($$,cparse_file);
-		 Setline($$,cparse_line);
-		 Setattr($$,"name",$4);
+		 Setline($$,$<intvalue>3);
+		 Setattr($$,"name",$5);
+		 Setfile($5,cparse_file);
+		 Setline($5,$<intvalue>3);
 		 Setattr($$,"access",$2);
 	         if (Strcmp($2,"public") != 0) {
-		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, cparse_file, 
-				cparse_line,"%s inheritance ignored.\n", $2);
+		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, Getfile($$), Getline($$), "%s inheritance from base '%s' (ignored).\n", $2, SwigType_namestr($5));
 		 }
                }
                ;

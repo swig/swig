@@ -38,6 +38,7 @@
 <li><a href="#CSharp_date_properties">A date example demonstrating marshalling of C# properties</a>
 <li><a href="#CSharp_partial_classes">Turning wrapped classes into partial classes</a>
 <li><a href="#CSharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
+<li><a href="#CSharp_enum_underlying_type">Underlying type for enums</a>
 </ul>
 </ul>
 </div>
@@ -56,7 +57,7 @@ PInvoke is part of the ECMA/ISO C# specification.
 It is also better suited for robust production environments due to the Managed C++ flaw called the
 <a href="http://msdn.microsoft.com/en-us/library/aa290048(VS.71).aspx">Mixed DLL Loading Problem</a>.
 SWIG C# works equally well on non-Microsoft operating systems such as Linux, Solaris and Apple Mac using
-<a href="http://www.mono-project.com/">Mono</a> and <a href="http://www.dotgnu.org/pnet.html">Portable.NET</a>.
+<a href="http://www.mono-project.com/Main_Page">Mono</a> and <a href="http://www.dotgnu.org/pnet.html">Portable.NET</a>.
 </p>
 
 <p>
@@ -574,7 +575,8 @@ marshalling for the arrays:
 <pre>
 [DllImport("example", EntryPoint="CSharp_myArrayCopy")]
 public static extern void myArrayCopy([In, MarshalAs(UnmanagedType.LPArray)]int[] jarg1, 
-                                      [Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2, int jarg3);
+                                      [Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2,
+                                       int jarg3);
 </pre>
 </div>
 
@@ -623,7 +625,8 @@ and intermediate class method
 <pre>
   [DllImport("example", EntryPoint="CSharp_myArraySwap")]
   public static extern void myArraySwap([In, Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg1, 
-                                        [In, Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2, int jarg3);
+                                        [In, Out, MarshalAs(UnmanagedType.LPArray)]int[] jarg2,
+                                         int jarg3);
 </pre>
 </div>
 
@@ -695,7 +698,8 @@ As a result, we get the following method in the module class:
     fixed ( int *swig_ptrTo_sourceArray = sourceArray ) {
     fixed ( int *swig_ptrTo_targetArray = targetArray ) {
     {
-      examplePINVOKE.myArrayCopy((IntPtr)swig_ptrTo_sourceArray, (IntPtr)swig_ptrTo_targetArray, nitems);
+      examplePINVOKE.myArrayCopy((IntPtr)swig_ptrTo_sourceArray, (IntPtr)swig_ptrTo_targetArray,
+                                 nitems);
     }
     }
     }
@@ -2108,7 +2112,8 @@ public class example {
     try {
       examplePINVOKE.addYears(CDate.getCPtr(temppDate), years);
     } finally {
-      pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(), 0, 0, 0);
+      pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(),
+                                  0, 0, 0);
     }
   }
   ...
@@ -2125,13 +2130,13 @@ The <tt>subtractYears</tt> method is nearly identical to the above <tt>addYears<
 <div class="code">
 <pre>
 %typemap(csin,
-         pre="    using (CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day)) {",
-         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
-              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
-         terminator="    } // terminate temp$csinput using block",
-         cshin="ref $csinput"
-        ) CDate *
-         "$csclassname.getCPtr(temp$csinput)"
+  pre="    using (CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day)) {",
+  post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+       " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+  terminator="    } // terminate temp$csinput using block",
+  cshin="ref $csinput"
+ ) CDate *
+  "$csclassname.getCPtr(temp$csinput)"
 
 void subtractYears(CDate *pDate, int years) {
   *pDate = CDate(pDate-&gt;getYear() - years, pDate-&gt;getMonth(), pDate-&gt;getDay());
@@ -2151,7 +2156,8 @@ public class example {
     try {
       examplePINVOKE.subtractYears(CDate.getCPtr(temppDate), years);
     } finally {
-      pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(), 0, 0, 0);
+      pDate = new System.DateTime(temppDate.getYear(), temppDate.getMonth(), temppDate.getDay(),
+                                  0, 0, 0);
     }
     } // terminate temppDate using block
   }
@@ -2396,6 +2402,38 @@ public class ExtendMe : IDisposable {
   public int Part1() {
     ...
   }
+}
+</pre>
+</div>
+
+<H3><a name="CSharp_enum_underlying_type"></a>18.6.7 Underlying type for enums</H3>
+
+
+<P>
+C# enums use int as the underlying type for each enum item.
+If you wish to change the underlying type to something else, then use the <tt>csbase</tt> typemap.
+For example when your C++ code uses a value larget than int, this is necessary as the C# compiler will not compile values which are too large to fit into an int.
+Here is an example:
+</p>
+
+<div class="code">
+<pre>
+%typemap(csbase) BigNumbers "uint"
+%inline %{
+  enum BigNumbers { big=0x80000000, bigger };
+%}
+</pre>
+</div>
+
+<p>
+The generated enum will then use the given underlying type and compile correctly:
+</p>
+
+<div class="code">
+<pre>
+public enum BigNumbers : uint {
+  big = 0x80000000,
+  bigger
 }
 </pre>
 </div>

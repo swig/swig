@@ -1,9 +1,11 @@
-// Tests SWIG's *default* handling of varargs.  The default behavior is to simply ignore the varargs.
+// Tests SWIG's *default* handling of varargs (function varargs, not preprocessor varargs).
+// The default behavior is to simply ignore the varargs.
 %module varargs
 
 %varargs(int mode = 0) test_def;
 %varargs(int mode = 0) Foo::Foo;
 %varargs(int mode = 0) Foo::statictest(const char*fmt, ...);
+%varargs(2, int mode = 0) test_plenty(const char*fmt, ...);
 
 %inline %{
 char *test(const char *fmt, ...) {
@@ -34,5 +36,9 @@ public:
         return (char *) fmt;
     }
 };
+
+const char *test_plenty(const char *fmt, ...) {
+  return fmt;
+}
 
 %}

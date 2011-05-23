@@ -83,7 +83,7 @@ namespace swig {
 }
 
 
-%fragment("StdFunctors","header",fragment="StdTraits")
+%fragment("StdFunctors","header",fragment="StdTraits",fragment="GC_VALUE_definition")
 {
 namespace swig {
 

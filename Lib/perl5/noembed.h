@@ -100,3 +100,9 @@
 #ifdef bind
   #undef bind
 #endif
+#ifdef access
+  #undef access
+#endif
+#ifdef stat
+  #undef stat
+#endif

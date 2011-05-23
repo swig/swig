@@ -26,10 +26,10 @@
   class const_iterator;
   class const_reverse_iterator;
 
-  const_iterator begin() const;
-  const_iterator end() const;
-  const_reverse_iterator rbegin() const;
-  const_reverse_iterator rend() const;
+  iterator begin();
+  iterator end();
+  reverse_iterator rbegin();
+  reverse_iterator rend();
   #endif
 
 %enddef

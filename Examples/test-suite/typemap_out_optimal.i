@@ -2,7 +2,7 @@
 %module typemap_out_optimal
 
 // Just the following languages tested
-#if defined (SWIGCSHARP)
+#if defined (SWIGCSHARP) || defined (SWIGD)
 %typemap(out, optimal="1") SWIGTYPE %{
   $result = new $1_ltype((const $1_ltype &)$1);
 %}
@@ -17,6 +17,10 @@
 #endif
 
 %ignore XX::operator=;
+
+#ifdef SWIGD
+%rename(trace) XX::debug;
+#endif
 
 %inline %{
 #include <iostream>

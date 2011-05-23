@@ -402,7 +402,6 @@ String *emit_action(Node *n) {
   String *tm;
   String *action;
   String *wrap;
-  SwigType *rt;
   ParmList *catchlist = Getattr(n, "catchlist");
 
   /* Look for fragments */
@@ -439,9 +438,6 @@ String *emit_action(Node *n) {
   if (!action)
     action = Getattr(n, "wrap:action");
   assert(action != 0);
-
-  /* Get the return type */
-  rt = Getattr(n, "type");
 
   /* Emit contract code (if any) */
   if (Swig_contract_mode_get()) {

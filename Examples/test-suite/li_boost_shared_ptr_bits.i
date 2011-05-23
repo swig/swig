@@ -1,6 +1,6 @@
 %module li_boost_shared_ptr_bits
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -47,4 +47,86 @@ int sum(std::vector< boost::shared_ptr<IntHolder> > v) {
 %}
 
 %template(VectorIntHolder) std::vector< boost::shared_ptr<IntHolder> >;
+
+
+/////////////////////////////////////////////////
+// Test non public destructor - was leading to memory leaks as the destructor was not wrapped
+// Bug 3024875
+/////////////////////////////////////////////////
+
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
+
+%shared_ptr(HiddenDestructor)
+
+#endif
+
+%inline %{
+class HiddenDestructor;
+typedef boost::shared_ptr< HiddenDestructor > FooPtr;
+
+class HiddenDestructor {
+public:
+   static FooPtr create();
+   virtual void doit();
+
+protected:
+   HiddenDestructor();
+   static void Foo_body( FooPtr self );
+   virtual ~HiddenDestructor();
+private:
+   HiddenDestructor( const HiddenDestructor& );
+   class Impl;
+   Impl* impl_;
+
+   class FooDeleter {
+   public:
+     void operator()(HiddenDestructor* hidden) {
+       delete hidden;
+     }
+   };
+};
+%}
+
+%{
+#include <iostream>
+using namespace std;
+
+/* Impl would generally hold a weak_ptr to HiddenDestructor a.s.o, but this stripped down example should suffice */
+class HiddenDestructor::Impl {
+public:
+    int mymember;
+};
+
+FooPtr HiddenDestructor::create()
+{
+    FooPtr hidden( new HiddenDestructor(), HiddenDestructor::FooDeleter() );
+    Foo_body( hidden );
+    return hidden;
+}
+
+void HiddenDestructor::doit()
+{
+    // whatever
+}
+
+HiddenDestructor::HiddenDestructor()
+{
+//  cout << "HiddenDestructor::HiddenDestructor()" << endl;
+    // always empty
+}
+
+void HiddenDestructor::Foo_body( FooPtr self )
+{
+    // init self as you would do in ctor
+    self->impl_ = new Impl();
+}
+
+HiddenDestructor::~HiddenDestructor()
+{
+//  cout << "HiddenDestructor::~HiddenDestructor()" << endl;
+    // destruct (e.g. delete Pimpl object)
+    delete impl_;
+}
+%}
+////////////////////////////
 

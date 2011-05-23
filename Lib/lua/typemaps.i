@@ -66,8 +66,10 @@ or provide a %apply statement
 %enddef
 
 // now the code
-SWIG_NUMBER_TYPEMAP(int); SWIG_NUMBER_TYPEMAP(unsigned int); SWIG_NUMBER_TYPEMAP(signed int);
+SWIG_NUMBER_TYPEMAP(unsigned char); SWIG_NUMBER_TYPEMAP(signed char);
+
 SWIG_NUMBER_TYPEMAP(short); SWIG_NUMBER_TYPEMAP(unsigned short); SWIG_NUMBER_TYPEMAP(signed short);
+SWIG_NUMBER_TYPEMAP(int); SWIG_NUMBER_TYPEMAP(unsigned int); SWIG_NUMBER_TYPEMAP(signed int);
 SWIG_NUMBER_TYPEMAP(long); SWIG_NUMBER_TYPEMAP(unsigned long); SWIG_NUMBER_TYPEMAP(signed long);
 SWIG_NUMBER_TYPEMAP(float);
 SWIG_NUMBER_TYPEMAP(double);
@@ -345,6 +347,8 @@ for array handling
 // as well as defining typemaps for
 // fixed len arrays in & out, & variable length arrays in
 
+SWIG_TYPEMAP_NUM_ARR(schar,signed char);
+SWIG_TYPEMAP_NUM_ARR(uchar,unsigned char);
 SWIG_TYPEMAP_NUM_ARR(int,int);
 SWIG_TYPEMAP_NUM_ARR(uint,unsigned int);
 SWIG_TYPEMAP_NUM_ARR(short,short);

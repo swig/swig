@@ -301,7 +301,7 @@
 
 %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE *const& {
   void *vptr = 0;
-  int res = SWIG_ConvertPtr($input, &vptr, $descriptor, 0);
+  int res = SWIG_ConvertPtr($input, &vptr, $*descriptor, 0);
   $1 = SWIG_CheckState(res);
 }
 
@@ -558,11 +558,6 @@
 /* ------------------------------------------------------------
  * --- Special typemaps ---
  * ------------------------------------------------------------ */
-
-/* VARARGS_SENTINEL typemap. Used by the %varargs directive. */
-
-%typemap(in,numinputs=0) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
-
 
 /* DISOWN typemap */
 

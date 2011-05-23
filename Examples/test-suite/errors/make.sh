@@ -24,11 +24,20 @@ c_missing_semi
 c_redefine
 c_varargs
 c_varargs_neg
-nomodule 
+nomodule
 pp_badeval
+pp_constant
 pp_defined
+pp_deprecated
+pp_illegal_argument
 pp_macro_args
 pp_macro_badchar
+pp_macro_defined_unterminated
+pp_macro_expansion
+pp_macro_expansion_multiline
+pp_macro_inline_unterminated
+pp_macro_missing_expression
+pp_macro_unexpected_tokens
 pp_macro_nargs
 pp_macro_redef
 pp_macro_rparen
@@ -39,9 +48,11 @@ pp_missing_enddef
 pp_missing_endif
 pp_missing_file
 pp_missing_rblock
+pp_pragma
 pp_unterm_char
 pp_unterm_comment
 pp_unterm_string
+pp_variable_args
 swig_apply_nargs
 swig_identifier
 swig_insert_bad
@@ -55,6 +66,8 @@ cpp_bad_extern
 cpp_extend_redefine
 cpp_extend_undefined
 cpp_inline_namespace
+cpp_inherit
+cpp_macro_locator
 cpp_missing_rtemplate
 cpp_namespace_alias
 cpp_namespace_aliasnot
@@ -63,8 +76,11 @@ cpp_nested
 cpp_no_access
 cpp_nobase
 cpp_overload
+cpp_overload_const
 cpp_private_defvalue
 cpp_private_inherit
+cpp_recursive_typedef
+cpp_shared_ptr
 cpp_template_argname
 cpp_template_nargs
 cpp_template_not
@@ -87,14 +103,14 @@ for i in ${CFILES}; do
    echo "    Testing : ${i}.i"; 
    echo "" >> ${LOGFILE};
    echo ":::::::::::::::::::::::::::::::: ${i}.i :::::::::::::::::::::::::::::::::::" >> ${LOGFILE};
-   ${SWIG} -Wall ${SWIGOPT} ${i}.i >>${LOGFILE} 2>&1
+   ${SWIG} -python -Wall ${SWIGOPT} ${i}.i >>${LOGFILE} 2>&1
 done
 
 for i in ${CPPFILES}; do 
    echo "    Testing : ${i}.i"; 
    echo "" >> ${LOGFILE}
    echo ":::::::::::::::::::::::::::::::: ${i}.i :::::::::::::::::::::::::::::::::::" >> ${LOGFILE};
-   ${SWIG} -Wall -c++ ${SWIGOPT} ${i}.i >>${LOGFILE} 2>&1
+   ${SWIG} -python -Wall -c++ ${SWIGOPT} ${i}.i >>${LOGFILE} 2>&1
 done
 
 echo ""

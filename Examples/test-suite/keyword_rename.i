@@ -27,6 +27,10 @@ KW(synchronized, final)
 KW(string, out)
 struct sealed {int i;};
 
+/* Go Keywords */
+KW(go, defer)
+KW(chan, fallthrough)
+
 %}
 
 

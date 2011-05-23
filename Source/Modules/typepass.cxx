@@ -175,10 +175,10 @@ class TypePass:private Dispatcher {
 		  }
 		}
 		if (Strcmp(nodeType(bcls), "classforward") != 0) {
-		  Swig_error(Getfile(cls), Getline(cls), "'%s' does not have a valid base class.\n", Getattr(cls, "name"));
-		  Swig_error(Getfile(bcls), Getline(bcls), "'%s' is not a valid base class.\n", SwigType_namestr(bname));
+		  Swig_error(Getfile(bname), Getline(bname), "'%s' is not a valid base class.\n", SwigType_namestr(bname));
+		  Swig_error(Getfile(bcls), Getline(bcls), "See definition of '%s'.\n", SwigType_namestr(bname));
 		} else {
-		  Swig_warning(WARN_TYPE_INCOMPLETE, Getfile(cls), Getline(cls), "Base class '%s' is incomplete.\n", SwigType_namestr(bname));
+		  Swig_warning(WARN_TYPE_INCOMPLETE, Getfile(bname), Getline(bname), "Base class '%s' is incomplete.\n", SwigType_namestr(bname));
 		  Swig_warning(WARN_TYPE_INCOMPLETE, Getfile(bcls), Getline(bcls), "Only forward declaration '%s' was found.\n", SwigType_namestr(bname));
 		  clsforward = 1;
 		}
@@ -189,7 +189,7 @@ class TypePass:private Dispatcher {
 		    ilist = alist = NewList();
 		  Append(ilist, bcls);
 		} else {
-		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(cls), Getline(cls), "Base class '%s' undefined.\n", SwigType_namestr(bname));
+		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' undefined.\n", SwigType_namestr(bname));
 		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "'%s' must be defined before it is used as a base class.\n", SwigType_namestr(bname));
 		}
 	      }
@@ -202,10 +202,9 @@ class TypePass:private Dispatcher {
 	  if (!bcls) {
 	    if (!clsforward) {
 	      if (ispublic && !Getmeta(bname, "already_warned")) {
-		Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(cls), Getline(cls), "Nothing known about base class '%s'. Ignored.\n", SwigType_namestr(bname));
+		Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Nothing known about base class '%s'. Ignored.\n", SwigType_namestr(bname));
 		if (Strchr(bname, '<')) {
-		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(cls), Getline(cls), "Maybe you forgot to instantiate '%s' using %%template.\n",
-			       SwigType_namestr(bname));
+		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Maybe you forgot to instantiate '%s' using %%template.\n", SwigType_namestr(bname));
 		}
 		Setmeta(bname, "already_warned", "1");
 	      }
@@ -255,12 +254,17 @@ class TypePass:private Dispatcher {
 	  Delete(smartnamestr);
 	  /* setup inheritance relationship between smart pointer templates */
 	  SwigType_inherit(smart, bsmart, 0, convcode);
+	  if (!GetFlag(bclass, "feature:smartptr"))
+	    Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
 	  Delete(convcode);
 	  Delete(bsmart);
 	  Delete(smart);
 	} else {
-	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, clsname);
+	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", SwigType_namestr(smartptr), SwigType_namestr(clsname));
 	}
+      } else {
+	if (GetFlag(bclass, "feature:smartptr"))
+	  Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));
       }
       if (!importmode) {
 	String *btype = Copy(bname);
@@ -275,7 +279,7 @@ class TypePass:private Dispatcher {
       Symtab *st = Getattr(cls, "symtab");
       Symtab *bst = Getattr(bclass, "symtab");
       if (st == bst) {
-	Swig_warning(WARN_PARSE_REC_INHERITANCE, Getfile(cls), Getline(cls), "Recursive scope inheritance of '%s'.\n", Getattr(cls, "name"));
+	Swig_warning(WARN_PARSE_REC_INHERITANCE, Getfile(cls), Getline(cls), "Recursive scope inheritance of '%s'.\n", SwigType_namestr(Getattr(cls, "name")));
 	continue;
       }
       Symtab *s = Swig_symbol_current();
@@ -995,6 +999,7 @@ class TypePass:private Dispatcher {
 		      }
 		      Node *nn = copyNode(c);
 		      Delattr(nn, "access");	// access might be different from the method in the base class
+		      Setattr(nn, "access", Getattr(n, "access"));
 		      if (!Getattr(nn, "sym:name"))
 			Setattr(nn, "sym:name", symname);
 
@@ -1057,11 +1062,11 @@ class TypePass:private Dispatcher {
 	       * which is hacked. */
 	      if (Getattr(n, "sym:overloaded"))
 	      {
-#ifdef DEBUG_OVERLOADED
-show_overloaded(n);
-#endif
 		int cnt = 0;
+#ifdef DEBUG_OVERLOADED
 		Node *debugnode = n;
+		show_overloaded(n);
+#endif
 		if (!firstChild(n)) {
 		  // Remove from overloaded list ('using' node does not actually end up adding in any methods)
 		  Node *ps = Getattr(n, "sym:previousSibling");
@@ -1108,14 +1113,16 @@ show_overloaded(n);
 		    Setattr(ns, "sym:previousSibling", pp);
 		    Setattr(pp, "sym:nextSibling", ns);
 		  }
+#ifdef DEBUG_OVERLOADED
 		  debugnode = firstoverloaded;
+#endif
 		}
 		Delattr(n, "sym:previousSibling");
 		Delattr(n, "sym:nextSibling");
 		Delattr(n, "sym:overloaded");
 		Delattr(n, "sym:overname");
 #ifdef DEBUG_OVERLOADED
-show_overloaded(debugnode);
+		show_overloaded(debugnode);
 #endif
 		clean_overloaded(n); // Needed?
 	      }

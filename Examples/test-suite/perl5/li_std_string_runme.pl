@@ -48,7 +48,7 @@ li_std_string::test_reference($stringPtr);
 
 # Check throw exception specification
 eval { li_std_string::test_throw() };
-is($@, "test_throw message", "Test 5");
+like($@, qr/^test_throw message/, "Test 5");
 { local $TODO = "why is the error not a Perl string?";
 eval { li_std_string::test_const_reference_throw() };
 is($@, "<some kind of string>", "Test 6");

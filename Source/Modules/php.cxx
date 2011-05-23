@@ -46,7 +46,7 @@ char cvsroot_php_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 PHP Options (available with -php)\n\
-     -cppext          - cpp file extension (default to .cpp)\n\
+     -cppext <ext>    - Change C++ file extension to <ext> (default is cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
@@ -126,7 +126,7 @@ static enum {
 } wrapperType = standard;
 
 extern "C" {
-  static void (*r_prevtracefunc) (SwigType *t, String *mangled, String *clientdata) = 0;
+  static void (*r_prevtracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
 }
 
 static void SwigPHP_emit_resource_registrations() {
@@ -250,7 +250,6 @@ public:
   virtual int top(Node *n) {
 
     String *filen;
-    String *s_type;
 
     /* Check if directors are enabled for this module. */
     Node *mod = Getattr(n, "module");
@@ -283,7 +282,6 @@ public:
     r_shutdown = NewString("/* rshutdown section */\n");
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
-    s_type = NewStringEmpty();
     /* subsections of the init section */
     s_vinit = NewString("/* vinit subsection */\n");
     s_vdecl = NewString("/* vdecl subsection */\n");
@@ -389,6 +387,12 @@ public:
     Printf(s_header, "#else\n");
     Printf(s_header, "#define SWIG_ErrorMsg() (%s_globals.error_msg)\n", module);
     Printf(s_header, "#define SWIG_ErrorCode() (%s_globals.error_code)\n", module);
+    Printf(s_header, "#endif\n\n");
+
+    Printf(s_header, "// Allow the user to workaround a PHP bug on some platforms/architectures by\n");
+    Printf(s_header, "// compiling with -DSWIG_ZEND_ERROR_NORETURN=zend_error\n");
+    Printf(s_header, "#ifndef SWIG_ZEND_ERROR_NORETURN\n");
+    Printf(s_header, "# define SWIG_ZEND_ERROR_NORETURN zend_error_noreturn\n");
     Printf(s_header, "#endif\n\n");
 
     Printf(s_header, "static void %s_init_globals(zend_%s_globals *globals ) {\n", module, module);
@@ -666,7 +670,7 @@ public:
       /* We have an extra 'this' parameter. */
       SetFlag(n, "wrap:this");
     }
-    String *dispatch = Swig_overload_dispatch(n, "return %s(INTERNAL_FUNCTION_PARAM_PASSTHRU);", &maxargs);
+    String *dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -915,8 +919,10 @@ public:
     }
 
     /* Insert argument output code */
+    bool hasargout = false;
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p, "tmap:argout"))) {
+	hasargout = true;
 	Replaceall(tm, "$source", Getattr(p, "lname"));
 	//      Replaceall(tm,"$input",Getattr(p,"lname"));
 	Replaceall(tm, "$target", "return_value");
@@ -974,7 +980,11 @@ public:
     /* Error handling code */
     Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
-    Printv(f->code, "zend_error_noreturn(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
+    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+     * using zend_error() here shouldn't generate a warning, so just use that.
+     * At worst this may result in slightly less good code.
+     */
+    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
 
     Printf(f->code, "}\n");
 
@@ -1067,6 +1077,8 @@ public:
       Hash *ret_types = NewHash();
       Setattr(ret_types, d, d);
 
+      bool non_void_return = (Cmp(d, "void") != 0);
+
       if (overloaded) {
 	// Look at all the overloaded versions of this method in turn to
 	// decide if it's really an overloaded method, or just one where some
@@ -1083,6 +1095,7 @@ public:
 	    assert(constructor);
 	  } else if (!Getattr(ret_types, d2)) {
 	    Setattr(ret_types, d2, d2);
+	    non_void_return = non_void_return || (Cmp(d2, "void") != 0);
 	  }
 
 	  ParmList *l2 = Getattr(o, "wrap:parms");
@@ -1206,7 +1219,7 @@ public:
 	  }
 	  if (!pname_cstr) {
 	    // Unnamed parameter, e.g. int foo(int);
-	  } else if (pname == NULL) {
+	  } else if (!pname) {
 	    pname = NewString(pname_cstr);
 	  } else {
 	    size_t len = strlen(pname_cstr);
@@ -1290,7 +1303,7 @@ public:
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
-		} else if (strchr(Char(value), '.') == NULL) {
+		} else if (strchr(Char(value), '.') == 0) {
 		  // Ensure value is a double constant, not an integer one.
 		  Append(value, ".0");
 		  double val2 = strtod(Char(value), &p);
@@ -1494,7 +1507,7 @@ public:
 	    while (last_handled_i < i) {
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
-	    if (Cmp(d, "void") != 0) {
+	    if (non_void_return) {
 	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
 		Append(prepare, "$r=");
 	      } else {
@@ -1516,7 +1529,7 @@ public:
 	Printf(prepare, "\t\t");
 	if (had_a_case)
 	  Printf(prepare, "default: ");
-	if (Cmp(d, "void") != 0) {
+	if (non_void_return) {
 	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
 	    Append(prepare, "$r=");
 	  } else {
@@ -1575,14 +1588,21 @@ public:
 	  }
 	  if (Getattr(n, "access") && haspublicbase) {
 	    Delete(acc);
-	    acc = NewString("public");
+	    acc = NewStringEmpty(); // implicitly public
 	    Swig_warning(WARN_PHP_PUBLIC_BASE, input_file, line_number, Char(warnmsg));
 	    Delete(warnmsg);
 	  }
 	}
-	if (Cmp(acc, "") != 0) {
+
+	if (Cmp(acc, "public") == 0) {
+	  // The default visibility for methods is public, so don't specify
+	  // that explicitly to keep the wrapper size down.
+	  Delete(acc);
+	  acc = NewStringEmpty();
+	} else if (Cmp(acc, "") != 0) {
 	  Append(acc, " ");
 	}
+
 	if (constructor) {
 	  const char * arg0;
 	  if (max_num_of_arguments > 0) {
@@ -1592,10 +1612,9 @@ public:
 	    Delete(args);
 	    args = NewString("$res=null");
 	  }
-	  SwigType *t = Getattr(current_class, "classtype");
-	  String *mangled_type = SwigType_manglestr(SwigType_ltype(t));
+	  String *mangled_type = SwigType_manglestr(Getattr(n, "type"));
 	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
-	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '_p%s') {\n", arg0, arg0, mangled_type);
+	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '%s') {\n", arg0, arg0, mangled_type);
 	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
 	  Printf(output, "\t\t\treturn;\n");
 	  Printf(output, "\t\t}\n");
@@ -1656,7 +1675,7 @@ public:
 	  }
 	}
 	Printf(output, "%s", prepare);
-      } else if (Cmp(d, "void") == 0) {
+      } else if (!non_void_return && !hasargout) {
 	if (Cmp(invoke, "$r") != 0)
 	  Printf(output, "\t\t%s;\n", invoke);
       } else if (is_class(d)) {
@@ -1695,7 +1714,7 @@ public:
 	      Printf(output, "\t\t\treturn new $c($r);\n");
 	    } else {
 	      Printf(output, "\t\t\t$c = new stdClass();\n");
-	      Printf(output, "\t\t\t$c->_cPtr = $r;\n");
+	      Printf(output, "\t\t\t$c->"SWIG_PTR" = $r;\n");
 	      Printf(output, "\t\t\treturn $c;\n");
 	    }
 	    Printf(output, "\t\t}\n\t\treturn $r;\n");
@@ -1710,7 +1729,6 @@ public:
 	  while (i.item) {
 	    SwigType *ret_type = i.item;
 	    i = Next(i);
-	    Printf(output, "\t\t");
 	    String *mangled = NewString("_p");
 	    Printf(mangled, "%s", SwigType_manglestr(ret_type));
 	    Node *class_node = Getattr(zend_types, mangled);
@@ -1721,7 +1739,13 @@ public:
 	      Delete(mangled);
 	      mangled = NewString(SwigType_manglestr(ret_type));
 	      class_node = Getattr(zend_types, mangled);
+	      if (!class_node) {
+		// Return type isn't an object, so will be handled by the
+		// !is_resource() check before the switch.
+		continue;
+	      }
 	    }
+	    Printf(output, "\t\t");
 	    if (i.item) {
 	      Printf(output, "case '%s': ", mangled);
 	    } else {
@@ -2282,7 +2306,11 @@ done:
 
     Append(f->code, "return;\n");
     Append(f->code, "fail:\n");
-    Append(f->code, "zend_error_noreturn(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+     * using zend_error() here shouldn't generate a warning, so just use that.
+     * At worst this may result in slightly less good code.
+     */
+    Append(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
     Printf(f->code, "}\n");
 
     Wrapper_print(f, s_wrappers);
@@ -2495,8 +2523,7 @@ done:
       /* build argument list and type conversion string */
       idx = 0;
       p = l;
-      int use_parse = 0;
-      while (p != NULL) {
+      while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  p = Getattr(p, "tmap:in:next");
 	  continue;
@@ -2522,7 +2549,6 @@ done:
 	    Printv(wrap_args, tm, "\n", NIL);
 	    Putc('O', parse_args);
 	  } else {
-	    use_parse = 1;
 	    Append(parse_args, parse);
 	    Replaceall(tm, "$input", pname);
 	    Replaceall(tm, "$owner", "0");
@@ -2565,7 +2591,7 @@ done:
       }
       Append(w->code, "zval *result, funcname;\n");
       Append(w->code, "MAKE_STD_ZVAL(result);\n");
-      Printf(w->code, "ZVAL_STRING(&funcname, (char *)\"%s\", 0);\n", name);
+      Printf(w->code, "ZVAL_STRING(&funcname, (char *)\"%s\", 0);\n", GetChar(n, "sym:name"));
       Append(w->code, "if (!swig_self) {\n");
       Append(w->code, "  SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");");
       Append(w->code, "}\n\n");
@@ -2657,7 +2683,15 @@ done:
     }
 
     Append(w->code, "fail:\n");
-    Append(w->code, "zend_error_noreturn(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    if (!is_void) {
+      Append(w->code, "SWIG_ZEND_ERROR_NORETURN(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    } else {
+      /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+       * using zend_error() here shouldn't generate a warning, so just use that.
+       * At worst this may result in slightly less good code.
+       */
+      Append(w->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    }
     Append(w->code, "}\n");
 
     // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method
@@ -2702,7 +2736,7 @@ static PHP *maininstance = 0;
 // We use this function to be able to write out zend_register_list_destructor_ex
 // lines for most things in the type table
 // NOTE: it's a function NOT A PHP::METHOD
-extern "C" void typetrace(SwigType *ty, String *mangled, String *clientdata) {
+extern "C" void typetrace(const SwigType *ty, String *mangled, String *clientdata) {
   Node *class_node;
   if (!zend_types) {
     zend_types = NewHash();

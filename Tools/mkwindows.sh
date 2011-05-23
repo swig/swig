@@ -1,6 +1,7 @@
 #!/bin/sh
 
-# Build Windows distribution (swigwin-1.3.x.zip) -- requires running in either:
+# Build Windows distribution (swigwin-2.0.x.zip) from source tarball (swig-2.0.x.tar.gz)
+# Requires running in either:
 # - MinGW environment
 # - Linux using MinGW cross compiler
 # - Cygwin using MinGW compiler
@@ -21,8 +22,8 @@ if test x$1 != x; then
     fi
 else
     echo "Usage: mkwindows.sh version [zip]"
-    echo "       Build Windows distribution. Works on Cygwin, MinGW or Linux"
-    echo "       version should be 1.3.x"
+    echo "       Build SWIG Windows distribution from source tarball. Works on Cygwin, MinGW or Linux"
+    echo "       version should be 2.0.x"
     echo "       zip is full path to zip program - default is /c/cygwin/bin/zip on MinGW, zip on Linux and Cygwin"
     exit 1
 fi
@@ -42,7 +43,7 @@ else
     if test x$zip = x; then
       zip=zip
     fi
-    extraconfigureoptions="--host=i586-mingw32msvc --build=i686-linux CXXFLAGS=-O2 CFLAGS=-O2"
+    extraconfigureoptions="--host=i586-mingw32msvc --build=i686-linux"
   else 
     if test "$cygwin"; then
       echo "Building native Windows executable on Cygwin"
@@ -60,6 +61,13 @@ fi
 swigbasename=swig-$version
 swigwinbasename=swigwin-$version
 tarball=$swigbasename.tar.gz
+pcre_tarball=`ls pcre-*.tar.*`
+
+if ! test -f "$pcre_tarball"; then
+  echo "Could not find PCRE tarball. Please download a PCRE source tarball from http://www.pcre.org"
+  echo "and place in the same directory as the SWIG tarball."
+  exit 1
+fi
 
 if test -f "$tarball"; then
     builddir=build-$version
@@ -77,8 +85,11 @@ if test -f "$tarball"; then
       mv $swigbasename $swigwinbasename
       tar -zxf ../$tarball
       cd $swigbasename
+      (cd ../.. && cp $pcre_tarball $builddir/$swigbasename)
+      echo Running: Tools/pcre-build.sh $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags"
+      ./Tools/pcre-build.sh $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags" || exit 1
       echo Running: ./configure $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags"
-      ./configure $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags"
+      ./configure $extraconfigureoptions CFLAGS="$compileflags" CXXFLAGS="$compileflags" || exit 1
       echo "Compiling (quietly)..."
       make > build.log
       echo "Simple check to see if swig.exe runs..."

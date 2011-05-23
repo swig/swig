@@ -52,7 +52,7 @@ extern "C" {
     return all_protected_mode;
   }
   void Language_replace_special_variables(String *method, String *tm, Parm *parm) {
-  Language::instance()->replaceSpecialVariables(method, tm, parm);
+    Language::instance()->replaceSpecialVariables(method, tm, parm);
   }
 }
 
@@ -1044,7 +1044,10 @@ int Language::functionHandler(Node *n) {
     if (isstatic) {
       staticmemberfunctionHandler(n);
     } else if (isfriend) {
+      int oldInClass = InClass;
+      InClass = 0;
       globalfunctionHandler(n);
+      InClass = oldInClass;
     } else {
       Node *explicit_n = 0;
       if (directorsEnabled() && is_member_director(CurrentClass, n) && !extraDirectorProtectedCPPMethodsRequired()) {
@@ -1344,7 +1347,7 @@ int Language::variableHandler(Node *n) {
     Swig_save("variableHandler", n, "feature:immutable", NIL);
     if (SmartPointer) {
       /* If a smart-pointer and it's a constant access, we have to set immutable */
-      if (Getattr(CurrentClass, "allocate:smartpointerconst")) {
+      if (!Getattr(CurrentClass, "allocate:smartpointermutable")) {
 	SetFlag(n, "feature:immutable");
       }
     }
@@ -1391,7 +1394,7 @@ int Language::membervariableHandler(Node *n) {
     int assignable = is_assignable(n);
 
     if (SmartPointer) {
-      if (Getattr(CurrentClass, "allocate:smartpointerconst")) {
+      if (!Getattr(CurrentClass, "allocate:smartpointermutable")) { 
 	assignable = 0;
       }
     }
@@ -1806,17 +1809,25 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
   classname = Getattr(n, "name");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     /* we only need to check the virtual members */
-    if (!checkAttribute(ni, "storage", "virtual"))
-      continue;
     nodeType = Getattr(ni, "nodeType");
+    int is_using = (Cmp(nodeType, "using") == 0);
+    Node *nn = is_using ? firstChild(ni) : ni; /* assume there is only one child node for "using" nodes */
+    if (is_using) {
+      if (nn)
+	nodeType = Getattr(nn, "nodeType");
+      else
+	continue; // A private "using" node
+    }
+    if (!checkAttribute(nn, "storage", "virtual"))
+      continue;
     /* we need to add methods(cdecl) and destructor (to check for throw decl) */
     int is_destructor = (Cmp(nodeType, "destructor") == 0);
     if ((Cmp(nodeType, "cdecl") == 0) || is_destructor) {
-      decl = Getattr(ni, "decl");
+      decl = Getattr(nn, "decl");
       /* extra check for function type and proper access */
-      if (SwigType_isfunction(decl) && (((!protectedbase || dirprot_mode()) && is_public(ni)) || need_nonpublic_member(ni))) {
-	String *name = Getattr(ni, "name");
-	Node *method_id = is_destructor ? NewStringf("~destructor") : vtable_method_id(ni);
+      if (SwigType_isfunction(decl) && (((!protectedbase || dirprot_mode()) && is_public(nn)) || need_nonpublic_member(nn))) {
+	String *name = Getattr(nn, "name");
+	Node *method_id = is_destructor ? NewStringf("~destructor") : vtable_method_id(nn);
 	/* Make sure that the new method overwrites the existing: */
 	int len = Len(vm);
 	const int DO_NOT_REPLACE = -1;
@@ -1834,7 +1845,7 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
 	String *fqdname = NewStringf("%s::%s", classname, name);
 	Hash *item = NewHash();
 	Setattr(item, "fqdname", fqdname);
-	Node *m = Copy(ni);
+	Node *m = Copy(nn);
 
 	/* Store the complete return type - needed for non-simple return types (pointers, references etc.) */
 	SwigType *ty = NewString(Getattr(m, "type"));
@@ -1854,6 +1865,7 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
 	  Append(vm, item);
 	else
 	  Setitem(vm, replace, item);
+	Setattr(nn, "directorNode", m);
 
 	Delete(mname);
       }
@@ -2443,6 +2455,9 @@ int Language::classHandler(Node *n) {
     List *methods = Getattr(n, "allocate:smartpointer");
     cplus_mode = PUBLIC;
     SmartPointer = CWRAP_SMART_POINTER;
+    if (Getattr(n, "allocate:smartpointerconst") && Getattr(n, "allocate:smartpointermutable")) {
+      SmartPointer |= CWRAP_SMART_POINTER_OVERLOAD;
+    }
     Iterator c;
     for (c = First(methods); c.item; c = Next(c)) {
       emit_one(c.item);
@@ -2697,7 +2712,7 @@ int Language::destructorDeclaration(Node *n) {
 
   if (!CurrentClass)
     return SWIG_NOWRAP;
-  if (cplus_mode != PUBLIC)
+  if (cplus_mode != PUBLIC && !Getattr(CurrentClass, "feature:unref"))
     return SWIG_NOWRAP;
   if (ImportMode)
     return SWIG_NOWRAP;
@@ -2803,7 +2818,7 @@ int Language::validIdentifier(String *s) {
  * ----------------------------------------------------------------------------- */
 
 int Language::usingDeclaration(Node *n) {
-  if ((cplus_mode == PUBLIC)) {
+  if ((cplus_mode == PUBLIC) || (!is_public(n) && dirprot_mode())) {
     Node *np = Copy(n);
     Node *c;
     for (c = firstChild(np); c; c = nextSibling(c)) {
@@ -2995,7 +3010,10 @@ void Language::dumpSymbols() {
  * ----------------------------------------------------------------------------- */
 
 Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
-  Hash *symbols = Getattr(symtabs, scope);
+  Hash *symbols = Getattr(symtabs, scope ? scope : "");
+  if (!symbols) {
+    return NULL;
+  }
   return Getattr(symbols, s);
 }
 
@@ -3005,7 +3023,7 @@ Node *Language::symbolLookup(String *s, const_String_or_char_ptr scope) {
  * Tries to locate a class from a type definition
  * ----------------------------------------------------------------------------- */
 
-Node *Language::classLookup(SwigType *s) {
+Node *Language::classLookup(const SwigType *s) {
   Node *n = 0;
 
   /* Look in hash of cached values */

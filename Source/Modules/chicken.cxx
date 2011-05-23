@@ -17,17 +17,17 @@ char cvsroot_chicken_cxx[] = "$Id$";
 
 #include <ctype.h>
 
-static const char *chicken_usage = (char *) "\
+static const char *usage = (char *) "\
 \
 CHICKEN Options (available with -chicken)\n\
-     -proxy                 - Export TinyCLOS class definitions\n\
      -closprefix <prefix>   - Prepend <prefix> to all clos identifiers\n\
-     -useclassprefix        - Prepend the class name to all clos identifiers\n\
-     -unhideprimitive       - Unhide the primitive: symbols\n\
-     -nounit                - Do not (declare (unit ...)) in scheme file\n\
      -noclosuses            - Do not (declare (uses ...)) in scheme file\n\
      -nocollection          - Do not register pointers with chicken garbage\n\
                               collector and export destructors\n\
+     -nounit                - Do not (declare (unit ...)) in scheme file\n\
+     -proxy                 - Export TinyCLOS class definitions\n\
+     -unhideprimitive       - Unhide the primitive: symbols\n\
+     -useclassprefix        - Prepend the class name to all clos identifiers\n\
 \n";
 
 static char *module = 0;
@@ -137,7 +137,7 @@ void CHICKEN::main(int argc, char *argv[]) {
   for (i = 1; i < argc; i++) {
     if (argv[i]) {
       if (strcmp(argv[i], "-help") == 0) {
-	fputs(chicken_usage, stdout);
+	fputs(usage, stdout);
 	SWIG_exit(0);
       } else if (strcmp(argv[i], "-proxy") == 0) {
 	clos = 1;
@@ -684,9 +684,6 @@ int CHICKEN::variableWrapper(Node *n) {
   String *overname = 0;
   String *scmname;
 
-  int num_required;
-  int num_arguments;
-
   scmname = NewString(iname);
   Replaceall(scmname, "_", "-");
 
@@ -704,10 +701,6 @@ int CHICKEN::variableWrapper(Node *n) {
   /* Attach the standard typemaps */
   emit_attach_parmmaps(l, f);
   Setattr(n, "wrap:parms", l);
-
-  /* Get number of required and total arguments */
-  num_arguments = emit_num_arguments(l);
-  num_required = emit_num_required(l);
 
   // evaluation function names
   Append(wname, Swig_name_wrapper(iname));
@@ -845,9 +838,6 @@ int CHICKEN::constantWrapper(Node *n) {
   String *rvalue;
   SwigType *nctype;
 
-  int num_required;
-  int num_arguments;
-
   scmname = NewString(iname);
   Replaceall(scmname, "_", "-");
 
@@ -873,9 +863,10 @@ int CHICKEN::constantWrapper(Node *n) {
     Delete(SwigType_pop(nctype));
   }
 
+  bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
   if (SwigType_type(nctype) == T_STRING) {
     rvalue = NewStringf("\"%s\"", value);
-  } else if (SwigType_type(nctype) == T_CHAR) {
+  } else if (SwigType_type(nctype) == T_CHAR && !is_enum_item) {
     rvalue = NewStringf("\'%s\'", value);
   } else {
     rvalue = NewString(value);
@@ -902,10 +893,6 @@ int CHICKEN::constantWrapper(Node *n) {
   /* Attach the standard typemaps */
   emit_attach_parmmaps(l, f);
   Setattr(n, "wrap:parms", l);
-
-  /* Get number of required and total arguments */
-  num_arguments = emit_num_arguments(l);
-  num_required = emit_num_required(l);
 
   // evaluation function names
 
@@ -1382,12 +1369,10 @@ void CHICKEN::dispatchFunction(Node *n) {
       SortList(flist, compareTypeLists);
 
       String *clos_name;
-      int construct = 0;
       if (have_constructor && !has_constructor_args) {
 	has_constructor_args = 1;
 	constructor_dispatch = NewStringf("%s@SWIG@new@dispatch", short_class_name);
 	clos_name = Copy(constructor_dispatch);
-	construct = 1;
 	Printf(clos_methods, "(declare (hide %s))\n", clos_name);
       } else if (in_class)
 	clos_name = NewString(member_name);

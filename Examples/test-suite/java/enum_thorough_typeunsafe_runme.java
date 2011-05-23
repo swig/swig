@@ -416,6 +416,28 @@ public class enum_thorough_typeunsafe_runme {
       if (enum_thorough_typeunsafe.repeatTest(repeat.llast) != 3) throw new RuntimeException("repeatTest 5 failed");
       if (enum_thorough_typeunsafe.repeatTest(repeat.end) != 3) throw new RuntimeException("repeatTest 6 failed");
     }
+    // different types
+    {
+      if (enum_thorough_typeunsafe.differentTypesTest(DifferentTypes.typeint) != 10) throw new RuntimeException("differentTypes 1 failed");
+      if (enum_thorough_typeunsafe.differentTypesTest(DifferentTypes.typeboolfalse) != 0) throw new RuntimeException("differentTypes 2 failed");
+      if (enum_thorough_typeunsafe.differentTypesTest(DifferentTypes.typebooltrue) != 1) throw new RuntimeException("differentTypes 3 failed");
+      if (enum_thorough_typeunsafe.differentTypesTest(DifferentTypes.typebooltwo) != 2) throw new RuntimeException("differentTypes 4 failed");
+      if (enum_thorough_typeunsafe.differentTypesTest(DifferentTypes.typechar) != 'C') throw new RuntimeException("differentTypes 5 failed");
+      if (enum_thorough_typeunsafe.differentTypesTest(DifferentTypes.typedefaultint) != 'D') throw new RuntimeException("differentTypes 6 failed");
+
+      int global_enum = enum_thorough_typeunsafe.global_typeint;
+      if (enum_thorough_typeunsafe.globalDifferentTypesTest(global_enum) != 10) throw new RuntimeException("global differentTypes 1 failed");
+      global_enum = enum_thorough_typeunsafe.global_typeboolfalse;
+      if (enum_thorough_typeunsafe.globalDifferentTypesTest(global_enum) != 0) throw new RuntimeException("global differentTypes 2 failed");
+      global_enum = enum_thorough_typeunsafe.global_typebooltrue;
+      if (enum_thorough_typeunsafe.globalDifferentTypesTest(global_enum) != 1) throw new RuntimeException("global differentTypes 3 failed");
+      global_enum = enum_thorough_typeunsafe.global_typebooltwo;
+      if (enum_thorough_typeunsafe.globalDifferentTypesTest(global_enum) != 2) throw new RuntimeException("global differentTypes 4 failed");
+      global_enum = enum_thorough_typeunsafe.global_typechar;
+      if (enum_thorough_typeunsafe.globalDifferentTypesTest(global_enum) != 'C') throw new RuntimeException("global differentTypes 5 failed");
+      global_enum = enum_thorough_typeunsafe.global_typedefaultint;
+      if (enum_thorough_typeunsafe.globalDifferentTypesTest(global_enum) != 'D') throw new RuntimeException("global differentTypes 6 failed");
+    }
   }
 }
 

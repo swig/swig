@@ -24,11 +24,11 @@ extern "C" {
 #endif
 
 #ifndef Z_SET_ISREF_P
-// For PHP < 5.3
+/* For PHP < 5.3 */
 # define Z_SET_ISREF_P(z) (z)->is_ref = 1
 #endif
 #ifndef Z_SET_REFCOUNT_P
-// For PHP < 5.3
+/* For PHP < 5.3 */
 # define Z_SET_REFCOUNT_P(z, rc) (z)->refcount = (rc)
 #endif
 
@@ -246,7 +246,7 @@ static swig_module_info *SWIG_Php_GetModule() {
 
   TSRMLS_FETCH();
 
-  if (zend_get_constant(const_name, sizeof(const_name), pointer TSRMLS_CC)) {
+  if (zend_get_constant(const_name, sizeof(const_name) - 1, pointer TSRMLS_CC)) {
     if (pointer->type == IS_LONG) {
       ret = (swig_module_info *) pointer->value.lval;
     }
@@ -259,12 +259,3 @@ static void SWIG_Php_SetModule(swig_module_info *pointer) {
   TSRMLS_FETCH();
   REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, 0);
 }
-
-#define SWIG_MEMBER_PTR ((char*)"CLASS::*")
-
-static void member_ptr_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC) {
-  efree(rsrc->ptr);
-}
-
-static int le_member_ptr;
-

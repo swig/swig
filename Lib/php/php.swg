@@ -76,8 +76,7 @@
    $1 = ($1_ltype) Z_STRVAL_PP($input);
 }
 
-%typemap(in) (char *STRING, int LENGTH)
-{
+%typemap(in) (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) {
    convert_to_string_ex($input);
    $1 = ($1_ltype) Z_STRVAL_PP($input);
    $2 = ($2_ltype) Z_STRLEN_PP($input);
@@ -202,7 +201,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%lld", $1);
+    sprintf(temp, "%lld", (long long)$1);
     ZVAL_STRING(return_value, temp, 1);
   }
 %}
@@ -213,7 +212,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%llu", $1);
+    sprintf(temp, "%llu", (unsigned long long)$1);
     ZVAL_STRING(return_value, temp, 1);
   }
 %}
@@ -240,7 +239,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%lld", *$1);
+    sprintf(temp, "%lld", (long long)(*$1));
     ZVAL_STRING(return_value, temp, 1);
   }
 %}
@@ -251,7 +250,7 @@
     return_value->type = IS_LONG;
   } else {
     char temp[256];
-    sprintf(temp, "%llu", *$1);
+    sprintf(temp, "%llu", (unsigned long long)(*$1));
     ZVAL_STRING(return_value, temp, 1);
   }
 %}
@@ -351,20 +350,20 @@
   SWIG_SetPointerZval($input, (void *)&$1_name, $1_descriptor, $owner);
 %}
 
-%typemap(out) SWIGTYPE (CLASS::*)
+%typemap(out, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
 {
   void * p = emalloc(sizeof($1));
   memcpy(p, &$1, sizeof($1));
   zval * resource;
   MAKE_STD_ZVAL(resource);
-  ZEND_REGISTER_RESOURCE(resource, p, le_member_ptr);
+  ZEND_REGISTER_RESOURCE(resource, p, swig_member_ptr);
 
   SWIG_SetPointerZval(return_value, (void *)&$1, $1_descriptor, $owner);
 }
 
-%typemap(in) SWIGTYPE (CLASS::*)
+%typemap(in, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
 {
-  void * p = (void*)zend_fetch_resource($input TSRMLS_CC, -1, SWIG_MEMBER_PTR, NULL, 1, le_member_ptr);
+  void * p = (void*)zend_fetch_resource($input TSRMLS_CC, -1, SWIG_MEMBER_PTR, NULL, 1, swig_member_ptr);
   memcpy(&$1, p, sizeof($1));
 }
 
@@ -415,17 +414,17 @@
 %php_typecheck(unsigned int,SWIG_TYPECHECK_UINT32,IS_LONG)
 %php_typecheck(short,SWIG_TYPECHECK_INT16,IS_LONG)
 %php_typecheck(unsigned short,SWIG_TYPECHECK_UINT16,IS_LONG)
-%php_typecheck(long,SWIG_TYPECHECK_INT64,IS_LONG)
-%php_typecheck(unsigned long,SWIG_TYPECHECK_UINT64,IS_LONG)
+%php_typecheck(long,SWIG_TYPECHECK_INT32,IS_LONG)
+%php_typecheck(unsigned long,SWIG_TYPECHECK_UINT32,IS_LONG)
 %php_typecheck(long long,SWIG_TYPECHECK_INT64,IS_LONG)
 %php_typecheck(unsigned long long,SWIG_TYPECHECK_UINT64,IS_LONG)
 %php_typecheck(signed char,SWIG_TYPECHECK_INT8,IS_LONG)
 %php_typecheck(unsigned char,SWIG_TYPECHECK_UINT8,IS_LONG)
-%php_typecheck(size_t,SWIG_TYPECHECK_INT16,IS_LONG)
-%php_typecheck(enum SWIGTYPE,SWIG_TYPECHECK_INT8,IS_LONG)
+%php_typecheck(size_t,SWIG_TYPECHECK_SIZE,IS_LONG)
+%php_typecheck(enum SWIGTYPE,SWIG_TYPECHECK_INTEGER,IS_LONG)
 %php_typecheck(bool,SWIG_TYPECHECK_BOOL,IS_BOOL)
 %php_typecheck(float,SWIG_TYPECHECK_FLOAT,IS_DOUBLE)
-%php_typecheck(double,SWIG_TYPECHECK_BOOL,IS_DOUBLE)
+%php_typecheck(double,SWIG_TYPECHECK_DOUBLE,IS_DOUBLE)
 %php_typecheck(char,SWIG_TYPECHECK_CHAR,IS_STRING)
 
 %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char *, char *&, char []
@@ -445,6 +444,12 @@
 {
   void *tmp;
   _v = (SWIG_ConvertPtr(*$input, (void**)&tmp, $1_descriptor, 0) >= 0);
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
+{
+  void *tmp;
+  _v = (SWIG_ConvertPtr(*$input, (void**)&tmp, $*1_descriptor, 0) >= 0);
 }
 
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void *

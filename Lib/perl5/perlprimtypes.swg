@@ -311,7 +311,9 @@ SWIG_AsVal_dec(double)(SV *obj, double *val)
     const char *nptr = SvPV_nolen(obj);
     if (nptr) {
       char *endptr;
-      double v = strtod(nptr, &endptr);
+      double v;
+      errno = 0;
+      v = strtod(nptr, &endptr);
       if (errno == ERANGE) {
 	errno = 0;
 	return SWIG_OverflowError;

@@ -9,7 +9,8 @@ public:
 
 class volume {
 public:
-    virtual double depth( double x, double y );
+  virtual double depth( double x, double y );
+  virtual ~volume();
 };
 
 extern void draw_shape_coverage( shape *s, int div_x, int div_y );

@@ -51,7 +51,11 @@
 #define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj)
 
 /* set constant */
-#define SWIG_SetConstant(name, obj)     SWIG_Python_SetConstant(d, name,obj) 
+#if defined(SWIGPYTHON_BUILTIN)
+#define SWIG_SetConstant(name, obj) SWIG_Python_SetConstant(d, d == md ? public_interface : NULL, name,obj) 
+#else
+#define SWIG_SetConstant(name, obj) SWIG_Python_SetConstant(d, name,obj) 
+#endif
 
 /* raise */
 #define SWIG_Raise(obj, type, desc)     SWIG_Python_Raise(obj, type, desc)
@@ -94,5 +98,4 @@
     }
   }
 }
-
 

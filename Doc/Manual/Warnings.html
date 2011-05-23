@@ -25,7 +25,7 @@
 <li><a href="#Warnings_nn12">C/C++ Parser (300-399)</a>
 <li><a href="#Warnings_nn13">Types and typemaps (400-499) </a>
 <li><a href="#Warnings_nn14">Code generation (500-599)</a>
-<li><a href="#Warnings_nn15">Language module specific (800-899) </a>
+<li><a href="#Warnings_nn15">Language module specific (700-899) </a>
 <li><a href="#Warnings_nn16">User defined (900-999)</a>
 </ul>
 <li><a href="#Warnings_nn17">History</a>
@@ -381,8 +381,12 @@ example.i(4) : Syntax error in input.
 
 
 <ul>
-<li>201. Unable to find 'filename'.
-<li>202. Could not evaluate 'expr'.
+<li>201. Unable to find <em>filename</em>.
+<li>202. Could not evaluate expression <em>expr</em>.
+<li>203. Both includeall and importall are defined: using includeall.
+<li>204. CPP #warning, "<em>warning</em>".
+<li>205. CPP #error, "<em>error</em>".
+<li>206. Unexpected tokens after #<em>directive</em> directive.
 </ul>
 
 <H3><a name="Warnings_nn12"></a>14.9.3 C/C++ Parser (300-399)</H3>
@@ -513,9 +517,10 @@ example.i(4) : Syntax error in input.
 <li>517. 
 <li>518. Portability warning: File <em>file1</em> will be overwritten by <em>file2</em> on case insensitive filesystems such as Windows' FAT32 and NTFS unless the class/module name is renamed.
 <li>519. %template() contains no name. Template method ignored: <em>declaration</em>
+<li>520. <em>Base/Derived</em> class '<em>classname1</em>' of '<em>classname2</em>' is not similarly marked as a smart pointer.
 </ul>
 
-<H3><a name="Warnings_nn15"></a>14.9.6 Language module specific (800-899) </H3>
+<H3><a name="Warnings_nn15"></a>14.9.6 Language module specific (700-899) </H3>
 
 
 <ul>
