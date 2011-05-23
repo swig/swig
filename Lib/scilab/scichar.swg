@@ -183,8 +183,12 @@ SwigScilabStringToCharPtrAndSize(void *_pvApiCtx, int _iVar, char **_pcValue, si
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
-  if (_pcValue != NULL) {
-    *_pcValue = strdup(_pstStrings);
+
+  if (alloc) {
+    *_pcValue = %new_copy_array(_pstStrings, piLength + 1, char);
+    *alloc = SWIG_NEWOBJ;
+  } else if (_pcValue) {
+    *_pcValue = _pstStrings;
   }
 
   FREE(_pstStrings);
