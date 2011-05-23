@@ -11,6 +11,7 @@ SWIG_SciBoolean_AsBool(void *_pvApiCtx, int _iVar, bool *_pbValue, char *_fname)
   SciErr sciErr;
   int iRet = 0;
   int *piAddrVar = NULL;
+  int iTempValue = 0;
 
   sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
@@ -28,10 +29,12 @@ SWIG_SciBoolean_AsBool(void *_pvApiCtx, int _iVar, bool *_pbValue, char *_fname)
     return SWIG_ERROR;
   }
 
-  iRet = getScalarBoolean(_pvApiCtx, piAddrVar, (int*)_pbValue);
+  iRet = getScalarBoolean(_pvApiCtx, piAddrVar, &iTempValue);
   if (iRet) {
     return SWIG_ERROR;
   }
+
+  *_pbValue = iTempValue;
 
   return SWIG_OK;
 }
