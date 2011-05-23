@@ -335,6 +335,7 @@
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)       double                                  { SCILAB_TYPECHECK(isDoubleType)        }
 %typecheck(SWIG_TYPECHECK_FLOAT)        float                                   { SCILAB_TYPECHECK(isDoubleType)        }
+%typecheck(SWIG_TYPECHECK_BOOL)         bool                                    { SCILAB_TYPECHECK(isBooleanType)       }
 %typecheck(SWIG_TYPECHECK_STRING)       char *                                  { SCILAB_TYPECHECK(isStringType)       }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *                                   { SCILAB_TYPECHECK(isPointerType) }
@@ -364,6 +365,7 @@
 
 %typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) double [ANY]                            { SCILAB_TYPECHECK(isDoubleType)        }
 %typecheck(SWIG_TYPECHECK_FLOAT_ARRAY)  float [ANY]                             { SCILAB_TYPECHECK(isDoubleType)        }
+%typecheck(SWIG_TYPECHECK_BOOL_ARRAY)   bool                                    { SCILAB_TYPECHECK(isBooleanType)       }
 %typecheck(SWIG_TYPECHECK_STRING_ARRAY) char **                                 { SCILAB_TYPECHECK(isStringType)       }
 
 %apply int { size_t };
