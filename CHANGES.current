@@ -4,3 +4,7 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.5 (in progress)
 ===========================
+
+2011-05-24: olly
+	    [PHP] Fix handling of methods of classes with a virtual base class (SF#3124665).
+
