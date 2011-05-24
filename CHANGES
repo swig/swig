@@ -5,6 +5,7 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.4 (21 May 2011)
 ===========================
+
 2011-05-19: wsfulton
 	    [Guile] Patch #3191625 fixing overloading of integer types.
 
