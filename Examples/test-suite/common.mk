@@ -437,6 +437,7 @@ CPP_TEST_CASES += \
 	varargs_overload \
 	virtual_destructor \
 	virtual_poly \
+	virtual_vs_nonvirtual_base \
 	voidtest \
 	wallkw \
 	wrapmacro
