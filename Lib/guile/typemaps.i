@@ -292,18 +292,18 @@ SIMPLE_MAP(unsigned long long, gh_scm2ulong_long, gh_ulong_long2scm, integer);
  %typemap (varin,  doc="NEW-VALUE is a string")  char * {$1 = ($1_ltype)SWIG_scm2str($input);}
  %typemap (out,    doc="<string>")              char * {$result = gh_str02scm((const char *)$1);}
  %typemap (varout, doc="<string>")              char * {$result = gh_str02scm($1);}
- %typemap (in, doc="$NAME is a string")          char * *INPUT(char * temp, int must_free = 0) {
+ %typemap (in, doc="$NAME is a string")          char **INPUT(char * temp, int must_free = 0) {
    temp = (char *) SWIG_scm2str($input); $1 = &temp;
    must_free = 1;
  }
- %typemap (in,numinputs=0)  char * *OUTPUT (char * temp)
+ %typemap (in,numinputs=0)  char **OUTPUT (char * temp)
    {$1 = &temp;}
- %typemap (argout,doc="$NAME (a string)") char * *OUTPUT
+ %typemap (argout,doc="$NAME (a string)") char **OUTPUT
    {SWIG_APPEND_VALUE(gh_str02scm(*$1));}
- %typemap (in)          char * *BOTH = char * *INPUT;
- %typemap (argout)      char * *BOTH = char * *OUTPUT;
- %typemap (in)          char * *INOUT = char * *INPUT;
- %typemap (argout)      char * *INOUT = char * *OUTPUT;
+ %typemap (in)          char **BOTH = char **INPUT;
+ %typemap (argout)      char **BOTH = char **OUTPUT;
+ %typemap (in)          char **INOUT = char **INPUT;
+ %typemap (argout)      char **INOUT = char **OUTPUT;
 
 /* SWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
    the function call. */
