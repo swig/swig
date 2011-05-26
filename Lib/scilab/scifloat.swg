@@ -9,11 +9,11 @@
 #define SWIG_From_float(value) SwigScilabDoubleFromFloat(pvApiCtx, $result, value)
 }
 
-%fragment("SwigScilabDoubleToFloat", "header", fragment="SwigScilabDoubleToDouble") {
+%fragment("SwigScilabDoubleToFloat", "header", fragment="SWIG_SciDouble_AsDouble") {
 SWIGINTERN int
 SwigScilabDoubleToFloat(void *_pvApiCtx, int _iVar, float *_pfValue, char *_fname) {
   double dblValue = 0.0;
-  if(SwigScilabDoubleToDouble(_pvApiCtx, _iVar, &dblValue, _fname) != SWIG_OK) {
+  if(SWIG_SciDouble_AsDouble(_pvApiCtx, _iVar, &dblValue, _fname) != SWIG_OK) {
     return SWIG_ERROR;
   }
   *_pfValue = (float) dblValue;

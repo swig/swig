@@ -1,16 +1,16 @@
 /*
  * DOUBLE SCALAR
  */
-%fragment(SWIG_AsVal_frag(double), "header", fragment="SwigScilabDoubleToDouble") {
-#define SWIG_AsVal_double(scilabValue, valuePointer) SwigScilabDoubleToDouble(pvApiCtx, scilabValue, valuePointer, fname)
+%fragment(SWIG_AsVal_frag(double), "header", fragment="SWIG_SciDouble_AsDouble") {
+#define SWIG_AsVal_double(scilabValue, valuePointer) SWIG_SciDouble_AsDouble(pvApiCtx, scilabValue, valuePointer, fname)
 }
-%fragment(SWIG_From_frag(double), "header", fragment="SwigScilabDoubleFromDouble") {
-#define SWIG_From_double(value) SwigScilabDoubleFromDouble(pvApiCtx, $result, value)
+%fragment(SWIG_From_frag(double), "header", fragment="SWIG_SciDouble_FromDouble") {
+#define SWIG_From_double(value) SWIG_SciDouble_FromDouble(pvApiCtx, $result, value)
 }
 
-%fragment("SwigScilabDoubleToDouble", "header") {
+%fragment("SWIG_SciDouble_AsDouble", "header") {
 SWIGINTERN int
-SwigScilabDoubleToDouble(void *_pvApiCtx, int _iVar, double *_pdblValue, char *_fname) {
+SWIG_SciDouble_AsDouble(void *_pvApiCtx, int _iVar, double *_pdblValue, char *_fname) {
   SciErr sciErr;
   int iRet = 0;
   int *piAddrVar = NULL;
@@ -40,9 +40,9 @@ SwigScilabDoubleToDouble(void *_pvApiCtx, int _iVar, double *_pdblValue, char *_
 }
 }
 
-%fragment("SwigScilabDoubleFromDouble", "header") {
+%fragment("SWIG_SciDouble_FromDouble", "header") {
 SWIGINTERN int
-SwigScilabDoubleFromDouble(void *_pvApiCtx, int _iVarOut, double _dblValue) {
+SWIG_SciDouble_FromDouble(void *_pvApiCtx, int _iVarOut, double _dblValue) {
   int iRet;
 
   iRet = createScalarDouble(_pvApiCtx, Rhs + _iVarOut, _dblValue);

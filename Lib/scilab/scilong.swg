@@ -22,11 +22,11 @@
 #define SWIG_From_unsigned_SS_long(value) SwigScilabDoubleFromUnsignedLong(pvApiCtx, $result, value)
 }
 
-%fragment("SwigScilabDoubleToLong", "header", fragment="SwigScilabDoubleToDouble") {
+%fragment("SwigScilabDoubleToLong", "header", fragment="SWIG_SciDouble_AsDouble") {
 SWIGINTERN int
 SwigScilabDoubleToLong(void *_pvApiCtx, int _iVar, long *_plValue, char *_fname) {
   double dblValue = 0.0;
-  if(SwigScilabDoubleToDouble(_pvApiCtx, _iVar, &dblValue, _fname) != SWIG_OK) {
+  if(SWIG_SciDouble_AsDouble(_pvApiCtx, _iVar, &dblValue, _fname) != SWIG_OK) {
     return SWIG_ERROR;
   }
   *_plValue = (long) dblValue;
@@ -34,11 +34,11 @@ SwigScilabDoubleToLong(void *_pvApiCtx, int _iVar, long *_plValue, char *_fname)
 }
 }
 
-%fragment("SwigScilabDoubleToUnsignedLong", "header", fragment="SwigScilabDoubleToDouble") {
+%fragment("SwigScilabDoubleToUnsignedLong", "header", fragment="SWIG_SciDouble_AsDouble") {
 SWIGINTERN int
 SwigScilabDoubleToUnsignedLong(void *_pvApiCtx, int _iVar, unsigned long *_pulValue, char *_fname) {
   double dblValue = 0.0;
-  if(SwigScilabDoubleToDouble(_pvApiCtx, _iVar, &dblValue, _fname) != SWIG_OK) {
+  if(SWIG_SciDouble_AsDouble(_pvApiCtx, _iVar, &dblValue, _fname) != SWIG_OK) {
     return SWIG_ERROR;
   }
   *_pulValue = (unsigned long) dblValue;

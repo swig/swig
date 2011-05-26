@@ -8,11 +8,11 @@
 %fragment(SWIG_AsVal_frag(size_t), "header", fragment="SWIG_SciDouble_AsInt") {
 #define SWIG_AsVal_size_t(scilabValue, valuePointer) SWIG_SciDouble_AsInt(pvApiCtx, scilabValue, (int*)valuePointer, fname)
 }
-%fragment("SWIG_SciDouble_AsInt", "header", fragment="SwigScilabDoubleToDouble") {
+%fragment("SWIG_SciDouble_AsInt", "header", fragment="SWIG_SciDouble_AsDouble") {
 SWIGINTERN int
 SWIG_SciDouble_AsInt(void *_pvApiCtx, int _iVar, int *_piValue, char *_fname) {
   double dblValue = 0.0;
-  if(SwigScilabDoubleToDouble(_pvApiCtx, _iVar, &dblValue, _fname) != SWIG_OK) {
+  if(SWIG_SciDouble_AsDouble(_pvApiCtx, _iVar, &dblValue, _fname) != SWIG_OK) {
     return SWIG_ERROR;
   }
   *_piValue = (int) dblValue;
