@@ -142,7 +142,7 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject 
         result = zend_lookup_class(classname, SWIG_PREFIX_LEN + type_name_len, &ce TSRMLS_CC);
         efree(classname);
       } else {
-        result = zend_lookup_class(type_name, type_name_len, &ce TSRMLS_CC);
+        result = zend_lookup_class((char *)type_name, type_name_len, &ce TSRMLS_CC);
       }
       if (result != SUCCESS) {
         /* class does not exist */
