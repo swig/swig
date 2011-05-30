@@ -179,6 +179,9 @@ public:
     Close(builderFile);
     Delete(builderFile);
 
+    /* Close the init function and quit (opened in sciruntime.swg) */
+    Printf(initSection, "return 0;\n}\n");
+
     /* Write all to the wrapper file */
     SwigType_emit_type_table(runtimeSection, wrappersSection); // Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
     Dump(runtimeSection, beginSection);

@@ -176,3 +176,12 @@ return SWIG_OK; \
 
 #define SwigScilabRaise(OBJ, TYPE, DESC) Scierror(999, "C++ side threw an exception of type %s.\n", TYPE)
 %}
+
+//%insert(init) "swiginit.swg"
+%init %{
+/* -----------------------------------------------------------------------------*
+ *  Partial Init method
+ * -----------------------------------------------------------------------------*/
+
+SWIGEXPORT int SWIG_init(void) {
+%}
