@@ -107,13 +107,11 @@ namespace Swig {
       }
 
       bool swig_is_overridden_method(char *cname, char *lc_fname) {
-        zval classname;
         zend_class_entry **ce;
         zend_function *mptr;
         int name_len = strlen(lc_fname);
         
-        ZVAL_STRING(&classname, cname, 0);
-        if (zend_lookup_class(Z_STRVAL_P(&classname), Z_STRLEN_P(&classname), &ce TSRMLS_CC) != SUCCESS) {
+        if (zend_lookup_class(cname, strlen(cname), &ce TSRMLS_CC) != SUCCESS) {
           return false;
         }
         if (zend_hash_find(&(*ce)->function_table, lc_fname, name_len + 1, (void**) &mptr) != SUCCESS) {
