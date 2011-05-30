@@ -328,6 +328,9 @@ public:
     if (!prefix)
       prefix = NewStringEmpty();
 
+    Printf(f_runtime, "#define SWIG_PREFIX \"%s\"\n", prefix);
+    Printf(f_runtime, "#define SWIG_PREFIX_LEN %lu\n", (unsigned long)Len(prefix));
+
     if (directorsEnabled()) {
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "\n");
