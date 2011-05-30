@@ -803,8 +803,8 @@ public:
       Wrapper_add_local(f, "director", "Swig::Director *director = 0");
       Printf(f->code, "director = dynamic_cast<Swig::Director*>(arg1);\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s\", (char *)\"%s\");\n",
-	  Swig_class_name(Swig_methodclass(n)), name);
+      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s%s\", (char *)\"%s\");\n",
+	  prefix, Swig_class_name(Swig_methodclass(n)), name);
     }
 
     // This generated code may be called:
@@ -1655,7 +1655,7 @@ public:
 	      Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
 	    } else {
 	      String *classname = Swig_class_name(current_class);
-	      Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
+	      Printf(output, "\t\treturn new %s%s(%s);\n", prefix, classname, invoke);
 	    }
 	  }
 	} else {
