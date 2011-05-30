@@ -11,25 +11,9 @@ top_builddir = @top_builddir@
 
 # Overridden variables here
 # None!
-# - constructor_copy (Vectors/C++)
-# - dynamic_cast (Vectors/C++)
-# - li_boost_shared_ptr_bits (Vectors/C++)
-# - member_funcptr_galore (Vectors/C++)
-# - member_pointer (Vectors/C++)
-# - minherit (Vectors/C++)
-# - typemap_variables (weird error/C++)
-# - director_string (Vectors/C++)
-# - ignore_template_constructor (Vectors/C++)
-# - li_std_combinations (std_pair.i/C++)
-# - li_std_deque (std_deque.i/C++)
-# - li_std_except (This version of std_except.i should not be used/C++)
-# - li_std_map (std_pair.i/std_map.i/C++)
-# - li_std_pair (std_pair.i/C++)
-# - li_std_vector (Vectors/C++)
-# - smart_pointer_inherit (Vectors/C++)
-# - template_typedef_fnc (Vectors/C++)
-# - template_type_namespace (Vectors/C++)
-# - template_opaque (Vectors/C++)
+# - member_funcptr_galore (C++)
+# - member_pointer (C++)
+# - typemap_variables (C++)
 
 include $(srcdir)/../common.mk
 
