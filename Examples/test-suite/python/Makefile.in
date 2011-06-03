@@ -58,7 +58,6 @@ CPP_TEST_CASES += \
 	primitive_types \
         python_abstractbase \
 	python_append \
-	python_autodoc \
 	python_kwargs \
 	python_nondynamic \
 	python_overload_simple_cast \

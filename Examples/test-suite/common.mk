@@ -118,6 +118,7 @@ CPP_TEST_CASES += \
 	arrays_global \
 	arrays_global_twodim \
 	arrays_scope \
+	autodoc \
 	bloody_hell \
 	bools \
 	catches \
