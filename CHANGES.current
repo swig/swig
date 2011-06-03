@@ -1,81 +1,13 @@
-This file contains the changes for the current release.
+Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.4 (in progress)
+Version 2.0.5 (in progress)
 ===========================
-2011-05-05: wsfulton
-            [Lua, Python, Tcl] C/C++ prototypes shown in error message when calling an overloaded
-            method with incorrect arguments improved to show always show fully qualified name
-            and if a const method. 
 
-            Also fixed other Lua error messages in generated code which weren't consistently
-            using the fully qualified C++ name - requested by Gedalia Pasternak.
+2011-05-30: olly
+	    [PHP] Fix handling of directors when -prefix is used.
 
-2011-04-29: szager
-	    Bug 2635919: Convenience method to convert std::map to a python dict.
+2011-05-24: olly
+	    [PHP] Fix handling of methods of classes with a virtual base class (SF#3124665).
 
-2011-04-29: szager
-	    Fixed bug 2811549: return non-const iterators from STL
-	    methods begin(), end(), rbegin(), rend().
-
-2011-04-25: szager
-	    Fixed bug 1498929: Access to member fields in map elements
-
-2011-04-23: klickverbot
-            [D] nspace: Correctly generate identifiers for base classes when
-            not in split proxy mode.
-
-2011-04-13: szager
-	    Fixed bug 3286333: infite recursion with mutual 'using namespace' clauses.
-
-2011-04-12: szager
-	    Fixed bug 1163440: vararg typemaps.
-
-2011-04-12: szager
-	    Fixed bug #3285386: parse error from 'operator T*&()'.  Added operator_pointer_ref
-	    test case to demonstrate.
-
-2011-04-11: szager
-	    Fixed PyVarObject_HEAD_INIT to eliminate VC++ compiler errors about
-	    static initialization of struct members with pointers.
-
-2011-04-11: wsfulton
-            [Tcl] Apply patch #3284326 from Colin McDonald to fix some compiler warnings.
-
-2011-04-11: szager
-	    Fixed PyVarObject_HEAD_INIT to eliminate VC++ compiler errors about
-	    static initialization of struct members with pointers.
-
-2011-04-10: klickverbot
-            [D] Fixed wrapping of enums that are type char, for example:
-            enum { X = 'X'; } (this was already in 2.0.3 for C# and Java)
-
-2011-04-10: klickverbot
-            [D] nspace: Fixed referencing types in the root namespace when
-            not in split proxy mode.
-
-2011-04-09: szager
-	    Applied patch #1932484: migrate PyCObject to PyCapsule.
-
-2011-04-09: szager
-	    Added preprocessor guards for python functions PyUnicode_AsWideChar and
-	    PySlice_GetIndices, which changed signatures in python3.2.
-
-2011-04-07: wsfulton
-            Fix wrapping of const array typedefs which were generating uncompileable code as
-            reported by Karl Wette.
-
-2011-04-03: szager
-	    Fixed the behavior of %pythonnondynamic to conform to the spec in Lib/pyuserdir.swg.
-
-2011-04-03: szager
-	    Merged in the szager-python-builtin branch, adding the -builtin feature
-	    for python.  The -builtin option may provide a significant performance gain
-	    in python wrappers.  For full details and limitations, refer to Doc/Manual/Python.html.
-	    A small test suite designed to demonstrate the performance gain is in
-	    Examples/python/performance.
-
-2011-04-01: wsfulton
-            Add in missing wrappers for friend functions for some target languages, mostly
-            the non-scripting languages like Java and C#.

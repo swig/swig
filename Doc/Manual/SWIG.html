@@ -3034,14 +3034,15 @@ output of SWIG is structured first.</p>
 
 
 <p>
-When SWIG creates its output file, it is broken up into four sections
+When SWIG creates its output file, it is broken up into five sections
 corresponding to runtime code, headers, wrapper functions, and module
 initialization code (in that order).   
 </p>
 
 <ul>
 <li><b>Begin section</b>.  <br>
-A placeholder to put code at the beginning of the C/C++ wrapper file.
+A placeholder for users to put code at the beginning of the C/C++ wrapper file.
+This is most often used to define preprocessor macros that are used in later sections.
 </li>
 
 <li><b>Runtime code</b>.  <br>

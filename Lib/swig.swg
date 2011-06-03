@@ -500,12 +500,6 @@ namespace std {
   }
 }
 
-/* Typemap for variable length arguments sentinel value.  Used
-   by the %varargs directive. */
-
-%typemap(in,numinputs=0) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
-
-
 /* -----------------------------------------------------------------------------
  * Overloading support
  * ----------------------------------------------------------------------------- */

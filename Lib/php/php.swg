@@ -347,7 +347,7 @@
                      SWIGTYPE [],
                      SWIGTYPE &
 %{
-  SWIG_SetPointerZval($input, (void *)&$1_name, $1_descriptor, $owner);
+  SWIG_SetPointerZval($input, (void *)&$1_name, $1_descriptor, ($owner)|2);
 %}
 
 %typemap(out, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)

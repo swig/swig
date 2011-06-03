@@ -15,9 +15,16 @@ char cvsroot_octave_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
+static bool global_load = true;
+static String *global_name = 0;
+static String *op_prefix   = 0;
+
 static const char *usage = (char *) "\
 Octave Options (available with -octave)\n\
-     [no additional options]\n\
+     -global         - Load all symbols into the global namespace [default]\n\
+     -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
+     -noglobal       - Do not load all symbols into the global namespace\n\
+     -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
 \n";
 
 
@@ -65,9 +72,38 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
-	}
+	} else if (strcmp(argv[i], "-global") == 0) {
+          global_load = true;
+          Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-noglobal") == 0) {
+          global_load = false;
+          Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-globals") == 0) {
+	  if (argv[i + 1]) {
+	    global_name = NewString(argv[i + 1]);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i + 1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
+	} else if (strcmp(argv[i], "-opprefix") == 0) {
+	  if (argv[i + 1]) {
+	    op_prefix = NewString(argv[i + 1]);
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i + 1);
+	    i++;
+	  } else {
+	    Swig_arg_error();
+	  }
+        }            
       }
     }
+
+    if (!global_name)
+      global_name = NewString("cvar");
+    if (!op_prefix)
+      op_prefix = NewString("op_");
 
     SWIG_library_directory("octave");
     Preprocessor_define("SWIGOCTAVE 1", 0);
@@ -130,6 +166,11 @@ public:
     Printf(f_runtime, "#define SWIGOCTAVE\n");
     Printf(f_runtime, "#define SWIG_name_d      \"%s\"\n", module);
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
+
+    Printf(f_runtime, "\n");
+    Printf(f_runtime, "#define SWIG_global_load      %s\n", global_load ? "true" : "false");
+    Printf(f_runtime, "#define SWIG_global_name      \"%s\"\n", global_name);
+    Printf(f_runtime, "#define SWIG_op_prefix        \"%s\"\n", op_prefix);
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");

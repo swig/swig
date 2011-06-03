@@ -2627,10 +2627,15 @@ varargs_parms   : parms { $$ = $1; }
 		    Swig_error(cparse_file, cparse_line,"Argument count in %%varargs must be positive.\n");
 		    $$ = 0;
 		  } else {
+		    String *name = Getattr($3, "name");
 		    $$ = Copy($3);
-		    Setattr($$,"name","VARARGS_SENTINEL");
-		    for (i = 0; i < n; i++) {
+		    if (name)
+		      Setattr($$, "name", NewStringf("%s%d", name, n));
+		    for (i = 1; i < n; i++) {
 		      p = Copy($3);
+		      name = Getattr(p, "name");
+		      if (name)
+		        Setattr(p, "name", NewStringf("%s%d", name, n-i));
 		      set_nextSibling(p,$$);
 		      Delete($$);
 		      $$ = p;
@@ -5019,7 +5024,7 @@ notso_direct_declarator : idcolon {
                   $$.have_parms = 0;
                   }
 
-/* This generate a shift-reduce conflict with constructors */
+/* This generates a shift-reduce conflict with constructors */
                  | LPAREN idcolon RPAREN {
                   $$.id = Char($2);
                   $$.type = 0;
@@ -5330,26 +5335,26 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 
 
 pointer    : STAR type_qualifier pointer { 
-               $$ = NewStringEmpty();
-               SwigType_add_pointer($$);
-	       SwigType_push($$,$2);
-	       SwigType_push($$,$3);
-	       Delete($3);
+             $$ = NewStringEmpty();
+             SwigType_add_pointer($$);
+	     SwigType_push($$,$2);
+	     SwigType_push($$,$3);
+	     Delete($3);
            }
            | STAR pointer {
 	     $$ = NewStringEmpty();
 	     SwigType_add_pointer($$);
 	     SwigType_push($$,$2);
 	     Delete($2);
-	     } 
+	   } 
            | STAR type_qualifier { 
-	     	$$ = NewStringEmpty();	
-		SwigType_add_pointer($$);
-	        SwigType_push($$,$2);
+	     $$ = NewStringEmpty();
+	     SwigType_add_pointer($$);
+	     SwigType_push($$,$2);
            }
            | STAR {
-	      $$ = NewStringEmpty();
-	      SwigType_add_pointer($$);
+	     $$ = NewStringEmpty();
+	     SwigType_add_pointer($$);
            }
            ;
 
@@ -5377,7 +5382,7 @@ type            : rawtype {
                 }
                 ;
 
-rawtype       : type_qualifier type_right {
+rawtype        : type_qualifier type_right {
                    $$ = $2;
 	           SwigType_push($$,$1);
                }
@@ -5395,7 +5400,7 @@ rawtype       : type_qualifier type_right {
 
 type_right     : primitive_type { $$ = $1;
                   /* Printf(stdout,"primitive = '%s'\n", $$);*/
-                }
+               }
                | TYPE_BOOL { $$ = $1; }
                | TYPE_VOID { $$ = $1; }
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }

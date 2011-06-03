@@ -972,7 +972,8 @@ namespace swig
 
 %fragment("StdSequenceTraits","header",
 	  fragment="StdTraits",
-	  fragment="RubySequence_Cont")
+	  fragment="RubySequence_Cont",
+	  fragment="GC_VALUE_definition")
 {
 namespace swig {
   template <class RubySeq, class Seq>

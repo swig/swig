@@ -328,6 +328,9 @@ public:
     if (!prefix)
       prefix = NewStringEmpty();
 
+    Printf(f_runtime, "#define SWIG_PREFIX \"%s\"\n", prefix);
+    Printf(f_runtime, "#define SWIG_PREFIX_LEN %lu\n", (unsigned long)Len(prefix));
+
     if (directorsEnabled()) {
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "\n");
@@ -803,8 +806,8 @@ public:
       Wrapper_add_local(f, "director", "Swig::Director *director = 0");
       Printf(f->code, "director = dynamic_cast<Swig::Director*>(arg1);\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s\", (char *)\"%s\");\n",
-	  Swig_class_name(Swig_methodclass(n)), name);
+      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s%s\", (char *)\"%s\");\n",
+	  prefix, Swig_class_name(Swig_methodclass(n)), name);
     }
 
     // This generated code may be called:
@@ -1655,7 +1658,7 @@ public:
 	      Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
 	    } else {
 	      String *classname = Swig_class_name(current_class);
-	      Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
+	      Printf(output, "\t\treturn new %s%s(%s);\n", prefix, classname, invoke);
 	    }
 	  }
 	} else {
@@ -1682,36 +1685,26 @@ public:
 	if (Cmp(invoke, "$r") != 0)
 	  Printf(output, "\t\t$r=%s;\n", invoke);
 	if (Len(ret_types) == 1) {
-	  /* If it has an abstract base, then we can't create a new
-	   * base object. */
-	  int hasabstractbase = 0;
-	  Node *bases = Getattr(Swig_methodclass(n), "bases");
-	  if (bases) {
-	    Iterator i = First(bases);
-	    while(i.item) {
-	      if (Getattr(i.item, "abstract")) {
-		hasabstractbase = 1;
-		break;
-	      }
-	      i = Next(i);
-	    }
+	  /* If d is abstract we can't create a new wrapper type d. */
+	  Node * d_class = classLookup(d);
+	  int is_abstract = 0;
+	  if (Getattr(d_class, "abstract")) {
+	    is_abstract = 1;
 	  }
-	  if (newobject || !hasabstractbase) {
-	    /*
-	     * _p_Foo -> Foo, _p_ns__Bar -> Bar
-	     * TODO: do this in a more elegant way
-	     */
+	  if (newobject || !is_abstract) {
 	    Printf(output, "\t\tif (is_resource($r)) {\n");
 	    if (Getattr(classLookup(Getattr(n, "type")), "module")) {
+	      /*
+	       * _p_Foo -> Foo, _p_ns__Bar -> Bar
+	       * TODO: do this in a more elegant way
+	       */
 	      if (Len(prefix) == 0) {
 		Printf(output, "\t\t\t$c=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
 	      } else {
 		Printf(output, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	      }
-	      Printf(output, "\t\t\tif (!class_exists($c)) {\n");
-	      Printf(output, "\t\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
-	      Printf(output, "\t\t\t}\n");
-	      Printf(output, "\t\t\treturn new $c($r);\n");
+	      Printf(output, "\t\t\tif (class_exists($c)) return new $c($r);\n");
+	      Printf(output, "\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
 	    } else {
 	      Printf(output, "\t\t\t$c = new stdClass();\n");
 	      Printf(output, "\t\t\t$c->"SWIG_PTR" = $r;\n");

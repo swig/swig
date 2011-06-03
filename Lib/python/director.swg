@@ -250,7 +250,7 @@ namespace Swig {
       std::cerr << "This exception was caught by the SWIG unexpected exception handler." << std::endl
                 << "Try using %feature(\"director:except\") to avoid reaching this point." << std::endl
                 << std::endl
-                << "Exception is being re-thrown, program will like abort/terminate." << std::endl;
+                << "Exception is being re-thrown, program will likely abort/terminate." << std::endl;
       throw;
     }
 

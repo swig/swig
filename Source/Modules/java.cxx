@@ -3990,7 +3990,7 @@ public:
 
       Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
 
-      Printf(w->code, "if (jenv->ExceptionOccurred()) return $null;\n");
+      Printf(w->code, "if (jenv->ExceptionCheck() == JNI_TRUE) return $null;\n");
 
       if (!is_void) {
 	String *jresult_str = NewString("jresult");

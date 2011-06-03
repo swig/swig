@@ -559,11 +559,6 @@
  * --- Special typemaps ---
  * ------------------------------------------------------------ */
 
-/* VARARGS_SENTINEL typemap. Used by the %varargs directive. */
-
-%typemap(in,numinputs=0) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
-
-
 /* DISOWN typemap */
 
 %typemap(in, noblock=1) SWIGTYPE *DISOWN (int res = 0) {

@@ -285,17 +285,18 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
 SWIGINTERN void
 SwigPyStaticVar_dealloc(PyDescrObject *descr) {
   _PyObject_GC_UNTRACK(descr);
-  Py_XDECREF(descr->d_type);
-  Py_XDECREF(descr->d_name);
+  Py_XDECREF(PyDescr_TYPE(descr));
+  Py_XDECREF(PyDescr_NAME(descr));
   PyObject_GC_Del(descr);
 }
 
 SWIGINTERN PyObject *
 SwigPyStaticVar_repr(PyGetSetDescrObject *descr) {
 #if PY_VERSION_HEX >= 0x03000000
-  return PyUnicode_FromFormat("<class attribute '%S' of type '%s'>", descr->d_name, descr->d_type->tp_name);
+
+  return PyUnicode_FromFormat("<class attribute '%S' of type '%s'>", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
 #else
-  return PyString_FromFormat("<class attribute '%s' of type '%s'>", PyString_AsString(descr->d_name), descr->d_type->tp_name);
+  return PyString_FromFormat("<class attribute '%s' of type '%s'>", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
 #endif
 }
 
@@ -303,7 +304,7 @@ SWIGINTERN int
 SwigPyStaticVar_traverse(PyObject *self, visitproc visit, void *arg) {
   PyDescrObject *descr;
   descr = (PyDescrObject *)self;
-  Py_VISIT((PyObject*) descr->d_type);
+  Py_VISIT((PyObject*) PyDescr_TYPE(descr));
   return 0;
 }
 
@@ -312,9 +313,9 @@ SwigPyStaticVar_get(PyGetSetDescrObject *descr, PyObject *obj, PyObject *SWIGUNU
   if (descr->d_getset->get != NULL)
     return descr->d_getset->get(obj, descr->d_getset->closure);
 #if PY_VERSION_HEX >= 0x03000000
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not readable", descr->d_name, descr->d_type->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not readable", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
 #else
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not readable", PyString_AsString(descr->d_name), descr->d_type->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not readable", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
 #endif
   return NULL;
 }
@@ -324,74 +325,12 @@ SwigPyStaticVar_set(PyGetSetDescrObject *descr, PyObject *obj, PyObject *value) 
   if (descr->d_getset->set != NULL)
     return descr->d_getset->set(obj, value, descr->d_getset->closure);
 #if PY_VERSION_HEX >= 0x03000000
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not writable", descr->d_name, descr->d_type->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not writable", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
 #else
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not writable", PyString_AsString(descr->d_name), descr->d_type->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not writable", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
 #endif
   return -1;
 }
-
-SWIGINTERN PyTypeObject SwigPyStaticVar_Type = {
-#if PY_VERSION_HEX >= 0x03000000
-  PyVarObject_HEAD_INIT(&PyType_Type, 0)
-#else
-  PyObject_HEAD_INIT(&PyType_Type)
-  0,
-#endif
-  "swig_static_var_getset_descriptor",
-  sizeof(PyGetSetDescrObject),
-  0,
-  (destructor)SwigPyStaticVar_dealloc,      /* tp_dealloc */
-  0,                                        /* tp_print */
-  0,                                        /* tp_getattr */
-  0,                                        /* tp_setattr */
-  0,                                        /* tp_compare */
-  (reprfunc)SwigPyStaticVar_repr,           /* tp_repr */
-  0,                                        /* tp_as_number */
-  0,                                        /* tp_as_sequence */
-  0,                                        /* tp_as_mapping */
-  0,                                        /* tp_hash */
-  0,                                        /* tp_call */
-  0,                                        /* tp_str */
-  PyObject_GenericGetAttr,                  /* tp_getattro */
-  0,                                        /* tp_setattro */
-  0,                                        /* tp_as_buffer */
-  Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_HAVE_CLASS, /* tp_flags */
-  0,                                        /* tp_doc */
-  SwigPyStaticVar_traverse,                 /* tp_traverse */
-  0,                                        /* tp_clear */
-  0,                                        /* tp_richcompare */
-  0,                                        /* tp_weaklistoffset */
-  0,                                        /* tp_iter */
-  0,                                        /* tp_iternext */
-  0,                                        /* tp_methods */
-  0,                                        /* tp_members */
-  0,                                        /* tp_getset */
-  0,                                        /* tp_base */
-  0,                                        /* tp_dict */
-  (descrgetfunc)SwigPyStaticVar_get,        /* tp_descr_get */
-  (descrsetfunc)SwigPyStaticVar_set,        /* tp_descr_set */
-  0,                                        /* tp_dictoffset */
-  0,                                        /* tp_init */
-  0,                                        /* tp_alloc */
-  0,                                        /* tp_new */
-  0,                                        /* tp_free */
-  0,                                        /* tp_is_gc */
-  0,                                        /* tp_bases */
-  0,                                        /* tp_mro */
-  0,                                        /* tp_cache */
-  0,                                        /* tp_subclasses */
-  0,                                        /* tp_weaklist */
-#if PY_VERSION_HEX >= 0x02030000
-  0,                                        /* tp_del */
-#endif
-#if PY_VERSION_HEX >= 0x02060000
-  0,                                        /* tp_version */
-#endif
-#ifdef COUNT_ALLOCS
-  0,0,0,0                                   /* tp_alloc -> tp_next */
-#endif
-};
 
 SWIGINTERN int
 SwigPyObjectType_setattro(PyTypeObject *type, PyObject *name, PyObject *value) {
@@ -419,16 +358,96 @@ SwigPyObjectType_setattro(PyTypeObject *type, PyObject *name, PyObject *value) {
   return -1;
 }
 
+SWIGINTERN PyTypeObject*
+SwigPyStaticVar_Type(void) {
+  static PyTypeObject staticvar_type;
+  static int type_init = 0;
+  if (!type_init) {
+    const PyTypeObject tmp = {
+      /* PyObject header changed in Python 3 */
+#if PY_VERSION_HEX >= 0x03000000
+      PyVarObject_HEAD_INIT(&PyType_Type, 0)
+#else
+      PyObject_HEAD_INIT(&PyType_Type)
+      0,
+#endif
+      "swig_static_var_getset_descriptor",
+      sizeof(PyGetSetDescrObject),
+      0,
+      (destructor)SwigPyStaticVar_dealloc,      /* tp_dealloc */
+      0,                                        /* tp_print */
+      0,                                        /* tp_getattr */
+      0,                                        /* tp_setattr */
+      0,                                        /* tp_compare */
+      (reprfunc)SwigPyStaticVar_repr,           /* tp_repr */
+      0,                                        /* tp_as_number */
+      0,                                        /* tp_as_sequence */
+      0,                                        /* tp_as_mapping */
+      0,                                        /* tp_hash */
+      0,                                        /* tp_call */
+      0,                                        /* tp_str */
+      PyObject_GenericGetAttr,                  /* tp_getattro */
+      0,                                        /* tp_setattro */
+      0,                                        /* tp_as_buffer */
+      Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_HAVE_CLASS, /* tp_flags */
+      0,                                        /* tp_doc */
+      SwigPyStaticVar_traverse,                 /* tp_traverse */
+      0,                                        /* tp_clear */
+      0,                                        /* tp_richcompare */
+      0,                                        /* tp_weaklistoffset */
+      0,                                        /* tp_iter */
+      0,                                        /* tp_iternext */
+      0,                                        /* tp_methods */
+      0,                                        /* tp_members */
+      0,                                        /* tp_getset */
+      0,                                        /* tp_base */
+      0,                                        /* tp_dict */
+      (descrgetfunc)SwigPyStaticVar_get,        /* tp_descr_get */
+      (descrsetfunc)SwigPyStaticVar_set,        /* tp_descr_set */
+      0,                                        /* tp_dictoffset */
+      0,                                        /* tp_init */
+      0,                                        /* tp_alloc */
+      0,                                        /* tp_new */
+      0,                                        /* tp_free */
+      0,                                        /* tp_is_gc */
+      0,                                        /* tp_bases */
+      0,                                        /* tp_mro */
+      0,                                        /* tp_cache */
+      0,                                        /* tp_subclasses */
+      0,                                        /* tp_weaklist */
+#if PY_VERSION_HEX >= 0x02030000
+      0,                                        /* tp_del */
+#endif
+#if PY_VERSION_HEX >= 0x02060000
+      0,                                        /* tp_version */
+#endif
+#ifdef COUNT_ALLOCS
+      0,0,0,0                                   /* tp_alloc -> tp_next */
+#endif
+    };
+    staticvar_type = tmp;
+    type_init = 1;
+#if PY_VERSION_HEX < 0x02020000
+    staticvar_type.ob_type = &PyType_Type;
+#else
+    if (PyType_Ready(&staticvar_type) < 0)
+      return NULL;
+#endif
+  }
+  return &staticvar_type;
+}
+
 SWIGINTERN PyGetSetDescrObject *
 SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
+
   PyGetSetDescrObject *descr;
-  descr = (PyGetSetDescrObject *)PyType_GenericAlloc(&SwigPyStaticVar_Type, 0);
+  descr = (PyGetSetDescrObject *)PyType_GenericAlloc(SwigPyStaticVar_Type(), 0);
   assert(descr);
   Py_XINCREF(type);
-  descr->d_type = type;
-  descr->d_name = PyString_InternFromString(getset->name);
+  PyDescr_TYPE(descr) = type;
+  PyDescr_NAME(descr) = PyString_InternFromString(getset->name);
   descr->d_getset = getset;
-  if (descr->d_name == NULL) {
+  if (PyDescr_NAME(descr) == NULL) {
     Py_DECREF(descr);
     descr = NULL;
   }

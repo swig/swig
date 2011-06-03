@@ -5,13 +5,25 @@
 
 %warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'NewName' due to Go name ('NewName') conflict with 'Name' */
 
+%ignore Name::operator=;
+
 %inline %{
 struct Name {
-  Name(const char *n="none") : name(n) {}
+  Name(const char *n="none") : name(strdup(n ? n : "")) {}
+  Name(const Name& x) : name(strdup(x.name)) {}
+  Name& operator= (const Name& x)
+  {
+    if (this != &x) {
+      free(this->name);
+      this->name = strdup(x.name);
+    }
+    return *this;
+  }
+  ~Name () { free(this->name); }
   const char *getName() const { return name; };
   Name *getNamePtr() { return this; };
 private:
-  const char *name;
+  char *name;
 };
 struct NameWrap {
   NameWrap(const char *n="casternone") : name(n) {}

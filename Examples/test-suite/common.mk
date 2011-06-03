@@ -118,6 +118,7 @@ CPP_TEST_CASES += \
 	arrays_global \
 	arrays_global_twodim \
 	arrays_scope \
+	autodoc \
 	bloody_hell \
 	bools \
 	catches \
@@ -437,6 +438,7 @@ CPP_TEST_CASES += \
 	varargs_overload \
 	virtual_destructor \
 	virtual_poly \
+	virtual_vs_nonvirtual_base \
 	voidtest \
 	wallkw \
 	wrapmacro

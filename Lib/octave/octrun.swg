@@ -457,22 +457,26 @@ namespace Swig {
       rhs.members.clear();
     }
 
-    void install_global() {
+    void install_global(bool global_load) {
       for (member_map::const_iterator it = members.begin(); it != members.end(); ++it) {
-	if (it->second.first && it->second.first->method)
+        bool is_global_op = (it->first.substr(0, strlen(SWIG_op_prefix)) == SWIG_op_prefix);
+        bool is_func_defined = (it->second.first && it->second.first->method);
+	if (is_func_defined && (is_global_op || global_load)) {
 	  install_builtin_function(it->second.first->method, it->first,
-				   it->second.first->doc?it->second.first->doc:std::string());
-	else if (it->second.second.is_defined()) {
+				   it->second.first->doc ? it->second.first->doc : std::string());
+        }
+        octave_value global_val = is_global_op ? make_fcn_handle(it->first) : it->second.second;
+	if (global_val.is_defined() && (is_global_op || global_load)) {
 #if OCTAVE_API_VERSION_NUMBER<37
 	  link_to_global_variable(curr_sym_tab->lookup(it->first, true));
 #else 
 	  symbol_table::varref(it->first);
 	  symbol_table::mark_global(it->first);
 #endif
-	  set_global_value(it->first, it->second.second);
+	  set_global_value(it->first, global_val);
 	  
 #if OCTAVE_API_VERSION_NUMBER<37
-	  octave_swig_type *ost = Swig::swig_value_deref(it->second.second);
+	  octave_swig_type *ost = Swig::swig_value_deref(global_val);
 	  if (ost) {
 	    const char* h = ost->help_text();
 	    if (h) {
@@ -715,9 +719,15 @@ namespace Swig {
       return outarg(0).string_value();
     }
 
+#if OCTAVE_API_VERSION_NUMBER >= 40
+    virtual octave_map map_value() const {
+      return octave_map();
+    }
+#else
     virtual Octave_map map_value() const {
       return Octave_map();
     }
+#endif
 
     virtual string_vector map_keys() const {
       member_map tmp;
@@ -769,7 +779,7 @@ namespace Swig {
     }
 
     static bool dispatch_global_op(const std::string &symbol, const octave_value_list &args, octave_value &ret) {
-      // we assume that "op_"-prefixed functions are installed in global namespace
+      // we assume that SWIG_op_prefix-prefixed functions are installed in global namespace
       // (rather than any module namespace).
 
       octave_value fcn = get_global_value(symbol, true);
@@ -786,7 +796,7 @@ namespace Swig {
       octave_value ret;
       if (ost->dispatch_unary_op(std::string("__") + op_name + std::string("__"), ret))
 	return ret;
-      std::string symbol = "op_" + ost->swig_type_name() + "_" + op_name;
+      std::string symbol = SWIG_op_prefix + ost->swig_type_name() + "_" + op_name;
       octave_value_list args;
       args.append(make_value_hack(x));
       if (dispatch_global_op(symbol, args, ret))
@@ -803,13 +813,23 @@ namespace Swig {
       octave_value ret;
       if (lhs_ost && lhs_ost->dispatch_binary_op(std::string("__") + op_name + std::string("__"), rhs, ret))
 	return ret;
+      if (rhs_ost) {
+        if (strlen(op_name) == 2  && (op_name[1] == 't' || op_name[1] == 'e')) {
+          if (op_name[0] == 'l' && rhs_ost->dispatch_binary_op(std::string("__g") + op_name[1] + std::string("__"), lhs, ret))
+            return ret;
+          if (op_name[0] == 'g' && rhs_ost->dispatch_binary_op(std::string("__l") + op_name[1] + std::string("__"), lhs, ret))
+            return ret;
+        }
+        if (rhs_ost->dispatch_binary_op(std::string("__r") + op_name + std::string("__"), lhs, ret))
+          return ret;
+      }
 
       std::string symbol;
       octave_value_list args;
       args.append(make_value_hack(lhs));
       args.append(make_value_hack(rhs));
 
-      symbol = "op_";
+      symbol = SWIG_op_prefix;
       symbol += lhs_ost ? lhs_ost->swig_type_name() : lhs.type_name();
       symbol += "_";
       symbol += op_name;
@@ -818,7 +838,7 @@ namespace Swig {
       if (dispatch_global_op(symbol, args, ret))
 	return ret;
 
-      symbol = "op_";
+      symbol = SWIG_op_prefix;
       symbol += lhs_ost ? lhs_ost->swig_type_name() : lhs.type_name();
       symbol += "_";
       symbol += op_name;
@@ -827,7 +847,7 @@ namespace Swig {
       if (dispatch_global_op(symbol, args, ret))
 	return ret;
 
-      symbol = "op_";
+      symbol = SWIG_op_prefix;
       symbol += "any";
       symbol += "_";
       symbol += op_name;
@@ -849,26 +869,32 @@ namespace Swig {
       member_map tmp;
       load_members(tmp);
 
-      os << "{" << std::endl;
+      indent(os);
+      os << "{"; newline(os);
+      increment_indent_level();
       for (unsigned int j = 0; j < types.size(); ++j) {
+        indent(os);
 	if (types[j].first->clientdata) {
 	  const swig_octave_class *c = (const swig_octave_class *) types[j].first->clientdata;
-	  os << "  " << c->name << ", ptr = " << types[j].second.ptr << std::endl;
+	  os << c->name << ", ptr = " << types[j].second.ptr; newline(os);
 	} else {
-	  os << "  " << types[j].first->name << ", ptr = " << types[j].second.ptr << std::endl;
+	  os << types[j].first->name << ", ptr = " << types[j].second.ptr; newline(os);
 	}
       }
       for (member_map::const_iterator it = tmp.begin(); it != tmp.end(); ++it) {
+        indent(os);
 	if (it->second.first) {
 	  const char *objtype = it->second.first->method ? "method" : "variable";
 	  const char *modifier = (it->second.first->flags &1) ? "static " : (it->second.first->flags &2) ? "global " : "";
-	  os << "  " << it->second.first->name << " (" << modifier << objtype << ")" << std::endl;
+	  os << it->second.first->name << " (" << modifier << objtype << ")"; newline(os);
 	  assert(it->second.first->name == it->first);
 	} else {
-	  os << "  " << it->first << std::endl;
+	  os << it->first; newline(os);
 	}
       }
-      os << "}" << std::endl;
+      decrement_indent_level();
+      indent(os);
+      os << "}"; newline(os);
     }
   };
 
@@ -923,8 +949,13 @@ namespace Swig {
     virtual std::string string_value(bool force = false) const 
       { return ptr->string_value(force); }
 
+#if OCTAVE_API_VERSION_NUMBER >= 40
+    virtual octave_map map_value() const
+      { return ptr->map_value(); }
+#else
     virtual Octave_map map_value() const
       { return ptr->map_value(); }
+#endif
 
     virtual string_vector map_keys() const
       { return ptr->map_keys(); }
@@ -998,7 +1029,8 @@ namespace Swig {
     }
 
     void print(std::ostream &os, bool pr_as_read_syntax = false) const {
-      os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size() << std::endl;
+      indent(os);
+      os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size(); newline(os);
     }
 
 
