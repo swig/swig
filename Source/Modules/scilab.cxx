@@ -101,7 +101,7 @@ public:
     String* outputFilename = Getattr(node, "outfile");
 
     /* Initialize I/O */
-    beginSection = NewFile(outputFilename, "w", SWIG_output_files());
+    beginSection = NewFile(NewStringf("%s%s", SWIG_output_directory(), outputFilename), "w", SWIG_output_files());
     if (!beginSection) {
       FileErrorDisplay(outputFilename);
       SWIG_exit(EXIT_FAILURE);
