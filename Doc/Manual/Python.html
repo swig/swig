@@ -98,6 +98,8 @@
 <ul>
 <li><a href="#Python_nn68">%feature("autodoc", "0")</a>
 <li><a href="#Python_nn69">%feature("autodoc", "1")</a>
+<li><a href="#Python_autodoc2">%feature("autodoc", "2")</a>
+<li><a href="#Python_autodoc3">%feature("autodoc", "3")</a>
 <li><a href="#Python_nn70">%feature("autodoc", "docstring")</a>
 </ul>
 <li><a href="#Python_nn71">%feature("docstring")</a>
@@ -5114,14 +5116,15 @@ introspection, then life is good once more.
 which when attached to a node in the parse tree will cause a docstring
 to be generated that includes the name of the function, parameter
 names, default values if any, and return type if any. There are also
-three options for autodoc controlled by the value given to the
-feature, described below.
+four levels for autodoc controlled by the value given to the
+feature, <tt>%feature("autodoc", "<i>level</i>")</tt>.
+The four values for <i>level</i> are covered in the following sub-sections.
 
 <H4><a name="Python_nn68"></a>33.10.2.1 %feature("autodoc", "0")</H4>
 
 
 <p>
-When the "0" option is given then the types of the parameters will
+When level "0" is used then the types of the parameters will
 <em>not</em> be included in the autodoc string.  For example, given
 this function prototype:
 </p>
@@ -5150,14 +5153,15 @@ def function_name(*args, **kwargs):
 
 
 <p>
-When the "1" option is used then the parameter types <em>will</em> be
+When level "1" is used then the parameter types <em>will</em> be
 used in the autodoc string.  In addition, an attempt is made to
 simplify the type name such that it makes more sense to the Python
-user.  Pointer, reference and const info is removed,
-<tt>%rename</tt>'s are evaluated, etc.  (This is not always
-successful, but works most of the time.  See the next section for what
-to do when it doesn't.)  Given the example above, then turning on the
-parameter types with the "1" option will result in Python code like
+user.  Pointer, reference and const info is removed if the associated type
+is has an associated Python type (<tt>%rename</tt>'s are thus shown correctly).
+This works most of the time, otherwise a C/C++ type will be used.
+See the next section for the "docstring" feature for tweaking the docstrings to your liking.
+Given the example above, then turning on the
+parameter types with level "1" will result in Python code like
 this:
 </p>
 
@@ -5170,8 +5174,92 @@ def function_name(*args, **kwargs):
 </div>
 
 
+<H4><a name="Python_autodoc2"></a>33.10.2.3 %feature("autodoc", "2")</H4>
 
-<H4><a name="Python_nn70"></a>33.10.2.3 %feature("autodoc", "docstring")</H4>
+
+<p>
+Level "2" results in the function prototype as per level "0". In addition, a line of
+documentation is generated for each parameter. Using the previous example, the generated
+code will be:
+</p>
+
+<div class="targetlang">
+<pre>
+def function_name(*args, **kwargs):
+    """
+    function_name(x, y, foo=None, bar=None) -&gt; bool
+
+    Parameters:
+        x: int
+        y: int
+        foo: Foo *
+        bar: Bar *
+
+    """
+    ...
+</pre>
+</div>
+
+<p>
+Note that the documentation for each parameter is sourced from the "doc" typemap which by default shows the
+C/C++ type rather than the simplified Python type name described earlier for level "1".
+Typemaps can of course change the output for any particular type, for example the <tt>int x</tt> parameter:
+</p>
+
+<div class="code">
+<pre>
+%feature("autodoc", "2");
+%typemap("doc") int x "$1_name (C++ type: $1_type) -- Input $1_name dimension"
+bool function_name(int x, int y, Foo* foo=NULL, Bar* bar=NULL);
+</pre>
+</div>
+
+<p>
+resulting in
+</p>
+
+<div class="targetlang">
+<pre>
+def function_name(*args, **kwargs):
+  """
+    function_name(x, y, foo=None, bar=None) -&gt; bool
+
+    Parameters:
+        x (C++ type: int) -- Input x dimension
+        y: int
+        foo: Foo *
+        bar: Bar *
+
+    """
+</pre>
+</div>
+
+<H4><a name="Python_autodoc3"></a>33.10.2.4 %feature("autodoc", "3")</H4>
+
+
+<p>
+Level "3" results in the function prototype as per level "1" but also contains the same additional line of documentation for each parameter as per level "2". Using our earlier example again, the generated code will be:
+</p>
+
+<div class="targetlang">
+<pre>
+def function_name(*args, **kwargs):
+    """
+    function_name(int x, int y, Foo foo=None, Bar bar=None) -&gt; bool
+
+    Parameters:
+        x: int
+        y: int
+        foo: Foo *
+        bar: Bar *
+
+    """
+    ...
+</pre>
+</div>
+
+
+<H4><a name="Python_nn70"></a>33.10.2.5 %feature("autodoc", "docstring")</H4>
 
 
 <p>
@@ -5285,7 +5373,7 @@ SWIG is able to generate proxy method definitions like this:
 </p>
 
 <div class="code"><pre>
-  def foo(self, bar : "int" = 0) -&gt; "void" : ...
+  def foo(self, bar : "int"=0) -&gt; "void" : ...
 </pre></div>
 
 <p>
@@ -5294,7 +5382,7 @@ still could be generated:
 </p>
 
 <div class="code"><pre>
-  def foo(self, bar = 0): ...
+  def foo(self, bar=0): ...
 </pre></div>
 
 <p>

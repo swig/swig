@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-06-10: wsfulton
+	    [Python] Few subtle bugfixes in autodoc documentation generation,
+            - Unnamed argument names fix for autodoc levels > 0.
+            - Display of template types fixed for autodoc levels > 1.
+            - Fix SF #3310528 - display of typedef structs for autodoc levels > 1.
+            - Add missing type for self for autodoc levels 1 and 3.
+            - autodoc levels 2 and 3 documented.
+            - Minor tweaks to autodoc style to conform with PEP8.
+
 2011-05-30: olly
 	    [PHP] Fix handling of directors when -prefix is used.
 
