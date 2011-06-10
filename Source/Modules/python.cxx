@@ -1347,6 +1347,7 @@ public:
       // Note: the generated name should be consistent with that in kwnames[]
       name = name ? name : Getattr(p, "name");
       name = name ? name : Getattr(p, "lname");
+      name = Swig_name_make(p, 0, name, 0, 0); // rename parameter if a keyword
 
       type = type ? type : Getattr(p, "type");
       value = value ? value : Getattr(p, "value");
@@ -1394,6 +1395,7 @@ public:
 	Printf(doc, "=%s", value);
       }
       Delete(type_str);
+      Delete(name);
     }
     if (pdocs)
       Setattr(n, "feature:pdocs", pdocs);
@@ -2198,7 +2200,7 @@ public:
 	  String *tmp = 0;
 	  String *name = pn;
 	  if (!Getattr(p, "hidden")) {
-	    name = tmp = Swig_name_make(p, 0, pn, 0, 0);
+	    name = tmp = Swig_name_make(p, 0, pn, 0, 0); // rename parameter if a keyword
 	  }
 	  Printf(kwargs, "(char *) \"%s\",", name);
 	  if (tmp)
