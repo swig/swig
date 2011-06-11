@@ -25,6 +25,16 @@ SWIG_AsVal_dec(bool)(PyObject *obj, bool *val)
 }
 }
 
+/* int */
+
+%fragment(SWIG_From_frag(int),"header") {
+SWIGINTERNINLINE PyObject*
+  SWIG_From_dec(int)(int value)
+{
+  return PyInt_FromLong((long) value);
+}
+}
+
 /* long */
 
 %fragment(SWIG_From_frag(long),"header") {
