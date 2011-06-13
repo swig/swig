@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-06-13: wsfulton
+	    [Ruby, Octave] SF #3310528 Autodoc fixes similar to those described below for Python.
+
 2011-06-10: wsfulton
 	    [Python] Few subtle bugfixes in autodoc documentation generation,
             - Unnamed argument names fix for autodoc levels > 0.

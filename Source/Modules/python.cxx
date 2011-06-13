@@ -1384,9 +1384,9 @@ public:
 
       // Write default value
       if (value && !calling) {
-	String *pv = pyvalue(value, Getattr(p, "type"));
-	if (pv) {
-	  value = pv;
+	String *new_value = convertValue(value, Getattr(p, "type"));
+	if (new_value) {
+	  value = new_value;
 	} else {
 	  Node *lookup = Swig_symbol_clookup(value, 0);
 	  if (lookup)
@@ -1542,11 +1542,11 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * pyvalue()
+   * convertValue()
    *    Check if string v can be a Python value literal,
    *    (eg. number or string), or translate it to a Python literal.
    * ------------------------------------------------------------ */
-  String *pyvalue(String *v, SwigType *t) {
+  String *convertValue(String *v, SwigType *t) {
     if (v && Len(v) > 0) {
       char fc = (Char(v))[0];
       if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
@@ -1589,7 +1589,7 @@ public:
       }
       String *type = Getattr(p, "type");
       String *value = Getattr(p, "value");
-      if (!pyvalue(value, type))
+      if (!convertValue(value, type))
 	return false;
     }
     return true;

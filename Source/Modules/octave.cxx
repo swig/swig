@@ -383,20 +383,54 @@ public:
     return conv ? "SWIG_POINTER_IMPLICIT_CONV" : "0";
   }
 
+  /* -----------------------------------------------------------------------------
+   * addMissingParameterNames()
+   *  For functions that have not had nameless parameters set in the Language class.
+   *
+   * Inputs: 
+   *   plist - entire parameter list
+   *   arg_offset - argument number for first parameter
+   * Side effects:
+   *   The "lname" attribute in each parameter in plist will be contain a parameter name
+   * ----------------------------------------------------------------------------- */
+
+  void addMissingParameterNames(ParmList *plist, int arg_offset) {
+    Parm *p = plist;
+    int i = arg_offset;
+    while (p) {
+      if (!Getattr(p, "lname")) {
+	String *pname = Swig_cparm_name(p, i);
+	Delete(pname);
+      }
+      i++;
+      p = nextSibling(p);
+    }
+  }
+
   void make_autodocParmList(Node *n, String *decl_str, String *args_str) {
-    String *pdocs = Copy(Getattr(n, "feature:pdocs"));
+    String *pdocs = 0;
     ParmList *plist = CopyParmList(Getattr(n, "parms"));
     Parm *p;
     Parm *pnext;
-    Node *lookup;
+    int start_arg_num = is_wrapping_class() ? 1 : 0;
 
-    if (pdocs)
-      Append(pdocs, "\n");
+    addMissingParameterNames(plist, start_arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
 
     Swig_typemap_attach_parms("in", plist, 0);
     Swig_typemap_attach_parms("doc", plist, 0);
 
     for (p = plist; p; p = pnext) {
+
+      String *tm = Getattr(p, "tmap:in");
+      if (tm) {
+	pnext = Getattr(p, "tmap:in:next");
+	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	  continue;
+	}
+      } else {
+	pnext = nextSibling(p);
+      }
+
       String *name = 0;
       String *type = 0;
       String *value = 0;
@@ -407,9 +441,16 @@ public:
 	value = Getattr(p, "tmap:doc:value");
       }
 
+      // Note: the generated name should be consistent with that in kwnames[]
       name = name ? name : Getattr(p, "name");
+      name = name ? name : Getattr(p, "lname");
+      name = Swig_name_make(p, 0, name, 0, 0); // rename parameter if a keyword
+
       type = type ? type : Getattr(p, "type");
       value = value ? value : Getattr(p, "value");
+
+      if (SwigType_isvarargs(type))
+	break;
 
       String *tex_name = NewString("");
       if (name)
@@ -417,48 +458,62 @@ public:
       else
 	Printf(tex_name, "@var{?}");
 
-      String *tm = Getattr(p, "tmap:in");
-      if (tm) {
-	pnext = Getattr(p, "tmap:in:next");
-      } else {
-	pnext = nextSibling(p);
-      }
-
       if (Len(decl_str))
 	Append(decl_str, ", ");
       Append(decl_str, tex_name);
 
       if (value) {
-	if (Strcmp(value, "NULL") == 0)
-	  value = NewString("nil");
-	else if (Strcmp(value, "true") == 0 || Strcmp(value, "TRUE") == 0)
-	  value = NewString("true");
-	else if (Strcmp(value, "false") == 0 || Strcmp(value, "FALSE") == 0)
-	  value = NewString("false");
-	else {
-	  lookup = Swig_symbol_clookup(value, 0);
+	String *new_value = convertValue(value, Getattr(p, "type"));
+	if (new_value) {
+	  value = new_value;
+	} else {
+	  Node *lookup = Swig_symbol_clookup(value, 0);
 	  if (lookup)
 	    value = Getattr(lookup, "sym:name");
 	}
 	Printf(decl_str, " = %s", value);
       }
 
-      if (type) {
-	String *type_str = NewString("");
-	type = SwigType_base(type);
-	lookup = Swig_symbol_clookup(type, 0);
-	if (lookup)
-	  type = Getattr(lookup, "sym:name");
-	Printf(type_str, "%s is of type %s. ", tex_name, type);
-	Append(args_str, type_str);
-	Delete(type_str);
-      }
+      Node *nn = classLookup(Getattr(p, "type"));
+      String *type_str = nn ? Copy(Getattr(nn, "sym:name")) : SwigType_str(type, 0);
+      Printf(args_str, "%s is of type %s. ", tex_name, type_str);
 
+      Delete(type_str);
       Delete(tex_name);
+      Delete(name);
     }
     if (pdocs)
       Setattr(n, "feature:pdocs", pdocs);
     Delete(plist);
+  }
+
+  /* ------------------------------------------------------------
+   * convertValue()
+   *    Check if string v can be an Octave value literal,
+   *    (eg. number or string), or translate it to an Octave literal.
+   * ------------------------------------------------------------ */
+  String *convertValue(String *v, SwigType *t) {
+    if (v && Len(v) > 0) {
+      char fc = (Char(v))[0];
+      if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
+	/* number or string (or maybe NULL pointer) */
+	if (SwigType_ispointer(t) && Strcmp(v, "0") == 0)
+	  return NewString("None");
+	else
+	  return v;
+      }
+      if (Strcmp(v, "NULL") == 0)
+	return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
+      else if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
+	return NewString("true");
+      else if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
+	return NewString("false");
+      if (Strcmp(v, "true") == 0 || Strcmp(v, "FALSE") == 0)
+	return NewString("true");
+      if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
+	return NewString("false");
+    }
+    return 0;
   }
 
   virtual int functionWrapper(Node *n) {
