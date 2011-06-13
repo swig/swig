@@ -1,4 +1,4 @@
-from python_kwargs import *
+from kwargs_feature import *
 
 class MyFoo(Foo):
   def __init__(self, a , b = 0):

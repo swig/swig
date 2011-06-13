@@ -1477,7 +1477,7 @@ public:
     /* Finish argument marshalling */
     Printf(kwargs, " NULL }");
     if (allow_kwargs) {
-      Printv(f->locals, tab4, "char *kwnames[] = ", kwargs, ";\n", NIL);
+      Printv(f->locals, tab4, "const char *kwnames[] = ", kwargs, ";\n", NIL);
     }
 
     /* Trailing varargs */
