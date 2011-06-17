@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-06-17: wsfulton
+	    [Java] SF #3312505 - slightly easier to wrap char[] or char[ANY] with a Java byte[]
+            using arrays_java.i.
+
 2011-06-13: wsfulton
 	    [Ruby, Octave] SF #3310528 Autodoc fixes similar to those described below for Python.
 
