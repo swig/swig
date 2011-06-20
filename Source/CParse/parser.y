@@ -214,6 +214,7 @@ Hash *Swig_cparse_features(void) {
   return features_hash;
 }
 
+/* Fully qualify any template parameters */
 static String *feature_identifier_fix(String *s) {
   String *tp = SwigType_istemplate_templateprefix(s);
   if (tp) {
