@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-06-19: wsfulton
+	    Fix incorrect typemaps being used for a symbol within a templated type, eg:
+            A<int>::value_type would incorrectly use a typemap for type A.
+
 2011-06-18: olly
 	    [Tcl] Fix variable declarations in middle of blocks which isn't
 	    permitted in C90 (issue probably introduced in 2.0.3 by patch #3224663).

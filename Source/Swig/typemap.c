@@ -728,8 +728,8 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
 	goto ret_result;
 
       {
-	/* Look for the type reduced to just the template prefix */
-	SwigType *template_prefix = SwigType_istemplate_templateprefix(ctype);
+	/* Look for the type reduced to just the template prefix - for templated types without the template parameter list being specified */
+	SwigType *template_prefix = SwigType_istemplate_only_templateprefix(ctype);
 	if (template_prefix) {
 	  tm = get_typemap(ts, template_prefix);
 	  result = typemap_search_helper(debug_display, tm, tm_method, template_prefix, cqualifiedname, cname, &backup);
