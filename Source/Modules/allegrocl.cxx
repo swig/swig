@@ -162,10 +162,27 @@ String *namespaced_name(Node *n, String *ns = current_namespace) {
 
 // "Namespace::Nested::Class2::Baz" -> "Baz"
 static String *strip_namespaces(String *str) {
-  char *result = Char(str);
+  SwigType *new_type = Copy(str);
+  SwigType *leading_type = SwigType_pop(new_type);
+  char *result = Char(leading_type);
+
+  if(SwigType_istemplate(leading_type)) {
+    result = Char(SwigType_templateprefix(leading_type));
+  } else {
+    if (!SwigType_issimple(leading_type))
+	    return NewString(str);
+  }
+	  
   String *stripped_one;
   while ((stripped_one = Strstr(result, "::")))
     result = Char(stripped_one) + 2;
+
+  if(SwigType_istemplate(leading_type)) {
+    SwigType_push(new_type, NewStringf("%s%s%s", result, SwigType_templateargs(leading_type),
+				       SwigType_templatesuffix(leading_type)));
+    return new_type;
+  }
+
   return NewString(result);
 }
 
@@ -644,8 +661,12 @@ void note_implicit_template_instantiation(SwigType *t) {
 #ifdef ALLEGROCL_CLASS_DEBUG
   Printf(stderr, "culling namespace of '%s' from '%s'\n", t, SwigType_templateprefix(t));
 #endif
-  String *implicit_ns = namespace_of(SwigType_templateprefix(t));
+  SwigType *type = Copy(t);
+  SwigType *tok = SwigType_pop(type);
+  String *implicit_ns = SwigType_istemplate(tok) ? namespace_of(SwigType_templateprefix(tok)) : 0;
   add_defined_foreign_type(0, 0, t, t, implicit_ns ? implicit_ns : current_namespace);
+
+  Delete(type);
 }
 
 String *get_ffi_type(Node *n, SwigType *ty, const_String_or_char_ptr name) {
@@ -1099,6 +1120,7 @@ void emit_stub_class(Node *n) {
 
 #ifdef ALLEGROCL_WRAP_DEBUG
   Printf(stderr, "emit_stub_class: ENTER... '%s'(%x)\n", Getattr(n, "sym:name"), n);
+  Swig_print_node(n);
 #endif
 
 
@@ -1221,7 +1243,8 @@ void emit_full_class(Node *n) {
     Printf(supers, "ff:foreign-pointer");
   }
 
-  Printf(supers, ")");
+  // check for "feature:aclmixins" and add those as well.
+  Printf(supers, " %s)", Getattr(n,"feature:aclmixins"));
 
   // Walk children to generate type definition.
   String *slotdefs = NewString("   ");
@@ -2026,7 +2049,7 @@ int emit_num_lin_arguments(ParmList *parms) {
   int nargs = 0;
 
   while (p) {
-    // Printf(stderr,"enla: '%s' lin='%x'\n", Getattr(p,"name"), Getattr(p,"tmap:lin"));
+    // Printf(stderr,"enla: '%s' lin='%x' numinputs='%s'\n", Getattr(p,"name"), Getattr(p,"tmap:lin"), Getattr(p,"tmap:lin:numinputs"));
     if (Getattr(p, "tmap:lin")) {
       nargs += GetInt(p, "tmap:lin:numinputs");
       p = Getattr(p, "tmap:lin:next");
@@ -2197,13 +2220,21 @@ struct IDargs {
     return result;
   }
 
-  String *noname_str() {
+  String *noname_str(bool include_class = true) {
     String *result = NewString("");
     Printf(result, " :type :%s", type);
-    if (klass)
+    if (klass && include_class)
       Printf(result, " :class \"%s\"", klass);
     if (arity)
       Printf(result, " :arity %s", arity);
+    return result;
+  }
+
+  String *noname_no_others_str(bool include_class = true) {
+    String *result = NewString("");
+    Printf(result, " :type :%s", type);
+    if (klass && include_class)
+      Printf(result, " :class \"%s\"", klass);
     return result;
   }
 };
@@ -2241,8 +2272,9 @@ IDargs *id_converter_arguments(Node *n) {
   // :class
   if (Strstr(result->type, "member ")) {
     Replaceall(result->type, "member ", "");
-    if (!result->klass)
+    if (!result->klass) {
       result->klass = Copy(Getattr(parent_node_skipping_extends(n), "sym:name"));
+    }
   }
   // :arity
   if (Getattr(n, "sym:overloaded")) {
@@ -2329,8 +2361,16 @@ int ALLEGROCL::emit_dispatch_defun(Node *n) {
 #endif
   List *overloads = Swig_overload_rank(n, true);
 
-  String *id_args = id_converter_arguments(n)->no_others_quoted_str();
-  Printf(f_clwrap, "(swig-dispatcher (%s :arities (", id_args);
+  // Printf(stderr,"\ndispatch node=%x\n\n", n);
+  // Swig_print_node(n);
+
+  Node *overloaded_from = Getattr(n,"sym:overloaded");
+  bool include_class = Getattr(overloaded_from, "allegrocl:dispatcher:include-class") ? true : false;
+  String *id_args = id_converter_arguments(n)->noname_no_others_str(include_class);
+  Printf(f_clwrap, "(swig-dispatcher (\"%s\" %s :arities (", Getattr(overloaded_from, "allegrocl:dispatcher:name"), id_args);
+
+  Delattr(overloaded_from, "allegrocl:dispatcher:include-class");
+  Delattr(overloaded_from, "allegrocl:dispatcher:name");
 
   int last_arity = -1;
   for (Iterator i = First(overloads); i.item; i = Next(i)) {
@@ -2359,16 +2399,24 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
   Printf(stderr, "emit_defun: ENTER... ");
 #endif
 
+  // avoid name conflicts between smart pointer wrappers and the wrappers for the
+  // actual class.
+  bool smartmemberwrapper = (!Cmp(Getattr(n, "view"), "memberfunctionHandler") &&
+			     Getattr(n,"allocate:smartpointeraccess"));
+
 #ifdef ALLEGROCL_DEBUG
   int auto_generated = Cmp(Getattr(n, "view"), "globalfunctionHandler");
   Printf(stderr, "%s%sfunction %s%s%s\n", auto_generated ? "> " : "", Getattr(n, "sym:overloaded")
 	 ? "overloaded " : "", current_namespace, (current_namespace) > 0 ? "::" : "", Getattr(n, "sym:name"));
   Printf(stderr, "  (view: %s)\n", Getattr(n, "view"));
+  Swig_print_node(n);
 #endif
 
+
   String *funcname = Getattr(n, "allegrocl:old-sym:name");
-  if (!funcname)
+  if (smartmemberwrapper || !funcname)
     funcname = Getattr(n, "sym:name");
+
   String *mangled_name = Getattr(n, "wrap:name");
   ParmList *pl = parmlist_with_names(Getattr(n, "wrap:parms"));
 
@@ -2388,10 +2436,16 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
   int largnum = 0, argnum = 0, first = 1;
   // int varargs=0;
   if (Generate_Wrapper) {
-    String *extra_parms = id_converter_arguments(n)->noname_str();
-    if (Getattr(n, "sym:overloaded"))
+    String *extra_parms = id_converter_arguments(n)->noname_str(smartmemberwrapper ? false : true);
+    Node *overloaded_from = Getattr(n,"sym:overloaded");
+    if (overloaded_from) {
+      if(!GetFlag(overloaded_from,"allegrocl:dispatcher:name")) {
+        Setattr(overloaded_from,"allegrocl:dispatcher:name",funcname);
+	Setattr(overloaded_from,"allegrocl:dispatcher:include-class", smartmemberwrapper ? 0 : "1");
+	// Printf(stderr, "   set a:d:name='%s', a:d:i-c='%s'\n", Getattr(n,"allegrocl:dispatcher:name"), Getattr(n,"allegrocl:dispatcher:include-class"));
+      }
       Printf(fcl, "(swig-defmethod (\"%s\" \"%s\"%s)\n", funcname, mangled_name, extra_parms);
-    else
+    } else
       Printf(fcl, "(swig-defun (\"%s\" \"%s\"%s)\n", funcname, mangled_name, extra_parms);
     Delete(extra_parms);
   }
@@ -2568,7 +2622,6 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
 int ALLEGROCL::functionWrapper(Node *n) {
 #ifdef ALLEGROCL_DEBUG
 	Printf(stderr, "functionWrapper %s\n", Getattr(n,"name"));
-	Swig_print_node(n);
 #endif
 
 
@@ -2616,7 +2669,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
     if (Getattr(n, "overload:ignore")) {
       // if we're the last overload, make sure to force the emit
       // of the rest of the overloads before we leave.
-      Printf(stderr, "ignored overload %s(%x)\n", name, Getattr(n, "sym:nextSibling"));
+      // Printf(stderr, "ignored overload %s(%x)\n", name, Getattr(n, "sym:nextSibling"));
       if (!Getattr(n, "sym:nextSibling")) {
 	update_package_if_needed(n);
 	emit_buffered_defuns(n);
@@ -2638,6 +2691,12 @@ int ALLEGROCL::functionWrapper(Node *n) {
   int i;
   Parm *p;
   for (i = 0, p = parms; i < num_arguments; i++) {
+
+#ifdef ALLEGROCL_DEBUG
+	  String *temp1 = Getattr(p,"tmap:in");
+	  String *temp2 = Getattr(p,"tmap:in:numinputs");
+	  Printf(stderr,"  parm %d: %s, tmap:in='%s', tmap:in:numinputs='%s'\n", i, Getattr(p,"name"), temp1 ? temp1 : "", temp2 ? temp2 : "");
+#endif
 
     while (p && checkAttribute(p, "tmap:in:numinputs", "0")) {
       p = Getattr(p, "tmap:in:next");
@@ -2676,6 +2735,10 @@ int ALLEGROCL::functionWrapper(Node *n) {
     Delete(arg);
   }
   Printf(name_and_parms, ")");
+
+#ifdef ALLEGROCL_DEBUG
+  Printf(stderr, "   arity = %d(%d)\n", emit_num_lin_arguments(parms), emit_num_lin_arguments(Getattr(n,"wrap:parms")));
+#endif
 
   // Emit the function definition
   String *signature = SwigType_str(return_type, name_and_parms);
@@ -2918,6 +2981,7 @@ int ALLEGROCL::variableWrapper(Node *n) {
 int ALLEGROCL::memberfunctionHandler(Node *n) {
 #ifdef ALLEGROCL_DEBUG
   Printf(stderr, "memberfunctionHandler %s::%s\n", Getattr(parent_node_skipping_extends(n), "name"), Getattr(n, "name"));
+  Swig_print_node(n);
 #endif
   Setattr(n, "allegrocl:kind", "member function");
   Setattr(n, "allegrocl:old-sym:name", Getattr(n, "sym:name"));
@@ -3103,7 +3167,8 @@ int ALLEGROCL::cppClassHandler(Node *n) {
     SwigType *childType = NewStringf("%s%s", Getattr(c, "decl"),
 				     Getattr(c, "type"));
 #ifdef ALLEGROCL_CLASS_DEBUG
-    Printf(stderr, "looking at child '%x' of type '%s'\n", c, childType);
+    Printf(stderr, "looking at child '%x' of type '%s' '%d'\n", c, childType, SwigType_isfunction(childType));
+    // Swig_print_node(c);
 #endif
     if (!SwigType_isfunction(childType))
       Delete(compose_foreign_type(n, childType));
