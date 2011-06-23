@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-06-23: olly
+	    [PHP] Fix director code to work when PHP is built with ZTS enabled,
+	    which is the standard configuration on Microsoft Windows.
+
 2011-06-21: mutandiz
 	    [allegrocl]
 	    - various small tweaks and bug fixes.
