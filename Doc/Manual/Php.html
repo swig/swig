@@ -249,60 +249,6 @@ evaluates to true, rather than the value of the constant which would
 be false. This is a feature!
 </p>
 
-<p>
-The second 'feature' is that although constants are case sensitive (by
-default), you cannot declare a constant twice with alternative
-cases. E.g.,
-</p>
-
-<div class="code">
-<pre>
-%module example
-
-#define TEST	Hello
-#define Test	World
-</pre>
-</div>
-
-<p>
-accessed from PHP,
-</p>
-
-<div class="code">
-<pre>
-include("example.php");
-
-echo TEST, Test;
-</pre>
-</div>
-
-<p>
-will output "Hello Test" rather than "Hello World". This is because
-internally, all constants are stored in a hash table by their lower
-case name, so 'TEST' and 'Test' will map to the same hash element
-('Test'). But, because we declared them case sensitive, the Zend
-engine will test if the case matches with the case the constant was
-declared with first.
-</p>
-
-<p>
-So, in the example above, the TEST constant was declared first, and
-will be stored under the hash element 'test'. The 'Test' constant will
-also map to the same hash element 'test', but will not overwrite
-it. When called from the script, the TEST constant will again be
-mapped to the hash element 'test' so the constant will be
-retrieved. The case will then be checked, and will match up, so the
-value ('Hello') will be returned. When 'Test' is evaluated, it will
-also map to the same hash element 'test'. The same constant will be
-retrieved, this time though the case check will fail as 'Test' !=
-'TEST'. So PHP will assume that Test is a undeclared constant, and as
-explained above, will return it as a string set to the constant name
-('Test'). Hence the script above will print 'Hello Test'. If they were
-declared non-case sensitive, the output would be 'Hello Hello', as
-both point to the same value, without the case test taking place.  (
-Apologies, this paragraph needs rewriting to make some sense. )
-</p>
-
 <H3><a name="Php_nn2_2"></a>31.2.2 Global Variables</H3>
 
 
