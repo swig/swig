@@ -180,9 +180,8 @@ other symbols unless care is taken to <tt>%rename</tt> them.
 
 <H3><a name="Php_nn2_1"></a>31.2.1 Constants</H3>
 
-
 <p>
-These work in much the same way as in C/C++, constants can be defined
+These work in much the same way as in C/C++.  Constants can be defined
 by using either the normal C pre-processor declarations, or the
 <tt>%constant</tt> SWIG directive.  These will then be available from
 your PHP script as a PHP constant, (i.e. no dollar sign is needed to
@@ -199,7 +198,7 @@ access them.) For example, with a swig interface file like this,
 </div>
 
 <p>
-you can access the constants in your php script like this,
+you can access the constants in your PHP script like this,
 </p>
 
 <div class="code"><pre>
@@ -213,9 +212,16 @@ echo "E = " . E . "\n";
 </div>
 
 <p>
-There are two peculiarities with using constants in PHP. The first is that
-if you try to use an undeclared constant, it will evaluate to a string
-set to the constant's name. For example,
+There's one peculiarity of how constants work in PHP which it is useful
+to note (this is not specific to SWIG though) - if you try to use an undeclared
+constant, PHP will issue a warning and then expand the constant to a string
+version of the constant's name.  The warning will often be missed though as
+if you're using PHP in a webserver, it will probably end up in error.log or
+similar.
+</p>
+
+<p>
+For example,
 </p>
 
 <div class="code"><pre>
@@ -243,10 +249,9 @@ if(EASY_TO_MISPEL) {
 </div>
 
 <p>
-will issue a warning about the undeclared constant, but will then
-evaluate it and turn it into a string ('EASY_TO_MISPEL'), which
-evaluates to true, rather than the value of the constant which would
-be false. This is a feature!
+The mis-spelled constant will become the string 'EASY_TO_MISPEL', which
+is treated as true by the if test, when the value of the intended constant
+would be treated as false!
 </p>
 
 <H3><a name="Php_nn2_2"></a>31.2.2 Global Variables</H3>
