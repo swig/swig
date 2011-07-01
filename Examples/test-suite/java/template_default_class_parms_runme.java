@@ -17,8 +17,11 @@ public class template_default_class_parms_runme {
     {
       DefaultBar bar = new DefaultBar(20.0, new SomeType(), 10);
       double d = bar.getCType();
+      bar.setCType(d);
       SomeType s = bar.getDType();
+      bar.setDType(s);
       int i = bar.getEType();
+      bar.setEType(i);
       d = bar.method(d, s, i);
     }
     {
@@ -29,13 +32,17 @@ public class template_default_class_parms_runme {
     {
       BarAnotherTypeBool bar = new BarAnotherTypeBool(new AnotherType(), true, 10);
       AnotherType a = bar.getCType();
+      bar.setCType(a);
       boolean b = bar.getDType();
+      bar.setDType(b);
       int i = bar.getEType();
+      bar.setEType(i);
       a = bar.method(a, b, i);
     }
     {
       FooAnotherType foo = new FooAnotherType(new AnotherType());
       AnotherType a = foo.getTType();
+      foo.setTType(a);
       a = foo.method(a);
     }
   }
