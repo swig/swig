@@ -5,6 +5,20 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-07-01: wsfulton
+	    Fix some scope and symbol lookup problems when template default parameters are being
+            used with typedef. For example:
+
+            template<typename XX, typename TT = SomeType> struct Foo {
+              typedef XX X;
+              typedef TT T;
+            };
+            template<typename TT> struct UsesFoo {
+              void x(typename Foo<TT>::T, typename Foo<TT>::X);
+            };
+
+            Also fixes use of std::vector<int>::size_type for Python as reported by Aubrey Barnard.
+
 2011-06-23: olly
 	    [PHP] Fix director code to work when PHP is built with ZTS enabled,
 	    which is the standard configuration on Microsoft Windows.
