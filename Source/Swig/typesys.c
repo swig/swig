@@ -393,7 +393,9 @@ void SwigType_print_scope(void) {
   Hash *ttab;
   Iterator i, j;
 
+  Printf(stdout, "SCOPES start  =======================================\n");
   for (i = First(scopes); i.key; i = Next(i)) {
+    Printf(stdout, "-------------------------------------------------------------\n");
     ttab = Getattr(i.item, "typetab");
 
     Printf(stdout, "Type scope '%s' (%x)\n", i.key, i.item);
@@ -406,11 +408,11 @@ void SwigType_print_scope(void) {
 	}
       }
     }
-    Printf(stdout, "-------------------------------------------------------------\n");
     for (j = First(ttab); j.key; j = Next(j)) {
       Printf(stdout, "%40s -> %s\n", j.key, j.item);
     }
   }
+  Printf(stdout, "SCOPES finish =======================================\n");
 }
 
 static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
