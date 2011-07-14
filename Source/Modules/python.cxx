@@ -2650,20 +2650,26 @@ public:
 
     /* If this is a builtin type, create a PyGetSetDef entry for this member variable. */
     if (builtin_getter) {
-      Hash *h = Getattr(builtin_getset, name);
+      String *memname = Getattr(n, "membervariableHandler:sym:name");
+      if (!memname)
+	memname = iname;
+      Hash *h = Getattr(builtin_getset, memname);
       if (!h) {
 	h = NewHash();
-	Setattr(builtin_getset, name, h);
+	Setattr(builtin_getset, memname, h);
 	Delete(h);
       }
       Setattr(h, "getter", wrapper_name);
       Delattr(n, "memberget");
     }
     if (builtin_setter) {
-      Hash *h = Getattr(builtin_getset, name);
+      String *memname = Getattr(n, "membervariableHandler:sym:name");
+      if (!memname)
+	memname = iname;
+      Hash *h = Getattr(builtin_getset, memname);
       if (!h) {
 	h = NewHash();
-	Setattr(builtin_getset, name, h);
+	Setattr(builtin_getset, memname, h);
 	Delete(h);
       }
       Setattr(h, "setter", wrapper_name);
