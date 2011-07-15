@@ -6,6 +6,9 @@ Version 2.0.5 (in progress)
 ===========================
 
 2011-07-13: szager
+	    [python] Add all template parameters to map support code in std_map.i
+
+2011-07-13: szager
 	    Fix for bug 3324753: %rename member variables with -builtin.
 
 2011-07-01: wsfulton
