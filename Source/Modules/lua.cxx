@@ -762,7 +762,7 @@ public:
     String *getName = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, iname));
     String *setName = 0;
     // checking whether it can be set to or not appears to be a very error prone issue
-    // I refered to the Language::variableWrapper() to find this out
+    // I referred to the Language::variableWrapper() to find this out
     bool assignable=is_assignable(n) ? true : false;
     SwigType *type = Getattr(n, "type");
     String *tm = Swig_typemap_lookup("globalin", n, iname, 0);
@@ -890,7 +890,7 @@ public:
     real_classname = Getattr(n, "name");
     mangled_classname = Swig_name_mangle(real_classname);
 
-    // not sure exactly how this workswhat this works,
+    // not sure exactly how this works,
     // but tcl has a static hashtable of all classes emitted and then only emits code for them once.
     // this fixes issues in test suites: template_default2 & template_specialization
 
@@ -952,7 +952,7 @@ public:
     Delete(s_attr_tab);
 
     // Handle inheritance
-    // note: with the idea of class hireachied spread over multiple modules
+    // note: with the idea of class hierarchies spread over multiple modules
     // cf test-suite: imports.i
     // it is not possible to just add the pointers to the base classes to the code
     // (as sometimes these classes are not present)
