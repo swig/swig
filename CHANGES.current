@@ -5,11 +5,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-07-16: wsfulton
+	    [python] Fix director typemap using PyObject *.
+
 2011-07-13: szager
 	    [python] Add all template parameters to map support code in std_map.i
 
 2011-07-13: szager
-	    Fix for bug 3324753: %rename member variables with -builtin.
+	    [python] Fix for bug 3324753: %rename member variables with -builtin.
 
 2011-07-01: wsfulton
 	    Fix some scope and symbol lookup problems when template default parameters are being
