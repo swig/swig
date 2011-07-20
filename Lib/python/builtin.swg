@@ -39,6 +39,8 @@ wrapper##_closure(PyObject *a, PyObject *b) {	\
     return result;				\
 }
 
+typedef ternaryfunc ternarycallfunc;
+
 #define SWIGPY_TERNARYFUNC_CLOSURE(wrapper)			\
 SWIGINTERN PyObject *						\
 wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
@@ -52,6 +54,12 @@ wrapper##_closure(PyObject *a, PyObject *b, PyObject *c) {	\
     result = wrapper(a, tuple);					\
     Py_DECREF(tuple);						\
     return result;						\
+}
+
+#define SWIGPY_TERNARYCALLFUNC_CLOSURE(wrapper)			\
+SWIGINTERN PyObject *						\
+wrapper##_closure(PyObject *callable_object, PyObject *args, PyObject *) {	\
+    return wrapper(callable_object, args);			\
 }
 
 #define SWIGPY_LENFUNC_CLOSURE(wrapper)			\
@@ -498,3 +506,4 @@ SwigPyBuiltin_SetMetaType (PyTypeObject *type, PyTypeObject *metatype)
 #ifdef __cplusplus
 }
 #endif
+
