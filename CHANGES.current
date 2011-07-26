@@ -5,6 +5,33 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-07-26: wsfulton
+            Fix scoping of forward class declarations nested within a class (for C++). Previously the symbol
+            was incorrectly put into the outer namespace, eg
+
+            namespace std {
+              template<class Key, class T> struct map {
+                class iterator;
+              }
+            }
+
+            iterator was scoped as std::iterator, but now it is correctly std::map<Key, T>::iterator;
+
+            Also fixed is %template and template parameters that are a typedef when the template contains
+            default template parameters, eg:
+
+            namespace Std {
+              template<class Key, class T, class C = int> struct Map {
+                typedef Key key_type;
+                typedef T mapped_type;
+              }
+            }
+            tyepdef double DOUBLE;
+            %typemap(MM) Std::Map<int, DOUBLE>;
+
+            All symbols within Map will be resolved correctly, eg key_type and mapped_type no matter if the
+            wrapped code uses Std::Map<int, double> or std::Map<int, DOUBLE> or Std::Map<int, double, int>
+
 2011-07-20  szager
 	    [python] Fix closure for tp_call slot.
 

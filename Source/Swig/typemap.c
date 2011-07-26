@@ -91,9 +91,11 @@ static Hash *get_typemap(int tm_scope, const SwigType *type) {
 static void set_typemap(int tm_scope, const SwigType *type, Hash *tm) {
   SwigType *hashtype = 0;
   if (SwigType_istemplate(type)) {
-    String *ty = Swig_symbol_template_deftype(type, 0);
+    SwigType *rty = SwigType_typedef_resolve_all(type);
+    String *ty = Swig_symbol_template_deftype(rty, 0);
     String *tyq = Swig_symbol_type_qualify(ty, 0);
     hashtype = SwigType_remove_global_scope_prefix(tyq);
+    Delete(rty);
     Delete(tyq);
     Delete(ty);
   } else {
@@ -2013,12 +2015,13 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 
 void Swig_typemap_debug() {
   int ts;
+  int nesting_level = 2;
   Printf(stdout, "---[ typemaps ]--------------------------------------------------------------\n");
 
   ts = tm_scope;
   while (ts >= 0) {
     Printf(stdout, "::: scope %d\n\n", ts);
-    Printf(stdout, "%s\n", typemaps[ts]);
+    Swig_print(typemaps[ts], nesting_level);
     ts--;
   }
   Printf(stdout, "-----------------------------------------------------------------------------\n");

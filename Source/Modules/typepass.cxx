@@ -539,18 +539,10 @@ class TypePass:private Dispatcher {
 
   virtual int classforwardDeclaration(Node *n) {
 
-    /* Temporary hack. Can't do inside a class because it breaks
-       C nested structure wrapping */
-
+    /* Can't do inside a C struct because it breaks C nested structure wrapping */
     if ((!inclass) || (CPlusPlus)) {
       String *name = Getattr(n, "name");
-      String *nname;
       SwigType_typedef_class(name);
-      if (nsname) {
-	nname = NewStringf("%s::%s", nsname, name);
-	Setattr(n, "name", nname);
-      }
-
     }
     return SWIG_OK;
   }

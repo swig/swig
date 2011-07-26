@@ -383,6 +383,7 @@ CPP_TEST_CASES += \
 	template_tbase_template \
 	template_template_parameters \
 	template_typedef \
+	template_typedef_class_template \
 	template_typedef_cplx \
 	template_typedef_cplx2 \
 	template_typedef_cplx3 \
@@ -392,6 +393,9 @@ CPP_TEST_CASES += \
 	template_typedef_ns \
 	template_typedef_ptr \
 	template_typedef_rec \
+	template_typemaps \
+	template_typemaps_typedef \
+	template_typemaps_typedef2 \
 	template_using \
 	template_virtual \
 	template_whitespace \
