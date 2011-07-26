@@ -1,4 +1,4 @@
-%module template_typemap
+%module template_typemaps
 
 
 %typemap(in) Integer1 
