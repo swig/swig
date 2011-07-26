@@ -448,7 +448,7 @@
 /* Here len doesn't include the '0' terminator */
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) 
   (size_t LENGTH, Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0),
-  (size_t LENGHT, const Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0)
+  (size_t LENGTH, const Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
   if (!SWIG_IsOK(res)) { 
