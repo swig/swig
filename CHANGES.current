@@ -32,6 +32,8 @@ Version 2.0.5 (in progress)
             All symbols within Map will be resolved correctly, eg key_type and mapped_type no matter if the
             wrapped code uses Std::Map<int, double> or std::Map<int, DOUBLE> or Std::Map<int, double, int>
 
+            Also fixes bug #3378145 - regression introduced in 2.0.4 - %template using traits.
+
 2011-07-20  szager
 	    [python] Fix closure for tp_call slot.
 
