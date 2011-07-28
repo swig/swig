@@ -41,7 +41,7 @@ Version 2.0.5 (in progress)
 	    [python] Fix director typemap using PyObject *.
 
 2011-07-13: szager
-	    [python] Add all template parameters to map support code in std_map.i
+	    [python] SF patch #3365908 - Add all template parameters to map support code in std_map.i
 
 2011-07-13: szager
 	    [python] Fix for bug 3324753: %rename member variables with -builtin.
