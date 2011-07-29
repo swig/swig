@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-07-29: olly
+	    [PHP] Don't generate "return $r;" in cases where $r hasn't been set.
+	    This was basically harmless, except it generated a PHP E_NOTICE if
+	    the calling code had enabled them.
+
 2011-07-26: wsfulton
             Fix scoping of forward class declarations nested within a class (for C++). Previously the symbol
             was incorrectly put into the outer namespace, eg

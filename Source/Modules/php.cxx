@@ -1773,7 +1773,11 @@ public:
 	  Printf(output, "\t\t}\n");
 	}
       } else {
-	Printf(output, "\t\treturn %s;\n", invoke);
+	if (non_void_return) {
+	  Printf(output, "\t\treturn %s;\n", invoke);
+	} else if (Cmp(invoke, "$r") != 0) {
+	  Printf(output, "\t\t%s;\n", invoke);
+	}
       }
       Printf(output, "\t}\n");
 
