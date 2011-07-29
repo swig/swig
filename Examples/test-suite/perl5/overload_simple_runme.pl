@@ -2,7 +2,7 @@
 use overload_simple;
 use vars qw/$DOWARN/;
 use strict;
-use Test::More tests => 71;
+use Test::More tests => 75;
 
 pass("loaded");
 
@@ -189,3 +189,10 @@ is(overload_simple::fid("3", 3), "fid:intint", "fid:fid(int,int)");
 isnt(overload_simple::fbool(0), overload_simple::fbool(1), "fbool(bool)");
 
 is(2, overload_simple::fbool(2), "fbool(int)");
+
+# int and object overload
+
+is(overload_simple::int_object(1), 1, "int_object(1)");
+is(overload_simple::int_object(0), 0, "int_object(0)");
+is(overload_simple::int_object(undef), 999, "int_object(Spam*)");
+is(overload_simple::int_object($s), 999, "int_object(Spam*)");

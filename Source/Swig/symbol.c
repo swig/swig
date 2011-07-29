@@ -223,6 +223,9 @@ static void symbol_print_symbols(const char *symboltabletype) {
       while (it.key) {
 	String *symname = it.key;
 	Printf(stdout, "  %s\n", symname);
+	/*
+	Printf(stdout, "  %s - %p (%s)\n", symname, it.item, Getattr(it.item, "name"));
+	*/
 	it = Next(it);
       }
     }
@@ -960,6 +963,7 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
     Delete(dname);
     if (n)
       return n;
+    Setmark(symtab, 1);
   }
 
   inherit = Getattr(symtab, "inherit");
@@ -1206,19 +1210,17 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
-  Hash *h, *hsym;
+  Hash *hsym;
   Node *s = 0;
 
   if (!n) {
     hsym = current_symtab;
-    h = ccurrent;
   } else {
     if (!Checkattr(n, "nodeType", "symboltable")) {
       n = Getattr(n, "sym:symtab");
     }
     assert(n);
     hsym = n;
-    h = Getattr(n, "csymtab");
   }
 
   if (Swig_scopename_check(name)) {
@@ -1256,19 +1258,17 @@ Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, int (*checkfunc) (Node *)) {
-  Hash *h, *hsym;
+  Hash *hsym;
   Node *s = 0;
 
   if (!n) {
     hsym = current_symtab;
-    h = ccurrent;
   } else {
     if (!Checkattr(n, "nodeType", "symboltable")) {
       n = Getattr(n, "sym:symtab");
     }
     assert(n);
     hsym = n;
-    h = Getattr(n, "csymtab");
   }
 
   if (Swig_scopename_check(name)) {
@@ -1642,7 +1642,7 @@ SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab) {
  * Chase a typedef through symbol tables looking for a match.
  * ----------------------------------------------------------------------------- */
 
-SwigType *Swig_symbol_typedef_reduce(SwigType *ty, Symtab *tab) {
+SwigType *Swig_symbol_typedef_reduce(const SwigType *ty, Symtab *tab) {
   SwigType *prefix, *base;
   Node *n;
   String *nt;

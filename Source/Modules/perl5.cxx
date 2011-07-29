@@ -21,14 +21,15 @@ static int treduce = SWIG_cparse_template_reduce(0);
 
 static const char *usage = (char *) "\
 Perl5 Options (available with -perl5)\n\
-     -static         - Omit code related to dynamic loading\n\
-     -nopm           - Do not generate the .pm file\n\
-     -proxy          - Create proxy classes\n\
-     -noproxy        - Don't create proxy classes\n\
+     -compat         - Compatibility mode\n\
      -const          - Wrap constants as constants and not variables (implies -proxy)\n\
-     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -cppcast        - Enable C++ casting operators\n\
-     -compat         - Compatibility mode\n\n";
+     -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
+     -nopm           - Do not generate the .pm file\n\
+     -noproxy        - Don't create proxy classes\n\
+     -proxy          - Create proxy classes\n\
+     -static         - Omit code related to dynamic loading\n\
+\n";
 
 static int compat = 0;
 

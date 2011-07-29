@@ -34,52 +34,7 @@
    
 */
 
-namespace swig {
-
-  %nodirector GC_VALUE;
-
-  // We ignore the constructor so that user can never create a GC_VALUE 
-  // manually
-  %ignore GC_VALUE::GC_VALUE;
-
-  struct GC_VALUE {
-    VALUE inspect() const;
-    VALUE to_s() const;
-    GC_VALUE();
-  protected:
-    GC_VALUE( const GC_VALUE& );
-    ~GC_VALUE();
-  };
-
-  %exception GC_VALUE {};
-
-
-  %apply VALUE   {GC_VALUE};
-
-  // Make sure this is the last typecheck done
-  %typecheck(999999,noblock=1) GC_VALUE, GC_VALUE&, 
-    const GC_VALUE& { $1 = 1; };
-
-  /* For input */
-  %typemap(in,noblock=1) GC_VALUE* (GC_VALUE r), GC_VALUE& (GC_VALUE r)  {
-     r = $input; $1 = &r;
-   }
-
-  /* For output */
-  %typemap(out,noblock=1)  GC_VALUE {
-    $result = (VALUE)$1;
-  }
-  
-  %typemap(out,noblock=1)  GC_VALUE*, GC_VALUE const & {
-    $result = (VALUE)*$1;
-  }
-
-  %ignore LANGUAGE_OBJ;
-  typedef GC_VALUE LANGUAGE_OBJ;
-}
-
-
-%{
+%fragment("GC_VALUE_definition","header") {
 namespace swig {
   class GC_VALUE {
   protected:
@@ -213,7 +168,7 @@ namespace swig {
     }
 
 
-#define GC_VALUE_CMP( op_id, op, cmp, cmpval ) \
+%#define GC_VALUE_CMP( op_id, op, cmp, cmpval ) \
     bool op( const GC_VALUE& other ) const \
     { \
       if ( FIXNUM_P(_obj) && FIXNUM_P(other._obj) ) \
@@ -253,14 +208,14 @@ namespace swig {
     GC_VALUE_CMP( le_id, operator<=, <=, <= 0 )
     GC_VALUE_CMP( gt_id, operator>,  > , >  0 )
     GC_VALUE_CMP( ge_id, operator>=, >=, >= 0 )
-#undef GC_VALUE_CMP
+%#undef GC_VALUE_CMP
 
     bool operator!=( const GC_VALUE& other )
     {
       return !(this->operator==(other));
     }
 
-#define GC_VALUE_UNARY( proc_id, op ) \
+%#define GC_VALUE_UNARY( proc_id, op ) \
     GC_VALUE op() const \
     { \
       VALUE ret = Qnil; \
@@ -280,9 +235,9 @@ namespace swig {
     GC_VALUE_UNARY( pos_id, operator+ )
     GC_VALUE_UNARY( neg_id, operator- )
     GC_VALUE_UNARY( inv_id, operator~ )
-#undef GC_VALUE_BINARY
+%#undef GC_VALUE_BINARY
 
-#define GC_VALUE_BINARY( proc_id, op ) \
+%#define GC_VALUE_BINARY( proc_id, op ) \
     GC_VALUE op( const GC_VALUE& other ) const \
     { \
       VALUE ret = Qnil; \
@@ -311,7 +266,7 @@ namespace swig {
 
     GC_VALUE_BINARY( lshift_id, operator<< );
     GC_VALUE_BINARY( rshift_id, operator>> );
-#undef GC_VALUE_BINARY
+%#undef GC_VALUE_BINARY
 
   };
 
@@ -345,7 +300,53 @@ namespace swig {
 
 } // namespace swig
 
-%}
+} // %fragment(GC_VALUE_definition)
+
+
+
+namespace swig {
+
+  %apply VALUE   {GC_VALUE};
+
+  // Make sure this is the last typecheck done
+  %typecheck(999999,fragment="GC_VALUE_definition",noblock=1) GC_VALUE, GC_VALUE&, 
+    const GC_VALUE& { $1 = 1; };
+
+  /* For input */
+  %typemap(in,fragment="GC_VALUE_definition",noblock=1) GC_VALUE* (GC_VALUE r), GC_VALUE& (GC_VALUE r)  {
+     r = $input; $1 = &r;
+   }
+
+  /* For output */
+  %typemap(out,fragment="GC_VALUE_definition",noblock=1)  GC_VALUE {
+    $result = (VALUE)$1;
+  }
+  
+  %typemap(out,fragment="GC_VALUE_definition",noblock=1)  GC_VALUE*, GC_VALUE const & {
+    $result = (VALUE)*$1;
+  }
+
+  %nodirector GC_VALUE;
+
+  // We ignore the constructor so that user can never create a GC_VALUE 
+  // manually
+  %ignore GC_VALUE::GC_VALUE;
+
+  struct GC_VALUE {
+    VALUE inspect() const;
+    VALUE to_s() const;
+    GC_VALUE();
+  protected:
+    GC_VALUE( const GC_VALUE& );
+    ~GC_VALUE();
+  };
+
+  %exception GC_VALUE {};
+
+
+  %ignore LANGUAGE_OBJ;
+  typedef GC_VALUE LANGUAGE_OBJ;
+}
 
 
 %init {
@@ -359,7 +360,7 @@ namespace swig {
 // These functions may be invoked as a need of the from(), asval(),
 // asptr() and as() template functors, usually used in %typemaps.
 //
-%fragment(SWIG_Traits_frag(swig::GC_VALUE),"header",fragment="StdTraits") {
+%fragment(SWIG_Traits_frag(swig::GC_VALUE),"header",fragment="StdTraits",fragment="GC_VALUE_definition") {
 namespace swig {
   template <>  struct traits<GC_VALUE > {
     typedef value_category category;

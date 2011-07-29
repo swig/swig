@@ -4,17 +4,17 @@
   the complex Constructor method, and the Real and Imag complex
   accesor methods.
 
-  See the std_complex.i and ccomplex.i for concret examples.
+  See the std_complex.i and ccomplex.i for concrete examples.
 */
 
 /* the common from conversor */
-%define %swig_fromcplx_conv(Type, Real, Imag)
+%define %swig_fromcplx_conv(Type, OctConstructor, Real, Imag)
      %fragment(SWIG_From_frag(Type),"header")
 {
   SWIGINTERNINLINE octave_value
-    SWIG_From(Type)(%ifcplusplus(const Type&, Type) c)
+    SWIG_From(Type)(const Type& c)
     {
-      return octave_value(Complex(Real(c), Imag(c)));
+      return octave_value(OctConstructor(Real(c), Imag(c)));
     }
 }
 %enddef
@@ -45,7 +45,7 @@
       return SWIG_TypeError;
     }
 }
-%swig_fromcplx_conv(Type, Real, Imag);
+%swig_fromcplx_conv(Type, Complex, Real, Imag);
 %enddef
 
 // the float case
@@ -53,7 +53,7 @@
      %fragment(SWIG_AsVal_frag(Type),"header",
 	       fragment=SWIG_AsVal_frag(float)) {
   SWIGINTERN int
-    SWIG_AsVal(Type)(PyObject *o, Type *val)
+    SWIG_AsVal(Type) (const octave_value& ov, Type* val)
     {
       if (ov.is_complex_scalar()) {
 	if (val) {
@@ -81,7 +81,7 @@
     }
 }
 
-%swig_fromcplx_conv(Type, Real, Imag);
+%swig_fromcplx_conv(Type, FloatComplex, Real, Imag);
 %enddef
 
 #define %swig_cplxflt_convn(Type, Constructor, Real, Imag) \
@@ -90,6 +90,3 @@
 
 #define %swig_cplxdbl_convn(Type, Constructor, Real, Imag) \
 %swig_cplxdbl_conv(Type, Constructor, Real, Imag)
-
-
-     

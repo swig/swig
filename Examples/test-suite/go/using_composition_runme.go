@@ -8,7 +8,7 @@ func main() {
 		panic("FooBar::blah(int)")
 	}
 
-	if f.Blah(float64(3.5)).(float64) != 3.5 {
+	if f.Blah(3.5) != 3.5 {
 		panic("FooBar::blah(double)")
 	}
 
@@ -21,7 +21,7 @@ func main() {
 		panic("FooBar2::blah(int)")
 	}
 
-	if f2.Blah(float64(3.5)).(float64) != 3.5 {
+	if f2.Blah(3.5) != 3.5 {
 		panic("FooBar2::blah(double)")
 	}
 
@@ -34,7 +34,7 @@ func main() {
 		panic("FooBar3::blah(int)")
 	}
 
-	if f3.Blah(float64(3.5)).(float64) != 3.5 {
+	if f3.Blah(3.5) != 3.5 {
 		panic("FooBar3::blah(double)")
 	}
 

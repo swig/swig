@@ -147,19 +147,19 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 %typemap(jstype) CTYPE[ANY], CTYPE[]            %{JTYPE[]%}
 
 %typemap(in) CTYPE[] (JNITYPE *jarr)
-%{  if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
+%{  if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, (CTYPE **)&$1, $input)) return $null; %}
 %typemap(in) CTYPE[ANY] (JNITYPE *jarr)
 %{  if ($input && JCALL1(GetArrayLength, jenv, $input) != $1_size) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "incorrect array size");
     return $null;
   }
-  if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, &$1, $input)) return $null; %}
+  if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, (CTYPE **)&$1, $input)) return $null; %}
 %typemap(argout) CTYPE[ANY], CTYPE[] 
-%{ SWIG_JavaArrayArgout##JFUNCNAME(jenv, jarr$argnum, $1, $input); %}
+%{ SWIG_JavaArrayArgout##JFUNCNAME(jenv, jarr$argnum, (CTYPE *)$1, $input); %}
 %typemap(out) CTYPE[ANY]
-%{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, $1_dim0); %}
+%{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, (CTYPE *)$1, $1_dim0); %}
 %typemap(out) CTYPE[] 
-%{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, $1, FillMeInAsSizeCannotBeDeterminedAutomatically); %}
+%{$result = SWIG_JavaArrayOut##JFUNCNAME(jenv, (CTYPE *)$1, FillMeInAsSizeCannotBeDeterminedAutomatically); %}
 %typemap(freearg) CTYPE[ANY], CTYPE[] 
 #ifdef __cplusplus
 %{ delete [] $1; %}
@@ -172,6 +172,8 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
     return $jnicall;
   }
 
+%typemap(memberin) CTYPE[ANY], CTYPE[];
+%typemap(globalin) CTYPE[ANY], CTYPE[];
 %enddef
 
 JAVA_ARRAYS_TYPEMAPS(bool, boolean, jboolean, Bool, "[Z")       /* bool[ANY] */

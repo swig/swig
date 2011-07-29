@@ -10,6 +10,12 @@
 
 %include "std_string.i"
 
+%{
+#if defined(__SUNPRO_CC)
+#pragma error_messages (off, hidevf)
+#endif
+%}
+
 %inline %{
 #include <cstdio>
 #include <iostream>

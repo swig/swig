@@ -43,6 +43,9 @@ namespace swig {
   %apply PyObject * {SwigPtr_PyObject};
   %apply PyObject * const& {SwigPtr_PyObject const&};
 
+  %typemap(typecheck,precedence=SWIG_TYPECHECK_SWIGOBJECT,noblock=1) SwigPtr_PyObject const& "$1 = ($input != 0);";
+
+
   /* For output */
   %typemap(out,noblock=1)  SwigPtr_PyObject {
     $result = (PyObject *)$1;

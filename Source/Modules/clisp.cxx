@@ -15,6 +15,15 @@ char cvsroot_clisp_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
+static const char *usage = (char *) "\
+CLISP Options (available with -clisp)\n\
+     -extern-all       - Create clisp definitions for all the functions and\n\
+                         global variables otherwise only definitions for\n\
+                         externed functions and variables are created.\n\
+     -generate-typedef - Use def-c-type to generate shortcuts according to the\n\
+                         typedefs in the input.\n\
+";
+
 class CLISP:public Language {
 public:
   File *f_cl;
@@ -48,15 +57,7 @@ void CLISP::main(int argc, char *argv[]) {
 
   for (i = 1; i < argc; i++) {
     if (!strcmp(argv[i], "-help")) {
-      Printf(stdout, "clisp Options (available with -clisp)\n");
-      Printf(stdout,
-	     " -extern-all\n"
-	     "\t If this option is given then clisp definitions for all the functions\n"
-	     "and global variables will be created otherwise only definitions for \n"
-	     "externed functions and variables are created.\n"
-	     " -generate-typedef\n"
-	     "\t If this option is given then def-c-type will be used to generate shortcuts\n"
-	     "according to the typedefs in the input.\n");
+      Printf(stdout, "%s\n", usage);
     } else if ((Strcmp(argv[i], "-extern-all") == 0)) {
       extern_all_flag = 1;
       Swig_mark_arg(i);
@@ -293,16 +294,18 @@ int CLISP::classDeclaration(Node *n) {
     }
 
     String *temp = Copy(Getattr(c, "decl"));
-    Append(temp, Getattr(c, "type"));	//appending type to the end, otherwise wrong type
-    String *lisp_type = get_ffi_type(n, temp);
-    Delete(temp);
+    if (temp) {
+      Append(temp, Getattr(c, "type"));	//appending type to the end, otherwise wrong type
+      String *lisp_type = get_ffi_type(n, temp);
+      Delete(temp);
 
-    String *slot_name = Getattr(c, "sym:name");
-    Printf(f_cl, "\n\t(%s %s)", slot_name, lisp_type);
+      String *slot_name = Getattr(c, "sym:name");
+      Printf(f_cl, "\n\t(%s %s)", slot_name, lisp_type);
 
-    Append(entries, NewStringf("%s-%s", name, slot_name));
+      Append(entries, NewStringf("%s-%s", name, slot_name));
 
-    Delete(lisp_type);
+      Delete(lisp_type);
+    }
   }
 
   Printf(f_cl, ")\n");

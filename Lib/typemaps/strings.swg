@@ -206,7 +206,7 @@
 /* typecheck */
 
 %typemap(typecheck,noblock=1,precedence=StringCode,
-	 fragment=#SWIG_AsCharPtr) Char *, Char const*& {
+	 fragment=#SWIG_AsCharPtr) Char *, const Char *, Char const*& {
   int res = SWIG_AsCharPtr($input, 0, 0);
   $1 = SWIG_CheckState(res);
 }
@@ -351,7 +351,7 @@
 %typemap(typecheck,noblock=1,precedence=StringCode,
 	 fragment=#SWIG_AsCharArray)  
   Char [ANY], const Char[ANY] {
-  int res = SWIG_AsCharArray($input, (Char *)0, 0);
+  int res = SWIG_AsCharArray($input, (Char *)0, $1_dim0);
   $1 = SWIG_CheckState(res);
 }
 
@@ -448,7 +448,7 @@
 /* Here len doesn't include the '0' terminator */
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) 
   (size_t LENGTH, Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0),
-  (size_t LENGHT, const Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0)
+  (size_t LENGTH, const Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
   if (!SWIG_IsOK(res)) { 
@@ -576,8 +576,6 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
   return res;
 }
 }
-
-%typemaps_asvalfromn(CharCode, Char);
 
 %_typemap_string(StringCode, 
 		 Char,

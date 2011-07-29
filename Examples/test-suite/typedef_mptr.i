@@ -2,6 +2,13 @@
 
 %module typedef_mptr
 
+%{
+#if defined(__SUNPRO_CC)
+#pragma error_messages (off, badargtype2w) /* Formal argument ... is being passed extern "C" ... */
+#pragma error_messages (off, wbadinit) /* Using extern "C" ... to initialize ... */
+#endif
+%}
+
 #if defined(SWIGPYTHON) || defined(SWIGOCAML)
 
 %inline %{

@@ -8,7 +8,7 @@ func main() {
 		panic("Bar::test(int)")
 	}
 
-	if b.Test(float64(3.5)).(float64) != 3.5 {
+	if b.Test(3.5).(float64) != 3.5 {
 		panic("Bar::test(double)")
 	}
 
@@ -17,7 +17,7 @@ func main() {
 		panic("Bar2::test(int)")
 	}
 
-	if b2.Test(float64(3.5)).(float64) != 7.0 {
+	if b2.Test(3.5).(float64) != 7.0 {
 		panic("Bar2::test(double)")
 	}
 
@@ -26,7 +26,7 @@ func main() {
 		panic("Bar3::test(int)")
 	}
 
-	if b3.Test(float64(3.5)).(float64) != 7.0 {
+	if b3.Test(3.5).(float64) != 7.0 {
 		panic("Bar3::test(double)")
 	}
 
@@ -35,7 +35,7 @@ func main() {
 		panic("Bar4::test(int)")
 	}
 
-	if b4.Test(float64(3.5)).(float64) != 7.0 {
+	if b4.Test(3.5).(float64) != 7.0 {
 		panic("Bar4::test(double)")
 	}
 
@@ -44,7 +44,7 @@ func main() {
 		panic("Fred1::test(int)")
 	}
 
-	if bf1.Test(float64(3.5)).(float64) != 7.0 {
+	if bf1.Test(3.5).(float64) != 7.0 {
 		panic("Fred1::test(double)")
 	}
 
@@ -53,7 +53,7 @@ func main() {
 		panic("Fred2::test(int)")
 	}
 
-	if bf2.Test(float64(3.5)).(float64) != 7.0 {
+	if bf2.Test(3.5).(float64) != 7.0 {
 		panic("Fred2::test(double)")
 	}
 }

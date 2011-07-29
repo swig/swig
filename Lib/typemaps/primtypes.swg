@@ -22,8 +22,8 @@
 
   which can always be redefined in the swig target language if needed.
   
-  The fragments for the following types, however, need to be defined
-  in the target language always:
+  The fragments for the following types, however, always need to be
+  defined in the target language:
 
     long
     unsigned long
@@ -40,7 +40,7 @@
 
     %typemaps_primitive(CheckCode, Type)
 
-  which generate the typemaps for a primitive type with a given
+  which generates the typemaps for a primitive type with a given
   checkcode. It is assumed that the primitive type is 'normalized' and
   the corresponding SWIG_AsVal(Type) and SWIG_From(Type) methods are
   provided via fragments.

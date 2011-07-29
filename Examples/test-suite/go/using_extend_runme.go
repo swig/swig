@@ -8,7 +8,7 @@ func main() {
 		panic("blah(int)")
 	}
 
-	if f.Blah(float64(3.5)).(float64) != 3.5 {
+	if f.Blah(3.5) != 3.5 {
 		panic("blah(double)")
 	}
 
@@ -20,7 +20,7 @@ func main() {
 		panic("blah(int,int)")
 	}
 
-	if f.Blah(float64(3.5), float64(7.5)).(float64) != (3.5 + 7.5) {
+	if f.Blah(3.5, 7.5) != (3.5 + 7.5) {
 		panic("blah(double,double)")
 	}
 

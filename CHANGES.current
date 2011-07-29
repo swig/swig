@@ -1,33 +1,108 @@
-This file contains the changes for the current release.
+Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.2 (in progress)
+Version 2.0.5 (in progress)
 ===========================
 
-2010-11-18: klickverbot
-	    [D] Added the D language module.
+2011-07-26: wsfulton
+            Fix scoping of forward class declarations nested within a class (for C++). Previously the symbol
+            was incorrectly put into the outer namespace, eg
 
-2010-11-12: vadz
-	    Fix handling of multiple regex-using %renames attached to the same
-	    declaration. For example, now
+            namespace std {
+              template<class Key, class T> struct map {
+                class iterator;
+              }
+            }
 
-	      %rename("%(regex/^Set(.*)/put\\1/)s") "";
-	      %rename("%(regex/^Get(.*)/get\\1/)s") "";
+            iterator was scoped as std::iterator, but now it is correctly std::map<Key, T>::iterator;
 
-	    works as expected whereas before only the last anonymous rename was
-	    taken into account.
+            Also fixed is %template and template parameters that are a typedef when the template contains
+            default template parameters, eg:
 
-2010-10-17: drjoe
-	    [R] Fix failure in overloaded functions which was breaking
-	    QuantLib-SWIG
+            namespace Std {
+              template<class Key, class T, class C = int> struct Map {
+                typedef Key key_type;
+                typedef T mapped_type;
+              }
+            }
+            tyepdef double DOUBLE;
+            %typemap(MM) Std::Map<int, DOUBLE>;
 
-2010-10-14: olly
-	    [PHP] Allow compilation on non-conforming Microsoft C++ compilers
-	    which don't accept: return function_returning_void();
-	    Reported by Frank Vanden Berghen on the SWIG mailing list.
+            All symbols within Map will be resolved correctly, eg key_type and mapped_type no matter if the
+            wrapped code uses Std::Map<int, double> or std::Map<int, DOUBLE> or Std::Map<int, double, int>
 
-2010-10-12: wsfulton
-            Fix unary scope operator (::) (global scope) regression introduced in 2.0.0, reported by
-            Ben Walker. The mangled symbol names were incorrect, sometimes resulting in types being
-            incorrectly treated as opaque types.
+            Also fixes bug #3378145 - regression introduced in 2.0.4 - %template using traits.
+
+2011-07-20  szager
+	    [python] Fix closure for tp_call slot.
+
+2011-07-16: wsfulton
+	    [python] Fix director typemap using PyObject *.
+
+2011-07-13: szager
+	    [python] SF patch #3365908 - Add all template parameters to map support code in std_map.i
+
+2011-07-13: szager
+	    [python] Fix for bug 3324753: %rename member variables with -builtin.
+
+2011-07-01: wsfulton
+	    Fix some scope and symbol lookup problems when template default parameters are being
+            used with typedef. For example:
+
+            template<typename XX, typename TT = SomeType> struct Foo {
+              typedef XX X;
+              typedef TT T;
+            };
+            template<typename TT> struct UsesFoo {
+              void x(typename Foo<TT>::T, typename Foo<TT>::X);
+            };
+
+            Also fixes use of std::vector<int>::size_type for Python as reported by Aubrey Barnard.
+
+2011-06-23: olly
+	    [PHP] Fix director code to work when PHP is built with ZTS enabled,
+	    which is the standard configuration on Microsoft Windows.
+
+2011-06-21: mutandiz
+	    [allegrocl]
+	    - various small tweaks and bug fixes.
+	    - Avoid name conflicts between smart pointer wrappers and the wrappers for
+	    the actual class.
+	    - Fix default typemaps for C bindings, which were incorrectly attempting to
+	    call non-existent destructors on user-defined types.
+	    - New feature, feature:aclmixins, for adding superclass to the foreign class
+	    wrappers.
+	    - Improve longlong typemaps.
+
+2011-06-19: wsfulton
+	    Fix incorrect typemaps being used for a symbol within a templated type, eg:
+            A<int>::value_type would incorrectly use a typemap for type A.
+
+2011-06-18: olly
+	    [Tcl] Fix variable declarations in middle of blocks which isn't
+	    permitted in C90 (issue probably introduced in 2.0.3 by patch #3224663).
+	    Reported by Paul Obermeier in SF#3288586.
+
+2011-06-17: wsfulton
+	    [Java] SF #3312505 - slightly easier to wrap char[] or char[ANY] with a Java byte[]
+            using arrays_java.i.
+
+2011-06-13: wsfulton
+	    [Ruby, Octave] SF #3310528 Autodoc fixes similar to those described below for Python.
+
+2011-06-10: wsfulton
+	    [Python] Few subtle bugfixes in autodoc documentation generation,
+            - Unnamed argument names fix for autodoc levels > 0.
+            - Display of template types fixed for autodoc levels > 1.
+            - Fix SF #3310528 - display of typedef structs for autodoc levels > 1.
+            - Add missing type for self for autodoc levels 1 and 3.
+            - autodoc levels 2 and 3 documented.
+            - Minor tweaks to autodoc style to conform with PEP8.
+
+2011-05-30: olly
+	    [PHP] Fix handling of directors when -prefix is used.
+
+2011-05-24: olly
+	    [PHP] Fix handling of methods of classes with a virtual base class (SF#3124665).
+

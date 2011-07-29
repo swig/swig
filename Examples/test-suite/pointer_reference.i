@@ -35,6 +35,12 @@ void set(Struct *const& s) {
 Struct *const& get() {
   return Struct::pInstance;
 }
+int overloading(int i) {
+  return 111;
+}
+int overloading(Struct *const& s) {
+  return 222;
+}
 %}
 
 %{

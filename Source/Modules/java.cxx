@@ -808,7 +808,6 @@ public:
     String *outarg = NewString("");
     String *body = NewString("");
     int num_arguments = 0;
-    int num_required = 0;
     int gencomma = 0;
     bool is_void_return;
     String *overloaded_name = getOverloadedName(n);
@@ -885,9 +884,7 @@ public:
 
     Printf(imclass_class_code, "  public final static native %s %s(", im_return_type, overloaded_name);
 
-    /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
 
     // Now walk the function parameter list and generate code to get arguments
     for (i = 0, p = l; i < num_arguments; i++) {
@@ -1352,11 +1349,15 @@ public:
     // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
 
-    // Deal with enum values that are bools
-    if (SwigType_type(Getattr(n, "type")) == T_BOOL) {
-      String *boolValue = NewStringf("%s ? 1 : 0", Getattr(n, "enumvalue"));
-      Setattr(n, "enumvalue", boolValue);
-      Delete(boolValue);
+    // Deal with enum values that are not int
+    int swigtype = SwigType_type(Getattr(n, "type"));
+    if (swigtype == T_BOOL) {
+      const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
+      Setattr(n, "enumvalue", val);
+    } else if (swigtype == T_CHAR) {
+      String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
+      Setattr(n, "enumvalue", val);
+      Delete(val);
     }
 
     {
@@ -1397,11 +1398,12 @@ public:
 	}
       } else {
 	// Wrap C/C++ enums with constant integers or use the typesafe enum pattern
-	String *type = Getattr(n, "type"); /* should be int unless explicitly specified in a C++0x enum class */
-	SwigType *typemap_lookup_type = parent_name ? parent_name : type;
+	SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
+	Setattr(n, "type", typemap_lookup_type);
 	const String *tm = typemapLookup(n, "jstype", typemap_lookup_type, WARN_JAVA_TYPEMAP_JSTYPE_UNDEF);
 
 	String *return_type = Copy(tm);
+	substituteClassname(typemap_lookup_type, return_type);
         const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
         methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
@@ -1422,6 +1424,7 @@ public:
 	  Printf(enum_code, "  %s final static %s %s = %s;\n", methodmods, return_type, symname, value);
 	  Delete(value);
 	}
+	Delete(return_type);
       }
 
       // Add the enum value to the comma separated list being constructed in the enum declaration.
@@ -1456,6 +1459,7 @@ public:
     String *tm;
     String *return_type = NewString("");
     String *constants_code = NewString("");
+    Swig_save("constantWrapper", n, "value", NIL);
 
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
@@ -1501,7 +1505,6 @@ public:
 
     // Add the stripped quotes back in
     String *new_value = NewString("");
-    Swig_save("constantWrapper", n, "value", NIL);
     if (SwigType_type(t) == T_STRING) {
       Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
       Setattr(n, "value", new_value);
@@ -2619,7 +2622,6 @@ public:
     String *return_type = NewString("");
     String *function_code = NewString("");
     int num_arguments = 0;
-    int num_required = 0;
     String *overloaded_name = getOverloadedName(n);
     String *func_name = NULL;
     bool setter_flag = false;
@@ -2667,7 +2669,6 @@ public:
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
 
     bool global_or_member_variable = global_variable_flag || (wrapping_member_flag && !enum_constant_flag);
     int gencomma = 0;
@@ -3548,7 +3549,6 @@ public:
     String *callback_def = NewString("");
     String *callback_code = NewString("");
     String *imcall_args = NewString("");
-    int gencomma = 0;
     int classmeth_off = curr_class_dmethod - first_class_dmethod;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
 
@@ -3767,14 +3767,14 @@ public:
     Delete(tp);
 
     /* Go through argument list, convert from native to Java */
-    for (p = l; p; /* empty */ ) {
+    for (i = 0, p = l; p; ++i) {
       /* Is this superfluous? */
       while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
 	p = Getattr(p, "tmap:directorin:next");
       }
 
       SwigType *pt = Getattr(p, "type");
-      String *ln = Copy(Getattr(p, "name"));
+      String *ln = makeParameterName(n, p, i, false);
       String *c_param_type = NULL;
       String *c_decl = NewString("");
       String *arg = NewString("");
@@ -3833,7 +3833,7 @@ public:
 	      substituteClassname(pt, din);
 	      Replaceall(din, "$jniinput", ln);
 
-	      if (++gencomma > 1)
+	      if (i > 0)
 		Printf(imcall_args, ", ");
 	      Printf(callback_def, ", %s %s", tm, ln);
 
@@ -3896,6 +3896,7 @@ public:
       Delete(arg);
       Delete(c_decl);
       Delete(c_param_type);
+      Delete(ln);
     }
 
     /* header declaration, start wrapper definition */
@@ -3989,7 +3990,7 @@ public:
 
       Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
 
-      Printf(w->code, "if (jenv->ExceptionOccurred()) return $null;\n");
+      Printf(w->code, "if (jenv->ExceptionCheck() == JNI_TRUE) return $null;\n");
 
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
@@ -4227,11 +4228,10 @@ public:
     /* Ensure that correct directordisconnect typemap's method name is called
      * here: */
 
-    const String *disconn_tm = NULL;
     Node *disconn_attr = NewHash();
     String *disconn_methodname = NULL;
 
-    disconn_tm = typemapLookup(n, "directordisconnect", full_classname, WARN_NONE, disconn_attr);
+    typemapLookup(n, "directordisconnect", full_classname, WARN_NONE, disconn_attr);
     disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
 
     Printv(w->code, "  swig_disconnect_director_self(\"", disconn_methodname, "\");\n", "}\n", NIL);
@@ -4394,6 +4394,6 @@ Java Options (available with -java)\n\
      -nopgcpp        - Suppress premature garbage collection prevention parameter\n\
      -noproxy        - Generate the low-level functional interface instead\n\
                        of proxy classes\n\
-     -oldvarnames    - old intermediary method names for variable wrappers\n\
-     -package <name> - set name of the Java package to <name>\n\
+     -oldvarnames    - Old intermediary method names for variable wrappers\n\
+     -package <name> - Set name of the Java package to <name>\n\
 \n";

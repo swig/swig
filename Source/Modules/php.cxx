@@ -46,7 +46,7 @@ char cvsroot_php_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 PHP Options (available with -php)\n\
-     -cppext          - cpp file extension (default to .cpp)\n\
+     -cppext <ext>    - Change C++ file extension to <ext> (default is cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
      -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
@@ -126,7 +126,7 @@ static enum {
 } wrapperType = standard;
 
 extern "C" {
-  static void (*r_prevtracefunc) (SwigType *t, String *mangled, String *clientdata) = 0;
+  static void (*r_prevtracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
 }
 
 static void SwigPHP_emit_resource_registrations() {
@@ -182,6 +182,23 @@ static void SwigPHP_emit_resource_registrations() {
 }
 
 class PHP : public Language {
+  String *emit_action(Node *n) {
+    // Adjust wrap:action to add TSRMLS_CC.
+    String * action = Getattr(n, "wrap:action");
+    if (action) {
+      char * p = Strstr(action, "Swig::DirectorPureVirtualException::raise(\"");
+      if (p) {
+	p += strlen("Swig::DirectorPureVirtualException::raise(\"");
+	p = strchr(p, '"');
+	if (p) {
+	  ++p;
+	  Insert(action, p - Char(action), " TSRMLS_CC");
+	}
+      }
+    }
+    return ::emit_action(n);
+  }
+
 public:
   PHP() {
     director_language = 1;
@@ -250,7 +267,6 @@ public:
   virtual int top(Node *n) {
 
     String *filen;
-    String *s_type;
 
     /* Check if directors are enabled for this module. */
     Node *mod = Getattr(n, "module");
@@ -283,7 +299,6 @@ public:
     r_shutdown = NewString("/* rshutdown section */\n");
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
-    s_type = NewStringEmpty();
     /* subsections of the init section */
     s_vinit = NewString("/* vinit subsection */\n");
     s_vdecl = NewString("/* vdecl subsection */\n");
@@ -329,6 +344,9 @@ public:
     cap_module = NewStringf("%(upper)s", module);
     if (!prefix)
       prefix = NewStringEmpty();
+
+    Printf(f_runtime, "#define SWIG_PREFIX \"%s\"\n", prefix);
+    Printf(f_runtime, "#define SWIG_PREFIX_LEN %lu\n", (unsigned long)Len(prefix));
 
     if (directorsEnabled()) {
       Swig_banner(f_directors_h);
@@ -389,6 +407,12 @@ public:
     Printf(s_header, "#else\n");
     Printf(s_header, "#define SWIG_ErrorMsg() (%s_globals.error_msg)\n", module);
     Printf(s_header, "#define SWIG_ErrorCode() (%s_globals.error_code)\n", module);
+    Printf(s_header, "#endif\n\n");
+
+    Printf(s_header, "// Allow the user to workaround a PHP bug on some platforms/architectures by\n");
+    Printf(s_header, "// compiling with -DSWIG_ZEND_ERROR_NORETURN=zend_error\n");
+    Printf(s_header, "#ifndef SWIG_ZEND_ERROR_NORETURN\n");
+    Printf(s_header, "# define SWIG_ZEND_ERROR_NORETURN zend_error_noreturn\n");
     Printf(s_header, "#endif\n\n");
 
     Printf(s_header, "static void %s_init_globals(zend_%s_globals *globals ) {\n", module, module);
@@ -799,8 +823,8 @@ public:
       Wrapper_add_local(f, "director", "Swig::Director *director = 0");
       Printf(f->code, "director = dynamic_cast<Swig::Director*>(arg1);\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s\", (char *)\"%s\");\n",
-	  Swig_class_name(Swig_methodclass(n)), name);
+      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s%s\", (char *)\"%s\");\n",
+	  prefix, Swig_class_name(Swig_methodclass(n)), name);
     }
 
     // This generated code may be called:
@@ -976,7 +1000,11 @@ public:
     /* Error handling code */
     Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
-    Printv(f->code, "zend_error_noreturn(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
+    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+     * using zend_error() here shouldn't generate a warning, so just use that.
+     * At worst this may result in slightly less good code.
+     */
+    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
 
     Printf(f->code, "}\n");
 
@@ -1069,6 +1097,8 @@ public:
       Hash *ret_types = NewHash();
       Setattr(ret_types, d, d);
 
+      bool non_void_return = (Cmp(d, "void") != 0);
+
       if (overloaded) {
 	// Look at all the overloaded versions of this method in turn to
 	// decide if it's really an overloaded method, or just one where some
@@ -1085,6 +1115,7 @@ public:
 	    assert(constructor);
 	  } else if (!Getattr(ret_types, d2)) {
 	    Setattr(ret_types, d2, d2);
+	    non_void_return = non_void_return || (Cmp(d2, "void") != 0);
 	  }
 
 	  ParmList *l2 = Getattr(o, "wrap:parms");
@@ -1496,7 +1527,7 @@ public:
 	    while (last_handled_i < i) {
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
-	    if (Cmp(d, "void") != 0) {
+	    if (non_void_return) {
 	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
 		Append(prepare, "$r=");
 	      } else {
@@ -1518,7 +1549,7 @@ public:
 	Printf(prepare, "\t\t");
 	if (had_a_case)
 	  Printf(prepare, "default: ");
-	if (Cmp(d, "void") != 0) {
+	if (non_void_return) {
 	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
 	    Append(prepare, "$r=");
 	  } else {
@@ -1601,10 +1632,9 @@ public:
 	    Delete(args);
 	    args = NewString("$res=null");
 	  }
-	  SwigType *t = Getattr(current_class, "classtype");
-	  String *mangled_type = SwigType_manglestr(SwigType_ltype(t));
+	  String *mangled_type = SwigType_manglestr(Getattr(n, "type"));
 	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
-	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '_p%s') {\n", arg0, arg0, mangled_type);
+	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '%s') {\n", arg0, arg0, mangled_type);
 	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
 	  Printf(output, "\t\t\treturn;\n");
 	  Printf(output, "\t\t}\n");
@@ -1645,7 +1675,7 @@ public:
 	      Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
 	    } else {
 	      String *classname = Swig_class_name(current_class);
-	      Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
+	      Printf(output, "\t\treturn new %s%s(%s);\n", prefix, classname, invoke);
 	    }
 	  }
 	} else {
@@ -1665,43 +1695,33 @@ public:
 	  }
 	}
 	Printf(output, "%s", prepare);
-      } else if (Cmp(d, "void") == 0 && !hasargout) {
+      } else if (!non_void_return && !hasargout) {
 	if (Cmp(invoke, "$r") != 0)
 	  Printf(output, "\t\t%s;\n", invoke);
       } else if (is_class(d)) {
 	if (Cmp(invoke, "$r") != 0)
 	  Printf(output, "\t\t$r=%s;\n", invoke);
 	if (Len(ret_types) == 1) {
-	  /* If it has an abstract base, then we can't create a new
-	   * base object. */
-	  int hasabstractbase = 0;
-	  Node *bases = Getattr(Swig_methodclass(n), "bases");
-	  if (bases) {
-	    Iterator i = First(bases);
-	    while(i.item) {
-	      if (Getattr(i.item, "abstract")) {
-		hasabstractbase = 1;
-		break;
-	      }
-	      i = Next(i);
-	    }
+	  /* If d is abstract we can't create a new wrapper type d. */
+	  Node * d_class = classLookup(d);
+	  int is_abstract = 0;
+	  if (Getattr(d_class, "abstract")) {
+	    is_abstract = 1;
 	  }
-	  if (newobject || !hasabstractbase) {
-	    /*
-	     * _p_Foo -> Foo, _p_ns__Bar -> Bar
-	     * TODO: do this in a more elegant way
-	     */
+	  if (newobject || !is_abstract) {
 	    Printf(output, "\t\tif (is_resource($r)) {\n");
 	    if (Getattr(classLookup(Getattr(n, "type")), "module")) {
+	      /*
+	       * _p_Foo -> Foo, _p_ns__Bar -> Bar
+	       * TODO: do this in a more elegant way
+	       */
 	      if (Len(prefix) == 0) {
 		Printf(output, "\t\t\t$c=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
 	      } else {
 		Printf(output, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	      }
-	      Printf(output, "\t\t\tif (!class_exists($c)) {\n");
-	      Printf(output, "\t\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
-	      Printf(output, "\t\t\t}\n");
-	      Printf(output, "\t\t\treturn new $c($r);\n");
+	      Printf(output, "\t\t\tif (class_exists($c)) return new $c($r);\n");
+	      Printf(output, "\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
 	    } else {
 	      Printf(output, "\t\t\t$c = new stdClass();\n");
 	      Printf(output, "\t\t\t$c->"SWIG_PTR" = $r;\n");
@@ -1719,7 +1739,6 @@ public:
 	  while (i.item) {
 	    SwigType *ret_type = i.item;
 	    i = Next(i);
-	    Printf(output, "\t\t");
 	    String *mangled = NewString("_p");
 	    Printf(mangled, "%s", SwigType_manglestr(ret_type));
 	    Node *class_node = Getattr(zend_types, mangled);
@@ -1730,7 +1749,13 @@ public:
 	      Delete(mangled);
 	      mangled = NewString(SwigType_manglestr(ret_type));
 	      class_node = Getattr(zend_types, mangled);
+	      if (!class_node) {
+		// Return type isn't an object, so will be handled by the
+		// !is_resource() check before the switch.
+		continue;
+	      }
 	    }
+	    Printf(output, "\t\t");
 	    if (i.item) {
 	      Printf(output, "case '%s': ", mangled);
 	    } else {
@@ -2229,8 +2254,8 @@ done:
       if (i) {
 	Insert(args, 0, ", ");
       }
-      Printf(director_ctor_code, "} else {\n  result = (%s *)new SwigDirector_%s(arg0%s);\n}\n", ctype, sname, args);
-      Printf(director_prot_ctor_code, "} else {\n  result = (%s *)new SwigDirector_%s(arg0%s);\n}\n", ctype, sname, args);
+      Printf(director_ctor_code, "} else {\n  result = (%s *)new SwigDirector_%s(arg0%s TSRMLS_CC);\n}\n", ctype, sname, args);
+      Printf(director_prot_ctor_code, "} else {\n  result = (%s *)new SwigDirector_%s(arg0%s TSRMLS_CC);\n}\n", ctype, sname, args);
       Delete(args);
 
       wrapperType = directorconstructor;
@@ -2291,7 +2316,11 @@ done:
 
     Append(f->code, "return;\n");
     Append(f->code, "fail:\n");
-    Append(f->code, "zend_error_noreturn(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+     * using zend_error() here shouldn't generate a warning, so just use that.
+     * At worst this may result in slightly less good code.
+     */
+    Append(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
     Printf(f->code, "}\n");
 
     Wrapper_print(f, s_wrappers);
@@ -2347,8 +2376,13 @@ done:
 	String *call;
 	String *basetype = Getattr(parent, "classtype");
 	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	if (((const char *)Char(target))[Len(target) - 2] == '(') {
+	  Insert(target, Len(target) - 1, "TSRMLS_D");
+	} else {
+	  Insert(target, Len(target) - 1, " TSRMLS_DC");
+	}
 	call = Swig_csuperclass_call(0, basetype, superparms);
-	Printf(w->def, "%s::%s: %s, Swig::Director(self) {", classname, target, call);
+	Printf(w->def, "%s::%s: %s, Swig::Director(self TSRMLS_CC) {", classname, target, call);
 	Append(w->def, "}");
 	Delete(target);
 	Wrapper_print(w, f_directors);
@@ -2359,6 +2393,11 @@ done:
       /* constructor header */
       {
 	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	if (((const char *)Char(target))[Len(target) - 2] == '(') {
+	  Insert(target, Len(target) - 1, "TSRMLS_D");
+	} else {
+	  Insert(target, Len(target) - 1, " TSRMLS_DC");
+	}
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -2462,6 +2501,8 @@ done:
     Append(w->def, " {");
     Append(declaration, ";\n");
 
+    Printf(w->code, "TSRMLS_FETCH_FROM_CTX(swig_zts_ctx);\n");
+
     /* declare method return value 
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
@@ -2482,7 +2523,7 @@ done:
 	Printf(w->code, "%s;\n", super_call);
 	Delete(super_call);
       } else {
-	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
+	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\" TSRMLS_CC);\n", SwigType_namestr(c_classname),
 	    SwigType_namestr(name));
       }
     } else {
@@ -2504,7 +2545,6 @@ done:
       /* build argument list and type conversion string */
       idx = 0;
       p = l;
-      int use_parse = 0;
       while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
 	  p = Getattr(p, "tmap:in:next");
@@ -2531,7 +2571,6 @@ done:
 	    Printv(wrap_args, tm, "\n", NIL);
 	    Putc('O', parse_args);
 	  } else {
-	    use_parse = 1;
 	    Append(parse_args, parse);
 	    Replaceall(tm, "$input", pname);
 	    Replaceall(tm, "$owner", "0");
@@ -2666,7 +2705,15 @@ done:
     }
 
     Append(w->code, "fail:\n");
-    Append(w->code, "zend_error_noreturn(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    if (!is_void) {
+      Append(w->code, "SWIG_ZEND_ERROR_NORETURN(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    } else {
+      /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+       * using zend_error() here shouldn't generate a warning, so just use that.
+       * At worst this may result in slightly less good code.
+       */
+      Append(w->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    }
     Append(w->code, "}\n");
 
     // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method
@@ -2711,7 +2758,7 @@ static PHP *maininstance = 0;
 // We use this function to be able to write out zend_register_list_destructor_ex
 // lines for most things in the type table
 // NOTE: it's a function NOT A PHP::METHOD
-extern "C" void typetrace(SwigType *ty, String *mangled, String *clientdata) {
+extern "C" void typetrace(const SwigType *ty, String *mangled, String *clientdata) {
   Node *class_node;
   if (!zend_types) {
     zend_types = NewHash();

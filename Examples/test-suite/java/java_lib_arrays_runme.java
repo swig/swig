@@ -23,6 +23,7 @@ public class java_lib_arrays_runme {
 
     // Create arrays for all the array types that ArrayStruct can handle
     String array_c = "X";
+    byte[] array_c_extra = {11, 22};
     byte[] array_sc = {10, 20};
     short[] array_uc = {101, 201};
     short[] array_s = {1002, 2002};
@@ -105,6 +106,12 @@ public class java_lib_arrays_runme {
 
     as.setArray_struct(array_struct);
     check_struct_array(array_struct, as.getArray_struct());
+
+    // Extended element (for char[])
+    ArrayStructExtra ase = new ArrayStructExtra();
+    ase.setArray_c2(array_c_extra);
+    check_byte_array(array_c_extra, ase.getArray_c2());
+
  }
 
   // Functions to check that the array values were set correctly

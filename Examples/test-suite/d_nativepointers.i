@@ -15,4 +15,7 @@
   OpaqueClass *f( OpaqueClass *value ){ return value; }
   FuncA g( FuncA value ){ return value; }
   FuncB* h( FuncB* value ){ return value; }
+
+  int &refA( int &value ){ return value; }
+  float *&refB( float *&value ){ return value; }
 %}

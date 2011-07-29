@@ -269,7 +269,7 @@
 
       const key_type& get_next_key(std::map< K, T >::iterator *swigiterator) {
         std::map< K, T >::iterator iter = *swigiterator;
-        swigiterator++;
+        (*swigiterator)++;
         return (*iter).first;
       }
 

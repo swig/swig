@@ -44,10 +44,10 @@ void main() {
     enforce(!canFind!`a == 20 * 10`(vector[]), "canFind test 4 failed");
 
     foreach (i, _; vector) {
-      enforce(indexOf(vector[], i * 10) == i, "indexOf test failed, i: " ~ to!string(i));
+      enforce(countUntil(vector[], i * 10) == i, "indexOf test failed, i: " ~ to!string(i));
     }
 
-    enforce(indexOf(vector[], 42) == -1, "non-existant item indexOf test failed");
+    enforce(countUntil(vector[], 42) == -1, "non-existant item indexOf test failed");
 
     vector.clear();
     enforce(vector.length == 0, "clear test failed");

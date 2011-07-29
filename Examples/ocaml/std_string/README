@@ -1,3 +1,9 @@
+--- New --- 
+
+It's not possible to access std::(w)string at the moment as it breaks other string examples. 
+
+--- Old ---
+
 This example shows how to use both std::string and std::wstring in Ocaml,
 and also demonstrates that one might use this to make a locale-obedient
 Ocaml program.

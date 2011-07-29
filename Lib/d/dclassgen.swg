@@ -21,7 +21,7 @@
  */
 
 %typemap(dconstructor, excode=SWIGEXCODE,directorconnect="\n  swigDirectorConnect();") SWIGTYPE {
-  this($wcall, true);$excode$directorconnect
+  this($imcall, true);$excode$directorconnect
 }
 
 %typemap(ddestructor) SWIGTYPE %{
@@ -38,7 +38,7 @@
     if (swigCPtr !is null) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        $wcall;
+        $imcall;
       }
       swigCPtr = null;
     }
@@ -50,7 +50,7 @@
     if (swigCPtr !is null) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        $wcall;
+        $imcall;
       }
       swigCPtr = null;
       super.dispose();
@@ -58,7 +58,7 @@
   }
 }
 
-%define SWIGD_CLASS_BODIES(OP_EQUALS_RETURN)
+
 // Unfortunately, the »package« visibility attribute does not work in D when the
 // module in question is in the root package (happens if no -package is specified
 // at the SWIG command line), so we are stuck with public visibility for
@@ -72,36 +72,27 @@ public this(void* cObject, bool ownCObject) {
   swigCMemOwn = ownCObject;
 }
 
-public override OP_EQUALS_RETURN opEquals(Object rhs) {
-  if (auto other = cast($dclassname)rhs) {
-    return (swigCPtr == other.swigCPtr);
-  }
-  return super.opEquals(rhs);
-}
-
 public static void* swigGetCPtr($dclassname obj) {
   return (obj is null) ? null : obj.swigCPtr;
 }
+
+mixin $imdmodule.SwigOperatorDefinitions;
 %}
+
 
 %typemap(dbody_derived) SWIGTYPE %{
 private void* swigCPtr;
 
 public this(void* cObject, bool ownCObject) {
-  super($wrapdmodule.$dclassnameUpcast(cObject), ownCObject);
+  super($imdmodule.$dclazznameUpcast(cObject), ownCObject);
   swigCPtr = cObject;
-}
-
-public override OP_EQUALS_RETURN opEquals(Object rhs) {
-  if (auto other = cast($dclassname)rhs) {
-    return (swigCPtr == other.swigCPtr);
-  }
-  return super.opEquals(rhs);
 }
 
 public static void* swigGetCPtr($dclassname obj) {
   return (obj is null) ? null : obj.swigCPtr;
 }
+
+mixin $imdmodule.SwigOperatorDefinitions;
 %}
 
 
@@ -120,16 +111,11 @@ protected this() {
   swigCPtr = null;
 }
 
-public override OP_EQUALS_RETURN opEquals(Object rhs) {
-  if (auto other = cast($dclassname)rhs) {
-    return (swigCPtr == other.swigCPtr);
-  }
-  return super.opEquals(rhs);
-}
-
 public static void* swigGetCPtr($dclassname obj) {
   return (obj is null) ? null : obj.swigCPtr;
 }
+
+mixin $imdmodule.SwigOperatorDefinitions;
 %}
 
 
@@ -138,35 +124,19 @@ public static void* swigGetCPtr($dclassname obj) {
  */
 
 %typemap(dbody) SWIGTYPE (CLASS::*) %{
-private char* m_swigCMemberPtr;
+private char* swigCPtr;
 
 public this(char* cMemberPtr, bool futureUse) {
-  m_swigCMemberPtr = cMemberPtr;
+  swigCPtr = cMemberPtr;
 }
 
 protected this() {
-  m_swigCMemberPtr = null;
+  swigCPtr = null;
 }
-
-public override OP_EQUALS_RETURN opEquals(Object rhs) {
-  if (auto other = cast($dclassname)rhs) {
-    return (m_swigCMemberPtr == other.m_swigCMemberPtr);
-  }
-  return super.opEquals(rhs);
-}
-
 
 package static char* swigGetCMemberPtr($dclassname obj) {
-  return (obj is null) ? null : obj.m_swigCMemberPtr;
+  return (obj is null) ? null : obj.swigCPtr;
 }
+
+mixin $imdmodule.SwigOperatorDefinitions;
 %}
-%enddef
-
-
-#if SWIG_D_VERSION == 1
-  SWIGD_CLASS_BODIES(int)
-#else
-  SWIGD_CLASS_BODIES(bool)
-#endif
-
-#undef SWIGD_CLASS_BODIES

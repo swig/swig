@@ -7,7 +7,7 @@ func main() {
 		panic("foo(int)")
 	}
 
-	if Foo(float64(3.0)) != "foo:double" {
+	if Foo(3.0) != "foo:double" {
 		panic("foo(double)")
 	}
 
@@ -37,7 +37,7 @@ func main() {
 		panic("Spam::foo(int)")
 	}
 
-	if s.Foo(float64(3.0)) != "foo:double" {
+	if s.Foo(3.0) != "foo:double" {
 		panic("Spam::foo(double)")
 	}
 
@@ -61,7 +61,7 @@ func main() {
 		panic("Spam::bar(int)")
 	}
 
-	if SpamBar(float64(3.0)) != "bar:double" {
+	if SpamBar(3.0) != "bar:double" {
 		panic("Spam::bar(double)")
 	}
 
@@ -93,7 +93,7 @@ func main() {
 		panic("Spam(int)")
 	}
 
-	s = NewSpam(float64(3.4))
+	s = NewSpam(3.4)
 	if s.GetXtype() != "double" {
 		panic("Spam(double)")
 	}

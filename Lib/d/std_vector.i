@@ -21,11 +21,11 @@
 %include <std_common.i>
 
 // MACRO for use within the std::vector class body
-%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CONST_REFERENCE, CWTYPE...)
+%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CONST_REFERENCE, CTYPE...)
 #if (SWIG_D_VERSION == 1)
-%typemap(dimports) std::vector< CWTYPE > "static import tango.core.Exception;"
-%typemap(dcode) std::vector< CWTYPE > %{
-public this($typemap(dptype, CWTYPE)[] values) {
+%typemap(dimports) std::vector< CTYPE > "static import tango.core.Exception;"
+%typemap(dcode) std::vector< CTYPE > %{
+public this($typemap(dtype, CTYPE)[] values) {
   this();
   append(values);
 }
@@ -36,7 +36,7 @@ alias push_back opCatAssign;
 alias size length;
 alias opSlice slice;
 
-public $typemap(dptype, CWTYPE) opIndexAssign($typemap(dptype, CWTYPE) value, size_t index) {
+public $typemap(dtype, CTYPE) opIndexAssign($typemap(dtype, CTYPE) value, size_t index) {
   if (index >= size()) {
     throw new tango.core.Exception.NoSuchElementException("Tried to assign to element out of vector bounds.");
   }
@@ -44,28 +44,28 @@ public $typemap(dptype, CWTYPE) opIndexAssign($typemap(dptype, CWTYPE) value, si
   return value;
 }
 
-public $typemap(dptype, CWTYPE) opIndex(size_t index) {
+public $typemap(dtype, CTYPE) opIndex(size_t index) {
   if (index >= size()) {
     throw new tango.core.Exception.NoSuchElementException("Tried to read from element out of vector bounds.");
   }
   return getElement(index);
 }
 
-public void append($typemap(dptype, CWTYPE)[] value...) {
+public void append($typemap(dtype, CTYPE)[] value...) {
   foreach (v; value) {
     add(v);
   }
 }
 
-public $typemap(dptype, CWTYPE)[] opSlice() {
-  $typemap(dptype, CWTYPE)[] array = new $typemap(dptype, CWTYPE)[size()];
+public $typemap(dtype, CTYPE)[] opSlice() {
+  $typemap(dtype, CTYPE)[] array = new $typemap(dtype, CTYPE)[size()];
   foreach (i, ref value; array) {
     value = getElement(i);
   }
   return array;
 }
 
-public int opApply(int delegate(ref $typemap(dptype, CWTYPE) value) dg) {
+public int opApply(int delegate(ref $typemap(dtype, CTYPE) value) dg) {
   int result;
 
   size_t currentSize = size();
@@ -77,7 +77,7 @@ public int opApply(int delegate(ref $typemap(dptype, CWTYPE) value) dg) {
   return result;
 }
 
-public int opApply(int delegate(ref size_t index, ref $typemap(dptype, CWTYPE) value) dg) {
+public int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg) {
   int result;
 
   size_t currentSize = size();
@@ -104,10 +104,10 @@ public void capacity(size_t value) {
 
   public:
     typedef size_t size_type;
-    typedef CWTYPE value_type;
+    typedef CTYPE value_type;
     typedef CONST_REFERENCE const_reference;
     void clear();
-    void push_back(CWTYPE const& x);
+    void push_back(CTYPE const& x);
     size_type size() const;
     size_type capacity() const;
     void reserve(size_type n) throw (std::length_error);
@@ -115,8 +115,8 @@ public void capacity(size_t value) {
     vector(const vector &other);
     %extend {
       vector(size_type capacity) throw (std::length_error) {
-        std::vector< CWTYPE >* pv = 0;
-        pv = new std::vector< CWTYPE >();
+        std::vector< CTYPE >* pv = 0;
+        pv = new std::vector< CTYPE >();
 
         // Might throw std::length_error.
         pv->reserve(capacity);
@@ -133,7 +133,7 @@ public void capacity(size_t value) {
           throw std::out_of_range("Tried to remove last element from empty vector.");
         }
 
-        std::vector< CWTYPE >::const_reference value = $self->back();
+        std::vector< CTYPE >::const_reference value = $self->back();
         $self->pop_back();
         return value;
       }
@@ -143,8 +143,8 @@ public void capacity(size_t value) {
           throw std::out_of_range("Tried to remove element with invalid index.");
         }
 
-        std::vector< CWTYPE >::iterator it = $self->begin() + index;
-        std::vector< CWTYPE >::const_reference value = *it;
+        std::vector< CTYPE >::iterator it = $self->begin() + index;
+        std::vector< CTYPE >::const_reference value = *it;
         $self->erase(it);
         return value;
       }
@@ -161,11 +161,11 @@ public void capacity(size_t value) {
       }
     }
 
-    // Use CWTYPE const& instead of const_reference to work around SWIG code
+    // Use CTYPE const& instead of const_reference to work around SWIG code
     // generation issue when using const pointers as vector elements (like
     // std::vector< const int* >).
     %extend {
-      void setElement(size_type index, CWTYPE const& val) throw (std::out_of_range) {
+      void setElement(size_type index, CTYPE const& val) throw (std::out_of_range) {
         if ((index < 0) || ($self->size() <= index)) {
           throw std::out_of_range("Tried to set value of element with invalid index.");
         }
@@ -179,15 +179,15 @@ public void capacity(size_t value) {
 
 #else
 
-%typemap(dimports) std::vector< CWTYPE > %{
+%typemap(dimports) std::vector< CTYPE > %{
 static import std.algorithm;
 static import std.exception;
 static import std.range;
 static import std.traits;
 %}
-%typemap(dcode) std::vector< CWTYPE > %{
+%typemap(dcode) std::vector< CTYPE > %{
 alias size_t KeyType;
-alias $typemap(dptype, CWTYPE) ValueType;
+alias $typemap(dtype, CTYPE) ValueType;
 
 this(ValueType[] values...) {
   this();
@@ -198,17 +198,17 @@ this(ValueType[] values...) {
 }
 
 struct Range {
-  private $typemap(dptype, std::vector< CWTYPE >) _outer;
+  private $typemap(dtype, std::vector< CTYPE >) _outer;
   private size_t _a, _b;
 
-  this($typemap(dptype, std::vector< CWTYPE >) data, size_t a, size_t b) {
+  this($typemap(dtype, std::vector< CTYPE >) data, size_t a, size_t b) {
     _outer = data;
     _a = a;
     _b = b;
   }
 
   @property bool empty() const {
-    assert((cast($typemap(dptype, std::vector< CWTYPE >))_outer).length >= _b);
+    assert((cast($typemap(dtype, std::vector< CTYPE >))_outer).length >= _b);
     return _a >= _b;
   }
 
@@ -411,7 +411,7 @@ Range linearRemove(Range r) {
 }
 alias remove stableLinearRemove;
 
-int opApply(int delegate(ref $typemap(dptype, CWTYPE) value) dg) {
+int opApply(int delegate(ref $typemap(dtype, CTYPE) value) dg) {
   int result;
 
   size_t currentSize = size();
@@ -423,7 +423,7 @@ int opApply(int delegate(ref $typemap(dptype, CWTYPE) value) dg) {
   return result;
 }
 
-int opApply(int delegate(ref size_t index, ref $typemap(dptype, CWTYPE) value) dg) {
+int opApply(int delegate(ref size_t index, ref $typemap(dtype, CTYPE) value) dg) {
   int result;
 
   size_t currentSize = size();
@@ -442,11 +442,11 @@ int opApply(int delegate(ref size_t index, ref $typemap(dptype, CWTYPE) value) d
 
   public:
     typedef size_t size_type;
-    typedef CWTYPE value_type;
+    typedef CTYPE value_type;
     typedef CONST_REFERENCE const_reference;
     bool empty() const;
     void clear();
-    void push_back(CWTYPE const& x);
+    void push_back(CTYPE const& x);
     void pop_back();
     size_type size() const;
     size_type capacity() const;
@@ -455,8 +455,8 @@ int opApply(int delegate(ref size_t index, ref $typemap(dptype, CWTYPE) value) d
     vector(const vector &other);
     %extend {
       vector(size_type capacity) throw (std::length_error) {
-        std::vector< CWTYPE >* pv = 0;
-        pv = new std::vector< CWTYPE >();
+        std::vector< CTYPE >* pv = 0;
+        pv = new std::vector< CTYPE >();
 
         // Might throw std::length_error.
         pv->reserve(capacity);
@@ -469,7 +469,7 @@ int opApply(int delegate(ref size_t index, ref $typemap(dptype, CWTYPE) value) d
           throw std::out_of_range("Tried to remove last element from empty vector.");
         }
 
-        std::vector< CWTYPE >::const_reference value = $self->back();
+        std::vector< CTYPE >::const_reference value = $self->back();
         $self->pop_back();
         return value;
       }
@@ -479,26 +479,26 @@ int opApply(int delegate(ref size_t index, ref $typemap(dptype, CWTYPE) value) d
           throw std::out_of_range("Tried to remove element with invalid index.");
         }
 
-        std::vector< CWTYPE >::iterator it = $self->begin() + index;
-        std::vector< CWTYPE >::const_reference value = *it;
+        std::vector< CTYPE >::iterator it = $self->begin() + index;
+        std::vector< CTYPE >::const_reference value = *it;
         $self->erase(it);
         return value;
       }
 
       void removeBack(size_type how_many) throw (std::out_of_range) {
-        std::vector< CWTYPE >::iterator end = $self->end();
-        std::vector< CWTYPE >::iterator start = end - how_many;
+        std::vector< CTYPE >::iterator end = $self->end();
+        std::vector< CTYPE >::iterator start = end - how_many;
         $self->erase(start, end);
       }
 
       void linearRemove(size_type start_index, size_type end_index) throw (std::out_of_range) {
-        std::vector< CWTYPE >::iterator start = $self->begin() + start_index;
-        std::vector< CWTYPE >::iterator end = $self->begin() + end_index;
+        std::vector< CTYPE >::iterator start = $self->begin() + start_index;
+        std::vector< CTYPE >::iterator end = $self->begin() + end_index;
         $self->erase(start, end);
       }
 
-      void insertAt(size_type index, CWTYPE const& x) throw (std::out_of_range) {
-        std::vector< CWTYPE >::iterator it = $self->begin() + index;
+      void insertAt(size_type index, CTYPE const& x) throw (std::out_of_range) {
+        std::vector< CTYPE >::iterator it = $self->begin() + index;
         $self->insert(it, x);
       }
     }
@@ -513,11 +513,11 @@ int opApply(int delegate(ref size_t index, ref $typemap(dptype, CWTYPE) value) d
         return (*$self)[index];
       }
     }
-    // Use CWTYPE const& instead of const_reference to work around SWIG code
+    // Use CTYPE const& instead of const_reference to work around SWIG code
     // generation issue when using const pointers as vector elements (like
     // std::vector< const int* >).
     %extend {
-      void setElement(size_type index, CWTYPE const& val) throw (std::out_of_range) {
+      void setElement(size_type index, CTYPE const& val) throw (std::out_of_range) {
         if ((index < 0) || ($self->size() <= index)) {
           throw std::out_of_range("Tried to set value of element with invalid index.");
         }
@@ -532,7 +532,7 @@ int opApply(int delegate(ref size_t index, ref $typemap(dptype, CWTYPE) value) d
 
 // Extra methods added to the collection class if operator== is defined for the class being wrapped
 // The class will then implement IList<>, which adds extra functionality
-%define SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CWTYPE...)
+%define SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CTYPE...)
     %extend {
     }
 %enddef
@@ -541,11 +541,11 @@ int opApply(int delegate(ref size_t index, ref $typemap(dptype, CWTYPE) value) d
 #define %arg(X...) X
 
 // Macros for std::vector class specializations/enhancements
-%define SWIG_STD_VECTOR_ENHANCED(CWTYPE...)
+%define SWIG_STD_VECTOR_ENHANCED(CTYPE...)
 namespace std {
-  template<> class vector<CWTYPE > {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(%arg(CWTYPE const&), %arg(CWTYPE))
-    SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CWTYPE)
+  template<> class vector<CTYPE > {
+    SWIG_STD_VECTOR_MINIMUM_INTERNAL(%arg(CTYPE const&), %arg(CTYPE))
+    SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CTYPE)
   };
 }
 %enddef

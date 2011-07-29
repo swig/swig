@@ -60,6 +60,7 @@
 #define WARN_PP_INCLUDEALL_IMPORTALL  203
 #define WARN_PP_CPP_WARNING           204
 #define WARN_PP_CPP_ERROR             205
+#define WARN_PP_UNEXPECTED_TOKENS     206
 
 /* -- C/C++ Parser -- */
 
@@ -193,6 +194,7 @@
 #define WARN_LANG_DIRECTOR_ABSTRACT   517
 #define WARN_LANG_PORTABILITY_FILENAME 518
 #define WARN_LANG_TEMPLATE_METHOD_IGNORE 519
+#define WARN_LANG_SMARTPTR_MISSING    520
 
 /* -- Reserved (600-799) -- */
 
@@ -201,9 +203,9 @@
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
    add an entry here */
 
-#define WARN_D_TYPEMAP_CWTYPE_UNDEF           700
-#define WARN_D_TYPEMAP_DWTYPE_UNDEF           701
-#define WARN_D_TYPEMAP_DPTYPE_UNDEF           702
+#define WARN_D_TYPEMAP_CTYPE_UNDEF           700
+#define WARN_D_TYPEMAP_IMTYPE_UNDEF           701
+#define WARN_D_TYPEMAP_DTYPE_UNDEF           702
 #define WARN_D_MULTIPLE_INHERITANCE           703
 #define WARN_D_TYPEMAP_CLASSMOD_UNDEF         704
 #define WARN_D_TYPEMAP_DBODY_UNDEF            705

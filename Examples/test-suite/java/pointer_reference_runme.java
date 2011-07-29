@@ -19,5 +19,8 @@ public class pointer_reference_runme {
     Struct ss = new Struct(20);
     pointer_reference.set(ss);
     if (Struct.getInstance().getValue() != 20) throw new RuntimeException("set test failed");
+
+    if (pointer_reference.overloading(1) != 111) throw new RuntimeException("overload test 1 failed");
+    if (pointer_reference.overloading(ss) != 222) throw new RuntimeException("overload test 2 failed");
   }
 }

@@ -1,6 +1,6 @@
 %module operator_overload_break
 
-#if defined(SWIGPYTHON)
+#if defined(SWIGPYTHON) || defined(SWIGD)
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSPLUS);
 #endif
 

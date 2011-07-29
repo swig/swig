@@ -4192,8 +4192,9 @@ In the example below, the generic template type is used to rename to <tt>bbb</tt
 
 <div class="code">
 <pre>
-%rename(bbb) Space::ABC::aaa(T t);                       // will match but with lower precedence than ccc
-%rename(ccc) Space::ABC&lt;Space::XYZ&gt;::aaa(Space::XYZ t);  // will match but with higher precedence than bbb
+%rename(bbb) Space::ABC::aaa(T t);                  // will match but with lower precedence than ccc
+%rename(ccc) Space::ABC&lt;Space::XYZ&gt;::aaa(Space::XYZ t);// will match but with higher precedence
+                                                             // than bbb
 
 namespace Space {
   class XYZ {};
@@ -4214,9 +4215,9 @@ Below shows how %rename can be placed inside a namespace.
 <div class="code">
 <pre>
 namespace Space {
-  %rename(bbb) ABC::aaa(T t);                       // will match but with lower precedence than ccc
-  %rename(ccc) ABC&lt;Space::XYZ&gt;::aaa(Space::XYZ t);  // will match but with higher precedence than bbb
-  %rename(ddd) ABC&lt;Space::XYZ&gt;::aaa(XYZ t);         // will not match
+  %rename(bbb) ABC::aaa(T t);                     // will match but with lower precedence than ccc
+  %rename(ccc) ABC&lt;Space::XYZ&gt;::aaa(Space::XYZ t);// will match but with higher precedence than bbb
+  %rename(ddd) ABC&lt;Space::XYZ&gt;::aaa(XYZ t);       // will not match
 }
 
 namespace Space {
@@ -4238,11 +4239,11 @@ The following example shows how %rename can be placed within %extend.
 <pre>
 namespace Space {
   %extend ABC {
-    %rename(bbb) aaa(T t);           // will match but with lower precedence than ccc
+    %rename(bbb) aaa(T t);         // will match but with lower precedence than ccc
   }
   %extend ABC&lt;Space::XYZ&gt; {
-    %rename(ccc) aaa(Space::XYZ t);  // will match but with higher precedence than bbb
-    %rename(ddd) aaa(XYZ t);         // will not match
+    %rename(ccc) aaa(Space::XYZ t);// will match but with higher precedence than bbb
+    %rename(ddd) aaa(XYZ t);       // will not match
   }
 }
 

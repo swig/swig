@@ -198,8 +198,6 @@ PHP
 
 ****   Look at moving to using the UTL.
 
-***    Director support.
-
 **     When returning wrapped objects via alternate constructors if that
        pointer value already exists "out there" as a resource we should
        use the same resource, we can't have multiple ref-counted resources
@@ -373,6 +371,3 @@ Documentation
 ***    Perl, Python, Tcl modules.
 
 ***    add section for Perl module support for operator overloading
-
-**     Add section on WAD.
-

@@ -5,8 +5,8 @@ b = typename.Bar()
 
 x = typename.twoFoo(f)
 if not isinstance(x,types.FloatType):
-    print "Wrong return type!"
+    raise RuntimeError,"Wrong return type (FloatType) !"
 y = typename.twoBar(b)
 if not isinstance(y,types.IntType):
-    print "Wrong return type!"
+    raise RuntimeError,"Wrong return type (IntType)!"
     

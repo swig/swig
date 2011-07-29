@@ -96,24 +96,28 @@ check-aliveness:
 	test -x ./$(TARGET)
 	./$(TARGET) -version
 	./$(TARGET) -help
-	@$(skip-tcl)      || ./$(TARGET) -tcl      -help
-	@$(skip-perl5)    || ./$(TARGET) -perl     -help
-	@$(skip-python)   || ./$(TARGET) -python   -help
-	@$(skip-java)     || ./$(TARGET) -java     -help
-	@$(skip-guile)    || ./$(TARGET) -guile    -help
-	@$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
-	@$(skip-ruby)     || ./$(TARGET) -ruby     -help
-	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
-	@$(skip-octave)   || ./$(TARGET) -octave   -help
-	@$(skip-php)      || ./$(TARGET) -php      -help
-	@$(skip-pike)     || ./$(TARGET) -pike     -help
-	@$(skip-chicken)  || ./$(TARGET) -chicken  -help
-	@$(skip-csharp)   || ./$(TARGET) -csharp   -help
-	@$(skip-modula3)  || ./$(TARGET) -modula3  -help
-	@$(skip-lua)      || ./$(TARGET) -lua      -help
-	@$(skip-r) 	  || ./$(TARGET) -r        -help
-	@$(skip-go)	  || ./$(TARGET) -go       -help
-	@$(skip-d) 	  || ./$(TARGET) -d        -help
+	@$(skip-tcl)      || ./$(TARGET) -tcl        -help
+	@$(skip-perl5)    || ./$(TARGET) -perl       -help
+	@$(skip-python)   || ./$(TARGET) -python     -help
+	@$(skip-java)     || ./$(TARGET) -java       -help
+	@$(skip-guile)    || ./$(TARGET) -guile      -help
+	@$(skip-mzscheme) || ./$(TARGET) -mzscheme   -help
+	@$(skip-ruby)     || ./$(TARGET) -ruby       -help
+	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
+	@$(skip-octave)   || ./$(TARGET) -octave     -help
+	@$(skip-php)      || ./$(TARGET) -php        -help
+	@$(skip-pike)     || ./$(TARGET) -pike       -help
+	@$(skip-chicken)  || ./$(TARGET) -chicken    -help
+	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
+	@$(skip-modula3)  || ./$(TARGET) -modula3    -help
+	@$(skip-allegrocl)|| ./$(TARGET) -allegrocl  -help
+	@$(skip-clisp)    || ./$(TARGET) -clisp      -help
+	@$(skip-uffi)     || ./$(TARGET) -uffi       -help
+	@$(skip-cffi)     || ./$(TARGET) -cffi       -help
+	@$(skip-lua)      || ./$(TARGET) -lua        -help
+	@$(skip-r) 	  || ./$(TARGET) -r          -help
+	@$(skip-go)	  || ./$(TARGET) -go         -help
+	@$(skip-d) 	  || ./$(TARGET) -d          -help
 
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
@@ -496,7 +500,7 @@ srcrpm:
 
 # Update the autoconf files for detecting host/targets. Automake will do this in
 # version 1.10 for our case of not having a top level Makefile.am. Until then we
-# can fetch them manually and will have to commit them to CVS.
+# can fetch them manually and will have to commit them to SVN.
 configfiles:
 	wget ftp://ftp.gnu.org/pub/gnu/config/config.guess -O Tools/config/config.guess
 	chmod a+x Tools/config/config.guess

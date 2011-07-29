@@ -27,6 +27,7 @@ namespace std {
 
 %inline %{
 typedef float Real;
+size_t typedef_test(std::vector<int>::size_type s) { return s; }
 %}
 
 namespace std {

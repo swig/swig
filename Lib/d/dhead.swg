@@ -64,7 +64,7 @@ SWIGEXPORT void SWIGRegisterExceptionCallbacks_$module(
 %}
 
 #if (SWIG_D_VERSION == 1)
-%pragma(d) wrapdmoduleimports=%{
+%pragma(d) imdmoduleimports=%{
 // Exception throwing support currently requires Tango, but there is no reason
 // why it could not support Phobos.
 static import tango.core.Exception;
@@ -72,7 +72,7 @@ static import tango.core.Thread;
 static import tango.stdc.stringz;
 %}
 
-%pragma(d) wrapdmodulecode=%{
+%pragma(d) imdmodulecode=%{
 private class SwigExceptionHelper {
   static this() {
     swigRegisterExceptionCallbacks(
@@ -84,7 +84,7 @@ private class SwigExceptionHelper {
   }
 
   static void setException(char* message) {
-    auto exception = new Exception(tango.stdc.stringz.fromStringz(message).dup);
+    auto exception = new object.Exception(tango.stdc.stringz.fromStringz(message).dup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
@@ -131,9 +131,9 @@ public:
     return pending;
   }
 
-  static void set(Exception e) {
+  static void set(object.Exception e) {
     if (m_sPendingException.val !is null) {
-      throw new Exception("FATAL: An earlier pending exception from C/C++ code " ~
+      throw new object.Exception("FATAL: An earlier pending exception from C/C++ code " ~
         "was missed and thus not thrown (" ~ m_sPendingException.val.classinfo.name ~
         ": " ~ m_sPendingException.val.msg ~ ")!", e);
     }
@@ -144,8 +144,8 @@ public:
     }
   }
 
-  static Exception retrieve() {
-    Exception e = null;
+  static object.Exception retrieve() {
+    object.Exception e = null;
     if (m_sPendingCount > 0) {
       if (m_sPendingException.val !is null) {
         e = m_sPendingException.val;
@@ -163,17 +163,17 @@ private:
   static int m_sPendingCount;
 
   // The reference to the pending exception (if any) is stored thread-local.
-  alias tango.core.Thread.ThreadLocal!(Exception) ThreadLocalData;
+  alias tango.core.Thread.ThreadLocal!(object.Exception) ThreadLocalData;
   static ThreadLocalData m_sPendingException;
 }
 alias void function(char* message) SwigExceptionCallback;
 %}
 #else
-%pragma(d) wrapdmoduleimports=%{
+%pragma(d) imdmoduleimports=%{
 static import std.conv;
 %}
 
-%pragma(d) wrapdmodulecode=%{
+%pragma(d) imdmodulecode=%{
 private class SwigExceptionHelper {
   static this() {
 	// The D1/Tango version maps C++ exceptions to multiple exception types.
@@ -187,7 +187,7 @@ private class SwigExceptionHelper {
   }
 
   static void setException(char* message) {
-    auto exception = new Exception(std.conv.to!string(message).idup);
+    auto exception = new object.Exception(std.conv.to!string(message).idup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
@@ -210,9 +210,9 @@ public:
     return pending;
   }
 
-  static void set(Exception e) {
+  static void set(object.Exception e) {
     if (m_sPendingException !is null) {
-      throw new Exception("FATAL: An earlier pending exception from C/C++ code " ~
+      throw new object.Exception("FATAL: An earlier pending exception from C/C++ code " ~
         "was missed and thus not thrown (" ~ m_sPendingException.classinfo.name ~
         ": " ~ m_sPendingException.msg ~ ")!", e);
     }
@@ -223,8 +223,8 @@ public:
     }
   }
 
-  static Exception retrieve() {
-    Exception e = null;
+  static object.Exception retrieve() {
+    object.Exception e = null;
     if (m_sPendingCount > 0) {
       if (m_sPendingException !is null) {
         e = m_sPendingException;
@@ -242,7 +242,7 @@ private:
   static shared int m_sPendingCount;
 
   // The reference to the pending exception (if any) is stored thread-local.
-  static Exception m_sPendingException;
+  static object.Exception m_sPendingException;
 }
 alias void function(const char* message) SwigExceptionCallback;
 %}
@@ -265,9 +265,9 @@ SWIGEXPORT void SWIGRegisterStringCallback_$module(SWIG_DStringHelperCallback ca
 %}
 
 #if (SWIG_D_VERSION == 1)
-%pragma(d) wrapdmoduleimports = "static import tango.stdc.stringz;";
+%pragma(d) imdmoduleimports = "static import tango.stdc.stringz;";
 
-%pragma(d) wrapdmodulecode = %{
+%pragma(d) imdmodulecode = %{
 private class SwigStringHelper {
   static this() {
     swigRegisterStringCallback(&createString);
@@ -281,12 +281,12 @@ private class SwigStringHelper {
 alias char* function(char* cString) SwigStringCallback;
 %}
 #else
-%pragma(d) wrapdmoduleimports = %{
+%pragma(d) imdmoduleimports = %{
 static import std.conv;
 static import std.string;
 %}
 
-%pragma(d) wrapdmodulecode = %{
+%pragma(d) imdmodulecode = %{
 private class SwigStringHelper {
   static this() {
     swigRegisterStringCallback(&createString);

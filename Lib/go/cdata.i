@@ -12,82 +12,11 @@ typedef struct SWIGCDATA {
 %}
 
 %typemap(gotype) SWIGCDATA %{ []byte %}
-%typemap(out) SWIGCDATA (swigcdata argp) {
-  argp = _swig_makegobyteslice($1.data, $1.len);
-  $result.data = (char*)argp.data;
-  $result.len = (int)argp.len;
-}
-
-/* The makegobyteslice function.  */
-
-%insert(runtime) %{
-typedef struct {
-  char *data;
-  int len;
-} swigcdata;
-
+%typemap(out) SWIGCDATA %{
+  $result.data = (char*)_swig_goallocate($1.len);
+  memcpy($result.data, $1.data, $1.len);
+  $result.len = (int)$1.len;
 %}
-
-#ifndef SWIGGO_GCCGO
-%insert(runtime) %{
-extern
-#ifdef __cplusplus
-"C"
-#endif
-void _swig_gc_makegobyteslice(void *, int);
-static swigcdata _swig_makegobyteslice(const char *data, int len) {
-  struct {
-    const char *data;
-    int len;
-    swigcdata ret;
-  } a;
-  a.data = data;
-  a.len = len;
-  crosscall2(_swig_gc_makegobyteslice, &a, (int) sizeof a);
-  return a.ret;
-}
-%}
-
-%insert(gc_header) %{
-typedef struct {
-	byte *data;
-	int32 len;
-} swigcdata;
-extern void ·_swig_internal_makegobyteslice(void);
-#pragma dynexport _swig_gc_makegobyteslice _swig_gc_makegobyteslice
-void _swig_gc_makegobyteslice(void *a, int32 n) {
-	cgocallback(·_swig_internal_makegobyteslice, a, n);
-}
-void ·_swig_allocategobyteslice(byte *data, int32 len, swigcdata ret) {
-	ret.data = runtime·mal(len);
-	runtime·mcpy(ret.data, data, len);
-	ret.len = len;
-	FLUSH(&ret);
-}
-%}
-
-%insert(go_header) %{
-type swigcdata struct { data *byte; len int }
-func _swig_allocategobyteslice(*byte, int) swigcdata
-func _swig_internal_makegobyteslice(data *byte, len int) swigcdata {
-	return _swig_allocategobyteslice(data, len)
-}
-%}
-
-#else
-
-%insert(runtime) %{
-static swigcdata _swig_makegobyteslice(const char *data, int len) {
-  swigcdata ret;
-  ret.data = (char*)__go_alloc(len);
-  memcpy(ret.data, data, len);
-  ret.len = (int)len;
-  return ret;
-}
-
-%}
-
-#endif
 
 /* -----------------------------------------------------------------------------
  * %cdata(TYPE [, NAME]) 

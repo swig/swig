@@ -57,7 +57,12 @@ int is_member_director(Node *member) {
 int is_non_virtual_protected_access(Node *n) {
   int result = 0;
   if (Swig_director_mode() && Swig_director_protected_mode() && Swig_all_protected_mode() && is_protected(n) && !checkAttribute(n, "storage", "virtual")) {
-    if (is_member_director_helper(Getattr(n, "parentNode"), n))
+    Node *parentNode = Getattr(n, "parentNode");
+    // When vtable is empty, the director class does not get emitted, so a check for an empty vtable should be done.
+    // However, vtable is set in Language and so is not yet set when methods in Typepass call clean_overloaded()
+    // which calls is_non_virtual_protected_access. So commented out below.
+    // Moving the director vtable creation into into Typepass should solve this problem.
+    if (is_member_director_helper(parentNode, n) /* && Getattr(parentNode, "vtable")*/)
       result = 1;
   }
   return result;

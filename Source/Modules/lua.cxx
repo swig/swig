@@ -82,8 +82,9 @@ void display_mapping(DOH *d) {
  (though for now I have not bothered)
 NEW LANGUAGE NOTE:END ************************************************/
 static const char *usage = (char *) "\
-                           Lua Options (available with -lua)\n\
-                           (coming soon.)\n\n";
+Lua Options (available with -lua)\n\
+     [no additional options]\n\
+\n";
 
 
 
@@ -170,7 +171,7 @@ public:
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {	// usage flags
-          fputs(usage, stderr);
+          fputs(usage, stdout);
         }
       }
     }
@@ -445,10 +446,8 @@ public:
     String *argument_check = NewString("");
     String *argument_parse = NewString("");
     String *checkfn = NULL;
-    //    String *numoutputs=NULL;
     char source[64];
-    //Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n",name,num_required,num_arguments);
-    Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n",name,num_required+args_to_ignore,num_arguments+args_to_ignore);
+    Printf(argument_check, "SWIG_check_num_args(\"%s\",%d,%d)\n",Swig_name_str(n),num_required+args_to_ignore,num_arguments+args_to_ignore);
 
     for (i = 0, p = l; i < num_arguments; i++) {
 
@@ -484,7 +483,7 @@ public:
           } else {
             Printf(argument_check, "if(lua_gettop(L)>=%s && !%s(L,%s))", source, checkfn, source);
           }
-          Printf(argument_check, " SWIG_fail_arg(\"%s\",%s,\"%s\");\n", name, source, SwigType_str(pt, 0));
+          Printf(argument_check, " SWIG_fail_arg(\"%s\",%s,\"%s\");\n", Swig_name_str(n), source, SwigType_str(pt, 0));
         }
         /* NEW LANGUAGE NOTE:***********************************************
            lua states the number of arguments passed to a function using the fn
@@ -718,7 +717,9 @@ public:
       sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
     String *protoTypes = NewString("");
     do {
-      Printf(protoTypes, "\n\"    %s(%s)\\n\"", SwigType_str(Getattr(sibl, "name"), 0), ParmList_protostr(Getattr(sibl, "wrap:parms")));
+      String *fulldecl = Swig_name_decl(sibl);
+      Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
+      Delete(fulldecl);
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
     Printf(f->code, "lua_pushstring(L,\"Wrong arguments for overloaded function '%s'\\n\"\n"
         "\"  Possible C/C++ prototypes are:\\n\"%s);\n",symname,protoTypes);
@@ -761,7 +762,7 @@ public:
     String *getName = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, iname));
     String *setName = 0;
     // checking whether it can be set to or not appears to be a very error prone issue
-    // I refered to the Language::variableWrapper() to find this out
+    // I referred to the Language::variableWrapper() to find this out
     bool assignable=is_assignable(n) ? true : false;
     SwigType *type = Getattr(n, "type");
     String *tm = Swig_typemap_lookup("globalin", n, iname, 0);
@@ -889,7 +890,7 @@ public:
     real_classname = Getattr(n, "name");
     mangled_classname = Swig_name_mangle(real_classname);
 
-    // not sure exactly how this workswhat this works,
+    // not sure exactly how this works,
     // but tcl has a static hashtable of all classes emitted and then only emits code for them once.
     // this fixes issues in test suites: template_default2 & template_specialization
 
@@ -919,7 +920,7 @@ public:
     String *wrap_class = NewStringf("&_wrap_class_%s", mangled_classname);
     SwigType_remember_clientdata(t, wrap_class);
 
-    String *rt = Copy(Getattr(n, "classtype"));
+    String *rt = Copy(getClassType());
     SwigType_add_pointer(rt);
 
     // Register the class structure with the type checker
@@ -951,7 +952,7 @@ public:
     Delete(s_attr_tab);
 
     // Handle inheritance
-    // note: with the idea of class hireachied spread over multiple modules
+    // note: with the idea of class hierarchies spread over multiple modules
     // cf test-suite: imports.i
     // it is not possible to just add the pointers to the base classes to the code
     // (as sometimes these classes are not present)

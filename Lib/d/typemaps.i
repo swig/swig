@@ -53,25 +53,14 @@ In D you could then use it like this:
         double answer = fadd(10.0, 20.0);
 */
 
-%define INPUT_TYPEMAP(TYPE, CWTYPE, DTYPE)
-%typemap(cwtype) TYPE *INPUT, TYPE &INPUT "CWTYPE"
-%typemap(dwtype) TYPE *INPUT, TYPE &INPUT "DTYPE"
-%typemap(dptype) TYPE *INPUT, TYPE &INPUT "DTYPE"
+%define INPUT_TYPEMAP(TYPE, CTYPE, DTYPE)
+%typemap(ctype, out="void *") TYPE *INPUT, TYPE &INPUT "CTYPE"
+%typemap(imtype, out="void*") TYPE *INPUT, TYPE &INPUT "DTYPE"
+%typemap(dtype, out="DTYPE*") TYPE *INPUT, TYPE &INPUT "DTYPE"
 %typemap(din) TYPE *INPUT, TYPE &INPUT "$dinput"
-%typemap(ddirectorin) TYPE *INPUT, TYPE &INPUT "$winput"
-%typemap(ddirectorout) TYPE *INPUT, TYPE &INPUT "$dpcall"
 
 %typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
-
-%typemap(directorout) TYPE *INPUT, TYPE &INPUT
-%{ $result = ($1_ltype)&$input; %}
-
-%typemap(directorin) TYPE &INPUT
-%{ $input = (CWTYPE *)$1; %}
-
-%typemap(directorin) TYPE *INPUT
-%{ $input = (CWTYPE *)$1; %}
 
 %typemap(typecheck) TYPE *INPUT = TYPE;
 %typemap(typecheck) TYPE &INPUT = TYPE;
@@ -93,7 +82,7 @@ INPUT_TYPEMAP(float,              float,                float)
 INPUT_TYPEMAP(double,             double,               double)
 
 INPUT_TYPEMAP(enum SWIGTYPE,      unsigned int,         int)
-%typemap(dptype) enum SWIGTYPE *INPUT, enum SWIGTYPE &INPUT "$*dclassname"
+%typemap(dtype) enum SWIGTYPE *INPUT, enum SWIGTYPE &INPUT "$*dclassname"
 
 #undef INPUT_TYPEMAP
 
@@ -148,36 +137,22 @@ value returned in the second output parameter. In D you would use it like this:
     double fraction = modf(5, dptr);
 */
 
-%define OUTPUT_TYPEMAP(TYPE, CWTYPE, DTYPE, TYPECHECKPRECEDENCE)
-%typemap(cwtype) TYPE *OUTPUT, TYPE &OUTPUT "CWTYPE *"
-%typemap(dwtype) TYPE *OUTPUT, TYPE &OUTPUT "out DTYPE"
-%typemap(dptype) TYPE *OUTPUT, TYPE &OUTPUT "out DTYPE"
+%define OUTPUT_TYPEMAP(TYPE, CTYPE, DTYPE, TYPECHECKPRECEDENCE)
+%typemap(ctype, out="void *") TYPE *OUTPUT, TYPE &OUTPUT "CTYPE *"
+%typemap(imtype, out="void*") TYPE *OUTPUT, TYPE &OUTPUT "out DTYPE"
+%typemap(dtype, out="DTYPE*") TYPE *OUTPUT, TYPE &OUTPUT "out DTYPE"
 %typemap(din) TYPE *OUTPUT, TYPE &OUTPUT "$dinput"
-%typemap(ddirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$winput"
-%typemap(ddirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$dpcall"
-
 
 %typemap(in) TYPE *OUTPUT, TYPE &OUTPUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorout,warning="Need to provide TYPE *OUTPUT directorout typemap") TYPE *OUTPUT, TYPE &OUTPUT {
-}
-
-%typemap(directorin) TYPE &OUTPUT
-%{ $input = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *OUTPUT directorin typemap, TYPE array length is unknown") TYPE *OUTPUT
-{
-}
-
 
 %typecheck(SWIG_TYPECHECK_##TYPECHECKPRECEDENCE) TYPE *OUTPUT, TYPE &OUTPUT ""
 %enddef
 
 OUTPUT_TYPEMAP(bool,               unsigned int,         bool,     BOOL_PTR)
 //OUTPUT_TYPEMAP(char,               char,                 char,     CHAR_PTR) // Why was this commented out?
-OUTPUT_TYPEMAP(signed char,        signed char,          ubyte,    INT8_PTR)
-OUTPUT_TYPEMAP(unsigned char,      unsigned char,        byte,     UINT8_PTR)
+OUTPUT_TYPEMAP(signed char,        signed char,          byte,     INT8_PTR)
+OUTPUT_TYPEMAP(unsigned char,      unsigned char,        ubyte,    UINT8_PTR)
 OUTPUT_TYPEMAP(short,              short,                short,    INT16_PTR)
 OUTPUT_TYPEMAP(unsigned short,     unsigned short,       ushort,   UINT16_PTR)
 OUTPUT_TYPEMAP(int,                int,                  int,      INT32_PTR)
@@ -190,7 +165,7 @@ OUTPUT_TYPEMAP(float,              float,                float,    FLOAT_PTR)
 OUTPUT_TYPEMAP(double,             double,               double,   DOUBLE_PTR)
 
 OUTPUT_TYPEMAP(enum SWIGTYPE,      unsigned int,         int,      INT32_PTR)
-%typemap(dptype) enum SWIGTYPE *OUTPUT, enum SWIGTYPE &OUTPUT "out $*dclassname"
+%typemap(dtype) enum SWIGTYPE *OUTPUT, enum SWIGTYPE &OUTPUT "out $*dclassname"
 
 #undef OUTPUT_TYPEMAP
 
@@ -253,34 +228,22 @@ languages in that the scripting languages will return the output value as part
 of the function return value.
 */
 
-%define INOUT_TYPEMAP(TYPE, CWTYPE, DTYPE, TYPECHECKPRECEDENCE)
-%typemap(cwtype) TYPE *INOUT, TYPE &INOUT "CWTYPE *"
-%typemap(dwtype) TYPE *INOUT, TYPE &INOUT "ref DTYPE"
-%typemap(dptype) TYPE *INOUT, TYPE &INOUT "ref DTYPE"
+%define INOUT_TYPEMAP(TYPE, CTYPE, DTYPE, TYPECHECKPRECEDENCE)
+%typemap(ctype, out="void *") TYPE *INOUT, TYPE &INOUT "CTYPE *"
+%typemap(imtype, out="void*") TYPE *INOUT, TYPE &INOUT "ref DTYPE"
+%typemap(dtype, out="DTYPE*") TYPE *INOUT, TYPE &INOUT "ref DTYPE"
 %typemap(din) TYPE *INOUT, TYPE &INOUT "$dinput"
-%typemap(ddirectorin) TYPE *INOUT, TYPE &INOUT "$winput"
-%typemap(ddirectorout) TYPE *INOUT, TYPE &INOUT "$dpcall"
 
 %typemap(in) TYPE *INOUT, TYPE &INOUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
-}
-
-%typemap(directorin) TYPE &INOUT
-%{ $input = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *INOUT directorin typemap, TYPE array length is unknown") TYPE *INOUT, TYPE &INOUT
-{
-}
 
 %typecheck(SWIG_TYPECHECK_##TYPECHECKPRECEDENCE) TYPE *INOUT, TYPE &INOUT ""
 %enddef
 
 INOUT_TYPEMAP(bool,               unsigned int,         bool,     BOOL_PTR)
 //INOUT_TYPEMAP(char,               char,                 char,     CHAR_PTR)
-INOUT_TYPEMAP(signed char,        signed char,          ubyte,    INT8_PTR)
-INOUT_TYPEMAP(unsigned char,      unsigned char,        byte,     UINT8_PTR)
+INOUT_TYPEMAP(signed char,        signed char,          byte,     INT8_PTR)
+INOUT_TYPEMAP(unsigned char,      unsigned char,        ubyte,    UINT8_PTR)
 INOUT_TYPEMAP(short,              short,                short,    INT16_PTR)
 INOUT_TYPEMAP(unsigned short,     unsigned short,       ushort,   UINT16_PTR)
 INOUT_TYPEMAP(int,                int,                  int,      INT32_PTR)
@@ -293,6 +256,6 @@ INOUT_TYPEMAP(float,              float,                float,    FLOAT_PTR)
 INOUT_TYPEMAP(double,             double,               double,   DOUBLE_PTR)
 
 INOUT_TYPEMAP(enum SWIGTYPE,      unsigned int,         int,      INT32_PTR)
-%typemap(dptype) enum SWIGTYPE *INOUT, enum SWIGTYPE &INOUT "ref $*dclassname"
+%typemap(dtype) enum SWIGTYPE *INOUT, enum SWIGTYPE &INOUT "ref $*dclassname"
 
 #undef INOUT_TYPEMAP

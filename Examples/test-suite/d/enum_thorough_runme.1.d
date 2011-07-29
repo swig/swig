@@ -3,6 +3,7 @@ module enum_thorough_runme;
 import enum_thorough.enum_thorough;
 import enum_thorough.AnonStruct;
 import enum_thorough.colour;
+import enum_thorough.DifferentTypes;
 import enum_thorough.FirStruct;
 import enum_thorough.HairStruct;
 import enum_thorough.IgnoreTest;
@@ -420,5 +421,27 @@ void main() {
     if (cast(int)repeatTest(repeat.three) != 3) throw new Exception("repeatTest 4 failed");
     if (cast(int)repeatTest(repeat.llast) != 3) throw new Exception("repeatTest 5 failed");
     if (cast(int)repeatTest(repeat.end) != 3) throw new Exception("repeatTest 6 failed");
+  }
+  // different types
+  {
+    if (cast(int)differentTypesTest(DifferentTypes.typeint) != 10) throw new Exception("differentTypes 1 failed");
+    if (cast(int)differentTypesTest(DifferentTypes.typeboolfalse) != 0) throw new Exception("differentTypes 2 failed");
+    if (cast(int)differentTypesTest(DifferentTypes.typebooltrue) != 1) throw new Exception("differentTypes 3 failed");
+    if (cast(int)differentTypesTest(DifferentTypes.typebooltwo) != 2) throw new Exception("differentTypes 4 failed");
+    if (cast(int)differentTypesTest(DifferentTypes.typechar) != 'C') throw new Exception("differentTypes 5 failed");
+    if (cast(int)differentTypesTest(DifferentTypes.typedefaultint) != 'D') throw new Exception("differentTypes 6 failed");
+
+    int global_enum = global_typeint;
+    if (cast(int)globalDifferentTypesTest(global_enum) != 10) throw new Exception("global differentTypes 1 failed");
+    global_enum = global_typeboolfalse;
+    if (cast(int)globalDifferentTypesTest(global_enum) != 0) throw new Exception("global differentTypes 2 failed");
+    global_enum = global_typebooltrue;
+    if (cast(int)globalDifferentTypesTest(global_enum) != 1) throw new Exception("global differentTypes 3 failed");
+    global_enum = global_typebooltwo;
+    if (cast(int)globalDifferentTypesTest(global_enum) != 2) throw new Exception("global differentTypes 4 failed");
+    global_enum = global_typechar;
+    if (cast(int)globalDifferentTypesTest(global_enum) != 'C') throw new Exception("global differentTypes 5 failed");
+    global_enum = global_typedefaultint;
+    if (cast(int)globalDifferentTypesTest(global_enum) != 'D') throw new Exception("global differentTypes 6 failed");
   }
 }

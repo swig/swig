@@ -138,24 +138,23 @@ SWIGINTERN PyTypeObject*
 swig_varlink_type(void) {
   static char varlink__doc__[] = "Swig var link object";
   static PyTypeObject varlink_type;
-  static int type_init = 0;  
+  static int type_init = 0;
   if (!type_init) {
-    const PyTypeObject tmp
-      = {
+    const PyTypeObject tmp = {
       /* PyObject header changed in Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
-      PyVarObject_HEAD_INIT(&PyType_Type, 0)
+      PyVarObject_HEAD_INIT(NULL, 0)
 #else
       PyObject_HEAD_INIT(NULL)
-      0,                                  /* Number of items in variable part (ob_size) */
+      0,                                  /* ob_size */
 #endif
-      (char *)"swigvarlink",              /* Type name (tp_name) */
-      sizeof(swig_varlinkobject),         /* Basic size (tp_basicsize) */
-      0,                                  /* Itemsize (tp_itemsize) */
-      (destructor) swig_varlink_dealloc,  /* Deallocator (tp_dealloc) */ 
-      (printfunc) swig_varlink_print,     /* Print (tp_print) */
-      (getattrfunc) swig_varlink_getattr, /* get attr (tp_getattr) */
-      (setattrfunc) swig_varlink_setattr, /* Set attr (tp_setattr) */
+      (char *)"swigvarlink",              /* tp_name */
+      sizeof(swig_varlinkobject),         /* tp_basicsize */
+      0,                                  /* tp_itemsize */
+      (destructor) swig_varlink_dealloc,  /* tp_dealloc */
+      (printfunc) swig_varlink_print,     /* tp_print */
+      (getattrfunc) swig_varlink_getattr, /* tp_getattr */
+      (setattrfunc) swig_varlink_setattr, /* tp_setattr */
       0,                                  /* tp_compare */
       (reprfunc) swig_varlink_repr,       /* tp_repr */
       0,                                  /* tp_as_number */
@@ -179,16 +178,21 @@ swig_varlink_type(void) {
 #if PY_VERSION_HEX >= 0x02030000
       0,                                  /* tp_del */
 #endif
+#if PY_VERSION_HEX >= 0x02060000
+      0,                                  /* tp_version */
+#endif
 #ifdef COUNT_ALLOCS
       0,0,0,0                             /* tp_alloc -> tp_next */
 #endif
     };
     varlink_type = tmp;
-    /* for Python 3 we already assigned ob_type in PyVarObject_HEAD_INIT() */
-#if PY_VERSION_HEX < 0x03000000
-    varlink_type.ob_type = &PyType_Type;
-#endif
     type_init = 1;
+#if PY_VERSION_HEX < 0x02020000
+    varlink_type.ob_type = &PyType_Type;
+#else
+    if (PyType_Ready(&varlink_type) < 0)
+      return NULL;
+#endif
   }
   return &varlink_type;
 }
@@ -239,7 +243,7 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
   for (i = 0; constants[i].type; ++i) {
     switch(constants[i].type) {
     case SWIG_PY_POINTER:
-      obj = SWIG_NewPointerObj(constants[i].pvalue, *(constants[i]).ptype,0);
+      obj = SWIG_InternalNewPointerObj(constants[i].pvalue, *(constants[i]).ptype,0);
       break;
     case SWIG_PY_BINARY:
       obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype));
@@ -320,10 +324,19 @@ SWIGEXPORT
   void
 #endif
 SWIG_init(void) {
-  PyObject *m, *d;  
+  PyObject *m, *d, *md;
 #if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
+# if PY_VERSION_HEX >= 0x03020000
     PyModuleDef_HEAD_INIT,
+# else
+    {
+      PyObject_HEAD_INIT(NULL)
+      NULL, /* m_init */
+      0,    /* m_index */
+      NULL, /* m_copy */
+    },
+# endif
     (char *) SWIG_name,
     NULL,
     -1,
@@ -335,6 +348,47 @@ SWIG_init(void) {
   };
 #endif
 
+#if defined(SWIGPYTHON_BUILTIN)
+  static SwigPyClientData SwigPyObject_clientdata = {0, 0, 0, 0, 0, 0, 0};
+  static PyGetSetDef this_getset_def = {
+    (char *)"this", &SwigPyBuiltin_ThisClosure, NULL, NULL, NULL
+  };
+  static SwigPyGetSet thisown_getset_closure = {
+    (PyCFunction) SwigPyObject_own,
+    (PyCFunction) SwigPyObject_own
+  };
+  static PyGetSetDef thisown_getset_def = {
+    (char *)"thisown", SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
+  };
+  PyObject *metatype_args;
+  PyTypeObject *builtin_pytype;
+  int builtin_base_count;
+  swig_type_info *builtin_basetype;
+  PyObject *tuple;
+  PyGetSetDescrObject *static_getset;
+  PyTypeObject *metatype;
+  SwigPyClientData *cd;
+  PyObject *public_interface, *public_symbol;
+  PyObject *this_descr;
+  PyObject *thisown_descr;
+  int i;
+
+  (void)builtin_pytype;
+  (void)builtin_base_count;
+  (void)builtin_basetype;
+  (void)tuple;
+  (void)static_getset;
+
+  /* metatype is used to implement static member variables. */
+  metatype_args = Py_BuildValue("(s(O){})", "SwigPyObjectType", &PyType_Type);
+  assert(metatype_args);
+  metatype = (PyTypeObject *) PyType_Type.tp_call((PyObject *) &PyType_Type, metatype_args, NULL);
+  assert(metatype);
+  Py_DECREF(metatype_args);
+  metatype->tp_setattro = (setattrofunc) &SwigPyObjectType_setattro;
+  assert(PyType_Ready(metatype) >= 0);
+#endif
+
   /* Fix SwigMethods to carry the callback ptrs when needed */
   SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
 
@@ -343,10 +397,46 @@ SWIG_init(void) {
 #else
   m = Py_InitModule((char *) SWIG_name, SwigMethods);
 #endif
-  d = PyModule_GetDict(m);
-  
+  md = d = PyModule_GetDict(m);
+
   SWIG_InitializeModule(0);
+
+#ifdef SWIGPYTHON_BUILTIN
+  SwigPyObject_stype = SWIG_MangledTypeQuery("_p_SwigPyObject");
+  assert(SwigPyObject_stype);
+  cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
+  if (!cd) {
+    SwigPyObject_stype->clientdata = &SwigPyObject_clientdata;
+    SwigPyObject_clientdata.pytype = SwigPyObject_TypeOnce();
+  } else if (SwigPyObject_TypeOnce()->tp_basicsize != cd->pytype->tp_basicsize) {
+    PyErr_SetString(PyExc_RuntimeError, "Import error: attempted to load two incompatible swig-generated modules.");
+# if PY_VERSION_HEX >= 0x03000000
+    return NULL;
+# else
+    return;
+# endif
+  }
+
+  /* All objects have a 'this' attribute */
+  this_descr = PyDescr_NewGetSet(SwigPyObject_type(), &this_getset_def);
+  (void)this_descr;
+
+  /* All objects have a 'thisown' attribute */
+  thisown_descr = PyDescr_NewGetSet(SwigPyObject_type(), &thisown_getset_def);
+  (void)thisown_descr;
+
+  public_interface = PyList_New(0);
+  public_symbol = 0;
+  (void)public_symbol;
+
+  PyDict_SetItemString(md, "__all__", public_interface);
+  Py_DECREF(public_interface);
+  for (i = 0; SwigMethods[i].ml_name != NULL; ++i)
+    SwigPyBuiltin_AddPublicSymbol(public_interface, SwigMethods[i].ml_name);
+  for (i = 0; swig_const_table[i].name != 0; ++i)
+    SwigPyBuiltin_AddPublicSymbol(public_interface, swig_const_table[i].name);
+#endif
+
   SWIG_InstallConstants(d,swig_const_table);
-  
 %}
 

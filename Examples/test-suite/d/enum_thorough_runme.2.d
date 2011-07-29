@@ -4,6 +4,7 @@ import std.exception;
 import enum_thorough.enum_thorough;
 import enum_thorough.AnonStruct;
 import enum_thorough.colour;
+import enum_thorough.DifferentTypes;
 import enum_thorough.FirStruct;
 import enum_thorough.HairStruct;
 import enum_thorough.IgnoreTest;
@@ -421,5 +422,27 @@ void main() {
     enforce(cast(int)repeatTest(repeat.three) == 3, "repeatTest 4 failed");
     enforce(cast(int)repeatTest(repeat.llast) == 3, "repeatTest 5 failed");
     enforce(cast(int)repeatTest(repeat.end) == 3, "repeatTest 6 failed");
+  }
+  // different types
+  {
+    enforce(cast(int)differentTypesTest(DifferentTypes.typeint) == 10, "differentTypes 1 failed");
+    enforce(cast(int)differentTypesTest(DifferentTypes.typeboolfalse) == 0, "differentTypes 2 failed");
+    enforce(cast(int)differentTypesTest(DifferentTypes.typebooltrue) == 1, "differentTypes 3 failed");
+    enforce(cast(int)differentTypesTest(DifferentTypes.typebooltwo) == 2, "differentTypes 4 failed");
+    enforce(cast(int)differentTypesTest(DifferentTypes.typechar) == 'C', "differentTypes 5 failed");
+    enforce(cast(int)differentTypesTest(DifferentTypes.typedefaultint) == 'D', "differentTypes 6 failed");
+
+    int global_enum = global_typeint;
+    enforce(cast(int)globalDifferentTypesTest(global_enum) == 10, "global differentTypes 1 failed");
+    global_enum = global_typeboolfalse;
+    enforce(cast(int)globalDifferentTypesTest(global_enum) == 0, "global differentTypes 2 failed");
+    global_enum = global_typebooltrue;
+    enforce(cast(int)globalDifferentTypesTest(global_enum) == 1, "global differentTypes 3 failed");
+    global_enum = global_typebooltwo;
+    enforce(cast(int)globalDifferentTypesTest(global_enum) == 2, "global differentTypes 4 failed");
+    global_enum = global_typechar;
+    enforce(cast(int)globalDifferentTypesTest(global_enum) == 'C', "global differentTypes 5 failed");
+    global_enum = global_typedefaultint;
+    enforce(cast(int)globalDifferentTypesTest(global_enum) == 'D', "global differentTypes 6 failed");
   }
 }
