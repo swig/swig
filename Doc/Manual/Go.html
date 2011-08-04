@@ -503,7 +503,7 @@ argument.</p>
 
 <p>For example, suppose you were trying to wrap the modf() function in the
 C math library which splits x into integral and fractional parts (and
-returns the integer part in one of its parameters):<p>
+returns the integer part in one of its parameters):</p>
 <div class="code">
 <pre>
 double modf(double x, double *ip);
@@ -536,7 +536,7 @@ some <a href="#Embedded_go_code">additional functions written in go</a> that
 hide the ugly details.</p>
 
 <p>There are no <code>char&nbsp;*OUTPUT</code> typemaps.  However you can
-apply the <code>signed&nbsp;char&nbsp;*</code> typemaps instead:<p>
+apply the <code>signed&nbsp;char&nbsp;*</code> typemaps instead:</p>
 <div class="code">
 <pre>
 %include &lt;typemaps.i&gt;
