@@ -455,6 +455,24 @@ Windows users can also get the examples working using a
 <a href="http://www.cygwin.com">Cygwin</a> or <a href="http://www.mingw.org">MinGW</a> environment for automatic configuration of the example makefiles.
 Any one of the three C# compilers (Portable.NET, Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
 
+<H2><a name="CSharp_arrays"></a>18.3 Void pointers</H2>
+
+
+<p>
+By default SWIG treats <tt>void *</tt> as any other pointer and hence marshalls it as a type wrapper class called <tt>SWIGTYPE_p_void</tt>.
+If you want to marshall with the .NET <tt>System.IntPtr</tt> type instead, there is a simple set of named typemaps called
+<tt>void *VOID_INT_PTR</tt> that can be used.
+They can be applied like any other named typemaps:
+</p>
+
+
+<div class="code">
+<pre>
+%apply void *VOID_INT_PTR { void * }
+void * f(void *v);
+</pre>
+</div>
+
 <H2><a name="CSharp_arrays"></a>18.3 C# Arrays</H2>
 
 
