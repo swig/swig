@@ -2417,6 +2417,7 @@ done:
     String *name;
     String *classname;
     String *c_classname = Getattr(parent, "name");
+    String *symname = Getattr(n, "sym:name");
     String *declaration;
     ParmList *l;
     Wrapper *w;
@@ -2738,6 +2739,7 @@ done:
     /* emit the director method */
     if (status == SWIG_OK) {
       if (!Getattr(n, "defaultargs")) {
+	Replaceall(w->code, "$symname", symname);
 	Wrapper_print(w, f_directors);
 	Printv(f_directors_h, declaration, NIL);
 	Printv(f_directors_h, inline_extra_method, NIL);

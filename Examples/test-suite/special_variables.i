@@ -1,4 +1,4 @@
-%module special_variables
+%module(directors="1") special_variables
 
 %include <std_string.i>
 
@@ -88,3 +88,19 @@ namespace SpaceNamespace {
 
 %template(TemplateABC) SpaceNamespace::Template<SpaceNamespace::ABC>;
 
+/////////////////////////////////// directors /////////////////////////////////
+%{
+void DirectorTest_director_testmethod(int i) {}
+void DirectorTest_director_testmethodSwigExplicitDirectorTest(int i) {}
+%}
+%typemap(directorargout) int i {
+  $symname(99);
+}
+%feature("director") DirectorTest;
+%inline %{
+void director_testmethod(int i) {}
+struct DirectorTest {
+  virtual void director_testmethod(int i) {}
+  virtual ~DirectorTest() {}
+};
+%}

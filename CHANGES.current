@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-08-04: wsfulton
+            Add in $symname expansion for director methods.
+
 2011-07-29: olly
 	    [PHP] Don't generate "return $r;" in cases where $r hasn't been set.
 	    This was basically harmless, except it generated a PHP E_NOTICE if
