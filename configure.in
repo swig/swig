@@ -923,17 +923,18 @@ fi
 
 AC_MSG_CHECKING(for Octave header files)
 if test -n "$OCTAVE"; then
-	OCTAVEDIR="/usr/include"
+	OCTAVECONFIG=[`echo $OCTAVEBIN | sed 's|octave\([^/]*\)$|octave-config\1|'`]
+	if test -r "$OCTAVECONFIG"; then
+		OCTAVEDIR=`$OCTAVECONFIG -p OCTINCLUDEDIR | sed 's|/octave$||'`
+	else
+		OCTAVEDIR="/usr/include"
+	fi
 	if test "$OCTAVEDIR" != ""; then
-		dirs="$OCTAVEDIR"
+		dirs="$OCTAVEDIR/octave $OCTAVEDIR"
 		OCTAVEEXT=""
 		for i in $dirs; do
 			if test -r $i/octave/oct.h; then
 				OCTAVEEXT="$i"
-				break;
-			fi
-			if test -r $i/octave/octave/oct.h; then
-				OCTAVEEXT="$i/octave"
 				break;
 			fi
 		done

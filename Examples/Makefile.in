@@ -333,6 +333,7 @@ python_clean:
 # Make sure these locate your Octave installation
 OCTAVE_INCLUDE= $(DEFS) @OCTAVEEXT@
 OCTAVE_LIB    =
+OCTAVE        = @OCTAVE@
 
 # Extra Octave specific dynamic linking options
 OCTAVE_DLNK   = @OCTAVEDYNAMICLINKING@
@@ -357,6 +358,15 @@ octave_cpp: $(SRCS)
 	$(SWIG) -c++ -octave $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
 	$(CXXSHARED) -g $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
+
+# -----------------------------------------------------------------
+# Running an Octave example
+# -----------------------------------------------------------------
+
+OCTSCRIPT = runme.m
+
+octave_run: $(OCTSCRIPT)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVEPATH=$(srcdir):$$OCTAVEPATH $(OCTAVE) $(OCTSCRIPT) >/dev/null
 
 # -----------------------------------------------------------------
 # Cleaning the octave examples

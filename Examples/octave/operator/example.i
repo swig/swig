@@ -10,13 +10,13 @@
 
 /* An output method that turns a complex into a short string */
 %extend ComplexVal {
-   char *__str() {
+   char *__str__() {
        static char temp[512];
        sprintf(temp,"(%g,%g)", $self->re(), $self->im());
        return temp;
    }
 
-   ComplexVal __paren(int j) {
+   ComplexVal __paren__(int j) {
      return ComplexVal($self->re()*j,$self->im()*j);
    }
 };

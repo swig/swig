@@ -399,6 +399,10 @@ namespace Swig {
 	Swig::erase_rtdir(types[j].second.ptr);
     }
 
+    dim_vector dims(void) const {
+      return dim_vector(1,1);
+    }
+
     octave_value as_value() {
       ++count;
       return Swig::swig_value_ref(this);
@@ -927,6 +931,9 @@ namespace Swig {
 
     octave_base_value *empty_clone() const
       { return new octave_swig_ref(0); }
+
+    dim_vector dims(void) const 
+      { return ptr->dims(); }
 
     bool is_defined() const
       { return ptr->is_defined(); }
