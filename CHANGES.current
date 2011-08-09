@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-08-09: xavier98
+            Fix bug 3387394; Octave patches for 3.4.0 compatibility, etc. (from Karl Wette)
+
 2011-08-04: wsfulton
             Add in $symname expansion for director methods.
 
