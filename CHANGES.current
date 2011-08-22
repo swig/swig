@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-08-22: szager
+	    [python] Fixed memory leak with --builtin option (bug 3385089).
+
 2011-08-22: wsfulton
             [Lua] SF patch #3394339 from Torsten Landschoff - new option -nomoduleglobal to disable installing 
             the module table into the global namespace. Require call also returns the module table instead 
