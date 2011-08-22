@@ -237,7 +237,7 @@ SWIGINTERN int SWIG_Lua_module_set(lua_State* L)
   return 0;
 }
 
-/* registering a module in lua */
+/* registering a module in lua. Pushes the module table on the stack. */
 SWIGINTERN void  SWIG_Lua_module_begin(lua_State* L,const char* name)
 {
   assert(lua_istable(L,-1));  /* just in case */
@@ -254,8 +254,16 @@ SWIGINTERN void  SWIG_Lua_module_begin(lua_State* L,const char* name)
   lua_newtable(L);    /* the .set table */
   lua_rawset(L,-3);  /* add .set into metatable */
   lua_setmetatable(L,-2);  /* sets meta table in module */
+#ifdef SWIG_LUA_MODULE_GLOBAL
+  /* If requested, install the module directly into the global namespace. */
   lua_rawset(L,-3);        /* add module into parent */
   SWIG_Lua_get_table(L,name);   /* get the table back out */
+#else
+  /* Do not install the module table as global name. The stack top has
+     the module table with the name below. We pop the top and replace
+     the name with it. */
+  lua_replace(L,-2);
+#endif
 }
 
 /* ending the register */

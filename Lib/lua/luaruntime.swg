@@ -59,8 +59,9 @@ SWIGEXPORT int SWIG_init(lua_State* L)
   /* invoke user-specific initialization */
   SWIG_init_user(L);
   /* end module */
-  lua_pop(L,1);  /* tidy stack (remove module table)*/
-  lua_pop(L,1);  /* tidy stack (remove global table)*/
+  /* Note: We do not clean up the stack here (Lua will do this for us). At this
+     point, we have the globals table and out module table on the stack. Returning
+     one value makes the module table the result of the require command. */
   return 1;
 }
 

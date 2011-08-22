@@ -83,10 +83,11 @@ void display_mapping(DOH *d) {
 NEW LANGUAGE NOTE:END ************************************************/
 static const char *usage = (char *) "\
 Lua Options (available with -lua)\n\
-     [no additional options]\n\
+     -nomoduleglobal - Do not register the module name as a global variable \n\
+                       but return the module table from calls to require.\n\
 \n";
 
-
+static int nomoduleglobal = 0;
 
 /* NEW LANGUAGE NOTE:***********************************************
  To add a new language, you need to derive your class from
@@ -172,6 +173,9 @@ public:
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {	// usage flags
           fputs(usage, stdout);
+        } else if (strcmp(argv[i], "-nomoduleglobal") == 0) {
+          nomoduleglobal = 1;
+          Swig_mark_arg(i);
         }
       }
     }
@@ -262,6 +266,12 @@ public:
 
     Printf(f_runtime, "\n");
     Printf(f_runtime, "#define SWIGLUA\n");
+
+    if (nomoduleglobal) {
+      Printf(f_runtime, "#define SWIG_LUA_NO_MODULE_GLOBAL\n");
+    } else {
+      Printf(f_runtime, "#define SWIG_LUA_MODULE_GLOBAL\n");
+    }
 
     //    if (NoInclude) {
     //      Printf(f_runtime, "#define SWIG_NOINCLUDE\n");

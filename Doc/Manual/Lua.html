@@ -105,6 +105,29 @@ This creates a C/C++ source file <tt>example_wrap.c</tt> or <tt>example_wrap.cxx
 <p>
 The name of the wrapper file is derived from the name of the input file. For example, if the input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>. To change this, you can use the -o option. The wrappered module will export one function <tt>"int luaopen_example(lua_State* L)"</tt> which must be called to register the module with the Lua interpreter. The name "luaopen_example" depends upon the name of the module.
 </p>
+
+<H3><a name="Lua_commandline"></a>25.2.1 Additional command line options</H3>
+
+<p>
+The following table list the additional commandline options available for the Lua module. They can also be seen by using: 
+</p>
+
+<div class="code"><pre>
+swig -lua -help 
+</pre></div>
+
+<table summary="Lua specific options">
+<tr>
+<th>Lua specific options</th>
+</tr>
+
+<tr>
+<td>-nomoduleglobal</td>
+<td>Do not register the module name as a global variable but return the module table from calls to require.</td>
+</tr>
+
+</table>
+
 <H3><a name="Lua_nn4"></a>25.2.1 Compiling and Linking and Interpreter</H3>
 
 
