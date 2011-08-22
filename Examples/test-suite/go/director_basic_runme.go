@@ -107,7 +107,6 @@ func f3() {
 	p2.Vmethod(bc)
 }
 
-
 func main() {
 	f1()
 	f2()
