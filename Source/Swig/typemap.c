@@ -1309,14 +1309,20 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   int optimal_substitution = 0;
   int num_substitutions = 0;
 
-  /* special case, we need to check for 'ref' call and set the default code 'sdef' */
-  if (node && Cmp(tmap_method, "newfree") == 0) {
-    sdef = Swig_ref_call(node, lname);
-  }
-
   type = Getattr(node, "type");
   if (!type)
     return sdef;
+
+  /* Special hook (hack!). Check for the 'ref' feature and add code it contains to any 'newfree' typemap code.
+   * We could choose to put this hook into a number of different typemaps, not necessarily 'newfree'... 
+   * Rather confusingly 'newfree' is used to release memory and the 'ref' feature is used to add in memory references - yuck! */
+  if (node && Cmp(tmap_method, "newfree") == 0) {
+    String *base = SwigType_base(type);
+    Node *typenode = Swig_symbol_clookup(base, 0);
+    if (typenode)
+      sdef = Swig_ref_call(typenode, lname);
+    Delete(base);
+  }
 
   pname = Getattr(node, "name");
 

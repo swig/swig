@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-08-23: wsfulton
+            Fix %newobject when used in conjunction with %feature("ref") as reported by Jan Becker. The
+            code from the "ref" feature was not always being generated for the function specified by %newobject.
+            Documentation for "ref" and "unref" moved from Python to the C++ chapter.
+
 2011-08-22: szager
 	    [python] Fixed memory leak with --builtin option (bug 3385089).
 

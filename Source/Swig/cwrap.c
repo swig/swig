@@ -546,7 +546,7 @@ String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmLis
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_rflag_search()
+ * recursive_flag_search()
  *
  * This function searches for the class attribute 'attr' in the class
  * 'n' or recursively in its bases.
@@ -567,7 +567,7 @@ String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmLis
  * ----------------------------------------------------------------------------- */
 
 /* #define SWIG_FAST_REC_SEARCH 1 */
-String *Swig_rflag_search(Node *n, const String *attr, const String *noattr) {
+static String *recursive_flag_search(Node *n, const String *attr, const String *noattr) {
   String *f = 0;
   n = Swig_methodclass(n);
   if (GetFlag(n, noattr)) {
@@ -581,7 +581,7 @@ String *Swig_rflag_search(Node *n, const String *attr, const String *noattr) {
     if (bl) {
       Iterator bi;
       for (bi = First(bl); bi.item; bi = Next(bi)) {
-	f = Swig_rflag_search(bi.item, attr, noattr);
+	f = recursive_flag_search(bi.item, attr, noattr);
 	if (f) {
 #ifdef SWIG_FAST_REC_SEARCH
 	  SetFlagAttr(n, attr, f);
@@ -600,12 +600,11 @@ String *Swig_rflag_search(Node *n, const String *attr, const String *noattr) {
 /* -----------------------------------------------------------------------------
  * Swig_unref_call()
  *
- * find the unref call, if any.
+ * Find the "feature:unref" call, if any.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_unref_call(Node *n) {
-  Node *cn = Swig_methodclass(n);
-  String *unref = Swig_rflag_search(cn, "feature:unref", "feature:nounref");
+  String *unref = recursive_flag_search(n, "feature:unref", "feature:nounref");
   if (unref) {
     String *pname = Swig_cparm_name(0, 0);
     unref = NewString(unref);
@@ -619,12 +618,11 @@ String *Swig_unref_call(Node *n) {
 /* -----------------------------------------------------------------------------
  * Swig_ref_call()
  *
- * find the ref call, if any.
+ * Find the "feature:ref" call, if any.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_ref_call(Node *n, const String *lname) {
-  Node *cn = Swig_methodclass(n);
-  String *ref = Swig_rflag_search(cn, "feature:ref", "feature:noref");
+  String *ref = recursive_flag_search(n, "feature:ref", "feature:noref");
   if (ref) {
     ref = NewString(ref);
     Replaceall(ref, "$this", lname);
@@ -642,7 +640,8 @@ String *Swig_ref_call(Node *n, const String *lname) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_cdestructor_call(Node *n) {
-  String *unref = Swig_unref_call(n);
+  Node *cn = Swig_methodclass(n);
+  String *unref = Swig_unref_call(cn);
 
   if (unref) {
     return unref;
@@ -664,7 +663,8 @@ String *Swig_cdestructor_call(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_cppdestructor_call(Node *n) {
-  String *unref = Swig_unref_call(n);
+  Node *cn = Swig_methodclass(n);
+  String *unref = Swig_unref_call(cn);
   if (unref) {
     return unref;
   } else {
