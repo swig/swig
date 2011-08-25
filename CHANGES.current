@@ -5,6 +5,18 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-08-25: wsfulton
+            Fix constructors in named typedef class declarations as reported by Gregory Bronner:
+
+            typedef struct A {
+              A(){} // Constructor which was not accepted by SWIG
+              B(){} // NOT a constructor --illegal, but was accepted by SWIG
+            } B;
+
+            For C code, the fix now results in use the use of 'struct A *' instead of just 'B *' in
+            the generated code when wrapping members in A, but ultimately this does not matter, as
+            they are the same thing.
+
 2011-08-23: wsfulton
             Fix %newobject when used in conjunction with %feature("ref") as reported by Jan Becker. The
             code from the "ref" feature was not always being generated for the function specified by %newobject.

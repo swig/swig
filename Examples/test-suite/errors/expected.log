@@ -281,6 +281,10 @@ cpp_nested.i:12: Warning 325: Nested class not currently supported (Grok ignored
 :::::::::::::::::::::::::::::::: cpp_no_access.i :::::::::::::::::::::::::::::::::::
 cpp_no_access.i:3: Warning 319: No access specifier given for base class 'foo' (ignored).
 
+:::::::::::::::::::::::::::::::: cpp_no_return_type.i :::::::::::::::::::::::::::::::::::
+cpp_no_return_type.i:6: Warning 504: Function R must have a return type. Ignored.
+cpp_no_return_type.i:10: Warning 504: Function UU must have a return type. Ignored.
+
 :::::::::::::::::::::::::::::::: cpp_nobase.i :::::::::::::::::::::::::::::::::::
 cpp_nobase.i:3: Warning 401: Nothing known about base class 'Bar'. Ignored.
 cpp_nobase.i:6: Warning 401: Nothing known about base class 'Bar< int >'. Ignored.

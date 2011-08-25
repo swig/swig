@@ -343,7 +343,7 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
   String *val;
   String *ns_list = listify_namespace(ns);
   String *templated = n ? Getattr(n, "template") : 0;
-  String *cDeclName = n ? Getattr(n, "classDeclaration:name") : 0;
+  String *cDeclName = n ? Getattr(n, "name") : 0;
 
 #ifdef ALLEGROCL_CLASS_DEBUG
   Printf(stderr, "IN A-D-F-T. (n=%x, ow=%d, k=%s, name=%s, ns=%s\n", n, overwrite, k, name, ns);
@@ -3084,11 +3084,6 @@ int ALLEGROCL::cClassHandler(Node *n) {
 #ifdef ALLEGROCL_TYPE_DEBUG
   Printf(stderr, "In cClassHandler\n");
 #endif
-  //  String *cDeclName = Getattr(n,"classDeclaration:name");
-  // String *name= Getattr(n, "sym:name"); 
-  //  String *kind = Getattr(n,"kind");
-  // Node *c;
-
   /* Add this structure to the known lisp types */
   // Printf(stderr, "Adding %s foreign type\n", name);
   String *ns = listify_namespace(current_namespace);

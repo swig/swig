@@ -74,6 +74,7 @@ cpp_namespace_aliasnot
 cpp_namespace_aliasundef
 cpp_nested
 cpp_no_access
+cpp_no_return_type
 cpp_nobase
 cpp_overload
 cpp_overload_const

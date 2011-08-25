@@ -2333,14 +2333,12 @@ int Language::classDeclaration(Node *n) {
   String *kind = Getattr(n, "kind");
   String *name = Getattr(n, "name");
   String *tdname = Getattr(n, "tdname");
+  String *unnamed = Getattr(n, "unnamed");
   String *symname = Getattr(n, "sym:name");
 
-  char *classname = tdname ? Char(tdname) : Char(name);
-  char *iname = Char(symname);
-  int strip = (tdname || CPlusPlus) ? 1 : 0;
+  int strip = CPlusPlus ? 1 : unnamed && tdname;
 
-
-  if (!classname) {
+  if (!name) {
     Swig_warning(WARN_LANG_CLASS_UNNAMED, input_file, line_number, "Can't generate wrappers for unnamed struct/class.\n");
     return SWIG_NOWRAP;
   }
@@ -2351,21 +2349,18 @@ int Language::classDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
 
-  Swig_save("classDeclaration", n, "name", NIL);
-  Setattr(n, "name", classname);
-
   if (Cmp(kind, "class") == 0) {
     cplus_mode = PRIVATE;
   } else {
     cplus_mode = PUBLIC;
   }
 
-  ClassName = NewString(classname);
-  ClassPrefix = NewString(iname);
+  ClassName = Copy(name);
+  ClassPrefix = Copy(symname);
   if (strip) {
-    ClassType = NewString(classname);
+    ClassType = Copy(name);
   } else {
-    ClassType = NewStringf("%s %s", kind, classname);
+    ClassType = NewStringf("%s %s", kind, name);
   }
   Setattr(n, "classtypeobj", Copy(ClassType));
   Setattr(n, "classtype", SwigType_namestr(ClassType));
@@ -2435,7 +2430,6 @@ int Language::classDeclaration(Node *n) {
   ClassName = 0;
   Delete(DirectorClassName);
   DirectorClassName = 0;
-  Swig_restore(n);
   return SWIG_OK;
 }
 
@@ -2611,7 +2605,7 @@ int Language::constructorDeclaration(Node *n) {
       }
     } else {
       if (name && (Cmp(Swig_scopename_last(name), Swig_scopename_last(ClassName))) && !(Getattr(n, "template"))) {
-	Swig_warning(WARN_LANG_RETURN_TYPE, input_file, line_number, "Function %s must have a return type.\n", SwigType_namestr(name));
+	Swig_warning(WARN_LANG_RETURN_TYPE, input_file, line_number, "Function %s must have a return type. Ignored.\n", SwigType_namestr(name));
 	Swig_restore(n);
 	return SWIG_NOWRAP;
       }
