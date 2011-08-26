@@ -766,7 +766,7 @@ private:
 	p = nextParm(p);
       }
     }
-    if (goTypeIsInterface(NULL, result)) {
+    if (goTypeIsInterface(n, result)) {
       needs_wrapper = true;
     }
 
@@ -4195,7 +4195,7 @@ private:
    * ---------------------------------------------------------------------- */
 
   bool checkIgnoredType(Node *n, String *go_name, SwigType *type) {
-    if (hasGoTypemap(type)) {
+    if (hasGoTypemap(n, type)) {
       return true;
     }
 
@@ -4285,7 +4285,7 @@ private:
 	ret = Swig_typemap_lookup("gotype", n, "", NULL);
       }
     } else {
-      Parm *p = NewParmWithoutFileLineInfo(type, "goType");
+      Parm *p = NewParm(type, "goType", n);
       ret = Swig_typemap_lookup("gotype", p, "", NULL);
       Delete(p);
     }
@@ -4539,7 +4539,7 @@ private:
     bool is_long = false;
     bool is_float = false;
     bool is_double = false;
-    if ((n != NULL && Getattr(n, "tmap:gotype") != NULL) || hasGoTypemap(type)) {
+    if ((n != NULL && Getattr(n, "tmap:gotype") != NULL) || hasGoTypemap(n, type)) {
       is_char = Strcmp(gt, "int8") == 0 || Strcmp(gt, "uint8") == 0 || Strcmp(gt, "byte") == 0;
       is_short = Strcmp(gt, "int16") == 0 || Strcmp(gt, "uint16") == 0;
       is_int = Strcmp(gt, "int") == 0 || Strcmp(gt, "int32") == 0 || Strcmp(gt, "uint32") == 0;
@@ -4591,7 +4591,7 @@ private:
 	  String *q = SwigType_parm(t);
 	  if (Strcmp(q, "const") == 0) {
 	    SwigType_del_qualifier(t);
-	    if (hasGoTypemap(t) || SwigType_ispointer(t)) {
+	    if (hasGoTypemap(n, t) || SwigType_ispointer(t)) {
 	      ret = SwigType_lstr(t, name);
 	      Delete(q);
 	      Delete(t);
@@ -4657,8 +4657,8 @@ private:
    * Return whether a type has a "gotype" typemap entry.
    * ---------------------------------------------------------------------- */
 
-  bool hasGoTypemap(SwigType *type) {
-    Parm *p = NewParmWithoutFileLineInfo(type, "test");
+  bool hasGoTypemap(Node *n, SwigType *type) {
+    Parm *p = NewParm(type, "test", n);
     SwigType *tm = Swig_typemap_lookup("gotype", p, "", NULL);
     Delete(p);
     if (tm && Strstr(tm, "$gotypename") == 0) {
