@@ -1404,6 +1404,7 @@ public:
       // constants are already handeled in staticmemberfunctionHandler().
 
       Swig_save("constantWrapper", n, "value", NIL);
+      Swig_save("constantWrapper", n, "tmap:ctype:out", "tmap:imtype:out", "tmap:dtype:out", "tmap:out:null", "tmap:imtype:outattributes", "tmap:dtype:outattributes", NIL);
 
       // Add the stripped quotes back in.
       String *old_value = Getattr(n, "value");
@@ -1416,6 +1417,7 @@ public:
 	Delete(old_value);
       }
 
+      SetFlag(n, "feature:immutable");
       int result = globalvariableHandler(n);
 
       Swig_restore(n);

@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-08-26: wsfulton
+            [C#, D] Fix %callback which was generating uncompileable code.
+
 2011-08-25: wsfulton
             Fix constructors in named typedef class declarations as reported by Gregory Bronner:
 

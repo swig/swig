@@ -114,7 +114,7 @@
   }
 %}
 
-%callback(1) func_cb;
+%callback("%(uppercase)s_CALLBACK") func_cb;
 
 %inline {
   int func_cb(int c, int d) { return c; }

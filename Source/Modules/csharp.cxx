@@ -1403,6 +1403,7 @@ public:
     String *return_type = NewString("");
     String *constants_code = NewString("");
     Swig_save("constantWrapper", n, "value", NIL);
+    Swig_save("constantWrapper", n, "tmap:ctype:out", "tmap:imtype:out", "tmap:cstype:out", "tmap:out:null", "tmap:imtype:outattributes", "tmap:cstype:outattributes", NIL);
 
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
