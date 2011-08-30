@@ -2545,7 +2545,7 @@ public:
     }
 
     if (builtin_ctor)
-      Append(f->code, "    return resultobj == Py_None ? 1 : 0;\n");
+      Append(f->code, "    return resultobj == Py_None ? -1 : 0;\n");
     else
       Append(f->code, "    return resultobj;\n");
 

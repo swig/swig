@@ -4,6 +4,8 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.5 (in progress)
 ===========================
+2011-08-30: szager
+	    [python] Bug 3400486, fix error signalling for built-in constructors.
 
 2011-08-26: wsfulton
             [Go] Fix file/line number display for "gotype" when using typemap debugging options
