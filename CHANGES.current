@@ -4,6 +4,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.5 (in progress)
 ===========================
+2011-08-31: xavier98
+	    [octave] patches from Karl Wette: improvements to module loading behavior;
+	    added example of friend operator to operator example; fixed octave panic/crash in 3.0.5;
+	    documentation improvements
+
 2011-08-30: szager
 	    [python] Bug 3400486, fix error signalling for built-in constructors.
 
