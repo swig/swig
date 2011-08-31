@@ -15,6 +15,7 @@
 <li><a href="#Octave_nn2">Preliminaries</a>
 <li><a href="#Octave_nn3">Running SWIG</a>
 <ul>
+<li><a href="#Octave_nn4">Command-line options</a>
 <li><a href="#Octave_nn5">Compiling a dynamic module</a>
 <li><a href="#Octave_nn6">Using your module</a>
 </ul>
@@ -61,6 +62,10 @@ Also, there are a dozen or so examples in the Examples/octave directory, and hun
 The SWIG implemention was first based on Octave 2.9.12, so this is the minimum version required. Testing has only been done on Linux.
 </p>
 
+<p>
+As of SWIG 2.0.5, the Octave module should work with Octave versions 3.0.5, 3.2.4, and 3.4.0.
+</p>
+
 <H2><a name="Octave_nn3"></a>29.2 Running SWIG</H2>
 
 
@@ -80,24 +85,43 @@ extern double Foo; </pre></div>
 To build an Octave module when wrapping C code, run SWIG using the <tt>-octave</tt> option:
 </p>
 
-<div class="shell"><pre>$ swig -octave example.i </pre></div>
+<div class="shell"><pre>$ swig -octave -o example_wrap.cpp example.i </pre></div>
 
 <p>
 The <tt>-c++</tt> option is also required when wrapping C++ code:
 </p>
 
 
-<div class="shell"><pre>$ swig -octave -c++ example.i </pre></div>
+<div class="shell"><pre>$ swig -octave -c++ -o example_wrap.cpp example.i </pre></div>
 
 <p>
-This creates a C++ source file <tt>example_wrap.cxx</tt>. A C++ file is generated even when wrapping C code as Octave is itself written in C++ and requires wrapper code to be in the same language. The generated C++ source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application (in this case, the gcd implementation) to create an extension module.
+This creates a C++ source file <tt>example_wrap.cpp</tt>. A C++ file is generated even when wrapping C code as Octave is itself written in C++ and requires wrapper code to be in the same language. The generated C++ source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application (in this case, the gcd implementation) to create an extension module.
 </p>
+
+<H3><a name="Octave_nn4"></a>29.2.1 Command-line options</H3>
 
 <p>
-The swig command line has a number of options you can use, like to redirect it's output. Use <tt>swig --help</tt> to learn about these.
+The swig command line has a number of options you can use, like to redirect its output. Use <tt>swig -help</tt> to learn about these.
+Options specific to the Octave module are:
 </p>
 
-<H3><a name="Octave_nn5"></a>29.2.1 Compiling a dynamic module</H3>
+<div class="shell">
+<pre>$ swig -octave -help
+...
+Octave Options (available with -octave)
+     -global       - Load all symbols into the global namespace [default]
+     -globals <em>name</em> - Set <em>name</em> used to access C global variables [default: 'cvar']
+     -noglobal     - Do not load all symbols into the global namespace
+     -opprefix <em>str</em> - Prefix <em>str</em> for global operator functions [default: 'op_']
+</pre></div>
+
+<p>
+The <em>-global</em> and <em>-noglobal</em> options determine whether the Octave module will load all symbols into the global namespace in addition to the global namespace.
+The <em>-globals</em> option sets the name of the variable which is the namespace for C global variables exported by the module.
+The <em>-opprefix</em> options sets the prefix of the names of global/friend <a href="#Octave_nn18">operator</a> functions.
+</p>
+
+<H3><a name="Octave_nn5"></a>29.2.2 Compiling a dynamic module</H3>
 
 
 <p>
@@ -106,8 +130,8 @@ Building an oct file is usually done with the mkoctfile command (either within O
 </p>
 
 <div class="shell"><pre>
-$ swig -octave -c++ example.i -o example_wrap.cxx
-$ mkoctfile example_wrap.cxx example.c
+$ swig -octave -c++ -o example_wrap.cpp example.i
+$ mkoctfile example_wrap.cpp example.c
 </pre></div>
 
 <p>
@@ -124,7 +148,7 @@ $ mkoctfile example_wrap.cxx example.c
 
           <div class="targetlang"><pre>octave:1&gt; example</pre></div>
 
-<H3><a name="Octave_nn6"></a>29.2.2 Using your module</H3>
+<H3><a name="Octave_nn6"></a>29.2.3 Using your module</H3>
 
 
 <p>
@@ -157,34 +181,70 @@ When Octave is asked to invoke <tt>example</tt>, it will try to find the .m or .
 </p>
 
 <p>
-Giving this function a parameter "global" will cause it to load all symbols into the global namespace in addition to the <tt>example</tt> namespace. For example: 
+An Octave module takes three options, <em>-global</em>, <em>-noglobal</em>, and <em>-globals</em>, which behave the same as the corresponding swig <a href="#Octave_nn4">command-line options</a>.
+Here are some example usages:
 </p>
 
-    <div class="targetlang"><pre>$ octave -q
-octave:1&gt; example("global")
-octave:2&gt; gcd(4,6)
+    <div class="targetlang"><pre>
+octave:1&gt; example -help
+usage: example [-global|-noglobal] [-globals &lt;name&gt;]
+octave:2&gt; example -global
+octave:3&gt; gcd(4,6)
 ans =  2
-octave:3&gt; cvar.Foo
+octave:4&gt; cvar.Foo
 ans =  3
-octave:4&gt; cvar.Foo=4;
-octave:5&gt; cvar.Foo
-ans =  4 
+octave:5&gt; cvar.Foo=4;
+octave:6&gt; cvar.Foo
+ans =  4
 </pre></div>
+<br>
+    <div class="targetlang"><pre>
+octave:1&gt; example -noglobal
+octave:2&gt; gcd(6,9)
+ans =  3
+octave:3&gt; cvar.Foo
+error: `cvar' undefined near line 3 column 1
+octave:3&gt; example.cvar.Foo
+ans =  3
+</pre></div>
+<br>
+    <div class="targetlang"><pre>
+octave:1&gt; example -globals mycvar
+octave:2&gt; cvar.Foo
+error: `cvar' undefined near line 2 column 1
+octave:2&gt; mycvar.Foo
+ans =  3
+</pre></div>
+
 <p>
-     It is also possible to rename the module namespace with an assignment, as in: <br>
-    <div class="targetlang"><pre>octave:1&gt; example;
+     It is also possible to rename the module / global variables namespaces with an assignment, as in: <br>
+    <div class="targetlang"><pre>
+octave:1&gt; example
 octave:2&gt; c=example;
 octave:3&gt; c.gcd(10,4)
-ans =  2 </pre></div>
+ans =  2
+octave:4&gt; some_vars = cvar;
+octave:5&gt; some_vars.Foo
+ans =  3
+</pre></div>
 
 <p>
-All global variables are put into the cvar namespace object. This is accessible either as <tt>my_module.cvar</tt>, or just <tt>cvar</tt> (if the module is imported into the global namespace).
+Modules can also be loaded from within functions, even before being loaded in the base context.
+If the module is also used in the base context, however, it must first be loaded again:
 </p>
-<p>
-One can also rename it by simple assignment, e.g.,
-</p>
+
 <div class="targetlang"><pre>
-octave:1&gt; some_vars = cvar;
+octave:1&gt; function l = my_lcm(a,b)
+&gt; example
+&gt; l = abs(a*b)/example.gcd(a,b);
+&gt; endfunction
+octave:2&gt; my_lcm(4,6)
+ans =  12
+octave:3&gt; example.gcd(4,6)
+error: can't perform indexing operations for &lt;unknown type&gt; type
+octave:3&gt; example;
+octave:4&gt; example.gcd(4,6)
+ans =  2
 </pre></div>
 
 <H3><a name="Octave_nn9"></a>29.3.2 Functions</H3>
@@ -579,6 +639,10 @@ On the C++ side, the default mappings are as follows:
 %rename(__paren)     *::operator();
 %rename(__brace)     *::operator[];
 </pre></div>
+
+<p>
+Octave can also utilise friend (i.e. non-member) operators with a simple %rename: see the example in the Examples/octave/operator directory.
+</p>
 
 <H3><a name="Octave_nn19"></a>29.3.10 Class extension with %extend</H3>
 
