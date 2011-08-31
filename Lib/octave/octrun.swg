@@ -789,7 +789,7 @@ namespace Swig {
       octave_value fcn = get_global_value(symbol, true);
       if (!fcn.is_function() && !fcn.is_function_handle())
 	return false;
-      ret = fcn.subsref("(", std::list < octave_value_list > (1, args));
+      ret = fcn.subsref("(", std::list < octave_value_list > (1, args), 1);
       return true;
     }
 

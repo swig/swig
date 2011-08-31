@@ -22,3 +22,5 @@ printf("f   = %s\n",disp(f));
 # paren overloading
 printf("a(3)= %s\n",disp(a(3)));
 
+# friend operator
+printf("2*a = %s\n",disp(2*a));

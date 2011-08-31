@@ -5,6 +5,9 @@
 #include "example.h"
 %}
 
+/* Rename friend operator */
+%rename(op_scalar_mul_ComplexVal) operator*(const double&, const ComplexVal&);
+
 /* Now grab the original header file */
 %include "example.h"
 
@@ -20,5 +23,3 @@
      return ComplexVal($self->re()*j,$self->im()*j);
    }
 };
-
-
