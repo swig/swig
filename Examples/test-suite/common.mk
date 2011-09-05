@@ -124,6 +124,7 @@ CPP_TEST_CASES += \
 	catches \
 	cast_operator \
 	casts \
+	char_binary \
 	char_strings \
 	class_ignore \
 	class_scope_weird \
