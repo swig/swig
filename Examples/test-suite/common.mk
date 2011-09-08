@@ -195,6 +195,7 @@ CPP_TEST_CASES += \
 	evil_diamond_prop \
 	exception_order \
 	extend \
+	extend_constructor_destructor \
 	extend_default \
 	extend_placement \
 	extend_template \
