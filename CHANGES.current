@@ -4,6 +4,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.5 (in progress)
 ===========================
+2011-09-10: talby
+            [perl5] SF bug #1481958 - Improve range checking for integer types.
+            Enhance li_typemaps_runme.pl
+
 2011-09-08: wsfulton
             Fix %extend on typedef classes in a namespace using the typedef name, for example:
             namespace Space {
