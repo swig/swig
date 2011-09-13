@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-09-14: wsfulton
+            [C#] Add boost_intrusive_ptr.i library contribution from patch #3401571.
+
 2011-09-13: wsfulton
             Add warnings for badly named destructors, eg:
 
