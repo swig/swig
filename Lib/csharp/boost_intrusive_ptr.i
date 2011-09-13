@@ -239,6 +239,21 @@
     $typemap(cstype, TYPE) ret = (cPtr == IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret; 
   }
+%typemap(csvarout, excode=SWIGEXCODE2) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > %{
+    get {
+      $typemap(cstype, TYPE) ret = new $typemap(cstype, TYPE)($imcall, true);$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE >& %{
+    get {
+      $typemap(cstype, TYPE) ret = new $typemap(cstype, TYPE)($imcall, true);$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE >* %{
+    get {
+      $typemap(cstype, TYPE) ret = new $typemap(cstype, TYPE)($imcall, true);$excode
+      return ret;
+    } %}
 
 
 %typemap(csout, excode=SWIGEXCODE) CONST TYPE {

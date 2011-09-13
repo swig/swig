@@ -22,7 +22,8 @@ CPP_TEST_CASES = \
 	enum_thorough_simple \
 	enum_thorough_typesafe \
 	exception_partial_info \
-	intermediary_classname
+	intermediary_classname \
+	li_boost_intrusive_ptr
 
 include $(srcdir)/../common.mk
 
