@@ -20,20 +20,21 @@ namespace Space {
   typedef struct {
     int ivar;
   } DStruct;
+
 }
 
 typedef struct tagEStruct {
   int ivar;
 } EStruct;
 
+namespace Space {
+  template<typename T>
+  struct FFStruct {
+    int ivar;
+  };
+}
 %}
 
-%extend Junk {
-void thingy() {}
-}
-%inline %{
-struct Junk {};
-%}
 namespace Space {
 
 %extend tagAStruct {
@@ -102,4 +103,23 @@ namespace Space {
     delete $self;
   }
 }
+
+namespace Space {
+%extend FFStruct {
+  FFStruct(int ivar0) {
+    Space::FFStruct<T> *s = new Space::FFStruct<T>();
+    s->ivar = ivar0;
+    global = ivar0;
+    return s;
+  }
+  ~FFStruct() {
+    global = -$self->ivar;
+    delete $self;
+  }
+}
+
+}
+
+%template(FStruct) Space::FFStruct<long>;
+%template(GStruct) Space::FFStruct<char>;
 

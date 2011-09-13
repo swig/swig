@@ -2609,17 +2609,18 @@ int Language::constructorDeclaration(Node *n) {
 	}
       }
     } else {
-      if (name && (!Equal(Swig_scopename_last(name), Swig_scopename_last(ClassName))) && !(Getattr(n, "template"))) {
-	bool illegal_method = true;
+      String *expected_name = ClassName;
+      if (name && (!Equal(Swig_scopename_last(name), Swig_scopename_last(expected_name))) && !(Getattr(n, "template"))) {
+	bool illegal_name = true;
 	if (Extend) {
 	  // SWIG extension - allow typedef names as constructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'constructor'.
 	  SwigType *name_resolved = SwigType_typedef_resolve_all(name);
-	  SwigType *classname_resolved = SwigType_typedef_resolve_all(ClassName);
-	  illegal_method = !Equal(name_resolved, classname_resolved);
+	  SwigType *expected_name_resolved = SwigType_typedef_resolve_all(expected_name);
+	  illegal_name = !Equal(name_resolved, expected_name_resolved);
 	  Delete(name_resolved);
-	  Delete(classname_resolved);
+	  Delete(expected_name_resolved);
 	}
-	if (illegal_method) {
+	if (illegal_name) {
 	  Swig_warning(WARN_LANG_RETURN_TYPE, input_file, line_number, "Function %s must have a return type. Ignored.\n", SwigType_namestr(name));
 	  Swig_restore(n);
 	  return SWIG_NOWRAP;
@@ -2727,24 +2728,12 @@ int Language::destructorDeclaration(Node *n) {
   if (ImportMode)
     return SWIG_NOWRAP;
 
-  if (Extend) {
-    /* extend destructor can be safely ignored if there is already one */
-    if (Getattr(CurrentClass, "has_destructor")) {
-      return SWIG_NOWRAP;
-    }
-  }
-
   Swig_save("destructorDeclaration", n, "name", "sym:name", NIL);
 
-  char *c = GetChar(n, "name");
-  if (c && (*c == '~'))
-    Setattr(n, "name", c + 1);
-
-  c = GetChar(n, "sym:name");
-  if (c && (*c == '~'))
+  char *c = GetChar(n, "sym:name");
+  if (c && (*c == '~')) {
     Setattr(n, "sym:name", c + 1);
-
-  /* Name adjustment for %name */
+  }
 
   String *name = Getattr(n, "name");
   String *symname = Getattr(n, "sym:name");
@@ -2753,10 +2742,33 @@ int Language::destructorDeclaration(Node *n) {
     Setattr(n, "sym:name", ClassPrefix);
   }
 
+  String *expected_name = NewString(ClassName);
+  Replace(expected_name, "~", "", DOH_REPLACE_FIRST);
+  String *actual_name = NewString(name);
+  Replace(actual_name, "~", "", DOH_REPLACE_FIRST);
+  if (name && (!Equal(Swig_scopename_last(actual_name), Swig_scopename_last(expected_name))) && !(Getattr(n, "template"))) {
+    bool illegal_name = true;
+    if (Extend) {
+      // SWIG extension - allow typedef names as destructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'destructor'.
+      SwigType *name_resolved = SwigType_typedef_resolve_all(actual_name);
+      SwigType *expected_name_resolved = SwigType_typedef_resolve_all(expected_name);
+      illegal_name = !Equal(name_resolved, expected_name_resolved);
+      Delete(name_resolved);
+      Delete(expected_name_resolved);
+    }
+
+    if (illegal_name) {
+      Swig_warning(WARN_LANG_ILLEGAL_DESTRUCTOR, input_file, line_number, "Illegal destructor name %s. Ignored.\n", SwigType_namestr(name));
+      Swig_restore(n);
+      Delete(expected_name);
+      return SWIG_NOWRAP;
+    }
+  }
   destructorHandler(n);
 
   Setattr(CurrentClass, "has_destructor", "1");
   Swig_restore(n);
+  Delete(expected_name);
   return SWIG_OK;
 }
 

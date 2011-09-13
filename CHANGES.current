@@ -4,6 +4,29 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.5 (in progress)
 ===========================
+
+2011-09-13: wsfulton
+            Add warnings for badly named destructors, eg:
+
+              struct KStruct {
+                ~NOT_KStruct() {}
+              };
+
+            cpp_extend_destructors.i:92: Warning 521: Illegal destructor name ~NOT_KStruct. Ignored.
+
+2011-09-13: wsfulton
+            Fix %extend and destructors for templates. The destructor in %extend was not always wrapped,
+            for example:
+
+              %extend FooT {
+                ~FooT() { delete $self; } // was not wrapped as expected
+              };
+              template<class T> class FooT {};
+              %template(FooTi) FooT<int>;
+
+2011-09-13: wsfulton
+            Fix special variables such as "$decl" and "$fulldecl" in destructors to include the ~ character.
+
 2011-09-10: talby
             [perl5] SF bug #1481958 - Improve range checking for integer types.
             Enhance li_typemaps_runme.pl

@@ -63,6 +63,7 @@ swig_typemap_old
 # Files run in C++ mode
 CPPFILES='
 cpp_bad_extern
+cpp_extend_destructors
 cpp_extend_redefine
 cpp_extend_undefined
 cpp_inline_namespace
