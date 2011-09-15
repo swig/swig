@@ -142,7 +142,7 @@ public:
     if (ldflag != NULL) {
       Printf(builderCode, "ldflags = \"%s\";\n", ldflag);
     } else {
-      Printf(builderCode, "ldflags = [];\n");
+      Printf(builderCode, "ldflags = \"%s\";\n");
     }
     Printf(builderCode, "cflags = [\"-g -I\" + get_absolute_file_path(\"builder.sce\")];\n");
     if (cflag != NULL) {
