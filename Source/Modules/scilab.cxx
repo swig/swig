@@ -44,6 +44,10 @@ public:
    * ----------------------------------------------------------------------*/
   virtual void main(int argc, char* argv[]) {
 
+    sourceFile = NULL;
+    ldflag = NULL;
+    cflag = NULL;
+
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
       if (argv[argIndex] != NULL) {
