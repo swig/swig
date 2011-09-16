@@ -181,12 +181,24 @@ SWIGINTERN int SWIG_Lua_module_get(lua_State* L)
    lua_tostring(L,2));
 */
   /* get the metatable */
+#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
   assert(lua_istable(L,1));  /* just in case */
+#else
+  assert(lua_isrotable(L,1));
+#endif
   lua_getmetatable(L,1);  /* get the metatable */
+#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
   assert(lua_istable(L,-1));  /* just in case */
+#else
+  assert(lua_isrotable(L,-1));
+#endif
   SWIG_Lua_get_table(L,".get");  /* get the .get table */
   lua_remove(L,3);  /* remove metatable */
+#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
   if (lua_istable(L,-1))
+#else
+  if (lua_isrotable(L,-1))
+#endif
   {
     /* look for the key in the .get table */
     lua_pushvalue(L,2);  /* key */
@@ -201,7 +213,7 @@ SWIGINTERN int SWIG_Lua_module_get(lua_State* L)
   }
   lua_pop(L,1);  /* remove the .get */
   lua_pushnil(L);  /* return a nil */
-    return 1;
+  return 1;
 }
 
 /* the module.set method used for setting linked data */
@@ -213,12 +225,24 @@ SWIGINTERN int SWIG_Lua_module_set(lua_State* L)
   (3) any for the new value
 */
   /* get the metatable */
+#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
   assert(lua_istable(L,1));  /* just in case */
+#else
+  assert(lua_isrotable(L,1));
+#endif
   lua_getmetatable(L,1);  /* get the metatable */
+#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
   assert(lua_istable(L,-1));  /* just in case */
+#else
+  assert(lua_isrotable(L,-1));  
+#endif
   SWIG_Lua_get_table(L,".set");  /* get the .set table */
   lua_remove(L,4);  /* remove metatable */
+#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
   if (lua_istable(L,-1))
+#else
+  if (lua_isrotable(L,-1))
+#endif
   {
     /* look for the key in the .set table */
     lua_pushvalue(L,2);  /* key */
@@ -230,6 +254,11 @@ SWIGINTERN int SWIG_Lua_module_set(lua_State* L)
       lua_call(L,1,0);
       return 0;
     }
+#if (SWIG_LUA_TARGET == SWIG_LUA_ELUA)
+    else {
+      return 0; // Exits stoically if an invalid key is initialized.
+    }
+#endif
   }
   lua_settop(L,3);  /* reset back to start */
   /* we now have the table, key & new value, so just set directly */
@@ -237,6 +266,7 @@ SWIGINTERN int SWIG_Lua_module_set(lua_State* L)
   return 0;
 }
 
+#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
 /* registering a module in lua. Pushes the module table on the stack. */
 SWIGINTERN void  SWIG_Lua_module_begin(lua_State* L,const char* name)
 {
@@ -291,6 +321,7 @@ SWIGINTERN void SWIG_Lua_module_add_variable(lua_State* L,const char* name,lua_C
   }
   lua_pop(L,1);       /* tidy stack (remove meta) */
 }
+#endif
 
 /* adding a function module */
 SWIGINTERN void  SWIG_Lua_module_add_function(lua_State* L,const char* name,lua_CFunction fn)
@@ -705,6 +736,7 @@ SWIGRUNTIME int SWIG_Lua_equal(lua_State* L)
  * global variable support code: class/struct typemap functions
  * ----------------------------------------------------------------------------- */
 
+#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
 /* Install Constants */
 SWIGINTERN void
 SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]) {
@@ -746,6 +778,7 @@ SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]) {
     }
   }
 }
+#endif
 
 /* -----------------------------------------------------------------------------
  * executing lua code from within the wrapper

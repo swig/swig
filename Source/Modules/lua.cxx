@@ -40,8 +40,8 @@
  * ver009
    class support: ok for basic types, but methods still TDB
    (code is VERY messed up & needs to be cleaned)
- 
- 
+ * ver010
+   Added support for embedded Lua. Try swig -lua -help for more information
 */
 
 char cvsroot_lua_cxx[] = "$Id$";
@@ -83,11 +83,15 @@ void display_mapping(DOH *d) {
 NEW LANGUAGE NOTE:END ************************************************/
 static const char *usage = (char *) "\
 Lua Options (available with -lua)\n\
+     -elua           - Generates LTR compatible wrappers for smaller devices running elua\n\
+     -eluac          - LTR compatible wrappers in \"crass compress\" mode for elua\n\
      -nomoduleglobal - Do not register the module name as a global variable \n\
                        but return the module table from calls to require.\n\
 \n";
 
 static int nomoduleglobal = 0;
+static int elua_ltr = 0;
+static int eluac_ltr = 0;
 
 /* NEW LANGUAGE NOTE:***********************************************
  To add a new language, you need to derive your class from
@@ -111,6 +115,9 @@ private:
   String *s_methods_tab;	// table of class methods
   String *s_attr_tab;		// table of class atributes
   String *s_luacode;		// luacode to be called during init
+  String *s_dot_get;            // table of variable 'get' functions
+  String *s_dot_set;            // table of variable 'set' functions
+  String *s_vars_meta_tab;      // metatable for variables
 
   int have_constructor;
   int have_destructor;
@@ -175,6 +182,12 @@ public:
           fputs(usage, stdout);
         } else if (strcmp(argv[i], "-nomoduleglobal") == 0) {
           nomoduleglobal = 1;
+          Swig_mark_arg(i);
+        } else if(strcmp(argv[i], "-elua") == 0) {
+          elua_ltr = 1;
+          Swig_mark_arg(i);
+        } else if(strcmp(argv[i], "-eluac") == 0) {
+          eluac_ltr = 1;
           Swig_mark_arg(i);
         }
       }
@@ -255,6 +268,10 @@ public:
     s_var_tab = NewString("");
     //    s_methods_tab    = NewString("");
     s_const_tab = NewString("");
+
+    s_dot_get = NewString("");
+    s_dot_set = NewString("");
+    s_vars_meta_tab = NewString("");
     
     s_luacode = NewString("");
     Swig_register_filebyname("luacode", s_luacode);
@@ -266,6 +283,13 @@ public:
 
     Printf(f_runtime, "\n");
     Printf(f_runtime, "#define SWIGLUA\n");
+
+    if (elua_ltr)
+      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_ELUA\n");
+    else if (eluac_ltr)
+      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_ELUAC\n");
+    else
+      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_LUA\n");
 
     if (nomoduleglobal) {
       Printf(f_runtime, "#define SWIG_LUA_NO_MODULE_GLOBAL\n");
@@ -287,12 +311,31 @@ public:
     Printf(f_header, "#define SWIG_name      \"%s\"\n", module);
     Printf(f_header, "#define SWIG_init      luaopen_%s\n", module);
     Printf(f_header, "#define SWIG_init_user luaopen_%s_user\n\n", module);
-    Printf(f_header, "#define SWIG_LUACODE   luaopen_%s_luacode\n\n", module);
+    Printf(f_header, "#define SWIG_LUACODE   luaopen_%s_luacode\n", module);
 
-    Printf(s_cmd_tab, "\nstatic const struct luaL_reg swig_commands[] = {\n");
-    Printf(s_var_tab, "\nstatic swig_lua_var_info swig_variables[] = {\n");
-    Printf(s_const_tab, "\nstatic swig_lua_const_info swig_constants[] = {\n");
-    Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
+    if (elua_ltr || eluac_ltr)
+      Printf(f_header, "#define swig_commands  %s_map\n\n", module);
+
+    if (elua_ltr || eluac_ltr) {
+      Printf(s_cmd_tab, "\n#define MIN_OPT_LEVEL 2\n#include \"lrodefs.h\"\n");
+      Printf(s_cmd_tab, "#include \"lrotable.h\"\n");
+      Printf(s_cmd_tab, "\nconst LUA_REG_TYPE swig_constants[];\n");
+      if (elua_ltr)
+        Printf(s_cmd_tab, "const LUA_REG_TYPE mt[];\n");
+
+      Printf(s_cmd_tab, "\nconst LUA_REG_TYPE swig_commands[] = {\n");
+      Printf(s_const_tab, "\nconst LUA_REG_TYPE swig_constants[] = {\n");
+      Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
+      if (elua_ltr) {
+        Printf(s_dot_get, "\nconst LUA_REG_TYPE dot_get[] = {\n");
+        Printf(s_dot_set, "\nconst LUA_REG_TYPE dot_set[] = {\n");
+      }
+    } else {
+      Printf(s_cmd_tab, "\nstatic const struct luaL_reg swig_commands[] = {\n");
+      Printf(s_var_tab, "\nstatic swig_lua_var_info swig_variables[] = {\n");
+      Printf(s_const_tab, "\nstatic swig_lua_const_info swig_constants[] = {\n");
+      Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
+    }
 
     /* %init code inclusion, effectively in the SWIG_init function */
     Printf(f_init, "void SWIG_init_user(lua_State* L)\n{\n");
@@ -303,11 +346,39 @@ public:
     Printf(f_wrappers, "#ifdef __cplusplus\n}\n#endif\n");
 
     // Done.  Close up the module & write to the wrappers
-    Printv(s_cmd_tab, tab4, "{0,0}\n", "};\n", NIL);
-    Printv(s_var_tab, tab4, "{0,0,0}\n", "};\n", NIL);
-    Printv(s_const_tab, tab4, "{0,0,0,0,0,0}\n", "};\n", NIL);
-    Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab, NIL);
-    SwigType_emit_type_table(f_runtime, f_wrappers);
+    if (elua_ltr || eluac_ltr) {
+      Printv(s_cmd_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(swig_constants)},\n", NIL);
+      if (elua_ltr)
+        Printv(s_cmd_tab, tab4, "{LSTRKEY(\"__metatable\"), LROVAL(mt)},\n", NIL);
+      Printv(s_cmd_tab, tab4, "{LNILKEY, LNILVAL}\n", "};\n", NIL);
+      Printv(s_const_tab, tab4, "{LNILKEY, LNILVAL}\n", "};\n", NIL);
+    } else {
+      Printv(s_cmd_tab, tab4, "{0,0}\n", "};\n", NIL);
+      Printv(s_var_tab, tab4, "{0,0,0}\n", "};\n", NIL);
+      Printv(s_const_tab, tab4, "{0,0,0,0,0,0}\n", "};\n", NIL);
+    }
+
+    if (elua_ltr) {
+      /* Generate the metatable */
+      Printf(s_vars_meta_tab, "\nconst LUA_REG_TYPE mt[] = {\n");
+      Printv(s_vars_meta_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_module_get)},\n", NIL);
+      Printv(s_vars_meta_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_module_set)},\n", NIL);
+      Printv(s_vars_meta_tab, tab4, "{LSTRKEY(\".get\"), LROVAL(dot_get)},\n", NIL);
+      Printv(s_vars_meta_tab, tab4, "{LSTRKEY(\".set\"), LROVAL(dot_set)},\n", NIL);
+      Printv(s_vars_meta_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
+
+      Printv(s_dot_get, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
+      Printv(s_dot_set, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
+    }
+
+    if (elua_ltr || eluac_ltr) {
+      /* Final close up of wrappers */
+      Printv(f_wrappers, s_cmd_tab, s_dot_get, s_dot_set, s_vars_meta_tab, s_var_tab, s_const_tab, NIL);
+      SwigType_emit_type_table(f_runtime, f_wrappers);
+    } else {
+      Printv(f_wrappers, s_cmd_tab, s_var_tab, s_const_tab, NIL);
+      SwigType_emit_type_table(f_runtime, f_wrappers);
+    }
 
     /* NEW LANGUAGE NOTE:***********************************************
      this basically combines several of the strings together
@@ -333,6 +404,9 @@ public:
     Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
+    Delete(s_dot_get);
+    Delete(s_dot_set);
+    Delete(s_vars_meta_tab);
 
     /* Done */
     return SWIG_OK;
@@ -661,9 +735,13 @@ public:
     /* Now register the function with the interpreter. */
     if (!Getattr(n, "sym:overloaded")) {
       //      add_method(n, iname, wname, description);
-      if (current==NO_CPP || current==STATIC_FUNC) // emit normal fns & static fns
-        Printv(s_cmd_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(iname), "},\n", NIL);
+      if (current==NO_CPP || current==STATIC_FUNC) { // emit normal fns & static fns
+        if(elua_ltr || eluac_ltr)
+          Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", iname, "\")", ", LFUNCVAL(", Swig_name_wrapper(iname), ")", "},\n", NIL);
+        else
+          Printv(s_cmd_tab, tab4, "{ \"", iname, "\", ", Swig_name_wrapper(iname), "},\n", NIL);
       //      Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", iname, "\", (swig_wrapper_func) ", Swig_name_wrapper(iname), "},\n", NIL);
+      }
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
         dispatchFunction(n);
@@ -787,8 +865,17 @@ public:
       setName = NewString("SWIG_Lua_set_immutable"); // error message
       //setName = NewString("0");
     }
+
     // register the variable
-    Printf(s_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, iname, getName, setName);
+    if (elua_ltr) {
+      Printf(s_dot_get, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, iname, getName);
+      Printf(s_dot_set, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, iname, setName);
+    } else if (eluac_ltr) {
+      Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", iname, "_get", "\")", ", LFUNCVAL(", getName, ")", "},\n", NIL);
+      Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", iname, "_set", "\")", ", LFUNCVAL(", setName, ")", "},\n", NIL);
+    } else {
+      Printf(s_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, iname, getName, setName);
+    }
     Delete(getName);
     Delete(setName);
     return result;
@@ -822,7 +909,7 @@ public:
       Replaceall(tm, "$target", name);
       Replaceall(tm, "$value", value);
       Replaceall(tm, "$nsname", nsname);
-      Printf(s_const_tab, "%s,\n", tm);
+      Printf(s_const_tab, "    %s,\n", tm);
     } else if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$source", value);
       Replaceall(tm, "$target", name);
@@ -1006,7 +1093,17 @@ public:
     Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_classname, " = { \"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
 
     if (have_constructor) {
-      Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)));
+      if (elua_ltr) {
+        Printf(s_cmd_tab, "    {LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", class_name, \
+        Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)));
+        Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)));
+      } else if (eluac_ltr) {
+        Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", "new_", class_name, "\")", ", LFUNCVAL(", \
+        Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)), ")", "},\n", NIL);
+        Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)));
+      } else {
+        Printf(f_wrappers, "%s", Swig_name_wrapper(Swig_name_construct(NSPACE_TODO, constructor_name)));
+      }
       Delete(constructor_name);
       constructor_name = 0;
     } else {
@@ -1014,7 +1111,12 @@ public:
     }
 
     if (have_destructor) {
-      Printv(f_wrappers, ", swig_delete_", class_name, NIL);
+      if (eluac_ltr) {
+        Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", "free_", class_name, "\")", ", LFUNCVAL(", "swig_delete_", class_name, ")", "},\n", NIL);
+        Printv(f_wrappers, ", swig_delete_", class_name, NIL);
+      } else {
+         Printv(f_wrappers, ", swig_delete_", class_name, NIL);
+      }
     } else {
       Printf(f_wrappers, ",0");
     }
@@ -1080,6 +1182,12 @@ public:
       sname = NewString("SWIG_Lua_set_immutable"); // error message
     }
     Printf(s_attr_tab,"%s{ \"%s\", %s, %s},\n",tab4,symname,gname,sname);
+    if (eluac_ltr) {
+      Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", class_name, "_", symname, "_get", "\")", \
+      ", LFUNCVAL(", gname, ")", "},\n", NIL);
+      Printv(s_cmd_tab, tab4, "{LSTRKEY(\"", class_name, "_", symname, "_set", "\")", \
+      ", LFUNCVAL(", sname, ")", "},\n", NIL);
+    }
     Delete(gname);
     Delete(sname);
     return SWIG_OK;
@@ -1160,9 +1268,7 @@ public:
    */
   String *runtimeCode() {
     String *s = NewString("");
-    const char *filenames[] = { "luarun.swg", 0
-                              }
-                              ;	// must be 0 termiated
+    const char *filenames[] = { "luarun.swg", 0 } ; // must be 0 terminated
     String *sfile;
     for (int i = 0; filenames[i] != 0; i++) {
       sfile = Swig_include_sys(filenames[i]);
@@ -1173,7 +1279,6 @@ public:
         Delete(sfile);
       }
     }
-
     return s;
   }
 

@@ -54,6 +54,7 @@ Past SWIG developers and major contributors include:
  Duncan Temple Lang                                     (R)
  Miklos Vajna <vmiklos@frugalware.org>                  (PHP directors)
  Mark Gossage (mark@gossage.cjb.net)                    (Lua)
+ Raman Gopalan (ramangopalan@gmail.com)                 (eLua)
  Gonzalo Garramuno (ggarra@advancedsl.com.ar)           (Ruby, Ruby's UTL)
  John Lenz                                              (Guile, MzScheme updates, Chicken module, runtime system)
  Ian Lance Taylor                                       (Go)
