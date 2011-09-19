@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-09-19: wsfulton
+            Fix regression introduced in swig-2.0.1 reported by Teemu Ikonone leading to uncompilable code
+            when using typedef and function pointer references, for example: 
+
+              typedef int FN(const int &a, int b);
+              void *typedef_call1(FN *& precallback, FN * postcallback);
+
 2011-09-14: wsfulton
             [Lua] Patch #3408012 from Raman Gopalan - add support for embedded Lua (eLua)
             including options for targeting Lua Tiny RAM (LTR).
