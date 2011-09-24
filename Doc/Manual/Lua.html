@@ -13,6 +13,7 @@
 <li><a href="#Lua_nn2">Preliminaries</a>
 <li><a href="#Lua_nn3">Running SWIG</a>
 <ul>
+<li><a href="#Lua_commandline">Additional command line options</a>
 <li><a href="#Lua_nn4">Compiling and Linking and Interpreter</a>
 <li><a href="#Lua_nn5">Compiling a dynamic module</a>
 <li><a href="#Lua_nn6">Using your module</a>
@@ -67,11 +68,15 @@
 <p>
 Lua is an extension programming language designed to support general procedural programming with data description facilities. It also offers good support for object-oriented programming, functional programming, and data-driven programming. Lua is intended to be used as a powerful, light-weight configuration language for any program that needs one. Lua is implemented as a library, written in clean C (that is, in the common subset of ANSI C and C++). Its also a <em>really</em> tiny language, less than 6000 lines of code, which compiles to &lt;100 kilobytes of binary code. It can be found at <a href="http://www.lua.org">http://www.lua.org</a>
 </p>
+<p>
+eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers the full implementation of the Lua programming language to the embedded world, extending it with specific features for efficient and portable software embedded development. eLua runs on smaller devices like microcontrollers and provides the full features of the regular Lua desktop version. More information on eLua can be found here: <a href="http://www.eluaproject.net">http://www.eluaproject.net</a>
+</p>
+
 <H2><a name="Lua_nn2"></a>25.1 Preliminaries</H2>
 
 
 <p>
-The current SWIG implementation is designed to work with Lua 5.0.x and Lua 5.1.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. ((Currently SWIG generated code has only been tested on Windows with MingW, though given the nature of Lua, is should not have problems on other OS's)). It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms).
+The current SWIG implementation is designed to work with Lua 5.0.x and Lua 5.1.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. ((Currently SWIG generated code has only been tested on Windows with MingW, though given the nature of Lua, is should not have problems on other OS's)). It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms). SWIG also supports eLua and works with eLua 0.8. SWIG generated code for eLua has been tested on Stellaris ARM Cortex-M3 LM3S and Infineon TriCore.
 </p>
 <H2><a name="Lua_nn3"></a>25.2 Running SWIG</H2>
 
@@ -105,8 +110,24 @@ This creates a C/C++ source file <tt>example_wrap.c</tt> or <tt>example_wrap.cxx
 <p>
 The name of the wrapper file is derived from the name of the input file. For example, if the input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>. To change this, you can use the -o option. The wrappered module will export one function <tt>"int luaopen_example(lua_State* L)"</tt> which must be called to register the module with the Lua interpreter. The name "luaopen_example" depends upon the name of the module.
 </p>
+<p>
+To build an eLua module, run SWIG using <tt>-lua</tt> and add either <tt>-elua</tt> or <tt>-eluac</tt>.
+</p>
+<div class="shell"><pre>
+$ swig -lua -elua example.i
+</pre></div>
+<p>
+or
+</p>
+<div class="shell"><pre>
+$ swig -lua -eluac example.i
+</pre></div>
+<p>
+The <tt>-elua</tt> option puts all the C function wrappers and variable get/set wrappers in rotables. It also generates a metatable which will control the access to these variables from eLua. It also offers a significant amount of module size compression. On the other hand, the <tt>-eluac</tt> option puts all the wrappers in a single rotable. With this option, no matter how huge the module, it will consume no additional microcontroller SRAM (crass compression). There is a catch though: Metatables are not generated with <tt>-eluac</tt>. To access any value from eLua, one must directly call the wrapper function associated with that value.
+</p>
 
 <H3><a name="Lua_commandline"></a>25.2.1 Additional command line options</H3>
+
 
 <p>
 The following table list the additional commandline options available for the Lua module. They can also be seen by using: 
@@ -122,13 +143,23 @@ swig -lua -help
 </tr>
 
 <tr>
+<td>-elua</td>
+<td>Generates LTR compatible wrappers for smaller devices running elua.</td>
+</tr>
+
+<tr>
+<td>-eluac</td>
+<td>LTR compatible wrappers in "crass compress" mode for elua.</td>
+</tr>
+
+<tr>
 <td>-nomoduleglobal</td>
 <td>Do not register the module name as a global variable but return the module table from calls to require.</td>
 </tr>
 
 </table>
 
-<H3><a name="Lua_nn4"></a>25.2.1 Compiling and Linking and Interpreter</H3>
+<H3><a name="Lua_nn4"></a>25.2.2 Compiling and Linking and Interpreter</H3>
 
 
 <p>
@@ -174,8 +205,33 @@ $ gcc -I/usr/include/lua -c example_wrap.c -o example_wrap.o
 $ gcc -c example.c -o example.o
 $ gcc -I/usr/include/lua -L/usr/lib/lua min.o example_wrap.o example.o -o my_lua
 </pre></div>
+<p>
+For eLua, the source must be built along with the wrappers generated by SWIG. Make sure the eLua source files <tt>platform_conf.h</tt> and <tt>auxmods.h</tt> are updated with the entries of your new module. Please note: <tt>"mod"</tt> is the module name.
+</p>
+<div class="code"><pre>
+/* Sample platform_conf.h */
+#define LUA_PLATFORM_LIBS_ROM\
+  _ROM( AUXLIB_PIO, luaopen_pio, pio_map )\
+  _ROM( AUXLIB_TMR, luaopen_tmr, tmr_map )\
+  _ROM( AUXLIB_MOD, luaopen_mod, mod_map )\
+  ....
+</pre></div>
+<p>
+</p>
+<div class="code"><pre>
+/* Sample auxmods.h */
+#define AUXLIB_PIO       "pio"
+LUALIB_API int ( luaopen_pio )(lua_State *L );
 
-<H3><a name="Lua_nn5"></a>25.2.2 Compiling a dynamic module</H3>
+#define AUXLIB_MOD       "mod"
+LUALIB_API int ( luaopen_mod )(lua_State *L );
+....
+</pre></div>
+<p>
+More information on building and configuring eLua can be found here: <a href="http://www.eluaproject.net/doc/v0.8/en_building.html">http://www.eluaproject.net/doc/v0.8/en_building.html</a>
+</p>
+
+<H3><a name="Lua_nn5"></a>25.2.3 Compiling a dynamic module</H3>
 
 
 <p>
@@ -243,7 +299,7 @@ Is quite obvious (Go back and consult the Lua documents on how to enable loadlib
 
 
 
-<H3><a name="Lua_nn6"></a>25.2.3 Using your module</H3>
+<H3><a name="Lua_nn6"></a>25.2.4 Using your module</H3>
 
 
 <p>
@@ -384,6 +440,20 @@ nil
 &gt; print(example.PI)
 3.142
 </pre></div>
+<p>
+If you have used the <tt>-eluac</tt> option for your eLua module, you will have to follow a different approach while manipulating global variables. (This is not applicable for wrappers generated with <tt>-elua</tt>)
+</p>
+<div class="targetlang"><pre>
+&gt; -- Applicable only with -eluac. (num is defined)
+&gt; print(example.num_get())
+20
+&gt; example.num_set(50) -- new value added
+&gt; print(example.num_get())
+50
+</pre></div>
+<p>
+In general, functions of the form <tt>"variable_get()"</tt> and <tt>"variable_set()"</tt> are automatically generated by SWIG for use with <tt>-eluac</tt>.
+</p>
 
 <H3><a name="Lua_nn11"></a>25.3.4 Constants and enums</H3>
 
@@ -408,6 +478,17 @@ example.SUNDAY=0
 <p>
 Constants are not guaranteed to remain constant in Lua. The name of the constant could be accidentally reassigned to refer to some other object. Unfortunately, there is no easy way for SWIG to generate code that prevents this. You will just have to be careful.
 </p>
+<p>
+If you're using eLua and have used <tt>-elua</tt> or <tt>-eluac</tt> to generate your wrapper, macro constants and enums should be accessed through a rotable called <tt>"const"</tt>. In eLua, macro constants and enums are guaranteed to remain constants since they are all contained within a rotable. A regular C constant is accessed from eLua just as if it were a regular global variable, just that the property of value immutability is demonstrated if an attempt at modifying a C constant is made.
+</p>
+<div class="targetlang"><pre>
+&gt; print(example.ICONST)
+10
+&gt; print(example.const.SUNDAY)
+0
+&gt; print(example.const.SCONST)
+Hello World
+</pre></div>
 <H3><a name="Lua_nn12"></a>25.3.5 Pointers</H3>
 
 
@@ -531,6 +612,24 @@ Because the pointer points inside the structure, you can modify the contents and
 &gt; x = b.f
 &gt; x.a = 3                 -- Modifies the same structure
 </pre></div>
+<p>
+For eLua with the <tt>-eluac</tt> option, structure manipulation has to be performed with specific structure functions generated by SWIG. Let's say you have the following structure definition:
+</p>
+<div class="code"><pre>struct data {
+   int x, y;
+   double z;
+};
+
+&gt; --From eLua
+&gt; a = example.new_data()
+&gt; example.data_x_set(a, 10)
+&gt; example.data_y_set(a, 20)
+&gt; print(example.data_x_get(a), example.data_y_get(a))
+10 20
+</pre></div>
+<p>
+In general, functions of the form <tt>"new_struct()"</tt>, <tt>"struct_member_get()"</tt>, <tt>"struct_member_set()"</tt> and <tt>"free_struct()"</tt> are automatically generated by SWIG for each structure defined in C. (Please note: This doesn't apply for modules generated with the <tt>-elua</tt> option)
+</p>
 
 <H3><a name="Lua_nn14"></a>25.3.7 C++ classes</H3>
 
