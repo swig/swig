@@ -20,11 +20,17 @@ static void SWIG_init_user(octave_swig_type* module_ns);
 
 DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
 
-  static bool already_init=false;
-  static octave_swig_type* module_ns=0;
-
-  // if module not already loaded
-  if (!already_init) {
+  // determine if module is already loaded
+  bool already_load;
+#if OCTAVE_API_VERSION_NUMBER<37
+  {
+    symbol_record *rec = curr_sym_tab->lookup(SWIG_name_d);
+    already_load = (rec && rec->is_linked_to_global());
+  }
+#else
+  already_load = symbol_table::is_global(SWIG_name_d);
+#endif
+  if (!already_load) {
 
     // parse command line
     const char* usage="usage: " SWIG_name_d " [-global|-noglobal] [-globals <name>]";
@@ -64,8 +70,6 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
       return octave_value_list();
     }
   
-    already_init=true;
-  
     // load module in base frame
 #if OCTAVE_API_VERSION_NUMBER<37
     symbol_table *prev_sym_tab = curr_sym_tab;
@@ -89,7 +93,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
       if (swig_globals[j].get_method)
         cvar_ns->assign(swig_globals[j].name,&swig_globals[j]);
   
-    module_ns=new octave_swig_type(0, 0, 0, true);
+    octave_swig_type* module_ns=new octave_swig_type(0, 0, 0, true);
     module_ns->assign(global_name,Swig::swig_value_ref(cvar_ns));
     for (int j=0;swig_globals[j].name;++j)
       if (swig_globals[j].method)
@@ -130,7 +134,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
     mlock();
 #endif
 
- } // !already_init
+  } // !already_load
   
   // link variable to module in current context
 #if OCTAVE_API_VERSION_NUMBER<37

@@ -333,7 +333,7 @@ python_clean:
 # Make sure these locate your Octave installation
 OCTAVE_INCLUDE= $(DEFS) @OCTAVEEXT@
 OCTAVE_LIB    =
-OCTAVE        = @OCTAVE@
+OCTAVE        = @OCTAVE@ -qf
 
 # Extra Octave specific dynamic linking options
 OCTAVE_DLNK   = @OCTAVEDYNAMICLINKING@
