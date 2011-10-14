@@ -893,11 +893,14 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
   /* they must have the same type */
   String *ta = nodeType(a);
   String *tb = nodeType(b);
-  if (Cmp(ta, tb) != 0)
-    return 0;
+  if (!Equal(ta, tb)) {
+    if (!(Equal(ta, "using") && Equal(tb, "cdecl"))) {
+      return 0;
+    }
+  }
 
-  /* cdecl case */
   if (Cmp(ta, "cdecl") == 0) {
+    /* both cdecl case */
     /* typedef */
     String *a_storage = Getattr(a, "storage");
     String *b_storage = Getattr(b, "storage");
@@ -956,8 +959,17 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
 	}
       }
     }
+  } else if (Equal(ta, "using")) {
+    /* using and cdecl case */
+    String *b_storage = Getattr(b, "storage");
+    if (Equal(b_storage, "typedef")) {
+      String *a_name = Getattr(a, "name");
+      String *b_name = Getattr(b, "name");
+      if (Equal(a_name, b_name))
+	return 1;
+    }
   } else {
-    /* %constant case */
+    /* both %constant case */
     String *a_storage = Getattr(a, "storage");
     String *b_storage = Getattr(b, "storage");
     if ((Cmp(a_storage, "%constant") == 0)

@@ -287,6 +287,7 @@ CPP_TEST_CASES += \
 	protected_rename \
 	pure_virtual \
 	redefined \
+	redefined_not \
 	refcount \
 	reference_global_vars \
 	register_par \
