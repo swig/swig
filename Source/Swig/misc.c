@@ -1165,7 +1165,7 @@ String *replace_captures(const char *input, String *subst, int captures[])
     /* Handle substitution */
     if (*p == '\0') {
       Putc('\\', result);
-    } else if (isdigit(*p)) {
+    } else if (isdigit((int)*p)) {
       int group = *p++ - '0';
       int l = captures[group*2], r = captures[group*2 + 1];
       if (l != -1) {
