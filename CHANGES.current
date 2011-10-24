@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-10-24: talby
+            [perl5] SF bug #3423119 - overload dispatch stack corruption fix.  Better, but more research
+            is needed on a stable path for tail calls in XS.
+
+            Also, fix for large long longs in 32 bit perl.
+
 2011-10-13: xavier98
 	    [octave] Allow Octave modules to be re-loaded after a "clear all".
 
