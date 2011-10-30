@@ -1390,6 +1390,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
      * If f and actioncode are NULL, then the caller is just looking to attach the "out" attributes
      * ie, not use the typemap code, otherwise both f and actioncode must be non null. */
     if (actioncode) {
+      const String *result_equals = NewStringf("%s = ", Swig_cresult_name());
       clname = Copy(actioncode);
       /* check that the code in the typemap can be used in this optimal way.
        * The code should be in the form "result = ...;\n". We need to extract
@@ -1398,8 +1399,8 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
        * hack and circumvents the normal requirement for a temporary variable 
        * to hold the result returned from a wrapped function call.
        */
-      if (Strncmp(clname, "result = ", 9) == 0) {
-        int numreplacements = Replace(clname, "result = ", "", DOH_REPLACE_ID_BEGIN);
+      if (Strncmp(clname, result_equals, 9) == 0) {
+        int numreplacements = Replace(clname, result_equals, "", DOH_REPLACE_ID_BEGIN);
         if (numreplacements == 1) {
           numreplacements = Replace(clname, ";\n", "", DOH_REPLACE_ID_END);
           if (numreplacements == 1) {

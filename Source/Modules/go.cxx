@@ -550,7 +550,7 @@ private:
 						Getattr(n, "parms"));
 	SwigType *type = Copy(getClassType());
 	SwigType_add_pointer(type);
-	String *cres = Swig_cresult(type, "result", call);
+	String *cres = Swig_cresult(type, Swig_cresult_name(), call);
 	Setattr(n, "wrap:action", cres);
       }
     } else if (Cmp(nodetype, "destructor") == 0) {
@@ -1156,7 +1156,7 @@ private:
     }
     if (SwigType_type(result) != T_VOID) {
       Printv(f->code, "\t\tlong : 0;\n", NULL);
-      String *ln = NewString("result");
+      String *ln = NewString(Swig_cresult_name());
       String *ct = gcCTypeForGoValue(n, result, ln);
       Delete(ln);
       Printv(f->code, "\t\t", ct, ";\n", NULL);
@@ -1417,12 +1417,13 @@ private:
 
     Setattr(n, "type", result);
 
-    String *tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+    String *tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode);
     if (!tm) {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s\n", SwigType_str(result, 0));
     } else {
       if (!gccgo_flag) {
-	Replaceall(tm, "$result", "swig_a->result");
+	static const String *swig_a_result = NewStringf("swig_a->%s", Swig_cresult_name());
+	Replaceall(tm, "$result", swig_a_result);
       } else {
 	Replaceall(tm, "$result", "go_result");
       }
@@ -1453,7 +1454,7 @@ private:
       if (!tm) {
 	p = nextSibling(p);
       } else {
-	Replaceall(tm, "$result", "result");
+	Replaceall(tm, "$result", Swig_cresult_name());
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(f->code, tm, "\n", NULL);
 	p = Getattr(p, "tmap:argout:next");
@@ -1496,9 +1497,9 @@ private:
     Printv(f->code, cleanup, NULL);
 
     if (GetFlag(n, "feature:new")) {
-      String *tm = Swig_typemap_lookup("newfree", n, "result", 0);
+      String *tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
       if (tm) {
-	Replaceall(tm, "$source", "result");
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printv(f->code, tm, "\n", NULL);
 	Delete(tm);
       }
@@ -1690,7 +1691,7 @@ private:
     }
 
     String *get = NewString("");
-    Printv(get, "result = ", NULL);
+    Printv(get, Swig_cresult_name(), " = ", NULL);
 
     char quote;
     if (Getattr(n, "wrappedasconstant")) {
@@ -2040,7 +2041,7 @@ private:
 	}
       } else {
 	String *call = Swig_cfunction_call(Getattr(method, "name"), Getattr(method, "parms"));
-	Setattr(method, "wrap:action", Swig_cresult(Getattr(method, "type"), "result", call));
+	Setattr(method, "wrap:action", Swig_cresult(Getattr(method, "type"), Swig_cresult_name(), call));
       }
     }
 
@@ -2230,7 +2231,7 @@ private:
 
       String *pn = Swig_cparm_name(parm, 0);
       String *action = NewString("");
-      Printv(action, "result = (", Getattr(b.item, "classtype"), "*)", pn, ";", NULL);
+      Printv(action, Swig_cresult_name(), " = (", Getattr(b.item, "classtype"), "*)", pn, ";", NULL);
       Delete(pn);
 
       Setattr(n, "wrap:action", action);
@@ -2556,7 +2557,7 @@ private:
       Setattr(n, "wrap:name", Swig_name_wrapper(name));
 
       String *action = NewString("");
-      Printv(action, "result = new SwigDirector_", class_name, "(", NULL);
+      Printv(action, Swig_cresult_name(), " = new SwigDirector_", class_name, "(", NULL);
       String *pname = Swig_cparm_name(NULL, 0);
       Printv(action, pname, NULL);
       Delete(pname);
@@ -2677,8 +2678,7 @@ private:
       Setattr(n, "wrap:parms", parms);
 
       String *result = NewString("void");
-      int r = makeWrappers(n, fnname, fnname, NULL, wname, NULL, parms, result,
-			   isStatic(n));
+      int r = makeWrappers(n, fnname, fnname, NULL, wname, NULL, parms, result, isStatic(n));
       if (r != SWIG_OK) {
 	return r;
       }
@@ -3130,7 +3130,7 @@ private:
 
       String *action = NewString("");
       if (SwigType_type(result) != T_VOID) {
-	Printv(action, "result = (", SwigType_lstr(result, 0), ")", NULL);
+	Printv(action, Swig_cresult_name(), " = (", SwigType_lstr(result, 0), ")", NULL);
 	if (SwigType_isreference(result)) {
 	  Printv(action, "&", NULL);
 	}
@@ -3399,7 +3399,7 @@ private:
 	  }
 	  if (SwigType_type(result) != T_VOID) {
 	    Printv(f->code, "    long : 0;\n", NULL);
-	    String *rname = NewString("result");
+	    String *rname = NewString(Swig_cresult_name());
 	    String *cg = gcCTypeForGoValue(n, result, rname);
 	    Printv(f->code, "    ", cg, ";\n", NULL);
 	    Delete(cg);
@@ -3440,7 +3440,8 @@ private:
 	      Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
 			   "Unable to use type %s as director method result\n", SwigType_str(result, 0));
 	    } else {
-	      Replaceall(tm, "$input", "swig_a.result");
+	      static const String *swig_a_result = NewStringf("swig_a.%s", Swig_cresult_name());
+	      Replaceall(tm, "$input", swig_a_result);
 	      Replaceall(tm, "$result", "c_result");
 	      Printv(f->code, "  ", tm, "\n", NULL);
 	      String *retstr = SwigType_rcaststr(Getattr(n, "returntype"), "c_result");
@@ -3462,7 +3463,7 @@ private:
 	  Printv(f_gc_wrappers, "}\n\n", NULL);
 	} else {
 	  if (SwigType_type(result) != T_VOID) {
-	    String *r = NewString("result");
+	    String *r = NewString(Swig_cresult_name());
 	    String *tm = gccgoCTypeForGoValue(n, result, r);
 	    Wrapper_add_local(f, r, tm);
 	    Delete(tm);
@@ -3502,7 +3503,7 @@ private:
 
 	  Printv(f->code, "  ", NULL);
 	  if (SwigType_type(result) != T_VOID) {
-	    Printv(f->code, "result = ", NULL);
+	    Printv(f->code, Swig_cresult_name(), " = ", NULL);
 	  }
 	  Printv(f->code, callback_wname, "(go_val", args, ");\n", NULL);
 
@@ -3514,7 +3515,7 @@ private:
 	      Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
 			   "Unable to use type %s as director method result\n", SwigType_str(result, 0));
 	    } else {
-	      Replaceall(tm, "$input", "result");
+	      Replaceall(tm, "$input", Swig_cresult_name());
 	      Replaceall(tm, "$result", "c_result");
 	      Printv(f->code, "  ", tm, "\n", NULL);
 	      String *retstr = SwigType_rcaststr(Getattr(n, "returntype"), "c_result");

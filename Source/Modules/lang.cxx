@@ -1111,7 +1111,7 @@ int Language::globalfunctionHandler(Node *n) {
   }
   Setattr(n, "parms", nonvoid_parms(parms));
   String *call = Swig_cfunction_call(name, parms);
-  String *cres = Swig_cresult(type, "result", call);
+  String *cres = Swig_cresult(type, Swig_cresult_name(), call);
   Setattr(n, "wrap:action", cres);
   Delete(cres);
   Delete(call);

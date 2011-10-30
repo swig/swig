@@ -533,8 +533,8 @@ int CHICKEN::functionWrapper(Node *n) {
   String *actioncode = emit_action(n);
 
   /* Return the function value */
-  if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-    Replaceall(tm, "$source", "result");
+  if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+    Replaceall(tm, "$source", Swig_cresult_name());
     Replaceall(tm, "$target", "resultobj");
     Replaceall(tm, "$result", "resultobj");
     if (GetFlag(n, "feature:new")) {
@@ -561,15 +561,15 @@ int CHICKEN::functionWrapper(Node *n) {
 
   /* Look to see if there is any newfree cleanup code */
   if (GetFlag(n, "feature:new")) {
-    if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
     }
   }
 
   /* See if there is any return cleanup code */
-  if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-    Replaceall(tm, "$source", "result");
+  if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+    Replaceall(tm, "$source", Swig_cresult_name());
     Printf(f->code, "%s\n", tm);
   }
 

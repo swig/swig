@@ -694,8 +694,8 @@ public:
     Wrapper_add_local(f, "_outv", "octave_value _outv");
 
     // Return the function value
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$target", "_outv");
       Replaceall(tm, "$result", "_outv");
 
@@ -716,14 +716,14 @@ public:
     Printv(f->code, cleanup, NIL);
 
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-	Replaceall(tm, "$source", "result");
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
       }
     }
 
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$result", "_outv");
       Printf(f->code, "%s\n", tm);
       Delete(tm);
@@ -1402,7 +1402,7 @@ public:
 	Printf(w->code, "}\n");
 
 	Setattr(n, "type", return_type);
-	tm = Swig_typemap_lookup("directorout", n, "result", w);
+	tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
 	Setattr(n, "type", type);
 	if (tm != 0) {
 	  char temp[24];

@@ -461,7 +461,7 @@ int CFFI::functionWrapper(Node *n) {
 
   String *actioncode = emit_action(n);
 
-  String *result_convert = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+  String *result_convert = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode);
   Replaceall(result_convert, "$result", "lresult");
   Printf(f->code, "%s\n", result_convert);
   if(!is_void_return) Printf(f->code, "    return lresult;\n");

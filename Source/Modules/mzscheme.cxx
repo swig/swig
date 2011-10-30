@@ -250,7 +250,7 @@ public:
       ParmList *parms = Getattr(n, "parms");
       SwigType *type = Getattr(n, "type");
       String *name = NewString("caller");
-      Setattr(n, "wrap:action", Swig_cresult(type, "result", Swig_cfunction_call(name, parms)));
+      Setattr(n, "wrap:action", Swig_cresult(type, Swig_cresult_name(), Swig_cfunction_call(name, parms)));
     }
     // PATCH DLOPEN
 
@@ -403,8 +403,8 @@ public:
     String *actioncode = emit_action(n);
 
     // Now have return value, figure out what to do with it.
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$target", "values[0]");
       Replaceall(tm, "$result", "values[0]");
       if (GetFlag(n, "feature:new"))
@@ -426,15 +426,15 @@ public:
     // Look for any remaining cleanup
 
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-	Replaceall(tm, "$source", "result");
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printv(f->code, tm, "\n", NIL);
       }
     }
     // Free any memory allocated by the function being wrapped..
 
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, "\n", NIL);
     }
     // Wrap things up (in a manner of speaking)

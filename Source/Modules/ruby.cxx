@@ -1827,9 +1827,9 @@ public:
 	  Wrapper_add_local(f, "classname", classname);
 	}
 	if (action) {
-	  Append(action, "\nDATA_PTR(self) = result;");
+	  Printf(action, "\nDATA_PTR(self) = %s;", Swig_cresult_name());
 	  if (GetFlag(pn, "feature:trackobjects")) {
-	    Append(action, "\nSWIG_RubyAddTracking(result, self);");
+	    Printf(action, "\nSWIG_RubyAddTracking(%s, self);", Swig_cresult_name());
 	  }
 	}
       }
@@ -1855,13 +1855,13 @@ public:
       if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_INITIALIZE) {
         need_result = 1;
         if (GetFlag(n, "feature:predicate")) {
-          Printv(actioncode, tab4, "vresult = (result ? Qtrue : Qfalse);\n", NIL);
+          Printv(actioncode, tab4, "vresult = (", Swig_cresult_name(), " ? Qtrue : Qfalse);\n", NIL);
         } else {
-          tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+          tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode);
           actioncode = 0;
           if (tm) {
             Replaceall(tm, "$result", "vresult");
-            Replaceall(tm, "$source", "result");
+            Replaceall(tm, "$source", Swig_cresult_name());
             Replaceall(tm, "$target", "vresult");
 
             if (GetFlag(n, "feature:new"))
@@ -1890,7 +1890,7 @@ public:
             }
             if (unwrap) {
               Wrapper_add_local(f, "director", "Swig::Director *director = 0");
-              Printf(f->code, "director = dynamic_cast<Swig::Director *>(result);\n");
+              Printf(f->code, "director = dynamic_cast<Swig::Director *>(%s);\n", Swig_cresult_name());
               Printf(f->code, "if (director) {\n");
               Printf(f->code, "  vresult = director->swig_get_self();\n");
               Printf(f->code, "} else {\n");
@@ -1925,7 +1925,6 @@ public:
       Printf(f->code, "#endif\n");
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       need_result = 1;
-      // Printf(f->code, "DATA_PTR(self) = result;\n");
     }
     else
       {
@@ -1953,25 +1952,25 @@ public:
 
     /* Look for any remaining cleanup.  This processes the %new directive */
     if (current != CONSTRUCTOR_ALLOCATE && GetFlag(n, "feature:new")) {
-      tm = Swig_typemap_lookup("newfree", n, "result", 0);
+      tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
       if (tm) {
-	Replaceall(tm, "$source", "result");
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printv(f->code, tm, "\n", NIL);
 	Delete(tm);
       }
     }
 
     /* Special processing on return value. */
-    tm = Swig_typemap_lookup("ret", n, "result", 0);
+    tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0);
     if (tm) {
-      Replaceall(tm, "$source", "result");
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, NIL);
       Delete(tm);
     }
 
     if (director_method) {
-      if ((tm = Swig_typemap_lookup("directorfree", n, "result", 0))) {
-	Replaceall(tm, "$input", "result");
+      if ((tm = Swig_typemap_lookup("directorfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$input", Swig_cresult_name());
 	Replaceall(tm, "$result", "vresult");
 	Printf(f->code, "%s\n", tm);
       }
@@ -2947,7 +2946,7 @@ public:
     String *depthCountName = NewStringf("%s_%s_call_depth", className, methodName);
 
     // Check for an exception typemap of some kind
-    String *tm = Swig_typemap_lookup("director:except", n, "result", 0);
+    String *tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
     if (!tm) {
       tm = Getattr(n, "feature:director:except");
     }
@@ -2960,11 +2959,11 @@ public:
 	// Function body
 	Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
 	Wrapper_add_localv(body, "args", "Swig::body_args *", "args", "= reinterpret_cast<Swig::body_args *>(data)", NIL);
-	Wrapper_add_localv(body, "result", "VALUE", "result", "= Qnil", NIL);
+	Wrapper_add_localv(body, Swig_cresult_name(), "VALUE", Swig_cresult_name(), "= Qnil", NIL);
 	Printf(body->code, "%s++;\n", depthCountName);
-	Printv(body->code, "result = rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
+	Printv(body->code, Swig_cresult_name(), " = rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
 	Printf(body->code, "%s--;\n", depthCountName);
-	Printv(body->code, "return result;\n", NIL);
+	Printv(body->code, "return ", Swig_cresult_name(), ";\n", NIL);
 	Printv(body->code, "}", NIL);
 
 	// Exception handler
@@ -2991,7 +2990,7 @@ public:
       } else {
 	Printv(w->code, "args.argv = 0;\n", NIL);
       }
-      Printf(w->code, "result = rb_protect(PROTECTFUNC(%s), reinterpret_cast<VALUE>(&args), &status);\n", bodyName);
+      Printf(w->code, "%s = rb_protect(PROTECTFUNC(%s), reinterpret_cast<VALUE>(&args), &status);\n", Swig_cresult_name(), bodyName);
       if ( initstack ) Printf(w->code, "SWIG_RELEASE_STACK;\n");
       Printf(w->code, "if (status) {\n");
       Printf(w->code, "VALUE lastErr = rb_gv_get(\"$!\");\n");
@@ -3005,9 +3004,9 @@ public:
       Wrapper_print(rescue, f_directors_helpers);
     } else {
       if (argc > 0) {
-	Printf(w->code, "result = rb_funcall(swig_get_self(), rb_intern(\"%s\"), %d%s);\n", methodName, argc, args);
+	Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), %d%s);\n", Swig_cresult_name(), methodName, argc, args);
       } else {
-	Printf(w->code, "result = rb_funcall(swig_get_self(), rb_intern(\"%s\"), 0, NULL);\n", methodName);
+	Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), 0, NULL);\n", Swig_cresult_name(), methodName);
       }
       if ( initstack ) Printf(w->code, "SWIG_RELEASE_STACK;\n");
     }
@@ -3273,7 +3272,9 @@ public:
       }
 
       /* declare Ruby return value */
-      Wrapper_add_local(w, "result", "VALUE result");
+      String *value_result = NewStringf("VALUE %s", Swig_cresult_name());
+      Wrapper_add_local(w, Swig_cresult_name(), value_result);
+      Delete(value_result);
 
       /* wrap complex arguments to VALUEs */
       Printv(w->code, wrap_args, NIL);
@@ -3294,7 +3295,7 @@ public:
 
       if (outputs > 1) {
 	Wrapper_add_local(w, "output", "VALUE output");
-	Printf(w->code, "if (TYPE(result) != T_ARRAY) {\n");
+	Printf(w->code, "if (TYPE(%s) != T_ARRAY) {\n", Swig_cresult_name());
 	Printf(w->code, "Ruby_DirectorTypeMismatchException(\"Ruby method failed to return an array.\");\n");
 	Printf(w->code, "}\n");
       }
@@ -3309,14 +3310,14 @@ public:
 	 * It's not just me, similar silliness also occurs in Language::cDeclaration().
 	 */
 	Setattr(n, "type", return_type);
-	tm = Swig_typemap_lookup("directorout", n, "result", w);
+	tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
 	Setattr(n, "type", type);
 	if (tm != 0) {
 	  if (outputs > 1 && !asvoid ) {
-	    Printf(w->code, "output = rb_ary_entry(result, %d);\n", idx++);
+	    Printf(w->code, "output = rb_ary_entry(%s, %d);\n", Swig_cresult_name(), idx++);
 	    Replaceall(tm, "$input", "output");
 	  } else {
-	    Replaceall(tm, "$input", "result");
+	    Replaceall(tm, "$input", Swig_cresult_name());
 	  }
 	  /* TODO check this */
 	  if (Getattr(n, "wrap:disown")) {
@@ -3338,10 +3339,10 @@ public:
       for (p = l; p;) {
 	if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
 	  if (outputs > 1) {
-	    Printf(w->code, "output = rb_ary_entry(result, %d);\n", idx++);
+	    Printf(w->code, "output = rb_ary_entry(%s, %d);\n", Swig_cresult_name(), idx++);
 	    Replaceall(tm, "$input", "output");
 	  } else {
-	    Replaceall(tm, "$input", "result");
+	    Replaceall(tm, "$input", Swig_cresult_name());
 	  }
 	  Replaceall(tm, "$result", Getattr(p, "name"));
 	  Printv(w->code, tm, "\n", NIL);

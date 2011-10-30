@@ -1422,7 +1422,7 @@ MODULA3():
 
       // below based on Swig_VargetToFunction()
       SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-      Setattr(n, "wrap:action", NewStringf("result = (%s)(%s);", SwigType_lstr(ty, 0), Getattr(n, "value")));
+      Setattr(n, "wrap:action", NewStringf("%s = (%s)(%s);", Swig_cresult_name(), SwigType_lstr(ty, 0), Getattr(n, "value")));
     }
 
     Setattr(n, "wrap:name", wname);
@@ -1437,9 +1437,9 @@ MODULA3():
 
       /* Return value if necessary  */
       String *tm;
-      if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+      if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
 	addThrows(throws_hash, "out", n);
-	Replaceall(tm, "$source", "result");	/* deprecated */
+	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
 	Replaceall(tm, "$target", "cresult");	/* deprecated */
 	Replaceall(tm, "$result", "cresult");
 	Printf(f->code, "%s", tm);
@@ -1459,19 +1459,19 @@ MODULA3():
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      String *tm = Swig_typemap_lookup("newfree", n, "result", 0);
+      String *tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
       if (tm != NIL) {
 	addThrows(throws_hash, "newfree", n);
-	Replaceall(tm, "$source", "result");	/* deprecated */
+	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
     }
 
     /* See if there is any return cleanup code */
     if (!native_function_flag) {
-      String *tm = Swig_typemap_lookup("ret", n, "result", 0);
+      String *tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0);
       if (tm != NIL) {
-	Replaceall(tm, "$source", "result");	/* deprecated */
+	Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
 	Printf(f->code, "%s\n", tm);
       }
     }
@@ -3197,7 +3197,7 @@ MODULA3():
       writeArg(return_variables, state, NIL, NIL, NIL, NIL);
 
       if (multiretval) {
-	Printv(result_name, "result", NIL);
+	Printv(result_name, Swig_cresult_name(), NIL);
 	Printf(result_m3wraptype, "%sResult", func_name);
 	m3wrap_intf.enterBlock(blocktype);
 	Printf(m3wrap_intf.f, "%s =\nRECORD\n%sEND;\n", result_m3wraptype, return_variables);
@@ -3455,7 +3455,7 @@ MODULA3():
 	if ((hasContent(outcheck) || hasContent(storeout)
 	     || hasContent(cleanup)) && (!hasContent(result_name))
 	    && (return_raw == NIL)) {
-	  Printv(result_name, "result", NIL);
+	  Printv(result_name, Swig_cresult_name(), NIL);
 	  Printf(local_variables, "%s: %s;\n", result_name, result_m3wraptype);
 	}
 

@@ -637,7 +637,7 @@ public:
         //        }
         //        else returnval++;
         Replaceall(tm, "$source", Getattr(p, "lname"));
-        Replaceall(tm, "$target", "result");
+        Replaceall(tm, "$target", Swig_cresult_name());
         Replaceall(tm, "$arg", Getattr(p, "emit:input"));
         Replaceall(tm, "$input", Getattr(p, "emit:input"));
         Printv(outarg, tm, "\n", NIL);
@@ -658,7 +658,7 @@ public:
     this is because there is a typemap for void
     NEW LANGUAGE NOTE:END ************************************************/
     // Return value if necessary
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
       // managing the number of returning variables
       //      if (numoutputs=Getattr(tm,"numoutputs")){
       //              int i=GetInt(tm,"numoutputs");
@@ -666,7 +666,7 @@ public:
       //              returnval+=GetInt(tm,"numoutputs");
       //      }
       //        else returnval++;
-      Replaceall(tm, "$source", "result");
+      Replaceall(tm, "$source", Swig_cresult_name());
       if (GetFlag(n, "feature:new")) {
         Replaceall(tm, "$owner", "1");
       } else {
@@ -687,15 +687,15 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-        Replaceall(tm, "$source", "result");
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+        Replaceall(tm, "$source", Swig_cresult_name());
         Printf(f->code, "%s\n", tm);
       }
     }
 
     /* See if there is any return cleanup code */
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
     }
 
@@ -714,7 +714,7 @@ public:
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", iname);
-    Replaceall(f->code, "$result", "result");
+    Replaceall(f->code, "$result", Swig_cresult_name());
 
     /* Dump the function out */
     /* in Lua we will not emit the destructor as a wrappered function,

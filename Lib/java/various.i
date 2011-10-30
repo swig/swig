@@ -68,7 +68,7 @@
     /* exception checking omitted */
 
     for (i=0; i<len; i++) {
-      temp_string = JCALL1(NewStringUTF, jenv, *result++);
+      temp_string = JCALL1(NewStringUTF, jenv, *$1++);
       JCALL3(SetObjectArrayElement, jenv, jresult, i, temp_string);
       JCALL1(DeleteLocalRef, jenv, temp_string);
     }
