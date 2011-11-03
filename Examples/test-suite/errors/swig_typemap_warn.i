@@ -4,4 +4,4 @@
 
 %typemap(out, warning="1001:Test warning for 'out' typemap for $1_type $1_name ($1) - name: $name symname: $symname &1_ltype: $&1_ltype descriptor: $1_descriptor") double ""
 
-double mmm(int abc, int);
+double mmm(int abc, short def, int);
