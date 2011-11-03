@@ -1254,16 +1254,15 @@ static void typemap_locals(DOHString * s, ParmList *l, Wrapper *f, int argnum) {
  * typemap_warn()
  *
  * If any warning message is attached to this parameter's "tmap:<method>:warning"
- * attribute, print that warning message.
+ * attribute, return the warning message (special variables will need expanding
+ * before displaying the warning).
  * ----------------------------------------------------------------------------- */
 
-static void typemap_warn(const_String_or_char_ptr tmap_method, Parm *p) {
+static String *typemap_warn(const_String_or_char_ptr tmap_method, Parm *p) {
   String *temp = NewStringf("%s:warning", tmap_method);
   String *w = Getattr(p, typemap_method_name(temp));
   Delete(temp);
-  if (w) {
-    Swig_warning(0, Getfile(p), Getline(p), "%s\n", w);
-  }
+  return w ? Copy(w) : 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1298,6 +1297,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   Hash *tm = 0;
   String *s = 0;
   String *sdef = 0;
+  String *warning = 0;
   ParmList *locals;
   ParmList *kw;
   char temp[256];
@@ -1443,10 +1443,16 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     lname = clname;
   }
 
+  warning = typemap_warn(cmethod, node);
+
   if (mtype && SwigType_isarray(mtype)) {
     num_substitutions = typemap_replace_vars(s, locals, mtype, type, pname, (char *) lname, 1);
+    if (warning)
+      typemap_replace_vars(warning, 0, mtype, type, pname, (char *) lname, 1);
   } else {
     num_substitutions = typemap_replace_vars(s, locals, type, type, pname, (char *) lname, 1);
+    if (warning)
+      typemap_replace_vars(warning, 0, type, type, pname, (char *) lname, 1);
   }
   if (optimal_substitution && num_substitutions > 1) {
     Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(node), Getline(node), "Multiple calls to %s might be generated due to\n", Swig_name_decl(node));
@@ -1467,8 +1473,16 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   Replace(s, "$name", pname, DOH_REPLACE_ANY);
 
   symname = Getattr(node, "sym:name");
-  if (symname) {
+  if (symname)
     Replace(s, "$symname", symname, DOH_REPLACE_ANY);
+
+  /* Print warnings, if any */
+  if (warning) {
+    Replace(warning, "$name", pname, DOH_REPLACE_ANY);
+    if (symname)
+      Replace(warning, "$symname", symname, DOH_REPLACE_ANY);
+    Swig_warning(0, Getfile(node), Getline(node), "%s\n", warning);
+    Delete(warning);
   }
 
   Setattr(node, typemap_method_name(tmap_method), s);
@@ -1482,9 +1496,6 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     sprintf(temp, "%s:SWIGTYPE", cmethod);
     Setattr(node, typemap_method_name(temp), "1");
   }
-
-  /* Print warnings, if any */
-  typemap_warn(cmethod, node);
 
   /* Look for code fragments */
   {
@@ -1606,6 +1617,7 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *p
   int nmatch = 0;
   int i;
   String *s;
+  String *warning = 0;
   ParmList *locals;
   int argnum = 0;
   char temp[256];
@@ -1705,6 +1717,7 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *p
     if (locals)
       locals = CopyParmList(locals);
     firstp = p;
+    warning = typemap_warn(tmap_method, firstp);
 #ifdef SWIG_DEBUG
     Printf(stdout, "nmatch:  %d\n", nmatch);
 #endif
@@ -1722,9 +1735,13 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *p
 
       if (mtype) {
 	typemap_replace_vars(s, locals, mtype, type, pname, lname, i + 1);
+	if (warning)
+	  typemap_replace_vars(warning, 0, mtype, type, pname, lname, i + 1);
 	Delattr(p, "tmap:match");
       } else {
 	typemap_replace_vars(s, locals, type, type, pname, lname, i + 1);
+	if (warning)
+	  typemap_replace_vars(warning, 0, type, type, pname, lname, i + 1);
       }
 
       if (Checkattr(tm, "type", "SWIGTYPE")) {
@@ -1750,6 +1767,13 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *p
 #endif
     Setattr(firstp, typemap_method_name(tmap_method), s);	/* Code object */
 
+    /* Print warnings, if any */
+    if (warning) {
+      Replace(warning, "$argnum", temp, DOH_REPLACE_ANY);
+      Swig_warning(0, Getfile(firstp), Getline(firstp), "%s\n", warning);
+      Delete(warning);
+    }
+
     if (locals) {
       sprintf(temp, "%s:locals", cmethod);
       Setattr(firstp, typemap_method_name(temp), locals);
@@ -1762,9 +1786,6 @@ void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *p
 
     /* Attach kwargs */
     typemap_attach_kwargs(tm, tmap_method, firstp);
-
-    /* Print warnings, if any */
-    typemap_warn(tmap_method, firstp);
 
     /* Look for code fragments */
     typemap_emit_code_fragments(tmap_method, firstp);

@@ -205,6 +205,13 @@ $source by $input and $target by $1.   For typemaps related to return values (ou
 argout,ret,except), replace $source by $1 and $target by $result.  See the file
 Doc/Manual/Typemaps.html for complete details.
 
+:::::::::::::::::::::::::::::::: swig_typemap_warn.i :::::::::::::::::::::::::::::::::::
+swig_typemap_warn.i:7: Warning 1001: Test warning for 'out' typemap for double mmm (result) - name: mmm symname: mmm &1_ltype: double * descriptor: SWIGTYPE_double
+swig_typemap_warn.i:7: Warning 1000: Test warning for 'in' typemap for int abc (arg1) - argnum: 1 &1_ltype: int * descriptor: SWIGTYPE_int
+swig_typemap_warn.i:7: Warning 1000: Test warning for 'in' typemap for int arg2 (arg2) - argnum: 2 &1_ltype: int * descriptor: SWIGTYPE_int
+swig_typemap_warn.i:7: Warning 1000: Test warning for 'in' typemap for int abc (arg1) - argnum: 1 &1_ltype: int * descriptor: SWIGTYPE_int
+swig_typemap_warn.i:7: Warning 1000: Test warning for 'in' typemap for int arg2 (arg2) - argnum: 2 &1_ltype: int * descriptor: SWIGTYPE_int
+
 :::::::::::::::::::::::::::::::: cpp_bad_extern.i :::::::::::::::::::::::::::::::::::
 cpp_bad_extern.i:5: Warning 313: Unrecognized extern type "INTERCAL".
 cpp_bad_extern.i:7: Warning 313: Unrecognized extern type "INTERCAL".

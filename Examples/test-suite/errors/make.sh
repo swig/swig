@@ -58,6 +58,7 @@ swig_identifier
 swig_insert_bad
 swig_typemap_copy
 swig_typemap_old
+swig_typemap_warn
 '
 
 # Files run in C++ mode

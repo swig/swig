@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-11-03: wsfulton
+            Expand special variables in typemap warnings, eg:
+
+              %typemap(in, warning="1000:Test warning for 'in' typemap for $1_type $1_name") int "..."
+
 2011-11-01: wsfulton
             Fix named output typemaps not being used when the symbol uses a qualifier and contains
             a number, eg:
