@@ -257,15 +257,22 @@ Warning messages can be associated with typemaps using the
 
 <div class="code">
 <pre>
-%typemap(in, warning="901:You are really going to regret this") blah * {
+%typemap(in, warning="901:You are really going to regret this usage of $1_type $1_name") blah * {
    ...
 }
 </pre>
 </div>
 
 <p>
-In this case, the warning message will be printed whenever the typemap is actually used.
+In this case, the warning message will be printed whenever the typemap is actually used and the <a href="Typemaps.html#Typemaps_special_variables">special variables</a> will be expanded as appropriate, for example:
 </p>
+
+<div class="shell">
+<pre>
+example.i:23: Warning 901: You are really going to regret this usage of blah * self
+example.i:24: Warning 901: You are really going to regret this usage of blah * stuff
+</pre>
+</div>
 
 <H2><a name="Warnings_symbolic_symbols"></a>14.5 Symbolic symbols</H2>
 
