@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-11-11: wsfulton
+            Fix pcre-build.sh to work with non-compressed tarballs - problem reported by Adrian Blakely.
+
 2011-11-04: szager
 	    [python] Bug 3429388: python unsigned integer handling on 32-bit architectures.
 
