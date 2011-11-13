@@ -2519,7 +2519,7 @@ public:
 
     Clear(klass->type);
     Printv(klass->type, Getattr(n, "classtype"), NIL);
-    Printv(f_wrappers, "swig_class SwigClass", valid_name, ";\n\n", NIL);
+    Printv(f_wrappers, "static swig_class SwigClass", valid_name, ";\n\n", NIL);
     Printv(klass->init, "\n", tab4, NIL);
 
     if (!useGlobalModule) {
