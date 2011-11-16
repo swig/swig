@@ -44,7 +44,7 @@
 <H2><a name="D_introduction"></a>20.1 Introduction</H2>
 
 
-<p>From the <a href="http://www.digitalmars.com/d/">D Programming Language</a> web site: <em>»D is a systems programming language. Its focus is on combining the power and high performance of C and C++ with the programmer productivity of modern languages like Ruby and Python. [...] The D language is statically typed and compiles directly to machine code.«</em> As such, it is not very surprising that D is able to directly <a href="http://www.digitalmars.com/d/1.0/interfaceToC.html">interface with C libraries</a>. Why would a SWIG module for D be needed then in the first place?</p>
+<p>From the <a href="http://www.digitalmars.com/d/">D Programming Language</a> web site: <em>D is a systems programming language. Its focus is on combining the power and high performance of C and C++ with the programmer productivity of modern languages like Ruby and Python. [...] The D language is statically typed and compiles directly to machine code.</em> As such, it is not very surprising that D is able to directly <a href="http://www.digitalmars.com/d/1.0/interfaceToC.html">interface with C libraries</a>. Why would a SWIG module for D be needed then in the first place?</p>
 
 <p>Well, besides the obvious downside that the C header files have to be manually converted to D modules for this to work, there is one major inconvenience with this approach: D code usually is on a higher abstraction level than C, and many of the features that make D interesting are simply not available when dealing with C libraries, requiring you e.g. to manually convert strings between pointers to <tt>\0</tt>-terminated char arrays and D char arrays, making the algorithms from the D2 standard library unusable with C arrays and data structures, and so on.</p>
 
@@ -395,7 +395,7 @@ struct A {
 <H3><a name="D_native_pointer_support"></a>20.8.2 Native pointer support</H3>
 
 
-<p>Contrary to many of the scripting languages supported by SWIG, D fully supports C-style pointers. The D module thus includes a custom mechanism to wrap C pointers directly as D pointers where applicable, that is, if the type that is pointed to is represented the same in C and D (on the bit-level), dubbed a »primtive type« below.</p>
+<p>Contrary to many of the scripting languages supported by SWIG, D fully supports C-style pointers. The D module thus includes a custom mechanism to wrap C pointers directly as D pointers where applicable, that is, if the type that is pointed to is represented the same in C and D (on the bit-level), dubbed a <em>primitive type</em> below.</p>
 
 <p>Central to this custom pointer handling scheme are two typemap attributes: the <tt>cprimitive</tt> attribute on the <tt>dtype</tt> typemap and the <tt>nativepointer</tt> attribute on all the typemaps which influence the D side of the code (<tt>dtype</tt>, <tt>din</tt>, <tt>dout</tt>, ...). When a D typemap is looked up, the following happens behind the scenes:</p>
 
