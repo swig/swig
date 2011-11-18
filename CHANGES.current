@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-11-17: wsfulton
+            Bug fix: Remove root directory from directory search list in Windows.
+
 2011-11-13: wsfulton
             [Ruby] Apply patch #3421876 from Robin Stocker to fix #3416818 - same class name in 
             different namespaces confusion when using multiple modules.

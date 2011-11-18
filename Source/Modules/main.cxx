@@ -155,9 +155,9 @@ is equivalent to: \n\
 \n";
 
 // Local variables
-static String *LangSubDir = 0;	// Target language library subdirectory
-static char *SwigLib = 0;	// Library directory
-static String *SwigLibWin = 0;	// Extra Library directory for Windows
+static String *LangSubDir = 0; // Target language library subdirectory
+static String *SwigLib = 0; // Library directory
+static String *SwigLibWinUnix = 0; // Extra library directory on Windows
 static int freeze = 0;
 static String *lang_config = 0;
 static char *hpp_extension = (char *) "h";
@@ -581,9 +581,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
 	Swig_cparse_follow_locators(1);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-swiglib") == 0) {
-	if (SwigLibWin)
-	  Printf(stdout, "%s\n", SwigLibWin);
 	Printf(stdout, "%s\n", SwigLib);
+	if (SwigLibWinUnix)
+	  Printf(stdout, "%s\n", SwigLibWinUnix);
 	SWIG_exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-o") == 0) {
 	Swig_mark_arg(i);
@@ -914,14 +914,17 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     char *p;
     if (!(GetModuleFileName(0, buf, MAX_PATH) == 0 || (p = strrchr(buf, '\\')) == 0)) {
       *(p + 1) = '\0';
-      SwigLibWin = NewStringf("%sLib", buf);	// Native windows installation path
+      SwigLib = NewStringf("%sLib", buf); // Native windows installation path
+    } else {
+      SwigLib = NewStringf("");	// Unexpected error
     }
-    SwigLib = Swig_copy_string(SWIG_LIB_WIN_UNIX);	// Unix installation path using a drive letter (for msys/mingw)
+    if (Len(SWIG_LIB_WIN_UNIX) > 0)
+      SwigLibWinUnix = NewString(SWIG_LIB_WIN_UNIX); // Unix installation path using a drive letter (for msys/mingw)
 #else
-    SwigLib = Swig_copy_string(SWIG_LIB);
+    SwigLib = NewString(SWIG_LIB);
 #endif
   } else {
-    SwigLib = Swig_copy_string(c);
+    SwigLib = NewString(c);
   }
 
   libfiles = NewList();
@@ -953,9 +956,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     String *rl = NewString("");
     Printf(rl, ".%sswig_lib%s%s", SWIG_FILE_DELIMITER, SWIG_FILE_DELIMITER, LangSubDir);
     Swig_add_directory(rl);
-    if (SwigLibWin) {
+    if (SwigLibWinUnix) {
       rl = NewString("");
-      Printf(rl, "%s%s%s", SwigLibWin, SWIG_FILE_DELIMITER, LangSubDir);
+      Printf(rl, "%s%s%s", SwigLibWinUnix, SWIG_FILE_DELIMITER, LangSubDir);
       Swig_add_directory(rl);
     }
     rl = NewString("");
@@ -964,9 +967,9 @@ int SWIG_main(int argc, char *argv[], Language *l) {
   }
 
   Swig_add_directory((String *) "." SWIG_FILE_DELIMITER "swig_lib");
-  if (SwigLibWin)
-    Swig_add_directory((String *) SwigLibWin);
-  Swig_add_directory((String *) SwigLib);
+  if (SwigLibWinUnix)
+    Swig_add_directory((String *) SwigLibWinUnix);
+  Swig_add_directory(SwigLib);
 
   if (Verbose) {
     Printf(stdout, "Language subdirectory: %s\n", LangSubDir);
@@ -1107,7 +1110,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  for (int i = 0; i < Len(files); i++) {
             int use_file = 1;
             if (depend == 2) {
-              if ((Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) == 0) || (SwigLibWin && (Strncmp(Getitem(files, i), SwigLibWin, Len(SwigLibWin)) == 0)))
+              if ((Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) == 0) || (SwigLibWinUnix && (Strncmp(Getitem(files, i), SwigLibWinUnix, Len(SwigLibWinUnix)) == 0)))
                 use_file = 0;
             }
             if (use_file)
