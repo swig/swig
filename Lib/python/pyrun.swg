@@ -1721,6 +1721,7 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int SWIGUNUSEDPARM(arg
   return result;
 }
 
+#ifdef SWIGPYTHON_BUILTIN
 SWIGRUNTIME int
 SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   PyTypeObject *tp = obj->ob_type;
@@ -1729,15 +1730,15 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   descrsetfunc f;
   int res;
 
-#ifdef Py_USING_UNICODE
+# ifdef Py_USING_UNICODE
   if (PyString_Check(name)) {
     name = PyUnicode_Decode(PyString_AsString(name), PyString_Size(name), NULL, NULL);
     if (!name)
       return -1;
   } else if (!PyUnicode_Check(name))
-#else
+# else
   if (!PyString_Check(name))
-#endif
+# endif
   {
     PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%.200s'", name->ob_type->tp_name);
     return -1;
@@ -1772,6 +1773,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   Py_DECREF(name);
   return res;
 }
+#endif
 
 
 #ifdef __cplusplus

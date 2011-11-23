@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-11-22: szager
+	    [python] Bug 3440044: #ifdef out SWIG_Python_NonDynamicSetAttr if -builtin
+	    isn't being used, to avoid unnecessary binary incompatibilities between
+	    python installations.
+
 2011-11-17: wsfulton
             Bug fix: Remove root directory from directory search list in Windows.
 
