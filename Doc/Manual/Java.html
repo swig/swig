@@ -2379,7 +2379,7 @@ public class Foo {
     swigCPtr = cPtr;
   }
 
-  public static long getCPtr(Foo obj) {
+  protected static long getCPtr(Foo obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -2630,7 +2630,7 @@ public class Base {
     swigCPtr = cPtr;
   }
 
-  public static long getCPtr(Base obj) {
+  protected static long getCPtr(Base obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -2670,7 +2670,7 @@ public class Derived extends Base {
     swigCPtr = cPtr;
   }
 
-  public static long getCPtr(Derived obj) {
+  protected static long getCPtr(Derived obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -2949,7 +2949,7 @@ public class Test {
     swigCPtr = cPtr;
   }
 
-  public static long getCPtr(Test obj) {
+  protected static long getCPtr(Test obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 
@@ -5550,14 +5550,7 @@ The typemap code is the same that is in "<tt>java.swg</tt>", barring the last tw
 Note that <tt>SWIGTYPE</tt> will target all proxy classes, but not the type wrapper classes.
 Also the above typemap is only used for proxy classes that are potential base classes.
 To target proxy classes that are derived from a wrapped class as well, the "javabody_derived" typemap should also be overridden.
-There is a macro in <tt>java.swg</tt> that implements this and the above can instead be implemented using:
 </p>
-
-<div class="code">
-<pre>
-SWIG_JAVABODY_METHODS(protected, protected, SWIGTYPE)
-</pre>
-</div>
 
 <p>
 For the typemap to be used in all type wrapper classes, all the different types that type wrapper classes could be used for should be targeted:
@@ -5568,7 +5561,7 @@ For the typemap to be used in all type wrapper classes, all the different types 
 %typemap(javabody) SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
   private long swigCPtr;
 
-  public $javaclassname(long cPtr, boolean bFutureUse) {
+  protected $javaclassname(long cPtr, boolean bFutureUse) {
     swigCPtr = cPtr;
   }
 
@@ -5576,7 +5569,7 @@ For the typemap to be used in all type wrapper classes, all the different types 
     swigCPtr = 0;
   }
 
-  public static long getCPtr($javaclassname obj) {
+  protected static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
@@ -5586,6 +5579,29 @@ For the typemap to be used in all type wrapper classes, all the different types 
 <p>
 Again this is the same that is in "<tt>java.swg</tt>", barring the method modifier for <tt>getCPtr</tt>.
 </p>
+
+<p>
+When using <a href="Modules.html">multiple modules</a> it is common to invoke SWIG with a different <tt>-package</tt>
+command line option for each module.
+However, by default the generated code may not compile if 
+generated classes in one package use generated classes in another package.
+The visibility of the
+<tt>getCPtr()</tt> and pointer constructor generated from the <tt>javabody</tt> typemaps needs changing.
+The default visibility is <tt>protected</tt> but it needs to be <tt>public</tt> for access from a different package.
+Just changing 'protected' to 'public' in the typemap achieves this.
+Two macros are available in <tt>java.swg</tt> to make this easier and using them is the preferred approach
+over simply copying the typemaps and modifying as this is forward compatible with any changes in
+the <tt>javabody</tt> typemap in future versions of SWIG.
+The macros are for the proxy and typewrapper classes and can respectively be used to
+to make the method and constructor public:
+</p>
+
+<div class="code">
+<pre>
+  SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
+  SWIG_JAVABODY_TYPEWRAPPER(public, public, public, SWIGTYPE)
+</pre>
+</div>
 
 <H3><a name="Java_directors_typemaps"></a>23.9.10 Director specific typemaps</H3>
 

@@ -5,6 +5,30 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-11-25: wsfulton
+            [C#] Provide an easy way to override the default visibility for the proxy class pointer
+            constructors and getCPtr() method. The visibility is 'internal' by default and if multiple
+            SWIG modules are being used and compiled into different assemblies, then they need to be 
+            'public' in order to use the constructor or getCPtr() method from a different assembly.
+            Use the following macros to change the visibilities in the proxy and type wrapper class:
+
+              SWIG_CSBODY_PROXY(public, public, SWIGTYPE)
+              SWIG_CSBODY_TYPEWRAPPER(public, public, public, SWIGTYPE)
+
+            [Java] Provide an easy way to override the default visibility for the proxy class pointer
+            constructors and getCPtr() method. The visibility is 'protected' by default and if multiple
+            SWIG modules are being used and compiled into different packages, then they need to be 
+            'public' in order to use the constructor or getCPtr() method from a different package.
+            Use the following macros to change the visibilities in the proxy and type wrapper class:
+
+              SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
+              SWIG_JAVABODY_TYPEWRAPPER(public, public, public, SWIGTYPE)
+
+            The default for Java has changed from public to protected for the proxy classes. Use the
+            SWIG_JAVABODY_PROXY macro above to restore to the previous visibilities.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2011-11-22: szager
 	    [python] Bug 3440044: #ifdef out SWIG_Python_NonDynamicSetAttr if -builtin
 	    isn't being used, to avoid unnecessary binary incompatibilities between
