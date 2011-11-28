@@ -212,8 +212,7 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
   if (ty) {
     swig_cast_info *iter = ty->cast;
     while (iter) {
-      if ( (!iter->type->clientdata && (strcmp(iter->type->name, c) == 0)) ||
-            (iter->type->clientdata && (strcmp((char*)iter->type->clientdata, c) == 0)) ) {
+      if (strcmp(SWIG_Perl_TypeProxyName(iter->type), c) == 0) {
         if (iter == ty->cast)
           return iter;
         /* Move iter to the top of the linked list */
@@ -344,7 +343,7 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
     SV *obj=newSV(0);
     HV *hash=newHV();
     HV *stash;
-    sv_setref_pv(obj, (char *) SWIG_Perl_TypeProxyName(t), ptr);
+    sv_setref_pv(obj, SWIG_Perl_TypeProxyName(t), ptr);
     stash=SvSTASH(SvRV(obj));
     if (flags & SWIG_POINTER_OWN) {
       HV *hv;
@@ -362,7 +361,7 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
     sv_bless(sv, stash);
   }
   else {
-    sv_setref_pv(sv, (char *) SWIG_Perl_TypeProxyName(t), ptr);
+    sv_setref_pv(sv, SWIG_Perl_TypeProxyName(t), ptr);
   }
 }
 
@@ -453,19 +452,23 @@ typedef struct {
 
 /* Magic variable code */
 #ifndef PERL_OBJECT
-#define swig_create_magic(s,a,b,c) _swig_create_magic(s,a,b,c)
-  #ifndef MULTIPLICITY
-     SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) 
-  #else
-     SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) 
-  #endif
+# ifdef __cplusplus
+#  define swig_create_magic(s,a,b,c) _swig_create_magic(s,const_cast<char*>(a),b,c)
+# else
+#  define swig_create_magic(s,a,b,c) _swig_create_magic(s,(char*)(a),b,c)
+# endif
+# ifndef MULTIPLICITY
+SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) 
+# else
+SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) 
+# endif
 #else
 #  define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
 SWIGRUNTIME void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) 
 #endif
 {
   MAGIC *mg;
-  sv_magic(sv,sv,'U',(char *) name,strlen(name));
+  sv_magic(sv,sv,'U',name,strlen(name));
   mg = mg_find(sv,'U');
   mg->mg_virtual = (MGVTBL *) malloc(sizeof(MGVTBL));
   mg->mg_virtual->svt_get = (SwigMagicFunc) get;
