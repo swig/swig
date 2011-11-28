@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-11-28: olly
+	    [PHP] Update keyword list to include keywords added in PHP releases up to 5.3.
+
 2011-11-25: wsfulton
             [C#] Provide an easy way to override the default visibility for the proxy class pointer
             constructors and getCPtr() method. The visibility is 'internal' by default and if multiple
