@@ -1178,7 +1178,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
 
   /* Replace the bare $n variable */
   sprintf(var, "$%d", index);
-  bare_substitution_count = Replace(s, var, lname, DOH_REPLACE_ANY);
+  bare_substitution_count = Replace(s, var, lname, DOH_REPLACE_NUMBER_END);
   Delete(ftype);
   return bare_substitution_count;
 }

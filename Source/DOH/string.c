@@ -651,6 +651,21 @@ static char *match_identifier_end(char *base, char *s, char *token, int tokenlen
   return 0;
 }
 
+static char *match_number_end(char *base, char *s, char *token, int tokenlen) {
+  (void) base;
+  while (s) {
+    s = strstr(s, token);
+    if (!s)
+      return 0;
+    if (isdigit((int) *(s + tokenlen))) {
+      s += tokenlen;
+      continue;
+    }
+    return s;
+  }
+  return 0;
+}
+
 /* -----------------------------------------------------------------------------
  * replace_simple()
  *
@@ -899,6 +914,8 @@ static int String_replace(DOH *stro, const DOHString_or_char *token, const DOHSt
     return replace_simple(str, Char(token), Char(rep), flags, count, match_identifier_begin);
   } else if (flags & DOH_REPLACE_ID) {
     return replace_simple(str, Char(token), Char(rep), flags, count, match_identifier);
+  } else if (flags & DOH_REPLACE_NUMBER_END) {
+    return replace_simple(str, Char(token), Char(rep), flags, count, match_number_end);
   } else {
     return replace_simple(str, Char(token), Char(rep), flags, count, match_simple);
   }

@@ -420,6 +420,7 @@ CPP_TEST_CASES += \
 	typemap_arrays \
 	typemap_delete \
 	typemap_global_scope \
+	typemap_manyargs \
 	typemap_namespace \
 	typemap_ns_using \
 	typemap_numinputs \
