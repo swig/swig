@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-11-28: wsfulton
+            Fix #3433541 %typemap(in, numinputs=0) with 10+ arguments.
+
 2011-11-28: olly
 	    [Perl] Fix warnings when compiling generated wrappers with certain
 	    GCC warning options (Debian bug #436711).
