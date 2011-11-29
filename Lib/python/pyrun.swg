@@ -71,7 +71,7 @@ SWIG_Python_SetErrorObj(PyObject *errtype, PyObject *obj) {
 SWIGINTERN void 
 SWIG_Python_SetErrorMsg(PyObject *errtype, const char *msg) {
   SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-  PyErr_SetString(errtype, (char *) msg);
+  PyErr_SetString(errtype, msg);
   SWIG_PYTHON_THREAD_END_BLOCK;
 }
 
@@ -90,7 +90,11 @@ SwigPyBuiltin_AddPublicSymbol(PyObject *seq, const char *key) {
 
 SWIGINTERN void
 SWIG_Python_SetConstant(PyObject *d, PyObject *public_interface, const char *name, PyObject *obj) {   
+#if PY_VERSION_HEX < 0x02030000
   PyDict_SetItemString(d, (char *)name, obj);
+#else
+  PyDict_SetItemString(d, name, obj);
+#endif
   Py_DECREF(obj);
   if (public_interface)
     SwigPyBuiltin_AddPublicSymbol(public_interface, name);
@@ -100,7 +104,11 @@ SWIG_Python_SetConstant(PyObject *d, PyObject *public_interface, const char *nam
 
 SWIGINTERN void
 SWIG_Python_SetConstant(PyObject *d, const char *name, PyObject *obj) {   
+#if PY_VERSION_HEX < 0x02030000
   PyDict_SetItemString(d, (char *)name, obj);
+#else
+  PyDict_SetItemString(d, name, obj);
+#endif
   Py_DECREF(obj);                            
 }
 
@@ -625,8 +633,10 @@ SwigPyObject_own(PyObject *v, PyObject *args)
   PyObject *val = 0;
 #if (PY_VERSION_HEX < 0x02020000)
   if (!PyArg_ParseTuple(args,(char *)"|O:own",&val))
-#else
+#elif (PY_VERSION_HEX < 0x02050000)
   if (!PyArg_UnpackTuple(args, (char *)"own", 0, 1, &val)) 
+#else
+  if (!PyArg_UnpackTuple(args, "own", 0, 1, &val)) 
 #endif
     {
       return NULL;
@@ -1388,7 +1398,7 @@ SWIG_Python_SetSwigThis(PyObject *inst, PyObject *swig_this)
 SWIGINTERN PyObject *
 SWIG_Python_InitShadowInstance(PyObject *args) {
   PyObject *obj[2];
-  if (!SWIG_Python_UnpackTuple(args,(char*)"swiginit", 2, 2, obj)) {
+  if (!SWIG_Python_UnpackTuple(args, "swiginit", 2, 2, obj)) {
     return NULL;
   } else {
     SwigPyObject *sthis = SWIG_Python_GetSwigThis(obj[0]);
@@ -1664,7 +1674,7 @@ SwigPyObject_GetDesc(PyObject *self)
 {
   SwigPyObject *v = (SwigPyObject *)self;
   swig_type_info *ty = v ? v->ty : 0;
-  return ty ? ty->str : (char*)"";
+  return ty ? ty->str : "";
 }
 
 SWIGRUNTIME void
