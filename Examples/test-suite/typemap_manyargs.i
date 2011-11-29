@@ -11,7 +11,7 @@
   $7 = &temp7;
   $8 = &temp8;
   $9 = &temp9;
-  $10 = &temp10;   // the code generated for this is arg20 = &temp1, and arg20 does not exist.
+  $10 = &temp10;   // the code generated for this was arg20 = &temp10; and arg20 does not exist.
   int $10_ptr = 0; // Was arg20_ptr
 }
 
