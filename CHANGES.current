@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-11-30: wsfulton
+            [R] Remove C++ comments from generated C code.
+
 2011-11-27: olly
 	    [Python] Fix some warnings when compiling generated wrappers with
 	    certain GCC warning options (Debian bug #650246).

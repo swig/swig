@@ -261,7 +261,6 @@ SWIG_R_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   SEXP rptr = R_MakeExternalPtr(ptr, 
   R_MakeExternalPtr(type, R_NilValue, R_NilValue), R_NilValue); 
   SET_S4_OBJECT(rptr);
-//  rptr = Rf_setAttrib(rptr, R_ClassSymbol, mkChar(SWIG_TypeName(type)));
   return rptr;
 }
 
