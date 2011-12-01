@@ -608,6 +608,7 @@ namespace swig
 %define %swig_container_methods(Container...)
 
   %newobject __getslice__;
+  %newobject __getitem__(PySliceObject *slice);
 
 #if defined(SWIGPYTHON_BUILTIN)
   %feature("python:slot", "nb_nonzero", functype="inquiry") __nonzero__;

@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-12-01: szager
+	    [python] Fixed bug 3447426: memory leak in vector.__getitem__.
+
 2011-11-30: wsfulton
             [R] Remove C++ comments from generated C code.
 
