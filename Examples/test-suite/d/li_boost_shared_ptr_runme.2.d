@@ -583,7 +583,7 @@ private void verifyCount(int expected, Klass k) {
   // We deliberately call the use_count(Klass) overload also for objects which
   // are instances of a subclass of Klass (due to static dispatch); things still
   // have to work.
-  int got = use_count(k);
+  auto got = use_count(k);
   if (expected != got)
     throw new Exception("verify use_count failed. Expected: " ~ to!string(expected) ~ " Got: " ~ to!string(got));
 }
