@@ -7,6 +7,7 @@ Version 2.0.5 (in progress)
 
 2011-12-03: klickvebrot
             [D] Fix exception glue code for newer DMD 2 versions.
+            [D] Do not default to 32 bit glue code for DMD anymore.
 
 2011-12-01: szager
 	    [python] Fixed bug 3447426: memory leak in vector.__getitem__.
