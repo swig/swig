@@ -22,7 +22,7 @@ void main() {
   // Basic functionality tests.
   {
     auto vector = new IntVector();
-    for (size_t i = 0; i < SIZE; ++i) {
+    foreach (int i; 0 .. SIZE) {
       vector ~= i * 10;
     }
 
@@ -56,7 +56,7 @@ void main() {
   // To array conversion tests.
   {
     auto dVector = new DoubleVector();
-    for (size_t i = 0; i < SIZE; ++i) {
+    foreach (i; 0 .. SIZE) {
       dVector ~= i * 10.1f;
     }
 
@@ -67,13 +67,13 @@ void main() {
 
 
     auto sVector = new StructVector();
-    for (size_t i = 0; i < SIZE; i++) {
+    foreach (i; 0 .. SIZE) {
       sVector ~= new Struct(i / 10.0);
     }
 
     Struct[] sArray = array(sVector[]);
 
-    for (size_t i = 0; i < SIZE; i++) {
+    foreach (i; 0 .. SIZE) {
       // Make sure that a shallow copy has been made.
       void* aPtr = Struct.swigGetCPtr(sArray[i]);
       void* vPtr = Struct.swigGetCPtr(sVector[i]);
@@ -84,7 +84,7 @@ void main() {
   // remove() tests.
   {
     auto iVector = new IntVector();
-    for (int i = 0; i < SIZE; i++) {
+    foreach (int i; 0 .. SIZE) {
       iVector ~= i;
     }
 
@@ -108,7 +108,7 @@ void main() {
   // Test the methods being wrapped.
   {
     auto iv = new IntVector();
-    for (int i=0; i<4; i++) {
+    foreach (int i; 0 .. 4) {
       iv ~= i;
     }
 
@@ -117,7 +117,7 @@ void main() {
     RealVector rv = half(new RealVector([10.0f, 10.5f, 11.0f, 11.5f]));
 
     auto dv = new DoubleVector();
-    for (size_t i = 0; i < SIZE; i++) {
+    foreach (i; 0 .. SIZE) {
       dv ~= i / 2.0;
     }
     halve_in_place(dv);
@@ -147,13 +147,13 @@ void main() {
   // Test vectors of pointers.
   {
     auto vector = new StructPtrVector();
-    for (size_t i = 0; i < SIZE; i++) {
+    foreach (i; 0 .. SIZE) {
       vector ~= new Struct(i / 10.0);
     }
 
     Struct[] array = array(vector[]);
 
-    for (size_t i = 0; i < SIZE; i++) {
+    foreach (i; 0 .. SIZE) {
       // Make sure that a shallow copy has been made.
       void* aPtr = Struct.swigGetCPtr(array[i]);
       void* vPtr = Struct.swigGetCPtr(vector[i]);
@@ -164,13 +164,13 @@ void main() {
   // Test vectors of const pointers.
   {
     auto vector = new StructConstPtrVector();
-    for (size_t i = 0; i < SIZE; i++) {
+    foreach (i; 0 .. SIZE) {
       vector ~= new Struct(i / 10.0);
     }
 
     Struct[] array = array(vector[]);
 
-    for (size_t i = 0; i < SIZE; i++) {
+    foreach (i; 0 .. SIZE) {
       // Make sure that a shallow copy has been made.
       void* aPtr = Struct.swigGetCPtr(array[i]);
       void* vPtr = Struct.swigGetCPtr(vector[i]);
