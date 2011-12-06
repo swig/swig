@@ -49,19 +49,23 @@
 
 
 <p>
-SWIG supports generating wrappers for PHP5.  Support for PHP4 has been removed
-as of SWIG 1.3.37.  The PHP developers are no longer making new PHP4 releases,
+SWIG supports generating wrappers for PHP5.  Support for PHP4 was removed
+in SWIG 1.3.37.  The PHP developers are no longer making new PHP4 releases,
 and won't even be patching critical security issues after 2008-08-08, so it
-doesn't make much sense for SWIG to continue to support PHP4 at this point.
-If you need to continue to use PHP4, stick with SWIG 1.3.36.
+doesn't make much sense for SWIG to continue to support PHP4 now.  If you
+really need to continue to use PHP4, just stick with SWIG 1.3.36.
+</p>
+
+<p>
+Currently any PHP5 release should work, but we don't regularly test with
+PHP &lt; 5.3.
 </p>
 
 <p>
 In this chapter, we discuss SWIG's support of PHP.  The PHP module
 was extensively rewritten in release 1.3.26, and support for generating
-OO wrappers for PHP5 was added in 1.3.30.  The PHP module works fairly
-well, but currently does not implement all the
-features available in some of the other languages.
+OO wrappers for PHP5 was added in 1.3.30.  The PHP module now supports most
+of the features available in some of the other languages.
 </p>
 
 <p>
@@ -175,7 +179,8 @@ attempts to do the <tt>dl()</tt> call for you:
 It is important to understand that PHP uses a single global namespace
 into which all symbols from extension modules are loaded.  It is quite
 possible for names of symbols in one extension module to clash with
-other symbols unless care is taken to <tt>%rename</tt> them.
+other symbols unless care is taken to <tt>%rename</tt> them.  At present
+SWIG doesn't have support for the namespace feature added in PHP 5.3.
 </p>
 
 <H3><a name="Php_nn2_1"></a>31.2.1 Constants</H3>
@@ -549,9 +554,11 @@ variable, or assigning <tt>NULL</tt> to a variable.
 
 
 <p>
-SWIG defaults to wrapping C++ structs and classes with PHP classes
-unless "-noproxy" is specified.  For PHP5, a PHP wrapper
-class is generated which calls a set of flat functions wrapping the C++ class.
+SWIG defaults to wrapping C++ structs and classes with PHP classes - this
+is done by generating a PHP wrapper script which defines proxy classes
+which calls a set of flat functions which actually wrap the C++ class.
+You can disable this wrapper layer by passing the command-line option
+"-noproxy" in which case you'll just get the flat functions.
 </p>
 
 <p>
