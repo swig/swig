@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-12-08: vadz
+	    Bug fix: Handle methods renamed or ignored in the base class correctly in the derived classes
+	    (they could be sometimes mysteriously not renamed or ignored there before).
+
 2011-12-03: klickvebrot
             [D] Fix exception glue code for newer DMD 2 versions.
             [D] Do not default to 32 bit glue code for DMD anymore.

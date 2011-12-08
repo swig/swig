@@ -565,6 +565,7 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
 
 void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   Iterator ki;
+  Hash *derh;
   String *bprefix;
   String *dprefix;
   char *cbprefix;
@@ -573,6 +574,9 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   if (!namehash)
     return;
 
+  /* Temporary hash holding all the entries we add while we iterate over
+     namehash itself as we can't modify the latter while iterating over it. */
+  derh = NULL;
   bprefix = NewStringf("%s::", base);
   dprefix = NewStringf("%s::", derived);
   cbprefix = Char(bprefix);
@@ -580,13 +584,19 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   for (ki = First(namehash); ki.key; ki = Next(ki)) {
     char *k = Char(ki.key);
     if (strncmp(k, cbprefix, plen) == 0) {
+      /* Copy, adjusting name, this element to the derived hash. */
       Iterator oi;
       String *nkey = NewStringf("%s%s", dprefix, k + plen);
       Hash *n = ki.item;
-      Hash *newh = Getattr(namehash, nkey);
+      Hash *newh;
+
+      if (!derh)
+	derh = NewHash();
+
+      newh = Getattr(derh, nkey);
       if (!newh) {
 	newh = NewHash();
-	Setattr(namehash, nkey, newh);
+	Setattr(derh, nkey, newh);
 	Delete(newh);
       }
       for (oi = First(n); oi.key; oi = Next(oi)) {
@@ -599,8 +609,17 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
       Delete(nkey);
     }
   }
+
+  /* Merge the contents of derived hash into the main hash. */
+  if (derh) {
+    for (ki = First(derh); ki.key; ki = Next(ki)) {
+      Setattr(namehash, ki.key, ki.item);
+    }
+  }
+
   Delete(bprefix);
   Delete(dprefix);
+  Delete(derh);
 }
 
 /* -----------------------------------------------------------------------------
