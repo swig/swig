@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-12-10: talby
+            [perl5] SWIG_error() now gets decorated with perl source file/line number.
+            [perl5] error handling now conforms to public XS api (fixes perl v5.14 issue).
+
 2011-12-10: wsfulton
             [Android/Java] Fix directors to compile on Android.
 

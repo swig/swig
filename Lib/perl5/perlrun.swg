@@ -47,7 +47,7 @@
 /* Error manipulation */
 
 #define SWIG_ErrorType(code)                            SWIG_Perl_ErrorType(code)               
-#define SWIG_Error(code, msg)            		sv_setpvf(GvSV(PL_errgv),"%s %s\n", SWIG_ErrorType(code), msg)
+#define SWIG_Error(code, msg)            		sv_setpvf(get_sv("@", GV_ADD), "%s %s", SWIG_ErrorType(code), msg)
 #define SWIG_fail                        		goto fail						    
 
 /* Perl-specific SWIG API */
@@ -141,8 +141,6 @@ typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
 #endif /* MULTIPLICITY */
 #endif /* PERL_OBJECT */
 
-/* Workaround for bug in perl 5.6.x croak and earlier */
-#if (PERL_VERSION < 8)
 #  ifdef PERL_OBJECT
 #    define SWIG_croak_null() SWIG_Perl_croak_null(pPerl)
 static void SWIG_Perl_croak_null(CPerlObj *pPerl)
@@ -150,17 +148,16 @@ static void SWIG_Perl_croak_null(CPerlObj *pPerl)
 static void SWIG_croak_null()
 #  endif
 {
-  SV *err=ERRSV;
+  SV *err = get_sv("@", GV_ADD);
 #  if (PERL_VERSION < 6)
   croak("%_", err);
 #  else
-  if (SvOK(err) && !SvROK(err)) croak("%_", err);
-  croak(Nullch);
+  if (sv_isobject(err))
+    croak(0);
+  else
+    croak("%s", SvPV_nolen(err));
 #  endif
 }
-#else
-#  define SWIG_croak_null() croak(Nullch)
-#endif
 
 
 /* 
