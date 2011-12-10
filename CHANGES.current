@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-12-10: wsfulton
+            [Android/Java] Fix directors to compile on Android.
+
+            Added documentation and examples for Android.
+
 2011-12-08: vadz
 	    Bug fix: Handle methods renamed or ignored in the base class correctly in the derived classes
 	    (they could be sometimes mysteriously not renamed or ignored there before).
