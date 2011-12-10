@@ -80,6 +80,7 @@ skip-d		= test -n "@SKIP_D@"
 
 # Additional dependencies for some tests
 skip-gcj        = test -n "@SKIP_GCJ@"
+skip-android    = test -n "@SKIP_ANDROID@"
 
 #####################################################################
 # CHECK
@@ -128,6 +129,7 @@ check-examples:					\
 	check-perl5-examples			\
 	check-python-examples			\
 	check-java-examples			\
+	check-android-examples			\
 	check-guile-examples			\
 	check-mzscheme-examples			\
 	check-ruby-examples			\
@@ -151,6 +153,7 @@ tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
 python_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/python/check.list)
 java_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/java/check.list)
+android_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/android/check.list)
 guile_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/guile/check.list)
 mzscheme_examples  :=$(shell sed '/^\#/d' $(srcdir)/Examples/mzscheme/check.list)
 ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)

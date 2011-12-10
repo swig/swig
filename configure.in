@@ -1106,6 +1106,51 @@ AC_SUBST(GCJ)
 AC_SUBST(GCJH)
 
 #----------------------------------------------------------------
+# Look for Android
+#----------------------------------------------------------------
+
+AC_ARG_WITH(android, AS_HELP_STRING([--without-android], [Disable Android])
+AS_HELP_STRING([--with-android=path], [Set location of android executable]),[ANDROIDBIN="$withval"], [ANDROIDBIN=yes])
+AC_ARG_WITH(adb, [  --with-adb=path       Set location of adb executable - Android Debug Bridge],[ADBBIN="$withval"], [ADBBIN=])
+AC_ARG_WITH(ant, [  --with-ant=path       Set location of ant executable for Android],[ANTBIN="$withval"], [ANTBIN=])
+AC_ARG_WITH(ndk-build, [  --with-ndk-build=path       Set location of Android ndk-build executable],[NDKBUILDBIN="$withval"], [NDKBUILDBIN=])
+
+# First, check for "--without-android" or "--with-android=no".
+if test x"${ANDROIDBIN}" = xno -o x"${with_alllang}" = xno ; then 
+  AC_MSG_NOTICE([Disabling Android])
+  ANDROID=
+else
+  if test "x$ANDROIDBIN" = xyes; then
+    AC_CHECK_PROGS(ANDROID, android)
+  else
+    ANDROID="$ANDROIDBIN"
+  fi
+
+  if test -z "$ADBBIN"; then
+    AC_CHECK_PROGS(ADB, adb)
+  else
+    ADB="$ADBBIN"
+  fi
+
+  if test -z "$ANTBIN"; then
+    AC_CHECK_PROGS(ANT, ant)
+  else
+    ANT="$ANTBIN"
+  fi
+
+  if test -z "$NDKBUILDBIN"; then
+    AC_CHECK_PROGS(NDKBUILD, ndk-build)
+  else
+    NDKBUILD="$NDKBUILDBIN"
+  fi
+fi
+
+AC_SUBST(ANDROID)
+AC_SUBST(ADB)
+AC_SUBST(ANT)
+AC_SUBST(NDKBUILD)
+
+#----------------------------------------------------------------
 # Look for Guile
 #----------------------------------------------------------------
 
@@ -2301,6 +2346,14 @@ else
   fi
 fi
 AC_SUBST(SKIP_GCJ)
+
+
+SKIP_ANDROID=
+if test -z "$ANDROID" || test -z "$ADB" || test -z "$ANT" || test -z "$NDKBUILD" ; then
+    SKIP_ANDROID="1"
+fi
+AC_SUBST(SKIP_ANDROID)
+
 
 
 #----------------------------------------------------------------
