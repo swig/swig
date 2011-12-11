@@ -590,11 +590,12 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
       Hash *n = ki.item;
       Hash *newh;
 
-      if (!derh)
-	derh = NewHash();
-
-      newh = Getattr(derh, nkey);
+      /* Don't overwrite an existing value for the derived class, if any. */
+      newh = Getattr(namehash, nkey);
       if (!newh) {
+	if (!derh)
+	  derh = NewHash();
+
 	newh = NewHash();
 	Setattr(derh, nkey, newh);
 	Delete(newh);
