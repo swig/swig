@@ -1133,13 +1133,13 @@ SWIG will automatically convert this to a Lua error.
 </p>
 
 <div class="targetlang"><pre>
-> message()
+&gt; message()
 I died.
 stack traceback:
         [C]: in function 'message'
         stdin:1: in main chunk
         [C]: ?
->
+&gt;
 </pre></div>
 
 <p>
@@ -1148,13 +1148,13 @@ Using xpcall will allow you to obtain additional debug information (such as a st
 </p>
 
 <div class="targetlang"><pre>
-> function a() b() end -- function a() calls function b()
-> function b() message() end -- function b() calls C++ function message(), which throws 
-> ok,res=pcall(a)  -- call the function
-> print(ok,res)
+&gt; function a() b() end -- function a() calls function b()
+&gt; function b() message() end -- function b() calls C++ function message(), which throws 
+&gt; ok,res=pcall(a)  -- call the function
+&gt; print(ok,res)
 false   I died.
-> ok,res=xpcall(a,debug.traceback)  -- call the function
-> print(ok,res)
+&gt; ok,res=xpcall(a,debug.traceback)  -- call the function
+&gt; print(ok,res)
 false   I died.
 stack traceback:
         [C]: in function 'message'
@@ -1189,13 +1189,13 @@ SWIG will just convert it (poorly) to a string and use that as its error. (Yes i
 </p>
 
 <div class="targetlang"><pre>
-> throw_A()
+&gt; throw_A()
 object exception:A *
 stack traceback:
         [C]: in function 'unknown'
         stdin:1: in main chunk
         [C]: ?
->
+&gt;
 </pre></div>
 <p>
 To get a more useful behaviour out of SWIG you must either: provide a way to convert your exceptions into strings, or
@@ -1236,14 +1236,14 @@ void throw_exc() throw(Exc) {
 Then the following code can be used (note: we use pcall to catch the error so we can process the exception).
 </p>
 <div class="targetlang"><pre>
-> ok,res=pcall(throw_exc)
-> print(ok)
+&gt; ok,res=pcall(throw_exc)
+&gt; print(ok)
 false
-> print(res)
+&gt; print(res)
 userdata: 0003D880
-> print(res.code,res.msg)
+&gt; print(res.code,res.msg)
 42      Hosed
->
+&gt;
 </pre></div>
 
 <p>
