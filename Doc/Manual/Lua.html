@@ -1166,7 +1166,7 @@ stack traceback:
 </pre></div>
 
 <p>
-SWIG is able to throw numeric types, enums, chars, char*'s and std::string's without problem. It has also written typemaps for std::exception and its derived classes, which convert the exception into and error string. </p>
+SWIG is able to throw numeric types, enums, chars, char*'s and std::string's without problem. It has also written typemaps for std::exception and its derived classes, which convert the exception into an error string. </p>
 <p>
 However its not so simple for to throw other types of objects. 
 Thrown objects are not valid outside the 'catch' block. Therefore they cannot be
@@ -1261,7 +1261,7 @@ add exception specification to functions or globally (respectively).
 <H2><a name="Lua_nn24"></a>26.4 Typemaps</H2>
 
 
-<p>This section explains what typemaps are and the usage of them. The default wrappering behaviour of SWIG is enough in most cases. However sometimes SWIG may need a little additional assistance to know which typemap to apply to provide the best wrappering. This section will be explaining how to use typemaps to best effect</p>
+<p>This section explains what typemaps are and the usage of them. The default wrapping behaviour of SWIG is enough in most cases. However sometimes SWIG may need a little additional assistance to know which typemap to apply to provide the best wrapping. This section will be explaining how to use typemaps to best effect</p>
 
 <H3><a name="Lua_nn25"></a>26.4.1 What is a typemap?</H3>
 
@@ -1427,7 +1427,7 @@ ok=Create_Math(&amp;ptr);
 free(ptr); // dispose of iMath
 </pre></div>
 
-<p>SWIG has a ready written typemap to deal with such a kind of function in &lt;typemaps.i&gt;. It provides the correct wrappering as well as setting the flag to inform Lua that the object in question should be garbage collected. Therefore the code is simply:</p>
+<p>SWIG has a ready written typemap to deal with such a kind of function in &lt;typemaps.i&gt;. It provides the correct wrapping as well as setting the flag to inform Lua that the object in question should be garbage collected. Therefore the code is simply:</p>
 
 <div class="code"><pre>%include &lt;typemaps.i&gt;
 %apply SWIGTYPE** OUTPUT{iMath **pptr }; // tell SWIG its an output
@@ -1447,7 +1447,7 @@ ptr=nil -- the iMath* will be GC'ed as normal
 
 <p>This section describes how you can modify SWIG's default wrapping behavior for various C/C++ datatypes using the <tt>%typemap</tt> directive. This is an advanced topic that assumes familiarity with the Lua C API as well as the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>" chapter.</p>
 
-<p>Before proceeding, it should be stressed that writing typemaps is rarely needed unless you want to change some aspect of the wrappering, or to achieve an effect which in not available with the default bindings.</p>
+<p>Before proceeding, it should be stressed that writing typemaps is rarely needed unless you want to change some aspect of the wrapping, or to achieve an effect which in not available with the default bindings.</p>
 
 <p>Before proceeding, you should read the previous section on using typemaps, as well as read the ready written typemaps found in luatypemaps.swg and typemaps.i. These are both well documented and fairly easy to read. You should not attempt to write your own typemaps until you have read and can understand both of these files (they may well also give you a idea to base your worn on).</p>
 
@@ -1472,7 +1472,7 @@ ptr=nil -- the iMath* will be GC'ed as normal
 <p><tt>int SWIG_ConvertPtr(lua_State* L,int index,void** ptr,swig_type_info *type,int flags);</tt></p>
 
 <div class="indent">
-This is the standard function used for converting a Lua userdata to a void*. It takes the value at the given index in the Lua state and converts it to a userdata. It will then provide the neccesary type checks, confirming that the pointer is compatible with the type given in 'type'. Then finally setting '*ptr' to the pointer.
+This is the standard function used for converting a Lua userdata to a void*. It takes the value at the given index in the Lua state and converts it to a userdata. It will then provide the necessary type checks, confirming that the pointer is compatible with the type given in 'type'. Then finally setting '*ptr' to the pointer.
 If flags is set to SWIG_POINTER_DISOWN, this is will clear any ownership flag set on the object.<br>
 The returns a value which can be checked with the macro SWIG_IsOK()
 </div>
@@ -1493,7 +1493,7 @@ This function is a version of SWIG_ConvertPtr(), except that it will either work
 <p><tt>SWIG_fail</tt></p>
 
 <div class="indent">
-This macro, when called within the context of a SWIG wrappered function, will jump to the error handler code. This will call any cleanup code (freeing any temp variables) and then triggers a lua_error.<br>
+This macro, when called within the context of a SWIG wrapped function, will jump to the error handler code. This will call any cleanup code (freeing any temp variables) and then triggers a lua_error.<br>
 A common use for this code is:<br><pre>
 if (!SWIG_IsOK(SWIG_ConvertPtr( .....)){
  lua_pushstring(L,"something bad happened");
@@ -1503,7 +1503,7 @@ if (!SWIG_IsOK(SWIG_ConvertPtr( .....)){
 <p><tt>SWIG_fail_arg(char* func_name,int argnum,char* type)</tt></p>
 
 <div class="indent">
-This macro, when called within the context of a SWIG wrappered function, will display the error message and jump to the error handler code. The error message is of the form 
+This macro, when called within the context of a SWIG wrapped function, will display the error message and jump to the error handler code. The error message is of the form 
 <pre>
 "Error in <i>func_name</i> (arg <i>argnum</i>), expected '<i>type</i>' got '<i>whatever the type was</i>'"
 </pre></div>
@@ -1526,7 +1526,7 @@ This section covers adding of some small extra bits to your module to add the la
 
 
 <p>
-Sometimes, it may be neccesary to add your own special functions, which bypass the normal SWIG wrappering method, and just use the native Lua API calls. These 'native' functions allow direct adding of your own code into the module. This is performed with the <tt>%native</tt> directive as follows:
+Sometimes, it may be necessary to add your own special functions, which bypass the normal SWIG wrapper method, and just use the native Lua API calls. These 'native' functions allow direct adding of your own code into the module. This is performed with the <tt>%native</tt> directive as follows:
 </p>
 <div class="code"><pre>%native(my_func) int native_function(lua_State*L);  // registers native_function() with SWIG
 ...
@@ -1538,7 +1538,7 @@ int native_function(lua_State*L) // my native code
 %}
 </pre></div>
 <p>
-The <tt>%native</tt> directive in the above example, tells SWIG that there is a function <tt>int native_function(lua_State*L);</tt> which is to be added into the module under the name '<tt>my_func</tt>'. SWIG will not add any wrappering for this function, beyond adding it into the function table. How you write your code is entirely up to you.
+The <tt>%native</tt> directive in the above example, tells SWIG that there is a function <tt>int native_function(lua_State*L);</tt> which is to be added into the module under the name '<tt>my_func</tt>'. SWIG will not add any wrapper for this function, beyond adding it into the function table. How you write your code is entirely up to you.
 </p>
 
 <H3><a name="Lua_nn34"></a>26.6.2 Adding additional Lua code</H3>
@@ -1586,7 +1586,7 @@ See Examples/lua/arrays for an example of this code.
  In the previous section, a high-level view of Lua wrapping was presented. Obviously a lot of stuff happens behind the scenes to make this happen. This section will explain some of the low-level details on how this is achieved.
 </p>
 <p>
- <i>If you just want to use SWIG and don't care how it works, then stop reading here. This is going into the guts of the code and how it works. Its mainly for people who need to know whats going on within the code.
+ <i>If you just want to use SWIG and don't care how it works, then stop reading here. This is going into the guts of the code and how it works. It's mainly for people who need to know what's going on within the code.
  </i>
 </p>
 
@@ -1725,7 +1725,7 @@ So when 'p:Print()' is called, the __index looks on the object metatable for a '
 In theory, you can play with this usertable &amp; add new features, but remember that it is a shared table between all instances of one class, and you could very easily corrupt the functions in all the instances.
 </p>
 <p>
-Note: Both the opaque structures (like the FILE*) and normal wrappered classes/structs use the same 'swig_lua_userdata' structure. Though the opaque structures has do not have a metatable attached, or any information on how to dispose of them when the interpreter has finished with them.
+Note: Both the opaque structures (like the FILE*) and normal wrapped classes/structs use the same 'swig_lua_userdata' structure. Though the opaque structures has do not have a metatable attached, or any information on how to dispose of them when the interpreter has finished with them.
 </p>
 <p>
 Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the classes metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming its an operator overload.
@@ -1734,7 +1734,7 @@ Note: Operator overloads are basically done in the same way, by adding functions
 
 
 <p>
-Lua is very helpful with the memory management. The 'swig_lua_userdata' is fully managed by the interpreter itself. This means that neither the C code nor the Lua code can damage it. Once a piece of userdata has no references to it, it is not instantly collected, but will be collected when Lua deems is necessary. (You can force collection by calling the Lua function <tt>collectgarbage()</tt>). Once the userdata is about to be free'ed, the interpreter will check the userdata for a metatable and for a function '__gc'. If this exists this is called. For all complete types (ie normal wrappered classes &amp; structs) this should exist. The '__gc' function will check the 'swig_lua_userdata' to check for the 'own' field and if this is true (which is will be for all owned data's) it will then call the destructor on the pointer.
+Lua is very helpful with the memory management. The 'swig_lua_userdata' is fully managed by the interpreter itself. This means that neither the C code nor the Lua code can damage it. Once a piece of userdata has no references to it, it is not instantly collected, but will be collected when Lua deems is necessary. (You can force collection by calling the Lua function <tt>collectgarbage()</tt>). Once the userdata is about to be free'ed, the interpreter will check the userdata for a metatable and for a function '__gc'. If this exists this is called. For all complete types (ie normal wrapped classes &amp; structs) this should exist. The '__gc' function will check the 'swig_lua_userdata' to check for the 'own' field and if this is true (which is will be for all owned data) it will then call the destructor on the pointer.
 </p>
 <p>
 It is currently not recommended to edit this field or add some user code, to change the behaviour. Though for those who wish to try, here is where to look.
