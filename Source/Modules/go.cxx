@@ -2941,21 +2941,13 @@ private:
       Append(go_with_over_name, overname);
     }
 
+    Parm *p = 0;
     Wrapper *f = NewWrapper();
 
-    Parm *p = parms;
-    for (int i = 0; i < parm_count; ++i) {
-      p = getParm(p);
-      Swig_cparm_name(p, i);
-      if (!Getattr(p, "name")) {
-	String *pn = NewString("");
-	Printf(pn, "arg%d", i);
-	Setattr(p, "name", pn);
-      }
-      p = nextParm(p);
-    }
+    Swig_director_parms_fixup(parms);
 
     Swig_typemap_attach_parms("directorin", parms, f);
+    Swig_typemap_attach_parms("directorargout", parms, f);
 
     if (!is_ignored) {
       // We use an interface to see if this method is defined in Go.
@@ -3422,6 +3414,7 @@ private:
 	      String *ln = Getattr(p, "lname");
 	      String *input = NewString("");
 	      Printv(input, "swig_a.", ln, NULL);
+	      Setattr(p, "emit:directorinput", input);
 	      Replaceall(tm, "$input", input);
 	      Replaceall(tm, "$owner", "0");
 	      Delete(input);
@@ -3525,6 +3518,19 @@ private:
 	    }
 	    Delete(rp);
 	    Delete(rname);
+	  }
+	}
+
+	/* Marshal outputs */
+	for (p = parms; p;) {
+	  String *tm;
+	  if ((tm = Getattr(p, "tmap:directorargout"))) {
+	    Replaceall(tm, "$result", "jresult");
+	    Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
+	    Printv(f->code, tm, "\n", NIL);
+	    p = Getattr(p, "tmap:directorargout:next");
+	  } else {
+	    p = nextSibling(p);
 	  }
 	}
       } else {

@@ -107,13 +107,12 @@
 /* directorout */
 
 %define %value_directorout_typemap(asval_meth,frag,Type...)
-  %typemap(directorargout,noblock=1,fragment=frag) Type *DIRECTOROUT {
-    Type swig_val;
-    int swig_res = asval_meth($input, &swig_val);
+  %typemap(directorargout,noblock=1,fragment=frag) Type *DIRECTOROUT(Type swig_val, int swig_res) {
+    swig_res = asval_meth($result, &swig_val);
     if (!SWIG_IsOK(swig_res)) {
       %dirout_fail(swig_res, "$type");
     } 
-    *$result = %static_cast(swig_val, $type);
+    *$1 = swig_val;
   }
   %typemap(directorout,noblock=1,fragment=frag) Type {
     Type swig_val;

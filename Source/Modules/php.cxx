@@ -2535,6 +2535,8 @@ done:
       /* attach typemaps to arguments (C/C++ -> PHP) */
       String *parse_args = NewStringEmpty();
 
+      Swig_director_parms_fixup(l);
+
       /* remove the wrapper 'w' since it was producing spurious temps */
       Swig_typemap_attach_parms("in", l, 0);
       Swig_typemap_attach_parms("directorin", l, 0);
@@ -2567,6 +2569,7 @@ done:
 	  if (!parse) {
 	    sprintf(source, "obj%d", idx++);
 	    String *input = NewStringf("&%s", source);
+	    Setattr(p, "emit:directorinput", input);
 	    Replaceall(tm, "$input", input);
 	    Delete(input);
 	    Replaceall(tm, "$owner", "0");
@@ -2577,6 +2580,7 @@ done:
 	    Putc('O', parse_args);
 	  } else {
 	    Append(parse_args, parse);
+	    Setattr(p, "emit:directorinput", pname);
 	    Replaceall(tm, "$input", pname);
 	    Replaceall(tm, "$owner", "0");
 	    if (Len(tm) == 0)
@@ -2680,8 +2684,8 @@ done:
       /* marshal outputs */
       for (p = l; p;) {
 	if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
-	  Replaceall(tm, "$input", Swig_cresult_name());
-	  Replaceall(tm, "$result", Getattr(p, "name"));
+	  Replaceall(tm, "$result", Swig_cresult_name());
+	  Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
 	  Printv(w->code, tm, "\n", NIL);
 	  p = Getattr(p, "tmap:directorargout:next");
 	} else {

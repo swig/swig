@@ -3152,13 +3152,7 @@ public:
       /* attach typemaps to arguments (C/C++ -> Ruby) */
       String *arglist = NewString("");
 
-      /**
-       * For each parameter to the C++ member function, copy the parameter name
-       * to its "lname"; this ensures that Swig_typemap_attach_parms() will do
-       * the right thing when it sees strings like "$1" in your "directorin" typemaps.
-       * Not sure if it's OK to leave it like this, but seems OK so far.
-       */
-      typemap_copy_pname_to_lname(l);
+      Swig_director_parms_fixup(l);
 
       Swig_typemap_attach_parms("in", l, 0);
       Swig_typemap_attach_parms("directorin", l, 0);
@@ -3182,11 +3176,10 @@ public:
 	if (Getattr(p, "tmap:directorargout") != 0)
 	  outputs++;
 
-	if ( checkAttribute( p, "tmap:in:numinputs", "0") )
-	  {
-	    p = Getattr(p, "tmap:in:next");
-	    continue;
-	  }
+	if ( checkAttribute( p, "tmap:in:numinputs", "0") ) {
+	  p = Getattr(p, "tmap:in:next");
+	  continue;
+	}
 
 	String *parameterName = Getattr(p, "name");
 	String *parameterType = Getattr(p, "type");
@@ -3194,8 +3187,11 @@ public:
 	Putc(',', arglist);
 	if ((tm = Getattr(p, "tmap:directorin")) != 0) {
 	  sprintf(source, "obj%d", idx++);
-	  Replaceall(tm, "$input", source);
+	  String *input = NewString(source);
+	  Setattr(p, "emit:directorinput", input);
+	  Replaceall(tm, "$input", input);
 	  Replaceall(tm, "$owner", "0");
+	  Delete(input);
 	  Printv(wrap_args, tm, "\n", NIL);
 	  Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
 	  Printv(arglist, source, NIL);
@@ -3340,11 +3336,11 @@ public:
 	if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
 	  if (outputs > 1) {
 	    Printf(w->code, "output = rb_ary_entry(%s, %d);\n", Swig_cresult_name(), idx++);
-	    Replaceall(tm, "$input", "output");
+	    Replaceall(tm, "$result", "output");
 	  } else {
-	    Replaceall(tm, "$input", Swig_cresult_name());
+	    Replaceall(tm, "$result", Swig_cresult_name());
 	  }
-	  Replaceall(tm, "$result", Getattr(p, "name"));
+	  Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
 	  Printv(w->code, tm, "\n", NIL);
 	  p = Getattr(p, "tmap:directorargout:next");
 	} else {
@@ -3415,20 +3411,6 @@ public:
 
   virtual int classDirectorDisown(Node *n) {
     return Language::classDirectorDisown(n);
-  }
-
-  void typemap_copy_pname_to_lname(ParmList *parms) {
-    Parm *p;
-    String *pname;
-    String *lname;
-
-    p = parms;
-    while (p) {
-      pname = Getattr(p, "name");
-      lname = Copy(pname);
-      Setattr(p, "lname", lname);
-      p = nextSibling(p);
-    }
   }
 
   String *runtimeCode() {

@@ -2057,19 +2057,7 @@ public:
       Delete(retpm);
     }
 
-    /* Go through argument list, attach lnames for arguments */
-    for (i = 0, p = l; p; p = nextSibling(p), ++i) {
-      String *arg = Getattr(p, "name");
-      String *lname = NewString("");
-
-      if (!arg && Cmp(Getattr(p, "type"), "void")) {
-	lname = NewStringf("arg%d", i);
-	Setattr(p, "name", lname);
-      } else
-	lname = arg;
-
-      Setattr(p, "lname", lname);
-    }
+    Swig_director_parms_fixup(l);
 
     // Attach the standard typemaps.
     Swig_typemap_attach_parms("out", l, 0);
@@ -2078,6 +2066,7 @@ public:
     Swig_typemap_attach_parms("dtype", l, 0);
     Swig_typemap_attach_parms("directorin", l, 0);
     Swig_typemap_attach_parms("ddirectorin", l, 0);
+    Swig_typemap_attach_parms("directorargout", l, w);
 
     // Preamble code.
     if (!ignored_method)
@@ -2135,6 +2124,7 @@ public:
 	/* Add input marshalling code */
 	if ((tm = Getattr(p, "tmap:directorin"))) {
 
+	  Setattr(p, "emit:directorinput", arg);
 	  Replaceall(tm, "$input", arg);
 	  Replaceall(tm, "$owner", "0");
 
@@ -2316,6 +2306,19 @@ public:
 	Delete(tp);
 	Delete(jresult_str);
 	Delete(result_str);
+      }
+
+      /* Marshal outputs */
+      for (p = l; p;) {
+	if ((tm = Getattr(p, "tmap:directorargout"))) {
+	  canThrow(n, "directorargout", p);
+	  Replaceall(tm, "$result", "jresult");
+	  Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
+	  Printv(w->code, tm, "\n", NIL);
+	  p = Getattr(p, "tmap:directorargout:next");
+	} else {
+	  p = nextSibling(p);
+	}
       }
 
       /* Terminate wrapper code */

@@ -4656,6 +4656,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     String *arglist = NewString("");
     String *parse_args = NewString("");
 
+    Swig_director_parms_fixup(l);
+
     /* remove the wrapper 'w' since it was producing spurious temps */
     Swig_typemap_attach_parms("in", l, 0);
     Swig_typemap_attach_parms("directorin", l, 0);
@@ -4698,6 +4700,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	if (!parse) {
 	  sprintf(source, "obj%d", idx++);
 	  String *input = NewString(source);
+	  Setattr(p, "emit:directorinput", input);
 	  Replaceall(tm, "$input", input);
 	  Delete(input);
 	  Replaceall(tm, "$owner", "0");
@@ -4710,6 +4713,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	} else {
 	  use_parse = 1;
 	  Append(parse_args, parse);
+	  Setattr(p, "emit:directorinput", pname);
 	  Replaceall(tm, "$input", pname);
 	  Replaceall(tm, "$owner", "0");
 	  if (Len(tm) == 0)
@@ -4940,11 +4944,11 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
 	if (outputs > 1) {
 	  Printf(w->code, "output = PyTuple_GetItem(%s, %d);\n", Swig_cresult_name(), idx++);
-	  Replaceall(tm, "$input", "output");
+	  Replaceall(tm, "$result", "output");
 	} else {
-	  Replaceall(tm, "$input", Swig_cresult_name());
+	  Replaceall(tm, "$result", Swig_cresult_name());
 	}
-	Replaceall(tm, "$result", Getattr(p, "name"));
+	Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
 	Printv(w->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:directorargout:next");
       } else {

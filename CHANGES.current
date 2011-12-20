@@ -5,6 +5,23 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-12-20: wsfulton
+            [Java] Add (char *STRING, size_t LENGTH) director typemaps.
+
+2011-12-20: wsfulton
+            [C#, Go, Java, D] Add support for the 'directorargout' typemap.
+
+2011-12-20: wsfulton
+            [Ocaml, Octave, PHP, Python, Ruby] Correct special variables in 'directorargout' typemap.
+            This change will break any 'directorargout' typemaps you may have written. Please change:
+              $result to $1
+              $input to $result
+
+            Also fix the named 'directorargout' DIRECTOROUT typemaps for these languages which didn't
+            previously compile and add in $1, $2 etc expansion.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2011-12-10: talby
             [perl5] SWIG_error() now gets decorated with perl source file/line number.
             [perl5] error handling now conforms to public XS api (fixes perl v5.14 issue).
