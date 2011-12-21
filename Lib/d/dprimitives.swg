@@ -38,7 +38,7 @@
 %{ temp = ($*1_ltype)$input;
    $1 = &temp; %}
 %typemap(out) const TYPE & "$result = *$1;"
-%typemap(directorin) const TYPE & "$input = $1_name;"
+%typemap(directorin) const TYPE & "$input = $1;"
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const TYPE &
 %{ static $*1_ltype temp;
    temp = ($*1_ltype)$input;

@@ -297,19 +297,19 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
    temp = ($*1_ltype)$input; 
    $result = &temp; %}
 
-%typemap(directorin) const bool &           "$input = $1_name;"
-%typemap(directorin) const char &           "$input = $1_name;"
-%typemap(directorin) const signed char &    "$input = $1_name;"
-%typemap(directorin) const unsigned char &  "$input = $1_name;"
-%typemap(directorin) const short &          "$input = $1_name;"
-%typemap(directorin) const unsigned short & "$input = $1_name;"
-%typemap(directorin) const int &            "$input = $1_name;"
-%typemap(directorin) const unsigned int &   "$input = $1_name;"
-%typemap(directorin) const long &           "$input = $1_name;"
-%typemap(directorin) const unsigned long &  "$input = $1_name;"
-%typemap(directorin) const long long &      "$input = $1_name;"
-%typemap(directorin) const float &          "$input = $1_name;"
-%typemap(directorin) const double &         "$input = $1_name;"
+%typemap(directorin) const bool &           "$input = $1;"
+%typemap(directorin) const char &           "$input = $1;"
+%typemap(directorin) const signed char &    "$input = $1;"
+%typemap(directorin) const unsigned char &  "$input = $1;"
+%typemap(directorin) const short &          "$input = $1;"
+%typemap(directorin) const unsigned short & "$input = $1;"
+%typemap(directorin) const int &            "$input = $1;"
+%typemap(directorin) const unsigned int &   "$input = $1;"
+%typemap(directorin) const long &           "$input = $1;"
+%typemap(directorin) const unsigned long &  "$input = $1;"
+%typemap(directorin) const long long &      "$input = $1;"
+%typemap(directorin) const float &          "$input = $1;"
+%typemap(directorin) const double &         "$input = $1;"
 
 %typemap(csdirectorin) const char & ($*1_ltype temp), 
                        const signed char & ($*1_ltype temp), 

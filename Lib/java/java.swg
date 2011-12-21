@@ -469,19 +469,19 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
    temp = ($*1_ltype)$input; 
    $result = &temp; %}
 
-%typemap(directorin, descriptor="Z") const bool &           "$input = (jboolean)$1_name;"
-%typemap(directorin, descriptor="C") const char &           "$input = (jchar)$1_name;"
-%typemap(directorin, descriptor="B") const signed char &    "$input = (jbyte)$1_name;"
-%typemap(directorin, descriptor="S") const unsigned char &  "$input = (jshort)$1_name;"
-%typemap(directorin, descriptor="S") const short &          "$input = (jshort)$1_name;"
-%typemap(directorin, descriptor="I") const unsigned short & "$input = (jint)$1_name;"
-%typemap(directorin, descriptor="I") const int &            "$input = (jint)$1_name;"
-%typemap(directorin, descriptor="J") const unsigned int &   "$input = (jlong)$1_name;"
-%typemap(directorin, descriptor="I") const long &           "$input = (jint)$1_name;"
-%typemap(directorin, descriptor="J") const unsigned long &  "$input = (jlong)$1_name;"
-%typemap(directorin, descriptor="J") const long long &      "$input = (jlong)$1_name;"
-%typemap(directorin, descriptor="F") const float &          "$input = (jfloat)$1_name;"
-%typemap(directorin, descriptor="D") const double &         "$input = (jdouble)$1_name;"
+%typemap(directorin, descriptor="Z") const bool &           "$input = (jboolean)$1;"
+%typemap(directorin, descriptor="C") const char &           "$input = (jchar)$1;"
+%typemap(directorin, descriptor="B") const signed char &    "$input = (jbyte)$1;"
+%typemap(directorin, descriptor="S") const unsigned char &  "$input = (jshort)$1;"
+%typemap(directorin, descriptor="S") const short &          "$input = (jshort)$1;"
+%typemap(directorin, descriptor="I") const unsigned short & "$input = (jint)$1;"
+%typemap(directorin, descriptor="I") const int &            "$input = (jint)$1;"
+%typemap(directorin, descriptor="J") const unsigned int &   "$input = (jlong)$1;"
+%typemap(directorin, descriptor="I") const long &           "$input = (jint)$1;"
+%typemap(directorin, descriptor="J") const unsigned long &  "$input = (jlong)$1;"
+%typemap(directorin, descriptor="J") const long long &      "$input = (jlong)$1;"
+%typemap(directorin, descriptor="F") const float &          "$input = (jfloat)$1;"
+%typemap(directorin, descriptor="D") const double &         "$input = (jdouble)$1;"
 
 %typemap(javadirectorin) const char & ($*1_ltype temp), 
                          const signed char & ($*1_ltype temp), 

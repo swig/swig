@@ -344,15 +344,15 @@
 /* directorin */
 
 %typemap(directorin,noblock=1) SWIGTYPE *, SWIGTYPE *const& {
-  $input = SWIG_NewPointerObj(%as_voidptr($1_name), $descriptor, %newpointer_flags);
+  $input = SWIG_NewPointerObj(%as_voidptr($1), $descriptor, %newpointer_flags);
 }
 
 %typemap(directorin,noblock=1) SWIGTYPE {
-  $input = SWIG_NewPointerObj(%as_voidptr(&$1_name), $&descriptor, %newpointer_flags);
+  $input = SWIG_NewPointerObj(%as_voidptr(&$1), $&descriptor, %newpointer_flags);
 }
 
 %typemap(directorin,noblock=1) SWIGTYPE & {
-  $input = SWIG_NewPointerObj(%as_voidptr(&$1_name), $descriptor, %newpointer_flags);
+  $input = SWIG_NewPointerObj(%as_voidptr(&$1), $descriptor, %newpointer_flags);
 }
 
 /* directorout */
@@ -480,7 +480,7 @@
 /* directorin */
 
 %typemap(directorin,noblock=1) SWIGTYPE (CLASS::*) {
-  $input = SWIG_NewMemberObj(%as_voidptr(&$1_name), sizeof($type), $descriptor);
+  $input = SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor);
 }
 
 /* directorout */
@@ -540,7 +540,7 @@
 /* directorin */
 
 %typemap(directorin,noblock=1) SWIGTYPE ((*)(ANY)) {
-  $input = SWIG_NewFunctionPtrObj((void*)($1_name), $descriptor);
+  $input = SWIG_NewFunctionPtrObj((void*)($1), $descriptor);
 }
 
 /* directorout */

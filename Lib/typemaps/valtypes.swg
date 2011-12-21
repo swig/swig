@@ -97,10 +97,10 @@
 
 %define %value_directorin_typemap(from_meth,frag,Type...)
   %typemap(directorin,noblock=1,fragment=frag) Type *DIRECTORIN {
-    $input = from_meth(%static_cast(*$1_name,Type)); 
+    $input = from_meth(%static_cast(*$1,Type)); 
   }
   %typemap(directorin,noblock=1,fragment=frag) Type, const Type& {
-    $input = from_meth(%static_cast($1_name,Type)); 
+    $input = from_meth(%static_cast($1,Type)); 
   }
 %enddef
 
