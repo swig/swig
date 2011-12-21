@@ -55,14 +55,14 @@ NAME() {
   return new TYPE();
 }
 ~NAME() {
-  if (self) delete self;
+  if ($self) delete $self;
 }
 #else
 NAME() {
   return (TYPE *) calloc(1,sizeof(TYPE));
 }
 ~NAME() {
-  if (self) free(self);
+  if ($self) free($self);
 }
 #endif
 }
@@ -70,13 +70,13 @@ NAME() {
 %extend NAME {
 
 void assign(TYPE value) {
-  *self = value;
+  *$self = value;
 }
 TYPE value() {
-  return *self;
+  return *$self;
 }
 TYPE * cast() {
-  return self;
+  return $self;
 }
 static NAME * frompointer(TYPE *t) {
   return (NAME *) t;
@@ -126,34 +126,34 @@ static TYPE *copy_##NAME(TYPE value) { %}
 #ifdef __cplusplus
 %{  return new TYPE(value); %}
 #else
-%{  TYPE *self = (TYPE *) calloc(1,sizeof(TYPE));
-  *self = value;
-  return self; %}
+%{  TYPE *obj = (TYPE *) calloc(1,sizeof(TYPE));
+  *obj = value;
+  return obj; %}
 #endif
 %{}
 
-static void delete_##NAME(TYPE *self) { %}
+static void delete_##NAME(TYPE *obj) { %}
 #ifdef __cplusplus
-%{  if (self) delete self; %}
+%{  if (obj) delete obj; %}
 #else
-%{  if (self) free(self); %}
+%{  if (obj) free(obj); %}
 #endif
 %{}
 
-static void NAME ##_assign(TYPE *self, TYPE value) {
-  *self = value;
+static void NAME ##_assign(TYPE *obj, TYPE value) {
+  *obj = value;
 }
 
-static TYPE NAME ##_value(TYPE *self) {
-  return *self;
+static TYPE NAME ##_value(TYPE *obj) {
+  return *obj;
 }
 %}
 
 TYPE *new_##NAME();
 TYPE *copy_##NAME(TYPE value);
-void  delete_##NAME(TYPE *self);
-void  NAME##_assign(TYPE *self, TYPE value);
-TYPE  NAME##_value(TYPE *self);
+void  delete_##NAME(TYPE *obj);
+void  NAME##_assign(TYPE *obj, TYPE value);
+TYPE  NAME##_value(TYPE *obj);
 
 %enddef
 

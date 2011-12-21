@@ -657,9 +657,9 @@ private:
 	      Printf(doc, "    %s.new(%s)", class_name, paramList);
 	    else
 	      Printf(doc, "    %s.new", class_name);
-	  } else
-	    Printf(doc, "    %s.new(%s)", class_name, 
-		   make_autodocParmList(n, showTypes));
+	  } else {
+	    Printf(doc, "    %s.new(%s)", class_name, make_autodocParmList(n, showTypes));
+	  }
 	  break;
 
 	case AUTODOC_DTOR:
@@ -2640,8 +2640,11 @@ public:
     current = CONSTRUCTOR_ALLOCATE;
     Swig_name_register("construct", "%n%c_allocate");
 
-
     Language::constructorHandler(n);
+
+    String* docs = docstring(n, AUTODOC_CTOR);
+    Printf(f_wrappers, "%s", docs);
+    Delete(docs);
 
     /* 
      * If we're wrapping the constructor of a C++ director class, prepend a new parameter
@@ -2665,13 +2668,7 @@ public:
       Delete(self);
     }
 
-
-
     /* Now do the instance initialize method */
-    String* docs = docstring(n, AUTODOC_CTOR);
-    Printf(f_wrappers, "%s", docs);
-    Delete(docs);
-
     current = CONSTRUCTOR_INITIALIZE;
     Swig_name_register("construct", "new_%n%c");
     Language::constructorHandler(n);
