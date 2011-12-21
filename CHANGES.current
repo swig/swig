@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2011-12-21: wsfulton
+            The 'directorin' typemap now accepts $1, $2 etc expansions instead of having to use workarounds -
+            $1_name, $2_name etc.
+
 2011-12-20: wsfulton
             [Java] Add (char *STRING, size_t LENGTH) director typemaps.
 
