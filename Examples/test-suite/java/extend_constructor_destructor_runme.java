@@ -44,7 +44,7 @@ public class extend_constructor_destructor_runme {
   }
 
   public static void checkGlobal(int val) {
-    int global = extend_constructor_destructor.getGlobal();
+    int global = extend_constructor_destructor.getGlobalVar();
     if (global != val)
       throw new RuntimeException("global value incorrect. Expected: " + val + " got: " + global);
   }

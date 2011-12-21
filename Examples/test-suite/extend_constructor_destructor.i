@@ -1,7 +1,7 @@
 %module extend_constructor_destructor
 
 %inline %{
-int global = 0;
+int globalVar = 0;
 
 namespace Space {
   typedef struct tagAStruct {
@@ -41,11 +41,11 @@ namespace Space {
   tagAStruct(int ivar0) {
     Space::AStruct *s = new Space::AStruct();
     s->ivar = ivar0;
-    global = ivar0;
+    globalVar = ivar0;
     return s;
   }
   ~tagAStruct() {
-    global = -$self->ivar;
+    globalVar = -$self->ivar;
     delete $self;
   }
 }
@@ -54,11 +54,11 @@ namespace Space {
   BStruct(int ivar0) {
     Space::BStruct *s = new Space::BStruct();
     s->ivar = ivar0;
-    global = ivar0;
+    globalVar = ivar0;
     return s;
   }
   ~BStruct() {
-    global = -$self->ivar;
+    globalVar = -$self->ivar;
     delete $self;
   }
 }
@@ -67,11 +67,11 @@ namespace Space {
   CStruct(int ivar0) {
     Space::CStruct *s = new Space::CStruct();
     s->ivar = ivar0;
-    global = ivar0;
+    globalVar = ivar0;
     return s;
   }
   ~CStruct() {
-    global = -$self->ivar;
+    globalVar = -$self->ivar;
     delete $self;
   }
 }
@@ -80,11 +80,11 @@ namespace Space {
   DStruct(int ivar0) {
     Space::DStruct *s = new Space::DStruct();
     s->ivar = ivar0;
-    global = ivar0;
+    globalVar = ivar0;
     return s;
   }
   ~DStruct() {
-    global = -$self->ivar;
+    globalVar = -$self->ivar;
     delete $self;
   }
 }
@@ -95,11 +95,11 @@ namespace Space {
   EStruct(int ivar0) {
     EStruct *s = new EStruct();
     s->ivar = ivar0;
-    global = ivar0;
+    globalVar = ivar0;
     return s;
   }
   ~EStruct() {
-    global = -$self->ivar;
+    globalVar = -$self->ivar;
     delete $self;
   }
 }
@@ -109,11 +109,11 @@ namespace Space {
   FFStruct(int ivar0) {
     Space::FFStruct<T> *s = new Space::FFStruct<T>();
     s->ivar = ivar0;
-    global = ivar0;
+    globalVar = ivar0;
     return s;
   }
   ~FFStruct() {
-    global = -$self->ivar;
+    globalVar = -$self->ivar;
     delete $self;
   }
 }
