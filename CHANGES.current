@@ -198,7 +198,7 @@ Version 2.0.5 (in progress)
               B(){} // NOT a constructor --illegal, but was accepted by SWIG
             } B;
 
-            For C code, the fix now results in use the use of 'struct A *' instead of just 'B *' in
+            For C code, the fix now results in the use of 'struct A *' instead of just 'B *' in
             the generated code when wrapping members in A, but ultimately this does not matter, as
             they are the same thing.
 
