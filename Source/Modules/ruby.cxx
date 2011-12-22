@@ -2369,9 +2369,7 @@ public:
     if (!Getattr(n, "feature:onlychildren")) {
       String *name = Getattr(n, "name");
       String *symname = Getattr(n, "sym:name");
-      String *tdname = Getattr(n, "tdname");
 
-      name = tdname ? tdname : name;
       String *namestr = SwigType_namestr(name);
       klass = RCLASS(classes, Char(namestr));
       if (!klass) {
