@@ -1934,6 +1934,11 @@ in an unnamed package.
 </pre>
 </div>
 
+<p>
+If the resulting use of the nspace feature and hence packages results in a proxy class in one package deriving or using a proxy class from another package,
+you will need to open up the visibility for the pointer constructor and <tt>getCPtr</tt> method from the default 'protected' to 'public' with the <tt>SWIG_JAVABODY_PROXY</tt> macro. See <a href="#Java_code_typemaps">Java code typemaps</a>.
+</p>
+
 <H3><a name="Java_templates"></a>24.3.14 C++ templates</H3>
 
 
@@ -5585,7 +5590,7 @@ Again this is the same that is in "<tt>java.swg</tt>", barring the method modifi
 </p>
 
 <p>
-When using <a href="Modules.html">multiple modules</a> it is common to invoke SWIG with a different <tt>-package</tt>
+When using <a href="Modules.html">multiple modules</a> or the <a href="#Java_namespaces">nspace feature</a> it is common to invoke SWIG with a different <tt>-package</tt>
 command line option for each module.
 However, by default the generated code may not compile if 
 generated classes in one package use generated classes in another package.
