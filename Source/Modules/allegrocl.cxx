@@ -343,7 +343,7 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
   String *val;
   String *ns_list = listify_namespace(ns);
   String *templated = n ? Getattr(n, "template") : 0;
-  String *cDeclName = n ? Getattr(n, "classDeclaration:name") : 0;
+  String *cDeclName = n ? Getattr(n, "name") : 0;
 
 #ifdef ALLEGROCL_CLASS_DEBUG
   Printf(stderr, "IN A-D-F-T. (n=%x, ow=%d, k=%s, name=%s, ns=%s\n", n, overwrite, k, name, ns);
@@ -2424,7 +2424,7 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
   Wrapper *wrap = NewWrapper();
   Swig_typemap_attach_parms("lin", pl, wrap);
   // Swig_typemap_attach_parms("ffitype", pl, wrap);
-  Swig_typemap_lookup("lout", n, "result", 0);
+  Swig_typemap_lookup("lout", n, Swig_cresult_name(), 0);
 
   SwigType *result_type = Swig_cparse_type(Getattr(n, "tmap:ctype"));
   // prime the pump, with support for OUTPUT, INOUT typemaps.
@@ -2589,7 +2589,7 @@ int ALLEGROCL::emit_defun(Node *n, File *fcl) {
   /////////////////////////////////////////////////////
   // Lisp foreign call return type and optimizations //
   /////////////////////////////////////////////////////
-  Printf(fcl, "  (:returning (%s %s)", compose_foreign_type(n, result_type), get_lisp_type(n, Getattr(n, "type"), "result"));
+  Printf(fcl, "  (:returning (%s %s)", compose_foreign_type(n, result_type), get_lisp_type(n, Getattr(n, "type"), Swig_cresult_name()));
 
   for (Iterator option = First(n); option.item; option = Next(option)) {
     if (Strncmp("feature:ffargs:", option.key, 15))
@@ -2748,7 +2748,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
 
   String *actioncode = emit_action(n);
 
-  String *tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+  String *tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode);
   if (!is_void_return && tm) {
     if (tm) { 
       Replaceall(tm, "$result", "lresult");
@@ -3084,11 +3084,6 @@ int ALLEGROCL::cClassHandler(Node *n) {
 #ifdef ALLEGROCL_TYPE_DEBUG
   Printf(stderr, "In cClassHandler\n");
 #endif
-  //  String *cDeclName = Getattr(n,"classDeclaration:name");
-  // String *name= Getattr(n, "sym:name"); 
-  //  String *kind = Getattr(n,"kind");
-  // Node *c;
-
   /* Add this structure to the known lisp types */
   // Printf(stderr, "Adding %s foreign type\n", name);
   String *ns = listify_namespace(current_namespace);

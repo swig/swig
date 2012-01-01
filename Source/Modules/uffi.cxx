@@ -324,7 +324,7 @@ int UFFI::functionWrapper(Node *n) {
 	 //"  :strings-convert t\n"
 	 //"  :call-direct %s\n"
 	 //"  :optimize-for-space t"
-	 ")\n", get_ffi_type(n, Getattr(n, "type"), "result")
+	 ")\n", get_ffi_type(n, Getattr(n, "type"), Swig_cresult_name())
 	 //,varargs ? "nil"  : "t"
       );
 

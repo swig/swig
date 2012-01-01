@@ -4,6 +4,19 @@
  * Typemaps for primitive types.
  * ----------------------------------------------------------------------------- */
 
+// C long/ulong width depends on the target arch, use stdlib aliases for them.
+#if (SWIG_D_VERSION == 1)
+%pragma(d) imdmoduleimports = "static import tango.stdc.config;"
+%pragma(d) globalproxyimports = "static import tango.stdc.config;"
+#define SWIG_LONG_DTYPE tango.stdc.config.c_long
+#define SWIG_ULONG_DTYPE tango.stdc.config.c_ulong
+#else
+%pragma(d) imdmoduleimports = "static import core.stdc.config;"
+%pragma(d) globalproxyimports = "static import core.stdc.config;"
+#define SWIG_LONG_DTYPE core.stdc.config.c_long
+#define SWIG_ULONG_DTYPE core.stdc.config.c_ulong
+#endif
+
 /*
  * The SWIG_D_PRIMITIVE macro is used to define the typemaps for the primitive
  * types, because are more or less the same for all of them. The few special
@@ -25,7 +38,7 @@
 %{ temp = ($*1_ltype)$input;
    $1 = &temp; %}
 %typemap(out) const TYPE & "$result = *$1;"
-%typemap(directorin) const TYPE & "$input = $1_name;"
+%typemap(directorin) const TYPE & "$input = $1;"
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const TYPE &
 %{ static $*1_ltype temp;
    temp = ($*1_ltype)$input;
@@ -49,8 +62,8 @@ SWIG_D_PRIMITIVE(short, short)
 SWIG_D_PRIMITIVE(unsigned short, ushort)
 SWIG_D_PRIMITIVE(int, int)
 SWIG_D_PRIMITIVE(unsigned int, uint)
-SWIG_D_PRIMITIVE(long, int)
-SWIG_D_PRIMITIVE(unsigned long, uint)
+SWIG_D_PRIMITIVE(long, SWIG_LONG_DTYPE)
+SWIG_D_PRIMITIVE(unsigned long, SWIG_ULONG_DTYPE)
 SWIG_D_PRIMITIVE(size_t, size_t)
 SWIG_D_PRIMITIVE(long long, long)
 SWIG_D_PRIMITIVE(unsigned long long, ulong)

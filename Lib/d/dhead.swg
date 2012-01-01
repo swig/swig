@@ -186,7 +186,7 @@ private class SwigExceptionHelper {
     );
   }
 
-  static void setException(char* message) {
+  static void setException(const char* message) {
     auto exception = new object.Exception(std.conv.to!string(message).idup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);

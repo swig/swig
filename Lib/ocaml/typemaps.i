@@ -165,7 +165,7 @@
     swig_result = caml_list_append(swig_result,C_TO_MZ((long)*$1));
 }
 %typemap(directorin) C_NAME {
-    args = caml_list_append(args,C_TO_MZ($1_name));
+    args = caml_list_append(args,C_TO_MZ($1));
 }
 %enddef
 

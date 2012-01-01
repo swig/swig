@@ -34,7 +34,7 @@ XS(SWIG_init) {
     /* Install constant */
     for (i = 0; swig_constants[i].type; i++) {
       SV *sv;
-      sv = get_sv((char*)swig_constants[i].name, TRUE | 0x2 | GV_ADDMULTI);
+      sv = get_sv(swig_constants[i].name, TRUE | 0x2 | GV_ADDMULTI);
       switch(swig_constants[i].type) {
       case SWIG_INT:
 	sv_setiv(sv, (IV) swig_constants[i].lvalue);
@@ -43,7 +43,7 @@ XS(SWIG_init) {
 	sv_setnv(sv, (double) swig_constants[i].dvalue);
 	break;
       case SWIG_STRING:
-	sv_setpv(sv, (char *) swig_constants[i].pvalue);
+	sv_setpv(sv, (const char *) swig_constants[i].pvalue);
 	break;
       case SWIG_POINTER:
 	SWIG_MakePtr(sv, swig_constants[i].pvalue, *(swig_constants[i].ptype),0);

@@ -1749,8 +1749,9 @@ String *Swig_symbol_string_qualify(String *s, Symtab *st) {
   String *id = NewStringEmpty();
   String *r = NewStringEmpty();
   char *c = Char(s);
+  int first_char = 1;
   while (*c) {
-    if (isalpha((int) *c) || (*c == '_') || (*c == ':')) {
+    if (isalpha((int) *c) || (*c == '_') || (*c == ':') || (isdigit((int) *c) && !first_char)) {
       Putc(*c, id);
       have_id = 1;
     } else {
@@ -1763,6 +1764,7 @@ String *Swig_symbol_string_qualify(String *s, Symtab *st) {
       }
       Putc(*c, r);
     }
+    first_char = (*c == ':');
     c++;
   }
   if (have_id) {

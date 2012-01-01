@@ -5,7 +5,7 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="Go"></a>21 SWIG and Go</H1>
+<H1><a name="Go"></a>22 SWIG and Go</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -43,7 +43,7 @@ the Go programming language
 see <a href="http://golang.org/">golang.org</a>.
 </p>
 
-<H2><a name="Go_overview"></a>21.1 Overview</H2>
+<H2><a name="Go_overview"></a>22.1 Overview</H2>
 
 
 <p>
@@ -67,7 +67,7 @@ checking and runtime library are not used with Go.  This should be
 borne in mind when reading the rest of the SWIG documentation.
 </p>
 
-<H2><a name="Go_running_swig"></a>21.2 Running SWIG with Go</H2>
+<H2><a name="Go_running_swig"></a>22.2 Running SWIG with Go</H2>
 
 
 <p>
@@ -76,7 +76,7 @@ default SWIG will generate code for the gc compilers.  To generate
 code for gccgo, you should also use the <tt>-gccgo</tt> option.
 </p>
 
-<H3><a name="Go_commandline"></a>21.2.1 Additional Commandline Options</H3>
+<H3><a name="Go_commandline"></a>22.2.1 Additional Commandline Options</H3>
 
 
 <p>
@@ -129,7 +129,7 @@ swig -go -help
 
 </table>
 
-<H3><a name="Go_outputs"></a>21.2.2 Go Output Files</H3>
+<H3><a name="Go_outputs"></a>22.2.2 Go Output Files</H3>
 
 
 <p> When generating Go code, SWIG will generate the following
@@ -174,7 +174,7 @@ A typical command sequence would look like this:
 % 6l main.6
 </pre></div>
 
-<H2><a name="Go_basic_tour"></a>21.3 A tour of basic C/C++ wrapping</H2>
+<H2><a name="Go_basic_tour"></a>22.3 A tour of basic C/C++ wrapping</H2>
 
 
 <p>
@@ -184,7 +184,7 @@ modifications have to occur.  This section briefly covers the
 essential aspects of this wrapping.
 </p>
 
-<H3><a name="Go_package"></a>21.3.1 Go Package Name</H3>
+<H3><a name="Go_package"></a>22.3.1 Go Package Name</H3>
 
 
 <p>
@@ -194,7 +194,7 @@ directive.  You may override this by using SWIG's <tt>-package</tt>
 command line option.
 </p>
 
-<H3><a name="Go_names"></a>21.3.2 Go Names</H3>
+<H3><a name="Go_names"></a>22.3.2 Go Names</H3>
 
 
 <p>
@@ -226,7 +226,7 @@ followed by that name, and the destructor will be
 named <tt>Delete</tt> followed by that name.
 </p>
 
-<H3><a name="Go_constants"></a>21.3.3 Go Constants</H3>
+<H3><a name="Go_constants"></a>22.3.3 Go Constants</H3>
 
 
 <p>
@@ -234,7 +234,7 @@ C/C++ constants created via <tt>#define</tt> or the <tt>%constant</tt>
 directive become Go constants, declared with a <tt>const</tt>
 declaration.
 
-<H3><a name="Go_enumerations"></a>21.3.4 Go Enumerations</H3>
+<H3><a name="Go_enumerations"></a>22.3.4 Go Enumerations</H3>
 
 
 <p>
@@ -244,7 +244,7 @@ usual).  The values of the enumeration will become variables in Go;
 code should avoid modifying those variables.
 </p>
 
-<H3><a name="Go_classes"></a>21.3.5 Go Classes</H3>
+<H3><a name="Go_classes"></a>22.3.5 Go Classes</H3>
 
 
 <p>
@@ -322,7 +322,7 @@ returns a go interface.  If the returned pointer can be null, you can check
 for this by calling the Swigcptr() method.
 </p>
 
-<H4><a name="Go_class_inheritance"></a>21.3.5.1 Go Class Inheritance</H4>
+<H4><a name="Go_class_inheritance"></a>22.3.5.1 Go Class Inheritance</H4>
 
 
 <p>
@@ -334,7 +334,7 @@ Doing the reverse will require an explicit type assertion, which will
 be checked dynamically.
 </p>
 
-<H3><a name="Go_templates"></a>21.3.6 Go Templates</H3>
+<H3><a name="Go_templates"></a>22.3.6 Go Templates</H3>
 
 
 <p>
@@ -342,7 +342,7 @@ In order to use C++ templates in Go, you must tell SWIG to create
 wrappers for a particular template instantation.  To do this, use
 the <tt>%template</tt> directive.
 
-<H3><a name="Go_director_classes"></a>21.3.7 Go Director Classes</H3>
+<H3><a name="Go_director_classes"></a>22.3.7 Go Director Classes</H3>
 
 
 <p>
@@ -385,7 +385,7 @@ method defined in Go.  The Go code may of course call other methods on
 itself, and those methods may be defined either in Go or in C++.
 </p>
 
-<H3><a name="Go_primitive_type_mappings"></a>21.3.8 Default Go primitive type mappings</H3>
+<H3><a name="Go_primitive_type_mappings"></a>22.3.8 Default Go primitive type mappings</H3>
 
 
 <p>
@@ -492,7 +492,7 @@ that typemap, or add new values, to control how C/C++ types are mapped
 into Go types.
 </p>
 
-<H3><a name="Go_output_arguments"></a>21.3.9 Output arguments</H3>
+<H3><a name="Go_output_arguments"></a>22.3.9 Output arguments</H3>
 
 
 <p>Because of limitations in the way output arguments are processed in swig,
@@ -503,7 +503,7 @@ argument.</p>
 
 <p>For example, suppose you were trying to wrap the modf() function in the
 C math library which splits x into integral and fractional parts (and
-returns the integer part in one of its parameters):<p>
+returns the integer part in one of its parameters):</p>
 <div class="code">
 <pre>
 double modf(double x, double *ip);
@@ -536,7 +536,7 @@ some <a href="#Embedded_go_code">additional functions written in go</a> that
 hide the ugly details.</p>
 
 <p>There are no <code>char&nbsp;*OUTPUT</code> typemaps.  However you can
-apply the <code>signed&nbsp;char&nbsp;*</code> typemaps instead:<p>
+apply the <code>signed&nbsp;char&nbsp;*</code> typemaps instead:</p>
 <div class="code">
 <pre>
 %include &lt;typemaps.i&gt;
@@ -545,7 +545,8 @@ void f(char *output);
 </pre>
 </div>
 
-<H3><a name="Go_adding_additional_code"></a>21.3.10 Adding additional go code</H3>
+<H3><a name="Go_adding_additional_code"></a>22.3.10 Adding additional go code</H3>
+
 
 <p>Often the APIs generated by swig are not very natural in go, especially if
 there are output arguments.  You can

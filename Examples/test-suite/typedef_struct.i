@@ -41,3 +41,14 @@ B_t make_b() {
     return make_a();
 }
 %} 
+
+
+%inline %{
+
+typedef struct _Foo {
+  enum { NONAME1, NONAME2 } enumvar;
+  int foovar;
+  void (*fptr)(int);
+} Foo;
+
+%}

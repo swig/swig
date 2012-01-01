@@ -55,3 +55,20 @@ void foo2(Foo<short> f, const Foo<short>& ff) {}
   };
 }
 
+
+// Test obscure bug where named typemaps where not being applied when symbol name contained a number
+%typemap(out) double "_typemap_for_double_no_compile_"
+%typemap(out) double ABC::meth "$1 = 0.0;"
+%typemap(out) double ABC::m1   "$1 = 0.0;"
+%typemap(out) double ABC::_x2  "$1 = 0.0;"
+%typemap(out) double ABC::y_   "$1 = 0.0;"
+%typemap(out) double ABC::_3   "$1 = 0.0;"
+%inline %{
+struct ABC {
+  double meth() {}
+  double m1() {}
+  double _x2() {}
+  double y_() {}
+  double _3() {}
+};
+%}

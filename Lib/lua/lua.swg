@@ -5,6 +5,30 @@
  * This file is parsed by SWIG before reading any other interface file.
  * ----------------------------------------------------------------------------- */
 
+%insert("runtime") %{
+/* Lua flavors */
+#define SWIG_LUA_LUA 1
+#define SWIG_LUA_ELUA 2
+#define SWIG_LUA_ELUAC 3
+
+#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
+#  define SWIG_LUA_CONSTTAB_INT(B, C) SWIG_LUA_INT, (char *)B, (long)C, 0, 0, 0
+#  define SWIG_LUA_CONSTTAB_FLOAT(B, C) SWIG_LUA_FLOAT, (char *)B, 0, (double)C, 0, 0
+#  define SWIG_LUA_CONSTTAB_STRING(B, C) SWIG_LUA_STRING, (char *)B, 0, 0, (void *)C, 0
+#  define SWIG_LUA_CONSTTAB_CHAR(B, C) SWIG_LUA_CHAR, (char *)B, (long)C, 0, 0, 0
+# else
+#  define SWIG_LUA_CONSTTAB_INT(B, C) LSTRKEY(B), LNUMVAL(C)
+#  define SWIG_LUA_CONSTTAB_FLOAT(B, C) LSTRKEY(B), LNUMVAL(C)
+#  define SWIG_LUA_CONSTTAB_STRING(B, C) LSTRKEY(B), LSTRVAL(C)
+#  define SWIG_LUA_CONSTTAB_CHAR(B, C) LSTRKEY(B), LNUMVAL(C)
+#endif
+
+#if (SWIG_LUA_TARGET == SWIG_LUA_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_ELUAC)
+#  define LRO_STRVAL(v) {{.p = (char *) v}, LUA_TSTRING}
+#  define LSTRVAL LRO_STRVAL
+#endif
+%}
+
 /* -----------------------------------------------------------------------------
  *                          includes
  * ----------------------------------------------------------------------------- */
@@ -18,27 +42,27 @@
  * ----------------------------------------------------------------------------- */
 // this basically adds to a table of constants
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
-       { SWIG_LUA_INT,     (char *)"$symname", (long) $value, 0, 0, 0}
+       {SWIG_LUA_CONSTTAB_INT("$symname", $value)}
 
 %typemap(consttab) float, double
-       { SWIG_LUA_FLOAT,   (char *)"$symname", 0, (double) $value, 0, 0}
+       {SWIG_LUA_CONSTTAB_FLOAT("$symname", $value)}
 
 %typemap(consttab) long long, unsigned long long, signed long long
-       { SWIG_LUA_FLOAT,   (char *)"$symname", 0, (double) $value, 0, 0}
+       {SWIG_LUA_CONSTTAB_FLOAT("$symname", $value)}
 
 %typemap(consttab) const long long&, const unsigned long long&, const signed long long&
-       { SWIG_LUA_FLOAT,   (char *)"$symname", 0, (double) *$value, 0, 0}
+       {SWIG_LUA_CONSTTAB_FLOAT("$symname", *$value)}
 
 %typemap(consttab) char *, const char *, char [], const char []
-       { SWIG_LUA_STRING,  (char *)"$symname", 0, 0, (void *)$value, 0}
+       {SWIG_LUA_CONSTTAB_STRING("$symname", $value)}
 
 // note: char is treated as a seperate special type
 // signed char & unsigned char are numbers
 %typemap(consttab) char
-       { SWIG_LUA_CHAR,    (char *)"$symname", (long)$value, 0, 0, 0}
+       {SWIG_LUA_CONSTTAB_CHAR("$symname", $value)}
 
 %typemap(consttab) long long, unsigned long long
-       { SWIG_LUA_STRING,  (char *) "$symname", 0, 0, (void *)"$value", 0}
+       {SWIG_LUA_CONSTTAB_STRING("$symname", "$value")}
 
 %typemap(consttab) SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &, SWIGTYPE []
        { SWIG_LUA_POINTER, (char *)"$symname", 0, 0, (void *)$value, &$1_descriptor}

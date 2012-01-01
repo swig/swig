@@ -12,7 +12,7 @@
 #      certain packages have been installed.   Set the prefixes
 #      accordingly.
 #
-# 2.   To use this makefile, set required varibles, eg SRCS, INTERFACE, 
+# 2.   To use this makefile, set required variables, eg SRCS, INTERFACE,
 #      INTERFACEDIR, INCLUDES, LIBS, TARGET, and do a
 #           $(MAKE) -f Makefile.template.in SRCS='$(SRCS)' \
 #           INCLUDES='$(INCLUDES) LIBS='$(LIBS)' INTERFACE='$(INTERFACE)' \
@@ -333,6 +333,7 @@ python_clean:
 # Make sure these locate your Octave installation
 OCTAVE_INCLUDE= $(DEFS) @OCTAVEEXT@
 OCTAVE_LIB    =
+OCTAVE        = @OCTAVE@ -qf
 
 # Extra Octave specific dynamic linking options
 OCTAVE_DLNK   = @OCTAVEDYNAMICLINKING@
@@ -357,6 +358,17 @@ octave_cpp: $(SRCS)
 	$(SWIG) -c++ -octave $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
 	$(CXXSHARED) -g $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
+
+# -----------------------------------------------------------------
+# Running an Octave example
+# -----------------------------------------------------------------
+
+OCTSCRIPT = runme.m
+
+octave_run: $(OCTSCRIPT)
+	for file in $(OCTSCRIPT); do \
+	   env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVEPATH=$(srcdir):$$OCTAVEPATH $(OCTAVE) $$file >/dev/null || break; \
+	done
 
 # -----------------------------------------------------------------
 # Cleaning the octave examples
@@ -1229,11 +1241,6 @@ ifeq (2,$(D_VERSION))
 else
   SWIGD = $(SWIG) -d
   DCOMPILER = @D1COMPILER@
-endif
-
-ifeq (dmd,$(DCOMPILER))
-  # DMD is 32bit only by now
-  DCFLAGS = -m32
 endif
 
 # ----------------------------------------------------------------

@@ -100,13 +100,12 @@ SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val) 
 {
   if (PyInt_Check(obj)) {
-    long v = PyInt_AsLong(obj);
-    if (v >= 0) {
+    unsigned long v = PyInt_AsUnsignedLongMask(obj);
+    if (!PyErr_Occurred()) {
       if (val) *val = v;
       return SWIG_OK;
-    } else {
-      return SWIG_OverflowError;
     }
+    PyErr_Clear();
   } else if (PyLong_Check(obj)) {
     unsigned long v = PyLong_AsUnsignedLong(obj);
     if (!PyErr_Occurred()) {

@@ -5,12 +5,13 @@
 <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body bgcolor="#FFFFFF">
-<H1><a name="CSharp"></a>18 SWIG and C#</H1>
+<H1><a name="CSharp"></a>19 SWIG and C#</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
 <li><a href="#CSharp_introduction">Introduction</a>
 <li><a href="#CSharp_differences_java">Differences to the Java module</a>
+<li><a href="#CSharp_void_pointers">Void pointers</a>
 <li><a href="#CSharp_arrays">C# Arrays</a>
 <ul>
 <li><a href="#CSharp_arrays_swig_library">The SWIG C arrays library</a>
@@ -30,6 +31,7 @@
 <li><a href="#CSharp_directors_implementation">Directors implementation</a>
 <li><a href="#CSharp_director_caveats">Director caveats</a>
 </ul>
+<li><a href="#CSharp_multiple_modules">Multiples modules</a>
 <li><a href="#CSharp_typemap_examples">C# Typemap examples</a>
 <ul>
 <li><a href="#CSharp_memory_management_member_variables">Memory management when returning references to member variables</a>
@@ -46,7 +48,7 @@
 
 
 
-<H2><a name="CSharp_introduction"></a>18.1 Introduction</H2>
+<H2><a name="CSharp_introduction"></a>19.1 Introduction</H2>
 
 
 <p>
@@ -66,7 +68,7 @@ The <a href="http://msdn.microsoft.com">Microsoft Developer Network (MSDN)</a> h
 Monodoc, available from the Mono project, has a very useful section titled <a href="http://www.mono-project.com/Interop_with_Native_Libraries">Interop with native libraries</a>.
 </p>
 
-<H2><a name="CSharp_differences_java"></a>18.2 Differences to the Java module</H2>
+<H2><a name="CSharp_differences_java"></a>19.2 Differences to the Java module</H2>
 
 
 <p>
@@ -167,6 +169,14 @@ javadestruct                -&gt; csdestruct
 javadestruct_derived        -&gt; csdestruct_derived
 </pre></div>
 
+</li>
+
+<li>
+<p>Typemap macros:</p>
+<div class="code"><pre>
+SWIG_JAVABODY_PROXY         -&gt; SWIG_CSBODY_PROXY
+SWIG_JAVABODY_TYPEWRAPPER   -&gt; SWIG_CSBODY_TYPEWRAPPER
+</pre></div>
 </li>
 
 <li>
@@ -455,7 +465,25 @@ Windows users can also get the examples working using a
 <a href="http://www.cygwin.com">Cygwin</a> or <a href="http://www.mingw.org">MinGW</a> environment for automatic configuration of the example makefiles.
 Any one of the three C# compilers (Portable.NET, Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
 
-<H2><a name="CSharp_arrays"></a>18.3 C# Arrays</H2>
+<H2><a name="CSharp_void_pointers"></a>19.3 Void pointers</H2>
+
+
+<p>
+By default SWIG treats <tt>void *</tt> as any other pointer and hence marshalls it as a type wrapper class called <tt>SWIGTYPE_p_void</tt>.
+If you want to marshall with the .NET <tt>System.IntPtr</tt> type instead, there is a simple set of named typemaps called
+<tt>void *VOID_INT_PTR</tt> that can be used.
+They can be applied like any other named typemaps:
+</p>
+
+
+<div class="code">
+<pre>
+%apply void *VOID_INT_PTR { void * }
+void * f(void *v);
+</pre>
+</div>
+
+<H2><a name="CSharp_arrays"></a>19.4 C# Arrays</H2>
 
 
 <p>
@@ -467,7 +495,7 @@ with one of the following three approaches; namely the SWIG C arrays library, P/
 pinned arrays.
 </p>
 
-<H3><a name="CSharp_arrays_swig_library"></a>18.3.1 The SWIG C arrays library</H3>
+<H3><a name="CSharp_arrays_swig_library"></a>19.4.1 The SWIG C arrays library</H3>
 
 
 <p>
@@ -504,7 +532,7 @@ example.print_array(c.cast());          // Pass to C
 </div>
 
 
-<H3><a name="CSharp_arrays_pinvoke_default_array_marshalling"></a>18.3.2 Managed arrays using P/Invoke default array marshalling</H3>
+<H3><a name="CSharp_arrays_pinvoke_default_array_marshalling"></a>19.4.2 Managed arrays using P/Invoke default array marshalling</H3>
 
 
 <p>
@@ -618,7 +646,7 @@ This results in the module class method
 </div>
 
 <p>
-and intermediate class method
+and intermediary class method
 </p>
 
 <div class="code">
@@ -631,7 +659,7 @@ and intermediate class method
 </div>
 
 
-<H3><a name="CSharp_arrays_pinning"></a>18.3.3 Managed arrays using pinning</H3>
+<H3><a name="CSharp_arrays_pinning"></a>19.4.3 Managed arrays using pinning</H3>
 
 
 <p>
@@ -713,7 +741,7 @@ marshalling is the "unsafe" quantifier, which is required because we are handlin
 </p>
 
 <p>
-Also the intermediate class method looks a little different from the default marshalling
+Also the intermediary class method looks a little different from the default marshalling
 example - the method is expecting an IntPtr as the parameter type.
 </p>
 
@@ -726,7 +754,7 @@ public static extern void myArrayCopy(IntPtr jarg1, IntPtr jarg2, int jarg3);
 
 
 
-<H2><a name="CSharp_exceptions"></a>18.4 C# Exceptions</H2>
+<H2><a name="CSharp_exceptions"></a>19.5 C# Exceptions</H2>
 
 
 <p>
@@ -823,7 +851,7 @@ set so should only be used when a C# exception is not created.
 </p>
 
 
-<H3><a name="CSharp_exception_example_check_typemap"></a>18.4.1 C# exception example using "check" typemap</H3>
+<H3><a name="CSharp_exception_example_check_typemap"></a>19.5.1 C# exception example using "check" typemap</H3>
 
 
 <p>
@@ -1005,7 +1033,7 @@ method and C# code does not handle pending exceptions via the canthrow attribute
 Actually it will issue this warning for any function beginning with <tt>SWIG_CSharpSetPendingException</tt>.
 </P>
 
-<H3><a name="CSharp_exception_example_percent_exception"></a>18.4.2 C# exception example using %exception</H3>
+<H3><a name="CSharp_exception_example_percent_exception"></a>19.5.2 C# exception example using %exception</H3>
 
 
 <p>
@@ -1070,7 +1098,7 @@ The managed code generated does check for the pending exception as mentioned ear
 </pre>
 </div>
 
-<H3><a name="CSharp_exception_example_exception_specifications"></a>18.4.3 C# exception example using exception specifications</H3>
+<H3><a name="CSharp_exception_example_exception_specifications"></a>19.5.3 C# exception example using exception specifications</H3>
 
 
 <p>
@@ -1127,7 +1155,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_evensonly(int jarg1) {
 Multiple catch handlers are generated should there be more than one exception specifications declared.
 </p>
 
-<H3><a name="CSharp_custom_application_exception"></a>18.4.4 Custom C# ApplicationException example</H3>
+<H3><a name="CSharp_custom_application_exception"></a>19.5.4 Custom C# ApplicationException example</H3>
 
 
 <p>
@@ -1261,7 +1289,7 @@ try {
 </pre>
 </div>
 
-<H2><a name="CSharp_directors"></a>18.5 C# Directors</H2>
+<H2><a name="CSharp_directors"></a>19.6 C# Directors</H2>
 
 
 <p>
@@ -1274,7 +1302,7 @@ The following sections provide information on the C# director implementation and
 However, the <a href="Java.html#Java_directors">Java directors</a> section should also be read in order to gain more insight into directors.
 </p>
 
-<H3><a name="CSharp_directors_example"></a>18.5.1 Directors example</H3>
+<H3><a name="CSharp_directors_example"></a>19.6.1 Directors example</H3>
 
 
 <p>
@@ -1395,7 +1423,7 @@ CSharpDerived - UIntMethod(123)
 </pre>
 </div>
 
-<H3><a name="CSharp_directors_implementation"></a>18.5.2 Directors implementation</H3>
+<H3><a name="CSharp_directors_implementation"></a>19.6.2 Directors implementation</H3>
 
 
 <p>
@@ -1581,7 +1609,7 @@ void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
 </pre>
 </div>
 
-<H3><a name="CSharp_director_caveats"></a>18.5.3 Director caveats</H3>
+<H3><a name="CSharp_director_caveats"></a>19.6.3 Director caveats</H3>
 
 
 <p>
@@ -1629,7 +1657,42 @@ However, a call from C# to <tt>CSharpDefaults.DefaultMethod()</tt> will of cours
 should pass the call on to <tt>CSharpDefaults.DefaultMethod(int)</tt>using the C++ default value, as shown above.
 </p>
 
-<H2><a name="CSharp_typemap_examples"></a>18.6 C# Typemap examples</H2>
+<H2><a name="CSharp_multiple_modules"></a>19.7 Multiples modules</H2>
+
+
+<p>
+When using <a href="Modules.html">multiple modules</a> it is is possible to compile each SWIG generated wrapper
+into a different assembly.
+However, by default the generated code may not compile if 
+generated classes in one assembly use generated classes in another assembly.
+The visibility of the
+<tt>getCPtr()</tt> and pointer constructor generated from the <tt>csbody</tt> typemaps needs changing.
+The default visibility is <tt>internal</tt> but it needs to be <tt>public</tt> for access from a different assembly.
+Just changing 'internal' to 'public' in the typemap achieves this.
+Two macros are available in <tt>csharp.swg</tt> to make this easier and using them is the preferred approach
+over simply copying the typemaps and modifying as this is forward compatible with any changes in
+the <tt>csbody</tt> typemap in future versions of SWIG.
+The macros are for the proxy and typewrapper classes and can respectively be used to
+to make the method and constructor public:
+</p>
+
+<div class="code">
+<pre>
+  SWIG_CSBODY_PROXY(public, public, SWIGTYPE)
+  SWIG_CSBODY_TYPEWRAPPER(public, public, public, SWIGTYPE)
+</pre>
+</div>
+
+<p>
+Alternatively, instead of exposing these as public, consider 
+using the <tt>[assembly:InternalsVisibleTo("Name")]</tt> attribute available in the .NET framework when you
+know which assemblies these can be exposed to.
+Another approach would be to make these public, but also to hide them from intellisense by using
+the <tt>[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]</tt> attribute
+if you don't want users to easily stumble upon these so called 'internal workings' of the wrappers.
+</p>
+
+<H2><a name="CSharp_typemap_examples"></a>19.8 C# Typemap examples</H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
@@ -1637,7 +1700,7 @@ might look at the files "<tt>csharp.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
 
-<H3><a name="CSharp_memory_management_member_variables"></a>18.6.1 Memory management when returning references to member variables</H3>
+<H3><a name="CSharp_memory_management_member_variables"></a>19.8.1 Memory management when returning references to member variables</H3>
 
 
 <p>
@@ -1761,7 +1824,7 @@ public class Bike : IDisposable {
 Note the <tt>addReference</tt> call.
 </p>
 
-<H3><a name="CSharp_memory_management_objects"></a>18.6.2 Memory management for objects passed to the C++ layer</H3>
+<H3><a name="CSharp_memory_management_objects"></a>19.8.2 Memory management for objects passed to the C++ layer</H3>
 
 
 <p>
@@ -1880,7 +1943,7 @@ The 'cscode' typemap simply adds in the specified code into the C# proxy class.
 </div>
 
 
-<H3><a name="CSharp_date_marshalling"></a>18.6.3 Date marshalling using the csin typemap and associated attributes</H3>
+<H3><a name="CSharp_date_marshalling"></a>19.8.3 Date marshalling using the csin typemap and associated attributes</H3>
 
 
 <p>
@@ -2166,7 +2229,7 @@ public class example {
 </pre>
 </div>
 
-<H3><a name="CSharp_date_properties"></a>18.6.4 A date example demonstrating marshalling of C# properties</H3>
+<H3><a name="CSharp_date_properties"></a>19.8.4 A date example demonstrating marshalling of C# properties</H3>
 
 
 <p>
@@ -2267,7 +2330,7 @@ Some points to note:
 </ul>
 
 
-<H3><a name="CSharp_partial_classes"></a>18.6.5 Turning wrapped classes into partial classes</H3>
+<H3><a name="CSharp_partial_classes"></a>19.8.5 Turning wrapped classes into partial classes</H3>
 
 
 <p>
@@ -2367,7 +2430,7 @@ demonstrating that the class contains methods calling both unmanaged code - <tt>
 The following example is an alternative approach to adding managed code to the generated proxy class.
 </p>
 
-<H3><a name="CSharp_extending_proxy_class"></a>18.6.6 Extending proxy classes with additional C# code</H3>
+<H3><a name="CSharp_extending_proxy_class"></a>19.8.6 Extending proxy classes with additional C# code</H3>
 
 
 <p>
@@ -2406,7 +2469,7 @@ public class ExtendMe : IDisposable {
 </pre>
 </div>
 
-<H3><a name="CSharp_enum_underlying_type"></a>18.6.7 Underlying type for enums</H3>
+<H3><a name="CSharp_enum_underlying_type"></a>19.8.7 Underlying type for enums</H3>
 
 
 <P>

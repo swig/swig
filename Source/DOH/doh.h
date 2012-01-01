@@ -294,6 +294,7 @@ extern char *DohStrchr(const DOHString_or_char *s1, int ch);
 #define   DOH_REPLACE_FIRST       0x08
 #define   DOH_REPLACE_ID_BEGIN    0x10
 #define   DOH_REPLACE_ID_END      0x20
+#define   DOH_REPLACE_NUMBER_END  0x40
 
 #define Replaceall(s,t,r)  DohReplace(s,t,r,DOH_REPLACE_ANY)
 #define Replaceid(s,t,r)   DohReplace(s,t,r,DOH_REPLACE_ID)

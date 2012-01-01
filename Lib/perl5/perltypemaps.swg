@@ -52,7 +52,7 @@
 %end_block %enddef
 
 /* raise exception */
-%define %raise(obj, type, desc) sv_setsv(ERRSV, obj); SWIG_fail %enddef
+%define %raise(obj, type, desc) sv_setsv(get_sv("@", GV_ADD), obj); SWIG_fail %enddef
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>

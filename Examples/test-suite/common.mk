@@ -124,6 +124,7 @@ CPP_TEST_CASES += \
 	catches \
 	cast_operator \
 	casts \
+	char_binary \
 	char_strings \
 	class_ignore \
 	class_scope_weird \
@@ -158,6 +159,7 @@ CPP_TEST_CASES += \
 	director_abstract \
 	director_alternating \
 	director_basic \
+	director_binary_string \
 	director_classes \
 	director_classic \
 	director_constructor \
@@ -194,10 +196,12 @@ CPP_TEST_CASES += \
 	evil_diamond_prop \
 	exception_order \
 	extend \
+	extend_constructor_destructor \
 	extend_default \
 	extend_placement \
 	extend_template \
 	extend_template_ns \
+	extend_typedef_class \
 	extern_c \
 	extern_namespace \
 	extern_throws \
@@ -227,6 +231,7 @@ CPP_TEST_CASES += \
 	li_attribute \
 	li_boost_shared_ptr \
 	li_boost_shared_ptr_bits \
+	li_boost_shared_ptr_template \
 	li_carrays \
 	li_cdata \
 	li_cpointer \
@@ -283,6 +288,7 @@ CPP_TEST_CASES += \
 	protected_rename \
 	pure_virtual \
 	redefined \
+	redefined_not \
 	refcount \
 	reference_global_vars \
 	register_par \
@@ -415,6 +421,7 @@ CPP_TEST_CASES += \
 	typemap_arrays \
 	typemap_delete \
 	typemap_global_scope \
+	typemap_manyargs \
 	typemap_namespace \
 	typemap_ns_using \
 	typemap_numinputs \

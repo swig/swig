@@ -100,7 +100,6 @@ func main() {
 		panic("specialization(const char *, const char *)")
 	}
 
-
 	// simple specialization
 	Xyz()
 	Xyz_int()
@@ -143,7 +142,6 @@ func main() {
 	if Overload() != 50 {
 		panic("overload(const char *)")
 	}
-
 
 	// everything put in a namespace
 	if Nsoverload("hi") != 1000 {

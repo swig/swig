@@ -2445,7 +2445,7 @@ public:
     /* This part below still needs cleanup */
 
     /* Return the function value */
-    tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+    tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode);
 
     if (tm) {
       if (builtin_self) {
@@ -2455,7 +2455,7 @@ public:
       } else {
 	Replaceall(tm, "$self", "obj0");
       }
-      Replaceall(tm, "$source", "result");
+      Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$target", "resultobj");
       Replaceall(tm, "$result", "resultobj");
       if (builtin_ctor) {
@@ -2491,7 +2491,7 @@ public:
       }
       if (unwrap) {
 	Wrapper_add_local(f, "director", "Swig::Director *director = 0");
-	Append(f->code, "director = SWIG_DIRECTOR_CAST(result);\n");
+	Printf(f->code, "director = SWIG_DIRECTOR_CAST(%s);\n", Swig_cresult_name());
 	Append(f->code, "if (director) {\n");
 	Append(f->code, "  resultobj = director->swig_get_self();\n");
 	Append(f->code, "  Py_INCREF(resultobj);\n");
@@ -2521,23 +2521,23 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-	Replaceall(tm, "$source", "result");
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
 	Delete(tm);
       }
     }
 
     /* See if there is any return cleanup code */
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
 
     if (director_method) {
-      if ((tm = Swig_typemap_lookup("directorfree", n, "result", 0))) {
-	Replaceall(tm, "$input", "result");
+      if ((tm = Swig_typemap_lookup("directorfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$input", Swig_cresult_name());
 	Replaceall(tm, "$result", "resultobj");
 	Printf(f->code, "%s\n", tm);
 	Delete(tm);
@@ -2545,7 +2545,7 @@ public:
     }
 
     if (builtin_ctor)
-      Append(f->code, "    return resultobj == Py_None ? 1 : 0;\n");
+      Append(f->code, "    return resultobj == Py_None ? -1 : 0;\n");
     else
       Append(f->code, "    return resultobj;\n");
 
@@ -4533,6 +4533,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   String *name;
   String *classname;
   String *c_classname = Getattr(parent, "name");
+  String *symname = Getattr(n, "sym:name");
   String *declaration;
   ParmList *l;
   Wrapper *w;
@@ -4655,6 +4656,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     String *arglist = NewString("");
     String *parse_args = NewString("");
 
+    Swig_director_parms_fixup(l);
+
     /* remove the wrapper 'w' since it was producing spurious temps */
     Swig_typemap_attach_parms("in", l, 0);
     Swig_typemap_attach_parms("directorin", l, 0);
@@ -4697,6 +4700,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	if (!parse) {
 	  sprintf(source, "obj%d", idx++);
 	  String *input = NewString(source);
+	  Setattr(p, "emit:directorinput", input);
 	  Replaceall(tm, "$input", input);
 	  Delete(input);
 	  Replaceall(tm, "$owner", "0");
@@ -4709,6 +4713,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	} else {
 	  use_parse = 1;
 	  Append(parse_args, parse);
+	  Setattr(p, "emit:directorinput", pname);
 	  Replaceall(tm, "$input", pname);
 	  Replaceall(tm, "$owner", "0");
 	  if (Len(tm) == 0)
@@ -4817,33 +4822,32 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     Append(w->code, "PyObject* method = swig_get_method(swig_method_index, swig_method_name);\n");
     if (Len(parse_args) > 0) {
       if (use_parse || !modernargs) {
-	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallFunction(method, (char *)\"(%s)\" %s);\n", parse_args, arglist);
+	Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_CallFunction(method, (char *)\"(%s)\" %s);\n", Swig_cresult_name(), parse_args, arglist);
       } else {
-	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallFunctionObjArgs(method %s, NULL);\n", arglist);
+	Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_CallFunctionObjArgs(method %s, NULL);\n", Swig_cresult_name(), arglist);
       }
     } else {
       if (modernargs) {
 	Append(w->code, "swig::SwigVar_PyObject args = PyTuple_New(0);\n");
-	Append(w->code, "swig::SwigVar_PyObject result = PyObject_Call(method, (PyObject*) args, NULL);\n");
+	Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_Call(method, (PyObject*) args, NULL);\n", Swig_cresult_name());
       } else {
-	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallFunction(method, NULL, NULL);\n");
+	Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_CallFunction(method, NULL, NULL);\n", Swig_cresult_name());
       }
     }
     Append(w->code, "#else\n");
     if (Len(parse_args) > 0) {
       if (use_parse || !modernargs) {
-	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n",
-	       pyname, parse_args, arglist);
+	Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_CallMethod(swig_get_self(), (char *)\"%s\", (char *)\"(%s)\" %s);\n", Swig_cresult_name(), pyname, parse_args, arglist);
       } else {
-	Printf(w->code, "swig::SwigVar_PyObject swig_method_name = SWIG_Python_str_FromChar((char *)\"%s\");\n", pyname);
-	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name %s, NULL);\n", arglist);
+	Printf(w->code, "swig::SwigVar_PyObject swig_method_name = SWIG_Python_str_FromChar((char *)\"%s\");\n", Swig_cresult_name(), pyname);
+	Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name %s, NULL);\n", Swig_cresult_name(), arglist);
       }
     } else {
       if (!modernargs) {
-	Printf(w->code, "swig::SwigVar_PyObject result = PyObject_CallMethod(swig_get_self(), (char *) \"%s\", NULL);\n", pyname);
+	Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_CallMethod(swig_get_self(), (char *) \"%s\", NULL);\n", Swig_cresult_name(), pyname);
       } else {
 	Printf(w->code, "swig::SwigVar_PyObject swig_method_name = SWIG_Python_str_FromChar((char *)\"%s\");\n", pyname);
-	Append(w->code, "swig::SwigVar_PyObject result = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name, NULL);\n");
+	Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name, NULL);\n", Swig_cresult_name());
       }
     }
     Append(w->code, "#endif\n");
@@ -4852,13 +4856,13 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       Printf(w->code, "swig_set_inner(\"%s\", false);\n", name);
 
     /* exception handling */
-    tm = Swig_typemap_lookup("director:except", n, "result", 0);
+    tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
     if (!tm) {
       tm = Getattr(n, "feature:director:except");
       if (tm)
 	tm = Copy(tm);
     }
-    Append(w->code, "if (!result) {\n");
+    Printf(w->code, "if (!%s) {\n", Swig_cresult_name());
     Append(w->code, "  PyObject *error = PyErr_Occurred();\n");
     if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
       Replaceall(tm, "$error", "error");
@@ -4885,7 +4889,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
     if (outputs > 1) {
       Wrapper_add_local(w, "output", "PyObject *output");
-      Append(w->code, "if (!PyTuple_Check(result)) {\n");
+      Printf(w->code, "if (!PyTuple_Check(%s)) {\n", Swig_cresult_name());
       Printf(w->code, "  Swig::DirectorTypeMismatchException::raise(\"Python method %s.%sfailed to return a tuple.\");\n", classname, pyname);
       Append(w->code, "}\n");
     }
@@ -4902,14 +4906,14 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
        * occurs in Language::cDeclaration().
        */
       Setattr(n, "type", return_type);
-      tm = Swig_typemap_lookup("directorout", n, "result", w);
+      tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
       Setattr(n, "type", type);
       if (tm != 0) {
 	if (outputs > 1) {
-	  Printf(w->code, "output = PyTuple_GetItem(result, %d);\n", idx++);
+	  Printf(w->code, "output = PyTuple_GetItem(%s, %d);\n", Swig_cresult_name(), idx++);
 	  Replaceall(tm, "$input", "output");
 	} else {
-	  Replaceall(tm, "$input", "result");
+	  Replaceall(tm, "$input", Swig_cresult_name());
 	}
 	char temp[24];
 	sprintf(temp, "%d", idx);
@@ -4939,12 +4943,12 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
 	if (outputs > 1) {
-	  Printf(w->code, "output = PyTuple_GetItem(result, %d);\n", idx++);
-	  Replaceall(tm, "$input", "output");
+	  Printf(w->code, "output = PyTuple_GetItem(%s, %d);\n", Swig_cresult_name(), idx++);
+	  Replaceall(tm, "$result", "output");
 	} else {
-	  Replaceall(tm, "$input", "result");
+	  Replaceall(tm, "$result", Swig_cresult_name());
 	}
-	Replaceall(tm, "$result", Getattr(p, "name"));
+	Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
 	Printv(w->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:directorargout:next");
       } else {
@@ -4996,6 +5000,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   /* emit the director method */
   if (status == SWIG_OK) {
     if (!Getattr(n, "defaultargs")) {
+      Replaceall(w->code, "$symname", symname);
       Wrapper_print(w, f_directors);
       Printv(f_directors_h, declaration, NIL);
       Printv(f_directors_h, inline_extra_method, NIL);

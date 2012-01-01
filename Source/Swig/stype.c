@@ -823,7 +823,8 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
 	Insert(result, 0, "(");
 	Append(result, ")");
       }
-      isreference = 1;
+      if (!isfunction)
+	isreference = 1;
     } else if (SwigType_isarray(element)) {
       DOH *size;
       if (firstarray && !isreference) {
@@ -869,10 +870,8 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
     cast = NewStringf("(%s)", result);
   }
   if (name) {
-    if (!isfunction) {
-      if (isreference) {
-	Append(cast, "*");
-      }
+    if (isreference) {
+      Append(cast, "*");
     }
     Append(cast, name);
   }

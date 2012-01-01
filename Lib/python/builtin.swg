@@ -13,6 +13,7 @@ wrapper##_closure(PyObject *a) {		\
 	PyObject *o = wrapper(a, NULL);		\
 	Py_XDECREF(o);				\
     }						\
+    PyObject_Del(a);				\
 }
 
 #define SWIGPY_INQUIRY_CLOSURE(wrapper)				\

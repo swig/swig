@@ -73,7 +73,7 @@ void NAME##_setitem(TYPE *ary, int index, TYPE value);
 typedef TYPE NAME;
 %}
 
-typedef struct NAME {} NAME;
+typedef struct {} NAME;
 
 %extend NAME {
 #ifdef __cplusplus

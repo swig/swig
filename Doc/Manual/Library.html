@@ -682,8 +682,12 @@ pointer.
 
 <div class="indent"><p>
 Copies all of the string data in <tt>s</tt> into the memory pointed to by
-<tt>ptr</tt>.  The string may contain embedded NULL bytes.  The length of
-the string is implicitly determined in the underlying wrapper code.
+<tt>ptr</tt>.  The string may contain embedded NULL bytes.  
+This is actually a wrapper to the standard C library <tt>memmove</tt> function, which is
+declared as 
+<b><tt>void memmove(void *ptr, const void *src, size_t n)</tt></b>.
+The <tt>src</tt> and length <tt>n</tt> parameters are
+extracted from the language specific string <tt>s</tt> in the underlying wrapper code.
 </p></div>
 
 <p>

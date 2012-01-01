@@ -26,9 +26,13 @@ public:
 
 // Test that the correct types are used for typedef struct declarations
 typedef struct {
+  int something;
+  void m() {}
 } UnnamedStruct;
 
 typedef struct NamedStruct {
+  int something;
+  void m() {}
 } TypedefNamedStruct;
 
 typedef TypedefNamedStruct DoubleTypedef;

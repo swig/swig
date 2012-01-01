@@ -613,14 +613,14 @@ public:
 	Swig_director_emit_dynamic_cast(n, f);
 	String *actioncode = emit_action(n);
 	SwigType *t = Getattr(n, "type");
-	tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+	tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode);
 	if (!tm) {
 	  Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to get an attribute of type %s.\n", SwigType_str(t, 0), name);
 	  return SWIG_NOWRAP;
 	}
 	Wrapper_add_local(f, "dest", "SV *dest");
 	Replaceall(tm, "$result", "dest");
-	//Replaceall(tm, "$source", "result");
+	//Replaceall(tm, "$source", Swig_cresult_name());
 	//Replaceall(tm, "$target", "ST(argvi)");
 	//Replaceall(tm, "$result", "ST(argvi)");
 	Replaceall(tm, "$owner", "0");
@@ -798,8 +798,8 @@ public:
     Swig_director_emit_dynamic_cast(n, f);
     String *actioncode = emit_action(n);
 
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$target", "ST(argvi)");
       Replaceall(tm, "$result", "ST(argvi)");
       Replaceall(tm, "$owner", GetFlag(n, "feature:new") ? "SWIG_POINTER_OWN" : "0");
@@ -824,14 +824,14 @@ public:
     Printv(f->code, cleanup, NIL);
 
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-	Replaceall(tm, "$source", "result");
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
       }
     }
 
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
     }
 
@@ -864,7 +864,7 @@ public:
     } else if (!Getattr(n, "sym:nextSibling")) {
       /* Generate overloaded dispatch function */
       int maxargs;
-      String *dispatch = Swig_overload_dispatch_cast(n, "++PL_markstack_ptr; SWIG_CALLXS(%s); return;", &maxargs);
+      String *dispatch = Swig_overload_dispatch_cast(n, "PUSHMARK(MARK); SWIG_CALLXS(%s); return;", &maxargs);
 
       /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -1797,7 +1797,7 @@ public:
 	Append(w->code, "fail:\n" "  FREETMPS;\n" "  LEAVE;\n");
 	{
 	  String *tm;
-	  if ((tm = Swig_typemap_lookup("director:except", n, "result", 0))) {
+	  if ((tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0))) {
 	    /* no op */
 	  } else if ((tm = Getattr(n, "feature:director:except"))) {
 	    tm = Copy(tm);
@@ -1831,6 +1831,7 @@ public:
     }
 
     if (output_director) {
+      Replaceall(mdefn, "$symname", Getattr(n, "sym:name"));
       Dump(mdecl, Swig_filebyname("director_h"));
       Dump(mdefn, Swig_filebyname("director"));
     }

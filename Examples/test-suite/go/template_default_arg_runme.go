@@ -49,7 +49,6 @@ func main() {
 	xz := template_default_arg.NewX_Foo_Z_8()
 	_ = xz.Meth(fz)
 
-
 	// Templated functions
 
 	// plain function: int ott(Foo<int>)
