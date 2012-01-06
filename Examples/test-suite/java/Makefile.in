@@ -43,6 +43,7 @@ SWIGOPT += -package $(JAVA_PACKAGE)
 # Custom tests - tests with additional commandline options
 nspace.%: JAVA_PACKAGE = $*Package
 nspace_extend.%: JAVA_PACKAGE = $*Package
+director_nspace.%: JAVA_PACKAGE = $*Package
 
 # Rules for the different types of tests
 %.cpptest: 

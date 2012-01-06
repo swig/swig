@@ -3483,21 +3483,21 @@ public:
     String *pkg_path = Swig_typemap_lookup("javapackage", p, "", 0);
     SwigType *type = Getattr(p, "type");
 
-    if (pkg_path && Len(pkg_path) != 0) {
-      Replaceall(pkg_path, ".", "/");
-    } else
+    if (pkg_path || Len(pkg_path) == 0)
       pkg_path = package_path;
 
     String *descriptor_out = Copy(descriptor_in);
 
-    if (Len(pkg_path) > 0) {
+    substituteClassname(type, descriptor_out, true);
+
+    if (Len(pkg_path) > 0 && Strchr(descriptor_out, '.') == NULL) {
       Replaceall(descriptor_out, "$packagepath", pkg_path);
     } else {
       Replaceall(descriptor_out, "$packagepath/", empty_string);
       Replaceall(descriptor_out, "$packagepath", empty_string);
     }
 
-    substituteClassname(type, descriptor_out, true);
+    Replaceall(descriptor_out, ".", "/");
 
     if (pkg_path != package_path)
       Delete(pkg_path);
@@ -3550,6 +3550,11 @@ public:
     String *imcall_args = NewString("");
     int classmeth_off = curr_class_dmethod - first_class_dmethod;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
+    String *qualified_classname = Copy(classname);
+    String *nspace = getNSpace();
+
+    if (nspace)
+      Insert(qualified_classname, 0, NewStringf("%s.%s.", package, nspace));
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
     // isn't at this point, so we have to manufacture it ourselves. At least
@@ -3614,7 +3619,7 @@ public:
 
       tm = Swig_typemap_lookup("jtype", tp, "", 0);
       if (tm) {
-	Printf(callback_def, "  public static %s %s(%s self", tm, imclass_dmethod, classname);
+	Printf(callback_def, "  public static %s %s(%s self", tm, imclass_dmethod, qualified_classname);
       } else {
 	Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s\n", SwigType_str(returntype, 0));
       }
@@ -3680,6 +3685,7 @@ public:
 
       Delete(adjustedreturntypeparm);
       Delete(retpm);
+      Delete(qualified_classname);
     }
 
     Swig_director_parms_fixup(l);
@@ -4259,7 +4265,10 @@ public:
     Wrapper *w = NewWrapper();
 
     if (Len(package_path) > 0)
-      internal_classname = NewStringf("%s/%s", package_path, classname);
+      if (Len(getNSpace()) > 0)
+        internal_classname = NewStringf("%s/%s/%s", package_path, getNSpace(), classname);
+      else
+        internal_classname = NewStringf("%s/%s", package_path, classname);
     else
       internal_classname = NewStringf("%s", classname);
 

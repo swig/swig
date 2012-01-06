@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2012-01-06: wsfulton
+            [Java] Patch #3452560 from Brant Kyser - add support for %nspace when using directors.
+
 2011-12-21: wsfulton
             The 'directorin' typemap now accepts $1, $2 etc expansions instead of having to use workarounds -
             $1_name, $2_name etc.

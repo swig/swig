@@ -173,6 +173,7 @@ CPP_TEST_CASES += \
 	director_ignore \
 	director_keywords \
 	director_namespace_clash \
+	director_nspace \
 	director_nested \
 	director_overload \
 	director_primitives \
