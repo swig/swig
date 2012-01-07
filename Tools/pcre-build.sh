@@ -14,7 +14,8 @@ usage() {
   echo "  - Download the latest PCRE source tarball from http://www.pcre.org and place in the"
   echo "    directory that you will configure and build SWIG."
   echo "  - Run this script in the same directory that you intend to configure and build SWIG in."
-  echo "  - Afterwards run the SWIG configure scrip which will then find and use the PCRE static"
+  echo "    This will configure and build PCRE as a static library."
+  echo "  - Afterwards run the SWIG configure script which will then find and use the PCRE static"
   echo "    libraries in the $pcre_subdir subdirectory."
   exit 0
 }
