@@ -24,7 +24,7 @@ namespace Bar
     virtual ~Foo() {}
     virtual std::string ping() { return "Bar::Foo::ping()"; }
     virtual std::string pong() { return "Bar::Foo::pong();" + ping(); }
-    virtual std::string fooBar(FooBar* fooBar) { return fooBar->FooBarDo(); }
+    virtual std::string fooBar(FooBar* fb) { return fb->FooBarDo(); }
     virtual Foo makeFoo() { return Foo(); }
     virtual FooBar makeFooBar() { return FooBar(); }
 
@@ -59,7 +59,7 @@ namespace Bar
     virtual ~Foo();
     virtual std::string ping();
     virtual std::string pong();
-    virtual std::string fooBar(FooBar* fooBar);
+    virtual std::string fooBar(FooBar* fb);
     virtual Foo makeFoo();
     virtual FooBar makeFooBar();
    
