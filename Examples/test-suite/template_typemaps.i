@@ -34,12 +34,12 @@
     {
       T val;
       
-      T get_val() const 
+      T get_value() const 
       {
 	return val;
       }
 
-      void set_val(T v) 
+      void set_value(T v) 
       {
 	val = v;
       }
