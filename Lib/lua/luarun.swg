@@ -181,23 +181,23 @@ SWIGINTERN int SWIG_Lua_module_get(lua_State* L)
    lua_tostring(L,2));
 */
   /* get the metatable */
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
-  assert(lua_istable(L,1));  /* just in case */
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
+  assert(lua_isrotable(L,1)); /* just in case */
 #else
-  assert(lua_isrotable(L,1));
+  assert(lua_istable(L,1)); /* default Lua action */
 #endif
   lua_getmetatable(L,1);  /* get the metatable */
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
-  assert(lua_istable(L,-1));  /* just in case */
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
+  assert(lua_isrotable(L,-1));  /* just in case */
 #else
-  assert(lua_isrotable(L,-1));
+  assert(lua_istable(L,-1));
 #endif
   SWIG_Lua_get_table(L,".get");  /* get the .get table */
   lua_remove(L,3);  /* remove metatable */
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
-  if (lua_istable(L,-1))
-#else
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
   if (lua_isrotable(L,-1))
+#else
+  if (lua_istable(L,-1))
 #endif
   {
     /* look for the key in the .get table */
@@ -225,23 +225,23 @@ SWIGINTERN int SWIG_Lua_module_set(lua_State* L)
   (3) any for the new value
 */
   /* get the metatable */
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
-  assert(lua_istable(L,1));  /* just in case */
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
+  assert(lua_isrotable(L,1));  /* just in case */
 #else
-  assert(lua_isrotable(L,1));
+  assert(lua_istable(L,1)); /* default Lua action */
 #endif
   lua_getmetatable(L,1);  /* get the metatable */
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
-  assert(lua_istable(L,-1));  /* just in case */
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
+  assert(lua_isrotable(L,-1));  /* just in case */
 #else
-  assert(lua_isrotable(L,-1));  
+  assert(lua_istable(L,-1));
 #endif
   SWIG_Lua_get_table(L,".set");  /* get the .set table */
   lua_remove(L,4);  /* remove metatable */
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
-  if (lua_istable(L,-1))
-#else
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
   if (lua_isrotable(L,-1))
+#else
+  if (lua_istable(L,-1))
 #endif
   {
     /* look for the key in the .set table */
@@ -254,7 +254,7 @@ SWIGINTERN int SWIG_Lua_module_set(lua_State* L)
       lua_call(L,1,0);
       return 0;
     }
-#if (SWIG_LUA_TARGET == SWIG_LUA_ELUA)
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) 
     else {
       return 0; // Exits stoically if an invalid key is initialized.
     }
@@ -266,7 +266,7 @@ SWIGINTERN int SWIG_Lua_module_set(lua_State* L)
   return 0;
 }
 
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
+#if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC))
 /* registering a module in lua. Pushes the module table on the stack. */
 SWIGINTERN void  SWIG_Lua_module_begin(lua_State* L,const char* name)
 {
@@ -623,7 +623,9 @@ SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State* L,void* ptr,swig_type_info *t
   usr->ptr=ptr;  /* set the ptr */
   usr->type=type;
   usr->own=own;
+#if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
   _SWIG_Lua_AddMetatable(L,type); /* add metatable */
+#endif
 }
 
 /* takes a object from the lua stack & converts it into an object of the correct type
@@ -736,7 +738,7 @@ SWIGRUNTIME int SWIG_Lua_equal(lua_State* L)
  * global variable support code: class/struct typemap functions
  * ----------------------------------------------------------------------------- */
 
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
+#if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC))
 /* Install Constants */
 SWIGINTERN void
 SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]) {

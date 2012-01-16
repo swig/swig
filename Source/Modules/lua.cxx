@@ -285,11 +285,11 @@ public:
     Printf(f_runtime, "#define SWIGLUA\n");
 
     if (elua_ltr)
-      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_ELUA\n");
+      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_FLAVOR_ELUA\n");
     else if (eluac_ltr)
-      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_ELUAC\n");
+      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_FLAVOR_ELUAC\n");
     else
-      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_LUA\n");
+      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_FLAVOR_LUA\n");
 
     if (nomoduleglobal) {
       Printf(f_runtime, "#define SWIG_LUA_NO_MODULE_GLOBAL\n");
