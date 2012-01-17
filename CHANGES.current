@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2012-01-17: wsfulton
+            [Go] Fix forward class declaration within a class when used as a base.
+
 2012-01-07: wsfulton
             [C#] Add support for %nspace when using directors.
 
