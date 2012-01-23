@@ -7,6 +7,7 @@ Version 2.0.5 (in progress)
 
 2012-01-23: klickverbot
             [D] Correctly annotate function pointers with C linkage.
+            [D] Exception and Error have become blessed names; removed d_exception_name test case.
 
 2012-01-20: wsfulton
             [Python] Add Python stepped slicing support to the STL wrappers (std::vector, std::list).
