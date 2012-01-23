@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2012-01-23: klickverbot
+            [D] Correctly annotate function pointers with C linkage.
+
 2012-01-20: wsfulton
             [Python] Add Python stepped slicing support to the STL wrappers (std::vector, std::list).
             Assigning to a slice, reading a slice and deleting a slice with steps now work.
@@ -87,7 +90,7 @@ Version 2.0.5 (in progress)
 	    Bug fix: Handle methods renamed or ignored in the base class correctly in the derived classes
 	    (they could be sometimes mysteriously not renamed or ignored there before).
 
-2011-12-03: klickvebrot
+2011-12-03: klickverbot
             [D] Fix exception glue code for newer DMD 2 versions.
             [D] Do not default to 32 bit glue code for DMD anymore.
             [D] Use stdc.config.c_long/c_ulong to represent C long types.
