@@ -5,14 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
-2012-01-23: klickverbot
-            [D] Correctly annotate function pointers with C linkage.
-            [D] Exception and Error have become blessed names; removed d_exception_name test case.
-
-2012-01-20: wsfulton
+2012-01-24: wsfulton
             [Python] Add Python stepped slicing support to the STL wrappers (std::vector, std::list).
             Assigning to a slice, reading a slice and deleting a slice with steps now work.
-            Positive steps only at the moment. For example:
+            For example:
 
             %template(vector_i) std::vector<int>
 
@@ -22,13 +18,18 @@ Version 2.0.5 (in progress)
               print list(vi)
               del vi[3:10:3]
               print list(vi)
+              print list(vi[::-1])
 
             gives (same behaviour as native Python sequences such as list):
 
               [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
               [0, 111, 2, 333, 4, 5, 6, 7, 8, 9]
               [0, 111, 2, 4, 5, 7, 8]
+              [8, 7, 5, 4, 2, 111, 0]
 
+2012-01-23: klickverbot
+            [D] Correctly annotate function pointers with C linkage.
+            [D] Exception and Error have become blessed names; removed d_exception_name test case.
 
 2012-01-20: wsfulton
             [Python] Fix some indexing bugs in Python STL wrappers when the index is negative, eg:

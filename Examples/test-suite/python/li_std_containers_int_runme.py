@@ -191,10 +191,29 @@ compare_containers(ps[-1:7:1], iv[-1:7:1], il[-1:7:1])
 compare_containers(ps[-1:7:2], iv[-1:7:2], il[-1:7:2])
 compare_containers(ps[-6:7:2], iv[-6:7:2], il[-6:7:2])
 compare_containers(ps[-100:7:2], iv[-100:7:2], il[-100:7:2])
-
 compare_containers(ps[::1], iv[::1], il[::1])
 compare_containers(ps[::2], iv[::2], il[::2])
-#compare_containers(ps[::-1], iv[::-1], il[])
+
+compare_containers(ps[::-1], iv[::-1], il[::-1])
+compare_containers(ps[6::-1], iv[6::-1], il[6::-1])
+compare_containers(ps[:-3:-1], iv[:-3:-1], il[:-3:-1])
+compare_containers(ps[:-6:-1], iv[:-6:-1], il[:-6:-1])
+compare_containers(ps[:-7:-1], iv[:-7:-1], il[:-7:-1])
+compare_containers(ps[:-8:-1], iv[:-8:-1], il[:-8:-1])
+compare_containers(ps[:-100:-1], iv[:-100:-1], il[:-100:-1])
+compare_containers(ps[4:6:-1], iv[4:6:-1], il[4:6:-1])
+compare_containers(ps[4:5:-1], iv[4:5:-1], il[4:5:-1])
+compare_containers(ps[4:4:-1], iv[4:4:-1], il[4:4:-1])
+compare_containers(ps[4:3:-1], iv[4:3:-1], il[4:3:-1])
+compare_containers(ps[4:2:-1], iv[4:2:-1], il[4:2:-1])
+compare_containers(ps[100:104:-1], iv[100:104:-1], il[100:104:-1])
+compare_containers(ps[104:100:-1], iv[104:100:-1], il[104:100:-1])
+compare_containers(ps[-100:-104:-1], iv[-100:-104:-1], il[-100:-104:-1])
+compare_containers(ps[-104:-100:-1], iv[-104:-100:-1], il[-104:-100:-1])
+compare_containers(ps[::-2], iv[::-2], il[::-2])
+compare_containers(ps[::-3], iv[::-3], il[::-3])
+compare_containers(ps[::-4], iv[::-4], il[::-4])
+compare_containers(ps[::-5], iv[::-5], il[::-5])
 
 
 # insert sequences (growing, shrinking and staying same size)
@@ -217,7 +236,7 @@ for start in [-102, -100, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 10
   container_delete_step(start, None, None)
   for end in [-102, -100, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 100, 102]:
     container_delete_step(start, end, None)
-    for step in range(1,7):
+    for step in range(-7,7):
       container_delete_step(start, end, step)
 
 ps = range(6)
@@ -227,7 +246,7 @@ del ps[:]; del iv[:]; del il[:]
 compare_containers(ps, iv, il)
 
 for end in range(7):
-  for step in range(1,7):
+  for step in range(-7,7):
     for start in range(7):
       container_insert_step(start, end, step, [111, 222, 333, 444, 555, 666, 777])
       container_insert_step(start, end, step, [111, 222, 333, 444, 555, 666])
