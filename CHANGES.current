@@ -6,6 +6,9 @@ Version 2.0.5 (in progress)
 ===========================
 
 2012-01-24: wsfulton
+            Fix crash with bad regex - bug #3474250.
+
+2012-01-24: wsfulton
             [Python] Add Python stepped slicing support to the STL wrappers (std::vector, std::list).
             Assigning to a slice, reading a slice and deleting a slice with steps now work.
             For example:
