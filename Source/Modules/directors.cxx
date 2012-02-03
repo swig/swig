@@ -290,3 +290,29 @@ void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
   }
 }
 
+/* ------------------------------------------------------------
+ * Swig_director_parms_fixup()
+ *
+ * For each parameter in the C++ member function, copy the parameter name
+ * to its "lname"; this ensures that Swig_typemap_attach_parms() will do
+ * the right thing when it sees strings like "$1" in "directorin" typemaps.
+ * ------------------------------------------------------------ */
+
+void Swig_director_parms_fixup(ParmList *parms) {
+  Parm *p;
+  int i;
+  for (i = 0, p = parms; p; p = nextSibling(p), ++i) {
+    String *arg = Getattr(p, "name");
+    String *lname = 0;
+
+    if (!arg && !Equal(Getattr(p, "type"), "void")) {
+      lname = NewStringf("arg%d", i);
+      Setattr(p, "name", lname);
+    } else
+      lname = Copy(arg);
+
+    Setattr(p, "lname", lname);
+    Delete(lname);
+  }
+}
+

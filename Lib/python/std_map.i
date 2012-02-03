@@ -5,19 +5,19 @@
 %fragment("StdMapTraits","header",fragment="StdSequenceTraits")
 {
   namespace swig {
-    template <class SwigPySeq, class K, class T >
+    template <class SwigPySeq, class K, class T, class Compare, class Alloc >
     inline void
-    assign(const SwigPySeq& swigpyseq, std::map<K,T > *map) {
-      typedef typename std::map<K,T>::value_type value_type;
+    assign(const SwigPySeq& swigpyseq, std::map<K,T,Compare,Alloc > *map) {
+      typedef typename std::map<K,T,Compare,Alloc >::value_type value_type;
       typename SwigPySeq::const_iterator it = swigpyseq.begin();
       for (;it != swigpyseq.end(); ++it) {
 	map->insert(value_type(it->first, it->second));
       }
     }
 
-    template <class K, class T>
-    struct traits_asptr<std::map<K,T> >  {
-      typedef std::map<K,T> map_type;
+    template <class K, class T, class Compare, class Alloc>
+    struct traits_asptr<std::map<K,T,Compare,Alloc > >  {
+      typedef std::map<K,T,Compare,Alloc > map_type;
       static int asptr(PyObject *obj, map_type **val) {
 	int res = SWIG_ERROR;
 	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
@@ -27,7 +27,7 @@
           /* In Python 3.x the ".items()" method returns a dict_items object */
           items = PySequence_Fast(items, ".items() didn't return a sequence!");
 %#endif
-	  res = traits_asptr_stdseq<std::map<K,T>, std::pair<K, T> >::asptr(items, val);
+	  res = traits_asptr_stdseq<map_type, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  map_type *p;
 	  res = SWIG_ConvertPtr(obj,(void**)&p,swig::type_info<map_type>(),0);
@@ -38,9 +38,9 @@
       }      
     };
       
-    template <class K, class T >
-    struct traits_from<std::map<K,T> >  {
-      typedef std::map<K,T> map_type;
+    template <class K, class T, class Compare, class Alloc >
+    struct traits_from<std::map<K,T,Compare,Alloc > >  {
+      typedef std::map<K,T,Compare,Alloc > map_type;
       typedef typename map_type::const_iterator const_iterator;
       typedef typename map_type::size_type size_type;
 

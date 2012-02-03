@@ -66,6 +66,7 @@ void main() {
   example.pt = example.ptptr;
 
   write( "The new value is " );
+  stdout.flush();
   example.pt_print();
   writefln( "You should see the value %s", example.Point_print(example.ptptr) );
 }

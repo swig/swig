@@ -35,7 +35,7 @@ AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 AC_COMPILE_WARNINGS # Increase warning levels
 
 AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
-AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$build"], [Platform that SWIG is built for])
+AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$host"], [Platform that SWIG is built for])
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -923,17 +923,18 @@ fi
 
 AC_MSG_CHECKING(for Octave header files)
 if test -n "$OCTAVE"; then
-	OCTAVEDIR="/usr/include"
+	OCTAVECONFIG=[`echo $OCTAVEBIN | sed 's|octave\([^/]*\)$|octave-config\1|'`]
+	if test -r "$OCTAVECONFIG"; then
+		OCTAVEDIR=`$OCTAVECONFIG -p OCTINCLUDEDIR | sed 's|/octave$||'`
+	else
+		OCTAVEDIR="/usr/include"
+	fi
 	if test "$OCTAVEDIR" != ""; then
-		dirs="$OCTAVEDIR"
+		dirs="$OCTAVEDIR/octave $OCTAVEDIR"
 		OCTAVEEXT=""
 		for i in $dirs; do
 			if test -r $i/octave/oct.h; then
 				OCTAVEEXT="$i"
-				break;
-			fi
-			if test -r $i/octave/octave/oct.h; then
-				OCTAVEEXT="$i/octave"
 				break;
 			fi
 		done
@@ -1167,6 +1168,51 @@ fi
 
 AC_SUBST(GCJ)
 AC_SUBST(GCJH)
+
+#----------------------------------------------------------------
+# Look for Android
+#----------------------------------------------------------------
+
+AC_ARG_WITH(android, AS_HELP_STRING([--without-android], [Disable Android])
+AS_HELP_STRING([--with-android=path], [Set location of android executable]),[ANDROIDBIN="$withval"], [ANDROIDBIN=yes])
+AC_ARG_WITH(adb, [  --with-adb=path       Set location of adb executable - Android Debug Bridge],[ADBBIN="$withval"], [ADBBIN=])
+AC_ARG_WITH(ant, [  --with-ant=path       Set location of ant executable for Android],[ANTBIN="$withval"], [ANTBIN=])
+AC_ARG_WITH(ndk-build, [  --with-ndk-build=path       Set location of Android ndk-build executable],[NDKBUILDBIN="$withval"], [NDKBUILDBIN=])
+
+# First, check for "--without-android" or "--with-android=no".
+if test x"${ANDROIDBIN}" = xno -o x"${with_alllang}" = xno ; then 
+  AC_MSG_NOTICE([Disabling Android])
+  ANDROID=
+else
+  if test "x$ANDROIDBIN" = xyes; then
+    AC_CHECK_PROGS(ANDROID, android)
+  else
+    ANDROID="$ANDROIDBIN"
+  fi
+
+  if test -z "$ADBBIN"; then
+    AC_CHECK_PROGS(ADB, adb)
+  else
+    ADB="$ADBBIN"
+  fi
+
+  if test -z "$ANTBIN"; then
+    AC_CHECK_PROGS(ANT, ant)
+  else
+    ANT="$ANTBIN"
+  fi
+
+  if test -z "$NDKBUILDBIN"; then
+    AC_CHECK_PROGS(NDKBUILD, ndk-build)
+  else
+    NDKBUILD="$NDKBUILDBIN"
+  fi
+fi
+
+AC_SUBST(ANDROID)
+AC_SUBST(ADB)
+AC_SUBST(ANT)
+AC_SUBST(NDKBUILD)
 
 #----------------------------------------------------------------
 # Look for Guile
@@ -2372,6 +2418,14 @@ fi
 AC_SUBST(SKIP_GCJ)
 
 
+SKIP_ANDROID=
+if test -z "$ANDROID" || test -z "$ADB" || test -z "$ANT" || test -z "$NDKBUILD" ; then
+    SKIP_ANDROID="1"
+fi
+AC_SUBST(SKIP_ANDROID)
+
+
+
 #----------------------------------------------------------------
 # Miscellaneous
 #----------------------------------------------------------------
@@ -2401,7 +2455,7 @@ AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent li
 AC_SUBST(swig_lib)
 AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent libraries])
 
-case $host in
+case $build in
         # Windows does not understand unix directories. Convert into a windows directory with drive letter.
         *-*-mingw*) SWIG_LIB_WIN_UNIX=`cmd //c echo $SWIG_LIB | sed -e "s/[ ]*$//"`;; # This echo converts unix to mixed paths. Then zap unexpected trailing space.
         *-*-cygwin*) SWIG_LIB_WIN_UNIX=`cygpath --mixed "$SWIG_LIB"`;;

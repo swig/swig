@@ -393,7 +393,9 @@ void SwigType_print_scope(void) {
   Hash *ttab;
   Iterator i, j;
 
+  Printf(stdout, "SCOPES start  =======================================\n");
   for (i = First(scopes); i.key; i = Next(i)) {
+    Printf(stdout, "-------------------------------------------------------------\n");
     ttab = Getattr(i.item, "typetab");
 
     Printf(stdout, "Type scope '%s' (%x)\n", i.key, i.item);
@@ -406,11 +408,11 @@ void SwigType_print_scope(void) {
 	}
       }
     }
-    Printf(stdout, "-------------------------------------------------------------\n");
     for (j = First(ttab); j.key; j = Next(j)) {
       Printf(stdout, "%40s -> %s\n", j.key, j.item);
     }
   }
+  Printf(stdout, "SCOPES finish =======================================\n");
 }
 
 static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
@@ -422,8 +424,6 @@ static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
   if (Getmark(s))
     return 0;
   Setmark(s, 1);
-
-  /*  Printf(stdout,"find_scope: %x(%s) '%s'\n", s, Getattr(s,"name"), nameprefix); */
 
   if (SwigType_istemplate(nameprefix)) {
     nnameprefix = SwigType_typedef_resolve_all(nameprefix);
@@ -540,6 +540,53 @@ static SwigType *_typedef_resolve(Typetab *s, String *base, int look_parent) {
   return type;
 }
 
+/* ----------------------------------------------------------------------------- 
+ * template_parameters_resolve()
+ *
+ * For use with templates only. The template parameters are resolved. If none
+ * of the parameters can be resolved, zero is returned.
+ * ----------------------------------------------------------------------------- */
+
+static String *template_parameters_resolve(const String *base) {
+  List *tparms;
+  String *suffix;
+  String *type;
+  int i, sz;
+  int rep = 0;
+  type = SwigType_templateprefix(base);
+  suffix = SwigType_templatesuffix(base);
+  Append(type, "<(");
+  tparms = SwigType_parmlist(base);
+  sz = Len(tparms);
+  for (i = 0; i < sz; i++) {
+    SwigType *tpr;
+    SwigType *tp = Getitem(tparms, i);
+    if (!rep) {
+      tpr = SwigType_typedef_resolve(tp);
+    } else {
+      tpr = 0;
+    }
+    if (tpr) {
+      Append(type, tpr);
+      Delete(tpr);
+      rep = 1;
+    } else {
+      Append(type, tp);
+    }
+    if ((i + 1) < sz)
+      Append(type, ",");
+  }
+  Append(type, ")>");
+  Append(type, suffix);
+  Delete(suffix);
+  Delete(tparms);
+  if (!rep) {
+    Delete(type);
+    type = 0;
+  }
+  return type;
+}
+
 static SwigType *typedef_resolve(Typetab *s, String *base) {
   return _typedef_resolve(s, base, 1);
 }
@@ -559,12 +606,6 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
   String *namebase = 0;
   String *nameprefix = 0;
   int newtype = 0;
-
-  /*
-     if (!noscope) {
-     noscope = NewStringEmpty();
-     }
-   */
 
   resolved_scope = 0;
 
@@ -609,6 +650,9 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 #endif
 	if (nameprefix) {
 	  /* Name had a prefix on it.   See if we can locate the proper scope for it */
+	  String *rnameprefix = template_parameters_resolve(nameprefix);
+	  nameprefix = rnameprefix ? Copy(rnameprefix) : nameprefix;
+	  Delete(rnameprefix);
 	  s = SwigType_find_scope(s, nameprefix);
 
 	  /* Couldn't locate a scope for the type.  */
@@ -675,42 +719,8 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
        template arguments one by one to see if they can be resolved. */
 
     if (!type && SwigType_istemplate(base)) {
-      List *tparms;
-      String *suffix;
-      int i, sz;
-      int rep = 0;
-      type = SwigType_templateprefix(base);
       newtype = 1;
-      suffix = SwigType_templatesuffix(base);
-      Append(type, "<(");
-      tparms = SwigType_parmlist(base);
-      sz = Len(tparms);
-      for (i = 0; i < sz; i++) {
-	SwigType *tpr;
-	SwigType *tp = Getitem(tparms, i);
-	if (!rep) {
-	  tpr = SwigType_typedef_resolve(tp);
-	} else {
-	  tpr = 0;
-	}
-	if (tpr) {
-	  Append(type, tpr);
-	  Delete(tpr);
-	  rep = 1;
-	} else {
-	  Append(type, tp);
-	}
-	if ((i + 1) < sz)
-	  Append(type, ",");
-      }
-      Append(type, ")>");
-      Append(type, suffix);
-      Delete(suffix);
-      Delete(tparms);
-      if (!rep) {
-	Delete(type);
-	type = 0;
-      }
+      type = template_parameters_resolve(base);
     }
     if (namebase)
       Delete(namebase);

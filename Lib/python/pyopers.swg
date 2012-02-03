@@ -123,7 +123,7 @@
 %rename(__invert__)     *::operator~;
 %feature("python:slot", "nb_invert", functype="unaryfunc") *::operator~;
 %rename(__call__)       *::operator();
-%feature("python:slot", "tp_call", functype="ternaryfunc") *::operator();
+%feature("python:slot", "tp_call", functype="ternarycallfunc") *::operator();
 
 #if defined(SWIGPYTHON_BUILTIN)
 %pybinoperator(__nonzero__,   *::operator bool,		inquiry, nb_nonzero);

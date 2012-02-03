@@ -58,11 +58,13 @@ swig_identifier
 swig_insert_bad
 swig_typemap_copy
 swig_typemap_old
+swig_typemap_warn
 '
 
 # Files run in C++ mode
 CPPFILES='
 cpp_bad_extern
+cpp_extend_destructors
 cpp_extend_redefine
 cpp_extend_undefined
 cpp_inline_namespace
@@ -74,6 +76,7 @@ cpp_namespace_aliasnot
 cpp_namespace_aliasundef
 cpp_nested
 cpp_no_access
+cpp_no_return_type
 cpp_nobase
 cpp_overload
 cpp_overload_const

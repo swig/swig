@@ -4,7 +4,7 @@
   %feature("python:slot", "sq_ass_item", functype="ssizeobjargproc") NAME::__setitem__;
 
 %inline %{
-typedef struct NAME {
+typedef struct {
     TYPE *el;
 } NAME;
 %}

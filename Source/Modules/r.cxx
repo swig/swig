@@ -675,12 +675,12 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
        XXX  Have to be a little more clever so that we can deal with struct A * - the * is getting lost.
        Is this still true? If so, will a SwigType_push() solve things?
     */
-    Parm *bbase = NewParm(rettype, "result", n);
-    String *returnTM = Swig_typemap_lookup("in", bbase, "result", f);
+    Parm *bbase = NewParm(rettype, Swig_cresult_name(), n);
+    String *returnTM = Swig_typemap_lookup("in", bbase, Swig_cresult_name(), f);
     if(returnTM) {
       String *tm = returnTM;
       Replaceall(tm,"$input", "r_swig_cb_data->retValue");
-      Replaceall(tm,"$target", "result");
+      Replaceall(tm,"$target", Swig_cresult_name());
       replaceRClass(tm, rettype);
       Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
       Replaceall(tm,"$disown","0");
@@ -693,7 +693,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   Printv(f->code, "\n", UnProtectWrapupCode, NIL);
   
   if(!isVoidType)
-    Printv(f->code,  "return result;\n", NIL);
+    Printv(f->code,  "return ", Swig_cresult_name(), ";\n", NIL);
   
   Printv(f->code, "\n}\n", NIL);
   
@@ -1975,7 +1975,7 @@ int R::functionWrapper(Node *n) {
   String *actioncode = emit_action(n);
 
   /* Deal with the explicit return value. */
-  if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) { 
+  if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) { 
     SwigType *retType = Getattr(n, "type");
     //Printf(stderr, "Return Value for %s, array? %s\n", retType, SwigType_isarray(retType) ? "yes" : "no");     
     /*      if(SwigType_isarray(retType)) {
@@ -1983,7 +1983,7 @@ int R::functionWrapper(Node *n) {
 	    } */
 
 
-    Replaceall(tm,"$1", "result");
+    Replaceall(tm,"$1", Swig_cresult_name());
     Replaceall(tm,"$result", "r_ans");
     replaceRClass(tm, retType);
 
@@ -2043,8 +2043,8 @@ int R::functionWrapper(Node *n) {
 
   /* Look to see if there is any newfree cleanup code */
   if (GetFlag(n, "feature:new")) {
-    if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");	/* deprecated */
+    if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());	/* deprecated */
       Printf(f->code, "%s\n", tm);
     }
   }
@@ -2052,8 +2052,7 @@ int R::functionWrapper(Node *n) {
   Printv(f->code, UnProtectWrapupCode, NIL);
 
   /*If the user gave us something to convert the result in  */
-  if ((tm = Swig_typemap_lookup("scoerceout", n, 
-				    "result", sfun))) {
+  if ((tm = Swig_typemap_lookup("scoerceout", n, Swig_cresult_name(), sfun))) {
     Replaceall(tm,"$source","ans");
     Replaceall(tm,"$result","ans");
     replaceRClass(tm, Getattr(n, "type"));

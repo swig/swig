@@ -340,6 +340,7 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   cls_stack_bi[cls_stack_top] = -1;
   cls = inst->classptr;
   while (1) {
+    Tcl_HashEntry* hashentry;
     bi = cls_stack_bi[cls_stack_top];
     cls = cls_stack[cls_stack_top];
     if (bi != -1) {
@@ -364,7 +365,7 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     }
     cls_stack_bi[cls_stack_top]++;
 
-    Tcl_HashEntry* hashentry = Tcl_FindHashEntry(&(cls->hashtable), method);
+    hashentry = Tcl_FindHashEntry(&(cls->hashtable), method);
     if (hashentry) {
         ClientData cd = Tcl_GetHashValue(hashentry);
         swig_wrapper method_wrapper = (swig_wrapper)cd;

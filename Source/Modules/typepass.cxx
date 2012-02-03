@@ -227,51 +227,64 @@ class TypePass:private Dispatcher {
     for (i = 0; i < len; i++) {
       Node *n = Getitem(ilist, i);
       String *bname = Getattr(n, "name");
-      Node *bclass = n;		/* Getattr(n,"class"); */
+      Node *bclass = n;
       Hash *scopes = Getattr(bclass, "typescope");
       SwigType_inherit(clsname, bname, cast, 0);
-      String *smartptr = Getattr(first, "feature:smartptr");
-      if (smartptr) {
-	SwigType *smart = 0;
-	SwigType *spt = Swig_cparse_type(smartptr);
-	if (spt) {
-	  smart = SwigType_typedef_resolve_all(spt);
-	  Delete(spt);
-	  /* Record a (fake) inheritance relationship between smart pointer
-	     and smart pointer to base class, so that smart pointer upcasts
-	     are automatically generated. */
-          SwigType *bsmart = Copy(smart);
-          SwigType *rclsname = SwigType_typedef_resolve_all(clsname);
-          SwigType *rbname = SwigType_typedef_resolve_all(bname);
-	  Replaceall(bsmart, rclsname, rbname);
-          Delete(rclsname);
-          Delete(rbname);
-	  String *smartnamestr = SwigType_namestr(smart);
-	  String *bsmartnamestr = SwigType_namestr(bsmart);
-	  /* construct casting code */
-	  String *convcode = NewStringf("\n    *newmemory = SWIG_CAST_NEW_MEMORY;\n    return (void *) new %s(*(%s *)$from);\n", bsmartnamestr, smartnamestr);
-	  Delete(bsmartnamestr);
-	  Delete(smartnamestr);
-	  /* setup inheritance relationship between smart pointer templates */
-	  SwigType_inherit(smart, bsmart, 0, convcode);
-	  if (!GetFlag(bclass, "feature:smartptr"))
-	    Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
-	  Delete(convcode);
-	  Delete(bsmart);
-	  Delete(smart);
-	} else {
-	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", SwigType_namestr(smartptr), SwigType_namestr(clsname));
-	}
-      } else {
-	if (GetFlag(bclass, "feature:smartptr"))
-	  Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));
-      }
       if (!importmode) {
 	String *btype = Copy(bname);
 	SwigType_add_pointer(btype);
 	SwigType_remember(btype);
 	Delete(btype);
       }
+
+      String *smartptr = Getattr(first, "feature:smartptr");
+      String *base_smartptr = Getattr(bclass, "feature:smartptr");
+      if (smartptr) {
+	SwigType *spt = Swig_cparse_type(smartptr);
+	if (spt) {
+	  if (base_smartptr) {
+	    SwigType *base_spt = Swig_cparse_type(base_smartptr);
+	    if (base_spt) {
+	      /* Record a (fake) inheritance relationship between smart pointer
+		 and smart pointer to base class, so that smart pointer upcasts
+		 are automatically generated. */
+	      SwigType *smart = SwigType_typedef_resolve_all(spt);
+	      SwigType *bsmart = SwigType_typedef_resolve_all(base_spt);
+	      String *smartnamestr = SwigType_namestr(smart);
+	      String *bsmartnamestr = SwigType_namestr(bsmart);
+
+	      /* Construct casting code */
+	      String *convcode = NewStringf("\n    *newmemory = SWIG_CAST_NEW_MEMORY;\n    return (void *) new %s(*(%s *)$from);\n", bsmartnamestr, smartnamestr);
+
+	      /* Setup inheritance relationship between smart pointers */
+	      SwigType_inherit(smart, bsmart, 0, convcode);
+	      if (!importmode) {
+		String *btype = Copy(bsmart);
+		SwigType_add_pointer(btype);
+		SwigType_remember(btype);
+		Delete(btype);
+	      }
+	      Delete(convcode);
+	      Delete(bsmartnamestr);
+	      Delete(smartnamestr);
+	      Delete(bsmart);
+	      Delete(smart);
+	      Delete(base_spt);
+	    } else {
+	      Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", SwigType_namestr(base_smartptr), SwigType_namestr(bname));
+	    }
+	    Delete(spt);
+	  } else {
+	    Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
+	  }
+	} else {
+	  Swig_error(Getfile(first), Getline(first), "Invalid type (%s) in 'smartptr' feature for class %s.\n", SwigType_namestr(smartptr), SwigType_namestr(clsname));
+	}
+      } else {
+	if (base_smartptr)
+	  Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));
+      }
+
       if (scopes) {
 	SwigType_inherit_scope(scopes);
       }
@@ -399,20 +412,27 @@ class TypePass:private Dispatcher {
     String *nname = 0;
     String *fname = 0;
     String *scopename = 0;
+    String *template_default_expanded = 0;
 
     normalize = NewList();
 
     if (name) {
       if (SwigType_istemplate(name)) {
-	// We need to fully resolve the name to make templates work correctly */
+	// We need to fully resolve the name and expand default template parameters to make templates work correctly */
 	Node *cn;
-	fname = SwigType_typedef_resolve_all(name);
-	if (Strcmp(fname, name) != 0 && (cn = Swig_symbol_clookup_local(fname, 0))) {
+	SwigType *resolved_name = SwigType_typedef_resolve_all(name);
+	SwigType *deftype_name = Swig_symbol_template_deftype(resolved_name, 0);
+	fname = Copy(resolved_name);
+	if (!Equal(resolved_name, deftype_name))
+	  template_default_expanded = Copy(deftype_name);
+	if (!Equal(fname, name) && (cn = Swig_symbol_clookup_local(fname, 0))) {
 	  if ((n == cn)
 	      || (Strcmp(nodeType(cn), "template") == 0)
 	      || (Getattr(cn, "feature:onlychildren") != 0)
 	      || (Getattr(n, "feature:onlychildren") != 0)) {
 	    Swig_symbol_cadd(fname, n);
+	    if (template_default_expanded)
+	      Swig_symbol_cadd(template_default_expanded, n);
 	    SwigType_typedef_class(fname);
 	    scopename = Copy(fname);
 	  } else {
@@ -422,9 +442,15 @@ class TypePass:private Dispatcher {
 	  }
 	} else {
 	  Swig_symbol_cadd(fname, n);
+	  /* needed?
+	  if (template_default_expanded)
+	    Swig_symbol_cadd(template_default_expanded, n);
+	  */
 	  SwigType_typedef_class(fname);
 	  scopename = Copy(fname);
 	}
+	Delete(deftype_name);
+	Delete(resolved_name);
       } else {
 	if ((CPlusPlus) || (unnamed)) {
 	  SwigType_typedef_class(name);
@@ -444,7 +470,7 @@ class TypePass:private Dispatcher {
       SwigType_typedef(unnamed, tdname);
     }
 
-    if (nsname) {
+    if (nsname && name) {
       nname = NewStringf("%s::%s", nsname, name);
       String *tdname = Getattr(n, "tdname");
       if (tdname) {
@@ -474,6 +500,13 @@ class TypePass:private Dispatcher {
     Delete(ts);
     Setattr(n, "module", module);
 
+    // When a fully qualified templated type with default parameters is used in the parsed code, 
+    // the following additional symbols and scopes are needed for successful lookups
+    if (template_default_expanded) {
+      Swig_symbol_alias(template_default_expanded, Getattr(n, "symtab"));
+      SwigType_scope_alias(template_default_expanded, Getattr(n, "typescope"));
+    }
+
     /* Normalize deferred types */
     {
       normal_node *nn = new normal_node();
@@ -493,6 +526,7 @@ class TypePass:private Dispatcher {
       Setattr(n, "name", nname);
       Delete(nname);
     }
+    Delete(fname);
     return SWIG_OK;
   }
 
@@ -522,18 +556,10 @@ class TypePass:private Dispatcher {
 
   virtual int classforwardDeclaration(Node *n) {
 
-    /* Temporary hack. Can't do inside a class because it breaks
-       C nested structure wrapping */
-
+    /* Can't do inside a C struct because it breaks C nested structure wrapping */
     if ((!inclass) || (CPlusPlus)) {
       String *name = Getattr(n, "name");
-      String *nname;
       SwigType_typedef_class(name);
-      if (nsname) {
-	nname = NewStringf("%s::%s", nsname, name);
-	Setattr(n, "name", nname);
-      }
-
     }
     return SWIG_OK;
   }

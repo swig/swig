@@ -47,7 +47,7 @@
 /* Error manipulation */
 
 #define SWIG_ErrorType(code)                            SWIG_Perl_ErrorType(code)               
-#define SWIG_Error(code, msg)            		sv_setpvf(GvSV(PL_errgv),"%s %s\n", SWIG_ErrorType(code), msg)
+#define SWIG_Error(code, msg)            		sv_setpvf(get_sv("@", GV_ADD), "%s %s", SWIG_ErrorType(code), msg)
 #define SWIG_fail                        		goto fail						    
 
 /* Perl-specific SWIG API */
@@ -141,8 +141,6 @@ typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
 #endif /* MULTIPLICITY */
 #endif /* PERL_OBJECT */
 
-/* Workaround for bug in perl 5.6.x croak and earlier */
-#if (PERL_VERSION < 8)
 #  ifdef PERL_OBJECT
 #    define SWIG_croak_null() SWIG_Perl_croak_null(pPerl)
 static void SWIG_Perl_croak_null(CPerlObj *pPerl)
@@ -150,17 +148,16 @@ static void SWIG_Perl_croak_null(CPerlObj *pPerl)
 static void SWIG_croak_null()
 #  endif
 {
-  SV *err=ERRSV;
+  SV *err = get_sv("@", GV_ADD);
 #  if (PERL_VERSION < 6)
   croak("%_", err);
 #  else
-  if (SvOK(err) && !SvROK(err)) croak("%_", err);
-  croak(Nullch);
+  if (sv_isobject(err))
+    croak(0);
+  else
+    croak("%s", SvPV_nolen(err));
 #  endif
 }
-#else
-#  define SWIG_croak_null() croak(Nullch)
-#endif
 
 
 /* 
@@ -212,8 +209,7 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
   if (ty) {
     swig_cast_info *iter = ty->cast;
     while (iter) {
-      if ( (!iter->type->clientdata && (strcmp(iter->type->name, c) == 0)) ||
-            (iter->type->clientdata && (strcmp((char*)iter->type->clientdata, c) == 0)) ) {
+      if (strcmp(SWIG_Perl_TypeProxyName(iter->type), c) == 0) {
         if (iter == ty->cast)
           return iter;
         /* Move iter to the top of the linked list */
@@ -344,7 +340,7 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
     SV *obj=newSV(0);
     HV *hash=newHV();
     HV *stash;
-    sv_setref_pv(obj, (char *) SWIG_Perl_TypeProxyName(t), ptr);
+    sv_setref_pv(obj, SWIG_Perl_TypeProxyName(t), ptr);
     stash=SvSTASH(SvRV(obj));
     if (flags & SWIG_POINTER_OWN) {
       HV *hv;
@@ -362,7 +358,7 @@ SWIG_Perl_MakePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, void *ptr, swig_type_info *t, i
     sv_bless(sv, stash);
   }
   else {
-    sv_setref_pv(sv, (char *) SWIG_Perl_TypeProxyName(t), ptr);
+    sv_setref_pv(sv, SWIG_Perl_TypeProxyName(t), ptr);
   }
 }
 
@@ -453,19 +449,23 @@ typedef struct {
 
 /* Magic variable code */
 #ifndef PERL_OBJECT
-#define swig_create_magic(s,a,b,c) _swig_create_magic(s,a,b,c)
-  #ifndef MULTIPLICITY
-     SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) 
-  #else
-     SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) 
-  #endif
+# ifdef __cplusplus
+#  define swig_create_magic(s,a,b,c) _swig_create_magic(s,const_cast<char*>(a),b,c)
+# else
+#  define swig_create_magic(s,a,b,c) _swig_create_magic(s,(char*)(a),b,c)
+# endif
+# ifndef MULTIPLICITY
+SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) 
+# else
+SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) 
+# endif
 #else
 #  define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
 SWIGRUNTIME void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) 
 #endif
 {
   MAGIC *mg;
-  sv_magic(sv,sv,'U',(char *) name,strlen(name));
+  sv_magic(sv,sv,'U',name,strlen(name));
   mg = mg_find(sv,'U');
   mg->mg_virtual = (MGVTBL *) malloc(sizeof(MGVTBL));
   mg->mg_virtual->svt_get = (SwigMagicFunc) get;

@@ -29,7 +29,6 @@ func main() {
 		panic(0)
 	}
 
-
 	// 'narrowing' also works
 	ddc := virtual_poly.NDoubleNarrow(d.Nnumber())
 	if d.Get() != ddc.Get() {

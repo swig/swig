@@ -214,6 +214,7 @@ Hash *Swig_cparse_features(void) {
   return features_hash;
 }
 
+/* Fully qualify any template parameters */
 static String *feature_identifier_fix(String *s) {
   String *tp = SwigType_istemplate_templateprefix(s);
   if (tp) {
@@ -3559,20 +3560,25 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		       if (Cmp($1,"typedef") == 0) {
 			 if (!decltype || !Len(decltype)) {
 			   String *cname;
+			   String *tdscopename;
+			   String *class_scope = Swig_symbol_qualifiedscopename(cscope);
 			   name = Getattr($9,"name");
 			   cname = Copy(name);
 			   Setattr($$,"tdname",cname);
-			   Delete(cname);
+			   tdscopename = class_scope ? NewStringf("%s::%s", class_scope, name) : Copy(name);
 
 			   /* Use typedef name as class name */
 			   if (class_rename && (Strcmp(class_rename,$3) == 0)) {
 			     Delete(class_rename);
 			     class_rename = NewString(name);
 			   }
-			   if (!Getattr(classes,name)) {
-			     Setattr(classes,name,$$);
+			   if (!Getattr(classes,tdscopename)) {
+			     Setattr(classes,tdscopename,$$);
 			   }
 			   Setattr($$,"decl",decltype);
+			   Delete(class_scope);
+			   Delete(cname);
+			   Delete(tdscopename);
 			 }
 		       }
 		     }

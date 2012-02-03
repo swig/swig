@@ -159,7 +159,7 @@
 %typemap(directorin,noblock=1,fragment=#SWIG_FromCharPtr)
   Char *, Char const*, Char *const, Char const *const, 
   Char const *&, Char *const &, Char const *const & {
-  $input = SWIG_FromCharPtr((const Char *)$1_name);
+  $input = SWIG_FromCharPtr((const Char *)$1);
 }
 
 
@@ -326,9 +326,9 @@
 {
   size_t size = $1_dim0;
 %#ifndef SWIG_PRESERVE_CARRAY_SIZE
-  while (size && ($1_name[size - 1] == '\0')) --size;
+  while (size && ($1[size - 1] == '\0')) --size;
 %#endif
-  $input = SWIG_FromCharPtrAndSize($1_name, size);
+  $input = SWIG_FromCharPtrAndSize($1, size);
 }
 
 /* directorout */
@@ -389,7 +389,7 @@
 %typemap(directorin,noblock=1,fragment=#SWIG_FromCharPtrAndSize)
   Char FIXSIZE[ANY], const Char FIXSIZE[ANY]
 {
-  $input = SWIG_FromCharPtrAndSize($1_name, $1_dim0);
+  $input = SWIG_FromCharPtrAndSize($1, $1_dim0);
 }
 
 #endif /* SWIG_DIRECTOR_TYPEMAPS */
@@ -448,7 +448,7 @@
 /* Here len doesn't include the '0' terminator */
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) 
   (size_t LENGTH, Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0),
-  (size_t LENGHT, const Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0)
+  (size_t LENGTH, const Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
   if (!SWIG_IsOK(res)) { 

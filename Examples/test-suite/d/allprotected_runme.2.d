@@ -2,6 +2,8 @@ module allprotected_runme;
 
 import allprotected.Klass;
 import allprotected.ProtectedBase;
+import std.conv : text;
+import std.exception : enforce;
 
 void main() {
   auto mpb = new MyProtectedBase("MyProtectedBase");
@@ -16,50 +18,46 @@ public:
 
   void accessProtected() {
     string s = virtualMethod();
-    if (s != "ProtectedBase")
-      throw new Exception("Failed");
+    enforce(s == "ProtectedBase", "Failed, got '" ~ s ~ "'");
 
-    Klass k = instanceMethod(new Klass("xyz"));
-    if (k.getName() != "xyz")
-      throw new Exception("Failed");
+    Klass k;
+    void expect(string name) {
+      auto kName = k.getName();
+      enforce(kName == name, "Failed, expected '" ~ name ~ "' instead of '" ~
+        kName ~ "'.");
+    }
+
+    k = instanceMethod(new Klass("xyz"));
+    expect("xyz");
 
     k = instanceOverloaded(new Klass("xyz"));
-    if (k.getName() != "xyz")
-      throw new Exception("Failed");
+    expect("xyz");
 
     k = instanceOverloaded(new Klass("xyz"), "abc");
-    if (k.getName() != "abc")
-      throw new Exception("Failed");
+    expect("abc");
 
     k = staticMethod(new Klass("abc"));
-    if (k.getName() != "abc")
-      throw new Exception("Failed");
+    expect("abc");
 
     k = staticOverloaded(new Klass("xyz"));
-    if (k.getName() != "xyz")
-      throw new Exception("Failed");
+    expect("xyz");
 
     k = staticOverloaded(new Klass("xyz"), "abc");
-    if (k.getName() != "abc")
-      throw new Exception("Failed");
+    expect("abc");
 
     instanceMemberVariable = 30;
     int i = instanceMemberVariable;
-    if (i != 30)
-      throw new Exception("Failed");
+    enforce(i == 30, text("Failed, expected ", 30, "instead of ", i));
 
     staticMemberVariable = 40;
     i = staticMemberVariable;
-    if (i != 40)
-      throw new Exception("Failed");
+    enforce(i == 40, text("Failed, expected ", 40, "instead of ", i));
 
     i = staticConstMemberVariable;
-    if (i != 20)
-      throw new Exception("Failed");
+    enforce(i == 20, text("Failed, expected ", 20, "instead of ", i));
 
     anEnum = ProtectedBase.AnEnum.EnumVal1;
     ProtectedBase.AnEnum ae = anEnum;
-    if (ae != ProtectedBase.AnEnum.EnumVal1)
-      throw new Exception("Failed");
+    enforce(ae == ProtectedBase.AnEnum.EnumVal1);
   }
 }

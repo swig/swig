@@ -19,7 +19,9 @@ public:
   int OverloadedMethod(int n, int xoffset, int yoffset) { return 0; }
   int OverloadedMethod(int n, int xoffset) { return 0; }
   int OverloadedMethod(int n) { return 0; }
+  alias super.OverloadedMethod OverloadedMethod;
 
+protected:
   int OverloadedProtectedMethod(int n, int xoffset, int yoffset) { return 0; }
   int OverloadedProtectedMethod(int n, int xoffset) { return 0; }
   int OverloadedProtectedMethod(int n) { return 0; }
@@ -31,7 +33,9 @@ public:
   int OverloadedMethod(int n, int xoffset, int yoffset) { return 0; }
   int OverloadedMethod(int n, int xoffset) { return 0; }
   int OverloadedMethod(int n) { return 0; }
+  alias super.OverloadedMethod OverloadedMethod;
 
+protected:
   int OverloadedProtectedMethod(int n, int xoffset, int yoffset) { return 0; }
   int OverloadedProtectedMethod(int n, int xoffset) { return 0; }
   int OverloadedProtectedMethod(int n) { return 0; }

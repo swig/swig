@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="example-vc"
+	Name="example"
 	ProjectGUID="{C2302635-D489-4678-96B4-70F5309DCBE6}"
 	Keyword="Win32Proj">
 	<Platforms>
@@ -34,9 +34,9 @@
 				OutputFile="example.dll"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/example-vc.pdb"
+				ProgramDatabaseFile="$(OutDir)/example.pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/example-vc.lib"
+				ImportLibrary="$(OutDir)/example.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -83,7 +83,7 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/example-vc.lib"
+				ImportLibrary="$(OutDir)/example.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>

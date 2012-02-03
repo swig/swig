@@ -3,14 +3,22 @@
  *
  * Support code for exceptions if the SWIG_D_NO_EXCEPTION_HELPER is not defined
  * Support code for strings if the SWIG_D_NO_STRING_HELPER is not defined
- * ----------------------------------------------------------------------------- */
+ *
+ * Support code for function pointers. ----------------------------------------------------------------------------- */
 
 %insert(runtime) %{
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+/* Contract support. */
+#define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_DSetPendingException(SWIG_DException, msg); return nullreturn; } else
 %}
 
+
+/*
+ * Exception support code.
+ */
 
 #if !defined(SWIG_D_NO_EXCEPTION_HELPER)
 %insert(runtime) %{
@@ -186,7 +194,7 @@ private class SwigExceptionHelper {
     );
   }
 
-  static void setException(char* message) {
+  static void setException(const char* message) {
     auto exception = new object.Exception(std.conv.to!string(message).idup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
@@ -250,6 +258,11 @@ alias void function(const char* message) SwigExceptionCallback;
 // Callback registering function in wrapperloader.swg.
 #endif // SWIG_D_NO_EXCEPTION_HELPER
 
+
+/*
+ * String support code.
+ */
+
 #if !defined(SWIG_D_NO_STRING_HELPER)
 %insert(runtime) %{
 // Callback for returning strings to D without leaking memory.
@@ -304,7 +317,28 @@ alias const(char)* function(const(char*) cString) SwigStringCallback;
 // Callback registering function in wrapperloader.swg.
 #endif // SWIG_D_NO_STRING_HELPER
 
-%insert(runtime) %{
-/* Contract support. */
-#define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_DSetPendingException(SWIG_DException, msg); return nullreturn; } else
+
+/*
+ * Function pointer support code.
+ */
+#if (SWIG_D_VERSION == 1)
+%pragma(d) imdmodulecode = %{
+template SwigExternC(T) {
+  static if (is(typeof(*(T.init)) R == return)) {
+    static if (is(typeof(*(T.init)) P == function)) {
+      alias extern(C) R function(P) SwigExternC;
+    }
+  }
+}
 %}
+#else
+%pragma(d) imdmodulecode = %{
+template SwigExternC(T) if (is(typeof(*(T.init)) P == function)) {
+  static if (is(typeof(*(T.init)) R == return)) {
+    static if (is(typeof(*(T.init)) P == function)) {
+      alias extern(C) R function(P) SwigExternC;
+    }
+  }
+}
+%}
+#endif

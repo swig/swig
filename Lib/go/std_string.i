@@ -31,7 +31,7 @@ class string;
 %{ $result = _swig_makegostring($1.data(), $1.length()); %}
 
 %typemap(directorin) string
-%{ $input = _swig_makegostring($1_name.data(), $1_name.length()); %}
+%{ $input = _swig_makegostring($1.data(), $1.length()); %}
 
 %typemap(in) const string &
 %{
@@ -50,6 +50,6 @@ class string;
 %{ $result = _swig_makegostring((*$1).data(), (*$1).length()); %}
 
 %typemap(directorin) const string &
-%{ $input = _swig_makegostring($1_name.data(), $1_name.length()); %}
+%{ $input = _swig_makegostring($1.data(), $1.length()); %}
 
 }

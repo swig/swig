@@ -1,5 +1,6 @@
 module preproc_constants_runme;
 
+import core.stdc.config;
 import preproc_constants.preproc_constants;
 
 void main() {
@@ -9,10 +10,10 @@ void main() {
   static assert(is(uint == typeof(CONST_UINT2())));
   static assert(is(uint == typeof(CONST_UINT3())));
   static assert(is(uint == typeof(CONST_UINT4())));
-  static assert(is(int == typeof(CONST_LONG1())));
-  static assert(is(int == typeof(CONST_LONG2())));
-  static assert(is(int == typeof(CONST_LONG3())));
-  static assert(is(int == typeof(CONST_LONG4())));
+  static assert(is(c_long == typeof(CONST_LONG1())));
+  static assert(is(c_long == typeof(CONST_LONG2())));
+  static assert(is(c_long == typeof(CONST_LONG3())));
+  static assert(is(c_long == typeof(CONST_LONG4())));
   static assert(is(long == typeof(CONST_LLONG1())));
   static assert(is(long == typeof(CONST_LLONG2())));
   static assert(is(long == typeof(CONST_LLONG3())));
@@ -37,8 +38,8 @@ void main() {
 //    static assert(is(int == typeof(INT_AND_CHAR())));
   static assert(is(int == typeof(INT_AND_INT())));
   static assert(is(uint == typeof(INT_AND_UINT())));
-  static assert(is(int == typeof(INT_AND_LONG())));
-  static assert(is(uint == typeof(INT_AND_ULONG())));
+  static assert(is(c_long == typeof(INT_AND_LONG())));
+  static assert(is(c_ulong == typeof(INT_AND_ULONG())));
   static assert(is(long == typeof(INT_AND_LLONG())));
   static assert(is(ulong == typeof(INT_AND_ULLONG())));
   static assert(is(int == typeof(BOOL_AND_BOOL())));
