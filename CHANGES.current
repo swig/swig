@@ -5,6 +5,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2012-02-27: xavier98 (patches from Karl Wette)
+	    [Octave] Use -globals . to load global variables in module namespace
+	    [Octave] Comment declaration of unimplemented function swig_register_director
+	    [Octave] Fix OCTAVE_PATH in octave Makefiles
+	    [Octave] Fix director_nspace test
+	    [Octave] Fix li_std_containers_int test
+	    [Octave] Fix imports test
+
 2012-02-16: wsfulton
             [Java] Make generated support functions in arrays_java.i static so that generated code
             from multiple instances of SWIG can be compiled and linked together - problem reported by
