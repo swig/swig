@@ -111,7 +111,7 @@ class octave_swig_type;
 namespace Swig {
   class Director;
 
-  SWIGRUNTIME void swig_register_director(octave_swig_type *self, void *ptr, Director *d);
+  //SWIGRUNTIME void swig_register_director(octave_swig_type *self, void *ptr, Director *d);
   SWIGRUNTIME void swig_director_destroyed(octave_swig_type *self, Director *d);
   SWIGRUNTIME void swig_director_set_self(Director *d, octave_swig_type *self);
 
