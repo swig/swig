@@ -933,18 +933,23 @@ public:
 
     int use_director = Swig_directorclass(n);
     if (use_director) {
+      String *nspace = Getattr(n, "sym:nspace");
+      String *cname = Swig_name_disown(nspace, class_name);
+      String *wcname = Swig_name_wrapper(cname);
       String *disown_shadow = NewString("");
-      Printf(disown_shadow, "static octave_value_list _wrap_disown_%s_shadow " "(const octave_value_list& args, int nargout) {\n", class_name);
+      Printf(disown_shadow, "static octave_value_list %s_shadow " "(const octave_value_list& args, int nargout) {\n", wcname);
       Printf(disown_shadow, "  if (args.length()!=1) {\n");
       Printf(disown_shadow, "    error(\"disown takes no arguments\");\n");
       Printf(disown_shadow, "    return octave_value_list();\n");
       Printf(disown_shadow, "  }\n");
-      Printf(disown_shadow, "  _wrap_disown_%s (args, nargout);\n", class_name);
+      Printf(disown_shadow, "  %s (args, nargout);\n", wcname);
       Printf(disown_shadow, "  return args;\n");
       Printf(disown_shadow, "}\n");
       Printv(f_wrappers, disown_shadow, NIL);
       Delete(disown_shadow);
-      Printf(s_members_tab, "{\"__disown\",_wrap_disown_%s_shadow,0,0,0,0},\n", class_name);
+      Printf(s_members_tab, "{\"__disown\",%s_shadow,0,0,0,0},\n", wcname);
+      Delete(wcname);
+      Delete(cname);
     }
 
     Printf(s_members_tab, "{0,0,0,0}\n};\n");
@@ -978,7 +983,8 @@ public:
     Printv(f_wrappers, "static swig_octave_class _wrap_class_", class_name, " = {\"", class_name, "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
     Printv(f_wrappers, Swig_directorclass(n) ? "1," : "0,", NIL);
     if (have_constructor) {
-      String *cname = Swig_name_construct(NSPACE_TODO, constructor_name);
+      String *nspace = Getattr(n, "sym:nspace");
+      String *cname = Swig_name_construct(nspace, constructor_name);
       String *wcname = Swig_name_wrapper(cname);
       String *tname = texinfo_name(n);
       Printf(f_wrappers, "%s,%s,", wcname, tname);
@@ -987,9 +993,14 @@ public:
       Delete(cname);
     } else
       Printv(f_wrappers, "0,0,", NIL);
-    if (have_destructor)
-      Printv(f_wrappers, "_wrap_delete_", class_name, ",", NIL);
-    else
+    if (have_destructor) {
+      String *nspace = Getattr(n, "sym:nspace");
+      String *cname = Swig_name_destroy(nspace, class_name);
+      String *wcname = Swig_name_wrapper(cname);
+      Printf(f_wrappers, "%s,", wcname);
+      Delete(wcname);
+      Delete(cname);
+    } else
       Printv(f_wrappers, "0", ",", NIL);
     Printf(f_wrappers, "swig_%s_members,swig_%s_base_names,swig_%s_base };\n\n", class_name, class_name, class_name);
 
@@ -1011,16 +1022,21 @@ public:
     String *name = Getattr(n, "name");
     String *iname = GetChar(n, "sym:name");
     String *realname = iname ? iname : name;
-    String *rname = Swig_name_wrapper(Swig_name_member(NSPACE_TODO, class_name, realname));
+    String *wname = Getattr(n, "wrap:name");
+    assert(wname);
 
     if (!Getattr(n, "sym:nextSibling")) {
       String *tname = texinfo_name(n);
+      String *rname = Copy(wname);
+      bool overloaded = !!Getattr(n, "sym:overloaded");
+      if (overloaded)
+        Delslice(rname, Len(rname) - Len(Getattr(n, "sym:overname")), DOH_END);
       Printf(s_members_tab, "{\"%s\",%s,0,0,0,%s},\n", 
 	     realname, rname, tname);
+      Delete(rname);
       Delete(tname);
     }
 
-    Delete(rname);
     return SWIG_OK;
   }
 
@@ -1084,16 +1100,21 @@ public:
     String *name = Getattr(n, "name");
     String *iname = GetChar(n, "sym:name");
     String *realname = iname ? iname : name;
-    String *rname = Swig_name_wrapper(Swig_name_member(NSPACE_TODO, class_name, realname));
+    String *wname = Getattr(n, "wrap:name");
+    assert(wname);
 
     if (!Getattr(n, "sym:nextSibling")) {
       String *tname = texinfo_name(n);
+      String *rname = Copy(wname);
+      bool overloaded = !!Getattr(n, "sym:overloaded");
+      if (overloaded)
+        Delslice(rname, Len(rname) - Len(Getattr(n, "sym:overname")), DOH_END);
       Printf(s_members_tab, "{\"%s\",%s,0,0,1,%s},\n", 
 	     realname, rname, tname);
+      Delete(rname);
       Delete(tname);
     }
     
-    Delete(rname);
     return SWIG_OK;
   }
 
