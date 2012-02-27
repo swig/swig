@@ -172,6 +172,7 @@ public:
     Printf(f_runtime, "#define SWIG_global_load      %s\n", global_load ? "true" : "false");
     Printf(f_runtime, "#define SWIG_global_name      \"%s\"\n", global_name);
     Printf(f_runtime, "#define SWIG_op_prefix        \"%s\"\n", op_prefix);
+    Printf(f_runtime, "#define SWIG_atexit_func      swig_atexit_%s\n", module);
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");

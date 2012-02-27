@@ -18,6 +18,10 @@
 
 static void SWIG_init_user(octave_swig_type* module_ns);
 
+#if OCTAVE_API_VERSION_NUMBER>=37
+octave_value_list SWIG_atexit_func(const octave_value_list &args, int nargout);
+#endif
+
 DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
 
   // determine if module is already loaded
@@ -133,6 +137,12 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
     // create global variable containing module
     set_global_value(SWIG_name_d,Swig::swig_value_ref(module_ns));
   
+#if OCTAVE_API_VERSION_NUMBER>=37
+    install_builtin_function(SWIG_atexit_func,"__swig_atexit_" SWIG_name_d "__",std::string());
+    octave_add_atexit_function("__swig_atexit_" SWIG_name_d "__");
+    octave_remove_atexit_function("__finish__");
+#endif
+
     // return from base frame
 #if OCTAVE_API_VERSION_NUMBER<37
     curr_sym_tab = prev_sym_tab;
@@ -160,14 +170,11 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
 // workaround bug in octave where installing global variable of custom type and then
 // exiting without explicitly clearing the variable causes octave to segfault.
 #if OCTAVE_API_VERSION_NUMBER>=37
-struct oct_file_unload {
-  ~oct_file_unload() {
-    string_vector vars = symbol_table::global_variable_names();
-    for (int i = 0; i < vars.length(); i++)
-      symbol_table::clear_global(vars[i]);
-  }
-};
-static oct_file_unload __unload;
+octave_value_list SWIG_atexit_func(const octave_value_list &args, int nargout) {
+  symbol_table::clear_global_pattern("*");
+  symbol_table::clear_functions();
+  return octave_value();
+}
 #endif
 
 %}
