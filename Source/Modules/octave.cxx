@@ -23,6 +23,7 @@ static const char *usage = (char *) "\
 Octave Options (available with -octave)\n\
      -global         - Load all symbols into the global namespace [default]\n\
      -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
+                         - Use '.' to load C global variables into module namespace\n\
      -noglobal       - Do not load all symbols into the global namespace\n\
      -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
 \n";

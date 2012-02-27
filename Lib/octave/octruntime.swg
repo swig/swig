@@ -33,7 +33,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
   if (!already_load) {
 
     // parse command line
-    const char* usage="usage: " SWIG_name_d " [-global|-noglobal] [-globals <name>]";
+    const char* usage="usage: " SWIG_name_d " [-global|-noglobal] [-globals {<name>|.}]";
     bool global_load=SWIG_global_load;
     std::string global_name=SWIG_global_name;
     for (int j=0;j<args.length();++j)
@@ -65,7 +65,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
         return octave_value_list();
       }
   
-    if (!valid_identifier(global_name)) {
+    if (global_name != "." && !valid_identifier(global_name)) {
       std::cerr << "error: " SWIG_name_d ": '" << global_name << "' is not a valid Octave identifier." << std::endl;
       return octave_value_list();
     }
@@ -88,13 +88,23 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
     install_builtin_function(swig_this,"swig_this",std::string());
     install_builtin_function(swig_subclass,"subclass",std::string());
   
-    octave_swig_type* cvar_ns=new octave_swig_type;
-    for (int j=0;swig_globals[j].name;++j)
-      if (swig_globals[j].get_method)
-        cvar_ns->assign(swig_globals[j].name,&swig_globals[j]);
+    octave_swig_type* cvar_ns=0;
+    if (global_name != ".") {
+      cvar_ns=new octave_swig_type;
+      for (int j=0;swig_globals[j].name;++j)
+        if (swig_globals[j].get_method)
+          cvar_ns->assign(swig_globals[j].name,&swig_globals[j]);
+    }
   
     octave_swig_type* module_ns=new octave_swig_type(0, 0, 0, true);
-    module_ns->assign(global_name,Swig::swig_value_ref(cvar_ns));
+    if (global_name != ".") {
+      module_ns->assign(global_name,Swig::swig_value_ref(cvar_ns));
+    }
+    else {
+      for (int j=0;swig_globals[j].name;++j)
+        if (swig_globals[j].get_method)
+          module_ns->assign(swig_globals[j].name,&swig_globals[j]);
+    }
     for (int j=0;swig_globals[j].name;++j)
       if (swig_globals[j].method)
         module_ns->assign(swig_globals[j].name,&swig_globals[j]);

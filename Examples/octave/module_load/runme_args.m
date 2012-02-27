@@ -38,3 +38,11 @@ example -globals mycvar
 assert(!isglobal("cvar"))
 assert(mycvar.ivar == example.ifunc())
 ##### END TEST #####
+
+clear all;
+
+##### BEGIN TEST #####
+# load module with root-level cvar
+example -globals .
+assert(example.ivar == example.ifunc())
+##### END TEST #####
