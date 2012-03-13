@@ -472,6 +472,7 @@ CPP_STD_TEST_CASES += \
         li_std_pair \
 	li_std_string \
 	li_std_vector \
+	li_std_vector_enum \
 	naturalvar \
 	smart_pointer_inherit \
 	template_typedef_fnc \

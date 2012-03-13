@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2012-03-13: wsfulton
+            [Python, Ruby, Octave] Fix #3475492 - iterating through std::vector wrappers of enumerations.
+
 2012-02-27: xavier98 (patches from Karl Wette)
 	    [Octave] Use -globals . to load global variables in module namespace
 	    [Octave] Comment declaration of unimplemented function swig_register_director
