@@ -12,8 +12,8 @@ Version 2.0.5 (in progress)
 	    [Octave] Use -globals . to load global variables in module namespace
 	    [Octave] Comment declaration of unimplemented function swig_register_director
 	    [Octave] Fix OCTAVE_PATH in octave Makefiles
-	    [Octave] Fix director_nspace test
-	    [Octave] Fix li_std_containers_int test
+	    [Octave] Add support for nspace feature - fix director_nspace test
+	    [Octave] Add support for std::list - fix li_std_containers_int test
 	    [Octave] Fix imports test
 
 2012-02-16: wsfulton
