@@ -3131,22 +3131,27 @@ private:
       Printv(action, Swig_cparm_name(NULL, 0), "->", upcall_method_name, "(", NULL);
 
       p = parms;
-      for (int i = 0; i < parm_count; ++i) {
-	p = getParm(p);
-	String *pname = Swig_cparm_name(NULL, i + 1);
-	if (i > 0) {
-	  Printv(action, ", ", NULL);
+      int i = 0;
+      while (p != NULL) {
+	if (SwigType_type(Getattr(p, "type")) != T_VOID) {
+	  String *pname = Swig_cparm_name(NULL, i + 1);
+	  if (i > 0) {
+	    Printv(action, ", ", NULL);
+	  }
+
+	  // A parameter whose type is a reference is converted into a
+	  // pointer type by gcCTypeForGoValue.  We are calling a
+	  // function which expects a reference so we need to convert
+	  // back.
+	  if (SwigType_isreference(Getattr(p, "type"))) {
+	    Printv(action, "*", NULL);
+	  }
+
+	  Printv(action, pname, NULL);
+	  Delete(pname);
+	  i++;
 	}
-	// A parameter whose type is a reference is converted into a
-	// pointer type by gcCTypeForGoValue.  We are calling a
-	// function which expects a reference so we need to convert
-	// back.
-	if (SwigType_isreference(Getattr(p, "type"))) {
-	  Printv(action, "*", NULL);
-	}
-	Printv(action, pname, NULL);
-	Delete(pname);
-	p = nextParm(p);
+	p = nextSibling(p);
       }
       Printv(action, ");", NULL);
       Setattr(n, "wrap:action", action);
@@ -3546,8 +3551,8 @@ private:
 
       Printv(w->code, "}", NULL);
 
-      Wrapper_print(w, f_c_directors);
       Replaceall(w->code, "$symname", symname);
+      Wrapper_print(w, f_c_directors);
 
       DelWrapper(w);
     }
@@ -4636,7 +4641,7 @@ private:
   }
 
   /* ----------------------------------------------------------------------
-   * gcCTypeForGoValue()
+   * gccgoCTypeForGoValue()
    *
    * Given a type, return the C/C++ type which will be used to catch
    * the value in Go.  This is the gccgo version.
