@@ -1,4 +1,4 @@
-%module template_typedef_virtual
+%module template_typedef_inherit
 
 // Bug 3378145
 
