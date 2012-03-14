@@ -1169,19 +1169,22 @@ r_clean:
 
 GO = @GO@
 GOGCC = @GOGCC@
+GO1 = @GO1@
+GOC = @GOC@
 
 GOSWIGARG = `if $(GOGCC) ; then echo -gccgo; fi`
-GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; fi`
+GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi`
 
 GOSRCS = $(INTERFACE:.i=.go)
 GOCSRCS = $(INTERFACE:.i=_gc.c)
 
-GOC = $(GO:g=c)
-GOLD = $(GO:g=l)
+GOLD = $(GOC:c=l)
+GOTOOL = `if $(GO1) ; then echo go tool; fi`
+GOPACK = `if $(GO1) ; then echo go tool pack; else echo gopack; fi`
 
 GOPACKAGE = $(INTERFACE:.i=.a)
 
-GOOBJEXT = $(GO:g=)
+GOOBJEXT = $(GOC:c=)
 GOGCOBJS = $(GOSRCS:.go=.$(GOOBJEXT))
 GOGCCOBJS = $(GOSRCS:.go=.@OBJEXT@)
 
@@ -1193,10 +1196,10 @@ go: $(SRCS)
 	$(SWIG) -go $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-	$(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(GOSRCS)
+	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
 	if ! $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
-	  $(COMPILETOOL) gopack grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
+	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
+	  $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
 	fi
 
 # ----------------------------------------------------------------
@@ -1207,10 +1210,10 @@ go_cpp: $(SRCS)
 	$(SWIG) -go -c++ $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-	$(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(GOSRCS)
+	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
 	if ! $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
-	  $(COMPILETOOL) gopack grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
+	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
+	  $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
 	fi
 
 # -----------------------------------------------------------------
@@ -1222,7 +1225,7 @@ go_run: runme.go
 	if $(GOGCC) ; then \
 	  $(COMPILETOOL) $(GO) -o runme runme.@OBJEXT@ $(GOGCCOBJS) $(LIBPREFIX)$(TARGET)$(SO); \
 	else \
-	  $(COMPILETOOL) $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
+	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
 	fi
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme
 
