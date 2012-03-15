@@ -6,6 +6,9 @@ Version 2.0.5 (in progress)
 ===========================
 
 2012-03-13: wsfulton
+            Apply patch #3468362 to fix %include inside %define.
+
+2012-03-13: wsfulton
             [Python, Ruby, Octave] Fix #3475492 - iterating through std::vector wrappers of enumerations.
 
 2012-02-27: xavier98 (patches from Karl Wette)
