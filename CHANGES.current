@@ -5,11 +5,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
-2012-03-15: wsfulton
-            Apply patch #3505530 to allow custom allocators in STL string classes for the UTL languages.
+2012-03-16: wsfulton
+            Apply patch #3392264 from Sebastien Bine to parse (unsigned) long long types in enum value assignment.
+
+2012-03-16: wsfulton
+            Apply patch #3505530 from Karl Wette to allow custom allocators in STL string classes for the UTL languages.
 
 2012-03-13: wsfulton
-            Apply patch #3468362 to fix %include inside %define.
+            Apply patch #3468362 from Karl Wette to fix %include inside %define.
 
 2012-03-13: wsfulton
             [Python, Ruby, Octave] Fix #3475492 - iterating through std::vector wrappers of enumerations.
