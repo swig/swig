@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2012-03-15: wsfulton
+            Apply patch #3505530 to allow custom allocators in STL string classes for the UTL languages.
+
 2012-03-13: wsfulton
             Apply patch #3468362 to fix %include inside %define.
 
