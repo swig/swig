@@ -23,6 +23,7 @@ char cvsroot_typemap_c[] = "$Id$";
 
 static int typemap_search_debug = 0;
 static int typemaps_used_debug = 0;
+static int typemap_register_debug = 0;
 static int in_typemap_search_multi = 0;
 
 static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper *f, Node *file_line_node);
@@ -191,9 +192,14 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
   String *tm_method;
   SwigType *type;
   String *pname;
-
   if (!parms)
     return;
+
+  if (typemap_register_debug) {
+      Printf(stdout, "Registering - %s\n", tmap_method);
+      Swig_print_node(parms);
+  }
+
   tm_method = typemap_method_name(tmap_method);
 
   /* Register the first type in the parameter list */
@@ -2062,5 +2068,15 @@ void Swig_typemap_search_debug_set(void) {
 
 void Swig_typemap_used_debug_set(void) {
   typemaps_used_debug = 1;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_typemap_register_debug_set()
+ *
+ * Turn on typemaps used debug display
+ * ----------------------------------------------------------------------------- */
+
+void Swig_typemap_register_debug_set(void) {
+  typemap_register_debug = 1;
 }
 

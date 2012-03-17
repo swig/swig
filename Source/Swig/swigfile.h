@@ -30,6 +30,7 @@ extern char   *Swig_file_suffix(const_String_or_char_ptr filename);
 extern char   *Swig_file_basename(const_String_or_char_ptr filename);
 extern char   *Swig_file_filename(const_String_or_char_ptr filename);
 extern char   *Swig_file_dirname(const_String_or_char_ptr filename);
+extern void   Swig_file_debug_set();
 
 /* Delimiter used in accessing files and directories */
 
