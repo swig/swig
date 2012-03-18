@@ -1107,12 +1107,11 @@ int R::OutputMemberReferenceMethod(String *className, int isSet,
     Printv(f->code, tab8, "f(x, value);\n", NIL);
     Printv(f->code, tab8, "x;\n", NIL); // make certain to return the S value.
   } else {
-    Printv(f->code, tab8, "formals(f)[[1]] = x;\n", NIL);
     if (varaccessor) {
       Printv(f->code, tab8,
-	     "if (is.na(match(name, vaccessors))) f else f(x);\n", NIL);
+	     "if (is.na(match(name, vaccessors))) function(...){f(x, ...)} else f(x);\n", NIL);
     } else {
-      Printv(f->code, tab8, "f;\n", NIL);
+      Printv(f->code, tab8, "function(...){f(x, ...)};\n", NIL);
     }
   }
   Printf(f->code, "}\n");
