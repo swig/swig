@@ -2614,6 +2614,13 @@ void R::main(int argc, char *argv[]) {
     if (cppcast) {
       Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
+
+    if (debugMode) {
+      Swig_typemap_search_debug_set();
+      Swig_typemap_used_debug_set();
+      Swig_typemap_register_debug_set();
+      Swig_file_debug_set();
+    }
     /// copyToR copyToC functions.
 
   }
