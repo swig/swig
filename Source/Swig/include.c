@@ -21,7 +21,7 @@ static List   *directories = 0;	        /* List of include directories */
 static String *lastpath = 0;	        /* Last file that was included */
 static List   *pdirectories = 0;        /* List of pushed directories  */
 static int     dopush = 1;		/* Whether to push directories */
-static int file_debug = 1;
+static int file_debug = 0;
 
 /* This functions determine whether to push/pop dirs in the preprocessor */
 void Swig_set_push_dir(int push) {
