@@ -292,6 +292,8 @@ public:
   int membervariableHandler(Node *n);
 
   int typedefHandler(Node *n);
+  static List *Swig_overload_rank(Node *n,
+			   bool script_lang_wrapping);
 
   int memberfunctionHandler(Node *n) {
     if (debugMode)
@@ -616,11 +618,16 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   for(i = 0; p; i++) {
     SwigType *tt = Getattr(p, "type");
     SwigType *name = Getattr(p, "name");
-    //       String   *lname  = Getattr(p,"lname");
-    Printf(f->def,  "%s %s", SwigType_str(tt, 0), name);
     String *tm = Getattr(p, "tmap:out");
-    if(tm) {
+    Printf(f->def,  "%s %s", SwigType_str(tt, 0), name);
+     if(tm) {
       Replaceall(tm, "$1", name);
+      if (SwigType_isreference(tt)) {
+	String *tmp = NewString("");
+        Append(tmp, "*");
+	Append(tmp, name);
+	Replaceall(tm, tmp, name);
+      }
       Replaceall(tm, "$result", "r_tmp");
       replaceRClass(tm, Getattr(p,"type"));
       Replaceall(tm,"$owner", "R_SWIG_EXTERNAL");
@@ -691,11 +698,14 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   
   Printv(f->code, "R_SWIG_popCallbackFunctionData(1);\n", NIL);
   Printv(f->code, "\n", UnProtectWrapupCode, NIL);
-  
-  if(!isVoidType)
+
+  if (SwigType_isreference(rettype)) {  
+    Printv(f->code,  "return *", Swig_cresult_name(), ";\n", NIL);
+  } else if(!isVoidType)
     Printv(f->code,  "return ", Swig_cresult_name(), ";\n", NIL);
   
   Printv(f->code, "\n}\n", NIL);
+  Replaceall(f->code, "SWIG_exception_fail", "SWIG_exception_noreturn");
   
   /* To coerce correctly in S, we really want to have an extra/intermediate
      function that handles the scoerceout. 
@@ -1292,8 +1302,6 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
     Printf(stdout, "Adding accessor: %s (%s) => %s\n", memberName, name, tmp);
 }
 
-#define Swig_overload_rank R_swig_overload_rank
-
 #define MAX_OVERLOAD 256
 
 struct Overloaded {
@@ -1304,7 +1312,7 @@ struct Overloaded {
 };
 
 
-static List * Swig_overload_rank(Node *n, 
+List * R::Swig_overload_rank(Node *n, 
 				 bool script_lang_wrapping) {
   Overloaded  nodes[MAX_OVERLOAD];
   int         nnodes = 0;
@@ -1362,7 +1370,9 @@ static List * Swig_overload_rank(Node *n,
 	  int   differ = 0;
 	  int   num_checked = 0;
 	  while (p1 && p2 && (num_checked < nodes[i].argc)) {
-	    //	  Printf(stdout,"p1 = '%s', p2 = '%s'\n", Getattr(p1,"type"), Getattr(p2,"type"));
+	    if (debugMode) {
+	      Printf(stdout,"p1 = '%s', p2 = '%s'\n", Getattr(p1,"type"), Getattr(p2,"type"));
+	    }
 	    if (checkAttribute(p1,"tmap:in:numinputs","0")) {
 	      p1 = Getattr(p1,"tmap:in:next");
 	      continue;
@@ -1373,6 +1383,9 @@ static List * Swig_overload_rank(Node *n,
 	    }
 	    String *t1 = Getattr(p1,"tmap:typecheck:precedence");
 	    String *t2 = Getattr(p2,"tmap:typecheck:precedence");
+	    if (debugMode) {
+	      Printf(stdout,"t1 = '%s', t2 = '%s'\n", t1, t2);
+	    }
 	    if ((!t1) && (!nodes[i].error)) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[i].n), Getline(nodes[i].n),
 			   "Overloaded method %s not supported (no type checking rule for '%s').\n",
@@ -1553,6 +1566,9 @@ void R::dispatchFunction(Node *n) {
 
   Printf(f->def,
 	 "`%s` <- function(...) {", sfname);
+  if (debugMode) {
+    Swig_print_node(n);
+  }
   List *dispatch = Swig_overload_rank(n, true);
   int   nfunc = Len(dispatch);
   Printv(f->code, 
@@ -1587,31 +1603,59 @@ void R::dispatchFunction(Node *n) {
       }
       Printv(f->code, "if (", NIL);
       for (p =pi, j = 0 ; j < num_arguments ; j++) {
+	if (debugMode) {
+	  Swig_print_node(p);
+	}
 	String *tm = Swig_typemap_lookup("rtype", p, "", 0);
 	if(tm) {
 	  replaceRClass(tm, Getattr(p, "type"));
 	}
+
+	String *tmcheck = Swig_typemap_lookup("rtypecheck", p, "", 0);
+	if (tmcheck) {
+
+	  String *tmp = NewString("");
+	  Printf(tmp, "argv[[%d]]", j+1);
+	  Replaceall(tmcheck, "$arg", tmp);
+	  Printf(tmp, "argtype[%d]", j+1);
+	  Replaceall(tmcheck, "$argtype", tmp);
+	  if (tm) {
+	    Replaceall(tmcheck, "$rtype", tm);
+	  }
+	  if (debugMode) {
+	    Printf(stdout, "<rtypecheck>%s\n", tmcheck);
+	  }
+	  Printf(f->code, "%s(%s)",
+		 j == 0? "" : " && ",
+		 tmcheck);
+	  p = Getattr(p, "tmap:in:next");
+	  continue;
+	} 
 	if (DohStrcmp(tm,"numeric")==0) {
-	Printf(f->code, "%sis.numeric(argv[[%d]])",
-	       j == 0 ? "" : " && ",
-	       j+1);
-	}
-	else if (DohStrcmp(tm,"integer")==0) {
-	Printf(f->code, "%s(is.integer(argv[[%d]]) || is.numeric(argv[[%d]]))",
-	       j == 0 ? "" : " && ",
-	       j+1, j+1);
-	}
-	else if (DohStrcmp(tm,"character")==0) {
-	Printf(f->code, "%sis.character(argv[[%d]])",
-	       j == 0 ? "" : " && ",
-	       j+1);
-	}
-	else {
-	Printf(f->code, "%sextends(argtypes[%d], '%s')",
-	       j == 0 ? "" : " && ",
-	       j+1,
-	       tm);
-	}
+	    Printf(f->code, "%sis.numeric(argv[[%d]])",
+		   j == 0 ? "" : " && ",
+		   j+1);
+	  }
+	  else if (DohStrcmp(tm,"integer")==0) {
+	    Printf(f->code, "%s(is.integer(argv[[%d]]) || is.numeric(argv[[%d]]))",
+		   j == 0 ? "" : " && ",
+		   j+1, j+1);
+	  }
+	  else if (DohStrcmp(tm,"character")==0) {
+	    Printf(f->code, "%sis.character(argv[[%d]])",
+		   j == 0 ? "" : " && ",
+		   j+1);
+	  }
+	  else {
+	    Printf(f->code, "%sextends(argtypes[%d], '%s')",
+		   j == 0 ? "" : " && ",
+		   j+1,
+		   tm);
+	  }
+	  if (!SwigType_ispointer(Getattr(p, "type"))) {
+	    Printf(f->code, " && length(argv[[%d]]) == 1",
+		   j+1);
+	  }
 	p = Getattr(p, "tmap:in:next");
       }
       Printf(f->code, ") { f <- %s%s; }\n", sfname, overname);
