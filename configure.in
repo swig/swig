@@ -2074,6 +2074,10 @@ else
   if test -n "$GO" ; then
     if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
       GOGCC=true
+      go_version=`$GO --version | sed -e 's/[^0-9]* \([0-9.]*\) .*$/\1/' -e 's/[.]//g'`
+      if test "$go_version" -lt 470; then
+        AC_DEFINE(HAVE_GCCGO_46, 1, [Define if using gccgo before 4.7.0])
+      fi
     elif test "`echo $GO | sed -e 's|.*/||'`" = "go"; then
       GO1=true
       GOC=$(sh -c "$(go env) && echo \$GOCHAR")c

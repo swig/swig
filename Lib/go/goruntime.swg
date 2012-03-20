@@ -117,6 +117,16 @@ import _ "runtime/cgo"
 
 %}
 
+#else
+
+%insert(go_header) %{
+
+import "syscall"
+
+type _ syscall.Sockaddr
+
+%}
+
 #endif
 
 /* Function pointers are translated by the code in go.cxx into
