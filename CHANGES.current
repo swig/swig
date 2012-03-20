@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2012-03-20: wsfulton
+            Fix #3487706 and #3391906 - missing stddef.h include for ptrdiff_t when using %import
+            for STL containers and compiling with g++-4.6. An include of stddef.h is now only
+            generated when SWIG generates STL helper templates which require ptrdiff_t. If you 
+            were previously relying on "#include <stddef.h>" always being generated when using a
+            %include of an STL header, you may now need to add this in manually.
+
 2012-03-16: wsfulton
             Apply patch #3392264 from Sebastien Bine to parse (unsigned) long long types in enum value assignment.
 

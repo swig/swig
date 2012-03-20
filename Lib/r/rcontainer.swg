@@ -8,7 +8,7 @@
 
 
 
-%fragment("RSequence_Base","header")
+%fragment("RSequence_Base","header",fragment="<stddef.h>")
 {
 %#include <functional>
 namespace swig {
