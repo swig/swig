@@ -50,13 +50,19 @@
 %typemap("rtypecheck") bool, bool &
   %{ is.logical($arg) && length($arg) == 1 %}
 %typemap("rtypecheck") bool *
-  %{ is.logical($arg) % }
+  %{ is.logical($arg) %}
 
 /*
   Set up type checks to insure overloading precedence.
   We would like non pointer items to shadow pointer items, so that 
   they get called if length = 1
 */
+
+%typecheck(SWIG_TYPECHECK_BOOL) bool {}
+%typecheck(SWIG_TYPECHECK_UINT32) unsigned int {}
+%typecheck(SWIG_TYPECHECK_INTEGER) int {}
+%typecheck(SWIG_TYPECHECK_FLOAT) float {}
+%typecheck(SWIG_TYPECHECK_DOUBLE) double {}
 
 %typecheck(SWIG_TYPECHECK_BOOL_PTR) bool * {}
 %typecheck(SWIG_TYPECHECK_INT32_PTR) int * {}
