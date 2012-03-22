@@ -2,34 +2,31 @@
  * C-type: bool
  * Scilab type: boolean scalar
  */
-%fragment(SWIG_AsVal_frag(bool), "header", fragment="SWIG_SciBoolean_AsBool") {
-#define SWIG_AsVal_bool(scilabValue, valuePointer) SWIG_SciBoolean_AsBool(pvApiCtx, scilabValue, valuePointer, fname)
-}
-%fragment("SWIG_SciBoolean_AsBool", "header") {
+%fragment(SWIG_AsVal_frag(bool), "header") {
 SWIGINTERN int
-SWIG_SciBoolean_AsBool(void *_pvApiCtx, int _iVar, bool *_pbValue, char *_fname) {
+SWIG_AsVal_dec(bool)(SciObject _iVar, bool *_pbValue) {
   SciErr sciErr;
   int iRet = 0;
   int *piAddrVar = NULL;
   int iTempValue = 0;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  if (!isBooleanType(_pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A boolean expected.\n"), _fname, _iVar);
+  if (!isBooleanType(pvApiCtx, piAddrVar)) {
+      Scierror(999, _("%s: Wrong type for input argument #%d: A boolean expected.\n"), SWIG_Scilab_GetFname(), _iVar);
     return SWIG_ERROR;
   }
 
-  if (!isScalar(_pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A boolean expected.\n"), _fname, _iVar);
+  if (!isScalar(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong size for input argument #%d: A boolean expected.\n"), SWIG_Scilab_GetFname(), _iVar);
     return SWIG_ERROR;
   }
 
-  iRet = getScalarBoolean(_pvApiCtx, piAddrVar, &iTempValue);
+  iRet = getScalarBoolean(pvApiCtx, piAddrVar, &iTempValue);
   if (iRet) {
     return SWIG_ERROR;
   }
@@ -40,20 +37,18 @@ SWIG_SciBoolean_AsBool(void *_pvApiCtx, int _iVar, bool *_pbValue, char *_fname)
 }
 }
 
-%fragment(SWIG_From_frag(bool), "header", fragment="SWIG_SciBoolean_FromBool") {
-#define SWIG_From_bool(value) SWIG_SciBoolean_FromBool(pvApiCtx, $result, value)
-}
-%fragment("SWIG_SciBoolean_FromBool", "header") {
+%fragment(SWIG_From_frag(bool), "header") {
 SWIGINTERN int
-SWIG_SciBoolean_FromBool(void *_pvApiCtx, int _iVarOut, bool _bValue) {
+SWIG_From_dec(bool)(bool _bValue) {
   int iRet = 0;
+  int iVarOut = Rhs + SWIG_Scilab_GetOutputPosition();
 
-  iRet = createScalarBoolean(_pvApiCtx, Rhs + _iVarOut, _bValue);
+  iRet = createScalarBoolean(pvApiCtx, iVarOut, _bValue);
   if (iRet) {
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return iVarOut;
 }
 }
 

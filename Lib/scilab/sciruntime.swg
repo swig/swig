@@ -1,5 +1,6 @@
 %insert(runtime) "swigrun.swg";
 %insert(runtime) "swigerrors.swg";
+%insert(runtime) "scirun.swg";
 
 // Error message will be displayed inside Scilab fragment functions
 // and the following line Will not work because code is not an int
@@ -24,11 +25,13 @@ extern "C" {
 #undef Max
 #undef Min
 
+typedef int SciObject;
+
 #define SWIG_fail                 return SWIG_ERROR;
 #define SWIG_Error                return SWIG_ERROR;
 
 /* Used for C++ enums */
-#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciDouble_AsInt(pvApiCtx, scilabValue, valuePointer, fname)
+//#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciDouble_AsInt(pvApiCtx, scilabValue, valuePointer, fname)
 
 SWIGINTERN int
 SwigScilabPtrToObject(void *_pvApiCtx, int _iVar, void **_pObjValue, swig_type_info *_descriptor, int _flags, char *_fname) {
@@ -163,15 +166,14 @@ SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swi
   return Rhs + _iVarOut;
 }
 
-#define SwigScilabSetOutput(outputNumber, outputPosition)\
-{\
-/* Create a temporary variable to avoid calling function given as outputPosition two times */\
-int stackPosition = outputPosition;\
-if (stackPosition < 0) {\
-  return SWIG_ERROR;\
-}\
-LhsVar(outputNumber) = stackPosition;\
-return SWIG_OK; \
+SWIGRUNTIME int
+SWIG_Scilab_SetOutput(SciObject _output) {
+  int outputPosition = SWIG_Scilab_GetOutputPositionAndReset();
+  if (outputPosition < 0 || _output < 0) {
+      return SWIG_ERROR;
+  }
+  LhsVar(outputPosition) = _output;
+  return SWIG_OK;
 }
 
 #define SwigScilabRaise(OBJ, TYPE, DESC) Scierror(999, "C++ side threw an exception of type %s.\n", TYPE)

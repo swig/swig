@@ -258,6 +258,7 @@ public:
     /* Insert calls to CheckRhs and CheckLhs */
     Printf(wrapper->code, "CheckRhs($mininputarguments, $maxinputarguments);\n");
     Printf(wrapper->code, "CheckLhs($minoutputarguments, $maxoutputarguments);\n");
+    Printf(wrapper->code, "SWIG_Scilab_SetFname(fname);\n");
 
     for (paramIndex = 0, param = functionParamsList; paramIndex < maxInputArguments; ++paramIndex) {
 
@@ -312,6 +313,9 @@ public:
     String *functionReturnTypemap = Swig_typemap_lookup_out("out", node, "result", wrapper, functionActionCode);
     if (functionReturnTypemap) {
       // Result is actually the position of output value on stack
+      if (Len(functionReturnTypemap) > 0) {
+        Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* functionReturnTypemap */ \n", 1);
+      }
       Replaceall(functionReturnTypemap, "$result", "1");
 
       if (GetFlag(node, "feature:new")) {
@@ -340,6 +344,7 @@ public:
       if (paramTypemap) {
         minOutputArguments++;
         maxOutputArguments++;
+        Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* paramTypemap */ \n", minOutputArguments);
         char result[64] = {};
         sprintf(result, "%d", minOutputArguments);
         Replaceall(paramTypemap, "$result", result);
@@ -353,7 +358,7 @@ public:
     /* Add cleanup code */
 
     /* Close the function(ok) */
-    Printv(wrapper->code, "return 0;\n", NIL);
+    Printv(wrapper->code, "return SWIG_OK;\n", NIL);
     Printv(wrapper->code, "}\n", NIL);
 
     /* Add the failure cleanup code */
@@ -426,7 +431,7 @@ public:
     /* Dump the dispatch function */
     Printv(wrapper->code, dispatch, "\n", NIL);
     Printf(wrapper->code, "Scierror(999, _(\"No matching function for overload\"));\n");
-    Printf(wrapper->code, "return 0;\n");
+    Printf(wrapper->code, "return SWIG_OK;\n");
     Printv(wrapper->code, "}\n", NIL);
     Wrapper_print(wrapper, wrappersSection);
 
@@ -458,11 +463,13 @@ public:
 
     String *varoutTypemap = Swig_typemap_lookup("varout", node, origVariableName, 0);
     if (varoutTypemap != NULL) {
+      Printf(getFunctionWrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* varoutTypemap */ \n", 1);
       Replaceall(varoutTypemap, "$value", origVariableName);
       Replaceall(varoutTypemap, "$result", "1");
       emit_action_code(node, getFunctionWrapper->code, varoutTypemap);
       Delete(varoutTypemap);
     }
+    Append(getFunctionWrapper->code, "return SWIG_OK;\n");
     Append(getFunctionWrapper->code, "}\n");
     Wrapper_print(getFunctionWrapper, wrappersSection);
 
@@ -487,6 +494,7 @@ public:
         emit_action_code(node, setFunctionWrapper->code, varinTypemap);
         Delete(varinTypemap);
       }
+      Append(setFunctionWrapper->code, "return SWIG_OK;\n");
       Append(setFunctionWrapper->code, "}\n");
       Wrapper_print(setFunctionWrapper, wrappersSection);
 
@@ -520,6 +528,7 @@ public:
 
     constantTypemap = Swig_typemap_lookup("constcode", node, nodeName, 0);
     if (constantTypemap != NULL) {
+      Printf(getFunctionWrapper->code, "SWIG_Scilab_SetOutputPosition(%d); /* constantTypemap */ \n", 1);
       Replaceall(constantTypemap, "$value", constantValue);
       Replaceall(constantTypemap, "$result", "1");
       emit_action_code(node, getFunctionWrapper->code, constantTypemap);
@@ -527,6 +536,7 @@ public:
     }
 
     /* Dump the wrapper function */
+    Append(getFunctionWrapper->code, "return SWIG_OK;\n");
     Append(getFunctionWrapper->code, "}\n");
     Wrapper_print(getFunctionWrapper, wrappersSection);
 

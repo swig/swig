@@ -10,12 +10,12 @@
 // In Scilab, returning void is ignored (no typemap associated)
 //#define VOID_Object                      ScilabObject
 
-#define %append_output(obj)         SwigScilabSetOutput($result, obj)
-#define %set_constant(name, obj)    SwigScilabSetOutput($result, obj) // Name is managed by the the function name
+#define %append_output(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(obj))) return SWIG_ERROR
+#define %set_constant(name, obj)    if (!SWIG_IsOK(SWIG_Scilab_SetOutput(obj))) return SWIG_ERROR // Name is managed by the the function name
 #define %raise(obj, type, desc)     SwigScilabRaise(obj, type, desc)
-#define %set_output(obj)            SwigScilabSetOutput($result, obj);
-#define %set_varoutput(obj)         SwigScilabSetOutput($result, obj);
-#define %set_argoutput(obj)         SwigScilabSetOutput($result, obj);
+#define %set_output(obj)            if (!SWIG_IsOK(SWIG_Scilab_SetOutput(obj))) return SWIG_ERROR
+#define %set_varoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(obj))) return SWIG_ERROR
+#define %set_argoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(obj))) return SWIG_ERROR
 
 // Include the unified typemap library
 %include <typemaps/swigtypemaps.swg>
@@ -123,7 +123,7 @@
 /**************/
 %scilab_asarrayandsize_withcopy(varin, SWIG_SciDouble_AsDoubleArrayAndSize, double[ANY], double);
 %typemap(varout, noblock=1, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") double[ANY] {
-  %set_output(SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1))
+  %set_output(SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
 }
 %apply SWIGTYPE[] { double[] }; /* double[] variables managed as pointers */
 %scilab_asarray_withcopy(in, SWIG_SciDouble_AsDoubleArrayAndSize, double[], double);
@@ -147,10 +147,10 @@
 }
 %scilab_asarrayandsize_withcopy(varin, SWIG_SciInt8_AsSignedCharArrayAndSize, signed char[ANY], signed char);
 %typemap(varout, noblock=1, fragment="SWIG_SciInt8_FromSignedCharArrayAndSize") signed char[ANY] {
-  %set_output(SWIG_SciInt8_FromSignedCharArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1))
+  %set_output(SWIG_SciInt8_FromSignedCharArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
 }
 %typemap(varout, noblock=1, fragment="SWIG_SciInt8_FromSignedCharArrayAndSize") signed char[] {
-  %set_output(SWIG_SciInt8_FromSignedCharArrayAndSize(pvApiCtx, $result, 1, strlen((const char*)$1), $1))
+  %set_output(SWIG_SciInt8_FromSignedCharArrayAndSize(pvApiCtx, $result, 1, strlen((const char*)$1), $1));
 }
 
 /*********************/
@@ -173,10 +173,10 @@
 
 %scilab_asarrayandsize_withcopy(varin, SWIG_SciUint8_AsUnsignedCharArrayAndSize, unsigned char[ANY], unsigned char);
 %typemap(varout, noblock=1, fragment="SWIG_SciUint8_FromUnsignedCharArrayAndSize") unsigned char[ANY] {
-  %set_output(SWIG_SciUint8_FromUnsignedCharArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1))
+  %set_output(SWIG_SciUint8_FromUnsignedCharArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
 }
 %typemap(varout, noblock=1, fragment="SWIG_SciUint8_FromUnsignedCharArrayAndSize") unsigned char[] {
-  %set_output(SWIG_SciUint8_FromUnsignedCharArrayAndSize(pvApiCtx, $result, 1, strlen((const char*)$1), $1))
+  %set_output(SWIG_SciUint8_FromUnsignedCharArrayAndSize(pvApiCtx, $result, 1, strlen((const char*)$1), $1));
 }
 
 /*************/
@@ -184,7 +184,7 @@
 /*************/
 %scilab_asarrayandsize_withcopy(varin, SWIG_SciInt16_AsShortArrayAndSize, short[ANY], short);
 %typemap(varout, noblock=1, fragment="SWIG_SciInt16_FromShortArrayAndSize") short[ANY] {
-  %set_output(SWIG_SciInt16_FromShortArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1))
+  %set_output(SWIG_SciInt16_FromShortArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
 }
 %apply SWIGTYPE[] { short[] }; /* short[] variables managed as pointers */
 %scilab_asarray_withcopy(in, SWIG_SciInt16_AsShortArrayAndSize, short[], short);
@@ -196,7 +196,7 @@
 /**********************/
 %scilab_asarrayandsize_withcopy(varin, SWIG_SciUint16_AsUnsignedShortArrayAndSize, unsigned short[ANY], unsigned short);
 %typemap(varout, noblock=1, fragment="SWIG_SciUint16_FromUnsignedShortArrayAndSize") unsigned short[ANY] {
-  %set_output(SWIG_SciUint16_FromUnsignedShortArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1))
+  %set_output(SWIG_SciUint16_FromUnsignedShortArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
 }
 %apply SWIGTYPE[] { unsigned short[] }; /* unsigned short[] variables managed as pointers */
 %scilab_asarray_withcopy(in, SWIG_SciUint16_AsUnsignedShortArrayAndSize, unsigned short[], unsigned short);
@@ -206,7 +206,7 @@
 /***********/
 %scilab_asarrayandsize_withcopy(varin, SWIG_SciInt32_AsIntArrayAndSize, int[ANY], int);
 %typemap(varout, noblock=1, fragment="SWIG_SciInt32_FromIntArrayAndSize") int[ANY] {
-  %set_output(SWIG_SciInt32_FromIntArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1))
+  %set_output(SWIG_SciInt32_FromIntArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
 }
 %apply SWIGTYPE[] { int[] }; /* int[] variables managed as pointers */
 %scilab_asarray_withcopy(in, SWIG_SciInt32_AsIntArrayAndSize, int[], int);
@@ -216,7 +216,7 @@
 /********************/
 %scilab_asarrayandsize_withcopy(varin, SWIG_SciUint32_AsUnsignedIntArrayAndSize, unsigned int[ANY], unsigned int);
 %typemap(varout, noblock=1, fragment="SWIG_SciUint32_FromUnsignedIntArrayAndSize") unsigned int[ANY] {
-  %set_output(SWIG_SciUint32_FromUnsignedIntArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1))
+  %set_output(SWIG_SciUint32_FromUnsignedIntArrayAndSize(pvApiCtx, $result, 1, $1_dim0, $1));
 }
 %apply SWIGTYPE[] { unsigned int[] }; /* unsigned int[] variables managed as pointers */
 %scilab_asarray_withcopy(in, SWIG_SciUint32_AsUnsignedIntArrayAndSize, unsigned int[], unsigned int);
@@ -226,7 +226,7 @@
 /*************/
 %scilab_asarrayandsize_withcopy(varin, SWIG_SciDouble_AsDoubleArrayAndSize, float[ANY], double);
 %typemap(varout, noblock=1, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") float[ANY] {
-  %set_output(SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, $result, 1, $1_dim0, (double*) $1))
+  %set_output(SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, $result, 1, $1_dim0, (double*) $1));
 }
 %apply SWIGTYPE[] { float[] }; /* float[] variables managed as pointers */
 %scilab_asarray_withcopy(in, SWIG_SciDouble_AsDoubleArrayAndSize, float[], double);
@@ -242,7 +242,7 @@
 /************/
 %scilab_asarrayandsize_withcopy(varin, SWIG_SciDouble_AsDoubleArrayAndSize, long[ANY], double);
 %typemap(varout, noblock=1, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") long[ANY] {
-  %set_output(SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, $result, 1, $1_dim0, (double*) $1))
+  %set_output(SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, $result, 1, $1_dim0, (double*) $1));
 }
 %apply SWIGTYPE[] { long[] }; /* long[] variables managed as pointers */
 %scilab_asarray_withcopy(in, SWIG_SciDouble_AsDoubleArrayAndSize, long[], double);
@@ -252,7 +252,7 @@
 /*********************/
 %scilab_asarrayandsize_withcopy(varin, SWIG_SciDouble_AsDoubleArrayAndSize, unsigned long[ANY], double);
 %typemap(varout, noblock=1, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") unsigned long[ANY] {
-  %set_output(SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, $result, 1, $1_dim0, (double*) $1))
+  %set_output(SWIG_SciDouble_FromDoubleArrayAndSize(pvApiCtx, $result, 1, $1_dim0, (double*) $1));
 }
 %apply SWIGTYPE[] { unsigned long[] }; /* long[] variables managed as pointers */
 %scilab_asarray_withcopy(in, SWIG_SciDouble_AsDoubleArrayAndSize, unsigned long[], double);
@@ -368,4 +368,4 @@
 %typecheck(SWIG_TYPECHECK_BOOL_ARRAY)   bool                                    { SCILAB_TYPECHECK(isBooleanType)       }
 %typecheck(SWIG_TYPECHECK_STRING_ARRAY) char **                                 { SCILAB_TYPECHECK(isStringType)       }
 
-%apply int { size_t };
+//%apply int { size_t };

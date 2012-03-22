@@ -2,14 +2,11 @@
  * C-type: short
  * Scilab type: double scalar
  */
-%fragment(SWIG_AsVal_frag(short), "header", fragment="SWIG_SciDouble_AsShort") {
-#define SWIG_AsVal_short(scilabValue, valuePointer) SWIG_SciDouble_AsShort(pvApiCtx, scilabValue, valuePointer, fname)
-}
-%fragment("SWIG_SciDouble_AsShort", "header", fragment="SWIG_SciDouble_AsInt") {
+%fragment(SWIG_AsVal_frag(short), "header", fragment=SWIG_AsVal_frag(int)) {
 SWIGINTERN int
-SWIG_SciDouble_AsShort(void *_pvApiCtx, int _iVar, short *_pshValue, char *_fname) {
+SWIG_AsVal_dec(short)(SciObject _iVar, short *_pshValue) {
   int iValue = 0.0;
-  if(SWIG_SciDouble_AsInt(_pvApiCtx, _iVar, &iValue, _fname) != SWIG_OK) {
+  if(SWIG_AsVal_dec(int)(_iVar, &iValue) != SWIG_OK) {
     return SWIG_ERROR;
   }
   *_pshValue = (short) iValue;
@@ -17,14 +14,11 @@ SWIG_SciDouble_AsShort(void *_pvApiCtx, int _iVar, short *_pshValue, char *_fnam
 }
 }
 
-%fragment(SWIG_From_frag(short), "header", fragment="SWIG_SciDouble_FromShort") {
-#define SWIG_From_short(value) SWIG_SciDouble_FromShort(pvApiCtx, $result, value)
-}
-%fragment("SWIG_SciDouble_FromShort", "header", fragment="SWIG_SciDouble_FromInt") {
+%fragment(SWIG_From_frag(short), "header", fragment=SWIG_From_frag(int)) {
 SWIGINTERN int
-SWIG_SciDouble_FromShort(void *_pvApiCtx, int _iVarOut, short _shValue) {
+SWIG_From_dec(short)(short _shValue) {
   int iValue = (int) _shValue;
-  return SWIG_SciDouble_FromInt(pvApiCtx, _iVarOut, iValue);
+  return SWIG_From_dec(int)(iValue);
 }
 }
 

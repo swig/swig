@@ -49,8 +49,8 @@ or you can use the %apply directive :
         double fadd(double *a, double *b);
 
 */
-%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsInt") int *INPUT(int temp), int &INPUT(int temp) {
-  if (SWIG_SciDouble_AsInt(pvApiCtx, $input, &temp, fname) != SWIG_OK) {
+%typemap(in, noblock=1, fragment=SWIG_AsVal_frag(int)) int *INPUT(int temp), int &INPUT(int temp) {
+  if (SWIG_AsVal_dec(int)($input, &temp) != SWIG_OK) {
     SWIG_fail;
   }
   $1 = &temp;
@@ -65,8 +65,8 @@ or you can use the %apply directive :
 //unsigned char  *INPUT
 //bool           *INPUT
 //float          *INPUT
-%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsDouble") double *INPUT(double temp), double &INPUT(double temp) {
-  if (SWIG_SciDouble_AsDouble(pvApiCtx, $input, &temp, fname) != SWIG_OK) {
+%typemap(in, noblock=1, fragment=SWIG_AsVal_frag(double)) double *INPUT(double temp), double &INPUT(double temp) {
+  if (SWIG_AsVal_dec(double)($input, &temp) != SWIG_OK) {
     SWIG_fail;
   }
   $1 = &temp;
@@ -119,8 +119,8 @@ output values.
 
 */
 
-%typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromInt") int *OUTPUT, int &OUTPUT {
-  SwigScilabSetOutput($result, SWIG_SciDouble_FromInt(pvApiCtx, $result, *$1));
+%typemap(argout, noblock=1, fragment=SWIG_From_frag(int)) int *OUTPUT, int &OUTPUT {
+  %set_output(SWIG_From_dec(int)(*$1));
 }
 //short          *OUTPUT
 //long           *OUTPUT
@@ -133,8 +133,8 @@ output values.
 //bool           *OUTPUT
 //float          *OUTPUT
 //double         *OUTPUT
-%typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromDouble") double *OUTPUT, double &OUTPUT {
-  SwigScilabSetOutput($result, SWIG_SciDouble_FromDouble(pvApiCtx, $result, *$1));
+%typemap(argout, noblock=1, fragment=SWIG_From_frag(double)) double *OUTPUT, double &OUTPUT {
+    %set_output(SWIG_From_dec(double)(*$1));
 }
 
 // INOUT

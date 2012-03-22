@@ -2,17 +2,22 @@
  * C-type: int
  * Scilab type: double scalar
  */
-%fragment(SWIG_AsVal_frag(int), "header", fragment="SWIG_SciDouble_AsInt") {
-#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciDouble_AsInt(pvApiCtx, scilabValue, valuePointer, fname)
-}
-%fragment(SWIG_AsVal_frag(size_t), "header", fragment="SWIG_SciDouble_AsInt") {
-#define SWIG_AsVal_size_t(scilabValue, valuePointer) SWIG_SciDouble_AsInt(pvApiCtx, scilabValue, (int*)valuePointer, fname)
-}
-%fragment("SWIG_SciDouble_AsInt", "header", fragment="SWIG_SciDouble_AsDouble") {
+%fragment(SWIG_AsVal_frag(int), "header", fragment=SWIG_AsVal_frag(double)) {
 SWIGINTERN int
-SWIG_SciDouble_AsInt(void *_pvApiCtx, int _iVar, int *_piValue, char *_fname) {
+SWIG_AsVal_dec(int)(SciObject _iVar, int *_piValue) {
   double dblValue = 0.0;
-  if(SWIG_SciDouble_AsDouble(_pvApiCtx, _iVar, &dblValue, _fname) != SWIG_OK) {
+  if(SWIG_AsVal_dec(double)(_iVar, &dblValue) != SWIG_OK) {
+    return SWIG_ERROR;
+  }
+  *_piValue = (int) dblValue;
+  return SWIG_OK;
+}
+}
+%fragment(SWIG_AsVal_frag(size_t), "header", fragment=SWIG_AsVal_frag(double)) {
+SWIGINTERN int
+SWIG_AsVal_dec(size_t)(SciObject _iVar, size_t *_piValue) {
+  double dblValue = 0.0;
+  if(SWIG_AsVal_dec(double)(_iVar, &dblValue) != SWIG_OK) {
     return SWIG_ERROR;
   }
   *_piValue = (int) dblValue;
@@ -20,27 +25,40 @@ SWIG_SciDouble_AsInt(void *_pvApiCtx, int _iVar, int *_piValue, char *_fname) {
 }
 }
 
-%fragment(SWIG_From_frag(int), "header", fragment="SWIG_SciDouble_FromInt") {
-#define SWIG_From_int(value) SWIG_SciDouble_FromInt(pvApiCtx, $result, value)
-}
-%fragment(SWIG_From_frag(size_t), "header", fragment="SWIG_SciDouble_FromInt") {
-#define SWIG_From_size_t(value) SWIG_SciDouble_FromInt(pvApiCtx, $result, (int)value)
-}
-%fragment("SWIG_SciDouble_FromInt", "header") {
+%fragment(SWIG_From_frag(int), "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromInt(void *_pvApiCtx, int _iVarOut, int _iValue) {
+SWIG_From_dec(int)(int _iValue) {
   SciErr sciErr;
   double dblDoubleValue = (double) _iValue;
   int iRowsOut = 1;
   int iColsOut = 1;
+  int iVarOut = Rhs + SWIG_Scilab_GetOutputPosition();
 
-  sciErr = createMatrixOfDouble(_pvApiCtx, Rhs + _iVarOut, iRowsOut, iColsOut, &dblDoubleValue);
+  sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, &dblDoubleValue);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return iVarOut;
+}
+}
+%fragment(SWIG_From_frag(size_t), "header") {
+SWIGINTERN int
+SWIG_From_dec(size_t)(size_t _iValue) {
+  SciErr sciErr;
+  double dblDoubleValue = (double) _iValue;
+  int iRowsOut = 1;
+  int iColsOut = 1;
+  int iVarOut = Rhs + SWIG_Scilab_GetOutputPosition();
+
+  sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, iRowsOut, iColsOut, &dblDoubleValue);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  return iVarOut;
 }
 }
 /*

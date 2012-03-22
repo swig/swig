@@ -1,37 +1,30 @@
 /*
  * DOUBLE SCALAR
  */
-%fragment(SWIG_AsVal_frag(double), "header", fragment="SWIG_SciDouble_AsDouble") {
-#define SWIG_AsVal_double(scilabValue, valuePointer) SWIG_SciDouble_AsDouble(pvApiCtx, scilabValue, valuePointer, fname)
-}
-%fragment(SWIG_From_frag(double), "header", fragment="SWIG_SciDouble_FromDouble") {
-#define SWIG_From_double(value) SWIG_SciDouble_FromDouble(pvApiCtx, $result, value)
-}
-
-%fragment("SWIG_SciDouble_AsDouble", "header") {
+%fragment(SWIG_AsVal_frag(double), "header") {
 SWIGINTERN int
-SWIG_SciDouble_AsDouble(void *_pvApiCtx, int _iVar, double *_pdblValue, char *_fname) {
+SWIG_AsVal_dec(double)(SciObject _iVar, double *_pdblValue) {
   SciErr sciErr;
   int iRet = 0;
   int *piAddrVar = NULL;
 
-  sciErr = getVarAddressFromPosition(_pvApiCtx, _iVar, &piAddrVar);
+  sciErr = getVarAddressFromPosition(pvApiCtx, _iVar, &piAddrVar);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
   }
 
-  if (!isDoubleType(_pvApiCtx, piAddrVar) || isVarComplex(_pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong type for input argument #%d: A real expected.\n"), _fname, _iVar);
+  if (!isDoubleType(pvApiCtx, piAddrVar) || isVarComplex(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong type for input argument #%d: A real expected.\n"), SWIG_Scilab_GetFname(), _iVar);
     return SWIG_ERROR;
   }
 
-  if (!isScalar(_pvApiCtx, piAddrVar)) {
-    Scierror(999, _("%s: Wrong size for input argument #%d: A real expected.\n"), _fname, _iVar);
+  if (!isScalar(pvApiCtx, piAddrVar)) {
+    Scierror(999, _("%s: Wrong size for input argument #%d: A real expected.\n"), SWIG_Scilab_GetFname(), _iVar);
     return SWIG_ERROR;
   }
 
-  iRet = getScalarDouble(_pvApiCtx, piAddrVar, _pdblValue);
+  iRet = getScalarDouble(pvApiCtx, piAddrVar, _pdblValue);
   if (iRet) {
     return SWIG_ERROR;
   }
@@ -40,17 +33,17 @@ SWIG_SciDouble_AsDouble(void *_pvApiCtx, int _iVar, double *_pdblValue, char *_f
 }
 }
 
-%fragment("SWIG_SciDouble_FromDouble", "header") {
+%fragment(SWIG_From_frag(double), "header") {
 SWIGINTERN int
-SWIG_SciDouble_FromDouble(void *_pvApiCtx, int _iVarOut, double _dblValue) {
+SWIG_From_dec(double)(double _dblValue) {
   int iRet;
-
-  iRet = createScalarDouble(_pvApiCtx, Rhs + _iVarOut, _dblValue);
+  int iVarOut = Rhs + SWIG_Scilab_GetOutputPosition();
+  iRet = createScalarDouble(pvApiCtx, iVarOut, _dblValue);
   if (iRet) {
     return SWIG_ERROR;
   }
 
-  return Rhs + _iVarOut;
+  return iVarOut;
 }
 }
 
