@@ -784,7 +784,7 @@ int DohIsString(const DOH *obj) {
   if (!DohCheck(b))
     return 0;
   objinfo = b->type;
-  if (objinfo && objinfo->doh_string)
+  if (objinfo->doh_string)
     return 1;
   else
     return 0;
