@@ -363,9 +363,9 @@ SWIG_R_ConvertPacked(SEXP obj, void *ptr, size_t sz, swig_type_info *ty) {
 
 #ifdef __cplusplus
 #include <exception>
-#define SWIG_exception_noreturn(code, msg) do { throw std::runtime_error(msg); } while(0);
+#define SWIG_exception_noreturn(code, msg) do { throw std::runtime_error(msg); } while(0)
 #else
-#define SWIG_exception_noreturn(code, msg) do { return result; } while(0);
+#define SWIG_exception_noreturn(code, msg) do { return result; } while(0)
 #endif
 
 #ifdef __cplusplus
