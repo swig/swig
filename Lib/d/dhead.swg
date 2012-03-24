@@ -83,7 +83,7 @@ static import tango.stdc.stringz;
 %pragma(d) imdmodulecode=%{
 private class SwigExceptionHelper {
   static this() {
-    swigRegisterExceptionCallbacks(
+    swigRegisterExceptionCallbacks$module(
       &setException,
       &setIllegalArgumentException,
       &setIllegalElementException,
@@ -91,31 +91,31 @@ private class SwigExceptionHelper {
       &setNoSuchElementException);
   }
 
-  static void setException(char* message) {
+  static void setException(const char* message) {
     auto exception = new object.Exception(tango.stdc.stringz.fromStringz(message).dup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
-  static void setIllegalArgumentException(char* message) {
+  static void setIllegalArgumentException(const char* message) {
     auto exception = new tango.core.Exception.IllegalArgumentException(tango.stdc.stringz.fromStringz(message).dup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
-  static void setIllegalElementException(char* message) {
+  static void setIllegalElementException(const char* message) {
     auto exception = new tango.core.Exception.IllegalElementException(tango.stdc.stringz.fromStringz(message).dup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
-  static void setIOException(char* message) {
+  static void setIOException(const char* message) {
     auto exception = new tango.core.Exception.IOException(tango.stdc.stringz.fromStringz(message).dup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
-  static void setNoSuchElementException(char* message) {
+  static void setNoSuchElementException(const char* message) {
     auto exception = new tango.core.Exception.NoSuchElementException(tango.stdc.stringz.fromStringz(message).dup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
@@ -174,7 +174,7 @@ private:
   alias tango.core.Thread.ThreadLocal!(object.Exception) ThreadLocalData;
   static ThreadLocalData m_sPendingException;
 }
-alias void function(char* message) SwigExceptionCallback;
+alias void function(const char* message) SwigExceptionCallback;
 %}
 #else
 %pragma(d) imdmoduleimports=%{
@@ -185,7 +185,7 @@ static import std.conv;
 private class SwigExceptionHelper {
   static this() {
 	// The D1/Tango version maps C++ exceptions to multiple exception types.
-    swigRegisterExceptionCallbacks(
+    swigRegisterExceptionCallbacks$module(
       &setException,
       &setException,
       &setException,
@@ -283,7 +283,7 @@ SWIGEXPORT void SWIGRegisterStringCallback_$module(SWIG_DStringHelperCallback ca
 %pragma(d) imdmodulecode = %{
 private class SwigStringHelper {
   static this() {
-    swigRegisterStringCallback(&createString);
+    swigRegisterStringCallback$module(&createString);
   }
 
   static char* createString(char* cString) {
@@ -302,7 +302,7 @@ static import std.string;
 %pragma(d) imdmodulecode = %{
 private class SwigStringHelper {
   static this() {
-    swigRegisterStringCallback(&createString);
+    swigRegisterStringCallback$module(&createString);
   }
 
   static const(char)* createString(const(char*) cString) {

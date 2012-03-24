@@ -282,10 +282,10 @@ static this() {
   }
 
   //#if !defined(SWIG_D_NO_EXCEPTION_HELPER)
-  mixin(bindCode("swigRegisterExceptionCallbacks", "SWIGRegisterExceptionCallbacks_$module"));
+  mixin(bindCode("swigRegisterExceptionCallbacks$module", "SWIGRegisterExceptionCallbacks_$module"));
   //#endif // SWIG_D_NO_EXCEPTION_HELPER
   //#if !defined(SWIG_D_NO_STRING_HELPER)
-  mixin(bindCode("swigRegisterStringCallback", "SWIGRegisterStringCallback_$module"));
+  mixin(bindCode("swigRegisterStringCallback$module", "SWIGRegisterStringCallback_$module"));
   //#endif // SWIG_D_NO_STRING_HELPER
   $wrapperloaderbindcode
 }
@@ -296,11 +296,11 @@ extern(C) void function(
   SwigExceptionCallback illegalArgumentCallback,
   SwigExceptionCallback illegalElementCallback,
   SwigExceptionCallback ioCallback,
-  SwigExceptionCallback noSuchElementCallback) swigRegisterExceptionCallbacks;
+  SwigExceptionCallback noSuchElementCallback) swigRegisterExceptionCallbacks$module;
 //#endif // SWIG_D_NO_EXCEPTION_HELPER
 
 //#if !defined(SWIG_D_NO_STRING_HELPER)
-extern(C) void function(SwigStringCallback callback) swigRegisterStringCallback;
+extern(C) void function(SwigStringCallback callback) swigRegisterStringCallback$module;
 //#endif // SWIG_D_NO_STRING_HELPER
 %}
 
