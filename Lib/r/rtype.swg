@@ -38,9 +38,10 @@
 
 %typemap("rtypecheck") int, int &, long, long &,
   unsigned char, unsigned char &
-  %{ is.integer($arg) || is.numeric($arg) %}
-%typemap("rtypecheck") int *, long *, unsigned char *
   %{ (is.integer($arg) || is.numeric($arg)) && length($arg) == 1 %}
+%typemap("rtypecheck") int *, long *, unsigned char *
+  %{ is.integer($arg) || is.numeric($arg) %}
+
 
 %typemap("rtypecheck") double, double &, float, float &
   %{ is.numeric($arg) && length($arg) == 1 %}
