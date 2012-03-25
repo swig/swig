@@ -83,6 +83,7 @@ CPP_TEST_BROKEN += \
 	exception_partial_info \
 	extend_variable \
 	li_std_vector_ptr \
+	li_boost_shared_ptr_template \
 	overload_complicated \
 	template_default_pointer \
 	template_expr
