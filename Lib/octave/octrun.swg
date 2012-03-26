@@ -400,7 +400,57 @@ namespace Swig {
     }
 
     dim_vector dims(void) const {
-      return dim_vector(1,1);
+      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
+      
+      // Find the __dims__ method of this object
+      member_value_pair *m = nc_this->find_member("__dims__", false);
+
+      if (!m) return dim_vector(1,1);
+      
+      // Call the __dims__ method of this object
+      octave_value_list inarg;
+      inarg.append(nc_this->as_value());
+      octave_value_list outarg = nc_this->member_invoke(m, inarg, 1);
+
+      // __dims__ should return (at least) one output argument
+      if (outarg.length() < 1) return dim_vector(1,1);
+      
+      octave_value & out = outarg(0);
+
+      // Return value should be cell or matrix of integers
+      if (out.is_cell()) {
+        const Cell & c=out.cell_value();
+        int ndim = c.rows();
+        if (ndim==1 && c.columns()!=1) ndim = c.columns();
+
+        dim_vector d;
+        d.resize(ndim);
+
+        // Fill in dim_vector 
+        for (int k=0;k<ndim;k++) {
+          const octave_value& obj = c(k);
+          d.elem(k) = obj.int_value();
+          
+          // __dims__ should return a cell filled with integers
+          if (error_state) return dim_vector(1,1);
+        }
+        return d;
+      } else if (out.is_matrix_type() || out.is_real_nd_array() || out.is_numeric_type() ) {
+        if (out.rows()==1 || out.columns()==1) {
+           Array<int> a = out.int_vector_value();
+           if (error_state) return dim_vector(1,1);
+           dim_vector d;
+           d.resize(a.numel());
+           for (int k=0;k<a.numel();k++) {
+              d.elem(k) = a(k);
+           }
+           return d;
+        } else {
+          return dim_vector(1,1);
+        }
+      } else {
+        return dim_vector(1,1);
+      }
     }
 
     octave_value as_value() {
