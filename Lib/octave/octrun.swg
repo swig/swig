@@ -703,6 +703,10 @@ namespace Swig {
       return as_value();
     }
 
+    virtual bool is_object() const {
+      return true;
+    }
+
     virtual bool is_string() const {
       octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
       return !!nc_this->find_member("__str__", false);
@@ -949,6 +953,9 @@ namespace Swig {
 
     octave_value subsasgn(const std::string &ops, const std::list < octave_value_list > &idx, const octave_value &rhs)
       { return ptr->subsasgn(ops, idx, rhs); }
+
+    virtual bool is_object() const 
+      { return ptr->is_object(); }
 
     virtual bool is_string() const 
       { return ptr->is_string(); }
