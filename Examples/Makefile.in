@@ -997,6 +997,7 @@ csharp_clean:
 OBJC=@OBJC@
 OBJC_INCLUDE=@OBJCINC@
 OBJC_DLNK=@OBJCDYNAMICLINKING@
+OBJC_LIBS=@OBJCLIBS@
 OBJC_LIBPREFIX = @OBJCLIBRARYPREFIX@
 OBJCCFLAGS=@OBJCCFLAGS@
 OBJCSO=@OBJCSO@
@@ -1013,7 +1014,7 @@ objc: $(SRCS)
 	$(SWIG) -objc $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(INCLUDES)
 	$(OBJC) -c $(CCSHARED) $(CFLAGS) $(OBJCCFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJC_INCLUDE)
-	$(OBJCLDSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJC_DLNK) $(LIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
+	$(OBJCLDSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJC_DLNK) $(OBJC_LIBS) $(LIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
 
 # ----------------------------------------------------------------
 # Build a Objective-C dynamically loadable module (C++)
@@ -1023,14 +1024,14 @@ objc_cpp: $(SRCS)
 	$(SWIG) -objc -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(INCLUDES)
 	$(OBJC) -c $(CCSHARED) $(CFLAGS) $(OBJCCFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJC_INCLUDE)
-	$(OBJCCXXSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJC_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
+	$(OBJCCXXSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJC_DLNK) $(OBJC_LIBS) $(LIBS) $(CPP_DLLIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
 
 # ----------------------------------------------------------------
 # Compile Objective-C & Objective-C++ files
 # ----------------------------------------------------------------
 
 objc_compile: $(SRCS)
-	$(COMPILETOOL) $(OBJC) $(OBJC_INCLUDE) $(OBJCFLAGS) $(OBJCSRCS) $(OBJC_DLNK) -L. -l$(TARGET) 
+	$(COMPILETOOL) $(OBJC) $(OBJC_INCLUDE) $(OBJCFLAGS) $(OBJCSRCS) $(OBJC_LIBS) -L. -l$(TARGET) 
 
 # -----------------------------------------------------------------
 # Cleaning the Objective-C examples
