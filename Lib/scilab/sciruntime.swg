@@ -11,7 +11,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "stack-c.h"
 #include "MALLOC.h"
 #include "sciprint.h"
 #include "Scierror.h"
