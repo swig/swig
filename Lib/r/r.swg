@@ -123,7 +123,7 @@ double *OUTPUT {}
 
 
 
-/* Shoul dwe recycle to make the length correct.
+/* Should we recycle to make the length correct.
    And warn if length() > the dimension. 
 */
 %typemap(scheck) SWIGTYPE [ANY] %{
