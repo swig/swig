@@ -9,6 +9,10 @@ public:
   double bar(double w) {return w;};
   double bar(double *w) {return w[0];}
   double bar(std::vector<double> w) {return w[0];}
+
+  int bar_int(int w) {return w;}
+  int bar_int(int *w) {return w[0];}
+  int bar_int(std::vector<int> w) {return w[0];}
 };
 %}
 
