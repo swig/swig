@@ -203,9 +203,9 @@
 
 
 // Pointers, references and arrays
-%typemap(out, noblock=1) char * %{ if ($1) $result = [NSString stringWithCString: $1]; %} //TBD
-%typemap(out, noblock=1) char *& %{ if (*$1) $result = [NSString stringWithCString: *$1]; %}
-%typemap(out, noblock=1) char[ANY], char[] %{ if ($1) $result = [NSString stringWithCString: $1]; %}
+%typemap(out, noblock=1) char * %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %} //TBD
+%typemap(out, noblock=1) char *& %{ if (*$1) $result = [NSString stringWithUTF8String: *$1]; %}
+%typemap(out, noblock=1) char[ANY], char[] %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %}
 
 
 

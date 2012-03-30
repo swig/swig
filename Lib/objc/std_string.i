@@ -42,7 +42,7 @@ class string;
     free(buffer); %}
 
 %typemap(out) string 
-%{ $result = [NSString stringWithCString: $1.c_str()]; %}
+%{ $result = [NSString stringWithUTF8String: $1.c_str()]; %}
 
 %typemap(objcin) string "$objcinput"
 
@@ -83,7 +83,7 @@ class string;
    free(buffer); %}
 
 %typemap(out) const string & 
-%{ $result = [NSString stringWithCString: $1->c_str()]; %}
+%{ $result = [NSString stringWithUTF8String: $1->c_str()]; %}
 
 %typemap(objcin) const string & "$objcinput"
 
