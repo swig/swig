@@ -747,7 +747,6 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   int firstarray = 1;
   int isreference = 0;
   int isfunction = 0;
-  int isarray = 0;
 
   result = NewStringEmpty();
 
@@ -838,7 +837,6 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
 	Delete(size);
 	clear = 0;
       }
-      isarray = 1;
     } else if (SwigType_isfunction(element)) {
       DOH *parms, *p;
       int j, plen;
