@@ -3102,7 +3102,7 @@ public:
       Printf(f_directors_h, "          Swig::DirectorMethodException::raise(msg.c_str());\n");
       Printf(f_directors_h, "        }\n");
       Printf(f_directors_h, "        vtable[method_index] = method;\n");
-      Printf(f_directors_h, "      };\n");
+      Printf(f_directors_h, "      }\n");
       Printf(f_directors_h, "      return method;\n");
       Printf(f_directors_h, "    }\n");
       Printf(f_directors_h, "private:\n");
