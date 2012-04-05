@@ -331,7 +331,7 @@ public:
         Printf(s_dot_set, "\nconst LUA_REG_TYPE dot_set[] = {\n");
       }
     } else {
-      Printf(s_cmd_tab, "\nstatic const struct luaL_reg swig_commands[] = {\n");
+      Printf(s_cmd_tab, "\nstatic const struct luaL_Reg swig_commands[] = {\n");
       Printf(s_var_tab, "\nstatic swig_lua_var_info swig_variables[] = {\n");
       Printf(s_const_tab, "\nstatic swig_lua_const_info swig_constants[] = {\n");
       Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");

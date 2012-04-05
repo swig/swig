@@ -30,7 +30,11 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
 #if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC) /* valid for both Lua and eLua */
   int i;
   /* start with global table */
+#ifdef LUA_RIDX_GLOBALS
+  lua_rawgeti(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+#else
   lua_pushvalue(L,LUA_GLOBALSINDEX);
+#endif
   /* SWIG's internal initalisation */
   SWIG_InitializeModule((void*)L);
   SWIG_PropagateClientData();

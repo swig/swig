@@ -16,6 +16,24 @@ extern "C" {
 #include <assert.h>  /* for a few sanity tests */
 
 /* -----------------------------------------------------------------------------
+ * compatibility defines
+ * ----------------------------------------------------------------------------- */
+
+/* History of Lua C API length functions:  In Lua 5.0 (and before?)
+   there was "lua_strlen".  In Lua 5.1, this was renamed "lua_objlen",
+   but a compatibility define of "lua_strlen" was added.  In Lua 5.2,
+   this function was again renamed, to "lua_rawlen" (to emphasize that
+   it doesn't call the "__len" metamethod), and the compatibility
+   define of lua_strlen was removed.  All SWIG uses have been updated
+   to "lua_rawlen", and we add our own defines of that here for older
+   versions of Lua.  */
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
+# define lua_rawlen lua_strlen
+#elif LUA_VERSION_NUM == 501
+# define lua_rawlen lua_objlen
+#endif
+
+/* -----------------------------------------------------------------------------
  * global swig types
  * ----------------------------------------------------------------------------- */
 /* Constant table */
