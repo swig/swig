@@ -256,7 +256,7 @@ For those using Lua 5.0.x, you will also need an interpreter with the loadlib fu
 <div class="targetlang"><pre>
 my_init=loadlib("example.so","luaopen_example") -- for Unix/Linux
 --my_init=loadlib("example.dll","luaopen_example") -- for Windows
-assert(my_init) -- name sure its not nil
+assert(my_init) -- make sure it's not nil
 my_init()       -- call the init fn of the lib
 </pre></div>
 <p>
@@ -664,7 +664,7 @@ Stout
 &gt;
 </pre></div>
 <p>
-(Note: for calling methods of a class, you use <tt>class:method(args)</tt>, not <tt>class.method(args)</tt>, its an easy mistake to make. However for data attributes it is <tt>class.attribute</tt>)
+(Note: for calling methods of a class, you use <tt>class:method(args)</tt>, not <tt>class.method(args)</tt>, it's an easy mistake to make. However for data attributes it is <tt>class.attribute</tt>)
 </p>
 <p>
 Class data members are accessed in the same manner as C structures. Static class members present a special problem for Lua, as Lua doesn't have support for such features. Therefore, SWIG generates wrappers that try to work around some of these issues. To illustrate, suppose you have a class like this:
@@ -673,7 +673,6 @@ Class data members are accessed in the same manner as C structures. Static class
 public:
    static void foo();
    static int bar;
-
 };
 </pre></div>
 <p>
@@ -1168,10 +1167,10 @@ stack traceback:
 <p>
 SWIG is able to throw numeric types, enums, chars, char*'s and std::string's without problem. It has also written typemaps for std::exception and its derived classes, which convert the exception into an error string. </p>
 <p>
-However its not so simple for to throw other types of objects. 
+However it's not so simple to throw other types of objects. 
 Thrown objects are not valid outside the 'catch' block. Therefore they cannot be
 returned to the interpreter. 
-The obvious ways to overcome this would be to either return a copy of the object, or so convert the object to a string and
+The obvious ways to overcome this would be to either return a copy of the object, or to convert the object to a string and
 return that. Though it seems obvious to perform the former, in some cases this is not possible, most notably when
 SWIG has no information about the object, or the object is not copyable/creatable.
 </p>
@@ -1185,7 +1184,7 @@ void throw_A() throw(A*) {
 }
 </pre></div>
 <p>
-SWIG will just convert it (poorly) to a string and use that as its error. (Yes its not that useful, but it always works).
+SWIG will just convert it (poorly) to a string and use that as its error. (This  is not that useful, but it always works).
 </p>
 
 <div class="targetlang"><pre>
@@ -1212,8 +1211,8 @@ If you have your own class which you want output as a string you will need to ad
 %}
 </pre></div>
 <p>
-If you wish your exception to be returned to the interpreter, it must firstly be copyable. Then you must have and additional
-<tt>%apply</tt> statement, to inform SWIG to return a copy of this object to the interpreter. For example:
+If you wish your exception to be returned to the interpreter, it must firstly be copyable. Then you must have an additional
+<tt>%apply</tt> statement, to tell SWIG to return a copy of this object to the interpreter. For example:
 </p>
 <div class="code"><pre>
 %apply SWIGTYPE EXCEPTION_BY_VAL {Exc}; // tell SWIG to return Exc by value to interpreter
