@@ -75,12 +75,11 @@ eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers t
 
 <H2><a name="Lua_nn2"></a>26.1 Preliminaries</H2>
 
-
 <p>
-The current SWIG implementation is designed to work with Lua 5.0.x and Lua 5.1.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms). SWIG also supports eLua and works with eLua 0.8. SWIG generated code for eLua has been tested on Stellaris ARM Cortex-M3 LM3S and Infineon TriCore.
+The current SWIG implementation is designed to work with Lua 5.0.x, 5.1.x and 5.2.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms). SWIG also supports eLua and works with eLua 0.8. SWIG generated code for eLua has been tested on Stellaris ARM Cortex-M3 LM3S and Infineon TriCore.
 </p>
-<H2><a name="Lua_nn3"></a>26.2 Running SWIG</H2>
 
+<H2><a name="Lua_nn3"></a>26.2 Running SWIG</H2>
 
 <p>
 Suppose that you defined a SWIG module such as the following:
@@ -245,7 +244,7 @@ $ gcc -c example.c -o example.o
 $ gcc -shared -I/usr/include/lua -L/usr/lib/lua example_wrap.o example.o -o example.so
 </pre></div>
 <p>
-The wrappers produced by SWIG can be compiled and linked with Lua 5.1.x. The loading is extremely simple.
+The wrappers produced by SWIG can be compiled and linked with Lua 5.1.x and later. The loading is extremely simple.
 </p>
 <div class="targetlang"><pre>
 require("example")
