@@ -30,7 +30,7 @@
 # endif
 #endif
 
-%include <pyiterators.swg>
+%include <sciiterators.swg>
 
 /**** The PySequence C++ Wrap ***/
 
@@ -539,8 +539,8 @@ namespace swig
 
   %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
-				 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN);
+    $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)), 
+             swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN);
   }
   %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
     std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
@@ -592,15 +592,15 @@ namespace swig
   %extend  {
     swig::SwigPyIterator* iterator(PyObject **PYTHON_SELF) {
       return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
-    }
+  }
 
 #if defined(SWIGPYTHON_BUILTIN)
   %feature("python:slot", "tp_iter", functype="getiterfunc") iterator;
 #else
-  %pythoncode {def __iter__(self): return self.iterator()}
+  // TODO
+  //%scilabcode {def __iter__(self): return self.iterator()}
 #endif
   }
-
 #endif //SWIG_EXPORT_ITERATOR_METHODS
 %enddef
 
@@ -636,8 +636,8 @@ namespace swig
 
 
 %define %swig_sequence_methods_common(Sequence...)
-  %swig_sequence_iterator(%arg(Sequence))
-  %swig_container_methods(%arg(Sequence))
+   %swig_sequence_iterator(%arg(Sequence))
+   %swig_container_methods(%arg(Sequence))
   
   %fragment("SwigPySequence_Base");
 

@@ -2,6 +2,8 @@
 %insert(runtime) "swigerrors.swg";
 %insert(runtime) "scirun.swg";
 
+#define %scilabcode %insert("scilab")
+
 // Error message will be displayed inside Scilab fragment functions
 // and the following line Will not work because code is not an int
 //#define SWIG_Error(code, msg)   Scierror(code, _("%s\n"), msg);
