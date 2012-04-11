@@ -28,7 +28,7 @@ namespace Bar
     virtual Foo makeFoo() { return Foo(); }
     virtual FooBar makeFooBar() { return FooBar(); }
 
-    static Foo* get_self(Foo *self) {return self;}
+    static Foo* get_self(Foo *self_) {return self_;}
   };
 }
 
@@ -63,6 +63,6 @@ namespace Bar
     virtual Foo makeFoo();
     virtual FooBar makeFooBar();
    
-    static Foo* get_self(Foo *self);
+    static Foo* get_self(Foo *self_);
   };
 }

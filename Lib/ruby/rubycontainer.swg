@@ -153,6 +153,7 @@ namespace swig {
 }
 
 %fragment("RubySequence_Cont","header",
+	  fragment="<stddef.h>",
 	  fragment="StdTraits",
 	  fragment="RubySequence_Base",
 	  fragment="ConstIterator_T")

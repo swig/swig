@@ -388,6 +388,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_typemap_debug(void);
   extern void Swig_typemap_search_debug_set(void);
   extern void Swig_typemap_used_debug_set(void);
+  extern void Swig_typemap_register_debug_set(void);
 
   extern String *Swig_typemap_lookup(const_String_or_char_ptr tmap_method, Node *n, const_String_or_char_ptr lname, Wrapper *f);
   extern String *Swig_typemap_lookup_out(const_String_or_char_ptr tmap_method, Node *n, const_String_or_char_ptr lname, Wrapper *f, String *actioncode);

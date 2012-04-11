@@ -145,6 +145,7 @@ static String *kpp_dline = 0;
 static String *kpp_ddefine = 0;
 static String *kpp_dinclude = 0;
 static String *kpp_dimport = 0;
+static String *kpp_dbeginfile = 0;
 static String *kpp_dextern = 0;
 
 static String *kpp_LINE = 0;
@@ -181,6 +182,7 @@ void Preprocessor_init(void) {
 
   kpp_dinclude = NewString("%include");
   kpp_dimport = NewString("%import");
+  kpp_dbeginfile = NewString("%beginfile");
   kpp_dextern = NewString("%extern");
   kpp_ddefine = NewString("%define");
   kpp_dline = NewString("%line");
@@ -229,6 +231,7 @@ void Preprocessor_delete(void) {
 
   Delete(kpp_dinclude);
   Delete(kpp_dimport);
+  Delete(kpp_dbeginfile);
   Delete(kpp_dextern);
   Delete(kpp_ddefine);
   Delete(kpp_dline);
@@ -1327,6 +1330,7 @@ String *Preprocessor_parse(String *s) {
   int allow = 1;
   int level = 0;
   int dlevel = 0;
+  int filelevel = 0;
   int mask = 0;
   int start_level = 0;
   int cpp_lines = 0;
@@ -1715,9 +1719,9 @@ String *Preprocessor_parse(String *s) {
 	  s1 = cpp_include(fn, sysfile);
 	  if (s1) {
 	    if (include_all)
-	      Printf(ns, "%%includefile \"%s\" [\n", Swig_filename_escape(Swig_last_file()));
+	      Printf(ns, "%%includefile \"%s\" %%beginfile\n", Swig_filename_escape(Swig_last_file()));
 	    else if (import_all) {
-	      Printf(ns, "%%importfile \"%s\" [\n", Swig_filename_escape(Swig_last_file()));
+	      Printf(ns, "%%importfile \"%s\" %%beginfile\n", Swig_filename_escape(Swig_last_file()));
 	      push_imported();
 	    }
 
@@ -1731,7 +1735,7 @@ String *Preprocessor_parse(String *s) {
 	    }
 	    s2 = Preprocessor_parse(s1);
 	    addline(ns, s2, allow);
-	    Append(ns, "]");
+	    Append(ns, "%endoffile");
 	    if (dirname) {
 	      Swig_pop_directory();
 	    }
@@ -1859,7 +1863,7 @@ String *Preprocessor_parse(String *s) {
 	      char *dirname;
 	      copy_location(s, chunk);
 	      add_chunk(ns, chunk, allow);
-	      Printf(ns, "%sfile%s%s%s\"%s\" [\n", decl, options_whitespace, opt, filename_whitespace, Swig_filename_escape(Swig_last_file()));
+	      Printf(ns, "%sfile%s%s%s\"%s\" %%beginfile\n", decl, options_whitespace, opt, filename_whitespace, Swig_filename_escape(Swig_last_file()));
 	      if (Equal(decl, kpp_dimport)) {
 		push_imported();
 	      }
@@ -1878,7 +1882,7 @@ String *Preprocessor_parse(String *s) {
 		pop_imported();
 	      }
 	      addline(ns, s2, allow);
-	      Append(ns, "]");
+	      Append(ns, "%endoffile");
 	      Delete(s2);
 	      Delete(s1);
 	    }
@@ -1887,6 +1891,14 @@ String *Preprocessor_parse(String *s) {
 	    Delete(options_whitespace);
 	  }
 	  state = 1;
+	} else if (Equal(decl, kpp_dbeginfile)) {
+          /* Got an internal directive marking the beginning of an included file: %beginfile ... %endoffile */
+          filelevel++;
+          start_line = Getline(s);
+          copy_location(s, chunk);
+          add_chunk(ns, chunk, allow);
+          Append(chunk, decl);
+          state = 120;
 	} else if (Equal(decl, kpp_dline)) {
 	  /* Got a line directive  */
 	  state = 1;
@@ -1904,6 +1916,40 @@ String *Preprocessor_parse(String *s) {
 	}
       } else {
 	Putc(c, decl);
+      }
+      break;
+
+      /* Searching for the end of a %beginfile block */
+    case 120:
+      Putc(c, chunk);
+      if (c == '%') {
+        const char *bf = "beginfile";
+        const char *ef = "endoffile";
+        char statement[10];
+        int i = 0;
+        for (i = 0; i < 9;) {
+          c = Getc(s);
+          Putc(c, chunk);
+          statement[i++] = (char)c;
+	  if (strncmp(statement, bf, i) && strncmp(statement, ef, i))
+	    break;
+	}
+	c = Getc(s);
+	Ungetc(c, s);
+        if ((i == 9) && (isspace(c))) {
+	  if (strncmp(statement, bf, i) == 0) {
+	    ++filelevel;
+	  } else if (strncmp(statement, ef, i) == 0) {
+            --filelevel;
+            if (!filelevel) {
+              /* Reached end of included file */
+              addline(ns, chunk, allow);
+              Clear(chunk);
+              copy_location(s, chunk);
+              state = 1;
+            }
+          }
+        }
       }
       break;
 
@@ -1956,6 +2002,9 @@ String *Preprocessor_parse(String *s) {
   while (level > 0) {
     Swig_error(Getfile(s), -1, "Missing #endif for conditional starting on line %d\n", cond_lines[level - 1]);
     level--;
+  }
+  if (state == 120) {
+    Swig_error(Getfile(s), -1, "Missing %%endoffile for file inclusion block starting on line %d\n", start_line);
   }
   if (state == 150) {
     Seek(value, 0, SEEK_SET);

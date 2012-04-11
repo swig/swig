@@ -83,6 +83,7 @@ CPP_TEST_BROKEN += \
 	exception_partial_info \
 	extend_variable \
 	li_std_vector_ptr \
+	li_boost_shared_ptr_template \
 	overload_complicated \
 	template_default_pointer \
 	template_expr
@@ -472,6 +473,7 @@ CPP_STD_TEST_CASES += \
         li_std_pair \
 	li_std_string \
 	li_std_vector \
+	li_std_vector_enum \
 	naturalvar \
 	smart_pointer_inherit \
 	template_typedef_fnc \

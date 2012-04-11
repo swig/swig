@@ -4,7 +4,9 @@ import("exception_order")	-- import lib into global
 eo=exception_order --alias
 
 -- catching undefined variables
-setmetatable(getfenv(),{__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+local env = _ENV -- Lua 5.2
+if not env then env = getfenv () end -- Lua 5.1
+setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
 
 a = eo.A()
 

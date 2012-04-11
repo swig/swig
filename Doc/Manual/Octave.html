@@ -112,6 +112,7 @@ Options specific to the Octave module are:
 Octave Options (available with -octave)
      -global       - Load all symbols into the global namespace [default]
      -globals <em>name</em> - Set <em>name</em> used to access C global variables [default: 'cvar']
+                         - Use '.' to load C global variables into module namespace
      -noglobal     - Do not load all symbols into the global namespace
      -opprefix <em>str</em> - Prefix <em>str</em> for global operator functions [default: 'op_']
 </pre></div>
@@ -119,6 +120,7 @@ Octave Options (available with -octave)
 <p>
 The <em>-global</em> and <em>-noglobal</em> options determine whether the Octave module will load all symbols into the global namespace in addition to the global namespace.
 The <em>-globals</em> option sets the name of the variable which is the namespace for C global variables exported by the module.
+The special name "." loads C global variables into the module namespace, i.e. alongside C functions and structs exported by the module.
 The <em>-opprefix</em> options sets the prefix of the names of global/friend <a href="#Octave_nn18">operator</a> functions.
 </p>
 

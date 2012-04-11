@@ -48,8 +48,8 @@ template<class Key, class T, class J = int> class Multimap {
 namespace Standard {
 template<> class Multimap<A, int> {
   public:
-    typedef Key key_type;
-    typedef T mapped_type;
+    typedef A key_type;
+    typedef int mapped_type;
 
     class iterator;
 

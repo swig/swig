@@ -2,7 +2,7 @@
   Sets
 */
 
-%fragment("StdSetTraits","header",fragment="StdSequenceTraits")
+%fragment("StdSetTraits","header",fragment="<stddef.h>",fragment="StdSequenceTraits")
 %{
   namespace swig {
     template <class RubySeq, class T> 

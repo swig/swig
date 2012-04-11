@@ -5,6 +5,52 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2012-04-05: olly
+	    [Lua] Add support for Lua 5.2 (patch SF#3514593 from Miles Bader)
+
+2012-03-26: xavier98
+	    [octave] Apply patch #3425993 from jgillis: add extra logic to the octave_swig_type::dims(void) method: it checks if the user has defined a __dims__ method and uses this in stead of returning (1,1)
+	    [octave] Apply patch #3424833 from jgillis: make is_object return true for swig types
+
+2012-03-24: wsfulton
+            [D] Apply #3502431 to fix duplicate symbols in multiple modules and compiler errors due to lack
+            of const in some methods taking char*.
+
+2012-03-21: wsfulton
+            Fix #3494791 - %$isglobal for %rename matching.
+
+2012-03-20: wsfulton
+            Fix #3487706 and #3391906 - missing stddef.h include for ptrdiff_t when using %import
+            for STL containers and compiling with g++-4.6. An include of stddef.h is now only
+            generated when SWIG generates STL helper templates which require ptrdiff_t. If you 
+            were previously relying on "#include <stddef.h>" always being generated when using a
+            %include of an STL header, you may now need to add this in manually.
+
+2012-03-16: wsfulton
+            Apply patch #3392264 from Sebastien Bine to parse (unsigned) long long types in enum value assignment.
+
+2012-03-16: wsfulton
+            Apply patch #3505530 from Karl Wette to allow custom allocators in STL string classes for the UTL languages.
+
+2012-03-13: wsfulton
+            Apply patch #3468362 from Karl Wette to fix %include inside %define.
+
+2012-03-13: wsfulton
+            [Python, Ruby, Octave] Fix #3475492 - iterating through std::vector wrappers of enumerations.
+
+2012-02-27: xavier98 (patches from Karl Wette)
+	    [Octave] Use -globals . to load global variables in module namespace
+	    [Octave] Comment declaration of unimplemented function swig_register_director
+	    [Octave] Fix OCTAVE_PATH in octave Makefiles
+	    [Octave] Add support for nspace feature - fix director_nspace test
+	    [Octave] Add support for std::list - fix li_std_containers_int test
+	    [Octave] Fix imports test
+
+2012-02-16: wsfulton
+            [Java] Make generated support functions in arrays_java.i static so that generated code
+            from multiple instances of SWIG can be compiled and linked together - problem reported by
+            Evan Krause.
+
 2012-01-24: wsfulton
             Fix crash with bad regex - bug #3474250.
 
@@ -270,12 +316,6 @@ Version 2.0.5 (in progress)
             [Lua] SF patch #3394339 from Torsten Landschoff - new option -nomoduleglobal to disable installing 
             the module table into the global namespace. Require call also returns the module table instead 
             of a string.
-
-2011-08-12: wsfulton
-            SF bug # 3333549 - %shared_ptr fixes when the type is a template using template parameters
-            that are typedef'd to another type. 
-
-            Also fixed %shared_ptr when template parameters have default values.
 
 2011-08-09: xavier98
             Fix bug 3387394; Octave patches for 3.4.0 compatibility, etc. (from Karl Wette)

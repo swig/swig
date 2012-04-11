@@ -291,7 +291,7 @@ static int NAME(TYPE x) {
 %define %$isextern       "match$storage"="extern"  %enddef
 
 %define %$ismember       "match$ismember"="1"  %enddef
-%define %$isglobal       %not %ismember  %enddef
+%define %$isglobal       %$not %$ismember  %enddef
 %define %$innamespace    "match$parentNode$nodeType"="namespace"  %enddef
 
 %define %$ispublic       "match$access"="public"  %enddef
@@ -301,7 +301,7 @@ static int NAME(TYPE x) {
 %define %$ismemberget    "match$memberget"="1"  %enddef
 %define %$ismemberset    "match$memberset"="1"  %enddef
 
-%define %$classname      %ismember,match$parentNode$name  %enddef
+%define %$classname      %$ismember,"match$parentNode$name"  %enddef
 
 /* -----------------------------------------------------------------------------
  * Include all the warnings labels and macros 

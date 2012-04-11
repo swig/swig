@@ -12,7 +12,7 @@
 %include <std_common.i>
 
 
-%fragment("ConstIterator","header",fragment="GC_VALUE_definition") {  
+%fragment("ConstIterator","header",fragment="<stddef.h>",fragment="GC_VALUE_definition") {
 namespace swig {
   struct stop_iteration {
   };
@@ -270,7 +270,7 @@ namespace swig {
 }
 
 
-%fragment("ConstIterator_T","header",fragment="ConstIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
+%fragment("ConstIterator_T","header",fragment="<stddef.h>",fragment="ConstIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
 namespace swig {
 
   /** 

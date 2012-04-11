@@ -80,3 +80,22 @@
 #define EXPR_LOR         0xFF || 1
 #define EXPR_CONDITIONAL true ? 2 : 2.2
 
+
+/// constant assignment in enum
+#if defined(SWIGCSHARP)
+%csconstvalue("1<<2") kValue;
+#endif
+
+%{
+#define BIT(n) (1ULL << (n))
+
+enum MyEnum {
+  kValue = BIT(2)
+};
+%}
+
+#define BIT(n) (1ULL << (n))
+
+enum MyEnum {
+  kValue = BIT(2)
+};

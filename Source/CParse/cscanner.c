@@ -767,6 +767,10 @@ int yylex(void) {
       }
       if (strcmp(yytext, "%includefile") == 0)
 	return (INCLUDE);
+      if (strcmp(yytext, "%beginfile") == 0)
+	return (BEGINFILE);
+      if (strcmp(yytext, "%endoffile") == 0)
+	return (ENDOFFILE);
       if (strcmp(yytext, "%val") == 0) {
 	Swig_warning(WARN_DEPRECATED_VAL, cparse_file, cparse_line, "%%val directive deprecated (ignored).\n");
 	return (yylex());
