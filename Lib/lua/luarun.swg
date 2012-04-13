@@ -469,6 +469,39 @@ SWIGINTERN int  SWIG_Lua_class_destruct(lua_State* L)
   return 0;
 }
 
+/* the class.__tostring method called by the interpreter and print */
+SWIGINTERN int  SWIG_Lua_class_tostring(lua_State* L)
+{
+/*  there should be 1 param passed in
+  (1) userdata (not the metatable) */
+  assert(lua_isuserdata(L,1));  /* just in case */
+  unsigned long userData = (unsigned long)lua_touserdata(L,1); /* get the userdata address for later */
+  lua_getmetatable(L,1);    /* get the meta table */
+  assert(lua_istable(L,-1));  /* just in case */
+  
+  lua_getfield(L, -1, ".type");
+  const char* className = lua_tostring(L, -1);
+  
+  char output[256];
+  sprintf(output, "<%s userdata: %lX>", className, userData);
+  
+  lua_pushstring(L, (const char*)output);
+  return 1;
+}
+
+/* to manually disown some userdata */
+SWIGINTERN int  SWIG_Lua_class_disown(lua_State* L)
+{
+/*  there should be 1 params passed in
+  (1) userdata (not the meta table) */
+  swig_lua_userdata* usr;
+  assert(lua_isuserdata(L,-1));  /* just in case */
+  usr=(swig_lua_userdata*)lua_touserdata(L,-1);  /* get it */
+  
+  usr->own = 0; /* clear our ownership */
+  return 0;
+}
+
 /* gets the swig class registry (or creates it) */
 SWIGINTERN void  SWIG_Lua_get_class_registry(lua_State* L)
 {
@@ -594,11 +627,15 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
   /* add a table called ".fn" */
   lua_pushstring(L,".fn");
   lua_newtable(L);
+  /* add manual disown method */
+  SWIG_Lua_add_function(L,"__disown",SWIG_Lua_class_disown);
   lua_rawset(L,-3);
   /* add accessor fns for using the .get,.set&.fn */
   SWIG_Lua_add_function(L,"__index",SWIG_Lua_class_get);
   SWIG_Lua_add_function(L,"__newindex",SWIG_Lua_class_set);
   SWIG_Lua_add_function(L,"__gc",SWIG_Lua_class_destruct);
+  /* add tostring method for better output */
+  SWIG_Lua_add_function(L,"__tostring",SWIG_Lua_class_tostring);
   /* add it */
   lua_rawset(L,-3);  /* metatable into registry */
   lua_pop(L,1);      /* tidy stack (remove registry) */

@@ -6,6 +6,12 @@ Version 2.0.5 (in progress)
 ===========================
 
 2012-04-13: wsfulton
+            [Lua] Apply #3219676 from Shane Liesegang which adds:
+            - support for %factory
+            - a __tostring method
+            - a __disown method
+
+2012-04-13: wsfulton
             [Xml] Apply #3513569 which adds a catchlist to the xml output.
 
 2012-04-05: olly
