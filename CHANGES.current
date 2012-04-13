@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.5 (in progress)
 ===========================
 
+2012-04-13: wsfulton
+            [Xml] Apply #3513569 which adds a catchlist to the xml output.
+
 2012-04-05: olly
 	    [Lua] Add support for Lua 5.2 (patch SF#3514593 from Miles Bader)
 
