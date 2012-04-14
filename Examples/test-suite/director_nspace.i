@@ -36,8 +36,13 @@ namespace Bar
 
 %include <std_string.i>
 
+// nspace feature only supported by these languages
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD)
 %nspace Bar::Foo;
 %nspace Bar::FooBar;
+#else
+#warning nspace feature not yet supported in this target language
+#endif
 
 %feature("director") Bar::Foo;
 
