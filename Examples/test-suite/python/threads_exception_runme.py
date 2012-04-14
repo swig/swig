@@ -26,7 +26,7 @@ except threads_exception.Exc,e:
   if e.code != 42:
     raise RuntimeError
   if e.msg != "Hosed":
-    raise RuntimeError
+    raise RuntimeError, "bad... msg: %s" % e.msg
 
 for i in range(1,4):
   try:
