@@ -6,6 +6,9 @@ Version 2.0.5 (in progress)
 ===========================
 
 2012-04-14: wsfulton
+            [Lua] Apply patch #3517435 from Miles Bader - prefer to use Lua_pushglobaltable
+
+2012-04-14: wsfulton
             [Ruby] Apply patch #3517769 from Robin Stocker to fix compile error on MacRuby using RSTRING_PTR.
 
 2012-04-13: wsfulton

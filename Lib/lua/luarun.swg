@@ -33,6 +33,15 @@ extern "C" {
 # define lua_rawlen lua_objlen
 #endif
 
+
+/* lua_pushglobaltable is the recommended "future-proof" way to get
+   the global table for Lua 5.2 and later.  Here we define
+   lua_pushglobaltable ourselves for Lua versions before 5.2.  */
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
+# define lua_pushglobaltable(L) lua_pushvalue(L, LUA_GLOBALSINDEX)
+#endif
+
+
 /* -----------------------------------------------------------------------------
  * global swig types
  * ----------------------------------------------------------------------------- */
