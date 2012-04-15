@@ -1,6 +1,6 @@
 source("unittest.R")
-dyn.load(paste("r_base_test", .Platform$dynlib.ext, sep=""))
-source("r_base_test.R")
+dyn.load(paste("overload_method", .Platform$dynlib.ext, sep=""))
+source("overload_method.R")
 cacheMetaData(1)
 
 b <- Base()

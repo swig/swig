@@ -1,6 +1,6 @@
-/* This test confirms the fix to sourceforge bug #3478922 */
+/* This test confirms the fix to sourceforge bug #3478922 for R */
 
-%module r_base_test
+%module overload_method
 %inline %{
 class Base
    {

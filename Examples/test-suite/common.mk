@@ -277,6 +277,7 @@ CPP_TEST_CASES += \
         operbool \
 	ordering \
 	overload_copy \
+	overload_method \
 	overload_extend \
 	overload_rename \
 	overload_return_type \
