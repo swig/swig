@@ -424,7 +424,8 @@ namespace Swig {
         if (ndim==1 && c.columns()!=1) ndim = c.columns();
 
         dim_vector d;
-        d.resize(ndim);
+        d.resize(ndim < 2 ? 2 : ndim);
+        d(0) = d(1) = 1;
 
         // Fill in dim_vector 
         for (int k=0;k<ndim;k++) {
@@ -440,7 +441,8 @@ namespace Swig {
            Array<int> a = out.int_vector_value();
            if (error_state) return dim_vector(1,1);
            dim_vector d;
-           d.resize(a.numel());
+           d.resize(a.numel() < 2 ? 2 : a.numel());
+           d(0) = d(1) = 1;
            for (int k=0;k<a.numel();k++) {
               d.elem(k) = a(k);
            }

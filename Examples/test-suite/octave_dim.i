@@ -127,7 +127,7 @@ public:
 class Baz5 {
 public:
   Array<octave_idx_type> __dims__() const {
-    Array<octave_idx_type> c(2,1);
+    Array<octave_idx_type> c(dim_vector(2,1));
     c(0) = 3;
     c(1) = 4;
     return c;
@@ -137,7 +137,7 @@ public:
 class Baz6 {
 public:
   Array<octave_idx_type> __dims__() const {
-    Array<octave_idx_type> c(1,2);
+    Array<octave_idx_type> c(dim_vector(1,2));
     c(0) = 3;
     c(1) = 4;
     return c;
