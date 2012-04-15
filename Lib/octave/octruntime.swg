@@ -171,7 +171,9 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
 // exiting without explicitly clearing the variable causes octave to segfault.
 #if OCTAVE_API_VERSION_NUMBER>=37
 octave_value_list SWIG_atexit_func(const octave_value_list &args, int nargout) {
-  symbol_table::clear_global_pattern("*");
+  string_vector vars = symbol_table::global_variable_names();
+  for (int i = 0; i < vars.length(); i++)
+    symbol_table::clear_global(vars[i]);
   symbol_table::clear_functions();
   return octave_value();
 }
