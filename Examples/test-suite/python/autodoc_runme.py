@@ -2,7 +2,7 @@ from autodoc import *
 
 def check(got, expected):
   if expected != got:
-    raise RuntimeError("\n" + "Expected: [" + expected + "]\n" + "Got     : [" + got + "]")
+    raise RuntimeError("\n" + "Expected: [" + str(expected) + "]\n" + "Got     : [" + str(got) + "]")
 
 check(A.__doc__, "Proxy of C++ A class")
 check(A.funk.__doc__, "just a string")

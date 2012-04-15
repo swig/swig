@@ -65,10 +65,10 @@ void foo2(Foo<short> f, const Foo<short>& ff) {}
 %typemap(out) double ABC::_3   "$1 = 0.0;"
 %inline %{
 struct ABC {
-  double meth() {}
-  double m1() {}
-  double _x2() {}
-  double y_() {}
-  double _3() {}
+  double meth() { return 0.0; }
+  double m1() { return 0.0; }
+  double _x2() { return 0.0; }
+  double y_() { return 0.0; }
+  double _3() { return 0.0; }
 };
 %}
