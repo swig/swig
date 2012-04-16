@@ -272,7 +272,7 @@ namespace swig {
         typename Sequence::const_iterator it = sb;
         while (it!=se) {
           sequence->push_back(*it);
-          for (typename Sequence::size_type c=0; c<step && it!=se; ++c)
+          for (Py_ssize_t c=0; c<step && it!=se; ++c)
             it++;
         }
         return sequence;
@@ -287,7 +287,7 @@ namespace swig {
         typename Sequence::const_reverse_iterator it = sb;
         while (it!=se) {
           sequence->push_back(*it);
-          for (typename Sequence::size_type c=0; c<-step && it!=se; ++c)
+          for (Py_ssize_t c=0; c<-step && it!=se; ++c)
             it++;
         }
       }
@@ -337,7 +337,7 @@ namespace swig {
         std::advance(it,ii);
         for (size_t rc=0; rc<replacecount; ++rc) {
           *it++ = *isit++;
-          for (typename Sequence::size_type c=0; c<(step-1); ++c)
+          for (Py_ssize_t c=0; c<(step-1); ++c)
             it++;
         }
       }
@@ -355,7 +355,7 @@ namespace swig {
       std::advance(it,size-ii-1);
       for (size_t rc=0; rc<replacecount; ++rc) {
         *it++ = *isit++;
-        for (typename Sequence::size_type c=0; c<(-step-1); ++c)
+        for (Py_ssize_t c=0; c<(-step-1); ++c)
           it++;
       }
     }
@@ -383,7 +383,7 @@ namespace swig {
             it = self->erase(it);
             if (it==self->end())
               break;
-            for (typename Sequence::size_type c=0; c<(step-1); ++c)
+            for (Py_ssize_t c=0; c<(step-1); ++c)
               it++;
             delcount--;
           }
@@ -399,7 +399,7 @@ namespace swig {
           self->erase((++it).base());
           if (it==self->rend())
             break;
-          for (typename Sequence::size_type c=0; c<(-step-1); ++c)
+          for (Py_ssize_t c=0; c<(-step-1); ++c)
             it++;
           delcount--;
         }
