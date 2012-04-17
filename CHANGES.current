@@ -31,8 +31,7 @@ Version 2.0.5 (in progress)
 	    [octave] Apply patch #3424833 from jgillis: make is_object return true for swig types
 
 2012-03-24: wsfulton
-            [D] Apply #3502431 to fix duplicate symbols in multiple modules and compiler errors due to lack
-            of const in some methods taking char*.
+            [D] Apply #3502431 to fix duplicate symbols in multiple modules.
 
 2012-03-21: wsfulton
             Fix #3494791 - %$isglobal for %rename matching.
