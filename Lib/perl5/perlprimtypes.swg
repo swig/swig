@@ -23,7 +23,7 @@ SWIG_AsVal_dec(bool)(SV *obj, bool* val)
     if (val) *val = false;
     return SWIG_OK;
   } else {
-    if (val) *val = SvTRUE(obj);
+    if (val) *val = (bool)(SvTRUE(obj));
     return SWIG_AddCast(SWIG_OK);    
   }
 }
@@ -171,7 +171,7 @@ SWIG_From_dec(long long)(long long value)
 {
   SV *sv;
   if (value >= IV_MIN && value <= IV_MAX)
-    sv = newSViv(value);
+    sv = newSViv((IV)(value));
   else {
     //sv = newSVpvf("%lld", value); doesn't work in non 64bit Perl
     char temp[256];
@@ -248,7 +248,7 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
   SV *sv;
   if (value <= UV_MAX)
-    sv = newSVuv(value);
+    sv = newSVuv((UV)(value));
   else {
     //sv = newSVpvf("%llu", value); doesn't work in non 64bit Perl
     char temp[256];
