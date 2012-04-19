@@ -23,7 +23,7 @@ SWIG_AsVal_dec(bool)(SV *obj, bool* val)
     if (val) *val = false;
     return SWIG_OK;
   } else {
-    if (val) *val = (bool)(SvTRUE(obj));
+    if (val) *val = SvTRUE(obj) ? true : false;
     return SWIG_AddCast(SWIG_OK);    
   }
 }
