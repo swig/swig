@@ -2,8 +2,8 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.5 (in progress)
-===========================
+Version 2.0.5 (19 April 2012)
+=============================
 
 2012-04-14: wsfulton
             [Lua] Apply patch #3517435 from Miles Bader - prefer to use Lua_pushglobaltable
