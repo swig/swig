@@ -3326,14 +3326,15 @@ c_enum_inherit : COLON primitive_type {
               ;
 /* ------------------------------------------------------------
    enum [class] Name;
+   enum [class] Name [: base_type];
    ------------------------------------------------------------ */
 
-c_enum_forward_decl : storage_class c_enum_keyword c_enum_inherit ID SEMI {
+c_enum_forward_decl : storage_class c_enum_keyword ename c_enum_inherit SEMI {
 		   SwigType *ty = 0;
 		   $$ = new_node("enumforward");
-		   ty = NewStringf("enum %s", $4);
+		   ty = NewStringf("enum %s", $3);
 		   Setattr($$,"enumkeyword",$2);
-		   Setattr($$,"name",$4);
+		   Setattr($$,"name",$3);
 		   Setattr($$,"type",ty);
 		   Setattr($$,"sym:weak", "1");
 		   add_symbols($$);
