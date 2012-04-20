@@ -67,7 +67,7 @@
 
 
 <p>
-Lua is an extension programming language designed to support general procedural programming with data description facilities. It also offers good support for object-oriented programming, functional programming, and data-driven programming. Lua is intended to be used as a powerful, light-weight configuration language for any program that needs one. Lua is implemented as a library, written in clean C (that is, in the common subset of ANSI C and C++). Its also a <em>really</em> tiny language, less than 6000 lines of code, which compiles to &lt;100 kilobytes of binary code. It can be found at <a href="http://www.lua.org">http://www.lua.org</a>
+Lua is an extension programming language designed to support general procedural programming with data description facilities. It also offers good support for object-oriented programming, functional programming, and data-driven programming. Lua is intended to be used as a powerful, light-weight configuration language for any program that needs one. Lua is implemented as a library, written in clean C (that is, in the common subset of ANSI C and C++). It's also a <em>really</em> tiny language, less than 6000 lines of code, which compiles to &lt;100 kilobytes of binary code. It can be found at <a href="http://www.lua.org">http://www.lua.org</a>
 </p>
 <p>
 eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers the full implementation of the Lua programming language to the embedded world, extending it with specific features for efficient and portable software embedded development. eLua runs on smaller devices like microcontrollers and provides the full features of the regular Lua desktop version. More information on eLua can be found here: <a href="http://www.eluaproject.net">http://www.eluaproject.net</a>
@@ -110,7 +110,7 @@ $ swig -c++ -lua example.i
 This creates a C/C++ source file <tt>example_wrap.c</tt> or <tt>example_wrap.cxx</tt>. The generated C source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application to create an extension module.
 </p>
 <p>
-The name of the wrapper file is derived from the name of the input file. For example, if the input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>. To change this, you can use the -o option. The wrappered module will export one function <tt>"int luaopen_example(lua_State* L)"</tt> which must be called to register the module with the Lua interpreter. The name "luaopen_example" depends upon the name of the module.
+The name of the wrapper file is derived from the name of the input file. For example, if the input file is <tt>example.i</tt>, the name of the wrapper file is <tt>example_wrap.c</tt>. To change this, you can use the -o option. The wrapped module will export one function <tt>"int luaopen_example(lua_State* L)"</tt> which must be called to register the module with the Lua interpreter. The name "luaopen_example" depends upon the name of the module.
 </p>
 <p>
 To build an eLua module, run SWIG using <tt>-lua</tt> and add either <tt>-elua</tt> or <tt>-eluac</tt>.
@@ -185,7 +185,7 @@ int main(int argc,char* argv[])
  }
  L=lua_open();
  luaopen_base(L);	// load basic libs (eg. print)
- luaopen_example(L);	// load the wrappered module
+ luaopen_example(L);	// load the wrapped module
  if (luaL_loadfile(L,argv[1])==0) // load and run the file
   lua_pcall(L,0,0,0);
  else
@@ -278,10 +278,10 @@ print(a,b,c)
 </pre></div>
 <p>
 Note: for Lua 5.0:<br>
-The loadlib() function is in the global namespace, not in package. So its just loadlib().
+The loadlib() function is in the global namespace, not in a package. So it's just loadlib().
 </p>
 <p>
-if 'a' is a function, this its all working fine, all you need to do is call it
+if 'a' is a function, this is all working fine, all you need to do is call it
 </p>
 <div class="targetlang"><pre>
   a()
@@ -290,7 +290,7 @@ if 'a' is a function, this its all working fine, all you need to do is call it
 to load your library which will add a table 'example' with all the functions added.
 </p>
 <p>
-If it doesn't work, look at the error messages, in particular mesage 'b'<br>
+If it doesn't work, look at the error messages, in particular message 'b'<br>
 <tt>  The specified module could not be found.</tt><br>
 Means that is cannot find the module, check your the location and spelling of the module.<br>
 <tt>  The specified procedure could not be found.</tt><br>
@@ -395,7 +395,7 @@ SWIG will effectively generate two functions <tt>example.Foo_set()</tt> and <tt>
 4    5
 </pre></div>
 <p>
-Its is therefore not possible to 'move' the global variable into the global namespace as it is with functions. It is however, possible to rename the module with an assignment, to make it more convenient.
+It is therefore not possible to 'move' the global variable into the global namespace as it is with functions. It is however, possible to rename the module with an assignment, to make it more convenient.
 </p>
 <div class="targetlang"><pre>
 &gt; e=example
@@ -406,7 +406,7 @@ Its is therefore not possible to 'move' the global variable into the global name
 4
 </pre></div>
 <p>
-If a variable is marked with the %immutable directive then any attempts to set this variable will cause an Lua error. Given a global variable:
+If a variable is marked with the %immutable directive then any attempts to set this variable will cause a Lua error. Given a global variable:
 </p>
 
 <div class="code"><pre>%module example
@@ -512,13 +512,13 @@ When wrapped, you will be able to use the functions in a natural way from Lua. F
 &gt; example.fclose(f)
 </pre></div>
 <p>
-Unlike many scripting languages, Lua has had support for pointers to C/C++ object built in for a long time. They are called 'userdata'. Unlike many other SWIG versions which use some kind of encoded character string, all objects will be represented as a userdata. The SWIG-Lua bindings provides a special function <tt>swig_type()</tt>, which if given a userdata object will return the type of object pointed to as a string (assuming it was a SWIG wrappered object).
+Unlike many scripting languages, Lua has had support for pointers to C/C++ object built in for a long time. They are called 'userdata'. Unlike many other SWIG versions which use some kind of encoded character string, all objects will be represented as a userdata. The SWIG-Lua bindings provides a special function <tt>swig_type()</tt>, which if given a userdata object will return the type of object pointed to as a string (assuming it was a SWIG wrapped object).
 </p>
 <div class="targetlang"><pre>
 &gt; print(f)
 userdata: 003FDA80
 &gt; print(swig_type(f))
-FILE * -- its a FILE*
+FILE * -- it's a FILE*
 </pre></div>
 <p>
 Lua enforces the integrity of its userdata, so it is virtually impossible to corrupt the data. But as the user of the pointer, you are responsible for freeing it, or closing any resources associated with it (just as you would in a C program). This does not apply so strictly to classes &amp; structs (see below). One final note: if a function returns a NULL pointer, this is not encoded as a userdata, but as a Lua nil.
@@ -562,10 +562,10 @@ If you print out the value of p in the above example, you will see something lik
 userdata: 003FA320
 </pre></div>
 <p>
-Like the pointer in the previous section, this is held as a userdata. However, additional features have been added to make this more usable. SWIG effectivly creates some accessor/mutator functions to get and set the data. These functions will be added to the userdata's metatable. This provides the natural access to the member variables that were shown above (see end of the document for full details).
+Like the pointer in the previous section, this is held as a userdata. However, additional features have been added to make this more usable. SWIG effectively creates some accessor/mutator functions to get and set the data. These functions will be added to the userdata's metatable. This provides the natural access to the member variables that were shown above (see end of the document for full details).
 </p>
 <p>
-<tt>const</tt> members of a structure are read-only. Data members can also be forced to be read-only using the immutable directive. As with other immutable's, setting attempts will be cause an error. For example:
+<tt>const</tt> members of a structure are read-only. Data members can also be forced to be read-only using the immutable directive. As with other immutables, setting attempts will be cause an error. For example:
 </p>
 <div class="code"><pre>struct Foo {
    ...
@@ -688,7 +688,7 @@ In Lua, the static members can be accessed as follows:
 It is not (currently) possible to access static members of an instance:
 </p>
 <div class="targetlang"><pre>
-&gt; s=example.Spam()      -- s is a Spam instance
+&gt; s=example.Spam()              -- s is a Spam instance
 &gt; s.foo()                       -- Spam::foo() via an instance
                                 -- does NOT work
 </pre></div>
@@ -1185,7 +1185,7 @@ void throw_A() throw(A*) {
 }
 </pre></div>
 <p>
-SWIG will just convert it (poorly) to a string and use that as its error. (This  is not that useful, but it always works).
+SWIG will just convert it (poorly) to a string and use that as its error. (This is not that useful, but it always works).
 </p>
 
 <div class="targetlang"><pre>
@@ -1261,7 +1261,7 @@ add exception specification to functions or globally (respectively).
 <H2><a name="Lua_nn24"></a>26.4 Typemaps</H2>
 
 
-<p>This section explains what typemaps are and the usage of them. The default wrapping behaviour of SWIG is enough in most cases. However sometimes SWIG may need a little additional assistance to know which typemap to apply to provide the best wrapping. This section will be explaining how to use typemaps to best effect</p>
+<p>This section explains what typemaps are and how to use them. The default wrapping behaviour of SWIG is enough in most cases. However sometimes SWIG may need a little additional assistance to know which typemap to apply to provide the best wrapping. This section will be explaining how to use typemaps to best effect</p>
 
 <H3><a name="Lua_nn25"></a>26.4.1 What is a typemap?</H3>
 
@@ -1357,8 +1357,8 @@ extern void sort_double(double* arr, int len);
 </pre></div>
 
 <p>There are basically two ways that SWIG can deal with this. The first way, uses the <tt>&lt;carrays.i&gt;</tt> library
-to create an array in C/C++ then this can be filled within Lua and passed into the function. It works, but its a bit tedious.
-More details can be found in the <a href="Library.html#Library_carrays">carrays.i</a> documention.</p>
+to create an array in C/C++ then this can be filled within Lua and passed into the function. It works, but it's a bit tedious.
+More details can be found in the <a href="Library.html#Library_carrays">carrays.i</a> documentation.</p>
 
 <p>The second and more intuitive way, would be to pass a Lua table directly into the function, and have SWIG automatically convert between Lua-table and C-array. Within the <tt>&lt;typemaps.i&gt;</tt> file there are typemaps ready written to perform this task. To use them is again a matter of using %appy in the correct manner.</p>
 
@@ -1378,7 +1378,7 @@ extern void sort_int(int* arr, int len); // the function to wrap
 extern void sort_double(double* arr, int len); // the function to wrap
 </pre></div>
 
-<p>Once wrappered, the functions can both be called, though with different ease of use:</p>
+<p>Once wrapped, the functions can both be called, though with different ease of use:</p>
 
 <div class="targetlang"><pre>require "example"
 ARRAY_SIZE=10
@@ -1430,7 +1430,7 @@ free(ptr); // dispose of iMath
 <p>SWIG has a ready written typemap to deal with such a kind of function in &lt;typemaps.i&gt;. It provides the correct wrapping as well as setting the flag to inform Lua that the object in question should be garbage collected. Therefore the code is simply:</p>
 
 <div class="code"><pre>%include &lt;typemaps.i&gt;
-%apply SWIGTYPE** OUTPUT{iMath **pptr }; // tell SWIG its an output
+%apply SWIGTYPE** OUTPUT{iMath **pptr }; // tell SWIG it's an output
 
 struct iMath;    // some structure
 int Create_Math(iMath** pptr); // its creator (assume it mallocs)
@@ -1438,7 +1438,7 @@ int Create_Math(iMath** pptr); // its creator (assume it mallocs)
 
 <p>The usage is as follows:</p>
 
-<div class="targetlang"><pre>ok,ptr=Create_Math() -- ptr is a iMath* which is returned with the int (ok)
+<div class="targetlang"><pre>ok,ptr=Create_Math() -- ptr is an iMath* which is returned with the int (ok)
 ptr=nil -- the iMath* will be GC'ed as normal
 </pre></div>
 
@@ -1449,7 +1449,7 @@ ptr=nil -- the iMath* will be GC'ed as normal
 
 <p>Before proceeding, it should be stressed that writing typemaps is rarely needed unless you want to change some aspect of the wrapping, or to achieve an effect which in not available with the default bindings.</p>
 
-<p>Before proceeding, you should read the previous section on using typemaps, as well as read the ready written typemaps found in luatypemaps.swg and typemaps.i. These are both well documented and fairly easy to read. You should not attempt to write your own typemaps until you have read and can understand both of these files (they may well also give you a idea to base your worn on).</p>
+<p>Before proceeding, you should read the previous section on using typemaps, and look at the existing typemaps found in luatypemaps.swg and typemaps.i. These are both well documented and fairly easy to read. You should not attempt to write your own typemaps until you have read and can understand both of these files (they may well also give you an idea to base your work on).</p>
 
 <H3><a name="Lua_nn30"></a>26.5.1 Typemaps you can write</H3>
 
@@ -1545,7 +1545,7 @@ The <tt>%native</tt> directive in the above example, tells SWIG that there is a 
 
 
 <p>
-As well as adding additional C/C++ code, its also possible to add your own Lua code to the module as well.
+As well as adding additional C/C++ code, it's also possible to add your own Lua code to the module as well.
 This code is executed once all other initialisation, including the %init code has been called.
 </p>
 <p>
@@ -1570,7 +1570,7 @@ module name added.
 </p>
 <p>
 Should there be an error in the Lua code, this will <em>not</em> stop loading of the module.
-The default behaviour of SWIG is to print a error message to stderr and then continue. 
+The default behaviour of SWIG is to print an error message to stderr and then continue. 
 It is possible to change this behaviour by using a <tt>#define SWIG_DOSTRING_FAIL(STR)</tt> to
 define a different behaviour should the code fail.
 </p>
@@ -1657,7 +1657,7 @@ That way when you call '<tt>a=example.Foo</tt>', the interpreter looks at the ta
 As mentioned earlier, classes and structures, are all held as pointer, using the Lua 'userdata' structure. This structure is actually a pointer to a C structure 'swig_lua_userdata', which contains the pointer to the data, a pointer to the swig_type_info (an internal SWIG struct) and a flag which marks if the object is to be disposed of when the interpreter no longer needs it. The actual accessing of the object is done via the metatable attached to this userdata.
 </p>
 <p>
-The metatable is a Lua 5.0 feature (which is also why SWIG cannot wrap Lua 4.0). Its a table which holds a list of functions, operators and attributes. This is what gives the userdata the feeling that it is a real object and not just a hunk of memory.
+The metatable is a Lua 5.0 feature (which is also why SWIG cannot wrap Lua 4.0). It's a table which holds a list of functions, operators and attributes. This is what gives the userdata the feeling that it is a real object and not just a hunk of memory.
 </p>
 <p>
 Given a class
@@ -1674,10 +1674,10 @@ public:
 };
 </pre></div>
 <p>
-SWIG will create a module excpp, with all the various function inside. However to allow the intuitive use of the userdata is also creates up a set of metatables. As seen in the above section on global variables, use of the metatables allows for wrappers to be used intuitively. To save effort, the code creates one metatable per class and stores it inside Lua's registry. Then when an new object is instantiated, the metatable is found in the registry and the userdata associated to the metatable. Currently derived classes make a complete copy of the base classes table and then add on their own additional function.
+SWIG will create a module excpp, with all the various functions inside. However to allow the intuitive use of the userdata, SWIG also creates up a set of metatables. As seen in the above section on global variables, use of the metatables allows for wrappers to be used intuitively. To save effort, the code creates one metatable per class and stores it inside Lua's registry. Then when a new object is instantiated, the metatable is found in the registry and the userdata associated with the metatable. Currently, derived classes make a complete copy of the base class' table and then add on their own additional functions.
 </p>
 <p>
-Some of the internals can be seen by looking at a classes metatable.
+Some of the internals can be seen by looking at the metatable of a class:
 </p>
 <div class="targetlang"><pre>
 &gt; p=excpp.Point()
@@ -1694,7 +1694,7 @@ __index function: 003FB698
 .fn     table: 003FB528
 </pre></div>
 <p>
-The '.type' attribute is the name of the class. The '.get' and '.set' tables work in a similar manner to the modules, the main difference is the '.fn' table which also holds all the member functions. (The '__gc' function is the classes destructor function)
+The '.type' attribute is the name of the class. The '.get' and '.set' tables work in a similar manner to the modules, the main difference is the '.fn' table which also holds all the member functions. (The '__gc' function is the class' destructor function)
 </p>
 <p>
 The Lua equivalent of the code for enabling functions looks a little like this
@@ -1708,7 +1708,7 @@ function __index(obj,name)
         local f=g[name] -- looks for the get_attribute function
         -- calls it &amp; returns the value
         if type(f)=="function" then return f() end
-        -- ok, so it not an attribute, maybe its a function
+        -- ok, so it not an attribute, maybe it's a function
         local fn=m['.fn'] -- gets the function table
         if not fn then return nil end
         local f=fn[name] -- looks for the function
@@ -1728,7 +1728,7 @@ In theory, you can play with this usertable &amp; add new features, but remember
 Note: Both the opaque structures (like the FILE*) and normal wrapped classes/structs use the same 'swig_lua_userdata' structure. Though the opaque structures has do not have a metatable attached, or any information on how to dispose of them when the interpreter has finished with them.
 </p>
 <p>
-Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the classes metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming its an operator overload.
+Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the class' metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming its an operator overload.
 </p>
 <H3><a name="Lua_nn38"></a>26.7.3 Memory management</H3>
 
@@ -1740,7 +1740,7 @@ Lua is very helpful with the memory management. The 'swig_lua_userdata' is fully
 It is currently not recommended to edit this field or add some user code, to change the behaviour. Though for those who wish to try, here is where to look.
 </p>
 <p>
-It is also currently not possible to change the ownership flag on the data (unlike most other scripting languages, Lua does not permit access to the data from within the interpreter)
+It is also currently not possible to change the ownership flag on the data (unlike most other scripting languages, Lua does not permit access to the data from within the interpreter).
 </p>
 </body>
 </html>
