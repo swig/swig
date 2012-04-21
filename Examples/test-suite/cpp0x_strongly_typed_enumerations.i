@@ -49,4 +49,33 @@ enum class Enum5 {
 enum class Enum6 : unsigned int {
   Val1, Val2, Val3 = 300, Val4
 };
+
+typedef enum class Enum7 : unsigned int {
+  Val1, Val2, Val3 = 300, Val4
+} Enum7td;
+
+// enum inherits from non-primitive type
+enum class Enum8 : size_t {
+  Val1, Val2, Val3 = 300, Val4
+};
+
+template <typename T> struct TType {
+  typedef T type_name;
+};
+
+enum class Enum10 : TType<int>::type_name {
+  Val1, Val2, Val3 = 300, Val4
+};
+
+/*
+TODO
+enum class MyClass {AAA, BBB, CCC};
+namespace Space {
+enum MyEnum {XXX, YYY, ZZZ};
+}
+struct SSS {
+  MyClass m;
+};
+*/
 %}
+

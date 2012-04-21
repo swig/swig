@@ -3319,7 +3319,7 @@ c_enum_keyword : ENUM {
    base enum type (eg. unsigned short)
    ------------------------------------------------------------ */
 
-c_enum_inherit : COLON primitive_type {
+c_enum_inherit : COLON type_right {
                    $$ = $2;
               }
               | empty { $$ = 0; }
