@@ -67,6 +67,12 @@ enum class Enum10 : TType<int>::type_name {
   Val1, Val2, Val3 = 300, Val4
 };
 
+// forward declaration, no definition of enum
+enum class Enum11 : int;
+struct UseEnum11 {
+    Enum11 myenum11;
+};
+
 /*
 TODO
 enum class MyClass {AAA, BBB, CCC};

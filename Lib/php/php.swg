@@ -189,10 +189,14 @@
               signed char,
               unsigned char,
               bool,
-              size_t,
-              enum SWIGTYPE
+              size_t
 {
 	ZVAL_LONG(return_value,$1);
+}
+
+%typemap(out) enum SWIGTYPE
+{
+	ZVAL_LONG(return_value, (long)$1);
 }
 
 %typemap(out) long long
@@ -227,10 +231,14 @@
               const signed char &,
               const unsigned char &,
               const bool &,
-              const size_t &,
-              const enum SWIGTYPE &
+              const size_t &
 {
 	ZVAL_LONG(return_value,*$1);
+}
+
+%typemap(out) const enum SWIGTYPE &
+{
+	ZVAL_LONG(return_value, (long)*$1);
 }
 
 %typemap(out) const long long &
@@ -268,6 +276,11 @@
               enum SWIGTYPE
 {
   ZVAL_LONG($input,$1_name);
+}
+
+%typemap(directorin) enum SWIGTYPE
+{
+  ZVAL_LONG($input, (long)$1_name);
 }
 
 %typemap(out) bool
