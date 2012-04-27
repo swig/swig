@@ -43,7 +43,7 @@ b = launder(a)
 try:
 	b.pong()
 except TypeError, e:
-	if str(e) == "Swig director type mismatch in output value of type 'std::string'":
+	if str(e) == "SWIG director type mismatch in output value of type 'std::string'":
 		ok = 1
 	else:
 		print "Unexpected error message: %s" % str(e)
@@ -66,11 +66,15 @@ except MyException, e:
 if not ok:
 	raise RuntimeError
 
+# This is expected to fail with -builtin option
+# Throwing builtin classes as exceptions not supported
 try:
 	raise Exception2()
 except Exception2:
 	pass
 
+# This is expected to fail with -builtin option
+# Throwing builtin classes as exceptions not supported
 try:
 	raise Exception1()
 except Exception1:

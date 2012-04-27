@@ -11,15 +11,13 @@
  * C/C++ scanner. 
  * ----------------------------------------------------------------------------- */
 
-/* $Id: swig.h 9633 2007-01-10 23:43:07Z beazley $ */
-
 typedef struct Scanner Scanner;
 
-extern Scanner     *NewScanner();
+extern Scanner     *NewScanner(void);
 extern void         DelScanner(Scanner *);
 extern void         Scanner_clear(Scanner *);
 extern void         Scanner_push(Scanner *, String *);
-extern void         Scanner_pushtoken(Scanner *, int, const String_or_char *value);
+extern void         Scanner_pushtoken(Scanner *, int, const_String_or_char_ptr value);
 extern int          Scanner_token(Scanner *);
 extern String      *Scanner_text(Scanner *);
 extern void         Scanner_skip_line(Scanner *);
@@ -32,7 +30,7 @@ extern void         Scanner_idstart(Scanner *, const char *idchar);
 extern String      *Scanner_errmsg(Scanner *);
 extern int          Scanner_errline(Scanner *);
 extern int          Scanner_isoperator(int tokval);
-extern void         Scanner_freeze_line(Scanner *s, int val);
+extern void         Scanner_locator(Scanner *, String *loc);
 
 /* Note: Tokens in range 100+ are for C/C++ operators */
 
@@ -68,6 +66,7 @@ extern void         Scanner_freeze_line(Scanner *s, int val);
 #define   SWIG_TOKEN_ULONGLONG    29       /* 314ULL */
 #define   SWIG_TOKEN_QUESTION     30       /* ? */
 #define   SWIG_TOKEN_COMMENT      31       /* C or C++ comment */
+#define   SWIG_TOKEN_BOOL         32       /* true or false */
 #define   SWIG_TOKEN_ILLEGAL      99
 #define   SWIG_TOKEN_ERROR        -1
 

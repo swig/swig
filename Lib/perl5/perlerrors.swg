@@ -4,46 +4,31 @@
 
 SWIGINTERN const char*
 SWIG_Perl_ErrorType(int code) {
-  const char* type = 0;
   switch(code) {
   case SWIG_MemoryError:
-    type = "MemoryError";
-    break;
+    return "MemoryError";
   case SWIG_IOError:
-    type = "IOError";
-    break;
+    return "IOError";
   case SWIG_RuntimeError:
-    type = "RuntimeError";
-    break;
+    return "RuntimeError";
   case SWIG_IndexError:
-    type = "IndexError";
-    break;
+    return "IndexError";
   case SWIG_TypeError:
-    type = "TypeError";
-    break;
+    return "TypeError";
   case SWIG_DivisionByZero:
-    type = "ZeroDivisionError";
-    break;
+    return "ZeroDivisionError";
   case SWIG_OverflowError:
-    type = "OverflowError";
-    break;
+    return "OverflowError";
   case SWIG_SyntaxError:
-    type = "SyntaxError";
-    break;
+    return "SyntaxError";
   case SWIG_ValueError:
-    type = "ValueError";
-    break;
+    return "ValueError";
   case SWIG_SystemError:
-    type = "SystemError";
-    break;
+    return "SystemError";
   case SWIG_AttributeError:
-    type = "AttributeError";
-    break;
+    return "AttributeError";
   default:
-    type = "RuntimeError";
+    return "RuntimeError";
   }
-  return type;
 }
-
-
 

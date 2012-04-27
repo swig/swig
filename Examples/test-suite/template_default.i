@@ -1,8 +1,7 @@
 %module template_default
 
-
-
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) ns1::Traits::c; /* Ruby, wrong constant name */
+
 namespace ns1 {
   namespace ns2 {
   
@@ -154,8 +153,8 @@ namespace ns1 {
 %}
 
 
-%template(Do) ns1::ns4::D<ns1::Traits>;
-%template(Bo) ns1::ns4::Base<ns1::Traits, ns1::ns4::D<ns1::Traits> >;
+%template(Doo) ns1::ns4::D<ns1::Traits>;
+%template(Boo) ns1::ns4::Base<ns1::Traits, ns1::ns4::D<ns1::Traits> >;
 
 
 

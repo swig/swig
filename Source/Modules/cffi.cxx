@@ -20,13 +20,27 @@ char cvsroot_cffi_cxx[] = "$Id$";
 //#define CFFI_DEBUG
 //#define CFFI_WRAP_DEBUG
 
+static const char *usage = (char *) "\
+CFFI Options (available with -cffi)\n\
+     -generate-typedef - Use defctype to generate shortcuts according to the\n\
+                         typedefs in the input.\n\
+     -[no]cwrap        - Turn on or turn off generation of an intermediate C\n\
+                         file when creating a C interface. By default this is\n\
+                         only done for C++ code.\n\
+     -[no]swig-lisp    - Turn on or off generation of code for helper lisp\n\
+                         macro, functions, etc. which SWIG uses while\n\
+                         generating wrappers. These macros, functions may still\n\
+                         be used by generated wrapper code.\n\
+";
+
 class CFFI:public Language {
 public:
   String *f_cl;
   String *f_clhead;
   String *f_clwrap;
   bool CWrap;     // generate wrapper file for C code?  
-  File *f_cxx;
+  File *f_begin;
+  File *f_runtime;
   File *f_cxx_header;
   File *f_cxx_wrapper;
   File *f_clos;
@@ -71,6 +85,7 @@ private:
 void CFFI::main(int argc, char *argv[]) {
   int i;
 
+  Preprocessor_define("SWIGCFFI 1", 0);
   SWIG_library_directory("cffi");
   SWIG_config_file("cffi.swg");
   generate_typedef_flag = 0;
@@ -78,17 +93,7 @@ void CFFI::main(int argc, char *argv[]) {
   CWrap = false;
   for (i = 1; i < argc; i++) {
     if (!Strcmp(argv[i], "-help")) {
-      Printf(stdout, "cffi Options (available with -cffi)\n");
-      Printf(stdout,
-       "   -generate-typedef\n"
-       "\tIf this option is given then defctype will be used to generate\n"
-       "\tshortcuts according to the typedefs in the input.\n"
-       "   -[no]cwrap\n"
-       "\tTurn on or turn off generation of an intermediate C file when\n"
-       "\tcreating a C interface. By default this is only done for C++ code.\n"
-       "   -[no]swig-lisp\n"
-       "\tTurns on or off generation of code for helper lisp macro, functions,\n"
-       "\tetc. which SWIG uses while generating wrappers. These macros, functions\n" "\tmay still be used by generated wrapper code.\n");
+      Printf(stdout, "%s\n", usage);
     } else if (!strcmp(argv[i], "-cwrap")) {
       CWrap = true;
       Swig_mark_arg(i);
@@ -123,16 +128,15 @@ int CFFI::top(Node *n) {
 
   Printf(lisp_filename, "%s%s.lisp", SWIG_output_directory(), module);
 
-  File *f_lisp = NewFile(lisp_filename, "w");
-  NewFile(lisp_filename, "w");
+  File *f_lisp = NewFile(lisp_filename, "w", SWIG_output_files());
   if (!f_lisp) {
     FileErrorDisplay(lisp_filename);
     SWIG_exit(EXIT_FAILURE);
   }
 
   if (CPlusPlus || CWrap) {
-    f_cxx = NewFile(cxx_filename, "w");
-    if (!f_cxx) {
+    f_begin = NewFile(cxx_filename, "w", SWIG_output_files());
+    if (!f_begin) {
       Close(f_lisp);
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
@@ -141,7 +145,7 @@ int CFFI::top(Node *n) {
 
     String *clos_filename = NewString("");
     Printf(clos_filename, "%s%s-clos.lisp", SWIG_output_directory(), module);
-    f_clos = NewFile(clos_filename, "w");
+    f_clos = NewFile(clos_filename, "w", SWIG_output_files());
     if (!f_clos) {
       Close(f_lisp);
       Delete(f_lisp);
@@ -149,21 +153,31 @@ int CFFI::top(Node *n) {
       SWIG_exit(EXIT_FAILURE);
     }
   } else {
-    f_cxx = NewString("");
+    f_begin = NewString("");
     f_clos = NewString("");
   }
 
-  f_cxx_header = f_cxx;
+  f_runtime = NewString("");
+  f_cxx_header = f_runtime;
   f_cxx_wrapper = NewString("");
 
   Swig_register_filebyname("header", f_cxx_header);
   Swig_register_filebyname("wrapper", f_cxx_wrapper);
-  Swig_register_filebyname("runtime", f_cxx);
+  Swig_register_filebyname("begin", f_begin);
+  Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("lisphead", f_clhead);
   if (!no_swig_lisp)
     Swig_register_filebyname("swiglisp", f_cl);
   else
     Swig_register_filebyname("swiglisp", f_null);
+
+  Swig_banner(f_begin);
+
+  Printf(f_runtime, "\n");
+  Printf(f_runtime, "#define SWIGCFFI\n");
+  Printf(f_runtime, "\n");
+
+  Swig_banner_target_lang(f_lisp, ";;;");
 
   Language::top(n);
   Printf(f_lisp, "%s\n", f_clhead);
@@ -175,8 +189,10 @@ int CFFI::top(Node *n) {
   Delete(f_cl);
   Delete(f_clhead);
   Delete(f_clwrap);
-  Close(f_cxx);
-  Delete(f_cxx);
+  Dump(f_runtime, f_begin);
+  Close(f_begin);
+  Delete(f_runtime);
+  Delete(f_begin);
   Delete(f_cxx_wrapper);
   Delete(f_null);
 
@@ -236,7 +252,7 @@ void CFFI::emit_defmethod(Node *n) {
 
   ParmList *pl = Getattr(n, "parms");
   int argnum = 0;
-  Node *parent = parentNode(n);
+  Node *parent = getCurrentClass();
   bool first = 0;
   
   for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
@@ -291,7 +307,7 @@ void CFFI::emit_initialize_instance(Node *n) {
 
   ParmList *pl = Getattr(n, "parms");
   int argnum = 0;
-  Node *parent = parentNode(n);
+  Node *parent = getCurrentClass();
 
   for (Parm *p = pl; p; p = nextSibling(p), argnum++) {
     String *argname = Getattr(p, "name");
@@ -328,18 +344,18 @@ void CFFI::emit_initialize_instance(Node *n) {
 }
 
 void CFFI::emit_setter(Node *n) {
-  Node *p = parentNode(n);
+  Node *parent = getCurrentClass();
   Printf(f_clos, "(cl:defmethod (cl:setf %s) (arg0 (obj %s))\n  (%s (ff-pointer obj) arg0))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
-         lispify_name(p, lispy_name(Char(Getattr(p, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
+         lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
 }
 
 
 void CFFI::emit_getter(Node *n) {
-  Node *p = parentNode(n);
+  Node *parent = getCurrentClass();
   Printf(f_clos, "(cl:defmethod %s ((obj %s))\n  (%s (ff-pointer obj)))\n\n",
          lispify_name(n, Getattr(n, "name"), "'method"),
-         lispify_name(p, lispy_name(Char(Getattr(p, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
+         lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'class"), lispify_name(n, Getattr(n, "sym:name"), "'function"));
 }
 
 int CFFI::memberfunctionHandler(Node *n) {
@@ -445,7 +461,7 @@ int CFFI::functionWrapper(Node *n) {
 
   String *actioncode = emit_action(n);
 
-  String *result_convert = Swig_typemap_lookup_out("out", n, "result", f, actioncode);
+  String *result_convert = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode);
   Replaceall(result_convert, "$result", "lresult");
   Printf(f->code, "%s\n", result_convert);
   if(!is_void_return) Printf(f->code, "    return lresult;\n");
@@ -459,7 +475,7 @@ int CFFI::functionWrapper(Node *n) {
   Printf(f->code, "}\n");
 
   if (CPlusPlus)
-    Wrapper_print(f, f_cxx);
+    Wrapper_print(f, f_runtime);
 
   if (CPlusPlus) {
     emit_defun(n, wname);
@@ -609,12 +625,12 @@ int CFFI::enumDeclaration(Node *n) {
     slot_name_keywords = true;
 
     //Registering the enum name to the cin and cout typemaps
-    Parm *pattern = NewParm(name, NULL);
+    Parm *pattern = NewParm(name, NULL, n);
     Swig_typemap_register("cin", pattern, lisp_name, NULL, NULL);
     Swig_typemap_register("cout", pattern, lisp_name, NULL, NULL);
     Delete(pattern);
     //Registering with the kind, i.e., enum
-    pattern = NewParm(NewStringf("enum %s", name), NULL);
+    pattern = NewParm(NewStringf("enum %s", name), NULL, n);
     Swig_typemap_register("cin", pattern, lisp_name, NULL, NULL);
     Swig_typemap_register("cout", pattern, lisp_name, NULL, NULL);
     Delete(pattern);
@@ -679,7 +695,7 @@ void CFFI::emit_class(Node *n) {
   Printf(f_clos, "\n(cl:defclass %s%s", lisp_name, supers);
   Printf(f_clos, "\n  ((ff-pointer :reader ff-pointer)))\n\n");
 
-  Parm *pattern = NewParm(Getattr(n, "name"), NULL);
+  Parm *pattern = NewParm(Getattr(n, "name"), NULL, n);
 
   Swig_typemap_register("lispclass", pattern, lisp_name, NULL, NULL);
   SwigType_add_pointer(Getattr(pattern, "type"));
@@ -749,7 +765,7 @@ void CFFI::emit_class(Node *n) {
   Delete(supers);
   //  Delete(ns_list);
 
-  //  Parm *pattern = NewParm(name,NULL);
+  //  Parm *pattern = NewParm(name, NULL, n);
   // Swig_typemap_register("cin",pattern,lisp_name,NULL,NULL);  
   //Swig_typemap_register("cout",pattern,lisp_name,NULL,NULL);
   //Delete(pattern);
@@ -778,12 +794,12 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
 
   //Register the struct/union name to the cin and cout typemaps
 
-  Parm *pattern = NewParm(name, NULL);
+  Parm *pattern = NewParm(name, NULL, n);
   Swig_typemap_register("cin", pattern, lisp_name, NULL, NULL);
   Swig_typemap_register("cout", pattern, lisp_name, NULL, NULL);
   Delete(pattern);
   //Registering with the kind, i.e., struct or union
-  pattern = NewParm(NewStringf("%s %s", kind, name), NULL);
+  pattern = NewParm(NewStringf("%s %s", kind, name), NULL, n);
   Swig_typemap_register("cin", pattern, lisp_name, NULL, NULL);
   Swig_typemap_register("cout", pattern, lisp_name, NULL, NULL);
   Delete(pattern);
@@ -810,21 +826,24 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
       //               Getattr(c, "type"));
       //       SWIG_exit(EXIT_FAILURE);
     } else {
-      SwigType *childType = NewStringf("%s%s", Getattr(c, "decl"),
-               Getattr(c, "type"));
+      SwigType *childType = NewStringf("%s%s", Getattr(c, "decl"), Getattr(c, "type"));
 
-      Hash *typemap = Swig_typemap_search("cin", childType, "", 0);
-      String *typespec = NewString("");
-      if (typemap) {
-  typespec = NewString(Getattr(typemap, "code"));
-      }
+      Node *node = NewHash();
+      Setattr(node, "type", childType);
+      Setfile(node, Getfile(n));
+      Setline(node, Getline(n));
+      const String *tm = Swig_typemap_lookup("cin", node, "", 0);
+
+      String *typespec = tm ? NewString(tm) : NewString("");
 
       String *slot_name = lispify_name(c, Getattr(c, "sym:name"), "'slotname");
       if (Strcmp(slot_name, "t") == 0 || Strcmp(slot_name, "T") == 0)
-  slot_name = NewStringf("t_var");
+	slot_name = NewStringf("t_var");
 
       Printf(f_cl, "\n\t(%s %s)", slot_name, typespec);
 
+      Delete(node);
+      Delete(childType);
       Delete(typespec);
     }
   }

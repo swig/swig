@@ -7,14 +7,13 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Php"></a>28 SWIG and PHP</H1>
+<H1><a name="Php"></a>32 SWIG and PHP</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
 <li><a href="#Php_nn1">Generating PHP Extensions</a>
 <ul>
 <li><a href="#Php_nn1_1">Building a loadable extension</a>
-<li><a href="#Php_nn1_2">Building extensions into PHP</a>
 <li><a href="#Php_nn1_3">Using PHP Extensions</a>
 </ul>
 <li><a href="#Php_nn2">Basic PHP interface</a>
@@ -33,6 +32,16 @@
 </ul>
 <li><a href="#Php_nn2_7">PHP Pragmas, Startup and Shutdown code</a>
 </ul>
+<li><a href="#Php_nn3">Cross language polymorphism</a>
+<ul>
+<li><a href="#Php_nn3_1">Enabling directors</a>
+<li><a href="#Php_nn3_2">Director classes</a>
+<li><a href="#Php_nn3_3">Ownership and object destruction</a>
+<li><a href="#Php_nn3_4">Exception unrolling</a>
+<li><a href="#Php_nn3_5">Overhead and code bloat</a>
+<li><a href="#Php_nn3_6">Typemaps</a>
+<li><a href="#Php_nn3_7">Miscellaneous</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -40,23 +49,23 @@
 
 
 <p>
-<b>Caution: This chapter (and module!) is still under construction</b>
+SWIG supports generating wrappers for PHP5.  Support for PHP4 was removed
+in SWIG 1.3.37.  The PHP developers are no longer making new PHP4 releases,
+and won't even be patching critical security issues after 2008-08-08, so it
+doesn't make much sense for SWIG to continue to support PHP4 now.  If you
+really need to continue to use PHP4, just stick with SWIG 1.3.36.
 </p>
 
 <p>
-SWIG supports generating wrappers for PHP5.  Support for PHP4 has been removed
-as of SWIG 1.3.37.  The PHP developers are no longer making new PHP4 releases,
-and won't even be patching critical security issues after 2008-08-08, so it
-doesn't make much sense for SWIG to continue to support PHP4 at this point.
-If you need to continue to use PHP4, stick with SWIG 1.3.36.
+Currently any PHP5 release should work, but we don't regularly test with
+PHP &lt; 5.3.
 </p>
 
 <p>
 In this chapter, we discuss SWIG's support of PHP.  The PHP module
 was extensively rewritten in release 1.3.26, and support for generating
-OO wrappers for PHP5 was added in 1.3.30.  The PHP module works fairly
-well, but currently does not implement all the
-features available in some of the other languages.
+OO wrappers for PHP5 was added in 1.3.30.  The PHP module now supports most
+of the features available in some of the other languages.
 </p>
 
 <p>
@@ -70,7 +79,7 @@ your extension into php directly, you will need the complete PHP source tree
 available.
 </p>
 
-<H2><a name="Php_nn1"></a>28.1 Generating PHP Extensions</H2>
+<H2><a name="Php_nn1"></a>32.1 Generating PHP Extensions</H2>
 
 
 <p>
@@ -96,7 +105,7 @@ also contain PHP5 class wrappers.
 </p>
 
 <p>
-Swig can generate PHP extensions from C++ libraries as well when
+SWIG can generate PHP extensions from C++ libraries as well when
 given the <tt>-c++</tt> option.  The support for C++ is discussed in
 more detail in <a href="#Php_nn2_6">section 27.2.6</a>.
 </p>
@@ -117,7 +126,8 @@ and it doesn't play nicely with package system.  We don't recommend
 this approach, or provide explicit support for it.
 </p>
 
-<H3><a name="Php_nn1_1"></a>28.1.1 Building a loadable extension</H3>
+<H3><a name="Php_nn1_1"></a>32.1.1 Building a loadable extension</H3>
+
 
 <p>
 To build your module as a dynamically loadable extension, use compilation
@@ -131,7 +141,8 @@ least work for Linux though):
 	gcc -shared example_wrap.o -o example.so
 </pre></div>
 
-<H3><a name="Php_nn1_3"></a>28.1.3 Using PHP Extensions</H3>
+<H3><a name="Php_nn1_3"></a>32.1.2 Using PHP Extensions</H3>
+
 
 <p>
 To test the extension from a PHP script, you need to load it first. You
@@ -161,21 +172,22 @@ attempts to do the <tt>dl()</tt> call for you:
 	include("example.php");
 </pre></div>
 
-<H2><a name="Php_nn2"></a>28.2 Basic PHP interface</H2>
+<H2><a name="Php_nn2"></a>32.2 Basic PHP interface</H2>
 
 
 <p>
 It is important to understand that PHP uses a single global namespace
 into which all symbols from extension modules are loaded.  It is quite
 possible for names of symbols in one extension module to clash with
-other symbols unless care is taken to <tt>%rename</tt> them.
+other symbols unless care is taken to <tt>%rename</tt> them.  At present
+SWIG doesn't have support for the namespace feature added in PHP 5.3.
 </p>
 
-<H3><a name="Php_nn2_1"></a>28.2.1 Constants</H3>
+<H3><a name="Php_nn2_1"></a>32.2.1 Constants</H3>
 
 
 <p>
-These work in much the same way as in C/C++, constants can be defined
+These work in much the same way as in C/C++.  Constants can be defined
 by using either the normal C pre-processor declarations, or the
 <tt>%constant</tt> SWIG directive.  These will then be available from
 your PHP script as a PHP constant, (i.e. no dollar sign is needed to
@@ -192,7 +204,7 @@ access them.) For example, with a swig interface file like this,
 </div>
 
 <p>
-you can access the constants in your php script like this,
+you can access the constants in your PHP script like this,
 </p>
 
 <div class="code"><pre>
@@ -206,9 +218,16 @@ echo "E = " . E . "\n";
 </div>
 
 <p>
-There are two peculiarities with using constants in PHP. The first is that
-if you try to use an undeclared constant, it will evaluate to a string
-set to the constant's name. For example,
+There's one peculiarity of how constants work in PHP which it is useful
+to note (this is not specific to SWIG though) - if you try to use an undeclared
+constant, PHP will issue a warning and then expand the constant to a string
+version of the constant's name.  The warning will often be missed though as
+if you're using PHP in a webserver, it will probably end up in error.log or
+similar.
+</p>
+
+<p>
+For example,
 </p>
 
 <div class="code"><pre>
@@ -236,67 +255,12 @@ if(EASY_TO_MISPEL) {
 </div>
 
 <p>
-will issue a warning about the undeclared constant, but will then
-evaluate it and turn it into a string ('EASY_TO_MISPEL'), which
-evaluates to true, rather than the value of the constant which would
-be false. This is a feature!
+The mis-spelled constant will become the string 'EASY_TO_MISPEL', which
+is treated as true by the if test, when the value of the intended constant
+would be treated as false!
 </p>
 
-<p>
-The second 'feature' is that although constants are case sensitive (by
-default), you cannot declare a constant twice with alternative
-cases. E.g.,
-</p>
-
-<div class="code">
-<pre>
-%module example
-
-#define TEST	Hello
-#define Test	World
-</pre>
-</div>
-
-<p>
-accessed from PHP,
-</p>
-
-<div class="code">
-<pre>
-include("example.php");
-
-echo TEST, Test;
-</pre>
-</div>
-
-<p>
-will output "Hello Test" rather than "Hello World". This is because
-internally, all constants are stored in a hash table by their lower
-case name, so 'TEST' and 'Test' will map to the same hash element
-('Test'). But, because we declared them case sensitive, the Zend
-engine will test if the case matches with the case the constant was
-declared with first.
-</p>
-
-<p>
-So, in the example above, the TEST constant was declared first, and
-will be stored under the hash element 'test'. The 'Test' constant will
-also map to the same hash element 'test', but will not overwrite
-it. When called from the script, the TEST constant will again be
-mapped to the hash element 'test' so the constant will be
-retrieved. The case will then be checked, and will match up, so the
-value ('Hello') will be returned. When 'Test' is evaluated, it will
-also map to the same hash element 'test'. The same constant will be
-retrieved, this time though the case check will fail as 'Test' !=
-'TEST'. So PHP will assume that Test is a undeclared constant, and as
-explained above, will return it as a string set to the constant name
-('Test'). Hence the script above will print 'Hello Test'. If they were
-declared non-case sensitive, the output would be 'Hello Hello', as
-both point to the same value, without the case test taking place.  (
-Apologies, this paragraph needs rewriting to make some sense. )
-</p>
-
-<H3><a name="Php_nn2_2"></a>28.2.2 Global Variables</H3>
+<H3><a name="Php_nn2_2"></a>32.2.2 Global Variables</H3>
 
 
 <p>
@@ -345,7 +309,7 @@ undefined.
 At this time SWIG does not support custom accessor methods.
 </p>
 
-<H3><a name="Php_nn2_3"></a>28.2.3 Functions</H3>
+<H3><a name="Php_nn2_3"></a>32.2.3 Functions</H3>
 
 
 <p>
@@ -398,7 +362,7 @@ print $s;      # The value of $s was not changed.
 -->
 
 
-<H3><a name="Php_nn2_4"></a>28.2.4 Overloading</H3>
+<H3><a name="Php_nn2_4"></a>32.2.4 Overloading</H3>
 
 
 <p>
@@ -406,13 +370,13 @@ Although PHP does not support overloading functions natively, swig
 will generate dispatch functions which will use <tt>%typecheck</tt>
 typemaps to allow overloading.  This dispatch function's operation and
 precedence is described in <a
-href="TypemapsSWIGPlus.html#SWIGPlus_overloaded_methods">Wrapping
+href="SWIGPlus.html#SWIGPlus_overloaded_methods">Wrapping
 Overloaded Functions and Methods</a>.
 </p>
 
 <!-- This isn't correct for 1.3.30 and needs rewriting to reflect reality
 <p>
-Because PHP4 is a dynamically typed language, simple values can be
+Because PHP is a dynamically typed language, simple values can be
 silently converted from one type to another.  For example, integers,
 doubles and strings silently convert to each other depending on
 context.  This situation make overloading slightly problematic because
@@ -432,7 +396,7 @@ PHP.  The string <tt>"2"</tt> simultaneously represents the integer
 
 <p>
 In order to provide the most natural experience to PHP programmers,
-the default <tt>%typecheck</tt> implemented in <tt>php4.swg</tt>
+the default <tt>%typecheck</tt> implemented in <tt>php.swg</tt>
 allows any simple type (integer, double, string) in PHP to be used for
 any simple C type (int, double, char *).  The function selected then
 depends only on the argument type precedence defined by SWIG.
@@ -454,7 +418,7 @@ taking the integer argument.
 </p>
 -->
 
-<H3><a name="Php_nn2_5"></a>28.2.5 Pointers and References</H3>
+<H3><a name="Php_nn2_5"></a>32.2.5 Pointers and References</H3>
 
 
 <p>
@@ -478,7 +442,7 @@ One can include <b>cpointer.i</b> to generate PHP wrappers to <tt>int
 
 <div class="code"><pre>
 %module example
-%include cpointer.i
+%include "cpointer.i"
 %pointer_functions(int,intp)
 
 void add( int *in1, int *in2, int *result);
@@ -512,7 +476,7 @@ parameter names as appropriate.
 
 <div class="code"><pre>
 %module example
-%include typemaps.i
+%include "typemaps.i"
 
 void add( int *INPUT, int *INPUT, int *OUTPUT);
 
@@ -544,7 +508,7 @@ named typemap REFERENCE.
 
 <div class="code"><pre>
 %module example
-%include phppointers.i
+%include "phppointers.i"
 
 void add( int *REF, int *REF, int *REF);
 
@@ -586,13 +550,15 @@ PHP in a number of ways: by using <tt>unset</tt> on an existing
 variable, or assigning <tt>NULL</tt> to a variable.
 </p>
 
-<H3><a name="Php_nn2_6"></a>28.2.6 Structures and C++ classes</H3>
+<H3><a name="Php_nn2_6"></a>32.2.6 Structures and C++ classes</H3>
 
 
 <p>
-SWIG defaults to wrapping C++ structs and classes with PHP classes
-unless "-noproxy" is specified.  For PHP5, a PHP wrapper
-class is generated which calls a set of flat functions wrapping the C++ class.
+SWIG defaults to wrapping C++ structs and classes with PHP classes - this
+is done by generating a PHP wrapper script which defines proxy classes
+which calls a set of flat functions which actually wrap the C++ class.
+You can disable this wrapper layer by passing the command-line option
+"-noproxy" in which case you'll just get the flat functions.
 </p>
 
 <p>
@@ -645,7 +611,7 @@ Would be used in the following way from PHP5:
 Member variables and methods are accessed using the <tt>-&gt;</tt> operator.
 </p>
 
-<H4><a name="Php_nn2_6_1"></a>28.2.6.1 Using <tt>-noproxy</tt></H4>
+<H4><a name="Php_nn2_6_1"></a>32.2.6.1 Using <tt>-noproxy</tt></H4>
 
 
 <p>
@@ -671,7 +637,7 @@ Complex_im_set($obj,$d);
 Complex_im_get($obj);
 </pre></div>
 
-<H4><a name="Php_nn2_6_2"></a>28.2.6.2 Constructors and Destructors</H4>
+<H4><a name="Php_nn2_6_2"></a>32.2.6.2 Constructors and Destructors</H4>
 
 
 <p>
@@ -712,7 +678,7 @@ the programmer can either reassign the variable or call
 <tt>unset($v)</tt>
 </p>
 
-<H4><a name="Php_nn2_6_3"></a>28.2.6.3 Static Member Variables</H4>
+<H4><a name="Php_nn2_6_3"></a>32.2.6.3 Static Member Variables</H4>
 
 
 <p>
@@ -755,7 +721,7 @@ Ko::threats(10);
 echo "There has now been " . Ko::threats() . " threats\n";
 
 </pre></div>
-<H4><a name="Php_nn2_6_4"></a>28.2.6.4 Static Member Functions</H4>
+<H4><a name="Php_nn2_6_4"></a>32.2.6.4 Static Member Functions</H4>
 
 
 <p>
@@ -777,14 +743,8 @@ Ko::threats();
 </pre></div>
 
 
-<H3><a name="Php_nn2_7"></a>28.2.7 PHP Pragmas, Startup and Shutdown code</H3>
+<H3><a name="Php_nn2_7"></a>32.2.7 PHP Pragmas, Startup and Shutdown code</H3>
 
-
-<p>
-Note: Currently pragmas for PHP need to be specified using
-<tt>%pragma(php4)</tt> but also apply for PHP5!  This is just a historical
-oddity because SWIG's PHP support predates PHP5.
-</p>
 
 <p>
 To place PHP code in the generated "example.php" file one can use the
@@ -794,7 +754,7 @@ object.
 
 <div class="code"><pre>
 %module example
-%pragma(php4) code="
+%pragma(php) code="
 # This code is inserted into example.php
 echo \"example.php execution\\n\";
 "
@@ -816,7 +776,7 @@ the example.php file.
 
 <div class="code"><pre>
 %module example
-%pragma(php4) code="
+%pragma(php) code="
 include \"include.php\";
 "
 %pragma(php) include="include.php"   // equivalent.
@@ -830,7 +790,7 @@ phpinfo() function.
 
 <div class="code"><pre>
 %module example;
-%pragma(php4) phpinfo="
+%pragma(php) phpinfo="
   zend_printf("An example of PHP support through SWIG\n");
   php_info_print_table_start();
   php_info_print_table_header(2, \"Directive\", \"Value\");
@@ -856,7 +816,7 @@ either <tt>%init</tt> or <tt>%minit</tt>.
 
 <p>
 To insert code into the <tt>PHP_MSHUTDOWN_FUNCTION</tt>, one can use
-either <tt>%init</tt> or <tt>%minit</tt>.
+either <tt>%shutdown</tt> or <tt>%mshutdown</tt>.
 </p>
 
 <div class="code"><pre>
@@ -867,8 +827,384 @@ either <tt>%init</tt> or <tt>%minit</tt>.
 </pre></div>
 
 <p>
-The <tt>%rinit</tt> and <tt>%rshutdown</tt> statements insert code
-into the request init and shutdown code respectively.
+The <tt>%rinit</tt> and <tt>%rshutdown</tt> statements are very similar but insert code
+into the request init (PHP_RINIT_FUNCTION) and request shutdown (PHP_RSHUTDOWN_FUNCTION) code respectively.
+</p>
+
+<H2><a name="Php_nn3"></a>32.3 Cross language polymorphism</H2>
+
+
+<p>
+Proxy classes provide a more natural, object-oriented way to access
+extension classes. As described above, each proxy instance has an
+associated C++ instance, and method calls to the proxy are passed to the
+C++ instance transparently via C wrapper functions.
+</p>
+
+<p>
+This arrangement is asymmetric in the sense that no corresponding
+mechanism exists to pass method calls down the inheritance chain from
+C++ to PHP. In particular, if a C++ class has been extended in PHP
+(by extending the proxy class), these extensions will not be visible
+from C++ code. Virtual method calls from C++ are thus not able access
+the lowest implementation in the inheritance chain.
+</p>
+
+<p>
+Changes have been made to SWIG 1.3.18 to address this problem and make
+the relationship between C++ classes and proxy classes more symmetric.
+To achieve this goal, new classes called directors are introduced at the
+bottom of the C++ inheritance chain. Support for generating PHP classes
+has been added in SWIG 1.3.40. The job of the directors is to route
+method calls correctly, either to C++ implementations higher in the
+inheritance chain or to PHP implementations lower in the inheritance
+chain. The upshot is that C++ classes can be extended in PHP and from
+C++ these extensions look exactly like native C++ classes. Neither C++
+code nor PHP code needs to know where a particular method is
+implemented: the combination of proxy classes, director classes, and C
+wrapper functions takes care of all the cross-language method routing
+transparently.
+</p>
+
+<H3><a name="Php_nn3_1"></a>32.3.1 Enabling directors</H3>
+
+
+<p>
+The director feature is disabled by default.  To use directors you
+must make two changes to the interface file.  First, add the "directors"
+option to the %module directive, like this:
+</p>
+
+<div class="code">
+<pre>
+%module(directors="1") modulename
+</pre>
+</div>
+
+<p>
+Without this option no director code will be generated.  Second, you
+must use the %feature("director") directive to tell SWIG which classes 
+and methods should get directors.  The %feature directive can be applied 
+globally, to specific classes, and to specific methods, like this:
+</p>
+
+<div class="code">
+<pre>
+// generate directors for all classes that have virtual methods
+%feature("director");         
+
+// generate directors for all virtual methods in class Foo
+%feature("director") Foo;      
+
+// generate a director for just Foo::bar()
+%feature("director") Foo::bar; 
+</pre>
+</div>
+
+<p>
+You can use the %feature("nodirector") directive to turn off
+directors for specific classes or methods.  So for example,
+</p>
+
+<div class="code">
+<pre>
+%feature("director") Foo;
+%feature("nodirector") Foo::bar;
+</pre>
+</div>
+
+<p>
+will generate directors for all virtual methods of class Foo except
+bar().  
+</p>
+
+<p>
+Directors can also be generated implicitly through inheritance. 
+In the following, class Bar will get a director class that handles
+the methods one() and two() (but not three()):
+</p>
+
+<div class="code">
+<pre>
+%feature("director") Foo;
+class Foo {
+public:
+    Foo(int foo);
+    virtual void one();
+    virtual void two();
+};
+
+class Bar: public Foo {
+public:
+    virtual void three();
+};
+</pre>
+</div>
+
+<p>
+then at the PHP side you can define
+</p>
+
+<div class="targetlang">
+<pre>
+require("mymodule.php");
+
+class MyFoo extends Foo {
+  function one() {
+     print "one from php\n";
+  }
+}
+</pre>
+</div>
+
+
+<H3><a name="Php_nn3_2"></a>32.3.2 Director classes</H3>
+
+
+ 
+
+
+<p>
+For each class that has directors enabled, SWIG generates a new class
+that derives from both the class in question and a special
+<tt>Swig::Director</tt> class. These new classes, referred to as director
+classes, can be loosely thought of as the C++ equivalent of the PHP
+proxy classes. The director classes store a pointer to their underlying
+PHP object.  Indeed, this is quite similar to the "_cPtr" and "thisown"
+members of the PHP proxy classes.
+</p>
+
+<p>
+For simplicity let's ignore the <tt>Swig::Director</tt> class and refer to the
+original C++ class as the director's base class. By default, a director
+class extends all virtual methods in the inheritance chain of its base
+class (see the preceding section for how to modify this behavior).
+Thus all virtual method calls, whether they originate in C++ or in
+PHP via proxy classes, eventually end up in at the implementation in the
+director class. The job of the director methods is to route these method
+calls to the appropriate place in the inheritance chain. By "appropriate
+place" we mean the method that would have been called if the C++ base
+class and its extensions in PHP were seamlessly integrated. That
+seamless integration is exactly what the director classes provide,
+transparently skipping over all the messy extension API glue that binds
+the two languages together.
+</p>
+
+<p>
+In reality, the "appropriate place" is one of only two possibilities:
+C++ or PHP. Once this decision is made, the rest is fairly easy. If the
+correct implementation is in C++, then the lowest implementation of the
+method in the C++ inheritance chain is called explicitly. If the correct
+implementation is in PHP, the Zend API is used to call the method of the
+underlying PHP object (after which the usual virtual method resolution
+in PHP automatically finds the right implementation).
+</p>
+
+<p>
+Now how does the director decide which language should handle the method call?
+The basic rule is to handle the method in PHP, unless there's a good
+reason not to. The reason for this is simple: PHP has the most
+"extended" implementation of the method. This assertion is guaranteed,
+since at a minimum the PHP proxy class implements the method. If the
+method in question has been extended by a class derived from the proxy
+class, that extended implementation will execute exactly as it should.
+If not, the proxy class will route the method call into a C wrapper
+function, expecting that the method will be resolved in C++. The wrapper
+will call the virtual method of the C++ instance, and since the director
+extends this the call will end up right back in the director method. Now
+comes the "good reason not to" part. If the director method were to blindly
+call the PHP method again, it would get stuck in an infinite loop. We avoid this
+situation by adding special code to the C wrapper function that tells
+the director method to not do this.  The C wrapper function compares the
+called and the declaring class name of the given method.  If these are
+not the same, then the C wrapper function tells the director to resolve
+the method by calling up the C++ inheritance chain, preventing an
+infinite loop.
+</p>
+
+<p>
+One more point needs to be made about the relationship between director
+classes and proxy classes. When a proxy class instance is created in
+PHP, SWIG creates an instance of the original C++ class and assigns it
+to <tt>-&gt;_cPtr</tt>. This is exactly what happens without directors
+and is true even if directors are enabled for the particular class in
+question. When a class <i>derived</i> from a proxy class is created,
+however, SWIG then creates an instance of the corresponding C++ director
+class. The reason for this difference is that user-defined subclasses
+may override or extend methods of the original class, so the director
+class is needed to route calls to these methods correctly. For
+unmodified proxy classes, all methods are ultimately implemented in C++
+so there is no need for the extra overhead involved with routing the
+calls through PHP.
+</p>
+
+<H3><a name="Php_nn3_3"></a>32.3.3 Ownership and object destruction</H3>
+
+
+<p>
+Memory management issues are slightly more complicated with directors
+than for proxy classes alone. PHP instances hold a pointer to the
+associated C++ director object, and the director in turn holds a pointer
+back to the PHP object. By default, proxy classes own their C++ director
+object and take care of deleting it when they are garbage collected.
+</p>
+
+<p>
+This relationship can be reversed by calling the special
+<tt>-&gt;thisown</tt> property of the proxy class. After setting this
+property to <tt>0</tt>, the director class no longer destroys the PHP
+object.  Assuming no outstanding references to the PHP object remain,
+the PHP object will be destroyed at the same time. This is a good thing,
+since directors and proxies refer to each other and so must be created
+and destroyed together. Destroying one without destroying the other will
+likely cause your program to segfault.
+</p>
+
+<p>
+Here is an example:
+</p>
+
+<div class="code">
+<pre>
+class Foo {
+public:
+    ...
+};
+class FooContainer {
+public:
+    void addFoo(Foo *);
+    ...
+};
+</pre>
+</div>
+
+<br>
+
+<div class="targetlang">
+<pre>
+$c = new FooContainer();
+$a = new Foo();
+$a-&gt;thisown = 0;
+$c-&gt;addFoo($a);
+</pre>
+</div>
+
+<p>
+In this example, we are assuming that FooContainer will take care of
+deleting all the Foo pointers it contains at some point.
+</p>
+
+<H3><a name="Php_nn3_4"></a>32.3.4 Exception unrolling</H3>
+
+
+<p>
+With directors routing method calls to PHP, and proxies routing them
+to C++, the handling of exceptions is an important concern. By default, the
+directors ignore exceptions that occur during method calls that are
+resolved in PHP. To handle such exceptions correctly, it is necessary
+to temporarily translate them into C++ exceptions. This can be done with
+the %feature("director:except") directive. The following code should
+suffice in most cases:
+</p>
+
+<div class="code">
+<pre>
+%feature("director:except") {
+    if ($error == FAILURE) {
+        throw Swig::DirectorMethodException();
+    }
+}
+</pre>
+</div>
+
+<p>
+This code will check the PHP error state after each method call from a
+director into PHP, and throw a C++ exception if an error occurred.  This
+exception can be caught in C++ to implement an error handler.
+Currently no information about the PHP error is stored in the
+Swig::DirectorMethodException object, but this will likely change in the
+future.
+</p>
+
+<p>
+It may be the case that a method call originates in PHP, travels up to
+C++ through a proxy class, and then back into PHP via a director method.
+If an exception occurs in PHP at this point, it would be nice for that
+exception to find its way back to the original caller. This can be done
+by combining a normal %exception directive with the
+<tt>director:except</tt> handler shown above. Here is an example of a
+suitable exception handler:
+</p>
+
+<div class="code">
+<pre>
+%exception {
+    try { $action }
+    catch (Swig::DirectorException &amp;e) { SWIG_fail; }
+}
+</pre>
+</div>
+
+<p>
+The class Swig::DirectorException used in this example is actually a
+base class of Swig::DirectorMethodException, so it will trap this
+exception. Because the PHP error state is still set when
+Swig::DirectorMethodException is thrown, PHP will register the exception
+as soon as the C wrapper function returns.
+</p>
+
+<H3><a name="Php_nn3_5"></a>32.3.5 Overhead and code bloat</H3>
+
+
+<p>
+Enabling directors for a class will generate a new director method for
+every virtual method in the class' inheritance chain. This alone can
+generate a lot of code bloat for large hierarchies. Method arguments
+that require complex conversions to and from target language types can
+result in large director methods. For this reason it is recommended that
+you selectively enable directors only for specific classes that are
+likely to be extended in PHP and used in C++.
+</p>
+
+<p>
+Compared to classes that do not use directors, the call routing in the
+director methods does add some overhead. In particular, at least one
+dynamic cast and one extra function call occurs per method call from
+PHP. Relative to the speed of PHP execution this is probably completely
+negligible. For worst case routing, a method call that ultimately
+resolves in C++ may take one extra detour through PHP in order to ensure
+that the method does not have an extended PHP implementation. This could
+result in a noticeable overhead in some cases.
+</p>
+
+<p>
+Although directors make it natural to mix native C++ objects with PHP
+objects (as director objects) via a common base class pointer, one
+should be aware of the obvious fact that method calls to PHP objects
+will be much slower than calls to C++ objects. This situation can be
+optimized by selectively enabling director methods (using the %feature
+directive) for only those methods that are likely to be extended in PHP.
+</p>
+
+<H3><a name="Php_nn3_6"></a>32.3.6 Typemaps</H3>
+
+
+<p>
+Typemaps for input and output of most of the basic types from director
+classes have been written. These are roughly the reverse of the usual
+input and output typemaps used by the wrapper code. The typemap
+operation names are 'directorin', 'directorout', and 'directorargout'.
+The director code does not currently use any of the other kinds of
+typemaps.  It is not clear at this point which kinds are appropriate and
+need to be supported.
+</p>
+
+
+<H3><a name="Php_nn3_7"></a>32.3.7 Miscellaneous</H3>
+
+
+<p> Director typemaps for STL classes are mostly in place, and hence you
+should be able to use std::string, etc., as you would any other type.
 </p>
 
 </body>

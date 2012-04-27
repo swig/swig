@@ -30,7 +30,7 @@ public class rname_runme {
       throw new RuntimeException("base.newname");
 
     RenamedDerived derived = new RenamedDerived();
-    derived.func(base, base, base);
+    derived.Xfunc(base, base, base);
     if (!derived.newname(10.0).equals("Derived"))
       throw new RuntimeException("derived.newname");
   }

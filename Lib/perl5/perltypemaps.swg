@@ -43,6 +43,7 @@
 
 /* Perl types */
 #define SWIG_Object                      SV *
+#define VOID_Object                      sv_newmortal()
 
 /* Perl $shadow flag */
 #define %newpointer_flags                $shadow
@@ -68,13 +69,13 @@
 %end_block %enddef
 
 /* raise exception */
-%define %raise(obj, type, desc) sv_setsv(GvSV(PL_errgv), obj); SWIG_fail %enddef
+%define %raise(obj, type, desc) sv_setsv(get_sv("@", GV_ADD), obj); SWIG_fail %enddef
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
 
 /*  ------------------------------------------------------------
- *  Perl extra typemaps
+ *  Perl extra typemaps / typemap overrides
  * ------------------------------------------------------------ */
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE []  
@@ -89,3 +90,6 @@
 %typemap(varout,type="$1_descriptor") SWIGTYPE (CLASS::*) {
   SWIG_MakePackedObj($result, (void *) &$1, sizeof($1_type), $1_descriptor);
 }
+
+%typemap(varout) SWIGTYPE *const = SWIGTYPE *;
+

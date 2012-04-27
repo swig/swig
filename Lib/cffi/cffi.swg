@@ -130,6 +130,11 @@
 %typemap(lispclass) double "cl:number";
 %typemap(lispclass) char * "cl:string";
 
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
 
 %{
 

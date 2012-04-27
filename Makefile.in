@@ -1,6 +1,8 @@
 #######################################################################
-# $Id$
+# SWIG top level Makefile
 #######################################################################
+
+.PHONY: ccache source swig
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
@@ -14,15 +16,20 @@ datarootdir = @datarootdir@
 SHELL       = /bin/sh
 SWIG_LIB    = @swig_lib@
 BIN_DIR     = @bindir@
+ENABLE_CCACHE = @ENABLE_CCACHE@
 TARGET_NOEXE= swig
 TARGET      = $(TARGET_NOEXE)@EXEEXT@
 SOURCE      = Source
+CCACHE      = CCache
 DOCS        = Doc/Manual
 
-swig: libfiles source
+swig: libfiles source ccache
 
 source:
 	@cd $(SOURCE) && $(MAKE)
+
+ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE))
 
 libfiles: $(srcdir)/Lib/swigwarn.swg
 
@@ -30,7 +37,18 @@ libfiles: $(srcdir)/Lib/swigwarn.swg
 maintainer: libfiles
 	@cd $(SOURCE) && $(MAKE) CParse/parser.h
 
-.PHONY: source libfiles maintainer
+#####################################################################
+# Documentation
+#####################################################################
+
+docs: docs-main docs-ccache
+
+docs-main:
+	@echo making docs
+	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) all clean-baks
+
+docs-ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) docs)
 
 #####################################################################
 # All the languages SWIG speaks (when it wants to)
@@ -44,7 +62,7 @@ skip-guilescm   = test -n "@SKIP_GUILESCM@"
 skip-guile	= test -n "@SKIP_GUILE@"
 skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
 skip-ruby	= test -n "@SKIP_RUBY@"
-skip-php4	= test -n "@SKIP_PHP4@"
+skip-php	= test -n "@SKIP_PHP@"
 skip-ocaml      = test -n "@SKIP_OCAML@"
 skip-octave     = test -n "@SKIP_OCTAVE@"
 skip-pike       = test -n "@SKIP_PIKE@"
@@ -57,15 +75,19 @@ skip-clisp	= test -n "@SKIP_CLISP@"
 skip-cffi	= test -n "@SKIP_CFFI@"
 skip-uffi	= test -n "@SKIP_UFFI@"
 skip-r		= test -n "@SKIP_R@"
+skip-go		= test -n "@SKIP_GO@"
+skip-d		= test -n "@SKIP_D@"
 
 # Additional dependencies for some tests
 skip-gcj        = test -n "@SKIP_GCJ@"
+skip-android    = test -n "@SKIP_ANDROID@"
 
 #####################################################################
 # CHECK
 #####################################################################
 
 ACTION = check
+NOSKIP =
 
 chk-set-swiglib		= SWIG_LIB=@ROOT_DIR@/Lib
 chk-set-swig		= SWIG=@ROOT_DIR@/$(TARGET)
@@ -75,22 +97,31 @@ check-aliveness:
 	test -x ./$(TARGET)
 	./$(TARGET) -version
 	./$(TARGET) -help
-	@$(skip-tcl)      || ./$(TARGET) -tcl      -help
-	@$(skip-perl5)    || ./$(TARGET) -perl     -help
-	@$(skip-python)   || ./$(TARGET) -python   -help
-	@$(skip-java)     || ./$(TARGET) -java     -help
-	@$(skip-guile)    || ./$(TARGET) -guile    -help
-	@$(skip-mzscheme) || ./$(TARGET) -mzscheme -help
-	@$(skip-ruby)     || ./$(TARGET) -ruby     -help
-	@$(skip-ocaml)    || ./$(TARGET) -ocaml    -help
-	@$(skip-octave)   || ./$(TARGET) -octave   -help
-	@$(skip-php4)     || ./$(TARGET) -php4     -help
-	@$(skip-pike)     || ./$(TARGET) -pike     -help
-	@$(skip-chicken)  || ./$(TARGET) -chicken  -help
-	@$(skip-csharp)   || ./$(TARGET) -csharp   -help
-	@$(skip-modula3)  || ./$(TARGET) -modula3  -help
-	@$(skip-lua)      || ./$(TARGET) -lua      -help
-	@$(skip-r) 	  || ./$(TARGET) -r        -help
+	@$(skip-tcl)      || ./$(TARGET) -tcl        -help
+	@$(skip-perl5)    || ./$(TARGET) -perl       -help
+	@$(skip-python)   || ./$(TARGET) -python     -help
+	@$(skip-java)     || ./$(TARGET) -java       -help
+	@$(skip-guile)    || ./$(TARGET) -guile      -help
+	@$(skip-mzscheme) || ./$(TARGET) -mzscheme   -help
+	@$(skip-ruby)     || ./$(TARGET) -ruby       -help
+	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
+	@$(skip-octave)   || ./$(TARGET) -octave     -help
+	@$(skip-php)      || ./$(TARGET) -php        -help
+	@$(skip-pike)     || ./$(TARGET) -pike       -help
+	@$(skip-chicken)  || ./$(TARGET) -chicken    -help
+	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
+	@$(skip-modula3)  || ./$(TARGET) -modula3    -help
+	@$(skip-allegrocl)|| ./$(TARGET) -allegrocl  -help
+	@$(skip-clisp)    || ./$(TARGET) -clisp      -help
+	@$(skip-uffi)     || ./$(TARGET) -uffi       -help
+	@$(skip-cffi)     || ./$(TARGET) -cffi       -help
+	@$(skip-lua)      || ./$(TARGET) -lua        -help
+	@$(skip-r) 	  || ./$(TARGET) -r          -help
+	@$(skip-go)	  || ./$(TARGET) -go         -help
+	@$(skip-d) 	  || ./$(TARGET) -d          -help
+
+check-ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
 
 # Checks examples for compilation (does not run them)
 check-examples:					\
@@ -98,12 +129,13 @@ check-examples:					\
 	check-perl5-examples			\
 	check-python-examples			\
 	check-java-examples			\
+	check-android-examples			\
 	check-guile-examples			\
 	check-mzscheme-examples			\
 	check-ruby-examples			\
 	check-ocaml-examples			\
 	check-octave-examples			\
-	check-php4-examples			\
+	check-php-examples			\
 	check-pike-examples			\
 	check-chicken-examples                  \
 	check-csharp-examples                   \
@@ -113,18 +145,21 @@ check-examples:					\
 	check-clisp-examples			\
 	check-uffi-examples			\
 	check-cffi-examples			\
-	check-r-examples
+	check-r-examples			\
+	check-go-examples			\
+	check-d-examples
 
 tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
 python_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/python/check.list)
 java_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/java/check.list)
+android_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/android/check.list)
 guile_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/guile/check.list)
 mzscheme_examples  :=$(shell sed '/^\#/d' $(srcdir)/Examples/mzscheme/check.list)
 ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
 octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
-php4_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/php4/check.list)
+php_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/php/check.list)
 pike_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/pike/check.list)
 chicken_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/chicken/check.list)
 csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
@@ -135,6 +170,8 @@ clisp_examples     :=
 uffi_examples      :=
 cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
+go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
+d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
 
 # all examples
 check-%-examples :
@@ -144,6 +181,8 @@ check-%-examples :
 	fi
 	@if $(skip-$*); then					\
 	  echo skipping $* $(ACTION);				\
+	elif test -z "$($(strip $*_examples))"; then		\
+	  echo empty $* $(ACTION);				\
 	else							\
 	  $(MAKE) -k -s $($*_examples:=.actionexample) LANGUAGE=$* ACTION=$(ACTION); \
 	fi
@@ -160,7 +199,7 @@ java.actionexample:
         else							\
 	  echo $(ACTION)ing Examples/$(LANGUAGE)/java;		\
 	  (cd Examples/$(LANGUAGE)/java && $(MAKE) -s $(chk-set-env) $(ACTION)) \
-	fi;							\
+	fi
 
 # Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
@@ -174,7 +213,7 @@ check-test-suite:				\
 	check-ruby-test-suite			\
 	check-ocaml-test-suite			\
 	check-octave-test-suite			\
-	check-php4-test-suite			\
+	check-php-test-suite			\
 	check-pike-test-suite			\
 	check-csharp-test-suite			\
 	check-modula3-test-suite		\
@@ -184,7 +223,9 @@ check-test-suite:				\
 	check-uffi-test-suite			\
 	check-cffi-test-suite			\
 	check-chicken-test-suite		\
-	check-r-test-suite
+	check-r-test-suite			\
+	check-go-test-suite			\
+	check-d-test-suite
 
 check-%-test-suite:
 	@if test -z "$(skip-$*)"; then					\
@@ -193,7 +234,7 @@ check-%-test-suite:
 	fi
 	@passed=true;							\
 	dir="Examples/test-suite/$*";					\
-	if $(skip-$*); then						\
+	if $(skip-$*) -a "$(NOSKIP)" != "1"; then			\
 	  echo skipping $* test-suite $(ACTION);			\
 	elif [ ! -d $$dir ]; then					\
 	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
@@ -206,12 +247,12 @@ check-%-test-suite:
 
 # Partial test-suite check - it only invokes SWIG, ie no compilation and no runtime testing
 partialcheck-test-suite:
-	@$(MAKE) -k -s check-test-suite ACTION=partialcheck
+	@$(MAKE) -k -s check-test-suite ACTION=partialcheck NOSKIP=1
 
 partialcheck-%-test-suite:
-	@$(MAKE) -k -s check-$*-test-suite ACTION=partialcheck
+	@$(MAKE) -k -s check-$*-test-suite ACTION=partialcheck NOSKIP=1
 
-check: check-aliveness check-examples check-test-suite
+check: check-aliveness check-ccache check-examples check-test-suite
 
 # Run known-to-be-broken as well as not broken testcases in the test-suite
 all-test-suite:					\
@@ -225,7 +266,7 @@ all-test-suite:					\
 	all-ruby-test-suite			\
 	all-ocaml-test-suite			\
 	all-octave-test-suite			\
-	all-php4-test-suite			\
+	all-php-test-suite			\
 	all-pike-test-suite			\
 	all-csharp-test-suite			\
 	all-modula3-test-suite			\
@@ -235,7 +276,9 @@ all-test-suite:					\
 	all-uffi-test-suite			\
 	all-cffi-test-suite			\
 	all-chicken-test-suite			\
-	all-r-test-suite
+	all-r-test-suite			\
+	all-go-test-suite			\
+	all-d-test-suite
 
 all-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=all
@@ -252,7 +295,7 @@ broken-test-suite:				\
 	broken-ruby-test-suite			\
 	broken-ocaml-test-suite			\
 	broken-octave-test-suite		\
-	broken-php4-test-suite			\
+	broken-php-test-suite			\
 	broken-pike-test-suite			\
 	broken-csharp-test-suite		\
 	broken-modula3-test-suite		\
@@ -262,7 +305,9 @@ broken-test-suite:				\
 	broken-uffi-test-suite			\
 	broken-cffi-test-suite			\
 	broken-chicken-test-suite		\
-	broken-r-test-suite
+	broken-r-test-suite			\
+	broken-go-test-suite			\
+	broken-d-test-suite
 
 broken-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=broken
@@ -271,46 +316,39 @@ broken-%-test-suite:
 # CLEAN
 #####################################################################
 
-clean: clean-objects clean-libfiles clean-examples clean-test-suite clean-docs
+clean: clean-objects clean-examples clean-test-suite
 
-clean-objects: clean-source
+clean-objects: clean-source clean-ccache
 
 clean-source:
 	@echo cleaning Source
 	@cd $(SOURCE) && $(MAKE) -s clean
 	@rm -f $(TARGET)
 
-clean-libfiles:
-	@rm -f $(srcdir)/Lib/swigwarn.swg
-
 clean-examples:
 	@$(MAKE) -k -s check-examples ACTION=clean
 
 clean-test-suite:
-	@$(MAKE) -k -s check-test-suite ACTION=clean
+	@$(MAKE) -k -s check-test-suite ACTION=clean NOSKIP=1
 
 clean-%-examples:
 	@$(MAKE) -k -s check-$*-examples ACTION=clean
 
 clean-%-test-suite:
-	@$(MAKE) -k -s check-$*-test-suite ACTION=clean
+	@$(MAKE) -k -s check-$*-test-suite ACTION=clean NOSKIP=1
 
-clean-docs:
-	@echo cleaning Docs
-	@test -d $(DOCS) || exit 0; cd $(DOCS) && $(MAKE) -s clean
-
-maintainer-clean: clean-libfiles
-	@cd $(SOURCE) && $(MAKE) maintainer-clean
+clean-ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s clean)
 
 #####################################################################
-# DISTCLEAN
+# DISTCLEAN - clean what configure built
 #####################################################################
 
-DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool
+DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log libtool preinst-swig Lib/ocaml/swigp4.ml
 
-distclean: distclean-objects clean-examples distclean-test-suite clean-docs distclean-dead
+distclean-helper: distclean-test-suite distclean-examples distclean-dead
 
-distclean-objects: distclean-source
+distclean: distclean-source distclean-ccache distclean-helper
 
 distclean-source:
 	@echo distcleaning Source
@@ -319,41 +357,37 @@ distclean-source:
 
 distclean-test-suite:
 	@echo distcleaning Examples/test-suite
-	@$(MAKE) -k -s noskip-test-suite ACTION=distclean
+	@$(MAKE) -k -s check-test-suite ACTION=distclean NOSKIP=1
 
-noskip-test-suite:				\
-	noskip-tcl-test-suite			\
-	noskip-perl5-test-suite			\
-	noskip-python-test-suite		\
-	noskip-java-test-suite			\
-	noskip-guilescm-test-suite		\
-	noskip-guile-test-suite			\
-	noskip-mzscheme-test-suite		\
-	noskip-ruby-test-suite			\
-	noskip-ocaml-test-suite			\
-	noskip-octave-test-suite		\
-	noskip-php4-test-suite			\
-	noskip-pike-test-suite			\
-	noskip-csharp-test-suite		\
-	noskip-lua-test-suite			\
-	noskip-allegrocl-test-suite		\
-	noskip-clisp-test-suite			\
-	noskip-uffi-test-suite			\
-	noskip-cffi-test-suite			\
-	noskip-chicken-test-suite		\
-	noskip-r-test-suite
+distclean-examples:
+	@echo distcleaning Examples
+	@$(MAKE) -k -s clean-examples
+	@cd Examples && $(MAKE) -k -s distclean
 
-noskip-%-test-suite:
-	dir="Examples/test-suite/$*";					\
-	if [ ! -d $$dir ]; then						\
-	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
-	else								\
-	  echo $(ACTION)ing $$dir;					\
-	  (cd $$dir && $(MAKE) -k -s $(ACTION))				\
-	fi;
+distclean-ccache:
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s distclean)
 
 distclean-dead:
 	rm -f $(DISTCLEAN-DEAD)
+	rm -rf autom4te.cache
+
+#####################################################################
+# MAINTAINER CLEAN - clean what the maintainer builds and ships in
+# the distributed tarball - should not delete anything needed to run
+# ./configure && make
+#####################################################################
+
+maintainer-clean:
+	@echo maintainer-cleaning source
+	@cd $(SOURCE) && $(MAKE) -k -s maintainer-clean
+	@echo maintainer-cleaning CCache
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s maintainer-clean)
+	@echo maintainer-cleaning docs
+	@cd $(DOCS) && $(MAKE) -k -s maintainer-clean
+	@echo maintainer-cleaning Lib files
+	@rm -f $(srcdir)/Lib/swigwarn.swg
+	@echo distcleaning
+	@$(MAKE) -k -s distclean-helper
 
 #####################################################################
 # Update the Lib/swigwarn.swg file
@@ -380,7 +414,7 @@ MKINSTDIRS      = @abs_srcdir@/Tools/config/install-sh -m 0755 -d
 # Use standard autoconf approach to transform executable name using --program-prefix and --program-suffix
 transform	= @program_transform_name@
 
-install: install-main install-lib
+install: install-main install-lib install-ccache
 	@echo "Installation complete"
 
 install-main:
@@ -389,8 +423,8 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php4 ocaml octave \
-	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r
+lib-languages = gcj typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
+	pike chicken csharp modula3 allegrocl clisp lua cffi uffi r go d
 
 lib-modules = std
 
@@ -424,12 +458,15 @@ install-lib:
 	      fi) ; 						\
 	done
 
+install-ccache:
+	@test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) -s install)
+
 
 #####################################################################
 # TARGETS: uninstall & friends
 #####################################################################
 
-uninstall: uninstall-main uninstall-lib
+uninstall: uninstall-main uninstall-lib uninstall-ccache
 	@echo "Uninstall complete"
 
 uninstall-main:
@@ -440,6 +477,9 @@ uninstall-lib:
 	@echo "Uninstalling the SWIG library"
 	rm -rf $(DESTDIR)$(SWIG_LIB)/
 
+uninstall-ccache:
+	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) uninstall)
+
 ############################################################################
 # DIST and other maintenance
 ############################################################################
@@ -449,7 +489,7 @@ dd = @PACKAGE_NAME@-@PACKAGE_VERSION@
 srpm = @PACKAGE_NAME@-@PACKAGE_VERSION@
 
 dist:
-	@echo "not implemented"
+	@echo "not implemented - use Tools/makedist.py instead."
 	false
 
 srcrpm:
@@ -463,7 +503,7 @@ srcrpm:
 
 # Update the autoconf files for detecting host/targets. Automake will do this in
 # version 1.10 for our case of not having a top level Makefile.am. Until then we
-# can fetch them manually and will have to commit them to CVS.
+# can fetch them manually and will have to commit them to SVN.
 configfiles:
 	wget ftp://ftp.gnu.org/pub/gnu/config/config.guess -O Tools/config/config.guess
 	chmod a+x Tools/config/config.guess

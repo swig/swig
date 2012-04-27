@@ -48,7 +48,7 @@ namespace EnumDirector {
 
 %inline %{
 namespace EnumDirector {
-enum FType{ SA = -1, NA=0, EA=1};
+enum FType{ SA = -1, NA_=0, EA=1};
 
 struct A{
     A(const double a, const double b, const FType c)
@@ -71,7 +71,7 @@ struct B : public A{
 %inline %{
 namespace EnumDirector {
 struct A2{
-    A2(const FType c = NA) {}    
+    A2(const FType c = NA_) {}    
 
     virtual ~A2() {}
     

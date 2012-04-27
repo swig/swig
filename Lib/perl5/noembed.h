@@ -7,6 +7,9 @@
 #ifdef do_close
   #undef do_close
 #endif
+#ifdef do_exec
+  #undef do_exec
+#endif
 #ifdef scalar
   #undef scalar
 #endif
@@ -94,4 +97,12 @@
 #ifdef readdir
   #undef readdir
 #endif
-
+#ifdef bind
+  #undef bind
+#endif
+#ifdef access
+  #undef access
+#endif
+#ifdef stat
+  #undef stat
+#endif

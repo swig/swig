@@ -65,7 +65,7 @@ static SWIG_CSharpException_t SWIG_csharp_exceptions[] = {
 static SWIG_CSharpExceptionArgument_t SWIG_csharp_exceptions_argument[] = {
   { SWIG_CSharpArgumentException, NULL },
   { SWIG_CSharpArgumentNullException, NULL },
-  { SWIG_CSharpArgumentOutOfRangeException, NULL },
+  { SWIG_CSharpArgumentOutOfRangeException, NULL }
 };
 
 static void SWIGUNUSED SWIG_CSharpSetPendingException(SWIG_CSharpExceptionCodes code, const char *msg) {
@@ -318,6 +318,14 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_CSharpString
 }
 %}
 #endif // SWIG_CSHARP_NO_STRING_HELPER
+
+#if !defined(SWIG_CSHARP_NO_IMCLASS_STATIC_CONSTRUCTOR)
+// Ensure the class is not marked beforefieldinit
+%pragma(csharp) imclasscode=%{
+  static $imclassname() {
+  }
+%}
+#endif
 
 %insert(runtime) %{
 /* Contract support */

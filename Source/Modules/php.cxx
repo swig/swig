@@ -6,20 +6,13 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at http://www.swig.org/legal.html.
  *
- * php4.cxx
+ * php.cxx
  *
- * Php language module for SWIG.
+ * PHP language module for SWIG.
  * -----------------------------------------------------------------------------
  */
 
 /* FIXME: PHP5 OO wrapping TODO list:
- *
- * Short term:
- *
- * Sort out auto-renaming of method and class names which are reserved
- *   words (e.g. empty, clone, exception, etc.)
- *
- * Sort out wrapping of static member variables in OO PHP5.
  *
  * Medium term:
  *
@@ -44,7 +37,7 @@
  * (may need to add more WARN_PHP_xxx codes...)
  */
 
-char cvsroot_php4_cxx[] = "$Id$";
+char cvsroot_php_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
@@ -52,19 +45,24 @@ char cvsroot_php4_cxx[] = "$Id$";
 #include <errno.h>
 
 static const char *usage = (char *) "\
-PHP Options (available with -php5)\n\
-     -cppext          - cpp file extension (default to .cpp)\n\
+PHP Options (available with -php)\n\
+     -cppext <ext>    - Change C++ file extension to <ext> (default is cpp)\n\
      -noproxy         - Don't generate proxy classes.\n\
-     -prefix <prefix> - Prepend <prefix> to all class names in PHP5 wrappers\n\
+     -prefix <prefix> - Prepend <prefix> to all class names in PHP wrappers\n\
 \n";
 
-/* The original class wrappers for PHP4 store the pointer to the C++ class in
+/* The original class wrappers for PHP stored the pointer to the C++ class in
  * the object property _cPtr.  If we use the same name for the member variable
  * which we put the pointer to the C++ class in, then the flat function
  * wrappers will automatically pull it out without any changes being required.
  * FIXME: Isn't using a leading underscore a bit suspect here?
  */
 #define SWIG_PTR "_cPtr"
+
+/* This is the name of the hash where the variables existing only in PHP
+ * classes are stored.
+ */
+#define SWIG_DATA "_pData"
 
 static int constructors = 0;
 static String *NOTCLASS = NewString("Not a class");
@@ -75,9 +73,13 @@ static String *prefix = 0;
 
 static String *shadow_classname = 0;
 
+static File *f_begin = 0;
 static File *f_runtime = 0;
+static File *f_runtime_h = 0;
 static File *f_h = 0;
 static File *f_phpcode = 0;
+static File *f_directors = 0;
+static File *f_directors_h = 0;
 static String *phpfilename = 0;
 
 static String *s_header;
@@ -120,14 +122,14 @@ static enum {
   membervar,
   staticmembervar,
   constructor,
-  destructor
+  directorconstructor
 } wrapperType = standard;
 
 extern "C" {
-  static void (*r_prevtracefunc) (SwigType *t, String *mangled, String *clientdata) = 0;
+  static void (*r_prevtracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
 }
 
-void SwigPHP_emit_resource_registrations() {
+static void SwigPHP_emit_resource_registrations() {
   Iterator ki;
 
   if (!zend_types)
@@ -142,10 +144,10 @@ void SwigPHP_emit_resource_registrations() {
     String *human_name = key;
 
     // Write out destructor function header
-    Printf(s_wrappers, "/* NEW Destructor style */\nstatic ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n", key);
+    Printf(s_wrappers, "static ZEND_RSRC_DTOR_FUNC(_wrap_destroy%s) {\n", key);
 
     // write out body
-    if ((class_node != NOTCLASS)) {
+    if (class_node != NOTCLASS) {
       String *destructor = Getattr(class_node, "destructor");
       human_name = Getattr(class_node, "sym:name");
       if (!human_name)
@@ -155,9 +157,11 @@ void SwigPHP_emit_resource_registrations() {
         Printf(s_wrappers, "  %s(rsrc, SWIGTYPE%s->name TSRMLS_CC);\n", destructor, key);
       } else {
         Printf(s_wrappers, "  /* No destructor for class %s */\n", human_name);
+        Printf(s_wrappers, "  efree(rsrc->ptr);\n");
       }
     } else {
       Printf(s_wrappers, "  /* No destructor for simple type %s */\n", key);
+      Printf(s_wrappers, "  efree(rsrc->ptr);\n");
     }
 
     // close function
@@ -167,7 +171,8 @@ void SwigPHP_emit_resource_registrations() {
     Printf(s_vdecl, "static int le_swig_%s=0; /* handle for %s */\n", key, human_name);
 
     // register with php
-    Printf(s_oinit, "le_swig_%s=zend_register_list_destructors_ex" "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n", key, key, key);
+    Printf(s_oinit, "le_swig_%s=zend_register_list_destructors_ex"
+		    "(_wrap_destroy%s,NULL,(char *)(SWIGTYPE%s->name),module_number);\n", key, key, key);
 
     // store php type in class struct
     Printf(s_oinit, "SWIG_TypeClientData(SWIGTYPE%s,&le_swig_%s);\n", key, key);
@@ -176,25 +181,27 @@ void SwigPHP_emit_resource_registrations() {
   }
 }
 
-class PHP:public Language {
-  int php_version;
-
-public:
-   PHP(int php_version_):php_version(php_version_) {
-  }
-
-  /* Test to see if a type corresponds to something wrapped with a shadow class. */
-  
-  String *is_shadow(SwigType *t) {
-    String *r = 0;
-    Node *n = classLookup(t);
-    if (n) {
-      r = Getattr(n, "php:proxy");	// Set by classDeclaration()
-      if (!r) {
-	r = Getattr(n, "sym:name");	// Not seen by classDeclaration yet, but this is the name
+class PHP : public Language {
+  String *emit_action(Node *n) {
+    // Adjust wrap:action to add TSRMLS_CC.
+    String * action = Getattr(n, "wrap:action");
+    if (action) {
+      char * p = Strstr(action, "Swig::DirectorPureVirtualException::raise(\"");
+      if (p) {
+	p += strlen("Swig::DirectorPureVirtualException::raise(\"");
+	p = strchr(p, '"');
+	if (p) {
+	  ++p;
+	  Insert(action, p - Char(action), " TSRMLS_CC");
+	}
       }
     }
-    return r;
+    return ::emit_action(n);
+  }
+
+public:
+  PHP() {
+    director_language = 1;
   }
 
   /* ------------------------------------------------------------
@@ -246,8 +253,9 @@ public:
     }
 
     Preprocessor_define("SWIGPHP 1", 0);
+    // SWIGPHP5 is deprecated, and no longer documented.
     Preprocessor_define("SWIGPHP5 1", 0);
-    SWIG_typemap_lang("php4");
+    SWIG_typemap_lang("php");
     SWIG_config_file("php.swg");
     allow_overloading();
   }
@@ -259,19 +267,30 @@ public:
   virtual int top(Node *n) {
 
     String *filen;
-    String *s_type;
+
+    /* Check if directors are enabled for this module. */
+    Node *mod = Getattr(n, "module");
+    if (mod) {
+      Node *options = Getattr(mod, "options");
+      if (options && Getattr(options, "directors")) {
+	allow_directors();
+      }
+    }
+
+    /* Set comparison with null for ConstructorToFunction */
+    setSubclassInstanceCheck(NewString("$arg->type != IS_NULL"));
 
     /* Initialize all of the output files */
     String *outfile = Getattr(n, "outfile");
+    String *outfile_h = Getattr(n, "outfile_h");
 
     /* main output file */
-    f_runtime = NewFile(outfile, "w");
-    if (!f_runtime) {
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
-
-    Swig_banner(f_runtime);
+    f_runtime = NewStringEmpty();
 
     /* sections of the output file */
     s_init = NewString("/* init section */\n");
@@ -280,7 +299,6 @@ public:
     r_shutdown = NewString("/* rshutdown section */\n");
     s_header = NewString("/* header section */\n");
     s_wrappers = NewString("/* wrapper section */\n");
-    s_type = NewStringEmpty();
     /* subsections of the init section */
     s_vinit = NewString("/* vinit subsection */\n");
     s_vdecl = NewString("/* vdecl subsection */\n");
@@ -288,8 +306,19 @@ public:
     s_oinit = NewString("/* oinit subsection */\n");
     pragma_phpinfo = NewStringEmpty();
     s_phpclasses = NewString("/* PHP Proxy Classes */\n");
+    f_directors_h = NewStringEmpty();
+    f_directors = NewStringEmpty();
+
+    if (directorsEnabled()) {
+      f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
+      if (!f_runtime_h) {
+	FileErrorDisplay(outfile_h);
+	SWIG_exit(EXIT_FAILURE);
+      }
+    }
 
     /* Register file targets with the SWIG file handler */
+    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", s_init);
     Swig_register_filebyname("rinit", r_init);
@@ -297,6 +326,18 @@ public:
     Swig_register_filebyname("rshutdown", r_shutdown);
     Swig_register_filebyname("header", s_header);
     Swig_register_filebyname("wrapper", s_wrappers);
+    Swig_register_filebyname("director", f_directors);
+    Swig_register_filebyname("director_h", f_directors_h);
+
+    Swig_banner(f_begin);
+
+    Printf(f_runtime, "\n");
+    Printf(f_runtime, "#define SWIGPHP\n");
+    Printf(f_runtime, "\n");
+
+    if (directorsEnabled()) {
+      Printf(f_runtime, "#define SWIG_DIRECTORS\n");
+    }
 
     /* Set the module name */
     module = Copy(Getattr(n, "name"));
@@ -304,12 +345,24 @@ public:
     if (!prefix)
       prefix = NewStringEmpty();
 
+    Printf(f_runtime, "#define SWIG_PREFIX \"%s\"\n", prefix);
+    Printf(f_runtime, "#define SWIG_PREFIX_LEN %lu\n", (unsigned long)Len(prefix));
+
+    if (directorsEnabled()) {
+      Swig_banner(f_directors_h);
+      Printf(f_directors_h, "\n");
+      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", cap_module);
+      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", cap_module);
+
+      Printf(f_directors, "\n#include \"%s\"\n\n", Swig_file_filename(outfile_h));
+    }
+
     /* PHP module file */
     filen = NewStringEmpty();
     Printv(filen, SWIG_output_directory(), module, ".php", NIL);
     phpfilename = NewString(filen);
 
-    f_phpcode = NewFile(filen, "w");
+    f_phpcode = NewFile(filen, "w", SWIG_output_files());
     if (!f_phpcode) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
@@ -319,8 +372,9 @@ public:
 
     Swig_banner(f_phpcode);
 
+    Printf(f_phpcode, "\n");
     Printf(f_phpcode, "// Try to load our extension if it's not already loaded.\n");
-    Printf(f_phpcode, "if (!extension_loaded(\"%s\")) {\n", module);
+    Printf(f_phpcode, "if (!extension_loaded('%s')) {\n", module);
     Printf(f_phpcode, "  if (strtolower(substr(PHP_OS, 0, 3)) === 'win') {\n");
     Printf(f_phpcode, "    if (!dl('php_%s.dll')) return;\n", module);
     Printf(f_phpcode, "  } else {\n");
@@ -355,6 +409,12 @@ public:
     Printf(s_header, "#define SWIG_ErrorCode() (%s_globals.error_code)\n", module);
     Printf(s_header, "#endif\n\n");
 
+    Printf(s_header, "// Allow the user to workaround a PHP bug on some platforms/architectures by\n");
+    Printf(s_header, "// compiling with -DSWIG_ZEND_ERROR_NORETURN=zend_error\n");
+    Printf(s_header, "#ifndef SWIG_ZEND_ERROR_NORETURN\n");
+    Printf(s_header, "# define SWIG_ZEND_ERROR_NORETURN zend_error_noreturn\n");
+    Printf(s_header, "#endif\n\n");
+
     Printf(s_header, "static void %s_init_globals(zend_%s_globals *globals ) {\n", module, module);
     Printf(s_header, "  globals->error_msg = default_error_msg;\n");
     Printf(s_header, "  globals->error_code = default_error_code;\n");
@@ -368,6 +428,39 @@ public:
     Printf(s_header, "  SWIG_ErrorMsg() = default_error_msg;\n");
     Printf(s_header, "  SWIG_ErrorCode() = default_error_code;\n");
     Printf(s_header, "}\n");
+
+    Append(s_header, "\n");
+    Printf(s_header, "ZEND_NAMED_FUNCTION(_wrap_swig_%s_alter_newobject) {\n", module);
+    Append(s_header, "  zval **args[2];\n");
+    Append(s_header, "  swig_object_wrapper *value;\n");
+    Append(s_header, "  int type;\n");
+    Append(s_header, "  int thisown;\n");
+    Append(s_header, "\n");
+    Append(s_header, "  SWIG_ResetError();\n");
+    Append(s_header, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
+    Append(s_header, "    WRONG_PARAM_COUNT;\n");
+    Append(s_header, "  }\n");
+    Append(s_header, "\n");
+    Append(s_header, "  value = (swig_object_wrapper *) zend_list_find((*args[0])->value.lval, &type);\n");
+    Append(s_header, "  value->newobject = zval_is_true(*args[1]);\n");
+    Append(s_header, "\n");
+    Append(s_header, "  return;\n");
+    Append(s_header, "}\n");
+    Printf(s_header, "ZEND_NAMED_FUNCTION(_wrap_swig_%s_get_newobject) {\n", module);
+    Append(s_header, "  zval **args[1];\n");
+    Append(s_header, "  swig_object_wrapper *value;\n");
+    Append(s_header, "  int type;\n");
+    Append(s_header, "\n");
+    Append(s_header, "  SWIG_ResetError();\n");
+    Append(s_header, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
+    Append(s_header, "    WRONG_PARAM_COUNT;\n");
+    Append(s_header, "  }\n");
+    Append(s_header, "\n");
+    Append(s_header, "  value = (swig_object_wrapper *) zend_list_find((*args[0])->value.lval, &type);\n");
+    Append(s_header, "  RETVAL_LONG(value->newobject);\n");
+    Append(s_header, "\n");
+    Append(s_header, "  return;\n");
+    Append(s_header, "}\n");
 
     Printf(s_header, "#define SWIG_name  \"%s\"\n", module);
     /*     Printf(s_header,"#ifdef HAVE_CONFIG_H\n");
@@ -385,10 +478,15 @@ public:
     Printf(s_header, "}\n");
     Printf(s_header, "#endif\n\n");
 
+    if (directorsEnabled()) {
+      // Insert director runtime
+      Swig_insert_file("director.swg", s_header);
+    }
+
     /* Create the .h file too */
     filen = NewStringEmpty();
     Printv(filen, SWIG_output_directory(), "php_", module, ".h", NIL);
-    f_h = NewFile(filen, "w");
+    f_h = NewFile(filen, "w", SWIG_output_files());
     if (!f_h) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
@@ -396,7 +494,7 @@ public:
 
     Swig_banner(f_h);
 
-    Printf(f_h, "\n\n");
+    Printf(f_h, "\n");
     Printf(f_h, "#ifndef PHP_%s_H\n", cap_module);
     Printf(f_h, "#define PHP_%s_H\n\n", cap_module);
     Printf(f_h, "extern zend_module_entry %s_module_entry;\n", module);
@@ -426,6 +524,10 @@ public:
     Printf(s_entry, "static zend_function_entry %s_functions[] = {\n", module);
 
     /* start the init section */
+    Append(s_init, "#if ZEND_MODULE_API_NO <= 20090626\n");
+    Append(s_init, "#undef ZEND_MODULE_BUILD_ID\n");
+    Append(s_init, "#define ZEND_MODULE_BUILD_ID (char*)\"API\" ZEND_TOSTR(ZEND_MODULE_API_NO) ZEND_BUILD_TS ZEND_BUILD_DEBUG ZEND_BUILD_SYSTEM ZEND_BUILD_EXTRA\n");
+    Append(s_init, "#endif\n");
     Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n" "#if ZEND_MODULE_API_NO > 20010900\n" "    STANDARD_MODULE_HEADER,\n" "#endif\n", NIL);
     Printf(s_init, "    (char*)\"%s\",\n", module);
     Printf(s_init, "    %s_functions,\n", module);
@@ -521,20 +623,37 @@ public:
      * function really needs totally redoing.
      */
 
+    if (directorsEnabled()) {
+      Dump(f_directors_h, f_runtime_h);
+      Printf(f_runtime_h, "\n");
+      Printf(f_runtime_h, "#endif\n");
+      Close(f_runtime_h);
+    }
+
     Printf(s_header, "/* end header section */\n");
     Printf(s_wrappers, "/* end wrapper section */\n");
     Printf(s_vdecl, "/* end vdecl subsection */\n");
 
-    Printv(f_runtime, s_header, s_vdecl, s_wrappers, NIL);
-    Printv(f_runtime, all_cs_entry, "\n\n", s_entry, "{NULL, NULL, NULL}\n};\n\n", NIL);
-    Printv(f_runtime, s_init, NIL);
+    Dump(f_runtime, f_begin);
+    Printv(f_begin, s_header, NIL);
+    if (directorsEnabled()) {
+      Dump(f_directors, f_begin);
+    }
+    Printv(f_begin, s_vdecl, s_wrappers, NIL);
+    Printv(f_begin, all_cs_entry, "\n\n", s_entry,
+	" SWIG_ZEND_NAMED_FE(swig_", module, "_alter_newobject,_wrap_swig_", module, "_alter_newobject,NULL)\n"
+	" SWIG_ZEND_NAMED_FE(swig_", module, "_get_newobject,_wrap_swig_", module, "_get_newobject,NULL)\n"
+	"{NULL, NULL, NULL}\n};\n\n", NIL);
+    Printv(f_begin, s_init, NIL);
     Delete(s_header);
     Delete(s_wrappers);
     Delete(s_init);
     Delete(s_vdecl);
     Delete(all_cs_entry);
     Delete(s_entry);
-    Close(f_runtime);
+    Close(f_begin);
+    Delete(f_runtime);
+    Delete(f_begin);
 
     Printf(f_phpcode, "%s\n%s\n", pragma_incl, pragma_code);
     if (s_fakeoowrappers) {
@@ -567,7 +686,11 @@ public:
 
     int maxargs;
     String *tmp = NewStringEmpty();
-    String *dispatch = Swig_overload_dispatch(n, "return %s(INTERNAL_FUNCTION_PARAM_PASSTHRU);", &maxargs);
+    if (Swig_directorclass(n) && wrapperType == directorconstructor) {
+      /* We have an extra 'this' parameter. */
+      SetFlag(n, "wrap:this");
+    }
+    String *dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -593,7 +716,7 @@ public:
 
     Printf(f->code, "SWIG_ErrorCode() = E_ERROR;\n");
     Printf(f->code, "SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
-    Printv(f->code, "zend_error(SWIG_ErrorCode(),SWIG_ErrorMsg());\n", NIL);
+    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n", NIL);
 
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, s_wrappers);
@@ -628,6 +751,7 @@ public:
     ParmList *l = Getattr(n, "parms");
     String *nodeType = Getattr(n, "nodeType");
     int newobject = GetFlag(n, "feature:new");
+    int constructor = (Cmp(nodeType, "constructor") == 0);
 
     Parm *p;
     int i;
@@ -665,8 +789,8 @@ public:
     String *outarg = NewStringEmpty();
     String *cleanup = NewStringEmpty();
 
-    // Not issued for overloaded functions or static member variables.
-    if (!overloaded && wrapperType != staticmembervar) {
+    // Not issued for overloaded functions.
+    if (!overloaded) {
       create_command(iname, wname);
     }
     Printv(f->def, "ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
@@ -683,12 +807,26 @@ public:
     int num_required = emit_num_required(l);
     numopt = num_arguments - num_required;
 
+    if (wrapperType == directorconstructor)
+      num_arguments++;
+
     if (num_arguments > 0) {
-      String *args = NewStringf("zval **args[%d]", num_arguments);
+      String *args = NewStringEmpty();
+      if (wrapperType == directorconstructor)
+        Wrapper_add_local(f, "arg0", "zval *arg0");
+      Printf(args, "zval **args[%d]", num_arguments);
       Wrapper_add_local(f, "args", args);
       Delete(args);
       args = NULL;
     }
+    if (is_member_director(n)) {
+      Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+      Printf(f->code, "director = dynamic_cast<Swig::Director*>(arg1);\n");
+      Wrapper_add_local(f, "upcall", "bool upcall = false");
+      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s%s\", (char *)\"%s\");\n",
+	  prefix, Swig_class_name(Swig_methodclass(n)), name);
+    }
+
     // This generated code may be called:
     // 1) as an object method, or
     // 2) as a class-method/function (without a "this_ptr")
@@ -713,8 +851,10 @@ public:
       }
       Printf(f->code, "WRONG_PARAM_COUNT;\n}\n\n");
     }
+    if (wrapperType == directorconstructor)
+      Printf(f->code, "arg0 = *args[0];\n  \n");
 
-    /* Now convert from php to C variables */
+    /* Now convert from PHP to C variables */
     // At this point, argcount if used is the number of deliberately passed args
     // not including this_ptr even if it is used.
     // It means error messages may be out by argbase with error
@@ -724,7 +864,10 @@ public:
     // _this and not the first argument.
     // This may mean looking at Language::memberfunctionHandler
 
-    for (i = 0, p = l; i < num_arguments; i++) {
+    int limit = num_arguments;
+    if (wrapperType == directorconstructor)
+      limit--;
+    for (i = 0, p = l; i < limit; i++) {
       String *source;
 
       /* Skip ignored arguments */
@@ -735,7 +878,11 @@ public:
 
       SwigType *pt = Getattr(p, "type");
 
-      source = NewStringf("args[%d]", i);
+      if (wrapperType == directorconstructor) {
+	source = NewStringf("args[%d]", i+1);
+      } else {
+	source = NewStringf("args[%d]", i);
+      }
 
       String *ln = Getattr(p, "lname");
 
@@ -767,6 +914,8 @@ public:
       Delete(source);
     }
 
+    Swig_director_emit_dynamic_cast(n, f);
+
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
@@ -790,8 +939,10 @@ public:
     }
 
     /* Insert argument output code */
+    bool hasargout = false;
     for (i = 0, p = l; p; i++) {
       if ((tm = Getattr(p, "tmap:argout"))) {
+	hasargout = true;
 	Replaceall(tm, "$source", Getattr(p, "lname"));
 	//      Replaceall(tm,"$input",Getattr(p,"lname"));
 	Replaceall(tm, "$target", "return_value");
@@ -810,9 +961,9 @@ public:
     /* emit function call */
     String *actioncode = emit_action(n);
 
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-      Replaceall(tm, "$input", "result");
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+      Replaceall(tm, "$input", Swig_cresult_name());
+      Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$target", "return_value");
       Replaceall(tm, "$result", "return_value");
       Replaceall(tm, "$owner", newobject ? "1" : "0");
@@ -832,14 +983,14 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
 	Printf(f->code, "%s\n", tm);
 	Delete(tm);
       }
     }
 
     /* See if there is any return cleanup code */
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
@@ -849,7 +1000,11 @@ public:
     /* Error handling code */
     Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
-    Printv(f->code, "zend_error(SWIG_ErrorCode(),SWIG_ErrorMsg());", NIL);
+    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+     * using zend_error() here shouldn't generate a warning, so just use that.
+     * At worst this may result in slightly less good code.
+     */
+    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
 
     Printf(f->code, "}\n");
 
@@ -857,6 +1012,8 @@ public:
     Replaceall(f->code, "$symname", iname);
 
     Wrapper_print(f, s_wrappers);
+    DelWrapper(f);
+    f = NULL;
 
     if (overloaded && !Getattr(n, "sym:nextSibling")) {
       dispatchFunction(n);
@@ -865,8 +1022,7 @@ public:
     Delete(wname);
     wname = NULL;
 
-    if (!(shadow && php_version == 5)) {
-      DelWrapper(f);
+    if (!shadow) {
       return SWIG_OK;
     }
 
@@ -882,7 +1038,9 @@ public:
 	  Setattr(shadow_set_vars, varname, iname);
 	}
       }
+      return SWIG_OK;
     }
+
     // Only look at non-overloaded methods and the last entry in each overload
     // chain (we check the last so that wrap:parms and wrap:name have been set
     // for them all).
@@ -891,20 +1049,37 @@ public:
 
     if (!s_oowrappers)
       s_oowrappers = NewStringEmpty();
-    if (newobject || wrapperType == memberfn || wrapperType == staticmemberfn || wrapperType == standard) {
+
+    if (newobject || wrapperType == memberfn || wrapperType == staticmemberfn || wrapperType == standard || wrapperType == staticmembervar) {
       bool handle_as_overload = false;
       String **arg_names;
       String **arg_values;
       // Method or static method or plain function.
       const char *methodname = 0;
       String *output = s_oowrappers;
-      if (newobject) {
+      if (constructor) {
 	class_has_ctor = true;
-	methodname = "__construct";
+	// Skip the Foo:: prefix.
+	char *ptr = strrchr(GetChar(Swig_methodclass(n), "sym:name"), ':');
+	if (ptr) {
+	  ptr++;
+	} else {
+	  ptr = GetChar(Swig_methodclass(n), "sym:name");
+	}
+	if (strcmp(ptr, GetChar(n, "constructorHandler:sym:name")) == 0) {
+	  methodname = "__construct";
+	} else {
+	  // The class has multiple constructors and this one is
+	  // renamed, so this will be a static factory function
+	  methodname = GetChar(n, "constructorHandler:sym:name");
+	}
       } else if (wrapperType == memberfn) {
 	methodname = Char(Getattr(n, "memberfunctionHandler:sym:name"));
       } else if (wrapperType == staticmemberfn) {
 	methodname = Char(Getattr(n, "staticmemberfunctionHandler:sym:name"));
+      } else if (wrapperType == staticmembervar) {
+	// Static member variable, wrapped as a function due to PHP limitations.
+	methodname = Char(Getattr(n, "staticmembervariableHandler:sym:name"));
       } else {			// wrapperType == standard
 	methodname = Char(iname);
 	if (!s_fakeoowrappers)
@@ -915,11 +1090,14 @@ public:
       bool really_overloaded = overloaded ? true : false;
       int min_num_of_arguments = emit_num_required(l);
       int max_num_of_arguments = emit_num_arguments(l);
+
       // For a function with default arguments, we end up with the fullest
       // parmlist in full_parmlist.
       ParmList *full_parmlist = l;
       Hash *ret_types = NewHash();
       Setattr(ret_types, d, d);
+
+      bool non_void_return = (Cmp(d, "void") != 0);
 
       if (overloaded) {
 	// Look at all the overloaded versions of this method in turn to
@@ -937,6 +1115,7 @@ public:
 	    assert(constructor);
 	  } else if (!Getattr(ret_types, d2)) {
 	    Setattr(ret_types, d2, d2);
+	    non_void_return = non_void_return || (Cmp(d2, "void") != 0);
 	  }
 
 	  ParmList *l2 = Getattr(o, "wrap:parms");
@@ -1053,9 +1232,14 @@ public:
 	  assert(0 <= argno && argno < max_num_of_arguments);
 	  String *&pname = arg_names[argno];
 	  const char *pname_cstr = GetChar(p, "name");
+	  // Just get rid of the C++ namespace part for now.
+	  const char *ptr = NULL;
+	  if (pname_cstr && (ptr = strrchr(pname_cstr, ':'))) {
+	    pname_cstr = ptr + 1;
+	  }
 	  if (!pname_cstr) {
 	    // Unnamed parameter, e.g. int foo(int);
-	  } else if (pname == NULL) {
+	  } else if (!pname) {
 	    pname = NewString(pname_cstr);
 	  } else {
 	    size_t len = strlen(pname_cstr);
@@ -1108,7 +1292,8 @@ public:
 	      case T_LONG: {
 		char *p;
 		errno = 0;
-		(void) strtol(Char(value), &p, 0);
+		unsigned int n = strtol(Char(value), &p, 0);
+		(void) n;
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
@@ -1121,7 +1306,8 @@ public:
 	      case T_ULONG: {
 		char *p;
 		errno = 0;
-		(void) strtoul(Char(value), &p, 0);
+		unsigned int n = strtoul(Char(value), &p, 0);
+		(void) n;
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
@@ -1137,7 +1323,7 @@ public:
 		if (errno || *p) {
 		  Clear(value);
 		  Append(value, "?");
-		} else if (strchr(Char(value), '.') == NULL) {
+		} else if (strchr(Char(value), '.') == 0) {
 		  // Ensure value is a double constant, not an integer one.
 		  Append(value, ".0");
 		  double val2 = strtod(Char(value), &p);
@@ -1246,9 +1432,11 @@ public:
       /* We use $r to store the return value, so disallow that as a parameter
        * name in case the user uses the "call-time pass-by-reference" feature
        * (it's deprecated and off by default in PHP5, but we want to be
-       * maximally portable).
+       * maximally portable).  Similarly we use $c for the classname or new
+       * stdClass object.
        */
       Setattr(seen, "r", seen);
+      Setattr(seen, "c", seen);
 
       for (int argno = 0; argno < max_num_of_arguments; ++argno) {
 	String *&pname = arg_names[argno];
@@ -1339,9 +1527,20 @@ public:
 	    while (last_handled_i < i) {
 	      Printf(prepare, "case %d: ", ++last_handled_i);
 	    }
-	    if (Cmp(d, "void") != 0)
-	      Printf(prepare, "$r=");
-	    Printf(prepare, "%s(%s); break;\n", iname, invoke_args);
+	    if (non_void_return) {
+	      if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
+		Append(prepare, "$r=");
+	      } else {
+		Printf(prepare, "$this->%s=", SWIG_PTR);
+	      }
+	    }
+	    if (!directorsEnabled() || !Swig_directorclass(n) || !newobject) {
+	      Printf(prepare, "%s(%s); break;\n", iname, invoke_args);
+	    } else if (!i) {
+	      Printf(prepare, "%s($_this%s); break;\n", iname, invoke_args);
+	    } else {
+	      Printf(prepare, "%s($_this, %s); break;\n", iname, invoke_args);
+	    }
 	  }
 	  if (i || wrapperType == memberfn)
 	    Printf(invoke_args, ",");
@@ -1350,9 +1549,19 @@ public:
 	Printf(prepare, "\t\t");
 	if (had_a_case)
 	  Printf(prepare, "default: ");
-	if (Cmp(d, "void") != 0)
-	  Printf(prepare, "$r=");
-	Printf(prepare, "%s(%s);\n", iname, invoke_args);
+	if (non_void_return) {
+	  if ((!directorsEnabled() || !Swig_directorclass(n)) && !newobject) {
+	    Append(prepare, "$r=");
+	  } else {
+	    Printf(prepare, "$this->%s=", SWIG_PTR);
+	  }
+	}
+
+	if (!directorsEnabled() || !Swig_directorclass(n) || !newobject) {
+	  Printf(prepare, "%s(%s);\n", iname, invoke_args);
+	} else {
+	  Printf(prepare, "%s($_this, %s);\n", iname, invoke_args);
+	}
 	if (had_a_case)
 	  Printf(prepare, "\t\t}\n");
 	Delete(invoke_args);
@@ -1361,41 +1570,168 @@ public:
 
       Printf(output, "\n");
       // If it's a member function or a class constructor...
-      if (wrapperType == memberfn || (newobject && current_class)) {
-	Printf(output, "\tfunction %s(%s) {\n", methodname, args);
-	// We don't need this code if the wrapped class has a copy ctor
-	// since the flat function new_CLASSNAME will handle it for us.
-	if (newobject && !Getattr(current_class, "allocate:copy_constructor")) {
-	  SwigType *t = Getattr(current_class, "classtype");
-	  String *mangled_type = SwigType_manglestr(SwigType_ltype(t));
-	  Printf(s_oowrappers, "\t\tif (is_resource($%s) && get_resource_type($%s) == \"_p%s\") {\n", arg_names[0], arg_names[0], mangled_type);
-	  Printf(s_oowrappers, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg_names[0]);
-	  Printf(s_oowrappers, "\t\t\treturn;\n");
-	  Printf(s_oowrappers, "\t\t}\n");
+      if (wrapperType == memberfn || (constructor && current_class)) {
+	String *acc = NewString(Getattr(n, "access"));
+	// If a base has the same method with public access, then PHP
+	// requires to have it here as public as well
+	Node *bases = Getattr(Swig_methodclass(n), "bases");
+	if (bases && Strcmp(acc, "public") != 0) {
+	  String *warnmsg = 0;
+	  int haspublicbase = 0;
+	  Iterator i = First(bases);
+	  while (i.item) {
+	    Node *j = firstChild(i.item);
+	    while (j) {
+	      if (Strcmp(Getattr(j, "name"), Getattr(n, "name")) != 0) {
+		j = nextSibling(j);
+		continue;
+	      }
+	      if (Strcmp(nodeType(j), "cdecl") == 0) {
+		if (!Getattr(j, "access") || checkAttribute(j, "access", "public")) {
+		  haspublicbase = 1;
+		}
+	      } else if (Strcmp(nodeType(j), "using") == 0 && firstChild(j) && Strcmp(nodeType(firstChild(j)), "cdecl") == 0) {
+		if (!Getattr(firstChild(j), "access") || checkAttribute(firstChild(j), "access", "public")) {
+		  haspublicbase = 1;
+		}
+	      }
+	      if (haspublicbase) {
+		  warnmsg = NewStringf("Modifying the access of '%s::%s' to public, as the base '%s' has it as public as well.\n", Getattr(current_class, "classtype"), Getattr(n, "name"), Getattr(i.item, "classtype"));
+		  break;
+	      }
+	      j = nextSibling(j);
+	    }
+	    i = Next(i);
+	    if (haspublicbase) {
+	      break;
+	    }
+	  }
+	  if (Getattr(n, "access") && haspublicbase) {
+	    Delete(acc);
+	    acc = NewStringEmpty(); // implicitly public
+	    Swig_warning(WARN_PHP_PUBLIC_BASE, input_file, line_number, Char(warnmsg));
+	    Delete(warnmsg);
+	  }
 	}
+
+	if (Cmp(acc, "public") == 0) {
+	  // The default visibility for methods is public, so don't specify
+	  // that explicitly to keep the wrapper size down.
+	  Delete(acc);
+	  acc = NewStringEmpty();
+	} else if (Cmp(acc, "") != 0) {
+	  Append(acc, " ");
+	}
+
+	if (constructor) {
+	  const char * arg0;
+	  if (max_num_of_arguments > 0) {
+	    arg0 = Char(arg_names[0]);
+	  } else {
+	    arg0 = "res";
+	    Delete(args);
+	    args = NewString("$res=null");
+	  }
+	  String *mangled_type = SwigType_manglestr(Getattr(n, "type"));
+	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
+	  Printf(output, "\t\tif (is_resource($%s) && get_resource_type($%s) === '%s') {\n", arg0, arg0, mangled_type);
+	  Printf(output, "\t\t\t$this->%s=$%s;\n", SWIG_PTR, arg0);
+	  Printf(output, "\t\t\treturn;\n");
+	  Printf(output, "\t\t}\n");
+	} else {
+	  Printf(output, "\t%sfunction %s(%s) {\n", acc, methodname, args);
+	}
+	Delete(acc);
+      } else if (wrapperType == staticmembervar) {
+	// We're called twice for a writable static member variable - first
+	// with "foo_set" and then with "foo_get" - so generate half the
+	// wrapper function each time.
+	//
+	// For a const static member, we only get called once.
+	static bool started = false;
+	if (!started) {
+	  Printf(output, "\tstatic function %s() {\n", methodname);
+	  if (max_num_of_arguments) {
+	    // Setter.
+	    Printf(output, "\t\tif (func_num_args()) {\n");
+	    Printf(output, "\t\t\t%s(func_get_arg(0));\n", iname);
+	    Printf(output, "\t\t\treturn;\n");
+	    Printf(output, "\t\t}\n");
+	    started = true;
+	    goto done;
+	  }
+	}
+	started = false;
       } else {
 	Printf(output, "\tstatic function %s(%s) {\n", methodname, args);
       }
-      Delete(args);
-      args = NULL;
 
-      for (int i = 0; i < max_num_of_arguments; ++i) {
-	Delete(arg_names[i]);
-      }
-      free(arg_names);
-      arg_names = NULL;
-
-      Printf(output, "%s", prepare);
-      if (newobject) {
-	Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
-      } else if (Cmp(d, "void") == 0) {
+      if (!newobject)
+	Printf(output, "%s", prepare);
+      if (constructor) {
+	if (!directorsEnabled() || !Swig_directorclass(n)) {
+	  if (!Len(prepare)) {
+	    if (strcmp(methodname, "__construct") == 0) {
+	      Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
+	    } else {
+	      String *classname = Swig_class_name(current_class);
+	      Printf(output, "\t\treturn new %s%s(%s);\n", prefix, classname, invoke);
+	    }
+	  }
+	} else {
+	  Node *parent = Swig_methodclass(n);
+	  String *classname = Swig_class_name(parent);
+	  Printf(output, "\t\tif (get_class($this) === '%s%s') {\n", prefix, classname);
+	  Printf(output, "\t\t\t$_this = null;\n");
+	  Printf(output, "\t\t} else {\n");
+	  Printf(output, "\t\t\t$_this = $this;\n");
+	  Printf(output, "\t\t}\n");
+	  if (!Len(prepare)) {
+	    if (num_arguments > 1) {
+	      Printf(output, "\t\t$this->%s=%s($_this, %s);\n", SWIG_PTR, iname, args);
+	    } else {
+	      Printf(output, "\t\t$this->%s=%s($_this);\n", SWIG_PTR, iname);
+	    }
+	  }
+	}
+	Printf(output, "%s", prepare);
+      } else if (!non_void_return && !hasargout) {
 	if (Cmp(invoke, "$r") != 0)
 	  Printf(output, "\t\t%s;\n", invoke);
       } else if (is_class(d)) {
 	if (Cmp(invoke, "$r") != 0)
 	  Printf(output, "\t\t$r=%s;\n", invoke);
 	if (Len(ret_types) == 1) {
-	  Printf(output, "\t\treturn is_resource($r) ? new %s%s($r) : $r;\n", prefix, Getattr(classLookup(d), "sym:name"));
+	  /* If d is abstract we can't create a new wrapper type d. */
+	  Node * d_class = classLookup(d);
+	  int is_abstract = 0;
+	  if (Getattr(d_class, "abstract")) {
+	    is_abstract = 1;
+	  }
+	  if (newobject || !is_abstract) {
+	    Printf(output, "\t\tif (is_resource($r)) {\n");
+	    if (Getattr(classLookup(Getattr(n, "type")), "module")) {
+	      /*
+	       * _p_Foo -> Foo, _p_ns__Bar -> Bar
+	       * TODO: do this in a more elegant way
+	       */
+	      if (Len(prefix) == 0) {
+		Printf(output, "\t\t\t$c=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
+	      } else {
+		Printf(output, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
+	      }
+	      Printf(output, "\t\t\tif (class_exists($c)) return new $c($r);\n");
+	      Printf(output, "\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
+	    } else {
+	      Printf(output, "\t\t\t$c = new stdClass();\n");
+	      Printf(output, "\t\t\t$c->"SWIG_PTR" = $r;\n");
+	      Printf(output, "\t\t\treturn $c;\n");
+	    }
+	    Printf(output, "\t\t}\n\t\treturn $r;\n");
+	  } else {
+	    Printf(output, "\t\t$this->%s = $r;\n", SWIG_PTR);
+	    Printf(output, "\t\treturn $this;\n");
+	  }
 	} else {
 	  Printf(output, "\t\tif (!is_resource($r)) return $r;\n");
 	  Printf(output, "\t\tswitch (get_resource_type($r)) {\n");
@@ -1403,7 +1739,6 @@ public:
 	  while (i.item) {
 	    SwigType *ret_type = i.item;
 	    i = Next(i);
-	    Printf(output, "\t\t");
 	    String *mangled = NewString("_p");
 	    Printf(mangled, "%s", SwigType_manglestr(ret_type));
 	    Node *class_node = Getattr(zend_types, mangled);
@@ -1414,9 +1749,15 @@ public:
 	      Delete(mangled);
 	      mangled = NewString(SwigType_manglestr(ret_type));
 	      class_node = Getattr(zend_types, mangled);
+	      if (!class_node) {
+		// Return type isn't an object, so will be handled by the
+		// !is_resource() check before the switch.
+		continue;
+	      }
 	    }
+	    Printf(output, "\t\t");
 	    if (i.item) {
-	      Printf(output, "case \"%s\": ", mangled);
+	      Printf(output, "case '%s': ", mangled);
 	    } else {
 	      Printf(output, "default: ");
 	    }
@@ -1432,15 +1773,28 @@ public:
 	  Printf(output, "\t\t}\n");
 	}
       } else {
-	Printf(output, "\t\treturn %s;\n", invoke);
+	if (non_void_return) {
+	  Printf(output, "\t\treturn %s;\n", invoke);
+	} else if (Cmp(invoke, "$r") != 0) {
+	  Printf(output, "\t\t%s;\n", invoke);
+	}
       }
       Printf(output, "\t}\n");
+
+done:
       Delete(prepare);
       Delete(invoke);
       free(arg_values);
-    }
 
-    DelWrapper(f);
+      Delete(args);
+      args = NULL;
+
+      for (int i = 0; i < max_num_of_arguments; ++i) {
+	Delete(arg_names[i]);
+      }
+      free(arg_names);
+      arg_names = NULL;
+    }
 
     return SWIG_OK;
   }
@@ -1465,8 +1819,6 @@ public:
     if (!addSymbol(iname, n))
       return SWIG_ERROR;
 
-    SwigType_remember(t);
-
     /* First link C variables to PHP */
 
     tm = Swig_typemap_lookup("varinit", n, name, 0);
@@ -1474,7 +1826,7 @@ public:
       Replaceall(tm, "$target", name);
       Printf(s_vinit, "%s\n", tm);
     } else {
-      Printf(stderr, "%s: Line %d, Unable to link with type %s\n", input_file, line_number, SwigType_str(t, 0));
+      Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
     }
 
     /* Now generate PHP -> C sync blocks */
@@ -1484,8 +1836,7 @@ public:
        Replaceall(tm, "$symname", iname);
        Printf(f_c->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n",
-       input_file, line_number, SwigType_str(t, 0));
+       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
        }
      */
     /* Now generate C -> PHP sync blocks */
@@ -1497,8 +1848,7 @@ public:
        Replaceall(tm, "$symname", iname);
        Printf(f_php->code, "%s\n", tm);
        } else {
-       Printf(stderr,"%s: Line %d, Unable to link with type %s\n",
-       input_file, line_number, SwigType_str(t, 0));
+       Swig_error(input_file, line_number, "Unable to link with type %s\n", SwigType_str(t, 0));
        }
        }
      */
@@ -1529,7 +1879,7 @@ public:
       Printf(s_cinit, "%s\n", tm);
     }
 
-    if (shadow && php_version == 5) {
+    if (shadow) {
       String *enumvalue = GetChar(n, "enumvalue");
       String *set_to = iname;
 
@@ -1571,8 +1921,8 @@ public:
    *
    * Pragma directive.
    *
-   * %pragma(php4) code="String"         # Includes a string in the .php file
-   * %pragma(php4) include="file.pl"     # Includes a file in the .php file
+   * %pragma(php) code="String"         # Includes a string in the .php file
+   * %pragma(php) include="file.php"    # Includes a file in the .php file
    */
 
   virtual int pragmaDirective(Node *n) {
@@ -1581,14 +1931,14 @@ public:
       String *type = Getattr(n, "name");
       String *value = Getattr(n, "value");
 
-      if (Strcmp(lang, "php4") == 0) {
+      if (Strcmp(lang, "php") == 0 || Strcmp(lang, "php4") == 0) {
 	if (Strcmp(type, "code") == 0) {
 	  if (value) {
 	    Printf(pragma_code, "%s\n", value);
 	  }
 	} else if (Strcmp(type, "include") == 0) {
 	  if (value) {
-	    Printf(pragma_incl, "include \"%s\";\n", value);
+	    Printf(pragma_incl, "include '%s';\n", value);
 	  }
 	} else if (Strcmp(type, "phpinfo") == 0) {
 	  if (value) {
@@ -1621,9 +1971,7 @@ public:
 
   virtual int classHandler(Node *n) {
     constructors = 0;
-    //SwigType *t = Getattr(n, "classtype");
     current_class = n;
-    // String *use_class_name=SwigType_manglestr(SwigType_ltype(t));
 
     if (shadow) {
       char *rename = GetChar(n, "sym:name");
@@ -1683,52 +2031,73 @@ public:
       }
 
       Printf(s_phpclasses, "class %s%s ", prefix, shadow_classname);
-      if (base.item) {
-	String *baseclass = Getattr(base.item, "sym:name");
+      String *baseclass = NULL;
+      if (base.item && Getattr(base.item, "module")) {
+	baseclass = Getattr(base.item, "sym:name");
 	if (!baseclass)
 	  baseclass = Getattr(base.item, "name");
 	Printf(s_phpclasses, "extends %s%s ", prefix, baseclass);
+      } else if (GetFlag(n, "feature:exceptionclass")) {
+	Append(s_phpclasses, "extends Exception ");
       }
       Printf(s_phpclasses, "{\n\tpublic $%s=null;\n", SWIG_PTR);
+      if (!baseclass) {
+	// Only store this in the base class (NB !baseclass means we *are*
+	// a base class...)
+	Printf(s_phpclasses, "\tprotected $%s=array();\n", SWIG_DATA);
+      }
 
       // Write property SET handlers
       ki = First(shadow_set_vars);
 
       if (ki.key) {
 	// This class has setters.
-	// FIXME: just ignore setting an unknown property name for now.
 	Printf(s_phpclasses, "\n\tfunction __set($var,$value) {\n");
 	// FIXME: tune this threshold...
 	if (Len(shadow_set_vars) <= 2) {
 	  // Not many setters, so avoid call_user_func.
 	  while (ki.key) {
 	    key = ki.key;
-	    Printf(s_phpclasses, "\t\tif ($var == '%s') return %s($this->%s,$value);\n", key, ki.item, SWIG_PTR);
+	    Printf(s_phpclasses, "\t\tif ($var === '%s') return %s($this->%s,$value);\n", key, ki.item, SWIG_PTR);
 	    ki = Next(ki);
 	  }
 	} else {
 	  Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_set';\n", shadow_classname);
-	  Printf(s_phpclasses, "\t\tif (function_exists($func)) call_user_func($func,$this->%s,$value);\n", SWIG_PTR);
+	  Printf(s_phpclasses, "\t\tif (function_exists($func)) return call_user_func($func,$this->%s,$value);\n", SWIG_PTR);
+	}
+	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_alter_newobject($this->%s,$value);\n", module, SWIG_PTR);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\t%s%s::__set($var,$value);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
 	}
 	Printf(s_phpclasses, "\t}\n");
 
 	/* Create __isset for PHP 5.1 and later; PHP 5.0 will just ignore it. */
 	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
-	// FIXME: tune this threshold, but it should probably be different to
-	// that for __set() and __get() as we don't need to call_user_func()
-	// here...
-	if (Len(shadow_set_vars) == 1) {
-	  // Only one setter, so just check the name.
-	  Printf(s_phpclasses, "\t\treturn ");
-	  while (ki.key) {
-	      key = ki.key;
-	      Printf(s_phpclasses, "$var == '%s'", ki.key);
-	      ki = Next(ki);
-	      if (ki.key) Printf(s_phpclasses, " || ");
-	  }
-	  Printf(s_phpclasses, ";\n");
+	Printf(s_phpclasses, "\t\tif (function_exists('%s_'.$var.'_set')) return true;\n", shadow_classname);
+	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
 	} else {
-	  Printf(s_phpclasses, "\t\treturn function_exists('%s_'.$var.'_set');\n", shadow_classname);
+	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
+	}
+	Printf(s_phpclasses, "\t}\n");
+      } else {
+	Printf(s_phpclasses, "\n\tfunction __set($var,$value) {\n");
+	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_alter_newobject($this->%s,$value);\n", module, SWIG_PTR);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\t%s%s::__set($var,$value);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\t$this->%s[$var] = $value;\n", SWIG_DATA);
+	}
+	Printf(s_phpclasses, "\t}\n");
+	Printf(s_phpclasses, "\n\tfunction __isset($var) {\n");
+	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return true;\n");
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__isset($var);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\treturn array_key_exists($var, $this->%s);\n", SWIG_DATA);
 	}
 	Printf(s_phpclasses, "\t}\n");
       }
@@ -1738,20 +2107,37 @@ public:
       if (ki.key) {
 	// This class has getters.
 	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
-	// FIXME: tune this threshold...
-	if (Len(shadow_get_vars) <= 2) {
-	  // Not many getters, so avoid call_user_func.
-	  while (ki.key) {
-	    key = ki.key;
-	    Printf(s_phpclasses, "\t\tif ($var == '%s') return %s($this->%s);\n", key, ki.item, SWIG_PTR);
-	    ki = Next(ki);
-	  }
+	// FIXME: Currently we always use call_user_func for __get, so we can
+	// check and wrap the result.  This is needless if all the properties
+	// are primitive types.  Also this doesn't handle all the cases which
+	// a method returning an object does.
+	Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_get';\n", shadow_classname);
+	Printf(s_phpclasses, "\t\tif (function_exists($func)) {\n");
+	Printf(s_phpclasses, "\t\t\t$r = call_user_func($func,$this->%s);\n", SWIG_PTR);
+	Printf(s_phpclasses, "\t\t\tif (!is_resource($r)) return $r;\n");
+	if (Len(prefix) == 0) {
+	  Printf(s_phpclasses, "\t\t\t$c=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
 	} else {
-	  Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_get';\n", shadow_classname);
-	  Printf(s_phpclasses, "\t\tif (function_exists($func)) return call_user_func($func,$this->%s);\n", SWIG_PTR);
+	  Printf(s_phpclasses, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	}
-	// Reading an unknown property name gives null in PHP.
-	Printf(s_phpclasses, "\t\treturn null;\n");
+	Printf(s_phpclasses, "\t\t\treturn new $c($r);\n");
+	Printf(s_phpclasses, "\t\t}\n");
+	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__get($var);\n", prefix, baseclass);
+	} else {
+	  // Reading an unknown property name gives null in PHP.
+	  Printf(s_phpclasses, "\t\treturn $this->%s[$var];\n", SWIG_DATA);
+	}
+	Printf(s_phpclasses, "\t}\n");
+      } else {
+	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
+	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
+	if (baseclass) {
+	  Printf(s_phpclasses, "\t\treturn %s%s::__get($var);\n", prefix, baseclass);
+	} else {
+	  Printf(s_phpclasses, "\t\treturn $this->%s[$var];\n", SWIG_DATA);
+	}
 	Printf(s_phpclasses, "\t}\n");
       }
 
@@ -1787,7 +2173,7 @@ public:
 
   virtual int memberfunctionHandler(Node *n) {
     wrapperType = memberfn;
-    this->Language::memberfunctionHandler(n);
+    Language::memberfunctionHandler(n);
     wrapperType = standard;
 
     return SWIG_OK;
@@ -1814,66 +2200,6 @@ public:
     Language::staticmembervariableHandler(n);
     wrapperType = standard;
 
-    SwigType *type = Getattr(n, "type");
-    String *name = Getattr(n, "name");
-    String *iname = Getattr(n, "sym:name");
-
-    /* A temporary(!) hack for static member variables.
-     * Php currently supports class functions, but not class variables.
-     * Until it does, we convert a class variable to a class function
-     * that returns the current value of the variable. E.g.
-     *
-     * class Example {
-     *  public:
-     *          static int ncount;
-     * };
-     *
-     * would be available in php as Example::ncount() 
-     */
-
-    // If the variable is const, then it's wrapped as a constant with set/get
-    // functions.
-    if (SwigType_isconst(type))
-      return SWIG_OK;
-
-    // This duplicates the logic from Language::variableWrapper() to test if
-    // the set wrapper is made.
-    int assignable = is_assignable(n);
-    if (assignable) {
-      String *tm = Swig_typemap_lookup("globalin", n, name, 0);
-      if (!tm && SwigType_isarray(type)) {
-	assignable = 0;
-      }
-    }
-
-    String *class_iname = Swig_name_member(Getattr(current_class, "sym:name"), iname);
-    create_command(iname, Swig_name_wrapper(class_iname));
-
-    Wrapper *f = NewWrapper();
-
-    Printv(f->def, "ZEND_NAMED_FUNCTION(", Swig_name_wrapper(class_iname), ") {\n", NIL);
-    String *mget = Swig_name_wrapper(Swig_name_get(class_iname));
-    String *mset = Swig_name_wrapper(Swig_name_set(class_iname));
-
-    if (assignable) {
-      Printf(f->code, "if (ZEND_NUM_ARGS() > 0 ) {\n");
-      Printf(f->code, "  %s( INTERNAL_FUNCTION_PARAM_PASSTHRU );\n", mset);
-      Printf(f->code, "  // need some error checking here?\n");
-      Printf(f->code, "  // Set the argument count to 0 for the get call\n");
-      Printf(f->code, "  ht = 0;\n");
-      Printf(f->code, "}\n");
-    }
-
-    Printf(f->code, "%s( INTERNAL_FUNCTION_PARAM_PASSTHRU );\n", mget);
-    Printf(f->code, "}\n");
-
-    Wrapper_print(f, s_wrappers);
-
-    Delete(class_iname);
-    Delete(mget);
-    Delete(mset);
-    DelWrapper(f);
-
     return SWIG_OK;
   }
 
@@ -1889,52 +2215,6 @@ public:
     return SWIG_OK;
   }
 
-  String * GetShadowReturnType(Node *n) {
-    SwigType *t = Getattr(n, "type");
-
-    /* Map type here */
-    switch (SwigType_type(t)) {
-      case T_CHAR:
-      case T_SCHAR:
-      case T_UCHAR:
-      case T_SHORT:
-      case T_USHORT:
-      case T_INT:
-      case T_UINT:
-      case T_LONG:
-      case T_ULONG:
-      case T_FLOAT:
-      case T_DOUBLE:
-      case T_BOOL:
-      case T_STRING:
-      case T_VOID:
-	break;
-      case T_POINTER:
-      case T_REFERENCE:
-      case T_USER:
-	if (is_shadow(t)) {
-	  return NewString(Char(is_shadow(t)));
-	}
-	break;
-      case T_ARRAY:
-	/* TODO */
-	break;
-      default:
-	Printf(stderr, "GetShadowReturnType: unhandled data type: %s\n", SwigType_str(t, 0));
-	break;
-    }
-
-    return NewStringEmpty();
-  }
-
-  String *PhpTypeFromTypemap(char *op, Node *n, String_or_char *lname) {
-    String *tms = Swig_typemap_lookup(op, n, lname, 0);
-    if (!tms)
-      return 0;
-    else
-      return NewStringf("%s", tms);
-  }
-
   int abstractConstructorHandler(Node *) {
     return SWIG_OK;
   }
@@ -1945,7 +2225,47 @@ public:
 
   virtual int constructorHandler(Node *n) {
     constructors++;
-    wrapperType = constructor;
+    if (Swig_directorclass(n)) {
+      String *name = GetChar(Swig_methodclass(n), "name");
+      String *ctype = GetChar(Swig_methodclass(n), "classtype");
+      String *sname = GetChar(Swig_methodclass(n), "sym:name");
+      String *args = NewStringEmpty();
+      ParmList *p = Getattr(n, "parms");
+      int i;
+
+      for (i = 0; p; p = nextSibling(p), i++) {
+	if (i) {
+	  Printf(args, ", ");
+	}
+	if (Strcmp(GetChar(p, "type"), SwigType_str(GetChar(p, "type"), 0))) {
+	  SwigType *t = Getattr(p, "type");
+	  Printf(args, "%s", SwigType_rcaststr(t, 0));
+	  if (SwigType_isreference(t)) {
+	    Append(args, "*");
+	  }
+	}
+	Printf(args, "arg%d", i+1);
+      }
+
+      /* director ctor code is specific for each class */
+      Delete(director_ctor_code);
+      director_ctor_code = NewStringEmpty();
+      director_prot_ctor_code = NewStringEmpty();
+      Printf(director_ctor_code, "if ( arg0->type == IS_NULL ) { /* not subclassed */\n");
+      Printf(director_prot_ctor_code, "if ( arg0->type == IS_NULL ) { /* not subclassed */\n");
+      Printf(director_ctor_code, "  %s = (%s *)new %s(%s);\n", Swig_cresult_name(), ctype, ctype, args);
+      Printf(director_prot_ctor_code, "  SWIG_PHP_Error(E_ERROR, \"accessing abstract class or protected constructor\");\n", name, name, args);
+      if (i) {
+	Insert(args, 0, ", ");
+      }
+      Printf(director_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0%s TSRMLS_CC);\n}\n", Swig_cresult_name(), ctype, sname, args);
+      Printf(director_prot_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0%s TSRMLS_CC);\n}\n", Swig_cresult_name(), ctype, sname, args);
+      Delete(args);
+
+      wrapperType = directorconstructor;
+    } else {
+      wrapperType = constructor;
+    }
     Language::constructorHandler(n);
     wrapperType = standard;
 
@@ -1998,12 +2318,18 @@ public:
     Append(f->code, actioncode);
     Delete(actioncode);
 
+    Append(f->code, "return;\n");
+    Append(f->code, "fail:\n");
+    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+     * using zend_error() here shouldn't generate a warning, so just use that.
+     * At worst this may result in slightly less good code.
+     */
+    Append(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
     Printf(f->code, "}\n");
 
     Wrapper_print(f, s_wrappers);
 
     return SWIG_OK;
-
   }
 
   /* ------------------------------------------------------------
@@ -2011,24 +2337,439 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    wrapping_member_constant = Getattr(n, "name");
+    wrapping_member_constant = Getattr(n, "sym:name");
     Language::memberconstantHandler(n);
     wrapping_member_constant = NULL;
     return SWIG_OK;
   }
 
-};				/* class PHP */
+  int classDirectorInit(Node *n) {
+    String *declaration = Swig_director_declaration(n);
+    Printf(f_directors_h, "%s\n", declaration);
+    Printf(f_directors_h, "public:\n");
+    Delete(declaration);
+    return Language::classDirectorInit(n);
+  }
 
-/* -----------------------------------------------------------------------------
- * swig_php()    - Instantiate module
- * ----------------------------------------------------------------------------- */
+  int classDirectorEnd(Node *n) {
+    Printf(f_directors_h, "};\n");
+    return Language::classDirectorEnd(n);
+  }
+
+  int classDirectorConstructor(Node *n) {
+    Node *parent = Getattr(n, "parentNode");
+    String *decl = Getattr(n, "decl");
+    String *supername = Swig_class_name(parent);
+    String *classname = NewStringEmpty();
+    Printf(classname, "SwigDirector_%s", supername);
+
+    /* insert self parameter */
+    Parm *p;
+    ParmList *superparms = Getattr(n, "parms");
+    ParmList *parms = CopyParmList(superparms);
+    String *type = NewString("zval");
+    SwigType_add_pointer(type);
+    p = NewParm(type, NewString("self"), n);
+    set_nextSibling(p, parms);
+    parms = p;
+
+    if (!Getattr(n, "defaultargs")) {
+      /* constructor */
+      {
+	Wrapper *w = NewWrapper();
+	String *call;
+	String *basetype = Getattr(parent, "classtype");
+	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	if (((const char *)Char(target))[Len(target) - 2] == '(') {
+	  Insert(target, Len(target) - 1, "TSRMLS_D");
+	} else {
+	  Insert(target, Len(target) - 1, " TSRMLS_DC");
+	}
+	call = Swig_csuperclass_call(0, basetype, superparms);
+	Printf(w->def, "%s::%s: %s, Swig::Director(self TSRMLS_CC) {", classname, target, call);
+	Append(w->def, "}");
+	Delete(target);
+	Wrapper_print(w, f_directors);
+	Delete(call);
+	DelWrapper(w);
+      }
+
+      /* constructor header */
+      {
+	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	if (((const char *)Char(target))[Len(target) - 2] == '(') {
+	  Insert(target, Len(target) - 1, "TSRMLS_D");
+	} else {
+	  Insert(target, Len(target) - 1, " TSRMLS_DC");
+	}
+	Printf(f_directors_h, "    %s;\n", target);
+	Delete(target);
+      }
+    }
+    return Language::classDirectorConstructor(n);
+  }
+
+  int classDirectorMethod(Node *n, Node *parent, String *super) {
+    int is_void = 0;
+    int is_pointer = 0;
+    String *decl;
+    String *type;
+    String *name;
+    String *classname;
+    String *c_classname = Getattr(parent, "name");
+    String *symname = Getattr(n, "sym:name");
+    String *declaration;
+    ParmList *l;
+    Wrapper *w;
+    String *tm;
+    String *wrap_args = NewStringEmpty();
+    String *return_type;
+    String *value = Getattr(n, "value");
+    String *storage = Getattr(n, "storage");
+    bool pure_virtual = false;
+    int status = SWIG_OK;
+    int idx;
+    bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
+
+    if (Cmp(storage, "virtual") == 0) {
+      if (Cmp(value, "0") == 0) {
+	pure_virtual = true;
+      }
+    }
+
+    classname = Getattr(parent, "sym:name");
+    type = Getattr(n, "type");
+    name = Getattr(n, "name");
+
+    w = NewWrapper();
+    declaration = NewStringEmpty();
+
+    /* determine if the method returns a pointer */
+    decl = Getattr(n, "decl");
+    is_pointer = SwigType_ispointer_return(decl);
+    is_void = (Cmp(type, "void") == 0 && !is_pointer);
+
+    /* form complete return type */
+    return_type = Copy(type);
+    {
+      SwigType *t = Copy(decl);
+      SwigType *f = SwigType_pop_function(t);
+      SwigType_push(return_type, t);
+      Delete(f);
+      Delete(t);
+    }
+
+    /* virtual method definition */
+    l = Getattr(n, "parms");
+    String *target;
+    String *pclassname = NewStringf("SwigDirector_%s", classname);
+    String *qualified_name = NewStringf("%s::%s", pclassname, name);
+    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : type;
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
+    Printf(w->def, "%s", target);
+    Delete(qualified_name);
+    Delete(target);
+    /* header declaration */
+    target = Swig_method_decl(rtype, decl, name, l, 0, 1);
+    Printf(declaration, "    virtual %s", target);
+    Delete(target);
+
+    // Get any exception classes in the throws typemap
+    ParmList *throw_parm_list = 0;
+
+    if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
+      Parm *p;
+      int gencomma = 0;
+
+      Append(w->def, " throw(");
+      Append(declaration, " throw(");
+
+      if (throw_parm_list)
+	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+      for (p = throw_parm_list; p; p = nextSibling(p)) {
+	if ((tm = Getattr(p, "tmap:throws"))) {
+	  if (gencomma++) {
+	    Append(w->def, ", ");
+	    Append(declaration, ", ");
+	  }
+	  String *str = SwigType_str(Getattr(p, "type"), 0);
+	  Append(w->def, str);
+	  Append(declaration, str);
+	  Delete(str);
+	}
+      }
+
+      Append(w->def, ")");
+      Append(declaration, ")");
+    }
+
+    Append(w->def, " {");
+    Append(declaration, ";\n");
+
+    Printf(w->code, "TSRMLS_FETCH_FROM_CTX(swig_zts_ctx);\n");
+
+    /* declare method return value 
+     * if the return value is a reference or const reference, a specialized typemap must
+     * handle it, including declaration of c_result ($result).
+     */
+    if (!is_void) {
+      if (!(ignored_method && !pure_virtual)) {
+	String *cres = SwigType_lstr(return_type, "c_result");
+	Printf(w->code, "%s;\n", cres);
+	Delete(cres);
+      }
+    }
+
+    if (ignored_method) {
+      if (!pure_virtual) {
+	if (!is_void)
+	  Printf(w->code, "return ");
+	String *super_call = Swig_method_call(super, l);
+	Printf(w->code, "%s;\n", super_call);
+	Delete(super_call);
+      } else {
+	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\" TSRMLS_CC);\n", SwigType_namestr(c_classname),
+	    SwigType_namestr(name));
+      }
+    } else {
+      /* attach typemaps to arguments (C/C++ -> PHP) */
+      String *parse_args = NewStringEmpty();
+
+      Swig_director_parms_fixup(l);
+
+      /* remove the wrapper 'w' since it was producing spurious temps */
+      Swig_typemap_attach_parms("in", l, 0);
+      Swig_typemap_attach_parms("directorin", l, 0);
+      Swig_typemap_attach_parms("directorargout", l, w);
+
+      Parm *p;
+      char source[256];
+
+      int outputs = 0;
+      if (!is_void)
+	outputs++;
+
+      /* build argument list and type conversion string */
+      idx = 0;
+      p = l;
+      while (p) {
+	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	  p = Getattr(p, "tmap:in:next");
+	  continue;
+	}
+
+	if (Getattr(p, "tmap:directorargout") != 0)
+	  outputs++;
+
+	String *pname = Getattr(p, "name");
+	String *ptype = Getattr(p, "type");
+
+	if ((tm = Getattr(p, "tmap:directorin")) != 0) {
+	  String *parse = Getattr(p, "tmap:directorin:parse");
+	  if (!parse) {
+	    sprintf(source, "obj%d", idx++);
+	    String *input = NewStringf("&%s", source);
+	    Setattr(p, "emit:directorinput", input);
+	    Replaceall(tm, "$input", input);
+	    Delete(input);
+	    Replaceall(tm, "$owner", "0");
+	    Printv(wrap_args, "zval ", source, ";\n", NIL);
+	    Printf(wrap_args, "args[%d] = &%s;\n", idx - 1, source);
+
+	    Printv(wrap_args, tm, "\n", NIL);
+	    Putc('O', parse_args);
+	  } else {
+	    Append(parse_args, parse);
+	    Setattr(p, "emit:directorinput", pname);
+	    Replaceall(tm, "$input", pname);
+	    Replaceall(tm, "$owner", "0");
+	    if (Len(tm) == 0)
+	      Append(tm, pname);
+	  }
+	  p = Getattr(p, "tmap:directorin:next");
+	  continue;
+	} else if (Cmp(ptype, "void")) {
+	  Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+	      "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0),
+	      SwigType_namestr(c_classname), SwigType_namestr(name));
+	  status = SWIG_NOWRAP;
+	  break;
+	}
+	p = nextSibling(p);
+      }
+
+      /* exception handling */
+      tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
+      if (!tm) {
+	tm = Getattr(n, "feature:director:except");
+	if (tm)
+	  tm = Copy(tm);
+      }
+      if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
+	if (Replaceall(tm, "$error", "error")) {
+	  /* Only declare error if it is used by the typemap. */
+	  Append(w->code, "int error;\n");
+	}
+      } else {
+	Delete(tm);
+	tm = NULL;
+      }
+
+      if (!idx) {
+	Printf(w->code, "zval **args = NULL;\n", idx);
+      } else {
+	Printf(w->code, "zval *args[%d];\n", idx);
+      }
+      Printf(w->code, "zval *%s, funcname;\n", Swig_cresult_name());
+      Printf(w->code, "MAKE_STD_ZVAL(%s);\n", Swig_cresult_name());
+      Printf(w->code, "ZVAL_STRING(&funcname, (char *)\"%s\", 0);\n", GetChar(n, "sym:name"));
+      Append(w->code, "if (!swig_self) {\n");
+      Append(w->code, "  SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");");
+      Append(w->code, "}\n\n");
+
+      /* wrap complex arguments to zvals */
+      Printv(w->code, wrap_args, NIL);
+
+      Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,\n");
+      Printf(w->code, "  %s, %d, args TSRMLS_CC);\n", Swig_cresult_name(), idx);
+
+      if (tm) {
+	Printv(w->code, Str(tm), "\n", NIL);
+	Delete(tm);
+      }
+
+      /* marshal return value from PHP to C/C++ type */
+
+      String *cleanup = NewStringEmpty();
+      String *outarg = NewStringEmpty();
+
+      idx = 0;
+
+      /* marshal return value */
+      if (!is_void) {
+	/* this seems really silly.  the node's type excludes
+	 * qualifier/pointer/reference markers, which have to be retrieved
+	 * from the decl field to construct return_type.  but the typemap
+	 * lookup routine uses the node's type, so we have to swap in and
+	 * out the correct type.  it's not just me, similar silliness also
+	 * occurs in Language::cDeclaration().
+	 */
+	Setattr(n, "type", return_type);
+	tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
+	Setattr(n, "type", type);
+	if (tm != 0) {
+	  static const String *amp_result = NewStringf("&%s", Swig_cresult_name());
+	  Replaceall(tm, "$input", amp_result);
+	  char temp[24];
+	  sprintf(temp, "%d", idx);
+	  Replaceall(tm, "$argnum", temp);
+
+	  /* TODO check this */
+	  if (Getattr(n, "wrap:disown")) {
+	    Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
+	  } else {
+	    Replaceall(tm, "$disown", "0");
+	  }
+	  Replaceall(tm, "$result", "c_result");
+	  Printv(w->code, tm, "\n", NIL);
+	  Delete(tm);
+	} else {
+	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
+	      "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0), SwigType_namestr(c_classname),
+	      SwigType_namestr(name));
+	  status = SWIG_ERROR;
+	}
+      }
+
+      /* marshal outputs */
+      for (p = l; p;) {
+	if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
+	  Replaceall(tm, "$result", Swig_cresult_name());
+	  Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
+	  Printv(w->code, tm, "\n", NIL);
+	  p = Getattr(p, "tmap:directorargout:next");
+	} else {
+	  p = nextSibling(p);
+	}
+      }
+
+      Printf(w->code, "FREE_ZVAL(%s);\n", Swig_cresult_name());
+
+      Delete(parse_args);
+      Delete(cleanup);
+      Delete(outarg);
+    }
+
+    if (!is_void) {
+      if (!(ignored_method && !pure_virtual)) {
+	String *rettype = SwigType_str(return_type, 0);
+	if (!SwigType_isreference(return_type)) {
+	  Printf(w->code, "return (%s) c_result;\n", rettype);
+	} else {
+	  Printf(w->code, "return (%s) *c_result;\n", rettype);
+	}
+	Delete(rettype);
+      }
+    } else {
+      Append(w->code, "return;\n");
+    }
+
+    Append(w->code, "fail:\n");
+    if (!is_void) {
+      Append(w->code, "SWIG_ZEND_ERROR_NORETURN(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    } else {
+      /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
+       * using zend_error() here shouldn't generate a warning, so just use that.
+       * At worst this may result in slightly less good code.
+       */
+      Append(w->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    }
+    Append(w->code, "}\n");
+
+    // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method
+    String *inline_extra_method = NewStringEmpty();
+    if (dirprot_mode() && !is_public(n) && !pure_virtual) {
+      Printv(inline_extra_method, declaration, NIL);
+      String *extra_method_name = NewStringf("%sSwigPublic", name);
+      Replaceall(inline_extra_method, name, extra_method_name);
+      Replaceall(inline_extra_method, ";\n", " {\n      ");
+      if (!is_void)
+	Printf(inline_extra_method, "return ");
+      String *methodcall = Swig_method_call(super, l);
+      Printv(inline_extra_method, methodcall, ";\n    }\n", NIL);
+      Delete(methodcall);
+      Delete(extra_method_name);
+    }
+
+    /* emit the director method */
+    if (status == SWIG_OK) {
+      if (!Getattr(n, "defaultargs")) {
+	Replaceall(w->code, "$symname", symname);
+	Wrapper_print(w, f_directors);
+	Printv(f_directors_h, declaration, NIL);
+	Printv(f_directors_h, inline_extra_method, NIL);
+      }
+    }
+
+    /* clean up */
+    Delete(wrap_args);
+    Delete(return_type);
+    Delete(pclassname);
+    DelWrapper(w);
+    return status;
+  }
+
+  int classDirectorDisown(Node *) {
+    return SWIG_OK;
+  }
+};				/* class PHP */
 
 static PHP *maininstance = 0;
 
 // We use this function to be able to write out zend_register_list_destructor_ex
 // lines for most things in the type table
 // NOTE: it's a function NOT A PHP::METHOD
-extern "C" void typetrace(SwigType *ty, String *mangled, String *clientdata) {
+extern "C" void typetrace(const SwigType *ty, String *mangled, String *clientdata) {
   Node *class_node;
   if (!zend_types) {
     zend_types = NewHash();
@@ -2049,8 +2790,12 @@ extern "C" void typetrace(SwigType *ty, String *mangled, String *clientdata) {
     (*r_prevtracefunc) (ty, mangled, (String *) clientdata);
 }
 
-static Language *new_swig_php(int php_version) {
-  maininstance = new PHP(php_version);
+/* -----------------------------------------------------------------------------
+ * new_swig_php()    - Instantiate module
+ * ----------------------------------------------------------------------------- */
+
+static Language *new_swig_php() {
+  maininstance = new PHP;
   if (!r_prevtracefunc) {
     r_prevtracefunc = SwigType_remember_trace(typetrace);
   } else {
@@ -2067,6 +2812,6 @@ extern "C" Language *swig_php4(void) {
   return NULL; // To avoid compiler warnings.
 }
 
-extern "C" Language *swig_php5(void) {
-  return new_swig_php(5);
+extern "C" Language *swig_php(void) {
+  return new_swig_php();
 }

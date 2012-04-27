@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Extending"></a>34 Extending SWIG to support new languages</H1>
+<H1><a name="Extending"></a>38 Extending SWIG to support new languages</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -48,32 +48,34 @@
 <li><a href="#Extending_nn31">Writing a Language Module</a>
 <ul>
 <li><a href="#Extending_nn32">Execution model</a>
-<li><a href="#Extending_nn33">Starting out</a>
+<li><a href="#Extending_starting_out">Starting out</a>
 <li><a href="#Extending_nn34">Command line options</a>
 <li><a href="#Extending_nn35">Configuration and preprocessing</a>
 <li><a href="#Extending_nn36">Entry point to code generation</a>
 <li><a href="#Extending_nn37">Module I/O and wrapper skeleton</a>
 <li><a href="#Extending_nn38">Low-level code generators</a>
-<li><a href="#Extending_nn39">Configuration files</a>
+<li><a href="#Extending_configuration_files">Configuration files</a>
 <li><a href="#Extending_nn40">Runtime support</a>
 <li><a href="#Extending_nn41">Standard library files</a>
-<li><a href="#Extending_nn42">Examples and test cases</a>
+<li><a href="#Extending_nn42">User examples</a>
+<li><a href="#Extending_test_suite">Test driven development and the test-suite</a>
+<ul>
+<li><a href="#Extending_running_test_suite">Running the test-suite</a>
+</ul>
 <li><a href="#Extending_nn43">Documentation</a>
 <li><a href="#Extending_prerequisites">Prerequisites for adding a new language module to the SWIG distribution</a>
 <li><a href="#Extending_coding_style_guidelines">Coding style guidelines</a>
 </ul>
-<li><a href="#Extending_nn44">Typemaps</a>
-<ul>
-<li><a href="#Extending_nn45">Proxy classes</a>
-</ul>
+<li><a href="#Extending_debugging_options">Debugging Options</a>
 <li><a href="#Extending_nn46">Guide to parse tree nodes</a>
+<li><a href="#Extending_further_info">Further Development Information</a>
 </ul>
 </div>
 <!-- INDEX -->
 
 
 
-<H2><a name="Extending_nn2"></a>34.1 Introduction</H2>
+<H2><a name="Extending_nn2"></a>38.1 Introduction</H2>
 
 
 <p>
@@ -89,7 +91,7 @@ Also, this chapter is not meant to be a hand-holding tutorial.  As a starting po
 you should probably look at one of SWIG's existing modules.
 </p>
 
-<H2><a name="Extending_nn3"></a>34.2 Prerequisites</H2>
+<H2><a name="Extending_nn3"></a>38.2 Prerequisites</H2>
 
 
 <p>
@@ -119,7 +121,7 @@ obvious, but almost all SWIG directives as well as the low-level generation of
 wrapper code are driven by C++ datatypes.
 </p>
 
-<H2><a name="Extending_nn4"></a>34.3 The Big Picture</H2>
+<H2><a name="Extending_nn4"></a>38.3 The Big Picture</H2>
 
 
 <p>
@@ -156,7 +158,7 @@ role in making the system work.  For example, both typemaps and declaration anno
 based on pattern matching and interact heavily with the underlying type system.
 </p>
 
-<H2><a name="Extending_nn5"></a>34.4 Execution Model</H2>
+<H2><a name="Extending_nn5"></a>38.4 Execution Model</H2>
 
 
 <p>
@@ -201,7 +203,7 @@ latter stage of compilation.
 The next few sections briefly describe some of these stages.
 </p>
 
-<H3><a name="Extending_nn6"></a>34.4.1 Preprocessing</H3>
+<H3><a name="Extending_nn6"></a>38.4.1 Preprocessing</H3>
 
 
 <p>
@@ -232,10 +234,11 @@ of <tt>swig.swg</tt> looks like this:
 ...
 /* Code insertion directives such as %wrapper %{ ... %} */
 
-#define %init        %insert("init")
-#define %wrapper     %insert("wrapper")
-#define %header      %insert("header")
+#define %begin       %insert("begin")
 #define %runtime     %insert("runtime")
+#define %header      %insert("header")
+#define %wrapper     %insert("wrapper")
+#define %init        %insert("init")
 
 /* Access control directives */
 
@@ -281,7 +284,7 @@ been expanded as well as everything else that goes into the low-level
 construction of the wrapper code.
 </p>
 
-<H3><a name="Extending_nn7"></a>34.4.2 Parsing</H3>
+<H3><a name="Extending_nn7"></a>38.4.2 Parsing</H3>
 
 
 <p>
@@ -382,7 +385,7 @@ returning a <tt>foo</tt> and taking types <tt>a</tt> and <tt>b</tt> as
 arguments).
 </p>
 
-<H3><a name="Extending_nn8"></a>34.4.3 Parse Trees</H3>
+<H3><a name="Extending_nn8"></a>38.4.3 Parse Trees</H3>
 
 
 <p>
@@ -637,7 +640,7 @@ $ swig -c++ -python -debug-module 4 example.i
 </pre>
 </div>
 
-<H3><a name="Extending_nn9"></a>34.4.4 Attribute namespaces</H3>
+<H3><a name="Extending_nn9"></a>38.4.4 Attribute namespaces</H3>
 
 
 <p>
@@ -656,7 +659,7 @@ that matches the name of the target language.  For example, <tt>python:foo</tt> 
 <tt>perl:foo</tt>.
 </p>
 
-<H3><a name="Extending_nn10"></a>34.4.5 Symbol Tables</H3>
+<H3><a name="Extending_nn10"></a>38.4.5 Symbol Tables</H3>
 
 
 <p>
@@ -747,7 +750,7 @@ example.i:5. Previous declaration is foo_i(int )
 </pre>
 </div>
 
-<H3><a name="Extending_nn11"></a>34.4.6 The %feature directive</H3>
+<H3><a name="Extending_nn11"></a>38.4.6 The %feature directive</H3>
 
 
 <p>
@@ -803,7 +806,7 @@ For example, the exception code above is simply
 stored without any modifications.
 </p>
 
-<H3><a name="Extending_nn12"></a>34.4.7 Code Generation</H3>
+<H3><a name="Extending_nn12"></a>38.4.7 Code Generation</H3>
 
 
 <p>
@@ -925,7 +928,7 @@ public :
 The role of these functions is described shortly.
 </p>
 
-<H3><a name="Extending_nn13"></a>34.4.8 SWIG and XML</H3>
+<H3><a name="Extending_nn13"></a>38.4.8 SWIG and XML</H3>
 
 
 <p>
@@ -938,7 +941,7 @@ internal data structures, it may be useful to keep XML in the back of
 your mind as a model.
 </p>
 
-<H2><a name="Extending_nn14"></a>34.5 Primitive Data Structures</H2>
+<H2><a name="Extending_nn14"></a>38.5 Primitive Data Structures</H2>
 
 
 <p>
@@ -984,7 +987,7 @@ typedef Hash   Typetab;
 </pre>
 </div>
 
-<H3><a name="Extending_nn15"></a>34.5.1 Strings</H3>
+<H3><a name="Extending_nn15"></a>38.5.1 Strings</H3>
 
 
 <p>
@@ -1024,7 +1027,7 @@ Deletes <tt>s</tt>.
 </div>
 
 <p>
-<b><tt>int Len(String_or_char *s)</tt></b>
+<b><tt>int Len(const String_or_char *s)</tt></b>
 </p>
 
 <div class="indent">
@@ -1032,7 +1035,7 @@ Returns the length of the string.
 </div>
 
 <p>
-<b><tt>char *Char(String_or_char *s)</tt></b>
+<b><tt>char *Char(const String_or_char *s)</tt></b>
 </p>
 
 <div class="indent">
@@ -1040,7 +1043,7 @@ Returns a pointer to the first character in a string.
 </div>
 
 <p>
-<b><tt>void Append(String *s, String_or_char *t)</tt></b>
+<b><tt>void Append(String *s, const String_or_char *t)</tt></b>
 </p>
 
 <div class="indent">
@@ -1048,7 +1051,7 @@ Appends <tt>t</tt> to the end of string <tt>s</tt>.
 </div>
 
 <p>
-<b><tt>void Insert(String *s, int pos, String_or_char *t)</tt></b>
+<b><tt>void Insert(String *s, int pos, const String_or_char *t)</tt></b>
 </p>
 
 <div class="indent">
@@ -1125,7 +1128,7 @@ Returns the number of replacements made (if any).
 
 </div>
 
-<H3><a name="Extending_nn16"></a>34.5.2 Hashes</H3>
+<H3><a name="Extending_nn16"></a>38.5.2 Hashes</H3>
 
 
 <p>
@@ -1161,7 +1164,7 @@ Returns the number of items in <tt>h</tt>.
 </div>
 
 <p>
-<b><tt>Object *Getattr(Hash *h, String_or_char *key)</tt></b>
+<b><tt>Object *Getattr(Hash *h, const String_or_char *key)</tt></b>
 </p>
 
 <div class="indent">
@@ -1170,7 +1173,7 @@ a simple <tt>char *</tt> string.   Returns NULL if not found.
 </div>
 
 <p>
-<b><tt>int Setattr(Hash *h, String_or_char *key, Object_or_char *val)</tt></b>
+<b><tt>int Setattr(Hash *h, const String_or_char *key, const Object_or_char *val)</tt></b>
 </p>
 
 <div class="indent">
@@ -1184,7 +1187,7 @@ of <tt>val</tt>.   Returns 1 if this operation replaced an existing hash entry,
 </div>
 
 <p>
-<b><tt>int Delattr(Hash *h, String_or_char *key)</tt></b>
+<b><tt>int Delattr(Hash *h, const String_or_char *key)</tt></b>
 </p>
 
 <div class="indent">
@@ -1202,7 +1205,7 @@ Returns the list of hash table keys.
 </div>
 
 
-<H3><a name="Extending_nn17"></a>34.5.3 Lists</H3>
+<H3><a name="Extending_nn17"></a>38.5.3 Lists</H3>
 
 
 <p>
@@ -1248,7 +1251,7 @@ negative, the first item is returned.
 </div>
 
 <p>
-<b><tt>int *Setitem(List *x, int n, Object_or_char *val)</tt></b>
+<b><tt>int *Setitem(List *x, int n, const Object_or_char *val)</tt></b>
 </p>
 
 <div class="indent">
@@ -1270,7 +1273,7 @@ for <tt>n</tt>.
 </div>
 
 <p>
-<b><tt>void Append(List *x, Object_or_char *t)</tt></b>
+<b><tt>void Append(List *x, const Object_or_char *t)</tt></b>
 </p>
 
 <div class="indent">
@@ -1280,7 +1283,7 @@ used to create a String object.
 </div>
 
 <p>
-<b><tt>void Insert(String *s, int pos, Object_or_char *t)</tt></b>
+<b><tt>void Insert(String *s, int pos, const Object_or_char *t)</tt></b>
 </p>
 
 <div class="indent">
@@ -1291,7 +1294,7 @@ If <tt>t</tt> is not a standard object, it is assumed to be a <tt>char *</tt>
 and is used to create a String object.
 </div>
 
-<H3><a name="Extending_nn18"></a>34.5.4 Common operations</H3>
+<H3><a name="Extending_nn18"></a>38.5.4 Common operations</H3>
 
 
 The following operations are applicable to all datatypes.
@@ -1346,7 +1349,7 @@ objects and report errors.
 Gets the line number associated with <tt>x</tt>.
 </div>
 
-<H3><a name="Extending_nn19"></a>34.5.5 Iterating over Lists and Hashes</H3>
+<H3><a name="Extending_nn19"></a>38.5.5 Iterating over Lists and Hashes</H3>
 
 
 To iterate over the elements of a list or a hash table, the following functions are used:
@@ -1391,7 +1394,7 @@ for (j = First(j); j.item; j= Next(j)) {
 
 </div>
 
-<H3><a name="Extending_nn20"></a>34.5.6 I/O</H3>
+<H3><a name="Extending_nn20"></a>38.5.6 I/O</H3>
 
 
 Special I/O functions are used for all internal I/O.  These operations
@@ -1478,13 +1481,14 @@ Same as the C <tt>tell()</tt> function.
 </div>
 
 <p>
-<b><tt>File *NewFile(const char *filename, const char *mode)</tt></b>
+<b><tt>File *NewFile(const char *filename, const char *mode, List *newfiles)</tt></b>
 </p>
 
 <div class="indent">
 Create a File object using the <tt>fopen()</tt> library call.  This
 file differs from <tt>FILE *</tt> in that it can be placed in the standard
-SWIG containers (lists, hashes, etc.).
+SWIG containers (lists, hashes, etc.). The <tt>filename</tt> is added to the 
+<tt>newfiles</tt> list if <tt>newfiles</tt> is non-zero and the file was created successfully.
 </div>
 
 <p>
@@ -1527,7 +1531,7 @@ Similarly, the preprocessor and parser all operate on string-files.
 
 </div>
 
-<H2><a name="Extending_nn21"></a>34.6 Navigating and manipulating parse trees</H2>
+<H2><a name="Extending_nn21"></a>38.6 Navigating and manipulating parse trees</H2>
 
 
 Parse trees are built as collections of hash tables.   Each node is a hash table in which
@@ -1661,7 +1665,7 @@ Deletes a node from the parse tree.  Deletion reconnects siblings and properly u
 the parent so that sibling nodes are unaffected.
 </div>
 
-<H2><a name="Extending_nn22"></a>34.7 Working with attributes</H2>
+<H2><a name="Extending_nn22"></a>38.7 Working with attributes</H2>
 
 
 <p>
@@ -1778,7 +1782,7 @@ the attribute is optional.   <tt>Swig_restore()</tt> must always be called after
 function.
 </div>
 
-<H2><a name="Extending_nn23"></a>34.8 Type system</H2>
+<H2><a name="Extending_nn23"></a>38.8 Type system</H2>
 
 
 <p>
@@ -1787,7 +1791,7 @@ pointers, references, and pointers to members.   A detailed discussion of
 type theory is impossible here.   However, let's cover the highlights.
 </p>
 
-<H3><a name="Extending_nn24"></a>34.8.1 String encoding of types</H3>
+<H3><a name="Extending_nn24"></a>38.8.1 String encoding of types</H3>
 
 
 <p>
@@ -1888,7 +1892,7 @@ make the final type, the two parts are just joined together using
 string concatenation.
 </p>
 
-<H3><a name="Extending_nn25"></a>34.8.2 Type construction</H3>
+<H3><a name="Extending_nn25"></a>38.8.2 Type construction</H3>
 
 
 <p>
@@ -1921,7 +1925,7 @@ Adds a reference to <tt>ty</tt>.
 </div>
 
 <p>
-<b><tt>void SwigType_add_array(SwigType *ty, String_or_char *dim)</tt></b>
+<b><tt>void SwigType_add_array(SwigType *ty, const String_or_char *size)</tt></b>
 </p>
 
 <div class="indent">
@@ -1961,7 +1965,7 @@ Sets <tt>n</tt>th array dimensions of <tt>ty</tt> to <tt>rep</tt>.
 </div>
 
 <p>
-<b><tt>void SwigType_add_qualifier(SwigType *ty, String_or_char *q)</tt></b>
+<b><tt>void SwigType_add_qualifier(SwigType *ty, const String_or_char *q)</tt></b>
 </p>
 
 <div class="indent">
@@ -1970,7 +1974,7 @@ Adds a type qualifier <tt>q</tt> to <tt>ty</tt>.  <tt>q</tt> is typically
 </div>
 
 <p>
-<b><tt>void SwigType_add_memberpointer(SwigType *ty, String_or_char *cls)</tt></b>
+<b><tt>void SwigType_add_memberpointer(SwigType *ty, const String_or_char *cls)</tt></b>
 </p>
 
 <div class="indent">
@@ -2057,7 +2061,7 @@ Returns the prefix of a type. For example, if <tt>ty</tt> is
 <tt>ty</tt> is unmodified.
 </div>
 
-<H3><a name="Extending_nn26"></a>34.8.3 Type tests</H3>
+<H3><a name="Extending_nn26"></a>38.8.3 Type tests</H3>
 
 
 <p>
@@ -2144,7 +2148,7 @@ Checks if <tt>ty</tt> is a varargs type.
 Checks if <tt>ty</tt> is a templatized type.
 </div>
 
-<H3><a name="Extending_nn27"></a>34.8.4 Typedef and inheritance</H3>
+<H3><a name="Extending_nn27"></a>38.8.4 Typedef and inheritance</H3>
 
 
 <p>
@@ -2246,7 +2250,7 @@ Fully reduces <tt>ty</tt> according to typedef rules.  Resulting datatype
 will consist only of primitive typenames.
 </div>
 
-<H3><a name="Extending_nn28"></a>34.8.5 Lvalues</H3>
+<H3><a name="Extending_nn28"></a>38.8.5 Lvalues</H3>
 
 
 <p>
@@ -2283,7 +2287,7 @@ Literal y;    // type = 'Literal', ltype='p.char'
 </pre>
 </div>
 
-<H3><a name="Extending_nn29"></a>34.8.6 Output functions</H3>
+<H3><a name="Extending_nn29"></a>38.8.6 Output functions</H3>
 
 
 <p>
@@ -2291,7 +2295,7 @@ The following functions produce strings that are suitable for output.
 </p>
 
 <p>
-<b><tt>String *SwigType_str(SwigType *ty, String_or_char *id = 0)</tt></b>
+<b><tt>String *SwigType_str(SwigType *ty, const String_or_char *id = 0)</tt></b>
 </p>
 
 <div class="indent">
@@ -2302,7 +2306,7 @@ used to convert string-encoded types back into a form that is valid C syntax.
 </div>
 
 <p>
-<b><tt>String *SwigType_lstr(SwigType *ty, String_or_char *id = 0)</tt></b>
+<b><tt>String *SwigType_lstr(SwigType *ty, const String_or_char *id = 0)</tt></b>
 </p>
 
 <div class="indent">
@@ -2311,7 +2315,7 @@ is generated from the type's lvalue (as generated from SwigType_ltype).
 </div>
 
 <p>
-<b><tt>String *SwigType_lcaststr(SwigType *ty, String_or_char *id = 0)</tt></b>
+<b><tt>String *SwigType_lcaststr(SwigType *ty, const String_or_char *id = 0)</tt></b>
 </p>
 
 <div class="indent">
@@ -2322,7 +2326,7 @@ this function produces the string "<tt>(char *) foo</tt>".
 </div>
 
 <p>
-<b><tt>String *SwigType_rcaststr(SwigType *ty, String_or_char *id = 0)</tt></b>
+<b><tt>String *SwigType_rcaststr(SwigType *ty, const String_or_char *id = 0)</tt></b>
 </p>
 
 <div class="indent">
@@ -2345,7 +2349,7 @@ SWIG, but is most commonly associated with type-descriptor objects
 that appear in wrappers (e.g., <tt>SWIGTYPE_p_double</tt>).
 </div>
 
-<H2><a name="Extending_nn30"></a>34.9 Parameters</H2>
+<H2><a name="Extending_nn30"></a>38.9 Parameters</H2>
 
 
 <p>
@@ -2444,7 +2448,7 @@ included.  Used to emit prototypes.
 Returns the number of required (non-optional) arguments in <tt>p</tt>.
 </div>
 
-<H2><a name="Extending_nn31"></a>34.10 Writing a Language Module</H2>
+<H2><a name="Extending_nn31"></a>38.10 Writing a Language Module</H2>
 
 
 <p>
@@ -2459,7 +2463,7 @@ describes the creation of a minimal Python module.   You should be able to extra
 this to other languages.
 </p>
 
-<H3><a name="Extending_nn32"></a>34.10.1 Execution model</H3>
+<H3><a name="Extending_nn32"></a>38.10.1 Execution model</H3>
 
 
 <p>
@@ -2469,7 +2473,7 @@ the parsing of command line options, all aspects of code generation are controll
 different methods of the <tt>Language</tt> that must be defined by your module.
 </p>
 
-<H3><a name="Extending_nn33"></a>34.10.2 Starting out</H3>
+<H3><a name="Extending_starting_out"></a>38.10.2 Starting out</H3>
 
 
 <p>
@@ -2577,7 +2581,7 @@ that activates your module. For example, <tt>swig -python foo.i</tt>. The
 messages from your new module should appear.
 </p>
 
-<H3><a name="Extending_nn34"></a>34.10.3 Command line options</H3>
+<H3><a name="Extending_nn34"></a>38.10.3 Command line options</H3>
 
 
 <p>
@@ -2600,24 +2604,24 @@ void Language::main(int argc, char *argv[]) {
             } else {
               Swig_arg_error();
             }
-	  } else if (strcmp(argv[i],"-globals") == 0) {
-	    if (argv[i+1]) {
-	      global_name = NewString(argv[i+1]);
-	      Swig_mark_arg(i);
-	      Swig_mark_arg(i+1);
-	      i++;
-	    } else {
-	      Swig_arg_error();
-	    }
-	  } else if ( (strcmp(argv[i],"-proxy") == 0)) {
-	    proxy_flag = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-keyword") == 0) {
-	    use_kw = 1;
-	    Swig_mark_arg(i);
-	  } else if (strcmp(argv[i],"-help") == 0) {
-	    fputs(usage,stderr);
-	  }
+          } else if (strcmp(argv[i],"-globals") == 0) {
+            if (argv[i+1]) {
+              global_name = NewString(argv[i+1]);
+              Swig_mark_arg(i);
+              Swig_mark_arg(i+1);
+              i++;
+            } else {
+              Swig_arg_error();
+            }
+          } else if ( (strcmp(argv[i],"-proxy") == 0)) {
+            proxy_flag = 1;
+            Swig_mark_arg(i);
+          } else if (strcmp(argv[i],"-keyword") == 0) {
+            use_kw = 1;
+            Swig_mark_arg(i);
+          } else if (strcmp(argv[i],"-help") == 0) {
+            fputs(usage,stderr);
+          }
           ...
       }
   }
@@ -2636,7 +2640,7 @@ to mark the option as valid.   If you forget to do this, SWIG will terminate wit
 unrecognized command line option error.
 </p>
 
-<H3><a name="Extending_nn35"></a>34.10.4 Configuration and preprocessing</H3>
+<H3><a name="Extending_nn35"></a>38.10.4 Configuration and preprocessing</H3>
 
 
 <p>
@@ -2685,7 +2689,7 @@ an implementation file <tt>python.cxx</tt> and a configuration file
 <tt>python.swg</tt>.
 </p>
 
-<H3><a name="Extending_nn36"></a>34.10.5 Entry point to code generation</H3>
+<H3><a name="Extending_nn36"></a>38.10.5 Entry point to code generation</H3>
 
 
 <p>
@@ -2743,22 +2747,23 @@ int Python::top(Node *n) {
 </pre>
 </div>
 
-<H3><a name="Extending_nn37"></a>34.10.6 Module I/O and wrapper skeleton</H3>
+<H3><a name="Extending_nn37"></a>38.10.6 Module I/O and wrapper skeleton</H3>
 
 
 <!-- please report bugs in this section to mgossage -->
 
 
 <p>
-Within SWIG wrappers, there are four main sections. These are (in order)
+Within SWIG wrappers, there are five main sections. These are (in order)
 </p>
 
 <ul>
-<li>runtime: This section has most of the common SWIG runtime code
-<li>header: This section holds declarations and inclusions from the .i file
-<li>wrapper: This section holds all the wrappering code
+<li>begin: This section is a placeholder for users to put code at the beginning of the C/C++ wrapper file.
+<li>runtime: This section has most of the common SWIG runtime code.
+<li>header: This section holds declarations and inclusions from the .i file.
+<li>wrapper: This section holds all the wrappering code.
 <li>init: This section holds the module initalisation function
-(the entry point for the interpreter)
+(the entry point for the interpreter).
 </ul>
 <p>
 Different parts of the SWIG code will fill different sections,
@@ -2775,6 +2780,7 @@ such as:
 class PYTHON : public Language {
 protected:
    /* General DOH objects used for holding the strings */
+   File *f_begin;
    File *f_runtime;
    File *f_header;
    File *f_wrappers;
@@ -2790,22 +2796,25 @@ int Python::top(Node *n) {
    ...
 
    /* Initialize I/O */
-   f_runtime = NewFile(outfile, "w");
-   if (!f_runtime) {
+   f_begin = NewFile(outfile, "w", SWIG_output_files());
+   if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
    }
+   f_runtime = NewString("");
    f_init = NewString("");
    f_header = NewString("");
    f_wrappers = NewString("");
 
    /* Register file targets with the SWIG file handler */
+   Swig_register_filebyname("begin", f_begin);
    Swig_register_filebyname("header", f_header);
    Swig_register_filebyname("wrapper", f_wrappers);
    Swig_register_filebyname("runtime", f_runtime);
    Swig_register_filebyname("init", f_init);
 
    /* Output module initialization code */
+   Swig_banner(f_begin);
    ...
 
    /* Emit code for children */
@@ -2813,16 +2822,18 @@ int Python::top(Node *n) {
 
    ...
    /* Write all to the file */
-   Dump(f_header, f_runtime);
-   Dump(f_wrappers, f_runtime);
-   Wrapper_pretty_print(f_init, f_runtime);
+   Dump(f_runtime, f_begin);
+   Dump(f_header, f_begin);
+   Dump(f_wrappers, f_begin);
+   Wrapper_pretty_print(f_init, f_begin);
 
    /* Cleanup files */
+   Delete(f_runtime);
    Delete(f_header);
    Delete(f_wrappers);
    Delete(f_init);
-   Close(f_runtime);
-   Delete(f_runtime);
+   Close(f_begin);
+   Delete(f_begin);
 
    return SWIG_OK;
 }
@@ -2885,7 +2896,7 @@ functionWrapper   : void Shape_y_set(Shape *self,double y)
 </pre>
 </div>
 
-<H3><a name="Extending_nn38"></a>34.10.7 Low-level code generators</H3>
+<H3><a name="Extending_nn38"></a>38.10.7 Low-level code generators</H3>
 
 
 <!-- please report bugs in this section to mgossage -->
@@ -3039,13 +3050,13 @@ but without the typemaps, there is still work to do.
 </p>
 
 
-<H3><a name="Extending_nn39"></a>34.10.8 Configuration files</H3>
+<H3><a name="Extending_configuration_files"></a>38.10.8 Configuration files</H3>
 
 
 <!-- please report bugs in this section to ttn -->
 
 <p>
-At the time of this writing, SWIG supports nearly a dozen languages,
+At the time of this writing, SWIG supports nearly twenty languages,
 which means that for continued sanity in maintaining the configuration
 files, the language modules need to follow some conventions.  These are
 outlined here along with the admission that, yes it is ok to violate
@@ -3080,8 +3091,6 @@ The nickname is used in four places:
 <TR><TD><B>usage</B></TD><TD><B>transform</B></TD></TR>
 <TR><TD>"skip" tag</TD><TD>(none)</TD></TR>
 <TR><TD>Examples/ subdir name</TD><TD>(none)</TD></TR>
-<TR><TD>Examples/GIFPlot/ subdir name</TD>
-    <TD>capitalize (upcase first letter)</TD></TR>
 <TR><TD>Examples/test-suite/ subdir name</TD><TD>(none)</TD></TR>
 <!-- add more uses here (remember to adjust header) -->
 </TABLE>
@@ -3114,7 +3123,7 @@ entirely upcased.
 
 <p>
 At the end of the new section is the place to put the aforementioned
-nickname kludges (should they be needed).  See Perl5 and Php4 for
+nickname kludges (should they be needed).  See Perl5 for
 examples of what to do.  [If this is still unclear after you've read
 the code, ping me and I'll expand on this further.  --ttn]
 </p>
@@ -3149,8 +3158,8 @@ skip-qux = $(skip-qux99)
 
 <p>
 Lastly, you need to modify each of <TT>check-aliveness</TT>,
-<TT>check-examples</TT>, <TT>check-test-suite</TT>,
-<TT>check-gifplot</TT> (all targets) and <TT>lib-languages</TT> (var).
+<TT>check-examples</TT>, <TT>check-test-suite</TT>
+and <TT>lib-languages</TT> (var).
 Use the nickname for these, not the alias.
 Note that you can do this even before you have any tests or examples
 set up; the Makefile rules do some sanity checking and skip around
@@ -3163,10 +3172,6 @@ and look to the existing languages for examples.
 
 <dt> <b>Examples/qux99/check.list</b>
 <dd> Do <TT>cp ../python/check.list .</TT> and modify to taste.
-One subdir per line.
-
-<dt> <b>Examples/GIFPlot/Qux99/check.list</b>
-<dd> Do <TT>cp ../Python/check.list .</TT> and modify to taste.
 One subdir per line.
 
 <dt> <b>Lib/qux99/extra-install.list</b>
@@ -3189,7 +3194,7 @@ politely displays the ignoring language message.
 </dl>
 
 
-<H3><a name="Extending_nn40"></a>34.10.9 Runtime support</H3>
+<H3><a name="Extending_nn40"></a>38.10.9 Runtime support</H3>
 
 
 <p>
@@ -3198,7 +3203,7 @@ Discuss the kinds of functions typically needed for SWIG runtime support (e.g.
 the SWIG files that implement those functions.
 </p>
 
-<H3><a name="Extending_nn41"></a>34.10.10 Standard library files</H3>
+<H3><a name="Extending_nn41"></a>38.10.10 Standard library files</H3>
 
 
 <p>
@@ -3217,7 +3222,7 @@ The following are the minimum that are usually supported:
 Please copy these and modify for any new language.
 </p>
 
-<H3><a name="Extending_nn42"></a>34.10.11 Examples and test cases</H3>
+<H3><a name="Extending_nn42"></a>38.10.11 User examples</H3>
 
 
 <p>
@@ -3242,11 +3247,256 @@ These can be found, for example for Python, in
 <p>
 By default, all of the examples are built and run when the user types
 <tt>make check</tt>. To ensure that your examples are automatically run
-during this process, see the section on <a href="#n37a">configuration
+during this process, see the section on <a href="#Extending_configuration_files">configuration
 files</a>.
 </p>
 
-<H3><a name="Extending_nn43"></a>34.10.12 Documentation</H3>
+<H3><a name="Extending_test_suite"></a>38.10.12 Test driven development and the test-suite</H3>
+
+
+<p>
+A test driven development approach is central to the improvement and development of SWIG.
+Most modifications to SWIG are accompanied by additional regression tests and checking all 
+tests to ensure that no regressions have been introduced.
+</p>
+
+<p>
+The regression testing is carried out by the SWIG <i>test-suite</i>.
+The test-suite consists of numerous testcase interface files in the <tt>Examples/test-suite</tt> directory
+as well as target language specific runtime tests in the <tt>Examples/test-suite/[lang]</tt> directory. 
+When a testcase is run, it will execute the following steps for each testcase:
+</p>
+
+<ol>
+<li>Execute SWIG passing it the testcase interface file.</li>
+<li>Compile the resulting generated C/C++ code with either the C or C++ compiler into object files.</li>
+<li>Link the object files into a dynamic library (dll/shared object).</li>
+<li>Compile any generated and any runtime test target language code with the target language compiler, if the target language supports compilation. This step thus does not apply to the interpreted languages.</li>
+<li>Execute a runtime test if one exists.</li>
+</ol>
+
+<p>
+For example, the <i>ret_by_value</i> testcase consists of two components.
+The first component is the <tt>Examples/test-suite/ret_by_value.i</tt> interface file.
+The name of the SWIG module <b>must</b> always be the name of the testcase, so the <tt>ret_by_value.i</tt> interface file thus begins with: 
+</p>
+
+<div class="code">
+<pre>
+%module ret_by_value
+</pre>
+</div>
+
+<p>
+The testcase code will then follow the module declaration,
+usually within a <tt>%inline %{ ... %}</tt> section for the majority of the tests.
+</p>
+
+<p>
+The second component is the optional runtime tests.
+Any runtime tests are named using the following convention: <tt>[testcase]_runme.[ext]</tt>, 
+where <tt>[testcase]</tt> is the testcase name and <tt>[ext]</tt> is the normal extension for the target language file.
+In this case, the Java and Python target languages implement a runtime test, so their files are respectively, 
+<tt>Examples/test-suite/java/ret_by_value_runme.java</tt> and 
+<tt>Examples/test-suite/python/ret_by_value_runme.py</tt>.
+</p>
+
+<p>
+The goal of the test-suite is to test as much as possible in a <b>silent</b> manner.
+This way any SWIG or compiler errors or warnings are easily visible.
+Should there be any warnings, changes must be made to either fix them (preferably) or suppress them.
+Compilation or runtime errors result in a testcase failure and will be immediately visible.
+It is therefore essential that the runtime tests are written in a manner that displays nothing to stdout/stderr on success 
+but error/exception out with an error message on stderr on failure.
+</p>
+
+<H4><a name="Extending_running_test_suite"></a>38.10.12.1 Running the test-suite</H4>
+
+
+<p>
+In order for the test-suite to work for a particular target language, the language must be correctly detected
+and configured during the configure stage so that the correct Makefiles are generated.
+Most development occurs on Linux, so usually it is a matter of installing the development packages for the target language
+and simply configuring as outlined <a href="#Extending_starting_out">earlier</a>.
+</p>
+
+<p>
+If when running the test-suite commands that follow, you get a message that the test was skipped, it indicates that the
+configure stage is missing information in order to compile and run everything for that language.
+</p>
+
+<p>
+The test-suite can be run in a number of ways.
+The first group of commands are for running multiple testcases in one run and should be executed in the top level directory.
+To run the entire test-suite (can take a long time):
+</p>
+
+<div class="shell"><pre>
+make -k check-test-suite
+</pre></div>
+
+<p>
+To run the test-suite just for target language [lang], replace [lang] with one of csharp, java, perl5, python, ruby, tcl etc:
+</p>
+
+<div class="shell"><pre>
+make check-[lang]-test-suite
+</pre></div>
+
+<p>
+Note that if a runtime test is available, a message "(with run test)" is displayed when run. For example:
+</p>
+
+<div class="shell"><pre>
+$ make check-python-test-suite
+checking python test-suite
+checking testcase argcargvtest (with run test) under python
+checking testcase python_autodoc under python
+checking testcase python_append (with run test) under python
+checking testcase callback (with run test) under python
+</pre></div>
+
+<p>
+The files generated on a previous run can be deleted using the clean targets, either the whole test-suite or for a particular language:
+</p>
+
+<div class="shell"><pre>
+make clean-test-suite
+make clean-[lang]-test-suite
+</pre></div>
+
+<p>
+The test-suite can be run in a <i>partialcheck</i> mode where just SWIG is executed, that is, the compile, 
+link and running of the testcases is not performed.
+Note that the partialcheck does not require the target language to be correctly configured and detected and unlike the other test-suite make targets, is never skipped. Once again, either all the languages can be executed or just a chosen language:
+</p>
+
+<div class="shell"><pre>
+make partialcheck-test-suite
+make partialcheck-[lang]-test-suite
+</pre></div>
+
+<p>
+If your computer has more than one CPU, you are strongly advised to use parallel make to speed up the execution speed. 
+This can be done with any of the make targets that execute more than one testcase.
+For example, a dual core processor can efficiently use 2 parallel jobs:
+</p>
+
+<div class="shell"><pre>
+make -j2 check-test-suite
+make -j2 check-python-test-suite
+make -j2 partialcheck-java-test-suite
+</pre></div>
+
+<p>
+The second group of commands are for running individual testcases and should be executed in the appropriate
+target language directory, <tt>Examples/test-suite/[lang]</tt>.
+Testcases can contain either C or C++ code and when one is written, a decision must be made as to which of these input
+languages is to be used.
+Replace <tt>[testcase]</tt> in the commands below with the name of the testcase.
+</p>
+
+<p>
+For a C language testcase, add the testcase under the C_TEST_CASES list in <tt>Examples/test-suite/common.mk</tt> and 
+execute individually as:
+</p>
+<div class="shell"><pre>
+make -s [testcase].ctest
+</pre></div>
+
+<p>
+For a C++ language testcase, add the testcase under the CPP_TEST_CASES list in <tt>Examples/test-suite/common.mk</tt> and 
+execute individually as:
+</p>
+<div class="shell"><pre>
+make -s [testcase].cpptest
+</pre></div>
+
+<p>
+A third category of tests are C++ language testcases testing multiple modules (the %import directive).
+These require more than one shared library (dll/shared object) to be built and so are separated out from the normal C++ testcases.
+Add the testcase under the MULTI_CPP_TEST_CASES list in <tt>Examples/test-suite/common.mk</tt> and 
+execute individually as:
+</p>
+<div class="shell"><pre>
+make -s [testcase].multicpptest
+</pre></div>
+
+<p>
+To delete the generated files, execute:
+</p>
+<div class="shell"><pre>
+make -s [testcase].clean
+</pre></div>
+
+<p>
+If you would like to see the exact commands being executed, drop the -s option:
+</p>
+<div class="shell"><pre>
+make [testcase].ctest
+make [testcase].cpptest
+make [testcase].multicpptest
+</pre></div>
+
+<p>
+Some real examples of each:
+</p>
+<div class="shell"><pre>
+make -s ret_by_value.clean
+make -s ret_by_value.ctest
+make -s bools.cpptest
+make -s imports.multicpptest
+</pre></div>
+
+<p>
+Advanced usage of the test-suite facilitates running tools on some of the five stages.
+The make variables <tt>SWIGTOOL</tt> and <tt>RUNTOOL</tt> are used to specify a tool to respectively, invoke SWIG 
+and the execution of the runtime test.
+You are advised to view the <tt>Examples/test-suite/common.mk</tt> file for details but for a short summary,
+the classic usage is to use <a href="http://valgrind.org/">Valgrind</a> for memory checking.
+For example, checking for memory leaks when running the runtime test in the target language interpreter:
+</p>
+
+<div class="shell"><pre>
+make ret_by_value.ctest RUNTOOL="valgrind --leak-check=full"
+</pre></div>
+
+<p>
+This will probably make more sense if you look at the output of the above as it will show the exact commands being executed.
+SWIG can be analyzed for bad memory accesses using:
+</p>
+
+<div class="shell"><pre>
+make ret_by_value.ctest SWIGTOOL="valgrind --tool=memcheck --trace-children=yes"
+</pre></div>
+
+<p>
+A debugger can also be invoked easily on an individual test, for example gdb:
+</p>
+
+<div class="shell"><pre>
+make ret_by_value.ctest RUNTOOL="gdb --args"
+</pre></div>
+
+<p>
+SWIG reads the <tt>SWIG_FEATURES</tt> environment variable to obtain options in addition to those passed on the command line.
+This is particularly useful as the entire test-suite or a particular testcase can be run customized by using additional 
+arguments, for example the -O optimization flag can be added in, as shown below for the bash shell:
+</p>
+
+<div class="shell"><pre>
+env SWIG_FEATURES=-O make check-python-test-suite
+</pre></div>
+
+<p>
+The syntax for setting environment variables varies from one shell to the next, but it also works as shown in the example below, where some typemap debugging is added in:
+</p>
+
+<div class="shell"><pre>
+make ret_by_value.ctest SWIG_FEATURES="-debug-tmsearch"
+</pre></div>
+
+<H3><a name="Extending_nn43"></a>38.10.13 Documentation</H3>
 
 
 <p>
@@ -3278,7 +3528,7 @@ Some topics that you'll want to be sure to address include:
      if available.
 </ul>
 
-<H3><a name="Extending_prerequisites"></a>34.10.13 Prerequisites for adding a new language module to the SWIG distribution</H3>
+<H3><a name="Extending_prerequisites"></a>38.10.14 Prerequisites for adding a new language module to the SWIG distribution</H3>
 
 
 <p>
@@ -3335,7 +3585,7 @@ should be added should there be an area not already covered by
 the existing tests.
 </p>
 
-<H3><a name="Extending_coding_style_guidelines"></a>34.10.14 Coding style guidelines</H3>
+<H3><a name="Extending_coding_style_guidelines"></a>38.10.15 Coding style guidelines</H3>
 
 
 <p>
@@ -3359,13 +3609,34 @@ The generated C/C++ code should also follow this style as close as possible. How
 should be avoided as unlike the SWIG developers, users will never have consistent tab settings.
 </p>
 
-<H2><a name="Extending_nn44"></a>34.11 Typemaps</H2>
+<H2><a name="Extending_debugging_options"></a>38.11 Debugging Options</H2>
 
 
-<H3><a name="Extending_nn45"></a>34.11.1 Proxy classes</H3>
+<p>
+There are various command line options which can aid debugging a SWIG interface as well as debugging the development of a language module. These are as follows:
+</p>
 
+<div class="shell"><pre>
+-debug-classes    - Display information about the classes found in the interface
+-debug-module &lt;n&gt; - Display module parse tree at stages 1-4, &lt;n&gt; is a csv list of stages
+-debug-symtabs    - Display symbol tables information
+-debug-symbols    - Display target language symbols in the symbol tables
+-debug-csymbols   - Display C symbols in the symbol tables
+-debug-lsymbols   - Display target language layer symbols
+-debug-tags       - Display information about the tags found in the interface
+-debug-template   - Display information for debugging templates
+-debug-top &lt;n&gt;    - Display entire parse tree at stages 1-4, &lt;n&gt; is a csv list of stages
+-debug-typedef    - Display information about the types and typedefs in the interface
+-debug-typemap    - Display information for debugging typemaps
+-debug-tmsearch   - Display typemap search debugging information
+-debug-tmused     - Display typemaps used debugging information
+</pre></div>
 
-<H2><a name="Extending_nn46"></a>34.12 Guide to parse tree nodes</H2>
+<p>
+The complete list of command line options for SWIG are available by running <tt>swig -help</tt>.
+</p>
+
+<H2><a name="Extending_nn46"></a>38.12 Guide to parse tree nodes</H2>
 
 
 <p>
@@ -3773,6 +4044,13 @@ extern "X" { ... } declaration.
 </pre>
 </div>
 
+<H2><a name="Extending_further_info"></a>38.13 Further Development Information</H2>
+
+
+<p>
+There is further documentation available on the internals of SWIG, API documentation and debugging information.
+This is shipped with SWIG in the <tt>Doc/Devel</tt> directory.
+</P>
 
 
 

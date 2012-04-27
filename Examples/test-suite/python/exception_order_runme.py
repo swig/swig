@@ -1,5 +1,7 @@
 from exception_order import *
 
+# This test is expected to fail with -builtin option.
+# Throwing builtin classes as exceptions not supported
 
 a = A()
 

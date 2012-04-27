@@ -88,7 +88,7 @@ String *Swig_director_declaration(Node *n) {
 }
 
 
-String *Swig_method_call(String_or_char *name, ParmList *parms) {
+String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
   String *func;
   int i = 0;
   int comma = 0;
@@ -132,7 +132,7 @@ String *Swig_method_call(String_or_char *name, ParmList *parms) {
  *
  */
 
-String *Swig_method_decl(SwigType *returntype, SwigType *decl, const String_or_char *id, List *args, int strip, int values) {
+String *Swig_method_decl(SwigType *returntype, SwigType *decl, const_String_or_char_ptr id, List *args, int strip, int values) {
   String *result;
   List *elements;
   String *element = 0, *nextelement;
@@ -287,6 +287,32 @@ void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
     Printf(f->code, "darg = dynamic_cast<%s *>(arg1);\n", dirname);
     Delete(dirname);
     Delete(dirdecl);
+  }
+}
+
+/* ------------------------------------------------------------
+ * Swig_director_parms_fixup()
+ *
+ * For each parameter in the C++ member function, copy the parameter name
+ * to its "lname"; this ensures that Swig_typemap_attach_parms() will do
+ * the right thing when it sees strings like "$1" in "directorin" typemaps.
+ * ------------------------------------------------------------ */
+
+void Swig_director_parms_fixup(ParmList *parms) {
+  Parm *p;
+  int i;
+  for (i = 0, p = parms; p; p = nextSibling(p), ++i) {
+    String *arg = Getattr(p, "name");
+    String *lname = 0;
+
+    if (!arg && !Equal(Getattr(p, "type"), "void")) {
+      lname = NewStringf("arg%d", i);
+      Setattr(p, "name", lname);
+    } else
+      lname = Copy(arg);
+
+    Setattr(p, "lname", lname);
+    Delete(lname);
   }
 }
 

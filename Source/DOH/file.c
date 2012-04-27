@@ -67,7 +67,7 @@ static int File_read(DOH *fo, void *buffer, int len) {
  * File_write()
  * ----------------------------------------------------------------------------- */
 
-static int File_write(DOH *fo, void *buffer, int len) {
+static int File_write(DOH *fo, const void *buffer, int len) {
   DohFile *f = (DohFile *) ObjData(fo);
   if (f->filep) {
     int ret = (int) fwrite(buffer, 1, len, f->filep);
@@ -230,15 +230,16 @@ static DohObjInfo DohFileType = {
  * NewFile()
  *
  * Create a new file from a given filename and mode.
+ * If newfiles is non-zero, the filename is added to the list of new files.
  * ----------------------------------------------------------------------------- */
 
-DOH *DohNewFile(DOH *fn, const char *mode) {
+DOH *DohNewFile(DOH *filename, const char *mode, DOHList *newfiles) {
   DohFile *f;
   FILE *file;
-  char *filename;
+  char *filen;
 
-  filename = Char(fn);
-  file = fopen(filename, mode);
+  filen = Char(filename);
+  file = fopen(filen, mode);
   if (!file)
     return 0;
 
@@ -247,6 +248,8 @@ DOH *DohNewFile(DOH *fn, const char *mode) {
     fclose(file);
     return 0;
   }
+  if (newfiles)
+    Append(newfiles, filename);
   f->filep = file;
   f->fd = 0;
   f->closeondel = 1;

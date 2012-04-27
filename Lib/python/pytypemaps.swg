@@ -51,7 +51,11 @@
 #define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj)
 
 /* set constant */
-#define SWIG_SetConstant(name, obj)     SWIG_Python_SetConstant(d, name,obj) 
+#if defined(SWIGPYTHON_BUILTIN)
+#define SWIG_SetConstant(name, obj) SWIG_Python_SetConstant(d, d == md ? public_interface : NULL, name,obj) 
+#else
+#define SWIG_SetConstant(name, obj) SWIG_Python_SetConstant(d, name,obj) 
+#endif
 
 /* raise */
 #define SWIG_Raise(obj, type, desc)     SWIG_Python_Raise(obj, type, desc)
@@ -61,7 +65,7 @@
 
 
 /*  ------------------------------------------------------------
- *  Python extra typemaps
+ *  Python extra typemaps / typemap overrides
  * ------------------------------------------------------------ */
 
 /* Get the address of the 'python self' object */
@@ -88,11 +92,10 @@
   if ($result) {
     PyObject *robj = PyObject_CallMethod($result, (char *)"__deref__", NULL);
     if (robj && !PyErr_Occurred()) {
-      PySwigObject_append((PyObject *) SWIG_Python_GetSwigThis($result), 
+      SwigPyObject_append((PyObject *) SWIG_Python_GetSwigThis($result), 
 			  (PyObject *) SWIG_Python_GetSwigThis(robj));
       Py_DECREF(robj);
     }
   }
 }
-
 

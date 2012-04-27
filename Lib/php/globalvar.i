@@ -96,10 +96,20 @@
   MAKE_STD_ZVAL(z_var);
   z_var->type = IS_STRING;
   if ($1) {
-    // varinit char [ANY]
+    /* varinit char [ANY] */
     ZVAL_STRINGL(z_var,(char*)$1, $1_dim0, 1);
   }
   zend_hash_add(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void*)&z_var, sizeof(zval *), NULL);
+}
+
+%typemap(varinit, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
+{
+  void * p = emalloc(sizeof($1));
+  memcpy(p, &$1, sizeof($1));
+  zval * resource;
+  MAKE_STD_ZVAL(resource);
+  ZEND_REGISTER_RESOURCE(resource, p, swig_member_ptr);
+  zend_hash_add(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void*)&resource, sizeof(zval *), NULL);
 }
 
 %typemap(varin) int, unsigned int, short, unsigned short, long, unsigned long, signed char, unsigned char,  enum SWIGTYPE
@@ -213,6 +223,15 @@
   $1 = ($1_ltype)_temp;
 }
 
+%typemap(varin, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
+{
+  zval **z_var;
+
+  zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
+  void * p = (void*)zend_fetch_resource(*z_var TSRMLS_CC, -1, SWIG_MEMBER_PTR, NULL, 1, swig_member_ptr);
+  memcpy(&$1, p, sizeof($1));
+}
+
 %typemap(varout) int,
                  unsigned int,
                  unsigned short,
@@ -296,7 +315,7 @@
 
   zend_hash_find(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void**)&z_var);
   if($1) 
-  	SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor, 0);
+    SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor, 0);
 }
 
 %typemap(varout) char [ANY]
@@ -325,4 +344,12 @@ deliberate error cos this code looks bogus to me
   SWIG_SetPointerZval(*z_var, (void*)$1, $1_descriptor, 0);
 }
 
-
+%typemap(varout, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
+{
+  void * p = emalloc(sizeof($1));
+  memcpy(p, &$1, sizeof($1));
+  zval * resource;
+  MAKE_STD_ZVAL(resource);
+  ZEND_REGISTER_RESOURCE(resource, p, swig_member_ptr);
+  zend_hash_add(&EG(symbol_table), (char*)"$1", sizeof("$1"), (void*)&resource, sizeof(zval *), NULL);
+}

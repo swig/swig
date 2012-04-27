@@ -147,8 +147,7 @@
  */
 
 %define Name ## _mutable(TYPEMAP,EXP...)                  
-%typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP 
- (int res, Char* t = 0, size_t n = 0, int alloc = 0, size_t expansion = 0) {
+%typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) TYPEMAP (int res, Char *t = 0, size_t n = 0, int alloc = 0, size_t expansion = 0) {
 #if #EXP != ""
   expansion += EXP;
 #endif

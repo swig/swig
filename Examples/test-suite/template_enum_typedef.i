@@ -9,7 +9,7 @@
     enum Polarization { UnaryPolarization, BinaryPolarization };
  
     template <Polarization P>
-    struct Interface
+    struct Interface_
     {
     };
  
@@ -25,7 +25,7 @@
       typedef Traits traits;
       static const Polarization P = traits::pmode;
  
-      void get(Interface<P> arg) { };   // Here P is only replace by traits::pmode
+      void get(Interface_<P> arg) { };   // Here P is only replace by traits::pmode
  
     };
   }
@@ -34,6 +34,6 @@
  
 namespace oss
 {
-  %template(Interface_UP) Interface<UnaryPolarization>;
+  %template(Interface_UP) Interface_<UnaryPolarization>;
   %template(Module_UP) Module<etraits>;
 }                                                                 

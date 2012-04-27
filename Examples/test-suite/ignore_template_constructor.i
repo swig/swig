@@ -37,3 +37,9 @@ public:
 #endif
 
 %template(VectFlow) std::vector<Flow>;
+
+%inline %{
+std::vector<Flow> inandout(std::vector<Flow> v) {
+  return v;
+}
+%}

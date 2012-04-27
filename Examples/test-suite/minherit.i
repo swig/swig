@@ -6,7 +6,7 @@
 
 %module(ruby_minherit="1") minherit
 
-#if defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGOCAML) || defined(SWIGOCTAVE) || defined(SWIGPERL)
+#if defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGOCAML) || defined(SWIGOCTAVE) || defined(SWIGPERL) || defined(SWIGGO)
 
 %inline %{
 
@@ -74,4 +74,9 @@ int wget(SpamPtr f) {
 %}
 
 #endif
+
+
+// Was causing runtime error in Ruby
+%include <std_vector.i>
+%template(IntVector) std::vector<int>;
 

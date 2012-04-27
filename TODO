@@ -1,7 +1,5 @@
 SWIG TO-DO
 
-Release: SWIG-1.3.36
-
 -----------------------------------------------------------------------------
 
 ****    = High Priority
@@ -200,8 +198,6 @@ PHP
 
 ****   Look at moving to using the UTL.
 
-***    Director support.
-
 **     When returning wrapped objects via alternate constructors if that
        pointer value already exists "out there" as a resource we should
        use the same resource, we can't have multiple ref-counted resources
@@ -339,6 +335,14 @@ Common Lisp
        typemaps would be written as Lisp programs that generate Lisp
        code.
 
+ALLEGROCL
+-----
+These first three will remove most of the warnings from most of the
+remaining checkpartial tests that are failing.
+****  Throws typemap support
+****  const typemaps
+****  long long typemaps
+
 Ocaml
 -----
 **     I've been working with my camlp4 module and type information
@@ -367,6 +371,3 @@ Documentation
 ***    Perl, Python, Tcl modules.
 
 ***    add section for Perl module support for operator overloading
-
-**     Add section on WAD.
-

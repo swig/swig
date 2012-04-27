@@ -252,7 +252,7 @@ static DOH *List_str(DOH *lo) {
     if ((i + 1) < l->nitems)
       Printf(s, ", ");
   }
-  Printf(s, " ]\n");
+  Printf(s, " ]");
   ObjSetMark(lo, 0);
   return s;
 }
@@ -347,7 +347,7 @@ DohObjInfo DohListType = {
 
 #define MAXLISTITEMS 8
 
-DOH *DohNewList() {
+DOH *DohNewList(void) {
   List *l;
   int i;
   l = (List *) DohMalloc(sizeof(List));

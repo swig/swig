@@ -9,7 +9,7 @@
 
 %include <std_common.i>
 
-%fragment("OctSwigIterator","header") {  
+%fragment("OctSwigIterator","header",fragment="<stddef.h>") {  
 namespace swig {
   struct stop_iteration {
   };
@@ -113,7 +113,7 @@ namespace swig {
 }
 }
 
-%fragment("OctSwigIterator_T","header",fragment="OctSwigIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
+%fragment("OctSwigIterator_T","header",fragment="<stddef.h>",fragment="OctSwigIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
 namespace swig {
   template<typename OutIterator>
   class OctSwigIterator_T :  public OctSwigIterator

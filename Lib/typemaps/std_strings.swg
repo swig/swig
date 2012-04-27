@@ -40,11 +40,7 @@ SWIG_AsPtr_dec(String)(SWIG_Object obj, String **val)
 SWIGINTERNINLINE SWIG_Object
 SWIG_From_dec(String)(const String& s)
 {
-  if (s.size()) {
-    return SWIG_FromCharPtrAndSize(s.data(), s.size());
-  } else {
-    return SWIG_FromCharPtrAndSize(s.c_str(), 0);
-  }
+  return SWIG_FromCharPtrAndSize(s.data(), s.size());
 }
 }
 %enddef

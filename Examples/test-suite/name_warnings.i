@@ -35,10 +35,14 @@ namespace std
   {
     typedef complex None;
     
+#ifndef SWIGPHP // clone() *is* an invalid method name in PHP.
     A* clone(int) { return NULL; }
+#endif
     
     virtual ~A() {}
+#ifndef SWIGGO // func is a keyword in Go.
     virtual int func() = 0;
+#endif
   private:
      typedef complex False;
   };

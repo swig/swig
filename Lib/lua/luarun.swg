@@ -16,6 +16,33 @@ extern "C" {
 #include <assert.h>  /* for a few sanity tests */
 
 /* -----------------------------------------------------------------------------
+ * compatibility defines
+ * ----------------------------------------------------------------------------- */
+
+/* History of Lua C API length functions:  In Lua 5.0 (and before?)
+   there was "lua_strlen".  In Lua 5.1, this was renamed "lua_objlen",
+   but a compatibility define of "lua_strlen" was added.  In Lua 5.2,
+   this function was again renamed, to "lua_rawlen" (to emphasize that
+   it doesn't call the "__len" metamethod), and the compatibility
+   define of lua_strlen was removed.  All SWIG uses have been updated
+   to "lua_rawlen", and we add our own defines of that here for older
+   versions of Lua.  */
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
+# define lua_rawlen lua_strlen
+#elif LUA_VERSION_NUM == 501
+# define lua_rawlen lua_objlen
+#endif
+
+
+/* lua_pushglobaltable is the recommended "future-proof" way to get
+   the global table for Lua 5.2 and later.  Here we define
+   lua_pushglobaltable ourselves for Lua versions before 5.2.  */
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
+# define lua_pushglobaltable(L) lua_pushvalue(L, LUA_GLOBALSINDEX)
+#endif
+
+
+/* -----------------------------------------------------------------------------
  * global swig types
  * ----------------------------------------------------------------------------- */
 /* Constant table */
@@ -76,7 +103,7 @@ typedef struct {
 /* this is the struct for wrapping arbitary packed binary data
 (currently it is only used for member function pointers)
 the data ordering is similar to swig_lua_userdata, but it is currently not possible
-to tell the two structures apart within Swig, other than by looking at the type
+to tell the two structures apart within SWIG, other than by looking at the type
 */
 typedef struct {
   swig_type_info   *type;
@@ -181,12 +208,24 @@ SWIGINTERN int SWIG_Lua_module_get(lua_State* L)
    lua_tostring(L,2));
 */
   /* get the metatable */
-  assert(lua_istable(L,1));  /* just in case */
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
+  assert(lua_isrotable(L,1)); /* just in case */
+#else
+  assert(lua_istable(L,1)); /* default Lua action */
+#endif
   lua_getmetatable(L,1);  /* get the metatable */
-  assert(lua_istable(L,-1));  /* just in case */
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
+  assert(lua_isrotable(L,-1));  /* just in case */
+#else
+  assert(lua_istable(L,-1));
+#endif
   SWIG_Lua_get_table(L,".get");  /* get the .get table */
   lua_remove(L,3);  /* remove metatable */
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
+  if (lua_isrotable(L,-1))
+#else
   if (lua_istable(L,-1))
+#endif
   {
     /* look for the key in the .get table */
     lua_pushvalue(L,2);  /* key */
@@ -201,7 +240,7 @@ SWIGINTERN int SWIG_Lua_module_get(lua_State* L)
   }
   lua_pop(L,1);  /* remove the .get */
   lua_pushnil(L);  /* return a nil */
-    return 1;
+  return 1;
 }
 
 /* the module.set method used for setting linked data */
@@ -213,12 +252,24 @@ SWIGINTERN int SWIG_Lua_module_set(lua_State* L)
   (3) any for the new value
 */
   /* get the metatable */
-  assert(lua_istable(L,1));  /* just in case */
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
+  assert(lua_isrotable(L,1));  /* just in case */
+#else
+  assert(lua_istable(L,1)); /* default Lua action */
+#endif
   lua_getmetatable(L,1);  /* get the metatable */
-  assert(lua_istable(L,-1));  /* just in case */
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
+  assert(lua_isrotable(L,-1));  /* just in case */
+#else
+  assert(lua_istable(L,-1));
+#endif
   SWIG_Lua_get_table(L,".set");  /* get the .set table */
   lua_remove(L,4);  /* remove metatable */
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
+  if (lua_isrotable(L,-1))
+#else
   if (lua_istable(L,-1))
+#endif
   {
     /* look for the key in the .set table */
     lua_pushvalue(L,2);  /* key */
@@ -230,6 +281,11 @@ SWIGINTERN int SWIG_Lua_module_set(lua_State* L)
       lua_call(L,1,0);
       return 0;
     }
+#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) 
+    else {
+      return 0; // Exits stoically if an invalid key is initialized.
+    }
+#endif
   }
   lua_settop(L,3);  /* reset back to start */
   /* we now have the table, key & new value, so just set directly */
@@ -237,7 +293,8 @@ SWIGINTERN int SWIG_Lua_module_set(lua_State* L)
   return 0;
 }
 
-/* registering a module in lua */
+#if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC))
+/* registering a module in lua. Pushes the module table on the stack. */
 SWIGINTERN void  SWIG_Lua_module_begin(lua_State* L,const char* name)
 {
   assert(lua_istable(L,-1));  /* just in case */
@@ -254,8 +311,16 @@ SWIGINTERN void  SWIG_Lua_module_begin(lua_State* L,const char* name)
   lua_newtable(L);    /* the .set table */
   lua_rawset(L,-3);  /* add .set into metatable */
   lua_setmetatable(L,-2);  /* sets meta table in module */
+#ifdef SWIG_LUA_MODULE_GLOBAL
+  /* If requested, install the module directly into the global namespace. */
   lua_rawset(L,-3);        /* add module into parent */
   SWIG_Lua_get_table(L,name);   /* get the table back out */
+#else
+  /* Do not install the module table as global name. The stack top has
+     the module table with the name below. We pop the top and replace
+     the name with it. */
+  lua_replace(L,-2);
+#endif
 }
 
 /* ending the register */
@@ -283,6 +348,7 @@ SWIGINTERN void SWIG_Lua_module_add_variable(lua_State* L,const char* name,lua_C
   }
   lua_pop(L,1);       /* tidy stack (remove meta) */
 }
+#endif
 
 /* adding a function module */
 SWIGINTERN void  SWIG_Lua_module_add_function(lua_State* L,const char* name,lua_CFunction fn)
@@ -412,6 +478,39 @@ SWIGINTERN int  SWIG_Lua_class_destruct(lua_State* L)
   return 0;
 }
 
+/* the class.__tostring method called by the interpreter and print */
+SWIGINTERN int  SWIG_Lua_class_tostring(lua_State* L)
+{
+/*  there should be 1 param passed in
+  (1) userdata (not the metatable) */
+  assert(lua_isuserdata(L,1));  /* just in case */
+  unsigned long userData = (unsigned long)lua_touserdata(L,1); /* get the userdata address for later */
+  lua_getmetatable(L,1);    /* get the meta table */
+  assert(lua_istable(L,-1));  /* just in case */
+  
+  lua_getfield(L, -1, ".type");
+  const char* className = lua_tostring(L, -1);
+  
+  char output[256];
+  sprintf(output, "<%s userdata: %lX>", className, userData);
+  
+  lua_pushstring(L, (const char*)output);
+  return 1;
+}
+
+/* to manually disown some userdata */
+SWIGINTERN int  SWIG_Lua_class_disown(lua_State* L)
+{
+/*  there should be 1 params passed in
+  (1) userdata (not the meta table) */
+  swig_lua_userdata* usr;
+  assert(lua_isuserdata(L,-1));  /* just in case */
+  usr=(swig_lua_userdata*)lua_touserdata(L,-1);  /* get it */
+  
+  usr->own = 0; /* clear our ownership */
+  return 0;
+}
+
 /* gets the swig class registry (or creates it) */
 SWIGINTERN void  SWIG_Lua_get_class_registry(lua_State* L)
 {
@@ -537,11 +636,15 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State* L,swig_lua_class* clss)
   /* add a table called ".fn" */
   lua_pushstring(L,".fn");
   lua_newtable(L);
+  /* add manual disown method */
+  SWIG_Lua_add_function(L,"__disown",SWIG_Lua_class_disown);
   lua_rawset(L,-3);
   /* add accessor fns for using the .get,.set&.fn */
   SWIG_Lua_add_function(L,"__index",SWIG_Lua_class_get);
   SWIG_Lua_add_function(L,"__newindex",SWIG_Lua_class_set);
   SWIG_Lua_add_function(L,"__gc",SWIG_Lua_class_destruct);
+  /* add tostring method for better output */
+  SWIG_Lua_add_function(L,"__tostring",SWIG_Lua_class_tostring);
   /* add it */
   lua_rawset(L,-3);  /* metatable into registry */
   lua_pop(L,1);      /* tidy stack (remove registry) */
@@ -584,7 +687,9 @@ SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State* L,void* ptr,swig_type_info *t
   usr->ptr=ptr;  /* set the ptr */
   usr->type=type;
   usr->own=own;
+#if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
   _SWIG_Lua_AddMetatable(L,type); /* add metatable */
+#endif
 }
 
 /* takes a object from the lua stack & converts it into an object of the correct type
@@ -661,7 +766,7 @@ SWIGRUNTIME const char *SWIG_Lua_typename(lua_State *L, int tp)
   swig_lua_userdata* usr;
   if (lua_isuserdata(L,tp))
   {
-    usr=(swig_lua_userdata*)lua_touserdata(L,1);  /* get data */
+    usr=(swig_lua_userdata*)lua_touserdata(L,tp);  /* get data */
     if (usr && usr->type && usr->type->str)
       return usr->type->str;
     return "userdata (unknown type)";
@@ -697,6 +802,7 @@ SWIGRUNTIME int SWIG_Lua_equal(lua_State* L)
  * global variable support code: class/struct typemap functions
  * ----------------------------------------------------------------------------- */
 
+#if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC))
 /* Install Constants */
 SWIGINTERN void
 SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]) {
@@ -738,6 +844,7 @@ SWIG_Lua_InstallConstants(lua_State* L, swig_lua_const_info constants[]) {
     }
   }
 }
+#endif
 
 /* -----------------------------------------------------------------------------
  * executing lua code from within the wrapper

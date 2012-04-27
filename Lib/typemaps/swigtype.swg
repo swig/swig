@@ -21,15 +21,15 @@
 %typemap(freearg) SWIGTYPE [] "";
 
 
-%typemap(in, noblock=1) SWIGTYPE* const&  (void *argp = 0, int res = 0, $*ltype temp) {
+%typemap(in, noblock=1) SWIGTYPE *const&  (void *argp = 0, int res = 0, $*1_ltype temp) {
   res = SWIG_ConvertPtr($input, &argp, $*descriptor, $disown | %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$*ltype", $symname, $argnum); 
   }
   temp = %reinterpret_cast(argp, $*ltype);
-  $1 = &temp;
+  $1 = %reinterpret_cast(&temp, $1_ltype);
 }
-%typemap(freearg) SWIGTYPE* const& "";
+%typemap(freearg) SWIGTYPE *const& "";
 
 
 /* Reference */
@@ -106,7 +106,7 @@
   %set_output(SWIG_NewPointerObj(%as_voidptr($1), $descriptor, $owner | %newpointer_flags));
 }
 
-%typemap(out, noblock=1) SWIGTYPE* const& {
+%typemap(out, noblock=1) SWIGTYPE *const& {
   %set_output(SWIG_NewPointerObj(%as_voidptr(*$1), $*descriptor, $owner | %newpointer_flags));
 }
 
@@ -124,7 +124,7 @@
 %typemap(memberin) SWIGTYPE [ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) $1[ii] = $input[ii];
+    for (; ii < (size_t)$1_dim0; ++ii) $1[ii] = $input[ii];
   } else {
     %variable_nullref("$type","$name");
   }
@@ -133,7 +133,7 @@
 %typemap(globalin) SWIGTYPE [ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) $1[ii] = $input[ii];
+    for (; ii < (size_t)$1_dim0; ++ii) $1[ii] = $input[ii];
   } else {
     %variable_nullref("$type","$name");
   }
@@ -146,7 +146,7 @@
     %variable_fail(res, "$type", "$name");
   } else if (inp) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) $1[ii] = inp[ii];
+    for (; ii < (size_t)$1_dim0; ++ii) $1[ii] = inp[ii];
   } else {
     %variable_nullref("$type", "$name");
   }
@@ -158,10 +158,10 @@
 %typemap(memberin) SWIGTYPE [ANY][ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) {
+    for (; ii < (size_t)$1_dim0; ++ii) {
       if ($input[ii]) {
 	size_t jj = 0;
-	for (; jj < (size_t)$dim1; ++jj) $1[ii][jj] = $input[ii][jj];
+	for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
       } else {
 	%variable_nullref("$type","$name");
       }
@@ -174,10 +174,10 @@
 %typemap(globalin) SWIGTYPE [ANY][ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) {
+    for (; ii < (size_t)$1_dim0; ++ii) {
       if ($input[ii]) {
 	size_t jj = 0;
-	for (; jj < (size_t)$dim1; ++jj) $1[ii][jj] = $input[ii][jj];
+	for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
       } else {
 	%variable_nullref("$type","$name");
       }
@@ -188,16 +188,16 @@
 }
 
 %typemap(varin) SWIGTYPE [ANY][ANY] {
-  $basetype (*inp)[$dim1] = 0;
+  $basetype (*inp)[$1_dim1] = 0;
   int res = SWIG_ConvertPtr($input, %as_voidptrptr(&inp), $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
   } else if (inp) {
     size_t ii = 0;
-    for (; ii < (size_t)$dim0; ++ii) {
+    for (; ii < (size_t)$1_dim0; ++ii) {
       if (inp[ii]) {
 	size_t jj = 0;
-	for (; jj < (size_t)$dim1; ++jj) $1[ii][jj] = inp[ii][jj];
+	for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = inp[ii][jj];
       } else {
 	%variable_nullref("$type", "$name");
       }
@@ -299,6 +299,12 @@
   $1 = SWIG_CheckState(res);
 }
 
+%typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE *const& {
+  void *vptr = 0;
+  int res = SWIG_ConvertPtr($input, &vptr, $*descriptor, 0);
+  $1 = SWIG_CheckState(res);
+}
+
 %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE & {
   void *vptr = 0;
   int res = SWIG_ConvertPtr($input, &vptr, $descriptor, 0);
@@ -337,16 +343,16 @@
 
 /* directorin */
 
-%typemap(directorin,noblock=1) SWIGTYPE*, SWIGTYPE* const& {
-  $input = SWIG_NewPointerObj(%as_voidptr($1_name), $descriptor, %newpointer_flags);
+%typemap(directorin,noblock=1) SWIGTYPE *, SWIGTYPE *const& {
+  $input = SWIG_NewPointerObj(%as_voidptr($1), $descriptor, %newpointer_flags);
 }
 
 %typemap(directorin,noblock=1) SWIGTYPE {
-  $input = SWIG_NewPointerObj(%as_voidptr(&$1_name), $&descriptor, %newpointer_flags);
+  $input = SWIG_NewPointerObj(%as_voidptr(&$1), $&descriptor, %newpointer_flags);
 }
 
-%typemap(directorin,noblock=1) SWIGTYPE& {
-  $input = SWIG_NewPointerObj(%as_voidptr(&$1_name), $descriptor, %newpointer_flags);
+%typemap(directorin,noblock=1) SWIGTYPE & {
+  $input = SWIG_NewPointerObj(%as_voidptr(&$1), $descriptor, %newpointer_flags);
 }
 
 /* directorout */
@@ -407,7 +413,7 @@
  * --- Constants ---
  * ------------------------------------------------------------ */
 
-%typemap(constcode,noblock=1) SWIGTYPE *, SWIGTYPE &, SWIGTYPE []{ 
+%typemap(constcode,noblock=1) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
   %set_constant("$symname", SWIG_NewPointerObj(%as_voidptr($value),$descriptor,%newpointer_flags));
 }
 
@@ -474,7 +480,7 @@
 /* directorin */
 
 %typemap(directorin,noblock=1) SWIGTYPE (CLASS::*) {
-  $input = SWIG_NewMemberObj(%as_voidptr(&$1_name), sizeof($type), $descriptor);
+  $input = SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor);
 }
 
 /* directorout */
@@ -534,7 +540,7 @@
 /* directorin */
 
 %typemap(directorin,noblock=1) SWIGTYPE ((*)(ANY)) {
-  $input = SWIG_NewFunctionPtrObj((void*)($1_name), $descriptor);
+  $input = SWIG_NewFunctionPtrObj((void*)($1), $descriptor);
 }
 
 /* directorout */
@@ -547,15 +553,11 @@
 }
 #endif
 
+%apply SWIGTYPE * { SWIGTYPE *const }
 
 /* ------------------------------------------------------------
  * --- Special typemaps ---
  * ------------------------------------------------------------ */
-
-/* VARARGS_SENTINEL typemap. Used by the %varargs directive. */
-
-%typemap(in,numinputs=0) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
-
 
 /* DISOWN typemap */
 
@@ -602,3 +604,4 @@
 %typemap(varout,noblock=1) SWIGTYPE INSTANCE {
   %set_varoutput(SWIG_NewInstanceObj(%as_voidptr(&$1), $&1_descriptor, %newinstance_flags));
 }
+

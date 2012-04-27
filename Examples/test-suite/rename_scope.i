@@ -7,7 +7,7 @@
     enum Polarization { UnaryPolarization, BinaryPolarization }; 
  
     template <Polarization P> 
-    struct Interface 
+    struct Interface_
     { 
     };    
   } 
@@ -15,9 +15,9 @@
  
 namespace oss 
 { 
-  // Interface 
-  %template(Interface_UP) Interface<UnaryPolarization>; 
-  %template(Interface_BP) Interface<BinaryPolarization>; 
+  // Interface_ 
+  %template(Interface_UP) Interface_<UnaryPolarization>; 
+  %template(Interface_BP) Interface_<BinaryPolarization>; 
  
 } 
 %inline 
@@ -27,7 +27,7 @@ namespace oss
     namespace interfaces 
     { 
       template <Polarization P> 
-      struct Natural : Interface<P> 
+      struct Natural : Interface_<P> 
       { 
            int test(void) { return 1; }
       };      

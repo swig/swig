@@ -55,6 +55,43 @@ public class csharp_prepost_runme {
           throw new Exception("Expecting CustomInt attribute");
       }
     }
+    // Dates
+    {
+      // pre post typemap attributes example
+      System.DateTime dateIn = new System.DateTime(2011, 4, 13);
+      System.DateTime dateOut = new System.DateTime();
+
+      // Note in calls below, dateIn remains unchanged and dateOut 
+      // is set to a new value by the C++ call
+      csharp_prepostNamespace.Action action = new csharp_prepostNamespace.Action(dateIn, out dateOut);
+      if (dateOut != dateIn)
+        throw new Exception("dates wrong");
+
+      dateIn = new System.DateTime(2012, 7, 14);
+      action.doSomething(dateIn, out dateOut);
+      if (dateOut != dateIn)
+        throw new Exception("dates wrong");
+
+      System.DateTime refDate = new System.DateTime(1999, 12, 31);
+      if (csharp_prepost.ImportantDate != refDate)
+        throw new Exception("dates wrong");
+
+      refDate = new System.DateTime(1999, 12, 31);
+      csharp_prepost.ImportantDate = refDate;
+      System.DateTime importantDate = csharp_prepost.ImportantDate;
+      if (importantDate != refDate)
+        throw new Exception("dates wrong");
+
+      System.DateTime christmasEve = new System.DateTime(2000, 12, 24);
+      csharp_prepost.addYears(ref christmasEve, 10);
+      if (christmasEve != new System.DateTime(2010, 12, 24))
+        throw new Exception("dates wrong");
+
+      Person person = new Person();
+      person.Birthday = christmasEve;
+      if (person.Birthday != christmasEve)
+        throw new Exception("dates wrong");
+    }
   }
   private static void Assert(double d1, double d2) {
     if (d1 != d2)

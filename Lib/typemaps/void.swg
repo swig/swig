@@ -56,7 +56,7 @@
 
 %typemap(directorin,noblock=1) void *, void const*, void *const, void const *const, 
   void const *&, void *const &, void const *const & {
-  $input = SWIG_NewPointerObj(%as_voidptr($1_name), $descriptor, %newpointer_flags);
+  $input = SWIG_NewPointerObj(%as_voidptr($1), $descriptor, %newpointer_flags);
 }
 
 /* directorout */

@@ -9,7 +9,9 @@ extern "C" {
 #endif
 #include "zend.h"
 #include "zend_API.h"
+#include "zend_exceptions.h"
 #include "php.h"
+#include "ext/standard/php_string.h"
 
 #ifdef ZEND_RAW_FENTRY
 /* ZEND_RAW_FENTRY was added somewhere between 5.2.0 and 5.2.3 */
@@ -21,9 +23,18 @@ extern "C" {
 # define SWIG_ZEND_NAMED_FE(ZN, N, A) ZEND_NAMED_FE(ZN, N, A)
 #endif
 
+#ifndef Z_SET_ISREF_P
+/* For PHP < 5.3 */
+# define Z_SET_ISREF_P(z) (z)->is_ref = 1
+#endif
+#ifndef Z_SET_REFCOUNT_P
+/* For PHP < 5.3 */
+# define Z_SET_REFCOUNT_P(z, rc) (z)->refcount = (rc)
+#endif
+
 #define SWIG_LONG_CONSTANT(N, V) zend_register_long_constant((char*)#N, sizeof(#N), V, CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
 #define SWIG_DOUBLE_CONSTANT(N, V) zend_register_double_constant((char*)#N, sizeof(#N), V, CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
-#define SWIG_STRING_CONSTANT(N, V) zend_register_stringl_constant((char*)#N, sizeof(#N), V, strlen(V), CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
+#define SWIG_STRING_CONSTANT(N, V) zend_register_stringl_constant((char*)#N, sizeof(#N), (char*)(V), strlen(V), CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC)
 #define SWIG_CHAR_CONSTANT(N, V) do {\
     static char swig_char = (V);\
     zend_register_stringl_constant((char*)#N, sizeof(#N), &swig_char, 1, CONST_CS | CONST_PERSISTENT, module_number TSRMLS_CC);\
@@ -67,12 +78,12 @@ static int default_error_code = E_ERROR;
   if (!(expr) ) { zend_printf("Contract Assert Failed %s\n",msg ); } else
 
 /* Standard SWIG API */
-#define SWIG_GetModule(clientdata) SWIG_Php4_GetModule()
-#define SWIG_SetModule(clientdata, pointer) SWIG_Php4_SetModule(pointer)
+#define SWIG_GetModule(clientdata) SWIG_Php_GetModule()
+#define SWIG_SetModule(clientdata, pointer) SWIG_Php_SetModule(pointer)
 
 /* used to wrap returned objects in so we know whether they are newobject
    and need freeing, or not */
-typedef struct _swig_object_wrapper {
+typedef struct {
   void * ptr;
   int newobject;
 } swig_object_wrapper;
@@ -81,10 +92,10 @@ typedef struct _swig_object_wrapper {
 static ZEND_RSRC_DTOR_FUNC(SWIG_landfill) { (void)rsrc; }
 
 #define SWIG_SetPointerZval(a,b,c,d) SWIG_ZTS_SetPointerZval(a,b,c,d TSRMLS_CC)
+#define SWIG_as_voidptr(a) const_cast< void * >(static_cast< const void * >(a))
 
 static void
 SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject TSRMLS_DC) {
-  swig_object_wrapper *value=NULL;
   /*
    * First test for Null pointers.  Return those as PHP native NULL
    */
@@ -93,12 +104,56 @@ SWIG_ZTS_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject 
     return;
   }
   if (type->clientdata) {
+    swig_object_wrapper *value;
     if (! (*(int *)(type->clientdata)))
       zend_error(E_ERROR, "Type: %s failed to register with zend",type->name);
     value=(swig_object_wrapper *)emalloc(sizeof(swig_object_wrapper));
     value->ptr=ptr;
-    value->newobject=newobject;
-    ZEND_REGISTER_RESOURCE(z, value, *(int *)(type->clientdata));
+    value->newobject=(newobject & 1);
+    if ((newobject & 2) == 0) {
+      /* Just register the pointer as a resource. */
+      ZEND_REGISTER_RESOURCE(z, value, *(int *)(type->clientdata));
+    } else {
+      /*
+       * Wrap the resource in an object, the resource will be accessible
+       * via the "_cPtr" member. This is currently only used by
+       * directorin typemaps.
+       */
+      zval *resource;
+      zend_class_entry **ce = NULL;
+      const char *type_name = type->name+3; /* +3 so: _p_Foo -> Foo */
+      size_t type_name_len;
+      int result;
+      const char * p;
+
+      /* Namespace__Foo -> Foo */
+      /* FIXME: ugly and goes wrong for classes with __ in their names. */
+      while ((p = strstr(type_name, "__")) != NULL) {
+        type_name = p + 2;
+      }
+      type_name_len = strlen(type_name);
+
+      MAKE_STD_ZVAL(resource);
+      ZEND_REGISTER_RESOURCE(resource, value, *(int *)(type->clientdata));
+      if (SWIG_PREFIX_LEN > 0) {
+        char * classname = (char*)emalloc(SWIG_PREFIX_LEN + type_name_len + 1);
+        strcpy(classname, SWIG_PREFIX);
+        strcpy(classname + SWIG_PREFIX_LEN, type_name);
+        result = zend_lookup_class(classname, SWIG_PREFIX_LEN + type_name_len, &ce TSRMLS_CC);
+        efree(classname);
+      } else {
+        result = zend_lookup_class((char *)type_name, type_name_len, &ce TSRMLS_CC);
+      }
+      if (result != SUCCESS) {
+        /* class does not exist */
+        object_init(z);
+      } else {
+        object_init_ex(z, *ce);
+      }
+      Z_SET_REFCOUNT_P(z, 1);
+      Z_SET_ISREF_P(z);
+      zend_hash_update(HASH_OF(z), (char*)"_cPtr", sizeof("_cPtr"), (void*)&resource, sizeof(zval), NULL);
+    }
     return;
   }
   zend_error(E_ERROR, "Type: %s not registered with zend",type->name);
@@ -150,10 +205,10 @@ SWIG_ZTS_ConvertResourcePtr(zval *z, swig_type_info *ty, int flags TSRMLS_DC) {
   swig_object_wrapper *value;
   void *p;
   int type;
-  char *type_name;
+  const char *type_name;
 
   value = (swig_object_wrapper *) zend_list_find(z->value.lval, &type);
-  if ( flags && SWIG_POINTER_DISOWN ) {
+  if ( flags & SWIG_POINTER_DISOWN ) {
     value->newobject = 0;
   }
   p = value->ptr;
@@ -196,7 +251,7 @@ SWIG_ZTS_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags TSRMLS_DC
 }
 
 static char const_name[] = "swig_runtime_data_type_pointer";
-static swig_module_info *SWIG_Php4_GetModule() {
+static swig_module_info *SWIG_Php_GetModule() {
   zval *pointer;
   swig_module_info *ret = 0;
 
@@ -204,7 +259,7 @@ static swig_module_info *SWIG_Php4_GetModule() {
 
   TSRMLS_FETCH();
 
-  if (zend_get_constant(const_name, sizeof(const_name), pointer TSRMLS_CC)) {
+  if (zend_get_constant(const_name, sizeof(const_name) - 1, pointer TSRMLS_CC)) {
     if (pointer->type == IS_LONG) {
       ret = (swig_module_info *) pointer->value.lval;
     }
@@ -213,7 +268,7 @@ static swig_module_info *SWIG_Php4_GetModule() {
   return ret; 
 }
 
-static void SWIG_Php4_SetModule(swig_module_info *pointer) {
+static void SWIG_Php_SetModule(swig_module_info *pointer) {
   TSRMLS_FETCH();
   REGISTER_MAIN_LONG_CONSTANT(const_name, (long) pointer, 0);
 }

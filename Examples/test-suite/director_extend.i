@@ -18,6 +18,8 @@ namespace Swig {
 #endif
 %}
 
+// Some director implementations do not have Swig::director
+#if !defined(SWIGGO)
 %extend SpObject
 {
   size_t ExceptionMethod()
@@ -29,7 +31,8 @@ namespace Swig {
     size_t size = sizeof(Swig::Director);
     return size;
   }
-};
+}
+#endif
 
 
 %inline %{

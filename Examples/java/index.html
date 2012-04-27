@@ -30,7 +30,7 @@ certain C declarations are turned into constants.
 <h2>Running the examples</h2>
 Please see the <a href="../../Doc/Manual/Windows.html">Windows</a> page in the main manual for information on using the examples on Windows. <p>
 
-On Unix most of the examples work by making the Makefile before executing the program main.java. The Makefile will output the swig generated JNI c code as well as the Java wrapper classes. Additionally the JNI c/c++ code is compiled into the shared object (dynamic link library) which is needed for dynamic linking to the native code. The Makefiles also compile the Java files using javac. 
+On Unix most of the examples work by making the Makefile before executing the program runme.java. The Makefile will output the swig generated JNI c code as well as the Java wrapper classes. Additionally the JNI c/c++ code is compiled into the shared object (dynamic link library) which is needed for dynamic linking to the native code. The Makefiles also compile the Java files using javac. 
 <p>
 Ensure that the dynamic link library file is in the appropriate path before executing the Java program. For example in Unix, libexample.so must be in the LD_LIBRARY_PATH. 
 <p>
@@ -39,7 +39,7 @@ A Unix example:
 <pre>
 $ make
 $ export LD_LIBRARY_PATH=. #ksh 
-$ java main
+$ java runme
 </pre>
 </blockquote>
 <p>

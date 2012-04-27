@@ -92,5 +92,5 @@ sum = ()
 for i in s:
     sum = sum  + (i,)
 
-if sum != (1, 'hello', (1, 2)):
+if (len(sum) != 3 or (not 1 in sum) or (not 'hello' in sum) or (not (1, 2) in sum)) :
     raise RuntimeError

@@ -6,6 +6,10 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) __GMP_HAVE_CONST; /* Ruby, wrong constant name */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) __GMP_HAVE_PROTOTYPES; /* Ruby, wrong constant name */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) __GMP_HAVE_TOKEN_PASTE; /* Ruby, wrong constant name */
+%warnfilter(SWIGWARN_RUBY_WRONG_NAME) __GMP_HAVE_TOKEN_PASTE; /* Ruby, wrong constant name */
+
+#pragma SWIG nowarn=890                                      /* lots of Go name conflicts */
+#pragma SWIG nowarn=206                                      /* Unexpected tokens after #endif directive. */
 
 /* check __cplusplus case */
 %header
@@ -313,6 +317,11 @@ int test(int defined)
 #define MASK(shift, size) (((1 << (size)) - 1) <<(shift))
 #define SOME_MASK_DEF (80*MASK(8, 10))
 
+/* some constants */
+#define BOLTZMANN    (1.380658e-23)
+#define AVOGADRO     (6.0221367e23)
+#define RGAS         (BOLTZMANN*AVOGADRO)
+#define RGASX        (BOLTZMANN*AVOGADRO*BOLTZMANN)
 
 %{
 #define TEUCHOS_TYPE_NAME_TRAITS_BUILTIN_TYPE_SPECIALIZATION(TYPE) \

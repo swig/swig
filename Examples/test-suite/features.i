@@ -162,3 +162,20 @@ namespace Space {
 }
 %}
 
+// Test 8 conversion operators
+%rename(opbool) operator bool;
+%rename(opuint) operator unsigned int;
+
+%exception ConversionOperators::ConversionOperators() "$action /* ConversionOperators::ConversionOperators() */";
+%exception ConversionOperators::~ConversionOperators() "$action /* ConversionOperators::~ConversionOperators() */";
+%exception ConversionOperators::operator bool "$action /* ConversionOperators::operator bool */";
+%exception ConversionOperators::operator unsigned int "$action /* ConversionOperators::unsigned int*/";
+
+%inline %{
+  class ConversionOperators {
+  public:
+    operator bool() { return false; }
+    operator unsigned int() { return 0; }
+  };
+%}
+

@@ -51,28 +51,16 @@ or you can use the %apply directive :
 
 In C# you could then use it like this:
         double answer = modulename.fadd(10.0, 20.0);
-
 */
 
 %define INPUT_TYPEMAP(TYPE, CTYPE, CSTYPE)
-%typemap(ctype) TYPE *INPUT, TYPE &INPUT "CTYPE"
-%typemap(imtype) TYPE *INPUT, TYPE &INPUT "CSTYPE"
-%typemap(cstype) TYPE *INPUT, TYPE &INPUT "CSTYPE"
+%typemap(ctype, out="void *") TYPE *INPUT, TYPE &INPUT "CTYPE"
+%typemap(imtype, out="IntPtr") TYPE *INPUT, TYPE &INPUT "CSTYPE"
+%typemap(cstype, out="$csclassname") TYPE *INPUT, TYPE &INPUT "CSTYPE"
 %typemap(csin) TYPE *INPUT, TYPE &INPUT "$csinput"
-%typemap(csdirectorin) TYPE *INPUT, TYPE &INPUT "$iminput"
-%typemap(csdirectorout) TYPE *INPUT, TYPE &INPUT "$cscall"
 
 %typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
-
-%typemap(directorout) TYPE *INPUT, TYPE &INPUT
-%{ $result = ($1_ltype)&$input; %}
-
-%typemap(directorin) TYPE &INPUT
-%{ $input = (CTYPE *)$1; %}
-
-%typemap(directorin) TYPE *INPUT
-%{ $input = (CTYPE *)$1; %}
 
 %typemap(typecheck) TYPE *INPUT = TYPE;
 %typemap(typecheck) TYPE &INPUT = TYPE;
@@ -143,31 +131,16 @@ value returned in the second output parameter. In C# you would use it like this:
 
     double dptr;
     double fraction = modulename.modf(5, out dptr);
-
 */
 
 %define OUTPUT_TYPEMAP(TYPE, CTYPE, CSTYPE, TYPECHECKPRECEDENCE)
-%typemap(ctype) TYPE *OUTPUT, TYPE &OUTPUT "CTYPE *"
-%typemap(imtype) TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
-%typemap(cstype) TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
+%typemap(ctype, out="void *") TYPE *OUTPUT, TYPE &OUTPUT "CTYPE *"
+%typemap(imtype, out="IntPtr") TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
+%typemap(cstype, out="$csclassname") TYPE *OUTPUT, TYPE &OUTPUT "out CSTYPE"
 %typemap(csin) TYPE *OUTPUT, TYPE &OUTPUT "out $csinput"
-%typemap(csdirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$iminput"
-%typemap(csdirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$cscall"
-
 
 %typemap(in) TYPE *OUTPUT, TYPE &OUTPUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorout,warning="Need to provide TYPE *OUTPUT directorout typemap") TYPE *OUTPUT, TYPE &OUTPUT {
-}
-
-%typemap(directorin) TYPE &OUTPUT
-%{ $input = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *OUTPUT directorin typemap, TYPE array length is unknown") TYPE *OUTPUT
-{
-}
-
 
 %typecheck(SWIG_TYPECHECK_##TYPECHECKPRECEDENCE) TYPE *OUTPUT, TYPE &OUTPUT ""
 %enddef
@@ -188,6 +161,10 @@ OUTPUT_TYPEMAP(float,              float,                float,    FLOAT_PTR)
 OUTPUT_TYPEMAP(double,             double,               double,   DOUBLE_PTR)
 
 #undef OUTPUT_TYPEMAP
+
+%typemap(in) bool *OUTPUT, bool &OUTPUT
+%{ *$input = 0; 
+   $1 = ($1_ltype)$input; %}
 
 
 /*
@@ -246,25 +223,13 @@ of the function return value.
 */
 
 %define INOUT_TYPEMAP(TYPE, CTYPE, CSTYPE, TYPECHECKPRECEDENCE)
-%typemap(ctype) TYPE *INOUT, TYPE &INOUT "CTYPE *"
-%typemap(imtype) TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
-%typemap(cstype) TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
+%typemap(ctype, out="void *") TYPE *INOUT, TYPE &INOUT "CTYPE *"
+%typemap(imtype, out="IntPtr") TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
+%typemap(cstype, out="$csclassname") TYPE *INOUT, TYPE &INOUT "ref CSTYPE"
 %typemap(csin) TYPE *INOUT, TYPE &INOUT "ref $csinput"
-%typemap(csdirectorin) TYPE *INOUT, TYPE &INOUT "$iminput"
-%typemap(csdirectorout) TYPE *INOUT, TYPE &INOUT "$cscall"
 
 %typemap(in) TYPE *INOUT, TYPE &INOUT
 %{ $1 = ($1_ltype)$input; %}
-
-%typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
-}
-
-%typemap(directorin) TYPE &INOUT
-%{ $input = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *INOUT directorin typemap, TYPE array length is unknown") TYPE *INOUT, TYPE &INOUT
-{
-}
 
 %typecheck(SWIG_TYPECHECK_##TYPECHECKPRECEDENCE) TYPE *INOUT, TYPE &INOUT ""
 %enddef

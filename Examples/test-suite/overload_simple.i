@@ -14,6 +14,11 @@
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) fid;
 #endif
 
+#ifdef SWIGGO
+%warnfilter(SWIGWARN_PARSE_KEYWORD) type; // 'type' is a Go keyword, renamed as 'Xtype'
+%rename(Foos) Foo;
+#endif
+
 #ifndef SWIG_NO_OVERLOAD
 %immutable Spam::type;
 
@@ -203,3 +208,9 @@ long long ll(long long ull) { return ull; }
 } 
 
 #endif
+
+%inline %{
+  int int_object(Spam *s) { return 999; }
+  int int_object(int c) { return c; }
+%}
+

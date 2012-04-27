@@ -27,7 +27,7 @@ static int Max_line_size = 128;
  * Create a new wrapper function object.
  * ----------------------------------------------------------------------------- */
 
-Wrapper *NewWrapper() {
+Wrapper *NewWrapper(void) {
   Wrapper *w;
   w = (Wrapper *) malloc(sizeof(Wrapper));
   w->localh = NewHash();
@@ -410,7 +410,7 @@ void Wrapper_print(Wrapper *w, File *f) {
  * present (which may or may not be okay to the caller).
  * ----------------------------------------------------------------------------- */
 
-int Wrapper_add_local(Wrapper *w, const String_or_char *name, const String_or_char *decl) {
+int Wrapper_add_local(Wrapper *w, const_String_or_char_ptr name, const_String_or_char_ptr decl) {
   /* See if the local has already been declared */
   if (Getattr(w->localh, name)) {
     return -1;
@@ -428,7 +428,7 @@ int Wrapper_add_local(Wrapper *w, const String_or_char *name, const String_or_ch
  * to manually construct the 'decl' string before calling.
  * ----------------------------------------------------------------------------- */
 
-int Wrapper_add_localv(Wrapper *w, const String_or_char *name, ...) {
+int Wrapper_add_localv(Wrapper *w, const_String_or_char_ptr name, ...) {
   va_list ap;
   int ret;
   String *decl;
@@ -455,7 +455,7 @@ int Wrapper_add_localv(Wrapper *w, const String_or_char *name, ...) {
  * Check to see if a local name has already been declared
  * ----------------------------------------------------------------------------- */
 
-int Wrapper_check_local(Wrapper *w, const String_or_char *name) {
+int Wrapper_check_local(Wrapper *w, const_String_or_char_ptr name) {
   if (Getattr(w->localh, name)) {
     return 1;
   }
@@ -469,7 +469,7 @@ int Wrapper_check_local(Wrapper *w, const String_or_char *name) {
  * used.  Returns the name that was actually selected.
  * ----------------------------------------------------------------------------- */
 
-char *Wrapper_new_local(Wrapper *w, const String_or_char *name, const String_or_char *decl) {
+char *Wrapper_new_local(Wrapper *w, const_String_or_char_ptr name, const_String_or_char_ptr decl) {
   int i;
   String *nname = NewString(name);
   String *ndecl = NewString(decl);
@@ -500,7 +500,7 @@ char *Wrapper_new_local(Wrapper *w, const String_or_char *name, const String_or_
  * to manually construct the 'decl' string before calling.
  * ----------------------------------------------------------------------------- */
 
-char *Wrapper_new_localv(Wrapper *w, const String_or_char *name, ...) {
+char *Wrapper_new_localv(Wrapper *w, const_String_or_char_ptr name, ...) {
   va_list ap;
   char *ret;
   String *decl;

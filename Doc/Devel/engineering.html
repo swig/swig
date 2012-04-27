@@ -119,22 +119,25 @@ are case-insensitive on Windows so this convention will prevent you from inadver
 creating two files that differ in case-only.
 
 <p>
-Each file should include a short abstract, author information, copyright information, and
+Each file should include a short abstract, license information and
 a SVN revision tag like this:
 
 <blockquote>
 <pre>
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
  *
- * cwrap.c
+ * xxx.c
  *
- * This file defines a variety of wrapping rules for C/C++ handling including
- * the naming of local variables, calling conventions, and so forth.
+ * This file defines ...
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_cwrap_c[] = "$Id$";
+static char cvs[] = "&#36Id&#36";
 
 #include "swig.h"
 

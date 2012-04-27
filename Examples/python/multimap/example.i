@@ -17,7 +17,6 @@ extern int    gcd(int x, int y);
 
 %typemap(in,fragment="t_output_helper") (int argc, char *argv[]) {
   int i;
-  int l;
   if (!PyList_Check($input)) {
     SWIG_exception(SWIG_ValueError, "Expecting a list");
   }
@@ -38,7 +37,10 @@ extern int    gcd(int x, int y);
       SWIG_exception(SWIG_ValueError, "List items must be strings");
     }
 %#if PY_VERSION_HEX >= 0x03000000
+    {
+    int l;
     $2[i] = PyUnicode_AsStringAndSize(s, &l);
+    }
 %#else
     $2[i] = PyString_AsString(s);
 %#endif

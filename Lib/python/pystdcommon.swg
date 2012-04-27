@@ -6,7 +6,7 @@ namespace swig {
   */
   template <class Type> struct traits_from_ptr {
     static PyObject *from(Type *val, int owner = 0) {
-      return SWIG_NewPointerObj(val, type_info<Type>(), owner);
+      return SWIG_InternalNewPointerObj(val, type_info<Type>(), owner);
     }
   };
 
@@ -46,7 +46,7 @@ namespace swig {
   struct traits_asptr {   
     static int asptr(PyObject *obj, Type **val) {
       Type *p;
-      int res = (SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0) == SWIG_OK) ? SWIG_OLDOBJ : 0;
+      int res = SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0);
       if (SWIG_IsOK(res)) {
 	if (val) *val = p;
       }

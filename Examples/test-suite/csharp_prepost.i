@@ -25,7 +25,10 @@
   "$csclassname.getCPtr(d$csinput)"
 
 // post only in csin typemap
-%typemap(csin, post="      int size = $csinput.Count;\n      for (int i=0; i<size; ++i) {\n        $csinput[i] /= 100;\n      }") std::vector<double> &vpost
+%typemap(csin, post="      int size = $csinput.Count;\n"
+                    "      for (int i=0; i<size; ++i) {\n"
+                    "        $csinput[i] /= 100;\n"
+                    "      }") std::vector<double> &vpost
   "$csclassname.getCPtr($csinput)"
 
 %inline %{
@@ -76,7 +79,7 @@ struct PrePost2 {
 
 // Check attributes in the typemaps
 %typemap(cstype, inattributes="[CustomInt]") int val "int"
-%typemap(csin, pre="    int tmp_$csinput = $csinput * 100;") int "tmp_$csinput"
+%typemap(csin, pre="    int tmp_$csinput = $csinput * 100;") int val "tmp_$csinput"
 %typemap(imtype, out="IntPtr/*overridden*/", outattributes="[CustomIntPtr]") CsinAttributes * "HandleRef/*overridden*/"
 
 %inline %{
@@ -185,5 +188,8 @@ void subtractYears(CDate *pDate, int years) {
 
 %inline %{
 CDate ImportantDate = CDate(1999, 12, 31);
+struct Person {
+  CDate Birthday;
+};
 %}
 

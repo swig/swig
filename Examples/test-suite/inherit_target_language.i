@@ -1,4 +1,4 @@
-// Test using a target language specified base class, primarily for Java/C# and possibly other single inheritance languages
+// Test using a target language specified base class, primarily for Java/C#/D and possibly other single inheritance languages
 
 // Note the multiple inheritance warnings don't appear because of the two techniques used in here: typemaps and %ignore
 
@@ -6,18 +6,26 @@
 
 #if defined(SWIGJAVA)
 # define csbase javabase
+#elif defined(SWIGD)
+# define csbase dbase
 #endif
 
 %pragma(csharp) moduleimports=%{
 using System;
 using System.Runtime.InteropServices;
 public class TargetLanguageBase { public virtual void targetLanguageBaseMethod() {} };
+public class TargetLanguageBase2 { public virtual void targetLanguageBase2Method() {} };
 %}
 
 %pragma(java) moduleimports=%{
 class TargetLanguageBase { public void targetLanguageBaseMethod() {} };
+class TargetLanguageBase2 { public void targetLanguageBase2Method() {} };
 %}
 
+%pragma(d) globalproxyimports=%{
+private class TargetLanguageBase { public void targetLanguageBaseMethod() {} };
+private class TargetLanguageBase2 { public void targetLanguageBase2Method() {} };
+%}
 
 %typemap(csbase) SWIGTYPE "TargetLanguageBase"
 
@@ -59,5 +67,13 @@ struct MBase4a { virtual ~MBase4a() {} virtual void g() {} };
 struct MBase4b { virtual ~MBase4b() {} virtual void h() {} };
 struct MultipleDerived3 : MBase3a, MBase3b {};
 struct MultipleDerived4 : MBase4a, MBase4b {};
+%}
+
+// Replace a C++ base, but only classes that do not have a C++ base
+%typemap(csbase, notderived="1") SWIGTYPE "TargetLanguageBase2"
+
+%inline %{
+struct BaseX            { virtual ~BaseX() {}; void basex() {} };
+struct DerivedX : BaseX { void derivedx() {} };
 %}
 

@@ -11,6 +11,13 @@
 
 %newobject *::create();
 
+#ifdef SWIGPHP
+// TODO: Currently we do not track the dynamic type of returned objects
+// in PHP, so we need the factory helper.
+%include factory.i
+%factory(Foo *Bar::create, Bar);
+#endif
+
 %rename(a) Bar::hello;
 %rename(s) Foo::p;
 %rename(q) Foo::r;
@@ -46,6 +53,10 @@ protected:
   virtual std::string used() {
     return pang() + pong();
   }
+
+  virtual std::string cheer() {
+    return pang() + pong();
+  }
 };
 
 class Bar : public Foo 
@@ -54,6 +65,14 @@ public:
   Foo* create() 
   {
     return new Bar();
+  }
+
+  std::string callping() {
+    return ping();
+  }
+
+  std::string callcheer() {
+    return cheer();
   }
 
   std::string pong() {
@@ -68,6 +87,7 @@ protected:
   std::string ping() { 
     return "Bar::ping();"; 
   };
+  using Foo::cheer;
 
   enum Hello {hola, chao};
 

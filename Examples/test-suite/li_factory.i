@@ -6,6 +6,9 @@
 %newobject Geometry::clone;
 %factory(Geometry *Geometry::create, Point, Circle);
 %factory(Geometry *Geometry::clone, Point, Circle);
+#ifdef SWIGPHP
+%rename(clone_) clone;
+#endif
 %factory(Geometry *Point::clone, Point, Circle);
 %factory(Geometry *Circle::clone, Point, Circle);
 

@@ -32,11 +32,11 @@ void emit_return_variable(Node *n, SwigType *rt, Wrapper *f) {
       SwigType *vt = cplus_value_type(rt);
       SwigType *tt = vt ? vt : rt;
       SwigType *lt = SwigType_ltype(tt);
-      String *lstr = SwigType_str(lt, "result");
+      String *lstr = SwigType_str(lt, Swig_cresult_name());
       if (SwigType_ispointer(lt)) {
-        Wrapper_add_localv(f, "result", lstr, "= 0", NULL);
+        Wrapper_add_localv(f, Swig_cresult_name(), lstr, "= 0", NULL);
       } else {
-        Wrapper_add_local(f, "result", lstr);
+        Wrapper_add_local(f, Swig_cresult_name(), lstr);
       }
       if (vt) {
         Delete(vt);
@@ -204,7 +204,7 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
  * emit_num_arguments()
  *
  * Calculate the total number of arguments.   This function is safe for use
- * with multi-valued typemaps which may change the number of arguments in
+ * with multi-argument typemaps which may change the number of arguments in
  * strange ways.
  * ----------------------------------------------------------------------------- */
 
@@ -236,7 +236,7 @@ int emit_num_arguments(ParmList *parms) {
  * emit_num_required()
  *
  * Computes the number of required arguments.  This function is safe for
- * use with multi-valued typemaps and knows how to skip over everything
+ * use with multi-argument typemaps and knows how to skip over everything
  * properly. Note that parameters with default values are counted unless
  * the compact default args option is on.
  * ----------------------------------------------------------------------------- */
@@ -402,7 +402,6 @@ String *emit_action(Node *n) {
   String *tm;
   String *action;
   String *wrap;
-  SwigType *rt;
   ParmList *catchlist = Getattr(n, "catchlist");
 
   /* Look for fragments */
@@ -440,9 +439,6 @@ String *emit_action(Node *n) {
     action = Getattr(n, "wrap:action");
   assert(action != 0);
 
-  /* Get the return type */
-  rt = Getattr(n, "type");
-
   /* Emit contract code (if any) */
   if (Swig_contract_mode_get()) {
     /* Preassertion */
@@ -462,7 +458,15 @@ String *emit_action(Node *n) {
     Printf(eaction, "try {\n");
   }
 
+  String *preaction = Getattr(n, "wrap:preaction");
+  if (preaction)
+    Printv(eaction, preaction, NIL);
+
   Printv(eaction, action, NIL);
+
+  String *postaction = Getattr(n, "wrap:postaction");
+  if (postaction)
+    Printv(eaction, postaction, NIL);
 
   if (catchlist) {
     int unknown_catch = 0;
@@ -470,29 +474,29 @@ String *emit_action(Node *n) {
     for (Parm *ep = catchlist; ep; ep = nextSibling(ep)) {
       String *em = Swig_typemap_lookup("throws", ep, "_e", 0);
       if (em) {
-	SwigType *et = Getattr(ep, "type");
-	SwigType *etr = SwigType_typedef_resolve_all(et);
-	if (SwigType_isreference(etr) || SwigType_ispointer(etr) || SwigType_isarray(etr)) {
-	  Printf(eaction, "catch(%s) {", SwigType_str(et, "_e"));
-	} else if (SwigType_isvarargs(etr)) {
-	  Printf(eaction, "catch(...) {");
-	} else {
-	  Printf(eaction, "catch(%s) {", SwigType_str(et, "&_e"));
-	}
-	Printv(eaction, em, "\n", NIL);
-	Printf(eaction, "}\n");
+        SwigType *et = Getattr(ep, "type");
+        SwigType *etr = SwigType_typedef_resolve_all(et);
+        if (SwigType_isreference(etr) || SwigType_ispointer(etr) || SwigType_isarray(etr)) {
+          Printf(eaction, "catch(%s) {", SwigType_str(et, "_e"));
+        } else if (SwigType_isvarargs(etr)) {
+          Printf(eaction, "catch(...) {");
+        } else {
+          Printf(eaction, "catch(%s) {", SwigType_str(et, "&_e"));
+        }
+        Printv(eaction, em, "\n", NIL);
+        Printf(eaction, "}\n");
       } else {
 	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n), "No 'throws' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep, "type"), 0));
-	unknown_catch = 1;
+        unknown_catch = 1;
       }
     }
     if (unknown_catch) {
-      Printf(eaction, "catch(...) { throw; }\n");
+    Printf(eaction, "catch(...) { throw; }\n");
     }
   }
 
   /* Look for except typemap (Deprecated) */
-  tm = Swig_typemap_lookup("except", n, "result", 0);
+  tm = Swig_typemap_lookup("except", n, Swig_cresult_name(), 0);
   if (tm) {
     Setattr(n, "feature:except", tm);
     tm = 0;

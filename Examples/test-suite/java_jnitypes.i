@@ -5,7 +5,7 @@
 
 %inline %{
 
-jboolean      jnifunc(jboolean in) { return in; }
+jboolean      jnifunc_bool(jboolean in) { return in; } /* some JVM implementations won't allow overloading of the jboolean type with some of the others on the c++ level */
 jchar         jnifunc(jchar in) { return in; }
 jbyte         jnifunc(jbyte in) { return in; }
 jshort        jnifunc(jshort in) { return in; }

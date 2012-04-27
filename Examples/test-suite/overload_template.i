@@ -3,19 +3,13 @@
 #ifdef SWIGLUA
 // lua only has one numeric type, so most of the overloads shadow each other creating warnings
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) foo;
-%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) max;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) maximum;
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) specialization;
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) overload;
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) space::nsoverload;
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) fooT;
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) barT;
 #endif
-
-%{
-#ifdef max
-#undef max
-#endif
-%}
 
 %inline %{
 
@@ -29,15 +23,15 @@ template <class T>
   }
 
 template<class T>
-  T max(T a, T b) { return  (a > b) ? a : b; }
+  T maximum(T a, T b) { return  (a > b) ? a : b; }
 %}                                     
 
 
 %template(foo) foo<int>;
 %template(foo) foo<double>;
 
-%template(max) max<int>;
-%template(max) max<double>;
+%template(maximum) maximum<int>;
+%template(maximum) maximum<double>;
 
 // Mix template overloading with plain function overload
 // Mix 1

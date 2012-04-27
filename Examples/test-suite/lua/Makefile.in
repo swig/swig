@@ -11,18 +11,21 @@ top_builddir = @top_builddir@
 
 # sorry, currently very few test cases work/have been written
 
-#CPP_TEST_CASES += \
-#	cnum 
+CPP_TEST_CASES += \
+	lua_no_module_global \
 
-#C_TEST_CASES += \
-#	file_test \
-#	nondynamic
+
+C_TEST_CASES += \
+	lua_no_module_global \
 
 
 include $(srcdir)/../common.mk
 
 # Overridden variables here
 LIBS       = -L.
+
+# Custom tests - tests with additional commandline options
+lua_no_module_global.%: SWIGOPT += -nomoduleglobal
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -43,9 +46,9 @@ LIBS       = -L.
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.lua appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(LUA) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX);) \
-	fi;
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(LUA) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	fi
 
 # Clean: (does nothing, we dont generate extra lua code)
 %.clean:

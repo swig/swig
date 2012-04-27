@@ -216,7 +216,7 @@ class Allocate:public Dispatcher {
 
 	      if (!most_base_covariant_type) {
 		// Eliminate the derived virtual method.
-		if (virtual_elimination_mode)
+		if (virtual_elimination_mode && !is_member_director(n))
 		  if (both_have_public_access)
 		    if (!is_non_public_base(inclass, b))
 		      if (!Swig_symbol_isoverloaded(n)) {
@@ -386,10 +386,6 @@ class Allocate:public Dispatcher {
     }
 
     Node *c = firstChild(cls);
-    String *kind = Getattr(cls, "kind");
-    int mode = PUBLIC;
-    if (kind && (Strcmp(kind, "class") == 0))
-      mode = PRIVATE;
 
     while (c) {
       if (Getattr(c, "error") || GetFlag(c, "feature:ignore")) {
@@ -457,13 +453,6 @@ class Allocate:public Dispatcher {
 	}
       }
 
-      if (Strcmp(nodeType(c), "access") == 0) {
-	kind = Getattr(c, "kind");
-	if (Strcmp(kind, "public") == 0)
-	  mode = PUBLIC;
-	else
-	  mode = PRIVATE;
-      }
       c = nextSibling(c);
     }
     /* Look for methods in base classes */
@@ -522,7 +511,7 @@ class Allocate:public Dispatcher {
      */
     String *scatchlist = Getattr(n, "feature:catches");
     if (scatchlist) {
-      catchlist = Swig_cparse_parms(scatchlist);
+      catchlist = Swig_cparse_parms(scatchlist, n);
       if (catchlist) {
 	Setattr(n, "catchlist", catchlist);
 	mark_exception_classes(catchlist);
@@ -531,8 +520,7 @@ class Allocate:public Dispatcher {
     }
     ParmList *throws = Getattr(n, "throws");
     if (throws) {
-      /* if there is no an explicit catchlist, 
-         we catch everything in the throwlist */
+      /* if there is no explicit catchlist, we catch everything in the throws list */
       if (!catchlist) {
 	Setattr(n, "catchlist", throws);
       }
@@ -825,8 +813,11 @@ Allocate():
 		  int isconst = 0;
 		  Delete(SwigType_pop(type));
 		  if (SwigType_isconst(type)) {
-		    isconst = 1;
+		    isconst = !Getattr(inclass, "allocate:smartpointermutable");
 		    Setattr(inclass, "allocate:smartpointerconst", "1");
+		  }
+		  else {
+		    Setattr(inclass, "allocate:smartpointermutable", "1");
 		  }
 		  List *methods = smart_pointer_methods(sc, 0, isconst);
 		  Setattr(inclass, "allocate:smartpointer", methods);
@@ -835,7 +826,6 @@ Allocate():
 		  /* Hmmm.  The return value is not a pointer.  If the type is a value
 		     or reference.  We're going to chase it to see if another operator->()
 		     can be found */
-
 		  if ((SwigType_check_decl(type, "")) || (SwigType_check_decl(type, "r."))) {
 		    Node *nn = Swig_symbol_clookup((char *) "operator ->", Getattr(sc, "symtab"));
 		    if (nn) {
@@ -946,6 +936,9 @@ Allocate():
       } else if (cplus_mode == PROTECTED) {
 	Setattr(inclass, "allocate:default_base_destructor", "1");
       }
+    } else {
+      Setattr(inclass, "allocate:has_destructor", "1");
+      Setattr(inclass, "allocate:default_destructor", "1");
     }
     return SWIG_OK;
   }

@@ -23,5 +23,5 @@ namespace std {
 %template(halfi) half_map<std::string,int>;
 
 
-%template() std::pair<swig::PyObject_ptr, swig::PyObject_ptr>;
-%template(pymap) std::map<swig::PyObject_ptr, swig::PyObject_ptr>;
+%template() std::pair<swig::SwigPtr_PyObject, swig::SwigPtr_PyObject>;
+%template(pymap) std::map<swig::SwigPtr_PyObject, swig::SwigPtr_PyObject>;

@@ -19,12 +19,12 @@ char cvsroot_mzscheme_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 Mzscheme Options (available with -mzscheme)\n\
-     -prefix <name>                         - Set a prefix <name> to be prepended to all names\n\
      -declaremodule                         - Create extension that declares a module\n\
-     -noinit                                - Do not emit scheme_initialize, scheme_reload,\n\
-                                              scheme_module_name functions\n\
      -dynamic-load <library>,[library,...]  - Do not link with these libraries, dynamic load\n\
                                               them\n\
+     -noinit                                - Do not emit scheme_initialize, scheme_reload,\n\
+                                              scheme_module_name functions\n\
+     -prefix <name>                         - Set a prefix <name> to be prepended to all names\n\
 ";
 
 static String *fieldnames_tab = 0;
@@ -43,6 +43,7 @@ static String *module = 0;
 static char *mzscheme_path = (char *) "mzscheme";
 static String *init_func_def = 0;
 
+static File *f_begin = 0;
 static File *f_runtime = 0;
 static File *f_header = 0;
 static File *f_wrappers = 0;
@@ -133,11 +134,12 @@ public:
     /* Initialize all of the output files */
     String *outfile = Getattr(n, "outfile");
 
-    f_runtime = NewFile(outfile, "w");
-    if (!f_runtime) {
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
+    f_runtime = NewString("");
     f_init = NewString("");
     f_header = NewString("");
     f_wrappers = NewString("");
@@ -145,13 +147,17 @@ public:
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("wrapper", f_wrappers);
+    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
 
     init_func_def = NewString("");
     Swig_register_filebyname("init", init_func_def);
 
-    Printf(f_runtime, "/* -*- buffer-read-only: t -*- vi: set ro: */\n");
-    Swig_banner(f_runtime);
+    Swig_banner(f_begin);
+
+    Printf(f_runtime, "\n");
+    Printf(f_runtime, "#define SWIGMZSCHEME\n");
+    Printf(f_runtime, "\n");
 
     module = Getattr(n, "name");
 
@@ -190,14 +196,16 @@ public:
     }
 
     /* Close all of the files */
-    Dump(f_header, f_runtime);
-    Dump(f_wrappers, f_runtime);
-    Wrapper_pretty_print(f_init, f_runtime);
+    Dump(f_runtime, f_begin);
+    Dump(f_header, f_begin);
+    Dump(f_wrappers, f_begin);
+    Wrapper_pretty_print(f_init, f_begin);
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_runtime);
+    Close(f_begin);
     Delete(f_runtime);
+    Delete(f_begin);
     return SWIG_OK;
   }
 
@@ -232,7 +240,6 @@ public:
     String *outarg = NewString("");
     String *build = NewString("");
     String *tm;
-    int argout_set = 0;
     int i = 0;
     int numargs;
     int numreq;
@@ -243,7 +250,7 @@ public:
       ParmList *parms = Getattr(n, "parms");
       SwigType *type = Getattr(n, "type");
       String *name = NewString("caller");
-      Setattr(n, "wrap:action", Swig_cresult(type, "result", Swig_cfunction_call(name, parms)));
+      Setattr(n, "wrap:action", Swig_cresult(type, Swig_cresult_name(), Swig_cfunction_call(name, parms)));
     }
     // PATCH DLOPEN
 
@@ -373,7 +380,6 @@ public:
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
-	argout_set = 1;
       } else {
 	p = nextSibling(p);
       }
@@ -397,8 +403,8 @@ public:
     String *actioncode = emit_action(n);
 
     // Now have return value, figure out what to do with it.
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$target", "values[0]");
       Replaceall(tm, "$result", "values[0]");
       if (GetFlag(n, "feature:new"))
@@ -420,15 +426,15 @@ public:
     // Look for any remaining cleanup
 
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-	Replaceall(tm, "$source", "result");
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printv(f->code, tm, "\n", NIL);
       }
     }
     // Free any memory allocated by the function being wrapped..
 
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, "\n", NIL);
     }
     // Wrap things up (in a manner of speaking)
@@ -506,7 +512,7 @@ public:
 
     String *proc_name = NewString("");
     String *tm;
-    String *tm2 = NewString("");;
+    String *tm2 = NewString("");
     String *argnum = NewString("0");
     String *arg = NewString("argv[0]");
     Wrapper *f;
@@ -631,9 +637,10 @@ public:
       // Create variable and assign it a value
 
       Printf(f_header, "static %s = ", SwigType_lstr(type, var_name));
+      bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
       if ((SwigType_type(type) == T_STRING)) {
 	Printf(f_header, "\"%s\";\n", value);
-      } else if (SwigType_type(type) == T_CHAR) {
+      } else if (SwigType_type(type) == T_CHAR && !is_enum_item) {
 	Printf(f_header, "\'%s\';\n", value);
       } else {
 	Printf(f_header, "%s;\n", value);
@@ -643,13 +650,15 @@ public:
 
       {
 	/* Hack alert: will cleanup later -- Dave */
-	Node *n = NewHash();
-	Setattr(n, "name", var_name);
-	Setattr(n, "sym:name", iname);
-	Setattr(n, "type", type);
-	SetFlag(n, "feature:immutable");
-	variableWrapper(n);
-	Delete(n);
+	Node *nn = NewHash();
+	Setfile(nn, Getfile(n));
+	Setline(nn, Getline(n));
+	Setattr(nn, "name", var_name);
+	Setattr(nn, "sym:name", iname);
+	Setattr(nn, "type", type);
+	SetFlag(nn, "feature:immutable");
+	variableWrapper(nn);
+	Delete(nn);
       }
     }
     Delete(proc_name);
@@ -672,7 +681,7 @@ public:
     String *mangled_classname = 0;
     String *real_classname = 0;
     String *scm_structname = NewString("");
-    SwigType *ctype_ptr = NewStringf("p.%s", Getattr(n, "classtype"));
+    SwigType *ctype_ptr = NewStringf("p.%s", getClassType());
 
     SwigType *t = NewStringf("p.%s", Getattr(n, "name"));
     swigtype_ptr = SwigType_manglestr(t);
@@ -758,7 +767,7 @@ public:
       Printv(access_mem, "(ptr)->", name, NIL);
       if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
 	Printv(convert_tab, tab4, "fields[i++] = ", NIL);
-	Printv(convert_tab, "_swig_convert_struct_", swigtype, "((", SwigType_str(ctype_ptr, ""), ")&((ptr)->", name, "));\n", NIL);
+	Printv(convert_tab, "_swig_convert_struct_", swigtype, "((", SwigType_str(ctype_ptr, 0), ")&((ptr)->", name, "));\n", NIL);
       } else if ((tm = Swig_typemap_lookup("varout", n, access_mem, 0))) {
 	Replaceall(tm, "$result", "fields[i++]");
 	Printv(convert_tab, tm, "\n", NIL);

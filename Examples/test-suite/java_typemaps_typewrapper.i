@@ -63,3 +63,10 @@ class Farewell {};
     Greeting* solong(Farewell* f) { return NULL; }
 %}
 
+// Illegal special variable crash
+%typemap(jstype) WasCrashing "$javaclassname /*jstype $*javaclassname*/" // $*javaclassname was causing crash
+%inline %{
+struct WasCrashing {};
+void hoop(WasCrashing was) {}
+%}
+

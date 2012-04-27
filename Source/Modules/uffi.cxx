@@ -17,6 +17,17 @@ char cvsroot_uffi_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
+static const char *usage = (char *) "\
+UFFI Options (available with -uffi)\n\
+     -identifier-converter <type or funcname> - \n\
+                       Specifies the type of conversion to do on C identifiers\n\
+                       to convert them to symbols. There are two built-in\n\
+                       converters: 'null' and 'lispify'. The default is\n\
+                       'null'. If you supply a name other than one of the\n\
+                       built-ins, then a function by that name will be\n\
+                       called to convert identifiers to symbols.\n\
+";
+
 class UFFI:public Language {
 public:
 
@@ -135,11 +146,17 @@ static void add_defined_foreign_type(String *type) {
 }
 
 
-static String *get_ffi_type(SwigType *ty, const String_or_char *name) {
-  Hash *typemap = Swig_typemap_search("ffitype", ty, name, 0);
-  if (typemap) {
-    String *typespec = Getattr(typemap, "code");
-    return NewString(typespec);
+static String *get_ffi_type(Node *n, SwigType *ty, const_String_or_char_ptr name) {
+  Node *node = NewHash();
+  Setattr(node, "type", ty);
+  Setattr(node, "name", name);
+  Setfile(node, Getfile(n));
+  Setline(node, Getline(n));
+  const String *tm = Swig_typemap_lookup("ffitype", node, "", 0);
+  Delete(node);
+
+  if (tm) {
+    return NewString(tm);
   } else {
     SwigType *tr = SwigType_typedef_resolve_all(ty);
     char *type_reduced = Char(tr);
@@ -171,19 +188,22 @@ static String *get_ffi_type(SwigType *ty, const String_or_char *name) {
   return 0;
 }
 
-static String *get_lisp_type(SwigType *ty, const String_or_char *name) {
-  Hash *typemap = Swig_typemap_search("lisptype", ty, name, 0);
-  if (typemap) {
-    String *typespec = Getattr(typemap, "code");
-    return NewString(typespec);
-  } else {
-    return NewString("");
-  }
+static String *get_lisp_type(Node *n, SwigType *ty, const_String_or_char_ptr name) {
+  Node *node = NewHash();
+  Setattr(node, "type", ty);
+  Setattr(node, "name", name);
+  Setfile(node, Getfile(n));
+  Setline(node, Getline(n));
+  const String *tm = Swig_typemap_lookup("lisptype", node, "", 0);
+  Delete(node);
+
+  return tm ? NewString(tm) : NewString("");
 }
 
 void UFFI::main(int argc, char *argv[]) {
   int i;
 
+  Preprocessor_define("SWIGUFFI 1", 0);
   SWIG_library_directory("uffi");
   SWIG_config_file("uffi.swg");
 
@@ -213,14 +233,7 @@ void UFFI::main(int argc, char *argv[]) {
     }
 
     if (!strcmp(argv[i], "-help")) {
-      fprintf(stdout, "UFFI Options (available with -uffi)\n");
-      fprintf(stdout,
-	      "    -identifier-converter <type or funcname>\n"
-	      "\tSpecifies the type of conversion to do on C identifiers to convert\n"
-	      "\tthem to symbols.  There are two built-in converters:  'null' and\n"
-	      "\t 'lispify'.  The default is 'null'.  If you supply a name other\n"
-	      "\tthan one of the built-ins, then a function by that name will be\n"
-	      "\tcalled to convert identifiers to symbols.\n");
+      Printf(stdout, "%s\n", usage);
     }
   }
 }
@@ -233,18 +246,21 @@ int UFFI::top(Node *n) {
   Printf(output_filename, "%s%s.cl", SWIG_output_directory(), module);
 
 
-  f_cl = NewFile(output_filename, "w");
+  f_cl = NewFile(output_filename, "w", SWIG_output_files());
   if (!f_cl) {
     FileErrorDisplay(output_filename);
     SWIG_exit(EXIT_FAILURE);
   }
 
   Swig_register_filebyname("header", f_null);
+  Swig_register_filebyname("begin", f_null);
   Swig_register_filebyname("runtime", f_null);
   Swig_register_filebyname("wrapper", f_cl);
 
-  Printf(f_cl,
-	 ";; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10; package: %s -*-\n;; This is an automatically generated file.  Make changes in\n;; the definition file, not here.\n\n(defpackage :%s\n  (:use :common-lisp :uffi))\n\n(in-package :%s)\n",
+  Swig_banner_target_lang(f_cl, ";;");
+
+  Printf(f_cl, "\n"
+	 ";; -*- Mode: Lisp; Syntax: ANSI-Common-Lisp; Base: 10; package: %s -*-\n\n(defpackage :%s\n  (:use :common-lisp :uffi))\n\n(in-package :%s)\n",
 	 module, module, module);
   Printf(f_cl, "(eval-when (compile load eval)\n  (defparameter *swig-identifier-converter* '%s))\n", identifier_converter);
 
@@ -262,7 +278,8 @@ int UFFI::functionWrapper(Node *n) {
   String *funcname = Getattr(n, "sym:name");
   ParmList *pl = Getattr(n, "parms");
   Parm *p;
-  int argnum = 0, first = 1, varargs = 0;
+  int argnum = 0, first = 1;
+//  int varargs = 0;
 
   //Language::functionWrapper(n);
 
@@ -275,13 +292,13 @@ int UFFI::functionWrapper(Node *n) {
     Printf(f_cl, ":void");
   } else if (any_varargs(pl)) {
     Printf(f_cl, "#| varargs |#");
-    varargs = 1;
+//    varargs = 1;
   } else {
     for (p = pl; p; p = nextSibling(p), argnum++) {
       String *argname = Getattr(p, "name");
       SwigType *argtype = Getattr(p, "type");
-      String *ffitype = get_ffi_type(argtype, argname);
-      String *lisptype = get_lisp_type(argtype, argname);
+      String *ffitype = get_ffi_type(n, argtype, argname);
+      String *lisptype = get_lisp_type(n, argtype, argname);
       int tempargname = 0;
 
       if (!argname) {
@@ -307,7 +324,7 @@ int UFFI::functionWrapper(Node *n) {
 	 //"  :strings-convert t\n"
 	 //"  :call-direct %s\n"
 	 //"  :optimize-for-space t"
-	 ")\n", get_ffi_type(Getattr(n, "type"), "result")
+	 ")\n", get_ffi_type(n, Getattr(n, "type"), Swig_cresult_name())
 	 //,varargs ? "nil"  : "t"
       );
 
@@ -361,7 +378,7 @@ int UFFI::classHandler(Node *n) {
 
 
     /* Printf(stdout, "Converting %s in %s\n", type, name); */
-    lisp_type = get_ffi_type(type, Getattr(c, "sym:name"));
+    lisp_type = get_ffi_type(n, type, Getattr(c, "sym:name"));
 
     Printf(f_cl, "  (#.(%s \"%s\" :type :slot) %s)\n", identifier_converter, Getattr(c, "sym:name"), lisp_type);
 

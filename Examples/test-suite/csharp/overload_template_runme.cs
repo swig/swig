@@ -7,8 +7,8 @@ public class runme
     {
       int f = overload_template.foo();
 
-      f += overload_template.max(3,4);
-      double b = overload_template.max(3.4,5.2);
+      f += overload_template.maximum(3,4);
+      double b = overload_template.maximum(3.4,5.2);
       b++; // warning suppression
 
       // mix 1

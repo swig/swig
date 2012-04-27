@@ -42,12 +42,16 @@ short full_of_exceptions(int num) {
 #if defined(_MSC_VER)
   #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
-void throw_spec_function(int value) throw (int) { throw (int)0; }
+bool throw_spec_function(int value) throw (int) { throw (int)0; }
 #if defined(_MSC_VER)
   #pragma warning(default: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
 #endif
 %}
 
+%catches(int) catches_function(int value);
+%inline %{
+bool catches_function(int value) { throw (int)0; }
+%}
 
 // Check newfree typemap throws attribute
 %newobject makeTestClass;
@@ -142,4 +146,42 @@ try {
         throw MyException("no message");
     }
 %}
+
+// Test %nojavaexception
+%javaexception("MyException") %{
+/* global exception handler */
+try {
+    $action
+} catch (MyException) {
+    jclass excep = jenv->FindClass("java_throws/MyException");
+    if (excep)
+        jenv->ThrowNew(excep, "exception message");
+    return $null;
+}
+%}
+
+%nojavaexception *::noExceptionPlease();
+%nojavaexception NoExceptTest::NoExceptTest();
+
+// Need to handle the checked exception in NoExceptTest.delete()
+%typemap(javafinalize) SWIGTYPE %{
+  protected void finalize() {
+    try {
+      delete();
+    } catch (MyException e) {
+      throw new RuntimeException(e);
+    }
+  }
+%}
+
+%inline %{
+struct NoExceptTest {
+  unsigned int noExceptionPlease() { return 123; }
+  unsigned int exceptionPlease() { return 456; }
+  ~NoExceptTest() {}
+};
+%}
+
+// Turn global exceptions off (for the implicit destructors/constructors)
+%nojavaexception;
 

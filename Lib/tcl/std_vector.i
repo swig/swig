@@ -13,17 +13,17 @@
 // const declarations are used to guess the intent of the function being
 // exported; therefore, the following rationale is applied:
 // 
-//   -- f(std::vector<T>), f(const std::vector<T>&), f(const std::vector<T>*):
+//   -- f(std::vector< T >), f(const std::vector< T >&), f(const std::vector< T >*):
 //      the parameter being read-only, either a Tcl list or a
-//      previously wrapped std::vector<T> can be passed.
-//   -- f(std::vector<T>&), f(std::vector<T>*):
+//      previously wrapped std::vector< T > can be passed.
+//   -- f(std::vector< T >&), f(std::vector< T >*):
 //      the parameter must be modified; therefore, only a wrapped std::vector
 //      can be passed.
-//   -- std::vector<T> f():
+//   -- std::vector< T > f():
 //      the vector is returned by copy; therefore, a Tcl list of T:s 
 //      is returned which is most easily used in other Tcl functions procs
-//   -- std::vector<T>& f(), std::vector<T>* f(), const std::vector<T>& f(),
-//      const std::vector<T>* f():
+//   -- std::vector< T >& f(), std::vector< T >* f(), const std::vector< T >& f(),
+//      const std::vector< T >* f():
 //      the vector is returned by reference; therefore, a wrapped std::vector
 //      is returned
 // ------------------------------------------------------------------------
@@ -82,7 +82,7 @@ int SwigDouble_As(Tcl_Interp *interp, Tcl_Obj *o, Type *val) {
 namespace std {
     
     template<class T> class vector {
-        %typemap(in) vector<T> (std::vector<T> *v) {
+        %typemap(in) vector< T > (std::vector< T > *v) {
             Tcl_Obj **listobjv;
             int       nitems;
             int       i;
@@ -92,11 +92,11 @@ namespace std {
                                 $&1_descriptor, 0) == 0){
                 $1 = *v;
             } else {
-                // It isn't a vector<T> so it should be a list of T's
+                // It isn't a vector< T > so it should be a list of T's
                 if(Tcl_ListObjGetElements(interp, $input, \
                                           &nitems, &listobjv) == TCL_ERROR)
                     return TCL_ERROR;
-                $1 = std::vector<T>();
+                $1 = std::vector< T >();
                 for (i = 0; i < nitems; i++) {
                     if ((SWIG_ConvertPtr(listobjv[i],(void **) &temp,
                                          $descriptor(T *),0)) != 0) {
@@ -110,8 +110,8 @@ namespace std {
             }
         }
 
-        %typemap(in) const vector<T>* (std::vector<T> *v, std::vector<T> w),
-                     const vector<T>& (std::vector<T> *v, std::vector<T> w) {
+        %typemap(in) const vector< T >* (std::vector< T > *v, std::vector< T > w),
+                     const vector< T >& (std::vector< T > *v, std::vector< T > w) {
             Tcl_Obj **listobjv;
             int       nitems;
             int       i;
@@ -121,11 +121,11 @@ namespace std {
                                $&1_descriptor, 0) == 0) {
                 $1 = v;
             } else {
-                // It isn't a vector<T> so it should be a list of T's
+                // It isn't a vector< T > so it should be a list of T's
                 if(Tcl_ListObjGetElements(interp, $input, 
                                           &nitems, &listobjv) == TCL_ERROR)
                     return TCL_ERROR;
-                w = std::vector<T>();
+                w = std::vector< T >();
                 for (i = 0; i < nitems; i++) {
                     if ((SWIG_ConvertPtr(listobjv[i],(void **) &temp,
                                          $descriptor(T *),0)) != 0) {
@@ -140,7 +140,7 @@ namespace std {
             }
         }
 
-        %typemap(out) vector<T> {
+        %typemap(out) vector< T > {
             for (unsigned int i=0; i<$1.size(); i++) {
                 T* ptr = new T((($1_type &)$1)[i]);
                 Tcl_ListObjAppendElement(interp, $result, \
@@ -150,18 +150,18 @@ namespace std {
             }
         }
 
-        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector< T > {
             Tcl_Obj **listobjv;
             int       nitems;
             T*        temp;
-            std::vector<T> *v;
+            std::vector< T > *v;
             
             if(SWIG_ConvertPtr($input, (void **) &v, \
                                $&1_descriptor, 0) == 0) {
                 /* wrapped vector */
                 $1 = 1;
             } else {
-                // It isn't a vector<T> so it should be a list of T's
+                // It isn't a vector< T > so it should be a list of T's
                 if(Tcl_ListObjGetElements(interp, $input, 
                                           &nitems, &listobjv) == TCL_ERROR)
                     $1 = 0;
@@ -178,19 +178,19 @@ namespace std {
             }
         }
         
-        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
-                                          const vector<T>* {
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector< T >&,
+                                          const vector< T >* {
             Tcl_Obj **listobjv;
             int       nitems;
             T*         temp;
-            std::vector<T> *v;
+            std::vector< T > *v;
 
             if(SWIG_ConvertPtr($input, (void **) &v, \
                                $1_descriptor, 0) == 0){
                 /* wrapped vector */
                 $1 = 1;
             } else {
-                // It isn't a vector<T> so it should be a list of T's
+                // It isn't a vector< T > so it should be a list of T's
                 if(Tcl_ListObjGetElements(interp, $input, 
                                           &nitems, &listobjv) == TCL_ERROR)
                     $1 = 0;
@@ -210,7 +210,7 @@ namespace std {
       public:
         vector(unsigned int size = 0);
         vector(unsigned int size, const T& value);
-        vector(const vector<T> &);
+        vector(const vector< T > &);
 
         unsigned int size() const;
         bool empty() const;
@@ -248,9 +248,9 @@ namespace std {
     // specializations for built-ins
 
     %define specialize_std_vector(T, CONVERT_FROM, CONVERT_TO)
-    template<> class vector<T> {
+    template<> class vector< T > {
 
-        %typemap(in) vector<T> (std::vector<T> *v){
+        %typemap(in) vector< T > (std::vector< T > *v){
             Tcl_Obj **listobjv;
             int       nitems;
             int       i;
@@ -260,11 +260,11 @@ namespace std {
                                $&1_descriptor, 0) == 0) {
                 $1 = *v;
             } else {
-                // It isn't a vector<T> so it should be a list of T's
+                // It isn't a vector< T > so it should be a list of T's
                 if(Tcl_ListObjGetElements(interp, $input, 
                                           &nitems, &listobjv) == TCL_ERROR)
                     return TCL_ERROR;					      
-                $1 = std::vector<T>();
+                $1 = std::vector< T >();
                 for (i = 0; i < nitems; i++) {
                     if (CONVERT_FROM(interp, listobjv[i], &temp) == TCL_ERROR)
                         return TCL_ERROR;
@@ -273,8 +273,8 @@ namespace std {
             }
         }
       
-        %typemap(in) const vector<T>& (std::vector<T> *v,std::vector<T> w),
-                     const vector<T>* (std::vector<T> *v,std::vector<T> w) {
+        %typemap(in) const vector< T >& (std::vector< T > *v,std::vector< T > w),
+                     const vector< T >* (std::vector< T > *v,std::vector< T > w) {
             Tcl_Obj **listobjv;
             int       nitems;
             int       i;
@@ -284,11 +284,11 @@ namespace std {
                                $1_descriptor, 0) == 0) {
                 $1 = v;
             } else {
-                // It isn't a vector<T> so it should be a list of T's
+                // It isn't a vector< T > so it should be a list of T's
                 if(Tcl_ListObjGetElements(interp, $input, 
                                           &nitems, &listobjv) == TCL_ERROR)
                     return TCL_ERROR;
-                w = std::vector<T>();
+                w = std::vector< T >();
                 for (i = 0; i < nitems; i++) {
                     if (CONVERT_FROM(interp, listobjv[i], &temp) == TCL_ERROR)
                         return TCL_ERROR;
@@ -298,25 +298,25 @@ namespace std {
             }
         }
 
-        %typemap(out) vector<T> {
+        %typemap(out) vector< T > {
             for (unsigned int i=0; i<$1.size(); i++) {
                 Tcl_ListObjAppendElement(interp, $result, \
                                          CONVERT_TO((($1_type &)$1)[i]));
             }
         }
        
-        %typecheck(SWIG_TYPECHECK_VECTOR) vector<T> {
+        %typecheck(SWIG_TYPECHECK_VECTOR) vector< T > {
             Tcl_Obj **listobjv;
             int       nitems;
             T         temp;
-            std::vector<T> *v;
+            std::vector< T > *v;
 
             if(SWIG_ConvertPtr($input, (void **) &v, \
                                $&1_descriptor, 0) == 0){
                 /* wrapped vector */
                 $1 = 1;
             } else {
-                // It isn't a vector<T> so it should be a list of T's
+                // It isn't a vector< T > so it should be a list of T's
                 if(Tcl_ListObjGetElements(interp, $input, 
                                           &nitems, &listobjv) == TCL_ERROR)
                     $1 = 0;
@@ -331,19 +331,19 @@ namespace std {
             }
         }      
 
-        %typecheck(SWIG_TYPECHECK_VECTOR) const vector<T>&,
-	                                      const vector<T>*{
+        %typecheck(SWIG_TYPECHECK_VECTOR) const vector< T >&,
+	                                      const vector< T >*{
             Tcl_Obj **listobjv;
             int       nitems;
             T         temp;
-            std::vector<T> *v;
+            std::vector< T > *v;
 
             if(SWIG_ConvertPtr($input, (void **) &v, \
                                $1_descriptor, 0) == 0){
                 /* wrapped vector */
                 $1 = 1;
             } else {
-                // It isn't a vector<T> so it should be a list of T's
+                // It isn't a vector< T > so it should be a list of T's
                 if(Tcl_ListObjGetElements(interp, $input, 
                                           &nitems, &listobjv) == TCL_ERROR)
                     $1 = 0;
@@ -361,7 +361,7 @@ namespace std {
       public:
         vector(unsigned int size = 0);
         vector(unsigned int size, const T& value);
-        vector(const vector<T> &);
+        vector(const vector< T > &);
 
         unsigned int size() const;
         bool empty() const;

@@ -21,6 +21,8 @@
 #include <iostream>
 #include <map>
 
+# define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
+
 namespace Swig {
   /* memory handler */
   struct GCItem 
@@ -173,7 +175,7 @@ namespace Swig {
       try {
 	throw;
       } catch (DirectorException& e) {
-	std::cerr << "Swig Director exception caught:" << std::endl
+	std::cerr << "SWIG Director exception caught:" << std::endl
 		  << e.getMessage() << std::endl;
       } catch (std::exception& e) {
 	std::cerr << "std::exception caught: "<< e.what() << std::endl;
@@ -209,12 +211,12 @@ namespace Swig {
   class DirectorTypeMismatchException : public Swig::DirectorException {
   public:
     DirectorTypeMismatchException(VALUE error, const char *msg="")
-      : Swig::DirectorException(error, "Swig director type mismatch", msg) 
+      : Swig::DirectorException(error, "SWIG director type mismatch", msg) 
     {
     }
 
     DirectorTypeMismatchException(const char *msg="")
-      : Swig::DirectorException(rb_eTypeError, "Swig director type mismatch", msg) 
+      : Swig::DirectorException(rb_eTypeError, "SWIG director type mismatch", msg) 
     {
     }
 
@@ -235,7 +237,7 @@ namespace Swig {
     }
 
     DirectorMethodException(const char* msg = "") 
-      : Swig::DirectorException(rb_eRuntimeError, "Swig director method error.", msg) {
+      : Swig::DirectorException(rb_eRuntimeError, "SWIG director method error.", msg) {
     }
     
     static void raise(VALUE error)
@@ -249,7 +251,7 @@ namespace Swig {
   {
   public:
     DirectorPureVirtualException(const char* msg = "") 
-      : DirectorException(rb_eRuntimeError, "Swig director pure virtual method called", msg)
+      : DirectorException(rb_eRuntimeError, "SWIG director pure virtual method called", msg)
     { 
     }
 
@@ -325,8 +327,8 @@ namespace Swig {
 
   /* ownership management */
   private:
-    typedef std::map<void*, GCItem_var> ownership_map;
-    mutable ownership_map owner;
+    typedef std::map<void*, GCItem_var> swig_ownership_map;
+    mutable swig_ownership_map swig_owner;
 #ifdef __PTHREAD__
     static pthread_mutex_t swig_mutex_own;
 #endif
@@ -337,7 +339,7 @@ namespace Swig {
     {
       if (vptr) {
 	SWIG_GUARD(swig_mutex_own);
-	owner[vptr] = new GCArray_T<Type>(vptr);
+	swig_owner[vptr] = new GCArray_T<Type>(vptr);
       }
     }
     
@@ -346,7 +348,7 @@ namespace Swig {
     {
       if (vptr) {	
 	SWIG_GUARD(swig_mutex_own);
-	owner[vptr] = new GCItem_T<Type>(vptr);
+	swig_owner[vptr] = new GCItem_T<Type>(vptr);
       }
     }
 
@@ -354,7 +356,7 @@ namespace Swig {
     {
       if (vptr && own) {
 	SWIG_GUARD(swig_mutex_own);
-	owner[vptr] = new GCItem_Object(own);
+	swig_owner[vptr] = new GCItem_Object(own);
       }
     }
     
@@ -363,10 +365,10 @@ namespace Swig {
       ruby_owntype own = 0;
       if (vptr) {
 	SWIG_GUARD(swig_mutex_own);
-	ownership_map::iterator iter = owner.find(vptr);
-	if (iter != owner.end()) {
+	swig_ownership_map::iterator iter = swig_owner.find(vptr);
+	if (iter != swig_owner.end()) {
 	  own = iter->second->get_own();
-	  owner.erase(iter);
+	  swig_owner.erase(iter);
 	}
       }
       return own;

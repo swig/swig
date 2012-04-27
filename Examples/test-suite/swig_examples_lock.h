@@ -1,9 +1,9 @@
 
-namespace SwigExamples {
-
 # if defined(_WIN32) || defined(__WIN32__)
 
 #include <windows.h>
+
+namespace SwigExamples {
 
 class CriticalSection {
 public:
@@ -27,9 +27,18 @@ private:
   CriticalSection &critical_section;
 };
 
+}
+
 #else
 
 #include <pthread.h>
+#ifndef PTHREAD_MUTEX_RECURSIVE_NP
+  // For Cygwin and possibly other OSs: _NP is "non-portable"
+  #define PTHREAD_MUTEX_RECURSIVE_NP PTHREAD_MUTEX_RECURSIVE
+#endif
+
+namespace SwigExamples {
+
 class CriticalSection {
 public:
   CriticalSection() {
@@ -55,7 +64,7 @@ private:
   CriticalSection &critical_section;
 };
 
-#endif
-
 }
+
+#endif
 

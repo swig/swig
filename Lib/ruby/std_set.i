@@ -2,7 +2,7 @@
   Sets
 */
 
-%fragment("StdSetTraits","header",fragment="StdSequenceTraits")
+%fragment("StdSetTraits","header",fragment="<stddef.h>",fragment="StdSequenceTraits")
 %{
   namespace swig {
     template <class RubySeq, class T> 
@@ -170,10 +170,9 @@
   %typemap(out,noblock=1,fragment="RubyPairBoolOutputIterator")
   std::pair<iterator, bool> {
     $result = rb_ary_new2(2);
-    RARRAY_PTR($result)[0] = SWIG_NewPointerObj(swig::make_set_nonconst_iterator(%static_cast($1,$type &).first),
-						swig::Iterator::descriptor(),SWIG_POINTER_OWN);    
-    RARRAY_PTR($result)[1] = SWIG_From(bool)(%static_cast($1,const $type &).second);
-    RARRAY_LEN($result) = 2;
+    rb_ary_push($result, SWIG_NewPointerObj(swig::make_set_nonconst_iterator(%static_cast($1,$type &).first),
+                                            swig::Iterator::descriptor(),SWIG_POINTER_OWN));
+    rb_ary_push($result, SWIG_From(bool)(%static_cast($1,const $type &).second));
    }
 
   %extend  {

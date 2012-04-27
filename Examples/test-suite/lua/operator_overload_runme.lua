@@ -8,7 +8,9 @@ for k,v in pairs(operator_overload) do _G[k]=v end -- move to global
 Op_sanity_check()
 
 -- catching undefined variables
-setmetatable(getfenv(),{__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+local env = _ENV -- Lua 5.2
+if not env then env = getfenv () end -- Lua 5.1
+setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
 
 -- test routine:
 a=Op()

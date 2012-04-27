@@ -358,13 +358,74 @@ public class runme {
       i.MemberInstance = Instances.memberinstance3;
       if (i.MemberInstance != Instances.memberinstance3) throw new Exception("MemberInstance 1 failed");
     }
+    // ignore enum item tests start
+    {
+      if (enum_thorough_typesafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_zero).swigValue != 0) throw new Exception("ignoreATest 0 failed");
+      if (enum_thorough_typesafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_three).swigValue != 3) throw new Exception("ignoreATest 3 failed");
+      if (enum_thorough_typesafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_ten).swigValue != 10) throw new Exception("ignoreATest 10 failed");
+      if (enum_thorough_typesafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_eleven).swigValue != 11) throw new Exception("ignoreATest 11 failed");
+      if (enum_thorough_typesafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_thirteen).swigValue != 13) throw new Exception("ignoreATest 13 failed");
+      if (enum_thorough_typesafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_fourteen).swigValue != 14) throw new Exception("ignoreATest 14 failed");
+      if (enum_thorough_typesafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_twenty).swigValue != 20) throw new Exception("ignoreATest 20 failed");
+      if (enum_thorough_typesafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_thirty).swigValue != 30) throw new Exception("ignoreATest 30 failed");
+      if (enum_thorough_typesafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_thirty_two).swigValue != 32) throw new Exception("ignoreATest 32 failed");
+      if (enum_thorough_typesafe.ignoreATest(IgnoreTest.IgnoreA.ignoreA_thirty_three).swigValue != 33) throw new Exception("ignoreATest 33 failed");
+    }                                                         
+    {                                                         
+      if (enum_thorough_typesafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_eleven).swigValue != 11) throw new Exception("ignoreBTest 11 failed");
+      if (enum_thorough_typesafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_twelve).swigValue != 12) throw new Exception("ignoreBTest 12 failed");
+      if (enum_thorough_typesafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_thirty_one).swigValue != 31) throw new Exception("ignoreBTest 31 failed");
+      if (enum_thorough_typesafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_thirty_two).swigValue != 32) throw new Exception("ignoreBTest 32 failed");
+      if (enum_thorough_typesafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_forty_one).swigValue != 41) throw new Exception("ignoreBTest 41 failed");
+      if (enum_thorough_typesafe.ignoreBTest(IgnoreTest.IgnoreB.ignoreB_forty_two).swigValue != 42) throw new Exception("ignoreBTest 42 failed");
+    }                                                         
+    {                                                         
+      if (enum_thorough_typesafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_ten).swigValue != 10) throw new Exception("ignoreCTest 10 failed");
+      if (enum_thorough_typesafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_twelve).swigValue != 12) throw new Exception("ignoreCTest 12 failed");
+      if (enum_thorough_typesafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_thirty).swigValue != 30) throw new Exception("ignoreCTest 30 failed");
+      if (enum_thorough_typesafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_thirty_two).swigValue != 32) throw new Exception("ignoreCTest 32 failed");
+      if (enum_thorough_typesafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_forty).swigValue != 40) throw new Exception("ignoreCTest 40 failed");
+      if (enum_thorough_typesafe.ignoreCTest(IgnoreTest.IgnoreC.ignoreC_forty_two).swigValue != 42) throw new Exception("ignoreCTest 42 failed");
+    }                                                         
+    {                                                         
+      if (enum_thorough_typesafe.ignoreDTest(IgnoreTest.IgnoreD.ignoreD_twenty_one).swigValue != 21) throw new Exception("ignoreDTest 21 failed");
+      if (enum_thorough_typesafe.ignoreDTest(IgnoreTest.IgnoreD.ignoreD_twenty_two).swigValue != 22) throw new Exception("ignoreDTest 22 failed");
+    }                                                         
+    {                                                         
+      if (enum_thorough_typesafe.ignoreETest(IgnoreTest.IgnoreE.ignoreE_zero).swigValue != 0) throw new Exception("ignoreETest 0 failed");
+      if (enum_thorough_typesafe.ignoreETest(IgnoreTest.IgnoreE.ignoreE_twenty_one).swigValue != 21) throw new Exception("ignoreETest 21 failed");
+      if (enum_thorough_typesafe.ignoreETest(IgnoreTest.IgnoreE.ignoreE_twenty_two).swigValue != 22) throw new Exception("ignoreETest 22 failed");
+    }
+    // ignore enum item tests end
     {
       if (enum_thorough_typesafe.repeatTest(repeat.one).swigValue != 1) throw new Exception("repeatTest 1 failed");
       if (enum_thorough_typesafe.repeatTest(repeat.initial).swigValue != 1) throw new Exception("repeatTest 2 failed");
       if (enum_thorough_typesafe.repeatTest(repeat.two).swigValue != 2) throw new Exception("repeatTest 3 failed");
       if (enum_thorough_typesafe.repeatTest(repeat.three).swigValue != 3) throw new Exception("repeatTest 4 failed");
-      if (enum_thorough_typesafe.repeatTest(repeat.last).swigValue != 3) throw new Exception("repeatTest 5 failed");
+      if (enum_thorough_typesafe.repeatTest(repeat.llast).swigValue != 3) throw new Exception("repeatTest 5 failed");
       if (enum_thorough_typesafe.repeatTest(repeat.end).swigValue != 3) throw new Exception("repeatTest 6 failed");
+    }
+    // different types
+    {
+      if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typeint).swigValue != 10) throw new Exception("differentTypes 1 failed");
+      if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typebooltrue).swigValue != 1) throw new Exception("differentTypes 2 failed");
+      if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typebooltwo).swigValue != 2) throw new Exception("differentTypes 3 failed");
+      if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typeboolfalse).swigValue != 0) throw new Exception("differentTypes 4 failed");
+      if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typechar).swigValue != (int)'C') throw new Exception("differentTypes 5 failed");
+      if (enum_thorough_typesafe.differentTypesTest(DifferentTypes.typedefaultint).swigValue != (int)'D') throw new Exception("differentTypes 6 failed");
+
+      int global_enum = enum_thorough_typesafe.global_typeint;
+      if (enum_thorough_typesafe.globalDifferentTypesTest(global_enum) != 10) throw new Exception("global differentTypes 1 failed");
+      global_enum = enum_thorough_typesafe.global_typeboolfalse;
+      if (enum_thorough_typesafe.globalDifferentTypesTest(global_enum) != 0) throw new Exception("global differentTypes 2 failed");
+      global_enum = enum_thorough_typesafe.global_typebooltrue;
+      if (enum_thorough_typesafe.globalDifferentTypesTest(global_enum) != 1) throw new Exception("global differentTypes 3 failed");
+      global_enum = enum_thorough_typesafe.global_typebooltwo;
+      if (enum_thorough_typesafe.globalDifferentTypesTest(global_enum) != 2) throw new Exception("global differentTypes 4 failed");
+      global_enum = enum_thorough_typesafe.global_typechar;
+      if (enum_thorough_typesafe.globalDifferentTypesTest(global_enum) != 'C') throw new Exception("global differentTypes 5 failed");
+      global_enum = enum_thorough_typesafe.global_typedefaultint;
+      if (enum_thorough_typesafe.globalDifferentTypesTest(global_enum) != 'D') throw new Exception("global differentTypes 6 failed");
     }
   }
 }

@@ -9,6 +9,7 @@ funcptr
 funcptr2
 functor
 operator
+module_load
 pointer
 reference
 simple

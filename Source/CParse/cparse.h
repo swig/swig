@@ -11,8 +11,6 @@
  * SWIG parser module.
  * ----------------------------------------------------------------------------- */
 
-/* $Id$ */
-
 #ifndef SWIG_CPARSE_H_
 #define SWIG_CPARSE_H_
 
@@ -38,16 +36,18 @@ extern "C" {
   extern void scanner_ignore_typedef(void);
   extern void scanner_last_id(int);
   extern void scanner_clear_rename(void);
-  extern void scanner_set_location(String_or_char *, int line);
+  extern void scanner_set_location(String *file, int line);
+  extern void scanner_set_main_input_file(String *file);
+  extern String *scanner_get_main_input_file();
   extern void Swig_cparse_follow_locators(int);
   extern void start_inline(char *, int);
   extern String *scanner_ccode;
-  extern int yylex();
+  extern int yylex(void);
 
 /* parser.y */
   extern SwigType *Swig_cparse_type(String *);
   extern Node *Swig_cparse(File *);
-  extern Hash *Swig_cparse_features();
+  extern Hash *Swig_cparse_features(void);
   extern void SWIG_cparse_set_compact_default_args(int defargs);
   extern int SWIG_cparse_template_reduce(int treduce);
 
@@ -55,7 +55,7 @@ extern "C" {
   extern void Swig_cparse_replace_descriptor(String *s);
   extern void cparse_normalize_void(Node *);
   extern Parm *Swig_cparse_parm(String *s);
-  extern ParmList *Swig_cparse_parms(String *s);
+  extern ParmList *Swig_cparse_parms(String *s, Node *file_line_node);
 
 
 /* templ.c */

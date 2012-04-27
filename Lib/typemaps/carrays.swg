@@ -72,7 +72,7 @@ typedef TYPE NAME;
 %}
 
 
-typedef struct NAME {
+typedef struct {
 } NAME;
 
 %extend NAME {

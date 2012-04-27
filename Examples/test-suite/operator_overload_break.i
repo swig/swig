@@ -1,6 +1,6 @@
 %module operator_overload_break
 
-#if defined(SWIGPYTHON)
+#if defined(SWIGPYTHON) || defined(SWIGD)
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSPLUS);
 #endif
 
@@ -11,7 +11,6 @@
 %rename(PlusPlusPrefix) operator++();
 %rename(PlusPlusPostfix) operator++(int);
 #endif
-
 
 %{
 #include <iostream>
@@ -56,7 +55,7 @@ public:
 
     Op& operator++() {k++; return *this;}
 
-    void Print() {std::cerr << k << std::endl;}
+    void PrintK() {std::cerr << k << std::endl;}
 
     int k;
 };

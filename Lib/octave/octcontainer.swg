@@ -4,8 +4,7 @@
  * Octave cell <-> C++ container wrapper
  *
  * This wrapper, and its iterator, allows a general use (and reuse) of
- * the the mapping between C++ and Octave, thanks to the C++
- * templates.
+ * the mapping between C++ and Octave, thanks to the C++ templates.
  *
  * Of course, it needs the C++ compiler to support templates, but
  * since we will use this wrapper with the STL containers, that should
@@ -64,7 +63,7 @@ namespace swig {
 }
 }
 
-%fragment("OctSequence_Base","header")
+%fragment("OctSequence_Base","header",fragment="<stddef.h>")
 {
 %#include <functional>
 
@@ -201,7 +200,7 @@ namespace swig
     
     operator T () const
     {
-      //      swig::PyObject_var item = OctSequence_GetItem(_seq, _index);
+      //      swig::SwigVar_PyObject item = OctSequence_GetItem(_seq, _index);
       octave_value item; // * todo
       try {
 	return swig::as<T>(item, true);
@@ -407,7 +406,7 @@ namespace swig
     {
       int s = size();
       for (int i = 0; i < s; ++i) {
-	//	swig::PyObject_var item = OctSequence_GetItem(_seq, i);
+	//	swig::SwigVar_PyObject item = OctSequence_GetItem(_seq, i);
 	octave_value item; // * todo
 	if (!swig::check<value_type>(item)) {
 	  if (set_err) {
@@ -450,7 +449,7 @@ namespace swig
     $result = Cell(tmpc);
   }
 
-  %fragment("PyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="OctSequence_Cont") {}
+  %fragment("SwigPyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="OctSequence_Cont") {}
 
   %typemap(out,fragment="OctPairBoolOutputIterator")
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
@@ -510,11 +509,11 @@ namespace swig
       return x;
     }
 
-    value_type __paren(difference_type i) throw (std::out_of_range) {
+    value_type __paren__(difference_type i) throw (std::out_of_range) {
       return *(swig::cgetpos(self, i));
     }
 
-    void __paren_asgn(difference_type i, value_type x) throw (std::out_of_range) {
+    void __paren_asgn__(difference_type i, value_type x) throw (std::out_of_range) {
       *(swig::getpos(self,i)) = x;
     }
 

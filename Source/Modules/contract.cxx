@@ -50,6 +50,7 @@ public:
   int extendDirective(Node *n);
   int importDirective(Node *n);
   int includeDirective(Node *n);
+  int namespaceDeclaration(Node *n);
   int classDeclaration(Node *n);
   virtual int top(Node *n);
 };
@@ -212,7 +213,7 @@ String *Contracts::make_expression(String *s, Node *n) {
   for (ei = First(list_assert); ei.item; ei = Next(ei)) {
     expr = ei.item;
     if (Len(expr)) {
-      Replaceid(expr, Getattr(n, "name"), "result");
+      Replaceid(expr, Getattr(n, "name"), Swig_cresult_name());
       if (Len(str_assert))
 	Append(str_assert, "&&");
       Printf(str_assert, "(%s)", expr);
@@ -324,13 +325,20 @@ int Contracts::constructorDeclaration(Node *n) {
 int Contracts::externDeclaration(Node *n) {
   return emit_children(n);
 }
+
 int Contracts::extendDirective(Node *n) {
   return emit_children(n);
 }
+
 int Contracts::importDirective(Node *n) {
   return emit_children(n);
 }
+
 int Contracts::includeDirective(Node *n) {
+  return emit_children(n);
+}
+
+int Contracts::namespaceDeclaration(Node *n) {
   return emit_children(n);
 }
 
