@@ -306,7 +306,13 @@ interface building.   However, they are used internally to implement a number of
 SWIG directives and are provided to make SWIG more compatible with C99 code.
 </p>
 
-<H2><a name="Preprocessor_nn8"></a>7.7 Preprocessing and %{ ... %} &amp; " ... " delimiters</H2>
+<H2><a name="Preprocessor_delimiters"></a>7.7 Preprocessing and delimiters</H2>
+
+<p>
+The preprocessor handles { }, " " and %{ %} delimiters differently.
+</p>
+
+<H3><a name="Preprocessor_nn8"></a>7.7 Preprocessing and %{ ... %} &amp; " ... " delimiters</H3>
 
 
 <p>
@@ -331,7 +337,7 @@ the contents of the <tt>%{ ... %}</tt> block are copied without
 modification to the output (including all preprocessor directives).
 </p>
 
-<H2><a name="Preprocessor_nn9"></a>7.8 Preprocessing and { ... } delimiters</H2>
+<H3><a name="Preprocessor_nn9"></a>7.8 Preprocessing and { ... } delimiters</H3>
 
 
 <p>
