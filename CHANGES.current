@@ -11,3 +11,7 @@ Version 2.0.6 (in progress)
 2012-04-28: wsfulton
             [Python] Fix compilation errors when wrapping STL containers on Mac OSX 64 bit.
 
+2012-04-28: wsfulton
+            [Java] Patch 3521811 from Leo Davis - char **STRING_ARRAY typemaps fixed to handle
+            null pointers.
+
