@@ -204,7 +204,7 @@ namespace swig {
 
   template <class Difference>
   void
-  slice_adjust(Difference i, Difference j, Difference step, size_t size, Difference &ii, Difference &jj, bool insert = false) {
+  slice_adjust(Difference i, Difference j, Py_ssize_t step, size_t size, Difference &ii, Difference &jj, bool insert = false) {
     if (step == 0) {
       throw std::invalid_argument("slice step cannot be zero");
     } else if (step > 0) {
