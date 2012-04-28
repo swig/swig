@@ -8,3 +8,6 @@ Version 2.0.6 (in progress)
 2012-04-25: wsfulton
             [Lua] Fix uninitialised variable in SWIGTYPE **OUTPUT typemaps as reported by Jim Anderson.
 
+2012-04-28: wsfulton
+            [Python] Fix compilation errors when wrapping STL containers on Mac OSX 64 bit.
+
