@@ -331,7 +331,7 @@ namespace swig {
         size_t replacecount = (jj - ii + step - 1) / step;
         if (is.size() != replacecount) {
           char msg[1024];
-          sprintf(msg, "attempt to assign sequence of size %d to extended slice of size %d", is.size(), replacecount);
+          sprintf(msg, "attempt to assign sequence of size %lu to extended slice of size %lu", (unsigned long)is.size(), (unsigned long)replacecount);
           throw std::invalid_argument(msg);
         }
         typename Sequence::const_iterator isit = is.begin();
@@ -349,7 +349,7 @@ namespace swig {
       size_t replacecount = (ii - jj - step - 1) / -step;
       if (is.size() != replacecount) {
         char msg[1024];
-        sprintf(msg, "attempt to assign sequence of size %d to extended slice of size %d", is.size(), replacecount);
+        sprintf(msg, "attempt to assign sequence of size %lu to extended slice of size %lu", (unsigned long)is.size(), (unsigned long)replacecount);
         throw std::invalid_argument(msg);
       }
       typename Sequence::const_iterator isit = is.begin();
