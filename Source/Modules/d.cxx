@@ -4602,7 +4602,7 @@ private:
     co = c + Len(nspace);
 
     while (*c && (c != co)) {
-      if ((*c == '.')) {
+      if (*c == '.') {
 	break;
       }
       c++;
