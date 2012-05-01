@@ -886,7 +886,22 @@ class TypePass:private Dispatcher {
 
     // Use enumDeclaration() to do all the hard work.
     // Note that no children can be emitted in a forward declaration as there aren't any.
-    return enumDeclaration(n);
+    int result = enumDeclaration(n);
+    if (result == SWIG_OK) {
+      // Detect when the real enum matching the forward enum declaration has not been parsed/declared
+      SwigType *ty = SwigType_typedef_resolve_all(Getattr(n, "type"));
+      Replaceall(ty, "enum ", "");
+      Node *nn = Swig_symbol_clookup(ty, 0);
+
+      String *nodetype = nn ? nodeType(nn) : 0;
+      if (nodetype) {
+	if (Equal(nodetype, "enumforward")) {
+	  SetFlag(nn, "enumMissing");
+	} // if a real enum was declared this would be an "enum" node type
+      }
+      Delete(ty);
+    }
+    return result;
   }
 
 #ifdef DEBUG_OVERLOADED
