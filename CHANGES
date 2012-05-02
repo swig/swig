@@ -3,6 +3,11 @@ SWIG (Simplified Wrapper and Interface Generator)
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
 
+2012-05-02: ianlancetaylor
+	    [Go] Remove compatibility support for gccgo 4.6.  Using
+	    SWIG with gccgo will now require gccgo 4.7.  Using SWIG
+	    with the more commonly used gc compiler is unaffected.
+
 Version 2.0.6 (30 April 2012)
 =============================
 

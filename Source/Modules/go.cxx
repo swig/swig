@@ -13,12 +13,6 @@ char cvsroot_go_cxx[] = "$Id";
 #include "cparse.h"
 #include <ctype.h>
 
-#ifdef HAVE_GCCGO_46
- #define GCCGO_46_DEFAULT true
-#else
- #define GCCGO_46_DEFAULT false
-#endif
-
 class GO:public Language {
   static const char *const usage;
 
@@ -26,8 +20,6 @@ class GO:public Language {
   String *package;
   // Flag for generating gccgo output.
   bool gccgo_flag;
-  // Flag for generating gccgo 4.6 output.
-  bool gccgo_46_flag;
   // Prefix to use with gccgo.
   String *go_prefix;
   // Name of shared library to import.
@@ -90,7 +82,6 @@ class GO:public Language {
 public:
   GO():package(NULL),
      gccgo_flag(false),
-     gccgo_46_flag(GCCGO_46_DEFAULT),
      go_prefix(NULL),
      soname(NULL),
      long_type_size(32),
@@ -148,12 +139,6 @@ private:
 	} else if (strcmp(argv[i], "-gccgo") == 0) {
 	  Swig_mark_arg(i);
 	  gccgo_flag = true;
-	} else if (strcmp(argv[i], "-gccgo-46") == 0) {
-	  Swig_mark_arg(i);
-	  gccgo_46_flag = true;
-	} else if (strcmp(argv[i], "-no-gccgo-46") == 0) {
-	  Swig_mark_arg(i);
-	  gccgo_46_flag = false;
 	} else if (strcmp(argv[i], "-go-prefix") == 0) {
 	  if (argv[i + 1]) {
 	    go_prefix = NewString(argv[i + 1]);
@@ -794,7 +779,7 @@ private:
     if (needs_wrapper) {
       wrapper_name = buildGoWrapperName(name, overname);
 
-      if (gccgo_flag && !gccgo_46_flag) {
+      if (gccgo_flag) {
 	Printv(f_go_wrappers, "//extern ", go_prefix, "_", wname, "\n", NULL);
       }
 
@@ -845,16 +830,12 @@ private:
 	}
       }
 
-      if (gccgo_flag && gccgo_46_flag) {
-	Printv(f_go_wrappers, " __asm__ (\"", go_prefix, "_", wname, "\")", NULL);
-      }
-
       Printv(f_go_wrappers, "\n\n", NULL);
     }
 
     // Start defining the Go function.
 
-    if (!needs_wrapper && gccgo_flag && !gccgo_46_flag) {
+    if (!needs_wrapper && gccgo_flag) {
       Printv(f_go_wrappers, "//extern ", go_prefix, "_", wname, "\n", NULL);
     }
 
@@ -959,7 +940,7 @@ private:
 	}
       }
 
-      if (gccgo_flag && !gccgo_46_flag) {
+      if (gccgo_flag) {
 	Printv(f_go_wrappers, "\tsyscall.Entersyscall()\n", NULL);
 	Printv(f_go_wrappers, "\tdefer syscall.Exitsyscall()\n", NULL);
       }
@@ -1003,10 +984,6 @@ private:
       }
       Printv(f_go_wrappers, ")\n", NULL);
       Printv(f_go_wrappers, "}\n", NULL);
-    } else {
-      if (gccgo_flag && gccgo_46_flag) {
-	Printv(f_go_wrappers, " __asm__ (\"", go_prefix, "_", wname, "\")\n", NULL);
-      }
     }
 
     Printv(f_go_wrappers, "\n", NULL);
@@ -2522,7 +2499,7 @@ private:
     if (!is_ignored) {
       // Declare the C++ wrapper.
 
-      if (gccgo_flag && !gccgo_46_flag) {
+      if (gccgo_flag) {
 	Printv(f_go_wrappers, "//extern ", go_prefix, "_", wname, "\n", NULL);
       }
 
@@ -2541,13 +2518,7 @@ private:
 	p = nextParm(p);
       }
 
-      Printv(f_go_wrappers, ") ", go_type_name, NULL);
-
-      if (gccgo_flag && gccgo_46_flag) {
-	Printv(f_go_wrappers, " __asm__(\"", go_prefix, "_", wname, "\")", NULL);
-      }
-
-      Printv(f_go_wrappers, "\n\n", NULL);
+      Printv(f_go_wrappers, ") ", go_type_name, "\n\n", NULL);
 
       Printv(f_go_wrappers, "func ", func_with_over_name, "(v interface{}", NULL);
 
@@ -2566,7 +2537,7 @@ private:
 
       Printv(f_go_wrappers, "\tp := &", director_struct_name, "{0, v}\n", NULL);
 
-      if (gccgo_flag && !gccgo_46_flag) {
+      if (gccgo_flag) {
 	Printv(f_go_wrappers, "\tsyscall.Entersyscall()\n", NULL);
 	Printv(f_go_wrappers, "\tdefer syscall.Exitsyscall()\n", NULL);
       }
@@ -3026,7 +2997,7 @@ private:
 
       String *upcall_gc_name = buildGoWrapperName(upcall_name, overname);
 
-      if (gccgo_flag && !gccgo_46_flag) {
+      if (gccgo_flag) {
 	Printv(f_go_wrappers, "//extern ", go_prefix, "_", upcall_wname, "\n", NULL);
       }
 
@@ -3047,10 +3018,6 @@ private:
 	String *tm = goWrapperType(n, result, true);
 	Printv(f_go_wrappers, " ", tm, NULL);
 	Delete(tm);
-      }
-
-      if (gccgo_flag && gccgo_46_flag) {
-	Printv(f_go_wrappers, " __asm__(\"", go_prefix, "_", upcall_wname, "\")", NULL);
       }
 
       Printv(f_go_wrappers, "\n", NULL);
@@ -3082,7 +3049,7 @@ private:
 
       Printv(f_go_wrappers, " {\n", NULL);
 
-      if (gccgo_flag && !gccgo_46_flag) {
+      if (gccgo_flag) {
 	Printv(f_go_wrappers, "\tsyscall.Entersyscall()\n", NULL);
 	Printv(f_go_wrappers, "\tdefer syscall.Exitsyscall()\n", NULL);
       }
@@ -3254,7 +3221,7 @@ private:
 
       Printv(f_go_wrappers, " {\n", NULL);
 
-      if (gccgo_flag && !gccgo_46_flag) {
+      if (gccgo_flag) {
 	Printv(f_go_wrappers, "\tsyscall.Entersyscall()\n", NULL);
 	Printv(f_go_wrappers, "\tdefer syscall.Exitsyscall()\n", NULL);
       }
@@ -3301,7 +3268,7 @@ private:
       }
       Printv(f_go_wrappers, "{\n", NULL);
 
-      if (gccgo_flag && !gccgo_46_flag) {
+      if (gccgo_flag) {
 	Printv(f_go_wrappers, "\tsyscall.Exitsyscall()\n", NULL);
 	Printv(f_go_wrappers, "\tdefer syscall.Entersyscall()\n", NULL);
       }
