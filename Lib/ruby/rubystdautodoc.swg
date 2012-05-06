@@ -1,8 +1,12 @@
-/* -----------------------------------------------------------------------------
- * rubystdautodoc.swg
+/**
+ * @file   rubystdautodoc.swg
+ * @author gga
+ * @date   Wed May  2 17:20:39 2007
  * 
- * This file contains autodocs for standard STL functions.
- * ----------------------------------------------------------------------------- */
+ * @brief  This file contains autodocs for standard STL functions.
+ * 
+ * 
+ */
 
 //
 // For STL autodocumentation

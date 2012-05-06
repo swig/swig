@@ -1,8 +1,13 @@
-/* -----------------------------------------------------------------------------
- * rubyautodoc.swg
- *
- * This file implements autodoc typemaps for some common ruby methods.
- * ----------------------------------------------------------------------------- */
+/**
+ * @file   rubyautodoc.swg
+ * @author gga
+ * @date   Wed May  2 16:41:59 2007
+ * 
+ * @brief  This file implements autodoc typemaps for some common
+ *         ruby methods.
+ * 
+ * 
+ */
 
 %define AUTODOC(func, str)
   %feature("autodoc", str) func;

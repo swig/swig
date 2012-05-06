@@ -21,7 +21,7 @@
 ;; which functions are used when.
 
 ;; Comments, bugs, suggestions: send either to chicken-users@nongnu.org or to
-;; Most code copied from TinyCLOS
+;; Author: John Lenz <lenz@cs.wisc.edu>, most code copied from TinyCLOS
 
 (define <multi-generic> (make <entity-class>
 			  'name "multi-generic"

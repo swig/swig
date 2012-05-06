@@ -27,6 +27,8 @@
 typedef long size_t;
 
 %wrapper %{
+;; $Id$
+
 (eval-when (compile eval)
 
 ;;; You can define your own identifier converter if you want.

@@ -1,4 +1,13 @@
-// A speed test of the ruby stl
+/**
+ * @file   ruby_li_std_speed.i
+ * @author gga
+ * @date   Fri May 18 18:03:15 2007
+ * 
+ * @brief  A speed test of the ruby stl
+ * 
+ * 
+ */
+
 %module ruby_li_std_speed
 
 %include <std_list.i>

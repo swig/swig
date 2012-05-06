@@ -1,0 +1,23 @@
+prefix      = @prefix@
+exec_prefix = @exec_prefix@
+RANLIB      = @RANLIB@
+OPT         =
+
+INSTALL        = ../install-sh -c
+INSTALL_DATA   = ${INSTALL} -m 644
+SHELL          = /bin/sh
+
+all:	
+	cd Lib && $(MAKE) OPT="$(OPT)"
+
+install: 
+	$(INSTALL_DATA) Include/gifplot.h $(prefix)/include/gifplot.h
+	$(INSTALL_DATA) libgifplot.a $(exec_prefix)/lib/libgifplot.a
+	$(RANLIB) $(exec_prefix)/lib/libgifplot.a
+
+clean::
+	rm -f *.@OBJEXT@ *~ libgifplot.a *_wrap* *_man*
+	cd Lib && $(MAKE) clean
+	rm -f config.log config.status config.cache
+
+check: all

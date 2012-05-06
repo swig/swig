@@ -1,0 +1,5 @@
+This example illustrates Ruby shadow classes. Take a look at
+the file GIFPlot/Interface/gifplot.i
+
+Actually Ruby module of SWIG needs no shadow class.  But this example
+is named "shadow" in order to be consistent with other languages.
