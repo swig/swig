@@ -34,7 +34,7 @@
 
 %insert(runtime) %{
 /* Fix for jlong on some versions of gcc on Windows */
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+#if defined(__GNUC__) && !defined(__INTELC__)
   typedef long long __int64;
 #endif
 

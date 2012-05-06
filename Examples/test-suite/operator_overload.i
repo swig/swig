@@ -76,12 +76,6 @@ see bottom for a set of possible tests
 %rename(OrOperator) operator ||;
 #endif
 
-#ifdef SWIG_ALLEGRO_CL
-%{
-#include <stdio.h>
-%}
-#endif
-
 %rename(IntCast) operator int();
 %rename(DoubleCast) operator double();
 

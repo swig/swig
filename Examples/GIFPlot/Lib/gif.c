@@ -268,7 +268,7 @@ static int maxmaxcode = 1 << GP_BITS; /* NEVER generate this */
 
 static  count_int      *htab;
 static  unsigned short *codetab;
-static  int GIFOutBufSize;
+static  GIFOutBufSize;
 
 /* static  count_int      htab [HSIZE];
 static  unsigned short codetab [HSIZE]; */
@@ -656,11 +656,7 @@ int FrameBuffer_writeGIF(FrameBuffer *f, ColorMap *c, char *filename) {
     fclose(file);
     return -1;
   }
-  if (fwrite(buffer,nbytes,1,file) != 1) {
-    free(buffer);
-    fclose(file);
-    return -1;
-  }
+  fwrite(buffer,nbytes,1,file);
   fclose(file);
   free(buffer);
   return 0;

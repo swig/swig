@@ -1,11 +1,5 @@
 %include <shared_ptr.i>
 
-// Set SHARED_PTR_DISOWN to $disown if required, for example
-// #define SHARED_PTR_DISOWN $disown
-#if !defined(SHARED_PTR_DISOWN)
-#define SHARED_PTR_DISOWN 0
-#endif
-
 %define SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, CONST, TYPE...)
 
 %naturalvar TYPE;
@@ -57,10 +51,10 @@
 }
 
 // plain pointer
-// Note: $disown not implemented by default as it will lead to a memory leak of the shared_ptr instance
+// Note: $disown not implemented as it will lead to a memory leak of the shared_ptr instance
 %typemap(in) CONST TYPE * (void  *argp = 0, int res = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) {
   int newmem = 0;
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SHARED_PTR_DISOWN | %convertptr_flags, &newmem);
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }
@@ -145,10 +139,10 @@
 }
 
 // plain pointer by reference
-// Note: $disown not implemented by default as it will lead to a memory leak of the shared_ptr instance
+// Note: $disown not implemented as it will lead to a memory leak of the shared_ptr instance
 %typemap(in) CONST TYPE *& (void  *argp = 0, int res = 0, $*1_ltype temp = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > tempshared) {
   int newmem = 0;
-  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SHARED_PTR_DISOWN | %convertptr_flags, &newmem);
+  res = SWIG_ConvertPtrAndOwn($input, &argp, $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), %convertptr_flags, &newmem);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
   }

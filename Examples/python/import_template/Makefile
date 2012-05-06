@@ -19,4 +19,3 @@ clean::
 	@rm -f foo.py bar.py spam.py base.py
 
 check: all
-	$(MAKE) -f $(TOP)/Makefile python_run

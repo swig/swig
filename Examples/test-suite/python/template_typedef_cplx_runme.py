@@ -1,3 +1,4 @@
+import string
 from template_typedef_cplx import *
 
 #
@@ -12,7 +13,7 @@ except:
   raise RuntimeError
 
 s = '%s' % d
-if str.find(s, 'ArithUnaryFunction') == -1:
+if string.find(s, 'ArithUnaryFunction') == -1:
   print d, "is not an ArithUnaryFunction"
   raise RuntimeError
 
@@ -24,7 +25,7 @@ except:
   raise RuntimeError
 
 s = '%s' % e
-if str.find(s, 'ArithUnaryFunction') == -1:
+if string.find(s, 'ArithUnaryFunction') == -1:
   print e, "is not an ArithUnaryFunction"
   raise RuntimeError
 
@@ -41,7 +42,7 @@ except:
   raise RuntimeError
 
 s = '%s' % c
-if str.find(s, 'ArithUnaryFunction') == -1:
+if string.find(s, 'ArithUnaryFunction') == -1:
   print c, "is not an ArithUnaryFunction"
   raise RuntimeError
 
@@ -53,7 +54,7 @@ except:
   raise RuntimeError
 
 s = '%s' % f
-if str.find(s, 'ArithUnaryFunction') == -1:
+if string.find(s, 'ArithUnaryFunction') == -1:
   print f, "is not an ArithUnaryFunction"
   raise RuntimeError
 
@@ -69,7 +70,7 @@ except:
   raise RuntimeError
 
 s = '%s' % g
-if str.find(s, 'ArithUnaryFunction') == -1:
+if string.find(s, 'ArithUnaryFunction') == -1:
   print g, "is not an ArithUnaryFunction"
   raise RuntimeError
 
@@ -82,6 +83,6 @@ except:
   raise RuntimeError
 
 s = '%s' % h
-if str.find(s, 'ArithUnaryFunction') == -1:
+if string.find(s, 'ArithUnaryFunction') == -1:
   print h, "is not an ArithUnaryFunction"
   raise RuntimeError

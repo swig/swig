@@ -535,7 +535,7 @@ DohObjInfo DohHashType = {
  * Create a new hash table.
  * ----------------------------------------------------------------------------- */
 
-DOH *DohNewHash(void) {
+DOH *DohNewHash() {
   Hash *h;
   int i;
   h = (Hash *) DohMalloc(sizeof(Hash));

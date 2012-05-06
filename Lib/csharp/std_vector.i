@@ -6,22 +6,15 @@
  *
  * SWIG typemaps for std::vector
  * C# implementation
- * The C# wrapper is made to look and feel like a C# System.Collections.Generic.List<> collection.
- * For .NET 1 compatibility, define SWIG_DOTNET_1 when compiling the C# code; then the C# wrapper is 
- * made to look and feel like a typesafe C# System.Collections.ArrayList. All the methods in IList 
- * are defined, but we don't derive from IList as this is a typesafe collection and the C++ operator==
- * must always be defined for the collection type (which it isn't).
+ * The C# wrapper is made to look and feel like a typesafe C# System.Collections.ArrayList
+ * All the methods in IList are defined, but we don't derive from IList as this is a typesafe collection.
+ * Warning: heavy macro usage in this file. Use swig -E to get a sane view on the real file contents!
  *
  * Very often the C# generated code will not compile as the C++ template type is not the same as the C# 
  * proxy type, so use the SWIG_STD_VECTOR_SPECIALIZE or SWIG_STD_VECTOR_SPECIALIZE_MINIMUM macro, eg
  *
  *   SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(Klass, SomeNamespace::Klass)
  *   %template(VectKlass) std::vector<SomeNamespace::Klass>;
- *
- * Note that IEnumerable<> is implemented in the proxy class which is useful for using LINQ with 
- * C++ std::vector wrappers.
- *
- * Warning: heavy macro usage in this file. Use swig -E to get a sane view on the real file contents!
  * ----------------------------------------------------------------------------- */
 
 // Warning: Use the typemaps here in the expectation that the macros they are in will change name.
@@ -31,8 +24,8 @@
 
 // MACRO for use within the std::vector class body
 // CSTYPE and CTYPE respectively correspond to the types in the cstype and ctype typemaps
-%define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CONST_REFERENCE_TYPE, CSTYPE, CTYPE...)
-%typemap(csinterfaces) std::vector<CTYPE > "IDisposable, System.Collections.IEnumerable\n#if !SWIG_DOTNET_1\n    , System.Collections.Generic.IEnumerable<CSTYPE>\n#endif\n";
+%define SWIG_STD_VECTOR_MINIMUM(CSTYPE, CTYPE...)
+%typemap(csinterfaces) std::vector<CTYPE > "IDisposable, System.Collections.IEnumerable";
 %typemap(cscode) std::vector<CTYPE > %{
   public $csclassname(System.Collections.ICollection c) : this() {
     if (c == null)
@@ -86,30 +79,15 @@
     }
   }
 
-#if SWIG_DOTNET_1
-  public void CopyTo(System.Array array)
-#else
-  public void CopyTo(CSTYPE[] array)
-#endif
-  {
+  public void CopyTo(System.Array array) {
     CopyTo(0, array, 0, this.Count);
   }
 
-#if SWIG_DOTNET_1
-  public void CopyTo(System.Array array, int arrayIndex)
-#else
-  public void CopyTo(CSTYPE[] array, int arrayIndex)
-#endif
-  {
+  public void CopyTo(System.Array array, int arrayIndex) {
     CopyTo(0, array, arrayIndex, this.Count);
   }
 
-#if SWIG_DOTNET_1
-  public void CopyTo(int index, System.Array array, int arrayIndex, int count)
-#else
-  public void CopyTo(int index, CSTYPE[] array, int arrayIndex, int count)
-#endif
-  {
+  public void CopyTo(int index, System.Array array, int arrayIndex, int count) {
     if (array == null)
       throw new ArgumentNullException("array");
     if (index < 0)
@@ -119,19 +97,14 @@
     if (count < 0)
       throw new ArgumentOutOfRangeException("count", "Value is less than zero");
     if (array.Rank > 1)
-      throw new ArgumentException("Multi dimensional array.", "array");
+      throw new ArgumentException("Multi dimensional array.");
     if (index+count > this.Count || arrayIndex+count > array.Length)
       throw new ArgumentException("Number of elements to copy is too large.");
     for (int i=0; i<count; i++)
       array.SetValue(getitemcopy(index+i), arrayIndex+i);
   }
 
-#if !SWIG_DOTNET_1
-  System.Collections.Generic.IEnumerator<CSTYPE> System.Collections.Generic.IEnumerable<CSTYPE>.GetEnumerator() {
-    return new $csclassnameEnumerator(this);
-  }
-#endif
-
+  // Type-safe version of IEnumerable.GetEnumerator
   System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
@@ -145,11 +118,7 @@
   /// whenever the collection is modified. This has been done for changes in the size of the
   /// collection but not when one of the elements of the collection is modified as it is a bit
   /// tricky to detect unmanaged code that modifies the collection under our feet.
-  public sealed class $csclassnameEnumerator : System.Collections.IEnumerator
-#if !SWIG_DOTNET_1
-    , System.Collections.Generic.IEnumerator<CSTYPE>
-#endif
-  {
+  public sealed class $csclassnameEnumerator : System.Collections.IEnumerator {
     private $csclassname collectionRef;
     private int currentIndex;
     private object currentObject;
@@ -201,20 +170,13 @@
         throw new InvalidOperationException("Collection modified.");
       }
     }
-
-#if !SWIG_DOTNET_1
-    public void Dispose() {
-        currentIndex = -1;
-        currentObject = null;
-    }
-#endif
   }
 %}
 
   public:
     typedef size_t size_type;
     typedef CTYPE value_type;
-    typedef CONST_REFERENCE_TYPE const_reference;
+    typedef const value_type& const_reference;
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;
@@ -324,14 +286,8 @@
     }
 %enddef
 
-%define SWIG_STD_VECTOR_MINIMUM(CSTYPE, CTYPE...)
-SWIG_STD_VECTOR_MINIMUM_INTERNAL(const value_type&, CSTYPE, CTYPE)
-%enddef
-
-
 // Extra methods added to the collection class if operator== is defined for the class being wrapped
 // CSTYPE and CTYPE respectively correspond to the types in the cstype and ctype typemaps
-// The class will then implement IList<>, which adds extra functionality
 %define SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CSTYPE, CTYPE...)
     %extend {
       bool Contains(const value_type& value) {
@@ -351,13 +307,10 @@ SWIG_STD_VECTOR_MINIMUM_INTERNAL(const value_type&, CSTYPE, CTYPE)
           index = (int)(self->rend() - 1 - rit);
         return index;
       }
-      bool Remove(const value_type& value) {
+      void Remove(const value_type& value) {
         std::vector<CTYPE >::iterator it = std::find(self->begin(), self->end(), value);
-        if (it != self->end()) {
+        if (it != self->end())
           self->erase(it);
-	  return true;
-        }
-        return false;
       }
     }
 %enddef
@@ -380,6 +333,7 @@ namespace std {
   };
 }
 %enddef
+
 
 %{
 #include <vector>
@@ -407,15 +361,11 @@ namespace std {
   template<class T> class vector<const T*> {
     SWIG_STD_VECTOR_MINIMUM(T, const T*)
   };
-  // bool is a bit different in the C++ standard
-  template<> class vector<bool> {
-    SWIG_STD_VECTOR_MINIMUM_INTERNAL(bool, bool, bool)
-    SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(bool, bool)
-  };
 }
 
 // template specializations for std::vector
 // these provide extra collections methods as operator== is defined
+SWIG_STD_VECTOR_SPECIALIZE(bool, bool)
 SWIG_STD_VECTOR_SPECIALIZE(char, char)
 SWIG_STD_VECTOR_SPECIALIZE(sbyte, signed char)
 SWIG_STD_VECTOR_SPECIALIZE(byte, unsigned char)
@@ -430,4 +380,5 @@ SWIG_STD_VECTOR_SPECIALIZE(ulong, unsigned long long)
 SWIG_STD_VECTOR_SPECIALIZE(float, float)
 SWIG_STD_VECTOR_SPECIALIZE(double, double)
 SWIG_STD_VECTOR_SPECIALIZE(string, std::string) // also requires a %include <std_string.i>
+
 

@@ -144,9 +144,6 @@ typedef void DOH;
 #define DOHString_or_char  DOH
 #define DOHObj_or_char     DOH
 
-typedef const DOHString_or_char * const_String_or_char_ptr;
-typedef const DOHString_or_char * DOHconst_String_or_char_ptr;
-
 #define DOH_BEGIN          -1
 #define DOH_END            -2
 #define DOH_CUR            -3
@@ -237,9 +234,9 @@ extern DohIterator DohNext(DohIterator x);
 
 /* Positional */
 
-extern int DohGetline(const DOH *obj);
+extern int DohGetline(DOH *obj);
 extern void DohSetline(DOH *obj, int line);
-extern DOH *DohGetfile(const DOH *obj);
+extern DOH *DohGetfile(DOH *obj);
 extern void DohSetfile(DOH *obj, DOH *file);
 
   /* String Methods */
@@ -274,7 +271,7 @@ extern int DohGetmark(DOH *obj);
  * Strings.
  * ----------------------------------------------------------------------------- */
 
-extern DOHString *DohNewStringEmpty(void);
+extern DOHString *DohNewStringEmpty();
 extern DOHString *DohNewString(const DOH *c);
 extern DOHString *DohNewStringWithSize(const DOH *c, int len);
 extern DOHString *DohNewStringf(const DOH *fmt, ...);
@@ -300,7 +297,7 @@ extern char *DohStrchr(const DOHString_or_char *s1, int ch);
  * Files
  * ----------------------------------------------------------------------------- */
 
-extern DOHFile *DohNewFile(DOH *filename, const char *mode, DOHList *outfiles);
+extern DOHFile *DohNewFile(DOH *file, const char *mode);
 extern DOHFile *DohNewFileFromFile(FILE *f);
 extern DOHFile *DohNewFileFromFd(int fd);
 extern void DohFileErrorDisplay(DOHString * filename);
@@ -312,14 +309,14 @@ extern int DohCopyto(DOHFile * input, DOHFile * output);
  * List
  * ----------------------------------------------------------------------------- */
 
-extern DOHList *DohNewList(void);
+extern DOHList *DohNewList();
 extern void DohSortList(DOH *lo, int (*cmp) (const DOH *, const DOH *));
 
 /* -----------------------------------------------------------------------------
  * Hash
  * ----------------------------------------------------------------------------- */
 
-extern DOHHash *DohNewHash(void);
+extern DOHHash *DohNewHash();
 
 /* -----------------------------------------------------------------------------
  * Void

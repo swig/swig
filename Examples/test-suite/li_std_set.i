@@ -10,7 +10,7 @@
  *
  *         For example:
  *                swig::LANGUAGE_OBJ  is  GC_VALUE in Ruby
- *                swig::LANGUAGE_OBJ  is  SwigPtr_PyObject in python
+ *                swig::LANGUAGE_OBJ  is  PyObject_ptr in python
  * 
  * 
  */
@@ -31,10 +31,4 @@
 
 
 
-#if defined(SWIGRUBY)
 %template(LanguageSet) std::set<swig::LANGUAGE_OBJ>; 
-#endif
-
-#if defined(SWIGPYTHON)
-%template(pyset) std::set<swig::SwigPtr_PyObject>; 
-#endif

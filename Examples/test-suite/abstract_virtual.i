@@ -2,10 +2,10 @@
 
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) D; /* C#, Java, PHP multiple inheritance */
+	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) D; /* C#, Java, Php4 multiple inheritance */
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) E; /* C#, Java, PHP multiple inheritance */
+	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) E; /* C#, Java, Php4 multiple inheritance */
 
 %inline %{
 #if defined(_MSC_VER)

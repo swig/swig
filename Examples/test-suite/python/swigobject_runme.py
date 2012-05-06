@@ -12,17 +12,11 @@ if a1.this != a2.this:
   
 
 lthis = long(a.this)
-# match pointer value, but deal with leading zeros on 8/16 bit systems and different C++ compilers interpretation of %p
-xstr1 = "%016X" % (lthis,)
-xstr1 = str.lstrip(xstr1, '0')
+xstr1 = "0x%x" % (lthis,)
 xstr2 = pointer_str(a)
-xstr2 = str.replace(xstr2, "0x", "")
-xstr2 = str.replace(xstr2, "0X", "")
-xstr2 = str.lstrip(xstr2, '0')
-xstr2 = str.upper(xstr2)
 
 if xstr1 != xstr2:
-  print xstr1, xstr2
+  print  xstr1, xstr2
   raise RuntimeError
 
 s = str(a.this)

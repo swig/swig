@@ -1,9 +1,8 @@
 TOP        = ../../..
 SWIG       = $(TOP)/../swig
-SWIGOPT    = -outcurrentdir
+SWIGOPT    = -I../../Interface
 SRCS       =
 TARGET     = gifplot
-INTERFACEDIR = ../../Interface/
 INTERFACE  = gifplot.i
 LIBS       = -L../.. -lgifplot
 INCLUDES   = -I../../Include
@@ -11,7 +10,7 @@ INCLUDES   = -I../../Include
 all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' INTERFACEDIR='$(INTERFACEDIR)' java
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' java
 	javac *.java
 
 clean::

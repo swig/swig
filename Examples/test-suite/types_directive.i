@@ -1,13 +1,5 @@
 %module types_directive
 
-#if defined(SWIGR)
-// Avoid conflict with Date class in R
-#define Date DateSwig
-%inline %{
-#define Date DateSwig
-%}
-#endif
-
 %ignore Time2::operator Date *;
 
 %inline %{

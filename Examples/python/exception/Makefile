@@ -18,4 +18,3 @@ clean::
 	rm -f $(TARGET).py
 
 check: all
-	$(MAKE) -f $(TOP)/Makefile python_run

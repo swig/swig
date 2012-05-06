@@ -24,7 +24,6 @@ class JAVA:public Language {
   const String *protected_string;
 
   Hash *swig_types_hash;
-  File *f_begin;
   File *f_runtime;
   File *f_runtime_h;
   File *f_header;
@@ -71,7 +70,6 @@ class JAVA:public Language {
   String *imclass_cppcasts_code;	//C++ casts up inheritance hierarchies intermediary class code
   String *imclass_directors;	// Intermediate class director code
   String *destructor_call;	//C++ destructor call if any
-  String *destructor_throws_clause;	//C++ destructor throws clause if any
 
   // Director method stuff:
   List *dmethods_seq;
@@ -83,7 +81,7 @@ class JAVA:public Language {
 
   enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
-  static Parm *NewParmFromNode(SwigType *type, const_String_or_char_ptr name, Node *n) {
+  static Parm *NewParmFromNode(SwigType *type, const String_or_char *name, Node *n) {
     Parm *p = NewParm(type, name);
     Setfile(p, Getfile(n));
     Setline(p, Getline(n));
@@ -100,7 +98,6 @@ public:
       public_string(NewString("public")),
       protected_string(NewString("protected")),
       swig_types_hash(NULL),
-      f_begin(NULL),
       f_runtime(NULL),
       f_runtime_h(NULL),
       f_header(NULL),
@@ -144,7 +141,6 @@ public:
       imclass_cppcasts_code(NULL),
       imclass_directors(NULL),
       destructor_call(NULL),
-      destructor_throws_clause(NULL),
       dmethods_seq(NULL),
       dmethods_table(NULL),
       n_dmethods(0),
@@ -297,8 +293,8 @@ public:
       SWIG_exit(EXIT_FAILURE);
     }
 
-    f_begin = NewFile(outfile, "w", SWIG_output_files());
-    if (!f_begin) {
+    f_runtime = NewFile(outfile, "w");
+    if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
@@ -308,14 +304,13 @@ public:
         Printf(stderr, "Unable to determine outfile_h\n");
         SWIG_exit(EXIT_FAILURE);
       }
-      f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
+      f_runtime_h = NewFile(outfile_h, "w");
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
 	SWIG_exit(EXIT_FAILURE);
       }
     }
 
-    f_runtime = NewString("");
     f_init = NewString("");
     f_header = NewString("");
     f_wrappers = NewString("");
@@ -323,7 +318,6 @@ public:
     f_directors = NewString("");
 
     /* Register file targets with the SWIG file handler */
-    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("wrapper", f_wrappers);
     Swig_register_filebyname("runtime", f_runtime);
@@ -371,16 +365,13 @@ public:
     jnipackage = NewString("");
     package_path = NewString("");
 
-    Swig_banner(f_begin);
-
-    Printf(f_runtime, "\n#define SWIGJAVA\n");
+    Swig_banner(f_runtime);	// Print the SWIG banner message
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
 
       /* Emit initial director header and director code: */
       Swig_banner(f_directors_h);
-      Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module_class_name);
       Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module_class_name);
 
@@ -391,8 +382,6 @@ public:
       if (outfile_h)
 	Printf(f_directors, "#include \"%s\"\n\n", Swig_file_filename(outfile_h));
     }
-
-    Printf(f_runtime, "\n");
 
     String *wrapper_name = NewString("");
 
@@ -431,7 +420,7 @@ public:
     // Generate the intermediary class
     {
       String *filen = NewStringf("%s%s.java", SWIG_output_directory(), imclass_name);
-      File *f_im = NewFile(filen, "w", SWIG_output_files());
+      File *f_im = NewFile(filen, "w");
       if (!f_im) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
@@ -482,7 +471,7 @@ public:
     // Generate the Java module class
     {
       String *filen = NewStringf("%s%s.java", SWIG_output_directory(), module_class_name);
-      File *f_module = NewFile(filen, "w", SWIG_output_files());
+      File *f_module = NewFile(filen, "w");
       if (!f_module) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
@@ -534,7 +523,7 @@ public:
     // Generate the Java constants interface
     if (Len(module_class_constants_code) != 0) {
       String *filen = NewStringf("%s%sConstants.java", SWIG_output_directory(), module_class_name);
-      File *f_module = NewFile(filen, "w", SWIG_output_files());
+      File *f_module = NewFile(filen, "w");
       if (!f_module) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
@@ -671,10 +660,8 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Dump(f_runtime, f_begin);
+    Close(f_runtime);
     Delete(f_runtime);
-    Close(f_begin);
-    Delete(f_begin);
     return SWIG_OK;
   }
 
@@ -684,7 +671,11 @@ public:
 
   void emitBanner(File *f) {
     Printf(f, "/* ----------------------------------------------------------------------------\n");
-    Swig_banner_target_lang(f, " *");
+    Printf(f, " * This file was automatically generated by SWIG (http://www.swig.org).\n");
+    Printf(f, " * Version %s\n", Swig_package_version());
+    Printf(f, " *\n");
+    Printf(f, " * Do not make changes to this file unless you know what you are doing--modify\n");
+    Printf(f, " * the SWIG interface file instead.\n");
     Printf(f, " * ----------------------------------------------------------------------------- */\n\n");
   }
 
@@ -1219,7 +1210,7 @@ public:
 	} else {
 	  // Global enums are defined in their own file
 	  String *filen = NewStringf("%s%s.java", SWIG_output_directory(), symname);
-	  File *f_enum = NewFile(filen, "w", SWIG_output_files());
+	  File *f_enum = NewFile(filen, "w");
 	  if (!f_enum) {
 	    FileErrorDisplay(filen);
 	    SWIG_exit(EXIT_FAILURE);
@@ -1663,7 +1654,7 @@ public:
       else
 	Replaceall(destruct, "$jnicall", "throw new UnsupportedOperationException(\"C++ destructor does not have public access\")");
       if (*Char(destruct))
-	Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " void ", destruct_methodname, "()", destructor_throws_clause, " ", destruct, "\n", NIL);
+	Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " void ", destruct_methodname, "() ", destruct, "\n", NIL);
     }
 
     /* Insert directordisconnect typemap, if this class has directors enabled */
@@ -1751,7 +1742,7 @@ public:
       }
 
       String *filen = NewStringf("%s%s.java", SWIG_output_directory(), proxy_class_name);
-      f_proxy = NewFile(filen, "w", SWIG_output_files());
+      f_proxy = NewFile(filen, "w");
       if (!f_proxy) {
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
@@ -1770,7 +1761,6 @@ public:
       Clear(proxy_class_code);
 
       destructor_call = NewString("");
-      destructor_throws_clause = NewString("");
       proxy_class_constants_code = NewString("");
     }
 
@@ -1829,8 +1819,6 @@ public:
       proxy_class_name = NULL;
       Delete(destructor_call);
       destructor_call = NULL;
-      Delete(destructor_throws_clause);
-      destructor_throws_clause = NULL;
       Delete(proxy_class_constants_code);
       proxy_class_constants_code = NULL;
     }
@@ -2348,7 +2336,6 @@ public:
 
     if (proxy_flag) {
       Printv(destructor_call, imclass_name, ".", Swig_name_destroy(symname), "(swigCPtr)", NIL);
-      generateThrowsClause(n, destructor_throws_clause);
     }
     return SWIG_OK;
   }
@@ -2811,7 +2798,7 @@ public:
   void emitTypeWrapperClass(String *classname, SwigType *type) {
     String *swigtype = NewString("");
     String *filen = NewStringf("%s%s.java", SWIG_output_directory(), classname);
-    File *f_swigtype = NewFile(filen, "w", SWIG_output_files());
+    File *f_swigtype = NewFile(filen, "w");
     if (!f_swigtype) {
       FileErrorDisplay(filen);
       SWIG_exit(EXIT_FAILURE);
@@ -2883,7 +2870,7 @@ public:
     String *throws_attribute = NewStringf("%s:throws", attribute);
     String *throws = Getattr(parameter, throws_attribute);
 
-    if (throws && Len(throws) > 0) {
+    if (throws) {
       String *throws_list = Getattr(n, "java:throwslist");
       if (!throws_list) {
 	throws_list = NewList();

@@ -25,11 +25,10 @@
 
 /* Code insertion directives such as %wrapper %{ ... %} */
 
-#define %begin       %insert("begin")
-#define %runtime     %insert("runtime")
-#define %header      %insert("header")
-#define %wrapper     %insert("wrapper")
 #define %init        %insert("init")
+#define %wrapper     %insert("wrapper")
+#define %header      %insert("header")
+#define %runtime     %insert("runtime")
 
 /* Class extension */
 
@@ -424,21 +423,13 @@ namespace std {
 /* Character array handling */
 
 %typemap(memberin) char [ANY] {
-  if($input) {
-    strncpy((char*)$1, (const char *)$input, $1_dim0-1);
-    $1[$1_dim0-1] = 0;
-  } else {
-    $1[0] = 0;
-  }
+  if ($input) strncpy((char *)$1, (const char *)$input, $1_dim0);
+  else $1[0] = 0;
 }
 
 %typemap(globalin) char [ANY] {
-  if($input) {
-    strncpy((char*)$1, (const char *)$input, $1_dim0-1);
-    $1[$1_dim0-1] = 0;
-  } else {
-    $1[0] = 0;
-  }
+  if ($input) strncpy((char *)$1, (const char *)$input, $1_dim0);
+  else $1[0] = 0;
 }
 
 %typemap(memberin) char [] {
@@ -468,26 +459,26 @@ namespace std {
 /* memberin/globalin typemap for double arrays. */
 
 %typemap(memberin) SWIGTYPE [ANY][ANY] {
-  $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
-  $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
+  $basetype (*inp)[$dim1] = ($basetype (*)[$dim1])($input);
+  $basetype (*dest)[$dim1] = ($basetype (*)[$dim1])($1);
   size_t ii = 0;
-  for (; ii < $1_dim0; ++ii) {
+  for (; ii < $dim0; ++ii) {
     $basetype *ip = inp[ii];
     $basetype *dp = dest[ii];
     size_t jj = 0;
-    for (; jj < $1_dim1; ++jj) dp[jj] = ip[jj];
+    for (; jj < $dim1; ++jj) dp[jj] = ip[jj];
   }
 }
 
 %typemap(globalin) SWIGTYPE [ANY][ANY] {
-  $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
-  $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
+  $basetype (*inp)[$dim1] = ($basetype (*)[$dim1])($input);
+  $basetype (*dest)[$dim1] = ($basetype (*)[$dim1])($1);
   size_t ii = 0;
-  for (; ii < $1_dim0; ++ii) {
+  for (; ii < $dim0; ++ii) {
     $basetype *ip = inp[ii];
     $basetype *dp = dest[ii];
     size_t jj = 0;
-    for (; jj < $1_dim1; ++jj) dp[jj] = ip[jj];
+    for (; jj < $dim1; ++jj) dp[jj] = ip[jj];
   }
 }
 
@@ -634,10 +625,6 @@ namespace std {
  *       arg1 = *inarg1;       // Assignment from a pointer
  *       arg1 = Vector(1,2,3); // Assignment from a value  
  *
- * The class offers a strong guarantee of exception safety.
- * With regards to the implementation, the private SwigMovePointer nested class is 
- * a simple smart pointer with move semantics, much like std::auto_ptr.
- *
  * This wrapping technique was suggested by William Fulton and is henceforth
  * known as the "Fulton Transform" :-).
  */
@@ -645,21 +632,18 @@ namespace std {
 #ifdef __cplusplus
 %insert("runtime") %{
 #ifdef __cplusplus
-/* SwigValueWrapper is described in swig.swg */
 template<typename T> class SwigValueWrapper {
-  struct SwigMovePointer {
-    T *ptr;
-    SwigMovePointer(T *p) : ptr(p) { }
-    ~SwigMovePointer() { delete ptr; }
-    SwigMovePointer& operator=(SwigMovePointer& rhs) { T* oldptr = ptr; ptr = 0; delete oldptr; ptr = rhs.ptr; rhs.ptr = 0; return *this; }
-  } pointer;
-  SwigValueWrapper& operator=(const SwigValueWrapper<T>& rhs);
-  SwigValueWrapper(const SwigValueWrapper<T>& rhs);
+    T *tt;
 public:
-  SwigValueWrapper() : pointer(0) { }
-  SwigValueWrapper& operator=(const T& t) { SwigMovePointer tmp(new T(t)); pointer = tmp; return *this; }
-  operator T&() const { return *pointer.ptr; }
-  T *operator&() { return pointer.ptr; }
+    SwigValueWrapper() : tt(0) { }
+    SwigValueWrapper(const SwigValueWrapper<T>& rhs) : tt(new T(*rhs.tt)) { }
+    SwigValueWrapper(const T& t) : tt(new T(t)) { }
+    ~SwigValueWrapper() { delete tt; } 
+    SwigValueWrapper& operator=(const T& t) { delete tt; tt = new T(t); return *this; }
+    operator T&() const { return *tt; }
+    T *operator&() { return tt; }
+private:
+    SwigValueWrapper& operator=(const SwigValueWrapper<T>& rhs);
 };%}
 
 /*

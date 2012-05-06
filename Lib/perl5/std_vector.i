@@ -105,9 +105,9 @@ namespace std {
             }
         }
         %typemap(out) vector<T> {
-            size_t len = $1.size();
+            int len = $1.size();
             SV **svs = new SV*[len];
-            for (size_t i=0; i<len; i++) {
+            for (unsigned int i=0; i<len; i++) {
                 T* ptr = new T($1[i]);
                 svs[i] = sv_newmortal();
                 SWIG_MakePtr(svs[i], (void*) ptr, 

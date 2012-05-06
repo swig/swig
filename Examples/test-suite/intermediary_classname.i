@@ -18,7 +18,6 @@
   "new $javaclassname($jniinput, false)/*javadirectorin*/"
 %typemap(out, throws="IllegalAccessException/*out Base&*/") Base& {
   // XYZ& typemap out
-  $result = 0; // remove unused variable warning
 }
 %inline %{
 

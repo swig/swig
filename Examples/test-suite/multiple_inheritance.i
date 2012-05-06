@@ -5,11 +5,11 @@ It tests basic multiple inheritance */
 
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) FooBar;	/* C#, Java, PHP multiple inheritance */
+	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) FooBar;	/* C#, Java, Php4 multiple inheritance */
 
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) FooBarSpam;	/* C#, Java, PHP multiple inheritance */
+	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) FooBarSpam;	/* C#, Java, Php4 multiple inheritance */
 
 
 %inline %{

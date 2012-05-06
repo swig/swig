@@ -12,22 +12,6 @@ char cvsroot_c_cxx[] = "$Id: c.cxx 11186 2009-04-11 10:46:13Z maciekd $";
 #include <ctype.h>
 #include "swigmod.h"
 
-int SwigType_isbuiltin(SwigType *t) {
-  const char* builtins[] = { "void", "short", "int", "long", "char", "float", "double", "bool",
-    "unsigned short", "unsigned int", "unsigned long", "unsigned char", "signed char", 
-    "long long", "unsigned long long", 0 };
-  int i = 0;
-  char *c = Char(t);
-  if (!t)
-    return 0;
-  while (builtins[i]) {
-    if (strcmp(c, builtins[i]) == 0)
-      return 1;
-    i++;
-  }
-  return 0;
-}
-
 class C:public Language {
   static const char *usage;
 
@@ -166,8 +150,8 @@ public:
     String *outfile = Getattr(n, "outfile");
 
     // initialize I/O
-    f_begin = NewFile(outfile, "w", SWIG_output_files());
-    if (!f_begin) {
+    f_runtime = NewFile(outfile, "w");
+    if (!f_runtime) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
@@ -186,13 +170,13 @@ public:
 
       // create proxy files with appropriate name
       String *proxy_code_filename = NewStringf("%s%s_proxy.c", SWIG_output_directory(), Char(module));
-      if ((f_proxy_c = NewFile(proxy_code_filename, "w", SWIG_output_files())) == 0) {
+      if ((f_proxy_c = NewFile(proxy_code_filename, "w")) == 0) {
         FileErrorDisplay(proxy_code_filename);
         SWIG_exit(EXIT_FAILURE);
       }
 
       String *proxy_header_filename = NewStringf("%s%s_proxy.h", SWIG_output_directory(), Char(module));
-      if ((f_proxy_h = NewFile(proxy_header_filename, "w", SWIG_output_files())) == 0) {
+      if ((f_proxy_h = NewFile(proxy_header_filename, "w")) == 0) {
         FileErrorDisplay(proxy_header_filename);
         SWIG_exit(EXIT_FAILURE);
       }

@@ -1,5 +1,5 @@
 TOP        = ../../..
-SWIG       = $(TOP)/../preinst-swig
+SWIG       = $(TOP)/../swig
 SWIGOPT    =
 SRCS       =
 TARGET     = simple
@@ -23,4 +23,3 @@ clean::
 	rm -f *.gif
 
 check: all
-	$(MAKE) -f $(TOP)/Makefile python_run

@@ -4,7 +4,7 @@
 
 #ifndef SWIG_CSTRING_UNIMPL
 
-%cstring_input_binary(char *str_in, int n);
+%cstring_input_binary(char *in, int n);
 %cstring_bounded_output(char *out1, 512);
 %cstring_chunk_output(char *out2, 64);
 %cstring_bounded_mutable(char *out3, 512);
@@ -22,13 +22,13 @@
 
 %inline %{
 
-int count(char *str_in, int n, char c) {
+int count(char *in, int n, char c) {
    int r = 0;
    while (n > 0) {
-     if (*str_in == c) {
+     if (*in == c) {
 	r++;
      }
-     str_in++;
+     in++;
      --n;
    }
    return r;

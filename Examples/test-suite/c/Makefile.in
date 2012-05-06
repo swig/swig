@@ -34,8 +34,6 @@ C_CPP_TEST_BROKEN = \
     li_windows \
     long_long_apply
 
-INTERFACEDIR = ../../
-
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup)

@@ -13,7 +13,6 @@
 #include <process.h>
 #else
 #include <pthread.h>
-#include <signal.h>
 #include <unistd.h>
 #endif
 
@@ -28,8 +27,6 @@ extern "C" {
   void* working(void* t);
   pthread_t thread;
 #endif
-  static int thread_terminate = 0;
-  
 }
 %}
 
@@ -52,15 +49,6 @@ extern "C" {
     }
     
     virtual ~Foo()  {
-    }
-
-    void stop() {
-      thread_terminate = 1;
-    %#ifdef _WIN32
-      /*TODO(bhy) what to do for win32? */
-    %#else  
-      pthread_join(thread, NULL);
-    %#endif
     }
 
     void run() {
@@ -87,15 +75,10 @@ extern "C" {
 #endif
   {
     Foo* f = static_cast<Foo*>(t);
-    while ( ! thread_terminate ) {
+    while (1) {
       MilliSecondSleep(50);
       f->do_foo();
     }
-#ifdef _WIN32
-    /* TODO(bhy) what's the corresponding of pthread_exit in win32? */
-#else
-    pthread_exit(0);
-#endif
     return 0;
   }
 }

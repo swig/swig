@@ -16,6 +16,8 @@ extern "C" {
 #include <stdlib.h>
 #include <assert.h>
 
+#define SWIGR 1
+
 #if R_VERSION >= R_Version(2,6,0)
 #define VMAXTYPE void *
 #else

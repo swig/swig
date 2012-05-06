@@ -163,7 +163,7 @@ void SwigType_typesystem_init() {
  * already defined.  
  * ----------------------------------------------------------------------------- */
 
-int SwigType_typedef(SwigType *type, const_String_or_char_ptr name) {
+int SwigType_typedef(SwigType *type, String_or_char *name) {
   if (Getattr(current_typetab, name))
     return -1;			/* Already defined */
   if (Strcmp(type, name) == 0) {	/* Can't typedef a name to itself */
@@ -193,7 +193,7 @@ int SwigType_typedef(SwigType *type, const_String_or_char_ptr name) {
  * Defines a class in the current scope. 
  * ----------------------------------------------------------------------------- */
 
-int SwigType_typedef_class(const_String_or_char_ptr name) {
+int SwigType_typedef_class(String_or_char *name) {
   String *cname;
   /*  Printf(stdout,"class : '%s'\n", name); */
   if (Getattr(current_typetab, name))
@@ -232,7 +232,7 @@ String *SwigType_scope_name(Typetab *ttab) {
  * Creates a new scope
  * ----------------------------------------------------------------------------- */
 
-void SwigType_new_scope(const_String_or_char_ptr name) {
+void SwigType_new_scope(const String_or_char *name) {
   Typetab *s;
   Hash *ttab;
   String *qname;
@@ -539,7 +539,7 @@ static SwigType *typedef_resolve(Typetab *s, String *base) {
  * ----------------------------------------------------------------------------- */
 
 /* #define SWIG_DEBUG */
-SwigType *SwigType_typedef_resolve(const SwigType *t) {
+SwigType *SwigType_typedef_resolve(SwigType *t) {
   String *base;
   String *type = 0;
   String *r = 0;
@@ -840,7 +840,6 @@ SwigType *SwigType_typedef_resolve_all(SwigType *t) {
  *
  * Given a type declaration, this function tries to fully qualify it according to
  * typedef scope rules.
- * Inconsistency to be fixed: ::Foo returns ::Foo, whereas ::Foo * returns Foo *
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_typedef_qualified(SwigType *t) {
@@ -848,7 +847,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
   String *result;
   int i, len;
 
-  if (strncmp(Char(t), "::", 2) == 0) {
+  if (t && strncmp(Char(t), "::", 2) == 0) {
     return Copy(t);
   }
 
@@ -1072,7 +1071,7 @@ int SwigType_istypedef(SwigType *t) {
  * Name is a qualified name like A::B.
  * ----------------------------------------------------------------------------- */
 
-int SwigType_typedef_using(const_String_or_char_ptr name) {
+int SwigType_typedef_using(String_or_char *name) {
   String *base;
   String *td;
   String *prefix;
@@ -1416,7 +1415,7 @@ static Hash *r_remembered = 0;	/* Hash of types we remembered already */
 
 static void (*r_tracefunc) (SwigType *t, String *mangled, String *clientdata) = 0;
 
-void SwigType_remember_mangleddata(String *mangled, const_String_or_char_ptr clientdata) {
+void SwigType_remember_mangleddata(String *mangled, const String_or_char *clientdata) {
   if (!r_mangleddata) {
     r_mangleddata = NewHash();
   }
@@ -1424,7 +1423,7 @@ void SwigType_remember_mangleddata(String *mangled, const_String_or_char_ptr cli
 }
 
 
-void SwigType_remember_clientdata(SwigType *t, const_String_or_char_ptr clientdata) {
+void SwigType_remember_clientdata(SwigType *t, const String_or_char *clientdata) {
   String *mt;
   SwigType *lt;
   Hash *h;

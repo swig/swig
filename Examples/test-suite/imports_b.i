@@ -34,14 +34,9 @@
 */
 
 #if 0
-  %import "imports_a.i"
+%import "imports_a.i"
 #else
-#  if 0
-  // Test Warning 401 (Python only)
-  %import "imports_a.h" 
-#  else
-  %import(module="imports_a") "imports_a.h" 
-#  endif
+%import(module="imports_a") "imports_a.h" 
 #endif
 
 %include "imports_b.h"  

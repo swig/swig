@@ -1,9 +1,8 @@
 TOP        = ../../..
-SWIG       = $(TOP)/../preinst-swig
-SWIGOPT    = -outcurrentdir
+SWIG       = $(TOP)/../swig
+SWIGOPT    = -I../../Interface
 SRCS       =
 TARGET     = gifplot
-INTERFACEDIR = ../../Interface/
 INTERFACE  = gifplot.i
 LIBS       = -L../.. -lgifplot
 INCLUDES   = -I../../Include
@@ -11,12 +10,12 @@ INCLUDES   = -I../../Include
 all::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' INTERFACEDIR='$(INTERFACEDIR)' python
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' python
 
 static::
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	INCLUDES='$(INCLUDES)' LIBS='$(LIBS)' SWIGOPT='$(SWIGOPT)' \
-	TARGET='mypython' INTERFACE='$(INTERFACE)' INTERFACEDIR='$(INTERFACEDIR)' python_static
+	TARGET='mypython' INTERFACE='$(INTERFACE)' python_static
 
 clean::
 	$(MAKE) -f $(TOP)/Makefile python_clean
@@ -24,4 +23,3 @@ clean::
 	rm -f *.gif
 
 check: all
-	$(MAKE) -f $(TOP)/Makefile python_run

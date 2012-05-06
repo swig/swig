@@ -36,15 +36,15 @@
 
 %include <std_except.i>
 
-%fragment(SWIG_Traits_frag(swig::SwigPtr_PyObject),"header",fragment="StdTraits") {
+%fragment(SWIG_Traits_frag(swig::PyObject_ptr),"header",fragment="StdTraits") {
 namespace swig {
-  template <>  struct traits<SwigPtr_PyObject > {
+  template <>  struct traits<PyObject_ptr > {
     typedef value_category category;
-    static const char* type_name() { return  "SwigPtr_PyObject"; }
+    static const char* type_name() { return  "PyObject_ptr"; }
   };
   
-  template <>  struct traits_from<SwigPtr_PyObject> {
-    typedef SwigPtr_PyObject value_type;
+  template <>  struct traits_from<PyObject_ptr> {
+    typedef PyObject_ptr value_type;
     static PyObject *from(const value_type& val) {
       PyObject *obj = static_cast<PyObject *>(val);
       Py_XINCREF(obj);
@@ -53,14 +53,14 @@ namespace swig {
   };
   
   template <> 
-  struct traits_check<SwigPtr_PyObject, value_category> {
-    static bool check(SwigPtr_PyObject) {
+  struct traits_check<PyObject_ptr, value_category> {
+    static bool check(PyObject_ptr) {
       return true;
     }
   };
   
-  template <>  struct traits_asval<SwigPtr_PyObject > {   
-    typedef SwigPtr_PyObject value_type;
+  template <>  struct traits_asval<PyObject_ptr > {   
+    typedef PyObject_ptr value_type;
     static int asval(PyObject *obj, value_type *val) {
       if (val) *val = obj;
       return SWIG_OK;
@@ -69,15 +69,15 @@ namespace swig {
 }
 }
 
-%fragment(SWIG_Traits_frag(swig::SwigVar_PyObject),"header",fragment="StdTraits") {
+%fragment(SWIG_Traits_frag(swig::PyObject_var),"header",fragment="StdTraits") {
 namespace swig {
-  template <>  struct traits<SwigVar_PyObject > {
+  template <>  struct traits<PyObject_var > {
     typedef value_category category;
-    static const char* type_name() { return  "SwigVar_PyObject"; }
+    static const char* type_name() { return  "PyObject_var"; }
   };
   
-  template <>  struct traits_from<SwigVar_PyObject> {
-    typedef SwigVar_PyObject value_type;
+  template <>  struct traits_from<PyObject_var> {
+    typedef PyObject_var value_type;
     static PyObject *from(const value_type& val) {
       PyObject *obj = static_cast<PyObject *>(val);
       Py_XINCREF(obj);
@@ -86,14 +86,14 @@ namespace swig {
   };
   
   template <> 
-  struct traits_check<SwigVar_PyObject, value_category> {
-    static bool check(SwigVar_PyObject) {
+  struct traits_check<PyObject_var, value_category> {
+    static bool check(PyObject_var) {
       return true;
     }
   };
   
-  template <>  struct traits_asval<SwigVar_PyObject > {   
-    typedef SwigVar_PyObject value_type;
+  template <>  struct traits_asval<PyObject_var > {   
+    typedef PyObject_var value_type;
     static int asval(PyObject *obj, value_type *val) {
       if (val) *val = obj;
       return SWIG_OK;
@@ -102,7 +102,7 @@ namespace swig {
 } 
 }
 
-%fragment("SwigPySequence_Base","header")
+%fragment("PySequence_Base","header")
 {
 %#include <functional>
 
@@ -115,38 +115,27 @@ namespace std {
     { 
       bool res;
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-      res = PyObject_RichCompareBool(v, w, Py_LT) ? true : false;
-      /* This may fall into a case of inconsistent
-               eg. ObjA > ObjX > ObjB
-               but ObjA < ObjB
-      */
-      if( PyErr_Occurred() && PyErr_ExceptionMatches(PyExc_TypeError) )
-      {
-        /* Objects can't be compared, this mostly occured in Python 3.0 */
-        /* Compare their ptr directly for a workaround */
-        res = (v < w);
-        PyErr_Clear();
-      }
+      res = PyObject_Compare(v, w) < 0;
       SWIG_PYTHON_THREAD_END_BLOCK;
       return res;
     }
   };
 
   template <>
-  struct less <swig::SwigPtr_PyObject>: public binary_function<swig::SwigPtr_PyObject, swig::SwigPtr_PyObject, bool>
+  struct less <swig::PyObject_ptr>: public binary_function<swig::PyObject_ptr, swig::PyObject_ptr, bool>
   {
     bool
-    operator()(const swig::SwigPtr_PyObject& v, const swig::SwigPtr_PyObject& w) const
+    operator()(const swig::PyObject_ptr& v, const swig::PyObject_ptr& w) const
     {
       return std::less<PyObject *>()(v, w);
     }
   };
 
   template <>
-  struct less <swig::SwigVar_PyObject>: public binary_function<swig::SwigVar_PyObject, swig::SwigVar_PyObject, bool>
+  struct less <swig::PyObject_var>: public binary_function<swig::PyObject_var, swig::PyObject_var, bool>
   {
     bool
-    operator()(const swig::SwigVar_PyObject& v, const swig::SwigVar_PyObject& w) const
+    operator()(const swig::PyObject_var& v, const swig::PyObject_var& w) const
     {
       return std::less<PyObject *>()(v, w);
     }
@@ -288,24 +277,24 @@ namespace swig {
 }
 }
 
-%fragment("SwigPySequence_Cont","header",
+%fragment("PySequence_Cont","header",
 	  fragment="StdTraits",
-	  fragment="SwigPySequence_Base",
-	  fragment="SwigPyIterator_T")
+	  fragment="PySequence_Base",
+	  fragment="PySwigIterator_T")
 {
 namespace swig
 {
   template <class T>
-  struct SwigPySequence_Ref
+  struct PySequence_Ref
   {
-    SwigPySequence_Ref(PyObject* seq, int index)
+    PySequence_Ref(PyObject* seq, int index)
       : _seq(seq), _index(index)
     {
     }
     
     operator T () const
     {
-      swig::SwigVar_PyObject item = PySequence_GetItem(_seq, _index);
+      swig::PyObject_var item = PySequence_GetItem(_seq, _index);
       try {
 	return swig::as<T>(item, true);
       } catch (std::exception& e) {
@@ -320,7 +309,7 @@ namespace swig
       }
     }
 
-    SwigPySequence_Ref& operator=(const T& v)
+    PySequence_Ref& operator=(const T& v)
     {
       PySequence_SetItem(_seq, _index, swig::from<T>(v));
       return *this;
@@ -332,18 +321,18 @@ namespace swig
   };
 
   template <class T>
-  struct SwigPySequence_ArrowProxy
+  struct PySequence_ArrowProxy
   {
-    SwigPySequence_ArrowProxy(const T& x): m_value(x) {}
+    PySequence_ArrowProxy(const T& x): m_value(x) {}
     const T* operator->() const { return &m_value; }
     operator const T*() const { return &m_value; }
     T m_value;
   };
 
   template <class T, class Reference >
-  struct SwigPySequence_InputIterator
+  struct PySequence_InputIterator
   {
-    typedef SwigPySequence_InputIterator<T, Reference > self;
+    typedef PySequence_InputIterator<T, Reference > self;
 
     typedef std::random_access_iterator_tag iterator_category;
     typedef Reference reference;
@@ -351,11 +340,11 @@ namespace swig
     typedef T* pointer;
     typedef int difference_type;
 
-    SwigPySequence_InputIterator()
+    PySequence_InputIterator()
     {
     }
 
-    SwigPySequence_InputIterator(PyObject* seq, int index)
+    PySequence_InputIterator(PyObject* seq, int index)
       : _seq(seq), _index(index)
     {
     }
@@ -365,9 +354,9 @@ namespace swig
       return reference(_seq, _index);
     }
 
-    SwigPySequence_ArrowProxy<T>
+    PySequence_ArrowProxy<T>
     operator->() const {
-      return SwigPySequence_ArrowProxy<T>(operator*());
+      return PySequence_ArrowProxy<T>(operator*());
     }
 
     bool operator==(const self& ri) const
@@ -436,19 +425,19 @@ namespace swig
   };
 
   template <class T>
-  struct SwigPySequence_Cont
+  struct PySequence_Cont
   {
-    typedef SwigPySequence_Ref<T> reference;
-    typedef const SwigPySequence_Ref<T> const_reference;
+    typedef PySequence_Ref<T> reference;
+    typedef const PySequence_Ref<T> const_reference;
     typedef T value_type;
     typedef T* pointer;
     typedef int difference_type;
     typedef int size_type;
     typedef const pointer const_pointer;
-    typedef SwigPySequence_InputIterator<T, reference> iterator;
-    typedef SwigPySequence_InputIterator<T, const_reference> const_iterator;
+    typedef PySequence_InputIterator<T, reference> iterator;
+    typedef PySequence_InputIterator<T, const_reference> const_iterator;
 
-    SwigPySequence_Cont(PyObject* seq) : _seq(0)
+    PySequence_Cont(PyObject* seq) : _seq(0)
     {
       if (!PySequence_Check(seq)) {
 	throw std::invalid_argument("a sequence is expected");
@@ -457,7 +446,7 @@ namespace swig
       Py_INCREF(_seq);
     }
 
-    ~SwigPySequence_Cont()
+    ~PySequence_Cont()
     {
       Py_XDECREF(_seq);
     }
@@ -506,7 +495,7 @@ namespace swig
     {
       int s = size();
       for (int i = 0; i < s; ++i) {
-	swig::SwigVar_PyObject item = PySequence_GetItem(_seq, i);
+	swig::PyObject_var item = PySequence_GetItem(_seq, i);
 	if (!swig::check<value_type>(item)) {
 	  if (set_err) {
 	    char msg[1024];
@@ -533,40 +522,40 @@ namespace swig
   class const_iterator;
   class const_reverse_iterator;
 
-  %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
+  %typemap(out,noblock=1,fragment="PySequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
     $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
-				 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN);
+				 swig::PySwigIterator::descriptor(),SWIG_POINTER_OWN);
   }
-  %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
+  %typemap(out,noblock=1,fragment="PySequence_Cont")
     std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
     $result = PyTuple_New(2);
     PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-						 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));
+						 swig::PySwigIterator::descriptor(),SWIG_POINTER_OWN));
     PyTuple_SetItem($result,1,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
-						 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));    
+						 swig::PySwigIterator::descriptor(),SWIG_POINTER_OWN));    
   }
 
-  %fragment("SwigPyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="SwigPySequence_Cont") {}
+  %fragment("PyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="PySequence_Cont") {}
 
-  %typemap(out,noblock=1,fragment="SwigPyPairBoolOutputIterator")
+  %typemap(out,noblock=1,fragment="PyPairBoolOutputIterator")
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
     $result = PyTuple_New(2);
     PyTuple_SetItem($result,0,SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-					       swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));    
+					       swig::PySwigIterator::descriptor(),SWIG_POINTER_OWN));    
     PyTuple_SetItem($result,1,SWIG_From(bool)(%static_cast($1,const $type &).second));
   }
 
-  %typemap(in,noblock=1,fragment="SwigPySequence_Cont")
-    iterator(swig::SwigPyIterator *iter = 0, int res),
-    reverse_iterator(swig::SwigPyIterator *iter = 0, int res),
-    const_iterator(swig::SwigPyIterator *iter = 0, int res),
-    const_reverse_iterator(swig::SwigPyIterator *iter = 0, int res) {
-    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::SwigPyIterator::descriptor(), 0);
+  %typemap(in,noblock=1,fragment="PySequence_Cont")
+    iterator(swig::PySwigIterator *iter = 0, int res),
+    reverse_iterator(swig::PySwigIterator *iter = 0, int res),
+    const_iterator(swig::PySwigIterator *iter = 0, int res),
+    const_reverse_iterator(swig::PySwigIterator *iter = 0, int res) {
+    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::PySwigIterator::descriptor(), 0);
     if (!SWIG_IsOK(res) || !iter) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     } else {
-      swig::SwigPyIterator_T<$type > *iter_t = dynamic_cast<swig::SwigPyIterator_T<$type > *>(iter);
+      swig::PySwigIterator_T<$type > *iter_t = dynamic_cast<swig::PySwigIterator_T<$type > *>(iter);
       if (iter_t) {
 	$1 = iter_t->get_current();
       } else {
@@ -575,18 +564,18 @@ namespace swig
     }
   }
 
-  %typecheck(%checkcode(ITERATOR),noblock=1,fragment="SwigPySequence_Cont")
+  %typecheck(%checkcode(ITERATOR),noblock=1,fragment="PySequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    swig::SwigPyIterator *iter = 0;
-    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::SwigPyIterator::descriptor(), 0);
-    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::SwigPyIterator_T<$type > *>(iter) != 0));
+    swig::PySwigIterator *iter = 0;
+    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::PySwigIterator::descriptor(), 0);
+    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::PySwigIterator_T<$type > *>(iter) != 0));
   }
 
-  %fragment("SwigPySequence_Cont");
+  %fragment("PySequence_Cont");
 
   %newobject iterator(PyObject **PYTHON_SELF);
   %extend  {
-    swig::SwigPyIterator* iterator(PyObject **PYTHON_SELF) {
+    swig::PySwigIterator* iterator(PyObject **PYTHON_SELF) {
       return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
 
@@ -608,11 +597,6 @@ namespace swig
       return !(self->empty());
     }
 
-    /* Alias for Python 3 compatibility */
-    bool __bool__() const {
-      return !(self->empty());
-    }
-
     size_type __len__() const {
       return self->size();
     }
@@ -623,7 +607,7 @@ namespace swig
   %swig_sequence_iterator(%arg(Sequence))
   %swig_container_methods(%arg(Sequence))
   
-  %fragment("SwigPySequence_Base");
+  %fragment("PySequence_Base");
 
   %extend {
     value_type pop() throw (std::out_of_range) {
@@ -632,14 +616,6 @@ namespace swig
       Sequence::value_type x = self->back();
       self->pop_back();
       return x;
-    }
-
-    /* typemap for slice object support */
-    %typemap(in) PySliceObject* {
-      $1 = (PySliceObject *) $input;
-    }
-    %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) PySliceObject* {
-      $1 = PySlice_Check($input);
     }
 
     Sequence* __getslice__(difference_type i, difference_type j) throw (std::out_of_range) {
@@ -658,43 +634,6 @@ namespace swig
     void __delitem__(difference_type i) throw (std::out_of_range) {
       self->erase(swig::getpos(self,i));
     }
-
-
-    /* Overloaded methods for Python 3 compatibility 
-     * (Also useful in Python 2.x)
-     */
-    Sequence* __getitem__(PySliceObject *slice) throw (std::out_of_range) {
-      Py_ssize_t i, j, step;
-      if( !PySlice_Check(slice) ) {
-        SWIG_Error(SWIG_TypeError, "Slice object expected.");
-        return NULL;
-      }
-      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
-      return swig::getslice(self, i, j);
-    }
-
-    void __setitem__(PySliceObject *slice, const Sequence& v)
-      throw (std::out_of_range, std::invalid_argument) {
-      Py_ssize_t i, j, step;
-      if( !PySlice_Check(slice) ) {
-        SWIG_Error(SWIG_TypeError, "Slice object expected.");
-        return;
-      }
-      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
-      swig::setslice(self, i, j, v);
-    }
-
-    void __delitem__(PySliceObject *slice)
-      throw (std::out_of_range) {
-      Py_ssize_t i, j, step;
-      if( !PySlice_Check(slice) ) {
-        SWIG_Error(SWIG_TypeError, "Slice object expected.");
-        return;
-      }
-      PySlice_GetIndices(slice, self->size(), &i, &j, &step);
-      swig::delslice(self, i,j);
-    }
-     
   }
 %enddef
 
@@ -740,16 +679,16 @@ namespace swig
 
 %fragment("StdSequenceTraits","header",
 	  fragment="StdTraits",
-	  fragment="SwigPySequence_Cont")
+	  fragment="PySequence_Cont")
 {
 namespace swig {
-  template <class SwigPySeq, class Seq>
+  template <class PySeq, class Seq>
   inline void
-  assign(const SwigPySeq& swigpyseq, Seq* seq) {
-    // seq->assign(swigpyseq.begin(), swigpyseq.end()); // not used as not always implemented
-    typedef typename SwigPySeq::value_type value_type;
-    typename SwigPySeq::const_iterator it = swigpyseq.begin();
-    for (;it != swigpyseq.end(); ++it) {
+  assign(const PySeq& pyseq, Seq* seq) {
+    // seq->assign(pyseq.begin(), pyseq.end()); // not used as not always implemented
+    typedef typename PySeq::value_type value_type;
+    typename PySeq::const_iterator it = pyseq.begin();
+    for (;it != pyseq.end(); ++it) {
       seq->insert(seq->end(),(value_type)(*it));
     }
   }
@@ -769,14 +708,14 @@ namespace swig {
 	}
       } else if (PySequence_Check(obj)) {
 	try {
-	  SwigPySequence_Cont<value_type> swigpyseq(obj);
+	  PySequence_Cont<value_type> pyseq(obj);
 	  if (seq) {
 	    sequence *pseq = new sequence();
-	    assign(swigpyseq, pseq);
+	    assign(pyseq, pseq);
 	    *seq = pseq;
 	    return SWIG_NEWOBJ;
 	  } else {
-	    return swigpyseq.check() ? SWIG_OK : SWIG_ERROR;
+	    return pyseq.check() ? SWIG_OK : SWIG_ERROR;
 	  }
 	} catch (std::exception& e) {
 	  if (seq) {

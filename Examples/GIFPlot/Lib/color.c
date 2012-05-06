@@ -132,10 +132,7 @@ int ColorMap_write(ColorMap *cm, char *filename) {
 
   f = fopen(filename,"w");
   
-  if (fwrite(cm->cmap,768,1,f) != 1) {
-    fclose(f);
-    return -1;
-  }
+  fwrite(cm->cmap,768,1,f);
   fclose(f);
   return 0;
 }

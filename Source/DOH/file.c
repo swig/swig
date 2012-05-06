@@ -228,16 +228,15 @@ static DohObjInfo DohFileType = {
  * NewFile()
  *
  * Create a new file from a given filename and mode.
- * If newfiles is non-zero, the filename is added to the list of new files.
  * ----------------------------------------------------------------------------- */
 
-DOH *DohNewFile(DOH *filename, const char *mode, DOHList *newfiles) {
+DOH *DohNewFile(DOH *fn, const char *mode) {
   DohFile *f;
   FILE *file;
-  char *filen;
+  char *filename;
 
-  filen = Char(filename);
-  file = fopen(filen, mode);
+  filename = Char(fn);
+  file = fopen(filename, mode);
   if (!file)
     return 0;
 
@@ -246,8 +245,6 @@ DOH *DohNewFile(DOH *filename, const char *mode, DOHList *newfiles) {
     fclose(file);
     return 0;
   }
-  if (newfiles)
-    Append(newfiles, filename);
   f->filep = file;
   f->fd = 0;
   f->closeondel = 1;
