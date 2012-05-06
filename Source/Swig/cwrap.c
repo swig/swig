@@ -513,8 +513,7 @@ String *Swig_cppconstructor_base_call(String_or_char *name, ParmList *parms, int
 	pname = Swig_cparm_name(p, i);
 	i++;
       } else {
-        pname = Getattr(p, "value");
-	if (pname)
+	if ((pname = Getattr(p, "value")))
 	  pname = Copy(pname);
 	else
 	  pname = Copy(Getattr(p, "name"));

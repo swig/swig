@@ -614,8 +614,7 @@ void Swig_scopename_split(String *s, String **rprefix, String **rlast) {
     *rlast = Copy(s);
   }
 
-  co = strstr(cc, "operator ");
-  if (co) {
+  if ((co = strstr(cc, "operator "))) {
     if (co == cc) {
       *rprefix = 0;
       *rlast = Copy(s);
@@ -665,9 +664,7 @@ String *Swig_scopename_prefix(String *s) {
   char *co = 0;
   if (!strstr(c, "::"))
     return 0;
-  co = strstr(cc, "operator ");
-
-  if (co) {
+  if ((co = strstr(cc, "operator "))) {
     if (co == cc) {
       return 0;
     } else {
@@ -718,8 +715,7 @@ String *Swig_scopename_last(String *s) {
   if (!strstr(c, "::"))
     return NewString(s);
 
-  co = strstr(cc, "operator ");
-  if (co) {
+  if ((co = strstr(cc, "operator "))) {
     return NewString(co);
   }
 
@@ -760,9 +756,7 @@ String *Swig_scopename_first(String *s) {
   char *co = 0;
   if (!strstr(c, "::"))
     return 0;
-
-  co = strstr(c, "operator ");
-  if (co) {
+  if ((co = strstr(c, "operator "))) {
     if (co == c) {
       return 0;
     }
@@ -810,9 +804,7 @@ String *Swig_scopename_suffix(String *s) {
   char *co = 0;
   if (!strstr(c, "::"))
     return 0;
-
-  co = strstr(c, "operator ");
-  if (co) {
+  if ((co = strstr(c, "operator "))) {
     if (co == c)
       return 0;
   }
@@ -850,9 +842,8 @@ String *Swig_scopename_suffix(String *s) {
 
 int Swig_scopename_check(String *s) {
   char *c = Char(s);
-  char *co = strstr(c, "operator ");
-
-  if (co) {
+  char *co = 0;
+  if ((co = strstr(c, "operator "))) {
     if (co == c)
       return 0;
   }

@@ -1,6 +1,6 @@
 fvirtual
 
-sw = NodeSwitch();
+sw = Switch();
 n = Node();
 i = sw.addChild(n);
 

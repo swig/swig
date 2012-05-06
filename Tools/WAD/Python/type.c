@@ -62,7 +62,7 @@ new_wadobject(WadFrame *f, int count) {
 /* release a wad object */
 static void
 wadobject_dealloc(wadobject *self) {
-  PyObject_Del(self);
+  PyMem_DEL(self);
 }
 
 static char message[65536];

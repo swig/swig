@@ -937,8 +937,7 @@ String *SwigType_templateargs(const SwigType *t) {
 
 int SwigType_istemplate(const SwigType *t) {
   char *ct = Char(t);
-  ct = strstr(ct, "<(");
-  if (ct && (strstr(ct + 2, ")>")))
+  if ((ct = strstr(ct, "<(")) && (strstr(ct + 2, ")>")))
     return 1;
   return 0;
 }

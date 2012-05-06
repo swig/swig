@@ -7,25 +7,26 @@ using namespace std;
 class Bar
 {
  public:
-   virtual void bar () {
-     cout << "bar" << endl;
-   }
-   virtual ~Bar() {}
+  virtual void bar ()
+    {
+      cout << "bar" << endl;
+    }
 };
 
 class Foo
 {
  public:
-   virtual void foo () {
-     cout << "foo" << endl;
-   }
-   virtual ~Foo() {}
+  virtual void foo ()
+    {
+      cout << "foo" << endl;
+    }
 };
 
 class Foo_Bar : public Foo, public Bar
 {
  public:
-   virtual void fooBar () {
-     cout << "foobar" << endl;
-   }
+  virtual void fooBar ()
+    {
+      cout << "foobar" << endl;
+    }
 };

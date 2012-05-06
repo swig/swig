@@ -352,8 +352,7 @@ char *Swig_file_filename(const String_or_char *filename) {
   char *c;
 
   strcpy(tmp, Char(filename));
-  c = strrchr(tmp, *delim);
-  if (c)
+  if ((c = strrchr(tmp, *delim)))
     return c + 1;
   else
     return tmp;

@@ -1773,6 +1773,7 @@ public:
 	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
 	break;
       }
+      p = nextSibling(p);
     }
 
     /* finish argument marshalling */
