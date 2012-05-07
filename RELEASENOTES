@@ -4,6 +4,9 @@ and CHANGES files.
 
 Release Notes
 =============
+SWIG-2.0.6 summary:
+- Regression fix for Python STL wrappers on some systems.
+
 SWIG-2.0.5 summary:
 - Official Android support added including documentation and examples.
 - Improvements involving templates:
