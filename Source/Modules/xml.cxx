@@ -1,6 +1,10 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
  *
  * xml.cxx
  *
@@ -47,7 +51,7 @@ public:
 	iX++;
 	Swig_mark_arg(iX);
 	String *outfile = NewString(argv[iX]);
-	out = NewFile(outfile, "w");
+	out = NewFile(outfile, "w", SWIG_output_files());
 	if (!out) {
 	  FileErrorDisplay(outfile);
 	  SWIG_exit(EXIT_FAILURE);
@@ -82,7 +86,7 @@ public:
       Replaceall(outfile, ".cxx", ".xml");
       Replaceall(outfile, ".cpp", ".xml");
       Replaceall(outfile, ".c", ".xml");
-      out = NewFile(outfile, "w");
+      out = NewFile(outfile, "w", SWIG_output_files());
       if (!out) {
 	FileErrorDisplay(outfile);
 	SWIG_exit(EXIT_FAILURE);
@@ -140,6 +144,8 @@ public:
 	Xml_print_kwargs(Getattr(obj, k));
       } else if (Cmp(k, "parms") == 0 || Cmp(k, "pattern") == 0) {
 	Xml_print_parmlist(Getattr(obj, k));
+      } else if (Cmp(k, "catchlist") == 0) {
+	Xml_print_parmlist(Getattr(obj, k), "catchlist");
       } else {
 	DOH *o;
 	print_indent(0);
@@ -194,10 +200,10 @@ public:
   }
 
 
-  void Xml_print_parmlist(ParmList *p) {
+  void Xml_print_parmlist(ParmList *p, const char* markup = "parmlist") {
 
     print_indent(0);
-    Printf(out, "<parmlist id=\"%ld\" addr=\"%x\" >\n", ++id, p);
+    Printf(out, "<%s id=\"%ld\" addr=\"%x\" >\n", markup, ++id, p);
     indent_level += 4;
     while (p) {
       print_indent(0);
@@ -209,7 +215,7 @@ public:
     }
     indent_level -= 4;
     print_indent(0);
-    Printf(out, "</parmlist >\n");
+    Printf(out, "</%s >\n", markup);
   }
 
   void Xml_print_baselist(List *p) {
@@ -301,7 +307,7 @@ void Swig_print_xml(DOH *obj, String *filename) {
   if (!filename) {
     out = stdout;
   } else {
-    out = NewFile(filename, "w");
+    out = NewFile(filename, "w", SWIG_output_files());
     if (!out) {
       FileErrorDisplay(filename);
       SWIG_exit(EXIT_FAILURE);

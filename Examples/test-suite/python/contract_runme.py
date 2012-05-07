@@ -133,3 +133,11 @@ try:
 except:
 	pass
 
+#Namespace
+my = contract.myClass(1)
+try:
+	my = contract.myClass(0)
+	print "Failed! constructor preassertion"
+except:
+	pass
+

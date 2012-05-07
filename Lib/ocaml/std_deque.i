@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * std_deque.i
  *
  * Default std_deque wrapper
@@ -28,4 +25,4 @@
    }
 };
 
-%include <_std_deque.i>
+%include <std/_std_deque.i>

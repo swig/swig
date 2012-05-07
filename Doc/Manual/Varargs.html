@@ -270,20 +270,36 @@ traceprintf(arg1, NULL);
 
 <p>
 Arguably, this approach seems to defeat the whole point of variable length arguments.  However,
-this actually provides enough support for many simple kinds of varargs functions to still be useful.  For
-instance, you could make function calls like this (in Python):
+this actually provides enough support for many simple kinds of varargs functions to still be useful, however it does come with a caveat.
+For instance, you could make function calls like this (in Python):
 </p>
 
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; traceprintf("Hello World")
 &gt;&gt;&gt; traceprintf("Hello %s. Your number is %d\n" % (name, num))
+&gt;&gt;&gt; traceprintf("Your result is 90%%.")
 </pre>
 </div>
 
 <p>
 Notice how string formatting is being done in Python instead of C. 
+The caveat is the strings passed must be safe to use in C though.
+For example if name was to contain a "%" it should be double escaped in order to avoid unpredictable 
+behaviour:
 </p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; traceprintf("Your result is 90%.\n")  # unpredictable behaviour
+&gt;&gt;&gt; traceprintf("Your result is 90%%.\n") # good
+</pre>
+</div>
+
+<p>
+Read on for further solutions.
+</p>
+
 
 <H2><a name="Varargs_nn5"></a>13.4 Argument replacement using %varargs</H2>
 
@@ -315,33 +331,82 @@ int open(const char *path, int oflags, int mode = 0);
 <p>
 In this case, <tt>%varargs</tt> is simply providing more specific information about the
 extra arguments that might be passed to a function.  
-If the parameters to a varargs function are of uniform type, <tt>%varargs</tt> can also
+If the arguments to a varargs function are of uniform type, <tt>%varargs</tt> can also
 accept a numerical argument count as follows:
 </p>
 
 <div class="code">
 <pre>
-%varargs(10,char *arg = NULL) execlp;
+%varargs(3, char *str = NULL) execlp;
 ...
-int execlp(const char *path, const char *arg1, ...);
+int execlp(const char *path, const char *arg, ...);
 </pre>
 </div>
 
 <p>
-This would wrap <tt>execlp()</tt> as a function that accepted up to 10 optional arguments.
+and is effectively seen as:
+</p>
+
+<div class="code">
+<pre>
+int execlp(const char *path, const char *arg, 
+           char *str1 = NULL, 
+           char *str2 = NULL, 
+           char *str3 = NULL);
+</pre>
+</div>
+
+<p>
+This would wrap <tt>execlp()</tt> as a function that accepted up to 3 optional arguments.
 Depending on the application, this may be more than enough for practical purposes.
 </p>
 
 <p>
-Argument replacement is most appropriate in cases where the types of
-the extra arguments is uniform and the maximum number of arguments is
-known.  When replicated argument replacement is used, at least one extra
-argument is added to the end of the arguments when making the function call. 
-This argument serves as a sentinel to make sure the list is properly terminated.
-It has the same value as that supplied to the <tt>%varargs</tt> directive.
+The handling of <a href="SWIGPlus.html#SWIGPlus_default_args">default arguments</a> can be changed via the
+<tt>compactdefaultargs</tt> feature. If this feature is used, for example
+</p>
+
+<div class="code">
+<pre>
+%feature("compactdefaultargs") execlp;
+%varargs(3, char *str = NULL) execlp;
+...
+int execlp(const char *path, const char *arg, ...);
+</pre>
+</div>
+
+<p>
+a call from the target language which does not provide the maximum number of arguments, such as,
+<tt>execlp("a", "b", "c")</tt>
+will generate C code which includes the missing default values, that is, <tt>execlp("a", "b", "c", NULL, NULL)</tt>. 
+If <tt>compactdefaultargs</tt> is not used, then the generated code will be
+<tt>execlp("a", "b", "c")</tt>. The former is useful for helping providing a sentinel to terminate the argument list.
+However, this is not guaranteed, for example when a user passes a non-NULL value for all the parameters.
+When using <tt>compactdefaultargs</tt> it is possible to guarantee the NULL sentinel is passed through the, 
+<tt>numinputs=0</tt> <a href="Typemaps.html#Typemaps_nn26">'in' typemap attribute</a>, naming the <b>last parameter</b>.
+For example,
+</p>
+
+<div class="code">
+<pre>
+%feature("compactdefaultargs") execlp;
+%varargs(3, char *str = NULL) execlp;
+%typemap(in, numinputs=0) char *str3 ""
+...
+int execlp(const char *path, const char *arg, ...);
+</pre>
+</div>
+
+<p>
+Note that <tt>str3</tt> is the name of the last argument, as we have used <tt>%vargars</tt> with 3.
+Now <tt>execlp("a", "b", "c", "d", "e")</tt> will result in an error as one too many arguments has been passed,
+as now only 2 additional 'str' arguments can be passed with the 3rd one always using the specified default <tt>NULL</tt>.
 </p>
 
 <p>
+Argument replacement is most appropriate in cases where the types of
+the extra arguments are uniform and the maximum number of arguments are
+known. 
 Argument replacement is not as useful when working with functions that accept
 mixed argument types such as <tt>printf()</tt>.  Providing general purpose
 wrappers to such functions presents special problems (covered shortly).  
@@ -445,23 +510,36 @@ like this:
 <div class="code">
 <pre>
 %typemap(in) (...)(char *args[10]) {
-    int i;
-    int argc;
-    for (i = 0; i &lt; 10; i++) args[i] = 0;
-    argc = PyTuple_Size(varargs);
-    if (argc &gt; 10) {
-       PyErr_SetString(PyExc_ValueError,"Too many arguments");
+  int i;
+  int argc;
+  for (i = 0; i &lt; 10; i++) args[i] = 0;
+  argc = PyTuple_Size(varargs);
+  if (argc &gt; 10) {
+    PyErr_SetString(PyExc_ValueError, "Too many arguments");
+    return NULL;
+  }
+  for (i = 0; i &lt; argc; i++) {
+    PyObject *pyobj = PyTuple_GetItem(varargs, i);
+    char *str = 0;
+%#if PY_VERSION_HEX&gt;=0x03000000
+    PyObject *pystr;
+    if (!PyUnicode_Check(pyobj)) {
+       PyErr_SetString(PyExc_ValueError, "Expected a string");
        return NULL;
     }
-    for (i = 0; i &lt; argc; i++) {
-       PyObject *o = PyTuple_GetItem(varargs,i);
-       if (!PyString_Check(o)) {
-           PyErr_SetString(PyExc_ValueError,"Expected a string");
-           return NULL;
-       }
-       args[i] = PyString_AsString(o);
+    pystr = PyUnicode_AsUTF8String(pyobj);
+    str = PyBytes_AsString(pystr);
+    Py_XDECREF(pystr);
+%#else  
+    if (!PyString_Check(pyobj)) {
+       PyErr_SetString(PyExc_ValueError, "Expected a string");
+       return NULL;
     }
-    $1 = (void *) args;
+    str = PyString_AsString(pyobj);
+%#endif
+    args[i] = str;
+  }
+  $1 = (void *) args;
 }
 </pre>
 </div>

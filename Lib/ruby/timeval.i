@@ -58,6 +58,11 @@ struct timeval rb_time_timeval(VALUE);
 	$1 = NUM2LONG(rb_funcall($input, rb_intern("tv_sec"), 0));
 }
 
+%typemap(typecheck) time_t
+{
+  $1 = (NIL_P($input) || TYPE(rb_funcall($input, rb_intern("respond_to?"), 1, ID2SYM(rb_intern("tv_sec")))) == T_TRUE);
+}
+
 %typemap(out) time_t
 {
     $result = rb_time_new($1, 0);

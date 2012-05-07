@@ -3,12 +3,6 @@
 
 %module template_classes
 
-
-#pragma SWIG nowarn=SWIGWARN_PARSE_NESTED_CLASS
-
-%{
-%}
-
 %inline %{
 
 template <class T>
@@ -27,26 +21,20 @@ public:
 private:
   Point<T> point;
 
-
   template <class Data>
   struct pair2nd_eq
   {
   };
-  
-  
-
 
   struct Foo : Point<int>
   {
   };
   
   Foo foo;
-  
 };
 
 %}
 
 %template(PointInt) Point<int>;
 %template(RectangleInt) RectangleTest<int>;
-
 

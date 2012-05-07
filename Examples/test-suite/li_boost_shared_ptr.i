@@ -34,15 +34,18 @@
 # define SWIG_SHARED_PTR_NAMESPACE SwigBoost
 #endif
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 
 %include <boost_shared_ptr.i>
-SWIG_SHARED_PTR(Klass, Space::Klass)
-SWIG_SHARED_PTR_DERIVED(KlassDerived, Space::Klass, Space::KlassDerived)
+%shared_ptr(Space::Klass)
+%shared_ptr(Space::KlassDerived)
+%shared_ptr(Space::Klass2ndDerived)
+%shared_ptr(Space::Klass3rdDerived)
+%shared_ptr(IgnoredMultipleInheritBase) // IgnoredMultipleInheritBase not actually used in any wrapped functions, so this isn't entirely necessary and warning 520 could instead have been suppressed.
 
 #endif
 
@@ -101,7 +104,13 @@ private:
 };
 SwigExamples::CriticalSection Space::Klass::critical_section;
 
-struct IgnoredMultipleInheritBase { virtual ~IgnoredMultipleInheritBase() {} double d; double e;};
+struct IgnoredMultipleInheritBase { 
+  IgnoredMultipleInheritBase() : d(0.0), e(0.0) {}
+  virtual ~IgnoredMultipleInheritBase() {} 
+  double d; 
+  double e;
+  virtual void AVirtualMethod() {} 
+};
 
 // For most compilers, this use of multiple inheritance results in different derived and base class 
 // pointer values ... for some more challenging tests :)
@@ -142,7 +151,21 @@ SwigBoost::shared_ptr<KlassDerived>*& derivedsmartptrpointerreftest(SwigBoost::s
   return kd;
 }
 
+// 3 classes in inheritance chain test
+struct Klass2ndDerived : Klass {
+  Klass2ndDerived() : Klass() {}
+  Klass2ndDerived(const std::string &val) : Klass(val) {}
+};
+struct Klass3rdDerived : IgnoredMultipleInheritBase, Klass2ndDerived {
+  Klass3rdDerived() : Klass2ndDerived() {}
+  Klass3rdDerived(const std::string &val) : Klass2ndDerived(val) {}
+  virtual ~Klass3rdDerived() {}
+  virtual std::string getValue() const { return Klass2ndDerived::getValue() + "-3rdDerived"; }
+};
 
+std::string test3rdupcast( SwigBoost::shared_ptr< Klass > k) {
+  return k->getValue();
+}
 
 
 
@@ -194,7 +217,7 @@ Klass& reftest(Klass& k) {
   k.append(" reftest");
   return k;
 }
-Klass*& pointerreftest(Klass*& k) {
+Klass *const& pointerreftest(Klass *const& k) {
   k->append(" pointerreftest");
   return k;
 }
@@ -217,8 +240,14 @@ SwigBoost::shared_ptr<Klass>* smartpointerpointerownertest() {
   return new SwigBoost::shared_ptr<Klass>(new Klass("smartpointerpointerownertest"));
 }
 
-// Provide overloads for Klass and KlassDerived as some language modules, eg Python, create an extra reference in
+// Provide overloads for Klass and derived classes as some language modules, eg Python, create an extra reference in
 // the marshalling if an upcast to a base class is required.
+long use_count(const SwigBoost::shared_ptr<Klass3rdDerived>& sptr) {
+  return sptr.use_count();
+}
+long use_count(const SwigBoost::shared_ptr<Klass2ndDerived>& sptr) {
+  return sptr.use_count();
+}
 long use_count(const SwigBoost::shared_ptr<KlassDerived>& sptr) {
   return sptr.use_count();
 }
@@ -241,7 +270,7 @@ std::string overload_rawbyptr(int i) { return "int"; }
 std::string overload_rawbyptr(Klass *k) { return "rawbyptr"; }
 
 std::string overload_rawbyptrref(int i) { return "int"; }
-std::string overload_rawbyptrref(Klass *&k) { return "rawbyptrref"; }
+std::string overload_rawbyptrref(Klass *const&k) { return "rawbyptrref"; }
 
 
 
@@ -289,10 +318,8 @@ Space::Klass & GlobalReference = GlobalValue;
 #if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 
 // Note: %template after the shared_ptr typemaps
-SWIG_SHARED_PTR(BaseIntDouble, Base<int, double>)
-// Note: cannot use Base<int, double> in the macro below because of the comma in the type, 
-// so we use a typedef instead. Alternatively use %arg(Base<int, double>). %arg is defined in swigmacros.swg.
-SWIG_SHARED_PTR_DERIVED(PairIntDouble, BaseIntDouble_t, Pair<int, double>)
+%shared_ptr(Base<int, double>)
+%shared_ptr(Pair<int, double>)
 
 #endif
 
@@ -305,7 +332,6 @@ template <class T1, class T2> struct Base {
   Base(T1 t1, T2 t2) : baseVal1(t1*2), baseVal2(t2*2) {}
   virtual std::string getValue() const { return "Base<>"; };
 };
-typedef Base<int, double> BaseIntDouble_t;
 %}
 
 %template(BaseIntDouble) Base<int, double>;

@@ -122,3 +122,11 @@ struct JObjectTest {
 
 %}
 
+%javaexception("Exception") etest "$action" 
+%inline %{
+struct JavaExceptionTest {
+  virtual ~JavaExceptionTest() {}
+  virtual void etest() {}
+};
+%}
+

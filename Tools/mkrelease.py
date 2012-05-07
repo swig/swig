@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # This script builds the SWIG source tarball, creates the Windows executable and the Windows zip package
-# and uploads them both to SF ready for release
+# and uploads them both to SF ready for release. Also uploaded are the release notes.
 import sys
 import string
 import os
@@ -18,11 +18,11 @@ try:
    username = sys.argv[2]
 except:
    print "Usage: python mkrelease.py version username"
-   print "where version should be 1.3.x and username is your SF username"
+   print "where version should be x.y.z and username is your SF username"
    sys.exit(1)
 
-print "Looking for wput"
-os.system("which wput") and failed("wput not installed/found. Please install.")
+print "Looking for rsync"
+os.system("which rsync") and failed("rsync not installed/found. Please install.")
 
 print "Making source tarball"
 os.system("python ./mkdist.py " + version) and failed("")
@@ -30,10 +30,22 @@ os.system("python ./mkdist.py " + version) and failed("")
 print "Build Windows package"
 os.system("./mkwindows.sh " + version) and failed("")
 
-print "Uploading to Sourceforge"
-os.system("wput --verbose --binary swig-" + version + ".tar.gz ftp://anonymous:" + username + "@users.sourceforge.net@upload.sourceforge.net/incoming/") and failed("")
-os.system("wput --verbose --binary swigwin-" + version + ".zip ftp://anonymous:" + username + "@users.sourceforge.net@upload.sourceforge.net/incoming/") and failed("")
+print "Uploading to SourceForge"
 
+swig_dir_sf = username + ",swig@frs.sourceforge.net:/home/frs/project/s/sw/swig/swig/swig-" + version + "/"
+swigwin_dir_sf = username + ",swig@frs.sourceforge.net:/home/frs/project/s/sw/swig/swigwin/swigwin-" + version + "/"
+
+# If a file with 'readme' in the name exists in the same folder as the zip/tarball, it gets automatically displayed as the release notes by SF
+full_readme_file = "readme-" + version + ".txt"
+os.system("rm -f " + full_readme_file)
+os.system("cat swig-" + version + "/README " + "swig-" + version + "/CHANGES.current " + "swig-" + version + "/RELEASENOTES " + "> " + full_readme_file)
+
+os.system("rsync --archive --verbose -P --times -e ssh " + "swig-" + version + ".tar.gz " + full_readme_file + " " + swig_dir_sf) and failed("")
+os.system("rsync --archive --verbose -P --times -e ssh " + "swigwin-" + version + ".zip " + full_readme_file + " " + swigwin_dir_sf) and failed("")
+
+print "Tagging release"
 os.system("svn copy -m \"rel-" + version + "\" https://swig.svn.sourceforge.net/svnroot/swig/trunk https://swig.svn.sourceforge.net/svnroot/swig/tags/rel-" + version + "/")
 
 print "Finished"
+
+print "Now log in to SourceForge and set the operating system and link the release notes to each of the tarball and zip file in the File Manager."

@@ -48,7 +48,7 @@ li_std_string::test_reference($stringPtr);
 
 # Check throw exception specification
 eval { li_std_string::test_throw() };
-is($@, "test_throw message", "Test 5");
+like($@, qr/^test_throw message/, "Test 5");
 { local $TODO = "why is the error not a Perl string?";
 eval { li_std_string::test_const_reference_throw() };
 is($@, "<some kind of string>", "Test 6");
@@ -98,7 +98,7 @@ SKIP: {
 is($gen1->testl("9234567890121111113"), "9234567890121111114", "ulonglong big number");
 
 
-is(li_std_string::empty(), "", "empty");
+is(li_std_string::stdstring_empty(), "", "stdstring_empty");
 
 is(li_std_string::c_empty(),  "", "c_empty");
 
@@ -110,4 +110,4 @@ is(li_std_string::get_null(li_std_string::c_null()), undef, "c_empty");
 
 is(li_std_string::get_null(li_std_string::c_empty()), "non-null", "c_empty");
 
-is(li_std_string::get_null(li_std_string::empty()), "non-null", "c_empty");
+is(li_std_string::get_null(li_std_string::stdstring_empty()), "non-null", "stdstring_empty");

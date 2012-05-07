@@ -1,12 +1,8 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * wchar.i
  *
  * Typemaps for the wchar_t type
  * These are mapped to a Lua string and are passed around by value.
- *
  * ----------------------------------------------------------------------------- */
 
 // note: only support for pointer right now, not fixed length strings
@@ -16,11 +12,11 @@
 %{
 #include <stdlib.h>
 	
-wchar_t* str2wstr(const char* str, int len)
+wchar_t* str2wstr(const char *str, int len)
 {
   wchar_t* p;
   if (str==0 || len<1)  return 0;
-  p=(wchar*)malloc((len+1)*sizeof(wchar_t));
+  p=(wchar *)malloc((len+1)*sizeof(wchar_t));
   if (p==0)	return 0;
   if (mbstowcs(p, str, len)==-1)
   {
@@ -32,13 +28,13 @@ wchar_t* str2wstr(const char* str, int len)
 }
 %}
 
-%typemap( in, checkfn="lua_isstring" ) wchar_t*
+%typemap(in, checkfn="SWIG_lua_isnilstring", fragment="SWIG_lua_isnilstring") wchar_t *
 %{
-$1 = str2wstr(lua_tostring( L, $input ),lua_strlen( L, $input ));
+$1 = str2wstr(lua_tostring( L, $input ),lua_rawlen( L, $input ));
 if ($1==0) {lua_pushfstring(L,"Error in converting to wchar (arg %d)",$input);goto fail;}
 %}
 
-%typemap( freearg ) wchar_t*
+%typemap(freearg) wchar_t *
 %{
 free($1);
 %}

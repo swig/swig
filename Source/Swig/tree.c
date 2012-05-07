@@ -1,6 +1,10 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
  *
  * tree.c
  *
@@ -30,7 +34,7 @@ void Swig_print_tags(DOH *obj, DOH *root) {
     croot = root;
 
   while (obj) {
-    Printf(stdout, "%s . %s (%s:%d)\n", croot, nodeType(obj), Getfile(obj), Getline(obj));
+    Swig_diagnostic(Getfile(obj), Getline(obj), "%s . %s\n", croot, nodeType(obj));
     cobj = firstChild(obj);
     if (cobj) {
       newroot = NewStringf("%s . %s", croot, nodeType(obj));
@@ -229,7 +233,7 @@ Node *copyNode(Node *n) {
  * checkAttribute()
  * ----------------------------------------------------------------------------- */
 
-int checkAttribute(Node *n, const String_or_char *name, const String_or_char *value) {
+int checkAttribute(Node *n, const_String_or_char_ptr name, const_String_or_char_ptr value) {
   String *v = Getattr(n, name);
   return v ? Equal(v, value) : 0;
 }
@@ -268,7 +272,7 @@ void Swig_require(const char *ns, Node *n, ...) {
     }
     obj = Getattr(n, name);
     if (!opt && !obj) {
-      Printf(stderr, "%s:%d. Fatal error (Swig_require).  Missing attribute '%s' in node '%s'.\n", Getfile(n), Getline(n), name, nodeType(n));
+      Swig_error(Getfile(n), Getline(n), "Fatal error (Swig_require).  Missing attribute '%s' in node '%s'.\n", name, nodeType(n));
       assert(obj);
     }
     if (!obj)
@@ -287,10 +291,10 @@ void Swig_require(const char *ns, Node *n, ...) {
     if (view) {
       if (Strcmp(view, ns) != 0) {
 	Setattr(n, NewStringf("%s:view", ns), view);
-	Setattr(n, "view", ns);
+	Setattr(n, "view", NewString(ns));
       }
     } else {
-      Setattr(n, "view", ns);
+      Setattr(n, "view", NewString(ns));
     }
   }
 }
@@ -333,10 +337,10 @@ void Swig_save(const char *ns, Node *n, ...) {
     if (view) {
       if (Strcmp(view, ns) != 0) {
 	Setattr(n, NewStringf("%s:view", ns), view);
-	Setattr(n, "view", ns);
+	Setattr(n, "view", NewString(ns));
       }
     } else {
-      Setattr(n, "view", ns);
+      Setattr(n, "view", NewString(ns));
     }
   }
 }

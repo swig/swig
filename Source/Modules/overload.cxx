@@ -1,6 +1,10 @@
 /* ----------------------------------------------------------------------------- 
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
  *
  * overload.cxx
  *
@@ -55,7 +59,7 @@ void Wrapper_cast_dispatch_mode_set(int flag) {
  * languages ignore the first method parsed.
  * ----------------------------------------------------------------------------- */
 
-static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
+List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
   Overloaded nodes[MAX_OVERLOAD];
   int nnodes = 0;
   Node *o = Getattr(n, "sym:overloaded");
@@ -223,13 +227,16 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		  if (!nodes[j].error) {
 		    if (script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				   "Overloaded method %s ignored. Non-const method %s at %s:%d used.\n",
-				   Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n), Getfile(nodes[i].n), Getline(nodes[i].n));
+				   "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
+				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
 		    } else {
-		      if (!Getattr(nodes[j].n, "overload:ignore"))
+		      if (!Getattr(nodes[j].n, "overload:ignore")) {
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-				     "Overloaded method %s ignored. Method %s at %s:%d used.\n",
-				     Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n), Getfile(nodes[i].n), Getline(nodes[i].n));
+				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		      }
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -238,13 +245,16 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 		  if (!nodes[j].error) {
 		    if (script_lang_wrapping) {
 		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[j].n), Getline(nodes[j].n),
-				   "Overloaded method %s ignored. Non-const method %s at %s:%d used.\n",
-				   Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n), Getfile(nodes[i].n), Getline(nodes[i].n));
+				   "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		      Swig_warning(WARN_LANG_OVERLOAD_CONST, Getfile(nodes[i].n), Getline(nodes[i].n),
+				   "using non-const method %s instead.\n", Swig_name_decl(nodes[i].n));
 		    } else {
-		      if (!Getattr(nodes[j].n, "overload:ignore"))
+		      if (!Getattr(nodes[j].n, "overload:ignore")) {
 			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-				     "Overloaded method %s ignored. Method %s at %s:%d used.\n",
-				     Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n), Getfile(nodes[i].n), Getline(nodes[i].n));
+				     "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+			Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+				     "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		      }
 		    }
 		  }
 		  nodes[j].error = 1;
@@ -258,15 +268,16 @@ static List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	    if (!nodes[j].error) {
 	      if (script_lang_wrapping) {
 		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[j].n), Getline(nodes[j].n),
-			     "Overloaded method %s is shadowed by %s at %s:%d.\n",
-			     Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n),
-			     Getfile(nodes[i].n), Getline(nodes[i].n));
+			     "Overloaded method %s effectively ignored,\n", Swig_name_decl(nodes[j].n));
+		Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(nodes[i].n), Getline(nodes[i].n),
+			     "as it is shadowed by %s.\n", Swig_name_decl(nodes[i].n));
 	      } else {
-		if (!Getattr(nodes[j].n, "overload:ignore"))
+		if (!Getattr(nodes[j].n, "overload:ignore")) {
 		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[j].n), Getline(nodes[j].n),
-			       "Overloaded method %s ignored. Method %s at %s:%d used.\n",
-			       Swig_name_decl(nodes[j].n), Swig_name_decl(nodes[i].n),
-			       Getfile(nodes[i].n), Getline(nodes[i].n));
+			       "Overloaded method %s ignored,\n", Swig_name_decl(nodes[j].n));
+		  Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(nodes[i].n), Getline(nodes[i].n),
+			       "using %s instead.\n", Swig_name_decl(nodes[i].n));
+		}
 	      }
 	      nodes[j].error = 1;
 	    }
@@ -316,7 +327,7 @@ static bool print_typecheck(String *f, int j, Parm *pj) {
  * ReplaceFormat()
  * ----------------------------------------------------------------------------- */
 
-static String *ReplaceFormat(const String_or_char *fmt, int j) {
+static String *ReplaceFormat(const_String_or_char_ptr fmt, int j) {
   String *lfmt = NewString(fmt);
   char buf[50];
   sprintf(buf, "%d", j);
@@ -352,7 +363,7 @@ static String *ReplaceFormat(const String_or_char *fmt, int j) {
 /*
   Cast dispatch mechanism.
 */
-String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *maxargs) {
+String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *maxargs) {
   int i, j;
 
   *maxargs = 1;
@@ -378,16 +389,11 @@ String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *max
     int num_arguments = emit_num_arguments(pi);
     if (num_arguments > *maxargs)
       *maxargs = num_arguments;
-    int varargs = emit_isvarargs(pi);
 
-    if (!varargs) {
-      if (num_required == num_arguments) {
-	Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
-      } else {
-	Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
-      }
+    if (num_required == num_arguments) {
+      Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
     } else {
-      Printf(f, "if (%s >= %d) {\n", argc_template_string, num_required);
+      Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
     }
     Printf(f, "SWIG_TypeRank _ranki = 0;\n");
     Printf(f, "SWIG_TypeRank _rankm = 0;\n");
@@ -536,7 +542,7 @@ String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *max
 /*
   Fast dispatch mechanism, provided by  Salvador Fandi~no Garc'ia (#930586).
 */
-String *Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *maxargs) {
+String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *maxargs) {
   int i, j;
 
   *maxargs = 1;
@@ -557,16 +563,11 @@ String *Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *max
     int num_arguments = emit_num_arguments(pi);
     if (num_arguments > *maxargs)
       *maxargs = num_arguments;
-    int varargs = emit_isvarargs(pi);
 
-    if (!varargs) {
-      if (num_required == num_arguments) {
-	Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
-      } else {
-	Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
-      }
+    if (num_required == num_arguments) {
+      Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
     } else {
-      Printf(f, "if (%s >= %d) {\n", argc_template_string, num_required);
+      Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
     }
 
     /* create a list with the wrappers that collide with the
@@ -695,7 +696,7 @@ String *Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *max
   return f;
 }
 
-String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs) {
+String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxargs) {
 
   if (fast_dispatch_mode || GetFlag(n, "feature:fastdispatch")) {
     return Swig_overload_dispatch_fast(n, fmt, maxargs);
@@ -718,18 +719,17 @@ String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs)
     Parm *pi = Getattr(ni, "wrap:parms");
     int num_required = emit_num_required(pi);
     int num_arguments = emit_num_arguments(pi);
+    if (GetFlag(n, "wrap:this")) {
+      num_required++;
+      num_arguments++;
+    }
     if (num_arguments > *maxargs)
       *maxargs = num_arguments;
-    int varargs = emit_isvarargs(pi);
 
-    if (!varargs) {
-      if (num_required == num_arguments) {
-	Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
-      } else {
-	Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
-      }
+    if (num_required == num_arguments) {
+      Printf(f, "if (%s == %d) {\n", argc_template_string, num_required);
     } else {
-      Printf(f, "if (%s >= %d) {\n", argc_template_string, num_required);
+      Printf(f, "if ((%s >= %d) && (%s <= %d)) {\n", argc_template_string, num_required, argc_template_string, num_arguments);
     }
 
     if (num_arguments) {
@@ -751,7 +751,7 @@ String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *maxargs)
 	Printf(f, "}\n");
 	Delete(lfmt);
       }
-      if (print_typecheck(f, j, pj)) {
+      if (print_typecheck(f, (GetFlag(n, "wrap:this") ? j + 1 : j), pj)) {
 	Printf(f, "if (_v) {\n");
 	num_braces++;
       }

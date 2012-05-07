@@ -188,14 +188,6 @@ if t.var_namet != 'hol':
   raise RuntimeError
 
 
-if t.strlen('hile') != 4:
-  print t.strlen('hile')
-  raise RuntimeError, "bad string typemap"
-
-if t.strlen('hil\0') != 4:
-  raise RuntimeError, "bad string typemap"
-
-
 cvar.var_char = '\0'
 if cvar.var_char != '\0':
   raise RuntimeError, "bad char '0' case"
@@ -243,9 +235,6 @@ pchar_setitem(pc, 2, 'l')
 pchar_setitem(pc, 3, 'a')
 pchar_setitem(pc, 4, 0)
 
-
-if t.strlen(pc) != 4:
-  raise RuntimeError, "bad string typemap"
 
 cvar.var_pchar = pc
 if cvar.var_pchar != "hola":

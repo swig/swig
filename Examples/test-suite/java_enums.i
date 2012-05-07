@@ -58,3 +58,9 @@ static const int FOUR = 4;
 %inline %{
 enum Numero { Quattro = FOUR };
 %}
+
+// Test boolean enums
+%inline %{
+typedef enum { PLAY = true, STOP = false } play_state;
+%}
+

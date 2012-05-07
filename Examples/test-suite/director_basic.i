@@ -10,7 +10,7 @@
    virtual std::string ping() { return "Foo::ping()"; }
    virtual std::string pong() { return "Foo::pong();" + ping(); }
 
-   static Foo* get_self(Foo *self) {return self;}
+   static Foo* get_self(Foo *slf) {return slf;}
    
  };
 
@@ -27,7 +27,7 @@
    virtual std::string ping();
    virtual std::string pong();
    
-   static Foo* get_self(Foo *self);
+   static Foo* get_self(Foo *slf);
    
  };
 
@@ -112,12 +112,14 @@ public:
     return vmethod(b);
   }  
 
-
   static MyClass *get_self(MyClass *c) 
   {
     return c;
   }
-  
+
+  static Bar * call_pmethod(MyClass *myclass, Bar *b) {
+    return myclass->pmethod(b);
+  }
 };
 
 template<class T>

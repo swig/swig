@@ -115,12 +115,12 @@ SOURCE=.\spam.i
 InputPath=.\spam.i
 InputName=spam
 
-"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.cxx" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo RUBY_INCLUDE: %RUBY_INCLUDE% 
 	echo RUBY_LIB: %RUBY_LIB% 
 	echo on 
-	..\..\..\swig -c++ -ruby $(InputPath) 
+	..\..\..\swig.exe -c++ -ruby $(InputPath) 
 	
 # End Custom Build
 
@@ -130,12 +130,12 @@ InputName=spam
 InputPath=.\spam.i
 InputName=spam
 
-"$(InputName)_wrap.c" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"$(InputName)_wrap.cxx" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	echo In order to function correctly, please ensure the following environment variables are correctly set: 
 	echo RUBY_INCLUDE: %RUBY_INCLUDE% 
 	echo RUBY_LIB: %RUBY_LIB% 
 	echo on 
-	..\..\..\swig -c++ -ruby $(InputPath) 
+	..\..\..\swig.exe -c++ -ruby $(InputPath) 
 	
 # End Custom Build
 

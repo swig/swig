@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * carrays.i
  *
  * SWIG library file containing macros that can be used to manipulate simple
@@ -76,9 +73,8 @@ void NAME##_setitem(TYPE *ary, int index, TYPE value);
 %{
 typedef TYPE NAME;
 %}
-typedef struct NAME {
+typedef struct {
   /* Put language specific enhancements here */
-
 } NAME;
 
 %extend NAME {

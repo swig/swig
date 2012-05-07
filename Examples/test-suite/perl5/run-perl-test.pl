@@ -7,7 +7,7 @@ use strict;
 
 my $command = shift @ARGV;
 
-my $output = `perl $command 2>&1`;
+my $output = `$^X $command 2>&1`;
 
 die "SWIG Perl test failed: \n\n$output\n"
   if $?;

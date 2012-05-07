@@ -54,14 +54,14 @@ void ShapeOwner::add(Shape* ptr) // this method takes ownership of the object
 
 Shape* ShapeOwner::get(int idx) // this pointer is still owned by the class (assessor)
 {
-    if (idx<0 || idx>=shapes.size())
+    if (idx < 0 || idx >= static_cast<int>(shapes.size()))
         return NULL;
     return shapes[idx];
 }
 
 Shape* ShapeOwner::remove(int idx) // this method returns memory which must be deleted
 {
-    if (idx<0 || idx>=shapes.size())
+    if (idx < 0 || idx >= static_cast<int>(shapes.size()))
         return NULL;
     Shape* ptr=shapes[idx];
     shapes.erase(shapes.begin()+idx);

@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * enums.swg
  *
  * Include this file in order for C/C++ enums to be wrapped by proper Java enums.
@@ -23,7 +20,7 @@
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const enum SWIGTYPE &
 %{ static $*1_ltype temp = ($*1_ltype)$input; 
    $result = &temp; %}
-%typemap(directorin, descriptor="L$packagepath/$*javaclassname;") const enum SWIGTYPE &    "$input = (jint)$1_name;"
+%typemap(directorin, descriptor="L$packagepath/$*javaclassname;") const enum SWIGTYPE & "$input = (jint)$1;"
 %typemap(javadirectorin) const enum SWIGTYPE & "$*javaclassname.swigToEnum($jniinput)"
 %typemap(javadirectorout) const enum SWIGTYPE & "($javacall).swigValue()"
 
@@ -48,7 +45,7 @@
 %typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
 
 %typemap(directorout) enum SWIGTYPE  %{ $result = ($1_ltype)$input; %}
-%typemap(directorin, descriptor="L$packagepath/$javaclassname;") enum SWIGTYPE    "$input = (jint) $1;"
+%typemap(directorin, descriptor="L$packagepath/$javaclassname;") enum SWIGTYPE "$input = (jint) $1;"
 %typemap(javadirectorin) enum SWIGTYPE "$javaclassname.swigToEnum($jniinput)"
 %typemap(javadirectorout) enum SWIGTYPE "($javacall).swigValue()"
 

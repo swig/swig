@@ -1,14 +1,14 @@
 /* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
+ *
  * doh.h
  *
  *     This file describes of the externally visible functions in DOH.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
- *
- * $Id$
  * ----------------------------------------------------------------------------- */
 
 #ifndef _DOH_H
@@ -144,6 +144,9 @@ typedef void DOH;
 #define DOHString_or_char  DOH
 #define DOHObj_or_char     DOH
 
+typedef const DOHString_or_char * const_String_or_char_ptr;
+typedef const DOHString_or_char * DOHconst_String_or_char_ptr;
+
 #define DOH_BEGIN          -1
 #define DOH_END            -2
 #define DOH_CUR            -3
@@ -218,7 +221,7 @@ extern int DohDelslice(DOH *obj, int sindex, int eindex);
 
 /* File methods */
 
-extern int DohWrite(DOHFile * obj, void *buffer, int length);
+extern int DohWrite(DOHFile * obj, const void *buffer, int length);
 extern int DohRead(DOHFile * obj, void *buffer, int length);
 extern int DohSeek(DOHFile * obj, long offset, int whence);
 extern long DohTell(DOHFile * obj);
@@ -234,9 +237,9 @@ extern DohIterator DohNext(DohIterator x);
 
 /* Positional */
 
-extern int DohGetline(DOH *obj);
+extern int DohGetline(const DOH *obj);
 extern void DohSetline(DOH *obj, int line);
-extern DOH *DohGetfile(DOH *obj);
+extern DOH *DohGetfile(const DOH *obj);
 extern void DohSetfile(DOH *obj, DOH *file);
 
   /* String Methods */
@@ -264,6 +267,8 @@ extern int DohIsSequence(const DOH *obj);
 extern int DohIsString(const DOH *obj);
 extern int DohIsFile(const DOH *obj);
 
+extern void DohSetMaxHashExpand(int count);
+extern int DohGetMaxHashExpand(void);
 extern void DohSetmark(DOH *obj, int x);
 extern int DohGetmark(DOH *obj);
 
@@ -271,10 +276,10 @@ extern int DohGetmark(DOH *obj);
  * Strings.
  * ----------------------------------------------------------------------------- */
 
-extern DOHString *DohNewStringEmpty();
-extern DOHString *DohNewString(const DOH *c);
-extern DOHString *DohNewStringWithSize(const DOH *c, int len);
-extern DOHString *DohNewStringf(const DOH *fmt, ...);
+extern DOHString *DohNewStringEmpty(void);
+extern DOHString *DohNewString(const DOHString_or_char *c);
+extern DOHString *DohNewStringWithSize(const DOHString_or_char *c, int len);
+extern DOHString *DohNewStringf(const DOHString_or_char *fmt, ...);
 
 extern int DohStrcmp(const DOHString_or_char *s1, const DOHString_or_char *s2);
 extern int DohStrncmp(const DOHString_or_char *s1, const DOHString_or_char *s2, int n);
@@ -289,6 +294,7 @@ extern char *DohStrchr(const DOHString_or_char *s1, int ch);
 #define   DOH_REPLACE_FIRST       0x08
 #define   DOH_REPLACE_ID_BEGIN    0x10
 #define   DOH_REPLACE_ID_END      0x20
+#define   DOH_REPLACE_NUMBER_END  0x40
 
 #define Replaceall(s,t,r)  DohReplace(s,t,r,DOH_REPLACE_ANY)
 #define Replaceid(s,t,r)   DohReplace(s,t,r,DOH_REPLACE_ID)
@@ -297,7 +303,7 @@ extern char *DohStrchr(const DOHString_or_char *s1, int ch);
  * Files
  * ----------------------------------------------------------------------------- */
 
-extern DOHFile *DohNewFile(DOH *file, const char *mode);
+extern DOHFile *DohNewFile(DOH *filename, const char *mode, DOHList *outfiles);
 extern DOHFile *DohNewFileFromFile(FILE *f);
 extern DOHFile *DohNewFileFromFd(int fd);
 extern void DohFileErrorDisplay(DOHString * filename);
@@ -309,14 +315,14 @@ extern int DohCopyto(DOHFile * input, DOHFile * output);
  * List
  * ----------------------------------------------------------------------------- */
 
-extern DOHList *DohNewList();
+extern DOHList *DohNewList(void);
 extern void DohSortList(DOH *lo, int (*cmp) (const DOH *, const DOH *));
 
 /* -----------------------------------------------------------------------------
  * Hash
  * ----------------------------------------------------------------------------- */
 
-extern DOHHash *DohNewHash();
+extern DOHHash *DohNewHash(void);
 
 /* -----------------------------------------------------------------------------
  * Void
@@ -421,6 +427,8 @@ extern void DohMemoryDebug(void);
 #define SplitLines         DohSplitLines
 #define Setmark            DohSetmark
 #define Getmark            DohGetmark
+#define SetMaxHashExpand   DohSetMaxHashExpand
+#define GetMaxHashExpand   DohGetMaxHashExpand
 #define None               DohNone
 #define Call               DohCall
 #define First              DohFirst

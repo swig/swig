@@ -122,7 +122,7 @@ InputName=example
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo PERL5_LIB: %PERL5_LIB% 
 	echo on 
-	..\..\..\swig -perl5 $(InputPath) 
+	..\..\..\swig.exe -perl5 $(InputPath) 
 	
 # End Custom Build
 
@@ -137,7 +137,7 @@ InputName=example
 	echo PERL5_INCLUDE: %PERL5_INCLUDE% 
 	echo PERL5_LIB: %PERL5_LIB% 
 	echo on 
-	..\..\..\swig -perl5 $(InputPath) 
+	..\..\..\swig.exe -perl5 $(InputPath) 
 	
 # End Custom Build
 

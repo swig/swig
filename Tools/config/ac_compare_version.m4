@@ -22,19 +22,19 @@ AC_DEFUN([AC_COMPARE_VERSION], [
 	isolate_b_regex='\([[0-9]]\+\).*'
 	for ver_part in $nodots_a ; do
 		b_ver_part=`echo "$ver_b" | sed -e 's/'"$isolate_b_regex"'/\1/'`
-		if test \( "$ver_part" -lt "$b_ver_part" \) -a \( "x$condition" == "xequal" \) ; then
+		if test \( "$ver_part" -lt "$b_ver_part" \) -a \( "x$condition" = "xequal" \) ; then
 			condition=less
-		elif test \( "$ver_part" -gt "$b_ver_part" \) -a \( "x$condition" == "xequal" \) ; then
+		elif test \( "$ver_part" -gt "$b_ver_part" \) -a \( "x$condition" = "xequal" \) ; then
 			condition=greater
 		fi
 		isolate_b_regex='[[0-9]]\+\.'"$isolate_b_regex"
 	done
 
-	if test "x$condition" == "xequal" ; then
+	if test "x$condition" = "xequal" ; then
 		[$4]
-	elif test "x$condition" == "xless" ; then
+	elif test "x$condition" = "xless" ; then
 		[$3]
-	elif test "x$condition" == "xgreater" ; then
+	elif test "x$condition" = "xgreater" ; then
 		[$5]
 	fi
 ])

@@ -24,7 +24,6 @@ struct StructWithEnums {
     enum SOME_ENUM& enum_test8() { return some_enum; };
 };
 
-
  struct Foo
  {   
    enum {Hi, Hello } hola;
@@ -41,3 +40,15 @@ extern "C"
 }
 
 %}
+
+// Using true and false in enums is legal in C++. Quoting the standard:
+// [dcl.enum]
+//     ... The constant-expression shall be of integral or enumeration type.
+// [basic.fundamental]
+//     ... Types bool, char, wchar_t, and the signed and unsigned integer
+//     types are collectively called integral types.
+// So this shouldn't lead to a warning, at least in C++ mode.
+%inline %{
+typedef enum { PLAY = true, STOP = false } play_state;
+%}
+

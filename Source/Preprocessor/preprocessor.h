@@ -1,13 +1,15 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
  *
  * preprocessor.h
  *
  * SWIG preprocessor module.
  * ----------------------------------------------------------------------------- */
-
-/* $Id$ */
 
 #ifndef SWIG_PREPROCESSOR_H_
 #define SWIG_PREPROCESSOR_H_
@@ -19,8 +21,8 @@ extern "C" {
 #endif
   extern int Preprocessor_expr(String *s, int *error);
   extern char *Preprocessor_expr_error(void);
-  extern Hash *Preprocessor_define(const String_or_char *str, int swigmacro);
-  extern void Preprocessor_undef(const String_or_char *name);
+  extern Hash *Preprocessor_define(const_String_or_char_ptr str, int swigmacro);
+  extern void Preprocessor_undef(const_String_or_char_ptr name);
   extern void Preprocessor_init(void);
   extern void Preprocessor_delete(void);
   extern String *Preprocessor_parse(String *s);

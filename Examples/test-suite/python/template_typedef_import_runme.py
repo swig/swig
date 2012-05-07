@@ -1,4 +1,3 @@
-import string
 from template_typedef_cplx2 import *
 from template_typedef_import import *
 

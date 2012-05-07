@@ -1,15 +1,11 @@
-/**
- * @file   rubywstrings.swg
- * @author 
- * @date   Fri May  4 17:49:40 2007
- * 
- * @brief  Currently, Ruby does not support Unicode or WChar properly, so these
- *         are still treated as char arrays for now.
- *         There are other libraries available that add support to this in
- *         ruby including WString, FXString, etc.
- * 
- * 
- */
+/* -----------------------------------------------------------------------------
+ * rubywstrings.swg
+ *
+ * Currently, Ruby does not support Unicode or WChar properly, so these
+ * are still treated as char arrays for now.
+ * There are other libraries available that add support to this in
+ * ruby including WString, FXString, etc.
+ * ----------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------
  *  utility methods for wchar_t strings 
@@ -29,7 +25,7 @@ SWIG_AsWCharPtrAndSize(VALUE obj, wchar_t **cptr, size_t *psize, int *alloc)
 //     }
 //   }
 //   if (ok) {
-//     int len = PyUnicode_GetSize(obj);
+//     Py_ssize_t len = PyUnicode_GetSize(obj);
 //     rb_notimplement();
 //     if (cptr) {
 //       *cptr = %new_array(len + 1, wchar_t);

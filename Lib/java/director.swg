@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * director.swg
  *
  * This file contains support for director classes that proxy
@@ -115,15 +112,29 @@ namespace Swig {
     class JNIEnvWrapper {
       const Director *director_;
       JNIEnv *jenv_;
+      int env_status;
     public:
-      JNIEnvWrapper(const Director *director) : director_(director), jenv_(0) {
-        director_->swig_jvm_->AttachCurrentThread((void **) &jenv_, NULL);
+      JNIEnvWrapper(const Director *director) : director_(director), jenv_(0), env_status(0) {
+#if defined(__ANDROID__)
+        JNIEnv **jenv = &jenv_;
+#else
+        void **jenv = (void **)&jenv_;
+#endif
+        env_status = director_->swig_jvm_->GetEnv((void **)&jenv_, JNI_VERSION_1_2);
+#if defined(SWIG_JAVA_ATTACH_CURRENT_THREAD_AS_DAEMON)
+        // Attach a daemon thread to the JVM. Useful when the JVM should not wait for 
+        // the thread to exit upon shutdown. Only for jdk-1.4 and later.
+        director_->swig_jvm_->AttachCurrentThreadAsDaemon(jenv, NULL);
+#else
+        director_->swig_jvm_->AttachCurrentThread(jenv, NULL);
+#endif
       }
       ~JNIEnvWrapper() {
-// Some JVMs, eg JDK 1.4.2 and lower on Solaris have a bug and crash with the DetachCurrentThread call.
-// However, without this call, the JVM hangs on exit when the thread was not created by the JVM and creates a memory leak.
 #if !defined(SWIG_JAVA_NO_DETACH_CURRENT_THREAD)
-        director_->swig_jvm_->DetachCurrentThread();
+        // Some JVMs, eg jdk-1.4.2 and lower on Solaris have a bug and crash with the DetachCurrentThread call.
+        // However, without this call, the JVM hangs on exit when the thread was not created by the JVM and creates a memory leak.
+        if (env_status == JNI_EDETACHED)
+          director_->swig_jvm_->DetachCurrentThread();
 #endif
       }
       JNIEnv *getJNIEnv() const {

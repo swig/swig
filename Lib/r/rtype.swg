@@ -3,17 +3,23 @@
    for use in class representations. 
  */
 
-%typemap("rtype") int, int *, int &      "numeric";
+%typemap("rtype") int, int *, int &      "integer";
 %apply int {size_t}
 %apply int {std::size_t}
 %apply int {ptrdiff_t}
 %apply int {std::ptrdiff_t}
+%apply int {signed int}
+%apply int {unsigned int}
+%apply int {short}
+%apply int {unsigned short}
 
-%typemap("rtype") long, long *    "numeric";
-%typemap("rtype") unsigned long, 
-                  unsigned long * "numeric";
-%typemap("rtype") unsigned int, 
-                  unsigned int *  "numeric";
+%typemap("rtype") long, long *, long &      "integer";
+%apply long {long long}
+%apply long {signed long long}
+%apply long {unsigned long long}
+%apply long {signed long}
+%apply long {unsigned long}
+
 %typemap("rtype") double, double*, double & "numeric";
 %typemap("rtype") float, float *, float &  "numeric";
 %typemap("rtype") char *, char ** "character";
@@ -23,27 +29,65 @@
 %typemap("rtype") bool, bool *    "logical";
 %typemap("rtype") enum SWIGTYPE   "character";
 %typemap("rtype") enum SWIGTYPE *   "character";
+%typemap("rtype") enum SWIGTYPE *const   "character";
 %typemap("rtype") enum SWIGTYPE &  "character";
 %typemap("rtype") SWIGTYPE * "$R_class";
+%typemap("rtype") SWIGTYPE *const "$R_class";
 %typemap("rtype") SWIGTYPE & "$R_class";
 %typemap("rtype") SWIGTYPE "$&R_class";
 
+%typemap("rtypecheck") int, int &, long, long &,
+  unsigned char, unsigned char &
+  %{ (is.integer($arg) || is.numeric($arg)) && length($arg) == 1 %}
+%typemap("rtypecheck") int *, long *, unsigned char *
+  %{ is.integer($arg) || is.numeric($arg) %}
 
+
+%typemap("rtypecheck") double, double &, float, float &
+  %{ is.numeric($arg) && length($arg) == 1 %}
+%typemap("rtypecheck") double*, float *
+  %{ is.numeric($arg) %}
+
+%typemap("rtypecheck") bool, bool &
+  %{ is.logical($arg) && length($arg) == 1 %}
+%typemap("rtypecheck") bool *
+  %{ is.logical($arg) %}
+
+/*
+  Set up type checks to insure overloading precedence.
+  We would like non pointer items to shadow pointer items, so that 
+  they get called if length = 1
+*/
+
+%typecheck(SWIG_TYPECHECK_BOOL) bool {}
+%typecheck(SWIG_TYPECHECK_UINT32) unsigned int {}
+%typecheck(SWIG_TYPECHECK_INTEGER) int {}
+%typecheck(SWIG_TYPECHECK_FLOAT) float {}
+%typecheck(SWIG_TYPECHECK_DOUBLE) double {}
+
+%typecheck(SWIG_TYPECHECK_BOOL_PTR) bool * {}
+%typecheck(SWIG_TYPECHECK_INT32_PTR) int * {}
+%typecheck(SWIG_TYPECHECK_FLOAT_PTR) float * {}
+%typecheck(SWIG_TYPECHECK_DOUBLE_PTR) double * {}
+%typecheck(SWIG_TYPECHECK_CHAR_PTR) char * {}
+
+%typecheck(SWIG_TYPECHECK_INT32_ARRAY) int[ANY] {}
+%typecheck(SWIG_TYPECHECK_FLOAT_ARRAY) float[ANY] {}
+%typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) double [ANY] {}
 
 /* Have to be careful that as(x, "numeric") is different from as.numeric(x).  
    The latter makes a REALSXP, whereas the former leaves an INTSXP as an
    INTSXP.
 */
 
+/* Force coercion of integer, since by default R sets all constants to
+   numeric, which means that you can't directly call a function with an 
+   integer using an R numercal literal */
 
 %typemap(scoercein) int, int *, int &
-  %{  $input = as($input, "integer");     %}
-%typemap(scoercein) ptrdiff_t, ptrdiff_t *, ptrdiff_t &
-  %{  $input = as($input, "integer");     %}
-%typemap(scoercein) unsigned long, unsigned long *, unsigned long &
-  %{  $input = as($input, "integer");     %}
-%typemap(scoercein) unsigned int, unsigned int *, unsigned int &
-  %{  $input = as($input, "integer");     %}
+  %{  $input = as.integer($input);     %}
+%typemap(scoercein) long, long *, long &
+  %{  $input = as.integer($input);     %}
 %typemap(scoercein) double, double *, double &
   %{ %}
 %typemap(scoercein) float, float *, float &
@@ -55,18 +99,20 @@
 %typemap(scoercein) std::string, std::string *, std::string &
   %{  $input = as($input, "character");     %}
 %typemap(scoercein) enum SWIGTYPE 
-  %{  $input = enumToInteger($input, "$R_class") %}
+  %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE &
-  %{  $input = enumToInteger($input, "$R_class") %}
+  %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE *
-  %{  $input = enumToInteger($input, "$R_class") %}
+  %{  $input = enumToInteger($input, "$R_class"); %}
+%typemap(scoercein) enum SWIGTYPE *const
+  %{  $input = enumToInteger($input, "$R_class"); %}
 
 
-%typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE &  
+%typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &  
   %{ %}
 
 /*
-%typemap(scoercein) SWIGTYPE * 
+%typemap(scoercein) SWIGTYPE *, SWIGTYPE *const
   %{ $input = coerceIfNotSubclass($input, "$R_class") %}
 
 %typemap(scoercein) SWIGTYPE & 
@@ -79,107 +125,92 @@
 %typemap(scoercein) SWIGTYPE[ANY]  
  %{
     if(is.list($input))
-      assert(all(sapply($input, class) == "$R_class"))     
+      assert(all(sapply($input, class) == "$R_class"));
  %}
 
 
 /* **************************************************************** */
 
 %typemap(scoercein) bool, bool *, bool & 
-		    "$input = as.logical($input) ";
-/*
+		    "$input = as.logical($input);";
 %typemap(scoercein) int, 
                     int *, 
 		    int &,
                     int[ANY],
-		    size_t,
-		    std::size_t,
-		    size_t &,
-		    std::size_t &
-  "$input = as.integer($input) ";
-
-
-%typemap(scoercein) unsigned int, 
-                    unsigned long,
-                    double, 
-                    float,
-                    long,
-                    long long,
-     	            unsigned int[], 
-                    unsigned long[],
-                    double[], 
-                    float[],
-                    long[],
-                    long long[],
-     	            unsigned int[ANY], 
-                    unsigned long[ANY],
-                    double[ANY], 
-                    float[ANY],
-                    long[ANY],
-                    long long[ANY],
-     	            unsigned int *, 
-                    unsigned long *,
-                    double*, 
-                    float*,
-                    long*,
-                    long long *
-%{  $input = as.numeric($input) %}
-*/
+		    long,
+		    long *,
+		    long &,
+		    long[ANY]
+  "$input = as.integer($input); ";
 
 %typemap(scoercein) char *, string, std::string,
 string &, std::string &
-%{  $input = as($input, "character") %}
+%{  $input = as($input, "character"); %}
 
 %typemap(scoerceout) enum SWIGTYPE 
-  %{  $result = enumFromInteger($result, "$R_class") %}
+  %{  $result = enumFromInteger($result, "$R_class"); %}
 
 %typemap(scoerceout) enum SWIGTYPE &
-  %{  $result = enumFromInteger($result, "$R_class") %}
+  %{  $result = enumFromInteger($result, "$R_class"); %}
 
 %typemap(scoerceout) enum SWIGTYPE *
-  %{  $result = enumToInteger($result, "$R_class") %}
+  %{  $result = enumToInteger($result, "$R_class"); %}
+
+%typemap(scoerceout) enum SWIGTYPE *const
+  %{  $result = enumToInteger($result, "$R_class"); %}
 
 
 %typemap(scoerceout) SWIGTYPE 
-  %{ class($result) <- "$&R_class" %}
+  %{ class($result) <- "$&R_class"; %}
 
 %typemap(scoerceout) SWIGTYPE & 
-  %{ class($result) <- "$R_class" %}
+  %{ class($result) <- "$R_class"; %}
 
 %typemap(scoerceout) SWIGTYPE * 
-  %{ class($result) <- "$R_class" %}
+  %{ class($result) <- "$R_class"; %}
+
+%typemap(scoerceout) SWIGTYPE *const
+  %{ class($result) <- "$R_class"; %}
 
 /* Override the SWIGTYPE * above. */
 %typemap(scoerceout) char,
 		     char *,
 		     char &,
-		     unsigned int, 
-		     unsigned int &, 
-                     unsigned long,
-                     unsigned long &,
 		     double, 
 		     double &,
                      float,
 		     float &,
-                     long,
-		     long &,
-                     long long,
-		     long long &,
                      int,
 		     int &,
+		     long,
+		     long &,
                      bool,
 		     bool &,
 		     string,
 		     std::string,
 		     string &,
 		     std::string &, 
-		     size_t,
-		     std::size_t,
-		     size_t &,
-		     std::size_t &,
-		     void
+		     void,
+		     signed int,
+		     signed int &,		     
+		     unsigned int,
+		     unsigned int &,		     
+		     short,
+		     short &,		     
+		     unsigned short,
+		     unsigned short &,		     
+		     long long,
+		     signed long long,
+		     signed long long &,		     
+		     unsigned long long,
+		     unsigned long long &,		     
+		     signed long,
+		     signed long &,		     
+		     unsigned long,
+		     unsigned long &,
+		     unsigned char *,
+		     unsigned char &		     
  %{    %}
-
 
 #if 0
  Just examining the values for a SWIGTYPE.

@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * carrays.swg
  *
  * This library file contains macros that can be used to manipulate simple
@@ -75,7 +72,7 @@ typedef TYPE NAME;
 %}
 
 
-typedef struct NAME {
+typedef struct {
 } NAME;
 
 %extend NAME {

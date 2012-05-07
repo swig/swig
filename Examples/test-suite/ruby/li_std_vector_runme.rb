@@ -98,6 +98,13 @@ sv[1] = Li_std_vector::Struct.new
 
 EOF
 
+bv = BoolVector.new(2)
+[true, false, true, true].each { |i| bv.push(i) }
+0.upto(bv.size-1) { |i| bv[i] = !bv[i] }
+bv_check = [true, true, false, true, false, false]
+for i in 0..bv.size-1 do
+  swig_assert(bv_check[i] == bv[i], binding, "bv[#{i}]")
+end
 
 swig_assert_each_line(<<'EOF', binding)
 lv = LanguageVector.new

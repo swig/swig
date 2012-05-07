@@ -15,7 +15,9 @@
 %feature("director") Foo;
 
 %newobject Foo::cloner();
+%newobject Foo::get_class();
 %newobject Bar::cloner();
+%newobject Bar::get_class();
 
 
 %inline {

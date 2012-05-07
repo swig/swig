@@ -16,8 +16,11 @@
 <li><a href="#Preprocessor_nn5">Macro Expansion</a>
 <li><a href="#Preprocessor_nn6">SWIG Macros</a>
 <li><a href="#Preprocessor_nn7">C99 and GNU Extensions</a>
+<li><a href="#Preprocessor_delimiters">Preprocessing and delimiters</a>
+<ul>
 <li><a href="#Preprocessor_nn8">Preprocessing and %{ ... %} &amp; " ... " delimiters</a>
 <li><a href="#Preprocessor_nn9">Preprocessing and { ... } delimiters</a>
+</ul>
 <li><a href="#Preprocessor_typemap_delimiters">Preprocessor and Typemaps</a>
 <li><a href="#Preprocessor_nn10">Viewing preprocessor output</a>
 <li><a href="#Preprocessor_warning_error">The #error and #warning directives</a>
@@ -81,7 +84,7 @@ Such information generally includes type declarations (e.g., <tt>typedef</tt>) a
 C++ classes that might be used as base-classes for class declarations in the interface.
 The use of <tt>%import</tt> is also important when SWIG is used to generate
 extensions as a collection of related modules.   This is an advanced topic and is described
-in a later chapter.
+in later in the <a href="Modules.html#Modules">Working with Modules</a> chapter.
 </p>
 
 <P>
@@ -102,12 +105,13 @@ by SWIG when it is parsing the interface:
 <div class="code"><pre>
 SWIG                            Always defined when SWIG is processing a file
 SWIGIMPORTED                    Defined when SWIG is importing a file with <tt>%import</tt>
-SWIGMAC                         Defined when running SWIG on the Macintosh
-SWIGWIN                         Defined when running SWIG under Windows
-SWIG_VERSION                    Hexadecimal number containing SWIG version,
+SWIG_VERSION                    Hexadecimal (binary-coded decimal) number containing SWIG version,
                                 such as 0x010311 (corresponding to SWIG-1.3.11).
 
+SWIGALLEGROCL                   Defined when using Allegro CL
+SWIGCFFI                        Defined when using CFFI
 SWIGCHICKEN                     Defined when using CHICKEN
+SWIGCLISP                       Defined when using CLISP
 SWIGCSHARP                      Defined when using C#
 SWIGGUILE                       Defined when using Guile
 SWIGJAVA                        Defined when using Java
@@ -115,17 +119,15 @@ SWIGLUA                         Defined when using Lua
 SWIGMODULA3                     Defined when using Modula-3
 SWIGMZSCHEME                    Defined when using Mzscheme        
 SWIGOCAML                       Defined when using Ocaml
+SWIGOCTAVE                      Defined when using Octave
 SWIGPERL                        Defined when using Perl
-SWIGPERL5                       Defined when using Perl5
 SWIGPHP                         Defined when using PHP
-SWIGPHP4                        Defined when using PHP4
-SWIGPHP5                        Defined when using PHP5
 SWIGPIKE                        Defined when using Pike
 SWIGPYTHON                      Defined when using Python
+SWIGR                           Defined when using R
 SWIGRUBY                        Defined when using Ruby
 SWIGSEXP                        Defined when using S-expressions
 SWIGTCL                         Defined when using Tcl
-SWIGTCL8                        Defined when using Tcl8.0
 SWIGXML                         Defined when using XML
 </pre></div>
 
@@ -307,7 +309,14 @@ interface building.   However, they are used internally to implement a number of
 SWIG directives and are provided to make SWIG more compatible with C99 code.
 </p>
 
-<H2><a name="Preprocessor_nn8"></a>7.7 Preprocessing and %{ ... %} &amp; " ... " delimiters</H2>
+<H2><a name="Preprocessor_delimiters"></a>7.7 Preprocessing and delimiters</H2>
+
+
+<p>
+The preprocessor handles { }, " " and %{ %} delimiters differently.
+</p>
+
+<H3><a name="Preprocessor_nn8"></a>7.7.1 Preprocessing and %{ ... %} &amp; " ... " delimiters</H3>
 
 
 <p>
@@ -332,7 +341,7 @@ the contents of the <tt>%{ ... %}</tt> block are copied without
 modification to the output (including all preprocessor directives).
 </p>
 
-<H2><a name="Preprocessor_nn9"></a>7.8 Preprocessing and { ... } delimiters</H2>
+<H3><a name="Preprocessor_nn9"></a>7.7.2 Preprocessing and { ... } delimiters</H3>
 
 
 <p>
@@ -374,11 +383,11 @@ to actually go into the wrapper file, prefix the preprocessor directives with <t
 SWIG will strip the extra <tt>%</tt> and leave the preprocessor directive in the code.
 </p>
 
-<H2><a name="Preprocessor_typemap_delimiters"></a>7.9 Preprocessor and Typemaps</H2>
+<H2><a name="Preprocessor_typemap_delimiters"></a>7.8 Preprocessor and Typemaps</H2>
 
 
 <p>
-<a href="Typemaps.html">Typemaps</a> support a special attribute called <tt>noblock</tt> where the { ... } delimiters can be used,
+<a href="Typemaps.html#Typemaps">Typemaps</a> support a special attribute called <tt>noblock</tt> where the { ... } delimiters can be used,
 but the delimiters are not actually generated into the code.
 The effect is then similar to using "" or %{ %} delimiters but the code <b>is</b> run through the preprocessor. For example:
 </p>
@@ -445,7 +454,7 @@ would generate
 </div>
 
 
-<H2><a name="Preprocessor_nn10"></a>7.10 Viewing preprocessor output</H2>
+<H2><a name="Preprocessor_nn10"></a>7.9 Viewing preprocessor output</H2>
 
 
 <p>
@@ -455,7 +464,7 @@ Instead the results after the preprocessor has run are displayed.
 This might be useful as an aid to debugging and viewing the results of macro expansions.
 </p>
 
-<H2><a name="Preprocessor_warning_error"></a>7.11 The #error and #warning directives</H2>
+<H2><a name="Preprocessor_warning_error"></a>7.10 The #error and #warning directives</H2>
 
 
 <p>

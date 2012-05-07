@@ -3,10 +3,15 @@
 %warnfilter(SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
 	    SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
-	    SWIGWARN_PHP4_MULTIPLE_INHERITANCE) C; /* Ruby, C#, Java, Php4 multiple inheritance */
+	    SWIGWARN_D_MULTIPLE_INHERITANCE,
+	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) C; /* Ruby, C#, D, Java, PHP multiple inheritance */
 
 #ifdef SWIGCSHARP
 %ignore B::bar; // otherwise get a warning: `C.bar' no suitable methods found to override
+#endif
+
+#ifdef SWIGD
+%ignore B::bar; // Prevents getting an error that C.bar does not override any function because multiple inheritance is not supported.
 #endif
 
 %contract test_preassert(int a, int b) {
@@ -200,4 +205,34 @@ struct E {
   }
 };
 %}
+
+
+// Namespace
+
+%{
+namespace myNames {
+
+class myClass
+{
+    public:
+    	myClass(int i) {}
+};
+
+}
+%}
+
+namespace myNames {
+
+%contract myClass::myClass( int i ) {
+require:
+    i > 0;
+}
+
+class myClass
+{
+    public:
+    	myClass(int i) {}
+};
+
+}
 

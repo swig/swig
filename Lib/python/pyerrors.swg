@@ -55,15 +55,16 @@ SWIG_Python_AddErrorMsg(const char* mesg)
 
   if (PyErr_Occurred()) PyErr_Fetch(&type, &value, &traceback);
   if (value) {
+    char *tmp;
     PyObject *old_str = PyObject_Str(value);
     PyErr_Clear();
     Py_XINCREF(type);
-    PyErr_Format(type, "%s %s", PyString_AsString(old_str), mesg);
+
+    PyErr_Format(type, "%s %s", tmp = SWIG_Python_str_AsChar(old_str), mesg);
+    SWIG_Python_str_DelForPy3(tmp);
     Py_DECREF(old_str);
     Py_DECREF(value);
   } else {
     PyErr_SetString(PyExc_RuntimeError, mesg);
   }
 }
-
-

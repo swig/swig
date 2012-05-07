@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * std_vector.i
  *
  * SWIG typemaps for std::vector types
@@ -105,9 +102,9 @@ namespace std {
             }
         }
         %typemap(out) vector<T> {
-            int len = $1.size();
+            size_t len = $1.size();
             SV **svs = new SV*[len];
-            for (unsigned int i=0; i<len; i++) {
+            for (size_t i=0; i<len; i++) {
                 T* ptr = new T($1[i]);
                 svs[i] = sv_newmortal();
                 SWIG_MakePtr(svs[i], (void*) ptr, 

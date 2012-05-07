@@ -35,10 +35,14 @@ namespace std
   {
     typedef complex None;
     
+#ifndef SWIGPHP // clone() *is* an invalid method name in PHP.
     A* clone(int) { return NULL; }
+#endif
     
     virtual ~A() {}
+#ifndef SWIGGO // func is a keyword in Go.
     virtual int func() = 0;
+#endif
   private:
      typedef complex False;
   };
@@ -58,13 +62,12 @@ namespace std
 
 %template(max_i) max<int>;
 
-
 %inline {
   /* silently rename the parameter names in csharp/java */
 #ifdef SWIGR
   double foo(double inparam, double out) { return 1.0; }
 #else
-  double foo(double in, double out) { return 1.0; }
+  double foo(double abstract, double out) { return 1.0; }
 #endif
   double bar(double native, bool boolean) { return 1.0; }
 }

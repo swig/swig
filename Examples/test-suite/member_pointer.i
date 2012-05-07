@@ -1,5 +1,13 @@
 %module member_pointer
 
+%{
+#if defined(__SUNPRO_CC)
+#pragma error_messages (off, badargtype2w) /* Formal argument ... is being passed extern "C" ... */
+#pragma error_messages (off, wbadinit) /* Using extern "C" ... to initialize ... */
+#pragma error_messages (off, wbadasg) /* Assigning extern "C" ... */
+#endif
+%}
+
 %inline %{
 class Shape {
 public:
@@ -98,4 +106,30 @@ double (Shape::*perimetervar)(void) = &Shape::perimeter;
 %constant double (Shape::*AREAPT)(void) = &Shape::area;
 %constant double (Shape::*PERIMPT)(void) = &Shape::perimeter;
 %constant double (Shape::*NULLPT)(void) = 0;
+
+/*
+%inline %{
+  struct Funktions {
+    void retByRef(int & (*d)(double)) {}
+  };
+  void byRef(int & (Funktions::*d)(double)) {}
+%}
+*/
+
+%inline %{
+
+struct Funktions {
+  int addByValue(const int &a, int b) { return a+b; }
+  int * addByPointer(const int &a, int b) { static int val; val = a+b; return &val; }
+  int & addByReference(const int &a, int b) { static int val; val = a+b; return val; }
+};
+
+int call1(int (Funktions::*d)(const int &, int), int a, int b) { Funktions f; return (f.*d)(a, b); }
+int call2(int * (Funktions::*d)(const int &, int), int a, int b) { Funktions f; return *(f.*d)(a, b); }
+int call3(int & (Funktions::*d)(const int &, int), int a, int b) { Funktions f; return (f.*d)(a, b); }
+%}
+
+%constant int (Funktions::*ADD_BY_VALUE)(const int &, int) = &Funktions::addByValue;
+%constant int * (Funktions::*ADD_BY_POINTER)(const int &, int) = &Funktions::addByPointer;
+%constant int & (Funktions::*ADD_BY_REFERENCE)(const int &, int) = &Funktions::addByReference;
 

@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * typemaps.swg
  *
  * SWIG Library file containing the main typemap code to support Lua modules.
@@ -69,8 +66,10 @@ or provide a %apply statement
 %enddef
 
 // now the code
-SWIG_NUMBER_TYPEMAP(int); SWIG_NUMBER_TYPEMAP(unsigned int); SWIG_NUMBER_TYPEMAP(signed int);
+SWIG_NUMBER_TYPEMAP(unsigned char); SWIG_NUMBER_TYPEMAP(signed char);
+
 SWIG_NUMBER_TYPEMAP(short); SWIG_NUMBER_TYPEMAP(unsigned short); SWIG_NUMBER_TYPEMAP(signed short);
+SWIG_NUMBER_TYPEMAP(int); SWIG_NUMBER_TYPEMAP(unsigned int); SWIG_NUMBER_TYPEMAP(signed int);
 SWIG_NUMBER_TYPEMAP(long); SWIG_NUMBER_TYPEMAP(unsigned long); SWIG_NUMBER_TYPEMAP(signed long);
 SWIG_NUMBER_TYPEMAP(float);
 SWIG_NUMBER_TYPEMAP(double);
@@ -79,6 +78,22 @@ SWIG_NUMBER_TYPEMAP(enum SWIGTYPE);
 SWIG_NUMBER_TYPEMAP(long long); SWIG_NUMBER_TYPEMAP(unsigned long long); SWIG_NUMBER_TYPEMAP(signed long long);
 
 // note we dont do char, as a char* is probably a string not a ptr to a single char
+
+// similar for booleans
+%typemap(in,checkfn="lua_isboolean") bool *INPUT(bool temp), bool &INPUT(bool temp)
+%{ temp = (lua_toboolean(L,$input)!=0);
+   $1 = &temp; %}
+
+%typemap(in, numinputs=0) bool *OUTPUT (bool temp),bool &OUTPUT (bool temp)
+%{ $1 = &temp; %}
+
+%typemap(argout) bool *OUTPUT,bool &OUTPUT
+%{  lua_pushboolean(L, (int)((*$1)!=0)); SWIG_arg++;%}
+
+%typemap(in) bool *INOUT = bool *INPUT;
+%typemap(argout) bool *INOUT = bool *OUTPUT;
+%typemap(in) bool &INOUT = bool &INPUT;
+%typemap(argout) bool &INOUT = bool &OUTPUT;
 
 /* -----------------------------------------------------------------------------
  *                          Basic Array typemaps
@@ -186,10 +201,10 @@ There probably is some compiler that its not true for, so the code is left here 
 %{
 #ifdef __cplusplus	/* generic alloc/dealloc fns*/
 #define SWIG_ALLOC_ARRAY(TYPE,LEN) 	new TYPE[LEN]
-#define SWIG_FREE_ARRAY(PTR)		delete[] PTR;
+#define SWIG_FREE_ARRAY(PTR)		delete[] PTR
 #else
 #define SWIG_ALLOC_ARRAY(TYPE,LEN) 	(TYPE *)malloc(LEN*sizeof(TYPE))
-#define SWIG_FREE_ARRAY(PTR)		free(PTR);
+#define SWIG_FREE_ARRAY(PTR)		free(PTR)
 #endif
 /* counting the size of arrays:*/
 SWIGINTERN int SWIG_itable_size(lua_State* L, int index)
@@ -320,6 +335,11 @@ for array handling
 %typemap(freearg) (TYPE *INOUT,int)=(TYPE *INPUT,int);
 
 // TODO out variable arrays (is there a standard form for such things?)
+
+// referencing so that (int *INPUT,int) and (int INPUT[],int) are the same
+%typemap(in) (TYPE INPUT[],int)=(TYPE *INPUT,int);
+%typemap(freearg) (TYPE INPUT[],int)=(TYPE *INPUT,int);
+
 %enddef
 
 // the following line of code
@@ -327,6 +347,8 @@ for array handling
 // as well as defining typemaps for
 // fixed len arrays in & out, & variable length arrays in
 
+SWIG_TYPEMAP_NUM_ARR(schar,signed char);
+SWIG_TYPEMAP_NUM_ARR(uchar,unsigned char);
 SWIG_TYPEMAP_NUM_ARR(int,int);
 SWIG_TYPEMAP_NUM_ARR(uint,unsigned int);
 SWIG_TYPEMAP_NUM_ARR(short,short);
@@ -535,7 +557,8 @@ ptr=nil -- the iMath* will be GC'ed as normal
 */
 
 %typemap(in,numinputs=0) SWIGTYPE** OUTPUT ($*ltype temp)
-%{  $1 = &temp; %}
+%{ temp = ($*ltype)0;
+   $1 = &temp; %}
 %typemap(argout) SWIGTYPE** OUTPUT
 %{SWIG_NewPointerObj(L,*$1,$*descriptor,1); SWIG_arg++; %}
 

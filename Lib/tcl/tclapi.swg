@@ -49,6 +49,7 @@ typedef struct swig_class {
   struct swig_class **bases;
   const char              **base_names;
   swig_module_info   *module;
+  Tcl_HashTable       hashtable;
 } swig_class;
 
 typedef struct swig_instance {

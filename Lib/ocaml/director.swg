@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * director.swg
  *
  * This file contains support for director classes that proxy
@@ -12,6 +9,8 @@
 #ifdef __cplusplus
 
 #include <string>
+
+# define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
 
 namespace Swig {
   /* base class for director exceptions */

@@ -40,6 +40,16 @@ public class java_throws_runme {
       if (!pass)
         throw new RuntimeException("Test 2 failed");
 
+      // Check the exception class is used with %catches
+      pass = false;
+      try {
+        java_throws.catches_function(100);
+      }
+      catch (IllegalAccessException e) { pass = true; }
+
+      if (!pass)
+        throw new RuntimeException("Test 3 failed");
+
       // Check newfree typemap throws attribute
       try {
         TestClass tc = java_throws.makeTestClass();
@@ -94,5 +104,20 @@ public class java_throws_runme {
 
       if (!pass)
         throw new RuntimeException("Test 7 failed");
+
+      // Test %nojavaexception
+      NoExceptTest net = new NoExceptTest();
+
+      pass = false;
+      try {
+        net.exceptionPlease();
+	pass = true;
+      }
+      catch (MyException e) {}
+
+      if (!pass)
+        throw new RuntimeException("Test 8 failed");
+
+      net.noExceptionPlease();
   }
 }

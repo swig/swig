@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * std_except.i
  *
  * SWIG library file with typemaps to handle and throw STD exceptions in a
@@ -22,7 +19,7 @@
  * a new std_except.i file in the target library directory.
  * ----------------------------------------------------------------------------- */
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGUILE) || defined(SWIGUTL)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGUILE) || defined(SWIGUTL) || defined(SWIGD)
 #error "This version of std_except.i should not be used"
 #endif
 

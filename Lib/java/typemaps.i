@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * typemaps.i
  *
  * Pointer and reference handling typemap library
@@ -66,22 +63,11 @@ There are no char *INPUT typemaps, however you can apply the signed char * typem
 %typemap(jtype) TYPE *INPUT, TYPE &INPUT "JTYPE"
 %typemap(jstype) TYPE *INPUT, TYPE &INPUT "JTYPE"
 %typemap(javain) TYPE *INPUT, TYPE &INPUT "$javainput"
-%typemap(javadirectorin) TYPE *INPUT, TYPE &INPUT "$jniinput"
-%typemap(javadirectorout) TYPE *INPUT, TYPE &INPUT "$javacall"
 
 %typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
 
 %typemap(freearg) TYPE *INPUT, TYPE &INPUT ""
-
-%typemap(directorout) TYPE *INPUT, TYPE &INPUT
-%{ $result = ($1_ltype)&$input; %}
-
-%typemap(directorin,descriptor=JNIDESC) TYPE &INPUT
-%{ *(($&1_ltype) $input) = (JNITYPE *) &$1; %}
-
-%typemap(directorin,descriptor=JNIDESC) TYPE *INPUT
-%{ *(($&1_ltype) $input) = (JNITYPE *) $1; %}
 
 %typemap(typecheck) TYPE *INPUT = TYPE;
 %typemap(typecheck) TYPE &INPUT = TYPE;
@@ -198,8 +184,6 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 %typemap(jtype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE[]"
 %typemap(jstype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE[]"
 %typemap(javain) TYPE *OUTPUT, TYPE &OUTPUT "$javainput"
-%typemap(javadirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$jniinput"
-%typemap(javadirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$javacall"
 
 %typemap(in) TYPE *OUTPUT($*1_ltype temp), TYPE &OUTPUT($*1_ltype temp)
 {
@@ -220,16 +204,6 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 {
   JNITYPE jvalue = (JNITYPE)temp$argnum;
   JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
-}
-
-%typemap(directorout,warning="Need to provide TYPE *OUTPUT directorout typemap") TYPE *OUTPUT, TYPE &OUTPUT {
-}
-
-%typemap(directorin,descriptor=JNIDESC) TYPE &OUTPUT
-%{ *(($&1_ltype) $input = &$1; %}
-
-%typemap(directorin,descriptor=JNIDESC,warning="Need to provide TYPE *OUTPUT directorin typemap, TYPE array length is unknown") TYPE *OUTPUT
-{
 }
 
 %typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
@@ -338,8 +312,6 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 %typemap(jtype) TYPE *INOUT, TYPE &INOUT "JTYPE[]"
 %typemap(jstype) TYPE *INOUT, TYPE &INOUT "JTYPE[]"
 %typemap(javain) TYPE *INOUT, TYPE &INOUT "$javainput"
-%typemap(javadirectorin) TYPE *INOUT, TYPE &INOUT "$jniinput"
-%typemap(javadirectorout) TYPE *INOUT, TYPE &INOUT "$javacall"
 
 %typemap(in) TYPE *INOUT, TYPE &INOUT {
   if (!$input) {
@@ -358,15 +330,6 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 %typemap(argout) TYPE *INOUT, TYPE &INOUT
 { JCALL3(Release##JAVATYPE##ArrayElements, jenv, $input, (JNITYPE *)$1, 0); }
 
-%typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
-}
-
-%typemap(directorin,descriptor=JNIDESC) TYPE &INOUT
-%{ *(($&1_ltype)&$input) = &$1; %}
-
-%typemap(directorin,descriptor=JNIDESC,warning="Need to provide TYPE *INOUT directorin typemap, TYPE array length is unknown") TYPE *INOUT, TYPE &INOUT
-{
-}
 
 %typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
 %typemap(typecheck) TYPE &INOUT = TYPECHECKTYPE;

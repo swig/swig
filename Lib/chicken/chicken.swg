@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * chicken.swg
  *
  * CHICKEN configuration module.
@@ -10,6 +7,7 @@
 /* chicken.h has to appear first. */
 
 %insert(runtime) %{
+#include <assert.h>
 #include <chicken.h>
 %}
 
@@ -540,7 +538,7 @@ $result = C_SCHEME_UNDEFINED;
  * String & length
  * ------------------------------------------------------------ */
 
-%typemap(in) (char *STRING, int LENGTH) {
+%typemap(in) (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) {
   if ($input == C_SCHEME_FALSE) {
     swig_barf (SWIG_BARF1_BAD_ARGUMENT_TYPE, "Cannot use a null/#f string for a char*, int arguments");
   }
@@ -680,6 +678,16 @@ $result = C_SCHEME_UNDEFINED;
  * ------------------------------------------------------------ */
 
 %apply unsigned long { size_t };
+
+/* ------------------------------------------------------------
+ * Various
+ * ------------------------------------------------------------ */
+
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
 
 /* ------------------------------------------------------------
  * Overloaded operator support

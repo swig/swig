@@ -1,11 +1,7 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * file.i
  *
  * Typemaps for FILE*
- * From the ideas of Luigi Ballabio
  * ----------------------------------------------------------------------------- */
 
 %types(FILE *);
@@ -20,11 +16,13 @@ SWIG_AsValFilePtr(PyObject *obj, FILE **val) {
   if ((SWIG_ConvertPtr(obj, &vptr, desc, 0)) == SWIG_OK) {
     if (val) *val = (FILE *)vptr;
     return SWIG_OK;
-  } 
+  }
+%#if PY_VERSION_HEX < 0x03000000
   if (PyFile_Check(obj)) {
     if (val) *val =  PyFile_AsFile(obj);
     return SWIG_OK;
   }
+%#endif
   return SWIG_TypeError;
 }
 }

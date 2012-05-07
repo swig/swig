@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * typemaps.i
  * ----------------------------------------------------------------------------- */
 
@@ -350,5 +347,12 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
     $1 = 1;
   }
 }
+
+
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
 
 

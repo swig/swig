@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * luatypemaps.swg
  *
  * basic typemaps for Lua.
@@ -20,11 +17,15 @@
    to reflect the number of values returned (normally SWIG_arg++; will do)
 */
 // numbers
-%typemap(in,checkfn="lua_isnumber") int,short,long,
-             unsigned int,unsigned short,unsigned long,
-             signed char,unsigned char,
-             float,double
+%typemap(in,checkfn="lua_isnumber") int, short, long,
+             signed char, float, double
 %{$1 = ($type)lua_tonumber(L, $input);%}
+ 
+// additional check for unsigned numbers, to not permit negative input
+%typemap(in,checkfn="lua_isnumber") unsigned int,
+             unsigned short, unsigned long, unsigned char
+%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
+$1 = ($type)lua_tonumber(L, $input);%}
 
 %typemap(out) int,short,long,
              unsigned int,unsigned short,unsigned long,
@@ -41,14 +42,19 @@
 %typemap(in,checkfn="lua_isnumber") const int&($basetype temp)
 %{ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
 
-%typemap(out) const int&
+%typemap(in,checkfn="lua_isnumber") const unsigned int&($basetype temp)
+%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
+temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
+
+%typemap(out) const int&, const unsigned int&
 %{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
 
 // for the other numbers we can just use an apply statement to cover them
-%apply const int & {const short&,const long&,
-             const unsigned int&,const unsigned short&,const unsigned long&,
-             const signed char&,const unsigned char&,
+%apply const int & {const short&,const long&,const signed char&,
              const float&,const double&};
+
+%apply const unsigned int & {const unsigned short&,const unsigned long&,
+             const unsigned char&};
 
 /* enums have to be handled slightly differently
 	VC++ .net will not allow a cast from lua_Number(double) to enum directly.
@@ -73,7 +79,7 @@
 %{$1 = (lua_toboolean(L, $input)!=0);%}
 
 %typemap(out) bool
-%{  lua_pushboolean(L,(int)($1==true)); SWIG_arg++;%}
+%{  lua_pushboolean(L,(int)($1!=0)); SWIG_arg++;%}
 
 // for const bool&, SWIG treats this as a const bool* so we must dereference it
 %typemap(in,checkfn="lua_isboolean") const bool& (bool temp)
@@ -81,32 +87,41 @@
   $1=&temp;%}
 
 %typemap(out) const bool&
-%{  lua_pushboolean(L,(int)(*$1==true)); SWIG_arg++;%}
+%{  lua_pushboolean(L,(int)((*$1)!=0)); SWIG_arg++;%}
 
-// strings (char* and char[])
-%typemap(in,checkfn="lua_isstring") const char*, char*
+// strings (char * and char[])
+%fragment("SWIG_lua_isnilstring", "header") {
+SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
+  int ret = lua_isstring(L, idx);
+  if (!ret)
+   ret = lua_isnil(L, idx);
+  return ret;
+}
+}
+
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char *, char *
 %{$1 = ($ltype)lua_tostring(L, $input);%}
 
-%typemap(in,checkfn="lua_isstring") const char[ANY], char[ANY]
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char[ANY], char[ANY]
 %{$1 = ($ltype)lua_tostring(L, $input);%}
 
-%typemap(out) const char*, char*
-%{  lua_pushstring(L,(const char*)$1); SWIG_arg++;%}
+%typemap(out) const char *, char *
+%{  lua_pushstring(L,(const char *)$1); SWIG_arg++;%}
 
 %typemap(out) const char[ANY], char[ANY]
-%{  lua_pushstring(L,(const char*)$1); SWIG_arg++;%}
+%{  lua_pushstring(L,(const char *)$1); SWIG_arg++;%}
 
 // char's
 // currently treating chars as small strings, not as numbers
 // (however signed & unsigned char's are numbers...)
-%typemap(in,checkfn="lua_isstring") char
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") char
 %{$1 = (lua_tostring(L, $input))[0];%}
 
 %typemap(out) char
 %{  lua_pushfstring(L,"%c",$1); SWIG_arg++;%}
 
 // by const ref
-%typemap(in,checkfn="lua_isstring") const char& (char temp)
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char& (char temp)
 %{temp = (lua_tostring(L, $input))[0]; $1=&temp;%}
 
 %typemap(out) const char&
@@ -161,11 +176,11 @@
 // Also needed for object ptrs by const ref
 // eg A* const& ref_pointer(A* const& a);
 // found in mixed_types.i
-%typemap(in,checkfn="lua_isuserdata") SWIGTYPE *&($*ltype temp)
+%typemap(in,checkfn="lua_isuserdata") SWIGTYPE *const&($*ltype temp)
 %{temp=($*ltype)SWIG_MustGetPtr(L,$input,$*descriptor,0,$argnum,"$symname");
-$1=&temp;%}
+$1=($1_ltype)&temp;%}
 
-%typemap(out) SWIGTYPE *&
+%typemap(out) SWIGTYPE *const&
 %{SWIG_NewPointerObj(L,*$1,$*descriptor,$owner); SWIG_arg++; %}
 
 
@@ -282,12 +297,12 @@ parmeters match which function
 }
 
 // special check for a char (string of length 1)
-%typecheck(SWIG_TYPECHECK_CHAR) char, const char& {
-  $1 = lua_isstring(L,$input) && (lua_strlen(L,$input)==1);
+%typecheck(SWIG_TYPECHECK_CHAR,fragment="SWIG_lua_isnilstring") char, const char& {
+  $1 = SWIG_lua_isnilstring(L,$input) && (lua_rawlen(L,$input)==1);
 }
 
-%typecheck(SWIG_TYPECHECK_STRING) char *, char[] {
-  $1 = lua_isstring(L,$input);
+%typecheck(SWIG_TYPECHECK_STRING,fragment="SWIG_lua_isnilstring") char *, char[] {
+  $1 = SWIG_lua_isnilstring(L,$input);
 }
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE [] {
@@ -329,7 +344,7 @@ parmeters match which function
 // Also needed for object ptrs by const ref
 // eg const A* ref_pointer(A* const& a);
 // found in mixed_types.i
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE* const &
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const&
 {
   void *ptr;
   if (lua_isuserdata(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, $*descriptor, 0)) {
@@ -345,6 +360,9 @@ parmeters match which function
 
 // Array reference typemaps
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
 
 // size_t (which is just a unsigned long)
 %apply unsigned long { size_t };

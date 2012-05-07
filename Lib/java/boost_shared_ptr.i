@@ -1,15 +1,24 @@
+// Users can provide their own SWIG_SHARED_PTR_TYPEMAPS macro before including this file to change the
+// visibility of the constructor and getCPtr method if desired to public if using multiple modules.
+#ifndef SWIG_SHARED_PTR_TYPEMAPS
+#define SWIG_SHARED_PTR_TYPEMAPS(CONST, TYPE...) SWIG_SHARED_PTR_TYPEMAPS_IMPLEMENTATION(protected, protected, CONST, TYPE)
+#endif
+
 %include <shared_ptr.i>
 
-%define SWIG_SHARED_PTR_TYPEMAPS(PROXYCLASS, CONST, TYPE...)
+// Language specific macro implementing all the customisations for handling the smart pointer
+%define SWIG_SHARED_PTR_TYPEMAPS_IMPLEMENTATION(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, CONST, TYPE...)
 
+// %naturalvar is as documented for member variables
 %naturalvar TYPE;
 %naturalvar SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 
-// destructor mods
+// destructor wrapper customisation
 %feature("unref") TYPE 
 //"if (debug_shared) { cout << \"deleting use_count: \" << (*smartarg1).use_count() << \" [\" << (boost::get_deleter<SWIG_null_deleter>(*smartarg1) ? std::string(\"CANNOT BE DETERMINED SAFELY\") : ( (*smartarg1).get() ? (*smartarg1)->getValue() : std::string(\"NULL PTR\") )) << \"]\" << endl << flush; }\n"
                                "(void)arg1; delete smartarg1;"
 
+// Typemap customisations...
 
 // plain value
 %typemap(in) CONST TYPE ($&1_type argp = 0) %{
@@ -33,7 +42,7 @@
 // plain reference
 %typemap(in) CONST TYPE & %{
   $1 = ($1_ltype)((*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0);
-  if(!$1) {
+  if (!$1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
     return $null;
   } %}
@@ -41,10 +50,10 @@
 %{ *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner); %}
 
 // plain pointer by reference
-%typemap(in) CONST TYPE *& ($*1_ltype temp = 0)
-%{ temp = ((*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0);
+%typemap(in) TYPE *CONST& ($*1_ltype temp = 0)
+%{ temp = (TYPE *)((*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input) ? (*(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$input)->get() : 0);
    $1 = &temp; %}
-%typemap(out, fragment="SWIG_null_deleter") CONST TYPE *&
+%typemap(out, fragment="SWIG_null_deleter") TYPE *CONST&
 %{ *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(*$1 SWIG_NO_NULL_DELETER_$owner); %}
 
 // shared_ptr by value
@@ -94,44 +103,44 @@
 %typemap (jstype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
-                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "PROXYCLASS"
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(jstype, TYPE)"
 
 %typemap(javain) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >, 
                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
-                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "PROXYCLASS.getCPtr($javainput)"
+                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "$typemap(jstype, TYPE).getCPtr($javainput)"
 
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > & {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > * {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 
 
 %typemap(javaout) CONST TYPE {
-    return new PROXYCLASS($jnicall, true);
+    return new $typemap(jstype, TYPE)($jnicall, true);
   }
 %typemap(javaout) CONST TYPE & {
-    return new PROXYCLASS($jnicall, true);
+    return new $typemap(jstype, TYPE)($jnicall, true);
   }
 %typemap(javaout) CONST TYPE * {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
-%typemap(javaout) CONST TYPE *& {
+%typemap(javaout) TYPE *CONST& {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new PROXYCLASS(cPtr, true);
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 
 // Base proxy classes
@@ -139,12 +148,12 @@
   private long swigCPtr;
   private boolean swigCMemOwnBase;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+  PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     swigCMemOwnBase = cMemoryOwn;
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr($javaclassname obj) {
+  CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
@@ -154,37 +163,37 @@
   private long swigCPtr;
   private boolean swigCMemOwnDerived;
 
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
-    super($imclassname.$javaclassname_SWIGSharedPtrUpcast(cPtr), true);
+  PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
+    super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);
     swigCMemOwnDerived = cMemoryOwn;
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr($javaclassname obj) {
+  CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
 
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") TYPE {
-    if(swigCPtr != 0 && swigCMemOwnBase) {
-      swigCMemOwnBase = false;
-      $jnicall;
+    if (swigCPtr != 0) {
+      if (swigCMemOwnBase) {
+        swigCMemOwnBase = false;
+        $jnicall;
+      }
+      swigCPtr = 0;
     }
-    swigCPtr = 0;
   }
 
 %typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized") TYPE {
-    if(swigCPtr != 0 && swigCMemOwnDerived) {
-      swigCMemOwnDerived = false;
-      $jnicall;
+    if (swigCPtr != 0) {
+      if (swigCMemOwnDerived) {
+        swigCMemOwnDerived = false;
+        $jnicall;
+      }
+      swigCPtr = 0;
     }
-    swigCPtr = 0;
     super.delete();
   }
-
-// CONST version needed ???? also for C#
-%typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast "long"
-%typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > swigSharedPtrUpcast "long"
 
 
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;

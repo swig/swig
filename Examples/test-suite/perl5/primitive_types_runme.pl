@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 54;
+use Test::More tests => 51;
 BEGIN { use_ok('primitive_types') }
 require_ok('primitive_types');
 
@@ -179,11 +179,6 @@ $t->{var_namet} = 'hol';
 is($t->{var_namet}, 'hol', "namet");
 
 
-is($t->strlen('hile'), 4, "string typemap");
-
-is($t->strlen("hil\0"), 4, "string typemap");
-
-
 $primitive_types::var_char = "\0";
 is($primitive_types::var_char, "\0", "char '0' case");
   
@@ -219,8 +214,6 @@ primitive_types::pchar_setitem($pc, 2, 'l');
 primitive_types::pchar_setitem($pc, 3, 'a');
 primitive_types::pchar_setitem($pc, 4, 0);
 
-
-is($t->strlen($pc), 4, "string typemap");
 
 $primitive_types::var_pchar = $pc;
 is($primitive_types::var_pchar, "hola", "pointer case");

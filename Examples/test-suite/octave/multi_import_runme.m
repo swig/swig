@@ -1,5 +1,5 @@
-multi_import_a
-multi_import_b
+multi_import_a;
+multi_import_b;
 
 x = multi_import_b.XXX();
 if (x.testx() != 0)

@@ -1,4 +1,5 @@
 # see top-level Makefile.in
+arrays
 callback
 class
 enum

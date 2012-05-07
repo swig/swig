@@ -32,16 +32,11 @@
 #define SWIG_SetConstant(name, obj)     SWIG_Octave_SetConstant(module_ns,name,obj) 
 
 // raise
-#define SWIG_Octave_Raise(obj, type, desc) error("c++-side threw an exception")
+#define SWIG_Octave_Raise(OBJ, TYPE, DESC) error("C++ side threw an exception of type " TYPE)
 #define SWIG_Raise(obj, type, desc)     SWIG_Octave_Raise(obj, type, desc)
 
 // Include the unified typemap library
 %include <typemaps/swigtypemaps.swg>
-
-
-%typemap(constcode,noblock=1) int double {
-  SWIG_Octave_SetConstant(module_ns,"$symname",octave_value($value));
-}
 
 %typecheck(SWIG_TYPECHECK_SWIGOBJECT) SWIG_Object "$1 = (*$input).is_defined();";
 %typecheck(SWIG_TYPECHECK_SWIGOBJECT) octave_value_list "$1 = true;";
@@ -66,7 +61,7 @@
 %typemap(out) octave_value_list {
   _outp->append($1);
 }
-%typemap(out,noblock=1) Octave_map {
+%typemap(out,noblock=1) octave_map, Octave_map {
   $result=$1;
 }
 %typemap(out,noblock=1) NDArray {

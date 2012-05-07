@@ -1,15 +1,14 @@
-
 /* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
+ *
  * dohint.h
  *
  *     This file describes internally managed objects.
- *
- * Author(s) : David Beazley (beazley@cs.uchicago.edu)
- *
- * Copyright (C) 1999-2000.  The University of Chicago
- * See the file LICENSE for information on usage and redistribution.
- *
- * $Id$
  * ----------------------------------------------------------------------------- */
 
 #ifndef _DOHINT_H
@@ -44,7 +43,7 @@ typedef struct {
 /* File methods */
 typedef struct {
   int (*doh_read) (DOH *obj, void *buffer, int nbytes);	/* Read bytes */
-  int (*doh_write) (DOH *obj, void *buffer, int nbytes);	/* Write bytes */
+  int (*doh_write) (DOH *obj, const void *buffer, int nbytes);	/* Write bytes */
   int (*doh_putc) (DOH *obj, int ch);	/* Put character */
   int (*doh_getc) (DOH *obj);	/* Get character */
   int (*doh_ungetc) (DOH *obj, int ch);	/* Unget character */
@@ -55,7 +54,7 @@ typedef struct {
 
 /* String methods */
 typedef struct {
-  int (*doh_replace) (DOH *obj, DOH *old, DOH *rep, int flags);
+  int (*doh_replace) (DOH *obj, const DOHString_or_char *old, const DOHString_or_char *rep, int flags);
   void (*doh_chop) (DOH *obj);
 } DohStringMethods;
 

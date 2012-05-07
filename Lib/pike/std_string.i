@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * std_string.i
  *
  * SWIG typemaps for std::string
@@ -39,9 +36,9 @@ namespace std {
 
     %typemap(out, pikedesc="tStr") const string & "push_text($1->c_str());";
     
-    %typemap(directorin) string, const string &, string & "$1_name.c_str()";
+    %typemap(directorin) string, const string &, string & "$1.c_str()";
 
-    %typemap(directorin) string *, const string * "$1_name->c_str()";
+    %typemap(directorin) string *, const string * "$1->c_str()";
     
     %typemap(directorout) string {
       if ($input.type == T_STRING)

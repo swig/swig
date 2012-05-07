@@ -1,6 +1,10 @@
 /* ----------------------------------------------------------------------------- 
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
  *
  * error.c
  *
@@ -49,16 +53,18 @@ static char wrn_wnum_fmt[64];
 static char wrn_nnum_fmt[64];
 static char err_line_fmt[64];
 static char err_eof_fmt[64];
+static char diag_line_fmt[64];
+static char diag_eof_fmt[64];
 
-static String *format_filename(const String_or_char *filename);
+static String *format_filename(const_String_or_char_ptr filename);
 
 /* -----------------------------------------------------------------------------
  * Swig_warning()
  *
- * Issue a warning message
+ * Issue a warning message on stderr.
  * ----------------------------------------------------------------------------- */
 
-void Swig_warning(int wnum, const String_or_char *filename, int line, const char *fmt, ...) {
+void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const char *fmt, ...) {
   String *out;
   char *msg;
   int wrn = 1;
@@ -118,10 +124,10 @@ void Swig_warning(int wnum, const String_or_char *filename, int line, const char
 /* -----------------------------------------------------------------------------
  * Swig_error()
  *
- * Issue an error message
+ * Issue an error message on stderr.
  * ----------------------------------------------------------------------------- */
 
-void Swig_error(const String_or_char *filename, int line, const char *fmt, ...) {
+void Swig_error(const_String_or_char_ptr filename, int line, const char *fmt, ...) {
   va_list ap;
   String *formatted_filename = NULL;
 
@@ -170,7 +176,7 @@ void Swig_error_silent(int s) {
  * Takes a comma separate list of warning numbers and puts in the filter.
  * ----------------------------------------------------------------------------- */
 
-void Swig_warnfilter(const String_or_char *wlist, int add) {
+void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
   char *c;
   char *cw;
   String *s;
@@ -245,8 +251,8 @@ void Swig_error_msg_format(ErrorMessageFormat format) {
      by now a switch is used to translated into one. */
   switch (format) {
   case EMF_MICROSOFT:
-    fmt_line = "%s(%d)";
-    fmt_eof = "%s(999999)";	/* Is there a special character for EOF? Just use a large number. */
+    fmt_line = "%s(%d) ";
+    fmt_eof = "%s(999999) ";	/* Is there a special character for EOF? Just use a large number. */
     break;
   case EMF_STANDARD:
   default:
@@ -254,10 +260,12 @@ void Swig_error_msg_format(ErrorMessageFormat format) {
     fmt_eof = "%s:EOF";
   }
 
-  sprintf(wrn_wnum_fmt, "%s: %s(%%d): ", fmt_line, warning);
+  sprintf(wrn_wnum_fmt, "%s: %s %%d: ", fmt_line, warning);
   sprintf(wrn_nnum_fmt, "%s: %s: ", fmt_line, warning);
   sprintf(err_line_fmt, "%s: %s: ", fmt_line, error);
   sprintf(err_eof_fmt, "%s: %s: ", fmt_eof, error);
+  sprintf(diag_line_fmt, "%s: ", fmt_line);
+  sprintf(diag_eof_fmt, "%s: ", fmt_eof);
 
   msg_format = format;
   init_fmt = 1;
@@ -268,10 +276,71 @@ void Swig_error_msg_format(ErrorMessageFormat format) {
  *
  * Remove double backslashes in Windows filename paths for display
  * ----------------------------------------------------------------------------- */
-static String *format_filename(const String_or_char *filename) {
+static String *format_filename(const_String_or_char_ptr filename) {
   String *formatted_filename = NewString(filename);
 #if defined(_WIN32)
   Replaceall(formatted_filename, "\\\\", "\\");
 #endif
   return formatted_filename;
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_stringify_with_location()
+ *
+ * Return a string representation of any DOH object with line and file location
+ * information in the appropriate error message format. The string representation
+ * is enclosed within [] brackets after the line and file information.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_stringify_with_location(DOH *object) {
+  String *str = NewStringEmpty();
+
+  if (!init_fmt)
+    Swig_error_msg_format(DEFAULT_ERROR_MSG_FORMAT);
+
+  if (object) {
+    int line = Getline(object);
+    String *formatted_filename = format_filename(Getfile(object));
+    if (line > 0) {
+      Printf(str, diag_line_fmt, formatted_filename, line);
+    } else {
+      Printf(str, diag_eof_fmt, formatted_filename);
+    }
+    if (Len(object) == 0) {
+      Printf(str, "[EMPTY]");
+    } else {
+      Printf(str, "[%s]", object);
+    }
+    Delete(formatted_filename);
+  } else {
+    Printf(str, "[NULL]");
+  }
+
+  return str;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_diagnostic()
+ *
+ * Issue a diagnostic message on stdout.
+ * ----------------------------------------------------------------------------- */
+
+void Swig_diagnostic(const_String_or_char_ptr filename, int line, const char *fmt, ...) {
+  va_list ap;
+  String *formatted_filename = NULL;
+
+  if (!init_fmt)
+    Swig_error_msg_format(DEFAULT_ERROR_MSG_FORMAT);
+
+  va_start(ap, fmt);
+  formatted_filename = format_filename(filename);
+  if (line > 0) {
+    Printf(stdout, diag_line_fmt, formatted_filename, line);
+  } else {
+    Printf(stdout, diag_eof_fmt, formatted_filename);
+  }
+  vPrintf(stdout, fmt, ap);
+  va_end(ap);
+  Delete(formatted_filename);
+}
+

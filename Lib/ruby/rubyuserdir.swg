@@ -8,3 +8,13 @@
 #define %nooutput %feature("outputs","0")
 #define %initstack %feature("initstack", "1")
 #define %ignorestack %feature("initstack", "0")
+
+/* ------------------------------------------------------------------------- */
+/*
+  Enable keywords paramaters
+*/
+
+#define %kwargs      %feature("kwargs") 
+#define %nokwargs    %feature("kwargs", "0")
+#define %clearkwargs %feature("kwargs", "")
+

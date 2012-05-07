@@ -355,8 +355,6 @@ macro(size_t,             pfx, sizet)
 %enddef
 
 
-%apply (char *STRING, int LENGTH) { (const char *str, size_t len) }
-
 %inline {
   struct Foo
   {
@@ -464,15 +462,8 @@ macro(size_t,             pfx, sizet)
 
    %test_prim_types_ovr(ovr_decl, ovr)
 
-   size_t strlen(const char *str, size_t len)
-   {
-     return len;
-   }
-
    static const double stc_double;
    static const double stc_float;
-
-   
  };
 
  struct TestDirector

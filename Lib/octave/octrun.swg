@@ -1,4 +1,18 @@
 
+#include <octave/version.h>
+#ifndef OCTAVE_API_VERSION_NUMBER
+
+  // Hack to distinguish between Octave 3.2 and earlier versions before OCTAVE_API_VERSION_NUMBER existed
+  #define ComplexLU __ignore
+  #include <octave/CmplxLU.h>
+  #undef ComplexLU
+  #ifdef octave_Complex_LU_h
+  # define OCTAVE_API_VERSION_NUMBER 36
+  #else
+  # define OCTAVE_API_VERSION_NUMBER 37
+  #endif
+
+#endif
 
 SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args, int varargs) {
   if (num_args > max_args && !varargs)
@@ -92,10 +106,12 @@ SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *point
 typedef octave_value_list(*octave_func) (const octave_value_list &, int);
 class octave_swig_type;
 
+# define SWIG_DIRECTOR_CAST(ARG) dynamic_cast<Swig::Director *>(ARG)
+
 namespace Swig {
   class Director;
 
-  SWIGRUNTIME void swig_register_director(octave_swig_type *self, void *ptr, Director *d);
+  //SWIGRUNTIME void swig_register_director(octave_swig_type *self, void *ptr, Director *d);
   SWIGRUNTIME void swig_director_destroyed(octave_swig_type *self, Director *d);
   SWIGRUNTIME void swig_director_set_self(Director *d, octave_swig_type *self);
 
@@ -105,27 +121,35 @@ namespace Swig {
 
   typedef std::map < void *, Director * > rtdir_map;
 
-  SWIGINTERN rtdir_map &get_rtdir_map() {
+  SWIGINTERN rtdir_map* get_rtdir_map() {
     static swig_module_info *module = 0;
     if (!module)
       module = SWIG_GetModule(0);
-    assert(module);
+    if (!module)
+      return 0;
     if (!module->clientdata)
       module->clientdata = new rtdir_map;
-    return *(rtdir_map *) module->clientdata;
+    return (rtdir_map *) module->clientdata;
   }
 
   SWIGINTERNINLINE void set_rtdir(void *vptr, Director *d) {
-    get_rtdir_map()[vptr] = d;
+    rtdir_map* rm = get_rtdir_map();
+    if (rm)
+      (*rm)[vptr] = d;
   }
 
   SWIGINTERNINLINE void erase_rtdir(void *vptr) {
-    get_rtdir_map().erase(vptr);
+    rtdir_map* rm = get_rtdir_map();
+    if (rm)
+      (*rm).erase(vptr);
   }
 
   SWIGINTERNINLINE Director *get_rtdir(void *vptr) {
-    rtdir_map::const_iterator pos = get_rtdir_map().find(vptr);
-    Director *rtdir = (pos != get_rtdir_map().end())? pos->second : 0;
+    rtdir_map* rm = get_rtdir_map();
+    if (!rm)
+      return 0;
+    rtdir_map::const_iterator pos = rm->find(vptr);
+    Director *rtdir = (pos != rm->end())? pos->second : 0;
     return rtdir;
   }
 }
@@ -375,6 +399,62 @@ namespace Swig {
 	Swig::erase_rtdir(types[j].second.ptr);
     }
 
+    dim_vector dims(void) const {
+      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
+      
+      // Find the __dims__ method of this object
+      member_value_pair *m = nc_this->find_member("__dims__", false);
+
+      if (!m) return dim_vector(1,1);
+      
+      // Call the __dims__ method of this object
+      octave_value_list inarg;
+      inarg.append(nc_this->as_value());
+      octave_value_list outarg = nc_this->member_invoke(m, inarg, 1);
+
+      // __dims__ should return (at least) one output argument
+      if (outarg.length() < 1) return dim_vector(1,1);
+      
+      octave_value & out = outarg(0);
+
+      // Return value should be cell or matrix of integers
+      if (out.is_cell()) {
+        const Cell & c=out.cell_value();
+        int ndim = c.rows();
+        if (ndim==1 && c.columns()!=1) ndim = c.columns();
+
+        dim_vector d;
+        d.resize(ndim < 2 ? 2 : ndim);
+        d(0) = d(1) = 1;
+
+        // Fill in dim_vector 
+        for (int k=0;k<ndim;k++) {
+          const octave_value& obj = c(k);
+          d.elem(k) = obj.int_value();
+          
+          // __dims__ should return a cell filled with integers
+          if (error_state) return dim_vector(1,1);
+        }
+        return d;
+      } else if (out.is_matrix_type() || out.is_real_nd_array() || out.is_numeric_type() ) {
+        if (out.rows()==1 || out.columns()==1) {
+           Array<int> a = out.int_vector_value();
+           if (error_state) return dim_vector(1,1);
+           dim_vector d;
+           d.resize(a.numel() < 2 ? 2 : a.numel());
+           d(0) = d(1) = 1;
+           for (int k=0;k<a.numel();k++) {
+              d.elem(k) = a(k);
+           }
+           return d;
+        } else {
+          return dim_vector(1,1);
+        }
+      } else {
+        return dim_vector(1,1);
+      }
+    }
+
     octave_value as_value() {
       ++count;
       return Swig::swig_value_ref(this);
@@ -433,16 +513,26 @@ namespace Swig {
       rhs.members.clear();
     }
 
-    void install_global() {
+    void install_global(bool global_load) {
       for (member_map::const_iterator it = members.begin(); it != members.end(); ++it) {
-	if (it->second.first && it->second.first->method)
+        bool is_global_op = (it->first.substr(0, strlen(SWIG_op_prefix)) == SWIG_op_prefix);
+        bool is_func_defined = (it->second.first && it->second.first->method);
+	if (is_func_defined && (is_global_op || global_load)) {
 	  install_builtin_function(it->second.first->method, it->first,
-				   it->second.first->doc?it->second.first->doc:std::string());
-	else if (it->second.second.is_defined()) {
+				   it->second.first->doc ? it->second.first->doc : std::string());
+        }
+        octave_value global_val = is_global_op ? make_fcn_handle(it->first) : it->second.second;
+	if (global_val.is_defined() && (is_global_op || global_load)) {
+#if OCTAVE_API_VERSION_NUMBER<37
 	  link_to_global_variable(curr_sym_tab->lookup(it->first, true));
-	  set_global_value(it->first, it->second.second);
+#else 
+	  symbol_table::varref(it->first);
+	  symbol_table::mark_global(it->first);
+#endif
+	  set_global_value(it->first, global_val);
 	  
-	  octave_swig_type *ost = Swig::swig_value_deref(it->second.second);
+#if OCTAVE_API_VERSION_NUMBER<37
+	  octave_swig_type *ost = Swig::swig_value_deref(global_val);
 	  if (ost) {
 	    const char* h = ost->help_text();
 	    if (h) {
@@ -450,6 +540,7 @@ namespace Swig {
 	      sr->document(h);
 	    }
 	  }
+#endif
 	}
       }
     }
@@ -589,7 +680,7 @@ namespace Swig {
       // index operator
       else {
 	if (ops[skip] == '(' || ops[skip] == '{') {
-	  const char *op_name = ops[skip] == '(' ? "__paren" : "__brace";
+	  const char *op_name = ops[skip] == '(' ? "__paren__" : "__brace__";
 	  octave_value_list args;
 	  args.append(*idx_it++);
 	  ++skip;
@@ -628,7 +719,7 @@ namespace Swig {
       }
 
       else if (ops[skip] == '(' || ops[skip] == '{') {
-	const char *op_name = ops[skip] == '(' ? "__paren_asgn" : "__brace_asgn";
+	const char *op_name = ops[skip] == '(' ? "__paren_asgn__" : "__brace_asgn__";
 	member_value_pair *m = find_member(op_name, false);
 	if (m) {
 	  octave_value_list args;
@@ -664,42 +755,39 @@ namespace Swig {
       return as_value();
     }
 
+    virtual bool is_object() const {
+      return true;
+    }
+
     virtual bool is_string() const {
       octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
-      return !!nc_this->find_member("__str", false);
+      return !!nc_this->find_member("__str__", false);
     }
 
     virtual std::string string_value(bool force = false) const {
       octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
-      member_value_pair *m = nc_this->find_member("__str", false);
+      member_value_pair *m = nc_this->find_member("__str__", false);
       if (!m) {
-	error("__str method not defined");
+	error("__str__ method not defined");
 	return std::string();
       }
       octave_value_list outarg = nc_this->member_invoke(m, octave_value_list(nc_this->as_value()), 1);
       if (outarg.length() < 1 || !outarg(0).is_string()) {
-	error("__str method did not return a string");
+	error("__str__ method did not return a string");
 	return std::string();
       }
       return outarg(0).string_value();
     }
 
-    /*
-    virtual Octave_map map_value() const {
-      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
-      member_value_pair *m = nc_this->find_member("__str", false);
-      if (!m) {
-	error("__map method not defined");
-	return std::string();
-      }
-      octave_value_list outarg = nc_this->member_invoke(m, octave_value_list(nc_this->as_value()), 1);
-      if (outarg.length() < 1 || !outarg(0).is_map()) {
-	error("__map method did not return a string");
-	return std::string();
-      }
-      return outarg(0).map_value();
+#if OCTAVE_API_VERSION_NUMBER >= 40
+    virtual octave_map map_value() const {
+      return octave_map();
     }
-    */
+#else
+    virtual Octave_map map_value() const {
+      return Octave_map();
+    }
+#endif
 
     virtual string_vector map_keys() const {
       member_map tmp;
@@ -713,6 +801,35 @@ namespace Swig {
       return keys;
     }
 
+    virtual bool save_ascii (std::ostream& os) {
+      return true;
+    }
+
+    virtual bool load_ascii (std::istream& is) {
+      return true;
+    }
+
+    virtual bool save_binary (std::ostream& os, bool& save_as_floats) {
+      return true;
+    }
+
+    virtual bool load_binary (std::istream& is, bool swap, 
+			      oct_mach_info::float_format fmt) {
+      return true;
+    }
+
+#if defined (HAVE_HDF5)
+    virtual bool
+      save_hdf5 (hid_t loc_id, const char *name, bool save_as_floats) {
+      return true;
+    }
+
+    virtual bool
+      load_hdf5 (hid_t loc_id, const char *name, bool have_h5giterate_bug) {
+      return true;
+    }
+#endif
+
     virtual octave_value convert_to_str(bool pad = false, bool force = false, char type = '"') const {
       return string_value();
     }
@@ -722,13 +839,13 @@ namespace Swig {
     }
 
     static bool dispatch_global_op(const std::string &symbol, const octave_value_list &args, octave_value &ret) {
-      // we assume that "op_"-prefixed functions are installed in global namespace
+      // we assume that SWIG_op_prefix-prefixed functions are installed in global namespace
       // (rather than any module namespace).
 
       octave_value fcn = get_global_value(symbol, true);
       if (!fcn.is_function() && !fcn.is_function_handle())
 	return false;
-      ret = fcn.subsref("(", std::list < octave_value_list > (1, args));
+      ret = fcn.subsref("(", std::list < octave_value_list > (1, args), 1);
       return true;
     }
 
@@ -737,9 +854,9 @@ namespace Swig {
       assert(ost);
 
       octave_value ret;
-      if (ost->dispatch_unary_op(std::string("__") + op_name, ret))
+      if (ost->dispatch_unary_op(std::string("__") + op_name + std::string("__"), ret))
 	return ret;
-      std::string symbol = "op_" + ost->swig_type_name() + "_" + op_name;
+      std::string symbol = SWIG_op_prefix + ost->swig_type_name() + "_" + op_name;
       octave_value_list args;
       args.append(make_value_hack(x));
       if (dispatch_global_op(symbol, args, ret))
@@ -754,15 +871,25 @@ namespace Swig {
       octave_swig_type *rhs_ost = Swig::swig_value_deref(rhs);
 
       octave_value ret;
-      if (lhs_ost && lhs_ost->dispatch_binary_op(std::string("__") + op_name, rhs, ret))
+      if (lhs_ost && lhs_ost->dispatch_binary_op(std::string("__") + op_name + std::string("__"), rhs, ret))
 	return ret;
+      if (rhs_ost) {
+        if (strlen(op_name) == 2  && (op_name[1] == 't' || op_name[1] == 'e')) {
+          if (op_name[0] == 'l' && rhs_ost->dispatch_binary_op(std::string("__g") + op_name[1] + std::string("__"), lhs, ret))
+            return ret;
+          if (op_name[0] == 'g' && rhs_ost->dispatch_binary_op(std::string("__l") + op_name[1] + std::string("__"), lhs, ret))
+            return ret;
+        }
+        if (rhs_ost->dispatch_binary_op(std::string("__r") + op_name + std::string("__"), lhs, ret))
+          return ret;
+      }
 
       std::string symbol;
       octave_value_list args;
       args.append(make_value_hack(lhs));
       args.append(make_value_hack(rhs));
 
-      symbol = "op_";
+      symbol = SWIG_op_prefix;
       symbol += lhs_ost ? lhs_ost->swig_type_name() : lhs.type_name();
       symbol += "_";
       symbol += op_name;
@@ -771,7 +898,7 @@ namespace Swig {
       if (dispatch_global_op(symbol, args, ret))
 	return ret;
 
-      symbol = "op_";
+      symbol = SWIG_op_prefix;
       symbol += lhs_ost ? lhs_ost->swig_type_name() : lhs.type_name();
       symbol += "_";
       symbol += op_name;
@@ -780,7 +907,7 @@ namespace Swig {
       if (dispatch_global_op(symbol, args, ret))
 	return ret;
 
-      symbol = "op_";
+      symbol = SWIG_op_prefix;
       symbol += "any";
       symbol += "_";
       symbol += op_name;
@@ -802,26 +929,32 @@ namespace Swig {
       member_map tmp;
       load_members(tmp);
 
-      os << "{" << std::endl;
+      indent(os);
+      os << "{"; newline(os);
+      increment_indent_level();
       for (unsigned int j = 0; j < types.size(); ++j) {
+        indent(os);
 	if (types[j].first->clientdata) {
 	  const swig_octave_class *c = (const swig_octave_class *) types[j].first->clientdata;
-	  os << "  " << c->name << ", ptr = " << types[j].second.ptr << std::endl;
+	  os << c->name << ", ptr = " << types[j].second.ptr; newline(os);
 	} else {
-	  os << "  " << types[j].first->name << ", ptr = " << types[j].second.ptr << std::endl;
+	  os << types[j].first->name << ", ptr = " << types[j].second.ptr; newline(os);
 	}
       }
       for (member_map::const_iterator it = tmp.begin(); it != tmp.end(); ++it) {
+        indent(os);
 	if (it->second.first) {
 	  const char *objtype = it->second.first->method ? "method" : "variable";
 	  const char *modifier = (it->second.first->flags &1) ? "static " : (it->second.first->flags &2) ? "global " : "";
-	  os << "  " << it->second.first->name << " (" << modifier << objtype << ")" << std::endl;
+	  os << it->second.first->name << " (" << modifier << objtype << ")"; newline(os);
 	  assert(it->second.first->name == it->first);
 	} else {
-	  os << "  " << it->first << std::endl;
+	  os << it->first; newline(os);
 	}
       }
-      os << "}" << std::endl;
+      decrement_indent_level();
+      indent(os);
+      os << "}"; newline(os);
     }
   };
 
@@ -855,6 +988,9 @@ namespace Swig {
     octave_base_value *empty_clone() const
       { return new octave_swig_ref(0); }
 
+    dim_vector dims(void) const 
+      { return ptr->dims(); }
+
     bool is_defined() const
       { return ptr->is_defined(); }
 
@@ -870,14 +1006,48 @@ namespace Swig {
     octave_value subsasgn(const std::string &ops, const std::list < octave_value_list > &idx, const octave_value &rhs)
       { return ptr->subsasgn(ops, idx, rhs); }
 
+    virtual bool is_object() const 
+      { return ptr->is_object(); }
+
     virtual bool is_string() const 
       { return ptr->is_string(); }
 
     virtual std::string string_value(bool force = false) const 
       { return ptr->string_value(force); }
 
+#if OCTAVE_API_VERSION_NUMBER >= 40
+    virtual octave_map map_value() const
+      { return ptr->map_value(); }
+#else
+    virtual Octave_map map_value() const
+      { return ptr->map_value(); }
+#endif
+
     virtual string_vector map_keys() const
       { return ptr->map_keys(); }
+
+    virtual bool save_ascii (std::ostream& os)
+      { return ptr->save_ascii(os); }
+
+    virtual bool load_ascii (std::istream& is)
+      { return ptr->load_ascii(is); }
+
+    virtual bool save_binary (std::ostream& os, bool& save_as_floats)
+      { return ptr->save_binary(os, save_as_floats); }
+
+    virtual bool load_binary (std::istream& is, bool swap, 
+			      oct_mach_info::float_format fmt)
+      { return ptr->load_binary(is, swap, fmt); }
+
+#if defined (HAVE_HDF5)
+    virtual bool
+      save_hdf5 (hid_t loc_id, const char *name, bool save_as_floats)
+      { return ptr->save_hdf5(loc_id, name, save_as_floats); }
+
+    virtual bool
+      load_hdf5 (hid_t loc_id, const char *name, bool have_h5giterate_bug)
+      { return ptr->load_hdf5(loc_id, name, have_h5giterate_bug); }
+#endif
 
     virtual octave_value convert_to_str(bool pad = false, bool force = false, char type = '"') const
       { return ptr->convert_to_str(pad, force, type); }
@@ -925,8 +1095,40 @@ namespace Swig {
     }
 
     void print(std::ostream &os, bool pr_as_read_syntax = false) const {
-      os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size() << std::endl;
+      indent(os);
+      os << "swig packed type: name = " << (type ? type->name : std::string()) << ", len = " << buf.size(); newline(os);
     }
+
+
+    virtual bool save_ascii (std::ostream& os) {
+      return true;
+    }
+
+    virtual bool load_ascii (std::istream& is) {
+      return true;
+    }
+
+    virtual bool save_binary (std::ostream& os, bool& save_as_floats) {
+      return true;
+    }
+
+    virtual bool load_binary (std::istream& is, bool swap, 
+			      oct_mach_info::float_format fmt) {
+      return true;
+    }
+
+#if defined (HAVE_HDF5)
+    virtual bool
+      save_hdf5 (hid_t loc_id, const char *name, bool save_as_floats) {
+      return true;
+    }
+
+    virtual bool
+      load_hdf5 (hid_t loc_id, const char *name, bool have_h5giterate_bug) {
+      return true;
+    }
+#endif
+
   private:
     DECLARE_OCTAVE_ALLOCATOR;
     DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA;
@@ -1028,24 +1230,24 @@ namespace Swig {
 namespace Swig {
   class Director {
     octave_swig_type *self;
-    bool disowned;
+    bool swig_disowned;
 
     Director(const Director &x);
     Director &operator=(const Director &rhs);
   public:
 
-    Director(void *vptr):self(0), disowned(false) {
+    Director(void *vptr):self(0), swig_disowned(false) {
       set_rtdir(vptr, this);
     }
 
     ~Director() {
       swig_director_destroyed(self, this);
-      if (disowned)
+      if (swig_disowned)
 	self->decref();
     }
 
     void swig_set_self(octave_swig_type *new_self) {
-      assert(!disowned);
+      assert(!swig_disowned);
       self = new_self;
     }
 
@@ -1054,9 +1256,9 @@ namespace Swig {
     }
 
     void swig_disown() {
-      if (disowned)
+      if (swig_disowned)
 	return;
-      disowned = true;
+      swig_disowned = true;
       self->incref();
     }
   };
@@ -1279,6 +1481,11 @@ SWIGRUNTIME swig_module_info *SWIG_Octave_GetModule(void *clientdata) {
 SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *pointer) {
   octave_value ov = new octave_swig_packed(0, &pointer, sizeof(swig_module_info *));
   const char *module_var = "__SWIG_MODULE__" SWIG_TYPE_TABLE_NAME SWIG_RUNTIME_VERSION;
+#if OCTAVE_API_VERSION_NUMBER<37
   link_to_global_variable(curr_sym_tab->lookup(module_var, true));
+#else
+  symbol_table::varref(module_var);
+  symbol_table::mark_global(module_var);
+#endif
   set_global_value(module_var, ov);
 }

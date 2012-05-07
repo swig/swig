@@ -19,6 +19,7 @@ public class director_protected_runme {
     Foo f = b.create();
     director_protected_FooBar fb = new director_protected_FooBar();
     director_protected_FooBar2 fb2 = new director_protected_FooBar2();
+    director_protected_FooBar3 fb3 = new director_protected_FooBar3();
 
     {
       String s = fb.used();
@@ -60,11 +61,34 @@ public class director_protected_runme {
       if ( !Modifier.isProtected(method.getModifiers()) )
         throw new RuntimeException("Foo::ping should be protected" );
 
+      method = b.getClass().getDeclaredMethod("cheer", (java.lang.Class[])null);
+      if ( !Modifier.isProtected(method.getModifiers()) )
+        throw new RuntimeException("Bar::cheer should be protected" );
+
+      method = f.getClass().getDeclaredMethod("cheer", (java.lang.Class[])null);
+      if ( !Modifier.isProtected(method.getModifiers()) )
+        throw new RuntimeException("Foo::cheer should be protected" );
+
     } catch (NoSuchMethodException n) {
-      throw new RuntimeException("NoSuchmethodException caught. Test failed.");
+      throw new RuntimeException(n);
     } catch (SecurityException s) {
       throw new RuntimeException("SecurityException caught. Test failed.");
     }
+
+    if (!fb3.cheer().equals("director_protected_FooBar3::cheer();"))
+      throw new RuntimeException("bad fb3::cheer");
+
+    if (!fb2.callping().equals("director_protected_FooBar2::ping();"))
+      throw new RuntimeException("bad fb2.callping");
+
+    if (!fb2.callcheer().equals("director_protected_FooBar2::pang();Bar::pong();Foo::pong();director_protected_FooBar2::ping();"))
+      throw new RuntimeException("bad fb2.callcheer");
+
+    if (!fb3.callping().equals("Bar::ping();"))
+      throw new RuntimeException("bad fb3.callping");
+
+    if (!fb3.callcheer().equals("director_protected_FooBar3::cheer();"))
+      throw new RuntimeException("bad fb3.callcheer");
   }
 }
 
@@ -80,6 +104,12 @@ class director_protected_FooBar2 extends Bar {
   }
   public String pang() {
     return "director_protected_FooBar2::pang();";
+  }
+}
+
+class director_protected_FooBar3 extends Bar {
+  public String cheer() {
+    return "director_protected_FooBar3::cheer();";
   }
 }
 

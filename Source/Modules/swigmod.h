@@ -1,13 +1,15 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
  *
  * swigmod.h
  *
  * Main header file for SWIG modules.
  * ----------------------------------------------------------------------------- */
-
-/* $Id$ */
 
 #ifndef SWIG_SWIGMOD_H_
 #define SWIG_SWIGMOD_H_
@@ -26,7 +28,7 @@ typedef int bool;
 #define PLAIN_VIRTUAL   1
 #define PURE_VIRTUAL    2
 
-extern char *input_file;
+extern String *input_file;
 extern int line_number;
 extern int start_line;
 extern int CPlusPlus;		// C++ mode
@@ -114,8 +116,8 @@ protected:
 
 class Language:public Dispatcher {
 public:
-  Language ();
-   virtual ~ Language ();
+  Language();
+  virtual ~Language();
   virtual int emit_one(Node *n);
 
   /* Parse command line options */
@@ -208,14 +210,16 @@ public:
 
   /* Miscellaneous */
   virtual int validIdentifier(String *s);	/* valid identifier? */
-  virtual int addSymbol(const String *s, const Node *n);	/* Add symbol        */
-  virtual Node *symbolLookup(String *s);	/* Symbol lookup     */
-  virtual Node *classLookup(SwigType *s);	/* Class lookup      */
+  virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");	/* Add symbol        */
+  virtual void dumpSymbols();
+  virtual Node *symbolLookup(String *s, const_String_or_char_ptr scope = "");			/* Symbol lookup     */
+  virtual Node *classLookup(const SwigType *s);	/* Class lookup      */
   virtual Node *enumLookup(SwigType *s);	/* Enum lookup       */
   virtual int abstractClassTest(Node *n);	/* Is class really abstract? */
   virtual int is_assignable(Node *n);	/* Is variable assignable? */
   virtual String *runtimeCode();	/* returns the language specific runtime code */
   virtual String *defaultExternalRuntimeFilename();	/* the default filename for the external runtime */
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm); /* Language specific special variable substitutions for $typemap() */
 
   /* Runtime is C++ based, so extern "C" header section */
   void enable_cplus_runtime_mode();
@@ -250,6 +254,9 @@ public:
   /* Set overload variable templates argc and argv */
   void setOverloadResolutionTemplates(String *argc, String *argv);
 
+  /* Language instance is a singleton - get instance */
+  static Language* instance();
+
 protected:
   /* Allow multiple-input typemaps */
   void allow_multiple_input(int val = 1);
@@ -258,13 +265,16 @@ protected:
   void allow_overloading(int val = 1);
 
   /* Wrapping class query */
-  int is_wrapping_class();
+  int is_wrapping_class() const;
 
   /* Return the node for the current class */
   Node *getCurrentClass() const;
 
   /* Return C++ mode */
   int getCPlusMode() const;
+
+  /* Return the namespace for the class/enum - the nspace feature */
+  String *getNSpace() const;
 
   /* Return the real name of the current class */
   String *getClassName() const;
@@ -300,22 +310,27 @@ protected:
   int director_language;
 
 private:
-  Hash *symbols;
+  Hash *symtabs; /* symbol tables */
   Hash *classtypes;
   Hash *enumtypes;
   int overloading;
   int multiinput;
   int cplus_runtime;
   int directors;
+  static Language *this_;
 };
 
 int SWIG_main(int, char **, Language *);
 void emit_parameter_variables(ParmList *l, Wrapper *f);
 void emit_return_variable(Node *n, SwigType *rt, Wrapper *f);
 void SWIG_exit(int);		/* use EXIT_{SUCCESS,FAILURE} */
-void SWIG_config_file(const String_or_char *);
+void SWIG_config_file(const_String_or_char_ptr );
 const String *SWIG_output_directory();
 void SWIG_config_cppext(const char *ext);
+void Swig_print_xml(Node *obj, String *filename);
+
+/* get the list of generated files */
+List *SWIG_output_files();
 
 void SWIG_library_directory(const char *);
 int emit_num_arguments(ParmList *);
@@ -326,25 +341,29 @@ void emit_mark_varargs(ParmList *l);
 String *emit_action(Node *n);
 int emit_action_code(Node *n, String *wrappercode, String *action);
 void Swig_overload_check(Node *n);
-String *Swig_overload_dispatch(Node *n, const String_or_char *fmt, int *);
-String *Swig_overload_dispatch_cast(Node *n, const String_or_char *fmt, int *);
-String *Swig_overload_dispatch_fast(Node *n, const String_or_char *fmt, int *);
+String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *);
+String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *);
+String *Swig_overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *);
+List *Swig_overload_rank(Node *n, bool script_lang_wrapping);
 SwigType *cplus_value_type(SwigType *t);
 
 /* directors.cxx start */
 String *Swig_csuperclass_call(String *base, String *method, ParmList *l);
 String *Swig_class_declaration(Node *n, String *name);
 String *Swig_class_name(Node *n);
-String *Swig_method_call(String_or_char *name, ParmList *parms);
-String *Swig_method_decl(SwigType *rtype, SwigType *decl, const String_or_char *id, List *args, int strip, int values);
+String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms);
+String *Swig_method_decl(SwigType *rtype, SwigType *decl, const_String_or_char_ptr id, List *args, int strip, int values);
 String *Swig_director_declaration(Node *n);
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
+void Swig_director_parms_fixup(ParmList *parms);
 /* directors.cxx end */
 
 extern "C" {
   void SWIG_typemap_lang(const char *);
   typedef Language *(*ModuleFactory) (void);
-} void Swig_register_module(const char *name, ModuleFactory fac);
+} 
+
+void Swig_register_module(const char *name, ModuleFactory fac);
 ModuleFactory Swig_find_module(const char *name);
 
 /* Utilities */
@@ -362,8 +381,14 @@ void Wrapper_fast_dispatch_mode_set(int);
 void Wrapper_cast_dispatch_mode_set(int);
 void Wrapper_naturalvar_mode_set(int);
 
-
 void clean_overloaded(Node *n);
+
+extern "C" {
+  const char *Swig_to_string(DOH *object, int count = -1);
+  const char *Swig_to_string_with_location(DOH *object, int count = -1);
+  void Swig_print(DOH *object, int count = -1);
+  void Swig_print_with_location(DOH *object, int count = -1);
+}
 
 /* Contracts */
 
@@ -376,6 +401,5 @@ int Swig_contract_mode_get();
 void Swig_browser(Node *n, int);
 void Swig_default_allocators(Node *n);
 void Swig_process_types(Node *n);
-
 
 #endif

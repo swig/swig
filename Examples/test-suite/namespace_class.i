@@ -1,5 +1,11 @@
 %module namespace_class
 
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Ala::Ola;
+
+#ifdef SWIGD
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_LT);
+#endif
+
 %inline %{
   template<class T> void foobar(T t) {}
   namespace test {
@@ -210,7 +216,6 @@ namespace a
  
 %}
 
-#pragma SWIG nowarn=SWIGWARN_PARSE_NESTED_CLASS
 // %copyctor doesn't work with nested class workaround
 %nocopyctor;
 

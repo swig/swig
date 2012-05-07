@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * rubyiterators.swg
  *
  * Implement a C++ 'output' iterator for Ruby.
@@ -15,7 +12,7 @@
 %include <std_common.i>
 
 
-%fragment("ConstIterator","header") {  
+%fragment("ConstIterator","header",fragment="<stddef.h>",fragment="GC_VALUE_definition") {
 namespace swig {
   struct stop_iteration {
   };
@@ -273,7 +270,7 @@ namespace swig {
 }
 
 
-%fragment("ConstIterator_T","header",fragment="ConstIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
+%fragment("ConstIterator_T","header",fragment="<stddef.h>",fragment="ConstIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
 namespace swig {
 
   /** 

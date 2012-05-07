@@ -1,6 +1,6 @@
 %module csharp_prepost
 
-// Test the pre, post and cshin attributes for csin typemaps
+// Test the pre, post, terminate and cshin attributes for csin typemaps
 
 %include "std_vector.i"
 
@@ -25,7 +25,10 @@
   "$csclassname.getCPtr(d$csinput)"
 
 // post only in csin typemap
-%typemap(csin, post="      int size = $csinput.Count;\n      for (int i=0; i<size; ++i) {\n        $csinput[i] /= 100;\n      }") std::vector<double> &vpost
+%typemap(csin, post="      int size = $csinput.Count;\n"
+                    "      for (int i=0; i<size; ++i) {\n"
+                    "        $csinput[i] /= 100;\n"
+                    "      }") std::vector<double> &vpost
   "$csclassname.getCPtr($csinput)"
 
 %inline %{
@@ -76,7 +79,7 @@ struct PrePost2 {
 
 // Check attributes in the typemaps
 %typemap(cstype, inattributes="[CustomInt]") int val "int"
-%typemap(csin, pre="    int tmp_$csinput = $csinput * 100;") int "tmp_$csinput"
+%typemap(csin, pre="    int tmp_$csinput = $csinput * 100;") int val "tmp_$csinput"
 %typemap(imtype, out="IntPtr/*overridden*/", outattributes="[CustomIntPtr]") CsinAttributes * "HandleRef/*overridden*/"
 
 %inline %{
@@ -85,6 +88,108 @@ class CsinAttributes {
 public:
   CsinAttributes(int val) : m_val(val) {}
   int getVal() { return m_val; }
+};
+%}
+
+
+
+// test Date marshalling with pre post and terminate typemap attributes (Documented in CSharp.html)
+%typemap(cstype) const CDate& "System.DateTime"
+%typemap(csin, 
+         pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);"
+        ) const CDate &
+         "$csclassname.getCPtr(temp$csinput)"
+
+%typemap(cstype) CDate& "out System.DateTime"
+%typemap(csin, 
+         pre="    CDate temp$csinput = new CDate();", 
+         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+         cshin="out $csinput"
+        ) CDate &
+         "$csclassname.getCPtr(temp$csinput)"
+
+
+%inline %{
+class CDate {
+public:
+  CDate();
+  CDate(int year, int month, int day);
+  int getYear();
+  int getMonth();
+  int getDay();
+private:
+  int m_year;
+  int m_month;
+  int m_day;
+};
+struct Action {
+  int doSomething(const CDate &dateIn, CDate &dateOut);
+  Action(const CDate &dateIn, CDate& dateOut);
+};
+%}
+
+%{
+Action::Action(const CDate &dateIn, CDate& dateOut) {dateOut = dateIn;}
+int Action::doSomething(const CDate &dateIn, CDate &dateOut) { dateOut = dateIn; return 0; }
+CDate::CDate() : m_year(0), m_month(0), m_day(0) {}
+CDate::CDate(int year, int month, int day) : m_year(year), m_month(month), m_day(day) {}
+int CDate::getYear() { return m_year; }
+int CDate::getMonth() { return m_month; }
+int CDate::getDay() { return m_day; }
+%}
+
+%typemap(cstype, out="System.DateTime") CDate * "ref System.DateTime"
+
+%typemap(csin,
+         pre="    CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);",
+         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+         cshin="ref $csinput"
+        ) CDate *
+         "$csclassname.getCPtr(temp$csinput)"
+
+%inline %{
+void addYears(CDate *pDate, int years) {
+  *pDate = CDate(pDate->getYear() + years, pDate->getMonth(), pDate->getDay());
+}
+%}
+
+%typemap(csin,
+         pre="    using (CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day)) {",
+         post="      $csinput = new System.DateTime(temp$csinput.getYear(),"
+              " temp$csinput.getMonth(), temp$csinput.getDay(), 0, 0, 0);", 
+         terminator="    } // terminate temp$csinput using block",
+         cshin="ref $csinput"
+        ) CDate *
+         "$csclassname.getCPtr(temp$csinput)"
+
+%inline %{
+void subtractYears(CDate *pDate, int years) {
+  *pDate = CDate(pDate->getYear() - years, pDate->getMonth(), pDate->getDay());
+}
+%}
+
+%typemap(csvarin, excode=SWIGEXCODE2) CDate * %{
+    /* csvarin typemap code */
+    set {
+      CDate temp$csinput = new CDate($csinput.Year, $csinput.Month, $csinput.Day);
+      $imcall;$excode
+    } %}
+
+%typemap(csvarout, excode=SWIGEXCODE2) CDate * %{
+    /* csvarout typemap code */
+    get {
+      IntPtr cPtr = $imcall;
+      CDate tempDate = (cPtr == IntPtr.Zero) ? null : new CDate(cPtr, $owner);$excode
+      return new System.DateTime(tempDate.getYear(), tempDate.getMonth(), tempDate.getDay(),
+                                 0, 0, 0);
+    } %}
+
+%inline %{
+CDate ImportantDate = CDate(1999, 12, 31);
+struct Person {
+  CDate Birthday;
 };
 %}
 

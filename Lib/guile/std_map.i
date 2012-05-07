@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * std_map.i
  *
  * SWIG typemaps for std::map
@@ -227,7 +224,7 @@ namespace std {
         bool empty() const;
         void clear();
         %extend {
-            T& __getitem__(const K& key) throw (std::out_of_range) {
+            const T& __getitem__(const K& key) throw (std::out_of_range) {
                 std::map<K,T >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;

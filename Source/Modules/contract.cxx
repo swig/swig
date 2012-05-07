@@ -1,6 +1,10 @@
 /* ----------------------------------------------------------------------------- 
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
  *
  * contract.cxx
  *
@@ -46,6 +50,7 @@ public:
   int extendDirective(Node *n);
   int importDirective(Node *n);
   int includeDirective(Node *n);
+  int namespaceDeclaration(Node *n);
   int classDeclaration(Node *n);
   virtual int top(Node *n);
 };
@@ -208,7 +213,7 @@ String *Contracts::make_expression(String *s, Node *n) {
   for (ei = First(list_assert); ei.item; ei = Next(ei)) {
     expr = ei.item;
     if (Len(expr)) {
-      Replaceid(expr, Getattr(n, "name"), "result");
+      Replaceid(expr, Getattr(n, "name"), Swig_cresult_name());
       if (Len(str_assert))
 	Append(str_assert, "&&");
       Printf(str_assert, "(%s)", expr);
@@ -320,13 +325,20 @@ int Contracts::constructorDeclaration(Node *n) {
 int Contracts::externDeclaration(Node *n) {
   return emit_children(n);
 }
+
 int Contracts::extendDirective(Node *n) {
   return emit_children(n);
 }
+
 int Contracts::importDirective(Node *n) {
   return emit_children(n);
 }
+
 int Contracts::includeDirective(Node *n) {
+  return emit_children(n);
+}
+
+int Contracts::namespaceDeclaration(Node *n) {
   return emit_children(n);
 }
 

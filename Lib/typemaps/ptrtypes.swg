@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * ptrtypes.swg
  *
  * Value typemaps (Type, const Type&) for "Ptr" types, such as swig
@@ -69,14 +66,14 @@
 /* directorout */
 
 %define %ptr_directorout_typemap(asptr_meth,frag,Type...)
-  %typemap(directorargout,noblock=1,fragment=frag) Type *DIRECTOROUT ($*ltype temp) {
+  %typemap(directorargout,noblock=1,fragment=frag) Type *DIRECTOROUT ($*ltype temp, int swig_ores) {
     Type *swig_optr = 0;
-    int swig_ores = $input ? asptr_meth($input, &swig_optr) : 0;
+    swig_ores = $result ? asptr_meth($result, &swig_optr) : 0;
     if (!SWIG_IsOK(swig_ores) || !swig_optr) { 
       %dirout_fail((swig_optr ? swig_ores : SWIG_TypeError),"$type");
     }
     temp = *swig_optr;
-    $result = &temp;
+    $1 = &temp;
     if (SWIG_IsNewObj(swig_ores)) %delete(swig_optr);
   }
 

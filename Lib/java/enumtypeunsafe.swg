@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * enumtypeunsafe.swg
  *
  * Include this file in order for C/C++ enums to be wrapped by integers values.
@@ -23,7 +20,7 @@
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const enum SWIGTYPE &
 %{ static $*1_ltype temp = ($*1_ltype)$input; 
    $result = &temp; %}
-%typemap(directorin, descriptor="I") const enum SWIGTYPE &    "$input = (jint)$1_name;"
+%typemap(directorin, descriptor="I") const enum SWIGTYPE & "$input = (jint)$1;"
 %typemap(javadirectorin) const enum SWIGTYPE & "$jniinput"
 %typemap(javadirectorout) const enum SWIGTYPE & "$javacall"
 
@@ -48,7 +45,7 @@
 %typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
 
 %typemap(directorout) enum SWIGTYPE  %{ $result = ($1_ltype)$input; %}
-%typemap(directorin, descriptor="I") enum SWIGTYPE    "$input = (jint) $1;"
+%typemap(directorin, descriptor="I") enum SWIGTYPE "$input = (jint) $1;"
 %typemap(javadirectorin) enum SWIGTYPE "$jniinput"
 %typemap(javadirectorout) enum SWIGTYPE "$javacall"
 

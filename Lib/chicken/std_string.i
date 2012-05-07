@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * std_string.i
  *
  * SWIG typemaps for std::string
@@ -33,7 +30,7 @@ namespace std {
     %typemap(typecheck) string = char *;
     %typemap(typecheck) const string & = char *;
 
-    %typemap(in) string (char* tempptr) {
+    %typemap(in) string (char * tempptr) {
       if ($input == C_SCHEME_FALSE) {
 	$1.resize(0);
       } else { 
@@ -47,8 +44,7 @@ namespace std {
       }
     }
 
-    %typemap(in) const string& (std::string temp,
-			 char* tempptr) {
+    %typemap(in) const string& (std::string temp, char *tempptr) {
 
       if ($input == C_SCHEME_FALSE) {
 	temp.resize(0);

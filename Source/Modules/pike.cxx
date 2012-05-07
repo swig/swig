@@ -1,6 +1,10 @@
 /* ----------------------------------------------------------------------------- 
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
+ * This file is part of SWIG, which is licensed as a whole under version 3 
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at http://www.swig.org/legal.html.
  *
  * pike.cxx
  *
@@ -33,12 +37,13 @@ char cvsroot_pike_cxx[] = "$Id$";
 
 static const char *usage = (char *) "\
 Pike Options (available with -pike)\n\
-     [None]\n\
+     [no additional options]\n\
 \n";
 
 class PIKE:public Language {
 private:
 
+  File *f_begin;
   File *f_runtime;
   File *f_header;
   File *f_wrappers;
@@ -69,6 +74,7 @@ public:
    * --------------------------------------------------------------------- */
 
    PIKE() {
+    f_begin = 0;
     f_runtime = 0;
     f_header = 0;
     f_wrappers = 0;
@@ -123,11 +129,12 @@ public:
     String *outfile = Getattr(n, "outfile");
 
     /* Open the output file */
-    f_runtime = NewFile(outfile, "w");
-    if (!f_runtime) {
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
       FileErrorDisplay(outfile);
       SWIG_exit(EXIT_FAILURE);
     }
+    f_runtime = NewString("");
     f_init = NewString("");
     f_classInit = NewString("");
     f_header = NewString("");
@@ -136,19 +143,24 @@ public:
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header", f_header);
     Swig_register_filebyname("wrapper", f_wrappers);
+    Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
     Swig_register_filebyname("classInit", f_classInit);
 
     /* Standard stuff for the SWIG runtime section */
-    Swig_banner(f_runtime);
+    Swig_banner(f_begin);
+
+    Printf(f_runtime, "\n");
+    Printf(f_runtime, "#define SWIGPIKE\n");
+    Printf(f_runtime, "\n");
 
     Printf(f_header, "#define SWIG_init    pike_module_init\n");
     Printf(f_header, "#define SWIG_name    \"%s\"\n\n", module);
 
     /* Change naming scheme for constructors and destructors */
-    Swig_name_register("construct", "%c_create");
-    Swig_name_register("destroy", "%c_destroy");
+    Swig_name_register("construct", "%n%c_create");
+    Swig_name_register("destroy", "%n%c_destroy");
 
     /* Current wrap type */
     current = NO_CPP;
@@ -161,17 +173,19 @@ public:
     SwigType_emit_type_table(f_runtime, f_wrappers);
 
     /* Close all of the files */
-    Dump(f_header, f_runtime);
-    Dump(f_wrappers, f_runtime);
-    Wrapper_pretty_print(f_init, f_runtime);
+    Dump(f_runtime, f_begin);
+    Dump(f_header, f_begin);
+    Dump(f_wrappers, f_begin);
+    Wrapper_pretty_print(f_init, f_begin);
 
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_classInit);
 
-    Close(f_runtime);
+    Close(f_begin);
     Delete(f_runtime);
+    Delete(f_begin);
 
     /* Done */
     return SWIG_OK;
@@ -221,7 +235,7 @@ public:
    * name (i.e. "enum_test").
    * ------------------------------------------------------------ */
 
-  String *strip(const DOHString_or_char *name) {
+  String *strip(const DOHconst_String_or_char_ptr name) {
     String *s = Copy(name);
     if (Strncmp(name, PrefixPlusUnderscore, Len(PrefixPlusUnderscore)) != 0) {
       return s;
@@ -234,7 +248,7 @@ public:
    * add_method()
    * ------------------------------------------------------------ */
 
-  void add_method(const DOHString_or_char *name, const DOHString_or_char *function, const DOHString_or_char *description) {
+  void add_method(const DOHconst_String_or_char_ptr name, const DOHconst_String_or_char_ptr function, const DOHconst_String_or_char_ptr description) {
     String *rename = NULL;
     switch (current) {
     case NO_CPP:
@@ -407,15 +421,15 @@ public:
 
     /* Return the function value */
     if (current == CONSTRUCTOR) {
-      Printv(actioncode, "THIS = (void *) result;\n", NIL);
+      Printv(actioncode, "THIS = (void *) ", Swig_cresult_name(), ";\n", NIL);
       Printv(description, ", tVoid", NIL);
     } else if (current == DESTRUCTOR) {
       Printv(description, ", tVoid", NIL);
     } else {
       Printv(description, ", ", NIL);
-      if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+      if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
         actioncode = 0;
-	Replaceall(tm, "$source", "result");
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Replaceall(tm, "$target", "resultobj");
 	Replaceall(tm, "$result", "resultobj");
 	if (GetFlag(n, "feature:new")) {
@@ -446,15 +460,15 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-	Replaceall(tm, "$source", "result");
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
       }
     }
 
     /* See if there is any return cleanup code */
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
     }
 
@@ -564,12 +578,16 @@ public:
     String *symname = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
     String *value = Getattr(n, "value");
+    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
-    /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
+      /* Special hook for member pointer */
       String *wname = Swig_name_wrapper(symname);
       Printf(f_header, "static %s = %s;\n", SwigType_str(type, wname), value);
       value = wname;
+    } else if (SwigType_type(type) == T_CHAR && is_enum_item) {
+      type = NewSwigType(T_INT);
+      Setattr(n, "type", type);
     }
 
     /* Perform constant typemap substitution */
@@ -752,7 +770,7 @@ public:
     /* Create a function to set the values of the (mutable) variables */
     if (need_setter) {
       Wrapper *wrapper = NewWrapper();
-      String *setter = Swig_name_member(getClassPrefix(), (char *) "`->=");
+      String *setter = Swig_name_member(NSPACE_TODO, getClassPrefix(), "`->=");
       String *wname = Swig_name_wrapper(setter);
       Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
       Printf(wrapper->locals, "char *name = (char *) STR0(Pike_sp[0-args].u.string);\n");
@@ -761,7 +779,7 @@ public:
       while (i.item) {
 	if (!GetFlag(i.item, "feature:immutable")) {
 	  name = Getattr(i.item, "name");
-	  funcname = Swig_name_wrapper(Swig_name_set(Swig_name_member(getClassPrefix(), name)));
+	  funcname = Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, getClassPrefix(), name)));
 	  Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
 	  Printf(wrapper->code, "%s(args);\n", funcname);
 	  Printf(wrapper->code, "return;\n");
@@ -791,7 +809,7 @@ public:
 
     /* Create a function to get the values of the (mutable) variables */
     Wrapper *wrapper = NewWrapper();
-    String *getter = Swig_name_member(getClassPrefix(), (char *) "`->");
+    String *getter = Swig_name_member(NSPACE_TODO, getClassPrefix(), "`->");
     String *wname = Swig_name_wrapper(getter);
     Printv(wrapper->def, "static void ", wname, "(INT32 args) {", NIL);
     Printf(wrapper->locals, "char *name = (char *) STR0(Pike_sp[0-args].u.string);\n");
@@ -799,7 +817,7 @@ public:
     i = First(membervariables);
     while (i.item) {
       name = Getattr(i.item, "name");
-      funcname = Swig_name_wrapper(Swig_name_get(Swig_name_member(getClassPrefix(), name)));
+      funcname = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, getClassPrefix(), name)));
       Printf(wrapper->code, "if (!strcmp(name, \"%s\")) {\n", name);
       Printf(wrapper->code, "%s(args);\n", funcname);
       Printf(wrapper->code, "return;\n");

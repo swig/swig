@@ -29,11 +29,17 @@ struct Struct {
   static Struct *pInstance;
 };
 
-void set(Struct *& s) {
+void set(Struct *const& s) {
   Struct::instance = *s;
 }
-Struct *& get() {
+Struct *const& get() {
   return Struct::pInstance;
+}
+int overloading(int i) {
+  return 111;
+}
+int overloading(Struct *const& s) {
+  return 222;
 }
 %}
 

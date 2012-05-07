@@ -126,7 +126,7 @@ InputName=example
 	echo R_INCLUDE: %R_INCLUDE% 
 	echo R_LIB: %R_LIB% 
 	echo on 
-	..\..\..\swig -c++ -r -o example_wrap.cpp $(InputPath) 
+	..\..\..\swig.exe -c++ -r -o example_wrap.cpp $(InputPath) 
 	
 # End Custom Build
 
@@ -141,7 +141,7 @@ InputName=example
 	echo R_INCLUDE: %R_INCLUDE% 
 	echo R_LIB: %R_LIB% 
 	echo on 
-	..\..\..\swig -c++ -r -o example_wrap.cpp $(InputPath) 
+	..\..\..\swig.exe -c++ -r -o example_wrap.cpp $(InputPath) 
 	
 # End Custom Build
 

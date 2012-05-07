@@ -50,6 +50,8 @@ see bottom for a set of possible tests
 %rename(MinusMinusPostfix) operator--(int);
 #endif
 
+%rename(IndexInto) *::operator[](unsigned idx); // some languages have a %rename *::operator[] already in place, which seems to takes precedence over the above %rename operator[].
+
 #ifdef SWIGCSHARP
 %csmethodmodifiers operator++() "protected";
 %csmethodmodifiers operator++(int) "private";
@@ -74,6 +76,18 @@ see bottom for a set of possible tests
 #ifdef SWIGPHP
 %rename(AndOperator) operator &&;
 %rename(OrOperator) operator ||;
+#endif
+
+#ifdef SWIG_ALLEGRO_CL
+%{
+#include <stdio.h>
+%}
+#endif
+
+#ifdef SWIGD
+// Due to the way operator overloading is implemented in D1 and D2, the prefix
+// increment/decrement operators (D1) resp. the postfix ones (D2) are ignored. 
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSPLUS, SWIGWARN_IGNORE_OPERATOR_MINUSMINUS);
 #endif
 
 %rename(IntCast) operator int();

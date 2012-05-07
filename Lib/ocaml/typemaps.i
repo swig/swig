@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * typemaps.i
  *
  * The Ocaml module handles all types uniformly via typemaps. Here
@@ -85,6 +82,17 @@
     }
 }
 
+%typemap(in) char *& (char *temp) {
+  /* %typemap(in) char *& */
+  temp = (char*)caml_val_ptr($1,$descriptor);
+  $1 = &temp;
+}
+
+%typemap(argout) char *& {
+  /* %typemap(argout) char *& */
+  swig_result =	caml_list_append(swig_result,caml_val_string_len(*$1, strlen(*$1)));
+}
+
 #else
 
 %typemap(in) SWIGTYPE {
@@ -157,7 +165,7 @@
     swig_result = caml_list_append(swig_result,C_TO_MZ((long)*$1));
 }
 %typemap(directorin) C_NAME {
-    args = caml_list_append(args,C_TO_MZ($1_name));
+    args = caml_list_append(args,C_TO_MZ($1));
 }
 %enddef
 
@@ -317,3 +325,11 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %swig_enum_out(out)
 %swig_enum_out(varout)
 %swig_enum_out(directorin)
+
+
+/* Array reference typemaps */
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
+

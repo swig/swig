@@ -304,6 +304,15 @@ class li_boost_shared_ptr_runme:
     self.verifyValue(li_boost_shared_ptr.overload_smartbyptr(k), "smartbyptr")
     self.verifyValue(li_boost_shared_ptr.overload_smartbyptrref(k), "smartbyptrref")
 
+    # 3rd derived class
+    k = li_boost_shared_ptr.Klass3rdDerived("me oh my")
+    val = k.getValue()
+    self.verifyValue("me oh my-3rdDerived", val)
+    self.verifyCount(1, k)
+    val = li_boost_shared_ptr.test3rdupcast(k)
+    self.verifyValue("me oh my-3rdDerived", val)
+    self.verifyCount(1, k)
+
     # //////////////////////////////// Member variables ////////////////////////////////////////
     # smart pointer by value
     m = li_boost_shared_ptr.MemberVariables()

@@ -16,8 +16,8 @@ public class overload_template_runme {
   public static void main(String argv[]) {
     int f = overload_template.foo();
 
-    int a = overload_template.max(3,4);
-    double b = overload_template.max(3.4,5.2);
+    int a = overload_template.maximum(3,4);
+    double b = overload_template.maximum(3.4,5.2);
 
     // mix 1
     if (overload_template.mix1("hi") != 101)

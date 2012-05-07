@@ -2,7 +2,7 @@
 #define JAVA_JAVAKW_SWG_
 
 /* Warnings for Java keywords */
-#define JAVAKW(x) %namewarn("314:" #x " is a java keyword")  #x
+#define JAVAKW(x) %keywordwarn("'" `x` "' is a java keyword, renaming to '_"`x`"'",rename="_%s")  `x`
 
 /*
    from

@@ -1,7 +1,4 @@
 /* -----------------------------------------------------------------------------
- * See the LICENSE file for information on copyright, usage and redistribution
- * of SWIG, and the README file for authors - http://www.swig.org/release.html.
- *
  * tclrun.swg
  *
  * This file contains the runtime support for Tcl modules and includes
@@ -74,9 +71,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#if 0
-} /* cc-mode */
-#endif
 #endif
 
 /* Object support */
@@ -283,7 +277,7 @@ SWIG_Tcl_SetModule(Tcl_Interp *interp, swig_module_info *module) {
   /* create a new pointer */
   data = SWIG_PackData(buf, &module, sizeof(swig_type_info **));
   *data = 0;
-  Tcl_SetVar(interp, (char *)"swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, buf, 0);
+  Tcl_SetVar(interp, (char *)"swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, buf, TCL_GLOBAL_ONLY);
 }
 
 /* -----------------------------------------------------------------------------*
@@ -346,6 +340,7 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   cls_stack_bi[cls_stack_top] = -1;
   cls = inst->classptr;
   while (1) {
+    Tcl_HashEntry* hashentry;
     bi = cls_stack_bi[cls_stack_top];
     cls = cls_stack[cls_stack_top];
     if (bi != -1) {
@@ -370,19 +365,17 @@ SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     }
     cls_stack_bi[cls_stack_top]++;
 
-    meth = cls->methods;
-    /* Check for methods */
-    while (meth && meth->name) {
-      if (strcmp(meth->name,method) == 0) {
+    hashentry = Tcl_FindHashEntry(&(cls->hashtable), method);
+    if (hashentry) {
+        ClientData cd = Tcl_GetHashValue(hashentry);
+        swig_wrapper method_wrapper = (swig_wrapper)cd;
         oldarg = objv[1];
         objv[1] = inst->thisptr;
         Tcl_IncrRefCount(inst->thisptr);
-        rcode = (*meth->method)(clientData,interp,objc,objv);
+        rcode = (method_wrapper)(clientData,interp,objc,objv);
         objv[1] = oldarg;
         Tcl_DecrRefCount(inst->thisptr);
         return rcode;
-      }
-      meth++;
     }
     /* Check class methods for a match */
     if (strcmp(method,"cget") == 0) {
@@ -489,7 +482,7 @@ SWIGRUNTIME Tcl_Obj *
 SWIG_Tcl_NewInstanceObj(Tcl_Interp *interp, void *thisvalue, swig_type_info *type, int flags) {
   Tcl_Obj *robj = SWIG_NewPointerObj(thisvalue, type,0);
   /* Check to see if this pointer belongs to a class or not */
-  if ((type->clientdata) && (interp)) {
+  if (thisvalue && (type->clientdata) && (interp)) {
     Tcl_CmdInfo    ci;
     char          *name;
     name = Tcl_GetStringFromObj(robj,NULL);
@@ -688,8 +681,5 @@ SWIG_Tcl_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char
 }
 
 #ifdef __cplusplus
-#if 0
-{ /* cc-mode */
-#endif
 }
 #endif

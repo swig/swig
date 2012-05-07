@@ -122,7 +122,7 @@ InputName=example
 	echo R_INCLUDE: %R_INCLUDE% 
 	echo R_LIB: %R_LIB% 
 	echo on 
-	..\..\..\swig -r $(InputPath) 
+	..\..\..\swig.exe -r $(InputPath) 
 	
 # End Custom Build
 
@@ -137,7 +137,7 @@ InputName=example
 	echo R_INCLUDE: %R_INCLUDE% 
 	echo R_LIB: %R_LIB% 
 	echo on 
-	..\..\..\swig -r $(InputPath) 
+	..\..\..\swig.exe -r $(InputPath) 
 	
 # End Custom Build
 

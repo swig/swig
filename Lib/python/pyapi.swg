@@ -4,9 +4,6 @@
 
 #ifdef __cplusplus
 extern "C" {
-#if 0
-} /* cc-mode */
-#endif
 #endif
 
 /* -----------------------------------------------------------------------------
@@ -27,10 +24,24 @@ typedef struct swig_const_info {
   swig_type_info **ptype;
 } swig_const_info;
 
-#ifdef __cplusplus
-#if 0
-{ /* cc-mode */
+
+/* -----------------------------------------------------------------------------
+ * Wrapper of PyInstanceMethod_New() used in Python 3
+ * It is exported to the generated module, used for -fastproxy
+ * ----------------------------------------------------------------------------- */
+#if PY_VERSION_HEX >= 0x03000000
+SWIGRUNTIME PyObject* SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *func)
+{
+  return PyInstanceMethod_New(func);
+}
+#else
+SWIGRUNTIME PyObject* SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), PyObject *SWIGUNUSEDPARM(func))
+{
+  return NULL;
+}
 #endif
+
+#ifdef __cplusplus
 }
 #endif
 
