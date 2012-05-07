@@ -1100,7 +1100,7 @@ ready:
     Setattr(n, "c:stype", stype);
 
     // modify the constructor name
-    constr_name = Swig_name_construct(newclassname);
+    constr_name = Swig_name_construct(NSPACE_TODO, newclassname);
     Setattr(n, "name", constr_name);
     Setattr(n, "sym:name", constr_name);
 
@@ -1157,7 +1157,7 @@ ready:
     Setattr(n, "c:stype", stype);
 
     // modify the constructor name
-    constr_name = Swig_name_copyconstructor(newclassname);
+    constr_name = Swig_name_copyconstructor(NSPACE_TODO, newclassname);
     Setattr(n, "name", constr_name);
     Setattr(n, "sym:name", constr_name);
 
@@ -1205,7 +1205,7 @@ ready:
     Printf(sobj_name, "SwigObj");
     ctype = Copy(sobj_name);
     SwigType_add_pointer(ctype);
-    p = NewParm(ctype, "self");
+    p = NewParm(ctype, "self", n);
     Setattr(p, "lname", "arg1");
     stype = Copy(newclassname);
     SwigType_add_pointer(stype);
@@ -1215,7 +1215,7 @@ ready:
     Setattr(n, "type", "void");
 
     // modify the destructor name
-    destr_name = Swig_name_destroy(newclassname);
+    destr_name = Swig_name_destroy(NSPACE_TODO, newclassname);
     Setattr(n, "sym:name", destr_name);
 
     // create action code
