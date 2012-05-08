@@ -19,6 +19,7 @@ Active SWIG Developers:
 
 Past SWIG developers and major contributors include:
  Dave Beazley (dave-swig@dabeaz.com)                    (SWIG core, Python, Tcl, Perl)
+ Dmitry Kabak (userdima@gmail.com)                      (Doxygen)
  Henning Thielemann (swig@henning-thielemann.de)        (Modula3)
  Matthias Köppe (mkoeppe@mail.math.uni-magdeburg.de)    (Guile, MzScheme)
  Luigi Ballabio (luigi.ballabio@fastwebnet.it)          (STL wrapping)
