@@ -1142,20 +1142,21 @@ R_CFLAGS=-fPIC
 
 # need to compile .cxx files outside of R build system to make sure that
 # we get -fPIC
+# CMD SHLIB stdout is piped to /dev/null to prevent echo of compiler command
 
 r: $(SRCS)
 	$(SWIG) -r $(SWIGOPT) $(INTERFACEPATH)
 ifneq ($(SRCS),)
 	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES) 
 endif
-	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) )
+	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
 
 r_cpp: $(CXXSRCS)
 	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
 ifneq ($(CXXSRCS),)
 	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(CXXSRCS) $(INCLUDES) 
 endif
-	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) )
+	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
 
 r_clean:
 	rm -f *_wrap* *~ .~*

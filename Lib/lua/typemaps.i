@@ -557,7 +557,8 @@ ptr=nil -- the iMath* will be GC'ed as normal
 */
 
 %typemap(in,numinputs=0) SWIGTYPE** OUTPUT ($*ltype temp)
-%{  $1 = &temp; %}
+%{ temp = ($*ltype)0;
+   $1 = &temp; %}
 %typemap(argout) SWIGTYPE** OUTPUT
 %{SWIG_NewPointerObj(L,*$1,$*descriptor,1); SWIG_arg++; %}
 

@@ -277,6 +277,7 @@ CPP_TEST_CASES += \
         operbool \
 	ordering \
 	overload_copy \
+	overload_method \
 	overload_extend \
 	overload_rename \
 	overload_return_type \
@@ -466,7 +467,6 @@ CPP_STD_TEST_CASES += \
 	director_string \
 	ignore_template_constructor \
 	li_std_combinations \
-	li_std_containers_int \
 	li_std_deque \
 	li_std_except \
 	li_std_map \

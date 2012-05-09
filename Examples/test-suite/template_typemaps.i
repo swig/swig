@@ -3,6 +3,7 @@
 
 %typemap(in) Integer1 
 {
+  $1 = 0;
   /* do nothing */
 }
 
@@ -13,6 +14,7 @@
 
 %typemap(in) Integer2 
 {
+  $1 = 0;
   /* do nothing */
 }
 

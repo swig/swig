@@ -45,10 +45,18 @@ B_t make_b() {
 
 %inline %{
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct _Foo {
   enum { NONAME1, NONAME2 } enumvar;
   int foovar;
   void (*fptr)(int);
 } Foo;
+
+#ifdef __cplusplus
+}
+#endif
 
 %}

@@ -49,5 +49,7 @@ namespace Outer {
                   const Outer::Inner2::Color& col2c) {}
 }
 
+#else
+#warning nspace feature not yet supported in this target language
 #endif
 

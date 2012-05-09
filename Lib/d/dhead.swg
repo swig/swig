@@ -91,31 +91,31 @@ private class SwigExceptionHelper {
       &setNoSuchElementException);
   }
 
-  static void setException(const char* message) {
+  static void setException(char* message) {
     auto exception = new object.Exception(tango.stdc.stringz.fromStringz(message).dup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
-  static void setIllegalArgumentException(const char* message) {
+  static void setIllegalArgumentException(char* message) {
     auto exception = new tango.core.Exception.IllegalArgumentException(tango.stdc.stringz.fromStringz(message).dup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
-  static void setIllegalElementException(const char* message) {
+  static void setIllegalElementException(char* message) {
     auto exception = new tango.core.Exception.IllegalElementException(tango.stdc.stringz.fromStringz(message).dup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
-  static void setIOException(const char* message) {
+  static void setIOException(char* message) {
     auto exception = new tango.core.Exception.IOException(tango.stdc.stringz.fromStringz(message).dup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
   }
 
-  static void setNoSuchElementException(const char* message) {
+  static void setNoSuchElementException(char* message) {
     auto exception = new tango.core.Exception.NoSuchElementException(tango.stdc.stringz.fromStringz(message).dup);
     exception.next = SwigPendingException.retrieve();
     SwigPendingException.set(exception);
@@ -174,7 +174,7 @@ private:
   alias tango.core.Thread.ThreadLocal!(object.Exception) ThreadLocalData;
   static ThreadLocalData m_sPendingException;
 }
-alias void function(const char* message) SwigExceptionCallback;
+alias void function(char* message) SwigExceptionCallback;
 %}
 #else
 %pragma(d) imdmoduleimports=%{

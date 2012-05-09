@@ -3673,17 +3673,21 @@ generated into the wrapper code before any typemap code that calls it.
 <p>
 To define a fragment you need a fragment name, a section name for generating the fragment code into, and the code itself.
 See <a href="SWIG.html#SWIG_nn42">Code insertion blocks</a> for a full list of section names.
-Usually the section name used is "header". Both string and curly braces can be used:
+Usually the section name used is "header". Different delimiters can be used:
 </p>
 
 <div class="code">
 <pre>
+%fragment("my_name", "header") %{ ... %}
 %fragment("my_name", "header") { ... }
 %fragment("my_name", "header") " ... "
 </pre>
 </div>
 
 <p>
+and these follow the usual preprocessing rules mentioned in the 
+<a href="Preprocessor.html#Preprocessor_delimiters">Preprocessing delimiters</a>
+section.
 The following are some rules and guidelines for using fragments:
 </p>
 
@@ -3761,8 +3765,8 @@ A fragment can use one or more additional fragments, for example:
 
 <div class="code">
 <pre>
-%fragment("&lt;limits.h&gt;", "header")  {
-  #include &lt;limits.h&gt;
+%fragment("&lt;limits.h&gt;", "header") {
+  %#include &lt;limits.h&gt;
 }
 
 
