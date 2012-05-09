@@ -53,7 +53,7 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
 #endif
 
 #if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
-  /* set up base class pointers (the hierachy) */
+  /* set up base class pointers (the hierarchy) */
   for (i = 0; swig_types[i]; i++){
     if (swig_types[i]->clientdata){
       SWIG_Lua_init_base_class(L,(swig_lua_class*)(swig_types[i]->clientdata));
