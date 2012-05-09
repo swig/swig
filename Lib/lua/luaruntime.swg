@@ -19,7 +19,7 @@ extern "C" {
 #endif
 /* this is the initialization function
   added at the very end of the code
-  the function is always called SWIG_init, but an eariler #define will rename it
+  the function is always called SWIG_init, but an earlier #define will rename it
 */
 #if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
 LUALIB_API int SWIG_init(lua_State* L)
