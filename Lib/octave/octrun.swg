@@ -111,7 +111,7 @@ class octave_swig_type;
 namespace Swig {
   class Director;
 
-  SWIGRUNTIME void swig_register_director(octave_swig_type *self, void *ptr, Director *d);
+  //SWIGRUNTIME void swig_register_director(octave_swig_type *self, void *ptr, Director *d);
   SWIGRUNTIME void swig_director_destroyed(octave_swig_type *self, Director *d);
   SWIGRUNTIME void swig_director_set_self(Director *d, octave_swig_type *self);
 
@@ -397,6 +397,62 @@ namespace Swig {
       }
       for (unsigned int j = 0; j < types.size(); ++j)
 	Swig::erase_rtdir(types[j].second.ptr);
+    }
+
+    dim_vector dims(void) const {
+      octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
+      
+      // Find the __dims__ method of this object
+      member_value_pair *m = nc_this->find_member("__dims__", false);
+
+      if (!m) return dim_vector(1,1);
+      
+      // Call the __dims__ method of this object
+      octave_value_list inarg;
+      inarg.append(nc_this->as_value());
+      octave_value_list outarg = nc_this->member_invoke(m, inarg, 1);
+
+      // __dims__ should return (at least) one output argument
+      if (outarg.length() < 1) return dim_vector(1,1);
+      
+      octave_value & out = outarg(0);
+
+      // Return value should be cell or matrix of integers
+      if (out.is_cell()) {
+        const Cell & c=out.cell_value();
+        int ndim = c.rows();
+        if (ndim==1 && c.columns()!=1) ndim = c.columns();
+
+        dim_vector d;
+        d.resize(ndim < 2 ? 2 : ndim);
+        d(0) = d(1) = 1;
+
+        // Fill in dim_vector 
+        for (int k=0;k<ndim;k++) {
+          const octave_value& obj = c(k);
+          d.elem(k) = obj.int_value();
+          
+          // __dims__ should return a cell filled with integers
+          if (error_state) return dim_vector(1,1);
+        }
+        return d;
+      } else if (out.is_matrix_type() || out.is_real_nd_array() || out.is_numeric_type() ) {
+        if (out.rows()==1 || out.columns()==1) {
+           Array<int> a = out.int_vector_value();
+           if (error_state) return dim_vector(1,1);
+           dim_vector d;
+           d.resize(a.numel() < 2 ? 2 : a.numel());
+           d(0) = d(1) = 1;
+           for (int k=0;k<a.numel();k++) {
+              d.elem(k) = a(k);
+           }
+           return d;
+        } else {
+          return dim_vector(1,1);
+        }
+      } else {
+        return dim_vector(1,1);
+      }
     }
 
     octave_value as_value() {
@@ -699,6 +755,10 @@ namespace Swig {
       return as_value();
     }
 
+    virtual bool is_object() const {
+      return true;
+    }
+
     virtual bool is_string() const {
       octave_swig_type *nc_this = const_cast < octave_swig_type *>(this);
       return !!nc_this->find_member("__str__", false);
@@ -785,7 +845,7 @@ namespace Swig {
       octave_value fcn = get_global_value(symbol, true);
       if (!fcn.is_function() && !fcn.is_function_handle())
 	return false;
-      ret = fcn.subsref("(", std::list < octave_value_list > (1, args));
+      ret = fcn.subsref("(", std::list < octave_value_list > (1, args), 1);
       return true;
     }
 
@@ -928,6 +988,9 @@ namespace Swig {
     octave_base_value *empty_clone() const
       { return new octave_swig_ref(0); }
 
+    dim_vector dims(void) const 
+      { return ptr->dims(); }
+
     bool is_defined() const
       { return ptr->is_defined(); }
 
@@ -942,6 +1005,9 @@ namespace Swig {
 
     octave_value subsasgn(const std::string &ops, const std::list < octave_value_list > &idx, const octave_value &rhs)
       { return ptr->subsasgn(ops, idx, rhs); }
+
+    virtual bool is_object() const 
+      { return ptr->is_object(); }
 
     virtual bool is_string() const 
       { return ptr->is_string(); }

@@ -63,7 +63,7 @@ namespace swig {
 }
 }
 
-%fragment("OctSequence_Base","header")
+%fragment("OctSequence_Base","header",fragment="<stddef.h>")
 {
 %#include <functional>
 

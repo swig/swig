@@ -298,7 +298,7 @@ parmeters match which function
 
 // special check for a char (string of length 1)
 %typecheck(SWIG_TYPECHECK_CHAR,fragment="SWIG_lua_isnilstring") char, const char& {
-  $1 = SWIG_lua_isnilstring(L,$input) && (lua_strlen(L,$input)==1);
+  $1 = SWIG_lua_isnilstring(L,$input) && (lua_rawlen(L,$input)==1);
 }
 
 %typecheck(SWIG_TYPECHECK_STRING,fragment="SWIG_lua_isnilstring") char *, char[] {

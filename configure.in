@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[2.0.5],[http://www.swig.org])
+AC_INIT([swig],[2.0.6],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -35,7 +35,7 @@ AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 AC_COMPILE_WARNINGS # Increase warning levels
 
 AC_DEFINE_UNQUOTED(SWIG_CXX, ["$CXX"], [Compiler that built SWIG])
-AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$build"], [Platform that SWIG is built for])
+AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$host"], [Platform that SWIG is built for])
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -923,17 +923,18 @@ fi
 
 AC_MSG_CHECKING(for Octave header files)
 if test -n "$OCTAVE"; then
-	OCTAVEDIR="/usr/include"
+	OCTAVECONFIG=[`echo $OCTAVEBIN | sed 's|octave\([^/]*\)$|octave-config\1|'`]
+	if test -r "$OCTAVECONFIG"; then
+		OCTAVEDIR=`$OCTAVECONFIG -p OCTINCLUDEDIR | sed 's|/octave$||'`
+	else
+		OCTAVEDIR="/usr/include"
+	fi
 	if test "$OCTAVEDIR" != ""; then
-		dirs="$OCTAVEDIR"
+		dirs="$OCTAVEDIR/octave $OCTAVEDIR"
 		OCTAVEEXT=""
 		for i in $dirs; do
 			if test -r $i/octave/oct.h; then
 				OCTAVEEXT="$i"
-				break;
-			fi
-			if test -r $i/octave/octave/oct.h; then
-				OCTAVEEXT="$i/octave"
 				break;
 			fi
 		done
@@ -1238,6 +1239,51 @@ fi
 
 AC_SUBST(GCJ)
 AC_SUBST(GCJH)
+
+#----------------------------------------------------------------
+# Look for Android
+#----------------------------------------------------------------
+
+AC_ARG_WITH(android, AS_HELP_STRING([--without-android], [Disable Android])
+AS_HELP_STRING([--with-android=path], [Set location of android executable]),[ANDROIDBIN="$withval"], [ANDROIDBIN=yes])
+AC_ARG_WITH(adb, [  --with-adb=path       Set location of adb executable - Android Debug Bridge],[ADBBIN="$withval"], [ADBBIN=])
+AC_ARG_WITH(ant, [  --with-ant=path       Set location of ant executable for Android],[ANTBIN="$withval"], [ANTBIN=])
+AC_ARG_WITH(ndk-build, [  --with-ndk-build=path       Set location of Android ndk-build executable],[NDKBUILDBIN="$withval"], [NDKBUILDBIN=])
+
+# First, check for "--without-android" or "--with-android=no".
+if test x"${ANDROIDBIN}" = xno -o x"${with_alllang}" = xno ; then 
+  AC_MSG_NOTICE([Disabling Android])
+  ANDROID=
+else
+  if test "x$ANDROIDBIN" = xyes; then
+    AC_CHECK_PROGS(ANDROID, android)
+  else
+    ANDROID="$ANDROIDBIN"
+  fi
+
+  if test -z "$ADBBIN"; then
+    AC_CHECK_PROGS(ADB, adb)
+  else
+    ADB="$ADBBIN"
+  fi
+
+  if test -z "$ANTBIN"; then
+    AC_CHECK_PROGS(ANT, ant)
+  else
+    ANT="$ANTBIN"
+  fi
+
+  if test -z "$NDKBUILDBIN"; then
+    AC_CHECK_PROGS(NDKBUILD, ndk-build)
+  else
+    NDKBUILD="$NDKBUILDBIN"
+  fi
+fi
+
+AC_SUBST(ANDROID)
+AC_SUBST(ADB)
+AC_SUBST(ANT)
+AC_SUBST(NDKBUILD)
 
 #----------------------------------------------------------------
 # Look for Guile
@@ -1979,7 +2025,12 @@ else
 
 # can we find lua?
 if test "x$LUABIN" = xyes; then
-   AC_PATH_PROG(LUABIN, lua)
+   # We look for a versioned Lua binary first, as there can be
+   # multiple versions of Lua installed on some systems (like Debian).
+   # The search order should match the include-file and library search
+   # orders below (a Lua shared library built for one version may not
+   # work with a Lua binary of a different version).
+   AC_PATH_PROGS(LUABIN, [lua5.2 lua5.1 lua])
 fi
 
 # check version: we need Lua 5.x
@@ -2027,8 +2078,11 @@ else
   # if we didn't get it, going to have to look elsewhere (the hard way)
   if test -z "$LUA_OK"; then
     AC_MSG_CHECKING(for lua.h in other locations)
-    # note: ubuntu seems to like /usr/include/lua5.1/lua.h
-    dirs="/usr/include/lua* /usr/local/include"
+    # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
+    # The ordering of the include directories to search should match
+    # the ordering of libraries to search in the library test below.
+    inc=/usr/include
+    dirs="$inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
     for i in $dirs; do
       #echo "$i"
       if test -r $i/lua.h; then
@@ -2051,7 +2105,7 @@ lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
 if test -n "$LUALIB"; then
   AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
 else
-  AC_SEARCH_LIBS(lua_close, [lua lua51 lua5.1 lua50 lua5.0], [LUALINK="-l$ac_lib"],[LUABIN=])
+  AC_SEARCH_LIBS(lua_close, [lua lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
 fi
 
 # adding lualib for lua 5.0
@@ -2147,24 +2201,35 @@ AS_HELP_STRING([--with-go=path], [Set location of Go compiler]),[GOBIN="$withval
 if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then 
   AC_MSG_NOTICE([Disabling Go])
   GO=
+  GOC=
+  GO1=false
   GOGCC=false
 else
 
   if test "x$GOBIN" = xyes; then
-    AC_CHECK_PROGS(GO, 6g 8g gccgo)
+    AC_CHECK_PROGS(GO, go 6g 8g gccgo)
   else
     GO="$GOBIN"
   fi
 
+  GOGCC=false
+  GO1=false
   if test -n "$GO" ; then
-    GOGCC=false
     if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
       GOGCC=true
+      go_version=`$GO --version | sed -e 's/[^0-9]* \([0-9.]*\) .*$/\1/' -e 's/[.]//g'`
+      if test "$go_version" -lt 470; then
+        AC_DEFINE(HAVE_GCCGO_46, 1, [Define if using gccgo before 4.7.0])
+      fi
+    elif test "`echo $GO | sed -e 's|.*/||'`" = "go"; then
+      GO1=true
+      GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
     else
+      GOC=`echo $GO | sed -e 's/g/c/'`
       AC_MSG_CHECKING([whether Go ($GO) version is too old])
-      go_version=`$GO -V | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
+      go_version=`$GO -V 2>/dev/null | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
       go_min_version=7077
-      if test "$go_version" -lt $go_min_version; then
+      if test "$go_version" != "" -a "$go_version" -lt $go_min_version; then
         AC_MSG_RESULT([yes - minimum version is $go_min_version])
         GO=
       else
@@ -2176,6 +2241,8 @@ fi
 
 AC_SUBST(GOGCC)
 AC_SUBST(GO)
+AC_SUBST(GOC)
+AC_SUBST(GO1)
 
 #----------------------------------------------------------------
 # Look for D
@@ -2447,6 +2514,14 @@ fi
 AC_SUBST(SKIP_GCJ)
 
 
+SKIP_ANDROID=
+if test -z "$ANDROID" || test -z "$ADB" || test -z "$ANT" || test -z "$NDKBUILD" ; then
+    SKIP_ANDROID="1"
+fi
+AC_SUBST(SKIP_ANDROID)
+
+
+
 #----------------------------------------------------------------
 # Miscellaneous
 #----------------------------------------------------------------
@@ -2476,7 +2551,7 @@ AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent li
 AC_SUBST(swig_lib)
 AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent libraries])
 
-case $host in
+case $build in
         # Windows does not understand unix directories. Convert into a windows directory with drive letter.
         *-*-mingw*) SWIG_LIB_WIN_UNIX=`cmd //c echo $SWIG_LIB | sed -e "s/[ ]*$//"`;; # This echo converts unix to mixed paths. Then zap unexpected trailing space.
         *-*-cygwin*) SWIG_LIB_WIN_UNIX=`cygpath --mixed "$SWIG_LIB"`;;

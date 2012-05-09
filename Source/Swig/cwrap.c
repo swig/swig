@@ -17,6 +17,7 @@ char cvsroot_cwrap_c[] = "$Id$";
 #include "swig.h"
 
 extern int cparse_cplusplus;
+static const char *cresult_variable_name = "result";
 
 static Parm *nonvoid_parms(Parm *p) {
   if (p) {
@@ -28,7 +29,28 @@ static Parm *nonvoid_parms(Parm *p) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_parm_name()
+ * Swig_cresult_name_set()
+ *
+ * Change the name of the variable used to hold the return value from C/C++ wrapper functions
+ * from the default "result".
+ * ----------------------------------------------------------------------------- */
+
+void Swig_cresult_name_set(const char *new_name) {
+  cresult_variable_name = new_name;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_cresult_name()
+ *
+ * Get the name of the variable used to hold the return value from C/C++ wrapper functions
+ * ----------------------------------------------------------------------------- */
+
+const char *Swig_cresult_name(void) {
+  return cresult_variable_name;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_cparm_name()
  *
  * Generates a name for the ith argument in an argument list
  * ----------------------------------------------------------------------------- */
@@ -546,7 +568,7 @@ String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmLis
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_rflag_search()
+ * recursive_flag_search()
  *
  * This function searches for the class attribute 'attr' in the class
  * 'n' or recursively in its bases.
@@ -567,7 +589,7 @@ String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmLis
  * ----------------------------------------------------------------------------- */
 
 /* #define SWIG_FAST_REC_SEARCH 1 */
-String *Swig_rflag_search(Node *n, const String *attr, const String *noattr) {
+static String *recursive_flag_search(Node *n, const String *attr, const String *noattr) {
   String *f = 0;
   n = Swig_methodclass(n);
   if (GetFlag(n, noattr)) {
@@ -581,7 +603,7 @@ String *Swig_rflag_search(Node *n, const String *attr, const String *noattr) {
     if (bl) {
       Iterator bi;
       for (bi = First(bl); bi.item; bi = Next(bi)) {
-	f = Swig_rflag_search(bi.item, attr, noattr);
+	f = recursive_flag_search(bi.item, attr, noattr);
 	if (f) {
 #ifdef SWIG_FAST_REC_SEARCH
 	  SetFlagAttr(n, attr, f);
@@ -600,12 +622,11 @@ String *Swig_rflag_search(Node *n, const String *attr, const String *noattr) {
 /* -----------------------------------------------------------------------------
  * Swig_unref_call()
  *
- * find the unref call, if any.
+ * Find the "feature:unref" call, if any.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_unref_call(Node *n) {
-  Node *cn = Swig_methodclass(n);
-  String *unref = Swig_rflag_search(cn, "feature:unref", "feature:nounref");
+  String *unref = recursive_flag_search(n, "feature:unref", "feature:nounref");
   if (unref) {
     String *pname = Swig_cparm_name(0, 0);
     unref = NewString(unref);
@@ -619,12 +640,11 @@ String *Swig_unref_call(Node *n) {
 /* -----------------------------------------------------------------------------
  * Swig_ref_call()
  *
- * find the ref call, if any.
+ * Find the "feature:ref" call, if any.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_ref_call(Node *n, const String *lname) {
-  Node *cn = Swig_methodclass(n);
-  String *ref = Swig_rflag_search(cn, "feature:ref", "feature:noref");
+  String *ref = recursive_flag_search(n, "feature:ref", "feature:noref");
   if (ref) {
     ref = NewString(ref);
     Replaceall(ref, "$this", lname);
@@ -642,7 +662,8 @@ String *Swig_ref_call(Node *n, const String *lname) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_cdestructor_call(Node *n) {
-  String *unref = Swig_unref_call(n);
+  Node *cn = Swig_methodclass(n);
+  String *unref = Swig_unref_call(cn);
 
   if (unref) {
     return unref;
@@ -664,7 +685,8 @@ String *Swig_cdestructor_call(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_cppdestructor_call(Node *n) {
-  String *unref = Swig_unref_call(n);
+  Node *cn = Swig_methodclass(n);
+  String *unref = Swig_unref_call(cn);
   if (unref) {
     return unref;
   } else {
@@ -880,7 +902,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
     }
 
     call = Swig_cmethod_call(explicitcall_name ? explicitcall_name : name, p, self, explicit_qualifier, director_type);
-    cres = Swig_cresult(Getattr(n, "type"), "result", call);
+    cres = Swig_cresult(Getattr(n, "type"), Swig_cresult_name(), call);
 
     if (pure_virtual && is_director && (flags & CWRAP_DIRECTOR_TWO_CALLS)) {
       String *qualifier = SwigType_namestr(Getattr(Getattr(parentNode(n), "typescope"), "qname"));
@@ -893,7 +915,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
       /* Create two method calls, one to call the explicit method, the other a normal polymorphic function call */
       String *cres_both_calls = NewStringf("");
       String *call_extra = Swig_cmethod_call(name, p, self, 0, director_type);
-      String *cres_extra = Swig_cresult(Getattr(n, "type"), "result", call_extra);
+      String *cres_extra = Swig_cresult(Getattr(n, "type"), Swig_cresult_name(), call_extra);
       Printv(cres_both_calls, "if (upcall) {\n", cres, "\n", "} else {", cres_extra, "\n}", NIL);
       Setattr(n, "wrap:action", cres_both_calls);
       Delete(cres_extra);
@@ -974,12 +996,12 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
 	}
       }
       Append(func, ")");
-      cres = Swig_cresult(Getattr(n, "type"), "result", func);
+      cres = Swig_cresult(Getattr(n, "type"), Swig_cresult_name(), func);
       Setattr(n, "wrap:action", cres);
       Delete(cres);
     } else {
       String *call = Swig_cfunction_call(mangled, p);
-      String *cres = Swig_cresult(Getattr(n, "type"), "result", call);
+      String *cres = Swig_cresult(Getattr(n, "type"), Swig_cresult_name(), call);
       Setattr(n, "wrap:action", cres);
       Delete(call);
       Delete(cres);
@@ -1089,7 +1111,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
     }
 
     call = Swig_cfunction_call(mangled, parms);
-    cres = Swig_cresult(type, "result", call);
+    cres = Swig_cresult(type, Swig_cresult_name(), call);
     Setattr(n, "wrap:action", cres);
     Delete(cres);
     Delete(call);
@@ -1120,7 +1142,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
 	   * implemented in the target language, calls to those methods will
 	   * generate Swig::DirectorPureVirtualException exceptions.
 	   */
-	  String *cres = Swig_cresult(type, "result", director_call);
+	  String *cres = Swig_cresult(type, Swig_cresult_name(), director_call);
 	  Append(action, cres);
 	  Delete(cres);
 	} else {
@@ -1135,11 +1157,11 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
 	  Append(action, director_ctor);
 	  Replaceall(action, "$comparison", tmp_none_comparison);
 
-	  cres = Swig_cresult(type, "result", director_call);
+	  cres = Swig_cresult(type, Swig_cresult_name(), director_call);
 	  Replaceall(action, "$director_new", cres);
 	  Delete(cres);
 
-	  cres = Swig_cresult(type, "result", nodirector_call);
+	  cres = Swig_cresult(type, Swig_cresult_name(), nodirector_call);
 	  Replaceall(action, "$nondirector_new", cres);
 	  Delete(cres);
 	}
@@ -1149,14 +1171,14 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
 	Delete(directorname);
       } else {
 	String *call = Swig_cppconstructor_call(classname, parms);
-	String *cres = Swig_cresult(type, "result", call);
+	String *cres = Swig_cresult(type, Swig_cresult_name(), call);
 	Setattr(n, "wrap:action", cres);
 	Delete(cres);
 	Delete(call);
       }
     } else {
       String *call = Swig_cconstructor_call(classname);
-      String *cres = Swig_cresult(type, "result", call);
+      String *cres = Swig_cresult(type, Swig_cresult_name(), call);
       Setattr(n, "wrap:action", cres);
       Delete(cres);
       Delete(call);
@@ -1371,7 +1393,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
       Swig_add_extension_code(n, mangled, parms, ty, code, cparse_cplusplus, "self");
     }
     call = Swig_cfunction_call(mangled, parms);
-    cres = Swig_cresult(ty, "result", call);
+    cres = Swig_cresult(ty, Swig_cresult_name(), call);
     Setattr(n, "wrap:action", cres);
 
     Delete(cres);
@@ -1381,7 +1403,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
     Delete(gname);
   } else {
     String *call = Swig_cmemberget_call(name, type, self, varcref);
-    String *cres = Swig_cresult(ty, "result", call);
+    String *cres = Swig_cresult(ty, Swig_cresult_name(), call);
     Setattr(n, "wrap:action", cres);
     Delete(call);
     Delete(cres);
@@ -1472,14 +1494,14 @@ int Swig_VargetToFunction(Node *n, int flags) {
     String *sname = Swig_name_get(0, name);
     String *mangled = Swig_name_mangle(sname);
     call = Swig_cfunction_call(mangled, 0);
-    cres = Swig_cresult(ty, "result", call);
+    cres = Swig_cresult(ty, Swig_cresult_name(), call);
     Setattr(n, "wrap:action", cres);
     Delete(mangled);
     Delete(sname);
   } else {
     String *nname = SwigType_namestr(name);
     call = Swig_wrapped_var_assign(type, nname, varcref);
-    cres = Swig_cresult(ty, "result", call);
+    cres = Swig_cresult(ty, Swig_cresult_name(), call);
     Setattr(n, "wrap:action", cres);
     Delete(nname);
   }

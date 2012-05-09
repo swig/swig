@@ -108,7 +108,7 @@
 		     unsigned long long,
 		     float,
 		     double
-%{ $input = ($1_ltype)$1_name; %}
+%{ $input = ($1_ltype)$1; %}
 
 %typemap(directorin) const bool &,
 		     const char &,
@@ -124,7 +124,7 @@
 		     const unsigned long long &,
 		     const float &,
 		     const double &
-%{ $input = ($*1_ltype)$1_name; %}
+%{ $input = ($*1_ltype)$1; %}
 
 %typemap(directorout) bool,
 		      char,
@@ -182,10 +182,10 @@
 %{ $result = ($*1_ltype)*$1; %}
 
 %typemap(directorin) size_t
-%{ $input = (size_t)$1_name; %}
+%{ $input = (size_t)$1; %}
 
 %typemap(directorin) const size_t &
-%{ $input = ($*1_ltype)$1_name; %}
+%{ $input = ($*1_ltype)$1; %}
 
 %typemap(directorout) size_t
 %{ $result = ($1_ltype)$input; %}
@@ -211,7 +211,7 @@
 %}
 
 %typemap(directorin) SWIGTYPE (CLASS::*)
-%{ $input = *($&1_ltype)$1_name; %}
+%{ $input = *($&1_ltype)$1; %}
 
 %typemap(directorout) SWIGTYPE (CLASS::*)
 %{
@@ -233,7 +233,7 @@
 %{ *($&1_ltype)&$result = $1; %}
 
 %typemap(directorin) SWIGTYPE *
-%{ $input = ($1_ltype)$1_name; %}
+%{ $input = ($1_ltype)$1; %}
 
 %typemap(directorout) SWIGTYPE *
 %{ $result = ($1_ltype)$input; %}
@@ -268,7 +268,7 @@
 %{ *($&1_ltype)&$result = $1; %}
 
 %typemap(directorin) SWIGTYPE &
-%{ $input = ($1_ltype)&$1_name; %}
+%{ $input = ($1_ltype)&$1; %}
 
 %typemap(directorout) SWIGTYPE &
 %{ *($&1_ltype)&$result = $input; %}
@@ -286,7 +286,7 @@
 %{ *($&1_ltype)&$result = $1; %}
 
 %typemap(directorin) SWIGTYPE []
-%{ $input = *($1_ltype)&$1_name; %}
+%{ $input = *($1_ltype)&$1; %}
 
 %typemap(directorout) SWIGTYPE []
 %{ *($&1_ltype)&$result = $input; %}
@@ -324,7 +324,7 @@
 	signed char *, signed char *&, signed char[ANY], signed char[],
 	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
 %{
-  $input = _swig_makegostring((char*)$1_name, $1_name ?	strlen((char*)$1_name) : 0);
+  $input = _swig_makegostring((char*)$1, $1 ? strlen((char*)$1) : 0);
 %}
 
 %typemap(directorout)
@@ -347,7 +347,7 @@
 %{ $result = _swig_makegostring((char*)$1, (size_t)$2); %}
 
 %typemap(directorin) (char *STRING, size_t LENGTH)
-%{ $input = _swig_makegostring((char*)$1_name, $2_name); %}
+%{ $input = _swig_makegostring((char*)$1, $2); %}
 
 %typemap(directorout) (char *STRING, size_t LENGTH)
 %{
@@ -369,7 +369,7 @@
 %{ $result = $1; %}
 
 %typemap(directorin) enum SWIGTYPE
-%{ $input = ($1_ltype)$1_name; %}
+%{ $input = ($1_ltype)$1; %}
 
 %typemap(directorout) enum SWIGTYPE
 %{ $result = ($1_ltype)$input; %}
@@ -402,7 +402,7 @@
 #endif
 
 %typemap(directorin) SWIGTYPE
-%{ $input = ($&1_ltype)&$1_name; %}
+%{ $input = ($&1_ltype)&$1; %}
 
 %typemap(directorout) SWIGTYPE
 %{ $result = *($&1_ltype)$input; %}

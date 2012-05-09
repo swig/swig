@@ -32,11 +32,11 @@ void emit_return_variable(Node *n, SwigType *rt, Wrapper *f) {
       SwigType *vt = cplus_value_type(rt);
       SwigType *tt = vt ? vt : rt;
       SwigType *lt = SwigType_ltype(tt);
-      String *lstr = SwigType_str(lt, "result");
+      String *lstr = SwigType_str(lt, Swig_cresult_name());
       if (SwigType_ispointer(lt)) {
-        Wrapper_add_localv(f, "result", lstr, "= 0", NULL);
+        Wrapper_add_localv(f, Swig_cresult_name(), lstr, "= 0", NULL);
       } else {
-        Wrapper_add_local(f, "result", lstr);
+        Wrapper_add_local(f, Swig_cresult_name(), lstr);
       }
       if (vt) {
         Delete(vt);
@@ -496,7 +496,7 @@ String *emit_action(Node *n) {
   }
 
   /* Look for except typemap (Deprecated) */
-  tm = Swig_typemap_lookup("except", n, "result", 0);
+  tm = Swig_typemap_lookup("except", n, Swig_cresult_name(), 0);
   if (tm) {
     Setattr(n, "feature:except", tm);
     tm = 0;

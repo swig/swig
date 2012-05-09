@@ -143,7 +143,6 @@ func main() {
 		panic("overload(const char *)")
 	}
 
-
 	// everything put in a namespace
 	if Nsoverload("hi") != 1000 {
 		panic("nsoverload()")

@@ -12,7 +12,8 @@ top_builddir = @top_builddir@
 CPP_TEST_CASES += \
 	li_std_pair_extra \
 	li_std_string_extra \
-	octave_cell_deref
+	octave_cell_deref\
+	octave_dim
 
 CPP_TEST_BROKEN += \
 	implicittest \
@@ -57,7 +58,7 @@ CSRCS      = octave_empty.c
 # a file is found which has _runme.m appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVEPATH=$(srcdir):OCTAVEPATH $(RUNTOOL) $(OCTAVE) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir):$$OCTAVE_PATH $(RUNTOOL) $(OCTAVE) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean: remove the generated .m file

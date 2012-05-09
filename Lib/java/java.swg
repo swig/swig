@@ -469,19 +469,19 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
    temp = ($*1_ltype)$input; 
    $result = &temp; %}
 
-%typemap(directorin, descriptor="Z") const bool &           "$input = (jboolean)$1_name;"
-%typemap(directorin, descriptor="C") const char &           "$input = (jchar)$1_name;"
-%typemap(directorin, descriptor="B") const signed char &    "$input = (jbyte)$1_name;"
-%typemap(directorin, descriptor="S") const unsigned char &  "$input = (jshort)$1_name;"
-%typemap(directorin, descriptor="S") const short &          "$input = (jshort)$1_name;"
-%typemap(directorin, descriptor="I") const unsigned short & "$input = (jint)$1_name;"
-%typemap(directorin, descriptor="I") const int &            "$input = (jint)$1_name;"
-%typemap(directorin, descriptor="J") const unsigned int &   "$input = (jlong)$1_name;"
-%typemap(directorin, descriptor="I") const long &           "$input = (jint)$1_name;"
-%typemap(directorin, descriptor="J") const unsigned long &  "$input = (jlong)$1_name;"
-%typemap(directorin, descriptor="J") const long long &      "$input = (jlong)$1_name;"
-%typemap(directorin, descriptor="F") const float &          "$input = (jfloat)$1_name;"
-%typemap(directorin, descriptor="D") const double &         "$input = (jdouble)$1_name;"
+%typemap(directorin, descriptor="Z") const bool &           "$input = (jboolean)$1;"
+%typemap(directorin, descriptor="C") const char &           "$input = (jchar)$1;"
+%typemap(directorin, descriptor="B") const signed char &    "$input = (jbyte)$1;"
+%typemap(directorin, descriptor="S") const unsigned char &  "$input = (jshort)$1;"
+%typemap(directorin, descriptor="S") const short &          "$input = (jshort)$1;"
+%typemap(directorin, descriptor="I") const unsigned short & "$input = (jint)$1;"
+%typemap(directorin, descriptor="I") const int &            "$input = (jint)$1;"
+%typemap(directorin, descriptor="J") const unsigned int &   "$input = (jlong)$1;"
+%typemap(directorin, descriptor="I") const long &           "$input = (jint)$1;"
+%typemap(directorin, descriptor="J") const unsigned long &  "$input = (jlong)$1;"
+%typemap(directorin, descriptor="J") const long long &      "$input = (jlong)$1;"
+%typemap(directorin, descriptor="F") const float &          "$input = (jfloat)$1;"
+%typemap(directorin, descriptor="D") const double &         "$input = (jdouble)$1;"
 
 %typemap(javadirectorin) const char & ($*1_ltype temp), 
                          const signed char & ($*1_ltype temp), 
@@ -1116,9 +1116,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 /* javabody typemaps */
 
-%define SWIG_JAVABODY_METHODS(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPENAME...)
+%define SWIG_JAVABODY_METHODS(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...) SWIG_JAVABODY_PROXY(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE) %enddef // legacy name
+
+%define SWIG_JAVABODY_PROXY(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Base proxy classes
-%typemap(javabody) TYPENAME %{
+%typemap(javabody) TYPE %{
   private long swigCPtr;
   protected boolean swigCMemOwn;
 
@@ -1133,7 +1135,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %}
 
 // Derived proxy classes
-%typemap(javabody_derived) TYPENAME %{
+%typemap(javabody_derived) TYPE %{
   private long swigCPtr;
 
   PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
@@ -1147,43 +1149,45 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %}
 %enddef
 
-/* Set the default for SWIGTYPE: pointer constructor is protected,
-   getCPtr is protected. Season to your own taste! */
-
-SWIG_JAVABODY_METHODS(public, public, SWIGTYPE)
-
+%define SWIG_JAVABODY_TYPEWRAPPER(PTRCTOR_VISIBILITY, DEFAULTCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Typewrapper classes
-%typemap(javabody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] %{
+%typemap(javabody) TYPE *, TYPE &, TYPE [] %{
   private long swigCPtr;
 
-  protected $javaclassname(long cPtr, boolean futureUse) {
+  PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean futureUse) {
     swigCPtr = cPtr;
   }
 
-  protected $javaclassname() {
+  DEFAULTCTOR_VISIBILITY $javaclassname() {
     swigCPtr = 0;
   }
 
-  protected static long getCPtr($javaclassname obj) {
+  CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
 
-%typemap(javabody) SWIGTYPE (CLASS::*) %{
+%typemap(javabody) TYPE (CLASS::*) %{
   private String swigCMemberPtr;
 
-  protected $javaclassname(String cMemberPtr, boolean futureUse) {
+  PTRCTOR_VISIBILITY $javaclassname(String cMemberPtr, boolean futureUse) {
     swigCMemberPtr = cMemberPtr;
   }
 
-  protected $javaclassname() {
+  DEFAULTCTOR_VISIBILITY $javaclassname() {
     swigCMemberPtr = null;
   }
 
-  protected static String getCMemberPtr($javaclassname obj) {
+  CPTR_VISIBILITY static String getCMemberPtr($javaclassname obj) {
     return obj.swigCMemberPtr;
   }
 %}
+%enddef
+
+/* Set the default javabody typemaps to use protected visibility.
+   Use the macros to change to public if using multiple modules. */
+SWIG_JAVABODY_PROXY(protected, protected, SWIGTYPE)
+SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
 
 %typemap(javafinalize) SWIGTYPE %{
   protected void finalize() {
@@ -1303,6 +1307,13 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %typemap(argout)  (char *STRING, size_t LENGTH) {
     JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, 0);
 }
+%typemap(directorin, descriptor="[B") (char *STRING, size_t LENGTH) {
+  jbyteArray jb = (jenv)->NewByteArray($2);
+  (jenv)->SetByteArrayRegion(jb, 0, $2, (jbyte *)$1);
+  $input = jb;
+}
+%typemap(directorargout) (char *STRING, size_t LENGTH)
+%{(jenv)->GetByteArrayRegion($input, 0, $2, (jbyte *)$1); %}
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
 /* java keywords */

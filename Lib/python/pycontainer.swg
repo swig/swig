@@ -104,7 +104,7 @@ namespace swig {
 } 
 }
 
-%fragment("SwigPySequence_Base","header")
+%fragment("SwigPySequence_Base","header",fragment="<stddef.h>")
 {
 %#include <functional>
 
@@ -188,8 +188,9 @@ namespace swig {
 }
 
 namespace swig {
+  template <class Difference>
   inline size_t
-  check_index(ptrdiff_t i, size_t size, bool insert = false) {
+  check_index(Difference i, size_t size, bool insert = false) {
     if ( i < 0 ) {
       if ((size_t) (-i) <= size)
 	return (size_t) (i + size);
@@ -198,20 +199,42 @@ namespace swig {
     } else if (insert && ((size_t) i == size)) {
       return size;
     }
-    
     throw std::out_of_range("index out of range");
   }
 
-  inline size_t
-  slice_index(ptrdiff_t i, size_t size) {
-    if ( i < 0 ) {
-      if ((size_t) (-i) <= size) {
-	return (size_t) (i + size);
+  template <class Difference>
+  void
+  slice_adjust(Difference i, Difference j, Py_ssize_t step, size_t size, Difference &ii, Difference &jj, bool insert = false) {
+    if (step == 0) {
+      throw std::invalid_argument("slice step cannot be zero");
+    } else if (step > 0) {
+      // Required range: 0 <= i < size, 0 <= j < size
+      if (i < 0) {
+        ii = 0;
+      } else if (i < (Difference)size) {
+        ii = i;
+      } else if (insert && (i >= (Difference)size)) {
+        ii = (Difference)size;
+      }
+      if ( j < 0 ) {
+        jj = 0;
       } else {
-	throw std::out_of_range("index out of range");
+        jj = (j < (Difference)size) ? j : (Difference)size;
       }
     } else {
-      return ( (size_t) i < size ) ? ((size_t) i) : size;
+      // Required range: -1 <= i < size-1, -1 <= j < size-1
+      if (i < -1) {
+        ii = -1;
+      } else if (i < (Difference) size) {
+        ii = i;
+      } else if (i >= (Difference)(size-1)) {
+        ii = (Difference)(size-1);
+      }
+      if (j < -1) {
+        jj = -1;
+      } else {
+        jj = (j < (Difference)size ) ? j : (Difference)(size-1);
+      }
     }
   }
 
@@ -233,58 +256,156 @@ namespace swig {
 
   template <class Sequence, class Difference>
   inline Sequence*
-  getslice(const Sequence* self, Difference i, Difference j) {
+  getslice(const Sequence* self, Difference i, Difference j, Py_ssize_t step) {
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = swig::check_index(i, size);
-    typename Sequence::size_type jj = swig::slice_index(j, size);
+    Difference ii = 0;
+    Difference jj = 0;
+    swig::slice_adjust(i, j, step, size, ii, jj);
 
-    if (jj > ii) {
-      typename Sequence::const_iterator vb = self->begin();
-      typename Sequence::const_iterator ve = self->begin();
-      std::advance(vb,ii);
-      std::advance(ve,jj);
-      return new Sequence(vb, ve);
+    if (step > 0) {
+      typename Sequence::const_iterator sb = self->begin();
+      typename Sequence::const_iterator se = self->begin();
+      std::advance(sb,ii);
+      std::advance(se,jj);
+      if (step == 1) {
+        return new Sequence(sb, se);
+      } else {
+        Sequence *sequence = new Sequence();
+        typename Sequence::const_iterator it = sb;
+        while (it!=se) {
+          sequence->push_back(*it);
+          for (Py_ssize_t c=0; c<step && it!=se; ++c)
+            it++;
+        }
+        return sequence;
+      } 
     } else {
-      return new Sequence();
+      Sequence *sequence = new Sequence();
+      if (ii > jj) {
+        typename Sequence::const_reverse_iterator sb = self->rbegin();
+        typename Sequence::const_reverse_iterator se = self->rbegin();
+        std::advance(sb,size-ii-1);
+        std::advance(se,size-jj-1);
+        typename Sequence::const_reverse_iterator it = sb;
+        while (it!=se) {
+          sequence->push_back(*it);
+          for (Py_ssize_t c=0; c<-step && it!=se; ++c)
+            it++;
+        }
+      }
+      return sequence;
     }
   }
 
   template <class Sequence, class Difference, class InputSeq>
   inline void
-  setslice(Sequence* self, Difference i, Difference j, const InputSeq& v = InputSeq()) {
+  setslice(Sequence* self, Difference i, Difference j, Py_ssize_t step, const InputSeq& is = InputSeq()) {
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = swig::check_index(i, size, true);
-    typename Sequence::size_type jj = swig::slice_index(j, size);
-    if (jj < ii) jj = ii;
-    size_t ssize = jj - ii;
-    if (ssize <= v.size()) {
-      typename Sequence::iterator sb = self->begin();
-      typename InputSeq::const_iterator vmid = v.begin();
-      std::advance(sb,ii);
-      std::advance(vmid, jj - ii);
-      self->insert(std::copy(v.begin(), vmid, sb), vmid, v.end());
+    Difference ii = 0;
+    Difference jj = 0;
+    swig::slice_adjust(i, j, step, size, ii, jj, true);
+    if (step > 0) {
+      if (jj < ii)
+        jj = ii;
+      if (step == 1) {
+        size_t ssize = jj - ii;
+        if (ssize <= is.size()) {
+          // expanding/staying the same size
+          typename Sequence::iterator sb = self->begin();
+          typename InputSeq::const_iterator isit = is.begin();
+          std::advance(sb,ii);
+          std::advance(isit, jj - ii);
+          self->insert(std::copy(is.begin(), isit, sb), isit, is.end());
+        } else {
+          // shrinking
+          typename Sequence::iterator sb = self->begin();
+          typename Sequence::iterator se = self->begin();
+          std::advance(sb,ii);
+          std::advance(se,jj);
+          self->erase(sb,se);
+          sb = self->begin();
+          std::advance(sb,ii);
+          self->insert(sb, is.begin(), is.end());
+        }
+      } else {
+        size_t replacecount = (jj - ii + step - 1) / step;
+        if (is.size() != replacecount) {
+          char msg[1024];
+          sprintf(msg, "attempt to assign sequence of size %lu to extended slice of size %lu", (unsigned long)is.size(), (unsigned long)replacecount);
+          throw std::invalid_argument(msg);
+        }
+        typename Sequence::const_iterator isit = is.begin();
+        typename Sequence::iterator it = self->begin();
+        std::advance(it,ii);
+        for (size_t rc=0; rc<replacecount; ++rc) {
+          *it++ = *isit++;
+          for (Py_ssize_t c=0; c<(step-1); ++c)
+            it++;
+        }
+      }
     } else {
-      typename Sequence::iterator sb = self->begin();
-      typename Sequence::iterator se = self->begin();
-      std::advance(sb,ii);
-      std::advance(se,jj);
-      self->erase(sb,se);
-      self->insert(sb, v.begin(), v.end());
+      if (jj > ii)
+        jj = ii;
+      size_t replacecount = (ii - jj - step - 1) / -step;
+      if (is.size() != replacecount) {
+        char msg[1024];
+        sprintf(msg, "attempt to assign sequence of size %lu to extended slice of size %lu", (unsigned long)is.size(), (unsigned long)replacecount);
+        throw std::invalid_argument(msg);
+      }
+      typename Sequence::const_iterator isit = is.begin();
+      typename Sequence::reverse_iterator it = self->rbegin();
+      std::advance(it,size-ii-1);
+      for (size_t rc=0; rc<replacecount; ++rc) {
+        *it++ = *isit++;
+        for (Py_ssize_t c=0; c<(-step-1); ++c)
+          it++;
+      }
     }
   }
 
   template <class Sequence, class Difference>
   inline void
-  delslice(Sequence* self, Difference i, Difference j) {
+  delslice(Sequence* self, Difference i, Difference j, Py_ssize_t step) {
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = swig::check_index(i, size, true);
-    typename Sequence::size_type jj = swig::slice_index(j, size);
-    if (jj > ii) {
-      typename Sequence::iterator sb = self->begin();
-      typename Sequence::iterator se = self->begin();
-      std::advance(sb,ii);
-      std::advance(se,jj);
-      self->erase(sb,se);
+    Difference ii = 0;
+    Difference jj = 0;
+    swig::slice_adjust(i, j, step, size, ii, jj, true);
+    if (step > 0) {
+      if (jj > ii) {
+        typename Sequence::iterator sb = self->begin();
+        std::advance(sb,ii);
+        if (step == 1) {
+          typename Sequence::iterator se = self->begin();
+          std::advance(se,jj);
+          self->erase(sb,se);
+        } else {
+          typename Sequence::iterator it = sb;
+          size_t delcount = (jj - ii + step - 1) / step;
+          while (delcount) {
+            it = self->erase(it);
+            if (it==self->end())
+              break;
+            for (Py_ssize_t c=0; c<(step-1); ++c)
+              it++;
+            delcount--;
+          }
+        }
+      }
+    } else {
+      if (ii > jj) {
+        typename Sequence::reverse_iterator sb = self->rbegin();
+        std::advance(sb,size-ii-1);
+        typename Sequence::reverse_iterator it = sb;
+        size_t delcount = (ii - jj - step - 1) / -step;
+        while (delcount) {
+          self->erase((++it).base());
+          if (it==self->rend())
+            break;
+          for (Py_ssize_t c=0; c<(-step-1); ++c)
+            it++;
+          delcount--;
+        }
+      }
     }
   }
 }
@@ -607,7 +728,11 @@ namespace swig
 
 %define %swig_container_methods(Container...)
 
+/* deprecated in Python 2 */
+#if 1
   %newobject __getslice__;
+#endif
+  %newobject __getitem__(PySliceObject *slice);
 
 #if defined(SWIGPYTHON_BUILTIN)
   %feature("python:slot", "nb_nonzero", functype="inquiry") __nonzero__;
@@ -668,18 +793,20 @@ namespace swig
       $1 = PySlice_Check($input);
     }
 
-    Sequence* __getslice__(difference_type i, difference_type j) throw (std::out_of_range) {
-      return swig::getslice(self, i, j);
+/* deprecated in Python 2 */
+#if 1
+    Sequence* __getslice__(difference_type i, difference_type j) throw (std::out_of_range, std::invalid_argument) {
+      return swig::getslice(self, i, j, 1);
     }
 
-    void __setslice__(difference_type i, difference_type j, const Sequence& v = Sequence()) 
-      throw (std::out_of_range, std::invalid_argument) {
-      swig::setslice(self, i, j, v);
+    void __setslice__(difference_type i, difference_type j, const Sequence& v = Sequence()) throw (std::out_of_range, std::invalid_argument) {
+      swig::setslice(self, i, j, 1, v);
     }
 
-    void __delslice__(difference_type i, difference_type j) throw (std::out_of_range) {
-      swig::delslice(self, i, j);
+    void __delslice__(difference_type i, difference_type j) throw (std::out_of_range, std::invalid_argument) {
+      swig::delslice(self, i, j, 1);
     }
+#endif
 
     void __delitem__(difference_type i) throw (std::out_of_range) {
       self->erase(swig::getpos(self,i));
@@ -689,47 +816,52 @@ namespace swig
     /* Overloaded methods for Python 3 compatibility 
      * (Also useful in Python 2.x)
      */
-    Sequence* __getitem__(PySliceObject *slice) throw (std::out_of_range) {
+    Sequence* __getitem__(PySliceObject *slice) throw (std::out_of_range, std::invalid_argument) {
       Py_ssize_t i, j, step;
       if( !PySlice_Check(slice) ) {
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
         return NULL;
       }
-      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), self->size(), &i, &j, &step);
-      return swig::getslice(self, i, j);
+      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), (Py_ssize_t)self->size(), &i, &j, &step);
+      Sequence::difference_type id = i;
+      Sequence::difference_type jd = j;
+      return swig::getslice(self, id, jd, step);
     }
 
-    void __setitem__(PySliceObject *slice, const Sequence& v)
-      throw (std::out_of_range, std::invalid_argument) {
+    void __setitem__(PySliceObject *slice, const Sequence& v) throw (std::out_of_range, std::invalid_argument) {
       Py_ssize_t i, j, step;
       if( !PySlice_Check(slice) ) {
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
         return;
       }
-      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), self->size(), &i, &j, &step);
-      swig::setslice(self, i, j, v);
+      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), (Py_ssize_t)self->size(), &i, &j, &step);
+      Sequence::difference_type id = i;
+      Sequence::difference_type jd = j;
+      swig::setslice(self, id, jd, step, v);
     }
 
-    void __setitem__(PySliceObject *slice)
-      throw (std::out_of_range) {
+    void __setitem__(PySliceObject *slice) throw (std::out_of_range, std::invalid_argument) {
       Py_ssize_t i, j, step;
       if( !PySlice_Check(slice) ) {
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
         return;
       }
-      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), self->size(), &i, &j, &step);
-      swig::delslice(self, i,j);
+      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), (Py_ssize_t)self->size(), &i, &j, &step);
+      Sequence::difference_type id = i;
+      Sequence::difference_type jd = j;
+      swig::delslice(self, id, jd, step);
     }
 
-    void __delitem__(PySliceObject *slice)
-      throw (std::out_of_range) {
+    void __delitem__(PySliceObject *slice) throw (std::out_of_range, std::invalid_argument) {
       Py_ssize_t i, j, step;
       if( !PySlice_Check(slice) ) {
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
         return;
       }
-      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), self->size(), &i, &j, &step);
-      swig::delslice(self, i,j);
+      PySlice_GetIndices(SWIGPY_SLICE_ARG(slice), (Py_ssize_t)self->size(), &i, &j, &step);
+      Sequence::difference_type id = i;
+      Sequence::difference_type jd = j;
+      swig::delslice(self, id, jd, step);
     }
      
   }

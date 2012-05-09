@@ -166,6 +166,7 @@ extern "C" {
   extern String *SwigType_templateprefix(const SwigType *t);
   extern String *SwigType_templatesuffix(const SwigType *t);
   extern String *SwigType_istemplate_templateprefix(const SwigType *t);
+  extern String *SwigType_istemplate_only_templateprefix(const SwigType *t);
   extern String *SwigType_templateargs(const SwigType *t);
   extern String *SwigType_prefix(const SwigType *t);
   extern int SwigType_array_ndim(const SwigType *t);
@@ -177,9 +178,6 @@ extern "C" {
   extern void SwigType_typename_replace(SwigType *t, String *pat, String *rep);
   extern SwigType *SwigType_remove_global_scope_prefix(const SwigType *t);
   extern SwigType *SwigType_alttype(const SwigType *t, int ltmap);
-
-  extern void SwigType_template_defargs(Parm *parms, Parm *targs, Symtab *tscope, Symtab *tsdecl);
-  extern SwigType *SwigType_template_deftype(const SwigType *type, Symtab *tscope);
 
 /* --- Type-system managment --- */
   extern void SwigType_typesystem_init(void);
@@ -337,6 +335,8 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_stringify_with_location(DOH *object);
 
 /* --- C Wrappers --- */
+  extern void Swig_cresult_name_set(const char *new_name);
+  extern const char *Swig_cresult_name(void);
   extern String *Swig_cparm_name(Parm *p, int i);
   extern String *Swig_wrapped_var_type(SwigType *t, int varcref);
   extern int Swig_cargs(Wrapper *w, ParmList *l);
@@ -388,6 +388,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_typemap_debug(void);
   extern void Swig_typemap_search_debug_set(void);
   extern void Swig_typemap_used_debug_set(void);
+  extern void Swig_typemap_register_debug_set(void);
 
   extern String *Swig_typemap_lookup(const_String_or_char_ptr tmap_method, Node *n, const_String_or_char_ptr lname, Wrapper *f);
   extern String *Swig_typemap_lookup_out(const_String_or_char_ptr tmap_method, Node *n, const_String_or_char_ptr lname, Wrapper *f, String *actioncode);

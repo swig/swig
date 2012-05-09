@@ -35,3 +35,18 @@ int multiply60(int a) { return a*60; }
 int multiply70(int a) { return a*70; }
 %}
 
+%define nested_include_1(HEADER)
+%include <HEADER>
+%enddef
+
+%define nested_include_2(HEADER)
+nested_include_1(HEADER);
+%enddef
+
+%define nested_include_3(HEADER)
+nested_include_2(HEADER);
+%enddef
+
+nested_include_1(preproc_include_h1.i);
+nested_include_2(preproc_include_h2.i);
+nested_include_3(preproc_include_h3.i);

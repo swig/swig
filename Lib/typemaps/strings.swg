@@ -24,7 +24,9 @@
 			 SWIG_CharPtrLen,
 			 SWIG_AsCharPtr,
 			 SWIG_FromCharPtr,
-			 SWIG_AsCharArray)
+			 SWIG_AsCharArray,
+                         SWIG_NewCopyCharArray,
+                         SWIG_DeleteCharArray)
 
 /* in */
 
@@ -38,7 +40,7 @@
   $1 = %reinterpret_cast(buf, $1_ltype);
 }
 %typemap(freearg,noblock=1,match="in") Char *, const Char * {
-  if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
+  if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);
 }
 
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtr) Char const*& (int res, Char *buf = 0, int alloc = 0) {
@@ -49,7 +51,7 @@
   $1 = &buf;
 }    
 %typemap(freearg, noblock=1,match="in") Char const*& {
-  if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
+  if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);
 }
 
 /* out */
@@ -64,7 +66,7 @@
 }
 
 %typemap(newfree,noblock=1) Char * {
-  %delete_array($1);
+  SWIG_DeleteCharArray($1);
 }
 
 /* varin */
@@ -75,11 +77,11 @@
   if (!SWIG_IsOK(res)) {
     %variable_fail(res,"$type","$name");
   }
-  if ($1) %delete_array($1);
+  if ($1) SWIG_DeleteCharArray($1);
   if (alloc == SWIG_NEWOBJ) {
     $1 = cptr;
   } else {
-    $1 = csize ? ($1_type)%new_copy_array(cptr, csize, Char) : 0;
+    $1 = csize ? ($1_type)SWIG_NewCopyCharArray(cptr, csize, Char) : 0;
   }
 }
 
@@ -92,7 +94,7 @@
   if (alloc == SWIG_NEWOBJ) {
     $1 = cptr;
   } else {
-    $1 = csize ? ($1_type)%new_copy_array(cptr, csize, Char) : 0;
+    $1 = csize ? ($1_type)SWIG_NewCopyCharArray(cptr, csize, Char) : 0;
   }
 }
 
@@ -105,10 +107,10 @@
 /* memberin */
 
 %typemap(memberin,noblock=1) Char * {
-  if ($1) %delete_array($1);
+  if ($1) SWIG_DeleteCharArray($1);
   if ($input) {
     size_t size = SWIG_CharPtrLen(%reinterpret_cast($input, const Char *)) + 1;
-    $1 = ($1_type)%new_copy_array(%reinterpret_cast($input, const Char *), size, Char);
+    $1 = ($1_type)SWIG_NewCopyCharArray(%reinterpret_cast($input, const Char *), size, Char);
   } else {
     $1 = 0;
   }
@@ -117,7 +119,7 @@
 %typemap(memberin,noblock=1,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
   if ($input) {
     size_t size = SWIG_CharPtrLen(%reinterpret_cast(%reinterpret_cast($input, const Char *), const Char *)) + 1;
-    $1 = ($1_type)%new_copy_array($input, size, Char);
+    $1 = ($1_type)SWIG_NewCopyCharArray($input, size, Char);
   } else {
     $1 = 0;
   }
@@ -126,10 +128,10 @@
 /* globalin */
 
 %typemap(globalin,noblock=1) Char * {
-  if ($1) %delete_array($1);
+  if ($1) SWIG_DeleteCharArray($1);
   if ($input) {
     size_t size = SWIG_CharPtrLen(%reinterpret_cast(%reinterpret_cast($input, const Char *), const Char *)) + 1;
-    $1 = ($1_type)%new_copy_array($input, size, Char);
+    $1 = ($1_type)SWIG_NewCopyCharArray($input, size, Char);
   } else {
     $1 = 0;
   }
@@ -138,7 +140,7 @@
 %typemap(globalin,noblock=1,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
   if ($input) {
     size_t size = SWIG_CharPtrLen($input) + 1;
-    $1 = ($1_type)%new_copy_array($input, size, Char);
+    $1 = ($1_type)SWIG_NewCopyCharArray($input, size, Char);
   } else {
     $1 = 0;
   }
@@ -159,7 +161,7 @@
 %typemap(directorin,noblock=1,fragment=#SWIG_FromCharPtr)
   Char *, Char const*, Char *const, Char const *const, 
   Char const *&, Char *const &, Char const *const & {
-  $input = SWIG_FromCharPtr((const Char *)$1_name);
+  $input = SWIG_FromCharPtr((const Char *)$1);
 }
 
 
@@ -326,9 +328,9 @@
 {
   size_t size = $1_dim0;
 %#ifndef SWIG_PRESERVE_CARRAY_SIZE
-  while (size && ($1_name[size - 1] == '\0')) --size;
+  while (size && ($1[size - 1] == '\0')) --size;
 %#endif
-  $input = SWIG_FromCharPtrAndSize($1_name, size);
+  $input = SWIG_FromCharPtrAndSize($1, size);
 }
 
 /* directorout */
@@ -389,7 +391,7 @@
 %typemap(directorin,noblock=1,fragment=#SWIG_FromCharPtrAndSize)
   Char FIXSIZE[ANY], const Char FIXSIZE[ANY]
 {
-  $input = SWIG_FromCharPtrAndSize($1_name, $1_dim0);
+  $input = SWIG_FromCharPtrAndSize($1, $1_dim0);
 }
 
 #endif /* SWIG_DIRECTOR_TYPEMAPS */
@@ -416,7 +418,7 @@
   $2 = %numeric_cast(size - 1, $2_ltype);
 }
 %typemap(freearg,noblock=1,match="in") (Char *STRING, size_t LENGTH) {
-  if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
+  if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);
 }
 /* old 'int' form */
 %typemap(in) (Char *STRING, int LENGTH) = (Char *STRING, size_t LENGTH);
@@ -436,7 +438,7 @@
   $2 = %numeric_cast(size, $2_ltype);
 }
 %typemap(freearg,noblock=1,match="in") (Char *STRING, size_t SIZE) {
-  if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
+  if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);
 }
 /* old 'int' form */
 %typemap(in) (Char *STRING, int SIZE) = (Char *STRING, size_t SIZE);
@@ -448,7 +450,7 @@
 /* Here len doesn't include the '0' terminator */
 %typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) 
   (size_t LENGTH, Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0),
-  (size_t LENGHT, const Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0)
+  (size_t LENGTH, const Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
   if (!SWIG_IsOK(res)) { 
@@ -458,7 +460,7 @@
   $1 = %numeric_cast(size - 1, $1_ltype) ;
 }
 %typemap(freearg, noblock=1, match="in") (size_t LENGTH, Char *STRING) {
-  if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
+  if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);
 }
 /* old 'int' form */
 %typemap(in) (int LENGTH, Char *STRING) = (size_t LENGTH, Char *STRING);
@@ -477,7 +479,7 @@
   $1 = %numeric_cast(size, $1_ltype) ;
 }
 %typemap(freearg, noblock=1, match="in") (size_t SIZE, Char *STRING) {
-  if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
+  if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);
 }
 /* old 'int' form */
 %typemap(in) (int SIZE, Char *STRING) = (size_t SIZE, Char *STRING);
@@ -492,11 +494,13 @@
  * ------------------------------------------------------------ */
 
 
-%define %typemaps_string(StringCode, CharCode,
+%define %_typemap2_string(StringCode, CharCode,
 			 Char, CharName,
 			 SWIG_AsCharPtrAndSize,
 			 SWIG_FromCharPtrAndSize,
 			 SWIG_CharPtrLen,
+			 SWIG_NewCopyCharArray,
+			 SWIG_DeleteCharArray,
 			 FragLimits, CHAR_MIN, CHAR_MAX)
   
 %fragment("SWIG_From"#CharName"Ptr","header",fragment=#SWIG_FromCharPtrAndSize) {
@@ -533,12 +537,12 @@ SWIG_As##CharName##Array(SWIG_Object obj, Char *val, size_t size)
 	if (csize < size) memset(val + csize, 0, (size - csize)*sizeof(Char));
       }
       if (alloc == SWIG_NEWOBJ) {
-	%delete_array(cptr);
+	SWIG_DeleteCharArray(cptr);
 	res = SWIG_DelNewMask(res);
       }      
       return res;
     }
-    if (alloc == SWIG_NEWOBJ) %delete_array(cptr);
+    if (alloc == SWIG_NEWOBJ) SWIG_DeleteCharArray(cptr);
   }
   return SWIG_TypeError;
 }
@@ -584,6 +588,51 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 		 SWIG_CharPtrLen,
 		 SWIG_As##CharName##Ptr,
 		 SWIG_From##CharName##Ptr,
-		 SWIG_As##CharName##Array)
+		 SWIG_As##CharName##Array,
+		 SWIG_NewCopyCharArray,
+		 SWIG_DeleteCharArray)
 
+%enddef
+
+
+/* ------------------------------------------------------------
+ *  String typemaps and fragments, with default allocators
+ * ------------------------------------------------------------ */
+
+%define %typemaps_string(StringCode, CharCode,
+			 Char, CharName,
+			 SWIG_AsCharPtrAndSize,
+			 SWIG_FromCharPtrAndSize,
+			 SWIG_CharPtrLen,
+			 FragLimits, CHAR_MIN, CHAR_MAX)
+%_typemap2_string(StringCode, CharCode,
+		  Char, CharName,
+		  SWIG_AsCharPtrAndSize,
+		  SWIG_FromCharPtrAndSize,
+		  SWIG_CharPtrLen,
+		  %new_copy_array,
+		  %delete_array,
+		  FragLimits, CHAR_MIN, CHAR_MAX)
+%enddef
+
+/* ------------------------------------------------------------
+ *  String typemaps and fragments, with custom allocators
+ * ------------------------------------------------------------ */
+
+%define %typemaps_string_alloc(StringCode, CharCode,
+			       Char, CharName,
+			       SWIG_AsCharPtrAndSize,
+			       SWIG_FromCharPtrAndSize,
+			       SWIG_CharPtrLen,
+			       SWIG_NewCopyCharArray,
+			       SWIG_DeleteCharArray,
+			       FragLimits, CHAR_MIN, CHAR_MAX)
+%_typemap2_string(StringCode, CharCode,
+		  Char, CharName,
+		  SWIG_AsCharPtrAndSize,
+		  SWIG_FromCharPtrAndSize,
+		  SWIG_CharPtrLen,
+		  SWIG_NewCopyCharArray,
+		  SWIG_DeleteCharArray,
+		  FragLimits, CHAR_MIN, CHAR_MAX)
 %enddef

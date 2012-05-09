@@ -19,3 +19,4 @@ clean::
 	rm -f $(TARGET).m
 
 check: all
+	$(MAKE) -f $(TOP)/Makefile octave_run

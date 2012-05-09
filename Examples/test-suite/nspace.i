@@ -4,6 +4,10 @@
 // nspace feature only supported by these languages
 #if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD)
 
+#if defined(SWIGJAVA)
+SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
+#endif
+
 %nspace;
 %nonspace Outer::Inner2::NoNSpacePlease;
 
@@ -99,5 +103,7 @@ struct GlobalClass {
 void test_classes(Outer::SomeClass c, Outer::Inner2::Color cc) {}
 %}
 
+#else
+#warning nspace feature not yet supported in this target language
 #endif
 

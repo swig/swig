@@ -41,10 +41,12 @@ CPP_TEST_CASES += \
 	inout \
 	inplaceadd \
 	input \
+	kwargs_feature \
 	li_cstring \
 	li_cwstring \
 	li_factory \
 	li_implicit \
+	li_std_containers_int \
 	li_std_map_member \
 	li_std_multimap \
 	li_std_pair_extra \
@@ -58,8 +60,7 @@ CPP_TEST_CASES += \
 	primitive_types \
         python_abstractbase \
 	python_append \
-	python_autodoc \
-	python_kwargs \
+	python_director \
 	python_nondynamic \
 	python_overload_simple_cast \
 	python_richcompare \

@@ -11,7 +11,7 @@
 
 %include <std_common.i>
 
-%fragment("SwigPyIterator","header") {  
+%fragment("SwigPyIterator","header",fragment="<stddef.h>") {
 namespace swig {
   struct stop_iteration {
   };
@@ -139,7 +139,7 @@ namespace swig {
 }
 }
 
-%fragment("SwigPyIterator_T","header",fragment="SwigPyIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
+%fragment("SwigPyIterator_T","header",fragment="<stddef.h>",fragment="SwigPyIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
 namespace swig {
   template<typename OutIterator>
   class SwigPyIterator_T :  public SwigPyIterator

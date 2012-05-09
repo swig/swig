@@ -7,7 +7,7 @@
  * ------------------------------------------------------------ */
 
 /*
-  in Tcl we need to pass the interp value, so, we define the decl/call
+  In Tcl we need to pass the interp value, so we define the decl/call
   macros as needed.
 */
 
@@ -15,13 +15,13 @@
 #define SWIG_AS_CALL_ARGS SWIG_TCL_CALL_ARGS_2
 
 
-/* Include fundamental fragemt definitions */
+/* Include fundamental fragment definitions */
 %include <typemaps/fragments.swg>
 
 /* Look for user fragments file. */
 %include <tclfragments.swg>
 
-/* Tcl fragments for primitve types */
+/* Tcl fragments for primitive types */
 %include <tclprimtypes.swg>
 
 /* Tcl fragments for char* strings */
@@ -32,7 +32,7 @@
  *  Unified typemap section
  * ------------------------------------------------------------ */
 
-/* No director supported in Tcl */
+/* No director support in Tcl */
 #ifdef SWIG_DIRECTOR_TYPEMAPS
 #undef SWIG_DIRECTOR_TYPEMAPS
 #endif

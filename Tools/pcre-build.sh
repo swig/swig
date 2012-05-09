@@ -14,7 +14,8 @@ usage() {
   echo "  - Download the latest PCRE source tarball from http://www.pcre.org and place in the"
   echo "    directory that you will configure and build SWIG."
   echo "  - Run this script in the same directory that you intend to configure and build SWIG in."
-  echo "  - Afterwards run the SWIG configure scrip which will then find and use the PCRE static"
+  echo "    This will configure and build PCRE as a static library."
+  echo "  - Afterwards run the SWIG configure script which will then find and use the PCRE static"
   echo "    libraries in the $pcre_subdir subdirectory."
   exit 0
 }
@@ -36,8 +37,9 @@ fi
 
 echo "Looking for PCRE tarball..."
 rm -rf pcre
-pcre_tarball=`ls pcre-*.tar.*`
-test -f "$pcre_tarball" || bail "Could not find tarball"
+pcre_tarball=`ls pcre-*.tar*`
+test -n "$pcre_tarball" || bail "Could not find tarball matching pattern: pcre-*.tar*"
+test -f "$pcre_tarball" || bail "Could not find a single PCRE tarball. Found: $pcre_tarball"
 
 echo "Extracting tarball: $pcre_tarball"
 tar -xf $pcre_tarball || bail "Could not untar $pcre_tarball"

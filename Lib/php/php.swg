@@ -266,7 +266,7 @@
               size_t,
               enum SWIGTYPE
 {
-  ZVAL_LONG($input,$1_name);
+  ZVAL_LONG($input,$1);
 }
 
 %typemap(out) bool
@@ -281,7 +281,7 @@
 
 %typemap(directorin) bool
 {
-	ZVAL_BOOL($input,($1_name)?1:0);
+	ZVAL_BOOL($input,($1)?1:0);
 }
 
 %typemap(out) float,
@@ -299,7 +299,7 @@
 %typemap(directorin) float,
                      double
 {
-	ZVAL_DOUBLE($input,$1_name);
+	ZVAL_DOUBLE($input,$1);
 }
 
 %typemap(out) char
@@ -347,7 +347,7 @@
                      SWIGTYPE [],
                      SWIGTYPE &
 %{
-  SWIG_SetPointerZval($input, (void *)&$1_name, $1_descriptor, $owner);
+  SWIG_SetPointerZval($input, (void *)&$1, $1_descriptor, ($owner)|2);
 %}
 
 %typemap(out, fragment="swig_php_init_member_ptr") SWIGTYPE (CLASS::*)
@@ -390,7 +390,7 @@
 
 %typemap(directorin) SWIGTYPE
 {
-  SWIG_SetPointerZval($input, SWIG_as_voidptr(&$1_name), $&1_descriptor, 2);
+  SWIG_SetPointerZval($input, SWIG_as_voidptr(&$1), $&1_descriptor, 2);
 }
 
 %typemap(out) void "";

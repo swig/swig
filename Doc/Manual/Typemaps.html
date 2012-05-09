@@ -73,6 +73,7 @@
 <li><a href="#Typemaps_nn43">Typemaps for multiple target languages</a>
 <li><a href="#Typemaps_optimal">Optimal code generation when returning by value</a>
 <li><a href="#Typemaps_multi_argument_typemaps">Multi-argument typemaps</a>
+<li><a href="#Typemaps_warnings">Typemap warnings</a>
 <li><a href="#Typemaps_fragments">Typemap fragments</a>
 <ul>
 <li><a href="#Typemaps_fragment_type_specialization">Fragment type specialization</a>
@@ -3597,7 +3598,16 @@ with non-consecutive C/C++ arguments; a workaround such as a helper function re-
 the arguments to make them consecutive will need to be written.
 </p>
 
-<H2><a name="Typemaps_fragments"></a>10.10 Typemap fragments</H2>
+<H2><a name="Typemaps_warnings"></a>10.10 Typemap warnings</H2>
+
+
+<p>
+Warnings can be added to typemaps so that SWIG generates a warning message whenever the typemap is used.
+See the information in the <a href="Warnings.html#Warnings_nn5">issuing warnings</a> section.
+</p>
+
+
+<H2><a name="Typemaps_fragments"></a>10.11 Typemap fragments</H2>
 
 
 <p>
@@ -3663,17 +3673,21 @@ generated into the wrapper code before any typemap code that calls it.
 <p>
 To define a fragment you need a fragment name, a section name for generating the fragment code into, and the code itself.
 See <a href="SWIG.html#SWIG_nn42">Code insertion blocks</a> for a full list of section names.
-Usually the section name used is "header". Both string and curly braces can be used:
+Usually the section name used is "header". Different delimiters can be used:
 </p>
 
 <div class="code">
 <pre>
+%fragment("my_name", "header") %{ ... %}
 %fragment("my_name", "header") { ... }
 %fragment("my_name", "header") " ... "
 </pre>
 </div>
 
 <p>
+and these follow the usual preprocessing rules mentioned in the 
+<a href="Preprocessor.html#Preprocessor_delimiters">Preprocessing delimiters</a>
+section.
 The following are some rules and guidelines for using fragments:
 </p>
 
@@ -3751,8 +3765,8 @@ A fragment can use one or more additional fragments, for example:
 
 <div class="code">
 <pre>
-%fragment("&lt;limits.h&gt;", "header")  {
-  #include &lt;limits.h&gt;
+%fragment("&lt;limits.h&gt;", "header") {
+  %#include &lt;limits.h&gt;
 }
 
 
@@ -3846,7 +3860,7 @@ fragment usage unless a desire to really get to grips
 with some powerful but tricky macro and fragment usage that is used in parts of the SWIG typemap library.
 </p>
 
-<H3><a name="Typemaps_fragment_type_specialization"></a>10.10.1 Fragment type specialization</H3>
+<H3><a name="Typemaps_fragment_type_specialization"></a>10.11.1 Fragment type specialization</H3>
 
 
 <p>
@@ -3879,7 +3893,7 @@ struct A {
 </pre>
 </div>
 
-<H3><a name="Typemaps_automatic_specialization"></a>10.10.2 Fragments and automatic typemap specialization</H3>
+<H3><a name="Typemaps_automatic_specialization"></a>10.11.2 Fragments and automatic typemap specialization</H3>
 
 
 <p>
@@ -3925,7 +3939,7 @@ The interested (or very brave) reader can take a look at the fragments.swg file 
 </p>
 
 
-<H2><a name="Typemaps_runtime_type_checker"></a>10.11 The run-time type checker</H2>
+<H2><a name="Typemaps_runtime_type_checker"></a>10.12 The run-time type checker</H2>
 
 
 <p>
@@ -3951,7 +3965,7 @@ language modules.</li>
 <li>Modules can be unloaded from the type system.</li>
 </ul>
 
-<H3><a name="Typemaps_nn45"></a>10.11.1 Implementation</H3>
+<H3><a name="Typemaps_nn45"></a>10.12.1 Implementation</H3>
 
 
 <p>
@@ -4137,7 +4151,7 @@ structures rather than creating new ones.  These <tt>swig_module_info</tt>
 structures are chained together in a circularly linked list.
 </p>
 
-<H3><a name="Typemaps_runtime_type_checker_usage"></a>10.11.2 Usage</H3>
+<H3><a name="Typemaps_runtime_type_checker_usage"></a>10.12.2 Usage</H3>
 
 
 <p>This section covers how to use these functions from typemaps.  To learn how to
@@ -4231,7 +4245,7 @@ probably just look at the output of SWIG to get a better sense for how types are
 managed.
 </p>
 
-<H2><a name="Typemaps_overloading"></a>10.12 Typemaps and overloading</H2>
+<H2><a name="Typemaps_overloading"></a>10.13 Typemaps and overloading</H2>
 
 
 <p>
@@ -4542,7 +4556,7 @@ Subsequent "in" typemaps would then perform more extensive type-checking.
 </li>
 </ul>
 
-<H2><a name="Typemaps_nn48"></a>10.13 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
+<H2><a name="Typemaps_nn48"></a>10.14 More about <tt>%apply</tt> and <tt>%clear</tt></H2>
 
 
 <p>
@@ -4628,7 +4642,7 @@ example:
 </div>
 
 
-<H2><a name="Typemaps_nn47"></a>10.14 Passing data between typemaps</H2>
+<H2><a name="Typemaps_nn47"></a>10.15 Passing data between typemaps</H2>
 
 
 <p>
@@ -4665,7 +4679,7 @@ sure that the typemaps sharing information have exactly the same types and names
 </p>
 
 
-<H2><a name="Typemaps_nn52"></a>10.15 C++ "this" pointer</H2>
+<H2><a name="Typemaps_nn52"></a>10.16 C++ "this" pointer</H2>
 
 
 <p>
@@ -4725,7 +4739,7 @@ will also match the typemap.  One work around is to create an interface file tha
 the method, but gives the argument a name other than <tt>self</tt>.
 </p>
 
-<H2><a name="Typemaps_nn51"></a>10.16 Where to go for more information?</H2>
+<H2><a name="Typemaps_nn51"></a>10.17 Where to go for more information?</H2>
 
 
 <p>

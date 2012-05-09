@@ -1404,6 +1404,7 @@ public:
       // constants are already handeled in staticmemberfunctionHandler().
 
       Swig_save("constantWrapper", n, "value", NIL);
+      Swig_save("constantWrapper", n, "tmap:ctype:out", "tmap:imtype:out", "tmap:dtype:out", "tmap:out:null", "tmap:imtype:outattributes", "tmap:dtype:outattributes", NIL);
 
       // Add the stripped quotes back in.
       String *old_value = Getattr(n, "value");
@@ -1416,6 +1417,7 @@ public:
 	Delete(old_value);
       }
 
+      SetFlag(n, "feature:immutable");
       int result = globalvariableHandler(n);
 
       Swig_restore(n);
@@ -1706,7 +1708,7 @@ public:
 
 	// below based on Swig_VargetToFunction()
 	SwigType *ty = Swig_wrapped_var_type(Getattr(n, "type"), use_naturalvar_mode(n));
-	Setattr(n, "wrap:action", NewStringf("result = (%s) %s;", SwigType_lstr(ty, 0), Getattr(n, "value")));
+	Setattr(n, "wrap:action", NewStringf("%s = (%s) %s;", Swig_cresult_name(), SwigType_lstr(ty, 0), Getattr(n, "value")));
       }
 
       Swig_director_emit_dynamic_cast(n, f);
@@ -1716,7 +1718,7 @@ public:
 	Swig_restore(n);
 
       /* Return value if necessary  */
-      if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+      if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
 	canThrow(n, "out", n);
 	Replaceall(tm, "$result", "jresult");
 
@@ -1743,7 +1745,7 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
 	canThrow(n, "newfree", n);
 	Printf(f->code, "%s\n", tm);
       }
@@ -1751,7 +1753,7 @@ public:
 
     /* See if there is any return cleanup code */
     if (!native_function_flag) {
-      if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
 	canThrow(n, "ret", n);
 	Printf(f->code, "%s\n", tm);
       }
@@ -2055,19 +2057,7 @@ public:
       Delete(retpm);
     }
 
-    /* Go through argument list, attach lnames for arguments */
-    for (i = 0, p = l; p; p = nextSibling(p), ++i) {
-      String *arg = Getattr(p, "name");
-      String *lname = NewString("");
-
-      if (!arg && Cmp(Getattr(p, "type"), "void")) {
-	lname = NewStringf("arg%d", i);
-	Setattr(p, "name", lname);
-      } else
-	lname = arg;
-
-      Setattr(p, "lname", lname);
-    }
+    Swig_director_parms_fixup(l);
 
     // Attach the standard typemaps.
     Swig_typemap_attach_parms("out", l, 0);
@@ -2076,6 +2066,7 @@ public:
     Swig_typemap_attach_parms("dtype", l, 0);
     Swig_typemap_attach_parms("directorin", l, 0);
     Swig_typemap_attach_parms("ddirectorin", l, 0);
+    Swig_typemap_attach_parms("directorargout", l, w);
 
     // Preamble code.
     if (!ignored_method)
@@ -2133,6 +2124,7 @@ public:
 	/* Add input marshalling code */
 	if ((tm = Getattr(p, "tmap:directorin"))) {
 
+	  Setattr(p, "emit:directorinput", arg);
 	  Replaceall(tm, "$input", arg);
 	  Replaceall(tm, "$owner", "0");
 
@@ -2316,6 +2308,19 @@ public:
 	Delete(result_str);
       }
 
+      /* Marshal outputs */
+      for (p = l; p;) {
+	if ((tm = Getattr(p, "tmap:directorargout"))) {
+	  canThrow(n, "directorargout", p);
+	  Replaceall(tm, "$result", "jresult");
+	  Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
+	  Printv(w->code, tm, "\n", NIL);
+	  p = Getattr(p, "tmap:directorargout:next");
+	} else {
+	  p = nextSibling(p);
+	}
+      }
+
       /* Terminate wrapper code */
       Printf(w->code, "}\n");
       if (!is_void)
@@ -2339,7 +2344,7 @@ public:
       Delete(extra_method_name);
     }
 
-    /* emit code */
+    /* emit the director method */
     if (status == SWIG_OK && output_director) {
       if (!is_void) {
 	Replaceall(w->code, "$null", qualified_return);
@@ -2349,6 +2354,7 @@ public:
       if (!ignored_method)
 	Printv(director_dcallbacks_code, callback_def, callback_code, NIL);
       if (!Getattr(n, "defaultargs")) {
+	Replaceall(w->code, "$symname", symname);
 	Wrapper_print(w, f_directors);
 	Printv(f_directors_h, declaration, NIL);
 	Printv(f_directors_h, inline_extra_method, NIL);
@@ -3871,7 +3877,8 @@ private:
 	}
       }
 
-      dtype = NewStringf("%s function(%s)", return_dtype, param_list);
+      dtype = NewStringf("%s.SwigExternC!(%s function(%s))", im_dmodule_fq_name,
+        return_dtype, param_list);
       Delete(param_list);
       Delete(param_dtypes);
       Delete(return_dtype);
@@ -4595,7 +4602,7 @@ private:
     co = c + Len(nspace);
 
     while (*c && (c != co)) {
-      if ((*c == '.')) {
+      if (*c == '.') {
 	break;
       }
       c++;

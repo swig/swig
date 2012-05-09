@@ -48,6 +48,7 @@
 <li><a href="#SWIG_nn29">Simple renaming of specific identifiers</a>
 <li><a href="#SWIG_advanced_renaming">Advanced renaming support</a>
 <li><a href="#SWIG_limiting_renaming">Limiting global renaming rules</a>
+<li><a href="#SWIG_chosen_unignore">Ignoring everything then wrapping a few selected symbols</a>
 </ul>
 <li><a href="#SWIG_default_args">Default/optional arguments</a>
 <li><a href="#SWIG_nn30">Pointers to functions and callbacks</a>
@@ -1996,9 +1997,10 @@ such match expressions, for example
 </div>
 <p>
 will capitalize the names of all the enum elements but not change the case of
-the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>
+the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>,
+<tt>%$isconstructor</tt>, <tt>%$isunion</tt>, <tt>%$istemplate</tt>, 
 and <tt>%$isvariable</tt> can be used. Many other checks are possible and this
-documentation is not exhaustive, see "%rename predicates" section of
+documentation is not exhaustive, see the "%rename predicates" section in
 <tt>swig.swg</tt> for the full list of supported match expressions.
 </p>
 
@@ -2023,9 +2025,13 @@ declaration name directly can be preferable and can also be done using
 %rename("$ignore", regextarget=1) "Old$";
 </pre>
 </div>
+
+<p>
 Notice that the check is done only against the name of the declaration
 itself, if you need to match the full name of a C++ declaration you
 must use <tt>fullname</tt> attribute:
+</p>
+
 <div class="code">
 <pre>
 %rename("$ignore", regextarget=1, fullname=1) "NameSpace::ClassName::.*Old$";
@@ -2048,6 +2054,48 @@ Finally, variants of <tt>%rename</tt> and <tt>%ignore</tt> directives can be use
 wrap C++ overloaded functions and methods or C++ methods which use default arguments. This is described in the
 <a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section in the C++ chapter.
 </p>
+
+
+<H4><a name="SWIG_chosen_unignore"></a>5.4.7.4 Ignoring everything then wrapping a few selected symbols</H4>
+
+
+<p>
+Using the techniques described above it is possible to ignore everything in a header and then
+selectively wrap a few chosen methods or classes. For example, consider a header, <tt>myheader.h</tt>
+which has many classes in it and just the one class called <tt>Star</tt> is wanted within this header,
+the following approach could be taken:
+</p>
+
+<div class="code">
+<pre>
+%ignore ""; // Ignore everything
+
+// Unignore chosen class 'Star'
+%rename("%s") Star;
+
+// As the ignore everything will include the constructor, destructor, methods etc
+// in the class, these have to be explicitly unignored too:
+%rename("%s") Star::Star;
+%rename("%s") Star::~Star;
+%rename("%s") Star::shine; // named method
+
+%include "myheader.h"
+</pre>
+</div>
+
+<p>
+Another approach which might be more suitable as it does not require naming all the methods in the
+chosen class is to begin by ignoring just the classes. This does not add an explicit ignore to any
+members of the class, so when the chosen class is unignored, all of its methods will be wrapped.
+</p>
+
+<div class="code">
+<pre>
+%rename($ignore, %$isclass) ""; // Only ignore all classes
+%rename("%s") Star; // Unignore 'Star'
+%include "myheader.h"
+</pre>
+</div>
 
 
 <H3><a name="SWIG_default_args"></a>5.4.8 Default/optional arguments</H3>

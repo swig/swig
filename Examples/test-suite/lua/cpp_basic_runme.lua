@@ -3,7 +3,9 @@ import("cpp_basic")	-- import code
 cb=cpp_basic    -- renaming import
 
 -- catch "undefined" global variables
-setmetatable(getfenv(),{__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+local env = _ENV -- Lua 5.2
+if not env then env = getfenv () end -- Lua 5.1
+setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
 
 f=cb.Foo(4)
 assert(f.num==4)

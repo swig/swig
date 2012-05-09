@@ -8,7 +8,7 @@
 
 
 
-%fragment("RSequence_Base","header")
+%fragment("StdSequenceTraits","header",fragment="<stddef.h>")
 {
 %#include <functional>
 namespace swig {
@@ -133,7 +133,7 @@ namespace swig {
 //  %swig_sequence_iterator(%arg(Sequence))
   %swig_container_methods(%arg(Sequence))
 
-  %fragment("RSequence_Base");
+  %fragment("StdSequenceTraits");
 
   %extend {
     value_type pop() throw (std::out_of_range) {

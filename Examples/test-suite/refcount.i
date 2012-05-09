@@ -8,8 +8,8 @@
 %}
 
 //
-// using the %refobject/%unrefobject directives you can active the
-// ref. counting for RCObj and all its descendents at once
+// using the %refobject/%unrefobject directives you can activate the
+// reference counting for RCObj and all its descendents at once
 //
 
 %refobject   RCObj "$this->addref();"
@@ -18,7 +18,10 @@
 %include "refcount.h"
 
 %newobject B::create(A* a);
+%newobject global_create(A* a);
 %newobject B::cloner();
+%newobject Factory::create(A* a);
+%newobject Factory::create2(A* a);
 
 
  
@@ -93,6 +96,22 @@
   private:
     RCPtr<A> _a;
   };
+
+struct B* global_create(A* a)
+{
+  return new B(a);
+}
+
+struct Factory {
+  static B* create(A* a)
+  {
+    return new B(a);
+  }
+  B* create2(A* a)
+  {
+    return new B(a);
+  }
+};
 
 %}
 

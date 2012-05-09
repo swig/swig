@@ -77,13 +77,12 @@ SWIG_Tcl_InstallMethodLookupTables(void) {
     swig_type_info *type = swig_module.type_initial[i];
     if (type->clientdata) {
       swig_class* klass = (swig_class*) type->clientdata;
+      swig_method* meth;
       Tcl_InitHashTable(&(klass->hashtable), TCL_STRING_KEYS);
-      swig_method* meth = klass->methods;
-      while (meth && meth->name) {
+      for (meth = klass->methods; meth && meth->name; ++meth) {
         int newEntry;
         Tcl_HashEntry* hashentry = Tcl_CreateHashEntry(&(klass->hashtable), meth->name, &newEntry);
         Tcl_SetHashValue(hashentry, (ClientData)meth->method);
-        ++meth;
       }
     }
   }

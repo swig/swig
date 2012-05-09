@@ -182,6 +182,23 @@ static void SwigPHP_emit_resource_registrations() {
 }
 
 class PHP : public Language {
+  String *emit_action(Node *n) {
+    // Adjust wrap:action to add TSRMLS_CC.
+    String * action = Getattr(n, "wrap:action");
+    if (action) {
+      char * p = Strstr(action, "Swig::DirectorPureVirtualException::raise(\"");
+      if (p) {
+	p += strlen("Swig::DirectorPureVirtualException::raise(\"");
+	p = strchr(p, '"');
+	if (p) {
+	  ++p;
+	  Insert(action, p - Char(action), " TSRMLS_CC");
+	}
+      }
+    }
+    return ::emit_action(n);
+  }
+
 public:
   PHP() {
     director_language = 1;
@@ -327,6 +344,9 @@ public:
     cap_module = NewStringf("%(upper)s", module);
     if (!prefix)
       prefix = NewStringEmpty();
+
+    Printf(f_runtime, "#define SWIG_PREFIX \"%s\"\n", prefix);
+    Printf(f_runtime, "#define SWIG_PREFIX_LEN %lu\n", (unsigned long)Len(prefix));
 
     if (directorsEnabled()) {
       Swig_banner(f_directors_h);
@@ -803,8 +823,8 @@ public:
       Wrapper_add_local(f, "director", "Swig::Director *director = 0");
       Printf(f->code, "director = dynamic_cast<Swig::Director*>(arg1);\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
-      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s\", (char *)\"%s\");\n",
-	  Swig_class_name(Swig_methodclass(n)), name);
+      Printf(f->code, "upcall = !director->swig_is_overridden_method((char *)\"%s%s\", (char *)\"%s\");\n",
+	  prefix, Swig_class_name(Swig_methodclass(n)), name);
     }
 
     // This generated code may be called:
@@ -941,9 +961,9 @@ public:
     /* emit function call */
     String *actioncode = emit_action(n);
 
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-      Replaceall(tm, "$input", "result");
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+      Replaceall(tm, "$input", Swig_cresult_name());
+      Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$target", "return_value");
       Replaceall(tm, "$result", "return_value");
       Replaceall(tm, "$owner", newobject ? "1" : "0");
@@ -963,14 +983,14 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
 	Printf(f->code, "%s\n", tm);
 	Delete(tm);
       }
     }
 
     /* See if there is any return cleanup code */
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
@@ -1655,7 +1675,7 @@ public:
 	      Printf(output, "\t\t$this->%s=%s;\n", SWIG_PTR, invoke);
 	    } else {
 	      String *classname = Swig_class_name(current_class);
-	      Printf(output, "\t\treturn new %s(%s);\n", classname, invoke);
+	      Printf(output, "\t\treturn new %s%s(%s);\n", prefix, classname, invoke);
 	    }
 	  }
 	} else {
@@ -1682,36 +1702,26 @@ public:
 	if (Cmp(invoke, "$r") != 0)
 	  Printf(output, "\t\t$r=%s;\n", invoke);
 	if (Len(ret_types) == 1) {
-	  /* If it has an abstract base, then we can't create a new
-	   * base object. */
-	  int hasabstractbase = 0;
-	  Node *bases = Getattr(Swig_methodclass(n), "bases");
-	  if (bases) {
-	    Iterator i = First(bases);
-	    while(i.item) {
-	      if (Getattr(i.item, "abstract")) {
-		hasabstractbase = 1;
-		break;
-	      }
-	      i = Next(i);
-	    }
+	  /* If d is abstract we can't create a new wrapper type d. */
+	  Node * d_class = classLookup(d);
+	  int is_abstract = 0;
+	  if (Getattr(d_class, "abstract")) {
+	    is_abstract = 1;
 	  }
-	  if (newobject || !hasabstractbase) {
-	    /*
-	     * _p_Foo -> Foo, _p_ns__Bar -> Bar
-	     * TODO: do this in a more elegant way
-	     */
+	  if (newobject || !is_abstract) {
 	    Printf(output, "\t\tif (is_resource($r)) {\n");
 	    if (Getattr(classLookup(Getattr(n, "type")), "module")) {
+	      /*
+	       * _p_Foo -> Foo, _p_ns__Bar -> Bar
+	       * TODO: do this in a more elegant way
+	       */
 	      if (Len(prefix) == 0) {
 		Printf(output, "\t\t\t$c=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
 	      } else {
 		Printf(output, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
 	      }
-	      Printf(output, "\t\t\tif (!class_exists($c)) {\n");
-	      Printf(output, "\t\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
-	      Printf(output, "\t\t\t}\n");
-	      Printf(output, "\t\t\treturn new $c($r);\n");
+	      Printf(output, "\t\t\tif (class_exists($c)) return new $c($r);\n");
+	      Printf(output, "\t\t\treturn new %s%s($r);\n", prefix, Getattr(classLookup(d), "sym:name"));
 	    } else {
 	      Printf(output, "\t\t\t$c = new stdClass();\n");
 	      Printf(output, "\t\t\t$c->"SWIG_PTR" = $r;\n");
@@ -1763,7 +1773,11 @@ public:
 	  Printf(output, "\t\t}\n");
 	}
       } else {
-	Printf(output, "\t\treturn %s;\n", invoke);
+	if (non_void_return) {
+	  Printf(output, "\t\treturn %s;\n", invoke);
+	} else if (Cmp(invoke, "$r") != 0) {
+	  Printf(output, "\t\t%s;\n", invoke);
+	}
       }
       Printf(output, "\t}\n");
 
@@ -2239,13 +2253,13 @@ done:
       director_prot_ctor_code = NewStringEmpty();
       Printf(director_ctor_code, "if ( arg0->type == IS_NULL ) { /* not subclassed */\n");
       Printf(director_prot_ctor_code, "if ( arg0->type == IS_NULL ) { /* not subclassed */\n");
-      Printf(director_ctor_code, "  result = (%s *)new %s(%s);\n", ctype, ctype, args);
+      Printf(director_ctor_code, "  %s = (%s *)new %s(%s);\n", Swig_cresult_name(), ctype, ctype, args);
       Printf(director_prot_ctor_code, "  SWIG_PHP_Error(E_ERROR, \"accessing abstract class or protected constructor\");\n", name, name, args);
       if (i) {
 	Insert(args, 0, ", ");
       }
-      Printf(director_ctor_code, "} else {\n  result = (%s *)new SwigDirector_%s(arg0%s);\n}\n", ctype, sname, args);
-      Printf(director_prot_ctor_code, "} else {\n  result = (%s *)new SwigDirector_%s(arg0%s);\n}\n", ctype, sname, args);
+      Printf(director_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0%s TSRMLS_CC);\n}\n", Swig_cresult_name(), ctype, sname, args);
+      Printf(director_prot_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0%s TSRMLS_CC);\n}\n", Swig_cresult_name(), ctype, sname, args);
       Delete(args);
 
       wrapperType = directorconstructor;
@@ -2366,8 +2380,13 @@ done:
 	String *call;
 	String *basetype = Getattr(parent, "classtype");
 	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	if (((const char *)Char(target))[Len(target) - 2] == '(') {
+	  Insert(target, Len(target) - 1, "TSRMLS_D");
+	} else {
+	  Insert(target, Len(target) - 1, " TSRMLS_DC");
+	}
 	call = Swig_csuperclass_call(0, basetype, superparms);
-	Printf(w->def, "%s::%s: %s, Swig::Director(self) {", classname, target, call);
+	Printf(w->def, "%s::%s: %s, Swig::Director(self TSRMLS_CC) {", classname, target, call);
 	Append(w->def, "}");
 	Delete(target);
 	Wrapper_print(w, f_directors);
@@ -2378,6 +2397,11 @@ done:
       /* constructor header */
       {
 	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	if (((const char *)Char(target))[Len(target) - 2] == '(') {
+	  Insert(target, Len(target) - 1, "TSRMLS_D");
+	} else {
+	  Insert(target, Len(target) - 1, " TSRMLS_DC");
+	}
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -2393,6 +2417,7 @@ done:
     String *name;
     String *classname;
     String *c_classname = Getattr(parent, "name");
+    String *symname = Getattr(n, "sym:name");
     String *declaration;
     ParmList *l;
     Wrapper *w;
@@ -2481,6 +2506,8 @@ done:
     Append(w->def, " {");
     Append(declaration, ";\n");
 
+    Printf(w->code, "TSRMLS_FETCH_FROM_CTX(swig_zts_ctx);\n");
+
     /* declare method return value 
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
@@ -2501,12 +2528,14 @@ done:
 	Printf(w->code, "%s;\n", super_call);
 	Delete(super_call);
       } else {
-	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
+	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\" TSRMLS_CC);\n", SwigType_namestr(c_classname),
 	    SwigType_namestr(name));
       }
     } else {
       /* attach typemaps to arguments (C/C++ -> PHP) */
       String *parse_args = NewStringEmpty();
+
+      Swig_director_parms_fixup(l);
 
       /* remove the wrapper 'w' since it was producing spurious temps */
       Swig_typemap_attach_parms("in", l, 0);
@@ -2540,6 +2569,7 @@ done:
 	  if (!parse) {
 	    sprintf(source, "obj%d", idx++);
 	    String *input = NewStringf("&%s", source);
+	    Setattr(p, "emit:directorinput", input);
 	    Replaceall(tm, "$input", input);
 	    Delete(input);
 	    Replaceall(tm, "$owner", "0");
@@ -2550,6 +2580,7 @@ done:
 	    Putc('O', parse_args);
 	  } else {
 	    Append(parse_args, parse);
+	    Setattr(p, "emit:directorinput", pname);
 	    Replaceall(tm, "$input", pname);
 	    Replaceall(tm, "$owner", "0");
 	    if (Len(tm) == 0)
@@ -2568,7 +2599,7 @@ done:
       }
 
       /* exception handling */
-      tm = Swig_typemap_lookup("director:except", n, "result", 0);
+      tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
       if (!tm) {
 	tm = Getattr(n, "feature:director:except");
 	if (tm)
@@ -2589,8 +2620,8 @@ done:
       } else {
 	Printf(w->code, "zval *args[%d];\n", idx);
       }
-      Append(w->code, "zval *result, funcname;\n");
-      Append(w->code, "MAKE_STD_ZVAL(result);\n");
+      Printf(w->code, "zval *%s, funcname;\n", Swig_cresult_name());
+      Printf(w->code, "MAKE_STD_ZVAL(%s);\n", Swig_cresult_name());
       Printf(w->code, "ZVAL_STRING(&funcname, (char *)\"%s\", 0);\n", GetChar(n, "sym:name"));
       Append(w->code, "if (!swig_self) {\n");
       Append(w->code, "  SWIG_PHP_Error(E_ERROR, \"this pointer is NULL\");");
@@ -2600,7 +2631,7 @@ done:
       Printv(w->code, wrap_args, NIL);
 
       Append(w->code, "call_user_function(EG(function_table), (zval**)&swig_self, &funcname,\n");
-      Printf(w->code, "  result, %d, args TSRMLS_CC);\n", idx);
+      Printf(w->code, "  %s, %d, args TSRMLS_CC);\n", Swig_cresult_name(), idx);
 
       if (tm) {
 	Printv(w->code, Str(tm), "\n", NIL);
@@ -2624,10 +2655,11 @@ done:
 	 * occurs in Language::cDeclaration().
 	 */
 	Setattr(n, "type", return_type);
-	tm = Swig_typemap_lookup("directorout", n, "result", w);
+	tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
 	Setattr(n, "type", type);
 	if (tm != 0) {
-	  Replaceall(tm, "$input", "&result");
+	  static const String *amp_result = NewStringf("&%s", Swig_cresult_name());
+	  Replaceall(tm, "$input", amp_result);
 	  char temp[24];
 	  sprintf(temp, "%d", idx);
 	  Replaceall(tm, "$argnum", temp);
@@ -2652,8 +2684,8 @@ done:
       /* marshal outputs */
       for (p = l; p;) {
 	if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
-	  Replaceall(tm, "$input", "result");
-	  Replaceall(tm, "$result", Getattr(p, "name"));
+	  Replaceall(tm, "$result", Swig_cresult_name());
+	  Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
 	  Printv(w->code, tm, "\n", NIL);
 	  p = Getattr(p, "tmap:directorargout:next");
 	} else {
@@ -2661,7 +2693,7 @@ done:
 	}
       }
 
-      Append(w->code, "FREE_ZVAL(result);\n");
+      Printf(w->code, "FREE_ZVAL(%s);\n", Swig_cresult_name());
 
       Delete(parse_args);
       Delete(cleanup);
@@ -2712,6 +2744,7 @@ done:
     /* emit the director method */
     if (status == SWIG_OK) {
       if (!Getattr(n, "defaultargs")) {
+	Replaceall(w->code, "$symname", symname);
 	Wrapper_print(w, f_directors);
 	Printv(f_directors_h, declaration, NIL);
 	Printv(f_directors_h, inline_extra_method, NIL);

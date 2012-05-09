@@ -565,6 +565,7 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
 
 void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   Iterator ki;
+  Hash *derh;
   String *bprefix;
   String *dprefix;
   char *cbprefix;
@@ -573,6 +574,9 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   if (!namehash)
     return;
 
+  /* Temporary hash holding all the entries we add while we iterate over
+     namehash itself as we can't modify the latter while iterating over it. */
+  derh = NULL;
   bprefix = NewStringf("%s::", base);
   dprefix = NewStringf("%s::", derived);
   cbprefix = Char(bprefix);
@@ -580,13 +584,20 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
   for (ki = First(namehash); ki.key; ki = Next(ki)) {
     char *k = Char(ki.key);
     if (strncmp(k, cbprefix, plen) == 0) {
+      /* Copy, adjusting name, this element to the derived hash. */
       Iterator oi;
       String *nkey = NewStringf("%s%s", dprefix, k + plen);
       Hash *n = ki.item;
-      Hash *newh = Getattr(namehash, nkey);
+      Hash *newh;
+
+      /* Don't overwrite an existing value for the derived class, if any. */
+      newh = Getattr(namehash, nkey);
       if (!newh) {
+	if (!derh)
+	  derh = NewHash();
+
 	newh = NewHash();
-	Setattr(namehash, nkey, newh);
+	Setattr(derh, nkey, newh);
 	Delete(newh);
       }
       for (oi = First(n); oi.key; oi = Next(oi)) {
@@ -599,8 +610,17 @@ void Swig_name_object_inherit(Hash *namehash, String *base, String *derived) {
       Delete(nkey);
     }
   }
+
+  /* Merge the contents of derived hash into the main hash. */
+  if (derh) {
+    for (ki = First(derh); ki.key; ki = Next(ki)) {
+      Setattr(namehash, ki.key, ki.item);
+    }
+  }
+
   Delete(bprefix);
   Delete(dprefix);
+  Delete(derh);
 }
 
 /* -----------------------------------------------------------------------------
@@ -893,11 +913,14 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
   /* they must have the same type */
   String *ta = nodeType(a);
   String *tb = nodeType(b);
-  if (Cmp(ta, tb) != 0)
-    return 0;
+  if (!Equal(ta, tb)) {
+    if (!(Equal(ta, "using") && Equal(tb, "cdecl"))) {
+      return 0;
+    }
+  }
 
-  /* cdecl case */
   if (Cmp(ta, "cdecl") == 0) {
+    /* both cdecl case */
     /* typedef */
     String *a_storage = Getattr(a, "storage");
     String *b_storage = Getattr(b, "storage");
@@ -956,8 +979,17 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
 	}
       }
     }
+  } else if (Equal(ta, "using")) {
+    /* using and cdecl case */
+    String *b_storage = Getattr(b, "storage");
+    if (Equal(b_storage, "typedef")) {
+      String *a_name = Getattr(a, "name");
+      String *b_name = Getattr(b, "name");
+      if (Equal(a_name, b_name))
+	return 1;
+    }
   } else {
-    /* %constant case */
+    /* both %constant case */
     String *a_storage = Getattr(a, "storage");
     String *b_storage = Getattr(b, "storage");
     if ((Cmp(a_storage, "%constant") == 0)

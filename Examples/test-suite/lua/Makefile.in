@@ -11,12 +11,12 @@ top_builddir = @top_builddir@
 
 # sorry, currently very few test cases work/have been written
 
-#CPP_TEST_CASES += \
-#	cnum 
+CPP_TEST_CASES += \
+	lua_no_module_global \
 
-#C_TEST_CASES += \
-#	file_test \
-#	nondynamic
+
+C_TEST_CASES += \
+	lua_no_module_global \
 
 
 include $(srcdir)/../common.mk
@@ -25,7 +25,7 @@ include $(srcdir)/../common.mk
 LIBS       = -L.
 
 # Custom tests - tests with additional commandline options
-# none!
+lua_no_module_global.%: SWIGOPT += -nomoduleglobal
 
 # Rules for the different types of tests
 %.cpptest: 

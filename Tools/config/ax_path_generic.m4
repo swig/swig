@@ -110,19 +110,19 @@ AC_DEFUN([AX_PATH_GENERIC],[
     ])
 
     AC_PATH_PROGS(UP[]_CONFIG,[$6 DOWN-config],[no])
-    AS_IF([test "$UP[]_CONFIG" == "no"],[
+    AS_IF([test "$UP[]_CONFIG" = "no"],[
       :
       $5
     ],[
       dnl Get the CFLAGS from LIBRARY-config script
-      AS_IF([test x"$7" == x],[
+      AS_IF([test x"$7" = x],[
 	UP[]_CFLAGS="`$UP[]_CONFIG $DOWN[]_config_args --cflags`"
       ],[
 	UP[]_CFLAGS="`$UP[]_CONFIG $DOWN[]_config_args $7`"
       ])
 
       dnl Get the LIBS from LIBRARY-config script
-      AS_IF([test x"$8" == x],[
+      AS_IF([test x"$8" = x],[
 	UP[]_LIBS="`$UP[]_CONFIG $DOWN[]_config_args --libs`"
       ],[
 	UP[]_LIBS="`$UP[]_CONFIG $DOWN[]_config_args $8`"

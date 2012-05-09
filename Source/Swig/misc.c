@@ -1147,7 +1147,7 @@ err_out:
   exit(1);
 }
 
-String *replace_captures(const char *input, String *subst, int captures[])
+String *replace_captures(int num_captures, const char *input, String *subst, int captures[], String *pattern, String *s)
 {
   String *result = NewStringEmpty();
   const char *p = Char(subst);
@@ -1165,11 +1165,16 @@ String *replace_captures(const char *input, String *subst, int captures[])
     /* Handle substitution */
     if (*p == '\0') {
       Putc('\\', result);
-    } else if (isdigit(*p)) {
+    } else if (isdigit((unsigned char)*p)) {
       int group = *p++ - '0';
-      int l = captures[group*2], r = captures[group*2 + 1];
-      if (l != -1) {
-        Write(result, input + l, r - l);
+      if (group < num_captures) {
+	int l = captures[group*2], r = captures[group*2 + 1];
+	if (l != -1) {
+	  Write(result, input + l, r - l);
+	}
+      } else {
+	Swig_error("SWIG", Getline(s), "PCRE capture replacement failed while matching \"%s\" using \"%s\" - request for group %d is greater than the number of captures %d.\n",
+	    Char(pattern), input, group, num_captures-1);
       }
     }
   }
@@ -1206,10 +1211,9 @@ String *Swig_string_regex(String *s) {
     }
     rc = pcre_exec(compiled_pat, NULL, input, strlen(input), 0, 0, captures, 30);
     if (rc >= 0) {
-      res = replace_captures(input, subst, captures);
-    }
-    else if (rc != PCRE_ERROR_NOMATCH) {
-      Swig_error("SWIG", Getline(s), "PCRE execution failed: error %d while matching \"%s\" in \"%s\".\n",
+      res = replace_captures(rc, input, subst, captures, pattern, s);
+    } else if (rc != PCRE_ERROR_NOMATCH) {
+      Swig_error("SWIG", Getline(s), "PCRE execution failed: error %d while matching \"%s\" using \"%s\".\n",
 	rc, Char(pattern), input);
       exit(1);
     }

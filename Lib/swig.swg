@@ -291,7 +291,7 @@ static int NAME(TYPE x) {
 %define %$isextern       "match$storage"="extern"  %enddef
 
 %define %$ismember       "match$ismember"="1"  %enddef
-%define %$isglobal       %not %ismember  %enddef
+%define %$isglobal       %$not %$ismember  %enddef
 %define %$innamespace    "match$parentNode$nodeType"="namespace"  %enddef
 
 %define %$ispublic       "match$access"="public"  %enddef
@@ -301,7 +301,7 @@ static int NAME(TYPE x) {
 %define %$ismemberget    "match$memberget"="1"  %enddef
 %define %$ismemberset    "match$memberset"="1"  %enddef
 
-%define %$classname      %ismember,match$parentNode$name  %enddef
+%define %$classname      %$ismember,"match$parentNode$name"  %enddef
 
 /* -----------------------------------------------------------------------------
  * Include all the warnings labels and macros 
@@ -359,7 +359,7 @@ namespace std {
 
 #ifdef __cplusplus
 %typemap(memberin) char * {
-  if ($1) delete [] $1;
+  delete [] $1;
   if ($input) {
      $1 = ($1_type) (new char[strlen((const char *)$input)+1]);
      strcpy((char *)$1, (const char *)$input);
@@ -376,7 +376,7 @@ namespace std {
   }
 }
 %typemap(globalin) char * {
-  if ($1) delete [] $1;
+  delete [] $1;
   if ($input) {
      $1 = ($1_type) (new char[strlen((const char *)$input)+1]);
      strcpy((char *)$1, (const char *)$input);
@@ -394,7 +394,7 @@ namespace std {
 }
 #else
 %typemap(memberin) char * {
-  if ($1) free((char *)$1);
+  free($1);
   if ($input) {
      $1 = ($1_type) malloc(strlen((const char *)$input)+1);
      strcpy((char *)$1, (const char *)$input);
@@ -411,7 +411,7 @@ namespace std {
   }
 }
 %typemap(globalin) char * {
-  if ($1) free((char *)$1);
+  free($1);
   if ($input) {
      $1 = ($1_type) malloc(strlen((const char *)$input)+1);
      strcpy((char *)$1, (const char *)$input);

@@ -17,12 +17,6 @@
 
 %{
 #include <string>
-// #include <vector>
-// using std::vector;
-
-using std::string;
-
-
 %}
 
 // %include <std_vector.i>

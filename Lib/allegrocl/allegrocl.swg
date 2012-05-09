@@ -16,6 +16,7 @@
                float, double, long double, char *, void *,
                enum SWIGTYPE    "(cl::setq ACL_ffresult $body)";
 %typemap(lout) void "$body";
+#ifdef __cplusplus
 %typemap(lout) SWIGTYPE[ANY], SWIGTYPE *,
                SWIGTYPE &       
 %{ (cl:let* ((address $body)
@@ -25,6 +26,12 @@
      (cl:setq ACL_ffresult new-inst)) %}
 
 %typemap(lout) SWIGTYPE         "(cl::let* ((address $body)\n         (new-inst (cl::make-instance '$lclass :foreign-address address)))\n    (cl::unless (cl::zerop address)\n      (excl:schedule-finalization new-inst #'$ldestructor))\n    (cl::setq ACL_ffresult new-inst))";
+#else
+%typemap(lout) SWIGTYPE[ANY], SWIGTYPE *, SWIGTYPE &, SWIGTYPE
+%{ (cl:let* ((address $body)
+	  (new-inst (cl:make-instance '$lclass :foreign-address address)))
+     (cl:setq ACL_ffresult new-inst)) %}
+#endif
 
 %typemap(lisptype) bool, const bool "cl:boolean";
 %typemap(lisptype) char, const char "cl:character";

@@ -214,6 +214,7 @@ Hash *Swig_cparse_features(void) {
   return features_hash;
 }
 
+/* Fully qualify any template parameters */
 static String *feature_identifier_fix(String *s) {
   String *tp = SwigType_istemplate_templateprefix(s);
   if (tp) {
@@ -1643,6 +1644,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
+%token BEGINFILE ENDOFFILE
 %token ILLEGAL CONSTANT
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
@@ -2109,7 +2111,7 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
    %importfile(option1="xyz", ...) "filename" [ declarations ]
    ------------------------------------------------------------ */
 
-include_directive: includetype options string LBRACKET {
+include_directive: includetype options string BEGINFILE {
                      $1.filename = Copy(cparse_file);
 		     $1.line = cparse_line;
 		     scanner_set_location(NewString($3),1);
@@ -2118,7 +2120,7 @@ include_directive: includetype options string LBRACKET {
 		       if (maininput)
 		         scanner_set_main_input_file(NewString(maininput));
 		     }
-               } interface RBRACKET {
+               } interface ENDOFFILE {
                      String *mname = 0;
                      $$ = $6;
 		     scanner_set_location($1.filename,$1.line+1);
@@ -3559,20 +3561,25 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		       if (Cmp($1,"typedef") == 0) {
 			 if (!decltype || !Len(decltype)) {
 			   String *cname;
+			   String *tdscopename;
+			   String *class_scope = Swig_symbol_qualifiedscopename(cscope);
 			   name = Getattr($9,"name");
 			   cname = Copy(name);
 			   Setattr($$,"tdname",cname);
-			   Delete(cname);
+			   tdscopename = class_scope ? NewStringf("%s::%s", class_scope, name) : Copy(name);
 
 			   /* Use typedef name as class name */
 			   if (class_rename && (Strcmp(class_rename,$3) == 0)) {
 			     Delete(class_rename);
 			     class_rename = NewString(name);
 			   }
-			   if (!Getattr(classes,name)) {
-			     Setattr(classes,name,$$);
+			   if (!Getattr(classes,tdscopename)) {
+			     Setattr(classes,tdscopename,$$);
 			   }
 			   Setattr($$,"decl",decltype);
+			   Delete(class_scope);
+			   Delete(cname);
+			   Delete(tdscopename);
 			 }
 		       }
 		     }
@@ -5024,7 +5031,7 @@ notso_direct_declarator : idcolon {
                   $$.have_parms = 0;
                   }
 
-/* This generate a shift-reduce conflict with constructors */
+/* This generates a shift-reduce conflict with constructors */
                  | LPAREN idcolon RPAREN {
                   $$.id = Char($2);
                   $$.type = 0;
@@ -5335,26 +5342,26 @@ direct_abstract_declarator : direct_abstract_declarator LBRACKET RBRACKET {
 
 
 pointer    : STAR type_qualifier pointer { 
-               $$ = NewStringEmpty();
-               SwigType_add_pointer($$);
-	       SwigType_push($$,$2);
-	       SwigType_push($$,$3);
-	       Delete($3);
+             $$ = NewStringEmpty();
+             SwigType_add_pointer($$);
+	     SwigType_push($$,$2);
+	     SwigType_push($$,$3);
+	     Delete($3);
            }
            | STAR pointer {
 	     $$ = NewStringEmpty();
 	     SwigType_add_pointer($$);
 	     SwigType_push($$,$2);
 	     Delete($2);
-	     } 
+	   } 
            | STAR type_qualifier { 
-	     	$$ = NewStringEmpty();	
-		SwigType_add_pointer($$);
-	        SwigType_push($$,$2);
+	     $$ = NewStringEmpty();
+	     SwigType_add_pointer($$);
+	     SwigType_push($$,$2);
            }
            | STAR {
-	      $$ = NewStringEmpty();
-	      SwigType_add_pointer($$);
+	     $$ = NewStringEmpty();
+	     SwigType_add_pointer($$);
            }
            ;
 
@@ -5382,7 +5389,7 @@ type            : rawtype {
                 }
                 ;
 
-rawtype       : type_qualifier type_right {
+rawtype        : type_qualifier type_right {
                    $$ = $2;
 	           SwigType_push($$,$1);
                }
@@ -5400,7 +5407,7 @@ rawtype       : type_qualifier type_right {
 
 type_right     : primitive_type { $$ = $1;
                   /* Printf(stdout,"primitive = '%s'\n", $$);*/
-                }
+               }
                | TYPE_BOOL { $$ = $1; }
                | TYPE_VOID { $$ = $1; }
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
@@ -5631,6 +5638,7 @@ etype            : expr {
                    $$ = $1;
 		   if (($$.type != T_INT) && ($$.type != T_UINT) &&
 		       ($$.type != T_LONG) && ($$.type != T_ULONG) &&
+		       ($$.type != T_LONGLONG) && ($$.type != T_ULONGLONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR) &&
 		       ($$.type != T_CHAR) && ($$.type != T_BOOL)) {

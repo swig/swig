@@ -399,20 +399,27 @@ class TypePass:private Dispatcher {
     String *nname = 0;
     String *fname = 0;
     String *scopename = 0;
+    String *template_default_expanded = 0;
 
     normalize = NewList();
 
     if (name) {
       if (SwigType_istemplate(name)) {
-	// We need to fully resolve the name to make templates work correctly */
+	// We need to fully resolve the name and expand default template parameters to make templates work correctly */
 	Node *cn;
-	fname = SwigType_typedef_resolve_all(name);
-	if (Strcmp(fname, name) != 0 && (cn = Swig_symbol_clookup_local(fname, 0))) {
+	SwigType *resolved_name = SwigType_typedef_resolve_all(name);
+	SwigType *deftype_name = Swig_symbol_template_deftype(resolved_name, 0);
+	fname = Copy(resolved_name);
+	if (!Equal(resolved_name, deftype_name))
+	  template_default_expanded = Copy(deftype_name);
+	if (!Equal(fname, name) && (cn = Swig_symbol_clookup_local(fname, 0))) {
 	  if ((n == cn)
 	      || (Strcmp(nodeType(cn), "template") == 0)
 	      || (Getattr(cn, "feature:onlychildren") != 0)
 	      || (Getattr(n, "feature:onlychildren") != 0)) {
 	    Swig_symbol_cadd(fname, n);
+	    if (template_default_expanded)
+	      Swig_symbol_cadd(template_default_expanded, n);
 	    SwigType_typedef_class(fname);
 	    scopename = Copy(fname);
 	  } else {
@@ -425,6 +432,8 @@ class TypePass:private Dispatcher {
 	  SwigType_typedef_class(fname);
 	  scopename = Copy(fname);
 	}
+	Delete(deftype_name);
+	Delete(resolved_name);
       } else {
 	if ((CPlusPlus) || (unnamed)) {
 	  SwigType_typedef_class(name);
@@ -444,7 +453,7 @@ class TypePass:private Dispatcher {
       SwigType_typedef(unnamed, tdname);
     }
 
-    if (nsname) {
+    if (nsname && name) {
       nname = NewStringf("%s::%s", nsname, name);
       String *tdname = Getattr(n, "tdname");
       if (tdname) {
@@ -474,6 +483,13 @@ class TypePass:private Dispatcher {
     Delete(ts);
     Setattr(n, "module", module);
 
+    // When a fully qualified templated type with default parameters is used in the parsed code, 
+    // the following additional symbols and scopes are needed for successful lookups
+    if (template_default_expanded) {
+      Swig_symbol_alias(template_default_expanded, Getattr(n, "symtab"));
+      SwigType_scope_alias(template_default_expanded, Getattr(n, "typescope"));
+    }
+
     /* Normalize deferred types */
     {
       normal_node *nn = new normal_node();
@@ -493,6 +509,7 @@ class TypePass:private Dispatcher {
       Setattr(n, "name", nname);
       Delete(nname);
     }
+    Delete(fname);
     return SWIG_OK;
   }
 
@@ -522,18 +539,10 @@ class TypePass:private Dispatcher {
 
   virtual int classforwardDeclaration(Node *n) {
 
-    /* Temporary hack. Can't do inside a class because it breaks
-       C nested structure wrapping */
-
+    /* Can't do inside a C struct because it breaks C nested structure wrapping */
     if ((!inclass) || (CPlusPlus)) {
       String *name = Getattr(n, "name");
-      String *nname;
       SwigType_typedef_class(name);
-      if (nsname) {
-	nname = NewStringf("%s::%s", nsname, name);
-	Setattr(n, "name", nname);
-      }
-
     }
     return SWIG_OK;
   }

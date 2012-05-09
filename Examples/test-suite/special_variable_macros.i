@@ -5,6 +5,12 @@
 
 %warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'NewName' due to Go name ('NewName') conflict with 'Name' */
 
+%{
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4996) // 'strdup': The POSIX name for this item is deprecated. Instead, use the ISO C++ conformant name: _strdup. See online help for details.
+#endif
+%}
+
 %ignore Name::operator=;
 
 %inline %{

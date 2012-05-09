@@ -4,6 +4,9 @@
 // nspace feature only supported by these languages
 #if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD)
 
+#if defined(SWIGJAVA)
+SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
+#endif
 %nspace;
 
 %extend Outer::Inner1::Color {
@@ -46,5 +49,7 @@ namespace Outer {
                   const Outer::Inner2::Color& col2c) {}
 }
 
+#else
+#warning nspace feature not yet supported in this target language
 #endif
 

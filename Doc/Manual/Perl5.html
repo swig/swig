@@ -6,7 +6,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Perl5"></a>30 SWIG and Perl5</H1>
+<H1><a name="Perl5"></a>31 SWIG and Perl5</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -82,12 +82,12 @@
 This chapter describes SWIG's support of Perl5. Although the Perl5
 module is one of the earliest SWIG modules, it has continued to evolve
 and has been improved greatly with the help of SWIG users. For the
-best results, it is recommended that SWIG be used with Perl5.003 or
-later. Earlier versions are problematic and SWIG generated extensions
-may not compile or run correctly.
+best results, it is recommended that SWIG be used with Perl 5.8 or
+later. We're no longer testing regularly with older versions, but
+Perl 5.6 seems to mostly work, while older versions don't.
 </p>
 
-<H2><a name="Perl5_nn2"></a>30.1 Overview</H2>
+<H2><a name="Perl5_nn2"></a>31.1 Overview</H2>
 
 
 <p>
@@ -108,12 +108,12 @@ described.  Advanced customization features, typemaps, and other
 options are found near the end of the chapter.
 </p>
 
-<H2><a name="Perl5_nn3"></a>30.2 Preliminaries</H2>
+<H2><a name="Perl5_nn3"></a>31.2 Preliminaries</H2>
 
 
 <p>
 To build a Perl5 module, run SWIG using the <tt>-perl</tt> option as
-follows :
+follows:
 </p>
 
 <div class="code"><pre>
@@ -133,11 +133,11 @@ To build the module, you will need to compile the file
 <tt>example_wrap.c</tt> and link it with the rest of your program.
 </p>
 
-<H3><a name="Perl5_nn4"></a>30.2.1 Getting the right header files</H3>
+<H3><a name="Perl5_nn4"></a>31.2.1 Getting the right header files</H3>
 
 
 <p>
-In order to compile, SWIG extensions need the following Perl5 header files :</p>
+In order to compile, SWIG extensions need the following Perl5 header files:</p>
 
 <div class="code"><pre>
 #include "Extern.h"
@@ -149,23 +149,23 @@ In order to compile, SWIG extensions need the following Perl5 header files :</p>
 These are typically located in a directory like this</p>
 
 <div class="code"><pre>
-/usr/lib/perl5/5.00503/i386-linux/CORE
+/usr/lib/perl/5.14/CORE
 </pre></div>
 
 <p>
 The SWIG configuration script automatically tries to locate this directory so
 that it can compile examples.  However, if you need to find out where the directory is
-loaded, an easy way to find out is to run Perl itself.
+located, an easy way to find out is to ask Perl itself:
 </p>
 
 <div class="code">
 <pre>
-% perl -e 'use Config; print $Config{archlib};'
-/usr/lib/perl5/5.00503/i386-linux
+$ perl -e 'use Config; print "$Config{archlib}\n";'
+/usr/lib/perl/5.14
 </pre>
 </div>
 
-<H3><a name="Perl5_nn5"></a>30.2.2 Compiling a dynamic module</H3>
+<H3><a name="Perl5_nn5"></a>31.2.2 Compiling a dynamic module</H3>
 
 
 <p>
@@ -176,9 +176,9 @@ using commands like this (shown for Linux):
 
 <div class="code"><pre>
 $ swig -perl example.i
-% gcc example.c
-% gcc -c example_wrap.c -I/usr/lib/perl5/5.00503/i386-linux/CORE -Dbool=char
-% gcc -shared example.o example_wrap.o -o example.so
+$ gcc -fPIC example.c
+$ gcc -fPIC -c example_wrap.c -I/usr/lib/perl/5.14/CORE -Dbool=char
+$ gcc -shared example.o example_wrap.o -o example.so
 </pre></div>
 
 <p>
@@ -198,13 +198,13 @@ the target should be named `<tt>example.so</tt>',
 `<tt>example.sl</tt>', or the appropriate dynamic module name on your system.
 </p>
 
-<H3><a name="Perl5_nn6"></a>30.2.3 Building a dynamic module with MakeMaker</H3>
+<H3><a name="Perl5_nn6"></a>31.2.3 Building a dynamic module with MakeMaker</H3>
 
 
 <p>
 It is also possible to use Perl to build dynamically loadable modules
 for you using the MakeMaker utility.  To do this, write a Perl
-script such as the following :</p>
+script such as the following:</p>
 
 <div class="targetlang"><pre>
 # File : Makefile.PL
@@ -218,12 +218,12 @@ WriteMakefile(
 </pre></div>
 
 <p>
-Now, to build a module, simply follow these steps :</p>
+Now, to build a module, simply follow these steps:</p>
 
 <div class="code"><pre>
-% perl Makefile.PL
-% make
-% make install
+$ perl Makefile.PL
+$ make
+$ make install
 </pre></div>
 
 <p>
@@ -232,17 +232,17 @@ the preferred approach to compilation.  More information about MakeMaker can be
 found in "Programming Perl, 2nd ed." by Larry Wall, Tom Christiansen,
 and Randal Schwartz.</p>
 
-<H3><a name="Perl5_nn7"></a>30.2.4 Building a static version of Perl</H3>
+<H3><a name="Perl5_nn7"></a>31.2.4 Building a static version of Perl</H3>
 
 
 <p>
 If you machine does not support dynamic loading or if you've tried to
 use it without success, you can build a new version of the Perl
 interpreter with your SWIG extensions added to it. To build a static
-extension, you first need to invoke SWIG as follows :</p>
+extension, you first need to invoke SWIG as follows:</p>
 
 <div class="code"><pre>
-% swig -perl -static example.i
+$ swig -perl -static example.i
 </pre></div>
 
 <p>
@@ -253,7 +253,7 @@ By default SWIG includes code for dynamic loading, but the
 Next, you will need to supply a <tt>main()</tt> function that
 initializes your extension and starts the Perl interpreter. While,
 this may sound daunting, SWIG can do this for you automatically as
-follows :</p>
+follows:</p>
 
 <div class="targetlang"><pre>
 %module example
@@ -268,10 +268,10 @@ extern int fact(int);
 </pre></div>
 
 <p>
-The same thing can be accomplished by running SWIG as follows :</p>
+The same thing can be accomplished by running SWIG as follows:</p>
 
 <div class="code"><pre>
-% swig -perl -static -lperlmain.i example.i
+$ swig -perl -static -lperlmain.i example.i
 </pre></div>
 
 <p>
@@ -290,7 +290,7 @@ for a dynamic module, but change the link line to something like this:
 </p>
 
 <div class="code"><pre>
-% gcc example.o example_wrap.o -L/usr/lib/perl5/5.00503/i386-linux/CORE \
+$ gcc example.o example_wrap.o -L/usr/lib/perl/5.14/CORE \
 	-lperl -lsocket -lnsl -lm -o myperl
 </pre></div>
 
@@ -301,7 +301,7 @@ added to it.  Depending on your machine, you may need to link with
 additional libraries such as <tt>-lsocket, -lnsl, -ldl</tt>, etc.
 </p>
 
-<H3><a name="Perl5_nn8"></a>30.2.5 Using the module</H3>
+<H3><a name="Perl5_nn8"></a>31.2.5 Using the module</H3>
 
 
 <p>
@@ -323,9 +323,7 @@ A common error received by first-time users is the following:
 <div class="targetlang">
 <pre>
 use example;
-Can't locate example.pm in @INC (@INC contains: /usr/lib/perl5/5.00503/i386-lin
-ux /usr/lib/perl5/5.00503 /usr/lib/perl5/site_perl/5.005/i386-linux /usr/lib/pe
-rl5/site_perl/5.005 .) at - line 1.
+Can't locate example.pm in @INC (@INC contains: /etc/perl /usr/local/lib/perl/5.14.2 /usr/local/share/perl/5.14.2 /usr/lib/perl5 /usr/share/perl5 /usr/lib/perl/5.14 /usr/share/perl/5.14 /usr/local/lib/site_perl .) at - line 1.
 BEGIN failed--compilation aborted at - line 1.
 </pre>
 </div>
@@ -363,7 +361,7 @@ Another common error is the following:
 <pre>
 use example;
 Can't load './example.so' for module example: ./example.so: 
-undefined symbol: Foo at /usr/lib/perl5/5.00503/i386-linux/DynaLoader.pm line 169.
+undefined symbol: Foo at /usr/lib/perl/5.14/i386-linux/DynaLoader.pm line 169.
 
  at - line 1
 BEGIN failed--compilation aborted at - line 1.
@@ -409,7 +407,7 @@ error when you try to use your module:
 <pre>
 use example;
 Can't load './example.so' for module example: libfoo.so: cannot open shared object file: 
-No such file or directory at /usr/lib/perl5/5.00503/i386-linux/DynaLoader.pm line 169.
+No such file or directory at /usr/lib/perl/5.14/i386-linux/DynaLoader.pm line 169.
 
  at - line 1
 BEGIN failed--compilation aborted at - line 1.
@@ -456,7 +454,7 @@ system configuration (this requires root access and you will need to
 read the man pages).
 </p>
 
-<H3><a name="Perl5_nn9"></a>30.2.6 Compilation problems and compiling with C++</H3>
+<H3><a name="Perl5_nn9"></a>31.2.6 Compilation problems and compiling with C++</H3>
 
 
 <p>
@@ -472,10 +470,10 @@ compiler.  For example:
 </p>
 
 <div class="code"><pre>
-% swig -c++ -perl example.i
-% g++ -c example.cxx
-% g++ -c example_wrap.cxx -I/usr/lib/perl5/5.00503/i386-linux/CORE
-% <b>g++ -shared example.o example_wrap.o -o example.so</b>
+$ swig -c++ -perl example.i
+$ g++ -fPIC -c example.cxx
+$ g++ -fPIC -c example_wrap.cxx -I/usr/lib/perl/5.14/i386-linux/CORE
+$ <b>g++ -shared example.o example_wrap.o -o example.so</b>
 </pre></div>
 
 <p>
@@ -485,10 +483,10 @@ Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 </p>
 
 <div class="code"><pre>
-% swig -c++ -perl example.i
-% g++ -c example.cxx
-% g++ -c example_wrap.cxx -I/usr/lib/perl5/5.00503/i386-linux/CORE
-% g++ -shared example.o example_wrap.o -o example.so <b>-lCrun</b>
+$ swig -c++ -perl example.i
+$ CC -c example.cxx
+$ CC -c example_wrap.cxx -I/usr/lib/perl/5.14/i386-linux/CORE
+$ CC -shared example.o example_wrap.o -o example.so <b>-lCrun</b>
 </pre></div>
 
 <p>
@@ -503,7 +501,7 @@ it needs to be.  So you should compile the wrapper like:
 </p>
 
 <div class="code"><pre>
-% g++ -c example_wrap.cxx -I/usr/lib/perl/5.8.0/CORE -D_GNU_SOURCE
+$ g++ -fPIC -c example_wrap.cxx -I/usr/lib/perl/5.8.0/CORE -D_GNU_SOURCE
 </pre></div>
 
 <p>
@@ -511,7 +509,7 @@ it needs to be.  So you should compile the wrapper like:
 </p>
 
 <div class="code"><pre>
-% perl -e 'use Config; print $Config{ccflags};'
+$ perl -e 'use Config; print "$Config{ccflags}\n";'
 </pre></div>
 
 <p>
@@ -519,8 +517,8 @@ So you could also compile the wrapper like
 </p>
 
 <div class="code"><pre>
-% g++ -c example_wrap.cxx -I/usr/lib/perl/5.8.0/CORE \
-`perl -e 'use Config; print $Config{ccflags}'`
+$ g++ -fPIC -c example_wrap.cxx -I/usr/lib/perl/5.8.0/CORE \
+`perl -MConfig -e 'print $Config{ccflags}'`
 </pre></div>
 
 <p>
@@ -568,8 +566,8 @@ can behave strangely when working with multiple modules.
 
 <p>
 It should be noted that you may get a lot of error messages
-about the `<tt>bool</tt>' datatype when compiling a C++ Perl module. If
-you experience this problem, you can try the following :</p>
+about the '<tt>bool</tt>' datatype when compiling a C++ Perl module. If
+you experience this problem, you can try the following:</p>
 
 <ul>
 <li>Use <tt>-DHAS_BOOL</tt> when compiling the SWIG wrapper code
@@ -599,7 +597,7 @@ have to find the macro that conflicts and add an #undef into the .i file.  Pleas
 any conflicting macros you find to <a href="http://www.swig.org/mail.html">swig-user mailing list</a>.
 </p>
 
-<H3><a name="Perl5_nn10"></a>30.2.7 Compiling for 64-bit platforms</H3>
+<H3><a name="Perl5_nn10"></a>31.2.7 Compiling for 64-bit platforms</H3>
 
 
 <p>
@@ -626,7 +624,7 @@ also introduce problems on platforms that support more than one
 linking standard (e.g., -o32 and -n32 on Irix).
 </p>
 
-<H2><a name="Perl5_nn11"></a>30.3 Building Perl Extensions under Windows</H2>
+<H2><a name="Perl5_nn11"></a>31.3 Building Perl Extensions under Windows</H2>
 
 
 <p>
@@ -637,13 +635,13 @@ section assumes you are using SWIG with Microsoft Visual C++
 although the procedure may be similar with other compilers.  
 </p>
 
-<H3><a name="Perl5_nn12"></a>30.3.1 Running SWIG from Developer Studio</H3>
+<H3><a name="Perl5_nn12"></a>31.3.1 Running SWIG from Developer Studio</H3>
 
 
 <p>
 If you are developing your application within Microsoft developer
 studio, SWIG can be invoked as a custom build option.  The process
-roughly requires these steps :</p>
+roughly requires these steps:</p>
 
 <ul>
 <li>Open up a new workspace and use the AppWizard to select a DLL
@@ -651,7 +649,7 @@ project.
 
 <li>Add both the SWIG interface file (the .i file), any supporting C
 files, and the name of the wrapper file that will be created by SWIG
-(ie. <tt>example_wrap.c</tt>).  Note : If using C++, choose a
+(ie. <tt>example_wrap.c</tt>).  Note: If using C++, choose a
 different suffix for the wrapper file such as
 <tt>example_wrap.cxx</tt>. Don't worry if the wrapper file doesn't
 exist yet--Developer studio will keep a reference to it around.
@@ -689,7 +687,7 @@ Now, assuming you made it this far, SWIG will be automatically invoked when
 you build your project.  Any changes made to the interface file will
 result in SWIG being automatically invoked to produce a new version of
 the wrapper file.  To run your new Perl extension, simply run Perl and
-use the use command as normal. For example :
+use the use command as normal. For example:
 </p>
 
 <div class="targetlang"><pre>
@@ -700,7 +698,7 @@ print "$a\n";
 
 </pre></div>
 
-<H3><a name="Perl5_nn13"></a>30.3.2 Using other compilers</H3>
+<H3><a name="Perl5_nn13"></a>31.3.2 Using other compilers</H3>
 
 
 <p>
@@ -708,7 +706,7 @@ SWIG is known to work with Cygwin and may work with other compilers on Windows.
 For general hints and suggestions refer to the <a href="Windows.html#Windows">Windows</a> chapter.
 </p>
 
-<H2><a name="Perl5_nn14"></a>30.4 The low-level interface</H2>
+<H2><a name="Perl5_nn14"></a>31.4 The low-level interface</H2>
 
 
 <p>
@@ -718,7 +716,7 @@ can be used to control your application.  However, it is also used to
 construct more user-friendly proxy classes as described in the next section.
 </p>
 
-<H3><a name="Perl5_nn15"></a>30.4.1 Functions</H3>
+<H3><a name="Perl5_nn15"></a>31.4.1 Functions</H3>
 
 
 <p>
@@ -741,7 +739,7 @@ use example;
 $a = &amp;example::fact(2);
 </pre></div>
 
-<H3><a name="Perl5_nn16"></a>30.4.2 Global variables</H3>
+<H3><a name="Perl5_nn16"></a>31.4.2 Global variables</H3>
 
 
 <p>
@@ -758,7 +756,7 @@ double Spam;
 </pre></div>
 
 <p>
-is accessed as follows :</p>
+is accessed as follows:</p>
 
 <div class="targetlang"><pre>
 use example;
@@ -811,7 +809,7 @@ extern char *path;       // Declared later in the input
 </pre>
 </div>
 
-<H3><a name="Perl5_nn17"></a>30.4.3 Constants</H3>
+<H3><a name="Perl5_nn17"></a>31.4.3 Constants</H3>
 
 
 <p>
@@ -851,14 +849,14 @@ print example::FOO,"\n";
 </pre>
 </div>
 
-<H3><a name="Perl5_nn18"></a>30.4.4 Pointers</H3>
+<H3><a name="Perl5_nn18"></a>31.4.4 Pointers</H3>
 
 
 <p>
 SWIG represents pointers as blessed references.  A blessed reference
 is the same as a Perl reference except that it has additional
 information attached to it indicating what kind of reference it
-is. That is, if you have a C declaration like this :</p>
+is. That is, if you have a C declaration like this:</p>
 
 <div class="code"><pre>
 Matrix *new_Matrix(int n, int m);
@@ -880,7 +878,7 @@ generated.</p>
 
 <p>
 To check to see if a value is the NULL pointer, use the
-<tt>defined()</tt> command :</p>
+<tt>defined()</tt> command:</p>
 
 <div class="targetlang"><pre>
 if (defined($ptr)) {
@@ -904,7 +902,7 @@ In general, <tt>$a</tt> and <tt>$b</tt> will be different--since they
 are different references.  Thus, it is a mistake to check the equality
 of <tt>$a</tt> and <tt>$b</tt> to check the equality of two C
 pointers.  The correct method to check equality of C pointers is to
-dereference them as follows :
+dereference them as follows:
 </p>
 
 <div class="targetlang"><pre>
@@ -960,7 +958,7 @@ as XS and <tt>xsubpp</tt>.  Given the advancement of the SWIG typesystem and the
 SWIG and XS, this is no longer supported.
 </p>
 
-<H3><a name="Perl5_nn19"></a>30.4.5 Structures</H3>
+<H3><a name="Perl5_nn19"></a>31.4.5 Structures</H3>
 
 
 <p>
@@ -1094,12 +1092,12 @@ void Bar_f_set(Bar *b, Foo *val) {
 </div>
 
 
-<H3><a name="Perl5_nn20"></a>30.4.6 C++ classes</H3>
+<H3><a name="Perl5_nn20"></a>31.4.6 C++ classes</H3>
 
 
 <p>
 C++ classes are wrapped by building a set of low level accessor functions. 
-Consider the following class :
+Consider the following class:
 </p>
 
 <div class="code"><pre>
@@ -1117,7 +1115,7 @@ static void print(List *l);
 </pre></div>
 
 <p>
-When wrapped by SWIG, the following functions are created :
+When wrapped by SWIG, the following functions are created:
 </p>
 
 <div class="code"><pre>
@@ -1159,7 +1157,7 @@ provides direct access to C++ objects.  A higher level interface using Perl prox
 can be built using these low-level accessors.  This is described shortly.
 </p>
 
-<H3><a name="Perl5_nn21"></a>30.4.7 C++ classes and type-checking</H3>
+<H3><a name="Perl5_nn21"></a>31.4.7 C++ classes and type-checking</H3>
 
 
 <p>
@@ -1195,7 +1193,7 @@ If necessary, the type-checker also adjusts the value of the pointer (as is nece
 multiple inheritance is used).
 </p>
 
-<H3><a name="Perl5_nn22"></a>30.4.8 C++ overloaded functions</H3>
+<H3><a name="Perl5_nn22"></a>31.4.8 C++ overloaded functions</H3>
 
 
 <p>
@@ -1239,7 +1237,7 @@ example::Spam_foo_d($s,3.14);
 Please refer to the "SWIG Basics" chapter for more information. 
 </p>
 
-<H3><a name="Perl5_nn23"></a>30.4.9 Operators</H3>
+<H3><a name="Perl5_nn23"></a>31.4.9 Operators</H3>
 
 
     <p>
@@ -1266,17 +1264,17 @@ The following C++ operators are currently supported by the Perl module:
 <li>operator or  </li>
     </ul>
 
-<H3><a name="Perl5_nn24"></a>30.4.10 Modules and packages</H3>
+<H3><a name="Perl5_nn24"></a>31.4.10 Modules and packages</H3>
 
 
 <p>
 When you create a SWIG extension, everything gets placed into
 a single Perl module. The name of the module is determined by the
-<tt>%module</tt> directive. To use the module, do the following :
+<tt>%module</tt> directive. To use the module, do the following:
 </p>
 
 <div class="targetlang"><pre>
-% perl5
+$ perl5
 use example;                      # load the example module
 print example::fact(4),"\n"       # Call a function in it
 24
@@ -1342,17 +1340,17 @@ nested namespace simply provide the fully qualified name in your
 <!--
 <p>
 This can be changed by giving SWIG the -package
-option :
+option:
 </p>
 
 <div class="code"><pre>
-% swig -perl -package Foo example.i
+$ swig -perl -package Foo example.i
 </pre></div>
 
 <p>
 In this case, you still create a module called `<tt>example</tt>' exactly as before, but
 all of the functions in that module will be installed into the package
-`<tt>Foo</tt>.' For example :
+`<tt>Foo</tt>.' For example:
 </p>
 
 <div class="targetlang"><pre>
@@ -1361,7 +1359,7 @@ print Foo::fact(4),"\n";        # Call a function in package FooBar
 </pre></div>
 -->
 
-<H2><a name="Perl5_nn25"></a>30.5 Input and output parameters</H2>
+<H2><a name="Perl5_nn25"></a>31.5 Input and output parameters</H2>
 
 
 <p>
@@ -1580,7 +1578,7 @@ print "$c\n";
 <b>Note:</b> The <tt>REFERENCE</tt> feature is only currently supported for numeric types (integers and floating point).
 </p>
 
-<H2><a name="Perl5_nn26"></a>30.6 Exception handling</H2>
+<H2><a name="Perl5_nn26"></a>31.6 Exception handling</H2>
 
 
 <p>
@@ -1588,7 +1586,7 @@ The SWIG <tt>%exception</tt> directive can be used to create a
 user-definable exception handler for converting exceptions in your
 C/C++ program into Perl exceptions.  The chapter on customization features
 contains more details, but suppose you have a C++ class like the
-following :
+following:
 </p>
 
 <div class="code"><pre>
@@ -1745,7 +1743,7 @@ This is still supported, but it is deprecated.  The newer <tt>%exception</tt> di
 functionality, but it has additional capabilities that make it more powerful.
 </p>
 
-<H2><a name="Perl5_nn27"></a>30.7 Remapping datatypes with typemaps</H2>
+<H2><a name="Perl5_nn27"></a>31.7 Remapping datatypes with typemaps</H2>
 
 
 <p>
@@ -1762,7 +1760,7 @@ Typemaps are only used if you want to change some aspect of the primitive
 C-Perl interface.
 </p>
 
-<H3><a name="Perl5_nn28"></a>30.7.1 A simple typemap example</H3>
+<H3><a name="Perl5_nn28"></a>31.7.1 A simple typemap example</H3>
 
 
 <p>
@@ -1796,7 +1794,7 @@ The <tt>$input</tt> variable is the input object (usually a <tt>SV *</tt>).
 </p>
 
 <p>
-When this example is used in Perl5, it will operate as follows :
+When this example is used in Perl5, it will operate as follows:
 </p>
 
 <div class="targetlang"><pre>
@@ -1805,7 +1803,7 @@ $n = example::fact(6);
 print "$n\n";
 ...
 
-Output :
+Output:
 Received an integer : 6
 720
 </pre></div>
@@ -1866,7 +1864,7 @@ example::count("e","Hello World");
 </div>
 
 
-<H3><a name="Perl5_nn29"></a>30.7.2 Perl5 typemaps</H3>
+<H3><a name="Perl5_nn29"></a>31.7.2 Perl5 typemaps</H3>
 
 
 <p>
@@ -1971,7 +1969,7 @@ Return of C++ member data (all languages).
 Check value of input parameter.
 </div>
 
-<H3><a name="Perl5_nn30"></a>30.7.3 Typemap variables</H3>
+<H3><a name="Perl5_nn30"></a>31.7.3 Typemap variables</H3>
 
 
 <p>
@@ -2042,7 +2040,7 @@ properly assigned.
 The Perl name of the wrapper function being created.
 </div>
 
-<H3><a name="Perl5_nn31"></a>30.7.4 Useful functions</H3>
+<H3><a name="Perl5_nn31"></a>31.7.4 Useful functions</H3>
 
 
 <p>
@@ -2111,7 +2109,7 @@ int       sv_isa(SV *, char *0;
 </div>
 
 
-<H2><a name="Perl5_nn32"></a>30.8 Typemap Examples</H2>
+<H2><a name="Perl5_nn32"></a>31.8 Typemap Examples</H2>
 
 
 <p>
@@ -2120,7 +2118,7 @@ might look at the files "<tt>perl5.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 </p>
 
-<H3><a name="Perl5_nn33"></a>30.8.1 Converting a Perl5 array to a char **</H3>
+<H3><a name="Perl5_nn33"></a>31.8.1 Converting a Perl5 array to a char **</H3>
 
 
 <p>
@@ -2200,7 +2198,7 @@ char **get_args() {
 
 <p>
 When this module is compiled, the wrapped C functions can be used in a
-Perl script as follows :
+Perl script as follows:
 </p>
 
 <div class="targetlang"><pre>
@@ -2212,7 +2210,7 @@ print @$b,"\n";                                  # Print it out
 </pre></div>
 
 
-<H3><a name="Perl5_nn34"></a>30.8.2 Return values</H3>
+<H3><a name="Perl5_nn34"></a>31.8.2 Return values</H3>
 
 
 <p>
@@ -2227,7 +2225,7 @@ number of output values.
 <p>
 The total number of return values should not exceed the number of
 input values unless you explicitly extend the argument stack.  This
-can be done using the <tt>EXTEND()</tt> macro as in :
+can be done using the <tt>EXTEND()</tt> macro as in:
 </p>
 
 <div class="code"><pre>
@@ -2241,7 +2239,7 @@ can be done using the <tt>EXTEND()</tt> macro as in :
 }
 </pre></div>
 
-<H3><a name="Perl5_nn35"></a>30.8.3 Returning values from arguments</H3>
+<H3><a name="Perl5_nn35"></a>31.8.3 Returning values from arguments</H3>
 
 
 <p>
@@ -2286,7 +2284,7 @@ int multout(double a, double b, double *OUTPUT, double *OUTPUT);
 <p>
 When this function is called, the output arguments are appended to the stack used
 to return results.  This shows up an array in Perl.
-For example :
+For example:
 </p>
 
 <div class="targetlang"><pre>
@@ -2295,11 +2293,11 @@ print "multout(7,13) = @r\n";
 ($x,$y) = multout(7,13);
 </pre></div>
 
-<H3><a name="Perl5_nn36"></a>30.8.4 Accessing array structure members</H3>
+<H3><a name="Perl5_nn36"></a>31.8.4 Accessing array structure members</H3>
 
 
 <p>
-Consider the following data structure :
+Consider the following data structure:
 </p>
 
 <div class="code"><pre>
@@ -2358,13 +2356,13 @@ the "in" typemap in the previous section would be used to convert an
 to copy the converted array into a C data structure.
 </p>
 
-<H3><a name="Perl5_nn37"></a>30.8.5 Turning Perl references into C pointers</H3>
+<H3><a name="Perl5_nn37"></a>31.8.5 Turning Perl references into C pointers</H3>
 
 
 <p>
 A frequent confusion on the SWIG mailing list is errors caused by the
 mixing of Perl references and C pointers.  For example, suppose you
-have a C function that modifies its arguments like this :
+have a C function that modifies its arguments like this:
 </p>
 
 <div class="code"><pre>
@@ -2374,7 +2372,7 @@ void add(double a, double b, double *c) {
 </pre></div>
 
 <p>
-A common misinterpretation of this function is the following Perl script :
+A common misinterpretation of this function is the following Perl script:
 </p>
 
 <div class="targetlang"><pre>
@@ -2411,7 +2409,7 @@ To make this work with a reference, you can use a typemap such as this:
 </pre></div>
 
 <p>
-Now, if you place this before the add function, you can do this :
+Now, if you place this before the add function, you can do this:
 </p>
 
 <div class="targetlang"><pre>
@@ -2423,7 +2421,7 @@ print "$c\n";
 
 </pre></div>
 
-<H3><a name="Perl5_nn38"></a>30.8.6 Pointer handling</H3>
+<H3><a name="Perl5_nn38"></a>31.8.6 Pointer handling</H3>
 
 
 <p>
@@ -2502,7 +2500,7 @@ For example:
 </pre>
 </div>
 
-<H2><a name="Perl5_nn39"></a>30.9 Proxy classes</H2>
+<H2><a name="Perl5_nn39"></a>31.9 Proxy classes</H2>
 
 
 <p>
@@ -2518,7 +2516,7 @@ to the underlying code.  This section describes the implementation
 details of the proxy interface.
 </p>
 
-<H3><a name="Perl5_nn40"></a>30.9.1 Preliminaries</H3>
+<H3><a name="Perl5_nn40"></a>31.9.1 Preliminaries</H3>
 
 
 <p>
@@ -2540,11 +2538,11 @@ SWIG creates a collection of high-level Perl wrappers.  In your scripts, you wil
 high level wrappers.  The wrappers, in turn, interact with the low-level procedural module.
 </p>
 
-<H3><a name="Perl5_nn41"></a>30.9.2 Structure and class wrappers</H3>
+<H3><a name="Perl5_nn41"></a>31.9.2 Structure and class wrappers</H3>
 
 
 <p>
-Suppose you have the following SWIG interface file :
+Suppose you have the following SWIG interface file:
 </p>
 
 <div class="code"><pre>
@@ -2666,13 +2664,13 @@ $v-&gt;DESTROY();
 
 </pre></div>
 
-<H3><a name="Perl5_nn42"></a>30.9.3 Object Ownership</H3>
+<H3><a name="Perl5_nn42"></a>31.9.3 Object Ownership</H3>
 
 
 <p>
 In order for proxy classes to work properly, it is necessary for Perl
 to manage some mechanism of object ownership.  Here's the crux of the
-problem---suppose you had a function like this :
+problem---suppose you had a function like this:
 </p>
 
 <div class="code"><pre>
@@ -2685,7 +2683,7 @@ Vector *Vector_get(Vector *v, int index) {
 This function takes a Vector pointer and returns a pointer to another
 Vector.  Such a function might be used to manage arrays or lists of
 vectors (in C).  Now contrast this function with the constructor for a
-Vector object :
+Vector object:
 </p>
 
 <div class="code"><pre>
@@ -2753,11 +2751,11 @@ counting, garbage collection, or advanced features one might find in
 sophisticated languages.
 </p>
 
-<H3><a name="Perl5_nn43"></a>30.9.4 Nested Objects</H3>
+<H3><a name="Perl5_nn43"></a>31.9.4 Nested Objects</H3>
 
 
 <p>
-Suppose that we have a new object that looks like this :
+Suppose that we have a new object that looks like this:
 </p>
 
 <div class="code"><pre>
@@ -2774,7 +2772,7 @@ struct Particle {
 In this case, the members of the structure are complex objects that
 have already been encapsulated in a Perl proxy class.  To handle
 these correctly, we use the <tt>%BLESSEDMEMBERS</tt> hash which would
-look like this (along with some supporting code) :
+look like this (along with some supporting code):
 </p>
 
 <div class="targetlang"><pre>
@@ -2796,7 +2794,7 @@ unmodified.
 </p>
 
 <p>
-This implementation allows us to operate on nested structures as follows :
+This implementation allows us to operate on nested structures as follows:
 </p>
 
 <div class="targetlang"><pre>
@@ -2806,12 +2804,12 @@ $p-&gt;{f}-&gt;{x} = 0.0;
 %${$p-&gt;{v}} = ( x=&gt;0, y=&gt;0, z=&gt;0);         
 </pre></div>
 
-<H3><a name="Perl5_nn44"></a>30.9.5 Proxy Functions</H3>
+<H3><a name="Perl5_nn44"></a>31.9.5 Proxy Functions</H3>
 
 
 <p>
 When functions take arguments involving a complex object, it is
-sometimes necessary to write a proxy function.  For example :
+sometimes necessary to write a proxy function.  For example:
 </p>
 
 <div class="code"><pre>
@@ -2822,7 +2820,7 @@ double dot_product(Vector *v1, Vector *v2);
 Since Vector is an object already wrapped into a proxy class, we need
 to modify this function to accept arguments that are given in the form
 of tied hash tables.  This is done by creating a Perl function like
-this :
+this:
 </p>
 
 <div class="targetlang"><pre>
@@ -2840,13 +2838,13 @@ This function replaces the original function, but operates in an
 identical manner.
 </p>
 
-<H3><a name="Perl5_nn45"></a>30.9.6 Inheritance</H3>
+<H3><a name="Perl5_nn45"></a>31.9.6 Inheritance</H3>
 
 
 <p>
 Simple C++ inheritance is handled using the Perl <tt>@ISA</tt> array
 in each class package. For example, if you have the following
-interface file :
+interface file:
 </p>
 
 <div class="code"><pre>
@@ -2881,7 +2879,7 @@ public:
 </pre></div>
 
 <p>
-The resulting, Perl wrapper class will create the following code :
+The resulting, Perl wrapper class will create the following code:
 </p>
 
 <div class="targetlang"><pre>
@@ -2916,7 +2914,7 @@ particular, inheritance of data members is extremely tricky (and I'm
 not even sure if it really works).
 </p>
 
-<H3><a name="Perl5_nn46"></a>30.9.7 Modifying the proxy methods</H3>
+<H3><a name="Perl5_nn46"></a>31.9.7 Modifying the proxy methods</H3>
 
 
 <p>
@@ -2944,7 +2942,7 @@ public:
 };
 </pre></div>
 
-<H2><a name="Perl5_nn47"></a>30.10 Adding additional Perl code</H2>
+<H2><a name="Perl5_nn47"></a>31.10 Adding additional Perl code</H2>
 
 
 <p>

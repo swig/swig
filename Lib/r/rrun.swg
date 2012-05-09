@@ -261,7 +261,6 @@ SWIG_R_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   SEXP rptr = R_MakeExternalPtr(ptr, 
   R_MakeExternalPtr(type, R_NilValue, R_NilValue), R_NilValue); 
   SET_S4_OBJECT(rptr);
-//  rptr = Rf_setAttrib(rptr, R_ClassSymbol, mkChar(SWIG_TypeName(type)));
   return rptr;
 }
 
@@ -361,6 +360,13 @@ SWIG_R_ConvertPacked(SEXP obj, void *ptr, size_t sz, swig_type_info *ty) {
   }
   return SWIG_OK;
 }  
+
+#ifdef __cplusplus
+#include <exception>
+#define SWIG_exception_noreturn(code, msg) do { throw std::runtime_error(msg); } while(0)
+#else
+#define SWIG_exception_noreturn(code, msg) do { return result; } while(0)
+#endif
 
 #ifdef __cplusplus
 }
