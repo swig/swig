@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.7 (in progress)
 ===========================
 
+2012-05-02: ianlancetaylor
+	    [Go] Remove compatibility support for gccgo 4.6.  Using
+	    SWIG with gccgo will now require gccgo 4.7.  Using SWIG
+	    with the more commonly used gc compiler is unaffected.
+
 2012-05-01: wsfulton
             Fix generated code for C forward enum declarations in some languages.
 
