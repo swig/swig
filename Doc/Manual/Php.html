@@ -146,7 +146,7 @@ least work for Linux though):
 
 <p>
 To test the extension from a PHP script, you need to load it first. You
-can load it for every script by adding this line the <tt>[PHP]</tt> section of
+can load it for every script by adding this line to the <tt>[PHP]</tt> section of
 <tt>php.ini</tt>:
 </p>
 
@@ -156,7 +156,7 @@ can load it for every script by adding this line the <tt>[PHP]</tt> section of
 
 <p>
 Alternatively, you can load it explicitly only for scripts which need it
-by adding this line:
+by adding this line to the start of each such PHP script::
 </p>
 
 <div class="code"><pre>
@@ -164,7 +164,7 @@ by adding this line:
 </pre></div>
 
 <p>
-to the start of each PHP file.  SWIG also generates a php module, which
+SWIG also generates a php module, which
 attempts to do the <tt>dl()</tt> call for you:
 </p>
 
@@ -705,7 +705,7 @@ would be accessed in PHP as,
 <div class="code"><pre>
 include("example.php");
 
-echo "There has now been " . Ko::threats() . " threats\n";
+echo "There have now been " . Ko::threats() . " threats\n";
 
 </pre></div>
 
@@ -718,7 +718,7 @@ function, e.g.
 
 Ko::threats(10);
 
-echo "There has now been " . Ko::threats() . " threats\n";
+echo "There have now been " . Ko::threats() . " threats\n";
 
 </pre></div>
 <H4><a name="Php_nn2_6_4"></a>32.2.6.4 Static Member Functions</H4>
