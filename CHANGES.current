@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.7 (in progress)
 ===========================
 
+2012-05-10: olly
+	    [PHP] Fix the constant typemaps for SWIGTYPE, etc - previously
+	    these used the wrong name for renamed constants.  Add
+	    autodoc_runme.php to the testsuite as a regression test for this.
+
 2012-05-02: ianlancetaylor
 	    [Go] Remove compatibility support for gccgo 4.6.  Using
 	    SWIG with gccgo will now require gccgo 4.7.  Using SWIG
