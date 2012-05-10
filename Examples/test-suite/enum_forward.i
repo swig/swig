@@ -1,5 +1,7 @@
 %module enum_forward
 
+/* This contains C code that is not valid C++03 and Octave wrappers are always compiled as C++ */
+#if !defined(SWIGOCTAVE)
 %{
 enum ForwardEnum1 { AAA, BBB };
 enum ForwardEnum2 { CCC, DDD };
@@ -32,4 +34,4 @@ enum ForwardEnum3 test_function3(enum ForwardEnum3 e) {
 }
 enum ForwardEnum3;
 %}
-
+#endif
