@@ -6,6 +6,9 @@ Version 2.0.7 (in progress)
 ===========================
 
 2012-05-11: wsfulton
+            [Java] SF patch #3522855 Fix unintended uninitialised memory access in OUTPUT typemaps.
+
+2012-05-11: wsfulton
             [Java] SF patch #3522674 Fix possible uninitialised memory access in char **STRING_OUT
             typemap.
 
