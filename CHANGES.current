@@ -6,6 +6,10 @@ Version 2.0.7 (in progress)
 ===========================
 
 2012-05-11: wsfulton
+            [Java] SF patch #3522674 Fix possible uninitialised memory access in char **STRING_OUT
+            typemap.
+
+2012-05-11: wsfulton
             [Java] SF patch #3522611 Fix uninitialised size regression in char **STRING_ARRAY
             introduced in swig-2.0.6.
 

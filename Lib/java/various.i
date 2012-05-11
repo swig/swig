@@ -114,6 +114,7 @@
     return $null;
   }
   $1 = &temp; 
+  *$1 = 0;
 }
 
 %typemap(argout) char **STRING_OUT {
