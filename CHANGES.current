@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.7 (in progress)
 ===========================
 
+2012-05-11: wsfulton
+            SF bug #3525050 - Fix regression introduced in swig-2.0.5 whereby defining one typemap
+            method such as an 'out' typemap may hide another typemap method such as an 'in' typemap -
+            only occurs when the type is a template type where the template parameters are the same
+            via a typedef.
+
 2012-05-10: olly
 	    [PHP] Fix the constant typemaps for SWIGTYPE, etc - previously
 	    these used the wrong name for renamed constants.  Add

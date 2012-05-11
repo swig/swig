@@ -362,7 +362,7 @@ Version 2.0.5 (19 April 2012)
             namespace std {
               template<class Key, class T> struct map {
                 class iterator;
-              }
+              };
             }
 
             iterator was scoped as std::iterator, but now it is correctly std::map<Key, T>::iterator;
@@ -374,10 +374,10 @@ Version 2.0.5 (19 April 2012)
               template<class Key, class T, class C = int> struct Map {
                 typedef Key key_type;
                 typedef T mapped_type;
-              }
+              };
             }
-            tyepdef double DOUBLE;
-            %typemap(MM) Std::Map<int, DOUBLE>;
+            typedef double DOUBLE;
+            %template(MM) Std::Map<int, DOUBLE>;
 
             All symbols within Map will be resolved correctly, eg key_type and mapped_type no matter if the
             wrapped code uses Std::Map<int, double> or std::Map<int, DOUBLE> or Std::Map<int, double, int>
