@@ -6,6 +6,10 @@ Version 2.0.7 (in progress)
 ===========================
 
 2012-05-12: olly
+	    [PHP] Fix memory leak in code generated for a callback.  Patch from
+	    SF bug #3510806.
+
+2012-05-12: olly
 	    [PHP] Avoid using zend_error_noreturn() as it doesn't work with all
 	    builds of PHP (SF bug #3166423).  Instead we now wrap it in a
 	    SWIG_FAIL() function which we annotate as "noreturn" for GCC to

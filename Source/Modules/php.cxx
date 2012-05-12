@@ -2575,6 +2575,7 @@ done:
 	    Replaceall(tm, "$owner", "0");
 	    Printv(wrap_args, "zval ", source, ";\n", NIL);
 	    Printf(wrap_args, "args[%d] = &%s;\n", idx - 1, source);
+	    Printv(wrap_args, "INIT_ZVAL(", source, ");\n", NIL);
 
 	    Printv(wrap_args, tm, "\n", NIL);
 	    Putc('O', parse_args);
