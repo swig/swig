@@ -409,11 +409,19 @@ public:
     Printf(s_header, "#define SWIG_ErrorCode() (%s_globals.error_code)\n", module);
     Printf(s_header, "#endif\n\n");
 
-    Printf(s_header, "// Allow the user to workaround a PHP bug on some platforms/architectures by\n");
-    Printf(s_header, "// compiling with -DSWIG_ZEND_ERROR_NORETURN=zend_error\n");
-    Printf(s_header, "#ifndef SWIG_ZEND_ERROR_NORETURN\n");
-    Printf(s_header, "# define SWIG_ZEND_ERROR_NORETURN zend_error_noreturn\n");
-    Printf(s_header, "#endif\n\n");
+    /* The following can't go in Lib/php/phprun.swg as it uses SWIG_ErrorMsg(), etc
+     * which has to be dynamically generated as it depends on the module name.
+     */
+    Append(s_header, "#ifdef __GNUC__\n");
+    Append(s_header, "static void SWIG_FAIL() __attribute__ ((__noreturn__));\n");
+    Append(s_header, "#endif\n\n");
+    Append(s_header, "static void SWIG_FAIL() {\n");
+    Append(s_header, "    zend_error(SWIG_ErrorCode(), \"%s\", SWIG_ErrorMsg());\n");
+    // zend_error() should never return with the parameters we pass, but if it
+    // does, we really don't want to let SWIG_FAIL() return.  This also avoids
+    // a warning about returning from a function marked as "__noreturn__".
+    Append(s_header, "    abort();\n");
+    Append(s_header, "}\n\n");
 
     Printf(s_header, "static void %s_init_globals(zend_%s_globals *globals ) {\n", module, module);
     Printf(s_header, "  globals->error_msg = default_error_msg;\n");
@@ -716,7 +724,7 @@ public:
 
     Printf(f->code, "SWIG_ErrorCode() = E_ERROR;\n");
     Printf(f->code, "SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
-    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n", NIL);
+    Printv(f->code, "SWIG_FAIL();\n", NIL);
 
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, s_wrappers);
@@ -1000,11 +1008,7 @@ public:
     /* Error handling code */
     Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
-    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
-     * using zend_error() here shouldn't generate a warning, so just use that.
-     * At worst this may result in slightly less good code.
-     */
-    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
+    Append(f->code, "SWIG_FAIL();\n");
 
     Printf(f->code, "}\n");
 
@@ -2320,11 +2324,7 @@ done:
 
     Append(f->code, "return;\n");
     Append(f->code, "fail:\n");
-    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
-     * using zend_error() here shouldn't generate a warning, so just use that.
-     * At worst this may result in slightly less good code.
-     */
-    Append(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    Append(f->code, "SWIG_FAIL();\n");
     Printf(f->code, "}\n");
 
     Wrapper_print(f, s_wrappers);
@@ -2715,15 +2715,7 @@ done:
     }
 
     Append(w->code, "fail:\n");
-    if (!is_void) {
-      Append(w->code, "SWIG_ZEND_ERROR_NORETURN(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
-    } else {
-      /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
-       * using zend_error() here shouldn't generate a warning, so just use that.
-       * At worst this may result in slightly less good code.
-       */
-      Append(w->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
-    }
+    Append(w->code, "SWIG_FAIL();\n");
     Append(w->code, "}\n");
 
     // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method

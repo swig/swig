@@ -12,6 +12,7 @@ extern "C" {
 #include "zend_exceptions.h"
 #include "php.h"
 #include "ext/standard/php_string.h"
+#include <stdlib.h> /* for abort(), used in generated code. */
 
 #ifdef ZEND_RAW_FENTRY
 /* ZEND_RAW_FENTRY was added somewhere between 5.2.0 and 5.2.3 */

@@ -5,6 +5,13 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.7 (in progress)
 ===========================
 
+2012-05-12: olly
+	    [PHP] Avoid using zend_error_noreturn() as it doesn't work with all
+	    builds of PHP (SF bug #3166423).  Instead we now wrap it in a
+	    SWIG_FAIL() function which we annotate as "noreturn" for GCC to
+	    avoids warnings.  This also reduces the size of the compiled
+	    wrapper (e.g. the stripped size is 6% for Xapian's PHP bindings).
+
 2012-05-11: wsfulton
             [Java] SF patch #3522855 Fix unintended uninitialised memory access in OUTPUT typemaps.
 
