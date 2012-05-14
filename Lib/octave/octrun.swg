@@ -504,37 +504,9 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       rhs.members.clear();
     }
 
-    void install_global(bool global_load) {
-      for (member_map::const_iterator it = members.begin(); it != members.end(); ++it) {
-        bool is_global_op = (it->first.substr(0, strlen(SWIG_op_prefix)) == SWIG_op_prefix);
-        bool is_func_defined = (it->second.first && it->second.first->method);
-	if (is_func_defined && (is_global_op || global_load)) {
-	  install_builtin_function(it->second.first->method, it->first,
-				   it->second.first->doc ? it->second.first->doc : std::string());
-        }
-        octave_value global_val = is_global_op ? make_fcn_handle(it->first) : it->second.second;
-	if (global_val.is_defined() && (is_global_op || global_load)) {
-#if OCTAVE_API_VERSION_NUMBER<37
-	  link_to_global_variable(curr_sym_tab->lookup(it->first, true));
-#else 
-	  symbol_table::varref(it->first);
-	  symbol_table::mark_global(it->first);
-#endif
-	  set_global_value(it->first, global_val);
-	  
-#if OCTAVE_API_VERSION_NUMBER<37
-	  octave_swig_type *ost = Swig::swig_value_deref(global_val);
-	  if (ost) {
-	    const char* h = ost->help_text();
-	    if (h) {
-	      symbol_record *sr = global_sym_tab->lookup (it->first, true);
-	      sr->document(h);
-	    }
-	  }
-#endif
-	}
-      }
-    }
+    typedef member_map::const_iterator swig_member_const_iterator;
+    swig_member_const_iterator swig_members_begin() { return members.begin(); }
+    swig_member_const_iterator swig_members_end() { return members.end(); }
 
     void *cast(swig_type_info *type, int *_own, int flags) {
       if (_own)
@@ -835,10 +807,10 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       // we assume that SWIG_op_prefix-prefixed functions are installed in global namespace
       // (rather than any module namespace).
 
-      octave_value fcn = get_global_value(symbol, true);
-      if (!fcn.is_function() && !fcn.is_function_handle())
+      octave_function *fcn = is_valid_function(symbol, std::string(), false);
+      if (!fcn)
 	return false;
-      ret = fcn.subsref("(", std::list < octave_value_list > (1, args), 1);
+      ret = fcn->do_multi_index_op(1, args)(0);
       return true;
     }
 

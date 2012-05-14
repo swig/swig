@@ -15,16 +15,13 @@ char cvsroot_octave_cxx[] = "$Id$";
 
 #include "swigmod.h"
 
-static bool global_load = true;
 static String *global_name = 0;
 static String *op_prefix   = 0;
 
 static const char *usage = (char *) "\
 Octave Options (available with -octave)\n\
-     -global         - Load all symbols into the global namespace [default]\n\
      -globals <name> - Set <name> used to access C global variables [default: 'cvar']\n\
-                         - Use '.' to load C global variables into module namespace\n\
-     -noglobal       - Do not load all symbols into the global namespace\n\
+                       Use '.' to load C global variables into module namespace\n\
      -opprefix <str> - Prefix <str> for global operator functions [default: 'op_']\n\
 \n";
 
@@ -83,12 +80,13 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
-	} else if (strcmp(argv[i], "-global") == 0) {
-          global_load = true;
-          Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-noglobal") == 0) {
-          global_load = false;
-          Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-global") == 0 ||
+                   strcmp(argv[i], "-noglobal") == 0) {
+	  Printv(stderr,
+                 "*** -global/-noglobal are no longer supported\n"
+                 "*** global load behaviour is now determined at module load\n"
+                 "*** see the Perl section in the manual for details.\n", NIL);
+	  SWIG_exit(EXIT_FAILURE);
 	} else if (strcmp(argv[i], "-globals") == 0) {
 	  if (argv[i + 1]) {
 	    global_name = NewString(argv[i + 1]);
@@ -179,10 +177,8 @@ public:
     Printf(f_runtime, "#define SWIG_name        %s\n", module);
 
     Printf(f_runtime, "\n");
-    Printf(f_runtime, "#define SWIG_global_load      %s\n", global_load ? "true" : "false");
     Printf(f_runtime, "#define SWIG_global_name      \"%s\"\n", global_name);
     Printf(f_runtime, "#define SWIG_op_prefix        \"%s\"\n", op_prefix);
-    Printf(f_runtime, "#define SWIG_atexit_func      swig_atexit_%s\n", module);
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -383,7 +379,7 @@ public:
   virtual int importDirective(Node *n) {
     String *modname = Getattr(n, "module");
     if (modname)
-      Printf(f_init, "feval(\"%s\",octave_value_list(),0);\n", modname);
+      Printf(f_init, "feval(\"%s\",octave_value_list(),1);\n", modname);
     return Language::importDirective(n);
   }
 
