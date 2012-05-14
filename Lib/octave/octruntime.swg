@@ -22,6 +22,98 @@ static void SWIG_init_user(octave_swig_type* module_ns);
 octave_value_list SWIG_atexit_func(const octave_value_list &args, int nargout);
 #endif
 
+static const char *const subclass_usage = "-*- texinfo -*- \n\
+@deftypefn {Loadable Function} {} subclass()\n\
+@deftypefnx{Loadable Function} {} subclass(@var{swigclass}, @var{name}, @var{fcn}, @dots{})\n\
+Subclass a C++ class from within Octave, and provide implementations of its virtual methods.\n\
+\n\
+See the SWIG manual for usage examples.\n\
+@end deftypefn";
+
+DEFUN_DLD( subclass, args, nargout, subclass_usage ) {
+  octave_swig_type *top = new octave_swig_type;
+  for (int j = 0; j < args.length(); ++j) {
+    if (args(j).type_id() == octave_swig_ref::static_type_id()) {
+      octave_swig_ref *osr = static_cast < octave_swig_ref *>(args(j).internal_rep());
+      octave_swig_type *ost = osr->get_ptr();
+      if (!ost->is_owned()) {
+        error("cannot subclass object not constructed on octave side");
+        return octave_value_list();
+      }
+      top->merge(*ost);
+    } else if (args(j).is_function_handle()) {
+      top->assign(args(j).fcn_handle_value()->fcn_name(), args(j));
+    } else if (args(j).is_string()) {
+      if (j + 1 >= args.length()) {
+        error("member assignments must be of string,value form");
+        return octave_value_list();
+      }
+      top->assign(args(j).string_value(), args(j + 1));
+      ++j;
+    } else {
+      error("invalid arguments to subclass()");
+      return octave_value_list();
+    }
+  }
+  return octave_value(Swig::swig_value_ref(top));
+}
+
+static const char *const swig_type_usage = "-*- texinfo -*- \n\
+@deftypefn {Loadable Function} {} swig_type(@var{swigref})\n\
+Return the underlying C/C++ type name of a SWIG-wrapped object.\n\
+@end deftypefn";
+
+DEFUN_DLD( swig_type, args, nargout, swig_type_usage ) {
+  if (args.length() != 1) {
+    error("swig_type() must be called with only a single object");
+    return octave_value_list();
+  }
+  octave_swig_type *ost = Swig::swig_value_deref(args(0));
+  if (!ost) {
+    error("object is not a swig_ref");
+    return octave_value_list();
+  }
+  return octave_value(ost->swig_type_name());
+}
+
+static const char *const swig_typequery_usage = "-*- texinfo -*- \n\
+@deftypefn {Loadable Function} {} swig_typequery(@var{string})\n\
+Return @var{string} if it is a recognised SWIG-wrapped C/C++ type name;\n\
+otherwise return `<unknown>'.\n\
+@end deftypefn";
+
+DEFUN_DLD( swig_typequery, args, nargout, swig_typequery_usage ) {
+  if (args.length() != 1 || !args(0).is_string()) {
+    error("swig_typequery() must be called with single string argument");
+    return octave_value_list();
+  }
+  swig_module_info *module = SWIG_GetModule(0);
+  swig_type_info *type = SWIG_TypeQueryModule(module, module, args(0).string_value().c_str());
+  if (!type)
+    return octave_value("<unknown>");
+  return octave_value(type->name);
+}
+
+static const char *const swig_this_usage = "-*- texinfo -*- \n\
+@deftypefn {Loadable Function} {} swig_this(@var{swigref})\n\
+Return the underlying C/C++ pointer of a SWIG-wrapped object.\n\
+@end deftypefn";
+
+DEFUN_DLD( swig_this, args, nargout, swig_this_usage ) {
+  if (args.length() != 1) {
+    error("swig_this() must be called with only a single object");
+    return octave_value_list();
+  }
+  if (args(0).is_matrix_type() && args(0).rows() == 0 && args(0).columns() == 0)
+    return octave_value(octave_uint64(0));
+  octave_swig_type *ost = Swig::swig_value_deref(args(0));
+  if (!ost) {
+    error("object is not a swig_ref");
+    return octave_value_list();
+  }
+  return octave_value(octave_uint64((unsigned long long) ost->swig_this()));
+}
+
 DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
 
   // determine if module is already loaded
@@ -90,7 +182,7 @@ DEFUN_DLD (SWIG_name,args,nargout,SWIG_name_d) {
     install_builtin_function(swig_type,"swig_type",std::string());
     install_builtin_function(swig_typequery,"swig_typequery",std::string());
     install_builtin_function(swig_this,"swig_this",std::string());
-    install_builtin_function(swig_subclass,"subclass",std::string());
+    install_builtin_function(subclass,"subclass",std::string());
   
     octave_swig_type* cvar_ns=0;
     if (global_name != ".") {
