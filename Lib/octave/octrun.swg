@@ -14,6 +14,12 @@
 
 #endif
 
+#if OCTAVE_API_VERSION_NUMBER < 37
+#define SWIG_DEFUN(cname, wname, doc) DEFUNX_DLD(#cname, wname, FS ## cname, args, nargout, doc)
+#else
+#define SWIG_DEFUN(cname, wname, doc) DEFUNX_DLD(#cname, wname, G ## cname, args, nargout, doc)
+#endif
+
 SWIGRUNTIME bool SWIG_check_num_args(const char *func_name, int num_args, int max_args, int min_args, int varargs) {
   if (num_args > max_args && !varargs)
     error("function %s takes at most %i arguments", func_name, max_args);

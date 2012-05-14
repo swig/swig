@@ -50,6 +50,16 @@ private:
 
   Hash *docs;
 
+  void Octave_begin_function(Node *n, File *f, const_String_or_char_ptr cname, const_String_or_char_ptr wname, bool dld) {
+    if (dld) {
+      String *tname = texinfo_name(n, "std::string()");
+      Printf(f, "SWIG_DEFUN( %s, %s, %s ) {", cname, wname, tname);
+    }
+    else {
+      Printf(f, "static octave_value_list %s (const octave_value_list& args, int nargout) {", wname);
+    }
+  }
+
 public:
    OCTAVE():f_begin(0), f_runtime(0), f_header(0), f_doc(0), f_wrappers(0),
 	    f_init(0), f_initbeforefunc(0), f_directors(0), f_directors_h(0), 
@@ -293,14 +303,14 @@ public:
     return !Len(synopsis) && !Len(decl_info) && 
       !Len(cdecl_info) && !Len(args_info);
   }
-  String *texinfo_name(Node* n) {
+  String *texinfo_name(Node* n, const char* defval = "0") {
     String *tname = NewString("");
     String *iname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(iname);
     Node* d = Getattr(docs, wname);
 
     if (is_empty_doc_node(d))
-      Printf(tname, "0");
+      Printf(tname, defval);
     else
       Printf(tname, "%s_texinfo", wname);
 
@@ -543,7 +553,10 @@ public:
     if (overloaded)
       Append(overname, Getattr(n, "sym:overname"));
 
-    Printv(f->def, "static octave_value_list ", overname, " (const octave_value_list& args, int nargout) {", NIL);
+    if (!overloaded || last_overload)
+      process_autodoc(n);
+
+    Octave_begin_function(n, f->def, iname, overname, !overloaded);
 
     emit_parameter_variables(l, f);
     emit_attach_parmmaps(l, f);
@@ -743,7 +756,6 @@ public:
       dispatchFunction(n);
 
     if (!overloaded || last_overload) {
-      process_autodoc(n);
       String *tname = texinfo_name(n);
       Printf(s_global_tab, "{\"%s\",%s,0,0,2,%s},\n", iname, wname, tname);
       Delete(tname);
@@ -766,7 +778,7 @@ public:
     String *dispatch = Swig_overload_dispatch(n, "return %s(args, nargout);", &maxargs);
     String *tmp = NewString("");
 
-    Printv(f->def, "static octave_value_list ", wname, " (const octave_value_list& args, int nargout) {", NIL);
+    Octave_begin_function(n, f->def, iname, wname, true);
     Wrapper_add_local(f, "argc", "int argc = args.length()");
     Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
     for (int j = 0; j < maxargs; ++j)
@@ -800,7 +812,10 @@ public:
     String *getname = Swig_name_get(NSPACE_TODO, iname);
     String *setname = Swig_name_set(NSPACE_TODO, iname);
 
-    Printf(setf->def, "static octave_value_list _wrap_%s(const octave_value_list& args,int nargout) {", setname);
+    String *getwname = Swig_name_wrapper(getname);
+    String *setwname = Swig_name_wrapper(setname);
+
+    Octave_begin_function(n, setf->def, setname, setwname, true);
     Printf(setf->def, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1,0)) return octave_value_list();", iname);
     if (is_assignable(n)) {
       Setattr(n, "wrap:name", setname);
@@ -826,7 +841,7 @@ public:
 
     Setattr(n, "wrap:name", getname);
     int addfail = 0;
-    Printf(getf->def, "static octave_value_list _wrap_%s(const octave_value_list& args,int nargout) {", getname);
+    Octave_begin_function(n, getf->def, getname, getwname, true);
     Wrapper_add_local(getf, "obj", "octave_value obj");
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$source", name);
@@ -845,7 +860,10 @@ public:
     Append(getf->code, "}\n");
     Wrapper_print(getf, f_wrappers);
 
-    Printf(s_global_tab, "{\"%s\",0,_wrap_%s,_wrap_%s,2,0},\n", iname, getname, setname);
+    Printf(s_global_tab, "{\"%s\",0,%s,%s,2,0},\n", iname, getwname, setwname);
+
+    Delete(getwname);
+    Delete(setwname);
 
     return SWIG_OK;
   }
@@ -937,20 +955,21 @@ public:
       String *nspace = Getattr(n, "sym:nspace");
       String *cname = Swig_name_disown(nspace, class_name);
       String *wcname = Swig_name_wrapper(cname);
-      String *disown_shadow = NewString("");
-      Printf(disown_shadow, "static octave_value_list %s_shadow " "(const octave_value_list& args, int nargout) {\n", wcname);
-      Printf(disown_shadow, "  if (args.length()!=1) {\n");
-      Printf(disown_shadow, "    error(\"disown takes no arguments\");\n");
-      Printf(disown_shadow, "    return octave_value_list();\n");
-      Printf(disown_shadow, "  }\n");
-      Printf(disown_shadow, "  %s (args, nargout);\n", wcname);
-      Printf(disown_shadow, "  return args;\n");
-      Printf(disown_shadow, "}\n");
-      Printv(f_wrappers, disown_shadow, NIL);
-      Delete(disown_shadow);
-      Printf(s_members_tab, "{\"__disown\",%s_shadow,0,0,0,0},\n", wcname);
+      String *cnameshdw = NewStringf("%s_shadow", cname);
+      String *wcnameshdw = Swig_name_wrapper(cnameshdw);
+      Octave_begin_function(n, f_wrappers, cnameshdw, wcnameshdw, true);
+      Printf(f_wrappers, "  if (args.length()!=1) {\n");
+      Printf(f_wrappers, "    error(\"disown takes no arguments\");\n");
+      Printf(f_wrappers, "    return octave_value_list();\n");
+      Printf(f_wrappers, "  }\n");
+      Printf(f_wrappers, "  %s (args, nargout);\n", wcname);
+      Printf(f_wrappers, "  return args;\n");
+      Printf(f_wrappers, "}\n");
+      Printf(s_members_tab, "{\"__disown\",%s,0,0,0,0},\n", wcnameshdw);
       Delete(wcname);
       Delete(cname);
+      Delete(wcnameshdw);
+      Delete(cnameshdw);
     }
 
     Printf(s_members_tab, "{0,0,0,0}\n};\n");
@@ -1049,15 +1068,18 @@ public:
     assert(s_members_tab);
     assert(class_name);
     String *symname = Getattr(n, "sym:name");
-    String *getname = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
-    String *setname = GetFlag(n, "feature:immutable") ?
-	NewString("octave_set_immutable") : Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
+    String *getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
+    String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
+    String *getwname = Swig_name_wrapper(getname);
+    String *setwname = GetFlag(n, "feature:immutable") ? NewString("octave_set_immutable") : Swig_name_wrapper(setname);
     assert(s_members_tab);
 
-    Printf(s_members_tab, "{\"%s\",0,%s,%s,0,0},\n", symname, getname, setname);
+    Printf(s_members_tab, "{\"%s\",0,%s,%s,0,0},\n", symname, getwname, setwname);
 
     Delete(getname);
     Delete(setname);
+    Delete(getwname);
+    Delete(setwname);
     return SWIG_OK;
   }
 
@@ -1132,15 +1154,18 @@ public:
       assert(s_members_tab);
       assert(class_name);
       String *symname = Getattr(n, "sym:name");
-      String *getname = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
-      String *setname = GetFlag(n, "feature:immutable") ?
-	  NewString("octave_set_immutable") : Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
+      String *getname = Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
+      String *setname = Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname));
+      String *getwname = Swig_name_wrapper(getname);
+      String *setwname = GetFlag(n, "feature:immutable") ? NewString("octave_set_immutable") : Swig_name_wrapper(setname);
       assert(s_members_tab);
 
-      Printf(s_members_tab, "{\"%s\",0,%s,%s,1,0},\n", symname, getname, setname);
+      Printf(s_members_tab, "{\"%s\",0,%s,%s,1,0},\n", symname, getwname, setwname);
 
       Delete(getname);
       Delete(setname);
+      Delete(getwname);
+      Delete(setwname);
     }
     return SWIG_OK;
   }
