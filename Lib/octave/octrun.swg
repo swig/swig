@@ -1304,8 +1304,34 @@ void SWIG_Octave_SetConstant(octave_swig_type *module_ns, const std::string &nam
   module_ns->assign(name, ov);
 }
 
+SWIGRUNTIMEINLINE octave_value SWIG_Octave_GetGlobalValue(std::string name) {
+  return get_global_value(name, true);
+}
+
+SWIGRUNTIME void SWIG_Octave_SetGlobalValue(std::string name, const octave_value& value) {
+  // It is critical that a newly-allocated octave_value is passed to set_global_value(),
+  // since it and the Octave symbol table take references to the values assigned to it.
+  // If we were to pass a reference to 'value' to set_global_value(), then the Octave
+  // symbol table would hold a reference to a variable owned by the SWIG .oct module.
+  // Both will think that they own the reference (since the .oct module is dynamically
+  // loaded, it appears to have its own C++ runtime), and so they will both try to
+  // de-allocate the octave_value on exit, resulting in a double-free or seg-fault.
+  // This is prevented by giving Octave its own heap-allocated copy of 'value'.
+  octave_value *pov = new octave_value(value);
+  set_global_value(name, *pov);
+}
+
+SWIGRUNTIME void SWIG_Octave_LinkGlobalValue(std::string name) {
+#if OCTAVE_API_VERSION_NUMBER < 37
+  link_to_global_variable(curr_sym_tab->lookup(name, true));
+#else
+  symbol_table::varref(name);
+  symbol_table::mark_global(name);
+#endif
+}
+
 SWIGRUNTIME swig_module_info *SWIG_Octave_GetModule(void *clientdata) {
-  octave_value ov = get_global_value("__SWIG_MODULE__" SWIG_TYPE_TABLE_NAME SWIG_RUNTIME_VERSION, true);
+  octave_value ov = SWIG_Octave_GetGlobalValue("__SWIG_MODULE__" SWIG_TYPE_TABLE_NAME SWIG_RUNTIME_VERSION);
   if (!ov.is_defined() ||
       ov.type_id() != octave_swig_packed::static_type_id())
     return 0;
@@ -1318,12 +1344,5 @@ SWIGRUNTIME swig_module_info *SWIG_Octave_GetModule(void *clientdata) {
 
 SWIGRUNTIME void SWIG_Octave_SetModule(void *clientdata, swig_module_info *pointer) {
   octave_value ov = new octave_swig_packed(0, &pointer, sizeof(swig_module_info *));
-  const char *module_var = "__SWIG_MODULE__" SWIG_TYPE_TABLE_NAME SWIG_RUNTIME_VERSION;
-#if OCTAVE_API_VERSION_NUMBER<37
-  link_to_global_variable(curr_sym_tab->lookup(module_var, true));
-#else
-  symbol_table::varref(module_var);
-  symbol_table::mark_global(module_var);
-#endif
-  set_global_value(module_var, ov);
+  SWIG_Octave_SetGlobalValue("__SWIG_MODULE__" SWIG_TYPE_TABLE_NAME SWIG_RUNTIME_VERSION, ov);
 }
