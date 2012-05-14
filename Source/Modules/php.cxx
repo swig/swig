@@ -536,7 +536,8 @@ public:
     Append(s_init, "#undef ZEND_MODULE_BUILD_ID\n");
     Append(s_init, "#define ZEND_MODULE_BUILD_ID (char*)\"API\" ZEND_TOSTR(ZEND_MODULE_API_NO) ZEND_BUILD_TS ZEND_BUILD_DEBUG ZEND_BUILD_SYSTEM ZEND_BUILD_EXTRA\n");
     Append(s_init, "#endif\n");
-    Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n" "#if ZEND_MODULE_API_NO > 20010900\n" "    STANDARD_MODULE_HEADER,\n" "#endif\n", NIL);
+    Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n");
+    Printf(s_init, "    STANDARD_MODULE_HEADER,\n");
     Printf(s_init, "    (char*)\"%s\",\n", module);
     Printf(s_init, "    %s_functions,\n", module);
     Printf(s_init, "    PHP_MINIT(%s),\n", module);
@@ -544,9 +545,7 @@ public:
     Printf(s_init, "    PHP_RINIT(%s),\n", module);
     Printf(s_init, "    PHP_RSHUTDOWN(%s),\n", module);
     Printf(s_init, "    PHP_MINFO(%s),\n", module);
-    Printf(s_init, "#if ZEND_MODULE_API_NO > 20010900\n");
     Printf(s_init, "    NO_VERSION_YET,\n");
-    Printf(s_init, "#endif\n");
     Printf(s_init, "    STANDARD_MODULE_PROPERTIES\n");
     Printf(s_init, "};\n");
     Printf(s_init, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n", module);
