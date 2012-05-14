@@ -471,10 +471,6 @@ public:
     Append(s_header, "}\n");
 
     Printf(s_header, "#define SWIG_name  \"%s\"\n", module);
-    /*     Printf(s_header,"#ifdef HAVE_CONFIG_H\n");
-       Printf(s_header,"#include \"config.h\"\n");
-       Printf(s_header,"#endif\n\n");
-     */
     Printf(s_header, "#ifdef __cplusplus\n");
     Printf(s_header, "extern \"C\" {\n");
     Printf(s_header, "#endif\n");
