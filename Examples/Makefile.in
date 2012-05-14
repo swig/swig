@@ -365,9 +365,7 @@ octave_cpp: $(SRCS)
 OCTSCRIPT = runme.m
 
 octave_run: $(OCTSCRIPT)
-	for file in $(OCTSCRIPT); do \
-	   env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir):$$OCTAVE_PATH $(OCTAVE) $$file >/dev/null || break; \
-	done
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir):$$OCTAVE_PATH $(OCTAVE) $(OCTSCRIPT) >/dev/null
 
 # -----------------------------------------------------------------
 # Cleaning the octave examples
