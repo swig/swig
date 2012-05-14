@@ -900,7 +900,6 @@ AC_SUBST(PERL5CCFLAGS)
 #----------------------------------------------------------------
 
 OCTAVEBIN=
-OCTAVEDYNAMICLINKING=
 OCTAVE_SO=.oct
 
 AC_ARG_WITH(octave, AS_HELP_STRING([--without-octave], [Disable Octave])
@@ -908,58 +907,51 @@ AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[OCTAV
 
 # First, check for "--without-octave" or "--with-octave=no".
 if test x"${OCTAVEBIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Octave])
-OCTAVE=
-else
+   AC_MSG_NOTICE([Disabling Octave])
+   OCTAVE=
 
 # First figure out what the name of Octave is
+elif test "x$OCTAVEBIN" = xyes; then
+   AC_CHECK_PROGS(OCTAVE, octave)
 
-if test "x$OCTAVEBIN" = xyes; then
-AC_CHECK_PROGS(OCTAVE, octave)
 else
-OCTAVE="$OCTAVEBIN"
+   OCTAVE="$OCTAVEBIN"
 fi
 
-
-AC_MSG_CHECKING(for Octave header files)
 if test -n "$OCTAVE"; then
-	OCTAVECONFIG=[`echo $OCTAVEBIN | sed 's|octave\([^/]*\)$|octave-config\1|'`]
-	if test -r "$OCTAVECONFIG"; then
-		OCTAVEDIR=`$OCTAVECONFIG -p OCTINCLUDEDIR | sed 's|/octave$||'`
-	else
-		OCTAVEDIR="/usr/include"
-	fi
-	if test "$OCTAVEDIR" != ""; then
-		dirs="$OCTAVEDIR/octave $OCTAVEDIR"
-		OCTAVEEXT=""
-		for i in $dirs; do
-			if test -r $i/octave/oct.h; then
-				OCTAVEEXT="$i"
-				break;
-			fi
-		done
-		if test "$OCTAVEEXT" = "" ; then
-			AC_MSG_RESULT(not found)
-		else
-			AC_MSG_RESULT($OCTAVEEXT)
-		fi
-
-		AC_MSG_CHECKING(for Octave compiler options)
- 		OCTAVECCFLAGS=""
-		AC_MSG_RESULT($OCTAVECCFLAGS)
-	fi
+   AC_MSG_CHECKING([for mkoctfile])
+   AS_IF([test "x`${OCTAVE} -qfH --eval 'mkoctfile -p CXX' 2>/dev/null`" != x],[
+     AC_MSG_RESULT([yes])
+   ],[
+     AC_MSG_ERROR([mkoctfile is not installed])
+   ])
+   AC_MSG_CHECKING([for Octave preprocessor flags])
+   OCTAVE_CPPFLAGS=
+   for n in CPPFLAGS INCFLAGS; do
+     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+   done
+   AC_MSG_RESULT($OCTAVE_CPPFLAGS)
+   AC_MSG_CHECKING([for Octave compiler flags])
+   OCTAVE_CXXFLAGS=
+   for n in ALL_CXXFLAGS; do
+     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+   done
+   AC_MSG_RESULT($OCTAVE_CXXFLAGS)
+   AC_MSG_CHECKING([for Octave linker flags])
+   OCTAVE_LDFLAGS=
+   for n in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+   done
+   AC_MSG_RESULT($OCTAVE_LDFLAGS)
 else
-       	AC_MSG_RESULT(could not figure out how to run octave)
-fi
-
+   AC_MSG_RESULT(could not figure out how to run octave)
 fi
 
 AC_SUBST(OCTAVE)
-AC_SUBST(OCTAVEEXT)
 AC_SUBST(OCTAVE_SO)
-AC_SUBST(OCTAVEDYNAMICLINKING)
-AC_SUBST(OCTAVELIB)
-AC_SUBST(OCTAVECCFLAGS)
+AC_SUBST(OCTAVE_CPPFLAGS)
+AC_SUBST(OCTAVE_CXXFLAGS)
+AC_SUBST(OCTAVE_LDFLAGS)
 
 #----------------------------------------------------------------
 # Look for java
@@ -2215,7 +2207,7 @@ AC_SUBST(SKIP_PERL5)
 
 
 SKIP_OCTAVE=
-if test -z "$OCTAVE" || test -z "$OCTAVEEXT" ; then
+if test -z "$OCTAVE" ; then
     SKIP_OCTAVE="1"
 fi
 AC_SUBST(SKIP_OCTAVE)

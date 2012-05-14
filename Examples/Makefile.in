@@ -331,12 +331,11 @@ python_clean:
 ##################################################################
 
 # Make sure these locate your Octave installation
-OCTAVE_INCLUDE= $(DEFS) @OCTAVEEXT@
-OCTAVE_LIB    =
 OCTAVE        = @OCTAVE@ -qf
+OCTAVE_CXX    = $(DEFS) @OCTAVE_CPPFLAGS@ @OCTAVE_CXXFLAGS@
 
 # Extra Octave specific dynamic linking options
-OCTAVE_DLNK   = @OCTAVEDYNAMICLINKING@
+OCTAVE_DLNK   = @OCTAVE_LDFLAGS@
 OCTAVE_SO     = @OCTAVE_SO@
 
 # ----------------------------------------------------------------
@@ -346,7 +345,7 @@ OCTAVE_SO     = @OCTAVE_SO@
 
 octave: $(SRCS)
 	$(SWIG) -octave $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
+	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CSRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
@@ -356,7 +355,7 @@ octave: $(SRCS)
 
 octave_cpp: $(SRCS)
 	$(SWIG) -c++ -octave $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
+	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CXXSHARED) -g $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
 # -----------------------------------------------------------------
