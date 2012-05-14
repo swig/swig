@@ -5,6 +5,36 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.7 (in progress)
 ===========================
 
+2012-05-14: kwwette (signed off by xavier98)
+            [Octave] Prevent Octave from seg-faulting at exit when SWIG
+            modules are loaded, due to bugs in Octave's cleanup code:
+            * Wrapping functions now declared with Octave DEFUN_DLD macro,
+              and loaded through Octave's dynamic module loader
+            * Global variables of swigref type are now assigned a new()
+              copy of the swigref class, to prevent double-free errors
+            * SWIG module at-exit cleanup function now created in Octave
+              through eval(), so not dependent on loaded .oct library
+            * For Octave versions 3.1.* to 3.3.*, register C-level at-exit
+              function which terminates Octave immediately (with correct
+              status code) without performing memory cleanup. This function
+              can be controlled with macros in Lib/octave/octruntime.swg
+
+            [Octave] New syntax for determing whether SWIG module should be
+            loaded globally or non-globally. To load module "example" globally,
+            type the module name
+            $ example;
+            as before; to load module non-globally, assign it to a variable:
+            $ example = example;
+            or
+            $ ex = example;
+            for a shorter (local) module name. -global/-noglobal command-line
+            options and module command line are deprecated. Added usage info
+            to module, so typing
+            $ help example
+            or incorrect usage should display proper usage, with examples.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2012-05-12: olly
 	    [PHP] Fix memory leak in code generated for a callback.  Patch from
 	    SF bug #3510806.
