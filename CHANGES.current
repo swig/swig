@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.7 (in progress)
 ===========================
 
+2012-05-14: wsfulton
+            Fix some language's std::map wrappers to recognise difference_type, size_type, key_type
+            and mapped_type.
+
 2012-05-14: kwwette (signed off by xavier98)
             [Octave] Prevent Octave from seg-faulting at exit when SWIG
             modules are loaded, due to bugs in Octave's cleanup code:
