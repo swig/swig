@@ -506,6 +506,12 @@ this, one needs to include <b>phppointers.i</b> which defines the
 named typemap REFERENCE.
 </p>
 
+<p>
+However, this relies on call-time pass-by-reference, which has been
+deprecated in PHP for some time, and was finally <b>removed in PHP 5.4</b>.
+So you should avoid creating new wrappers which rely on this approach.
+</p>
+
 <div class="code"><pre>
 %module example
 %include "phppointers.i"
