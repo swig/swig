@@ -291,9 +291,6 @@ public:
 
   virtual int globalfunctionHandler(Node *n) {
     SwigType *type = Getattr(n, "type");
-    String *vis_hint = NewString("");
-    String *return_type_str = SwigType_str(Getattr(n, "type"), 0);
-    String *name = Getattr(n, "sym:name");
     ParmList *parms = Getattr(n, "parms");
     String *arg_list = NewString("");
     String *call = empty_string;
@@ -309,14 +306,9 @@ public:
 
     functionWrapper(n);
 
-    // add visibility hint for the compiler (do not override this symbol)
-    Printv(vis_hint, "SWIGPROTECT(", return_type_str, " ", name, "(", ParmList_str(parms), ");)\n\n", NIL);
-    Printv(f_header, vis_hint, NIL);
-
     Delete(cres);
     Delete(call);
     Delete(arg_list);
-    Delete(vis_hint);
     return SWIG_OK;
   }
 
@@ -416,6 +408,7 @@ ready:
   virtual int functionWrapper(Node *n) {
     String *name = Copy(Getattr(n, "sym:name"));
     String *storage = Getattr(n, "storage");
+    String *vis_hint = NewString("");
     SwigType *type = Getattr(n, "type");
     SwigType *otype = Copy(type);
     SwigType *return_type = NewString("");
@@ -780,12 +773,16 @@ ready:
       Printv(f_proxy_code_body, "  return ", wname, "(", arg_names, ");\n}\n", NIL);
 
       // add function declaration to the proxy header file
-      Printv(f_proxy_header, return_type, " ", name, "(", proto, ");\n");
+      // add visibility hint for the compiler (do not override this symbol)
+      Printv(vis_hint, "SWIGPROTECT(", return_type, " ", name, "(", proto, ");)\n\n", NIL);
+      Printv(f_proxy_header, vis_hint, NIL);
+
     }
 
     Wrapper_print(wrapper, f_wrappers);
 
     // cleanup
+    Delete(vis_hint);
     Delete(over_suffix);
     Delete(proto);
     Delete(arg_names);
