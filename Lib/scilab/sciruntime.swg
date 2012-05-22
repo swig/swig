@@ -173,7 +173,7 @@ SWIG_Scilab_SetOutput(SciObject _output) {
   if (outputPosition < 0 || _output < 0) {
       return SWIG_ERROR;
   }
-  LhsVar(outputPosition) = _output;
+  AssignOutputVariable(outputPosition) = _output;
   return SWIG_OK;
 }
 

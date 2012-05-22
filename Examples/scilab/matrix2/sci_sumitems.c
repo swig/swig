@@ -43,7 +43,7 @@ int sci_sumitems(char *fname,unsigned long fname_len)
 		return 0;
 	}
 
-	LhsVar(1) = Rhs + 1;
+    AssignOutputVariable(1) = nbInputArgument + 1;
 	return 0;
 
 }
@@ -75,7 +75,7 @@ int sci_getValues(char *fname,unsigned long fname_len)
 		return 0;
 	}
 
-	LhsVar(1) = Rhs + 1;
+	AssignOutputVariable(1) = nbInputArgument + 1;
 	return 0;
 
 }

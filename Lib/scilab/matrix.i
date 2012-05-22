@@ -42,7 +42,7 @@
 
 
 	 
-	LhsVar(iOutNum) = iVarOut;
+	AssignOutputVariable(iOutNum) = iVarOut;
 	iOutNum++;
 	iVarOut++;
 }
