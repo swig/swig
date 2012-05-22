@@ -1,5 +1,5 @@
 #include "api_scilab.h"
-#include "stack-c.h"
+
 double sumitems(double *first, int nbRow, int nbCol);
 double* getValues(int *numberOfRow, int *numberOfCol);
 
