@@ -12,8 +12,8 @@ int sci_sumitems(char *fname,unsigned long fname_len)
 	int *piAddr			= NULL;
 	double* pdblReal	= NULL;
 
-	CheckRhs(1,1);
-	CheckLhs(1,1);
+	CheckInputArgument(pvApiCtx, 1, 1);
+	CheckOutputArgument(pvApiCtx, 1, 1);
 
 	SciErr sciErr;
 
@@ -58,14 +58,14 @@ int sci_getValues(char *fname,unsigned long fname_len)
 	int *piAddr			= NULL;
 	double* pdblReal	= NULL;
 
-	CheckRhs(0,0);
-	CheckLhs(1,1);
+	CheckInputArgument(pvApiCtx, 0, 0);
+	CheckOutputArgument(pvApiCtx, 1, 1);
 
 	SciErr sciErr;
 
 
 	int numberRow, numberCol, i;
-	double * matrix=getValues(&numberRow, &numberCol);
+	double * matrix = getValues(&numberRow, &numberCol);
 
 	sciErr = createMatrixOfDouble(pvApiCtx, Rhs + 1, numberRow, numberCol, matrix);
 

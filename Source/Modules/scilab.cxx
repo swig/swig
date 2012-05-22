@@ -1,3 +1,4 @@
+
 /* ----------------------------------------------------------------------------
  * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
@@ -255,9 +256,9 @@ public:
     int minInputArguments = emit_num_required(functionParamsList);
     int minOutputArguments = 0;
     int maxOutputArguments = 0;
-    /* Insert calls to CheckRhs and CheckLhs */
-    Printf(wrapper->code, "CheckRhs($mininputarguments, $maxinputarguments);\n");
-    Printf(wrapper->code, "CheckLhs($minoutputarguments, $maxoutputarguments);\n");
+    /* Insert calls to CheckInputArgument and CheckOutputArgument */
+    Printf(wrapper->code, "CheckInputArgument(pvApiCtx, $mininputarguments, $maxinputarguments);\n");
+    Printf(wrapper->code, "CheckOutputArgument(pvApiCtx, $minoutputarguments, $maxoutputarguments);\n");
     Printf(wrapper->code, "SWIG_Scilab_SetFname(fname);\n");
 
     for (paramIndex = 0, param = functionParamsList; paramIndex < maxInputArguments; ++paramIndex) {
@@ -367,7 +368,7 @@ public:
     /* Final substititions if applicable */
     Replaceall(wrapper->code, "$symname", functionName);
 
-    /* Set CheckLhs and CheckRhs input arguments */
+    /* Set CheckInputArgument and CheckOutputArgument input arguments */
     /* In Scilab there is always one output even if not defined */
     if (minOutputArguments == 0) {
       maxOutputArguments = 1;
@@ -458,8 +459,8 @@ public:
     Printv(getFunctionWrapper->def, "int ", getFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
 
     /* Check the number of input and output */
-    Printf(getFunctionWrapper->def, "CheckRhs(0, 0);\n");
-    Printf(getFunctionWrapper->def, "CheckLhs(1, 1);\n");
+    Printf(getFunctionWrapper->def, "CheckInputArgument(0, 0);\n");
+    Printf(getFunctionWrapper->def, "CheckOutputArgument(1, 1);\n");
 
     String *varoutTypemap = Swig_typemap_lookup("varout", node, origVariableName, 0);
     if (varoutTypemap != NULL) {
@@ -485,8 +486,8 @@ public:
       Printv(setFunctionWrapper->def, "int ", setFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
 
       /* Check the number of input and output */
-      Printf(setFunctionWrapper->def, "CheckRhs(1, 1);\n");
-      Printf(setFunctionWrapper->def, "CheckLhs(1, 1);\n");
+      Printf(setFunctionWrapper->def, "CheckInputArgument(1, 1);\n");
+      Printf(setFunctionWrapper->def, "CheckOutputArgument(1, 1);\n");
 
       String *varinTypemap = Swig_typemap_lookup("varin", node, origVariableName, 0);
       if (varinTypemap != NULL) {
@@ -523,8 +524,8 @@ public:
     Printv(getFunctionWrapper->def, "int ", getFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
 
     /* Check the number of input and output */
-    Printf(getFunctionWrapper->def, "CheckRhs(0, 0);\n");
-    Printf(getFunctionWrapper->def, "CheckLhs(1, 1);\n");
+    Printf(getFunctionWrapper->def, "CheckInputArgument(0, 0);\n");
+    Printf(getFunctionWrapper->def, "CheckOutputArgument(1, 1);\n");
 
     constantTypemap = Swig_typemap_lookup("constcode", node, nodeName, 0);
     if (constantTypemap != NULL) {
