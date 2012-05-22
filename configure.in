@@ -982,9 +982,9 @@ else
 # First figure out what the name of Scilab is
 
 if test "x$SCILABBIN" = xyes; then
-AC_CHECK_PROGS(SCILAB, scilab)
+   AC_CHECK_PROGS(SCILAB, scilab)
 else
-SCILAB="$SCILABBIN"
+   SCILAB="$SCILABBIN"
 fi
 
 
@@ -994,11 +994,11 @@ if test -n "$SCILAB"; then
 		dirs="$SCILABINCDIR"
 		SCILABEXT=""
 		for i in $dirs; do
-			if test -r $i/scilab/stack.h; then
+			if test -r $i/scilab/api_scilab.h; then
 				SCILABEXT="$i"
 				break;
 			fi
-			if test -r $i/scilab/scialab/stack.h; then
+			if test -r $i/scilab/scilab/api_scilab.h; then
 				SCILABEXT="$i/scilab"
 				break;
 			fi
