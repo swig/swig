@@ -215,7 +215,7 @@ SWIGINTERN void SWIG_runtime_init() {
   if (!SWIG_rt_init) {
     SWIG_rt_init = 1;
     SWIG_rt_stack_base = SWIG_rt_stack_ptr = (jmp_buf *) malloc(sizeof(jmp_buf) * SWIG_MAX_RT_STACK);
-    if (SWIG_exc.code = setjmp(SWIG_rt_env)) {
+    if ((SWIG_exc.code = setjmp(SWIG_rt_env))) {
       // deallocate C++ exception
       if (setjmp(SWIG_rt_env) == 0) {
         SWIG_rt_stack_push();
