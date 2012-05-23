@@ -35,6 +35,16 @@ SWIGINTERNINLINE PyObject*
 }
 }
 
+/* unsigned int */
+
+%fragment(SWIG_From_frag(unsigned int),"header") {
+SWIGINTERNINLINE PyObject*
+  SWIG_From_dec(unsigned int)(unsigned int value)
+{
+  return PyInt_FromSize_t((size_t) value);
+}
+}
+
 /* long */
 
 %fragment(SWIG_From_frag(long),"header") {

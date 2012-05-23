@@ -4,6 +4,8 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.7 (in progress)
 ===========================
+2012-05-22: szager
+	    [python] Disambiguate SWIG_From_unsigned_SS_int and SWIG_From_unsigned_SS_long.
 
 2012-05-18: olly
 	    [PHP] Fix getters for template members. (SF#3428833, SF#3528035)
