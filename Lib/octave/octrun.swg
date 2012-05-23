@@ -135,9 +135,11 @@ namespace Swig {
   SWIGRUNTIME octave_swig_type *swig_value_deref(const octave_base_value &ov);
 }
 
+#ifdef SWIG_DIRECTORS
 SWIGRUNTIME void swig_acquire_ownership(void *vptr);
 SWIGRUNTIME void swig_acquire_ownership_array(void *vptr);
 SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
+#endif
 
   struct swig_octave_member {
     const char *name;
