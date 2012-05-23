@@ -20,4 +20,15 @@ struct Test {
         v.push_back(1.0 / n);
     }
 };
+
+// Regression test for SF#3528035:
+struct S {
+    int x;
+    S() : x(4) { }
+};
+
+struct T {
+    S start_t;
+    unsigned length;
+};
 %}

@@ -2118,11 +2118,12 @@ done:
 	// FIXME: tune this threshold...
 	if (non_class_getters <= 2) {
 	  // Not many non-class getters, so avoid call_user_func.
-	  for (ki = First(shadow_get_vars); non_class_getters && ki.key; --non_class_getters, ki = Next(ki)) {
+	  for (ki = First(shadow_get_vars); non_class_getters && ki.key;  ki = Next(ki)) {
 	    DOH *key = ki.key;
 	    SwigType *d = ki.item;
 	    if (is_class(d)) continue;
 	    Printv(s_phpclasses, "\t\tif ($var === '", key, "') return ", shadow_classname, "_", key, "_get($this->", SWIG_PTR, ");\n", NIL);
+	    --non_class_getters;
 	  }
 	} else {
 	  Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_get';\n", shadow_classname);

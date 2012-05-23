@@ -20,5 +20,11 @@ $t->f(3);
 check::equal($t->x, 6, "Test::x != 6");
 check::equal($t->v->size(), 3, "Test::v.size() != 3");
 
+$T = new T();
+$T->start_t = new S();
+$T->length = 7;
+check::equal($T->start_t->x, 4, "S::x != 4");
+check::equal($T->length, 7, "T::length != 7");
+
 check::done();
 ?>

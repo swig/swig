@@ -6,7 +6,7 @@ Version 2.0.7 (in progress)
 ===========================
 
 2012-05-18: olly
-	    [PHP] Fix getters for template members. (SF#3428833)
+	    [PHP] Fix getters for template members. (SF#3428833, SF#3528035)
 
 2012-05-14: wsfulton
             Fix some language's std::map wrappers to recognise difference_type, size_type, key_type
