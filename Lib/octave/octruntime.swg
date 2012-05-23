@@ -198,7 +198,7 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
     SWIG_Octave_InstallFunction(me, "subclass");
 
     octave_swig_type* cvar_ns=0;
-    if (SWIG_global_name != ".") {
+    if (std::string(SWIG_global_name) != ".") {
       cvar_ns=new octave_swig_type;
       for (int j=0;swig_globals[j].name;++j)
         if (swig_globals[j].get_method)
@@ -206,7 +206,7 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
     }
 
     module_ns=new octave_swig_type(0, 0, 0, true);
-    if (SWIG_global_name != ".") {
+    if (std::string(SWIG_global_name) != ".") {
       module_ns->assign(SWIG_global_name,Swig::swig_value_ref(cvar_ns));
     }
     else {
