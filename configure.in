@@ -626,17 +626,16 @@ AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBI
 
 # First, check for "--without-python" or "--with-python=no".
 if test x"${PYBIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Python])
+  AC_MSG_NOTICE([Disabling Python])
 else
-# First figure out the name of the Python executable
+  # First figure out the name of the Python executable
+  if test "x$PYBIN" = xyes; then
+    AC_CHECK_PROGS(PYTHON, [python python2.8 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python])
+  else
+    PYTHON="$PYBIN"
+  fi
 
-if test "x$PYBIN" = xyes; then
-AC_CHECK_PROGS(PYTHON, [python python2.8 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python])
-else
-PYTHON="$PYBIN"
-fi
-
-if test -n "$PYTHON"; then
+  if test -n "$PYTHON"; then
     AC_MSG_CHECKING(for Python prefix)
     PYPREFIX=`($PYTHON -c "import sys; print sys.prefix") 2>/dev/null`
     AC_MSG_RESULT($PYPREFIX)
@@ -669,12 +668,12 @@ if test -n "$PYTHON"; then
 
     AC_MSG_CHECKING(for Python header files)
     if test -r $PYPREFIX/include/$PYVERSION/Python.h; then
-        PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
+      PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
     fi
     if test -z "$PYINCLUDE"; then
-        if test -r $PYPREFIX/include/Py/Python.h; then
-            PYINCLUDE="-I$PYPREFIX/include/Py -I$PYEPREFIX/$PYLIBDIR/python/lib"
-        fi
+      if test -r $PYPREFIX/include/Py/Python.h; then
+        PYINCLUDE="-I$PYPREFIX/include/Py -I$PYEPREFIX/$PYLIBDIR/python/lib"
+      fi
     fi
     AC_MSG_RESULT($PYINCLUDE)
 
@@ -682,32 +681,32 @@ if test -n "$PYTHON"; then
     AC_MSG_CHECKING(for Python library)
     dirs="$PYVERSION/config $PYVERSION/$PYLIBDIR python/$PYLIBDIR"
     for i in $dirs; do
-        if test -d $PYEPREFIX/$PYLIBDIR/$i; then
-           PYLIB="$PYEPREFIX/$PYLIBDIR/$i"
-           break
-        fi
+      if test -d $PYEPREFIX/$PYLIBDIR/$i; then
+        PYLIB="$PYEPREFIX/$PYLIBDIR/$i"
+        break
+      fi
     done
     if test -z "$PYLIB"; then
-        AC_MSG_RESULT(Not found)
+      AC_MSG_RESULT(Not found)
     else
-        AC_MSG_RESULT($PYLIB)
+      AC_MSG_RESULT($PYLIB)
     fi
 
     # Check for really old versions
     if test -r $PYLIB/libPython.a; then
-         PYLINK="-lModules -lPython -lObjects -lParser"
+      PYLINK="-lModules -lPython -lObjects -lParser"
     else
-         PYLINK="-l$PYVERSION"
+      PYLINK="-l$PYVERSION"
     fi
-fi
+  fi
 
-# Cygwin (Windows) needs the library for dynamic linking
-case $host in
-*-*-cygwin* | *-*-mingw*) PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
-         DEFS="-DUSE_DL_IMPORT $DEFS" PYINCLUDE="$PYINCLUDE"
-         ;;
-*)PYTHONDYNAMICLINKING="";;
-esac
+  # Cygwin (Windows) needs the library for dynamic linking
+  case $host in
+  *-*-cygwin* | *-*-mingw*) PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
+    DEFS="-DUSE_DL_IMPORT $DEFS" PYINCLUDE="$PYINCLUDE"
+    ;;
+  *)PYTHONDYNAMICLINKING="";;
+  esac
 fi
 
 AC_SUBST(PYINCLUDE)
@@ -732,24 +731,24 @@ AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]),[
 
 # First, check for "--without-python3" or "--with-python3=no".
 if test x"${PY3BIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Python 3.x support])
+  AC_MSG_NOTICE([Disabling Python 3.x support])
 else
-# First figure out the name of the Python3 executable 
+  # First figure out the name of the Python3 executable 
 
-if test "x$PY3BIN" = xyes; then
-  AC_CHECK_PROGS(PYTHON3, [python3 python3.0 python3.1 python3.2 python3.3 python3.4 python3.5 python3.6])
-else
-  PYTHON3="$PY3BIN"
-fi
+  if test "x$PY3BIN" = xyes; then
+    AC_CHECK_PROGS(PYTHON3, [python3 python3.0 python3.1 python3.2 python3.3 python3.4 python3.5 python3.6])
+  else
+    PYTHON3="$PY3BIN"
+  fi
 
-# Check for Python 3.x development tools (header files, static library and python3-config)
-if test "x$PYTHON3" = x; then
-  AC_CHECK_PROGS(PY3CONFIG, [python3-config python3.0-config python3.1-config python3.2-config python3.3-config python3.4-config python3.5-config python3.6-config])
-else
-  AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config python3-config python3.0-config python3.1-config python3.2-config python3.3-config python3.4-config python3.5-config python3.6-config])
-fi
+  # Check for Python 3.x development tools (header files, static library and python3-config)
+  if test "x$PYTHON3" = x; then
+    AC_CHECK_PROGS(PY3CONFIG, [python3-config python3.0-config python3.1-config python3.2-config python3.3-config python3.4-config python3.5-config python3.6-config])
+  else
+    AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config python3-config python3.0-config python3.1-config python3.2-config python3.3-config python3.4-config python3.5-config python3.6-config])
+  fi
 
-if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
+  if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
     AC_MSG_CHECKING([for Python 3.x prefix])
     PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
     AC_MSG_RESULT($PY3PREFIX)
@@ -787,27 +786,27 @@ if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
     AC_MSG_CHECKING([for Python 3.x library])
     dirs="$PY3VERSION/config $PY3VERSION/$PY3LIBDIR python/$PY3LIBDIR"
     for i in $dirs; do
-        if test -d $PY3EPREFIX/$PY3LIBDIR/$i; then
-           PY3LIB="$PY3EPREFIX/$PY3LIBDIR/$i"
-           break
-        fi
+      if test -d $PY3EPREFIX/$PY3LIBDIR/$i; then
+        PY3LIB="$PY3EPREFIX/$PY3LIBDIR/$i"
+        break
+      fi
     done
     if test -z "$PY3LIB"; then
-        AC_MSG_RESULT([Not found])
+      AC_MSG_RESULT([Not found])
     else
-        AC_MSG_RESULT($PY3LIB)
+      AC_MSG_RESULT($PY3LIB)
     fi
 
     PY3LINK="-l$PY3VERSION"
-fi
+  fi
 
-# Cygwin (Windows) needs the library for dynamic linking
-case $host in
-*-*-cygwin* | *-*-mingw*) PYTHON3DYNAMICLINKING="-L$PYLIB $PY3LINK"
-         DEFS="-DUSE_DL_IMPORT $DEFS" PY3INCLUDE="$PY3INCLUDE"
-         ;;
-*)PYTHON3DYNAMICLINKING="";;
-esac
+  # Cygwin (Windows) needs the library for dynamic linking
+  case $host in
+  *-*-cygwin* | *-*-mingw*) PYTHON3DYNAMICLINKING="-L$PYLIB $PY3LINK"
+    DEFS="-DUSE_DL_IMPORT $DEFS" PY3INCLUDE="$PY3INCLUDE"
+    ;;
+  *)PYTHON3DYNAMICLINKING="";;
+  esac
 fi
 
 AC_SUBST(PY3INCLUDE)
