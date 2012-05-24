@@ -38,8 +38,14 @@
 }
 
 // This typemap was not used for no_typedef_out in 2.0.4 and earlier
+#ifdef SWIGTCL
 %typemap(out) std::deque<jada::uint> {
 }
+#else
+%typemap(out) std::deque<jada::uint> {
+  $result = 0;
+}
+#endif
 
 namespace jada {
   typedef unsigned int uint;
