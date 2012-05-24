@@ -39,7 +39,6 @@
 
 // This typemap was not used for no_typedef_out in 2.0.4 and earlier
 %typemap(out) std::deque<jada::uint> {
-  $result = 0;
 }
 
 namespace jada {
