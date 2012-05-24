@@ -4,6 +4,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.7 (in progress)
 ===========================
+2012-05-25: wsfulton
+            [Lua] Fixes for -external-runtime to work again.
+
 2012-05-22: szager
 	    [python] Disambiguate SWIG_From_unsigned_SS_int and SWIG_From_unsigned_SS_long.
 
