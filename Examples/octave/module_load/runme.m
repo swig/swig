@@ -89,6 +89,12 @@ testme
 testme
 clear all
 
+# octave 3.0.5 randomly crashes on the remaining tests, so skip them
+api_version = sscanf(octave_config_info("api_version"), "api-v%i");
+if api_version < 37
+  exit
+endif
+
 # access module with no cvar, no global load
 example2 = example2;
 assert(example2.ivar == example2.ifunc());
