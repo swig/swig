@@ -15,7 +15,10 @@
     typedef unsigned int uint;
     void test_no_typedef(std::list<unsigned int> bada) {}
     void test_typedef(std::vector<uint> bada) {}
-    std::deque<unsigned int> no_typedef_out() {}
+    std::deque<unsigned int> no_typedef_out() {
+      std::deque<unsigned int> x;
+      return x;
+    }
   }
 %}
 
