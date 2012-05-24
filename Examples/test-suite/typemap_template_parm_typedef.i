@@ -38,12 +38,12 @@
 }
 
 // This typemap was not used for no_typedef_out in 2.0.4 and earlier
-#ifdef SWIGTCL
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %typemap(out) std::deque<jada::uint> {
+  $result = 0;
 }
 #else
 %typemap(out) std::deque<jada::uint> {
-  $result = 0;
 }
 #endif
 
