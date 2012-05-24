@@ -4,8 +4,8 @@ CXXSRCS    = example.c
 TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =
-OBJCXXSRCS = *.mm *.m
-OBJCSRCS   = *.m
+OBJCXXSRCS = exampleWrapper.mm exampleProxy.m
+OBJCSRCS   = runme.m
 OBJCFLAGS  = -fconstant-string-class=NSConstantString 
 
 all:: objc
