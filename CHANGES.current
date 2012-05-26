@@ -2,7 +2,7 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.7 (in progress)
+Version 2.0.7 (26 May 2012)
 ===========================
 2012-05-26: wsfulton
             std::string typemap modifications so they can be used with %apply for other string
