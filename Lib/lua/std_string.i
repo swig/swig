@@ -51,7 +51,7 @@ Not using: lua_tolstring() as this is only found in Lua 5.1 & not 5.0.2
 %typemap(out) std::string
 %{ lua_pushlstring(L,$1.data(),$1.size()); SWIG_arg++;%}
 
-%typemap(in,checkfn="lua_isstring")	const std::string& (std::string temp)
+%typemap(in,checkfn="lua_isstring")	const std::string& ($*1_ltype temp)
 %{temp.assign(lua_tostring(L,$input),lua_rawlen(L,$input)); $1=&temp;%}
 
 %typemap(out) const std::string&
@@ -84,7 +84,7 @@ typemaps to tell SWIG what to do.
 */
 
 %typemap(in) std::string &INPUT=const std::string &;
-%typemap(in, numinputs=0) std::string &OUTPUT (std::string temp)
+%typemap(in, numinputs=0) std::string &OUTPUT ($*1_ltype temp)
 %{ $1 = &temp; %}
 %typemap(argout) std::string &OUTPUT
 %{ lua_pushlstring(L,$1->data(),$1->size()); SWIG_arg++;%}
