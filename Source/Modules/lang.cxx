@@ -2623,7 +2623,7 @@ int Language::constructorDeclaration(Node *n) {
 	  Delete(expected_name_resolved);
 	}
 	if (illegal_name) {
-	  Swig_warning(WARN_LANG_RETURN_TYPE, input_file, line_number, "Function %s must have a return type. Ignored.\n", Swig_name_decl(name));
+	  Swig_warning(WARN_LANG_RETURN_TYPE, input_file, line_number, "Function %s must have a return type. Ignored.\n", Swig_name_decl(n));
 	  Swig_restore(n);
 	  return SWIG_NOWRAP;
 	}
@@ -2760,7 +2760,7 @@ int Language::destructorDeclaration(Node *n) {
     }
 
     if (illegal_name) {
-      Swig_warning(WARN_LANG_ILLEGAL_DESTRUCTOR, input_file, line_number, "Illegal destructor name %s. Ignored.\n", Swig_name_decl(name));
+      Swig_warning(WARN_LANG_ILLEGAL_DESTRUCTOR, input_file, line_number, "Illegal destructor name %s. Ignored.\n", Swig_name_decl(n));
       Swig_restore(n);
       Delete(expected_name);
       return SWIG_NOWRAP;
