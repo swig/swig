@@ -436,7 +436,6 @@ public:
     Parm *p;
     int i;
     int num_arguments = 0;
-    int num_required = 0;
     bool is_void_return;
     String *overloaded_name = getOverloadedName(n);
 
@@ -486,7 +485,6 @@ public:
     }
     // Get number of required and total arguments
     num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
     int gencomma = 0;
 
     // Now walk the function parameter list and generate code to get arguments
@@ -731,7 +729,6 @@ public:
     String *tm;
     Parm *p;
     int num_arguments = 0;
-    int num_required = 0;
     int i;
     String *imcall = NewString("");
     String *return_type = NewString("");
@@ -786,7 +783,6 @@ public:
 
     /* Get number of required and total arguments */
     num_arguments = emit_num_arguments(l);
-    num_required = emit_num_required(l);
 
     bool global_or_member_variable = global_variable_flag || (wrapping_member_flag && !enum_constant_flag);
     int gencomma = 0;
@@ -882,7 +878,6 @@ public:
     String *proxy_function_name = Getattr(n, "proxyfuncname");
     String *tm;
     Parm *p;
-    Parm *last_parm = 0;
     int i;
     String *imcall = NewString("");
     String *return_type = NewString("");
@@ -985,8 +980,6 @@ public:
       if (!(variable_wrapper_flag && i == 0) || static_flag) {
 	SwigType *pt = Getattr(p, "type");
 	String *param_type = NewString("");
-	if (setter_flag)
-	  last_parm = p;
 
 	/* Get the Objective-C parameter type */
 	if ((tm = Getattr(p, "tmap:objctype"))) {
@@ -1777,7 +1770,6 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void proxyClassHandler(Node *n) {
-    String *c_baseclass = NULL;
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
     String *typemap_lookup_type = Getattr(n, "classtypeobj");
@@ -1800,8 +1792,6 @@ public:
 	if (base.item) {
 	  c_baseclassname = Getattr(base.item, "name");
 	  baseclass = Copy(getProxyName(c_baseclassname));
-	  if (baseclass)
-	    c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
 	  base = Next(base);
 	  /* Warn about multiple inheritance for additional base class(es) */
 	  while (base.item) {
