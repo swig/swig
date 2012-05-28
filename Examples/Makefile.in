@@ -1039,12 +1039,11 @@ objc_cpp: $(SRCS)
 	$(OBJCCXXSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJC_DLNK) $(OBJC_LIBS) $(LIBS) $(CPP_DLLIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
 
 # ----------------------------------------------------------------
-# Compile Objective-C & Objective-C++ files
+# Compile and run Objective-C & Objective-C++ files
 # ----------------------------------------------------------------
-
-objc_compile: $(SRCS)
-	$(COMPILETOOL) $(OBJC) $(OBJC_INCLUDE) $(OBJCFLAGS) $(OBJCSRCS) $(OBJC_LIBS) -L. -l$(TARGET) 
-
+objc_run: $(SRCS)
+	$(COMPILETOOL) $(OBJC) $(OBJC_INCLUDE) $(OBJCFLAGS) $(OBJCSRCS) $(OBJC_LIBS) -L. -l$(TARGET) -o runme
+	env LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./runme
 # -----------------------------------------------------------------
 # Cleaning the Objective-C examples
 # -----------------------------------------------------------------
