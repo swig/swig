@@ -330,10 +330,10 @@
       else
         _temp[i] = (SwigObj*) 0;
     }
-    $result = _temp;
+    $result = ($1_ltype) _temp;
   }
   else
-    $result = (SwigObj**) 0;
+    $result = ($1_ltype) 0;
 }
 
 // typemaps for 'cppresult'
