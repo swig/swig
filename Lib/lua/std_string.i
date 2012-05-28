@@ -9,7 +9,7 @@
 %}
 
 /*
-Only std::string and const std::string& are typemaped
+Only std::string and const std::string& are typemapped
 they are converted to the Lua strings automatically
 
 std::string& and std::string* are not
@@ -34,7 +34,7 @@ namespace std {
 
 /*
 Bug report #1526022:
-Lua strings and std::string can contain embeded zero's
+Lua strings and std::string can contain embedded zero bytes
 Therefore a standard out typemap should not be:
   lua_pushstring(L,$1.c_str());
 but
@@ -73,7 +73,7 @@ Not using: lua_tolstring() as this is only found in Lua 5.1 & not 5.0.2
 }
 
 /*
-std::string& can be wrappered, but you must inform SWIG if it is in or out
+std::string& can be wrapped, but you must inform SWIG if it is in or out
 
 eg:
 void fn(std::string& str);
@@ -121,7 +121,7 @@ as this is overloaded by the const char* version
       void assign(const char*);
       //void assign(const string&);
       // no support for all the other features
-      // its probably better to do it in lua
+      // it's probably better to do it in lua
   };
 }
 

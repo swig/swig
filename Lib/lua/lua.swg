@@ -142,8 +142,8 @@
 /* ------------------------------------------------------------
  *                              Exceptions
  * ------------------------------------------------------------ */
-/* Confession: I dont really like C++ exceptions
-The python/lua ones are great, but C++ ones I dont like
+/* Confession: I don't really like C++ exceptions
+The python/lua ones are great, but C++ ones I don't like
 (mainly because I cannot get the stack trace out of it)
 Therefore I have not bothered to try doing much in this
 
@@ -191,7 +191,7 @@ There are a few options:
 - return a copy of it: but not all objects are copyable
 	(see exception_partial_info in the test suite for a case where you cannot do this)
 - convert to a string & throw that
-	its not so useful, but it works (this is more lua like).
+	it's not so useful, but it works (this is more lua like).
 The third option (though not nice) is used
 For a more useful solution: see std_except for more details
 */
