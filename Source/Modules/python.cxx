@@ -3979,7 +3979,7 @@ public:
 	  if (!have_addtofunc(n)) {
 	    if (!fastproxy || olddefs) {
 	      Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":", NIL);
-	      Printv(f_shadow, " return ", funcCall(fullname, callParms), "\n", NIL);
+	      Printv(f_shadow, "\n", NIL);
 	      if (doxygen) {
 		String *doxygen_comments;
 		if (DoxygenTranslator::getDocumentation(n, PyDoc, doxygen_comments)) {
@@ -3987,6 +3987,7 @@ public:
 		  Delete(doxygen_comments);
 		}
 	      }
+	      Printv(f_shadow, tab8, "return ", funcCall(fullname, callParms), "\n", NIL);
 	    }
 	  } else {
 	    Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":", NIL);
