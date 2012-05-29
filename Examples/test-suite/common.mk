@@ -108,6 +108,7 @@ CPP_TEST_CASES += \
 	aggregate \
 	allowexcept \
 	allprotected \
+	allprotected_not \
 	anonymous_bitfield \
 	apply_signed_char \
 	apply_strings \

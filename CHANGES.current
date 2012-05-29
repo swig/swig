@@ -4,6 +4,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.8 (in progress)
 ===========================
+2012-05-29: wsfulton
+            Fix #3529601 - seg fault when a protected method has the "director"
+            feature but the parent class does not. Also fix similar problems with
+            the allprotected feature.
+
 2012-05-28: wsfulton
             Fix seg fault when attempting to warn about an illegal destructor - #3530055, 3530078 and #3530118.
 

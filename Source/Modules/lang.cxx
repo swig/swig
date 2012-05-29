@@ -841,7 +841,7 @@ int Language::cDeclaration(Node *n) {
     if (!isfriend) {
       /* Check what the director needs. If the method is pure virtual, it is always needed.
        * Also wrap non-virtual protected members if asked for (allprotected mode). */
-      if (!(directorsEnabled() && ((is_member_director(CurrentClass, n) && need_nonpublic_member(n)) || is_non_virtual_protected_access(n)))) {
+      if (!(directorsEnabled() && ((is_member_director(CurrentClass, n) && need_nonpublic_member(n)) || isNonVirtualProtectedAccess(n)))) {
           return SWIG_NOWRAP;
       }
       // Prevent wrapping protected overloaded director methods more than once -
@@ -1224,7 +1224,7 @@ int Language::memberfunctionHandler(Node *n) {
   // Set up the type for the cast to this class for use when wrapping const director (virtual) methods.
   // Note: protected director methods or when allprotected mode turned on.
   String *director_type = 0;
-  if (!is_public(n) && (is_member_director(CurrentClass, n) || GetFlag(n, "explicitcall") || is_non_virtual_protected_access(n))) {
+  if (!is_public(n) && (is_member_director(CurrentClass, n) || GetFlag(n, "explicitcall") || isNonVirtualProtectedAccess(n))) {
     director_type = Copy(DirectorClassName);
     String *qualifier = Getattr(n, "qualifier");
     if (qualifier)
@@ -1270,7 +1270,7 @@ int Language::staticmemberfunctionHandler(Node *n) {
   if (!Extend) {
     Node *sb = Getattr(n, "cplus:staticbase");
     String *sname = Getattr(sb, "name");
-    if (is_non_virtual_protected_access(n))
+    if (isNonVirtualProtectedAccess(n))
       cname = NewStringf("%s::%s", DirectorClassName, name);
     else
       cname = NewStringf("%s::%s", sname, name);
@@ -1415,14 +1415,14 @@ int Language::membervariableHandler(Node *n) {
 	    Delete(pname);
 	  }
 	} else {
-	  String *pname = is_non_virtual_protected_access(n) ? NewString("darg") : Swig_cparm_name(0, 0);
+	  String *pname = isNonVirtualProtectedAccess(n) ? NewString("darg") : Swig_cparm_name(0, 0);
 	  target = NewStringf("%s->%s", pname, name);
 	  Delete(pname);
 	}
 	tm = Swig_typemap_lookup("memberin", n, target, 0);
       }
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
-      if (is_non_virtual_protected_access(n))
+      if (isNonVirtualProtectedAccess(n))
         flags = flags | CWRAP_ALL_PROTECTED_ACCESS;
 
       Swig_MembersetToFunction(n, ClassType, flags);
@@ -1470,7 +1470,7 @@ int Language::membervariableHandler(Node *n) {
     /* Emit get function */
     {
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
-      if (is_non_virtual_protected_access(n))
+      if (isNonVirtualProtectedAccess(n))
         flags = flags | CWRAP_ALL_PROTECTED_ACCESS;
       Swig_MembergetToFunction(n, ClassType, flags);
       Setattr(n, "sym:name", mrename_get);
@@ -1530,7 +1530,7 @@ int Language::membervariableHandler(Node *n) {
 int Language::staticmembervariableHandler(Node *n) {
   Swig_require("staticmembervariableHandler", n, "*name", "*sym:name", "*type", "?value", NIL);
   String *value = Getattr(n, "value");
-  String *classname = !SmartPointer ? (is_non_virtual_protected_access(n) ? DirectorClassName : ClassName) : Getattr(CurrentClass, "allocate:smartpointerbase");
+  String *classname = !SmartPointer ? (isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName) : Getattr(CurrentClass, "allocate:smartpointerbase");
 
   if (!value || !Getattr(n, "hasconsttype")) {
     String *name = Getattr(n, "name");
@@ -1695,7 +1695,7 @@ int Language::memberconstantHandler(Node *n) {
   if (Extend)
     new_name = Copy(value);
   else
-    new_name = NewStringf("%s::%s", is_non_virtual_protected_access(n) ? DirectorClassName : ClassName, name);
+    new_name = NewStringf("%s::%s", isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName, name);
   Setattr(n, "name", new_name);
 
   constantWrapper(n);
@@ -2116,7 +2116,7 @@ int Language::classDirector(Node *n) {
     Node *nodeType = Getattr(ni, "nodeType");
     bool cdeclaration = (Cmp(nodeType, "cdecl") == 0);
     if (cdeclaration && !GetFlag(ni, "feature:ignore")) {
-      if (is_non_virtual_protected_access(ni)) {
+      if (isNonVirtualProtectedAccess(ni)) {
         Node *overloaded = Getattr(ni, "sym:overloaded");
         // emit the using base::member statement (but only once if the method is overloaded)
         if (!overloaded || (overloaded && (overloaded == ni)))
@@ -3331,7 +3331,7 @@ int Language::need_nonpublic_ctor(Node *n) {
  * Language::need_nonpublic_member()
  * ----------------------------------------------------------------------------- */
 int Language::need_nonpublic_member(Node *n) {
-  if (directorsEnabled()) {
+  if (directorsEnabled() && DirectorClassName) {
     if (is_protected(n)) {
       if (dirprot_mode()) {
 	/* when using dirprot mode, the protected members are always needed. */
@@ -3353,6 +3353,16 @@ int Language::need_nonpublic_member(Node *n) {
 
 int Language::is_smart_pointer() const {
   return SmartPointer;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::()
+ * ----------------------------------------------------------------------------- */
+
+bool Language::isNonVirtualProtectedAccess(Node *n) const {
+  // Ideally is_non_virtual_protected_access() would contain all this logic, see
+  // comments therein about vtable. 
+  return DirectorClassName && is_non_virtual_protected_access(n);
 }
 
 /* -----------------------------------------------------------------------------

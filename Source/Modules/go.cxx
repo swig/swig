@@ -2088,7 +2088,7 @@ private:
     }
 
     int flags = Extend | SmartPointer | use_naturalvar_mode(var);
-    if (is_non_virtual_protected_access(var)) {
+    if (isNonVirtualProtectedAccess(var)) {
       flags |= CWRAP_ALL_PROTECTED_ACCESS;
     }
 
