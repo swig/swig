@@ -3,21 +3,19 @@
 #######################################################################
 
 LANGUAGE     = objc
-OBJC         = objc
+OBJC         = gcc
 SCRIPTSUFFIX = _runme.m
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@/..
 top_builddir = @top_builddir@/..
-
-C_TEST_CASES = 
-
-CPP_TEST_CASES =
 
 include $(srcdir)/../common.mk
 
 # Overridden variables here
 SWIGOPT +=
 INTERFACEDIR = ../../
+CXXSRCS = *.mm
+OBJCXXSRCS = *.m
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -46,23 +44,29 @@ setup = \
 		mkdir $*;						  \
 	fi;
 
+swig_and_compile_cpp = \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="*.mm" OBJCXXSRCS="$(OBJCXXSRCS)" \
+	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
+	$(LANGUAGE)$(VARIANT)_cpp
+
+swig_and_compile_c =  \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" OBJCXXSRCS="$(OBJCXXSRCS)" \
+	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
+	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
+	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
+	$(LANGUAGE)$(VARIANT)
+
+
 # Compiles Objective-C files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.m appended after the testcase name.
 run_testcase = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (	  \
-	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
-	  TARGET=$* \
-	  OBJCFLAGS='-L. -framework Foundation -o $*_runme' \
-	  OBJCSRCS='`$(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` \
-	  $*/*.m' objc_compile && \
-	  $(RUNTOOL)$*_runme; ) \
-	else ( \
-	  cd $* && \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
-	  TARGET=$* \
-	  OBJCFLAGS='-dynamiclib -L. -framework Foundation' \
-	  OBJCSRCS='*.m' objc_compile; ); \
-	fi;
+	if test -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
+         $(COMPILETOOL) $(OBJC) $(OBJC_INCLUDE) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -o  $*_runme -framework Foundation -L./$*/ -l$* && \
+        `cp ./$*/lib* .` && \
+	env LD_LIBRARY_PATH=$*:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
+	fi
 
 # Clean: remove testcase directories
 %.clean:
