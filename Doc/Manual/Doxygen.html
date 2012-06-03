@@ -36,7 +36,7 @@
 
 <p>
 This chapter describes SWIG's support for translating Doxygen comments found in interface and header files into a target language's normal documentation language.
-Currently only JavaDoc is supported.
+Currently only JavaDoc and PythonDoc is supported.
 </p>
 
 <H2><a name="Doxygen_translation_overview"></a>35.1 Doxygen Translation Overview</H2>
@@ -45,11 +45,11 @@ Currently only JavaDoc is supported.
 <p>
 The Doxygen Translation Module of SWIG is an ongoing effort from a <A HREF ="http://code.google.com/soc/2008/">Google Summer of Code</A> proposal from Summer 2008.
 It adds an extra layer of functionality to SWIG, allowing automated translation of <A HREF= "http://www.stack.nl/~dimitri/doxygen/">Doxygen</A> formatted comments from input files into a documentation language more suited for the target language.
-Currently this module only translates into JavaDoc for the SWIG Java Module, but other extensions are to be added in time.
+Currently this module only translates into JavaDoc and PythonDoc for the SWIG Java and Python Modules, but other extensions are to be added in time.
 </p>
 
 <p>
-Questions about running SWIG are best answered in the <a href="SWIG.html#SWIG">SWIG Basics</a> chapter as well as the target language modules. (For now, only <A href = "Java.html">Java</A>).
+Questions about running SWIG are best answered in the <a href="SWIG.html#SWIG">SWIG Basics</a> chapter as well as the target language modules. (For now, only <A href = "Java.html">Java</A> and <A href = "Python.html">Python</A>).
 The behaviour of this functionality is wildly unpredictable if the interface file is not proper to begin with!
 </p>
 
@@ -72,7 +72,43 @@ class Shape {
 </pre></div>
 
 <p>
-Because this functionality is currently only extended to Java, you must be able to run SWIG's <A href = "Java.html">Java Module</A> in order to make use of this tool.
+Please note, as SWIG parses input file by itself with strict grammar, there is only a limited support for various cases of comment placement in the file.
+Comments can be placed between two C expressions on separate lines:
+</p>
+
+<div class="code"><pre>
+void someOtherFunction();
+/**
+ * Some comment
+ */
+void someFunction();
+</pre></div>
+
+<p>
+and in some special cases, like function parameter comments:
+</p>
+
+<div class="code"><pre>
+void someFunction(
+         int a ///< Some parameter 
+     );
+</pre></div>
+
+<p>
+or enum element comments:
+</p>
+
+<div class="code"><pre>
+enum E_NUMBERS
+{
+    EN_ZERO, ///< The first enum item, gets zero as it's value
+    EN_ONE, ///< The second, EN_ONE=1
+    EN_THREE
+};
+</pre></div>
+
+<p>
+Just remember, if SWIG shows syntax error parsing the file because of your comment, try to move it in some other, 'safer' place as desribed above.
 </p>
 <H3><a name="Doxygen_running_swig"></a>35.2.1 Enabling Doxygen Translation</H3>
 
