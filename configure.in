@@ -986,13 +986,19 @@ fi
 AC_MSG_CHECKING(for include file Foundation/Foundation.h)
 AC_ARG_WITH(objcincl, [  --with-objcincl=path    Set location of Objective-C include directory], [OBJCINCDIR="$withval"], [OBJCINCDIR=])
 
+OBJCCFLAGS=
+
 if test -z "$OBJCINCDIR"; then
   OBJCINCDIR="/usr/include/ /usr/local/include/"
 
   # Add in default directory for Objective-C headers on Windows for Cygwin(TODO for now), Linux and MacOSX
   case $host in
-  *-*-cygwin* | *-*-mingw*) OBJCINCDIR="/usr/include/GNUstep /usr/lib/GNUstep/System/Library/Headers $OBJCINCDIR";;
-  *-*-linux*) OBJCINCDIR="/usr/include/GNUstep /usr/lib/GNUstep/System/Library/Headers $OBJCINCDIR";;
+  *-*-cygwin* | *-*-mingw*) OBJCINCDIR="/usr/include/GNUstep /usr/lib/GNUstep/System/Library/Headers $OBJCINCDIR"
+			    OBJCCFLAGS="`gnustep-config --objc-flags`"
+			    ;;
+  *-*-linux*) OBJCINCDIR="/usr/include/GNUstep /usr/lib/GNUstep/System/Library/Headers $OBJCINCDIR"
+	      OBJCCFLAGS="`gnustep-config --objc-flags`"
+	      ;;
   *-*-darwin*) OBJCINCDIR="/System/Library/Frameworks/Foundation.framework/Headers $OBJCINCDIR";;
   *);;
   esac
@@ -1027,9 +1033,6 @@ for i in $dirs ; do
 	fi
 done
 
-if test -z "$OBJCLIB"; then
-	AC_MSG_RESULT(not found)
-else
 for i in $dirs ; do
 	if test -r $i/*gnustep-base*; then
 	    AC_MSG_RESULT($i)
@@ -1037,7 +1040,6 @@ for i in $dirs ; do
 	    break
 	fi
 done
-fi
 
 else
 AC_MSG_RESULT($OBJCLIB)
@@ -1049,16 +1051,17 @@ case $host in
 *-*-darwin*) 
         OBJCDYNAMICLINKING="-dynamiclib"
 	OBJCLIBS="-framework Foundation"
-        OBJCCFLAGS=""
         ;;
 *-*-linux*) 
 	OBJCDYNAMICLINKING="$OBJCLIB"
-	OBJCLIBS="$OBJCLIB"
-        OBJCCFLAGS="-fconstant-string-class=NSConstantString"  #To avoid crytpic NXConstantString error with GNUStep...!
+	OBJCLIBS="`gnustep-config --objc-libs` $OBJCLIB"
+        ;;
+*-*-cygwin* | *-*-mingw*) 
+        OBJCDYNAMICLINKING="$OBJCLIB"
+        OBJCLIBS="`gnustep-config --objc-libs` $OBJCLIB"
         ;;
 *)
         OBJCDYNAMICLINKING=""
-        OBJCCFLAGS=""
 	OBJCLIBS=""
         ;;
 esac

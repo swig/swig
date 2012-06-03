@@ -1040,7 +1040,7 @@ objc_cpp: $(SRCS)
 # Compile and run Objective-C & Objective-C++ files
 # ----------------------------------------------------------------
 objc_run: $(SRCS)
-	$(COMPILETOOL) $(OBJC) $(OBJC_INCLUDE) $(OBJCFLAGS) $(OBJCSRCS) $(OBJC_LIBS) -L. -l$(TARGET) -o runme
+	$(COMPILETOOL) $(OBJC) $(OBJC_INCLUDE) $(OBJCFLAGS) $(OBJCCFLAGS) $(OBJCSRCS) $(OBJC_LIBS) -L. -l$(TARGET) -o runme
 	env LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./runme
 # -----------------------------------------------------------------
 # Cleaning the Objective-C examples
