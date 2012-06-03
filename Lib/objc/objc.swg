@@ -380,7 +380,7 @@
 }
 
 - (id)initWithCptr: (void*) cptr{
-	if(self = [super init]) {
+	if((self = [super init])) {
 		swigCPtr = cptr;
 	}
 	return self;
@@ -400,7 +400,7 @@
 }
 
 -(id)initWithCptr: (void*) cptr {
-	if(self = [super init]) {
+	if((self = [super init])) {
 		swigCPtr = cptr;
 	}
 	return self;
@@ -423,14 +423,14 @@
 }
 
 - (id)init {
-	if(self = [super init]) {
+	if((self = [super init])) {
 		swigCPtr = 0;
 	}
 	return self;
 }
 
 - (id)initWithCptr: (void*) cptr{
-	if(self = [super init]) {
+	if((self = [super init])) {
 		swigCPtr = cptr;
 	}
 	return self;
@@ -520,7 +520,7 @@
  */
 
 %typemap(objcconstruct) SWIGTYPE {
-	if(self = [super init]) {
+	if((self = [super init])) {
 		swigCPtr = $imcall;
 	}
 	return self;
