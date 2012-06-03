@@ -529,7 +529,7 @@
 %typemap(objcdestruct, methodname="dealloc") SWIGTYPE {
   if (swigCPtr != 0) {
 	  if (swigCMemOwn) {
-		  swigCMemOwn = NO;
+		  swigCMemOwn = YES;
       $imcall;
 	  }
     swigCPtr = 0;
