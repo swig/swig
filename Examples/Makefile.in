@@ -1024,8 +1024,7 @@ OBJS=*.o
 
 objc: $(SRCS)
 	$(SWIG) -objc $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(INCLUDES)
-	$(OBJC) -c $(CCSHARED) $(CFLAGS) $(OBJCCFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJC_INCLUDE)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS)  $(OBJCCFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJC_INCLUDE)	
 	$(OBJCLDSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJC_DLNK) $(OBJC_LIBS) $(LIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
 
 # ----------------------------------------------------------------
@@ -1034,8 +1033,7 @@ objc: $(SRCS)
 
 objc_cpp: $(SRCS)
 	$(SWIG) -objc -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(INCLUDES)
-	$(OBJC) -c $(CCSHARED) $(CFLAGS) $(OBJCCFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJC_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(OBJCCFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJC_INCLUDE)	
 	$(OBJCCXXSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJC_DLNK) $(OBJC_LIBS) $(LIBS) $(CPP_DLLIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
 
 # ----------------------------------------------------------------
@@ -1049,7 +1047,7 @@ objc_run: $(SRCS)
 # -----------------------------------------------------------------
 
 objc_clean:
-	rm -f *.o *Wrapper* *Proxy* a.out
+	rm -f *.o *Wrapper* *Proxy* runme
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@OBJCSO@
 
