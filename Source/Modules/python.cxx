@@ -1780,6 +1780,13 @@ public:
     String *callParms = make_pyParmList(n, false, true, kw);
     /* Make a wrapper function to insert the code into */
     Printv(f_dest, "\ndef ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+    if (doxygen) {
+      String *doxygen_comments;
+      if (DoxygenTranslator::getDocumentation(n, PyDoc, doxygen_comments)) {
+	Printf(f_dest, Char(pythoncode(doxygen_comments, tab2)));
+	Delete(doxygen_comments);
+      }
+    }
     if (have_docstring(n))
       Printv(f_dest, "  ", docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
     if (have_pythonprepend(n))
