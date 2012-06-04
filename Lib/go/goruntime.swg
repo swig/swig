@@ -84,6 +84,57 @@ extern "C" {
 #endif
 extern void *_cgo_allocate(size_t);
 extern void _cgo_panic(const char *);
+
+/* Implementations of SwigCgocall and friends for different versions
+   of gccgo.  The Go code will call these functions using C names with
+   a prefix of the module name.  The implementations here call the
+   routine in libgo.  The routines to call vary depending on the gccgo
+   version.  We assume that the version of gcc used to compile this
+   file is the same as the version of gccgo.  */
+
+#define SWIGCONCAT2(s1, s2) s1 ## s2
+#define SWIGCONCAT1(s1, s2) SWIGCONCAT2(s1, s2)
+#define SwigCgocall SWIGCONCAT1(SWIGMODULE, SwigCgocall)
+#define SwigCgocallDone SWIGCONCAT1(SWIGMODULE, SwigCgocallDone)
+#define SwigCgocallBack SWIGCONCAT1(SWIGMODULE, SwigCgocallBack)
+#define SwigCgocallBackDone SWIGCONCAT1(SWIGMODULE, SwigCgocallBackDone)
+
+#define SWIG_GCC_VERSION \
+  (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC__PATH_LEVEL__)
+
+#if SWIG_GCC_VERSION < 40700
+#define SwigDoCgocall()
+#define SwigDoCgocalldone()
+#define SwigDoCgocallBack()
+#define SwigDoCgocallBackDone()
+#elif SWIG_GCC_VERSION == 40700
+void SwigDoCgocall(void) __asm__("libgo_syscall.syscall.Entersyscall");
+void SwigDoCgocallDone(void) __asm__("libgo_syscall.syscall.Exitsyscall");
+void SwigDoCgocallBack(void) __asm__("libgo_syscall.syscall.Exitsyscall");
+void SwigDoCgocallBackDone(void) __asm__("libgo_syscall.syscall.Entersyscall");
+#else
+void SwigDoCgocall(void) __asm__("syscall.Cgocall");
+void SwigDoCgocallDone(void) __asm__("syscall.CgocallDone");
+void SwigDoCgocallBack(void) __asm__("syscall.CgocallBack");
+void SwigDoCgocallBackDone(void) __asm__("syscall.CgocallBackDone");
+#endif
+
+void SwigCgocall() {
+  SwigDoCgocall();
+}
+
+void SwigCgocallDone() {
+  SwigDoCgocallDone();
+}
+
+void SwigCgocallBack() {
+  SwigDoCgocallBack();
+}
+
+void SwigCgocallBackDone() {
+  SwigDoCgocallBackDone();
+}
+
 #ifdef __cplusplus
 }
 #endif

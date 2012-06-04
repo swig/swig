@@ -326,6 +326,8 @@ private:
 
     Swig_banner(f_c_begin);
 
+    Printf(f_c_runtime, "#define SWIGMODULE %s\n", module);
+
     if (directorsEnabled()) {
       Printf(f_c_runtime, "#define SWIG_DIRECTORS\n");
 
@@ -348,6 +350,15 @@ private:
     // Output module initialization code.
 
     Printf(f_go_begin, "\npackage %s\n\n", package);
+
+    Printf(f_go_runtime, "//extern %sSwigCgocall\n", module);
+    Printf(f_go_runtime, "func SwigCgocall()\n");
+    Printf(f_go_runtime, "//extern %sSwigCgocallDone\n", module);
+    Printf(f_go_runtime, "func SwigCgocallDone()\n");
+    Printf(f_go_runtime, "//extern %sSwigCgocallBack\n", module);
+    Printf(f_go_runtime, "func SwigCgocallBack()\n");
+    Printf(f_go_runtime, "//extern %sSwigCgocallBackDone\n", module);
+    Printf(f_go_runtime, "func SwigCgocallBackDone()\n\n");
 
     // All the C++ wrappers should be extern "C".
 
@@ -941,8 +952,8 @@ private:
       }
 
       if (gccgo_flag) {
-	Printv(f_go_wrappers, "\tsyscall.Entersyscall()\n", NULL);
-	Printv(f_go_wrappers, "\tdefer syscall.Exitsyscall()\n", NULL);
+	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
+	Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
       }
 
       Printv(f_go_wrappers, "\t", NULL);
@@ -2538,8 +2549,8 @@ private:
       Printv(f_go_wrappers, "\tp := &", director_struct_name, "{0, v}\n", NULL);
 
       if (gccgo_flag) {
-	Printv(f_go_wrappers, "\tsyscall.Entersyscall()\n", NULL);
-	Printv(f_go_wrappers, "\tdefer syscall.Exitsyscall()\n", NULL);
+	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
+	Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
       }
 
       Printv(f_go_wrappers, "\tp.", class_receiver, " = ", fn_name, NULL);
@@ -3049,11 +3060,6 @@ private:
 
       Printv(f_go_wrappers, " {\n", NULL);
 
-      if (gccgo_flag) {
-	Printv(f_go_wrappers, "\tsyscall.Entersyscall()\n", NULL);
-	Printv(f_go_wrappers, "\tdefer syscall.Exitsyscall()\n", NULL);
-      }
-
       Printv(f_go_wrappers, "\tif swig_g, swig_ok := swig_p.v.(", interface_name, "); swig_ok {\n", NULL);
       Printv(f_go_wrappers, "\t\t", NULL);
       if (SwigType_type(result) != T_VOID) {
@@ -3076,6 +3082,12 @@ private:
 	Printv(f_go_wrappers, "\t\treturn\n", NULL);
       }
       Printv(f_go_wrappers, "\t}\n", NULL);
+
+      if (gccgo_flag) {
+	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
+	Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
+      }
+
       Printv(f_go_wrappers, "\t", NULL);
       if (SwigType_type(result) != T_VOID) {
 	Printv(f_go_wrappers, "return ", NULL);
@@ -3222,8 +3234,8 @@ private:
       Printv(f_go_wrappers, " {\n", NULL);
 
       if (gccgo_flag) {
-	Printv(f_go_wrappers, "\tsyscall.Entersyscall()\n", NULL);
-	Printv(f_go_wrappers, "\tdefer syscall.Exitsyscall()\n", NULL);
+	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
+	Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
       }
 
       Printv(f_go_wrappers, "\t", NULL);
@@ -3269,8 +3281,8 @@ private:
       Printv(f_go_wrappers, "{\n", NULL);
 
       if (gccgo_flag) {
-	Printv(f_go_wrappers, "\tsyscall.Exitsyscall()\n", NULL);
-	Printv(f_go_wrappers, "\tdefer syscall.Entersyscall()\n", NULL);
+	Printv(f_go_wrappers, "\tSwigCgocallBack()\n", NULL);
+	Printv(f_go_wrappers, "\tdefer SwigCgocallBackDone()\n", NULL);
       }
 
       Printv(f_go_wrappers, "\t", NULL);
