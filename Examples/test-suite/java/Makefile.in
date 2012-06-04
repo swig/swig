@@ -79,8 +79,8 @@ setup = \
 run_testcase = \
 	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) -classpath . `find . -name "*.java"` && cd .. && \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(COMPILETOOL) $(JAVAC) -classpath . -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath . $*_runme; \
+	  $(COMPILETOOL) $(JAVAC) -classpath $(JAVA_HOME)/lib/tools.jar:. -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath $(JAVA_HOME)/lib/tools.jar:. $*_runme; \
 	fi
 
 # Clean: remove testcase directories
