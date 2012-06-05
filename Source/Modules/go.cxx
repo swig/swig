@@ -952,13 +952,32 @@ private:
       }
 
       if (gccgo_flag) {
-	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
-	Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
+	if (!is_constructor) {
+	  Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
+	  Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
+	} else {
+	  // For a constructor the wrapper function will return a
+	  // uintptr but we will return an interface.  We want to
+	  // convert the uintptr to the interface after calling
+	  // SwigCgocallDone, so that we don't try to allocate memory
+	  // while the Go scheduler can't see us.
+	  Printv(f_go_wrappers, "\tvar done bool\n", NULL);
+	  Printv(f_go_wrappers, "\tdefer func() {\n", NULL);
+	  Printv(f_go_wrappers, "\t\tif !done {\n", NULL);
+	  Printv(f_go_wrappers, "\t\t\tSwigCgocallDone()\n", NULL);
+	  Printv(f_go_wrappers, "\t\t}\n", NULL);
+	  Printv(f_go_wrappers, "\t}()\n", NULL);
+	  Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
+	}
       }
 
       Printv(f_go_wrappers, "\t", NULL);
       if (SwigType_type(result) != T_VOID) {
-	Printv(f_go_wrappers, "return ", NULL);
+	if (gccgo_flag && is_constructor) {
+	  Printv(f_go_wrappers, "swig_r := ", NULL);
+	} else {
+	  Printv(f_go_wrappers, "return ", NULL);
+	}
       }
 
       Printv(f_go_wrappers, wrapper_name, "(", NULL);
@@ -994,6 +1013,13 @@ private:
 	p = nextParm(p);
       }
       Printv(f_go_wrappers, ")\n", NULL);
+
+      if (gccgo_flag && is_constructor) {
+	Printv(f_go_wrappers, "\tSwigCgocallDone()\n", NULL);
+	Printv(f_go_wrappers, "\tdone = true\n", NULL);
+	Printv(f_go_wrappers, "\treturn swig_r\n", NULL);
+      }
+
       Printv(f_go_wrappers, "}\n", NULL);
     }
 
@@ -2549,8 +2575,8 @@ private:
       Printv(f_go_wrappers, "\tp := &", director_struct_name, "{0, v}\n", NULL);
 
       if (gccgo_flag) {
-	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
 	Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
+	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
       }
 
       Printv(f_go_wrappers, "\tp.", class_receiver, " = ", fn_name, NULL);
@@ -3084,8 +3110,8 @@ private:
       Printv(f_go_wrappers, "\t}\n", NULL);
 
       if (gccgo_flag) {
-	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
 	Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
+	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
       }
 
       Printv(f_go_wrappers, "\t", NULL);
@@ -3234,8 +3260,8 @@ private:
       Printv(f_go_wrappers, " {\n", NULL);
 
       if (gccgo_flag) {
-	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
 	Printv(f_go_wrappers, "\tdefer SwigCgocallDone()\n", NULL);
+	Printv(f_go_wrappers, "\tSwigCgocall()\n", NULL);
       }
 
       Printv(f_go_wrappers, "\t", NULL);
