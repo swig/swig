@@ -104,7 +104,7 @@ extern void _cgo_panic(const char *);
 
 #if SWIG_GCC_VERSION < 40700
 #define SwigDoCgocall()
-#define SwigDoCgocalldone()
+#define SwigDoCgocallDone()
 #define SwigDoCgocallBack()
 #define SwigDoCgocallBackDone()
 #elif SWIG_GCC_VERSION == 40700
