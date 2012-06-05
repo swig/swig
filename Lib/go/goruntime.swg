@@ -165,6 +165,9 @@ static _gostring_ _swig_makegostring(const char *p, size_t l) {
 %insert(go_header) %{
 
 import _ "runtime/cgo"
+import "unsafe"
+
+type _ unsafe.Pointer
 
 %}
 
@@ -173,8 +176,11 @@ import _ "runtime/cgo"
 %insert(go_header) %{
 
 import "syscall"
+import "unsafe"
 
 type _ syscall.Sockaddr
+
+type _ unsafe.Pointer
 
 %}
 
