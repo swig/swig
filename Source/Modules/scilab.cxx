@@ -459,8 +459,8 @@ public:
     Printv(getFunctionWrapper->def, "int ", getFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
 
     /* Check the number of input and output */
-    Printf(getFunctionWrapper->def, "CheckInputArgument(0, 0);\n");
-    Printf(getFunctionWrapper->def, "CheckOutputArgument(1, 1);\n");
+    Printf(getFunctionWrapper->def, "CheckInputArgument(pvApiCtx, 0, 0);\n");
+    Printf(getFunctionWrapper->def, "CheckOutputArgument(pvApiCtx, 1, 1);\n");
 
     String *varoutTypemap = Swig_typemap_lookup("varout", node, origVariableName, 0);
     if (varoutTypemap != NULL) {
@@ -486,8 +486,8 @@ public:
       Printv(setFunctionWrapper->def, "int ", setFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
 
       /* Check the number of input and output */
-      Printf(setFunctionWrapper->def, "CheckInputArgument(1, 1);\n");
-      Printf(setFunctionWrapper->def, "CheckOutputArgument(1, 1);\n");
+      Printf(setFunctionWrapper->def, "CheckInputArgument(pvApiCtx, 1, 1);\n");
+      Printf(setFunctionWrapper->def, "CheckOutputArgument(pvApiCtx, 1, 1);\n");
 
       String *varinTypemap = Swig_typemap_lookup("varin", node, origVariableName, 0);
       if (varinTypemap != NULL) {
@@ -524,8 +524,8 @@ public:
     Printv(getFunctionWrapper->def, "int ", getFunctionName, "(char *fname, unsigned long fname_len) {\n", NIL);
 
     /* Check the number of input and output */
-    Printf(getFunctionWrapper->def, "CheckInputArgument(0, 0);\n");
-    Printf(getFunctionWrapper->def, "CheckOutputArgument(1, 1);\n");
+    Printf(getFunctionWrapper->def, "CheckInputArgument(pvApiCtx, 0, 0);\n");
+    Printf(getFunctionWrapper->def, "CheckOutputArgument(pvApiCtx, 1, 1);\n");
 
     constantTypemap = Swig_typemap_lookup("constcode", node, nodeName, 0);
     if (constantTypemap != NULL) {
