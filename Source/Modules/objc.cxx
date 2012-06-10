@@ -30,7 +30,7 @@ protected:
   File *f_wrappers;
   File *f_init;
   File *f_proxy_h;
-  File *f_proxy_m;
+  File *f_proxy_mm;
 
   bool proxy_flag;		// Flag for generating proxy classes
   bool native_function_flag;	// Flag for when wrapping a native function
@@ -68,7 +68,7 @@ public:
 	  f_wrappers(NULL),
 	  f_init(NULL),
       f_proxy_h(NULL),
-      f_proxy_m(NULL),
+      f_proxy_mm(NULL),
       proxy_flag(true),
       native_function_flag(false),
       enum_constant_flag(false),
@@ -132,8 +132,8 @@ public:
     // Get the module name
     String *modulename = Getattr(n, "name");
 
-    String *file_h = NewStringf("%sWrapper.h", modulename);
-    String *file_mm = NewStringf("%sWrapper.mm", modulename);
+    String *file_h = NewStringf("%s_wrap.h", modulename);
+    String *file_mm = NewStringf("%s_wrap.mm", modulename);
 
     f_runtime = NewString("");
     f_init = NewString("");
@@ -180,26 +180,39 @@ public:
 	emitTypeWrapperClass(swig_type.key, swig_type.item);
       }
 
-      String *proxy_h = NewStringf("%sProxy.h", modulename);
+      String *proxy_h = NewStringf("%s_proxy.h", modulename);
       f_proxy_h = NewFile(proxy_h, "w", SWIG_output_files());
       if (!f_proxy_h) {
 	FileErrorDisplay(f_proxy_h);
 	SWIG_exit(EXIT_FAILURE);
       }
 
-      String *proxy_m = NewStringf("%sProxy.m", modulename);
-      f_proxy_m = NewFile(proxy_m, "w", SWIG_output_files());
-      if (!f_proxy_m) {
-	FileErrorDisplay(f_proxy_m);
+      String *proxy_m = NewStringf("%s_proxy.mm", modulename);
+      f_proxy_mm = NewFile(proxy_m, "w", SWIG_output_files());
+      if (!f_proxy_mm) {
+	FileErrorDisplay(f_proxy_mm);
 	SWIG_exit(EXIT_FAILURE);
       }
 
       emitBanner(f_proxy_h);
       Printf(f_proxy_h, "\n#import <Foundation/Foundation.h>\n\n");
-      Printf(f_proxy_m, "#import \"%s\"\n\n", file_h);
-      Printf(f_proxy_m, "#import \"%s\"\n\n", proxy_h);
+      Printf(f_proxy_h, "\n#ifdef __cplusplus\n");
+      Printf(f_proxy_h, "extern \"C\" {\n");
+      Printf(f_proxy_h, "#endif\n\n");
       Printv(f_proxy_h, swigtypes_h_code, proxy_global_constants_code, "\n", proxy_h_code, NIL);
-      Printv(f_proxy_m, swigtypes_m_code, proxy_m_code, NIL);
+      Printf(f_proxy_h, "\n#ifdef __cplusplus\n");
+      Printf(f_proxy_h, "}\n");
+      Printf(f_proxy_h, "#endif\n");
+
+      Printf(f_proxy_mm, "#import \"%s\"\n\n", file_h);
+      Printf(f_proxy_mm, "#import \"%s\"\n\n", proxy_h);
+      Printf(f_proxy_mm, "\n#ifdef __cplusplus\n");
+      Printf(f_proxy_mm, "extern \"C\" {\n");
+      Printf(f_proxy_mm, "#endif\n\n");
+      Printv(f_proxy_mm, swigtypes_m_code, proxy_m_code, NIL);
+      Printf(f_proxy_mm, "#ifdef __cplusplus\n");
+      Printf(f_proxy_mm, "}\n");
+      Printf(f_proxy_mm, "#endif\n");
 
       Delete(proxy_h);
       proxy_h = NULL;
@@ -211,8 +224,8 @@ public:
       Delete(proxy_m_code);
       proxy_m_code = NULL;
 
-      Close(f_proxy_m);
-      Delete(f_proxy_m);
+      Close(f_proxy_mm);
+      Delete(f_proxy_mm);
       Close(f_proxy_h);
       Delete(f_proxy_h);
     }

@@ -3,76 +3,43 @@
 #######################################################################
 
 LANGUAGE     = objc
-OBJC         = gcc
+OBJC	     = @OBJC@
 SCRIPTSUFFIX = _runme.m
+
 srcdir       = @srcdir@
-top_srcdir   = @top_srcdir@/..
-top_builddir = @top_builddir@/..
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
 
 include $(srcdir)/../common.mk
-
-# Overridden variables here
-SWIGOPT +=
-INTERFACEDIR = ../../
-CXXSRCS = *.mm
-OBJCXXSRCS = *.m
 
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup)
-	+(cd $* && $(swig_and_compile_cpp))
+	+$(swig_and_compile_cpp)
 	$(run_testcase)
 
 %.ctest:
 	$(setup)
-	+(cd $* && $(swig_and_compile_c))
+	+$(swig_and_compile_c)
 	$(run_testcase)
 
 %.multicpptest: 
 	$(setup)
-	+(cd $* && $(swig_and_compile_multi_cpp))
+	+$(swig_and_compile_multi_cpp)
 	$(run_testcase)
-
-# Makes a directory for the testcase if it does not exist
-setup = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
-	else								  \
-	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
-	fi;								  \
-	if [ ! -d $* ]; then						  \
-		mkdir $*;						  \
-	fi;
-
-swig_and_compile_cpp = \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CXXSRCS="*.mm" OBJCXXSRCS="$(OBJCXXSRCS)" \
-	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
-	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
-	$(LANGUAGE)$(VARIANT)_cpp
-
-swig_and_compile_c =  \
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile CSRCS="$(CSRCS)" OBJCXXSRCS="$(OBJCXXSRCS)" \
-	SWIG_LIB="$(SWIG_LIB)" SWIG="$(SWIG)" \
-	INCLUDES="$(INCLUDES)" SWIGOPT="$(SWIGOPT)" NOLINK=true \
-	TARGET="$(TARGETPREFIX)$*$(TARGETSUFFIX)" INTERFACEDIR="$(INTERFACEDIR)" INTERFACE="$*.i" \
-	$(LANGUAGE)$(VARIANT)
 
 
 # Compiles Objective-C files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.m appended after the testcase name.
 run_testcase = \
 	if test -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-         $(COMPILETOOL) $(OBJC) $(OBJC_INCLUDE) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -o  $*_runme -framework Foundation -L./$*/ -l$* && \
-        `cp ./$*/lib* .` && \
-	env LD_LIBRARY_PATH=$*:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
+	  $(COMPILETOOL) $(OBJC) $(OBJCINCLUDES) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) -framework Foundation -L. -l$* -o $*_runme && \
+       	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
 
-# Clean: remove testcase directories
+# Cleans the testcase
 %.clean:
-	@if [ -d $* ]; then \
-		rm -rf $*; \
-	fi;
+	@rm -f $*_wrap.* $*_proxy.* $*_runme
 
 clean:
-	@rm -f *.o hs_err*.log
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile objc_clean
