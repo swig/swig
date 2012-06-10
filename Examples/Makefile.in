@@ -1006,26 +1006,27 @@ csharp_clean:
 ##################################################################
 #####                      OBJC                           ######
 ##################################################################
-OBJC=@OBJC@
-OBJC_INCLUDE=@OBJCINC@
-OBJC_DLNK=@OBJCDYNAMICLINKING@
-OBJC_LIBS=@OBJCLIBS@
-OBJC_LIBPREFIX = @OBJCLIBRARYPREFIX@
-OBJCCFLAGS=@OBJCCFLAGS@
-OBJCSO=@OBJCSO@
-OBJCLDSHARED=@OBJCLDSHARED@
-OBJCCXXSHARED=@OBJCCXXSHARED@
-
-OBJS=*.o
-
+OBJC = @OBJC@
+OBJCXXSRCS = $(INTERFACE:.i=Wrapper.mm) $(INTERFACE:.i=Proxy.m)
+OBJCINCLUDES = @OBJCINC@
+OBJCDLINK = @OBJCDYNAMICLINKING@
+OBJCLIBS = @OBJCLIBS@
+OBJCLIBPREFIX = @OBJCLIBRARYPREFIX@
+OBJCSO = @OBJCSO@
+OBJCLDSHARED = @OBJCLDSHARED@
+OBJCCXXSHARED = @OBJCCXXSHARED@
+OBJCXXFLAGS = @OBJCCFLAGS@
+OBJCFLAGS = @OBJCFLAGS@
+ 
+OBJS = *.o
 # ----------------------------------------------------------------
 # Build a Objective-C dynamically loadable module (C)
 # ----------------------------------------------------------------
 
 objc: $(SRCS)
 	$(SWIG) -objc $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS)  $(OBJCCFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJC_INCLUDE)	
-	$(OBJCLDSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJC_DLNK) $(OBJC_LIBS) $(LIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(SRCS)  $(OBJCXXFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJCINCLUDES)	
+	$(OBJCLDSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJCDLINK) $(OBJCLIBS) $(LIBS) -o $(OBJCLIBPREFIX)$(TARGET)$(OBJCSO)
 
 # ----------------------------------------------------------------
 # Build a Objective-C dynamically loadable module (C++)
@@ -1033,15 +1034,15 @@ objc: $(SRCS)
 
 objc_cpp: $(SRCS)
 	$(SWIG) -objc -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(OBJCCFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJC_INCLUDE)	
-	$(OBJCCXXSHARED) $(CFLAGS) $(OBJCFLAGS) $(OBJS) $(OBJC_DLNK) $(OBJC_LIBS) $(LIBS) $(CPP_DLLIBS) -o $(OBJC_LIBPREFIX)$(TARGET)$(OBJCSO)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(OBJCXXFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJCINCLUDES)	
+	$(OBJCCXXSHARED) $(CFLAGS) $(OBJCXXFLAGS) $(OBJS) $(OBJCDLINK) $(OBJCLIBS) $(LIBS) $(CPPDLLIBS) -o $(OBJCLIBPREFIX)$(TARGET)$(OBJCSO)
 
 # ----------------------------------------------------------------
 # Compile and run Objective-C & Objective-C++ files
 # ----------------------------------------------------------------
 objc_run: $(SRCS)
-	$(COMPILETOOL) $(OBJC) $(OBJC_INCLUDE) $(OBJCFLAGS) $(OBJCCFLAGS) $(OBJCSRCS) $(OBJC_LIBS) -L. -l$(TARGET) -o runme
-	env LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH ./runme
+	$(COMPILETOOL) $(OBJC) $(OBJCINCLUDES) $(OBJCFLAGS) $(OBJCXXFLAGS) runme.m $(OBJCLIBS) -L. -l$(TARGET) -o runme
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL)./runme
 # -----------------------------------------------------------------
 # Cleaning the Objective-C examples
 # -----------------------------------------------------------------
