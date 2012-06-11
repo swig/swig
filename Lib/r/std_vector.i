@@ -1,7 +1,6 @@
 // R specific swig components
 /*
   Vectors
-  Thanks to Richard Beare - richard.beare@ieee.org for StdVectorTraits
 */
 
 %fragment("StdVectorTraits","header",fragment="StdSequenceTraits")
