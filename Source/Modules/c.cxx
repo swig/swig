@@ -12,6 +12,22 @@ char cvsroot_c_cxx[] = "$Id: c.cxx 11186 2009-04-11 10:46:13Z maciekd $";
 #include <ctype.h>
 #include "swigmod.h"
 
+#ifdef IS_SET_TO_ONE
+#undef IS_SET_TO_ONE
+#endif
+#define IS_SET_TO_ONE(n, var) \
+       (Cmp(Getattr(n, var), "1") == 0)
+#ifdef IS_SET
+#undef IS_SET
+#endif
+#define IS_SET(n, var) \
+       (Getattr(n, var))
+#ifdef IS_EQUAL
+#undef IS_EQUAL
+#endif
+#define IS_EQUAL(val1, val2) \
+       (Cmp(val1, val2) == 0)
+
 int SwigType_isbuiltin(SwigType *t) {
   const char* builtins[] = { "void", "short", "int", "long", "char", "float", "double", "bool", 0 };
   int i = 0;
@@ -401,396 +417,577 @@ ready:
     return result;
   }
 
+  virtual void printProxy(Node *n, SwigType *return_type, String *wname, String *name, String *proto, String *arg_names)
+    {
+       String *vis_hint = NewString("");
+       // use proxy-type for return type if supplied
+       SwigType *proxy_type = Getattr(n, "c:stype");
+
+       if (proxy_type) {
+            return_type = SwigType_str(proxy_type, 0);
+       }
+
+       // emit proxy functions prototypes
+       Printv(f_proxy_code_init, return_type, " ", wname, "(", proto, ");\n", NIL);
+       Printv(f_proxy_code_body, return_type, " ", name, "(", proto, ") {\n", NIL);
+
+       // call to the wrapper function
+       Printv(f_proxy_code_body, "  return ", wname, "(", arg_names, ");\n}\n", NIL);
+
+       // add function declaration to the proxy header file
+       // add visibility hint for the compiler (do not override this symbol)
+       Printv(vis_hint, "SWIGPROTECT(", return_type, " ", name, "(", proto, ");)\n\n", NIL);
+       Printv(f_proxy_header, vis_hint, NIL);
+
+       Delete(vis_hint);
+    }
+
+  virtual void functionWrapperCSpecific(Node *n)
+    {
+       // this is C function, we don't apply typemaps to it
+       String *name = Copy(Getattr(n, "sym:name"));
+       SwigType *type = Getattr(n, "type");
+       SwigType *return_type = NULL;
+       String *wname = Swig_name_wrapper(name);
+       String *arg_names = NULL;
+       ParmList *parms = Getattr(n, "parms");
+       Parm *p;
+       String *proto = NewString("");
+       int gencomma = 0;
+       bool is_void_return = (SwigType_type(type) == T_VOID);
+
+       // create new function wrapper object
+       Wrapper *wrapper = NewWrapper();
+
+       // create new wrapper name
+       Setattr(n, "wrap:name", wname);
+
+       // create function call
+       arg_names = Swig_cfunction_call(empty_string, parms);
+       if (arg_names) {
+            Delitem(arg_names, 0);
+            Delitem(arg_names, DOH_END);
+       }
+       return_type = SwigType_str(type, 0);
+
+       // emit wrapper prototype and code
+       for (p = parms, gencomma = 0; p; p = nextSibling(p)) {
+            Printv(proto, gencomma ? ", " : "", SwigType_str(Getattr(p, "type"), 0), " ", Getattr(p, "lname"), NIL);
+            gencomma = 1;
+       }
+       Printv(wrapper->def, return_type, " ", wname, "(", proto, ") {\n", NIL);
+
+       // attach 'check' typemaps
+       Swig_typemap_attach_parms("check", parms, wrapper);
+
+       // insert constraint checking
+       for (p = parms; p; ) {
+            String *tm;
+            if ((tm = Getattr(p, "tmap:check"))) {
+                 Replaceall(tm, "$target", Getattr(p, "lname"));
+                 Replaceall(tm, "$name", name);
+                 Printv(wrapper->code, tm, "\n", NIL);
+                 p = Getattr(p, "tmap:check:next");
+            }
+            else {
+                 p = nextSibling(p);
+            }
+       }
+
+       Append(wrapper->code, prepend_feature(n));
+       if (!is_void_return) {
+            Printv(wrapper->code, return_type, " result;\n", NIL);
+            Printf(wrapper->code, "result = ");
+       }
+       Printv(wrapper->code, name, "(", arg_names, ");\n", NIL);
+       Append(wrapper->code, append_feature(n));
+       if (!is_void_return)
+         Printf(wrapper->code, "return result;\n");
+       Printf(wrapper->code, "}");
+
+       if (proxy_flag) // take care of proxy function
+         printProxy(n, return_type, wname, name, proto, arg_names);
+
+       Wrapper_print(wrapper, f_wrappers);
+
+       // cleanup
+       Delete(proto);
+       Delete(arg_names);
+       Delete(wname);
+       Delete(return_type);
+       Delete(name);
+       DelWrapper(wrapper);
+    }
+
+  static void functionWrapperPrepareArgs(const ParmList *parms)
+    {
+       Parm *p;
+       int index = 1;
+       String *lname = 0;
+
+       for (p = (Parm*)parms, index = 1; p; (p = nextSibling(p)), index++) {
+            if(!(lname = Getattr(p, "lname"))) {
+                 lname = NewStringf("arg%d", index);
+                 Setattr(p, "lname", lname);
+            }
+       }
+    }
+
+  virtual void functionWrapperAppendOverloaded(String *name, const ParmList *parms)
+    {
+       String *over_suffix = NewString("");
+       Parm *p;
+       String *mangled;
+
+       for (p = (Parm*)parms; p; p = nextSibling(p)) {
+            if (IS_SET(p, "c:objstruct"))
+              continue;
+            mangled = get_mangled_type(Getattr(p, "type"));
+            Printv(over_suffix, "_", mangled, NIL);
+       }
+       Append(name, over_suffix);
+       Delete(over_suffix);
+    }
+
+  static void functionWrapperAddCPPResult(Wrapper *wrapper, const SwigType *type, const String *tm)
+    {
+       SwigType *cpptype;
+       SwigType *tdtype = SwigType_typedef_resolve_all(tm);
+       if (tdtype)
+         cpptype = tdtype;
+       else
+         cpptype = (SwigType*)tm;
+       if (SwigType_ismemberpointer(type))
+         Wrapper_add_local(wrapper, "cppresult", SwigType_str(type, "cppresult"));
+       else
+         Wrapper_add_local(wrapper, "cppresult", SwigType_str(cpptype, "cppresult"));
+    }
+
+  virtual void functionWrapperCPPSpecificProxy(Node *n, String *name)
+    {
+       // C++ function wrapper proxy code
+       SwigType *return_type = Getattr(n, "return_type");
+       String *pname = Swig_name_wrapper(name);
+       String *arg_names = NewString("");
+       ParmList *parms = Getattr(n, "parms");
+       Parm *p;
+       String *proto = NewString("");
+       int gencomma = 0;
+
+       // attach the standard typemaps
+       Swig_typemap_attach_parms("in", parms, 0);
+
+       // attach 'ctype' typemaps
+       Swig_typemap_attach_parms("ctype", parms, 0);
+
+       // prepare function definition
+       for (p = parms, gencomma = 0; p; ) {
+            String *tm;
+
+            while (p && checkAttribute(p, "tmap:in:numinputs", "0")) {
+                 p = Getattr(p, "tmap:in:next");
+            }
+            if (!p) break;
+
+            SwigType *type = Getattr(p, "type");
+            if (SwigType_type(type) == T_VOID) {
+                 p = nextSibling(p);
+                 continue;
+            }
+            String *lname = Getattr(p, "lname");
+            String *c_parm_type = NewString("");
+            String *proxy_parm_type = NewString("");
+            String *arg_name = NewString("");
+
+            SwigType *tdtype = SwigType_typedef_resolve_all(type);
+            if (tdtype)
+              type = tdtype;
+
+            Printf(arg_name, "c%s", lname);
+
+            // set the appropriate type for parameter
+            if ((tm = Getattr(p, "tmap:ctype"))) {
+                 Printv(c_parm_type, tm, NIL);
+                 // template handling
+                 Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
+            }
+            else {
+                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
+            }
+
+            // use proxy-type for parameter if supplied
+            String* stype = Getattr(p, "c:stype");
+            if (stype) {
+                 Printv(proxy_parm_type, SwigType_str(stype, 0), NIL);
+            }
+            else {
+                 Printv(proxy_parm_type, c_parm_type, NIL);
+            }
+
+            Printv(arg_names, gencomma ? ", " : "", arg_name, NIL);
+            Printv(proto, gencomma ? ", " : "", proxy_parm_type, " ", arg_name, NIL);
+            gencomma = 1;
+
+            // apply typemaps for input parameter
+            if (IS_EQUAL(nodeType(n), "destructor")) {
+                 p = Getattr(p, "tmap:in:next");
+            }
+            else if ((tm = Getattr(p, "tmap:in"))) {
+                 Replaceall(tm, "$input", arg_name);
+                 p = Getattr(p, "tmap:in:next");
+            }
+            else {
+                 Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
+                 p = nextSibling(p);
+            }
+
+            Delete(arg_name);
+            Delete(proxy_parm_type);
+            Delete(c_parm_type);
+       }
+
+       printProxy(n, return_type, pname, name, proto, arg_names);
+
+       // cleanup
+       Delete(proto);
+       Delete(arg_names);
+       Delete(pname);
+    }
+
+  virtual void functionWrapperCPPSpecificWrapper(Node *n, String *name)
+    {
+       // C++ function wrapper
+       String *storage = Getattr(n, "storage");
+       SwigType *type = Getattr(n, "type");
+       SwigType *otype = Copy(type);
+       SwigType *return_type = Getattr(n, "return_type");
+       String *wname = Swig_name_wrapper(name);
+       String *arg_names = NewString("");
+       ParmList *parms = Getattr(n, "parms");
+       Parm *p;
+       int gencomma = 0;
+       bool is_void_return = (SwigType_type(type) == T_VOID);
+       bool return_object = false;
+       // create new function wrapper object
+       Wrapper *wrapper = NewWrapper();
+
+       // create new wrapper name
+       Setattr(n, "wrap:name", wname);
+
+       // add variable for holding result of original function 'cppresult'
+       // WARNING: testing typemap approach
+       if (!is_void_return && !IS_SET_TO_ONE(n, "c:objstruct")) {
+            String *tm;
+            if ((tm = Swig_typemap_lookup("cppouttype", n, "", 0))) {
+                 functionWrapperAddCPPResult(wrapper, type, tm);
+                 return_object = checkAttribute(n, "tmap:cppouttype:retobj", "1");
+            }
+            else {
+                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cppouttype typemap defined for %s\n", SwigType_str(type, 0));
+            }
+       }
+
+       // create wrapper function prototype
+       Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname, "(", NIL);
+
+       // attach the standard typemaps
+       emit_attach_parmmaps(parms, wrapper);
+       Setattr(n, "wrap:parms", parms);
+
+       // attach 'ctype' typemaps
+       Swig_typemap_attach_parms("ctype", parms, wrapper);
+
+       // prepare function definition
+       for (p = parms, gencomma = 0; p; ) {
+            String *tm;
+
+            while (p && checkAttribute(p, "tmap:in:numinputs", "0")) {
+                 p = Getattr(p, "tmap:in:next");
+            }
+            if (!p) break;
+
+            SwigType *type = Getattr(p, "type");
+            if (SwigType_type(type) == T_VOID) {
+                 p = nextSibling(p);
+                 continue;
+            }
+            String *lname = Getattr(p, "lname");
+            String *c_parm_type = NewString("");
+            String *proxy_parm_type = NewString("");
+            String *arg_name = NewString("");
+
+            SwigType *tdtype = SwigType_typedef_resolve_all(type);
+            if (tdtype)
+              type = tdtype;
+
+            Printf(arg_name, "c%s", lname);
+
+            // set the appropriate type for parameter
+            if ((tm = Getattr(p, "tmap:ctype"))) {
+                 Printv(c_parm_type, tm, NIL);
+                 // template handling
+                 Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
+            }
+            else {
+                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
+            }
+
+            // use proxy-type for parameter if supplied
+            String* stype = Getattr(p, "c:stype");
+            if (stype) {
+                 Printv(proxy_parm_type, SwigType_str(stype, 0), NIL);
+            }
+            else {
+                 Printv(proxy_parm_type, c_parm_type, NIL);
+            }
+
+            Printv(arg_names, gencomma ? ", " : "", arg_name, NIL);
+            Printv(wrapper->def, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
+            gencomma = 1;
+
+            // apply typemaps for input parameter
+            if (IS_EQUAL(nodeType(n), "destructor")) {
+                 p = Getattr(p, "tmap:in:next");
+            }
+            else if ((tm = Getattr(p, "tmap:in"))) {
+                 Replaceall(tm, "$input", arg_name);
+                 Setattr(p, "emit:input", arg_name);
+                 Printf(wrapper->code, "%s\n", tm);
+                 p = Getattr(p, "tmap:in:next");
+            }
+            else {
+                 Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
+                 p = nextSibling(p);
+            }
+
+            Delete(arg_name);
+            Delete(proxy_parm_type);
+            Delete(c_parm_type);
+       }
+
+       Printf(wrapper->def, ") {");
+
+       if (!IS_EQUAL(nodeType(n), "destructor")) {
+            // emit variables for holding parameters
+            emit_parameter_variables(parms, wrapper);
+
+            // emit variable for holding function return value
+            emit_return_variable(n, return_type, wrapper);
+       }
+
+       // insert constraint checking
+       for (p = parms; p; ) {
+            String *tm;
+            if ((tm = Getattr(p, "tmap:check"))) {
+                 Replaceall(tm, "$target", Getattr(p, "lname"));
+                 Replaceall(tm, "$name", name);
+                 Printv(wrapper->code, tm, "\n", NIL);
+                 p = Getattr(p, "tmap:check:next");
+            }
+            else {
+                 p = nextSibling(p);
+            }
+       }
+
+       // create action code
+       String *action = Getattr(n, "wrap:action");
+       if (!action)
+         action = NewString("");
+
+       String *cbase_name = Getattr(n, "c:base_name");
+       if (cbase_name) {
+            Replaceall(action, "arg1)->", NewStringf("(%s*)arg1)->", Getattr(n, "c:inherited_from")));
+            Replaceall(action, Getattr(n, "name"), cbase_name);
+       }
+
+       // handle special cases of cpp return result
+       if (!IS_EQUAL(nodeType(n), "constructor")) {
+            if (SwigType_isenum(SwigType_base(type))){
+                 if (return_object)
+                   Replaceall(action, "result =", "cppresult = (int)");
+                 else Replaceall(action, "result =", "cppresult = (int*)");
+            }
+            else if (return_object && Getattr(n, "c:retval") && !SwigType_isarray(type)
+                  && !IS_EQUAL(storage, "static")) {
+                 // returning object by value
+                 String *str = SwigType_str(SwigType_add_reference(SwigType_base(type)), "_result_ref");
+                 String *lstr = SwigType_lstr(type, 0);
+                 if (IS_EQUAL(Getattr(n, "kind"), "variable")) {
+                      Delete(action);
+                      action = NewStringf("{const %s = %s;", str, Swig_cmemberget_call(Getattr(n, "name"), type, 0, 0));
+                 }
+                 else {
+                      String *call_str = NewStringf("{const %s = %s", str,
+                            SwigType_ispointer(SwigType_typedef_resolve_all(otype)) ? "*" : "");
+                      Replaceall(action, "result =", call_str);
+                      Delete(call_str);
+                 }
+                 if (Getattr(n, "nested"))
+                   Replaceall(action, "=", NewStringf("= *(%s)(void*) &", SwigType_str(otype, 0)));
+                 Printf(action, "cppresult = (%s*) &_result_ref;}", lstr);
+                 Delete(str);
+                 Delete(lstr);
+            }
+            else
+              Replaceall(action, "result =", "cppresult = ");
+       }
+
+       // prepare action code to use, e.g. insert try-catch blocks
+       action = emit_action(n);
+
+       // emit output typemap if needed
+       if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
+            String *tm;
+            if ((tm = Swig_typemap_lookup_out("out", n, "cppresult", wrapper, action))) {
+                 Replaceall(tm, "$result", "result");
+                 Printf(wrapper->code, "%s", tm);
+                 if (Len(tm))
+                   Printf(wrapper->code, "\n");
+            }
+            else {
+                 Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name"));
+            }
+       }
+       else {
+            Append(wrapper->code, action);
+       }
+
+       String *except = Getattr(n, "feature:except");
+       if (Getattr(n, "throws") || except) {
+            if (!except || (Cmp(except, "0") != 0))
+              Printf(wrapper->code, "if (SWIG_exc.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
+       }
+
+       // insert cleanup code
+       for (p = parms; p; ) {
+            String *tm;
+            if ((tm = Getattr(p, "tmap:freearg"))) {
+                 if (tm && (Len(tm) != 0)) {
+                      String *input = NewStringf("c%s", Getattr(p, "lname"));
+                      Replaceall(tm, "$source", Getattr(p, "lname"));
+                      Replaceall(tm, "$input", input);
+                      Delete(input);
+                      Printv(wrapper->code, tm, "\n", NIL);
+                 }
+                 p = Getattr(p, "tmap:freearg:next");
+            }
+            else {
+                 p = nextSibling(p);
+            }
+       }
+
+       if (!is_void_return)
+         Append(wrapper->code, "return result;\n");
+
+       Append(wrapper->code, "}\n");
+
+       Wrapper_print(wrapper, f_wrappers);
+
+       // cleanup
+       Delete(arg_names);
+       Delete(wname);
+       Delete(return_type);
+       Delete(otype);
+       DelWrapper(wrapper);
+    }
+
+  virtual void functionWrapperCPPSpecificMarkFirstParam(Node *n)
+    {
+       bool is_global = IS_SET_TO_ONE(n, "c:globalfun");  // possibly no longer neede
+       String *storage = Getattr(n, "storage");
+       ParmList *parms = Getattr(n, "parms");
+
+       // mark the first parameter as object-struct
+       if (!is_global && storage && !IS_EQUAL(storage, "static")) {
+            if (IS_SET_TO_ONE(n, "ismember") &&
+                  !IS_EQUAL(nodeType(n), "constructor")) {
+                 Setattr(parms, "c:objstruct", "1");
+                 if (!IS_SET(parms, "lname"))
+                   Setattr(parms, "lname", "arg1");
+                 SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
+                 SwigType_add_pointer(stype);
+                 Setattr(parms, "c:stype", stype);
+            }
+       }
+    }
+
+  virtual void functionWrapperCPPSpecificSetReturnType(Node *n)
+    {
+       SwigType *type = Getattr(n, "type");
+       SwigType *return_type = NewString("");
+       String *tm;
+
+       // set the return type
+       if (IS_SET_TO_ONE(n, "c:objstruct")) {
+            Printv(return_type, SwigType_str(type, 0), NIL);
+       }
+       else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
+            String *ctypeout = Getattr(n, "tmap:couttype:out");
+            if (ctypeout)
+              tm = ctypeout;
+            Printf(return_type, "%s", tm);
+            // template handling
+            Replaceall(return_type, "$tt", SwigType_lstr(type, 0));
+       }
+       else {
+            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
+       }
+       Setattr(n, "return_type", return_type);
+    }
+
+  /*
+  virtual void functionWrapperCPPSpecific(Node *n)
+    {
+    }
+    */
+
+  virtual void functionWrapperCPPSpecific(Node *n)
+    {
+       ParmList *parms = Getattr(n, "parms");
+       String *name = Copy(Getattr(n, "sym:name"));
+       SwigType *type = Getattr(n, "type");
+       SwigType *tdtype = NULL;
+
+       functionWrapperCPPSpecificMarkFirstParam(n);
+
+       // mangle name if function is overloaded
+       if (IS_SET(n, "sym:overloaded")) {
+            if (!IS_SET(n, "copy_constructor")) {
+                 functionWrapperAppendOverloaded(name, parms);
+            }
+       }
+
+       // resolve correct type
+       if((tdtype = SwigType_typedef_resolve_all(type)))
+         Setattr(n, "type", tdtype);
+
+       functionWrapperCPPSpecificSetReturnType(n);
+
+       // make sure lnames are set
+       functionWrapperPrepareArgs(parms);
+
+       // C++ function wrapper
+       functionWrapperCPPSpecificWrapper(n, name);
+
+       if (proxy_flag) // take care of proxy function
+         functionWrapperCPPSpecificProxy(n, name);
+
+       Delete(name);
+    }
+
   /* ----------------------------------------------------------------------
    * functionWrapper()
    * ---------------------------------------------------------------------- */
    
   virtual int functionWrapper(Node *n) {
-    String *name = Copy(Getattr(n, "sym:name"));
-    String *storage = Getattr(n, "storage");
-    String *vis_hint = NewString("");
-    SwigType *type = Getattr(n, "type");
-    SwigType *otype = Copy(type);
-    SwigType *return_type = NewString("");
-    String *wname;
-    String *arg_names = NewString("");
-    ParmList *parms = Getattr(n, "parms");
-    Parm *p;
-    String *tm;
-    String *proto = NewString("");
-    String *over_suffix = NewString("");
-    int gencomma;
-    bool is_global = Cmp(Getattr(n, "c:globalfun"), "1") == 0;  // possibly no longer neede
-    bool is_void_return = (SwigType_type(type) == T_VOID);
-    bool return_object = false;
-    
-    // create new function wrapper object
-    Wrapper *wrapper = NewWrapper();
 
-    if (!CPlusPlus) {
-      // this is C function, we don't apply typemaps to it
-      
-      // create new wrapper name
-      wname = Swig_name_wrapper(name);
-      Setattr(n, "wrap:name", wname);
-
-      // create function call
-      arg_names = Swig_cfunction_call(empty_string, parms);
-      if (arg_names) {
-        Delitem(arg_names, 0);
-        Delitem(arg_names, DOH_END);
-      }
-      return_type = SwigType_str(type, 0);
-
-      // emit wrapper prototype and code
-      gencomma = 0;
-      for (p = parms; p; p = nextSibling(p)) {
-        Printv(proto, gencomma ? ", " : "", SwigType_str(Getattr(p, "type"), 0), " ", Getattr(p, "lname"), NIL);
-        gencomma = 1;
-      }
-      Printv(wrapper->def, return_type, " ", wname, "(", proto, ") {\n", NIL);
-
-      // attach 'check' typemaps
-      Swig_typemap_attach_parms("check", parms, wrapper);
-
-      // insert constraint checking
-      for (p = parms; p; ) {
-        if ((tm = Getattr(p, "tmap:check"))) {
-          Replaceall(tm, "$target", Getattr(p, "lname"));
-          Replaceall(tm, "$name", name);
-          Printv(wrapper->code, tm, "\n", NIL);
-          p = Getattr(p, "tmap:check:next");
-        }
-        else {
-          p = nextSibling(p);
-        }
-      }
-
-      Append(wrapper->code, prepend_feature(n));
-      if (!is_void_return) {
-        Printv(wrapper->code, return_type, " result;\n", NIL);
-        Printf(wrapper->code, "result = ");
-      }
-      Printv(wrapper->code, name, "(", arg_names, ");\n", NIL);
-      Append(wrapper->code, append_feature(n));
-      if (!is_void_return)
-        Printf(wrapper->code, "return result;\n");
-      Printf(wrapper->code, "}");
+    if (CPlusPlus) {
+         functionWrapperCPPSpecific(n);
     }
     else {
-      // C++ function wrapper
-      
-      // mark the first parameter as object-struct      
-      if (!is_global && storage && Cmp(storage, "static") != 0) {
-        if ((Cmp(Getattr(n, "ismember"), "1") == 0) &&
-          (Cmp(nodeType(n), "constructor") != 0)) {
-          Setattr(parms, "c:objstruct", "1");
-          if (!Getattr(parms, "lname"))
-            Setattr(parms, "lname", "arg1");
-          SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
-          SwigType_add_pointer(stype);
-          Setattr(parms, "c:stype", stype);
-        }
-      }
-      
-      // mangle name if function is overloaded
-      if (Getattr(n, "sym:overloaded")) {
-        if (!Getattr(n, "copy_constructor")) {
-          for (p = parms; p; p = nextSibling(p)) {
-            if (Getattr(p, "c:objstruct"))
-              continue;
-            String *mangled = get_mangled_type(Getattr(p, "type"));
-            Printv(over_suffix, "_", mangled, NIL);
-          }
-          Append(name, over_suffix);
-        }
-      }
-      
-      SwigType *tdtype = SwigType_typedef_resolve_all(type);
-      if (tdtype)
-        type = tdtype;
-        
-      Setattr(n, "type", type);
-
-      // create new wrapper name
-      wname = Swig_name_wrapper(name);
-      Setattr(n, "wrap:name", wname);
-
-      // set the return type
-      if (Cmp(Getattr(n, "c:objstruct"), "1") == 0) {
-        Printv(return_type, SwigType_str(type, 0), NIL);
-      }
-      else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
-        String *ctypeout = Getattr(n, "tmap:couttype:out");
-        if (ctypeout)
-          tm = ctypeout;
-        Printf(return_type, "%s", tm);
-        // template handling
-        Replaceall(return_type, "$tt", SwigType_lstr(type, 0));
-      } 
-      else {
-        Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
-      }
-
-      // add variable for holding result of original function 'cppresult'
-      // WARNING: testing typemap approach
-      SwigType *cpptype;
-      if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
-        if ((tm = Swig_typemap_lookup("cppouttype", n, "", 0))) {
-          SwigType *tdtype = SwigType_typedef_resolve_all(tm);
-          if (tdtype)
-            cpptype = tdtype;
-          else 
-            cpptype = tm;
-          if (SwigType_ismemberpointer(type))
-            Wrapper_add_local(wrapper, "cppresult", SwigType_str(type, "cppresult"));
-          Wrapper_add_local(wrapper, "cppresult", SwigType_str(cpptype, "cppresult"));
-          return_object = checkAttribute(n, "tmap:cppouttype:retobj", "1");
-        } 
-        else {
-          Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cppouttype typemap defined for %s\n", SwigType_str(type, 0));
-        }
-      }
-
-      // make sure lnames are set
-      int index = 1;
-      for (p = parms; p; p = nextSibling(p)) {
-        String *lname = Getattr(p, "lname");
-        if (!lname) {
-          lname = NewStringf("arg%d", index);
-          Setattr(p, "lname", lname);
-        }
-        index++;
-      }
-
-      // create wrapper function prototype
-      Printv(wrapper->def, "SWIGEXPORTC ", return_type, " ", wname, "(", NIL);
-
-      // attach the standard typemaps
-      emit_attach_parmmaps(parms, wrapper);
-      Setattr(n, "wrap:parms", parms);
-
-      // attach 'ctype' typemaps
-      Swig_typemap_attach_parms("ctype", parms, wrapper);
-
-      // prepare function definition
-      gencomma = 0;
-      for (p = parms; p; ) {
-        
-        while (p && checkAttribute(p, "tmap:in:numinputs", "0")) {
-          p = Getattr(p, "tmap:in:next");
-        }
-        if (!p) break;
-
-        SwigType *type = Getattr(p, "type");
-        if (SwigType_type(type) == T_VOID) {
-            p = nextSibling(p);
-            continue;
-        }
-        String *lname = Getattr(p, "lname");
-        String *c_parm_type = NewString("");
-        String *proxy_parm_type = NewString("");
-        String *arg_name = NewString("");
-        
-        SwigType *tdtype = SwigType_typedef_resolve_all(type);
-        if (tdtype)
-          type = tdtype;
-
-        Printf(arg_name, "c%s", lname);
-
-        // set the appropriate type for parameter
-        if ((tm = Getattr(p, "tmap:ctype"))) {
-          Printv(c_parm_type, tm, NIL);
-          // template handling          
-          Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
-        }
-        else {
-          Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
-        }
-        
-        // use proxy-type for parameter if supplied
-        String* stype = Getattr(p, "c:stype");
-        if (stype) {
-          Printv(proxy_parm_type, SwigType_str(stype, 0), NIL);
-        }
-        else {
-          Printv(proxy_parm_type, c_parm_type, NIL);
-        }
-
-        Printv(arg_names, gencomma ? ", " : "", arg_name, NIL);
-        Printv(wrapper->def, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
-        Printv(proto, gencomma ? ", " : "", proxy_parm_type, " ", arg_name, NIL);
-        gencomma = 1;
- 
-        // apply typemaps for input parameter
-        if (Cmp(nodeType(n), "destructor") == 0) {
-          p = Getattr(p, "tmap:in:next");
-        }
-        else if ((tm = Getattr(p, "tmap:in"))) {
-          Replaceall(tm, "$input", arg_name);
-          Setattr(p, "emit:input", arg_name);
-          Printf(wrapper->code, "%s\n", tm);
-          p = Getattr(p, "tmap:in:next");
-        }
-        else {
-          Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
-          p = nextSibling(p);
-        }
-        
-        Delete(arg_name);
-        Delete(proxy_parm_type);
-        Delete(c_parm_type);
-      }
-
-      Printf(wrapper->def, ") {");
-
-      if (Cmp(nodeType(n), "destructor") != 0) {
-        // emit variables for holding parameters
-        emit_parameter_variables(parms, wrapper);
-        
-        // emit variable for holding function return value
-        emit_return_variable(n, return_type, wrapper);
-      }
-      
-      // insert constraint checking
-      for (p = parms; p; ) {
-        if ((tm = Getattr(p, "tmap:check"))) {
-          Replaceall(tm, "$target", Getattr(p, "lname"));
-          Replaceall(tm, "$name", name);
-          Printv(wrapper->code, tm, "\n", NIL);
-          p = Getattr(p, "tmap:check:next");
-        }
-        else {
-          p = nextSibling(p);
-        }
-      }
-
-      // create action code
-      String *action = Getattr(n, "wrap:action");
-      if (!action)
-        action = NewString("");
-        
-      String *cbase_name = Getattr(n, "c:base_name");
-      if (cbase_name) {
-        Replaceall(action, "arg1)->", NewStringf("(%s*)arg1)->", Getattr(n, "c:inherited_from")));
-        Replaceall(action, Getattr(n, "name"), cbase_name);
-      }
-      
-      // handle special cases of cpp return result
-      if (Cmp(nodeType(n), "constructor") != 0) {
-        if (SwigType_isenum(SwigType_base(type))){
-          if (return_object)
-            Replaceall(action, "result =", "cppresult = (int)");
-          else Replaceall(action, "result =", "cppresult = (int*)");
-        }
-        else if (return_object && Getattr(n, "c:retval") && !SwigType_isarray(type) 
-          && Cmp(Getattr(n, "storage"), "static") != 0) {
-          // returning object by value
-          String *str = SwigType_str(SwigType_add_reference(SwigType_base(type)), "_result_ref");
-          String *lstr = SwigType_lstr(type, 0);
-          if (Cmp(Getattr(n, "kind"), "variable") == 0) {
-            Delete(action);
-            action = NewStringf("{const %s = %s;", str, Swig_cmemberget_call(Getattr(n, "name"), type, 0, 0));
-          }
-          else {
-            String *call_str = NewStringf("{const %s = %s", str, 
-              SwigType_ispointer(SwigType_typedef_resolve_all(otype)) ? "*" : "");
-            Replaceall(action, "result =", call_str);
-            Delete(call_str);
-          }
-          if (Getattr(n, "nested"))
-            Replaceall(action, "=", NewStringf("= *(%s)(void*) &", SwigType_str(otype, 0)));
-          Printf(action, "cppresult = (%s*) &_result_ref;}", lstr);
-          Delete(str);
-          Delete(lstr);
-        }
-        else
-          Replaceall(action, "result =", "cppresult = ");
-      }
-      
-      // prepare action code to use, e.g. insert try-catch blocks
-      action = emit_action(n);
-      
-      Setattr(n, "type", type);
-      // emit output typemap if needed
-      if (!is_void_return && (Cmp(Getattr(n, "c:objstruct"), "1") != 0)) {
-        if ((tm = Swig_typemap_lookup_out("out", n, "cppresult", wrapper, action))) {
-          Replaceall(tm, "$result", "result");
-          Printf(wrapper->code, "%s", tm);
-          if (Len(tm))
-            Printf(wrapper->code, "\n");
-        }
-        else {
-          Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name")); 
-        }
-      }
-      else {
-        Append(wrapper->code, action);
-      }
-
-      String *except = Getattr(n, "feature:except");
-      if (Getattr(n, "throws") || except) {
-        if (!except || (Cmp(except, "0") != 0))
-          Printf(wrapper->code, "if (SWIG_exc.handled) {\nSWIG_rt_stack_pop();\nlongjmp(SWIG_rt_env, 1);\n}\n");
-      }
-      
-      // insert cleanup code
-      for (p = parms; p; ) {
-        if ((tm = Getattr(p, "tmap:freearg"))) {
-          if (tm && (Len(tm) != 0)) {
-            String *input = NewStringf("c%s", Getattr(p, "lname"));
-            Replaceall(tm, "$source", Getattr(p, "lname"));
-            Replaceall(tm, "$input", input);
-            Delete(input);
-            Printv(wrapper->code, tm, "\n", NIL);
-          }
-          p = Getattr(p, "tmap:freearg:next");
-        }
-        else {
-          p = nextSibling(p);
-        }
-      }
-
-      if (!is_void_return)
-        Append(wrapper->code, "return result;\n");
-
-      Append(wrapper->code, "}\n");
+         functionWrapperCSpecific(n);
     }
 
-    // take care of proxy function
-    if (proxy_flag) {
-      // use proxy-type for return type if supplied
-      SwigType *proxy_type = Getattr(n, "c:stype");
-      if (proxy_type) {
-        return_type = SwigType_str(proxy_type, 0);
-      }
-
-      // emit proxy functions prototypes
-      Printv(f_proxy_code_init, return_type, " ", wname, "(", proto, ");\n", NIL);
-      Printv(f_proxy_code_body, return_type, " ", name, "(", proto, ") {\n", NIL);
-
-      // call to the wrapper function
-      Printv(f_proxy_code_body, "  return ", wname, "(", arg_names, ");\n}\n", NIL);
-
-      // add function declaration to the proxy header file
-      // add visibility hint for the compiler (do not override this symbol)
-      Printv(vis_hint, "SWIGPROTECT(", return_type, " ", name, "(", proto, ");)\n\n", NIL);
-      Printv(f_proxy_header, vis_hint, NIL);
-
-    }
-
-    Wrapper_print(wrapper, f_wrappers);
-
-    // cleanup
-    Delete(vis_hint);
-    Delete(over_suffix);
-    Delete(proto);
-    Delete(arg_names);
-    Delete(wname);
-    Delete(return_type);
-    Delete(otype);
-		Delete(name);
-    DelWrapper(wrapper);
     return SWIG_OK;
   }
 
