@@ -17,16 +17,6 @@ char cvsroot_c_cxx[] = "$Id: c.cxx 11186 2009-04-11 10:46:13Z maciekd $";
 #endif
 #define IS_SET_TO_ONE(n, var) \
        (Cmp(Getattr(n, var), "1") == 0)
-#ifdef IS_SET
-#undef IS_SET
-#endif
-#define IS_SET(n, var) \
-       (Getattr(n, var))
-#ifdef IS_EQUAL
-#undef IS_EQUAL
-#endif
-#define IS_EQUAL(val1, val2) \
-       (Cmp(val1, val2) == 0)
 
 int SwigType_isbuiltin(SwigType *t) {
   const char* builtins[] = { "void", "short", "int", "long", "char", "float", "double", "bool", 0 };
@@ -543,7 +533,7 @@ ready:
        String *mangled;
 
        for (p = (Parm*)parms; p; p = nextSibling(p)) {
-            if (IS_SET(p, "c:objstruct"))
+            if (Getattr(p, "c:objstruct"))
               continue;
             mangled = get_mangled_type(Getattr(p, "type"));
             Printv(over_suffix, "_", mangled, NIL);
@@ -682,7 +672,7 @@ ready:
             gencomma = 1;
 
             // apply typemaps for input parameter
-            if (IS_EQUAL(nodeType(n), "destructor")) {
+            if (Cmp(nodeType(n), "destructor") == 0) {
                  p = Getattr(p, "tmap:in:next");
             }
             else if ((tm = Getattr(p, "tmap:in"))) {
@@ -766,7 +756,7 @@ ready:
             gencomma = 1;
 
             // apply typemaps for input parameter
-            if (IS_EQUAL(nodeType(n), "destructor")) {
+            if (Cmp(nodeType(n), "destructor") == 0) {
                  p = Getattr(p, "tmap:in:next");
             }
             else if ((tm = Getattr(p, "tmap:in"))) {
@@ -958,7 +948,7 @@ ready:
             gencomma = 1;
 
             // apply typemaps for input parameter
-            if (IS_EQUAL(nodeType(n), "destructor")) {
+            if (Cmp(nodeType(n), "destructor") == 0) {
                  p = Getattr(p, "tmap:in:next");
             }
             else if ((tm = Getattr(p, "tmap:in"))) {
@@ -986,7 +976,7 @@ ready:
        Setattr(n, "wrap:proto", wrap_proto);
        Printv(wrapper->def, " {", NIL);
 
-       if (!IS_EQUAL(nodeType(n), "destructor")) {
+       if (Cmp(nodeType(n), "destructor") != 0) {
             // emit variables for holding parameters
             emit_parameter_variables(parms, wrapper);
 
@@ -1020,18 +1010,18 @@ ready:
        }
 
        // handle special cases of cpp return result
-       if (!IS_EQUAL(nodeType(n), "constructor")) {
+       if (Cmp(nodeType(n), "constructor") != 0) {
             if (SwigType_isenum(SwigType_base(type))){
                  if (return_object)
                    Replaceall(action, "result =", "cppresult = (int)");
                  else Replaceall(action, "result =", "cppresult = (int*)");
             }
             else if (return_object && Getattr(n, "c:retval") && !SwigType_isarray(type)
-                  && !IS_EQUAL(storage, "static")) {
+                  && (Cmp(storage, "static") != 0)) {
                  // returning object by value
                  String *str = SwigType_str(SwigType_add_reference(SwigType_base(type)), "_result_ref");
                  String *lstr = SwigType_lstr(type, 0);
-                 if (IS_EQUAL(Getattr(n, "kind"), "variable")) {
+                 if (Cmp(Getattr(n, "kind"), "variable") == 0) {
                       Delete(action);
                       action = NewStringf("{const %s = %s;", str, Swig_cmemberget_call(Getattr(n, "name"), type, 0, 0));
                  }
@@ -1117,11 +1107,11 @@ ready:
        ParmList *parms = Getattr(n, "parms");
 
        // mark the first parameter as object-struct
-       if (!is_global && storage && !IS_EQUAL(storage, "static")) {
+       if (!is_global && storage && (Cmp(storage, "static") != 0)) {
             if (IS_SET_TO_ONE(n, "ismember") &&
-                  !IS_EQUAL(nodeType(n), "constructor")) {
+                  (Cmp(nodeType(n), "constructor") != 0)) {
                  Setattr(parms, "c:objstruct", "1");
-                 if (!IS_SET(parms, "lname"))
+                 if (!Getattr(parms, "lname"))
                    Setattr(parms, "lname", "arg1");
                  SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
                  SwigType_add_pointer(stype);
@@ -1140,8 +1130,8 @@ ready:
        functionWrapperCPPSpecificMarkFirstParam(n);
 
        // mangle name if function is overloaded
-       if (IS_SET(n, "sym:overloaded")) {
-            if (!IS_SET(n, "copy_constructor")) {
+       if (Getattr(n, "sym:overloaded")) {
+            if (!Getattr(n, "copy_constructor")) {
                  functionWrapperAppendOverloaded(name, parms);
             }
        }
