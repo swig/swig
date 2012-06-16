@@ -482,7 +482,6 @@ ready:
 
        if (proxy_flag) // take care of proxy function
          {
-            String *vis_hint = NewString("");
             SwigType *proxy_type = Getattr(n, "c:stype"); // use proxy-type for return type if supplied
 
             if (proxy_type) {
@@ -500,12 +499,16 @@ ready:
             // print the call of the wrapper function
             Printv(f_proxy_code_body, "  return ", wname, "(", arg_names, ");\n}\n", NIL);
 
-            // add function declaration to the proxy header file
+            /*
             // add visibility hint for the compiler (do not override this symbol)
+            String *vis_hint = NewString("");
             Printv(vis_hint, "SWIGPROTECT(", return_type, " ", name, "(", proto, ");)\n\n", NIL);
             Printv(f_proxy_header, vis_hint, NIL);
-
             Delete(vis_hint);
+            */
+            // add function declaration to the proxy header file
+            Printv(f_proxy_header, return_type, " ", name, "(", proto, ");\n\n", NIL);
+
          }
 
        Wrapper_print(wrapper, f_wrappers);
@@ -789,7 +792,6 @@ ready:
        // C++ function wrapper proxy code
        ParmList *parms = Getattr(n, "parms");
        String *wname = Swig_name_wrapper(name);
-       String *vis_hint = NewString("");
        SwigType *preturn_type = functionWrapperCPPSpecificProxyReturnTypeGet(n);
        String *wproto = Getattr(n, "wrap:proto");
        String *pproto = functionWrapperCPPSpecificProxyPrototypeGet(n, parms);
@@ -819,12 +821,17 @@ ready:
        Printv(f_proxy_code_body, "  return ", wrapper_call, ";\n}\n", NIL);
 
        // add function declaration to the proxy header file
+       /*
        // add visibility hint for the compiler (do not override this symbol)
+       String *vis_hint = NewString("");
        Printv(vis_hint, "SWIGPROTECT(", preturn_type, " ", name, "(", pproto, ");)\n\n", NIL);
        Printv(f_proxy_header, vis_hint, NIL);
+       Delete(vis_hint);
+       */
+
+       Printv(f_proxy_header, preturn_type, " ", name, "(", pproto, ");\n\n", NIL);
 
        // cleanup
-       Delete(vis_hint);
        Delete(pproto);
        Delete(wrapper_call);
        Delete(preturn_type);
