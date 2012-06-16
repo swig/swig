@@ -27,6 +27,44 @@
 %fragment("fptr_decl_proxy", "proxy_header") {typedef void(*SWIG_CPP_FP)();}
 %fragment("stdbool_inc", "proxy_header") {#include <stdbool.h>}
 
+// typemaps for proxy function parameters
+%typemap(proxy) void, short, int, long, long long, char, float, double "$1_ltype"
+%typemap(proxy) unsigned short, unsigned int, unsigned long, unsigned long long, unsigned char "$1_ltype"
+%typemap(proxy) void *, short *, int *, long *, long long *, char *, float *, double * "$1_ltype"
+%typemap(proxy) void **, short **, int **, long **, long long **, char **, float **, double ** "$1_ltype"
+%typemap(proxy) unsigned short *, unsigned int *, unsigned long *, unsigned long long *, unsigned char * "$1_ltype"
+%typemap(proxy) unsigned short **, unsigned int **, unsigned long **, unsigned long long **, unsigned char ** "$1_type"
+%typemap(proxy) short &, int &, long &, long long &, char &, float &, double &  "$1_ltype"
+%typemap(proxy) unsigned short &, unsigned int &, unsigned long &, unsigned long long &, unsigned char & "$1_ltype"
+%typemap(proxy) const short, const int, const long, const long long, const char, const float, const double  "$1_ltype"
+%typemap(proxy) const short &, const int &, const long &, const long long &, const char &, const float &, const double & "$1_ltype"
+%typemap(proxy) const unsigned short, const unsigned int, const unsigned long, const unsigned long long, const unsigned char "$1_type"
+%typemap(proxy) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned long long &, const unsigned char & "$1_ltype"
+%typemap(proxy) const void *, const short *, const int *, const long *, const long long *, const char *, const float *, const double * "$1_type"
+%typemap(proxy) short *&, int *&, long *&, long long *&, char *&, float *&, double *& "$1_ltype"
+%typemap(proxy) const short *&, const int *&, const long *&, const long long *&, const char *&, const float *&, const double *& "$1_basetype **"
+%typemap(proxy) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY], unsigned int [ANY] "/*aaa*/ $1_ltype"
+%typemap(proxy) void * [ANY], short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "/*bbb*/ $1_ltype"
+
+// special cases of array passing - does not intended to be used for objects
+%typemap(proxy) SWIGTYPE [] "$1_ltype"
+%typemap(proxy) SWIGTYPE ((&)[ANY]) "$1_basetype **"
+
+%typemap(proxy) void [ANY][ANY], short [ANY][ANY], int [ANY][ANY], long [ANY][ANY], char [ANY][ANY], float [ANY][ANY], double [ANY][ANY] "$1_ltype"
+%typemap(proxy) SWIGTYPE         "$1_ltype *"
+%typemap(proxy) SWIGTYPE *       "$1_ltype *"
+%typemap(proxy) SWIGTYPE &       "$1_ltype *"
+%typemap(proxy) SWIGTYPE [ANY][ANY], SWIGTYPE ** "/* whoa */ $1_ltype ***"
+%typemap(proxy) SWIGTYPE *[ANY]  "/*ooooh*/ $1_ltype **"
+%typemap(proxy) SWIGTYPE *&      "/* *& */ $1_ltype **"
+%typemap(proxy) enum SWIGTYPE    "int"
+%typemap(proxy) enum SWIGTYPE &  "int *"
+%typemap(proxy, fragment="fptr_decl", fragment="fptr_decl_proxy") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
+
+%typemap(proxy, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
+%typemap(proxy, fragment="stdbool_inc") bool & "$1_ltype"
+%typemap(proxy, fragment="stdbool_inc") const bool & "$1_ltype const"
+
 // typemaps for function parameters
 %typemap(ctype) void, short, int, long, long long, char, float, double "$1_ltype"
 %typemap(ctype) unsigned short, unsigned int, unsigned long, unsigned long long, unsigned char "$1_ltype"
@@ -64,6 +102,44 @@
 %typemap(ctype, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
 %typemap(ctype, fragment="stdbool_inc") bool & "$1_ltype"
 %typemap(ctype, fragment="stdbool_inc") const bool & "$1_ltype const"
+
+// typemaps for function parameters
+%typemap(wrap_call) void, short, int, long, long long, char, float, double ""
+%typemap(wrap_call) unsigned short, unsigned int, unsigned long, unsigned long long, unsigned char ""
+%typemap(wrap_call) void *, short *, int *, long *, long long *, char *, float *, double * ""
+%typemap(wrap_call) void **, short **, int **, long **, long long **, char **, float **, double ** ""
+%typemap(wrap_call) unsigned short *, unsigned int *, unsigned long *, unsigned long long *, unsigned char * ""
+%typemap(wrap_call) unsigned short **, unsigned int **, unsigned long **, unsigned long long **, unsigned char ** "$1_type"
+%typemap(wrap_call) short &, int &, long &, long long &, char &, float &, double &  ""
+%typemap(wrap_call) unsigned short &, unsigned int &, unsigned long &, unsigned long long &, unsigned char & ""
+%typemap(wrap_call) const short, const int, const long, const long long, const char, const float, const double  ""
+%typemap(wrap_call) const short &, const int &, const long &, const long long &, const char &, const float &, const double & ""
+%typemap(wrap_call) const unsigned short, const unsigned int, const unsigned long, const unsigned long long, const unsigned char "$1_type"
+%typemap(wrap_call) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned long long &, const unsigned char & ""
+%typemap(wrap_call) const void *, const short *, const int *, const long *, const long long *, const char *, const float *, const double * "$1_type"
+%typemap(wrap_call) short *&, int *&, long *&, long long *&, char *&, float *&, double *& ""
+%typemap(wrap_call) const short *&, const int *&, const long *&, const long long *&, const char *&, const float *&, const double *& " **"
+%typemap(wrap_call) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY], unsigned int [ANY] "/*aaa*/ "
+%typemap(wrap_call) void * [ANY], short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "/*bbb*/ "
+
+// special cases of array passing - does not intended to be used for objects
+%typemap(wrap_call) SWIGTYPE [] ""
+%typemap(wrap_call) SWIGTYPE ((&)[ANY]) " **"
+
+%typemap(wrap_call) void [ANY][ANY], short [ANY][ANY], int [ANY][ANY], long [ANY][ANY], char [ANY][ANY], float [ANY][ANY], double [ANY][ANY] ""
+%typemap(wrap_call) SWIGTYPE         "(SwigObj *)"
+%typemap(wrap_call) SWIGTYPE *       "(SwigObj *)"
+%typemap(wrap_call) SWIGTYPE &       "(SwigObj *)"
+%typemap(wrap_call) SWIGTYPE [ANY][ANY], SWIGTYPE ** "/* whoa */ (SwigObj ***)"
+%typemap(wrap_call) SWIGTYPE *[ANY]  "/*ooooh*/ (SwigObj **)"
+%typemap(wrap_call) SWIGTYPE *&      "/* *& */ (SwigObj **)"
+%typemap(wrap_call) enum SWIGTYPE    ""
+%typemap(wrap_call) enum SWIGTYPE &  ""
+%typemap(wrap_call, fragment="fptr_decl", fragment="fptr_decl_proxy") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
+
+%typemap(wrap_call, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
+%typemap(wrap_call, fragment="stdbool_inc") bool & ""
+%typemap(wrap_call, fragment="stdbool_inc") const bool & " const"
 
 %typemap(in) short, int, long, long long, char, float, double "$1 = ($1_ltype) $input;"
 %typemap(in) void *, short *, int *, long *, long long *, char *, float *, double * "$1 = ($1_ltype) $input;"
@@ -268,6 +344,113 @@
 %typemap(couttype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
 %typemap(couttype, fragment="stdbool_inc") bool & "$1_basetype*"
 %typemap(couttype, fragment="stdbool_inc") const bool & "$1_basetype const *"
+
+// typemaps for return values
+
+// void
+%typemap(proxycouttype) void "void"
+%typemap(proxycouttype) void*, const void* "void *"
+
+// short
+%typemap(proxycouttype) short, const short "short"
+%typemap(proxycouttype) short*, short&, short[ANY], short[] "short *"
+%typemap(proxycouttype) const short&, const short*, const short[ANY], const short[] "const short *"
+%typemap(proxycouttype) unsigned short "unsigned short"
+%typemap(proxycouttype) const unsigned short "const unsigned short"
+%typemap(proxycouttype) unsigned short*, unsigned short&, unsigned short*, unsigned short[ANY], unsigned short[] "unsigned short *"
+%typemap(proxycouttype) const unsigned short*, const unsigned short&, const unsigned short[ANY], const unsigned short[] "const unsigned short *"
+%typemap(proxycouttype) short**, short*&, short*[ANY], short[ANY][ANY] "short **"
+%typemap(proxycouttype) const short**, const short*&, const short*[ANY], const short[ANY][ANY] "const short **"
+%typemap(proxycouttype) unsigned short**, unsigned short*&, unsigned short*[ANY], unsigned short[ANY][ANY] "unsigned short **"
+%typemap(proxycouttype) const unsigned short**,const unsigned short*&, const unsigned short[ANY][ANY] "const unsigned short **"
+
+// int
+%typemap(proxycouttype) int, const int "int"
+%typemap(proxycouttype) int*, int&, int[ANY], int[] "int *"
+%typemap(proxycouttype) const int&, const int*, const int[ANY], const int[] "const int *"
+%typemap(proxycouttype) unsigned int "unsigned int"
+%typemap(proxycouttype) const unsigned int "unsigned int"
+%typemap(proxycouttype) unsigned int*, unsigned int&, unsigned int*, unsigned int[ANY], unsigned int[] "unsigned int *"
+%typemap(proxycouttype) const unsigned int*, const unsigned int&, const unsigned int[ANY], const unsigned int[] "const unsigned int *"
+%typemap(proxycouttype) int**, int*&, int*[ANY], int[ANY][ANY] "int **"
+%typemap(proxycouttype) const int**, const int*&, const int*[ANY], const int[ANY][ANY] "const int **"
+%typemap(proxycouttype) unsigned int**, unsigned int*&, unsigned int*[ANY], unsigned int[ANY][ANY] "unsigned int **"
+%typemap(proxycouttype) const unsigned int**,const unsigned int*&, const unsigned int[ANY][ANY] "const unsigned int **"
+
+// long
+%typemap(proxycouttype) long, const long "long"
+%typemap(proxycouttype) long*, long&, long[ANY], long[] "long *"
+%typemap(proxycouttype) const long&, const long*, const long[ANY], const long[] "const long *"
+%typemap(proxycouttype) unsigned long "unsigned long"
+%typemap(proxycouttype) const unsigned long "const unsigned long"
+%typemap(proxycouttype) unsigned long*, unsigned long&, unsigned long*, unsigned long[ANY], unsigned long[] "unsigned long *"
+%typemap(proxycouttype) const unsigned long*, const unsigned long&, const unsigned long[ANY], const unsigned long[] "const unsigned long *"
+%typemap(proxycouttype) long**, long*&, long*[ANY], long[ANY][ANY] "long **"
+%typemap(proxycouttype) const long**, const long*&, const long*[ANY], const long[ANY][ANY] "const long **"
+%typemap(proxycouttype) unsigned long**, unsigned long*&, unsigned long*[ANY], unsigned long[ANY][ANY] "unsigned long **"
+%typemap(proxycouttype) const unsigned long**,const unsigned long*&, const unsigned long[ANY][ANY] "const unsigned long **"
+
+// long long
+%typemap(proxycouttype) long long, const long long "long long"
+%typemap(proxycouttype) long long*, long long&, long long[ANY], long long[] "long long *"
+%typemap(proxycouttype) const long long&, const long long*, const long long[ANY], const long long[] "const long long *"
+%typemap(proxycouttype) unsigned long long "unsigned long long"
+%typemap(proxycouttype) const unsigned long long "const unsigned long long"
+%typemap(proxycouttype) unsigned long long*, unsigned long long&, unsigned long long*, unsigned long long[ANY], unsigned long long[] "unsigned long long *"
+%typemap(proxycouttype) const unsigned long long*, const unsigned long long&, const unsigned long long[ANY], const unsigned long long[] "const unsigned long long *"
+%typemap(proxycouttype) long long**, long long*&, long long*[ANY], long long[ANY][ANY] "long long **"
+%typemap(proxycouttype) const long long**, const long long*&, const long long*[ANY], const long long[ANY][ANY] "const long long **"
+%typemap(proxycouttype) unsigned long long**, unsigned long long*&, unsigned long long*[ANY], unsigned long long[ANY][ANY] "unsigned long long **"
+%typemap(proxycouttype) const unsigned long long**,const unsigned long long*&, const unsigned long long[ANY][ANY] "const unsigned long long **"
+
+// char: signed/unsigned
+%typemap(proxycouttype) char, const char "char"
+%typemap(proxycouttype) char*, char&, char[ANY], char[] "$1_ltype"
+%typemap(proxycouttype) const char&, const char*, const char[ANY], const char[] "const char *"
+%typemap(proxycouttype) char**, char*&, char*[ANY], char[ANY][ANY] "char **"
+%typemap(proxycouttype) const char**, const char*&, const char*[ANY], const char[ANY][ANY] "char **"
+%typemap(proxycouttype) signed char**, signed char*&, signed char*[ANY], signed char[ANY][ANY] "signed char **"
+%typemap(proxycouttype) const signed char**, const signed char*&, const signed char[ANY][ANY] "const signed char **"
+%typemap(proxycouttype) signed char "signed char"
+%typemap(proxycouttype) const signed char "const signed char"
+%typemap(proxycouttype) signed char*, signed char&, signed char*, signed char[ANY], signed char[] "signed char *"
+%typemap(proxycouttype) const signed char*, const signed char&, const signed char[ANY], const signed char[] "const $1_ltype"
+%typemap(proxycouttype) unsigned char**, unsigned char*&, unsigned char*[ANY], unsigned char[ANY][ANY] "unsigned char **"
+%typemap(proxycouttype) const unsigned char**, const unsigned char*&, const unsigned char[ANY][ANY] "const unsigned char **"
+%typemap(proxycouttype) unsigned char "unsigned char"
+%typemap(proxycouttype) const unsigned char "const unsigned char"
+%typemap(proxycouttype) unsigned char*, unsigned char&, unsigned char*, unsigned char[ANY], unsigned char[] "unsigned char *"
+%typemap(proxycouttype) const unsigned char*, const unsigned char&, const unsigned char[ANY], const unsigned char[] "const unsigned char *"
+
+// float
+%typemap(proxycouttype) float, const float "float"
+%typemap(proxycouttype) float*, float&, float[ANY], float[] "float *"
+%typemap(proxycouttype) const float&, const float*, const float[ANY], const float[] "const float *"
+%typemap(proxycouttype) float**, float*&, const float*&, float*[ANY], float[ANY][ANY] "float **"
+%typemap(proxycouttype) const float**, const float*[ANY], const float[ANY][ANY] "const float **"
+
+// double
+%typemap(proxycouttype) double, const double "double"
+%typemap(proxycouttype) double*, double&, double[ANY], double[] "double *"
+%typemap(proxycouttype) const double&, const double*, const double[ANY], const double[] "const double *"
+%typemap(proxycouttype) double**, double*&, const double*&, double*[ANY], double[ANY][ANY] "double **"
+%typemap(proxycouttype) const double**, const double*[ANY], const double[ANY][ANY] "const double **"
+
+// objects
+%typemap(proxycouttype) SWIGTYPE      "$1_ltype *"
+%typemap(proxycouttype) SWIGTYPE *    "/*aaaaaa*/$1_ltype"
+%typemap(proxycouttype) SWIGTYPE &   "$1_ltype *"
+%typemap(proxycouttype) SWIGTYPE *&    "$1_ltype **"
+%typemap(proxycouttype) SWIGTYPE [ANY] "/*SWIGTYPE [ANY]*/ $1_ltype **"
+%typemap(proxycouttype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype **"
+%typemap(proxycouttype) SWIGTYPE ** "/*SWIGTYPE ** */ $1_ltype **"
+%typemap(proxycouttype) enum SWIGTYPE "int"
+%typemap(proxycouttype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
+%typemap(proxycouttype, fragment="fptr_decl") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
+
+%typemap(proxycouttype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
+%typemap(proxycouttype, fragment="stdbool_inc") bool & "$1_basetype*"
+%typemap(proxycouttype, fragment="stdbool_inc") const bool & "$1_basetype const *"
 
 %typemap(out) short, int, long, long long, char, float, double "$result = $1;"
 %typemap(out) void*, short*, int*, long*, long long *, char*, float*, double* "$result = $1;"

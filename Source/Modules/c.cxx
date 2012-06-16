@@ -417,38 +417,13 @@ ready:
     return result;
   }
 
-  virtual void printProxy(Node *n, SwigType *return_type, String *wname, String *name, String *proto, String *arg_names)
-    {
-       String *vis_hint = NewString("");
-       // use proxy-type for return type if supplied
-       SwigType *proxy_type = Getattr(n, "c:stype");
-
-       if (proxy_type) {
-            return_type = SwigType_str(proxy_type, 0);
-       }
-
-       // emit proxy functions prototypes
-       Printv(f_proxy_code_init, return_type, " ", wname, "(", proto, ");\n", NIL);
-       Printv(f_proxy_code_body, return_type, " ", name, "(", proto, ") {\n", NIL);
-
-       // call to the wrapper function
-       Printv(f_proxy_code_body, "  return ", wname, "(", arg_names, ");\n}\n", NIL);
-
-       // add function declaration to the proxy header file
-       // add visibility hint for the compiler (do not override this symbol)
-       Printv(vis_hint, "SWIGPROTECT(", return_type, " ", name, "(", proto, ");)\n\n", NIL);
-       Printv(f_proxy_header, vis_hint, NIL);
-
-       Delete(vis_hint);
-    }
-
   virtual void functionWrapperCSpecific(Node *n)
     {
        // this is C function, we don't apply typemaps to it
-       String *name = Copy(Getattr(n, "sym:name"));
+       String *name = Getattr(n, "sym:name");
+       String *wname = Swig_name_wrapper(name);
        SwigType *type = Getattr(n, "type");
        SwigType *return_type = NULL;
-       String *wname = Swig_name_wrapper(name);
        String *arg_names = NULL;
        ParmList *parms = Getattr(n, "parms");
        Parm *p;
@@ -460,7 +435,7 @@ ready:
        Wrapper *wrapper = NewWrapper();
 
        // create new wrapper name
-       Setattr(n, "wrap:name", wname);
+       Setattr(n, "wrap:name", wname); //Necessary to set this attribute? Apparently, it's never read!
 
        // create function call
        arg_names = Swig_cfunction_call(empty_string, parms);
@@ -506,7 +481,32 @@ ready:
        Printf(wrapper->code, "}");
 
        if (proxy_flag) // take care of proxy function
-         printProxy(n, return_type, wname, name, proto, arg_names);
+         {
+            String *vis_hint = NewString("");
+            SwigType *proxy_type = Getattr(n, "c:stype"); // use proxy-type for return type if supplied
+
+            if (proxy_type) {
+                 return_type = SwigType_str(proxy_type, 0);
+            }
+
+            // emit proxy functions prototypes
+            // print wrapper prototype into proxy body for later use within proxy
+            // body
+            Printv(f_proxy_code_init, return_type, " ", wname, "(", proto, ");\n", NIL);
+
+            // print actual proxy code into proxy .c file
+            Printv(f_proxy_code_body, return_type, " ", name, "(", proto, ") {\n", NIL);
+
+            // print the call of the wrapper function
+            Printv(f_proxy_code_body, "  return ", wname, "(", arg_names, ");\n}\n", NIL);
+
+            // add function declaration to the proxy header file
+            // add visibility hint for the compiler (do not override this symbol)
+            Printv(vis_hint, "SWIGPROTECT(", return_type, " ", name, "(", proto, ");)\n\n", NIL);
+            Printv(f_proxy_header, vis_hint, NIL);
+
+            Delete(vis_hint);
+         }
 
        Wrapper_print(wrapper, f_wrappers);
 
@@ -563,13 +563,62 @@ ready:
          Wrapper_add_local(wrapper, "cppresult", SwigType_str(cpptype, "cppresult"));
     }
 
-  virtual void functionWrapperCPPSpecificProxy(Node *n, String *name)
+  virtual SwigType *functionWrapperCPPSpecificWrapperReturnTypeGet(Node *n)
     {
-       // C++ function wrapper proxy code
-       SwigType *return_type = Getattr(n, "return_type");
-       String *pname = Swig_name_wrapper(name);
-       String *arg_names = NewString("");
-       ParmList *parms = Getattr(n, "parms");
+       SwigType *type = Getattr(n, "type");
+       SwigType *return_type = NewString("");
+       String *tm;
+
+       // set the return type
+       if (IS_SET_TO_ONE(n, "c:objstruct")) {
+            Printv(return_type, SwigType_str(type, 0), NIL);
+       }
+       else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
+            String *ctypeout = Getattr(n, "tmap:proxycouttype:out");
+            if (ctypeout)
+              {
+                 tm = ctypeout;
+                 Printf(stdout, "Obscure couttype:out found! O.o\n");
+              }
+            Printf(return_type, "%s", tm);
+            // template handling
+            Replaceall(return_type, "$tt", SwigType_lstr(type, 0));
+       }
+       else {
+            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
+       }
+       return return_type;
+    }
+
+  virtual SwigType *functionWrapperCPPSpecificProxyReturnTypeGet(Node *n)
+    {
+       SwigType *type = Getattr(n, "type");
+       SwigType *return_type = NewString("");
+       String *tm;
+
+       // set the return type
+       if (IS_SET_TO_ONE(n, "c:objstruct")) {
+            Printv(return_type, SwigType_str(type, 0), NIL);
+       }
+       else if ((tm = Swig_typemap_lookup("proxycouttype", n, "", 0))) {
+            String *ctypeout = Getattr(n, "tmap:proxycouttype:out");
+            if (ctypeout)
+              {
+                 tm = ctypeout;
+                 Printf(stdout, "Obscure proxycouttype:out found! O.o\n");
+              }
+            Printf(return_type, "%s", tm);
+            // template handling
+            Replaceall(return_type, "$tt", SwigType_lstr(type, 0));
+       }
+       else {
+            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
+       }
+       return return_type;
+    }
+
+  virtual String *functionWrapperCPPSpecificProxyPrototypeGet(Node *n, ParmList *parms)
+    {
        Parm *p;
        String *proto = NewString("");
        int gencomma = 0;
@@ -578,18 +627,20 @@ ready:
        Swig_typemap_attach_parms("in", parms, 0);
 
        // attach 'ctype' typemaps
-       Swig_typemap_attach_parms("ctype", parms, 0);
+       Swig_typemap_attach_parms("proxy", parms, 0);
+
 
        // prepare function definition
        for (p = parms, gencomma = 0; p; ) {
             String *tm;
+            SwigType *type = NULL;
 
             while (p && checkAttribute(p, "tmap:in:numinputs", "0")) {
                  p = Getattr(p, "tmap:in:next");
             }
             if (!p) break;
 
-            SwigType *type = Getattr(p, "type");
+            type = Getattr(p, "type");
             if (SwigType_type(type) == T_VOID) {
                  p = nextSibling(p);
                  continue;
@@ -606,13 +657,13 @@ ready:
             Printf(arg_name, "c%s", lname);
 
             // set the appropriate type for parameter
-            if ((tm = Getattr(p, "tmap:ctype"))) {
+            if ((tm = Getattr(p, "tmap:proxy"))) {
                  Printv(c_parm_type, tm, NIL);
                  // template handling
                  Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
             }
             else {
-                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
+                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No proxy typemap defined for %s\n", SwigType_str(type, 0));
             }
 
             // use proxy-type for parameter if supplied
@@ -624,7 +675,6 @@ ready:
                  Printv(proxy_parm_type, c_parm_type, NIL);
             }
 
-            Printv(arg_names, gencomma ? ", " : "", arg_name, NIL);
             Printv(proto, gencomma ? ", " : "", proxy_parm_type, " ", arg_name, NIL);
             gencomma = 1;
 
@@ -645,14 +695,169 @@ ready:
             Delete(proxy_parm_type);
             Delete(c_parm_type);
        }
+       return proto;
+    }
 
-       printProxy(n, return_type, pname, name, proto, arg_names);
+  virtual String *functionWrapperCPPSpecificProxyWrapperCallGet(Node *n, const String *wname, ParmList *parms)
+    {
+       Parm *p;
+       String *call = NewString(wname);
+       String *args = NewString("");
+       int gencomma = 0;
+
+       Printv(call, "(", NIL);
+       // attach the standard typemaps
+       //Swig_typemap_attach_parms("in", parms, 0);
+
+       // attach typemaps to cast wrapper call with proxy types
+       Swig_typemap_attach_parms("wrap_call", parms, 0);
+
+       // prepare function definition
+       for (p = parms, gencomma = 0; p; ) {
+            String *tm;
+            SwigType *type = NULL;
+
+            while (p && checkAttribute(p, "tmap:in:numinputs", "0")) {
+                 p = Getattr(p, "tmap:in:next");
+            }
+            if (!p) break;
+
+            type = Getattr(p, "type");
+            if (SwigType_type(type) == T_VOID) {
+                 p = nextSibling(p);
+                 continue;
+            }
+            String *lname = Getattr(p, "lname");
+            String *c_parm_type = NewString("");
+            //String *proxy_parm_type = NewString("");
+            String *arg_name = NewString("");
+
+            SwigType *tdtype = SwigType_typedef_resolve_all(type);
+            if (tdtype)
+              type = tdtype;
+
+            Printf(arg_name, "c%s", lname);
+
+            // set the appropriate type for parameter
+            if ((tm = Getattr(p, "tmap:wrap_call"))) {
+                 Printv(c_parm_type, tm, NIL);
+                 // template handling
+                 Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
+            }
+            else {
+                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No wrap_call typemap defined for %s\n", SwigType_str(type, 0));
+            }
+
+            /*
+            // use proxy-type for parameter if supplied
+            String* stype = Getattr(p, "c:stype");
+            if (stype) {
+                 Printv(proxy_parm_type, SwigType_str(stype, 0), NIL);
+            }
+            else {
+                 Printv(proxy_parm_type, c_parm_type, NIL);
+            }
+            */
+
+            Printv(args, gencomma ? ", " : "", c_parm_type, arg_name, NIL);
+            gencomma = 1;
+
+            // apply typemaps for input parameter
+            if (IS_EQUAL(nodeType(n), "destructor")) {
+                 p = Getattr(p, "tmap:in:next");
+            }
+            else if ((tm = Getattr(p, "tmap:in"))) {
+                 Replaceall(tm, "$input", arg_name);
+                 p = Getattr(p, "tmap:in:next");
+            }
+            else {
+                 Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
+                 p = nextSibling(p);
+            }
+
+            Delete(arg_name);
+            //Delete(proxy_parm_type);
+            Delete(c_parm_type);
+       }
+       Printv(call, args, ")", NIL);
+
+       return call;
+    }
+
+  virtual void functionWrapperCPPSpecificProxy(Node *n, String *name)
+    {
+       // C++ function wrapper proxy code
+       ParmList *parms = Getattr(n, "parms");
+       String *wname = Swig_name_wrapper(name);
+       String *vis_hint = NewString("");
+       SwigType *preturn_type = functionWrapperCPPSpecificProxyReturnTypeGet(n);
+       String *wproto = Getattr(n, "wrap:proto");
+       String *pproto = functionWrapperCPPSpecificProxyPrototypeGet(n, parms);
+       String *wrapper_call = NewString("");
+       SwigType *proxy_type = Getattr(n, "c:stype"); // use proxy-type for return type if supplied
+
+       if (proxy_type) {
+            preturn_type = SwigType_str(proxy_type, 0);
+       }
+
+       // emit proxy functions prototypes
+       // print wrapper prototype into proxy body for later use within proxy
+       // body
+       Printv(f_proxy_code_init, wproto, "\n", NIL);
+
+       // print actual proxy code into proxy .c file
+       Printv(f_proxy_code_body, preturn_type, " ", name, "(", pproto, ") {\n", NIL);
+
+       // print the call of the wrapper function
+       //Printv(f_proxy_code_body, "  return ", wname, "(", proxy_wrap_args, ");\n}\n", NIL);
+
+       // Add cast if necessary
+       if (SwigType_type(preturn_type) != T_VOID) {
+            Printf(wrapper_call, "(%s)", preturn_type);
+       }
+       Printv(wrapper_call, functionWrapperCPPSpecificProxyWrapperCallGet(n, wname, parms), NIL);
+       Printv(f_proxy_code_body, "  return ", wrapper_call, ";\n}\n", NIL);
+
+       // add function declaration to the proxy header file
+       // add visibility hint for the compiler (do not override this symbol)
+       Printv(vis_hint, "SWIGPROTECT(", preturn_type, " ", name, "(", pproto, ");)\n\n", NIL);
+       Printv(f_proxy_header, vis_hint, NIL);
 
        // cleanup
-       Delete(proto);
-       Delete(arg_names);
-       Delete(pname);
+       Delete(vis_hint);
+       Delete(pproto);
+       Delete(wrapper_call);
+       Delete(preturn_type);
+       Delete(name);
     }
+
+  virtual SwigType *functionWrapperCPPSpecificWrapperSetReturnType(Node *n)
+    {
+       SwigType *type = Getattr(n, "type");
+       SwigType *return_type = NewString("");
+       String *tm;
+
+       // set the return type
+       if (IS_SET_TO_ONE(n, "c:objstruct")) {
+            Printv(return_type, SwigType_str(type, 0), NIL);
+       }
+       else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
+            String *ctypeout = Getattr(n, "tmap:couttype:out");
+            if (ctypeout)
+              {
+                 tm = ctypeout;
+                 Printf(stdout, "Obscure proxycouttype:out found! O.o\n");
+              }
+            Printf(return_type, "%s", tm);
+            // template handling
+            Replaceall(return_type, "$tt", SwigType_lstr(type, 0));
+       }
+       else {
+            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
+       }
+       return return_type;
+    }
+
 
   virtual void functionWrapperCPPSpecificWrapper(Node *n, String *name)
     {
@@ -660,7 +865,7 @@ ready:
        String *storage = Getattr(n, "storage");
        SwigType *type = Getattr(n, "type");
        SwigType *otype = Copy(type);
-       SwigType *return_type = Getattr(n, "return_type");
+       SwigType *return_type = functionWrapperCPPSpecificWrapperReturnTypeGet(n);
        String *wname = Swig_name_wrapper(name);
        String *arg_names = NewString("");
        ParmList *parms = Getattr(n, "parms");
@@ -692,7 +897,7 @@ ready:
 
        // attach the standard typemaps
        emit_attach_parmmaps(parms, wrapper);
-       Setattr(n, "wrap:parms", parms);
+       Setattr(n, "wrap:parms", parms); //never read again?!
 
        // attach 'ctype' typemaps
        Swig_typemap_attach_parms("ctype", parms, wrapper);
@@ -765,7 +970,14 @@ ready:
             Delete(c_parm_type);
        }
 
-       Printf(wrapper->def, ") {");
+       Printv(wrapper->def, ")", NIL);
+       //Create prototype for proxy file
+       String *wrap_proto = Copy(wrapper->def);
+       //Declare function as extern so only the linker has to find it
+       Replaceall(wrap_proto, "SWIGEXPORTC", "extern");
+       Printv(wrap_proto, ";", NIL);
+       Setattr(n, "wrap:proto", wrap_proto);
+       Printv(wrapper->def, " {", NIL);
 
        if (!IS_EQUAL(nodeType(n), "destructor")) {
             // emit variables for holding parameters
@@ -911,36 +1123,6 @@ ready:
        }
     }
 
-  virtual void functionWrapperCPPSpecificSetReturnType(Node *n)
-    {
-       SwigType *type = Getattr(n, "type");
-       SwigType *return_type = NewString("");
-       String *tm;
-
-       // set the return type
-       if (IS_SET_TO_ONE(n, "c:objstruct")) {
-            Printv(return_type, SwigType_str(type, 0), NIL);
-       }
-       else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
-            String *ctypeout = Getattr(n, "tmap:couttype:out");
-            if (ctypeout)
-              tm = ctypeout;
-            Printf(return_type, "%s", tm);
-            // template handling
-            Replaceall(return_type, "$tt", SwigType_lstr(type, 0));
-       }
-       else {
-            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
-       }
-       Setattr(n, "return_type", return_type);
-    }
-
-  /*
-  virtual void functionWrapperCPPSpecific(Node *n)
-    {
-    }
-    */
-
   virtual void functionWrapperCPPSpecific(Node *n)
     {
        ParmList *parms = Getattr(n, "parms");
@@ -961,8 +1143,6 @@ ready:
        if((tdtype = SwigType_typedef_resolve_all(type)))
          Setattr(n, "type", tdtype);
 
-       functionWrapperCPPSpecificSetReturnType(n);
-
        // make sure lnames are set
        functionWrapperPrepareArgs(parms);
 
@@ -972,7 +1152,7 @@ ready:
        if (proxy_flag) // take care of proxy function
          functionWrapperCPPSpecificProxy(n, name);
 
-       Delete(name);
+       //Delete(name);
     }
 
   /* ----------------------------------------------------------------------
