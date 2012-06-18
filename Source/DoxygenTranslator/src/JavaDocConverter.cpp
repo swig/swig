@@ -13,7 +13,7 @@
 #include "DoxygenParser.h"
 #include <iostream>
 #define APPROX_LINE_LENGTH 64	//characters per line allowed
-#define TAB_SIZE 8		//characters per line allowed
+#define TAB_SIZE 8		//current tab size in spaces
 int printSortedTree2 = 0;
 //TODO {@link} {@linkplain} {@docRoot}, and other useful doxy commands that are not a javadoc tag
 
