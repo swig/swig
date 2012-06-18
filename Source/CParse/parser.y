@@ -63,7 +63,6 @@ static Node   **class_decl = NULL;
 /* -----------------------------------------------------------------------------
  *                            Doxygen Comment Globals and Assist Functions
  * ----------------------------------------------------------------------------- */
-int parseComments = 1; /* set this to activate Doxygen uptake into the parse tree */
 String *currentComment; /* Location of the stored Doxygen Comment */
 String *currentPostComment; /* Location of the stored Doxygen Post-Comment */
 String *currentCComment; /* Location of the stored C Comment */
@@ -107,7 +106,7 @@ static Node *new_node(const_String_or_char_ptr tag) {
   set_nodeType(n,tag);
   Setfile(n,cparse_file);
   Setline(n,cparse_line);
-  if(parseComments){
+  if(scan_doxygen_comments){
     /* Sets any post comments to the previous node */
     if(previousNode != NULL && currentPostComment != 0){
       String *copyPostComment = Copy(currentPostComment);

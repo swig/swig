@@ -46,6 +46,9 @@ static int last_brace = 0;
 static int last_id = 0;
 static int rename_active = 0;
 
+/* Doxygen comments scanning */
+int scan_doxygen_comments = 1;
+
 /* -----------------------------------------------------------------------------
  * Swig_cparse_cplusplus()
  * ----------------------------------------------------------------------------- */
@@ -337,15 +340,17 @@ static int yylook(void) {
 	if ((strncmp(loc,"/*@SWIG",7) == 0) && (loc[Len(cmt)-3] == '@')) {
 	  Scanner_locator(scan, cmt);
 	}
-	if (strncmp(loc, "/**<", 4) == 0 || strncmp(loc, "///<", 4) == 0||strncmp(loc, "/*!<", 4) == 0||strncmp(loc, "//!<", 4) == 0) {
-	  /* printf("Doxygen Post Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc); */
-	  yylval.str =  NewString(loc);
-	  return DOXYGENPOSTSTRING;
-	}
-	if (strncmp(loc, "/**", 3) == 0 || strncmp(loc, "///", 3) == 0||strncmp(loc, "/*!", 3) == 0||strncmp(loc, "//!", 3) == 0) {
-	  /* printf("Doxygen Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc);  */
-	  yylval.str =  NewString(loc);
-	  return DOXYGENSTRING;
+	if (scan_doxygen_comments) { /* else just skip this node, to avoid crashes in parser module*/
+	  if (strncmp(loc, "/**<", 4) == 0 || strncmp(loc, "///<", 4) == 0||strncmp(loc, "/*!<", 4) == 0||strncmp(loc, "//!<", 4) == 0) {
+	    /* printf("Doxygen Post Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc); */
+	    yylval.str =  NewString(loc);
+	    return DOXYGENPOSTSTRING;
+	  }
+	  if (strncmp(loc, "/**", 3) == 0 || strncmp(loc, "///", 3) == 0||strncmp(loc, "/*!", 3) == 0||strncmp(loc, "//!", 3) == 0) {
+	    /* printf("Doxygen Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc);  */
+	    yylval.str =  NewString(loc);
+	    return DOXYGENSTRING;
+	  }
 	}
       }
       break;
