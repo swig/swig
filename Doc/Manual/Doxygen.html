@@ -114,7 +114,16 @@ Just remember, if SWIG shows syntax error parsing the file because of your comme
 
 
 <p>
-NOT YET ADDED (current development branch has this feature automatically enabled).
+There are switches like '-doxygen' and '-nodoxygen' in every module that supports converting
+documentation comments. The first one is default, so that swig by default produces correct
+proxy files with comments. Some comments in some target languages can be manually overriden by specific
+swig's features, like <i>feature:docstring</i> or <i>feature:autodoc</i>, in this cases doxygen comments
+have lowest priority.
+</p>
+<p>
+Switching off may be needed if swig cannot correctly parse your comments, for example showing <i>Error:
+Syntax error in input(1).</i> message. Then it will just strip out every comment out of the code and
+continue happily.
 </p>
 
 <H3><a name="Doxygen_additional_options"></a>35.2.2 Additional Commandline Options</H3>
