@@ -21,6 +21,7 @@ static int treduce = SWIG_cparse_template_reduce(0);
 #include <ctype.h>
 #include <sstream>
 #include "../DoxygenTranslator/src/DoxygenTranslator.h"
+#include "../../../swig/bug.h"
 
 #define PYSHADOW_MEMBER  0x2
 #define WARN_PYTHON_MULTIPLE_INH 405
@@ -120,7 +121,7 @@ Python Options (available with -python)\n\
      -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
-	 -doxygen		 - Convert C++ doxygen comments to pydoc comments in proxy classes \n\
+     -doxygen        - Convert C++ doxygen comments to pydoc comments in proxy classes (default) \n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
      -fastinit       - Use fast init mechanism for classes (default)\n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
@@ -139,6 +140,7 @@ static const char *usage2 = (char *) "\
      -nocastmode     - Disable the casting mode (default)\n\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
+     -nodoxygen      - Don't convert C++ doxygen comments to pydoc comments in proxy classes \n\
      -noexcept       - No automatic exception handling\n\
      -noextranative  - Don't use extra native C++ wraps for std containers when possible (default) \n\
      -nofastinit     - Use traditional init mechanism for classes \n\
@@ -418,11 +420,16 @@ public:
 	} else if (strcmp(argv[i], "-dirvtable") == 0) {
 	  dirvtable = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-doxygen") == 0) {
-	  doxygen = 1;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-nodirvtable") == 0) {
 	  dirvtable = 0;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-doxygen") == 0) {
+	  doxygen = 1;
+	  scan_doxygen_comments = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-nodoxygen") == 0) {
+	  doxygen = 0;
+	  scan_doxygen_comments = 0;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-fastunpack") == 0) {
 	  fastunpack = 1;
@@ -1194,7 +1201,10 @@ public:
 
   bool have_docstring(Node *n) {
     String *str = Getattr(n, "feature:docstring");
-    return (str && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
+    return ((str && Len(str) > 0)
+	|| (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"))
+	|| (doxygen && Getattr(n, "DoxygenComment"))
+      );
   }
 
   /* ------------------------------------------------------------
@@ -1206,8 +1216,10 @@ public:
 
   String *docstring(Node *n, autodoc_t ad_type, const String *indent, bool use_triple = true) {
     String *str = Getattr(n, "feature:docstring");
+    String *doxygen_comment = 0;
     bool have_ds = (str && Len(str) > 0);
     bool have_auto = (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
+    bool have_doxygen = doxygen && DoxygenTranslator::getDocumentation(n, PyDoc, doxygen_comment);
     const char *triple_double = use_triple ? "\"\"\"" : "";
     String *autodoc = NULL;
     String *doc = NULL;
@@ -1223,6 +1235,9 @@ public:
     if (have_auto) {
       autodoc = make_autodoc(n, ad_type);
       have_auto = (autodoc && Len(autodoc) > 0);
+    }
+    if (have_doxygen) {
+      have_doxygen = (doxygen_comment && Len(doxygen_comment) > 0);
     }
     // If there is more than one line then make docstrings like this:
     //
@@ -1250,7 +1265,11 @@ public:
 	doc = NewString("");
 	Printv(doc, triple_double, "\n", pythoncode(autodoc, indent), indent, triple_double, NIL);
       }
-    } else
+    } else if (have_doxygen) { // the lowest priority
+      doc = NewString("");
+      Printv(doc, triple_double, "\n", pythoncode(doxygen_comment, indent), indent, triple_double, NIL);
+    }
+    else
       doc = NewString("");
 
     // Save the generated strings in the parse tree in case they are used later
@@ -1780,15 +1799,8 @@ public:
     String *callParms = make_pyParmList(n, false, true, kw);
     /* Make a wrapper function to insert the code into */
     Printv(f_dest, "\ndef ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-    if (doxygen) {
-      String *doxygen_comments;
-      if (DoxygenTranslator::getDocumentation(n, PyDoc, doxygen_comments)) {
-	Printf(f_dest, Char(pythoncode(doxygen_comments, tab2)));
-	Delete(doxygen_comments);
-      }
-    }
     if (have_docstring(n))
-      Printv(f_dest, "  ", docstring(n, AUTODOC_FUNC, tab4), "\n", NIL);
+      Printv(f_dest, "  ", docstring(n, AUTODOC_FUNC, tab2), "\n", NIL);
     if (have_pythonprepend(n))
       Printv(f_dest, pythoncode(pythonprepend(n), "  "), "\n", NIL);
     if (have_pythonappend(n)) {
@@ -3700,16 +3712,7 @@ public:
 
 	Printf(f_shadow, ":\n");
 
-	// translate and write pydoc comment if flagged
-	if (doxygen){
-	  String *doxygen_comments;
-	  if(DoxygenTranslator::getDocumentation(n, PyDoc, doxygen_comments)){
-	    Printf(f_shadow, Char(pythoncode(doxygen_comments, shadow_indent))); 
-	    Delete(doxygen_comments);
-	  }
-	}
-
-	// otherwise use default docstrings if requested
+	// write docstrings if requested
 	if (have_docstring(n)) {
 	  String *str = docstring(n, AUTODOC_CLASS, tab4);
 	  if (str && Len(str))
@@ -3987,26 +3990,12 @@ public:
 	    if (!fastproxy || olddefs) {
 	      Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":", NIL);
 	      Printv(f_shadow, "\n", NIL);
-	      if (doxygen) {
-		String *doxygen_comments;
-		if (DoxygenTranslator::getDocumentation(n, PyDoc, doxygen_comments)) {
-		  Printf(f_shadow, Char(pythoncode(doxygen_comments, tab8))); 
-		  Delete(doxygen_comments);
-		}
-	      }
 	      Printv(f_shadow, tab8, "return ", funcCall(fullname, callParms), "\n", NIL);
 	    }
 	  } else {
 	    Printv(f_shadow, tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":", NIL);
 	    Printv(f_shadow, "\n", NIL);
-	    if (doxygen) {
-	      String *doxygen_comments;
-	      if(DoxygenTranslator::getDocumentation(n, PyDoc, doxygen_comments)){
-		Printf(f_shadow, Char(pythoncode(doxygen_comments, tab8))); 
-		Delete(doxygen_comments);
-	      }
-	    }
-	    else if (have_docstring(n))
+	    if (have_docstring(n))
 	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
 	    if (have_pythonprepend(n)) {
 	      fproxy = 0;

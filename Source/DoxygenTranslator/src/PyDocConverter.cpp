@@ -193,7 +193,7 @@ bool PyDocConverter::getDocumentation(Node *n, String *&documentation) {
 
   // if we got something log the result and construct DOH string to return
   if (pyDocString.length()) {
-    result = "\"\"\"\n" + pyDocString + "\"\"\"\n";
+    result = pyDocString;
 
     if (debug) {
       std::cout << "\n---RESULT IN PYDOC---" << std::endl;

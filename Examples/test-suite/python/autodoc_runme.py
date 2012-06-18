@@ -165,9 +165,9 @@ check(F.__init__.__doc__, "\n"
 check(B.funk.__doc__, "funk(B self, int c, int d) -> int")
 check(funk.__doc__, "funk(A e, short arg2, int c, int d) -> int")
 check(funkdefaults.__doc__, "\n"
-"    funkdefaults(A e, short arg2, int c, int d, double f=2) -> int\n"
-"    funkdefaults(A e, short arg2, int c, int d) -> int\n"
-"    "
+"  funkdefaults(A e, short arg2, int c, int d, double f=2) -> int\n"
+"  funkdefaults(A e, short arg2, int c, int d) -> int\n"
+"  "
 )
 
 check(func_input.__doc__, "func_input(int * INPUT) -> int")
