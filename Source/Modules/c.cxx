@@ -1278,7 +1278,7 @@ ready:
 
       // declare type for specific class in the proxy header
       if (proxy_flag)
-        Printv(f_proxy_header, "\ntypedef SwigObj_", name, " ", name, ";\n\n", NIL);
+        Printv(f_proxy_header, "\ntypedef struct SwigObj_", name, " ", name, ";\n\n", NIL);
 
       Delete(sobj);
       Delete(name);
