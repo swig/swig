@@ -52,7 +52,7 @@
 
 %typemap(proxy) void [ANY][ANY], short [ANY][ANY], int [ANY][ANY], long [ANY][ANY], char [ANY][ANY], float [ANY][ANY], double [ANY][ANY] "$1_ltype"
 %typemap(proxy) SWIGTYPE         "$1_ltype *"
-%typemap(proxy) SWIGTYPE *       "$1_ltype *"
+%typemap(proxy) SWIGTYPE *       "$1_ltype "
 %typemap(proxy) SWIGTYPE &       "$1_ltype *"
 %typemap(proxy) SWIGTYPE [ANY][ANY], SWIGTYPE ** "/* whoa */ $1_ltype ***"
 %typemap(proxy) SWIGTYPE *[ANY]  "/*ooooh*/ $1_ltype **"
