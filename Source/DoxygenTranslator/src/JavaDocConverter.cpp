@@ -150,12 +150,12 @@ std::string JavaDocConverter::translateEntity(DoxygenEntity & doxyEntity) {
 }
 
 
-bool JavaDocConverter::getDocumentation(Node *node, String *&documentation) {
+String *JavaDocConverter::makeDocumentation(Node *node) {
 
-  documentation = Getattr(node, "DoxygenComment");
+  String *documentation = getDoxygenComment(node);
 
   if (documentation == NULL) {
-    return false;
+    return NULL;
   }
 
   std::list < DoxygenEntity > entityList = DoxygenParser().createTree(Char(documentation));
@@ -181,7 +181,6 @@ bool JavaDocConverter::getDocumentation(Node *node, String *&documentation) {
     std::cout << "\n---RESULT IN JAVADOC---" << std::endl;
     std::cout << javaDocString;
   }
-
-  documentation = NewString(javaDocString.c_str());
-  return true;
+  
+  return NewString(javaDocString.c_str());
 }

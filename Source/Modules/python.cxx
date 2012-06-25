@@ -20,7 +20,7 @@ static int treduce = SWIG_cparse_template_reduce(0);
 
 #include <ctype.h>
 #include <sstream>
-#include "../DoxygenTranslator/src/DoxygenTranslator.h"
+#include "../DoxygenTranslator/src/PyDocConverter.h"
 #include "../../../swig/bug.h"
 
 #define PYSHADOW_MEMBER  0x2
@@ -548,6 +548,9 @@ public:
     if (cppcast) {
       Preprocessor_define((DOH *) "SWIG_CPLUSPLUS_CAST", 0);
     }
+    
+    if (doxygen)
+      doxygenTranslator = new PyDocConverter;
 
     if (!global_name)
       global_name = NewString("cvar");
@@ -1203,7 +1206,7 @@ public:
     String *str = Getattr(n, "feature:docstring");
     return ((str && Len(str) > 0)
 	|| (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"))
-	|| (doxygen && Getattr(n, "DoxygenComment"))
+	|| (doxygen && doxygenTranslator->hasDocumentation(n))
       );
   }
 
@@ -1219,7 +1222,7 @@ public:
     String *doxygen_comment = 0;
     bool have_ds = (str && Len(str) > 0);
     bool have_auto = (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"));
-    bool have_doxygen = doxygen && DoxygenTranslator::getDocumentation(n, PyDoc, doxygen_comment);
+    bool have_doxygen = doxygen && doxygenTranslator->hasDocumentation(n);
     const char *triple_double = use_triple ? "\"\"\"" : "";
     String *autodoc = NULL;
     String *doc = NULL;
@@ -1237,6 +1240,7 @@ public:
       have_auto = (autodoc && Len(autodoc) > 0);
     }
     if (have_doxygen) {
+      doxygen_comment = doxygenTranslator->getDocumentation(n);
       have_doxygen = (doxygen_comment && Len(doxygen_comment) > 0);
     }
     // If there is more than one line then make docstrings like this:

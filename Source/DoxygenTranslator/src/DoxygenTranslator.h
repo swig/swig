@@ -17,16 +17,9 @@
 
 #include "swig.h"
 #include "DoxygenEntity.h"
+#include "DoxygenParser.h"
 #include <list>
 
-/*
- * Describes the availible documentation systems
- * that can be translated to.
- */
-enum DocumentationFormat {
-  JavaDoc = 1,
-  PyDoc = 2
-};
 
 /*
  * A class to translate doxygen comments attacted to parser nodes
@@ -35,19 +28,30 @@ enum DocumentationFormat {
 class DoxygenTranslator {
 public:
   /*
+   * Constructor
+   */
+  DoxygenTranslator();
+  /*
    * Virtual destructor.
    */
-  virtual ~ DoxygenTranslator() {
-  }
+  virtual ~ DoxygenTranslator();
   /*
    * Return the documentation for a given node formated for the correct 
-   * documentation system.
+   * documentation system. The result is cached and translated only once.
    * @param node The node to extract and translate documentation for.
    * @param format The documentation format to output.
    * @param documentation The returned documentation string.
    * @return A bool to indicate if there was documentation to return for the node.
    */
-  static bool getDocumentation(Node *node, DocumentationFormat format, String *&documentation);
+  String *getDocumentation(Node *node);
+  /*
+   * Whether the specified node has comment or not
+   */
+  bool hasDocumentation(Node *node);
+  /*
+   * Get original, Doxygen-format comment string
+   */
+  String *getDoxygenComment(Node *node);
 
 protected:
   /*
@@ -57,12 +61,22 @@ protected:
    * @param documentation The returned documentation string.
    * @return A bool to indicate if there was documentation to return for the node.
    */
-  virtual bool getDocumentation(Node *node, String *&documentation) = 0;
-
+  virtual String *makeDocumentation(Node *node) = 0;
+  
   /*
    * Prints the details of a parsed entity list to stdout (for debugging).
    */
   void printTree(std::list < DoxygenEntity > &entityList);
+  
+  /*
+   * Doxygen parser object
+   */
+  DoxygenParser parser;
+  
+  /*
+   * Cache of translated comments
+   */
+  Hash *resultsCache;
 };
 
 #endif

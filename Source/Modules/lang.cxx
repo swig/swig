@@ -2869,9 +2869,10 @@ int Language::usingDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 int Language::doxygenComment(Node *n){
 	
-	String *comment = Getattr(n, "comment");
+  String *comment = Getattr(n, "comment");
+  Printf(stdout, "doxygenComment   : %s\n", comment);
 
-	return SWIG_OK;
+  return SWIG_OK;
 	
 }
 

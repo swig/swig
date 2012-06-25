@@ -17,6 +17,7 @@
 #include "swig.h"
 #include "preprocessor.h"
 #include "swigwarn.h"
+#include "../DoxygenTranslator/src/DoxygenTranslator.h"
 
 #if !defined(HAVE_BOOL)
 typedef int bool;
@@ -315,6 +316,8 @@ protected:
   /* Director language module */
   int director_language;
 
+  // Class instance to translate comments
+  DoxygenTranslator *doxygenTranslator;
 private:
   Hash *symtabs; /* symbol tables */
   Hash *classtypes;

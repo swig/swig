@@ -17,7 +17,7 @@ char cvsroot_java_cxx[] = "$Id$";
 #include <limits.h>		// for INT_MAX
 #include "cparse.h"
 #include <ctype.h>
-#include "../DoxygenTranslator/src/DoxygenTranslator.h"
+#include "../DoxygenTranslator/src/JavaDocConverter.h"
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
@@ -158,11 +158,19 @@ public:
       dmethods_seq(NULL),
       dmethods_table(NULL),
       n_dmethods(0),
-      n_directors(0) {
+      n_directors(0){
     /* for now, multiple inheritance in directors is disabled, this
        should be easy to implement though */
     director_multiple_inheritance = 0;
     director_language = 1;
+    
+    if (doxygen)
+      doxygenTranslator = new JavaDocConverter();
+  }
+  
+  ~JAVA() {
+    if (doxygen)
+      delete doxygenTranslator;
   }
 
   /* -----------------------------------------------------------------------------
@@ -286,6 +294,9 @@ public:
 	}
       }
     }
+    
+    if (doxygen)
+      doxygenTranslator = new JavaDocConverter();
 
     // Add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGJAVA 1", 0);
@@ -545,14 +556,12 @@ public:
       if (module_imports)
 	Printf(f_module, "%s\n", module_imports);
       
-      if (doxygen){
-	String *doxygen_comments;
-	if(DoxygenTranslator::getDocumentation(n, JavaDoc,doxygen_comments)){
-	  if(comment_creation_chatter)
-	    Printf(f_module, "/* This was generated from top() */");
-	  Printf(f_module, Char(doxygen_comments)); 
-	  Delete(doxygen_comments);
-	}
+      if (doxygen && doxygenTranslator->hasDocumentation(n)){
+	String *doxygen_comments=doxygenTranslator->getDocumentation(n);
+	if(comment_creation_chatter)
+	  Printf(f_module, "/* This was generated from top() */");
+	Printf(f_module, Char(doxygen_comments)); 
+	Delete(doxygen_comments);
       }
       if (Len(module_class_modifiers) > 0)
 	Printf(f_module, "%s ", module_class_modifiers);
@@ -1417,14 +1426,12 @@ public:
 	return SWIG_ERROR;
       
       //translate and write javadoc comment if flagged
-      if (doxygen){
-	String *doxygen_comments;
-	if(DoxygenTranslator::getDocumentation(n, JavaDoc, doxygen_comments)){
-	  if(comment_creation_chatter)
-	    Printf(enum_code, "/* This was generated from enumvalueDeclaration() */");
-	  Printf(enum_code, Char(doxygen_comments)); 
-	  Delete(doxygen_comments);
-	}
+      if (doxygen && doxygenTranslator->hasDocumentation(n)){
+	String *doxygen_comments=doxygenTranslator->getDocumentation(n);
+	if(comment_creation_chatter)
+	  Printf(enum_code, "/* This was generated from enumvalueDeclaration() */");
+	Printf(enum_code, Char(doxygen_comments)); 
+	Delete(doxygen_comments);
       }
 
       if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
@@ -1489,14 +1496,12 @@ public:
    * file
    * ------------------------------------------------------------------------ */
   virtual int doxygenComment(Node *n){
-    if (doxygen){
-      String *doxygen_comments;
-      if(DoxygenTranslator::getDocumentation(n, JavaDoc, doxygen_comments)){
-	if(comment_creation_chatter)
-	  Printf(structuralComments, "/* This was generated from doxygenComment() */");
-	Printf(structuralComments, Char(doxygen_comments)); 
-	Delete(doxygen_comments);
-      }
+    if (doxygen && doxygenTranslator->hasDocumentation(n)){
+      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
+      if(comment_creation_chatter)
+	Printf(structuralComments, "/* This was generated from doxygenComment() */");
+      Printf(structuralComments, Char(doxygen_comments)); 
+      Delete(doxygen_comments);
     }
     return SWIG_OK;
   }
@@ -1523,14 +1528,12 @@ public:
     Swig_save("constantWrapper", n, "value", NIL);
 
     //translate and write javadoc comment if flagged
-    if (doxygen){
-      String *doxygen_comments;
-      if(DoxygenTranslator::getDocumentation(n, JavaDoc, doxygen_comments)){
-	if(comment_creation_chatter)
-	  Printf(constants_code, "/* This was generated from constantWrapper() */");
-	Printf(constants_code, Char(doxygen_comments)); 
-	Delete(doxygen_comments);
-      }
+    if (doxygen && doxygenTranslator->hasDocumentation(n)){
+      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
+      if(comment_creation_chatter)
+	Printf(constants_code, "/* This was generated from constantWrapper() */");
+      Printf(constants_code, Char(doxygen_comments)); 
+      Delete(doxygen_comments);
     }
     
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
@@ -1821,14 +1824,12 @@ public:
     const String *pure_interfaces = typemapLookup(n, "javainterfaces", typemap_lookup_type, WARN_NONE);
     
     //translate and write javadoc comment if flagged
-    if (doxygen){
-      String *doxygen_comments;
-      if(DoxygenTranslator::getDocumentation(n, JavaDoc, doxygen_comments)){
-	if(comment_creation_chatter)
-	  Printf(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */");
-	Printf(proxy_class_def, Char(doxygen_comments)); 
-	Delete(doxygen_comments);
-      }
+    if (doxygen && doxygenTranslator->hasDocumentation(n)){
+      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
+      if(comment_creation_chatter)
+	Printf(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */");
+      Printf(proxy_class_def, Char(doxygen_comments)); 
+      Delete(doxygen_comments);
     }
     
     // Start writing the proxy class
@@ -2227,14 +2228,12 @@ public:
     }
     
     //translate and write javadoc comment if flagged
-    if (doxygen){
-      String *doxygen_comments;
-      if(DoxygenTranslator::getDocumentation(n, JavaDoc, doxygen_comments)){
-	if(comment_creation_chatter)
-	  Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */");
-	Printf(function_code, Char(doxygen_comments)); 
-	Delete(doxygen_comments);
-      }
+    if (doxygen && doxygenTranslator->hasDocumentation(n)){
+      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
+      if(comment_creation_chatter)
+	Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */");
+      Printf(function_code, Char(doxygen_comments)); 
+      Delete(doxygen_comments);
     }
     
     /* Start generating the proxy function */
@@ -2460,14 +2459,12 @@ public:
       Printf(im_return_type, "%s", tm);
       
       //translate and write javadoc comment if flagged
-      if (doxygen){
-	String *doxygen_comments;
-	if(DoxygenTranslator::getDocumentation(n, JavaDoc, doxygen_comments)){
-	  if(comment_creation_chatter)
-	    Printf(function_code, "/* This was generated from constructionhandler() */");
-	  Printf(function_code, Char(doxygen_comments)); 
-	  Delete(doxygen_comments);
-	}
+    if (doxygen && doxygenTranslator->hasDocumentation(n)){
+      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
+	if(comment_creation_chatter)
+	  Printf(function_code, "/* This was generated from constructionhandler() */");
+	Printf(function_code, Char(doxygen_comments)); 
+	Delete(doxygen_comments);
       }
 	    
       Printf(function_code, "  %s %s(", methodmods, proxy_class_name);
@@ -2732,14 +2729,12 @@ public:
     String *post_code = NewString("");
     
     // translate and write javadoc comment if flagged
-    if (doxygen){
-      String *doxygen_comments;
-      if(DoxygenTranslator::getDocumentation(n, JavaDoc, doxygen_comments)) {
-	if(comment_creation_chatter)
-	  Printf(function_code, "/* This was generated from moduleClassFunctionHandler() */");
-	Printv(function_code, doxygen_comments, NIL);
-	Delete(doxygen_comments);
-      }
+    if (doxygen && doxygenTranslator->hasDocumentation(n)){
+      String *doxygen_comments=doxygenTranslator->getDocumentation(n);
+      if(comment_creation_chatter)
+	Printf(function_code, "/* This was generated from moduleClassFunctionHandler() */");
+      Printv(function_code, doxygen_comments, NIL);
+      Delete(doxygen_comments);
     }
 
     if (l) {
@@ -4527,3 +4522,4 @@ Java Options (available with -java)\n\
      -oldvarnames    - Old intermediary method names for variable wrappers\n\
      -package <name> - Set name of the Java package to <name>\n\
 \n";
+

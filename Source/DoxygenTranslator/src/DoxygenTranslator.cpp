@@ -13,18 +13,41 @@
  * ----------------------------------------------------------------------------- */
 
 #include "DoxygenTranslator.h"
-#include "JavaDocConverter.h"
-#include "PyDocConverter.h"
 
-bool DoxygenTranslator::getDocumentation(Node *node, DocumentationFormat format, String *&documentation) {
-  switch (format) {
-  case JavaDoc:
-    return JavaDocConverter().getDocumentation(node, documentation);
-  case PyDoc:
-    return PyDocConverter().getDocumentation(node, documentation);
-  default:
-    return false;
-  }
+DoxygenTranslator::DoxygenTranslator() {
+  // Init the cache
+  resultsCache = NewHash();
+}
+DoxygenTranslator::~DoxygenTranslator() {
+  // Clean up the cache
+  Delete(resultsCache);
+}
+
+bool DoxygenTranslator::hasDocumentation(Node *node) {
+  return getDoxygenComment(node);
+}
+
+String *DoxygenTranslator::getDoxygenComment(Node *node) {
+  return Getattr(node, "DoxygenComment");
+}
+
+
+String *DoxygenTranslator::getDocumentation(Node *node) {
+  
+  if (!hasDocumentation(node))
+    return 0;
+  
+  // get from cache
+  String *resultedDocs = Getattr(resultsCache, getDoxygenComment(node));
+  
+  if (resultedDocs)
+    return resultedDocs;
+  
+  // not found in cache, produce it
+  resultedDocs = makeDocumentation(node);
+  Setattr(resultsCache, getDoxygenComment(node), resultedDocs);
+  
+  return resultedDocs;
 }
 
 void DoxygenTranslator::printTree(std::list < DoxygenEntity > &entityList) {

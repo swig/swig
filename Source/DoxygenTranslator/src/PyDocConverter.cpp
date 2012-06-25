@@ -19,7 +19,7 @@
 
 //TODO {@link} {@linkplain} {@docRoot}, and other useful doxy commands that are not a pydoc tag
 PyDocConverter::PyDocConverter() {
-  debug = 1;
+  debug = 0;
 }
 
 std::string PyDocConverter::formatParam(Node *n, DoxygenEntity & doxygenEntity) {
@@ -40,6 +40,8 @@ std::string PyDocConverter::formatParam(Node *n, DoxygenEntity & doxygenEntity) 
   std::string paramDescription = justifyString(paramDescriptionEntity.data, DOC_PARAM_STRING_LENGTH);
 
   for (p = plist; p;) {
+    
+    //Swig_print(p, 1);
     if (Char(Getattr(p, "name")) == paramNameEntity.data) {
       std::string name = Char(Swig_name_make(n, 0, Getattr(p, "name"), 0, 0));
       std::string type = Char(Swig_name_make(n, 0, Getattr(p, "type"), 0, 0));
@@ -52,7 +54,12 @@ std::string PyDocConverter::formatParam(Node *n, DoxygenEntity & doxygenEntity) 
       result += "-- " + paramDescription.substr(DOC_PARAM_STRING_LENGTH);
       break;
     }
-    p = Getattr(p, "tmap:in") ? Getattr(p, "tmap:in:next") : nextSibling(p);
+    /*
+     * doesn't seem to work always: in some cases (especially for 'self' parameters)
+     * tmap:in is present, but tmap:in:next is not and so this code skips all the parameters
+     */
+    //p = Getattr(p, "tmap:in") ? Getattr(p, "tmap:in:next") : nextSibling(p);
+    p = nextSibling(p);
   }
 
   Delete(plist);
@@ -147,7 +154,8 @@ std::string PyDocConverter::processEntityList(Node *n, std::list < DoxygenEntity
   return result;
 }
 
-bool PyDocConverter::getDocumentation(Node *n, String *&documentation) {
+String *PyDocConverter::makeDocumentation(Node *n) {
+  String *documentation;
   std::string pyDocString, result;
 
   // for overloaded functions we must concat documentation for underlying overloads
@@ -160,7 +168,7 @@ bool PyDocConverter::getDocumentation(Node *n, String *&documentation) {
 
     // for each real method (not a generated overload) append the documentation
     while (n) {
-      documentation = Getattr(n, "DoxygenComment");
+      documentation = getDoxygenComment(n);
       if (!Swig_is_generated_overload(n) && documentation) {
 	std::list < DoxygenEntity > entityList = DoxygenParser().createTree(Char(documentation));
 	allDocumentation.push_back(processEntityList(n, entityList));
@@ -184,7 +192,7 @@ bool PyDocConverter::getDocumentation(Node *n, String *&documentation) {
   }
   // for other nodes just process as normal
   else {
-    documentation = Getattr(n, "DoxygenComment");
+    documentation = getDoxygenComment(n);
     if (documentation != NULL) {
       std::list < DoxygenEntity > entityList = DoxygenParser().createTree(Char(documentation));
       pyDocString = processEntityList(n, entityList);
@@ -201,11 +209,10 @@ bool PyDocConverter::getDocumentation(Node *n, String *&documentation) {
       std::cout << std::endl;
     }
 
-    documentation = NewString(result.c_str());
-    return true;
+    return NewString(result.c_str());
   }
 
-  return false;
+  return 0;
 }
 
 std::string PyDocConverter::generateDivider() {

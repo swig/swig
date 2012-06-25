@@ -23,7 +23,7 @@ class JavaDocConverter : public DoxygenTranslator {
 public:
   JavaDocConverter() : debug(false) {
   }
-  virtual bool getDocumentation(Node *node, String *&documentation);
+  String *makeDocumentation(Node *node);
 
 protected:
   std::string formatCommand(std::string unformattedLine, int indent);
