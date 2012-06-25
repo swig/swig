@@ -4,6 +4,19 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.8 (in progress)
 ===========================
+2012-06-25: wsfulton
+            Fix using declarations combined with using directives so that types are correctly found in scope.
+            Example:
+
+              namespace Outer2 {
+                namespace Space2 {
+                  class Thing2 {};
+                }
+              }
+              using namespace Outer2; // using directive
+              using Space2::Thing2; // using declaration
+              void useit2(Thing2 t) {}
+
 2012-05-29: wsfulton
             Fix #3529601 - seg fault when a protected method has the "director"
             feature but the parent class does not. Also fix similar problems with

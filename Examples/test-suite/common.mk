@@ -442,6 +442,7 @@ CPP_TEST_CASES += \
 	using1 \
 	using2 \
 	using_composition \
+	using_directive_and_declaration \
 	using_extend \
 	using_inherit \
 	using_namespace \

@@ -1053,6 +1053,25 @@ static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symt
 	Node *pn = Getattr(symtab, "parentNode");
 	if (pn)
 	  n = symbol_lookup_qualified(name, pn, prefix, local, checkfunc);
+
+	/* Check inherited scopes */
+	if (!n) {
+	  List *inherit = Getattr(symtab, "inherit");
+	  if (inherit) {
+	    int i, len;
+	    len = Len(inherit);
+	    for (i = 0; i < len; i++) {
+	      Node *prefix_node = symbol_lookup(prefix, Getitem(inherit, i), checkfunc);
+	      if (prefix_node) {
+		Node *prefix_symtab = Getattr(prefix_node, "symtab");
+		if (prefix_symtab) {
+		  n = symbol_lookup(name, prefix_symtab, checkfunc);
+		  break;
+		}
+	      }
+	    }
+	  }
+	}
       } else {
 	n = 0;
       }
