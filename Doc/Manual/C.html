@@ -147,7 +147,7 @@ The next step is to build a dynamically loadable module, which we can link to ou
 $ swig -c example.i
 $ gcc -c example_wrap.c
 $ gcc -c example_proxy.c
-$ gcc -shared example_wrap.o -o libexample.so
+$ gcc -shared example_wrap.o example_proxy.o -o libexample.so
 </pre></div>
 
 <p>
