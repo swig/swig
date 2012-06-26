@@ -145,7 +145,8 @@ The next step is to build a dynamically loadable module, which we can link to ou
 
 <div class="code"><pre>
 $ swig -c example.i
-$ gcc -c example_wrap.c  
+$ gcc -c example_wrap.c
+$ gcc -c example_proxy.c
 $ gcc -shared example_wrap.o -o libexample.so
 </pre></div>
 
@@ -155,8 +156,9 @@ Or, for C++ input:
 
 <div class="code"><pre>
 $ swig -c++ -c example.i
-$ g++ -c example_wrap.c  
-$ g++ -shared example_wrap.o -o libexample.so
+$ g++ -c example_wrap.cxx
+$ gcc -c example_proxy.c
+$ g++ -shared example_proxy.o example_wrap.o -o libexample.so
 </pre></div>
 
 <p>
@@ -171,7 +173,7 @@ The simplest way to use the generated shared module is to link it to the applica
 </p>
 
 <div class="code"><pre>
-$ gcc runme.c example_proxy.c -L. -lexample -o runme
+$ gcc runme.c -L. -lexample -o runme
 </pre></div>
 
 <p>
@@ -304,6 +306,34 @@ ms.d = 123.123;
 The main reason of having the C module in SWIG is to be able to access C++ from C. In this chapter we will take a look at the rules of wrapping elements of the C++ language.
 </p>
 
+<p>
+By default, SWIG attempts to build a natural C interface to your C/C++ code.
+<table BORDER summary="Generated C representation of C++">
+  <tr>
+    <th>C++ Type</th>
+    <th>SWIG C Translation</th>
+  </tr>
+  <tr>
+    <td>Class <tt>Example</tt></td>
+    <td>Empty structure <tt>Example</tt></td>
+  </tr>
+  <tr>
+    <td>Public, mutable member variable <tt><tt>Foo Example::foo</tt></td>
+    <td><tt>
+      Example_foo_get(Example *e);</br>
+      Example_foo_set(Example *e, Foo *f);
+    </tt></td>
+  </tr>
+  <tr>
+    <td>Public, immutable member variable <tt><tt>Foo Example::bar</tt></td>
+    <td><tt>
+      Example_foo_get(Example *e);</br>
+    </tt></td>
+  </tr>
+</table>
+This section briefly covers the essential aspects of this wrapping.
+</p>
+
 <H3><a name="C_classes"></a>36.4.1 Classes</H3>
 
 
@@ -381,6 +411,95 @@ After running this we'll get:
 radius: 1.500000
 area: 7.068583
 </pre></div>
+
+<H2><a name="C_developer"></a>Backend Developer Documentation</H2>
+
+<H2><a name="C_typemaps"></a>Typemaps</H2>
+
+<table BORDER summary="C Backend Typemaps">
+  <tr>
+    <th>Typemap</th>
+    <th>Used for</th>
+  </tr>
+  <tr>
+    <td><tt>proxy</tt></td>
+    <td>Input parameters of proxy function</td>
+  </tr>
+  <tr>
+    <td><tt>ctype</tt></td>
+    <td>Wrapper function declaration</td>
+  </tr>
+  <tr>
+    <td><tt>wrap_call</tt></td>
+    <td>
+       Casts functions' parameters of wrapper function calls</br>
+       </br>
+       <tt>
+         extern void _wrap_MyClass_delete(SwigObj *o);</br>
+         </br>
+         void MyClass_delete(MyClass *c) {</br>
+            _wrap_MyClass_delete((Swig_Obj *)c);</br>
+         }
+       </tt>
+    </td>
+  </tr>
+  <tr>
+    <td><tt>in</tt></td>
+    <td>Generated for input parameters of a function</td>
+  </tr>
+  <tr>
+    <td><tt>couttype</tt></td>
+    <td>Casts return values of wrapper functions</br>
+       </br>
+       <tt>
+          SwigObj* _wrap_MyClass_new(void) {</br>
+            void *obj = ...</br>
+            return (SwigObj*)obj;</br>
+          }
+       </tt>
+    </td>
+  </tr>
+  <tr>
+    <td><tt>proxy</tt></td>
+    <td>Adds typecasts to class objects of wrapper functions calls in proxy functions</br>
+      <tt>
+      void MyClass_delete(MyClass *myClass) {</br>
+      _wrap_MyClass_delete((SwigObj*)myClass);</br>
+      }
+      </tt>
+    </td>
+  </tr>
+  <tr>
+    <td><tt>couttype</tt></td>
+    <td>Adds typecasts to wrap function return values in proxy functions</br>
+      <tt>
+      MyClass_new(void) {</br>
+      return (MyClass *)_wrap_MyClass_new();</br>
+      }
+      </tt>
+    </td>
+  </tr>
+  <tr>
+    <td><tt>proxycouttype</tt></td>
+    <td>Adds typecasts to wrap function return values in proxy functions</br>
+      <tt>
+      MyClass_new(void) {</br>
+      return (MyClass *)_wrap_MyClass_new();</br>
+      }
+      </tt>
+    </td>
+  </tr>
+  <tr>
+    <td><tt>out</tt></td>
+    <td>Adds code to wrapper functions for the return value variables</td>
+  </tr>
+  <tr>
+    <td><tt>cppouttype</tt></td>
+    <td>special case where a special cppresult variable is added to a wrapper
+       function (TODO:the reason for its existence needs investigation).
+    </td>
+  </tr>
+</table>
 
 <H2><a name="C_exceptions"></a>36.5 Exception handling</H2>
 
