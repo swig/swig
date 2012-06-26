@@ -65,7 +65,7 @@ setup = \
 # a file is found which has _runme.c appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then (\
-		cd $* && $(COMPILETOOL) $(CC) ../$*_runme.c $*_proxy.c -L. -l$* -o $*_runme && \
+		cd $* && $(COMPILETOOL) $(CC) ../$*_runme.c -L. -l$* -o $*_runme && \
 	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_LIBRARY_PATH="$*:$$DYLD_LIBRARY_PATH" $(RUNTOOL) ./$*_runme;) \
 	fi;
 
