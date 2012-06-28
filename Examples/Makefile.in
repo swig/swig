@@ -56,7 +56,7 @@ IWRAP      = $(INTERFACE:.i=_wrap.i)
 IPROXYSRCS = $(INTERFACE:.i=_proxy.c)
 ISRCS      = $(IWRAP:.i=.c)
 ICXXSRCS   = $(IWRAP:.i=.cxx)
-IOBJS      = $(IWRAP:.i=.o) $(IPROXYSRCS:.c:.o)
+IOBJS      = $(IWRAP:.i=.o) $(IPROXYSRCS:.c=.o)
 
 ##################################################################
 # Dynamic loading for C++
