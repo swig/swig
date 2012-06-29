@@ -1279,8 +1279,12 @@ public:
 	  Replaceall(enum_code, "$static ", "");
 	Delete(scope);
       } else {
-	// Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums of any sort
-	if (symname && !Getattr(n, "unnamedinstance"))
+	//translate and write javadoc comment for the enum itself if flagged
+	if (doxygen && doxygenTranslator->hasDocumentation(n)){
+	  Printf(stdout, "Warning: Not emitting comment for %s, not supported in simple enums mode.\n",
+	    Getattr(n, "unnamedinstance") ? "unnamed enum" : symname);
+	}
+	else if (symname && !Getattr(n, "unnamedinstance"))
 	  Printf(constants_code, "  // %s \n", symname);
       }
 
@@ -1337,7 +1341,18 @@ public:
 	  }
 
 	  Printv(f_enum, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE), // Import statements
-		 "\n", enum_code, "\n", NIL);
+		 "\n\n", NIL);
+	  
+	  //translate and write javadoc comment if flagged
+	  if (doxygen && doxygenTranslator->hasDocumentation(n)){
+	    String *doxygen_comments=doxygenTranslator->getDocumentation(n);
+	    if(comment_creation_chatter)
+	      Printf(f_enum, "/* This was generated from enumDeclaration() */");
+	    Printf(f_enum, Char(doxygen_comments)); 
+	    Delete(doxygen_comments);
+	  }
+	  
+	  Printv(f_enum, enum_code, "\n", NIL);
 
 	  Printf(f_enum, "\n");
 	  Close(f_enum);

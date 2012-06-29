@@ -64,7 +64,6 @@ public class doxygen_parsing_enums_simple_runme {
     com.sun.tools.javadoc.Main.execute("doxygen_parsing_enums_simple runtime test",
 	"doxygen_parsing_enums_simple_runme", new String[]{"-quiet", "doxygen_parsing_enums_simple"});
 
-    wantedComments.put("E_TEST", " Test enumeration  \n");
     wantedComments.put("E_TEST_ONE", " the first item  \n");
     wantedComments.put("E_TEST_TWO", " the second  \n");
 
