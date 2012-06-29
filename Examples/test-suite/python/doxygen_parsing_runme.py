@@ -14,6 +14,7 @@ check(doxygen_parsing.CSimpleClass.simpleMethod.__doc__, '\s+Simple method\s+')
 check(doxygen_parsing.CSimpleClass.simpleMethodWithParameter.__doc__, ''
 '\s+Simple method with parameter'
 '\s+Arguments:\s+param \(int\)\s+-- Some test param\s+'
+'argument \(int\)\s+-- Some test argument\s+'
 )
 check(doxygen_parsing.CTemplateClassInt.__doc__, '\s+Comment for template class\s+')
 check(doxygen_parsing.CTemplateClassInt.templateMethod.__doc__, '\s+Template method\s+')

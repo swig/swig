@@ -16,6 +16,9 @@ int simpleVarThree=42;
 //! This is the last type of comment for a var
 int simpleVarFour=42;
 
+int simpleVarFive=42;
+///< This is a post comment
+
 /*
   We assume that all this comment types are ok,
   and later we only use the first-type comments.
@@ -49,7 +52,8 @@ public:
    * Simple method with parameter
    */
   void simpleMethodWithParameter(
-	int param /**< Some test param */
+	int param, /**< Some test param */
+	int argument /**< Some test argument */
 	)
   {
   }

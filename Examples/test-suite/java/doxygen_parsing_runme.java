@@ -68,7 +68,9 @@ public class doxygen_parsing_runme {
 
     wantedComments.put("CSimpleClass", " This is simple comment for a class  \n");
     wantedComments.put("simpleMethod", " Simple method  \n");
-    wantedComments.put("simpleMethodWithParameter", " Simple method with parameter  \n @param\tparam Some test param  \n");
+    wantedComments.put("simpleMethodWithParameter", " Simple method with parameter  \n" +
+						    " @param\tparam Some test param  \n" +
+						    " @param\targument Some test argument  \n");
     wantedComments.put("CTemplateClassInt", " Comment for template class  \n");
     wantedComments.put("templateMethod", " Template method  \n");
 
@@ -80,6 +82,8 @@ public class doxygen_parsing_runme {
     wantedComments.put("getSimpleVarThree", " This is again another type of comment for a var  \n");
     wantedComments.put("setSimpleVarFour", " This is the last type of comment for a var  \n");
     wantedComments.put("getSimpleVarFour", " This is the last type of comment for a var  \n");
+    wantedComments.put("setSimpleVarFive", " This is a post comment  \n");
+    wantedComments.put("getSimpleVarFive", " This is a post comment  \n");
 
 
     int errorCount=0;
