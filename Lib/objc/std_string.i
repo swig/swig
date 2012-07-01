@@ -19,7 +19,7 @@ namespace std {
 class string;
 
 // string
-%typemap(ocpptype) string "NSString*"
+%typemap(objcimtype) string "NSString*"
 %typemap(objctype) string "NSString*"
 
 %typemap(in) string 
@@ -59,7 +59,7 @@ class string;
 	return $null; %}
 
 // const string &
-%typemap(ocpptype) const string & "NSString*"
+%typemap(objcimtype) const string & "NSString*"
 %typemap(objctype) const string & "NSString*"
 
 %typemap(in) const string &
