@@ -624,15 +624,15 @@
                  unsigned long, 
                  unsigned short
 %{ NSString* aFormat = [NSString stringWithString:@"The value is %d"];
-	[NSException raise:@"$1_type exception" format: aFormat, $1] %}
+	[NSException raise:@"$1_type exception" format: aFormat, $1]; %}
 
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY]
 %{ NSString* aFormat = [NSString stringWithString:@"The value is %d"];
-	[NSException raise:@"$1_type exception" format: aFormat, $1] %}
+	[NSException raise:@"$1_type exception" format: aFormat, $1]; %}
 	
 %typemap(throws) char *
 %{ NSString* aFormat = [NSString stringWithString:@"%s"];
-	[NSException raise:@"$1_type exception" format: aFormat, $1] %}
+	[NSException raise:@"$1_type exception" format: aFormat, $1]; %}
 
 
 // Objective-C specific directives
