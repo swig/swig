@@ -1281,8 +1281,14 @@ public:
       } else {
 	//translate and write javadoc comment for the enum itself if flagged
 	if (doxygen && doxygenTranslator->hasDocumentation(n)){
-	  Printf(stdout, "Warning: Not emitting comment for %s, not supported in simple enums mode.\n",
-	    Getattr(n, "unnamedinstance") ? "unnamed enum" : symname);
+	  String *doxygen_comments=doxygenTranslator->getDocumentation(n);
+	  if(comment_creation_chatter)
+	    Printf(constants_code, "/* This was generated from enumDeclaration() */");
+	  Printf(constants_code, "/* Comment for enum %s */\n",
+		 Getattr(n, "unnamedinstance") ? "" : symname);
+	  Printf(constants_code, Char(doxygen_comments));
+	  Printf(constants_code, "\n");
+	  Delete(doxygen_comments);
 	}
 	else if (symname && !Getattr(n, "unnamedinstance"))
 	  Printf(constants_code, "  // %s \n", symname);
