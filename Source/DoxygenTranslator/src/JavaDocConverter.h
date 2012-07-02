@@ -15,24 +15,55 @@
 #define JAVADOCCONVERTER_H_
 
 #include "DoxygenTranslator.h"
+#include <map>
 
 /*
  * A class to translate doxygen comments into JavaDoc style comments.
  */
 class JavaDocConverter : public DoxygenTranslator {
 public:
-  JavaDocConverter() : debug(false) {
-  }
+  JavaDocConverter();
   String *makeDocumentation(Node *node);
 
 protected:
   std::string formatCommand(std::string unformattedLine, int indent);
-  std::string translateEntity(DoxygenEntity & doxyEntity);
   std::string javaDocFormat(DoxygenEntity & doxygenEntity);
   std::string translateSubtree(DoxygenEntity & doxygenEntity);
+  void translateEntity(DoxygenEntity &tag, std::string &translatedComment);
+  
+  /*
+   * Typedef for the function that handles one tag
+   */
+  typedef void (*tagHandler)(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  /*
+   * Here comes various tag handlers
+   */
+  static void handleTagC(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  static void handleTagB(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  static void handleTagThrow(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  static void handleTagSeeAll(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  /*
+   * Print the name of tag to the output, used for escape-commands
+   */
+  static void handleTagChar(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  /*
+   * Do not translate and print as-is
+   */
+  static void handleTagSame(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  /*
+   * Print only the content and strip original tag
+   */
+  static void handleTagStrip(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  /*
+   * Print only data part of code
+   */
+  static void handleTagData(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
 
 private:
   bool debug;
+  std::map<std::string, tagHandler> tagHandlers;
+  static std::map<std::string, std::string> escapeTable;
+  void fillEscapeTable();
 };
 
 #endif

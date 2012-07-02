@@ -14,8 +14,63 @@
 #include <iostream>
 #define APPROX_LINE_LENGTH 64	//characters per line allowed
 #define TAB_SIZE 8		//current tab size in spaces
-int printSortedTree2 = 0;
 //TODO {@link} {@linkplain} {@docRoot}, and other useful doxy commands that are not a javadoc tag
+
+// define static escape table, it is filled in JavaDocConverter's constructor
+std::map<std::string, std::string> JavaDocConverter::escapeTable;
+
+void JavaDocConverter::fillEscapeTable() {
+  if (escapeTable.size()) // fill only once
+    return;
+  
+  escapeTable["&"] = "&amp";
+  escapeTable["\'"] = "&apos";
+  escapeTable["\""] = "&quot";
+  escapeTable["<"] = "&lt";
+  escapeTable[">"] = "&gt";
+}
+
+
+JavaDocConverter::JavaDocConverter() : debug(false) {
+  
+  fillEscapeTable();
+  
+  // these commands insert HTML tags
+  tagHandlers["c"] = &handleTagC;
+  tagHandlers["b"] = &handleTagB;
+  // these commands insert just a single char, all of them need to be escaped
+  tagHandlers["$"] = &handleTagChar;
+  tagHandlers["@"] = &handleTagChar;
+  tagHandlers["\\"] = &handleTagChar;
+  tagHandlers["<"] = &handleTagChar;
+  tagHandlers[">"] = &handleTagChar;
+  tagHandlers["&"] = &handleTagChar;
+  tagHandlers["#"] = &handleTagChar;
+  tagHandlers["%"] = &handleTagChar;
+  tagHandlers["~"] = &handleTagChar;
+  tagHandlers["\""] = &handleTagChar;
+  tagHandlers["."] = &handleTagChar;
+  tagHandlers["::"] = &handleTagChar;
+  // these commands are stripped out
+  tagHandlers["brief"] = &handleTagStrip;
+  tagHandlers["details"] = &handleTagStrip;
+  tagHandlers["partofdescription"] = &handleTagStrip;
+  // these commands are kept as-is, they are supported by JavaDoc
+  tagHandlers["sa"] = &handleTagSeeAll;
+  tagHandlers["see"] = &handleTagSame;
+  tagHandlers["param"] = &handleTagSame;
+  tagHandlers["return"] = &handleTagSame;
+  tagHandlers["throws"] = &handleTagSame;
+  tagHandlers["throw"] = &handleTagThrow;
+  tagHandlers["author"] = &handleTagSame;
+  tagHandlers["since"] = &handleTagSame;
+  tagHandlers["version"] = &handleTagSame;
+  tagHandlers["exception"] = &handleTagSame;
+  tagHandlers["deprecated"] = &handleTagSame;
+  // this command just prints it's contents
+  // (it is internal command of swig's parser, contains plain text)
+  tagHandlers["plainstd::string"] = &handleTagData;
+}
 
 std::string JavaDocConverter::formatCommand(std::string unformattedLine, int indent) {
   std::string formattedLines = "\n * ";
@@ -56,99 +111,58 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine, int ind
   return formattedLines;
 }
 
-/* Contains the conversions for tags
- * could probably be much more efficient...
- */
-std::string JavaDocConverter::javaDocFormat(DoxygenEntity & doxygenEntity) {
-  if (doxygenEntity.typeOfEntity.compare("partofdescription") == 0) {
-    return doxygenEntity.data;
-  }
-  if (doxygenEntity.typeOfEntity.compare("plainstd::string") == 0) {
-    return doxygenEntity.data;
-  } else if (doxygenEntity.typeOfEntity.compare("b") == 0) {
-    return "<b>" + doxygenEntity.data + "</b>";
-  } else if (doxygenEntity.typeOfEntity.compare("c") == 0) {
-    return "<tt>" + doxygenEntity.data + "</tt>";
-  } else if (doxygenEntity.typeOfEntity.compare("@") == 0) {
-    return "@";
-  } else if (doxygenEntity.typeOfEntity.compare("\\") == 0) {
-    return "\\";
-  } else if (doxygenEntity.typeOfEntity.compare("<") == 0) {
-    return "&lt;";
-  } else if (doxygenEntity.typeOfEntity.compare(">") == 0) {
-    return "&gt;";
-  } else if (doxygenEntity.typeOfEntity.compare("&") == 0) {
-    return "&amp;";
-  } else if (doxygenEntity.typeOfEntity.compare("#") == 0) {
-    return "#";
-  } else if (doxygenEntity.typeOfEntity.compare("%") == 0) {
-    return "%";
-  } else if (doxygenEntity.typeOfEntity.compare("~") == 0) {
-    return "~";
-  }
-  return "";
-}
-
-
 std::string JavaDocConverter::translateSubtree(DoxygenEntity & doxygenEntity) {
-  std::string returnedString;
-  if (doxygenEntity.isLeaf) {
-    return javaDocFormat(doxygenEntity) + " ";
-  } else {
-    returnedString += javaDocFormat(doxygenEntity);
-    std::list < DoxygenEntity >::iterator p = doxygenEntity.entityList.begin();
-
-    while (p != doxygenEntity.entityList.end()) {
-      returnedString += translateSubtree(*p);
-      p++;
-    }
+  std::string translatedComment;
+  
+  if (doxygenEntity.isLeaf)
+    return translatedComment;
+  
+  std::list < DoxygenEntity >::iterator p = doxygenEntity.entityList.begin();
+  while (p != doxygenEntity.entityList.end()) {
+    translateEntity(*p, translatedComment);
+    translateSubtree(*p);
+    p++;
   }
-  return returnedString;
+  
+  return translatedComment;
 }
 
-
-std::string JavaDocConverter::translateEntity(DoxygenEntity & doxyEntity) {
-  if (doxyEntity.typeOfEntity.compare("partofdescription") == 0) {
-    return formatCommand(std::string(translateSubtree(doxyEntity)), 0);
-  }
-
-  if ((doxyEntity.typeOfEntity.compare("brief") == 0) || (doxyEntity.typeOfEntity.compare("details") == 0)) {
-    return formatCommand(std::string(translateSubtree(doxyEntity)), 0) + "\n * ";
-
-  } else if (doxyEntity.typeOfEntity.compare("plainstd::string") == 0 ||
-	     doxyEntity.typeOfEntity.compare("deprecated") == 0 || 
-	     doxyEntity.typeOfEntity.compare("brief") == 0) {
-    return formatCommand(doxyEntity.data, 0) + "\n * ";
-
-  } else if (doxyEntity.typeOfEntity.compare("see") == 0) {
-    return formatCommand(std::string("@" + doxyEntity.typeOfEntity + "\t\t" + translateSubtree(doxyEntity)), 2);
-
-  } else if (doxyEntity.typeOfEntity.compare("return") == 0
-	     || doxyEntity.typeOfEntity.compare("author") == 0
-	     || doxyEntity.typeOfEntity.compare("param") == 0
-	     || doxyEntity.typeOfEntity.compare("throw") == 0
-	     || doxyEntity.typeOfEntity.compare("throws") == 0
-	     || doxyEntity.typeOfEntity.compare("since") == 0
-	     || doxyEntity.typeOfEntity.compare("version") == 0
-	     || doxyEntity.typeOfEntity.compare("exception") == 0
-	     || doxyEntity.typeOfEntity.compare("deprecated") == 0) {
-
-    // this 'if' is a hack - convert doxyEntity.typeOfEntity at the time of parsing
-    if (doxyEntity.typeOfEntity.compare("throw") == 0) {
-      doxyEntity.typeOfEntity = "throws";
-    }
-    return formatCommand(std::string("@" + doxyEntity.typeOfEntity + "\t" + translateSubtree(doxyEntity)), 2);
-
-  } else if (doxyEntity.typeOfEntity.compare("sa") == 0) {
-    return formatCommand(std::string("@see\t\t" + translateSubtree(doxyEntity)), 2);
-
-  } else {
-    return formatCommand(javaDocFormat(doxyEntity), 0);
-  }
-
-  return "";
+void JavaDocConverter::translateEntity(DoxygenEntity& tag, std::string& translatedComment) {
+  // check if we have needed handler and call it
+  if (tagHandlers.find(tag.typeOfEntity)!=tagHandlers.end())
+    tagHandlers[tag.typeOfEntity](this, tag, translatedComment);
 }
 
+void JavaDocConverter::handleTagC(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
+  translatedComment += "<tt>" + tag.data + "</tt>";
+}
+void JavaDocConverter::handleTagB(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
+  translatedComment += "<b>" + tag.data + "</b>";
+}
+void JavaDocConverter::handleTagThrow(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
+  tag.typeOfEntity = "throws";
+  handleTagSame(converter, tag, translatedComment);
+}
+void JavaDocConverter::handleTagSeeAll(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
+  tag.typeOfEntity = "see";
+  handleTagSame(converter, tag, translatedComment);
+}
+void JavaDocConverter::handleTagChar(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
+  // escape it if we can, else just print
+  if (escapeTable.find(tag.typeOfEntity)!=escapeTable.end())
+    translatedComment += escapeTable[tag.typeOfEntity];
+  else
+    translatedComment += tag.typeOfEntity;
+}
+void JavaDocConverter::handleTagSame(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
+  translatedComment += converter->formatCommand(std::string("@" + tag.typeOfEntity + "\t" + converter->translateSubtree(tag)), 2);
+}
+void JavaDocConverter::handleTagStrip(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
+  translatedComment += converter->formatCommand(converter->translateSubtree(tag), 0);
+}
+void JavaDocConverter::handleTagData(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
+  translatedComment += tag.data + " ";
+}
 
 String *JavaDocConverter::makeDocumentation(Node *node) {
 
@@ -158,7 +172,7 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
     return NULL;
   }
 
-  std::list < DoxygenEntity > entityList = DoxygenParser().createTree(Char(documentation));
+  std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation));
 
   // entityList.sort(CompareDoxygenEntities()); sorting currently not used,
   // see CompareDoxygenEntities::operator() in DoxygenEntity.cpp
@@ -171,7 +185,7 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
   std::string javaDocString = "/**";
 
   for (std::list < DoxygenEntity >::iterator entityIterator = entityList.begin(); entityIterator != entityList.end();) {
-    javaDocString += translateEntity(*entityIterator);
+    translateEntity(*entityIterator, javaDocString);
     entityIterator++;
   }
 
