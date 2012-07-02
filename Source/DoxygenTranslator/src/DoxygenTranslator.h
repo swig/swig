@@ -39,9 +39,7 @@ public:
    * Return the documentation for a given node formated for the correct 
    * documentation system. The result is cached and translated only once.
    * @param node The node to extract and translate documentation for.
-   * @param format The documentation format to output.
-   * @param documentation The returned documentation string.
-   * @return A bool to indicate if there was documentation to return for the node.
+   * @return The resulted documentation string.
    */
   String *getDocumentation(Node *node);
   /*
