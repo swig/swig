@@ -184,7 +184,7 @@
 /* Following are the "out" typemaps for C to Objective-C conversions */
 // Primitive types
 %typemap(out) bool
-%{ $result = $1 ? YES : No; %}
+%{ $result = $1 ? YES : NO; %}
 %typemap(out) char, 
              signed char, 
              unsigned char, 
