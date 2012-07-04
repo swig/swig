@@ -129,8 +129,10 @@ std::string JavaDocConverter::translateSubtree(DoxygenEntity & doxygenEntity) {
 
 void JavaDocConverter::translateEntity(DoxygenEntity& tag, std::string& translatedComment) {
   // check if we have needed handler and call it
-  if (tagHandlers.find(tag.typeOfEntity)!=tagHandlers.end())
-    tagHandlers[tag.typeOfEntity](this, tag, translatedComment);
+  std::map<std::string, tagHandler>::iterator it;
+  it = tagHandlers.find(tag.typeOfEntity); 
+  if (it!=tagHandlers.end())
+    (*it).second(this, tag, translatedComment);
 }
 
 void JavaDocConverter::handleTagC(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
