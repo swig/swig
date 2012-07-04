@@ -22,7 +22,7 @@
 
 
 /*
- * A class to translate doxygen comments attacted to parser nodes
+ * A class to translate doxygen comments attached to parser nodes
  * into alternative formats for use in code generated for target languages.
  */
 class DoxygenTranslator {
@@ -37,7 +37,7 @@ public:
   virtual ~ DoxygenTranslator();
   /*
    * Return the documentation for a given node formated for the correct 
-   * documentation system. The result is cached and translated only once.
+   * documentation system.
    * @param node The node to extract and translate documentation for.
    * @return The resulted documentation string.
    */
@@ -70,11 +70,6 @@ protected:
    * Doxygen parser object
    */
   DoxygenParser parser;
-  
-  /*
-   * Cache of translated comments
-   */
-  Hash *resultsCache;
 };
 
 #endif

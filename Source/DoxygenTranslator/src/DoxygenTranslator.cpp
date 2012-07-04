@@ -15,12 +15,8 @@
 #include "DoxygenTranslator.h"
 
 DoxygenTranslator::DoxygenTranslator() {
-  // Init the cache
-  resultsCache = NewHash();
 }
 DoxygenTranslator::~DoxygenTranslator() {
-  // Clean up the cache
-  Delete(resultsCache);
 }
 
 bool DoxygenTranslator::hasDocumentation(Node *node) {
@@ -37,17 +33,7 @@ String *DoxygenTranslator::getDocumentation(Node *node) {
   if (!hasDocumentation(node))
     return 0;
   
-  // get from cache
-  String *resultedDocs = Getattr(resultsCache, getDoxygenComment(node));
-  
-  if (resultedDocs)
-    return resultedDocs;
-  
-  // not found in cache, produce it
-  resultedDocs = makeDocumentation(node);
-  Setattr(resultsCache, getDoxygenComment(node), resultedDocs);
-  
-  return resultedDocs;
+  return makeDocumentation(node);
 }
 
 void DoxygenTranslator::printTree(std::list < DoxygenEntity > &entityList) {
