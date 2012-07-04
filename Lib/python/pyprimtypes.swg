@@ -35,6 +35,16 @@ SWIGINTERNINLINE PyObject*
 }
 }
 
+/* unsigned int */
+
+%fragment(SWIG_From_frag(unsigned int),"header") {
+SWIGINTERNINLINE PyObject*
+  SWIG_From_dec(unsigned int)(unsigned int value)
+{
+  return PyInt_FromSize_t((size_t) value);
+}
+}
+
 /* long */
 
 %fragment(SWIG_From_frag(long),"header") {
@@ -100,12 +110,13 @@ SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val) 
 {
   if (PyInt_Check(obj)) {
-    unsigned long v = PyInt_AsUnsignedLongMask(obj);
-    if (!PyErr_Occurred()) {
+    long v = PyInt_AsLong(obj);
+    if (v >= 0) {
       if (val) *val = v;
       return SWIG_OK;
+    } else {
+      return SWIG_OverflowError;
     }
-    PyErr_Clear();
   } else if (PyLong_Check(obj)) {
     unsigned long v = PyLong_AsUnsignedLong(obj);
     if (!PyErr_Occurred()) {

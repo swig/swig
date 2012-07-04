@@ -19,24 +19,24 @@ extern "C" {
 #endif
 /* this is the initialization function
   added at the very end of the code
-  the function is always called SWIG_init, but an eariler #define will rename it
+  the function is always called SWIG_init, but an earlier #define will rename it
 */
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
-SWIGEXPORT int SWIG_init(lua_State* L)
-#else
+#if ((SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC))
 LUALIB_API int SWIG_init(lua_State* L)
+#else
+SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
 #endif
 {
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA) || (SWIG_LUA_TARGET == SWIG_LUA_ELUA)
+#if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC) /* valid for both Lua and eLua */
   int i;
   /* start with global table */
-  lua_pushvalue(L,LUA_GLOBALSINDEX);
+  lua_pushglobaltable (L);
   /* SWIG's internal initalisation */
   SWIG_InitializeModule((void*)L);
   SWIG_PropagateClientData();
 #endif
 
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
+#if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC))
   /* add a global fn */
   SWIG_Lua_add_function(L,"swig_type",SWIG_Lua_type);
   SWIG_Lua_add_function(L,"swig_equals",SWIG_Lua_equal);
@@ -52,8 +52,8 @@ LUALIB_API int SWIG_init(lua_State* L)
   }
 #endif
 
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA) || (SWIG_LUA_TARGET == SWIG_LUA_ELUA)
-  /* set up base class pointers (the hierachy) */
+#if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
+  /* set up base class pointers (the hierarchy) */
   for (i = 0; swig_types[i]; i++){
     if (swig_types[i]->clientdata){
       SWIG_Lua_init_base_class(L,(swig_lua_class*)(swig_types[i]->clientdata));
@@ -67,12 +67,12 @@ LUALIB_API int SWIG_init(lua_State* L)
   }
 #endif
 
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA)
+#if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC))
   /* constants */
   SWIG_Lua_InstallConstants(L,swig_constants);
 #endif
 
-#if (SWIG_LUA_TARGET == SWIG_LUA_LUA) || (SWIG_LUA_TARGET == SWIG_LUA_ELUA)
+#if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
   /* invoke user-specific initialization */
   SWIG_init_user(L);
   /* end module */

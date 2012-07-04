@@ -36,7 +36,44 @@
 %typemap("rtype") SWIGTYPE & "$R_class";
 %typemap("rtype") SWIGTYPE "$&R_class";
 
+%typemap("rtypecheck") int, int &, long, long &,
+  unsigned char, unsigned char &
+  %{ (is.integer($arg) || is.numeric($arg)) && length($arg) == 1 %}
+%typemap("rtypecheck") int *, long *, unsigned char *
+  %{ is.integer($arg) || is.numeric($arg) %}
 
+
+%typemap("rtypecheck") double, double &, float, float &
+  %{ is.numeric($arg) && length($arg) == 1 %}
+%typemap("rtypecheck") double*, float *
+  %{ is.numeric($arg) %}
+
+%typemap("rtypecheck") bool, bool &
+  %{ is.logical($arg) && length($arg) == 1 %}
+%typemap("rtypecheck") bool *
+  %{ is.logical($arg) %}
+
+/*
+  Set up type checks to insure overloading precedence.
+  We would like non pointer items to shadow pointer items, so that 
+  they get called if length = 1
+*/
+
+%typecheck(SWIG_TYPECHECK_BOOL) bool {}
+%typecheck(SWIG_TYPECHECK_UINT32) unsigned int {}
+%typecheck(SWIG_TYPECHECK_INTEGER) int {}
+%typecheck(SWIG_TYPECHECK_FLOAT) float {}
+%typecheck(SWIG_TYPECHECK_DOUBLE) double {}
+
+%typecheck(SWIG_TYPECHECK_BOOL_PTR) bool * {}
+%typecheck(SWIG_TYPECHECK_INT32_PTR) int * {}
+%typecheck(SWIG_TYPECHECK_FLOAT_PTR) float * {}
+%typecheck(SWIG_TYPECHECK_DOUBLE_PTR) double * {}
+%typecheck(SWIG_TYPECHECK_CHAR_PTR) char * {}
+
+%typecheck(SWIG_TYPECHECK_INT32_ARRAY) int[ANY] {}
+%typecheck(SWIG_TYPECHECK_FLOAT_ARRAY) float[ANY] {}
+%typecheck(SWIG_TYPECHECK_DOUBLE_ARRAY) double [ANY] {}
 
 /* Have to be careful that as(x, "numeric") is different from as.numeric(x).  
    The latter makes a REALSXP, whereas the former leaves an INTSXP as an
@@ -170,9 +207,10 @@ string &, std::string &
 		     signed long,
 		     signed long &,		     
 		     unsigned long,
-		     unsigned long &		     
+		     unsigned long &,
+		     unsigned char *,
+		     unsigned char &		     
  %{    %}
-
 
 #if 0
  Just examining the values for a SWIGTYPE.

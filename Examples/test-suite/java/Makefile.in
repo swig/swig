@@ -5,6 +5,7 @@
 LANGUAGE     = java
 JAVA         = java
 JAVAC        = javac
+JAVAFLAGS    = -Xcheck:jni
 SCRIPTSUFFIX = _runme.java
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
@@ -43,6 +44,7 @@ SWIGOPT += -package $(JAVA_PACKAGE)
 # Custom tests - tests with additional commandline options
 nspace.%: JAVA_PACKAGE = $*Package
 nspace_extend.%: JAVA_PACKAGE = $*Package
+director_nspace.%: JAVA_PACKAGE = $*Package
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -78,7 +80,7 @@ run_testcase = \
 	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) -classpath . `find . -name "*.java"` && cd .. && \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  $(COMPILETOOL) $(JAVAC) -classpath . -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) -classpath . $*_runme; \
+	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath . $*_runme; \
 	fi
 
 # Clean: remove testcase directories

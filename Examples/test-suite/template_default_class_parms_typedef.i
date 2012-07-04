@@ -21,16 +21,16 @@ namespace Space {
     C method(C c, D d, E e) { return c; }
 
     // Use typedef with classname qualifiers
-    Bar(bool, Bar::C c, Bar::D d, Bar::E e) {}
-    Bar::C method_1(Bar::C c, Bar::D d, Bar::E e) { return c; }
+    Bar(bool, typename Bar::C c, typename Bar::D d, typename Bar::E e) {}
+    typename Bar::C method_1(typename Bar::C c, typename Bar::D d, typename Bar::E e) { return c; }
 
     // Use typedef with classname and full template parameter qualifiers
-    Bar(bool, bool, Bar<CC, DD, EE>::C c, Bar<CC, DD, EE>::D d, Bar<CC, DD, EE>::E e) {}
-    Bar<CC, DD, EE>::C method_2(Bar<CC, DD, EE>::C c, Bar<CC, DD, EE>::D d, Bar<CC, DD, EE>::E e) { return c; }
+    Bar(bool, bool, typename Bar<CC, DD, EE>::C c, typename Bar<CC, DD, EE>::D d, typename Bar<CC, DD, EE>::E e) {}
+    typename Bar<CC, DD, EE>::C method_2(typename Bar<CC, DD, EE>::C c, typename Bar<CC, DD, EE>::D d, typename Bar<CC, DD, EE>::E e) { return c; }
 
     // Use typedef with namespace and classname and full template parameter qualifiers
-    Bar(bool, bool, bool, Space::Bar<CC, DD, EE>::C c, Space::Bar<CC, DD, EE>::D d, Space::Bar<CC, DD, EE>::E e) {}
-    Space::Bar<CC, DD, EE>::C method_3(Space::Bar<CC, DD, EE>::C c, Space::Bar<CC, DD, EE>::D d, Space::Bar<CC, DD, EE>::E e) { return c; }
+    Bar(bool, bool, bool, typename Space::Bar<CC, DD, EE>::C c, typename Space::Bar<CC, DD, EE>::D d, typename Space::Bar<CC, DD, EE>::E e) {}
+    typename Space::Bar<CC, DD, EE>::C method_3(typename Space::Bar<CC, DD, EE>::C c, typename Space::Bar<CC, DD, EE>::D d, typename Space::Bar<CC, DD, EE>::E e) { return c; }
   };
   template<typename TT = SomeType> class Foo {
   public:
@@ -43,15 +43,15 @@ namespace Space {
 
     // Use typedef with classname qualifiers
     Foo(const T &, T t) {}
-    Foo::T method_A(Foo::T t) { return t; }
+    typename Foo::T method_A(typename Foo::T t) { return t; }
 
     // Use typedef with classname and full template parameter qualifiers
-    Foo(const Foo<TT>::T &, const Foo<TT>::T &, Foo<TT>::T t) {}
-    Foo<TT>::T method_B(Foo<TT>::T t) { return t; }
+    Foo(const typename Foo<TT>::T &, const typename Foo<TT>::T &, typename Foo<TT>::T t) {}
+    typename Foo<TT>::T method_B(typename Foo<TT>::T t) { return t; }
 
     // Use typedef with namespace and classname and full template parameter qualifiers
-    Foo(const Foo<TT>::T &, const Foo<TT>::T &, const Foo<TT>::T &, Foo<TT>::T t) {}
-    Foo<TT>::T method_C(Foo<TT>::T t) { return t; }
+    Foo(const typename Foo<TT>::T &, const typename Foo<TT>::T &, const typename Foo<TT>::T &, typename Foo<TT>::T t) {}
+    typename Foo<TT>::T method_C(typename Foo<TT>::T t) { return t; }
   };
   template<typename T = int> class ATemplate {};
 

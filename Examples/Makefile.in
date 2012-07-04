@@ -331,12 +331,11 @@ python_clean:
 ##################################################################
 
 # Make sure these locate your Octave installation
-OCTAVE_INCLUDE= $(DEFS) @OCTAVEEXT@
-OCTAVE_LIB    =
 OCTAVE        = @OCTAVE@ -qf
+OCTAVE_CXX    = $(DEFS) @OCTAVE_CPPFLAGS@ @OCTAVE_CXXFLAGS@
 
 # Extra Octave specific dynamic linking options
-OCTAVE_DLNK   = @OCTAVEDYNAMICLINKING@
+OCTAVE_DLNK   = @OCTAVE_LDFLAGS@
 OCTAVE_SO     = @OCTAVE_SO@
 
 # ----------------------------------------------------------------
@@ -346,7 +345,7 @@ OCTAVE_SO     = @OCTAVE_SO@
 
 octave: $(SRCS)
 	$(SWIG) -octave $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
+	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CSRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
@@ -356,7 +355,7 @@ octave: $(SRCS)
 
 octave_cpp: $(SRCS)
 	$(SWIG) -c++ -octave $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) -I$(OCTAVE_INCLUDE)
+	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
 	$(CXXSHARED) -g $(CFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
 
 # -----------------------------------------------------------------
@@ -366,9 +365,7 @@ octave_cpp: $(SRCS)
 OCTSCRIPT = runme.m
 
 octave_run: $(OCTSCRIPT)
-	for file in $(OCTSCRIPT); do \
-	   env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVEPATH=$(srcdir):$$OCTAVEPATH $(OCTAVE) $$file >/dev/null || break; \
-	done
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir):$$OCTAVE_PATH $(OCTAVE) $(OCTSCRIPT) >/dev/null
 
 # -----------------------------------------------------------------
 # Cleaning the octave examples
@@ -1138,14 +1135,25 @@ uffi_clean:
 R = R
 RCXXSRCS = $(INTERFACE:.i=_wrap.cpp) #Need to use _wrap.cpp for R build system as it does not understand _wrap.cxx
 RRSRC = $(INTERFACE:.i=.R)
+R_CFLAGS=-fPIC
+
+# need to compile .cxx files outside of R build system to make sure that
+# we get -fPIC
+# CMD SHLIB stdout is piped to /dev/null to prevent echo of compiler command
 
 r: $(SRCS)
 	$(SWIG) -r $(SWIGOPT) $(INTERFACEPATH)
-	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(SRCS) )
+ifneq ($(SRCS),)
+	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES) 
+endif
+	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
 
 r_cpp: $(CXXSRCS)
 	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
-	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(SRCS) $(CXXSRCS))
+ifneq ($(CXXSRCS),)
+	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(CXXSRCS) $(INCLUDES) 
+endif
+	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
 
 r_clean:
 	rm -f *_wrap* *~ .~*
@@ -1159,19 +1167,22 @@ r_clean:
 
 GO = @GO@
 GOGCC = @GOGCC@
+GO1 = @GO1@
+GOC = @GOC@
 
 GOSWIGARG = `if $(GOGCC) ; then echo -gccgo; fi`
-GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; fi`
+GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi`
 
 GOSRCS = $(INTERFACE:.i=.go)
 GOCSRCS = $(INTERFACE:.i=_gc.c)
 
-GOC = $(GO:g=c)
-GOLD = $(GO:g=l)
+GOLD = $(GOC:c=l)
+GOTOOL = `if $(GO1) ; then echo go tool; fi`
+GOPACK = `if $(GO1) ; then echo go tool pack; else echo gopack; fi`
 
 GOPACKAGE = $(INTERFACE:.i=.a)
 
-GOOBJEXT = $(GO:g=)
+GOOBJEXT = $(GOC:c=)
 GOGCOBJS = $(GOSRCS:.go=.$(GOOBJEXT))
 GOGCCOBJS = $(GOSRCS:.go=.@OBJEXT@)
 
@@ -1183,10 +1194,10 @@ go: $(SRCS)
 	$(SWIG) -go $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-	$(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(GOSRCS)
+	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
 	if ! $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
-	  $(COMPILETOOL) gopack grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
+	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
+	  $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
 	fi
 
 # ----------------------------------------------------------------
@@ -1197,10 +1208,10 @@ go_cpp: $(SRCS)
 	$(SWIG) -go -c++ $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-	$(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(GOSRCS)
+	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
 	if ! $(GOGCC) ; then \
-	  $(COMPILETOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
-	  $(COMPILETOOL) gopack grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
+	  $(COMPILETOOL) $(GOTOOL) $(GOC) -I $${GOROOT}/pkg/$${GOOS}_$${GOARCH} $(GOCSRCS) && \
+	  $(COMPILETOOL) $(GOPACK) grc $(GOPACKAGE) $(GOGCOBJS) $(GOCSRCS:.c=.$(GOOBJEXT)); \
 	fi
 
 # -----------------------------------------------------------------
@@ -1212,7 +1223,7 @@ go_run: runme.go
 	if $(GOGCC) ; then \
 	  $(COMPILETOOL) $(GO) -o runme runme.@OBJEXT@ $(GOGCCOBJS) $(LIBPREFIX)$(TARGET)$(SO); \
 	else \
-	  $(COMPILETOOL) $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
+	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
 	fi
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme
 

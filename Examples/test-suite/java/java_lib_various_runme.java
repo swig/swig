@@ -45,6 +45,11 @@ public class java_lib_various_runme {
       if ( !langs[i].equals(newLangs[i]) )
         throw new RuntimeException("Languages verify failed " + i + " " + langs[i] + "|" + newLangs[i]);
 
+    // STRING_ARRAY null
+    java_lib_various.setLanguages(null);
+    if (java_lib_various.getLanguages() != null)
+      throw new RuntimeException("languages should be null");
+
     // STRING_RET test
     {
       String stringOutArray[] = { "" };

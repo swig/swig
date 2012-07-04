@@ -10,8 +10,13 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-C_TEST_CASES = r_copy_struct r_legacy
-CPP_TEST_CASES = r_double_delete
+C_TEST_CASES += \
+	r_copy_struct \
+	r_legacy
+
+CPP_TEST_CASES += \
+	r_double_delete \
+	r_overload_array
 
 include $(srcdir)/../common.mk
 

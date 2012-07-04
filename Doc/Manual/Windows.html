@@ -314,6 +314,18 @@ the autotools will fail miserably on those.
   </li>
 
   <li>
+The PCRE third party library needs to be built next. 
+Download the latest PCRE source tarball, such as <tt>pcre-8.10.tar.bz2</tt>, from 
+<a href=http://www.pcre.org>PCRE</a> and place in the <tt>/usr/src/swig</tt> directory.
+Build PCRE as a static library using the Tools/pcre-build.sh script as follows:
+
+<div class="shell"><pre>
+cd /usr/src/swig
+Tools/pcre-build.sh
+</pre></div>
+  </li>
+
+  <li>
   You are now ready to build SWIG. Execute the following commands to build swig.exe:
 <div class="shell"><pre>
 cd /usr/src/swig

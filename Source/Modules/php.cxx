@@ -409,11 +409,19 @@ public:
     Printf(s_header, "#define SWIG_ErrorCode() (%s_globals.error_code)\n", module);
     Printf(s_header, "#endif\n\n");
 
-    Printf(s_header, "// Allow the user to workaround a PHP bug on some platforms/architectures by\n");
-    Printf(s_header, "// compiling with -DSWIG_ZEND_ERROR_NORETURN=zend_error\n");
-    Printf(s_header, "#ifndef SWIG_ZEND_ERROR_NORETURN\n");
-    Printf(s_header, "# define SWIG_ZEND_ERROR_NORETURN zend_error_noreturn\n");
-    Printf(s_header, "#endif\n\n");
+    /* The following can't go in Lib/php/phprun.swg as it uses SWIG_ErrorMsg(), etc
+     * which has to be dynamically generated as it depends on the module name.
+     */
+    Append(s_header, "#ifdef __GNUC__\n");
+    Append(s_header, "static void SWIG_FAIL() __attribute__ ((__noreturn__));\n");
+    Append(s_header, "#endif\n\n");
+    Append(s_header, "static void SWIG_FAIL() {\n");
+    Append(s_header, "    zend_error(SWIG_ErrorCode(), \"%s\", SWIG_ErrorMsg());\n");
+    // zend_error() should never return with the parameters we pass, but if it
+    // does, we really don't want to let SWIG_FAIL() return.  This also avoids
+    // a warning about returning from a function marked as "__noreturn__".
+    Append(s_header, "    abort();\n");
+    Append(s_header, "}\n\n");
 
     Printf(s_header, "static void %s_init_globals(zend_%s_globals *globals ) {\n", module, module);
     Printf(s_header, "  globals->error_msg = default_error_msg;\n");
@@ -463,10 +471,6 @@ public:
     Append(s_header, "}\n");
 
     Printf(s_header, "#define SWIG_name  \"%s\"\n", module);
-    /*     Printf(s_header,"#ifdef HAVE_CONFIG_H\n");
-       Printf(s_header,"#include \"config.h\"\n");
-       Printf(s_header,"#endif\n\n");
-     */
     Printf(s_header, "#ifdef __cplusplus\n");
     Printf(s_header, "extern \"C\" {\n");
     Printf(s_header, "#endif\n");
@@ -528,7 +532,8 @@ public:
     Append(s_init, "#undef ZEND_MODULE_BUILD_ID\n");
     Append(s_init, "#define ZEND_MODULE_BUILD_ID (char*)\"API\" ZEND_TOSTR(ZEND_MODULE_API_NO) ZEND_BUILD_TS ZEND_BUILD_DEBUG ZEND_BUILD_SYSTEM ZEND_BUILD_EXTRA\n");
     Append(s_init, "#endif\n");
-    Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n" "#if ZEND_MODULE_API_NO > 20010900\n" "    STANDARD_MODULE_HEADER,\n" "#endif\n", NIL);
+    Printv(s_init, "zend_module_entry ", module, "_module_entry = {\n", NIL);
+    Printf(s_init, "    STANDARD_MODULE_HEADER,\n");
     Printf(s_init, "    (char*)\"%s\",\n", module);
     Printf(s_init, "    %s_functions,\n", module);
     Printf(s_init, "    PHP_MINIT(%s),\n", module);
@@ -536,9 +541,7 @@ public:
     Printf(s_init, "    PHP_RINIT(%s),\n", module);
     Printf(s_init, "    PHP_RSHUTDOWN(%s),\n", module);
     Printf(s_init, "    PHP_MINFO(%s),\n", module);
-    Printf(s_init, "#if ZEND_MODULE_API_NO > 20010900\n");
     Printf(s_init, "    NO_VERSION_YET,\n");
-    Printf(s_init, "#endif\n");
     Printf(s_init, "    STANDARD_MODULE_PROPERTIES\n");
     Printf(s_init, "};\n");
     Printf(s_init, "zend_module_entry* SWIG_module_entry = &%s_module_entry;\n\n", module);
@@ -716,7 +719,7 @@ public:
 
     Printf(f->code, "SWIG_ErrorCode() = E_ERROR;\n");
     Printf(f->code, "SWIG_ErrorMsg() = \"No matching function for overloaded '%s'\";\n", symname);
-    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n", NIL);
+    Printv(f->code, "SWIG_FAIL();\n", NIL);
 
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, s_wrappers);
@@ -1000,11 +1003,7 @@ public:
     /* Error handling code */
     Printf(f->code, "fail:\n");
     Printv(f->code, cleanup, NIL);
-    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
-     * using zend_error() here shouldn't generate a warning, so just use that.
-     * At worst this may result in slightly less good code.
-     */
-    Printv(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());", NIL);
+    Append(f->code, "SWIG_FAIL();\n");
 
     Printf(f->code, "}\n");
 
@@ -1033,7 +1032,7 @@ public:
 	p += strlen(p) - 4;
 	String *varname = Getattr(n, "membervariableHandler:sym:name");
 	if (strcmp(p, "_get") == 0) {
-	  Setattr(shadow_get_vars, varname, iname);
+	  Setattr(shadow_get_vars, varname, Getattr(n, "type"));
 	} else if (strcmp(p, "_set") == 0) {
 	  Setattr(shadow_set_vars, varname, iname);
 	}
@@ -2013,7 +2012,6 @@ done:
     classnode = 0;
 
     if (shadow) {
-      DOH *key;
       List *baselist = Getattr(n, "bases");
       Iterator ki, base;
 
@@ -2056,10 +2054,10 @@ done:
 	// FIXME: tune this threshold...
 	if (Len(shadow_set_vars) <= 2) {
 	  // Not many setters, so avoid call_user_func.
-	  while (ki.key) {
-	    key = ki.key;
-	    Printf(s_phpclasses, "\t\tif ($var === '%s') return %s($this->%s,$value);\n", key, ki.item, SWIG_PTR);
-	    ki = Next(ki);
+	  for (; ki.key; ki = Next(ki)) {
+	    DOH *key = ki.key;
+	    String *iname = ki.item;
+	    Printf(s_phpclasses, "\t\tif ($var === '%s') return %s($this->%s,$value);\n", key, iname, SWIG_PTR);
 	  }
 	} else {
 	  Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_set';\n", shadow_classname);
@@ -2107,21 +2105,30 @@ done:
       if (ki.key) {
 	// This class has getters.
 	Printf(s_phpclasses, "\n\tfunction __get($var) {\n");
-	// FIXME: Currently we always use call_user_func for __get, so we can
-	// check and wrap the result.  This is needless if all the properties
-	// are primitive types.  Also this doesn't handle all the cases which
-	// a method returning an object does.
-	Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_get';\n", shadow_classname);
-	Printf(s_phpclasses, "\t\tif (function_exists($func)) {\n");
-	Printf(s_phpclasses, "\t\t\t$r = call_user_func($func,$this->%s);\n", SWIG_PTR);
-	Printf(s_phpclasses, "\t\t\tif (!is_resource($r)) return $r;\n");
-	if (Len(prefix) == 0) {
-	  Printf(s_phpclasses, "\t\t\t$c=substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n");
-	} else {
-	  Printf(s_phpclasses, "\t\t\t$c='%s'.substr(get_resource_type($r), (strpos(get_resource_type($r), '__') ? strpos(get_resource_type($r), '__') + 2 : 3));\n", prefix);
+	int non_class_getters = 0;
+	for (; ki.key; ki = Next(ki)) {
+	  DOH *key = ki.key;
+	  SwigType *d = ki.item;
+	  if (!is_class(d)) {
+	    ++non_class_getters;
+	    continue;
+	  }
+	  Printv(s_phpclasses, "\t\tif ($var === '", key, "') return new ", prefix, Getattr(classLookup(d), "sym:name"), "(", shadow_classname, "_", key, "_get($this->", SWIG_PTR, "));\n", NIL);
 	}
-	Printf(s_phpclasses, "\t\t\treturn new $c($r);\n");
-	Printf(s_phpclasses, "\t\t}\n");
+	// FIXME: tune this threshold...
+	if (non_class_getters <= 2) {
+	  // Not many non-class getters, so avoid call_user_func.
+	  for (ki = First(shadow_get_vars); non_class_getters && ki.key;  ki = Next(ki)) {
+	    DOH *key = ki.key;
+	    SwigType *d = ki.item;
+	    if (is_class(d)) continue;
+	    Printv(s_phpclasses, "\t\tif ($var === '", key, "') return ", shadow_classname, "_", key, "_get($this->", SWIG_PTR, ");\n", NIL);
+	    --non_class_getters;
+	  }
+	} else {
+	  Printf(s_phpclasses, "\t\t$func = '%s_'.$var.'_get';\n", shadow_classname);
+	  Printf(s_phpclasses, "\t\tif (function_exists($func)) return call_user_func($func,$this->%s);\n", SWIG_PTR);
+	}
 	Printf(s_phpclasses, "\t\tif ($var === 'thisown') return swig_%s_get_newobject($this->%s);\n", module, SWIG_PTR);
 	if (baseclass) {
 	  Printf(s_phpclasses, "\t\treturn %s%s::__get($var);\n", prefix, baseclass);
@@ -2320,11 +2327,7 @@ done:
 
     Append(f->code, "return;\n");
     Append(f->code, "fail:\n");
-    /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
-     * using zend_error() here shouldn't generate a warning, so just use that.
-     * At worst this may result in slightly less good code.
-     */
-    Append(f->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
+    Append(f->code, "SWIG_FAIL();\n");
     Printf(f->code, "}\n");
 
     Wrapper_print(f, s_wrappers);
@@ -2575,6 +2578,7 @@ done:
 	    Replaceall(tm, "$owner", "0");
 	    Printv(wrap_args, "zval ", source, ";\n", NIL);
 	    Printf(wrap_args, "args[%d] = &%s;\n", idx - 1, source);
+	    Printv(wrap_args, "INIT_ZVAL(", source, ");\n", NIL);
 
 	    Printv(wrap_args, tm, "\n", NIL);
 	    Putc('O', parse_args);
@@ -2715,15 +2719,7 @@ done:
     }
 
     Append(w->code, "fail:\n");
-    if (!is_void) {
-      Append(w->code, "SWIG_ZEND_ERROR_NORETURN(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
-    } else {
-      /* This could be zend_error_noreturn(), but that's buggy in PHP ~5.3 and
-       * using zend_error() here shouldn't generate a warning, so just use that.
-       * At worst this may result in slightly less good code.
-       */
-      Append(w->code, "zend_error(SWIG_ErrorCode(),\"%s\",SWIG_ErrorMsg());\n");
-    }
+    Append(w->code, "SWIG_FAIL();\n");
     Append(w->code, "}\n");
 
     // We expose protected methods via an extra public inline method which makes a straight call to the wrapped class' method

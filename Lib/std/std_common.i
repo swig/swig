@@ -30,7 +30,7 @@
 %}
 
 
-%fragment("StdIteratorTraits","header") %{
+%fragment("StdIteratorTraits","header",fragment="<stddef.h>") %{
 #if defined(__SUNPRO_CC) && defined(_RWSTD_VER)
 #  if !defined(SWIG_NO_STD_NOITERATOR_TRAITS_STL)
 #    define SWIG_STD_NOITERATOR_TRAITS_STL

@@ -4,6 +4,27 @@ and CHANGES files.
 
 Release Notes
 =============
+SWIG-2.0.7 summary:
+- Important regression fixes since 2.0.5 for typemaps in general and
+  in Python.
+- Fixes and enhancements for Go, Java, Octave and PHP.
+
+SWIG-2.0.6 summary:
+- Regression fix for Python STL wrappers on some systems.
+
+SWIG-2.0.5 summary:
+- Official Android support added including documentation and examples.
+- Improvements involving templates:
+  1) Various fixes with templates and typedef types.
+  2) Some template lookup problems fixed.
+  3) Templated type fixes to use correct typemaps.
+- Autodoc documentation generation improvements.
+- Python STL container wrappers improvements including addition of
+  stepped slicing.
+- Approximately 70 fixes and minor enhancements for the following
+  target languages: AllegroCL, C#, D, Go, Java, Lua, Ocaml, Octave,
+  Perl, PHP, Python, R, Ruby, Tcl, Xml.
+
 SWIG-2.0.4 summary:
 - This is mainly a Python oriented release including support for Python
   built-in types for superior performance with the new -builtin option.

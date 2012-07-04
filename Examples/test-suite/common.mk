@@ -83,6 +83,7 @@ CPP_TEST_BROKEN += \
 	exception_partial_info \
 	extend_variable \
 	li_std_vector_ptr \
+	li_boost_shared_ptr_template \
 	overload_complicated \
 	template_default_pointer \
 	template_expr
@@ -107,6 +108,7 @@ CPP_TEST_CASES += \
 	aggregate \
 	allowexcept \
 	allprotected \
+	allprotected_not \
 	anonymous_bitfield \
 	apply_signed_char \
 	apply_strings \
@@ -126,6 +128,7 @@ CPP_TEST_CASES += \
 	casts \
 	char_binary \
 	char_strings \
+	class_forward \
 	class_ignore \
 	class_scope_weird \
 	compactdefaultargs \
@@ -173,6 +176,7 @@ CPP_TEST_CASES += \
 	director_ignore \
 	director_keywords \
 	director_namespace_clash \
+	director_nspace \
 	director_nested \
 	director_overload \
 	director_primitives \
@@ -274,6 +278,7 @@ CPP_TEST_CASES += \
         operbool \
 	ordering \
 	overload_copy \
+	overload_method \
 	overload_extend \
 	overload_rename \
 	overload_return_type \
@@ -426,6 +431,7 @@ CPP_TEST_CASES += \
 	typemap_ns_using \
 	typemap_numinputs \
 	typemap_template \
+	typemap_template_parm_typedef \
 	typemap_out_optimal \
 	typemap_qualifier_strip \
 	typemap_variables \
@@ -436,6 +442,7 @@ CPP_TEST_CASES += \
 	using1 \
 	using2 \
 	using_composition \
+	using_directive_and_declaration \
 	using_extend \
 	using_inherit \
 	using_namespace \
@@ -469,6 +476,8 @@ CPP_STD_TEST_CASES += \
         li_std_pair \
 	li_std_string \
 	li_std_vector \
+	li_std_vector_enum \
+	li_std_vector_member_var\
 	naturalvar \
 	smart_pointer_inherit \
 	template_typedef_fnc \
@@ -490,6 +499,7 @@ C_TEST_CASES += \
 	constant_expr \
 	empty \
 	enums \
+	enum_forward \
 	extern_declaration \
 	funcptr \
 	function_typedef \

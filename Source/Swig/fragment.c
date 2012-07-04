@@ -60,6 +60,8 @@ void Swig_fragment_register(Node *fragment) {
       if (kwargs) {
 	Setmeta(ccode, "kwargs", kwargs);
       }
+      Setfile(ccode, Getfile(fragment));
+      Setline(ccode, Getline(fragment));
       Setattr(fragments, name, ccode);
       if (debug)
 	Printf(stdout, "registering fragment %s %s\n", name, section);
@@ -142,7 +144,7 @@ void Swig_fragment_emit(Node *n) {
       if (section) {
 	File *f = Swig_filebyname(section);
 	if (!f) {
-	  Swig_error(Getfile(code), Getline(code), "Bad section '%s' for code fragment '%s'\n", section, name);
+	  Swig_error(Getfile(code), Getline(code), "Bad section '%s' in %%fragment declaration for code fragment '%s'\n", section, name);
 	} else {
 	  if (debug)
 	    Printf(stdout, "emitting subfragment %s %s\n", name, section);

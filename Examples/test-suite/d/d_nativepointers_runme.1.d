@@ -6,6 +6,8 @@ import d_nativepointers.SWIGTYPE_p_OpaqueClass;
 import d_nativepointers.SWIGTYPE_p_p_SomeClass;
 import d_nativepointers.SWIGTYPE_p_p_f_p_p_int_p_SomeClass__void;
 
+extern(C) alias void function(int**, char***) GType;
+
 void main() {
   check!(a, int*);
   check!(b, float**);
@@ -13,7 +15,7 @@ void main() {
   check!(d, SomeClass);
   check!(e, SWIGTYPE_p_p_SomeClass);
   check!(f, SWIGTYPE_p_OpaqueClass);
-  check!(g, void function(int**, char***));
+  check!(g, GType);
   check!(h, SWIGTYPE_p_p_f_p_p_int_p_SomeClass__void);
 
   {

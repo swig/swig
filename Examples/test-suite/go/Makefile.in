@@ -4,14 +4,17 @@
 
 LANGUAGE	= go
 GO		= @GO@
-GOGCC		= false
+GOGCC		= @GOGCC@
+GO1		= @GO1@
+GOC		= @GOC@
 SCRIPTSUFFIX	= _runme.go
 
-GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; fi`
-GOC = $(GO:g=c)
-GOLD = $(GO:g=l)
+GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi`
+GOLD = $(GOC:c=l)
+GOTOOL = `if $(GO1) ; then echo go tool; fi`
+GOPACK = `if $(GO1) ; then echo go tool pack; else echo gopack; fi`
 
-GOOBJEXT = $(GO:g=)
+GOOBJEXT = $(GOC:c=)
 
 SO = @SO@
 
@@ -53,23 +56,23 @@ multi_import.multicpptest:
 # Runs the testcase.
 run_testcase = \
 	if test -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-	  $(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	  if $(GOGCC) ; then \
 	    $(COMPILETOOL) $(GO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ $*.@OBJEXT@ $*$(SO); \
 	  else \
-	    $(COMPILETOOL) $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  fi && \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
 
 run_multi_testcase = \
 	if test -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-	  $(COMPILETOOL) $(GO) -I . $(GOCOMPILEARG) $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  $(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	  if $(GOGCC) ; then \
 	    files=`cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list`; \
 	    $(COMPILETOOL) $(GO) -o $*_runme $(SCRIPTPREFIX)$*_runme.@OBJEXT@ `for f in $$files; do echo $$f.@OBJEXT@ $$f$(SO); done`; \
 	  else \
-	    $(COMPILETOOL) $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
+	    $(COMPILETOOL) $(GOTOOL) $(GOLD) -L . -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o $*_runme $(SCRIPTPREFIX)$*_runme.$(GOOBJEXT); \
 	  fi && \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi

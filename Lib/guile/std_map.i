@@ -217,6 +217,10 @@ namespace std {
         %rename("delete!") __delitem__;
         %rename("has-key?") has_key;
       public:
+        typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+        typedef K key_type;
+        typedef T mapped_type;
         map();
         map(const map<K,T> &);
         

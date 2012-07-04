@@ -3877,7 +3877,8 @@ private:
 	}
       }
 
-      dtype = NewStringf("%s function(%s)", return_dtype, param_list);
+      dtype = NewStringf("%s.SwigExternC!(%s function(%s))", im_dmodule_fq_name,
+        return_dtype, param_list);
       Delete(param_list);
       Delete(param_dtypes);
       Delete(return_dtype);
@@ -4601,7 +4602,7 @@ private:
     co = c + Len(nspace);
 
     while (*c && (c != co)) {
-      if ((*c == '.')) {
+      if (*c == '.') {
 	break;
       }
       c++;

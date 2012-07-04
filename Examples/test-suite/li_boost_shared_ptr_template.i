@@ -4,6 +4,11 @@
 %{
 #include <boost/shared_ptr.hpp>
 
+#ifdef SWIGR
+  // remove naming conflict with R symbol
+#define INTEGER MYINTEGER
+#endif
+
   typedef int INTEGER;
 
   template <class T> 

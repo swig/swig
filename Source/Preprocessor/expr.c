@@ -298,16 +298,16 @@ int Preprocessor_expr(DOH *s, int *error) {
 	stack[sp++].op = EXPR_OP;
 	stack[sp].op = EXPR_TOP;
 	stack[sp].svalue = 0;
-      } else if ((token == SWIG_TOKEN_LPAREN)) {
+      } else if (token == SWIG_TOKEN_LPAREN) {
 	stack[sp++].op = EXPR_GROUP;
 	stack[sp].op = EXPR_TOP;
 	stack[sp].value = 0;
 	stack[sp].svalue = 0;
       } else if (token == SWIG_TOKEN_ENDLINE) {
-      } else if ((token == SWIG_TOKEN_STRING)) {
+      } else if (token == SWIG_TOKEN_STRING) {
 	stack[sp].svalue = NewString(Scanner_text(scan));
 	stack[sp].op = EXPR_VALUE;
-      } else if ((token == SWIG_TOKEN_ID)) {
+      } else if (token == SWIG_TOKEN_ID) {
 	stack[sp].value = 0;
 	stack[sp].svalue = 0;
 	stack[sp].op = EXPR_VALUE;

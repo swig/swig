@@ -24,8 +24,8 @@ template<class Key, class T> class Multimap {
     class const_iterator {};
 
     // test usage of a typedef of a nested class in a template
-    Standard::Pair<iterator,iterator> equal_range_1(const key_type& kt1) {}
-    Standard::Pair<const_iterator,const_iterator> equal_range_2(const key_type& kt2) const {}
+    Standard::Pair<iterator,iterator> equal_range_1(const key_type& kt1) { return Standard::Pair<iterator,iterator>(); }
+    Standard::Pair<const_iterator,const_iterator> equal_range_2(const key_type& kt2) const { return Standard::Pair<const_iterator,const_iterator>(); }
   };
 }
 %}

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[2.0.5],[http://www.swig.org])
+AC_INIT([swig],[2.0.8],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -626,17 +626,16 @@ AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBI
 
 # First, check for "--without-python" or "--with-python=no".
 if test x"${PYBIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Python])
+  AC_MSG_NOTICE([Disabling Python])
 else
-# First figure out the name of the Python executable
+  # First figure out the name of the Python executable
+  if test "x$PYBIN" = xyes; then
+    AC_CHECK_PROGS(PYTHON, [python python2.8 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4])
+  else
+    PYTHON="$PYBIN"
+  fi
 
-if test "x$PYBIN" = xyes; then
-AC_CHECK_PROGS(PYTHON, [python python2.8 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python])
-else
-PYTHON="$PYBIN"
-fi
-
-if test -n "$PYTHON"; then
+  if test -n "$PYTHON"; then
     AC_MSG_CHECKING(for Python prefix)
     PYPREFIX=`($PYTHON -c "import sys; print sys.prefix") 2>/dev/null`
     AC_MSG_RESULT($PYPREFIX)
@@ -669,12 +668,12 @@ if test -n "$PYTHON"; then
 
     AC_MSG_CHECKING(for Python header files)
     if test -r $PYPREFIX/include/$PYVERSION/Python.h; then
-        PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
+      PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
     fi
     if test -z "$PYINCLUDE"; then
-        if test -r $PYPREFIX/include/Py/Python.h; then
-            PYINCLUDE="-I$PYPREFIX/include/Py -I$PYEPREFIX/$PYLIBDIR/python/lib"
-        fi
+      if test -r $PYPREFIX/include/Py/Python.h; then
+        PYINCLUDE="-I$PYPREFIX/include/Py -I$PYEPREFIX/$PYLIBDIR/python/lib"
+      fi
     fi
     AC_MSG_RESULT($PYINCLUDE)
 
@@ -682,32 +681,32 @@ if test -n "$PYTHON"; then
     AC_MSG_CHECKING(for Python library)
     dirs="$PYVERSION/config $PYVERSION/$PYLIBDIR python/$PYLIBDIR"
     for i in $dirs; do
-        if test -d $PYEPREFIX/$PYLIBDIR/$i; then
-           PYLIB="$PYEPREFIX/$PYLIBDIR/$i"
-           break
-        fi
+      if test -d $PYEPREFIX/$PYLIBDIR/$i; then
+        PYLIB="$PYEPREFIX/$PYLIBDIR/$i"
+        break
+      fi
     done
     if test -z "$PYLIB"; then
-        AC_MSG_RESULT(Not found)
+      AC_MSG_RESULT(Not found)
     else
-        AC_MSG_RESULT($PYLIB)
+      AC_MSG_RESULT($PYLIB)
     fi
 
     # Check for really old versions
     if test -r $PYLIB/libPython.a; then
-         PYLINK="-lModules -lPython -lObjects -lParser"
+      PYLINK="-lModules -lPython -lObjects -lParser"
     else
-         PYLINK="-l$PYVERSION"
+      PYLINK="-l$PYVERSION"
     fi
-fi
+  fi
 
-# Cygwin (Windows) needs the library for dynamic linking
-case $host in
-*-*-cygwin* | *-*-mingw*) PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
-         DEFS="-DUSE_DL_IMPORT $DEFS" PYINCLUDE="$PYINCLUDE"
-         ;;
-*)PYTHONDYNAMICLINKING="";;
-esac
+  # Cygwin (Windows) needs the library for dynamic linking
+  case $host in
+  *-*-cygwin* | *-*-mingw*) PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
+    DEFS="-DUSE_DL_IMPORT $DEFS" PYINCLUDE="$PYINCLUDE"
+    ;;
+  *)PYTHONDYNAMICLINKING="";;
+  esac
 fi
 
 AC_SUBST(PYINCLUDE)
@@ -732,24 +731,19 @@ AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]),[
 
 # First, check for "--without-python3" or "--with-python3=no".
 if test x"${PY3BIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Python 3.x support])
+  AC_MSG_NOTICE([Disabling Python 3.x support])
 else
-# First figure out the name of the Python3 executable 
+  for py_ver in 3 3.6 3.5 3.4 3.3 3.2 3.1 3.0; do
+    AC_CHECK_PROGS(PYTHON3, [python$py_ver])
+    if test -n "$PYTHON3"; then
+      AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
+      if test -n "$PY3CONFIG"; then
+        break
+      fi
+    fi
+  done
 
-if test "x$PY3BIN" = xyes; then
-  AC_CHECK_PROGS(PYTHON3, [python3 python3.0 python3.1])
-else
-  PYTHON3="$PY3BIN"
-fi
-
-# Check for Python 3.x development tools (header files, static library and python3-config)
-if test "x$PYTHON3" = x; then
-  AC_CHECK_PROGS(PY3CONFIG, [python3-config python3.0-config python3.1-config])
-else
-  AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config python3-config python3.0-config python3.1-config])
-fi
-
-if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
+  if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
     AC_MSG_CHECKING([for Python 3.x prefix])
     PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
     AC_MSG_RESULT($PY3PREFIX)
@@ -787,27 +781,27 @@ if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
     AC_MSG_CHECKING([for Python 3.x library])
     dirs="$PY3VERSION/config $PY3VERSION/$PY3LIBDIR python/$PY3LIBDIR"
     for i in $dirs; do
-        if test -d $PY3EPREFIX/$PY3LIBDIR/$i; then
-           PY3LIB="$PY3EPREFIX/$PY3LIBDIR/$i"
-           break
-        fi
+      if test -d $PY3EPREFIX/$PY3LIBDIR/$i; then
+        PY3LIB="$PY3EPREFIX/$PY3LIBDIR/$i"
+        break
+      fi
     done
     if test -z "$PY3LIB"; then
-        AC_MSG_RESULT([Not found])
+      AC_MSG_RESULT([Not found])
     else
-        AC_MSG_RESULT($PY3LIB)
+      AC_MSG_RESULT($PY3LIB)
     fi
 
     PY3LINK="-l$PY3VERSION"
-fi
+  fi
 
-# Cygwin (Windows) needs the library for dynamic linking
-case $host in
-*-*-cygwin* | *-*-mingw*) PYTHON3DYNAMICLINKING="-L$PYLIB $PY3LINK"
-         DEFS="-DUSE_DL_IMPORT $DEFS" PY3INCLUDE="$PY3INCLUDE"
-         ;;
-*)PYTHON3DYNAMICLINKING="";;
-esac
+  # Cygwin (Windows) needs the library for dynamic linking
+  case $host in
+  *-*-cygwin* | *-*-mingw*) PYTHON3DYNAMICLINKING="-L$PYLIB $PY3LINK"
+    DEFS="-DUSE_DL_IMPORT $DEFS" PY3INCLUDE="$PY3INCLUDE"
+    ;;
+  *)PYTHON3DYNAMICLINKING="";;
+  esac
 fi
 
 AC_SUBST(PY3INCLUDE)
@@ -900,7 +894,6 @@ AC_SUBST(PERL5CCFLAGS)
 #----------------------------------------------------------------
 
 OCTAVEBIN=
-OCTAVEDYNAMICLINKING=
 OCTAVE_SO=.oct
 
 AC_ARG_WITH(octave, AS_HELP_STRING([--without-octave], [Disable Octave])
@@ -908,58 +901,51 @@ AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[OCTAV
 
 # First, check for "--without-octave" or "--with-octave=no".
 if test x"${OCTAVEBIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Octave])
-OCTAVE=
-else
+   AC_MSG_NOTICE([Disabling Octave])
+   OCTAVE=
 
 # First figure out what the name of Octave is
+elif test "x$OCTAVEBIN" = xyes; then
+   AC_CHECK_PROGS(OCTAVE, octave)
 
-if test "x$OCTAVEBIN" = xyes; then
-AC_CHECK_PROGS(OCTAVE, octave)
 else
-OCTAVE="$OCTAVEBIN"
+   OCTAVE="$OCTAVEBIN"
 fi
 
-
-AC_MSG_CHECKING(for Octave header files)
 if test -n "$OCTAVE"; then
-	OCTAVECONFIG=[`echo $OCTAVEBIN | sed 's|octave\([^/]*\)$|octave-config\1|'`]
-	if test -r "$OCTAVECONFIG"; then
-		OCTAVEDIR=`$OCTAVECONFIG -p OCTINCLUDEDIR | sed 's|/octave$||'`
-	else
-		OCTAVEDIR="/usr/include"
-	fi
-	if test "$OCTAVEDIR" != ""; then
-		dirs="$OCTAVEDIR/octave $OCTAVEDIR"
-		OCTAVEEXT=""
-		for i in $dirs; do
-			if test -r $i/octave/oct.h; then
-				OCTAVEEXT="$i"
-				break;
-			fi
-		done
-		if test "$OCTAVEEXT" = "" ; then
-			AC_MSG_RESULT(not found)
-		else
-			AC_MSG_RESULT($OCTAVEEXT)
-		fi
-
-		AC_MSG_CHECKING(for Octave compiler options)
- 		OCTAVECCFLAGS=""
-		AC_MSG_RESULT($OCTAVECCFLAGS)
-	fi
+   AC_MSG_CHECKING([for mkoctfile])
+   AS_IF([test "x`${OCTAVE} -qfH --eval 'mkoctfile -p CXX' 2>/dev/null`" != x],[
+     AC_MSG_RESULT([yes])
+   ],[
+     AC_MSG_ERROR([mkoctfile is not installed])
+   ])
+   AC_MSG_CHECKING([for Octave preprocessor flags])
+   OCTAVE_CPPFLAGS=
+   for n in CPPFLAGS INCFLAGS; do
+     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+   done
+   AC_MSG_RESULT($OCTAVE_CPPFLAGS)
+   AC_MSG_CHECKING([for Octave compiler flags])
+   OCTAVE_CXXFLAGS=
+   for n in ALL_CXXFLAGS; do
+     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+   done
+   AC_MSG_RESULT($OCTAVE_CXXFLAGS)
+   AC_MSG_CHECKING([for Octave linker flags])
+   OCTAVE_LDFLAGS=
+   for n in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+   done
+   AC_MSG_RESULT($OCTAVE_LDFLAGS)
 else
-       	AC_MSG_RESULT(could not figure out how to run octave)
-fi
-
+   AC_MSG_RESULT(could not figure out how to run octave)
 fi
 
 AC_SUBST(OCTAVE)
-AC_SUBST(OCTAVEEXT)
 AC_SUBST(OCTAVE_SO)
-AC_SUBST(OCTAVEDYNAMICLINKING)
-AC_SUBST(OCTAVELIB)
-AC_SUBST(OCTAVECCFLAGS)
+AC_SUBST(OCTAVE_CPPFLAGS)
+AC_SUBST(OCTAVE_CXXFLAGS)
+AC_SUBST(OCTAVE_LDFLAGS)
 
 #----------------------------------------------------------------
 # Look for java
@@ -1890,7 +1876,12 @@ else
 
 # can we find lua?
 if test "x$LUABIN" = xyes; then
-   AC_PATH_PROG(LUABIN, lua)
+   # We look for a versioned Lua binary first, as there can be
+   # multiple versions of Lua installed on some systems (like Debian).
+   # The search order should match the include-file and library search
+   # orders below (a Lua shared library built for one version may not
+   # work with a Lua binary of a different version).
+   AC_PATH_PROGS(LUABIN, [lua5.2 lua5.1 lua])
 fi
 
 # check version: we need Lua 5.x
@@ -1938,8 +1929,11 @@ else
   # if we didn't get it, going to have to look elsewhere (the hard way)
   if test -z "$LUA_OK"; then
     AC_MSG_CHECKING(for lua.h in other locations)
-    # note: ubuntu seems to like /usr/include/lua5.1/lua.h
-    dirs="/usr/include/lua* /usr/local/include"
+    # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
+    # The ordering of the include directories to search should match
+    # the ordering of libraries to search in the library test below.
+    inc=/usr/include
+    dirs="$inc/lua5.2 $inc/lua5.1 $inc/lua51 $inc/lua5.0 $inc/lua50 /usr/local/include"
     for i in $dirs; do
       #echo "$i"
       if test -r $i/lua.h; then
@@ -1962,7 +1956,7 @@ lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
 if test -n "$LUALIB"; then
   AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
 else
-  AC_SEARCH_LIBS(lua_close, [lua lua51 lua5.1 lua50 lua5.0], [LUALINK="-l$ac_lib"],[LUABIN=])
+  AC_SEARCH_LIBS(lua_close, [lua lua5.2 lua5.1 lua51 lua5.0 lua50], [LUALINK="-l$ac_lib"],[LUABIN=])
 fi
 
 # adding lualib for lua 5.0
@@ -2058,24 +2052,38 @@ AS_HELP_STRING([--with-go=path], [Set location of Go compiler]),[GOBIN="$withval
 if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then 
   AC_MSG_NOTICE([Disabling Go])
   GO=
+  GOC=
+  GO1=false
   GOGCC=false
 else
 
   if test "x$GOBIN" = xyes; then
-    AC_CHECK_PROGS(GO, 6g 8g gccgo)
+    AC_CHECK_PROGS(GO, go 6g 8g gccgo)
   else
     GO="$GOBIN"
   fi
 
+  GOGCC=false
+  GO1=false
   if test -n "$GO" ; then
-    GOGCC=false
     if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
       GOGCC=true
+      AC_MSG_CHECKING([whether gccgo version is too old])
+      go_version=`$GO --version | sed -e 's/[^0-9]* \([0-9.]*\) .*$/\1/' -e 's/[.]//g'`
+      if test "$go_version" -lt 470; then
+        AC_MSG_RESULT([yes - minimum version is 4.7.0])
+      else
+	AC_MSG_RESULT([no])
+      fi
+    elif test "`echo $GO | sed -e 's|.*/||'`" = "go"; then
+      GO1=true
+      GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
     else
+      GOC=`echo $GO | sed -e 's/g/c/'`
       AC_MSG_CHECKING([whether Go ($GO) version is too old])
-      go_version=`$GO -V | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
+      go_version=`$GO -V 2>/dev/null | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
       go_min_version=7077
-      if test "$go_version" -lt $go_min_version; then
+      if test "$go_version" != "" -a "$go_version" -lt $go_min_version; then
         AC_MSG_RESULT([yes - minimum version is $go_min_version])
         GO=
       else
@@ -2087,6 +2095,8 @@ fi
 
 AC_SUBST(GOGCC)
 AC_SUBST(GO)
+AC_SUBST(GOC)
+AC_SUBST(GO1)
 
 #----------------------------------------------------------------
 # Look for D
@@ -2191,7 +2201,7 @@ AC_SUBST(SKIP_PERL5)
 
 
 SKIP_OCTAVE=
-if test -z "$OCTAVE" || test -z "$OCTAVEEXT" ; then
+if test -z "$OCTAVE" ; then
     SKIP_OCTAVE="1"
 fi
 AC_SUBST(SKIP_OCTAVE)

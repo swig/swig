@@ -97,7 +97,7 @@
     RCPtr<A> _a;
   };
 
-class B* global_create(A* a)
+struct B* global_create(A* a)
 {
   return new B(a);
 }

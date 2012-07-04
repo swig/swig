@@ -3396,12 +3396,16 @@ public:
     String *swig_director_connect = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
     String *wname = Swig_name_wrapper(swig_director_connect);
     String *sym_name = Getattr(n, "sym:name");
-    Wrapper *code_wrap;
+    String *qualified_classname = Copy(sym_name);
+    String *nspace = getNSpace();
+
+    if (nspace)
+      Insert(qualified_classname, 0, NewStringf("%s.", nspace));
 
     Printv(imclass_class_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
     Printf(imclass_class_code, "  public static extern void %s(HandleRef jarg1", swig_director_connect);
 
-    code_wrap = NewWrapper();
+    Wrapper *code_wrap = NewWrapper();
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
 
     Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
@@ -3419,7 +3423,7 @@ public:
 	Printf(code_wrap->code, ", ");
       Printf(code_wrap->def, "SwigDirector_%s::SWIG_Callback%s_t callback%s", sym_name, methid, methid);
       Printf(code_wrap->code, "callback%s", methid);
-      Printf(imclass_class_code, ", %s.SwigDelegate%s_%s delegate%s", sym_name, sym_name, methid, methid);
+      Printf(imclass_class_code, ", %s.SwigDelegate%s_%s delegate%s", qualified_classname, sym_name, methid, methid);
     }
 
     Printf(code_wrap->def, ") {\n");
@@ -3433,6 +3437,7 @@ public:
 
     Delete(wname);
     Delete(swig_director_connect);
+    Delete(qualified_classname);
   }
 
   /* ---------------------------------------------------------------

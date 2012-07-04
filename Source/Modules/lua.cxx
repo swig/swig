@@ -284,12 +284,7 @@ public:
     Printf(f_runtime, "\n");
     Printf(f_runtime, "#define SWIGLUA\n");
 
-    if (elua_ltr)
-      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_ELUA\n");
-    else if (eluac_ltr)
-      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_ELUAC\n");
-    else
-      Printf(f_runtime, "#define SWIG_LUA_TARGET SWIG_LUA_LUA\n");
+    emitLuaFlavor(f_runtime);
 
     if (nomoduleglobal) {
       Printf(f_runtime, "#define SWIG_LUA_NO_MODULE_GLOBAL\n");
@@ -331,7 +326,7 @@ public:
         Printf(s_dot_set, "\nconst LUA_REG_TYPE dot_set[] = {\n");
       }
     } else {
-      Printf(s_cmd_tab, "\nstatic const struct luaL_reg swig_commands[] = {\n");
+      Printf(s_cmd_tab, "\nstatic const struct luaL_Reg swig_commands[] = {\n");
       Printf(s_var_tab, "\nstatic swig_lua_var_info swig_variables[] = {\n");
       Printf(s_const_tab, "\nstatic swig_lua_const_info swig_constants[] = {\n");
       Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
@@ -1269,6 +1264,9 @@ public:
   String *runtimeCode() {
     String *s = NewString("");
     const char *filenames[] = { "luarun.swg", 0 } ; // must be 0 terminated
+
+    emitLuaFlavor(s);
+
     String *sfile;
     for (int i = 0; filenames[i] != 0; i++) {
       sfile = Swig_include_sys(filenames[i]);
@@ -1279,6 +1277,7 @@ public:
         Delete(sfile);
       }
     }
+
     return s;
   }
 
@@ -1289,6 +1288,16 @@ public:
   /* ---------------------------------------------------------------------
    * helpers
    * --------------------------------------------------------------------- */
+
+  void emitLuaFlavor(String *s) {
+    if (elua_ltr)
+      Printf(s, "#define SWIG_LUA_TARGET SWIG_LUA_FLAVOR_ELUA\n");
+    else if (eluac_ltr)
+      Printf(s, "#define SWIG_LUA_TARGET SWIG_LUA_FLAVOR_ELUAC\n");
+    else
+      Printf(s, "#define SWIG_LUA_TARGET SWIG_LUA_FLAVOR_LUA\n");
+  }
+  
 
   /* This is to convert the string of Lua code into a proper string, which can then be
      emitted into the C/C++ code.

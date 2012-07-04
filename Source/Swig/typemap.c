@@ -23,6 +23,7 @@ char cvsroot_typemap_c[] = "$Id$";
 
 static int typemap_search_debug = 0;
 static int typemaps_used_debug = 0;
+static int typemap_register_debug = 0;
 static int in_typemap_search_multi = 0;
 
 static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper *f, Node *file_line_node);
@@ -88,13 +89,16 @@ static Hash *get_typemap(int tm_scope, const SwigType *type) {
   return tm;
 }
 
-static void set_typemap(int tm_scope, const SwigType *type, Hash *tm) {
+static void set_typemap(int tm_scope, const SwigType *type, Hash **tmhash) {
   SwigType *hashtype = 0;
+  Hash *new_tm = 0;
+  assert(*tmhash == 0);
   if (SwigType_istemplate(type)) {
     SwigType *rty = SwigType_typedef_resolve_all(type);
     String *ty = Swig_symbol_template_deftype(rty, 0);
     String *tyq = Swig_symbol_type_qualify(ty, 0);
     hashtype = SwigType_remove_global_scope_prefix(tyq);
+    *tmhash = Getattr(typemaps[tm_scope], hashtype);
     Delete(rty);
     Delete(tyq);
     Delete(ty);
@@ -102,10 +106,17 @@ static void set_typemap(int tm_scope, const SwigType *type, Hash *tm) {
     hashtype = SwigType_remove_global_scope_prefix(type);
   }
 
+  if (!*tmhash) {
+    /* this type has not been seen before even after resolving template parameter types */
+    new_tm = NewHash();
+    *tmhash = new_tm;
+  }
+
   /* note that the unary scope operator (::) prefix indicating global scope has been removed from the type */
-  Setattr(typemaps[tm_scope], hashtype, tm);
+  Setattr(typemaps[tm_scope], hashtype, *tmhash);
 
   Delete(hashtype);
+  Delete(new_tm);
 }
 
 
@@ -191,9 +202,14 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
   String *tm_method;
   SwigType *type;
   String *pname;
-
   if (!parms)
     return;
+
+  if (typemap_register_debug) {
+      Printf(stdout, "Registering - %s\n", tmap_method);
+      Swig_print_node(parms);
+  }
+
   tm_method = typemap_method_name(tmap_method);
 
   /* Register the first type in the parameter list */
@@ -204,9 +220,7 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
   /* See if this type has been seen before */
   tm = get_typemap(tm_scope, type);
   if (!tm) {
-    tm = NewHash();
-    set_typemap(tm_scope, type, tm);
-    Delete(tm);
+    set_typemap(tm_scope, type, &tm);
   }
   if (pname) {
     /* See if parameter has been seen before */
@@ -470,9 +484,7 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
   type = Getattr(lastdp, "type");
   tm = get_typemap(tm_scope, type);
   if (!tm) {
-    tm = NewHash();
-    set_typemap(tm_scope, type, tm);
-    Delete(tm);
+    set_typemap(tm_scope, type, &tm);
   }
   name = Getattr(lastdp, "name");
   if (name) {
@@ -2062,5 +2074,15 @@ void Swig_typemap_search_debug_set(void) {
 
 void Swig_typemap_used_debug_set(void) {
   typemaps_used_debug = 1;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_typemap_register_debug_set()
+ *
+ * Turn on typemaps used debug display
+ * ----------------------------------------------------------------------------- */
+
+void Swig_typemap_register_debug_set(void) {
+  typemap_register_debug = 1;
 }
 

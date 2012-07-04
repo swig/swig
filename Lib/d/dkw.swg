@@ -5,6 +5,8 @@
 #define DKEYWORD(x) %keywordwarn("'" `x` "' is a D keyword, renaming to '_" `x` "'",rename="_%s")  `x`
 
 // Source: http://www.digitalmars.com/d/{1.0,2.0}/lex.html and
+DKEYWORD(Error);
+DKEYWORD(Exception);
 DKEYWORD(Object);
 DKEYWORD(__FILE__);
 DKEYWORD(__LINE__);
