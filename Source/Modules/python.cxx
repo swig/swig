@@ -21,7 +21,6 @@ static int treduce = SWIG_cparse_template_reduce(0);
 #include <ctype.h>
 #include <sstream>
 #include "../DoxygenTranslator/src/PyDocConverter.h"
-#include "../../../swig/bug.h"
 
 #define PYSHADOW_MEMBER  0x2
 #define WARN_PYTHON_MULTIPLE_INH 405
