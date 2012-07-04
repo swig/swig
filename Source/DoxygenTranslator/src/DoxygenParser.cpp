@@ -10,135 +10,96 @@
  * ----------------------------------------------------------------------------- */
 
 #include "DoxygenParser.h"
-#include "TokenList.h"
+#include "DoxygenCommands.h"
+
+#include <stdio.h>
+
+// Define static class members
+std::map<std::string, DoxyCommandEnum> DoxygenParser::doxygenCommands;
+std::set<std::string> DoxygenParser::doxygenSectionIndicators;
 
 
-DoxygenParser::DoxygenParser() {
+DoxygenParser::DoxygenParser() : noisy(true) {
+  fillTables();
 }
 
 DoxygenParser::~DoxygenParser() {
 }
 
-//////////////////////////////////////////
-int noisy = 0;			// set this to 1 for extra chatter from the parsing stage.
-int addCommand(std::string currCommand, TokenList & tokList, std::list < DoxygenEntity > &aNewList);
-std::list < DoxygenEntity > parse(std::list < Token >::iterator endParsingIndex, TokenList & tokList);
+void DoxygenParser::fillTables() {
+  // run it only once
+  if (doxygenCommands.size())
+    return;
+  
+  // fill in tables with data from DxygenCommands.h
+  for (int i = 0; i < simpleCommandsSize; i++)
+    doxygenCommands[simpleCommands[i]] = SIMPLECOMMAND;
+  for (int i = 0; i < ignoredSimpleCommandsSize; i++)
+    doxygenCommands[ignoredSimpleCommands[i]] = IGNOREDSIMPLECOMMAND;
+  
+  for (int i = 0; i < commandWordsSize; i++)
+    doxygenCommands[commandWords[i]] = COMMANDWORD;
+  for (int i = 0; i < ignoredCommandWordsSize; i++)
+    doxygenCommands[ignoredCommandWords[i]] = IGNOREDCOMMANDWORD;
+  
+  for (int i = 0; i < commandLinesSize; i++)
+    doxygenCommands[commandLines[i]] = COMMANDLINE;
+  for (int i = 0; i < ignoreCommandLinesSize; i++)
+    doxygenCommands[ignoreCommandLines[i]] = IGNOREDCOMMANDLINE;
+  
+  for (int i = 0; i < commandParagraphSize; i++)
+    doxygenCommands[commandParagraph[i]] = COMMANDPARAGRAPH;
+  for (int i = 0; i < ignoreCommandParagraphsSize; i++)
+    doxygenCommands[ignoreCommandParagraphs[i]] = IGNORECOMMANDPARAGRAPH;
+  
+  for (int i = 0; i < commandEndCommandsSize; i++)
+    doxygenCommands[commandEndCommands[i]] = COMMANDENDCOMMAND;
+  for (int i = 0; i < commandWordParagraphsSize; i++)
+    doxygenCommands[commandWordParagraphs[i]] = COMMANDWORDPARAGRAPH;
+  for (int i = 0; i < commandWordLinesSize; i++)
+    doxygenCommands[commandWordLines[i]] = COMMANDWORDLINE;
+  for (int i = 0; i < commandWordOWordOWordsSize; i++)
+    doxygenCommands[commandWordOWordOWords[i]] = COMMANDWORDOWORDWORD;
+  for (int i = 0; i < commandOWordsSize; i++)
+    doxygenCommands[commandOWords[i]] = COMMANDOWORD;
+  for (int i = 0; i < commandErrorThrowingsSize; i++)
+    doxygenCommands[commandErrorThrowings[i]] = COMMANDERRORTHROW;
+  for (int i = 0; i < commandUniquesSize; i++)
+    doxygenCommands[commandUniques[i]] = COMMANDUNIQUE;
+  
+  // fill section indicators command set
+  for (int i = 0; i < sectionIndicatorsSize; i++)
+    doxygenSectionIndicators.insert(sectionIndicators[i]);
+}
 
-//////////////////////////////////////////
-
-
-std::string commandArray[] = {
-  "a", "addindex", "addtogroup", "anchor", "arg", "attention",
-  "author", "b", "brief", "bug", "c", "callgraph", "callergraph", "category",
-  "class", "code", "cond", "copybrief", "copydetails", "copydoc", "date", "def",
-  "defgroup", "deprecated", "details", "dir", "dontinclude", "dot", "dotfile", "e",
-  "else", "elseif", "em", "endcode", "endcond", "enddot", "endhtmlonly", "endif",
-  "endlatexonly", "endlink", "endmanonly", "endmsc", "endverbatim", "endxmlonly",
-  "enum", "example", "exception", "f$", "f[", "f]", "f{", "f}", "file", "fn", "headerfile",
-  "hideinitializer", "htmlinclude", "htmlonly", "if", "ifnot", "image", "include",
-  "includelineno", "ingroup", "internal", "invariant", "interface", "latexonly", "li",
-  "line", "link", "mainpage", "manonly", "msc", "n", "name", "namespace", "nosubgrouping",
-  "note", "overload", "p", "package", "page", "par", "paragraph", "param", "post", "pre",
-  "private", "privatesection", "property", "protected", "protectedsection", "protocol",
-  "public", "publicsection", "ref", "relates", "relatesalso", "remarks", "return", "retval",
-  "sa", "section", "see", "showinitializer", "since", "skip", "skipline", "struct", "subpage",
-  "subsection", "subsubsection", "test", "throw", "throws", "todo", "tparam", "typedef", "union", "until",
-  "var", "verbatim", "verbinclude", "version", "warning", "weakgroup", "xmlonly", "xrefitem", "$", "@", "\\", "&", "~", "<", ">", "#", "%"};
-
-
-std::string sectionIndicators[] = {
-  "attention", "author", "brief", "bug", "cond", "date", "deprecated", "details",
-  "else", "elseif", "endcond", "endif", "exception", "if", "ifnot", "invariant", "note", "par", "param",
-  "tparam", "post", "pre", "remarks", "return", "retval", "sa", "see", "since", "test", "throw", "throws", "todo", "version", "warning", "xrefitem"};
-
-/* All of the doxygen commands divided up by how they are parsed */
-std::string simpleCommands[] = {
-  "n", "$", "@", "\\", "&", "~", "<", ">", "#", "%"};
-
-std::string ignoredSimpleCommands[] = {
-  "nothing at the moment"};
-
-std::string commandWords[] = {
-  "a", "b", "c", "e", "em", "p", "def", "enum", "example", "package", "relates", "namespace", "relatesalso", "anchor", "dontinclude", "include", "includelineno"};
-
-std::string ignoredCommandWords[] = {
-  "copydoc", "copybrief", "copydetails", "verbinclude", "htmlinclude"};
-
-std::string commandLines[] = {
-  "addindex", "fn", "name", "line", "var", "skipline", "typedef", "skip", "until", "property"};
-
-std::string ignoreCommandLines[] = {
-  "nothing at the moment"};
-
-std::string commandParagraph[] = {
-  "partofdescription", "return", "remarks", "since", "test", "sa", "see", "pre", "post", "details", "invariant",
-  "deprecated", "date", "note", "warning", "version", "todo", "bug", "attention", "brief", "author"};
-
-std::string ignoreCommandParagraphs[] = {
-  "nothing at the moment"};
-
-std::string commandEndCommands[] = {
-  "code", "dot", "msc", "f$", "f[", "f{environment}{", "htmlonly", "latexonly", "manonly", "verbatim", "xmlonly", "cond", "if", "ifnot", "link"};
-
-std::string commandWordParagraphs[] = {
-  "param", "tparam", "throw", "throws", "retval", "exception"};
-
-std::string commandWordLines[] = {
-  "page", "subsection", "subsubsection", "section", "paragraph", "defgroup"};
-
-std::string commandWordOWordOWords[] = {
-  "category", "class", "protocol", "interface", "struct", "union"};
-
-std::string commandOWords[] = {
-  "dir", "file", "cond"};
-
-std::string commandErrorThrowings[] = {
-  "annotatedclassstd::list", "classhierarchy", "define", "functionindex", "header",
-  "headerfilestd::list", "inherit", "l", "postheader", "private", "privatesection", "protected",
-  "protectedsection", "public", "publicsection", "endcode", "enddot", "endmsc", "endhtmlonly",
-  "endlatexonly", "endmanonly", "endlink", "endverbatim", "endxmlonly", "f]", "f}", "endcond", "endif"};
-std::string commandUniques[] = {
-  "xrefitem", "arg", "ingroup", "par", "headerfile", "overload", "weakgroup", "ref", "subpage", "dotfile", "image", "addtogroup", "li"};
-
-
-/* Changes a std::string to all lower case */
-std::string StringToLower(std::string stringToConvert) {
+std::string DoxygenParser::StringToLower(std::string stringToConvert) {
   for (unsigned int i = 0; i < stringToConvert.length(); i++) {
     stringToConvert[i] = tolower(stringToConvert[i]);
   }
   return stringToConvert;	//return the converted std::string
 }
 
-/* finds out if a command exists (is a possible command)
- * from the std::string array commandArray
- * returns -1 if no match is found */
-int findCommand(std::string smallString) {
+int DoxygenParser::findCommand(std::string smallString) {
+  std::map<std::string, DoxyCommandEnum>::iterator it;
   smallString = StringToLower(smallString);
-  int a;
-  for (unsigned i = 0; i < sizeof(commandArray) / sizeof(*commandArray); i++) {
-    if ((a = smallString.compare(commandArray[i])) == 0) {
-      return 101 + i;
-    }
-  }
+  // I'm not sure if we can really do so, because there are different commands
+  // in doxygenCommands and original commandArray
+  it = doxygenCommands.find(smallString);
+  if (it != doxygenCommands.end())
+    return 1;
   return -1;
 }
 
-/* isSectionIndicator returns a boolean if the command is a section indicator
- * This is a helper method for finding the end of a paragraph
- * by Doxygen's terms
- */
-int isSectionIndicator(std::string smallString) {
+int DoxygenParser::isSectionIndicator(std::string smallString) {
   smallString = StringToLower(smallString);
-  for (unsigned i = 0; i < sizeof(sectionIndicators) / sizeof(*sectionIndicators); i++) {
-    if (smallString.compare(sectionIndicators[i]) == 0) {
-      return 1;
-    }
-  }
+  std::set<std::string>::iterator it;
+  it = doxygenSectionIndicators.find(smallString);
+  if (it != doxygenSectionIndicators.end())
+    return 1;
   return 0;
 }
 
-/* prints the parse tree */
-void printTree(std::list < DoxygenEntity > &rootList) {
+void DoxygenParser::printTree(std::list < DoxygenEntity > &rootList) {
   std::list < DoxygenEntity >::iterator p = rootList.begin();
   while (p != rootList.end()) {
     (*p).printEntity(0);
@@ -146,81 +107,17 @@ void printTree(std::list < DoxygenEntity > &rootList) {
   }
 }
 
-/* Determines how a command should be handled (what group it belongs to
- * for parsing rules
- */
-int commandBelongs(std::string theCommand) {
+int DoxygenParser::commandBelongs(std::string theCommand) {
   std::string smallString = StringToLower(theCommand);
   //cout << " Looking for command " << theCommand << endl;
-  unsigned i = 0;
-  for (i = 0; i < sizeof(simpleCommands) / sizeof(*simpleCommands); i++) {
-    if (smallString.compare(simpleCommands[i]) == 0)
-      return SIMPLECOMMAND;
-  }
-  for (i = 0; i < sizeof(ignoredSimpleCommands) / sizeof(*ignoredSimpleCommands); i++) {
-    if (smallString.compare(ignoredSimpleCommands[i]) == 0)
-      return IGNOREDSIMPLECOMMAND;
-  }
-  for (i = 0; i < sizeof(commandWords) / sizeof(*commandWords); i++) {
-    if (smallString.compare(commandWords[i]) == 0)
-      return COMMANDWORD;
-  }
-  for (i = 0; i < sizeof(ignoredCommandWords) / sizeof(*ignoredCommandWords); i++) {
-    if (smallString.compare(ignoredCommandWords[i]) == 0)
-      return IGNOREDCOMMANDWORD;
-  }
-  for (i = 0; i < sizeof(commandLines) / sizeof(*commandLines); i++) {
-    if (smallString.compare(commandLines[i]) == 0)
-      return COMMANDLINE;
-  }
-  for (i = 0; i < sizeof(ignoreCommandLines) / sizeof(*ignoreCommandLines); i++) {
-    if (smallString.compare(ignoreCommandLines[i]) == 0)
-      return IGNOREDCOMMANDLINE;
-  }
-  for (i = 0; i < sizeof(commandParagraph) / sizeof(*commandParagraph); i++) {
-    if (smallString.compare(commandParagraph[i]) == 0)
-      return COMMANDPARAGRAPH;
-  }
-  for (i = 0; i < sizeof(ignoreCommandParagraphs) / sizeof(*ignoreCommandParagraphs); i++) {
-    if (smallString.compare(ignoreCommandParagraphs[i]) == 0)
-      return IGNORECOMMANDPARAGRAPH;
-  }
-  for (i = 0; i < sizeof(commandEndCommands) / sizeof(*commandEndCommands); i++) {
-    if (smallString.compare(commandEndCommands[i]) == 0)
-      return COMMANDENDCOMMAND;
-  }
-  for (i = 0; i < sizeof(commandWordParagraphs) / sizeof(*commandWordParagraphs); i++) {
-    if (smallString.compare(commandWordParagraphs[i]) == 0)
-      return COMMANDWORDPARAGRAPH;
-  }
-  for (i = 0; i < sizeof(commandWordLines) / sizeof(*commandWordLines); i++) {
-    if (smallString.compare(commandWordLines[i]) == 0)
-      return COMMANDWORDLINE;
-  }
-  for (i = 0; i < sizeof(commandWordOWordOWords) / sizeof(*commandWordOWordOWords); i++) {
-    if (smallString.compare(commandWordOWordOWords[i]) == 0)
-      return COMMANDWORDOWORDWORD;
-  }
-  for (i = 0; i < sizeof(commandOWords) / sizeof(*commandOWords); i++) {
-    if (smallString.compare(commandOWords[i]) == 0)
-      return COMMANDOWORD;
-  }
-  for (i = 0; i < sizeof(commandErrorThrowings) / sizeof(*commandErrorThrowings); i++) {
-    if (smallString.compare(commandErrorThrowings[i]) == 0)
-      return COMMANDERRORTHROW;
-  }
-  for (i = 0; i < sizeof(commandUniques) / sizeof(*commandUniques); i++) {
-    if (smallString.compare(commandUniques[i]) == 0)
-      return COMMANDUNIQUE;
-  }
+  std::map<std::string, DoxyCommandEnum>::iterator it;
+  it = doxygenCommands.find(smallString);
+  if (it!=doxygenCommands.end())
+    return it->second;
   return 0;
 }
 
-/* Returns the next word ON THE CURRENT LINE ONLY
- * if a new line is encountered, returns a blank std::string.
- * Updates the index it is given if success.
- */
-std::string getNextWord(TokenList & tokList) {
+std::string DoxygenParser::getNextWord(TokenList & tokList) {
   Token nextToken = tokList.peek();
   if (nextToken.tokenType == PLAINSTRING) {
     nextToken = tokList.next();
@@ -229,10 +126,7 @@ std::string getNextWord(TokenList & tokList) {
   return "";
 }
 
-/* Returns the location of the end of the line as
- * an iterator.
- */
-std::list < Token >::iterator getOneLine(TokenList & tokList) {
+std::list < Token >::iterator DoxygenParser::getOneLine(TokenList & tokList) {
   std::list < Token >::iterator endOfLine = tokList.iteratorCopy();
   while (endOfLine != tokList.end()) {
     if ((*endOfLine).tokenType == END_LINE) {
@@ -247,10 +141,7 @@ std::list < Token >::iterator getOneLine(TokenList & tokList) {
   return tokList.end();
 }
 
-/* Returns a properly formatted std::string
-* up til ANY command or end of line is encountered.
-*/
-std::string getStringTilCommand(TokenList & tokList) {
+std::string DoxygenParser::getStringTilCommand(TokenList & tokList) {
   std::string description;
   if (tokList.peek().tokenType == 0)
     return "";
@@ -263,12 +154,7 @@ std::string getStringTilCommand(TokenList & tokList) {
   return description;
 }
 
-/* Returns a properly formatted std::string
-* up til the command specified is encountered
-*/
-//TODO check that this behaves properly for formulas
-
-std::string getStringTilEndCommand(std::string theCommand, TokenList & tokList) {
+std::string DoxygenParser::getStringTilEndCommand(std::string theCommand, TokenList & tokList) {
   std::string description;
   if (tokList.peek().tokenType == 0)
     return "";
@@ -279,11 +165,7 @@ std::string getStringTilEndCommand(std::string theCommand, TokenList & tokList) 
   return description;
 }
 
-/* Returns the end of a Paragraph as an iterator-
-* Paragraph is defined in Doxygen to be a paragraph of text
- * separated by either a structural command or a blank line
-*/
-std::list < Token >::iterator getEndOfParagraph(TokenList & tokList) {
+std::list < Token >::iterator DoxygenParser::getEndOfParagraph(TokenList & tokList) {
   std::list < Token >::iterator endOfParagraph = tokList.iteratorCopy();
   while (endOfParagraph != tokList.end()) {
     if ((*endOfParagraph).tokenType == END_LINE) {
@@ -311,11 +193,7 @@ std::list < Token >::iterator getEndOfParagraph(TokenList & tokList) {
   return tokList.end();
 }
 
-/* Returns the end of a section, defined as the first blank line OR first encounter of the same 
-* command. Example of this behaviour is \arg
-* if no end is encountered, returns the last token of the std::list.
-*/
-std::list < Token >::iterator getEndOfSection(std::string theCommand, TokenList & tokList) {
+std::list < Token >::iterator DoxygenParser::getEndOfSection(std::string theCommand, TokenList & tokList) {
   std::list < Token >::iterator endOfParagraph = tokList.iteratorCopy();
   while (endOfParagraph != tokList.end()) {
     if ((*endOfParagraph).tokenType == COMMAND) {
@@ -336,13 +214,7 @@ std::list < Token >::iterator getEndOfSection(std::string theCommand, TokenList 
   return tokList.end();
 }
 
-/* This method is for returning the end of a specific form of doxygen command
- * that begins with a \command and ends in \endcommand
- * such as \code and \endcode. The proper usage is
- * progressTilEndCommand("endcode", tokenList);
- * If the end is never encountered, it returns the end of the std::list.
- */
-std::list < Token >::iterator getEndCommand(std::string theCommand, TokenList & tokList) {
+std::list < Token >::iterator DoxygenParser::getEndCommand(std::string theCommand, TokenList & tokList) {
   std::list < Token >::iterator endOfCommand = tokList.iteratorCopy();
   while (endOfCommand != tokList.end()) {
     if ((*endOfCommand).tokenType == COMMAND) {
@@ -356,48 +228,27 @@ std::list < Token >::iterator getEndCommand(std::string theCommand, TokenList & 
   return tokList.end();
 }
 
-/* A specialty method for commands such as \arg that end at the end of a paragraph OR when another \arg is encountered
- */
-//TODO getTilAnyCommand
-std::list < Token >::iterator getTilAnyCommand(std::string theCommand, TokenList & tokList) {
+std::list < Token >::iterator DoxygenParser::getTilAnyCommand(std::string theCommand, TokenList & tokList) {
 #pragma unused(theCommand,tokList)
   std::list < Token >::iterator anIterator;
   return anIterator;
 }
 
-
-
-
-/*  Method for Adding a Simple Command
- * Format: @command
- * Plain commands, such as newline etc, they contain no other data
- *  \n \\ \@ \& \$ \# \< \> \%
- */
-int addSimpleCommand(std::string theCommand, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addSimpleCommand(std::string theCommand, std::list < DoxygenEntity > &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
   doxyList.push_back(DoxygenEntity(theCommand));
   return 1;
 }
 
-/* NOT INCLUDED Simple Commands
-* Format: @command
-* Plain commands, such as newline etc, they contain no other data
-*/
-int ignoreSimpleCommand(std::string theCommand, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::ignoreSimpleCommand(std::string theCommand, std::list < DoxygenEntity > &doxyList) {
 #pragma unused(doxyList)
   if (noisy)
     cout << "Not Adding " << theCommand << endl;
   return 1;
 }
 
-/* CommandWord
-* Format: @command <word>
-* Commands with a single WORD after then such as @b
-* "a", "b", "c", "e", "em", "p", "def", "enum", "example", "package", 
-* "relates", "namespace", "relatesalso","anchor", "dontinclude", "include", "includelineno"
-*/
-int addCommandWord(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addCommandWord(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
   std::string name = getNextWord(tokList);
@@ -409,12 +260,7 @@ int addCommandWord(std::string theCommand, TokenList & tokList, std::list < Doxy
   return 0;
 }
 
-/* NOT INCLUDED CommandWord
-* Format: @command <word>
-* Commands with a single WORD after then such as @b
-* "copydoc", "copybrief", "copydetails", "verbinclude", "htmlinclude"
-*/
-int ignoreCommandWord(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::ignoreCommandWord(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
 #pragma unused(doxyList)
   if (noisy)
     cout << "Not Adding " << theCommand << endl;
@@ -426,12 +272,7 @@ int ignoreCommandWord(std::string theCommand, TokenList & tokList, std::list < D
   return 0;
 }
 
-/* CommandLine
-* Format: @command (line)
-* Commands with a single LINE after then such as @var
-* "addindex", "fn", "name", "line", "var", "skipline", "typedef", "skip", "until", "property"
-*/
-int addCommandLine(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addCommandLine(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
   std::list < Token >::iterator endOfLine = getOneLine(tokList);
@@ -440,12 +281,7 @@ int addCommandLine(std::string theCommand, TokenList & tokList, std::list < Doxy
   return 1;
 }
 
-/* NOT INCLUDED CommandLine
-* Format: @command (line)
-* Commands with a single LINE after then such as @var
-* 
-*/
-int ignoreCommandLine(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::ignoreCommandLine(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
 #pragma unused(doxyList)
   if (noisy)
     cout << "Not Adding " << theCommand << endl;
@@ -454,13 +290,7 @@ int ignoreCommandLine(std::string theCommand, TokenList & tokList, std::list < D
   return 1;
 }
 
-/* CommandParagraph
-* Format: @command {paragraph}
-* Commands with a single paragraph after then such as @return
-* "return", "remarks", "since", "test", "sa", "see", "pre", "post", "details", "invariant", 
-* "deprecated", "date", "note", "warning", "version", "todo", "bug", "attention", "brief", "arg", "author"
-*/
-int addCommandParagraph(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addCommandParagraph(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
   std::list < Token >::iterator endOfParagraph = getEndOfParagraph(tokList);
@@ -470,12 +300,7 @@ int addCommandParagraph(std::string theCommand, TokenList & tokList, std::list <
   return 1;
 }
 
-/* CommandParagraph
-* Format: @command {paragraph}
-* Commands with a single LINE after then such as @var
-* 
-*/
-int ignoreCommandParagraph(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::ignoreCommandParagraph(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
 #pragma unused(doxyList)
   if (noisy)
     cout << "Not Adding " << theCommand << endl;
@@ -484,27 +309,15 @@ int ignoreCommandParagraph(std::string theCommand, TokenList & tokList, std::lis
   return 1;
 }
 
-/* Command EndCommand
-* Format: @command and ends at @endcommand
-* Commands that take in a block of text such as @code
-* "code", "dot", "msc", "f$", "f[", "f{environment}{", "htmlonly", "latexonly", "manonly", 
-* "verbatim", "xmlonly", "cond", "if", "ifnot", "link"
-* Returns 1 if success, 0 if the endcommand is never encountered.
-*/
-int addCommandEndCommand(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addCommandEndCommand(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
   if (noisy)
-    cout << "Not Adding " << theCommand << endl;
+    cout << "Parsing " << theCommand << endl;
   std::string description = getStringTilEndCommand("end" + theCommand, tokList);
   doxyList.push_back(DoxygenEntity(theCommand, description));
   return 1;
 }
 
-/* CommandWordParagraph
-* Format: @command <word> {paragraph}
-* Commands such as param
- * "param", "tparam", "throw", "throws", "retval", "exception"
-*/
-int addCommandWordParagraph(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addCommandWordParagraph(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
   std::string name = getNextWord(tokList);
@@ -520,12 +333,7 @@ int addCommandWordParagraph(std::string theCommand, TokenList & tokList, std::li
   return 1;
 }
 
-/* CommandWordLine
-* Format: @command <word> (line)
-* Commands such as param
-* "page", "subsection", "subsubsection", "section", "paragraph", "defgroup"
-*/
-int addCommandWordLine(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addCommandWordLine(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
   std::string name = getNextWord(tokList);
@@ -542,12 +350,7 @@ int addCommandWordLine(std::string theCommand, TokenList & tokList, std::list < 
   //else cout << "No line followed " << theCommand <<  " command. Not added" << endl;
 }
 
-/* Command Word Optional Word Optional Word
-* Format: @command <word> [<header-file>] [<header-name>]
-* Commands such as class
-* "category", "class", "protocol", "interface", "struct", "union"
-*/
-int addCommandWordOWordOWord(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addCommandWordOWordOWord(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
   std::string name = getNextWord(tokList);
@@ -567,12 +370,7 @@ int addCommandWordOWordOWord(std::string theCommand, TokenList & tokList, std::l
   return 1;
 }
 
-/* Command Optional Word
-* Format: @command [<word>]
-* Commands such as dir
-* "dir", "file", "cond"
-*/
-int addCommandOWord(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addCommandOWord(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
   if (noisy)
     cout << "Parsing " << theCommand << endl;
   std::string name = getNextWord(tokList);
@@ -580,10 +378,7 @@ int addCommandOWord(std::string theCommand, TokenList & tokList, std::list < Dox
   return 1;
 }
 
- /* Commands that should not be encountered (such as PHP only)
-  * goes til the end of line then returns
-  */
-int addCommandErrorThrow(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addCommandErrorThrow(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
 #pragma unused(doxyList)
   if (noisy) {
     cout << "Encountered :" << theCommand << endl;
@@ -594,8 +389,7 @@ int addCommandErrorThrow(std::string theCommand, TokenList & tokList, std::list 
   return 0;
 }
 
-/* Adds the unique commands- different process for each unique command */
-int addCommandUnique(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addCommandUnique(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
   std::list < DoxygenEntity > aNewList;
   if (theCommand.compare("arg") == 0 || theCommand.compare("li") == 0) {
     std::list < Token >::iterator endOfSection = getEndOfSection(theCommand, tokList);
@@ -722,11 +516,7 @@ int addCommandUnique(std::string theCommand, TokenList & tokList, std::list < Do
   return 0;
 }
 
-/* The actual "meat" of the doxygen parser. This is not yet fully implemented
- * with my current design- however the skeletal outline is contained in
- * the file Skeleton
- */
-int addCommand(std::string commandString, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
+int DoxygenParser::addCommand(std::string commandString, TokenList & tokList, std::list < DoxygenEntity > &doxyList) {
   std::string theCommand = StringToLower(commandString);
   if (theCommand.compare("plainstd::string") == 0) {
     std::string nextPhrase = getStringTilCommand(tokList);
@@ -785,7 +575,7 @@ int addCommand(std::string commandString, TokenList & tokList, std::list < Doxyg
   return 0;
 }
 
-std::list < DoxygenEntity > parse(std::list < Token >::iterator endParsingIndex, TokenList & tokList) {
+std::list < DoxygenEntity > DoxygenParser::parse(std::list < Token >::iterator endParsingIndex, TokenList & tokList) {
   std::list < DoxygenEntity > aNewList;
   int currCommand;
   while (tokList.current() != endParsingIndex) {
@@ -813,7 +603,7 @@ std::list < DoxygenEntity > parse(std::list < Token >::iterator endParsingIndex,
   return aNewList;
 }
 
-std::list < DoxygenEntity > parseRoot(std::list < Token >::iterator endParsingIndex, TokenList & tokList) {
+std::list < DoxygenEntity > DoxygenParser::parseRoot(std::list < Token >::iterator endParsingIndex, TokenList & tokList) {
 
   std::list < DoxygenEntity > aNewList;
   int currCommand;
