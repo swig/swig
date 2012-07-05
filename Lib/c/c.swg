@@ -135,7 +135,7 @@
 %typemap(wrap_call) SWIGTYPE *&      "/* *& */ (SwigObj **)"
 %typemap(wrap_call) enum SWIGTYPE    ""
 %typemap(wrap_call) enum SWIGTYPE &  ""
-%typemap(wrap_call, fragment="fptr_decl", fragment="fptr_decl_proxy") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
+%typemap(wrap_call, fragment="fptr_decl", fragment="fptr_decl_proxy") SWIGTYPE (CLASS::*) "(SWIG_CPP_FP)"
 
 %typemap(wrap_call, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
 %typemap(wrap_call, fragment="stdbool_inc") bool & ""
