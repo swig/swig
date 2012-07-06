@@ -6,17 +6,20 @@ NSAutoreleasePool *pool=[[NSAutoreleasePool alloc]init];
 int result =move(UP);
 if(result!=UP)
 NSLog(@"UP Failed");
+
 result =move(DOWN);
 if(result!=DOWN)
 NSLog(@"DOWN Failed");
+
 result =move(LEFT);
-if(result!=UP)
+if(result!=LEFT)
 NSLog(@"LEFT Failed");
+
 result =move(RIGHT);
-if(result!=bottom)
+if(result!=RIGHT)
 NSLog(@"RIGHT Failed");
 
-if(result =move(0)
+if(result == move(0))
 NSLog(@"0 test failed");
 
 [pool drain];

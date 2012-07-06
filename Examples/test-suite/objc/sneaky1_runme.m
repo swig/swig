@@ -1,4 +1,4 @@
-#import sneaky1_proxy
+#import "sneaky1_proxy.h"
 
 int main(int argc,char *argv[])
 {
@@ -8,7 +8,7 @@ NSLog(@"add test failed");
 if(subtract(20,2) !=18)
 NSLog(@"subtract test failed");
 if(mul(20,2) !=40)
-NSLog("mul test failed");
+NSLog(@"mul test failed");
 if(divide(20,2) !=10)
 NSLog(@"div test failed");
 
