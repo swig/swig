@@ -2,8 +2,6 @@
 import doxygen_basic_translate.*;
 import com.sun.javadoc.*;
 import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.Iterator;
 
 public class doxygen_basic_translate_runme {
   static {
@@ -14,81 +12,25 @@ public class doxygen_basic_translate_runme {
       System.exit(1);
     }
   }
-
-  static HashMap<String, String> parsedComments = new HashMap<String, String>();
-  static HashMap<String, String> wantedComments = new HashMap<String, String>();
-
-  public static boolean start(RootDoc root) {
-    
-    /*
-      This method is called by 'javadoc' and gets the whole parsed
-      java file, we get comments and store them
-    */
-
-    ClassDoc[] classes = root.classes();
-
-    for (int i = 0; i < classes.length; i++) {
-
-      if (classes[i].getRawCommentText().length() > 0)
-	parsedComments.put(classes[i].name(), classes[i].getRawCommentText());
-
-      MethodDoc[] methods = classes[i].methods();
-      FieldDoc[] fields = classes[i].fields();
-      FieldDoc[] constants = classes[i].enumConstants();
-
-      for (int j = 0; j < constants.length; j++) {
-        FieldDoc f = constants[j];
-	if (f.getRawCommentText().length() > 0)
-	  parsedComments.put(f.name(), f.getRawCommentText());
-      }
-      for (int j = 0; j < fields.length; j++) {
-        FieldDoc f = fields[j];
-	if (f.getRawCommentText().length() > 0)
-	  parsedComments.put(f.name(), f.getRawCommentText());
-      }
-      for (int j = 0; j < methods.length; j++) {
-        MethodDoc m = methods[j];
-	if (m.getRawCommentText().length() > 0)
-	  parsedComments.put(m.name(), m.getRawCommentText());
-      }
-    }
-    return true;
-  }
-
+  
   public static void main(String argv[]) 
   {
     /*
       Here we are using internal javadoc tool, it accepts the name of the class as paramterer,
       and calls the start() method of that class with parsed information.
     */
+	commentParser parser = new commentParser();
     com.sun.tools.javadoc.Main.execute("doxygen_basic_translate runtime test",
-	"doxygen_basic_translate_runme", new String[]{"-quiet", "doxygen_basic_translate"});
+	"commentParser", new String[]{"-quiet", "doxygen_basic_translate"});
 
+    HashMap<String, String> wantedComments = new HashMap<String, String>();
+    
     wantedComments.put("function", " Brief description.  \n The comment text  \n" +
-				   " @author\tSome author  \n" +
-				   " @return\tSome number  \n" +
-				   " @see\tfunction2  \n");
-
-    int errorCount=0;
-    Iterator< Entry<String, String> > it = parsedComments.entrySet().iterator();
-
-    while (it.hasNext())
-    {
-	Entry<String, String> e = (Entry<String, String>) it.next();
-
-	if (!e.getValue().equals(wantedComments.get(e.getKey()))) {
-	    System.out.println("Documentation comments for " + e.getKey() + " does not match: ");
-	    System.out.println("\texpected:"+wantedComments.get(e.getKey()));
-	    System.out.println("\tgot:\t"+e.getValue());
-	    errorCount++;
-	}
-    }
-
-    if (parsedComments.size() != wantedComments.size()) {
-	System.out.println("Found " + (wantedComments.size()-parsedComments.size()) + " missed comment(s)!");
-	errorCount++;
-    }
-
-    System.exit(errorCount);
+			   " @author\tSome author  \n" +
+			   " @return\tSome number  \n" +
+			   " @see\tfunction2  \n");
+    
+    // and ask the parser to check comments for us
+    System.exit(parser.check(wantedComments));
   }
 }

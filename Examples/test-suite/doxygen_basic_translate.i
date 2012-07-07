@@ -3,7 +3,9 @@
 %inline %{
 
 /**
- * \brief Brief description.
+ * \brief
+ * Brief description.
+ * 
  * The comment text
  * \author Some author
  * \return Some number
