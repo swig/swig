@@ -14,30 +14,20 @@ public class commentParser {
 		 * file, we get comments and store them
 		 */
 
-		ClassDoc[] classes = root.classes();
+		for (ClassDoc classDoc : root.classes()) {
 
-		for (int i = 0; i < classes.length; i++) {
+			if (classDoc.getRawCommentText().length() > 0)
+				parsedComments.put(classDoc.name(), classDoc.getRawCommentText());
 
-			if (classes[i].getRawCommentText().length() > 0)
-				parsedComments.put(classes[i].name(),
-						classes[i].getRawCommentText());
-
-			MethodDoc[] methods = classes[i].methods();
-			FieldDoc[] fields = classes[i].fields();
-			FieldDoc[] constants = classes[i].enumConstants();
-
-			for (int j = 0; j < constants.length; j++) {
-				FieldDoc f = constants[j];
+			for (FieldDoc f : classDoc.enumConstants()) {
 				if (f.getRawCommentText().length() > 0)
 					parsedComments.put(f.name(), f.getRawCommentText());
 			}
-			for (int j = 0; j < fields.length; j++) {
-				FieldDoc f = fields[j];
+			for (FieldDoc f : classDoc.fields()) {
 				if (f.getRawCommentText().length() > 0)
 					parsedComments.put(f.name(), f.getRawCommentText());
 			}
-			for (int j = 0; j < methods.length; j++) {
-				MethodDoc m = methods[j];
+			for (MethodDoc m : classDoc.methods()) {
 				if (m.getRawCommentText().length() > 0)
 					parsedComments.put(m.name(), m.getRawCommentText());
 			}
