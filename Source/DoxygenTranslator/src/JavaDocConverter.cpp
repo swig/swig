@@ -16,10 +16,11 @@
 #define TAB_SIZE 8		//current tab size in spaces
 //TODO {@link} {@linkplain} {@docRoot}, and other useful doxy commands that are not a javadoc tag
 
-// define static escape table, it is filled in JavaDocConverter's constructor
+// define static tables, they are filled in JavaDocConverter's constructor
 std::map<std::string, std::string> JavaDocConverter::escapeTable;
+std::map<std::string, JavaDocConverter::tagHandler> JavaDocConverter::tagHandlers;
 
-void JavaDocConverter::fillEscapeTable() {
+void JavaDocConverter::fillStaticTables() {
   if (escapeTable.size()) // fill only once
     return;
   
@@ -28,48 +29,47 @@ void JavaDocConverter::fillEscapeTable() {
   escapeTable["\""] = "&quot";
   escapeTable["<"] = "&lt";
   escapeTable[">"] = "&gt";
+
+  // these commands insert HTML tags
+	tagHandlers["c"] = &handleTagC;
+	tagHandlers["b"] = &handleTagB;
+	// these commands insert just a single char, some of them need to be escaped
+	tagHandlers["$"] = &handleTagChar;
+	tagHandlers["@"] = &handleTagChar;
+	tagHandlers["\\"] = &handleTagChar;
+	tagHandlers["<"] = &handleTagChar;
+	tagHandlers[">"] = &handleTagChar;
+	tagHandlers["&"] = &handleTagChar;
+	tagHandlers["#"] = &handleTagChar;
+	tagHandlers["%"] = &handleTagChar;
+	tagHandlers["~"] = &handleTagChar;
+	tagHandlers["\""] = &handleTagChar;
+	tagHandlers["."] = &handleTagChar;
+	tagHandlers["::"] = &handleTagChar;
+	// these commands are stripped out
+	tagHandlers["brief"] = &handleParagraph;
+	tagHandlers["details"] = &handleParagraph;
+	tagHandlers["partofdescription"] = &handleParagraph;
+	// these commands are kept as-is, they are supported by JavaDoc
+	tagHandlers["sa"] = &handleTagSeeAll;
+	tagHandlers["see"] = &handleTagSame;
+	tagHandlers["param"] = &handleTagSame;
+	tagHandlers["return"] = &handleTagSame;
+	tagHandlers["throws"] = &handleTagSame;
+	tagHandlers["throw"] = &handleTagThrow;
+	tagHandlers["author"] = &handleTagSame;
+	tagHandlers["since"] = &handleTagSame;
+	tagHandlers["version"] = &handleTagSame;
+	tagHandlers["exception"] = &handleTagSame;
+	tagHandlers["deprecated"] = &handleTagSame;
+	// this command just prints it's contents
+	// (it is internal command of swig's parser, contains plain text)
+	tagHandlers["plainstd::string"] = &handlePlainString;
 }
 
 
 JavaDocConverter::JavaDocConverter() : debug(false) {
-  
-  fillEscapeTable();
-  
-  // these commands insert HTML tags
-  tagHandlers["c"] = &handleTagC;
-  tagHandlers["b"] = &handleTagB;
-  // these commands insert just a single char, all of them need to be escaped
-  tagHandlers["$"] = &handleTagChar;
-  tagHandlers["@"] = &handleTagChar;
-  tagHandlers["\\"] = &handleTagChar;
-  tagHandlers["<"] = &handleTagChar;
-  tagHandlers[">"] = &handleTagChar;
-  tagHandlers["&"] = &handleTagChar;
-  tagHandlers["#"] = &handleTagChar;
-  tagHandlers["%"] = &handleTagChar;
-  tagHandlers["~"] = &handleTagChar;
-  tagHandlers["\""] = &handleTagChar;
-  tagHandlers["."] = &handleTagChar;
-  tagHandlers["::"] = &handleTagChar;
-  // these commands are stripped out
-  tagHandlers["brief"] = &handleTagStrip;
-  tagHandlers["details"] = &handleTagStrip;
-  tagHandlers["partofdescription"] = &handleTagStrip;
-  // these commands are kept as-is, they are supported by JavaDoc
-  tagHandlers["sa"] = &handleTagSeeAll;
-  tagHandlers["see"] = &handleTagSame;
-  tagHandlers["param"] = &handleTagSame;
-  tagHandlers["return"] = &handleTagSame;
-  tagHandlers["throws"] = &handleTagSame;
-  tagHandlers["throw"] = &handleTagThrow;
-  tagHandlers["author"] = &handleTagSame;
-  tagHandlers["since"] = &handleTagSame;
-  tagHandlers["version"] = &handleTagSame;
-  tagHandlers["exception"] = &handleTagSame;
-  tagHandlers["deprecated"] = &handleTagSame;
-  // this command just prints it's contents
-  // (it is internal command of swig's parser, contains plain text)
-  tagHandlers["plainstd::string"] = &handleTagData;
+  fillStaticTables();
 }
 
 std::string JavaDocConverter::formatCommand(std::string unformattedLine, int indent) {
@@ -136,10 +136,10 @@ void JavaDocConverter::translateEntity(DoxygenEntity& tag, std::string& translat
 }
 
 void JavaDocConverter::handleTagC(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
-  translatedComment += "<tt>" + tag.data + "</tt>";
+  translatedComment += "<tt>" + tag.data + "</tt> ";
 }
 void JavaDocConverter::handleTagB(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
-  translatedComment += "<b>" + tag.data + "</b>";
+  translatedComment += "<b>" + tag.data + "</b> ";
 }
 void JavaDocConverter::handleTagThrow(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
   tag.typeOfEntity = "throws";
@@ -159,10 +159,10 @@ void JavaDocConverter::handleTagChar(JavaDocConverter* converter, DoxygenEntity&
 void JavaDocConverter::handleTagSame(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
   translatedComment += converter->formatCommand(std::string("@" + tag.typeOfEntity + "\t" + converter->translateSubtree(tag)), 2);
 }
-void JavaDocConverter::handleTagStrip(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
+void JavaDocConverter::handleParagraph(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
   translatedComment += converter->formatCommand(converter->translateSubtree(tag), 0);
 }
-void JavaDocConverter::handleTagData(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
+void JavaDocConverter::handlePlainString(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
   translatedComment += tag.data + " ";
 }
 

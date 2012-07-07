@@ -53,17 +53,17 @@ protected:
   /*
    * Print only the content and strip original tag
    */
-  static void handleTagStrip(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  static void handleParagraph(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
   /*
    * Print only data part of code
    */
-  static void handleTagData(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  static void handlePlainString(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
 
 private:
   bool debug;
-  std::map<std::string, tagHandler> tagHandlers;
+  static std::map<std::string, tagHandler> tagHandlers;
   static std::map<std::string, std::string> escapeTable;
-  void fillEscapeTable();
+  void fillStaticTables();
 };
 
 #endif

@@ -213,8 +213,7 @@ private:
    */
   int addCommand(std::string commandString, TokenList & tokList, std::list < DoxygenEntity > &doxyList);
 
-  std::list < DoxygenEntity > parse(std::list < Token >::iterator endParsingIndex, TokenList & tokList);
-  std::list < DoxygenEntity > parseRoot(std::list < Token >::iterator endParsingIndex, TokenList & tokList);
+  std::list < DoxygenEntity > parse(std::list < Token >::iterator endParsingIndex, TokenList & tokList, bool root=false);
   
   /*
    * Fill static doxygenCommands and sectionIndicators containers
