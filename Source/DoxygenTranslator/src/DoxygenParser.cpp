@@ -156,13 +156,17 @@ std::string DoxygenParser::getStringTilEndCommand(std::string theCommand, TokenL
 	std::string description;
 	if (tokList.peek().tokenType == 0)
 		return "";
-	while (tokList.current() != tokList.end()
-			&& tokList.next().tokenString.compare(theCommand) != 0) {
+	while (tokList.next().tokenString.compare(theCommand) != 0) {
 		//TODO: it won't output doxygen commands, need a way to fix it
 		if (tokList.peek().tokenType == PLAINSTRING)
 			description += tokList.peek().tokenString + " ";
 		if (tokList.peek().tokenType == END_LINE)
 			description += "\n";
+
+		if (tokList.current() == tokList.end()) {
+			cout << "Error, @" << theCommand << " command expected." << endl;
+			break;
+		}
 	}
 	tokList.next(); // eat the end command itself
 	return description;
