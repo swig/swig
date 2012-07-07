@@ -17,7 +17,7 @@ std::map<std::string, DoxyCommandEnum> DoxygenParser::doxygenCommands;
 std::set<std::string> DoxygenParser::doxygenSectionIndicators;
 
 
-DoxygenParser::DoxygenParser() : noisy(true) {
+DoxygenParser::DoxygenParser() : noisy(false) {
 	fillTables();
 }
 
@@ -156,7 +156,8 @@ std::string DoxygenParser::getStringTilEndCommand(std::string theCommand, TokenL
 	std::string description;
 	if (tokList.peek().tokenType == 0)
 		return "";
-	while (tokList.next().tokenString.compare(theCommand) != 0) {
+	while (tokList.current() != tokList.end()
+			&& tokList.next().tokenString.compare(theCommand) != 0) {
 		//TODO: it won't output doxygen commands, need a way to fix it
 		if (tokList.peek().tokenType == PLAINSTRING)
 			description += tokList.peek().tokenString + " ";
