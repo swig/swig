@@ -5831,6 +5831,10 @@ edecl          :  ID {
 		   $$ = $2;
 		   set_comment(previousNode, $1);
 		 }
+		 | edecl doxygen_post_comment {
+		   $$ = $1;
+		   set_comment($1, $2);
+		 }
                  | empty { $$ = 0; previousNode = currentNode; currentNode = 0; }
                  ;
 
