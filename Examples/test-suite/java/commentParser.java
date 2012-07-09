@@ -58,4 +58,28 @@ public class commentParser {
 		
 		return errorCount;
 	}
+	
+	public static void printCommentListForJavaSource() {
+		Iterator< Entry<String, String> > it = parsedComments.entrySet().iterator();
+		while (it.hasNext())
+		{
+			Entry<String, String> e = (Entry<String, String>) it.next();
+			System.out.format("wantedComments.put(\"%s\", \"%s\");\n", e.getKey(), e.getValue());
+		}
+	}
+	
+	public static void main(String argv[]) {
+		
+		if (argv.length<1) {
+			System.out.format("Usage:\n\tcommentParsing <package to parse>\n");
+			System.exit(1);
+		}
+		
+		com.sun.tools.javadoc.Main.execute("The comment parser program",
+				"commentParser", new String[]{"-quiet", argv[0]});
+		
+		// if we are run as standalone app, print the list of found comments as it would appear in java source
+		
+		printCommentListForJavaSource();
+	}
 }
