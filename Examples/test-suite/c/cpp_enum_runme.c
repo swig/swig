@@ -1,4 +1,4 @@
-#include "cpp_basic/cpp_basic_proxy.h"
+#include "cpp_enum/cpp_enum_proxy.h"
 #include <assert.h>
 #include <stdio.h>
 
