@@ -474,7 +474,7 @@ public:
 
     is_void_return = (Cmp(objcim_return_type, "void") == 0);
     if (!is_void_return)
-      Wrapper_add_localv(f, "oresult", objcim_return_type, "oresult", NIL);
+      Wrapper_add_localv(f, "oresult", objcim_return_type, "oresult = 0", NIL);
 
     Printv(f->def, objcim_return_type, " ", wname, "(", NIL);
     Printv(objcimtype_h_code, objcim_return_type, " ", wname, "(", NIL);
@@ -699,7 +699,7 @@ public:
      */
     if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Capitalize the first letter in the variable to create getter/setter function name
-      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(),Swig_name_member(0, proxy_class_name, variable_name))) != 0;
+      bool getter_flag = (Cmp(symname, Swig_name_set(getNSpace(),Swig_name_member(0, proxy_class_name, variable_name))) != 0);
 
       String *getter_setter_name = NewString("");
       if (!getter_flag)
