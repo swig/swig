@@ -1,0 +1,285 @@
+                                                                     
+                                                                     
+                                                                     
+                                             
+This document describes goals for the Google Summer of Code 2012,
+SWIG code documentation project.
+
+Author: Marko Klopcic
+
+
+Introduction
+============
+
+The goal of this project is _not_ to translate _any_ possible doxygen
+formatted comment to JavaDoc or PyDoc, but to make it possible to
+translate a subset of comment types in C/C++ code to
+JavaDoc and PyDoc. Covering all the Doxygen functionality would be to
+complex for the limited time. Hovewer, the code must be extendable so
+that implementing missing features would not require redesign of the
+comment handling code in SWIG.
+
+There will also be a possiblity to add untranslated comments to Java
+and Python code (## comments, see Doxygen manual), if the user will
+prefer to use Doxygen on the generated code.
+
+Abbreviations:
+    JD - JavaDoc
+    PD - PyDoc
+
+
+Functionality
+=============
+
+  Types of comments
+  -----------------
+  
+  Note:
+     See 'http://www.stack.nl/~dimitri/doxygen/docblocks.html' for
+     the detailed description of Doxygen syntax and terms used in this
+     section.
+
+  1. Only JavaDoc (/** */) and Qt (/*! */) styles of comment blocks
+     will be supported by SWIG translator.
+
+  2. The following doc after members will be supported:
+  
+     int var; ///< Detailed description after the member
+              //!< 
+
+     int var; //!< Brief description after the member
+
+     int var; ///< Brief description after the member
+
+  3. Only comments before or after declaration/definition will be
+     supported. Comments with structural commands will be ignored
+     (warning will be written). (What about writing them to
+     'package.info.java' for JD?)
+  
+
+  Tags
+  ----
+
+  This section contains all doxygen tags taken from 
+  http://www.stack.nl/~dimitri/doxygen/commands.html. If a tag is
+  marked as 'ignored', then the tag is ignored, but the text is copied
+  to the destination documentation.
+
+    Supported:     
+
+    \a - translated to <i></i> in JD, surrounded with _ in PD
+    \addindex - ignored
+    \addtogroup - ignored
+    \anchor - ignored, not supported by JD and PD 
+    \arg - translated to @param in JD, special formatting in PD
+    \attention - ignored, content printed out
+    \authors, \author - translated to @author in JD, 'Author:' in PD
+    \b - <b></b> in JD, surrounded with __ in PD
+    \brief - ignored, content printed out
+    \bug - ignored, content printed out
+    \c - translated to <code></code> in JD, ignored in PD
+    \callgraph - ignored, not supported by JD and PD
+    \callergraph - ignored, not supported by JD and PD
+    \category - ignored, used only in Objective C
+    \cite - translated to <i></i> in JD, single quotes in PD
+    \class - ignored (structural command)
+    \code - translated to <code></code> in JD, ignored in PD
+    \cond - translated to 'Conditional comment: <condition>'. Later
+            SWIG may support definitions of conditions in config file.
+    \copybrief - ignored. Later SWIG may support this command by
+                  performing copy
+    \copydetails - ignored. Later SWIG may support this command by
+                   performing copy
+    \copydoc - ignored. Later SWIG may support this command by
+               performing copy
+    \copyright - replaced with text 'Copyright' in PD and PD
+    \date - ignored, content printed out
+    \def
+    \defgroup
+    \deprecated - translated to @deprecated in JD, 'Deprecated:' in PD
+    \details - ignored, content printed out
+    \dir - not supported
+    \dontinclude - not supported
+    \dot - not supported. Later SWIG may call dot and produce the graph image to include in JD and PD
+    \dotfile - see note for \dot
+    \e - translated to <i></i> in JD
+    \else - see note for \cond
+    \elseif - see note for \cond
+    \em - translated to <em></em> in JD
+    \endcode - see note for \code
+    \endcond - translated to 'End of conditional comment: <condition>'. Later
+               SWIG may support definitions of conditions in config file.
+    \enddot - see note for \dot
+    \endhtmlonly - not supported
+    \endif - see note for \cond
+    \endinternal - not supported
+    \endlatexonly - not supported
+    \endlink - see note for \link
+    \endmanonly - not supported
+    \endmsc - see note for \msc
+    \endrtfonly - not supported
+    \endverbatim - see note for \verbatim
+    \endxmlonly - not supported
+    \enum - ignored (structural command)
+    \example - translated to 'Example:' in JD and PD
+    \exception - equivalent to throws 
+    \extends - not supported
+    \f$
+    \f[
+    \f]
+    \f{
+    \f}
+    \file
+    \fn
+    \headerfile
+    \hideinitializer
+    \htmlinclude
+    \htmlonly
+    \if
+    \ifnot
+    \image
+    \implements
+    \include
+    \includelineno
+    \ingroup
+    \internal
+    \invariant
+    \interface
+    \latexonly
+    \li
+    \line
+    \link
+    \mainpage
+    \manonly
+    \memberof
+    \msc
+    \mscfile
+    \n
+    \name
+    \namespace
+    \nosubgrouping
+    \note
+    \overload
+    \p
+    \package
+    \page
+    \par
+    \paragraph
+    \param
+    \post
+    \pre
+    \private
+    \privatesection
+    \property
+    \protected
+    \protectedsection
+    \protocol
+    \public
+    \publicsection
+    \ref - ignored, not supported by JD and PD
+    \related
+    \relates
+    \relatedalso
+    \relatesalso
+    \remark
+    \remarks
+    \result
+    \return
+    \returns
+    \retval
+    \rtfonly
+    \sa
+    \section
+    \see
+    \short
+    \showinitializer
+    \since
+    \skip
+    \skipline
+    \snippet
+    \struct
+    \subpage
+    \subsection
+    \subsubsection
+    \tableofcontents
+    \test
+    \throw
+    \throws
+    \todo
+    \tparam
+    \typedef
+    \union
+    \until
+    \var
+    \verbatim
+    \verbinclude
+    \version
+    \warning
+    \weakgroup
+    \xmlonly
+    \xrefitem
+    \$
+    \@
+    \\
+    \&
+    \~
+    \<
+    \>
+    \#
+    \%
+    \"
+    \.
+    \::
+
+          
+Tests
+=====
+
+The following test cases will be implemented:
+
+- Class comments, JD and Qt style.
+- Class comments, JD and Qt style.
+
+- Struct comments, JD and Qt style.
+- Enum comments, JD and Qt style.
+
+- Class attributes, JD and Qt style, comment before and after declaration.
+- Class methods, JD and Qt style, comment of parameters in function
+  comment.
+- Class methods, JD and Qt style, comment of parameters 
+  after parameter declaration.
+  
+- Struct attributes, JD and Qt style, comment before and after declaration.
+- Struct methods, JD and Qt style, comment of parameters in function
+  comment.
+- Struct methods, JD and Qt style, comment of parameters 
+  after parameter declaration.
+
+- Enum items JD and Qt style, comment before items
+- Enum items JD and Qt style, comment after items
+
+- Class comment, JD and Qt style, with all supported tags.
+- Class comment, JD and Qt style, with all doxygen tags, including
+  ignored ones.
+
+  
+Refactoring
+===========
+
+All the code in directory _DoxygenTranslator_ should be refactored:
+- all methods should be class members
+- most static methods should be normal members
+- replace C arrays of strings and sequential searches with STL data
+  structures and algorithms.
+- use singletons instead of class instantiaion for each comment found.
+
+
+Documentation
+=============
+
+SWIG documentation will contain:
+- command line options
+- list of implemented features (types and placements of comments)
+- list of unimplemented features (types and placements of comments)
+- list of tags and their translations (all Doxygen tags).
+
