@@ -201,6 +201,21 @@
 %{ $result = $1; %}
 %typemap(out) void ""
 
+%typemap(out) const bool &,
+	      const char &,
+	      const signed char &,
+	      const unsigned char &,
+	      const short &,
+	      const unsigned short &,
+	      const int &,
+	      const unsigned int &,
+	      const long &,
+	      const unsigned long &,
+	      const long long &,
+	      const unsigned long long &,
+	      const float &,
+	      const double &
+%{ $result = ($*1_ltype)*$1; %}
 
 // Pointers, references and arrays
 %typemap(out, noblock=1) char * %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %} //TBD
