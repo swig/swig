@@ -23,6 +23,10 @@ There will also be a possiblity to add untranslated comments to Java
 and Python code (## comments, see Doxygen manual), if the user will
 prefer to use Doxygen on the generated code.
 
+Note:
+time format below is HH:MM. '--Done' tick means that the item is
+implemented, commited and working.
+
 Abbreviations:
     JD - JavaDoc
     PD - PyDoc
@@ -41,6 +45,7 @@ Functionality
 
   1. Only JavaDoc (/** */) and Qt (/*! */) styles of comment blocks
      will be supported by SWIG translator.
+     --Done
 
   2. The following doc after members will be supported:
   
@@ -50,11 +55,14 @@ Functionality
      int var; //!< Brief description after the member
 
      int var; ///< Brief description after the member
+     
+     --Done
 
   3. Only comments before or after declaration/definition will be
      supported. Comments with structural commands will be ignored
      (warning will be written). (What about writing them to
      'package.info.java' for JD?)
+     --Done
   
 
   Tags
@@ -63,10 +71,8 @@ Functionality
   This section contains all doxygen tags taken from 
   http://www.stack.nl/~dimitri/doxygen/commands.html. If a tag is
   marked as 'ignored', then the tag is ignored, but the text is copied
-  to the destination documentation.
-  Not all of the tags are currently implemented. The status of
-  implementation and time estimation for every tag may be seen in
-  plan-gsoc-2012-timings.txt
+  to the destination documentation. 'Not implemented' means that the
+  tag with it's contents is stripped out of the output.
 
     Doxygen tags:     
 
@@ -97,8 +103,8 @@ Functionality
                performing copy
     \copyright - replaced with text 'Copyright' in PD and PD
     \date - ignored
-    \def
-    \defgroup
+    \def - ignored (structural command)
+    \defgroup - not supported
     \deprecated - translated to @deprecated in JD, 'Deprecated:' in PD
     \details - ignored
     \dir - not supported
@@ -128,13 +134,14 @@ Functionality
     \example - translated to 'Example:' in JD and PD
     \exception - equivalent to throws, but translates to @exception in JD 
     \extends - not supported
-    \f$
-    \f[
-    \f]
-    \f{
-    \f}
-    \file 
-    \fn
+    \f$ - not supported. Later swig may call LATeX to produce bitmaps with formulas
+          to include in JD and PD
+    \f[ - see note for \f$
+    \f] - see note for \f$
+    \f{ - see note for \f$
+    \f} - see note for \f$
+    \file - ignored (structural command)
+    \fn - ignored (structural command)
     \headerfile - not supported
     \hideinitializer - not supported
     \htmlinclude - not supported
