@@ -25,26 +25,30 @@ public class doxygen_parsing_runme {
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
-    wantedComments.put("simpleFunction", " This is simple comment for a function  \n");
-
-    wantedComments.put("CSimpleClass", " This is simple comment for a class  \n");
-    wantedComments.put("simpleMethod", " Simple method  \n");
-    wantedComments.put("simpleMethodWithParameter", " Simple method with parameter  \n" +
-						    " @param\tparam Some test param  \n" +
-						    " @param\targument Some test argument  \n");
-    wantedComments.put("CTemplateClassInt", " Comment for template class  \n");
-    wantedComments.put("templateMethod", " Template method  \n");
-
-    wantedComments.put("setSimpleVar", " This is simple comment for a var  \n");
-    wantedComments.put("getSimpleVar", " This is simple comment for a var  \n");
-    wantedComments.put("setSimpleVarTwo", " This is another type of comment for a var  \n");
-    wantedComments.put("getSimpleVarTwo", " This is another type of comment for a var  \n");
-    wantedComments.put("setSimpleVarThree", " This is again another type of comment for a var  \n");
-    wantedComments.put("getSimpleVarThree", " This is again another type of comment for a var  \n");
-    wantedComments.put("setSimpleVarFour", " This is the last type of comment for a var  \n");
-    wantedComments.put("getSimpleVarFour", " This is the last type of comment for a var  \n");
-    wantedComments.put("setSimpleVarFive", " This is a post comment  \n");
-    wantedComments.put("getSimpleVarFive", " This is a post comment  \n");
+    wantedComments.put("someFunction", " The function comment \n");
+    wantedComments.put("SomeEnum", " The enum comment \n");
+    wantedComments.put("setSomeVar", " The var comment \n");
+    wantedComments.put("getSomeVar", " The var comment \n");
+    wantedComments.put("SomeClass", " The class comment \n");
+    wantedComments.put("setClassAttr", " The class attribute comment \n");
+    wantedComments.put("getClassAttr", " The class attribute comment \n");
+    wantedComments.put("setClassAttr2", " The class attribute post-comment \n");
+    wantedComments.put("getClassAttr2", " The class attribute post-comment \n");
+    wantedComments.put("setClassAttr3", " The class attribute post-comment with details \n");
+    wantedComments.put("getClassAttr3", " The class attribute post-comment with details \n");
+    wantedComments.put("classMethod", " The class method comment \n");
+    wantedComments.put("classMethodExtended", " The class method with parameter \n @param	a Parameter a \n @param	b Parameter b \n");
+    wantedComments.put("classMethodExtended2", " The class method with parameter \n @param	a Parameter a \n @param	b Parameter b \n");
+    wantedComments.put("SomeStruct", " The struct comment \n");
+    wantedComments.put("setStructAttr", " The struct attribute comment \n");
+    wantedComments.put("getStructAttr", " The struct attribute comment \n");
+    wantedComments.put("setStructAttr2", " The struct attribute post-comment \n");
+    wantedComments.put("getStructAttr2", " The struct attribute post-comment \n");
+    wantedComments.put("setStructAttr3", " The struct attribute post-comment with details \n");
+    wantedComments.put("getStructAttr3", " The struct attribute post-comment with details \n");
+    wantedComments.put("structMethod", " The struct method comment \n");
+    wantedComments.put("structMethodExtended", " The struct method with parameter \n @param	a Parameter a \n @param	b Parameter b \n");
+    wantedComments.put("structMethodExtended2", " The struct method with parameter \n @param	a Parameter a \n @param	b Parameter b \n");
 
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));

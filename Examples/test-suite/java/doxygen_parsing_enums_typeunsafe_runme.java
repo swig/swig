@@ -25,10 +25,14 @@ public class doxygen_parsing_enums_typeunsafe_runme {
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
-    wantedComments.put("E_TEST", " Test enumeration  \n");
-    wantedComments.put("E_TEST_ONE", " the first item  \n");
-    wantedComments.put("E_TEST_TWO", " the second  \n");
-    wantedComments.put("E_TEST_THREE", " the last item  \n");
+    wantedComments.put("SomeAnotherEnum", " Testing comments before enum items \n");
+    wantedComments.put("SOME_ITEM_1", " The comment for the first item \n");
+    wantedComments.put("SOME_ITEM_2", " The comment for the second item \n");
+    wantedComments.put("SOME_ITEM_3", " The comment for the third item \n");
+    wantedComments.put("SomeAnotherEnum2", " Testing comments after enum items \n");
+    wantedComments.put("SOME_ITEM_10", " Post comment for the first item \n");
+    wantedComments.put("SOME_ITEM_20", " Post comment for the second item \n");
+    wantedComments.put("SOME_ITEM_30", " Post comment for the third item \n");
     
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));

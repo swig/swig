@@ -8,13 +8,32 @@ def check(got, expected):
   if not re.match(str(expected), str(got)):
     raise RuntimeError("\n" + "Expected: [" + str(expected) + "]\n" + "Got     : [" + str(got) + "]")
 
-check(doxygen_parsing.simpleFunction.__doc__, '\s+This is simple comment for a function\s+')
-check(doxygen_parsing.CSimpleClass.__doc__, '\s+This is simple comment for a class\s+')
-check(doxygen_parsing.CSimpleClass.simpleMethod.__doc__, '\s+Simple method\s+')
-check(doxygen_parsing.CSimpleClass.simpleMethodWithParameter.__doc__, ''
-'\s+Simple method with parameter'
-'\s+Arguments:\s+param \(int\)\s+-- Some test param\s+'
-'argument \(int\)\s+-- Some test argument\s+'
+check(doxygen_parsing.someFunction.__doc__, '\s+The function comment\s+')
+check(doxygen_parsing.SomeClass.__doc__, '\s+The class comment\s+')
+check(doxygen_parsing.SomeStruct.__doc__, '\s+The struct comment\s+')
+check(doxygen_parsing.SomeAnotherClass.classMethod.__doc__, '\s+The class method comment\s+')
+check(doxygen_parsing.SomeAnotherClass.classMethodExtended.__doc__, ''
+'\s+The class method with parameter'
+'\s+Arguments:\s+'
+'a \(int\)\s+-- Parameter a\s+'
+'b \(int\)\s+-- Parameter b\s+'
 )
-check(doxygen_parsing.CTemplateClassInt.__doc__, '\s+Comment for template class\s+')
-check(doxygen_parsing.CTemplateClassInt.templateMethod.__doc__, '\s+Template method\s+')
+check(doxygen_parsing.SomeAnotherClass.classMethodExtended2.__doc__, ''
+'\s+The class method with parameter'
+'\s+Arguments:\s+'
+'a \(int\)\s+-- Parameter a\s+'
+'b \(int\)\s+-- Parameter b\s+'
+)
+check(doxygen_parsing.SomeAnotherStruct.structMethod.__doc__, '\s+The struct method comment\s+')
+check(doxygen_parsing.SomeAnotherStruct.structMethodExtended.__doc__, ''
+'\s+The struct method with parameter'
+'\s+Arguments:\s+'
+'a \(int\)\s+-- Parameter a\s+'
+'b \(int\)\s+-- Parameter b\s+'
+)
+check(doxygen_parsing.SomeAnotherStruct.structMethodExtended2.__doc__, ''
+'\s+The struct method with parameter'
+'\s+Arguments:\s+'
+'a \(int\)\s+-- Parameter a\s+'
+'b \(int\)\s+-- Parameter b\s+'
+)

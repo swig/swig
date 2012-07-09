@@ -3,77 +3,119 @@
 %inline %{
 
 /**
- * This is simple comment for a var
+ * The class comment
  */
-int simpleVar=42;
-/*!
- * This is another type of comment for a var
- */
-int simpleVarTwo=42;
-
-/// This is again another type of comment for a var
-int simpleVarThree=42;
-//! This is the last type of comment for a var
-int simpleVarFour=42;
-
-int simpleVarFive=42;
-///< This is a post comment
-
-/*
-  We assume that all this comment types are ok,
-  and later we only use the first-type comments.
-*/
-
+class SomeClass
+{
+};
 
 /**
- * This is simple comment for a function
+ * The function comment
  */
-void simpleFunction(int arg)
+void someFunction()
 {
 }
 
 /**
- * This is simple comment for a class
+ * The enum comment
  */
-class CSimpleClass
+enum SomeEnum
 {
-private:
-  /** Some member var */
-  int simpleVar;
-
-public:
-  /** 
-   * Simple method
-   */
-  void simpleMethod(int asd)
-  {
-  }
-  /**
-   * Simple method with parameter
-   */
-  void simpleMethodWithParameter(
-	int param, /**< Some test param */
-	int argument /**< Some test argument */
-	)
-  {
-  }
+	SOME_ENUM_ITEM
 };
 
 /**
- * Comment for template class
+ * The struct comment
  */
-template <typename T>
-class CTemplateClass
+struct SomeStruct
+{
+};
+
+/**
+ * The var comment
+ */
+int someVar=42;
+
+class SomeAnotherClass
 {
 public:
-  /**
-   * Template method
-   */
-  void templateMethod(T arg)
-  {
-  }
+
+	/**
+	 * The class attribute comment
+	 */
+	int classAttr;
+
+	int classAttr2; ///< The class attribute post-comment
+
+	int classAttr3; ///< The class attribute post-comment
+									//!< with details
+
+	/**
+	 * The class method comment
+	 */
+	void classMethod()
+	{
+	}
+
+	/**
+	 * The class method with parameter
+	 */
+	void classMethodExtended(
+			int a, ///< Parameter a
+			int b  ///< Parameter b
+			)
+	{
+	}
+
+	/**
+	 * The class method with parameter
+	 *
+	 * @param a Parameter a
+	 * @param b Parameter b
+	 */
+	void classMethodExtended2(int a, int b)
+	{
+	}
+};
+
+struct SomeAnotherStruct
+{
+	/**
+	 * The struct attribute comment
+	 */
+	int structAttr;
+
+	int structAttr2; ///< The struct attribute post-comment
+
+	int structAttr3; ///< The struct attribute post-comment
+									 //!< with details
+
+	/**
+	 * The struct method comment
+	 */
+	void structMethod()
+	{
+	}
+
+	/**
+	 * The struct method with parameter
+	 */
+	void structMethodExtended(
+			int a, ///< Parameter a
+			int b  ///< Parameter b
+			)
+	{
+	}
+
+	/**
+	 * The struct method with parameter
+	 *
+	 * @param a Parameter a
+	 * @param b Parameter b
+	 */
+	void structMethodExtended2(int a, int b)
+	{
+	}
 };
 
 %}
-
-%template(CTemplateClassInt) CTemplateClass<int>;
