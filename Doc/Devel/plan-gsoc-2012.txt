@@ -24,8 +24,8 @@ and Python code (## comments, see Doxygen manual), if the user will
 prefer to use Doxygen on the generated code.
 
 Note:
-time format below is HH:MM. '--Done' tick means that the item is
-implemented, commited and working.
+'--Done' tick below means that the item is implemented, commited and
+working.
 
 Abbreviations:
     JD - JavaDoc
@@ -248,35 +248,54 @@ Functionality
     \.
     \::
 
-          
+Optional functionality
+======================
+
+That section describes some complex cases where the current code
+not behaves really well. Like a short to-do list of special cases.
+
+- When translating functions with default parameters in swig to
+java, it creates overloaded functions with all the parameters
+except the default ones. We need to copy the doxygen comment to
+such functions and correct the list of @param tags.
+
+- In doxygen there is a special tags (and even a special option)
+to create links to some code members from the current comment.
+Sometimes it needs a type of parameters specified because of the
+overloaded functions. And the same linking tags are supported in JD,
+but it has a completely different typesystem, so we need to translate
+the types of function parameters in comments also. For example:
+ 
+    
 Tests
 =====
 
 The following test cases will be implemented:
 
-- Class comments, JD and Qt style.
-- Class comments, JD and Qt style.
+- Class comments. --Done
 
-- Struct comments, JD and Qt style.
-- Enum comments, JD and Qt style.
+- Struct comments. --Done
+- Enum comments. --Done
+- Function comments. --Done
+- Var comments. --Done
 
-- Class attributes, JD and Qt style, comment before and after declaration.
-- Class methods, JD and Qt style, comment of parameters in function
-  comment.
-- Class methods, JD and Qt style, comment of parameters 
-  after parameter declaration.
+- Class attributes, comment before and after declaration. --Done
+- Class methods, comment of parameters in function
+  comment. --Done
+- Class methods, comment of parameters
+  after parameter declaration. --Done
   
-- Struct attributes, JD and Qt style, comment before and after declaration.
-- Struct methods, JD and Qt style, comment of parameters in function
-  comment.
-- Struct methods, JD and Qt style, comment of parameters 
-  after parameter declaration.
+- Struct attributes, comment before and after declaration. --Done
+- Struct methods, comment of parameters in function
+  comment. --Done
+- Struct methods, comment of parameters 
+  after parameter declaration. --Done
 
-- Enum items JD and Qt style, comment before items
-- Enum items JD and Qt style, comment after items
+- Enum items JD and Qt style, comment before items --Done
+- Enum items JD and Qt style, comment after items --Done
 
-- Class comment, JD and Qt style, with all supported tags.
-- Class comment, JD and Qt style, with all doxygen tags, including
+- Class comment, with all supported tags.
+- Class comment, with all doxygen tags, including
   ignored ones.
 
   
