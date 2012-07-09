@@ -58,7 +58,7 @@
 %typemap(proxy) SWIGTYPE *[ANY]  "/*ooooh*/ $1_ltype **"
 %typemap(proxy) SWIGTYPE *&      "/* *& */ $1_ltype **"
 %typemap(proxy) enum SWIGTYPE    "int"
-%typemap(proxy) enum SWIGTYPE &  "int *"
+%typemap(proxy) enum SWIGTYPE &, enum SWIGTYPE *  "int *"
 %typemap(proxy, fragment="fptr_decl", fragment="fptr_decl_proxy") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
 
 %typemap(proxy, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
@@ -96,7 +96,7 @@
 %typemap(ctype) SWIGTYPE *[ANY]  "/*ooooh*/ SwigObj **"
 %typemap(ctype) SWIGTYPE *&      "/* *& */ SwigObj **"
 %typemap(ctype) enum SWIGTYPE    "int"
-%typemap(ctype) enum SWIGTYPE &  "int *"
+%typemap(ctype) enum SWIGTYPE &, enum SWIGTYPE *  "int *"
 %typemap(ctype, fragment="fptr_decl", fragment="fptr_decl_proxy") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
 
 %typemap(ctype, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
@@ -134,7 +134,7 @@
 %typemap(wrap_call) SWIGTYPE *[ANY]  "/*ooooh*/ (SwigObj **)"
 %typemap(wrap_call) SWIGTYPE *&      "/* *& */ (SwigObj **)"
 %typemap(wrap_call) enum SWIGTYPE    ""
-%typemap(wrap_call) enum SWIGTYPE &  ""
+%typemap(wrap_call) enum SWIGTYPE &, enum SWIGTYPE *  ""
 %typemap(wrap_call, fragment="fptr_decl", fragment="fptr_decl_proxy") SWIGTYPE (CLASS::*) "(SWIG_CPP_FP)"
 
 %typemap(wrap_call, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
@@ -164,7 +164,7 @@
 %typemap(in, fragment="stdbool_inc") const bool &, const bool * "$1 = ($1_basetype *) $input;"
 
 %typemap(in) enum SWIGTYPE "$1 = ($1_ltype) $input;"
-%typemap(in) enum SWIGTYPE & "$1 = ($1_ltype) $input;"
+%typemap(in) enum SWIGTYPE &,enum SWIGTYPE * "$1 = ($1_ltype) $input;"
 
 %typemap(in) SWIGTYPE [] "$1 = ($1_ltype) $input;"
 %typemap(in) SWIGTYPE ((&)[ANY]) "$1 = ($1_ltype) $input;"
@@ -548,8 +548,7 @@
 %typemap(cppouttype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype"
 %typemap(cppouttype) SWIGTYPE ** "/*SWIGTYPE ** */ $1_basetype **"
 %typemap(cppouttype, retobj="1") enum SWIGTYPE "int"
-%typemap(cppouttype) enum SWIGTYPE * "int *"
-%typemap(cppouttype) enum SWIGTYPE & "int *"
+%typemap(cppouttype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
 %typemap(cppouttype, fragment="fptr_decl") SWIGTYPE (CLASS::*) "$1_ltype"
 
 %typemap(cppouttype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
