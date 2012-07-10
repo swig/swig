@@ -344,11 +344,15 @@ static int yylook(void) {
 	  if (strncmp(loc, "/**<", 4) == 0 || strncmp(loc, "///<", 4) == 0||strncmp(loc, "/*!<", 4) == 0||strncmp(loc, "//!<", 4) == 0) {
 	    /* printf("Doxygen Post Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc); */
 	    yylval.str =  NewString(loc);
+	    Setline(yylval.str, Scanner_start_line(scan));
+	    Setfile(yylval.str, Scanner_file(scan));
 	    return DOXYGENPOSTSTRING;
 	  }
 	  if (strncmp(loc, "/**", 3) == 0 || strncmp(loc, "///", 3) == 0||strncmp(loc, "/*!", 3) == 0||strncmp(loc, "//!", 3) == 0) {
 	    /* printf("Doxygen Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc);  */
 	    yylval.str =  NewString(loc);
+	    Setline(yylval.str, Scanner_start_line(scan));
+	    Setfile(yylval.str, Scanner_file(scan));
 	    return DOXYGENSTRING;
 	  }
 	}

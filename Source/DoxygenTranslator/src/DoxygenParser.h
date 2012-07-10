@@ -21,7 +21,7 @@ class DoxygenParser {
 public:
   DoxygenParser();
   virtual ~DoxygenParser();
-  std::list < DoxygenEntity > createTree(std::string doxygen);
+  std::list < DoxygenEntity > createTree(std::string doxygen, std::string fileName, int lineNumber);
 private:
   
   /*

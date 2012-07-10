@@ -25,9 +25,12 @@ class TokenList {
 private:
   std::list < Token > m_tokenList;
   std::list < Token >::iterator m_tokenListIter;
+  // location info for error output
+  std::string fileName;
+  int fileLine;
 
 public:
-  TokenList(const std::string & doxygenString);	/* constructor takes a blob of Doxygen comment */
+  TokenList(const std::string & doxygenString, const std::string fileName, int fileLine);	/* constructor takes a blob of Doxygen comment */
   ~TokenList();
 
   Token peek();			/* returns next token without advancing */
@@ -40,6 +43,7 @@ public:
   void setIterator(list < Token >::iterator newPosition);	/*moves up the iterator */
 
   void printList();		/* prints out the sequence of tokens */
+  void printListError(std::string message); /* prints properly formatted error message */
 };
 
 #endif

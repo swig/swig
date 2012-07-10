@@ -14,6 +14,7 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include "swig.h"
 #include "Token.h"
 #include "DoxygenEntity.h"
 #define TOKENSPERLINE 8;	//change this to change the printing behaviour of the token list
@@ -22,36 +23,10 @@ using namespace std;
 
 int noisy2 = 0;
 /* The tokenizer*/
-TokenList::TokenList(const std::string & doxygenStringConst) {
+TokenList::TokenList(const std::string & doxygenStringConst, const std::string fileName, int fileLine)
+	: fileName(fileName), fileLine(fileLine) {
   size_t commentPos;
   string doxygenString = doxygenStringConst;
-
-   /* Comment start tokens are replaced in parser.y, see doxygen_comment and
-      doxygen_post_comment_item
-   do {
-    commentPos = doxygenString.find("///<");
-    if (commentPos != string::npos) {
-      doxygenString.replace(commentPos, 4, " ");
-      continue;
-    }
-    commentPos = doxygenString.find("/**<");
-    if (commentPos != string::npos) {
-      doxygenString.replace(commentPos, 4, " ");
-      continue;
-    }
-    commentPos = doxygenString.find("/*!<");
-    if (commentPos != string::npos) {
-      doxygenString.replace(commentPos, 4, " ");
-      continue;
-    }
-    commentPos = doxygenString.find("//!<");
-    if (commentPos != string::npos) {
-      doxygenString.replace(commentPos, 4, " ");
-      continue;
-    }
-    break;
-  } while (true);
-  */
 
   size_t currentIndex = 0;
   size_t nextIndex = 0;
@@ -173,4 +148,12 @@ void TokenList::printList() {
     p++;
     i++;
   }
+}
+
+void TokenList::printListError(std::string message) {
+	int curLine = fileLine;
+	for (list< Token >::iterator it = m_tokenList.begin(); it != current(); it++)
+		if (it->tokenType == END_LINE)
+			curLine++;
+	Swig_error(fileName.c_str(), curLine, "Doxygen parser error: %s. \n", message.c_str());
 }

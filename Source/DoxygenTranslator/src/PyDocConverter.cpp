@@ -170,7 +170,7 @@ String *PyDocConverter::makeDocumentation(Node *n) {
     while (n) {
       documentation = getDoxygenComment(n);
       if (!Swig_is_generated_overload(n) && documentation) {
-	std::list < DoxygenEntity > entityList = DoxygenParser().createTree(Char(documentation));
+	std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation), Char(Getfile(documentation)), Getline(documentation));
 	allDocumentation.push_back(processEntityList(n, entityList));
       }
       n = Getattr(n, "sym:nextSibling");
@@ -194,7 +194,7 @@ String *PyDocConverter::makeDocumentation(Node *n) {
   else {
     documentation = getDoxygenComment(n);
     if (documentation != NULL) {
-      std::list < DoxygenEntity > entityList = DoxygenParser().createTree(Char(documentation));
+      std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation), Char(Getfile(documentation)), Getline(documentation));
       pyDocString = processEntityList(n, entityList);
     }
   }

@@ -163,7 +163,9 @@ void JavaDocConverter::handleParagraph(JavaDocConverter* converter, DoxygenEntit
   translatedComment += converter->formatCommand(converter->translateSubtree(tag), 0);
 }
 void JavaDocConverter::handlePlainString(JavaDocConverter* converter, DoxygenEntity& tag, std::string& translatedComment) {
-  translatedComment += tag.data + " ";
+  translatedComment += tag.data;
+  if (tag.data.size() && tag.data[tag.data.size()-1] != ' ')
+  	translatedComment += " ";
 }
 
 String *JavaDocConverter::makeDocumentation(Node *node) {
@@ -174,7 +176,7 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
     return NULL;
   }
 
-  std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation));
+  std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation), Char(Getfile(documentation)), Getline(documentation));
 
   // entityList.sort(CompareDoxygenEntities()); sorting currently not used,
   // see CompareDoxygenEntities::operator() in DoxygenEntity.cpp
