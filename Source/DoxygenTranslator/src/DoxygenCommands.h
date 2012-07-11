@@ -4,8 +4,8 @@
 
 const char *commandArray[] = {
   "a", "addindex", "addtogroup", "anchor", "arg", "attention",
-  "author", "b", "brief", "bug", "c", "callgraph", "callergraph", "category",
-  "class", "code", "cond", "copybrief", "copydetails", "copydoc", "date", "def",
+  "author", "authors", "b", "brief", "bug", "c", "callgraph", "callergraph", "category", "cite",
+  "class", "code", "cond", "copybrief", "copydetails", "copydoc", "copyright", "date", "def",
   "defgroup", "deprecated", "details", "dir", "dontinclude", "dot", "dotfile", "e",
   "else", "elseif", "em", "endcode", "endcond", "enddot", "endhtmlonly", "endif",
   "endlatexonly", "endlink", "endmanonly", "endmsc", "endverbatim", "endxmlonly",
@@ -15,21 +15,21 @@ const char *commandArray[] = {
   "line", "link", "mainpage", "manonly", "msc", "n", "name", "namespace", "nosubgrouping",
   "note", "overload", "p", "package", "page", "par", "paragraph", "param", "post", "pre",
   "private", "privatesection", "property", "protected", "protectedsection", "protocol",
-  "public", "publicsection", "ref", "relates", "relatesalso", "remarks", "return", "retval",
+  "public", "publicsection", "ref", "relates", "relatesalso", "remarks", "remark", "result", "return", "returns", "retval",
   "sa", "section", "see", "showinitializer", "since", "skip", "skipline", "struct", "subpage",
   "subsection", "subsubsection", "test", "throw", "throws", "todo", "tparam", "typedef", "union", "until",
   "var", "verbatim", "verbinclude", "version", "warning", "weakgroup", "xmlonly", "xrefitem", "$", "@", "\\", "&", "~", "<", ">", "#", "%"};
 
 
 const char *sectionIndicators[] = {
-  "attention", "author", "brief", "bug", "cond", "date", "deprecated", "details",
+  "attention", "author", "authors", "brief", "bug", "cond", "date", "deprecated", "details",
   "else", "elseif", "endcond", "endif", "exception", "if", "ifnot", "invariant", "note", "par", "param",
-  "tparam", "post", "pre", "remarks", "return", "retval", "sa", "see", "since", "test", "throw", "throws", "todo", "version", "warning", "xrefitem"};
+  "tparam", "post", "pre", "remarks", "remark", "result", "return", "returns", "retval", "sa", "see", "since", "test", "throw", "throws", "todo", "version", "warning", "xrefitem"};
 const int sectionIndicatorsSize = sizeof(sectionIndicators) / sizeof(*sectionIndicators);
 
 /* All of the doxygen commands divided up by how they are parsed */
 const char *simpleCommands[] = {
-  "n", "$", "@", "\\", "&", "~", "<", ">", "#", "%"};
+  "n", "$", "@", "\\", "&", "~", "<", ">", "#", "%", "\"", ".", "::", "endcond"};
 const int simpleCommandsSize = sizeof(simpleCommands) / sizeof(*simpleCommands);
 
 const char *ignoredSimpleCommands[] = {
@@ -37,7 +37,8 @@ const char *ignoredSimpleCommands[] = {
 const int ignoredSimpleCommandsSize = sizeof(ignoredSimpleCommands) / sizeof(*ignoredSimpleCommands);
 
 const char *commandWords[] = {
-  "a", "b", "c", "e", "em", "p", "def", "enum", "example", "package", "relates", "namespace", "relatesalso", "anchor", "dontinclude", "include", "includelineno"};
+  "a", "b", "c", "e", "em", "p", "def", "enum", "example", "package", "relates", "namespace", "relatesalso", "anchor", "dontinclude", "include",
+  "includelineno"};
 const int commandWordsSize = sizeof(commandWords) / sizeof(*commandWords);
 
 const char *ignoredCommandWords[] = {
@@ -53,8 +54,9 @@ const char *ignoreCommandLines[] = {
 const int ignoreCommandLinesSize = sizeof(ignoreCommandLines) / sizeof(*ignoreCommandLines);
 
 const char *commandParagraph[] = {
-  "partofdescription", "return", "remarks", "since", "test", "sa", "see", "pre", "post", "details", "invariant",
-  "deprecated", "date", "note", "warning", "version", "todo", "bug", "attention", "brief", "author"};
+  "partofdescription", "result", "return", "returns", "remarks", "remark", "since", "test", "sa", "see", "pre", "post", "details", "invariant",
+  "deprecated", "date", "note", "warning", "version", "todo", "bug", "attention", "brief", "author", "authors", "cite",
+  "copyright"};
 const int commandParagraphSize = sizeof(commandParagraph) / sizeof(*commandParagraph);
 
 const char *ignoreCommandParagraphs[] = {
@@ -62,7 +64,7 @@ const char *ignoreCommandParagraphs[] = {
 const int ignoreCommandParagraphsSize = sizeof(ignoreCommandParagraphs) / sizeof(*ignoreCommandParagraphs);
 
 const char *commandEndCommands[] = {
-  "code", "dot", "msc", "f$", "f[", "f{environment}{", "htmlonly", "latexonly", "manonly", "verbatim", "xmlonly", "cond", "if", "ifnot", "link"};
+  "code", "dot", "msc", "f$", "f[", "f{environment}{", "htmlonly", "latexonly", "manonly", "verbatim", "xmlonly", "if", "ifnot", "link"};
 const int commandEndCommandsSize = sizeof(commandEndCommands) / sizeof(*commandEndCommands);
 
 const char *commandWordParagraphs[] = {
@@ -85,7 +87,7 @@ const char *commandErrorThrowings[] = {
   "annotatedclassstd::list", "classhierarchy", "define", "functionindex", "header",
   "headerfilestd::list", "inherit", "l", "postheader", "private", "privatesection", "protected",
   "protectedsection", "public", "publicsection", "endcode", "enddot", "endmsc", "endhtmlonly",
-  "endlatexonly", "endmanonly", "endlink", "endverbatim", "endxmlonly", "f]", "f}", "endcond", "endif"};
+  "endlatexonly", "endmanonly", "endlink", "endverbatim", "endxmlonly", "f]", "f}", "endif"};
 const int commandErrorThrowingsSize = sizeof(commandErrorThrowings) / sizeof(*commandErrorThrowings);
 
 const char *commandUniques[] = {
