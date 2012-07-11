@@ -80,7 +80,7 @@ Functionality
     \addindex - ignored
     \addtogroup - ignored
     \anchor - ignored, not supported by JD and PD 
-    \arg - translated to @param in JD, special formatting in PD
+    \arg - equivalent to \li
     \attention - ignored
     \authors, \author - translated to @author in JD, 'Author:' in PD
     \b - <b></b> in JD, surrounded with __ in PD
@@ -134,7 +134,7 @@ Functionality
     \example - translated to 'Example:' in JD and PD
     \exception - equivalent to throws, but translates to @exception in JD 
     \extends - not supported
-    \f$ - not supported. Later swig may call LATeX to produce bitmaps with formulas
+    \f$ - ignored. Later swig may call LATeX to produce bitmaps with formulas
           to include in JD and PD
     \f[ - see note for \f$
     \f] - see note for \f$
@@ -145,7 +145,7 @@ Functionality
     \headerfile - not supported
     \hideinitializer - not supported
     \htmlinclude - not supported
-    \htmlonly - not supported
+    \htmlonly - ignored
     \if - see note for \cond 
     \ifnot - see note for \cond
     \image - translated to <img/> in JD only when target=HTML, ignored in PD
@@ -181,7 +181,7 @@ Functionality
     \page - ignored
     \par - translated to <p alt='title'></p> in JD, 'Title: ...' in PD 
     \paragraph - ignored
-    \param - equivalent to \arg
+    \param - translated to @param in JD, special formatting in PD
     \post - ignored
     \pre - ignored
     \private - ignored
