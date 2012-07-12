@@ -132,8 +132,9 @@ DEFUN_DLD( swig_this, args, nargout, swig_this_usage ) {
 #ifdef SWIG_OCTAVE_SEGFAULT_HACK
 #define _SWIG_OCT_SEGF_HACK_ATEXIT_FCN(NAME) SWIG_OCT_SEGF_HACK_ATEXIT_FCN_##NAME
 #define SWIG_OCT_SEGF_HACK_ATEXIT_FCN(NAME) _SWIG_OCT_SEGF_HACK_ATEXIT_FCN(NAME)
+#include <cstdlib>
 void SWIG_OCT_SEGF_HACK_ATEXIT_FCN(SWIG_name)(void) {
-  _exit(exit_status);
+  _Exit(exit_status);
 }
 #endif
 
