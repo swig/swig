@@ -64,7 +64,7 @@ const char *ignoreCommandParagraphs[] = {
 const int ignoreCommandParagraphsSize = sizeof(ignoreCommandParagraphs) / sizeof(*ignoreCommandParagraphs);
 
 const char *commandEndCommands[] = {
-  "code", "dot", "msc", "f$", "f[", "f{environment}{", "htmlonly", "latexonly", "manonly", "verbatim", "xmlonly", "if", "ifnot", "link"};
+  "code", "dot", "msc", "f$", "f[", "f{environment}{", "htmlonly", "latexonly", "manonly", "verbatim", "xmlonly", "link"};
 const int commandEndCommandsSize = sizeof(commandEndCommands) / sizeof(*commandEndCommands);
 
 const char *commandWordParagraphs[] = {
@@ -87,11 +87,12 @@ const char *commandErrorThrowings[] = {
   "annotatedclassstd::list", "classhierarchy", "define", "functionindex", "header",
   "headerfilestd::list", "inherit", "l", "postheader", "private", "privatesection", "protected",
   "protectedsection", "public", "publicsection", "endcode", "enddot", "endmsc", "endhtmlonly",
-  "endlatexonly", "endmanonly", "endlink", "endverbatim", "endxmlonly", "f]", "f}", "endif"};
+  "endlatexonly", "endmanonly", "endlink", "endverbatim", "endxmlonly", "f]", "f}", "endif", "else"};
 const int commandErrorThrowingsSize = sizeof(commandErrorThrowings) / sizeof(*commandErrorThrowings);
 
 const char *commandUniques[] = {
-  "xrefitem", "arg", "ingroup", "par", "headerfile", "overload", "weakgroup", "ref", "subpage", "dotfile", "image", "addtogroup", "li"};
+  "xrefitem", "arg", "ingroup", "par", "headerfile", "overload", "weakgroup", "ref", "subpage", "dotfile", "image", "addtogroup", "li",
+  "if", "ifnot", "elseif", "else"};
 const int commandUniquesSize = sizeof(commandUniques) / sizeof(*commandUniques);
 
 #endif

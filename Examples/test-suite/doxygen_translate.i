@@ -29,20 +29,30 @@
  * 
  * \e italicword
  * 
- * \if ANOTHERCONDITION
- * 	First part of comment
- * \else
- * 	Second part of comment
- * \endif
- * 
  * \example someFile.txt
  * Some details on using the example
  * 
  * \exception SuperError
  * 
- * \ifnot CONDITION
- *  Write something if not
- * \endifnot
+ * \if ANOTHERCONDITION
+ *   First part of comment
+ *   \if SECONDCONDITION
+ *     Nested condition text
+ *   \elseif THIRDCONDITION
+ *     The third condition text
+ *   \else
+ *     The last text block
+ *   \endif
+ * \else
+ *   Second part of comment
+ *   \if CONDITION
+ *     Second part extended
+ *   \endif
+ * \endif
+ * 
+ * \ifnot SOMECONDITION
+ *   This is printed if not
+ * \endif
  * 
  * \image html testImage.bmp
  * 
