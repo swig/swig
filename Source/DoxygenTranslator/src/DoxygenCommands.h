@@ -12,7 +12,7 @@ const char *commandArray[] = {
   "enum", "example", "exception", "f$", "f[", "f]", "f{", "f}", "file", "fn", "headerfile",
   "hideinitializer", "htmlinclude", "htmlonly", "if", "ifnot", "image", "include",
   "includelineno", "ingroup", "internal", "invariant", "interface", "latexonly", "li",
-  "line", "link", "mainpage", "manonly", "msc", "n", "name", "namespace", "nosubgrouping",
+  "line", "link", "mainpage", "manonly", "msc", "mscfile", "n", "name", "namespace", "nosubgrouping",
   "note", "overload", "p", "package", "page", "par", "paragraph", "param", "post", "pre",
   "private", "privatesection", "property", "protected", "protectedsection", "protocol",
   "public", "publicsection", "ref", "relates", "relatesalso", "remarks", "remark", "result", "return", "returns", "retval",
@@ -37,7 +37,7 @@ const char *ignoredSimpleCommands[] = {
 const int ignoredSimpleCommandsSize = sizeof(ignoredSimpleCommands) / sizeof(*ignoredSimpleCommands);
 
 const char *commandWords[] = {
-  "a", "b", "c", "e", "em", "p", "def", "enum", "example", "package", "relates", "namespace", "relatesalso", "anchor", "dontinclude", "include",
+  "a", "b", "c", "e", "em", "p", "def", "enum", "package", "relates", "namespace", "relatesalso", "anchor", "dontinclude", "include",
   "includelineno"};
 const int commandWordsSize = sizeof(commandWords) / sizeof(*commandWords);
 
@@ -68,7 +68,7 @@ const char *commandEndCommands[] = {
 const int commandEndCommandsSize = sizeof(commandEndCommands) / sizeof(*commandEndCommands);
 
 const char *commandWordParagraphs[] = {
-  "param", "tparam", "throw", "throws", "retval", "exception"};
+  "param", "tparam", "throw", "throws", "retval", "exception", "example"};
 const int commandWordParagraphsSize = sizeof(commandWordParagraphs) / sizeof(*commandWordParagraphs);
 
 const char *commandWordLines[] = {
@@ -92,7 +92,7 @@ const int commandErrorThrowingsSize = sizeof(commandErrorThrowings) / sizeof(*co
 
 const char *commandUniques[] = {
   "xrefitem", "arg", "ingroup", "par", "headerfile", "overload", "weakgroup", "ref", "subpage", "dotfile", "image", "addtogroup", "li",
-  "if", "ifnot", "elseif", "else"};
+  "if", "ifnot", "elseif", "else", "mscfile"};
 const int commandUniquesSize = sizeof(commandUniques) / sizeof(*commandUniques);
 
 #endif

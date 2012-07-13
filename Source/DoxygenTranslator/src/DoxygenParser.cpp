@@ -407,11 +407,28 @@ int DoxygenParser::addCommandUnique(std::string theCommand, TokenList & tokList,
 	}
 	// \xrefitem <key> "(heading)" "(std::list title)" {text}
 	else if (theCommand == "xrefitem") {
-		//TODO Implement xrefitem
 		if (noisy)
-			cout << "Not Adding " << theCommand << endl;
+			cout << "Parsing " << theCommand << endl;
+		std::string key = getNextWord(tokList);
+		if (key.empty()) {
+			tokList.printListError("No key followed " + theCommand + " command. Not added");
+			return 0;
+		}
+		std::string heading = getNextWord(tokList);
+		if (key.empty()) {
+			tokList.printListError("No heading followed " + theCommand + " command. Not added");
+			return 0;
+		}
+		std::string title = getNextWord(tokList);
+		if (title.empty()) {
+			tokList.printListError("No title followed " + theCommand + " command. Not added");
+			return 0;
+		}
 		std::list < Token >::iterator endOfParagraph = getEndOfParagraph(tokList);
-		tokList.setIterator(endOfParagraph);
+		aNewList = parse(endOfParagraph, tokList);
+		aNewList.push_front(DoxygenEntity("plainstd::string", title));
+		aNewList.push_front(DoxygenEntity("plainstd::string", heading));
+		aNewList.push_front(DoxygenEntity("plainstd::string", key));
 		return 1;
 	}
 	// \ingroup (<groupname> [<groupname> <groupname>])
@@ -432,7 +449,8 @@ int DoxygenParser::addCommandUnique(std::string theCommand, TokenList & tokList,
 		std::list < Token >::iterator endOfLine = getOneLine(tokList);
 		aNewList = parse(endOfLine, tokList);
 		std::list < DoxygenEntity > aNewList2;
-		aNewList2 = parse(endOfLine, tokList);
+		std::list < Token >::iterator endOfParagraph = getEndOfParagraph(tokList);
+		aNewList2 = parse(endOfParagraph, tokList);
 		aNewList.splice(aNewList.end(), aNewList2);
 		doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 		return 1;
@@ -478,31 +496,75 @@ int DoxygenParser::addCommandUnique(std::string theCommand, TokenList & tokList,
 	}
 	// \ref <name> ["(text)"]
 	else if (theCommand == "ref") {
-		//TODO Implement ref
 		if (noisy)
-			cout << "Not Adding " << theCommand << endl;
-		std::list < Token >::iterator endOfParagraph = getEndOfParagraph(tokList);
-		tokList.setIterator(endOfParagraph);
+			cout << "Parsing " << theCommand << endl;
+		std::string name = getNextWord(tokList);
+		if (name.empty()) {
+			tokList.printListError("No key followed " + theCommand + " command. Not added");
+			return 0;
+		}
+		std::string text = getNextWord(tokList);
+		aNewList.push_back(DoxygenEntity("plainstd::string", name));
+		if (!text.empty())
+			aNewList.push_back(DoxygenEntity("plainstd::string", text));
+		doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 	}
 	// \subpage <name> ["(text)"]
 	else if (theCommand == "subpage") {
-		//TODO implement subpage
 		if (noisy)
-			cout << "Not Adding " << theCommand << endl;
-		std::list < Token >::iterator endOfParagraph = getEndOfParagraph(tokList);
-		tokList.setIterator(endOfParagraph);
+			cout << "Parsing " << theCommand << endl;
+		std::string name = getNextWord(tokList);
+		if (name.empty()) {
+			tokList.printListError("No name followed " + theCommand + " command. Not added");
+			return 0;
+		}
+		std::string text = getNextWord(tokList);
+		aNewList.push_back(DoxygenEntity("plainstd::string", name));
+		if (!text.empty())
+			aNewList.push_back(DoxygenEntity("plainstd::string", text));
+		doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 	}
 	// \dotfile <file> ["caption"]
-	else if (theCommand == "dotfile") {
-		//TODO implement dotfile
+	// \mscfile <file> ["caption"]
+	else if (theCommand == "dotfile" || theCommand == "mscfile") {
 		if (noisy)
-			cout << "Not Adding " << theCommand << endl;
-		std::list < Token >::iterator endOfParagraph = getEndOfParagraph(tokList);
-		tokList.setIterator(endOfParagraph);
+			cout << "Parsing " << theCommand << endl;
+		std::string file = getNextWord(tokList);
+		if (file.empty()) {
+			tokList.printListError("No file followed " + theCommand + " command. Not added");
+			return 0;
+		}
+		std::string caption = getNextWord(tokList);
+		aNewList.push_back(DoxygenEntity("plainstd::string", file));
+		if (!caption.empty())
+			aNewList.push_back(DoxygenEntity("plainstd::string", caption));
+		doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 	}
 	// \image <format> <file> ["caption"] [<sizeindication>=<size>]
 	else if (theCommand == "image") {
-		//todo implement image
+		if (noisy)
+			cout << "Parsing " << theCommand << endl;
+		std::string format = getNextWord(tokList);
+		if (format.empty()) {
+			tokList.printListError("No format followed " + theCommand + " command. Not added");
+			return 0;
+		}
+		std::string file = getNextWord(tokList);
+		if (file.empty()) {
+			tokList.printListError("No name followed " + theCommand + " command. Not added");
+			return 0;
+		}
+		std::string caption = getNextWord(tokList);
+		std::string size = getNextWord(tokList);
+
+		std::list < DoxygenEntity > aNewList;
+		aNewList.push_back(DoxygenEntity("plainstd::string", format));
+		aNewList.push_back(DoxygenEntity("plainstd::string", file));
+		if (!caption.empty())
+			aNewList.push_back(DoxygenEntity("plainstd::string", caption));
+		if (!size.empty())
+			aNewList.push_back(DoxygenEntity("plainstd::string", size));
+		doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 	}
 	// \addtogroup <name> [(title)]
 	else if (theCommand == "addtogroup") {
