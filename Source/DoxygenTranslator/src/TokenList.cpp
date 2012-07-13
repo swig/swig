@@ -21,75 +21,53 @@
 
 using namespace std;
 
-int noisy2 = 0;
-/* The tokenizer*/
-TokenList::TokenList(const std::string & doxygenStringConst, const std::string fileName, int fileLine)
-	: fileName(fileName), fileLine(fileLine) {
-  size_t commentPos;
-  string doxygenString = doxygenStringConst;
+TokenList TokenList::tokenizeDoxygenComment(const std::string &doxygenComment, const std::string &fileName, int fileLine) {
+  TokenList tokList;
+  tokList.fileLine = fileLine;
+  tokList.fileName = fileName;
 
-  size_t currentIndex = 0;
-  size_t nextIndex = 0;
-
+  string::size_type pos, lastPos = 0;
   string currentWord;
-
-  while (currentIndex < doxygenString.length()) {
-
-    if (doxygenString[currentIndex] == '\n') {
-      m_tokenList.push_back(Token(END_LINE, currentWord));
-      currentIndex++;
-    }
-    // skip WS, except \n
-    while (currentIndex < doxygenString.length() && (doxygenString[currentIndex] == ' ' || doxygenString[currentIndex] == '\t'))
-      currentIndex++;
-
-    if (currentIndex < doxygenString.length()) {
-
-      nextIndex = currentIndex;
-
-      // skip non WS
-      while (nextIndex < doxygenString.length() && (doxygenString[nextIndex] != ' ' && doxygenString[nextIndex] != '\t' && doxygenString[nextIndex] != '\n'))
-	nextIndex++;
-
-      // now we have a token
-      currentWord = doxygenString.substr(currentIndex, nextIndex - currentIndex);
-
-      if (noisy2)
-	cout << "Current Word: " << currentWord << endl;
-
-      if (currentWord[0] == '@' || currentWord[0] == '\\') {
-	// it is doxygen command
-	currentWord = currentWord.substr(1, currentWord.length() - 1);
-	m_tokenList.push_back(Token(COMMAND, currentWord));
-
-      } else if (currentWord[0] == '\n') {
-
-	m_tokenList.push_back(Token(END_LINE, currentWord));
-
-      } else if (currentWord[0] == '*' || currentWord[0] == '/' || currentWord[0] == '!') {
-
-	bool isPlainString = false;
-
-	if (currentWord.length() > 1) {
-
-	  for (size_t i = 1; i < currentWord.length(); i++) {
-	    if (currentWord[i] != '*' && currentWord[i] != '/' && currentWord[i] != '!') {
-	      isPlainString = true;
-	      break;
-	    }
-	  }
-	}
-
-	if (isPlainString)
-	  m_tokenList.push_back(Token(PLAINSTRING, currentWord));
-
-      } else if (!currentWord.empty()) {
-	m_tokenList.push_back(Token(PLAINSTRING, currentWord));
+  while (true) {
+    pos = doxygenComment.find_first_of("\t\n ", lastPos);
+    if (pos == string::npos)
+      pos = doxygenComment.size();
+    if (pos > lastPos) {
+      currentWord = doxygenComment.substr(lastPos, pos-lastPos);
+      if (currentWord[0] == '\\' || currentWord[0] == '@') {
+        // it's a doxygen command
+        currentWord = currentWord.substr(1, currentWord.length() - 1);
+        tokList.m_tokenList.push_back(Token(COMMAND, currentWord));
       }
-      currentIndex = nextIndex;
+      else if (currentWord[0] == '!' || currentWord[0] == '*' || currentWord[0] == '/') {
+        // check if it's one of the '!!!', '***', '///' of any length
+        char c = currentWord[0];
+        bool isPlainString = false;
+        for (int i=0; i<currentWord.size(); i++)
+          if (currentWord[i] != c) {
+            isPlainString = true;
+            break;
+          }
+        if (isPlainString)
+          tokList.m_tokenList.push_back(Token(PLAINSTRING, currentWord));
+      }
+      else // it is a plain string
+        tokList.m_tokenList.push_back(Token(PLAINSTRING, currentWord));
     }
-  }
 
+    lastPos = pos + 1;
+    if (lastPos >= doxygenComment.size())
+      break;
+
+    if (doxygenComment[pos] == '\n')
+      tokList.m_tokenList.push_back(Token(END_LINE, "\n"));
+  }
+  tokList.m_tokenListIter = tokList.m_tokenList.begin();
+  return tokList;
+}
+
+TokenList::TokenList()
+: fileName(""), fileLine(0) {
   m_tokenListIter = m_tokenList.begin();
 }
 
@@ -151,9 +129,9 @@ void TokenList::printList() {
 }
 
 void TokenList::printListError(std::string message) {
-	int curLine = fileLine;
-	for (list< Token >::iterator it = m_tokenList.begin(); it != current(); it++)
-		if (it->tokenType == END_LINE)
-			curLine++;
-	Swig_error(fileName.c_str(), curLine, "Doxygen parser error: %s. \n", message.c_str());
+  int curLine = fileLine;
+  for (list< Token >::iterator it = m_tokenList.begin(); it != current(); it++)
+    if (it->tokenType == END_LINE)
+      curLine++;
+  Swig_error(fileName.c_str(), curLine, "Doxygen parser error: %s. \n", message.c_str());
 }

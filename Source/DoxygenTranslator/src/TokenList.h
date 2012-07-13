@@ -30,7 +30,7 @@ private:
   int fileLine;
 
 public:
-  TokenList(const std::string & doxygenString, const std::string fileName, int fileLine);	/* constructor takes a blob of Doxygen comment */
+  TokenList(); // construct an empty TokenList
   ~TokenList();
 
   Token peek();			/* returns next token without advancing */
@@ -44,6 +44,12 @@ public:
 
   void printList();		/* prints out the sequence of tokens */
   void printListError(std::string message); /* prints properly formatted error message */
+
+  /*
+   * Create TokenList and populate it with tokens from
+   * a blob of Doxygen comment
+   */
+  static TokenList tokenizeDoxygenComment(const std::string &doxygenComment, const std::string &fileName, int fileLine);
 };
 
 #endif

@@ -727,7 +727,7 @@ std::list < DoxygenEntity > DoxygenParser::parse(std::list < Token >::iterator e
 }
 
 std::list < DoxygenEntity > DoxygenParser::createTree(std::string doxygenBlob, std::string fileName, int lineNumber) {
-	TokenList tokList(doxygenBlob, fileName, lineNumber);
+	TokenList tokList = TokenList::tokenizeDoxygenComment(doxygenBlob, fileName, lineNumber);
 	if (noisy) {
 		cout << "---TOKEN LIST---" << endl;
 		tokList.printList();
