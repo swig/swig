@@ -26,6 +26,7 @@ TokenList TokenList::tokenizeDoxygenComment(const std::string &doxygenComment, c
   tokList.fileLine = fileLine;
   tokList.fileName = fileName;
 
+  bool isPlainString = false;
   string::size_type pos, lastPos = 0;
   string currentWord;
   while (true) {
@@ -42,17 +43,35 @@ TokenList TokenList::tokenizeDoxygenComment(const std::string &doxygenComment, c
       else if (currentWord[0] == '!' || currentWord[0] == '*' || currentWord[0] == '/') {
         // check if it's one of the '!!!', '***', '///' of any length
         char c = currentWord[0];
-        bool isPlainString = false;
+        isPlainString = false;
         for (int i=0; i<currentWord.size(); i++)
           if (currentWord[i] != c) {
             isPlainString = true;
             break;
           }
-        if (isPlainString)
+      }
+      else
+        isPlainString = true;
+
+      if (isPlainString) {
+        // handle quoted words
+        string::size_type qPos = currentWord.find('"', 0);
+        if (qPos != string::npos) {
+          lastPos += qPos;
+          pos = doxygenComment.find_first_of("\"\n", lastPos + 1);
+          if (pos == string::npos)
+            pos = doxygenComment.size();
+          if (pos == doxygenComment.size() || doxygenComment[pos] != '"') {
+            // hack to print error message before the list is constructed
+            tokList.m_tokenListIter = tokList.m_tokenList.end();
+            tokList.printListError("Unterminated string");
+          }
+          // also strip quotes
+          currentWord = doxygenComment.substr(lastPos + 1, pos-lastPos-1);
+        }
+        if (currentWord.size())
           tokList.m_tokenList.push_back(Token(PLAINSTRING, currentWord));
       }
-      else // it is a plain string
-        tokList.m_tokenList.push_back(Token(PLAINSTRING, currentWord));
     }
 
     lastPos = pos + 1;
