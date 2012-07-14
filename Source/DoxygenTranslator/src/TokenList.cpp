@@ -30,6 +30,7 @@ TokenList TokenList::tokenizeDoxygenComment(const std::string &doxygenComment, c
   string::size_type pos, lastPos = 0;
   string currentWord;
   while (true) {
+    isPlainString = false;
     pos = doxygenComment.find_first_of("\t\n ", lastPos);
     if (pos == string::npos)
       pos = doxygenComment.size();
@@ -55,9 +56,7 @@ TokenList TokenList::tokenizeDoxygenComment(const std::string &doxygenComment, c
 
       if (isPlainString) {
         // handle quoted words
-        string::size_type qPos = currentWord.find('"', 0);
-        if (qPos != string::npos) {
-          lastPos += qPos;
+        if (currentWord[0] == '"') {
           pos = doxygenComment.find_first_of("\"\n", lastPos + 1);
           if (pos == string::npos)
             pos = doxygenComment.size();
