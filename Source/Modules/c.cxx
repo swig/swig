@@ -51,6 +51,7 @@ class C:public Language {
   String *int_string;
   String *create_object;
   String *destroy_object;
+  String *tl_namespace; // optional top level namespace
 
   bool proxy_flag;
   bool except_flag;
@@ -66,8 +67,106 @@ public:
     int_string(NewString("int")),
     create_object(0),
     destroy_object(0),
+    tl_namespace(NULL),
     proxy_flag(true),
     except_flag(true) {
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getProxyName()
+   *
+   * Test to see if a type corresponds to something wrapped with a proxy class.
+   * Return NULL if not otherwise the proxy class name, fully qualified with
+   * top level namespace name if the nspace feature is used.
+   * ----------------------------------------------------------------------------- */
+  
+   String *getProxyName(SwigType *n) {
+     String *proxyname = NULL;
+     String *symname = Getattr(n, "sym:name");
+     String *nspace = Getattr(n, "sym:nspace");
+
+     /* original java code
+     if (proxy_flag) {
+       Node *n = classLookup(t);
+       if (n) {
+         proxyname = Getattr(n, "proxyname");
+         if (!proxyname) {
+           String *nspace = Getattr(n, "sym:nspace");
+           String *symname = Getattr(n, "sym:name");
+           if (nspace) {
+             if (package)
+               proxyname = NewStringf("%s.%s.%s", package, nspace, symname);
+             else
+               proxyname = NewStringf("%s.%s", nspace, symname);
+           } else {
+             proxyname = Copy(symname);
+           }
+           Setattr(n, "proxyname", proxyname);
+           Delete(proxyname);
+         }
+       }
+     }*/
+
+     if (!proxy_flag || !n || (proxyname = Getattr(n, "proxyname")))
+        goto _get_proxyname_return;
+
+     if (nspace) {
+          proxyname = Swig_name_proxy(nspace, symname);
+          if (tl_namespace)
+            proxyname = Swig_name_proxy(tl_namespace, proxyname);
+     } else {
+          proxyname = Copy(symname);
+     }
+     Setattr(n, "proxyname", proxyname);
+     Delete(proxyname);
+
+     _get_proxyname_return:
+     return proxyname;
+   }
+
+  /* -----------------------------------------------------------------------------
+   * getEnumName()
+   *
+   * ----------------------------------------------------------------------------- */
+
+  String *getEnumName(SwigType *t, bool jnidescriptor) {
+    Node *enumname = NULL;
+    Node *n = enumLookup(t);
+    if (n) {
+      enumname = Getattr(n, "enumname");
+      if (!enumname || jnidescriptor) {
+        String *symname = Getattr(n, "sym:name");
+        if (symname) {
+          // Add in class scope when referencing enum if not a global enum
+          String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
+          String *proxyname = 0;
+          if (scopename_prefix) {
+            proxyname = getProxyName(scopename_prefix);
+          }
+          if (proxyname) {
+            enumname = NewStringf("%s_%s", proxyname, symname);
+          } else {
+            // global enum or enum in a namespace
+            String *nspace = Getattr(n, "sym:nspace");
+            if (nspace) {
+              if (tl_namespace)
+                enumname = NewStringf("%s_%s_%s", tl_namespace, nspace, symname);
+              else
+                enumname = NewStringf("%s_%s", nspace, symname);
+            } else {
+              enumname = Copy(symname);
+            }
+          }
+          if (!jnidescriptor) { // not cached
+            Setattr(n, "enumname", enumname);
+            Delete(enumname);
+          }
+          Delete(scopename_prefix);
+        }
+      }
+    }
+
+    return enumname;
   }
 
   /* ------------------------------------------------------------
@@ -216,6 +315,8 @@ public:
     Swig_register_filebyname("wrapper", f_wrappers);
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
+
+    Swig_name_register("proxyname", "%n_%v");
 
     Printf(f_wrappers, "#ifdef __cplusplus\n");
     Printf(f_wrappers, "extern \"C\" {\n");
@@ -587,6 +688,7 @@ ready:
     {
        SwigType *type = Getattr(n, "type");
        SwigType *return_type = NewString("");
+       //SwigType *ns = Getattr(n, "name");
        String *tm;
 
        // set the return type
@@ -666,6 +768,8 @@ ready:
             }
             else {
                  Printv(proxy_parm_type, c_parm_type, NIL);
+                 //FIXME: implement "convert_to_c_namespace"?
+                 Replaceall(proxy_parm_type, "::", "_");
             }
 
             Printv(proto, gencomma ? ", " : "", proxy_parm_type, " ", arg_name, NIL);
@@ -825,7 +929,6 @@ ready:
        Delete(pproto);
        Delete(wrapper_call);
        Delete(preturn_type);
-       Delete(name);
     }
 
   virtual SwigType *functionWrapperCPPSpecificWrapperSetReturnType(Node *n)
@@ -1113,7 +1216,8 @@ ready:
                  Setattr(parms, "c:objstruct", "1");
                  if (!Getattr(parms, "lname"))
                    Setattr(parms, "lname", "arg1");
-                 SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
+                 //SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
+                 SwigType *stype = Copy(getProxyName(parms));
                  SwigType_add_pointer(stype);
                  Setattr(parms, "c:stype", stype);
             }
@@ -1149,7 +1253,7 @@ ready:
        if (proxy_flag) // take care of proxy function
          functionWrapperCPPSpecificProxy(n, name);
 
-       //Delete(name);
+       Delete(name);
     }
 
   /* ----------------------------------------------------------------------
@@ -1227,7 +1331,8 @@ ready:
    * --------------------------------------------------------------------- */
 
   virtual int classHandler(Node *n) {
-    String *name = Getattr(n, "sym:name");
+    //String *name = Copy(Getattr(n, "sym:name"));
+    String *name = Copy(getProxyName(n));
     String *sobj = NewString("");
     List *baselist = Getattr(n, "bases");
 
@@ -1456,6 +1561,7 @@ ready:
     String *constr_name = NewString("");
     String *arg_lnames = NewString("");
     ParmList *parms = Getattr(n, "parms");
+    String *nspace = Getattr(klass, "sym:nspace");
 
     // prepare argument names
     Append(arg_lnames, Swig_cfunction_call(empty_string, parms));
@@ -1466,13 +1572,14 @@ ready:
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
     Setattr(n, "c:objstruct", "1");
-    stype = Copy(newclassname);
+    stype = Swig_name_proxy(nspace, newclassname);
     SwigType_add_pointer(stype);
     Setattr(n, "c:stype", stype);
 
-    // modify the constructor name
-    constr_name = Swig_name_construct(NSPACE_TODO, newclassname);
-    Setattr(n, "name", constr_name);
+    // Modify the constructor name if necessary
+    constr_name = Swig_name_construct(nspace, newclassname);
+
+    Setattr(n, "name", newclassname);
     Setattr(n, "sym:name", constr_name);
 
     // generate action code
@@ -1514,6 +1621,7 @@ ready:
     String *code = NewString("");
     String *constr_name = NewString("");
     ParmList *parms = Getattr(n, "parms");
+    String *nspace = Getattr(klass, "sym:nspace");
 
     Setattr(parms, "lname", "arg1");
 
@@ -1523,13 +1631,16 @@ ready:
     SwigType_add_pointer(ctype);
     Setattr(n, "type", ctype);
     Setattr(n, "c:objstruct", "1");
-    stype = Copy(newclassname);
+    stype = Swig_name_proxy(nspace, newclassname);
     SwigType_add_pointer(stype);
     Setattr(n, "c:stype", stype);
 
-    // modify the constructor name
-    constr_name = Swig_name_copyconstructor(NSPACE_TODO, newclassname);
-    Setattr(n, "name", constr_name);
+    // modify the constructor if necessary
+    constr_name = Swig_name_copyconstructor(nspace, newclassname);
+
+    //Setattr(n, "name", constr_name);
+    Setattr(n, "name", newclassname);
+    //Setattr(n, "sym:name", constr_name);
     Setattr(n, "sym:name", constr_name);
 
     // generate action code
@@ -1562,7 +1673,7 @@ ready:
 
   virtual int destructorHandler(Node *n) {
     Node *klass = Swig_methodclass(n);
-    String *classname = Getattr(klass, "name");
+    String *classname = Getattr(klass, "name");// Remove class namespace from constructor
     String *classtype = Getattr(klass, "classtype");
     String *newclassname = Getattr(klass, "sym:name");
     String *sobj_name = NewString("");
@@ -1570,6 +1681,7 @@ ready:
     String *stype;
     String *code = NewString("");
     String *destr_name = NewString("");
+    String *nspace = Getattr(klass, "sym:nspace");
     Parm *p;
 
     // create first argument
@@ -1578,15 +1690,17 @@ ready:
     SwigType_add_pointer(ctype);
     p = NewParm(ctype, "self", n);
     Setattr(p, "lname", "arg1");
-    stype = Copy(newclassname);
+    stype = Swig_name_proxy(nspace, newclassname);
     SwigType_add_pointer(stype);
     Setattr(p, "c:stype", stype);
     Setattr(p, "c:objstruct", "1");
     Setattr(n, "parms", p);
     Setattr(n, "type", "void");
 
-    // modify the destructor name
-    destr_name = Swig_name_destroy(NSPACE_TODO, newclassname);
+    // modify the destructor name if necessary
+    destr_name = Swig_name_destroy(nspace, newclassname);
+
+    Setattr(n, "name", NULL);
     Setattr(n, "sym:name", destr_name);
 
     // create action code
