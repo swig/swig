@@ -42,7 +42,7 @@ const int ignoredSimpleCommandsSize = sizeof(ignoredSimpleCommands) / sizeof(*ig
 const char *commandWords[] = {
   "a", "b", "c", "e", "em", "p", "def", "enum", "package", "relates", "namespace", "relatesalso", "anchor", "dontinclude", "include",
   "includelineno", "copydoc", "copybrief", "copydetails", "verbinclude", "htmlinclude", "extends", "implements", "memberof", "related",
-  "relatedalso"};
+  "relatedalso", "cite"};
 const int commandWordsSize = sizeof(commandWords) / sizeof(*commandWords);
 
 const char *ignoredCommandWords[] = {
@@ -59,7 +59,7 @@ const int ignoreCommandLinesSize = sizeof(ignoreCommandLines) / sizeof(*ignoreCo
 
 const char *commandParagraph[] = {
   "partofdescription", "result", "return", "returns", "remarks", "remark", "since", "test", "sa", "see", "pre", "post", "details", "invariant",
-  "deprecated", "date", "note", "warning", "version", "todo", "bug", "attention", "brief", "author", "authors", "cite",
+  "deprecated", "date", "note", "warning", "version", "todo", "bug", "attention", "brief", "author", "authors",
   "copyright", "short"};
 const int commandParagraphSize = sizeof(commandParagraph) / sizeof(*commandParagraph);
 
