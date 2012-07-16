@@ -24,7 +24,7 @@ and Python code (## comments, see Doxygen manual), if the user will
 prefer to use Doxygen on the generated code.
 
 Note:
-'--Done' tick below means that the item is implemented, commited and
+'-OK-' tick below means that the item is implemented, commited and
 working.
 
 Abbreviations:
@@ -43,11 +43,10 @@ Functionality
      the detailed description of Doxygen syntax and terms used in this
      section.
 
-  1. Only JavaDoc (/** */) and Qt (/*! */) styles of comment blocks
+  1. -OK- Only JavaDoc (/** */) and Qt (/*! */) styles of comment blocks
      will be supported by SWIG translator.
-     --Done
 
-  2. The following doc after members will be supported:
+  2. -OK- The following doc after members will be supported:
   
      int var; ///< Detailed description after the member
               //!< 
@@ -56,13 +55,11 @@ Functionality
 
      int var; ///< Brief description after the member
      
-     --Done
 
-  3. Only comments before or after declaration/definition will be
+  3. -OK- Only comments before or after declaration/definition will be
      supported. Comments with structural commands will be ignored
      (warning will be written). (What about writing them to
      'package.info.java' for JD?)
-     --Done
   
 
   Tags
@@ -265,6 +262,9 @@ Sometimes it needs a type of parameters specified because of the
 overloaded functions. And the same linking tags are supported in JD,
 but it has a completely different typesystem, so we need to translate
 the types of function parameters in comments also. For example:
+{@link MyClass#doSomething(const std::string &)}
+does not make sense in Java, so the type should be converted.
+{@link MyClass#doSomething(String)}
  
     
 Tests
@@ -272,30 +272,30 @@ Tests
 
 The following test cases will be implemented:
 
-- Class comments. --Done
+-OK- Class comments.
 
-- Struct comments. --Done
-- Enum comments. --Done
-- Function comments. --Done
-- Var comments. --Done
+-OK- Struct comments.
+-OK- Enum comments.
+-OK- Function comments.
+-OK- Var comments.
 
-- Class attributes, comment before and after declaration. --Done
-- Class methods, comment of parameters in function
-  comment. --Done
-- Class methods, comment of parameters
-  after parameter declaration. --Done
+-OK- Class attributes, comment before and after declaration.
+-OK- Class methods, comment of parameters in function
+  comment.
+-OK- Class methods, comment of parameters
+  after parameter declaration.
   
-- Struct attributes, comment before and after declaration. --Done
-- Struct methods, comment of parameters in function
-  comment. --Done
-- Struct methods, comment of parameters 
-  after parameter declaration. --Done
+-OK- Struct attributes, comment before and after declaration.
+-OK- Struct methods, comment of parameters in function
+  comment.
+-OK- Struct methods, comment of parameters 
+  after parameter declaration.
 
-- Enum items JD and Qt style, comment before items --Done
-- Enum items JD and Qt style, comment after items --Done
+-OK- Enum items JD and Qt style, comment before items
+-OK- Enum items JD and Qt style, comment after items
 
-- Class comment, with all supported tags.
-- Class comment, with all doxygen tags, including
+-OK- Class comment, with all supported tags.
+-OK- Class comment, with all doxygen tags, including
   ignored ones.
 
   
@@ -303,9 +303,9 @@ Refactoring
 ===========
 
 All the code in directory _DoxygenTranslator_ should be refactored:
-- all methods should be class members
-- most static methods should be normal members
-- replace C arrays of strings and sequential searches with STL data
+-OK- all methods should be class members
+-OK- most static methods should be normal members
+-OK- replace C arrays of strings and sequential searches with STL data
   structures and algorithms.
 - use singletons instead of class instantiaion for each comment found.
 
