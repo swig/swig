@@ -54,7 +54,7 @@
  *   This is printed if not
  * \endif
  * 
- * \image html testImage.bmp
+ * \image html testImage.bmp "Hello, world!" asd=10qwe
  * 
  * <ul>
  * 
@@ -68,6 +68,9 @@
  * 
  * \n \n \n
  * 
+ * \note Here
+ * is the note!
+ *
  * \overload
  * 
  * \p someword

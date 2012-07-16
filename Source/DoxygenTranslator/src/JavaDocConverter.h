@@ -27,42 +27,70 @@ public:
 
 protected:
   std::string formatCommand(std::string unformattedLine, int indent);
-  std::string javaDocFormat(DoxygenEntity & doxygenEntity);
   std::string translateSubtree(DoxygenEntity & doxygenEntity);
   void translateEntity(DoxygenEntity &tag, std::string &translatedComment);
   
   /*
    * Typedef for the function that handles one tag
+   * arg - some string argument to easily pass it through lookup table
    */
-  typedef void (*tagHandler)(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  typedef void (JavaDocConverter::*tagHandler)(DoxygenEntity &tag,
+      std::string &translatedComment, std::string &arg);
   /*
-   * Here comes various tag handlers
+   * Wrap the command data with the html tag
+   * arg - html tag, with no braces
    */
-  static void handleTagC(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
-  static void handleTagB(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
-  static void handleTagThrow(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
-  static void handleTagSeeAll(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  void handleTagHtml(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Just prints new line
+   */
+  void handleNewLine(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
   /*
    * Print the name of tag to the output, used for escape-commands
+   * arg - html-escaped variant, if not provided the command data is used
    */
-  static void handleTagChar(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  void handleTagChar(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
   /*
    * Do not translate and print as-is
+   * arg - the new tag name, if it needs to be renamed
    */
-  static void handleTagSame(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  void handleTagSame(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
   /*
    * Print only the content and strip original tag
    */
-  static void handleParagraph(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  void handleParagraph(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
   /*
    * Print only data part of code
    */
-  static void handlePlainString(JavaDocConverter *converter, DoxygenEntity &tag, std::string &translatedComment);
+  void handlePlainString(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Print extended Javadoc command, like {@code ...} or {@literal ...}
+   * arg - command name
+   */
+  void handleTagExtended(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Print the if-elseif-else-endif section
+   */
+  void handleTagIf(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Prints the specified message, than the contents of the tag
+   * arg - message
+   */
+  void handleTagMessage(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Insert <img src=... /> tag if the 'format' field is specified as 'html'
+   */
+  void handleTagImage(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Insert <p alt='title'>...</p>
+   */
+  void handleTagPar(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+
 
 private:
   bool debug;
-  static std::map<std::string, tagHandler> tagHandlers;
-  static std::map<std::string, std::string> escapeTable;
+  // this contains the handler pointer and one string argument
+  static std::map<std::string, std::pair<tagHandler, std::string> > tagHandlers;
   void fillStaticTables();
 };
 

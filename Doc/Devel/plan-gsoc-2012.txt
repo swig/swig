@@ -92,7 +92,7 @@ Functionality
     \category - ignored, used only in Objective C
     \cite - translated to <i></i> in JD, single quotes in PD
     \class - ignored (structural command)
-    \code - translated to <code></code> in JD, ignored in PD
+    \code - translated to {@code ...} in JD, ignored in PD
     \cond - translated to 'Conditional comment: <condition>'. Later
             SWIG may support definitions of conditions in config file.
     \copybrief - ignored. Later SWIG may support this command by
@@ -172,7 +172,7 @@ Functionality
     \namespace - included in package-info.java if nspace feature is enabled,
                  otherwise ignored, ignored in PD
     \nosubgrouping - ignored
-    \note - ignored in JD, translated to 'Note:' in PD
+    \note - translated to 'Note:' in both JD and PD
     \overload - prints 'This is an overloaded member function, provided for
                 convenience. It differs from the above function only in what
                 argument(s) it accepts.' to the output in both JD and PD
