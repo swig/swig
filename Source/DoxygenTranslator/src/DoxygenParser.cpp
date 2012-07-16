@@ -263,8 +263,8 @@ int DoxygenParser::addCommandWord(std::string theCommand, TokenList & tokList, s
 		cout << "Parsing " << theCommand << endl;
 	std::string name = getNextWord(tokList);
 	if (!name.empty()) {
-	    std::list < DoxygenEntity > aNewList;
-	    aNewList.push_back(DoxygenEntity("plainstd::string", name));
+    std::list < DoxygenEntity > aNewList;
+    aNewList.push_back(DoxygenEntity("plainstd::string", name));
 		doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 		return 1;
 	} else
@@ -393,7 +393,9 @@ int DoxygenParser::addCommandOWord(std::string theCommand, TokenList & tokList, 
 	if (noisy)
 		cout << "Parsing " << theCommand << endl;
 	std::string name = getNextWord(tokList);
-	doxyList.push_back(DoxygenEntity(theCommand, name));
+	std::list < DoxygenEntity > aNewList;
+  aNewList.push_back(DoxygenEntity("plainstd::string", name));
+	doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 	return 1;
 }
 
@@ -750,6 +752,7 @@ std::list < DoxygenEntity > DoxygenParser::parse(std::list < Token >::iterator e
 		if (noisy)
 			cout << "Parsing for phrase starting in:" << currToken.toString() << endl;
 		if (currToken.tokenType == END_LINE) {
+		  aNewList.push_back(DoxygenEntity("plainstd::endl"));
 			tokList.next();
 		} else if (currToken.tokenType == COMMAND) {
 			currCommand = findCommand(currToken.tokenString);
