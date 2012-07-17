@@ -331,7 +331,7 @@ int DoxygenParser::addCommandEndCommand(std::string theCommand, TokenList & tokL
 	}
 	std::list < DoxygenEntity > aNewList;
 	aNewList = parse(endCommand, tokList);
-    tokList.next();
+	tokList.next();
 	doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 	return 1;
 }
@@ -767,6 +767,12 @@ std::list < DoxygenEntity > DoxygenParser::parse(std::list < Token >::iterator e
 			}
 		} else if (currToken.tokenType == PLAINSTRING) {
 			addCommand(currPlainstringCommandType, tokList, aNewList);
+		}
+
+		if (endParsingIndex != tokList.end() && tokList.current() == tokList.end()) {
+		  // this could happen if we cant reach the original endParsingIndex
+		  tokList.printListError("Unexpected end of comment encountered");
+		  break;
 		}
 	}
 	return aNewList;
