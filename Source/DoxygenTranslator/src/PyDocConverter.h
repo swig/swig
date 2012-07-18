@@ -29,14 +29,6 @@ public:
   String *makeDocumentation(Node *node);
 
 protected:
-
-  /*
-   * Process the contents of the entity list producing a documentation string.
-   * @param node The parse tree node that the entity list relates to.
-   * @param entityList The entity list to process
-   */
-  std::string processEntityList(Node *node, std::list < DoxygenEntity > &entityList);
-
   /*
    * Format the doxygen comment relating to a function or method parameter
    * @param node The parse tree node that the parameter relates to.
@@ -61,7 +53,53 @@ protected:
   std::string justifyString(std::string unformattedLine, int indent = 0, int maxWidth = DOC_STRING_LENGTH);
 
   std::string translateSubtree(DoxygenEntity & doxygenEntity);
-  std::string translateEntity(Node *n, DoxygenEntity & doxyEntity);
+  void translateEntity(DoxygenEntity & doxyEntity, std::string &translatedComment);
+
+  /*
+   * Typedef for the function that handles one tag
+   * arg - some string argument to easily pass it through lookup table
+   */
+  typedef void (PyDocConverter::*tagHandler)(DoxygenEntity &tag,
+      std::string &translatedComment, std::string &arg);
+
+  /*
+   * Wrap the command data with the some string
+   * arg - string to wrap with, like '_' or '*'
+   */
+  void handleTagWrap(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Just prints new line
+   */
+  void handleNewLine(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Print the name of tag to the output, used for escape-commands
+   */
+  void handleTagChar(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Print only the content and strip original tag
+   */
+  void handleParagraph(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Print only data part of code
+   */
+  void handlePlainString(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Print the if-elseif-else-endif section
+   */
+  void handleTagIf(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Prints the specified message, than the contents of the tag
+   * arg - message
+   */
+  void handleTagMessage(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Insert 'Image: ...'
+   */
+  void handleTagImage(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Insert 'Title: ...'
+   */
+  void handleTagPar(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
   /*
    * Utility method to generate a diving line for a documentation string.
@@ -70,6 +108,13 @@ protected:
 
 private:
   bool debug;
+  // temporary thing, should be refactored somehow
+  Node *currentNode;
+  // this contains the handler pointer and one string argument
+  static std::map<std::string, std::pair<tagHandler, std::string> > tagHandlers;
+  // this cointains the sectins titiles, like 'Arguments:' or 'Notes:', that are printed only once
+  static std::map<std::string, std::string> sectionTitles;
+  void fillStaticTables();
 };
 
 #endif
