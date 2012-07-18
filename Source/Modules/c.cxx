@@ -111,6 +111,7 @@ public:
         goto _get_proxyname_return;
 
      if (nspace) {
+          Replaceall(nspace, ".", "_"); // Classes' namespaces get dotted -> replace; FIXME in core!
           proxyname = Swig_name_proxy(nspace, symname);
           if (tl_namespace)
             proxyname = Swig_name_proxy(tl_namespace, proxyname);
@@ -402,7 +403,10 @@ public:
     String *arg_list = NewString("");
     String *call = empty_string;
     String *cres = empty_string;
-    
+    String *nspaced_symname = Swig_name_mangle(Getattr(n, "name"));
+
+    Setattr(n, "sym:name", nspaced_symname);
+
     call = Swig_cfunction_call(Getattr(n, "name"), parms);
     cres = Swig_cresult(type, "result", call);
     Setattr(n, "wrap:action", cres);
@@ -768,8 +772,10 @@ ready:
             }
             else {
                  Printv(proxy_parm_type, c_parm_type, NIL);
-                 //FIXME: implement "convert_to_c_namespace"?
-                 Replaceall(proxy_parm_type, "::", "_");
+                 // Add namespace
+                 Replaceall(proxy_parm_type, "::", "_"); // FIXME: implement "convert_to_c_namespace"?
+                 if (strncmp(Char(proxy_parm_type), "_", 1) == 0) // Remove top level namespacing if necessary
+                  Replace(proxy_parm_type, "_", "", DOH_REPLACE_FIRST);
             }
 
             Printv(proto, gencomma ? ", " : "", proxy_parm_type, " ", arg_name, NIL);
