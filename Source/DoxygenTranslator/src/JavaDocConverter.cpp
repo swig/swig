@@ -102,6 +102,7 @@ JavaDocConverter::JavaDocConverter() : debug(false) {
 
 std::string JavaDocConverter::formatCommand(std::string unformattedLine, int indent) {
   std::string formattedLines;
+  return unformattedLine;
   int lastPosition = 0;
   int i = 0;
   int isFirstLine = 1;
@@ -203,7 +204,6 @@ void JavaDocConverter::handleTagIf(DoxygenEntity& tag, std::string& translatedCo
   translatedComment += arg;
   if (tag.entityList.size()) {
     translatedComment += tag.entityList.begin()->data;
-    //handleNewLine(tag, translatedComment, dummy);
     tag.entityList.pop_front();
     translatedComment += " {" + translateSubtree(tag) + "}";
   }
