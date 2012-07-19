@@ -25,10 +25,14 @@ void PyDocConverter::fillStaticTables() {
   if (tagHandlers.size()) // fill only once
     return;
 
+  // table of section titles, they are printed only once
+  // for each group of specified doxygen commands
   sectionTitles["author"] = "Authors:";
   sectionTitles["authors"] = "Authors:";
   sectionTitles["copyright"] = "Copyright:";
   sectionTitles["deprecated"] = "Deprecated:";
+  sectionTitles["example"] = "Example:";
+  sectionTitles["exception"] = "Throws:";
   sectionTitles["param"] = "Arguments:";
   sectionTitles["tparam"] = "Arguments:";
   sectionTitles["note"] = "Notes:";
@@ -38,6 +42,13 @@ void PyDocConverter::fillStaticTables() {
   sectionTitles["result"] = "Return:";
   sectionTitles["return"] = "Return:";
   sectionTitles["returns"] = "Return:";
+  sectionTitles["sa"] = "See also:";
+  sectionTitles["see"] = "See also:";
+  sectionTitles["since"] = "Since:";
+  sectionTitles["throw"] = "Throws:";
+  sectionTitles["throws"] = "Throws:";
+  sectionTitles["todo"] = "TODO:";
+  sectionTitles["version"] = "Version:";
 
   // these commands insert HTML tags
   tagHandlers["a"] = make_pair(&PyDocConverter::handleTagWrap, "_");
@@ -57,25 +68,22 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["\""] = make_pair(&PyDocConverter::handleTagChar, "");
   tagHandlers["."] = make_pair(&PyDocConverter::handleTagChar, "");
   tagHandlers["::"] = make_pair(&PyDocConverter::handleTagChar, "");
-  // these commands are stripped out
-  tagHandlers["attention"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["author"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["authors"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["brief"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["c"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["code"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["copyright"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["date"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["deprecated"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["details"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["note"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["partofdescription"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["remark"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["remarks"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["warning"] = make_pair(&PyDocConverter::handleParagraph, "");
   // these commands have special handlers
+  tagHandlers["arg"] = make_pair(&PyDocConverter::handleTagMessage, " -");
   tagHandlers["cond"] = make_pair(&PyDocConverter::handleTagMessage, "Conditional comment: ");
+  tagHandlers["else"] = make_pair(&PyDocConverter::handleTagIf, "Else: ");
+  tagHandlers["elseif"] = make_pair(&PyDocConverter::handleTagIf, "Else if: ");
   tagHandlers["endcond"] = make_pair(&PyDocConverter::handleTagMessage, "End of conditional comment.");
+  tagHandlers["if"] = make_pair(&PyDocConverter::handleTagIf, "If: ");
+  tagHandlers["ifnot"] = make_pair(&PyDocConverter::handleTagIf, "If not: ");
+  tagHandlers["image"] = make_pair(&PyDocConverter::handleTagMessage, "Image: ");
+  tagHandlers["li"] = make_pair(&PyDocConverter::handleTagMessage, " -");
+  tagHandlers["overload"] = make_pair(&PyDocConverter::handleTagMessage, "This is an overloaded member function, provided for"
+      " convenience.\nIt differs from the above function only in what"
+      " argument(s) it accepts.");
+  tagHandlers["par"] = make_pair(&PyDocConverter::handleTagPar, "");
+  tagHandlers["param"] = make_pair(&PyDocConverter::handleTagParam, "");
+  tagHandlers["tparam"] = make_pair(&PyDocConverter::handleTagParam, "");
   // this command just prints it's contents
   // (it is internal command of swig's parser, contains plain text)
   tagHandlers["plainstd::string"] = make_pair(&PyDocConverter::handlePlainString, "");
@@ -87,38 +95,13 @@ PyDocConverter::PyDocConverter() : debug(false) {
   fillStaticTables();
 }
 
-std::string PyDocConverter::formatParam(Node *n, DoxygenEntity & doxygenEntity) {
-
-  if (doxygenEntity.entityList.size() < 2) {
-    /* if 'paramDescriptionEntity' is not there, ignore param. Better than crash!
-       TODO: log error! */
-
-    return "";
-  }
-
-  ParmList *plist = CopyParmList(Getattr(n, "parms"));
+std::string PyDocConverter::getParamType(std::string param) {
+  ParmList *plist = CopyParmList(Getattr(currentNode, "parms"));
   Parm *p = NULL;
-
-  DoxygenEntity & paramNameEntity = *doxygenEntity.entityList.begin();
-  DoxygenEntity & paramDescriptionEntity = *(++doxygenEntity.entityList.begin());
-
-  std::string result;
-  std::string paramDescription = justifyString(paramDescriptionEntity.data, DOC_PARAM_STRING_LENGTH);
-
   for (p = plist; p;) {
-    
-    //Swig_print(p, 1);
-    if (Char(Getattr(p, "name")) == paramNameEntity.data) {
-      std::string name = Char(Swig_name_make(n, 0, Getattr(p, "name"), 0, 0));
-      std::string type = Char(Swig_name_make(n, 0, Getattr(p, "type"), 0, 0));
-
-      result = name + " (" + type + ") ";
-      if (result.size() < (DOC_PARAM_STRING_LENGTH - 3)) {
-	/* do not cut info away - it is better to have not so nice output than type information missing. */
-	result.resize(DOC_PARAM_STRING_LENGTH - 3, ' ');
-      }
-      result += "-- " + paramDescription.substr(DOC_PARAM_STRING_LENGTH);
-      break;
+    if (Char(Getattr(p, "name")) == param) {
+      std::string type = Char(Swig_name_make(currentNode, 0, Getattr(p, "type"), 0, 0));
+      return type;
     }
     /*
      * doesn't seem to work always: in some cases (especially for 'self' parameters)
@@ -127,18 +110,12 @@ std::string PyDocConverter::formatParam(Node *n, DoxygenEntity & doxygenEntity) 
     //p = Getattr(p, "tmap:in") ? Getattr(p, "tmap:in:next") : nextSibling(p);
     p = nextSibling(p);
   }
-
   Delete(plist);
-  return result;
-}
-
-std::string PyDocConverter::formatReturnDescription(Node *node, DoxygenEntity & doxygenEntity) {
-#pragma unused(node)
-  return "\nResult:\n" + justifyString(translateSubtree(doxygenEntity));
+  return "";
 }
 
 std::string PyDocConverter::justifyString(std::string documentString, int indent, int maxWidth) {
-  std::ostringstream formattedString;
+  std::string formattedString;
   std::string currentLine;
 
   for (std::string::iterator stringPosition = documentString.begin(); stringPosition != documentString.end(); ++stringPosition) {
@@ -147,13 +124,17 @@ std::string PyDocConverter::justifyString(std::string documentString, int indent
 
     currentLine += *stringPosition;
 
-    if (*stringPosition == ' ' && (int) currentLine.size() >= maxWidth || (stringPosition + 1) == documentString.end()) {
-      formattedString << currentLine << std::endl;
+    if (iswspace(*stringPosition) && (int) currentLine.size() >= maxWidth || (stringPosition + 1) == documentString.end()) {
+      formattedString += currentLine + "\n";
       currentLine = "";
     }
   }
 
-  return formattedString.str();
+  // strip the last endl
+  if (formattedString.size())
+    formattedString = formattedString.substr(0, formattedString.size() - 1);
+
+  return formattedString;
 }
 
 std::string PyDocConverter::translateSubtree(DoxygenEntity & doxygenEntity) {
@@ -183,14 +164,17 @@ std::string PyDocConverter::translateSubtree(DoxygenEntity & doxygenEntity) {
 
 void PyDocConverter::translateEntity(DoxygenEntity & doxyEntity, std::string &translatedComment) {
   // check if we have needed handler and call it
+  std::string dummy;
   std::map<std::string, std::pair<tagHandler, std::string > >::iterator it;
   it = tagHandlers.find(doxyEntity.typeOfEntity);
   if (it!=tagHandlers.end())
     (this->*(it->second.first))(doxyEntity, translatedComment, it->second.second);
+  else
+    handleParagraph(doxyEntity, translatedComment, dummy);
 }
 
 void PyDocConverter::handleParagraph(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
-  translatedComment += translateSubtree(tag);
+  translatedComment += justifyString(translateSubtree(tag), 0);
 }
 void PyDocConverter::handlePlainString(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   translatedComment += tag.data;
@@ -205,6 +189,42 @@ void PyDocConverter::handleTagMessage(DoxygenEntity& tag, std::string& translate
 void PyDocConverter::handleTagChar(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   translatedComment += tag.typeOfEntity;
 }
+void PyDocConverter::handleTagIf(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+  std::string dummy;
+  translatedComment += arg;
+  if (tag.entityList.size()) {
+    translatedComment += tag.entityList.begin()->data;
+    tag.entityList.pop_front();
+    translatedComment += " {" + translateSubtree(tag) + "}";
+  }
+}
+void PyDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+  std::string dummy;
+  translatedComment += "Title: ";
+  if (tag.entityList.size())
+    translatedComment += tag.entityList.begin()->data;
+  tag.entityList.pop_front();
+  handleParagraph(tag, translatedComment, dummy);
+}
+void PyDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+  std::string dummy;
+  if (tag.entityList.size() < 2) {
+    // TODO: log error
+    return;
+  }
+  DoxygenEntity paramNameEntity = *tag.entityList.begin();
+  std::string paramDescription = "-- ";
+
+  tag.entityList.pop_front();
+  handleParagraph(tag, paramDescription, dummy);
+  paramDescription = justifyString(paramDescription, DOC_PARAM_STRING_LENGTH);
+
+  std::string paramType = getParamType(paramNameEntity.data);
+  if (!paramType.size())
+    paramType = "none";
+
+  translatedComment += paramNameEntity.data + " (" + paramType + ")" + paramDescription;
+}
 void PyDocConverter::handleTagWrap(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   if (tag.entityList.size()) // do not include empty tags
     translatedComment += arg + translateSubtree(tag) + arg;
@@ -216,6 +236,9 @@ void PyDocConverter::handleNewLine(DoxygenEntity& tag, std::string& translatedCo
 String *PyDocConverter::makeDocumentation(Node *n) {
   String *documentation;
   std::string pyDocString, result;
+
+  // store the node, we may need it later
+  currentNode = n;
 
   // for overloaded functions we must concat documentation for underlying overloads
   if (Checkattr(n, "kind", "function") && Getattr(n, "sym:overloaded")) {
@@ -240,7 +263,7 @@ String *PyDocConverter::makeDocumentation(Node *n) {
     if (allDocumentation.size() > 1) {
       std::ostringstream concatDocString;
       for (int realOverloadCount = 0; realOverloadCount < (int) allDocumentation.size(); realOverloadCount++) {
-        concatDocString << generateDivider();
+        concatDocString << generateDivider() << std::endl;
         concatDocString << "Overload " << (realOverloadCount + 1) << ":" << std::endl;
         concatDocString << generateDivider();
         concatDocString << allDocumentation[realOverloadCount] << std::endl;
@@ -277,6 +300,6 @@ String *PyDocConverter::makeDocumentation(Node *n) {
 }
 
 std::string PyDocConverter::generateDivider() {
-  static string dividerString('-', DOC_STRING_LENGTH);
+  static string dividerString(DOC_STRING_LENGTH, '-');
   return dividerString;
 }

@@ -30,20 +30,6 @@ public:
 
 protected:
   /*
-   * Format the doxygen comment relating to a function or method parameter
-   * @param node The parse tree node that the parameter relates to.
-   * @param doxygenEntity The doxygen entity relating to the parameter docstring.
-   */
-  std::string formatParam(Node *node, DoxygenEntity & doxygenEntity);
-
-  /*
-   * Format the doxygen comment relating to the return value for a method or function.
-   * @param node The parse tree node that the parameter relates to.
-   * @param doxygenEntity The doxygen entity relating to the parameter docstring.
-   */
-  std::string formatReturnDescription(Node *node, DoxygenEntity & doxygenEntity);
-
-  /*
    * Format a string so it is justified and split over several lines 
    * not exeeding a given length.
    * @param unformattedLine The string to justify and split.
@@ -51,8 +37,16 @@ protected:
    * @param maxWidth The approximate maximum line width.
    */
   std::string justifyString(std::string unformattedLine, int indent = 0, int maxWidth = DOC_STRING_LENGTH);
-
+  /*
+   * Translate every entity in a tree, also manages sections
+   * display. Prints title for every group of tags that have
+   * a section title associated with them
+   */
   std::string translateSubtree(DoxygenEntity & doxygenEntity);
+  /*
+   * Translate one entity with the appropriate handler, acording
+   * to the tagHandlers
+   */
   void translateEntity(DoxygenEntity & doxyEntity, std::string &translatedComment);
 
   /*
@@ -93,18 +87,25 @@ protected:
    */
   void handleTagMessage(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
   /*
-   * Insert 'Image: ...'
-   */
-  void handleTagImage(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
-  /*
    * Insert 'Title: ...'
    */
   void handleTagPar(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Format nice param description with type information
+   */
+  void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
   /*
    * Utility method to generate a diving line for a documentation string.
    */
   std::string generateDivider();
+
+  /*
+   * Simple helper function that calculates correct parameter type
+   * of the node stored in 'currentNode'
+   * If param with specified name is not found, empty string is returned
+   */
+  std::string getParamType(std::string name);
 
 private:
   bool debug;
