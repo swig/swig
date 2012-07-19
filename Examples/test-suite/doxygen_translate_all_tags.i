@@ -1,4 +1,4 @@
-%module doxygen_translate
+%module doxygen_translate_all_tags
 
 %inline %{
 

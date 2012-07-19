@@ -188,7 +188,9 @@ CPP_TEST_CASES += \
 	director_wombat \
 	disown \
 	doxygen_parsing \
+	doxygen_basic_translate \
 	doxygen_translate \
+	doxygen_translate_all_tags \
 	dynamic_cast \
 	empty \
 	enum_rename \
