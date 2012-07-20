@@ -4,6 +4,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.8 (in progress)
 ===========================
+2012-07-20: kwwette
+            [Octave] segfault-on-exit prevention hack now preserves exit status, and uses C99 _Exit().
+
 2012-06-25: wsfulton
             Fix using declarations combined with using directives so that types are correctly found in scope.
             Example:
