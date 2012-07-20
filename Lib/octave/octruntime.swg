@@ -1,4 +1,5 @@
 %insert(runtime) %{
+#include <cstdlib>
 #include <iostream>
 #include <octave/oct.h>
 #include <octave/Cell.h>
@@ -120,24 +121,6 @@ DEFUN_DLD( swig_this, args, nargout, swig_this_usage ) {
   return octave_value(octave_uint64((unsigned long long) ost->swig_this()));
 }
 
-// workaround to prevent octave seg-faulting on exit: register at-exit
-// function which exits octave immediately without trying to cleanup memory.
-// definitely affects version 3.2.*, not sure about 3.3.*, seems to be
-// fixed in version 3.4.* and above. can be turned on/off with macros.
-#ifndef SWIG_OCTAVE_NO_SEGFAULT_HACK
-#if 36 < OCTAVE_API_VERSION_NUMBER && OCTAVE_API_VERSION_NUMBER < 45
-#define SWIG_OCTAVE_SEGFAULT_HACK
-#endif
-#endif
-#ifdef SWIG_OCTAVE_SEGFAULT_HACK
-#define _SWIG_OCT_SEGF_HACK_ATEXIT_FCN(NAME) SWIG_OCT_SEGF_HACK_ATEXIT_FCN_##NAME
-#define SWIG_OCT_SEGF_HACK_ATEXIT_FCN(NAME) _SWIG_OCT_SEGF_HACK_ATEXIT_FCN(NAME)
-#include <cstdlib>
-void SWIG_OCT_SEGF_HACK_ATEXIT_FCN(SWIG_name)(void) {
-  _Exit(exit_status);
-}
-#endif
-
 static const char *const SWIG_name_usage = "-*- texinfo -*- \n\
 @deftypefn {Loadable Module} {} " SWIG_name_d "\n\
 Loads the SWIG-generated module `" SWIG_name_d "'.\n\
@@ -164,8 +147,14 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
   // create module on first function call
   if (!module_ns) {
 
-#ifdef SWIG_OCTAVE_SEGFAULT_HACK
-    atexit(SWIG_OCT_SEGF_HACK_ATEXIT_FCN(SWIG_name));
+    // workaround to prevent octave seg-faulting on exit: set Octave exit function
+    // octave_exit to _Exit, which exits immediately without trying to cleanup memory.
+    // definitely affects version 3.2.*, not sure about 3.3.*, seems to be
+    // fixed in version 3.4.* and above. can be turned off with macro def.
+#ifndef SWIG_OCTAVE_NO_SEGFAULT_HACK
+#if 36 < OCTAVE_API_VERSION_NUMBER && OCTAVE_API_VERSION_NUMBER < 45
+    octave_exit = ::_Exit;
+#endif
 #endif
 
     // workaround bug in octave where installing global variable of custom type and then
