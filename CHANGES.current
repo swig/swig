@@ -4,6 +4,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.8 (in progress)
 ===========================
+2012-06-27: wsfulton
+            Fix gdb debugger functions 'swigprint' and 'locswigprint' to display to the gdb output window
+            rather than stdout. This fixes display problems in gdbtui and the ensures the output
+            appears where expected in other gdb based debuggers such as Eclipse CDT.
+
 2012-07-20: kwwette
             [Octave] segfault-on-exit prevention hack now preserves exit status, and uses C99 _Exit().
 
