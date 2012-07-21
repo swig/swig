@@ -297,7 +297,7 @@ void SwigType_inherit_scope(Typetab *scope) {
 
 void SwigType_scope_alias(String *aliasname, Typetab *ttab) {
   String *q;
-  /*  Printf(stdout,"alias: '%s' '%x'\n", aliasname, ttab); */
+  /*  Printf(stdout,"alias: '%s' '%p'\n", aliasname, ttab); */
   q = SwigType_scope_name(current_scope);
   if (Len(q)) {
     Append(q, "::");
@@ -398,13 +398,13 @@ void SwigType_print_scope(void) {
     Printf(stdout, "-------------------------------------------------------------\n");
     ttab = Getattr(i.item, "typetab");
 
-    Printf(stdout, "Type scope '%s' (%x)\n", i.key, i.item);
+    Printf(stdout, "Type scope '%s' (%p)\n", i.key, i.item);
     {
       List *inherit = Getattr(i.item, "inherit");
       if (inherit) {
 	Iterator j;
 	for (j = First(inherit); j.item; j = Next(j)) {
-	  Printf(stdout, "    Inherits from '%s' (%x)\n", Getattr(j.item, "qname"), j.item);
+	  Printf(stdout, "    Inherits from '%s' (%p)\n", Getattr(j.item, "qname"), j.item);
 	}
       }
     }
@@ -1114,14 +1114,14 @@ int SwigType_typedef_using(const_String_or_char_ptr name) {
 
   /* See if the using name is a scope */
   /*  tt = SwigType_find_scope(current_scope,name);
-     Printf(stdout,"tt = %x, name = '%s'\n", tt, name); */
+     Printf(stdout,"tt = %p, name = '%s'\n", tt, name); */
 
   /* We set up a typedef  B --> A::B */
   Setattr(current_typetab, base, name);
 
   /* Find the scope name where the symbol is defined */
   td = SwigType_typedef_resolve(name);
-  /*  Printf(stdout,"td = '%s' %x\n", td, resolved_scope); */
+  /*  Printf(stdout,"td = '%s' %p\n", td, resolved_scope); */
   if (resolved_scope) {
     defined_name = Getattr(resolved_scope, "qname");
     if (defined_name) {
@@ -1803,13 +1803,13 @@ void SwigType_inherit_equiv(File *out) {
       Append(rlist, ck.key);
     }
     /*    Printf(stdout,"rk.key = '%s'\n", rk.key);
-       Printf(stdout,"rh = %x '%s'\n", rh,rh); */
+       Printf(stdout,"rh = %p '%s'\n", rh,rh); */
 
     bk = First(sub);
     while (bk.key) {
       prefix = SwigType_prefix(rk.key);
       Append(prefix, bk.key);
-      /*      Printf(stdout,"set %x = '%s' : '%s'\n", rh, SwigType_manglestr(prefix),prefix); */
+      /*      Printf(stdout,"set %p = '%s' : '%s'\n", rh, SwigType_manglestr(prefix),prefix); */
       mprefix = SwigType_manglestr(prefix);
       Setattr(rh, mprefix, prefix);
       mkey = SwigType_manglestr(rk.key);

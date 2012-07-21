@@ -2030,7 +2030,7 @@ MODULA3():
 	      if (oldname != NIL) {
 		Swig_warning(WARN_MODULA3_BAD_ENUMERATION, input_file, line_number, "The value <%s> is already assigned to <%s>.\n", value, oldname);
 	      }
-//printf("items %lx, set %s = %s\n", (long) items, Char(newvalue), Char(m3name));
+//printf("items %p, set %s = %s\n", items, Char(newvalue), Char(m3name));
 	      Setattr(items, newvalue, m3name);
 	      if (max < numvalue) {
 		max = numvalue;

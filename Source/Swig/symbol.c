@@ -549,7 +549,7 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
     Delete(cname);
   }
 #ifdef SWIG_DEBUG
-  Printf(stderr, "symbol_cadd %s %x\n", name, n);
+  Printf(stderr, "symbol_cadd %s %p\n", name, n);
 #endif
   cn = Getattr(ccurrent, name);
 
@@ -934,7 +934,7 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
   n = Getattr(sym, name);
 
 #ifdef SWIG_DEBUG
-  Printf(stderr, "symbol_look %s %x %x %s\n", name, n, symtab, Getattr(symtab, "name"));
+  Printf(stderr, "symbol_look %s %p %p %s\n", name, n, symtab, Getattr(symtab, "name"));
 #endif
 
   if (n) {
@@ -1437,7 +1437,7 @@ String *Swig_symbol_qualified(Node *n) {
   if (!symtab)
     return NewStringEmpty();
 #ifdef SWIG_DEBUG
-  Printf(stderr, "symbol_qscope %s %x %s\n", Getattr(n, "name"), symtab, Getattr(symtab, "name"));
+  Printf(stderr, "symbol_qscope %s %p %s\n", Getattr(n, "name"), symtab, Getattr(symtab, "name"));
 #endif
   return Swig_symbol_qualifiedscopename(symtab);
 }
@@ -1557,7 +1557,7 @@ SwigType *Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
 	Clear(e);
 	Append(e, name);
 #ifdef SWIG_DEBUG
-	Printf(stderr, "symbol_qual_ei %d %s %s %x\n", i, name, e, st);
+	Printf(stderr, "symbol_qual_ei %d %s %s %p\n", i, name, e, st);
 #endif
 	if (!Swig_scopename_check(name)) {
 	  String *qname = Swig_symbol_qualified(n);
@@ -1566,7 +1566,7 @@ SwigType *Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
 	    Insert(e, 0, qname);
 	  }
 #ifdef SWIG_DEBUG
-	  Printf(stderr, "symbol_qual_sc %d %s %s %x\n", i, qname, e, st);
+	  Printf(stderr, "symbol_qual_sc %d %s %s %p\n", i, qname, e, st);
 #endif
 	  Delete(qname);
 	}
@@ -1604,7 +1604,7 @@ SwigType *Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
   }
   Delete(elements);
 #ifdef SWIG_DEBUG
-  Printf(stderr, "symbol_qualify %s %s %x %s\n", t, result, st, st ? Getattr(st, "name") : 0);
+  Printf(stderr, "symbol_qualify %s %s %p %s\n", t, result, st, st ? Getattr(st, "name") : 0);
 #endif
 
   return result;

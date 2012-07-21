@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.8 (in progress)
 ===========================
 2012-06-27: wsfulton
+            Fix display of pointers in various places on 64 bit systems - only 32 bits were being shown.
+
+2012-06-27: wsfulton
             Fix gdb debugger functions 'swigprint' and 'locswigprint' to display to the gdb output window
             rather than stdout. This fixes display problems in gdbtui and the ensures the output
             appears where expected in other gdb based debuggers such as Eclipse CDT.

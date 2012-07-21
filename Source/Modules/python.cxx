@@ -3809,7 +3809,7 @@ public:
 	if (new_repr) {
 	  Printv(f_shadow_file, tab4, "__repr__ = _swig_repr\n", NIL);
 	} else {
-	  Printv(f_shadow_file, tab4, "def __repr__(self):\n", tab8, "return \"<C ", rname, " instance at 0x%x>\" % (self.this,)\n", NIL);
+	  Printv(f_shadow_file, tab4, "def __repr__(self):\n", tab8, "return \"<C ", rname, " instance at %p>\" % (self.this,)\n", NIL);
 	}
 	Delete(rname);
       }

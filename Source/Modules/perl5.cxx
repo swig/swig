@@ -132,7 +132,7 @@ public:
   Node *is_shadow(SwigType *t) {
     Node *n;
     n = classLookup(t);
-    /*  Printf(stdout,"'%s' --> '%x'\n", t, n); */
+    /*  Printf(stdout,"'%s' --> '%p'\n", t, n); */
     if (n) {
       if (!Getattr(n, "perl5:proxy")) {
 	setclassname(n);

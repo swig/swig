@@ -310,7 +310,7 @@ public:
 	  close_paren();
 	} else {
 	  // What is it?
-	  Printf(out, "#<DOH %s %x>", ObjType(obj)->objname, obj);
+	  Printf(out, "#<DOH %s %p>", ObjType(obj)->objname, obj);
 	}
       }
     }

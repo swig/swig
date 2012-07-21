@@ -671,7 +671,7 @@ int CFFI::enumDeclaration(Node *n) {
 void CFFI::emit_class(Node *n) {
 
 #ifdef CFFI_WRAP_DEBUG
-  Printf(stderr, "emit_class: ENTER... '%s'(%x)\n", Getattr(n, "sym:name"), n);
+  Printf(stderr, "emit_class: ENTER... '%s'(%p)\n", Getattr(n, "sym:name"), n);
 #endif
 
   String *name = Getattr(n, "sym:name");
