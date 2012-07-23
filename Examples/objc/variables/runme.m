@@ -16,8 +16,8 @@ int main(int argc, char* argv[]) {
 	setCvar('S');
 	setFvar(3.14159);		 
 	setStrvar(@"Hello World");
-	setIptrvar(new_int(37));
-	setPtptr(new_Point(37,42));
+	setIptrvar(ObjcNew_int(37));
+	setPtptr(ObjcNew_TPoint(37,42));
 	setName(@"Bill");
 	
 	//Now print out the values of variables
@@ -36,33 +36,30 @@ int main(int argc, char* argv[]) {
 	NSLog(@"dvar      = %g\n", getDvar());
 	NSLog(@"cvar      = %c\n", getCvar());
 	NSLog(@"strvar    = %@\n", getStrvar());
-	getIptrvar();
+	NSLog(@"iptrvar    =%p\n", getIptrvar());
 	NSLog(@"name      = %@\n", getName());
-	NSLog(@"ptptr     = %@\n", Point_print(getPtptr()));
+	NSLog(@"ptptr     = %p %@\n", getPtptr(), ObjcTPoint_print(getPtptr()));	
+        NSLog(@"pt        ="); ObjcPt_print();
+	NSLog(@"status    = %d\n", getStatus());
 	
 	
 	NSLog(@"\nVariables (values printed from C)\n");
-	print_vars();
+	ObjcPrint_vars();
 	
-	NSLog(@"\nNow I'm going to try and modify some read only variables\n");
-	NSLog(@"     Tring to set 'path'\n");
-	
-	NSLog(@"  'path is' %@",getPath());
-	
-	
-	NSLog(@"     Trying to set 'status '\n");
-	NSLog(@"  'Status is' %i",getStatus());
-	
+        // This line would not compile: since status is marked with
+	// %immutable, there is no SetStatus function.
+	// NSLog(@"\nNow I'm going to try and modify some read only variables")
+	// setStatus(0)
+		
 	NSLog(@"\nI'm going to try and update a structure variable.\n");
 	
-	setPt(getPtptr());
+	setPt((struct SWIGTYPE_TPoint*)getPtptr());
 	
 	NSLog(@"The new value is \n");
 	
-	pt_print();
-	
-	NSLog(@"You should see the value %@",Point_print(getPtptr())); 
-	
-	[pool drain];
+	ObjcPt_print();
+	NSLog(@"You should see the value %@",ObjcTPoint_print(getPtptr())); 
+        
+        [pool drain];
 	return 0;
 }

@@ -13,18 +13,18 @@ int main(int argc, char* argv[]) {
  	NSLog(@"speed::WARP =%d", WARP);
  	NSLog(@"speed::LUDICROUS =%d", LUDICROUS);
 
-	NSLog(@"\nTesting use of enums with functions\n");
-
-	enum_test(RED, IMPULSE);
-  	enum_test(BLUE, WARP);
-  	enum_test(GREEN, LUDICROUS);
-
+	NSLog(@"\nTesting use of enums with global function\n");
+	ObjcEnum_test(RED, IMPULSE);
+  	ObjcEnum_test(BLUE, WARP);
+  	ObjcEnum_test(GREEN, LUDICROUS);
+   
   	NSLog(@"\nTesting use of enum with class method" );
   	Foo* f = [[Foo alloc] init];
 
   	[f enum_test:IMPULSE];
   	[f enum_test:WARP];
   	[f enum_test:LUDICROUS];
-    [f release];
-	return 0;
+        [f release];
+	
+       return 0;
 }

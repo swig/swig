@@ -18,11 +18,12 @@ extern char             cvar;
 extern float            fvar;
 extern double           dvar;
 extern char            *strvar;
+//extern const char       cstrvar[];
 extern int             *iptrvar;
 extern char             name[256];
 
-extern _Point           *ptptr;
-extern _Point            pt;
+extern TPoint           *ptptr;
+extern TPoint            pt;
 %}
 
 
@@ -41,8 +42,8 @@ extern char path[256];
 %inline %{
 extern void  print_vars();
 extern int  *new_int(int value);
-extern _Point *new_Point(int x, int y);
-extern char  *Point_print(_Point *p);
+extern TPoint *new_TPoint(int x, int y);
+extern char  *TPoint_print(TPoint *p);
 extern void  pt_print();
 %}
 

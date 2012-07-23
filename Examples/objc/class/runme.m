@@ -2,16 +2,60 @@
 #import "example_proxy.h"
 
 int main(int argc, char* argv[]) {
-   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-   Circle *c = [[Circle alloc] initWithR: 2.0];
-   NSLog(@"Area of circle is %f\n", [c area]);
-   [c move:4 dy:5];
-   
-   Square *s = [[Square alloc] initWithW: 3.0];
-   NSLog(@"Perimiter of the square is %f\n", [s perimeter]);
-   NSLog(@"Number of shapes created = %d", [Shape getNshapes]);
-   [c release];
-   [s release];
-   [pool release];
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+    // ----- Object creation -----
+    NSLog(@"Creating some objects:" );
+    Circle *c = [[Circle alloc] initWithR: 10];
+    NSLog(@"Created circle %@", c );
+
+    Square *s = [[Square alloc] initWithW: 10];
+    NSLog(@"Created square %@", s );
+
+    // ----- Access a static member -----
+    NSLog(@"\nA total of %d shapes were created", [Shape getNshapes]);
+
+
+    // ----- Member data access -----
+    // Notice how we can do this using functions specific to
+    // the 'Circle' class.
+    [c setX: 20];
+    [c setY: 30];
+
+
+    // Now use the same functions in the base class
+    Shape *shape = s;
+    [shape setX: -10];
+    [shape setY: 5];
+
+    NSLog(@"\nHere is their current position:" );
+    NSLog(@"Circle = (%f, %f)",[c getX], [c getY]);
+    NSLog(@"Square = (%f, %f)",[s getX], [s getY]);
+    
+    // ----- Call some methods -----
+    NSLog(@"\nHere are some properties of the shapes:" );
+    NSMutableArray *shapes = [[NSMutableArray alloc] init];
+    [shapes addObject: c];
+    [shapes addObject: s];
+
+    // Notice how the area() and perimeter() functions really
+    // invoke the appropriate virtual method on each object.
+	for (Shape* obj in shapes) 
+    {
+        NSLog(@"Shape: %@", obj);
+        NSLog(@"area      = %f", [obj area]);
+        NSLog(@"perimeter = %f", [obj perimeter]);
+    }
+
+    // ----- Delete everything -----
+    // Note: this invokes the virtual destructor
+    // You could leave this to the garbage collector
+    [c release];
+    [s release];
+    NSLog(@"%d shapes remain", [Shape getNshapes]);
+
+    [shapes release];
+    [pool release];
    return 0;
-}
+ }
+

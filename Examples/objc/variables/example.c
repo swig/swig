@@ -30,8 +30,8 @@ char             path[256] = "/home/beazley";
 
 
 /* Global variables involving a structure */
-_Point           *ptptr = 0;
-_Point            pt = { 10, 20 };
+TPoint           *ptptr = 0;
+TPoint            pt = { 10, 20 };
 
 /* A variable that we will make read-only in the interface */
 int              status = 1;
@@ -67,16 +67,16 @@ int *new_int(int value) {
   return ip;
 }
 
-/* A function to create a _Point */
+/* A function to create a Point */
 
-_Point *new_Point(int x, int y) {
-  _Point *p = (_Point *) malloc(sizeof(_Point));
+TPoint *new_TPoint(int x, int y) {
+  TPoint *p = (TPoint *) malloc(sizeof(TPoint));
   p->x = x;
   p->y = y;
   return p;
 }
 
-char * Point_print(_Point *p) {
+char * TPoint_print(TPoint *p) {
   static char buffer[256];
   if (p) {
     sprintf(buffer,"(%d,%d)", p->x,p->y);

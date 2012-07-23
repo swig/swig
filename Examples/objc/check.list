@@ -3,9 +3,7 @@ callback
 class
 constants
 enum
-#extend
-#funcptr
-#native
+funcptr
 pointer
 reference
 simple
