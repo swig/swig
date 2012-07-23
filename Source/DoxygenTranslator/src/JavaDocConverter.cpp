@@ -29,6 +29,7 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["c"] = make_pair(&JavaDocConverter::handleTagHtml, "code");
   tagHandlers["cite"] = make_pair(&JavaDocConverter::handleTagHtml, "i");
   tagHandlers["e"] = make_pair(&JavaDocConverter::handleTagHtml, "i");
+  tagHandlers["em"] = make_pair(&JavaDocConverter::handleTagHtml, "i");
   tagHandlers["li"] = make_pair(&JavaDocConverter::handleTagHtml, "li");
   tagHandlers["p"] = make_pair(&JavaDocConverter::handleTagHtml, "code");
   // these commands insert just a single char, some of them need to be escaped
@@ -47,9 +48,17 @@ void JavaDocConverter::fillStaticTables() {
   // these commands are stripped out
   tagHandlers["attention"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["brief"] = make_pair(&JavaDocConverter::handleParagraph, "");
+  tagHandlers["bug"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["date"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["details"] = make_pair(&JavaDocConverter::handleParagraph, "");
+  tagHandlers["htmlonly"] = make_pair(&JavaDocConverter::handleParagraph, "");
+  tagHandlers["invariant"] = make_pair(&JavaDocConverter::handleParagraph, "");
+  tagHandlers["latexonly"] = make_pair(&JavaDocConverter::handleParagraph, "");
+  tagHandlers["manonly"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["partofdescription"] = make_pair(&JavaDocConverter::handleParagraph, "");
+  tagHandlers["rtfonly"] = make_pair(&JavaDocConverter::handleParagraph, "");
+  tagHandlers["short"] = make_pair(&JavaDocConverter::handleParagraph, "");
+  tagHandlers["xmlonly"] = make_pair(&JavaDocConverter::handleParagraph, "");
   // these commands are kept as-is, they are supported by JavaDoc
   tagHandlers["author"] = make_pair(&JavaDocConverter::handleTagSame, "");
   tagHandlers["authors"] = make_pair(&JavaDocConverter::handleTagSame, "author");
