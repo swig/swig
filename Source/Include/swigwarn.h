@@ -199,7 +199,7 @@
 
 /* -- Reserved (600-799) -- */
 
-/* -- Language module specific warnings (700 - 899) -- */
+/* -- Language module specific warnings (700 - 919) -- */
 
 /* Feel free to claim any number in this space that's not currently being used. Just make sure you
    add an entry here */
@@ -287,6 +287,15 @@
 
 /* please leave 890-899 free for Go */
 
-/* -- User defined warnings (900 - 999) -- */
+#define WARN_OBJC_TYPEMAP_OBJCTYPE_UNDEF     900
+#define WARN_OBJC_TYPEMAP_IMTYPE_UNDEF       901
+#define WARN_OBJC_TYPEMAP_OBJCIN_UNDEF       902
+#define WARN_OBJC_TYPEMAP_OBJCOUT_UNDEF      903
+#define WARN_OBJC_MULTIPLE_INHERITANCE       904
+#define WARN_OBJC_INTERFACE_MOD              905
+#define WARN_OBJC_IMPLEMENTATION_MOD         906
 
+/* please leave 900-919 free for ObjectiveC */
+
+/* -- User defined warnings (920 - 999) -- */
 #endif
