@@ -1,44 +1,100 @@
 /* -----------------------------------------------------------------------------
  * objc.swg
  *
- * Objective-C typemaps
+ * Objective-C module typemaps: 
+ * Note that the intermediate layer (ObjectiveC++) is essentially a C layer with the 
+ * C++ specific code (such as references) converted to the C code. Since ObjectiveC
+ * layer can handle C as is, this makes sense - at least until we decide on something 
+ * more appropriate.
+
  * ----------------------------------------------------------------------------- */
 
-%include <objchead.swg>
+/* 
+ * IMTYPE TYPEMAPS: Represents the ObjectiveC++ type corresponding to each C++ type. 
+ */
+ 
+// Primary types: ObjectiveC++ understands C primary types.
+%typemap(imtype) bool               "bool"
+%typemap(imtype) char               "char"
+%typemap(imtype) signed char        "signed char"
+%typemap(imtype) unsigned char      "unsigned char"
+%typemap(imtype) short              "short"
+%typemap(imtype) unsigned short     "unsigned short"
+%typemap(imtype) int                "int"
+%typemap(imtype) unsigned int       "unsigned int"
+%typemap(imtype) long               "long"
+%typemap(imtype) unsigned long      "unsigned long"
+%typemap(imtype) long long          "long long"
+%typemap(imtype) unsigned long long "unsigned long long"
+%typemap(imtype) float              "float"
+%typemap(imtype) double             "double"
+%typemap(imtype) void               "void"
+
+// References to primitive types are treated as pointers in the wrapper(ObjectiveC++) layer.
+%typemap(imtype) const bool &,              bool &                  "bool *"
+%typemap(imtype) const char &,              char &                  "char *"
+%typemap(imtype) const signed char &, 		signed char &           "signed char *"
+%typemap(imtype) const unsigned char &, 	unsigned char &         "unsigned char *"
+%typemap(imtype) const short &,				short &                 "short *"
+%typemap(imtype) const unsigned short &,	unsigned short &        "unsigned short *"
+%typemap(imtype) const int &,		    	int &                   "int *"
+%typemap(imtype) const unsigned int &,		unsigned int &          "unsigned int *"
+%typemap(imtype) const long &,				long &                  "long *"
+%typemap(imtype) const unsigned long &, 	unsigned long &         "unsigned long  *"
+%typemap(imtype) const long long &, 		long long &             "long long *"
+%typemap(imtype) const unsigned long long &,unsigned long long &    "unsigned long long  *"
+%typemap(imtype) const float &, 			float &                 "float *"
+%typemap(imtype) const double &,  			double &                "double *"
+
+//C strings:
+%typemap(imtype) char *, char[ANY], char[]              "NSString *"
+%typemap(imtype) char *&                                "NSString *"
+
+// Objects will always be treated as pointers in ObjectiveC++
+%typemap(imtype) SWIGTYPE                               "void*" 
+
+// C/C++ prinitve pointers are treated as is in ObjectiveC++
+// References to primitive types are treated as pointers in the wrapper(ObjectiveC++) layer.
+%typemap(imtype) const bool *,              bool *                  "bool *"
+%typemap(imtype) const signed char *, 		signed char *           "signed char *"
+%typemap(imtype) const unsigned char *, 	unsigned char *         "unsigned char *"
+%typemap(imtype) const short *,				short *                 "short *"
+%typemap(imtype) const unsigned short *,	unsigned short *        "unsigned short *"
+%typemap(imtype) const int *,		    	int *                   "int *"
+%typemap(imtype) const unsigned int *,		unsigned int *          "unsigned int *"
+%typemap(imtype) const long *,				long *                  "long *"
+%typemap(imtype) const unsigned long *, 	unsigned long *         "unsigned long  *"
+%typemap(imtype) const long long *, 		long long *             "long long *"
+%typemap(imtype) const unsigned long long *,unsigned long long *    "unsigned long long  *"
+%typemap(imtype) const float *, 			float *                 "float *"
+%typemap(imtype) const double *,  			double *                "double *"
+
+// C/C++ object Pointers, are treated as void* in ObjectiveC++
+%typemap(imtype) SWIGTYPE *                             "void*"
+
+// Arrays for non-primitive types
+%typemap(imtype) SWIGTYPE []                            "void*"
+
+// Pointer to a class member will be void*
+%typemap(imtype) SWIGTYPE (CLASS::*)                    "void*"  
+
+// References to non-primitive types
+%typemap(imtype) SWIGTYPE &                             "void*"
+%typemap(imtype) SWIGTYPE *const&                       "void*"
 
 
-/* Following are the objcimtype typemaps which contain the Objective-C or C++ types used in the intermediary code */
-// Primitive types
-%typemap(objcimtype) bool,               const bool &               "BOOL"
-%typemap(objcimtype) char,               const char &               "char"
-%typemap(objcimtype) signed char,        const signed char &        "signed char"
-%typemap(objcimtype) unsigned char,      const unsigned char &      "unsigned char"
-%typemap(objcimtype) short,              const short &              "short"
-%typemap(objcimtype) unsigned short,     const unsigned short &     "unsigned short"
-%typemap(objcimtype) int,                const int &                "int"
-%typemap(objcimtype) unsigned int,       const unsigned int &       "unsigned int"
-%typemap(objcimtype) long,               const long &               "long"
-%typemap(objcimtype) unsigned long,      const unsigned long &      "unsigned long"
-%typemap(objcimtype) long long,          const long long &          "long long"
-%typemap(objcimtype) unsigned long long, const unsigned long long & "unsigned long long"
-%typemap(objcimtype) float,              const float &              "float"
-%typemap(objcimtype) double,             const double &             "double"
-%typemap(objcimtype) void                                           "void"
 
-// Pointers, references and arrays
-%typemap(objcimtype) char *, char *&, char[ANY], char[]   "NSString *"
-%typemap(objcimtype) SWIGTYPE "void *"
-%typemap(objcimtype) SWIGTYPE [] "void *"
-%typemap(objcimtype) SWIGTYPE *  "void *" 
-%typemap(objcimtype) SWIGTYPE & "void *"
+/* 
+ * IN TYPEMAPS: Used for "in" arguments type conversions: ObjectiveC++ to C++.
+ */
 
-// Pointer to a class member
-%typemap(objcimtype) SWIGTYPE (CLASS::*) "void*"
+// Primary types
+//%typemap(in) bool
+//%{ $1 = $input? true:false; %} 
+//
 
-
-/* Following are the "in" typemaps for Objective-C/C++ to C conversions */
-// Primitive types
-%typemap(in) char, 
+%typemap(in) bool,
+             char, 
              signed char, 
              unsigned char, 
              short, 
@@ -48,18 +104,35 @@
              long, 
              unsigned long, 
              long long, 
-             unsigned long long, 
+             unsigned long long,
              float, 
              double
-%{ $1 = $input; %}
-%typemap(in) bool
-%{ $1 = $input ? true : false; %}
+%{ $1 = ($1_ltype)$input; %}
 
+// No "in" for void
+%typemap(in) void ""
 
-// Pointer, references and arrays
-%typemap(in, noblock=1) char * {
+// References: are automatically treated as pointers in the wrapper layer (ObjectiveC++)
+%typemap(in) const bool &,              bool &,
+             const char &,  			char &,
+	     	 const signed char &, 		signed char &,
+	         const unsigned char &, 	unsigned char &,
+		     const short &,				short &,
+		     const unsigned short &,	unsigned short &,
+		     const int &,		    	int &,
+		     const unsigned int &,		unsigned int &,
+			 const long &,				long &,
+	     	 const unsigned long &, 	unsigned long &,
+	     	 const long long &, 		long long &,
+	     	 const unsigned long long &,unsigned long long &,
+	      	 const float &, 			float &,
+	      	 const double &,  			double &
+%{ $1 = ($1_ltype)$input; %}
+
+//C strings:
+%typemap(in) char *, char[ANY], char[]  {
  $1 = 0;
-  if ($input) {
+  if ($input) { // TODO: Find a better way to do this!
 		int length = [$input length];
 		int bufferSize = sizeof(char) * (length + 1);
 		char *buffer = (char*)malloc(bufferSize);
@@ -69,12 +142,11 @@
 			buffer[i] = [$input characterAtIndex: i];
 			$1 = buffer;
 	}
-	if (!$1) return $null;
 }
 
-%typemap(in, noblock=1) char *& ($*1_ltype temp = 0) {
+%typemap(in) char *& ($*1_ltype temp = 0) {
  $1 = 0;
-  if ($input) {
+  if ($input) { // TODO: Find a better way to do this!
 		int length = [$input length];
 		int bufferSize = sizeof(char) * (length + 1);
 		char *buffer = (char*)malloc(bufferSize);
@@ -88,104 +160,206 @@
   $1 = &temp;
 }
 
-
-%typemap(in) char[ANY]
+// Objects passed by value: convert from a pointer to the C++ value object.
+%typemap(in) SWIGTYPE ($&1_type argp)	
 %{ 
-	 $1 = 0;
-  if ($input) {
-		int length = [$input length];
-		int bufferSize = sizeof(char) * (length + 1);
-		char *buffer = (char*)malloc(bufferSize);
-		memset(buffer, 0, bufferSize);
-		int i = 0;
-		for (; i < length; ++i)
-			buffer[i] = [$input characterAtIndex: i];
-			$1 = buffer;
-	}
-	if (!$1) return $null;
+  argp = ($&1_ltype)$input;
+  $1 = *argp; 
 %}
 
-%typemap(in) char[]
-%{ 
-	$1 = 0;
-  if ($input) {
-		int length = [$input length];
-		int bufferSize = sizeof(char) * (length + 1);
-		char *buffer = (char*)malloc(bufferSize);
-		memset(buffer, 0, bufferSize);
-		int i = 0;
-		for (; i < length; ++i)
-			buffer[i] = [$input characterAtIndex: i];
-			$1 = buffer;
-	}
-	if (!$1) return $null;
-%}
-
-%typemap(in) SWIGTYPE *
+// C/C++ Pointers, primary and object, are treated as void* in ObjectiveC++
+%typemap(in) SWIGTYPE *, SWIGTYPE &
 %{ $1 = ($1_ltype)$input; %}
-%typemap(in) SWIGTYPE &
-%{ $1 = ($1_ltype)$input; %} //TBD
-%typemap(in) SWIGTYPE []
-%{ $1 = ($1_ltype)$input; %} //TBD
-%typemap(in) SWIGTYPE
-%{ $1 = ($1_ltype)$input; %} //TBD
 
-%typemap(in) const bool & ($*1_ltype temp)
-%{ temp = $input ? true : false; 
-   $1 = &temp; %}
+// Array conversion typemap
+%typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)$input; %}
 
-%typemap(in) const char & ($*1_ltype temp), 
-             const signed char & ($*1_ltype temp), 
-             const unsigned char & ($*1_ltype temp), 
-             const short & ($*1_ltype temp), 
-             const unsigned short & ($*1_ltype temp), 
-             const int & ($*1_ltype temp), 
-             const unsigned int & ($*1_ltype temp), 
-             const long & ($*1_ltype temp), 
-             const unsigned long & ($*1_ltype temp), 
-             const long long & ($*1_ltype temp), 
-             const float & ($*1_ltype temp), 
-             const double & ($*1_ltype temp)
-%{ temp = ($*1_ltype)$input; 
-   $1 = &temp; %}
+// Pointer to a class member will be passed as void*, convert appropriately
+%typemap(in) SWIGTYPE (CLASS::*)
+%{ $1 = *($&1_ltype)$input; %}
+
+%typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
+%{ temp = ($*1_ltype)$input;
+   $1 = ($1_ltype)&temp; %}
 
 
-/* Default handling. Object passed by value. Convert to a pointer */
-%typemap(in) SWIGTYPE ($&1_type argp)
-%{ argp = *($&1_ltype*)&$input; 
-   if (!argp) {
-		NSException* anException = [NSException exceptionWithName:@"NullPointerException" 
-		reason:@"Attempt to dereference null $1_type"
-    userInfo:nil];
-		@throw anException;
-   }
-   $1 = *argp; %}
+/*
+ * OUT TYPEMAPS: Used for return-type type conversions: C++ to ObjectiveC++
+ */
+//Primary types
+%typemap(out) bool,
+            char,
+            signed char,
+            unsigned char,
+            short,
+            unsigned short,
+            int,
+            unsigned int,
+            long,
+            unsigned long,
+            long long,
+            unsigned long long,
+            float,
+            double
+%{ $result = $1; %}
 
-%typemap(in) SWIGTYPE *, SWIGTYPE (CLASS::*) %{ $1 = *($&1_ltype)&$input; %}
+//%typemap(out) bool
+//%{ $result = $1? YES:NO; %}
 
-%typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
-  if (!$1) {
-		NSException* anException = [NSException exceptionWithName:@"NullPointerException" 
-		reason:@"Attempt to dereference null $1_type"
-    userInfo:nil];
-		@throw anException;
-  } %}
-	
-%typemap(in) SWIGTYPE *& ($*1_ltype temp = 0)
-%{ temp = *($1_ltype)&$input;
-   $1 = &temp; %}
+%typemap(out) void ""
+
+// References as exported as pointers (by default)
+%typemap(out)const bool &,              bool &,
+             const char &,  			char &,
+	     	 const signed char &, 		signed char &,
+	         const unsigned char &, 	unsigned char &,
+		     const short &,				short &,
+		     const unsigned short &,	unsigned short &,
+		     const int &,		    	int &,
+		     const unsigned int &,		unsigned int &,
+			 const long &,				long &,
+	     	 const unsigned long &, 	unsigned long &,
+	     	 const long long &, 		long long &,
+	     	 const unsigned long long &,unsigned long long &,
+	      	 const float &, 			float &,
+	      	 const double &,  			double &
+%{ $result = $1; %}
 
 
-/* Default array handling */
-%typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}
+%typemap(out)const bool *,              bool *,
+             const char *,  			char *,
+	     	 const signed char *, 		signed char *,
+	         const unsigned char *, 	unsigned char *,
+		     const short *,				short *,
+		     const unsigned short *,	unsigned short *,
+		     const int *,		    	int *,
+		     const unsigned int *,		unsigned int *,
+			 const long *,				long &,
+	     	 const unsigned long *, 	unsigned long &,
+	     	 const long long *, 		long long *,
+	     	 const unsigned long long *,unsigned long long *,
+	      	 const float *, 			float *,
+	      	 const double *,  			double *
+%{ $result = $1; %}
+
+// C strings: 
+%typemap(out) char * %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %}
+%typemap(out) char *& %{ if (*$1) $result = [NSString stringWithUTF8String: *$1]; %}
+%typemap(out) char[ANY], char[] %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %}
+
+// Objects returned by value: convert to a pointer.
+%typemap(out) SWIGTYPE ($&1_type temp)
+#ifdef __cplusplus
+%{
+  temp = new $1_ltype((const $1_ltype &)$1); 
+  $result = temp;
+%}
+#else
+{
+  $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
+  memmove($1ptr, &$1, sizeof($1_type));
+  temp = $1ptr;
+  $result = temp;
+}
+#endif
+
+// Pointer objects are returned as void* in the ObjectiveC++ layer
+%typemap(out) SWIGTYPE *, SWIGTYPE & 
+%{ $result = (void*)$1; %}
+
+%typemap(out) SWIGTYPE [] %{ $result = $1; %}
+
+// Pointer to a class member will be returned as void*
+%typemap(out) SWIGTYPE (CLASS::*) 
+%{ $result = (void*)$1; %}
+
+%typemap(out) SWIGTYPE *const&
+%{ $result = (void *)*$1; %}
+
+
+/* 
+ * OBJCTYPE TYPEMAPS: Represents the ObjectiveC(proxy) type corresponding to each ObjectiveC++ type in the intermediate(wrapper) layer. 
+ */
+// Primary types
+%typemap(objctype)  bool               "BOOL"
+%typemap(objctype)  char               "char"
+%typemap(objctype)  signed char        "signed char"
+%typemap(objctype)  unsigned char      "unsigned char"
+%typemap(objctype)  short              "short"
+%typemap(objctype)  unsigned short     "unsigned short"
+%typemap(objctype)  int                "int"
+%typemap(objctype)  unsigned int       "unsigned int"
+%typemap(objctype)  long               "long"
+%typemap(objctype)  unsigned long      "unsigned long"
+%typemap(objctype)  long long          "long long"
+%typemap(objctype)  unsigned long long "unsigned long long"
+%typemap(objctype)  float              "float"
+%typemap(objctype)  double             "double"
+%typemap(objctype)  void               "void"
+
+// References will always be treated as pointers in the proxy layer (ObjectiveC)
+%typemap(objctype) const bool &,              bool &                  "bool *"
+%typemap(objctype) const char &,              char &                  "char *"
+%typemap(objctype) const signed char &, 		signed char &           "signed char *"
+%typemap(objctype) const unsigned char &, 	unsigned char &         "unsigned char *"
+%typemap(objctype) const short &,				short &                 "short *"
+%typemap(objctype) const unsigned short &,	unsigned short &        "unsigned short *"
+%typemap(objctype) const int &,		    	int &                   "int *"
+%typemap(objctype) const unsigned int &,		unsigned int &          "unsigned int *"
+%typemap(objctype) const long &,				long &                  "long *"
+%typemap(objctype) const unsigned long &, 	unsigned long &         "unsigned long  *"
+%typemap(objctype) const long long &, 		long long &             "long long *"
+%typemap(objctype) const unsigned long long &,unsigned long long &    "unsigned long long  *"
+%typemap(objctype) const float &, 			float &                 "float *"
+%typemap(objctype) const double &,  			double &                "double *"
+
+//C strings:
+%typemap(objctype) char *, char *&, char[ANY], char[]    "NSString *"
+
+// Objects will always be treated as pointers in ObjectiveC
+%typemap(objctype) SWIGTYPE                             "$objcclassname *"
+
+// C/C++ Pointers to primitive types are treated as is
+// C/C++ prinitve pointers are treated as is in ObjectiveC++
+// References to primitive types are treated as pointers in the wrapper(ObjectiveC++) layer.
+%typemap(objctype) const bool *,              bool *                  "bool *"
+%typemap(objctype) const signed char *, 		signed char *           "signed char *"
+%typemap(objctype) const unsigned char *, 	unsigned char *         "unsigned char *"
+%typemap(objctype) const short *,				short *                 "short *"
+%typemap(objctype) const unsigned short *,	unsigned short *        "unsigned short *"
+%typemap(objctype) const int *,		    	int *                   "int *"
+%typemap(objctype) const unsigned int *,		unsigned int *          "unsigned int *"
+%typemap(objctype) const long *,				long *                  "long *"
+%typemap(objctype) const unsigned long *, 	unsigned long *         "unsigned long  *"
+%typemap(objctype) const long long *, 		long long *             "long long *"
+%typemap(objctype) const unsigned long long *,unsigned long long *    "unsigned long long  *"
+%typemap(objctype) const float *, 			float *                 "float *"
+%typemap(objctype) const double *,  			double *                "double *"
+
+// C/C++ Pointers are treated as  as pointers in ObjectiveC
+%typemap(objctype) SWIGTYPE *                           "$objcclassname *" 
+
+// Arrays to non-primitive types
+%typemap(objctype) SWIGTYPE []                          "$objcclassname"
+
+// Pointer to a class member
+%typemap(objctype) SWIGTYPE (CLASS::*)                  "$objcclassname *"  
+
+// References to non-primitive types
+%typemap(objctype) SWIGTYPE &                           "$objcclassname *"
+%typemap(objctype) SWIGTYPE *const&                     "$*objcclassname"
 
 
 
-/* Following are the "out" typemaps for C to Objective-C conversions */
-// Primitive types
-%typemap(out) bool
-%{ $result = $1 ? YES : NO; %}
-%typemap(out) char, 
+/* 
+ * OBJCIN TYPEMAPS: Used for "in" arguments type conversions from ObjectiveC(proxy) layer to ObjectiveC++(wrapper) layer.
+ */
+
+// Primary types
+%typemap(objcin) bool
+%{ $1 =  $objcinput? true:false; %} 
+
+%typemap(objcin) char, 
              signed char, 
              unsigned char, 
              short, 
@@ -195,458 +369,194 @@
              long, 
              unsigned long, 
              long long, 
-             unsigned long long, 
+             unsigned long long,
              float, 
              double
-%{ $result = $1; %}
-%typemap(out) void ""
+"$objcinput"
 
+// No "objcin" for void
+%typemap(objcin) void ""
 
-// Pointers, references and arrays
-%typemap(out, noblock=1) char * %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %} //TBD
-%typemap(out, noblock=1) char *& %{ if (*$1) $result = [NSString stringWithUTF8String: *$1]; %}
-%typemap(out, noblock=1) char[ANY], char[] %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %}
+// References: are treated as pointers in the proxy layer (ObjectiveC)
+%typemap(objcin) const char &,  		char &,
+	     	 const signed char &, 		signed char &,
+	         const unsigned char &, 	unsigned char &,
+		     const short &,				short &,
+		     const unsigned short &,	unsigned short &,
+		     const int &,		    	int &,
+		     const unsigned int &,		unsigned int &,
+			 const long &,				long &,
+	     	 const unsigned long &, 	unsigned long &,
+	     	 const long long &, 		long long &,
+	     	 const unsigned long long &,unsigned long long &,
+	      	 const float &, 			float &,
+	      	 const double &,  			double &
+"$objcinput"
 
+// C/C++ pointers to primitive types are treated as is in the Proxy layer.
+%typemap(objcin)const bool *,              bool *,
+             const char *,  			char *,
+	     	 const signed char *, 		signed char *,
+	         const unsigned char *, 	unsigned char *,
+		     const short *,				short *,
+		     const unsigned short *,	unsigned short *,
+		     const int *,		    	int *,
+		     const unsigned int *,		unsigned int *,
+			 const long *,				long &,
+	     	 const unsigned long *, 	unsigned long &,
+	     	 const long long *, 		long long *,
+	     	 const unsigned long long *,unsigned long long *,
+	      	 const float *, 			float *,
+	      	 const double *,  			double *
+"$objcinput"
 
+//C strings:
+%typemap(objcin) char *, char[ANY], char[]  "$objcinput"
+%typemap(objcin) char *&                    "$objcinput"
 
-%typemap(out) SWIGTYPE [] %{ $result = (void *)$1; %} 
-
-%typemap(out) SWIGTYPE 
-#ifdef __cplusplus
-%{ $result = (void*)new $1_ltype((const $1_ltype &)$1); %}
-#else
-{
-  $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
-  memmove($1ptr, &$1, sizeof($1_type));
-  $result = (void*)$1ptr;
-}
-#endif
-
-%typemap(out) SWIGTYPE *, SWIGTYPE (CLASS::*)
-%{ $result = (void*)$1; %} 
-%typemap(out) SWIGTYPE &
-%{ $result = (void*)$1; %} 
-
-%typemap(out) SWIGTYPE [] %{ $result = $1; %} 
-
-%typemap(out) SWIGTYPE *&
-%{ $result = (void*)*$1; %} 
-
-
-
-/* Following are the objctype typemaps which contain the Objective-C types used in the proxy code */
-// Primitive types
-%typemap(objctype) bool,               const bool &               "BOOL"
-%typemap(objctype) char,               const char &               "char"
-%typemap(objctype) signed char,        const signed char &        "signed char"
-%typemap(objctype) unsigned char,      const unsigned char &      "unsigned char"
-%typemap(objctype) short,              const short &              "short"
-%typemap(objctype) unsigned short,     const unsigned short &     "unsigned short"
-%typemap(objctype) int,                const int &                "int"
-%typemap(objctype) unsigned int,       const unsigned int &       "unsigned int"
-%typemap(objctype) long,               const long &               "long"
-%typemap(objctype) unsigned long,      const unsigned long &      "unsigned long"
-%typemap(objctype) long long,          const long long &          "long long"
-%typemap(objctype) unsigned long long, const unsigned long long & "unsigned long long"
-%typemap(objctype) float,              const float &              "float"
-%typemap(objctype) double,             const double &             "double"
-%typemap(objctype) void                                           "void"
-
-// Pointers, references and arrays
-%typemap(objctype) char *, char *&, char[ANY], char[]   "NSString *"
-%typemap(objctype) SWIGTYPE "$objcclassname*"
-%typemap(objctype) SWIGTYPE [] "NSMutableArray*" //TBD
-%typemap(objctype) SWIGTYPE *  "$objcclassname*" 
-%typemap(objctype) SWIGTYPE & "$objcclassname*"
-
-// Pointer to a class member
-%typemap(objctype) SWIGTYPE (CLASS::*) "$objcclassname*" 
-
-
-
-/* Following are the "objcin" typemaps for Objective-C to Objective-C++ conversions */
-// Primitive types
-%typemap(objcin) bool,               const bool &,
-                 char,               const char &,
-                 signed char,        const signed char &,
-                 unsigned char,      const unsigned char &,
-                 short,              const short &,
-                 unsigned short,     const unsigned short &,
-                 int,                const int &,
-                 unsigned int,       const unsigned int &,
-                 long,               const long &,
-                 unsigned long,      const unsigned long &,
-                 long long,          const long long &,
-                 unsigned long long, const unsigned long long &,
-                 float,              const float &,
-                 double,             const double &
-    "$objcinput"
-
-// Pointers, references and arrays		
-%typemap(objcin) char *, char *&, char[ANY], char[] "$objcinput"
+// Objects passed by value: Convert from an ObjectiveC pointer to the ObjectiveC++ void* pointer.
 %typemap(objcin) SWIGTYPE "[$objcinput getCptr]"
-%typemap(objcin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "[$objcinput getCptr]"
-%typemap(objcin) SWIGTYPE (CLASS::*) "" //TBD
 
+// C/C++ Pointers, primary and object, are exported as ObjectiveC pointers
+%typemap(objcin) SWIGTYPE *, SWIGTYPE & "[$objcinput getCptr]"
+%typemap(objcin) SWIGTYPE "[$objcinput getCptr]"
 
+// Pointer to a class member will be passed as void*, convert appropriately
+%typemap(objcin) SWIGTYPE (CLASS::*) "" 
 
-/* Following are the "objcout" typemaps for Objective-C++ to Objective-C to conversions */
-// Primitive types
-%typemap(objcout) char,               const char &,
-                 signed char,        const signed char &,
-                 unsigned char,      const unsigned char &,
-                 short,              const short &,
-                 unsigned short,     const unsigned short &,
-                 int,                const int &,
-                 unsigned int,       const unsigned int &,
-                 long,               const long &,
-                 unsigned long,      const unsigned long &,
-                 long long,          const long long &,
-                 unsigned long long, const unsigned long long &,
-                 float,              const float &,
-                 double,             const double &
-{
-		$1_ltype ret = $imcall;
-    return ret;
-}
-
-%typemap(objcout) bool, const bool & {
-	  BOOL ret = $imcall;
-    return ret;
-
-}
-	
-// Pointers, references and arrays		
-%typemap(objcout) char *, char *&, char[ANY], char[] {
-    NSString *ret = $imcall;
-    return ret;
-  }
-%typemap(objcout) void {
-    $imcall;
-  }
-%typemap(objcout) SWIGTYPE {
-    void *cPtr = $imcall;
-		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
-    return ret;
-  }
-%typemap(objcout) SWIGTYPE & { //TBD
-		void *cPtr = $imcall;
-		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
-    return ret;
-  }
-	
-// TBD: below we need to see if this $objcclassname is Class pointer or some other pointer
-// Also see the memory management part
-%typemap(objcout) SWIGTYPE * {
-		void *cPtr = $imcall;
-		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
-    return ret;
-}
-%typemap(objcout) SWIGTYPE [] {
-		void *cPtr = $imcall;
-		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
-    return ret;
-}
-%typemap(objcout) SWIGTYPE (CLASS::*) {
-   	void *cMemberPtr = $imcall;
-		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cMemberPtr] autorelease];
-    return ret;
-}
-
-%typemap(argout) char[ANY], char[] ""
-
-/* Following are the typemaps used for the generation of proxy and type wrapper class code */
-%typemap(objcbase,notderived="")                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "NSObject"
-%typemap(objcclassinterface)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "@interface"
-%typemap(objcclassimplementation)            SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) "@implementation"
-%typemap(objccode)                      SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(objcimports)                   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(objcinterfaces)                SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(objcinterfaces_derived)        SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-
-// Proxy classes (base classes, ie, not derived classes)
-%typemap(objcinterface) SWIGTYPE %{
-{
-	void *swigCPtr;
-	BOOL swigCMemOwn;
-}
-- (void*)getCptr;
-- (id)initWithCptr: (void*) cptr;
-%}
-
-%typemap(objcbody) SWIGTYPE %{
-- (void*)getCptr {
-	return swigCPtr;
-}
-
-- (id)initWithCptr: (void*) cptr{
-	if((self = [super init])) {
-		swigCPtr = cptr;
-	}
-	return self;
-}
-%}
-
-
-// Derived proxy classes
-%typemap(objcinterface_derived) SWIGTYPE %{
-- (void*)getCptr;
-- (id)initWithCptr: (void*) cptr;
-%}
-
-%typemap(objcbody_derived) SWIGTYPE %{
-- (void*)getCptr {
-	return swigCPtr;
-}
-
--(id)initWithCptr: (void*) cptr {
-	if((self = [super init])) {
-		swigCPtr = cptr;
-	}
-	return self;
-}
-%}
-
-// Typewrapper classes
-%typemap(interface) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
-{
-	void *swigCPtr;
-	BOOL swigCMemOwn;
-}
-- (void*)getCptr;
-- (id)initWithCptr: (void*) cptr;
-%}
-
-%typemap(objcbody) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
-- (void*)getCptr {
-	return swigCPtr;
-}
-
-- (id)init {
-	if((self = [super init])) {
-		swigCPtr = 0;
-	}
-	return self;
-}
-
-- (id)initWithCptr: (void*) cptr{
-	if((self = [super init])) {
-		swigCPtr = cptr;
-	}
-	return self;
-}
-%}
-
-
-/* Following are the typemaps used for Objective-C setter and getters for global variables */
-// Primitive types
-%typemap(objcvarin) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
-		$imcall;
-%}
-
-// Pointers, references and arrays
-%typemap(objcvarin) char *, char *&, char[ANY], char[] %{
-		$imcall;
-%}
-
-%typemap(objcvarout) bool,              const bool &,
-                 char,               const char &,
-                 signed char,        const signed char &,
-                 unsigned char,      const unsigned char &,
-                 short,              const short &,
-                 unsigned short,     const unsigned short &,
-                 int,                const int &,
-                 unsigned int,       const unsigned int &,
-                 long,               const long &,
-                 unsigned long,      const unsigned long &,
-                 long long,          const long long &,
-                 unsigned long long, const unsigned long long &,
-                 float,              const float &,
-                 double,             const double &
-%{
-		$1_ltype ret = $imcall;
-    return ret;
-%}
-
-%typemap(objcvarout) char *, char *&, char[ANY], char[] %{
-		NSString* ret = $imcall;
-    return ret;
-%}
-
-%typemap(objcvarout) void %{
-    $imcall;
-%}
-
-%typemap(objcvarout) SWIGTYPE { 
-    void *cPtr = $imcall;
-		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
-    return ret;
-}
-	
-%typemap(objcvarout) SWIGTYPE & { 
-		void *cPtr = $imcall;
-		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
-    return ret;
-}
-	
-// TBD: below we need to see if this $objcclassname is Class pointer or some other pointer
-// Also see the memory management part
-%typemap(objcvarout) SWIGTYPE * {
-		void *cPtr = $imcall;
-		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
-    return ret;
-}
-%typemap(objcvarout) SWIGTYPE [] {
-		void *cPtr = $imcall;
-		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cPtr] autorelease];
-    return ret;
-}
-%typemap(objcvarout) SWIGTYPE (CLASS::*) {
-   	void *cMemberPtr = $imcall;
-		$objcclassname* ret = (cPtr == NULL) ? nil : [[[$objcclassname alloc] initWithCptr: cMemberPtr] autorelease];
-    return ret;
-}
 
 /*
- * Objective-C constructor and destructor typemaps:
- *
- * The objcconstruct typemap is inserted when a proxy class's constructor is generated.
- * This typemap allows control over what code is executed in the constructor as
- * well as specifying who owns the underlying C/C++ object. Normally, Objective-C has
- * ownership and the underlying C/C++ object is deallocated when the Objective-C object
- * is deallocated (swigCMemOwn is YES.) If swigCMemOwn is No, C/C++ is
- * ultimately responsible for deallocating the underlying object's memory.
- *
+ * OBJCOUT TYPEMAPS: Used for return-type type conversions: ObjectiveC++(wrapper) to ObjectiveC(proxy)
  */
 
-%typemap(objcconstruct) SWIGTYPE {
-	if((self = [super init])) {
-		swigCPtr = $imcall;
-	}
-	return self;
-}
+// Primary types are exported as ObjectiveC primary types
+%typemap(objcout) char,
+	      signed char,
+	      unsigned char,
+	      short,
+	      unsigned short,
+	      int,
+	      unsigned int,
+	      long,
+	      unsigned long,
+	      long long,
+	      unsigned long long,
+	      float,
+	      double
+%{  $1_ltype ret = $imcall;
+    return ret; %}
 
-%typemap(objcdestruct, methodname="dealloc") SWIGTYPE {
-  if (swigCPtr != 0) {
-	  if (swigCMemOwn) {
-		  swigCMemOwn = YES;
-      $imcall;
-	  }
-    swigCPtr = 0;
-  }
-  [super dealloc];
-}
+%typemap(objcout) bool
+%{  bool ret = $imcall;
+    return (ret)? YES:NO; %}
 
+%typemap(objcout) void "$imcall;"
 
-
-
-/* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions 
- * that cannot be overloaded in Objective-C as more than one C++ type maps to a single Objective-C type */
-
-%typecheck(SWIG_TYPECHECK_BOOL) /* Objective-C boolean */
-    BOOL,
-    bool,
-    const bool &
-    ""
-
-%typecheck(SWIG_TYPECHECK_CHAR) /* Objective-C char */
-    char, 
-    const char &
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT8) /* Objective-C byte */
-    signed char,
-    const signed char &
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT16) /* Objective-C short */
-    unsigned char, 
-    short, 
-    const unsigned char &, 
-    const short &
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT32) /* Objective-C int */
-    unsigned short, 
-    int, 
-    long, 
-    const unsigned short &, 
-    const int &, 
-    const long &
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT64) /* Objective-C long */
-    unsigned int, 
-    unsigned long, 
-    long long, 
-    const unsigned int &, 
-    const unsigned long &, 
-    const long long &
-    ""
-
-%typecheck(SWIG_TYPECHECK_INT128) /* Objective-C BigInteger */
-    unsigned long long,
-    const unsigned long long &
-    ""
-
-%typecheck(SWIG_TYPECHECK_FLOAT) /* Objective-C float */
-    float,
-    const float &
-    ""
-
-%typecheck(SWIG_TYPECHECK_DOUBLE) /* Objective-C double */
-    double,
-    const double &
-    ""
-
-%typecheck(SWIG_TYPECHECK_STRING) /* Objective-C String */
-    char *,
-    char *&,
-    char[ANY],
-    char []
-    ""
-
-%typecheck(SWIG_TYPECHECK_POINTER) /* Default */
-    SWIGTYPE, 
-    SWIGTYPE *, 
-    SWIGTYPE &, 
-    SWIGTYPE [],
-    SWIGTYPE (CLASS::*)
-    ""
+%typemap(objcout) const bool &,         bool &,
+             const char &,  			char &,
+	     	 const signed char &, 		signed char &,
+	         const unsigned char &, 	unsigned char &,
+		     const short &,				short &,
+		     const unsigned short &,	unsigned short &,
+		     const int &,		    	int &,
+		     const unsigned int &,		unsigned int &,
+			 const long &,				long &,
+	     	 const unsigned long &, 	unsigned long &,
+	     	 const long long &, 		long long &,
+	     	 const unsigned long long &,unsigned long long &,
+	      	 const float &, 			float &,
+	      	 const double &,  			double &
+%{  $1_ltype ret = $imcall;
+    return ret; %}
 
 
-// Exception handling
+%typemap(objcout)const bool *,              bool *,
+             const char *,  			char *,
+	     	 const signed char *, 		signed char *,
+	         const unsigned char *, 	unsigned char *,
+		     const short *,				short *,
+		     const unsigned short *,	unsigned short *,
+		     const int *,		    	int *,
+		     const unsigned int *,		unsigned int *,
+			 const long *,				long &,
+	     	 const unsigned long *, 	unsigned long &,
+	     	 const long long *, 		long long *,
+	     	 const unsigned long long *,unsigned long long *,
+	      	 const float *, 			float *,
+	      	 const double *,  			double *
+%{  $1_ltype ret = $imcall;
+    return ret; %}
 
-%typemap(throws) int, 
-                 long, 
-                 short, 
-                 unsigned int, 
-                 unsigned long, 
-                 unsigned short
-%{ NSString* aFormat = [NSString stringWithString:@"The value is %d"];
-	[NSException raise:@"$1_type exception" format: aFormat, $1]; %}
+// C strings: 
+%typemap(objcout) char * 
+%{  NSString *ret = $imcall;
+    return ret; %}
 
-%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY]
-%{ NSString* aFormat = [NSString stringWithString:@"The value is %d"];
-	[NSException raise:@"$1_type exception" format: aFormat, $1]; %}
+%typemap(objcout) char *& 
+%{  NSString *ret = $imcall;
+    return ret; %}
+
+%typemap(objcout) char[ANY], char[] 
+%{  NSString *ret = $imcall;
+    return ret; %}
+
+// Objects returned by value: Convert the void* pointer to the ObjectiveC pointer.
+// Here, for now, we presume that the returned C++ pointers will not have to be deleted by the client directly
+// As such, we mark swigOwnCObject as NO. This has to be reviewed again.
+%typemap(objcout) SWIGTYPE
+%{   void* cPtr = $imcall;
+     $objcclassname * ret = nil;
+     if(cPtr) {
+        ret = [[[$objcclassname alloc] initWithCptr:cPtr swigOwnCObject:NO] autorelease];
+     }
+    return ret; %}
+
+// Pointer objects are returned as ObjectiveC pointers
+// Here, for now, we presume that the returned C++ pointers will not have to be deleted by the client directly
+// As such, we mark swigOwnCObject as NO. This has to be reviewed again.
+%typemap(objcout) SWIGTYPE &
+%{   void* cPtr = $imcall;
+     $objcclassname * ret = nil;
+     if(cPtr) {
+        ret = [[[$objcclassname alloc] initWithCptr:cPtr swigOwnCObject:NO] autorelease];
+     }
+    return ret; %}
 	
-%typemap(throws) char *
-%{ NSString* aFormat = [NSString stringWithString:@"%s"];
-	[NSException raise:@"$1_type exception" format: aFormat, $1]; %}
+%typemap(objcout) SWIGTYPE *
+%{   void* cPtr = $imcall;
+     $objcclassname * ret = nil;
+     if(cPtr) {
+        ret = [[[$objcclassname alloc] initWithCptr:cPtr swigOwnCObject:NO] autorelease];
+     }
+    return ret; %}
+    
+
+// Pointer to a class member will be returned as id
+%typemap(objcout) SWIGTYPE (CLASS::*) 
+%{   void* cPtr = $imcall;
+     $objcclassname * ret = nil;
+     if(cPtr) {
+        ret = [[[$objcclassname alloc] initWithCptr:cPtr swigOwnCObject:NO] autorelease];
+     }
+    return ret; %}
 
 
-// Objective-C specific directives
-#define %objcconst(flag)              %feature("objc:const","flag")
-#define %objcconstvalue(value)        %feature("objc:constvalue",value)
-#define %objcenum(wrapapproach)       %feature("objc:enum","wrapapproach")
-#define %objcmethodmodifiers          %feature("objc:methodmodifiers")
-#define %objcnothrowexception         %feature("except")
-#define %objcattributes               %feature("objc:attributes")
 
-// Some ANSI C typemaps
+/* apply typemaps */
+// Treat references to arrays like like references to a single element.
+%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 %apply unsigned long { size_t };
 %apply const unsigned long & { const size_t & };
-	
-// Default enum handling
-%include <enums.swg>
 
+/* Additional typemaps */
+// Typemaps containing ObjectiveC code used when generating ObjectiveC proxy classes.
+%include <objcproxycode.swg>
+
+// Typemaps for handling enums
+%include <objcenums.swg>
+
+// ObjectiveC runtime support code.
+%include <objcruntime.swg>
+
+// List of all reserved ObjectiveC keywords.
+%include <objckw.swg>
