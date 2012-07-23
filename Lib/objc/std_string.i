@@ -19,7 +19,7 @@ namespace std {
 class string;
 
 // string
-%typemap(objcimtype) string "NSString*"
+%typemap(imtype) string "NSString*"
 %typemap(objctype) string "NSString*"
 
 %typemap(in) string 
@@ -50,16 +50,8 @@ class string;
     return $imcall;
   }
 
-%typemap(typecheck) string = char *;
-
-%typemap(throws) string
-%{ 	NSException* anException = [NSException exceptionWithName:@"RuntimeException" 
-	reason:@"$1.c_str()" userInfo:nil];
-	@throw anException;
-	return $null; %}
-
 // const string &
-%typemap(objcimtype) const string & "NSString*"
+%typemap(imtype) const string & "NSString*"
 %typemap(objctype) const string & "NSString*"
 
 %typemap(in) const string &
@@ -90,14 +82,4 @@ class string;
 %typemap(objcout) const string & {
     return $imcall;
   }
-
-%typemap(typecheck) const string & = char *;
-
-%typemap(throws) const string &
-%{ NSException* anException = [NSException exceptionWithName:@"RuntimeException" 
-   reason:@"$1.c_str()" userInfo:nil];
-   @throw anException;
-   return $null; %}
-
 }
-
