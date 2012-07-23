@@ -25,10 +25,52 @@ public class doxygen_basic_translate_runme {
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
-    wantedComments.put("function", " Brief description.  \n The comment text  \n" +
-			   " @author\tSome author  \n" +
-			   " @return\tSome number  \n" +
-			   " @see\tfunction2  \n");
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function()",
+    		" \n" +
+    		" Brief description. \n" +
+    		" \n" +
+    		" The comment text \n" +
+    		" @author Some author \n" +
+    		" @return Some number \n" +
+    		" @see function2 \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function2()",
+    		" A test of a very very very very very very very very very very very very very very very very \n" +
+    		" very very very very very long comment string. \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function4()",
+    		" A test of some mixed tag usage \n" +
+    		" If: CONDITION {\n" +
+    		" This <i>code </i>fragment shows us something . \n" +
+    		" <p alt=\"Minuses: \">\n" +
+    		" <li>it's senseless \n" +
+    		" </li><li>it's stupid \n" +
+    		" </li><li>it's null \n" +
+    		" \n" +
+    		" </li></p>Warning: This may not work as expected \n" +
+    		" \n" +
+    		" {@code \n" +
+    		"int main() { while(true); } \n" +
+    		" }\n" +
+    		" }\n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function3(int)",
+    		" A test for overloaded functions \n" +
+    		" This is function <b>one </b>\n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function5(int)",
+    		" Test for default args \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function3(int, int)",
+    		" A test for overloaded functions \n" +
+    		" This is function <b>two </b>\n" +
+    		" \n" +
+    		"");
     
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
