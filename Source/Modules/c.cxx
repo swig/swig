@@ -713,6 +713,9 @@ ready:
        else {
             Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
        }
+
+       Replaceall(return_type, "::", "_");
+
        return return_type;
     }
 
