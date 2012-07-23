@@ -25,31 +25,105 @@ public class doxygen_parsing_runme {
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
-    wantedComments.put("someFunction", " The function comment \n");
-    wantedComments.put("SomeEnum", " The enum comment \n");
-    wantedComments.put("setSomeVar", " The var comment \n");
-    wantedComments.put("getSomeVar", " The var comment \n");
-    wantedComments.put("SomeClass", " The class comment \n");
-    wantedComments.put("setClassAttr", " The class attribute comment \n");
-    wantedComments.put("getClassAttr", " The class attribute comment \n");
-    wantedComments.put("setClassAttr2", " The class attribute post-comment \n");
-    wantedComments.put("getClassAttr2", " The class attribute post-comment \n");
-    wantedComments.put("setClassAttr3", " The class attribute post-comment with details \n");
-    wantedComments.put("getClassAttr3", " The class attribute post-comment with details \n");
-    wantedComments.put("classMethod", " The class method comment \n");
-    wantedComments.put("classMethodExtended", " The class method with parameter \n @param	a Parameter a \n @param	b Parameter b \n");
-    wantedComments.put("classMethodExtended2", " The class method with parameter \n @param	a Parameter a \n @param	b Parameter b \n");
-    wantedComments.put("SomeStruct", " The struct comment \n");
-    wantedComments.put("setStructAttr", " The struct attribute comment \n");
-    wantedComments.put("getStructAttr", " The struct attribute comment \n");
-    wantedComments.put("setStructAttr2", " The struct attribute post-comment \n");
-    wantedComments.put("getStructAttr2", " The struct attribute post-comment \n");
-    wantedComments.put("setStructAttr3", " The struct attribute post-comment with details \n");
-    wantedComments.put("getStructAttr3", " The struct attribute post-comment with details \n");
-    wantedComments.put("structMethod", " The struct method comment \n");
-    wantedComments.put("structMethodExtended", " The struct method with parameter \n @param	a Parameter a \n @param	b Parameter b \n");
-    wantedComments.put("structMethodExtended2", " The struct method with parameter \n @param	a Parameter a \n @param	b Parameter b \n");
-
+    wantedComments.put("doxygen_parsing.SomeAnotherClass.getClassAttr()",
+    		" The class attribute comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass.setClassAttr3(int)",
+    		"The class attribute post-comment with details \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.setStructAttr3(int)",
+    		"The struct attribute post-comment with details \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass.classMethodExtended2(int, int)",
+    		" The class method with parameter \n" +
+    		" \n" +
+    		" @param a Parameter a \n" +
+    		" @param b Parameter b \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeStruct",
+    		" The struct comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.doxygen_parsing.setSomeVar(int)",
+    		" The var comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.structMethod()",
+    		" The struct method comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.doxygen_parsing.someFunction()",
+    		" The function comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass.classMethodExtended(int, int)",
+    		" The class method with parameter \n" +
+    		" \n" +
+    		" @param a Parameter a \n" +
+    		" @param b Parameter b \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass.setClassAttr(int)",
+    		" The class attribute comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.structMethodExtended(int, int)",
+    		" The struct method with parameter \n" +
+    		" \n" +
+    		" @param a Parameter a \n" +
+    		" @param b Parameter b \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.getStructAttr()",
+    		" The struct attribute comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeClass",
+    		" The class comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.getStructAttr3()",
+    		"The struct attribute post-comment with details \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.doxygen_parsing.getSomeVar()",
+    		" The var comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.setStructAttr2(int)",
+    		"The struct attribute post-comment \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass.getClassAttr2()",
+    		"The class attribute post-comment \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.getStructAttr2()",
+    		"The struct attribute post-comment \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.setStructAttr(int)",
+    		" The struct attribute comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeEnum",
+    		" The enum comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass.getClassAttr3()",
+    		"The class attribute post-comment with details \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass.classMethod()",
+    		" The class method comment \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.structMethodExtended2(int, int)",
+    		" The struct method with parameter \n" +
+    		" \n" +
+    		" @param a Parameter a \n" +
+    		" @param b Parameter b \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass.setClassAttr2(int)",
+    		"The class attribute post-comment \n" +
+    		"");
+    
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
   }

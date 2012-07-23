@@ -1,12 +1,12 @@
 
-import doxygen_translate.*;
+import doxygen_translate_all_tags.*;
 import com.sun.javadoc.*;
 import java.util.HashMap;
 
-public class doxygen_translate_runme {
+public class doxygen_translate_all_tags_runme {
   static {
     try {
-      System.loadLibrary("doxygen_translate");
+      System.loadLibrary("doxygen_translate_all_tags");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -20,40 +20,37 @@ public class doxygen_translate_runme {
       and calls the start() method of that class with parsed information.
     */
 	commentParser parser = new commentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_translate runtime test",
-	"commentParser", new String[]{"-quiet", "doxygen_translate"});
+    com.sun.tools.javadoc.Main.execute("doxygen_translate_all_tags runtime test",
+	"commentParser", new String[]{"-quiet", "doxygen_translate_all_tags"});
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
-    wantedComments.put("doxygen_translate.doxygen_translate.function(int, float)",
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.function(int, float)",
     		" <i>Hello </i>\n" +
-    		" \n" +
     		" <li>some list item \n" +
-    		" \n" +
-    		" </li>@author lots of them \n" +
-    		" \n" +
+    		" </li>This is attention! \n" +
+    		" You were warned! \n" +
+    		" @author lots of them \n" +
     		" @author Zubr \n" +
-    		" \n" +
     		" <b>boldword </b>\n" +
-    		" \n" +
+    		" Some brief description, \n" +
+    		" extended to many lines. \n" +
+    		" Not everything works right now... \n" +
     		" <code>codeword </code>\n" +
-    		" \n" +
     		" <i>citationword </i>\n" +
-    		" \n" +
     		" {@code some test code }\n" +
-    		" \n" +
     		" Conditional comment: SOMECONDITION \n" +
     		" Some conditional comment \n" +
     		" End of conditional comment.\n" +
-    		" \n" +
     		" Copyright: some copyright \n" +
-    		" \n" +
+    		" 1970 - 2012 \n" +
     		" @deprecated Now use another function \n" +
-    		" \n" +
+    		" This is very large \n" +
+    		" and detailed description of some thing \n" +
     		" <i>italicword </i>\n" +
-    		" \n" +
+    		" <i>emphazedWord </i>\n" +
     		" @exception SuperError \n" +
-    		" \n" +
+    		" This will only appear in hmtl \n" +
     		" If: ANOTHERCONDITION {\n" +
     		" First part of comment \n" +
     		" If: SECONDCONDITION {\n" +
@@ -67,81 +64,55 @@ public class doxygen_translate_runme {
     		" Second part extended \n" +
     		" }\n" +
     		" }\n" +
-    		" \n" +
     		" If not: SOMECONDITION {\n" +
     		" This is printed if not \n" +
     		" }\n" +
-    		" \n" +
     		" <img src=testImage.bmp alt=\"Hello, world!\" />\n" +
-    		" \n" +
+    		" Some text \n" +
+    		" describing invariant. \n" +
+    		" This will only appear in LATeX \n" +
     		" <ul> \n" +
-    		" \n" +
     		" <li>Some unordered list \n" +
     		" </li><li>With lots of items \n" +
     		" </li><li>lots of lots of items \n" +
-    		" \n" +
     		" </li></ul> \n" +
-    		" \n" +
     		" {@link someMember Some description follows }\n" +
-    		" \n" +
-    		" \n" +
-    		" \n" +
-    		" \n" +
-    		" \n" +
-    		" \n" +
+    		" This will only appear in man \n" +
     		" Note: Here \n" +
     		" is the note! \n" +
-    		" \n" +
     		" This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.\n" +
-    		" \n" +
     		" <code>someword </code>\n" +
-    		" \n" +
     		" @package superPackage \n" +
-    		" \n" +
     		" <p alt=\"The paragraph title \">\n" +
     		" The paragraph text. \n" +
     		" Maybe even multiline \n" +
-    		" \n" +
-    		" </p>@param a the first param \n" +
-    		" \n" +
+    		" </p>\n" +
+    		" @param a the first param \n" +
     		" Remarks: Some remark text \n" +
-    		" \n" +
     		" Remarks: Another remarks section \n" +
-    		" \n" +
     		" @return Whatever \n" +
-    		" \n" +
     		" @return it \n" +
-    		" \n" +
     		" @return may return \n" +
-    		" \n" +
+    		" This will only appear in RTF \n" +
     		" @see someOtherMethod \n" +
-    		" \n" +
     		" @see function \n" +
-    		" \n" +
+    		" Same as \n" +
+    		" brief description \n" +
     		" @since version 0.0.0.1 \n" +
-    		" \n" +
     		" @throws superException \n" +
-    		" \n" +
     		" @throws RuntimeError \n" +
-    		" \n" +
     		" TODO: Some very important task \n" +
-    		" \n" +
     		" @param b B is mentioned again... \n" +
-    		" \n" +
     		" {@literal \n" +
     		"very long \n" +
     		"text with tags <sometag> \n" +
     		" }\n" +
-    		" \n" +
     		" @version 0.0.0.2 \n" +
-    		" \n" +
     		" Warning: This is senseless! \n" +
-    		" \n" +
+    		" This will only appear in XML \n" +
     		" Here goes test of symbols: \n" +
     		" $ @ \\ & ~ < > # % \" . :: \n" +
-    		" \n" +
     		" And here goes simple text \n" +
-    		" \n" +
     		"");
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
