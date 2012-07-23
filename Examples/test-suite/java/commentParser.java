@@ -17,19 +17,19 @@ public class commentParser {
 		for (ClassDoc classDoc : root.classes()) {
 
 			if (classDoc.getRawCommentText().length() > 0)
-				parsedComments.put(classDoc.name(), classDoc.getRawCommentText());
+				parsedComments.put(classDoc.qualifiedName(), classDoc.getRawCommentText());
 
 			for (FieldDoc f : classDoc.enumConstants()) {
 				if (f.getRawCommentText().length() > 0)
-					parsedComments.put(f.name(), f.getRawCommentText());
+					parsedComments.put(f.qualifiedName(), f.getRawCommentText());
 			}
 			for (FieldDoc f : classDoc.fields()) {
 				if (f.getRawCommentText().length() > 0)
-					parsedComments.put(f.name(), f.getRawCommentText());
+					parsedComments.put(f.qualifiedName(), f.getRawCommentText());
 			}
 			for (MethodDoc m : classDoc.methods()) {
 				if (m.getRawCommentText().length() > 0)
-					parsedComments.put(m.name(), m.getRawCommentText());
+					parsedComments.put(m.toString(), m.getRawCommentText());
 			}
 		}
 		return true;
@@ -42,9 +42,21 @@ public class commentParser {
 		while (it.hasNext())
 		{
 			Entry<String, String> e = (Entry<String, String>) it.next();
+			String actualStr = e.getValue();
+			String wantedStr = wantedComments.get(e.getKey());
+			// this may be weird, but I don't know any more effective solution
+			actualStr = actualStr.replace(" ", "");
+			actualStr = actualStr.replace("\n", "");
+			actualStr = actualStr.replace("\t", "");
+			if (wantedStr != null) {
+				wantedStr = wantedStr.replace(" ", "");
+				wantedStr = wantedStr.replace("\n", "");
+				wantedStr = wantedStr.replace("\t", "");
+			}
 
-			if (!e.getValue().equals(wantedComments.get(e.getKey()))) {
+			if (!actualStr.equals(wantedStr)) {
 				System.out.println("Documentation comments for " + e.getKey() + " does not match: ");
+				// here we print original strings, for nicer output
 				System.out.println("\texpected:"+wantedComments.get(e.getKey()));
 				System.out.println("\tgot:\t"+e.getValue());
 				errorCount++;
@@ -64,7 +76,11 @@ public class commentParser {
 		while (it.hasNext())
 		{
 			Entry<String, String> e = (Entry<String, String>) it.next();
-			System.out.format("wantedComments.put(\"%s\", \"%s\");\n", e.getKey(), e.getValue());
+			String commentText = e.getValue();
+			commentText = commentText.replace("\\", "\\\\");
+			commentText = commentText.replace("\"", "\\\"");
+			commentText = commentText.replace("\n", "\\n\" +\n\t\t\"");
+			System.out.format("wantedComments.put(\"%s\",\n\t\t\"%s\");\n", e.getKey(), commentText);
 		}
 	}
 	
