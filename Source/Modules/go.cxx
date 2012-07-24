@@ -18,6 +18,8 @@ class GO:public Language {
 
   // Go package name.
   String *package;
+  // SWIG module name.
+  String *module;
   // Flag for generating gccgo output.
   bool gccgo_flag;
   // Prefix to use with gccgo.
@@ -81,6 +83,7 @@ class GO:public Language {
 
 public:
   GO():package(NULL),
+     module(NULL),
      gccgo_flag(false),
      go_prefix(NULL),
      soname(NULL),
@@ -235,7 +238,7 @@ private:
       allow_allprotected(GetFlag(optionsnode, "allprotected"));
     }
 
-    String *module = Getattr(n, "name");
+    module = Getattr(n, "name");
     if (!package) {
       package = Copy(module);
     }
@@ -4397,7 +4400,7 @@ private:
 	ret = exportedName(ret);
 
 	Node *cnmod = Getattr(cn, "module");
-	if (!cnmod || Strcmp(Getattr(cnmod, "name"), package) == 0) {
+	if (!cnmod || Strcmp(Getattr(cnmod, "name"), module) == 0) {
 	  Setattr(undefined_types, t, t);
 	} else {
 	  String *nw = NewString("");
@@ -4579,7 +4582,7 @@ private:
       }
       ex = exportedName(cname);
       Node *cnmod = Getattr(cn, "module");
-      if (!cnmod || Strcmp(Getattr(cnmod, "name"), package) == 0) {
+      if (!cnmod || Strcmp(Getattr(cnmod, "name"), module) == 0) {
 	if (add_to_hash) {
 	  Setattr(undefined_types, ty, ty);
 	}
