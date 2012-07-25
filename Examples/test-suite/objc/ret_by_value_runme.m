@@ -4,7 +4,7 @@ int main(int argc ,char *argv [ ])
 {
 NSAutoreleasePool *pool =[[NSAutoreleasePool alloc]init];
 test *t =[[test alloc]init];
-t=get_test();
+t=ObjcGet_test();
 if([t getMyInt ] != 100)
 NSLog(@"Runtime Test Failed");
 

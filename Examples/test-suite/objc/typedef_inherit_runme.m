@@ -6,19 +6,19 @@ int main(int argc, char * argv[])
 NSAutoreleasePool * pool =[[NSAutoreleasePool alloc]init];
 Foo *foo =[[Foo alloc]init];
 Bar *bar=[[Bar alloc]init];
-NSString *t=do_blah(foo);
+NSString *t=ObjcDo_blah(foo);
 assert([t isEqualToString:@"Foo::blah"]);
 	
-t=do_blah(bar);
+t=ObjcDo_blah(bar);
 assert([t isEqualToString:@"Bar::blah"]);
  
 Spam *spam=[[Spam alloc]init];
 Grok *grok=[[Grok alloc]init];
  
-t=do_blah2(spam);
+t=ObjcDo_blah2(spam);
 assert([t isEqualToString:@"Spam::blah"]);
  
-t=do_blah2(grok);
+t=ObjcDo_blah2(grok);
 assert([t isEqualToString:@"Grok::blah"]);
 	
 [foo release];
