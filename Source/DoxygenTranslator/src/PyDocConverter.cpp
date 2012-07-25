@@ -252,6 +252,7 @@ String *PyDocConverter::makeDocumentation(Node *n) {
     while (n) {
       documentation = getDoxygenComment(n);
       if (!Swig_is_generated_overload(n) && documentation) {
+	currentNode = n;
 	std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation), Char(Getfile(documentation)), Getline(documentation));
 	DoxygenEntity root("root", entityList);
 	allDocumentation.push_back(translateSubtree(root));
