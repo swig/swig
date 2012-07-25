@@ -3,10 +3,10 @@
 int main(int argc,char* argv[])
 {
 NSAutoreleasePool *pool=[[NSAutoreleasePool alloc]init];
-SWIGTYPE_p_Foo *a=new_Foo();
+SWIGTYPE_p_Foo *a=ObjcNew_Foo();
 Bar *b=[[Bar alloc]init];
 Spam *c=[[Spam alloc]init];
-NSString *t=do_blah(a);
+NSString *t=ObjcDo_blah(a);
 assert([t isEqualToString:@"Foo::blah"]);
 
 t=[b blah];

@@ -4,8 +4,8 @@ int main(int argc,char* argv[])
 {
 NSAutoreleasePool *pool=[[NSAutoreleasePool alloc]init];
 A *a=[[A alloc]init];
-assert(func(a) == NO);
-a=getnull();
+assert(ObjcFunc(a) == NO);
+a=ObjcGetnull();
 assert(a == 0);
 
 [a release];
