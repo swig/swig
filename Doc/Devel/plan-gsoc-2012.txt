@@ -2,29 +2,35 @@
                                                                      
                                                                      
                                              
+                   Project Plan
+                   ============
+                SWIG Code Comments
+             Google Summer of Code 2012
+
+
 This document describes goals for the Google Summer of Code 2012,
 SWIG code documentation project.
 
-Author: Marko Klopcic
+Author: Marko Klopcic, Dmitry Kabak
 
 
 Introduction
 ============
 
-The goal of this project is _not_ to translate _any_ possible doxygen
+The goal of this project is _not_ to translate _any_ possible Doxygen
 formatted comment to JavaDoc or PyDoc, but to make it possible to
 translate a subset of comment types in C/C++ code to
 JavaDoc and PyDoc. Covering all the Doxygen functionality would be to
-complex for the limited time. Hovewer, the code must be extendable so
+complex for the limited time. However, the code must be flexible so
 that implementing missing features would not require redesign of the
 comment handling code in SWIG.
 
-There will also be a possiblity to add untranslated comments to Java
+There will also be a possibility to add untranslated comments to Java
 and Python code (## comments, see Doxygen manual), if the user will
 prefer to use Doxygen on the generated code.
 
 Note:
-'-OK-' tick below means that the item is implemented, commited and
+'-OK-' tick below means that the item is implemented, committed and
 working.
 
 Abbreviations:
@@ -249,7 +255,7 @@ Optional functionality
 ======================
 
 That section describes some complex cases where the current code
-not behaves really well. Like a short to-do list of special cases.
+does not behave really well. Like a short to-do list of special cases.
 
 - When translating functions with default parameters in swig to
 java, it creates overloaded functions with all the parameters
