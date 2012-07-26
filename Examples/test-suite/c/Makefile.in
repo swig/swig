@@ -12,6 +12,9 @@ top_builddir = @top_builddir@/..
 
 include $(srcdir)/../common.mk
 
+CPP_TEST_CASES += \
+				 cpp_atomic_namespaced_class
+
 #
 # BROKEN TEST CASES:
 # default_constructor - last case fail: using %extend generates 2 ctors wrappers,
