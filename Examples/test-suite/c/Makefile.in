@@ -13,6 +13,7 @@ top_builddir = @top_builddir@/..
 include $(srcdir)/../common.mk
 
 CPP_TEST_CASES += \
+				 cpp_atomic_global_var_class \
 				 cpp_atomic_namespaced_class
 
 #
