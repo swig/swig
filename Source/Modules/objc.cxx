@@ -761,8 +761,19 @@ int OBJECTIVEC::constantWrapper(Node *n) {
     
     if(is_func_ptr) {
         variableWrapper(n);
-        Printf(constants_h_code,"extern %s;\n", crettype);
-        Printf(constants_mm_code, "%s = (%s)%s;\n", crettype, typestring, Swig_name_wrapper(Swig_name_get(getNSpace(), symname)));
+        Printf(constants_h_code,"extern %s %s;\n", crettype, symname);
+        //Printf(constants_mm_code, "%s %s = (%s)%s();\n", crettype, symname, typestring, Swig_name_wrapper(Swig_name_get(getNSpace(), symname)));
+        // Transform return type used in low level accessor to the type used in Objective-C constant definition
+        String *imcall = NewStringf("%s()", Swig_name_wrapper(Swig_name_get(getNSpace(), symname)));
+        if ((tm = Swig_typemap_lookup("objcvarout", n, "", 0))) {
+            substituteClassname(tm, type);
+            Replaceall(tm, "$objcvarname", symname);
+            Replaceall(tm, "$imcall", imcall);
+        } else {
+            Swig_warning(WARN_OBJC_TYPEMAP_OBJCOUT_UNDEF, input_file, line_number, "No objcout typemap defined for %s\n", crettype);
+        }
+        Printf(constants_mm_code, "%s\n", tm);
+        Delete(imcall);
     } else {
         if (SwigType_type(type) == T_STRING) {
             // http://stackoverflow.com/questions/538996/constants-in-objective-c/539191#539191
@@ -1603,7 +1614,7 @@ bool OBJECTIVEC::substituteClassname(String *tm, SwigType *pt) {
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
-    
+        
     if (Strstr(tm, "$objcclassname")) {
         SwigType *type = Copy(strippedtype);
         substituteClassnameVariable(tm, "$objcclassname", type);

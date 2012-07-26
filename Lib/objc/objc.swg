@@ -82,17 +82,13 @@
 %typemap(imtype) SWIGTYPE &                             "void*"
 %typemap(imtype) SWIGTYPE *const&                       "void*"
 
+// Function pointers
+%typemap(imtype) SWIGTYPE ((*)(ANY))                    "void*"
 
 
 /* 
  * IN TYPEMAPS: Used for "in" arguments type conversions: ObjectiveC++ to C++.
  */
-
-// Primary types
-//%typemap(in) bool
-//%{ $1 = $input? true:false; %} 
-//
-
 %typemap(in) bool,
              char, 
              signed char, 
@@ -112,7 +108,7 @@
 // No "in" for void
 %typemap(in) void ""
 
-// References: are automatically treated as pointers in the wrapper layer (ObjectiveC++)
+// References: are treated as pointers in the wrapper layer (ObjectiveC++)
 %typemap(in) const bool &,              bool &,
              const char &,  			char &,
 	     	 const signed char &, 		signed char &,
@@ -167,10 +163,18 @@
   $1 = *argp; 
 %}
 
-// C/C++ Pointers, primary and object, are treated as void* in ObjectiveC++
-%typemap(in) SWIGTYPE *, SWIGTYPE &
+// C/C++ Pointers, primary and object, are treated as pointers in ObjectiveC++
+%typemap(in) SWIGTYPE *
+%{ $1 = ($1_ltype)$input; %}
+   
+// Object References
+%typemap(in) SWIGTYPE &
 %{ $1 = ($1_ltype)$input; %}
 
+%typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
+%{ temp = ($*1_ltype)$input;
+   $1 = ($1_ltype)&temp; %}
+   
 // Array conversion typemap
 %typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)$input; %}
 
@@ -178,9 +182,9 @@
 %typemap(in) SWIGTYPE (CLASS::*)
 %{ $1 = *($&1_ltype)$input; %}
 
-%typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
-%{ temp = ($*1_ltype)$input;
-   $1 = ($1_ltype)&temp; %}
+// Function pointers
+%typemap(in) SWIGTYPE ((*)(ANY))
+%{ $1 = ($1_ltype)$input; %}
 
 
 /*
@@ -276,6 +280,9 @@
 %typemap(out) SWIGTYPE *const&
 %{ $result = (void *)*$1; %}
 
+// Function pointers
+%typemap(out) SWIGTYPE ((*)(ANY))
+%{ $result = (void*)$1; %}
 
 /* 
  * OBJCTYPE TYPEMAPS: Represents the ObjectiveC(proxy) type corresponding to each ObjectiveC++ type in the intermediate(wrapper) layer. 
@@ -317,7 +324,7 @@
 %typemap(objctype) char *, char *&, char[ANY], char[]    "NSString *"
 
 // Objects will always be treated as pointers in ObjectiveC
-%typemap(objctype) SWIGTYPE                             "$objcclassname *"
+%typemap(objctype) SWIGTYPE                             "$objcclassname*"
 
 // C/C++ Pointers to primitive types are treated as is
 // C/C++ prinitve pointers are treated as is in ObjectiveC++
@@ -337,18 +344,20 @@
 %typemap(objctype) const double *,  			double *                "double *"
 
 // C/C++ Pointers are treated as  as pointers in ObjectiveC
-%typemap(objctype) SWIGTYPE *                           "$objcclassname *" 
+%typemap(objctype) SWIGTYPE *                           "$objcclassname*" 
 
 // Arrays to non-primitive types
-%typemap(objctype) SWIGTYPE []                          "$objcclassname"
+%typemap(objctype) SWIGTYPE []                          "$objcclassname*"
 
 // Pointer to a class member
-%typemap(objctype) SWIGTYPE (CLASS::*)                  "$objcclassname *"  
+%typemap(objctype) SWIGTYPE (CLASS::*)                  "$objcclassname*"  
 
 // References to non-primitive types
-%typemap(objctype) SWIGTYPE &                           "$objcclassname *"
+%typemap(objctype) SWIGTYPE &                           "$objcclassname*"
 %typemap(objctype) SWIGTYPE *const&                     "$*objcclassname"
 
+// Function pointers
+%typemap(objctype) SWIGTYPE ((*)(ANY))                  "$objcclassname*"
 
 
 /* 
@@ -505,7 +514,7 @@
 // As such, we mark swigOwnCObject as NO. This has to be reviewed again.
 %typemap(objcout) SWIGTYPE
 %{   void* cPtr = $imcall;
-     $objcclassname * ret = nil;
+     $objcclassname* ret = nil;
      if(cPtr) {
         ret = [[[$objcclassname alloc] initWithCptr:cPtr swigOwnCObject:NO] autorelease];
      }
@@ -516,7 +525,7 @@
 // As such, we mark swigOwnCObject as NO. This has to be reviewed again.
 %typemap(objcout) SWIGTYPE &
 %{   void* cPtr = $imcall;
-     $objcclassname * ret = nil;
+     $objcclassname* ret = nil;
      if(cPtr) {
         ret = [[[$objcclassname alloc] initWithCptr:cPtr swigOwnCObject:NO] autorelease];
      }
@@ -524,17 +533,28 @@
 	
 %typemap(objcout) SWIGTYPE *
 %{   void* cPtr = $imcall;
-     $objcclassname * ret = nil;
+     $objcclassname* ret = nil;
      if(cPtr) {
         ret = [[[$objcclassname alloc] initWithCptr:cPtr swigOwnCObject:NO] autorelease];
      }
     return ret; %}
     
+// C function pointer
+%typemap(objcout) SWIGTYPE ((*)(ANY)) 
+%{   void* cPtr = $imcall;
+     $objcclassname* ret = nil;
+     if(cPtr) {
+        ret = [[[$objcclassname alloc] initWithCptr:cPtr swigOwnCObject:NO] autorelease];
+     }
+    return ret; %}
+    
+%typemap(objcvarout) SWIGTYPE ((*)(ANY)) 
+%{ $objcclassname* $objcvarname = [[[$objcclassname alloc] initWithCptr:($imcall) swigOwnCObject:NO] autorelease]; %}
 
 // Pointer to a class member will be returned as id
 %typemap(objcout) SWIGTYPE (CLASS::*) 
 %{   void* cPtr = $imcall;
-     $objcclassname * ret = nil;
+     $objcclassname* ret = nil;
      if(cPtr) {
         ret = [[[$objcclassname alloc] initWithCptr:cPtr swigOwnCObject:NO] autorelease];
      }
