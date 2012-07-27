@@ -1,5 +1,5 @@
 #include <assert.h>
-#include "cpp_atomic_class_method/cpp_atomic_class_method_proxy.h"
+#include "cpp_basic_class_method/cpp_basic_class_method_proxy.h"
 
 int main(int argc, const char *argv[])
 {

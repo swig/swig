@@ -1,4 +1,4 @@
-%module cpp_atomic_namespaced_class
+%module cpp_basic_namespaced_class
 %feature (nspace, "1");
 
 %inline{

@@ -1,4 +1,4 @@
-%module cpp_atomic_class_enum
+%module cpp_basic_class_enum
 
 %inline {
     class MyClass {

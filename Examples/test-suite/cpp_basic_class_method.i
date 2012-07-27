@@ -1,4 +1,4 @@
-%module cpp_atomic_class_method
+%module cpp_basic_class_method
 
 %inline{
     class MyClass {

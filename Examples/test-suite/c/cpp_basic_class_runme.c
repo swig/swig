@@ -1,4 +1,4 @@
-#include "cpp_atomic_class/cpp_atomic_class_proxy.h"
+#include "cpp_basic_class/cpp_basic_class_proxy.h"
 
 int main(int argc, const char *argv[])
 {

@@ -1,4 +1,4 @@
-%module cpp_atomic_global_enum
+%module cpp_basic_global_enum
 
 %inline {
     enum SomeEnum

@@ -13,15 +13,15 @@ top_builddir = @top_builddir@/..
 include $(srcdir)/../common.mk
 
 CPP_TEST_CASES += \
-				 cpp_atomic_class \
-				 cpp_atomic_class_enum \
-				 cpp_atomic_class_method \
-				 cpp_atomic_class_var_pub_member_atom \
-				 cpp_atomic_class_var_pub_member_class \
-				 cpp_atomic_global_enum \
-				 cpp_atomic_global_var_atom \
-				 cpp_atomic_global_var_class \
-				 cpp_atomic_namespaced_class
+				 cpp_basic_class \
+				 cpp_basic_class_enum \
+				 cpp_basic_class_method \
+				 cpp_basic_class_var_pub_member_atom \
+				 cpp_basic_class_var_pub_member_class \
+				 cpp_basic_global_enum \
+				 cpp_basic_global_var_atom \
+				 cpp_basic_global_var_class \
+				 cpp_basic_namespaced_class
 
 #
 # BROKEN TEST CASES:

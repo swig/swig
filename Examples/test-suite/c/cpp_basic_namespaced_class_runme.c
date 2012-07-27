@@ -1,4 +1,4 @@
-#include "cpp_atomic_namespaced_class/cpp_atomic_namespaced_class_proxy.h"
+#include "cpp_basic_namespaced_class/cpp_basic_namespaced_class_proxy.h"
 
 int main(int argc, const char *argv[])
 {
