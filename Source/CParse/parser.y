@@ -1798,7 +1798,6 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     featattr;
 %type <str>	 doxygen_comment;
 %type <str>	 doxygen_comment_item;
-%type <str>	 c_style_comment;
 %type <str>	 doxygen_post_comment;
 %type <str>	 doxygen_post_comment_item;
 %%
@@ -1849,6 +1848,16 @@ interface      : interface declaration {
                    appendChild($1,$2);
                    $$ = $1;
                }
+               | interface doxygen_comment declaration {
+                   set_comment($3, $2);
+                   appendChild($1, $3);
+                   $$ = $1;
+               }
+               | interface declaration doxygen_post_comment {
+                   set_comment($2, $3);
+                   appendChild($1, $2);
+                   $$ = $1;
+               }
                | empty {
                    $$ = new_node("top");
                }
@@ -1857,7 +1866,6 @@ interface      : interface declaration {
 declaration    : swig_directive { $$ = $1; }
                | c_declaration { $$ = $1; } 
                | cpp_declaration { $$ = $1; }
-               | c_style_comment { $$ = $1; }
                | SEMI { $$ = 0; }
                | error {
                   $$ = 0;
@@ -1880,15 +1888,6 @@ declaration    : swig_directive { $$ = $1; }
    COPERATOR token---discarding the rest of the definition. Ugh.
 
  */
-
-	       | doxygen_comment declaration {
-		  $$ = $2;
-		  set_comment($2, $1);
-	       }
-	       | declaration doxygen_post_comment {
-		  $$ = $1;
-		  set_comment($1, $2);
-	       }
                | error COPERATOR {
                   $$ = 0;
                   skip_decl();
@@ -3470,15 +3469,14 @@ doxygen_comment_item : DOXYGENSTRING {
 		  else {
 		    $$ = $1;
 		  }
-
 		}
-		;
-
-doxygen_comment : doxygen_comment doxygen_comment_item { 
+		| doxygen_comment_item doxygen_comment_item {
 		  Append($1, $2);
 		  $$ = $1;
 		}
-                | doxygen_comment_item {
+		;
+
+doxygen_comment : doxygen_comment_item {
                   $$ = $1;
 		}
 		;
@@ -3493,25 +3491,16 @@ doxygen_post_comment_item : DOXYGENPOSTSTRING {
 		  
 		  $$ = $1;
 		}
-		;
-
-doxygen_post_comment : doxygen_post_comment doxygen_post_comment_item { 
+		| doxygen_post_comment_item doxygen_post_comment_item {
 		  Append($1, $2);
 		  $$ = $1;
 		}
-                | doxygen_post_comment_item {
+		;
+
+doxygen_post_comment : doxygen_post_comment_item {
                   $$ = $1;
 		}
 		;
-
-c_style_comment : C_COMMENT_STRING {
-		  if(currentCComment != 0){
-		    Append(currentCComment, $1);
-		  }
-		  else currentCComment = $1;
-		  $$ = 0;
-                }
-                ;
 
 /* ======================================================================
  *                       C++ Support
@@ -4489,7 +4478,6 @@ cpp_member   : c_declaration { $$ = $1; }
              | storage_class idcolon SEMI { $$ = 0; }
              | cpp_using_decl { $$ = $1; }
              | cpp_template_decl { $$ = $1; }
-             | c_style_comment{ $$ = $1; }
              | cpp_catch_decl { $$ = 0; }
              | template_directive { $$ = $1; }
              | warn_directive { $$ = $1; }
