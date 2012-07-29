@@ -25,7 +25,7 @@
 
 class PyDocConverter : public DoxygenTranslator {
 public:
-  PyDocConverter();
+  PyDocConverter(bool debugTranslator = false, bool debugParser = false);
   String *makeDocumentation(Node *node);
 
 protected:
@@ -108,7 +108,6 @@ protected:
   std::string getParamType(std::string name);
 
 private:
-  bool debug;
   // temporary thing, should be refactored somehow
   Node *currentNode;
   // this contains the handler pointer and one string argument

@@ -17,7 +17,7 @@ std::map<std::string, DoxyCommandEnum> DoxygenParser::doxygenCommands;
 std::set<std::string> DoxygenParser::doxygenSectionIndicators;
 
 
-DoxygenParser::DoxygenParser() : noisy(false) {
+DoxygenParser::DoxygenParser(bool noisy) : noisy(noisy) {
 	fillTables();
 }
 

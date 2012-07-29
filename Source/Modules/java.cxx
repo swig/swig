@@ -163,9 +163,6 @@ public:
        should be easy to implement though */
     director_multiple_inheritance = 0;
     director_language = 1;
-    
-    if (doxygen)
-      doxygenTranslator = new JavaDocConverter();
   }
   
   ~JAVA() {
@@ -242,6 +239,9 @@ public:
 
     SWIG_library_directory("java");
 
+    bool debug_doxygen_translator = false;
+    bool debug_doxygen_parser = false;
+
     // Look for certain command line options
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -271,6 +271,12 @@ public:
 	  Swig_mark_arg(i);
 	  doxygen = false;
 	  scan_doxygen_comments = false;
+  } else if ((strcmp(argv[i], "-debug-doxygen-translator") == 0)) {
+    Swig_mark_arg(i);
+    debug_doxygen_translator = true;
+  } else if ((strcmp(argv[i], "-debug-doxygen-parser") == 0)) {
+    Swig_mark_arg(i);
+    debug_doxygen_parser = true;
 	} else if ((strcmp(argv[i], "-noproxy") == 0)) {
 	  Swig_mark_arg(i);
 	  proxy_flag = false;
@@ -296,7 +302,7 @@ public:
     }
     
     if (doxygen)
-      doxygenTranslator = new JavaDocConverter();
+      doxygenTranslator = new JavaDocConverter(debug_doxygen_translator, debug_doxygen_parser);
 
     // Add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGJAVA 1", 0);
@@ -4537,6 +4543,8 @@ const char *JAVA::usage = (char *) "\
 Java Options (available with -java)\n\
      -doxygen        - Convert C++ doxygen comments to JavaDoc comments in proxy classes (default)\n\
      -nodoxygen      - Don't convert C++ doxygen comments to JavaDoc comments in proxy classes\n\
+     -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
+     -debug-doxygen-translator - Display doxygen translator module debugging information\n\
      -nopgcpp        - Suppress premature garbage collection prevention parameter\n\
      -noproxy        - Generate the low-level functional interface instead\n\
                        of proxy classes\n\

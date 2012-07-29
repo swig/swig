@@ -14,7 +14,8 @@
 
 #include "DoxygenTranslator.h"
 
-DoxygenTranslator::DoxygenTranslator() {
+DoxygenTranslator::DoxygenTranslator(bool debugTranslator, bool debugParser)
+: debug(debugTranslator), parser(debugParser) {
 }
 DoxygenTranslator::~DoxygenTranslator() {
 }

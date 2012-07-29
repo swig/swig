@@ -30,7 +30,7 @@ public:
   /*
    * Constructor
    */
-  DoxygenTranslator();
+  DoxygenTranslator(bool debugTranslator = false, bool debugParser = false);
   /*
    * Virtual destructor.
    */
@@ -52,6 +52,7 @@ public:
   String *getDoxygenComment(Node *node);
 
 protected:
+  bool debug;
   /*
    * Overridden in subclasses to return the documentation formatted for a given
    * documentation system.

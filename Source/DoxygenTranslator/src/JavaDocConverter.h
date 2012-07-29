@@ -22,7 +22,7 @@
  */
 class JavaDocConverter : public DoxygenTranslator {
 public:
-  JavaDocConverter();
+  JavaDocConverter(bool debugTranslator = false, bool debugParser = false);
   String *makeDocumentation(Node *node);
 
 protected:
@@ -88,7 +88,6 @@ protected:
 
 
 private:
-  bool debug;
   // this contains the handler pointer and one string argument
   static std::map<std::string, std::pair<tagHandler, std::string> > tagHandlers;
   void fillStaticTables();

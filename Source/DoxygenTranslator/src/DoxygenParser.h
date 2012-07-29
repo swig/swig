@@ -19,7 +19,7 @@
 #include "TokenList.h"
 class DoxygenParser {
 public:
-  DoxygenParser();
+  DoxygenParser(bool noisy = false);
   virtual ~DoxygenParser();
   std::list < DoxygenEntity > createTree(std::string doxygen, std::string fileName, int lineNumber);
 private:

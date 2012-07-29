@@ -91,7 +91,8 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["n"] = make_pair(&PyDocConverter::handleNewLine, "");
 }
 
-PyDocConverter::PyDocConverter() : debug(false) {
+PyDocConverter::PyDocConverter(bool debugTranslator, bool debugParser)
+: DoxygenTranslator(debugTranslator, debugParser) {
   fillStaticTables();
 }
 

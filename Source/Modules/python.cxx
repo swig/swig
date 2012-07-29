@@ -121,6 +121,8 @@ Python Options (available with -python)\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
      -doxygen        - Convert C++ doxygen comments to pydoc comments in proxy classes (default) \n\
+     -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
+     -debug-doxygen-translator - Display doxygen translator module debugging information\n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
      -fastinit       - Use fast init mechanism for classes (default)\n\
      -fastunpack     - Use fast unpack mechanism to parse the argument functions \n\
@@ -332,6 +334,9 @@ public:
 
     SWIG_library_directory("python");
 
+    bool debug_doxygen_parser = false;
+    bool debug_doxygen_translator = false;
+
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
 	if (strcmp(argv[i], "-interface") == 0) {
@@ -430,6 +435,12 @@ public:
 	  doxygen = 0;
 	  scan_doxygen_comments = 0;
 	  Swig_mark_arg(i);
+  } else if (strcmp(argv[i], "-debug-doxygen-translator") == 0) {
+    debug_doxygen_translator = true;
+    Swig_mark_arg(i);
+  } else if (strcmp(argv[i], "-debug-doxygen-parser") == 0) {
+    debug_doxygen_parser = true;
+    Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-fastunpack") == 0) {
 	  fastunpack = 1;
 	  Swig_mark_arg(i);
@@ -549,7 +560,7 @@ public:
     }
     
     if (doxygen)
-      doxygenTranslator = new PyDocConverter;
+      doxygenTranslator = new PyDocConverter(debug_doxygen_translator, debug_doxygen_parser);
 
     if (!global_name)
       global_name = NewString("cvar");

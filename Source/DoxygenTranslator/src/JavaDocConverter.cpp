@@ -21,6 +21,7 @@ std::map<std::string, std::pair<JavaDocConverter::tagHandler, std::string > > Ja
 
 void JavaDocConverter::fillStaticTables() {
   if (tagHandlers.size()) // fill only once
+    return;
 
   // these commands insert HTML tags
   tagHandlers["a"] = make_pair(&JavaDocConverter::handleTagHtml, "i");
@@ -105,7 +106,8 @@ void JavaDocConverter::fillStaticTables() {
 }
 
 
-JavaDocConverter::JavaDocConverter() : debug(false) {
+JavaDocConverter::JavaDocConverter(bool debugTranslator, bool debugParser)
+: DoxygenTranslator(debugTranslator, debugParser) {
   fillStaticTables();
 }
 
