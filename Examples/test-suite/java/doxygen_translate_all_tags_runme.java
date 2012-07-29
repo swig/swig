@@ -111,7 +111,7 @@ public class doxygen_translate_all_tags_runme {
     		" Warning: This is senseless! \n" +
     		" This will only appear in XML \n" +
     		" Here goes test of symbols: \n" +
-    		" $ @ \\ & ~ < > # % \" . :: \n" +
+    		" $ @ \\ &amp; ~ &lt; &gt; # % &quot; . :: \n" +
     		" And here goes simple text \n" +
     		"");
     // and ask the parser to check comments for us

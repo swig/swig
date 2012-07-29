@@ -36,13 +36,13 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["$"] = make_pair(&JavaDocConverter::handleTagChar, "");
   tagHandlers["@"] = make_pair(&JavaDocConverter::handleTagChar, "");
   tagHandlers["\\"] = make_pair(&JavaDocConverter::handleTagChar, "");
-  tagHandlers["<"] = make_pair(&JavaDocConverter::handleTagChar, "");
-  tagHandlers[">"] = make_pair(&JavaDocConverter::handleTagChar, "");
-  tagHandlers["&"] = make_pair(&JavaDocConverter::handleTagChar, "");
+  tagHandlers["<"] = make_pair(&JavaDocConverter::handleTagChar, "&lt;");
+  tagHandlers[">"] = make_pair(&JavaDocConverter::handleTagChar, "&gt;");
+  tagHandlers["&"] = make_pair(&JavaDocConverter::handleTagChar, "&amp;");
   tagHandlers["#"] = make_pair(&JavaDocConverter::handleTagChar, "");
   tagHandlers["%"] = make_pair(&JavaDocConverter::handleTagChar, "");
   tagHandlers["~"] = make_pair(&JavaDocConverter::handleTagChar, "");
-  tagHandlers["\""] = make_pair(&JavaDocConverter::handleTagChar, "");
+  tagHandlers["\""] = make_pair(&JavaDocConverter::handleTagChar, "&quot;");
   tagHandlers["."] = make_pair(&JavaDocConverter::handleTagChar, "");
   tagHandlers["::"] = make_pair(&JavaDocConverter::handleTagChar, "");
   // these commands are stripped out

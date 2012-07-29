@@ -138,7 +138,7 @@ public class doxygen_translate_runme {
     		" Warning: This is senseless! \n" +
     		" \n" +
     		" Here goes test of symbols: \n" +
-    		" $ @ \\ & ~ < > # % \" . :: \n" +
+    		" $ @ \\ &amp; ~ &lt; &gt; # % &quot; . :: \n" +
     		" \n" +
     		" And here goes simple text \n" +
     		" \n" +
