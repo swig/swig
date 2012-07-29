@@ -124,7 +124,7 @@ std::string PyDocConverter::justifyString(std::string documentString, int indent
 
     currentLine += *stringPosition;
 
-    if (iswspace(*stringPosition) && (int) currentLine.size() >= maxWidth || (stringPosition + 1) == documentString.end()) {
+    if ((iswspace(*stringPosition) && (int) currentLine.size() >= maxWidth) || (stringPosition + 1) == documentString.end()) {
       formattedString += currentLine + "\n";
       currentLine = "";
     }
@@ -173,10 +173,10 @@ void PyDocConverter::translateEntity(DoxygenEntity & doxyEntity, std::string &tr
     handleParagraph(doxyEntity, translatedComment, dummy);
 }
 
-void PyDocConverter::handleParagraph(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void PyDocConverter::handleParagraph(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   translatedComment += justifyString(translateSubtree(tag), 0);
 }
-void PyDocConverter::handlePlainString(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void PyDocConverter::handlePlainString(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   translatedComment += tag.data;
   if (tag.data.size() && tag.data[tag.data.size()-1] != ' ')
     translatedComment += "";
@@ -186,7 +186,7 @@ void PyDocConverter::handleTagMessage(DoxygenEntity& tag, std::string& translate
   translatedComment += arg;
   handleParagraph(tag, translatedComment, dummy);
 }
-void PyDocConverter::handleTagChar(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void PyDocConverter::handleTagChar(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   translatedComment += tag.typeOfEntity;
 }
 void PyDocConverter::handleTagIf(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
@@ -198,7 +198,7 @@ void PyDocConverter::handleTagIf(DoxygenEntity& tag, std::string& translatedComm
     translatedComment += " {" + translateSubtree(tag) + "}";
   }
 }
-void PyDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void PyDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   std::string dummy;
   translatedComment += "Title: ";
   if (tag.entityList.size())
@@ -206,7 +206,7 @@ void PyDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedCom
   tag.entityList.pop_front();
   handleParagraph(tag, translatedComment, dummy);
 }
-void PyDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void PyDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   std::string dummy;
   if (tag.entityList.size() < 2) {
     // TODO: log error
@@ -229,7 +229,7 @@ void PyDocConverter::handleTagWrap(DoxygenEntity& tag, std::string& translatedCo
   if (tag.entityList.size()) // do not include empty tags
     translatedComment += arg + translateSubtree(tag) + arg;
 }
-void PyDocConverter::handleNewLine(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void PyDocConverter::handleNewLine(DoxygenEntity&, std::string& translatedComment, std::string&) {
   translatedComment += "\n";
 }
 

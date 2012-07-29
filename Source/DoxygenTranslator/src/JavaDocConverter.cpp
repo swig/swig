@@ -177,7 +177,7 @@ void JavaDocConverter::handleTagHtml(DoxygenEntity& tag, std::string& translated
   if (tag.entityList.size()) // do not include empty tags
     translatedComment += "<" + arg + ">" + translateSubtree(tag) + "</" + arg + ">";
 }
-void JavaDocConverter::handleNewLine(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handleNewLine(DoxygenEntity&, std::string& translatedComment, std::string&) {
   translatedComment += "\n * ";
 }
 void JavaDocConverter::handleTagChar(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
@@ -193,10 +193,10 @@ void JavaDocConverter::handleTagSame(DoxygenEntity& tag, std::string& translated
     tag.typeOfEntity = arg;
   translatedComment += formatCommand(std::string("@" + tag.typeOfEntity + " " + translateSubtree(tag)), 2);
 }
-void JavaDocConverter::handleParagraph(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handleParagraph(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   translatedComment += formatCommand(translateSubtree(tag), 0);
 }
-void JavaDocConverter::handlePlainString(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handlePlainString(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   translatedComment += tag.data;
   if (tag.data.size() && tag.data[tag.data.size()-1] != ' ')
   	translatedComment += " ";
@@ -222,7 +222,7 @@ void JavaDocConverter::handleTagMessage(DoxygenEntity& tag, std::string& transla
   translatedComment += formatCommand(arg, 0);
   handleParagraph(tag, translatedComment, dummy);
 }
-void JavaDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   if (tag.entityList.size() < 2)
     return;
 
@@ -245,7 +245,7 @@ void JavaDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translate
     translatedComment += " alt=\"" + title +"\"";
   translatedComment += " />";
 }
-void JavaDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   std::string dummy;
   translatedComment += "<p";
   if (tag.entityList.size())
