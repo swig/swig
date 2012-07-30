@@ -276,7 +276,7 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
     printTree(entityList);
   }
 
-  std::string javaDocString = "/**";
+  std::string javaDocString = "/**\n * ";
 
   for (std::list < DoxygenEntity >::iterator entityIterator = entityList.begin(); entityIterator != entityList.end();) {
     translateEntity(*entityIterator, javaDocString);
