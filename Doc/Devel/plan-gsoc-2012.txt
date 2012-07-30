@@ -322,6 +322,6 @@ Documentation
 SWIG documentation will contain:
 -OK- command line options
 -OK- list of implemented features (types and placements of comments)
-- list of unimplemented features (types and placements of comments)
-- list of tags and their translations (all Doxygen tags).
+-OK- list of unimplemented features (types and placements of comments)
+-OK- list of tags and their translations (all Doxygen tags).
 
