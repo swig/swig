@@ -690,21 +690,31 @@ int OBJECTIVEC::enumvalueDeclaration(Node *n) {
 
     Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
     String *symname = Getattr(n, "sym:name");
-    String *value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
+    String *value = Getattr(n,"enumvalue");
     Node *parent = parentNode(n);
-    
+    Node *pparent=parentNode(parent);
+    String *enumname;
+    if (pparent && !Strcmp(nodeType(pparent), "class")) {         // This is a nested enum, prefix the class name
+        String *classname = Getattr(pparent, "sym:name");
+        enumname = NewStringf("%s_%s", classname, symname);
+    }
+    else {
+        enumname = Copy(symname);
+    }
     if (proxy_flag) { // Emit the enum item
         if (!GetFlag(n, "firstenumitem"))
             Printf(proxy_h_code, ",\n");
-        Printf(proxy_h_code, "  %s", symname);
-        if (value) 
-            Printf(proxy_h_code, " = %s", value);
+        Printf(proxy_h_code, "  %s", enumname);
+        if (value){ 
+      value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));       
+     Printf(proxy_h_code, " = %s", value);
     }
-    
+    }
     // Keep track that the currently processed enum has at least one value
     SetFlag(parent, "nonempty");
     
     Swig_restore(n);
+    Delete(enumname);
     return SWIG_OK;
 }
 
