@@ -22,7 +22,8 @@ CPP_TEST_CASES += \
 				 cpp_basic_global_enum \
 				 cpp_basic_global_var_atom \
 				 cpp_basic_global_var_class \
-				 cpp_basic_namespaced_class
+				 cpp_basic_namespaced_class \
+				 c_backend_cpp_exception
 
 #
 # BROKEN TEST CASES:
