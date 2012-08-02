@@ -58,5 +58,7 @@ check(doxygen_basic_translate.function4.__doc__, ''
 '  }'
 )
 check(doxygen_basic_translate.function5.__doc__, ''
-'  Test for default args'
+'  Test for default args \n'
+'  Arguments: \n'
+'  a (int) -- Some parameter, default is 42\n'
 )

@@ -61,6 +61,7 @@ int function4()
 
 /**
  * Test for default args
+ * @param a Some parameter, default is 42
  */
 int function5(int a=42)
 {

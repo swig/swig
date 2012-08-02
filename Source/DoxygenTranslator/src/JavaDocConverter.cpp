@@ -66,8 +66,8 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["deprecated"] = make_pair(&JavaDocConverter::handleTagSame, "");
   tagHandlers["exception"] = make_pair(&JavaDocConverter::handleTagSame, "");
   tagHandlers["package"] = make_pair(&JavaDocConverter::handleTagSame, "");
-  tagHandlers["param"] = make_pair(&JavaDocConverter::handleTagSame, "");
-  tagHandlers["tparam"] = make_pair(&JavaDocConverter::handleTagSame, "param");
+  tagHandlers["param"] = make_pair(&JavaDocConverter::handleTagParam, "");
+  tagHandlers["tparam"] = make_pair(&JavaDocConverter::handleTagParam, "");
   tagHandlers["result"] = make_pair(&JavaDocConverter::handleTagSame, "return");
   tagHandlers["return"] = make_pair(&JavaDocConverter::handleTagSame, "");
   tagHandlers["returns"] = make_pair(&JavaDocConverter::handleTagSame, "return");
@@ -149,6 +149,23 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine, int ind
   }
 
   return formattedLines;
+}
+
+bool JavaDocConverter::paramExists(std::string param) {
+  ParmList *plist = CopyParmList(Getattr(currentNode, "parms"));
+  Parm *p = NULL;
+  for (p = plist; p;) {
+    if (Char(Getattr(p, "name")) == param)
+      return true;
+    /*
+     * doesn't seem to work always: in some cases (especially for 'self' parameters)
+     * tmap:in is present, but tmap:in:next is not and so this code skips all the parameters
+     */
+    //p = Getattr(p, "tmap:in") ? Getattr(p, "tmap:in:next") : nextSibling(p);
+    p = nextSibling(p);
+  }
+  Delete(plist);
+  return false;
 }
 
 std::string JavaDocConverter::translateSubtree(DoxygenEntity & doxygenEntity) {
@@ -250,12 +267,26 @@ void JavaDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translate
 void JavaDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   std::string dummy;
   translatedComment += "<p";
-  if (tag.entityList.size())
+  if (tag.entityList.size()) {
     translatedComment += " alt=\"" + tag.entityList.begin()->data + "\"";
-  translatedComment += ">";
+    translatedComment += ">";
+    tag.entityList.pop_front();
+    handleParagraph(tag, translatedComment, dummy);
+  }
+  translatedComment += "</p>";
+}
+
+void JavaDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
+  std::string dummy;
+  if (!tag.entityList.size())
+    return;
+  if (!paramExists(tag.entityList.begin()->data))
+    return;
+
+  translatedComment += "@param ";
+  translatedComment += tag.entityList.begin()->data + " ";
   tag.entityList.pop_front();
   handleParagraph(tag, translatedComment, dummy);
-  translatedComment += "</p>";
 }
 
 String *JavaDocConverter::makeDocumentation(Node *node) {
@@ -278,6 +309,9 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
 
   std::string javaDocString = "/**\n * ";
 
+  // store the current node
+  // (currently just to handle params)
+  currentNode = node;
   for (std::list < DoxygenEntity >::iterator entityIterator = entityList.begin(); entityIterator != entityList.end();) {
     translateEntity(*entityIterator, javaDocString);
     entityIterator++;

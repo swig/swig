@@ -64,6 +64,11 @@ public class doxygen_basic_translate_runme {
     		"");
     wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function5(int)",
     		" Test for default args \n" +
+    		" @param a Some parameter, default is 42" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function5()",
+    		" Test for default args \n" +
     		" \n" +
     		"");
     wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function3(int, int)",

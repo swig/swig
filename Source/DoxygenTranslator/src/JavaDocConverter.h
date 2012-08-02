@@ -85,12 +85,19 @@ protected:
    * Insert <p alt='title'>...</p>
    */
   void handleTagPar(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Insert @param command, if it is really a function param
+   */
+  void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
 
 private:
+  Node *currentNode;
   // this contains the handler pointer and one string argument
   static std::map<std::string, std::pair<tagHandler, std::string> > tagHandlers;
   void fillStaticTables();
+
+  bool paramExists(std::string param);
 };
 
 #endif

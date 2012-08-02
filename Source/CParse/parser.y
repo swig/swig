@@ -190,6 +190,7 @@ static Node *copy_node(Node *n) {
 }
 
 static void set_comment(Node *n, String *comment) {
+  String *name;
   Parm *p;
   if (!n || !comment)
     return;
@@ -205,6 +206,16 @@ static void set_comment(Node *n, String *comment) {
 	Printv(comment, "\n@param ", Getattr(p, "name"), Getattr(p, "DoxygenComment"), NIL);
       p=nextSibling(p);
     }
+  }
+  
+  /* Append same comment to every generated overload */
+  name = Getattr(n, "name");
+  if (!name)
+    return;
+  n = nextSibling(n);
+  while (n && Getattr(n, "name") && Strcmp(Getattr(n, "name"), name) == 0) {
+    Setattr(n, "DoxygenComment", comment);
+    n = nextSibling(n);
   }
 }
 
@@ -1586,10 +1597,6 @@ static void default_arguments(Node *n) {
           if (throws) Setattr(new_function,"throws",pl);
 	  Delete(pl);
         }
-	
-	/* copy doxygen comments if found */
-	if(Getattr(function,"DoxygenComment"))
-	  Setattr(new_function,"DoxygenComment",Getattr(function,"DoxygenComment"));
 
         /* copy specific attributes for global (or in a namespace) template functions - these are not templated class methods */
         if (strcmp(cntype,"template") == 0) {
