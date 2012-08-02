@@ -63,13 +63,21 @@ public class doxygen_basic_translate_runme {
     		" \n" +
     		"");
     wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function5(int)",
+    		" This is a post comment. \n" +
+    		"");
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function6(int)",
     		" Test for default args \n" +
     		" @param a Some parameter, default is 42" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function5()",
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function6()",
     		" Test for default args \n" +
     		" \n" +
+    		"");
+    wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function7(doxygen_basic_translate.SWIGTYPE_p_p_p_Shape)",
+    		" Test for a parameter with difficult type \n" +
+    		" (mostly for python) \n" +
+    		" @param a Very strange param \n" +
     		"");
     wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function3(int, int)",
     		" A test for overloaded functions \n" +
