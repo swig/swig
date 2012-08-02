@@ -101,7 +101,7 @@ std::string PyDocConverter::getParamType(std::string param) {
   Parm *p = NULL;
   for (p = plist; p;) {
     if (Char(Getattr(p, "name")) == param) {
-      std::string type = Char(Swig_name_make(currentNode, 0, Getattr(p, "type"), 0, 0));
+      std::string type = Char(SwigType_str(Getattr(p, "type"), ""));
       return type;
     }
     /*
