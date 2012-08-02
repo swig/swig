@@ -66,7 +66,7 @@ static Node   **class_decl = NULL;
  * ----------------------------------------------------------------------------- */
 String *currentComment; /* Location of the stored Doxygen Comment */
 String *currentPostComment; /* Location of the stored Doxygen Post-Comment */
-String *currentCComment; /* Location of the stored C Comment */
+static String *currentDeclComment = NULL; /* Comment of C/C++ declaration. */
 static Node *previousNode = NULL; /* Pointer to the previous node (for post comments) */
 static Node *currentNode = NULL; /* Pointer to the current node (for post comments) */
 
@@ -1852,17 +1852,22 @@ program        :  interface {
 
 interface      : interface declaration {  
                    /* add declaration to end of linked list (the declaration isn't always a single declaration, sometimes it is a linked list itself) */
+                   if (currentDeclComment != NULL) {
+                       set_comment($2, currentDeclComment);
+                       currentDeclComment = NULL;
+                   }                                      
                    appendChild($1,$2);
                    $$ = $1;
                }
-               | interface doxygen_comment declaration {
-                   set_comment($3, $2);
-                   appendChild($1, $3);
+               | interface doxygen_comment {
+                   currentDeclComment = $2; 
                    $$ = $1;
                }
-               | interface declaration doxygen_post_comment {
-                   set_comment($2, $3);
-                   appendChild($1, $2);
+               | interface doxygen_post_comment {
+                   Node *node = lastChild($1);
+                   if (node) {
+                       set_comment(node, $2);
+                   }
                    $$ = $1;
                }
                | empty {

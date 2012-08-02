@@ -1,5 +1,7 @@
 %module doxygen_basic_translate
 
+%include "doxygen_basic_translate.h"
+
 %inline %{
 
 /**
@@ -59,12 +61,21 @@ int function4()
 {
 }
 
+
+int function5(int a)
+{
+}
+/**< This is a post comment. */
+
 /**
  * Test for default args
  * @param a Some parameter, default is 42
  */
-int function5(int a=42)
+int function6(int a=42)
 {
 }
 
+/**
+ * Comment at the end of file should be ignored.
+ */
 %}
