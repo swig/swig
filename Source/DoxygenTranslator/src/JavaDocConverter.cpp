@@ -12,6 +12,8 @@
 #include "JavaDocConverter.h"
 #include "DoxygenParser.h"
 #include <iostream>
+#include <vector>
+#include "../../Modules/swigmod.h"
 #define APPROX_LINE_LENGTH 64	//characters per line allowed
 #define TAB_SIZE 8		//current tab size in spaces
 //TODO {@link} {@linkplain} {@docRoot}, and other useful doxy commands that are not a javadoc tag
@@ -71,8 +73,8 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["result"] = make_pair(&JavaDocConverter::handleTagSame, "return");
   tagHandlers["return"] = make_pair(&JavaDocConverter::handleTagSame, "");
   tagHandlers["returns"] = make_pair(&JavaDocConverter::handleTagSame, "return");
-  tagHandlers["see"] = make_pair(&JavaDocConverter::handleTagSame, "");
-  tagHandlers["sa"] = make_pair(&JavaDocConverter::handleTagSame, "see");
+  //tagHandlers["see"] = make_pair(&JavaDocConverter::handleTagSame, "");
+  //tagHandlers["sa"] = make_pair(&JavaDocConverter::handleTagSame, "see");
   tagHandlers["since"] = make_pair(&JavaDocConverter::handleTagSame, "");
   tagHandlers["throws"] = make_pair(&JavaDocConverter::handleTagSame, "");
   tagHandlers["throw"] = make_pair(&JavaDocConverter::handleTagSame, "throws");
@@ -87,7 +89,9 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["if"] = make_pair(&JavaDocConverter::handleTagIf, "If: ");
   tagHandlers["ifnot"] = make_pair(&JavaDocConverter::handleTagIf, "If not: ");
   tagHandlers["image"] = make_pair(&JavaDocConverter::handleTagImage, "");
-  tagHandlers["link"] = make_pair(&JavaDocConverter::handleTagExtended, "link");
+  tagHandlers["link"] = make_pair(&JavaDocConverter::handleTagLink, "");
+  tagHandlers["see"] = make_pair(&JavaDocConverter::handleTagSee, "");
+  tagHandlers["sa"] = make_pair(&JavaDocConverter::handleTagSee, "");
   tagHandlers["note"] = make_pair(&JavaDocConverter::handleTagMessage, "Note: ");
   tagHandlers["overload"] = make_pair(&JavaDocConverter::handleTagMessage, "This is an overloaded member function, provided for"
       " convenience. It differs from the above function only in what"
@@ -152,10 +156,12 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine, int ind
 }
 
 bool JavaDocConverter::paramExists(std::string param) {
+  if (GetFlag(currentNode, "feature:doxygen:nostripparams"))
+    return true;
   ParmList *plist = CopyParmList(Getattr(currentNode, "parms"));
   Parm *p = NULL;
   for (p = plist; p;) {
-    if (Char(Getattr(p, "name")) == param)
+    if (Getattr(p, "name") && Char(Getattr(p, "name")) == param)
       return true;
     /*
      * doesn't seem to work always: in some cases (especially for 'self' parameters)
@@ -287,6 +293,115 @@ void JavaDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translate
   translatedComment += tag.entityList.begin()->data + " ";
   tag.entityList.pop_front();
   handleParagraph(tag, translatedComment, dummy);
+}
+
+string JavaDocConverter::convertLink(string linkObject) {
+  if (GetFlag(currentNode, "feature:doxygen:nolinktranslate"))
+    return linkObject;
+  // find the params in function in linkObject (if any)
+  size_t lbracePos = linkObject.find('(', 0);
+  size_t rbracePos = linkObject.find(')', 0);
+  if (lbracePos == string::npos && rbracePos == string::npos && lbracePos >= rbracePos)
+    return "";
+
+  string paramsStr = linkObject.substr(lbracePos + 1, rbracePos - lbracePos - 1);
+  // strip the params, to fill them later
+  linkObject = linkObject.substr(0, lbracePos);
+
+  // find all the params
+  vector<string> params;
+  size_t lastPos = 0, commaPos = 0;
+  while (true) {
+    commaPos = paramsStr.find(',', lastPos);
+    if (commaPos == string::npos)
+      commaPos = paramsStr.size();
+    string param = paramsStr.substr(lastPos, commaPos - lastPos);
+    // if any param type is empty, we are failed
+    if (!param.size())
+      return "";
+    params.push_back(param);
+    lastPos = commaPos + 1;
+    if (lastPos >= paramsStr.size())
+      break;
+  }
+
+  linkObject += "(";
+  for (size_t i=0; i<params.size(); i++) {
+    // translate c/c++ type string to swig's type
+    // i e 'int **arr[100][10]' -> 'a(100).a(10).p.p.int'
+    // also converting arrays to pointers
+    string paramStr = params[i];
+    String *swigType = NewString("");
+    for (int j=(int)params[i].size() - 1; j>=0; j--) {
+      // skip all the [...] blocks, write 'p.' for every of it
+      if (paramStr[j] == ']') {
+        while (j>=0 && paramStr[j] != '[')
+          j--;
+        // no closing brace
+        if (!j)
+          return "";
+        Append(swigType, "p.");
+        continue;
+      }
+      else if (paramStr[j] == '*')
+        Append(swigType, "p.");
+      else if (isalnum(paramStr[j])) {
+        Append(swigType, paramStr.substr(0, j + 1).c_str());
+        break;
+      }
+    }
+
+    // make dummy param list, to lookup typemaps for it
+    Parm *dummyParam = NewParm(swigType, "", 0);
+    Swig_typemap_attach_parms("jstype", dummyParam, NULL);
+    Language::instance()->replaceSpecialVariables(0, Getattr(dummyParam, "tmap:jstype"), dummyParam);
+
+    //Swig_print(dummyParam, 1);
+    linkObject += Char(Getattr(dummyParam, "tmap:jstype"));
+    if (i != params.size() - 1)
+      linkObject += ",";
+
+    Delete(dummyParam);
+    Delete(swigType);
+  }
+  linkObject += ")";
+
+  return linkObject;
+}
+
+void JavaDocConverter::handleTagLink(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
+  std::string dummy;
+  if (!tag.entityList.size())
+    return;
+
+  string linkObject = convertLink(tag.entityList.begin()->data);
+  if (!linkObject.size())
+    linkObject = tag.entityList.begin()->data;
+  tag.entityList.pop_front();
+
+  translatedComment += "{@link ";
+  translatedComment += linkObject + " ";
+  handleParagraph(tag, translatedComment, dummy);
+  translatedComment += "}";
+}
+
+void JavaDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
+  std::string dummy;
+  if (!tag.entityList.size())
+    return;
+
+  list<DoxygenEntity>::iterator it;
+  for (it = tag.entityList.begin(); it!=tag.entityList.end(); it++) {
+    if (it->typeOfEntity == "plainstd::endl")
+      handleNewLine(*it, translatedComment, dummy);
+    if (it->typeOfEntity != "plainstd::string")
+      continue;
+    translatedComment += "@see ";
+    string linkObject = convertLink(it->data);
+    if (!linkObject.size())
+      linkObject = it->data;
+    translatedComment += linkObject;
+  }
 }
 
 String *JavaDocConverter::makeDocumentation(Node *node) {

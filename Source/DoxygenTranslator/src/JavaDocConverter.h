@@ -31,6 +31,11 @@ protected:
   void translateEntity(DoxygenEntity &tag, std::string &translatedComment);
   
   /*
+   * Convert params in link-objects and references
+   */
+  std::string convertLink(std::string linkObject);
+
+  /*
    * Typedef for the function that handles one tag
    * arg - some string argument to easily pass it through lookup table
    */
@@ -89,6 +94,16 @@ protected:
    * Insert @param command, if it is really a function param
    */
   void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Insert {@link...} command, and handle all the <link-object>s correctly
+   * (like converting types of params, etc)
+   */
+  void handleTagLink(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Insert @see command, and handle all the <link-object>s correctly
+   * (like converting types of params, etc)
+   */
+  void handleTagSee(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
 
 private:
