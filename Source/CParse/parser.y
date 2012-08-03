@@ -64,8 +64,6 @@ static Node   **class_decl = NULL;
 /* -----------------------------------------------------------------------------
  *                            Doxygen Comment Globals and Assist Functions
  * ----------------------------------------------------------------------------- */
-String *currentComment; /* Location of the stored Doxygen Comment */
-String *currentPostComment; /* Location of the stored Doxygen Post-Comment */
 static String *currentDeclComment = NULL; /* Comment of C/C++ declaration. */
 static Node *previousNode = NULL; /* Pointer to the previous node (for post comments) */
 static Node *currentNode = NULL; /* Pointer to the current node (for post comments) */
@@ -4866,37 +4864,12 @@ storage_class  : EXTERN { $$ = "extern"; }
    ------------------------------------------------------------------------------ */
 
 parms          : rawparms {
-                 Parm *p, *nextSibling;
+                 Parm *p;
 		 $$ = $1;
 		 p = $1;
 		 while (p) {
-		   String *postComment = NULL;
-		   nextSibling = nextSibling(p);
-		   if (nextSibling != NULL) {
-		     postComment = Getattr(nextSibling, "postComment");
-		   } else {
-		     /* the last functino parameter has two attributes -
-			post comment of the previous params and its own post
-			comment.
-		      */
-		     postComment = Getattr(p, "lastParamPostComment");
-		   }
-		   if (postComment != NULL) {
-		     String *param = NewString("\n@param ");
-		     if (currentComment != 0) {
-		       Append(currentComment, param);
-		       Append(currentComment, Getattr(p, "name"));
-		       Append(currentComment, postComment);
-		     }
-		     else {
-		       currentComment = param;
-		       Append(currentComment, Getattr(p, "name"));
-		       Append(currentComment, postComment);
-		     }
-		   }
-
 		   Replace(Getattr(p,"type"),"typename ", "", DOH_REPLACE_ANY);
-		   p = nextSibling;
+		   p = nextSibling(p);
 		 }
                }
     	       ;
