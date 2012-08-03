@@ -58,6 +58,9 @@ check(doxygen_basic_translate.function4.__doc__, ''
 '  }'
 )
 check(doxygen_basic_translate.function5.__doc__, ''
+'  This is a post comment. \n'
+)
+check(doxygen_basic_translate.function6.__doc__, ''
 '  Test for default args \n'
 '  Arguments: \n'
 '  a (int) -- Some parameter, default is 42\n'
