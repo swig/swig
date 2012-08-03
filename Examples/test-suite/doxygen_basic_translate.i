@@ -75,6 +75,21 @@ int function6(int a=42)
 {
 }
 
+class Shape
+{
+public:
+  typedef Shape* superType;
+};
+
+/**
+ * Test for a parameter with difficult type
+ * (mostly for python)
+ * @param a Very strange param
+ */
+void function7(Shape::superType *a[10])
+{
+}
+
 /**
  * Comment at the end of file should be ignored.
  */
