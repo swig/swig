@@ -566,7 +566,7 @@ public:
 	String *doxygen_comments=doxygenTranslator->getDocumentation(n);
 	if(comment_creation_chatter)
 	  Printf(f_module, "/* This was generated from top() */");
-	Printf(f_module, Char(doxygen_comments)); 
+	Printv(f_module, Char(doxygen_comments), NIL);
 	Delete(doxygen_comments);
       }
       if (Len(module_class_modifiers) > 0)
@@ -1360,7 +1360,7 @@ public:
 	    String *doxygen_comments=doxygenTranslator->getDocumentation(n);
 	    if(comment_creation_chatter)
 	      Printf(f_enum, "/* This was generated from enumDeclaration() */");
-	    Printf(f_enum, Char(doxygen_comments)); 
+	    Printv(f_enum, Char(doxygen_comments), NIL);
 	    Delete(doxygen_comments);
 	  }
 	  
@@ -1457,7 +1457,7 @@ public:
 	String *doxygen_comments=doxygenTranslator->getDocumentation(n);
 	if(comment_creation_chatter)
 	  Printf(enum_code, "/* This was generated from enumvalueDeclaration() */");
-	Printf(enum_code, Char(doxygen_comments)); 
+	Printv(enum_code, Char(doxygen_comments), NIL);
 	Delete(doxygen_comments);
       }
 
@@ -1527,7 +1527,7 @@ public:
       String *doxygen_comments=doxygenTranslator->getDocumentation(n);
       if(comment_creation_chatter)
 	Printf(structuralComments, "/* This was generated from doxygenComment() */");
-      Printf(structuralComments, Char(doxygen_comments)); 
+      Printv(structuralComments, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
     }
     return SWIG_OK;
@@ -1559,7 +1559,7 @@ public:
       String *doxygen_comments=doxygenTranslator->getDocumentation(n);
       if(comment_creation_chatter)
 	Printf(constants_code, "/* This was generated from constantWrapper() */");
-      Printf(constants_code, Char(doxygen_comments)); 
+      Printv(constants_code, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
     }
     
@@ -1855,7 +1855,7 @@ public:
       String *doxygen_comments=doxygenTranslator->getDocumentation(n);
       if(comment_creation_chatter)
 	Printf(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */");
-      Printf(proxy_class_def, Char(doxygen_comments)); 
+      Printv(proxy_class_def, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
     }
     
@@ -2259,7 +2259,7 @@ public:
       String *doxygen_comments=doxygenTranslator->getDocumentation(n);
       if(comment_creation_chatter)
 	Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */");
-      Printf(function_code, Char(doxygen_comments)); 
+      Printv(function_code, Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
     }
     
@@ -2490,7 +2490,7 @@ public:
       String *doxygen_comments=doxygenTranslator->getDocumentation(n);
 	if(comment_creation_chatter)
 	  Printf(function_code, "/* This was generated from constructionhandler() */");
-	Printf(function_code, Char(doxygen_comments)); 
+	Printv(function_code, Char(doxygen_comments), NIL);
 	Delete(doxygen_comments);
       }
 	    
