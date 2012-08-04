@@ -227,6 +227,7 @@ extern "C" {
   extern void Swig_symbol_cadd(const_String_or_char_ptr symname, Node *node);
   extern Node *Swig_symbol_clookup(const_String_or_char_ptr symname, Symtab *tab);
   extern Node *Swig_symbol_clookup_check(const_String_or_char_ptr symname, Symtab *tab, int (*check) (Node *));
+  extern Node *Swig_symbol_clookup_no_inherit(const_String_or_char_ptr name, Symtab *n);
   extern Symtab *Swig_symbol_cscope(const_String_or_char_ptr symname, Symtab *tab);
   extern Node *Swig_symbol_clookup_local(const_String_or_char_ptr symname, Symtab *tab);
   extern Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr symname, Symtab *tab, int (*check) (Node *));

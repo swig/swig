@@ -4,6 +4,7 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.8 (in progress)
 ===========================
+
 2012-06-27: wsfulton
             Fix display of pointers in various places on 64 bit systems - only 32 bits were being shown.
 
@@ -14,6 +15,45 @@ Version 2.0.8 (in progress)
 
 2012-07-20: kwwette
             [Octave] segfault-on-exit prevention hack now preserves exit status, and uses C99 _Exit().
+
+2012-06-30: wsfulton
+            Fix namespace problems for symbols declared with a forward class declarations, such as:
+
+              namespace Space1 {
+                namespace Space2 {
+                  struct XXX;
+                  struct YYY;
+                }
+
+                struct Space2::YYY {};
+                struct Space1::Space2::XXX {};
+
+                void testXXX2(Space2::XXX xx) {}
+                void testYYY2(Space2::YYY yy) {}
+              }
+
+            where xx and yy were not recognised as the proxy classes XXX and YYY.
+
+2012-06-30: wsfulton
+            Fix using declarations combined with using directives with forward class declarations so that
+            types are correctly found in scope. 
+
+              namespace Outer2 {
+                namespace Space2 {
+                  class Thing2;
+                }
+              }
+              using namespace Outer2;
+              using Space2::Thing2;
+              class Thing2 {};
+              // None of the methods below correctly used the Thing2 proxy class
+              void useit2(Thing2 t) {}
+              void useit2a(Outer2::Space2::Thing2 t) {}
+              void useit2b(::Outer2::Space2::Thing2 t) {}
+              void useit2c(Space2::Thing2 t) {}
+              namespace Outer2 {
+                void useit2d(Space2::Thing2 t) {}
+              }
 
 2012-06-25: wsfulton
             Fix using declarations combined with using directives so that types are correctly found in scope.
@@ -27,6 +67,8 @@ Version 2.0.8 (in progress)
               using namespace Outer2; // using directive
               using Space2::Thing2; // using declaration
               void useit2(Thing2 t) {}
+
+            Similarly for templated classes.
 
 2012-05-29: wsfulton
             Fix #3529601 - seg fault when a protected method has the "director"

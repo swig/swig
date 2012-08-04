@@ -176,6 +176,8 @@ static Hash *current_symtab = 0;	/* Current symbol table node */
 static Hash *symtabs = 0;	/* Hash of all symbol tables by fully-qualified name */
 static Hash *global_scope = 0;	/* Global scope */
 
+static int use_inherit = 1;
+
 /* common attribute keys, to avoid calling find_key all the times */
 
 
@@ -482,9 +484,9 @@ void Swig_symbol_alias(const_String_or_char_ptr aliasname, Symtab *s) {
 /* -----------------------------------------------------------------------------
  * Swig_symbol_inherit()
  *
- * Inherit symbols from another scope.
- * Primarily for using directives, such as 'using namespace X;'.
- * Not for using declarations, such as 'using A;'.
+ * Inherit symbols from another scope. Primarily for C++ inheritance and
+ * for using directives, such as 'using namespace X;'
+ * but not for using declarations, such as 'using A;'.
  * ----------------------------------------------------------------------------- */
 
 void Swig_symbol_inherit(Symtab *s) {
@@ -970,7 +972,7 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
   }
 
   inherit = Getattr(symtab, "inherit");
-  if (inherit) {
+  if (inherit && use_inherit) {
     int i, len;
     len = Len(inherit);
     for (i = 0; i < len; i++) {
@@ -1060,7 +1062,7 @@ static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symt
 	/* Check inherited scopes */
 	if (!n) {
 	  List *inherit = Getattr(symtab, "inherit");
-	  if (inherit) {
+	  if (inherit && use_inherit) {
 	    int i, len;
 	    len = Len(inherit);
 	    for (i = 0; i < len; i++) {
@@ -1327,6 +1329,11 @@ Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, 
   return s;
 }
 
+Node *Swig_symbol_clookup_no_inherit(const_String_or_char_ptr name, Symtab *n) {
+  use_inherit = 0;
+  Swig_symbol_clookup(name, n);
+  use_inherit = 1;
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_cscope()

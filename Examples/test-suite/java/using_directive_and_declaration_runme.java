@@ -24,5 +24,6 @@ public class using_directive_and_declaration_runme {
     Thing6 t6b = new Thing6();
     t6b.b();
     using_directive_and_declaration.useit6(t6a, t6b);
+    using_directive_and_declaration.useit7(new Thing7());
   }
 }

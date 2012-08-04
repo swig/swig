@@ -81,5 +81,26 @@ namespace Outer6 {
 }
 using namespace Outer6::Space6b;
 void useit6(Outer6::Space6a::Thing6 ta, Thing6 tb) {}
+
+namespace Outer7 {
+  namespace Space7 {
+    namespace Middle7 {
+      class Thing7;
+    }
+  }
+}
+using namespace Outer7::Space7;
+class Middle7::Thing7 {};
+using Middle7::Thing7;
+void useit7(Thing7 t) {}
+void useit7a(Outer7::Space7::Middle7::Thing7 t) {}
+void useit7b(::Outer7::Space7::Middle7::Thing7 t) {}
+void useit7c(Middle7::Thing7 t) {}
+namespace Outer7 {
+  namespace Space7 {
+    void useit7d(Middle7::Thing7 t) {}
+  }
+}
+
 %}
 

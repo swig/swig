@@ -257,6 +257,7 @@ CPP_TEST_CASES += \
 	namespace_class \
 	namespace_enum \
 	namespace_extend \
+	namespace_forward_declaration \
 	namespace_nested \
 	namespace_spaces \
 	namespace_template \
@@ -443,6 +444,7 @@ CPP_TEST_CASES += \
 	using2 \
 	using_composition \
 	using_directive_and_declaration \
+	using_directive_and_declaration_forward \
 	using_extend \
 	using_inherit \
 	using_namespace \
