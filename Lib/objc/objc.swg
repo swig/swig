@@ -365,8 +365,7 @@
  */
 
 // Primary types
-%typemap(objcin) bool
-%{ $1 =  $objcinput? true:false; %} 
+%typemap(objcin) bool "$objcinput" 
 
 %typemap(objcin) char, 
              signed char, 
@@ -387,7 +386,8 @@
 %typemap(objcin) void ""
 
 // References: are treated as pointers in the proxy layer (ObjectiveC)
-%typemap(objcin) const char &,  		char &,
+%typemap(objcin) const bool &,                  bool &, 
+                 const char &,  		char &,
 	     	 const signed char &, 		signed char &,
 	         const unsigned char &, 	unsigned char &,
 		     const short &,				short &,
