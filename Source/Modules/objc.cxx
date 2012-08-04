@@ -931,7 +931,9 @@ int OBJECTIVEC::functionWrapper(Node *n) {
     } else if (proxy_flag && is_destructor) {   // Handle destructor
         // TODO: Do it here instead in emitProxyClass function
     }
-    if (proxy_flag && (global_variable_flag || global_func_flag)) { // Handle globals
+    // globalFunctionHandler is called for static member functions as well hence setting global_func_flag to true. 
+    // To route the call to the appropriate proxy generator, we check for !static_member_func_flag here.
+    if (proxy_flag && (global_variable_flag || global_func_flag) && !static_member_func_flag) { // Handle globals
         Setattr(n, "imfunctionname", wname);
         emitProxyGlobalFunctions(n);
     } else if (proxy_flag && (member_variable_flag || static_member_variable_flag || member_constant_flag || 
@@ -1156,9 +1158,11 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
         Putc(toupper((int) *Char(variable_name)), proxyfunctionname);
         Printf(proxyfunctionname, "%s", Char(variable_name) + 1);
         
-    } else if (member_func_flag || static_member_func_flag) {
+    } else if (member_func_flag) {
         proxyfunctionname = Copy(name);
-    } 
+    } else {
+        proxyfunctionname = Swig_scopename_last(name);
+    }
     
     // Deal with overloading    
     
@@ -1212,13 +1216,19 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
         }
         
         // Add parameter to proxy function
-        if (gencomma >= 2)
-            Printf(function_decl, " %s:", arg);
-        else if(gencomma == 1 || static_flag)
-            Printf(function_decl, ":");
-        if(gencomma || static_flag) 
-            Printf(function_decl, " (%s)%s", objcparmtype, arg);
-        gencomma++;
+	if(static_flag)	{        
+	    if (gencomma == 0)
+            Printf(function_decl, ": (%s)%s", objcparmtype, arg);
+        else if(gencomma >=1) 
+            Printf(function_decl, " %s: (%s)%s", arg, objcparmtype, arg);
+        }
+        else {
+	    if (gencomma == 1) 
+		Printf(function_decl, ": (%s)%s", objcparmtype, arg);
+	    else if (gencomma >=2) 
+        	Printf(function_decl, " %s: (%s)%s", arg, objcparmtype, arg);
+	}  
+gencomma++;
         
         Delete(arg);
         Delete(objcparmtype);
