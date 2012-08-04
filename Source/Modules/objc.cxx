@@ -1159,7 +1159,7 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
         Printf(proxyfunctionname, "%s", Char(variable_name) + 1);
         
     } else if (member_func_flag) {
-        proxyfunctionname = Copy(name);
+        proxyfunctionname = Copy(symname);
     } else {
         proxyfunctionname = Swig_scopename_last(name);
     }

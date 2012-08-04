@@ -576,7 +576,7 @@
      }
     return ret; %}
 
-typemap(objcout) SWIGTYPE *const& 
+%typemap(objcout) SWIGTYPE *const& 
 %{   void* cPtr = $imcall;
      $objcclassname* ret = nil;
      if(cPtr) {
