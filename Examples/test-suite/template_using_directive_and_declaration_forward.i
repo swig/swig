@@ -26,7 +26,7 @@ namespace Outer2 {
 using namespace Outer2;
 using Space2::Thing2;
 template<typename T> class Thing2 {};
-// BROKEN void useit2(Thing2<int> t) {}
+void useit2(Thing2<int> t) {}
 void useit2a(Outer2::Space2::Thing2<int> t) {}
 void useit2b(::Outer2::Space2::Thing2<int> t) {}
 void useit2c(Space2::Thing2<int> t) {}
@@ -46,7 +46,7 @@ using namespace Outer3;
 using namespace Space3;
 using Middle3::Thing3;
 template<typename T> class Thing3 {};
-// BROKEN void useit3(Thing3<int> t) {}
+void useit3(Thing3<int> t) {}
 void useit3a(Outer3::Space3::Middle3::Thing3<int> t) {}
 void useit3b(::Outer3::Space3::Middle3::Thing3<int> t) {}
 void useit3c(Middle3::Thing3<int> t) {}
@@ -67,7 +67,7 @@ namespace Outer4 {
 using namespace Outer4::Space4;
 using Middle4::Thing4;
 template<typename T> class Thing4 {};
-// BROKEN void useit4(Thing4<int> t) {}
+void useit4(Thing4<int> t) {}
 void useit4a(Outer4::Space4::Middle4::Thing4<int> t) {}
 void useit4b(::Outer4::Space4::Middle4::Thing4<int> t) {}
 void useit4c(Middle4::Thing4<int> t) {}
@@ -91,7 +91,7 @@ using namespace ::Outer5::Space5;
 using namespace Middle5;
 using More5::Thing5;
 template<typename T> class Thing5 {};
-// BROKEN void useit5(Thing5<int> t) {}
+void useit5(Thing5<int> t) {}
 void useit5a(Outer5::Space5::Middle5::More5::Thing5<int> t) {}
 void useit5b(::Outer5::Space5::Middle5::More5::Thing5<int> t) {}
 void useit5c(Middle5::More5::Thing5<int> t) {}
@@ -111,7 +111,7 @@ namespace Outer7 {
 using namespace Outer7::Space7;
 template<typename T> class Middle7::Thing7 {};
 using Middle7::Thing7;
-// BROKEN void useit7(Thing7<int> t) {}
+void useit7(Thing7<int> t) {}
 void useit7a(Outer7::Space7::Middle7::Thing7<int> t) {}
 void useit7b(::Outer7::Space7::Middle7::Thing7<int> t) {}
 void useit7c(Middle7::Thing7<int> t) {}
