@@ -448,6 +448,7 @@
 // Pointer to a class member will be passed as void*, convert appropriately
 %typemap(objcin) SWIGTYPE (CLASS::*) "" 
 
+%typemap(objcin) SWIGTYPE *const& "[$objcinput getCptr]" 
 
 /*
  * OBJCOUT TYPEMAPS: Used for return-type type conversions: ObjectiveC++(wrapper) to ObjectiveC(proxy)
@@ -575,8 +576,14 @@
      }
     return ret; %}
 
-
-
+typemap(objcout) SWIGTYPE *const& 
+%{   void* cPtr = $imcall;
+     $objcclassname* ret = nil;
+     if(cPtr) {
+        ret = [[[$objcclassname alloc] initWithCptr:cPtr swigOwnCObject:NO] autorelease];
+     }
+    return ret; %}
+ 
 /* apply typemaps */
 // Treat references to arrays like like references to a single element.
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
