@@ -27,7 +27,6 @@ class string;
 	NSException* anException = [NSException exceptionWithName:@"NullPointerException" 
 	reason:@"null std::string" userInfo:nil];
 	@throw anException;
-	return $null;
     } 
     int length = [$input length];
     int bufferSize = sizeof(char) * (length + 1);
@@ -59,7 +58,6 @@ class string;
 	NSException* anException = [NSException exceptionWithName:@"NullPointerException" 
 	reason:@"null std::string" userInfo:nil];
 	@throw anException;
-	return $null;
    }
    int length = [$input length];
    int bufferSize = sizeof(char) * (length + 1);
