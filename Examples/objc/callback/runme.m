@@ -21,18 +21,18 @@ int main(int argc, char* argv[]) {
 
         Caller *caller=[[Caller alloc]init];
 	Callback *callback=[[Callback alloc]init];
-	[caller setCallback:callback];
-	[caller call];
-	[caller delCallback];
+	[caller Caller_setCallback:callback];
+	[caller Caller_call];
+	[caller Caller_delCallback];
 	
         NSLog(@"\n");
         NSLog(@"Adding and calling an ObjectiveC callback\n");
         NSLog(@"----------------------------------------\n");
     
 	Callback *objcallback=[[ObjCCallback alloc] init];
-	[caller setCallback:objcallback];
-	[caller call];
-	[caller delCallback];
+	[caller Caller_setCallback:objcallback];
+	[caller Caller_call];
+	[caller Caller_delCallback];
 	
 	[caller release];
 	[pool drain];

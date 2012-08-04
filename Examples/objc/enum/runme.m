@@ -21,9 +21,9 @@ int main(int argc, char* argv[]) {
   	NSLog(@"\nTesting use of enum with class method" );
   	Foo* f = [[Foo alloc] init];
 
-  	[f enum_test:Foo_IMPULSE];
-  	[f enum_test:Foo_WARP];
-  	[f enum_test:Foo_LUDICROUS];
+  	[f Foo_enum_test:Foo_IMPULSE];
+  	[f Foo_enum_test:Foo_WARP];
+  	[f Foo_enum_test:Foo_LUDICROUS];
         [f release];
 	
        return 0;
