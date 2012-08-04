@@ -5,10 +5,16 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.8 (in progress)
 ===========================
 
-2012-06-27: wsfulton
+2012-08-04: wsfulton
+            Remove incorrect warning (314) about target language keywords which were triggered
+            by using declarations and using directives. For example 'string' is a keyword in C#:
+              namespace std { class string; }
+              using std::string;
+
+2012-07-21: wsfulton
             Fix display of pointers in various places on 64 bit systems - only 32 bits were being shown.
 
-2012-06-27: wsfulton
+2012-07-21: wsfulton
             Fix gdb debugger functions 'swigprint' and 'locswigprint' to display to the gdb output window
             rather than stdout. This fixes display problems in gdbtui and the ensures the output
             appears where expected in other gdb based debuggers such as Eclipse CDT.
