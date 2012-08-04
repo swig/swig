@@ -370,6 +370,8 @@ CPP_TEST_CASES += \
 	template_inherit_abstract \
 	template_int_const \
 	template_methods \
+	template_namespace_forward_declaration \
+	template_using_directive_and_declaration_forward \
 	template_nested \
 	template_nested_typemaps \
 	template_ns \
@@ -476,6 +478,7 @@ CPP_STD_TEST_CASES += \
 	li_std_except \
 	li_std_map \
         li_std_pair \
+        li_std_pair_using \
 	li_std_string \
 	li_std_vector \
 	li_std_vector_enum \

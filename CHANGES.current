@@ -16,6 +16,55 @@ Version 2.0.8 (in progress)
 2012-07-20: kwwette
             [Octave] segfault-on-exit prevention hack now preserves exit status, and uses C99 _Exit().
 
+2012-07-02: wsfulton
+            Fix Debian bug http://bugs.debian.org/672035, typemap copy failure - regression introduced 
+            in swig-2.0.5:
+              %include<stl.i>
+              using std::pair;
+              %template(StrPair) pair<std::string, std::string>;
+
+2012-07-02: wsfulton
+            Fix using declarations combined with using directives with forward class declarations so that
+            types are correctly found in scope for templates. Example:
+
+              namespace Outer2 {
+                namespace Space2 {
+                  template<typename T> class Thing2;
+                }
+              }
+              using namespace Outer2;
+              using Space2::Thing2;
+              template<typename T> class Thing2 {};
+              // STILL BROKEN void useit2(Thing2<int> t) {}
+              void useit2a(Outer2::Space2::Thing2<int> t) {}
+              void useit2b(::Outer2::Space2::Thing2<int> t) {}
+              void useit2c(Space2::Thing2<int> t) {}
+              namespace Outer2 {
+                void useit2d(Space2::Thing2<int> t) {}
+              }
+
+              %template(Thing2Int) Thing2<int>;
+
+
+2012-06-30: wsfulton
+            Fix template namespace problems for symbols declared with a forward class declarations, such as:
+
+              namespace Space1 {
+                namespace Space2 {
+                  template<typename T> struct YYY;
+                }
+                template<typename T> struct Space2::YYY {
+                  T yyy(T h) {
+                    return h;
+                  }    
+                };
+                void testYYY1(Space1::Space2::YYY<int> yy) {}
+                void testYYY2(Space2::YYY<int> yy) {}
+                void testYYY3(::Space1::Space2::YYY<int> yy) {}
+              }
+
+              %template(YYYInt) Space1::Space2::YYY<int>;
+
 2012-06-30: wsfulton
             Fix namespace problems for symbols declared with a forward class declarations, such as:
 

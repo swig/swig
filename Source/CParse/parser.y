@@ -879,20 +879,19 @@ static String *resolve_create_node_scope(String *cname) {
   nscope = 0;
   nscope_inner = 0;  
 
-  if (Swig_scopename_check(cname)) {
-    String *prefix = Swig_scopename_prefix(cname);
-    if (prefix && (Strncmp(prefix,"::",2) == 0))
-      skip_lookup = 1;
-  }
+  if (Strncmp(cname,"::",2) == 0)
+    skip_lookup = 1;
+
   cname_node = skip_lookup ? 0 : Swig_symbol_clookup_no_inherit(cname, 0);
 
   if (cname_node) {
     /* The symbol has been defined already or is in another scope.
        If it is a weak symbol, it needs replacing and if it was brought into the current scope
-       via a using declaration, the scope needs adjusting appropriately for the new symbol. */
+       via a using declaration, the scope needs adjusting appropriately for the new symbol.
+       Similarly for defined templates. */
     Symtab *symtab = Getattr(cname_node, "sym:symtab");
     Node *sym_weak = Getattr(cname_node, "sym:weak");
-    if (symtab && sym_weak) {
+    if ((symtab && sym_weak) || Equal(nodeType(cname_node), "template")) {
       /* Check if the scope is the current scope */
       String *current_scopename = Swig_symbol_qualifiedscopename(0);
       String *found_scopename = Swig_symbol_qualifiedscopename(symtab);
