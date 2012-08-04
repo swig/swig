@@ -27,11 +27,11 @@
 %{ $result = (int)$1; %}
 
 /* OBJCIN and OBJCOUT Typemaps */
-%typemap(objcin) const enum SWIGTYPE &              "$objcinput"
-%typemap(objcin) enum SWIGTYPE                      "$objcinput"
+%typemap(objcin) const enum SWIGTYPE &              "(int)$objcinput"
+%typemap(objcin) enum SWIGTYPE                      "(int)$objcinput"
 
 %typemap(objcout) const enum SWIGTYPE & 
-%{ return $imcall; %}
+%{ return ($*objcclassname)$imcall; %}
 
 %typemap(objcout) enum SWIGTYPE 
-%{ return $imcall; %}
+%{ return ($objcclassname)$imcall; %}
