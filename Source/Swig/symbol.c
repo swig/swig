@@ -224,7 +224,7 @@ static void symbol_print_symbols(const char *symboltabletype) {
       Iterator it = First(symtab);
       while (it.key) {
 	String *symname = it.key;
-	Printf(stdout, "  %s\n", symname);
+	Printf(stdout, "  %s (%s)\n", symname, nodeType(it.item));
 	/*
 	Printf(stdout, "  %s - %p (%s)\n", symname, it.item, Getattr(it.item, "name"));
 	*/
