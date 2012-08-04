@@ -1329,10 +1329,19 @@ Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, 
   return s;
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_clookup_no_inherit()
+ *
+ * Symbol lookup like Swig_symbol_clookup but does not follow using declarations.
+ * ----------------------------------------------------------------------------- */
+
 Node *Swig_symbol_clookup_no_inherit(const_String_or_char_ptr name, Symtab *n) {
+  Node *s = 0;
+  assert(use_inherit==1);
   use_inherit = 0;
-  Swig_symbol_clookup(name, n);
+  s = Swig_symbol_clookup(name, n);
   use_inherit = 1;
+  return s;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1558,6 +1567,7 @@ SwigType *Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
   for (i = 0; i < len; i++) {
     String *e = Getitem(elements, i);
     if (SwigType_issimple(e)) {
+      /* Note: the unary scope operator (::) is being removed from the template parameters here. */
       Node *n = Swig_symbol_clookup_check(e, st, symbol_no_constructor);
       if (n) {
 	String *name = Getattr(n, "name");
