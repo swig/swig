@@ -125,6 +125,21 @@
 	      	 const double &,  			double &
 %{ $1 = ($1_ltype)$input; %}
 
+%typemap(in) const bool *,              bool *,                  
+ 	const signed char *, 		signed char *,           
+ 	const unsigned char *, 	        unsigned char *,         
+ 	const short *,				short *,                 
+ 	const unsigned short *,	        unsigned short *,        
+ 	const int *,		    	int *,                   
+ 	const unsigned int *,		unsigned int *,          
+ 	const long *,				long *,                 
+ 	const unsigned long *, 	        unsigned long *,         
+ 	const long long *, 		long long *,             
+ 	const unsigned long long *,     unsigned long long *,    
+ 	const float *, 			float *,               
+ 	const double *,  	        double *        
+%{ $1 = ($1_ltype)$input;%}
+
 //C strings:
 %typemap(in) char *, char[ANY], char[]  {
  $1 = 0;
