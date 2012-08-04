@@ -954,7 +954,12 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
 	Iterator pi;
 	Parm *p;
 	List *parms;
+	/*
 	ty = Swig_symbol_template_deftype(e, current_symtab);
+	*/
+	String *dt = Swig_symbol_template_deftype(e, current_symtab);
+	ty = Swig_symbol_type_qualify(dt, 0);
+	Printf(stdout, "extra code: %s => %s\n", dt, ty);
 	e = ty;
 	parms = SwigType_parmlist(e);
 	tprefix = SwigType_templateprefix(e);
@@ -1021,6 +1026,9 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
 	Delete(tprefix);
 	Delete(qprefix);
 	Delete(parms);
+	/*
+	Delete(dt);
+	*/
       }
       Append(result, e);
       Delete(ty);
