@@ -247,7 +247,7 @@
 %{ $result = $1; %}
 
 // C strings: 
-%typemap(out) char * %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %}
+%typemap(out)const char *,char * %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %}
 %typemap(out) char *& %{ if (*$1) $result = [NSString stringWithUTF8String: *$1]; %}
 %typemap(out) char[ANY], char[] %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %}
 
@@ -497,7 +497,7 @@
     return ret; %}
 
 // C strings: 
-%typemap(objcout) char * 
+%typemap(objcout)const char *,char * 
 %{  NSString *ret = $imcall;
     return ret; %}
 
