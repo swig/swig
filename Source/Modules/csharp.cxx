@@ -3655,8 +3655,6 @@ public:
 	    if (!ignored_method)
 	      Printf(w->code, "%s\n", tm);
 
-	  Delete(tm);
-
 	  /* Add C type to callback typedef */
 	  if (i > 0)
 	    Printf(callback_typedef_parms, ", ");
@@ -3788,7 +3786,6 @@ public:
 	Printf(callback_code, "    return %s;\n", tm);
       }
 
-      Delete(tm);
       Delete(tp);
     } else
       Printf(callback_code, "    %s;\n", upcall);
