@@ -21,7 +21,9 @@ char cvsroot_memory_c[] = "$Id$";
 #endif
 
 /* Checks stale DOH object use - will use a lot more memory as pool memory is not re-used. */
+/*
 #define DOH_DEBUG_MEMORY_POOLS
+*/
 
 static int PoolSize = DOH_POOL_SIZE;
 
