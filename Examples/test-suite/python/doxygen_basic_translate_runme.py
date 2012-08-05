@@ -65,3 +65,9 @@ check(doxygen_basic_translate.function6.__doc__, ''
 '  Arguments: \n'
 '  a (int) -- Some parameter, default is 42\n'
 )
+check(doxygen_basic_translate.function7.__doc__, ''
+' Test for a parameter with difficult type \n'
+'  (mostly for python) \n'
+'  Arguments: \n'
+'  a (Shape::superType *[10])                              -- Very strange param \n'
+)
