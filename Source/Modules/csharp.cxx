@@ -3493,6 +3493,7 @@ public:
 
     if (returntype) {
 
+      Delete(qualified_return);
       qualified_return = SwigType_rcaststr(returntype, "c_result");
 
       if (!is_void && !ignored_method) {
@@ -3786,6 +3787,7 @@ public:
 	Printf(callback_code, "    return %s;\n", tm);
       }
 
+      Delete(tm);
       Delete(tp);
     } else
       Printf(callback_code, "    %s;\n", upcall);
@@ -3894,7 +3896,6 @@ public:
     }
 
     Delete(qualified_return);
-    Delete(c_ret_type);
     Delete(declaration);
     Delete(callback_typedef_parms);
     Delete(delegate_parms);

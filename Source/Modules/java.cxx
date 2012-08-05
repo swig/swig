@@ -3565,6 +3565,7 @@ public:
 
     if (returntype) {
 
+      Delete(qualified_return);
       qualified_return = SwigType_rcaststr(returntype, "c_result");
 
       if (!is_void && (!ignored_method || pure_virtual)) {
@@ -3814,8 +3815,6 @@ public:
 	    if (!ignored_method)
 	      Printf(w->code, "%s\n", tm);
 
-	  Delete(tm);
-
 	  /* Add parameter to the intermediate class code if generating the
 	   * intermediate's upcall code */
 	  if ((tm = Getattr(p, "tmap:jtype"))) {
@@ -3890,7 +3889,6 @@ public:
 
       Delete(arg);
       Delete(c_decl);
-      Delete(c_param_type);
       Delete(ln);
     }
 
