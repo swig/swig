@@ -316,7 +316,7 @@ String *PyDocConverter::makeDocumentation(Node *n) {
     return NewString(result.c_str());
   }
 
-  return 0;
+  return NewString("");
 }
 
 std::string PyDocConverter::generateDivider() {

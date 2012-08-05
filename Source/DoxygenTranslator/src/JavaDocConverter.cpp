@@ -409,7 +409,7 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
   String *documentation = getDoxygenComment(node);
 
   if (documentation == NULL) {
-    return NULL;
+    return NewString("");
   }
 
   if (GetFlag(node, "feature:doxygen:notranslate")) {
