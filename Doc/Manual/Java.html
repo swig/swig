@@ -326,12 +326,13 @@ The exact location may vary on your machine, but the above locations are typical
 
 <p>
 The JNI code exists in a dynamic module or shared library (DLL on Windows) and gets loaded by the JVM. 
-To build a shared library file, you need to compile your module in a manner similar to the following (shown for Solaris):</p>
+Assuming you have code you need to link to in a file called <tt>example.c</tt>, in order to build a shared library file, you need to compile your module in a manner similar to the following (shown for Solaris):</p>
 
 <div class="code"><pre>
 $ swig -java example.i
 $ gcc -c example_wrap.c  -I/usr/java/include -I/usr/java/include/solaris
-$ ld -G example_wrap.o  -o libexample.so
+$ gcc -c example.c
+$ ld -G example_wrap.o example.o -o libexample.so
 </pre></div>
 
 <p>
