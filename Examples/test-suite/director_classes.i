@@ -108,3 +108,20 @@ public:
 
 %}
 
+
+%feature(director) BaseClass;
+%feature(director) DerivedClass;
+
+%inline %{
+class BaseClass
+{
+public:
+virtual ~BaseClass() {};
+virtual int dofoo(int& one, int& two, int& three) {return 0;}
+};
+
+class DerivedClass : public BaseClass
+{
+};
+%}
+

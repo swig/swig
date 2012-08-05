@@ -3728,7 +3728,6 @@ public:
       Delete(ln);
       Delete(arg);
       Delete(c_decl);
-      Delete(c_param_type);
     }
 
     /* header declaration, start wrapper definition */
