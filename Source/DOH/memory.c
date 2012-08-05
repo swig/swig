@@ -20,6 +20,11 @@ char cvsroot_memory_c[] = "$Id$";
 #define DOH_POOL_SIZE         16384
 #endif
 
+/* Checks stale DOH object use - will use a lot more memory as pool memory is not re-used. */
+/*
+#define DEBUG_MEMORY_POOLS
+*/
+
 static int PoolSize = DOH_POOL_SIZE;
 
 DOH *DohNone = 0;		/* The DOH None object */
@@ -81,8 +86,14 @@ int DohCheck(const DOH *ptr) {
   register Pool *p = Pools;
   register char *cptr = (char *) ptr;
   while (p) {
-    if ((cptr >= p->pbeg) && (cptr < p->pend))
+    if ((cptr >= p->pbeg) && (cptr < p->pend)) {
+#ifdef DEBUG_MEMORY_POOLS
+      DohBase *b = (DohBase *) ptr;
+      int already_deleted = b->type == 0;
+      assert(!already_deleted);
+#endif
       return 1;
+    }
     /*
        pptr = (char *) p->ptr;
        if ((cptr >= pptr) && (cptr < (pptr+(p->current*sizeof(DohBase))))) return 1; */
@@ -110,16 +121,20 @@ DOH *DohObjMalloc(DohObjInfo *type, void *data) {
   DohBase *obj;
   if (!pools_initialized)
     InitPools();
+#ifndef DEBUG_MEMORY_POOLS
   if (FreeList) {
     obj = FreeList;
     FreeList = (DohBase *) obj->data;
   } else {
+#endif
     while (Pools->current == Pools->len) {
       CreatePool();
     }
     obj = Pools->ptr + Pools->current;
     ++Pools->current;
+#ifndef DEBUG_MEMORY_POOLS
   }
+#endif
   obj->type = type;
   obj->data = data;
   obj->meta = 0;
@@ -144,6 +159,7 @@ void DohObjFree(DOH *ptr) {
   b->data = (void *) FreeList;
   b->meta = 0;
   b->type = 0;
+  b->refcount = 0;
   FreeList = b;
   if (meta) {
     Delete(meta);
