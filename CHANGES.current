@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.8 (in progress)
 ===========================
 
+2012-08-05: wsfulton
+            [Perl] #3545877 - Don't undefine bool if defined by C99 stdbool.h - problem using 
+            Perl 5.16 and later.
+
 2012-08-04: wsfulton
             Remove incorrect warning (314) about target language keywords which were triggered
             by using declarations and using directives. For example 'string' is a keyword in C#:
