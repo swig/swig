@@ -412,6 +412,16 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
     return NULL;
   }
 
+  if (GetFlag(node, "feature:doxygen:notranslate")) {
+    String *comment = NewString("/**\n");
+    Append(comment, documentation);
+    // reformat the comment
+    Replaceall(comment, "\n *", "\n");
+    Replaceall(comment, "\n", "\n * ");
+    Append(comment, "\n */\n");
+    return comment;
+  }
+
   std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation), Char(Getfile(documentation)), Getline(documentation));
 
   // entityList.sort(CompareDoxygenEntities()); sorting currently not used,

@@ -189,8 +189,10 @@ CPP_TEST_CASES += \
 	disown \
 	doxygen_parsing \
 	doxygen_basic_translate \
+	doxygen_basic_notranslate \
 	doxygen_translate \
 	doxygen_translate_all_tags \
+	doxygen_translate_links \
 	dynamic_cast \
 	empty \
 	enum_rename \

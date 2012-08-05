@@ -254,9 +254,18 @@ String *PyDocConverter::makeDocumentation(Node *n) {
       documentation = getDoxygenComment(n);
       if (!Swig_is_generated_overload(n) && documentation) {
 	currentNode = n;
-	std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation), Char(Getfile(documentation)), Getline(documentation));
-	DoxygenEntity root("root", entityList);
-	allDocumentation.push_back(translateSubtree(root));
+	if (GetFlag(n, "feature:doxygen:notranslate")) {
+	  String *comment = NewString("");
+	  Append(comment, documentation);
+	  Replaceall(comment, "\n *", "\n");
+	  allDocumentation.push_back(Char(comment));
+	  Delete(comment);
+	}
+	else {
+	  std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation), Char(Getfile(documentation)), Getline(documentation));
+	  DoxygenEntity root("root", entityList);
+	  allDocumentation.push_back(translateSubtree(root));
+	}
       }
       n = Getattr(n, "sym:nextSibling");
     }
@@ -279,9 +288,18 @@ String *PyDocConverter::makeDocumentation(Node *n) {
   else {
     documentation = getDoxygenComment(n);
     if (documentation != NULL) {
-      std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation), Char(Getfile(documentation)), Getline(documentation));
-      DoxygenEntity root("root", entityList);
-      pyDocString = translateSubtree(root);
+      if (GetFlag(n, "feature:doxygen:notranslate")) {
+        String *comment = NewString("");
+        Append(comment, documentation);
+        Replaceall(comment, "\n *", "\n");
+        pyDocString = Char(comment);
+        Delete(comment);
+      }
+      else {
+        std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation), Char(Getfile(documentation)), Getline(documentation));
+        DoxygenEntity root("root", entityList);
+        pyDocString = translateSubtree(root);
+      }
     }
   }
 
