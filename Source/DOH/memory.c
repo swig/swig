@@ -21,9 +21,7 @@ char cvsroot_memory_c[] = "$Id$";
 #endif
 
 /* Checks stale DOH object use - will use a lot more memory as pool memory is not re-used. */
-/*
-#define DEBUG_MEMORY_POOLS
-*/
+#define DOH_DEBUG_MEMORY_POOLS
 
 static int PoolSize = DOH_POOL_SIZE;
 
@@ -87,10 +85,10 @@ int DohCheck(const DOH *ptr) {
   register char *cptr = (char *) ptr;
   while (p) {
     if ((cptr >= p->pbeg) && (cptr < p->pend)) {
-#ifdef DEBUG_MEMORY_POOLS
+#ifdef DOH_DEBUG_MEMORY_POOLS
       DohBase *b = (DohBase *) ptr;
-      int already_deleted = b->type == 0;
-      assert(!already_deleted);
+      int DOH_object_already_deleted = b->type == 0;
+      assert(!DOH_object_already_deleted);
 #endif
       return 1;
     }
@@ -121,7 +119,7 @@ DOH *DohObjMalloc(DohObjInfo *type, void *data) {
   DohBase *obj;
   if (!pools_initialized)
     InitPools();
-#ifndef DEBUG_MEMORY_POOLS
+#ifndef DOH_DEBUG_MEMORY_POOLS
   if (FreeList) {
     obj = FreeList;
     FreeList = (DohBase *) obj->data;
@@ -132,7 +130,7 @@ DOH *DohObjMalloc(DohObjInfo *type, void *data) {
     }
     obj = Pools->ptr + Pools->current;
     ++Pools->current;
-#ifndef DEBUG_MEMORY_POOLS
+#ifndef DOH_DEBUG_MEMORY_POOLS
   }
 #endif
   obj->type = type;
