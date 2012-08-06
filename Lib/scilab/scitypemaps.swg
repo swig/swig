@@ -10,12 +10,12 @@
 // In Scilab, returning void is ignored (no typemap associated)
 //#define VOID_Object                      ScilabObject
 
-#define %append_output(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(obj))) return SWIG_ERROR
-#define %set_constant(name, obj)    if (!SWIG_IsOK(SWIG_Scilab_SetOutput(obj))) return SWIG_ERROR // Name is managed by the the function name
+#define %append_output(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR
+#define %set_constant(name, obj)    if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR // Name is managed by the the function name
 #define %raise(obj, type, desc)     SwigScilabRaise(obj, type, desc)
-#define %set_output(obj)            if (!SWIG_IsOK(SWIG_Scilab_SetOutput(obj))) return SWIG_ERROR
-#define %set_varoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(obj))) return SWIG_ERROR
-#define %set_argoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(obj))) return SWIG_ERROR
+#define %set_output(obj)            if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR
+#define %set_varoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR
+#define %set_argoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR
 
 // Include the unified typemap library
 %include <typemaps/swigtypemaps.swg>

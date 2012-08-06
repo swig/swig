@@ -67,7 +67,7 @@ SwigScilabInt32FromEnum(void *_pvApiCtx, int _iVarOut, int _enumValue) {
     return SWIG_ERROR;
   }
 
-  AssignOutputVariable(_iVarOut) = nbInputArgument + _iVarOut;
+  AssignOutputVariable(pvApiCtx, _iVarOut) = nbInputArgument(pvApiCtx) + _iVarOut;
 
   return SWIG_OK;
 

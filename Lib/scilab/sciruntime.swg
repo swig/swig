@@ -168,12 +168,12 @@ SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swi
 }
 
 SWIGRUNTIME int
-SWIG_Scilab_SetOutput(SciObject _output) {
+SWIG_Scilab_SetOutput(void *_pvApiCtx, SciObject _output) {
   int outputPosition = SWIG_Scilab_GetOutputPositionAndReset();
   if (outputPosition < 0 || _output < 0) {
       return SWIG_ERROR;
   }
-  AssignOutputVariable(outputPosition) = _output;
+  AssignOutputVariable(_pvApiCtx, outputPosition) = _output;
   return SWIG_OK;
 }
 
