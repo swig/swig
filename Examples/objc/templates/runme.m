@@ -14,22 +14,22 @@ int main(int argc, char* argv[]) {
     vecdouble *dv=[[vecdouble alloc]initWith_sz:1000];
     int i=0;
     for (i=0;i<100;i++)
-        [iv vecint_setitem:i val:2*i];
+        [iv setitem:i val:2*i];
 
     for (i=0;i<1000;i++)
-        [dv vecdouble_setitem:i val:1.0/(i+1)];
+        [dv setitem:i val:1.0/(i+1)];
 
     {
         int sum =0;
         for (i=0;i<100;i++)
-            sum=sum+[iv vecint_getitem:i];
+            sum=sum+[iv getitem:i];
         NSLog(@"The sum of integers: %i",sum);   
     }
     
     {
         double sum =0;
         for (i=0;i<1000;i++)
-            sum=sum+[dv vecdouble_getitem:i];
+            sum=sum+[dv getitem:i];
         NSLog(@"The sum of doubles: %f",sum);   
     }
 

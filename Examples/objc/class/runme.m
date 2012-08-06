@@ -43,8 +43,8 @@ int main(int argc, char* argv[]) {
 	for (Shape* obj in shapes) 
     {
         NSLog(@"Shape: %@", obj);
-        NSLog(@"area      = %f", [obj Shape_area]);
-        NSLog(@"perimeter = %f", [obj Shape_perimeter]);
+        NSLog(@"area      = %f", [obj area]);
+        NSLog(@"perimeter = %f", [obj perimeter]);
     }
 
     // ----- Delete everything -----
