@@ -23,3 +23,6 @@ static int SWIG_Scilab_GetOutputPositionAndReset(void) {
 static void SWIG_Scilab_SetOutputPosition(int _outputPosition) {
   outputPosition = _outputPosition;
 }
+
+#define Scilab_Error_Occurred() 0
+#define SWIG_Scilab_AddErrorMsg(msg) {;}
