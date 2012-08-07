@@ -194,7 +194,6 @@ public:
 
   void substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
 
-    Printf(stdout, "Getting proxy type for %s, replacing each %s in %s\n", classnametype, tm, classnamespecialvariable);
     if (SwigType_isenum(classnametype)) {
       String *enumname = getEnumName(classnametype);
       if (enumname)
@@ -237,9 +236,6 @@ public:
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
-
-    Printf(stdout, "pt was \"%s\"\n", pt);
-    Printf(stdout, "tm was \"%s\"\n", tm);
 
     if (Strstr(tm, "$resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
