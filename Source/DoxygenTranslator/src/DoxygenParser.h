@@ -27,7 +27,7 @@ private:
   /*
    *Changes a std::string to all lower case
    */
-  std::string StringToLower(std::string stringToConvert);
+  std::string stringToLower(std::string &stringToConvert);
 
   /* 
    * Finds out if a command exists (is a possible command)
@@ -113,12 +113,6 @@ private:
    */
   int addSimpleCommand(std::string theCommand, std::list < DoxygenEntity > &doxyList);
   /*
-   * NOT INCLUDED Simple Commands
-   * Format: @command
-   * Plain commands, such as newline etc, they contain no other data
-   */
-  int ignoreSimpleCommand(std::string theCommand, std::list < DoxygenEntity > &doxyList);
-  /*
    * CommandWord
    * Format: @command <word>
    * Commands with a single WORD after then such as @b
@@ -127,25 +121,12 @@ private:
    */
   int addCommandWord(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList);
   /*
-   * NOT INCLUDED CommandWord
-   * Format: @command <word>
-   * Commands with a single WORD after then such as @b
-   * "copydoc", "copybrief", "copydetails", "verbinclude", "htmlinclude"
-   */
-  int ignoreCommandWord(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList);
-  /*
    * CommandLine
    * Format: @command (line)
    * Commands with a single LINE after then such as @var
    * "addindex", "fn", "name", "line", "var", "skipline", "typedef", "skip", "until", "property"
    */
   int addCommandLine(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList);
-  /*
-   * NOT INCLUDED CommandLine
-   * Format: @command (line)
-   * Commands with a single LINE after then such as @var
-   */
-  int ignoreCommandLine(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList);
   /*
    * CommandParagraph
    * Format: @command {paragraph}
@@ -154,12 +135,6 @@ private:
    * "deprecated", "date", "note", "warning", "version", "todo", "bug", "attention", "brief", "arg", "author"
    */
   int addCommandParagraph(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList);
-  /*
-   * CommandParagraph
-   * Format: @command {paragraph}
-   * Commands with a single LINE after then such as @var
-   */
-  int ignoreCommandParagraph(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList);
   /*
    * Command EndCommand
    * Format: @command and ends at @endcommand
@@ -207,9 +182,7 @@ private:
    */
   int addCommandUnique(std::string theCommand, TokenList & tokList, std::list < DoxygenEntity > &doxyList);
   /* 
-   * The actual "meat" of the doxygen parser. This is not yet fully implemented
-   * with my current design- however the skeletal outline is contained in
-   * the file Skeleton
+   * The actual "meat" of the doxygen parser. Calls the correct addCommand* function
    */
   int addCommand(std::string commandString, TokenList & tokList, std::list < DoxygenEntity > &doxyList);
 

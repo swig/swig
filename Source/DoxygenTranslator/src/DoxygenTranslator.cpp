@@ -32,7 +32,7 @@ String *DoxygenTranslator::getDoxygenComment(Node *node) {
 String *DoxygenTranslator::getDocumentation(Node *node) {
   
   if (!hasDocumentation(node))
-    return 0;
+    return NewString("");
   
   return makeDocumentation(node);
 }

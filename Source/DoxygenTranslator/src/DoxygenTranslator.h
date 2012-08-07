@@ -39,7 +39,7 @@ public:
    * Return the documentation for a given node formated for the correct 
    * documentation system.
    * @param node The node to extract and translate documentation for.
-   * @return The resulted documentation string.
+   * @return The resulted documentation string, or empty string in case of any errors.
    */
   String *getDocumentation(Node *node);
   /*
@@ -57,8 +57,7 @@ protected:
    * Overridden in subclasses to return the documentation formatted for a given
    * documentation system.
    * @param node The node to extract and translate documentation for.
-   * @param documentation The returned documentation string.
-   * @return A bool to indicate if there was documentation to return for the node.
+   * @return The resulted documentation string
    */
   virtual String *makeDocumentation(Node *node) = 0;
   

@@ -45,7 +45,7 @@ TokenList TokenList::tokenizeDoxygenComment(const std::string &doxygenComment, c
         // check if it's one of the '!!!', '***', '///' of any length
         char c = currentWord[0];
         isPlainString = false;
-        for (int i=0; i<currentWord.size(); i++)
+        for (size_t i=0; i<currentWord.size(); i++)
           if (currentWord[i] != c) {
             isPlainString = true;
             break;

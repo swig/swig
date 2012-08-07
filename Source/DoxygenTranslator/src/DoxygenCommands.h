@@ -2,25 +2,6 @@
 #ifndef DOXYGENCOMMANDS_H
 #define DOXYGENCOMMANDS_H
 
-const char *commandArray[] = {
-  "a", "addindex", "addtogroup", "anchor", "arg", "attention",
-  "author", "authors", "b", "brief", "bug", "c", "callgraph", "callergraph", "category", "cite",
-  "class", "code", "cond", "copybrief", "copydetails", "copydoc", "copyright", "date", "def",
-  "defgroup", "deprecated", "details", "dir", "dontinclude", "dot", "dotfile", "e",
-  "else", "elseif", "em", "endcode", "endcond", "enddot", "endhtmlonly", "endif",
-  "endlatexonly", "endlink", "endmanonly", "endmsc", "endverbatim", "endxmlonly",
-  "enum", "example", "exception", "f$", "f[", "f]", "f{", "f}", "file", "fn", "headerfile",
-  "hideinitializer", "htmlinclude", "htmlonly", "if", "ifnot", "image", "include",
-  "includelineno", "ingroup", "internal", "invariant", "interface", "latexonly", "li",
-  "line", "link", "mainpage", "manonly", "msc", "mscfile", "n", "name", "namespace", "nosubgrouping",
-  "note", "overload", "p", "package", "page", "par", "paragraph", "param", "post", "pre",
-  "private", "privatesection", "property", "protected", "protectedsection", "protocol",
-  "public", "publicsection", "ref", "relates", "relatesalso", "remarks", "remark", "result", "return", "returns", "retval",
-  "sa", "section", "see", "showinitializer", "since", "skip", "skipline", "struct", "subpage",
-  "subsection", "subsubsection", "test", "throw", "throws", "todo", "tparam", "typedef", "union", "until",
-  "var", "verbatim", "verbinclude", "version", "warning", "weakgroup", "xmlonly", "xrefitem", "$", "@", "\\", "&", "~", "<", ">", "#", "%"};
-
-
 const char *sectionIndicators[] = {
   "attention", "author", "authors", "brief", "bug", "cond", "date", "deprecated", "details",
   "else", "elseif", "endcond", "endif", "exception", "if", "ifnot", "invariant", "note", "par", "param",
@@ -35,37 +16,21 @@ const char *simpleCommands[] = {
   "protected", "protectedsection", "tableofcontents"};
 const int simpleCommandsSize = sizeof(simpleCommands) / sizeof(*simpleCommands);
 
-const char *ignoredSimpleCommands[] = {
-  "nothing at the moment"};
-const int ignoredSimpleCommandsSize = sizeof(ignoredSimpleCommands) / sizeof(*ignoredSimpleCommands);
-
 const char *commandWords[] = {
   "a", "b", "c", "e", "em", "p", "def", "enum", "package", "relates", "namespace", "relatesalso", "anchor", "dontinclude", "include",
   "includelineno", "copydoc", "copybrief", "copydetails", "verbinclude", "htmlinclude", "extends", "implements", "memberof", "related",
   "relatedalso", "cite"};
 const int commandWordsSize = sizeof(commandWords) / sizeof(*commandWords);
 
-const char *ignoredCommandWords[] = {
-  "nothing at the moment"};
-const int ignoredCommandWordsSize = sizeof(ignoredCommandWords) / sizeof(*ignoredCommandWords);
-
 const char *commandLines[] = {
   "addindex", "fn", "name", "line", "var", "skipline", "typedef", "skip", "until", "property"};
 const int commandLinesSize = sizeof(commandLines) / sizeof(*commandLines);
-
-const char *ignoreCommandLines[] = {
-  "nothing at the moment"};
-const int ignoreCommandLinesSize = sizeof(ignoreCommandLines) / sizeof(*ignoreCommandLines);
 
 const char *commandParagraph[] = {
   "partofdescription", "result", "return", "returns", "remarks", "remark", "since", "test", "sa", "see", "pre", "post", "details", "invariant",
   "deprecated", "date", "note", "warning", "version", "todo", "bug", "attention", "brief", "author", "authors",
   "copyright", "short"};
 const int commandParagraphSize = sizeof(commandParagraph) / sizeof(*commandParagraph);
-
-const char *ignoreCommandParagraphs[] = {
-  "nothing at the moment"};
-const int ignoreCommandParagraphsSize = sizeof(ignoreCommandParagraphs) / sizeof(*ignoreCommandParagraphs);
 
 const char *commandEndCommands[] = {
   "htmlonly", "latexonly", "manonly", "xmlonly", "link", "rtfonly"};
