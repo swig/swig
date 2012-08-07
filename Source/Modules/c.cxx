@@ -72,6 +72,37 @@ public:
     except_flag(true) {
   }
 
+
+  String *getNamespacedName(Node *n)
+  {
+     if (!n)
+      return 0;
+
+     String *proxyname = NULL;
+     if ((proxyname = Getattr(n, "proxyname")))
+     {
+      //Printf(stdout, "Returning proxytype: %s\n", proxyname); 
+      return Copy(proxyname);
+     }
+
+     String *symname = Getattr(n, "sym:name");
+     String *nspace = Getattr(n, "sym:nspace");
+
+     if (nspace) {
+          Replaceall(nspace, ".", "_"); // Classes' namespaces get dotted -> replace; FIXME in core!
+          proxyname = Swig_name_proxy(nspace, symname);
+          if (tl_namespace)
+            proxyname = Swig_name_proxy(tl_namespace, proxyname);
+     } else {
+          proxyname = symname;
+     }
+     Setattr(n, "proxyname", proxyname);
+     Delete(proxyname);
+     //Printf(stdout, "Returning proxytype: %s\n", proxyname);
+
+     return Copy(proxyname);
+  }
+
   /* -----------------------------------------------------------------------------
    * getProxyName()
    *
@@ -80,10 +111,8 @@ public:
    * top level namespace name if the nspace feature is used.
    * ----------------------------------------------------------------------------- */
   
-   String *getProxyName(SwigType *n) {
-     String *proxyname = NULL;
-     String *symname = Getattr(n, "sym:name");
-     String *nspace = Getattr(n, "sym:nspace");
+   String *getProxyName(SwigType *t) {
+     Node *n = NULL;
 
      /* original java code
      if (proxy_flag) {
@@ -106,23 +135,13 @@ public:
          }
        }
      }*/
+     t = SwigType_typedef_resolve_all(t);
+     //Printf(stdout, "Proxytype for type %s was asked.\n", t);
+     if (!proxy_flag || !t || !(n = classLookup(t)))
+      return NULL;
 
-     if (!proxy_flag || !n || (proxyname = Getattr(n, "proxyname")))
-        goto _get_proxyname_return;
+    return getNamespacedName(n);
 
-     if (nspace) {
-          Replaceall(nspace, ".", "_"); // Classes' namespaces get dotted -> replace; FIXME in core!
-          proxyname = Swig_name_proxy(nspace, symname);
-          if (tl_namespace)
-            proxyname = Swig_name_proxy(tl_namespace, proxyname);
-     } else {
-          proxyname = Copy(symname);
-     }
-     Setattr(n, "proxyname", proxyname);
-     Delete(proxyname);
-
-     _get_proxyname_return:
-     return proxyname;
    }
 
   /* -----------------------------------------------------------------------------
@@ -130,12 +149,12 @@ public:
    *
    * ----------------------------------------------------------------------------- */
 
-  String *getEnumName(SwigType *t, bool jnidescriptor) {
+  String *getEnumName(SwigType *t) {
     Node *enumname = NULL;
     Node *n = enumLookup(t);
     if (n) {
       enumname = Getattr(n, "enumname");
-      if (!enumname || jnidescriptor) {
+      if (!enumname) {
         String *symname = Getattr(n, "sym:name");
         if (symname) {
           // Add in class scope when referencing enum if not a global enum
@@ -158,16 +177,97 @@ public:
               enumname = Copy(symname);
             }
           }
-          if (!jnidescriptor) { // not cached
-            Setattr(n, "enumname", enumname);
-            Delete(enumname);
-          }
+          Setattr(n, "enumname", enumname);
+          Delete(enumname);
           Delete(scopename_prefix);
         }
       }
     }
 
     return enumname;
+  }
+
+
+  /* -----------------------------------------------------------------------------
+   * substituteResolvedTypeSpecialVariable()
+   * ----------------------------------------------------------------------------- */
+
+  void substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+
+    Printf(stdout, "Getting proxy type for %s, replacing each %s in %s\n", classnametype, tm, classnamespecialvariable);
+    if (SwigType_isenum(classnametype)) {
+      String *enumname = getEnumName(classnametype);
+      if (enumname)
+  Replaceall(tm, classnamespecialvariable, enumname);
+      else
+  Replaceall(tm, classnamespecialvariable, NewStringf("int"));
+    } else {
+      String *classname = getProxyName(classnametype);
+      if (classname) {
+  Replaceall(tm, classnamespecialvariable, classname);  // getProxyName() works for pointers to classes too
+      } else {/*      // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+  String *descriptor = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+  Replaceall(tm, classnamespecialvariable, descriptor);
+
+  // Add to hash table so that the type wrapper classes can be created later
+  Setattr(swig_types_hash, descriptor, classnametype);
+  Delete(descriptor);
+  */
+      }
+    }
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteResolvedType()
+   *
+   * Substitute the special variable $csclassname with the proxy class name for classes/structs/unions 
+   * that SWIG knows about. Also substitutes enums with enum name.
+   * Otherwise use the $descriptor name for the C# class name. Note that the $&csclassname substitution
+   * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
+   * Inputs:
+   *   pt - parameter type
+   *   tm - typemap contents that might contain the special variable to be replaced
+   * Outputs:
+   *   tm - typemap contents complete with the special variable substitution
+   * Return:
+   *   substitution_performed - flag indicating if a substitution was performed
+   * ----------------------------------------------------------------------------- */
+
+  bool substituteResolvedType(SwigType *pt, String *tm) {
+    bool substitution_performed = false;
+    SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+
+    Printf(stdout, "pt was \"%s\"\n", pt);
+    Printf(stdout, "tm was \"%s\"\n", tm);
+
+    if (Strstr(tm, "$resolved_type")) {
+      SwigType *classnametype = Copy(strippedtype);
+      substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$*resolved_type")) {
+      SwigType *classnametype = Copy(strippedtype);
+      Delete(SwigType_pop(classnametype));
+      if (Len(classnametype) > 0) {
+  substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type");
+  substitution_performed = true;
+      }
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$&resolved_type")) {
+      SwigType *classnametype = Copy(strippedtype);
+      SwigType_add_pointer(classnametype);
+      substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+
+    Delete(strippedtype);
+    Delete(type);
+
+    return substitution_performed;
   }
 
   /* ------------------------------------------------------------
@@ -694,21 +794,26 @@ ready:
        SwigType *return_type = NewString("");
        //SwigType *ns = Getattr(n, "name");
        String *tm;
+       SwigType *proxy_type = NULL;
 
        // set the return type
        if (IS_SET_TO_ONE(n, "c:objstruct")) {
             Printv(return_type, SwigType_str(type, 0), NIL);
        }
        else if ((tm = Swig_typemap_lookup("proxycouttype", n, "", 0))) {
+            // handle simple typemap cases
             String *ctypeout = Getattr(n, "tmap:proxycouttype:out");
             if (ctypeout)
               {
-                 tm = ctypeout;
+                 //tm = ctypeout;
+                 return_type = ctypeout;
                  Printf(stdout, "Obscure proxycouttype:out found! O.o\n");
               }
-            Printf(return_type, "%s", tm);
-            // template handling
-            Replaceall(return_type, "$tt", SwigType_lstr(type, 0));
+            else
+              {
+                 substituteResolvedType(type, tm);
+                 return_type = tm;
+              }
        }
        else {
             Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
@@ -748,9 +853,9 @@ ready:
                  continue;
             }
             String *lname = Getattr(p, "lname");
-            String *c_parm_type = NewString("");
-            String *proxy_parm_type = NewString("");
+            String *proxy_parm_type = 0;
             String *arg_name = NewString("");
+            String* stype = 0;
 
             SwigType *tdtype = SwigType_typedef_resolve_all(type);
             if (tdtype)
@@ -758,27 +863,18 @@ ready:
 
             Printf(arg_name, "c%s", lname);
 
-            // set the appropriate type for parameter
-            if ((tm = Getattr(p, "tmap:proxy"))) {
-                 Printv(c_parm_type, tm, NIL);
-                 // template handling
-                 Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
+            if ((tm = Getattr(p, "tmap:proxy"))) { // set the appropriate type for parameter
+                 tm = Copy(tm);
             }
             else {
                  Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No proxy typemap defined for %s\n", SwigType_str(type, 0));
             }
-
             // use proxy-type for parameter if supplied
-            String* stype = Getattr(p, "c:stype");
-            if (stype) {
-                 Printv(proxy_parm_type, SwigType_str(stype, 0), NIL);
-            }
-            else {
-                 Printv(proxy_parm_type, c_parm_type, NIL);
-                 // Add namespace
-                 Replaceall(proxy_parm_type, "::", "_"); // FIXME: implement "convert_to_c_namespace"?
-                 if (strncmp(Char(proxy_parm_type), "_", 1) == 0) // Remove top level namespacing if necessary
-                  Replace(proxy_parm_type, "_", "", DOH_REPLACE_FIRST);
+            if ((stype = Getattr(p, "c:stype"))) {
+                proxy_parm_type = SwigType_lstr(stype, 0);
+            } else {
+                substituteResolvedType(type, tm);
+                proxy_parm_type = tm;              
             }
 
             Printv(proto, gencomma ? ", " : "", proxy_parm_type, " ", arg_name, NIL);
@@ -799,7 +895,6 @@ ready:
 
             Delete(arg_name);
             Delete(proxy_parm_type);
-            Delete(c_parm_type);
        }
        return proto;
     }
@@ -1226,7 +1321,7 @@ ready:
                  if (!Getattr(parms, "lname"))
                    Setattr(parms, "lname", "arg1");
                  //SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
-                 SwigType *stype = Copy(getProxyName(Swig_methodclass(n)));
+                 SwigType *stype = getProxyName(Getattr(n, "type"));
                  SwigType_add_pointer(stype);
                  Setattr(parms, "c:stype", stype);
             }
@@ -1341,7 +1436,7 @@ ready:
 
   virtual int classHandler(Node *n) {
     //String *name = Copy(Getattr(n, "sym:name"));
-    String *name = Copy(getProxyName(n));
+    String *name = getNamespacedName(n);
     String *sobj = NewString("");
     List *baselist = Getattr(n, "bases");
 
