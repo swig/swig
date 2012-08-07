@@ -2652,9 +2652,11 @@ static String *get_director_ctor_code(Node *n, String *director_ctor_code, Strin
       int is_abstract = abstract && !is_notabstract;
       if (is_protected(n) || is_abstract) {
 	director_ctor = director_prot_ctor_code;
+	abstract = Copy(abstract);
 	Delattr(pn, "abstract");
       } else {
 	if (is_notabstract) {
+	  abstract = Copy(abstract);
 	  Delattr(pn, "abstract");
 	} else {
 	  abstract = 0;
