@@ -6,6 +6,9 @@ Version 2.0.8 (in progress)
 ===========================
 
 2012-08-05: wsfulton
+            [Python] #3530021 Fix unused variable warning.
+
+2012-08-05: wsfulton
             [C#] Fix #3536360 - Invalid code sometimes being generated for director methods
             with many arguments.
 
