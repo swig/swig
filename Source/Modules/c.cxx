@@ -787,7 +787,6 @@ ready:
        SwigType *return_type = NewString("");
        //SwigType *ns = Getattr(n, "name");
        String *tm;
-       SwigType *proxy_type = NULL;
 
        // set the return type
        if (IS_SET_TO_ONE(n, "c:objstruct")) {
