@@ -499,9 +499,6 @@ public:
     String *arg_list = NewString("");
     String *call = empty_string;
     String *cres = empty_string;
-    String *nspaced_symname = Swig_name_mangle(Getattr(n, "name"));
-
-    Setattr(n, "sym:name", nspaced_symname);
 
     call = Swig_cfunction_call(Getattr(n, "name"), parms);
     cres = Swig_cresult(type, "result", call);
