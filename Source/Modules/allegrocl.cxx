@@ -1181,13 +1181,14 @@ void emit_synonym(Node *synonym) {
   String *of_name = namespaced_name(of, of_ns);
 
   if (CPlusPlus && !Strcmp(nodeType(synonym), "cdecl")) {
-	  syn_ltype = NewStringf("#.(swig-insert-id \"%s\" %s :type :class)",
-				 strip_namespaces(Getattr(synonym, "real-name")), synonym_ns);
-	  syn_type = NewStringf("#.(swig-insert-id \"%s\" %s :type :type)",
-				strip_namespaces(Getattr(synonym, "real-name")), synonym_ns);
+    String *real_name = Getattr(synonym, "real-name");
+    if (!real_name)
+      real_name = NewString("Unknown"); // TODO: fix
+    syn_ltype = NewStringf("#.(swig-insert-id \"%s\" %s :type :class)", strip_namespaces(real_name), synonym_ns);
+    syn_type = NewStringf("#.(swig-insert-id \"%s\" %s :type :type)", strip_namespaces(real_name), synonym_ns);
   } else {
-	  syn_ltype = lookup_defined_foreign_ltype(synonym_type);
-	  syn_type = lookup_defined_foreign_type(synonym_type);
+    syn_ltype = lookup_defined_foreign_ltype(synonym_type);
+    syn_type = lookup_defined_foreign_type(synonym_type);
   }
 
   of_ltype = lookup_defined_foreign_ltype(of_name);
