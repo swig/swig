@@ -907,6 +907,14 @@ int OBJECTIVEC::functionWrapper(Node *n) {
 
   // Final substititions if applicable.
 
+  /* Contract macro modification */
+  Replaceall(wrapper->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
+
+  if (!is_void_return)
+    Replaceall(wrapper->code, "$null", "0");
+  else
+    Replaceall(wrapper->code, "$null", "");
+
   // Dump the function out.
   Wrapper_print(wrapper, wrap_mm_code);
 
@@ -1142,7 +1150,7 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
     Printf(proxyfunctionname, "%s", Char(variable_name) + 1);
 
   } else if (member_func_flag) {
-    proxyfunctionname = Copy(symname);
+    proxyfunctionname = Copy(name);
   } else {
     proxyfunctionname = Swig_scopename_last(name);
   }
