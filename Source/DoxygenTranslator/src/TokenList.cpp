@@ -28,57 +28,44 @@ TokenList TokenList::tokenizeDoxygenComment(const std::string &doxygenComment, c
 
   bool isPlainString = false;
   string::size_type pos, lastPos = 0;
+  char prevChar = doxygenComment[lastPos];
   string currentWord;
   while (true) {
     isPlainString = false;
-    pos = doxygenComment.find_first_of("\t\n ", lastPos);
+    pos = doxygenComment.find_first_of("\\@\t\n ", lastPos);
     if (pos == string::npos)
       pos = doxygenComment.size();
-    if (pos > lastPos) {
-      currentWord = doxygenComment.substr(lastPos, pos-lastPos);
-      if (currentWord[0] == '\\' || currentWord[0] == '@') {
-        // it's a doxygen command
-        currentWord = currentWord.substr(1, currentWord.length() - 1);
-        tokList.m_tokenList.push_back(Token(COMMAND, currentWord));
-      }
-      else if (currentWord[0] == '!' || currentWord[0] == '*' || currentWord[0] == '/') {
-        // check if it's one of the '!!!', '***', '///' of any length
-        char c = currentWord[0];
-        isPlainString = false;
-        for (size_t i=0; i<currentWord.size(); i++)
-          if (currentWord[i] != c) {
-            isPlainString = true;
-            break;
-          }
-      }
-      else
-        isPlainString = true;
 
-      if (isPlainString) {
-        // handle quoted words
-        if (currentWord[0] == '"') {
-          pos = doxygenComment.find_first_of("\"\n", lastPos + 1);
-          if (pos == string::npos)
-            pos = doxygenComment.size();
-          if (pos == doxygenComment.size() || doxygenComment[pos] != '"') {
-            // hack to print error message before the list is constructed
-            tokList.m_tokenListIter = tokList.m_tokenList.end();
-            tokList.printListError("Unterminated string");
-          }
-          // also strip quotes
-          currentWord = doxygenComment.substr(lastPos + 1, pos-lastPos-1);
-        }
-        if (currentWord.size())
-          tokList.m_tokenList.push_back(Token(PLAINSTRING, currentWord));
-      }
+    currentWord = doxygenComment.substr(lastPos, pos-lastPos);
+    if (prevChar == '\n')
+      tokList.m_tokenList.push_back(Token(END_LINE, "\n"));
+    else if (prevChar == '\\' || prevChar == '@') {
+      // it's a doxygen command
+      // hack to get commands like \\ or \@ or @\ or @@
+      if (doxygenComment[pos] == '@' || doxygenComment[pos] == '\\')
+        currentWord += doxygenComment[pos];
+      tokList.m_tokenList.push_back(Token(COMMAND, currentWord));
     }
+    else if (currentWord.size() && (currentWord[0] == '!' || currentWord[0] == '*' || currentWord[0] == '/')) {
+      // check if it's one of the '!!!', '***', '///' of any length
+      char c = currentWord[0];
+      isPlainString = false;
+      for (size_t i=0; i<currentWord.size(); i++)
+        if (currentWord[i] != c) {
+          isPlainString = true;
+          break;
+        }
+    }
+    else
+      isPlainString = true;
 
+    if (isPlainString && currentWord.size())
+      tokList.m_tokenList.push_back(Token(PLAINSTRING, currentWord));
+
+    prevChar = doxygenComment[pos];
     lastPos = pos + 1;
     if (lastPos >= doxygenComment.size())
       break;
-
-    if (doxygenComment[pos] == '\n')
-      tokList.m_tokenList.push_back(Token(END_LINE, "\n"));
   }
   tokList.m_tokenListIter = tokList.m_tokenList.begin();
   return tokList;

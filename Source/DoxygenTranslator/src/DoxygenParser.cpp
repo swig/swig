@@ -106,7 +106,23 @@ int DoxygenParser::commandBelongs(std::string theCommand) {
 std::string DoxygenParser::getNextWord(TokenList & tokList) {
 	Token nextToken = tokList.peek();
 	if (nextToken.tokenType == PLAINSTRING) {
-		nextToken = tokList.next();
+		// handle quoted strings as words
+		if (nextToken.tokenString[0] == '"'
+				&& nextToken.tokenString[nextToken.tokenString.size() - 1] != '"') {
+			string word = nextToken.tokenString + " ";
+			nextToken = tokList.next();
+			while (true) {
+				string nextWord = getNextWord(tokList);
+				if (!nextWord.size()) // maybe report unterminated string error
+					return word;
+				word += nextWord;
+				if (word[word.size() - 1] == '"') // strip quotes
+					return word.substr(1, word.size() - 2);
+				word += " ";
+			}
+		}
+
+		tokList.next();
 		return nextToken.tokenString;
 	}
 	return "";
@@ -120,7 +136,6 @@ std::list < Token >::iterator DoxygenParser::getOneLine(TokenList & tokList) {
 			//endOfLine++;
 			return endOfLine;
 		}
-		//cout << (* endOfLine).toString();
 		endOfLine++;
 	}
 
@@ -390,6 +405,7 @@ int DoxygenParser::addCommandUnique(std::string theCommand, TokenList & tokList,
 		aNewList.push_front(DoxygenEntity("plainstd::string", title));
 		aNewList.push_front(DoxygenEntity("plainstd::string", heading));
 		aNewList.push_front(DoxygenEntity("plainstd::string", key));
+		doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 		return 1;
 	}
 	// \ingroup (<groupname> [<groupname> <groupname>])
