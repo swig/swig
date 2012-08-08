@@ -1028,8 +1028,7 @@ void OBJECTIVEC::emitProxyGlobalFunctions(Node *n) {
   for (p = parmlist; p; p = nextSibling(p), i++) {
     p = skipIgnoredArgs(p);
     SwigType *pt = Getattr(p, "type");
-    String *ln = Getattr(p, "lname");
-
+    
     String *objcparmtype = NewString("");
 
     // Get the ObjectiveC parameter type for this parameter
@@ -1180,7 +1179,6 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
   for (p = parmlist; p; p = nextSibling(p), i++) {
     p = skipIgnoredArgs(p);
     SwigType *pt = Getattr(p, "type");
-    String *ln = Getattr(p, "lname");
     String *objcparmtype = NewString("");
 
     // Get the ObjectiveC parameter type for this parameter
@@ -1268,7 +1266,6 @@ void OBJECTIVEC::emitProxyClassConstructor(Node *n) {
 
   // Get some useful attributes of the constructor
   String *name = Getattr(n, "name");
-  SwigType *type = Getattr(n, "type");
   ParmList *parmlist = Getattr(n, "parms");
   String *imcall = NewString("");
   String *constructor_defn = NewString("");
@@ -1301,7 +1298,6 @@ void OBJECTIVEC::emitProxyClassConstructor(Node *n) {
   for (p = parmlist; p; p = nextSibling(p), i++) {
     p = skipIgnoredArgs(p);
     SwigType *pt = Getattr(p, "type");
-    String *ln = Getattr(p, "lname");
     String *objcparmtype = NewString("");
 
     // Get the ObjectiveC parameter type for this parameter
@@ -1704,8 +1700,7 @@ void OBJECTIVEC::marshalInputArgs(ParmList *parmlist, Wrapper *wrapper) {
   for (p = parmlist; p; p = nextSibling(p), i++) {
     p = skipIgnoredArgs(p);
     SwigType *pt = Getattr(p, "type");
-    String *ln = Getattr(p, "lname");
-
+    
     String *arg = NewString("");
     Printf(arg, "imarg%d", i + 1);
 
@@ -1741,8 +1736,7 @@ void OBJECTIVEC::makeParameterList(ParmList *parmlist, Wrapper *wrapper) {
   for (p = parmlist; p; p = nextSibling(p), i++) {
     p = skipIgnoredArgs(p);
     SwigType *pt = Getattr(p, "type");
-    String *ln = Getattr(p, "lname");
-
+    
     String *imparmtype = NewString("");
     String *arg = NewString("");
 
