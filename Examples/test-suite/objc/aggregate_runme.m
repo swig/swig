@@ -3,23 +3,23 @@
 int main(int argc,char* argv[])
 {
 NSAutoreleasePool *pool=[[NSAutoreleasePool alloc]init];
-int result =move(UP);
+int result =ObjcMove(UP);
 if(result!=UP)
 NSLog(@"UP Failed");
 
-result =move(DOWN);
+result =ObjcMove(DOWN);
 if(result!=DOWN)
 NSLog(@"DOWN Failed");
 
-result =move(LEFT);
+result =ObjcMove(LEFT);
 if(result!=LEFT)
 NSLog(@"LEFT Failed");
 
-result =move(RIGHT);
+result =ObjcMove(RIGHT);
 if(result!=RIGHT)
 NSLog(@"RIGHT Failed");
 
-if(result == move(0))
+if(result ==ObjcMove(0))
 NSLog(@"0 test failed");
 
 [pool drain];
