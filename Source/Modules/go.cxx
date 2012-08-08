@@ -3742,9 +3742,9 @@ private:
     if (is_constructor) {
       assert(!is_upcall);
       if (!is_director) {
-	all_result = Getattr(class_node, "classtypeobj");
+	all_result = Copy(Getattr(class_node, "classtypeobj"));
       } else {
-	all_result = director_struct;
+	all_result = Copy(director_struct);
       }
       mismatch = false;
     } else {
