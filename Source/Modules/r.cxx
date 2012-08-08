@@ -2451,7 +2451,6 @@ int R::generateCopyRoutines(Node *n) {
     }
     String *elKind = Getattr(c, "kind");
     if (Strcmp(elKind, "variable") != 0) {
-      Delete(elKind);
       continue;
     }
 
