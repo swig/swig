@@ -573,7 +573,7 @@ check: 	$(NOT_BROKEN_TEST_CASES)
 
 # partialcheck target runs SWIG only, ie no compilation or running of tests (for a subset of languages)
 partialcheck:
-	$(MAKE) check CC=true CXX=true LDSHARED=true CXXSHARED=true RUNTOOL=true COMPILETOOL=true
+	$(MAKE) check CC=true CXX=true LDSHARED=true CXXSHARED=true RUNTOOL=true COMPILETOOL=true C_LDSHARED=true CXX_LDSHARED=true
 
 broken: $(BROKEN_TEST_CASES)
 
