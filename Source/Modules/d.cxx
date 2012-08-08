@@ -1440,7 +1440,7 @@ public:
 	// The type in the out attribute of the typemap overrides the type
 	// in the dtype typemap.
 	tm = dtypeout;
-	      replaceClassname(tm, t);
+	replaceClassname(tm, t);
       }
       Printf(return_type, "%s", tm);
     } else {
@@ -2132,8 +2132,6 @@ public:
 	    if (!ignored_method)
 	      Printf(w->code, "%s\n", tm);
 
-	  Delete(tm);
-
 	  // Add parameter type to the C typedef for the D callback function.
 	  Printf(callback_typedef_parms, ", %s", c_param_type);
 
@@ -2270,7 +2268,6 @@ public:
 	Printf(callback_code, "  return %s;\n", tm);
       }
 
-      Delete(tm);
       Delete(tp);
     } else {
       Printf(callback_code, "  %s;\n", upcall);
@@ -3971,7 +3968,7 @@ private:
 
     if (attached) {
       String *attr_name = NewStringf("tmap:%s", method);
-      result = Getattr(n, attr_name);
+      result = Copy(Getattr(n, attr_name));
       Delete(attr_name);
     } else {
       // FIXME: As a workaround for a bug so far only surfacing in the
