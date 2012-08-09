@@ -24,6 +24,7 @@ CPP_TEST_CASES += \
 				 cpp_basic_global_var_class \
 				 cpp_basic_namespaced_class \
 				 cpp_basic_template_function \
+				 cpp_basic_template_class \
 				 c_backend_cpp_natural_std_string \
 				 c_backend_cpp_exception
 
