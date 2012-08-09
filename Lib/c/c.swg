@@ -690,11 +690,6 @@
 %typemap(cppouttype) SWIGTYPE<T>, const SWIGTYPE<T> &, const SWIGTYPE<T> * "$1_ltype"
 */
 
-//%define size_t unsigned long %enddef
-
-%apply unsigned long { size_t };
-%apply const unsigned long & { const size_t & };
-
 #ifdef SWIG_CPPMODE
 
   #ifdef SWIG_C_EXCEPT
