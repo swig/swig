@@ -199,8 +199,15 @@ void JavaDocConverter::translateEntity(DoxygenEntity& tag, std::string& translat
 }
 
 void JavaDocConverter::handleTagHtml(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
-  if (tag.entityList.size()) // do not include empty tags
-    translatedComment += "<" + arg + ">" + translateSubtree(tag) + "</" + arg + ">";
+  if (tag.entityList.size()) { // do not include empty tags
+    std::string tagData = translateSubtree(tag);
+    // wrap the thing, ignoring whitespaces
+    size_t wsPos = tagData.find_last_not_of("\n\t ");
+    if (wsPos != std::string::npos)
+      translatedComment += "<" + arg + ">" + tagData.substr(0, wsPos + 1) + "</" + arg + ">" + tagData.substr(wsPos + 1);
+    else
+      translatedComment += "<" + arg + ">" + translateSubtree(tag) + "</" + arg + "> ";
+  }
 }
 void JavaDocConverter::handleNewLine(DoxygenEntity&, std::string& translatedComment, std::string&) {
   translatedComment += "\n * ";
@@ -433,6 +440,13 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
   }
 
   std::string javaDocString = "/**\n * ";
+
+  // strip endlines at the beginning
+  while (entityList.begin()->typeOfEntity == "plainstd::endl")
+    entityList.pop_front();
+  // and at the end
+  while (entityList.rbegin()->typeOfEntity == "plainstd::endl")
+    entityList.pop_back();
 
   // store the current node
   // (currently just to handle params)

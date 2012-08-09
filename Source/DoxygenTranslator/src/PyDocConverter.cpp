@@ -227,8 +227,15 @@ void PyDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translatedC
   translatedComment += paramNameEntity.data + " (" + paramType + ")" + paramDescription;
 }
 void PyDocConverter::handleTagWrap(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
-  if (tag.entityList.size()) // do not include empty tags
-    translatedComment += arg + translateSubtree(tag) + arg;
+  if (tag.entityList.size()) { // do not include empty tags
+    std::string tagData = translateSubtree(tag);
+    // wrap the thing, ignoring whitespaces
+    int wsPos = tagData.find_last_not_of("\n\t ");
+    if (wsPos != std::string::npos)
+      translatedComment += arg + tagData.substr(0, wsPos + 1) + arg + tagData.substr(wsPos + 1);
+    else
+      translatedComment += arg + tagData + arg + " ";
+  }
 }
 void PyDocConverter::handleNewLine(DoxygenEntity&, std::string& translatedComment, std::string&) {
   translatedComment += "\n";
