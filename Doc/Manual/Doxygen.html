@@ -32,7 +32,8 @@
 <li><a href="#Doxygen_developer_details">Developer Information</a>
 <ul>
 <li><a href="#Doxygen_module_design">Module Design</a>
-<li><a href="#Doxygen_debugging_commands">Debugging commands</a>
+<li><a href="#Doxygen_debugging_commands">Debugging Doxygen parser and translator</a>
+<li><a href="#Doxygen_debugging_commands">Tests</a>
 </ul>
 <li><a href="#Doxygen_language_extension">Extending to Other Languages</a>
 </ul>
@@ -1282,7 +1283,7 @@ This module builds its own private parse tree and hands it to a separate class f
 For example, <tt>JavaDocConverter</tt> is the JavaDoc module class.
 </p>
 
-<H3><a name="Doxygen_debugging_commands"></a>39.5.2 Debugging commands</H3>
+<H3><a name="Doxygen_debugging_commands"></a>39.5.2 Debugging Doxygen parser and translator</H3>
 
 
 <p>
@@ -1293,6 +1294,43 @@ There are two handy command line switches, that enable lots of detailed debug in
   -debug-doxygen-parser     - Display Doxygen parser module debugging information
   -debug-doxygen-translator - Display Doxygen translator module debugging information
 </pre></div>
+
+<H3><a name="Doxygen_tests"></a>39.5.3 Tests</H3>
+
+
+<p>
+This part of SWIG currently has 6 runtime tests in both Java and Python.
+</p>
+
+<div class="shell"><pre>
+  doxygen_parsing
+  doxygen_translate
+  doxygen_translate_all_tags
+  doxygen_basic_translate
+  doxygen_basic_notranslate
+  doxygen_translate_links
+</pre></div>
+
+<p>
+All this tests are included in common.mk and are build with the commands like 'make check-test-suite'
+or 'make check-python-test-suite'. To run them individually, type 'make <testname>.cpptest -s' in the
+language-specific subdir in Examples\test-suite.
+<br>
+Runtime tests in Java are implemented using JavaDoc doclets. To make that work, you
+should have tools.jar from the JDK in your classpath. Or you should have JAVA_HOME
+environmental var defined and pointing to the JDK location.
+<br>
+The Java's comment parsing code (the testing part) is located in commentParser.java.
+You may see it to understand how the checking process works. There is also a possibility
+to run that file as stand-alone program, with 'java commentParser <some java package>',
+and it will print the list of comments found in the specified dir (in the format it's used
+in runtime tests). So, when you want to create the new test of Doxygen comment translator,
+just copy any existing one, and replace the actual comment content (section of entries in
+form 'wantedComments.put(...)' with the output of the above command.
+<br>
+Runtime tests in Python are just plain strings comparison with the use of __doc__
+properties.
+</p>
 
 <H2><a name="Doxygen_language_extension"></a>39.6 Extending to Other Languages</H2>
 

@@ -77,7 +77,9 @@ Functionality
   to the destination documentation. 'Not implemented' means that the
   tag with it's contents is stripped out of the output.
 
-    Doxygen tags:     
+    Doxygen tags:
+    
+    All tags: -OK-     
 
     \a - translated to <i></i> in JD, surrounded with _ in PD
     \addindex - ignored
@@ -257,12 +259,12 @@ Optional functionality
 That section describes some complex cases where the current code
 does not behave really well. Like a short to-do list of special cases.
 
-- When translating functions with default parameters in swig to
+-OK- When translating functions with default parameters in swig to
 java, it creates overloaded functions with all the parameters
 except the default ones. We need to copy the doxygen comment to
 such functions and correct the list of @param tags.
 
-- In doxygen there is a special tags (and even a special option)
+-OK- In doxygen there is a special tags (and even a special option)
 to create links to some code members from the current comment.
 Sometimes it needs a type of parameters specified because of the
 overloaded functions. And the same linking tags are supported in JD,
@@ -303,6 +305,15 @@ The following test cases will be implemented:
 -OK- Class comment, with all supported tags.
 -OK- Class comment, with all doxygen tags, including
   ignored ones.
+  
+The list of all tests, in form of shell commands to make it simple
+to test project by copying the text below into terminal program.
+make doxygen_parsing.cpptest -s
+make doxygen_translate.cpptest -s
+make doxygen_translate_all_tags.cpptest -s
+make doxygen_basic_translate.cpptest -s
+make doxygen_basic_notranslate.cpptest -s
+make doxygen_translate_links.cpptest -s
 
   
 Refactoring
@@ -313,7 +324,7 @@ All the code in directory _DoxygenTranslator_ should be refactored:
 -OK- most static methods should be normal members
 -OK- replace C arrays of strings and sequential searches with STL data
   structures and algorithms.
-- use singletons instead of class instantiaion for each comment found.
+-OK- use singletons instead of class instantiaion for each comment found.
 
 
 Documentation
@@ -324,4 +335,5 @@ SWIG documentation will contain:
 -OK- list of implemented features (types and placements of comments)
 -OK- list of unimplemented features (types and placements of comments)
 -OK- list of tags and their translations (all Doxygen tags).
+-OK- some amount of debugging and development information
 
