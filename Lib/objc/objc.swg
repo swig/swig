@@ -590,6 +590,9 @@
 %apply unsigned long { size_t };
 %apply const unsigned long & { const size_t & };
 
+/* const pointers */
+%apply SWIGTYPE * { SWIGTYPE *const }
+
 /* Additional typemaps */
 // Typemaps containing ObjectiveC code used when generating ObjectiveC proxy classes.
 %include <objcproxycode.swg>
