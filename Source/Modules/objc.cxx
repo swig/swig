@@ -38,7 +38,7 @@ private:
   String *current_class_name;	// String representing name of the current class.
   String *current_class_type;	// Current class when used as a type. This represents the complete name of the class including the scope prefix
   String *variable_name;	// String representing the current variable name.
-
+  String *proxyfuncname; // String representing the current memberfunction name.
 
   /* ObjectiveC data for the current proxy class:
    * These strings are mainly used to temporarily accumulate code from the
@@ -100,6 +100,7 @@ public:
       current_class_name(NULL),
       current_class_type(NULL),
       variable_name(NULL),
+      proxyfuncname(NULL),
       proxy_class_name(NULL),
       proxy_class_qname(NULL),
       proxy_class_decl_code(NULL),
@@ -417,6 +418,8 @@ int OBJECTIVEC::globalfunctionHandler(Node *n) {
  * --------------------------------------------------------------------- */
 
 int OBJECTIVEC::memberfunctionHandler(Node *n) {
+  String *symname = Getattr(n, "sym:name");
+  proxyfuncname = symname;
   member_func_flag = true;
   Language::memberfunctionHandler(n);
   member_func_flag = false;
@@ -1149,7 +1152,7 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
     Printf(proxyfunctionname, "%s", Char(variable_name) + 1);
 
   } else if (member_func_flag) {
-    proxyfunctionname = Copy(name);
+    proxyfunctionname = Copy(proxyfuncname);
   } else {
     proxyfunctionname = Swig_scopename_last(name);
   }
