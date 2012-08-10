@@ -593,6 +593,33 @@
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
 
+/* Exception handling */
+ 
+%typemap(throws) int, 
+                 long, 
+                 short, 
+                 unsigned int, 
+                 unsigned long, 
+                 unsigned short
+%{ char error_msg[256];
+   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
+   SWIG_ObjcThrowException(SWIG_ObjcRuntimeException, error_msg);
+   return $null; %}
+ 
+%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY]
+%{ (void)$1;
+   SWIG_ObjcThrowException(SWIG_ObjcRuntimeException, "C++ $1_type exception thrown");
+   return $null; %}
+
+%typemap(throws) char *
+%{ SWIG_ObjcThrowException(SWIG_ObjcRuntimeException, $1);
+   return $null; %}
+
+
+#define %objcexception(exceptionclasses) %feature("except",throws=exceptionclasses)
+#define %noobjcexception            %feature("except","0",throws="")
+#define %clearobjcexception         %feature("except","",throws="")
+
 /* Additional typemaps */
 // Typemaps containing ObjectiveC code used when generating ObjectiveC proxy classes.
 %include <objcproxycode.swg>

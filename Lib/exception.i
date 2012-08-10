@@ -200,6 +200,46 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
 { SWIG_CSharpException(code, msg); return $null; }
 #endif // SWIGCSHARP
 
+#ifdef SWIGOBJECTIVEC
+%{
+SWIGINTERN void SWIG_ObjcException(int code, const char *msg) {
+  SWIG_ObjcExceptionCodes exception_code = SWIG_ObjcUnknownError;
+  switch(code) {
+  case SWIG_MemoryError:
+    exception_code = SWIG_ObjcOutOfMemoryError;
+    break;
+  case SWIG_IOError:
+    exception_code = SWIG_ObjcIOException;
+    break;
+  case SWIG_SystemError:
+  case SWIG_RuntimeError:
+    exception_code = SWIG_ObjcRuntimeException;
+    break;
+  case SWIG_OverflowError:
+  case SWIG_IndexError:
+    exception_code = SWIG_ObjcIndexOutOfBoundsException;
+    break;
+  case SWIG_DivisionByZero:
+    exception_code = SWIG_ObjcArithmeticException;
+    break;
+  case SWIG_SyntaxError:
+  case SWIG_ValueError:
+  case SWIG_TypeError:
+    exception_code = SWIG_ObjcIllegalArgumentException;
+    break;
+  case SWIG_UnknownError:
+  default:
+    exception_code = SWIG_ObjcUnknownError;
+    break;
+  }
+  SWIG_ObjcThrowException(exception_code, msg);
+}
+%}
+
+#define SWIG_exception(code, msg)\
+{ SWIG_ObjcException(code, msg); return $null; }
+#endif // SWIGOBJECTIVEC
+
 #ifdef SWIGLUA
 
 %{
