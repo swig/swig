@@ -701,7 +701,8 @@ std::list < DoxygenEntity > DoxygenParser::parse(std::list < Token >::iterator e
 			if (currCommand < 0) {
 				if (noisy)
 					cout << "Unidentified Command " << currToken.tokenString << endl;
-				tokList.next();
+				tokList.printListError("Unsupported command: " + currToken.tokenString + ". Ignored");
+				tokList.current()->tokenType = PLAINSTRING; // little hack to add the command as plaintext
 				addCommand(currPlainstringCommandType, tokList, aNewList);
 			} else {
 				tokList.next();
