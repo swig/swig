@@ -1312,8 +1312,7 @@ ready:
                  Setattr(parms, "c:objstruct", "1");
                  if (!Getattr(parms, "lname"))
                    Setattr(parms, "lname", "arg1");
-                 //SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
-                 SwigType *stype = getProxyName(Getattr(n, "type"));
+                 SwigType *stype = Copy(Getattr(Swig_methodclass(n), "sym:name"));
                  SwigType_add_pointer(stype);
                  Setattr(parms, "c:stype", stype);
             }
