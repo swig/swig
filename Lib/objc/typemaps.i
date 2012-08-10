@@ -56,16 +56,14 @@ In ObjectiveC you could then use it like this:
 %define INPUT_TYPEMAP(TYPE, IMTYPE, OBJCTYPE)
 %typemap(imtype) TYPE *INPUT, TYPE &INPUT "IMTYPE"
 %typemap(objctype) TYPE *INPUT, TYPE &INPUT "OBJCTYPE"
+%typemap(objcin) TYPE *INPUT, TYPE &INPUT "$objcinput"
 
-%typemap(in) TYPE *INPUT
+%typemap(in) TYPE *INPUT,TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
-
-%typemap(in) TYPE &INPUT
-%{ $1 = ($1_ltype)$input; %}
 
 %enddef
 
-INPUT_TYPEMAP(bool,                 BOOL,                   BOOL);
+//INPUT_TYPEMAP(bool,                 bool,                   BOOL);
 INPUT_TYPEMAP(signed char,          signed char,            signed char);
 INPUT_TYPEMAP(char,                 char,                   char);
 INPUT_TYPEMAP(unsigned char,        unsigned char,          unsigned char);
@@ -134,13 +132,14 @@ value returned in the second output parameter. In ObjectiveC you would use it li
 %define OUTPUT_TYPEMAP(TYPE, IMTYPE, OBJCTYPE)
 %typemap(imtype) TYPE *OUTPUT, TYPE &OUTPUT "IMTYPE*"
 %typemap(objctype) TYPE *OUTPUT, TYPE &OUTPUT "OBJCTYPE*"
+%typemap(objcin) TYPE *OUTPUT, TYPE &OUTPUT "$objcinput"
 
 %typemap(in) TYPE *OUTPUT, TYPE &OUTPUT
 %{ $1 = ($1_ltype)$input; %}
 
 %enddef
 
-OUTPUT_TYPEMAP(bool,                 BOOL,                   BOOL);
+//OUTPUT_TYPEMAP(bool,               bOOL,                   BOOL);
 OUTPUT_TYPEMAP(signed char,          signed char,            signed char);
 OUTPUT_TYPEMAP(char,                 char,                   char);
 OUTPUT_TYPEMAP(unsigned char,        unsigned char,          unsigned char);
@@ -213,7 +212,9 @@ OUTPUT_TYPEMAP(double,               double,                 double);
  */
 
 %define INOUT_TYPEMAP(TYPE, IMTYPE, OBJCTYPE)
-%typemap(objctype) TYPE *INOUT, TYPE &INOUT "OBJCTYPE"
+%typemap(imtype) TYPE *INOUT, TYPE &INOUT "IMTYPE *"
+%typemap(objctype) TYPE *INOUT, TYPE &INOUT "OBJCTYPE *"
+%typemap(objcin) TYPE *INOUT, TYPE &INOUT "$objcinput"
 
 %typemap(in) TYPE *INOUT {
   $1 = ($1_ltype) $input;
@@ -225,7 +226,7 @@ OUTPUT_TYPEMAP(double,               double,                 double);
 
 %enddef
 
-INOUT_TYPEMAP(bool,                 BOOL,                   BOOL);
+//INOUT_TYPEMAP(bool,               bool,                   BOOL);
 INOUT_TYPEMAP(signed char,          signed char,            signed char);
 INOUT_TYPEMAP(char,                 char,                   char);
 INOUT_TYPEMAP(unsigned char,        unsigned char,          unsigned char);
