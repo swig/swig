@@ -11,8 +11,8 @@ int main(int argc, const char *argv[]) {
 	assert(E_foo(e) == 0);
 
 	delete_B(b);
-	delete_D(b);
-	delete_E(b);
+	delete_D((D*)b);
+	delete_E((E*)b);
 
 	return 0;
 }
