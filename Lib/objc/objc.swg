@@ -187,7 +187,7 @@
 %{ $1 = ($1_ltype)$input; %}
 
 %typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
-%{ temp = ($*1_ltype)$input;
+%{ temp = *($1_ltype)&$input;
    $1 = ($1_ltype)&temp; %}
    
 // Array conversion typemap
@@ -201,6 +201,9 @@
 %typemap(in) SWIGTYPE ((*)(ANY))
 %{ $1 = ($1_ltype)$input; %}
 
+%typemap(in) SWIGTYPE *& ($*1_ltype temp = 0)
+%{ temp = *($1_ltype)&$input;
+   $1 = &temp; %}
 
 /*
  * OUT TYPEMAPS: Used for return-type type conversions: C++ to ObjectiveC++
@@ -299,6 +302,9 @@
 %typemap(out) SWIGTYPE ((*)(ANY))
 %{ $result = (void*)$1; %}
 
+%typemap(out) SWIGTYPE *&
+%{ $result = (void*)*$1; %} 
+
 /* 
  * OBJCTYPE TYPEMAPS: Represents the ObjectiveC(proxy) type corresponding to each ObjectiveC++ type in the intermediate(wrapper) layer. 
  */
@@ -369,7 +375,7 @@
 
 // References to non-primitive types
 %typemap(objctype) SWIGTYPE &                           "$objcclassname*"
-%typemap(objctype) SWIGTYPE *const&                     "$*objcclassname"
+%typemap(objctype) SWIGTYPE *const&                     "$objcclassname*"
 
 // Function pointers
 %typemap(objctype) SWIGTYPE ((*)(ANY))                  "$objcclassname*"
