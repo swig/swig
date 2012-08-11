@@ -193,15 +193,15 @@ static void set_comment(Node *n, String *comment) {
   if (!n || !comment)
     return;
 
-  if (Getattr(n, "DoxygenComment"))
-    Append(Getattr(n, "DoxygenComment"), comment);
+  if (Getattr(n, "doxygen"))
+    Append(Getattr(n, "doxygen"), comment);
   else {
-    Setattr(n, "DoxygenComment", comment);
+    Setattr(n, "doxygen", comment);
     /* This is the first comment, populate it with @params, if any */
     p = Getattr(n, "parms");
     while (p) {
-      if (Getattr(p, "DoxygenComment"))
-	Printv(comment, "\n@param ", Getattr(p, "name"), Getattr(p, "DoxygenComment"), NIL);
+      if (Getattr(p, "doxygen"))
+	Printv(comment, "\n@param ", Getattr(p, "name"), Getattr(p, "doxygen"), NIL);
       p=nextSibling(p);
     }
   }
@@ -212,7 +212,7 @@ static void set_comment(Node *n, String *comment) {
     return;
   n = nextSibling(n);
   while (n && Getattr(n, "name") && Strcmp(Getattr(n, "name"), name) == 0) {
-    Setattr(n, "DoxygenComment", comment);
+    Setattr(n, "doxygen", comment);
     n = nextSibling(n);
   }
 }
@@ -3474,7 +3474,7 @@ doxygen_comment_item : DOXYGENSTRING {
 		    not translatable to javadoc anyway) */
 		  if(0  &&  isStructuralDoxygen($1)){
 		    $$ = new_node("doxycomm");
-		    Setattr($$,"DoxygenComment",$1);
+		    set_comment($$, $1);
 		  }
 		  else {
 		    $$ = $1;

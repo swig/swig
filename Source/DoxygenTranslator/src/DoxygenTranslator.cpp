@@ -25,7 +25,7 @@ bool DoxygenTranslator::hasDocumentation(Node *node) {
 }
 
 String *DoxygenTranslator::getDoxygenComment(Node *node) {
-  return Getattr(node, "DoxygenComment");
+  return Getattr(node, "doxygen");
 }
 
 
