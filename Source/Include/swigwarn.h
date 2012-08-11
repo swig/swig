@@ -221,6 +221,14 @@
 
 /* please leave 700-719 free for D */
 
+#define WARN_DOXYGEN_UNKNOWN_COMMAND          720
+#define WARN_DOXYGEN_UNEXPECTED_END_OF_COMMENT   721
+#define WARN_DOXYGEN_COMMAND_EXPECTED         722
+#define WARN_DOXYGEN_UNTERMINATED_STRING      723
+#define WARN_DOXYGEN_COMMAND_ERROR            724
+
+/* please leave 720-729 free for Doxygen */
+
 #define WARN_RUBY_WRONG_NAME                  801
 #define WARN_RUBY_MULTIPLE_INHERITANCE        802
 

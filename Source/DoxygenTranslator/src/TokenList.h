@@ -16,6 +16,7 @@
 #include <string>
 #include <list>
 #include "Token.h"
+#include "swigwarn.h"
 
 /* a small class used to represent the sequence of tokens
  * that can be derived from a formatted doxygen string
@@ -43,7 +44,7 @@ public:
   void setIterator(list < Token >::iterator newPosition);	/*moves up the iterator */
 
   void printList();		/* prints out the sequence of tokens */
-  void printListError(std::string message); /* prints properly formatted error message */
+  void printListError(int warningType, std::string message); /* prints properly formatted error message */
 
   /*
    * Create TokenList and populate it with tokens from

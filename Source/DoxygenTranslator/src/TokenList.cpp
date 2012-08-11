@@ -42,8 +42,10 @@ TokenList TokenList::tokenizeDoxygenComment(const std::string &doxygenComment, c
     else if (prevChar == '\\' || prevChar == '@') {
       // it's a doxygen command
       // hack to get commands like \\ or \@ or @\ or @@
-      if (doxygenComment[pos] == '@' || doxygenComment[pos] == '\\')
+      if (doxygenComment[pos] == '@' || doxygenComment[pos] == '\\') {
         currentWord += doxygenComment[pos];
+        pos++;
+      }
       tokList.m_tokenList.push_back(Token(COMMAND, currentWord));
     }
     else if (currentWord.size() && (currentWord[0] == '!' || currentWord[0] == '*' || currentWord[0] == '/')) {
@@ -133,10 +135,10 @@ void TokenList::printList() {
   }
 }
 
-void TokenList::printListError(std::string message) {
+void TokenList::printListError(int warningType, std::string message) {
   int curLine = fileLine;
   for (list< Token >::iterator it = m_tokenList.begin(); it != current(); it++)
     if (it->tokenType == END_LINE)
       curLine++;
-  Swig_error(fileName.c_str(), curLine, "Doxygen parser error: %s. \n", message.c_str());
+  Swig_warning(warningType, fileName.c_str(), curLine, "Doxygen parser warning: %s. \n", message.c_str());
 }
