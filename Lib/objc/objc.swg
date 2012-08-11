@@ -474,8 +474,7 @@
 	      unsigned long long,
 	      float,
 	      double
-%{  $1_ltype ret = $imcall;
-    return ret; %}
+%{ return $imcall; %}
 
 %typemap(objcout) bool
 %{  bool ret = $imcall;
@@ -497,9 +496,7 @@
 	     	 const unsigned long long &,unsigned long long &,
 	      	 const float &, 			float &,
 	      	 const double &,  			double &
-%{  $1_ltype ret = $imcall;
-    return ret; %}
-
+%{ return $imcall; %}
 
 %typemap(objcout)const bool *,              bool *,
              const char *,  			char *,
@@ -515,8 +512,7 @@
 	     	 const unsigned long long *,unsigned long long *,
 	      	 const float *, 			float *,
 	      	 const double *,  			double *
-%{  $1_ltype ret = $imcall;
-    return ret; %}
+%{ return $imcall; %}
 
 // C strings: 
 %typemap(objcout)const char *,char * 
