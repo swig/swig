@@ -12,6 +12,8 @@
 %apply int {unsigned int}
 %apply int {short}
 %apply int {unsigned short}
+%apply int {signed char}
+%apply int {unsigned char}
 
 %typemap("rtype") long, long *, long &      "integer";
 %apply long {long long}
@@ -36,10 +38,9 @@
 %typemap("rtype") SWIGTYPE & "$R_class";
 %typemap("rtype") SWIGTYPE "$&R_class";
 
-%typemap("rtypecheck") int, int &, long, long &,
-  unsigned char, unsigned char &
+%typemap("rtypecheck") int, int &, long, long &
   %{ (is.integer($arg) || is.numeric($arg)) && length($arg) == 1 %}
-%typemap("rtypecheck") int *, long *, unsigned char *
+%typemap("rtypecheck") int *, long *
   %{ is.integer($arg) || is.numeric($arg) %}
 
 
@@ -107,9 +108,8 @@
 %typemap(scoercein) enum SWIGTYPE *const
   %{  $input = enumToInteger($input, "$R_class"); %}
 
-
 %typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &  
-  %{ %}
+ %{ if (.hasSlot($input, "ref")) $input = slot($input,"ref") %}
 
 /*
 %typemap(scoercein) SWIGTYPE *, SWIGTYPE *const
@@ -141,7 +141,7 @@
 		    long *,
 		    long &,
 		    long[ANY]
-  "$input = as.integer($input); ";
+  "$input = as.integer($input);";
 
 %typemap(scoercein) char *, string, std::string,
 string &, std::string &
@@ -159,18 +159,30 @@ string &, std::string &
 %typemap(scoerceout) enum SWIGTYPE *const
   %{  $result = enumToInteger($result, "$R_class"); %}
 
+#%typemap(scoerceout) SWIGTYPE 
+#  %{ class($result) <- "$&R_class"; %}
 
-%typemap(scoerceout) SWIGTYPE 
-  %{ class($result) <- "$&R_class"; %}
+#%typemap(scoerceout) SWIGTYPE & 
+#  %{ class($result) <- "$R_class"; %}
 
-%typemap(scoerceout) SWIGTYPE & 
-  %{ class($result) <- "$R_class"; %}
+#%typemap(scoerceout) SWIGTYPE * 
+#  %{ class($result) <- "$R_class"; %}
 
-%typemap(scoerceout) SWIGTYPE * 
-  %{ class($result) <- "$R_class"; %}
+#%typemap(scoerceout) SWIGTYPE *const
+#  %{ class($result) <- "$R_class"; %}
 
-%typemap(scoerceout) SWIGTYPE *const
-  %{ class($result) <- "$R_class"; %}
+ %typemap(scoerceout) SWIGTYPE 
+ %{ $result <- new("$&R_class", ref=$result); %}
+ 
+ %typemap(scoerceout) SWIGTYPE & 
+ %{ $result <- new("$R_class", ref=$result) ; %}
+ 
+ %typemap(scoerceout) SWIGTYPE * 
+ %{ $result <- new("$R_class", ref=$result) ; %}
+ 
+ %typemap(scoerceout) SWIGTYPE *const
+ %{ $result <- new("$R_class", ref=$result) ; %}
+
 
 /* Override the SWIGTYPE * above. */
 %typemap(scoerceout) char,
@@ -208,8 +220,10 @@ string &, std::string &
 		     signed long &,		     
 		     unsigned long,
 		     unsigned long &,
-		     unsigned char *,
-		     unsigned char &		     
+		     signed char,
+		     signed char &,
+		     unsigned char,
+		     unsigned char &
  %{    %}
 
 #if 0

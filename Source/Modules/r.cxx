@@ -1891,6 +1891,9 @@ int R::functionWrapper(Node *n) {
 	if(nargs == -1)
 	  nargs = getFunctionPointerNumArgs(p, tt);
 
+	Printv(sfun->code, "if (.hasSlot(", name, ", \"ref\")) {\n",
+	       name, " = slot(", name, ", \"ref\");\n",
+	       "}\n", NIL);
 	String *snargs = NewStringf("%d", nargs);
 	Printv(sfun->code, "if(is.function(", name, ")) {", "\n",
 	       "assert('...' %in% names(formals(", name, 
@@ -2112,7 +2115,8 @@ int R::functionWrapper(Node *n) {
 	{ 
 	  String *finalizer = NewString(iname);
 	  Replace(finalizer, "new_", "", DOH_REPLACE_FIRST);
-	  Printf(sfun->code, "reg.finalizer(ans, delete_%s)\n", finalizer);
+	  Printf(sfun->code, "if (.hasSlot(ans, \"ref\")) {\n"
+		 "reg.finalizer(ans@ref, delete_%s); }\n", finalizer);
 	}                                                                      
       Printf(sfun->code, "ans\n");
     }
