@@ -434,6 +434,8 @@ int OBJECTIVEC::memberfunctionHandler(Node *n) {
  * --------------------------------------------------------------------- */
 
 int OBJECTIVEC::staticmemberfunctionHandler(Node *n) {
+  String *symname = Getattr(n, "sym:name");
+  proxyfuncname = symname;
   static_member_func_flag = true;
   Language::staticmemberfunctionHandler(n);
   static_member_func_flag = false;
@@ -1154,7 +1156,7 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
   } else if (member_func_flag) {
     proxyfunctionname = Copy(proxyfuncname);
   } else {
-    proxyfunctionname = Swig_scopename_last(name);
+    proxyfunctionname = Copy(proxyfuncname);
   }
 
   // Deal with overloading    
