@@ -765,7 +765,7 @@ ready:
             Printv(return_type, SwigType_str(type, 0), NIL);
        }
        else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
-            String *ctypeout = Getattr(n, "tmap:proxycouttype:out");
+            String *ctypeout = Getattr(n, "tmap:couttype:out");
             if (ctypeout)
               {
                  tm = ctypeout;
