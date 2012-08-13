@@ -128,7 +128,7 @@
 // objects
 %typemap(proxy) SWIGTYPE      "$&resolved_type*"
 %typemap(proxy) SWIGTYPE *    "$resolved_type*"
-%typemap(proxy) SWIGTYPE &    "$resolved_type*"
+%typemap(proxy) SWIGTYPE &    "$*resolved_type*"
 %typemap(proxy) SWIGTYPE *&    "$resolved_type**"
 %typemap(proxy) SWIGTYPE [ANY] "/*SWIGTYPE [ANY]*/ $1_ltype **"
 %typemap(proxy) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype **"
@@ -363,7 +363,7 @@
 %typemap(couttype) unsigned int*, unsigned int&, unsigned int*, unsigned int[ANY], unsigned int[] "unsigned int *"
 %typemap(couttype) const unsigned int*, const unsigned int&, const unsigned int[ANY], const unsigned int[] "const unsigned int *"
 %typemap(couttype) int**, int*&, int*[ANY], int[ANY][ANY] "int **"
-%typemap(couttype) const int**, const int*&, const int*[ANY], const int[ANY][ANY] "const int **"
+%typemap(couttype) const int**, const int*&, int *const &, const int*[ANY], const int[ANY][ANY] "const int **"
 %typemap(couttype) unsigned int**, unsigned int*&, unsigned int*[ANY], unsigned int[ANY][ANY] "unsigned int **"
 %typemap(couttype) const unsigned int**,const unsigned int*&, const unsigned int[ANY][ANY] "const unsigned int **"
 
@@ -550,7 +550,7 @@
 // objects
 %typemap(proxycouttype) SWIGTYPE      "$&resolved_type*"
 %typemap(proxycouttype) SWIGTYPE *    "$resolved_type*"
-%typemap(proxycouttype) SWIGTYPE &    "$resolved_type*"
+%typemap(proxycouttype) SWIGTYPE &    "$*resolved_type*"
 %typemap(proxycouttype) SWIGTYPE *&    "$resolved_type**"
 %typemap(proxycouttype) SWIGTYPE [ANY] "/*SWIGTYPE [ANY]*/ $1_ltype **"
 %typemap(proxycouttype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype **"
