@@ -12,12 +12,6 @@
 #include <stdexcept>
 %}
 
-// C module specific: $tt expands to the type the template is instantiated
-%typemap(ctype) std::vector<T> "$tt"
-%typemap(in) std::vector<T> "$1 = ($1_ltype) $input;"
-%typemap(out) std::vector<T> "$result = ($1_ltype) $1;"
-%typemap(cppouttype) std::vector<T> "$1_ltype"
-
 namespace std {
     
     template<class T> class vector {      
