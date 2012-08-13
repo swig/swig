@@ -4318,12 +4318,30 @@ public:
       Printf(w->code, "    methods[i].base_methid = jenv->GetMethodID(baseclass, methods[i].mname, methods[i].mdesc);\n");
       Printf(w->code, "    if (!methods[i].base_methid) return;\n");
       Printf(w->code, "  }\n");
-      Printf(w->code, "  swig_override[i] = false;\n");
-      Printf(w->code, "  if (derived) {\n");
-      Printf(w->code, "    jmethodID methid = jenv->GetMethodID(jcls, methods[i].mname, methods[i].mdesc);\n");
-      Printf(w->code, "    swig_override[i] = (methid != methods[i].base_methid);\n");
-      Printf(w->code, "    jenv->ExceptionClear();\n");
-      Printf(w->code, "  }\n");
+      // Generally, derived classes have a mix of overridden and
+      // non-overridden methods and it is worth making a GetMethodID
+      // check during initialization to determine if each method is
+      // overridden, thus avoiding unnecessary calls into Java.
+      //
+      // On the other hand, when derived classes are
+      // expected to override all director methods then the
+      // GetMethodID calls are inefficient, and it is better to let
+      // the director unconditionally call up into Java.  The resulting code
+      // will still behave correctly (though less efficiently) when Java
+      // code doesn't override a given method.
+      //
+      // The assumeoverride feature on a director controls whether or not
+      // overrides are assumed.
+      if (GetFlag(n, "feature:director:assumeoverride")) {
+        Printf(w->code, "  swig_override[i] = derived;\n");
+      } else {
+        Printf(w->code, "  swig_override[i] = false;\n");
+        Printf(w->code, "  if (derived) {\n");
+        Printf(w->code, "    jmethodID methid = jenv->GetMethodID(jcls, methods[i].mname, methods[i].mdesc);\n");
+        Printf(w->code, "    swig_override[i] = (methid != methods[i].base_methid);\n");
+        Printf(w->code, "    jenv->ExceptionClear();\n");
+        Printf(w->code, "  }\n");
+      }
       Printf(w->code, "}\n");
     } else {
       Printf(f_directors_h, "public:\n");

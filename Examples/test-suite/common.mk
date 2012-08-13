@@ -161,6 +161,7 @@ CPP_TEST_CASES += \
 	destructor_reprotected \
 	director_abstract \
 	director_alternating \
+	director_assumeoverride \
 	director_basic \
 	director_binary_string \
 	director_classes \

@@ -86,6 +86,7 @@
 <li><a href="#Java_directors_overhead">Overhead and code bloat</a>
 <li><a href="#Java_directors_example">Simple directors example</a>
 <li><a href="#Java_directors_threading">Director threading issues</a>
+<li><a href="#Java_directors_performance">Director performance tuning</a>
 </ul>
 <li><a href="#Java_allprotected">Accessing protected members</a>
 <li><a href="#Java_common_customization">Common customization features</a>
@@ -3524,6 +3525,27 @@ Macros can be defined on the commandline when compiling your C++ code, or altern
 %}
 </pre>
 </div>
+
+<H3><a name="Java_directors_performance"></a>24.5.6 Director performance tuning</H3>
+
+<p>
+When a new instance of a director (or subclass) is created in Java, the C++ side of the director performs a runtime check per director method to determine if that particular method is overridden in Java or if it should invoke the C++ base implementation directly.  Although this makes initialization slightly more expensive, it is generally a good overall tradeoff.
+</p>
+
+<p>
+However, if all director methods are expected to usually be overridden by Java subclasses, then initialization can be made faster by avoiding these checks via the <tt>assumeoverride</tt> attribute.  For example:
+</p>
+
+<div class="code">
+<pre>
+%feature("director", assumeoverride=1) Foo;
+</pre>
+</div>
+
+<p>
+The disadvantage is that invocation of director methods from C++ when Java doesn't actually override the method will require an additional call up into Java and back to C++.  As such, this option is only useful when overrides are extremely common and instantiation is frequent enough that its performance is critical.
+</p>
+
 
 <H2><a name="Java_allprotected"></a>24.6 Accessing protected members</H2>
 
@@ -7862,4 +7884,3 @@ Many of these have runtime tests in the java subdirectory.
 
 </body>
 </html>
-
