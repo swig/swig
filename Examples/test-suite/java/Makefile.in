@@ -23,6 +23,7 @@ CPP_TEST_CASES = \
 	intermediary_classname \
 	java_constants \
 	java_director \
+	java_director_assumeoverride \
 	java_enums \
 	java_lib_arrays_dimensionless \
 	java_lib_various \
