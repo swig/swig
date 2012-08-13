@@ -123,7 +123,7 @@ public:
       global_variable_flag(false),
       old_variable_names(false),
       member_func_flag(false),
-      doxygen(true),
+      doxygen(false),
       comment_creation_chatter(false),
       imclass_name(NULL),
       module_class_name(NULL),
@@ -267,10 +267,6 @@ public:
 	  Swig_mark_arg(i);
 	  doxygen = true;
 	  scan_doxygen_comments = true;
-	} else if ((strcmp(argv[i], "-nodoxygen") == 0)) {
-	  Swig_mark_arg(i);
-	  doxygen = false;
-	  scan_doxygen_comments = false;
   } else if ((strcmp(argv[i], "-debug-doxygen-translator") == 0)) {
     Swig_mark_arg(i);
     debug_doxygen_translator = true;
@@ -4541,8 +4537,7 @@ extern "C" Language *swig_java(void) {
 
 const char *JAVA::usage = (char *) "\
 Java Options (available with -java)\n\
-     -doxygen        - Convert C++ doxygen comments to JavaDoc comments in proxy classes (default)\n\
-     -nodoxygen      - Don't convert C++ doxygen comments to JavaDoc comments in proxy classes\n\
+     -doxygen        - Convert C++ doxygen comments to JavaDoc comments in proxy classes\n\
      -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
      -debug-doxygen-translator - Display doxygen translator module debugging information\n\
      -nopgcpp        - Suppress premature garbage collection prevention parameter\n\

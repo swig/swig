@@ -85,7 +85,7 @@ static int buildnone = 0;
 static int nobuildnone = 0;
 static int safecstrings = 0;
 static int dirvtable = 0;
-static int doxygen = 1;
+static int doxygen = 0;
 static int proxydel = 1;
 static int fastunpack = 0;
 static int fastproxy = 0;
@@ -120,7 +120,7 @@ Python Options (available with -python)\n\
      -classptr       - Generate shadow 'ClassPtr' as in older swig versions\n\
      -cppcast        - Enable C++ casting operators (default) \n\
      -dirvtable      - Generate a pseudo virtual table for directors for faster dispatch \n\
-     -doxygen        - Convert C++ doxygen comments to pydoc comments in proxy classes (default) \n\
+     -doxygen        - Convert C++ doxygen comments to pydoc comments in proxy classes \n\
      -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
      -debug-doxygen-translator - Display doxygen translator module debugging information\n\
      -extranative    - Return extra native C++ wraps for std containers when possible \n\
@@ -141,7 +141,6 @@ static const char *usage2 = (char *) "\
      -nocastmode     - Disable the casting mode (default)\n\
      -nocppcast      - Disable C++ casting operators, useful for generating bugs\n\
      -nodirvtable    - Don't use the virtual table feature, resolve the python method each time (default)\n\
-     -nodoxygen      - Don't convert C++ doxygen comments to pydoc comments in proxy classes \n\
      -noexcept       - No automatic exception handling\n\
      -noextranative  - Don't use extra native C++ wraps for std containers when possible (default) \n\
      -nofastinit     - Use traditional init mechanism for classes \n\
@@ -430,10 +429,6 @@ public:
 	} else if (strcmp(argv[i], "-doxygen") == 0) {
 	  doxygen = 1;
 	  scan_doxygen_comments = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nodoxygen") == 0) {
-	  doxygen = 0;
-	  scan_doxygen_comments = 0;
 	  Swig_mark_arg(i);
   } else if (strcmp(argv[i], "-debug-doxygen-translator") == 0) {
     debug_doxygen_translator = true;

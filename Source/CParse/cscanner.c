@@ -47,7 +47,7 @@ static int last_id = 0;
 static int rename_active = 0;
 
 /* Doxygen comments scanning */
-int scan_doxygen_comments = 1;
+int scan_doxygen_comments = 0;
 
 /* -----------------------------------------------------------------------------
  * Swig_cparse_cplusplus()
