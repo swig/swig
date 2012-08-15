@@ -315,12 +315,20 @@
 %typemap(in) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY] "$1 = ($1_basetype *) $input;"
 %typemap(in) void * [ANY], short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
 
+// constant pointers
+%typemap(in) short* * const, int* * const, long* * const, long long* * const, char* * const, float* * const, double* * const "$1 = ($1_ltype) $input;"
+%typemap(in) const short* * const, const int* * const, const long* * const, const long long* * const, const char* * const, const float* * const, const double* * const "$1 = ($1_ltype) $input;"
+
 // size_t
 %typemap(in) size_t, const size_t "$1 = (size_t) $input;"
-%typemap(in) size_t*, size_t&, size_t[ANY], size_t[] "$input = (size_t *) $input;"
+%typemap(in) size_t*, size_t&, size_t[ANY], size_t[] "$1 = (size_t *) $input;"
 %typemap(in) const size_t&, const size_t*, const size_t[ANY], const size_t[] "$1 = (const size_t *) &$input;"
 %typemap(in) size_t**, size_t*&, size_t*[ANY], size_t[ANY][ANY] "$1 = (size_t **) $input;"
 %typemap(in) const size_t**, const size_t*&, const size_t*[ANY], const size_t[ANY][ANY] "$1 = (const size_t **) $input;"
+// constant pointers
+%typemap(in) size_t * const "$1 = (size_t) $input;"
+%typemap(in) size_t* * const "$1 = (size_t *) $input;"
+%typemap(in) const size_t* * const "$1 = (const size_t **) $input;"
 
 %typemap(in, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool * "$1 = ($1_ltype) $input;"
 %typemap(in, fragment="stdbool_inc") bool & "$1 = ($1_basetype *) $input;"
