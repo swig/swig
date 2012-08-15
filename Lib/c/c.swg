@@ -650,6 +650,7 @@
 %typemap(cppouttype) short *&, int *&, long *&, long long *&, char *&, float *&, double *& "$1_ltype"
 %typemap(cppouttype) const short *&, const int *&, const long *&, const long long *&, const char *&, const float *&, const double *& "$1_ltype"
 %typemap(cppouttype) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY], signed char [ANY], unsigned int [ANY] "$1_ltype"
+%typemap(cppouttype) short **, int **, long **, long long **, char **, float **, double ** "$1_ltype"
 
 // size_t
 %typemap(cppouttype) size_t, const size_t "size_t"
@@ -663,7 +664,6 @@
 %typemap(cppouttype) const signed char* "const signed char *"
 %typemap(cppouttype) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "/*builtin * [ANY]*/ $1_ltype"
 
-%typemap(cppouttype) short **, int **, long **, long long **, char **, float **, double ** "$1_ltype"
 %typemap(cppouttype, retobj="1") SWIGTYPE      "$1_ltype *"
 %typemap(cppouttype) SWIGTYPE *    "$1_ltype"
 %typemap(cppouttype) const SWIGTYPE * "const $1_ltype"
