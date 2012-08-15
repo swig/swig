@@ -638,19 +638,94 @@
 }
 
 // typemaps for 'cppresult'
-// this needs refactoring -- see 'couttype' typemaps
+// void
+%typemap(cppouttype) void "void"
+%typemap(cppouttype) void*, const void* "void *"
 
-%typemap(cppouttype) void, short, int, long, long long, char, float, double "$1_ltype"
-%typemap(cppouttype) unsigned short, unsigned int, unsigned long, unsigned long long, unsigned char, signed char "$1_ltype"
-%typemap(cppouttype) void *, short *, int *, long *, long long *, char *, float *, double*, unsigned char *, unsigned int *, unsigned long *, unsigned char *, signed char * "$1_ltype"
-%typemap(cppouttype) const short, const int, const long, const long long, const char, const float, const double "$1_ltype"
-%typemap(cppouttype) const void *, const short *, const int *, const long *, const long long *, const char *, const float *, const double * "$1_ltype"
-%typemap(cppouttype) short &, int &, long &, long long &, char &, float &, double &, unsigned short &, unsigned int &, unsigned long &, unsigned long long &, unsigned char &, signed char & "$1_ltype"
-%typemap(cppouttype) const short &, const int &, const long &, const long long &, const char &, const float &, const double & "$1_ltype"
-%typemap(cppouttype) short *&, int *&, long *&, long long *&, char *&, float *&, double *& "$1_ltype"
-%typemap(cppouttype) const short *&, const int *&, const long *&, const long long *&, const char *&, const float *&, const double *& "$1_ltype"
-%typemap(cppouttype) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY], signed char [ANY], unsigned int [ANY] "$1_ltype"
-%typemap(cppouttype) short **, int **, long **, long long **, char **, float **, double ** "$1_ltype"
+// short
+%typemap(cppouttype) short, const short "short"
+%typemap(cppouttype) short*, short&, short[ANY], short[] "short *"
+%typemap(cppouttype) const short&, const short*, const short[ANY], const short[] "const short *"
+%typemap(cppouttype) unsigned short "unsigned short"
+%typemap(cppouttype) const unsigned short "const unsigned short"
+%typemap(cppouttype) unsigned short*, unsigned short&, unsigned short*, unsigned short[ANY], unsigned short[] "unsigned short *"
+%typemap(cppouttype) const unsigned short*, const unsigned short&, const unsigned short[ANY], const unsigned short[] "const unsigned short *"
+%typemap(cppouttype) short**, short*&, short*[ANY], short[ANY][ANY] "short **"
+%typemap(cppouttype) const short**, const short*&, const short*[ANY], const short[ANY][ANY] "const short **"
+%typemap(cppouttype) unsigned short**, unsigned short*&, unsigned short*[ANY], unsigned short[ANY][ANY] "unsigned short **"
+%typemap(cppouttype) const unsigned short**,const unsigned short*&, const unsigned short[ANY][ANY] "const unsigned short **"
+
+// int
+%typemap(cppouttype) int, const int "int"
+%typemap(cppouttype) int*, int&, int[ANY], int[] "int *"
+%typemap(cppouttype) const int&, const int*, const int[ANY], const int[] "const int *"
+%typemap(cppouttype) unsigned int "unsigned int"
+%typemap(cppouttype) const unsigned int "unsigned int"
+%typemap(cppouttype) unsigned int*, unsigned int&, unsigned int*, unsigned int[ANY], unsigned int[] "unsigned int *"
+%typemap(cppouttype) const unsigned int*, const unsigned int&, const unsigned int[ANY], const unsigned int[] "const unsigned int *"
+%typemap(cppouttype) int**, int*&, int*[ANY], int[ANY][ANY] "int **"
+%typemap(cppouttype) const int**, const int*&, int const **, int *const &, const int*[ANY], const int[ANY][ANY] "const int **"
+%typemap(cppouttype) unsigned int**, unsigned int*&, unsigned int*[ANY], unsigned int[ANY][ANY] "unsigned int **"
+%typemap(cppouttype) const unsigned int**,const unsigned int*&, const unsigned int[ANY][ANY] "const unsigned int **"
+
+// long
+%typemap(cppouttype) long, const long "long"
+%typemap(cppouttype) long*, long&, long[ANY], long[] "long *"
+%typemap(cppouttype) const long&, const long*, const long[ANY], const long[] "const long *"
+%typemap(cppouttype) unsigned long "unsigned long"
+%typemap(cppouttype) const unsigned long "const unsigned long"
+%typemap(cppouttype) unsigned long*, unsigned long&, unsigned long*, unsigned long[ANY], unsigned long[] "unsigned long *"
+%typemap(cppouttype) const unsigned long*, const unsigned long&, const unsigned long[ANY], const unsigned long[] "const unsigned long *"
+%typemap(cppouttype) long**, long*&, long*[ANY], long[ANY][ANY] "long **"
+%typemap(cppouttype) const long**, const long*&, const long*[ANY], const long[ANY][ANY] "const long **"
+%typemap(cppouttype) unsigned long**, unsigned long*&, unsigned long*[ANY], unsigned long[ANY][ANY] "unsigned long **"
+%typemap(cppouttype) const unsigned long**,const unsigned long*&, const unsigned long[ANY][ANY] "const unsigned long **"
+
+// long long
+%typemap(cppouttype) long long, const long long "long long"
+%typemap(cppouttype) long long*, long long&, long long[ANY], long long[] "long long *"
+%typemap(cppouttype) const long long&, const long long*, const long long[ANY], const long long[] "const long long *"
+%typemap(cppouttype) unsigned long long "unsigned long long"
+%typemap(cppouttype) const unsigned long long "const unsigned long long"
+%typemap(cppouttype) unsigned long long*, unsigned long long&, unsigned long long*, unsigned long long[ANY], unsigned long long[] "unsigned long long *"
+%typemap(cppouttype) const unsigned long long*, const unsigned long long&, const unsigned long long[ANY], const unsigned long long[] "const unsigned long long *"
+%typemap(cppouttype) long long**, long long*&, long long*[ANY], long long[ANY][ANY] "long long **"
+%typemap(cppouttype) const long long**, const long long*&, const long long*[ANY], const long long[ANY][ANY] "const long long **"
+%typemap(cppouttype) unsigned long long**, unsigned long long*&, unsigned long long*[ANY], unsigned long long[ANY][ANY] "unsigned long long **"
+%typemap(cppouttype) const unsigned long long**,const unsigned long long*&, const unsigned long long[ANY][ANY] "const unsigned long long **"
+
+// char: signed/unsigned
+%typemap(cppouttype) char, const char "char"
+%typemap(cppouttype) char*, char&, char[ANY], char[] "$1_ltype"
+%typemap(cppouttype) const char&, const char*, const char[ANY], const char[] "const char *"
+%typemap(cppouttype) char**, char*&, char*[ANY], char[ANY][ANY] "char **"
+%typemap(cppouttype) const char**, const char*&, const char*[ANY], const char[ANY][ANY] "char **"
+%typemap(cppouttype) signed char**, signed char*&, signed char*[ANY], signed char[ANY][ANY] "signed char **"
+%typemap(cppouttype) const signed char**, const signed char*&, const signed char[ANY][ANY] "const signed char **"
+%typemap(cppouttype) signed char "signed char"
+%typemap(cppouttype) const signed char "const signed char"
+%typemap(cppouttype) signed char*, signed char&, signed char*, signed char[ANY], signed char[] "signed char *"
+%typemap(cppouttype) const signed char*, const signed char&, const signed char[ANY], const signed char[] "const $1_ltype"
+%typemap(cppouttype) unsigned char**, unsigned char*&, unsigned char*[ANY], unsigned char[ANY][ANY] "unsigned char **"
+%typemap(cppouttype) const unsigned char**, const unsigned char*&, const unsigned char[ANY][ANY] "const unsigned char **"
+%typemap(cppouttype) unsigned char "unsigned char"
+%typemap(cppouttype) const unsigned char "const unsigned char"
+%typemap(cppouttype) unsigned char*, unsigned char&, unsigned char*, unsigned char[ANY], unsigned char[] "unsigned char *"
+%typemap(cppouttype) const unsigned char*, const unsigned char&, const unsigned char[ANY], const unsigned char[] "const unsigned char *"
+
+// float
+%typemap(cppouttype) float, const float "float"
+%typemap(cppouttype) float*, float&, float[ANY], float[] "float *"
+%typemap(cppouttype) const float&, const float*, const float[ANY], const float[] "const float *"
+%typemap(cppouttype) float**, float*&, const float*&, float*[ANY], float[ANY][ANY] "float **"
+%typemap(cppouttype) const float**, const float*[ANY], const float[ANY][ANY] "const float **"
+
+// double
+%typemap(cppouttype) double, const double "double"
+%typemap(cppouttype) double*, double&, double[ANY], double[] "double *"
+%typemap(cppouttype) const double&, const double*, const double[ANY], const double[] "const double *"
+%typemap(cppouttype) double**, double*&, const double*&, double*[ANY], double[ANY][ANY] "double **"
+%typemap(cppouttype) const double**, const double*[ANY], const double[ANY][ANY] "const double **"
 
 // size_t
 %typemap(cppouttype) size_t, const size_t "size_t"
@@ -658,11 +733,6 @@
 %typemap(cppouttype) const size_t&, const size_t*, const size_t[ANY], const size_t[] "const size_t *"
 %typemap(cppouttype) size_t**, size_t*&, size_t*[ANY], size_t[ANY][ANY] "size_t **"
 %typemap(cppouttype) const size_t**, const size_t*&, const size_t*[ANY], const size_t[ANY][ANY] "const size_t **"
-
-%typemap(cppouttype) const char* "const char *"
-%typemap(cppouttype) const unsigned char* "const unsigned char *"
-%typemap(cppouttype) const signed char* "const signed char *"
-%typemap(cppouttype) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "/*builtin * [ANY]*/ $1_ltype"
 
 %typemap(cppouttype, retobj="1") SWIGTYPE      "$1_ltype *"
 %typemap(cppouttype) SWIGTYPE *    "$1_ltype"
