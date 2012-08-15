@@ -218,6 +218,9 @@
 %typemap(ctype) const short *&, const int *&, const long *&, const long long *&, const char *&, const float *&, const double *& "$1_basetype **"
 %typemap(ctype) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY], unsigned int [ANY] "/*aaa*/ $1_ltype"
 %typemap(ctype) void * [ANY], short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "/*bbb*/ $1_ltype"
+// constant pointers
+%typemap(ctype) short* * const, int* * const, long* * const, long long* * const, char* * const, float* * const, double* * const "$1_ltype"
+%typemap(ctype) const short* * const, const int* * const, const long* * const, const long long* * const, const char* * const, const float* * const, const double* * const "$1_ltype"
 
 // size_t
 %typemap(ctype) size_t, const size_t "size_t"
@@ -225,6 +228,10 @@
 %typemap(ctype) const size_t&, const size_t*, const size_t[ANY], const size_t[] "const size_t *"
 %typemap(ctype) size_t**, size_t*&, size_t*[ANY], size_t[ANY][ANY] "size_t **"
 %typemap(ctype) const size_t**, const size_t*&, const size_t*[ANY], const size_t[ANY][ANY] "const size_t **"
+// constant pointers
+%typemap(ctype) size_t * const "size_t * const"
+%typemap(ctype) size_t* * const "size_t* * const"
+%typemap(ctype) const size_t* * const "const size_t* * const"
 
 // special cases of array passing - does not intended to be used for objects
 %typemap(ctype) SWIGTYPE [] "$1_ltype"
