@@ -6,6 +6,11 @@ Version 2.0.8 (in progress)
 ===========================
 
 2012-08-15: wsfulton
+            [Python] Add discard and add methods to std::set wrappers so that pyabc.i can be used ensuring
+            MutableSet is a valid abstract base class for std::set. As reported by Alexey Sokolov.
+            Similarly for std::multiset.
+
+2012-08-15: wsfulton
             [Python] Fix #3541744 - Missing PyInt_FromSize_t calls for Python 3.
 
 2012-08-13: wsfulton
