@@ -52,12 +52,10 @@ extern "C" {
 
 
 SWIGRUNTIME void
-SWIG_InitializeModule(void *clientdata) {
+SWIG_InitializeModule(void *SWIGUNUSEDPARM(clientdata)) {
   size_t i;
   swig_module_info *module_head, *iter;
   int found, init;
-
-  clientdata = clientdata;
 
   /* check to see if the circular list has been setup, if not, set it up */
   if (swig_module.next==0) {
