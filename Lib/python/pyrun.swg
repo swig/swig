@@ -1331,23 +1331,29 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
   } else {
 #if PY_VERSION_HEX >= 0x03000000
     inst = PyBaseObject_Type.tp_new((PyTypeObject*) data->newargs, Py_None, Py_None);
-    PyObject_SetAttr(inst, SWIG_This(), swig_this);
-    Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+    if (inst) {
+      PyObject_SetAttr(inst, SWIG_This(), swig_this);
+      Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+    }
 #else
     PyObject *dict = PyDict_New();
-    PyDict_SetItem(dict, SWIG_This(), swig_this);
-    inst = PyInstance_NewRaw(data->newargs, dict);
-    Py_DECREF(dict);
+    if (dict) {
+      PyDict_SetItem(dict, SWIG_This(), swig_this);
+      inst = PyInstance_NewRaw(data->newargs, dict);
+      Py_DECREF(dict);
+    }
 #endif
   }
   return inst;
 #else
 #if (PY_VERSION_HEX >= 0x02010000)
-  PyObject *inst;
+  PyObject *inst = 0;
   PyObject *dict = PyDict_New();
-  PyDict_SetItem(dict, SWIG_This(), swig_this);
-  inst = PyInstance_NewRaw(data->newargs, dict);
-  Py_DECREF(dict);
+  if (dict) {
+    PyDict_SetItem(dict, SWIG_This(), swig_this);
+    inst = PyInstance_NewRaw(data->newargs, dict);
+    Py_DECREF(dict);
+  }
   return (PyObject *) inst;
 #else
   PyInstanceObject *inst = PyObject_NEW(PyInstanceObject, &PyInstance_Type);
@@ -1454,12 +1460,10 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
   assert(!(flags & SWIG_BUILTIN_TP_INIT));
 
   robj = SwigPyObject_New(ptr, type, own);
-  if (clientdata && !(flags & SWIG_POINTER_NOSHADOW)) {
+  if (robj && clientdata && !(flags & SWIG_POINTER_NOSHADOW)) {
     PyObject *inst = SWIG_Python_NewShadowInstance(clientdata, robj);
-    if (inst) {
-      Py_DECREF(robj);
-      robj = inst;
-    }
+    Py_DECREF(robj);
+    robj = inst;
   }
   return robj;
 }
