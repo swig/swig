@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.8 (in progress)
 ===========================
 
+2012-08-15: wsfulton
+            [Python] Fix #3541744 - Missing PyInt_FromSize_t calls for Python 3.
+
 2012-08-13: wsfulton
             [Java] Patch from David Baum to add the assumeoverride feature for Java directors to
             improve performance when all overridden methods can be assumed to be overridden.
