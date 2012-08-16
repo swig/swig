@@ -121,7 +121,7 @@
 
 // char: signed/unsigned
 %typemap(proxy) char, const char "char"
-%typemap(proxy) char*, char&, char[ANY], char[] "$1_ltype"
+%typemap(proxy) char*, char&, char[ANY], char[] "char *"
 %typemap(proxy) const char&, const char*, const char[ANY], const char[] "const char *"
 %typemap(proxy) char**, char*&, char*[ANY], char[ANY][ANY] "char **"
 %typemap(proxy) const char**, const char*&, const char*[ANY], const char[ANY][ANY] "char **"
@@ -501,7 +501,7 @@
 
 // char: signed/unsigned
 %typemap(couttype) char, const char "char"
-%typemap(couttype) char*, char&, char[ANY], char[] "$1_ltype"
+%typemap(couttype) char*, char&, char[ANY], char[] "char *"
 %typemap(couttype) const char&, const char*, const char[ANY], const char[] "const char *"
 %typemap(couttype) char**, char*&, char*[ANY], char[ANY][ANY] "char **"
 %typemap(couttype) const char**, const char*&, const char*[ANY], const char[ANY][ANY] "char **"
@@ -671,7 +671,7 @@
 
 // char: signed/unsigned
 %typemap(proxycouttype) char, const char "char"
-%typemap(proxycouttype) char*, char&, char[ANY], char[] "$1_ltype"
+%typemap(proxycouttype) char*, char&, char[ANY], char[] "char *"
 %typemap(proxycouttype) const char&, const char*, const char[ANY], const char[] "const char *"
 %typemap(proxycouttype) char**, char*&, char*[ANY], char[ANY][ANY] "char **"
 %typemap(proxycouttype) const char**, const char*&, const char*[ANY], const char[ANY][ANY] "char **"
@@ -923,7 +923,7 @@
 
 // char: signed/unsigned
 %typemap(cppouttype) char, const char "char"
-%typemap(cppouttype) char*, char&, char[ANY], char[] "$1_ltype"
+%typemap(cppouttype) char*, char&, char[ANY], char[] "char *"
 %typemap(cppouttype) const char&, const char*, const char[ANY], const char[] "const char *"
 %typemap(cppouttype) char**, char*&, char*[ANY], char[ANY][ANY] "char **"
 %typemap(cppouttype) const char**, const char*&, const char*[ANY], const char[ANY][ANY] "char **"
