@@ -1,7 +1,7 @@
 /* File : example.i */
 %module dynamic_cast
 
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD) && !defined(SWIGOBJECTIVEC)
 %apply SWIGTYPE *DYNAMIC { Foo * };
 #endif
 
@@ -69,7 +69,7 @@ char *do_test(Bar *b) {
 }
 %}
 
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD) && !defined(SWIGOBJECTIVEC)
 // A general purpose function for dynamic casting of a Foo *
 %{
 static swig_type_info *
