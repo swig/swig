@@ -153,7 +153,8 @@ Functionality
     \htmlonly - ignored
     \if - see note for \cond 
     \ifnot - see note for \cond
-    \image - translated to <img/> in JD only when target=HTML, ignored in PD
+    \image - translated to <img/> in JD only when target=HTML, translated to
+             'Image: filename(Title)'
     \implements - not supported
     \include - not supported
     \includelineno - not supported
@@ -314,6 +315,7 @@ make doxygen_translate_all_tags.cpptest -s
 make doxygen_basic_translate.cpptest -s
 make doxygen_basic_notranslate.cpptest -s
 make doxygen_translate_links.cpptest -s
+make doxygen_tricky_constructs.cpptest -s
 
   
 Refactoring
