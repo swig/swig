@@ -79,7 +79,7 @@ int isStructuralDoxygen(String *s){
 	      || strncmp(slashPointer, "category", 8) == 0 || strncmp(slashPointer, "class", 5) == 0 || strncmp(slashPointer, "def", 3) == 0
 	      || strncmp(slashPointer, "defgroup", 8) == 0 || strncmp(slashPointer, "dir", 3) == 0 || strncmp(slashPointer, "enum", 4) == 0
 	      || strncmp(slashPointer, "example", 7) == 0 || strncmp(slashPointer, "file", 4) == 0 || strncmp(slashPointer, "fn", 2) == 0
-	      || strncmp(slashPointer, "headerfile", 9) == 0 || strncmp(slashPointer, "hideinitializer", 12) == 0 || strncmp(slashPointer, "ingroup", 7) == 0
+	      || strncmp(slashPointer, "headerfile", 9) == 0 || strncmp(slashPointer, "hideinitializer", 12) == 0
 	      || strncmp(slashPointer, "interface", 9) == 0 || strncmp(slashPointer, "internal", 8) == 0 || strncmp(slashPointer, "mainpage", 8) == 0
 	      || strncmp(slashPointer, "name", 4) == 0 || strncmp(slashPointer, "namespace", 9) == 0 || strncmp(slashPointer, "nosubgrouping", 13) == 0
 	      || strncmp(slashPointer, "overload", 8) == 0 || strncmp(slashPointer, "package", 7) == 0 || strncmp(slashPointer, "page", 4) == 0
