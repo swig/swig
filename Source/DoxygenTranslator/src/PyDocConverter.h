@@ -91,6 +91,10 @@ protected:
    */
   void handleTagPar(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
   /*
+   * Insert 'Image: ...'
+   */
+  void handleTagImage(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
    * Format nice param description with type information
    */
   void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
