@@ -155,9 +155,6 @@
 %typemap(proxy) float * const "float * const"
 %typemap(proxy) float* * const "float* * const"
 %typemap(proxy) const float* * const "const float* * const"
-%typemap(proxy) unsigned float * const "unsigned float * const"
-%typemap(proxy) unsigned float* * const "unsigned float* * const"
-%typemap(proxy) const unsigned float* * const "const unsigned float* * const"
 
 // double
 %typemap(proxy) double, const double "double"
@@ -169,9 +166,6 @@
 %typemap(proxy) double * const "double * const"
 %typemap(proxy) double* * const "double* * const"
 %typemap(proxy) const double* * const "const double* * const"
-%typemap(proxy) unsigned double * const "unsigned double * const"
-%typemap(proxy) unsigned double* * const "unsigned double* * const"
-%typemap(proxy) const unsigned double* * const "const unsigned double* * const"
 
 // size_t
 %typemap(proxy) size_t, const size_t "size_t"
@@ -327,9 +321,6 @@
 %typemap(ctype) float * const "float * const"
 %typemap(ctype) float* * const "float* * const"
 %typemap(ctype) const float* * const "const float* * const"
-%typemap(ctype) unsigned float * const "unsigned float * const"
-%typemap(ctype) unsigned float* * const "unsigned float* * const"
-%typemap(ctype) const unsigned float* * const "const unsigned float* * const"
 
 // double
 %typemap(ctype) double, const double "double"
@@ -341,9 +332,6 @@
 %typemap(ctype) double * const "double * const"
 %typemap(ctype) double* * const "double* * const"
 %typemap(ctype) const double* * const "const double* * const"
-%typemap(ctype) unsigned double * const "unsigned double * const"
-%typemap(ctype) unsigned double* * const "unsigned double* * const"
-%typemap(ctype) const unsigned double* * const "const unsigned double* * const"
 
 // size_t
 %typemap(ctype) size_t, const size_t "size_t"
@@ -657,10 +645,7 @@
 // constant pointers
 %typemap(couttype) float * const "float *"
 %typemap(couttype) float* * const "float* *"
-%typemap(couttype) const float* * const "const float* *"
-%typemap(couttype) unsigned float * const "unsigned float *"
-%typemap(couttype) unsigned float* * const "unsigned float* *"
-%typemap(couttype) const unsigned float* * const "const unsigned float* *"
+%typemap(couttype) const float* * const "float* *"
 
 // double
 %typemap(couttype) double, const double "double"
@@ -671,10 +656,7 @@
 // constant pointers
 %typemap(couttype) double * const "double *"
 %typemap(couttype) double* * const "double* *"
-%typemap(couttype) const double* * const "const double* *"
-%typemap(couttype) unsigned double * const "unsigned double *"
-%typemap(couttype) unsigned double* * const "unsigned double* *"
-%typemap(couttype) const unsigned double* * const "const unsigned double* *"
+%typemap(couttype) const double* * const "double* *"
 
 // size_t
 %typemap(couttype) size_t, const size_t "size_t"
@@ -828,9 +810,6 @@
 %typemap(proxycouttype) float * const "float * const"
 %typemap(proxycouttype) float* * const "float* * const"
 %typemap(proxycouttype) const float* * const "const float* * const"
-%typemap(proxycouttype) unsigned float * const "unsigned float * const"
-%typemap(proxycouttype) unsigned float* * const "unsigned float* * const"
-%typemap(proxycouttype) const unsigned float* * const "const unsigned float* * const"
 
 // double
 %typemap(proxycouttype) double, const double "double"
@@ -842,9 +821,6 @@
 %typemap(proxycouttype) double * const "double * const"
 %typemap(proxycouttype) double* * const "double* * const"
 %typemap(proxycouttype) const double* * const "const double* * const"
-%typemap(proxycouttype) unsigned double * const "unsigned double * const"
-%typemap(proxycouttype) unsigned double* * const "unsigned double* * const"
-%typemap(proxycouttype) const unsigned double* * const "const unsigned double* * const"
 
 // size_t
 %typemap(proxycouttype) size_t, const size_t "size_t"
@@ -1079,10 +1055,7 @@
 // constant pointers
 %typemap(cppouttype) float * const "float *"
 %typemap(cppouttype) float* * const "float* *"
-%typemap(cppouttype) const float* * const "const float* *"
-%typemap(cppouttype) unsigned float * const "unsigned float *"
-%typemap(cppouttype) unsigned float* * const "unsigned float* *"
-%typemap(cppouttype) const unsigned float* * const "const unsigned float* *"
+%typemap(cppouttype) const float* * const "float* *"
 
 // double
 %typemap(cppouttype) double, const double "double"
@@ -1093,10 +1066,7 @@
 // constant pointers
 %typemap(cppouttype) double * const "double *"
 %typemap(cppouttype) double* * const "double* *"
-%typemap(cppouttype) const double* * const "const double* *"
-%typemap(cppouttype) unsigned double * const "unsigned double *"
-%typemap(cppouttype) unsigned double* * const "unsigned double* *"
-%typemap(cppouttype) const unsigned double* * const "const unsigned double* *"
+%typemap(cppouttype) const double* * const "double* *"
 
 // size_t
 %typemap(cppouttype) size_t, const size_t "size_t"
