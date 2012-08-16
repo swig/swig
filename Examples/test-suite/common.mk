@@ -193,6 +193,7 @@ CPP_TEST_CASES += \
 	doxygen_translate \
 	doxygen_translate_all_tags \
 	doxygen_translate_links \
+	doxygen_tricky_constructs \
 	dynamic_cast \
 	empty \
 	enum_rename \

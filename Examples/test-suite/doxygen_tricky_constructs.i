@@ -5,8 +5,8 @@
 
 %inline %{
 
-    # Bug 1: Tag '@endink' is not recognized becuse it is not
-    # followed by whitespace.
+    // Bug 1: Tag '@endink' is not recognized becuse it is not
+    // followed by whitespace.
 
     /** 
      * Tag endlink must be recognized also when followed by nonspace charater.
@@ -26,13 +26,13 @@
     int g_zipCode;
 
 
-    # Bug 2: Paramter 'isReportSize' is missing in comment of the overload, which
-    # has it. This bug disappears if @endlink is follwed by a space.
-    #
-    # Bug 3: Empty line before the link is missing,
-    # making the link text part of parameter description. This bug appears also
-    # when there is ordinary text in place of the link in case of overload
-    # with only 2 parameters.
+    // Bug 2: Paramter 'isReportSize' is missing in comment of the overload, which
+    // has it. This bug disappears if @endlink is follwed by a space.
+    //
+    // Bug 3: Empty line before the link is missing,
+    // making the link text part of parameter description. This bug appears also
+    // when there is ordinary text in place of the link in case of overload
+    // with only 2 parameters.
     /**
      * Returns address of file line.
      *
@@ -42,12 +42,14 @@
      *
      * @link Connection::getId() @endlink <br>
      */
-    std::vector<DWORD> getAddress(const std::string &fileName, 
+    void getAddress(int &fileName, 
                                   int line, 
-                                  bool isGetSize = false);
+                                  bool isGetSize = false)
+    {
+    }
 
-    # Bug 4: The first comment is attached to the second in Python (wrong),
-    # but not in Java (correct).
+    // Bug 4: The first comment is attached to the second in Python (wrong),
+    // but not in Java (correct).
     /** 
      * \defgroup icFacade isystem.connect Facade
      *
@@ -73,34 +75,38 @@
     {
     };
 
-    # Bug 5: Text after '\c' has no space following in Python.
-    # There are also to many empty lines in multiline comments in Python.
-    # Whitespaces are really a problem in Python (space and newlines),
-    # I like a parameter type added to each parameter description!
-    #    """
-    #    Determines how long the isystem.connectshould wait for running 
-    #
-    #    instances to respond. Only one of lfWaitXXXflags from IConnect::ELaunchFlags 
-    #
-    #    may be specified. 
-    #
-    #    """
+    // Bug 5: Text after '\c' has no space following in Python.
+    // There are also to many empty lines in multiline comments in Python.
+    // Whitespaces are really a problem in Python (space and newlines),
+    // I like a parameter type added to each parameter description!
+    //    """
+    //    Determines how long the isystem.connectshould wait for running 
+    //
+    //    instances to respond. Only one of lfWaitXXXflags from IConnect::ELaunchFlags 
+    //
+    //    may be specified. 
+    //
+    //    """
 
     /**
      * Determines how long the \c isystem.connect should wait for running 
      * instances to respond. Only one of \c lfWaitXXX flags from IConnect::ELaunchFlags
      * may be specified.
      */
-    int waitTime(long waitTime);
+    int waitTime(long waitTime)
+    {
+    }
 
 
-    # Bug 6: Text after tag \ingroup appears in Python comment (empty line in
-    # Java, which is acceptable):
+    // Bug 6: Text after tag \ingroup appears in Python comment (empty line in
+    // Java, which is acceptable):
     /** \ingroup icFacade
      *
      * This class manages connection.
      */
-    int getConnection();
+    int getConnection()
+    {
+    }
     
     
 %}
