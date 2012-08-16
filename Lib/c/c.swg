@@ -528,7 +528,7 @@
 // constant pointers
 %typemap(couttype) void * const "void * const"
 %typemap(couttype) void* * const * const "void* *"
-%typemap(couttype) const void* * const "const void* *"
+%typemap(couttype) const void* * const "void* *"
 
 // short
 %typemap(couttype) short, const short "short"
@@ -545,10 +545,10 @@
 // constant pointers
 %typemap(couttype) short * const "short *"
 %typemap(couttype) short* * const "short* *"
-%typemap(couttype) const short* * const "const short* *"
+%typemap(couttype) const short* * const "short* *"
 %typemap(couttype) unsigned short * const "unsigned short *"
 %typemap(couttype) unsigned short* * const "unsigned short* *"
-%typemap(couttype) const unsigned short* * const "const unsigned short* *"
+%typemap(couttype) const unsigned short* * const "unsigned short* *"
 
 // int
 %typemap(couttype) int, const int "int"
@@ -565,10 +565,10 @@
 // constant pointers
 %typemap(couttype) int * const "int *"
 %typemap(couttype) int* * const "int* *"
-%typemap(couttype) const int* * const "const int* *"
+%typemap(couttype) const int* * const "int* *"
 %typemap(couttype) unsigned int * const "unsigned int *"
 %typemap(couttype) unsigned int* * const "unsigned int* *"
-%typemap(couttype) const unsigned int* * const "const unsigned int* *"
+%typemap(couttype) const unsigned int* * const "unsigned int* *"
 
 // long
 %typemap(couttype) long, const long "long"
@@ -585,10 +585,10 @@
 // constant pointers
 %typemap(couttype) long * const "long *"
 %typemap(couttype) long* * const "long* *"
-%typemap(couttype) const long* * const "const long* *"
+%typemap(couttype) const long* * const "long* *"
 %typemap(couttype) unsigned long * const "unsigned long *"
 %typemap(couttype) unsigned long* * const "unsigned long* *"
-%typemap(couttype) const unsigned long* * const "const unsigned long* *"
+%typemap(couttype) const unsigned long* * const "unsigned long* *"
 
 // long long
 %typemap(couttype) long long, const long long "long long"
@@ -605,10 +605,10 @@
 // constant pointers
 %typemap(couttype) long long * const "long long *"
 %typemap(couttype) long long* * const "long long* *"
-%typemap(couttype) const long long* * const "const long long* *"
+%typemap(couttype) const long long* * const "long long* *"
 %typemap(couttype) unsigned long long * const "unsigned long long *"
 %typemap(couttype) unsigned long long* * const "unsigned long long* *"
-%typemap(couttype) const unsigned long long* * const "const unsigned long long* *"
+%typemap(couttype) const unsigned long long* * const "unsigned long long* *"
 
 // char: signed/unsigned
 %typemap(couttype) char, const char "char"
@@ -631,10 +631,10 @@
 // constant pointers
 %typemap(couttype) char * const "char *"
 %typemap(couttype) char* * const "char* *"
-%typemap(couttype) const char* * const "const char* *"
+%typemap(couttype) const char* * const "char* *"
 %typemap(couttype) unsigned char * const "unsigned char *"
 %typemap(couttype) unsigned char* * const "unsigned char* *"
-%typemap(couttype) const unsigned char* * const "const unsigned char* *"
+%typemap(couttype) const unsigned char* * const "unsigned char* *"
 
 // float
 %typemap(couttype) float, const float "float"
@@ -667,7 +667,7 @@
 // constant pointers
 %typemap(couttype) size_t * const "size_t *"
 %typemap(couttype) size_t* * const "size_t* *"
-%typemap(couttype) const size_t* * const "const size_t* *"
+%typemap(couttype) const size_t* * const "size_t* *"
 
 // objects
 %typemap(couttype) SWIGTYPE      "SwigObj *"
@@ -975,10 +975,10 @@
 // constant pointers
 %typemap(cppouttype) int * const "int *"
 %typemap(cppouttype) int* * const "int* *"
-%typemap(cppouttype) const int* * const "const int* *"
+%typemap(cppouttype) const int* * const "int* *"
 %typemap(cppouttype) unsigned int * const "unsigned int *"
 %typemap(cppouttype) unsigned int* * const "unsigned int* *"
-%typemap(cppouttype) const unsigned int* * const "const unsigned int* *"
+%typemap(cppouttype) const unsigned int* * const "unsigned int* *"
 
 // long
 %typemap(cppouttype) long, const long "long"
@@ -995,10 +995,10 @@
 // constant pointers
 %typemap(cppouttype) long * const "long *"
 %typemap(cppouttype) long* * const "long* *"
-%typemap(cppouttype) const long* * const "const long* *"
+%typemap(cppouttype) const long* * const "long* *"
 %typemap(cppouttype) unsigned long * const "unsigned long *"
 %typemap(cppouttype) unsigned long* * const "unsigned long* *"
-%typemap(cppouttype) const unsigned long* * const "const unsigned long* *"
+%typemap(cppouttype) const unsigned long* * const "unsigned long* *"
 
 // long long
 %typemap(cppouttype) long long, const long long "long long"
@@ -1015,10 +1015,10 @@
 // constant pointers
 %typemap(cppouttype) long long * const "long long *"
 %typemap(cppouttype) long long* * const "long long* *"
-%typemap(cppouttype) const long long* * const "const long long* *"
+%typemap(cppouttype) const long long* * const "long long* *"
 %typemap(cppouttype) unsigned long long * const "unsigned long long *"
 %typemap(cppouttype) unsigned long long* * const "unsigned long long* *"
-%typemap(cppouttype) const unsigned long long* * const "const unsigned long long* *"
+%typemap(cppouttype) const unsigned long long* * const "unsigned long long* *"
 
 // char: signed/unsigned
 %typemap(cppouttype) char, const char "char"
@@ -1041,10 +1041,10 @@
 // constant pointers
 %typemap(cppouttype) char * const "char *"
 %typemap(cppouttype) char* * const "char* *"
-%typemap(cppouttype) const char* * const "const char* *"
+%typemap(cppouttype) const char* * const "char* *"
 %typemap(cppouttype) unsigned char * const "unsigned char *"
 %typemap(cppouttype) unsigned char* * const "unsigned char* *"
-%typemap(cppouttype) const unsigned char* * const "const unsigned char* *"
+%typemap(cppouttype) const unsigned char* * const "unsigned char* *"
 
 // float
 %typemap(cppouttype) float, const float "float"
@@ -1077,7 +1077,7 @@
 // constant pointers
 %typemap(cppouttype) size_t * const "size_t *"
 %typemap(cppouttype) size_t* * const "size_t* *"
-%typemap(cppouttype) const size_t* * const "const size_t* *"
+%typemap(cppouttype) const size_t* * const "size_t* *"
 
 %typemap(cppouttype, retobj="1") SWIGTYPE      "$1_ltype *"
 %typemap(cppouttype) SWIGTYPE *    "$1_ltype"
