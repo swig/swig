@@ -46,6 +46,14 @@ TokenList TokenList::tokenizeDoxygenComment(const std::string &doxygenComment, c
         currentWord += doxygenComment[pos];
         pos++;
       }
+      // also strip the command till the first nonalpha char
+      for (int i=2; i<currentWord.size(); i++)
+        if (!isalpha(currentWord[i])) {
+          currentWord = currentWord.substr(0, i);
+          // set current parsing pos back, to parse the rest of the command
+          pos = lastPos + i - 1;
+          break;
+        }
       tokList.m_tokenList.push_back(Token(COMMAND, currentWord));
     }
     else if (currentWord.size() && (currentWord[0] == '!' || currentWord[0] == '*' || currentWord[0] == '/')) {
