@@ -291,9 +291,9 @@
 
 %typemap(out) SWIGTYPE [] %{ $result = $1; %}
 
-// Pointer to a class member will be returned as void*
+// Pointer to a class member 
 %typemap(out) SWIGTYPE (CLASS::*) 
-%{ $result = (void*)$1; %}
+%{ *($&1_ltype)$result =$1; %}
 
 %typemap(out) SWIGTYPE *const&
 %{ $result = (void *)*$1; %}
