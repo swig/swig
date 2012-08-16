@@ -3469,19 +3469,18 @@ doxygen_comment_item : DOXYGENSTRING {
 		  DohReplace($1, "//!", "", 0);
 		  DohReplace($1, "*/", "", 0);
 
-		  /* isStructuralDoxygen() is disabled, since no comment
-		    appears in such case. Need to fix. (most commands are
-		    not translatable to javadoc anyway) */
-		  if(0  &&  isStructuralDoxygen($1)){
-		    $$ = new_node("doxycomm");
-		    set_comment($$, $1);
+		  /* Throw out all structural comments */
+		  if (isStructuralDoxygen($1)) {
+		    Delete($1);
+		    $1 = 0;
 		  }
-		  else {
-		    $$ = $1;
-		  }
+		  $$ = $1;
 		}
 		| doxygen_comment_item doxygen_comment_item {
-		  Append($1, $2);
+		  if ($1)
+		    Append($1, $2);
+		  else
+		    $1 = $2;
 		  $$ = $1;
 		}
 		;
