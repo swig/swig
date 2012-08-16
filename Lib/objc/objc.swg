@@ -452,7 +452,7 @@
 %typemap(objcin) SWIGTYPE "[$objcinput getCptr]"
 
 // Pointer to a class member will be passed as void*, convert appropriately
-%typemap(objcin) SWIGTYPE (CLASS::*) "" 
+%typemap(objcin) SWIGTYPE (CLASS::*) "[$objcinput getCptr]" 
 
 %typemap(objcin) SWIGTYPE *const& "[$objcinput getCptr]" 
 
