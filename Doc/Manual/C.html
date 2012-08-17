@@ -490,6 +490,159 @@ area: 7.068583
   </tr>
 </table>
 
+<H3>C Typemaps, a Code Generation Walkthrough</H3>
+
+To get a better idea of which typemap is used for which generated code, have a look at the following 'walk through'.</br>
+Let's assume we have the following C++ interface file, we'd like to generate code for:
+
+<H4>The Interface</H4>
+<div class="code"><pre>
+%module example
+
+%inline
+%{
+  class SomeClass{};
+  template &lt;typename T&gt; class SomeTemplateClass{};
+  SomeClass someFunction(SomeTemplateClass&lt;int&gt; &someParameter, int simpleInt);
+%}
+
+%template (SomeIntTemplateClass) SomeTemplateClass&lt;int&gt;;
+</pre></div>
+
+
+What we would like to generate as a C interface of this function would be something like this:
+
+<div class="code"><pre>
+//proxy header file
+SomeClass *new_SomeClass(void);
+void delete_SomeClass(SomeClass* carg);
+
+SomeIntTemplateClass * new_SomeIntTemplateClass();
+void delete_SomeIntTemplateClass(SomeIntTemplateClass * carg1);
+
+SomeClass *someFunction(SomeIntTemplateClass *someParameter, int simpleInt);
+</pre></div>
+
+When we generate the bindings, we generate code for two translation units:
+<ul>
+<li>The proxy</li>
+<li>The wrapper</li>
+</ul>
+We need 2 translation units to be able to have C types with the same names as the original C++ types.
+
+<H4>The Wrapper</H4>
+Since the proxy embeds a call to the wrapper function, we'll examine the generation of the wrapper function first.
+
+<div class="code"><pre>
+SWIGEXPORTC SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2) {
+  SomeClass * cppresult;
+  SomeTemplateClass< int > *arg1 = 0 ;
+  int arg2 ;
+  SwigObj * result;
+  
+  {
+    if (carg1)
+    arg1 = (SomeTemplateClass< int > *) carg1->obj;
+    else
+    arg1 = (SomeTemplateClass< int > *) 0;
+  }
+  arg2 = (int) carg2;
+  {
+    const int &_result_ref =  someFunction(*arg1,arg2);cppresult = (int*) &_result_ref;
+  }
+  {
+    result = (SwigObj*) SWIG_create_object(SWIG_STR(SomeClass));
+    result->obj = (void*) &cppresult;
+  }
+  return result;
+}
+</pre></div>
+
+It might be helpful to think of the way function calls are generated as a composition of building blocks.</br>
+A typical wrapper will be composited with these [optional] blocks:
+
+<ol>
+<li>Prototype</li>
+<li>C return value variable</li>
+<li>Local variables equal to the called C++ function's parameters</li>
+<li>[C++ return value variable]</li>
+<li>Assignment (extraction) of wrapper parameters to local parameter copies</li>
+<li>[Contract (e.g. constraints) checking]</li>
+<li> C++ function call</li>
+<li>[Exception handling]</li>
+<li>[Assignment to C++ return value]</li>
+<li>Assignment to C return value</li>
+</ol>
+
+Let's go through it step by step and start with the wrapper prototype
+
+<div class="code"><pre>
+couttype                     ctype            ctype
+---------                    ---------        ---
+SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2);
+</pre></div>
+
+As first unit of the wrapper code, a variable to hold the return value of the function is emitted to the wrapper's body
+
+<div class="code"><pre>
+couttype
+---------
+SwigObj * result;
+</pre></div>
+
+Now for each of the C++ function's arguments, a local variable with the very same type is emitted to the wrapper's body.
+
+<div class="code"><pre>
+SomeTemplateClass< int > *arg1 = 0 ;
+int arg2 ;
+</pre></div>
+
+If it's a C++ function that is wrapped (in this case it is), another variable is emitted for the 'original' return value of the C++ function.</br>
+At this point, we simply 'inject' behavior if it's a C++ function that is wrapped (in this cas it obviously is).
+
+<div class="code"><pre>
+cppouttype
+-----------
+SomeClass * cppresult;
+</pre></div>
+
+Next, the values of the input parameters are assigned to the local variables using the 'in' typemap.
+
+<div class="code"><pre>
+{
+  if (carg1)
+  arg1 = (SomeTemplateClass< int > *) carg1->obj;
+  else
+  arg1 = (SomeTemplateClass< int > *) 0;
+}
+arg2 = (int) carg2;
+</pre></div>
+
+A reasonable question would be: "Why aren't the parameters assigned in the declaration of their local counterparts?"</br>
+As seen above, for complex types pointers have to be verified before extracting and </br>
+casting the actual data pointer from the provided SwigObj pointer.</br>
+This could easily become messy if it was done in the same line with the local variable declaration.</br>
+<p>
+At this point we are ready to call the C++ function with our parameters.</br>
+</p>
+<div class="code"><pre>
+{
+  const int &_result_ref =  someFunction(*arg1,arg2);cppresult = (int*) &_result_ref;
+}
+</pre></div>
+Subsequently, the return value is assigned to the dedicated return value variable using the 'out' typemap
+<div class="code"><pre>
+{
+  result = (SwigObj*) SWIG_create_object(SWIG_STR(SomeClass));
+  result->obj = (void*) &cppresult;
+}
+</pre></div>
+
+Finally, the return value variable is returned.
+<div class="code"><pre>
+return result;
+</pre></div>
+
 <H2><a name="C_exceptions"></a>36.5 Exception handling</H2>
 
 
