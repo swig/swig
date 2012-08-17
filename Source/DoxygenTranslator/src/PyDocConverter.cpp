@@ -90,7 +90,7 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["manonly"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["note"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["p"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["partofdescription"] = make_pair(&PyDocConverter::handleParagraph, " ");
+  tagHandlers["partofdescription"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["rtfonly"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["return"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["returns"] = make_pair(&PyDocConverter::handleParagraph, "");
@@ -245,7 +245,6 @@ void PyDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedCom
   handleParagraph(tag, translatedComment, dummy);
 }
 void PyDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
-  std::string dummy = " ";
   if (tag.entityList.size() < 2)
     return;
   tag.entityList.pop_front();
