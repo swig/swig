@@ -363,51 +363,6 @@
 %typemap(ctype, fragment="stdbool_inc") bool & "$1_ltype"
 %typemap(ctype, fragment="stdbool_inc") const bool & "$1_ltype const"
 
-// typemaps for function parameters
-%typemap(wrap_call) void, short, int, long, long long, char, float, double ""
-%typemap(wrap_call) unsigned short, unsigned int, unsigned long, unsigned long long, unsigned char ""
-%typemap(wrap_call) void *, short *, int *, long *, long long *, char *, float *, double * ""
-%typemap(wrap_call) void **, short **, int **, long **, long long **, char **, float **, double ** ""
-%typemap(wrap_call) unsigned short *, unsigned int *, unsigned long *, unsigned long long *, unsigned char * ""
-%typemap(wrap_call) unsigned short **, unsigned int **, unsigned long **, unsigned long long **, unsigned char ** ""
-%typemap(wrap_call) short &, int &, long &, long long &, char &, float &, double &  ""
-%typemap(wrap_call) unsigned short &, unsigned int &, unsigned long &, unsigned long long &, unsigned char & ""
-%typemap(wrap_call) const short, const int, const long, const long long, const char, const float, const double  ""
-%typemap(wrap_call) const short &, const int &, const long &, const long long &, const char &, const float &, const double & ""
-%typemap(wrap_call) const unsigned short, const unsigned int, const unsigned long, const unsigned long long, const unsigned char ""
-%typemap(wrap_call) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned long long &, const unsigned char & ""
-%typemap(wrap_call) const void *, const short *, const int *, const long *, const long long *, const char *, const float *, const double * ""
-%typemap(wrap_call) short *&, int *&, long *&, long long *&, char *&, float *&, double *& ""
-%typemap(wrap_call) const short *&, const int *&, const long *&, const long long *&, const char *&, const float *&, const double *& " **"
-%typemap(wrap_call) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY], unsigned int [ANY] "/*aaa*/ "
-%typemap(wrap_call) void * [ANY], short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "/*bbb*/ "
-
-// size_t
-%typemap(wrap_call) size_t, const size_t ""
-%typemap(wrap_call) size_t*, size_t&, size_t[ANY], size_t[] ""
-%typemap(wrap_call) const size_t&, const size_t*, const size_t[ANY], const size_t[] ""
-%typemap(wrap_call) size_t**, size_t*&, size_t*[ANY], size_t[ANY][ANY] ""
-%typemap(wrap_call) const size_t**, const size_t*&, const size_t*[ANY], const size_t[ANY][ANY] ""
-
-// special cases of array passing - does not intended to be used for objects
-%typemap(wrap_call) SWIGTYPE [] ""
-%typemap(wrap_call) SWIGTYPE ((&)[ANY]) " **"
-
-%typemap(wrap_call) void [ANY][ANY], short [ANY][ANY], int [ANY][ANY], long [ANY][ANY], char [ANY][ANY], float [ANY][ANY], double [ANY][ANY] ""
-%typemap(wrap_call) SWIGTYPE         "(SwigObj *)"
-%typemap(wrap_call) SWIGTYPE *       "(SwigObj *)"
-%typemap(wrap_call) SWIGTYPE &       "(SwigObj *)"
-%typemap(wrap_call) SWIGTYPE [ANY][ANY], SWIGTYPE ** "/* whoa */ (SwigObj ***)"
-%typemap(wrap_call) SWIGTYPE *[ANY]  "/*ooooh*/ (SwigObj **)"
-%typemap(wrap_call) SWIGTYPE *&      "/* *& */ (SwigObj **)"
-%typemap(wrap_call) enum SWIGTYPE    ""
-%typemap(wrap_call) enum SWIGTYPE &, enum SWIGTYPE *  ""
-%typemap(wrap_call, fragment="fptr_decl", fragment="fptr_decl_proxy") SWIGTYPE (CLASS::*) "(SWIG_CPP_FP)"
-
-%typemap(wrap_call, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
-%typemap(wrap_call, fragment="stdbool_inc") bool & ""
-%typemap(wrap_call, fragment="stdbool_inc") const bool & " const"
-
 %typemap(in) short, int, long, long long, char, float, double "$1 = ($1_ltype) $input;"
 %typemap(in) void *, short *, int *, long *, long long *, char *, float *, double * "$1 = ($1_ltype) $input;"
 %typemap(in) void **, short **, int **, long **, long long **, char **, float **, double ** "$1 = ($1_basetype **) $input;"

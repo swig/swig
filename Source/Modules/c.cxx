@@ -903,7 +903,7 @@ ready:
        //Swig_typemap_attach_parms("in", parms, 0);
 
        // attach typemaps to cast wrapper call with proxy types
-       Swig_typemap_attach_parms("wrap_call", parms, 0);
+       Swig_typemap_attach_parms("ctype", parms, 0);
 
        // prepare function definition
        for (p = parms, gencomma = 0; p; ) {
@@ -932,13 +932,13 @@ ready:
             Printf(arg_name, "c%s", lname);
 
             // set the appropriate type for parameter
-            if ((tm = Getattr(p, "tmap:wrap_call"))) {
-                 Printv(c_parm_type, tm, NIL);
+            if ((tm = Getattr(p, "tmap:ctype"))) {
+                 Printv(c_parm_type, NewString("("), tm, NewString(")"), NIL);
                  // template handling
                  Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
             }
             else {
-                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No wrap_call typemap defined for %s\n", SwigType_str(type, 0));
+                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
             }
 
             /*
