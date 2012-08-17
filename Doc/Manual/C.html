@@ -423,11 +423,11 @@ area: 7.068583
   </tr>
   <tr>
     <td><tt>proxy</tt></td>
-    <td>Input parameters of proxy function</td>
+    <td>Parameter types of proxy functions</td>
   </tr>
   <tr>
     <td><tt>ctype</tt></td>
-    <td>Wrapper function declaration</td>
+    <td>Parameter types of wrapper functions</td>
   </tr>
   <tr>
     <td><tt>wrap_call</tt></td>
@@ -445,58 +445,47 @@ area: 7.068583
   </tr>
   <tr>
     <td><tt>in</tt></td>
-    <td>Generated for input parameters of a function</td>
+    <td>Mapping of wrapper functions' parameters to local C++ variables</br>
+       </br>
+       <tt>
+          SwigObj* _wrap_MyClass_do(SwigObj *carg1) {</br>
+            SomeCPPClass *arg1 = 0;</br>
+            if (carg1)</br>
+              arg1 = (SomeCPPClass*)carg1->obj</br>
+            else</br>
+              arg1 = 0;</br>
+          }
+       </tt></td>
   </tr>
   <tr>
     <td><tt>couttype</tt></td>
-    <td>Casts return values of wrapper functions</br>
+    <td>Return value type of wrapper functions</br>
        </br>
        <tt>
           SwigObj* _wrap_MyClass_new(void) {</br>
-            void *obj = ...</br>
-            return (SwigObj*)obj;</br>
+            SwigObj *result;</br>
+            return result;</br>
           }
        </tt>
     </td>
   </tr>
   <tr>
-    <td><tt>proxy</tt></td>
-    <td>Adds typecasts to class objects of wrapper functions calls in proxy functions</br>
-      <tt>
-      void MyClass_delete(MyClass *myClass) {</br>
-      _wrap_MyClass_delete((SwigObj*)myClass);</br>
-      }
-      </tt>
-    </td>
-  </tr>
-  <tr>
-    <td><tt>couttype</tt></td>
-    <td>Adds typecasts to wrap function return values in proxy functions</br>
-      <tt>
-      MyClass_new(void) {</br>
-      return (MyClass *)_wrap_MyClass_new();</br>
-      }
-      </tt>
-    </td>
-  </tr>
-  <tr>
     <td><tt>proxycouttype</tt></td>
-    <td>Adds typecasts to wrap function return values in proxy functions</br>
+    <td>Typecasts wrapper functions' return values in proxy functions</br>
       <tt>
-      MyClass_new(void) {</br>
-      return (MyClass *)_wrap_MyClass_new();</br>
-      }
+          MyClass *MyClass_new(void) {</br>
+            return (MyClass *)_wrap_MyClass_new();</br>
+          }
       </tt>
     </td>
   </tr>
   <tr>
     <td><tt>out</tt></td>
-    <td>Adds code to wrapper functions for the return value variables</td>
+    <td>Assigns wrapped function's return value to return variable, packaging it into SwigObj if necessary</td>
   </tr>
   <tr>
     <td><tt>cppouttype</tt></td>
-    <td>special case where a special cppresult variable is added to a wrapper
-       function (TODO:the reason for its existence needs investigation).
+    <td>Type of the result variable used for the return value if the wrapped function is a C++ function
     </td>
   </tr>
 </table>
