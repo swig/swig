@@ -514,13 +514,20 @@ What we would like to generate as a C interface of this function would be someth
 
 <div class="targetlang"><pre>
 //proxy header file
-SomeClass *new_SomeClass(void);
-void delete_SomeClass(SomeClass* carg);
+typedef struct SwigObj_SomeClass SomeClass;
 
+SomeClass * new_SomeClass();
+
+void delete_SomeClass(SomeClass * carg1);
+        
+SomeClass* someFunction(SomeIntTemplateClass* carg1, int carg2);
+        
+        
+typedef struct SwigObj_SomeIntTemplateClass SomeIntTemplateClass;
+        
 SomeIntTemplateClass * new_SomeIntTemplateClass();
+        
 void delete_SomeIntTemplateClass(SomeIntTemplateClass * carg1);
-
-SomeClass *someFunction(SomeIntTemplateClass *someParameter, int simpleInt);
 </pre></div>
 
 When we generate the bindings, we generate code for two translation units:
