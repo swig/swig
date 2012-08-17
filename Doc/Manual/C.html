@@ -643,6 +643,51 @@ Finally, the return value variable is returned.
 return result;
 </pre></div>
 
+<H4>The Proxy</H4>
+Compared to the wrapper code generation, the proxy code is very simple.</br>
+Basically it just casts types for the wrapper call. Let's have a look at the corresponding proxy header file code of the interface above.
+
+<div class="targetlang"><pre>
+//proxy header file
+typedef struct SwigObj_SomeClass SomeClass;
+
+SomeClass * new_SomeClass();
+
+void delete_SomeClass(SomeClass * carg1);
+
+SomeClass* someFunction(SomeIntTemplateClass* carg1, int carg2);
+
+
+typedef struct SwigObj_SomeIntTemplateClass SomeIntTemplateClass;
+
+SomeIntTemplateClass * new_SomeIntTemplateClass();
+
+void delete_SomeIntTemplateClass(SomeIntTemplateClass * carg1);
+</pre></div>
+
+For shortness sake, we'll only examine one function that uses all proxy typemaps, as the other functions are analogous.
+
+<div class="targetlang"><pre>
+SomeClass* someFunction(SomeIntTemplateClass* carg1, int carg2) {
+  return (SomeClass*)_wrap_someFunction((SwigObj *)carg1, (int)carg2);
+}
+</pre></div>
+
+Again, let's first examine the protype:
+<div class="targetlang"><pre>
+proxycouttype           proxy                        proxy
+----------              ---------------------        ---
+SomeClass* someFunction(SomeIntTemplateClass* carg1, int carg2);
+</pre></div>
+
+In the body of this function, we'll reuse the 'proxycouttype' and 'ctype' to cast the return value and arguments of the wrapper function.
+
+<div class="targetlang"><pre>
+        proxycouttype                  ctype
+        ----------                     ---------
+return (SomeClass*)_wrap_someFunction((SwigObj *)carg1, (int)carg2);
+</pre></div>
+
 <H2><a name="C_exceptions"></a>36.5 Exception handling</H2>
 
 
