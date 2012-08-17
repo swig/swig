@@ -512,7 +512,7 @@ Let's assume we have the following C++ interface file, we'd like to generate cod
 
 What we would like to generate as a C interface of this function would be something like this:
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 //proxy header file
 SomeClass *new_SomeClass(void);
 void delete_SomeClass(SomeClass* carg);
@@ -533,7 +533,7 @@ We need 2 translation units to be able to have C types with the same names as th
 <H4>The Wrapper</H4>
 Since the proxy embeds a call to the wrapper function, we'll examine the generation of the wrapper function first.
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 SWIGEXPORTC SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2) {
   SomeClass * cppresult;
   SomeTemplateClass< int > *arg1 = 0 ;
@@ -576,7 +576,7 @@ A typical wrapper will be composited with these [optional] blocks:
 
 Let's go through it step by step and start with the wrapper prototype
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 couttype                     ctype            ctype
 ---------                    ---------        ---
 SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2);
@@ -584,7 +584,7 @@ SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2);
 
 As first unit of the wrapper code, a variable to hold the return value of the function is emitted to the wrapper's body
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 couttype
 ---------
 SwigObj * result;
@@ -592,7 +592,7 @@ SwigObj * result;
 
 Now for each of the C++ function's arguments, a local variable with the very same type is emitted to the wrapper's body.
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 SomeTemplateClass< int > *arg1 = 0 ;
 int arg2 ;
 </pre></div>
@@ -600,7 +600,7 @@ int arg2 ;
 If it's a C++ function that is wrapped (in this case it is), another variable is emitted for the 'original' return value of the C++ function.</br>
 At this point, we simply 'inject' behavior if it's a C++ function that is wrapped (in this cas it obviously is).
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 cppouttype
 -----------
 SomeClass * cppresult;
@@ -608,7 +608,7 @@ SomeClass * cppresult;
 
 Next, the values of the input parameters are assigned to the local variables using the 'in' typemap.
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 {
   if (carg1)
   arg1 = (SomeTemplateClass< int > *) carg1->obj;
@@ -625,13 +625,13 @@ This could easily become messy if it was done in the same line with the local va
 <p>
 At this point we are ready to call the C++ function with our parameters.</br>
 </p>
-<div class="code"><pre>
+<div class="targetlang"><pre>
 {
   const int &_result_ref =  someFunction(*arg1,arg2);cppresult = (int*) &_result_ref;
 }
 </pre></div>
 Subsequently, the return value is assigned to the dedicated return value variable using the 'out' typemap
-<div class="code"><pre>
+<div class="targetlang"><pre>
 {
   result = (SwigObj*) SWIG_create_object(SWIG_STR(SomeClass));
   result->obj = (void*) &cppresult;
@@ -639,7 +639,7 @@ Subsequently, the return value is assigned to the dedicated return value variabl
 </pre></div>
 
 Finally, the return value variable is returned.
-<div class="code"><pre>
+<div class="targetlang"><pre>
 return result;
 </pre></div>
 
