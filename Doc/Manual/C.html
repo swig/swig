@@ -198,7 +198,7 @@ For each C function declared in the interface file a wrapper function is created
 For example, for function declaration:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 int gcd(int x, int y);
 </pre></div>
 
@@ -206,7 +206,7 @@ int gcd(int x, int y);
 The output is simply:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 int _wrap_gcd(int arg1, int arg2) {
   int result;
   result = gcd(arg1,arg2);
@@ -218,7 +218,7 @@ int _wrap_gcd(int arg1, int arg2) {
 Then again, this wrapper function is usually called from C using helper function declared in proxy file, preserving the original name:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 int gcd(int arg1, int arg2) {
   return _wrap_gcd(arg1,arg2);
 }
@@ -241,7 +241,7 @@ int gcd(int POSITIVE, int POSITIVE);
 And now the generated result looks like:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 int _wrap_gcd(int arg1, int arg2) {
   {
     if (arg1 <= 0)
@@ -272,7 +272,7 @@ Wrapping variables comes also without any special issues. All global variables a
 You can still apply some of the SWIG features when handling structs, e.g. <tt>%extend</tt> directive. Suppose, you have a C struct declaration:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 typedef struct {
   int x;
   char *str;
@@ -341,7 +341,7 @@ This section briefly covers the essential aspects of this wrapping.
 Consider the following example. We have a C++ class, and want to use it from C code.
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 class Circle {
 public:
   double radius;
@@ -367,7 +367,7 @@ Circle *circle;
 The generated functions make calls to class' constructors and destructors, respectively. They also do all the necessary things required by the SWIG object management system in C.
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 Circle * new_Circle(double r);
 void delete_Circle(Circle * self);
 </pre></div>
@@ -376,7 +376,7 @@ void delete_Circle(Circle * self);
 The class <tt>Circle</tt> has a public variable called <tt>radius</tt>. SWIG generates a pair of setters and getters for each such variable:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 void Circle_radius_set(Circle * self, double radius);
 double Circle_radius_get(Circle * self);
 </pre></div>
@@ -385,7 +385,7 @@ double Circle_radius_get(Circle * self);
 For each public method, an appropriate function is generated:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang"><pre>
 double Circle_area(Circle * self);
 </pre></div>
 
