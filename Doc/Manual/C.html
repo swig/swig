@@ -84,7 +84,7 @@ int fact(int n);
 <p>
 To build a C module (C as the target language), run SWIG using the <tt>-c</tt> option :</p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 %swig -c example.i
 </pre></div>
 
@@ -92,7 +92,7 @@ To build a C module (C as the target language), run SWIG using the <tt>-c</tt> o
 The above assumes C as the input language. If the input language is C++ add the <tt>-c++</tt> option:
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ swig -c++ -c example.i
 </pre></div>
 
@@ -115,7 +115,7 @@ The <tt>wrap</tt> file contains the wrapper functions, which perform the main fu
 The following table list the additional commandline options available for the C module. They can also be seen by using: 
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 swig -c -help 
 </pre></div>
 
@@ -143,7 +143,7 @@ swig -c -help
 The next step is to build a dynamically loadable module, which we can link to our application. This can be done easily, for example using the <tt>gcc</tt> compiler (Linux, MinGW, etc.):
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ swig -c example.i
 $ gcc -c example_wrap.c
 $ gcc -c example_proxy.c
@@ -154,7 +154,7 @@ $ gcc -shared example_wrap.o example_proxy.o -o libexample.so
 Or, for C++ input:
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ swig -c++ -c example.i
 $ g++ -c example_wrap.cxx
 $ gcc -c example_proxy.c
@@ -172,7 +172,7 @@ Now the shared library module is ready to use. Note that the name of the generat
 The simplest way to use the generated shared module is to link it to the application code during the compilation stage. We have to compile the proxy file as well. The process is usually similar to this:
 </p>
 
-<div class="code"><pre>
+<div class="shell"><pre>
 $ gcc runme.c -L. -lexample -o runme
 </pre></div>
 
