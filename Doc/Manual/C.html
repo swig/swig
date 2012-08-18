@@ -430,49 +430,49 @@ area: 7.068583
     <td>Parameter types of wrapper functions and</br>
        Casts of functions' parameters of wrapper function calls</br>
        </br>
-       <tt>
+       <code>
          extern void _wrap_MyClass_delete(SwigObj *o);</br>
          </br>
          void MyClass_delete(MyClass *c) {</br>
-            _wrap_MyClass_delete((Swig_Obj *)c);</br>
+            &nbsp;_wrap_MyClass_delete((Swig_Obj *)c);</br>
          }
-       </tt>
+       </code>
     </td>
   </tr>
   <tr>
     <td><tt>in</tt></td>
     <td>Mapping of wrapper functions' parameters to local C++ variables</br>
        </br>
-       <tt>
+       <code>
           SwigObj* _wrap_MyClass_do(SwigObj *carg1) {</br>
-            SomeCPPClass *arg1 = 0;</br>
-            if (carg1)</br>
-              arg1 = (SomeCPPClass*)carg1->obj</br>
-            else</br>
-              arg1 = 0;</br>
+            &nbsp;SomeCPPClass *arg1 = 0;</br>
+            &nbsp;if (carg1)</br>
+              &nbsp;&nbsp;arg1 = (SomeCPPClass*)carg1->obj</br>
+            &nbsp;else</br>
+              &nbsp;&nbsp;arg1 = 0;</br>
           }
-       </tt></td>
+       </code></td>
   </tr>
   <tr>
     <td><tt>couttype</tt></td>
     <td>Return value type of wrapper functions</br>
        </br>
-       <tt>
+       <code>
           SwigObj* _wrap_MyClass_new(void) {</br>
-            SwigObj *result;</br>
-            return result;</br>
+            &nbsp;SwigObj *result;</br>
+            &nbsp;return result;</br>
           }
-       </tt>
+       </code>
     </td>
   </tr>
   <tr>
     <td><tt>proxycouttype</tt></td>
     <td>Typecasts wrapper functions' return values in proxy functions</br>
-      <tt>
+      <code>
           MyClass *MyClass_new(void) {</br>
-            return (MyClass *)_wrap_MyClass_new();</br>
+            &nbsp;return (MyClass *)_wrap_MyClass_new();</br>
           }
-      </tt>
+      </code>
     </td>
   </tr>
   <tr>
