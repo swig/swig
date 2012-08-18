@@ -128,18 +128,43 @@ explicit_same_type(ctype, size_t);
 %typemap(ctype, fragment="stdbool_inc") bool & "$1_ltype"
 %typemap(ctype, fragment="stdbool_inc") const bool & "$1_ltype const"
 
-%typemap(in) short, int, long, long long, char, float, double "$1 = ($1_ltype) $input;"
-%typemap(in) void *, short *, int *, long *, long long *, char *, float *, double * "$1 = ($1_ltype) $input;"
-%typemap(in) void **, short **, int **, long **, long long **, char **, float **, double ** "$1 = ($1_basetype **) $input;"
-%typemap(in) unsigned short *, unsigned int *, unsigned long *, unsigned long long *, unsigned char * "$1 = ($1_ltype) $input;"
-%typemap(in) unsigned short **, unsigned int **, unsigned long **, unsigned long long **, unsigned char ** "$1 = ($1_ltype) $input;"
-%typemap(in) const void *, const short *, const int *, const long *, const long long *, const char *, const float *, const double * "$1 = ($1_ltype) $input;"
-%typemap(in) const unsigned short *, const unsigned int *, const unsigned long *, const unsigned long long *, const unsigned char * "$1 = ($1_ltype) $input;"
-%typemap(in) unsigned short, unsigned int, unsigned long, unsigned long long, unsigned char "$1 = ($1_ltype) $input;"
-%typemap(in) short &, int &, long &, long long &, char &, float &, double &, bool & "$1 = ($1_ltype) $input;"
-%typemap(in) const short &, const int &, const long &, const long long &, const char &, const float &, const double & "$1 = ($1_ltype) $input;"
-%typemap(in) unsigned short &, unsigned int &, unsigned long &, unsigned long long &, unsigned char &  "$1 = ($1_ltype) $input;"
-%typemap(in) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned long long &, const unsigned char & "$1 = ($1_ltype) $input;"
+
+%define in_assignment_cast(PRE, POST)
+PRE short POST, PRE int POST, PRE long POST, PRE long long POST, PRE char POST, PRE float POST, PRE double POST "$1 = ($1_ltype) $input;"
+%enddef
+
+//this macro is necessary, because 'unsigned double' is not allowed.
+%define in_assignment_cast_unsigned_only(PRE, POST)
+PRE float POST, PRE double POST "$1 = ($1_ltype) $input;"
+%enddef
+
+%define in_assignment_group(PRE)
+in_assignment_cast(,);
+in_assignment_cast(,*);
+in_assignment_cast(,&);
+in_assignment_cast(,[ANY]);
+in_assignment_cast(,*&);
+in_assignment_cast(,**);
+%enddef
+
+in_assignment_group();
+in_assignment_group(const);
+in_assignment_group(signed);
+in_assignment_group(signed const);
+in_assignment_group(unsigned);
+in_assignment_group(unsigned const);
+
+in_assignment_cast_unsigned_only(,);
+in_assignment_cast_unsigned_only(,*);
+in_assignment_cast_unsigned_only(,&);
+in_assignment_cast_unsigned_only(,[ANY]);
+in_assignment_cast_unsigned_only(,**);
+in_assignment_cast_unsigned_only(,*&);
+in_assignment_cast_unsigned_only(const,);
+in_assignment_cast_unsigned_only(const,*);
+in_assignment_cast_unsigned_only(const,&);
+in_assignment_cast_unsigned_only(const,[ANY]);
+in_assignment_cast_unsigned_only(const,*&);
 
 %typemap(in) short *&, int *&, long *&, long long *&, char *&, float *&, double *& "$1 = ($1_ltype) $input;"
 %typemap(in) const short *&, const int *&, const long *&, const long *&, const char *&, const float *&, const double *& "$1 = ($1_ltype) $input;"
@@ -250,144 +275,33 @@ explicit_same_type(ctype, size_t);
 %typemap(couttype) void* * const * const "void* *"
 %typemap(couttype) const void* * const "void* *"
 
-// short
-%typemap(couttype) short, const short "short"
-%typemap(couttype) short*, short&, short[ANY], short[] "short *"
-%typemap(couttype) const short&, const short*, const short[ANY], const short[] "const short *"
-%typemap(couttype) unsigned short "unsigned short"
-%typemap(couttype) const unsigned short "const unsigned short"
-%typemap(couttype) unsigned short*, unsigned short&, unsigned short*, unsigned short[ANY], unsigned short[] "unsigned short *"
-%typemap(couttype) const unsigned short*, const unsigned short&, const unsigned short[ANY], const unsigned short[] "const unsigned short *"
-%typemap(couttype) short**, short*&, short*[ANY], short[ANY][ANY] "short **"
-%typemap(couttype) const short**, const short*&, const short*[ANY], const short[ANY][ANY] "const short **"
-%typemap(couttype) unsigned short**, unsigned short*&, unsigned short*[ANY], unsigned short[ANY][ANY] "unsigned short **"
-%typemap(couttype) const unsigned short**,const unsigned short*&, const unsigned short[ANY][ANY] "const unsigned short **"
+//unconsted types are necessary, because some the methods using this declare variables of the resolved type first and assign their values later
+%define explicit_same_type_unconsted(TM, T)
+%typemap(TM) T, const T "T"
+%typemap(TM) T*, T&, T[ANY], T[] "T *"
+%typemap(TM) const T&, const T*, const T[ANY], const T[] "const T *"
+%typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] "T **"
+%typemap(TM) const T**, const T*&, T *const &, const T*[ANY], const T[ANY][ANY] "const T **"
 // constant pointers
-%typemap(couttype) short * const "short *"
-%typemap(couttype) short* * const "short* *"
-%typemap(couttype) const short* * const "short* *"
-%typemap(couttype) unsigned short * const "unsigned short *"
-%typemap(couttype) unsigned short* * const "unsigned short* *"
-%typemap(couttype) const unsigned short* * const "unsigned short* *"
+%typemap(TM) T * const "T *"
+%typemap(TM) T* * const "T* *"
+%typemap(TM) const T* * const "const T* *"
+%enddef
 
-// int
-%typemap(couttype) int, const int "int"
-%typemap(couttype) int*, int&, int[ANY], int[] "int *"
-%typemap(couttype) const int&, const int*, const int[ANY], const int[] "const int *"
-%typemap(couttype) unsigned int "unsigned int"
-%typemap(couttype) const unsigned int "unsigned int"
-%typemap(couttype) unsigned int*, unsigned int&, unsigned int*, unsigned int[ANY], unsigned int[] "unsigned int *"
-%typemap(couttype) const unsigned int*, const unsigned int&, const unsigned int[ANY], const unsigned int[] "const unsigned int *"
-%typemap(couttype) int**, int*&, int*[ANY], int[ANY][ANY] "int **"
-%typemap(couttype) const int**, const int*&, int *const &, const int*[ANY], const int[ANY][ANY] "const int **"
-%typemap(couttype) unsigned int**, unsigned int*&, unsigned int*[ANY], unsigned int[ANY][ANY] "unsigned int **"
-%typemap(couttype) const unsigned int**,const unsigned int*&, const unsigned int[ANY][ANY] "const unsigned int **"
-// constant pointers
-%typemap(couttype) int * const "int *"
-%typemap(couttype) int* * const "int* *"
-%typemap(couttype) const int* * const "int* *"
-%typemap(couttype) unsigned int * const "unsigned int *"
-%typemap(couttype) unsigned int* * const "unsigned int* *"
-%typemap(couttype) const unsigned int* * const "unsigned int* *"
-
-// long
-%typemap(couttype) long, const long "long"
-%typemap(couttype) long*, long&, long[ANY], long[] "long *"
-%typemap(couttype) const long&, const long*, const long[ANY], const long[] "const long *"
-%typemap(couttype) unsigned long "unsigned long"
-%typemap(couttype) const unsigned long "const unsigned long"
-%typemap(couttype) unsigned long*, unsigned long&, unsigned long*, unsigned long[ANY], unsigned long[] "unsigned long *"
-%typemap(couttype) const unsigned long*, const unsigned long&, const unsigned long[ANY], const unsigned long[] "const unsigned long *"
-%typemap(couttype) long**, long*&, long*[ANY], long[ANY][ANY] "long **"
-%typemap(couttype) const long**, const long*&, const long*[ANY], const long[ANY][ANY] "const long **"
-%typemap(couttype) unsigned long**, unsigned long*&, unsigned long*[ANY], unsigned long[ANY][ANY] "unsigned long **"
-%typemap(couttype) const unsigned long**,const unsigned long*&, const unsigned long[ANY][ANY] "const unsigned long **"
-// constant pointers
-%typemap(couttype) long * const "long *"
-%typemap(couttype) long* * const "long* *"
-%typemap(couttype) const long* * const "long* *"
-%typemap(couttype) unsigned long * const "unsigned long *"
-%typemap(couttype) unsigned long* * const "unsigned long* *"
-%typemap(couttype) const unsigned long* * const "unsigned long* *"
-
-// long long
-%typemap(couttype) long long, const long long "long long"
-%typemap(couttype) long long*, long long&, long long[ANY], long long[] "long long *"
-%typemap(couttype) const long long&, const long long*, const long long[ANY], const long long[] "const long long *"
-%typemap(couttype) unsigned long long "unsigned long long"
-%typemap(couttype) const unsigned long long "const unsigned long long"
-%typemap(couttype) unsigned long long*, unsigned long long&, unsigned long long*, unsigned long long[ANY], unsigned long long[] "unsigned long long *"
-%typemap(couttype) const unsigned long long*, const unsigned long long&, const unsigned long long[ANY], const unsigned long long[] "const unsigned long long *"
-%typemap(couttype) long long**, long long*&, long long*[ANY], long long[ANY][ANY] "long long **"
-%typemap(couttype) const long long**, const long long*&, const long long*[ANY], const long long[ANY][ANY] "const long long **"
-%typemap(couttype) unsigned long long**, unsigned long long*&, unsigned long long*[ANY], unsigned long long[ANY][ANY] "unsigned long long **"
-%typemap(couttype) const unsigned long long**,const unsigned long long*&, const unsigned long long[ANY][ANY] "const unsigned long long **"
-// constant pointers
-%typemap(couttype) long long * const "long long *"
-%typemap(couttype) long long* * const "long long* *"
-%typemap(couttype) const long long* * const "long long* *"
-%typemap(couttype) unsigned long long * const "unsigned long long *"
-%typemap(couttype) unsigned long long* * const "unsigned long long* *"
-%typemap(couttype) const unsigned long long* * const "unsigned long long* *"
-
-// char: signed/unsigned
-%typemap(couttype) char, const char "char"
-%typemap(couttype) char*, char&, char[ANY], char[] "char *"
-%typemap(couttype) const char&, const char*, const char[ANY], const char[] "const char *"
-%typemap(couttype) char**, char*&, char*[ANY], char[ANY][ANY] "char **"
-%typemap(couttype) const char**, const char*&, const char*[ANY], const char[ANY][ANY] "char **"
-%typemap(couttype) signed char**, signed char*&, signed char*[ANY], signed char[ANY][ANY] "signed char **"
-%typemap(couttype) const signed char**, const signed char*&, const signed char[ANY][ANY] "const signed char **"
-%typemap(couttype) signed char "signed char"
-%typemap(couttype) const signed char "const signed char"
-%typemap(couttype) signed char*, signed char&, signed char*, signed char[ANY], signed char[] "signed char *"
-%typemap(couttype) const signed char*, const signed char&, const signed char[ANY], const signed char[] "const $1_ltype"
-%typemap(couttype) unsigned char**, unsigned char*&, unsigned char*[ANY], unsigned char[ANY][ANY] "unsigned char **"
-%typemap(couttype) const unsigned char**, const unsigned char*&, const unsigned char[ANY][ANY] "const unsigned char **"
-%typemap(couttype) unsigned char "unsigned char"
-%typemap(couttype) const unsigned char "const unsigned char"
-%typemap(couttype) unsigned char*, unsigned char&, unsigned char*, unsigned char[ANY], unsigned char[] "unsigned char *"
-%typemap(couttype) const unsigned char*, const unsigned char&, const unsigned char[ANY], const unsigned char[] "const unsigned char *"
-// constant pointers
-%typemap(couttype) char * const "char *"
-%typemap(couttype) char* * const "char* *"
-%typemap(couttype) const char* * const "char* *"
-%typemap(couttype) unsigned char * const "unsigned char *"
-%typemap(couttype) unsigned char* * const "unsigned char* *"
-%typemap(couttype) const unsigned char* * const "unsigned char* *"
-
-// float
-%typemap(couttype) float, const float "float"
-%typemap(couttype) float*, float&, float[ANY], float[] "float *"
-%typemap(couttype) const float&, const float*, const float[ANY], const float[] "const float *"
-%typemap(couttype) float**, float*&, const float*&, float*[ANY], float[ANY][ANY] "float **"
-%typemap(couttype) const float**, const float*[ANY], const float[ANY][ANY] "const float **"
-// constant pointers
-%typemap(couttype) float * const "float *"
-%typemap(couttype) float* * const "float* *"
-%typemap(couttype) const float* * const "float* *"
-
-// double
-%typemap(couttype) double, const double "double"
-%typemap(couttype) double*, double&, double[ANY], double[] "double *"
-%typemap(couttype) const double&, const double*, const double[ANY], const double[] "const double *"
-%typemap(couttype) double**, double*&, const double*&, double*[ANY], double[ANY][ANY] "double **"
-%typemap(couttype) const double**, const double*[ANY], const double[ANY][ANY] "const double **"
-// constant pointers
-%typemap(couttype) double * const "double *"
-%typemap(couttype) double* * const "double* *"
-%typemap(couttype) const double* * const "double* *"
-
-// size_t
-%typemap(couttype) size_t, const size_t "size_t"
-%typemap(couttype) size_t*, size_t&, size_t[ANY], size_t[] "size_t *"
-%typemap(couttype) const size_t&, const size_t*, const size_t[ANY], const size_t[] "const size_t *"
-%typemap(couttype) size_t**, size_t*&, size_t*[ANY], size_t[ANY][ANY] "size_t **"
-%typemap(couttype) const size_t**, const size_t*&, const size_t*[ANY], const size_t[ANY][ANY] "const size_t **"
-// constant pointers
-%typemap(couttype) size_t * const "size_t *"
-%typemap(couttype) size_t* * const "size_t* *"
-%typemap(couttype) const size_t* * const "size_t* *"
+explicit_same_type_unconsted(couttype, short);
+explicit_same_type_unconsted(couttype, unsigned short);
+explicit_same_type_unconsted(couttype, int);
+explicit_same_type_unconsted(couttype, unsigned int);
+explicit_same_type_unconsted(couttype, long);
+explicit_same_type_unconsted(couttype, unsigned long);
+explicit_same_type_unconsted(couttype, long long);
+explicit_same_type_unconsted(couttype, unsigned long long);
+explicit_same_type_unconsted(couttype, char);
+explicit_same_type_unconsted(couttype, signed char);
+explicit_same_type_unconsted(couttype, unsigned char);
+explicit_same_type_unconsted(couttype, float);
+explicit_same_type_unconsted(couttype, double);
+explicit_same_type_unconsted(couttype, size_t);
 
 // objects
 %typemap(couttype) SWIGTYPE      "SwigObj *"
@@ -414,144 +328,20 @@ explicit_same_type(ctype, size_t);
 %typemap(proxycouttype) void* * const "void* * const"
 %typemap(proxycouttype) const void* * const "const void* * const"
 
-// short
-%typemap(proxycouttype) short, const short "short"
-%typemap(proxycouttype) short*, short&, short[ANY], short[] "short *"
-%typemap(proxycouttype) const short&, const short*, const short[ANY], const short[] "const short *"
-%typemap(proxycouttype) unsigned short "unsigned short"
-%typemap(proxycouttype) const unsigned short "const unsigned short"
-%typemap(proxycouttype) unsigned short*, unsigned short&, unsigned short*, unsigned short[ANY], unsigned short[] "unsigned short *"
-%typemap(proxycouttype) const unsigned short*, const unsigned short&, const unsigned short[ANY], const unsigned short[] "const unsigned short *"
-%typemap(proxycouttype) short**, short*&, short*[ANY], short[ANY][ANY] "short **"
-%typemap(proxycouttype) const short**, const short*&, const short*[ANY], const short[ANY][ANY] "const short **"
-%typemap(proxycouttype) unsigned short**, unsigned short*&, unsigned short*[ANY], unsigned short[ANY][ANY] "unsigned short **"
-%typemap(proxycouttype) const unsigned short**,const unsigned short*&, const unsigned short[ANY][ANY] "const unsigned short **"
-// constant pointers
-%typemap(proxycouttype) short * const "short * const"
-%typemap(proxycouttype) short* * const "short* * const"
-%typemap(proxycouttype) const short* * const "const short* * const"
-%typemap(proxycouttype) unsigned short * const "unsigned short * const"
-%typemap(proxycouttype) unsigned short* * const "unsigned short* * const"
-%typemap(proxycouttype) const unsigned short* * const "const unsigned short* * const"
-
-// int
-%typemap(proxycouttype) int, const int "int"
-%typemap(proxycouttype) int*, int&, int[ANY], int[] "int *"
-%typemap(proxycouttype) const int&, const int*, const int[ANY], const int[] "const int *"
-%typemap(proxycouttype) unsigned int "unsigned int"
-%typemap(proxycouttype) const unsigned int "unsigned int"
-%typemap(proxycouttype) unsigned int*, unsigned int&, unsigned int*, unsigned int[ANY], unsigned int[] "unsigned int *"
-%typemap(proxycouttype) const unsigned int*, const unsigned int&, const unsigned int[ANY], const unsigned int[] "const unsigned int *"
-%typemap(proxycouttype) int**, int*&, int*[ANY], int[ANY][ANY] "int **"
-%typemap(proxycouttype) const int**, const int*&, const int*[ANY], const int[ANY][ANY] "const int **"
-%typemap(proxycouttype) unsigned int**, unsigned int*&, unsigned int*[ANY], unsigned int[ANY][ANY] "unsigned int **"
-%typemap(proxycouttype) const unsigned int**,const unsigned int*&, const unsigned int[ANY][ANY] "const unsigned int **"
-// constant pointers
-%typemap(proxycouttype) int * const "int * const"
-%typemap(proxycouttype) int* * const "int* * const"
-%typemap(proxycouttype) const int* * const "const int* * const"
-%typemap(proxycouttype) unsigned int * const "unsigned int * const"
-%typemap(proxycouttype) unsigned int* * const "unsigned int* * const"
-%typemap(proxycouttype) const unsigned int* * const "const unsigned int* * const"
-
-// long
-%typemap(proxycouttype) long, const long "long"
-%typemap(proxycouttype) long*, long&, long[ANY], long[] "long *"
-%typemap(proxycouttype) const long&, const long*, const long[ANY], const long[] "const long *"
-%typemap(proxycouttype) unsigned long "unsigned long"
-%typemap(proxycouttype) const unsigned long "const unsigned long"
-%typemap(proxycouttype) unsigned long*, unsigned long&, unsigned long*, unsigned long[ANY], unsigned long[] "unsigned long *"
-%typemap(proxycouttype) const unsigned long*, const unsigned long&, const unsigned long[ANY], const unsigned long[] "const unsigned long *"
-%typemap(proxycouttype) long**, long*&, long*[ANY], long[ANY][ANY] "long **"
-%typemap(proxycouttype) const long**, const long*&, const long*[ANY], const long[ANY][ANY] "const long **"
-%typemap(proxycouttype) unsigned long**, unsigned long*&, unsigned long*[ANY], unsigned long[ANY][ANY] "unsigned long **"
-%typemap(proxycouttype) const unsigned long**,const unsigned long*&, const unsigned long[ANY][ANY] "const unsigned long **"
-// constant pointers
-%typemap(proxycouttype) long * const "long * const"
-%typemap(proxycouttype) long* * const "long* * const"
-%typemap(proxycouttype) const long* * const "const long* * const"
-%typemap(proxycouttype) unsigned long * const "unsigned long * const"
-%typemap(proxycouttype) unsigned long* * const "unsigned long* * const"
-%typemap(proxycouttype) const unsigned long* * const "const unsigned long* * const"
-
-// long long
-%typemap(proxycouttype) long long, const long long "long long"
-%typemap(proxycouttype) long long*, long long&, long long[ANY], long long[] "long long *"
-%typemap(proxycouttype) const long long&, const long long*, const long long[ANY], const long long[] "const long long *"
-%typemap(proxycouttype) unsigned long long "unsigned long long"
-%typemap(proxycouttype) const unsigned long long "const unsigned long long"
-%typemap(proxycouttype) unsigned long long*, unsigned long long&, unsigned long long*, unsigned long long[ANY], unsigned long long[] "unsigned long long *"
-%typemap(proxycouttype) const unsigned long long*, const unsigned long long&, const unsigned long long[ANY], const unsigned long long[] "const unsigned long long *"
-%typemap(proxycouttype) long long**, long long*&, long long*[ANY], long long[ANY][ANY] "long long **"
-%typemap(proxycouttype) const long long**, const long long*&, const long long*[ANY], const long long[ANY][ANY] "const long long **"
-%typemap(proxycouttype) unsigned long long**, unsigned long long*&, unsigned long long*[ANY], unsigned long long[ANY][ANY] "unsigned long long **"
-%typemap(proxycouttype) const unsigned long long**,const unsigned long long*&, const unsigned long long[ANY][ANY] "const unsigned long long **"
-// constant pointers
-%typemap(proxycouttype) long long * const "long long * const"
-%typemap(proxycouttype) long long* * const "long long* * const"
-%typemap(proxycouttype) const long long* * const "const long long* * const"
-%typemap(proxycouttype) unsigned long long * const "unsigned long long * const"
-%typemap(proxycouttype) unsigned long long* * const "unsigned long long* * const"
-%typemap(proxycouttype) const unsigned long long* * const "const unsigned long long* * const"
-
-// char: signed/unsigned
-%typemap(proxycouttype) char, const char "char"
-%typemap(proxycouttype) char*, char&, char[ANY], char[] "char *"
-%typemap(proxycouttype) const char&, const char*, const char[ANY], const char[] "const char *"
-%typemap(proxycouttype) char**, char*&, char*[ANY], char[ANY][ANY] "char **"
-%typemap(proxycouttype) const char**, const char*&, const char*[ANY], const char[ANY][ANY] "char **"
-%typemap(proxycouttype) signed char**, signed char*&, signed char*[ANY], signed char[ANY][ANY] "signed char **"
-%typemap(proxycouttype) const signed char**, const signed char*&, const signed char[ANY][ANY] "const signed char **"
-%typemap(proxycouttype) signed char "signed char"
-%typemap(proxycouttype) const signed char "const signed char"
-%typemap(proxycouttype) signed char*, signed char&, signed char*, signed char[ANY], signed char[] "signed char *"
-%typemap(proxycouttype) const signed char*, const signed char&, const signed char[ANY], const signed char[] "const $1_ltype"
-%typemap(proxycouttype) unsigned char**, unsigned char*&, unsigned char*[ANY], unsigned char[ANY][ANY] "unsigned char **"
-%typemap(proxycouttype) const unsigned char**, const unsigned char*&, const unsigned char[ANY][ANY] "const unsigned char **"
-%typemap(proxycouttype) unsigned char "unsigned char"
-%typemap(proxycouttype) const unsigned char "const unsigned char"
-%typemap(proxycouttype) unsigned char*, unsigned char&, unsigned char*, unsigned char[ANY], unsigned char[] "unsigned char *"
-%typemap(proxycouttype) const unsigned char*, const unsigned char&, const unsigned char[ANY], const unsigned char[] "const unsigned char *"
-// constant pointers
-%typemap(proxycouttype) char * const "char * const"
-%typemap(proxycouttype) char* * const "char* * const"
-%typemap(proxycouttype) const char* * const "const char* * const"
-%typemap(proxycouttype) unsigned char * const "unsigned char * const"
-%typemap(proxycouttype) unsigned char* * const "unsigned char* * const"
-%typemap(proxycouttype) const unsigned char* * const "const unsigned char* * const"
-
-// float
-%typemap(proxycouttype) float, const float "float"
-%typemap(proxycouttype) float*, float&, float[ANY], float[] "float *"
-%typemap(proxycouttype) const float&, const float*, const float[ANY], const float[] "const float *"
-%typemap(proxycouttype) float**, float*&, const float*&, float*[ANY], float[ANY][ANY] "float **"
-%typemap(proxycouttype) const float**, const float*[ANY], const float[ANY][ANY] "const float **"
-// constant pointers
-%typemap(proxycouttype) float * const "float * const"
-%typemap(proxycouttype) float* * const "float* * const"
-%typemap(proxycouttype) const float* * const "const float* * const"
-
-// double
-%typemap(proxycouttype) double, const double "double"
-%typemap(proxycouttype) double*, double&, double[ANY], double[] "double *"
-%typemap(proxycouttype) const double&, const double*, const double[ANY], const double[] "const double *"
-%typemap(proxycouttype) double**, double*&, const double*&, double*[ANY], double[ANY][ANY] "double **"
-%typemap(proxycouttype) const double**, const double*[ANY], const double[ANY][ANY] "const double **"
-// constant pointers
-%typemap(proxycouttype) double * const "double * const"
-%typemap(proxycouttype) double* * const "double* * const"
-%typemap(proxycouttype) const double* * const "const double* * const"
-
-// size_t
-%typemap(proxycouttype) size_t, const size_t "size_t"
-%typemap(proxycouttype) size_t*, size_t&, size_t[ANY], size_t[] "size_t *"
-%typemap(proxycouttype) const size_t&, const size_t*, const size_t[ANY], const size_t[] "const size_t *"
-%typemap(proxycouttype) size_t**, size_t*&, size_t*[ANY], size_t[ANY][ANY] "size_t **"
-%typemap(proxycouttype) const size_t**, const size_t*&, const size_t*[ANY], const size_t[ANY][ANY] "const size_t **"
-// constant pointers
-%typemap(proxycouttype) size_t * const "size_t * const"
-%typemap(proxycouttype) size_t* * const "size_t* * const"
-%typemap(proxycouttype) const size_t* * const "const size_t* * const"
+explicit_same_type(proxyccouttype, short);
+explicit_same_type(proxyccouttype, unsigned short);
+explicit_same_type(proxyccouttypeccouttype, int);
+explicit_same_type(proxyccouttype, unsigned int);
+explicit_same_type(proxyccouttype, long);
+explicit_same_type(proxyccouttype, unsigned long);
+explicit_same_type(proxyccouttype, long long);
+explicit_same_type(proxyccouttype, unsigned long long);
+explicit_same_type(proxyccouttype, char);
+explicit_same_type(proxyccouttype, signed char);
+explicit_same_type(proxyccouttype, unsigned char);
+explicit_same_type(proxyccouttype, float);
+explicit_same_type(proxyccouttype, double);
+explicit_same_type(proxyccouttype, size_t)
 
 // objects
 %typemap(proxycouttype) SWIGTYPE      "$&resolved_type*"
@@ -569,21 +359,44 @@ explicit_same_type(ctype, size_t);
 %typemap(proxycouttype, fragment="stdbool_inc") bool & "$1_basetype*"
 %typemap(proxycouttype, fragment="stdbool_inc") const bool & "$1_basetype const *"
 
-%typemap(out) short, int, long, long long, char, float, double "$result = $1;"
-%typemap(out) void*, short*, int*, long*, long long *, char*, float*, double* "$result = $1;"
-%typemap(out) const short, const int, const long, const long long, const char, const float, const double "$result = ($1_ltype) $1;"
-%typemap(out) const void *, const short *, const int *, const long *, const long long *, const char *, const float *, const double * "$result = ($1_ltype) $1;"
-%typemap(out) unsigned short, unsigned int, unsigned long, unsigned long long, unsigned char, signed char "$result = $1;"
-%typemap(out) unsigned short *, unsigned int *, unsigned long *, unsigned long long *, unsigned char *, signed char * "$result = $1;"
-%typemap(out) short &, int &, long &, long long &, char &, float &, double & "$result = $1;"
-%typemap(out) unsigned short &, unsigned int &, unsigned long &, unsigned long long &, unsigned char &, signed char & "$result = $1;"
-%typemap(out) const short &, const int &, const long &, const long long &, const char &, const float &, const double & "$result = $1;"
-%typemap(out) const unsigned short &, const unsigned int &, const unsigned long &, const unsigned long long &, const unsigned char &, const signed char & "$result = $1;"
-%typemap(out) short *&, int *&, long *&, long long *&, char *&, float *&, double *& "$result = $1;"
-%typemap(out) const short *&, const int *&, const long *&, const long long *&, const char *&, const float *&, const double *& "$result = $1;"
-%typemap(out) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY], signed char [ANY], unsigned int [ANY] "$result = $1;"
-%typemap(out) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$result = $1;"
-%typemap(out) short **, int **, long **, long long **, char **, float **, double ** "$result = $1;"
+
+%define out_assignment_no_cast(PRE, POST)
+PRE short POST, PRE int POST, PRE long POST, PRE long long POST, PRE char POST, PRE float POST, PRE double POST "$result = $1;"
+%enddef
+
+//this macro is necessary, because 'unsigned double' is not allowed.
+%define out_assignment_no_cast_unsigned_only(PRE, POST)
+PRE float POST, PRE double POST "$result = $1;"
+%enddef
+
+%define out_assignment_group(PRE)
+out_assignment_no_cast(,);
+out_assignment_no_cast(,*);
+out_assignment_no_cast(,&);
+out_assignment_no_cast(,[ANY]);
+out_assignment_no_cast(,*&);
+out_assignment_no_cast(,**);
+%enddef
+
+out_assignment_group();
+out_assignment_group(const);
+out_assignment_group(signed);
+out_assignment_group(signed const);
+out_assignment_group(unsigned);
+out_assignment_group(unsigned const);
+
+out_assignment_no_cast_unsigned_only(,);
+out_assignment_no_cast_unsigned_only(,*);
+out_assignment_no_cast_unsigned_only(,&);
+out_assignment_no_cast_unsigned_only(,[ANY]);
+out_assignment_no_cast_unsigned_only(,**);
+out_assignment_no_cast_unsigned_only(,*&);
+out_assignment_no_cast_unsigned_only(const,);
+out_assignment_no_cast_unsigned_only(const,*);
+out_assignment_no_cast_unsigned_only(const,&);
+out_assignment_no_cast_unsigned_only(const,[ANY]);
+out_assignment_no_cast_unsigned_only(const,*&);
+
 %typemap(out) void ""
 
 // constant pointers
@@ -660,144 +473,20 @@ explicit_same_type(ctype, size_t);
 %typemap(cppouttype) void* * const * const "void* *"
 %typemap(cppouttype) const void* * const "const void* *"
 
-// short
-%typemap(cppouttype) short, const short "short"
-%typemap(cppouttype) short*, short&, short[ANY], short[] "short *"
-%typemap(cppouttype) const short&, const short*, const short[ANY], const short[] "const short *"
-%typemap(cppouttype) unsigned short "unsigned short"
-%typemap(cppouttype) const unsigned short "const unsigned short"
-%typemap(cppouttype) unsigned short*, unsigned short&, unsigned short*, unsigned short[ANY], unsigned short[] "unsigned short *"
-%typemap(cppouttype) const unsigned short*, const unsigned short&, const unsigned short[ANY], const unsigned short[] "const unsigned short *"
-%typemap(cppouttype) short**, short*&, short*[ANY], short[ANY][ANY] "short **"
-%typemap(cppouttype) const short**, const short*&, const short*[ANY], const short[ANY][ANY] "const short **"
-%typemap(cppouttype) unsigned short**, unsigned short*&, unsigned short*[ANY], unsigned short[ANY][ANY] "unsigned short **"
-%typemap(cppouttype) const unsigned short**,const unsigned short*&, const unsigned short[ANY][ANY] "const unsigned short **"
-// constant pointers
-%typemap(cppouttype) short * const "short *"
-%typemap(cppouttype) short* * const "short* *"
-%typemap(cppouttype) const short* * const "const short* *"
-%typemap(cppouttype) unsigned short * const "unsigned short *"
-%typemap(cppouttype) unsigned short* * const "unsigned short* *"
-%typemap(cppouttype) const unsigned short* * const "const unsigned short* *"
-
-// int
-%typemap(cppouttype) int, const int "int"
-%typemap(cppouttype) int*, int&, int[ANY], int[] "int *"
-%typemap(cppouttype) const int&, const int*, const int[ANY], const int[] "const int *"
-%typemap(cppouttype) unsigned int "unsigned int"
-%typemap(cppouttype) const unsigned int "unsigned int"
-%typemap(cppouttype) unsigned int*, unsigned int&, unsigned int*, unsigned int[ANY], unsigned int[] "unsigned int *"
-%typemap(cppouttype) const unsigned int*, const unsigned int&, const unsigned int[ANY], const unsigned int[] "const unsigned int *"
-%typemap(cppouttype) int**, int*&, int*[ANY], int[ANY][ANY] "int **"
-%typemap(cppouttype) const int**, const int*&, int const **, int *const &, const int*[ANY], const int[ANY][ANY] "const int **"
-%typemap(cppouttype) unsigned int**, unsigned int*&, unsigned int*[ANY], unsigned int[ANY][ANY] "unsigned int **"
-%typemap(cppouttype) const unsigned int**,const unsigned int*&, const unsigned int[ANY][ANY] "const unsigned int **"
-// constant pointers
-%typemap(cppouttype) int * const "int *"
-%typemap(cppouttype) int* * const "int* *"
-%typemap(cppouttype) const int* * const "int* *"
-%typemap(cppouttype) unsigned int * const "unsigned int *"
-%typemap(cppouttype) unsigned int* * const "unsigned int* *"
-%typemap(cppouttype) const unsigned int* * const "unsigned int* *"
-
-// long
-%typemap(cppouttype) long, const long "long"
-%typemap(cppouttype) long*, long&, long[ANY], long[] "long *"
-%typemap(cppouttype) const long&, const long*, const long[ANY], const long[] "const long *"
-%typemap(cppouttype) unsigned long "unsigned long"
-%typemap(cppouttype) const unsigned long "const unsigned long"
-%typemap(cppouttype) unsigned long*, unsigned long&, unsigned long*, unsigned long[ANY], unsigned long[] "unsigned long *"
-%typemap(cppouttype) const unsigned long*, const unsigned long&, const unsigned long[ANY], const unsigned long[] "const unsigned long *"
-%typemap(cppouttype) long**, long*&, long*[ANY], long[ANY][ANY] "long **"
-%typemap(cppouttype) const long**, const long*&, const long*[ANY], const long[ANY][ANY] "const long **"
-%typemap(cppouttype) unsigned long**, unsigned long*&, unsigned long*[ANY], unsigned long[ANY][ANY] "unsigned long **"
-%typemap(cppouttype) const unsigned long**,const unsigned long*&, const unsigned long[ANY][ANY] "const unsigned long **"
-// constant pointers
-%typemap(cppouttype) long * const "long *"
-%typemap(cppouttype) long* * const "long* *"
-%typemap(cppouttype) const long* * const "long* *"
-%typemap(cppouttype) unsigned long * const "unsigned long *"
-%typemap(cppouttype) unsigned long* * const "unsigned long* *"
-%typemap(cppouttype) const unsigned long* * const "unsigned long* *"
-
-// long long
-%typemap(cppouttype) long long, const long long "long long"
-%typemap(cppouttype) long long*, long long&, long long[ANY], long long[] "long long *"
-%typemap(cppouttype) const long long&, const long long*, const long long[ANY], const long long[] "const long long *"
-%typemap(cppouttype) unsigned long long "unsigned long long"
-%typemap(cppouttype) const unsigned long long "const unsigned long long"
-%typemap(cppouttype) unsigned long long*, unsigned long long&, unsigned long long*, unsigned long long[ANY], unsigned long long[] "unsigned long long *"
-%typemap(cppouttype) const unsigned long long*, const unsigned long long&, const unsigned long long[ANY], const unsigned long long[] "const unsigned long long *"
-%typemap(cppouttype) long long**, long long*&, long long*[ANY], long long[ANY][ANY] "long long **"
-%typemap(cppouttype) const long long**, const long long*&, const long long*[ANY], const long long[ANY][ANY] "const long long **"
-%typemap(cppouttype) unsigned long long**, unsigned long long*&, unsigned long long*[ANY], unsigned long long[ANY][ANY] "unsigned long long **"
-%typemap(cppouttype) const unsigned long long**,const unsigned long long*&, const unsigned long long[ANY][ANY] "const unsigned long long **"
-// constant pointers
-%typemap(cppouttype) long long * const "long long *"
-%typemap(cppouttype) long long* * const "long long* *"
-%typemap(cppouttype) const long long* * const "long long* *"
-%typemap(cppouttype) unsigned long long * const "unsigned long long *"
-%typemap(cppouttype) unsigned long long* * const "unsigned long long* *"
-%typemap(cppouttype) const unsigned long long* * const "unsigned long long* *"
-
-// char: signed/unsigned
-%typemap(cppouttype) char, const char "char"
-%typemap(cppouttype) char*, char&, char[ANY], char[] "char *"
-%typemap(cppouttype) const char&, const char*, const char[ANY], const char[] "const char *"
-%typemap(cppouttype) char**, char*&, char*[ANY], char[ANY][ANY] "char **"
-%typemap(cppouttype) const char**, const char*&, const char*[ANY], const char[ANY][ANY] "char **"
-%typemap(cppouttype) signed char**, signed char*&, signed char*[ANY], signed char[ANY][ANY] "signed char **"
-%typemap(cppouttype) const signed char**, const signed char*&, const signed char[ANY][ANY] "const signed char **"
-%typemap(cppouttype) signed char "signed char"
-%typemap(cppouttype) const signed char "const signed char"
-%typemap(cppouttype) signed char*, signed char&, signed char*, signed char[ANY], signed char[] "signed char *"
-%typemap(cppouttype) const signed char*, const signed char&, const signed char[ANY], const signed char[] "const $1_ltype"
-%typemap(cppouttype) unsigned char**, unsigned char*&, unsigned char*[ANY], unsigned char[ANY][ANY] "unsigned char **"
-%typemap(cppouttype) const unsigned char**, const unsigned char*&, const unsigned char[ANY][ANY] "const unsigned char **"
-%typemap(cppouttype) unsigned char "unsigned char"
-%typemap(cppouttype) const unsigned char "const unsigned char"
-%typemap(cppouttype) unsigned char*, unsigned char&, unsigned char*, unsigned char[ANY], unsigned char[] "unsigned char *"
-%typemap(cppouttype) const unsigned char*, const unsigned char&, const unsigned char[ANY], const unsigned char[] "const unsigned char *"
-// constant pointers
-%typemap(cppouttype) char * const "char *"
-%typemap(cppouttype) char* * const "char* *"
-%typemap(cppouttype) const char* * const "char* *"
-%typemap(cppouttype) unsigned char * const "unsigned char *"
-%typemap(cppouttype) unsigned char* * const "unsigned char* *"
-%typemap(cppouttype) const unsigned char* * const "unsigned char* *"
-
-// float
-%typemap(cppouttype) float, const float "float"
-%typemap(cppouttype) float*, float&, float[ANY], float[] "float *"
-%typemap(cppouttype) const float&, const float*, const float[ANY], const float[] "const float *"
-%typemap(cppouttype) float**, float*&, const float*&, float*[ANY], float[ANY][ANY] "float **"
-%typemap(cppouttype) const float**, const float*[ANY], const float[ANY][ANY] "const float **"
-// constant pointers
-%typemap(cppouttype) float * const "float *"
-%typemap(cppouttype) float* * const "float* *"
-%typemap(cppouttype) const float* * const "float* *"
-
-// double
-%typemap(cppouttype) double, const double "double"
-%typemap(cppouttype) double*, double&, double[ANY], double[] "double *"
-%typemap(cppouttype) const double&, const double*, const double[ANY], const double[] "const double *"
-%typemap(cppouttype) double**, double*&, const double*&, double*[ANY], double[ANY][ANY] "double **"
-%typemap(cppouttype) const double**, const double*[ANY], const double[ANY][ANY] "const double **"
-// constant pointers
-%typemap(cppouttype) double * const "double *"
-%typemap(cppouttype) double* * const "double* *"
-%typemap(cppouttype) const double* * const "double* *"
-
-// size_t
-%typemap(cppouttype) size_t, const size_t "size_t"
-%typemap(cppouttype) size_t*, size_t&, size_t[ANY], size_t[] "size_t *"
-%typemap(cppouttype) const size_t&, const size_t*, const size_t[ANY], const size_t[] "const size_t *"
-%typemap(cppouttype) size_t**, size_t*&, size_t*[ANY], size_t[ANY][ANY] "size_t **"
-%typemap(cppouttype) const size_t**, const size_t*&, const size_t*[ANY], const size_t[ANY][ANY] "const size_t **"
-// constant pointers
-%typemap(cppouttype) size_t * const "size_t *"
-%typemap(cppouttype) size_t* * const "size_t* *"
-%typemap(cppouttype) const size_t* * const "size_t* *"
+explicit_same_type_unconsted(cppouttype, short);
+explicit_same_type_unconsted(cppouttype, unsigned short);
+explicit_same_type_unconsted(cppouttype, int);
+explicit_same_type_unconsted(cppouttype, unsigned int);
+explicit_same_type_unconsted(cppouttype, long);
+explicit_same_type_unconsted(cppouttype, unsigned long);
+explicit_same_type_unconsted(cppouttype, long long);
+explicit_same_type_unconsted(cppouttype, unsigned long long);
+explicit_same_type_unconsted(cppouttype, char);
+explicit_same_type_unconsted(cppouttype, signed char);
+explicit_same_type_unconsted(cppouttype, unsigned char);
+explicit_same_type_unconsted(cppouttype, float);
+explicit_same_type_unconsted(cppouttype, double);
+explicit_same_type_unconsted(cppouttype, size_t);
 
 %typemap(cppouttype, retobj="1") SWIGTYPE      "$1_ltype *"
 %typemap(cppouttype) SWIGTYPE *    "$1_ltype"
