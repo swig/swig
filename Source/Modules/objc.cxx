@@ -775,8 +775,17 @@ int OBJECTIVEC::constantWrapper(Node *n) {
     }
     Printf(constants_mm_code, "%s\n", tm);
     Delete(imcall);
+  }else if (Getattr(n, "wrappedasconstant")) {
+  if (SwigType_type(type) == T_CHAR){
+    Printf(constants_mm_code, "%s %s= \'%s\';\n", crettype, symname, Getattr(n, "staticmembervariableHandler:value"));
+  } 
+	else if (SwigType_type(type) == T_STRING){
+    Printf(constants_mm_code, "%s const %s= @\"%s\";\n", crettype, symname, Getattr(n, "staticmembervariableHandler:value"));
   } else {
-    if (SwigType_type(type) == T_STRING) {
+    Printf(constants_mm_code, "%s %s= %s;\n", crettype, symname, Getattr(n, "staticmembervariableHandler:value"));
+  } 
+  } else {
+  if (SwigType_type(type) == T_STRING) {
       // http://stackoverflow.com/questions/538996/constants-in-objective-c/539191#539191
       Printf(constants_h_code, "extern %s const %s;\n", crettype, symname);
       Printf(constants_mm_code, "%s const %s= @\"%s\";\n", crettype, symname, value);
@@ -788,7 +797,7 @@ int OBJECTIVEC::constantWrapper(Node *n) {
       Printf(constants_mm_code, "%s %s= %s;\n", crettype, symname, value);
     }
   }
-
+  
   // Dump to generated files
   if (proxy_flag) {		// write to the proxy files
     Printv(proxy_h_code, constants_h_code, NIL);
