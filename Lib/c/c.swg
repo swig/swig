@@ -139,12 +139,12 @@ PRE float POST, PRE double POST, PRE signed char POST "$1 = ($1_ltype) $input;"
 %enddef
 
 %define in_assignment_group(PRE)
-in_assignment_cast(,);
-in_assignment_cast(,*);
-in_assignment_cast(,&);
-in_assignment_cast(,[ANY]);
-in_assignment_cast(,*&);
-in_assignment_cast(,**);
+in_assignment_cast(PRE,);
+in_assignment_cast(PRE,*);
+in_assignment_cast(PRE,&);
+in_assignment_cast(PRE,[ANY]);
+in_assignment_cast(PRE,*&);
+in_assignment_cast(PRE,**);
 %enddef
 
 in_assignment_group();
@@ -368,12 +368,12 @@ PRE float POST, PRE double POST, PRE signed char POST "$result = $1;"
 %enddef
 
 %define out_assignment_group(PRE)
-out_assignment_no_cast(,);
-out_assignment_no_cast(,*);
-out_assignment_no_cast(,&);
-out_assignment_no_cast(,[ANY]);
-out_assignment_no_cast(,*&);
-out_assignment_no_cast(,**);
+out_assignment_no_cast(PRE,);
+out_assignment_no_cast(PRE,*);
+out_assignment_no_cast(PRE,&);
+out_assignment_no_cast(PRE,[ANY]);
+out_assignment_no_cast(PRE,*&);
+out_assignment_no_cast(PRE,**);
 %enddef
 
 out_assignment_group();
