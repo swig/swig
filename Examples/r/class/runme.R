@@ -28,8 +28,8 @@ square$x <- -10
 square$y <- 5
 
 print("Here is their current position:")
-sprintf("    Circle = (%f, %f)", circle$x,circle$y)
-sprintf("    Square = (%f, %f)", square$x,square$y)
+print(sprintf("    Circle = (%f, %f)", circle$x,circle$y))
+print(sprintf("    Square = (%f, %f)", square$x,square$y))
 
 # ----- Call some methods -----
 
@@ -37,7 +37,7 @@ print ("Here are some properties of the shapes:")
 
 sapply(c(circle, square), 
 		 function(o) {
-sprintf("       area = %f perimeter = %f", o$area(),  o$perimeter())
+print(sprintf("       area = %f perimeter = %f", o$area(),  o$perimeter()))
 })
 
 print("Guess I'll clean up now")
