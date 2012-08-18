@@ -135,7 +135,7 @@ PRE short POST, PRE int POST, PRE long POST, PRE long long POST, PRE char POST, 
 
 //this macro is necessary, because 'unsigned double' is not allowed.
 %define in_assignment_cast_unsigned_only(PRE, POST)
-PRE float POST, PRE double POST "$1 = ($1_ltype) $input;"
+PRE float POST, PRE double POST, PRE signed char POST "$1 = ($1_ltype) $input;"
 %enddef
 
 %define in_assignment_group(PRE)
@@ -149,8 +149,6 @@ in_assignment_cast(,**);
 
 in_assignment_group();
 in_assignment_group(const);
-in_assignment_group(signed);
-in_assignment_group(signed const);
 in_assignment_group(unsigned);
 in_assignment_group(unsigned const);
 
@@ -366,7 +364,7 @@ PRE short POST, PRE int POST, PRE long POST, PRE long long POST, PRE char POST, 
 
 //this macro is necessary, because 'unsigned double' is not allowed.
 %define out_assignment_no_cast_unsigned_only(PRE, POST)
-PRE float POST, PRE double POST "$result = $1;"
+PRE float POST, PRE double POST, PRE signed char POST "$result = $1;"
 %enddef
 
 %define out_assignment_group(PRE)
@@ -380,8 +378,6 @@ out_assignment_no_cast(,**);
 
 out_assignment_group();
 out_assignment_group(const);
-out_assignment_group(signed);
-out_assignment_group(signed const);
 out_assignment_group(unsigned);
 out_assignment_group(unsigned const);
 
