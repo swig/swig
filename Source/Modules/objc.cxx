@@ -605,7 +605,8 @@ int OBJECTIVEC::classHandler(Node *n) {
     // And, dump everything to the proxy files
     Printv(proxy_h_code, proxy_class_decl_code, NIL);
     Printv(proxy_mm_code, proxy_class_defn_code, NIL);
-
+    Printv(proxy_h_code,proxy_global_function_decls,NIL);
+    Printv(proxy_mm_code,proxy_global_function_defns,NIL);
     // Tidy up
     Delete(proxy_class_qname);
     proxy_class_qname = NULL;
@@ -984,6 +985,7 @@ void OBJECTIVEC::emitProxyGlobalFunctions(Node *n) {
   SwigType *type = Getattr(n, "type");
   ParmList *parmlist = Getattr(n, "parms");
   String *crettype = SwigType_str(type, 0);
+  String *storage = Getattr(n, "storage");
   String *objcrettype = NewString("");
   String *imcall = NewString("");
   String *function_defn = NewString("");
@@ -1099,9 +1101,14 @@ void OBJECTIVEC::emitProxyGlobalFunctions(Node *n) {
 
   /* Write the function declaration to the proxy_h_code 
      and function definition to the proxy_mm_code */
+  if ((member_func_flag || member_constant_flag || Strcmp(storage, "friend") == 0 || Strcmp(storage, "typedef") == 0))
+  {
+  Printv(proxy_global_function_decls, function_decl, "\n", NIL);
+  Printv(proxy_global_function_defns, function_defn, "\n", NIL);
+  }else {
   Printv(proxy_h_code, function_decl, "\n", NIL);
   Printv(proxy_mm_code, function_defn, "\n", NIL);
-
+  }
   //Delete(paramstring);
   Delete(proxyfunctionname);
   Delete(objcrettype);
