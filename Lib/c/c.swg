@@ -504,16 +504,6 @@ explicit_same_type_unconsted(cppouttype, size_t);
 %typemap(cppouttype, fragment="stdbool_inc") bool & "$1_basetype*"
 %typemap(cppouttype, fragment="stdbool_inc") const bool & "$1_basetype const *"
 
-// templates typemaps - in progress...
-/*
-%typemap(ctype) SWIGTYPE<T>, const SWIGTYPE<T> &, const SWIGTYPE<T> * "SwigObj *"
-%typemap(in) SWIGTYPE<T>, const SWIGTYPE<T> &, const SWIGTYPE<T> * { $1 = ($1_ltype) $input; }
-
-%typemap(out) SWIGTYPE<T>, const SWIGTYPE<T> &, const SWIGTYPE<T> * "$result = ($1_ltype) $1;"
-
-%typemap(cppouttype) SWIGTYPE<T>, const SWIGTYPE<T> &, const SWIGTYPE<T> * "$1_ltype"
-*/
-
 #ifdef SWIG_CPPMODE
 
   #ifdef SWIG_C_EXCEPT
