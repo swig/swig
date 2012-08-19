@@ -138,7 +138,7 @@ PRE float POST, PRE double POST, PRE signed char POST "$1 = ($1_ltype) $input;"
 %enddef
 
 %define in_assignment_group(PRE)
-in_assignment_cast(PRE,empty_macro_arg);
+in_assignment_cast(PRE,);
 in_assignment_cast(PRE,*);
 in_assignment_cast(PRE,&);
 in_assignment_cast(PRE,[ANY]);
@@ -146,7 +146,7 @@ in_assignment_cast(PRE,*&);
 in_assignment_cast(PRE,**);
 %enddef
 
-in_assignment_group(empty_macro_arg);
+in_assignment_group();
 in_assignment_group(const);
 in_assignment_group(unsigned);
 in_assignment_group(unsigned const);
