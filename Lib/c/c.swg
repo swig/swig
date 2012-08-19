@@ -350,7 +350,7 @@ PRE short POST, PRE int POST, PRE long POST, PRE long long POST, PRE char POST, 
 
 //this macro is necessary, because 'unsigned double' is not allowed.
 %define out_assignment_no_cast_unsigned_only(PRE, POST)
-PRE float POST, PRE double POST, PRE signed char POST "$result = $1;"
+PRE float POST, PRE double POST, PRE signed char POST, PRE size_t POST "$result = $1;"
 %enddef
 
 %define out_assignment_group(PRE)
@@ -360,6 +360,7 @@ out_assignment_no_cast(PRE,&);
 out_assignment_no_cast(PRE,[ANY]);
 out_assignment_no_cast(PRE,*&);
 out_assignment_no_cast(PRE,**);
+out_assignment_no_cast(PRE,** const);
 %enddef
 
 out_assignment_group();
@@ -372,29 +373,16 @@ out_assignment_no_cast_unsigned_only(,*);
 out_assignment_no_cast_unsigned_only(,&);
 out_assignment_no_cast_unsigned_only(,[ANY]);
 out_assignment_no_cast_unsigned_only(,**);
+out_assignment_no_cast_unsigned_only(,** const);
 out_assignment_no_cast_unsigned_only(,*&);
 out_assignment_no_cast_unsigned_only(const,);
 out_assignment_no_cast_unsigned_only(const,*);
 out_assignment_no_cast_unsigned_only(const,&);
 out_assignment_no_cast_unsigned_only(const,[ANY]);
 out_assignment_no_cast_unsigned_only(const,*&);
+out_assignment_no_cast_unsigned_only(const,**);
 
 %typemap(out) void ""
-
-// constant pointers
-%typemap(out) short* * const, int* * const, long* * const, long long* * const, char* * const, float* * const, double* * const "$result = ($1_ltype) $1;"
-%typemap(out) const short* * const, const int* * const, const long* * const, const long long* * const, const char* * const, const float* * const, const double* * const "$result = ($1_ltype) $1;"
-
-// size_t
-%typemap(out) size_t, const size_t "$result = (size_t) $1;"
-%typemap(out) size_t*, size_t&, size_t[ANY], size_t[] "$result = (size_t *) $1;"
-%typemap(out) const size_t&, const size_t*, const size_t[ANY], const size_t[] "$result = (const size_t *) &$1;"
-%typemap(out) size_t**, size_t*&, size_t*[ANY], size_t[ANY][ANY] "$result = (size_t **) $1;"
-%typemap(out) const size_t**, const size_t*&, const size_t*[ANY], const size_t[ANY][ANY] "$result = (const size_t **) $1;"
-// constant pointers
-%typemap(out) size_t * const "$result = (size_t) $1;"
-%typemap(out) size_t* * const "$result = (size_t *) $1;"
-%typemap(out) const size_t* * const "$result = (const size_t **) $1;"
 
 %typemap(out, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$result = ($1_ltype) $1;"
 %typemap(out, fragment="stdbool_inc") bool &, const bool & "$result = $1;"
