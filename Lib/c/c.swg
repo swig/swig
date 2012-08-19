@@ -43,10 +43,10 @@
 
 // void
 %typemap(proxy) void "void"
-%typemap(proxy) void*, void&, void[ANY], void[] "void *"
-%typemap(proxy) const void&, const void*, const void[ANY], const void[] "const void *"
-%typemap(proxy) void**, void*&, void*[ANY], void[ANY][ANY] "void **"
-%typemap(proxy) const void**, const void*&, const void*[ANY], const void[ANY][ANY] "const void **"
+%typemap(proxy) void*, void& "void *"
+%typemap(proxy) const void&, const void* "const void *"
+%typemap(proxy) void**, void*& "void **"
+%typemap(proxy) const void**, const void*& "const void **"
 // constant pointers
 %typemap(proxy) void* * const "void* * const"
 %typemap(proxy) const void* * const "const void* * const"
@@ -85,10 +85,10 @@ explicit_same_type(proxy, size_t);
 // typemaps for function parameters
 // void
 %typemap(ctype) void "void"
-%typemap(ctype) void*, void&, void[ANY], void[] "void *"
-%typemap(ctype) const void&, const void*, const void[ANY], const void[] "const void *"
+%typemap(ctype) void*, void& "void *"
+%typemap(ctype) const void&, const void* "const void *"
 %typemap(ctype) void**, void*&, void*[ANY], void[ANY][ANY] "void **"
-%typemap(ctype) const void**, const void*&, const void*[ANY], const void[ANY][ANY] "const void **"
+%typemap(ctype) const void**, const void*& "const void **"
 // constant pointers
 %typemap(ctype) void* * const "void* * const"
 %typemap(ctype) const void* * const "const void* * const"
@@ -113,7 +113,7 @@ explicit_same_type(ctype, size_t);
 %typemap(ctype) SWIGTYPE [] "$1_ltype"
 %typemap(ctype) SWIGTYPE ((&)[ANY]) "$1_basetype **"
 
-%typemap(ctype) void [ANY][ANY], short [ANY][ANY], int [ANY][ANY], long [ANY][ANY], char [ANY][ANY], float [ANY][ANY], double [ANY][ANY] "$1_ltype"
+%typemap(ctype) short [ANY][ANY], int [ANY][ANY], long [ANY][ANY], char [ANY][ANY], float [ANY][ANY], double [ANY][ANY] "$1_ltype"
 %typemap(ctype) SWIGTYPE         "SwigObj *"
 %typemap(ctype) SWIGTYPE *       "SwigObj *"
 %typemap(ctype) SWIGTYPE &       "SwigObj *"
@@ -139,7 +139,7 @@ PRE float POST, PRE double POST, PRE signed char POST "$1 = ($1_ltype) $input;"
 %enddef
 
 %define in_assignment_group(PRE)
-in_assignment_cast(PRE,);
+in_assignment_cast(PRE,empty_macro_arg);
 in_assignment_cast(PRE,*);
 in_assignment_cast(PRE,&);
 in_assignment_cast(PRE,[ANY]);
@@ -147,7 +147,7 @@ in_assignment_cast(PRE,*&);
 in_assignment_cast(PRE,**);
 %enddef
 
-in_assignment_group();
+in_assignment_group(empty_macro_arg);
 in_assignment_group(const);
 in_assignment_group(unsigned);
 in_assignment_group(unsigned const);
@@ -165,7 +165,7 @@ in_assignment_cast_unsigned_only(const,[ANY]);
 in_assignment_cast_unsigned_only(const,*&);
 
 %typemap(in) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY] "$1 = ($1_basetype *) $input;"
-%typemap(in) void * [ANY], short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
+%typemap(in) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
 
 // constant pointers
 %typemap(in) short* * const, int* * const, long* * const, long long* * const, char* * const, float* * const, double* * const "$1 = ($1_ltype) $input;"
