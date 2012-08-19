@@ -339,21 +339,34 @@ string JavaDocConverter::convertLink(string linkObject) {
     // also converting arrays to pointers
     string paramStr = params[i];
     String *swigType = NewString("");
+
+    // handle const qualifier
+    if (paramStr.find("const") != string::npos)
+      SwigType_add_qualifier(swigType, "const");
+
+    // handle pointers, references and arrays
     for (int j=(int)params[i].size() - 1; j>=0; j--) {
       // skip all the [...] blocks, write 'p.' for every of it
       if (paramStr[j] == ']') {
         while (j>=0 && paramStr[j] != '[')
           j--;
         // no closing brace
-        if (!j)
+        if (j < 0)
           return "";
-        Append(swigType, "p.");
+        SwigType_add_pointer(swigType);
         continue;
       }
       else if (paramStr[j] == '*')
-        Append(swigType, "p.");
+        SwigType_add_pointer(swigType);
+      else if (paramStr[j] == '&')
+        SwigType_add_reference(swigType);
       else if (isalnum(paramStr[j])) {
-        Append(swigType, paramStr.substr(0, j + 1).c_str());
+        size_t typeNameStart = paramStr.find_last_of(' ', j + 1);
+        if (typeNameStart == string::npos)
+          typeNameStart = 0;
+        else
+          typeNameStart++;
+        Append(swigType, paramStr.substr(typeNameStart, j - typeNameStart + 1).c_str());
         break;
       }
     }
