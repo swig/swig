@@ -113,7 +113,6 @@ explicit_same_type(ctype, size_t);
 %typemap(ctype) SWIGTYPE [] "$1_ltype"
 %typemap(ctype) SWIGTYPE ((&)[ANY]) "$1_basetype **"
 
-%typemap(ctype) short [ANY][ANY], int [ANY][ANY], long [ANY][ANY], char [ANY][ANY], float [ANY][ANY], double [ANY][ANY] "$1_ltype"
 %typemap(ctype) SWIGTYPE         "SwigObj *"
 %typemap(ctype) SWIGTYPE *       "SwigObj *"
 %typemap(ctype) SWIGTYPE &       "SwigObj *"
