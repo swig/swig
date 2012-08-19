@@ -38,10 +38,13 @@ int main(int argc, char* argv[]) {
     [shapes addObject: c];
     [shapes addObject: s];
 
+    int i;
+    Shape *obj = nil;
     // Notice how the area() and perimeter() functions really
     // invoke the appropriate virtual method on each object.
-	for (Shape* obj in shapes) 
+    for(i=0; i<[shapes count]; i++)
     {
+        obj = [shapes objectAtIndex: i];
         NSLog(@"Shape: %@", obj);
         NSLog(@"area      = %f", [obj area]);
         NSLog(@"perimeter = %f", [obj perimeter]);
