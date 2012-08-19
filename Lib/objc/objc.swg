@@ -47,7 +47,7 @@
 %typemap(imtype) const double &,  			double &                "double *"
 
 //C strings:
-%typemap(imtype) char *, char[ANY], char[]              "NSString *"
+%typemap(imtype) char *, const char *, char[ANY], char[]              "NSString *"
 %typemap(imtype) char *&                                "NSString *"
 
 // Objects will always be treated as pointers in ObjectiveC++
@@ -151,7 +151,7 @@
 		int i = 0;
 		for (; i < length; ++i)
 			buffer[i] = [$input characterAtIndex: i];
-			$1 = buffer;
+			$1 = ($1_ltype)buffer;
 	}
 }
 
@@ -265,9 +265,9 @@
 %{ $result = $1; %}
 
 // C strings: 
-%typemap(out)const char *,char * %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %}
-%typemap(out) char *& %{ if (*$1) $result = [NSString stringWithUTF8String: *$1]; %}
-%typemap(out) char[ANY], char[] %{ if ($1) $result = [NSString stringWithUTF8String: $1]; %}
+%typemap(out)const char *,char * %{ if ($1) $result = [NSString stringWithUTF8String: (const char*)$1]; %}
+%typemap(out) char *& %{ if (*$1) $result = [NSString stringWithUTF8String: (const char*)*$1]; %}
+%typemap(out) char[ANY], char[] %{ if ($1) $result = [NSString stringWithUTF8String: (const char*)$1]; %}
 
 // Objects returned by value: convert to a pointer.
 %typemap(out) SWIGTYPE ($&1_type temp)
@@ -342,7 +342,7 @@
 %typemap(objctype) const double &,  			double &                "double *"
 
 //C strings:
-%typemap(objctype) char *, char *&, char[ANY], char[]    "NSString *"
+%typemap(objctype) char *, const char *, char *&, char[ANY], char[]    "NSString *"
 
 // Objects will always be treated as pointers in ObjectiveC
 %typemap(objctype) SWIGTYPE                             "$objcclassname*"
