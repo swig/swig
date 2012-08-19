@@ -326,7 +326,7 @@ explicit_same_type_unconsted(couttype, size_t);
 
 explicit_same_type(proxyccouttype, short);
 explicit_same_type(proxyccouttype, unsigned short);
-explicit_same_type(proxyccouttypeccouttype, int);
+explicit_same_type(proxyccouttype, int);
 explicit_same_type(proxyccouttype, unsigned int);
 explicit_same_type(proxyccouttype, long);
 explicit_same_type(proxyccouttype, unsigned long);
