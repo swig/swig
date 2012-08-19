@@ -256,22 +256,18 @@ void PyDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translatedC
 }
 void PyDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   std::string dummy;
-  if (tag.entityList.size() < 2) {
-    // TODO: log error
+  if (tag.entityList.size() < 2)
     return;
-  }
-  DoxygenEntity paramNameEntity = *tag.entityList.begin();
-  std::string paramDescription = "-- ";
 
+  DoxygenEntity paramNameEntity = *tag.entityList.begin();
   tag.entityList.pop_front();
-  handleParagraph(tag, paramDescription, dummy);
-  paramDescription = justifyString(paramDescription, DOC_PARAM_STRING_LENGTH);
 
   std::string paramType = getParamType(paramNameEntity.data);
   if (!paramType.size())
     paramType = "none";
 
-  translatedComment += paramNameEntity.data + " (" + paramType + ")" + paramDescription;
+  translatedComment += paramNameEntity.data + " (" + paramType + ") -- ";
+  handleParagraph(tag, translatedComment, dummy);
 }
 void PyDocConverter::handleTagWrap(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   if (tag.entityList.size()) { // do not include empty tags
