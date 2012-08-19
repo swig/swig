@@ -26,8 +26,18 @@ public:
   String *makeDocumentation(Node *node);
 
 protected:
+  /*
+   * Used to properly format JavaDoc-style command
+   */
   std::string formatCommand(std::string unformattedLine, int indent);
+  /*
+   * Translate every entity in a tree.
+   */
   std::string translateSubtree(DoxygenEntity & doxygenEntity);
+  /*
+   * Translate one entity with the appropriate handler, acording
+   * to the tagHandlers
+   */
   void translateEntity(DoxygenEntity &tag, std::string &translatedComment);
   /*
    * Fix all endlines location, etc
@@ -95,7 +105,7 @@ protected:
    */
   void handleTagPar(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
   /*
-   * Insert @param command, if it is really a function param
+   * Insert \@param command, if it is really a function param
    */
   void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
   /*

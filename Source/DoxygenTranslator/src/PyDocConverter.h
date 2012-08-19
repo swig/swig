@@ -32,9 +32,6 @@ protected:
   /*
    * Format a string so it is justified and split over several lines 
    * not exeeding a given length.
-   * @param unformattedLine The string to justify and split.
-   * @param indent An optional number of spaces to indent each line by.
-   * @param maxWidth The approximate maximum line width.
    */
   std::string justifyString(std::string unformattedLine, int indent = 0, int maxWidth = DOC_STRING_LENGTH);
   /*
