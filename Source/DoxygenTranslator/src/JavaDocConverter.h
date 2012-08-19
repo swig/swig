@@ -29,6 +29,10 @@ protected:
   std::string formatCommand(std::string unformattedLine, int indent);
   std::string translateSubtree(DoxygenEntity & doxygenEntity);
   void translateEntity(DoxygenEntity &tag, std::string &translatedComment);
+  /*
+   * Fix all endlines location, etc
+   */
+  int cleanUpTree(DoxygenEntity &root, int level = 0);
   
   /*
    * Convert params in link-objects and references

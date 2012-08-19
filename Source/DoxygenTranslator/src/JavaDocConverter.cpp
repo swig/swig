@@ -411,6 +411,42 @@ void JavaDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translatedC
   }
 }
 
+int JavaDocConverter::cleanUpTree(DoxygenEntity &root, int level)
+{
+  // this function should move all endlines out of the child entities
+  // for example:
+  // root
+  // -param
+  // --paramText
+  // --endline
+  // should be turned to
+  // root
+  // -param
+  // --paramText
+  // -endline
+
+  std::list < DoxygenEntity >::iterator it = root.entityList.begin();
+  while (it != root.entityList.end()) {
+    // remove endlines
+    int ret = cleanUpTree(*it, level + 1);
+    // insert them after this element
+    it++;
+    for (int i=0; i<ret; i++)
+      root.entityList.insert(it, DoxygenEntity("plainstd::endl"));
+  }
+
+  // continue only if we are not root
+  if (!level)
+    return 0;
+
+  int removedCount = 0;
+  while (root.entityList.rbegin()->typeOfEntity == "plainstd::endl") {
+    root.entityList.pop_back();
+    removedCount++;
+  }
+  return removedCount;
+}
+
 String *JavaDocConverter::makeDocumentation(Node *node) {
 
   String *documentation = getDoxygenComment(node);
@@ -439,22 +475,23 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
     printTree(entityList);
   }
 
-  std::string javaDocString = "/**\n * ";
-
-  // strip endlines at the beginning
-  while (entityList.begin()->typeOfEntity == "plainstd::endl")
-    entityList.pop_front();
-  // and at the end
-  while (entityList.rbegin()->typeOfEntity == "plainstd::endl")
-    entityList.pop_back();
-
   // store the current node
   // (currently just to handle params)
   currentNode = node;
-  for (std::list < DoxygenEntity >::iterator entityIterator = entityList.begin(); entityIterator != entityList.end();) {
-    translateEntity(*entityIterator, javaDocString);
-    entityIterator++;
-  }
+
+  std::string javaDocString = "/**\n * ";
+
+  DoxygenEntity root("root", entityList);
+
+  cleanUpTree(root);
+  // strip endlines at the beginning
+  while (root.entityList.begin()->typeOfEntity == "plainstd::endl")
+    root.entityList.pop_front();
+  // and at the end
+  while (root.entityList.rbegin()->typeOfEntity == "plainstd::endl")
+    root.entityList.pop_back();
+
+  javaDocString += translateSubtree(root);
 
   javaDocString += "\n */\n";
 
