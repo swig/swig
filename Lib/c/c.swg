@@ -459,14 +459,6 @@ out_assignment_no_cast_unsigned_only(const,*&);
 }
 
 // typemaps for 'cppresult'
-// void
-%typemap(cppouttype) void "void"
-%typemap(cppouttype) void*, const void* "void *"
-// constant pointers
-%typemap(cppouttype) void * const "void * const"
-%typemap(cppouttype) void* * const * const "void* *"
-%typemap(cppouttype) const void* * const "const void* *"
-
 explicit_same_type_unconsted(cppouttype, short);
 explicit_same_type_unconsted(cppouttype, unsigned short);
 explicit_same_type_unconsted(cppouttype, int);
