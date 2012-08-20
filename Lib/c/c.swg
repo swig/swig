@@ -45,7 +45,7 @@ macro_name(TM, size_t);
 %enddef
 
 //unconsted types are necessary, because some the methods using this declare variables of the resolved type first and assign their values later
-//used by 'couttype' and 'cppouttype' typemaps
+//used by 'cmodtype' and 'cppouttype' typemaps
 %define explicit_same_type_unconsted(TM, T)
 %typemap(TM) T, const T "T"
 %typemap(TM) T*, T&, T[ANY], T[] "T *"
@@ -62,7 +62,7 @@ macro_name(TM, size_t);
 same_macro_all_primitive_types_but_void(explicit_same_type_unconsted,TM);
 %enddef
 
-//used by 'ctype', 'proxycouttype'
+//Used by 'ctype' typemap
 %define explicit_same_type(TM, T)
 %typemap(TM) T, const T "T"
 %typemap(TM) T*, T&, T[ANY], T[] "T *"
@@ -79,7 +79,7 @@ same_macro_all_primitive_types_but_void(explicit_same_type_unconsted,TM);
 same_macro_all_primitive_types_but_void(explicit_same_type,TM);
 %enddef
 
-//used by 'in' and 'out' typemaps
+//Used by 'in' and 'out' typemaps
 %define same_action(TM, T, ACTION)
 %typemap(TM) T, const T ACTION
 %typemap(TM) T*, T&, T[ANY], T[] ACTION
@@ -110,8 +110,7 @@ same_action(TM, double, ACTION);
 same_action(TM, size_t, ACTION);
 %enddef
 
-// typemaps for proxy function parameters
-
+// Typemaps for proxy function parameters
 // void
 %typemap(ctype) void "void"
 %typemap(ctype) void*, void& "void *"
@@ -140,7 +139,7 @@ explicit_same_type_all_primitive_types_but_void(ctype);
 %typemap(ctype, fragment="stdbool_inc") bool & "$1_basetype*"
 %typemap(ctype, fragment="stdbool_inc") const bool & "$1_basetype const *"
 
-// typemaps for function parameters
+// Typemaps for wrapper function parameters and its local variables
 // void
 %typemap(cmodtype) void "void"
 %typemap(cmodtype) void*, void& "void *"
@@ -171,6 +170,8 @@ explicit_same_type_unconsted_all_primitive_types_but_void(cmodtype);
 %typemap(cmodtype, fragment="stdbool_inc") bool & "$1_ltype"
 %typemap(cmodtype, fragment="stdbool_inc") const bool & "$1_ltype const"
 
+
+// Typemaps for assigning wrapper parameters to local variables
 same_action_all_primitive_types_but_void(in, "$1 = ($1_ltype) $input;")
 
 %typemap(in) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY] "$1 = ($1_basetype *) $input;"
@@ -255,6 +256,8 @@ same_action_all_primitive_types_but_void(in, "$1 = ($1_ltype) $input;")
     $1 = ($1_ltype) 0;
 }
 
+
+// Typemaps for assigning result values to a special return variable
 same_action_all_primitive_types_but_void(out, "$result = $1;")
 
 %typemap(out) void ""
