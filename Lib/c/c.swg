@@ -27,6 +27,58 @@
 %fragment("fptr_decl_proxy", "proxy_header") {typedef void(*SWIG_CPP_FP)();}
 %fragment("stdbool_inc", "proxy_header") {#include <stdbool.h>}
 
+%define same_macro_all_primitive_types_but_void(macro_name, TM)
+macro_name(TM, short);
+macro_name(TM, unsigned short);
+macro_name(TM, int);
+macro_name(TM, unsigned int);
+macro_name(TM, long);
+macro_name(TM, unsigned long);
+macro_name(TM, long long);
+macro_name(TM, unsigned long long);
+macro_name(TM, char);
+macro_name(TM, signed char);
+macro_name(TM, unsigned char);
+macro_name(TM, float);
+macro_name(TM, double);
+macro_name(TM, size_t);
+%enddef
+
+//unconsted types are necessary, because some the methods using this declare variables of the resolved type first and assign their values later
+//used by 'couttype' and 'cppouttype' typemaps
+%define explicit_same_type_unconsted(TM, T)
+%typemap(TM) T, const T "T"
+%typemap(TM) T*, T&, T[ANY], T[] "T *"
+%typemap(TM) const T&, const T*, const T[ANY], const T[] "const T *"
+%typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] "T **"
+%typemap(TM) const T**, const T*&, T *const &, const T*[ANY], const T[ANY][ANY] "const T **"
+// constant pointers
+%typemap(TM) T * const "T *"
+%typemap(TM) T* * const "T* *"
+%typemap(TM) const T* * const "const T* *"
+%enddef
+
+%define explicit_same_type_unconsted_all_primitive_types_but_void(TM)
+same_macro_all_primitive_types_but_void(explicit_same_type_unconsted,TM);
+%enddef
+
+//used by 'proxy', 'proxycouttype'
+%define explicit_same_type(TM, T)
+%typemap(TM) T, const T "T"
+%typemap(TM) T*, T&, T[ANY], T[] "T *"
+%typemap(TM) const T&, const T*, const T[ANY], const T[] "const T *"
+%typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] "T **"
+%typemap(TM) const T**, const T*&, const T*[ANY], const T[ANY][ANY] "const T **"
+// constant pointers
+%typemap(TM) T * const "T * const"
+%typemap(TM) T* * const "T* * const"
+%typemap(TM) const T* * const "const T* * const"
+%enddef
+
+%define explicit_same_type_all_primitive_types_but_void(TM)
+same_macro_all_primitive_types_but_void(explicit_same_type,TM);
+%enddef
+
 //used by 'in' and 'out' typemaps
 %define same_action(TM, T, ACTION)
 %typemap(TM) T, const T ACTION
@@ -60,18 +112,6 @@ same_action(TM, size_t, ACTION);
 
 // typemaps for proxy function parameters
 
-%define explicit_same_type(TM, T)
-%typemap(TM) T, const T "T"
-%typemap(TM) T*, T&, T[ANY], T[] "T *"
-%typemap(TM) const T&, const T*, const T[ANY], const T[] "const T *"
-%typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] "T **"
-%typemap(TM) const T**, const T*&, const T*[ANY], const T[ANY][ANY] "const T **"
-// constant pointers
-%typemap(TM) T * const "T * const"
-%typemap(TM) T* * const "T* * const"
-%typemap(TM) const T* * const "const T* * const"
-%enddef
-
 // void
 %typemap(proxy) void "void"
 %typemap(proxy) void*, void& "void *"
@@ -82,20 +122,7 @@ same_action(TM, size_t, ACTION);
 %typemap(proxy) void* * const "void* * const"
 %typemap(proxy) const void* * const "const void* * const"
 
-explicit_same_type(proxy, short);
-explicit_same_type(proxy, unsigned short);
-explicit_same_type(proxy, int);
-explicit_same_type(proxy, unsigned int);
-explicit_same_type(proxy, long);
-explicit_same_type(proxy, unsigned long);
-explicit_same_type(proxy, long long);
-explicit_same_type(proxy, unsigned long long);
-explicit_same_type(proxy, char);
-explicit_same_type(proxy, signed char);
-explicit_same_type(proxy, unsigned char);
-explicit_same_type(proxy, float);
-explicit_same_type(proxy, double);
-explicit_same_type(proxy, size_t);
+explicit_same_type_all_primitive_types_but_void(proxy);
 
 // objects
 %typemap(proxy) SWIGTYPE      "$&resolved_type*"
@@ -124,21 +151,7 @@ explicit_same_type(proxy, size_t);
 %typemap(ctype) void* * const "void* * const"
 %typemap(ctype) const void* * const "const void* * const"
 
-
-explicit_same_type(ctype, short);
-explicit_same_type(ctype, unsigned short);
-explicit_same_type(ctype, int);
-explicit_same_type(ctype, unsigned int);
-explicit_same_type(ctype, long);
-explicit_same_type(ctype, unsigned long);
-explicit_same_type(ctype, long long);
-explicit_same_type(ctype, unsigned long long);
-explicit_same_type(ctype, char);
-explicit_same_type(ctype, signed char);
-explicit_same_type(ctype, unsigned char);
-explicit_same_type(ctype, float);
-explicit_same_type(ctype, double);
-explicit_same_type(ctype, size_t);
+explicit_same_type_all_primitive_types_but_void(ctype);
 
 // special cases of array passing - does not intended to be used for objects
 %typemap(ctype) SWIGTYPE [] "$1_ltype"
@@ -262,33 +275,7 @@ same_action_all_primitive_types_but_void(in, "$1 = ($1_ltype) $input;")
 %typemap(couttype) void* * const * const "void* *"
 %typemap(couttype) const void* * const "void* *"
 
-//unconsted types are necessary, because some the methods using this declare variables of the resolved type first and assign their values later
-%define explicit_same_type_unconsted(TM, T)
-%typemap(TM) T, const T "T"
-%typemap(TM) T*, T&, T[ANY], T[] "T *"
-%typemap(TM) const T&, const T*, const T[ANY], const T[] "const T *"
-%typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] "T **"
-%typemap(TM) const T**, const T*&, T *const &, const T*[ANY], const T[ANY][ANY] "const T **"
-// constant pointers
-%typemap(TM) T * const "T *"
-%typemap(TM) T* * const "T* *"
-%typemap(TM) const T* * const "const T* *"
-%enddef
-
-explicit_same_type_unconsted(couttype, short);
-explicit_same_type_unconsted(couttype, unsigned short);
-explicit_same_type_unconsted(couttype, int);
-explicit_same_type_unconsted(couttype, unsigned int);
-explicit_same_type_unconsted(couttype, long);
-explicit_same_type_unconsted(couttype, unsigned long);
-explicit_same_type_unconsted(couttype, long long);
-explicit_same_type_unconsted(couttype, unsigned long long);
-explicit_same_type_unconsted(couttype, char);
-explicit_same_type_unconsted(couttype, signed char);
-explicit_same_type_unconsted(couttype, unsigned char);
-explicit_same_type_unconsted(couttype, float);
-explicit_same_type_unconsted(couttype, double);
-explicit_same_type_unconsted(couttype, size_t);
+explicit_same_type_unconsted_all_primitive_types_but_void(couttype);
 
 // objects
 %typemap(couttype) SWIGTYPE      "SwigObj *"
@@ -315,20 +302,7 @@ explicit_same_type_unconsted(couttype, size_t);
 %typemap(proxycouttype) void* * const "void* * const"
 %typemap(proxycouttype) const void* * const "const void* * const"
 
-explicit_same_type(proxyccouttype, short);
-explicit_same_type(proxyccouttype, unsigned short);
-explicit_same_type(proxyccouttype, int);
-explicit_same_type(proxyccouttype, unsigned int);
-explicit_same_type(proxyccouttype, long);
-explicit_same_type(proxyccouttype, unsigned long);
-explicit_same_type(proxyccouttype, long long);
-explicit_same_type(proxyccouttype, unsigned long long);
-explicit_same_type(proxyccouttype, char);
-explicit_same_type(proxyccouttype, signed char);
-explicit_same_type(proxyccouttype, unsigned char);
-explicit_same_type(proxyccouttype, float);
-explicit_same_type(proxyccouttype, double);
-explicit_same_type(proxyccouttype, size_t)
+explicit_same_type_all_primitive_types_but_void(proxycouttype);
 
 // objects
 %typemap(proxycouttype) SWIGTYPE      "$&resolved_type*"
@@ -401,20 +375,7 @@ same_action_all_primitive_types_but_void(out, "$result = $1;")
 }
 
 // typemaps for 'cppresult'
-explicit_same_type_unconsted(cppouttype, short);
-explicit_same_type_unconsted(cppouttype, unsigned short);
-explicit_same_type_unconsted(cppouttype, int);
-explicit_same_type_unconsted(cppouttype, unsigned int);
-explicit_same_type_unconsted(cppouttype, long);
-explicit_same_type_unconsted(cppouttype, unsigned long);
-explicit_same_type_unconsted(cppouttype, long long);
-explicit_same_type_unconsted(cppouttype, unsigned long long);
-explicit_same_type_unconsted(cppouttype, char);
-explicit_same_type_unconsted(cppouttype, signed char);
-explicit_same_type_unconsted(cppouttype, unsigned char);
-explicit_same_type_unconsted(cppouttype, float);
-explicit_same_type_unconsted(cppouttype, double);
-explicit_same_type_unconsted(cppouttype, size_t);
+explicit_same_type_unconsted_all_primitive_types_but_void(cppouttype);
 
 %typemap(cppouttype, retobj="1") SWIGTYPE      "$1_ltype *"
 %typemap(cppouttype) SWIGTYPE *    "$1_ltype"
