@@ -4,6 +4,11 @@ and CHANGES files.
 
 Release Notes
 =============
+SWIG-2.0.8 summary:
+- Fix a couple of regressions introduced in 2.0.5 and 2.0.7.
+- Improved using declarations and using directives support.
+- Minor fixes/enhancements for C#, Java, Octave, Perl and Python.
+
 SWIG-2.0.7 summary:
 - Important regression fixes since 2.0.5 for typemaps in general and
   in Python.
