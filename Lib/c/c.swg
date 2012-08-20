@@ -27,6 +27,37 @@
 %fragment("fptr_decl_proxy", "proxy_header") {typedef void(*SWIG_CPP_FP)();}
 %fragment("stdbool_inc", "proxy_header") {#include <stdbool.h>}
 
+//used by 'in' and 'out' typemaps
+%define same_action(TM, T, ACTION)
+%typemap(TM) T, const T ACTION
+%typemap(TM) T*, T&, T[ANY], T[] ACTION
+%typemap(TM) const T&, const T*, const T[ANY], const T[] ACTION
+%typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] ACTION
+%typemap(TM) const T**, const T*&, const T*[ANY], const T[ANY][ANY] ACTION
+// constant pointers
+%typemap(TM) T * const ACTION
+%typemap(TM) T* * const ACTION
+%typemap(TM) const T* * const ACTION
+%enddef
+
+%define same_action_all_primitive_types(TM, ACTION)
+same_action(TM, short, ACTION);
+same_action(TM, unsigned short, ACTION);
+same_action(TM, int, ACTION);
+same_action(TM, unsigned int, ACTION);
+same_action(TM, long, ACTION);
+same_action(TM, unsigned long, ACTION);
+same_action(TM, long long, ACTION);
+same_action(TM, unsigned long long, ACTION);
+same_action(TM, char, ACTION);
+same_action(TM, signed char, ACTION);
+same_action(TM, unsigned char, ACTION);
+//unsigned only
+same_action(TM, float, ACTION);
+same_action(TM, double, ACTION);
+same_action(TM, size_t, ACTION);
+%enddef
+
 // typemaps for proxy function parameters
 
 %define explicit_same_type(TM, T)
@@ -137,35 +168,7 @@ PRE short POST, PRE int POST, PRE long POST, PRE long long POST, PRE char POST, 
 PRE float POST, PRE double POST, PRE signed char POST, PRE size_t POST "$1 = ($1_ltype) $input;"
 %enddef
 
-%define in_assignment_group(PRE)
-in_assignment_cast(PRE,);
-in_assignment_cast(PRE,*);
-in_assignment_cast(PRE,&);
-in_assignment_cast(PRE,[ANY]);
-in_assignment_cast(PRE,*&);
-in_assignment_cast(PRE,**);
-in_assignment_cast(PRE,** const);
-%enddef
-
-in_assignment_group();
-in_assignment_group(const);
-in_assignment_group(unsigned);
-in_assignment_group(unsigned const);
-
-in_assignment_cast_unsigned_only(,);
-in_assignment_cast_unsigned_only(,*);
-in_assignment_cast_unsigned_only(,&);
-in_assignment_cast_unsigned_only(,[ANY]);
-in_assignment_cast_unsigned_only(,**);
-in_assignment_cast_unsigned_only(,*&);
-in_assignment_cast_unsigned_only(,** const);
-in_assignment_cast_unsigned_only(const,);
-in_assignment_cast_unsigned_only(const,*);
-in_assignment_cast_unsigned_only(const,&);
-in_assignment_cast_unsigned_only(const,[ANY]);
-in_assignment_cast_unsigned_only(const,*&);
-in_assignment_cast_unsigned_only(const,**);
-in_assignment_cast_unsigned_only(const,** const);
+same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;")
 
 %typemap(in) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY] "$1 = ($1_basetype *) $input;"
 %typemap(in) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
@@ -343,44 +346,7 @@ explicit_same_type(proxyccouttype, size_t)
 %typemap(proxycouttype, fragment="stdbool_inc") bool & "$1_basetype*"
 %typemap(proxycouttype, fragment="stdbool_inc") const bool & "$1_basetype const *"
 
-
-%define out_assignment_no_cast(PRE, POST)
-PRE short POST, PRE int POST, PRE long POST, PRE long long POST, PRE char POST, PRE float POST, PRE double POST "$result = $1;"
-%enddef
-
-//this macro is necessary, because 'unsigned double' is not allowed.
-%define out_assignment_no_cast_unsigned_only(PRE, POST)
-PRE float POST, PRE double POST, PRE signed char POST, PRE size_t POST "$result = $1;"
-%enddef
-
-%define out_assignment_group(PRE)
-out_assignment_no_cast(PRE,);
-out_assignment_no_cast(PRE,*);
-out_assignment_no_cast(PRE,&);
-out_assignment_no_cast(PRE,[ANY]);
-out_assignment_no_cast(PRE,*&);
-out_assignment_no_cast(PRE,**);
-out_assignment_no_cast(PRE,** const);
-%enddef
-
-out_assignment_group();
-out_assignment_group(const);
-out_assignment_group(unsigned);
-out_assignment_group(unsigned const);
-
-out_assignment_no_cast_unsigned_only(,);
-out_assignment_no_cast_unsigned_only(,*);
-out_assignment_no_cast_unsigned_only(,&);
-out_assignment_no_cast_unsigned_only(,[ANY]);
-out_assignment_no_cast_unsigned_only(,**);
-out_assignment_no_cast_unsigned_only(,** const);
-out_assignment_no_cast_unsigned_only(,*&);
-out_assignment_no_cast_unsigned_only(const,);
-out_assignment_no_cast_unsigned_only(const,*);
-out_assignment_no_cast_unsigned_only(const,&);
-out_assignment_no_cast_unsigned_only(const,[ANY]);
-out_assignment_no_cast_unsigned_only(const,*&);
-out_assignment_no_cast_unsigned_only(const,**);
+same_action_all_primitive_types(out, "$result = $1;")
 
 %typemap(out) void ""
 
