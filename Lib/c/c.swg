@@ -40,7 +40,7 @@
 %typemap(TM) const T* * const ACTION
 %enddef
 
-%define same_action_all_primitive_types(TM, ACTION)
+%define same_action_all_primitive_types_but_void(TM, ACTION)
 same_action(TM, short, ACTION);
 same_action(TM, unsigned short, ACTION);
 same_action(TM, int, ACTION);
@@ -168,7 +168,7 @@ PRE short POST, PRE int POST, PRE long POST, PRE long long POST, PRE char POST, 
 PRE float POST, PRE double POST, PRE signed char POST, PRE size_t POST "$1 = ($1_ltype) $input;"
 %enddef
 
-same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;")
+same_action_all_primitive_types_but_void(in, "$1 = ($1_ltype) $input;")
 
 %typemap(in) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY] "$1 = ($1_basetype *) $input;"
 %typemap(in) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
@@ -346,7 +346,7 @@ explicit_same_type(proxyccouttype, size_t)
 %typemap(proxycouttype, fragment="stdbool_inc") bool & "$1_basetype*"
 %typemap(proxycouttype, fragment="stdbool_inc") const bool & "$1_basetype const *"
 
-same_action_all_primitive_types(out, "$result = $1;")
+same_action_all_primitive_types_but_void(out, "$result = $1;")
 
 %typemap(out) void ""
 
