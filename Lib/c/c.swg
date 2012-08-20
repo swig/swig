@@ -142,34 +142,34 @@ explicit_same_type_all_primitive_types_but_void(proxy);
 
 // typemaps for function parameters
 // void
-%typemap(ctype) void "void"
-%typemap(ctype) void*, void& "void *"
-%typemap(ctype) const void&, const void* "const void *"
-%typemap(ctype) void**, void*&, void*[ANY], void[ANY][ANY] "void **"
-%typemap(ctype) const void**, const void*& "const void **"
+%typemap(cmodtype) void "void"
+%typemap(cmodtype) void*, void& "void *"
+%typemap(cmodtype) const void&, const void* "const void *"
+%typemap(cmodtype) void**, void*&, void*[ANY], void[ANY][ANY] "void **"
+%typemap(cmodtype) const void**, const void*& "const void **"
 // constant pointers
-%typemap(ctype) void* * const "void* * const"
-%typemap(ctype) const void* * const "const void* * const"
+%typemap(cmodtype) void* * const "void* * const"
+%typemap(cmodtype) const void* * const "const void* * const"
 
-explicit_same_type_all_primitive_types_but_void(ctype);
+explicit_same_type_all_primitive_types_but_void(cmodtype);
 
 // special cases of array passing - does not intended to be used for objects
-%typemap(ctype) SWIGTYPE [] "$1_ltype"
-%typemap(ctype) SWIGTYPE ((&)[ANY]) "$1_basetype **"
+%typemap(cmodtype) SWIGTYPE [] "$1_ltype"
+%typemap(cmodtype) SWIGTYPE ((&)[ANY]) "$1_basetype **"
 
-%typemap(ctype) SWIGTYPE         "SwigObj *"
-%typemap(ctype) SWIGTYPE *       "SwigObj *"
-%typemap(ctype) SWIGTYPE &       "SwigObj *"
-%typemap(ctype) SWIGTYPE [ANY][ANY], SWIGTYPE ** "/* whoa */ SwigObj ***"
-%typemap(ctype) SWIGTYPE *[ANY]  "/*ooooh*/ SwigObj **"
-%typemap(ctype) SWIGTYPE *&      "/* *& */ SwigObj **"
-%typemap(ctype) enum SWIGTYPE    "int"
-%typemap(ctype) enum SWIGTYPE &, enum SWIGTYPE *  "int *"
-%typemap(ctype, fragment="fptr_decl", fragment="fptr_decl_proxy") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
+%typemap(cmodtype) SWIGTYPE         "SwigObj *"
+%typemap(cmodtype) SWIGTYPE *       "SwigObj *"
+%typemap(cmodtype) SWIGTYPE &       "SwigObj *"
+%typemap(cmodtype) SWIGTYPE [ANY][ANY], SWIGTYPE ** "/* whoa */ SwigObj ***"
+%typemap(cmodtype) SWIGTYPE *[ANY]  "/*ooooh*/ SwigObj **"
+%typemap(cmodtype) SWIGTYPE *&      "/* *& */ SwigObj **"
+%typemap(cmodtype) enum SWIGTYPE    "int"
+%typemap(cmodtype) enum SWIGTYPE &, enum SWIGTYPE *  "int *"
+%typemap(cmodtype, fragment="fptr_decl", fragment="fptr_decl_proxy") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
 
-%typemap(ctype, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
-%typemap(ctype, fragment="stdbool_inc") bool & "$1_ltype"
-%typemap(ctype, fragment="stdbool_inc") const bool & "$1_ltype const"
+%typemap(cmodtype, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool *, bool * [ANY] "$1_type"
+%typemap(cmodtype, fragment="stdbool_inc") bool & "$1_ltype"
+%typemap(cmodtype, fragment="stdbool_inc") const bool & "$1_ltype const"
 
 same_action_all_primitive_types_but_void(in, "$1 = ($1_ltype) $input;")
 

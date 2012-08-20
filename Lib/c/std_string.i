@@ -9,10 +9,10 @@ namespace std {
 
 class string;
 
-%typemap(ctype) string "char *"
-%typemap(ctype) string * "char *"
-%typemap(ctype) string & "char *"
-%typemap(ctype) const string & "char *"
+%typemap(cmodtype) string "char *"
+%typemap(cmodtype) string * "char *"
+%typemap(cmodtype) string & "char *"
+%typemap(cmodtype) const string & "char *"
 %typemap(proxy) string "char *"
 %typemap(proxy) string * "char *"
 %typemap(proxy) string & "char *"
