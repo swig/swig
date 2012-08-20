@@ -283,33 +283,6 @@ explicit_same_type_unconsted_all_primitive_types_but_void(couttype);
 %typemap(couttype, fragment="stdbool_inc") bool & "$1_basetype*"
 %typemap(couttype, fragment="stdbool_inc") const bool & "$1_basetype const *"
 
-// typemaps for return values
-
-// void
-%typemap(proxycouttype) void "void"
-%typemap(proxycouttype) void*, const void* "void *"
-// constant pointers
-%typemap(proxycouttype) void* * const "void* * const"
-%typemap(proxycouttype) const void* * const "const void* * const"
-
-explicit_same_type_all_primitive_types_but_void(proxycouttype);
-
-// objects
-%typemap(proxycouttype) SWIGTYPE      "$&resolved_type*"
-%typemap(proxycouttype) SWIGTYPE *    "$resolved_type*"
-%typemap(proxycouttype) SWIGTYPE &    "$*resolved_type*"
-%typemap(proxycouttype) SWIGTYPE *&    "$resolved_type**"
-%typemap(proxycouttype) SWIGTYPE [ANY] "/*SWIGTYPE [ANY]*/ $1_ltype **"
-%typemap(proxycouttype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype **"
-%typemap(proxycouttype) SWIGTYPE ** "/*SWIGTYPE ** */ $1_ltype **"
-%typemap(proxycouttype) enum SWIGTYPE "int"
-%typemap(proxycouttype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
-%typemap(proxycouttype, fragment="fptr_decl") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
-
-%typemap(proxycouttype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
-%typemap(proxycouttype, fragment="stdbool_inc") bool & "$1_basetype*"
-%typemap(proxycouttype, fragment="stdbool_inc") const bool & "$1_basetype const *"
-
 same_action_all_primitive_types_but_void(out, "$result = $1;")
 
 %typemap(out) void ""

@@ -792,14 +792,14 @@ ready:
        if (IS_SET_TO_ONE(n, "c:objstruct")) {
             Printv(return_type, SwigType_str(type, 0), NIL);
        }
-       else if ((tm = Swig_typemap_lookup("proxycouttype", n, "", 0))) {
+       else if ((tm = Swig_typemap_lookup("ctype", n, "", 0))) {
             // handle simple typemap cases
-            String *ctypeout = Getattr(n, "tmap:proxycouttype:out");
+            String *ctypeout = Getattr(n, "tmap:ctype:out");
             if (ctypeout)
               {
                  //tm = ctypeout;
                  return_type = ctypeout;
-                 Printf(stdout, "Obscure proxycouttype:out found! O.o\n");
+                 Printf(stdout, "Obscure ctype:out found! O.o\n");
               }
             else
               {
@@ -1042,7 +1042,7 @@ ready:
             if (ctypeout)
               {
                  tm = ctypeout;
-                 Printf(stdout, "Obscure proxycouttype:out found! O.o\n");
+                 Printf(stdout, "Obscure ctype:out found! O.o\n");
               }
             Printf(return_type, "%s", tm);
             // template handling
