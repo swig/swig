@@ -62,7 +62,7 @@ macro_name(TM, size_t);
 same_macro_all_primitive_types_but_void(explicit_same_type_unconsted,TM);
 %enddef
 
-//used by 'proxy', 'proxycouttype'
+//used by 'ctype', 'proxycouttype'
 %define explicit_same_type(TM, T)
 %typemap(TM) T, const T "T"
 %typemap(TM) T*, T&, T[ANY], T[] "T *"
@@ -113,32 +113,32 @@ same_action(TM, size_t, ACTION);
 // typemaps for proxy function parameters
 
 // void
-%typemap(proxy) void "void"
-%typemap(proxy) void*, void& "void *"
-%typemap(proxy) const void&, const void* "const void *"
-%typemap(proxy) void**, void*& "void **"
-%typemap(proxy) const void**, const void*& "const void **"
+%typemap(ctype) void "void"
+%typemap(ctype) void*, void& "void *"
+%typemap(ctype) const void&, const void* "const void *"
+%typemap(ctype) void**, void*& "void **"
+%typemap(ctype) const void**, const void*& "const void **"
 // constant pointers
-%typemap(proxy) void* * const "void* * const"
-%typemap(proxy) const void* * const "const void* * const"
+%typemap(ctype) void* * const "void* * const"
+%typemap(ctype) const void* * const "const void* * const"
 
-explicit_same_type_all_primitive_types_but_void(proxy);
+explicit_same_type_all_primitive_types_but_void(ctype);
 
 // objects
-%typemap(proxy) SWIGTYPE      "$&resolved_type*"
-%typemap(proxy) SWIGTYPE *    "$resolved_type*"
-%typemap(proxy) SWIGTYPE &    "$*resolved_type*"
-%typemap(proxy) SWIGTYPE *&    "$resolved_type**"
-%typemap(proxy) SWIGTYPE [ANY] "/*SWIGTYPE [ANY]*/ $1_ltype **"
-%typemap(proxy) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype **"
-%typemap(proxy) SWIGTYPE ** "/*SWIGTYPE ** */ $1_ltype **"
-%typemap(proxy) enum SWIGTYPE "int"
-%typemap(proxy) enum SWIGTYPE &, enum SWIGTYPE * "int *"
-%typemap(proxy, fragment="fptr_decl") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
+%typemap(ctype) SWIGTYPE      "$&resolved_type*"
+%typemap(ctype) SWIGTYPE *    "$resolved_type*"
+%typemap(ctype) SWIGTYPE &    "$*resolved_type*"
+%typemap(ctype) SWIGTYPE *&    "$resolved_type**"
+%typemap(ctype) SWIGTYPE [ANY] "/*SWIGTYPE [ANY]*/ $1_ltype **"
+%typemap(ctype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ $1_ltype **"
+%typemap(ctype) SWIGTYPE ** "/*SWIGTYPE ** */ $1_ltype **"
+%typemap(ctype) enum SWIGTYPE "int"
+%typemap(ctype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
+%typemap(ctype, fragment="fptr_decl") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
 
-%typemap(proxy, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
-%typemap(proxy, fragment="stdbool_inc") bool & "$1_basetype*"
-%typemap(proxy, fragment="stdbool_inc") const bool & "$1_basetype const *"
+%typemap(ctype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
+%typemap(ctype, fragment="stdbool_inc") bool & "$1_basetype*"
+%typemap(ctype, fragment="stdbool_inc") const bool & "$1_basetype const *"
 
 // typemaps for function parameters
 // void

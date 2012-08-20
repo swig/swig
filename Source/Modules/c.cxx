@@ -826,7 +826,7 @@ ready:
        Swig_typemap_attach_parms("in", parms, 0);
 
        // attach 'ctype' typemaps
-       Swig_typemap_attach_parms("proxy", parms, 0);
+       Swig_typemap_attach_parms("ctype", parms, 0);
 
 
        // prepare function definition
@@ -855,11 +855,11 @@ ready:
 
             Printf(arg_name, "c%s", lname);
 
-            if ((tm = Getattr(p, "tmap:proxy"))) { // set the appropriate type for parameter
+            if ((tm = Getattr(p, "tmap:ctype"))) { // set the appropriate type for parameter
                  tm = Copy(tm);
             }
             else {
-                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No proxy typemap defined for %s\n", SwigType_str(type, 0));
+                 Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
             }
             // use proxy-type for parameter if supplied
             if ((stype = Getattr(p, "c:stype"))) {
