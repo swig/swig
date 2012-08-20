@@ -3528,6 +3528,7 @@ Macros can be defined on the commandline when compiling your C++ code, or altern
 
 <H3><a name="Java_directors_performance"></a>24.5.6 Director performance tuning</H3>
 
+
 <p>
 When a new instance of a director (or subclass) is created in Java, the C++ side of the director performs a runtime check per director method to determine if that particular method is overridden in Java or if it should invoke the C++ base implementation directly.  Although this makes initialization slightly more expensive, it is generally a good overall tradeoff.
 </p>
