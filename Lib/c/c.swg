@@ -147,11 +147,11 @@ explicit_same_type_all_primitive_types_but_void(ctype);
 %typemap(cmodtype) const void&, const void* "const void *"
 %typemap(cmodtype) void**, void*&, void*[ANY], void[ANY][ANY] "void **"
 %typemap(cmodtype) const void**, const void*& "const void **"
-// constant pointers
-%typemap(cmodtype) void* * const "void* * const"
-%typemap(cmodtype) const void* * const "const void* * const"
+// unconst constant pointers
+%typemap(cmodtype) void* * const "void* *"
+%typemap(cmodtype) const void* * const "const void* *"
 
-explicit_same_type_all_primitive_types_but_void(cmodtype);
+explicit_same_type_unconsted_all_primitive_types_but_void(cmodtype);
 
 // special cases of array passing - does not intended to be used for objects
 %typemap(cmodtype) SWIGTYPE [] "$1_ltype"
@@ -254,34 +254,6 @@ same_action_all_primitive_types_but_void(in, "$1 = ($1_ltype) $input;")
   else
     $1 = ($1_ltype) 0;
 }
-
-// typemaps for return values
-
-// void
-%typemap(couttype) void "void"
-%typemap(couttype) void*, const void* "void *"
-// constant pointers
-%typemap(couttype) void * const "void * const"
-%typemap(couttype) void* * const * const "void* *"
-%typemap(couttype) const void* * const "void* *"
-
-explicit_same_type_unconsted_all_primitive_types_but_void(couttype);
-
-// objects
-%typemap(couttype) SWIGTYPE      "SwigObj *"
-%typemap(couttype) SWIGTYPE *    "/*aaaaaa*/SwigObj *"
-%typemap(couttype) SWIGTYPE &   "SwigObj *"
-%typemap(couttype) SWIGTYPE *&    "SwigObj **"
-%typemap(couttype) SWIGTYPE [ANY] "/*SWIGTYPE [ANY]*/ SwigObj **"
-%typemap(couttype) SWIGTYPE * [ANY] "/*SWIGTYPE *[ANY] */ SwigObj **"
-%typemap(couttype) SWIGTYPE ** "/*SWIGTYPE ** */ SwigObj **"
-%typemap(couttype) enum SWIGTYPE "int"
-%typemap(couttype) enum SWIGTYPE &, enum SWIGTYPE * "int *"
-%typemap(couttype, fragment="fptr_decl") SWIGTYPE (CLASS::*) "SWIG_CPP_FP"
-
-%typemap(couttype, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$1_ltype"
-%typemap(couttype, fragment="stdbool_inc") bool & "$1_basetype*"
-%typemap(couttype, fragment="stdbool_inc") const bool & "$1_basetype const *"
 
 same_action_all_primitive_types_but_void(out, "$result = $1;")
 

@@ -764,19 +764,19 @@ ready:
        if (IS_SET_TO_ONE(n, "c:objstruct")) {
             Printv(return_type, SwigType_str(type, 0), NIL);
        }
-       else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
-            String *ctypeout = Getattr(n, "tmap:couttype:out");
+       else if ((tm = Swig_typemap_lookup("cmodtype", n, "", 0))) {
+            String *ctypeout = Getattr(n, "tmap:cmodtype:out");
             if (ctypeout)
               {
                  tm = ctypeout;
-                 Printf(stdout, "Obscure couttype:out found! O.o\n");
+                 Printf(stdout, "Obscure cmodtype:out found! O.o\n");
               }
             Printf(return_type, "%s", tm);
             // template handling
             Replaceall(return_type, "$tt", SwigType_lstr(type, 0));
        }
        else {
-            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
+            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cmodtype typemap defined for %s\n", SwigType_str(type, 0));
        }
        return return_type;
     }
@@ -808,7 +808,7 @@ ready:
               }
        }
        else {
-            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
+            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cmodtype typemap defined for %s\n", SwigType_str(type, 0));
        }
 
        Replaceall(return_type, "::", "_");
@@ -1037,8 +1037,8 @@ ready:
        if (IS_SET_TO_ONE(n, "c:objstruct")) {
             Printv(return_type, SwigType_str(type, 0), NIL);
        }
-       else if ((tm = Swig_typemap_lookup("couttype", n, "", 0))) {
-            String *ctypeout = Getattr(n, "tmap:couttype:out");
+       else if ((tm = Swig_typemap_lookup("cmodtype", n, "", 0))) {
+            String *ctypeout = Getattr(n, "tmap:cmodtype:out");
             if (ctypeout)
               {
                  tm = ctypeout;
@@ -1049,7 +1049,7 @@ ready:
             Replaceall(return_type, "$tt", SwigType_lstr(type, 0));
        }
        else {
-            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No couttype typemap defined for %s\n", SwigType_str(type, 0));
+            Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No cmodtype typemap defined for %s\n", SwigType_str(type, 0));
        }
        return return_type;
     }

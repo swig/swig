@@ -17,10 +17,6 @@ class string;
 %typemap(ctype) string * "char *"
 %typemap(ctype) string & "char *"
 %typemap(ctype) const string & "char *"
-%typemap(couttype) string  "char *"
-%typemap(couttype) string * "char *"
-%typemap(couttype) string & "char *"
-%typemap(couttype) const string & "char *"
 %typemap(cppouttype, retobj="1") string "std::string*"
 %typemap(cppouttype) const string &, string *, string & "std::string*"
 
