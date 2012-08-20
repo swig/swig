@@ -27,8 +27,6 @@ class string;
 %typemap(proxycouttype) const string & "char *"
 %typemap(cppouttype, retobj="1") string "std::string*"
 %typemap(cppouttype) const string &, string *, string & "std::string*"
-%typemap(wrap_call) string ""
-%typemap(wrap_call) const string &, string*, string& ""
 
 %typemap(in) string {
   if ($input) {
