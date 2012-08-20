@@ -422,13 +422,20 @@ area: 7.068583
     <th>Used for</th>
   </tr>
   <tr>
-    <td><tt>proxy</tt></td>
-    <td>Parameter types of proxy functions</td>
+      <td><tt>ctype</tt></td>
+      <td>Provides types used for the C API and</br>
+          Typecasts wrapper functions return values in proxy functions</br>
+          <code>
+              MyClass *MyClass_new(void) {</br>
+              &nbsp;return (MyClass *)_wrap_MyClass_new();</br>
+              }
+          </code>
+      </td>
   </tr>
   <tr>
-    <td><tt>ctype</tt></td>
-    <td>Parameter types of wrapper functions and</br>
-       Casts of functions' parameters of wrapper function calls</br>
+    <td><tt>cmodtype</tt></td>
+    <td>Provides types used by wrapper functions and</br>
+       Casts of function parameters of wrapper function calls</br>
        </br>
        <code>
          extern void _wrap_MyClass_delete(SwigObj *o);</br>
@@ -441,7 +448,7 @@ area: 7.068583
   </tr>
   <tr>
     <td><tt>in</tt></td>
-    <td>Mapping of wrapper functions' parameters to local C++ variables</br>
+    <td>Mapping of wrapper functions parameters to local C++ variables</br>
        </br>
        <code>
           SwigObj* _wrap_MyClass_do(SwigObj *carg1) {</br>
@@ -454,30 +461,8 @@ area: 7.068583
        </code></td>
   </tr>
   <tr>
-    <td><tt>couttype</tt></td>
-    <td>Return value type of wrapper functions</br>
-       </br>
-       <code>
-          SwigObj* _wrap_MyClass_new(void) {</br>
-            &nbsp;SwigObj *result;</br>
-            &nbsp;return result;</br>
-          }
-       </code>
-    </td>
-  </tr>
-  <tr>
-    <td><tt>proxycouttype</tt></td>
-    <td>Typecasts wrapper functions' return values in proxy functions</br>
-      <code>
-          MyClass *MyClass_new(void) {</br>
-            &nbsp;return (MyClass *)_wrap_MyClass_new();</br>
-          }
-      </code>
-    </td>
-  </tr>
-  <tr>
     <td><tt>out</tt></td>
-    <td>Assigns wrapped function's return value to return variable, packaging it into SwigObj if necessary</td>
+    <td>Assigns wrapped function's return value to a dedicated return variable, packaging it into SwigObj if necessary</td>
   </tr>
   <tr>
     <td><tt>cppouttype</tt></td>
@@ -551,7 +536,7 @@ SWIGEXPORTC SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2) {
   }
   arg2 = (int) carg2;
   {
-    const int &_result_ref =  someFunction(*arg1,arg2);cppresult = (int*) &_result_ref;
+    const SomeClass &_result_ref =  someFunction(*arg1,arg2);cppresult = (SomeClass*) &_result_ref;
   }
   {
     result = (SwigObj*) SWIG_create_object(SWIG_STR(SomeClass));
@@ -580,7 +565,7 @@ A typical wrapper will be composited with these [optional] blocks:
 Let's go through it step by step and start with the wrapper prototype
 
 <div class="targetlang"><pre>
-couttype                     ctype            ctype
+cmodtype                     cmodtype         cmodtype
 ---------                    ---------        ---
 SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2);
 </pre></div>
@@ -588,7 +573,7 @@ SwigObj * _wrap_someFunction(SwigObj * carg1, int carg2);
 As first unit of the wrapper code, a variable to hold the return value of the function is emitted to the wrapper's body
 
 <div class="targetlang"><pre>
-couttype
+cmodtype
 ---------
 SwigObj * result;
 </pre></div>
@@ -630,7 +615,7 @@ At this point we are ready to call the C++ function with our parameters.</br>
 </p>
 <div class="targetlang"><pre>
 {
-  const int &_result_ref =  someFunction(*arg1,arg2);cppresult = (int*) &_result_ref;
+  const SomeClass &_result_ref =  someFunction(*arg1,arg2);cppresult = (SomeClass*) &_result_ref;
 }
 </pre></div>
 Subsequently, the return value is assigned to the dedicated return value variable using the 'out' typemap
@@ -678,7 +663,7 @@ SomeClass* someFunction(SomeIntTemplateClass* carg1, int carg2) {
 
 Again, let's first examine the protype:
 <div class="targetlang"><pre>
-proxycouttype           proxy                        proxy
+ctype                   ctype                        ctype
 ----------              ---------------------        ---
 SomeClass* someFunction(SomeIntTemplateClass* carg1, int carg2);
 </pre></div>
@@ -686,8 +671,8 @@ SomeClass* someFunction(SomeIntTemplateClass* carg1, int carg2);
 In the body of this function, we'll reuse the 'proxycouttype' and 'ctype' to cast the return value and arguments of the wrapper function.
 
 <div class="targetlang"><pre>
-        proxycouttype                  ctype
-        ----------                     ---------
+        ctype                          cmodtype          cmodtype
+        ----------                     ---------         ___
 return (SomeClass*)_wrap_someFunction((SwigObj *)carg1, (int)carg2);
 </pre></div>
 
