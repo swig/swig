@@ -1,7 +1,7 @@
 %module ignore_template_constructor
 %include std_vector.i
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGPERL) || defined(SWIGRUBY) 
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGPERL) || defined(SWIGRUBY) || defined(SWIGOBJECTIVEC) 
 #define SWIG_GOOD_VECTOR
 %ignore std::vector<Flow>::vector(size_type);
 %ignore std::vector<Flow>::resize(size_type);
