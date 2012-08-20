@@ -1107,7 +1107,7 @@ ready:
             }
             if (!p) break;
 
-            type = Getattr(p, "type");
+            SwigType *type = Getattr(p, "type");
             if (SwigType_type(type) == T_VOID) {
                  p = nextSibling(p);
                  continue;
