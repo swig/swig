@@ -171,16 +171,6 @@ explicit_same_type_all_primitive_types_but_void(ctype);
 %typemap(ctype, fragment="stdbool_inc") bool & "$1_ltype"
 %typemap(ctype, fragment="stdbool_inc") const bool & "$1_ltype const"
 
-
-%define in_assignment_cast(PRE, POST)
-PRE short POST, PRE int POST, PRE long POST, PRE long long POST, PRE char POST, PRE float POST, PRE double POST "$1 = ($1_ltype) $input;"
-%enddef
-
-//this macro is necessary, because 'unsigned double' is not allowed.
-%define in_assignment_cast_unsigned_only(PRE, POST)
-PRE float POST, PRE double POST, PRE signed char POST, PRE size_t POST "$1 = ($1_ltype) $input;"
-%enddef
-
 same_action_all_primitive_types_but_void(in, "$1 = ($1_ltype) $input;")
 
 %typemap(in) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY] "$1 = ($1_basetype *) $input;"
