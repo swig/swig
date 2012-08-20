@@ -14,7 +14,6 @@
  */
  
 // Primary types: ObjectiveC++ understands C primary types.
-%typemap(imtype) bool               "bool"
 %typemap(imtype) char               "char"
 %typemap(imtype) signed char        "signed char"
 %typemap(imtype) unsigned char      "unsigned char"
@@ -31,7 +30,6 @@
 %typemap(imtype) void               "void"
 
 // References to primitive types are treated as pointers in the wrapper(ObjectiveC++) layer.
-%typemap(imtype) const bool &,              bool &                  "bool *"
 %typemap(imtype) const char &,              char &                  "char *"
 %typemap(imtype) const signed char &, 		signed char &           "signed char *"
 %typemap(imtype) const unsigned char &, 	unsigned char &         "unsigned char *"
@@ -46,16 +44,20 @@
 %typemap(imtype) const float &, 			float &                 "float *"
 %typemap(imtype) const double &,  			double &                "double *"
 
+// Booleans
+%typemap(imtype) bool               					"BOOL"
+%typemap(imtype) const bool &, bool &, const bool *, bool *             "BOOL *"
+
 //C strings:
 %typemap(imtype) char *, const char *, char[ANY], char[]              "NSString *"
 %typemap(imtype) char *&                                "NSString *"
+
 
 // Objects will always be treated as pointers in ObjectiveC++
 %typemap(imtype) SWIGTYPE                               "void*" 
 
 // C/C++ prinitve pointers are treated as is in ObjectiveC++
 // References to primitive types are treated as pointers in the wrapper(ObjectiveC++) layer.
-%typemap(imtype) const bool *,              bool *                  "bool *"
 %typemap(imtype) const signed char *, 		signed char *           "signed char *"
 %typemap(imtype) const unsigned char *, 	unsigned char *         "unsigned char *"
 %typemap(imtype) const short *,				short *                 "short *"
@@ -89,8 +91,7 @@
 /* 
  * IN TYPEMAPS: Used for "in" arguments type conversions: ObjectiveC++ to C++.
  */
-%typemap(in) bool,
-             char, 
+%typemap(in) char, 
              signed char, 
              unsigned char, 
              short, 
@@ -109,8 +110,7 @@
 %typemap(in) void ""
 
 // References: are treated as pointers in the wrapper layer (ObjectiveC++)
-%typemap(in) const bool &,              bool &,
-             const char &,  			char &,
+%typemap(in)	const char &,  			char &,
 	     	 const signed char &, 		signed char &,
 	         const unsigned char &, 	unsigned char &,
 		     const short &,				short &,
@@ -125,8 +125,7 @@
 	      	 const double &,  			double &
 %{ $1 = ($1_ltype)$input; %}
 
-%typemap(in) const bool *,              bool *,                  
- 	const signed char *, 		signed char *,           
+%typemap(in) const signed char *, 		signed char *,           
  	const unsigned char *, 	        unsigned char *,         
  	const short *,				short *,                 
  	const unsigned short *,	        unsigned short *,        
@@ -139,6 +138,16 @@
  	const float *, 			float *,               
  	const double *,  	        double *        
 %{ $1 = ($1_ltype)$input;%}
+
+//Booleans:
+%typemap(in) bool
+%{ $1 = $input? true : false; %}
+
+%typemap(in) bool * (bool temp), const bool * (bool temp), const bool & (bool temp), bool & (bool temp) {
+  temp = ($input) ? true : false;
+  $1 = &temp;
+}
+
 
 //C strings:
 %typemap(in) char *, char[ANY], char[]  {
@@ -209,8 +218,7 @@
  * OUT TYPEMAPS: Used for return-type type conversions: C++ to ObjectiveC++
  */
 //Primary types
-%typemap(out) bool,
-            char,
+%typemap(out) char,
             signed char,
             unsigned char,
             short,
@@ -225,14 +233,10 @@
             double
 %{ $result = $1; %}
 
-//%typemap(out) bool
-//%{ $result = $1? YES:NO; %}
-
 %typemap(out) void ""
 
 // References as exported as pointers (by default)
-%typemap(out)const bool &,              bool &,
-             const char &,  			char &,
+%typemap(out)const char &,  			char &,
 	     	 const signed char &, 		signed char &,
 	         const unsigned char &, 	unsigned char &,
 		     const short &,				short &,
@@ -248,21 +252,29 @@
 %{ $result = $1; %}
 
 
-%typemap(out)const bool *,              bool *,
-             const char *,  			char *,
+%typemap(out)const char *,  			char *,
 	     	 const signed char *, 		signed char *,
 	         const unsigned char *, 	unsigned char *,
 		     const short *,				short *,
 		     const unsigned short *,	unsigned short *,
 		     const int *,		    	int *,
 		     const unsigned int *,		unsigned int *,
-			 const long *,				long &,
-	     	 const unsigned long *, 	unsigned long &,
+			 const long *,				long *,
+	     	 const unsigned long *, 	unsigned long *,
 	     	 const long long *, 		long long *,
 	     	 const unsigned long long *,unsigned long long *,
 	      	 const float *, 			float *,
 	      	 const double *,  			double *
 %{ $result = $1; %}
+
+// Booleans:
+%typemap(out) bool
+%{  $result = ($1)? YES:NO; %}
+
+%typemap(out) bool& (BOOL temp), bool* (BOOL temp), const bool& (BOOL temp), const bool& (BOOL temp)
+%{  temp = (*$1)? YES:NO;
+    BOOL* ret = &temp;
+    return ret; %}
 
 // C strings: 
 %typemap(out)const char *,char * %{ if ($1) $result = [NSString stringWithUTF8String: (const char*)$1]; %}
@@ -326,7 +338,7 @@
 %typemap(objctype)  void               "void"
 
 // References will always be treated as pointers in the proxy layer (ObjectiveC)
-%typemap(objctype) const bool &,              bool &                  "bool *"
+%typemap(objctype) const bool &,              bool &                  "BOOL *"
 %typemap(objctype) const char &,              char &                  "char *"
 %typemap(objctype) const signed char &, 		signed char &           "signed char *"
 %typemap(objctype) const unsigned char &, 	unsigned char &         "unsigned char *"
@@ -350,7 +362,7 @@
 // C/C++ Pointers to primitive types are treated as is
 // C/C++ prinitve pointers are treated as is in ObjectiveC++
 // References to primitive types are treated as pointers in the wrapper(ObjectiveC++) layer.
-%typemap(objctype) const bool *,              bool *                  "bool *"
+%typemap(objctype) const bool *,              bool *                  "BOOL *"
 %typemap(objctype) const signed char *, 		signed char *           "signed char *"
 %typemap(objctype) const unsigned char *, 	unsigned char *         "unsigned char *"
 %typemap(objctype) const short *,				short *                 "short *"
@@ -386,9 +398,8 @@
  */
 
 // Primary types
-%typemap(objcin) bool "$objcinput" 
-
-%typemap(objcin) char, 
+%typemap(objcin) bool,
+	     char, 
              signed char, 
              unsigned char, 
              short, 
@@ -461,7 +472,8 @@
  */
 
 // Primary types are exported as ObjectiveC primary types
-%typemap(objcout) char,
+%typemap(objcout) bool,
+		char,
 	      signed char,
 	      unsigned char,
 	      short,
@@ -475,10 +487,6 @@
 	      float,
 	      double
 %{ return $imcall; %}
-
-%typemap(objcout) bool
-%{  bool ret = $imcall;
-    return (ret)? YES:NO; %}
 
 %typemap(objcout) void "$imcall;"
 
@@ -506,8 +514,8 @@
 		     const unsigned short *,	unsigned short *,
 		     const int *,		    	int *,
 		     const unsigned int *,		unsigned int *,
-			 const long *,				long &,
-	     	 const unsigned long *, 	unsigned long &,
+			 const long *,				long *,
+	     	 const unsigned long *, 	unsigned long *,
 	     	 const long long *, 		long long *,
 	     	 const unsigned long long *,unsigned long long *,
 	      	 const float *, 			float *,

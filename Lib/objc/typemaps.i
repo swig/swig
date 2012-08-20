@@ -61,9 +61,11 @@ In ObjectiveC you could then use it like this:
 %typemap(in) TYPE *INPUT,TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
 
+%typemap(out) TYPE *INPUT, TYPE &INPUT ""
+
 %enddef
 
-//INPUT_TYPEMAP(bool,                 bool,                   BOOL);
+INPUT_TYPEMAP(bool,                 BOOL,                   BOOL);
 INPUT_TYPEMAP(signed char,          signed char,            signed char);
 INPUT_TYPEMAP(char,                 char,                   char);
 INPUT_TYPEMAP(unsigned char,        unsigned char,          unsigned char);
@@ -77,6 +79,12 @@ INPUT_TYPEMAP(long long,            long long,              long long);
 INPUT_TYPEMAP(unsigned long long,   unsigned long long,     unsigned long long);
 INPUT_TYPEMAP(float,                float,                  float);
 INPUT_TYPEMAP(double,               double,                 double);
+
+/* Override typemaps in the INPUT_TYPEMAP macro for bool represented as BOOL in ObjectiveC */
+%typemap(in) bool *INPUT (bool temp), bool &INPUT (bool temp) %{
+  temp = ($input) ? true : false;
+  $1 = &temp;
+%}
 
 #undef INPUT_TYPEMAP
 
@@ -139,7 +147,7 @@ value returned in the second output parameter. In ObjectiveC you would use it li
 
 %enddef
 
-//OUTPUT_TYPEMAP(bool,               bOOL,                   BOOL);
+OUTPUT_TYPEMAP(bool,               BOOL,                   BOOL);
 OUTPUT_TYPEMAP(signed char,          signed char,            signed char);
 OUTPUT_TYPEMAP(char,                 char,                   char);
 OUTPUT_TYPEMAP(unsigned char,        unsigned char,          unsigned char);
@@ -226,7 +234,7 @@ OUTPUT_TYPEMAP(double,               double,                 double);
 
 %enddef
 
-//INOUT_TYPEMAP(bool,               bool,                   BOOL);
+INOUT_TYPEMAP(bool,               BOOL,                   BOOL);
 INOUT_TYPEMAP(signed char,          signed char,            signed char);
 INOUT_TYPEMAP(char,                 char,                   char);
 INOUT_TYPEMAP(unsigned char,        unsigned char,          unsigned char);
@@ -240,5 +248,11 @@ INOUT_TYPEMAP(long long,            long long,              long long);
 INOUT_TYPEMAP(unsigned long long,   unsigned long long,     unsigned long long);
 INOUT_TYPEMAP(float,                float,                  float);
 INOUT_TYPEMAP(double,               double,                 double);
+
+/* Override typemaps in the INOUT_TYPEMAP macro for bool represented as BOOL in ObjectiveC */
+%typemap(in) bool *INOUT (bool temp), bool &INOUT (bool temp) {
+  temp = ($input) ? true : false;
+  $1 = &temp;
+}
 
 #undef INOUT_TYPEMAP
