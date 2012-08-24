@@ -296,7 +296,7 @@ namespace swig
   struct stop_iteration {};
   
   %typemap(throws) stop_iteration {
-      Scierror(999, "stop_iteration exception");
+    error("stop_iteration exception");
     SWIG_fail;
   }
 

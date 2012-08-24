@@ -207,3 +207,4 @@ do this :
 %typemap(in) signed char *INOUT = signed char *OUTPUT;
 %typemap(in) float *INOUT = float *OUTPUT;
 %typemap(in) double *INOUT = double *OUTPUT;
+

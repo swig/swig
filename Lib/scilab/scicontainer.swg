@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * scicontainer.swg
  *
- * Scilab cell <-> C++ container wrapper (Basd on Octave version)
+ * Scilab list <-> C++ container wrapper (Based on Octave wrapper)
  *
  * This wrapper, and its iterator, allows a general use (and reuse) of
  * the mapping between C++ and Scilab, thanks to the C++ templates.
@@ -24,7 +24,7 @@
 
 %include <sciiterators.swg>
 
-// The Octave C++ Wrap
+// The Scilab C++ Wrap
 
 %insert(header) %{
 #include <stdexcept>
@@ -74,8 +74,8 @@ namespace std {
     bool
     operator()(const SciObject& v, const SciObject& w) const
     { 
-      SciObject res = do_binary_op(SciObject::op_le,v,w);
-      return res.is_true();
+        //SciObject res = do_binary_op(SciObject::op_le,v,w);
+        return true;//res.is_true();
     }
   };
 }
@@ -191,7 +191,7 @@ namespace swig {
 namespace swig
 {
   template <class T>
-    struct SciSequence_Ref // * octave can't support these, because of how assignment works
+    struct SciSequence_Ref // * Scilab can't support these, because of how assignment works
   {
     SciSequence_Ref(const SciObject& seq, int index)
       : _seq(seq), _index(index)
@@ -489,7 +489,7 @@ namespace swig
 #endif //SWIG_EXPORT_ITERATOR_METHODS
 %enddef
 
-// The octave container methods
+// The Scilab container methods
 
 %define %swig_container_methods(Container...)
 %enddef
@@ -543,15 +543,15 @@ namespace swig
 namespace swig {
   template <class SciSeq, class Seq>
   inline void
-  assign(const SciSeq& octseq, Seq* seq) {
+  assign(const SciSeq& sciseq, Seq* seq) {
 %#ifdef SWIG_STD_NOASSIGN_STL
     typedef typename SciSeq::value_type value_type;
-    typename SciSeq::const_iterator it = octseq.begin();
-    for (;it != octseq.end(); ++it) {
+    typename SciSeq::const_iterator it = sciseq.begin();
+    for (;it != sciseq.end(); ++it) {
       seq->insert(seq->end(),(value_type)(*it));
     }
 %#else
-    seq->assign(octseq.begin(), octseq.end());
+    seq->assign(sciseq.begin(), sciseq.end());
 %#endif
   }
 
@@ -570,18 +570,18 @@ namespace swig {
 	}
       } else if (obj.is_cell()) {
 	try {
-	  SciSequence_Cont<value_type> octseq(obj);
+	  SciSequence_Cont<value_type> sciseq(obj);
 	  if (seq) {
 	    sequence *pseq = new sequence();
-	    assign(octseq, pseq);
+	    assign(sciseq, pseq);
 	    *seq = pseq;
 	    return SWIG_NEWOBJ;
 	  } else {
-	    return octseq.check() ? SWIG_OK : SWIG_ERROR;
+	    return sciseq.check() ? SWIG_OK : SWIG_ERROR;
 	  }
 	} catch (std::exception& e) {
 	  if (seq&&!error_state)
-          Scierror(999, "swig type error: %s",e.what());
+	    error("swig type error: %s",e.what());
 	  return SWIG_ERROR;
 	}
       }
@@ -597,7 +597,7 @@ namespace swig {
     typedef typename sequence::const_iterator const_iterator;
 
     static SciObject from(const sequence& seq) {
-#ifdef SWIG_OCTAVE_EXTRA_NATIVE_CONTAINERS
+#ifdef SWIG_SCILAB_EXTRA_NATIVE_CONTAINERS
       swig_type_info *desc = swig::type_info<sequence>();
       if (desc && desc->clientdata) {
 	return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
@@ -613,7 +613,7 @@ namespace swig {
 	}
 	return c;
       } else {
-          Scierror(999, "swig overflow error: sequence size not valid in Scilab");
+	error("swig overflow error: sequence size not valid in Scilab");
 	return SciObject();
       }
       return SciObject();

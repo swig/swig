@@ -1,14 +1,10 @@
-// Based on Python implementation
-
 %fragment("StdTraits","header",fragment="StdTraitsCommon")
 {
 namespace swig {  
-  /*
-    Traits that provides the from method
-  */
+// Traits that provides the from method
   template <class Type> struct traits_from_ptr {
     static SciObject from(Type *val, int owner = 0) {
-      return SWIG_InternalNewPointerObj(val, type_info<Type>(), owner);
+        return 0; //SWIG_NewPointerObj(val, type_info<Type>(), owner);
     }
   };
 
@@ -41,29 +37,27 @@ namespace swig {
     return traits_from_ptr<Type>::from(val, owner);
   }
 
-  /*
-    Traits that provides the asval/as/check method
-  */
+    // Traits that provides the asval/as/check method
   template <class Type>
-  struct traits_asptr {
-    static int asptr(SciObject obj, Type **val) {
+  struct traits_asptr {   
+    static int asptr(const SciObject& obj, Type **val) {
       Type *p;
       int res = SWIG_ConvertPtr(obj, (void**)&p, type_info<Type>(), 0);
       if (SWIG_IsOK(res)) {
-         if (val) *val = p;
+	if (val) *val = p;
       }
       return res;
     }
-  };
+  }; 
 
   template <class Type>
-  inline int asptr(SciObject obj, Type **vptr) {
+  inline int asptr(const SciObject& obj, Type **vptr) {
     return traits_asptr<Type>::asptr(obj, vptr);
   }
 
   template <class Type> 
   struct traits_asval {
-    static int asval(SciObject obj, Type *val) {
+    static int asval(const SciObject& obj, Type *val) {
       if (val) {
 	Type *p = 0;
 	int res = traits_asptr<Type>::asptr(obj, &p);
@@ -86,7 +80,7 @@ namespace swig {
   };
 
   template <class Type> struct traits_asval<Type*> {
-    static int asval(SciObject obj, Type **val) {
+    static int asval(const SciObject& obj, Type **val) {
       if (val) {
         typedef typename noconst_traits<Type>::noconst_type noconst_type;
         noconst_type *p = 0;
@@ -102,30 +96,30 @@ namespace swig {
   };
   
   template <class Type>
-  inline int asval(SciObject obj, Type *val) {
+  inline int asval(const SciObject& obj, Type *val) {
     return traits_asval<Type>::asval(obj, val);
   }
 
   template <class Type> 
   struct traits_as<Type, value_category> {
-    static Type as(SciObject obj, bool throw_error) {
+    static Type as(const SciObject& obj, bool throw_error) {
       Type v;
       int res = asval(obj, &v);
-      if (!obj || !SWIG_IsOK(res)) {
-//	if (!PyErr_Occurred()) {
-//	  ::%type_error(swig::type_name<Type>());
-//	}
+      //if (!obj.is_defined() || !SWIG_IsOK(res)) {
+	if (!Scilab_Error_Occurred()) {
+	  %type_error(swig::type_name<Type>());
+	}
 	if (throw_error) throw std::invalid_argument("bad type");
-      }
+    //}
       return v;
     }
   };
 
   template <class Type> 
   struct traits_as<Type, pointer_category> {
-    static Type as(SciObject obj, bool throw_error) {
+    static Type as(const SciObject& obj, bool throw_error) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
+      int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res) && v) {
 	if (SWIG_IsNewObj(res)) {
 	  Type r(*v);
@@ -137,9 +131,9 @@ namespace swig {
       } else {
 	// Uninitialized return value, no Type() constructor required.
 	static Type *v_def = (Type*) malloc(sizeof(Type));
-//	if (!PyErr_Occurred()) {
-//	  %type_error(swig::type_name<Type>());
-//	}
+	if (!Scilab_Error_Occurred()) {
+	  %type_error(swig::type_name<Type>());
+	}
 	if (throw_error) throw std::invalid_argument("bad type");
 	memset(v_def,0,sizeof(Type));
 	return *v_def;
@@ -149,15 +143,15 @@ namespace swig {
 
   template <class Type> 
   struct traits_as<Type*, pointer_category> {
-    static Type* as(SciObject obj, bool throw_error) {
+    static Type* as(const SciObject& obj, bool throw_error) {
       Type *v = 0;      
-      int res = (obj ? traits_asptr<Type>::asptr(obj, &v) : SWIG_ERROR);
+      int res = traits_asptr<Type>::asptr(obj, &v);
       if (SWIG_IsOK(res)) {
 	return v;
       } else {
-//	if (!PyErr_Occurred()) {
-//	  %type_error(swig::type_name<Type>());
-//	}
+	if (!Scilab_Error_Occurred()) {
+	  %type_error(swig::type_name<Type>());
+	}
 	if (throw_error) throw std::invalid_argument("bad type");
 	return 0;
       }
@@ -165,28 +159,28 @@ namespace swig {
   };
     
   template <class Type>
-  inline Type as(SciObject obj, bool te = false) {
+  inline Type as(const SciObject& obj, bool te = false) {
     return traits_as<Type, typename traits<Type>::category>::as(obj, te);
   }
 
   template <class Type> 
   struct traits_check<Type, value_category> {
-    static bool check(SciObject obj) {
-      int res = obj ? asval(obj, (Type *)(0)) : SWIG_ERROR;
+    static bool check(const SciObject& obj) {
+      int res = asval(obj, (Type *)(0));
       return SWIG_IsOK(res) ? true : false;
     }
   };
 
   template <class Type> 
   struct traits_check<Type, pointer_category> {
-    static bool check(SciObject obj) {
-      int res = obj ? asptr(obj, (Type **)(0)) : SWIG_ERROR;
+    static bool check(const SciObject& obj) {
+      int res = asptr(obj, (Type **)(0));
       return SWIG_IsOK(res) ? true : false;
     }
   };
 
   template <class Type>
-  inline bool check(SciObject obj) {
+  inline bool check(const SciObject& obj) {
     return traits_check<Type, typename traits<Type>::category>::check(obj);
   }
 }
@@ -197,7 +191,7 @@ namespace swig {
 namespace swig {
   template <>  struct traits_asval<Type > {   
     typedef Type value_type;
-    static int asval(SciObject obj, value_type *val) {
+    static int asval(const SciObject& obj, value_type *val) {
       if (Check(obj)) {
 	if (val) *val = As(obj);
 	return SWIG_OK;
@@ -214,7 +208,7 @@ namespace swig {
 
   template <> 
   struct traits_check<Type, value_category> {
-    static int check(SciObject obj) {
+    static int check(const SciObject& obj) {
       int res = Check(obj);
       return obj && res ? res : 0;
     }
@@ -229,3 +223,4 @@ namespace swig {
 #define specialize_std_deque(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
 #define specialize_std_set(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
 #define specialize_std_multiset(Type,Check,As,From) %specialize_std_container(%arg(Type),Check,As,From)
+
