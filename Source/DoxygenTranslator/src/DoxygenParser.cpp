@@ -22,7 +22,7 @@ using std::cout;
 using std::endl;
 
 // Define static class members
-std::map<std::string, DoxyCommandEnum> DoxygenParser::doxygenCommands;
+DoxygenParser::DoxyCommandsMap DoxygenParser::doxygenCommands;
 std::set<std::string> DoxygenParser::doxygenSectionIndicators;
 
 const int TOKENSPERLINE = 8;    //change this to change the printing behaviour of the token list
@@ -110,15 +110,18 @@ void DoxygenParser::printTree(const DoxygenEntityList &rootList) {
 	}
 }
 
+
 int DoxygenParser::commandBelongs(const std::string &theCommand) {
 	std::string smallString = stringToLower(theCommand);
 	//cout << " Looking for command " << theCommand << endl;
-	std::map<std::string, DoxyCommandEnum>::iterator it;
-	it = doxygenCommands.find(smallString);
-	if (it!=doxygenCommands.end())
+	std::map<std::string, DoxyCommandEnum>::iterator it =
+	                                         doxygenCommands.find(smallString);
+	if (it != doxygenCommands.end()) {
 		return it->second;
+	}
 	return 0;
 }
+
 
 std::string DoxygenParser::getNextWord(const TokenList &tokList) {
 	// MK Token nextToken = tokList.peek();
@@ -703,7 +706,7 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
 		TokenListCIt endCommand = tokList.end();
 
 		// go through the commands and find closing endif or else or elseif
-		for (TokenListCIt it = m_tokenListIt; it!=tokList.end(); it++) {
+		for (TokenListCIt it = m_tokenListIt; it != tokList.end(); it++) {
 			if (it->m_tokenType == COMMAND) {
 				if (it->m_tokenString == "if" || it->m_tokenString == "ifnot")
 					nestedCounter++;
@@ -742,9 +745,10 @@ int DoxygenParser::addCommand(const std::string &commandString,
                                   const TokenList &tokList,
                                   DoxygenEntityList &doxyList) {
 
-	std::string theCommand = stringToLower(commandString);
+	string theCommand = stringToLower(commandString);
+
 	if (theCommand == "plainstd::string") {
-		std::string nextPhrase = getStringTilCommand(tokList);
+		string nextPhrase = getStringTilCommand(tokList);
 		if (noisy)
 			cout << "Parsing plain std::string :" << nextPhrase << endl;
 		doxyList.push_back(DoxygenEntity("plainstd::string", nextPhrase));
@@ -778,9 +782,12 @@ int DoxygenParser::addCommand(const std::string &commandString,
 }
 
 
+/**
+ * This method converts TokenList to DoxygenEntryList.
+ */
 DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex,
-                                                       const TokenList &tokList,
-                                                       bool root) {
+                                          const TokenList &tokList,
+                                          bool root) {
 	// if we are root, than any strings should be added as 'partofdescription', else as 'plainstd::string'
 	std::string currPlainstringCommandType = root ? "partofdescription" : "plainstd::string";
 	DoxygenEntityList aNewList;
@@ -812,22 +819,30 @@ DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex,
 }
 
 
-DoxygenEntityList DoxygenParser::createTree(const std::string &doxygenBlob, const std::string &fileName, int lineNumber) {
-	TokenList tokList = tokenizeDoxygenComment(doxygenBlob, fileName, lineNumber);
-	if (noisy) {
-		cout << "---TOKEN LIST---" << endl;
-		printList();
-	}
-	DoxygenEntityList rootList;
-	rootList = parse(tokList.end(), tokList, true);
-	if (noisy) {
-		cout << "PARSED LIST" << endl;
-		printTree(rootList);
-	}
-	return rootList;
+DoxygenEntityList DoxygenParser::createTree(const std::string &doxygenBlob,
+                                               const std::string &fileName,
+                                               int lineNumber) {
+
+  TokenList tokList = tokenizeDoxygenComment(doxygenBlob, fileName, lineNumber);
+  if (noisy) {
+    cout << "---TOKEN LIST---" << endl;
+    printList();
+  }
+
+  DoxygenEntityList rootList = parse(tokList.end(), tokList, true);
+
+  if (noisy) {
+    cout << "PARSED LIST" << endl;
+    printTree(rootList);
+  }
+  return rootList;
 }
 
 
+/**
+ * This is one of the most important methods - it breaks the original
+ * doxygen comment into tokens.
+ */
 DoxygenParser::TokenList DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
                                                                       const std::string &fileName,
                                                                       int fileLine) {
@@ -842,13 +857,17 @@ DoxygenParser::TokenList DoxygenParser::tokenizeDoxygenComment(const std::string
   while (true) {
     isPlainString = false;
     pos = doxygenComment.find_first_of("\\@\t\n ", lastPos);
-    if (pos == string::npos)
+    if (pos == string::npos) {
       pos = doxygenComment.size();
+    }
 
     currentWord = doxygenComment.substr(lastPos, pos-lastPos);
-    if (prevChar == '\n')
+
+    if (prevChar == '\n') {
+
       tokList.push_back(Token(END_LINE, "\n"));
-    else if (prevChar == '\\' || prevChar == '@') {
+
+    } else if (prevChar == '\\' || prevChar == '@') {
       // it's a doxygen command
       // hack to get commands like \\ or \@ or @\ or @@
       if (doxygenComment[pos] == '@' || doxygenComment[pos] == '\\') {
@@ -871,22 +890,24 @@ DoxygenParser::TokenList DoxygenParser::tokenizeDoxygenComment(const std::string
           // unknown commands are not translated - treated as literal string
           tokList.push_back(Token(PLAINSTRING, currentWord));
       }
-    }
-    else if (currentWord.size() && (currentWord[0] == '!' || currentWord[0] == '*' || currentWord[0] == '/')) {
+
+    } else if (currentWord.size() && (currentWord[0] == '!' || currentWord[0] == '*' || currentWord[0] == '/')) {
+
       // check if it's one of the '!!!', '***', '///' of any length
       char c = currentWord[0];
       isPlainString = false;
-      for (size_t i=0; i<currentWord.size(); i++)
+      for (size_t i = 0; i < currentWord.size(); i++)
         if (currentWord[i] != c) {
           isPlainString = true;
           break;
         }
-    }
-    else
+    } else {
       isPlainString = true;
+    }
 
-    if (isPlainString && currentWord.size())
+    if (isPlainString && currentWord.size()) {
       tokList.push_back(Token(PLAINSTRING, currentWord));
+    }
 
     prevChar = doxygenComment[pos];
     lastPos = pos + 1;
@@ -934,8 +955,6 @@ void DoxygenParser::printListError(int warningType,
     }
   }
 
-  Swig_warning(warningType, m_fileName.c_str(),
-                 curLine,
-                 "Doxygen parser warning: %s. \n",
-                 message.c_str());
+  Swig_warning(warningType, m_fileName.c_str(), curLine,
+                 "Doxygen parser warning: %s. \n", message.c_str());
 }

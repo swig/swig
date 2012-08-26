@@ -20,54 +20,78 @@
 class DoxygenParser {
 private:
 
-    /** This class contains parts of Doxygen comment as a token. */
-    class Token {
-    public:
-        DoxyCommandEnum m_tokenType;
-        std::string m_tokenString;		/* the data , such as param for @param */
-
-        Token(DoxyCommandEnum tType, std::string tString) :
-            m_tokenType(tType),
-            m_tokenString(tString) {}
-
-        std::string toString() const {
-
-            switch (m_tokenType) {
-            case END_LINE:
-                return "{END OF LINE}";
-            case PARAGRAPH_END:
-                return "{END OF PARAGRAPH}";
-            case PLAINSTRING:
-                return "{PLAINSTRING :" + m_tokenString + "}";
-            case COMMAND:
-                return "{COMMAND : " + m_tokenString + "}";
-            default:
-                return "";
-            }
-        }
-    };
+  typedef enum {
+    SIMPLECOMMAND,
+    COMMANDWORD,
+    COMMANDLINE,
+    COMMANDPARAGRAPH,
+    COMMANDENDCOMMAND,
+    COMMANDWORDPARAGRAPH,
+    COMMANDWORDLINE,
+    COMMANDWORDOWORDWORD,
+    COMMANDOWORD,
+    COMMANDERRORTHROW,
+    COMMANDUNIQUE,
+    END_LINE,
+    PARAGRAPH_END,
+    PLAINSTRING,
+    COMMAND
+  } DoxyCommandEnum;
 
 
-    typedef std::list<Token> TokenList;
-    typedef TokenList::const_iterator TokenListCIt;
-    typedef TokenList::iterator TokenListIt;
 
-    TokenList m_tokenList;
-    TokenListCIt m_tokenListIt;
-    std::string m_fileName;
-    int m_fileLineNo;
+  /** This class contains parts of Doxygen comment as a token. */
+  class Token {
+  public:
+    DoxyCommandEnum m_tokenType;
+    std::string m_tokenString;		/* the data , such as param for @param */
+
+    Token(DoxyCommandEnum tType, std::string tString) :
+      m_tokenType(tType),
+      m_tokenString(tString) {}
+
+    std::string toString() const {
+
+      switch (m_tokenType) {
+      case END_LINE:
+        return "{END OF LINE}";
+      case PARAGRAPH_END:
+        return "{END OF PARAGRAPH}";
+      case PLAINSTRING:
+        return "{PLAINSTRING :" + m_tokenString + "}";
+      case COMMAND:
+        return "{COMMAND : " + m_tokenString + "}";
+      default:
+        return "";
+      }
+    }
+  };
+
+
+  typedef std::list<Token> TokenList;
+  typedef TokenList::const_iterator TokenListCIt;
+  typedef TokenList::iterator TokenListIt;
+
+  TokenList m_tokenList;
+  TokenListCIt m_tokenListIt;
+
+  typedef std::map<std::string, DoxyCommandEnum> DoxyCommandsMap;
+  typedef DoxyCommandsMap::iterator DoxyCommandsMapIt;
+
+  /*
+   * Map of Doxygen commands to determine if a string is a
+   * command and how it needs to be parsed
+   */
+  static DoxyCommandsMap doxygenCommands;
+  static std::set<std::string> doxygenSectionIndicators;
+
+  std::string m_fileName;
+  int m_fileLineNo;
 
     /*
      * Whether to print lots of debug info during parsing
      */
     bool noisy;
-
-    /*
-     * Map of Doxygen commands to determine if a string is a
-     * command and how it needs to be parsed
-     */
-    static std::map<std::string, DoxyCommandEnum> doxygenCommands;
-    static std::set<std::string> doxygenSectionIndicators;
 
   /*
    *Changes a std::string to all lower case

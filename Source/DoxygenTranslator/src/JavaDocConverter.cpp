@@ -120,9 +120,19 @@ JavaDocConverter::JavaDocConverter(bool debugTranslator, bool debugParser)
   fillStaticTables();
 }
 
-std::string JavaDocConverter::formatCommand(std::string unformattedLine, int indent) {
+
+/**
+ * Formats comment lines by inserting '\n *' at to long lines and tabs for
+ * indent. Currently it is disabled, which means original comment format is
+ * preserved. Experience shows, that this is usually better than breaking
+ * lines automatically, especially because original line endings are not removed,
+ * which results in short lines. To be useful, this function should have much
+ * better algorithm.
+ */
+std::string JavaDocConverter::formatCommand(std::string unformattedLine,
+                                                int indent) {
   std::string formattedLines;
-  return unformattedLine;
+  return unformattedLine;  // currently disabled
   int lastPosition = 0;
   int i = 0;
   int isFirstLine = 1;
@@ -160,48 +170,69 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine, int ind
   return formattedLines;
 }
 
+
+/**
+ * Returns true, if the given parameter exists in the current node. If feature
+ * 'doxygen:nostripparams' is set, then this method always returns true.
+ */
 bool JavaDocConverter::paramExists(std::string param) {
-  if (GetFlag(currentNode, "feature:doxygen:nostripparams"))
+
+  if (GetFlag(currentNode, "feature:doxygen:nostripparams")) {
     return true;
+  }
+
   ParmList *plist = CopyParmList(Getattr(currentNode, "parms"));
-  Parm *p = NULL;
-  for (p = plist; p;) {
-    if (Getattr(p, "name") && Char(Getattr(p, "name")) == param)
+
+  for (Parm *p = plist; p;) {
+
+    if (Getattr(p, "name") && Char(Getattr(p, "name")) == param) {
       return true;
-    /*
-     * doesn't seem to work always: in some cases (especially for 'self' parameters)
+    }
+    /* doesn't seem to work always: in some cases (especially for 'self' parameters)
      * tmap:in is present, but tmap:in:next is not and so this code skips all the parameters
      */
     //p = Getattr(p, "tmap:in") ? Getattr(p, "tmap:in:next") : nextSibling(p);
     p = nextSibling(p);
   }
+
   Delete(plist);
+
   return false;
 }
 
-std::string JavaDocConverter::translateSubtree(DoxygenEntity & doxygenEntity) {
+
+std::string JavaDocConverter::translateSubtree(DoxygenEntity &doxygenEntity) {
   std::string translatedComment;
   
-  if (doxygenEntity.isLeaf)
+  if (doxygenEntity.isLeaf) {
     return translatedComment;
+  }
   
-  std::list < DoxygenEntity >::iterator p = doxygenEntity.entityList.begin();
-  while (p != doxygenEntity.entityList.end()) {
+  for (DoxygenEntityListIt p = doxygenEntity.entityList.begin();
+       p != doxygenEntity.entityList.end(); p++) {
+
     translateEntity(*p, translatedComment);
     translateSubtree(*p);
-    p++;
   }
   
   return translatedComment;
 }
 
-void JavaDocConverter::translateEntity(DoxygenEntity& tag, std::string& translatedComment) {
-  // check if we have needed handler and call it
+
+/**
+ * Checks if a handler for the given tag exists, and calls it.
+ */
+void JavaDocConverter::translateEntity(DoxygenEntity &tag,
+                                            std::string &translatedComment) {
+
   std::map<std::string, std::pair<tagHandler, std::string > >::iterator it;
   it = tagHandlers.find(tag.typeOfEntity);
-  if (it!=tagHandlers.end())
+
+  if (it != tagHandlers.end()) {
     (this->*(it->second.first))(tag, translatedComment, it->second.second);
+  }
 }
+
 
 void JavaDocConverter::handleTagHtml(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   if (tag.entityList.size()) { // do not include empty tags
@@ -214,9 +245,13 @@ void JavaDocConverter::handleTagHtml(DoxygenEntity& tag, std::string& translated
       translatedComment += "<" + arg + ">" + translateSubtree(tag) + "</" + arg + "> ";
   }
 }
+
+
 void JavaDocConverter::handleNewLine(DoxygenEntity&, std::string& translatedComment, std::string&) {
   translatedComment += "\n * ";
 }
+
+
 void JavaDocConverter::handleTagChar(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   // escape it if we need to, else just print
   if (arg.size())
@@ -225,19 +260,26 @@ void JavaDocConverter::handleTagChar(DoxygenEntity& tag, std::string& translated
     translatedComment += tag.typeOfEntity;
   translatedComment += " ";
 }
+
+// handles tags which are the same in Doxygen and Javadoc.
 void JavaDocConverter::handleTagSame(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   if (arg.size())
     tag.typeOfEntity = arg;
   translatedComment += formatCommand(std::string("@" + tag.typeOfEntity + " " + translateSubtree(tag)), 2);
 }
+
+
 void JavaDocConverter::handleParagraph(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   translatedComment += formatCommand(translateSubtree(tag), 0);
 }
+
+
 void JavaDocConverter::handlePlainString(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   translatedComment += tag.data;
   if (tag.data.size() && tag.data[tag.data.size()-1] != ' ')
   	translatedComment += " ";
 }
+
 
 void JavaDocConverter::handleTagExtended(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   std::string dummy;
@@ -245,6 +287,8 @@ void JavaDocConverter::handleTagExtended(DoxygenEntity& tag, std::string& transl
   handleParagraph(tag, translatedComment, dummy);
   translatedComment += "}";
 }
+
+
 void JavaDocConverter::handleTagIf(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   std::string dummy;
   translatedComment += arg;
@@ -254,11 +298,15 @@ void JavaDocConverter::handleTagIf(DoxygenEntity& tag, std::string& translatedCo
     translatedComment += " {" + translateSubtree(tag) + "}";
   }
 }
+
+
 void JavaDocConverter::handleTagMessage(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   std::string dummy;
   translatedComment += formatCommand(arg, 0);
   handleParagraph(tag, translatedComment, dummy);
 }
+
+
 void JavaDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   if (tag.entityList.size() < 2)
     return;
@@ -282,6 +330,8 @@ void JavaDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translate
     translatedComment += " alt=\"" + title +"\"";
   translatedComment += " />";
 }
+
+
 void JavaDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   std::string dummy;
   translatedComment += "<p";
@@ -293,6 +343,7 @@ void JavaDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedC
   }
   translatedComment += "</p>";
 }
+
 
 void JavaDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   std::string dummy;
@@ -306,6 +357,7 @@ void JavaDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translate
   tag.entityList.pop_front();
   handleParagraph(tag, translatedComment, dummy);
 }
+
 
 string JavaDocConverter::convertLink(string linkObject) {
   if (GetFlag(currentNode, "feature:doxygen:nolinktranslate"))
@@ -394,6 +446,7 @@ string JavaDocConverter::convertLink(string linkObject) {
   return linkObject;
 }
 
+
 void JavaDocConverter::handleTagLink(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   std::string dummy;
   if (!tag.entityList.size())
@@ -409,6 +462,7 @@ void JavaDocConverter::handleTagLink(DoxygenEntity& tag, std::string& translated
   handleParagraph(tag, translatedComment, dummy);
   translatedComment += "}";
 }
+
 
 void JavaDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   std::string dummy;
@@ -429,33 +483,41 @@ void JavaDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translatedC
   }
 }
 
-int JavaDocConverter::cleanUpTree(DoxygenEntity &root, int level)
-{
-  // this function should move all endlines out of the child entities
-  // for example:
-  // root
-  // -param
-  // --paramText
-  // --endline
-  // should be turned to
-  // root
-  // -param
-  // --paramText
-  // -endline
 
-  std::list < DoxygenEntity >::iterator it = root.entityList.begin();
+/* This function moves all endlines at the end of child entities
+ * out of the child entities to the parent.
+ * For example, entity tree:
+
+   -root
+    |-param
+      |-paramText
+      |-endline
+
+   should be turned to
+
+   -root
+    |-param
+      |-paramText
+    |-endline
+ *
+ */
+int JavaDocConverter::shiftEndlinesUpTree(DoxygenEntity &root, int level)
+{
+  DoxygenEntityListIt it = root.entityList.begin();
   while (it != root.entityList.end()) {
     // remove endlines
-    int ret = cleanUpTree(*it, level + 1);
+    int ret = shiftEndlinesUpTree(*it, level + 1);
     // insert them after this element
     it++;
-    for (int i=0; i<ret; i++)
+    for (int i = 0; i < ret; i++) {
       root.entityList.insert(it, DoxygenEntity("plainstd::endl"));
+    }
   }
 
   // continue only if we are not root
-  if (!level)
+  if (!level) {
     return 0;
+  }
 
   int removedCount = 0;
   while (!root.entityList.empty()  &&  root.entityList.rbegin()->typeOfEntity == "plainstd::endl") {
@@ -464,6 +526,7 @@ int JavaDocConverter::cleanUpTree(DoxygenEntity &root, int level)
   }
   return removedCount;
 }
+
 
 String *JavaDocConverter::makeDocumentation(Node *node) {
 
@@ -483,10 +546,11 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
     return comment;
   }
 
-  std::list < DoxygenEntity > entityList = parser.createTree(Char(documentation), Char(Getfile(documentation)), Getline(documentation));
+  DoxygenEntityList entityList = parser.createTree(Char(documentation),
+                                                   Char(Getfile(documentation)),
+                                                   Getline(documentation));
 
   // entityList.sort(CompareDoxygenEntities()); sorting currently not used,
-  // see CompareDoxygenEntities::operator() in DoxygenEntity.cpp
 
   if (debug) {
     std::cout << "---RESORTED LIST---" << std::endl;
@@ -501,13 +565,19 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
 
   DoxygenEntity root("root", entityList);
 
-  cleanUpTree(root);
+  shiftEndlinesUpTree(root);
+
   // strip endlines at the beginning
-  while (root.entityList.begin()->typeOfEntity == "plainstd::endl")
+  while (!root.entityList.empty()  &&
+          root.entityList.begin()->typeOfEntity == "plainstd::endl") {
     root.entityList.pop_front();
+  }
+
   // and at the end
-  while (root.entityList.rbegin()->typeOfEntity == "plainstd::endl")
+  while (!root.entityList.empty()  &&
+          root.entityList.rbegin()->typeOfEntity == "plainstd::endl") {
     root.entityList.pop_back();
+  }
 
   javaDocString += translateSubtree(root);
 

@@ -42,7 +42,7 @@ protected:
   /*
    * Fix all endlines location, etc
    */
-  int cleanUpTree(DoxygenEntity &root, int level = 0);
+  int shiftEndlinesUpTree(DoxygenEntity &root, int level = 0);
   
   /*
    * Convert params in link-objects and references
