@@ -23,8 +23,9 @@
 
 
 /*
- * A class to translate doxygen comments attached to parser nodes
- * into alternative formats for use in code generated for target languages.
+ * This is a base class for translator classes. It defines the basic interface
+ * for translators, which convert Doxygen comments into alternative formats for
+ * target languages.
  */
 class DoxygenTranslator {
 public:
@@ -32,41 +33,42 @@ public:
    * Constructor
    */
   DoxygenTranslator(bool debugTranslator = false, bool debugParser = false);
+
   /*
    * Virtual destructor.
    */
-  virtual ~ DoxygenTranslator();
+  virtual ~DoxygenTranslator();
+
   /*
    * Return the documentation for a given node formated for the correct 
    * documentation system.
    */
   String *getDocumentation(Node *node);
+
   /*
-   * Whether the specified node has comment or not
+   * Returns truem is the specified node has comment attached.
    */
   bool hasDocumentation(Node *node);
+
   /*
-   * Get original, Doxygen-format comment string
+   * Get original comment string in Doxygen-format.
    */
   String *getDoxygenComment(Node *node);
 
 protected:
   bool debug;
+  DoxygenParser parser;
+
   /*
-   * Overridden in subclasses to return the documentation formatted for a given
-   * documentation system.
+   * Returns the documentation formatted for a target language.
    */
   virtual String *makeDocumentation(Node *node) = 0;
   
   /*
    * Prints the details of a parsed entity list to stdout (for debugging).
    */
-  void printTree(std::list < DoxygenEntity > &entityList);
+  void printTree(const DoxygenEntityList &entityList);
   
-  /*
-   * Doxygen parser object
-   */
-  DoxygenParser parser;
 };
 
 #endif

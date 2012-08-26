@@ -458,7 +458,7 @@ int JavaDocConverter::cleanUpTree(DoxygenEntity &root, int level)
     return 0;
 
   int removedCount = 0;
-  while (root.entityList.rbegin()->typeOfEntity == "plainstd::endl") {
+  while (!root.entityList.empty()  &&  root.entityList.rbegin()->typeOfEntity == "plainstd::endl") {
     root.entityList.pop_back();
     removedCount++;
   }

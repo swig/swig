@@ -36,29 +36,28 @@ typedef enum {
   COMMAND
 } DoxyCommandEnum;
 
+class DoxygenEntity;
+
+typedef std::list <DoxygenEntity> DoxygenEntityList;
+typedef DoxygenEntityList::iterator DoxygenEntityListIt;
+typedef DoxygenEntityList::const_iterator DoxygenEntityListCIt;
+
+
 /*
  * Structure to represent a doxygen comment entry
  */
-struct DoxygenEntity {
+class DoxygenEntity {
+public:
   std::string typeOfEntity;
-  std::list < DoxygenEntity > entityList;
   std::string data;
   bool isLeaf;
+  DoxygenEntityList entityList;
 
-  DoxygenEntity(std::string typeEnt);
-  DoxygenEntity(std::string typeEnt, std::string param1);
-  DoxygenEntity(std::string typeEnt, std::list < DoxygenEntity > &entList);
+  DoxygenEntity(const std::string &typeEnt);
+  DoxygenEntity(const std::string &typeEnt, const std::string &param1);
+  DoxygenEntity(const std::string & typeEnt, const DoxygenEntityList &entList);
 
   void printEntity(int level) const;
-};
-
-/* 
- * Functor that sorts entities by javaDoc standard order for commands.
- * NOTE: will not behave entirely properly until "First level" comments
- * such as brief descriptions are TAGGED as such
- */
-struct CompareDoxygenEntities {
-  bool operator() (DoxygenEntity & first, DoxygenEntity & second);
 };
 
 #endif

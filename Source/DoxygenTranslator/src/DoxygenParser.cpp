@@ -102,8 +102,8 @@ bool DoxygenParser::isSectionIndicator(const std::string &smallString) {
 }
 
 
-void DoxygenParser::printTree(const std::list <DoxygenEntity> &rootList) {
-	std::list < DoxygenEntity >::const_iterator p = rootList.begin();
+void DoxygenParser::printTree(const DoxygenEntityList &rootList) {
+	DoxygenEntityList::const_iterator p = rootList.begin();
 	while (p != rootList.end()) {
 		(*p).printEntity(0);
 		p++;
@@ -297,7 +297,7 @@ DoxygenParser::TokenListCIt DoxygenParser::getEndCommand(const std::string & the
 
 
 int DoxygenParser::addSimpleCommand(const std::string &theCommand,
-                                         std::list < DoxygenEntity > &doxyList) {
+                                         DoxygenEntityList &doxyList) {
 	if (noisy)
 		cout << "Parsing " << theCommand << endl;
 
@@ -308,13 +308,13 @@ int DoxygenParser::addSimpleCommand(const std::string &theCommand,
 
 int DoxygenParser::addCommandWord(const std::string &theCommand,
                                        const TokenList &tokList,
-                                       std::list < DoxygenEntity > &doxyList) {
+                                       DoxygenEntityList &doxyList) {
 	if (noisy)
 		cout << "Parsing " << theCommand << endl;
 
 	std::string name = getNextWord(tokList);
 	if (!name.empty()) {
-    std::list < DoxygenEntity > aNewList;
+    DoxygenEntityList aNewList;
     aNewList.push_back(DoxygenEntity("plainstd::string", name));
 		doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 		return 1;
@@ -327,11 +327,11 @@ int DoxygenParser::addCommandWord(const std::string &theCommand,
 
 int DoxygenParser::addCommandLine(const std::string &theCommand,
                                        const TokenList &tokList,
-                                       std::list < DoxygenEntity > &doxyList) {
+                                       DoxygenEntityList &doxyList) {
 	if (noisy)
 		cout << "Parsing " << theCommand << endl;
 	TokenListCIt endOfLine = getOneLine(tokList);
-	std::list < DoxygenEntity > aNewList = parse(endOfLine, tokList);
+	DoxygenEntityList aNewList = parse(endOfLine, tokList);
 	doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 	return 1;
 }
@@ -339,12 +339,12 @@ int DoxygenParser::addCommandLine(const std::string &theCommand,
 
 int DoxygenParser::addCommandParagraph(const std::string &theCommand,
                                             const TokenList &tokList,
-                                            std::list < DoxygenEntity > &doxyList) {
+                                            DoxygenEntityList &doxyList) {
 	if (noisy)
 		cout << "Parsing " << theCommand << endl;
 
 	TokenListCIt endOfParagraph = getEndOfParagraph(tokList);
-	std::list < DoxygenEntity > aNewList;
+	DoxygenEntityList aNewList;
 	aNewList = parse(endOfParagraph, tokList);
 	doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 	return 1;
@@ -353,7 +353,7 @@ int DoxygenParser::addCommandParagraph(const std::string &theCommand,
 
 int DoxygenParser::addCommandEndCommand(const std::string &theCommand,
                                              const TokenList & tokList,
-                                             std::list < DoxygenEntity > &doxyList) {
+                                             DoxygenEntityList &doxyList) {
 	if (noisy)
 		cout << "Parsing " << theCommand << endl;
 	TokenListCIt endCommand = getEndCommand("end" + theCommand, tokList);
@@ -361,7 +361,7 @@ int DoxygenParser::addCommandEndCommand(const std::string &theCommand,
 	  printListError(WARN_DOXYGEN_COMMAND_EXPECTED, "Expected end" + theCommand);
 	  return 0;
 	}
-	std::list < DoxygenEntity > aNewList;
+	DoxygenEntityList aNewList;
 	aNewList = parse(endCommand, tokList);
 	m_tokenListIt++;
 	doxyList.push_back(DoxygenEntity(theCommand, aNewList));
@@ -371,7 +371,7 @@ int DoxygenParser::addCommandEndCommand(const std::string &theCommand,
 
 int DoxygenParser::addCommandWordParagraph(const std::string &theCommand,
                                                  const TokenList &tokList,
-                                                 std::list < DoxygenEntity > &doxyList) {
+                                                 DoxygenEntityList &doxyList) {
 	if (noisy)
 		cout << "Parsing " << theCommand << endl;
 
@@ -382,7 +382,7 @@ int DoxygenParser::addCommandWordParagraph(const std::string &theCommand,
 		return 0;
 	}
 	TokenListCIt endOfParagraph = getEndOfParagraph(tokList);
-	std::list < DoxygenEntity > aNewList;
+	DoxygenEntityList aNewList;
 	aNewList = parse(endOfParagraph, tokList);
 	aNewList.push_front(DoxygenEntity("plainstd::string", name));
 	doxyList.push_back(DoxygenEntity(theCommand, aNewList));
@@ -391,7 +391,7 @@ int DoxygenParser::addCommandWordParagraph(const std::string &theCommand,
 
 int DoxygenParser::addCommandWordLine(const std::string &theCommand,
                                            const TokenList & tokList,
-                                           std::list < DoxygenEntity > &doxyList) {
+                                           DoxygenEntityList &doxyList) {
 	if (noisy)
 		cout << "Parsing " << theCommand << endl;
 	std::string name = getNextWord(tokList);
@@ -401,7 +401,7 @@ int DoxygenParser::addCommandWordLine(const std::string &theCommand,
 	}
 
 	TokenListCIt endOfLine = getOneLine(tokList);
-	std::list < DoxygenEntity > aNewList;
+	DoxygenEntityList aNewList;
 	aNewList = parse(endOfLine, tokList);
 	aNewList.push_front(DoxygenEntity("plainstd::string", name));
 	doxyList.push_back(DoxygenEntity(theCommand, aNewList));
@@ -411,7 +411,7 @@ int DoxygenParser::addCommandWordLine(const std::string &theCommand,
 
 int DoxygenParser::addCommandWordOWordOWord(const std::string &theCommand,
                                                   const TokenList &tokList,
-                                                  std::list < DoxygenEntity > &doxyList) {
+                                                  DoxygenEntityList &doxyList) {
 	if (noisy)
 		cout << "Parsing " << theCommand << endl;
 
@@ -422,7 +422,7 @@ int DoxygenParser::addCommandWordOWordOWord(const std::string &theCommand,
 	}
 	std::string headerfile = getNextWord(tokList);
 	std::string headername = getNextWord(tokList);
-	std::list < DoxygenEntity > aNewList;
+	DoxygenEntityList aNewList;
 	aNewList.push_back(DoxygenEntity("plainstd::string", name));
 	if (!headerfile.empty())
 		aNewList.push_back(DoxygenEntity("plainstd::string", headerfile));
@@ -435,12 +435,12 @@ int DoxygenParser::addCommandWordOWordOWord(const std::string &theCommand,
 
 int DoxygenParser::addCommandOWord(const std::string &theCommand,
                                         const TokenList &tokList,
-                                        std::list < DoxygenEntity > &doxyList) {
+                                        DoxygenEntityList &doxyList) {
 	if (noisy)
 		cout << "Parsing " << theCommand << endl;
 
 	std::string name = getNextWord(tokList);
-	std::list < DoxygenEntity > aNewList;
+	DoxygenEntityList aNewList;
 	aNewList.push_back(DoxygenEntity("plainstd::string", name));
 	doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 	return 1;
@@ -449,7 +449,7 @@ int DoxygenParser::addCommandOWord(const std::string &theCommand,
 
 int DoxygenParser::addCommandErrorThrow(const std::string &theCommand,
                                              const TokenList &tokList,
-                                             std::list < DoxygenEntity > &) {
+                                             DoxygenEntityList &) {
 
 	printListError(WARN_DOXYGEN_COMMAND_ERROR, "Encountered: " + theCommand +
 			"\nThis command should not have been encountered. Behaviour past this may be unpredictable");
@@ -460,13 +460,13 @@ int DoxygenParser::addCommandErrorThrow(const std::string &theCommand,
 
 int DoxygenParser::addCommandUnique(const std::string &theCommand,
                                          const TokenList &tokList,
-                                         std::list < DoxygenEntity > &doxyList) {
+                                         DoxygenEntityList &doxyList) {
 
     static std::map<std::string, std::string> endCommands;
-	std::list < DoxygenEntity > aNewList;
+	DoxygenEntityList aNewList;
 	if (theCommand == "arg" || theCommand == "li") {
 		TokenListCIt endOfSection = getEndOfSection(theCommand, tokList);
-		std::list < DoxygenEntity > aNewList;
+		DoxygenEntityList aNewList;
 		aNewList = parse(endOfSection, tokList);
 		doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 	}
@@ -514,7 +514,7 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
 	else if (theCommand == "par") {
 	    TokenListCIt endOfLine = getOneLine(tokList);
 		aNewList = parse(endOfLine, tokList);
-		std::list < DoxygenEntity > aNewList2;
+		DoxygenEntityList aNewList2;
 		TokenListCIt endOfParagraph = getEndOfParagraph(tokList);
 		aNewList2 = parse(endOfParagraph, tokList);
 		aNewList.splice(aNewList.end(), aNewList2);
@@ -523,7 +523,7 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
 	}
 	// \headerfile <header-file> [<header-name>]
 	else if (theCommand == "headerfile") {
-		std::list < DoxygenEntity > aNewList;
+		DoxygenEntityList aNewList;
 		std::string name = getNextWord(tokList);
 		aNewList.push_back(DoxygenEntity("plainstd::string", name));
 		name = getNextWord(tokList);
@@ -536,7 +536,7 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
 	else if (theCommand == "overload") {
 	    TokenListCIt endOfLine = getOneLine(tokList);
 		if (endOfLine != m_tokenListIt) {
-			std::list < DoxygenEntity > aNewList;
+			DoxygenEntityList aNewList;
 			aNewList = parse(endOfLine, tokList);
 			doxyList.push_back(DoxygenEntity(theCommand, aNewList));
 		} else
@@ -552,7 +552,7 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
 			printListError(WARN_DOXYGEN_COMMAND_ERROR, "No word followed " + theCommand + " command. Not added");
 			return 0;
 		}
-		std::list < DoxygenEntity > aNewList;
+		DoxygenEntityList aNewList;
 		TokenListCIt endOfLine = getOneLine(tokList);
 		if (endOfLine != m_tokenListIt) {
 			aNewList = parse(endOfLine, tokList);
@@ -656,7 +656,7 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
 		std::string caption = getNextWord(tokList);
 		std::string size = getNextWord(tokList);
 
-		std::list < DoxygenEntity > aNewList;
+		DoxygenEntityList aNewList;
 		aNewList.push_back(DoxygenEntity("plainstd::string", format));
 		aNewList.push_back(DoxygenEntity("plainstd::string", file));
 		if (!caption.empty())
@@ -674,7 +674,7 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
 			printListError(WARN_DOXYGEN_COMMAND_ERROR, "No word followed " + theCommand + " command. Not added");
 			return 0;
 		}
-		std::list < DoxygenEntity > aNewList;
+		DoxygenEntityList aNewList;
 		TokenListCIt endOfLine = getOneLine(tokList);
 		if (endOfLine != m_tokenListIt) {
 			aNewList = parse(endOfLine, tokList);
@@ -726,7 +726,7 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
 			return 0;
 		}
 
-		std::list < DoxygenEntity > aNewList;
+		DoxygenEntityList aNewList;
 		aNewList = parse(endCommand, tokList);
 		if (skipEndif)
 			m_tokenListIt++;
@@ -740,7 +740,7 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
 
 int DoxygenParser::addCommand(const std::string &commandString,
                                   const TokenList &tokList,
-                                  std::list < DoxygenEntity > &doxyList) {
+                                  DoxygenEntityList &doxyList) {
 
 	std::string theCommand = stringToLower(commandString);
 	if (theCommand == "plainstd::string") {
@@ -778,12 +778,12 @@ int DoxygenParser::addCommand(const std::string &commandString,
 }
 
 
-std::list < DoxygenEntity > DoxygenParser::parse(TokenListCIt endParsingIndex,
+DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex,
                                                        const TokenList &tokList,
                                                        bool root) {
 	// if we are root, than any strings should be added as 'partofdescription', else as 'plainstd::string'
 	std::string currPlainstringCommandType = root ? "partofdescription" : "plainstd::string";
-	std::list < DoxygenEntity > aNewList;
+	DoxygenEntityList aNewList;
 
 	while (m_tokenListIt != endParsingIndex) {
 
@@ -812,13 +812,13 @@ std::list < DoxygenEntity > DoxygenParser::parse(TokenListCIt endParsingIndex,
 }
 
 
-std::list < DoxygenEntity > DoxygenParser::createTree(const std::string &doxygenBlob, const std::string &fileName, int lineNumber) {
+DoxygenEntityList DoxygenParser::createTree(const std::string &doxygenBlob, const std::string &fileName, int lineNumber) {
 	TokenList tokList = tokenizeDoxygenComment(doxygenBlob, fileName, lineNumber);
 	if (noisy) {
 		cout << "---TOKEN LIST---" << endl;
 		printList();
 	}
-	std::list < DoxygenEntity > rootList;
+	DoxygenEntityList rootList;
 	rootList = parse(tokList.end(), tokList, true);
 	if (noisy) {
 		cout << "PARSED LIST" << endl;
@@ -856,7 +856,7 @@ DoxygenParser::TokenList DoxygenParser::tokenizeDoxygenComment(const std::string
         pos++;
       }
       // also strip the command till the first nonalpha char
-      for (int i = 2; i < currentWord.size(); i++) {
+      for (size_t i = 2; i < currentWord.size(); i++) {
         if (!isalpha(currentWord[i])) {
           currentWord = currentWord.substr(0, i);
           // set current parsing pos back, to parse the rest of the command

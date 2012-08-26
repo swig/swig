@@ -14,15 +14,20 @@
 
 #include "DoxygenTranslator.h"
 
-DoxygenTranslator::DoxygenTranslator(bool debugTranslator, bool debugParser)
-: debug(debugTranslator), parser(debugParser) {
-}
+DoxygenTranslator::DoxygenTranslator(bool debugTranslator, bool debugParser) :
+  debug(debugTranslator),
+  parser(debugParser)
+{}
+
+
 DoxygenTranslator::~DoxygenTranslator() {
 }
+
 
 bool DoxygenTranslator::hasDocumentation(Node *node) {
   return getDoxygenComment(node);
 }
+
 
 String *DoxygenTranslator::getDoxygenComment(Node *node) {
   return Getattr(node, "doxygen");
@@ -31,16 +36,17 @@ String *DoxygenTranslator::getDoxygenComment(Node *node) {
 
 String *DoxygenTranslator::getDocumentation(Node *node) {
   
-  if (!hasDocumentation(node))
+  if (!hasDocumentation(node)) {
     return NewString("");
+  }
   
   return makeDocumentation(node);
 }
 
-void DoxygenTranslator::printTree(std::list < DoxygenEntity > &entityList) {
-  std::list < DoxygenEntity >::iterator p = entityList.begin();
-  while (p != entityList.end()) {
-    (*p).printEntity(0);
-    p++;
+
+void DoxygenTranslator::printTree(const DoxygenEntityList &entityList) {
+
+  for (DoxygenEntityListCIt p = entityList.begin(); p != entityList.end(); p++) {
+    p->printEntity(0);
   }
 }

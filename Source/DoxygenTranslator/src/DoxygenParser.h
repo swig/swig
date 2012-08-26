@@ -23,7 +23,6 @@ private:
     /** This class contains parts of Doxygen comment as a token. */
     class Token {
     public:
-        // typedef enum {COMMAND, PLAINSTRING, END_LINE, PARAGRAPH_END} ETokenType;
         DoxyCommandEnum m_tokenType;
         std::string m_tokenString;		/* the data , such as param for @param */
 
@@ -132,9 +131,9 @@ private:
   TokenListCIt getEndOfParagraph(const TokenList &tokList);
 
   /*
-   * Returns the end of a section, defined as the first blank line OR first encounter of the same 
-   * command. Example of this behaviour is \arg
-   * if no end is encountered, returns the last token of the std::list.
+   * Returns the end of a section, defined as the first blank line OR first
+   * encounter of the same command. Example of this behaviour is \arg.
+   * If no end is encountered, returns the last token of the std::list.
    */
   TokenListCIt getEndOfSection(const std::string &theCommand,
 		                         const TokenList &tokList);
@@ -149,7 +148,8 @@ private:
   TokenListCIt getEndCommand(const std::string &theCommand,
 		                       const TokenList &tokList);
   /*
-   * A specialty method for commands such as \arg that end at the end of a paragraph OR when another \arg is encountered
+   * A special method for commands such as \arg that end at the end of a
+   * paragraph OR when another \arg is encountered
   //TODO getTilAnyCommand
   TokenListCIt getTilAnyCommand(const std::string &theCommand,
                                   const TokenList &tokList);
@@ -162,47 +162,51 @@ private:
    *  \n \\ \@ \& \$ \# \< \> \%
    */
   int addSimpleCommand(const std::string &theCommand,
-		                 std::list < DoxygenEntity > &doxyList);
+		                 DoxygenEntityList &doxyList);
   /*
    * CommandWord
    * Format: @command <word>
    * Commands with a single WORD after then such as @b
    * "a", "b", "c", "e", "em", "p", "def", "enum", "example", "package", 
-   * "relates", "namespace", "relatesalso","anchor", "dontinclude", "include", "includelineno"
+   * "relates", "namespace", "relatesalso","anchor", "dontinclude", "include",
+   * "includelineno"
    */
   int addCommandWord(const std::string &theCommand,
 		               const TokenList &tokList,
-		               std::list < DoxygenEntity > &doxyList);
+		               DoxygenEntityList &doxyList);
   /*
    * CommandLine
    * Format: @command (line)
    * Commands with a single LINE after then such as @var
-   * "addindex", "fn", "name", "line", "var", "skipline", "typedef", "skip", "until", "property"
+   * "addindex", "fn", "name", "line", "var", "skipline", "typedef", "skip",
+   * "until", "property"
    */
   int addCommandLine(const std::string &theCommand,
 		               const TokenList &tokList,
-		               std::list < DoxygenEntity > &doxyList);
+		               DoxygenEntityList &doxyList);
   /*
    * CommandParagraph
    * Format: @command {paragraph}
    * Commands with a single paragraph after then such as @return
-   * "return", "remarks", "since", "test", "sa", "see", "pre", "post", "details", "invariant", 
-   * "deprecated", "date", "note", "warning", "version", "todo", "bug", "attention", "brief", "arg", "author"
+   * "return", "remarks", "since", "test", "sa", "see", "pre", "post",
+   * "details", "invariant", "deprecated", "date", "note", "warning",
+   * "version", "todo", "bug", "attention", "brief", "arg", "author"
    */
   int addCommandParagraph(const std::string &theCommand,
 		  	  	  	  	     const TokenList &tokList,
-		                     std::list < DoxygenEntity > &doxyList);
+		                     DoxygenEntityList &doxyList);
   /*
    * Command EndCommand
    * Format: @command and ends at @endcommand
-   * Commands that take in a block of text such as @code
-   * "code", "dot", "msc", "f$", "f[", "f{environment}{", "htmlonly", "latexonly", "manonly", 
-   * "verbatim", "xmlonly", "cond", "if", "ifnot", "link"
+   * Commands that take in a block of text such as @code:
+   * "code", "dot", "msc", "f$", "f[", "f{environment}{", "htmlonly",
+   * "latexonly", "manonly", "verbatim", "xmlonly", "cond", "if", "ifnot",
+   * "link"
    * Returns 1 if success, 0 if the endcommand is never encountered.
    */
   int addCommandEndCommand(const std::string &theCommand,
 		                      const TokenList & tokList,
-		                      std::list < DoxygenEntity > &doxyList);
+		                      DoxygenEntityList &doxyList);
   /*
    * CommandWordParagraph
    * Format: @command <word> {paragraph}
@@ -211,7 +215,7 @@ private:
    */
   int addCommandWordParagraph(const std::string &theCommand,
 		  	  	  	  	  	      const TokenList & tokList,
-		  	  	  	  	  	      std::list < DoxygenEntity > &doxyList);
+		  	  	  	  	  	      DoxygenEntityList &doxyList);
   /*
    * CommandWordLine
    * Format: @command <word> (line)
@@ -220,15 +224,16 @@ private:
    */
   int addCommandWordLine(const std::string &theCommand,
                             const TokenList &tokList,
-                            std::list < DoxygenEntity > &doxyList);
+                            DoxygenEntityList &doxyList);
   /*
    * Command Word Optional Word Optional Word
    * Format: @command <word> [<header-file>] [<header-name>]
    * Commands such as class
    * "category", "class", "protocol", "interface", "struct", "union"
    */
-  int addCommandWordOWordOWord(const std::string &theCommand, const TokenList &tokList,
-                                   std::list < DoxygenEntity > &doxyList);
+  int addCommandWordOWordOWord(const std::string &theCommand,
+                                   const TokenList &tokList,
+                                   DoxygenEntityList &doxyList);
   /*
    * Command Optional Word
    * Format: @command [<word>]
@@ -237,28 +242,34 @@ private:
    */
   int addCommandOWord(const std::string &theCommand,
                          const TokenList &tokList,
-                         std::list < DoxygenEntity > &doxyList);
+                         DoxygenEntityList &doxyList);
+
   /*
    * Commands that should not be encountered (such as PHP only)
    * goes til the end of line then returns
    */
   int addCommandErrorThrow(const std::string &theCommand,
                               const TokenList &tokList,
-                              std::list < DoxygenEntity > &doxyList);
+                              DoxygenEntityList &doxyList);
+
   /*
    *Adds the unique commands- different process for each unique command
    */
-  int addCommandUnique(const std::string &theCommand, const TokenList &tokList, std::list < DoxygenEntity > &doxyList);
+  int addCommandUnique(const std::string &theCommand,
+                          const TokenList &tokList,
+                          DoxygenEntityList &doxyList);
+
   /* 
-   * The actual "meat" of the doxygen parser. Calls the correct addCommand* function
+   * The actual "meat" of the doxygen parser. Calls the correct addCommand...()
+   * function.
    */
   int addCommand(const std::string &commandString,
                    const TokenList &tokList,
-                   std::list < DoxygenEntity > &doxyList);
+                   DoxygenEntityList &doxyList);
 
-  std::list < DoxygenEntity > parse(TokenListCIt endParsingIndex,
-		                                const TokenList &tokList,
-		                                bool root = false);
+  DoxygenEntityList parse(TokenListCIt endParsingIndex,
+                           const TokenList &tokList,
+                           bool root = false);
   
   /*
    * Fill static doxygenCommands and sectionIndicators containers
@@ -274,9 +285,9 @@ private:
 public:
   DoxygenParser(bool noisy = false);
   virtual ~DoxygenParser();
-  std::list < DoxygenEntity > createTree(const std::string &doxygen,
-		  	  	  	  	  	  	  	  	     const std::string &fileName,
-		  	  	  	  	  	  	  	  	     int lineNumber);
+  DoxygenEntityList createTree(const std::string &doxygen,
+                                const std::string &fileName,
+                                int lineNumber);
 };
 
 #endif
