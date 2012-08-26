@@ -49,7 +49,7 @@ struct DoxygenEntity {
   DoxygenEntity(std::string typeEnt, std::string param1);
   DoxygenEntity(std::string typeEnt, std::list < DoxygenEntity > &entList);
 
-  void printEntity(int level);
+  void printEntity(int level) const;
 };
 
 /* 

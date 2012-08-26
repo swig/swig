@@ -13,6 +13,7 @@
 #include "DoxygenParser.h"
 #include <iostream>
 #include <vector>
+#include <list>
 #include "../../Modules/swigmod.h"
 #define APPROX_LINE_LENGTH 64	//characters per line allowed
 #define TAB_SIZE 8		//current tab size in spaces
@@ -20,6 +21,10 @@
 
 // define static tables, they are filled in JavaDocConverter's constructor
 std::map<std::string, std::pair<JavaDocConverter::tagHandler, std::string > > JavaDocConverter::tagHandlers;
+
+using std::string;
+using std::list;
+using std::vector;
 
 void JavaDocConverter::fillStaticTables() {
   if (tagHandlers.size()) // fill only once

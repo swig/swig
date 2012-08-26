@@ -19,6 +19,7 @@
 #include "DoxygenEntity.h"
 #include "DoxygenParser.h"
 #include <list>
+#include <string>
 
 
 /*

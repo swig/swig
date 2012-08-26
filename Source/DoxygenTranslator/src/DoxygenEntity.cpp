@@ -41,7 +41,7 @@ DoxygenEntity::DoxygenEntity(std::string typeEnt, std::list < DoxygenEntity > &e
   entityList = entList;
 }
 
-void DoxygenEntity::printEntity(int level) {
+void DoxygenEntity::printEntity(int level) const {
   int thisLevel = level;
   if (isLeaf) {
     for (int i = 0; i < thisLevel; i++) {
@@ -63,7 +63,7 @@ void DoxygenEntity::printEntity(int level) {
 
     std::cout << "Node Command : " << typeOfEntity << std::endl;
 
-    std::list < DoxygenEntity >::iterator p = entityList.begin();
+    std::list < DoxygenEntity >::const_iterator p = entityList.begin();
     thisLevel++;
 
     while (p != entityList.end()) {

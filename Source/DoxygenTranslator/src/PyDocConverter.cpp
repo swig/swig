@@ -14,12 +14,16 @@
 #include "PyDocConverter.h"
 #include "DoxygenParser.h"
 #include <sstream>
+#include <string>
 #include <vector>
 #include <iostream>
 
 // define static tables, they are filled in PyDocConverter's constructor
 std::map<std::string, std::pair<PyDocConverter::tagHandler, std::string > > PyDocConverter::tagHandlers;
 std::map<std::string, std::string> PyDocConverter::sectionTitles;
+
+using std::string;
+
 
 void PyDocConverter::fillStaticTables() {
   if (tagHandlers.size()) // fill only once
