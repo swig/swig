@@ -1144,7 +1144,7 @@ R_CFLAGS=-fPIC
 r: $(SRCS)
 	$(SWIG) -r $(SWIGOPT) $(INTERFACEPATH)
 ifneq ($(SRCS),)
-	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES) 
+	$(CC) -g -c $(CFLAGS) $(R_CFLAGS) $(SRCS) $(INCLUDES) 
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
 
