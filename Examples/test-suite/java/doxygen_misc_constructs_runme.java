@@ -1,12 +1,12 @@
 
-import doxygen_tricky_constructs.*;
+import doxygen_misc_constructs.*;
 import com.sun.javadoc.*;
 import java.util.HashMap;
 
-public class doxygen_tricky_constructs_runme {
+public class doxygen_misc_constructs_runme {
   static {
     try {
-      System.loadLibrary("doxygen_tricky_constructs");
+      System.loadLibrary("doxygen_misc_constructs");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -20,18 +20,18 @@ public class doxygen_tricky_constructs_runme {
       and calls the start() method of that class with parsed information.
     */
 	commentParser parser = new commentParser();
-    com.sun.tools.javadoc.Main.execute("doxygen_tricky_constructs runtime test",
-	"commentParser", new String[]{"-quiet", "doxygen_tricky_constructs"});
+    com.sun.tools.javadoc.Main.execute("doxygen_misc_constructs runtime test",
+	"commentParser", new String[]{"-quiet", "doxygen_misc_constructs"});
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
-    wantedComments.put("doxygen_tricky_constructs.doxygen_tricky_constructs.getConnection()",
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.getConnection()",
     		" \n" +
     		" \n" +
     		" This class manages connection. \n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_tricky_constructs.doxygen_tricky_constructs.getAddress(doxygen_tricky_constructs.SWIGTYPE_p_int, int)",
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.getAddress(doxygen_misc_constructs.SWIGTYPE_p_int, int)",
     		" Returns address of file line. \n" +
     		" \n" +
     		" @param fileName name of the file, where the source line is located \n" +
@@ -39,7 +39,7 @@ public class doxygen_tricky_constructs_runme {
     		" {@link Connection::getId()  }<br> \n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_tricky_constructs.doxygen_tricky_constructs.getG_zipCode()",
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.getG_zipCode()",
     		" Tag endlink must be recognized also when it is the last token \n" +
     		" in the commment. \n" +
     		" \n" +
@@ -47,7 +47,7 @@ public class doxygen_tricky_constructs_runme {
     		" {@link debugIdeTraceProfilerCoverageSample.py Python example.  }\n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_tricky_constructs.doxygen_tricky_constructs.setG_zipCode(int)",
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.setG_zipCode(int)",
     		" Tag endlink must be recognized also when it is the last token \n" +
     		" in the commment. \n" +
     		" \n" +
@@ -55,19 +55,19 @@ public class doxygen_tricky_constructs_runme {
     		" {@link debugIdeTraceProfilerCoverageSample.py Python example.  }\n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_tricky_constructs.doxygen_tricky_constructs.getG_counter()",
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.getG_counter()",
     		" Tag endlink must be recognized also when followed by nonspace charater. \n" +
     		" \n" +
     		" {@link Connection::getId()  }<br> \n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_tricky_constructs.doxygen_tricky_constructs.waitTime(int)",
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.waitTime(int)",
     		" Determines how long the <code>isystem.connect</code> should wait for running \n" +
     		" instances to respond. Only one of <code>lfWaitXXX</code> flags from IConnect::ELaunchFlags \n" +
     		" may be specified. \n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_tricky_constructs.CConnectionConfig",
+    wantedComments.put("doxygen_misc_constructs.CConnectionConfig",
     		" This class contains information for connection to winIDEA. Its methods \n" +
     		" return reference to self, so we can use it like this: \n" +
     		" <pre> \n" +
@@ -82,7 +82,7 @@ public class doxygen_tricky_constructs_runme {
     		" {@link advancedWinIDEALaunching.py Python example.  }<br> \n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_tricky_constructs.doxygen_tricky_constructs.getAddress(doxygen_tricky_constructs.SWIGTYPE_p_int, int, boolean)",
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.getAddress(doxygen_misc_constructs.SWIGTYPE_p_int, int, boolean)",
     		" Returns address of file line. \n" +
     		" \n" +
     		" @param fileName name of the file, where the source line is located \n" +
@@ -92,7 +92,7 @@ public class doxygen_tricky_constructs_runme {
     		" {@link Connection::getId()  }<br> \n" +
     		" \n" +
     		"");
-    wantedComments.put("doxygen_tricky_constructs.doxygen_tricky_constructs.setG_counter(char)",
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.setG_counter(char)",
     		" Tag endlink must be recognized also when followed by nonspace charater. \n" +
     		" \n" +
     		" {@link Connection::getId()  }<br> \n" +

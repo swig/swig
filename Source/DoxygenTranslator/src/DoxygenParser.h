@@ -39,7 +39,6 @@ private:
   } DoxyCommandEnum;
 
 
-
   /** This class contains parts of Doxygen comment as a token. */
   class Token {
   public:

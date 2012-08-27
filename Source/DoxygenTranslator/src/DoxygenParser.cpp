@@ -103,23 +103,24 @@ bool DoxygenParser::isSectionIndicator(const std::string &smallString) {
 
 
 void DoxygenParser::printTree(const DoxygenEntityList &rootList) {
-	DoxygenEntityList::const_iterator p = rootList.begin();
-	while (p != rootList.end()) {
-		(*p).printEntity(0);
-		p++;
-	}
+  DoxygenEntityList::const_iterator p = rootList.begin();
+  while (p != rootList.end()) {
+    (*p).printEntity(0);
+    p++;
+  }
 }
 
 
 int DoxygenParser::commandBelongs(const std::string &theCommand) {
-	std::string smallString = stringToLower(theCommand);
-	//cout << " Looking for command " << theCommand << endl;
-	std::map<std::string, DoxyCommandEnum>::iterator it =
-	                                         doxygenCommands.find(smallString);
-	if (it != doxygenCommands.end()) {
-		return it->second;
-	}
-	return 0;
+
+  std::string smallString = stringToLower(theCommand);
+  //cout << " Looking for command " << theCommand << endl;
+  DoxyCommandsMapIt it = doxygenCommands.find(smallString);
+
+  if (it != doxygenCommands.end()) {
+    return it->second;
+  }
+  return 0;
 }
 
 
@@ -922,22 +923,11 @@ DoxygenParser::TokenList DoxygenParser::tokenizeDoxygenComment(const std::string
 
 
 void DoxygenParser::printList() {
-  TokenListIt p = m_tokenList.begin();
-  int i = 1;
-  int b = 0;
-  while (p != m_tokenList.end()) {
-    cout << (*p).toString() << " ";
-    b = i % TOKENSPERLINE;
-    if (b == 0)
-      cout << endl;
-    p++;
-    i++;
-  }
-
-  TokenListCIt startIt = m_tokenList.begin();
 
   int tokNo = 0;
-  for (TokenListCIt it = startIt; it != m_tokenList.end(); it++, tokNo++) {
+  for (TokenListCIt it = m_tokenList.begin(); it != m_tokenList.end();
+                                                              it++, tokNo++) {
+
     cout << it->toString() << " ";
 
     if ((tokNo % TOKENSPERLINE) == 0) {
@@ -945,6 +935,7 @@ void DoxygenParser::printList() {
     }
   }
 }
+
 
 void DoxygenParser::printListError(int warningType,
                                         const std::string &message) {
