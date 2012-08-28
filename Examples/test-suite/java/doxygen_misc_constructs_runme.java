@@ -98,7 +98,27 @@ public class doxygen_misc_constructs_runme {
     		" {@link Connection::getId()  }<br> \n" +
     		" \n" +
     		"");
-    
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum",
+    		" Class description.\n" +
+    		" \n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested",
+    		" Enum description.\n" +
+    		" \n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested.ONE",
+    		" desc of one\n" +
+    		" \n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested.TWO",
+    		" desc of two\n" +
+    		" \n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested.THREE",
+    		" desc of three\n" +
+    		" \n");
+
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
   }

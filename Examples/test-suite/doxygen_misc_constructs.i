@@ -5,7 +5,7 @@
 
 %inline %{
 
-    // Bug 1: Tag '@endink' is not recognized becuse it is not
+    // Tag '@endink' must be recognized even if it is not
     // followed by whitespace.
 
     /** 
@@ -26,13 +26,8 @@
     int g_zipCode;
 
 
-    // Bug 2: Paramter 'isReportSize' is missing in comment of the overload, which
-    // has it. This bug disappears if @endlink is follwed by a space.
-    //
-    // Bug 3: Empty line before the link is missing,
-    // making the link text part of parameter description. This bug appears also
-    // when there is ordinary text in place of the link in case of overload
-    // with only 2 parameters.
+    // Paramter 'isReportSize' must appear in comment of the overload, which
+    // has it. Empty line before link must be preserved.
     /**
      * Returns address of file line.
      *
@@ -48,8 +43,7 @@
     {
     }
 
-    // Bug 4: The first comment is attached to the second in Python (wrong),
-    // but not in Java (correct).
+    // The first comment must be ignored.
     /** 
      * \defgroup icFacade isystem.connect Facade
      *
@@ -75,19 +69,7 @@
     {
     };
 
-    // Bug 5: Text after '\c' has no space following in Python.
-    // There are also to many empty lines in multiline comments in Python.
-    // Whitespaces are really a problem in Python (space and newlines),
-    // I like a parameter type added to each parameter description!
-    //    """
-    //    Determines how long the isystem.connectshould wait for running 
-    //
-    //    instances to respond. Only one of lfWaitXXXflags from IConnect::ELaunchFlags 
-    //
-    //    may be specified. 
-    //
-    //    """
-
+    // Text after '\c' must be kept unchanged in Python.
     /**
      * Determines how long the \c isystem.connect should wait for running 
      * instances to respond. Only one of \c lfWaitXXX flags from IConnect::ELaunchFlags
@@ -98,8 +80,7 @@
     }
 
 
-    // Bug 6: Text after tag \ingroup appears in Python comment (empty line in
-    // Java, which is acceptable):
+    // Line with tag \ingroup must not appear in translated comment:
     /** \ingroup icFacade
      *
      * This class manages connection.
@@ -107,6 +88,19 @@
     int getConnection()
     {
     }
-    
-    
+
+    /**
+     * Class description.
+     */
+    class ClassWithNestedEnum {
+    public:
+        /**
+         * Enum description.
+         */
+        typedef enum {ONE,  ///< desc of one
+                      TWO,  ///< desc of two
+                      THREE ///< desc of three
+        } ENested;
+
+    };
 %}
