@@ -127,6 +127,7 @@ private:
   void fillStaticTables();
 
   bool paramExists(std::string param);
+  std::string indentAndInsertAsterisks(const std::string &doc);
 };
 
 #endif

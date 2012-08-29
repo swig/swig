@@ -8,20 +8,19 @@
     // Tag '@endink' must be recognized even if it is not
     // followed by whitespace.
 
-    /** 
-     * Tag endlink must be recognized also when followed by nonspace charater.
+    /** Tag endlink must be recognized also when followed by nonspace charater.
      *
-     * @link Connection::getId() @endlink<br>
-     */
+     * @link Connection::getId() @endlink<br> */
+     
     char g_counter;
 
 
     /** 
-     * Tag endlink must be recognized also when it is the last token
-     * in the commment.
-     *
-     * @link Connection::getId() @endlink<br>
-     * @link debugIdeTraceProfilerCoverageSample.py Python example. @endlink
+      Tag endlink must be recognized also when it is the last token
+      in the commment.
+
+      @link Connection::getId() @endlink<br>
+      @link debugIdeTraceProfilerCoverageSample.py Python example. @endlink
      */
     int g_zipCode;
 
@@ -95,7 +94,7 @@
     class ClassWithNestedEnum {
     public:
         /**
-         * Enum description.
+         * Enum description.b
          */
         typedef enum {ONE,  ///< desc of one
                       TWO,  ///< desc of two

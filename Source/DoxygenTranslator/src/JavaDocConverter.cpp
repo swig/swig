@@ -116,7 +116,7 @@ void JavaDocConverter::fillStaticTables() {
 
 
 JavaDocConverter::JavaDocConverter(bool debugTranslator, bool debugParser)
-: DoxygenTranslator(debugTranslator, debugParser) {
+: DoxygenTranslator(true, true) {
   fillStaticTables();
 }
 
@@ -528,6 +528,75 @@ int JavaDocConverter::shiftEndlinesUpTree(DoxygenEntity &root, int level)
 }
 
 
+/**
+ * This makes sure that all comment lines contain '*'. It is not mandatory in doxygen,
+ * but highly recommended for Javadoc. '*' in empty lines are indented according
+ * to indentation of the first line. Indentation of non-empty lines is not
+ * changed - garbage in garbage out.
+ */
+std::string JavaDocConverter::indentAndInsertAsterisks(const string &doc) {
+
+  size_t idx = doc.find('\n');
+  size_t indent = 0;
+  // Detect indentation.
+  //   The first line in comment is the one after '/**', which may be
+  //   spaces and '\n' or the text. In any case it is not suitable to detect
+  //   indentation, so we have to skip the first '\n'.
+  if (idx != string::npos) {
+    size_t nonspaceIdx = doc.find_first_not_of(' ', idx + 1);
+    if (nonspaceIdx != string::npos) {
+      indent = nonspaceIdx - idx;
+    }
+  }
+
+  // Create the first line of Javadoc comment.
+  string indentStr(indent - 1, ' ');
+  string translatedStr = indentStr + "/**";
+  if (indent > 1) {
+    // remove the first space, so that '*' will be aligned
+    translatedStr = translatedStr.substr(1);
+  }
+
+  translatedStr += doc;
+
+  // insert '*' before each comment line, if it does not have it
+  idx = translatedStr.find('\n');
+
+  while (idx != string::npos) {
+
+    size_t nonspaceIdx = translatedStr.find_first_not_of(' ', idx + 1);
+    if (nonspaceIdx != string::npos  &&  translatedStr[nonspaceIdx] != '*') {
+
+      // line without '*' found - is it empty?
+      if (translatedStr[nonspaceIdx] != '\n') {
+        // add '* ' to each line without it
+        translatedStr = translatedStr.substr(0, nonspaceIdx) + "* " +
+                translatedStr.substr(nonspaceIdx);
+      } else {
+        // we found empty line, replace it with indented '*'
+        translatedStr = translatedStr.substr(0, idx + 1) + indentStr +
+                "* " + translatedStr.substr(nonspaceIdx);
+      }
+    }
+    idx = translatedStr.find('\n', nonspaceIdx);
+  }
+
+  // Add the last comment line properly indented
+  size_t nonspaceEndIdx = translatedStr.find_last_not_of(' ');
+  if (nonspaceEndIdx != string::npos) {
+    if (translatedStr[nonspaceEndIdx] != '\n') {
+      translatedStr += '\n';
+    } else {
+      // remove trailing spaces
+      translatedStr = translatedStr.substr(0, nonspaceEndIdx + 1);
+    }
+  }
+  translatedStr += indentStr + "*/\n";
+
+  return translatedStr;
+}
+
+
 String *JavaDocConverter::makeDocumentation(Node *node) {
 
   String *documentation = getDoxygenComment(node);
@@ -537,12 +606,13 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
   }
 
   if (GetFlag(node, "feature:doxygen:notranslate")) {
-    String *comment = NewString("/**\n");
-    Append(comment, documentation);
-    // reformat the comment
-    Replaceall(comment, "\n *", "\n");
-    Replaceall(comment, "\n", "\n * ");
-    Append(comment, "\n */\n");
+
+    string doc = Char(documentation);
+
+    string translatedStr = indentAndInsertAsterisks(doc);
+
+    String *comment = NewString(translatedStr.c_str());
+    // Append(comment, documentation); Replaceall(comment, "\n", "\n * ");
     return comment;
   }
 
