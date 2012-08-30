@@ -31,7 +31,7 @@
      * Returns address of file line.
      *
      * @param fileName name of the file, where the source line is located
-     * @param line line number
+	* @param line line number
      * @param isGetSize if set, for every object location both address and size are returned
      *
      * @link Connection::getId() @endlink <br>

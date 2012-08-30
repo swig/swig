@@ -116,7 +116,7 @@ void JavaDocConverter::fillStaticTables() {
 
 
 JavaDocConverter::JavaDocConverter(bool debugTranslator, bool debugParser)
-: DoxygenTranslator(true, true) {
+: DoxygenTranslator(debugTranslator, debugParser) {
   fillStaticTables();
 }
 
@@ -543,7 +543,7 @@ std::string JavaDocConverter::indentAndInsertAsterisks(const string &doc) {
   //   spaces and '\n' or the text. In any case it is not suitable to detect
   //   indentation, so we have to skip the first '\n'.
   if (idx != string::npos) {
-    size_t nonspaceIdx = doc.find_first_not_of(' ', idx + 1);
+    size_t nonspaceIdx = doc.find_first_not_of(" \t", idx + 1);
     if (nonspaceIdx != string::npos) {
       indent = nonspaceIdx - idx;
     }
@@ -564,14 +564,14 @@ std::string JavaDocConverter::indentAndInsertAsterisks(const string &doc) {
 
   while (idx != string::npos) {
 
-    size_t nonspaceIdx = translatedStr.find_first_not_of(' ', idx + 1);
+    size_t nonspaceIdx = translatedStr.find_first_not_of(" \t", idx + 1);
     if (nonspaceIdx != string::npos  &&  translatedStr[nonspaceIdx] != '*') {
-
       // line without '*' found - is it empty?
       if (translatedStr[nonspaceIdx] != '\n') {
         // add '* ' to each line without it
         translatedStr = translatedStr.substr(0, nonspaceIdx) + "* " +
                 translatedStr.substr(nonspaceIdx);
+        //printf(translatedStr.c_str());
       } else {
         // we found empty line, replace it with indented '*'
         translatedStr = translatedStr.substr(0, idx + 1) + indentStr +
@@ -582,7 +582,7 @@ std::string JavaDocConverter::indentAndInsertAsterisks(const string &doc) {
   }
 
   // Add the last comment line properly indented
-  size_t nonspaceEndIdx = translatedStr.find_last_not_of(' ');
+  size_t nonspaceEndIdx = translatedStr.find_last_not_of(" \t");
   if (nonspaceEndIdx != string::npos) {
     if (translatedStr[nonspaceEndIdx] != '\n') {
       translatedStr += '\n';
