@@ -5489,6 +5489,22 @@ interfaces (implements) for Java class: empty default
 <p><tt>%typemap(javafinalize)</tt></p>
 <div class="indent">
 the <tt>finalize()</tt> method (proxy classes only): default calls the <tt>delete()</tt> method
+
+<p>
+Note that the default javafinalize typemap must contain the full implementation of the finalize method.
+Any customization to this typemap must still declare a java finalize method with the correct signature.
+Note also that the name of the generated "delete" method may be affected by <tt>javadestruct</tt> and <tt>javadestruct_derived</tt> typemaps.
+Below shows an example modifying the finalizer, assuming the <tt>delete</tt> method has been renamed to <tt>swig_delete</tt>.
+</p>
+
+<div class="code"><pre>
+%typemap(javafinalize) SWIGTYPE %{
+   protected void finalize() {
+     swig_delete();  // renamed to prevent conflict with existing delete method
+   }
+]%
+</pre></div>
+
 </div>
 
 <p>
