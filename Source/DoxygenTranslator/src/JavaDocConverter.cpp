@@ -549,6 +549,10 @@ std::string JavaDocConverter::indentAndInsertAsterisks(const string &doc) {
     }
   }
 
+  if (indent == 0) { // we can't indent the first line less than 0
+    indent = 1;
+  }
+
   // Create the first line of Javadoc comment.
   string indentStr(indent - 1, ' ');
   string translatedStr = indentStr + "/**";

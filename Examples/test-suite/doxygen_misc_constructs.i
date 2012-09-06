@@ -37,10 +37,8 @@
      * @link Connection::getId() @endlink <br>
      */
     void getAddress(int &fileName, 
-                                  int line, 
-                                  bool isGetSize = false)
-    {
-    }
+                    int line,     
+                    bool isGetSize = false) {}
 
     // The first comment must be ignored.
     /** 
@@ -74,27 +72,28 @@
      * instances to respond. Only one of \c lfWaitXXX flags from IConnect::ELaunchFlags
      * may be specified.
      */
-    int waitTime(long waitTime)
-    {
-    }
+    int waitTime(long waitTime) {return 33;}
 
 
     // Line with tag \ingroup must not appear in translated comment:
     /** \ingroup icFacade
      *
-     * This class manages connection.
+     * This function returns connection id.
      */
-    int getConnection()
-    {
-    }
+    int getConnection() {return 3;}
 
+    // the follwing must produce no comment in wrapper
+    /*******************************************************************/
+    char getFirstLetter() {return 'a';}
+
+    
     /**
      * Class description.
      */
     class ClassWithNestedEnum {
     public:
         /**
-         * Enum description.b
+         * Enum description.
          */
         typedef enum {ONE,  ///< desc of one
                       TWO,  ///< desc of two
@@ -102,4 +101,8 @@
         } ENested;
 
     };
+
+    #include "doxygen_misc_constructs.h"
+    
 %}
+    %include "doxygen_misc_constructs.h"

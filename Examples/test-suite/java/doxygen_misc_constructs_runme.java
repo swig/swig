@@ -28,7 +28,7 @@ public class doxygen_misc_constructs_runme {
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.getConnection()",
     		" \n" +
     		" \n" +
-    		" This class manages connection. \n" +
+    		" This function returns connection id. \n" +
     		" \n" +
     		"");
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.getAddress(doxygen_misc_constructs.SWIGTYPE_p_int, int)",
@@ -119,6 +119,32 @@ public class doxygen_misc_constructs_runme {
     		" desc of three\n" +
     		" \n");
 
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.isNoSpaceValidA()",
+    		" This comment without space after '*' is valid in Doxygen. \n" +
+    		" \n" +
+    		"");
+ 
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.isNoSpaceValidB()",
+    		" .This comment without space after '*' is valid in Doxygen. \n" +
+    		" \n" +
+    		"");
+ 
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.backslashA()",
+    		" Backslash following<code>word</code> is valid doxygen command. Output contains \n" +
+    		" 'followingword' with word in 'code' font. \n" +
+    		" \n" +
+    		"");
+ 
+    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.backslashB()",
+                       " Doxy command without trailing cspace space is ignored. Standalone \n" +
+                       " \\ and '\\' get to output. Commands not recognized by Doxygen \n" +
+                       " are ignored. Backslashes in DOS paths d: and words \n" +
+                       " following them do not appear on output, we must quote them with \n" +
+                       " double quotes: \"d:\\xyz\\c\\myfile\", single quotes do not help: \n" +
+                       " 'd: '. Escaping works: d:\\xyz\\c\\myfile. Unix \n" +
+                       " paths of course have no such problems: /xyz/c/myfile \n" +
+    		" \n");
+ 
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
   }

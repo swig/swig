@@ -349,11 +349,14 @@ static int yylook(void) {
 	    return DOXYGENPOSTSTRING;
 	  }
 	  if (strncmp(loc, "/**", 3) == 0 || strncmp(loc, "///", 3) == 0||strncmp(loc, "/*!", 3) == 0||strncmp(loc, "//!", 3) == 0) {
-	    /* printf("Doxygen Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc);  */
-	    yylval.str =  NewString(loc);
-	    Setline(yylval.str, Scanner_start_line(scan));
-	    Setfile(yylval.str, Scanner_file(scan));
-	    return DOXYGENSTRING;
+	    /* printf("Doxygen Comment: %s lines %d-%d [%s]\n", Char(Scanner_file(scan)), Scanner_start_line(scan), Scanner_line(scan), loc); */
+	    /* ignore comments like / * * * and / * * /,  which are also ignored by Doxygen */
+	    if (loc[3] != '*'  &&  loc[3] != '/') {
+	      yylval.str =  NewString(loc);
+	      Setline(yylval.str, Scanner_start_line(scan));
+	      Setfile(yylval.str, Scanner_file(scan));
+	      return DOXYGENSTRING;
+	    }
 	  }
 	}
       }
