@@ -45,7 +45,7 @@
 
 /* Runtime API */
 
-#define SWIG_GetModule(clientdata)                      SWIG_Python_GetModule()
+#define SWIG_GetModule(clientdata)                      SWIG_Python_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer)             SWIG_Python_SetModule(pointer)
 #define SWIG_NewClientData(obj)                         SwigPyClientData_New(obj)
 
@@ -1484,7 +1484,7 @@ void *SWIG_ReturnGlobalTypeList(void *);
 #endif
 
 SWIGRUNTIME swig_module_info *
-SWIG_Python_GetModule(void) {
+SWIG_Python_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
   static void *type_pointer = (void *)0;
   /* first check if module already created */
   if (!type_pointer) {
@@ -1610,7 +1610,7 @@ SWIG_Python_TypeQuery(const char *type)
     descriptor = (swig_type_info *) PyCObject_AsVoidPtr(obj);
 #endif
   } else {
-    swig_module_info *swig_module = SWIG_Python_GetModule();
+    swig_module_info *swig_module = SWIG_GetModule(0);
     descriptor = SWIG_TypeQueryModule(swig_module, swig_module, type);
     if (descriptor) {
 #ifdef SWIGPY_USE_CAPSULE

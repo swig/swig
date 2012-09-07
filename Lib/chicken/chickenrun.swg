@@ -36,7 +36,7 @@ extern "C" {
                                               SWIG_Chicken_Barf(SWIG_BARF1_CONTRACT_ASSERT, C_text(message)); } else
 
 /* Runtime API */
-#define SWIG_GetModule(clientdata) SWIG_Chicken_GetModule()
+#define SWIG_GetModule(clientdata) SWIG_Chicken_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) SWIG_Chicken_SetModule(pointer)
 
 #define C_swig_is_bool(x) C_truep (C_booleanp (x))
@@ -309,7 +309,7 @@ SWIG_Chicken_MustGetPtr (C_word s, swig_type_info *type, int argnum, int flags)
 static char *chicken_runtimevar_name = "type_pointer" SWIG_TYPE_TABLE_NAME;
 
 static swig_module_info *
-SWIG_Chicken_GetModule() {
+SWIG_Chicken_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
     swig_module_info *ret = 0;
     C_word sym;
 

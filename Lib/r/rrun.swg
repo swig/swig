@@ -293,7 +293,7 @@ SWIG_R_ConvertPtr(SEXP obj, void **ptr, swig_type_info *ty, int flags) {
 }
 
 SWIGRUNTIME swig_module_info *
-SWIG_GetModule(void *v) {
+SWIG_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
   static void *type_pointer = (void *)0;
   return (swig_module_info *) type_pointer;
 }

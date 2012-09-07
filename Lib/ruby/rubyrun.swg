@@ -35,7 +35,7 @@
 
 /* Runtime API */
 
-#define SWIG_GetModule(clientdata)                      SWIG_Ruby_GetModule()	
+#define SWIG_GetModule(clientdata)                      SWIG_Ruby_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) 		SWIG_Ruby_SetModule(pointer)
 
 
@@ -371,7 +371,7 @@ SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty) {
 }
 
 SWIGRUNTIME swig_module_info *
-SWIG_Ruby_GetModule(void)
+SWIG_Ruby_GetModule(void *SWIGUNUSEDPARM(clientdata))
 {
   VALUE pointer;
   swig_module_info *ret = 0;
