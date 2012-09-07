@@ -4,6 +4,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.9 (in progress)
 ===========================
+2012-09-06: wsfulton
+	    [Java] Fix (char *STRING, size_t LENGTH) typemaps to accept NULL string.
+
 2012-08-26: drjoe
 	    [R] make ExternalReference slot ref to contain reference
 
