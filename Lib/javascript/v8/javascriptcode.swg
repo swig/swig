@@ -69,37 +69,37 @@ fail:
 %}
 
 %fragment("jsv8_declare_class_template", "templates") 
-%{v8::Persistent<v8::FunctionTemplate> SWIGV8_$jsmangledname;%}
+%{v8::Persistent<v8::FunctionTemplate> $jsmangledname_class;%}
 
 %fragment("jsv8_define_class_template", "templates") 
-%{SWIGV8_$jsmangledname = SWIGV8_CreateClassTemplate("$jsname" , $jsctor);%}
+%{$jsmangledname_class = SWIGV8_CreateClassTemplate("$jsname" , $jsctor);%}
 
 %fragment("jsv8_create_class_instance", "templates") 
-%{v8::Handle<v8::Object> class_$jsmangledname = SWIGV8_$jsmangledname->GetFunction();%}
+%{v8::Handle<v8::Object> $jsmangledname = $jsmangledname_class->GetFunction();%}
 
 %fragment("jsv8_inherit", "templates") 
-%{SWIGV8_$jsmangledname->Inherit(SWIGV8_$jsbaseclass);%}
+%{$jsmangledname_class->Inherit($jsbaseclass_class);%}
 
 %fragment("jsv8_register_class", "templates") 
-%{$jsparent->Set(v8::String::NewSymbol("$jsname"), class_$jsmangledname);%}
+%{$jsparent->Set(v8::String::NewSymbol("$jsname"), $jsmangledname);%}
 
 %fragment("jsv8_create_namespace", "templates") 
-%{v8::Handle<v8::ObjectTemplate> $jsmangledname = v8::ObjectTemplate::New();%}
+%{v8::Handle<v8::Object> $jsmangledname = v8::Object::New();%}
 
 %fragment("jsv8_register_member_function", "templates") 
-%{SWIGV8_AddMemberFunction(SWIGV8_$jsmangledname, "$jsname", $jswrapper);%}
-
-%fragment("jsv8_register_static_function", "templates") 
-%{SWIGV8_AddGlobalFunction(SWIGV8_$jsparent, "$jsname", $jswrapper);%}
+%{SWIGV8_AddMemberFunction($jsmangledname_class, "$jsname", $jswrapper);%}
 
 %fragment("jsv8_register_member_variable", "templates")
-%{SWIGV8_AddMemberVariable(SWIGV8_$jsmangledname, "$jsname", $jsgetter, $jssetter);%}
+%{SWIGV8_AddMemberVariable($jsmangledname_class, "$jsname", $jsgetter, $jssetter);%}
+
+%fragment("jsv8_register_static_function", "templates") 
+%{SWIGV8_AddStaticFunction($jsparent, "$jsname", $jswrapper);%}
 
 %fragment("jsv8_register_static_variable", "templates") 
-%{SWIGV8_AddGlobalVariable(SWIGV8_$jsparent, "$jsname", $jsgetter, $jssetter);%}
+%{SWIGV8_AddStaticVariable($jsparent, "$jsname", $jsgetter, $jssetter);%}
 
 %fragment("jsv8_register_namespace", "templates") 
-%{$jsparent->Set(v8::String::NewSymbol("$jsname"), $jsmangledname->NewInstance());%}
+%{$jsparent->Set(v8::String::NewSymbol("$jsname"), $jsmangledname);%}
 
 %fragment("JS_initializer", "templates") 
 %{
@@ -107,32 +107,32 @@ extern "C" {
 
 void $jsname_initialize(v8::Handle<v8::Context> context)
 {
-    v8::HandleScope scope;
-    v8::Local<v8::Object> global = context->Global();
+  v8::HandleScope scope;
+  v8::Local<v8::Object> global = context->Global();
 
-    /* create object templates for namespaces */
-    $jsv8nspaces
-    
-    /* create class templates */
-    $jsv8classtemplates
-    
-    /* register wrapper functions */
-    $jsv8wrappers
-    
-    /* setup inheritances */
-    $jsv8inheritance
-    
-    /* add static class functions and variables */
-    $jsv8staticwrappers
-    
-    /* class instances */
-    $jsv8classinstances
-    
-    /* register classes */
-    $jsv8registerclasses
-    
-    /* create and register namespace objects */
-    $jsv8registernspaces
+  /* create objects for namespaces */
+  $jsv8nspaces
+  
+  /* create class templates */
+  $jsv8classtemplates
+  
+  /* register wrapper functions */
+  $jsv8wrappers
+  
+  /* setup inheritances */
+  $jsv8inheritance
+      
+  /* class instances */
+  $jsv8classinstances
+  
+  /* add static class functions and variables */
+  $jsv8staticwrappers
+
+  /* register classes */
+  $jsv8registerclasses
+  
+  /* create and register namespace objects */
+  $jsv8registernspaces
 }
 
 }%}

@@ -1728,7 +1728,8 @@ int V8Emitter::exitClass(Node *n)
       .pretty_print(f_init_class_templates);
 
   Template t_class_instance(getTemplate("jsv8_create_class_instance"));
-  t_class_instance.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+  t_class_instance.replace(T_NAME, state.clazz(NAME))
+      .replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
       .pretty_print(f_init_class_instances);
   
   //  emit inheritance setup
@@ -1790,7 +1791,7 @@ int V8Emitter::exitVariable(Node* n)
         .replace(T_SETTER, state.variable(SETTER))
         .pretty_print(f_init_wrappers);
   }
-    
+
   return SWIG_OK;
 }
 
@@ -1809,14 +1810,14 @@ int V8Emitter::exitFunction(Node* n)
       Template t_register(getTemplate("jsv8_register_static_function"));
       t_register.replace(T_PARENT, state.clazz(NAME_MANGLED))
           .replace(T_NAME, state.function(NAME))
-          .replace(T_WRAPPER, Getattr(n, "wrap:name"));
-      Printv(f_init_static_wrappers, t_register.str(), 0);
+          .replace(T_WRAPPER, Getattr(n, "wrap:name"))
+          .pretty_print(f_init_static_wrappers);
     } else {
       Template t_register(getTemplate("jsv8_register_member_function"));
       t_register.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
           .replace(T_NAME, state.function(NAME))
-          .replace(T_WRAPPER, Getattr(n, "wrap:name"));
-      Printv(f_init_wrappers, t_register.str(), "\n", 0);
+          .replace(T_WRAPPER, Getattr(n, "wrap:name"))
+          .pretty_print(f_init_wrappers);
     }
   } else {
     // Note: a global function is treated like a static function
@@ -1824,8 +1825,8 @@ int V8Emitter::exitFunction(Node* n)
     Template t_register(getTemplate("jsv8_register_static_function"));
     t_register.replace(T_PARENT, Getattr(current_namespace, NAME))
         .replace(T_NAME, state.function(NAME))
-        .replace(T_WRAPPER, Getattr(n, "wrap:name"));
-    Printv(f_init_wrappers, t_register.str(), 0);
+        .replace(T_WRAPPER, Getattr(n, "wrap:name"))
+        .pretty_print(f_init_wrappers);
   }
 
   return SWIG_OK;
