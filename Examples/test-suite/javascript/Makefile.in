@@ -29,6 +29,7 @@ CPP_TEST_CASES = \
 	class_scope_weird \
 	complextest \
 	constover \
+	constructor_copy \
 	cpp_enum \
 	cpp_namespace \
 	cpp_static \
