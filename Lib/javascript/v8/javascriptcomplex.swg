@@ -12,13 +12,15 @@
 %fragment(SWIG_From_frag(Type),"header",
           fragment=SWIG_From_frag(double))
 {
-SWIGINTERNINLINE JSObjectRef
+SWIGINTERNINLINE v8::Handle<v8::Value>
 SWIG_From_dec(Type)(%ifcplusplus(const Type&, Type) c)
 {
-  JSValueRef vals[2];
-  vals[0] =  SWIG_From(double)(Real(c));
-  vals[1] =  SWIG_From(double)(Imag(c));
-  return JSObjectMakeArray(context, 2, vals, NULL);
+  v8::HandleScope scope;
+  v8::Local<v8::Array> vals = v8::Array::New(2);
+
+  vals->Set(0, SWIG_From(double)(Real(c)));
+  vals->Set(1, SWIG_From(double)(Imag(c)));
+  return scope.Close(vals);
 }
 }
 %enddef
@@ -29,42 +31,30 @@ SWIG_From_dec(Type)(%ifcplusplus(const Type&, Type) c)
 	  fragment=SWIG_AsVal_frag(double))
 {
 SWIGINTERN int
-SWIG_AsVal_dec(Type) (JSValueRef o, Type* val)
+SWIG_AsVal_dec(Type) (v8::Handle<v8::Value> o, Type* val)
 {
-  if (JSValueIsObject(context, o)) {
-    JSObjectRef array;
-    JSValueRef exception, js_re, js_im;
+  v8::HandleScope scope;
+  
+  if (o->IsArray()) {
+    v8::Handle<v8::Array> array = v8::Handle<v8::Array>::Cast(o);
+    
+    if(array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
     double re, im;
     int res;
-    
-    exception = 0;
-    res = 0;
 
-    array = JSValueToObject(context, o, &exception);
-    if(exception != 0)
-      return SWIG_TypeError;
-    
-    js_re = JSObjectGetPropertyAtIndex(context, array, 0, &exception);
-    if(exception != 0)
-      return SWIG_TypeError;
-
-    js_im = JSObjectGetPropertyAtIndex(context, array, 1, &exception);
-    if(exception != 0)
-      return SWIG_TypeError;
-
-    res = SWIG_AsVal(double)(js_re, &re);
+    res = SWIG_AsVal(double)(array->Get(0), &re);
     if(!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
     
-    res = SWIG_AsVal(double)(js_im, &im);
+    res = SWIG_AsVal(double)(array->Get(1), &im);
     if(!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
     
     if (val) *val = Constructor(re, im);
     return SWIG_OK;
-  } else {
+  } else if(o->IsNumber()){
     double d;
     int res = SWIG_AddCast(SWIG_AsVal(double)(o, &d));
     if (SWIG_IsOK(res)) {
@@ -83,39 +73,27 @@ SWIG_AsVal_dec(Type) (JSValueRef o, Type* val)
 %fragment(SWIG_AsVal_frag(Type),"header",
           fragment=SWIG_AsVal_frag(float)) {
 SWIGINTERN int
-SWIG_AsVal_dec(Type)(JSValueRef o, Type *val)
+SWIG_AsVal_dec(Type) (v8::Handle<v8::Value> o, Type* val)
 {
-  if (JSValueIsObject(context, o)) {
-    JSObjectRef array;
-    JSValueRef exception, js_re, js_im;
+  v8::HandleScope scope;
+
+  if (o->IsArray()) {
+    v8::Handle<v8::Array> array = v8::Handle<v8::Array>::Cast(o);
+    
+    if(array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
     double re, im;
     int res;
-    
-    exception = 0;
-    res = 0;
 
-    array = JSValueToObject(context, o, &exception);
-    if(exception != 0)
-      return SWIG_TypeError;
-    
-    js_re = JSObjectGetPropertyAtIndex(context, array, 0, &exception);
-    if(exception != 0)
-      return SWIG_TypeError;
-
-    js_im = JSObjectGetPropertyAtIndex(context, array, 1, &exception);
-    if(exception != 0)
-      return SWIG_TypeError;
-
-    res = SWIG_AsVal(double)(js_re, &re);
+    res = SWIG_AsVal(double)(array->Get(0), &re);
     if(!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
     
-    res = SWIG_AsVal(double)(js_im, &im);
+    res = SWIG_AsVal(double)(array->Get(1), &im);
     if(!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
-
+    
     if ((-FLT_MAX <= re && re <= FLT_MAX) && (-FLT_MAX <= im && im <= FLT_MAX)) {
       if (val) *val = Constructor(%numeric_cast(re, float),
                                   %numeric_cast(im, float));
@@ -123,7 +101,7 @@ SWIG_AsVal_dec(Type)(JSValueRef o, Type *val)
     } else {
       return SWIG_OverflowError;
     }    
-  } else {
+  } else if(o->IsNumber()){
     float re;
     int res = SWIG_AddCast(SWIG_AsVal(float)(o, &re));
     if (SWIG_IsOK(res)) {
@@ -134,7 +112,6 @@ SWIG_AsVal_dec(Type)(JSValueRef o, Type *val)
   return SWIG_TypeError;
 }
 }
-
 %swig_fromcplx_conv(Type, Real, Imag);
 %enddef
 
