@@ -13,6 +13,27 @@ bool js_template_enable_debug = false;
 #define WRAPPER_NAME "wrapper"
 #define IS_IMMUTABLE "is_immutable"
 #define IS_STATIC "is_static"
+#define GETTER "getter"
+#define SETTER "setter"
+#define PARENT "parent"
+
+// variables used in code templates
+// ATTENTION: be aware of prefix collisions when defining those variables
+#define T_NAME            "$jsname"
+#define T_NAME_MANGLED    "$jsmangledname"
+#define T_TYPE            "$jstype"
+#define T_TYPE_MANGLED    "$jsmangledtype"
+#define T_WRAPPER         "$jswrapper"
+#define T_GETTER          "$jsgetter"
+#define T_SETTER          "$jssetter"
+#define T_DISPATCH_CASES  "$jsdispatchcases"
+#define T_BASECLASS       "$jsbaseclass"
+#define T_NAMESPACE       "$jsnspace"
+#define T_PARENT          "$jsparent"
+#define T_OVERLOAD        "$jsoverloadext"
+#define T_ARGCOUNT        "$jsargcount"
+#define T_LOCALS          "$jslocals"
+#define T_CODE            "$jscode"
 
 /**
  * A convenience class to manage state variables for emitters.
@@ -569,6 +590,8 @@ JSEmitter::~JSEmitter() {
 
 /* -----------------------------------------------------------------------------
  * JSEmitter::RegisterTemplate() :  Registers a code template
+ * 
+ *  Note: this is used only by JAVASCRIPT::fragmentDirective().
  * ----------------------------------------------------------------------------- */
 
 int JSEmitter::registerTemplate(const String *name, const String *code) {
@@ -576,7 +599,7 @@ int JSEmitter::registerTemplate(const String *name, const String *code) {
 }
 
 /* -----------------------------------------------------------------------------
- * JSEmitter::getTemplate() :  Retrieves a registered a code template
+ * JSEmitter::getTemplate() :  Provides a registered code template
  * ----------------------------------------------------------------------------- */
 
 Template JSEmitter::getTemplate(const String *name) {
@@ -624,6 +647,9 @@ Parm *JSEmitter::skipIgnoredArgs(Parm *p) {
 
 /* -----------------------------------------------------------------------------
  * JSEmitter::getBaseClass() :  the node of the base class or NULL
+ * 
+ * Note: the first base class is provided. Multiple inheritance is not
+ *       supported.
  * ----------------------------------------------------------------------------- */
 
 Node *JSEmitter::getBaseClass(Node *n) {
@@ -640,7 +666,10 @@ Node *JSEmitter::getBaseClass(Node *n) {
 }
 
  /* -----------------------------------------------------------------------------
-  * JSEmitter::emitWrapperFunction() :  dispatches emitter functions
+  * JSEmitter::emitWrapperFunction() :  dispatches emitter functions.
+  * 
+  * This allows to have small sized, dedicated emitting functions.
+  * All state dependent branching is done here.
   * ----------------------------------------------------------------------------- */
 
 int JSEmitter::emitWrapperFunction(Node *n) {
@@ -737,7 +766,7 @@ int JSEmitter::switchNamespace(Node *n) {
     String *scope = Swig_scopename_prefix(Getattr(n, "name"));
     if (scope) {
       // if the scope is not yet registered
-      // create all scopes/namespaces recursively
+      // create (parent) namespaces recursively
       if (!Getattr(namespaces, scope)) {
         createNamespace(scope);
       }
@@ -774,9 +803,9 @@ int JSEmitter::createNamespace(String *scope) {
 Hash *JSEmitter::createNamespaceEntry(const char *_name, const char *parent) {
   Hash *entry = NewHash();
   String *name = NewString(_name);
-  Setattr(entry, "name", Swig_scopename_last(name));
-  Setattr(entry, "name_mangled", Swig_name_mangle(name));
-  Setattr(entry, "parent", NewString(parent));
+  Setattr(entry, NAME, Swig_scopename_last(name));
+  Setattr(entry, NAME_MANGLED, Swig_name_mangle(name));
+  Setattr(entry, PARENT, NewString(parent));
   
   Delete(name);
   return entry;
@@ -851,8 +880,6 @@ private:
 
 // keys for function scoped state variables
 #define FUNCTION_DISPATCHERS "function_dispatchers"
-#define GETTER "getter"
-#define SETTER "setter"
 
 JSCEmitter::JSCEmitter()
 : JSEmitter(), 
@@ -988,10 +1015,10 @@ int JSCEmitter::dump(Node *n) {
 
   // compose the initializer function using a template
   Template initializer(getTemplate("JS_initializer"));
-  initializer.replace("${modulename}", module)
-      .replace("${initializercode}", state.global(INITIALIZER))
-      .replace("${create_namespaces}", state.global(CREATE_NAMESPACES))
-      .replace("${register_namespaces}", state.global(REGISTER_NAMESPACES))
+  initializer.replace(T_NAME, module)
+      .replace("$jsinitializercode", state.global(INITIALIZER))
+      .replace("$jscreatenamespaces", state.global(CREATE_NAMESPACES))
+      .replace("$jsregisternamespaces", state.global(REGISTER_NAMESPACES))
       .pretty_print(f_init);
 
   Printv(f_wrap_cpp, f_init, 0);
@@ -1046,8 +1073,8 @@ int JSCEmitter::exitFunction(Node *n) {
     }
   }
 
-  t_function.replace("${functionname}", state.function(NAME))
-      .replace("${functionwrapper}", state.function(WRAPPER_NAME));
+  t_function.replace(T_NAME, state.function(NAME))
+      .replace(T_WRAPPER, state.function(WRAPPER_NAME));
 
   if (is_member) {
     if (GetFlag(state.function(), IS_STATIC)) {
@@ -1074,9 +1101,9 @@ int JSCEmitter::enterVariable(Node *n) {
 
 int JSCEmitter::exitVariable(Node *n) {
   Template t_variable(getTemplate("JS_variabledecl"));
-  t_variable.replace("${setname}", state.variable(SETTER))
-      .replace("${getname}", state.variable(GETTER))
-      .replace("${propertyname}", state.variable(NAME));
+  t_variable.replace(T_NAME, state.variable(NAME))
+      .replace(T_GETTER, state.variable(GETTER))
+      .replace(T_SETTER, state.variable(SETTER));
 
   if (GetFlag(n, "ismember")) {
     if (GetFlag(state.function(), IS_STATIC) 
@@ -1103,7 +1130,7 @@ int JSCEmitter::enterClass(Node *n) {
   state.clazz(CTOR_DISPATCHERS, NewString(""));
 
   Template t_class_defn = getTemplate("JS_class_definition");
-  t_class_defn.replace("${classname_mangled}", state.clazz(NAME_MANGLED))
+  t_class_defn.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
       .pretty_print(f_wrappers);
 
   return SWIG_OK;
@@ -1112,11 +1139,11 @@ int JSCEmitter::enterClass(Node *n) {
 int JSCEmitter::exitClass(Node *n) {
 
   Template t_class_tables(getTemplate("JS_class_tables"));
-  t_class_tables.replace("${classname_mangled}", state.clazz(NAME_MANGLED))
-      .replace("${jsclassvariables}", state.clazz(MEMBER_VARIABLES))
-      .replace("${jsclassfunctions}", state.clazz(MEMBER_FUNCTIONS))
-      .replace("${jsstaticclassfunctions}", state.clazz(STATIC_FUNCTIONS))
-      .replace("${jsstaticclassvariables}", state.clazz(STATIC_VARIABLES))
+  t_class_tables.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .replace("$jsclassvariables", state.clazz(MEMBER_VARIABLES))
+      .replace("$jsclassfunctions", state.clazz(MEMBER_FUNCTIONS))
+      .replace("$jsstaticclassfunctions", state.clazz(STATIC_FUNCTIONS))
+      .replace("$jsstaticclassvariables", state.clazz(STATIC_VARIABLES))
       .pretty_print(f_wrappers);
 
   /* adds the ctor wrappers at this position */
@@ -1125,8 +1152,8 @@ int JSCEmitter::exitClass(Node *n) {
 
   /* adds the main constructor wrapper function */
   Template t_mainctor(getTemplate("JS_mainctordefn"));
-  t_mainctor.replace("${classname_mangled}", state.clazz(NAME_MANGLED))
-      .replace("${DISPATCH_CASES}", state.clazz(CTOR_DISPATCHERS))
+  t_mainctor.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .replace(T_DISPATCH_CASES, state.clazz(CTOR_DISPATCHERS))
       .pretty_print(f_wrappers);
 
   /* adds a class template statement to initializer function */
@@ -1139,9 +1166,9 @@ int JSCEmitter::exitClass(Node *n) {
     Delete(base_name_mangled);
     base_name_mangled = SwigType_manglestr(Getattr(base_class, "name"));
   }
-  t_classtemplate.replace("${classname_mangled}", state.clazz(NAME_MANGLED))
-      .replace("${classtype_mangled}", state.clazz(TYPE_MANGLED))
-      .replace("${base_classname}", base_name_mangled)
+  t_classtemplate.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
+      .replace(T_BASECLASS, base_name_mangled)
       .pretty_print(state.global(INITIALIZER));
   Delete(base_name_mangled);
 
@@ -1150,9 +1177,9 @@ int JSCEmitter::exitClass(Node *n) {
 
   /* adds a class registration statement to initializer function */
   Template t_registerclass(getTemplate("JS_register_class"));
-  t_registerclass.replace("${classname}", state.clazz(NAME))
-      .replace("${classname_mangled}", state.clazz(NAME_MANGLED))
-      .replace("${namespace_mangled}", Getattr(current_namespace, "name_mangled"))
+  t_registerclass.replace(T_NAME, state.clazz(NAME))
+      .replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .replace(T_NAMESPACE, Getattr(current_namespace, NAME_MANGLED))
       .pretty_print(state.global(INITIALIZER));
 
   return SWIG_OK;
@@ -1180,19 +1207,19 @@ int JSEmitter::emitCtor(Node *n) {
   marshalInputArgs(n, params, wrapper, Ctor, true, false);
 
   Printv(wrapper->code, action, "\n", 0);
-  t_ctor.replace("${classname_mangled}", mangled_name)
-      .replace("${overloadext}", overname)
-      .replace("${LOCALS}", wrapper->locals)
-      .replace("${CODE}", wrapper->code)
-      .replace("${type_mangled}", state.clazz(TYPE_MANGLED))
+  t_ctor.replace(T_NAME_MANGLED, mangled_name)
+      .replace(T_OVERLOAD, overname)
+      .replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code)
+      .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
       .pretty_print(state.clazz(CTORS));
 
   String *argcount = NewString("");
   Printf(argcount, "%d", num_args);
   Template t_ctor_case(getTemplate("JS_ctor_dispatch_case"));
-  t_ctor_case.replace("${classname_mangled}", mangled_name)
-      .replace("${overloadext}", overname)
-      .replace("${argcount}", argcount);
+  t_ctor_case.replace(T_NAME_MANGLED, mangled_name)
+      .replace(T_OVERLOAD, overname)
+      .replace(T_ARGCOUNT, argcount);
   Append(state.clazz(CTOR_DISPATCHERS), t_ctor_case.str());
   Delete(argcount);
   
@@ -1204,8 +1231,8 @@ int JSEmitter::emitCtor(Node *n) {
 int JSEmitter::emitDtor(Node *) {
 
   Template t_dtor = getTemplate("JS_destructordefn");
-  t_dtor.replace("${classname_mangled}", state.clazz(NAME_MANGLED))
-      .replace("${type}", state.clazz(TYPE))
+  t_dtor.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .replace(T_TYPE, state.clazz(TYPE))
       .pretty_print(f_wrappers);
 
   return SWIG_OK;
@@ -1224,16 +1251,15 @@ int JSEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
-  Wrapper_add_local(wrapper, "jsresult", "JSValueRef jsresult");
 
   // prepare code part
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Getter, is_member, is_static);
   marshalOutput(n, action, wrapper);
 
-  t_getter.replace("${getname}", wrap_name)
-      .replace("${LOCALS}", wrapper->locals)
-      .replace("${CODE}", wrapper->code)
+  t_getter.replace(T_GETTER, wrap_name)
+      .replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code)
       .pretty_print(f_wrappers);
 
   DelWrapper(wrapper);
@@ -1267,9 +1293,9 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
   marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
   Append(wrapper->code, action);
 
-  t_setter.replace("${setname}", wrap_name)
-      .replace("${LOCALS}", wrapper->locals)
-      .replace("${CODE}", wrapper->code)
+  t_setter.replace(T_SETTER, wrap_name)
+      .replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code)
       .pretty_print(f_wrappers);
 
   DelWrapper(wrapper);
@@ -1296,9 +1322,6 @@ int JSEmitter::emitConstant(Node *n) {
   state.variable(GETTER, wrap_name);
   Setattr(n, "wrap:name", wrap_name);
 
-  // prepare local variables
-  Wrapper_add_local(wrapper, "jsresult", "JSValueRef jsresult");
-
   // prepare code part
   String *action = NewString("");
   String *value = Getattr(n, "rawval");
@@ -1312,9 +1335,9 @@ int JSEmitter::emitConstant(Node *n) {
   Setattr(n, "wrap:action", action);
   marshalOutput(n, action, wrapper);
 
-  t_getter.replace("${getname}", wrap_name)
-      .replace("${LOCALS}", wrapper->locals)
-      .replace("${CODE}", wrapper->code)
+  t_getter.replace(T_GETTER, wrap_name)
+      .replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code)
       .pretty_print(f_wrappers);
 
   exitVariable(n);
@@ -1334,8 +1357,8 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   // prepare the function wrapper name
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
   if (is_overloaded) {
-    Append(wrap_name, Getattr(n, "sym:overname"));
     t_function = getTemplate("JS_functionwrapper_overload");
+    Append(wrap_name, Getattr(n, "sym:overname"));
   }
   Setattr(n, "wrap:name", wrap_name);
   state.function(WRAPPER_NAME, wrap_name);
@@ -1344,16 +1367,15 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
-  Wrapper_add_local(wrapper, "jsresult", "JSValueRef jsresult");
 
   // prepare code part
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
   marshalOutput(n, action, wrapper);
 
-  t_function.replace("${functionname}", wrap_name)
-      .replace("${LOCALS}", wrapper->locals)
-      .replace("${CODE}", wrapper->code)
+  t_function.replace(T_WRAPPER, wrap_name)
+      .replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code)
       .pretty_print(f_wrappers);
 
   // handle function overloading
@@ -1364,8 +1386,8 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
     String *argcount = NewString("");
     Printf(argcount, "%d", argc);
 
-    t_dispatch_case.replace("${functionwrapper}", wrap_name)
-        .replace("${argcount}", argcount);
+    t_dispatch_case.replace(T_WRAPPER, wrap_name)
+        .replace(T_ARGCOUNT, argcount);
 
     Append(state.global(FUNCTION_DISPATCHERS), t_dispatch_case.str());
 
@@ -1386,16 +1408,16 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   Setattr(n, "wrap:name", wrap_name);
 
   Wrapper_add_local(wrapper, "res", "int res");
-  Wrapper_add_local(wrapper, "jsresult", "JSValueRef jsresult");
 
   Append(wrapper->code, state.global(FUNCTION_DISPATCHERS));
   Append(wrapper->code, getTemplate("JS_function_dispatch_case_default").str());
 
-  t_function.replace("${LOCALS}", wrapper->locals)
-      .replace("${CODE}", wrapper->code);
+  t_function.replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code);
       
   // call this here, to replace all variables
-  t_function.replace("${functionname}", wrap_name)
+  t_function.replace(T_WRAPPER, wrap_name)
+      .replace(T_NAME, state.function(NAME))
       .pretty_print(f_wrappers);
 
   // Delete the state variable
@@ -1446,27 +1468,27 @@ int JSCEmitter::emitNamespaces() {
   Iterator it;
   for (it = First(namespaces); it.item; it = Next(it)) {
     Hash *entry = it.item;
-    String *name = Getattr(entry, "name");
-    String *parent = Getattr(entry, "parent");
+    String *name = Getattr(entry, NAME);
+    String *name_mangled = Getattr(entry, NAME_MANGLED);
+    String *parent = Getattr(entry, PARENT);
+    String *parent_mangled = Swig_name_mangle(parent);
     String *functions = Getattr(entry, "functions");
     String *variables = Getattr(entry, "values");
-    String *name_mangled = Getattr(entry, "name_mangled");
-    String *parent_mangled = Swig_name_mangle(parent);
 
     Template namespace_definition(getTemplate("JS_globaldefn"));
-    namespace_definition.replace("${jsglobalvariables}", variables)
-        .replace("${jsglobalfunctions}", functions)
-        .replace("${namespace}", name_mangled)
+    namespace_definition.replace("$jsglobalvariables", variables)
+        .replace("$jsglobalfunctions", functions)
+        .replace(T_NAMESPACE, name_mangled)
         .pretty_print(f_wrap_cpp);
 
     Template t_createNamespace(getTemplate("JS_create_namespace"));
-    t_createNamespace.replace("${namespace}", name_mangled);
+    t_createNamespace.replace(T_NAME_MANGLED, name_mangled);
     Append(state.global(CREATE_NAMESPACES), t_createNamespace.str());
 
     Template t_registerNamespace(getTemplate("JS_register_namespace"));
-    t_registerNamespace.replace("${namespace_mangled}", name_mangled)
-        .replace("${namespace}", name)
-        .replace("${parent_namespace}", parent_mangled);
+    t_registerNamespace.replace(T_NAME_MANGLED, name_mangled)
+        .replace(T_NAME, name)
+        .replace(T_PARENT, parent_mangled);
     Append(state.global(REGISTER_NAMESPACES), t_registerNamespace.str());
   }
 
@@ -1575,8 +1597,8 @@ private:
 #define KW_REGISTER_CLASSES                         "${PART_REGISTER_CLASSES}"
 #define KW_REGISTER_NS                              "${PART_REGISTER_NS}"
 
-#define KW_LOCALS                                   "${LOCALS}"
-#define KW_CODE                                     "${CODE}"
+#define KW_LOCALS                                   T_LOCALS
+#define KW_CODE                                     T_CODE
 
 V8Emitter::V8Emitter() 
 : JSEmitter(), 
