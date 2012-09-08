@@ -43,4 +43,20 @@ void SWIGV8_AddStaticVariable(v8::Handle<v8::Object> obj, const char* symbol, v8
   obj->SetAccessor(v8::String::NewSymbol(symbol), getter, setter);
 }
 
+void JS_veto_set_variable(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info)
+{
+    char buffer[256];
+    char msg[512];
+    int res;
+    
+    property->WriteUtf8(buffer, 256);
+    res = sprintf(msg, "Tried to write read-only variable: %s.", buffer);
+    
+    if(res<0) {
+      SWIG_exception(SWIG_ERROR, "Tried to write read-only variable.");
+    } else {
+      SWIG_exception(SWIG_ERROR, msg);
+    }
+}
+
 %} // v8_helper_functions

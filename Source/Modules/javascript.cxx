@@ -1591,12 +1591,15 @@ private:
       
   String* GLOBAL;
   String* NULL_STR;
+  String *VETO_SET;
+
 };
 
 V8Emitter::V8Emitter() 
 : JSEmitter(), 
   GLOBAL(NewString("global")),
-  NULL_STR(NewString("0"))
+  NULL_STR(NewString("0")),
+  VETO_SET(NewString("JS_veto_set_variable"))
 {
 }
 
@@ -1604,6 +1607,7 @@ V8Emitter::~V8Emitter()
 {
   Delete(GLOBAL);
   Delete(NULL_STR);
+  Delete(VETO_SET);
 }
 
 int V8Emitter::initialize(Node *n)
@@ -1761,7 +1765,7 @@ int V8Emitter::enterVariable(Node* n)
   JSEmitter::enterVariable(n);
   
   state.variable(GETTER, NULL_STR);
-  state.variable(SETTER, NULL_STR);
+  state.variable(SETTER, VETO_SET);
 
   return SWIG_OK;
 }
