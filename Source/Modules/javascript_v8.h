@@ -68,10 +68,13 @@ private:
     String* current_classname_unqualified;
     String* current_variable_mangled;
     String* current_variable_unqualified;
+    String* current_getter;
+    String* current_setter;
     String* current_function_mangled;
     String* current_function_unqualified;
         
     String* GLOBAL;
+    String* NULL_STR;
     Hash* namespaces;
 };
 

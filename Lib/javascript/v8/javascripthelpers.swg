@@ -55,15 +55,21 @@ void SWIGV8_AddClassMethod(v8::Handle<v8::FunctionTemplate> class_templ, const c
  * Registers a class method with given name for a given class template. 
  */
 void SWIGV8_AddGlobalMethod(v8::Handle<v8::ObjectTemplate> obj_templ, const char* symbol, v8::InvocationCallback _func) {
-    obj_templ->Set(String::New(symbol), FunctionTemplate::New(_func));
+    obj_templ->Set(String::NewSymbol(symbol), v8::FunctionTemplate::New(_func)->GetFunction());
 }
 
 /**
  * Registers a class property with given name for a given class template. 
  */
-void SWIGV8_AddProperty(v8::Handle<v8::FunctionTemplate> class_templ, const char* varname, v8::AccessorGetter getter, v8::AccessorSetter setter) {
+void SWIGV8_AddClassVariable(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol, v8::AccessorGetter getter, v8::AccessorSetter setter) {
     v8::Handle<v8::ObjectTemplate> proto_templ = class_templ->InstanceTemplate();
-    proto_templ->SetAccessor(v8::String::New(varname), getter, setter);
+    proto_templ->SetAccessor(v8::String::NewSymbol(symbol), getter, setter);
 }
 
+/**
+ * Registers a class method with given name for a given class template. 
+ */
+void SWIGV8_AddGlobalVariable(v8::Handle<v8::ObjectTemplate> obj_templ, const char* symbol, v8::AccessorGetter getter, v8::AccessorSetter setter) {
+    obj_templ->SetAccessor(String::NewSymbol(symbol), getter, setter);
+}
 %} // v8_helper_functions

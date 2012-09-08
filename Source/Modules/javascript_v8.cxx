@@ -18,9 +18,10 @@
 #define V8_RETRIEVE_THIS                            "v8_retrieve_this"
 #define V8_REGISTER_MEMBER_FUNCTION                 "v8_register_member_function"
 #define V8_REGISTER_GLOBAL_FUNCTION                 "v8_register_global_function"
+#define V8_REGISTER_MEMBER_VARIABLE                 "v8_register_member_variable"
+#define V8_REGISTER_GLOBAL_VARIABLE                 "v8_register_global_variable"
 #define V8_CREATE_NAMESPACE                         "v8_create_namespace"
 #define V8_REGISTER_NAMESPACE                       "v8_register_namespace"
-
 
 // keywords used in templates
 #define KW_MODULE_NAME                              "${MODULE}"
@@ -30,6 +31,8 @@
 #define KW_BASE_CLASS                               "${BASE_CLASS}"
 #define KW_CONTEXT                                  "${CONTEXT}"
 #define KW_WRAPPER                                  "${WRAPPER}"
+#define KW_GETTER                                   "${GETTER}"
+#define KW_SETTER                                   "${SETTER}"
 
 #define KW_NAME_SPACES                              "${PART_NAMESPACES}"
 #define KW_CLASS_TEMPLATES                          "${PART_CLASS_TEMPLATES}"
@@ -46,6 +49,7 @@
 V8Emitter::V8Emitter() 
     : JSEmitter(), 
       GLOBAL(NewString("global")),
+      NULL_STR(NewString("0")),
       namespaces(NewHash())
 {
 }
@@ -53,6 +57,7 @@ V8Emitter::V8Emitter()
 V8Emitter::~V8Emitter()
 {
     Delete(GLOBAL);
+    Delete(NULL_STR);
     Delete(namespaces);
 }
 
@@ -171,6 +176,7 @@ int V8Emitter::CreateNamespace(String* scope) {
     // create namespace object and register it to the parent scope
     Template t_create_ns(GetTemplate(V8_CREATE_NAMESPACE));
     t_create_ns.Replace(KW_MANGLED_NAME, scope_mangled);
+    
     Template t_register_ns(GetTemplate(V8_REGISTER_NAMESPACE));
     t_register_ns.Replace(KW_MANGLED_NAME, scope_mangled)
         .Replace(KW_CONTEXT, parent_scope_mangled)
@@ -240,6 +246,9 @@ int V8Emitter::EnterVariable(Node* n)
     } else {
         current_variable_mangled = Swig_string_mangle(Getattr(n, "name"));
     }
+    
+    current_getter = NULL_STR;
+    current_setter = NULL_STR;
         
     return SWIG_OK;
 }
@@ -247,8 +256,21 @@ int V8Emitter::EnterVariable(Node* n)
 int V8Emitter::ExitVariable(Node* n)
 {
  
-    // TODO: Register variable in context
-    Swig_print_node(n);
+    if(GetFlag(n, "ismember")) {
+        Template t_register(GetTemplate(V8_REGISTER_MEMBER_VARIABLE));
+        t_register.Replace(KW_CLASSNAME_MANGLED, current_classname_mangled)
+            .Replace(KW_UNQUALIFIED_NAME, current_variable_unqualified)
+            .Replace(KW_GETTER, current_getter)
+            .Replace(KW_SETTER, current_setter);
+        Printv(f_init_wrappers, t_register.str(), 0);
+    } else {
+        Template t_register(GetTemplate(V8_REGISTER_GLOBAL_VARIABLE));
+        t_register.Replace(KW_CONTEXT, current_context)
+            .Replace(KW_UNQUALIFIED_NAME, current_variable_unqualified)
+            .Replace(KW_GETTER, current_getter)
+            .Replace(KW_SETTER, current_setter);
+        Printv(f_init_wrappers, t_register.str(), 0);
+    }
     
     Delete(current_variable_mangled);
     Delete(current_variable_unqualified);
@@ -320,6 +342,8 @@ int V8Emitter::EmitDtor(Node* n)
 int V8Emitter::EmitGetter(Node *n, bool is_member) {
     Template t_getter(GetTemplate(V8_GETTER));
 
+    current_getter = Getattr(n,"wrap:name");
+
     Printf(current_wrapper->locals, "%s result;\n", SwigType_str(Getattr(n, "type"), 0));
     
     String* action = emit_action(n);
@@ -341,6 +365,8 @@ int V8Emitter::EmitGetter(Node *n, bool is_member) {
 int V8Emitter::EmitSetter(Node* n, bool is_member)
 {
     Template t_setter(GetTemplate(V8_SETTER));
+
+    current_setter = Getattr(n,"wrap:name");
     
     ParmList *params  = Getattr(n,"parms");
     emit_parameter_variables(params, current_wrapper);

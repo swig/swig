@@ -86,7 +86,13 @@ v8::Handle<v8::ObjectTemplate> ${NAME_MANGLED} = v8::ObjectTemplate::New();%}
 SWIGV8_AddClassMethod(SWIGV8_${CLASSNAME_MANGLED}, "${NAME_UNQUALIFIED}", wrap_${NAME_MANGLED});%}
 
 %fragment("v8_register_global_function", "templates") %{
-${CONTEXT}->Set(v8::String::NewSymbol("${NAME_UNQUALIFIED}"), v8::FunctionTemplate::New(wrap_${NAME_MANGLED})->GetFunction());%}
+SWIGV8_AddGlobalMethod(${CONTEXT}, "${NAME_UNQUALIFIED}", wrap_${NAME_MANGLED});%}
+
+%fragment("v8_register_member_variable", "templates") %{
+SWIGV8_AddClassVariable(SWIGV8_${CLASSNAME_MANGLED}, "${NAME_UNQUALIFIED}", ${GETTER}, ${SETTER});%}
+
+%fragment("v8_register_global_variable", "templates") %{
+SWIGV8_AddGlobalVariable(${CONTEXT}, "${NAME_UNQUALIFIED}", ${GETTER}, ${SETTER});%}
 
 %fragment("v8_register_namespace", "templates") %{
 ${CONTEXT}->Set(v8::String::NewSymbol("${NAME_UNQUALIFIED}", ${NAME_MANGLED}->NewInstance()));%}
