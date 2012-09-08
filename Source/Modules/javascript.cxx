@@ -8,27 +8,40 @@
  * JAVASCRIPT: swig module implementation
  **********************************************************************/
 
-/* forward decl: Template is a convenience helper class for dealing with
- * code fragments */
-class Template;
-
 /**
  * Enables extra debugging information in typemaps.
  */
 bool js_template_enable_debug = false;
 
-class State {
+// keywords used for state variables
+
+#undef NAME
+#define NAME "name"
+#define NAME_MANGLED "name_mangled"
+#define TYPE "type"
+#define TYPE_MANGLED "type_mangled"
+#define WRAPPER_NAME "wrapper"
+#define IS_IMMUTABLE "is_immutable"
+#define IS_STATIC "is_static"
+
+/**
+ * A convenience class to manage state variables for emitters.
+ * The implementation delegates to swig Hash DOHs and provides
+ * named sub-hashes for class, variable, and function states.
+ */
+class JSEmitterState {
   
 public:
 
-  State(): _global(NewHash()) {
+  JSEmitterState(): 
+    _global(NewHash()) {
     // initialize sub-hashes
     Setattr(_global, "class", NewHash());
     Setattr(_global, "function", NewHash());
     Setattr(_global, "variable", NewHash());
   }
 
-  ~State() { Delete(_global); }
+  ~JSEmitterState() { Delete(_global); }
   
   DOH *getState(const char* key, bool _new = false) {
     if (_new) {
@@ -99,11 +112,19 @@ private:
   Hash *_global;
 };
 
+/* forward decl: Template is a convenience helper class for dealing with
+ * code fragments */
+class Template;
+
 /**
  * JSEmitter represents an abstraction of javascript code generators
  * for different javascript engines.
  **/
 class JSEmitter {
+
+protected:
+
+  typedef JSEmitterState State;
 
 public:
 
@@ -202,7 +223,7 @@ public:
    */
   Template getTemplate(const String *name);
 
-  void setStaticFlag(bool is_static = false);
+  State &getState();
 
 protected:
 
@@ -259,8 +280,6 @@ protected:
   Wrapper *current_wrapper;
   
   State state;
-
-  bool is_static;
 };
 
 /* factory methods for concrete JSEmitters: */
@@ -351,9 +370,9 @@ int JAVASCRIPT::globalfunctionHandler(Node *n) {
 
 int JAVASCRIPT::staticmemberfunctionHandler(Node *n) {
   // workaround: storage=static is not set for static member functions
-  emitter->setStaticFlag(true);
+  emitter->getState().function(IS_STATIC, NewString("1"));
   Language::staticmemberfunctionHandler(n);
-  emitter->setStaticFlag(false);
+  emitter->getState().function(IS_STATIC, NULL);
   return SWIG_OK;
 }
 
@@ -575,22 +594,13 @@ private:
   bool debug;
 };
 
-#define __NAME__ "name"
-#define NAME_MANGLED "name_mangled"
-#define TYPE "type"
-#define TYPE_MANGLED "type_mangled"
-#define WRAPPER_NAME "wrapper"
-#define IS_IMMUTABLE "is_immutable"
-#define IS_STATIC "is_static"
-
 /* -----------------------------------------------------------------------------
  * JSEmitter()
  * ----------------------------------------------------------------------------- */
 
 JSEmitter::JSEmitter()
 :  empty_string(NewString("")), 
-   current_wrapper(NULL), 
-   is_static(false)
+   current_wrapper(NULL)
 {
   templates = NewHash();
 }
@@ -629,12 +639,12 @@ Template JSEmitter::getTemplate(const String *name) {
   return t;
 }
 
-int JSEmitter::initialize(Node *) {
-  return SWIG_OK;
+JSEmitterState &JSEmitter::getState() {
+  return state;
 }
 
-void JSEmitter::setStaticFlag(bool _is_static) {
-  is_static = _is_static;
+int JSEmitter::initialize(Node *) {
+  return SWIG_OK;
 }
 
 /* -----------------------------------------------------------------------------
@@ -753,7 +763,7 @@ int JSEmitter::emitWrapperFunction(Node *n) {
 int JSEmitter::enterClass(Node *n) {
 
   state.clazz(true);
-  state.clazz(__NAME__, Getattr(n, "sym:name"));
+  state.clazz(NAME, Getattr(n, "sym:name"));
   state.clazz(NAME_MANGLED, SwigType_manglestr(Getattr(n, "name")));
   state.clazz(TYPE, NewString(Getattr(n, "classtype")));
 
@@ -769,14 +779,14 @@ int JSEmitter::enterClass(Node *n) {
 int JSEmitter::enterFunction(Node *n) {
 
   state.function(true);
-  state.function(__NAME__, Getattr(n, "sym:name"));
+  state.function(NAME, Getattr(n, "sym:name"));
 
   return SWIG_OK;
 }
 
 int JSEmitter::enterVariable(Node *n) {
   state.variable(true);
-  state.variable(__NAME__, Swig_scopename_last(Getattr(n, "name")));
+  state.variable(NAME, Swig_scopename_last(Getattr(n, "name")));
   state.variable(IS_IMMUTABLE, Getattr(n, "wrap:immutable"));
   return SWIG_OK;
 }
@@ -1238,7 +1248,7 @@ int JSCEmitter::exitFunction(Node *n) {
     }
   }
 
-  t_function.replace("${functionname}", state.function(__NAME__))
+  t_function.replace("${functionname}", state.function(NAME))
       .replace("${functionwrapper}", state.function(WRAPPER_NAME));
 
   if (is_member) {
@@ -1268,7 +1278,7 @@ int JSCEmitter::exitVariable(Node *n) {
   Template t_variable(getTemplate("JS_variabledecl"));
   t_variable.replace("${setname}", state.variable(SETTER))
       .replace("${getname}", state.variable(GETTER))
-      .replace("${propertyname}", state.variable(__NAME__));
+      .replace("${propertyname}", state.variable(NAME));
 
   if (GetFlag(n, "ismember")) {
     if (Equal(Getattr(n, "storage"), "static") || (Equal(Getattr(n, "nodeType"), "enumitem"))) {
@@ -1341,7 +1351,7 @@ int JSCEmitter::exitClass(Node *n) {
 
   /* adds a class registration statement to initializer function */
   Template t_registerclass(getTemplate("JS_register_class"));
-  t_registerclass.replace("${classname}", state.clazz(__NAME__))
+  t_registerclass.replace("${classname}", state.clazz(NAME))
       .replace("${classname_mangled}", state.clazz(NAME_MANGLED))
       .replace("${namespace_mangled}", Getattr(current_namespace, "name_mangled"))
       .pretty_print(state.global(INITIALIZER));
@@ -1509,23 +1519,24 @@ int JSCEmitter::emitFunction(Node *n, bool is_member) {
   //       in these cases the context (staticmemberfunctionHandler) is
   //       exploited and a flag is set temporarily
   //       TODO: this could be done in general with is_member and is_static
-  bool is_static = JSEmitter::is_static || Equal(Getattr(n, "storage"), "static");
-
+  bool is_static = State::IsSet(state.function(IS_STATIC)) || Equal(Getattr(n, "storage"), "static");
   bool is_overloaded = GetFlag(n, "sym:overloaded");
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
 
+  // prepare the function wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
   if (is_overloaded) {
     Append(wrap_name, Getattr(n, "sym:overname"));
   }
-
   Setattr(n, "wrap:name", wrap_name);
   state.function(WRAPPER_NAME, wrap_name);
 
+  // prepare local variables
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, current_wrapper);
   emit_attach_parmmaps(params, current_wrapper);
   Wrapper_add_local(current_wrapper, "jsresult", "JSValueRef jsresult");
 
+  // prepare code part
   String *action = emit_action(n);
   marshalInputArgs(n, params, current_wrapper, Function, is_member, is_static);
   marshalOutput(n, action, current_wrapper);
@@ -1535,6 +1546,7 @@ int JSCEmitter::emitFunction(Node *n, bool is_member) {
       .replace("${CODE}", current_wrapper->code)
       .pretty_print(f_wrappers);
 
+  // handle function overloading
   if (is_overloaded) {
     Template t_dispatch_case = getTemplate("JS_function_dispatch_case");
 
