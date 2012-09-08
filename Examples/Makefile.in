@@ -543,8 +543,7 @@ JSCFLAGS = @JSCORECFLAGS@
 JSCXXFLAGS = @JSCXXFLAGS@
 
 JSEXE_SRC_DIR = $(TOP)/../Tools/javascript
-JSEXE_SRC     = $(JSEXE_SRC_DIR)/javascript.cxx $(JSEXE_SRC_DIR)/js_shell.cxx
-JSEXE         = $(TOP)/../Tools/javascript/javascript
+JSEXE         = $(JSEXE_SRC_DIR)/javascript
 ifeq (,$(V8))
   JSEXE_SRC     = $(JSEXE_SRC_DIR)/javascript.cxx $(JSEXE_SRC_DIR)/js_shell.cxx $(JSEXE_SRC_DIR)/jsc_shell.cxx
   JSEXE_OPTS    = -jsc
@@ -563,8 +562,8 @@ endif
 ifeq (,$(V8))
 javascript: $(SRCS)
 	$(SWIGJS) $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(JSCFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(JS_INCLUDE)
-	$(JSLDSHARED) $(CCSHARED) $(JSCFLAGS) $(OBJS) $(IOBJS) $(JS_DLNK) $(LIBS) -o $(JS_LIBPREFIX)$(TARGET)$(JSSO)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(JSCFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(JS_INCLUDE)
+	$(JSLDSHARED) $(CCSHARED) $(OBJS) $(IOBJS) $(JS_DLNK) $(LIBS) -o $(JS_LIBPREFIX)$(TARGET)$(JSSO)
 else
 javascript: $(SRCS) javascript_cpp
 endif
@@ -575,7 +574,7 @@ endif
 
 javascript_cpp: $(SRCS)
 	$(SWIGJS) -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(JSCXXFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JS_INCLUDE)
+	$(CXX) -c $(CCSHARED) $(CXXFLAGS) $(JSCXXFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JS_INCLUDE)
 	$(JSCXXSHARED) $(CCSHARED) $(OBJS) $(IOBJS) $(JS_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JS_LIBPREFIX)$(TARGET)$(JSSO)
 
 # ----------------------------------------------------------------
