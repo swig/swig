@@ -175,7 +175,7 @@ cffi_examples      :=
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
 d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
-javascript_examples:=
+javascript_examples:=$(shell sed '/^\#/d' $(srcdir)/Examples/javascript/check.list)
 
 # all examples
 check-%-examples :
