@@ -1,119 +1,109 @@
-%typemap(in) bool
-%{ $1 = ($1_ltype) $input->BooleanValue();%} 
-
-// Primitive types
-%typemap(in) char, 
-             signed char, 
-             unsigned char, 
-             short, 
-             unsigned short, 
-             int
-%{ $1 = ($1_ltype) $input->Int32Value();%}	
-
-%typemap(in) unsigned int, 
-             long, 
-             unsigned long, 
-             long long, 
-             unsigned long long
-%{ $1 = ($1_ltype) $input->UInt32Value();%}
-
-%typemap(in) float, double
-%{ $1 = ($1_ltype) $input->NumberValue();%}
-
-
-%typemap(in) const bool &,  bool &,
-             const char &,  char &,
-             const signed char &, signed char &,
-             const unsigned char &, unsigned char &,
-             const short &, short &,
-             const unsigned short &, unsigned short &,
-             const int &, int &,
-             const unsigned int &, unsigned int &,
-             const long &,  long &,
-             const unsigned long &, unsigned long &,
-             const long long &, long long &,
-             const unsigned long long &, unsigned long long &,
-             const float &, float &,
-             const double &, double &
-%{ 
-  // TODO: typemap(in) const bool& at al
+%fragment(SWIG_From_frag(bool),"header") {
+SWIGINTERNINLINE 
+v8::Handle<v8::Value> 
+SWIG_From_dec(bool)(bool value)
+{
+  return v8::Boolean::New(value);
+}
 }
 
-%typemap(out) bool
-%{ $result = v8::Boolean::New($1);%} 
+%fragment(SWIG_AsVal_frag(bool),"header",
+          fragment=SWIG_AsVal_frag(long)) {
+SWIGINTERN
+int SWIG_AsVal_dec(bool)(v8::Handle<v8::Value> obj, bool *val)
+{
+  if(!obj->IsBoolean()) {
+    return SWIG_ERROR;
+  }
+  
+  if (val) *val = obj->BooleanValue();
+  return SWIG_OK;
+}
+}
 
-%typemap(out) char, 
-             signed char, 
-             unsigned char,
-             short, 
-             unsigned short, 
-             int
-%{ $result = v8::Int32::New($1);%}
-             
-%typemap(out) unsigned int, 
-             long, 
-             unsigned long, 
-             long long,
-             unsigned long long
-%{ $result = v8::UInt32::New($1);%}
+%fragment(SWIG_From_frag(int),"header") {
+SWIGINTERNINLINE
+v8::Handle<v8::Value> SWIG_From_dec(int)(int value)
+{
+  return v8::Int32::New(value);
+}
+}
 
-%typemap(out) float, double
-%{ $result = v8::Number::New($1); %}
+%fragment(SWIG_From_frag(long),"header") {
+SWIGINTERNINLINE
+v8::Handle<v8::Value> SWIG_From_dec(long)(long value)
+{
+  return v8::Integer::New(value);
+}
+}
 
-%typemap(out) const bool &, bool &
-%{ $result = v8::Boolean::New((*$1);%}
+%fragment(SWIG_AsVal_frag(long),"header",
+          fragment="SWIG_CanCastAsInteger") {
+SWIGINTERN 
+int SWIG_AsVal_dec(long)(v8::Handle<v8::Value> obj, long* val)
+{
+  if (!obj->IsInteger()) {
+    return SWIG_TypeError;
+  }
+  if(val) *val = (long) obj->IntegerValue();
+  
+  return SWIG_OK;
+}
+}
 
-%typemap(out) const char &, char &,
-              const signed char &, signed char &,
-              const unsigned char &, unsigned char &,
-              const short &, short &,
-              const unsigned short &, unsigned short &,
-              const int &, int &
-%{ $result = v8::Int32::New((*$1);%}
-              
-%typemap(out) const unsigned int &, unsigned int &,
-            const long &, long &,
-            const unsigned long &, unsigned long &,
-            const long long &, long long &,
-            const unsigned long long &, unsigned long long &
-%{ $result = v8::UInt32::New(*$1);%}
+/* unsigned long */
 
-%typemap(out) const float &, float &,
-            const double &, double &
-%{ $result = v8::Number::New(*$1);%}
+%fragment(SWIG_From_frag(unsigned long),"header",
+          fragment=SWIG_From_frag(long)) {
+SWIGINTERNINLINE 
+v8::Handle<v8::Value> SWIG_From_dec(unsigned long)(unsigned long value)
+{
+  return (value > LONG_MAX) ?
+    v8::Integer::NewFromUnsigned(value) : v8::Integer::New(%numeric_cast(value,long)); 
+}
+}
 
-%typemap(in) short *, 
-             unsigned short *, 
-             int *, 
-             unsigned int *, 
-             long *, 
-             unsigned long *, 
-             long long *, 
-             unsigned long long *,
-             float *, 
-             double *
-%{
-    // TODO: typemap(in): short* et al.
-%}
+%fragment(SWIG_AsVal_frag(unsigned long),"header",
+          fragment="SWIG_CanCastAsInteger") {
+SWIGINTERN 
+int SWIG_AsVal_dec(unsigned long)(v8::Handle<v8::Value> obj, unsigned long *val) 
+{
+  if(!obj->IsNumber()) {
+    return SWIG_TypeError;
+  }
+  
+  long longVal = (long) obj->NumberValue();
+  
+  if(longVal < 0) {
+      return SWIG_OverflowError;
+  }
+  
+  if(val) *val = longVal; 
+  
+  return SWIG_OK;
+}
+}
 
+%fragment(SWIG_From_frag(double),"header") {
+SWIGINTERN 
+v8::Handle<v8::Value> SWIG_From_dec(double) (double val)
+{
+  return v8::Number::New(val);
+}
+}
 
-%typemap(out) short *, 
-             unsigned short *, 
-             int *, 
-             unsigned int *, 
-             long *, 
-             unsigned long *, 
-             long long *, 
-             unsigned long long *,
-             float *, 
-             double *
-%{
-    // TODO: typemap(out) short* et al.
-%}
-
-%typemap(out) void
-%{ $result = v8::Undefined(); %}
-
+%fragment(SWIG_AsVal_frag(double),"header") {
+SWIGINTERN 
+int SWIG_AsVal_dec(double)(v8::Handle<v8::Value> obj, double *val)
+{
+  if(!obj->IsNumber()) {
+    return SWIG_TypeError;
+  }
+  if(val) *val = obj->NumberValue();
+  
+  return SWIG_OK;
+}
+}
 
 %typemap(in) char *
 %{
@@ -121,81 +111,3 @@
     $1 = *_$1;
 %}
 
-%typemap(out) char *
-%{
-    // TODO: output typemap for char*
-%}
-
-%typemap(in) char *& ($*1_ltype temp = 0) %{ 
-    // TODO: input typemap for char*&
-%}
-
-%typemap(out) char *& 
-%{ 
-    // TODO: output typemap for char*&
-%}
-
-/* char arrays - treat as String */
-%typemap(in) char[ANY], char[] %{
-    // TODO: input typemap for char[]
-%}
-
-%typemap(out) char[ANY], char[] 
-%{
-    // TODO: output typemap for char[]
-%}
-
-%typemap(freearg) char *, char *&, char[ANY], char[] //TODO: Not working: A memory leak
-%{ 
-    // TODO: freearg char* et al
-%}
-
-/* Typemaps for composite types */
-%typemap(in) SWIGTYPE ($&1_type argp)	// Objects passed by value, convert to a pointer
-%{ 
-    // TODO: input typemap for composite types
-%}
-
-%typemap(out) SWIGTYPE ($&1_type temp)
-%{
-    // TODO: output typemap for composite types
-%}
-
-%typemap(in) SWIGTYPE *, SWIGTYPE &
-%{
-    // TODO: input typemap for ptr types
-%}
-
-%typemap(out) SWIGTYPE *, SWIGTYPE & 
-%{
-    // TODO: output typemap for ptr types
-%}
-
-// TODO: sanity check?
-%typemap(arginit) SWIGTYPE * 
-%{%}
-
-%typemap(in) SWIGTYPE (CLASS::*) "" 
-
-%typemap(out) SWIGTYPE (CLASS::*) 
-%{
-    // TODO: output typemap for CLASS::*
-%}
-
-// Default array handling
-%typemap(in) SWIGTYPE [] %{ 
-    // TODO: typemap for arrays; 
-%}
-
-%typemap(out) SWIGTYPE [] %{ $result = $1; %} 
-
-// Some ANSI C typemaps */
-%apply unsigned long { size_t };
-
-%apply const unsigned long & { const size_t & };
-
-// Array reference typemaps
-%apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-
-// const pointers
-%apply SWIGTYPE * { SWIGTYPE *const }
