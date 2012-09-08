@@ -1215,11 +1215,9 @@ AC_SUBST(JSCXXFLAGS)
 
 # check for include files
 AC_MSG_CHECKING(for include file v8.h)
-AC_ARG_WITH(javascriptv8incl, [  --with-javascript-v8=path    Set location of Javascript include directory], [JSV8INCDIR="$withval"], [JSV8INCDIR=])
+AC_ARG_WITH(v8inc, [  --with-v8inc=path    Set location of Javascript include directory], [JSV8INCDIR="$withval"])
 
 if test -z "$JSV8INCDIR"; then
-  JSV8INCDIR="/usr/include/ /usr/local/include/"
-
   # Add in default directory for JavaScriptCore headers for Linux and MacOSX
   case $host in
   *-*-linux*) JSV8INCDIR="/usr/include /usr/local/include/ $JSV8INCDIR";;
@@ -1243,27 +1241,21 @@ fi
 
 
 # check for V8 library
-AC_ARG_WITH(jsv8lib,[  --with-jsv8lib =path      Set location of V8 library directory],[
-	JSV8LIB="-L$withval"], [JSV8LIB=])
-AC_MSG_CHECKING(for V8 library)
+AC_MSG_CHECKING(for v8 library)
+AC_ARG_WITH(v8lib,[  --with-v8lib=path      Set location of V8 library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
 
-if test -z "$JSV8LIB"; then
-dirs="/usr/lib/ /usr/local/lib/"
-for i in $dirs ; do
-
-    if test -r $i/libv8.so; then
-            AC_MSG_RESULT($i)
-            JSV8LIB="-L$i -lv8"
-            break
-    fi
+v8libdirs="$JSV8LIBDIR /usr/lib/ /usr/local/lib/"
+for i in $v8libdirs ; do
+  if test -r $i/libv8.so; then
+    JSV8LIB="-L$i -lv8"
+    break
+  fi
 done
 
 if test "$JSV8LIB" = "" ; then
-	AC_MSG_RESULT(not found)
-fi
-
+  AC_MSG_RESULT(not found)
 else
-AC_MSG_RESULT($JSCORELIB)
+  AC_MSG_RESULT($JSV8LIB)
 fi
 
 
