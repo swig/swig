@@ -56,6 +56,12 @@ SKIP_MULTI_CPP_CASES = @SKIP_MULTI_CPP_CASES@
 
 include $(srcdir)/../common.mk
 
+ifeq (,$(V8))
+JSENGINEFLAG = -jsc
+else
+JSENGINEFLAG = -v8
+endif
+
 # Overridden variables here
 
 # Custom tests - tests with additional commandline options
@@ -83,7 +89,7 @@ javascript_exe:
 # a file is found which has _runme.js appended after the testcase name.
 run_testcase = \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(JAVASCRIPT_EXE) -l $* $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(JAVASCRIPT_EXE) $(JSENGINEFLAG) -l $* $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean
