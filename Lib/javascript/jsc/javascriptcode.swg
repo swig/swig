@@ -60,6 +60,14 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
 }
 %}
 
+/* -----------------------------------------------------------------------------
+ * js_overloaded_ctor:  template for wrapping a ctor.
+ *   - $jswrapper:        wrapper of called ctor
+ *   - $jslocals:         locals part of wrapper
+ *   - $jscode:           code part of wrapper
+ *   - $jsargcount:       number of arguments
+ *   - $jsmangledtype:    mangled type of class
+ * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_ctor", "templates")
 %{
 JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
