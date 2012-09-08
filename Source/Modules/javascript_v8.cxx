@@ -190,16 +190,16 @@ int V8Emitter::EnterClass(Node *n)
     current_classname_mangled = Swig_string_mangle(Getattr(n, "name"));
     current_classname_unqualified = Swig_scopename_last(Getattr(n, "name"));
 
-    // emit declaration of a v8 class template in part <CLASS_TEMPLATES>
-    Template t(GetTemplate(V8_DECL_CLASSTEMPLATE));
-    t.Replace(KW_MANGLED_NAME, current_classname_mangled);
-    Printv(f_class_templates, t.str(), 0);
+    // emit declaration of a v8 class template
+    Template t_decl_class(GetTemplate(V8_DECL_CLASSTEMPLATE));
+    t_decl_class.Replace(KW_MANGLED_NAME, current_classname_mangled);
+    Printv(f_class_templates, t_decl_class.str(), 0);
 
-    // emit definition of v8 class template in part <INITIALIZER.CLASS_TEMPLATES>
-    Template t2(GetTemplate(V8_DEFINE_CLASSTEMPLATE));
-    t2.Replace(KW_MANGLED_NAME,     current_classname_mangled)
-      .Replace(KW_UNQUALIFIED_NAME, current_classname_unqualified);
-    Printv(f_init_class_templates, t2.str(), 0);
+    // emit definition of v8 class template
+    Template t_def_class(GetTemplate(V8_DEFINE_CLASSTEMPLATE));
+    t_def_class.Replace(KW_MANGLED_NAME,     current_classname_mangled)
+        .Replace(KW_UNQUALIFIED_NAME, current_classname_unqualified);
+    Printv(f_init_class_templates, t_def_class.str(), 0);
 
     return SWIG_OK;
 }
