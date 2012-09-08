@@ -57,11 +57,6 @@ protected:
 #error "implement dll loading"
 #endif
 
-// Extracts a C string from a V8 Utf8Value.
-const char* V8Shell::ToCString(const v8::String::Utf8Value& value) {
-  return *value ? *value : "<string conversion failed>";
-}
-
 V8Shell::V8Shell()
 {
 }
@@ -219,4 +214,9 @@ void V8Shell::ReportException(v8::TryCatch* try_catch) {
       printf("%s\n", stack_trace_string);
     }
   }
+}
+
+// Extracts a C string from a V8 Utf8Value.
+const char* V8Shell::ToCString(const v8::String::Utf8Value& value) {
+  return *value ? *value : "<string conversion failed>";
 }

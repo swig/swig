@@ -12,10 +12,6 @@
 #error "implement dll loading"
 #endif
 
-JSValueRef JSCShell_Print(JSContextRef context, JSObjectRef object, 
-                           JSObjectRef globalobj, size_t argc, 
-                           const JSValueRef	args[], JSValueRef* ex);
-
 class JSCShell: public JSShell {
 
 typedef int (*JSCIntializer)(JSGlobalContextRef context);
@@ -38,7 +34,7 @@ protected:
 
 private:
 
-  //static JSValueRef Print(JSContextRef context,JSObjectRef object, JSObjectRef globalobj, size_t argc, const JSValueRef	args[], JSValueRef* ex);
+  static JSValueRef Print(JSContextRef context,JSObjectRef object, JSObjectRef globalobj, size_t argc, const JSValueRef	args[], JSValueRef* ex);
 
   static bool RegisterFunction(JSGlobalContextRef context, JSObjectRef object, const char* functionName, JSObjectCallAsFunctionCallback cbFunction);
 
@@ -50,8 +46,6 @@ private:
   
   JSGlobalContextRef context;
 };
-
-using namespace std;
 
 JSCShell::~JSCShell() {
   if(context != 0) {
@@ -79,7 +73,7 @@ bool JSCShell::InitializeEngine() {
   context = JSGlobalContextCreate(NULL);
   if(context == 0) return false;
   JSObjectRef globalObject = JSContextGetGlobalObject(context);
-  JSCShell::RegisterFunction(context, globalObject, "print", JSCShell_Print);
+  JSCShell::RegisterFunction(context, globalObject, "print", JSCShell::Print);
   // Call module initializers
   for(std::vector<JSCIntializer>::iterator it = module_initializers.begin();
     it != module_initializers.end(); ++it) {
@@ -110,7 +104,7 @@ bool JSCShell::DisposeEngine() {
   return true;
 }
 
-JSValueRef JSCShell_Print(JSContextRef context, JSObjectRef object, 
+JSValueRef JSCShell::Print(JSContextRef context, JSObjectRef object, 
                            JSObjectRef globalobj, size_t argc, 
                            const JSValueRef	args[], JSValueRef* ex) {
   if (argc > 0)
