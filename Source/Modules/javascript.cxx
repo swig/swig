@@ -265,7 +265,7 @@ protected:
   
   virtual void emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg);
 
-  virtual void marshalOutput(Node *n, String *actioncode, Wrapper *wrapper);
+  virtual void marshalOutput(Node *n, Wrapper *wrapper, String *actioncode, const String *cresult=0, bool emitReturnVariable = true);
 
   /**
    * Helper function to retrieve the first parent class node.
@@ -291,6 +291,8 @@ protected:
   // which are switched on namespace change
   Hash *namespaces;
   Hash *current_namespace;
+
+  String *defaultResultName;
   
   File *f_wrappers;
 
@@ -595,6 +597,7 @@ JSEmitter::JSEmitter()
 : templates(NewHash()),
   namespaces(NULL), 
   current_namespace(NULL),
+  defaultResultName(NewString("result")),
   f_wrappers(NULL)
 {
 }
@@ -872,7 +875,7 @@ int JSEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   // prepare code part
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Getter, is_member, is_static);
-  marshalOutput(n, action, wrapper);
+  marshalOutput(n, wrapper, action);
 
   t_getter.replace(T_GETTER, wrap_name)
       .replace(T_LOCALS, wrapper->locals)
@@ -927,7 +930,7 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
 int JSEmitter::emitConstant(Node *n) {
 
   Wrapper *wrapper = NewWrapper();
-
+  
   Template t_getter(getTemplate("JS_getproperty"));
 
   // call the variable methods as a constants are
@@ -944,13 +947,10 @@ int JSEmitter::emitConstant(Node *n) {
   String *value = Getattr(n, "rawval");
   if (value == NULL) {
     value = Getattr(n, "rawvalue");
+    if (value == NULL) value = Getattr(n, "value");
   }
-  if (value == NULL) {
-    value = Getattr(n, "value");
-  }
-  Printf(action, "result = %s;\n", value);
-  Setattr(n, "wrap:action", action);
-  marshalOutput(n, action, wrapper);
+  assert(value != NULL);
+  marshalOutput(n, wrapper, action, value, false);
 
   t_getter.replace(T_GETTER, wrap_name)
       .replace(T_LOCALS, wrapper->locals)
@@ -988,7 +988,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   // prepare code part
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
-  marshalOutput(n, action, wrapper);
+  marshalOutput(n, wrapper, action);
 
   t_function.replace(T_WRAPPER, wrap_name)
       .replace(T_LOCALS, wrapper->locals)
@@ -1059,17 +1059,21 @@ void JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg
   }
 }
 
-void JSEmitter::marshalOutput(Node *n, String *actioncode, Wrapper *wrapper) {
+void JSEmitter::marshalOutput(Node *n,  Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
   SwigType *type = Getattr(n, "type");
   Setattr(n, "type", type);
   String *tm;
-
+  
   // HACK: output types are not registered as swig_types automatically
-  if (SwigType_ispointer(type)) {
-    SwigType_remember_clientdata(type, NewString("0"));
-  }
+  if (SwigType_ispointer(type)) SwigType_remember_clientdata(type, NewString("0"));
 
-  if ((tm = Swig_typemap_lookup_out("out", n, "result", wrapper, actioncode))) {
+  // adds a declaration for the result variable
+  if(emitReturnVariable) emit_return_variable(n, type, wrapper);
+
+  // if not given, use default result identifier ('result') for output typemap
+  if(cresult == 0) cresult = defaultResultName;
+
+  if ((tm = Swig_typemap_lookup_out("out", n, cresult, wrapper, actioncode))) {
     Replaceall(tm, "$result", "jsresult");
     Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
 
@@ -1086,7 +1090,6 @@ void JSEmitter::marshalOutput(Node *n, String *actioncode, Wrapper *wrapper) {
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name"));
   }
-  emit_return_variable(n, type, wrapper);
 }
 
 int JSEmitter::switchNamespace(Node *n) {
