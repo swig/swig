@@ -42,7 +42,7 @@ v8::Handle<v8::Value> SWIG_From_dec(long)(long value)
 SWIGINTERN 
 int SWIG_AsVal_dec(long)(v8::Handle<v8::Value> obj, long* val)
 {
-  if (!obj->IsInteger()) {
+  if (!obj->IsNumber()) {
     return SWIG_TypeError;
   }
   if(val) *val = (long) obj->IntegerValue();

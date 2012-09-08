@@ -6,6 +6,8 @@
 
 %insert(runtime) %{
 #include <v8.h>
+#include <errno.h>
+#include <limits.h>
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */
@@ -39,12 +41,12 @@ void SWIG_V8_exception(int code, const char* msg) {
 
 
 %insert(runtime) %{
-int SWIG_JSC_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_type_info *info, int flags) {
+int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_type_info *info, int flags) {
   
   if(objRef->InternalFieldCount() < 1) {
     return SWIG_ERROR;
   }
-  Handle<Value> cdataRef = objRef->GetInternalField(0);
+  v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
   
   SWIG_PRV_DATA *cdata = (SWIG_PRV_DATA *) v8::External::Unwrap(cdataRef);
   if(cdata == NULL) {
@@ -80,14 +82,14 @@ int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info 
     return SWIG_TypeError;
   }
   
-  v8::Handle<v8::object> objRef = valRef->ToObject();
+  v8::Handle<v8::Object> objRef = valRef->ToObject();
     
-  return SWIG_V8_ConvertInstancePtr(context, objRef, ptr, info, flags);
+  return SWIG_V8_ConvertInstancePtr(objRef, ptr, info, flags);
 }
 
 v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
   // TODO: wrap ptr into an v8 object
-  return 0;
+  return v8::Undefined();
 }
 
 #define SWIG_ConvertPtr(obj, ptr, info, flags)    SWIG_V8_ConvertPtr(obj, ptr, info, flags)

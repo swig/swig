@@ -16,6 +16,8 @@ bool js_template_enable_debug = false;
 #define GETTER "getter"
 #define SETTER "setter"
 #define PARENT "parent"
+#define CTORS "ctors"
+#define CTOR_DISPATCHERS "ctor_dispatchers"
 
 // variables used in code templates
 // ATTENTION: be aware of prefix collisions when defining those variables
@@ -34,6 +36,16 @@ bool js_template_enable_debug = false;
 #define T_ARGCOUNT        "$jsargcount"
 #define T_LOCALS          "$jslocals"
 #define T_CODE            "$jscode"
+
+// v8 specific variables used in templates
+#define V8_NAME_SPACES                              "$jsv8nspaces"
+#define V8_CLASS_TEMPLATES                          "$jsv8classtemplates"
+#define V8_WRAPPERS                                 "$jsv8wrappers"
+#define V8_INHERITANCE                              "$jsv8inheritance"
+#define V8_CLASS_INSTANCES                          "$jsv8classinstances"
+#define V8_STATIC_WRAPPERS                          "$jsv8staticwrappers"
+#define V8_REGISTER_CLASSES                         "$jsv8registerclasses"
+#define V8_REGISTER_NS                              "$jsv8registernspaces"
 
 /**
  * A convenience class to manage state variables for emitters.
@@ -725,6 +737,9 @@ int JSEmitter::enterClass(Node *n) {
   Delete(type);
   state.clazz(TYPE_MANGLED, classtype_mangled);
 
+  state.clazz(CTORS, NewString(""));
+  state.clazz(CTOR_DISPATCHERS, NewString(""));
+
   return SWIG_OK;
 }
 
@@ -875,8 +890,6 @@ private:
 #define MEMBER_FUNCTIONS "member_functions"
 #define STATIC_FUNCTIONS "static_functions"
 #define STATIC_VARIABLES "static_variables"
-#define CTORS "ctors"
-#define CTOR_DISPATCHERS "ctor_dispatchers"
 
 // keys for function scoped state variables
 #define FUNCTION_DISPATCHERS "function_dispatchers"
@@ -1126,8 +1139,6 @@ int JSCEmitter::enterClass(Node *n) {
   state.clazz(MEMBER_FUNCTIONS, NewString(""));
   state.clazz(STATIC_VARIABLES, NewString(""));
   state.clazz(STATIC_FUNCTIONS, NewString(""));
-  state.clazz(CTORS, NewString(""));
-  state.clazz(CTOR_DISPATCHERS, NewString(""));
 
   Template t_class_defn = getTemplate("JS_class_definition");
   t_class_defn.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
@@ -1536,7 +1547,6 @@ private:
   File *f_runtime;
   File *f_header;
   File *f_class_templates;
-  File *f_wrapper;
   File *f_init;
   
   File *f_init_namespaces;
@@ -1554,51 +1564,6 @@ private:
   String* GLOBAL;
   String* NULL_STR;
 };
-
-// name of templates
-#define V8_INITIALIZER                              "v8_initializer"
-#define V8_DECL_CLASSTEMPLATE                       "v8_declare_class_template"
-#define V8_DEFINE_CLASSTEMPLATE                     "v8_define_class_template"
-#define V8_CREATE_CLASS_INSTANCE                    "v8_create_class_instance"
-#define V8_INHERIT                                  "v8_inherit"
-#define V8_REGISTER_CLASS                           "v8_register_class"
-#define V8_CTOR_WRAPPER                             "v8_ctor_wrapper"
-#define V8_GETTER                                   "v8_getter"
-#define V8_SETTER                                   "v8_setter"
-#define V8_FUNCTION                                 "v8_function"
-#define V8_RETRIEVE_THIS                            "v8_retrieve_this"
-#define V8_REGISTER_MEMBER_FUNCTION                 "v8_register_member_function"
-#define V8_REGISTER_GLOBAL_FUNCTION                 "v8_register_global_function"
-#define V8_REGISTER_MEMBER_VARIABLE                 "v8_register_member_variable"
-#define V8_REGISTER_GLOBAL_VARIABLE                 "v8_register_global_variable"
-#define V8_CREATE_NAMESPACE                         "v8_create_namespace"
-#define V8_REGISTER_NAMESPACE                       "v8_register_namespace"
-#define V8_THIS_PTR                                 "v8_this_ptr"
-
-// keywords used in templates
-#define KW_MODULE_NAME                              "${MODULE}"
-#define KW_MANGLED_NAME                             "${NAME_MANGLED}"
-#define KW_UNQUALIFIED_NAME                         "${NAME_UNQUALIFIED}"
-#define KW_CLASSNAME_MANGLED                        "${CLASSNAME_MANGLED}"
-#define KW_BASE_CLASS                               "${BASE_CLASS}"
-#define KW_CONTEXT                                  "${CONTEXT}"
-#define KW_TYPE                                     "${TYPE}"
-#define KW_ARG                                      "${ARG}"
-#define KW_WRAPPER                                  "${WRAPPER}"
-#define KW_GETTER                                   "${GETTER}"
-#define KW_SETTER                                   "${SETTER}"
-
-#define KW_NAME_SPACES                              "${PART_NAMESPACES}"
-#define KW_CLASS_TEMPLATES                          "${PART_CLASS_TEMPLATES}"
-#define KW_WRAPPERS                                 "${PART_WRAPPERS}"
-#define KW_INHERITANCE                              "${PART_INHERITANCE}"
-#define KW_CLASS_INSTANCES                          "${PART_CLASS_INSTANCES}"
-#define KW_STATIC_WRAPPERS                          "${PART_STATIC_WRAPPERS}"
-#define KW_REGISTER_CLASSES                         "${PART_REGISTER_CLASSES}"
-#define KW_REGISTER_NS                              "${PART_REGISTER_NS}"
-
-#define KW_LOCALS                                   T_LOCALS
-#define KW_CODE                                     T_CODE
 
 V8Emitter::V8Emitter() 
 : JSEmitter(), 
@@ -1628,7 +1593,6 @@ int V8Emitter::initialize(Node *n)
   f_runtime = NewString("");
   f_header = NewString("");
   f_class_templates = NewString("");
-  f_wrapper = NewString("");
   f_init = NewString("");
       
   f_init_namespaces = NewString("");
@@ -1644,7 +1608,6 @@ int V8Emitter::initialize(Node *n)
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("header", f_header);
   Swig_register_filebyname("init", f_init);
-  Swig_register_filebyname("wrapper", f_wrapper);
 
   return SWIG_OK;
 }
@@ -1657,23 +1620,27 @@ int V8Emitter::dump(Node *n)
  // write the swig banner
   Swig_banner(f_wrap_cpp);
 
+  SwigType_emit_type_table(f_runtime, f_wrappers);
+
   Printv(f_wrap_cpp, f_runtime, "\n", 0);
   Printv(f_wrap_cpp, f_header, "\n", 0);
   Printv(f_wrap_cpp, f_class_templates, "\n", 0);
-  Printv(f_wrap_cpp, f_wrapper, "\n", 0);
+  Printv(f_wrap_cpp, f_wrappers, "\n", 0);
+
+  emitNamespaces();
 
   // compose the initializer function using a template
   // filled with sub-parts
-  Template initializer(getTemplate(V8_INITIALIZER));
-  initializer.replace(KW_MODULE_NAME, module)
-      .replace(KW_NAME_SPACES,        f_init_namespaces)
-      .replace(KW_CLASS_TEMPLATES,    f_init_class_templates)
-      .replace(KW_WRAPPERS,           f_init_wrappers)
-      .replace(KW_INHERITANCE,        f_init_inheritance)
-      .replace(KW_CLASS_INSTANCES,    f_init_class_instances)
-      .replace(KW_STATIC_WRAPPERS,    f_init_static_wrappers)
-      .replace(KW_REGISTER_CLASSES,   f_init_register_classes)
-      .replace(KW_REGISTER_NS,        f_init_register_namespaces)
+  Template initializer(getTemplate("JS_initializer"));
+  initializer.replace(T_NAME, module)
+      .replace(V8_NAME_SPACES,        f_init_namespaces)
+      .replace(V8_CLASS_TEMPLATES,    f_init_class_templates)
+      .replace(V8_WRAPPERS,           f_init_wrappers)
+      .replace(V8_INHERITANCE,        f_init_inheritance)
+      .replace(V8_CLASS_INSTANCES,    f_init_class_instances)
+      .replace(V8_STATIC_WRAPPERS,    f_init_static_wrappers)
+      .replace(V8_REGISTER_CLASSES,   f_init_register_classes)
+      .replace(V8_REGISTER_NS,        f_init_register_namespaces)
       .pretty_print(f_wrap_cpp);
 
   return SWIG_OK;
@@ -1685,7 +1652,6 @@ int V8Emitter::close()
   Delete(f_runtime);
   Delete(f_header);
   Delete(f_class_templates);
-  Delete(f_wrapper);
   Delete(f_init_namespaces);
   Delete(f_init_class_templates);
   Delete(f_init_wrappers);
@@ -1707,18 +1673,18 @@ int V8Emitter::enterClass(Node *n)
   JSEmitter::enterClass(n);
     
   // emit declaration of a v8 class template
-  Template t_decl_class(getTemplate(V8_DECL_CLASSTEMPLATE));
-  t_decl_class.replace(KW_MANGLED_NAME, state.clazz(NAME_MANGLED))
+  Template t_decl_class(getTemplate("jsv8_declare_class_template"));
+  t_decl_class.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
       .pretty_print(f_class_templates);
 
   // emit definition of v8 class template
-  Template t_def_class(getTemplate(V8_DEFINE_CLASSTEMPLATE));
-  t_def_class.replace(KW_MANGLED_NAME, state.clazz(NAME_MANGLED))
-      .replace(KW_UNQUALIFIED_NAME, state.clazz(NAME))
+  Template t_def_class(getTemplate("jsv8_define_class_template"));
+  t_def_class.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .replace(T_NAME, state.clazz(NAME))
       .pretty_print(f_init_class_templates);
 
-  Template t_class_instance(getTemplate(V8_CREATE_CLASS_INSTANCE));
-  t_class_instance.replace(KW_MANGLED_NAME, state.clazz(NAME_MANGLED))
+  Template t_class_instance(getTemplate("jsv8_create_class_instance"));
+  t_class_instance.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
       .pretty_print(f_init_class_instances);
 
   return SWIG_OK;
@@ -1729,19 +1695,19 @@ int V8Emitter::exitClass(Node *n)
   //  emit inheritance setup
   Node* baseClass = getBaseClass(n);
   if(baseClass) {
-    Template t_inherit(getTemplate(V8_INHERIT));
+    Template t_inherit(getTemplate("jsv8_inherit"));
     String *base_name_mangled = SwigType_manglestr(Getattr(baseClass, "name"));
-    t_inherit.replace(KW_MANGLED_NAME,  state.clazz(NAME_MANGLED))
-        .replace(KW_BASE_CLASS, base_name_mangled)
+    t_inherit.replace(T_NAME_MANGLED,  state.clazz(NAME_MANGLED))
+        .replace(T_BASECLASS, base_name_mangled)
         .pretty_print(f_init_inheritance);
     Delete(base_name_mangled);
   }
       
   //  emit registeration of class template
-  Template t_register(getTemplate(V8_REGISTER_CLASS));
-  t_register.replace(KW_MANGLED_NAME, state.clazz(NAME_MANGLED))
-      .replace(KW_UNQUALIFIED_NAME,   state.clazz(NAME))
-      .replace(KW_CONTEXT,            Getattr(current_namespace, "name_mangled"))
+  Template t_register(getTemplate("jsv8_register_class"));
+  t_register.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .replace(T_NAME,   state.clazz(NAME))
+      .replace(T_PARENT, Getattr(current_namespace, "name_mangled"))
       .pretty_print(f_init_register_classes);
   
   return SWIG_OK;
@@ -1761,29 +1727,31 @@ int V8Emitter::exitVariable(Node* n)
 {
   if(GetFlag(n, "ismember")) {
     if(GetFlag(state.variable(), IS_STATIC)) {
-      Template t_register(getTemplate(V8_REGISTER_GLOBAL_VARIABLE));
+      Template t_register(getTemplate("jsv8_register_static_variable"));
       String *class_instance = NewString("");
       Printf(class_instance, "class_%s", state.clazz(NAME_MANGLED));
-      t_register.replace(KW_CONTEXT, class_instance)
-          .replace(KW_UNQUALIFIED_NAME, state.variable(NAME))
-          .replace(KW_GETTER, state.variable(GETTER))
-          .replace(KW_SETTER, state.variable(SETTER))
+      t_register.replace(T_PARENT, class_instance)
+          .replace(T_NAME, state.variable(NAME))
+          .replace(T_GETTER, state.variable(GETTER))
+          .replace(T_SETTER, state.variable(SETTER))
           .pretty_print(f_init_static_wrappers);
       Delete(class_instance);
     } else {
-      Template t_register(getTemplate(V8_REGISTER_MEMBER_VARIABLE));
-      t_register.replace(KW_CLASSNAME_MANGLED, state.clazz(NAME_MANGLED))
-          .replace(KW_UNQUALIFIED_NAME, state.clazz(NAME))
-          .replace(KW_GETTER, state.variable(GETTER))
-          .replace(KW_SETTER, state.variable(SETTER))
+      Template t_register(getTemplate("jsv8_register_member_variable"));
+      t_register.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+          .replace(T_NAME, state.clazz(NAME))
+          .replace(T_GETTER, state.variable(GETTER))
+          .replace(T_SETTER, state.variable(SETTER))
           .pretty_print(f_init_wrappers);
     }
   } else {
-    Template t_register(getTemplate(V8_REGISTER_GLOBAL_VARIABLE));
-    t_register.replace(KW_CONTEXT, Getattr(current_namespace, "name"))
-        .replace(KW_UNQUALIFIED_NAME, state.variable(NAME))
-        .replace(KW_GETTER, state.variable(GETTER))
-        .replace(KW_SETTER, state.variable(SETTER))
+    // Note: a global variable is treated like a static variable
+    //       with the parent being a nspace object (instead of class object) 
+    Template t_register(getTemplate("jsv8_register_static_variable"));
+    t_register.replace(T_PARENT, Getattr(current_namespace, "name"))
+        .replace(T_NAME, state.variable(NAME))
+        .replace(T_GETTER, state.variable(GETTER))
+        .replace(T_SETTER, state.variable(SETTER))
         .pretty_print(f_init_wrappers);
   }
     
@@ -1802,26 +1770,28 @@ int V8Emitter::exitFunction(Node* n)
   // register the function at the specific context
   if(GetFlag(n, "ismember")) {
     if(GetFlag(state.function(), IS_STATIC)) {
-      Template t_register(getTemplate(V8_REGISTER_GLOBAL_FUNCTION));
+      Template t_register(getTemplate("jsv8_register_static_function"));
       String *class_instance = NewString("");
       Printf(class_instance, "class_%s", state.clazz(NAME_MANGLED));
-      t_register.replace(KW_CONTEXT, class_instance)
-          .replace(KW_UNQUALIFIED_NAME, state.function(NAME))
-          .replace(KW_MANGLED_NAME, Getattr(n, "wrap:name"));
+      t_register.replace(T_PARENT, class_instance)
+          .replace(T_NAME, state.function(NAME))
+          .replace(T_WRAPPER, Getattr(n, "wrap:name"));
       Printv(f_init_static_wrappers, t_register.str(), 0);
       Delete(class_instance);
     } else {
-      Template t_register(getTemplate(V8_REGISTER_MEMBER_FUNCTION));
-      t_register.replace(KW_CLASSNAME_MANGLED, state.clazz(NAME_MANGLED))
-          .replace(KW_UNQUALIFIED_NAME, state.function(NAME))
-          .replace(KW_MANGLED_NAME, Getattr(n, "wrap:name"));
+      Template t_register(getTemplate("jsv8_register_member_function"));
+      t_register.replace(T_PARENT, state.clazz(NAME_MANGLED))
+          .replace(T_NAME, state.function(NAME))
+          .replace(T_WRAPPER, Getattr(n, "wrap:name"));
       Printv(f_init_wrappers, t_register.str(), "\n", 0);
     }
   } else {
-    Template t_register(getTemplate(V8_REGISTER_GLOBAL_FUNCTION));
-    t_register.replace(KW_CONTEXT, Getattr(current_namespace, "name"))
-        .replace(KW_UNQUALIFIED_NAME, state.function(NAME))
-        .replace(KW_MANGLED_NAME, Getattr(n, "wrap:name"));
+    // Note: a global function is treated like a static function
+    //       with the parent being a nspace object instead of class object 
+    Template t_register(getTemplate("jsv8_register_static_function"));
+    t_register.replace(T_PARENT, Getattr(current_namespace, "name"))
+        .replace(T_NAME, state.function(NAME))
+        .replace(T_WRAPPER, Getattr(n, "wrap:name"));
     Printv(f_init_wrappers, t_register.str(), 0);
   }
 
@@ -1844,17 +1814,22 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
 
     switch (mode) {
     case Getter:
-    case Function:
       if (is_member && !is_static && i == 0) {
-        Printv(arg, "args[0]", 0);
+        Printv(arg, "info.Holder()", 0);
       } else {
         Printf(arg, "args[%d]", i - startIdx);
       }
-
+      break;
+    case Function:
+      if (is_member && !is_static && i == 0) {
+        Printv(arg, "args.Holder()", 0);
+      } else {
+        Printf(arg, "args[%d]", i - startIdx);
+      }
       break;
     case Setter:
       if (is_member && !is_static && i == 0) {
-        Printv(arg, "args[0]", 0);
+        Printv(arg, "value", 0);
       } else {
         Printv(arg, "value", 0);
       }
@@ -1891,12 +1866,12 @@ int V8Emitter::emitNamespaces() {
 /*
     // create namespace object and register it to the parent scope
     Template t_create_ns(getTemplate(V8_CREATE_NAMESPACE));
-    t_create_ns.Replace(KW_MANGLED_NAME, scope_mangled);
+    t_create_ns.Replace(V8_MANGLED_NAME, scope_mangled);
     
     Template t_register_ns(getTemplate(V8_REGISTER_NAMESPACE));
-    t_register_ns.Replace(KW_MANGLED_NAME, scope_mangled)
-        .Replace(KW_CONTEXT, parent_scope_mangled)
-        .Replace(KW_UNQUALIFIED_NAME, scope_unqualified);
+    t_register_ns.Replace(V8_MANGLED_NAME, scope_mangled)
+        .Replace(V8_CONTEXT, parent_scope_mangled)
+        .Replace(V8_UNQUALIFIED_NAME, scope_unqualified);
 
     Printv(f_init_namespaces, t_create_ns.str(), 0);
     // prepend in order to achieve reversed order of registration statements
