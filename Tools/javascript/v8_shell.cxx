@@ -108,6 +108,8 @@ bool V8Shell::RunScript(const std::string& scriptPath) {
   context->Exit();
   context.Dispose();
   v8::V8::Dispose();
+  
+  return true;
 }
 
 bool V8Shell::RunShell() {
@@ -141,6 +143,8 @@ bool V8Shell::RunShell() {
   context->Exit();
   context.Dispose();
   v8::V8::Dispose();
+
+  return true;
 }
 
 
