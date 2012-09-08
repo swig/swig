@@ -84,7 +84,7 @@ v8::Handle<v8::Value> ${NAME_MANGLED}_new(const v8::Arguments& args) {
     ${LOCALS}
     ${CODE}
     self->SetInternalField(0, v8::External::New(ptr));
-    return self;        
+    return self;
 }
 ~~~~
 
@@ -296,7 +296,7 @@ void SWIGV8_AddMemberFunction(v8::Handle<v8::FunctionTemplate> class_templ,
                               v8::InvocationCallback func) 
 {
     v8::Handle<v8::ObjectTemplate> proto_templ = class_templ->PrototypeTemplate();
-    proto_templ->Set(v8::String::NewSymbol(symbol), v8::FunctionTemplate::New(func));    
+    proto_templ->Set(v8::String::NewSymbol(symbol), v8::FunctionTemplate::New(func));
 }
 
 /**
@@ -330,7 +330,7 @@ void SWIGV8_AddGlobalFunction(v8::Handle<v8::Object> context,
                               const char* symbol, 
                               v8::InvocationCallback func) 
 {
-    context->Set(v8::String::NewSymbol(symbol), v8::FunctionTemplate::New(func)->GetFunction());    
+    context->Set(v8::String::NewSymbol(symbol), v8::FunctionTemplate::New(func)->GetFunction());
 }
 
 template <class T>
@@ -582,7 +582,7 @@ v8::Handle<v8::Value> A_new(const v8::Arguments& args) {
     A *result;
     result = new A();
     self->SetInternalField(0, v8::External::New(result));
-    return self;        
+    return self;
 }
 
 void A_x_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info) {
@@ -676,6 +676,66 @@ int Class_Initialize(v8::Handle<v8::Context> context) {
     
     global->Set(v8::String::NewSymbol("A"), class_A->GetFunction());
     global->Set(v8::String::NewSymbol("B"), class_B->GetFunction());
+    
+    return 0;
+}
+~~~~~
+
+## String arguments
+
+At a first stage all strings are treated as Utf8.
+For proper handling strings as return values I have to study
+other modules.
+
+~~~~~
+int my_strlen(const char* s) {
+    return strlen(s);
+}
+
+// creates a new string
+const char* foo(int a) {
+    char* result = new char[a+1];
+    result[a] = 0;
+    memset(result, 'a', a);
+    return result;
+}
+
+v8::Handle<v8::Value> wrap_my_strlen(const v8::Arguments& args)
+{
+    v8::HandleScope scope;
+    v8::Handle<v8::Value> jsresult;
+    const char* arg1;
+    int result;
+
+    v8::String::Utf8Value utf8(args[0]);
+    
+    result = my_strlen(*utf8);
+    
+    jsresult = v8::Number::New(result);
+    return scope.Close(jsresult);
+}
+
+v8::Handle<v8::Value> wrap_foo(const v8::Arguments& args)
+{
+    v8::HandleScope scope;
+    v8::Handle<v8::Value> jsresult;
+    int arg1;
+    const char* result;
+
+    arg1 = args[0]->Int32Value();
+    result = foo(arg1);
+    
+    jsresult = v8::String::New(result);
+    
+    return scope.Close(jsresult);
+}
+
+int Strings_Initialize(v8::Handle<v8::Context> context) {
+    
+    v8::Local<v8::Object> global = context->Global();
+    
+    SWIGV8_AddGlobalFunction(global, "strlen", wrap_my_strlen);
+    SWIGV8_AddGlobalFunction(global, "foo", wrap_foo);
     
     return 0;
 }
