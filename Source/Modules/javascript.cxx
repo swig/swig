@@ -70,6 +70,8 @@ public:
   Template& replace(const String *pattern, const String *repl);
 
   Template& pretty_print(DOH *doh);
+  
+  void operator=(const Template& t);
 
 private:
 
@@ -1019,8 +1021,8 @@ int JSCEmitter::enterFunction(Node *n) {
 
   /* Initialize DOH for collecting function dispatchers */
   bool is_overloaded = GetFlag(n, "sym:overloaded");
-  if (is_overloaded && state.function(FUNCTION_DISPATCHERS) == 0) {
-    state.function(FUNCTION_DISPATCHERS, NewString(""));
+  if (is_overloaded && state.global(FUNCTION_DISPATCHERS) == 0) {
+    state.global(FUNCTION_DISPATCHERS, NewString(""));
   }
 
   return SWIG_OK;
@@ -1333,6 +1335,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
   if (is_overloaded) {
     Append(wrap_name, Getattr(n, "sym:overname"));
+    t_function = getTemplate("JS_functionwrapper_overload");
   }
   Setattr(n, "wrap:name", wrap_name);
   state.function(WRAPPER_NAME, wrap_name);
@@ -1364,7 +1367,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
     t_dispatch_case.replace("${functionwrapper}", wrap_name)
         .replace("${argcount}", argcount);
 
-    Append(state.function(FUNCTION_DISPATCHERS), t_dispatch_case.str());
+    Append(state.global(FUNCTION_DISPATCHERS), t_dispatch_case.str());
 
     Delete(argcount);
   }
@@ -1382,16 +1385,21 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
   Setattr(n, "wrap:name", wrap_name);
 
+  Wrapper_add_local(wrapper, "res", "int res");
   Wrapper_add_local(wrapper, "jsresult", "JSValueRef jsresult");
 
-  Append(wrapper->code, state.function(FUNCTION_DISPATCHERS));
+  Append(wrapper->code, state.global(FUNCTION_DISPATCHERS));
   Append(wrapper->code, getTemplate("JS_function_dispatch_case_default").str());
 
+  t_function.replace("${LOCALS}", wrapper->locals)
+      .replace("${CODE}", wrapper->code);
+      
+  // call this here, to replace all variables
   t_function.replace("${functionname}", wrap_name)
-      .replace("${LOCALS}", wrapper->locals)
-      .replace("${CODE}", wrapper->code)
       .pretty_print(f_wrappers);
 
+  // Delete the state variable
+  state.global(FUNCTION_DISPATCHERS, 0);
   DelWrapper(wrapper);
 
   return SWIG_OK;
@@ -2051,4 +2059,11 @@ Template& Template::replace(const String *pattern, const String *repl) {
 Template& Template::pretty_print(DOH *doh) {
   Wrapper_pretty_print(str(), doh);
   return *this;
+}
+
+void Template::operator=(const Template& t) {
+  Delete(code);
+  Delete(templateName);
+  code = NewString(t.code);
+  templateName = NewString(t.templateName);
 }

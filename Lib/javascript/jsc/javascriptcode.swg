@@ -58,21 +58,37 @@ JSValueRef ${functionname}(JSContextRef context, JSObjectRef function, JSObjectR
 }
 %}
 
-/**************************************************************************************
-function_dispatch_case: This template is used for the function which is overloaded  
-***************************************************************************************/
+%fragment ("JS_functionwrapper_overload", "templates")
+%{
+int ${functionname}(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception, JSValueRef* result)
+{
+  ${LOCALS}
+  ${CODE}
+  *result = jsresult;
+  return SWIG_OK;
+  
+  goto fail;
+  fail:
+  return SWIG_TypeError;  
+}
+%}
+
+/***********************************************************************
+ * JS_function_dispatch_case:
+ *    This template is used to create a branch for dispatching
+ *    to an overloaded function.
+ ***********************************************************************/
 
 %fragment ("JS_function_dispatch_case", "templates")
 %{if(argc == ${argcount}) {
-    jsresult = ${functionwrapper}(context, function, thisObject, argc, argv, exception);
-  } else %}
+     res = ${functionwrapper}(context, function, thisObject, argc, argv, exception, &jsresult);
+     if(res == SWIG_OK) { *exception = 0; return jsresult; }
+  }
+%}
 
 %fragment ("JS_function_dispatch_case_default", "templates")
 %{
-  {
-    // TODO: throw JS exception
-    throw "Invalid function arguments.";
-  }
+    SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for function ${functionname}.");
 %}
 
 /* Added template for function declaration */
@@ -173,18 +189,16 @@ void _wrap_${classname_mangled}_finalize(JSObjectRef thisObject)
 JSObjectRef _wrap_create_${classname_mangled}(JSContextRef context, JSObjectRef ctorObject,
     size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
-    JSObjectRef thisObject;
+    JSObjectRef thisObject = NULL;
     
+    // switch all cases by means of series of if-returns. 
     ${DISPATCH_CASES}
-    {
-        // TODO: handle illegal arguments
-        SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of ${classname_mangled}");
-    }
 
-    return thisObject;
+    // default: 
+    SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of ${classname_mangled}");
     
     fail:
-    return NULL;
+    return thisObject;
 }
 %}
 
@@ -195,7 +209,9 @@ ctor_dispatch_case: This template is used for the constructor which is overloade
 %fragment ("JS_ctor_dispatch_case", "templates")
 %{if(argc == ${argcount}) {
     thisObject = _wrap_create_${classname_mangled}${overloadext}(context, NULL, argc, argv, exception);
-  } else %}
+    if(thisObject != NULL) { *exception=0; return thisObject; } /* reset exception and return */
+  }
+%}
   
   
 %fragment ("JS_ctordefn", "templates")
