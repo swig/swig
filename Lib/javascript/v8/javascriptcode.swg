@@ -55,16 +55,30 @@ fail:
   return scope.Close(v8::Undefined());
 }%}
 
-/*
-%fragment ("JS_mainctordefn", "templates")
-%{
-  // TODO: implement JS_mainctordefn
+%fragment ("JS_mainctordefn", "templates") %{
+v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
+  v8::HandleScope scope;
+  
+  v8::TryCatch tryCatch;
+  // switch all cases by means of series of if-returns. 
+  $jsdispatchcases
+
+  // default:
+  if(!tryCatch.HasCaught())
+    SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of $jsmangledname");
+  
+fail:
+  scope.Close(v8::Undefined());
+}
 %}
-*/
 
 %fragment ("JS_ctor_dispatch_case", "templates")
-%{
-  // TODO: implement JS_ctor_dispatch_case
+%{if(args.Length() == $jsargcount) {
+    v8::Handle<v8::Value> self = $jswrapper(args);
+    if(!self->IsUndefined()) { 
+      tryCatch.Reset(); return scope.Close(self); /* reset exception and return */
+    }
+  }
 %}
 
 %fragment ("JS_destructordefn", "templates")

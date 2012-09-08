@@ -837,6 +837,7 @@ int JSEmitter::emitCtor(Node *n) {
       String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
       Template t_mainctor(getTemplate("JS_mainctordefn"));
       t_mainctor.replace(T_WRAPPER, wrap_name)
+          .replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
           .replace(T_DISPATCH_CASES, state.clazz(CTOR_DISPATCHERS))
           .pretty_print(f_wrappers);
       state.clazz(CTOR, wrap_name);
@@ -1845,7 +1846,7 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
   }
 
   // store number of arguments for argument checks
-  int num_args = emit_num_arguments(parms) - startIdx;
+  int num_args = emit_num_arguments(parms);
   String *argcount = NewString("");
   Printf(argcount, "%d", num_args);
   Setattr(n, ARGCOUNT, argcount);
