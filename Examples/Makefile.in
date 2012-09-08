@@ -519,10 +519,22 @@ java_clean:
 
 # You need to set this variable to the jscore[or other javascript engine] directories containing the
 # files "JavaScript.h" and others
-JS_INCLUDE= @JSCOREINC@
+
+ifeq (,$(V8))
+  JS_INCLUDE = @JSCOREINC@
+  JS_DLNK    = @JSCOREDYNAMICLINKING@
+else
+  JS_INCLUDE = @JSV8INC@
+  JS_DLNK    = @JSCOREDYNAMICLINKING@
+endif
+
+ifeq (,$(V8))
+  SWIGJS     = $(SWIG) -javascript -jsc
+else
+  SWIGJS     = $(SWIG) -javascript -v8
+endif
 
 # Extra JAVASCRIPT specific dynamic linking options
-JS_DLNK  = @JSCOREDYNAMICLINKING@
 JS_LIBPREFIX = @JSCORELIBRARYPREFIX@
 JSSO =@JSCORESO@
 JSLDSHARED = @JSCORELDSHARED@
@@ -535,7 +547,7 @@ JSCXXFLAGS = @JSCXXFLAGS@
 # ----------------------------------------------------------------
 
 javascript: $(SRCS)
-	$(SWIG) -javascript -jsc -debug-codetemplates $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIGJS) $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(JSCFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(JS_INCLUDE)
 	$(JSLDSHARED) $(CCSHARED) $(JSCFLAGS) $(OBJS) $(IOBJS) $(JS_DLNK) $(LIBS) -o $(JS_LIBPREFIX)$(TARGET)$(JSSO)
 
@@ -544,7 +556,7 @@ javascript: $(SRCS)
 # ----------------------------------------------------------------
 
 javascript_cpp: $(SRCS)
-	$(SWIG) -c++ -javascript -jsc -debug-codetemplates $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIGJS) -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(JSCXXFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JS_INCLUDE)
 	$(JSCXXSHARED) $(CCSHARED) $(OBJS) $(IOBJS) $(JS_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JS_LIBPREFIX)$(TARGET)$(JSSO)
 
@@ -559,7 +571,7 @@ javascript_exe: $(SRCS)
 # ----------------------------------------------------------------
 
 javascript_run: $(SRCS)
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(JAVASCRIPT_EXE) -l $(JAVASCRIPT_MODULE) $(JS_SCRIPT)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(JAVASCRIPT_EXE) -l $(TARGET) $(JS_SCRIPT)
 
 # -----------------------------------------------------------------
 # Cleaning the javascript examples

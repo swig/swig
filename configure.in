@@ -1088,6 +1088,8 @@ AC_MSG_NOTICE([Disabling Javascript])
 JAVASCRIPT=
 else
 
+###     JavascriptCore     ###
+
 # check for include files
 AC_MSG_CHECKING(for include file JavaScriptCore/JavaScript.h)
 AC_ARG_WITH(javascriptincl, [  --with-javascript=path    Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
@@ -1153,7 +1155,6 @@ else
 AC_MSG_RESULT($JSCORELIB)
 fi
 
-
 # linking options
 case $host in
 *-*-darwin*) 
@@ -1176,10 +1177,9 @@ case $host in
 *) JSCORELIBRARYPREFIX="lib";;
 esac
 
-if "$JS_NO_WARNINGS" == "1"; then
+if test "$JS_NO_WARNINGS" == "1"; then
 case $host in
 *-*-darwin* | *-*-linux* | *-*-cygwin* | *-*-mingw*) 
-  echo "HHHHHHHHHHHHHHHHHHHHHHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
   JSCXXFLAGS="`echo $CXXFLAGS | sed 's/-Wall//g'`"
   ;;
 *)
@@ -1210,6 +1210,78 @@ AC_SUBST(JSCORESO)
 AC_SUBST(JSCORELDSHARED)
 AC_SUBST(JSCORECXXSHARED)
 AC_SUBST(JSCXXFLAGS)
+
+###    V8     ###
+
+# check for include files
+AC_MSG_CHECKING(for include file v8.h)
+AC_ARG_WITH(javascriptv8incl, [  --with-javascript-v8=path    Set location of Javascript include directory], [JSV8INCDIR="$withval"], [JSV8INCDIR=])
+
+if test -z "$JSV8INCDIR"; then
+  JSV8INCDIR="/usr/include/ /usr/local/include/"
+
+  # Add in default directory for JavaScriptCore headers for Linux and MacOSX
+  case $host in
+  *-*-linux*) JSV8INCDIR="/usr/include /usr/local/include/ $JSV8INCDIR";;
+  *-*-darwin*) JSV8INCDIR="$JSV8INCDIR";; #TODO: add configuration for osx
+  *);;
+  esac
+fi
+
+for d in $JSV8INCDIR ; do
+  if test -r "$d/v8.h" ; then
+    AC_MSG_RESULT($d)
+    JSV8INCDIR=$d
+    JSV8INC=-I\"$d\"
+    break
+  fi
+done
+
+if test "$JSV8INC" = "" ; then
+  AC_MSG_RESULT(not found)
+fi
+
+
+# check for V8 library
+AC_ARG_WITH(jsv8lib,[  --with-jsv8lib =path      Set location of V8 library directory],[
+	JSV8LIB="-L$withval"], [JSV8LIB=])
+AC_MSG_CHECKING(for V8 library)
+
+if test -z "$JSV8LIB"; then
+dirs="/usr/lib/ /usr/local/lib/"
+for i in $dirs ; do
+
+    if test -r $i/libv8.so; then
+            AC_MSG_RESULT($i)
+            JSV8LIB="-L$i -lv8"
+            break
+    fi
+done
+
+if test "$JSV8LIB" = "" ; then
+	AC_MSG_RESULT(not found)
+fi
+
+else
+AC_MSG_RESULT($JSCORELIB)
+fi
+
+
+# linking options
+case $host in
+*-*-darwin*) 
+        JSV8DYNAMICLINKING="" # TODO: add osx configuration
+        ;;
+*-*-linux*) 
+        JSV8DYNAMICLINKING="$JSV8LIB"
+        ;;
+*)
+        JSV8DYNAMICLINKING=""
+        ;;
+esac
+
+AC_SUBST(JSV8INC)
+AC_SUBST(JSV8DYNAMICLINKING)
 
 #----------------------------------------------------------------
 # Look for gcj
@@ -2372,10 +2444,10 @@ fi
 AC_SUBST(SKIP_JAVA)
 
 SKIP_JAVASCRIPT=
-if test -z "$JSCOREINC"; then
+if test -z "$JSCOREINC" && test -z "$JSV8INC"; then
   # Add in default directory for JavaScriptCore headers for Linux and MacOSX 
   case $host in
-  *-*-linux*) if test -z "$JSCORELIB"; then
+  *-*-linux*) if test -z "$JSCORELIB" && test -z "$JSV8LIB"; then
 			  SKIP_JAVASCRIPT="1"
 			  fi
 			  ;;
