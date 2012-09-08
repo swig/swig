@@ -8,6 +8,7 @@
 #include <v8.h>
 #include <errno.h>
 #include <limits.h>
+#include <iostream>
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */
@@ -59,27 +60,45 @@ public:
 %}
 
 %insert(runtime) %{
-typedef struct {
+
+// Note: to trigger the c8 gc more often one can tell v8 about the memory consumption
+// TODO: we could add a v8 specific parameter to control this value
+#define SWIGV8_AVG_OBJ_SIZE 1000
+
+class SWIGV8_Proxy {
+public:
+  SWIGV8_Proxy(): swigCMemOwn(false), swigCObject(0), info(0) {
+    v8::V8::AdjustAmountOfExternalAllocatedMemory(SWIGV8_AVG_OBJ_SIZE);
+  };
+  
+  ~SWIGV8_Proxy() { 
+    v8::V8::AdjustAmountOfExternalAllocatedMemory(-SWIGV8_AVG_OBJ_SIZE);
+  }
+  
   bool swigCMemOwn;
   void *swigCObject;
   swig_type_info *info;
-} SWIG_PRV_DATA; 
+};
+
+class SWIGV8_ClientData {
+public:
+  v8::Handle<v8::FunctionTemplate> class_templ;
+  void (*dtor) (v8::Persistent< v8::Value > object, void *parameter);
+};
+
 %}
 
 
 %insert(runtime) %{
 int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_type_info *info, int flags) {
+  v8::HandleScope scope;
   
-  if(objRef->InternalFieldCount() < 1) {
-    return SWIG_ERROR;
-  }
+  if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
   v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
-  
-  SWIG_PRV_DATA *cdata = (SWIG_PRV_DATA *) v8::External::Unwrap(cdataRef);
+  SWIGV8_Proxy *cdata = (SWIGV8_Proxy *) v8::External::Unwrap(cdataRef);
   if(cdata == NULL) {
     return SWIG_ERROR;
   }
-  
   if(cdata->info != info) {
     bool type_valid = false;
     swig_cast_info *t = info->cast; 
@@ -94,53 +113,39 @@ int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_t
       return SWIG_TypeError;
     }
   }
-  
   *ptr = cdata->swigCObject;
-  
   if(flags & SWIG_POINTER_DISOWN) {
     cdata->swigCMemOwn = false;
   }
-  
   return SWIG_OK;
 }
 
-void SWIG_V8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info *info, int flags) {
-  SWIG_PRV_DATA* cdata = (SWIG_PRV_DATA*) new SWIG_PRV_DATA;
+void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info *info, int flags) {
+  SWIGV8_Proxy* cdata = new SWIGV8_Proxy();
   cdata->swigCObject = ptr;  
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
   cdata->info = info;
-
-  obj->SetInternalField(0, v8::External::New(cdata));
+  obj->SetPointerInInternalField(0, cdata);
+  v8::Persistent<v8::Object> weakptr = v8::Persistent<v8::Object>::New(obj);
+  weakptr.MakeWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
 }
 
 int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info *info, int flags) {
+  v8::HandleScope scope;
+
   if(!valRef->IsObject()) {
     return SWIG_TypeError;
   }
-  
   v8::Handle<v8::Object> objRef = valRef->ToObject();
-    
   return SWIG_V8_ConvertInstancePtr(objRef, ptr, info, flags);
 }
 
 v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
   v8::HandleScope scope;
-  
-  v8::Local<v8::FunctionTemplate> class_templ;
-  v8::Handle<v8::ObjectTemplate> inst_templ;
-  if(info->clientdata == NULL) {
-    class_templ = v8::FunctionTemplate::New();
-    class_templ->SetClassName(v8::String::NewSymbol(info->name));
-    inst_templ = class_templ->InstanceTemplate();
-    inst_templ->SetInternalFieldCount(1);
-  } else {
-    class_templ = *((v8::Local<v8::FunctionTemplate>*) info->clientdata);
-    inst_templ = class_templ->InstanceTemplate();
-  }
-  
-  v8::Local<v8::Object> result = inst_templ->NewInstance();
-
-  SWIG_V8_SetPrivateData(result, ptr, info, flags);
+       
+  v8::Handle<v8::FunctionTemplate> class_templ = ((SWIGV8_ClientData*) info->clientdata)->class_templ;
+  v8::Handle<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
+  SWIGV8_SetPrivateData(result, ptr, info, flags);
   
   return scope.Close(result);
 }

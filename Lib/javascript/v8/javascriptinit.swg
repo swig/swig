@@ -12,4 +12,6 @@ SWIG_V8_GetModule(void) {
 
 %}
 
+%insert(init) %{/************  BEGIN: "swiginit.swg" *******************/ %}
 %insert(init) "swiginit.swg"
+%insert(init) %{/************  END:   "swiginit.swg" *******************/ %}

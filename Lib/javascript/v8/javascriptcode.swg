@@ -5,7 +5,7 @@ v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
   $jslocals
   $jscode
   
-  SWIG_V8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+  SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
   return scope.Close(self);
 
   goto fail;
@@ -48,7 +48,14 @@ fail:
 
 %fragment ("JS_destructordefn", "templates")
 %{
-  // TODO: implement JS_destructordefn
+void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
+  SWIGV8_Proxy* proxy = (SWIGV8_Proxy*) parameter;
+  if(proxy->swigCMemOwn && proxy->swigCObject) {
+    std::cout << "Deleting wrapped instance: " << proxy->info->name << std::endl;
+    delete ($jstype*) proxy->swigCObject;
+  }
+  delete proxy;
+}
 %}
 
 
@@ -136,17 +143,24 @@ fail:
 %}
 
 %fragment("jsv8_declare_class_template", "templates") 
-%{v8::Persistent<v8::FunctionTemplate> $jsmangledname_class;%}
+%{SWIGV8_ClientData $jsmangledname_clientData;
+%}
 
 %fragment("jsv8_define_class_template", "templates") 
-%{$jsmangledname_class = SWIGV8_CreateClassTemplate("$jsname" , $jsctor);
-  SWIGTYPE_$jsmangledtype->clientdata = &$jsmangledname_class;%}
-
-%fragment("jsv8_create_class_instance", "templates") 
-%{v8::Handle<v8::Object> $jsmangledname_obj = $jsmangledname_class->GetFunction();%}
+%{v8::Handle<v8::FunctionTemplate> $jsmangledname_class = SWIGV8_CreateClassTemplate("$jsmangledname");
+  $jsmangledname_clientData.class_templ = $jsmangledname_class;
+  $jsmangledname_clientData.dtor = $jsdtor;  
+  SWIGTYPE_p$jsmangledtype->clientdata = &$jsmangledname_clientData;%}
 
 %fragment("jsv8_inherit", "templates") 
 %{$jsmangledname_class->Inherit($jsbaseclass_class);%}
+
+%fragment("jsv8_create_class_instance", "templates") 
+%{v8::Handle<v8::FunctionTemplate> $jsmangledname_class_0 = SWIGV8_CreateClassTemplate("$jsname");
+  $jsmangledname_class_0->SetCallHandler($jsctor);
+  $jsmangledname_class_0->Inherit($jsmangledname_class);
+  $jsmangledname_class_0->SetHiddenPrototype(true);
+  v8::Handle<v8::Object> $jsmangledname_obj = $jsmangledname_class_0->GetFunction();%}
 
 %fragment("jsv8_register_class", "templates") 
 %{$jsparent_obj->Set(v8::String::NewSymbol("$jsname"), $jsmangledname_obj);%}

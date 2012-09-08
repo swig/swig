@@ -20,6 +20,7 @@ bool js_template_enable_debug = false;
 #define CTOR "ctor"
 #define CTOR_WRAPPERS "ctor_wrappers"
 #define CTOR_DISPATCHERS "ctor_dispatchers"
+#define DTOR "dtor"
 #define ARGCOUNT "wrap:argc"
 #define FUNCTION_DISPATCHERS "function_dispatchers"
 
@@ -31,6 +32,7 @@ bool js_template_enable_debug = false;
 #define T_TYPE_MANGLED    "$jsmangledtype"
 #define T_WRAPPER         "$jswrapper"
 #define T_CTOR            "$jsctor"
+#define T_DTOR            "$jsdtor"
 #define T_GETTER          "$jsgetter"
 #define T_SETTER          "$jssetter"
 #define T_DISPATCH_CASES  "$jsdispatchcases"
@@ -291,6 +293,8 @@ protected:
   // which are switched on namespace change
   Hash *namespaces;
   Hash *current_namespace;
+
+  Hash *undefined_types;
 
   String *defaultResultName;
   
@@ -597,6 +601,7 @@ JSEmitter::JSEmitter()
 : templates(NewHash()),
   namespaces(NULL), 
   current_namespace(NULL),
+  undefined_types(NewHash()),
   defaultResultName(NewString("result")),
   f_wrappers(NULL)
 {
@@ -751,6 +756,7 @@ int JSEmitter::enterClass(Node *n) {
   Append(ctor_wrapper, state.clazz(NAME));
   state.clazz(CTOR, ctor_wrapper);
   state.clazz(CTOR_DISPATCHERS, NewString(""));
+  state.clazz(DTOR, NewString("0"));
 
   // HACK: assume that a class is abstract
   // this is resolved by emitCtor (which is only called for non abstract classes)
@@ -855,10 +861,13 @@ int JSEmitter::emitCtor(Node *n) {
   return SWIG_OK;
 }
 
-int JSEmitter::emitDtor(Node *) {
+int JSEmitter::emitDtor(Node *n) {
 
   Template t_dtor = getTemplate("JS_destructordefn");
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  state.clazz(DTOR, wrap_name);
   t_dtor.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .replace(T_WRAPPER, wrap_name)
       .replace(T_TYPE, state.clazz(TYPE))
       .pretty_print(f_wrappers);
 
@@ -1068,8 +1077,11 @@ void JSEmitter::marshalOutput(Node *n,  Wrapper *wrapper, String *actioncode, co
   Setattr(n, "type", type);
   String *tm;
   
-  // HACK: output types are not registered as swig_types automatically
-  if (SwigType_ispointer(type)) SwigType_remember_clientdata(type, NewString("0"));
+  // register undefined wrappers
+  if (SwigType_ispointer(type) && !Language::instance()->classLookup(type)) {
+    SwigType_remember_clientdata(type, 0);
+    Setattr(undefined_types, SwigType_manglestr(type), type);
+  }
 
   // adds a declaration for the result variable
   if(emitReturnVariable) emit_return_variable(n, type, wrapper);
@@ -1565,6 +1577,7 @@ protected:
 
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
   virtual int emitNamespaces();
+  virtual void emitUndefined();
 
 private:
 
@@ -1654,6 +1667,8 @@ int V8Emitter::dump(Node *n)
 
   SwigType_emit_type_table(f_runtime, f_wrappers);
 
+  emitUndefined();
+
   Printv(f_wrap_cpp, f_runtime, "\n", 0);
   Printv(f_wrap_cpp, f_header, "\n", 0);
   Printv(f_wrap_cpp, f_class_templates, "\n", 0);
@@ -1724,19 +1739,22 @@ int V8Emitter::exitClass(Node *n)
   }
 
   /* Note: this makes sure that there is a swig_type added for this class */
-  SwigType_remember_clientdata(state.clazz(TYPE_MANGLED), NewString("0"));
+  String *clientData = NewString("");
+  Printf(clientData, "&%s_clientData", state.clazz(NAME_MANGLED));
+  SwigType_remember_clientdata(state.clazz(TYPE_MANGLED), clientData);
   
   // emit definition of v8 class template
   Template t_def_class(getTemplate("jsv8_define_class_template"));
   t_def_class.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
       .replace(T_NAME, state.clazz(NAME))
-      .replace(T_CTOR, state.clazz(CTOR))
-      .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
+      .replace(T_TYPE_MANGLED, SwigType_manglestr(Getattr(n, "classtype")))
+      .replace(T_DTOR, state.clazz(DTOR))
       .pretty_print(f_init_class_templates);
 
   Template t_class_instance(getTemplate("jsv8_create_class_instance"));
   t_class_instance.replace(T_NAME, state.clazz(NAME))
       .replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .replace(T_CTOR, state.clazz(CTOR))
       .pretty_print(f_init_class_instances);
   
   //  emit inheritance setup
@@ -1929,6 +1947,40 @@ int V8Emitter::emitNamespaces() {
   return SWIG_OK;
 }
 
+void V8Emitter::emitUndefined() {
+  Iterator ki;
+  for (ki = First(undefined_types); ki.item; ki = Next(ki)) {
+    String *mangled_name = ki.key;
+    String *dtor = Swig_name_destroy("", mangled_name);
+    SwigType *deref = SwigType_del_pointer(ki.item);
+    String *type_mangled = SwigType_manglestr(ki.item);
+
+    // emit clientData declaration
+    Template clientDataDecl = getTemplate("jsv8_declare_class_template");
+    clientDataDecl.replace(T_NAME_MANGLED, mangled_name)
+        .pretty_print(f_class_templates);
+
+    // emit an extra dtor for unknown types
+    Template t_dtor = getTemplate("JS_destructordefn");
+    t_dtor.replace(T_NAME_MANGLED, mangled_name)
+        .replace(T_WRAPPER, dtor)
+        .replace(T_TYPE, deref)
+        .pretty_print(f_wrappers);
+    
+    // create a class template and initialize clientData
+    Template clientDataDef = getTemplate("jsv8_define_class_template");
+    clientDataDef.replace(T_NAME_MANGLED, mangled_name)
+        .replace(T_NAME, mangled_name)
+        .replace(T_TYPE_MANGLED, type_mangled)
+        .replace(T_DTOR, dtor)
+        .pretty_print(f_init_class_templates);
+
+    Delete(dtor);
+    Delete(deref);
+    Delete(type_mangled);
+
+  }    
+}
 
 JSEmitter *swig_javascript_create_V8Emitter() {
   return new V8Emitter();
