@@ -6,6 +6,8 @@
 
 #include "javascript_emitter.h"
 
+extern JSEmitter* create_v8_emitter();
+
 /* ********************************************************************
  * JAVASCRIPT
  * ********************************************************************/
@@ -200,7 +202,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
     switch(mode) {
         case JSEmitter::V8:
         {
-            // TODO: emitter = create_v8_emitter();
+            emitter = create_v8_emitter();
             break;
         }
         case JSEmitter::JavascriptCore:
