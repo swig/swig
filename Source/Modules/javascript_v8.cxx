@@ -9,6 +9,7 @@
 #define V8_INITIALIZER                              "v8_initializer"
 #define V8_DECL_CLASSTEMPLATE                       "v8_declare_class_template"
 #define V8_DEFINE_CLASSTEMPLATE                     "v8_define_class_template"
+#define V8_CREATE_CLASS_INSTANCE                    "v8_create_class_instance"
 #define V8_INHERIT                                  "v8_inherit"
 #define V8_REGISTER_CLASS                           "v8_register_class"
 #define V8_CTOR_WRAPPER                             "v8_ctor_wrapper"
@@ -42,6 +43,8 @@
 #define KW_CLASS_TEMPLATES                          "${PART_CLASS_TEMPLATES}"
 #define KW_WRAPPERS                                 "${PART_WRAPPERS}"
 #define KW_INHERITANCE                              "${PART_INHERITANCE}"
+#define KW_CLASS_INSTANCES                          "${PART_CLASS_INSTANCES}"
+#define KW_STATIC_WRAPPERS                          "${PART_STATIC_WRAPPERS}"
 #define KW_REGISTER_CLASSES                         "${PART_REGISTER_CLASSES}"
 #define KW_REGISTER_NS                              "${PART_REGISTER_NS}"
 
@@ -86,6 +89,8 @@ int V8Emitter::Initialize(Node *n)
     f_init_class_templates = NewString("");
     f_init_wrappers = NewString("");
     f_init_inheritance = NewString("");
+    f_init_class_instances = NewString("");
+    f_init_static_wrappers = NewString("");
     f_init_register_classes = NewString("");
     f_init_register_namespaces = NewString("");
 
@@ -116,6 +121,8 @@ int V8Emitter::Dump(Node *n)
                .Replace(KW_CLASS_TEMPLATES,   f_init_class_templates)
                .Replace(KW_WRAPPERS,          f_init_wrappers)
                .Replace(KW_INHERITANCE,       f_init_inheritance)
+               .Replace(KW_CLASS_INSTANCES,   f_init_class_instances)
+               .Replace(KW_STATIC_WRAPPERS,   f_init_static_wrappers)
                .Replace(KW_REGISTER_CLASSES,  f_init_register_classes)
                .Replace(KW_REGISTER_NS,       f_init_register_namespaces);
     Wrapper_pretty_print(initializer.str(), f_wrap_cpp);
@@ -125,6 +132,7 @@ int V8Emitter::Dump(Node *n)
 
 int V8Emitter::Close()
 {
+    /* strings */
     Delete(f_runtime);
     Delete(f_header);
     Delete(f_class_templates);
@@ -133,8 +141,12 @@ int V8Emitter::Close()
     Delete(f_init_class_templates);
     Delete(f_init_wrappers);
     Delete(f_init_inheritance);
+    Delete(f_init_class_instances);
+    Delete(f_init_static_wrappers);
     Delete(f_init_register_classes);
     Delete(f_init_register_namespaces);    
+    
+    /* files */
     ::Close(f_wrap_cpp);
     Delete(f_wrap_cpp);
     
@@ -210,9 +222,13 @@ int V8Emitter::EnterClass(Node *n)
 
     // emit definition of v8 class template
     Template t_def_class(GetTemplate(V8_DEFINE_CLASSTEMPLATE));
-    t_def_class.Replace(KW_MANGLED_NAME,     current_classname_mangled)
+    t_def_class.Replace(KW_MANGLED_NAME, current_classname_mangled)
         .Replace(KW_UNQUALIFIED_NAME, current_classname_unqualified);
     Printv(f_init_class_templates, t_def_class.str(), 0);
+    
+    Template t_class_instance(GetTemplate(V8_CREATE_CLASS_INSTANCE));
+    t_class_instance.Replace(KW_MANGLED_NAME, current_classname_mangled);
+    Printv(f_init_class_instances, t_class_instance.str(), 0);
 
     return SWIG_OK;
 }
@@ -262,14 +278,25 @@ int V8Emitter::EnterVariable(Node* n)
 
 int V8Emitter::ExitVariable(Node* n)
 {
- 
     if(GetFlag(n, "ismember")) {
-        Template t_register(GetTemplate(V8_REGISTER_MEMBER_VARIABLE));
-        t_register.Replace(KW_CLASSNAME_MANGLED, current_classname_mangled)
-            .Replace(KW_UNQUALIFIED_NAME, current_variable_unqualified)
-            .Replace(KW_GETTER, current_getter)
-            .Replace(KW_SETTER, current_setter);
-        Printv(f_init_wrappers, t_register.str(), 0);
+        if(Equal(Getattr(n, "storage"), "static")) {
+            Template t_register(GetTemplate(V8_REGISTER_GLOBAL_VARIABLE));
+            String *class_instance = NewString("");
+            Printf(class_instance, "class_%s", current_classname_mangled);
+            t_register.Replace(KW_CONTEXT, class_instance)
+                .Replace(KW_UNQUALIFIED_NAME, current_variable_unqualified)
+                .Replace(KW_GETTER, current_getter)
+                .Replace(KW_SETTER, current_setter);
+            Printv(f_init_static_wrappers, t_register.str(), 0);
+            Delete(class_instance);
+        } else {
+            Template t_register(GetTemplate(V8_REGISTER_MEMBER_VARIABLE));
+            t_register.Replace(KW_CLASSNAME_MANGLED, current_classname_mangled)
+                .Replace(KW_UNQUALIFIED_NAME, current_variable_unqualified)
+                .Replace(KW_GETTER, current_getter)
+                .Replace(KW_SETTER, current_setter);
+            Printv(f_init_wrappers, t_register.str(), 0);
+        }
     } else {
         Template t_register(GetTemplate(V8_REGISTER_GLOBAL_VARIABLE));
         t_register.Replace(KW_CONTEXT, current_context)
@@ -305,11 +332,22 @@ int V8Emitter::ExitFunction(Node* n)
 {    
     // register the function at the specific context
     if(GetFlag(n, "ismember")) {
-        Template t_register(GetTemplate(V8_REGISTER_MEMBER_FUNCTION));
-        t_register.Replace(KW_CLASSNAME_MANGLED, current_classname_mangled)
-          .Replace(KW_UNQUALIFIED_NAME, current_function_unqualified)
-          .Replace(KW_MANGLED_NAME, Getattr(n, "wrap:name"));
-        Printv(f_init_wrappers, t_register.str(), "\n", 0);
+        if(Equal(Getattr(n, "storage"), "static")) {
+            Template t_register(GetTemplate(V8_REGISTER_GLOBAL_FUNCTION));
+            String *class_instance = NewString("");
+            Printf(class_instance, "class_%s", current_classname_mangled);
+            t_register.Replace(KW_CONTEXT, class_instance)
+                .Replace(KW_UNQUALIFIED_NAME, current_function_unqualified)
+                .Replace(KW_MANGLED_NAME, Getattr(n, "wrap:name"));
+            Printv(f_init_static_wrappers, t_register.str(), 0);
+            Delete(class_instance);
+        } else {
+            Template t_register(GetTemplate(V8_REGISTER_MEMBER_FUNCTION));
+            t_register.Replace(KW_CLASSNAME_MANGLED, current_classname_mangled)
+            .Replace(KW_UNQUALIFIED_NAME, current_function_unqualified)
+            .Replace(KW_MANGLED_NAME, Getattr(n, "wrap:name"));
+            Printv(f_init_wrappers, t_register.str(), "\n", 0);
+        }
     } else {
         Template t_register(GetTemplate(V8_REGISTER_GLOBAL_FUNCTION));
         t_register.Replace(KW_CONTEXT, current_context)

@@ -62,6 +62,8 @@ private:
     File *f_init_class_templates;
     File *f_init_wrappers;
     File *f_init_inheritance;
+    File *f_init_class_instances;
+    File *f_init_static_wrappers;
     File *f_init_register_classes;
     File *f_init_register_namespaces;
     

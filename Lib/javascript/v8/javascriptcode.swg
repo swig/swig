@@ -16,6 +16,12 @@ void ${MODULE}_Initialize(v8::Handle<v8::Context> context)
     /* setup inheritances */
     ${PART_INHERITANCE}
     
+    /* class instances */
+    ${PART_CLASS_INSTANCES}
+
+    /* add static class functions and variables */
+    ${PART_STATIC_WRAPPERS}
+    
     /* register classes */
     ${PART_REGISTER_CLASSES}
     
@@ -29,11 +35,14 @@ v8::Persistent<v8::FunctionTemplate> SWIGV8_${NAME_MANGLED};%}
 %fragment("v8_define_class_template", "templates") %{
 SWIGV8_${NAME_MANGLED} = SWIGV8_CreateClassTemplate("${NAME_UNQUALIFIED}" , ${NAME_MANGLED}_new);%}
 
+%fragment("v8_create_class_instance", "templates") %{
+v8::Handle<v8::Object> class_${NAME_MANGLED} = SWIGV8_${NAME_MANGLED}->GetFunction();%}
+
 %fragment("v8_inherit", "templates") %{
 SWIGV8_${NAME_MANGLED}->Inherit(SWIGV8_${BASE_CLASS});%}
 
 %fragment("v8_register_class", "templates") %{
-${CONTEXT}->Set(v8::String::NewSymbol("${NAME_UNQUALIFIED}", SWIGV8_${NAME_MANGLED}->GetFunction()));%}
+${CONTEXT}->Set(v8::String::NewSymbol("${NAME_UNQUALIFIED}"), class_${NAME_MANGLED});%}
 
 %fragment("v8_ctor_wrapper", "templates") %{
 v8::Handle<v8::Value> ${NAME_MANGLED}_new(const v8::Arguments& args) {
