@@ -288,3 +288,321 @@ void V8GeneratorUtils::AddProperty(v8::Handle<v8::FunctionTemplate> class_templ,
 }
 
 ~~~~
+
+# Control flow analysis
+
+## Global variables
+
+### Example:
+~~~~
+int x;
+
+namespace foo {
+    double y;
+}
+~~~~
+
+### Control flow:
+Command:
+~~~~
+swig -analyze -c++ functionWrapper +before globalvariableHandler +before example.i
+~~~~
+
+~~~~
+enter top() of example
+enter variableHandler() of x
+enter globalvariableHandler() of x
+    | sym:name     - "x"
+    | name         - "x"
+    | type         - "int"
+
+    enter variableWrapper() of x
+    
+        enter functionWrapper() of x
+            | name         - "x"
+            | sym:name     - "x_set"
+            | parms        - int
+            | wrap:action  - "x = arg1;"
+            | type         - "void"
+        exit functionWrapper() of x
+
+        enter functionWrapper() of x
+            | name         - "x"
+            | sym:name     - "x_get"
+            | type         - "int"
+        exit functionWrapper() of x
+    exit variableWrapper() of x
+exit globalvariableHandler() of x
+exit variableHandler() of x
+
+enter variableHandler() of foo::y
+enter globalvariableHandler() of foo::y
+    | sym:name     - "y"
+    | name         - "foo::y"
+    | type         - "double"
+
+    enter variableWrapper() of foo::y
+        enter functionWrapper() of foo::y
+            | name         - "foo::y"
+            | sym:name     - "y_set"
+            | parms        - double
+            | wrap:action  - "foo::y = arg1;"
+            | type         - "void"
+        exit functionWrapper() of foo::y
+        
+        enter functionWrapper() of foo::y
+            | name         - "foo::y"
+            | sym:name     - "y_get"
+            | wrap:action  - "result = (double)foo::y;"
+            | type         - "double"
+        exit functionWrapper() of foo::y
+    exit variableWrapper() of foo::y
+exit globalvariableHandler() of foo::y
+exit variableHandler() of foo::y
+exit top() of example
+
+~~~~
+
+## Simple class
+
+### Example:
+
+~~~~
+class A {
+public:
+    A();
+    ~A();
+};
+
+namespace foo {
+    class B {
+    };
+}
+~~~~
+
+### Control flow:
+
+~~~~
+enter top() of example
+    enter classHandler() of A
+    enter constructorHandler() of A
+        enter functionWrapper() of A
+            | name         - "A"
+            | sym:name     - "new_A"
+            | access       - "public"
+            | wrap:action  - "result = (A *)new A();"
+            | type         - "p.A"
+        exit functionWrapper() of A
+    exit constructorHandler() of A
+    enter destructorHandler() of ~A
+        enter functionWrapper() of ~A
+            | name         - "~A"
+            | sym:name     - "delete_A"
+            | parms        - A *
+            | wrap:action  - "delete arg1;"
+        exit functionWrapper() of ~A
+    exit destructorHandler() of ~A
+exit classHandler() of A
+enter classHandler() of foo::B
+    enter constructorHandler() of foo::B::B
+        enter functionWrapper() of foo::B::B
+            | name         - "foo::B::B"
+            | sym:name     - "new_B"
+            | access       - "public"
+            | wrap:action  - "result = (foo::B *)new foo::B();"
+            | type         - "p.foo::B"
+        exit functionWrapper() of foo::B::B
+    exit constructorHandler() of foo::B::B
+    enter destructorHandler() of foo::B::~B
+        enter functionWrapper() of foo::B::~B
+            | name         - "foo::B::~B"
+            | sym:name     - "delete_B"
+            | parms        - foo::B *
+            | wrap:action  - "delete arg1;"
+            | type         - "void"
+        exit functionWrapper() of foo::B::~B
+    exit destructorHandler() of foo::B::~B
+exit classHandler() of foo::B
+exit top() of example
+
+~~~~
+
+### Example
+
+~~~~
+class A {
+public:
+    int x;
+};
+~~~~
+
+
+### Control flow
+
+~~~~
+enter top() of example
+enter classHandler() of A
+    enter variableHandler() of x
+        enter membervariableHandler() of x
+            enter functionWrapper() of x
+                | name         - "x"
+                | sym:name     - "A_x_set"
+                | access       - "public"
+                | parms        - A *,int
+                | wrap:action  - "if (arg1) (arg1)->x = arg2;"
+                | type         - "void"
+                | memberset    - "1"
+            exit functionWrapper() of x
+            enter functionWrapper() of x
+                | name         - "x"
+                | sym:name     - "A_x_get"
+                | access       - "public"
+                | parms        - A *
+                | wrap:action  - "result = (int) ((arg1)->x);"
+                | type         - "int"
+                | memberset    - "1"
+                | memberget    - "1"
+            exit functionWrapper() of x
+        exit membervariableHandler() of x
+    exit variableHandler() of x    
+    enter constructorHandler() of A::A
+        enter functionWrapper() of A::A
+        exit functionWrapper() of A::A
+    exit constructorHandler() of A::A
+    enter destructorHandler() of A::~A
+        enter functionWrapper() of A::~A
+        exit functionWrapper() of A::~A
+    exit destructorHandler() of A::~A
+exit classHandler() of A
+exit top() of example
+~~~~
+
+## Class method
+
+### Example
+
+~~~~
+class A {
+public:
+    void foo(int x, double y);
+private:
+    void bar();
+};
+~~~~
+
+### Control flow
+
+~~~~
+enter top() of example
+enter classHandler() of A
+    enter functionHandler() of foo
+        enter memberfunctionHandler() of foo
+            enter functionWrapper() of foo
+                | name         - "foo"
+                | sym:name     - "A_foo"
+                | access       - "public"
+                | parms        - A *,int,double
+                | wrap:action  - "(arg1)->foo(arg2,arg3);"
+                | type         - "void"
+            exit functionWrapper() of foo
+        exit memberfunctionHandler() of foo
+    exit functionHandler() of foo
+...
+exit classHandler() of A
+exit top() of example
+~~~~
+
+## Static class variable and method
+
+### Example
+
+~~~~
+class A {
+public:
+    static int x;
+    
+    static void foo();
+};
+~~~~
+
+### Control flow
+
+~~~~
+enter top() of example
+enter classHandler() of A
+    enter variableHandler() of x
+        enter staticmembervariableHandler() of x
+            enter variableWrapper() of A::x
+                enter functionWrapper() of A::x
+                    | name         - "A::x"
+                    | sym:name     - "A_x_set"
+                    | parms        - int
+                    | wrap:action  - "A::x = arg1;"
+                    | type         - "void"
+                exit functionWrapper() of A::x
+                enter functionWrapper() of A::x
+                    +++ cdecl ----------------------------------------
+                    | name         - "A::x"
+                    | ismember     - "1"
+                    | sym:name     - "A_x_get"
+                    | variableWrapper:sym:name - "A_x"
+                    | wrap:action  - "result = (int)A::x;"
+                    | type         - "int"
+                exit functionWrapper() of A::x
+            exit variableWrapper() of A::x
+        exit staticmembervariableHandler() of x
+    exit variableHandler() of x
+    enter functionHandler() of foo
+        enter staticmemberfunctionHandler() of foo
+            enter globalfunctionHandler() of A::foo
+                enter functionWrapper() of A::foo
+                    | name         - "A::foo"
+                    | sym:name     - "A_foo"
+                    | wrap:action  - "A::foo();"
+                    | type         - "void"
+                exit functionWrapper() of A::foo
+            exit globalfunctionHandler() of A::foo
+        exit staticmemberfunctionHandler() of foo
+    exit functionHandler() of foo
+    enter constructorHandler() of A::A
+    exit constructorHandler() of A::A
+    enter destructorHandler() of A::~A
+    exit destructorHandler() of A::~A
+exit classHandler() of A
+exit top() of example
+~~~~
+
+## Inheritance
+
+### Example
+
+~~~~
+class A {
+};
+
+class B: public A {
+};
+~~~~
+
+### Control flow
+
+~~~~
+enter top() of example
+enter classHandler() of A
+    +++ class ----------------------------------------
+    | name         - "A"
+    | sym:name     - "A"
+...
+exit classHandler() of A
+enter classHandler() of B
+    | name         - "B"
+    | sym:name     - "B"
+    | privatebaselist - 0xf1238f10
+    | protectedbaselist - 0xf1238ef0
+    | baselist     - 0xf1238ed0
+    | bases        - 0xf1239830
+    | allbases     - 0xf1239c30
+...
+exit classHandler() of B
+exit top() of example
+~~~~
