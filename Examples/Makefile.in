@@ -582,7 +582,7 @@ javascript_cpp: $(SRCS)
 # Compile a javascript executable 
 # ----------------------------------------------------------------
 javascript_exe: $(SRCS)
-	$(CXX) $(CXXFLAGS) $(JSEXE_FLAGS) $(JS_INCLUDE) $(LIBS) $(JSEXE_SRC) $(JS_DLNK) -o $(JSEXE)
+	$(CXX) $(CXXFLAGS) $(JSEXE_FLAGS) $(JS_INCLUDE) $(LIBS) $(JSEXE_SRC) $(JS_DLNK) -ldl -o $(JSEXE)
 
 # ----------------------------------------------------------------
 # Run the Compile a javascript executable 
