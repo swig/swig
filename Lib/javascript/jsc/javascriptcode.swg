@@ -52,6 +52,8 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
 {
   $jslocals
   JSValueRef jsresult;
+
+  if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   
   $jscode
   return jsresult;
@@ -68,6 +70,8 @@ int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObjec
 {
   $jslocals
   JSValueRef jsresult;
+
+  if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   
   $jscode
   *result = jsresult;
@@ -231,6 +235,9 @@ ctor_dispatch_case: This template is used for the constructor which is overloade
 JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     $jslocals
+
+    if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+
     $jscode
 
     return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);    
@@ -240,6 +247,7 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc
     return NULL;
 }
 %}
+
 /**********************************************************************
 initializer:This template is dynamic growing and aggregates everything 
 **********************************************************************/

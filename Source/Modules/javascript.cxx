@@ -934,16 +934,20 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
   String *tm;
   Parm *p;
 
-  int num_args = emit_num_arguments(parms);
+  // determine an offset index, as members have an extra 'this' argument
+  // except: static members and ctors.
+  int startIdx = 0;
+  if (is_member && !is_static && mode!=Ctor) {
+    startIdx = 1;
+  }
+
+  // store number of arguments for argument checks
+  int num_args = emit_num_arguments(parms) - startIdx;
   String *argcount = NewString("");
   Printf(argcount, "%d", num_args);
   Setattr(n, ARGCOUNT, argcount);
 
-  int startIdx = 0;
-  if (is_member && !is_static) {
-    startIdx = 1;
-  }
-
+  // process arguments
   int i = 0;
   for (p = parms; p; p = nextSibling(p), i++) {
     SwigType *pt = Getattr(p, "type");
@@ -957,7 +961,6 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
       } else {
         Printf(arg, "argv[%d]", i - startIdx);
       }
-
       break;
     case Setter:
       if (is_member && !is_static && i == 0) {
@@ -1213,12 +1216,16 @@ int JSCEmitter::exitClass(Node *n) {
 int JSEmitter::emitCtor(Node *n) {
     
   Wrapper *wrapper = NewWrapper();
+
+  bool is_overloaded = GetFlag(n, "sym:overloaded");
   
   Template t_ctor(getTemplate("JS_ctordefn"));
 
   //String *mangled_name = SwigType_manglestr(Getattr(n, "name"));
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
-  Append(wrap_name, Getattr(n, "sym:overname"));
+  if(is_overloaded) {
+    Append(wrap_name, Getattr(n, "sym:overname"));
+  }
   Setattr(n, "wrap:name", wrap_name);
   // note: removing the is_abstract flag, as this emitter
   //       is supposed to be called for non-abstract classes only.
@@ -1238,6 +1245,7 @@ int JSEmitter::emitCtor(Node *n) {
       .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
       .replace(T_LOCALS, wrapper->locals)
       .replace(T_CODE, wrapper->code)
+      .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT))
       .pretty_print(f_wrappers);
 
   Template t_ctor_case(getTemplate("JS_ctor_dispatch_case"));
@@ -1247,14 +1255,16 @@ int JSEmitter::emitCtor(Node *n) {
   
   DelWrapper(wrapper);
 
-  // create a dispatching ctor (if necessary)
-  if (!Getattr(n, "sym:nextSibling")) {
-    String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
-    Template t_mainctor(getTemplate("JS_mainctordefn"));
-    t_mainctor.replace(T_WRAPPER, wrap_name)
-        .replace(T_DISPATCH_CASES, state.clazz(CTOR_DISPATCHERS))
-        .pretty_print(f_wrappers);
-    state.clazz(CTOR, wrap_name);
+  // create a dispatching ctor
+  if(is_overloaded) {
+    if (!Getattr(n, "sym:nextSibling")) {
+      String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+      Template t_mainctor(getTemplate("JS_mainctordefn"));
+      t_mainctor.replace(T_WRAPPER, wrap_name)
+          .replace(T_DISPATCH_CASES, state.clazz(CTOR_DISPATCHERS))
+          .pretty_print(f_wrappers);
+      state.clazz(CTOR, wrap_name);
+    }
   } else {
     state.clazz(CTOR, wrap_name);
   }
@@ -1410,6 +1420,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   t_function.replace(T_WRAPPER, wrap_name)
       .replace(T_LOCALS, wrapper->locals)
       .replace(T_CODE, wrapper->code)
+      .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT))
       .pretty_print(f_wrappers);
 
   // handle function overloading
