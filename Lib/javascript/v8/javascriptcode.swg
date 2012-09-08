@@ -52,7 +52,7 @@ void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy* proxy = (SWIGV8_Proxy*) parameter;
   if(proxy->swigCMemOwn && proxy->swigCObject) {
     std::cout << "Deleting wrapped instance: " << proxy->info->name << std::endl;
-    delete ($jstype*) proxy->swigCObject;
+    $jsfree proxy->swigCObject;
   }
   delete proxy;
 }
@@ -150,7 +150,7 @@ fail:
 %{v8::Handle<v8::FunctionTemplate> $jsmangledname_class = SWIGV8_CreateClassTemplate("$jsmangledname");
   $jsmangledname_clientData.class_templ = $jsmangledname_class;
   $jsmangledname_clientData.dtor = $jsdtor;  
-  SWIGTYPE_p$jsmangledtype->clientdata = &$jsmangledname_clientData;%}
+  SWIGTYPE$jsmangledtype->clientdata = &$jsmangledname_clientData;%}
 
 %fragment("jsv8_inherit", "templates") 
 %{$jsmangledname_class->Inherit($jsbaseclass_class);%}
@@ -194,6 +194,8 @@ void $jsname_initialize(v8::Handle<v8::Context> context)
   v8::HandleScope scope;
   v8::Local<v8::Object> global_obj = context->Global();
 
+  SWIGV8_SWIGTYPE_Proxy_class_templ = SWIGV8_CreateClassTemplate("SwigProxy");
+  
   /* create objects for namespaces */
   $jsv8nspaces
   

@@ -43,6 +43,7 @@ bool js_template_enable_debug = false;
 #define T_ARGCOUNT        "$jsargcount"
 #define T_LOCALS          "$jslocals"
 #define T_CODE            "$jscode"
+#define T_FREE            "$jsfree"
 
 // v8 specific variables used in templates
 #define V8_NAME_SPACES                              "$jsv8nspaces"
@@ -269,6 +270,8 @@ protected:
 
   virtual void marshalOutput(Node *n, Wrapper *wrapper, String *actioncode, const String *cresult=0, bool emitReturnVariable = true);
 
+  void registerProxyType(SwigType* type);
+
   /**
    * Helper function to retrieve the first parent class node.
    */
@@ -281,6 +284,7 @@ protected:
   virtual Hash *createNamespaceEntry(const char *name, const char *parent);
 
   virtual int emitNamespaces() = 0;
+  
 
 protected:
 
@@ -865,12 +869,27 @@ int JSEmitter::emitDtor(Node *n) {
 
   Template t_dtor = getTemplate("JS_destructordefn");
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+
+  SwigType *type = state.clazz(TYPE);
+  String *p_classtype = SwigType_add_pointer(state.clazz(TYPE));
+  String *ctype = SwigType_lstr(p_classtype, "");
+  String *free = NewString("");
+  if(SwigType_isarray(type)) {
+    Printf(free, "delete [] (%s)", ctype);
+  } else {
+    Printf(free, "delete (%s)", ctype);
+  }
+
   state.clazz(DTOR, wrap_name);
   t_dtor.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
       .replace(T_WRAPPER, wrap_name)
-      .replace(T_TYPE, state.clazz(TYPE))
+      .replace(T_FREE, free)
       .pretty_print(f_wrappers);
 
+  Delete(p_classtype);
+  Delete(ctype);
+  Delete(free);
+  
   return SWIG_OK;
 }
 
@@ -1050,15 +1069,30 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   return SWIG_OK;
 }
 
+void JSEmitter::registerProxyType(SwigType* type) {
+  SwigType *ftype = SwigType_typedef_resolve_all(type);
+
+  // register undefined wrappers
+  int needs_proxy= (SwigType_ispointer(ftype)
+      || SwigType_isarray(ftype) || SwigType_isreference(ftype))
+      && !(Language::instance()->classLookup(ftype));
+  if (needs_proxy) {
+    SwigType_remember_clientdata(ftype, 0);
+    Setattr(undefined_types, SwigType_manglestr(ftype), ftype);
+  } else {
+    Delete(ftype);
+  }
+
+}
+
 void JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg) {
   // Get input typemap for current param
   String *tm = Getattr(p, "tmap:in");
-  SwigType *pt = Getattr(p, "type");
-  
+  SwigType *type = Getattr(p, "type");
+
   if (tm != NULL) {
     Replaceall(tm, "$input", arg);
     Setattr(p, "emit:input", arg);
-
     // do replacements for built-in variables
     if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
       Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
@@ -1068,28 +1102,24 @@ void JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg
     Replaceall(tm, "$symname", Getattr(n, "sym:name"));
     Printf(wrapper->code, "%s\n", tm);
   } else {
-    Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
+    Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
   }
 }
 
 void JSEmitter::marshalOutput(Node *n,  Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
   SwigType *type = Getattr(n, "type");
-  Setattr(n, "type", type);
   String *tm;
-  
-  // register undefined wrappers
-  if (SwigType_ispointer(type) && !Language::instance()->classLookup(type)) {
-    SwigType_remember_clientdata(type, 0);
-    Setattr(undefined_types, SwigType_manglestr(type), type);
-  }
-
   // adds a declaration for the result variable
   if(emitReturnVariable) emit_return_variable(n, type, wrapper);
-
   // if not given, use default result identifier ('result') for output typemap
   if(cresult == 0) cresult = defaultResultName;
 
-  if ((tm = Swig_typemap_lookup_out("out", n, cresult, wrapper, actioncode))) {
+  tm = Swig_typemap_lookup_out("out", n, cresult, wrapper, actioncode);
+  if(GetFlag(n, "feature:new")) {
+    registerProxyType(type);
+  }
+
+  if (tm) {
     Replaceall(tm, "$result", "jsresult");
     Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
 
@@ -1744,10 +1774,12 @@ int V8Emitter::exitClass(Node *n)
   SwigType_remember_clientdata(state.clazz(TYPE_MANGLED), clientData);
   
   // emit definition of v8 class template
+  String *p_classtype = state.clazz(TYPE);
+  String *p_classtype_str = SwigType_manglestr(p_classtype);
   Template t_def_class(getTemplate("jsv8_define_class_template"));
   t_def_class.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
       .replace(T_NAME, state.clazz(NAME))
-      .replace(T_TYPE_MANGLED, SwigType_manglestr(Getattr(n, "classtype")))
+      .replace(T_TYPE_MANGLED, p_classtype_str)
       .replace(T_DTOR, state.clazz(DTOR))
       .pretty_print(f_init_class_templates);
 
@@ -1951,9 +1983,17 @@ void V8Emitter::emitUndefined() {
   Iterator ki;
   for (ki = First(undefined_types); ki.item; ki = Next(ki)) {
     String *mangled_name = ki.key;
+    SwigType *type = ki.item;
     String *dtor = Swig_name_destroy("", mangled_name);
-    SwigType *deref = SwigType_del_pointer(ki.item);
-    String *type_mangled = SwigType_manglestr(ki.item);
+    String *type_mangled = SwigType_manglestr(type);
+    String *ctype = SwigType_lstr(type, "");
+
+    String *free = NewString("");
+    if(SwigType_isarray(type)) {
+      Printf(free, "delete [] (%s)", ctype);
+    } else {
+      Printf(free, "delete (%s)", ctype);
+    }
 
     // emit clientData declaration
     Template clientDataDecl = getTemplate("jsv8_declare_class_template");
@@ -1964,7 +2004,7 @@ void V8Emitter::emitUndefined() {
     Template t_dtor = getTemplate("JS_destructordefn");
     t_dtor.replace(T_NAME_MANGLED, mangled_name)
         .replace(T_WRAPPER, dtor)
-        .replace(T_TYPE, deref)
+        .replace(T_FREE, free)
         .pretty_print(f_wrappers);
     
     // create a class template and initialize clientData
@@ -1976,8 +2016,9 @@ void V8Emitter::emitUndefined() {
         .pretty_print(f_init_class_templates);
 
     Delete(dtor);
-    Delete(deref);
+    Delete(free);
     Delete(type_mangled);
+    Delete(ctype);
 
   }    
 }

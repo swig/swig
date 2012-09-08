@@ -86,10 +86,8 @@ public:
   void (*dtor) (v8::Persistent< v8::Value > object, void *parameter);
 };
 
-%}
+v8::Persistent<v8::FunctionTemplate> SWIGV8_SWIGTYPE_Proxy_class_templ;
 
-
-%insert(runtime) %{
 int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_type_info *info, int flags) {
   v8::HandleScope scope;
   
@@ -120,14 +118,27 @@ int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_t
   return SWIG_OK;
 }
 
+void SWIGV8_Proxy_DefaultDtor(v8::Persistent< v8::Value > object, void *parameter) {
+  SWIGV8_Proxy* proxy = (SWIGV8_Proxy*) parameter;
+  if(proxy) {
+    delete proxy;
+  }
+}
+
 void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info *info, int flags) {
   SWIGV8_Proxy* cdata = new SWIGV8_Proxy();
   cdata->swigCObject = ptr;  
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
   cdata->info = info;
   obj->SetPointerInInternalField(0, cdata);
+  
   v8::Persistent<v8::Object> weakptr = v8::Persistent<v8::Object>::New(obj);
-  weakptr.MakeWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
+  // clientdata must be set for owned data as we need to register the dtor  
+  if(cdata->swigCMemOwn) {
+    weakptr.MakeWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
+  } else {
+    weakptr.MakeWeak(cdata, SWIGV8_Proxy_DefaultDtor);
+  }
 }
 
 int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info *info, int flags) {
@@ -142,8 +153,13 @@ int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info 
 
 v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
   v8::HandleScope scope;
-       
-  v8::Handle<v8::FunctionTemplate> class_templ = ((SWIGV8_ClientData*) info->clientdata)->class_templ;
+  
+  v8::Handle<v8::FunctionTemplate> class_templ;
+  if(info->clientdata != 0) {
+    class_templ = ((SWIGV8_ClientData*) info->clientdata)->class_templ;
+  } else {
+    class_templ = SWIGV8_SWIGTYPE_Proxy_class_templ;
+  }
   v8::Handle<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
   SWIGV8_SetPrivateData(result, ptr, info, flags);
   
