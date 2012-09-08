@@ -1075,18 +1075,16 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
 
 void JSEmitter::registerProxyType(SwigType* type) {
   SwigType *ftype = SwigType_typedef_resolve_all(type);
+  if(Language::instance()->classLookup(ftype)) return;
+  
+  // TODO: confused... more try and error... understand and fix eventually
+  SwigType *p_ftype = SwigType_add_pointer(ftype);
 
   // register undefined wrappers
-  int needs_proxy= (SwigType_ispointer(ftype)
-      || SwigType_isarray(ftype) || SwigType_isreference(ftype))
-      && !(Language::instance()->classLookup(ftype));
-  if (needs_proxy) {
-    SwigType_remember_clientdata(ftype, 0);
-    Setattr(undefined_types, SwigType_manglestr(ftype), ftype);
-  } else {
-    Delete(ftype);
-  }
+  SwigType_remember_clientdata(p_ftype, 0);
+  Setattr(undefined_types, SwigType_manglestr(p_ftype), p_ftype);
 
+  Delete(ftype);
 }
 
 void JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg) {
@@ -1119,7 +1117,9 @@ void JSEmitter::marshalOutput(Node *n,  Wrapper *wrapper, String *actioncode, co
   if(cresult == 0) cresult = defaultResultName;
 
   tm = Swig_typemap_lookup_out("out", n, cresult, wrapper, actioncode);
-  if(GetFlag(n, "feature:new")) {
+  bool should_own = GetFlag(n, "feature:new");
+  bool needs_proxy = GetFlag(n, "tmap:out:SWIGTYPE");
+  if(needs_proxy) {
     registerProxyType(type);
   }
 
@@ -1127,7 +1127,7 @@ void JSEmitter::marshalOutput(Node *n,  Wrapper *wrapper, String *actioncode, co
     Replaceall(tm, "$result", "jsresult");
     Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
 
-    if (GetFlag(n, "feature:new")) {
+    if (should_own) {
       Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
     } else {
       Replaceall(tm, "$owner", "0");
@@ -1985,10 +1985,10 @@ int V8Emitter::emitNamespaces() {
 void V8Emitter::emitUndefined() {
   Iterator ki;
   for (ki = First(undefined_types); ki.item; ki = Next(ki)) {
-    String *mangled_name = ki.key;
+    String *mangled_name = NewStringf("SWIGTYPE%s", ki.key);
     SwigType *type = ki.item;
     String *dtor = Swig_name_destroy("", mangled_name);
-    String *type_mangled = SwigType_manglestr(type);
+    String *type_mangled = ki.key;
     String *ctype = SwigType_lstr(type, "");
 
     String *free = NewString("");
@@ -2018,9 +2018,9 @@ void V8Emitter::emitUndefined() {
         .replace(T_DTOR, dtor)
         .pretty_print(f_init_class_templates);
 
+    Delete(mangled_name);
     Delete(dtor);
     Delete(free);
-    Delete(type_mangled);
     Delete(ctype);
 
   }    

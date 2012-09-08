@@ -11,13 +11,10 @@
 JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     $jslocals
-
     if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
     $jscode
-
     return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);    
-
     goto fail;
     fail:
     return NULL;
@@ -60,6 +57,20 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
     
     fail:
     return thisObject;
+}
+%}
+
+%fragment ("js_overloaded_ctor", "templates")
+%{
+JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+{
+    $jslocals
+    $jscode
+    return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);    
+
+    goto fail;
+    fail:
+    return NULL;
 }
 %}
 
