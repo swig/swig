@@ -636,6 +636,51 @@ int Class_Initialize(v8::Handle<v8::Context> context) {
 
 ~~~~~
 
+## Inheritance
+
+~~~~~
+class A {
+public:
+    A() {}
+    
+    ~A() {}
+
+    double foo() {
+        return 11.11;
+    }
+};
+
+class B: public A {
+public:
+    B() {}
+    ~B() {}
+    
+    int bar() {
+        return 7;
+    }
+};
+
+... (left out function wrappers) ... 
+
+int Class_Initialize(v8::Handle<v8::Context> context) {
+    
+    v8::Local<v8::Object> global = context->Global();
+    
+    v8::Persistent<v8::FunctionTemplate> class_A = SWIGV8_CreateClassTemplate("A", A_new);
+    v8::Persistent<v8::FunctionTemplate> class_B = SWIGV8_CreateClassTemplate("B", B_new);
+
+    SWIGV8_AddMemberFunction(class_A, "foo", wrap_A_foo);
+    SWIGV8_AddMemberFunction(class_B, "bar", wrap_B_bar);
+    
+    class_B->Inherit(class_A);
+    
+    global->Set(v8::String::NewSymbol("A"), class_A->GetFunction());
+    global->Set(v8::String::NewSymbol("B"), class_B->GetFunction());
+    
+    return 0;
+}
+~~~~~
+
 -------------------------
 
 Control flow analysis
