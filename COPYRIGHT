@@ -15,8 +15,9 @@ Active SWIG Developers:
  Olly Betts (olly@survex.com)                           (PHP)
  Joseph Wang (joequant@gmail.com)                       (R)
  Xavier Delacour (xavier.delacour@gmail.com)            (Octave)
- David Nadlinger (code@klickverbot.at)                  (D)
- Oliver Buchtala                                        (Javascript)
+ David Nadlinger (code@klickverbot.at)
+ Oliver Buchtala (oliver.buchtala@gmail.com)            (Javascript)
+ Neha Narang (narangneha03@gmail.com)                   (Javascript)
 
 Past SWIG developers and major contributors include:
  Dave Beazley (dave-swig@dabeaz.com)                    (SWIG core, Python, Tcl, Perl)
@@ -61,7 +62,6 @@ Past SWIG developers and major contributors include:
  Ian Lance Taylor                                       (Go)
  Vadim Zeitlin                                          (PCRE)
  Stefan Zager (szager@gmail.com)			(Python)
- Oliver Buchtala                                        (Javascript)
 
 Past contributors include:
  James Michael DuPont, Clark McGrew, Dustin Mitchell, Ian Cooke, Catalin Dumitrescu, Baran

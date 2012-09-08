@@ -1,0 +1,94 @@
+#######################################################################
+# Makefile for javascript test-suite
+#######################################################################
+
+LANGUAGE     = javascript
+JAVASCRIPT_EXE   = ../../../Tools/javascript/javascript
+JAVASCRIPT_EXE_SRC   = ../../../Tools/javascript/javascript.cxx
+SCRIPTSUFFIX = _runme.js
+srcdir       = @srcdir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
+JS_INCLUDE   = @JSCOREINC@
+JS_DLNK      = @JSCOREDYNAMICLINKING@
+JSCXXFLAGS  = @JSCXXFLAGS@
+
+C_TEST_CASES = \
+	preproc \
+	preproc_include
+
+CPP_TEST_CASES = \
+	abstract_access \
+	abstract_typedef \
+	abstract_typedef2 \
+	abstract_virtual \
+	array_member \
+	arrays_global \
+	char_binary \
+	class_ignore \
+	class_scope_weird \
+	complextest \
+	constover \
+	cpp_enum \
+	cpp_namespace \
+	cpp_static \
+	director_alternating \
+	enum_template \
+	namespace_virtual_method \
+	overload_copy \
+	ret_by_value \
+	struct_value \
+	template_static \
+	typedef_class \
+	typedef_inherit \
+	typedef_scope \
+	typemap_arrays \
+	typemap_delete \
+	typemap_namespace \
+	typemap_ns_using \
+	using1 \
+	using2
+
+SKIP_CPP_CASES = @SKIP_CPP_CASES@
+SKIP_C_CASES = @SKIP_C_CASES@
+SKIP_CPP_STD_CASES = @SKIP_CPP_STD_CASES@
+SKIP_MULTI_CPP_CASES = @SKIP_MULTI_CPP_CASES@
+
+include $(srcdir)/../common.mk
+
+# Overridden variables here
+
+# Custom tests - tests with additional commandline options
+
+javascript_exe:
+	$(CXX) $(JSCXXFLAGS) $(JS_INCLUDE) $(JAVASCRIPT_EXE_SRC) $(LIBS) $(JS_DLNK) -o $(JAVASCRIPT_EXE)
+
+# Rules for the different types of tests
+%.cpptest: javascript_exe
+	$(setup)
+	+$(swig_and_compile_cpp)
+	$(run_testcase)
+
+%.ctest: javascript_exe
+	$(setup)
+	+$(swig_and_compile_c)
+	$(run_testcase)
+
+%.multicpptest: javascript_exe
+	$(setup)
+	+$(swig_and_compile_multi_cpp)
+	$(run_testcase)
+
+# Runs the testcase. A testcase is only run if
+# a file is found which has _runme.js appended after the testcase name.
+run_testcase = \
+	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(JAVASCRIPT_EXE) -l $* $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	fi
+
+# Clean
+%.clean:
+	
+
+clean:
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile javascript_clean

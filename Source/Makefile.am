@@ -50,7 +50,6 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/java.cxx		\
 		Modules/lang.cxx		\
 		Modules/javascript.cxx		\
-		Modules/javascript_emitter.cxx		\
 		Modules/javascript_v8.cxx		\
 		Modules/lua.cxx			\
 		Modules/main.cxx		\
