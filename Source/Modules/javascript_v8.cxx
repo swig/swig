@@ -16,13 +16,16 @@
 #define V8_SETTER                                   "v8_setter"
 #define V8_FUNCTION                                 "v8_function"
 #define V8_RETRIEVE_THIS                            "v8_retrieve_this"
+#define V8_REGISTER_MEMBER_FUNCTION                 "v8_register_member_function"
 
 // keywords used in templates
 #define KW_MODULE_NAME                              "${MODULE}"
 #define KW_MANGLED_NAME                             "${NAME_MANGLED}"
 #define KW_UNQUALIFIED_NAME                         "${NAME_UNQUALIFIED}"
+#define KW_CLASSNAME_MANGLED                        "${CLASSNAME_MANGLED}"
 #define KW_BASE_CLASS                               "${BASE_CLASS}"
 #define KW_CONTEXT                                  "${CONTEXT}"
+#define KW_WRAPPER                                  "${WRAPPER}"
 
 #define KW_NAME_SPACES                              "${PART_NAMESPACES}"
 #define KW_CLASS_TEMPLATES                          "${PART_CLASS_TEMPLATES}"
@@ -70,9 +73,8 @@ int V8Emitter::Initialize(Node *n)
     f_init_inheritance = NewString("");
     f_init_register = NewString("");
 
+    // note: this is necessary for built-in generation of swig runtime code
     Swig_register_filebyname("runtime", f_runtime);
-    Swig_register_filebyname("header", f_header);
-    Swig_register_filebyname("wrapper", f_wrapper);
 
     return SWIG_OK;
 }
@@ -179,18 +181,18 @@ int V8Emitter::ExitClass(Node *n)
     //  emit inheritance setup
     Node* baseClass = GetBaseClass(n);
     if(baseClass) {
-        Template t(GetTemplate(V8_INHERIT));
-        t.Replace(KW_MANGLED_NAME,  current_classname_mangled)
+        Template t_inherit(GetTemplate(V8_INHERIT));
+        t_inherit.Replace(KW_MANGLED_NAME,  current_classname_mangled)
          .Replace(KW_BASE_CLASS,    Swig_string_mangle(Getattr(baseClass, "name")));
-        Printv(f_init_inheritance, t.str(), 0);
+        Printv(f_init_inheritance, t_inherit.str(), 0);
     }
         
     //  emit registeration of class template
-    Template t(GetTemplate(V8_REGISTER_CLASS));
-    t.Replace(KW_MANGLED_NAME,      current_classname_mangled)
+    Template t_register(GetTemplate(V8_REGISTER_CLASS));
+    t_register.Replace(KW_MANGLED_NAME,      current_classname_mangled)
      .Replace(KW_UNQUALIFIED_NAME,  current_classname_unqualified)
      .Replace(KW_CONTEXT,           Swig_string_mangle(current_context));
-    Printv(f_init_register, t.str(), 0);
+    Printv(f_init_register, t_register.str(), 0);
 
     Delete(current_classname_mangled);
     Delete(current_classname_unqualified);
@@ -229,6 +231,7 @@ int V8Emitter::ExitVariable(Node* n)
 int V8Emitter::EnterFunction(Node* n)
 {
     current_function_unqualified = Swig_scopename_last(Getattr(n, "name"));
+
     if(GetFlag(n, "ismember")) {
         current_function_mangled = NewString("");
         Printf(current_function_mangled, "%s_%s", current_classname_mangled, current_function_unqualified);
@@ -259,11 +262,11 @@ int V8Emitter::EmitCtor(Node* n)
     Template t(GetTemplate(V8_CTOR_WRAPPER));
     
     ParmList *params  = Getattr(n,"parms");
-    String* action = Getattr(n, "wrap:action");
-    String* input = NewString("");
-
     emit_parameter_variables(params, current_wrapper);
     emit_attach_parmmaps(params, current_wrapper);
+    
+    String* action = Getattr(n, "wrap:action");
+    String* input = NewString("");
 
     t.Replace(KW_MANGLED_NAME,      current_classname_mangled)
      .Replace(KW_UNQUALIFIED_NAME,  current_classname_unqualified)
@@ -272,7 +275,7 @@ int V8Emitter::EmitCtor(Node* n)
      .Replace(KW_MARSHAL_INPUT, input);
      
     Wrapper_pretty_print(t.str(), f_wrapper);
-
+    
     return SWIG_OK;
 }
 
@@ -287,21 +290,21 @@ int V8Emitter::EmitDtor(Node* n)
 }
 
 int V8Emitter::EmitGetter(Node *n, bool is_member) {
-    Template t(GetTemplate(V8_GETTER));
+    Template t_getter(GetTemplate(V8_GETTER));
 
-    Setattr(n, "wrap:name", Getattr(n, "sym:name"));
     Printf(current_wrapper->locals, "%s result;\n", SwigType_str(Getattr(n, "type"), 0));
     
     String* action = emit_action(n);
     String* output = NewString("// TODO: marshal output.\n    ret = v8::Undefined();");
     
-    t.Replace(KW_MANGLED_NAME, current_variable_mangled)
+    t_getter.Replace(KW_MANGLED_NAME, current_variable_mangled)
      .Replace(KW_LOCALS, current_wrapper->locals)
      .Replace(KW_ACTION, action)
      .Replace(KW_MARSHAL_OUTPUT, output);
 
-    Wrapper_pretty_print(t.str(), f_wrapper);
-
+    Wrapper_pretty_print(t_getter.str(), f_wrapper);
+    
+    // clean up
     Delete(output);
     
     return SWIG_OK;
@@ -309,24 +312,23 @@ int V8Emitter::EmitGetter(Node *n, bool is_member) {
 
 int V8Emitter::EmitSetter(Node* n, bool is_member)
 {
-    Template t(GetTemplate(V8_SETTER));
-
-    Setattr(n, "wrap:name", Getattr(n, "sym:name"));
+    Template t_setter(GetTemplate(V8_SETTER));
+    
     ParmList *params  = Getattr(n,"parms");
-
     emit_parameter_variables(params, current_wrapper);
     emit_attach_parmmaps(params, current_wrapper);
 
     String* action = emit_action(n);
     String* input = NewString("// TODO: marshal input.\n");
     
-    t.Replace(KW_MANGLED_NAME, current_variable_mangled)
+    t_setter.Replace(KW_MANGLED_NAME, current_variable_mangled)
      .Replace(KW_LOCALS, current_wrapper->locals)
      .Replace(KW_ACTION, action)
      .Replace(KW_MARSHAL_INPUT, input);
 
-    Wrapper_pretty_print(t.str(), f_wrapper);
+    Wrapper_pretty_print(t_setter.str(), f_wrapper);
 
+    // clean up
     Delete(input);
 
     return SWIG_OK;
@@ -335,30 +337,44 @@ int V8Emitter::EmitSetter(Node* n, bool is_member)
 
 int V8Emitter::EmitFunction(Node* n, bool is_member)
 {
-    Template t(GetTemplate(V8_FUNCTION));
+    Template t_function(GetTemplate(V8_FUNCTION));
 
-    Setattr(n, "wrap:name", Getattr(n, "sym:name"));
+    String* wrap_name = NewString("");
+    Printv(wrap_name, current_function_mangled, 0);
+    Setattr(n, "wrap:name", wrap_name);
+    
     ParmList *params  = Getattr(n,"parms");
-
     emit_parameter_variables(params, current_wrapper);
     emit_attach_parmmaps(params, current_wrapper);
     Printf(current_wrapper->locals, "%s result;\n", SwigType_str(Getattr(n, "type"), 0));
-
-    
+       
     String* input = NewString("// TODO: marshal input");
     String* action = emit_action(n);
     String* output = NewString("// TODO: marshal output.\n    ret = v8::Undefined();");
     
-    t.Replace(KW_MANGLED_NAME, current_function_mangled)
+    t_function.Replace(KW_MANGLED_NAME, current_function_mangled)
      .Replace(KW_LOCALS, current_wrapper->locals)
      .Replace(KW_ACTION, action)
      .Replace(KW_MARSHAL_INPUT, input)
      .Replace(KW_MARSHAL_OUTPUT, output);
 
-    Wrapper_pretty_print(t.str(), f_wrapper);
+    Wrapper_pretty_print(t_function.str(), f_wrapper);
 
+    // register the function at the specific context
+    if (is_member) {
+        Template t_register(GetTemplate(V8_REGISTER_MEMBER_FUNCTION));
+        t_register.Replace(KW_UNQUALIFIED_NAME, current_function_unqualified)
+          .Replace(KW_WRAPPER, wrap_name)
+          .Replace(KW_CLASSNAME_MANGLED, current_classname_mangled);
+        Printv(f_init_register, t_register.str(), "\n", 0);
+    } else {
+        // TODO
+    }
+
+    // clean up
     Delete(input);
     Delete(output);
+    Delete(wrap_name);
 
     return SWIG_OK;
 }

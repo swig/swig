@@ -72,3 +72,7 @@ v8::Handle<v8::Value> ${NAME_MANGLED}(const Arguments &args) {
     return scope.Close(ret);
 }
 %}
+
+%fragment("v8_register_member_function", "templates") %{
+SWIGV8_AddClassMethod(SWIGV8_${CLASSNAME_MANGLED}, "${NAME_UNQUALIFIED}", ${WRAPPER});
+%}
