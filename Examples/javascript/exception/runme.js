@@ -1,6 +1,7 @@
 //file: runme.js
 // Throw a lot of exceptions
 
+print("Trying to catch some exceptions.");
 t = new example.Test();
 try{
   t.unknown();
@@ -9,6 +10,8 @@ try{
 {
   if(error == -1) {
     print("t.unknown() didn't throw");
+  } else {
+    print("successfully catched throw in Test::unknown().");
   }
 }
 
@@ -19,6 +22,8 @@ try{
 catch(error){
   if(error == -1) {
     print("t.simple() did not throw");
+  } else {
+    print("successfully catched throw in Test::simple().");
   }
 }
 
@@ -28,6 +33,8 @@ try{
 } catch(error){
   if(error == -1) {
     print("t.message() did not throw");
+  } else {
+    print("successfully catched throw in Test::message().");
   }
 }
     
@@ -38,6 +45,8 @@ try{
 catch(error){ 
   if(error == -1) {
     print("t.hosed() did not throw");
+  } else {
+    print("successfully catched throw in Test::hosed().");
   }
 }
 
@@ -48,7 +57,9 @@ for (var i=1; i<4; i++) {
   }
   catch(error){
     if(error == -1) {
-      print("t.mulit(" + i + ") did not throw");
+      print("t.multi(" + i + ") did not throw");
+    } else {
+      print("successfully catched throw in Test::multi().");
     }
   }
-}      
+}    
