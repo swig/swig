@@ -1451,7 +1451,9 @@ int Language::membervariableHandler(Node *n) {
       }
       if (make_set_wrapper) {
 	Setattr(n, "sym:name", mrename_set);
+	SetFlag(n, "wrap:issetter");
 	functionWrapper(n);
+	Delattr(n, "wrap:issetter");
       } else {
 	SetFlag(n, "feature:immutable");
       }
@@ -2910,7 +2912,9 @@ int Language::variableWrapper(Node *n) {
       Delete(pname0);
     }
     if (make_set_wrapper) {
+      SetFlag(n, "wrap:issetter");
       functionWrapper(n);
+      Delattr(n, "wrap:issetter");
     }
     /* Restore parameters */
     Setattr(n, "sym:name", symname);
