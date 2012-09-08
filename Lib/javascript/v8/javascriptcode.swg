@@ -4,8 +4,9 @@ v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
   v8::Handle<v8::Object> self = args.Holder();
   $jslocals
   $jscode
-  self->SetInternalField(0, v8::External::New(result));
-  return scope.Close(self);
+  
+  return SWIG_V8_NewPointerObj(result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+
   goto fail;
 fail:
   return scope.Close(v8::Undefined());
@@ -72,7 +73,8 @@ fail:
 %{v8::Persistent<v8::FunctionTemplate> $jsmangledname_class;%}
 
 %fragment("jsv8_define_class_template", "templates") 
-%{$jsmangledname_class = SWIGV8_CreateClassTemplate("$jsname" , $jsctor);%}
+%{$jsmangledname_class = SWIGV8_CreateClassTemplate("$jsname" , $jsctor);
+  SWIGTYPE_$jsmangledtype->clientdata = &$jsmangledname_class;%}
 
 %fragment("jsv8_create_class_instance", "templates") 
 %{v8::Handle<v8::Object> $jsmangledname = $jsmangledname_class->GetFunction();%}

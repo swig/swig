@@ -21,6 +21,7 @@ bool js_template_enable_debug = false;
 #define CTOR_WRAPPERS "ctor_wrappers"
 #define CTOR_DISPATCHERS "ctor_dispatchers"
 #define ARGCOUNT "wrap:argc"
+#define FUNCTION_DISPATCHERS "function_dispatchers"
 
 // variables used in code templates
 // ATTENTION: be aware of prefix collisions when defining those variables
@@ -785,6 +786,309 @@ int JSEmitter::enterVariable(Node *n) {
   return SWIG_OK;
 }
 
+int JSEmitter::emitCtor(Node *n) {
+    
+  Wrapper *wrapper = NewWrapper();
+
+  bool is_overloaded = GetFlag(n, "sym:overloaded");
+  
+  Template t_ctor(getTemplate("JS_ctordefn"));
+
+  //String *mangled_name = SwigType_manglestr(Getattr(n, "name"));
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  if(is_overloaded) {
+    Append(wrap_name, Getattr(n, "sym:overname"));
+  }
+  Setattr(n, "wrap:name", wrap_name);
+  // note: removing the is_abstract flag, as this emitter
+  //       is supposed to be called for non-abstract classes only.
+  Setattr(state.clazz(), IS_ABSTRACT, 0);
+
+  ParmList *params = Getattr(n, "parms");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+
+  Printf(wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"), 0));
+
+  String *action = emit_action(n);
+  marshalInputArgs(n, params, wrapper, Ctor, true, false);
+
+  Printv(wrapper->code, action, "\n", 0);
+  t_ctor.replace(T_WRAPPER, wrap_name)
+      .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
+      .replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code)
+      .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT))
+      .pretty_print(f_wrappers);
+
+  Template t_ctor_case(getTemplate("JS_ctor_dispatch_case"));
+  t_ctor_case.replace(T_WRAPPER, wrap_name)
+      .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT));
+  Append(state.clazz(CTOR_DISPATCHERS), t_ctor_case.str());
+  
+  DelWrapper(wrapper);
+
+  // create a dispatching ctor
+  if(is_overloaded) {
+    if (!Getattr(n, "sym:nextSibling")) {
+      String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+      Template t_mainctor(getTemplate("JS_mainctordefn"));
+      t_mainctor.replace(T_WRAPPER, wrap_name)
+          .replace(T_DISPATCH_CASES, state.clazz(CTOR_DISPATCHERS))
+          .pretty_print(f_wrappers);
+      state.clazz(CTOR, wrap_name);
+    }
+  } else {
+    state.clazz(CTOR, wrap_name);
+  }
+
+  return SWIG_OK;
+}
+
+int JSEmitter::emitDtor(Node *) {
+
+  Template t_dtor = getTemplate("JS_destructordefn");
+  t_dtor.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .replace(T_TYPE, state.clazz(TYPE))
+      .pretty_print(f_wrappers);
+
+  return SWIG_OK;
+}
+
+int JSEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
+  Wrapper *wrapper = NewWrapper();
+  Template t_getter(getTemplate("JS_getproperty"));
+  
+  // prepare wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  Setattr(n, "wrap:name", wrap_name);
+  state.variable(GETTER, wrap_name);
+
+  // prepare local variables
+  ParmList *params = Getattr(n, "parms");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+
+  // prepare code part
+  String *action = emit_action(n);
+  marshalInputArgs(n, params, wrapper, Getter, is_member, is_static);
+  marshalOutput(n, action, wrapper);
+
+  t_getter.replace(T_GETTER, wrap_name)
+      .replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code)
+      .pretty_print(f_wrappers);
+
+  DelWrapper(wrapper);
+
+  return SWIG_OK;
+}
+
+int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
+
+  // skip variables that are immutable
+  if (State::IsSet(state.variable(IS_IMMUTABLE))) {
+    return SWIG_OK;
+  }
+  
+  Wrapper *wrapper = NewWrapper();
+
+  Template t_setter(getTemplate("JS_setproperty"));
+
+  // prepare wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  Setattr(n, "wrap:name", wrap_name);
+  state.variable(SETTER, wrap_name);
+
+  // prepare local variables
+  ParmList *params = Getattr(n, "parms");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+
+  // prepare code part
+  String *action = emit_action(n);
+  marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
+  Append(wrapper->code, action);
+
+  t_setter.replace(T_SETTER, wrap_name)
+      .replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code)
+      .pretty_print(f_wrappers);
+
+  DelWrapper(wrapper);
+
+  return SWIG_OK;
+}
+
+/* -----------------------------------------------------------------------------
+ * JSEmitter::emitConstant() :  triggers code generation for constants
+ * ----------------------------------------------------------------------------- */
+
+int JSEmitter::emitConstant(Node *n) {
+
+  Wrapper *wrapper = NewWrapper();
+
+  Template t_getter(getTemplate("JS_getproperty"));
+
+  // call the variable methods as a constants are
+  // registred in same way
+  enterVariable(n);
+
+  // prepare function wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
+  state.variable(GETTER, wrap_name);
+  Setattr(n, "wrap:name", wrap_name);
+
+  // prepare code part
+  String *action = NewString("");
+  String *value = Getattr(n, "rawval");
+  if (value == NULL) {
+    value = Getattr(n, "rawvalue");
+  }
+  if (value == NULL) {
+    value = Getattr(n, "value");
+  }
+  Printf(action, "result = %s;\n", value);
+  Setattr(n, "wrap:action", action);
+  marshalOutput(n, action, wrapper);
+
+  t_getter.replace(T_GETTER, wrap_name)
+      .replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code)
+      .pretty_print(f_wrappers);
+
+  exitVariable(n);
+
+  DelWrapper(wrapper);
+
+  return SWIG_OK;
+}
+
+int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
+  
+  Wrapper *wrapper = NewWrapper();  
+  Template t_function(getTemplate("JS_functionwrapper"));
+
+  bool is_overloaded = GetFlag(n, "sym:overloaded");
+
+  // prepare the function wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  if (is_overloaded) {
+    t_function = getTemplate("JS_functionwrapper_overload");
+    Append(wrap_name, Getattr(n, "sym:overname"));
+  }
+  Setattr(n, "wrap:name", wrap_name);
+  state.function(WRAPPER_NAME, wrap_name);
+
+  // prepare local variables
+  ParmList *params = Getattr(n, "parms");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+
+  // prepare code part
+  String *action = emit_action(n);
+  marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
+  marshalOutput(n, action, wrapper);
+
+  t_function.replace(T_WRAPPER, wrap_name)
+      .replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code)
+      .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT))
+      .pretty_print(f_wrappers);
+
+  // handle function overloading
+  if (is_overloaded) {
+    Template t_dispatch_case = getTemplate("JS_function_dispatch_case");
+    t_dispatch_case.replace(T_WRAPPER, wrap_name)
+        .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT));
+    Append(state.global(FUNCTION_DISPATCHERS), t_dispatch_case.str());
+  }
+  
+  DelWrapper(wrapper);
+
+  return SWIG_OK;
+}
+
+int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
+
+  Template t_function(getTemplate("JS_functionwrapper"));
+
+  Wrapper *wrapper = NewWrapper();
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
+  Setattr(n, "wrap:name", wrap_name);
+
+  Wrapper_add_local(wrapper, "res", "int res");
+
+  Append(wrapper->code, state.global(FUNCTION_DISPATCHERS));
+  Append(wrapper->code, getTemplate("JS_function_dispatch_case_default").str());
+
+  t_function.replace(T_LOCALS, wrapper->locals)
+      .replace(T_CODE, wrapper->code);
+      
+  // call this here, to replace all variables
+  t_function.replace(T_WRAPPER, wrap_name)
+      .replace(T_NAME, state.function(NAME))
+      .pretty_print(f_wrappers);
+
+  // Delete the state variable
+  state.global(FUNCTION_DISPATCHERS, 0);
+  DelWrapper(wrapper);
+
+  return SWIG_OK;
+}
+
+void JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg) {
+  // Get input typemap for current param
+  String *tm = Getattr(p, "tmap:in");
+  SwigType *pt = Getattr(p, "type");
+  
+  if (tm != NULL) {
+    Replaceall(tm, "$input", arg);
+    Setattr(p, "emit:input", arg);
+
+    // do replacements for built-in variables
+    if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
+      Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
+    } else {
+      Replaceall(tm, "$disown", "0");
+    }
+    Replaceall(tm, "$symname", Getattr(n, "sym:name"));
+    Printf(wrapper->code, "%s\n", tm);
+  } else {
+    Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
+  }
+}
+
+void JSEmitter::marshalOutput(Node *n, String *actioncode, Wrapper *wrapper) {
+  SwigType *type = Getattr(n, "type");
+  Setattr(n, "type", type);
+  String *tm;
+
+  // HACK: output types are not registered as swig_types automatically
+  if (SwigType_ispointer(type)) {
+    SwigType_remember_clientdata(type, NewString("0"));
+  }
+
+  if ((tm = Swig_typemap_lookup_out("out", n, "result", wrapper, actioncode))) {
+    Replaceall(tm, "$result", "jsresult");
+    Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
+
+    if (GetFlag(n, "feature:new")) {
+      Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
+    } else {
+      Replaceall(tm, "$owner", "0");
+    }
+    Append(wrapper->code, tm);
+
+    if (Len(tm) > 0) {
+      Printf(wrapper->code, "\n");
+    }
+  } else {
+    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name"));
+  }
+  emit_return_variable(n, type, wrapper);
+}
+
 int JSEmitter::switchNamespace(Node *n) {
   
   if (!GetFlag(n, "feature:nspace")) {
@@ -902,9 +1206,6 @@ private:
 #define MEMBER_FUNCTIONS "member_functions"
 #define STATIC_FUNCTIONS "static_functions"
 #define STATIC_VARIABLES "static_variables"
-
-// keys for function scoped state variables
-#define FUNCTION_DISPATCHERS "function_dispatchers"
 
 JSCEmitter::JSCEmitter()
 : JSEmitter(), 
@@ -1196,309 +1497,6 @@ int JSCEmitter::exitClass(Node *n) {
   return SWIG_OK;
 }
 
-int JSEmitter::emitCtor(Node *n) {
-    
-  Wrapper *wrapper = NewWrapper();
-
-  bool is_overloaded = GetFlag(n, "sym:overloaded");
-  
-  Template t_ctor(getTemplate("JS_ctordefn"));
-
-  //String *mangled_name = SwigType_manglestr(Getattr(n, "name"));
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
-  if(is_overloaded) {
-    Append(wrap_name, Getattr(n, "sym:overname"));
-  }
-  Setattr(n, "wrap:name", wrap_name);
-  // note: removing the is_abstract flag, as this emitter
-  //       is supposed to be called for non-abstract classes only.
-  Setattr(state.clazz(), IS_ABSTRACT, 0);
-
-  ParmList *params = Getattr(n, "parms");
-  emit_parameter_variables(params, wrapper);
-  emit_attach_parmmaps(params, wrapper);
-
-  Printf(wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"), 0));
-
-  String *action = emit_action(n);
-  marshalInputArgs(n, params, wrapper, Ctor, true, false);
-
-  Printv(wrapper->code, action, "\n", 0);
-  t_ctor.replace(T_WRAPPER, wrap_name)
-      .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
-      .replace(T_LOCALS, wrapper->locals)
-      .replace(T_CODE, wrapper->code)
-      .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT))
-      .pretty_print(f_wrappers);
-
-  Template t_ctor_case(getTemplate("JS_ctor_dispatch_case"));
-  t_ctor_case.replace(T_WRAPPER, wrap_name)
-      .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT));
-  Append(state.clazz(CTOR_DISPATCHERS), t_ctor_case.str());
-  
-  DelWrapper(wrapper);
-
-  // create a dispatching ctor
-  if(is_overloaded) {
-    if (!Getattr(n, "sym:nextSibling")) {
-      String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
-      Template t_mainctor(getTemplate("JS_mainctordefn"));
-      t_mainctor.replace(T_WRAPPER, wrap_name)
-          .replace(T_DISPATCH_CASES, state.clazz(CTOR_DISPATCHERS))
-          .pretty_print(f_wrappers);
-      state.clazz(CTOR, wrap_name);
-    }
-  } else {
-    state.clazz(CTOR, wrap_name);
-  }
-
-  return SWIG_OK;
-}
-
-int JSEmitter::emitDtor(Node *) {
-
-  Template t_dtor = getTemplate("JS_destructordefn");
-  t_dtor.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
-      .replace(T_TYPE, state.clazz(TYPE))
-      .pretty_print(f_wrappers);
-
-  return SWIG_OK;
-}
-
-int JSEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
-  Wrapper *wrapper = NewWrapper();
-  Template t_getter(getTemplate("JS_getproperty"));
-  
-  // prepare wrapper name
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
-  Setattr(n, "wrap:name", wrap_name);
-  state.variable(GETTER, wrap_name);
-
-  // prepare local variables
-  ParmList *params = Getattr(n, "parms");
-  emit_parameter_variables(params, wrapper);
-  emit_attach_parmmaps(params, wrapper);
-
-  // prepare code part
-  String *action = emit_action(n);
-  marshalInputArgs(n, params, wrapper, Getter, is_member, is_static);
-  marshalOutput(n, action, wrapper);
-
-  t_getter.replace(T_GETTER, wrap_name)
-      .replace(T_LOCALS, wrapper->locals)
-      .replace(T_CODE, wrapper->code)
-      .pretty_print(f_wrappers);
-
-  DelWrapper(wrapper);
-
-  return SWIG_OK;
-}
-
-int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
-
-  // skip variables that are immutable
-  if (State::IsSet(state.variable(IS_IMMUTABLE))) {
-    return SWIG_OK;
-  }
-  
-  Wrapper *wrapper = NewWrapper();
-
-  Template t_setter(getTemplate("JS_setproperty"));
-
-  // prepare wrapper name
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
-  Setattr(n, "wrap:name", wrap_name);
-  state.variable(SETTER, wrap_name);
-
-  // prepare local variables
-  ParmList *params = Getattr(n, "parms");
-  emit_parameter_variables(params, wrapper);
-  emit_attach_parmmaps(params, wrapper);
-
-  // prepare code part
-  String *action = emit_action(n);
-  marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
-  Append(wrapper->code, action);
-
-  t_setter.replace(T_SETTER, wrap_name)
-      .replace(T_LOCALS, wrapper->locals)
-      .replace(T_CODE, wrapper->code)
-      .pretty_print(f_wrappers);
-
-  DelWrapper(wrapper);
-
-  return SWIG_OK;
-}
-
-/* -----------------------------------------------------------------------------
- * JSCEmitter::emitConstant() :  triggers code generation for constants
- * ----------------------------------------------------------------------------- */
-
-int JSEmitter::emitConstant(Node *n) {
-
-  Wrapper *wrapper = NewWrapper();
-
-  Template t_getter(getTemplate("JS_getproperty"));
-
-  // call the variable methods as a constants are
-  // registred in same way
-  enterVariable(n);
-
-  // prepare function wrapper name
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
-  state.variable(GETTER, wrap_name);
-  Setattr(n, "wrap:name", wrap_name);
-
-  // prepare code part
-  String *action = NewString("");
-  String *value = Getattr(n, "rawval");
-  if (value == NULL) {
-    value = Getattr(n, "rawvalue");
-  }
-  if (value == NULL) {
-    value = Getattr(n, "value");
-  }
-  Printf(action, "result = %s;\n", value);
-  Setattr(n, "wrap:action", action);
-  marshalOutput(n, action, wrapper);
-
-  t_getter.replace(T_GETTER, wrap_name)
-      .replace(T_LOCALS, wrapper->locals)
-      .replace(T_CODE, wrapper->code)
-      .pretty_print(f_wrappers);
-
-  exitVariable(n);
-
-  DelWrapper(wrapper);
-
-  return SWIG_OK;
-}
-
-int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
-  
-  Wrapper *wrapper = NewWrapper();  
-  Template t_function(getTemplate("JS_functionwrapper"));
-
-  bool is_overloaded = GetFlag(n, "sym:overloaded");
-
-  // prepare the function wrapper name
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
-  if (is_overloaded) {
-    t_function = getTemplate("JS_functionwrapper_overload");
-    Append(wrap_name, Getattr(n, "sym:overname"));
-  }
-  Setattr(n, "wrap:name", wrap_name);
-  state.function(WRAPPER_NAME, wrap_name);
-
-  // prepare local variables
-  ParmList *params = Getattr(n, "parms");
-  emit_parameter_variables(params, wrapper);
-  emit_attach_parmmaps(params, wrapper);
-
-  // prepare code part
-  String *action = emit_action(n);
-  marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
-  marshalOutput(n, action, wrapper);
-
-  t_function.replace(T_WRAPPER, wrap_name)
-      .replace(T_LOCALS, wrapper->locals)
-      .replace(T_CODE, wrapper->code)
-      .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT))
-      .pretty_print(f_wrappers);
-
-  // handle function overloading
-  if (is_overloaded) {
-    Template t_dispatch_case = getTemplate("JS_function_dispatch_case");
-    t_dispatch_case.replace(T_WRAPPER, wrap_name)
-        .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT));
-    Append(state.global(FUNCTION_DISPATCHERS), t_dispatch_case.str());
-  }
-  
-  DelWrapper(wrapper);
-
-  return SWIG_OK;
-}
-
-int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
-
-  Template t_function(getTemplate("JS_functionwrapper"));
-
-  Wrapper *wrapper = NewWrapper();
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
-  Setattr(n, "wrap:name", wrap_name);
-
-  Wrapper_add_local(wrapper, "res", "int res");
-
-  Append(wrapper->code, state.global(FUNCTION_DISPATCHERS));
-  Append(wrapper->code, getTemplate("JS_function_dispatch_case_default").str());
-
-  t_function.replace(T_LOCALS, wrapper->locals)
-      .replace(T_CODE, wrapper->code);
-      
-  // call this here, to replace all variables
-  t_function.replace(T_WRAPPER, wrap_name)
-      .replace(T_NAME, state.function(NAME))
-      .pretty_print(f_wrappers);
-
-  // Delete the state variable
-  state.global(FUNCTION_DISPATCHERS, 0);
-  DelWrapper(wrapper);
-
-  return SWIG_OK;
-}
-
-void JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg) {
-  // Get input typemap for current param
-  String *tm = Getattr(p, "tmap:in");
-  SwigType *pt = Getattr(p, "type");
-  
-  if (tm != NULL) {
-    Replaceall(tm, "$input", arg);
-    Setattr(p, "emit:input", arg);
-
-    // do replacements for built-in variables
-    if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
-      Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
-    } else {
-      Replaceall(tm, "$disown", "0");
-    }
-    Replaceall(tm, "$symname", Getattr(n, "sym:name"));
-    Printf(wrapper->code, "%s\n", tm);
-  } else {
-    Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
-  }
-}
-
-void JSEmitter::marshalOutput(Node *n, String *actioncode, Wrapper *wrapper) {
-  SwigType *type = Getattr(n, "type");
-  Setattr(n, "type", type);
-  String *tm;
-
-  // HACK: output types are not registered as swig_types automatically
-  if (SwigType_ispointer(type)) {
-    SwigType_remember_clientdata(type, NewString("0"));
-  }
-
-  if ((tm = Swig_typemap_lookup_out("out", n, "result", wrapper, actioncode))) {
-    Replaceall(tm, "$result", "jsresult");
-    Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
-
-    if (GetFlag(n, "feature:new")) {
-      Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
-    } else {
-      Replaceall(tm, "$owner", "0");
-    }
-    Append(wrapper->code, tm);
-
-    if (Len(tm) > 0) {
-      Printf(wrapper->code, "\n");
-    }
-  } else {
-    Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name"));
-  }
-  emit_return_variable(n, type, wrapper);
-}
-
 Hash *JSCEmitter::createNamespaceEntry(const char *name, const char *parent) {
   Hash *entry = JSEmitter::createNamespaceEntry(name, parent);
   Setattr(entry, "functions", NewString(""));
@@ -1541,6 +1539,10 @@ JSEmitter *swig_javascript_create_JSCEmitter() {
   return new JSCEmitter();
 }
 
+/**********************************************************************
+ * V8: JSEmitter implementation for V8 engine
+ **********************************************************************/
+
 class V8Emitter: public JSEmitter {
     
 public:
@@ -1548,29 +1550,19 @@ public:
   V8Emitter();
 
   virtual ~V8Emitter();
-  
   virtual int initialize(Node *n);
-
   virtual int dump(Node *n);
-  
   virtual int close();
-  
   virtual int enterClass(Node *n);
-  
   virtual int exitClass(Node *n);
-
   virtual int enterVariable(Node *n);
-
   virtual int exitVariable(Node *n);
-
   virtual int enterFunction(Node *n);
-
   virtual int exitFunction(Node *n);
 
 protected:
 
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
-
   virtual int emitNamespaces();
 
 private:
@@ -1731,6 +1723,7 @@ int V8Emitter::exitClass(Node *n)
   t_def_class.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
       .replace(T_NAME, state.clazz(NAME))
       .replace(T_CTOR, state.clazz(CTOR))
+      .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
       .pretty_print(f_init_class_templates);
 
   Template t_class_instance(getTemplate("jsv8_create_class_instance"));
@@ -1804,7 +1797,6 @@ int V8Emitter::exitVariable(Node* n)
 int V8Emitter::enterFunction(Node* n)
 {
   JSEmitter::enterFunction(n);
-      
   return SWIG_OK;
 }
 
