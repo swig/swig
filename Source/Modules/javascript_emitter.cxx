@@ -107,7 +107,7 @@ int JSEmitter::EmitWrapperFunction(Node* n)
     int ret = SWIG_OK;
 
     current_wrapper = NewWrapper();
-    Setattr(n, "wrap:name", Getattr(n, "sym:name"));
+    Setattr(n, "wrap:name", NewString(Getattr(n, "sym:name")));
     
     String* kind = Getattr(n, "kind");
     
