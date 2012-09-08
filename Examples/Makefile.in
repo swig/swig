@@ -525,7 +525,7 @@ ifeq (,$(V8))
   JS_DLNK    = @JSCOREDYNAMICLINKING@
 else
   JS_INCLUDE = @JSV8INC@
-  JS_DLNK    = @JSCOREDYNAMICLINKING@
+  JS_DLNK    = @JSV8DYNAMICLINKING@
 endif
 
 ifeq (,$(V8))
@@ -541,6 +541,19 @@ JSLDSHARED = @JSCORELDSHARED@
 JSCXXSHARED = @JSCORECXXSHARED@
 JSCFLAGS = @JSCORECFLAGS@
 JSCXXFLAGS = @JSCXXFLAGS@
+
+JSEXE_SRC_DIR = $(TOP)/../Tools/javascript
+JSEXE_SRC     = $(JSEXE_SRC_DIR)/javascript.cxx $(JSEXE_SRC_DIR)/js_shell.cxx
+JSEXE         = $(TOP)/../Tools/javascript/javascript
+ifeq (,$(V8))
+  JSEXE_SRC     = $(JSEXE_SRC_DIR)/javascript.cxx $(JSEXE_SRC_DIR)/js_shell.cxx $(JSEXE_SRC_DIR)/jsc_shell.cxx
+  JSEXE_OPTS    = -jsc
+  JSEXE_FLAGS   = -DUSE_JSC
+else
+  JSEXE_SRC     = $(JSEXE_SRC_DIR)/javascript.cxx $(JSEXE_SRC_DIR)/js_shell.cxx $(JSEXE_SRC_DIR)/v8_shell.cxx
+  JSEXE_OPTS    = -v8
+  JSEXE_FLAG    = -DUSE_V8
+endif
 
 # ----------------------------------------------------------------
 # Build a javascript dynamically loadable module (C)
@@ -564,14 +577,14 @@ javascript_cpp: $(SRCS)
 # Compile a javascript executable 
 # ----------------------------------------------------------------
 javascript_exe: $(SRCS)
-	$(CXX) $(CXXFLAGS) $(JS_INCLUDE) $(JSCXXSRCS) $(LIBS) $(JS_DLNK) -o $(JAVASCRIPT_EXE)
+	$(CXX) $(CXXFLAGS) $(JSEXE_FLAGS) $(JS_INCLUDE) $(LIBS) $(JSEXE_SRC) $(JS_DLNK) -o $(JSEXE)
 
 # ----------------------------------------------------------------
 # Run the Compile a javascript executable 
 # ----------------------------------------------------------------
 
 javascript_run: $(SRCS)
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(JAVASCRIPT_EXE) -l $(TARGET) $(JS_SCRIPT)
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(JSEXE) $(JSEXE_OPTS) -l $(TARGET) $(JS_SCRIPT)
 
 # -----------------------------------------------------------------
 # Cleaning the javascript examples
