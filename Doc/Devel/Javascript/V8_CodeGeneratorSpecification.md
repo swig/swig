@@ -46,7 +46,8 @@ v8::Persistent<v8::FunctionTemplate> SWIGV8_$CLASSNAME;
 
 Notes:
  - it is very important to consider namespaces from the beginning.
-   `CLASSNAME` should be fully canonical, e.g., `foo_bar_MyClass` for `foo::bar::MyClass`
+   `CLASSNAME` should be the mangled qualified class name, e.g., `foo_bar_MyClass` for `foo::bar::MyClass`,
+   which is retrieved ny `Swig_string_mangle(Getattr(n, "name"))`
  - namespaces do not need a function template, as they will not be
    instantiated
 
@@ -84,7 +85,8 @@ v8::Handle<v8::Value> $CLASSNAME_new(const v8::Arguments& args) {
 }
 ~~~~
 
-- `$CLASS_LVAL`: should be the canonical name of the class, e.g. `ns1::ns2::MyClass`
+- `$CLASS_LVAL`: should be the canonical name of the class, e.g. `ns1::ns2::MyClass`,
+  which can be retrieved using `Getattr(n, "name")`
 - `$ARGS`: arguments should be declared at the beginning and checked and set in the
    input typemap block
 
@@ -189,7 +191,8 @@ in the according parent contexts.
     SWIGV8_$CLASSNAME = SWIGV8_CreateClassTemplate("$LOCAL_CLASSNAME" , $CLASSNAME_new);
 ~~~~
 
-- `LOCAL_CLASSNAME`: the class name without context, i.e., namespaces
+- `LOCAL_CLASSNAME`: the class name without context, i.e., namespaces,
+  which is retrieved by `Getattr(n, "sym:name")`
 
 ## Add Member Function
 
@@ -198,8 +201,8 @@ in the according parent contexts.
 ~~~~
 
 - `METHODNAME`: the name of the function as in C++
-- `METHOD_WRAPPER`: the name of the generated wrapper function
-   TODO: specify different versions
+- `METHOD_WRAPPER`: the name of the generated wrapper function, which
+  should have the form `wrap_<mangled_classname>_<method_name>`
 
 ## Add Property
 
