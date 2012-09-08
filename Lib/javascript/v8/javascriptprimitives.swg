@@ -29,11 +29,25 @@ v8::Handle<v8::Value> SWIG_From_dec(int)(int value)
 }
 }
 
+%fragment(SWIG_AsVal_frag(int),"header") {
+SWIGINTERN 
+int SWIG_AsVal_dec(int)(v8::Handle<v8::Value> valRef, int* val)
+{
+  if (!valRef->IsInt32()) {
+    return SWIG_TypeError;
+  }
+  if(val) *val = valRef->IntegerValue();
+  
+  return SWIG_OK;
+}
+}
+
+
 %fragment(SWIG_From_frag(long),"header") {
 SWIGINTERNINLINE
 v8::Handle<v8::Value> SWIG_From_dec(long)(long value)
 {
-  return v8::Integer::New(value);
+  return v8::Number::New(value);
 }
 }
 
