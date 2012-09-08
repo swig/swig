@@ -1720,6 +1720,9 @@ int V8Emitter::exitClass(Node *n)
       .replace(T_NAME, state.clazz(NAME))
       .pretty_print(f_wrappers);
   }
+
+  /* Note: this makes sure that there is a swig_type added for this class */
+  SwigType_remember_clientdata(state.clazz(TYPE_MANGLED), NewString("0"));
   
   // emit definition of v8 class template
   Template t_def_class(getTemplate("jsv8_define_class_template"));
@@ -1768,7 +1771,7 @@ int V8Emitter::enterVariable(Node* n)
 int V8Emitter::exitVariable(Node* n)
 {
   if(GetFlag(n, "ismember")) {
-    if(GetFlag(state.variable(), IS_STATIC)) {
+    if(GetFlag(state.variable(), IS_STATIC) || Equal(Getattr(n, "nodeType"), "enumitem") ) {
       Template t_register(getTemplate("jsv8_register_static_variable"));
       t_register.replace(T_PARENT, state.clazz(NAME_MANGLED))
           .replace(T_NAME, state.variable(NAME))
@@ -1778,7 +1781,7 @@ int V8Emitter::exitVariable(Node* n)
     } else {
       Template t_register(getTemplate("jsv8_register_member_variable"));
       t_register.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
-          .replace(T_NAME, state.clazz(NAME))
+          .replace(T_NAME, state.variable(NAME))
           .replace(T_GETTER, state.variable(GETTER))
           .replace(T_SETTER, state.variable(SETTER))
           .pretty_print(f_init_wrappers);
@@ -1868,7 +1871,7 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
       break;
     case Setter:
       if (is_member && !is_static && i == 0) {
-        Printv(arg, "value", 0);
+        Printv(arg, "info.Holder()", 0);
       } else {
         Printv(arg, "value", 0);
       }

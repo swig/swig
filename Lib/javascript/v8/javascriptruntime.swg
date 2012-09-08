@@ -91,14 +91,17 @@ v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, in
   v8::HandleScope scope;
   
   v8::Local<v8::FunctionTemplate> class_templ;
+  v8::Handle<v8::ObjectTemplate> inst_templ;
   if(info->clientdata == NULL) {
-    // TODO: get class template for unknown types
-    //class_templ = _SwigObject_classRef;
+    class_templ = v8::FunctionTemplate::New();
+    class_templ->SetClassName(v8::String::NewSymbol(info->name));
+    inst_templ = class_templ->InstanceTemplate();
+    inst_templ->SetInternalFieldCount(1);
   } else {
     class_templ = *((v8::Local<v8::FunctionTemplate>*) info->clientdata);
+    inst_templ = class_templ->InstanceTemplate();
   }
   
-  v8::Handle<v8::ObjectTemplate> inst_templ = class_templ->InstanceTemplate();
   v8::Local<v8::Object> result = inst_templ->NewInstance();
   
   SWIG_PRV_DATA* cdata = (SWIG_PRV_DATA*) new SWIG_PRV_DATA;
