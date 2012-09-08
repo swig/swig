@@ -202,17 +202,17 @@ protected:
   /**
    * Generates code for a function.
    */
-  virtual int emitFunction(Node *n, bool is_member) = 0;
+  virtual int emitFunction(Node *n, bool is_member, bool is_static) = 0;
 
   /**
    * Generates code for a getter function.
    */
-  virtual int emitGetter(Node *n, bool is_member) = 0;
+  virtual int emitGetter(Node *n, bool is_member, bool is_static) = 0;
 
   /**
    * Generates code for a setter function.
    */
-  virtual int emitSetter(Node *n, bool is_member) = 0;
+  virtual int emitSetter(Node *n, bool is_member, bool is_static) = 0;
 
   /**
    * Helper function to find out if a function is a setter or not.
@@ -315,6 +315,7 @@ int JAVASCRIPT::functionHandler(Node *n) {
 int JAVASCRIPT::globalfunctionHandler(Node *n) {
   emitter->switchNamespace(n);
   Language::globalfunctionHandler(n);
+  
   return SWIG_OK;
 }
 
@@ -326,13 +327,11 @@ int JAVASCRIPT::globalfunctionHandler(Node *n) {
 
 int JAVASCRIPT::staticmemberfunctionHandler(Node *n) {
   /*
-   *  Note: storage=static is not set for static member functions.
-   *        It also is not working to set that attribute here.
-   *        Instead the according state variable is set directly.
+   *  Note: storage=static is removed by Language::staticmemberfunctionHandler.
+   *    So, don't rely on that after here. Instead use the state variable which is
+   *    set by JSEmitter::enterFunction().
    */
-  SetFlag(emitter->getState().function(), IS_STATIC);
-  Language::staticmemberfunctionHandler(n);
-  Setattr(emitter->getState().function(), IS_STATIC, 0);
+  Language::staticmemberfunctionHandler(n);  
   return SWIG_OK;
 }
 
@@ -344,14 +343,7 @@ int JAVASCRIPT::staticmemberfunctionHandler(Node *n) {
 
 int JAVASCRIPT::variableHandler(Node *n) {
 
-  if (!is_assignable(n)
-      // FIXME: test "arrays_global" does not compile with that as it is not allowed to assign to char[]
-      // probably some error in char[] typemap 
-      || Equal(Getattr(n, "type"), "a().char")) {
-    SetFlag(n, "wrap:immutable");
-  }
-  
-  emitter->enterVariable(n);
+  emitter->enterVariable(n);  
   Language::variableHandler(n);
   emitter->exitVariable(n);
 
@@ -622,20 +614,18 @@ int JSEmitter::emitWrapperFunction(Node *n) {
   if (kind) {
     bool is_member = GetFlag(n, "ismember");
     if (Cmp(kind, "function") == 0) {
-      ret = emitFunction(n, is_member);
-
+      bool is_static = GetFlag(state.function(), IS_STATIC);
+      ret = emitFunction(n, is_member, is_static);
     } else if (Cmp(kind, "variable") == 0) {
+      bool is_static = GetFlag(state.variable(), IS_STATIC);
       if (isSetterMethod(n)) {
-        ret = emitSetter(n, is_member);
-
+        ret = emitSetter(n, is_member, is_static);
       } else {
-        ret = emitGetter(n, is_member);
-
+        ret = emitGetter(n, is_member, is_static);
       }
     } else {
       Printf(stderr, "Warning: unsupported wrapper function type\n");
       Swig_print_node(n);
-
       ret = SWIG_ERROR;
     }
   } else {
@@ -643,10 +633,8 @@ int JSEmitter::emitWrapperFunction(Node *n) {
 
     if (Cmp(view, "constructorHandler") == 0) {
       ret = emitCtor(n);
-
     } else if (Cmp(view, "destructorHandler") == 0) {
       ret = emitDtor(n);
-
     } else {
       Printf(stderr, "Warning: unsupported wrapper function type");
       Swig_print_node(n);
@@ -677,14 +665,29 @@ int JSEmitter::enterFunction(Node *n) {
 
   state.function(true);
   state.function(NAME, Getattr(n, "sym:name"));
+  if(Equal(Getattr(n, "storage"), "static")) {
+    SetFlag(state.function(), IS_STATIC);
+  }
 
   return SWIG_OK;
 }
 
 int JSEmitter::enterVariable(Node *n) {
+
   state.variable(true);
   state.variable(NAME, Swig_scopename_last(Getattr(n, "name")));
-  state.variable(IS_IMMUTABLE, Getattr(n, "wrap:immutable"));
+  
+  if(Equal(Getattr(n, "storage"), "static")) {
+    SetFlag(state.variable(), IS_STATIC);
+  }
+
+  if (!Language::instance()->is_assignable(n)
+      // FIXME: test "arrays_global" does not compile with that as it is not allowed to assign to char[]
+      // probably some error in char[] typemap 
+      || Equal(Getattr(n, "type"), "a().char")) {
+    SetFlag(state.variable(), IS_IMMUTABLE);
+  }
+
   return SWIG_OK;
 }
 
@@ -763,13 +766,13 @@ protected:
 
   virtual int exitClass(Node *n);
 
-  virtual int emitFunction(Node *n, bool is_member);
+  virtual int emitFunction(Node *n, bool is_member, bool is_static);
 
   virtual int emitFunctionDispatcher(Node *n, bool is_member);
 
-  virtual int emitGetter(Node *n, bool is_member);
+  virtual int emitGetter(Node *n, bool is_member, bool is_static);
 
-  virtual int emitSetter(Node *n, bool is_member);
+  virtual int emitSetter(Node *n, bool is_member, bool is_static);
 
   virtual int emitConstant(Node *n);
 
@@ -1069,7 +1072,7 @@ int JSCEmitter::exitFunction(Node *n) {
       .replace("${functionwrapper}", state.function(WRAPPER_NAME));
 
   if (is_member) {
-    if (Equal(Getattr(n, "storage"), "static")) {
+    if (GetFlag(state.function(), IS_STATIC)) {
       Append(state.clazz(STATIC_FUNCTIONS), t_function.str());
     } else {
       Append(state.clazz(MEMBER_FUNCTIONS), t_function.str());
@@ -1098,7 +1101,8 @@ int JSCEmitter::exitVariable(Node *n) {
       .replace("${propertyname}", state.variable(NAME));
 
   if (GetFlag(n, "ismember")) {
-    if (Equal(Getattr(n, "storage"), "static") || (Equal(Getattr(n, "nodeType"), "enumitem"))) {
+    if (GetFlag(state.function(), IS_STATIC) 
+        || Equal(Getattr(n, "nodeType"), "enumitem")) {
       Append(state.clazz(STATIC_VARIABLES), t_variable.str());
     } else {
       Append(state.clazz(MEMBER_VARIABLES), t_variable.str());
@@ -1229,12 +1233,10 @@ int JSCEmitter::emitDtor(Node *) {
   return SWIG_OK;
 }
 
-int JSCEmitter::emitGetter(Node *n, bool is_member) {
+int JSCEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   Wrapper *wrapper = NewWrapper();
-  
   Template t_getter(getTemplate("JS_getproperty"));
-  bool is_static = Equal(Getattr(n, "storage"), "static");
-
+  
   // prepare wrapper name
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
   Setattr(n, "wrap:name", wrap_name);
@@ -1261,7 +1263,7 @@ int JSCEmitter::emitGetter(Node *n, bool is_member) {
   return SWIG_OK;
 }
 
-int JSCEmitter::emitSetter(Node *n, bool is_member) {
+int JSCEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
 
   // skip variables that are immutable
   if (State::IsSet(state.variable(IS_IMMUTABLE))) {
@@ -1271,7 +1273,6 @@ int JSCEmitter::emitSetter(Node *n, bool is_member) {
   Wrapper *wrapper = NewWrapper();
 
   Template t_setter(getTemplate("JS_setproperty"));
-  bool is_static = Equal(Getattr(n, "storage"), "static");
 
   // prepare wrapper name
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
@@ -1345,18 +1346,12 @@ int JSCEmitter::emitConstant(Node *n) {
   return SWIG_OK;
 }
 
-int JSCEmitter::emitFunction(Node *n, bool is_member) {
+int JSCEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   
   Wrapper *wrapper = NewWrapper();
   
   Template t_function(getTemplate("JS_functionwrapper"));
 
-  // Note: there is an inconsistency in SWIG with static member functions
-  //       that do not have storage:static
-  //       in these cases the context (staticmemberfunctionHandler) is
-  //       exploited and a flag is set temporarily
-  //       TODO: this could be done in general with is_member and is_static
-  bool is_static = State::IsSet(state.function(IS_STATIC)) || Equal(Getattr(n, "storage"), "static");
   bool is_overloaded = GetFlag(n, "sym:overloaded");
 
   // prepare the function wrapper name
