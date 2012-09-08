@@ -181,9 +181,9 @@ bool V8Shell::ExecuteScript(const std::string& source, const std::string& name) 
       if (!result->IsUndefined()) {
         // If all went well and the result wasn't undefined then print
         // the returned value.
-        v8::String::Utf8Value str(result);
-        const char* cstr = V8Shell::ToCString(str);
-        printf("%s\n", cstr);
+        //v8::String::Utf8Value str(result);
+        //const char* cstr = V8Shell::ToCString(str);
+        //printf("%s\n", cstr);
       }
       return true;
     }
