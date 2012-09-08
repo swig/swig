@@ -215,12 +215,6 @@ protected:
   virtual int emitSetter(Node *n, bool is_member, bool is_static) = 0;
 
   /**
-   * Helper function to find out if a function is a setter or not.
-   * TODO: there should be some kind of support in swig core for that?
-   */
-  bool isSetterMethod(Node *n);
-
-  /**
    * Helper function to retrieve the first parent class node.
    */
   Node *getBaseClass(Node *n);
@@ -618,7 +612,8 @@ int JSEmitter::emitWrapperFunction(Node *n) {
       ret = emitFunction(n, is_member, is_static);
     } else if (Cmp(kind, "variable") == 0) {
       bool is_static = GetFlag(state.variable(), IS_STATIC);
-      if (isSetterMethod(n)) {
+      bool is_setter = GetFlag(n, "wrap:issetter");
+      if (is_setter) {
         ret = emitSetter(n, is_member, is_static);
       } else {
         ret = emitGetter(n, is_member, is_static);
@@ -689,35 +684,6 @@ int JSEmitter::enterVariable(Node *n) {
   }
 
   return SWIG_OK;
-}
-
-
-/* -----------------------------------------------------------------------------
- * __swigjs_str_ends_with() :  c string helper to check suffix match
- * ----------------------------------------------------------------------------- */
-
-int __swigjs_str_ends_with(const char *str, const char *suffix) {
-
-  if (str == NULL || suffix == NULL)
-    return 0;
-
-  size_t str_len = strlen(str);
-  size_t suffix_len = strlen(suffix);
-
-  if (suffix_len > str_len)
-    return 0;
-
-  return 0 == strncmp(str + str_len - suffix_len, suffix, suffix_len);
-}
-
-
-/* -----------------------------------------------------------------------------
- * JSEmitter::isSetterMethod() :  helper to check if a method is a setter function
- * ----------------------------------------------------------------------------- */
-
-bool JSEmitter::isSetterMethod(Node *n) {
-  String *symname = Getattr(n, "sym:name");
-  return (__swigjs_str_ends_with((char *) Data(symname), "_set") != 0);
 }
 
 /**********************************************************************
