@@ -1,13 +1,5 @@
 #include "swigmod.h"
 
-#include <cparse.h>
-#include <parser.h>
-#include <ctype.h>
-
-/**********************************************************************
- * JAVASCRIPT: swig module implementation
- **********************************************************************/
-
 /**
  * Enables extra debugging information in typemaps.
  */
@@ -15,7 +7,6 @@ bool js_template_enable_debug = false;
 
 // keywords used for state variables
 
-#undef NAME
 #define NAME "name"
 #define NAME_MANGLED "name_mangled"
 #define TYPE "type"
@@ -33,88 +24,60 @@ class JSEmitterState {
   
 public:
 
-  JSEmitterState(): 
-    _global(NewHash()) {
-    // initialize sub-hashes
-    Setattr(_global, "class", NewHash());
-    Setattr(_global, "function", NewHash());
-    Setattr(_global, "variable", NewHash());
-  }
+  JSEmitterState();
 
-  ~JSEmitterState() { Delete(_global); }
+  ~JSEmitterState();
+    
+  DOH *global();
   
-  DOH *getState(const char* key, bool _new = false) {
-    if (_new) {
-      Hash *hash = NewHash();
-      Setattr(_global, key, hash);
-    }
-    return Getattr(_global, key);
-  }
+  DOH *global(const char* key, DOH *initial = 0);
   
-  DOH *global() { return _global; }
-
-  DOH *global(const char* key, DOH *initial=0) {
-    if(initial != 0) {
-      Setattr(_global, key, initial);
-    }
-    return Getattr(_global, key);
-  }
-
-  DOH *clazz(bool _new = false) {
-    return getState("class", _new);
-  }
+  DOH *clazz(bool reset = false);
   
-  DOH *clazz(const char* key, DOH *initial=0) {
-    DOH *c = clazz();
-    if(initial != 0) {
-      Setattr(c, key, initial);
-    }
-    return Getattr(c, key);
-  }
+  DOH *clazz(const char* key, DOH *initial = 0);
 
-  DOH *function(bool _new = false) {
-    return getState("function", _new);
-  }
+  DOH *function(bool reset = false);
 
-  DOH *function(const char* key, DOH *initial=0) {
-    DOH *f = function();
-    if(initial != 0) {
-      Setattr(f, key, initial);
-    }
-    return Getattr(f, key);
-  }
+  DOH *function(const char* key, DOH *initial = 0);
 
-  DOH *variable(bool _new = false) {
-    return getState("variable", _new);
-  }
+  DOH *variable(bool reset = false);
 
-  DOH *variable(const char* key, DOH *initial=0) {
-    DOH *v = variable();
-    if(initial != 0) {
-      Setattr(v, key, initial);
-    }
-    return Getattr(v, key);
-  }
+  DOH *variable(const char* key, DOH *initial = 0);
   
-  static int IsSet(DOH *val) {
-    if (!val) {
-      return 0;
-    } else {
-      const char *cval = Char(val);
-      if (!cval)
-        return 0;
-      return (strcmp(cval, "0") != 0) ? 1 : 0;
-    }
-  }
+  static int IsSet(DOH *val);
   
 private:
+
+  DOH *getState(const char* key, bool reset = false);
 
   Hash *_global;
 };
 
-/* forward decl: Template is a convenience helper class for dealing with
- * code fragments */
-class Template;
+/**
+ * A convenience class that wraps a code snippet used as template 
+ * for code generation.
+ */
+class Template {
+
+public:
+  Template(const String *code);
+
+  Template(const String *code, const String *templateName);
+
+  ~Template();
+
+  String *str();
+
+  Template& replace(const String *pattern, const String *repl);
+
+  Template& pretty_print(DOH *doh);
+
+private:
+
+  String *code;
+  String *templateName;
+
+};
 
 /**
  * JSEmitter represents an abstraction of javascript code generators
@@ -134,9 +97,9 @@ public:
     QtScript
   };
 
-   JSEmitter();
+  JSEmitter();
 
-   virtual ~JSEmitter();
+  virtual ~JSEmitter();
 
   /**
    * Opens output files and temporary output DOHs.
@@ -282,6 +245,10 @@ protected:
   State state;
 };
 
+/**********************************************************************
+ * JAVASCRIPT: swig module implementation
+ **********************************************************************/
+
 /* factory methods for concrete JSEmitters: */
 JSEmitter *swig_javascript_create_JSCEmitter();
 JSEmitter *swig_javascript_create_V8Emitter();
@@ -385,7 +352,8 @@ int JAVASCRIPT::staticmemberfunctionHandler(Node *n) {
 int JAVASCRIPT::variableHandler(Node *n) {
 
   if (!is_assignable(n)
-      // HACK: don't know why this is assignable?
+      // FIXME: test "arrays_global" does not compile with that as it is not allowed to assign to char[]
+      // probably some error in char[] typemap 
       || Equal(Getattr(n, "type"), "a().char")) {
     SetFlag(n, "wrap:immutable");
   }
@@ -393,6 +361,7 @@ int JAVASCRIPT::variableHandler(Node *n) {
   emitter->enterVariable(n);
   Language::variableHandler(n);
   emitter->exitVariable(n);
+
   return SWIG_OK;
 }
 
@@ -406,6 +375,7 @@ int JAVASCRIPT::globalvariableHandler(Node *n) {
 
   emitter->switchNamespace(n);
   Language::globalvariableHandler(n);
+
   return SWIG_OK;
 }
 
@@ -422,9 +392,8 @@ int JAVASCRIPT::constantWrapper(Node *n) {
   if (Equal(Getattr(n, "kind"), "function")) {
     return SWIG_OK;
   }
-  
-  //Language::constantWrapper(n);
   emitter->emitConstant(n);
+
   return SWIG_OK;
 }
 
@@ -506,7 +475,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
         Swig_mark_arg(i);
         mode = JSEmitter::QtScript;
         SWIG_library_directory("javascript/qt");
-      } else if (strcmp(argv[i], "-debug-templates") == 0) {
+      } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
         Swig_mark_arg(i);
         debug_templates = true;
       }
@@ -570,30 +539,6 @@ extern "C" Language *swig_javascript(void) {
  * Emitter implementations
  **********************************************************************/
 
-/**
- *  A convenience class that wraps a code snippet used as template for code generation.
- */
-class Template {
-
-public:
-  Template(const String *code);
-
-  Template(const String *code, const String *templateName, bool debug = false);
-
-  ~Template();
-
-  String *str();
-
-  Template& replace(const String *pattern, const String *repl);
-
-  Template& pretty_print(DOH *doh);
-
-private:
-  String *code;
-  String *templateName;
-  bool debug;
-};
-
 /* -----------------------------------------------------------------------------
  * JSEmitter()
  * ----------------------------------------------------------------------------- */
@@ -634,7 +579,7 @@ Template JSEmitter::getTemplate(const String *name) {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  Template t(templ, name, js_template_enable_debug);
+  Template t(templ, name);
 
   return t;
 }
@@ -818,86 +763,6 @@ int __swigjs_str_ends_with(const char *str, const char *suffix) {
 bool JSEmitter::isSetterMethod(Node *n) {
   String *symname = Getattr(n, "sym:name");
   return (__swigjs_str_ends_with((char *) Data(symname), "_set") != 0);
-}
-
-
-/* -----------------------------------------------------------------------------
- * Template::Template() :  creates a Template class for given template code
- * ----------------------------------------------------------------------------- */
-
-Template::Template(const String *code_) {
-
-  if (!code_) {
-    Printf(stdout, "Template code was null. Illegal input for template.");
-    SWIG_exit(EXIT_FAILURE);
-  }
-  debug = false;
-  code = NewString(code_);
-  templateName = NewString("");
-}
-
-Template::Template(const String *code_, const String *templateName_, bool debug_) {
-
-  if (!code_) {
-    Printf(stdout, "Template code was null. Illegal input for template.");
-    SWIG_exit(EXIT_FAILURE);
-  }
-
-  code = NewString(code_);
-  templateName = NewString(templateName_);
-  debug = debug_;
-}
-
-
-/* -----------------------------------------------------------------------------
- * Template::~Template() :  cleans up of Template.
- * ----------------------------------------------------------------------------- */
-
-Template::~Template() {
-  Delete(code);
-  Delete(templateName);
-}
-
-/* -----------------------------------------------------------------------------
- * String* Template::str() :  retrieves the current content of the template.
- * ----------------------------------------------------------------------------- */
-
-String *Template::str() {
-  if (debug) {
-    String *pre_code = NewString("");
-    String *post_code = NewString("");
-    String *debug_code = NewString("");
-    Printf(pre_code, "//begin fragment(\"%s\")\n", templateName);
-    Printf(post_code, "//end fragment(\"%s\")\n", templateName);
-    Printf(debug_code, "%s\n%s\n%s", pre_code, code, post_code);
-
-    Delete(code);
-    Delete(pre_code);
-    Delete(post_code);
-
-    code = debug_code;
-  }
-  return code;
-}
-
-/* -----------------------------------------------------------------------------
- * Template&  Template::replace(const String* pattern, const String* repl) :
- * 
- *  replaces all occurences of a given pattern with a given replacement.
- * 
- *  - pattern:  the pattern to be replaced
- *  - repl:     the replacement string
- *  - returns a reference to the Template to allow chaining of methods.
- * ----------------------------------------------------------------------------- */
-
-Template& Template::replace(const String *pattern, const String *repl) {
-  Replaceall(code, pattern, repl);
-  return *this;
-}
-
-Template& Template::pretty_print(DOH *doh) {
-  Wrapper_pretty_print(str(), doh);
-  return *this;
 }
 
 /**********************************************************************
@@ -2315,3 +2180,174 @@ JSEmitter *swig_javascript_create_V8Emitter() {
   return 0;
 }
 
+
+/**********************************************************************
+ * Helper implementations
+ **********************************************************************/
+
+JSEmitterState::JSEmitterState() 
+  : _global(NewHash()) 
+{
+  // initialize sub-hashes
+  Setattr(_global, "class", NewHash());
+  Setattr(_global, "function", NewHash());
+  Setattr(_global, "variable", NewHash());
+}
+
+JSEmitterState::~JSEmitterState() 
+{ 
+  Delete(_global);
+}
+  
+DOH *JSEmitterState::getState(const char* key, bool _new) 
+{
+  if (_new) {
+    Hash *hash = NewHash();
+    Setattr(_global, key, hash);
+  }
+  return Getattr(_global, key);
+}
+  
+DOH *JSEmitterState::global() {
+  return _global;
+}
+
+DOH *JSEmitterState::global(const char* key, DOH *initial)
+{
+  if(initial != 0) {
+    Setattr(_global, key, initial);
+  }
+  return Getattr(_global, key);
+}
+
+DOH *JSEmitterState::clazz(bool _new)
+{
+  return getState("class", _new);
+}
+  
+DOH *JSEmitterState::clazz(const char* key, DOH *initial)
+{
+  DOH *c = clazz();
+  if(initial != 0) {
+    Setattr(c, key, initial);
+  }
+  return Getattr(c, key);
+}
+
+DOH *JSEmitterState::function(bool _new)
+{
+  return getState("function", _new);
+}
+
+DOH *JSEmitterState::function(const char* key, DOH *initial)
+{
+  DOH *f = function();
+  if(initial != 0) {
+    Setattr(f, key, initial);
+  }
+  return Getattr(f, key);
+}
+
+DOH *JSEmitterState::variable(bool _new)
+{
+  return getState("variable", _new);
+}
+
+DOH *JSEmitterState::variable(const char* key, DOH *initial) 
+{
+  DOH *v = variable();
+  if(initial != 0) {
+    Setattr(v, key, initial);
+  }
+  return Getattr(v, key);
+}
+  
+/*static*/
+int JSEmitterState::IsSet(DOH *val) 
+{
+  if (!val) {
+    return 0;
+  } else {
+    const char *cval = Char(val);
+    if (!cval)
+      return 0;
+    return (strcmp(cval, "0") != 0) ? 1 : 0;
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Template::Template() :  creates a Template class for given template code
+ * ----------------------------------------------------------------------------- */
+
+Template::Template(const String *code_) {
+
+  if (!code_) {
+    Printf(stdout, "Template code was null. Illegal input for template.");
+    SWIG_exit(EXIT_FAILURE);
+  }
+  code = NewString(code_);
+  templateName = NewString("");
+}
+
+Template::Template(const String *code_, const String *templateName_) {
+
+  if (!code_) {
+    Printf(stdout, "Template code was null. Illegal input for template.");
+    SWIG_exit(EXIT_FAILURE);
+  }
+
+  code = NewString(code_);
+  templateName = NewString(templateName_);
+}
+
+
+/* -----------------------------------------------------------------------------
+ * Template::~Template() :  cleans up of Template.
+ * ----------------------------------------------------------------------------- */
+
+Template::~Template() {
+  Delete(code);
+  Delete(templateName);
+}
+
+/* -----------------------------------------------------------------------------
+ * String* Template::str() :  retrieves the current content of the template.
+ * ----------------------------------------------------------------------------- */
+
+String *Template::str() {
+  if (js_template_enable_debug) {
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
+    String *debug_code = NewString("");
+    Printf(pre_code, "//begin fragment(\"%s\")\n", templateName);
+    Printf(post_code, "//end fragment(\"%s\")\n", templateName);
+    Printf(debug_code, "%s\n%s\n%s", pre_code, code, post_code);
+
+    Delete(code);
+    Delete(pre_code);
+    Delete(post_code);
+
+    code = debug_code;
+  }
+  return code;
+}
+
+/* -----------------------------------------------------------------------------
+ * Template&  Template::replace(const String* pattern, const String* repl) :
+ * 
+ *  replaces all occurences of a given pattern with a given replacement.
+ * 
+ *  - pattern:  the pattern to be replaced
+ *  - repl:     the replacement string
+ *  - returns a reference to the Template to allow chaining of methods.
+ * ----------------------------------------------------------------------------- */
+
+Template& Template::replace(const String *pattern, const String *repl) {
+  Replaceall(code, pattern, repl);
+  return *this;
+}
+
+Template& Template::pretty_print(DOH *doh) {
+  Wrapper_pretty_print(str(), doh);
+  return *this;
+}

@@ -535,7 +535,7 @@ JSCXXFLAGS = @JSCXXFLAGS@
 # ----------------------------------------------------------------
 
 javascript: $(SRCS)
-	$(SWIG) -javascript -jsc -debug-templates $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIG) -javascript -jsc $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(JSCFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(JS_INCLUDE)
 	$(JSLDSHARED) $(CCSHARED) $(JSCFLAGS) $(OBJS) $(IOBJS) $(JS_DLNK) $(LIBS) -o $(JS_LIBPREFIX)$(TARGET)$(JSSO)
 
@@ -544,7 +544,7 @@ javascript: $(SRCS)
 # ----------------------------------------------------------------
 
 javascript_cpp: $(SRCS)
-	$(SWIG) -javascript -jsc -c++ -debug-templates $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIG) -javascript -jsc -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(JSCXXFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JS_INCLUDE)
 	$(JSCXXSHARED) $(CCSHARED) $(OBJS) $(IOBJS) $(JS_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JS_LIBPREFIX)$(TARGET)$(JSSO)
 
