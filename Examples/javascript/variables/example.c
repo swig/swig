@@ -23,7 +23,12 @@ char             cvar = 0;
 float            fvar = 0;
 double           dvar = 0;
 char            *strvar = 0;
-const char       cstrvar[] = "Goodbye";
+#ifdef __cplusplus // Note: for v8 this must be linkable with g++, without extern cstrvar is mangled
+extern const char cstrvar[] = "Goodbye";
+#else
+const char cstrvar[] = "Goodbye";
+#endif
+const 
 int             *iptrvar = 0;
 char             name[256] = "Dave";
 char             path[256] = "/home/beazley";
