@@ -7,13 +7,12 @@ SWIGINTERN int
 SWIG_AsCharPtrAndSize(v8::Handle<v8::Value> valRef, char** cptr, size_t* psize, int *alloc)
 {
   if(valRef->IsString()) {
-    v8::Handle<v8::String> js_str = valRef->toString();
+    v8::Handle<v8::String> js_str = valRef->ToString();
 
     size_t len = js_str->Utf8Length();
     size_t abs_len = js_str->Length();
     char* cstr = new char[len];
     js_str->WriteUtf8(cstr, len);
-    JSStringGetUTF8CString(js_str, cstr, len);
     
     if(alloc) *alloc = SWIG_NEWOBJ;
     if(psize) *psize = abs_len + 1;
