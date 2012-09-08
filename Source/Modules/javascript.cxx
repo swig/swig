@@ -239,8 +239,6 @@ protected:
   String *empty_string;
 
   Hash *templates;
-
-  Wrapper *current_wrapper;
   
   State state;
 };
@@ -544,8 +542,7 @@ extern "C" Language *swig_javascript(void) {
  * ----------------------------------------------------------------------------- */
 
 JSEmitter::JSEmitter()
-:  empty_string(NewString("")), 
-   current_wrapper(NULL)
+:  empty_string(NewString(""))
 {
   templates = NewHash();
 }
@@ -645,10 +642,8 @@ Node *JSEmitter::getBaseClass(Node *n) {
     while (base.item && GetFlag(base.item, "feature:ignore")) {
       base = Next(base);
     }
-
     return base.item;
   }
-
   return NULL;
 }
 
@@ -658,9 +653,6 @@ Node *JSEmitter::getBaseClass(Node *n) {
 
 int JSEmitter::emitWrapperFunction(Node *n) {
   int ret = SWIG_OK;
-
-  current_wrapper = NewWrapper();
-  Setattr(n, "wrap:name", Getattr(n, "sym:name"));
 
   String *kind = Getattr(n, "kind");
 
@@ -698,9 +690,6 @@ int JSEmitter::emitWrapperFunction(Node *n) {
       ret = SWIG_ERROR;
     }
   }
-
-  DelWrapper(current_wrapper);
-  current_wrapper = 0;
 
   return ret;
 }
@@ -1225,6 +1214,8 @@ int JSCEmitter::exitClass(Node *n) {
 }
 
 int JSCEmitter::emitCtor(Node *n) {
+  
+  Wrapper *wrapper = NewWrapper();
 
   Template t_ctor(getTemplate("JS_ctordefn"));
   String *mangled_name = SwigType_manglestr(Getattr(n, "name"));
@@ -1234,20 +1225,20 @@ int JSCEmitter::emitCtor(Node *n) {
   Setattr(n, "wrap:name", wrap_name);
 
   ParmList *params = Getattr(n, "parms");
-  emit_parameter_variables(params, current_wrapper);
-  emit_attach_parmmaps(params, current_wrapper);
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
 
-  Printf(current_wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"), 0));
+  Printf(wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"), 0));
 
   int num_args = emit_num_arguments(params);
   String *action = emit_action(n);
-  marshalInputArgs(n, params, current_wrapper, Ctor, true);
+  marshalInputArgs(n, params, wrapper, Ctor, true);
 
-  Printv(current_wrapper->code, action, "\n", 0);
+  Printv(wrapper->code, action, "\n", 0);
   t_ctor.replace("${classname_mangled}", mangled_name)
       .replace("${overloadext}", overname)
-      .replace("${LOCALS}", current_wrapper->locals)
-      .replace("${CODE}", current_wrapper->code)
+      .replace("${LOCALS}", wrapper->locals)
+      .replace("${CODE}", wrapper->code)
       .replace("${type_mangled}", state.clazz(TYPE_MANGLED))
       .pretty_print(state.clazz(CTORS));
 
@@ -1259,6 +1250,8 @@ int JSCEmitter::emitCtor(Node *n) {
       .replace("${argcount}", argcount);
   Append(state.clazz(CTOR_DISPATCHERS), t_ctor_case.str());
   Delete(argcount);
+  
+  DelWrapper(wrapper);
 
   return SWIG_OK;
 }
@@ -1274,6 +1267,8 @@ int JSCEmitter::emitDtor(Node *) {
 }
 
 int JSCEmitter::emitGetter(Node *n, bool is_member) {
+  Wrapper *wrapper = NewWrapper();
+  
   Template t_getter(getTemplate("JS_getproperty"));
   bool is_static = Equal(Getattr(n, "storage"), "static");
 
@@ -1282,18 +1277,20 @@ int JSCEmitter::emitGetter(Node *n, bool is_member) {
   state.variable(GETTER, wrap_name);
 
   ParmList *params = Getattr(n, "parms");
-  emit_parameter_variables(params, current_wrapper);
-  emit_attach_parmmaps(params, current_wrapper);
-  Wrapper_add_local(current_wrapper, "jsresult", "JSValueRef jsresult");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+  Wrapper_add_local(wrapper, "jsresult", "JSValueRef jsresult");
 
   String *action = emit_action(n);
-  marshalInputArgs(n, params, current_wrapper, Getter, is_member, is_static);
-  marshalOutput(n, action, current_wrapper);
+  marshalInputArgs(n, params, wrapper, Getter, is_member, is_static);
+  marshalOutput(n, action, wrapper);
 
   t_getter.replace("${getname}", wrap_name)
-      .replace("${LOCALS}", current_wrapper->locals)
-      .replace("${CODE}", current_wrapper->code)
+      .replace("${LOCALS}", wrapper->locals)
+      .replace("${CODE}", wrapper->code)
       .pretty_print(f_wrappers);
+
+  DelWrapper(wrapper);
 
   return SWIG_OK;
 }
@@ -1304,6 +1301,8 @@ int JSCEmitter::emitSetter(Node *n, bool is_member) {
   if (State::IsSet(state.variable(IS_IMMUTABLE))) {
     return SWIG_OK;
   }
+  
+  Wrapper *wrapper = NewWrapper();
 
   Template t_setter(getTemplate("JS_setproperty"));
   bool is_static = Equal(Getattr(n, "storage"), "static");
@@ -1313,17 +1312,19 @@ int JSCEmitter::emitSetter(Node *n, bool is_member) {
   state.variable(SETTER, wrap_name);
 
   ParmList *params = Getattr(n, "parms");
-  emit_parameter_variables(params, current_wrapper);
-  emit_attach_parmmaps(params, current_wrapper);
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
 
   String *action = emit_action(n);
-  marshalInputArgs(n, params, current_wrapper, Setter, is_member, is_static);
-  Append(current_wrapper->code, action);
+  marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
+  Append(wrapper->code, action);
 
   t_setter.replace("${setname}", wrap_name)
-      .replace("${LOCALS}", current_wrapper->locals)
-      .replace("${CODE}", current_wrapper->code)
+      .replace("${LOCALS}", wrapper->locals)
+      .replace("${CODE}", wrapper->code)
       .pretty_print(f_wrappers);
+
+  DelWrapper(wrapper);
 
   return SWIG_OK;
 }
@@ -1334,16 +1335,24 @@ int JSCEmitter::emitSetter(Node *n, bool is_member) {
 
 int JSCEmitter::emitConstant(Node *n) {
 
+  Wrapper *wrapper = NewWrapper();
+
+  Template t_getter(getTemplate("JS_getproperty"));
+
   // call the variable methods as a constants are
   // registred in same way
   enterVariable(n);
 
-  current_wrapper = NewWrapper();
+  // prepare function wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
+  state.variable(GETTER, wrap_name);
+  Setattr(n, "wrap:name", wrap_name);
 
+  // prepare local variables
+  Wrapper_add_local(wrapper, "jsresult", "JSValueRef jsresult");
+
+  // prepare action
   String *action = NewString("");
-
-  String *name = Getattr(n, "name");
-  String *wrap_name = Swig_name_wrapper(name);
   String *value = Getattr(n, "rawval");
   if (value == NULL) {
     value = Getattr(n, "rawvalue");
@@ -1351,32 +1360,27 @@ int JSCEmitter::emitConstant(Node *n) {
   if (value == NULL) {
     value = Getattr(n, "value");
   }
-
-  Template t_getter(getTemplate("JS_getproperty"));
-
-  state.variable(GETTER, wrap_name);
-  Setattr(n, "wrap:name", wrap_name);
-
   Printf(action, "result = %s;\n", value);
   Setattr(n, "wrap:action", action);
 
-  Wrapper_add_local(current_wrapper, "jsresult", "JSValueRef jsresult");
-  marshalOutput(n, action, current_wrapper);
+  marshalOutput(n, action, wrapper);
 
   t_getter.replace("${getname}", wrap_name)
-      .replace("${LOCALS}", current_wrapper->locals)
-      .replace("${CODE}", current_wrapper->code)
+      .replace("${LOCALS}", wrapper->locals)
+      .replace("${CODE}", wrapper->code)
       .pretty_print(f_wrappers);
 
-  DelWrapper(current_wrapper);
-  current_wrapper = 0;
-
   exitVariable(n);
+
+  DelWrapper(wrapper);
 
   return SWIG_OK;
 }
 
 int JSCEmitter::emitFunction(Node *n, bool is_member) {
+  
+  Wrapper *wrapper = NewWrapper();
+  
   Template t_function(getTemplate("JS_functionwrapper"));
 
   // Note: there is an inconsistency in SWIG with static member functions
@@ -1397,18 +1401,18 @@ int JSCEmitter::emitFunction(Node *n, bool is_member) {
 
   // prepare local variables
   ParmList *params = Getattr(n, "parms");
-  emit_parameter_variables(params, current_wrapper);
-  emit_attach_parmmaps(params, current_wrapper);
-  Wrapper_add_local(current_wrapper, "jsresult", "JSValueRef jsresult");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+  Wrapper_add_local(wrapper, "jsresult", "JSValueRef jsresult");
 
   // prepare code part
   String *action = emit_action(n);
-  marshalInputArgs(n, params, current_wrapper, Function, is_member, is_static);
-  marshalOutput(n, action, current_wrapper);
+  marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
+  marshalOutput(n, action, wrapper);
 
   t_function.replace("${functionname}", wrap_name)
-      .replace("${LOCALS}", current_wrapper->locals)
-      .replace("${CODE}", current_wrapper->code)
+      .replace("${LOCALS}", wrapper->locals)
+      .replace("${CODE}", wrapper->code)
       .pretty_print(f_wrappers);
 
   // handle function overloading
@@ -1426,6 +1430,8 @@ int JSCEmitter::emitFunction(Node *n, bool is_member) {
 
     Delete(argcount);
   }
+  
+  DelWrapper(wrapper);
 
   return SWIG_OK;
 }
@@ -1994,15 +2000,15 @@ int V8Emitter::EmitCtor(Node* n)
     Template t(GetTemplate(V8_CTOR_WRAPPER));
         
     //HACK: manually add declaration of instance pointer
-    Printf(current_wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"),0));
+    Printf(wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"),0));
     
     String* action = emit_action(n);
-    Printv(current_wrapper->code, action, 0);
+    Printv(wrapper->code, action, 0);
 
     t.Replace(KW_MANGLED_NAME,      current_classname_mangled)
      .Replace(KW_UNQUALIFIED_NAME,  current_classname_unqualified)
-     .Replace(KW_LOCALS, current_wrapper->locals)
-     .Replace(KW_CODE, current_wrapper->code);
+     .Replace(KW_LOCALS, wrapper->locals)
+     .Replace(KW_CODE, wrapper->code);
      
     Wrapper_pretty_print(t.str(), f_wrapper);
     
@@ -2022,17 +2028,17 @@ int V8Emitter::EmitGetter(Node *n, bool is_member) {
     current_getter = Getattr(n,"wrap:name");
 
     ParmList *params  = Getattr(n,"parms");
-    emit_parameter_variables(params, current_wrapper);
-    emit_attach_parmmaps(params, current_wrapper);
+    emit_parameter_variables(params, wrapper);
+    emit_attach_parmmaps(params, wrapper);
 
     int num_args = emit_num_arguments(params);
     String* action = emit_action(n);
-    marshalInputArgs(n, params, num_args, current_wrapper);
-    marshalOutput(n, action, current_wrapper);
+    marshalInputArgs(n, params, num_args, wrapper);
+    marshalOutput(n, action, wrapper);
     
     t_getter.Replace(KW_MANGLED_NAME, current_variable_mangled)
-     .Replace(KW_LOCALS, current_wrapper->locals)
-     .Replace(KW_CODE, current_wrapper->code);
+     .Replace(KW_LOCALS, wrapper->locals)
+     .Replace(KW_CODE, wrapper->code);
 
     Wrapper_pretty_print(t_getter.str(), f_wrapper);
         
@@ -2046,17 +2052,17 @@ int V8Emitter::EmitSetter(Node* n, bool is_member)
     current_setter = Getattr(n,"wrap:name");
     
     ParmList *params  = Getattr(n,"parms");
-    emit_parameter_variables(params, current_wrapper);
-    emit_attach_parmmaps(params, current_wrapper);
+    emit_parameter_variables(params, wrapper);
+    emit_attach_parmmaps(params, wrapper);
 
     int num_args = emit_num_arguments(params);
     String* action = emit_action(n);
-    marshalInputArgs(n, params, num_args, current_wrapper);
-    Printv(current_wrapper->code, action, 0);
+    marshalInputArgs(n, params, num_args, wrapper);
+    Printv(wrapper->code, action, 0);
     
     t_setter.Replace(KW_MANGLED_NAME, current_variable_mangled)
-     .Replace(KW_LOCALS, current_wrapper->locals)
-     .Replace(KW_CODE, current_wrapper->code);
+     .Replace(KW_LOCALS, wrapper->locals)
+     .Replace(KW_CODE, wrapper->code);
 
     Wrapper_pretty_print(t_setter.str(), f_wrapper);
 
@@ -2073,17 +2079,17 @@ int V8Emitter::EmitFunction(Node* n, bool is_member)
     Setattr(n, "wrap:name", wrap_name);
     
     ParmList *params  = Getattr(n,"parms");
-    emit_parameter_variables(params, current_wrapper);
-    emit_attach_parmmaps(params, current_wrapper);
+    emit_parameter_variables(params, wrapper);
+    emit_attach_parmmaps(params, wrapper);
        
     int num_args = emit_num_arguments(params);
     String* action = emit_action(n);
-    marshalInputArgs(n, params, num_args, current_wrapper);
-    marshalOutput(n, action, current_wrapper);
+    marshalInputArgs(n, params, num_args, wrapper);
+    marshalOutput(n, action, wrapper);
     
     t_function.Replace(KW_MANGLED_NAME, current_function_mangled)
-     .Replace(KW_LOCALS, current_wrapper->locals)
-     .Replace(KW_CODE, current_wrapper->code);
+     .Replace(KW_LOCALS, wrapper->locals)
+     .Replace(KW_CODE, wrapper->code);
     Wrapper_pretty_print(t_function.str(), f_wrapper);
 
     return SWIG_OK;
