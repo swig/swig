@@ -6,7 +6,6 @@
 bool js_template_enable_debug = false;
 
 // keywords used for state variables
-
 #define NAME "name"
 #define NAME_MANGLED "name_mangled"
 #define TYPE "type"
@@ -226,17 +225,9 @@ protected:
    */
   Node *getBaseClass(Node *n);
   
-  /**
-   * Helper function to retrieve a certain typemap.
-   */
-  const String *typemapLookup(Node *n, const_String_or_char_ptr tmap_method, SwigType *type, int warning, Node *typemap_attributes = 0);
-
   Parm *skipIgnoredArgs(Parm *p);
 
 protected:
-
-  // empty string used at different places in the code
-  String *empty_string;
 
   Hash *templates;
   
@@ -334,10 +325,14 @@ int JAVASCRIPT::globalfunctionHandler(Node *n) {
  * --------------------------------------------------------------------- */
 
 int JAVASCRIPT::staticmemberfunctionHandler(Node *n) {
-  // workaround: storage=static is not set for static member functions
-  emitter->getState().function(IS_STATIC, NewString("1"));
+  /*
+   *  Note: storage=static is not set for static member functions.
+   *        It also is not working to set that attribute here.
+   *        Instead the according state variable is set directly.
+   */
+  SetFlag(emitter->getState().function(), IS_STATIC);
   Language::staticmemberfunctionHandler(n);
-  emitter->getState().function(IS_STATIC, NULL);
+  Setattr(emitter->getState().function(), IS_STATIC, 0);
   return SWIG_OK;
 }
 
@@ -542,9 +537,8 @@ extern "C" Language *swig_javascript(void) {
  * ----------------------------------------------------------------------------- */
 
 JSEmitter::JSEmitter()
-:  empty_string(NewString(""))
+: templates(NewHash())
 {
-  templates = NewHash();
 }
 
 /* -----------------------------------------------------------------------------
@@ -552,7 +546,6 @@ JSEmitter::JSEmitter()
  * ----------------------------------------------------------------------------- */
 
 JSEmitter::~JSEmitter() {
-  Delete(empty_string);
   Delete(templates);
 }
 
@@ -587,36 +580,6 @@ JSEmitterState &JSEmitter::getState() {
 
 int JSEmitter::initialize(Node *) {
   return SWIG_OK;
-}
-
-/* -----------------------------------------------------------------------------
- * JSEmitter::typemapLookup()
- * 
- *  n - for input only and must contain info for Getfile(n) and Getline(n) to work
- *  tmap_method - typemap method name
- *  type - typemap type to lookup
- *  warning - warning number to issue if no typemaps found
- *  typemap_attributes - the typemap attributes are attached to this node and will 
- *                       also be used for temporary storage if non null
- * return is never NULL, unlike Swig_typemap_lookup()
- * ----------------------------------------------------------------------------- */
-
-const String *JSEmitter::typemapLookup(Node *n, const_String_or_char_ptr tmap_method, SwigType *type, int warning, Node *typemap_attributes) {
-  Node *node = !typemap_attributes ? NewHash() : typemap_attributes;
-  Setattr(node, "type", type);
-  Setfile(node, Getfile(n));
-  Setline(node, Getline(n));
-  const String *tm = Swig_typemap_lookup(tmap_method, node, "", 0);
-  if (!tm) {
-    tm = empty_string;
-    if (warning != WARN_NONE) {
-      Swig_warning(warning, Getfile(n), Getline(n), "No %s typemap defined for %s\n", tmap_method, SwigType_str(type, 0));
-    }
-  }
-  if (!typemap_attributes) {
-    Delete(node);
-  }
-  return tm;
 }
 
 /* ---------------------------------------------------------------------
@@ -1221,7 +1184,7 @@ int JSCEmitter::emitCtor(Node *n) {
   String *mangled_name = SwigType_manglestr(Getattr(n, "name"));
 
   String *overname = Getattr(n, "sym:overname");
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "wrap:name"));
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
   Setattr(n, "wrap:name", wrap_name);
 
   ParmList *params = Getattr(n, "parms");
@@ -1272,15 +1235,18 @@ int JSCEmitter::emitGetter(Node *n, bool is_member) {
   Template t_getter(getTemplate("JS_getproperty"));
   bool is_static = Equal(Getattr(n, "storage"), "static");
 
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "wrap:name"));
+  // prepare wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
   Setattr(n, "wrap:name", wrap_name);
   state.variable(GETTER, wrap_name);
 
+  // prepare local variables
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
   Wrapper_add_local(wrapper, "jsresult", "JSValueRef jsresult");
 
+  // prepare code part
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Getter, is_member, is_static);
   marshalOutput(n, action, wrapper);
@@ -1307,14 +1273,17 @@ int JSCEmitter::emitSetter(Node *n, bool is_member) {
   Template t_setter(getTemplate("JS_setproperty"));
   bool is_static = Equal(Getattr(n, "storage"), "static");
 
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "wrap:name"));
+  // prepare wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
   Setattr(n, "wrap:name", wrap_name);
   state.variable(SETTER, wrap_name);
 
+  // prepare local variables
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
 
+  // prepare code part
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
   Append(wrapper->code, action);
@@ -1351,7 +1320,7 @@ int JSCEmitter::emitConstant(Node *n) {
   // prepare local variables
   Wrapper_add_local(wrapper, "jsresult", "JSValueRef jsresult");
 
-  // prepare action
+  // prepare code part
   String *action = NewString("");
   String *value = Getattr(n, "rawval");
   if (value == NULL) {
@@ -1362,7 +1331,6 @@ int JSCEmitter::emitConstant(Node *n) {
   }
   Printf(action, "result = %s;\n", value);
   Setattr(n, "wrap:action", action);
-
   marshalOutput(n, action, wrapper);
 
   t_getter.replace("${getname}", wrap_name)
