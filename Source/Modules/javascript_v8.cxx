@@ -17,6 +17,7 @@
 #define V8_FUNCTION                                 "v8_function"
 #define V8_RETRIEVE_THIS                            "v8_retrieve_this"
 #define V8_REGISTER_MEMBER_FUNCTION                 "v8_register_member_function"
+#define V8_REGISTER_GLOBAL_FUNCTION                 "v8_register_global_function"
 #define V8_CREATE_NAMESPACE                         "v8_create_namespace"
 #define V8_REGISTER_NAMESPACE                       "v8_register_namespace"
 
@@ -247,6 +248,7 @@ int V8Emitter::ExitVariable(Node* n)
 {
  
     // TODO: Register variable in context
+    Swig_print_node(n);
     
     Delete(current_variable_mangled);
     Delete(current_variable_unqualified);
@@ -271,9 +273,7 @@ int V8Emitter::EnterFunction(Node* n)
 }
 
 int V8Emitter::ExitFunction(Node* n)
-{
-    // TODO: Register function in context
-    
+{    
     Delete(current_function_mangled);
     Delete(current_function_unqualified);
     current_function_mangled = 0;
@@ -385,18 +385,21 @@ int V8Emitter::EmitFunction(Node* n, bool is_member)
      .Replace(KW_ACTION, action)
      .Replace(KW_MARSHAL_INPUT, input)
      .Replace(KW_MARSHAL_OUTPUT, output);
-
     Wrapper_pretty_print(t_function.str(), f_wrapper);
 
     // register the function at the specific context
     if (is_member) {
         Template t_register(GetTemplate(V8_REGISTER_MEMBER_FUNCTION));
         t_register.Replace(KW_UNQUALIFIED_NAME, current_function_unqualified)
-          .Replace(KW_WRAPPER, wrap_name)
+          .Replace(KW_MANGLED_NAME, wrap_name)
           .Replace(KW_CLASSNAME_MANGLED, current_classname_mangled);
         Printv(f_init_wrappers, t_register.str(), "\n", 0);
     } else {
-        // TODO
+        Template t_register(GetTemplate(V8_REGISTER_GLOBAL_FUNCTION));
+        t_register.Replace(KW_CONTEXT, current_context)
+            .Replace(KW_UNQUALIFIED_NAME, current_function_unqualified)
+            .Replace(KW_MANGLED_NAME, wrap_name);
+        Printv(f_init_wrappers, t_register.str(), 0);
     }
 
     // clean up

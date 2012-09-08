@@ -68,7 +68,7 @@ void ${NAME_MANGLED}_set(v8::Local<v8::String> property, v8::Local<v8::Value> va
 %}
 
 %fragment("v8_function", "templates") %{
-v8::Handle<v8::Value> ${NAME_MANGLED}(const Arguments &args) {
+v8::Handle<v8::Value> wrap_${NAME_MANGLED}(const Arguments &args) {
     v8::HandleScope scope;
     v8::Handle<v8::Object> ret;
     ${LOCALS}
@@ -79,11 +79,14 @@ v8::Handle<v8::Value> ${NAME_MANGLED}(const Arguments &args) {
 }
 %}
 
-%fragment("v8_register_member_function", "templates") %{
-SWIGV8_AddClassMethod(SWIGV8_${CLASSNAME_MANGLED}, "${NAME_UNQUALIFIED}", ${WRAPPER});%}
-
 %fragment("v8_create_namespace", "templates") %{
 v8::Handle<v8::ObjectTemplate> ${NAME_MANGLED} = v8::ObjectTemplate::New();%}
+
+%fragment("v8_register_member_function", "templates") %{
+SWIGV8_AddClassMethod(SWIGV8_${CLASSNAME_MANGLED}, "${NAME_UNQUALIFIED}", wrap_${NAME_MANGLED});%}
+
+%fragment("v8_register_global_function", "templates") %{
+${CONTEXT}->Set(v8::String::NewSymbol("${NAME_UNQUALIFIED}"), v8::FunctionTemplate::New(wrap_${NAME_MANGLED})->GetFunction());%}
 
 %fragment("v8_register_namespace", "templates") %{
 ${CONTEXT}->Set(v8::String::NewSymbol("${NAME_UNQUALIFIED}", ${NAME_MANGLED}->NewInstance()));%}
