@@ -29,8 +29,8 @@ typedef struct {
 
 %insert(runtime) %{
 
-void SWIG_V8_Raise(const char* type) {
-  // TODO: throw v8 exception
+void SWIG_V8_Raise(const char* msg) {
+  v8::ThrowException(v8::Exception::Error(v8::String::New(msg)));
 }
 
 void SWIG_V8_exception(int code, const char* msg) {
