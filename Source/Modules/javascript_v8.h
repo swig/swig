@@ -45,6 +45,12 @@ protected:
 
     virtual int EmitSetter(Node *n, bool is_member);
 
+    void marshalInputArgs(Node *n, ParmList *parms, int numarg, Wrapper *wrapper);
+    
+    void marshalOutput(Node *n, String *actioncode, Wrapper *wrapper);  
+
+    Parm *skipIgnoredArgs(Parm *p);
+
 private:
 
     File *f_runtime;
@@ -64,6 +70,7 @@ private:
 
     // state variables
     String* current_context;
+    String* current_class_type;
     String* current_classname_mangled;
     String* current_classname_unqualified;
     String* current_variable_mangled;

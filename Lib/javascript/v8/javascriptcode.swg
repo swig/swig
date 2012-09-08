@@ -1,4 +1,3 @@
-
 %fragment("v8_initializer", "templates") %{
 void ${MODULE}_Initialize(v8::Handle<v8::Context> context)
 {
@@ -41,43 +40,34 @@ v8::Handle<v8::Value> ${NAME_MANGLED}_new(const v8::Arguments& args) {
     v8::HandleScope scope;
     v8::Handle<v8::Object> self = args.Holder();
     ${LOCALS}
-    ${MARSHAL_INPUT}    
-    ${ACTION}
-    self->SetInternalField(0, v8::External::New(ptr));
+    ${CODE}
+    self->SetInternalField(0, v8::External::New(result));
     return self;        
-}
-%}
+}%}
 
 %fragment("v8_getter", "templates") %{
 v8::Handle<v8::Value> ${NAME_MANGLED}_get(v8::Local<v8::String> property, const v8::AccessorInfo& info) {
     v8::HandleScope scope;
-    v8::Handle<v8::Object> ret;
+    v8::Handle<v8::Object> jsresult;
     ${LOCALS}
-    ${ACTION}
-    ${MARSHAL_OUTPUT}
-    return scope.Close(ret);
-}
-%}
+    ${CODE}
+    return scope.Close(jsresult);
+}%}
 
 %fragment("v8_setter", "templates") %{
 void ${NAME_MANGLED}_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info) {
     ${LOCALS}
-    ${MARSHAL_INPUT}
-    ${ACTION}
-}
-%}
+    ${CODE}
+}%}
 
 %fragment("v8_function", "templates") %{
 v8::Handle<v8::Value> wrap_${NAME_MANGLED}(const Arguments &args) {
     v8::HandleScope scope;
-    v8::Handle<v8::Object> ret;
+    v8::Handle<v8::Object> jsresult;
     ${LOCALS}
-    ${MARSHAL_INPUT}
-    ${ACTION}
-    ${MARSHAL_OUTPUT}
-    return scope.Close(ret);
-}
-%}
+    ${CODE}
+    return scope.Close(jsresult);
+}%}
 
 %fragment("v8_create_namespace", "templates") %{
 v8::Handle<v8::ObjectTemplate> ${NAME_MANGLED} = v8::ObjectTemplate::New();%}
@@ -96,3 +86,7 @@ SWIGV8_AddGlobalVariable(${CONTEXT}, "${NAME_UNQUALIFIED}", ${GETTER}, ${SETTER}
 
 %fragment("v8_register_namespace", "templates") %{
 ${CONTEXT}->Set(v8::String::NewSymbol("${NAME_UNQUALIFIED}", ${NAME_MANGLED}->NewInstance()));%}
+
+%fragment("v8_this_ptr", "templates") %{
+arg1 = SWIGV8_UnwrapThisPointer<${TYPE}>(${ARG}.Holder());
+%}

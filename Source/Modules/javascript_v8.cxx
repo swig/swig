@@ -22,6 +22,8 @@
 #define V8_REGISTER_GLOBAL_VARIABLE                 "v8_register_global_variable"
 #define V8_CREATE_NAMESPACE                         "v8_create_namespace"
 #define V8_REGISTER_NAMESPACE                       "v8_register_namespace"
+#define V8_THIS_PTR                                 "v8_this_ptr"
+
 
 // keywords used in templates
 #define KW_MODULE_NAME                              "${MODULE}"
@@ -30,6 +32,8 @@
 #define KW_CLASSNAME_MANGLED                        "${CLASSNAME_MANGLED}"
 #define KW_BASE_CLASS                               "${BASE_CLASS}"
 #define KW_CONTEXT                                  "${CONTEXT}"
+#define KW_TYPE                                     "${TYPE}"
+#define KW_ARG                                      "${ARG}"
 #define KW_WRAPPER                                  "${WRAPPER}"
 #define KW_GETTER                                   "${GETTER}"
 #define KW_SETTER                                   "${SETTER}"
@@ -42,6 +46,7 @@
 #define KW_REGISTER_NS                              "${PART_REGISTER_NS}"
 
 #define KW_LOCALS                                   "${LOCALS}"
+#define KW_CODE                                     "${CODE}"
 #define KW_MARSHAL_INPUT                            "${MARSHAL_INPUT}"
 #define KW_ACTION                                   "${ACTION}"
 #define KW_MARSHAL_OUTPUT                           "${MARSHAL_OUTPUT}"
@@ -196,7 +201,8 @@ int V8Emitter::EnterClass(Node *n)
 {
     current_classname_mangled = Swig_string_mangle(Getattr(n, "name"));
     current_classname_unqualified = Swig_scopename_last(Getattr(n, "name"));
-
+    current_class_type = Getattr(n, "classtype");
+    
     // emit declaration of a v8 class template
     Template t_decl_class(GetTemplate(V8_DECL_CLASSTEMPLATE));
     t_decl_class.Replace(KW_MANGLED_NAME, current_classname_mangled);
@@ -233,6 +239,7 @@ int V8Emitter::ExitClass(Node *n)
     Delete(current_classname_unqualified);
     current_classname_mangled = 0;
     current_classname_unqualified = 0;
+    current_class_type = 0;
     
     return SWIG_OK;
 }
@@ -322,23 +329,19 @@ int V8Emitter::ExitFunction(Node* n)
 
 int V8Emitter::EmitCtor(Node* n)
 {
-    // TODO: 
-    //  - handle overloaded ctors using a dispatcher
-    //  - marshal inputs
+    // TODO: handle overloaded ctors using a dispatcher
     Template t(GetTemplate(V8_CTOR_WRAPPER));
+        
+    //HACK: manually add declaration of instance pointer
+    Printf(current_wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"),0));
     
-    ParmList *params  = Getattr(n,"parms");
-    emit_parameter_variables(params, current_wrapper);
-    emit_attach_parmmaps(params, current_wrapper);
-    
-    String* action = Getattr(n, "wrap:action");
-    String* input = NewString("");
+    String* action = emit_action(n);
+    Printv(current_wrapper->code, action, 0);
 
     t.Replace(KW_MANGLED_NAME,      current_classname_mangled)
      .Replace(KW_UNQUALIFIED_NAME,  current_classname_unqualified)
      .Replace(KW_LOCALS, current_wrapper->locals)
-     .Replace(KW_ACTION, action)
-     .Replace(KW_MARSHAL_INPUT, input);
+     .Replace(KW_CODE, current_wrapper->code);
      
     Wrapper_pretty_print(t.str(), f_wrapper);
     
@@ -360,21 +363,21 @@ int V8Emitter::EmitGetter(Node *n, bool is_member) {
 
     current_getter = Getattr(n,"wrap:name");
 
-    Printf(current_wrapper->locals, "%s result;\n", SwigType_str(Getattr(n, "type"), 0));
-    
+    ParmList *params  = Getattr(n,"parms");
+    emit_parameter_variables(params, current_wrapper);
+    emit_attach_parmmaps(params, current_wrapper);
+
+    int num_args = emit_num_arguments(params);
     String* action = emit_action(n);
-    String* output = NewString("// TODO: marshal output.\n    ret = v8::Undefined();");
+    marshalInputArgs(n, params, num_args, current_wrapper);
+    marshalOutput(n, action, current_wrapper);
     
     t_getter.Replace(KW_MANGLED_NAME, current_variable_mangled)
      .Replace(KW_LOCALS, current_wrapper->locals)
-     .Replace(KW_ACTION, action)
-     .Replace(KW_MARSHAL_OUTPUT, output);
+     .Replace(KW_CODE, current_wrapper->code);
 
     Wrapper_pretty_print(t_getter.str(), f_wrapper);
-    
-    // clean up
-    Delete(output);
-    
+        
     return SWIG_OK;
 }
 
@@ -388,18 +391,16 @@ int V8Emitter::EmitSetter(Node* n, bool is_member)
     emit_parameter_variables(params, current_wrapper);
     emit_attach_parmmaps(params, current_wrapper);
 
+    int num_args = emit_num_arguments(params);
     String* action = emit_action(n);
-    String* input = NewString("// TODO: marshal input.\n");
+    marshalInputArgs(n, params, num_args, current_wrapper);
+    Printv(current_wrapper->code, action, 0);
     
     t_setter.Replace(KW_MANGLED_NAME, current_variable_mangled)
      .Replace(KW_LOCALS, current_wrapper->locals)
-     .Replace(KW_ACTION, action)
-     .Replace(KW_MARSHAL_INPUT, input);
+     .Replace(KW_CODE, current_wrapper->code);
 
     Wrapper_pretty_print(t_setter.str(), f_wrapper);
-
-    // clean up
-    Delete(input);
 
     return SWIG_OK;
 }
@@ -416,25 +417,123 @@ int V8Emitter::EmitFunction(Node* n, bool is_member)
     ParmList *params  = Getattr(n,"parms");
     emit_parameter_variables(params, current_wrapper);
     emit_attach_parmmaps(params, current_wrapper);
-    Printf(current_wrapper->locals, "%s result;\n", SwigType_str(Getattr(n, "type"), 0));
        
-    String* input = NewString("// TODO: marshal input");
+    int num_args = emit_num_arguments(params);
     String* action = emit_action(n);
-    String* output = NewString("// TODO: marshal output.\n    ret = v8::Undefined();");
+    marshalInputArgs(n, params, num_args, current_wrapper);
+    marshalOutput(n, action, current_wrapper);
     
     t_function.Replace(KW_MANGLED_NAME, current_function_mangled)
      .Replace(KW_LOCALS, current_wrapper->locals)
-     .Replace(KW_ACTION, action)
-     .Replace(KW_MARSHAL_INPUT, input)
-     .Replace(KW_MARSHAL_OUTPUT, output);
+     .Replace(KW_CODE, current_wrapper->code);
     Wrapper_pretty_print(t_function.str(), f_wrapper);
-
-    // clean up
-    Delete(input);
-    Delete(output);
 
     return SWIG_OK;
 }
+
+
+
+void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, int numarg, Wrapper *wrapper) {
+    String *tm;
+    Parm *p;
+    
+    bool is_member = (current_class_type != 0);
+    bool is_setter = IsSetterMethod(n);
+    bool is_function = (current_function_mangled != 0);
+
+    int start_idx;
+    if(is_member) {
+        start_idx = 1;
+    } else {
+        start_idx = 0;
+    }
+    
+    // retrieve this pointer for member functions
+    if(is_member) {
+        
+        Template t_selfptr(GetTemplate(V8_THIS_PTR));
+        String *type_str = SwigType_strip_qualifiers(SwigType_str(current_class_type,0));
+        String *arg_str;
+        if(is_function) {
+            arg_str = NewString("args");
+        } else {
+            arg_str = NewString("info");
+        }
+        
+        t_selfptr.Replace(KW_TYPE, type_str)
+            .Replace(KW_ARG, arg_str);
+        Printv(wrapper->code, t_selfptr.str(), 0);
+        
+        Delete(type_str);
+        Delete(arg_str);        
+    }
+    
+    int i = 0;
+    for (i = 0, p = parms; i < numarg; i++)
+    {
+        p = skipIgnoredArgs(p);
+        SwigType *pt = Getattr(p, "type");
+
+        String *arg = NewString("");
+        if (i == 0) {
+            if(start_idx == 0) {
+                Printv(arg, is_setter?"value":"args[0]", 0);
+            } else {
+                p = Getattr(p, "tmap:in:next");
+                Delete(arg);    
+                continue;       // special case: skip the typemaps for the first argument
+            }
+        } else {
+            Printf(arg, is_setter?"value":"args[%d]", i - start_idx);
+        }
+
+        if ((tm = Getattr(p, "tmap:in")))       // Get typemap for this argument
+        {
+            Replaceall(tm, "$input", arg);
+            Setattr(p, "emit:input", arg);
+            Printf(wrapper->code, "%s\n", tm);
+            p = Getattr(p, "tmap:in:next");
+        } else {
+            Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
+            p = nextSibling(p);
+        }
+      Delete(arg);
+    } 
+}
+
+/* ---------------------------------------------------------------------
+ * marshalOutput()
+ *
+ * Process the return value of the C/C++ function call
+ * and convert them into the Javascript types using the
+ * supplied typemaps.
+ * --------------------------------------------------------------------- */
+
+void V8Emitter::marshalOutput(Node *n, String *actioncode, Wrapper *wrapper) {
+    SwigType *type = Getattr(n, "type");
+    Setattr(n, "type", type);
+    String *tm;
+    if ((tm = Swig_typemap_lookup_out("out", n, "result", wrapper, actioncode))) 
+    {
+        Replaceall(tm, "$result", "jsresult");
+        // TODO: May not be the correct way
+        Replaceall(tm, "$objecttype", Swig_scopename_last(SwigType_str(SwigType_strip_qualifiers(type), 0)));
+        Printf(wrapper->code, "%s", tm);
+        if (Len(tm))
+          Printf(wrapper->code, "\n");
+      } else {
+        Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name"));
+      }
+      emit_return_variable(n, type, wrapper);
+}
+
+Parm* V8Emitter::skipIgnoredArgs(Parm *p) {
+    while (checkAttribute(p, "tmap:in:numinputs", "0")) {
+      p = Getattr(p, "tmap:in:next");
+    }
+    return p;
+}
+
 
 JSEmitter* create_v8_emitter() 
 {
