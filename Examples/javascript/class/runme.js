@@ -21,14 +21,9 @@ c.y = 30;
 s.x = -10;
 s.y = 5;
 
-print("\nHere is their current position:");
-print("Circle = (" + c.x + "," + c.y + ")");
-print("Square = (" + s.x + "," + s.y + ")");
-
 print("\nHere is their new position:");
 print("Circle = (" + c.x + "," + c.y + ")");
 print("Square = (" + s.x + "," + s.y + ")");
-
 
 // ----- Call some methods -----
 print("\nHere are some properties of the shapes:");

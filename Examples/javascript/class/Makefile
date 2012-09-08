@@ -1,6 +1,6 @@
 TOP = ../..
 SWIG = $(TOP)/../preinst-swig
-CXXSRCS    = example.cpp
+CXXSRCS    = example.cxx
 JS_SCRIPT = runme.js
 TARGET = example
 INTERFACE = example.i
