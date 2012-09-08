@@ -107,6 +107,8 @@ extern "C" {
 
 void $jsname_initialize(v8::Handle<v8::Context> context)
 {
+  SWIG_InitializeModule(0);
+
   v8::HandleScope scope;
   v8::Local<v8::Object> global = context->Global();
 

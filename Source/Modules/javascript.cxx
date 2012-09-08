@@ -1575,19 +1575,23 @@ protected:
 
 private:
 
-  File *f_runtime;
-  File *f_header;
-  File *f_class_templates;
-  File *f_init;
+  /* built-in parts */
+  String *f_runtime;
+  String *f_header;
+  String *f_init;
   
-  File *f_init_namespaces;
-  File *f_init_class_templates;
-  File *f_init_wrappers;
-  File *f_init_inheritance;
-  File *f_init_class_instances;
-  File *f_init_static_wrappers;
-  File *f_init_register_classes;
-  File *f_init_register_namespaces;
+  /* part for class templates */
+  String *f_class_templates;
+  
+  /* parts for initilizer */
+  String *f_init_namespaces;
+  String *f_init_class_templates;
+  String *f_init_wrappers;
+  String *f_init_inheritance;
+  String *f_init_class_instances;
+  String *f_init_static_wrappers;
+  String *f_init_register_classes;
+  String *f_init_register_namespaces;
   
   // the output cpp file
   File *f_wrap_cpp;
@@ -1672,7 +1676,9 @@ int V8Emitter::dump(Node *n)
       .replace(V8_STATIC_WRAPPERS,    f_init_static_wrappers)
       .replace(V8_REGISTER_CLASSES,   f_init_register_classes)
       .replace(V8_REGISTER_NS,        f_init_register_namespaces)
-      .pretty_print(f_wrap_cpp);
+      .pretty_print(f_init);
+
+  Printv(f_wrap_cpp, f_init, 0);
 
   return SWIG_OK;
 }
