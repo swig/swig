@@ -1708,21 +1708,29 @@ int V8Emitter::enterClass(Node *n)
   t_decl_class.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
       .pretty_print(f_class_templates);
 
-  // emit definition of v8 class template
-  Template t_def_class(getTemplate("jsv8_define_class_template"));
-  t_def_class.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
-      .replace(T_NAME, state.clazz(NAME))
-      .pretty_print(f_init_class_templates);
-
-  Template t_class_instance(getTemplate("jsv8_create_class_instance"));
-  t_class_instance.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
-      .pretty_print(f_init_class_instances);
-
   return SWIG_OK;
 }
 
 int V8Emitter::exitClass(Node *n)
 {
+  if(GetFlag(state.clazz(), IS_ABSTRACT)) {
+    Template t_veto_ctor(getTemplate("JS_veto_ctor"));
+    t_veto_ctor.replace(T_CTOR, state.clazz(CTOR))
+      .replace(T_NAME, state.clazz(NAME))
+      .pretty_print(f_wrappers);
+  }
+  
+  // emit definition of v8 class template
+  Template t_def_class(getTemplate("jsv8_define_class_template"));
+  t_def_class.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .replace(T_NAME, state.clazz(NAME))
+      .replace(T_CTOR, state.clazz(CTOR))
+      .pretty_print(f_init_class_templates);
+
+  Template t_class_instance(getTemplate("jsv8_create_class_instance"));
+  t_class_instance.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
+      .pretty_print(f_init_class_instances);
+  
   //  emit inheritance setup
   Node* baseClass = getBaseClass(n);
   if(baseClass) {
@@ -1759,14 +1767,11 @@ int V8Emitter::exitVariable(Node* n)
   if(GetFlag(n, "ismember")) {
     if(GetFlag(state.variable(), IS_STATIC)) {
       Template t_register(getTemplate("jsv8_register_static_variable"));
-      String *class_instance = NewString("");
-      Printf(class_instance, "class_%s", state.clazz(NAME_MANGLED));
-      t_register.replace(T_PARENT, class_instance)
+      t_register.replace(T_PARENT, state.clazz(NAME_MANGLED))
           .replace(T_NAME, state.variable(NAME))
           .replace(T_GETTER, state.variable(GETTER))
           .replace(T_SETTER, state.variable(SETTER))
           .pretty_print(f_init_static_wrappers);
-      Delete(class_instance);
     } else {
       Template t_register(getTemplate("jsv8_register_member_variable"));
       t_register.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
@@ -1779,7 +1784,7 @@ int V8Emitter::exitVariable(Node* n)
     // Note: a global variable is treated like a static variable
     //       with the parent being a nspace object (instead of class object) 
     Template t_register(getTemplate("jsv8_register_static_variable"));
-    t_register.replace(T_PARENT, Getattr(current_namespace, "name"))
+    t_register.replace(T_PARENT, Getattr(current_namespace, NAME))
         .replace(T_NAME, state.variable(NAME))
         .replace(T_GETTER, state.variable(GETTER))
         .replace(T_SETTER, state.variable(SETTER))
@@ -1802,16 +1807,13 @@ int V8Emitter::exitFunction(Node* n)
   if(GetFlag(n, "ismember")) {
     if(GetFlag(state.function(), IS_STATIC)) {
       Template t_register(getTemplate("jsv8_register_static_function"));
-      String *class_instance = NewString("");
-      Printf(class_instance, "class_%s", state.clazz(NAME_MANGLED));
-      t_register.replace(T_PARENT, class_instance)
+      t_register.replace(T_PARENT, state.clazz(NAME_MANGLED))
           .replace(T_NAME, state.function(NAME))
           .replace(T_WRAPPER, Getattr(n, "wrap:name"));
       Printv(f_init_static_wrappers, t_register.str(), 0);
-      Delete(class_instance);
     } else {
       Template t_register(getTemplate("jsv8_register_member_function"));
-      t_register.replace(T_PARENT, state.clazz(NAME_MANGLED))
+      t_register.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
           .replace(T_NAME, state.function(NAME))
           .replace(T_WRAPPER, Getattr(n, "wrap:name"));
       Printv(f_init_wrappers, t_register.str(), "\n", 0);
@@ -1820,7 +1822,7 @@ int V8Emitter::exitFunction(Node* n)
     // Note: a global function is treated like a static function
     //       with the parent being a nspace object instead of class object 
     Template t_register(getTemplate("jsv8_register_static_function"));
-    t_register.replace(T_PARENT, Getattr(current_namespace, "name"))
+    t_register.replace(T_PARENT, Getattr(current_namespace, NAME))
         .replace(T_NAME, state.function(NAME))
         .replace(T_WRAPPER, Getattr(n, "wrap:name"));
     Printv(f_init_wrappers, t_register.str(), 0);
@@ -1881,21 +1883,27 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
 }
 
 int V8Emitter::emitNamespaces() {
-// TODO: handle namespaces:
-/*
-    // create namespace object and register it to the parent scope
-    Template t_create_ns(getTemplate(V8_CREATE_NAMESPACE));
-    t_create_ns.Replace(V8_MANGLED_NAME, scope_mangled);
-    
-    Template t_register_ns(getTemplate(V8_REGISTER_NAMESPACE));
-    t_register_ns.Replace(V8_MANGLED_NAME, scope_mangled)
-        .Replace(V8_CONTEXT, parent_scope_mangled)
-        .Replace(V8_UNQUALIFIED_NAME, scope_unqualified);
+  Iterator it;
+  for (it = First(namespaces); it.item; it = Next(it)) {
+    Hash *entry = it.item;
+    String *name = Getattr(entry, NAME);
+    String *name_mangled = Getattr(entry, NAME_MANGLED);
+    String *parent = Getattr(entry, PARENT);
+    String *parent_mangled = Swig_name_mangle(parent);
 
-    Printv(f_init_namespaces, t_create_ns.str(), 0);
+    // create namespace object and register it to the parent scope
+    Template t_create_ns(getTemplate("jsv8_create_namespace"));
+    t_create_ns.replace(T_NAME_MANGLED, name_mangled)
+      .pretty_print(f_init_namespaces);
+
+    Template t_register_ns(getTemplate("jsv8_register_namespace"));
+    t_register_ns.replace(T_NAME_MANGLED, name_mangled)
+      .replace(T_NAME, name)
+      .replace(T_PARENT, parent_mangled);
+  
     // prepend in order to achieve reversed order of registration statements
     Insert(f_init_register_namespaces, 0, t_register_ns.str());
-*/
+  }  
   
   return SWIG_OK;
 }
@@ -2044,9 +2052,9 @@ String *Template::str() {
     String *pre_code = NewString("");
     String *post_code = NewString("");
     String *debug_code = NewString("");
-    Printf(pre_code, "//begin fragment(\"%s\")\n", templateName);
-    Printf(post_code, "//end fragment(\"%s\")\n", templateName);
-    Printf(debug_code, "%s\n%s\n%s", pre_code, code, post_code);
+    Printf(pre_code, "/* begin fragment(\"%s\") */", templateName);
+    Printf(post_code, "/* end fragment(\"%s\") */", templateName);
+    Printf(debug_code, "%s\n%s\n%s\n", pre_code, code, post_code);
 
     Delete(code);
     Delete(pre_code);

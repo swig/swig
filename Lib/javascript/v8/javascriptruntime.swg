@@ -24,7 +24,7 @@ typedef struct {
   bool swigCMemOwn;
   void *swigCObject;
   swig_type_info *info;
-}SWIG_PRV_DATA; 
+} SWIG_PRV_DATA; 
 %}
 
 %insert(runtime) %{
@@ -88,8 +88,27 @@ int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info 
 }
 
 v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
-  // TODO: wrap ptr into an v8 object
-  return v8::Undefined();
+  v8::HandleScope scope;
+  
+  v8::Local<v8::FunctionTemplate> class_templ;
+  if(info->clientdata == NULL) {
+    // TODO: get class template for unknown types
+    //class_templ = _SwigObject_classRef;
+  } else {
+    class_templ = *((v8::Local<v8::FunctionTemplate>*) info->clientdata);
+  }
+  
+  v8::Handle<v8::ObjectTemplate> inst_templ = class_templ->InstanceTemplate();
+  v8::Local<v8::Object> result = inst_templ->NewInstance();
+  
+  SWIG_PRV_DATA* cdata = (SWIG_PRV_DATA*) new SWIG_PRV_DATA;
+  cdata->swigCObject = ptr;  
+  cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
+  cdata->info = info;
+  
+  result->SetInternalField(0, v8::External::New(cdata));
+
+  return scope.Close(result);
 }
 
 #define SWIG_ConvertPtr(obj, ptr, info, flags)    SWIG_V8_ConvertPtr(obj, ptr, info, flags)
