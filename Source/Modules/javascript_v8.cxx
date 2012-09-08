@@ -296,6 +296,22 @@ int V8Emitter::EnterFunction(Node* n)
 
 int V8Emitter::ExitFunction(Node* n)
 {    
+    // register the function at the specific context
+    if(GetFlag(n, "ismember")) {
+        Template t_register(GetTemplate(V8_REGISTER_MEMBER_FUNCTION));
+        t_register.Replace(KW_CLASSNAME_MANGLED, current_classname_mangled)
+          .Replace(KW_UNQUALIFIED_NAME, current_function_unqualified)
+          .Replace(KW_MANGLED_NAME, Getattr(n, "wrap:name"));
+        Printv(f_init_wrappers, t_register.str(), "\n", 0);
+    } else {
+        Template t_register(GetTemplate(V8_REGISTER_GLOBAL_FUNCTION));
+        t_register.Replace(KW_CONTEXT, current_context)
+            .Replace(KW_UNQUALIFIED_NAME, current_function_unqualified)
+            .Replace(KW_MANGLED_NAME, Getattr(n, "wrap:name"));
+        Printv(f_init_wrappers, t_register.str(), 0);
+    }
+    
+    
     Delete(current_function_mangled);
     Delete(current_function_unqualified);
     current_function_mangled = 0;
@@ -413,25 +429,9 @@ int V8Emitter::EmitFunction(Node* n, bool is_member)
      .Replace(KW_MARSHAL_OUTPUT, output);
     Wrapper_pretty_print(t_function.str(), f_wrapper);
 
-    // register the function at the specific context
-    if (is_member) {
-        Template t_register(GetTemplate(V8_REGISTER_MEMBER_FUNCTION));
-        t_register.Replace(KW_UNQUALIFIED_NAME, current_function_unqualified)
-          .Replace(KW_MANGLED_NAME, wrap_name)
-          .Replace(KW_CLASSNAME_MANGLED, current_classname_mangled);
-        Printv(f_init_wrappers, t_register.str(), "\n", 0);
-    } else {
-        Template t_register(GetTemplate(V8_REGISTER_GLOBAL_FUNCTION));
-        t_register.Replace(KW_CONTEXT, current_context)
-            .Replace(KW_UNQUALIFIED_NAME, current_function_unqualified)
-            .Replace(KW_MANGLED_NAME, wrap_name);
-        Printv(f_init_wrappers, t_register.str(), 0);
-    }
-
     // clean up
     Delete(input);
     Delete(output);
-    Delete(wrap_name);
 
     return SWIG_OK;
 }
