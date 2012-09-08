@@ -17,6 +17,9 @@
 #define V8_FUNCTION                                 "v8_function"
 #define V8_RETRIEVE_THIS                            "v8_retrieve_this"
 #define V8_REGISTER_MEMBER_FUNCTION                 "v8_register_member_function"
+#define V8_CREATE_NAMESPACE                         "v8_create_namespace"
+#define V8_REGISTER_NAMESPACE                       "v8_register_namespace"
+
 
 // keywords used in templates
 #define KW_MODULE_NAME                              "${MODULE}"
@@ -32,6 +35,7 @@
 #define KW_WRAPPERS                                 "${PART_WRAPPERS}"
 #define KW_INHERITANCE                              "${PART_INHERITANCE}"
 #define KW_REGISTER                                 "${PART_REGISTER}"
+#define KW_REGISTER_NS                              "${PART_REGISTER_NS}"
 
 #define KW_LOCALS                                   "${LOCALS}"
 #define KW_MARSHAL_INPUT                            "${MARSHAL_INPUT}"
@@ -72,6 +76,7 @@ int V8Emitter::Initialize(Node *n)
     f_init_wrappers = NewString("");
     f_init_inheritance = NewString("");
     f_init_register = NewString("");
+    f_init_register_namespaces = NewString("");
 
     // note: this is necessary for built-in generation of swig runtime code
     Swig_register_filebyname("runtime", f_runtime);
@@ -100,7 +105,8 @@ int V8Emitter::Dump(Node *n)
                .Replace(KW_CLASS_TEMPLATES,   f_init_class_templates)
                .Replace(KW_WRAPPERS,          f_init_wrappers)
                .Replace(KW_INHERITANCE,       f_init_inheritance)
-               .Replace(KW_REGISTER,          f_init_register);
+               .Replace(KW_REGISTER,          f_init_register)
+               .Replace(KW_REGISTER_NS,       f_init_register_namespaces);
     Wrapper_pretty_print(initializer.str(), f_wrap_cpp);
 
     return SWIG_OK;
@@ -117,6 +123,7 @@ int V8Emitter::Close()
     Delete(f_init_wrappers);
     Delete(f_init_inheritance);
     Delete(f_init_register);
+    Delete(f_init_register_namespaces);    
     ::Close(f_wrap_cpp);
     Delete(f_wrap_cpp);
     
@@ -143,17 +150,38 @@ int V8Emitter::SwitchContext(Node *n)
 
 int V8Emitter::CreateNamespace(String* scope) {
     String* parent_scope = Swig_scopename_prefix(scope);
+    String* parent_scope_mangled = 0;
+
+    if(!parent_scope) {
+        parent_scope_mangled = NewString("global");
+    } else {
+        parent_scope_mangled = Swig_name_mangle(parent_scope);
+
+    }
     
     if (parent_scope && !Getattr(namespaces, parent_scope)) {
         CreateNamespace(parent_scope);
     }
     
-    String* ns = Swig_string_mangle(scope);
-    Setattr(namespaces, scope, ns);
+    String* scope_mangled = Swig_string_mangle(scope);
+    String* scope_unqualified = Swig_scopename_last(scope);
+    Setattr(namespaces, scope, scope_mangled);
     
-    // TODO: create namespace object and register it to the parent scope
-    Printf(f_init_namespaces, "create_ns(%s);\n", ns);
+    // create namespace object and register it to the parent scope
+    Template t_create_ns(GetTemplate(V8_CREATE_NAMESPACE));
+    t_create_ns.Replace(KW_MANGLED_NAME, scope_mangled);
+    Template t_register_ns(GetTemplate(V8_REGISTER_NAMESPACE));
+    t_register_ns.Replace(KW_MANGLED_NAME, scope_mangled)
+        .Replace(KW_CONTEXT, parent_scope_mangled)
+        .Replace(KW_UNQUALIFIED_NAME, scope_unqualified);
 
+    Printv(f_init_namespaces, t_create_ns.str(), 0);
+    // prepend in order to achieve reversed order of registration statements
+    Insert(f_init_register_namespaces, 0, t_register_ns.str());
+
+    Delete(parent_scope);
+    Delete(parent_scope_mangled);
+    Delete(scope_unqualified);
     return SWIG_OK;
 }
 

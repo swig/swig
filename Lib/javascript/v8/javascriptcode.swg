@@ -3,19 +3,25 @@
 void ${MODULE}_Initialize(v8::Handle<v8::Context> context)
 {
     v8::HandleScope scope;
-
-    // register the module in globale context
     v8::Local<v8::Object> global = context->Global();
 
+    /* create object templates for namespaces */
     ${PART_NAMESPACES}
-
+    
+    /* create class templates */
     ${PART_CLASS_TEMPLATES}
-
+    
+    /* register wrapper functions */
     ${PART_WRAPPERS}
-
+    
+    /* setup inheritances */
     ${PART_INHERITANCE}
-
+    
+    /* some registration TODO: what specifically?*/
     ${PART_REGISTER}
+    
+    /* create and register namespace objects */
+    ${PART_REGISTER_NS}
 }%}
 
 %fragment("v8_declare_class_template", "templates") %{
@@ -74,5 +80,10 @@ v8::Handle<v8::Value> ${NAME_MANGLED}(const Arguments &args) {
 %}
 
 %fragment("v8_register_member_function", "templates") %{
-SWIGV8_AddClassMethod(SWIGV8_${CLASSNAME_MANGLED}, "${NAME_UNQUALIFIED}", ${WRAPPER});
-%}
+SWIGV8_AddClassMethod(SWIGV8_${CLASSNAME_MANGLED}, "${NAME_UNQUALIFIED}", ${WRAPPER});%}
+
+%fragment("v8_create_namespace", "templates") %{
+v8::Handle<v8::ObjectTemplate> ${NAME_MANGLED} = v8::ObjectTemplate::New();%}
+
+%fragment("v8_register_namespace", "templates") %{
+${CONTEXT}->Set(v8::String::NewSymbol("${NAME_UNQUALIFIED}", ${NAME_MANGLED}->NewInstance()));%}
