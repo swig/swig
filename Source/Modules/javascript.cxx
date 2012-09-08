@@ -12,6 +12,11 @@
  * code fragments */
 class Template;
 
+/**
+ * Enables extra debugging information in typemaps.
+ */
+bool js_template_enable_debug = false;
+
 class State {
   
 public:
@@ -197,8 +202,6 @@ public:
    */
   Template getTemplate(const String *name);
 
-  void enableDebug();
-
   void setStaticFlag(bool is_static = false);
 
 protected:
@@ -246,12 +249,6 @@ protected:
 
   Parm *skipIgnoredArgs(Parm *p);
 
-  /**
-   * Enables extra debugging information in typemaps.
-   * TODO: make this global/static... js_emitter_template_enable_debug
-   */
-  void enableDebugTemplates();
-
 protected:
 
   // empty string used at different places in the code
@@ -264,8 +261,6 @@ protected:
   State state;
 
   bool is_static;
-
-  bool debug;
 };
 
 /* factory methods for concrete JSEmitters: */
@@ -525,7 +520,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
   }
 
   if (debug_templates) {
-    emitter->enableDebug();
+    js_template_enable_debug = true;
   }
 
   // Add a symbol to the parser for conditional compilation
@@ -595,8 +590,7 @@ private:
 JSEmitter::JSEmitter()
 :  empty_string(NewString("")), 
    current_wrapper(NULL), 
-   is_static(false), 
-   debug(false)
+   is_static(false)
 {
   templates = NewHash();
 }
@@ -630,17 +624,13 @@ Template JSEmitter::getTemplate(const String *name) {
     SWIG_exit(EXIT_FAILURE);
   }
 
-  Template t(templ, name, debug);
+  Template t(templ, name, js_template_enable_debug);
 
   return t;
 }
 
 int JSEmitter::initialize(Node *) {
   return SWIG_OK;
-}
-
-void JSEmitter::enableDebug() {
-  debug = true;
 }
 
 void JSEmitter::setStaticFlag(bool _is_static) {
