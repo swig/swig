@@ -14,9 +14,14 @@ typedef int (*V8ExtensionRegistrar) (v8::Handle<v8::Context>);
 class V8Shell: public JSShell {
 
 public:
-    V8Shell();
-    
-    virtual ~V8Shell();
+  V8Shell();
+  
+  virtual ~V8Shell();
+  
+  virtual bool RunScript(const std::string& scriptPath);
+
+  virtual bool RunShell();
+
 
 protected:
 
@@ -41,6 +46,8 @@ private:
   static v8::Handle<v8::Value> Version(const v8::Arguments& args);
 
   static const char* ToCString(const v8::String::Utf8Value& value);
+  
+  void ExtendEngine();
     
 protected:
 
@@ -76,24 +83,81 @@ bool V8Shell::RegisterModule(HANDLE library, const std::string& module_name) {
     return true;
 }
 
-bool V8Shell::InitializeEngine() {
+bool V8Shell::RunScript(const std::string& scriptPath) {
+
   if (!context.IsEmpty()) {
     context.Dispose();
   }
+  
+  std::string source = ReadFile(scriptPath);
 
   context = CreateShellContext(); 
   if (context.IsEmpty()) {
       printf("Could not create context.\n");
-      return 1;
+      return false;
+  }
+  context->Enter();
+
+  v8::Context::Scope context_scope(context);
+  ExtendEngine();
+
+  if(!ExecuteScript(source, scriptPath)) {
+    return false;
+  }
+  
+  context->Exit();
+  context.Dispose();
+  v8::V8::Dispose();
+}
+
+bool V8Shell::RunShell() {
+
+  if (!context.IsEmpty()) {
+    context.Dispose();
+  }
+  
+  context = CreateShellContext(); 
+  if (context.IsEmpty()) {
+      printf("Could not create context.\n");
+      return false;
   }
   
   context->Enter();
+
+  v8::Context::Scope context_scope(context);
+  ExtendEngine();
+  
+  static const int kBufferSize = 1024;
+  while (true) {
+    char buffer[kBufferSize];
+    printf("> ");
+    char* str = fgets(buffer, kBufferSize, stdin);
+    if (str == NULL) break;
+    std::string source(str);
+    ExecuteScript(source, "(shell)");
+  }
+  printf("\n");
+
+  context->Exit();
+  context.Dispose();
+  v8::V8::Dispose();
+}
+
+
+bool V8Shell::InitializeEngine() {
+}
+
+void V8Shell::ExtendEngine() {
+  
+  // register extensions
+  for(std::vector<V8ExtensionRegistrar>::iterator it=module_initializers.begin();
+    it != module_initializers.end(); ++it) {
+    (*it)(context);
+  }
+  
 }
 
 bool V8Shell::ExecuteScript(const std::string& source, const std::string& name) {
-  // Enter the execution environment before evaluating any code.
-  v8::Context::Scope context_scope(context);
-
   v8::HandleScope handle_scope;
   v8::TryCatch try_catch;
   v8::Handle<v8::Script> script = v8::Script::Compile(v8::String::New(source.c_str()), v8::String::New(name.c_str()));
@@ -123,12 +187,11 @@ bool V8Shell::ExecuteScript(const std::string& source, const std::string& name) 
 }
 
 bool V8Shell::DisposeEngine() {
-  context->Exit();
-  context.Dispose();
-  v8::V8::Dispose();
 }
 
 v8::Persistent<v8::Context> V8Shell::CreateShellContext() {
+  v8::HandleScope scope;
+  
   // Create a template for the global object.
   v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
 
@@ -139,12 +202,6 @@ v8::Persistent<v8::Context> V8Shell::CreateShellContext() {
 
   v8::Persistent<v8::Context> _context = v8::Context::New(NULL, global);
   
-  // register extensions
-  for(std::vector<V8ExtensionRegistrar>::iterator it=module_initializers.begin();
-    it != module_initializers.end(); ++it) {
-    (*it)(_context);
-  }
-
   return _context;
 }
 
