@@ -122,9 +122,7 @@ public:
    * be registered in certain static tables.
    * This method should be used to switch output DOHs correspondingly.
    */
-  virtual int switchNamespace(Node *) {
-    return SWIG_OK;
-  };
+  virtual int switchNamespace(Node *);
 
   /**
    * Invoked at the beginning of the classHandler.
@@ -221,11 +219,24 @@ protected:
   
   Parm *skipIgnoredArgs(Parm *p);
 
+  virtual int createNamespace(String *scope);
+
+  virtual Hash *createNamespaceEntry(const char *name, const char *parent) = 0;
+
+  virtual int emitNamespaces() = 0;
+
 protected:
 
   Hash *templates;
   
   State state;
+  
+  // contains context specific structs
+  // to allow generation of different class definition tables
+  // which are switched on namespace change
+  Hash *namespaces;
+  Hash *current_namespace;
+  
 };
 
 /**********************************************************************
@@ -523,7 +534,9 @@ extern "C" Language *swig_javascript(void) {
  * ----------------------------------------------------------------------------- */
 
 JSEmitter::JSEmitter()
-: templates(NewHash())
+: templates(NewHash()),
+  namespaces(NULL), 
+  current_namespace(NULL)
 {
 }
 
@@ -564,7 +577,16 @@ JSEmitterState &JSEmitter::getState() {
   return state;
 }
 
-int JSEmitter::initialize(Node *) {
+int JSEmitter::initialize(Node * n) {
+
+  if(namespaces != NULL) {
+    Delete(namespaces);
+  }
+  namespaces = NewHash();
+  Hash *global_namespace = createNamespaceEntry(Char(Getattr(n, "name")), "global");
+  Setattr(namespaces, "::", global_namespace);
+  current_namespace = global_namespace;
+  
   return SWIG_OK;
 }
 
@@ -686,6 +708,49 @@ int JSEmitter::enterVariable(Node *n) {
   return SWIG_OK;
 }
 
+int JSEmitter::switchNamespace(Node *n) {
+  
+  if (!GetFlag(n, "feature:nspace")) {
+    current_namespace = Getattr(namespaces, "::");
+  } else {
+    String *scope = Swig_scopename_prefix(Getattr(n, "name"));
+    if (scope) {
+      // if the scope is not yet registered
+      // create all scopes/namespaces recursively
+      if (!Getattr(namespaces, scope)) {
+        createNamespace(scope);
+      }
+      current_namespace = Getattr(namespaces, scope);
+    } else {
+      current_namespace = Getattr(namespaces, "::");
+    }
+  }
+
+  return SWIG_OK;
+}
+
+int JSEmitter::createNamespace(String *scope) {
+
+  String *parent_scope = Swig_scopename_prefix(scope);
+  Hash *parent_namespace;
+  if (parent_scope == 0) {
+    parent_namespace = Getattr(namespaces, "::");
+  } else if (!Getattr(namespaces, parent_scope)) {
+    createNamespace(parent_scope);
+    parent_namespace = Getattr(namespaces, parent_scope);
+  } else {
+    parent_namespace = Getattr(namespaces, parent_scope);
+  }
+  assert(parent_namespace != 0);
+
+  Hash *new_namespace = createNamespaceEntry(Char(scope), Char(Getattr(parent_namespace, "name")));
+  Setattr(namespaces, scope, new_namespace);
+
+  Delete(parent_scope);
+  return SWIG_OK;
+}
+
+
 /**********************************************************************
  * JavascriptCore: JSEmitter implementation for JavascriptCore engine
  **********************************************************************/
@@ -746,10 +811,6 @@ protected:
 
   void marshalOutput(Node *n, String *actioncode, Wrapper *wrapper);
 
-  virtual int switchNamespace(Node *n);
-
-  virtual int createNamespace(String *scope);
-
   virtual Hash *createNamespaceEntry(const char *name, const char *parent);
 
   virtual int emitNamespaces();
@@ -760,11 +821,6 @@ private:
   String *VETO_SET;
   const char *GLOBAL_STR;
 
-  // contains context specific structs
-  // to allow generation of different class definition tables
-  // which are switched on namespace change
-  Hash *namespaces;
-  Hash *current_namespace;
 
   // output file and major code parts
   File *f_wrap_cpp;
@@ -798,8 +854,6 @@ JSCEmitter::JSCEmitter()
   NULL_STR(NewString("NULL")),
   VETO_SET(NewString("JS_veto_set_variable")),
   GLOBAL_STR(NULL),
-  namespaces(NULL), 
-  current_namespace(NULL), 
   f_wrap_cpp(NULL),
   f_runtime(NULL), 
   f_header(NULL), 
@@ -907,13 +961,11 @@ void JSCEmitter::marshalOutput(Node *n, String *actioncode, Wrapper *wrapper) {
     } else {
       Replaceall(tm, "$owner", "0");
     }
-
     Append(wrapper->code, tm);
 
     if (Len(tm) > 0) {
       Printf(wrapper->code, "\n");
     }
-
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), Getattr(n, "name"));
   }
@@ -943,11 +995,6 @@ int JSCEmitter::initialize(Node *n) {
   state.global(CREATE_NAMESPACES, NewString(""));
   state.global(REGISTER_NAMESPACES, NewString(""));
   state.global(INITIALIZER, NewString(""));
-
-  namespaces = NewHash();
-  Hash *global_namespace = createNamespaceEntry(Char(Getattr(n, "name")), "global");
-  Setattr(namespaces, "::", global_namespace);
-  current_namespace = global_namespace;
 
   /* Register file targets with the SWIG file handler */
   Swig_register_filebyname("begin", f_wrap_cpp);
@@ -1385,48 +1432,6 @@ int JSCEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
 
   DelWrapper(wrapper);
 
-  return SWIG_OK;
-}
-
-int JSCEmitter::switchNamespace(Node *n) {
-  
-  if (!GetFlag(n, "feature:nspace")) {
-    current_namespace = Getattr(namespaces, "::");
-  } else {
-    String *scope = Swig_scopename_prefix(Getattr(n, "name"));
-    if (scope) {
-      // if the scope is not yet registered
-      // create all scopes/namespaces recursively
-      if (!Getattr(namespaces, scope)) {
-        createNamespace(scope);
-      }
-      current_namespace = Getattr(namespaces, scope);
-    } else {
-      current_namespace = Getattr(namespaces, "::");
-    }
-  }
-
-  return SWIG_OK;
-}
-
-int JSCEmitter::createNamespace(String *scope) {
-
-  String *parent_scope = Swig_scopename_prefix(scope);
-  Hash *parent_namespace;
-  if (parent_scope == 0) {
-    parent_namespace = Getattr(namespaces, "::");
-  } else if (!Getattr(namespaces, parent_scope)) {
-    createNamespace(parent_scope);
-    parent_namespace = Getattr(namespaces, parent_scope);
-  } else {
-    parent_namespace = Getattr(namespaces, parent_scope);
-  }
-  assert(parent_namespace != 0);
-
-  Hash *new_namespace = createNamespaceEntry(Char(scope), Char(Getattr(parent_namespace, "name")));
-  Setattr(namespaces, scope, new_namespace);
-
-  Delete(parent_scope);
   return SWIG_OK;
 }
 
