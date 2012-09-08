@@ -559,10 +559,15 @@ endif
 # Build a javascript dynamically loadable module (C)
 # ----------------------------------------------------------------
 
+# Note: for v8 there is no C support, so forwarding to javascript_cpp
+ifeq (,$(V8))
 javascript: $(SRCS)
 	$(SWIGJS) $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(JSCFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(JS_INCLUDE)
 	$(JSLDSHARED) $(CCSHARED) $(JSCFLAGS) $(OBJS) $(IOBJS) $(JS_DLNK) $(LIBS) -o $(JS_LIBPREFIX)$(TARGET)$(JSSO)
+else
+javascript: $(SRCS) javascript_cpp
+endif
 
 # ----------------------------------------------------------------
 # Build a javascript dynamically loadable module (C++)
