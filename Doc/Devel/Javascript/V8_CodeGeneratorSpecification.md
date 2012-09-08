@@ -166,6 +166,10 @@ Namespaces are objects without class templates. I.e., instances are created,
 referenced locally, used as contexts for other registrations, and stored
 in the according parent contexts.
 
+~~~~~
+v8::Handle<v8::ObjectTemplate> ${NAME_MANGLED} = v8::ObjectTemplate::New();
+~~~~~
+
 ## Create Class Template
 
 ~~~~
@@ -201,7 +205,24 @@ SWIGV8_${NAME_MANGLED}->Inherit(SWIGV8_${BASE_CLASS});
 
 - Note: multiple inheritance is not possible; thus we will always take the first parent class
 
-## Register class
+## Registration
+
+The registration part consists of registering classes at contexts (i.e., global or namespace),
+methods and properties at classes or contexts, and namespaces as objects at
+parent contexts. 
+
+### Global Variable
+
+~~~~
+${CONTEXT}->SetAccessor(v8::String::NewSymbol("${NAME_UNQUALIFIED}"), ${GETTER}, ${SETTER});
+~~~~
+
+- `CONTEXT`: either global, or the according namespace template
+- `${SETTER} = 0` for read-only variables
+
+### Global Function
+
+### Class
 
 ~~~~
 ${CONTEXT}->Set(v8::String::NewSymbol("${NAME_UNQUALIFIED}", SWIGV8_${NAME_MANGLED}->GetFunction()));
@@ -209,6 +230,32 @@ ${CONTEXT}->Set(v8::String::NewSymbol("${NAME_UNQUALIFIED}", SWIGV8_${NAME_MANGL
 
 - Note: every class template has an associated ctor function wrapper, which is registered here
 - `CONTEXT`: either global, or the according namespace instance
+
+### Class method
+
+### Class variable
+
+## Namespace
+
+~~~~
+${CONTEXT}->Set(v8::String::NewSymbol("${NAME_UNQUALIFIED}", ${NAME_MANGLED}->NewInstance()));
+~~~~
+
+Note: it is important to register the namespace objects in reverse order,
+e.g.,
+
+~~~~
+namespace foo { 
+    namespace bar {}
+}
+~~~~
+
+would be registered in this order:
+
+~~~~
+foo->Set(v8::String::NewSymbol("bar", bar->NewInstance()));
+global->Set(v8::String::NewSymbol("foo", foo->NewInstance()));
+~~~~
 
 ## HELPER_FUNCTIONS
 
@@ -589,3 +636,115 @@ enter classHandler() of B
 exit classHandler() of B
 exit top() of example
 ~~~~
+
+Examples
+========
+
+## Global variable
+
+~~~~~
+static double Foo = 42.0;
+
+void Foo_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info) {
+    v8::HandleScope scope;
+    double arg1 ;
+    arg1 = value->NumberValue();
+    Foo = arg1;
+}
+
+v8::Handle<v8::Value> Foo_get(v8::Local<v8::String> property, const v8::AccessorInfo& info) {
+  v8::HandleScope scope;
+  v8::Handle<v8::Value> ret;
+  double result;
+
+  result = Foo;
+  
+  ret = v8::Number::New(result);
+  return scope.Close(ret);
+}
+
+int GlobalVar_Initialize(v8::Handle<v8::Context> context) {
+    
+    v8::Local<v8::Object> global = context->Global();
+    global->SetAccessor(v8::String::New("Foo"), Foo_get, Foo_set);
+
+    return 0;
+}
+~~~~~
+
+## Global functions
+
+~~~~~
+
+static double foo(int bla) {
+    return (bla * 2.1);
+}
+
+v8::Handle<v8::Value> wrap_foo(const v8::Arguments &args) {
+    v8::HandleScope scope;
+    v8::Handle<v8::Value> ret;
+
+    int arg1 ;
+    double result;
+    
+    arg1 = args[0]->Int32Value();
+
+    result = foo(arg1);
+
+    ret = v8::Number::New(result);
+    
+    return scope.Close(ret);
+}
+
+int GlobalFunc_Initialize(v8::Handle<v8::Context> context) {
+    
+    v8::Local<v8::Object> global = context->Global();
+        
+    global->Set(v8::String::NewSymbol("foo"), v8::FunctionTemplate::New(wrap_foo)->GetFunction());
+
+    return 0;
+}
+~~~~~
+
+
+## Namespaces
+
+~~~~~
+
+namespace foo {
+    static double bar = 42.0;
+}
+
+void foo_bar_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info) {
+    v8::HandleScope scope;
+
+    double arg1 ;
+    arg1 = value->NumberValue();
+    foo::bar = arg1;
+
+}
+
+v8::Handle<v8::Value> foo_bar_get(v8::Local<v8::String> property, const v8::AccessorInfo& info) {
+  v8::HandleScope scope;
+  v8::Handle<v8::Value> ret;
+  double result;
+
+  result = foo::bar;
+  
+  ret = v8::Number::New(result);
+  return scope.Close(ret);
+}
+
+int Namespace_Initialize(v8::Handle<v8::Context> context) {
+    
+    v8::Local<v8::Object> global = context->Global();
+    
+    v8::Handle<v8::ObjectTemplate> foo = v8::ObjectTemplate::New();
+
+    foo->SetAccessor(v8::String::New("bar"), foo_bar_get, foo_bar_set);
+    
+    global->Set(v8::String::New("foo"), foo->NewInstance());
+    return 0;
+}
+
+~~~~~
