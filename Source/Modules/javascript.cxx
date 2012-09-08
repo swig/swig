@@ -261,6 +261,8 @@ protected:
   virtual int emitSetter(Node *n, bool is_member, bool is_static);
 
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) = 0;
+  
+  virtual void emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg);
 
   virtual void marshalOutput(Node *n, String *actioncode, Wrapper *wrapper);
 
@@ -931,7 +933,6 @@ JSCEmitter::~JSCEmitter() {
  * --------------------------------------------------------------------- */
 
 void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) {
-  String *tm;
   Parm *p;
 
   // determine an offset index, as members have an extra 'this' argument
@@ -950,9 +951,7 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
   // process arguments
   int i = 0;
   for (p = parms; p; p = nextSibling(p), i++) {
-    SwigType *pt = Getattr(p, "type");
     String *arg = NewString("");
-
     switch (mode) {
     case Getter:
     case Function:
@@ -975,23 +974,7 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
     default:
       throw "Illegal state.";
     }
-
-    tm = Getattr(p, "tmap:in");	// Get typemap for this argument
-    if (tm != NULL) {
-      Replaceall(tm, "$input", arg);
-      Setattr(p, "emit:input", arg);
-
-      if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
-        Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
-      } else {
-        Replaceall(tm, "$disown", "0");
-      }
-      Replaceall(tm, "$symname", Getattr(n, "sym:name"));
-
-      Printf(wrapper->code, "%s\n", tm);
-    } else {
-      Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
-    }
+    emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
   }
 }
@@ -1464,6 +1447,28 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   return SWIG_OK;
 }
 
+void JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg) {
+  // Get input typemap for current param
+  String *tm = Getattr(p, "tmap:in");
+  SwigType *pt = Getattr(p, "type");
+  
+  if (tm != NULL) {
+    Replaceall(tm, "$input", arg);
+    Setattr(p, "emit:input", arg);
+
+    // do replacements for built-in variables
+    if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
+      Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
+    } else {
+      Replaceall(tm, "$disown", "0");
+    }
+    Replaceall(tm, "$symname", Getattr(n, "sym:name"));
+    Printf(wrapper->code, "%s\n", tm);
+  } else {
+    Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
+  }
+}
+
 void JSEmitter::marshalOutput(Node *n, String *actioncode, Wrapper *wrapper) {
   SwigType *type = Getattr(n, "type");
   Setattr(n, "type", type);
@@ -1825,7 +1830,6 @@ int V8Emitter::exitFunction(Node* n)
 }
 
 void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) {
-  String *tm;
   Parm *p;
 
   int startIdx = 0;
@@ -1833,9 +1837,14 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
     startIdx = 1;
   }
 
+  // store number of arguments for argument checks
+  int num_args = emit_num_arguments(parms) - startIdx;
+  String *argcount = NewString("");
+  Printf(argcount, "%d", num_args);
+  Setattr(n, ARGCOUNT, argcount);
+
   int i = 0;
   for (p = parms; p; p = nextSibling(p), i++) {
-    SwigType *pt = Getattr(p, "type");
     String *arg = NewString("");
 
     switch (mode) {
@@ -1866,23 +1875,7 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
     default:
       throw "Illegal state.";
     }
-
-    tm = Getattr(p, "tmap:in");	// Get typemap for this argument
-    if (tm != NULL) {
-      Replaceall(tm, "$input", arg);
-      Setattr(p, "emit:input", arg);
-
-      if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
-        Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
-      } else {
-        Replaceall(tm, "$disown", "0");
-      }
-      Replaceall(tm, "$symname", Getattr(n, "sym:name"));
-
-      Printf(wrapper->code, "%s\n", tm);
-    } else {
-      Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
-    }
+    emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
   }
 }
