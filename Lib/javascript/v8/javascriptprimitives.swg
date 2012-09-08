@@ -60,8 +60,10 @@
 %typemap(out) float, double
 %{ $result = v8::Number::New($1); %}
 
-%typemap(out) const bool &, bool &,
-              const char &, char &,
+%typemap(out) const bool &, bool &
+%{ $result = v8::Boolean::New((*$1);%}
+
+%typemap(out) const char &, char &,
               const signed char &, signed char &,
               const unsigned char &, unsigned char &,
               const short &, short &,
@@ -109,14 +111,14 @@
     // TODO: typemap(out) short* et al.
 %}
 
-
 %typemap(out) void
 %{ $result = v8::Undefined(); %}
 
 
 %typemap(in) char *
 %{
-    // TODO: input typemap for char*
+    v8::String::Utf8Value _$1($input);
+    $1 = *_$1;
 %}
 
 %typemap(out) char *
@@ -147,7 +149,6 @@
 %{ 
     // TODO: freearg char* et al
 %}
-
 
 /* Typemaps for composite types */
 %typemap(in) SWIGTYPE ($&1_type argp)	// Objects passed by value, convert to a pointer
