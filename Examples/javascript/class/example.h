@@ -12,7 +12,6 @@ public:
   void    move(double dx, double dy);
   virtual double area(void) = 0;
   virtual double perimeter(void) = 0;
-  static void printMe(void);
   static  int nshapes;
 };
 
