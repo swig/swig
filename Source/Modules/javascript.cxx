@@ -13,11 +13,14 @@ bool js_template_enable_debug = false;
 #define WRAPPER_NAME "wrapper"
 #define IS_IMMUTABLE "is_immutable"
 #define IS_STATIC "is_static"
+#define IS_ABSTRACT "is_abstract"
 #define GETTER "getter"
 #define SETTER "setter"
 #define PARENT "parent"
-#define CTORS "ctors"
+#define CTOR "ctor"
+#define CTOR_WRAPPERS "ctor_wrappers"
 #define CTOR_DISPATCHERS "ctor_dispatchers"
+#define ARGCOUNT "wrap:argc"
 
 // variables used in code templates
 // ATTENTION: be aware of prefix collisions when defining those variables
@@ -26,6 +29,7 @@ bool js_template_enable_debug = false;
 #define T_TYPE            "$jstype"
 #define T_TYPE_MANGLED    "$jsmangledtype"
 #define T_WRAPPER         "$jswrapper"
+#define T_CTOR            "$jsctor"
 #define T_GETTER          "$jsgetter"
 #define T_SETTER          "$jssetter"
 #define T_DISPATCH_CASES  "$jsdispatchcases"
@@ -737,9 +741,15 @@ int JSEmitter::enterClass(Node *n) {
   Delete(type);
   state.clazz(TYPE_MANGLED, classtype_mangled);
 
-  state.clazz(CTORS, NewString(""));
+  String *ctor_wrapper = NewString("_wrap_new_veto_");
+  Append(ctor_wrapper, state.clazz(NAME));
+  state.clazz(CTOR, ctor_wrapper);
   state.clazz(CTOR_DISPATCHERS, NewString(""));
 
+  // HACK: assume that a class is abstract
+  // this is resolved by emitCtor (which is only called for non abstract classes)
+  SetFlag(state.clazz(), IS_ABSTRACT);
+  
   return SWIG_OK;
 }
 
@@ -924,6 +934,11 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
   String *tm;
   Parm *p;
 
+  int num_args = emit_num_arguments(parms);
+  String *argcount = NewString("");
+  Printf(argcount, "%d", num_args);
+  Setattr(n, ARGCOUNT, argcount);
+
   int startIdx = 0;
   if (is_member && !is_static) {
     startIdx = 1;
@@ -1104,10 +1119,8 @@ int JSCEmitter::exitFunction(Node *n) {
 
 int JSCEmitter::enterVariable(Node *n) {
   JSEmitter::enterVariable(n);
-
   state.variable(GETTER, NULL_STR);
   state.variable(SETTER, VETO_SET);
-
   return SWIG_OK;
 }
 
@@ -1134,7 +1147,6 @@ int JSCEmitter::exitVariable(Node *n) {
 
 int JSCEmitter::enterClass(Node *n) {
   JSEmitter::enterClass(n);
-
   state.clazz(MEMBER_VARIABLES, NewString(""));
   state.clazz(MEMBER_FUNCTIONS, NewString(""));
   state.clazz(STATIC_VARIABLES, NewString(""));
@@ -1148,7 +1160,6 @@ int JSCEmitter::enterClass(Node *n) {
 }
 
 int JSCEmitter::exitClass(Node *n) {
-
   Template t_class_tables(getTemplate("JS_class_tables"));
   t_class_tables.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
       .replace("$jsclassvariables", state.clazz(MEMBER_VARIABLES))
@@ -1159,13 +1170,15 @@ int JSCEmitter::exitClass(Node *n) {
 
   /* adds the ctor wrappers at this position */
   // Note: this is necessary to avoid extra forward declarations.
-  Append(f_wrappers, state.clazz(CTORS));
+  //Append(f_wrappers, state.clazz(CTOR_WRAPPERS));
 
-  /* adds the main constructor wrapper function */
-  Template t_mainctor(getTemplate("JS_mainctordefn"));
-  t_mainctor.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
-      .replace(T_DISPATCH_CASES, state.clazz(CTOR_DISPATCHERS))
+  // for abstract classes add a vetoing ctor
+  if(GetFlag(state.clazz(), IS_ABSTRACT)) {
+    Template t_veto_ctor(getTemplate("JS_veto_ctor"));
+    t_veto_ctor.replace(T_CTOR, state.clazz(CTOR))
+      .replace(T_NAME, state.clazz(NAME))
       .pretty_print(f_wrappers);
+  }
 
   /* adds a class template statement to initializer function */
   Template t_classtemplate(getTemplate("JS_create_class_template"));
@@ -1180,6 +1193,7 @@ int JSCEmitter::exitClass(Node *n) {
   t_classtemplate.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
       .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
       .replace(T_BASECLASS, base_name_mangled)
+      .replace(T_CTOR, state.clazz(CTOR))
       .pretty_print(state.global(INITIALIZER));
   Delete(base_name_mangled);
 
@@ -1197,15 +1211,18 @@ int JSCEmitter::exitClass(Node *n) {
 }
 
 int JSEmitter::emitCtor(Node *n) {
-  
+    
   Wrapper *wrapper = NewWrapper();
-
+  
   Template t_ctor(getTemplate("JS_ctordefn"));
-  String *mangled_name = SwigType_manglestr(Getattr(n, "name"));
 
-  String *overname = Getattr(n, "sym:overname");
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
+  //String *mangled_name = SwigType_manglestr(Getattr(n, "name"));
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  Append(wrap_name, Getattr(n, "sym:overname"));
   Setattr(n, "wrap:name", wrap_name);
+  // note: removing the is_abstract flag, as this emitter
+  //       is supposed to be called for non-abstract classes only.
+  Setattr(state.clazz(), IS_ABSTRACT, 0);
 
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
@@ -1213,28 +1230,34 @@ int JSEmitter::emitCtor(Node *n) {
 
   Printf(wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"), 0));
 
-  int num_args = emit_num_arguments(params);
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Ctor, true, false);
 
   Printv(wrapper->code, action, "\n", 0);
-  t_ctor.replace(T_NAME_MANGLED, mangled_name)
-      .replace(T_OVERLOAD, overname)
+  t_ctor.replace(T_WRAPPER, wrap_name)
+      .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
       .replace(T_LOCALS, wrapper->locals)
       .replace(T_CODE, wrapper->code)
-      .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
-      .pretty_print(state.clazz(CTORS));
+      .pretty_print(f_wrappers);
 
-  String *argcount = NewString("");
-  Printf(argcount, "%d", num_args);
   Template t_ctor_case(getTemplate("JS_ctor_dispatch_case"));
-  t_ctor_case.replace(T_NAME_MANGLED, mangled_name)
-      .replace(T_OVERLOAD, overname)
-      .replace(T_ARGCOUNT, argcount);
+  t_ctor_case.replace(T_WRAPPER, wrap_name)
+      .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT));
   Append(state.clazz(CTOR_DISPATCHERS), t_ctor_case.str());
-  Delete(argcount);
   
   DelWrapper(wrapper);
+
+  // create a dispatching ctor (if necessary)
+  if (!Getattr(n, "sym:nextSibling")) {
+    String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+    Template t_mainctor(getTemplate("JS_mainctordefn"));
+    t_mainctor.replace(T_WRAPPER, wrap_name)
+        .replace(T_DISPATCH_CASES, state.clazz(CTOR_DISPATCHERS))
+        .pretty_print(f_wrappers);
+    state.clazz(CTOR, wrap_name);
+  } else {
+    state.clazz(CTOR, wrap_name);
+  }
 
   return SWIG_OK;
 }
@@ -1392,17 +1415,9 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   // handle function overloading
   if (is_overloaded) {
     Template t_dispatch_case = getTemplate("JS_function_dispatch_case");
-
-    int argc = emit_num_arguments(params);
-    String *argcount = NewString("");
-    Printf(argcount, "%d", argc);
-
     t_dispatch_case.replace(T_WRAPPER, wrap_name)
-        .replace(T_ARGCOUNT, argcount);
-
+        .replace(T_ARGCOUNT, Getattr(n, ARGCOUNT));
     Append(state.global(FUNCTION_DISPATCHERS), t_dispatch_case.str());
-
-    Delete(argcount);
   }
   
   DelWrapper(wrapper);

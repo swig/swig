@@ -188,7 +188,7 @@ void _wrap_$jsmangledname_finalize(JSObjectRef thisObject)
 
 %fragment ("JS_mainctordefn", "templates")
 %{
-JSObjectRef _wrap_create_$jsmangledname(JSContextRef context, JSObjectRef ctorObject,
+JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
     size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     JSObjectRef thisObject = NULL;
@@ -204,13 +204,23 @@ JSObjectRef _wrap_create_$jsmangledname(JSContextRef context, JSObjectRef ctorOb
 }
 %}
 
+%fragment ("JS_veto_ctor", "templates")
+%{
+JSObjectRef $jsctor(JSContextRef context, JSObjectRef ctorObject,
+    size_t argc, const JSValueRef argv[], JSValueRef* exception)
+{
+    SWIG_exception(SWIG_ERROR, "Class $jsname can not be instantiated");
+    return 0;
+}
+%}
+
 /**************************************************************************************
 ctor_dispatch_case: This template is used for the constructor which is overloaded  
 ***************************************************************************************/
 
 %fragment ("JS_ctor_dispatch_case", "templates")
 %{if(argc == $jsargcount) {
-    thisObject = _wrap_create_$jsmangledname$jsoverloadext(context, NULL, argc, argv, exception);
+    thisObject = $jswrapper(context, NULL, argc, argv, exception);
     if(thisObject != NULL) { *exception=0; return thisObject; } /* reset exception and return */
   }
 %}
@@ -218,7 +228,7 @@ ctor_dispatch_case: This template is used for the constructor which is overloade
   
 %fragment ("JS_ctordefn", "templates")
 %{
-JSObjectRef _wrap_create_$jsmangledname$jsoverloadext(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     $jslocals
     $jscode
@@ -275,7 +285,7 @@ bool $jsname_initialize(JSGlobalContextRef context) {
 %fragment ("JS_create_class_template", "templates")
 %{ $jsmangledname_classDefinition.staticFunctions = $jsmangledname_staticFunctions;
     $jsmangledname_classDefinition.staticValues = $jsmangledname_staticValues;
-    $jsmangledname_classDefinition.callAsConstructor = _wrap_create_$jsmangledname;
+    $jsmangledname_classDefinition.callAsConstructor = $jsctor;
     $jsmangledname_objectDefinition.staticValues = $jsmangledname_values;
     $jsmangledname_objectDefinition.staticFunctions = $jsmangledname_functions;
     $jsmangledname_objectDefinition.parentClass = $jsbaseclass_classRef;
