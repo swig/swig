@@ -220,3 +220,7 @@ void V8Shell::ReportException(v8::TryCatch* try_catch) {
 const char* V8Shell::ToCString(const v8::String::Utf8Value& value) {
   return *value ? *value : "<string conversion failed>";
 }
+
+JSShell* create_v8_shell() {
+  return new V8Shell();
+}

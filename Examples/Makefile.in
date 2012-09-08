@@ -552,7 +552,7 @@ ifeq (,$(V8))
 else
   JSEXE_SRC     = $(JSEXE_SRC_DIR)/javascript.cxx $(JSEXE_SRC_DIR)/js_shell.cxx $(JSEXE_SRC_DIR)/v8_shell.cxx
   JSEXE_OPTS    = -v8
-  JSEXE_FLAG    = -DUSE_V8
+  JSEXE_FLAGS    = -DUSE_V8
 endif
 
 # ----------------------------------------------------------------
