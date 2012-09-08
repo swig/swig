@@ -766,6 +766,12 @@ int JSEmitter::enterFunction(Node *n) {
   if(Equal(Getattr(n, "storage"), "static")) {
     SetFlag(state.function(), IS_STATIC);
   }
+  
+  /* Initialize DOH for collecting function dispatchers */
+  bool is_overloaded = GetFlag(n, "sym:overloaded");
+  if (is_overloaded && state.global(FUNCTION_DISPATCHERS) == 0) {
+    state.global(FUNCTION_DISPATCHERS, NewString(""));
+  }
 
   return SWIG_OK;
 }
@@ -1012,16 +1018,13 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
 
 int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
 
-  Template t_function(getTemplate("JS_functionwrapper"));
+  Template t_function(getTemplate("JS_function_dispatcher"));
 
   Wrapper *wrapper = NewWrapper();
   String *wrap_name = Swig_name_wrapper(Getattr(n, "name"));
   Setattr(n, "wrap:name", wrap_name);
 
-  Wrapper_add_local(wrapper, "res", "int res");
-
   Append(wrapper->code, state.global(FUNCTION_DISPATCHERS));
-  Append(wrapper->code, getTemplate("JS_function_dispatch_case_default").str());
 
   t_function.replace(T_LOCALS, wrapper->locals)
       .replace(T_CODE, wrapper->code);
@@ -1364,12 +1367,6 @@ int JSCEmitter::close() {
 int JSCEmitter::enterFunction(Node *n) {
 
   JSEmitter::enterFunction(n);
-
-  /* Initialize DOH for collecting function dispatchers */
-  bool is_overloaded = GetFlag(n, "sym:overloaded");
-  if (is_overloaded && state.global(FUNCTION_DISPATCHERS) == 0) {
-    state.global(FUNCTION_DISPATCHERS, NewString(""));
-  }
 
   return SWIG_OK;
 }
@@ -1808,20 +1805,34 @@ int V8Emitter::enterFunction(Node* n)
 }
 
 int V8Emitter::exitFunction(Node* n)
-{    
+{
+  bool is_member = GetFlag(n, "ismember");
+  
+  // create a dispatcher for overloaded functions
+  bool is_overloaded = GetFlag(n, "sym:overloaded");
+  if (is_overloaded) {
+    if (!Getattr(n, "sym:nextSibling")) {
+      state.function(WRAPPER_NAME, Swig_name_wrapper(Getattr(n, "name")));
+      emitFunctionDispatcher(n, is_member);
+    } else {
+      //don't register wrappers of overloaded functions in function tables
+      return SWIG_OK;
+    }
+  }
+  
   // register the function at the specific context
-  if(GetFlag(n, "ismember")) {
+  if(is_member) {
     if(GetFlag(state.function(), IS_STATIC)) {
       Template t_register(getTemplate("jsv8_register_static_function"));
       t_register.replace(T_PARENT, state.clazz(NAME_MANGLED))
           .replace(T_NAME, state.function(NAME))
-          .replace(T_WRAPPER, Getattr(n, "wrap:name"))
+          .replace(T_WRAPPER, state.function(WRAPPER_NAME))
           .pretty_print(f_init_static_wrappers);
     } else {
       Template t_register(getTemplate("jsv8_register_member_function"));
       t_register.replace(T_NAME_MANGLED, state.clazz(NAME_MANGLED))
           .replace(T_NAME, state.function(NAME))
-          .replace(T_WRAPPER, Getattr(n, "wrap:name"))
+          .replace(T_WRAPPER, state.function(WRAPPER_NAME))
           .pretty_print(f_init_wrappers);
     }
   } else {
@@ -1830,8 +1841,8 @@ int V8Emitter::exitFunction(Node* n)
     Template t_register(getTemplate("jsv8_register_static_function"));
     t_register.replace(T_PARENT, Getattr(current_namespace, NAME))
         .replace(T_NAME, state.function(NAME))
-        .replace(T_WRAPPER, Getattr(n, "wrap:name"))
-        .pretty_print(f_init_wrappers);
+        .replace(T_WRAPPER, state.function(WRAPPER_NAME))
+        .pretty_print(f_init_static_wrappers);
   }
 
   return SWIG_OK;

@@ -19,7 +19,38 @@ v8::Handle<v8::Value> $jsctor(const v8::Arguments& args) {
   v8::HandleScope scope;
   SWIG_exception(SWIG_ERROR, "Class $jsname can not be instantiated");
   return scope.Close(v8::Undefined());
-}%}
+}
+%}
+
+%fragment ("JS_mainctordefn", "templates") %{
+v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
+  v8::HandleScope scope;
+  
+  // switch all cases by means of series of if-returns. 
+  $jsdispatchcases
+
+  // default:
+  SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of $jsmangledname");
+  
+fail:
+  scope.Close(v8::Undefined());
+}
+%}
+
+%fragment ("JS_ctor_dispatch_case", "templates")
+%{if(args.Length() == $jsargcount) {
+    v8::Handle<v8::Value> self = $jswrapper(args);
+    if(!self->IsUndefined()) { 
+      return scope.Close(self);
+    }
+  }
+%}
+
+%fragment ("JS_destructordefn", "templates")
+%{
+  // TODO: implement JS_destructordefn
+%}
+
 
 %fragment("JS_getproperty", "templates") %{
 v8::Handle<v8::Value> $jsgetter(v8::Local<v8::String> property, const v8::AccessorInfo& info) {
@@ -53,37 +84,55 @@ v8::Handle<v8::Value> $jswrapper(const v8::Arguments &args) {
   goto fail;
 fail:
   return scope.Close(v8::Undefined());
-}%}
-
-%fragment ("JS_mainctordefn", "templates") %{
-v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
-  v8::HandleScope scope;
-  
-  v8::TryCatch tryCatch;
-  // switch all cases by means of series of if-returns. 
-  $jsdispatchcases
-
-  // default:
-  if(!tryCatch.HasCaught())
-    SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of $jsmangledname");
-  
-fail:
-  scope.Close(v8::Undefined());
 }
 %}
 
-%fragment ("JS_ctor_dispatch_case", "templates")
-%{if(args.Length() == $jsargcount) {
-    v8::Handle<v8::Value> self = $jswrapper(args);
-    if(!self->IsUndefined()) { 
-      tryCatch.Reset(); return scope.Close(self); /* reset exception and return */
-    }
+%fragment("JS_function_dispatcher", "templates") %{
+v8::Handle<v8::Value> $jswrapper(const v8::Arguments &args) {
+  v8::HandleScope scope;
+  v8::Handle<v8::Value> jsresult;
+  OverloadErrorHandler errorHandler;
+  $jscode
+
+  SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for function $jsname.");
+
+  goto fail;
+fail:
+  return scope.Close(v8::Undefined());
+}
+%}
+
+%fragment ("JS_functionwrapper_overload", "templates")
+%{
+v8::Handle<v8::Value> $jswrapper(const v8::Arguments &args, V8ErrorHandler& SWIGV8_ErrorHandler)
+{
+  v8::HandleScope scope;
+  
+  v8::Handle<v8::Value> jsresult;
+  $jslocals
+  if(args.Length() != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  $jscode
+  return scope.Close(jsresult);  
+  goto fail;
+fail:
+  return scope.Close(jsresult);
+}
+%}
+
+%fragment ("JS_function_dispatch_case", "templates")
+%{
+  if(args.Length() == $jsargcount) {
+     errorHandler.err.Clear();
+     jsresult = $jswrapper(args, errorHandler);
+     if(errorHandler.err.IsEmpty()) {
+      return scope.Close(jsresult);
+     }
   }
 %}
 
-%fragment ("JS_destructordefn", "templates")
+%fragment ("JS_function_dispatch_case_default", "templates")
 %{
-  // TODO: implement JS_destructordefn
+    SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for function $jsname.");
 %}
 
 %fragment("jsv8_declare_class_template", "templates") 

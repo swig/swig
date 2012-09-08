@@ -64,6 +64,24 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
 }
 %}
 
+%fragment ("JS_function_dispatcher", "templates")
+%{
+JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
+{
+  $jslocals
+  JSValueRef jsresult;
+  int res;  
+  $jscode
+  
+  SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for function $jsname.");
+  return jsresult;
+  
+  goto fail;
+  fail:
+  return NULL;  
+}
+%}
+
 %fragment ("JS_functionwrapper_overload", "templates")
 %{
 int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception, JSValueRef* result)
@@ -94,11 +112,6 @@ int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObjec
      res = $jswrapper(context, function, thisObject, argc, argv, exception, &jsresult);
      if(res == SWIG_OK) { *exception = 0; return jsresult; }
   }
-%}
-
-%fragment ("JS_function_dispatch_case_default", "templates")
-%{
-    SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for function $jsname.");
 %}
 
 /* Added template for function declaration */

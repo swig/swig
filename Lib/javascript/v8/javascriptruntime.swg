@@ -14,9 +14,48 @@
 %insert(runtime) "swigerrors.swg";      /* SWIG errors */   
 
 %insert(runtime) %{
-#define SWIG_Error(code, msg)     SWIG_V8_exception(code, msg)
-#define SWIG_exception(code, msg) SWIG_V8_exception(code, msg)
+#define SWIG_Error(code, msg)     SWIGV8_ErrorHandler.error(code, msg)
+#define SWIG_exception(code, msg) SWIGV8_ErrorHandler.error(code, msg)
 #define SWIG_fail                 goto fail
+#define SWIGV8_OVERLOAD false
+
+void SWIG_V8_Raise(const char* msg) {
+  v8::ThrowException(v8::Exception::Error(v8::String::New(msg)));
+}
+
+/* 
+  Note: There are two contexts for handling errors.
+  A static V8ErrorHandler is used in not overloaded methods.
+  For overloaded methods the throwing type checking mechanism is used
+  during dispatching. As V8 exceptions can not be resetted properly
+  the trick is to use a dynamic ErrorHandler with same local name as the global
+  one.
+  
+  - See defintion of SWIG_Error above.
+  - See code templates 'JS_function_dispatcher', 'JS_functionwrapper_overload', 
+    and 'JS_function_dispatch_case' in javascriptcode.swg
+
+*/
+class V8ErrorHandler {
+public:
+  virtual void error(int code, const char* msg) {
+    SWIG_V8_Raise(msg);
+  }
+};
+// this is used in usually
+V8ErrorHandler SWIGV8_ErrorHandler;
+
+// instances of this are used in overloaded functions
+class OverloadErrorHandler: public V8ErrorHandler {
+public:
+  virtual void error(int code, const char* msg) {
+    err = v8::Exception::Error(v8::String::New(msg));
+    if(code != SWIG_TypeError) {
+      v8::ThrowException(err);
+    }
+  }
+  v8::Handle<v8::Value> err;
+};
 %}
 
 %insert(runtime) %{
@@ -25,18 +64,6 @@ typedef struct {
   void *swigCObject;
   swig_type_info *info;
 } SWIG_PRV_DATA; 
-%}
-
-%insert(runtime) %{
-
-void SWIG_V8_Raise(const char* msg) {
-  v8::ThrowException(v8::Exception::Error(v8::String::New(msg)));
-}
-
-void SWIG_V8_exception(int code, const char* msg) {
-  SWIG_V8_Raise(msg);
-}
-
 %}
 
 
