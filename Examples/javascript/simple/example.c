@@ -1,9 +1,3 @@
-#include <stdlib.h>
-#include <string>
-#include <stdio.h>
-#include <string.h>
-using namespace std;
-
 /* File : example.c */
 
 /* A global variable */
@@ -20,9 +14,5 @@ int gcd(int x, int y) {
   }
   return g;
 }
-
-
-
-
 
 
