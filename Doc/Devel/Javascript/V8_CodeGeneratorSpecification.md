@@ -464,6 +464,180 @@ int Namespace_Initialize(v8::Handle<v8::Context> context) {
 
 ~~~~~
 
+## Class
+
+~~~~~
+
+class A {
+public:
+    A() {
+        x = 42;
+    }
+    
+    ~A() {}
+
+    double foo(bool a) {
+        if(a)
+            return 11.11;
+        else
+            return 22.22;
+    }
+    
+    int x;
+};
+
+v8::Handle<v8::Value> A_new(const v8::Arguments& args) {
+    v8::HandleScope scope;
+    v8::Handle<v8::Object> self = args.Holder();
+    A *result;
+    result = new A();
+    self->SetInternalField(0, v8::External::New(result));
+    return self;        
+}
+
+void A_x_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info) {
+    v8::HandleScope scope;
+    A *arg1;
+    int arg2;
+    
+    arg1 = SWIGV8_UnwrapThisPointer<A>(info.Holder());
+    arg2 = value->Int32Value();
+    
+    arg1->x = arg2;
+
+}
+
+v8::Handle<v8::Value> A_x_get(v8::Local<v8::String> property, const v8::AccessorInfo& info) {
+    v8::HandleScope scope;
+    v8::Handle<v8::Value> jsresult;
+    A *arg1;
+    int result;
+
+    arg1 = SWIGV8_UnwrapThisPointer<A>(info.Holder());
+    result = arg1->x;
+  
+    jsresult = v8::Int32::New(result);
+    return scope.Close(jsresult);
+}
+
+v8::Handle<v8::Value> wrap_A_foo(const v8::Arguments& args)
+{
+    v8::HandleScope scope;
+    v8::Handle<v8::Value> jsresult;
+    A *arg1;
+    double arg2;
+    double result;
+
+    arg1 = SWIGV8_UnwrapThisPointer<A>(args.Holder());
+    arg2 = args[0]->NumberValue();
+    
+    result = arg1->foo(arg2);
+    
+    jsresult = v8::Number::New(result);
+    return scope.Close(jsresult);
+}
+
+int Class_Initialize(v8::Handle<v8::Context> context) {
+    
+    v8::Local<v8::Object> global = context->Global();
+    
+    v8::Persistent<v8::FunctionTemplate> class_A = SWIGV8_CreateClassTemplate("A", A_new);
+    SWIGV8_AddMemberVariable(class_A, "x", A_x_get, A_x_set);
+    SWIGV8_AddMemberFunction(class_A, "foo", wrap_A_foo);
+    
+    global->Set(v8::String::NewSymbol("A"), class_A->GetFunction());
+    
+    return 0;
+}
+
+~~~~~
+
+## Static variables and functions
+
+Static variables and functions are implemented similar to global ones.
+They are added to the class object instead of the class template.
+Therefore, these are only accessible via the class object and not via
+instances of this class.
+
+~~~~~
+
+class A {
+public:
+    A() {
+        x = 7;
+    }
+    
+    ~A() {}
+
+    static int foo() {
+        return 42;
+    }
+    
+    static int x;
+};
+
+int A::x = 7;
+
+v8::Handle<v8::Value> A_new(const v8::Arguments& args) {
+    v8::HandleScope scope;
+    v8::Handle<v8::Object> self = args.Holder();
+    A *result;
+    result = new A();
+    self->SetInternalField(0, v8::External::New(result));
+    return self;        
+}
+
+void A_x_set(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::AccessorInfo& info) {
+    v8::HandleScope scope;
+    int arg1;
+    
+    arg1 = value->Int32Value();
+    
+    A::x = arg1;
+
+}
+
+v8::Handle<v8::Value> A_x_get(v8::Local<v8::String> property, const v8::AccessorInfo& info) {
+    v8::HandleScope scope;
+    v8::Handle<v8::Value> jsresult;
+    int result;
+
+    result = A::x;
+  
+    jsresult = v8::Int32::New(result);
+    return scope.Close(jsresult);
+}
+
+v8::Handle<v8::Value> wrap_A_foo(const v8::Arguments& args)
+{
+    v8::HandleScope scope;
+    v8::Handle<v8::Value> jsresult;
+    int result;
+
+    result = A::foo();
+    
+    jsresult = v8::Number::New(result);
+    return scope.Close(jsresult);
+}
+
+int Class_Initialize(v8::Handle<v8::Context> context) {
+    
+    v8::Local<v8::Object> global = context->Global();
+    
+    v8::Persistent<v8::FunctionTemplate> classtempl_A = SWIGV8_CreateClassTemplate("A", A_new);
+        
+    v8::Handle<v8::Object> class_A = classtempl_A->GetFunction();
+
+    SWIGV8_AddGlobalVariable(class_A, "x", A_x_get, A_x_set);
+    SWIGV8_AddGlobalFunction(class_A, "foo", wrap_A_foo);
+    
+    global->Set(v8::String::NewSymbol("A"), class_A);
+    
+    return 0;
+}
+
+~~~~~
+
 -------------------------
 
 Control flow analysis
