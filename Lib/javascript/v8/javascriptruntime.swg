@@ -77,6 +77,15 @@ int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void** ptr, swig_t
   return SWIG_OK;
 }
 
+void SWIG_V8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info *info, int flags) {
+  SWIG_PRV_DATA* cdata = (SWIG_PRV_DATA*) new SWIG_PRV_DATA;
+  cdata->swigCObject = ptr;  
+  cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
+  cdata->info = info;
+
+  obj->SetInternalField(0, v8::External::New(cdata));
+}
+
 int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info *info, int flags) {
   if(!valRef->IsObject()) {
     return SWIG_TypeError;
@@ -103,14 +112,9 @@ v8::Handle<v8::Object> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, in
   }
   
   v8::Local<v8::Object> result = inst_templ->NewInstance();
-  
-  SWIG_PRV_DATA* cdata = (SWIG_PRV_DATA*) new SWIG_PRV_DATA;
-  cdata->swigCObject = ptr;  
-  cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
-  cdata->info = info;
-  
-  result->SetInternalField(0, v8::External::New(cdata));
 
+  SWIG_V8_SetPrivateData(result, ptr, info, flags);
+  
   return scope.Close(result);
 }
 

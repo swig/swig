@@ -5,7 +5,8 @@ v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
   $jslocals
   $jscode
   
-  return SWIG_V8_NewPointerObj(result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+  SWIG_V8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+  return scope.Close(self);
 
   goto fail;
 fail:
@@ -54,10 +55,12 @@ fail:
   return scope.Close(v8::Undefined());
 }%}
 
+/*
 %fragment ("JS_mainctordefn", "templates")
 %{
   // TODO: implement JS_mainctordefn
 %}
+*/
 
 %fragment ("JS_ctor_dispatch_case", "templates")
 %{
