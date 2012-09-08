@@ -34,7 +34,7 @@
 #define KW_CLASS_TEMPLATES                          "${PART_CLASS_TEMPLATES}"
 #define KW_WRAPPERS                                 "${PART_WRAPPERS}"
 #define KW_INHERITANCE                              "${PART_INHERITANCE}"
-#define KW_REGISTER                                 "${PART_REGISTER}"
+#define KW_REGISTER_CLASSES                         "${PART_REGISTER_CLASSES}"
 #define KW_REGISTER_NS                              "${PART_REGISTER_NS}"
 
 #define KW_LOCALS                                   "${LOCALS}"
@@ -75,7 +75,7 @@ int V8Emitter::Initialize(Node *n)
     f_init_class_templates = NewString("");
     f_init_wrappers = NewString("");
     f_init_inheritance = NewString("");
-    f_init_register = NewString("");
+    f_init_register_classes = NewString("");
     f_init_register_namespaces = NewString("");
 
     // note: this is necessary for built-in generation of swig runtime code
@@ -105,7 +105,7 @@ int V8Emitter::Dump(Node *n)
                .Replace(KW_CLASS_TEMPLATES,   f_init_class_templates)
                .Replace(KW_WRAPPERS,          f_init_wrappers)
                .Replace(KW_INHERITANCE,       f_init_inheritance)
-               .Replace(KW_REGISTER,          f_init_register)
+               .Replace(KW_REGISTER_CLASSES,  f_init_register_classes)
                .Replace(KW_REGISTER_NS,       f_init_register_namespaces);
     Wrapper_pretty_print(initializer.str(), f_wrap_cpp);
 
@@ -122,7 +122,7 @@ int V8Emitter::Close()
     Delete(f_init_class_templates);
     Delete(f_init_wrappers);
     Delete(f_init_inheritance);
-    Delete(f_init_register);
+    Delete(f_init_register_classes);
     Delete(f_init_register_namespaces);    
     ::Close(f_wrap_cpp);
     Delete(f_wrap_cpp);
@@ -220,7 +220,7 @@ int V8Emitter::ExitClass(Node *n)
     t_register.Replace(KW_MANGLED_NAME,      current_classname_mangled)
      .Replace(KW_UNQUALIFIED_NAME,  current_classname_unqualified)
      .Replace(KW_CONTEXT,           Swig_string_mangle(current_context));
-    Printv(f_init_register, t_register.str(), 0);
+    Printv(f_init_register_classes, t_register.str(), 0);
 
     Delete(current_classname_mangled);
     Delete(current_classname_unqualified);
@@ -394,7 +394,7 @@ int V8Emitter::EmitFunction(Node* n, bool is_member)
         t_register.Replace(KW_UNQUALIFIED_NAME, current_function_unqualified)
           .Replace(KW_WRAPPER, wrap_name)
           .Replace(KW_CLASSNAME_MANGLED, current_classname_mangled);
-        Printv(f_init_register, t_register.str(), "\n", 0);
+        Printv(f_init_wrappers, t_register.str(), "\n", 0);
     } else {
         // TODO
     }

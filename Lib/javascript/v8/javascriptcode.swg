@@ -17,8 +17,8 @@ void ${MODULE}_Initialize(v8::Handle<v8::Context> context)
     /* setup inheritances */
     ${PART_INHERITANCE}
     
-    /* some registration TODO: what specifically?*/
-    ${PART_REGISTER}
+    /* register classes */
+    ${PART_REGISTER_CLASSES}
     
     /* create and register namespace objects */
     ${PART_REGISTER_NS}
