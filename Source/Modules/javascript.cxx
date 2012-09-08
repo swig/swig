@@ -815,6 +815,7 @@ int JSEmitter::emitCtor(Node *n) {
   //String *mangled_name = SwigType_manglestr(Getattr(n, "name"));
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
   if(is_overloaded) {
+    t_ctor = getTemplate("js_overloaded_ctor");
     Append(wrap_name, Getattr(n, "sym:overname"));
   }
   Setattr(n, "wrap:name", wrap_name);
@@ -1909,12 +1910,12 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
   Parm *p;
 
   int startIdx = 0;
-  if (is_member && !is_static) {
+  if (is_member && !is_static && mode!=Ctor) {
     startIdx = 1;
   }
 
   // store number of arguments for argument checks
-  int num_args = emit_num_arguments(parms);
+  int num_args = emit_num_arguments(parms) - startIdx;
   String *argcount = NewString("");
   Printf(argcount, "%d", num_args);
   Setattr(n, ARGCOUNT, argcount);
@@ -1922,7 +1923,6 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
   int i = 0;
   for (p = parms; p; p = nextSibling(p), i++) {
     String *arg = NewString("");
-
     switch (mode) {
     case Getter:
       if (is_member && !is_static && i == 0) {
