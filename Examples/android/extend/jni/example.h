@@ -5,6 +5,21 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <sstream>
+
+struct Streamer {
+  virtual void display(std::string text) const = 0;
+  virtual ~Streamer() {}
+};
+void setStreamer(Streamer* streamer);
+Streamer& getStreamer();
+
+template<typename T> Streamer& operator<<(Streamer& stream, T const& val) {
+  std::ostringstream s;
+  s << val;
+  stream.display(s.str());
+  return stream;
+}
 
 class Employee {
 private:
@@ -14,7 +29,7 @@ public:
 	virtual std::string getTitle() { return getPosition() + " " + getName(); }
 	virtual std::string getName() { return name; }
 	virtual std::string getPosition() const { return "Employee"; }
-	virtual ~Employee() { printf("~Employee() @ %p\n", this); }
+	virtual ~Employee() { getStreamer() << "~Employee() @ " << this << "\n"; }
 };
 
 
@@ -35,10 +50,10 @@ public:
 	}
 	void addEmployee(Employee *p) {
 		list.push_back(p);
-		std::cout << "New employee added.   Current employees are:" << std::endl;
+		getStreamer() << "New employee added.   Current employees are:" << "\n";
 		std::vector<Employee*>::iterator i;
 		for (i=list.begin(); i!=list.end(); i++) {
-			std::cout << "  " << (*i)->getTitle() << std::endl;
+			getStreamer() << "  " << (*i)->getTitle() << "\n";
 		}
 	}
 	const Employee *get_item(int i) {
@@ -46,11 +61,11 @@ public:
 	}
 	~EmployeeList() { 
 		std::vector<Employee*>::iterator i;
-		std::cout << "~EmployeeList, deleting " << list.size() << " employees." << std::endl;
+		getStreamer() << "~EmployeeList, deleting " << list.size() << " employees." << "\n";
 		for (i=list.begin(); i!=list.end(); i++) {
 			delete *i;
 		}
-		std::cout << "~EmployeeList empty." << std::endl;
+		getStreamer() << "~EmployeeList empty." << "\n";
 	}
 };
 

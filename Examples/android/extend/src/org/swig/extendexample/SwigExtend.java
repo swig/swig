@@ -8,7 +8,6 @@ import android.widget.TextView;
 import android.widget.ScrollView;
 import android.text.method.ScrollingMovementMethod;
 
-
 // CEO class, which overrides Employee::getPosition().
 class CEO extends Manager {
   public CEO(String name) {
@@ -29,6 +28,15 @@ public class SwigExtend extends Activity
     TextView outputText = null;
     ScrollView scroller = null;
 
+    /** Handles upcalls from C++ so that C++ code can display text on the TextView */
+    class TextViewStreamer extends Streamer {
+      public void display(String text) {
+        outputText.append(text);
+      }
+    }
+
+    TextViewStreamer textViewStreamer = new TextViewStreamer();
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -41,6 +49,8 @@ public class SwigExtend extends Activity
         outputText.setMovementMethod(new ScrollingMovementMethod());
 
         scroller = (ScrollView)findViewById(R.id.Scroller);
+
+        example.setStreamer(textViewStreamer);
     }
 
     public void onRunButtonClick(View view)

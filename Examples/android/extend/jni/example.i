@@ -11,5 +11,8 @@
 %feature("director") Employee;
 %feature("director") Manager;
 
+/* A base class for callbacks from C++ to output text on the Java side */
+%feature("director") Streamer;
+
 %include "example.h"
 
