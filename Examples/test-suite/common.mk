@@ -152,6 +152,7 @@ CPP_TEST_CASES += \
 	cpp_nodefault \
 	cpp_static \
 	cpp_typedef \
+	curiously_recurring_template_pattern \
 	default_args \
 	default_arg_values \
 	default_constructor \
