@@ -8,6 +8,22 @@ import android.widget.TextView;
 import android.widget.ScrollView;
 import android.text.method.ScrollingMovementMethod;
 
+
+// CEO class, which overrides Employee::getPosition().
+class CEO extends Manager {
+  public CEO(String name) {
+    super(name);
+  }
+  public String getPosition() {
+    return "CEO";
+  }
+  // Public method to stop the SWIG proxy base class from thinking it owns the underlying C++ memory.
+  public void disownMemory() {
+    swigCMemOwn = false; 
+  } 
+}
+
+
 public class SwigExtend extends Activity
 {
     TextView outputText = null;
@@ -44,61 +60,58 @@ public class SwigExtend extends Activity
     /** Calls into C/C++ code */
     public void nativeCall()
     {
-      /*
-      // ----- Object creation -----
 
-      outputText.append( "Creating some objects:\n" );
-      Circle c = new Circle(10);
-      outputText.append( "    Created circle " + c + "\n");
-      Square s = new Square(10);
-      outputText.append( "    Created square " + s + "\n");
+      // Create an instance of CEO, a class derived from the Java proxy of the 
+      // underlying C++ class. The calls to getName() and getPosition() are standard,
+      // the call to getTitle() uses the director wrappers to call CEO.getPosition().
 
-      // ----- Access a static member -----
+      CEO e = new CEO("Alice");
+      outputText.append( e.getName() + " is a " + e.getPosition() + "\n");
+      outputText.append( "Just call her \"" + e.getTitle() + "\"\n" );
+      outputText.append( "----------------------\n" );
 
-      outputText.append( "\nA total of " + Shape.getNshapes() + " shapes were created\n" );
 
-      // ----- Member data access -----
+      // Create a new EmployeeList instance.  This class does not have a C++
+      // director wrapper, but can be used freely with other classes that do.
 
-      // Notice how we can do this using functions specific to
-      // the 'Circle' class.
-      c.setX(20);
-      c.setY(30);
+      EmployeeList list = new EmployeeList();
 
-      // Now use the same functions in the base class
-      Shape shape = s;
-      shape.setX(-10);
-      shape.setY(5);
+      // EmployeeList owns its items, so we must surrender ownership of objects we add.
+      e.disownMemory();
+      list.addEmployee(e);
+      outputText.append( "----------------------\n" );
 
-      outputText.append( "\nHere is their current position:\n" );
-      outputText.append( "    Circle = (" + c.getX() + " " + c.getY() + ")\n" );
-      outputText.append( "    Square = (" + s.getX() + " " + s.getY() + ")\n" );
+      // Now we access the first four items in list (three are C++ objects that
+      // EmployeeList's constructor adds, the last is our CEO). The virtual
+      // methods of all these instances are treated the same. For items 0, 1, and
+      // 2, all methods resolve in C++. For item 3, our CEO, getTitle calls
+      // getPosition which resolves in Java. The call to getPosition is
+      // slightly different, however, because of the overidden getPosition() call, since
+      // now the object reference has been "laundered" by passing through
+      // EmployeeList as an Employee*. Previously, Java resolved the call
+      // immediately in CEO, but now Java thinks the object is an instance of
+      // class Employee. So the call passes through the
+      // Employee proxy class and on to the C wrappers and C++ director,
+      // eventually ending up back at the Java CEO implementation of getPosition().
+      // The call to getTitle() for item 3 runs the C++ Employee::getTitle()
+      // method, which in turn calls getPosition(). This virtual method call
+      // passes down through the C++ director class to the Java implementation
+      // in CEO. All this routing takes place transparently.
 
-      // ----- Call some methods -----
+      outputText.append( "(position, title) for items 0-3:\n" );
 
-      outputText.append( "\nHere are some properties of the shapes:\n" );
-      Shape[] shapes = {c,s};
-      for (int i=0; i<shapes.length; i++)
-      {
-        outputText.append( "   " + shapes[i].toString() + "\n" );
-        outputText.append( "        area      = " + shapes[i].area() + "\n" );
-        outputText.append( "        perimeter = " + shapes[i].perimeter() + "\n" );
-      }
+      outputText.append( "  " + list.get_item(0).getPosition() + ", \"" + list.get_item(0).getTitle() + "\"\n" );
+      outputText.append( "  " + list.get_item(1).getPosition() + ", \"" + list.get_item(1).getTitle() + "\"\n" );
+      outputText.append( "  " + list.get_item(2).getPosition() + ", \"" + list.get_item(2).getTitle() + "\"\n" );
+      outputText.append( "  " + list.get_item(3).getPosition() + ", \"" + list.get_item(3).getTitle() + "\"\n" );
+      outputText.append( "----------------------\n" );
 
-      // Notice how the area() and perimeter() functions really
-      // invoke the appropriate virtual method on each object.
-
-      // ----- Delete everything -----
-
-      outputText.append( "\nGuess I'll clean up now\n" );
-
-      // Note: this invokes the virtual destructor
-      // You could leave this to the garbage collector
-      c.delete();
-      s.delete();
-
-      outputText.append( Shape.getNshapes() + " shapes remain\n" );
-      outputText.append( "Goodbye\n" );
+      // Time to delete the EmployeeList, which will delete all the Employee*
+      // items it contains. The last item is our CEO, which gets destroyed as well.
+      /* Causes app to die
+      list.delete();
       */
+      outputText.append( "----------------------\n" );
     }
 
     /** static constructor */
