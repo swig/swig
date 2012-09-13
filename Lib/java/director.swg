@@ -68,6 +68,7 @@ namespace Swig {
       weak_global_ = true;
     }
 
+    /* Only call peek if you know what you are doing wrt to weak/global references */
     jobject peek() {
       return jthis_;
     }
