@@ -4,6 +4,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.9 (in progress)
 ===========================
+2012-09-11: wsfulton
+	    [Java] Fix #3535304 - Direct use of a weak global reference in directors
+            sometimes causing seg faults especially on Android.
+
 2012-09-06: wsfulton
 	    [Java] Fix (char *STRING, size_t LENGTH) typemaps to accept NULL string.
 

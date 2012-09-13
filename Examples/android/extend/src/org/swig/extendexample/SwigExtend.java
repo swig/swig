@@ -118,9 +118,7 @@ public class SwigExtend extends Activity
 
       // Time to delete the EmployeeList, which will delete all the Employee*
       // items it contains. The last item is our CEO, which gets destroyed as well.
-      /* Causes app to die
       list.delete();
-      */
       outputText.append( "----------------------\n" );
     }
 

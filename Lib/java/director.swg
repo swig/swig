@@ -149,7 +149,7 @@ namespace Swig {
     void swig_disconnect_director_self(const char *disconn_method) {
       JNIEnvWrapper jnienv(this) ;
       JNIEnv *jenv = jnienv.getJNIEnv() ;
-      jobject jobj = swig_self_.peek();
+      jobject jobj = swig_self_.get(jenv);
 #if defined(DEBUG_DIRECTOR_OWNED)
       std::cout << "Swig::Director::disconnect_director_self(" << jobj << ")" << std::endl;
 #endif
@@ -162,6 +162,7 @@ namespace Swig {
           jenv->CallVoidMethod(jobj, disconn_meth);
         }
       }
+      jenv->DeleteLocalRef(jobj);
     }
 
   public:
