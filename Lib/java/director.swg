@@ -25,9 +25,9 @@ namespace Swig {
 
     bool set(JNIEnv *jenv, jobject jobj, bool mem_own, bool weak_global) {
       if (!jthis_) {
-        weak_global_ = weak_global;
+        weak_global_ = weak_global || !mem_own; // hold as weak global if explicitly requested or not owned
         if (jobj)
-          jthis_ = ((weak_global_ || !mem_own) ? jenv->NewWeakGlobalRef(jobj) : jenv->NewGlobalRef(jobj));
+          jthis_ = weak_global_ ? jenv->NewWeakGlobalRef(jobj) : jenv->NewGlobalRef(jobj);
 #if defined(DEBUG_DIRECTOR_OWNED)
         std::cout << "JObjectWrapper::set(" << jobj << ", " << (weak_global ? "weak_global" : "global_ref") << ") -> " << jthis_ << std::endl;
 #endif
