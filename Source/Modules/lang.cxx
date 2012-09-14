@@ -965,7 +965,7 @@ int Language::cDeclaration(Node *n) {
     DohIncref(type);
     Setattr(n, "type", ty);
     if (GetFlag(n, "feature:onlychildren") && !GetFlag(n, "feature:ignore")) {
-      // Found an unignored templated method that has a an empty template instantiation (%template())
+      // Found an unignored templated method that has an empty template instantiation (%template())
       // Ignore it unless it has been %rename'd
       if (Strncmp(symname, "__dummy_", 8) == 0) {
         SetFlag(n, "feature:ignore");

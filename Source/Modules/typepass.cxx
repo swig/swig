@@ -185,9 +185,14 @@ class TypePass:private Dispatcher {
 		bcls = 0;
 	      } else {
 		if (Getattr(bcls, "typepass:visit")) {
-		  if (!ilist)
-		    ilist = alist = NewList();
-		  Append(ilist, bcls);
+		  if (!Getattr(bcls, "feature:onlychildren")) {
+		    if (!ilist)
+		      ilist = alist = NewList();
+		    Append(ilist, bcls);
+		  } else {
+		    Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n", SwigType_namestr(bname));
+		    Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n", SwigType_namestr(bname));
+		  }
 		} else {
 		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' undefined.\n", SwigType_namestr(bname));
 		  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "'%s' must be defined before it is used as a base class.\n", SwigType_namestr(bname));

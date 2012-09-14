@@ -268,6 +268,10 @@ cpp_inherit.i:24: Warning 401: Nothing known about base class 'A6'. Ignored.
 cpp_inherit.i:26: Warning 401: Nothing known about base class 'A7< int >'. Ignored.
 cpp_inherit.i:26: Warning 401: Maybe you forgot to instantiate 'A7< int >' using %template.
 cpp_inherit.i:45: Warning 323: Recursive scope inheritance of 'Recursive'.
+cpp_inherit.i:52: Warning 401: Base class 'Base< int >' has no name as it is an empty template instantiated with '%template()'. Ignored.
+cpp_inherit.i:51: Warning 401: The %template directive must be written before 'Base< int >' is used as a base class and be declared with a name.
+cpp_inherit.i:53: Warning 401: Base class 'Base< double >' undefined.
+cpp_inherit.i:54: Warning 401: 'Base< double >' must be defined before it is used as a base class.
 
 :::::::::::::::::::::::::::::::: cpp_macro_locator.i :::::::::::::::::::::::::::::::::::
 cpp_macro_locator.i:66: Warning 204: CPP #warning, "inline warning message one".

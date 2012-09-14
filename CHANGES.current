@@ -4,6 +4,19 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.9 (in progress)
 ===========================
+2012-09-14: wsfulton
+	    Add new warning if the empty template instantiation is used as a base class, for example:
+
+              template <typename T> class Base {};
+              %template() Base<int>;
+              class Derived : public Base<int> {};
+
+            gives the following warning instead of silently ignoring the base:
+
+            cpp_inherit.i:52: Warning 401: Base class 'Base< int >' has no name as it is an empty template instantiated with '%template()'. Ignored.
+            cpp_inherit.i:51: Warning 401: The %template directive must be written before 'Base< int >' is used as a base class and be declared with a name.
+
+
 2012-09-11: wsfulton
 	    [Java] Fix #3535304 - Direct use of a weak global reference in directors
             sometimes causing seg faults especially on Android.
