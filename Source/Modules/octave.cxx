@@ -390,7 +390,7 @@ public:
       Append(decl_str, tex_name);
 
       if (value) {
-	if (Strcmp(value, "NULL") == 0)
+	if (Strcmp(value, "NULL") == 0 || Strcmp(value, "nullptr") == 0)
 	  value = NewString("nil");
 	else if (Strcmp(value, "true") == 0 || Strcmp(value, "TRUE") == 0)
 	  value = NewString("true");

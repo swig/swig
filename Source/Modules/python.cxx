@@ -1444,7 +1444,7 @@ public:
         return NewString("True");
       if (Strcmp(v, "false")==0 || Strcmp(v, "FALSE")==0)
         return NewString("False");
-      if (Strcmp(v, "NULL")==0)
+      if (Strcmp(v, "NULL")==0 || Strcmp(v, "nullptr")==0)
         return NewString("None");
     }
     return 0;

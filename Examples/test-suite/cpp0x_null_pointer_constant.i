@@ -4,13 +4,19 @@
 
 %module cpp0x_null_pointer_constant
 
+%feature("autodoc") A::NullPtrMethod; // Triggers conversion of nullptr to None, nil etc in target language
+%feature("compactdefaultargs") A::NullPtrMethod;
+
 %inline %{
-#include <cstddef>
+
+const int *const MyIntegerPtr = nullptr;
 
 class A {
 public:
-  A() : _myA(std::nullptr) { }
+  A() : _myA(nullptr) { }
 
   A *_myA;
+  
+  void NullPtrMethod(double *ptr = nullptr) {}  
 };
 %}

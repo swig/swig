@@ -1345,6 +1345,7 @@ public:
 		  }
 		}
 		if (Strcmp(value, "NULL") == 0 ||
+		    Strcmp(value, "nullptr") == 0 ||
 		    Strcmp(value, "0") == 0 ||
 		    Strcmp(value, "0L") == 0) {
 		  Clear(value);
