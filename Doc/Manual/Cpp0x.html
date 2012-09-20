@@ -590,7 +590,10 @@ include the tuple header file; it is parsed without any problems.</p>
 <H3><a name="Cpp0x_General_purpose_smart_pointers"></a>7.3.4 General-purpose smart pointers</H3>
 
 
-<p>SWIG does not wrap the new shared, weak and unique smart pointers, because the SWIG target languages offer their own garbage collectors.</p>
+<p>
+SWIG provides special smart pointer handling for <tt>std::tr1::shared_ptr</tt> in the same way it has support for <tt>boost::shared_ptr</tt>.
+There is no special smart pointer handling available for <tt>std::weak_ptr</tt> and <tt>std::unique_ptr</tt>.
+</p>
 
 <H3><a name="Cpp0x_Extensible_random_number_facility"></a>7.3.5 Extensible random number facility</H3>
 
