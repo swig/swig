@@ -834,16 +834,17 @@ class TypePass:private Dispatcher {
   virtual int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "name");
     String *value = Getattr(n, "value");
+    String *scopedenum = Getattr(parentNode(n), "scopedenum");
     if (!value)
       value = name;
     if (Strcmp(value, name) == 0) {
       String *new_value;
-      if ((nsname || inclass) && cparse_cplusplus) {
+      if ((nsname || inclass || scopedenum) && cparse_cplusplus) {
 	new_value = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
       } else {
 	new_value = NewString(value);
       }
-      if ((nsname || inclass) && !cparse_cplusplus) {
+      if ((nsname || inclass || scopedenum) && !cparse_cplusplus) {
 	String *cppvalue = NewStringf("%s::%s", SwigType_namestr(Swig_symbol_qualified(n)), value);
 	Setattr(n, "cppvalue", cppvalue); /* for target languages that always generate C++ code even when wrapping C code */
       }

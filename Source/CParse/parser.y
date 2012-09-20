@@ -1690,7 +1690,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
-%type <node>     c_declaration c_decl c_decl_tail c_enum_keyword c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl c_lambda_decl c_lambda_decl_front ;
+%type <node>     c_declaration c_decl c_decl_tail c_enum_key c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl c_lambda_decl c_lambda_decl_front ;
 %type <node>     enumlist edecl;
 
 /* C++ declarations */
@@ -3307,11 +3307,14 @@ c_lambda_decl_front : storage_class AUTO idcolon EQUAL LBRACKET { skip_balanced(
    enum class
    ------------------------------------------------------------ */
 
-c_enum_keyword : ENUM {
-		   $$ = (char*)"enumkeyword";
+c_enum_key : ENUM {
+		   $$ = (char *)"enum";
 	      }
 	      | ENUM CLASS {
-		   $$ = (char*)"enumclasskeyword";
+		   $$ = (char *)"enum class";
+	      }
+	      | ENUM STRUCT {
+		   $$ = (char *)"enum struct";
 	      }
 	      ;
 
@@ -3329,12 +3332,16 @@ c_enum_inherit : COLON type_right {
    enum [class] Name [: base_type];
    ------------------------------------------------------------ */
 
-c_enum_forward_decl : storage_class c_enum_keyword ename c_enum_inherit SEMI {
+c_enum_forward_decl : storage_class c_enum_key ename c_enum_inherit SEMI {
 		   SwigType *ty = 0;
+		   int scopedenum = $3 && !Equal($2, "enum");
 		   $$ = new_node("enumforward");
 		   ty = NewStringf("enum %s", $3);
-		   Setattr($$,"enumkeyword",$2);
+		   Setattr($$,"enumkey",$2);
+		   if (scopedenum)
+		     SetFlag($$, "scopedenum");
 		   Setattr($$,"name",$3);
+		   Setattr($$,"inherit",$4);
 		   Setattr($$,"type",ty);
 		   Setattr($$,"sym:weak", "1");
 		   add_symbols($$);
@@ -3347,26 +3354,46 @@ c_enum_forward_decl : storage_class c_enum_keyword ename c_enum_inherit SEMI {
    enum [class] Name [: base_type] { ... } MyEnum [= ...];
  * ------------------------------------------------------------ */
 
-c_enum_decl :  storage_class c_enum_keyword ename c_enum_inherit LBRACE enumlist RBRACE SEMI {
+c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE SEMI {
 		  SwigType *ty = 0;
+		  int scopedenum = $3 && !Equal($2, "enum");
                   $$ = new_node("enum");
 		  ty = NewStringf("enum %s", $3);
-		  Setattr($$,"enumkeyword",$2);
+		  Setattr($$,"enumkey",$2);
+		  if (scopedenum)
+		    SetFlag($$, "scopedenum");
 		  Setattr($$,"name",$3);
 		  Setattr($$,"inherit",$4);
 		  Setattr($$,"type",ty);
 		  appendChild($$,$6);
 		  add_symbols($$);      /* Add to tag space */
-		  add_symbols($6);      /* Add enum values to id space */
+
+		  if (scopedenum) {
+		    Swig_symbol_newscope();
+		    Swig_symbol_setscopename($3);
+		    Delete(Namespaceprefix);
+		    Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		  }
+
+		  add_symbols($6);      /* Add enum values to appropriate enum or enum class scope */
+
+		  if (scopedenum) {
+		    Setattr($$,"symtab", Swig_symbol_popscope());
+		    Delete(Namespaceprefix);
+		    Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		  }
                }
-	       | storage_class c_enum_keyword ename c_enum_inherit LBRACE enumlist RBRACE declarator initializer c_decl_tail {
+	       | storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE declarator initializer c_decl_tail {
 		 Node *n;
 		 SwigType *ty = 0;
 		 String   *unnamed = 0;
 		 int       unnamedinstance = 0;
+		 int scopedenum = $3 && !Equal($2, "enum");
 
 		 $$ = new_node("enum");
-		 Setattr($$,"enumkeyword",$2);
+		 Setattr($$,"enumkey",$2);
+		 if (scopedenum)
+		   SetFlag($$, "scopedenum");
 		 Setattr($$,"inherit",$4);
 		 if ($3) {
 		   Setattr($$,"name",$3);
@@ -3433,7 +3460,22 @@ c_enum_decl :  storage_class c_enum_keyword ename c_enum_inherit LBRACE enumlist
 		 add_symbols($$);       /* Add enum to tag space */
 		 set_nextSibling($$,n);
 		 Delete(n);
-		 add_symbols($6);       /* Add enum values to id space */
+
+		 if (scopedenum) {
+		   Swig_symbol_newscope();
+		   Swig_symbol_setscopename($3);
+		   Delete(Namespaceprefix);
+		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		 }
+
+		 add_symbols($6);      /* Add enum values to appropriate enum or enum class scope */
+
+		 if (scopedenum) {
+		   Setattr($$,"symtab", Swig_symbol_popscope());
+		   Delete(Namespaceprefix);
+		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		 }
+
 	         add_symbols(n);
 		 Delete(unnamed);
 	       }
@@ -5760,7 +5802,7 @@ type_right     : primitive_type { $$ = $1;
                | TYPE_BOOL { $$ = $1; }
                | TYPE_VOID { $$ = $1; }
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
-               | c_enum_keyword idcolon { $$ = NewStringf("enum %s", $2); }
+               | c_enum_key idcolon { $$ = NewStringf("enum %s", $2); }
                | TYPE_RAW { $$ = $1; }
 
                | idcolon {
