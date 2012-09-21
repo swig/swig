@@ -5,14 +5,23 @@
 %module cpp0x_template_double_brackets
 %inline %{
 #include <map>
-std::map<int,std::map<int, double>> m;
-std::map< int,std::map<int, double> > n;
+std::map<int,std::map<int, double>> map1;
+std::map< int,std::map<int, double> > map2;
 
+std::map<int,std::map<int, std::map<int, double>>> map3;
+std::map<int,std::map<int, std::map<int, std::map<int, double>>>> map4;
+%}
+
+// Check streaming operators are still okay
+%rename(ExtractionOperator) operator>>;
+%rename(InsertionOperator) operator<<;
+
+%inline %{
 class ABC {
 public:
   int a;
-  int operator>>(ABC &);
-  int operator<<(ABC &);
+  int operator>>(ABC &) { return 0; }
+  int operator<<(ABC &) { return 0; }
 };
 
 template<class T>
