@@ -454,7 +454,7 @@ CPP0X_TEST_CASES = \
 #	cpp0x_constructors \          # not supported by any compiler yet
 #	cpp0x_hash_tables \           # not fully implemented yet
 #	cpp0x_lambda_functions \      # not supported by GCC or MSVC yet
-#	cpp0x_template_typedefs \     # not supported by any compiler yet
+#	cpp0x_template_typedefs \     # not supported by any compiler yet (now in gcc-4.7)
 #	cpp0x_thread_local \          # not supported by any compiler yet
 #	cpp0x_unrestricted_unions \   # not supported by any compiler yet (now in gcc-4.6)
 

@@ -27,7 +27,7 @@
 <li><a href="#Cpp0x_Strongly_typed_enumerations">Strongly typed enumerations</a>
 <li><a href="#Cpp0x_Double_angle_brackets">Double angle brackets</a>
 <li><a href="#Cpp0x_Explicit_conversion_operators">Explicit conversion operators</a>
-<li><a href="#Cpp0x_Template_typedefs">Template typedefs</a>
+<li><a href="#Cpp0x_Alias_templates">Alias templates</a>
 <li><a href="#Cpp0x_Unrestricted_unions">Unrestricted unions</a>
 <li><a href="#Cpp0x_Variadic_templates">Variadic templates</a>
 <li><a href="#Cpp0x_New_string_literals">New string literals</a>
@@ -382,17 +382,53 @@ SWIG target languages, because all use their own facilities (eg. classes Cloneab
 to achieve particular copy and compare behaviours.
 </p>
 
-<H3><a name="Cpp0x_Template_typedefs"></a>7.2.15 Template typedefs</H3>
+<H3><a name="Cpp0x_Alias_templates"></a>7.2.15 Alias templates</H3>
 
+<p>
+The following is an example of an alias template:
 
-<p>SWIG currently parses the new <tt>using name =</tt> syntax, but
-ignores the definition:</p>
+<div class="code"><pre>
+template&lt; typename T1, typename T2, int &gt;
+class SomeType {
+  T1 a;
+  T2 b;
+  int c;
+};
+
+template&lt; typename T2 &gt;
+using TypedefName = SomeType&lt;char*, T2, 5&gt;;
+</pre></div>
+
+<p>
+These are partially supported as SWIG will parse these and identify them, however, they are ignored as they are not added to the type system. A warning such as the following is issued:
+</p>
+
+<div class="shell">
+<pre>
+example.i:13: Warning 342: The 'using' keyword in template aliasing is not fully supported yet.
+</pre>
+</div>
+
+<p>
+Similarly for non-template type aliasing:
+</p>
 
 <div class="code"><pre>
 using PFD = void (*)(double); // New introduced syntax
 </pre></div>
 
-<p>You should still define the typedefs using the old syntax:</p>
+<p>
+A warning will be issued:
+</p>
+
+<div class="shell">
+<pre>
+example.i:17: Warning 341: The 'using' keyword in type aliasing is not fully supported yet.
+</pre>
+</div>
+
+
+<p>The equivalent old style typedefs can be used as a workaround:</p>
 
 <div class="code"><pre>
 typedef void (*PFD)(double);  // The old style

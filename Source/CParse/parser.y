@@ -3098,9 +3098,9 @@ c_declaration   : c_decl {
 		    appendChild($$,firstChild($5));
 		  }
                 }
-                | c_lambda_decl { Swig_warning(WARN_CPP11_LAMBDA, cparse_file, cparse_line,"SWIG doesn't produce wrapper code for lambda expressions and closures yet.\n"); $$ = $1; }
-                | USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_DECLARATION, cparse_file, cparse_line,"SWIG doesn't support the 'using' keyword in type aliasing yet.\n"); $$ = 0; }
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_TEMPLATE, cparse_file, cparse_line,"SWIG doesn't support the 'using' keyword in template aliasing yet.\n"); $$ = 0; }
+                | c_lambda_decl { Swig_warning(WARN_CPP11_LAMBDA, cparse_file, cparse_line,"Lambda expressions and closures are not fully supported yet.\n"); $$ = $1; }
+                | USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_DECLARATION, cparse_file, cparse_line,"The 'using' keyword in type aliasing is not fully supported yet.\n"); $$ = 0; }
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_TEMPLATE, cparse_file, cparse_line,"The 'using' keyword in template aliasing is not fully supported yet.\n"); $$ = 0; }
                 ;
 
 /* ------------------------------------------------------------
