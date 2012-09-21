@@ -2899,7 +2899,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                               p = tp;
                               def_supplied = 1;
                             } else if (p && !tp) { /* Variadic template - tp < p */
-                              Swig_warning(WARN_LANG_NATIVE_UNIMPL,cparse_file, cparse_line,"Only the first variadic template argument is currently supported.\n");
+                              Swig_warning(WARN_CPP11_VARIADIC_TEMPLATE,cparse_file, cparse_line,"Only the first variadic template argument is currently supported.\n");
                               break;
                             }
                           }
@@ -3098,9 +3098,9 @@ c_declaration   : c_decl {
 		    appendChild($$,firstChild($5));
 		  }
                 }
-                | c_lambda_decl { Swig_warning(WARN_LANG_NATIVE_UNIMPL, cparse_file, cparse_line,"SWIG doesn't produce wrapper code for lambda expressions and closures yet.\n"); $$ = $1; }
-                | USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_LANG_NATIVE_UNIMPL, cparse_file, cparse_line,"SWIG doesn't support 'using' typedefs yet.\n"); $$ = 0; }
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_LANG_NATIVE_UNIMPL, cparse_file, cparse_line,"SWIG doesn't support template aliasing yet.\n"); $$ = 0; }
+                | c_lambda_decl { Swig_warning(WARN_CPP11_LAMBDA, cparse_file, cparse_line,"SWIG doesn't produce wrapper code for lambda expressions and closures yet.\n"); $$ = $1; }
+                | USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_DECLARATION, cparse_file, cparse_line,"SWIG doesn't support the 'using' keyword in type aliasing yet.\n"); $$ = 0; }
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_TEMPLATE, cparse_file, cparse_line,"SWIG doesn't support the 'using' keyword in template aliasing yet.\n"); $$ = 0; }
                 ;
 
 /* ------------------------------------------------------------
