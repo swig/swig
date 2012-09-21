@@ -9,10 +9,15 @@ struct point {
   int x_, y_;
 };
 
+#include <new> // For placement 'new' in the constructor below
 union P {
   int z;
   double w;
-  point p;
+  point p; // Illegal in C++03; legal in C++11.
+  // Due to the point member, a constructor definition is required.
+  P() {
+    new(&p) point();
+  }
 } p1;
 %}
 

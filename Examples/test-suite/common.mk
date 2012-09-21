@@ -448,6 +448,7 @@ CPP0X_TEST_CASES = \
 	cpp0x_template_double_brackets \
 	cpp0x_template_explicit \
         cpp0x_uniform_initialization \
+	cpp0x_unrestricted_unions \
 	cpp0x_userdefined_literals \
 	cpp0x_variadic_templates
 
@@ -456,7 +457,6 @@ CPP0X_TEST_CASES = \
 #	cpp0x_lambda_functions \      # not supported by GCC or MSVC yet
 #	cpp0x_template_typedefs \     # not supported by any compiler yet (now in gcc-4.7)
 #	cpp0x_thread_local \          # not supported by any compiler yet
-#	cpp0x_unrestricted_unions \   # not supported by any compiler yet (now in gcc-4.6 but generates internal compiler error)
 
 # Broken C++0x test cases.
 CPP0X_TEST_BROKEN = 

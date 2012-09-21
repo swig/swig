@@ -439,19 +439,24 @@ typedef void (*PFD)(double);  // The old style
 
 <p>SWIG fully supports any type inside a union even if it does not
 define a trivial constructor. For example, the wrapper for the following
-code is correctly produced:</p>
+code correctly provides access to all members in the union:</p>
 
 <div class="code"><pre>
 struct point {
   point() {}
-  point(int x, int y): x_(x), y_(y) {}
+  point(int x, int y) : x_(x), y_(y) {}
   int x_, y_;
 };
 
+#include <new> // For placement 'new' in the constructor below
 union P {
   int z;
   double w;
-  point p;  // Illegal in C++; point has a non-trivial constructor.  However, this is legal in C++0x.
+  point p; // Illegal in C++03; legal in C++11.
+  // Due to the point member, a constructor definition is required.
+  P() {
+    new(&amp;p) point();
+  }
 } p1;
 </pre></div>
 
