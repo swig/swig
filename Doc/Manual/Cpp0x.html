@@ -516,18 +516,49 @@ inside the string due to SWIG's C++ preprocessor.</p>
 <H3><a name="Cpp0x_User_defined_literals"></a>7.2.19 User-defined literals</H3>
 
 
-<p>SWIG correctly parses the new <tt>operator""_mysuffix()</tt> functions.</p>
+<p>
+SWIG parses the declaration of user-defined literals, that is, the <tt>operator "" _mysuffix()</tt> function syntax.
+</p>
 
+<p>
+Some examples are the raw literal:
+</p>
+<div class="code"><pre>
+OutputType operator "" _myRawLiteral(const char * value);
+</pre></div>
+
+<p>
+numeric cooked literals:
+</p>
+<div class="code"><pre>
+OutputType operator "" _mySuffixIntegral(unsigned long long);
+OutputType operator "" _mySuffixFloat(long double);
+</pre></div>
+
+<p>
+and cooked string literals:
+</p>
 <div class="code"><pre>
 OutputType operator "" _mySuffix(const char * string_values, size_t num_chars);
 OutputType operator "" _mySuffix(const wchar_t * string_values, size_t num_chars);
 OutputType operator "" _mySuffix(const char16_t * string_values, size_t num_chars);
 OutputType operator "" _mySuffix(const char32_t * string_values, size_t num_chars);
-OutputType operator "" _mySuffix(int value);
 </pre></div>
 
-<p>The %rename currently doesn't parse the double quotes. Please
-rename the functions in the code using the #define preprocessor directive.</p>
+<p>
+Note that the %rename directive currently does not parse the double quotes, so these can't be easily accessed from
+target languages.
+</p>
+
+<p>
+Use of user-defined literals such as the following still give a syntax error:
+</p>
+
+<div class="code"><pre>
+OutputType var1 = "1234"_suffix;
+OutputType var2 = 1234_suffix;
+OutputType var3 = 3.1416_suffix;
+</pre></div>
 
 <H3><a name="Cpp0x_Thread_local_storage"></a>7.2.20 Thread-local storage</H3>
 
