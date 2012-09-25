@@ -434,6 +434,7 @@ CPP0X_TEST_CASES = \
 	cpp0x_constexpr \
 	cpp0x_decltype \
 	cpp0x_default_delete \
+	cpp0x_delegating_constructors \
 	cpp0x_explicit_conversion_operators \
 	cpp0x_function_objects \
 	cpp0x_initializer_list \
@@ -453,7 +454,7 @@ CPP0X_TEST_CASES = \
 	cpp0x_userdefined_literals \
 	cpp0x_variadic_templates
 
-#	cpp0x_constructors \          # not supported by any compiler yet
+#	cpp0x_inheriting_constructors \ # not supported by gcc-4.7
 #	cpp0x_hash_tables \           # not fully implemented yet
 #	cpp0x_lambda_functions \      # not supported by GCC or MSVC yet
 #	cpp0x_thread_local \          # not supported by any compiler yet

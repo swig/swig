@@ -263,9 +263,31 @@ auto square(float a, float b) -&gt; decltype(a);
 <H3><a name="Cpp0x_Object_construction_improvement"></a>7.2.10 Object construction improvement</H3>
 
 
-<p>SWIG correctly parses and includes the external functions
-(constructor delegation and constructor inheritance) into the class
-using the <tt>using</tt> keyword.</p>
+<p>
+SWIG is able to handle constructor delegation, such as:
+</p>
+
+<div class="code"><pre>
+class A {
+public:
+  int a;
+  int b;
+  int c;
+
+  A() : A( 10 ) {}
+  A(int aa) : A(aa, 20) {}
+  A(int aa, int bb) : A(aa, bb, 30) {}
+  A(int aa, int bb, int cc) { a=aa; b=bb; c=cc; }
+};
+</pre></div>
+
+<p>
+Constructor inheritance is parsed correctly, but the additional constructors are not currently added to the derived proxy class in the target language. Example is shown below:
+<!--
+The extra constructors provided by the <tt>using</tt> syntax will add the appropriate constructors into the target language proxy derived classes.
+In the example below a wrapper for the <tt>DerivedClass(int)</tt> is added to <tt>DerivedClass</tt>:
+-->
+</p>
 
 <div class="code"><pre>
 class BaseClass {
