@@ -3295,8 +3295,9 @@ cpp_alternate_rettype : primitive_type { $$ = $1; }
    OR
    auto myFunc = [](int x, int y) { return x+y; }
 */
-c_lambda_decl  : c_lambda_decl_front LPAREN parms RPAREN LBRACE { skip_balanced('{','}'); } SEMI { $$ = 0; }
-               | c_lambda_decl_front LPAREN parms RPAREN ARROW type LBRACE { skip_balanced('{','}'); } SEMI { $$ = 0; }
+c_lambda_decl  : c_lambda_decl_front LPAREN parms RPAREN cpp_const LBRACE { skip_balanced('{','}'); } SEMI { $$ = 0; }
+               | c_lambda_decl_front LPAREN parms RPAREN cpp_const ARROW type LBRACE { skip_balanced('{','}'); } SEMI { $$ = 0; }
+               ;
 
 c_lambda_decl_front : storage_class AUTO idcolon EQUAL LBRACKET { skip_balanced('[',']'); $$ = 0; }
 
