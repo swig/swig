@@ -4638,7 +4638,11 @@ private:
       Append(ret, name);
       return ret;
     } else if (is_slice) {
+      // Slices are always passed as a _goslice_, whether or not references
+      // are involved.
       ret = NewString("_goslice_ ");
+      Append(ret, name);
+      return ret;
     } else if (is_function || is_member) {
       ret = NewString("void *");
       Append(ret, name);
