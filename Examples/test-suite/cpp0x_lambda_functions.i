@@ -36,6 +36,10 @@ auto lambda8 = [] (int x, int y) throw() -> int { return x+y; };
 auto lambda9 = [] (int x, int y) mutable throw() -> int { return x+y; };
 auto lambda10 = [] (int x, int y) throw(int) { return x+y; };
 auto lambda11 = [] (int x, int y) mutable throw(int) { return x+y; };
+auto lambda12 = [] (int a, int b) { return a + b; }(1, 2);
+auto lambda13 = [] (int a, int b) mutable { return a + b; }(1, 2);
+auto lambda14 = [] () throw () {};
+auto lambda15 = [] () mutable throw () {};
 
 int runLambda1() {
   return lambda1(5,6);
@@ -70,11 +74,9 @@ int runLambdaInline() {
 struct LambdaStruct {
   static constexpr auto lambda_struct1 = [=]() { return thing;};
 };
+int(*lambda101notauto)(int, int) = [] (int a, int b) { return a + b; };
 auto lambda100 = [] { return thing;};
-int lambda101 = [] (int a, int b) { return a + b; }(1, 2);
 int lambda102 = [] (int a, int b) mutable { return a + b; }(1, 2);
-auto lambda103 = [] () throw () { /* does not throw */ };
-auto lambda104 = [] () mutable throw () { /* does not throw */ };
 void lambda_init(int = ([=]{ return 0; })());
 %}
 

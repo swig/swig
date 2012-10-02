@@ -1690,7 +1690,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
-%type <node>     c_declaration c_decl c_decl_tail c_enum_key c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl c_lambda_decl c_lambda_decl_front ;
+%type <node>     c_declaration c_decl c_decl_tail c_enum_key c_enum_inherit c_enum_decl c_enum_forward_decl c_constructor_decl;
 %type <node>     enumlist edecl;
 
 /* C++ declarations */
@@ -1698,7 +1698,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert;
 %type <node>     cpp_swig_directive cpp_temp_possible cpp_nested cpp_opt_declarators ;
-%type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl ;
+%type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl cpp_lambda_decl;
 %type <node>     kwargs options;
 
 /* Misc */
@@ -1735,6 +1735,8 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
 %type <node>     featattr;
+%type <node>     lambda_introducer lambda_body;
+%type <pl>       lambda_tail;
 
 %%
 
@@ -3098,7 +3100,7 @@ c_declaration   : c_decl {
 		    appendChild($$,firstChild($5));
 		  }
                 }
-                | c_lambda_decl { Swig_warning(WARN_CPP11_LAMBDA, cparse_file, cparse_line,"Lambda expressions and closures are not fully supported yet.\n"); $$ = $1; }
+                | cpp_lambda_decl { Swig_warning(WARN_CPP11_LAMBDA, cparse_file, cparse_line,"Lambda expressions and closures are not fully supported yet.\n"); $$ = $1; }
                 | USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_DECLARATION, cparse_file, cparse_line,"The 'using' keyword in type aliasing is not fully supported yet.\n"); $$ = 0; }
                 | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_TEMPLATE, cparse_file, cparse_line,"The 'using' keyword in template aliasing is not fully supported yet.\n"); $$ = 0; }
                 ;
@@ -3290,17 +3292,40 @@ cpp_alternate_rettype : primitive_type { $$ = $1; }
               | decltype { $$ = $1; }
               ;
 
-/* Lambda function syntax introduced in C++0x.
-   auto myFunc = [](int x, int y) -> int { return x+y; }
-   OR
-   auto myFunc = [](int x, int y) { return x+y; }
+/* 
+  Lambda functions and expressions, such as:
+  auto myFunc = [](int x, int y) -> int { return x+y; };
+  auto myFunc = [](int x, int y) { return x+y; };
+  auto myFunc = [](int x, int y) { return x+y; }(1, 2);
 */
-c_lambda_decl  : c_lambda_decl_front LPAREN parms RPAREN cpp_const LBRACE { skip_balanced('{','}'); } SEMI { $$ = 0; }
-               | c_lambda_decl_front LPAREN parms RPAREN cpp_const ARROW type LBRACE { skip_balanced('{','}'); } SEMI { $$ = 0; }
-               ;
+cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
+		  $$ = 0;
+	        }
+                | storage_class AUTO idcolon EQUAL lambda_introducer LPAREN parms RPAREN cpp_const ARROW type lambda_body lambda_tail {
+		  $$ = 0;
+		}
+                ;
 
-c_lambda_decl_front : storage_class AUTO idcolon EQUAL LBRACKET { skip_balanced('[',']'); $$ = 0; }
+lambda_introducer : LBRACKET {
+		  skip_balanced('[',']');
+		  $$ = 0;
+	        }
+		;
 
+lambda_body : LBRACE {
+		  skip_balanced('{','}');
+		  $$ = 0;
+		}
+
+lambda_tail :	SEMI {
+		  $$ = 0;
+		}
+		| LPAREN {
+		  skip_balanced('(',')');
+		} SEMI {
+		  $$ = 0;
+		}
+		;
 
 /* ------------------------------------------------------------
    enum
