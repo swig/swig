@@ -42,6 +42,7 @@ auto lambda14 = [] () throw () {};
 auto lambda15 = [] () mutable throw () {};
 auto lambda16 = [] { return thing; };
 auto lambda17 = [] { return thing; }();
+constexpr auto lambda18 = [] (int x, int y) mutable throw(int) { return x+y; };
 
 int runLambda1() {
   return lambda1(5,6);
