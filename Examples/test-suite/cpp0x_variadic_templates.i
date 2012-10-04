@@ -4,9 +4,9 @@
    using variadic number of classes.
 */
 %module cpp0x_variadic_templates
-%warnfilter(507) MultiArgs1;
-%warnfilter(507) SizeOf1;
-%warnfilter(507) MultiInherit1;
+%warnfilter(SWIGWARN_CPP11_VARIADIC_TEMPLATE) MultiArgs;
+%warnfilter(SWIGWARN_CPP11_VARIADIC_TEMPLATE) SizeOf;
+%warnfilter(SWIGWARN_CPP11_VARIADIC_TEMPLATE) MultiInherit;
 
 ////////////////////////
 // Variadic templates //
@@ -36,7 +36,6 @@ template<typename... Args> struct SizeOf {
 };
 %}
 
-// TODO
 %template (SizeOf1) SizeOf<int, int>;
 
 //////////////////////////
@@ -48,7 +47,7 @@ public:
   A() {
     a = 100;
   }
-
+  virtual ~A() {}
   int a;
 };
 
@@ -57,14 +56,22 @@ public:
   B() {
     b = 200;
   }
+  virtual ~B() {}
   int b;
 };
 
 template <typename... BaseClasses> class MultiInherit : public BaseClasses... {
 public:
-   MultiInherit(BaseClasses&... baseClasses) : BaseClasses(baseClasses)... {}
+  MultiInherit(BaseClasses&... baseClasses) : BaseClasses(baseClasses)... {}
+  int InstanceMethod() { return 123; }
+  static int StaticMethod() { return 456; }
 };
 %}
 
+
 // TODO
-%template (MultiInherit1) MultiInherit<A,B>;
+//%template (MultiInherit0) MultiInherit<>;
+%template (MultiInherit1) MultiInherit<A>;
+// TODO
+%template (MultiInherit2) MultiInherit<A,B>;
+

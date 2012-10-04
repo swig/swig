@@ -500,7 +500,7 @@ union P {
 <H3><a name="Cpp0x_Variadic_templates"></a>7.2.17 Variadic templates</H3>
 
 
-<p>SWIG fully supports the variadic templates syntax (inside the &lt;&gt;
+<p>SWIG supports the variadic templates syntax (inside the &lt;&gt;
 block, variadic class inheritance and variadic constructor and
 initializers) with some limitations. The following code is correctly parsed:</p>
 
@@ -517,11 +517,13 @@ public:
 const int SIZE = sizeof...(ClassName&lt;int, int&gt;);
 </pre></div>
 
-<p>For now however, the <tt>%template</tt> directive only accepts at most the number of
-arguments defined in the original template&lt;&gt; block:</p>
+<p>
+For now however, the <tt>%template</tt> directive only accepts one parameter substitution
+for the variable template parameters.
+</p>
 
 <div class="code"><pre>
-%template(MyVariant1) ClassName&lt;&gt;         // ok
+%template(MyVariant1) ClassName&lt;&gt;         // zero argument not supported
 %template(MyVariant2) ClassName&lt;int&gt;      // ok
 %template(MyVariant3) ClassName&lt;int, int&gt; // too many arguments
 </pre></div>
