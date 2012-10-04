@@ -217,13 +217,28 @@ ignores it.</p>
 <H3><a name="Cpp0x_Lambda_functions_and_expressions"></a>7.2.8 Lambda functions and expressions</H3>
 
 
-<p>SWIG correctly parses the Lambda functions syntax. For example:</p>
+<p>SWIG correctly parses most of the Lambda functions syntax. For example:</p>
 <div class="code"><pre>
+auto val = [] { return something; };
+auto sum = [](int x, int y) { return x+y; };
 auto sum = [](int x, int y) -&gt; int { return x+y; };
 </pre></div>
 
 <p>The lambda functions are removed from the wrapper class for now, because of the lack of support
 for closures (scope of the lambda functions) in the target languages.</p>
+
+<p>
+Lambda functions used to create variables can also be parsed, but due to limited support of <tt>auto</tt> when
+the type is deduced from the expression, the variables are simply ignored.
+</p>
+
+<div class="code"><pre>
+auto six = [](int x, int y) { return x+y; }(4, 2);
+</pre></div>
+
+<p>
+Better support should be available in a later release.
+</p>
 
 <H3><a name="Cpp0x_Alternate_function_syntax"></a>7.2.9 Alternate function syntax</H3>
 

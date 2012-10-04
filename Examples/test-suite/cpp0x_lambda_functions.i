@@ -21,14 +21,14 @@ auto lambda4 = [=](int x, int y) { return x+y; };
 int thing = 0;
 #ifdef SWIG
 // Not strictly correct as captured variables should have non-automatic storage duration, ie shouldn't capture globals. gcc-4.7 warns about this, but we check that SWIG can parse this anyway.
-auto lambda5 = [=,&thing]() { return thing;};
+auto lambda5 = [=,&thing]() { return thing; };
 #else
-auto lambda5 = [=]() { return thing;};
+auto lambda5 = [=]() { return thing; };
 #endif
 
 void fn() {
   int stuff = 0;
-  auto lambdaxxxx = [=,&stuff]() { return thing;};
+  auto lambdaxxxx = [=,&stuff]() { return thing; };
 }
 auto lambda6 = [] (int a, int b) mutable { return a + b; };
 auto lambda7 = [] (int x, int y) -> int { return x+y; };
@@ -40,6 +40,8 @@ auto lambda12 = [] (int a, int b) { return a + b; }(1, 2);
 auto lambda13 = [] (int a, int b) mutable { return a + b; }(1, 2);
 auto lambda14 = [] () throw () {};
 auto lambda15 = [] () mutable throw () {};
+auto lambda16 = [] { return thing; };
+auto lambda17 = [] { return thing; }();
 
 int runLambda1() {
   return lambda1(5,6);
@@ -72,10 +74,9 @@ int runLambdaInline() {
 %{
 // TODO
 struct LambdaStruct {
-  static constexpr auto lambda_struct1 = [=]() { return thing;};
+  static constexpr auto lambda_struct1 = [=]() { return thing; };
 };
 int(*lambda101notauto)(int, int) = [] (int a, int b) { return a + b; };
-auto lambda100 = [] { return thing;};
 int lambda102 = [] (int a, int b) mutable { return a + b; }(1, 2);
 void lambda_init(int = ([=]{ return 0; })());
 %}

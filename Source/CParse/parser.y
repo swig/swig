@@ -3292,16 +3292,21 @@ cpp_alternate_rettype : primitive_type { $$ = $1; }
               | decltype { $$ = $1; }
               ;
 
-/* 
-  Lambda functions and expressions, such as:
-  auto myFunc = [](int x, int y) -> int { return x+y; };
-  auto myFunc = [](int x, int y) { return x+y; };
-  auto myFunc = [](int x, int y) { return x+y; }(1, 2);
-*/
+/* ------------------------------------------------------------
+   Lambda functions and expressions, such as:
+   auto myFunc = [] { return something; };
+   auto myFunc = [](int x, int y) { return x+y; };
+   auto myFunc = [](int x, int y) -> int { return x+y; };
+   auto myFunc = [](int x, int y) throw() -> int { return x+y; };
+   auto six = [](int x, int y) { return x+y; }(4, 2);
+   ------------------------------------------------------------ */
 cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
 		  $$ = 0;
 	        }
                 | storage_class AUTO idcolon EQUAL lambda_introducer LPAREN parms RPAREN cpp_const ARROW type lambda_body lambda_tail {
+		  $$ = 0;
+		}
+                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_body lambda_tail {
 		  $$ = 0;
 		}
                 ;
