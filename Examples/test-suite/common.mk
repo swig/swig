@@ -438,6 +438,7 @@ CPP0X_TEST_CASES = \
 	cpp0x_explicit_conversion_operators \
 	cpp0x_function_objects \
 	cpp0x_initializer_list \
+	cpp0x_lambda_functions \
 	cpp0x_null_pointer_constant \
 	cpp0x_raw_string_literals \
 	cpp0x_result_of \
@@ -456,7 +457,6 @@ CPP0X_TEST_CASES = \
 
 #	cpp0x_inheriting_constructors \ # not supported by gcc-4.7
 #	cpp0x_hash_tables \           # not fully implemented yet
-#	cpp0x_lambda_functions \      # not supported by GCC or MSVC yet
 #	cpp0x_thread_local \          # not supported by any compiler yet
 
 # Broken C++0x test cases.
