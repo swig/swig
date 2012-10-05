@@ -28,6 +28,8 @@ class GO:public Language {
   String *soname;
   // Size in bits of the C type "long".
   int long_type_size;
+  // Size in bits of the Go type "int".  0 if not specified.
+  int intgo_type_size;
 
   /* Output files */
   File *f_c_begin;
@@ -88,6 +90,7 @@ public:
      go_prefix(NULL),
      soname(NULL),
      long_type_size(32),
+     intgo_type_size(0),
      f_c_begin(NULL),
      f_go_begin(NULL),
      f_gc_begin(NULL),
@@ -173,6 +176,19 @@ private:
 	  } else {
 	    Swig_arg_error();
 	  }
+	} else if (strcmp(argv[i], "-intgosize") == 0) {
+	  if (argv[i + 1]) {
+	    intgo_type_size = atoi(argv[i + 1]);
+	    if (intgo_type_size != 32 && intgo_type_size != 64) {
+	      Printf(stderr, "-intgosize not 32 or 64\n");
+	      Swig_arg_error();
+	    }
+	    Swig_mark_arg(i);
+	    Swig_mark_arg(i + 1);
+	    ++i;
+	  } else {
+	    Swig_arg_error();
+	  }
 	} else if (strcmp(argv[i], "-help") == 0) {
 	  Printf(stdout, "%s\n", usage);
 	}
@@ -194,6 +210,22 @@ private:
       Preprocessor_define("SWIGGO_LONG_TYPE_SIZE 32", 0);
     } else {
       Preprocessor_define("SWIGGO_LONG_TYPE_SIZE 64", 0);
+    }
+
+    // This test may be removed in the future, when we can assume that
+    // everybody has upgraded to Go 1.1.  The code below is prepared
+    // for this test to simply be taken out.
+    if (intgo_type_size == 0) {
+      Printf(stderr, "SWIG -go: -intgosize option required but not specified\n");
+      SWIG_exit(EXIT_FAILURE);
+    }
+
+    if (intgo_type_size == 32) {
+      Preprocessor_define("SWIGGO_INTGO_SIZE 32", 0);
+    } else if (intgo_type_size == 64) {
+      Preprocessor_define("SWIGGO_INTGO_SIZE 64", 0);
+    } else {
+      Preprocessor_define("SWIGGO_INTGO_SIZE 0", 0);
     }
 
     // Add typemap definitions.
@@ -1130,9 +1162,8 @@ private:
       // A string has a pointer and a length.
       Append(orig, "(2 * SWIG_PARM_SIZE)");
     } else if (Strncmp(go, "[]", 2) == 0) {
-      // A slice has a pointer, a length, and a capacity.  The
-      // length and capacity are always 4 bytes.
-      Append(orig, "(SWIG_PARM_SIZE + 8)");
+      // A slice has a pointer, a length, and a capacity.
+      Append(orig, "(3 * SWIG_PARM_SIZE)");
     } else if (Strcmp(go, "float64") == 0) {
       Append(orig, "8");
     } else if (Strcmp(go, "complex64") == 0) {
@@ -1186,7 +1217,7 @@ private:
     Printv(f->code, "\tstruct swigargs {\n", NULL);
 
     if (parm_count > required_count) {
-      Printv(f->code, "\t\tint _swig_optargc;\n", NULL);
+      Printv(f->code, "\t\tintgo _swig_optargc;\n", NULL);
     }
 
     Parm *p = parms;
@@ -1298,7 +1329,7 @@ private:
     Printv(fnname, go_prefix, "_", wname, "(", NULL);
 
     if (parm_count > required_count) {
-      Printv(fnname, "int _swig_optargc", NULL);
+      Printv(fnname, "intgo _swig_optargc", NULL);
     }
 
     Parm *p = parms;
@@ -4614,19 +4645,20 @@ private:
     bool is_member = Strcmp(gt, "_swig_memberptr") == 0;
     bool is_complex64 = Strcmp(gt, "complex64") == 0;
     bool is_complex128 = Strcmp(gt, "complex128") == 0;
-    bool is_char = false;
-    bool is_short = false;
-    bool is_int = false;
-    bool is_long = false;
-    bool is_float = false;
-    bool is_double = false;
+    bool is_int8 = false;
+    bool is_int16 = false;
+    bool is_int = Strcmp(gt, "int") == 0 || Strcmp(gt, "uint") == 0;
+    bool is_int32 = false;
+    bool is_int64 = false;
+    bool is_float32 = false;
+    bool is_float64 = false;
     if ((n != NULL && Getattr(n, "tmap:gotype") != NULL) || hasGoTypemap(n, type)) {
-      is_char = Strcmp(gt, "int8") == 0 || Strcmp(gt, "uint8") == 0 || Strcmp(gt, "byte") == 0;
-      is_short = Strcmp(gt, "int16") == 0 || Strcmp(gt, "uint16") == 0;
-      is_int = Strcmp(gt, "int") == 0 || Strcmp(gt, "int32") == 0 || Strcmp(gt, "uint32") == 0;
-      is_long = Strcmp(gt, "int64") == 0 || Strcmp(gt, "uint64") == 0;
-      is_float = Strcmp(gt, "float32") == 0;
-      is_double = Strcmp(gt, "float64") == 0;
+      is_int8 = Strcmp(gt, "int8") == 0 || Strcmp(gt, "uint8") == 0 || Strcmp(gt, "byte") == 0;
+      is_int16 = Strcmp(gt, "int16") == 0 || Strcmp(gt, "uint16") == 0;
+      is_int32 = Strcmp(gt, "int32") == 0 || Strcmp(gt, "uint32") == 0;
+      is_int64 = Strcmp(gt, "int64") == 0 || Strcmp(gt, "uint64") == 0;
+      is_float32 = Strcmp(gt, "float32") == 0;
+      is_float64 = Strcmp(gt, "float64") == 0;
     }
     Delete(gt);
 
@@ -4677,7 +4709,12 @@ private:
 	  if (Strcmp(q, "const") == 0) {
 	    SwigType_del_qualifier(t);
 	    if (hasGoTypemap(n, t) || SwigType_ispointer(t)) {
-	      ret = SwigType_lstr(t, name);
+	      if (is_int) {
+		ret = NewString("intgo ");
+		Append(ret, name);
+	      } else {
+		ret = SwigType_lstr(t, name);
+	      }
 	      Delete(q);
 	      Delete(t);
 	      return ret;
@@ -4687,17 +4724,19 @@ private:
 	}
       }
       Delete(t);
-      if (is_char) {
+      if (is_int8) {
 	ret = NewString("char ");
-      } else if (is_short) {
+      } else if (is_int16) {
 	ret = NewString("short ");
       } else if (is_int) {
+	ret = NewString("intgo ");
+      } else if (is_int32) {
 	ret = NewString("int ");
-      } else if (is_long) {
+      } else if (is_int64) {
 	ret = NewString("long long ");
-      } else if (is_float) {
+      } else if (is_float32) {
 	ret = NewString("float ");
-      } else if (is_double) {
+      } else if (is_float64) {
 	ret = NewString("double ");
       } else {
 	return SwigType_lstr(type, name);
@@ -4871,6 +4910,7 @@ Go Options (available with -go)\n\
      -gccgo              - Generate code for gccgo rather than 6g/8g\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
      -longsize <s>       - Set size of C/C++ long type--32 or 64 bits\n\
+     -intgosize <s>      - Set size of Go int type--32 or 64 bits\n\
      -package <name>     - Set name of the Go package to <name>\n\
      -soname <name>      - Set shared library holding C/C++ code to <name>\n\
 \n";

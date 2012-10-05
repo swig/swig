@@ -2055,6 +2055,7 @@ if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then
   GOC=
   GO1=false
   GOGCC=false
+  GOOPT=
 else
 
   if test "x$GOBIN" = xyes; then
@@ -2065,6 +2066,7 @@ else
 
   GOGCC=false
   GO1=false
+  GOOPT=
   if test -n "$GO" ; then
     if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
       GOGCC=true
@@ -2074,10 +2076,30 @@ else
         AC_MSG_RESULT([yes - minimum version is 4.7.0])
       else
 	AC_MSG_RESULT([no])
+        if test "$go_version" -lt 480; then
+          GOOPT="-intgosize 32"
+	else
+	  AC_CHECK_SIZEOF([void *], [4])
+	  if test "$ac_cv_sizeof_void_p" = "8"; then
+	    GOOPT="-intgosize 64"
+	  else
+	    GOOPT="-intgosize 32"
+	  fi
+        fi
       fi
     elif test "`echo $GO | sed -e 's|.*/||'`" = "go"; then
       GO1=true
       GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
+      go_version=$($GO version | sed -e 's/go version //')
+      case $go_version in
+      go1.0*) GOOPT="-intgosize 32" ;;
+      *) if test "$GOC" = "6c"; then
+           GOOPT="-intgosize 64"
+         else
+           GOOPT="-intgosize 32"
+	 fi
+	 ;;
+      esac
     else
       GOC=`echo $GO | sed -e 's/g/c/'`
       AC_MSG_CHECKING([whether Go ($GO) version is too old])
@@ -2089,6 +2111,7 @@ else
       else
         AC_MSG_RESULT([no])
       fi
+      GOOPT="-intgosize 32"
     fi
   fi
 fi
@@ -2097,6 +2120,7 @@ AC_SUBST(GOGCC)
 AC_SUBST(GO)
 AC_SUBST(GOC)
 AC_SUBST(GO1)
+AC_SUBST(GOOPT)
 
 #----------------------------------------------------------------
 # Look for D

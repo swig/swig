@@ -1169,6 +1169,7 @@ GO = @GO@
 GOGCC = @GOGCC@
 GO1 = @GO1@
 GOC = @GOC@
+GOOPT = @GOOPT@
 
 GOSWIGARG = `if $(GOGCC) ; then echo -gccgo; fi`
 GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi`
@@ -1191,7 +1192,7 @@ GOGCCOBJS = $(GOSRCS:.go=.@OBJEXT@)
 # ----------------------------------------------------------------
 
 go: $(SRCS)
-	$(SWIG) -go $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIG) -go $(GOOPT) $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
@@ -1205,7 +1206,7 @@ go: $(SRCS)
 # ----------------------------------------------------------------
 
 go_cpp: $(SRCS)
-	$(SWIG) -go -c++ $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIG) -go -c++ $(GOOPT) $(GOSWIGARG) $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -g -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 	$(COMPILETOOL) $(GO) $(GOCOMPILEARG) -I . $(GOSRCS)
