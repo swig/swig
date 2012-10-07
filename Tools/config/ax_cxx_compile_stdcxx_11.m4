@@ -4,15 +4,18 @@
 #
 # SYNOPSIS
 #
-#   AX_CXX_COMPILE_STDCXX_11([ext|noext])
+#   AX_CXX_COMPILE_STDCXX_11([ext|noext], [nostop])
 #
 # DESCRIPTION
 #
 #   Check for baseline language coverage in the compiler for the C++11
 #   standard; if necessary, add switches to CXXFLAGS to enable support.
-#   Errors out if no mode that supports C++11 baseline syntax can be found.
-#   The argument, if specified, indicates whether you insist on an extended
-#   mode (e.g. -std=gnu++11) or a strict conformance mode (e.g. -std=c++11).
+#   CXX11FLAGS will also contain any necessary switches to enable support.
+#   HAVE_CXX11_COMPILER will additionally be set to yes if there is support.
+#   If the second argument is not specified, errors out if no mode that
+#   supports C++11 baseline syntax can be found. The first argument, if
+#   specified, indicates whether you insist on an extended mode
+#   (e.g. -std=gnu++11) or a strict conformance mode (e.g. -std=c++11).
 #   If neither is specified, you get whatever works, with preference for an
 #   extended mode.
 #
@@ -20,6 +23,7 @@
 #
 #   Copyright (c) 2008 Benjamin Kosnik <bkoz@redhat.com>
 #   Copyright (c) 2012 Zack Weinberg <zackw@panix.com>
+#   Copyright (c) 2012 William Fulton <wsf@fultondesigns.co.uk>
 #
 #   Copying and distribution of this file, with or without modification, are
 #   permitted in any medium without royalty provided the copyright notice
@@ -50,8 +54,12 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX_11], [dnl
         [$1], [ext], [],
         [$1], [noext], [],
         [m4_fatal([invalid argument `$1' to AX_CXX_COMPILE_STDCXX_11])])dnl
+  m4_if([$2], [], [],
+        [$2], [nostop], [],
+        [m4_fatal([invalid argument `$2' to AX_CXX_COMPILE_STDCXX_11])])dnl
   AC_LANG_ASSERT([C++])dnl
   ac_success=no
+  CXX11FLAGS=
   AC_CACHE_CHECK(whether $CXX supports C++11 features by default,
   ax_cv_cxx_compile_cxx11,
   [AC_COMPILE_IFELSE([AC_LANG_SOURCE([_AX_CXX_COMPILE_STDCXX_11_testbody])],
@@ -75,6 +83,7 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX_11], [dnl
          CXXFLAGS="$ac_save_CXXFLAGS"])
       if eval test x\$$cachevar = xyes; then
         CXXFLAGS="$CXXFLAGS $switch"
+        CXX11FLAGS=$switch
         ac_success=yes
         break
       fi
@@ -95,6 +104,7 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX_11], [dnl
          CXXFLAGS="$ac_save_CXXFLAGS"])
       if eval test x\$$cachevar = xyes; then
         CXXFLAGS="$CXXFLAGS $switch"
+        CXX11FLAGS=$switch
         ac_success=yes
         break
       fi
@@ -102,6 +112,10 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX_11], [dnl
   fi])
 
   if test x$ac_success = xno; then
-    AC_MSG_ERROR([*** A compiler with support for C++11 language features is required.])
+    if test x$2 != xnostop; then
+      AC_MSG_ERROR([*** A compiler with support for C++11 language features is required.])
+    fi
+  else
+    HAVE_CXX11_COMPILER=yes
   fi
 ])
