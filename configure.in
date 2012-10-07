@@ -314,16 +314,21 @@ case $host in
 esac
 
 # Optional CFLAGS used to silence compiler warnings on some platforms.
+AC_SUBST(PLATCFLAGS)
+PLATCFLAGS=
 
-AC_SUBST(PLATFLAGS)
-PLATFLAGS=
-
-# Add switch to enable C++0x support
+# Add switch if necessary to enable C++11 support - just for tests
+AC_LANG_PUSH([C++])
+CXXFLAGS_SAVED=$CXXFLAGS
+AX_CXX_COMPILE_STDCXX_11([noext], [nostop])
+CXXFLAGS=$CXXFLAGS_SAVED
+AC_LANG_POP([C++])
 AC_SUBST(PLATCXXFLAGS)
-if test "$GCC" = yes; then
-    PLATCXXFLAGS=$PLATFLAGS" -std=c++0x "
+AC_SUBST(HAVE_CXX11_COMPILER)
+if test x"$CXX11FLAGS" = x; then
+  PLATCXXFLAGS="$PLATCFLAGS"
 else
-    PLATCXXFLAGS=$PLATFLAGS
+  PLATCXXFLAGS="$CXX11FLAGS $PLATCFLAGS"
 fi
 
 # Check for specific libraries.   Used for SWIG examples
