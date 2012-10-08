@@ -4,6 +4,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.9 (in progress)
 ===========================
+2012-10-08: iant
+	    [Go] Generating Go code now requires using the -intgosize option to
+	    indicate the size of the 'int' type in Go.  This is because the
+	    size of the type is changing from Go 1.0 to Go 1.1 for x86_64. 
+
 2012-09-14: wsfulton
 	    Add new warning if the empty template instantiation is used as a base class, for example:
 
