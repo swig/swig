@@ -2991,8 +2991,8 @@ int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr
   } else {
     Node *c = Getattr(symbols, s);
     if (c && (c != n)) {
-      if (scope)
-	Swig_error(input_file, line_number, "'%s' is multiply defined in the generated target language module in scope %s.\n", s, scope);
+      if (scope && Len(scope) > 0)
+	Swig_error(input_file, line_number, "'%s' is multiply defined in the generated target language module in scope '%s'.\n", s, scope);
       else
 	Swig_error(input_file, line_number, "'%s' is multiply defined in the generated target language module.\n", s);
       Swig_error(Getfile(c), Getline(c), "Previous declaration of '%s'\n", s);
