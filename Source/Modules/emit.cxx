@@ -381,6 +381,21 @@ int emit_action_code(Node *n, String *wrappercode, String *eaction) {
         Replaceall(tm, "$fulldecl", fulldecl);
         Delete(fulldecl);
       }
+
+      Node *parentnode = parentNode(n);
+      Node *parentclass = (parentnode && Equal(nodeType(parentnode), "class")) ? parentnode : 0;
+      if (Strstr(tm, "$parentclasssymname")) {
+	String *parentclasssymname = 0;
+	if (parentclass)
+	  parentclasssymname = Getattr(parentclass, "sym:name");
+	Replaceall(tm, "$parentclasssymname", parentclasssymname ? parentclasssymname : "");
+      }
+      if (Strstr(tm, "$parentclassname")) {
+	String *parentclassname = 0;
+	if (parentclass)
+	  parentclassname = Getattr(parentclass, "name");
+	Replaceall(tm, "$parentclassname", parentclassname ? parentclassname : "");
+      }
     }
     Printv(wrappercode, tm, "\n", NIL);
     Delete(tm);
