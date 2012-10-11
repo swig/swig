@@ -354,6 +354,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern String *Swig_cmemberget_call(const_String_or_char_ptr name, SwigType *t, String *self, int varcref);
 
   extern int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self);
+  extern void Swig_replace_special_variables(Node *n, Node *parentnode, String *code);
 
 /* --- Transformations --- */
 

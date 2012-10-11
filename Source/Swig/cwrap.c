@@ -760,6 +760,46 @@ String *Swig_cmemberget_call(const_String_or_char_ptr name, SwigType *t, String 
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_replace_special_variables()
+ *
+ * Replaces special variables with a value from the supplied node
+ * ----------------------------------------------------------------------------- */
+void Swig_replace_special_variables(Node *n, Node *parentnode, String *code) {
+  Node *parentclass = parentnode;
+  String *overloaded = Getattr(n, "sym:overloaded");
+  Replaceall(code, "$name", Getattr(n, "name"));
+  Replaceall(code, "$symname", Getattr(n, "sym:name"));
+  Replaceall(code, "$wrapname", Getattr(n, "wrap:name"));
+  Replaceall(code, "$overname", overloaded ? Char(Getattr(n, "sym:overname")) : "");
+
+  if (Strstr(code, "$decl")) {
+    String *decl = Swig_name_decl(n);
+    Replaceall(code, "$decl", decl);
+    Delete(decl);
+  }
+  if (Strstr(code, "$fulldecl")) {
+    String *fulldecl = Swig_name_fulldecl(n);
+    Replaceall(code, "$fulldecl", fulldecl);
+    Delete(fulldecl);
+  }
+
+  if (parentclass && !Equal(nodeType(parentclass), "class"))
+    parentclass = 0;
+  if (Strstr(code, "$parentclasssymname")) {
+    String *parentclasssymname = 0;
+    if (parentclass)
+      parentclasssymname = Getattr(parentclass, "sym:name");
+    Replaceall(code, "$parentclasssymname", parentclasssymname ? parentclasssymname : "");
+  }
+  if (Strstr(code, "$parentclassname")) {
+    String *parentclassname = 0;
+    if (parentclass)
+      parentclassname = Getattr(parentclass, "name");
+    Replaceall(code, "$parentclassname", parentclassname ? parentclassname : "");
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * extension_code()
  *
  * Generates an extension function (a function defined in %extend)
@@ -767,14 +807,17 @@ String *Swig_cmemberget_call(const_String_or_char_ptr name, SwigType *t, String 
  *        return_type function_name(parms) code
  *
  * ----------------------------------------------------------------------------- */
-static String *extension_code(const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
+static String *extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
   String *parms_str = cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
   String *sig = NewStringf("%s(%s)", function_name, parms_str);
   String *rt_sig = SwigType_str(return_type, sig);
   String *body = NewStringf("SWIGINTERN %s", rt_sig);
   Printv(body, code, "\n", NIL);
-  if (self)
-    Replaceall(body, "$self", self);
+  if (Strstr(body, "$")) {
+    Swig_replace_special_variables(n, parentNode(parentNode(n)), body);
+    if (self)
+      Replaceall(body, "$self", self);
+  }
   Delete(parms_str);
   Delete(sig);
   Delete(rt_sig);
@@ -791,7 +834,7 @@ static String *extension_code(const String *function_name, ParmList *parms, Swig
  *
  * ----------------------------------------------------------------------------- */
 int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
-  String *body = extension_code(function_name, parms, return_type, code, cplusplus, self);
+  String *body = extension_code(n, function_name, parms, return_type, code, cplusplus, self);
   Setattr(n, "wrap:code", body);
   Delete(body);
   return SWIG_OK;

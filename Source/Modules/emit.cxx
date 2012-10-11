@@ -363,39 +363,9 @@ int emit_action_code(Node *n, String *wrappercode, String *eaction) {
     tm = Copy(tm);
   if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
     if (Strstr(tm, "$")) {
-      Replaceall(tm, "$name", Getattr(n, "name"));
-      Replaceall(tm, "$symname", Getattr(n, "sym:name"));
+      Swig_replace_special_variables(n, parentNode(n), tm);
       Replaceall(tm, "$function", eaction); // deprecated
       Replaceall(tm, "$action", eaction);
-      Replaceall(tm, "$wrapname", Getattr(n, "wrap:name"));
-      String *overloaded = Getattr(n, "sym:overloaded");
-      Replaceall(tm, "$overname", overloaded ? Char(Getattr(n, "sym:overname")) : "");
-
-      if (Strstr(tm, "$decl")) {
-        String *decl = Swig_name_decl(n);
-        Replaceall(tm, "$decl", decl);
-        Delete(decl);
-      }
-      if (Strstr(tm, "$fulldecl")) {
-        String *fulldecl = Swig_name_fulldecl(n);
-        Replaceall(tm, "$fulldecl", fulldecl);
-        Delete(fulldecl);
-      }
-
-      Node *parentnode = parentNode(n);
-      Node *parentclass = (parentnode && Equal(nodeType(parentnode), "class")) ? parentnode : 0;
-      if (Strstr(tm, "$parentclasssymname")) {
-	String *parentclasssymname = 0;
-	if (parentclass)
-	  parentclasssymname = Getattr(parentclass, "sym:name");
-	Replaceall(tm, "$parentclasssymname", parentclasssymname ? parentclasssymname : "");
-      }
-      if (Strstr(tm, "$parentclassname")) {
-	String *parentclassname = 0;
-	if (parentclass)
-	  parentclassname = Getattr(parentclass, "name");
-	Replaceall(tm, "$parentclassname", parentclassname ? parentclassname : "");
-      }
     }
     Printv(wrappercode, tm, "\n", NIL);
     Delete(tm);
