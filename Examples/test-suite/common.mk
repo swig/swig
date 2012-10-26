@@ -180,6 +180,7 @@ CPP_TEST_CASES += \
 	director_nspace \
 	director_nested \
 	director_overload \
+	director_overload2 \
 	director_primitives \
 	director_protected \
 	director_protected_overloaded \
