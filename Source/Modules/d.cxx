@@ -1927,13 +1927,11 @@ public:
    * underlying D object.
    * --------------------------------------------------------------------------- */
   virtual int classDirectorMethod(Node *n, Node *parent, String *super) {
-    String *empty_str = NewString("");
     String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
-    SwigType *type = Getattr(n, "type");
-    SwigType *returntype = Getattr(n, "returntype");
+    SwigType *returntype = Getattr(n, "type");
     String *overloaded_name = getOverloadedName(n);
     String *storage = Getattr(n, "storage");
     String *value = Getattr(n, "value");
@@ -2022,11 +2020,9 @@ public:
       }
 
       /* Create the intermediate class wrapper */
-      Parm *tp = NewParm(returntype, empty_str, n);
-
-      tm = lookupDTypemap(tp, "imtype");
+      tm = lookupDTypemap(n, "imtype");
       if (tm) {
-	String *imtypeout = Getattr(tp, "tmap:imtype:out");
+	String *imtypeout = Getattr(n, "tmap:imtype:out");
 	if (imtypeout) {
 	  // The type in the imtype typemap's out attribute overrides the type
 	  // in the typemap.
@@ -2039,9 +2035,7 @@ public:
 	  "No imtype typemap defined for %s\n", SwigType_str(returntype, 0));
       }
 
-      Parm *retpm = NewParm(returntype, empty_str, n);
-
-      if ((c_ret_type = Swig_typemap_lookup("ctype", retpm, "", 0))) {
+      if ((c_ret_type = Swig_typemap_lookup("ctype", n, "", 0))) {
 	if (!is_void && !ignored_method) {
 	  String *jretval_decl = NewStringf("%s jresult", c_ret_type);
 	  Wrapper_add_localv(w, "jresult", jretval_decl, "= 0", NIL);
@@ -2053,8 +2047,6 @@ public:
 	  SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	output_director = false;
       }
-
-      Delete(retpm);
     }
 
     Swig_director_parms_fixup(l);
@@ -2213,7 +2205,7 @@ public:
 
     /* header declaration, start wrapper definition */
     String *target;
-    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : type;
+    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
     target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
@@ -2259,16 +2251,10 @@ public:
     String *upcall = NewStringf("(cast(%s)dObject).%s(%s)", classname, symname, imcall_args);
 
     if (!is_void) {
-      Parm *tp = NewParm(returntype, empty_str, n);
-
-      // RESEARCH: What happens if there is no ddirectorout typemap?
-      if ((tm = lookupDTypemap(tp, "ddirectorout"))) {
+      if ((tm = lookupDTypemap(n, "ddirectorout"))) {
 	Replaceall(tm, "$dcall", upcall);
-
 	Printf(callback_code, "  return %s;\n", tm);
       }
-
-      Delete(tp);
     } else {
       Printf(callback_code, "  %s;\n", upcall);
     }
@@ -2285,11 +2271,9 @@ public:
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
 	String *result_str = NewString("c_result");
-	Parm *tp = NewParm(returntype, result_str, n);
 
 	/* Copy jresult into c_result... */
-	// FIXME: lookupDTypemap?
-	if ((tm = Swig_typemap_lookup("directorout", tp, result_str, w))) {
+	if ((tm = Swig_typemap_lookup("directorout", n, result_str, w))) {
 	  Replaceall(tm, "$input", jresult_str);
 	  Replaceall(tm, "$result", result_str);
 	  Printf(w->code, "%s\n", tm);
@@ -2300,7 +2284,6 @@ public:
 	  output_director = false;
 	}
 
-	Delete(tp);
 	Delete(jresult_str);
 	Delete(result_str);
       }
@@ -2365,8 +2348,7 @@ public:
       // We cannot directly use n here because its »type« attribute does not
       // the full return type any longer after Language::functionHandler has
       // returned.
-      Parm *tp = NewParm(returntype, empty_str, n);
-      String *dp_return_type = lookupDTypemap(tp, "dtype");
+      String *dp_return_type = lookupDTypemap(n, "dtype");
       if (dp_return_type) {
 	String *dtypeout = Getattr(n, "tmap:dtype:out");
 	if (dtypeout) {
@@ -2377,7 +2359,7 @@ public:
 	}
       } else {
 	Swig_warning(WARN_D_TYPEMAP_DTYPE_UNDEF, input_file, line_number,
-	  "No dtype typemap defined for %s\n", SwigType_str(type, 0));
+	  "No dtype typemap defined for %s\n", SwigType_str(returntype, 0));
 	dp_return_type = NewString("");
       }
 

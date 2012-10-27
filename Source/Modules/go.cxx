@@ -2853,7 +2853,6 @@ private:
 
   int classDirectorMethod(Node *n, Node *parent, String *super) {
     bool is_ignored = GetFlag(n, "feature:ignore") ? true : false;
-    bool is_pure_virtual = (Cmp(Getattr(n, "storage"), "virtual") == 0 && Cmp(Getattr(n, "value"), "0") == 0);
 
     // We don't need explicit calls.
     if (GetFlag(n, "explicitcall")) {
@@ -2866,18 +2865,8 @@ private:
       name = Getattr(n, "name");
     }
 
-    if (Getattr(class_methods, name)) {
-      // We need to emit a pure virtual function, even if it is
-      // overloaded.  Otherwise we won't be able to create an instance
-      // of the director class.  The function doesn't need to actually
-      // do anything.
-      if (!is_pure_virtual || Getattr(n, "sym:overloaded")) {
-	return SWIG_OK;
-      }
-    }
-    Setattr(class_methods, name, NewString(""));
-
-    if (!Getattr(n, "sym:overloaded")) {
+    bool overloaded = Getattr(n, "sym:overloaded") && !Getattr(n, "explicitcallnode");
+    if (!overloaded) {
       int r = oneClassDirectorMethod(n, parent, super);
       if (r != SWIG_OK) {
 	return r;
@@ -2888,47 +2877,54 @@ private:
       // class_methods so that we correctly handle cases where a
       // function in one class hides a function of the same name in a
       // parent class.
-      for (Node *on = Getattr(n, "sym:overloaded"); on; on = Getattr(on, "sym:nextSibling")) {
-	int r = oneClassDirectorMethod(on, parent, super);
+      if (!Getattr(class_methods, name)) {
+	for (Node *on = Getattr(n, "sym:overloaded"); on; on = Getattr(on, "sym:nextSibling")) {
+	  // Swig_overload_rank expects wrap:name and wrap:parms to be
+	  // set.
+	  String *wn = Swig_name_wrapper(Getattr(on, "sym:name"));
+	  Append(wn, Getattr(on, "sym:overname"));
+	  Setattr(on, "wrap:name", wn);
+	  Delete(wn);
+	  Setattr(on, "wrap:parms", Getattr(on, "parms"));
+	}
+      }
+
+      int r = oneClassDirectorMethod(n, parent, super);
+      if (r != SWIG_OK) {
+	return r;
+      }
+
+      if (!Getattr(n, "sym:nextSibling"))
+      {
+	// Last overloaded function
+	Node *on = Getattr(n, "sym:overloaded");
+	bool is_static = isStatic(on);
+
+	String *cn = exportedName(Getattr(parent, "sym:name"));
+	String *go_name = buildGoName(name, is_static, false);
+
+	String *director_struct_name = NewString("_swig_Director");
+	Append(director_struct_name, cn);
+
+	int r = makeDispatchFunction(on, go_name, director_struct_name, is_static, director_struct_name, false);
 	if (r != SWIG_OK) {
 	  return r;
 	}
 
-	// Swig_overload_rank expects wrap:name and wrap:parms to be
-	// set.
-	String *wn = Swig_name_wrapper(Getattr(on, "sym:name"));
-	Append(wn, Getattr(on, "sym:overname"));
-	Setattr(on, "wrap:name", wn);
-	Delete(wn);
-	Setattr(on, "wrap:parms", Getattr(on, "parms"));
+	String *go_upcall = NewString("Director");
+	Append(go_upcall, cn);
+	Append(go_upcall, go_name);
+	r = makeDispatchFunction(on, go_upcall, director_struct_name, is_static, director_struct_name, true);
+	if (r != SWIG_OK) {
+	  return r;
+	}
+	Delete(cn);
+	Delete(go_name);
+	Delete(director_struct_name);
+	Delete(go_upcall);
       }
-
-      bool is_static = isStatic(n);
-
-      String *cn = exportedName(Getattr(parent, "sym:name"));
-      String *go_name = buildGoName(name, is_static, false);
-
-      String *director_struct_name = NewString("_swig_Director");
-      Append(director_struct_name, cn);
-
-      int r = makeDispatchFunction(n, go_name, director_struct_name, is_static, director_struct_name, false);
-      if (r != SWIG_OK) {
-	return r;
-      }
-
-      String *go_upcall = NewString("Director");
-      Append(go_upcall, cn);
-      Append(go_upcall, go_name);
-      r = makeDispatchFunction(n, go_upcall, director_struct_name, is_static, director_struct_name, true);
-      if (r != SWIG_OK) {
-	return r;
-      }
-
-      Delete(cn);
-      Delete(go_name);
-      Delete(director_struct_name);
-      Delete(go_upcall);
     }
+    Setattr(class_methods, name, NewString(""));
 
     return SWIG_OK;
   }
@@ -2980,17 +2976,8 @@ private:
     Swig_typemap_attach_parms("gotype", parms, NULL);
     int parm_count = emit_num_arguments(parms);
 
-    SwigType *result = Getattr(n, "returntype");
-    if (!result) {
-      // This can happen when following overloads.
-      result = NewString(Getattr(n, "type"));
-      SwigType_push(result, Getattr(n, "decl"));
-      if (SwigType_isqualifier(result)) {
-	Delete(SwigType_pop(result));
-      }
-      Delete(SwigType_pop_function(result));
-      Setattr(n, "returntype", result);
-    }
+    SwigType *result = Getattr(n, "type");
+    SwigType *returntype = result;
 
     // Save the type for overload processing.
     Setattr(n, "go:type", result);
@@ -3177,7 +3164,8 @@ private:
       if (overname) {
 	Append(upcall_method_name, overname);
       }
-      String *upcall_decl = Swig_method_decl(Getattr(n, "type"), Getattr(n, "decl"), upcall_method_name, parms, 0, 0);
+      SwigType *rtype = Getattr(n, "classDirectorMethods:type");
+      String *upcall_decl = Swig_method_decl(rtype, Getattr(n, "decl"), upcall_method_name, parms, 0, 0);
       Printv(f_c_directors_h, "  ", upcall_decl, " {\n", NULL);
       Delete(upcall_decl);
 
@@ -3450,7 +3438,7 @@ private:
     if (!is_ignored || is_pure_virtual) {
       // Declare the method for the director class.
 
-      SwigType *rtype = (Getattr(n, "conversion_operator") ? NULL : Getattr(n, "type"));
+      SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
       String *decl = Swig_method_decl(rtype, Getattr(n, "decl"), Getattr(n, "name"), parms, 0, 0);
       Printv(f_c_directors_h, "  virtual ", decl, NULL);
       Delete(decl);
@@ -3474,7 +3462,7 @@ private:
       Printv(w->def, " {\n", NULL);
 
       if (SwigType_type(result) != T_VOID) {
-	Wrapper_add_local(w, "c_result", SwigType_lstr(Getattr(n, "returntype"), "c_result"));
+	Wrapper_add_local(w, "c_result", SwigType_lstr(returntype, "c_result"));
       }
 
       if (!is_ignored) {
@@ -3530,9 +3518,8 @@ private:
 	  Printv(w->code, "  crosscall2(", callback_wname, ", &swig_a, (int) sizeof swig_a);\n", NULL);
 
 	  if (SwigType_type(result) != T_VOID) {
-	    String *rname = NewString("c_result");
-	    Parm *rp = NewParm(Getattr(n, "returntype"), rname, n);
-	    String *tm = Swig_typemap_lookup("directorout", rp, rname, NULL);
+	    String *result_str = NewString("c_result");
+	    String *tm = Swig_typemap_lookup("directorout", n, result_str, NULL);
 	    if (!tm) {
 	      Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
 			   "Unable to use type %s as director method result\n", SwigType_str(result, 0));
@@ -3541,13 +3528,12 @@ private:
 	      Replaceall(tm, "$input", swig_a_result);
 	      Replaceall(tm, "$result", "c_result");
 	      Printv(w->code, "  ", tm, "\n", NULL);
-	      String *retstr = SwigType_rcaststr(Getattr(n, "returntype"), "c_result");
+	      String *retstr = SwigType_rcaststr(returntype, "c_result");
 	      Printv(w->code, "  return ", retstr, ";\n", NULL);
 	      Delete(retstr);
 	      Delete(tm);
 	    }
-	    Delete(rp);
-	    Delete(rname);
+	    Delete(result_str);
 	  }
 
 	  // The C wrapper code which calls the Go function.
@@ -3605,9 +3591,8 @@ private:
 	  Printv(w->code, callback_wname, "(go_val", args, ");\n", NULL);
 
 	  if (SwigType_type(result) != T_VOID) {
-	    String *rname = NewString("c_result");
-	    Parm *rp = NewParm(Getattr(n, "returntype"), rname, n);
-	    String *tm = Swig_typemap_lookup("directorout", rp, rname, NULL);
+	    String *result_str = NewString("c_result");
+	    String *tm = Swig_typemap_lookup("directorout", n, result_str, NULL);
 	    if (!tm) {
 	      Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
 			   "Unable to use type %s as director method result\n", SwigType_str(result, 0));
@@ -3615,13 +3600,12 @@ private:
 	      Replaceall(tm, "$input", Swig_cresult_name());
 	      Replaceall(tm, "$result", "c_result");
 	      Printv(w->code, "  ", tm, "\n", NULL);
-	      String *retstr = SwigType_rcaststr(Getattr(n, "returntype"), "c_result");
+	      String *retstr = SwigType_rcaststr(returntype, "c_result");
 	      Printv(w->code, "  return ", retstr, ";\n", NULL);
 	      Delete(retstr);
 	      Delete(tm);
 	    }
-	    Delete(rp);
-	    Delete(rname);
+	    Delete(result_str);
 	  }
 	}
 
@@ -3641,7 +3625,7 @@ private:
 	assert(is_pure_virtual);
 	Printv(w->code, "  _swig_gopanic(\"call to pure virtual function ", Getattr(parent, "sym:name"), name, "\");\n", NULL);
 	if (SwigType_type(result) != T_VOID) {
-	  String *retstr = SwigType_rcaststr(Getattr(n, "returntype"), "c_result");
+	  String *retstr = SwigType_rcaststr(returntype, "c_result");
 	  Printv(w->code, "  return ", retstr, ";\n", NULL);
 	  Delete(retstr);
 	}
@@ -3783,7 +3767,8 @@ private:
       mismatch = false;
       bool any_void = false;
       for (int i = 0; i < nfunc; ++i) {
-	Node *ni = Getitem(dispatch, i);
+	Node *nn = Getitem(dispatch, i);
+	Node *ni = Getattr(nn, "directorNode") ? Getattr(nn, "directorNode") : nn;
 	SwigType *result = Getattr(ni, "go:type");
 	assert(result);
 
@@ -3862,7 +3847,8 @@ private:
 
     for (int i = 0; i < nfunc; ++i) {
       int fn = 0;
-      Node *ni = Getitem(dispatch, i);
+      Node *nn = Getitem(dispatch, i);
+      Node *ni = Getattr(nn, "directorNode") ? Getattr(nn, "directorNode") : nn;
       Parm *pi = Getattr(ni, "wrap:parms");
 
       // If we are using a receiver, we want to ignore a leading self
@@ -3892,7 +3878,8 @@ private:
       // Build list of collisions with the same number of arguments.
       List *coll = NewList();
       for (int k = i + 1; k < nfunc; ++k) {
-	Node *nk = Getitem(dispatch, k);
+	Node *nnk = Getitem(dispatch, k);
+	Node *nk = Getattr(nnk, "directorNode") ? Getattr(nnk, "directorNode") : nnk;
 	Parm *pk = Getattr(nk, "wrap:parms");
 	if (use_receiver && pk && Getattr(pk, "self")) {
 	  pk = getParm(pk);

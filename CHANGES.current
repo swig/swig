@@ -4,6 +4,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 
 Version 2.0.9 (in progress)
 ===========================
+2012-10-26: wsfulton
+            Fix director typemap searching so that a typemap specified with a name will be correctly matched. Previously
+            the name was ignored during the typemap search. Applies to the following list of typemaps: 
+            directorout, csdirectorout, cstype, imtype, ctype, ddirectorout, dtype, gotype, jtype, jni, javadirectorout.
+
 2012-10-11: wsfulton
             Most of the special variables available for use in %exception are now also available for expansion in
             %extend blocks. These are: $name $symname $overname $decl $fulldecl $parentname $parentsymname, see docs

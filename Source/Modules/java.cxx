@@ -3519,7 +3519,6 @@ public:
     String *c_classname = Getattr(parent, "name");
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
-    SwigType *type = Getattr(n, "type");
     SwigType *returntype = Getattr(n, "returntype");
     String *overloaded_name = getOverloadedName(n);
     String *storage = Getattr(n, "storage");
@@ -3616,9 +3615,7 @@ public:
       }
 
       /* Create the intermediate class wrapper */
-      Parm *tp = NewParm(returntype, empty_str, n);
-
-      tm = Swig_typemap_lookup("jtype", tp, "", 0);
+      tm = Swig_typemap_lookup("jtype", n, "", 0);
       if (tm) {
 	Printf(callback_def, "  public static %s %s(%s self", tm, imclass_dmethod, qualified_classname);
       } else {
@@ -3628,7 +3625,8 @@ public:
       String *cdesc = NULL;
       SwigType *covariant = Getattr(n, "covariant");
       SwigType *adjustedreturntype = covariant ? covariant : returntype;
-      Parm *adjustedreturntypeparm = NewParm(adjustedreturntype, empty_str, n);
+      Parm *adjustedreturntypeparm = NewParm(adjustedreturntype, name, n);
+//      Setattr(adjustedreturntypeparm, "sym:symtab", Getattr(n, "sym:symtab"));
 
       if ((tm = Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0))
 	  && (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
@@ -3647,11 +3645,8 @@ public:
 
       /* Get the JNI field descriptor for this return type, add the JNI field descriptor
          to jniret_desc */
-
-      Parm *retpm = NewParm(returntype, empty_str, n);
-
-      if ((c_ret_type = Swig_typemap_lookup("jni", retpm, "", 0))) {
-	Parm *tp = NewParm(c_ret_type, empty_str, n);
+      if ((c_ret_type = Swig_typemap_lookup("jni", n, "", 0))) {
+	Parm *tp = NewParm(c_ret_type, name, n);
 
 	if (!is_void && !ignored_method) {
 	  String *jretval_decl = NewStringf("%s jresult", c_ret_type);
@@ -3685,7 +3680,6 @@ public:
       }
 
       Delete(adjustedreturntypeparm);
-      Delete(retpm);
       Delete(qualified_classname);
     }
 
@@ -3755,7 +3749,7 @@ public:
     } else {
       Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
 		   "No or improper directorin typemap for type %s  for use in %s::%s (skipping director method)\n", 
-		   SwigType_str(type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+		   SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
       output_director = false;
     }
 
@@ -3879,7 +3873,6 @@ public:
 	  output_director = false;
 	}
 
-	Delete(tp);
       } else {
 	Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s for use in %s::%s (skipping director method)\n", 
 	    SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
@@ -3894,7 +3887,7 @@ public:
 
     /* header declaration, start wrapper definition */
     String *target;
-    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : type;
+    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
     target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
@@ -3944,21 +3937,18 @@ public:
     addThrows(n, "feature:except", n);
 
     if (!is_void) {
-      Parm *tp = NewParm(returntype, empty_str, n);
-
-      if ((tm = Swig_typemap_lookup("javadirectorout", tp, "", 0))) {
-        addThrows(n, "tmap:javadirectorout", tp);
+      if ((tm = Swig_typemap_lookup("javadirectorout", n, "", 0))) {
+        addThrows(n, "tmap:javadirectorout", n);
 	substituteClassname(returntype, tm);
 	Replaceall(tm, "$javacall", upcall);
 
 	Printf(callback_code, "    return %s;\n", tm);
       }
 
-      if ((tm = Swig_typemap_lookup("out", tp, "", 0)))
-        addThrows(n, "tmap:out", tp);
+      if ((tm = Swig_typemap_lookup("out", n, "", 0)))
+        addThrows(n, "tmap:out", n);
 
       Delete(tm);
-      Delete(tp);
     } else
       Printf(callback_code, "    %s;\n", upcall);
 
@@ -3988,11 +3978,10 @@ public:
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
 	String *result_str = NewString("c_result");
-	Parm *tp = NewParm(returntype, result_str, n);
 
 	/* Copy jresult into c_result... */
-	if ((tm = Swig_typemap_lookup("directorout", tp, result_str, w))) {
-	  addThrows(n, "tmap:directorout", tp);
+	if ((tm = Swig_typemap_lookup("directorout", n, result_str, w))) {
+	  addThrows(n, "tmap:directorout", n);
 	  Replaceall(tm, "$input", jresult_str);
 	  Replaceall(tm, "$result", result_str);
 	  Printf(w->code, "%s\n", tm);
@@ -4003,7 +3992,6 @@ public:
 	  output_director = false;
 	}
 
-	Delete(tp);
 	Delete(jresult_str);
 	Delete(result_str);
       }

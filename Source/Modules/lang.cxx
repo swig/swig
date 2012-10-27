@@ -2041,9 +2041,12 @@ int Language::classDirectorMethods(Node *n) {
     if (!Cmp(type, "destructor")) {
       classDirectorDestructor(method);
     } else {
-      if (classDirectorMethod(method, n, fqdname) == SWIG_OK) {
-	Setattr(item, "director", "1");
-      }
+      Swig_require("classDirectorMethods", method, "*type", NIL);
+      assert(Getattr(method, "returntype"));
+      Setattr(method, "type", Getattr(method, "returntype"));
+      if (classDirectorMethod(method, n, fqdname) == SWIG_OK)
+	SetFlag(item, "director");
+      Swig_restore(method);
     }
   }
 
