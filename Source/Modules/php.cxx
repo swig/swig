@@ -2416,7 +2416,7 @@ done:
     int is_void = 0;
     int is_pointer = 0;
     String *decl = Getattr(n, "decl");
-    String *return_type = Getattr(n, "type");
+    String *returntype = Getattr(n, "type");
     String *name = Getattr(n, "name");
     String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
@@ -2441,7 +2441,7 @@ done:
 
     /* determine if the method returns a pointer */
     is_pointer = SwigType_ispointer_return(decl);
-    is_void = (Cmp(return_type, "void") == 0 && !is_pointer);
+    is_void = (Cmp(returntype, "void") == 0 && !is_pointer);
 
     /* virtual method definition */
     String *target;
@@ -2497,7 +2497,7 @@ done:
      */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	String *cres = SwigType_lstr(return_type, "c_result");
+	String *cres = SwigType_lstr(returntype, "c_result");
 	Printf(w->code, "%s;\n", cres);
 	Delete(cres);
       }
@@ -2650,7 +2650,7 @@ done:
 	  Delete(tm);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-	      "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0), SwigType_namestr(c_classname),
+	      "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0), SwigType_namestr(c_classname),
 	      SwigType_namestr(name));
 	  status = SWIG_ERROR;
 	}
@@ -2677,8 +2677,8 @@ done:
 
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	String *rettype = SwigType_str(return_type, 0);
-	if (!SwigType_isreference(return_type)) {
+	String *rettype = SwigType_str(returntype, 0);
+	if (!SwigType_isreference(returntype)) {
 	  Printf(w->code, "return (%s) c_result;\n", rettype);
 	} else {
 	  Printf(w->code, "return (%s) *c_result;\n", rettype);

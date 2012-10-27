@@ -4538,7 +4538,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   Wrapper *w = NewWrapper();
   String *tm;
   String *wrap_args = NewString("");
-  String *return_type = Getattr(n, "type");
+  String *returntype = Getattr(n, "type");
   String *value = Getattr(n, "value");
   String *storage = Getattr(n, "storage");
   bool pure_virtual = false;
@@ -4554,7 +4554,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
   /* determine if the method returns a pointer */
   is_pointer = SwigType_ispointer_return(decl);
-  is_void = (!Cmp(return_type, "void") && !is_pointer);
+  is_void = (!Cmp(returntype, "void") && !is_pointer);
 
   /* virtual method definition */
   String *target;
@@ -4608,7 +4608,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
    */
   if (!is_void) {
     if (!(ignored_method && !pure_virtual)) {
-      String *cres = SwigType_lstr(return_type, "c_result");
+      String *cres = SwigType_lstr(returntype, "c_result");
       Printf(w->code, "%s;\n", cres);
       Delete(cres);
     }
@@ -4903,7 +4903,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	Delete(tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-		     "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0), SwigType_namestr(c_classname),
+		     "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0), SwigType_namestr(c_classname),
 		     SwigType_namestr(name));
 	status = SWIG_ERROR;
       }
@@ -4940,8 +4940,8 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
   if (!is_void) {
     if (!(ignored_method && !pure_virtual)) {
-      String *rettype = SwigType_str(return_type, 0);
-      if (!SwigType_isreference(return_type)) {
+      String *rettype = SwigType_str(returntype, 0);
+      if (!SwigType_isreference(returntype)) {
 	Printf(w->code, "return (%s) c_result;\n", rettype);
       } else {
 	Printf(w->code, "return (%s) *c_result;\n", rettype);

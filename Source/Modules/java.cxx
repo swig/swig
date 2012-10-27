@@ -3519,7 +3519,7 @@ public:
     String *c_classname = Getattr(parent, "name");
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
-    SwigType *returntype = Getattr(n, "returntype");
+    SwigType *returntype = Getattr(n, "type");
     String *overloaded_name = getOverloadedName(n);
     String *storage = Getattr(n, "storage");
     String *value = Getattr(n, "value");

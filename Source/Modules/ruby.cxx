@@ -3027,7 +3027,7 @@ public:
     Wrapper *w = NewWrapper();
     String *tm;
     String *wrap_args = NewString("");
-    String *return_type = Getattr(n, "type");
+    String *returntype = Getattr(n, "type");
     Parm *p;
     String *value = Getattr(n, "value");
     String *storage = Getattr(n, "storage");
@@ -3050,7 +3050,7 @@ public:
 
     /* determine if the method returns a pointer */
     is_pointer = SwigType_ispointer_return(decl);
-    is_void = (!Cmp(return_type, "void") && !is_pointer);
+    is_void = (!Cmp(returntype, "void") && !is_pointer);
 
     /* virtual method definition */
     String *target;
@@ -3107,7 +3107,7 @@ public:
      */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
+	Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
       }
     }
 
@@ -3292,7 +3292,7 @@ public:
 	  Printv(w->code, tm, "\n", NIL);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-		       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(return_type, 0),
+		       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0),
 		       SwigType_namestr(c_classname), SwigType_namestr(name));
 	  status = SWIG_ERROR;
 	}
@@ -3323,8 +3323,8 @@ public:
     /* any existing helper functions to handle this? */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	String *rettype = SwigType_str(return_type, 0);
-	if (!SwigType_isreference(return_type)) {
+	String *rettype = SwigType_str(returntype, 0);
+	if (!SwigType_isreference(returntype)) {
 	  Printf(w->code, "return (%s) c_result;\n", rettype);
 	} else {
 	  Printf(w->code, "return (%s) *c_result;\n", rettype);

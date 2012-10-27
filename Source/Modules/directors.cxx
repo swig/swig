@@ -132,7 +132,7 @@ String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
  *
  */
 
-String *Swig_method_decl(SwigType *returntype, SwigType *decl, const_String_or_char_ptr id, List *args, int strip, int values) {
+String *Swig_method_decl(SwigType *rettype, SwigType *decl, const_String_or_char_ptr id, List *args, int strip, int values) {
   String *result;
   List *elements;
   String *element = 0, *nextelement;
@@ -203,7 +203,7 @@ String *Swig_method_decl(SwigType *returntype, SwigType *decl, const_String_or_c
 	  Append(result, ", ");
       }
       Append(result, ")");
-    } else if (returntype) { // This check is intended for conversion operators to a pointer/reference which needs the pointer/reference ignoring in the declaration
+    } else if (rettype) { // This check is intended for conversion operators to a pointer/reference which needs the pointer/reference ignoring in the declaration
       if (SwigType_ispointer(element)) {
 	Insert(result, 0, "*");
 	if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
@@ -256,9 +256,9 @@ String *Swig_method_decl(SwigType *returntype, SwigType *decl, const_String_or_c
 
   Chop(result);
 
-  if (returntype) {
+  if (rettype) {
     Insert(result, 0, " ");
-    String *rtype = SwigType_str(returntype, 0);
+    String *rtype = SwigType_str(rettype, 0);
     Insert(result, 0, rtype);
     Delete(rtype);
   }

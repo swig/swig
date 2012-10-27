@@ -1383,7 +1383,7 @@ public:
     String *storage = Getattr(n, "storage");
     String *value = Getattr(n, "value");
     String *decl = Getattr(n, "decl");
-    String *return_type = Getattr(n, "type");
+    String *returntype = Getattr(n, "type");
     String *name = Getattr(n, "name");
     String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
@@ -1408,7 +1408,7 @@ public:
 
     /* determine if the method returns a pointer */
     is_pointer = SwigType_ispointer_return(decl);
-    is_void = (!Cmp(return_type, "void") && !is_pointer);
+    is_void = (!Cmp(returntype, "void") && !is_pointer);
 
     /* virtual method definition */
     String *target;
@@ -1430,7 +1430,7 @@ public:
      */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
+	Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
       }
     }
 
@@ -1629,15 +1629,15 @@ public:
       if (!(ignored_method && !pure_virtual)) {
 	/* A little explanation:
 	 * The director_enum test case makes a method whose return type
-	 * is an enum type.  return_type here is "int".  gcc complains
+	 * is an enum type.  returntype here is "int".  gcc complains
 	 * about an implicit enum conversion, and although i don't strictly
 	 * agree with it, I'm working on fixing the error:
 	 *
 	 * Below is what I came up with.  It's not great but it should
 	 * always essentially work.
 	 */
-	if (!SwigType_isreference(return_type)) {
-	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", SwigType_lstr(return_type, ""));
+	if (!SwigType_isreference(returntype)) {
+	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", SwigType_lstr(returntype, ""));
 	} else {
 	  Printf(w->code, "CAMLreturn_type(*c_result);\n");
 	}

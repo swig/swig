@@ -2977,7 +2977,6 @@ private:
     int parm_count = emit_num_arguments(parms);
 
     SwigType *result = Getattr(n, "type");
-    SwigType *returntype = result;
 
     // Save the type for overload processing.
     Setattr(n, "go:type", result);
@@ -3462,7 +3461,7 @@ private:
       Printv(w->def, " {\n", NULL);
 
       if (SwigType_type(result) != T_VOID) {
-	Wrapper_add_local(w, "c_result", SwigType_lstr(returntype, "c_result"));
+	Wrapper_add_local(w, "c_result", SwigType_lstr(result, "c_result"));
       }
 
       if (!is_ignored) {
@@ -3528,7 +3527,7 @@ private:
 	      Replaceall(tm, "$input", swig_a_result);
 	      Replaceall(tm, "$result", "c_result");
 	      Printv(w->code, "  ", tm, "\n", NULL);
-	      String *retstr = SwigType_rcaststr(returntype, "c_result");
+	      String *retstr = SwigType_rcaststr(result, "c_result");
 	      Printv(w->code, "  return ", retstr, ";\n", NULL);
 	      Delete(retstr);
 	      Delete(tm);
@@ -3600,7 +3599,7 @@ private:
 	      Replaceall(tm, "$input", Swig_cresult_name());
 	      Replaceall(tm, "$result", "c_result");
 	      Printv(w->code, "  ", tm, "\n", NULL);
-	      String *retstr = SwigType_rcaststr(returntype, "c_result");
+	      String *retstr = SwigType_rcaststr(result, "c_result");
 	      Printv(w->code, "  return ", retstr, ";\n", NULL);
 	      Delete(retstr);
 	      Delete(tm);
@@ -3625,7 +3624,7 @@ private:
 	assert(is_pure_virtual);
 	Printv(w->code, "  _swig_gopanic(\"call to pure virtual function ", Getattr(parent, "sym:name"), name, "\");\n", NULL);
 	if (SwigType_type(result) != T_VOID) {
-	  String *retstr = SwigType_rcaststr(returntype, "c_result");
+	  String *retstr = SwigType_rcaststr(result, "c_result");
 	  Printv(w->code, "  return ", retstr, ";\n", NULL);
 	  Delete(retstr);
 	}
