@@ -4709,6 +4709,11 @@ private:
 	  Delete(q);
 	}
       }
+
+      if (Language::enumLookup(t) != NULL || Strcmp(t, "enum ") == 0) {
+	is_int = true;
+      }
+
       Delete(t);
       if (is_int8) {
 	ret = NewString("char ");
