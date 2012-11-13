@@ -431,6 +431,7 @@ CPP_TEST_CASES += \
 	typedef_struct \
 	typemap_arrays \
 	typemap_delete \
+	typemap_directorout \
 	typemap_global_scope \
 	typemap_manyargs \
 	typemap_namespace \
