@@ -1419,7 +1419,12 @@ int Language::membervariableHandler(Node *n) {
 	  target = NewStringf("%s->%s", pname, name);
 	  Delete(pname);
 	}
-	tm = Swig_typemap_lookup("memberin", n, target, 0);
+
+	// This is an input type typemap lookup and so it should not use Node n
+	// otherwise qualification is done on the parameter name for the setter function
+	Parm *nin = NewParm(type, name, n);
+	tm = Swig_typemap_lookup("memberin", nin, target, 0);
+	Delete(nin);
       }
       int flags = Extend | SmartPointer | use_naturalvar_mode(n);
       if (isNonVirtualProtectedAccess(n))

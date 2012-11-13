@@ -3514,7 +3514,6 @@ public:
    * --------------------------------------------------------------- */
 
   int classDirectorMethod(Node *n, Node *parent, String *super) {
-    String *empty_str = NewString("");
     String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
     String *name = Getattr(n, "name");
@@ -3625,8 +3624,7 @@ public:
       String *cdesc = NULL;
       SwigType *covariant = Getattr(n, "covariant");
       SwigType *adjustedreturntype = covariant ? covariant : returntype;
-      Parm *adjustedreturntypeparm = NewParm(adjustedreturntype, name, n);
-//      Setattr(adjustedreturntypeparm, "sym:symtab", Getattr(n, "sym:symtab"));
+      Parm *adjustedreturntypeparm = NewParmNode(adjustedreturntype, n);
 
       if ((tm = Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0))
 	  && (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
@@ -3646,7 +3644,7 @@ public:
       /* Get the JNI field descriptor for this return type, add the JNI field descriptor
          to jniret_desc */
       if ((c_ret_type = Swig_typemap_lookup("jni", n, "", 0))) {
-	Parm *tp = NewParm(c_ret_type, name, n);
+	Parm *tp = NewParmNode(c_ret_type, n);
 
 	if (!is_void && !ignored_method) {
 	  String *jretval_decl = NewStringf("%s jresult", c_ret_type);
@@ -3737,7 +3735,7 @@ public:
     }
 
     /* Start the Java field descriptor for the intermediate class's upcall (insert self object) */
-    Parm *tp = NewParm(c_classname, empty_str, n);
+    Parm *tp = NewParmNode(c_classname, n);
     String *jdesc;
 
     if ((tm = Swig_typemap_lookup("directorin", tp, "", 0))
@@ -3779,7 +3777,7 @@ public:
 
       /* Get parameter's intermediary C type */
       if ((c_param_type = Getattr(p, "tmap:jni"))) {
-	Parm *tp = NewParm(c_param_type, empty_str, n);
+	Parm *tp = NewParm(c_param_type, Getattr(p, "name"), n);
 	String *desc_tm = NULL, *jdesc = NULL, *cdesc = NULL;
 
 	/* Add to local variables */

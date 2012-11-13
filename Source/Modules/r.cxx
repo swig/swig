@@ -682,7 +682,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
        XXX  Have to be a little more clever so that we can deal with struct A * - the * is getting lost.
        Is this still true? If so, will a SwigType_push() solve things?
     */
-    Parm *bbase = NewParm(rettype, Swig_cresult_name(), n);
+    Parm *bbase = NewParmNode(rettype, n);
     String *returnTM = Swig_typemap_lookup("in", bbase, Swig_cresult_name(), f);
     if(returnTM) {
       String *tm = returnTM;
