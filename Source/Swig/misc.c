@@ -880,8 +880,8 @@ String *Swig_scopename_last(const String *s) {
 
   while (*c) {
     if ((*c == ':') && (*(c + 1) == ':')) {
-      cc = c;
       c += 2;
+      cc = c;
     } else {
       if (*c == '<') {
 	int level = 1;
@@ -898,7 +898,7 @@ String *Swig_scopename_last(const String *s) {
       }
     }
   }
-  return NewString(cc + 2);
+  return NewString(cc);
 }
 
 /* -----------------------------------------------------------------------------
