@@ -1339,22 +1339,11 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
 
   pname = Getattr(node, "name");
 
-/*
   if (pname && node && Getattr(node, "sym:symtab")) {
-   if (!checkAttribute(node, "kind", "function")) {
-     Printf(stdout, "New check: %s %s %s\n", Getattr(node, "name"), nodeType(node), Getattr(node, "kind"));
-   }
-  }
-*/
-  if (pname && node && Getattr(node, "sym:symtab")) {
-  /*
-  if (pname && node && checkAttribute(node, "kind", "function")) {
-  */
-    /* 
-       For functions, add on a qualified name search, for example
-       struct Foo {
-         int *foo(int bar)   ->  Foo::foo
-       };
+    /* Add on a qualified name search for any symbol, for example:
+     * struct Foo {
+     *   int *foo(int bar)   ->  Foo::foo
+     * };
      */
     Symtab *st = Getattr(node, "sym:symtab");
     String *qsn = st ? Swig_symbol_string_qualify(pname, st) : 0;

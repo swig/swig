@@ -1800,7 +1800,7 @@ String *Swig_symbol_string_qualify(String *s, Symtab *st) {
   char *c = Char(s);
   int first_char = 1;
   while (*c) {
-    if (isalpha((int) *c) || (*c == '_') || (*c == ':') || (isdigit((int) *c) && !first_char)) {
+    if (isalpha((int) *c) || (*c == '_') || (*c == ':') || (*c == '~' && first_char) || (isdigit((int) *c) && !first_char)) {
       Putc(*c, id);
       have_id = 1;
     } else {
