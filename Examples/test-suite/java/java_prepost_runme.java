@@ -16,7 +16,7 @@ public class java_prepost_runme {
   {
     // ensure checked exception is generated
     try {
-      PrePostThrows ppt = new PrePostThrows(null);
+      PrePostThrows ppt = new PrePostThrows(null, true);
     } catch (InstantiationException e) {
     }
   }
