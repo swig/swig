@@ -1549,6 +1549,7 @@ static int symbol_no_constructor(Node *n) {
  * Swig_symbol_type_qualify()
  *
  * Create a fully qualified type name
+ * Note: Does not resolve a constructor if passed in as the 'type'.
  * ----------------------------------------------------------------------------- */
 
 SwigType *Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {

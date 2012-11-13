@@ -2170,8 +2170,7 @@ static void addCopyConstructor(Node *n) {
 
   String *cname = Getattr(n, "name");
   SwigType *type = Copy(cname);
-  String *last = Swig_scopename_last(cname);
-  String *name = NewStringf("%s::%s", cname, last);
+  String *name = Swig_scopename_last(cname);
   String *cc = NewStringf("r.q(const).%s", type);
   String *decl = NewStringf("f(%s).", cc);
   String *csymname = Getattr(n, "sym:name");
@@ -2196,7 +2195,7 @@ static void addCopyConstructor(Node *n) {
     }
   }
 
-  String *symname = Swig_name_make(cn, cname, last, decl, oldname);
+  String *symname = Swig_name_make(cn, cname, name, decl, oldname);
   if (Strcmp(symname, "$ignore") != 0) {
     if (!symname) {
       symname = Copy(csymname);
@@ -2213,8 +2212,8 @@ static void addCopyConstructor(Node *n) {
 
     Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
     Node *on = Swig_symbol_add(symname, cn);
+    Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(0), name, decl, cn);
     Swig_symbol_setscope(oldscope);
-    Swig_features_get(Swig_cparse_features(), 0, name, decl, cn);
 
     if (on == cn) {
       Node *access = NewHash();
@@ -2229,7 +2228,6 @@ static void addCopyConstructor(Node *n) {
     }
   }
   Delete(cn);
-  Delete(last);
   Delete(name);
   Delete(decl);
   Delete(symname);
@@ -2243,12 +2241,11 @@ static void addDefaultConstructor(Node *n) {
   Setline(cn, Getline(n));
 
   String *cname = Getattr(n, "name");
-  String *last = Swig_scopename_last(cname);
-  String *name = NewStringf("%s::%s", cname, last);
+  String *name = Swig_scopename_last(cname);
   String *decl = NewString("f().");
   String *csymname = Getattr(n, "sym:name");
   String *oldname = csymname;
-  String *symname = Swig_name_make(cn, cname, last, decl, oldname);
+  String *symname = Swig_name_make(cn, cname, name, decl, oldname);
   if (Strcmp(symname, "$ignore") != 0) {
     if (!symname) {
       symname = Copy(csymname);
@@ -2260,11 +2257,10 @@ static void addDefaultConstructor(Node *n) {
     Setattr(cn, "decl", decl);
     Setattr(cn, "parentNode", n);
     Setattr(cn, "default_constructor", "1");
-
     Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
     Node *on = Swig_symbol_add(symname, cn);
+    Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(0), name, decl, cn);
     Swig_symbol_setscope(oldscope);
-    Swig_features_get(Swig_cparse_features(), 0, name, decl, cn);
 
     if (on == cn) {
       Node *access = NewHash();
@@ -2278,7 +2274,6 @@ static void addDefaultConstructor(Node *n) {
     }
   }
   Delete(cn);
-  Delete(last);
   Delete(name);
   Delete(decl);
   Delete(symname);
@@ -2292,11 +2287,10 @@ static void addDestructor(Node *n) {
   Setline(cn, Getline(n));
 
   String *cname = Getattr(n, "name");
-  String *last = Swig_scopename_last(cname);
-  Insert(last, 0, "~");
-  String *name = NewStringf("%s::%s", cname, last);
+  String *name = Swig_scopename_last(cname);
+  Insert(name, 0, "~");
   String *decl = NewString("f().");
-  String *symname = Swig_name_make(cn, cname, last, decl, 0);
+  String *symname = Swig_name_make(cn, cname, name, decl, 0);
   if (Strcmp(symname, "$ignore") != 0) {
     String *possible_nonstandard_symname = NewStringf("~%s", Getattr(n, "sym:name"));
 
@@ -2308,8 +2302,8 @@ static void addDestructor(Node *n) {
     Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
     Node *nonstandard_destructor = Equal(possible_nonstandard_symname, symname) ? 0 : Swig_symbol_clookup(possible_nonstandard_symname, 0);
     Node *on = Swig_symbol_add(symname, cn);
+    Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(0), name, decl, cn);
     Swig_symbol_setscope(oldscope);
-    Swig_features_get(Swig_cparse_features(), 0, name, decl, cn);
 
     if (on == cn) {
       // SWIG accepts a non-standard named destructor in %extend that uses a typedef for the destructor name
@@ -2329,7 +2323,6 @@ static void addDestructor(Node *n) {
     Delete(possible_nonstandard_symname);
   }
   Delete(cn);
-  Delete(last);
   Delete(name);
   Delete(decl);
   Delete(symname);

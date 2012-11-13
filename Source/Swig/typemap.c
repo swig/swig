@@ -1306,6 +1306,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   SwigType *mtype = 0;
   String *pname;
   String *qpname = 0;
+  String *noscope_pname = 0;
   Hash *tm = 0;
   String *s = 0;
   String *sdef = 0;
@@ -1338,20 +1339,32 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   }
 
   pname = Getattr(node, "name");
+  noscope_pname = Copy(pname);
 
   if (pname && node && Getattr(node, "sym:symtab")) {
-    /* Add on a qualified name search for any symbol, for example:
+    /* Add on a qualified name search for any symbol in the symbol table, for example:
      * struct Foo {
      *   int *foo(int bar)   ->  Foo::foo
      * };
+     * Note that if node is a parameter (Parm *) then there will be no symbol table attached to the Parm *.
      */
-    Symtab *st = Getattr(node, "sym:symtab");
-    String *qsn = st ? Swig_symbol_string_qualify(pname, st) : 0;
-    if (qsn && Len(qsn) && !Equal(qsn, pname))
-      qpname = qsn;
+    String *qsn;
+    if (Swig_scopename_check(pname)) {
+      /* sometimes pname is qualified, so we remove all the scope for the lookup */
+      Delete(noscope_pname);
+      noscope_pname = Swig_scopename_last(pname);
+      /*
+      Printf(stdout, "Removed scope: %s => %s\n", pname, noscope_pname);
+      */
+    }
+    qsn = Swig_symbol_qualified(node);
+    if (qsn && Len(qsn)) {
+      qpname = NewStringf("%s::%s", qsn, noscope_pname);
+      Delete(qsn);
+    }
   }
 
-  tm = typemap_search(tmap_method, type, pname, qpname, &mtype, node);
+  tm = typemap_search(tmap_method, type, noscope_pname, qpname, &mtype, node);
   if (typemap_search_debug)
     debug_search_result_display(tm);
   if (typemaps_used_debug && tm) {
@@ -1364,6 +1377,8 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
 
   Delete(qpname);
   qpname = 0;
+  Delete(noscope_pname);
+  noscope_pname = 0;
 
   if (!tm)
     return sdef;

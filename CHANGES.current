@@ -8,6 +8,30 @@ Version 2.0.9 (in progress)
 2012-11-09: vzeitlin
             [Python] Fix overflow when passing values greater than LONG_MAX from Python 3 for parameters with unsigned long C type.
 
+2012-11-09: wsfulton
+            Fix some feature matching issues for implicit destructors and implicit constructors and implicit
+            copy constructors added with %copyctor. Previously a feature for these had to be fully qualified
+            in order to match. Now the following will also match:
+
+              %feature("xyz") ~XXX();
+              struct XXX {};
+
+2012-11-09: wsfulton
+            Further consistency in named output typemap lookups for implicit constructors and destructors and
+            implicit copy constructors added with %copyctor. Previously only the fully qualified name was being
+            used, now the unqualified name will also be used. For example, previously:
+
+              example.i:38: Searching for a suitable 'out' typemap for: void Space::More::~More
+                Looking for: void Space::More::~More
+                Looking for: void
+
+            Now the unqualified name is also used:
+
+              example.i:38: Searching for a suitable 'out' typemap for: void Space::More::~More
+                Looking for: void Space::More::~More
+                Looking for: void ~More
+                Looking for: void
+
 2012-11-02: wsfulton
             Fix some subtle named output typemap lookup misses, the fully qualified name was not always being
             used for variables, for example:
