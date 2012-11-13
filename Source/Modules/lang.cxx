@@ -2613,11 +2613,14 @@ int Language::constructorDeclaration(Node *n) {
       }
     } else {
       String *expected_name = ClassName;
-      if (name && (!Equal(Swig_scopename_last(name), Swig_scopename_last(expected_name))) && !(Getattr(n, "template"))) {
+      String *scope = Swig_scopename_check(ClassName) ? Swig_scopename_prefix(ClassName) : 0;
+      String *actual_name = scope ? NewStringf("%s::%s", scope, name) : NewString(name);
+      Delete(scope);
+      if (!Equal(actual_name, expected_name) && !(Getattr(n, "template"))) {
 	bool illegal_name = true;
 	if (Extend) {
-	  // SWIG extension - allow typedef names as constructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'constructor'.
-	  SwigType *name_resolved = SwigType_typedef_resolve_all(name);
+	  // SWIG extension - allow typedef names as destructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'destructor'.
+	  SwigType *name_resolved = SwigType_typedef_resolve_all(actual_name);
 	  SwigType *expected_name_resolved = SwigType_typedef_resolve_all(expected_name);
 	  illegal_name = !Equal(name_resolved, expected_name_resolved);
 	  Delete(name_resolved);
@@ -2747,11 +2750,12 @@ int Language::destructorDeclaration(Node *n) {
     Setattr(n, "sym:name", ClassPrefix);
   }
 
-  String *expected_name = NewString(ClassName);
-  Replace(expected_name, "~", "", DOH_REPLACE_FIRST);
-  String *actual_name = NewString(name);
+  String *expected_name = ClassName;
+  String *scope = Swig_scopename_check(ClassName) ? Swig_scopename_prefix(ClassName) : 0;
+  String *actual_name = scope ? NewStringf("%s::%s", scope, name) : NewString(name);
+  Delete(scope);
   Replace(actual_name, "~", "", DOH_REPLACE_FIRST);
-  if (name && (!Equal(Swig_scopename_last(actual_name), Swig_scopename_last(expected_name))) && !(Getattr(n, "template"))) {
+  if (!Equal(actual_name, expected_name) && !(Getattr(n, "template"))) {
     bool illegal_name = true;
     if (Extend) {
       // SWIG extension - allow typedef names as destructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'destructor'.
@@ -2765,7 +2769,6 @@ int Language::destructorDeclaration(Node *n) {
     if (illegal_name) {
       Swig_warning(WARN_LANG_ILLEGAL_DESTRUCTOR, input_file, line_number, "Illegal destructor name %s. Ignored.\n", Swig_name_decl(n));
       Swig_restore(n);
-      Delete(expected_name);
       return SWIG_NOWRAP;
     }
   }
@@ -2773,7 +2776,6 @@ int Language::destructorDeclaration(Node *n) {
 
   Setattr(CurrentClass, "has_destructor", "1");
   Swig_restore(n);
-  Delete(expected_name);
   return SWIG_OK;
 }
 

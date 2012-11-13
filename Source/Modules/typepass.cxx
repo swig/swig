@@ -702,11 +702,6 @@ class TypePass:private Dispatcher {
     normalize_parms(Getattr(n, "parms"));
     normalize_parms(Getattr(n, "throws"));
 
-    /* If in a namespace, patch the class name */
-    if (nsname) {
-      String *nname = NewStringf("%s::%s", nsname, Getattr(n, "name"));
-      Setattr(n, "name", nname);
-    }
     clean_overloaded(n);
     return SWIG_OK;
   }
@@ -716,11 +711,6 @@ class TypePass:private Dispatcher {
    * ------------------------------------------------------------ */
 
   virtual int destructorDeclaration(Node *n) {
-    /* If in a namespace, patch the class name */
-    if (nsname) {
-      String *nname = NewStringf("%s::%s", nsname, Getattr(n, "name"));
-      Setattr(n, "name", nname);
-    }
     return SWIG_OK;
   }
 
