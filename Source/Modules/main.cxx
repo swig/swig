@@ -403,7 +403,7 @@ static void SWIG_dump_runtime() {
   s = Swig_include_sys("swiglabels.swg");
   if (!s) {
     Printf(stderr, "*** Unable to open 'swiglabels.swg'\n");
-    Close(runtime);
+    Delete(runtime);
     SWIG_exit(EXIT_FAILURE);
   }
   Printf(runtime, "%s", s);
@@ -412,7 +412,7 @@ static void SWIG_dump_runtime() {
   s = Swig_include_sys("swigerrors.swg");
   if (!s) {
     Printf(stderr, "*** Unable to open 'swigerrors.swg'\n");
-    Close(runtime);
+    Delete(runtime);
     SWIG_exit(EXIT_FAILURE);
   }
   Printf(runtime, "%s", s);
@@ -421,7 +421,7 @@ static void SWIG_dump_runtime() {
   s = Swig_include_sys("swigrun.swg");
   if (!s) {
     Printf(stderr, "*** Unable to open 'swigrun.swg'\n");
-    Close(runtime);
+    Delete(runtime);
     SWIG_exit(EXIT_FAILURE);
   }
   Printf(runtime, "%s", s);
@@ -434,13 +434,12 @@ static void SWIG_dump_runtime() {
   s = Swig_include_sys("runtime.swg");
   if (!s) {
     Printf(stderr, "*** Unable to open 'runtime.swg'\n");
-    Close(runtime);
+    Delete(runtime);
     SWIG_exit(EXIT_FAILURE);
   }
   Printf(runtime, "%s", s);
   Delete(s);
 
-  Close(runtime);
   Delete(runtime);
   SWIG_exit(EXIT_SUCCESS);
 }
@@ -1009,7 +1008,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
           if (Verbose)
             Printf(stdout, "'%s' checked out from the SWIG library.\n", outfile);
           Printv(f_outfile, s, NIL);
-          Close(f_outfile);
+          Delete(f_outfile);
         }
       }
     }
@@ -1111,7 +1110,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  }
 	  Printf(f_dependencies_file, "\n");
 	  if (f_dependencies_file != stdout)
-	    Close(f_dependencies_file);
+	    Delete(f_dependencies_file);
 	  if (depend_only)
 	    SWIG_exit(EXIT_SUCCESS);
 	} else {
@@ -1285,7 +1284,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       int i;
       for (i = 0; i < Len(all_output_files); i++)
         Printf(f_outfiles, "%s\n", Getitem(all_output_files, i));
-      Close(f_outfiles);
+      Delete(f_outfiles);
     }
   }
 

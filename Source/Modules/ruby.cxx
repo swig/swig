@@ -1185,7 +1185,7 @@ public:
       Dump(f_directors_h, f_runtime_h);
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
-      Close(f_runtime_h);
+      Delete(f_runtime_h);
     }
 
     Dump(f_wrappers, f_begin);
@@ -1196,7 +1196,6 @@ public:
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_initbeforefunc);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 

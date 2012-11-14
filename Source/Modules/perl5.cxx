@@ -520,7 +520,6 @@ public:
     Printf(f_pm, "%s", additional_perl_code);
 
     Printf(f_pm, "1;\n");
-    Close(f_pm);
     Delete(f_pm);
     Delete(base);
     Delete(dest_package);
@@ -534,7 +533,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     return SWIG_OK;

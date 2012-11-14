@@ -307,7 +307,10 @@ extern DOHFile *DohNewFile(DOH *filename, const char *mode, DOHList *outfiles);
 extern DOHFile *DohNewFileFromFile(FILE *f);
 extern DOHFile *DohNewFileFromFd(int fd);
 extern void DohFileErrorDisplay(DOHString * filename);
+/*
+ Deprecated, just use DohDelete
 extern int DohClose(DOH *file);
+*/
 extern int DohCopyto(DOHFile * input, DOHFile * output);
 
 

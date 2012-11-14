@@ -835,7 +835,7 @@ MODULA3():
     scanConstant(file, n);
     Printf(file, "  return 0;\n");
     Printf(file, "}\n");
-    Close(file);
+    Delete(file);
     return SWIG_OK;
   }
 
@@ -870,7 +870,7 @@ MODULA3():
    by SWIG with option -generaterename. */\n\
 \n", input_file);
     scanRename(file, n);
-    Close(file);
+    Delete(file);
     return SWIG_OK;
   }
 
@@ -900,7 +900,7 @@ MODULA3():
    by SWIG with option -generatetypemap. */\n\
 \n", input_file);
     scanTypemap(file, n);
-    Close(file);
+    Delete(file);
     return SWIG_OK;
   }
 
@@ -1009,7 +1009,7 @@ MODULA3():
       } else {
 	Printf(file, "library(\"m3%s\")\n", name);
       }
-      Close(file);
+      Delete(file);
     }
 
     // Generate the raw interface
@@ -1027,7 +1027,7 @@ MODULA3():
       Printv(file, m3raw_intf.f, NIL);
 
       Printf(file, "\nEND %s.\n", m3raw_name);
-      Close(file);
+      Delete(file);
     }
 
     // Generate the raw module
@@ -1045,7 +1045,7 @@ MODULA3():
       Printv(file, m3raw_impl.f, NIL);
 
       Printf(file, "BEGIN\nEND %s.\n", m3raw_name);
-      Close(file);
+      Delete(file);
     }
 
     // Generate the interface for the comfort wrappers
@@ -1075,7 +1075,7 @@ MODULA3():
 
       // Finish off the class
       Printf(file, "\nEND %s.\n", m3wrap_name);
-      Close(file);
+      Delete(file);
     }
 
     // Generate the wrapper routines implemented in Modula 3
@@ -1096,7 +1096,7 @@ MODULA3():
       Printv(file, m3wrap_impl.f, NIL);
 
       Printf(file, "\nBEGIN\nEND %s.\n", m3wrap_name);
-      Close(file);
+      Delete(file);
     }
 
     if (upcasts_code)
@@ -1162,7 +1162,6 @@ MODULA3():
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     return SWIG_OK;
@@ -2555,7 +2554,7 @@ MODULA3():
       Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
 
       Printf(f_proxy, "}\n");
-      Close(f_proxy);
+      Delete(f_proxy);
       f_proxy = NULL;
 
       Delete(proxy_class_name);
@@ -3811,7 +3810,7 @@ MODULA3():
     Replaceall(swigtype, "$m3classname", classname);
     Printv(f_swigtype, swigtype, NIL);
 
-    Close(f_swigtype);
+    Delete(f_swigtype);
     Delete(filen);
     Delete(swigtype);
   }

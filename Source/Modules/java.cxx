@@ -502,7 +502,7 @@ public:
       }
       // Finish off the class
       Printf(f_im, "}\n");
-      Close(f_im);
+      Delete(f_im);
     }
 
     // Generate the Java module class
@@ -554,7 +554,7 @@ public:
 
       // Finish off the class
       Printf(f_module, "}\n");
-      Close(f_module);
+      Delete(f_module);
     }
 
     // Generate the Java constants interface
@@ -585,7 +585,7 @@ public:
 
       // Finish off the Java interface
       Printf(f_module, "}\n");
-      Close(f_module);
+      Delete(f_module);
     }
 
     if (upcasts_code)
@@ -685,7 +685,6 @@ public:
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
 
-      Close(f_runtime_h);
       Delete(f_runtime_h);
       f_runtime_h = NULL;
       Delete(f_directors);
@@ -701,7 +700,6 @@ public:
     Delete(f_init);
     Dump(f_runtime, f_begin);
     Delete(f_runtime);
-    Close(f_begin);
     Delete(f_begin);
     return SWIG_OK;
   }
@@ -1300,7 +1298,7 @@ public:
 		 "\n", enum_code, "\n", NIL);
 
 	  Printf(f_enum, "\n");
-	  Close(f_enum);
+	  Delete(f_enum);
 	  Delete(output_directory);
 	}
       } else {
@@ -1977,7 +1975,7 @@ public:
 	Printv(f_proxy, proxy_class_constants_code, NIL);
 
       Printf(f_proxy, "}\n");
-      Close(f_proxy);
+      Delete(f_proxy);
       f_proxy = NULL;
 
       /* Output the downcast method, if necessary. Note: There's no other really
@@ -3069,7 +3067,7 @@ public:
     Replaceall(swigtype, "$imclassname", imclass_name);
     Printv(f_swigtype, swigtype, NIL);
 
-    Close(f_swigtype);
+    Delete(f_swigtype);
     Delete(swigtype);
     Delete(n);
   }

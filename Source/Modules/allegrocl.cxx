@@ -1654,7 +1654,6 @@ int ALLEGROCL::top(Node *n) {
   if (Generate_Wrapper) {
     f_begin = NewFile(cxx_filename, "w", SWIG_output_files());
     if (!f_begin) {
-      Close(f_cl);
       Delete(f_cl);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
       SWIG_exit(EXIT_FAILURE);
@@ -1711,15 +1710,13 @@ int ALLEGROCL::top(Node *n) {
   Printf(f_cl, "%s\n", f_clhead);
   Printf(f_cl, "%s\n", f_clwrap);
 
-  Close(f_cl);
-  Delete(f_cl);			// Delete the handle, not the file
+  Delete(f_cl);
   Delete(f_clhead);
   Delete(f_clwrap);
 
   Dump(f_runtime, f_begin);
   Printf(f_begin, "%s\n", f_cxx_wrapper);
 
-  Close(f_begin);
   Delete(f_runtime);
   Delete(f_begin);
   Delete(f_cxx_wrapper);

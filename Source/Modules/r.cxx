@@ -837,7 +837,6 @@ int R::top(Node *n) {
   Delete(f_init);
 
   Delete(s_header);
-  Close(f_begin);
   Delete(f_runtime);
   Delete(f_begin);
 
@@ -871,8 +870,7 @@ int R::DumpCode(Node *n) {
   Printf(scode, "%s\n\n", s_classes);
   Printf(scode, "%s\n", sfile);
   
-  Close(scode);
-  //  Delete(scode);
+  Delete(scode);
   String *outfile = Getattr(n,"outfile");
   File *runtime = NewFile(outfile,"w", SWIG_output_files());
   if (!runtime) {
@@ -886,7 +884,6 @@ int R::DumpCode(Node *n) {
   Printf(runtime, "%s\n", f_wrapper);
   Printf(runtime, "%s\n", f_init);
 
-  Close(runtime);
   Delete(runtime);
 
   if(outputNamespaceInfo) {
@@ -907,7 +904,6 @@ int R::DumpCode(Node *n) {
     Printf(ns, "\nexportMethods(\n");
     writeListByLine(namespaceFunctions, ns, 1);
     Printf(ns, ")\n");
-    Close(ns);
     Delete(ns);
     Delete(s_namespace);
   }

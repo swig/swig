@@ -538,7 +538,7 @@ public:
       replaceModuleVariables(im_dmodule_code);
       Printv(im_d_file, im_dmodule_code, NIL);
 
-      Close(im_d_file);
+      Delete(im_d_file);
     }
 
     // Generate the main D proxy module.
@@ -571,7 +571,7 @@ public:
       replaceModuleVariables(proxy_dmodule_code);
       Printv(proxy_d_file, proxy_dmodule_code, NIL);
 
-      Close(proxy_d_file);
+      Delete(proxy_d_file);
     }
 
     // Generate the additional proxy modules for nspace support.
@@ -598,7 +598,7 @@ public:
       replaceModuleVariables(code);
       Printv(file, code, NIL);
 
-      Close(file);
+      Delete(file);
       Delete(module_name);
     }
 
@@ -693,7 +693,6 @@ public:
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
 
-      Close(f_runtime_h);
       Delete(f_runtime_h);
       f_runtime_h = NULL;
       Delete(f_directors);
@@ -707,7 +706,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 
@@ -868,7 +866,6 @@ public:
 
 	Printv(class_file, proxy_enum_code, NIL);
 
-	Close(class_file);
 	Delete(class_file);
       } else {
 	String *nspace = Getattr(n, "sym:nspace");
@@ -1363,7 +1360,6 @@ public:
       replaceModuleVariables(proxy_class_code);
       Printv(class_file, proxy_class_code, NIL);
 
-      Close(class_file);
       Delete(class_file);
     } else {
       Printv(proxyImportsBuffer(getNSpace()), proxy_class_imports, NIL);
@@ -3469,7 +3465,6 @@ private:
       Printv(class_file, code_target, NIL);
       Delete(code_target);
 
-      Close(class_file);
       Delete(class_file);
     }
 

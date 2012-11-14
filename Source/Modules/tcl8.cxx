@@ -248,7 +248,6 @@ public:
 
     if (itcl) {
       Printv(f_shadow, f_shadow_stubs, "\n", NIL);
-      Close(f_shadow);
       Delete(f_shadow);
     }
 
@@ -259,7 +258,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     return SWIG_OK;

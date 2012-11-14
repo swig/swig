@@ -761,6 +761,7 @@ int DohUngetc(int ch, DOH *obj) {
  * DohClose()
  * ----------------------------------------------------------------------------- */
 
+/*
 int DohClose(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
@@ -773,6 +774,7 @@ int DohClose(DOH *obj) {
   }
   return fclose((FILE *) obj);
 }
+*/
 
 /* -----------------------------------------------------------------------------
  * DohIsString()

@@ -141,8 +141,7 @@ int CLISP::top(Node *n) {
   Seek(f_cl, 0, SEEK_SET);
   Write(f_cl, Char(header), Len(header));
 
-  Close(f_cl);
-  Delete(f_cl);			// Deletes the handle, not the file
+  Delete(f_cl);
 
   return SWIG_OK;
 }

@@ -467,7 +467,7 @@ public:
       Printf(f_im, "}\n");
       addCloseNamespace(0, f_im);
 
-      Close(f_im);
+      Delete(f_im);
     }
 
     // Generate the C# module class
@@ -519,7 +519,7 @@ public:
       Printf(f_module, "}\n");
       addCloseNamespace(0, f_module);
 
-      Close(f_module);
+      Delete(f_module);
     }
 
     if (upcasts_code)
@@ -610,7 +610,6 @@ public:
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
 
-      Close(f_runtime_h);
       Delete(f_runtime_h);
       f_runtime_h = NULL;
       Delete(f_directors);
@@ -624,7 +623,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     return SWIG_OK;
@@ -1225,7 +1223,7 @@ public:
 		 "\n", enum_code, "\n", NIL);
 
 	  addCloseNamespace(nspace, f_enum);
-	  Close(f_enum);
+	  Delete(f_enum);
 	  Delete(output_directory);
 	}
       } else {
@@ -1955,7 +1953,7 @@ public:
 
       Printf(f_proxy, "}\n");
       addCloseNamespace(nspace, f_proxy);
-      Close(f_proxy);
+      Delete(f_proxy);
       f_proxy = NULL;
 
       /* Output the downcast method, if necessary. Note: There's no other really
@@ -3227,7 +3225,7 @@ public:
 
     addCloseNamespace(0, f_swigtype);
 
-    Close(f_swigtype);
+    Delete(f_swigtype);
     Delete(swigtype);
     Delete(n);
   }

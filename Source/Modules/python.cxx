@@ -979,7 +979,6 @@ public:
       Printv(f_shadow_py, "\n", f_shadow_builtin_imports, "\n", NIL);
       Printv(f_shadow_py, f_shadow, "\n", NIL);
       Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
-      Close(f_shadow_py);
       Delete(f_shadow_py);
     }
 
@@ -992,7 +991,7 @@ public:
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
       if (f_runtime_h != f_begin)
-	Close(f_runtime_h);
+	Delete(f_runtime_h);
       Dump(f_directors, f_begin);
     }
 
@@ -1007,8 +1006,6 @@ public:
     Delete(f_init);
     Delete(f_directors);
     Delete(f_directors_h);
-
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 

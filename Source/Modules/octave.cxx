@@ -232,7 +232,6 @@ public:
     Delete(f_header);
     Delete(f_directors);
     Delete(f_directors_h);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 

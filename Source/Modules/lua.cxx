@@ -396,7 +396,6 @@ public:
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_initbeforefunc);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     Delete(s_dot_get);

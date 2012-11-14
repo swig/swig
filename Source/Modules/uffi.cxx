@@ -266,9 +266,7 @@ int UFFI::top(Node *n) {
 
   Language::top(n);
 
-  Close(f_cl);
   Delete(f_cl);			// Delete the handle, not the file
-  Close(f_null);
   Delete(f_null);
 
   return SWIG_OK;

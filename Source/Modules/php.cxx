@@ -615,7 +615,7 @@ public:
 
     Printf(f_h, "#endif /* PHP_%s_H */\n", cap_module);
 
-    Close(f_h);
+    Delete(f_h);
 
     String *type_table = NewStringEmpty();
     SwigType_emit_type_table(f_runtime, type_table);
@@ -630,7 +630,7 @@ public:
       Dump(f_directors_h, f_runtime_h);
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
-      Close(f_runtime_h);
+      Delete(f_runtime_h);
     }
 
     Printf(s_header, "/* end header section */\n");
@@ -654,7 +654,6 @@ public:
     Delete(s_vdecl);
     Delete(all_cs_entry);
     Delete(s_entry);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 
@@ -667,7 +666,7 @@ public:
       s_fakeoowrappers = NULL;
     }
     Printf(f_phpcode, "%s\n?>\n", s_phpclasses);
-    Close(f_phpcode);
+    Delete(f_phpcode);
 
     return SWIG_OK;
   }

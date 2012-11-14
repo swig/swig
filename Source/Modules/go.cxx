@@ -437,12 +437,10 @@ private:
 
     if (directorsEnabled()) {
       Printf(f_c_directors_h, "#endif\n");
-      Close(f_c_directors_h);
       Delete(f_c_directors_h);
       f_c_directors_h = NULL;
 
       Dump(f_c_directors, f_c_runtime);
-      Close(f_c_directors);
       Delete(f_c_directors);
       f_c_directors = NULL;
     }
@@ -475,12 +473,9 @@ private:
       Delete(f_gc_wrappers);
     }
 
-    Close(f_c_begin);
     Delete(f_c_begin);
-    Close(f_go_begin);
     Delete(f_go_begin);
     if (!gccgo_flag) {
-      Close(f_gc_begin);
       Delete(f_gc_begin);
     }
 

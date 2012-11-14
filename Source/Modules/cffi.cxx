@@ -137,7 +137,6 @@ int CFFI::top(Node *n) {
   if (CPlusPlus || CWrap) {
     f_begin = NewFile(cxx_filename, "w", SWIG_output_files());
     if (!f_begin) {
-      Close(f_lisp);
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
       SWIG_exit(EXIT_FAILURE);
@@ -147,7 +146,6 @@ int CFFI::top(Node *n) {
     Printf(clos_filename, "%s%s-clos.lisp", SWIG_output_directory(), module);
     f_clos = NewFile(clos_filename, "w", SWIG_output_files());
     if (!f_clos) {
-      Close(f_lisp);
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
       SWIG_exit(EXIT_FAILURE);
@@ -184,13 +182,11 @@ int CFFI::top(Node *n) {
   Printf(f_lisp, "%s\n", f_cl);
   Printf(f_lisp, "%s\n", f_clwrap);
 
-  Close(f_lisp);
-  Delete(f_lisp);   // Deletes the handle, not the file
+  Delete(f_lisp);
   Delete(f_cl);
   Delete(f_clhead);
   Delete(f_clwrap);
   Dump(f_runtime, f_begin);
-  Close(f_begin);
   Delete(f_runtime);
   Delete(f_begin);
   Delete(f_cxx_wrapper);

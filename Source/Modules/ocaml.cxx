@@ -343,7 +343,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 
@@ -357,14 +356,12 @@ public:
     Dump(f_class_ctors, f_mlout);
     Dump(f_class_ctors_end, f_mlout);
     Dump(f_mltail, f_mlout);
-    Close(f_mlout);
     Delete(f_mlout);
 
     Dump(f_enumtypes_type, f_mliout);
     Dump(f_enumtypes_value, f_mliout);
     Dump(f_mlibody, f_mliout);
     Dump(f_mlitail, f_mliout);
-    Close(f_mliout);
     Delete(f_mliout);
 
     return SWIG_OK;
