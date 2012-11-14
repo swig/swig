@@ -717,7 +717,7 @@ class TypePass:private Dispatcher {
    * destructorDeclaration()
    * ------------------------------------------------------------ */
 
-  virtual int destructorDeclaration(Node *n) {
+  virtual int destructorDeclaration(Node *) {
     return SWIG_OK;
   }
 

@@ -273,9 +273,9 @@ public:
       dmethods_seq(NULL),
       dmethods_table(NULL),
       n_dmethods(0),
-      unknown_types(NULL),
       first_class_dmethod(0),
-      curr_class_dmethod(0) {
+      curr_class_dmethod(0),
+      unknown_types(NULL) {
 
     // For now, multiple inheritance with directors is not possible. It should be
     // easy to implement though.
