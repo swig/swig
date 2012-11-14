@@ -30,7 +30,7 @@ static int in_constructor = 0, in_destructor = 0, in_copyconst = 0;
 static int const_enum = 0;
 static int static_member_function = 0;
 static int generate_sizeof = 0;
-static char *prefix = 0;
+static String *prefix = 0;
 static char *ocaml_path = (char *) "ocaml";
 static bool old_variable_names = false;
 static String *classname = 0;
@@ -107,8 +107,7 @@ public:
 	  SWIG_exit(0);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
-	    prefix = new char[strlen(argv[i + 1]) + 2];
-	    strcpy(prefix, argv[i + 1]);
+	    prefix = NewString(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
@@ -130,15 +129,14 @@ public:
       }
     }
 
-    // If a prefix has been specified make sure it ends in a '_'
+    // If a prefix has been specified make sure it ends in a '_' (not actually used!)
 
     if (prefix) {
-      if (prefix[strlen(prefix)] != '_') {
-	prefix[strlen(prefix) + 1] = 0;
-	prefix[strlen(prefix)] = '_';
-      }
+      const char *px = Char(prefix);
+      if (px[Len(prefix)] != '_')
+	Printf(prefix, "_");
     } else
-      prefix = (char *) "swig_";
+      prefix = NewString("swig_");
 
     // Add a symbol for this module
 

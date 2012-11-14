@@ -726,6 +726,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   Delete(rtype);
   Delete(rettype);
   Delete(funcparams);
+  DelWrapper(f);
   
   return funName;
 }

@@ -47,7 +47,7 @@ static struct {
   String **entries;
 } defined_foreign_types;
 
-static const char *identifier_converter = "identifier-convert-null";
+static String *identifier_converter = NewString("identifier-convert-null");
 
 static int any_varargs(ParmList *pl) {
   Parm *p;
@@ -221,14 +221,15 @@ void UFFI::main(int argc, char *argv[]) {
 
       /* check for built-ins */
       if (!strcmp(conv, "lispify")) {
-	identifier_converter = "identifier-convert-lispify";
+	Delete(identifier_converter);
+	identifier_converter = NewString("identifier-convert-lispify");
       } else if (!strcmp(conv, "null")) {
-	identifier_converter = "identifier-convert-null";
+	Delete(identifier_converter);
+	identifier_converter = NewString("identifier-convert-null");
       } else {
 	/* Must be user defined */
-	char *idconv = new char[strlen(conv) + 1];
-	strcpy(idconv, conv);
-	identifier_converter = idconv;
+	Delete(identifier_converter);
+	identifier_converter = NewString(conv);
       }
     }
 

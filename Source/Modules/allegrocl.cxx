@@ -48,7 +48,7 @@ static File *f_cxx_wrapper = 0;
 static String *module_name = 0;
 static String *swig_package = 0;
 
-const char *identifier_converter = "identifier-convert-null";
+static String *identifier_converter = NewString("identifier-convert-null");
 
 static bool CWrap = true;	// generate wrapper file for C code by default. most correct.
 static bool Generate_Wrapper = false;
@@ -1605,14 +1605,15 @@ void ALLEGROCL::main(int argc, char *argv[]) {
 
       /* check for built-ins */
       if (!strcmp(conv, "lispify")) {
-	identifier_converter = "identifier-convert-lispify";
+	Delete(identifier_converter);
+	identifier_converter = NewString("identifier-convert-lispify");
       } else if (!strcmp(conv, "null")) {
-	identifier_converter = "identifier-convert-null";
+	Delete(identifier_converter);
+	identifier_converter = NewString("identifier-convert-null");
       } else {
 	/* Must be user defined */
-	char *idconv = new char[strlen(conv) + 1];
-	strcpy(idconv, conv);
-	identifier_converter = idconv;
+	Delete(identifier_converter);
+	identifier_converter = NewString(conv);
       }
     } else if (!strcmp(argv[i], "-cwrap")) {
       CWrap = true;

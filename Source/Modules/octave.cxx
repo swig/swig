@@ -524,7 +524,6 @@ public:
   }
 
   virtual int functionWrapper(Node *n) {
-    Wrapper *f = NewWrapper();
     Parm *p;
     String *tm;
     int j;
@@ -551,6 +550,7 @@ public:
     if (!overloaded || last_overload)
       process_autodoc(n);
 
+    Wrapper *f = NewWrapper();
     Octave_begin_function(n, f->def, iname, overname, !overloaded);
 
     emit_parameter_variables(l, f);
@@ -859,6 +859,8 @@ public:
 
     Delete(getwname);
     Delete(setwname);
+    DelWrapper(setf);
+    DelWrapper(getf);
 
     return SWIG_OK;
   }

@@ -2330,6 +2330,7 @@ done:
     Printf(f->code, "}\n");
 
     Wrapper_print(f, s_wrappers);
+    DelWrapper(f);
 
     return SWIG_OK;
   }

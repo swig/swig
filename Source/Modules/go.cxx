@@ -3640,6 +3640,7 @@ private:
     Delete(upcall_name);
     Delete(callback_wname);
     Delete(go_name);
+    DelWrapper(w);
 
     return SWIG_OK;
   }
