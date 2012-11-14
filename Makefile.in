@@ -523,4 +523,18 @@ $(srcdir)/configure: $(srcdir)/configure.in
 	cd $(srcdir) && ./autogen.sh
 	$(SHELL) ./config.status --recheck
 
+############################################################################
+# Tools
+############################################################################
+
+# Coverity static code analyser build and submit - EMAIL and PASSWORD need specifying
+# See http://scan.coverity.com/start/
+EMAIL=wsf@fultondesigns.co.uk
+PASSWORD=
+coverity:
+	$(MAKE) clean-source
+	cov-build --dir cov-int $(MAKE)
+	tar czvf swig-coverity.tgz cov-int
+	curl --form file=@swig-coverity.tgz --form project=swig --form password=$(PASSWORD) --form email=$(EMAIL) http://scan5.coverity.com/cgi-bin/upload.py
+
 # Makefile ends here
