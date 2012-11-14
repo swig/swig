@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.9 (in progress)
 ===========================
 
+2012-11-14: [ccache-swig] Apply patch #3586392 from Frederik Deweerdt to fix some error cases - incorrectly using
+            memory after it has been deleted.
+
 2012-11-09: vzeitlin
             [Python] Fix overflow when passing values greater than LONG_MAX from Python 3 for parameters with unsigned long C type.
 
