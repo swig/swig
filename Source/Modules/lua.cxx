@@ -145,17 +145,29 @@ public:
    * Initialize member data
    * --------------------------------------------------------------------- */
 
-  LUA() {
-    f_begin = 0;
-    f_runtime = 0;
-    f_header = 0;
-    f_wrappers = 0;
-    f_init = 0;
-    f_initbeforefunc = 0;
-    PrefixPlusUnderscore = 0;
-
-    s_cmd_tab = s_var_tab = s_const_tab = s_luacode = 0;
-    current=NO_CPP;
+  LUA() :
+    f_begin(0),
+    f_runtime(0),
+    f_header(0),
+    f_wrappers(0),
+    f_init(0),
+    f_initbeforefunc(0),
+    PrefixPlusUnderscore(0),
+    s_cmd_tab(0),
+    s_var_tab(0),
+    s_const_tab(0),
+    s_methods_tab(0),
+    s_attr_tab(0),
+    s_luacode(0),
+    s_dot_get(0),
+    s_dot_set(0),
+    s_vars_meta_tab(0),
+    have_constructor(0),
+    have_destructor(0),
+    destructor_action(0),
+    class_name(0),
+    constructor_name(0),
+    current(NO_CPP) {
   }
 
   /* NEW LANGUAGE NOTE:***********************************************

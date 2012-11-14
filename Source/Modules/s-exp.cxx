@@ -24,9 +24,21 @@ S-Exp Options (available with -sexp)\n\
 static File *out = 0;
 
 class Sexp:public Language {
-public:
   int indent_level;
-   Sexp():indent_level(0) {
+  DOHHash *print_circle_hash;
+  int print_circle_count;
+  int hanging_parens;
+  bool need_whitespace;
+  bool need_newline;
+
+public:
+  Sexp():
+    indent_level(0),
+    print_circle_hash(0),
+    print_circle_count(0),
+    hanging_parens(0),
+    need_whitespace(0),
+    need_newline(0) {
   }
   
   virtual ~ Sexp() {
@@ -50,12 +62,6 @@ public:
       }
     }
   }
-
-  DOHHash *print_circle_hash;
-  int print_circle_count;
-  int hanging_parens;
-  bool need_whitespace;
-  bool need_newline;
 
   /* Top of the parse tree */
   virtual int top(Node *n) {

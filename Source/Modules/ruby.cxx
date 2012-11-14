@@ -810,33 +810,37 @@ public:
    *
    * Initialize member data
    * --------------------------------------------------------------------- */
-
-   RUBY() {
-    module = 0;
-    modvar = 0;
-    feature = 0;
-    prefix = 0;
-    last_autodoc = NewString("");
-    current = NO_CPP;
-    classes = 0;
-    klass = 0;
-    special_methods = 0;
-    f_begin = 0;
-    f_runtime = 0;
-    f_header = 0;
-    f_wrappers = 0;
-    f_init = 0;
-    f_initbeforefunc = 0;
-    useGlobalModule = false;
-    multipleInheritance = false;
-    director_prot_ctor_code = NewString("");
-    Printv(director_prot_ctor_code,
-	   "if ( $comparison ) { /* subclassed */\n",
-	   "  $director_new \n",
-	   "} else {\n", "  rb_raise(rb_eRuntimeError,\"accessing abstract class or protected constructor\"); \n", "  return Qnil;\n", "}\n", NIL);
-    director_multiple_inheritance = 0;
-    director_language = 1;
-  }
+  RUBY() :
+    module(0),
+    modvar(0),
+    feature(0),
+    prefix(0),
+    current(0),
+    classes(0),
+    klass(0),
+    special_methods(0),
+    f_directors(0),
+    f_directors_h(0),
+    f_directors_helpers(0),
+    f_begin(0),
+    f_runtime(0),
+    f_runtime_h(0),
+    f_header(0),
+    f_wrappers(0),
+    f_init(0),
+    f_initbeforefunc(0),
+    useGlobalModule(false),
+    multipleInheritance(false) {
+      last_autodoc = NewString("");
+      current = NO_CPP;
+      director_prot_ctor_code = NewString("");
+      Printv(director_prot_ctor_code,
+          "if ( $comparison ) { /* subclassed */\n",
+          "  $director_new \n",
+          "} else {\n", "  rb_raise(rb_eRuntimeError,\"accessing abstract class or protected constructor\"); \n", "  return Qnil;\n", "}\n", NIL);
+      director_multiple_inheritance = 0;
+      director_language = 1;
+    }
 
   /* ---------------------------------------------------------------------
    * main()

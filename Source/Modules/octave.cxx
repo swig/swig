@@ -58,9 +58,24 @@ private:
   }
 
 public:
-   OCTAVE():f_begin(0), f_runtime(0), f_header(0), f_doc(0), f_wrappers(0),
-	    f_init(0), f_initbeforefunc(0), f_directors(0), f_directors_h(0), 
-	    s_global_tab(0), s_members_tab(0), class_name(0) {
+  OCTAVE():
+    f_begin(0),
+    f_runtime(0),
+    f_header(0),
+    f_doc(0),
+    f_wrappers(0),
+    f_init(0),
+    f_initbeforefunc(0),
+    f_directors(0),
+    f_directors_h(0),
+    s_global_tab(0),
+    s_members_tab(0),
+    class_name(0),
+    have_constructor(0),
+    have_destructor(0),
+    constructor_name(0),
+    docs(0)
+  {
      /* Add code to manage protected constructors and directors */
      director_prot_ctor_code = NewString("");
      Printv(director_prot_ctor_code,

@@ -40,7 +40,14 @@ class TypePass:private Dispatcher {
   Hash *classhash;
   List *normalize;
 
-  TypePass() {
+  TypePass() :
+    inclass(0),
+    module(0),
+    importmode(0),
+    nsname(0),
+    nssymname(0),
+    classhash(0),
+    normalize(0) {
   }
 
   /* Normalize a type. Replaces type with fully qualified version */
