@@ -627,8 +627,8 @@ int SwigType_prefix_is_simple_1D_array(const SwigType *t) {
 
   if (c && (strncmp(c, "a(", 2) == 0)) {
     c = strchr(c, '.');
-    c++;
-    return (*c == 0);
+    if (c)
+      return (*(++c) == 0);
   }
   return 0;
 }
@@ -654,8 +654,10 @@ int SwigType_array_ndim(const SwigType *t) {
 
   while (c && (strncmp(c, "a(", 2) == 0)) {
     c = strchr(c, '.');
-    c++;
-    ndim++;
+    if (c) {
+      c++;
+      ndim++;
+    }
   }
   return ndim;
 }
@@ -665,8 +667,10 @@ String *SwigType_array_getdim(const SwigType *t, int n) {
   char *c = Char(t);
   while (c && (strncmp(c, "a(", 2) == 0) && (n > 0)) {
     c = strchr(c, '.');
-    c++;
-    n--;
+    if (c) {
+      c++;
+      n--;
+    }
   }
   if (n == 0) {
     String *dim = SwigType_parm(c);
@@ -695,8 +699,10 @@ void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
 
   while (c && (strncmp(c, "a(", 2) == 0) && (n > 0)) {
     c = strchr(c, '.');
-    c++;
-    n--;
+    if (c) {
+      c++;
+      n--;
+    }
   }
   if (n == 0) {
     temp = *c;
