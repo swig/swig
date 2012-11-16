@@ -1330,7 +1330,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   /* Special hook (hack!). Check for the 'ref' feature and add code it contains to any 'newfree' typemap code.
    * We could choose to put this hook into a number of different typemaps, not necessarily 'newfree'... 
    * Rather confusingly 'newfree' is used to release memory and the 'ref' feature is used to add in memory references - yuck! */
-  if (node && Cmp(tmap_method, "newfree") == 0) {
+  if (Cmp(tmap_method, "newfree") == 0) {
     String *base = SwigType_base(type);
     Node *typenode = Swig_symbol_clookup(base, 0);
     if (typenode)
