@@ -1004,7 +1004,6 @@ static String *resolve_create_node_scope(String *cname) {
 	  } else {
 	    /* now this last part is a class */
 	    si = Next(si);
-	    ns1 = Swig_symbol_clookup(sname,0);
 	    /*  or a nested class tree, which is unrolled here */
 	    for (; si.item; si = Next(si)) {
 	      if (si.item) {

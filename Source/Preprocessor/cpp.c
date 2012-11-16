@@ -1213,13 +1213,10 @@ static DOH *Preprocessor_replace(DOH *s) {
       Replaceall(fn, "\\", "\\\\");
       Printf(ns, "\"%s\"", fn);
       Delete(fn);
-    } else if ((m = Getattr(symbols, id))) {
+    } else if (Getattr(symbols, id)) {
       DOH *e;
       /* Yes.  There is a macro here */
       /* See if the macro expects arguments */
-      /*      if (Getattr(m,"args")) {
-         Swig_error(Getfile(id),Getline(id),"Macro arguments expected.\n");
-         } */
       e = expand_macro(id, 0, s);
       if (e)
 	Append(ns, e);
