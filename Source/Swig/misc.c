@@ -167,16 +167,16 @@ static int is_directory(String *directory) {
  * Swig_new_subdirectory()
  *
  * Create the subdirectory only if the basedirectory already exists as a directory.
- * basedirectory can be NULL or empty to indicate current directory.
+ * basedirectory can be empty to indicate current directory but not NULL.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
   String *error = 0;
-  int current_directory = basedirectory ? (Len(basedirectory) == 0 ? 1 : 0) : 0;
+  int current_directory = Len(basedirectory) == 0;
 
   if (current_directory || is_directory(basedirectory)) {
     Iterator it;
-    String *dir = basedirectory ? NewString(basedirectory) : NewString("");
+    String *dir = NewString(basedirectory);
     List *subdirs = Split(subdirectory, SWIG_FILE_DELIMITER[0], INT_MAX);
 
     for (it = First(subdirs); it.item; it = Next(it)) {
