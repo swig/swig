@@ -583,6 +583,7 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
   c = Getc(s);
   if (c != '(') {
     /* Not a macro, bail out now! */
+    assert(pos != -1);
     Seek(s, pos, SEEK_SET);
     Delete(args);
     return 0;

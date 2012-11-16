@@ -76,6 +76,7 @@ static DOH *encode(char *name, DOH *s) {
   Seek(s, 0, SEEK_SET);
   fn = (DOH *(*)(DOH *)) Data(handle);
   ns = (*fn) (s);
+  assert(pos != -1);
   Seek(s, pos, SEEK_SET);
   if (tmp)
     Delete(tmp);
