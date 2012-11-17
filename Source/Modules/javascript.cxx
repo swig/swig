@@ -272,7 +272,7 @@ protected:
 
   virtual void marshalOutput(Node *n, Wrapper *wrapper, String *actioncode, const String *cresult=0, bool emitReturnVariable = true);
 
-  virtual void emitCleanupCode(Wrapper *wrapper, ParmList *params);
+  virtual void emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params);
 
   void registerProxyType(SwigType* type);
 
@@ -834,7 +834,7 @@ int JSEmitter::emitCtor(Node *n) {
 
   Printv(wrapper->code, action, "\n", 0);
 
-  emitCleanupCode(wrapper, params);
+  emitCleanupCode(n, wrapper, params);
 
   t_ctor.replace(T_WRAPPER, wrap_name)
       .replace(T_TYPE_MANGLED, state.clazz(TYPE_MANGLED))
@@ -919,7 +919,7 @@ int JSEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   marshalInputArgs(n, params, wrapper, Getter, is_member, is_static);
   marshalOutput(n, wrapper, action);
 
-  emitCleanupCode(wrapper, params);
+  emitCleanupCode(n, wrapper, params);
 
   t_getter.replace(T_WRAPPER, wrap_name)
       .replace(T_LOCALS, wrapper->locals)
@@ -957,7 +957,7 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
   marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
   Append(wrapper->code, action);
 
-  emitCleanupCode(wrapper, params);
+  emitCleanupCode(n, wrapper, params);
 
   t_setter.replace(T_WRAPPER, wrap_name)
       .replace(T_LOCALS, wrapper->locals)
@@ -1036,7 +1036,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
   marshalOutput(n, wrapper, action);
 
-  emitCleanupCode(wrapper, params);
+  emitCleanupCode(n, wrapper, params);
 
   t_function.replace(T_WRAPPER, wrap_name)
       .replace(T_LOCALS, wrapper->locals)
@@ -1151,7 +1151,7 @@ void JSEmitter::marshalOutput(Node *n,  Wrapper *wrapper, String *actioncode, co
   }
 }
 
-void JSEmitter::emitCleanupCode(Wrapper *wrapper, ParmList *params) {
+void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
   Parm *p;
   String *tm;
 
@@ -1165,6 +1165,15 @@ void JSEmitter::emitCleanupCode(Wrapper *wrapper, ParmList *params) {
       p = nextSibling(p);
     }
   }
+
+  if (GetFlag(n, "feature:new")) {
+    tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
+    if (tm != NIL) {
+      //addThrows(throws_hash, "newfree", n);
+      Printv(wrapper->code, tm, "\n", NIL);
+    }
+  }
+
 }
 
 int JSEmitter::switchNamespace(Node *n) {
