@@ -15,9 +15,9 @@ class V8Shell: public JSShell {
 
 public:
   V8Shell();
-  
+
   virtual ~V8Shell();
-  
+
   virtual bool RunScript(const std::string& scriptPath);
 
   virtual bool RunShell();
@@ -28,11 +28,11 @@ protected:
   virtual bool RegisterModule(HANDLE library, const std::string& module_name);
 
   virtual bool InitializeEngine();
-  
+
   virtual bool ExecuteScript(const std::string& source, const std::string& name);
 
   virtual bool DisposeEngine();
-  
+
 private:
 
   v8::Persistent<v8::Context> CreateShellContext();
@@ -46,13 +46,13 @@ private:
   static v8::Handle<v8::Value> Version(const v8::Arguments& args);
 
   static const char* ToCString(const v8::String::Utf8Value& value);
-  
+
   void ExtendEngine();
-    
+
 protected:
 
   std::vector<V8ExtensionRegistrar> module_initializers;
-  
+
   v8::Persistent<v8::Context> context;
 
 };
@@ -75,7 +75,7 @@ V8Shell::~V8Shell() {
 
 bool V8Shell::RegisterModule(HANDLE library, const std::string& module_name) {
     std::string symname = std::string(module_name).append("_initialize");
-    
+
     V8ExtensionRegistrar init_function = reinterpret_cast<V8ExtensionRegistrar>((long) LOAD_SYMBOL(library, symname.c_str()));
     if(init_function == 0) return false;
 
@@ -88,10 +88,10 @@ bool V8Shell::RunScript(const std::string& scriptPath) {
   if (!context.IsEmpty()) {
     context.Dispose();
   }
-  
+
   std::string source = ReadFile(scriptPath);
 
-  context = CreateShellContext(); 
+  context = CreateShellContext();
   if (context.IsEmpty()) {
       printf("Could not create context.\n");
       return false;
@@ -104,11 +104,11 @@ bool V8Shell::RunScript(const std::string& scriptPath) {
   if(!ExecuteScript(source, scriptPath)) {
     return false;
   }
-  
+
   context->Exit();
   context.Dispose();
   v8::V8::Dispose();
-  
+
   return true;
 }
 
@@ -117,18 +117,18 @@ bool V8Shell::RunShell() {
   if (!context.IsEmpty()) {
     context.Dispose();
   }
-  
-  context = CreateShellContext(); 
+
+  context = CreateShellContext();
   if (context.IsEmpty()) {
       printf("Could not create context.\n");
       return false;
   }
-  
+
   context->Enter();
 
   v8::Context::Scope context_scope(context);
   ExtendEngine();
-  
+
   static const int kBufferSize = 1024;
   while (true) {
     char buffer[kBufferSize];
@@ -152,13 +152,13 @@ bool V8Shell::InitializeEngine() {
 }
 
 void V8Shell::ExtendEngine() {
-  
+
   // register extensions
   for(std::vector<V8ExtensionRegistrar>::iterator it=module_initializers.begin();
     it != module_initializers.end(); ++it) {
     (*it)(context);
   }
-  
+
 }
 
 bool V8Shell::ExecuteScript(const std::string& source, const std::string& name) {
@@ -195,7 +195,7 @@ bool V8Shell::DisposeEngine() {
 
 v8::Persistent<v8::Context> V8Shell::CreateShellContext() {
   v8::HandleScope scope;
-  
+
   // Create a template for the global object.
   v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
 
@@ -205,7 +205,7 @@ v8::Persistent<v8::Context> V8Shell::CreateShellContext() {
   global->Set(v8::String::New("version"), v8::FunctionTemplate::New(V8Shell::Version));
 
   v8::Persistent<v8::Context> _context = v8::Context::New(NULL, global);
-  
+
   return _context;
 }
 
@@ -282,6 +282,6 @@ const char* V8Shell::ToCString(const v8::String::Utf8Value& value) {
   return *value ? *value : "<string conversion failed>";
 }
 
-JSShell* create_v8_shell() {
+JSShell* JSShell::Create() {
   return new V8Shell();
 }
