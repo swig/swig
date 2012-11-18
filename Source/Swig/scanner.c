@@ -209,10 +209,8 @@ static char nextchar(Scanner * s) {
     if (Len(s->scanobjs) == 0)
       return 0;
     s->str = Getitem(s->scanobjs, 0);
-    if (s->str) {
-      s->line = Getline(s->str);
-      DohIncref(s->str);
-    }
+    s->line = Getline(s->str);
+    DohIncref(s->str);
   }
   if ((nc == '\n') && (!s->freeze_line)) 
     s->line++;
