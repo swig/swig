@@ -77,7 +77,7 @@ static DOH *encode(char *name, DOH *s) {
   fn = (DOH *(*)(DOH *)) Data(handle);
   ns = (*fn) (s);
   assert(pos != -1);
-  Seek(s, pos, SEEK_SET);
+  (void)Seek(s, pos, SEEK_SET);
   if (tmp)
     Delete(tmp);
   return ns;

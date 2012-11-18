@@ -271,7 +271,7 @@ static void retract(Scanner * s, int n) {
     if (str[l - 1] == '\n') {
       if (!s->freeze_line) s->line--;
     }
-    Seek(s->str, -1, SEEK_CUR);
+    (void)Seek(s->str, -1, SEEK_CUR);
     Delitem(s->text, DOH_END);
   }
 }
@@ -1317,7 +1317,7 @@ void Scanner_locator(Scanner *s, String *loc) {
   } else {
     int c;
     Locator *l;
-    Seek(loc, 7, SEEK_SET);
+    (void)Seek(loc, 7, SEEK_SET);
     c = Getc(loc);
     if (c == '@') {
       /* Empty locator.  We pop the last location off */

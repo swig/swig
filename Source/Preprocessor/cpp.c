@@ -584,7 +584,7 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
   if (c != '(') {
     /* Not a macro, bail out now! */
     assert(pos != -1);
-    Seek(s, pos, SEEK_SET);
+    (void)Seek(s, pos, SEEK_SET);
     Delete(args);
     return 0;
   }
