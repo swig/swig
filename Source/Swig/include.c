@@ -323,19 +323,11 @@ File *Swig_filebyname(const_String_or_char_ptr filename) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_file_extension(const_String_or_char_ptr filename) {
-  const char *d;
-  const char *c = Char(filename);
-  int len = Len(filename);
-  if (strlen(c)) {
-    d = c + len - 1;
-    while (d != c) {
-      if (*d == '.')
-	return NewString(d);
-      d--;
-    }
-    return NewString(c + len);
-  }
-  return NewString(c);
+  String *name = Swig_file_filename(filename);
+  const char *c = strrchr(Char(name), '.');
+  String *extension = c ? NewString(c) : NewString("");
+  Delete(name);
+  return extension;
 }
 
 /* -----------------------------------------------------------------------------
