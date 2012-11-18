@@ -6,6 +6,9 @@ Version 2.0.9 (in progress)
 ===========================
 
 2012-11-17: wsfulton
+            [Tcl, Modula3] Add missing support for -outdir.
+
+2012-11-17: wsfulton
             Fix segfaults when using filename paths greater than 1024 characters in length.
 
 2012-11-14: wsfulton

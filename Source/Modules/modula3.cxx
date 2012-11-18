@@ -991,7 +991,7 @@ MODULA3():
     // Generate m3makefile
     // This will be unnecessary if SWIG is invoked from Quake.
     {
-      File *file = openWriteFile(NewStringf("%sm3makefile", Swig_file_dirname(outfile)));
+      File *file = openWriteFile(NewStringf("%sm3makefile", SWIG_output_directory()));
 
       Printf(file, "%% automatically generated quake file for %s\n\n", name);
 
@@ -1014,7 +1014,7 @@ MODULA3():
 
     // Generate the raw interface
     {
-      File *file = openWriteFile(NewStringf("%s%s.i3", Swig_file_dirname(outfile), m3raw_name));
+      File *file = openWriteFile(NewStringf("%s%s.i3", SWIG_output_directory(), m3raw_name));
 
       emitBanner(file);
 
@@ -1032,7 +1032,7 @@ MODULA3():
 
     // Generate the raw module
     {
-      File *file = openWriteFile(NewStringf("%s%s.m3", Swig_file_dirname(outfile), m3raw_name));
+      File *file = openWriteFile(NewStringf("%s%s.m3", SWIG_output_directory(), m3raw_name));
 
       emitBanner(file);
 
@@ -1050,7 +1050,7 @@ MODULA3():
 
     // Generate the interface for the comfort wrappers
     {
-      File *file = openWriteFile(NewStringf("%s%s.i3", Swig_file_dirname(outfile), m3wrap_name));
+      File *file = openWriteFile(NewStringf("%s%s.i3", SWIG_output_directory(), m3wrap_name));
 
       emitBanner(file);
 
@@ -1080,7 +1080,7 @@ MODULA3():
 
     // Generate the wrapper routines implemented in Modula 3
     {
-      File *file = openWriteFile(NewStringf("%s%s.m3", Swig_file_dirname(outfile), m3wrap_name));
+      File *file = openWriteFile(NewStringf("%s%s.m3", SWIG_output_directory(), m3wrap_name));
 
       emitBanner(file);
 
@@ -2387,7 +2387,7 @@ MODULA3():
 	SWIG_exit(EXIT_FAILURE);
       }
 
-      String *filen = NewStringf("%s%s.m3", Swig_file_dirname(outfile), proxy_class_name);
+      String *filen = NewStringf("%s%s.m3", SWIG_output_directory(), proxy_class_name);
       f_proxy = NewFile(filen, "w", SWIG_output_files());
       if (!f_proxy) {
 	FileErrorDisplay(filen);
@@ -3780,7 +3780,7 @@ MODULA3():
     Setfile(n, input_file);
     Setline(n, line_number);
 
-    String *filen = NewStringf("%s%s.m3", Swig_file_dirname(outfile), classname);
+    String *filen = NewStringf("%s%s.m3", SWIG_output_directory(), classname);
     File *f_swigtype = NewFile(filen, "w", SWIG_output_files());
     if (!f_swigtype) {
       FileErrorDisplay(filen);

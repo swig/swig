@@ -185,7 +185,7 @@ public:
     /* If shadow classing is enabled, we're going to change the module name to "_module" */
     if (itcl) {
       String *filen;
-      filen = NewStringf("%s%s.itcl", Swig_file_dirname(outfile), module);
+      filen = NewStringf("%s%s.itcl", SWIG_output_directory(), module);
 
       Insert(module, 0, "_");
 
