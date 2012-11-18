@@ -430,7 +430,7 @@ int SwigType_isreference(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
-  char temp[256], newq[256];
+  String *newq;
   int sz, added = 0;
   char *q, *cqual;
 
@@ -438,8 +438,9 @@ SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
   cqual = Char(qual);
 
   if (!(strncmp(c, "q(", 2) == 0)) {
-    sprintf(temp, "q(%s).", cqual);
+    String *temp = NewStringf("q(%s).", cqual);
     Insert(t, 0, temp);
+    Delete(temp);
     return t;
   }
 
@@ -449,40 +450,40 @@ SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
      order */
 
   sz = element_size(c);
-  strncpy(temp, c, (sz < 256) ? sz : 256);
 
-  if (strstr(temp, cqual)) {
+  if (strstr(c, cqual)) {
     /* Qualifier already added */
     return t;
   }
 
   /* Add the qualifier to the existing list. */
 
-  strcpy(newq, "q(");
-  q = temp + 2;
+  newq = NewString("q(");
+  q = c + 2;
   q = strtok(q, " ).");
   while (q) {
     if (strcmp(cqual, q) < 0) {
       /* New qualifier is less that current qualifier.  We need to insert it */
-      strcat(newq, cqual);
-      strcat(newq, " ");
-      strcat(newq, q);
+      Append(newq, cqual);
+      Append(newq, " ");
+      Append(newq, q);
       added = 1;
     } else {
-      strcat(newq, q);
+      Append(newq, q);
     }
     q = strtok(NULL, " ).");
     if (q) {
-      strcat(newq, " ");
+      Append(newq, " ");
     }
   }
   if (!added) {
-    strcat(newq, " ");
-    strcat(newq, cqual);
+    Append(newq, " ");
+    Append(newq, cqual);
   }
-  strcat(newq, ").");
+  Append(newq, ").");
   Delslice(t, 0, sz);
   Insert(t, 0, newq);
+  Delete(newq);
   return t;
 }
 
@@ -590,11 +591,11 @@ int SwigType_ismemberpointer(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_add_array(SwigType *t, const_String_or_char_ptr size) {
-  char temp[512];
-  strcpy(temp, "a(");
-  strcat(temp, Char(size));
-  strcat(temp, ").");
+  String *temp = NewString("a(");
+  Append(temp, size);
+  Append(temp, ").");
   Insert(t, 0, temp);
+  Delete(temp);
   return t;
 }
 
