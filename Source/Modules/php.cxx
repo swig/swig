@@ -354,7 +354,9 @@ public:
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", cap_module);
       Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", cap_module);
 
-      Printf(f_directors, "\n#include \"%s\"\n\n", Swig_file_filename(outfile_h));
+      String *filename = Swig_file_filename(outfile_h);
+      Printf(f_directors, "\n#include \"%s\"\n\n", filename);
+      Delete(filename);
     }
 
     /* PHP module file */

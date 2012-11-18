@@ -5,7 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.9 (in progress)
 ===========================
 
-2012-11-14: [ccache-swig] Apply patch #3586392 from Frederik Deweerdt to fix some error cases - incorrectly using
+2012-11-17: wsfulton
+            Fix segfaults when using filename paths greater than 1024 characters in length.
+
+2012-11-14: wsfulton
+            [ccache-swig] Apply patch #3586392 from Frederik Deweerdt to fix some error cases - incorrectly using
             memory after it has been deleted.
 
 2012-11-09: vzeitlin

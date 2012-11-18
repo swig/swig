@@ -199,22 +199,24 @@ static List *libfiles = 0;
 static List *all_output_files = 0;
 
 /* -----------------------------------------------------------------------------
- * check_suffix()
+ * check_extension()
  *
- * Checks the suffix of a file to see if we should emit extern declarations.
+ * Checks the extension of a file to see if we should emit extern declarations.
  * ----------------------------------------------------------------------------- */
 
-static int check_suffix(String *filename) {
+static bool check_extension(String *filename) {
+  bool wanted = false;
   const char *name = Char(filename);
-  const char *c;
   if (!name)
     return 0;
-  c = Swig_file_suffix(name);
+  String *extension = Swig_file_extension(name);
+  const char *c = Char(extension);
   if ((strcmp(c, ".c") == 0) ||
       (strcmp(c, ".C") == 0) || (strcmp(c, ".cc") == 0) || (strcmp(c, ".cxx") == 0) || (strcmp(c, ".c++") == 0) || (strcmp(c, ".cpp") == 0)) {
-    return 1;
+    wanted = true;
   }
-  return 0;
+  Delete(extension);
+  return wanted;
 }
 
 /* -----------------------------------------------------------------------------
@@ -283,15 +285,16 @@ static unsigned int decode_numbers_list(String *numlist) {
 }
 
 /* -----------------------------------------------------------------------------
- * Sets the output directory for language specific (proxy) files if not set and 
- * corrects the directory name and adds trailing file separator if necessary.
+ * Sets the output directory for language specific (proxy) files from the
+ * C wrapper file if not set and corrects the directory name and adds a trailing
+ * file separator if necessary.
  * ----------------------------------------------------------------------------- */
 
-static void configure_outdir(const String *c_wrapper_file_dir) {
+static void configure_outdir(const String *c_wrapper_outfile) {
 
   // Use the C wrapper file's directory if the output directory has not been set by user
   if (!outdir || Len(outdir) == 0)
-    outdir = NewString(c_wrapper_file_dir);
+    outdir = Swig_file_dirname(c_wrapper_outfile);
 
   Swig_filename_correct(outdir);
 
@@ -1068,7 +1071,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	  String *outfile;
           File *f_dependencies_file = 0;
 
-	  char *basename = Swig_file_basename(outcurrentdir ? Swig_file_filename(input_file): Char(input_file));
+	  String *inputfile_filename = outcurrentdir ? Swig_file_filename(input_file): Copy(input_file);
+	  String *basename = Swig_file_basename(inputfile_filename);
 	  if (!outfile_name) {
 	    if (CPlusPlus || lang->cplus_runtime_mode()) {
 	      outfile = NewStringf("%s_wrap.%s", basename, cpp_extension);
@@ -1113,6 +1117,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	    Delete(f_dependencies_file);
 	  if (depend_only)
 	    SWIG_exit(EXIT_SUCCESS);
+	  Delete(inputfile_filename);
+	  Delete(basename);
 	} else {
 	  Printf(stderr, "Cannot generate dependencies with -nopreprocess\n");
 	  // Actually we could but it would be inefficient when just generating dependencies, as it would be done after Swig_cparse
@@ -1220,7 +1226,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	Setattr(top, "infile", infile); // Note: if nopreprocess then infile is the original input file, otherwise input_file
 	Setattr(top, "inputfile", input_file);
 
-	char *basename = Swig_file_basename(outcurrentdir ? Swig_file_filename(infile): Char(infile));
+	String *infile_filename = outcurrentdir ? Swig_file_filename(infile): Copy(infile);
+	String *basename = Swig_file_basename(infile_filename);
 	if (!outfile_name) {
 	  if (CPlusPlus || lang->cplus_runtime_mode()) {
 	    Setattr(top, "outfile", NewStringf("%s_wrap.%s", basename, cpp_extension));
@@ -1235,19 +1242,21 @@ int SWIG_main(int argc, char *argv[], Language *l) {
 	} else {
 	  Setattr(top, "outfile_h", outfile_name_h);
 	}
-	configure_outdir(Swig_file_dirname(Getattr(top, "outfile")));
+	configure_outdir(Getattr(top, "outfile"));
 	if (Swig_contract_mode_get()) {
 	  Swig_contracts(top);
 	}
 
-	// Check the suffix for a c/c++ file.  If so, we're going to declare everything we see as "extern"
-	ForceExtern = check_suffix(input_file);
+	// Check the extension for a c/c++ file.  If so, we're going to declare everything we see as "extern"
+	ForceExtern = check_extension(input_file);
 
 	lang->top(top);
 
 	if (browse) {
 	  Swig_browser(top, 0);
 	}
+	Delete(infile_filename);
+	Delete(basename);
       }
     }
     if (dump_lang_symbols) {

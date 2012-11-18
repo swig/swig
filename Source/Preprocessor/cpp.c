@@ -1706,7 +1706,7 @@ String *Preprocessor_parse(String *s) {
       } else if (Equal(id, kpp_include)) {
 	if (((include_all) || (import_all)) && (allow)) {
 	  String *s1, *s2, *fn;
-	  char *dirname;
+	  String *dirname;
 	  int sysfile = 0;
 	  if (include_all && import_all) {
 	    Swig_warning(WARN_PP_INCLUDEALL_IMPORTALL, Getfile(s), Getline(id), "Both includeall and importall are defined: using includeall.\n");
@@ -1725,10 +1725,13 @@ String *Preprocessor_parse(String *s) {
 
 	    /* See if the filename has a directory component */
 	    dirname = Swig_file_dirname(Swig_last_file());
-	    if (sysfile || !strlen(dirname))
+	    if (sysfile || !Len(dirname)) {
+	      Delete(dirname);
 	      dirname = 0;
+	    }
 	    if (dirname) {
-	      dirname[strlen(dirname) - 1] = 0;	/* Kill trailing directory delimiter */
+	      int len = Len(dirname);
+	      Delslice(dirname, len - 1, len); /* Kill trailing directory delimiter */
 	      Swig_push_directory(dirname);
 	    }
 	    s2 = Preprocessor_parse(s1);
@@ -1741,6 +1744,7 @@ String *Preprocessor_parse(String *s) {
 	      pop_imported();
 	    }
 	    Delete(s2);
+	    Delete(dirname);
 	    Delete(s1);
 	  }
 	  Delete(fn);
@@ -1858,7 +1862,7 @@ String *Preprocessor_parse(String *s) {
 	    fn = get_filename(s, &sysfile);
 	    s1 = cpp_include(fn, sysfile);
 	    if (s1) {
-	      char *dirname;
+	      String *dirname;
 	      copy_location(s, chunk);
 	      add_chunk(ns, chunk, allow);
 	      Printf(ns, "%sfile%s%s%s\"%s\" %%beginfile\n", decl, options_whitespace, opt, filename_whitespace, Swig_filename_escape(Swig_last_file()));
@@ -1866,10 +1870,13 @@ String *Preprocessor_parse(String *s) {
 		push_imported();
 	      }
 	      dirname = Swig_file_dirname(Swig_last_file());
-	      if (sysfile || !strlen(dirname))
+	      if (sysfile || !strlen(dirname)) {
+		Delete(dirname);
 		dirname = 0;
+	      }
 	      if (dirname) {
-		dirname[strlen(dirname) - 1] = 0;	/* Kill trailing directory delimiter */
+		int len = Len(dirname);
+		Delslice(dirname, len - 1, len); /* Kill trailing directory delimiter */
 		Swig_push_directory(dirname);
 	      }
 	      s2 = Preprocessor_parse(s1);
@@ -1882,6 +1889,7 @@ String *Preprocessor_parse(String *s) {
 	      addline(ns, s2, allow);
 	      Append(ns, "%endoffile");
 	      Delete(s2);
+	      Delete(dirname);
 	      Delete(s1);
 	    }
 	    Delete(fn);

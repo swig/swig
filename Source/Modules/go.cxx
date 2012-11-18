@@ -371,7 +371,9 @@ private:
       Printf(f_c_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module);
 
       Printf(f_c_directors, "\n// C++ director class methods.\n");
-      Printf(f_c_directors, "#include \"%s\"\n\n", Swig_file_filename(c_filename_h));
+      String *filename = Swig_file_filename(c_filename_h);
+      Printf(f_c_directors, "#include \"%s\"\n\n", filename);
+      Delete(filename);
     }
 
     Swig_banner(f_go_begin);
