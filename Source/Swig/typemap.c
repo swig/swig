@@ -1341,7 +1341,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   pname = Getattr(node, "name");
   noscope_pname = Copy(pname);
 
-  if (pname && node && Getattr(node, "sym:symtab")) {
+  if (pname && Getattr(node, "sym:symtab")) {
     /* Add on a qualified name search for any symbol in the symbol table, for example:
      * struct Foo {
      *   int *foo(int bar)   ->  Foo::foo
