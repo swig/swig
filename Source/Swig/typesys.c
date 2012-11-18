@@ -668,7 +668,7 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 	  Printf(stdout, "namebase = '%s'\n", namebase);
 #endif
 	  type = typedef_resolve(s, namebase);
-	  if (type) {
+	  if (type && resolved_scope) {
 	    /* we need to look for the resolved type, this will also
 	       fix the resolved_scope if 'type' and 'namebase' are
 	       declared in different scopes */
@@ -680,7 +680,7 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 #ifdef SWIG_DEBUG
 	  Printf(stdout, "%s type = '%s'\n", Getattr(s, "name"), type);
 #endif
-	  if ((type) && (!Swig_scopename_check(type)) && resolved_scope) {
+	  if (type && (!Swig_scopename_check(type)) && resolved_scope) {
 	    Typetab *rtab = resolved_scope;
 	    String *qname = Getattr(resolved_scope, "qname");
 	    /* If qualified *and* the typename is defined from the resolved scope, we qualify */
@@ -898,7 +898,7 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
 	  e = ty;
 	}
 	resolved_scope = 0;
-	if (typedef_resolve(current_scope, e)) {
+	if (typedef_resolve(current_scope, e) && resolved_scope) {
 	  /* resolved_scope contains the scope that actually resolved the symbol */
 	  String *qname = Getattr(resolved_scope, "qname");
 	  if (qname) {
