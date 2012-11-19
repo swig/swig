@@ -128,7 +128,8 @@ enum autodoc_t {
   AUTODOC_FUNC,
   AUTODOC_METHOD,
   AUTODOC_GETTER,
-  AUTODOC_SETTER
+  AUTODOC_SETTER,
+  AUTODOC_NONE
 };
 
 static const char *usage = (char *) "\
@@ -202,8 +203,6 @@ private:
 
   autodoc_t last_mode;
   String*   last_autodoc;
-
-
 
   autodoc_l autodoc_level(String *autodoc) {
     autodoc_l dlevel = NO_AUTODOC;
@@ -602,6 +601,8 @@ private:
 	case AUTODOC_SETTER:
  	  Printf(doc, "  Document-method: %s.%s=\n\n", full_name, symname);
 	  break;
+	case AUTODOC_NONE:
+	  break;
 	}
       }
 
@@ -689,6 +690,8 @@ private:
 	      Printf(doc, " -> %s", type_str);
 	    break;
 	  }
+	case AUTODOC_NONE:
+	  break;
 	}
       }
 
@@ -722,6 +725,8 @@ private:
 	break;
       case AUTODOC_SETTER:
 	Printf(doc, "Set new value for attribute.\n");
+	break;
+      case AUTODOC_NONE:
 	break;
       }
     }
@@ -830,8 +835,9 @@ public:
     f_init(0),
     f_initbeforefunc(0),
     useGlobalModule(false),
-    multipleInheritance(false) {
-      last_autodoc = NewString("");
+    multipleInheritance(false),
+    last_mode(AUTODOC_NONE),
+    last_autodoc(NewString("")) {
       current = NO_CPP;
       director_prot_ctor_code = NewString("");
       Printv(director_prot_ctor_code,
