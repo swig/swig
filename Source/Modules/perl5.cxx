@@ -868,6 +868,8 @@ public:
 	emit_action_code(n, setf->code, tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
+	DelWrapper(setf);
+	DelWrapper(getf);
 	return SWIG_NOWRAP;
       }
       Printf(setf->code, "fail:\n");
