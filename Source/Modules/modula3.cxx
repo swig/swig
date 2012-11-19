@@ -3527,6 +3527,7 @@ MODULA3():
 
     m3wrap_impl.enterBlock(no_block);
     if (proxy_flag && global_variable_flag) {
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(NSPACE_TODO, variable_name)) == 0);
       // Properties
       if (setter_flag) {
 	// Setter method
