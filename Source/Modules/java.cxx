@@ -3536,7 +3536,7 @@ public:
     Wrapper *w = NewWrapper();
     ParmList *l = Getattr(n, "parms");
     bool is_void = !(Cmp(returntype, "void"));
-    String *qualified_return = NewString("");
+    String *qualified_return = 0;
     bool pure_virtual = (!(Cmp(storage, "virtual")) && !(Cmp(value, "0")));
     int status = SWIG_OK;
     bool output_director = true;
@@ -3567,125 +3567,121 @@ public:
 
     imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(getNSpace(), classname, overloaded_name));
 
-    if (returntype) {
+    qualified_return = SwigType_rcaststr(returntype, "c_result");
 
-      Delete(qualified_return);
-      qualified_return = SwigType_rcaststr(returntype, "c_result");
-
-      if (!is_void && (!ignored_method || pure_virtual)) {
-	if (!SwigType_isclass(returntype)) {
-	  if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
-            String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
-	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
-            Delete(construct_result);
-	  } else {
-	    String *base_typename = SwigType_base(returntype);
-	    String *resolved_typename = SwigType_typedef_resolve_all(base_typename);
-	    Symtab *symtab = Getattr(n, "sym:symtab");
-	    Node *typenode = Swig_symbol_clookup(resolved_typename, symtab);
-
-	    if (SwigType_ispointer(returntype) || (typenode && Getattr(typenode, "abstract"))) {
-	      /* initialize pointers to something sane. Same for abstract
-	         classes when a reference is returned. */
-	      Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
-	    } else {
-	      /* If returning a reference, initialize the pointer to a sane
-	         default - if a Java exception occurs, then the pointer returns
-	         something other than a NULL-initialized reference. */
-	      String *non_ref_type = Copy(returntype);
-
-	      /* Remove reference and const qualifiers */
-	      Replaceall(non_ref_type, "r.", "");
-	      Replaceall(non_ref_type, "q(const).", "");
-	      Wrapper_add_localv(w, "result_default", "static", SwigType_str(non_ref_type, "result_default"), "=", SwigType_str(non_ref_type, "()"), NIL);
-	      Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= &result_default", NIL);
-
-	      Delete(non_ref_type);
-	    }
-
-	    Delete(base_typename);
-	    Delete(resolved_typename);
-	  }
+    if (!is_void && (!ignored_method || pure_virtual)) {
+      if (!SwigType_isclass(returntype)) {
+	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+	  Delete(construct_result);
 	} else {
-	  SwigType *vt;
+	  String *base_typename = SwigType_base(returntype);
+	  String *resolved_typename = SwigType_typedef_resolve_all(base_typename);
+	  Symtab *symtab = Getattr(n, "sym:symtab");
+	  Node *typenode = Swig_symbol_clookup(resolved_typename, symtab);
 
-	  vt = cplus_value_type(returntype);
-	  if (!vt) {
-	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
+	  if (SwigType_ispointer(returntype) || (typenode && Getattr(typenode, "abstract"))) {
+	    /* initialize pointers to something sane. Same for abstract
+	       classes when a reference is returned. */
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
 	  } else {
-	    Wrapper_add_localv(w, "c_result", SwigType_lstr(vt, "c_result"), NIL);
-	    Delete(vt);
+	    /* If returning a reference, initialize the pointer to a sane
+	       default - if a Java exception occurs, then the pointer returns
+	       something other than a NULL-initialized reference. */
+	    String *non_ref_type = Copy(returntype);
+
+	    /* Remove reference and const qualifiers */
+	    Replaceall(non_ref_type, "r.", "");
+	    Replaceall(non_ref_type, "q(const).", "");
+	    Wrapper_add_localv(w, "result_default", "static", SwigType_str(non_ref_type, "result_default"), "=", SwigType_str(non_ref_type, "()"), NIL);
+	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= &result_default", NIL);
+
+	    Delete(non_ref_type);
 	  }
+
+	  Delete(base_typename);
+	  Delete(resolved_typename);
+	}
+      } else {
+	SwigType *vt;
+
+	vt = cplus_value_type(returntype);
+	if (!vt) {
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
+	} else {
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(vt, "c_result"), NIL);
+	  Delete(vt);
 	}
       }
+    }
 
-      /* Create the intermediate class wrapper */
-      tm = Swig_typemap_lookup("jtype", n, "", 0);
-      if (tm) {
-	Printf(callback_def, "  public static %s %s(%s self", tm, imclass_dmethod, qualified_classname);
-      } else {
-	Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s\n", SwigType_str(returntype, 0));
+    /* Create the intermediate class wrapper */
+    tm = Swig_typemap_lookup("jtype", n, "", 0);
+    if (tm) {
+      Printf(callback_def, "  public static %s %s(%s self", tm, imclass_dmethod, qualified_classname);
+    } else {
+      Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s\n", SwigType_str(returntype, 0));
+    }
+
+    String *cdesc = NULL;
+    SwigType *covariant = Getattr(n, "covariant");
+    SwigType *adjustedreturntype = covariant ? covariant : returntype;
+    Parm *adjustedreturntypeparm = NewParmNode(adjustedreturntype, n);
+
+    if ((tm = Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0))
+	&& (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
+
+      // Note that in the case of polymorphic (covariant) return types, the
+      // method's return type is changed to be the base of the C++ return
+      // type
+      String *jnidesc_canon = canonicalizeJNIDescriptor(cdesc, adjustedreturntypeparm);
+      Append(classret_desc, jnidesc_canon);
+      Delete(jnidesc_canon);
+    } else {
+      Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+	  SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+      output_director = false;
+    }
+
+    /* Get the JNI field descriptor for this return type, add the JNI field descriptor
+       to jniret_desc */
+    if ((c_ret_type = Swig_typemap_lookup("jni", n, "", 0))) {
+      Parm *tp = NewParmNode(c_ret_type, n);
+
+      if (!is_void && !ignored_method) {
+	String *jretval_decl = NewStringf("%s jresult", c_ret_type);
+	Wrapper_add_localv(w, "jresult", jretval_decl, "= 0", NIL);
+	Delete(jretval_decl);
       }
 
-      String *cdesc = NULL;
-      SwigType *covariant = Getattr(n, "covariant");
-      SwigType *adjustedreturntype = covariant ? covariant : returntype;
-      Parm *adjustedreturntypeparm = NewParmNode(adjustedreturntype, n);
+      String *jdesc = NULL;
+      if ((tm = Swig_typemap_lookup("directorin", tp, "", 0))
+	  && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
 
-      if ((tm = Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0))
-	  && (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
-
-	// Note that in the case of polymorphic (covariant) return types, the
-	// method's return type is changed to be the base of the C++ return
-	// type
-	String *jnidesc_canon = canonicalizeJNIDescriptor(cdesc, adjustedreturntypeparm);
-	Append(classret_desc, jnidesc_canon);
+	// Objects marshalled passing a Java class across JNI boundary use jobject - the nouse flag indicates this
+	// We need the specific Java class name instead of the generic 'Ljava/lang/Object;'
+	if (GetFlag(tp, "tmap:directorin:nouse"))
+	  jdesc = cdesc;
+	String *jnidesc_canon = canonicalizeJNIDescriptor(jdesc, tp);
+	Append(jniret_desc, jnidesc_canon);
 	Delete(jnidesc_canon);
       } else {
-	Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
-	    SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+	Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+		     "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+		     SwigType_str(c_ret_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	output_director = false;
       }
 
-      /* Get the JNI field descriptor for this return type, add the JNI field descriptor
-         to jniret_desc */
-      if ((c_ret_type = Swig_typemap_lookup("jni", n, "", 0))) {
-	Parm *tp = NewParmNode(c_ret_type, n);
-
-	if (!is_void && !ignored_method) {
-	  String *jretval_decl = NewStringf("%s jresult", c_ret_type);
-	  Wrapper_add_localv(w, "jresult", jretval_decl, "= 0", NIL);
-	  Delete(jretval_decl);
-	}
-
-	String *jdesc = NULL;
-	if ((tm = Swig_typemap_lookup("directorin", tp, "", 0))
-	    && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
-
-	  // Objects marshalled passing a Java class across JNI boundary use jobject - the nouse flag indicates this
-	  // We need the specific Java class name instead of the generic 'Ljava/lang/Object;'
-	  if (GetFlag(tp, "tmap:directorin:nouse"))
-	    jdesc = cdesc;
-	  String *jnidesc_canon = canonicalizeJNIDescriptor(jdesc, tp);
-	  Append(jniret_desc, jnidesc_canon);
-	  Delete(jnidesc_canon);
-	} else {
-	  Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-		       "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
-		       SwigType_str(c_ret_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
-	  output_director = false;
-	}
-
-	Delete(tp);
-      } else {
-	Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s for use in %s::%s (skipping director method)\n", 
-	    SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
-	output_director = false;
-      }
-
-      Delete(adjustedreturntypeparm);
-      Delete(qualified_classname);
+      Delete(tp);
+    } else {
+      Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s for use in %s::%s (skipping director method)\n", 
+	  SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+      output_director = false;
     }
+
+    Delete(adjustedreturntypeparm);
+    Delete(qualified_classname);
 
     Swig_director_parms_fixup(l);
 
