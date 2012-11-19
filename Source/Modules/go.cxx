@@ -3631,8 +3631,6 @@ private:
 
       Replaceall(w->code, "$symname", symname);
       Wrapper_print(w, f_c_directors);
-
-      DelWrapper(w);
     }
 
     Delete(cn);
