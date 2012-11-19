@@ -4070,7 +4070,7 @@ public:
     Printf(w->def, ") {");
 
 
-    if (Len(director_callback_typedefs) > 0) {
+    if (Len(director_callbacks) > 0) {
       Printf(f_directors_h, "\nprivate:\n%s", director_callbacks);
     }
     Printf(f_directors_h, "    void swig_init_callbacks();\n");

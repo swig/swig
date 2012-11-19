@@ -2528,7 +2528,7 @@ public:
     Printf(f_directors_h, "\nprivate:\n");
     Printf(f_directors_h, "    void swig_init_callbacks();\n");
     Printf(f_directors_h, "    void *d_object;\n");
-    if (Len(director_callback_typedefs) > 0) {
+    if (Len(director_callback_pointers) > 0) {
       Printf(f_directors_h, "%s", director_callback_pointers);
     }
     Printf(f_directors_h, "};\n\n");
