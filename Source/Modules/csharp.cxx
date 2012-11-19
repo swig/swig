@@ -2328,6 +2328,7 @@ public:
 	// Get the C# variable type - obtained differently depending on whether a setter is required.
 	String *variable_type = return_type;
 	if (setter_flag) {
+	  assert(last_parm);
 	  p = last_parm;	// (last parameter is the only parameter for properties)
 	  SwigType *pt = Getattr(p, "type");
 	  if ((tm = Getattr(p, "tmap:cstype"))) {
@@ -2350,6 +2351,7 @@ public:
 
       if (setter_flag) {
 	// Setter method
+	assert(last_parm);
 	p = last_parm;		// (last parameter is the only parameter for properties)
 	SwigType *pt = Getattr(p, "type");
 	if ((tm = Getattr(p, "tmap:csvarin"))) {
