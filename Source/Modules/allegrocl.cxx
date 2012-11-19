@@ -421,7 +421,8 @@ void add_defined_foreign_type(Node *n, int overwrite = 0, String *k = 0,
 #endif
     if (is_fwd_ref) {
       // Printf(stderr,"*** 1\n");
-      add_linked_type(n);
+      if (n)
+	add_linked_type(n);
     } else {
       // Printf(stderr,"*** 1-a\n");
       if (SwigType_istemplate(k)) {
