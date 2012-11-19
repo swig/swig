@@ -2748,7 +2748,7 @@ int ALLEGROCL::functionWrapper(Node *n) {
   String *actioncode = emit_action(n);
 
   String *tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode);
-  if (!is_void_return && tm) {
+  if (!is_void_return) {
     if (tm) { 
       Replaceall(tm, "$result", "lresult");
       Printf(f->code, "%s\n", tm);
