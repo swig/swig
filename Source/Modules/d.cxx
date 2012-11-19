@@ -3669,7 +3669,9 @@ private:
   bool inProxyModule(const String *type_name) const {
     if (!split_proxy_dmodule) {
       String *nspace = createOuterNamespaceNames(type_name);
-      bool result = (getNSpace() || !nspace) && (Strcmp(nspace, getNSpace()) == 0);
+      bool result = false;
+      if (getNSpace() && nspace)
+	result = (Strcmp(nspace, getNSpace()) == 0);
       Delete(nspace);
       return result;
     }
