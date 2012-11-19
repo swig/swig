@@ -374,8 +374,10 @@ public:
     constants_interface_name = NewStringf("%sConstants", module_class_name);
 
     // module class and intermediary classes are always created
-    addSymbol(imclass_name, n);
-    addSymbol(module_class_name, n);
+    if (!addSymbol(imclass_name, n))
+      return SWIG_ERROR;
+    if (!addSymbol(module_class_name, n))
+      return SWIG_ERROR;
 
     imclass_class_code = NewString("");
     proxy_class_def = NewString("");
