@@ -162,46 +162,7 @@ String *namespaced_name(Node *n, String *ns = current_namespace) {
 
 // "Namespace::Nested::Class2::Baz" -> "Baz"
 static String *strip_namespaces(String *str) {
-  SwigType *new_type = Copy(str);
-  SwigType *leading_type = SwigType_pop(new_type);
-  char *result = Char(leading_type);
-
-  if(SwigType_istemplate(leading_type)) {
-    result = Char(SwigType_templateprefix(leading_type));
-  } else {
-    if (!SwigType_issimple(leading_type))
-	    return NewString(str);
-  }
-	  
-  String *stripped_one;
-  while ((stripped_one = Strstr(result, "::")))
-    result = Char(stripped_one) + 2;
-
-  if(SwigType_istemplate(leading_type)) {
-    SwigType_push(new_type, NewStringf("%s%s%s", result, SwigType_templateargs(leading_type),
-				       SwigType_templatesuffix(leading_type)));
-    return new_type;
-  }
-
-  return NewString(result);
-}
-
-static String *namespace_of(String *str) {
-  char *p = Char(str);
-  char *start = Char(str);
-  char *result = 0;
-  String *stripped_one;
-
-  while ((stripped_one = Strstr(p, "::"))) {
-    p = Char(stripped_one) + 2;
-  }
-  if (p > start) {
-    int len = p - start - 1;
-    result = (char *) malloc(len);
-    strncpy(result, start, len - 1);
-    result[len - 1] = 0;
-  }
-  return Char(result);
+  return Swig_scopename_last(str);
 }
 
 void add_linked_type(Node *n) {
@@ -663,7 +624,7 @@ void note_implicit_template_instantiation(SwigType *t) {
 #endif
   SwigType *type = Copy(t);
   SwigType *tok = SwigType_pop(type);
-  String *implicit_ns = SwigType_istemplate(tok) ? namespace_of(SwigType_templateprefix(tok)) : 0;
+  String *implicit_ns = SwigType_istemplate(tok) ? Swig_scopename_prefix(SwigType_templateprefix(tok)) : 0;
   add_defined_foreign_type(0, 0, t, t, implicit_ns ? implicit_ns : current_namespace);
 
   Delete(type);
