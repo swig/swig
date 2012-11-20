@@ -1609,7 +1609,6 @@ void R::dispatchFunction(Node *n) {
 
 	String *tmcheck = Swig_typemap_lookup("rtypecheck", p, "", 0);
 	if (tmcheck) {
-
 	  String *tmp = NewString("");
 	  Printf(tmp, "argv[[%d]]", j+1);
 	  Replaceall(tmcheck, "$arg", tmp);
@@ -1626,32 +1625,34 @@ void R::dispatchFunction(Node *n) {
 		 tmcheck);
 	  p = Getattr(p, "tmap:in:next");
 	  continue;
-	} 
-	if (DohStrcmp(tm,"numeric")==0) {
+	}
+	if (tm) {
+	  if (Strcmp(tm,"numeric")==0) {
 	    Printf(f->code, "%sis.numeric(argv[[%d]])",
-		   j == 0 ? "" : " && ",
-		   j+1);
+		j == 0 ? "" : " && ",
+		j+1);
 	  }
-	  else if (DohStrcmp(tm,"integer")==0) {
+	  else if (Strcmp(tm,"integer")==0) {
 	    Printf(f->code, "%s(is.integer(argv[[%d]]) || is.numeric(argv[[%d]]))",
-		   j == 0 ? "" : " && ",
-		   j+1, j+1);
+		j == 0 ? "" : " && ",
+		j+1, j+1);
 	  }
-	  else if (DohStrcmp(tm,"character")==0) {
+	  else if (Strcmp(tm,"character")==0) {
 	    Printf(f->code, "%sis.character(argv[[%d]])",
-		   j == 0 ? "" : " && ",
-		   j+1);
+		j == 0 ? "" : " && ",
+		j+1);
 	  }
 	  else {
 	    Printf(f->code, "%sextends(argtypes[%d], '%s')",
-		   j == 0 ? "" : " && ",
-		   j+1,
-		   tm);
+		j == 0 ? "" : " && ",
+		j+1,
+		tm);
 	  }
-	  if (!SwigType_ispointer(Getattr(p, "type"))) {
-	    Printf(f->code, " && length(argv[[%d]]) == 1",
-		   j+1);
-	  }
+	}
+	if (!SwigType_ispointer(Getattr(p, "type"))) {
+	  Printf(f->code, " && length(argv[[%d]]) == 1",
+	      j+1);
+	}
 	p = Getattr(p, "tmap:in:next");
       }
       Printf(f->code, ") { f <- %s%s; }\n", sfname, overname);
@@ -1845,18 +1846,21 @@ int R::functionWrapper(Node *n) {
     String   *lname  = Getattr(p,"lname");
 
     // R keyword renaming
-    if (name && Swig_name_warning(p, 0, name, 0))
-      name = 0;
-
-    /* If we have a :: in the parameter name because we are accessing a static member of a class, say, then
-       we need to remove that prefix. */
-    while (Strstr(name, "::")) {
-      //XXX need to free.
-      name = NewStringf("%s", Strchr(name, ':') + 2);
-      if (debugMode)
-	Printf(stdout, "+++  parameter name with :: in it %s\n", name);
+    if (name) {
+      if (Swig_name_warning(p, 0, name, 0)) {
+	name = 0;
+      } else {
+	/* If we have a :: in the parameter name because we are accessing a static member of a class, say, then
+	   we need to remove that prefix. */
+	while (Strstr(name, "::")) {
+	  //XXX need to free.
+	  name = NewStringf("%s", Strchr(name, ':') + 2);
+	  if (debugMode)
+	    Printf(stdout, "+++  parameter name with :: in it %s\n", name);
+	}
+      }
     }
-    if (Len(name) == 0)
+    if (!name || Len(name) == 0)
       name = NewStringf("s_arg%d", i+1);
 
     name = replaceInitialDash(name);

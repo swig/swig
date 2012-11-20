@@ -1256,13 +1256,12 @@ public:
       Printv(qtype, name, NIL);
     }
 
-    if (const_enum && name && !Getattr(seen_enumvalues, name)) {
+    if (const_enum && qtype && name && !Getattr(seen_enumvalues, name)) {
       Setattr(seen_enumvalues, name, "true");
       SetFlag(n, "feature:immutable");
       Setattr(n, "feature:enumvalue", "1");	// this does not appear to be used
 
-      if (qtype)
-	Setattr(n, "qualified:name", SwigType_namestr(qtype));
+      Setattr(n, "qualified:name", SwigType_namestr(qtype));
 
       String *evname = SwigType_manglestr(qtype);
       Insert(evname, 0, "SWIG_ENUM_");

@@ -2096,7 +2096,7 @@ MODULA3():
 	  stem += Len(pat.prefix);
 	}
 	String *newname;
-	if (Strcmp(srcstyle, "underscore") == 0) {
+	if (srcstyle && Strcmp(srcstyle, "underscore") == 0) {
 	  if (newprefix != NIL) {
 	    String *newstem = nameToModula3(stem, true);
 	    newname = NewStringf("%s%s", newprefix, newstem);
@@ -2214,16 +2214,18 @@ MODULA3():
     List *baselist = Getattr(n, "bases");
     if (baselist != NIL) {
       Iterator base = First(baselist);
-      c_baseclassname = Getattr(base.item, "name");
-      baseclass = Copy(getProxyName(c_baseclassname));
-      if (baseclass) {
-	c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
-      }
-      base = Next(base);
-      if (base.item != NIL) {
-	Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-		     "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
-		     name, Getattr(base.item, "name"));
+      if (base.item) {
+	c_baseclassname = Getattr(base.item, "name");
+	baseclass = Copy(getProxyName(c_baseclassname));
+	if (baseclass) {
+	  c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
+	}
+	base = Next(base);
+	if (base.item != NIL) {
+	  Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+	      "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
+	      name, Getattr(base.item, "name"));
+	}
       }
     }
 
@@ -2460,12 +2462,14 @@ MODULA3():
 	    /* Look for the first (principal?) base class -
 	       Modula 3 does not support multiple inheritance */
 	    Iterator base = First(baselist);
-	    Append(baseclassname, Getattr(base.item, "sym:name"));
-	    base = Next(base);
-	    if (base.item != NIL) {
-	      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-			   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
-			   proxy_class_name, Getattr(base.item, "name"));
+	    if (base.item) {
+	      Append(baseclassname, Getattr(base.item, "sym:name"));
+	      base = Next(base);
+	      if (base.item) {
+		Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+		    "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
+		    proxy_class_name, Getattr(base.item, "name"));
+	      }
 	    }
 	  }
 	}

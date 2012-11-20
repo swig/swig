@@ -1638,8 +1638,8 @@ public:
 	      while (fgets(buffer, 4095, f)) {
 		Printf(pragma_include, "%s", buffer);
 	      }
+	      fclose(f);
 	    }
-	    fclose(f);
 	  }
 	} else {
 	  Swig_error(input_file, line_number, "Unrecognized pragma.\n");
