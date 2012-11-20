@@ -206,9 +206,9 @@ private:
 
   autodoc_l autodoc_level(String *autodoc) {
     autodoc_l dlevel = NO_AUTODOC;
-    if (autodoc) {
-      char *c = Char(autodoc);
-      if (c && isdigit(c[0])) {
+    char *c = Char(autodoc);
+    if (c) {
+      if (isdigit(c[0])) {
 	dlevel = (autodoc_l) atoi(c);
       } else {
 	if (strcmp(c, "extended") == 0) {
@@ -495,7 +495,7 @@ private:
     String* full_name;
     if ( module ) {
       full_name = NewString(module);
-      if (class_name && Len(class_name) > 0)
+      if (Len(class_name) > 0)
        	Append(full_name, "::");
     }
     else
@@ -1283,13 +1283,15 @@ public:
 	  }
 	  m = Next(m);
 	}
-	if (feature == 0) {
-	  feature = Copy(last);
+	if (last) {
+	  if (feature == 0) {
+	    feature = Copy(last);
+	  }
+	  (Char(last))[0] = (char)toupper((Char(last))[0]);
+	  modvar = NewStringf("m%s", last);
 	}
-	(Char(last))[0] = (char)toupper((Char(last))[0]);
-	modvar = NewStringf("m%s", last);
-	Delete(modules);
       }
+      Delete(modules);
     }
     Delete(mod_name);
   }
