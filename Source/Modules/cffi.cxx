@@ -322,7 +322,7 @@ void CFFI::emit_initialize_instance(Node *n) {
     else
       Printf(args_placeholder, " %s", argname);
 
-    if (Strcmp(ffitype, lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
+    if (ffitype && Strcmp(ffitype, lispify_name(parent, lispy_name(Char(Getattr(parent, "sym:name"))), "'classname")) == 0)
       Printf(args_call, " (ff-pointer %s)", argname);
     else
       Printf(args_call, " %s", argname);
@@ -458,10 +458,12 @@ int CFFI::functionWrapper(Node *n) {
   String *actioncode = emit_action(n);
 
   String *result_convert = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode);
-  Replaceall(result_convert, "$result", "lresult");
-  Printf(f->code, "%s\n", result_convert);
-  if(!is_void_return) Printf(f->code, "    return lresult;\n");
-  Delete(result_convert);
+  if (result_convert) {
+    Replaceall(result_convert, "$result", "lresult");
+    Printf(f->code, "%s\n", result_convert);
+    if(!is_void_return) Printf(f->code, "    return lresult;\n");
+    Delete(result_convert);
+  }
   emit_return_variable(n, Getattr(n, "type"), f);
 
   Printf(f->code, "  } catch (...) {\n");
