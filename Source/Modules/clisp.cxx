@@ -78,12 +78,12 @@ int CLISP::top(Node *n) {
   /* Get the output file name */
   String *outfile = Getattr(n, "outfile");
 
-  if (!outfile)
-    output_filename = outfile;
-  else {
-    output_filename = NewString("");
-    Printf(output_filename, "%s%s.lisp", SWIG_output_directory(), module);
+  if (!outfile) {
+    Printf(stderr, "Unable to determine outfile\n");
+    SWIG_exit(EXIT_FAILURE);
   }
+
+  output_filename = NewStringf("%s%s.lisp", SWIG_output_directory(), module);
 
   f_cl = NewFile(output_filename, "w+", SWIG_output_files());
   if (!f_cl) {
