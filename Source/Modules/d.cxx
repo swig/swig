@@ -3669,9 +3669,15 @@ private:
   bool inProxyModule(const String *type_name) const {
     if (!split_proxy_dmodule) {
       String *nspace = createOuterNamespaceNames(type_name);
-      bool result = false;
-      if (getNSpace() && nspace)
+
+      // Check if strings are either both null (no namespace) or are both
+      // non-null and have the same contents. Cannot use Strcmp for this
+      // directly because of its strange way of handling the case where only
+      // one argument is 0 ("<").
+      bool result = !nspace && !getNSpace();
+      if (nspace && getNSpace())
 	result = (Strcmp(nspace, getNSpace()) == 0);
+
       Delete(nspace);
       return result;
     }
