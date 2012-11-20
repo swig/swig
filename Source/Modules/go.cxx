@@ -2375,14 +2375,14 @@ private:
     Iterator b = First(baselist);
 
     if (is_base_first) {
+      if (!b.item) {
+	return;
+      }
       if (!GetFlag(b.item, "feature:ignore")) {
 	addParentExtraBaseInterfaces(n, parents, b.item, true, sf);
       }
 
       b = Next(b);
-      if (!b.item) {
-	return;
-      }
     }
 
     String *go_name = buildGoName(Getattr(n, "sym:name"), false, false);
@@ -4384,7 +4384,7 @@ private:
       Delete(p);
     }
 
-    if (Strstr(ret, "$gotypename") != 0) {
+    if (ret && Strstr(ret, "$gotypename") != 0) {
       ret = NULL;
     }
 
