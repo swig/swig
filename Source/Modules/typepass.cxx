@@ -572,12 +572,9 @@ class TypePass:private Dispatcher {
     if (alias) {
       Typetab *ts = Getattr(n, "typescope");
       if (!ts) {
-	Node *ns;
-	/* Create a empty scope for the alias */
-	ns = Getattr(n, "namespace");
-	if (ns) {
-	  SwigType_scope_alias(name, Getattr(ns, "typescope"));
-	}
+	/* Create an empty scope for the alias */
+	Node *ns = Getattr(n, "namespace");
+	SwigType_scope_alias(name, Getattr(ns, "typescope"));
 	ts = Getattr(ns, "typescope");
 	Setattr(n, "typescope", ts);
       }
