@@ -3503,7 +3503,7 @@ int Language::abstractClassTest(Node *n) {
   } else {
     return 1;
   }
-  return dirabstract ? 1 : 0;
+  return 0;
 }
 
 void Language::setSubclassInstanceCheck(String *nc) {
