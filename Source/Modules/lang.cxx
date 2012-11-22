@@ -1138,17 +1138,11 @@ int Language::callbackfunctionHandler(Node *n) {
   String *type = Getattr(n, "type");
   String *name = Getattr(n, "name");
   String *parms = Getattr(n, "parms");
-  String *cb = GetFlagAttr(n, "feature:callback");
   String *cbname = Getattr(n, "feature:callback:name");
   String *calltype = NewStringf("(%s (*)(%s))(%s)", SwigType_str(type, 0), ParmList_str(parms), SwigType_namestr(name));
   SwigType *cbty = Copy(type);
   SwigType_add_function(cbty, parms);
   SwigType_add_pointer(cbty);
-
-  if (!cbname) {
-    cbname = NewStringf(cb, symname);
-    Setattr(n, "feature:callback:name", cbname);
-  }
 
   Setattr(n, "sym:name", cbname);
   Setattr(n, "type", cbty);
@@ -1158,7 +1152,6 @@ int Language::callbackfunctionHandler(Node *n) {
   if (!ns)
     constantWrapper(n);
 
-  Delete(cbname);
   Delete(cbty);
 
   Swig_restore(n);
