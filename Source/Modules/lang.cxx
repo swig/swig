@@ -3470,6 +3470,7 @@ int Language::abstractClassTest(Node *n) {
 	String *check_item = Getattr(item, "vmid");
 	if (Strcmp(method_id, check_item) == 0) {
 	  exists_item = true;
+	  Delete(method_id);
 	  break;
 	}
       }
