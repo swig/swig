@@ -386,12 +386,11 @@ fail:
 %{
 extern "C" {
 
-void $jsname_initialize(v8::Handle<v8::Context> context)
+void $jsname_initialize(v8::Handle<v8::Context> context, v8::Handle<v8::Object> global_obj)
 {
   SWIG_InitializeModule(0);
 
   v8::HandleScope scope;
-  v8::Local<v8::Object> global_obj = context->Global();
 
   // a class template for creating proxies of undefined types
   SWIGV8_SWIGTYPE_Proxy_class_templ = SWIGV8_CreateClassTemplate("SwigProxy");
