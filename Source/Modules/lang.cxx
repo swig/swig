@@ -834,10 +834,25 @@ int Language::cDeclaration(Node *n) {
   File *f_header = 0;
   SwigType *ty, *fullty;
 
+  if (Getattr(n, "feature:onlychildren")) {
+    if (GetFlag(n, "feature:ignore")) {
+      return SWIG_NOWRAP;
+    } else {
+      // Found an unignored templated method that has an empty template instantiation (%template())
+      // Ignore it unless it has been %rename'd
+      if (Strncmp(symname, "__dummy_", 8) == 0) {
+	SetFlag(n, "feature:ignore");
+	Swig_warning(WARN_LANG_TEMPLATE_METHOD_IGNORE, input_file, line_number,
+	    "%%template() contains no name. Template method ignored: %s\n", Swig_name_decl(n));
+	return SWIG_NOWRAP;
+      }
+    }
+  }
+
   /* discards nodes following the access control rules */
   if (cplus_mode != PUBLIC || !is_public(n)) {
     /* except for friends, they are not affected by access control */
-    int isfriend = storage && (Cmp(storage, "friend") == 0);
+    int isfriend = Cmp(storage, "friend") == 0;
     if (!isfriend) {
       /* Check what the director needs. If the method is pure virtual, it is always needed.
        * Also wrap non-virtual protected members if asked for (allprotected mode). */
@@ -894,7 +909,7 @@ int Language::cDeclaration(Node *n) {
     }
   }
 
-  if (symname && !validIdentifier(symname)) {
+  if (!validIdentifier(symname)) {
     Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Can't wrap '%s' unless renamed to a valid identifier.\n", symname);
     return SWIG_NOWRAP;
   }
@@ -964,17 +979,9 @@ int Language::cDeclaration(Node *n) {
     Delete(SwigType_pop_function(ty));
     DohIncref(type);
     Setattr(n, "type", ty);
-    if (GetFlag(n, "feature:onlychildren") && !GetFlag(n, "feature:ignore")) {
-      // Found an unignored templated method that has an empty template instantiation (%template())
-      // Ignore it unless it has been %rename'd
-      if (Strncmp(symname, "__dummy_", 8) == 0) {
-        SetFlag(n, "feature:ignore");
-        Swig_warning(WARN_LANG_TEMPLATE_METHOD_IGNORE, input_file, line_number,
-                     "%%template() contains no name. Template method ignored: %s\n", Swig_name_decl(n));
-      }
-    }
-    if (!GetFlag(n, "feature:ignore"))
-      functionHandler(n);
+
+    functionHandler(n);
+
     Setattr(n, "type", type);
     Delete(ty);
     Delete(type);
@@ -2790,7 +2797,7 @@ int Language::destructorHandler(Node *n) {
   String *symname = Getattr(n, "sym:name");
   String *mrename;
   char *csymname = Char(symname);
-  if (csymname && (*csymname == '~'))
+  if (*csymname == '~')
     csymname += 1;
 
   mrename = Swig_name_destroy(NSpace, csymname);
