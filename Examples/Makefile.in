@@ -520,19 +520,8 @@ java_clean:
 # You need to set this variable to the jscore[or other javascript engine] directories containing the
 # files "JavaScript.h" and others
 
-ifeq (,$(V8))
-  JS_INCLUDE = @JSCOREINC@
-  JS_DLNK    = @JSCOREDYNAMICLINKING@
-else
-  JS_INCLUDE = @JSV8INC@
-  JS_DLNK    = @JSV8DYNAMICLINKING@
-endif
-
-ifeq (,$(V8))
-  SWIGJS     = $(SWIG) -javascript -jsc
-else
-  SWIGJS     = $(SWIG) -javascript -v8
-endif
+JS_INCLUDE = @JSCOREINC@ @JSV8INC@
+JS_DLNK    = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
 
 # Extra JAVASCRIPT specific dynamic linking options
 JS_LIBPREFIX = @JSCORELIBRARYPREFIX@
@@ -541,17 +530,40 @@ JSLDSHARED = @JSCORELDSHARED@
 JSCXXSHARED = @JSCORECXXSHARED@
 JSCFLAGS = @JSCORECFLAGS@
 JSCXXFLAGS = @JSCXXFLAGS@
+ROOT_DIR = @ROOT_DIR@
+JSCORE = @JSCORE@
+JSV8 = @JSV8@
+JSDEFAULT = @JSDEFAULT@
 
-JSEXE_SRC_DIR = $(TOP)/../Tools/javascript
+JSEXE_SRC_DIR = $(ROOT_DIR)/Tools/javascript
 JSEXE         = $(JSEXE_SRC_DIR)/javascript
-ifeq (,$(V8))
-  JSEXE_SRC     = $(JSEXE_SRC_DIR)/javascript.cxx $(JSEXE_SRC_DIR)/js_shell.cxx $(JSEXE_SRC_DIR)/jsc_shell.cxx
+
+ifneq (,$(JSCORE))
+  JSEXE_SRC_JSC = $(JSEXE_SRC_DIR)/jsc_shell.cxx
+  JSEXE_FLAGS_JSC   = -DENABLE_JSC
+endif
+
+ifneq (,$(JSV8))
+  JSEXE_SRC_V8     = $(JSEXE_SRC_DIR)/v8_shell.cxx
+  JSEXE_FLAGS_V8   = -DENABLE_V8
+endif
+
+JSEXE_SRC   = $(JSEXE_SRC_DIR)/javascript.cxx $(JSEXE_SRC_DIR)/js_shell.cxx $(JSEXE_SRC_JSC) $(JSEXE_SRC_V8)
+JSEXE_FLAGS   = $(JSEXE_FLAGS_JSC) $(JSEXE_FLAGS_V8)
+
+# this controls which engine the code will be generated for
+# and correspondingly the argument for the js interpreter
+ifneq (,$(JSC))
+  SWIGJS     = $(SWIG) -javascript -jsc
   JSEXE_OPTS    = -jsc
-  JSEXE_FLAGS   = -DUSE_JSC
 else
-  JSEXE_SRC     = $(JSEXE_SRC_DIR)/javascript.cxx $(JSEXE_SRC_DIR)/js_shell.cxx $(JSEXE_SRC_DIR)/v8_shell.cxx
+ifneq (,$(V8))
+  SWIGJS     = $(SWIG) -javascript -v8
   JSEXE_OPTS    = -v8
-  JSEXE_FLAGS    = -DUSE_V8
+else
+  SWIGJS     = $(SWIG) -javascript -$(JSDEFAULT)
+  JSEXE_OPTS    = -$(JSDEFAULT)
+endif
 endif
 
 # ----------------------------------------------------------------

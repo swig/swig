@@ -1081,12 +1081,13 @@ AC_SUBST(JAVACFLAGS)
 # Look for JAVASCRIPT [JavaScriptCore Headers and Library]
 #----------------------------------------------------------------
 AC_ARG_WITH(javascript, AS_HELP_STRING([--without-javascript], [Disable JAVASCRIPT]), [with_javascript="$withval"], [with_javascript=yes])
+AC_ARG_VAR(JSDEFAULT, "The default engine to use ( v8 | jsc ).")
 
 # First, check for "--without-javascript" or "--with-javascript=no".
 if test x"${with_javascript}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Javascript])
-JAVASCRIPT=
-else
+  AC_MSG_NOTICE([Disabling Javascript])
+  JAVASCRIPT=
+fi
 
 ###     JavascriptCore     ###
 
@@ -1120,8 +1121,8 @@ fi
 
 
 # check for JavaScriptCore, Webkit libraries
-AC_ARG_WITH(jscorelib,[  --with-jscorelib =path      Set location of JavaScriptCore (Webkit) library directory],[
-	JSCORELIB="-L$withval"], [JSCORELIB=])
+AC_ARG_WITH(jscorelib,[  --with-jscorelib =path      Set location of JavaScriptCore (Webkit) library directory],
+  [JSCORELIB="-L$withval"], [JSCORELIB=])
 AC_MSG_CHECKING(for JavaScriptCore(Webkit) library)
 
 if test -z "$JSCORELIB"; then
@@ -1149,10 +1150,10 @@ done
 
 if test -z "$JSCORELIB"; then
 	AC_MSG_RESULT(not found)
-fi
-
+	JSCORE=
 else
-AC_MSG_RESULT($JSCORELIB)
+	AC_MSG_RESULT($JSCORELIB)
+	JSCORE=1
 fi
 
 # linking options
@@ -1202,6 +1203,7 @@ case $host in
 esac
 fi
 
+AC_SUBST(JSCORE)
 AC_SUBST(JSCOREINC)
 AC_SUBST(JSCOREDYNAMICLINKING)
 AC_SUBST(JSCORELIBRARYPREFIX)
@@ -1237,6 +1239,9 @@ done
 
 if test "$JSV8INC" = "" ; then
   AC_MSG_RESULT(not found)
+  JSV8=
+else
+  JSV8=1
 fi
 
 
@@ -1274,6 +1279,7 @@ esac
 
 AC_SUBST(JSV8INC)
 AC_SUBST(JSV8DYNAMICLINKING)
+AC_SUBST(JSDEFAULT)
 
 #----------------------------------------------------------------
 # Look for gcj
