@@ -29,15 +29,9 @@ int main(int argc, char* argv[]) {
       std::string module_name(argv[idx]);
       module_names.push_back(module_name);
     } else if(strcmp(argv[idx], "-v8") == 0) {
-#ifndef USE_V8
-      std::cerr << "V8 support is not enabled" << std::endl;
-      exit(-1);
-#endif
+        shell = JSShell::Create(JSShell::V8);
     } else if(strcmp(argv[idx], "-jsc") == 0) {
-#ifndef USE_JSC
-      std::cerr << "JSC support is not enabled" << std::endl;
-      exit(-1);
-#endif
+        shell = JSShell::Create(JSShell::JSC);
     } else if(strcmp(argv[idx], "-i") == 0) {
       interactive = true;
     } else {
@@ -45,7 +39,9 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  shell = JSShell::Create();
+  if (shell == 0) {
+    shell = JSShell::Create();
+  }
 
   bool failed = false;
   for(std::vector<std::string>::iterator it = module_names.begin();

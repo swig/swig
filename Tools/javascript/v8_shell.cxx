@@ -285,6 +285,6 @@ const char* V8Shell::ToCString(const v8::String::Utf8Value& value) {
   return *value ? *value : "<string conversion failed>";
 }
 
-JSShell* JSShell::Create() {
+JSShell* V8Shell_Create() {
   return new V8Shell();
 }

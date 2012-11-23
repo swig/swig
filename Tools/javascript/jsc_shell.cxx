@@ -160,6 +160,6 @@ void JSCShell::PrintError(JSContextRef ctx, JSValueRef err, const std::string& n
   std::cerr << name << ":" << line << ":" << errMsg << std::endl;
 }
 
-JSShell* JSShell::Create() {
+JSShell* JSCShell_Create() {
   return new JSCShell();
 }

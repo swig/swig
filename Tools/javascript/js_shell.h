@@ -10,7 +10,7 @@ class JSShell {
 
 public:
   enum Engine {
-    JSC,
+    JSC = 0,
     V8
   };
 
@@ -20,7 +20,7 @@ public:
 
   virtual ~JSShell() = 0;
 
-  static JSShell* Create();
+  static JSShell* Create(Engine engine = JSC);
 
   bool ImportModule(const std::string& name);
 
@@ -45,7 +45,5 @@ protected:
   std::vector<HANDLE> loaded_modules;
 
 };
-
-typedef JSShell* (*JSShellFactory)();
 
 #endif // JS_SHELL_H

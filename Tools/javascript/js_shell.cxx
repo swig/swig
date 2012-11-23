@@ -15,6 +15,8 @@
 #error "implement dll loading"
 #endif
 
+
+
 JSShell::~JSShell() {
 
   for(std::vector<HANDLE>::iterator it = loaded_modules.begin();
@@ -92,4 +94,33 @@ std::string JSShell::ReadFile(const std::string& fileName)
   }
 
   return script;
+}
+
+#ifdef ENABLE_JSC
+extern JSShell* JSCShell_Create();
+#endif
+#ifdef ENABLE_V8
+extern JSShell* V8Shell_Create();
+#endif
+
+typedef JSShell*(*ShellFactory)();
+
+static ShellFactory js_shell_factories[2] = {
+#ifdef ENABLE_JSC
+JSCShell_Create,
+#else
+0,
+#endif
+#ifdef ENABLE_V8
+V8Shell_Create,
+#else
+0,
+#endif
+};
+
+JSShell *JSShell::Create(Engine engine) {
+  if(js_shell_factories[engine] == 0) {
+    throw "Engine not supported.";
+  }
+  return js_shell_factories[engine]();
 }
