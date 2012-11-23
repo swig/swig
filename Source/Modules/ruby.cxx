@@ -737,10 +737,6 @@ private:
       String *autodoc = Getattr(n, "feature:autodoc");
       autodoc_l dlevel = autodoc_level(autodoc);
 
-      symname = Getattr(n, "sym:name");
-      if ( Getattr( special_methods, symname ) )
-	symname = Getattr( special_methods, symname );
-
       switch (dlevel) {
       case NO_AUTODOC:
       case NAMES_AUTODOC:
@@ -3093,7 +3089,7 @@ public:
       if (throw_parm_list)
 	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
-	if ((tm = Getattr(p, "tmap:throws"))) {
+	if (Getattr(p, "tmap:throws")) {
 	  if (gencomma++) {
 	    Append(w->def, ", ");
 	    Append(declaration, ", ");

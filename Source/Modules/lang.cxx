@@ -1134,7 +1134,6 @@ int Language::globalfunctionHandler(Node *n) {
 
 int Language::callbackfunctionHandler(Node *n) {
   Swig_require("callbackfunctionHandler", n, "name", "*sym:name", "*type", "?value", NIL);
-  String *symname = Getattr(n, "sym:name");
   String *type = Getattr(n, "type");
   String *name = Getattr(n, "name");
   String *parms = Getattr(n, "parms");

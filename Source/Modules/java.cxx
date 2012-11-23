@@ -1016,7 +1016,7 @@ public:
     if ((throw_parm_list = Getattr(n, "catchlist"))) {
       Swig_typemap_attach_parms("throws", throw_parm_list, f);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
-	if ((tm = Getattr(p, "tmap:throws"))) {
+	if (Getattr(p, "tmap:throws")) {
 	  addThrows(n, "tmap:throws", p);
 	}
       }
@@ -3631,7 +3631,7 @@ public:
     SwigType *adjustedreturntype = covariant ? covariant : returntype;
     Parm *adjustedreturntypeparm = NewParmNode(adjustedreturntype, n);
 
-    if ((tm = Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0))
+    if (Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0)
 	&& (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
 
       // Note that in the case of polymorphic (covariant) return types, the
@@ -3658,7 +3658,7 @@ public:
       }
 
       String *jdesc = NULL;
-      if ((tm = Swig_typemap_lookup("directorin", tp, "", 0))
+      if (Swig_typemap_lookup("directorin", tp, "", 0)
 	  && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
 
 	// Objects marshalled passing a Java class across JNI boundary use jobject - the nouse flag indicates this
@@ -3911,7 +3911,7 @@ public:
       if (throw_parm_list)
 	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
-	if ((tm = Getattr(p, "tmap:throws"))) {
+	if (Getattr(p, "tmap:throws")) {
 	  addThrows(n, "tmap:throws", p);
 
 	  if (gencomma++) {

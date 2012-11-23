@@ -572,7 +572,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   Parm *p = parms;
   for (i = 0; p; p = nextSibling(p), ++i) {
     String *arg = Getattr(p, "name");
-    String *lname = NewString("");
+    String *lname;
 
     if (!arg && Cmp(Getattr(p, "type"), "void")) {
       lname = NewStringf("s_arg%d", i+1);
