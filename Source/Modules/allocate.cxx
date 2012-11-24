@@ -336,15 +336,13 @@ class Allocate:public Dispatcher {
 	String *name = Getattr(nn, "name");
 	if (!name)
 	  continue;
+	if (Strchr(name, '~'))
+	  continue;		/* Don't care about destructors */
 	String *base_decl = Getattr(nn, "decl");
 	if (base_decl)
 	  base_decl = SwigType_typedef_resolve_all(base_decl);
-	if (Strchr(name, '~'))
-	  continue;		/* Don't care about destructors */
-
-	if (SwigType_isfunction(base_decl)) {
+	if (SwigType_isfunction(base_decl))
 	  search_decl = SwigType_pop_function(base_decl);
-	}
 	Node *dn = Swig_symbol_clookup_local_check(name, 0, check_implemented);
 	Delete(search_decl);
 	Delete(base_decl);
@@ -415,7 +413,7 @@ class Allocate:public Dispatcher {
 		  match = 1;
 		  break;
 		}
-		if ((!symname || (!Getattr(e, "sym:name"))) && (Cmp(name, Getattr(e, "name")) == 0)) {
+		if (!Getattr(e, "sym:name") && (Cmp(name, Getattr(e, "name")) == 0)) {
 		  match = 1;
 		  break;
 		}
