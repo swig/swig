@@ -2644,25 +2644,25 @@ int Language::constructorDeclaration(Node *n) {
  * get_director_ctor_code()
  * ---------------------------------------------------------------------- */
 
-static String *get_director_ctor_code(Node *n, String *director_ctor_code, String *director_prot_ctor_code, List *&abstract) {
+static String *get_director_ctor_code(Node *n, String *director_ctor_code, String *director_prot_ctor_code, List *&abstracts) {
   String *director_ctor = director_ctor_code;
   int use_director = Swig_directorclass(n);
   if (use_director) {
     Node *pn = Swig_methodclass(n);
-    abstract = Getattr(pn, "abstracts");
+    abstracts = Getattr(pn, "abstracts");
     if (director_prot_ctor_code) {
       int is_notabstract = GetFlag(pn, "feature:notabstract");
-      int is_abstract = abstract && !is_notabstract;
+      int is_abstract = abstracts && !is_notabstract;
       if (is_protected(n) || is_abstract) {
 	director_ctor = director_prot_ctor_code;
-	abstract = Copy(abstract);
+	abstracts = Copy(abstracts);
 	Delattr(pn, "abstracts");
       } else {
 	if (is_notabstract) {
-	  abstract = Copy(abstract);
+	  abstracts = Copy(abstracts);
 	  Delattr(pn, "abstracts");
 	} else {
-	  abstract = 0;
+	  abstracts = 0;
 	}
       }
     }
@@ -2681,10 +2681,10 @@ int Language::constructorHandler(Node *n) {
   String *mrename = Swig_name_construct(NSpace, symname);
   String *nodeType = Getattr(n, "nodeType");
   int constructor = (!Cmp(nodeType, "constructor"));
-  List *abstract = 0;
+  List *abstracts = 0;
   String *director_ctor = get_director_ctor_code(n, director_ctor_code,
 						 director_prot_ctor_code,
-						 abstract);
+						 abstracts);
   if (!constructor) {
     /* if not originally a constructor, still handle it as one */
     Setattr(n, "handled_as_constructor", "1");
@@ -2695,8 +2695,8 @@ int Language::constructorHandler(Node *n) {
   functionWrapper(n);
   Delete(mrename);
   Swig_restore(n);
-  if (abstract)
-    Setattr(Swig_methodclass(n), "abstracts", abstract);
+  if (abstracts)
+    Setattr(Swig_methodclass(n), "abstracts", abstracts);
   return SWIG_OK;
 }
 
@@ -2708,17 +2708,17 @@ int Language::copyconstructorHandler(Node *n) {
   Swig_require("copyconstructorHandler", n, "?name", "*sym:name", "?type", "?parms", NIL);
   String *symname = Getattr(n, "sym:name");
   String *mrename = Swig_name_copyconstructor(NSpace, symname);
-  List *abstract = 0;
+  List *abstracts = 0;
   String *director_ctor = get_director_ctor_code(n, director_ctor_code,
 						 director_prot_ctor_code,
-						 abstract);
+						 abstracts);
   Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend);
   Setattr(n, "sym:name", mrename);
   functionWrapper(n);
   Delete(mrename);
   Swig_restore(n);
-  if (abstract)
-    Setattr(Swig_methodclass(n), "abstracts", abstract);
+  if (abstracts)
+    Setattr(Swig_methodclass(n), "abstracts", abstracts);
   return SWIG_OK;
 }
 
@@ -3436,17 +3436,17 @@ int Language::abstractClassTest(Node *n) {
   if (Getattr(n, "allocate:nonew"))
     return 1;
   /* now check for the rest */
-  List *abstract = Getattr(n, "abstracts");
-  if (!abstract)
+  List *abstracts = Getattr(n, "abstracts");
+  if (!abstracts)
     return 0;
-  int labs = Len(abstract);
+  int labs = Len(abstracts);
 #ifdef SWIG_DEBUG
   List *bases = Getattr(n, "allbases");
   Printf(stderr, "testing %s %d %d\n", Getattr(n, "name"), labs, Len(bases));
 #endif
   if (!labs)
     return 0;			/*strange, but need to be fixed */
-  if (abstract && !directorsEnabled())
+  if (abstracts && !directorsEnabled())
     return 1;
   if (!GetFlag(n, "feature:director"))
     return 1;
@@ -3458,7 +3458,7 @@ int Language::abstractClassTest(Node *n) {
     Printf(stderr, "vtable %s %d %d\n", Getattr(n, "name"), Len(vtable), labs);
 #endif
     for (int i = 0; i < labs; i++) {
-      Node *ni = Getitem(abstract, i);
+      Node *ni = Getitem(abstracts, i);
       Node *method_id = vtable_method_id(ni);
       if (!method_id)
 	continue;

@@ -728,33 +728,33 @@ static void check_extensions() {
 
 /* Check a set of declarations to see if any are pure-abstract */
 
-static List *pure_abstract(Node *n) {
-  List *abs = 0;
+static List *pure_abstracts(Node *n) {
+  List *abstracts = 0;
   while (n) {
     if (Cmp(nodeType(n),"cdecl") == 0) {
       String *decl = Getattr(n,"decl");
       if (SwigType_isfunction(decl)) {
 	String *init = Getattr(n,"value");
 	if (Cmp(init,"0") == 0) {
-	  if (!abs) {
-	    abs = NewList();
+	  if (!abstracts) {
+	    abstracts = NewList();
 	  }
-	  Append(abs,n);
+	  Append(abstracts,n);
 	  SetFlag(n,"abstract");
 	}
       }
     } else if (Cmp(nodeType(n),"destructor") == 0) {
       if (Cmp(Getattr(n,"value"),"0") == 0) {
-	if (!abs) {
-	  abs = NewList();
+	if (!abstracts) {
+	  abstracts = NewList();
 	}
-	Append(abs,n);
+	Append(abstracts,n);
 	SetFlag(n,"abstract");
       }
     }
     n = nextSibling(n);
   }
-  return abs;
+  return abstracts;
 }
 
 /* Make a classname */
@@ -3002,7 +3002,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           if (Strcmp(nodeType(templnode),"class") == 0) {
 
                             /* Identify pure abstract methods */
-                            Setattr(templnode,"abstracts", pure_abstract(firstChild(templnode)));
+                            Setattr(templnode,"abstracts", pure_abstracts(firstChild(templnode)));
 
                             /* Set up inheritance in symbol table */
                             {
@@ -3574,7 +3574,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   inclass = 0;
 		   
 		   /* Check for pure-abstract class */
-		   Setattr($$,"abstracts", pure_abstract($7));
+		   Setattr($$,"abstracts", pure_abstracts($7));
 		   
 		   /* This bit of code merges in a previously defined %extend directive (if any) */
 		   
@@ -3737,7 +3737,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       unnamed = Getattr($$,"unnamed");
 
 	       /* Check for pure-abstract class */
-	       Setattr($$,"abstracts", pure_abstract($5));
+	       Setattr($$,"abstracts", pure_abstracts($5));
 
 	       n = new_node("cdecl");
 	       Setattr(n,"name",$7.id);

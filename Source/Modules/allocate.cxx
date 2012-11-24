@@ -327,12 +327,12 @@ class Allocate:public Dispatcher {
       Swig_symbol_setscope(oldtab);
       return ret;
     }
-    List *abstract = Getattr(base, "abstracts");
-    if (abstract) {
+    List *abstracts = Getattr(base, "abstracts");
+    if (abstracts) {
       int dabstract = 0;
-      int len = Len(abstract);
+      int len = Len(abstracts);
       for (int i = 0; i < len; i++) {
-	Node *nn = Getitem(abstract, i);
+	Node *nn = Getitem(abstracts, i);
 	String *name = Getattr(nn, "name");
 	if (!name)
 	  continue;
@@ -348,13 +348,13 @@ class Allocate:public Dispatcher {
 	Delete(base_decl);
 
 	if (!dn) {
-	  List *nabstract = Getattr(n, "abstracts");
-	  if (!nabstract) {
-	    nabstract = NewList();
-	    Setattr(n, "abstracts", nabstract);
-	    Delete(nabstract);
+	  List *nabstracts = Getattr(n, "abstracts");
+	  if (!nabstracts) {
+	    nabstracts = NewList();
+	    Setattr(n, "abstracts", nabstracts);
+	    Delete(nabstracts);
 	  }
-	  Append(nabstract, nn);
+	  Append(nabstracts, nn);
 	  if (!Getattr(n, "abstracts:firstnode")) {
 	    Setattr(n, "abstracts:firstnode", nn);
 	  }
@@ -605,10 +605,10 @@ Allocate():
 			 "Class '%s' might be abstract, " "no constructors generated,\n", SwigType_namestr(Getattr(n, "name")));
 	    Swig_warning(WARN_TYPE_ABSTRACT, Getfile(na), Getline(na), "Method %s might not be implemented.\n", Swig_name_decl(na));
 	    if (!Getattr(n, "abstracts")) {
-	      List *abstract = NewList();
-	      Append(abstract, na);
-	      Setattr(n, "abstracts", abstract);
-	      Delete(abstract);
+	      List *abstracts = NewList();
+	      Append(abstracts, na);
+	      Setattr(n, "abstracts", abstracts);
+	      Delete(abstracts);
 	    }
 	  }
 	}
