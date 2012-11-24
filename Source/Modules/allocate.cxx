@@ -43,7 +43,7 @@ extern "C" {
 	  SwigType *decl1 = SwigType_typedef_resolve_all(decl);
 	  SwigType *decl2 = SwigType_pop_function(decl1);
 	  if (Strcmp(decl2, search_decl) == 0) {
-	    if (!Getattr(n, "abstract")) {
+	    if (!GetFlag(n, "abstract")) {
 	      Delete(decl1);
 	      Delete(decl2);
 	      return 1;
@@ -327,7 +327,7 @@ class Allocate:public Dispatcher {
       Swig_symbol_setscope(oldtab);
       return ret;
     }
-    List *abstract = Getattr(base, "abstract");
+    List *abstract = Getattr(base, "abstracts");
     if (abstract) {
       int dabstract = 0;
       int len = Len(abstract);
@@ -348,15 +348,15 @@ class Allocate:public Dispatcher {
 	Delete(base_decl);
 
 	if (!dn) {
-	  List *nabstract = Getattr(n, "abstract");
+	  List *nabstract = Getattr(n, "abstracts");
 	  if (!nabstract) {
 	    nabstract = NewList();
-	    Setattr(n, "abstract", nabstract);
+	    Setattr(n, "abstracts", nabstract);
 	    Delete(nabstract);
 	  }
 	  Append(nabstract, nn);
-	  if (!Getattr(n, "abstract:firstnode")) {
-	    Setattr(n, "abstract:firstnode", nn);
+	  if (!Getattr(n, "abstracts:firstnode")) {
+	    Setattr(n, "abstracts:firstnode", nn);
 	  }
 	  dabstract = base != n;
 	}
@@ -596,18 +596,18 @@ Allocate():
     /* Check if the class is abstract via inheritance.   This might occur if a class didn't have
        any pure virtual methods of its own, but it didn't implement all of the pure methods in
        a base class */
-    if (!Getattr(n, "abstract") && is_abstract_inherit(n)) {
+    if (!Getattr(n, "abstracts") && is_abstract_inherit(n)) {
       if (((Getattr(n, "allocate:public_constructor") || (!GetFlag(n, "feature:nodefault") && !Getattr(n, "allocate:has_constructor"))))) {
 	if (!GetFlag(n, "feature:notabstract")) {
-	  Node *na = Getattr(n, "abstract:firstnode");
+	  Node *na = Getattr(n, "abstracts:firstnode");
 	  if (na) {
 	    Swig_warning(WARN_TYPE_ABSTRACT, Getfile(n), Getline(n),
 			 "Class '%s' might be abstract, " "no constructors generated,\n", SwigType_namestr(Getattr(n, "name")));
 	    Swig_warning(WARN_TYPE_ABSTRACT, Getfile(na), Getline(na), "Method %s might not be implemented.\n", Swig_name_decl(na));
-	    if (!Getattr(n, "abstract")) {
+	    if (!Getattr(n, "abstracts")) {
 	      List *abstract = NewList();
 	      Append(abstract, na);
-	      Setattr(n, "abstract", abstract);
+	      Setattr(n, "abstracts", abstract);
 	      Delete(abstract);
 	    }
 	  }
@@ -618,7 +618,7 @@ Allocate():
     if (!Getattr(n, "allocate:has_constructor")) {
       /* No constructor is defined.  We need to check a few things */
       /* If class is abstract.  No default constructor. Sorry */
-      if (Getattr(n, "abstract")) {
+      if (Getattr(n, "abstracts")) {
 	Delattr(n, "allocate:default_constructor");
       }
       if (!Getattr(n, "allocate:default_constructor")) {
@@ -639,7 +639,7 @@ Allocate():
       }
     }
     if (!Getattr(n, "allocate:has_copy_constructor")) {
-      if (Getattr(n, "abstract")) {
+      if (Getattr(n, "abstracts")) {
 	Delattr(n, "allocate:copy_constructor");
       }
       if (!Getattr(n, "allocate:copy_constructor")) {

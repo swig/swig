@@ -942,7 +942,7 @@ public:
 	Printv(f_shadow, "  constructor { } {\n", NIL);
 	Printv(f_shadow, "    # This constructor will fail if called directly\n", NIL);
 	Printv(f_shadow, "    if { [info class] == \"::", class_name, "\" } {\n", NIL);
-	Printv(f_shadow, "      error \"No constructor for class ", class_name, (Getattr(n, "abstract") ? " - class is abstract" : ""), "\"\n", NIL);
+	Printv(f_shadow, "      error \"No constructor for class ", class_name, (Getattr(n, "abstracts") ? " - class is abstract" : ""), "\"\n", NIL);
 	Printv(f_shadow, "    }\n", NIL);
 	Printv(f_shadow, "  }\n", NIL);
       }

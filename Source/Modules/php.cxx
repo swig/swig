@@ -1698,9 +1698,9 @@ public:
 	  Printf(output, "\t\t$r=%s;\n", invoke);
 	if (Len(ret_types) == 1) {
 	  /* If d is abstract we can't create a new wrapper type d. */
-	  Node * d_class = classLookup(d);
+	  Node *d_class = classLookup(d);
 	  int is_abstract = 0;
-	  if (Getattr(d_class, "abstract")) {
+	  if (Getattr(d_class, "abstracts")) {
 	    is_abstract = 1;
 	  }
 	  if (newobject || !is_abstract) {
@@ -2020,7 +2020,7 @@ done:
 	base.item = NULL;
       }
 
-      if (Getattr(n, "abstract") && !GetFlag(n, "feature:notabstract")) {
+      if (Getattr(n, "abstracts") && !GetFlag(n, "feature:notabstract")) {
 	Printf(s_phpclasses, "abstract ");
       }
 

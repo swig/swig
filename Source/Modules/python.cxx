@@ -3794,7 +3794,7 @@ public:
       if (!have_constructor) {
 	if (!builtin)
 	  Printv(f_shadow_file, tab4, "def __init__(self, *args, **kwargs): raise AttributeError(\"", "No constructor defined",
-		 (Getattr(n, "abstract") ? " - class is abstract" : ""), "\")\n", NIL);
+		 (Getattr(n, "abstracts") ? " - class is abstract" : ""), "\")\n", NIL);
       } else if (fastinit && !builtin) {
 
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);

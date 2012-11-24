@@ -3512,7 +3512,7 @@ public:
 	  Symtab *symtab = Getattr(n, "sym:symtab");
 	  Node *typenode = Swig_symbol_clookup(resolved_typename, symtab);
 
-	  if (SwigType_ispointer(returntype) || (typenode && Getattr(typenode, "abstract"))) {
+	  if (SwigType_ispointer(returntype) || (typenode && Getattr(typenode, "abstracts"))) {
 	    /* initialize pointers to something sane. Same for abstract
 	       classes when a reference is returned. */
 	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);

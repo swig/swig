@@ -2649,18 +2649,18 @@ static String *get_director_ctor_code(Node *n, String *director_ctor_code, Strin
   int use_director = Swig_directorclass(n);
   if (use_director) {
     Node *pn = Swig_methodclass(n);
-    abstract = Getattr(pn, "abstract");
+    abstract = Getattr(pn, "abstracts");
     if (director_prot_ctor_code) {
       int is_notabstract = GetFlag(pn, "feature:notabstract");
       int is_abstract = abstract && !is_notabstract;
       if (is_protected(n) || is_abstract) {
 	director_ctor = director_prot_ctor_code;
 	abstract = Copy(abstract);
-	Delattr(pn, "abstract");
+	Delattr(pn, "abstracts");
       } else {
 	if (is_notabstract) {
 	  abstract = Copy(abstract);
-	  Delattr(pn, "abstract");
+	  Delattr(pn, "abstracts");
 	} else {
 	  abstract = 0;
 	}
@@ -2696,7 +2696,7 @@ int Language::constructorHandler(Node *n) {
   Delete(mrename);
   Swig_restore(n);
   if (abstract)
-    Setattr(Swig_methodclass(n), "abstract", abstract);
+    Setattr(Swig_methodclass(n), "abstracts", abstract);
   return SWIG_OK;
 }
 
@@ -2718,7 +2718,7 @@ int Language::copyconstructorHandler(Node *n) {
   Delete(mrename);
   Swig_restore(n);
   if (abstract)
-    Setattr(Swig_methodclass(n), "abstract", abstract);
+    Setattr(Swig_methodclass(n), "abstracts", abstract);
   return SWIG_OK;
 }
 
@@ -3436,7 +3436,7 @@ int Language::abstractClassTest(Node *n) {
   if (Getattr(n, "allocate:nonew"))
     return 1;
   /* now check for the rest */
-  List *abstract = Getattr(n, "abstract");
+  List *abstract = Getattr(n, "abstracts");
   if (!abstract)
     return 0;
   int labs = Len(abstract);

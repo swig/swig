@@ -740,7 +740,7 @@ static List *pure_abstract(Node *n) {
 	    abs = NewList();
 	  }
 	  Append(abs,n);
-	  Setattr(n,"abstract","1");
+	  SetFlag(n,"abstract");
 	}
       }
     } else if (Cmp(nodeType(n),"destructor") == 0) {
@@ -749,7 +749,7 @@ static List *pure_abstract(Node *n) {
 	  abs = NewList();
 	}
 	Append(abs,n);
-	Setattr(n,"abstract","1");
+	SetFlag(n,"abstract");
       }
     }
     n = nextSibling(n);
@@ -3002,7 +3002,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           if (Strcmp(nodeType(templnode),"class") == 0) {
 
                             /* Identify pure abstract methods */
-                            Setattr(templnode,"abstract", pure_abstract(firstChild(templnode)));
+                            Setattr(templnode,"abstracts", pure_abstract(firstChild(templnode)));
 
                             /* Set up inheritance in symbol table */
                             {
@@ -3574,7 +3574,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   inclass = 0;
 		   
 		   /* Check for pure-abstract class */
-		   Setattr($$,"abstract", pure_abstract($7));
+		   Setattr($$,"abstracts", pure_abstract($7));
 		   
 		   /* This bit of code merges in a previously defined %extend directive (if any) */
 		   
@@ -3737,7 +3737,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       unnamed = Getattr($$,"unnamed");
 
 	       /* Check for pure-abstract class */
-	       Setattr($$,"abstract", pure_abstract($5));
+	       Setattr($$,"abstracts", pure_abstract($5));
 
 	       n = new_node("cdecl");
 	       Setattr(n,"name",$7.id);
