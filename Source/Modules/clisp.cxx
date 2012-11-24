@@ -132,9 +132,9 @@ int CLISP::top(Node *n) {
 
   for (len--; len >= 0; len--) {
     end--;
-    Seek(f_cl, len, SEEK_SET);
+    (void)Seek(f_cl, len, SEEK_SET);
     int ch = Getc(f_cl);
-    Seek(f_cl, end, SEEK_SET);
+    (void)Seek(f_cl, end, SEEK_SET);
     Putc(ch, f_cl);
   }
 
