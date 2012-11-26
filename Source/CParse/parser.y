@@ -1153,7 +1153,7 @@ static void nested_new_struct(const char *kind, String *struct_code, Node *cpp_o
  * nested class solution is implemented.
  * ----------------------------------------------------------------------------- */
 
-static Node *nested_forward_declaration(const char *storage, const char *kind, String *sname, const char *name, Node *cpp_opt_declarators) {
+static Node *nested_forward_declaration(const char *storage, const char *kind, String *sname, String *name, Node *cpp_opt_declarators) {
   Node *nn = 0;
   int warned = 0;
 
@@ -1178,7 +1178,7 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
     if (!variable_of_anonymous_type) {
       int anonymous_typedef = !sname && (storage && (strcmp(storage, "typedef") == 0));
       Node *n = cpp_opt_declarators;
-      SwigType *type = NewString(name);
+      SwigType *type = name;
       while (n) {
 	Setattr(n, "type", type);
 	Setattr(n, "storage", storage);
@@ -1188,7 +1188,6 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
 	}
 	n = nextSibling(n);
       }
-      Delete(type);
       add_symbols(cpp_opt_declarators);
 
       if (nn) {
@@ -4660,7 +4659,7 @@ cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (cparse_cplusplus) {
-		    const char *name = $6 ? Getattr($6, "name") : 0;
+		    String *name = $6 ? Getattr($6, "name") : 0;
 		    $$ = nested_forward_declaration($1, $2, 0, name, $6);
 		  } else {
 		    if ($6) {
