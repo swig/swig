@@ -87,7 +87,7 @@ public:
     Language::top(n);
     Printf(out, "\n");
     Printf(out, ";;; Lisp parse tree produced by SWIG\n");
-    print_circle_hash = DohNewHash();
+    print_circle_hash = NewHash();
     print_circle_count = 0;
     hanging_parens = 0;
     need_whitespace = 0;

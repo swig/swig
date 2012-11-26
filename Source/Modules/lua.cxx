@@ -62,7 +62,7 @@ char cvsroot_lua_cxx[] = "$Id$";
 void display_mapping(DOH *d) {
   if (d == 0 || !DohIsMapping(d))
     return;
-  for (DohIterator it = DohFirst(d); it.item; it = DohNext(it)) {
+  for (Iterator it = First(d); it.item; it = Next(it)) {
     if (DohIsString(it.item))
       Printf(stdout, "  %s = %s\n", it.key, it.item);
     else if (DohIsMapping(it.item))

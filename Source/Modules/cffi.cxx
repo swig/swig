@@ -1051,10 +1051,10 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
 
   if (Len(num) >= 2 && s[0] == '0') { /* octal or hex */
     if (s[1] == 'x'){
-      DohReplace(num,"0","#",DOH_REPLACE_FIRST);
+      Replace(num,"0","#",DOH_REPLACE_FIRST);
     }
     else{
-      DohReplace(num,"0","#o",DOH_REPLACE_FIRST);
+      Replace(num,"0","#o",DOH_REPLACE_FIRST);
     }
   }
   return num;

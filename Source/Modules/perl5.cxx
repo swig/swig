@@ -1669,7 +1669,7 @@ public:
     }
 
     /* Split the input text into lines */
-    List *clist = DohSplitLines(temp);
+    List *clist = SplitLines(temp);
     Delete(temp);
     int initial = 0;
     String *s = 0;

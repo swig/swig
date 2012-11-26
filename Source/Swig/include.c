@@ -338,7 +338,7 @@ String *Swig_file_extension(const_String_or_char_ptr filename) {
 
 String *Swig_file_basename(const_String_or_char_ptr filename) {
   String *extension = Swig_file_extension(filename);
-  String *basename = DohNewStringWithSize(filename, Len(filename) - Len(extension));
+  String *basename = NewStringWithSize(filename, Len(filename) - Len(extension));
   Delete(extension);
   return basename;
 }
