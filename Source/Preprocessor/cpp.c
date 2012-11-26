@@ -1870,7 +1870,7 @@ String *Preprocessor_parse(String *s) {
 		push_imported();
 	      }
 	      dirname = Swig_file_dirname(Swig_last_file());
-	      if (sysfile || !strlen(dirname)) {
+	      if (sysfile || !Len(dirname)) {
 		Delete(dirname);
 		dirname = 0;
 	      }
