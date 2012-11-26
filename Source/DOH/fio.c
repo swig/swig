@@ -47,7 +47,7 @@ static int Writen(DOH *out, void *buffer, int len) {
  * two file-like objects and operate as a filter.
  * ----------------------------------------------------------------------------- */
 
-void DohEncoding(char *name, DOH *(*fn) (DOH *s)) {
+void DohEncoding(const char *name, DOH *(*fn) (DOH *s)) {
   if (!encodings)
     encodings = NewHash();
   Setattr(encodings, (void *) name, NewVoid((void *) fn, 0));
@@ -102,7 +102,7 @@ static DOH *encode(char *name, DOH *s) {
  * ----------------------------------------------------------------------------- */
 
 int DohvPrintf(DOH *so, const char *format, va_list ap) {
-  static char *fmt_codes = "dioxXucsSfeEgGpn";
+  static const char *fmt_codes = "dioxXucsSfeEgGpn";
   int state = 0;
   const char *p = format;
   char newformat[256];

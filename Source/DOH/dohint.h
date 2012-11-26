@@ -63,7 +63,7 @@ typedef struct {
  * ----------------------------------------------------------------------------- */
 
 typedef struct DohObjInfo {
-  char *objname;		/* Object name        */
+  const char *objname;		/* Object name        */
 
   /* Basic object methods */
   void (*doh_del) (DOH *obj);	/* Delete object      */

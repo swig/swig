@@ -82,7 +82,7 @@ void Swig_print_node(Node *obj) {
       Printf(stdout, "%-12s - %s\n", k, ParmList_str_defaultargs(Getattr(obj, k)));
     } else {
       DOH *o;
-      char *trunc = "";
+      const char *trunc = "";
       print_indent(2);
       if (DohIsString(Getattr(obj, k))) {
 	o = Str(Getattr(obj, k));
