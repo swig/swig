@@ -207,7 +207,7 @@ public:
     Printf(f_runtime, "\n");
 
     Printf(s_global_tab, "\nstatic const struct swig_octave_member swig_globals[] = {\n");
-    Printf(f_init, "static void SWIG_init_user(octave_swig_type* module_ns)\n{\n");
+    Printf(f_init, "static bool SWIG_init_user(octave_swig_type* module_ns)\n{\n");
 
     if (!CPlusPlus)
       Printf(f_header,"extern \"C\" {\n");
@@ -223,7 +223,7 @@ public:
     if (directorsEnabled())
       Swig_insert_file("director.swg", f_runtime);
 
-    Printf(f_init, "}\n");
+    Printf(f_init, "return true;\n}\n");
     Printf(s_global_tab, "{0,0,0,0,0}\n};\n");
 
     Printv(f_wrappers, s_global_tab, NIL);
@@ -393,7 +393,7 @@ public:
   virtual int importDirective(Node *n) {
     String *modname = Getattr(n, "module");
     if (modname)
-      Printf(f_init, "feval(\"%s\",octave_value_list(),1);\n", modname);
+      Printf(f_init, "if (!SWIG_Octave_LoadModule(\"%s\")) return false;\n", modname);
     return Language::importDirective(n);
   }
 

@@ -181,12 +181,7 @@ When Octave is asked to invoke <tt>example</tt>, it will try to find the ".m" or
 </p>
 
 <p>
-An Octave module can either load its symbols into the global namespace, so that they can be accessed directly without having to type the module name.
-Alternatively, an Octave module can be accessed through a local variable, without being loaded globally.
-</p>
-
-<p>
-To load an Octave module globally, simply type its name:
+To load an Octave module, simply type its name:
 </p>
 
 <div class="targetlang"><pre>
@@ -198,43 +193,6 @@ ans =  3
 octave:4&gt; cvar.Foo=4;
 octave:5&gt; cvar.Foo
 ans =  4
-</pre></div>
-
-<p>
-To access an Octave module through a local variable, without loading it globally, simply assign the module name (e.g. "example") to the desired local variable:
-</p>
-
-<div class="targetlang"><pre>
-octave:1&gt; example = example;
-octave:2&gt; example.gcd(6,9)
-ans =  3
-octave:3&gt; example.cvar.Foo
-ans =  3
-</pre></div>
-
-<p>
-The variable may have the same name as the module, or a shorter one:
-</p>
-
-<div class="targetlang"><pre>
-octave:1&gt; ex = example;
-octave:2&gt; ex.gcd(6,9)
-ans =  3
-octave:3&gt; ex.cvar.Foo
-ans =  3
-</pre></div>
-
-<p>
-It is also possible to rename the global variables namespaces with an assignment, as in:
-</p>
-
-<div class="targetlang"><pre>
-octave:1&gt; example;
-octave:2&gt; cvar.gcd(10,4)
-ans =  2
-octave:3&gt; some_vars = cvar;
-octave:4&gt; some_vars.Foo
-ans =  3
 </pre></div>
 
 <p>

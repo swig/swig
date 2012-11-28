@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.9 (in progress)
 ===========================
 
+2012-11-28: kwwette
+            [Octave] Simplified module loading: now just the syntax
+            $ example;
+            is accepted, which loads functions globally but constants and variables relative to the current scope.
+            This make module loading behaviour reliably consistent, and reduces problems when loading modules which
+            depend on other modules which may not have been previously loaded.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
 2012-11-17: wsfulton
             [Tcl, Modula3] Add missing support for -outdir.
 
