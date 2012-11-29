@@ -74,6 +74,7 @@ bool JSShell::RunShell() {
     ExecuteScript(source, "(shell)");
   }
   printf("\n");
+  return true;
 }
 
 std::string JSShell::ReadFile(const std::string& fileName)
