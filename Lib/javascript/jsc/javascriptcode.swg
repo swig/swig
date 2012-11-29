@@ -213,7 +213,7 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_function", "templates")
 %{
-int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception, JSValueRef* result)
+int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception, JSValueRef* p_result)
 {
   $jslocals
   JSValueRef jsresult;
@@ -221,7 +221,7 @@ int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObjec
   if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   
   $jscode
-  *result = jsresult;
+  *p_result = jsresult;
   return SWIG_OK;
   
   goto fail;
