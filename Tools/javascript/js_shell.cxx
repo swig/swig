@@ -33,19 +33,19 @@ bool JSShell::ImportModule(const std::string& name) {
 
     HANDLE handle = LOAD_LIBRARY(lib_name.c_str());
     if(handle == 0) {
-      std::cout << "Could not load library " << lib_name << ":" 
+      std::cout << "Could not load library " << lib_name << ":"
                 << std::endl << LIBRARY_ERROR() << std::endl;
       return false;
     }
-    
+
     if(!RegisterModule(handle, name)) {
       std::cout << "Could not find initializer function in " << lib_name << std::endl;
       CLOSE_LIBRARY(handle);
       return false;
     }
 
-    loaded_modules.push_back(handle); 
-    
+    loaded_modules.push_back(handle);
+
     return true;
 }
 
@@ -56,14 +56,14 @@ bool JSShell::RunScript(const std::string& scriptPath) {
   if(!ExecuteScript(source, scriptPath)) {
     return false;
   }
-  
+
   return DisposeEngine();
 }
 
 bool JSShell::RunShell() {
 
   if(!InitializeEngine()) return false;
-  
+
   static const int kBufferSize = 1024;
   while (true) {
     char buffer[kBufferSize];

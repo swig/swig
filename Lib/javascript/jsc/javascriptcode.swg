@@ -14,7 +14,7 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc
     if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
     $jscode
-    return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);    
+    return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
     goto fail;
     fail:
     return NULL;
@@ -48,13 +48,13 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
     size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     JSObjectRef thisObject = NULL;
-    
-    // switch all cases by means of series of if-returns. 
+
+    // switch all cases by means of series of if-returns.
     $jsdispatchcases
 
-    // default: 
+    // default:
     SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of $jsname");
-    
+
     fail:
     return thisObject;
 }
@@ -74,7 +74,7 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc
 {
     $jslocals
     $jscode
-    return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);    
+    return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
 
     goto fail;
     fail:
@@ -87,7 +87,7 @@ JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc
  *   - $jsargcount:       number of arguments of called ctor
  *   - $jswrapper:        wrapper of called ctor
  *
- *  Note: a try-catch-like mechanism is used to switch cases 
+ *  Note: a try-catch-like mechanism is used to switch cases
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor_dispatch_case", "templates")
 %{
@@ -125,13 +125,13 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef 
 {
     $jslocals
     JSValueRef jsresult;
-    
+
     $jscode
     return jsresult;
 
     goto fail;
     fail:
-    return NULL;  
+    return NULL;
 }
 %}
 
@@ -147,12 +147,12 @@ bool $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef proper
 {
     $jslocals
     $jscode
-    
+
     return true;
-    
+
     goto fail;
     fail:
-    return false;    
+    return false;
 }
 %}
 
@@ -170,13 +170,13 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
   JSValueRef jsresult;
 
   if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
-  
+
   $jscode
   return jsresult;
-  
+
   goto fail;
   fail:
-  return NULL;  
+  return NULL;
 }
 %}
 
@@ -193,15 +193,15 @@ JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
 {
   $jslocals
   JSValueRef jsresult;
-  int res;  
+  int res;
   $jscode
-  
+
   SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for function $jsname.");
   return jsresult;
-  
+
   goto fail;
   fail:
-  return NULL;  
+  return NULL;
 }
 %}
 
@@ -219,14 +219,14 @@ int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObjec
   JSValueRef jsresult;
 
   if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
-  
+
   $jscode
   *p_result = jsresult;
   return SWIG_OK;
-  
+
   goto fail;
   fail:
-  return SWIG_TypeError;  
+  return SWIG_TypeError;
 }
 %}
 
@@ -260,12 +260,12 @@ bool $jsname_initialize(JSGlobalContextRef context) {
     SWIG_InitializeModule(0);
 
     JSObjectRef global_object = JSContextGetGlobalObject(context);
-    
+
     /* Initialize the base swig type object */
     _SwigObject_objectDefinition.staticFunctions = _SwigObject_functions;
     _SwigObject_objectDefinition.staticValues = _SwigObject_values;
     _SwigObject_classRef = JSClassCreate(&_SwigObject_objectDefinition);
-    
+
     /* Create objects for namespaces */
     $jscreatenamespaces
 
@@ -358,7 +358,7 @@ JSStaticFunction $jsmangledname_functions[] = {
  *   - $jsbaseclass:              mangled name of base class
  * ----------------------------------------------------------------------------- */
 %fragment ("jsc_class_definition", "templates")
-%{ 
+%{
   $jsmangledname_classDefinition.staticFunctions = $jsmangledname_staticFunctions;
   $jsmangledname_classDefinition.staticValues = $jsmangledname_staticValues;
   $jsmangledname_classDefinition.callAsConstructor = $jsctor;
@@ -407,7 +407,7 @@ JSClassDefinition $jsnspace_classDefinition;
  *   - $jsmangledname:            mangled name of namespace
  * ----------------------------------------------------------------------------- */
 %fragment ("jsc_nspace_definition", "templates")
-%{ 
+%{
   $jsmangledname_classDefinition.staticFunctions = $jsmangledname_functions;
   $jsmangledname_classDefinition.staticValues = $jsmangledname_values;
   JSObjectRef $jsmangledname_object = JSObjectMake(context, JSClassCreate(&$jsmangledname_classDefinition), NULL);
