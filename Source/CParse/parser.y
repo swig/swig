@@ -4633,7 +4633,8 @@ cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (cparse_cplusplus) {
-		    $$ = nested_forward_declaration($1, $2, $3, $3, $7);
+		    String *name = Copy($3);
+		    $$ = nested_forward_declaration($1, $2, $3, name, $7);
 		  } else if ($7) {
 		    nested_new_struct($2, $<str>6, $7);
 		  }
@@ -4659,7 +4660,7 @@ cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
 		  if (cparse_cplusplus) {
-		    String *name = $6 ? Getattr($6, "name") : 0;
+		    String *name = $6 ? Copy(Getattr($6, "name")) : 0;
 		    $$ = nested_forward_declaration($1, $2, 0, name, $6);
 		  } else {
 		    if ($6) {
