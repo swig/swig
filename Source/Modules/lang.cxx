@@ -2172,8 +2172,7 @@ static void addCopyConstructor(Node *n) {
   String *name = Swig_scopename_last(cname);
   String *cc = NewStringf("r.q(const).%s", type);
   String *decl = NewStringf("f(%s).", cc);
-  String *csymname = Getattr(n, "sym:name");
-  String *oldname = csymname;
+  String *oldname = Getattr(n, "sym:name");
 
   if (Getattr(n, "allocate:has_constructor")) {
     // to work properly with '%rename Class', we must look
@@ -2196,9 +2195,6 @@ static void addCopyConstructor(Node *n) {
 
   String *symname = Swig_name_make(cn, cname, name, decl, oldname);
   if (Strcmp(symname, "$ignore") != 0) {
-    if (!symname) {
-      symname = Copy(csymname);
-    }
     Parm *p = NewParm(cc, "other", n);
 
     Setattr(cn, "name", name);
@@ -2242,14 +2238,9 @@ static void addDefaultConstructor(Node *n) {
   String *cname = Getattr(n, "name");
   String *name = Swig_scopename_last(cname);
   String *decl = NewString("f().");
-  String *csymname = Getattr(n, "sym:name");
-  String *oldname = csymname;
+  String *oldname = Getattr(n, "sym:name");
   String *symname = Swig_name_make(cn, cname, name, decl, oldname);
   if (Strcmp(symname, "$ignore") != 0) {
-    if (!symname) {
-      symname = Copy(csymname);
-    }
-
     Setattr(cn, "name", name);
     Setattr(cn, "sym:name", symname);
     SetFlag(cn, "feature:new");
