@@ -280,7 +280,7 @@ public:
     // Make sure `prefix' ends in an underscore
     if (prefix) {
       const char *px = Char(prefix);
-      if (px[Len(prefix)] != '_')
+      if (px[Len(prefix) - 1] != '_')
 	Printf(prefix, "_");
     }
 

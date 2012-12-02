@@ -130,10 +130,9 @@ public:
     }
 
     // If a prefix has been specified make sure it ends in a '_' (not actually used!)
-
     if (prefix) {
       const char *px = Char(prefix);
-      if (px[Len(prefix)] != '_')
+      if (px[Len(prefix) - 1] != '_')
 	Printf(prefix, "_");
     } else
       prefix = NewString("swig_");
