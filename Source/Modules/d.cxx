@@ -4418,10 +4418,14 @@ private:
     // so we can progress up the inheritance hierachy even if there have been
     // new overloads introduced after the topmost class.
     Node *base_function = NULL;
-    for (Node *tmp = firstChild(base_class); tmp; tmp = nextSibling(tmp)) {
-      if (Strcmp(Getattr(tmp, "sym:name"), Getattr(n, "sym:name")) == 0) {
-	base_function = tmp;
-	break;
+    String *symname = Getattr(n, "sym:name");
+    if (symname) {
+      for (Node *tmp = firstChild(base_class); tmp; tmp = nextSibling(tmp)) {
+	String *child_symname = Getattr(tmp, "sym:name");
+	if (child_symname && (Strcmp(child_symname, symname) == 0)) {
+	  base_function = tmp;
+	  break;
+	}
       }
     }
 

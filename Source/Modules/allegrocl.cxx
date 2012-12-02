@@ -1225,7 +1225,7 @@ void emit_full_class(Node *n) {
       // hack. why would decl have a value of "variableHandler" and now "0"?
       String *childDecl = Getattr(c, "decl");
       // Printf(stderr,"childDecl = '%s' (%s)\n", childDecl, Getattr(c,"view"));
-      if (!Strcmp(childDecl, "0"))
+      if (!childDecl || !Strcmp(childDecl, "0"))
 	childDecl = NewString("");
 
       SwigType *childType;

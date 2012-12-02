@@ -1990,7 +1990,7 @@ private:
 	continue;
       }
       String *storage = Getattr(ni, "storage");
-      if (Strcmp(storage, "typedef") == 0 || Strcmp(storage, "friend") == 0) {
+      if (storage && (Strcmp(storage, "typedef") == 0 || Strcmp(storage, "friend") == 0)) {
 	continue;
       }
 
@@ -4792,7 +4792,7 @@ private:
       return Copy(ret);
     }
 
-    if (Strcmp(Getattr(n, "type"), "enum ") == 0) {
+    if (Equal(Getattr(n, "type"), "enum ")) {
       return NewString("int");
     }
 

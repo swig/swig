@@ -2351,7 +2351,7 @@ int R::classDeclaration(Node *n) {
       elName = Getattr(c, "name");
  
       String *elKind = Getattr(c, "kind");
-      if (Strcmp(elKind, "variable") != 0) {
+      if (!Equal(elKind, "variable")) {
 	c = nextSibling(c);
 	continue;
       }
@@ -2453,7 +2453,7 @@ int R::generateCopyRoutines(Node *n) {
       continue;
     }
     String *elKind = Getattr(c, "kind");
-    if (Strcmp(elKind, "variable") != 0) {
+    if (!Equal(elKind, "variable")) {
       continue;
     }
 

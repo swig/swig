@@ -1577,7 +1577,8 @@ public:
 	  while (i.item) {
 	    Node *j = firstChild(i.item);
 	    while (j) {
-	      if (Strcmp(Getattr(j, "name"), Getattr(n, "name")) != 0) {
+	      String *jname = Getattr(j, "name");
+	      if (!jname || Strcmp(jname, Getattr(n, "name")) != 0) {
 		j = nextSibling(j);
 		continue;
 	      }
