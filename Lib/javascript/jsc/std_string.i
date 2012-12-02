@@ -15,8 +15,8 @@
 std::string SWIGJSC_valueToString(JSContextRef context, JSValueRef value) {
   JSStringRef jsstring = JSValueToStringCopy(context, value, /* JSValueRef *exception */ 0);
   unsigned int length = JSStringGetLength(jsstring);
-  char *cstr = new char[length+1];
-  JSStringGetUTF8CString(jsstring, cstr, length);
+  char *cstr = new char[length + 1];
+  JSStringGetUTF8CString(jsstring, cstr, length + 1);
 
   // create a copy
   std::string result(cstr);
@@ -38,21 +38,34 @@ JSValueRef SWIGJSC_stringToValue(JSContextRef context, const std::string& s)
 %}
 
 namespace std {
+  %naturalvar string;
 
-%naturalvar string;
+  class string;
 
-class string;
 
-// string
-	
-%typemap(in) string, const string& 
-%{ 
-   $1 = SWIGJSC_valueToString(context, $input);
-%}
+  %typemap(in) string
+  %{ 
+     $1 = SWIGJSC_valueToString(context, $input);
+  %}
 
-%typemap(out) string, const string&
-%{
-   $result = SWIGJSC_stringToValue(context, $1);
-%}
+  %typemap(in) const string & 
+  %{ 
+     $1 = new std::string(SWIGJSC_valueToString(context, $input));
+  %}
+
+  %typemap(freearg) const string & 
+  %{ 
+     delete $1;
+  %}
+
+  %typemap(out) string
+  %{
+     $result = SWIGJSC_stringToValue(context, $1);
+  %}
+
+  %typemap(out) const string &
+  %{
+     $result = SWIGJSC_stringToValue(context, $1);
+  %}
 
 }
