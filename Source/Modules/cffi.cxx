@@ -1021,9 +1021,8 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
     return num;
   } else if (SwigType_type(type) == T_CHAR) {
     /* Use CL syntax for character literals */
-    String* result = NewStringf("#\\%c", s[2]);
+    String* result = NewStringf("#\\%c", s[0]);
     Delete(num);
-    //    Printf(stderr, "%s  %c %d", s, s[2], s);
     return result;
   } else if (SwigType_type(type) == T_STRING) {
     /* Use CL syntax for string literals */
