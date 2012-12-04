@@ -244,6 +244,10 @@ int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObjec
   }
 %}
 
+%fragment ("js_initializer_define", "templates") %{
+#define SWIGJSC_INIT $jsname_initialize
+%}
+
 /* -----------------------------------------------------------------------------
  * js_initializer:  template for the module initializer function
  *   - $jsname:                   module name
@@ -256,7 +260,7 @@ int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObjec
 extern "C" {
 #endif
 
-bool $jsname_initialize(JSGlobalContextRef context) {
+bool SWIGJSC_INIT (JSGlobalContextRef context) {
     SWIG_InitializeModule(0);
 
     JSObjectRef global_object = JSContextGetGlobalObject(context);

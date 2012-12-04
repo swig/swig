@@ -1407,6 +1407,9 @@ int JSCEmitter::dump(Node *n) {
   // write the swig banner
   Swig_banner(f_wrap_cpp);
 
+  Template initializer_define(getTemplate("js_initializer_define"));
+  initializer_define.replace(T_NAME, module).pretty_print(f_header);
+
   SwigType_emit_type_table(f_runtime, f_wrappers);
 
   Printv(f_wrap_cpp, f_runtime, "\n", 0);
@@ -1414,7 +1417,7 @@ int JSCEmitter::dump(Node *n) {
   Printv(f_wrap_cpp, f_wrappers, "\n", 0);
 
   emitNamespaces();
-
+  
   // compose the initializer function using a template
   Template initializer(getTemplate("js_initializer"));
   initializer.replace(T_NAME, module)
