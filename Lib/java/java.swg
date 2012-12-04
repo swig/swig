@@ -1304,6 +1304,11 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 #define %nojavaexception            %feature("except","0",throws="")
 #define %clearjavaexception         %feature("except","",throws="")
 
+/* Use to control if pure virtual methods should be abstract java methods. */
+#define %abstractdirector      %feature("java:abstractdirector")
+#define %noabstractdirector    %feature("java:abstractdirector","0")
+#define %clearabstractdirector %feature("java:abstractdirector","")
+
 %pragma(java) jniclassclassmodifiers="public class"
 %pragma(java) moduleclassmodifiers="public class"
 

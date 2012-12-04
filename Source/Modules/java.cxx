@@ -819,6 +819,22 @@ public:
    * ---------------------------------------------------------------------- */
 
   virtual int functionWrapper(Node *n) {
+    if ((GetFlag(parentNode(n), "feature:java:abstractdirector") || GetFlag(n, "feature:java:abstractdirector")) && Swig_directorclass(n) && GetFlag(n, "abstract"))
+      return abstractFunctionWrapper(n);
+    else
+      return concreteFunctionWrapper(n);
+  }
+
+  virtual int abstractFunctionWrapper(Node *n) {
+    if (!native_function_flag) {
+      // Handle exception classes specified in the "except" feature's "throws" attribute
+      addThrows(n, "feature:except", n);
+    }
+
+    return SWIG_OK;
+  }
+
+  virtual int concreteFunctionWrapper(Node *n) {
     String *symname = Getattr(n, "sym:name");
     SwigType *t = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
@@ -1798,11 +1814,33 @@ public:
     // Pure Java interfaces
     const String *pure_interfaces = typemapLookup(n, "javainterfaces", typemap_lookup_type, WARN_NONE);
 
+    // Abstract director feature
+    bool abstract_flag = false;
+    if (feature_director) {
+      // If the class is marked as an abstract director, or any of its
+      // methods are, it is marked as abstract
+      if (GetFlag(n, "feature:java:abstractdirector"))
+        abstract_flag = true;
+      else {
+        List *abstracts = Getattr(n, "abstracts");
+        int length = Len(abstracts);
+        if (abstracts && length > 0) {
+          for (int i = 0; i < length; i++) {
+            Node *ni = Getitem(abstracts, i);
+            if ((abstract_flag = GetFlag(ni, "feature:java:abstractdirector")))
+              break;
+          }
+        }
+      }
+    }
+
     // Start writing the proxy class
     if (!has_outerclass) // Import statements
       Printv(proxy_class_def, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE),"\n", NIL);
     else
       Printv(proxy_class_def, "static ", NIL); // C++ nested classes correspond to static java classes
+    if (abstract_flag)
+      Printv(proxy_class_def, "abstract ", NIL); // If the class has pure virtual methods, make it abstract
     Printv(proxy_class_def, typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
 	   (*Char(wanted_base)) ? " extends " : "", wanted_base, *Char(pure_interfaces) ?	// Pure Java interfaces
@@ -2211,6 +2249,7 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
+    bool abstract_flag = (GetFlag(parentNode(n), "feature:java:abstractdirector") || GetFlag(n, "feature:java:abstractdirector")) && GetFlag(n, "abstract");
 
     if (!proxy_flag)
       return;
@@ -2259,6 +2298,9 @@ public:
     Printf(function_code, "  %s ", methodmods);
     if (static_flag)
       Printf(function_code, "static ");
+    if (abstract_flag)
+      Printf(function_code, "abstract ");
+
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
 
     Printv(imcall, full_imclass_name, ".$imfuncname(", NIL);
@@ -2376,61 +2418,68 @@ public:
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup("javaout", n, "", 0))) {
       addThrows(n, "tmap:javaout", n);
-      bool is_pre_code = Len(pre_code) > 0;
-      bool is_post_code = Len(post_code) > 0;
-      if (is_pre_code || is_post_code) {
-        Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
-        if (is_post_code) {
-          Insert(tm, 0, "\n    try ");
-          Printv(tm, " finally {\n", post_code, "\n    }", NIL);
+
+      if (!abstract_flag) {
+        bool is_pre_code = Len(pre_code) > 0;
+        bool is_post_code = Len(post_code) > 0;
+        if (is_pre_code || is_post_code) {
+          Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
+          if (is_post_code) {
+            Insert(tm, 0, "\n    try ");
+            Printv(tm, " finally {\n", post_code, "\n    }", NIL);
+          } else {
+            Insert(tm, 0, "\n    ");
+          }
+          if (is_pre_code) {
+            Insert(tm, 0, pre_code);
+            Insert(tm, 0, "\n");
+          }
+          Insert(tm, 0, "{");
+          Printf(tm, "\n  }");
+        }
+        if (GetFlag(n, "feature:new"))
+          Replaceall(tm, "$owner", "true");
+        else
+          Replaceall(tm, "$owner", "false");
+        substituteClassname(t, tm);
+
+        // For director methods: generate code to selectively make a normal polymorphic call or 
+        // an explicit method call - needed to prevent infinite recursion calls in director methods.
+        Node *explicit_n = Getattr(n, "explicitcallnode");
+        if (explicit_n) {
+          String *ex_overloaded_name = getOverloadedName(explicit_n);
+          String *ex_intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), ex_overloaded_name);
+
+          String *ex_imcall = Copy(imcall);
+          Replaceall(ex_imcall, "$imfuncname", ex_intermediary_function_name);
+          Replaceall(imcall, "$imfuncname", intermediary_function_name);
+
+          String *excode = NewString("");
+          if (!Cmp(return_type, "void"))
+            Printf(excode, "if (getClass() == %s.class) %s; else %s", proxy_class_name, imcall, ex_imcall);
+          else
+            Printf(excode, "(getClass() == %s.class) ? %s : %s", proxy_class_name, imcall, ex_imcall);
+
+          Clear(imcall);
+          Printv(imcall, excode, NIL);
+          Delete(ex_overloaded_name);
+          Delete(excode);
         } else {
-          Insert(tm, 0, "\n    ");
+          Replaceall(imcall, "$imfuncname", intermediary_function_name);
         }
-        if (is_pre_code) {
-          Insert(tm, 0, pre_code);
-          Insert(tm, 0, "\n");
-        }
-	Insert(tm, 0, "{");
-	Printf(tm, "\n  }");
+
+        Replaceall(tm, "$jnicall", imcall);
       }
-      if (GetFlag(n, "feature:new"))
-	Replaceall(tm, "$owner", "true");
-      else
-	Replaceall(tm, "$owner", "false");
-      substituteClassname(t, tm);
-
-      // For director methods: generate code to selectively make a normal polymorphic call or 
-      // an explicit method call - needed to prevent infinite recursion calls in director methods.
-      Node *explicit_n = Getattr(n, "explicitcallnode");
-      if (explicit_n) {
-	String *ex_overloaded_name = getOverloadedName(explicit_n);
-	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), ex_overloaded_name);
-
-	String *ex_imcall = Copy(imcall);
-	Replaceall(ex_imcall, "$imfuncname", ex_intermediary_function_name);
-	Replaceall(imcall, "$imfuncname", intermediary_function_name);
-
-	String *excode = NewString("");
-	if (!Cmp(return_type, "void"))
-	  Printf(excode, "if (getClass() == %s.class) %s; else %s", proxy_class_name, imcall, ex_imcall);
-	else
-	  Printf(excode, "(getClass() == %s.class) ? %s : %s", proxy_class_name, imcall, ex_imcall);
-
-	Clear(imcall);
-	Printv(imcall, excode, NIL);
-	Delete(ex_overloaded_name);
-	Delete(excode);
-      } else {
-	Replaceall(imcall, "$imfuncname", intermediary_function_name);
-      }
-
-      Replaceall(tm, "$jnicall", imcall);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, "No javaout typemap defined for %s\n", SwigType_str(t, 0));
     }
 
     generateThrowsClause(n, function_code);
-    Printf(function_code, " %s\n\n", tm ? (const String *) tm : empty_string);
+
+    if (abstract_flag)
+      Printf(function_code, ";\n\n");
+    else
+      Printf(function_code, " %s\n\n", tm ? (const String *) tm : empty_string);
     Printv(proxy_class_code, function_code, NIL);
 
     Delete(pre_code);
