@@ -291,6 +291,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
              const long &,
              const unsigned long &,
              const long long &,
+             const unsigned long long &,
              const float &,
              const double &
 %{ static $*1_ltype temp;
@@ -308,6 +309,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(directorin) const long &           "$input = $1;"
 %typemap(directorin) const unsigned long &  "$input = $1;"
 %typemap(directorin) const long long &      "$input = $1;"
+%typemap(directorin) const unsigned long long & "$input = $1;"
 %typemap(directorin) const float &          "$input = $1;"
 %typemap(directorin) const double &         "$input = $1;"
 
@@ -321,6 +323,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
                        const long & ($*1_ltype temp), 
                        const unsigned long & ($*1_ltype temp), 
                        const long long & ($*1_ltype temp), 
+                       const unsigned long long & ($*1_ltype temp), 
                        const float & ($*1_ltype temp), 
                        const double & ($*1_ltype temp)
   "$iminput"
@@ -335,6 +338,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
                         const long & ($*1_ltype temp), 
                         const unsigned long & ($*1_ltype temp), 
                         const long long & ($*1_ltype temp), 
+                        const unsigned long long & ($*1_ltype temp), 
                         const float & ($*1_ltype temp), 
                         const double & ($*1_ltype temp)
   "$cscall"
