@@ -175,6 +175,10 @@ static long PyNumber_AsSsize_t (PyObject *x, void *SWIGUNUSEDPARM(exc))
 }
 #endif
 
+#if PY_VERSION_HEX < 0x02050000
+#define PyInt_FromSize_t(x) PyInt_FromLong((long)x)
+#endif
+
 #if PY_VERSION_HEX < 0x02040000
 #define Py_VISIT(op)				\
   do { 						\
