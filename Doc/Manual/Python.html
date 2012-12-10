@@ -3386,7 +3386,39 @@ public:
 </pre>
 </div>
 
+<p>
+Note that when the underlying C++ method is overloaded, there is only one proxy Python method
+for multiple C++ methods. In this case, only one of parsed methods is examined
+for the feature. You are better off specifying the feature without the argument list to ensure it will get used,
+as it will then get attached to all the overloaded C++ methods. For example:
+</p>
 
+<div class="code">
+<pre>
+%module example
+
+// Add python code to bar()
+
+%pythonprepend Foo::bar %{
+   #do something before C++ call
+%}
+
+%pythonappend Foo::bar %{
+   #do something after C++ call
+%}
+
+
+class Foo {
+public:
+    int bar(int x);
+    int bar();
+}
+</pre>
+</div>
+
+<p>
+The same applies for overloaded constructors.
+</p>
 
 
 <H3><a name="Python_nn43"></a>34.6.3 Class extension with %extend</H3>
