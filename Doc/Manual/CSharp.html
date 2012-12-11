@@ -191,6 +191,21 @@ csattributes                C# attributes for attaching to proxy classes/enums
 </li>
 
 <li>
+<p>Additional typemap attributes:</p>
+
+<p>
+The "null" attribute in the "out" typemap can be specified to provide a value for <tt>$null</tt> to expand into for wrapped functions that return non-void. Normally the default value of <tt>0</tt> is used.
+For example this is needed if you change the return type to void:
+</p>
+
+<div class="code"><pre>
+%typemap(ctype) Status "void"
+%typemap(out, null="") Status { ... }
+</pre></div>
+
+</li>
+
+<li>
 <p>Feature equivalent names:</p>
 <div class="code"><pre>
 %javaconst                  -&gt; %csconst
