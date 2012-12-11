@@ -1049,7 +1049,7 @@ public:
 	// of this module.)
 	Node *options = Getattr(mod, "options");
 	String *pkg = options ? Getattr(options, "package") : 0;
-	if (pkg && (!package || Strcmp(pkg, package) != 0)) {
+	if (pkg) {
 	  Printf(import, "%s.", pkg);
 	}
 	// finally, output the name of the imported module
@@ -1057,7 +1057,7 @@ public:
 	  if (!options || (!Getattr(options, "noshadow") && !Getattr(options, "noproxy"))) {
 	    Printf(import, "_%s\n", modname);
 	    if (!GetFlagAttr(f_shadow_imports, import)) {
-	      if (pkg && (!package || Strcmp(pkg, package) != 0)) {
+	      if (pkg) {
 		Printf(builtin ? f_shadow_builtin_imports : f_shadow, "import %s.%s\n", pkg, modname);
 	      } else {
 		Printf(builtin ? f_shadow_builtin_imports : f_shadow, "import %s\n", modname);
@@ -3168,7 +3168,7 @@ public:
 	  // check if the module has a package option
 	  Node *options = Getattr(mod, "options");
 	  String *pkg = options ? Getattr(options, "package") : 0;
-	  if (pkg && (!package || Strcmp(pkg, package) != 0)) {
+	  if (pkg) {
 	    Printf(importname, "%s.", pkg);
 	  }
 	  Printf(importname, "%s.", modname);
