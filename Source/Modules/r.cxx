@@ -2115,7 +2115,7 @@ int R::functionWrapper(Node *n) {
 	{ 
 	  String *finalizer = NewString(iname);
 	  Replace(finalizer, "new_", "", DOH_REPLACE_FIRST);
-	  Printf(sfun->code, "reg.finalizer(ans, delete_%s)\n", finalizer);
+	  Printf(sfun->code, "reg.finalizer(ans@ref, delete_%s)\n", finalizer);
 	}                                                                      
       Printf(sfun->code, "ans\n");
     }
