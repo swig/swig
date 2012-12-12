@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.9 (in progress)
 ===========================
 
+2012-12-12: drjoe
+	    [R] add fix to finalizer that was missed earlier
+
 2012-12-11: wsfulton
             [Python] Apply patch #3590522 - fully qualified package paths for Python 3 even if a module is in the
             same package.
