@@ -129,6 +129,7 @@ private:
   virtual void main(int argc, char *argv[]) {
 
     SWIG_library_directory("go");
+    bool display_help = false;
 
     // Process command line options.
     for (int i = 1; i < argc; i++) {
@@ -190,6 +191,7 @@ private:
 	    Swig_arg_error();
 	  }
 	} else if (strcmp(argv[i], "-help") == 0) {
+	  display_help = true;
 	  Printf(stdout, "%s\n", usage);
 	}
       }
@@ -215,7 +217,7 @@ private:
     // This test may be removed in the future, when we can assume that
     // everybody has upgraded to Go 1.1.  The code below is prepared
     // for this test to simply be taken out.
-    if (intgo_type_size == 0) {
+    if (intgo_type_size == 0 && !display_help) {
       Printf(stderr, "SWIG -go: -intgosize option required but not specified\n");
       SWIG_exit(EXIT_FAILURE);
     }
