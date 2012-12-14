@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.9 (in progress)
 ===========================
 
+2012-12-14: kkaempf
+            [Ruby] Applied patches #3530442 and 3530443 to adapt compile and runtime include
+            pathes to match Ruby 1.9+
 
 2012-12-14: wsfulton
             [CFFI] Fix #3161614 - Some string constants are incorrect
