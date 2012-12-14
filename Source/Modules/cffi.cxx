@@ -1031,10 +1031,14 @@ String *CFFI::convert_literal(String *literal, String *type, bool try_to_split) 
     return result;
   } else if (SwigType_type(type) == T_INT || SwigType_type(type) == T_UINT) {
     // Printf(stderr, "Is a T_INT or T_UINT %s, before replaceall\n", s);
-    Replaceall(num, "u", "");
-    Replaceall(num, "U", "");
-    Replaceall(num, "l", "");
-    Replaceall(num, "L", "");
+    const char *num_start = Char(num);
+    bool is_literal = isdigit(*num_start) || (*num_start == '.') || (*num_start == '+') || (*num_start == '-');
+    if (is_literal) {
+      Replaceall(num, "u", "");
+      Replaceall(num, "U", "");
+      Replaceall(num, "l", "");
+      Replaceall(num, "L", "");
+    }
 
     int i, j;
     if (sscanf(s, "%d >> %d", &i, &j) == 2) {

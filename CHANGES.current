@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.9 (in progress)
 ===========================
 
+
+2012-12-13: wsfulton
+            [CFFI] Fix #3529690 - Fix incorrect constant names.
+
 2012-12-12: drjoe
 	    [R] add fix to finalizer that was missed earlier
 
