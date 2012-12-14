@@ -1340,7 +1340,13 @@ fi
 
 AC_MSG_CHECKING(for Ruby header files)
 if test -n "$RUBY"; then
+        # Try Ruby1.9 first
+        RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["rubyhdrdir"]] || $rubyhdrdir') 2>/dev/null`
+	if test x"$RUBYDIR" == x""; then
 	RUBYDIR=`($RUBY -rmkmf -e 'print Config::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
+        else
+                RUBYARCH=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["arch"]] || $arch') 2>/dev/null`
+        fi
 	if test x"$RUBYDIR" != x""; then
 		dirs="$RUBYDIR"
 		RUBYINCLUDE=none
@@ -1351,6 +1357,9 @@ if test -n "$RUBY"; then
 				break;
 			fi
 		done
+                if test x"$RUBYARCH" != x""; then
+			RUBYINCLUDE="-I$RUBYDIR -I$RUBYDIR/$RUBYARCH"
+                fi
 		if test "$RUBYINCLUDE" = none; then
 			RUBYINCLUDE="-I$RUBYDIR"
 			AC_MSG_RESULT(could not locate ruby.h...using $RUBYINCLUDE)
