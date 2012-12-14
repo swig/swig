@@ -565,7 +565,13 @@ void CFFI::emit_defun(Node *n, String *name) {
 
 int CFFI::constantWrapper(Node *n) {
   String *type = Getattr(n, "type");
-  String *converted_value = convert_literal(Getattr(n, "value"), type);
+  String *converted_value;
+  if (SwigType_type(type) == T_STRING) {
+    converted_value = NewString(Getattr(n, "rawval"));
+  } else {
+    converted_value = convert_literal(Getattr(n, "value"), type);
+  }
+
   String *name = lispify_name(n, Getattr(n, "sym:name"), "'constant");
 
   if (Strcmp(name, "t") == 0 || Strcmp(name, "T") == 0)
