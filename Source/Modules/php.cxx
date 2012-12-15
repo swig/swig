@@ -1091,9 +1091,6 @@ public:
       int min_num_of_arguments = emit_num_required(l);
       int max_num_of_arguments = emit_num_arguments(l);
 
-      // For a function with default arguments, we end up with the fullest
-      // parmlist in full_parmlist.
-      ParmList *full_parmlist = l;
       Hash *ret_types = NewHash();
       Setattr(ret_types, d, d);
 
@@ -1126,7 +1123,6 @@ public:
 
 	  if (num_arguments > max_num_of_arguments) {
 	    max_num_of_arguments = num_arguments;
-	    full_parmlist = l2;
 	  }
 	  o = Getattr(o, "sym:nextSibling");
 	}
