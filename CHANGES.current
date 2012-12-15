@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.9 (in progress)
 ===========================
 
+2012-12-15: kkaempf
+            [Ruby] Apply patch 3530444, Class#methods and Class#constants returns array of
+            symbols in Ruby 1.9+
+
 2012-12-14: kkaempf
             [Ruby] Apply patch 3530439 and finally replace all occurences of the STR2CSTR() macro
             with StringValuePtr(). STR2CSTR was deprecated since years and got removed in Ruby 1.9
