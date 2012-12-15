@@ -481,14 +481,16 @@ int DohCopyto(DOH *in, DOH *out) {
       cw = buffer;
       while (nwrite) {
 	wret = Write(out, cw, nwrite);
-	if (wret < 0)
-	  return -1;
+	if (wret < 0) {
+	  nbytes = -1;
+	  break;
+	}
 	nwrite = nwrite - wret;
 	cw += wret;
       }
       nbytes += ret;
     } else {
-      return nbytes;
+      break;
     }
   }
   return nbytes;
@@ -579,12 +581,12 @@ DOH *DohReadline(DOH *in) {
     if (Read(in, &c, 1) < 0) {
       if (n == 0) {
 	Delete(s);
-	return 0;
+	s = 0;
       }
-      return s;
+      break;
     }
     if (c == '\n')
-      return s;
+      break;
     if (c == '\r')
       continue;
     Putc(c, s);
