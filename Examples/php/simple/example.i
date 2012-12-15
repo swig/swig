@@ -1,10 +1,8 @@
 /* File : example.i */
 %module example
 
-%{
-   extern double Foo;
-%}
-
+%inline %{
+extern int    gcd(int x, int y);
 extern double Foo;
 void print_Foo();
-int    gcd(int x, int y);
+%}
