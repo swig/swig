@@ -103,10 +103,11 @@ void start_inline(char *text, int line) {
  * ----------------------------------------------------------------------------- */
 
 void skip_balanced(int startchar, int endchar) {
+  int start_line = Scanner_line(scan);
   Clear(scanner_ccode);
 
   if (Scanner_skip_balanced(scan,startchar,endchar) < 0) {
-    Swig_error(Scanner_file(scan),Scanner_errline(scan), "Missing '%c'. Reached end of input.\n", endchar);
+    Swig_error(cparse_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
     return;
   }
 

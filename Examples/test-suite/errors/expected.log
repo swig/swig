@@ -46,7 +46,7 @@ c_long_short.i:5: Error: Extra long specifier.
 c_long_short.i:6: Error: Extra short specifier.
 
 :::::::::::::::::::::::::::::::: c_missing_rbrace.i :::::::::::::::::::::::::::::::::::
-:168430090: Error: Missing '}'. Reached end of input.
+c_missing_rbrace.i:3: Error: Missing '}'. Reached end of input.
 c_missing_rbrace.i:3: Error: Syntax error in input(1).
 
 :::::::::::::::::::::::::::::::: c_missing_semi.i :::::::::::::::::::::::::::::::::::
@@ -295,6 +295,10 @@ cpp_macro_locator.i:98: Warning 509: Overloaded method overloadinline2(int const
 cpp_macro_locator.i:97: Warning 509: as it is shadowed by overloadinline2(int *).
 cpp_macro_locator.i:101: Warning 509: Overloaded method overload5(int const *) effectively ignored,
 cpp_macro_locator.i:100: Warning 509: as it is shadowed by overload5(int *).
+
+:::::::::::::::::::::::::::::::: cpp_missing_rparenthesis.i :::::::::::::::::::::::::::::::::::
+cpp_missing_rparenthesis.i:5: Error: Missing ')'. Reached end of input.
+cpp_missing_rparenthesis.i:5: Error: Syntax error in input(3).
 
 :::::::::::::::::::::::::::::::: cpp_missing_rtemplate.i :::::::::::::::::::::::::::::::::::
 cpp_missing_rtemplate.i:4: Error: Syntax error in input(1).

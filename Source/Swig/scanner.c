@@ -65,6 +65,7 @@ Scanner *NewScanner(void) {
   s->text = NewStringEmpty();
   s->str = 0;
   s->error = 0;
+  s->error_line = 0;
   s->freeze_line = 0;
   return s;
 }
@@ -104,6 +105,12 @@ void Scanner_clear(Scanner * s) {
   s->nexttoken = -1;
   s->start_line = 0;
   s->yylen = 0;
+  /* Should these be cleared too?
+  s->idstart;
+  s->file;
+  s->error_line;
+  s->freeze_line;
+  */
 }
 
 /* -----------------------------------------------------------------------------
