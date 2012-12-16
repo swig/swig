@@ -2,11 +2,11 @@ Below are the changes for the current release.
 See the CHANGES file for changes in older releases.
 See the RELEASENOTES file for a summary of changes in each release.
 
-Version 2.0.9 (in progress)
-===========================
+Version 2.0.9 (16 December 2012)
+================================
 
 2012-12-16: wsfulton
-            Fix garbage line number / empty file name reporting for some  missing
+            Fix garbage line number / empty file name reporting for some missing
             '}' or ')' error messages.
 
 2012-12-15: kkaempf
@@ -19,7 +19,7 @@ Version 2.0.9 (in progress)
 
 2012-12-14: kkaempf
             [Ruby] Applied patches #3530442 and 3530443 to adapt compile and runtime include
-            pathes to match Ruby 1.9+
+            paths to match Ruby 1.9+
 
 2012-12-14: wsfulton
             [CFFI] Fix #3161614 - Some string constants are incorrect
