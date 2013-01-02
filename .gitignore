@@ -1,0 +1,7 @@
+# Compiled Source
+*.o
+*.class
+
+# Local PCRE
+prce
+*.gz
