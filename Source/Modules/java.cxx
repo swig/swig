@@ -3381,6 +3381,7 @@ public:
     String *swig_director_connect = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
     String *swig_director_connect_jni = makeValidJniName(swig_director_connect);
     String *sym_name = Getattr(n, "sym:name");
+    String *smartptr_feature = Getattr(n, "feature:smartptr");
     Wrapper *code_wrap;
 
     Printf(imclass_class_code, "  public final static native void %s(%s obj, long cptr, boolean mem_own, boolean weak_global);\n",
@@ -3390,9 +3391,24 @@ public:
     Printf(code_wrap->def,
 	   "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jswig_mem_own, "
 	   "jboolean jweak_global) {\n", jnipackage, jni_imclass_name, swig_director_connect_jni);
-    Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  (void)jcls;\n");
-    Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n", sym_name, sym_name);
+
+    if (Len(smartptr_feature)) {
+      Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr_feature, smartptr_feature);
+      Printf(code_wrap->code, "  (void)jcls;\n");
+      Printf(code_wrap->code, "  // NOTE: Pulling the raw pointer out of the smart pointer as the following code does\n");
+      Printf(code_wrap->code, "  //       is generally a bad idea. However, in this case we keep a local instance of the\n");
+      Printf(code_wrap->code, "  //       smart pointer around while we are using the raw pointer, which should keep the\n");
+      Printf(code_wrap->code, "  //       raw pointer alive. This is done instead of using the smart pointer's dynamic cast\n");
+      Printf(code_wrap->code, "  //       feature since different smart pointer implementations have differently named dynamic\n");
+      Printf(code_wrap->code, "  //       cast mechanisms.\n");
+      Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast< SwigDirector_%s *>(obj->operator->());\n", sym_name, sym_name);
+    }
+    else {
+      Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
+      Printf(code_wrap->code, "  (void)jcls;\n");
+      Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n", sym_name, sym_name); 
+    }
+
     Printf(code_wrap->code, "  if (director) {\n");
     Printf(code_wrap->code, "    director->swig_connect_director(jenv, jself, jenv->GetObjectClass(jself), "
 	   "(jswig_mem_own == JNI_TRUE), (jweak_global == JNI_TRUE));\n");
