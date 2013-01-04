@@ -19,7 +19,7 @@ public class director_nspace_runme {
 
 }
 
-class director_nspace_MyBarFoo extends director_nspacePackage.Bar.Foo {
+class director_nspace_MyBarFoo extends director_nspacePackage.TopLevel.Bar.Foo {
 
   @Override
   public String ping() {
@@ -32,17 +32,17 @@ class director_nspace_MyBarFoo extends director_nspacePackage.Bar.Foo {
   }
 
   @Override
-  public String fooBar(director_nspacePackage.Bar.FooBar fooBar) {
+  public String fooBar(director_nspacePackage.TopLevel.Bar.FooBar fooBar) {
     return fooBar.FooBarDo();
   }
 
   @Override
-  public director_nspacePackage.Bar.Foo makeFoo() {
-    return new director_nspacePackage.Bar.Foo();
+  public director_nspacePackage.TopLevel.Bar.Foo makeFoo() {
+    return new director_nspacePackage.TopLevel.Bar.Foo();
   }
 
   @Override
-  public director_nspacePackage.Bar.FooBar makeFooBar() {
-    return new director_nspacePackage.Bar.FooBar();
+  public director_nspacePackage.TopLevel.Bar.FooBar makeFooBar() {
+    return new director_nspacePackage.TopLevel.Bar.FooBar();
   }
 }
