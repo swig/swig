@@ -3401,7 +3401,7 @@ public:
       Printf(code_wrap->code, "  //       raw pointer alive. This is done instead of using the smart pointer's dynamic cast\n");
       Printf(code_wrap->code, "  //       feature since different smart pointer implementations have differently named dynamic\n");
       Printf(code_wrap->code, "  //       cast mechanisms.\n");
-      Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast< SwigDirector_%s *>(obj->operator->());\n", sym_name, sym_name);
+      Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj->operator->());\n", sym_name, sym_name);
     }
     else {
       Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
