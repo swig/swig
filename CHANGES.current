@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-01-04: wsfulton
+            [Java] Pull patch #2 from BrantKyser to fix SF Bug #1283 - fix smart pointers in conjuction
+            with directors.
+
 2013-01-03: wsfulton
-            Pull patch from BrantKyser to fix directors and nspace feature when multilevel namespaces are used.
+            [Java] Pull patch #1 from BrantKyser to fix SF Bug #1278 - fix directors and nspace feature when
+            multilevel namespaces are used.
 
