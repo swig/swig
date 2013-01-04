@@ -2,7 +2,7 @@
 
 // SF bug #1296:
 // virtual destructor in template class (template specification having 
-// default parameter(s)) triggers the warnint "illegal destructor name"
+// default parameter(s)) triggers the warning "illegal destructor name"
 
 %inline %{
 struct A {};
