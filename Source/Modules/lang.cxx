@@ -353,7 +353,7 @@ Language::~Language() {
 
   String *Language::directorClassName(Node *n) {
     String *dirclassname;
-    String *nspace = Getattr(n, "sym:nspace");
+    String *nspace = NewString(Getattr(n, "sym:nspace"));
     const char *attrib = "director:classname";
     String *classname = Getattr(n, "sym:name");
 

@@ -281,7 +281,6 @@ void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
                                                checkAttribute(n, "storage", "static"))
                                           && !Equal(nodeType(n), "constructor"))) {
     Node *parent = Getattr(n, "parentNode");
-    String *symname = Getattr(parent, "sym:name");
     String *dirname;
     String *dirdecl;
     dirname = Language::instance()->directorClassName(parent);
