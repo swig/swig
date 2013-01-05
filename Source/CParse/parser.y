@@ -4472,17 +4472,7 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 
               | VIRTUAL NOT idtemplate LPAREN parms RPAREN cpp_vend {
 		String *name;
-		char *c = 0;
 		$$ = new_node("destructor");
-	       /* Check for template names.  If the class is a template
-		  and the constructor is missing the template part, we
-		  add it */
-	        if (Classprefix) {
-                  c = strchr(Char(Classprefix),'<');
-                  if (c && !Strchr($3,'<')) {
-                    $3 = NewStringf("%s%s",$3,c);
-                  }
-		}
 		Setattr($$,"storage","virtual");
 	        name = NewStringf("%s",$3);
 		if (*(Char(name)) != '~') Insert(name,0,"~");
