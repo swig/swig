@@ -358,7 +358,10 @@ Language::~Language() {
     String *classname = Getattr(n, "sym:name");
 
     Replace(nspace, ".", "_", DOH_REPLACE_ANY);
-    dirclassname = NewStringf("SwigDirector_%s_%s", nspace, classname);
+    if (Len(nspace) > 0)
+      dirclassname = NewStringf("SwigDirector_%s_%s", nspace, classname);
+    else
+      dirclassname = NewStringf("SwigDirector_%s", classname);
     Setattr(n, attrib, dirclassname);
 
     Delete(nspace);

@@ -940,7 +940,10 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
 	/* If protected access (can only be if a director method) then call the extra public accessor method (language module must provide this) */
 	String *explicit_qualifier_tmp = SwigType_namestr(Getattr(Getattr(parentNode(n), "typescope"), "qname"));
 	explicitcall_name = NewStringf("%sSwigPublic", name);
-	explicit_qualifier = NewStringf("SwigDirector_%s_%s", directorScope, explicit_qualifier_tmp);
+        if (Len(directorScope) > 0)
+	  explicit_qualifier = NewStringf("SwigDirector_%s_%s", directorScope, explicit_qualifier_tmp);
+        else
+	  explicit_qualifier = NewStringf("SwigDirector_%s", explicit_qualifier_tmp);
 	Delete(explicit_qualifier_tmp);
       } else {
 	explicit_qualifier = SwigType_namestr(Getattr(Getattr(parentNode(n), "typescope"), "qname"));
@@ -1174,11 +1177,16 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
 	Node *parent = Swig_methodclass(n);
 	int abstract = Getattr(parent, "abstracts") != 0;
 	String *name = Getattr(parent, "sym:name");
-	String *directorname = NewStringf("SwigDirector_%s_%s", directorScope, name);
+	String *directorname;
 	String *action = NewStringEmpty();
 	String *tmp_none_comparison = Copy(none_comparison);
 	String *director_call;
 	String *nodirector_call;
+
+        if (Len(directorScope) > 0)
+          directorname = NewStringf("SwigDirector_%s_%s", directorScope, name);
+        else 
+          directorname = NewStringf("SwigDirector_%s", name);
 
 	Replaceall(tmp_none_comparison, "$arg", "arg1");
 

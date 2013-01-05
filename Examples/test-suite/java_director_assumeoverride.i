@@ -10,7 +10,7 @@ public:
 
 #include "java_director_assumeoverride_wrap.h"
 bool isFuncOverridden(OverrideMe* f) {
-  SwigDirector__OverrideMe* director = dynamic_cast<SwigDirector__OverrideMe*>(f);
+  SwigDirector_OverrideMe* director = dynamic_cast<SwigDirector_OverrideMe*>(f);
   if (!director) {
     return false;
   }
