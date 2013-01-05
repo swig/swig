@@ -2,6 +2,9 @@
 *.o
 *.class
 
+# Editor junk
+*.sw?
+
 # Local PCRE
-prce
+pcre
 *.gz

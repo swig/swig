@@ -3383,7 +3383,7 @@ public:
       Printf(code_wrap->code, "  //       raw pointer alive. This is done instead of using the smart pointer's dynamic cast\n");
       Printf(code_wrap->code, "  //       feature since different smart pointer implementations have differently named dynamic\n");
       Printf(code_wrap->code, "  //       cast mechanisms.\n");
-      Printf(code_wrap->code, "  %s *director = dynamic_cast< %s *>(obj->operator->());\n", dirClassName, dirClassName);
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
     }
     else {
       Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
