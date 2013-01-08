@@ -1655,6 +1655,7 @@ private:
   String *f_runtime;
   String *f_header;
   String *f_init;
+  String *f_post_init;
 
   /* part for class templates */
   String *f_class_templates;
@@ -1709,6 +1710,7 @@ int V8Emitter::initialize(Node *n)
   f_header = NewString("");
   f_class_templates = NewString("");
   f_init = NewString("");
+  f_post_init = NewString("");
 
   f_init_namespaces = NewString("");
   f_init_class_templates = NewString("");
@@ -1723,6 +1725,7 @@ int V8Emitter::initialize(Node *n)
   Swig_register_filebyname("runtime", f_runtime);
   Swig_register_filebyname("header", f_header);
   Swig_register_filebyname("init", f_init);
+  Swig_register_filebyname("post-init", f_post_init);
 
   return SWIG_OK;
 }
@@ -1762,6 +1765,8 @@ int V8Emitter::dump(Node *n)
 
   Printv(f_wrap_cpp, f_init, 0);
 
+  Printv(f_wrap_cpp, f_post_init, 0);
+
   return SWIG_OK;
 }
 
@@ -1779,6 +1784,8 @@ int V8Emitter::close()
   Delete(f_init_static_wrappers);
   Delete(f_init_register_classes);
   Delete(f_init_register_namespaces);
+  Delete(f_init);
+  Delete(f_post_init);
 
   // files
   Close(f_wrap_cpp);
