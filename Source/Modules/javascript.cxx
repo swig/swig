@@ -55,6 +55,8 @@ bool js_template_enable_debug = false;
 #define V8_REGISTER_CLASSES                         "$jsv8registerclasses"
 #define V8_REGISTER_NS                              "$jsv8registernspaces"
 
+#define FLAG_NO_MODULE_OBJECT  "NO_MODULE_OBJECT"
+
 /**
  * A convenience class to manage state variables for emitters.
  * The implementation delegates to swig Hash DOHs and provides
@@ -307,7 +309,6 @@ protected:
   String *defaultResultName;
 
   File *f_wrappers;
-
 };
 
 /**********************************************************************
@@ -522,6 +523,8 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
 
   int mode = -1;
 
+  bool createModuleObject = true;
+
   for (int i = 1; i < argc; i++) {
     if (argv[i]) {
       if (strcmp(argv[i], "-v8") == 0) {
@@ -539,6 +542,9 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
         Swig_mark_arg(i);
         js_template_enable_debug = true;
+      } else if (strcmp(argv[i], "-no-moduleobject") == 0) {
+        Swig_mark_arg(i);
+        createModuleObject = false;
       }
     }
   }
@@ -566,6 +572,10 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       SWIG_exit(-1);
       break;
     }
+  }
+
+  if(!createModuleObject) {
+    SetFlag(emitter->getState().global(), FLAG_NO_MODULE_OBJECT);
   }
 
   // Add a symbol to the parser for conditional compilation
@@ -649,13 +659,19 @@ JSEmitterState &JSEmitter::getState() {
   return state;
 }
 
-int JSEmitter::initialize(Node * n) {
+int JSEmitter::initialize(Node *n) {
 
   if(namespaces != NULL) {
     Delete(namespaces);
   }
   namespaces = NewHash();
-  Hash *global_namespace = createNamespaceEntry(Char(Getattr(n, "name")), "global");
+  Hash *global_namespace;
+  if(State::IsSet(state.global(FLAG_NO_MODULE_OBJECT))) {
+      Printf(stdout, "AAAAAAAAAAAAAAAAAAAAAAAAAAA");
+      global_namespace = createNamespaceEntry("global", 0);
+  } else {
+      global_namespace = createNamespaceEntry(Char(Getattr(n, "name")), "global");
+  }
   Setattr(namespaces, "::", global_namespace);
   current_namespace = global_namespace;
 
@@ -1417,7 +1433,7 @@ int JSCEmitter::dump(Node *n) {
   Printv(f_wrap_cpp, f_wrappers, "\n", 0);
 
   emitNamespaces();
-  
+
   // compose the initializer function using a template
   Template initializer(getTemplate("js_initializer"));
   initializer.replace(T_NAME, module)
@@ -1676,6 +1692,7 @@ private:
   String* GLOBAL;
   String* NULL_STR;
   String *VETO_SET;
+  String *moduleName;
 
 };
 
@@ -1697,6 +1714,8 @@ V8Emitter::~V8Emitter()
 int V8Emitter::initialize(Node *n)
 {
   JSEmitter::initialize(n);
+
+  moduleName = Getattr(n,"name");
 
   // Get the output file name
   String *outfile = Getattr(n,"outfile");
@@ -1730,11 +1749,8 @@ int V8Emitter::initialize(Node *n)
   return SWIG_OK;
 }
 
-int V8Emitter::dump(Node *n)
+int V8Emitter::dump(Node *)
 {
-   // Get the module name
-  String* module = Getattr(n,"name");
-
  // write the swig banner
   Swig_banner(f_wrap_cpp);
 
@@ -1752,7 +1768,7 @@ int V8Emitter::dump(Node *n)
   // compose the initializer function using a template
   // filled with sub-parts
   Template initializer(getTemplate("js_initializer"));
-  initializer.replace(T_NAME, module)
+  initializer.replace(T_NAME, moduleName)
       .replace(V8_NAME_SPACES,        f_init_namespaces)
       .replace(V8_CLASS_TEMPLATES,    f_init_class_templates)
       .replace(V8_WRAPPERS,           f_init_wrappers)
@@ -2013,20 +2029,35 @@ int V8Emitter::emitNamespaces() {
     String *parent = Getattr(entry, PARENT);
     String *parent_mangled = Swig_name_mangle(parent);
 
-    // create namespace object and register it to the parent scope
-    Template t_create_ns = getTemplate("jsv8_create_namespace");
-    t_create_ns.replace(T_NAME_MANGLED, name_mangled)
-      .trim()
-      .pretty_print(f_init_namespaces);
+    bool do_create = true;
+    bool do_register = true;
 
-    Template t_register_ns = getTemplate("jsv8_register_namespace");
-    t_register_ns.replace(T_NAME_MANGLED, name_mangled)
-      .replace(T_NAME, name)
-      .replace(T_PARENT, parent_mangled)
-      .trim();
+    if (Equal(parent, "")) {
+      do_register = false;
+    }
 
-    // prepend in order to achieve reversed order of registration statements
-    Insert(f_init_register_namespaces, 0, t_register_ns.str());
+    if (Equal(name, "global")) {
+      do_create = false;
+    }
+
+    if (do_create) {
+      // create namespace object and register it to the parent scope
+      Template t_create_ns = getTemplate("jsv8_create_namespace");
+      t_create_ns.replace(T_NAME_MANGLED, name_mangled)
+        .trim()
+        .pretty_print(f_init_namespaces);
+    }
+
+    if (do_register) {
+      Template t_register_ns = getTemplate("jsv8_register_namespace");
+      t_register_ns.replace(T_NAME_MANGLED, name_mangled)
+        .replace(T_NAME, name)
+        .replace(T_PARENT, parent_mangled)
+        .trim();
+
+      // prepend in order to achieve reversed order of registration statements
+      Insert(f_init_register_namespaces, 0, t_register_ns.str());
+    }
   }
 
   return SWIG_OK;
