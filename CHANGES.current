@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-01-08: olly
+	    [PHP] Fix to work with a ZTS build of PHP (broken in 2.0.7).
+
 2013-01-07: olly
 	    Fix bashism in configure, introduced in 2.0.9.
 

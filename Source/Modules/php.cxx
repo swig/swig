@@ -418,6 +418,7 @@ public:
     Append(s_header, "static void SWIG_FAIL() __attribute__ ((__noreturn__));\n");
     Append(s_header, "#endif\n\n");
     Append(s_header, "static void SWIG_FAIL() {\n");
+    Append(s_header, "    TSRMLS_FETCH();\n");
     Append(s_header, "    zend_error(SWIG_ErrorCode(), \"%s\", SWIG_ErrorMsg());\n");
     // zend_error() should never return with the parameters we pass, but if it
     // does, we really don't want to let SWIG_FAIL() return.  This also avoids
