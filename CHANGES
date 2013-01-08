@@ -15,7 +15,7 @@ Version 2.0.9 (16 December 2012)
             symbols in Ruby 1.9+
 
 2012-12-14: kkaempf
-            [Ruby] Apply patch 3530439 and finally replace all occurences of the STR2CSTR() macro
+            [Ruby] Apply patch 3530439 and finally replace all occurrences of the STR2CSTR() macro
             with StringValuePtr(). STR2CSTR was deprecated since years and got removed in Ruby 1.9
 
 2012-12-14: kkaempf
@@ -12144,7 +12144,7 @@ Version 1.3.20 (December 17, 2003)
 06/25/2003: mrose (Mark Rose)
             [Python] Director typemap marshalling checks for null pointers when
 	    walking the parameter list instead of relying soley on the parameter
-	    count.  Cures a segfault that occured for multiple argument inv typemaps.
+	    count.  Cures a segfault that occurred for multiple argument inv typemaps.
 	    Someone with more Swig experience should probably review this code.
 
 06/24/2003: mkoeppe (Matthias Koeppe)
@@ -17619,7 +17619,7 @@ Version 1.3.10 (December 10, 2001)
            shadow classes.   In early implementations, shadow classes were
            merely Python wrappers around typed pointer objects. However, 
            some users actually wanted to receive the shadow class object in C.
-           To accomodate this, the dereferencing of the "this" pointer in
+           To accommodate this, the dereferencing of the "this" pointer in
            a shadow class was moved to C as described in CHANGES [8/8/99].
            However, the process of returning pointers to Python was still
            somewhat problematic.  Specifically, shadow classes never worked
@@ -19533,7 +19533,7 @@ Version 1.3.6  (July 9, 2001)
 	   [Java] destructor (_delete()) was not aware of %name renaming
 	   [Java] extends baseclass did not know about %name renaming
 	   [Java] extends baseclass did extend even when the baseclass was not known to swig
-	   [Java] sometimes enum-declarations occured before the Java class declaration
+	   [Java] sometimes enum-declarations occurred before the Java class declaration
 	   [Java] unrelated enum initialisations no longer appear in Java class
 	   [Java] if module ends in '_' correct JNI names are now produced
 
@@ -20686,7 +20686,7 @@ Version 1.3 Alpha 1 (February 11, 2000)
           names or use %apply to map typemaps to alternate names.
 
 8/8/99  : Handling of the 'this' pointer has been changed in Python shadow
-          classes.  Previously, dereferencing of '.this' occured in the
+          classes.  Previously, dereferencing of '.this' occurred in the
           Python shadow class itself.   Now, this step occurs in the C
           wrappers using the following function:
 
@@ -21243,7 +21243,7 @@ Version 1.1 Patch 1 (August 27, 1997)
 
           Would generate completely bogus code with garbage replacing
           the '%d'.   Caused by one faulty use of printf (wasn't able to find
-          any other occurences).
+          any other occurrences).
 
 7/7/97  : Fixed bug in Python shadow class generation with non-member
           functions that are returning more than one value.
@@ -21359,7 +21359,7 @@ Version 1.1 (June 24, 1997)
                  .... later ...
                  int OldName(int);
 
-          Unlike %name, %rename will rename any occurence of the old name.
+          Unlike %name, %rename will rename any occurrence of the old name.
           This applies to functions, variables, class members and so forth.
           There is no way to disable %rename once set, but you can change the
           name by redeclaring it to something else.

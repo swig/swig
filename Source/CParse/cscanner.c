@@ -9,7 +9,7 @@
  * scanner.c
  *
  * SWIG tokenizer.  This file is a wrapper around the generic C scanner
- * found in Swig/scanner.c.   Extra logic is added both to accomodate the
+ * found in Swig/scanner.c.   Extra logic is added both to accommodate the
  * bison-based grammar and certain peculiarities of C++ parsing (e.g.,
  * operator overloading, typedef resolution, etc.).  This code also splits
  * C identifiers up into keywords and SWIG directives.
@@ -373,7 +373,7 @@ void scanner_clear_rename() {
   rename_active = 0;
 }
 
-/* Used to push a ficticious token into the scanner */
+/* Used to push a fictitious token into the scanner */
 static int next_token = 0;
 void scanner_next_token(int tok) {
   next_token = tok;

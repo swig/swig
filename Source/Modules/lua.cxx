@@ -113,7 +113,7 @@ private:
   String *s_var_tab;		// table of global variables
   String *s_const_tab;		// table of global constants
   String *s_methods_tab;	// table of class methods
-  String *s_attr_tab;		// table of class atributes
+  String *s_attr_tab;		// table of class attributes
   String *s_luacode;		// luacode to be called during init
   String *s_dot_get;            // table of variable 'get' functions
   String *s_dot_set;            // table of variable 'set' functions
