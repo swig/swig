@@ -1,68 +1,74 @@
 /* -----------------------------------------------------------------------------
  * std_string.i
  *
- * Typemaps for std::string and const std::string&
- * These are mapped to a JSCore String and are passed around by value.
+ * Typemaps for std::string and const std::string&.
  *
- * To use non-const std::string references use the following %apply.  Note 
- * that they are passed by value.
- * %apply const std::string & {std::string &};
+ * To use non-const std::string references use the following %apply:
+ *      %apply const std::string & {std::string &};
+ *
  * ----------------------------------------------------------------------------- */
 
 %{
 #include <string>
 %}
 
+%fragment("SWIGV8_valueToString", "header", fragment="SWIG_AsCharPtrAndSize") {
+std::string* SWIGV8_valueToStringPtr(v8::Handle<v8::Value> val) {
+  int alloc;
+  size_t size;
+  char* chars;
+  int res = SWIG_AsCharPtrAndSize(val, &chars, &size, &alloc);
+  
+  if(res != SWIG_OK) {
+    v8::ThrowException(v8::Exception::TypeError(v8::String::New("Could not convert to string.")));
+    return 0;
+  }
+  
+  // copies the data (again)
+  std::string *str = new std::string(chars);
+  
+  if (alloc) delete[] chars;
+
+  return str;
+}
+}
+
+%fragment("SWIGV8_stringToValue", "header", fragment="SWIG_FromCharPtrAndSize") {
+v8::Handle<v8::Value> SWIGV8_stringToValue(const std::string &str) {
+  return SWIG_FromCharPtrAndSize(str.c_str(), str.length());
+}
+}
+
 namespace std {
+  %naturalvar string;
 
-%naturalvar string;
+  class string;
 
-class string;
+  %typemap(in, fragment="SWIGV8_valueToString") string (std::string* tmp)
+  %{ 
+     tmp = SWIGV8_valueToStringPtr($input);
+     $1 = *tmp;
+     delete tmp;
+  %}
 
-// string
+  %typemap(in, fragment="SWIGV8_valueToString") const string & 
+  %{ 
+     $1 = SWIGV8_valueToStringPtr($input);
+  %}
+  
+  %typemap(freearg) const string & 
+  %{ 
+     delete $1;
+  %}
 
-%typemap(in) string 
-%{ 
-  if(!$input->IsString()) {
-    // TODO: Throw exception?
-    return NULL;
-  }
+  %typemap(out, fragment="SWIGV8_stringToValue") string
+  %{
+     $result = SWIGV8_stringToValue($1);
+  %}
 
-  size_t $1_strsize = js_str->Utf8Length();
-  char* 1_cstr = new char[1_strsize];
-  js_str->WriteUtf8(1_cstr, 1_strsize);
-  $1 = std::string($1_cstr);
-%}
-
-%typemap(out) string %{
-  $result = v8::String::New($1.c_str(), $1.size());
-%}
-
-%typemap(freearg) string
-%{%}
-
-// const string &
-%typemap(in) const string &
-%{ 
-
-  if(!$input->IsString()) {
-    // TODO: Throw exception?
-    return NULL;
-  }
-
-  size_t $1_strsize = js_str->Utf8Length();
-  char* 1_cstr = new char[1_strsize];
-  js_str->WriteUtf8(1_cstr, 1_strsize);
-  $1 = newstd::string($1_cstr);
-%}
-
-%typemap(out) const string & %{   
-  $result = v8::String::New($1.c_str(), $1.size());
-%}
-
-%typemap(freearg) const string &  //TODO: Not working: A memory leak
-%{ free($1_cstr); %}
-
-//%typemap(typecheck) const string & = char *;
+  %typemap(out, fragment="SWIGV8_stringToValue") const string &
+  %{
+     $result = SWIGV8_stringToValue($1);
+  %}
 
 }

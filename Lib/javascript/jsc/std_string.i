@@ -1,12 +1,10 @@
 /* -----------------------------------------------------------------------------
  * std_string.i
  *
- * Typemaps for std::string and const std::string&
- * These are mapped to a JSCore String and are passed around by value.
+ * Typemaps for const std::string&.
+ * To use non-const std::string references use the following %apply:
+ *      %apply const std::string & {std::string &};
  *
- * To use non-const std::string references use the following %apply.  Note 
- * that they are passed by value.
- * %apply const std::string & {std::string &};
  * ----------------------------------------------------------------------------- */
 
 %{
