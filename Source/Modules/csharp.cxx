@@ -3468,6 +3468,9 @@ public:
     String *value = Getattr(n, "value");
     String *decl = Getattr(n, "decl");
     String *declaration = NewString("");
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
+    String *terminator_code = NewString("");
     String *tm;
     Parm *p;
     int i;
@@ -3556,7 +3559,8 @@ public:
       const String *im_directoroutattributes = Getattr(n, "tmap:imtype:directoroutattributes");
       if (im_directoroutattributes) {
 	Printf(callback_def, "  %s\n", im_directoroutattributes);
-	Printf(director_delegate_definitions, "  %s\n", im_directoroutattributes);
+	if (!ignored_method)
+	  Printf(director_delegate_definitions, "  %s\n", im_directoroutattributes);
       }
 
       Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
@@ -3674,6 +3678,33 @@ public:
 	      substituteClassname(pt, din);
 	      Replaceall(din, "$iminput", ln);
 
+	      // :pre and :post attribute support
+	      String *pre = Getattr(p, "tmap:csdirectorin:pre");
+	      if (pre) {
+		substituteClassname(pt, pre);
+		Replaceall(pre, "$iminput", ln);
+		if (Len(pre_code) > 0)
+		  Printf(pre_code, "\n");
+		  Printv(pre_code, pre, NIL);
+	      }
+	      String *post = Getattr(p, "tmap:csdirectorin:post");
+	      if (post) {
+		substituteClassname(pt, post);
+		Replaceall(post, "$iminput", ln);
+		if (Len(post_code) > 0)
+		  Printf(post_code, "\n");
+		Printv(post_code, post, NIL);
+	      }
+	      String *terminator = Getattr(p, "tmap:csdirectorin:terminator");
+	      if (terminator) {
+		substituteClassname(pt, terminator);
+		Replaceall(terminator, "$iminput", ln);
+		if (Len(terminator_code) > 0)
+		Insert(terminator_code, 0, "\n");
+		Insert(terminator_code, 0, terminator);
+	      }
+	      // end :pre and :post attribute support
+
 	      if (i > 0) {
 		Printf(delegate_parms, ", ");
 		Printf(proxy_method_types, ", ");
@@ -3689,7 +3720,15 @@ public:
 	      /* Get the C# parameter type */
 	      if ((tm = Getattr(p, "tmap:cstype"))) {
 		substituteClassname(pt, tm);
-		Printf(proxy_method_types, "typeof(%s)", tm);
+		if (Strncmp(tm, "ref ", 4) == 0) {
+		  DohReplace(tm, "ref ", "", DOH_REPLACE_FIRST);
+		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
+		} else if (Strncmp(tm, "out ", 4) == 0) {
+		  DohReplace(tm, "out ", "", DOH_REPLACE_FIRST);
+		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
+		} else {
+		  Printf(proxy_method_types, "typeof(%s)", tm);
+		}
 	      } else {
 		Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(pt, 0));
 	      }
@@ -3777,13 +3816,45 @@ public:
       if ((tm = Swig_typemap_lookup("csdirectorout", n, "", 0))) {
 	substituteClassname(returntype, tm);
 	Replaceall(tm, "$cscall", upcall);
-
-	Printf(callback_code, "    return %s;\n", tm);
+	// pre: and post: attribute support
+	bool is_pre_code = Len(pre_code) > 0;
+	bool is_post_code = Len(post_code) > 0;
+	bool is_terminator_code = Len(terminator_code) > 0;
+	if (is_pre_code || is_post_code || is_terminator_code) {
+	  Insert(tm, 0, "      return ");
+	  Printf(tm, ";");
+	  if (is_post_code) {
+	    Insert(tm, 0, "\n    try {\n ");
+	    Printv(tm, "\n    }\n    finally {\n", post_code, "\n    }", NIL);
+	  } else {
+	    Insert(tm, 0, "\n    ");
+	  }
+	  if (is_pre_code) {
+	    Insert(tm, 0, pre_code);
+	    Insert(tm, 0, "\n");
+	  }
+	  if (is_terminator_code)
+	    Printv(tm, "\n", terminator_code, NIL);
+	  Printf(callback_code, "       %s\n", tm);
+	} else {
+	  Printf(callback_code, "    return %s;\n", tm);
+	}
       }
-
       Delete(tm);
-    } else
-      Printf(callback_code, "    %s;\n", upcall);
+    } else {
+      bool is_pre_code = Len(pre_code) > 0;
+      bool is_post_code = Len(post_code) > 0;
+      if (is_pre_code && is_post_code)
+	Printf(callback_code, "    %s\n    try {\n    %s;\n    }\n    finally {\n    %s\n    }\n", pre_code, upcall, post_code);
+      else if (is_pre_code)
+	Printf(callback_code, "    %s\n    %s;\n", pre_code, upcall);
+      else if (is_post_code)
+	Printf(callback_code, "    try {\n    %s;\n    }\n    finally {\n    %s\n    }\n", upcall, post_code);
+      else
+	Printf(callback_code, "    %s;\n", upcall);
+      if (Len(terminator_code) > 0)
+	Printv(callback_code, "\n", terminator_code, NIL);
+    }
 
     Printf(callback_code, "  }\n");
     Delete(upcall);
@@ -3886,6 +3957,9 @@ public:
       Printf(director_connect_parms, "SwigDirector%s%s delegate%s", classname, methid, methid);
     }
 
+    Delete(pre_code);
+    Delete(post_code);
+    Delete(terminator_code);
     Delete(qualified_return);
     Delete(declaration);
     Delete(callback_typedef_parms);
