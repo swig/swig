@@ -386,7 +386,7 @@ fail:
 %{
 extern "C" {
 
-void $jsname_initialize(v8::Handle<v8::Context> context, v8::Handle<v8::Object> global_obj)
+void $jsname_initialize(v8::Handle<v8::Object> global_obj)
 {
   SWIG_InitializeModule(0);
 

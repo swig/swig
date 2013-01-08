@@ -9,7 +9,7 @@
 
 #include "js_shell.h"
 
-typedef int (*V8ExtensionRegistrar) (v8::Handle<v8::Context>, v8::Handle<v8::Object>);
+typedef int (*V8ExtensionRegistrar) (v8::Handle<v8::Object>);
 
 class V8Shell: public JSShell {
 
@@ -159,7 +159,7 @@ void V8Shell::ExtendEngine() {
   // register extensions
   for(std::vector<V8ExtensionRegistrar>::iterator it=module_initializers.begin();
     it != module_initializers.end(); ++it) {
-    (*it)(context, global);
+    (*it)(global);
   }
 
 }
