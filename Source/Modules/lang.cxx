@@ -2328,6 +2328,15 @@ int Language::classDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
 
+  // save class local variables for nested classes support
+  int oldInClass = InClass;
+  String *oldClassType = ClassType;
+  String *oldClassPrefix = ClassPrefix;
+  String *oldClassName = ClassName;
+  String *oldDirectorClassName = DirectorClassName;
+  String *oldNSpace = NSpace;
+  Node* oldCurrentClass = CurrentClass;
+
   String *kind = Getattr(n, "kind");
   String *name = Getattr(n, "name");
   String *tdname = Getattr(n, "tdname");
@@ -2355,6 +2364,14 @@ int Language::classDeclaration(Node *n) {
 
   ClassName = Copy(name);
   ClassPrefix = Copy(symname);
+  if (Node* outerClass = Getattr(n, "outerclass")) {
+    while (outerClass) {
+      String* s = NewStringf("%s_%s", Getattr(outerClass, "sym:name"), ClassPrefix);
+      Delete(ClassPrefix);
+      ClassPrefix = s;
+      outerClass = Getattr(outerClass, "outerclass");
+    }
+  }
   if (strip) {
     ClassType = Copy(name);
   } else {
@@ -2365,8 +2382,6 @@ int Language::classDeclaration(Node *n) {
 
   InClass = 1;
   CurrentClass = n;
-
-  String *oldNSpace = NSpace;
   NSpace = Getattr(n, "sym:nspace");
 
   /* Call classHandler() here */
@@ -2418,16 +2433,16 @@ int Language::classDeclaration(Node *n) {
   }
 
   NSpace = oldNSpace;
-  InClass = 0;
-  CurrentClass = 0;
+  InClass = oldInClass;
+  CurrentClass = oldCurrentClass;
   Delete(ClassType);
-  ClassType = 0;
+  ClassType = oldClassType;
   Delete(ClassPrefix);
-  ClassPrefix = 0;
+  ClassPrefix = oldClassPrefix;
   Delete(ClassName);
-  ClassName = 0;
+  ClassName = oldClassName;
   Delete(DirectorClassName);
-  DirectorClassName = 0;
+  DirectorClassName = oldDirectorClassName;
   return SWIG_OK;
 }
 

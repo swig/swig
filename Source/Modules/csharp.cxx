@@ -55,7 +55,6 @@ class CSHARP:public Language {
   String *proxy_class_code;
   String *module_class_code;
   String *proxy_class_name;	// proxy class name
-  String *full_proxy_class_name;// fully qualified proxy class name when using nspace feature, otherwise same as proxy_class_name
   String *full_imclass_name;	// fully qualified intermediary class name when using nspace feature, otherwise same as imclass_name
   String *variable_name;	//Name of a variable being wrapped
   String *proxy_class_constants_code;
@@ -127,7 +126,6 @@ public:
       proxy_class_code(NULL),
       module_class_code(NULL),
       proxy_class_name(NULL),
-      full_proxy_class_name(NULL),
       full_imclass_name(NULL),
       variable_name(NULL),
       proxy_class_constants_code(NULL),
@@ -207,7 +205,7 @@ public:
     const char *attrib = "director:classname";
 
     if (!(dirclassname = Getattr(n, attrib))) {
-      String *classname = Getattr(n, "sym:name");
+      String *classname = getClassPrefix();
 
       dirclassname = NewStringf("SwigDirector_%s", classname);
       Setattr(n, attrib, dirclassname);
@@ -1054,7 +1052,7 @@ public:
      */
     if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Capitalize the first letter in the variable in the getter/setter function name
-      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) != 0;
+      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) != 0;
 
       String *getter_setter_name = NewString("");
       if (!getter_flag)
@@ -1618,6 +1616,7 @@ public:
     String *c_baseclassname = NULL;
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
+    bool has_outerclass = Getattr(n, "outerclass") != 0;
 
     // Inheritance from pure C# classes
     Node *attributes = NewHash();
@@ -1677,7 +1676,8 @@ public:
     // Pure C# interfaces
     const String *pure_interfaces = typemapLookup(n, derived ? "csinterfaces_derived" : "csinterfaces", typemap_lookup_type, WARN_NONE);
     // Start writing the proxy class
-    Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
+    if (!has_outerclass)
+      Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
 	   "\n", NIL);
 
     // Class attributes
@@ -1748,7 +1748,7 @@ public:
 	Printf(proxy_class_code, "    if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s))\n", method, methid);
 	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, overname);
       }
-      String *director_connect_method_name = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
+      String *director_connect_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
       Printf(proxy_class_code, "    %s.%s(swigCPtr", imclass_name, director_connect_method_name);
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
 	UpcallData *udata = Getitem(dmethods_seq, i);
@@ -1824,7 +1824,7 @@ public:
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
       String *smartptr = Getattr(n, "feature:smartptr");
-      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
+      String *upcast_method = Swig_name_member(getNSpace(), getClassPrefix(), smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
       String *wname = Swig_name_wrapper(upcast_method);
 
       Printv(imclass_cppcasts_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
@@ -1875,11 +1875,37 @@ public:
 
     String *nspace = getNSpace();
     File *f_proxy = NULL;
+    // save class local variables
+    String* old_proxy_class_name = proxy_class_name;
+    String* old_full_imclass_name = full_imclass_name;
+    String* old_destructor_call = destructor_call;
+    String* old_proxy_class_constants_code = proxy_class_constants_code;
+    String* old_proxy_class_def = proxy_class_def;
+    String* old_proxy_class_code = proxy_class_code;
+
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
+      if (Node* outer = Getattr(n, "outerclass")) {
+	String* outerClassesPrefix = Getattr(outer, "sym:name");
+	for (outer = Getattr(outer, "outerclass"); outer != 0; outer = Getattr(outer, "outerclass")) {
+	  String* s = NewStringf("%s::%s", outerClassesPrefix, Getattr(outer, "sym:name"));
+	  Delete(outerClassesPrefix);
+	  outerClassesPrefix = s;
+	}
+	String* fnspace = nspace ? NewStringf("%s::%s", nspace, outerClassesPrefix) : outerClassesPrefix;
+	if (!addSymbol(proxy_class_name, n, fnspace))
+	  return SWIG_ERROR;
+	if (nspace)
+	  Delete(fnspace);
+	//Replaceall(outerClassesPrefix, "::", ".");
+	Delete(outerClassesPrefix);
+      }
+      else {
+	if (!addSymbol(proxy_class_name, n, nspace))
+	  return SWIG_ERROR;
+      }
 
       if (!nspace) {
-	full_proxy_class_name = NewStringf("%s", proxy_class_name);
 	full_imclass_name = NewStringf("%s", imclass_name);
 	if (Cmp(proxy_class_name, imclass_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
@@ -1892,36 +1918,34 @@ public:
 	}
       } else {
 	if (namespce) {
-	  full_proxy_class_name = NewStringf("%s.%s.%s", namespce, nspace, proxy_class_name);
 	  full_imclass_name = NewStringf("%s.%s", namespce, imclass_name);
 	} else {
-	  full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
 	  full_imclass_name = NewStringf("%s", imclass_name);
 	}
       }
 
-      if (!addSymbol(proxy_class_name, n, nspace))
-	return SWIG_ERROR;
+      // inner class doesn't need this prologue
+      if (!Getattr(n, "outerclass"))
+      {
+	String *output_directory = outputDirectory(nspace);
+	String *filen = NewStringf("%s%s.cs", output_directory, proxy_class_name);
+	f_proxy = NewFile(filen, "w", SWIG_output_files());
+	if (!f_proxy) {
+	  FileErrorDisplay(filen);
+	  SWIG_exit(EXIT_FAILURE);
+	}
+	Append(filenames_list, Copy(filen));
+	Delete(filen);
+	filen = NULL;
 
-      String *output_directory = outputDirectory(nspace);
-      String *filen = NewStringf("%s%s.cs", output_directory, proxy_class_name);
-      f_proxy = NewFile(filen, "w", SWIG_output_files());
-      if (!f_proxy) {
-	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	// Start writing out the proxy class file
+	emitBanner(f_proxy);
+
+	addOpenNamespace(nspace, f_proxy);
       }
-      Append(filenames_list, Copy(filen));
-      Delete(filen);
-      filen = NULL;
 
-      // Start writing out the proxy class file
-      emitBanner(f_proxy);
-
-      addOpenNamespace(nspace, f_proxy);
-
-      Clear(proxy_class_def);
-      Clear(proxy_class_code);
-
+      proxy_class_def = NewString("");
+      proxy_class_code = NewString("");
       destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
     }
@@ -1953,17 +1977,30 @@ public:
       Replaceall(proxy_class_def, "$dllimport", dllimport);
       Replaceall(proxy_class_code, "$dllimport", dllimport);
       Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
-
-      Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
+      bool has_outerclass = Getattr(n, "outerclass") != 0;
+      if (!has_outerclass)
+	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
+      else {
+	Append(old_proxy_class_code, proxy_class_def);
+	Append(old_proxy_class_code, proxy_class_code);
+      }
 
       // Write out all the constants
-      if (Len(proxy_class_constants_code) != 0)
-	Printv(f_proxy, proxy_class_constants_code, NIL);
-
-      Printf(f_proxy, "}\n");
-      addCloseNamespace(nspace, f_proxy);
-      Delete(f_proxy);
-      f_proxy = NULL;
+      if (Len(proxy_class_constants_code) != 0) {
+	if (!has_outerclass)
+	  Printv(f_proxy, proxy_class_constants_code, NIL);
+	else
+	  Append(old_proxy_class_code, proxy_class_constants_code);
+      }
+      if (!has_outerclass) {
+	Printf(f_proxy, "}\n");
+	addCloseNamespace(nspace, f_proxy);
+	Delete(f_proxy);
+	f_proxy = NULL;
+      }
+      else {
+	Append(old_proxy_class_code, "}\n");
+      }
 
       /* Output the downcast method, if necessary. Note: There's no other really
          good place to put this code, since Abstract Base Classes (ABCs) can and should have 
@@ -2000,15 +2037,17 @@ public:
 
       Delete(csclazzname);
       Delete(proxy_class_name);
-      proxy_class_name = NULL;
-      Delete(full_proxy_class_name);
-      full_proxy_class_name = NULL;
+      proxy_class_name = old_proxy_class_name;
       Delete(full_imclass_name);
-      full_imclass_name = NULL;
+      full_imclass_name = old_full_imclass_name;
       Delete(destructor_call);
-      destructor_call = NULL;
+      destructor_call = old_destructor_call;
       Delete(proxy_class_constants_code);
-      proxy_class_constants_code = NULL;
+      proxy_class_constants_code = old_proxy_class_constants_code;
+      Delete(proxy_class_def);
+      proxy_class_def = old_proxy_class_def;
+      Delete(proxy_class_code);
+      proxy_class_code = old_proxy_class_code;
     }
 
     return SWIG_OK;
@@ -2023,7 +2062,7 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
+      String *intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
@@ -2043,7 +2082,7 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
+      String *intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
@@ -2123,7 +2162,7 @@ public:
 
     if (wrapping_member_flag && !enum_constant_flag) {
       // Properties
-      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) == 0);
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) == 0);
       if (setter_flag)
         Swig_typemap_attach_parms("csvarin", l, NULL);
     }
@@ -3402,6 +3441,7 @@ public:
 
     // Output the director connect method:
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
+    String *director_class_name = directorClassName(n);
     String *swig_director_connect = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
     String *wname = Swig_name_wrapper(swig_director_connect);
     String *sym_name = Getattr(n, "sym:name");
@@ -3418,7 +3458,7 @@ public:
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
 
     Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n", sym_name, sym_name);
+    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", director_class_name, director_class_name);
     // TODO: if statement not needed?? - Java too
     Printf(code_wrap->code, "  if (director) {\n");
     Printf(code_wrap->code, "    director->swig_connect_director(");
@@ -3430,7 +3470,7 @@ public:
       Printf(code_wrap->def, ", ");
       if (i != first_class_dmethod)
 	Printf(code_wrap->code, ", ");
-      Printf(code_wrap->def, "SwigDirector_%s::SWIG_Callback%s_t callback%s", sym_name, methid, methid);
+      Printf(code_wrap->def, "%s::SWIG_Callback%s_t callback%s", director_class_name, methid, methid);
       Printf(code_wrap->code, "callback%s", methid);
       Printf(imclass_class_code, ", %s.SwigDelegate%s_%s delegate%s", qualified_classname, sym_name, methid, methid);
     }
@@ -3496,7 +3536,7 @@ public:
     // we're consistent with the sym:overload name in functionWrapper. (?? when
     // does the overloaded method name get set?)
 
-    imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(getNSpace(), classname, overloaded_name));
+    imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name));
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
 
@@ -3932,13 +3972,11 @@ public:
 	String *basetype = Getattr(parent, "classtype");
 	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
-	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
 	Printf(f_directors, "%s::%s : %s, %s {\n", classname, target, call, Getattr(parent, "director:ctor"));
 	Printf(f_directors, "  swig_init_callbacks();\n");
 	Printf(f_directors, "}\n\n");
 
-	Delete(classtype);
 	Delete(target);
 	Delete(call);
       }
@@ -3962,18 +4000,15 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorDefaultConstructor(Node *n) {
-    String *classname = Swig_class_name(n);
-    String *classtype = SwigType_namestr(Getattr(n, "name"));
+    String *classname = directorClassName(Swig_methodclass(n));
     Wrapper *w = NewWrapper();
 
-    Printf(w->def, "SwigDirector_%s::SwigDirector_%s() : %s {", classname, classname, Getattr(n, "director:ctor"));
+    Printf(w->def, "%s::%s() : %s {", classname, classname, Getattr(n, "director:ctor"));
     Printf(w->code, "}\n");
     Wrapper_print(w, f_directors);
 
-    Printf(f_directors_h, "    SwigDirector_%s();\n", classname);
+    Printf(f_directors_h, "    %s();\n", classname);
     DelWrapper(w);
-    Delete(classtype);
-    Delete(classname);
     return Language::classDirectorDefaultConstructor(n);
   }
 
@@ -4013,16 +4048,15 @@ public:
    * ---------------------------------------------------------------------- */
 
   int classDirectorDestructor(Node *n) {
-    Node *current_class = getCurrentClass();
-    String *classname = Swig_class_name(current_class);
+    String *classname = directorClassName(n);
     Wrapper *w = NewWrapper();
 
     if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~SwigDirector_%s() throw ();\n", classname);
-      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() throw () {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s() throw ();\n", classname);
+      Printf(w->def, "%s::~%s() throw () {\n", classname, classname);
     } else {
-      Printf(f_directors_h, "    virtual ~SwigDirector_%s();\n", classname);
-      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s();\n", classname);
+      Printf(w->def, "%s::~%s() {\n", classname, classname);
     }
 
     Printv(w->code, "}\n", NIL);
@@ -4030,7 +4064,6 @@ public:
     Wrapper_print(w, f_directors);
 
     DelWrapper(w);
-    Delete(classname);
     return SWIG_OK;
   }
 
@@ -4120,8 +4153,7 @@ public:
     String *base = Getattr(n, "classtype");
     String *class_ctor = NewString("Swig::Director()");
 
-    String *classname = Swig_class_name(n);
-    String *directorname = NewStringf("SwigDirector_%s", classname);
+    String *directorname = directorClassName(n);
     String *declaration = Swig_class_declaration(n, directorname);
 
     Printf(declaration, " : public %s, public Swig::Director", base);
