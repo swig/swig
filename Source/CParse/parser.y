@@ -13,8 +13,8 @@
  * some point.  Beware.
  * ----------------------------------------------------------------------------- */
 
+%expect 5
 %{
-
 #define yylex yylex
 
 char cvsroot_parser_y[] = "$Id$";
@@ -40,13 +40,14 @@ static Node    *top = 0;      /* Top of the generated parse tree */
 static int      unnamed = 0;  /* Unnamed datatype counter */
 static Hash    *extendhash = 0;     /* Hash table of added methods */
 static Hash    *classes = 0;        /* Hash table of classes */
-static Symtab  *prev_symtab = 0;
-static Node    *current_class = 0;
+static Symtab  *prev_symtab = 0;    /* only for %extend */
+static Node    *current_class = 0;  /* used in %extend and templates expanding*/
 String  *ModuleName = 0;
 static Node    *module_node = 0;
 static String  *Classprefix = 0;  
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
+static Node    *currentOuterClass = 0; /*for nested classes*/
 static int      nested_template = 0; /* template class/function definition within a class */
 static char    *last_cpptype = 0;
 static int      inherit_list = 0;
@@ -56,9 +57,6 @@ static int      compact_default_args = 0;
 static int      template_reduce = 0;
 static int      cparse_externc = 0;
 
-static int      max_class_levels = 0;
-static int      class_level = 0;
-static Node   **class_decl = NULL;
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -161,7 +159,6 @@ static Node *copy_node(Node *n) {
 static char  *typemap_lang = 0;    /* Current language setting */
 
 static int cplus_mode  = 0;
-static String  *class_rename = 0;
 
 /* C++ modes */
 
@@ -345,9 +342,6 @@ static void add_symbols(Node *n) {
 	  Delete(prefix);
 	}
 
-        /*
-	if (!Getattr(n,"parentNode") && class_level) set_parentNode(n,class_decl[class_level - 1]);
-        */
 	Setattr(n,"ismember","1");
       }
     }
@@ -1753,7 +1747,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl;
 %type <node>     cpp_members cpp_member;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator;
-%type <node>     cpp_swig_directive cpp_temp_possible cpp_nested cpp_opt_declarators ;
+%type <node>     cpp_swig_directive cpp_temp_possible /*cpp_nested*/ cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl ;
 %type <node>     kwargs options;
 
@@ -3460,7 +3454,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Setattr($<node>$,"allows_typedef","1");
 
 		   /* preserve the current scope */
-		   prev_symtab = Swig_symbol_current();
+		   Setattr($<node>$,"prev_symtab",Swig_symbol_current());
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
 		   scope = resolve_create_node_scope($3);
@@ -3488,8 +3482,14 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   }
 		   Setattr($<node>$,"name",$3);
 
-		   Delete(class_rename);
-                   class_rename = make_name($<node>$,$3,0);
+		   /*
+		   save yyrename to the class attribute, to be used later in add_symbols()
+		   the only purpose is to support %name() functionality
+		   */
+		   if (yyrename)
+		     Setattr($<node>$, "class_rename", make_name($<node>$, $3, 0));
+
+		   Setattr($<node>$,"Classprefix",$3);
 		   Classprefix = NewString($3);
 		   /* Deal with inheritance  */
 		   if ($4) {
@@ -3546,31 +3546,26 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		       Delete(tpname);
 		     }
 		   }
-		   if (class_level >= max_class_levels) {
-		       if (!max_class_levels) {
-			   max_class_levels = 16;
-		       } else {
-			   max_class_levels *= 2;
-		       }
-		       class_decl = (Node**) realloc(class_decl, sizeof(Node*) * max_class_levels);
-		       if (!class_decl) {
-			   Swig_error(cparse_file, cparse_line, "realloc() failed\n");
-		       }
-		   }
-		   class_decl[class_level++] = $<node>$;
 		   Delete(prefix);
 		   inclass = 1;
+		   if (currentOuterClass)
+		     Setattr($<node>$, "outerclass", currentOuterClass);
+		   currentOuterClass = $<node>$;
 		 }
                } cpp_members RBRACE cpp_opt_declarators {
 	         (void) $<node>6;
 		 if (nested_template == 0) {
 		   Node *p;
 		   SwigType *ty;
-		   Symtab *cscope = prev_symtab;
+		   Symtab *cscope;
 		   Node *am = 0;
 		   String *scpname = 0;
-		   $$ = class_decl[--class_level];
-		   inclass = 0;
+		   $$ = currentOuterClass;
+		   currentOuterClass = Getattr($$, "outerclass");
+		   if (!currentOuterClass)
+		     inclass = 0;
+		   cscope = Getattr($$, "prev_symtab");
+		   Delattr($$, "prev_symtab");
 		   
 		   /* Check for pure-abstract class */
 		   Setattr($$,"abstracts", pure_abstracts($7));
@@ -3610,38 +3605,6 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Setattr(p,"type",ty);
 		     p = nextSibling(p);
 		   }
-		   /* Dump nested classes */
-		   {
-		     String *name = $3;
-		     if ($9) {
-		       SwigType *decltype = Getattr($9,"decl");
-		       if (Cmp($1,"typedef") == 0) {
-			 if (!decltype || !Len(decltype)) {
-			   String *cname;
-			   String *tdscopename;
-			   String *class_scope = Swig_symbol_qualifiedscopename(cscope);
-			   name = Getattr($9,"name");
-			   cname = Copy(name);
-			   Setattr($$,"tdname",cname);
-			   tdscopename = class_scope ? NewStringf("%s::%s", class_scope, name) : Copy(name);
-
-			   /* Use typedef name as class name */
-			   if (class_rename && (Strcmp(class_rename,$3) == 0)) {
-			     Delete(class_rename);
-			     class_rename = NewString(name);
-			   }
-			   if (!Getattr(classes,tdscopename)) {
-			     Setattr(classes,tdscopename,$$);
-			   }
-			   Setattr($$,"decl",decltype);
-			   Delete(class_scope);
-			   Delete(cname);
-			   Delete(tdscopename);
-			 }
-		       }
-		     }
-		     appendChild($$,dump_nested(Char(name)));
-		   }
 
 		   if (cplus_mode != CPLUS_PUBLIC) {
 		   /* we 'open' the class at the end, to allow %template
@@ -3655,7 +3618,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 
 		   Setattr($$,"symtab",Swig_symbol_popscope());
 
-		   Classprefix = 0;
+		   Classprefix = Getattr($<node>$,"Classprefix");
+		   Delattr($<node>$,"Classprefix");
 		   if (nscope_inner) {
 		     /* this is tricky */
 		     /* we add the declaration in the original namespace */
@@ -3672,12 +3636,13 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     add_symbols($9);
 		   } else {
 		     Delete(yyrename);
-		     yyrename = Copy(class_rename);
+		     yyrename = Copy(Getattr($<node>$, "class_rename"));
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 
 		     add_symbols($$);
 		     add_symbols($9);
+		     Delattr($$, "class_rename");
 		   }
 		   Swig_symbol_setscope(cscope);
 		   Delete(Namespaceprefix);
@@ -3701,8 +3666,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Setattr($<node>$,"storage",$1);
 	       Setattr($<node>$,"unnamed",unnamed);
 	       Setattr($<node>$,"allows_typedef","1");
-	       Delete(class_rename);
-	       class_rename = make_name($<node>$,0,0);
+	       if (yyrename)
+	         Setattr($<node>$, "class_rename", make_name($<node>$,0,0));
 	       if (strcmp($2,"class") == 0) {
 		 cplus_mode = CPLUS_PRIVATE;
 	       } else {
@@ -3710,18 +3675,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       }
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
-	       if (class_level >= max_class_levels) {
-		   if (!max_class_levels) {
-		       max_class_levels = 16;
-		   } else {
-		       max_class_levels *= 2;
-		   }
-		   class_decl = (Node**) realloc(class_decl, sizeof(Node*) * max_class_levels);
-		   if (!class_decl) {
-		       Swig_error(cparse_file, cparse_line, "realloc() failed\n");
-		   }
-	       }
-	       class_decl[class_level++] = $<node>$;
+	       currentOuterClass = $<node>$;
 	       inclass = 1;
 	       Classprefix = NewStringEmpty();
 	       Delete(Namespaceprefix);
@@ -3731,8 +3685,10 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Node *n;
 	       (void) $<node>4;
 	       Classprefix = 0;
-	       $$ = class_decl[--class_level];
-	       inclass = 0;
+	       $$ = currentOuterClass;
+	       currentOuterClass = Getattr($$, "outerclass");
+	       if (!currentOuterClass)
+		 inclass = 0;
 	       unnamed = Getattr($$,"unnamed");
 
 	       /* Check for pure-abstract class */
@@ -3803,15 +3759,16 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       }
 	       /* Pop the scope */
 	       Setattr($$,"symtab",Swig_symbol_popscope());
-	       if (class_rename) {
+	       if (Getattr($$, "class_rename")) {
 		 Delete(yyrename);
-		 yyrename = NewString(class_rename);
+		 yyrename = Copy(Getattr($<node>$, "class_rename"));
 	       }
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       add_symbols($$);
 	       add_symbols(n);
 	       Delete(unnamed);
+	       Delattr($$, "class_rename");
               }
              ;
 
@@ -4402,7 +4359,8 @@ cpp_member   : c_declaration { $$ = $1; }
              | cpp_swig_directive { $$ = $1; }
              | cpp_conversion_operator { $$ = $1; }
              | cpp_forward_class_decl { $$ = $1; }
-             | cpp_nested { $$ = $1; }
+	     | cpp_class_decl { $$ = $1; }
+/*	     | cpp_nested { $$ = $1; }*/
              | storage_class idcolon SEMI { $$ = 0; }
              | cpp_using_decl { $$ = $1; }
              | cpp_template_decl { $$ = $1; }
@@ -4614,11 +4572,11 @@ cpp_protection_decl : PUBLIC COLON {
    Adding inheritance, ie replacing 'ID' with 'idcolon inherit' 
    added one shift/reduce
    ------------------------------------------------------------ */
-
+/*
 cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
 		cparse_start_line = cparse_line;
 		skip_balanced('{','}');
-		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
+		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */ /*
 	      } cpp_opt_declarators {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
@@ -4631,7 +4589,7 @@ cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
 		}
 		Delete($<str>6);
 	      }
-
+*/
 /* ------------------------------------------------------------
    Unnamed/anonymous nested structs:
    struct { };
@@ -4641,11 +4599,11 @@ cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
    typedef struct { } td;
    typedef struct : bases { } td;
    ------------------------------------------------------------ */
-
+/*
               | storage_class cpptype inherit LBRACE {
 		cparse_start_line = cparse_line;
 		skip_balanced('{','}');
-		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */
+		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */ /*
 	      } cpp_opt_declarators {
 	        $$ = 0;
 		if (cplus_mode == CPLUS_PUBLIC) {
@@ -4673,9 +4631,9 @@ cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
 		  Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $5, $6);
 		}
 	      }
-*/
+*/ /*
               ;
-
+*/
 /* These directives can be included inside a class definition */
 
 cpp_swig_directive: pragma_directive { $$ = $1; }

@@ -55,7 +55,6 @@ class CSHARP:public Language {
   String *proxy_class_code;
   String *module_class_code;
   String *proxy_class_name;	// proxy class name
-  String *full_proxy_class_name;// fully qualified proxy class name when using nspace feature, otherwise same as proxy_class_name
   String *full_imclass_name;	// fully qualified intermediary class name when using nspace feature, otherwise same as imclass_name
   String *variable_name;	//Name of a variable being wrapped
   String *proxy_class_constants_code;
@@ -127,7 +126,6 @@ public:
       proxy_class_code(NULL),
       module_class_code(NULL),
       proxy_class_name(NULL),
-      full_proxy_class_name(NULL),
       full_imclass_name(NULL),
       variable_name(NULL),
       proxy_class_constants_code(NULL),
@@ -1618,6 +1616,7 @@ public:
     String *c_baseclassname = NULL;
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
+    bool has_outerclass = Getattr(n, "outerclass") != 0;
 
     // Inheritance from pure C# classes
     Node *attributes = NewHash();
@@ -1677,7 +1676,8 @@ public:
     // Pure C# interfaces
     const String *pure_interfaces = typemapLookup(n, derived ? "csinterfaces_derived" : "csinterfaces", typemap_lookup_type, WARN_NONE);
     // Start writing the proxy class
-    Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
+    if (!has_outerclass)
+      Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
 	   "\n", NIL);
 
     // Class attributes
@@ -1875,11 +1875,37 @@ public:
 
     String *nspace = getNSpace();
     File *f_proxy = NULL;
+    // save class local variables
+    String* old_proxy_class_name = proxy_class_name;
+    String* old_full_imclass_name = full_imclass_name;
+    String* old_destructor_call = destructor_call;
+    String* old_proxy_class_constants_code = proxy_class_constants_code;
+    String* old_proxy_class_def = proxy_class_def;
+    String* old_proxy_class_code = proxy_class_code;
+
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
+      if (Node* outer = Getattr(n, "outerclass")) {
+	String* outerClassesPrefix = Getattr(outer, "sym:name");
+	for (outer = Getattr(outer, "outerclass"); outer != 0; outer = Getattr(outer, "outerclass")) {
+	  String* s = NewStringf("%s::%s", outerClassesPrefix, Getattr(outer, "sym:name"));
+	  Delete(outerClassesPrefix);
+	  outerClassesPrefix = s;
+	}
+	String* fnspace = nspace ? NewStringf("%s::%s", nspace, outerClassesPrefix) : outerClassesPrefix;
+	if (!addSymbol(proxy_class_name, n, fnspace))
+	  return SWIG_ERROR;
+	if (nspace)
+	  Delete(fnspace);
+	//Replaceall(outerClassesPrefix, "::", ".");
+	Delete(outerClassesPrefix);
+      }
+      else {
+	if (!addSymbol(proxy_class_name, n, nspace))
+	  return SWIG_ERROR;
+      }
 
       if (!nspace) {
-	full_proxy_class_name = NewStringf("%s", proxy_class_name);
 	full_imclass_name = NewStringf("%s", imclass_name);
 	if (Cmp(proxy_class_name, imclass_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
@@ -1892,36 +1918,34 @@ public:
 	}
       } else {
 	if (namespce) {
-	  full_proxy_class_name = NewStringf("%s.%s.%s", namespce, nspace, proxy_class_name);
 	  full_imclass_name = NewStringf("%s.%s", namespce, imclass_name);
 	} else {
-	  full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
 	  full_imclass_name = NewStringf("%s", imclass_name);
 	}
       }
 
-      if (!addSymbol(proxy_class_name, n, nspace))
-	return SWIG_ERROR;
+      // inner class doesn't need this prologue
+      if (!Getattr(n, "outerclass"))
+      {
+	String *output_directory = outputDirectory(nspace);
+	String *filen = NewStringf("%s%s.cs", output_directory, proxy_class_name);
+	f_proxy = NewFile(filen, "w", SWIG_output_files());
+	if (!f_proxy) {
+	  FileErrorDisplay(filen);
+	  SWIG_exit(EXIT_FAILURE);
+	}
+	Append(filenames_list, Copy(filen));
+	Delete(filen);
+	filen = NULL;
 
-      String *output_directory = outputDirectory(nspace);
-      String *filen = NewStringf("%s%s.cs", output_directory, proxy_class_name);
-      f_proxy = NewFile(filen, "w", SWIG_output_files());
-      if (!f_proxy) {
-	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	// Start writing out the proxy class file
+	emitBanner(f_proxy);
+
+	addOpenNamespace(nspace, f_proxy);
       }
-      Append(filenames_list, Copy(filen));
-      Delete(filen);
-      filen = NULL;
 
-      // Start writing out the proxy class file
-      emitBanner(f_proxy);
-
-      addOpenNamespace(nspace, f_proxy);
-
-      Clear(proxy_class_def);
-      Clear(proxy_class_code);
-
+      proxy_class_def = NewString("");
+      proxy_class_code = NewString("");
       destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
     }
@@ -1953,17 +1977,30 @@ public:
       Replaceall(proxy_class_def, "$dllimport", dllimport);
       Replaceall(proxy_class_code, "$dllimport", dllimport);
       Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
-
-      Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
+      bool has_outerclass = Getattr(n, "outerclass") != 0;
+      if (!has_outerclass)
+	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
+      else {
+	Append(old_proxy_class_code, proxy_class_def);
+	Append(old_proxy_class_code, proxy_class_code);
+      }
 
       // Write out all the constants
-      if (Len(proxy_class_constants_code) != 0)
-	Printv(f_proxy, proxy_class_constants_code, NIL);
-
-      Printf(f_proxy, "}\n");
-      addCloseNamespace(nspace, f_proxy);
-      Delete(f_proxy);
-      f_proxy = NULL;
+      if (Len(proxy_class_constants_code) != 0) {
+	if (!has_outerclass)
+	  Printv(f_proxy, proxy_class_constants_code, NIL);
+	else
+	  Append(old_proxy_class_code, proxy_class_constants_code);
+      }
+      if (!has_outerclass) {
+	Printf(f_proxy, "}\n");
+	addCloseNamespace(nspace, f_proxy);
+	Delete(f_proxy);
+	f_proxy = NULL;
+      }
+      else {
+	Append(old_proxy_class_code, "}\n");
+      }
 
       /* Output the downcast method, if necessary. Note: There's no other really
          good place to put this code, since Abstract Base Classes (ABCs) can and should have 
@@ -2000,15 +2037,17 @@ public:
 
       Delete(csclazzname);
       Delete(proxy_class_name);
-      proxy_class_name = NULL;
-      Delete(full_proxy_class_name);
-      full_proxy_class_name = NULL;
+      proxy_class_name = old_proxy_class_name;
       Delete(full_imclass_name);
-      full_imclass_name = NULL;
+      full_imclass_name = old_full_imclass_name;
       Delete(destructor_call);
-      destructor_call = NULL;
+      destructor_call = old_destructor_call;
       Delete(proxy_class_constants_code);
-      proxy_class_constants_code = NULL;
+      proxy_class_constants_code = old_proxy_class_constants_code;
+      Delete(proxy_class_def);
+      proxy_class_def = old_proxy_class_def;
+      Delete(proxy_class_code);
+      proxy_class_code = old_proxy_class_code;
     }
 
     return SWIG_OK;

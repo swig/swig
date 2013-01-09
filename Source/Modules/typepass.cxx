@@ -464,6 +464,15 @@ class TypePass:private Dispatcher {
     if (unnamed && tdname && (Cmp(storage, "typedef") == 0)) {
       SwigType_typedef(unnamed, tdname);
     }
+    
+    // name of the outer class should already be patched to contain it's outer classes names, but not to contain namespaces
+    // namespace name (if present) is added after processing child nodes
+    if (name && Getattr(n, "outerclass")) {
+      String* fullName = NewStringf("%s::%s", Getattr(Getattr(n, "outerclass"), "name"), name);
+      Setattr(n, "name", fullName);
+      Delete(name);
+      name = fullName;
+    }
 
     if (nsname && name) {
       nname = NewStringf("%s::%s", nsname, name);
