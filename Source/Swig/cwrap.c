@@ -857,7 +857,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   String *qualifier = Getattr(n, "qualifier");
   String *directorScope = NewString(nspace);
 
-  Replace(directorScope, ".", "_", DOH_REPLACE_ANY);
+  Replace(directorScope, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
   
   /* If smart pointer without const overload or mutable method, change self dereferencing */
   if (flags & CWRAP_SMART_POINTER) {
@@ -1116,7 +1116,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
   int use_director;
   String *directorScope = NewString(nspace);
  
-  Replace(directorScope, ".", "_", DOH_REPLACE_ANY);
+  Replace(directorScope, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
 
   use_director = Swig_directorclass(n);
 

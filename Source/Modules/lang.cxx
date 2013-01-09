@@ -357,7 +357,7 @@ Language::~Language() {
     const char *attrib = "director:classname";
     String *classname = Getattr(n, "sym:name");
 
-    Replace(nspace, ".", "_", DOH_REPLACE_ANY);
+    Replace(nspace, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
     if (Len(nspace) > 0)
       dirclassname = NewStringf("SwigDirector_%s_%s", nspace, classname);
     else
