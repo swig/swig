@@ -4099,7 +4099,7 @@ public:
     Node *parent = parentNode(n);
     String *decl = Getattr(n, "decl");
     String *supername = Swig_class_name(parent);
-    String *classname = directorClassName(parent);
+    String *dirclassname = directorClassName(parent);
     String *sub = NewString("");
     Parm *p;
     ParmList *superparms = Getattr(n, "parms");
@@ -4131,11 +4131,11 @@ public:
       /* constructor */
       {
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
 	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
-	Printf(f_directors, "%s::%s : %s, %s {\n", classname, target, call, Getattr(parent, "director:ctor"));
+	Printf(f_directors, "%s::%s : %s, %s {\n", dirclassname, target, call, Getattr(parent, "director:ctor"));
 	Printf(f_directors, "}\n\n");
 
 	Delete(classtype);
@@ -4145,7 +4145,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -4155,6 +4155,7 @@ public:
     Delete(supername);
     Delete(jenv_type);
     Delete(parms);
+    Delete(dirclassname);
     return Language::classDirectorConstructor(n);
   }
 

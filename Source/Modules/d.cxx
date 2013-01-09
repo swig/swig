@@ -2401,7 +2401,7 @@ public:
     Node *parent = parentNode(n);
     String *decl = Getattr(n, "decl");;
     String *supername = Swig_class_name(parent);
-    String *classname = directorClassName(parent);
+    String *dirclassname = directorClassName(parent);
     String *sub = NewString("");
     Parm *p;
     ParmList *superparms = Getattr(n, "parms");
@@ -2425,11 +2425,11 @@ public:
       /* constructor */
       {
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
 	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
-	Printf(f_directors, "%s::%s : %s, %s {\n", classname, target, call, Getattr(parent, "director:ctor"));
+	Printf(f_directors, "%s::%s : %s, %s {\n", dirclassname, target, call, Getattr(parent, "director:ctor"));
 	Printf(f_directors, "  swig_init_callbacks();\n");
 	Printf(f_directors, "}\n\n");
 
@@ -2440,7 +2440,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -2449,6 +2449,7 @@ public:
     Delete(sub);
     Delete(supername);
     Delete(parms);
+    Delete(dirclassname);
     return Language::classDirectorConstructor(n);
   }
 
@@ -2456,18 +2457,18 @@ public:
    * D::classDirectorDefaultConstructor()
    * --------------------------------------------------------------------------- */
   virtual int classDirectorDefaultConstructor(Node *n) {
-    String *classname = directorClassName(n);
+    String *dirclassname = directorClassName(n);
     String *classtype = SwigType_namestr(Getattr(n, "name"));
     Wrapper *w = NewWrapper();
 
-    Printf(w->def, "%s::%s() : %s {", classname, classname, Getattr(n, "director:ctor"));
+    Printf(w->def, "%s::%s() : %s {", dirclassname, dirclassname, Getattr(n, "director:ctor"));
     Printf(w->code, "}\n");
     Wrapper_print(w, f_directors);
 
-    Printf(f_directors_h, "    %s();\n", classname);
+    Printf(f_directors_h, "    %s();\n", dirclassname);
     DelWrapper(w);
     Delete(classtype);
-    Delete(classname);
+    Delete(dirclassname);
     return Language::classDirectorDefaultConstructor(n);
   }
 
@@ -2476,15 +2477,15 @@ public:
    * --------------------------------------------------------------------------- */
   virtual int classDirectorDestructor(Node *n) {
     Node *current_class = getCurrentClass();
-    String *classname = directorClassName(current_class);
+    String *dirclassname = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
     if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~%s() throw ();\n", classname);
-      Printf(w->def, "%s::~%s() throw () {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
+      Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
     } else {
-      Printf(f_directors_h, "    virtual ~%s();\n", classname);
-      Printf(w->def, "%s::~%s() {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s();\n", dirclassname);
+      Printf(w->def, "%s::~%s() {\n", dirclassname, dirclassname);
     }
 
     Printv(w->code, "}\n", NIL);
@@ -2492,7 +2493,7 @@ public:
     Wrapper_print(w, f_directors);
 
     DelWrapper(w);
-    Delete(classname);
+    Delete(dirclassname);
     return SWIG_OK;
   }
 
