@@ -98,11 +98,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		DoxygenTranslator/src/JavaDocConverter.h\
 		DoxygenTranslator/src/JavaDocConverter.cpp\
 		DoxygenTranslator/src/PyDocConverter.h\
-		DoxygenTranslator/src/PyDocConverter.cpp\
-		DoxygenTranslator/src/Token.h\
-		DoxygenTranslator/src/Token.cpp\
-		DoxygenTranslator/src/TokenList.h\
-		DoxygenTranslator/src/TokenList.cpp
+		DoxygenTranslator/src/PyDocConverter.cpp
 
 bin_PROGRAMS = eswig
 eswig_LDADD   = @SWIGLIBS@
