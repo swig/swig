@@ -3,6 +3,12 @@
 extern "C" {
 #endif
 
+/* for raw pointer */
+#define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_R_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_R_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_NewPointerObj(ptr, type, flags)            SWIG_R_NewPointerObj(ptr, type, flags)
+
+
 /* Remove global namespace pollution */
 #if !defined(SWIG_NO_R_NO_REMAP)
 # define R_NO_REMAP
@@ -263,6 +269,7 @@ SWIG_R_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   SET_S4_OBJECT(rptr);
   return rptr;
 }
+
 
 /* Convert a pointer value */
 SWIGRUNTIMEINLINE int

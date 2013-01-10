@@ -320,6 +320,7 @@ runme3.py: runme.py
 # -----------------------------------------------------------------
 
 python_clean:
+	rm -rf __pycache__
 	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *@PYTHON_SO@
@@ -372,6 +373,7 @@ octave_run: $(OCTSCRIPT)
 # -----------------------------------------------------------------
 
 octave_clean:
+	rm -rf __pycache__
 	rm -f *_wrap* *~ .~* myoctave@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *@OCTAVE_SO@

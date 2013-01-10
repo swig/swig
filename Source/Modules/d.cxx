@@ -3633,7 +3633,7 @@ private:
       // If the import statement has been found in the target string, we have to
       // check if the previous import was static, which would lead to problems
       // if this import is not.
-      // Thus, we check if the seven characters in front of the occurence are
+      // Thus, we check if the seven characters in front of the occurrence are
       // »static «. If the import string passed is also static, the checks fail
       // even if the found statement is also static because the last seven
       // characters would be part of the previous import statement then.
