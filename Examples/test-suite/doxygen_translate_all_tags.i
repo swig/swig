@@ -17,7 +17,6 @@
  * You were warned!
  *
  * \authors lots of them
- * 
  * \author Zubr
  * 
  * \b boldword
@@ -26,21 +25,22 @@
  * extended to many lines.
  *
  * \bug Not everything works right now...
- *
  * \c codeword
  * 
  * \callgraph
- *
  * \callergraph
- *
  * \category someCategory headerFile.h headerName
  *
  * \cite citationword
- * 
  * \class someClass headerFile.h headerName
- *
  * \code some test code \endcode
- * 
+ */
+int func01(int a)
+{
+}
+
+ 
+/** 
  * \cond SOMECONDITION
  * Some conditional comment
  * \endcond
@@ -63,7 +63,13 @@
  * 
  * \details This is very large
  * and detailed description of some thing
- *
+ */
+int func02(int a)
+{
+}
+
+ 
+/**
  * \dir /somePath/someFolder
  *
  * \dontinclude someFile.h
@@ -87,6 +93,13 @@
  *
  * \example someFile.txt
  * Some details on using the example
+ */
+int func03(int a)
+{
+}
+
+ 
+/**
  * 
  * \exception SuperError
  * 
@@ -115,7 +128,13 @@
  * \htmlonly
  * This will only appear in hmtl
  * \endhtmlonly
- *
+ */
+int func04(int a)
+{
+}
+
+ 
+/**
  * \if ANOTHERCONDITION
  *   First part of comment
  *   \if SECONDCONDITION
@@ -150,7 +169,13 @@
  *
  * \invariant Some text
  * describing invariant.
- *
+ */
+int func05(int a)
+{
+}
+
+ 
+/**
  * \interface someInterface someHeader.h "Header name"
  *
  * \latexonly
@@ -186,7 +211,13 @@
  * \mscfile mscFile.msc "The caption"
  *
  * \n \n \n
- * 
+ */
+int func06(int a)
+{
+}
+
+ 
+/**
  * \name someHeader.h
  *
  * \namespace someNamespace
@@ -221,7 +252,13 @@
  * \privatesection
  *
  * \property someVar
- *
+ */
+int func07(int a)
+{
+}
+
+ 
+/**
  * \protected
  *
  * \protectedsection
@@ -253,7 +290,13 @@
  * \returns may return
  * 
  * \retval someValue Some description
- *
+ */
+int func08(int a)
+{
+}
+
+ 
+/**
  * \rtfonly
  * This will only appear in RTF
  * \endrtfonly
@@ -294,7 +337,13 @@
  * \throw superException
  * 
  * \throws RuntimeError
- * 
+ */
+int func09(int a)
+{
+}
+
+ 
+/**
  * \todo Some very important task
  * 
  * \tparam b B is mentioned again...
@@ -331,7 +380,7 @@
  * 
  * And here goes simple text
  */
-int function(int a, float b)
+int func10(int a, float b)
 {
 }
 

@@ -26,22 +26,37 @@ void isNoSpaceValidC()
 
 
 /**
- * Backslash following\c word is valid doxygen command. Output contains
- * 'followingword' with word in 'code' font.
+ * Backslash following\c word is a valid doxygen command. Output contains
+ * 'followingword' with 'word' in 'code' font.
  */
 void backslashA()
 {}
 
+// Output of escaped symbols below in doxygen generated HTML:
+// Rendered: Escaped symbols: $ @ \ & < > # % " \. ::
+// HTML source: Escaped symbols: $ @ \ &amp; &lt; &gt; # % " \. :: 
+
 /**
- * Doxy command without trailing \cspace space is ignored. Standalone
- * \ and '\' get to output.  Commands not recognized by Doxygen \blah
- * are ignored.  Backslashes in DOS paths d:\xyz\c\myfile and words
- * following them do not appear on output, we must quote them with
- * double quotes: "d:\xyz\c\myfile", single quotes do not help:
+ * Doxy command without trailing \cspace space is ignored - nothing appears
+ * on output. Standalone \ and '\' get to output.
+ * Standalone @ and '@' get to output.
+ * Commands not recognized by Doxygen \blah @blah are ignored.
+ * Backslashes in DOS paths d:\xyz\c\myfile and
+ * words following them do not appear on output, we must quote them with
+ * double quotes: "d:\xyz\c\myfile", "@something". single quotes do not help:
  * 'd:\xyz\c\myfile'. Escaping works: d:\\xyz\\c\\myfile. Unix
  * paths of course have no such problems: /xyz/c/myfile
+ * Escaped symbols:
+ * \$ \@ \\ \& \~ \< \> \# \% \" \. \::
  */
 void backslashB()
+{}
+
+/**
+ * Backslash e at end of \e line froze SWIG \e
+ * with old comment parser.
+ */
+void backslashC()
 {}
 
 /**

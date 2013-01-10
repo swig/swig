@@ -25,20 +25,22 @@ public class doxygen_translate_all_tags_runme {
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
-    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.function(int, float)",
-    		" <i>Hello </i>\n" +
-    		" <li>some list item \n" +
-    		" </li>This is attention! \n" +
-    		" You were warned! \n" +
-    		" @author lots of them \n" +
-    		" @author Zubr \n" +
-    		" <b>boldword </b>\n" +
-    		" Some brief description, \n" +
-    		" extended to many lines. \n" +
-    		" Not everything works right now... \n" +
-    		" <code>codeword </code>\n" +
-    		" <i>citationword </i>\n" +
-    		" {@code some test code }\n" +
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func01(int)",
+    		" <i>Hello </i>\n\n\n\n\n\n" +
+    		" <li>some list item</li>\n\n" +
+    		" This is attention!\n" +
+    		" You were warned!\n" +
+    		" @author lots of them\n" +
+    		" @author Zubr\n\n" +
+    		" <b>boldword</b>\n\n" +
+    		" Some brief description,\n" +
+    		" extended to many lines.\n\n" +
+    		" Not everything works right now...\n" +
+    		" <code>codeword</code>\n\n\n\n\n\n" +
+    		" <i>citationword</i>\n" +
+                " {@code some test code }\n");
+    
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func02(int)",
     		" Conditional comment: SOMECONDITION \n" +
     		" Some conditional comment \n" +
     		" End of conditional comment.\n" +
@@ -46,12 +48,18 @@ public class doxygen_translate_all_tags_runme {
     		" 1970 - 2012 \n" +
     		" @deprecated Now use another function \n" +
     		" This is very large \n" +
-    		" and detailed description of some thing \n" +
-    		" <i>italicword </i>\n" +
-    		" <i>emphazedWord </i>\n" +
-    		" @exception SuperError \n" +
-    		" This will only appear in hmtl \n" +
-    		" If: ANOTHERCONDITION {\n" +
+    		" and detailed description of some thing \n");
+    
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func03(int)",
+                       " <i>italicword </i>\n" +
+    		" <i>emphazedWord </i>\n");
+    
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func04(int)",
+                       " @exception SuperError \n" +
+    		" This will only appear in hmtl \n");
+    
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func05(int)",
+                       " If: ANOTHERCONDITION {\n" +
     		" First part of comment \n" +
     		" If: SECONDCONDITION {\n" +
     		" Nested condition text \n" +
@@ -69,16 +77,20 @@ public class doxygen_translate_all_tags_runme {
     		" }\n" +
     		" <img src=testImage.bmp alt=\"Hello, world!\" />\n" +
     		" Some text \n" +
-    		" describing invariant. \n" +
-    		" This will only appear in LATeX \n" +
+    		" describing invariant. \n");
+    
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func06(int)",
+                       " This will only appear in LATeX \n" +
     		" <ul> \n" +
     		" <li>Some unordered list \n" +
     		" </li><li>With lots of items \n" +
     		" </li><li>lots of lots of items \n" +
     		" </li></ul> \n" +
     		" {@link someMember Some description follows }\n" +
-    		" This will only appear in man \n" +
-    		" Note: Here \n" +
+    		" This will only appear in man\n");
+    
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func07(int)",
+                       " Note: Here \n" +
     		" is the note! \n" +
     		" This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.\n" +
     		" <code>someword </code>\n" +
@@ -87,21 +99,27 @@ public class doxygen_translate_all_tags_runme {
     		" The paragraph text. \n" +
     		" Maybe even multiline \n" +
     		" </p>\n" +
-    		" @param a the first param \n" +
+                " @param a the first param\n");
+    
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func08(int)",
     		" Remarks: Some remark text \n" +
     		" Remarks: Another remarks section \n" +
     		" @return Whatever \n" +
     		" @return it \n" +
-    		" @return may return \n" +
-    		" This will only appear in RTF \n" +
+    		" @return may return \n");
+    
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func09(int)",
+                       " This will only appear in RTF \n" +
     		" @see someOtherMethod \n" +
     		" @see function \n" +
     		" Same as \n" +
     		" brief description \n" +
     		" @since version 0.0.0.1 \n" +
     		" @throws superException \n" +
-    		" @throws RuntimeError \n" +
-    		" TODO: Some very important task \n" +
+    		" @throws RuntimeError \n");
+    
+    wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func10(int, float)",
+                       " TODO: Some very important task \n" +
     		" @param b B is mentioned again... \n" +
     		" {@literal \n" +
     		"very long \n" +
