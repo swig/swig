@@ -69,6 +69,7 @@ class JAVA:public Language {
   String *imclass_imports;	//intermediary class imports from %pragma
   String *module_imports;	//module imports from %pragma
   String *imclass_baseclass;	//inheritance for intermediary class class from %pragma
+  String *imclass_class_package; //package in which to generate the jni class
   String *module_baseclass;	//inheritance for module class from %pragma
   String *imclass_interfaces;	//interfaces for intermediary class class from %pragma
   String *module_interfaces;	//interfaces for module class from %pragma
@@ -366,6 +367,7 @@ public:
     proxy_class_code = NewString("");
     module_class_constants_code = NewString("");
     imclass_baseclass = NewString("");
+    imclass_class_package = NewString("");
     imclass_interfaces = NewString("");
     imclass_class_modifiers = NewString("");
     module_class_code = NewString("");
@@ -446,7 +448,7 @@ public:
     }
     // Generate the intermediary class
     {
-      String *filen = NewStringf("%s%s.java", SWIG_output_directory(), imclass_name);
+      String *filen = NewStringf("%s%s/%s.java", SWIG_output_directory(), imclass_class_package, imclass_name);
       File *f_im = NewFile(filen, "w", SWIG_output_files());
       if (!f_im) {
 	FileErrorDisplay(filen);
@@ -459,8 +461,10 @@ public:
       // Start writing out the intermediary class file
       emitBanner(f_im);
 
-      if (package)
-	Printf(f_im, "package %s;\n", package);
+      if (Len(imclass_class_package))
+        Printf(f_im, "package %s;", imclass_class_package);
+      else if (package)
+        Printf(f_im, "package %s;\n", package);
 
       if (imclass_imports)
 	Printf(f_im, "%s\n", imclass_imports);
@@ -627,6 +631,8 @@ public:
     module_class_constants_code = NULL;
     Delete(imclass_baseclass);
     imclass_baseclass = NULL;
+    Delete(imclass_class_package);
+    imclass_class_package = NULL;
     Delete(imclass_interfaces);
     imclass_interfaces = NULL;
     Delete(imclass_class_modifiers);
@@ -1188,8 +1194,7 @@ public:
 	    full_imclass_name = NewStringf("%s.%s", package, imclass_name);
 	  } else {
 	    String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
-	    Swig_error(Getfile(n), Getline(n), "The nspace feature used on '%s' is not supported unless a package is specified with -package - Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
-	    SWIG_exit(EXIT_FAILURE);
+	    Swig_warning(WARN_JAVA_NSPACE_WITHOUT_PACKAGE, Getfile(n), Getline(n), "The nspace feature is used on '%s' without a package is specified with -package - This may result in generated code that does not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
 	  }
 	}
       }
@@ -1576,7 +1581,8 @@ public:
    * pragmaDirective()
    *
    * Valid Pragmas:
-   * jniclassbase            - base (extends) for the intermediary class
+   * jniclassbase            - base (extends) for the intermediary 
+   * jniclasspackage         - package in which to generate the jni class
    * jniclassclassmodifiers  - class modifiers for the intermediary class
    * jniclasscode            - text (java code) is copied verbatim to the intermediary class
    * jniclassimports         - import statements for the intermediary class
@@ -1604,7 +1610,25 @@ public:
 	if (Strcmp(code, "jniclassbase") == 0) {
 	  Delete(imclass_baseclass);
 	  imclass_baseclass = Copy(strvalue);
-	} else if (Strcmp(code, "jniclassclassmodifiers") == 0) {
+	} else if (Strcmp(code, "jniclasspackage") == 0) {
+    Delete(imclass_class_package);
+    imclass_class_package = Copy(strvalue);
+    String *imclass_class_package_jniname = makeValidJniName(imclass_class_package);
+    Printv(jnipackage, imclass_class_package_jniname, NIL);
+    Delete(imclass_class_package_jniname);
+    Replaceall(jnipackage, NSPACE_SEPARATOR, "_");
+    Append(jnipackage, "_");
+    
+    String *wrapper_name = NewString("");
+    String *imclass_class_jniname = makeValidJniName(imclass_name);
+    Printf(wrapper_name, "Java_%s%s_%%f", jnipackage, imclass_class_jniname);
+    Delete(imclass_class_jniname);
+    
+    Swig_name_unregister("wrapper");
+    Swig_name_register("wrapper", Char(wrapper_name));
+    
+    Delete(wrapper_name);
+  } else if (Strcmp(code, "jniclassclassmodifiers") == 0) {
 	  Delete(imclass_class_modifiers);
 	  imclass_class_modifiers = Copy(strvalue);
 	} else if (Strcmp(code, "jniclasscode") == 0) {
@@ -1896,8 +1920,7 @@ public:
 	  full_imclass_name = NewStringf("%s.%s", package, imclass_name);
 	} else {
 	  String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
-	  Swig_error(Getfile(n), Getline(n), "The nspace feature used on '%s' is not supported unless a package is specified with -package - Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Swig_warning(WARN_JAVA_NSPACE_WITHOUT_PACKAGE, Getfile(n), Getline(n), "The nspace feature is used on '%s' without a package is specified with -package - This may result in generated code that does not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
 	}
       }
 
