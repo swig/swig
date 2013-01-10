@@ -55,10 +55,10 @@ void DoxygenEntity::printEntity(int level) const {
       cout << "\t";
     }
 
-    cout << "Node Command: " << typeOfEntity << " ";
+    cout << "Node Leaf Command: '" << typeOfEntity << "',  ";
 
     if (!data.empty()) {
-      cout << "Node Data: " << data;
+      cout << "Node Data: '" << data << "'";
     }
     cout << std::endl;
 
@@ -68,7 +68,7 @@ void DoxygenEntity::printEntity(int level) const {
       cout << "\t";
     }
 
-    cout << "Node Command : " << typeOfEntity << std::endl;
+    cout << "Node Command: '" << typeOfEntity << "'" << std::endl;
 
     thisLevel++;
 

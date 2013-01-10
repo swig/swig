@@ -14,6 +14,7 @@
 #include <string>
 #include <list>
 #include <map>
+#include <vector>
 #include <set>
 #include "DoxygenEntity.h"
 
@@ -67,7 +68,7 @@ private:
   };
 
 
-  typedef std::list<Token> TokenList;
+  typedef std::vector<Token> TokenList;
   typedef TokenList::const_iterator TokenListCIt;
   typedef TokenList::iterator TokenListIt;
 
@@ -83,6 +84,8 @@ private:
    */
   static DoxyCommandsMap doxygenCommands;
   static std::set<std::string> doxygenSectionIndicators;
+
+  bool m_isVerbatimText; // used to handle \htmlonly and \verbatim commands
 
   std::string m_fileName;
   int m_fileLineNo;
@@ -119,12 +122,34 @@ private:
    */
   void printTree(const std::list <DoxygenEntity> &rootList);
 
+  /**
+   * Returns true if the next token is end of line token. This is important
+   * when single word commands like \c are at the end of line.
+   */
+  bool isEndOfLine();
+
+  /**
+   * Skips spaces, tabs, and end of line tokens.
+   */
+  void skipWhitespaceTokens();
+
+  /**
+   * Removes all spaces and tabs from beginning end end of string.
+   */
+  std::string trim(const std::string &text);
+
   /*
    * Returns the next word ON THE CURRENT LINE ONLY
    * if a new line is encountered, returns a blank std::string.
-   * Updates the index it is given if success.
+   * Updates the iterator if successful.
    */
-  std::string getNextWord(const TokenList &tokList);
+  std::string getNextWord();
+
+  /*
+   * Returns the next word, which is not necessarily on the same line.
+   * Updates the iterator if successful.
+   */
+  std::string getNextWordInComment();
 
   /* 
    * Returns the location of the end of the line as
@@ -177,6 +202,16 @@ private:
   TokenListCIt getTilAnyCommand(const std::string &theCommand,
                                   const TokenList &tokList);
    */
+
+  /**
+   * This methods skips end of line token, if it is the next token to be
+   * processed. It is called with comment commands which have args till the
+   * end of line, such as 'addtogroup' or 'addindex'.
+   * It is up to translator to specific language to decide whether
+   * to insert eol or not. For example, if a command is ignored in target
+   * language, new lines may make formatting ugly (Python).
+   */
+  void skipEndOfLine();
 
   /*
    * Method for Adding a Simple Command
@@ -298,12 +333,25 @@ private:
    * Fill static doxygenCommands and sectionIndicators containers
    */
   void fillTables();
-  
-  TokenList tokenizeDoxygenComment(const std::string &doxygenComment,
-		                              const std::string &fileName,
-		                              int fileLine);
+
+  /** Processes comment when \htmlonly and \verbatim commands are encountered. */
+  size_t processVerbatimText(size_t pos, const std::string &line);
+
+  /** Processes comment outside \htmlonly and \verbatim commands. */
+  size_t processNormalComment(size_t pos, const std::string &line);
+
+  void tokenizeDoxygenComment(const std::string &doxygenComment,
+                                 const std::string &fileName,
+                                 int fileLine);
   void printList();
   void printListError(int warningType, const std::string &message);
+
+  typedef std::vector<std::string> StringVector;
+  typedef StringVector::const_iterator StringVectorCIt;
+
+  StringVector split(const std::string &text, char separator);
+  bool isStartOfDoxyCommentChar(char c);
+  void addDoxyCommand(DoxygenParser::TokenList &tokList, const std::string &cmd);
 
 public:
   DoxygenParser(bool noisy = false);

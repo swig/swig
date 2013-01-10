@@ -2,10 +2,18 @@
 #ifndef DOXYGENCOMMANDS_H
 #define DOXYGENCOMMANDS_H
 
+const char *CMD_HTML_ONLY = "htmlonly";
+const char *CMD_VERBATIM = "verbatim";
+const char *CMD_END_HTML_ONLY = "endhtmlonly";
+const char *CMD_END_VERBATIM = "endverbatim";
+
 const char *sectionIndicators[] = {
-  "attention", "author", "authors", "brief", "bug", "cond", "date", "deprecated", "details",
-  "else", "elseif", "endcond", "endif", "exception", "if", "ifnot", "invariant", "note", "par", "param",
-  "tparam", "post", "pre", "remarks", "remark", "result", "return", "returns", "retval", "sa", "see", "since", "test", "throw", "throws", "todo", "version", "warning", "xrefitem"};
+  "attention", "author", "authors", "brief", "bug", "cond", "date",
+  "deprecated", "details", "else", "elseif", "endcond", "endif",
+  "exception", "if", "ifnot", "invariant", "note", "par", "param",
+  "tparam", "post", "pre", "remarks", "remark", "result", "return",
+  "returns", "retval", "sa", "see", "since", "test", "throw", "throws",
+  "todo", "version", "warning", "xrefitem"};
 const int sectionIndicatorsSize = sizeof(sectionIndicators) / sizeof(*sectionIndicators);
 
 /* All of the doxygen commands divided up by how they are parsed */
@@ -17,23 +25,27 @@ const char *simpleCommands[] = {
 const int simpleCommandsSize = sizeof(simpleCommands) / sizeof(*simpleCommands);
 
 const char *commandWords[] = {
-  "a", "b", "c", "e", "em", "p", "def", "enum", "package", "relates", "namespace", "relatesalso", "anchor", "dontinclude", "include",
-  "includelineno", "copydoc", "copybrief", "copydetails", "verbinclude", "htmlinclude", "extends", "implements", "memberof", "related",
-  "relatedalso", "cite"};
+  "a", "b", "c", "e", "em", "p", "def", "enum", "package", "relates",
+  "namespace", "relatesalso", "anchor", "dontinclude", "include",
+  "includelineno", "copydoc", "copybrief", "copydetails", "verbinclude",
+  "htmlinclude", "extends", "implements", "memberof", "related", "relatedalso",
+  "cite"};
 const int commandWordsSize = sizeof(commandWords) / sizeof(*commandWords);
 
 const char *commandLines[] = {
-  "addindex", "fn", "name", "line", "var", "skipline", "typedef", "skip", "until", "property"};
+  "addindex", "fn", "name", "line", "var", "skipline", "typedef", "skip",
+  "until", "property"};
 const int commandLinesSize = sizeof(commandLines) / sizeof(*commandLines);
 
 const char *commandParagraph[] = {
-  "partofdescription", "result", "return", "returns", "remarks", "remark", "since", "test", "sa", "see", "pre", "post", "details", "invariant",
-  "deprecated", "date", "note", "warning", "version", "todo", "bug", "attention", "brief", "author", "authors",
-  "copyright", "short"};
+  "partofdescription", "result", "return", "returns", "remarks", "remark",
+  "since", "test", "sa", "see", "pre", "post", "details", "invariant",
+  "deprecated", "date", "note", "warning", "version", "todo", "bug",
+  "attention", "brief", "author", "authors", "copyright", "short"};
 const int commandParagraphSize = sizeof(commandParagraph) / sizeof(*commandParagraph);
 
 const char *commandEndCommands[] = {
-  "htmlonly", "latexonly", "manonly", "xmlonly", "link", "rtfonly"};
+  CMD_HTML_ONLY, "latexonly", "manonly", "xmlonly", "link", "rtfonly"};
 const int commandEndCommandsSize = sizeof(commandEndCommands) / sizeof(*commandEndCommands);
 
 const char *commandWordParagraphs[] = {
@@ -41,7 +53,8 @@ const char *commandWordParagraphs[] = {
 const int commandWordParagraphsSize = sizeof(commandWordParagraphs) / sizeof(*commandWordParagraphs);
 
 const char *commandWordLines[] = {
-  "page", "subsection", "subsubsection", "section", "paragraph", "defgroup", "snippet", "mainpage"};
+  "page", "subsection", "subsubsection", "section", "paragraph", "defgroup",
+  "snippet", "mainpage"};
 const int commandWordLinesSize = sizeof(commandWordLines) / sizeof(*commandWordLines);
 
 const char *commandWordOWordOWords[] = {
@@ -61,7 +74,48 @@ const int commandErrorThrowingsSize = sizeof(commandErrorThrowings) / sizeof(*co
 
 const char *commandUniques[] = {
   "xrefitem", "arg", "ingroup", "par", "headerfile", "overload", "weakgroup", "ref", "subpage", "dotfile", "image", "addtogroup", "li",
-  "if", "ifnot", "elseif", "else", "mscfile", "code", "verbatim", "f{", "f[", "f$", "dot", "msc"};
+  "if", "ifnot", "elseif", "else", "mscfile", "code", CMD_VERBATIM, "f{", "f[", "f$", "dot", "msc"};
 const int commandUniquesSize = sizeof(commandUniques) / sizeof(*commandUniques);
+
+// These HTML commands are transformed when producing output in other formats.
+// Other commands are left intact, but '<' and '> are replaced with entities in HTML
+// output. So <varName> appears as &lt;varName&gt; in HTML output. The same
+// behavior must be repeated by SWIG. See Doxygen doc for the list of commands.
+// '<' and '>' are used to differentiate HTML commands from doxygen commands.
+const char *htmlCommands[] = {
+  "<A>", "<B>", "<BLOCKQUOTE>", "<BODY>", "<BR>", "<CENTER>", "<CAPTION>", "<CODE>", "<DFN>", "<DFN>",
+  "<DIV>", "<DL>", "<DT>", "<EM>", "<FORM>", "<HR>", "<H1>", "<H2>", "<H3>", "<I>", "<INPUT>", "<IMG>",
+  "<LI>", "<META>", "<MULTICOL>", "<OL>", "<P>", "<PRE>", "<SMALL>", "<SPAN>", "<STRONG>",
+  "<SUB>", "<SUP>", "<TABLE>", "<TD>", "<TH>", "<TR>", "<TT>", "<KBD>", "<UL>", "<VAR>"
+};
+
+const int htmlCommandsSize = sizeof(htmlCommands) / sizeof(*htmlCommands);
+
+// Only entities which are translatable to plain text are used here. Others
+// are copied unchanged to output.
+const char *htmlEntities[] = { "&copy", "&trade", "&reg", // (C), (TM), (R)
+"&lt",  // less-than symbol
+"&gt",  // greater-than symbol
+"&amp", // ampersand
+"&apos", // single quotation mark (straight)
+"&quot", // double quotation mark (straight)
+"&lsquo", // left single quotation mark
+"&rsquo", // right single quotation mark
+"&ldquo", // left double quotation mark
+"&rdquo", // right double quotation mark
+"&ndash", // n-dash (for numeric ranges, e.g. 2–8)
+"&mdash", // --
+"&nbsp", //
+"&times", // x
+"&minus", // -
+"&sdot", // .
+"&sim", // ~
+"&le", // <=
+"&ge", // >=
+"&larr", // <--
+"&rarr" // -->
+};
+
+const int htmlEntitiesSize = sizeof(htmlEntities) / sizeof(*htmlEntities);
 
 #endif

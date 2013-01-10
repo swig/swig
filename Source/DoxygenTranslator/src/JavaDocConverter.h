@@ -35,7 +35,7 @@ protected:
    */
   std::string translateSubtree(DoxygenEntity & doxygenEntity);
   /*
-   * Translate one entity with the appropriate handler, acording
+   * Translate one entity with the appropriate handler, according
    * to the tagHandlers
    */
   void translateEntity(DoxygenEntity &tag, std::string &translatedComment);

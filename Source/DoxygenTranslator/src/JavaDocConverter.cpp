@@ -30,6 +30,41 @@ void JavaDocConverter::fillStaticTables() {
   if (tagHandlers.size()) // fill only once
     return;
 
+  /*
+   * Some translation rules:
+   *
+   * @ and \ must be escaped for both Java and Python to appear on output: \@, \\,
+   *         while Doxygen produces output in both cases.
+   * Rule:   @ and \ with space on the right should get to output.
+   *
+   * :: remains intact, even in class::method(). But you can use class#method also
+   *    in C++ comment and it is properly translated to C++ output (changed by doxygen to ::)
+   *    and Java output (remains #).
+   * Rule: SWIG type system can't be used to convert C::m to C#m, because in Java it is C.m
+   *       Use string replacement :: --> # in tag see and links.
+   *
+   * HTML tags must be translated - remain in Java, to markdown in Python
+   *
+   * Unknown HTML tags, for example <x> is translated to &lt;x&gt; by doxygen, while
+   *     Java src is <x> and therefore invisible on output - browser ignores unknown command.
+   *     This is handy in syntax descriptions, for example: more <fileName>.
+   *
+   * Standlaone < and > need not to be translated, they are rendered properly in
+   *      all three outputs.
+   *
+   * ., %, and " need not to be translated
+   *
+   * entities must be translated - remain in Java, something meaningfull in Python (&lt, ...)
+   *
+   * \e at end of line freezes doxygen
+   *
+   * - enum inside class is missing comment
+   * - '\' not representing doxygen commands
+   * - add comments also to auto-generated methods lilke equals(), delete() in Java,
+   *   and methods for std::vector(), ...
+   */
+
+
   // these commands insert HTML tags
   tagHandlers["a"] = make_pair(&JavaDocConverter::handleTagHtml, "i");
   tagHandlers["arg"] = make_pair(&JavaDocConverter::handleTagHtml, "li");
@@ -172,8 +207,11 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine,
 
 
 /**
- * Returns true, if the given parameter exists in the current node. If feature
- * 'doxygen:nostripparams' is set, then this method always returns true.
+ * Returns true, if the given parameter exists in the current node
+ * (for example param is a name of function parameter). If feature
+ * 'doxygen:nostripparams' is set, then this method always returns
+ * true - parameters are copied to output regardless of presence in
+ * function params list.
  */
 bool JavaDocConverter::paramExists(std::string param) {
 
@@ -276,8 +314,8 @@ void JavaDocConverter::handleParagraph(DoxygenEntity& tag, std::string& translat
 
 void JavaDocConverter::handlePlainString(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   translatedComment += tag.data;
-  if (tag.data.size() && tag.data[tag.data.size()-1] != ' ')
-  	translatedComment += " ";
+ // if (tag.data.size() && tag.data[tag.data.size()-1] != ' ')
+ // 	translatedComment += " ";
 }
 
 
@@ -345,8 +383,11 @@ void JavaDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedC
 }
 
 
-void JavaDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
+void JavaDocConverter::handleTagParam(DoxygenEntity& tag,
+                                      std::string& translatedComment,
+                                      std::string&) {
   std::string dummy;
+
   if (!tag.entityList.size())
     return;
   if (!paramExists(tag.entityList.begin()->data))
@@ -356,6 +397,7 @@ void JavaDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translate
   translatedComment += tag.entityList.begin()->data + " ";
   tag.entityList.pop_front();
   handleParagraph(tag, translatedComment, dummy);
+  printf("cmd: %s\n", translatedComment.c_str());
 }
 
 
