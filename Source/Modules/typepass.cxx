@@ -470,7 +470,6 @@ class TypePass:private Dispatcher {
     if (name && Getattr(n, "outerclass")) {
       String* fullName = NewStringf("%s::%s", Getattr(Getattr(n, "outerclass"), "name"), name);
       Setattr(n, "name", fullName);
-      Delete(name);
       name = fullName;
     }
 

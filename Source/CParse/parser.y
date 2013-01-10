@@ -3461,31 +3461,10 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Setfile(scope,cparse_file);
 		   Setline(scope,cparse_line);
 		   $3 = scope;
-		   
-		   /* support for old nested classes "pseudo" support, such as:
-
-		         %rename(Ala__Ola) Ala::Ola;
-			class Ala::Ola {
-			public:
-			    Ola() {}
-		         };
-
-		      this should disappear when a proper implementation is added.
-		   */
-		   if (nscope_inner && Strcmp(nodeType(nscope_inner),"namespace") != 0) {
-		     if (Namespaceprefix) {
-		       String *name = NewStringf("%s::%s", Namespaceprefix, $3);		       
-		       $3 = name;
-		       Namespaceprefix = 0;
-		       nscope_inner = 0;
-		     }
-		   }
 		   Setattr($<node>$,"name",$3);
 
-		   /*
-		   save yyrename to the class attribute, to be used later in add_symbols()
-		   the only purpose is to support %name() functionality
-		   */
+		   /* save yyrename to the class attribute, to be used later in add_symbols()
+		   the only purpose is to support %name() functionality */
 		   if (yyrename)
 		     Setattr($<node>$, "class_rename", make_name($<node>$, $3, 0));
 
@@ -3675,6 +3654,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       }
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
+	       if (currentOuterClass)
+		 Setattr($<node>$, "outerclass", currentOuterClass);
 	       currentOuterClass = $<node>$;
 	       inclass = 1;
 	       Classprefix = NewStringEmpty();

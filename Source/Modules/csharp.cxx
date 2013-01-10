@@ -179,7 +179,13 @@ public:
 	 proxyname = Getattr(n, "proxyname");
 	 if (!proxyname) {
 	   String *nspace = Getattr(n, "sym:nspace");
-	   String *symname = Getattr(n, "sym:name");
+	   String *symname = Copy(Getattr(n, "sym:name"));
+	   if (Node* outer_class = Getattr(n, "outerclass")) {
+	     while(outer_class) {
+	       Insert(symname, 0, NewStringf("%s.", Getattr(outer_class, "sym:name")));
+	       outer_class = Getattr(outer_class, "outerclass");
+	     }
+	   }
 	   if (nspace) {
 	     if (namespce)
 	       proxyname = NewStringf("%s.%s.%s", namespce, nspace, symname);
@@ -190,6 +196,7 @@ public:
 	   }
 	   Setattr(n, "proxyname", proxyname);
 	   Delete(proxyname);
+	   Delete(symname);
 	 }
        }
      }
@@ -2049,7 +2056,6 @@ public:
       Delete(proxy_class_code);
       proxy_class_code = old_proxy_class_code;
     }
-
     return SWIG_OK;
   }
 
@@ -2332,7 +2338,7 @@ public:
       Node *explicit_n = Getattr(n, "explicitcallnode");
       if (explicit_n) {
 	String *ex_overloaded_name = getOverloadedName(explicit_n);
-	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, ex_overloaded_name);
+	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), ex_overloaded_name);
 
 	String *ex_imcall = Copy(imcall);
 	Replaceall(ex_imcall, "$imfuncname", ex_intermediary_function_name);
@@ -3442,12 +3448,17 @@ public:
     // Output the director connect method:
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
     String *director_class_name = directorClassName(n);
-    String *swig_director_connect = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
+    String *swig_director_connect = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
     String *wname = Swig_name_wrapper(swig_director_connect);
     String *sym_name = Getattr(n, "sym:name");
     String *qualified_classname = Copy(sym_name);
     String *nspace = getNSpace();
-
+    if (Node* outer_class = Getattr(n, "outerclass")) {
+      while(outer_class) {
+	Insert(qualified_classname, 0, NewStringf("%s.", Getattr(outer_class, "sym:name")));
+	outer_class = Getattr(outer_class, "outerclass");
+      }
+    }
     if (nspace)
       Insert(qualified_classname, 0, NewStringf("%s.", nspace));
 
@@ -4041,6 +4052,26 @@ public:
     director_connect_parms = NewString("");
 
     return Language::classDirectorInit(n);
+  }
+  
+  int classDeclaration(Node *n) {
+    String *old_director_callback_typedefs = director_callback_typedefs;
+    String *old_director_callbacks = director_callbacks;
+    String *old_director_delegate_callback = director_delegate_callback;
+    String *old_director_delegate_definitions = director_delegate_definitions;
+    String *old_director_delegate_instances = director_delegate_instances;
+    String *old_director_method_types = director_method_types;
+    String *old_director_connect_parms = director_connect_parms;
+    int ret = Language::classDeclaration(n);
+    // these variables are deleted in emitProxyClassDefAndCPPCasts, hence no Delete here
+    director_callback_typedefs = old_director_callback_typedefs;
+    director_callbacks = old_director_callbacks;
+    director_delegate_callback = old_director_delegate_callback;
+    director_delegate_definitions = old_director_delegate_definitions;
+    director_delegate_instances = old_director_delegate_instances;
+    director_method_types = old_director_method_types;
+    director_connect_parms = old_director_connect_parms;
+    return ret;
   }
 
   /* ----------------------------------------------------------------------
