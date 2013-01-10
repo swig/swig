@@ -204,24 +204,6 @@ public:
     return valid_jni_name;
   }
 
-  /* -----------------------------------------------------------------------------
-   * directorClassName()
-   * ----------------------------------------------------------------------------- */
-
-  String *directorClassName(Node *n) {
-    String *dirclassname;
-    const char *attrib = "director:classname";
-
-    if (!(dirclassname = Getattr(n, attrib))) {
-      String *classname = Getattr(n, "sym:name");
-
-      dirclassname = NewStringf("SwigDirector_%s", classname);
-      Setattr(n, attrib, dirclassname);
-    }
-
-    return dirclassname;
-  }
-
   /* ------------------------------------------------------------
    * main()
    * ------------------------------------------------------------ */
@@ -2008,7 +1990,7 @@ public:
 	Printf(dcast_wrap->code, "  jobject jresult = (jobject) 0;\n");
 	Printf(dcast_wrap->code, "  %s *obj = *((%s **)&jCPtrBase);\n", norm_name, norm_name);
 	Printf(dcast_wrap->code, "  if (obj) director = dynamic_cast<Swig::Director *>(obj);\n");
-	Printf(dcast_wrap->code, "  if (director) jresult = director->swig_get_self(jenv);\n");
+	Printf(dcast_wrap->code, "  if (director) jresult = director->swig_get_self);\n");
 	Printf(dcast_wrap->code, "  return jresult;\n");
 	Printf(dcast_wrap->code, "}\n");
 
@@ -3380,8 +3362,8 @@ public:
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
     String *swig_director_connect = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
     String *swig_director_connect_jni = makeValidJniName(swig_director_connect);
-    String *sym_name = Getattr(n, "sym:name");
     String *smartptr_feature = Getattr(n, "feature:smartptr");
+    String *dirClassName = directorClassName(n);
     Wrapper *code_wrap;
 
     Printf(imclass_class_code, "  public final static native void %s(%s obj, long cptr, boolean mem_own, boolean weak_global);\n",
@@ -3401,12 +3383,12 @@ public:
       Printf(code_wrap->code, "  //       raw pointer alive. This is done instead of using the smart pointer's dynamic cast\n");
       Printf(code_wrap->code, "  //       feature since different smart pointer implementations have differently named dynamic\n");
       Printf(code_wrap->code, "  //       cast mechanisms.\n");
-      Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj->operator->());\n", sym_name, sym_name);
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
     }
     else {
       Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
       Printf(code_wrap->code, "  (void)jcls;\n");
-      Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n", sym_name, sym_name); 
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName); 
     }
 
     Printf(code_wrap->code, "  if (director) {\n");
@@ -3432,7 +3414,7 @@ public:
 	   "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jtake_or_release) {\n",
 	   jnipackage, jni_imclass_name, changeown_jnimethod_name);
     Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n", sym_name, sym_name);
+    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
     Printf(code_wrap->code, "  (void)jcls;\n");
     Printf(code_wrap->code, "  if (director) {\n");
     Printf(code_wrap->code, "    director->swig_java_change_ownership(jenv, jself, jtake_or_release ? true : false);\n");
@@ -3445,6 +3427,7 @@ public:
     Delete(changeown_method_name);
     Delete(changeown_jnimethod_name);
     Delete(norm_name);
+    Delete(dirClassName);
     Delete(jni_imclass_name);
   }
 
@@ -3583,7 +3566,7 @@ public:
     // we're consistent with the sym:overload name in functionWrapper. (?? when
     // does the overloaded method name get set?)
 
-    imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(getNSpace(), classname, overloaded_name));
+    imclass_dmethod = NewStringf("%s", Swig_name_member(getNSpace(), dirclassname, overloaded_name));
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
 
@@ -4182,16 +4165,18 @@ public:
   int classDirectorDefaultConstructor(Node *n) {
     String *classname = Swig_class_name(n);
     String *classtype = SwigType_namestr(Getattr(n, "name"));
+    String *dirClassName = directorClassName(n);
     Wrapper *w = NewWrapper();
 
-    Printf(w->def, "SwigDirector_%s::SwigDirector_%s(JNIEnv *jenv) : %s {", classname, classname, Getattr(n, "director:ctor"));
+    Printf(w->def, "%s::%s(JNIEnv *jenv) : %s {", dirClassName, dirClassName, Getattr(n, "director:ctor"));
     Printf(w->code, "}\n");
     Wrapper_print(w, f_directors);
 
-    Printf(f_directors_h, "    SwigDirector_%s(JNIEnv *jenv);\n", classname);
+    Printf(f_directors_h, "    %s(JNIEnv *jenv);\n", dirClassName);
     DelWrapper(w);
     Delete(classtype);
     Delete(classname);
+    Delete(dirClassName);
     directorPrefixArgs(n);
     return Language::classDirectorDefaultConstructor(n);
   }
@@ -4228,14 +4213,15 @@ public:
     Node *current_class = getCurrentClass();
     String *full_classname = Getattr(current_class, "name");
     String *classname = Swig_class_name(current_class);
+    String *dirClassName = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
     if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~SwigDirector_%s() throw ();\n", classname);
-      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() throw () {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirClassName);
+      Printf(w->def, "%s::~%s() throw () {\n", dirClassName, dirClassName);
     } else {
-      Printf(f_directors_h, "    virtual ~SwigDirector_%s();\n", classname);
-      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s();\n", dirClassName);
+      Printf(w->def, "%s::~%s() {\n", dirClassName, dirClassName);
     }
 
     /* Ensure that correct directordisconnect typemap's method name is called
@@ -4254,6 +4240,7 @@ public:
     DelWrapper(w);
     Delete(disconn_attr);
     Delete(classname);
+    Delete(dirClassName);
     return SWIG_OK;
   }
 
@@ -4400,8 +4387,7 @@ public:
     String *base = Getattr(n, "classtype");
     String *class_ctor = NewString("Swig::Director(jenv)");
 
-    String *classname = Swig_class_name(n);
-    String *directorname = NewStringf("SwigDirector_%s", classname);
+    String *directorname = directorClassName(n);
     String *declaration = Swig_class_declaration(n, directorname);
 
     Printf(declaration, " : public %s, public Swig::Director", base);

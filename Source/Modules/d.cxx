@@ -1897,7 +1897,7 @@ public:
     // Write C++ director class declaration, for example:
     // class SwigDirector_myclass : public myclass, public Swig::Director {
     String *classname = Swig_class_name(n);
-    String *directorname = NewStringf("SwigDirector_%s", classname);
+    String *directorname = directorClassName(n);
     String *declaration = Swig_class_declaration(n, directorname);
     const String *base = Getattr(n, "classtype");
 
@@ -1949,7 +1949,7 @@ public:
     bool pure_virtual = (!(Cmp(storage, "virtual")) && !(Cmp(value, "0")));
     int status = SWIG_OK;
     bool output_director = true;
-    String *dirclassname = getDirectorClassName(parent);
+    String *dirclassname = directorClassName(parent);
     String *qualified_name = NewStringf("%s::%s", dirclassname, name);
     SwigType *c_ret_type = NULL;
     String *dcallback_call_args = NewString("");
@@ -2373,10 +2373,12 @@ public:
       Printf(director_callback_pointers, "    SWIG_Callback%s_t swig_callback_%s;\n", methid, overloaded_name);
 
       // Write the type alias for the callback to the intermediary D module.
-      String* proxy_callback_type = NewString("");
-      Printf(proxy_callback_type, "SwigDirector_%s_Callback%s", classname, methid);
+      String *proxy_callback_type = NewString("");
+      String *dirClassName = directorClassName(parent);
+      Printf(proxy_callback_type, "%s_Callback%s", dirClassName, methid);
       Printf(im_dmodule_code, "alias extern(C) %s function(void*%s) %s;\n", proxy_callback_return_type, delegate_parms, proxy_callback_type);
       Delete(proxy_callback_type);
+      Delete(dirClassName);
     }
 
     Delete(qualified_return);
@@ -2399,7 +2401,7 @@ public:
     Node *parent = parentNode(n);
     String *decl = Getattr(n, "decl");;
     String *supername = Swig_class_name(parent);
-    String *classname = getDirectorClassName(parent);
+    String *classname = directorClassName(parent);
     String *sub = NewString("");
     Parm *p;
     ParmList *superparms = Getattr(n, "parms");
@@ -2454,15 +2456,15 @@ public:
    * D::classDirectorDefaultConstructor()
    * --------------------------------------------------------------------------- */
   virtual int classDirectorDefaultConstructor(Node *n) {
-    String *classname = Swig_class_name(n);
+    String *classname = directorClassName(n);
     String *classtype = SwigType_namestr(Getattr(n, "name"));
     Wrapper *w = NewWrapper();
 
-    Printf(w->def, "SwigDirector_%s::SwigDirector_%s() : %s {", classname, classname, Getattr(n, "director:ctor"));
+    Printf(w->def, "%s::%s() : %s {", classname, classname, Getattr(n, "director:ctor"));
     Printf(w->code, "}\n");
     Wrapper_print(w, f_directors);
 
-    Printf(f_directors_h, "    SwigDirector_%s();\n", classname);
+    Printf(f_directors_h, "    %s();\n", classname);
     DelWrapper(w);
     Delete(classtype);
     Delete(classname);
@@ -2474,15 +2476,15 @@ public:
    * --------------------------------------------------------------------------- */
   virtual int classDirectorDestructor(Node *n) {
     Node *current_class = getCurrentClass();
-    String *classname = Swig_class_name(current_class);
+    String *classname = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
     if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~SwigDirector_%s() throw ();\n", classname);
-      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() throw () {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s() throw ();\n", classname);
+      Printf(w->def, "%s::~%s() throw () {\n", classname, classname);
     } else {
-      Printf(f_directors_h, "    virtual ~SwigDirector_%s();\n", classname);
-      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s();\n", classname);
+      Printf(w->def, "%s::~%s() {\n", classname, classname);
     }
 
     Printv(w->code, "}\n", NIL);
@@ -2499,7 +2501,7 @@ public:
    * --------------------------------------------------------------------------- */
   virtual int classDirectorEnd(Node *n) {
     int i;
-    String *director_classname = getDirectorClassName(n);
+    String *director_classname = directorClassName(n);
 
     Wrapper *w = NewWrapper();
 
@@ -3308,7 +3310,7 @@ private:
       // If directors are enabled for the current class, generate the
       // director connect helper function which is called from the constructor
       // and write it to the class body.
-      writeDirectorConnectProxy();
+      writeDirectorConnectProxy(n);
     }
 
     // Write all constants and enumerations first to prevent forward reference
@@ -3475,12 +3477,15 @@ private:
   }
 
   /* ---------------------------------------------------------------------------
-   * D::writeDirectorConnectProxy()
+   * D::writeDirectorConnectProxy(Node *classNode)
    *
    * Writes the helper method which registers the director callbacks by calling
    * the director connect function from the D side to the proxy class.
    * --------------------------------------------------------------------------- */
-  void writeDirectorConnectProxy() {
+  void writeDirectorConnectProxy(Node* classNode) {
+    String *dirClassName = directorClassName(classNode);
+    String *connect_name = Swig_name_member(getNSpace(),
+      proxy_class_name, "director_connect");
     Printf(proxy_class_body_code, "\nprivate void swigDirectorConnect() {\n");
 
     int i;
@@ -3491,12 +3496,12 @@ private:
       String *return_type = Getattr(udata, "return_type");
       String *param_list = Getattr(udata, "param_list");
       String *methid = Getattr(udata, "class_methodidx");
-      Printf(proxy_class_body_code, "  %s.SwigDirector_%s_Callback%s callback%s;\n", im_dmodule_fq_name, proxy_class_name, methid, methid);
+      Printf(proxy_class_body_code, "  %s.%s_Callback%s callback%s;\n", im_dmodule_fq_name, dirClassName, methid, methid);
       Printf(proxy_class_body_code, "  if (swigIsMethodOverridden!(%s delegate(%s), %s function(%s), %s)()) {\n", return_type, param_list, return_type, param_list, method);
       Printf(proxy_class_body_code, "    callback%s = &swigDirectorCallback_%s_%s;\n", methid, proxy_class_name, overloaded_name);
       Printf(proxy_class_body_code, "  }\n\n");
     }
-    Printf(proxy_class_body_code, "  %s.%s_director_connect(cast(void*)swigCPtr, cast(void*)this", im_dmodule_fq_name, proxy_class_name);
+    Printf(proxy_class_body_code, "  %s.%s(cast(void*)swigCPtr, cast(void*)this", im_dmodule_fq_name, connect_name);
     for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
       String *methid = Getattr(udata, "class_methodidx");
@@ -3532,6 +3537,8 @@ private:
     director_callback_pointers = NULL;
     Delete(director_dcallbacks_code);
     director_dcallbacks_code = NULL;
+    Delete(dirClassName);
+    Delete(connect_name);
   }
 
   /* ---------------------------------------------------------------------------
@@ -3548,7 +3555,7 @@ private:
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
     String *connect_name = Swig_name_member(getNSpace(),
       proxy_class_name, "director_connect");
-    String *sym_name = Getattr(n, "sym:name");
+    String *dirClassName = directorClassName(n);
     Wrapper *code_wrap;
 
     Printv(wrapper_loader_bind_code, wrapper_loader_bind_command, NIL);
@@ -3561,7 +3568,7 @@ private:
     Printf(code_wrap->def, "SWIGEXPORT void D_%s(void *objarg, void *dobj", connect_name);
 
     Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n", sym_name, sym_name);
+    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
 
     Printf(code_wrap->code, "  if (director) {\n");
     Printf(code_wrap->code, "    director->swig_connect_director(dobj");
@@ -3570,9 +3577,9 @@ private:
       UpcallData *udata = Getitem(dmethods_seq, i);
       String *methid = Getattr(udata, "class_methodidx");
 
-      Printf(code_wrap->def, ", SwigDirector_%s::SWIG_Callback%s_t callback%s", sym_name, methid, methid);
+      Printf(code_wrap->def, ", %s::SWIG_Callback%s_t callback%s", dirClassName, methid, methid);
       Printf(code_wrap->code, ", callback%s", methid);
-      Printf(im_dmodule_code, ", SwigDirector_%s_Callback%s callback%s", sym_name, methid, methid);
+      Printf(im_dmodule_code, ", %s_Callback%s callback%s", dirClassName, methid, methid);
     }
 
     Printf(code_wrap->def, ") {\n");
@@ -3585,6 +3592,7 @@ private:
     DelWrapper(code_wrap);
 
     Delete(connect_name);
+    Delete(dirClassName);
   }
 
   /* ---------------------------------------------------------------------------
@@ -4296,23 +4304,6 @@ private:
       }
     }
     return proxyname;
-  }
-
-  /* ---------------------------------------------------------------------------
-   * D::directorClassName()
-   * --------------------------------------------------------------------------- */
-  String *getDirectorClassName(Node *n) const {
-    String *dirclassname;
-    const char *attrib = "director:classname";
-
-    if (!(dirclassname = Getattr(n, attrib))) {
-      String *classname = Getattr(n, "sym:name");
-
-      dirclassname = NewStringf("SwigDirector_%s", classname);
-      Setattr(n, attrib, dirclassname);
-    }
-
-    return dirclassname;
   }
 
   /* ---------------------------------------------------------------------------
