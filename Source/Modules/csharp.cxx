@@ -3678,7 +3678,7 @@ public:
 	      substituteClassname(pt, din);
 	      Replaceall(din, "$iminput", ln);
 
-	      // :pre and :post attribute support
+	      // pre and post attribute support
 	      String *pre = Getattr(p, "tmap:csdirectorin:pre");
 	      if (pre) {
 		substituteClassname(pt, pre);
@@ -3703,7 +3703,6 @@ public:
 		Insert(terminator_code, 0, "\n");
 		Insert(terminator_code, 0, terminator);
 	      }
-	      // end :pre and :post attribute support
 
 	      if (i > 0) {
 		Printf(delegate_parms, ", ");
@@ -3721,10 +3720,10 @@ public:
 	      if ((tm = Getattr(p, "tmap:cstype"))) {
 		substituteClassname(pt, tm);
 		if (Strncmp(tm, "ref ", 4) == 0) {
-		  DohReplace(tm, "ref ", "", DOH_REPLACE_FIRST);
+		  Replace(tm, "ref ", "", DOH_REPLACE_FIRST);
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
 		} else if (Strncmp(tm, "out ", 4) == 0) {
-		  DohReplace(tm, "out ", "", DOH_REPLACE_FIRST);
+		  Replace(tm, "out ", "", DOH_REPLACE_FIRST);
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
 		} else {
 		  Printf(proxy_method_types, "typeof(%s)", tm);
@@ -3812,47 +3811,26 @@ public:
 
     String *upcall = NewStringf("%s(%s)", symname, imcall_args);
 
-    if (!is_void) {
-      if ((tm = Swig_typemap_lookup("csdirectorout", n, "", 0))) {
-	substituteClassname(returntype, tm);
-	Replaceall(tm, "$cscall", upcall);
-	// pre: and post: attribute support
-	bool is_pre_code = Len(pre_code) > 0;
-	bool is_post_code = Len(post_code) > 0;
-	bool is_terminator_code = Len(terminator_code) > 0;
-	if (is_pre_code || is_post_code || is_terminator_code) {
-	  Insert(tm, 0, "      return ");
-	  Printf(tm, ";");
-	  if (is_post_code) {
-	    Insert(tm, 0, "\n    try {\n ");
-	    Printv(tm, "\n    }\n    finally {\n", post_code, "\n    }", NIL);
-	  } else {
-	    Insert(tm, 0, "\n    ");
-	  }
-	  if (is_pre_code) {
-	    Insert(tm, 0, pre_code);
-	    Insert(tm, 0, "\n");
-	  }
-	  if (is_terminator_code)
-	    Printv(tm, "\n", terminator_code, NIL);
-	  Printf(callback_code, "       %s\n", tm);
-	} else {
-	  Printf(callback_code, "    return %s;\n", tm);
-	}
-      }
-      Delete(tm);
-    } else {
+    if ((tm = Swig_typemap_lookup("csdirectorout", n, "", 0))) {
+      substituteClassname(returntype, tm);
+      Replaceall(tm, "$cscall", upcall);
+      if (!is_void)
+	Insert(tm, 0, "return ");
+      Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
+
+      // pre and post attribute support
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
+      bool is_terminator_code = Len(terminator_code) > 0;
       if (is_pre_code && is_post_code)
-	Printf(callback_code, "    %s\n    try {\n    %s;\n    }\n    finally {\n    %s\n    }\n", pre_code, upcall, post_code);
+	Printf(callback_code, "%s\n    try {\n      %s;\n    } finally {\n%s\n    }\n", pre_code, tm, post_code);
       else if (is_pre_code)
-	Printf(callback_code, "    %s\n    %s;\n", pre_code, upcall);
+	Printf(callback_code, "%s\n    %s;\n", pre_code, tm);
       else if (is_post_code)
-	Printf(callback_code, "    try {\n    %s;\n    }\n    finally {\n    %s\n    }\n", upcall, post_code);
+	Printf(callback_code, "    try {\n      %s;\n    } finally {\n%s\n    }\n", tm, post_code);
       else
-	Printf(callback_code, "    %s;\n", upcall);
-      if (Len(terminator_code) > 0)
+	Printf(callback_code, "    %s;\n", tm);
+      if (is_terminator_code)
 	Printv(callback_code, "\n", terminator_code, NIL);
     }
 

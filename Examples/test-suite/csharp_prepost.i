@@ -80,14 +80,14 @@ struct PrePost2 {
 // Check csdirectorin pre and post attributes
 // ref param
 %typemap(csdirectorin,
-   pre="      DoubleVector d$iminput = new DoubleVector($iminput, false);\n"
-       "      int count$iminput = d$iminput.Count;\n"
-       "      double[] v$iminput = new double[count$iminput];\n"
-       "      for (int i=0; i<count$iminput; ++i) {\n"
-       "        v$iminput[i] = d$iminput[i];\n"
-       "      }\n",
+   pre="    DoubleVector d$iminput = new DoubleVector($iminput, false);\n"
+       "    int count$iminput = d$iminput.Count;\n"
+       "    double[] v$iminput = new double[count$iminput];\n"
+       "    for (int i=0; i<count$iminput; ++i) {\n"
+       "      v$iminput[i] = d$iminput[i];\n"
+       "    }\n",
    post="      foreach (double d in v$iminput) {\n"
-        "      d$iminput.Add(d);\n"
+        "        d$iminput.Add(d);\n"
         "      }\n"
   ) std::vector<double> &vpre
   "ref v$iminput"
@@ -106,6 +106,7 @@ struct PrePost3 {
   }
   virtual ~PrePost3(){}
   virtual void method(std::vector<double> & vpre, std::vector<double> & vpost) {}
+  virtual int methodint(std::vector<double> & vpre, std::vector<double> & vpost) { return 0; }
 };
 %}
 
