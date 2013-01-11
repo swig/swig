@@ -15,14 +15,9 @@ C_TEST_CASES = \
 	java_lib_arrays \
 	java_lib_various
 
-# Use a different JAVA_PACKAGE set internally in the testcase.  This must match 
-# what is internally in the test .i files (does swig support multiple package levels?)
-# Make sure that the pragma dir DOES NOT exist (since test should create)
-PRAGMATEST_PACKAGE = pragmajavapackage
-PRAGMATEST_DIRSETUP = rm -rf $(PACKAGE_DIR)
-
 CPP_TEST_CASES_PKGPRAGMA = \
-        java_test_of_package_pragma
+        internal_pkgpragma_test
+
 
 CPP_TEST_CASES_PKGOPT = \
 	enum_thorough_proper \
@@ -50,15 +45,21 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 JAVA_PACKAGE = $*
-PKGDIRSETUP = [ -d "$(JAVA_PACKAGE) ] || mkdir -p $(JAVA_PACKAGE);
+
+ALL_PKGOPT := $(filter-out $(CPP_TEST_CASES_PKGPRAGMA:=.cpptest),$(NOT_BROKEN_TEST_CASES))
+ALL_PKGPRAGMA := $(filter $(CPP_TEST_CASES_PKGPRAGMA:=.cpptest),$(NOT_BROKEN_TEST_CASES))
 
 # Add '-package' swigopt for ALL tests except for CPP_TEST_CASES_PKGPRAGMA
-TEST_CASES_WITH_PKGOPT := $(filterout $(CPP_TEST_CASES_PKGPRAGMA:=.cpptest),$(NOT_BROKEN_TEST_CASES))
-$(TEST_CASES_WITH_PKGOPT): SWIGOPT += -package $(JAVA_PACKAGE)
+# PKGDIRSETUP should leave 0 exitcode when successful
+$(ALL_PKGOPT): SWIGOPT += -package $(JAVA_PACKAGE)
+$(ALL_PKGOPT): PKGDIRSETUP = [ -d "$(JAVA_PACKAGE)" ] || mkdir -p "$(JAVA_PACKAGE)" && cd "$(JAVA_PACKAGE)"
 
-# Set JAVA_PACKAGE differently for the one test using a pragma javapackage
-$(CPP_TEST_CASES_PKGPRAGMA:=.cpptest): JAVA_PACKAGE=$(PKGPRAGMA_PACKAGE) 
-$(CPP_TEST_CASES_PKGPRAGMA:=.cpptest): PKGDIRSETUP=$(PKGPRAGMA_DIRSETUP)
+# Set JAVA_PACKAGE differently for the tests using internally coded pragma javapackage
+#   (and must match what is in the test .i file)
+# Make sure that the pragma dir DOES NOT exist (since test should create)
+# This may not find all the generated java to compile...
+$(ALL_PKGPRAGMA): JAVA_PACKAGE = MyExplicitPragmaJavaPackage
+$(ALL_PKGPRAGMA): PKGDIRSETUP = rm -rf $(JAVA_PACKAGE)
 
 # Custom tests - tests with additional commandline options
 nspace.%: JAVA_PACKAGE = $*Package
@@ -68,21 +69,18 @@ director_nspace.%: JAVA_PACKAGE = $*Package
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup)
-	$(PKGDIRSETUP)
-	+echo $@ (cd $(JAVA_PACKAGE) && $(swig_and_compile_cpp))
-	$echo $@ (run_testcase)
+	+echo "$@ ($(PKGDIRSETUP) && $(swig_and_compile_cpp))"
+	echo "$@ $(run_testcase)"
 
 %.ctest:
 	$(setup)
-	$(PKGDIRSETUP)
-	+echo $@ (cd $(JAVA_PACKAGE) && $(swig_and_compile_c))
-	$echo $@ (run_testcase)
+	+echo "$@ ($(PKGDIRSETUP) && $(swig_and_compile_c))"
+	echo "$@ $(run_testcase)"
 
 %.multicpptest: 
 	$(setup)
-	$(PKGDIRSETUP)
-	+echo $@ (cd $(JAVA_PACKAGE) && $(swig_and_compile_multi_cpp))
-	$echo $@ (run_testcase)
+	+echo "$@ ($(PKGDIRSETUP) && $(swig_and_compile_multi_cpp))"
+	echo "$@ $(run_testcase)"
 
 # don't duplicate $(setup), just add explicit $(PKGDIRSETUP)
 # This doesn't work yet since for PKGPRAGMA test, PKGDIRSETUP deletes 
