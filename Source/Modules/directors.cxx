@@ -78,9 +78,10 @@ String *Swig_class_name(Node *n) {
 
 String *Swig_director_declaration(Node *n) {
   String *classname = Swig_class_name(n);
-  String *directorname = NewStringf("SwigDirector_%s", classname);
+  String *directorname = Language::instance()->directorClassName(n);
   String *base = Getattr(n, "classtype");
   String *declaration = Swig_class_declaration(n, directorname);
+
   Printf(declaration, " : public %s, public Swig::Director {\n", base);
   Delete(classname);
   Delete(directorname);
@@ -280,9 +281,10 @@ void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
                                                checkAttribute(n, "storage", "static"))
                                           && !Equal(nodeType(n), "constructor"))) {
     Node *parent = Getattr(n, "parentNode");
-    String *symname = Getattr(parent, "sym:name");
-    String *dirname = NewStringf("SwigDirector_%s", symname);
-    String *dirdecl = NewStringf("%s *darg = 0", dirname);
+    String *dirname;
+    String *dirdecl;
+    dirname = Language::instance()->directorClassName(parent);
+    dirdecl = NewStringf("%s *darg = 0", dirname);
     Wrapper_add_local(f, "darg", dirdecl);
     Printf(f->code, "darg = dynamic_cast<%s *>(arg1);\n", dirname);
     Delete(dirname);
