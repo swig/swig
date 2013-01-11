@@ -2,8 +2,9 @@
 *.o
 *.class
 
-# Editor junk
+# Editor files and various other junk
 *.sw?
+*.bak
 
 # Local PCRE
 pcre
@@ -83,6 +84,12 @@ Source/CParse/parser.c
 Source/CParse/parser.h
 Source/eswig
 swig
+
+# Generated documentation
+Doc/Manual/CCache.html
+Doc/Manual/SWIGDocumentation.html
+Doc/Manual/SWIGDocumentation.pdf
+Doc/Manual/*.book
 
 # Test Suite Generated Files
 Examples/test-suite/allegrocl/*/
