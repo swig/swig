@@ -197,11 +197,56 @@ csattributes                C# attributes for attaching to proxy classes/enums
 The "null" attribute in the "out" typemap can be specified to provide a value for <tt>$null</tt> to expand into for wrapped functions that return non-void. Normally the default value of <tt>0</tt> is used.
 For example this is needed if you change the return type to void:
 </p>
-
 <div class="code"><pre>
 %typemap(ctype) Status "void"
 %typemap(out, null="") Status { ... }
 </pre></div>
+<p>
+The "pre" and "post" attributes in "csdirectorin" typemap act like the same attributes in "csin" typemap.
+ For example if we modify <a href="#CSharp_date_marshalling">Date marshalling example</a> like this:
+<div class="code"><pre>
+class CDate {
+...
+  void setYear(int);
+  void setMonth(int);
+  void setDay(int);
+};
+struct Action {
+virtual void someCallback(CDate& date);
+...
+};
+</pre></div>
+and declare %feature ("director") for the Action class, we would have to define additional
+marshaling rules for CDate. Director typemap may look like this:
+<div class="code"><pre>
+%typemap(csdirectorin,
+         pre="System.DateTime temp$iminput = new System.DateTime();",
+         post="CDate temp2$iminput = new CDate($iminput, false);\n"
+              "temp2$iminput.setYear(tempdate.Year);\n"
+              "temp2$iminput.setMonth(tempdate.Month);\n"
+              "temp2$iminput.setDay(tempdate.Day);"
+         ) CDate& date "out temp$iminput"
+</pre></div>
+The generated proxy class code will then contain the following wrapper for calling user-overloaded someCallback():
+<div class="code"><pre>
+...
+  private void SwigDirectorsomeCallback(IntPtr date) {
+    System.DateTime tempdate = new System.DateTime();
+    try {
+      someCallback(out tempdate);
+    }
+    finally {
+    // we create managed wrapper around existing C reference, just for convenience
+      CDate temp2date = new CDate(date, false);
+      temp2date.setYear(tempdate.Year);
+      temp2date.setMonth(tempdate.Month);
+      temp2date.setDay(tempdate.Day);
+    }
+  }
+...
+</pre></div>
+Pay special attention to the memory management issues, using these attributes.
+</p>
 
 </li>
 
