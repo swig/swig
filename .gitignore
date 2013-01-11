@@ -9,12 +9,6 @@
 pcre
 *.gz
 
-# Python generated files, based on:
-#   https://github.com/github/gitignore/blob/master/Python.gitignore
-*.py[cod]
-*/__pycache__/
-/__pycache__/
-
 # C/C++ object files, based on:
 #   https://github.com/github/gitignore/blob/master/C.gitignore
 #   https://github.com/github/gitignore/blob/master/C%2B%2B.gitignore
@@ -113,3 +107,14 @@ Examples/test-suite/r/*/
 Examples/test-suite/ruby/*/
 Examples/test-suite/tcl/*/
 Examples/test-suite/uffi/*/
+
+# Python generated files, based on:
+#   https://github.com/github/gitignore/blob/master/Python.gitignore
+*.py[cod]
+*/__pycache__/
+/__pycache__/
+
+# C# generated files
+*_runme.exe.mdb
+*_runme.exe
+
