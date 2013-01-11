@@ -178,6 +178,7 @@ CPP_TEST_CASES += \
 	director_keywords \
 	director_namespace_clash \
 	director_nspace \
+	director_nspace_director_name_collision \
 	director_nested \
 	director_overload \
 	director_overload2 \

@@ -198,24 +198,6 @@ public:
      return proxyname;
    }
 
-  /* -----------------------------------------------------------------------------
-   * directorClassName()
-   * ----------------------------------------------------------------------------- */
-
-  String *directorClassName(Node *n) {
-    String *dirclassname;
-    const char *attrib = "director:classname";
-
-    if (!(dirclassname = Getattr(n, attrib))) {
-      String *classname = Getattr(n, "sym:name");
-
-      dirclassname = NewStringf("SwigDirector_%s", classname);
-      Setattr(n, attrib, dirclassname);
-    }
-
-    return dirclassname;
-  }
-
   /* ------------------------------------------------------------
    * main()
    * ------------------------------------------------------------ */
@@ -3407,6 +3389,7 @@ public:
     String *sym_name = Getattr(n, "sym:name");
     String *qualified_classname = Copy(sym_name);
     String *nspace = getNSpace();
+    String *dirClassName = directorClassName(n);
 
     if (nspace)
       Insert(qualified_classname, 0, NewStringf("%s.", nspace));
@@ -3418,7 +3401,7 @@ public:
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
 
     Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  SwigDirector_%s *director = dynamic_cast<SwigDirector_%s *>(obj);\n", sym_name, sym_name);
+    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
     // TODO: if statement not needed?? - Java too
     Printf(code_wrap->code, "  if (director) {\n");
     Printf(code_wrap->code, "    director->swig_connect_director(");
@@ -3430,7 +3413,7 @@ public:
       Printf(code_wrap->def, ", ");
       if (i != first_class_dmethod)
 	Printf(code_wrap->code, ", ");
-      Printf(code_wrap->def, "SwigDirector_%s::SWIG_Callback%s_t callback%s", sym_name, methid, methid);
+      Printf(code_wrap->def, "%s::SWIG_Callback%s_t callback%s", dirClassName, methid, methid);
       Printf(code_wrap->code, "callback%s", methid);
       Printf(imclass_class_code, ", %s.SwigDelegate%s_%s delegate%s", qualified_classname, sym_name, methid, methid);
     }
@@ -3447,6 +3430,7 @@ public:
     Delete(wname);
     Delete(swig_director_connect);
     Delete(qualified_classname);
+    Delete(dirClassName);
   }
 
   /* ---------------------------------------------------------------
@@ -3958,7 +3942,7 @@ public:
     Node *parent = parentNode(n);
     String *decl = Getattr(n, "decl");
     String *supername = Swig_class_name(parent);
-    String *classname = directorClassName(parent);
+    String *dirclassname = directorClassName(parent);
     String *sub = NewString("");
     Parm *p;
     ParmList *superparms = Getattr(n, "parms");
@@ -3982,11 +3966,11 @@ public:
       /* constructor */
       {
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
 	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
-	Printf(f_directors, "%s::%s : %s, %s {\n", classname, target, call, Getattr(parent, "director:ctor"));
+	Printf(f_directors, "%s::%s : %s, %s {\n", dirclassname, target, call, Getattr(parent, "director:ctor"));
 	Printf(f_directors, "  swig_init_callbacks();\n");
 	Printf(f_directors, "}\n\n");
 
@@ -3997,7 +3981,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -4006,6 +3990,7 @@ public:
     Delete(sub);
     Delete(supername);
     Delete(parms);
+    Delete(dirclassname);
     return Language::classDirectorConstructor(n);
   }
 
@@ -4014,18 +3999,18 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorDefaultConstructor(Node *n) {
-    String *classname = Swig_class_name(n);
+    String *dirclassname = directorClassName(n);
     String *classtype = SwigType_namestr(Getattr(n, "name"));
     Wrapper *w = NewWrapper();
 
-    Printf(w->def, "SwigDirector_%s::SwigDirector_%s() : %s {", classname, classname, Getattr(n, "director:ctor"));
+    Printf(w->def, "%s::%s() : %s {", dirclassname, dirclassname, Getattr(n, "director:ctor"));
     Printf(w->code, "}\n");
     Wrapper_print(w, f_directors);
 
-    Printf(f_directors_h, "    SwigDirector_%s();\n", classname);
+    Printf(f_directors_h, "    %s();\n", dirclassname);
     DelWrapper(w);
     Delete(classtype);
-    Delete(classname);
+    Delete(dirclassname);
     return Language::classDirectorDefaultConstructor(n);
   }
 
@@ -4066,15 +4051,15 @@ public:
 
   int classDirectorDestructor(Node *n) {
     Node *current_class = getCurrentClass();
-    String *classname = Swig_class_name(current_class);
+    String *dirclassname = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
     if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~SwigDirector_%s() throw ();\n", classname);
-      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() throw () {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
+      Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
     } else {
-      Printf(f_directors_h, "    virtual ~SwigDirector_%s();\n", classname);
-      Printf(w->def, "SwigDirector_%s::~SwigDirector_%s() {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s();\n", dirclassname);
+      Printf(w->def, "%s::~%s() {\n", dirclassname, dirclassname);
     }
 
     Printv(w->code, "}\n", NIL);
@@ -4082,7 +4067,7 @@ public:
     Wrapper_print(w, f_directors);
 
     DelWrapper(w);
-    Delete(classname);
+    Delete(dirclassname);
     return SWIG_OK;
   }
 
@@ -4172,8 +4157,7 @@ public:
     String *base = Getattr(n, "classtype");
     String *class_ctor = NewString("Swig::Director()");
 
-    String *classname = Swig_class_name(n);
-    String *directorname = NewStringf("SwigDirector_%s", classname);
+    String *directorname = directorClassName(n);
     String *declaration = Swig_class_declaration(n, directorname);
 
     Printf(declaration, " : public %s, public Swig::Director", base);
@@ -4181,6 +4165,8 @@ public:
     // Stash stuff for later.
     Setattr(n, "director:decl", declaration);
     Setattr(n, "director:ctor", class_ctor);
+
+    Delete(directorname);
   }
 
 };				/* class CSHARP */
