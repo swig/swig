@@ -15,7 +15,16 @@ C_TEST_CASES = \
 	java_lib_arrays \
 	java_lib_various
 
-CPP_TEST_CASES = \
+# Use a different JAVA_PACKAGE set internally in the testcase.  This must match
+# what is internally in the test .i files (does swig support multiple package levels?)
+# Make sure that the pragma dir DOES NOT exist (since test should create)
+PRAGMATEST_PACKAGE = pragmajavapackage
+PRAGMATEST_DIRSETUP = rm -rf $(PACKAGE_DIR)
+
+CPP_TEST_CASES_PKGPRAGMA = \
+        java_test_of_package_pragma
+
+CPP_TEST_CASES_PKGOPT = \
 	enum_thorough_proper \
 	enum_thorough_simple \
 	enum_thorough_typeunsafe \
@@ -36,11 +45,20 @@ CPP_TEST_CASES = \
 	java_typemaps_typewrapper
 #	li_boost_intrusive_ptr
 
+CPP_TEST_CASES = $(CPP_TEST_CASES_PKGOPT) $(CPP_TEST_CASES_PKGPRAGMA)
 include $(srcdir)/../common.mk
 
 # Overridden variables here
 JAVA_PACKAGE = $*
-SWIGOPT += -package $(JAVA_PACKAGE)
+PKGDIRSETUP = [ -d "$(JAVA_PACKAGE) ] || mkdir -p $(JAVA_PACKAGE);
+
+# Add '-package' swigopt for ALL tests except for CPP_TEST_CASES_PKGPRAGMA
+TEST_CASES_WITH_PKGOPT := $(filterout $(CPP_TEST_CASES_PKGPRAGMA:=.cpptest),$(NOT_BROKEN_TEST_CASES))
+$(TEST_CASES_WITH_PKGOPT): SWIGOPT += -package $(JAVA_PACKAGE)
+
+# Set JAVA_PACKAGE differently for the one test using a pragma javapackage
+$(CPP_TEST_CASES_PKGPRAGMA:=.cpptest): JAVA_PACKAGE=$(PKGPRAGMA_PACKAGE)
+$(CPP_TEST_CASES_PKGPRAGMA:=.cpptest): PKGDIRSETUP=$(PKGPRAGMA_DIRSETUP)
 
 # Custom tests - tests with additional commandline options
 nspace.%: JAVA_PACKAGE = $*Package
@@ -51,31 +69,27 @@ director_nspace_director_name_collision.%: JAVA_PACKAGE = $*Package
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup)
-	+(cd $(JAVA_PACKAGE) && $(swig_and_compile_cpp))
-	$(run_testcase)
+	$(PKGDIRSETUP)
+	+echo $@ (cd $(JAVA_PACKAGE) && $(swig_and_compile_cpp))
+	$echo $@ (run_testcase)
 
 %.ctest:
 	$(setup)
-	+(cd $(JAVA_PACKAGE) && $(swig_and_compile_c))
-	$(run_testcase)
+	$(PKGDIRSETUP)
+	+echo $@ (cd $(JAVA_PACKAGE) && $(swig_and_compile_c))
+	$echo $@ (run_testcase)
 
 %.multicpptest: 
 	$(setup)
-	+(cd $(JAVA_PACKAGE) && $(swig_and_compile_multi_cpp))
-	$(run_testcase)
+	$(PKGDIRSETUP)
+	+echo $@ (cd $(JAVA_PACKAGE) && $(swig_and_compile_multi_cpp))
+	$echo $@ (run_testcase)
 
-# Makes a directory for the testcase if it does not exist
-setup = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
-	else								  \
-	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
-	fi;								  \
-	if [ ! -d $(JAVA_PACKAGE) ]; then						  \
-	  mkdir $(JAVA_PACKAGE);							  \
-	fi
+# don't duplicate $(setup), just add explicit $(PKGDIRSETUP)
+# This doesn't work yet since for PKGPRAGMA test, PKGDIRSETUP deletes
+# JAVA_PACKAGE, but next line tries to cd there.
 
-# Compiles java files then runs the testcase. A testcase is only run if
+# COMPILES java files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.java appended after the testcase name.
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
 run_testcase = \
