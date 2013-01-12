@@ -16,7 +16,7 @@ C_TEST_CASES = \
 	java_lib_various
 
 CPP_TEST_CASES_PKGPRAGMA = \
-        internal_pkgpragma_test
+        java_nspacewithoutpackage
 
 
 CPP_TEST_CASES_PKGOPT = \
@@ -32,7 +32,6 @@ CPP_TEST_CASES_PKGOPT = \
 	java_lib_arrays_dimensionless \
 	java_lib_various \
 	java_jnitypes \
-	java_nspacewithoutpackage \
 	java_pgcpp \
 	java_pragmas \
 	java_prepost \
@@ -55,12 +54,14 @@ ALL_PKGPRAGMA := $(filter $(CPP_TEST_CASES_PKGPRAGMA:=.cpptest),$(NOT_BROKEN_TES
 $(ALL_PKGOPT): SWIGOPT += -package $(JAVA_PACKAGE)
 $(ALL_PKGOPT): PKGDIRSETUP = [ -d "$(JAVA_PACKAGE)" ] || mkdir -p "$(JAVA_PACKAGE)" && cd "$(JAVA_PACKAGE)"
 
-# Set JAVA_PACKAGE differently for the tests using internally coded pragma javapackage
+# Set JNI_PACKAGE for the tests using internally coded pragma javapackage
 #   (and must match what is in the test .i file)
 # Make sure that the pragma dir DOES NOT exist (since test should create)
 # This may not find all the generated java to compile...
-$(ALL_PKGPRAGMA): JAVA_PACKAGE = MyExplicitPragmaJavaPackage
-$(ALL_PKGPRAGMA): PKGDIRSETUP = rm -rf $(JAVA_PACKAGE)
+# NOTE: The variable JAVA_PACKAGE has nothing to do wih a package in this case, but
+#       needs to remain named the same so other targets work
+$(ALL_PKGPRAGMA): JNI_PACKAGE = PragmaDefinedPackage
+$(ALL_PKGPRAGMA): PKGDIRSETUP = [ -d "$(JAVA_PACKAGE)" ] || mkdir -p "$(JAVA_PACKAGE)" && cd "$(JAVA_PACKAGE)" &&rm -rf $(JAVA_PACKAGE)/$(JNI_PACKAGE)
 
 # Custom tests - tests with additional commandline options
 nspace.%: JAVA_PACKAGE = $*Package
@@ -71,18 +72,18 @@ director_nspace_director_name_collision.%: JAVA_PACKAGE = $*Package
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup)
-	+echo "$@ ($(PKGDIRSETUP) && $(swig_and_compile_cpp))"
-	echo "$@ $(run_testcase)"
+	+($(PKGDIRSETUP) && $(swig_and_compile_cpp))
+	$(run_testcase)
 
 %.ctest:
 	$(setup)
-	+echo "$@ ($(PKGDIRSETUP) && $(swig_and_compile_c))"
-	echo "$@ $(run_testcase)"
+	+($(PKGDIRSETUP) && $(swig_and_compile_c))
+	$(run_testcase)
 
 %.multicpptest: 
 	$(setup)
-	+echo "$@ ($(PKGDIRSETUP) && $(swig_and_compile_multi_cpp))"
-	echo "$@ $(run_testcase)"
+	+($(PKGDIRSETUP) && $(swig_and_compile_multi_cpp))
+	$(run_testcase)
 
 # don't duplicate $(setup), just add explicit $(PKGDIRSETUP)
 # This doesn't work yet since for PKGPRAGMA test, PKGDIRSETUP deletes 
