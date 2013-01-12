@@ -1214,12 +1214,13 @@ int R::enumDeclaration(Node *n) {
 	value++;
       else 
 	value = inval;
-    } else
-      value++;
-    
-    Printf(scode, "%s%s%s'%s' = %d%s\n", tab8, tab8, tab8, name, value,
-	   nextSibling(c) ? ", " : "");
-    //      }
+      Printf(scode, "%s%s%s'%s' = %d%s\n", tab8, tab8, tab8, name, value,
+	     nextSibling(c) ? ", " : "");
+    } else {
+      Printf(scode, "%s%s%s'%s' = %d%s\n", tab8, tab8, tab8, name, 
+	     Getattr(c, "value"),
+	     nextSibling(c) ? ", " : "");
+    }
   }
   
   Printv(scode, "))", NIL);
