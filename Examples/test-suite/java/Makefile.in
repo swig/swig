@@ -85,10 +85,6 @@ director_nspace_director_name_collision.%: JAVA_PACKAGE = $*Package
 	+($(PKGDIRSETUP) && $(swig_and_compile_multi_cpp))
 	$(run_testcase)
 
-# don't duplicate $(setup), just add explicit $(PKGDIRSETUP)
-# This doesn't work yet since for PKGPRAGMA test, PKGDIRSETUP deletes
-# JAVA_PACKAGE, but next line tries to cd there.
-
 # COMPILES java files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.java appended after the testcase name.
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
