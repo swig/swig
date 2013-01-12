@@ -12,8 +12,6 @@
  * the naming of local variables, calling conventions, and so forth.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_cwrap_c[] = "$Id$";
-
 #include "swig.h"
 
 extern int cparse_cplusplus;

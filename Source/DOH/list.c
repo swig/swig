@@ -11,8 +11,6 @@
  *     Implements a simple list object.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_list_c[] = "$Id$";
-
 #include "dohint.h"
 
 typedef struct List {

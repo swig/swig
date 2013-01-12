@@ -17,8 +17,6 @@
  * - Lines beginning with %# are stripped down to #... and passed through.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_cpp_c[] = "$Id$";
-
 #include "swig.h"
 #include "preprocessor.h"
 #include <ctype.h>

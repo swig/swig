@@ -11,8 +11,6 @@
  * clisp language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_clisp_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 static const char *usage = (char *) "\

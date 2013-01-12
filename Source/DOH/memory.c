@@ -12,8 +12,6 @@
  *     of objects and checking of objects.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_memory_c[] = "$Id$";
-
 #include "dohint.h"
 
 #ifndef DOH_POOL_SIZE

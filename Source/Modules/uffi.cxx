@@ -13,8 +13,6 @@
 
 // TODO: remove remnants of lisptype
 
-char cvsroot_uffi_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 static const char *usage = (char *) "\

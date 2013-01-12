@@ -29,8 +29,6 @@
  *
  */
 
-char cvsroot_pike_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #include <ctype.h>		// for isalnum()

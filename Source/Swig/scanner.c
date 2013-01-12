@@ -14,8 +14,6 @@
  * to easily construct yacc-compatible scanners.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_scanner_c[] = "$Id$";
-
 #include "swig.h"
 #include <ctype.h>
 

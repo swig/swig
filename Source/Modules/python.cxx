@@ -11,8 +11,6 @@
  * Python language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_python_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 

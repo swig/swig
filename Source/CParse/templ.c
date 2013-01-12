@@ -11,8 +11,6 @@
  * Expands a template into a specialized version.   
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_templ_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 

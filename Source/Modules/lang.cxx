@@ -11,8 +11,6 @@
  * Language base class functions.  Default C++ handling is also implemented here.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_lang_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 #include <ctype.h>
