@@ -15,7 +15,11 @@ C_TEST_CASES = \
 	java_lib_arrays \
 	java_lib_various
 
-CPP_TEST_CASES = \
+CPP_TEST_CASES_PKGPRAGMA = \
+        internal_pkgpragma_test
+
+
+CPP_TEST_CASES_PKGOPT = \
 	enum_thorough_proper \
 	enum_thorough_simple \
 	enum_thorough_typeunsafe \
@@ -34,14 +38,29 @@ CPP_TEST_CASES = \
 	java_prepost \
 	java_throws \
 	java_typemaps_proxy \
-	java_typemaps_typewrapper
+	java_typemaps_typewrapper 
 #	li_boost_intrusive_ptr
 
+CPP_TEST_CASES = $(CPP_TEST_CASES_PKGOPT) $(CPP_TEST_CASES_PKGPRAGMA)
 include $(srcdir)/../common.mk
 
 # Overridden variables here
 JAVA_PACKAGE = $*
-SWIGOPT += -package $(JAVA_PACKAGE)
+
+ALL_PKGOPT := $(filter-out $(CPP_TEST_CASES_PKGPRAGMA:=.cpptest),$(NOT_BROKEN_TEST_CASES))
+ALL_PKGPRAGMA := $(filter $(CPP_TEST_CASES_PKGPRAGMA:=.cpptest),$(NOT_BROKEN_TEST_CASES))
+
+# Add '-package' swigopt for ALL tests except for CPP_TEST_CASES_PKGPRAGMA
+# PKGDIRSETUP should leave 0 exitcode when successful
+$(ALL_PKGOPT): SWIGOPT += -package $(JAVA_PACKAGE)
+$(ALL_PKGOPT): PKGDIRSETUP = [ -d "$(JAVA_PACKAGE)" ] || mkdir -p "$(JAVA_PACKAGE)" && cd "$(JAVA_PACKAGE)"
+
+# Set JAVA_PACKAGE differently for the tests using internally coded pragma javapackage
+#   (and must match what is in the test .i file)
+# Make sure that the pragma dir DOES NOT exist (since test should create)
+# This may not find all the generated java to compile...
+$(ALL_PKGPRAGMA): JAVA_PACKAGE = MyExplicitPragmaJavaPackage
+$(ALL_PKGPRAGMA): PKGDIRSETUP = rm -rf $(JAVA_PACKAGE)
 
 # Custom tests - tests with additional commandline options
 nspace.%: JAVA_PACKAGE = $*Package
@@ -52,31 +71,24 @@ director_nspace_director_name_collision.%: JAVA_PACKAGE = $*Package
 # Rules for the different types of tests
 %.cpptest: 
 	$(setup)
-	+(cd $(JAVA_PACKAGE) && $(swig_and_compile_cpp))
-	$(run_testcase)
+	+echo "$@ ($(PKGDIRSETUP) && $(swig_and_compile_cpp))"
+	echo "$@ $(run_testcase)"
 
 %.ctest:
 	$(setup)
-	+(cd $(JAVA_PACKAGE) && $(swig_and_compile_c))
-	$(run_testcase)
+	+echo "$@ ($(PKGDIRSETUP) && $(swig_and_compile_c))"
+	echo "$@ $(run_testcase)"
 
 %.multicpptest: 
 	$(setup)
-	+(cd $(JAVA_PACKAGE) && $(swig_and_compile_multi_cpp))
-	$(run_testcase)
+	+echo "$@ ($(PKGDIRSETUP) && $(swig_and_compile_multi_cpp))"
+	echo "$@ $(run_testcase)"
 
-# Makes a directory for the testcase if it does not exist
-setup = \
-	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
-	else								  \
-	  echo "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
-	fi;								  \
-	if [ ! -d $(JAVA_PACKAGE) ]; then						  \
-	  mkdir $(JAVA_PACKAGE);							  \
-	fi
+# don't duplicate $(setup), just add explicit $(PKGDIRSETUP)
+# This doesn't work yet since for PKGPRAGMA test, PKGDIRSETUP deletes 
+# JAVA_PACKAGE, but next line tries to cd there.  
 
-# Compiles java files then runs the testcase. A testcase is only run if
+# COMPILES java files then runs the testcase. A testcase is only run if
 # a file is found which has _runme.java appended after the testcase name.
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
 run_testcase = \
