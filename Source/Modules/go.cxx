@@ -7,8 +7,6 @@
  * Go language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_go_cxx[] = "$Id";
-
 #include "swigmod.h"
 #include "cparse.h"
 #include <ctype.h>

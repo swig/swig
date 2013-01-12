@@ -14,8 +14,6 @@
  * run-time type checker is also handled here.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_typesys_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 

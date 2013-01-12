@@ -16,8 +16,6 @@
  * wrapper code and to generate cleaner wrapper files. 
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_fragment_c[] = "$Id$";
-
 #include "swig.h"
 #include "swigwarn.h"
 

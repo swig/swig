@@ -12,8 +12,6 @@
  *     formatted output, readline, and splitting.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_fio_c[] = "$Id$";
-
 #include "dohint.h"
 
 #define OBUFLEN  512

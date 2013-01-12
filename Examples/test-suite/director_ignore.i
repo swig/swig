@@ -21,6 +21,13 @@
 %ignore ProtectedPureVirtualMethod1;
 %ignore ProtectedPureVirtualMethod2;
 
+%typemap(imtype,
+  inattributes="[inattributes should not be used]",
+  outattributes="[outattributes should not be used]",
+  directorinattributes="[directorinattributes should not be used]",
+  directoroutattributes="[directoroutattributes should not be used]"
+ ) int& "imtype should not be used"
+
 %inline %{
 
 #include <string>

@@ -13,8 +13,6 @@
  * in SWIG.  --MR
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_directors_cxx[] = "$Id";
-
 #include "swigmod.h"
 
 /* Swig_csuperclass_call()

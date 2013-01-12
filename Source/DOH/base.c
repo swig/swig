@@ -12,8 +12,6 @@
  *     DOH objects.  A number of small utility functions are also included.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_base_c[] = "$Id$";
-
 #include "dohint.h"
 
 /* -----------------------------------------------------------------------------

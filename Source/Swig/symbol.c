@@ -11,8 +11,6 @@
  * This file implements the SWIG symbol table.  See details below.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_symbol_c[] = "$Id$";
-
 #include "swig.h"
 #include "swigwarn.h"
 #include <ctype.h>

@@ -11,8 +11,6 @@
  * Miscellaneous functions that don't really fit anywhere else.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_misc_c[] = "$Id$";
-
 #include "swig.h"
 #include <errno.h>
 #include <ctype.h>

@@ -37,8 +37,6 @@
  * (may need to add more WARN_PHP_xxx codes...)
  */
 
-char cvsroot_php_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #include <ctype.h>

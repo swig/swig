@@ -11,8 +11,6 @@
  * C# language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_csharp_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include <limits.h>		// for INT_MAX
 #include "cparse.h"
@@ -3452,6 +3450,9 @@ public:
     String *value = Getattr(n, "value");
     String *decl = Getattr(n, "decl");
     String *declaration = NewString("");
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
+    String *terminator_code = NewString("");
     String *tm;
     Parm *p;
     int i;
@@ -3540,7 +3541,8 @@ public:
       const String *im_directoroutattributes = Getattr(n, "tmap:imtype:directoroutattributes");
       if (im_directoroutattributes) {
 	Printf(callback_def, "  %s\n", im_directoroutattributes);
-	Printf(director_delegate_definitions, "  %s\n", im_directoroutattributes);
+	if (!ignored_method)
+	  Printf(director_delegate_definitions, "  %s\n", im_directoroutattributes);
       }
 
       Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
@@ -3658,6 +3660,32 @@ public:
 	      substituteClassname(pt, din);
 	      Replaceall(din, "$iminput", ln);
 
+	      // pre and post attribute support
+	      String *pre = Getattr(p, "tmap:csdirectorin:pre");
+	      if (pre) {
+		substituteClassname(pt, pre);
+		Replaceall(pre, "$iminput", ln);
+		if (Len(pre_code) > 0)
+		  Printf(pre_code, "\n");
+		  Printv(pre_code, pre, NIL);
+	      }
+	      String *post = Getattr(p, "tmap:csdirectorin:post");
+	      if (post) {
+		substituteClassname(pt, post);
+		Replaceall(post, "$iminput", ln);
+		if (Len(post_code) > 0)
+		  Printf(post_code, "\n");
+		Printv(post_code, post, NIL);
+	      }
+	      String *terminator = Getattr(p, "tmap:csdirectorin:terminator");
+	      if (terminator) {
+		substituteClassname(pt, terminator);
+		Replaceall(terminator, "$iminput", ln);
+		if (Len(terminator_code) > 0)
+		Insert(terminator_code, 0, "\n");
+		Insert(terminator_code, 0, terminator);
+	      }
+
 	      if (i > 0) {
 		Printf(delegate_parms, ", ");
 		Printf(proxy_method_types, ", ");
@@ -3673,7 +3701,15 @@ public:
 	      /* Get the C# parameter type */
 	      if ((tm = Getattr(p, "tmap:cstype"))) {
 		substituteClassname(pt, tm);
-		Printf(proxy_method_types, "typeof(%s)", tm);
+		if (Strncmp(tm, "ref ", 4) == 0) {
+		  Replace(tm, "ref ", "", DOH_REPLACE_FIRST);
+		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
+		} else if (Strncmp(tm, "out ", 4) == 0) {
+		  Replace(tm, "out ", "", DOH_REPLACE_FIRST);
+		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
+		} else {
+		  Printf(proxy_method_types, "typeof(%s)", tm);
+		}
 	      } else {
 		Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(pt, 0));
 	      }
@@ -3757,17 +3793,28 @@ public:
 
     String *upcall = NewStringf("%s(%s)", symname, imcall_args);
 
-    if (!is_void) {
-      if ((tm = Swig_typemap_lookup("csdirectorout", n, "", 0))) {
-	substituteClassname(returntype, tm);
-	Replaceall(tm, "$cscall", upcall);
+    if ((tm = Swig_typemap_lookup("csdirectorout", n, "", 0))) {
+      substituteClassname(returntype, tm);
+      Replaceall(tm, "$cscall", upcall);
+      if (!is_void)
+	Insert(tm, 0, "return ");
+      Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
 
-	Printf(callback_code, "    return %s;\n", tm);
-      }
-
-      Delete(tm);
-    } else
-      Printf(callback_code, "    %s;\n", upcall);
+      // pre and post attribute support
+      bool is_pre_code = Len(pre_code) > 0;
+      bool is_post_code = Len(post_code) > 0;
+      bool is_terminator_code = Len(terminator_code) > 0;
+      if (is_pre_code && is_post_code)
+	Printf(callback_code, "%s\n    try {\n      %s;\n    } finally {\n%s\n    }\n", pre_code, tm, post_code);
+      else if (is_pre_code)
+	Printf(callback_code, "%s\n    %s;\n", pre_code, tm);
+      else if (is_post_code)
+	Printf(callback_code, "    try {\n      %s;\n    } finally {\n%s\n    }\n", tm, post_code);
+      else
+	Printf(callback_code, "    %s;\n", tm);
+      if (is_terminator_code)
+	Printv(callback_code, "\n", terminator_code, NIL);
+    }
 
     Printf(callback_code, "  }\n");
     Delete(upcall);
@@ -3870,6 +3917,9 @@ public:
       Printf(director_connect_parms, "SwigDirector%s%s delegate%s", classname, methid, methid);
     }
 
+    Delete(pre_code);
+    Delete(post_code);
+    Delete(terminator_code);
     Delete(qualified_return);
     Delete(declaration);
     Delete(callback_typedef_parms);
@@ -3890,7 +3940,7 @@ public:
     Node *parent = parentNode(n);
     String *decl = Getattr(n, "decl");
     String *supername = Swig_class_name(parent);
-    String *classname = directorClassName(parent);
+    String *dirclassname = directorClassName(parent);
     String *sub = NewString("");
     Parm *p;
     ParmList *superparms = Getattr(n, "parms");
@@ -3914,11 +3964,11 @@ public:
       /* constructor */
       {
 	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 0);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 0);
 	String *call = Swig_csuperclass_call(0, basetype, superparms);
 	String *classtype = SwigType_namestr(Getattr(n, "name"));
 
-	Printf(f_directors, "%s::%s : %s, %s {\n", classname, target, call, Getattr(parent, "director:ctor"));
+	Printf(f_directors, "%s::%s : %s, %s {\n", dirclassname, target, call, Getattr(parent, "director:ctor"));
 	Printf(f_directors, "  swig_init_callbacks();\n");
 	Printf(f_directors, "}\n\n");
 
@@ -3929,7 +3979,7 @@ public:
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, classname, parms, 0, 1);
+	String *target = Swig_method_decl(0, decl, dirclassname, parms, 0, 1);
 	Printf(f_directors_h, "    %s;\n", target);
 	Delete(target);
       }
@@ -3938,6 +3988,7 @@ public:
     Delete(sub);
     Delete(supername);
     Delete(parms);
+    Delete(dirclassname);
     return Language::classDirectorConstructor(n);
   }
 
@@ -3946,18 +3997,18 @@ public:
    * ------------------------------------------------------------ */
 
   int classDirectorDefaultConstructor(Node *n) {
-    String *classname = directorClassName(n);
+    String *dirclassname = directorClassName(n);
     String *classtype = SwigType_namestr(Getattr(n, "name"));
     Wrapper *w = NewWrapper();
 
-    Printf(w->def, "%s::%s() : %s {", classname, classname, Getattr(n, "director:ctor"));
+    Printf(w->def, "%s::%s() : %s {", dirclassname, dirclassname, Getattr(n, "director:ctor"));
     Printf(w->code, "}\n");
     Wrapper_print(w, f_directors);
 
-    Printf(f_directors_h, "    %s();\n", classname);
+    Printf(f_directors_h, "    %s();\n", dirclassname);
     DelWrapper(w);
     Delete(classtype);
-    Delete(classname);
+    Delete(dirclassname);
     return Language::classDirectorDefaultConstructor(n);
   }
 
@@ -3998,15 +4049,15 @@ public:
 
   int classDirectorDestructor(Node *n) {
     Node *current_class = getCurrentClass();
-    String *classname = directorClassName(current_class);
+    String *dirclassname = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
     if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~%s() throw ();\n", classname);
-      Printf(w->def, "%s::~%s() throw () {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s() throw ();\n", dirclassname);
+      Printf(w->def, "%s::~%s() throw () {\n", dirclassname, dirclassname);
     } else {
-      Printf(f_directors_h, "    virtual ~%s();\n", classname);
-      Printf(w->def, "%s::~%s() {\n", classname, classname);
+      Printf(f_directors_h, "    virtual ~%s();\n", dirclassname);
+      Printf(w->def, "%s::~%s() {\n", dirclassname, dirclassname);
     }
 
     Printv(w->code, "}\n", NIL);
@@ -4014,7 +4065,7 @@ public:
     Wrapper_print(w, f_directors);
 
     DelWrapper(w);
-    Delete(classname);
+    Delete(dirclassname);
     return SWIG_OK;
   }
 

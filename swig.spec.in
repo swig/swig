@@ -1,4 +1,4 @@
-# You can build the package from SVN using something like:
+# You can build the package from Git using something like:
 # tar -czf swig-@PACKAGE_VERSION@.tar.gz swig-@PACKAGE_VERSION@ && rpmbuild -tb swig-@PACKAGE_VERSION@.tar.gz
 # @configure_input@
 
@@ -36,7 +36,7 @@ its parse tree in the form of XML and Lisp s-expressions.
 %setup -q -n %{name}-%{version}
 
 %build
-# so we can build package from SVN source too
+# so we can build package from Git source too
 [ ! -r configure ] && ./autogen.sh
 %configure
 make
