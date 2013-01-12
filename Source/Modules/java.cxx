@@ -161,6 +161,30 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
+   * constructIntermediateClassName()
+   *
+   * Construct the fully qualified name of the intermidiate class and set
+   * the full_imclass_name attribute accordingly.
+   * ----------------------------------------------------------------------------- */
+  void constructIntermediateClassName(Node *n) {
+    String *nspace = Getattr(n, "sym:nspace");
+
+    if (imclass_class_package && package)
+      full_imclass_name = NewStringf("%s.%s.%s", package, imclass_class_package, imclass_name);
+    else if (package && nspace)
+      full_imclass_name = NewStringf("%s.%s", package, imclass_name);
+    else if (imclass_class_package)
+      full_imclass_name = NewStringf("%s.%s", imclass_class_package, imclass_name);
+    else
+      full_imclass_name = NewStringf("%s", imclass_name);
+
+    if (nspace && !package) {
+      String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
+      Swig_warning(WARN_JAVA_NSPACE_WITHOUT_PACKAGE, Getfile(n), Getline(n), "The nspace feature is used on '%s' without a package is specified with -package - This may result in generated code that does not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
+    }
+  }
+
+  /* -----------------------------------------------------------------------------
    * getProxyName()
    *
    * Test to see if a type corresponds to something wrapped with a proxy class.
@@ -365,7 +389,7 @@ public:
     proxy_class_code = NewString("");
     module_class_constants_code = NewString("");
     imclass_baseclass = NewString("");
-    imclass_class_package = NewString("");
+    imclass_class_package = NULL;
     imclass_interfaces = NewString("");
     imclass_class_modifiers = NewString("");
     module_class_code = NewString("");
@@ -446,7 +470,7 @@ public:
     }
     // Generate the intermediary class
     {
-      String *filen = NewStringf("%s%s/%s.java", SWIG_output_directory(), imclass_class_package, imclass_name);
+      String *filen = NewStringf("%s%s.java", outputDirectory(imclass_class_package), imclass_name);
       File *f_im = NewFile(filen, "w", SWIG_output_files());
       if (!f_im) {
 	FileErrorDisplay(filen);
@@ -459,7 +483,9 @@ public:
       // Start writing out the intermediary class file
       emitBanner(f_im);
 
-      if (Len(imclass_class_package))
+      if (imclass_class_package && package)
+        Printf(f_im, "package %s.%s;", package, imclass_class_package);
+      else if (imclass_class_package)
         Printf(f_im, "package %s;", imclass_class_package);
       else if (package)
         Printf(f_im, "package %s;\n", package);
@@ -1182,19 +1208,9 @@ public:
 
       String *nspace = Getattr(n, "sym:nspace"); // NSpace/getNSpace() only works during Language::enumDeclaration call
       if (proxy_flag && !is_wrapping_class()) {
-	// Global enums / enums in a namespace
-	assert(!full_imclass_name);
-
-	if (!nspace) {
-	  full_imclass_name = NewStringf("%s", imclass_name);
-	} else {
-	  if (package) {
-	    full_imclass_name = NewStringf("%s.%s", package, imclass_name);
-	  } else {
-	    String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
-	    Swig_warning(WARN_JAVA_NSPACE_WITHOUT_PACKAGE, Getfile(n), Getline(n), "The nspace feature is used on '%s' without a package is specified with -package - This may result in generated code that does not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
-	  }
-	}
+	      // Global enums / enums in a namespace
+	      assert(!full_imclass_name);
+	      constructIntermediateClassName(n);
       }
 
       enum_code = NewString("");
@@ -1899,38 +1915,35 @@ public:
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
       String *nspace = getNSpace();
+      constructIntermediateClassName(n);
 
       if (!nspace) {
-	full_proxy_class_name = NewStringf("%s", proxy_class_name);
-	full_imclass_name = NewStringf("%s", imclass_name);
-	if (Cmp(proxy_class_name, imclass_name) == 0) {
-	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
-	}
+        full_proxy_class_name = NewStringf("%s", proxy_class_name);
 
-	if (Cmp(proxy_class_name, module_class_name) == 0) {
-	  Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
-	}
+        if (Cmp(proxy_class_name, imclass_name) == 0) {
+          Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
+          SWIG_exit(EXIT_FAILURE);
+        }
+
+        if (Cmp(proxy_class_name, module_class_name) == 0) {
+          Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
+          SWIG_exit(EXIT_FAILURE);
+        }
       } else {
-	if (package) {
-	  full_proxy_class_name = NewStringf("%s.%s.%s", package, nspace, proxy_class_name);
-	  full_imclass_name = NewStringf("%s.%s", package, imclass_name);
-	} else {
-	  String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
-	  Swig_warning(WARN_JAVA_NSPACE_WITHOUT_PACKAGE, Getfile(n), Getline(n), "The nspace feature is used on '%s' without a package is specified with -package - This may result in generated code that does not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
-	}
+        if (package) {
+          full_proxy_class_name = NewStringf("%s.%s.%s", package, nspace, proxy_class_name);
+        }
       }
 
       if (!addSymbol(proxy_class_name, n, nspace))
-	return SWIG_ERROR;
+        return SWIG_ERROR;
 
       String *output_directory = outputDirectory(nspace);
       String *filen = NewStringf("%s%s.java", output_directory, proxy_class_name);
       f_proxy = NewFile(filen, "w", SWIG_output_files());
       if (!f_proxy) {
-	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+        FileErrorDisplay(filen);
+        SWIG_exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
