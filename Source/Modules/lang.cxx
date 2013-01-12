@@ -11,8 +11,6 @@
  * Language base class functions.  Default C++ handling is also implemented here.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_lang_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 #include <ctype.h>
@@ -346,6 +344,27 @@ Language::~Language() {
   Delete(none_comparison);
   this_ = 0;
 }
+
+  /* -----------------------------------------------------------------------------
+   * directorClassName()
+   * ----------------------------------------------------------------------------- */
+
+  String *Language::directorClassName(Node *n) {
+    String *dirclassname;
+    String *nspace = NewString(Getattr(n, "sym:nspace"));
+    const char *attrib = "director:classname";
+    String *classname = Getattr(n, "sym:name");
+
+    Replace(nspace, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
+    if (Len(nspace) > 0)
+      dirclassname = NewStringf("SwigDirector_%s_%s", nspace, classname);
+    else
+      dirclassname = NewStringf("SwigDirector_%s", classname);
+    Setattr(n, attrib, dirclassname);
+
+    Delete(nspace);
+    return dirclassname;
+  }
 
 /* ----------------------------------------------------------------------
    emit_one()
@@ -2405,7 +2424,7 @@ int Language::classDeclaration(Node *n) {
     }
 
     if (dir) {
-      DirectorClassName = NewStringf("SwigDirector_%s", symname);
+      DirectorClassName = directorClassName(n);
       classDirector(n);
     }
     /* check for abstract after resolving directors */

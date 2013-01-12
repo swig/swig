@@ -11,8 +11,6 @@
  * Guile language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_guile_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #include <ctype.h>

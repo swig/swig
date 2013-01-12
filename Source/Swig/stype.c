@@ -12,8 +12,6 @@
  * the form of simple strings.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_stype_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 #include <ctype.h>

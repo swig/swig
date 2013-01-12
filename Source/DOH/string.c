@@ -12,8 +12,6 @@
  *     file semantics.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_string_c[] = "$Id$";
-
 #include "dohint.h"
 
 extern DohObjInfo DohStringType;

@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-01-11: Brant Kyser
+	    [Java, C#, D] SF Bug #1299 - Fix generated names for when %nspace is used on
+            classes with the same name in two different namespaces.
+
 2013-01-11: Vladimir Kalinin
 	    [C#] Add support for csdirectorin 'pre', 'post' and 'terminator' attributes.
 

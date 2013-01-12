@@ -20,8 +20,6 @@
  * %v - variable name is substituted
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_naming_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 #include <ctype.h>
