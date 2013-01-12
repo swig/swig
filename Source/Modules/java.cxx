@@ -67,7 +67,7 @@ class JAVA:public Language {
   String *imclass_imports;	//intermediary class imports from %pragma
   String *module_imports;	//module imports from %pragma
   String *imclass_baseclass;	//inheritance for intermediary class class from %pragma
-  String *imclass_class_package; //package in which to generate the jni class
+  String *imclass_package; //package in which to generate the jni class
   String *module_baseclass;	//inheritance for module class from %pragma
   String *imclass_interfaces;	//interfaces for intermediary class class from %pragma
   String *module_interfaces;	//interfaces for module class from %pragma
@@ -169,12 +169,12 @@ public:
   void constructIntermediateClassName(Node *n) {
     String *nspace = Getattr(n, "sym:nspace");
 
-    if (imclass_class_package && package)
-      full_imclass_name = NewStringf("%s.%s.%s", package, imclass_class_package, imclass_name);
+    if (imclass_package && package)
+      full_imclass_name = NewStringf("%s.%s.%s", package, imclass_package, imclass_name);
     else if (package && nspace)
       full_imclass_name = NewStringf("%s.%s", package, imclass_name);
-    else if (imclass_class_package)
-      full_imclass_name = NewStringf("%s.%s", imclass_class_package, imclass_name);
+    else if (imclass_package)
+      full_imclass_name = NewStringf("%s.%s", imclass_package, imclass_name);
     else
       full_imclass_name = NewStringf("%s", imclass_name);
 
@@ -389,7 +389,7 @@ public:
     proxy_class_code = NewString("");
     module_class_constants_code = NewString("");
     imclass_baseclass = NewString("");
-    imclass_class_package = NULL;
+    imclass_package = NULL;
     imclass_interfaces = NewString("");
     imclass_class_modifiers = NewString("");
     module_class_code = NewString("");
@@ -470,7 +470,7 @@ public:
     }
     // Generate the intermediary class
     {
-      String *filen = NewStringf("%s%s.java", outputDirectory(imclass_class_package), imclass_name);
+      String *filen = NewStringf("%s%s.java", outputDirectory(imclass_package), imclass_name);
       File *f_im = NewFile(filen, "w", SWIG_output_files());
       if (!f_im) {
 	FileErrorDisplay(filen);
@@ -483,10 +483,10 @@ public:
       // Start writing out the intermediary class file
       emitBanner(f_im);
 
-      if (imclass_class_package && package)
-        Printf(f_im, "package %s.%s;", package, imclass_class_package);
-      else if (imclass_class_package)
-        Printf(f_im, "package %s;", imclass_class_package);
+      if (imclass_package && package)
+        Printf(f_im, "package %s.%s;", package, imclass_package);
+      else if (imclass_package)
+        Printf(f_im, "package %s;", imclass_package);
       else if (package)
         Printf(f_im, "package %s;\n", package);
 
@@ -655,8 +655,8 @@ public:
     module_class_constants_code = NULL;
     Delete(imclass_baseclass);
     imclass_baseclass = NULL;
-    Delete(imclass_class_package);
-    imclass_class_package = NULL;
+    Delete(imclass_package);
+    imclass_package = NULL;
     Delete(imclass_interfaces);
     imclass_interfaces = NULL;
     Delete(imclass_class_modifiers);
@@ -1625,9 +1625,9 @@ public:
 	  Delete(imclass_baseclass);
 	  imclass_baseclass = Copy(strvalue);
 	} else if (Strcmp(code, "jniclasspackage") == 0) {
-    Delete(imclass_class_package);
-    imclass_class_package = Copy(strvalue);
-    String *imclass_class_package_jniname = makeValidJniName(imclass_class_package);
+    Delete(imclass_package);
+    imclass_package = Copy(strvalue);
+    String *imclass_class_package_jniname = makeValidJniName(imclass_package);
     Printv(jnipackage, imclass_class_package_jniname, NIL);
     Delete(imclass_class_package_jniname);
     Replaceall(jnipackage, NSPACE_SEPARATOR, "_");
