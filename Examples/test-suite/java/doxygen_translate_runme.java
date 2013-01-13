@@ -28,9 +28,9 @@ public class doxygen_translate_runme {
     wantedComments.put("doxygen_translate.doxygen_translate.function(int, float)",
     		" <i>Hello </i>\n" +
     		" \n" +
-    		" <li>some list item \n" +
+    		" <li>some list item</li>\n" +
     		" \n" +
-    		" </li>@author lots of them \n" +
+    		" @author lots of them \n" +
     		" \n" +
     		" @author Zubr \n" +
     		" \n" +
@@ -57,28 +57,28 @@ public class doxygen_translate_runme {
     		" If: ANOTHERCONDITION {\n" +
     		" First part of comment \n" +
     		" If: SECONDCONDITION {\n" +
-    		" Nested condition text \n" +
-    		" }Else if: THIRDCONDITION {\n" +
-    		" The third condition text \n" +
-    		" }Else:  {The last text block \n" +
-    		" }\n" +
-    		" }Else:  {Second part of comment \n" +
+    		" Nested condition text}\n" +
+    		" Else if: THIRDCONDITION {\n" +
+    		" The third condition text}\n" +
+    		" Else:  {The last text block}}\n" +
+    		" \n" +
+    		" Else:  {Second part of comment \n" +
     		" If: CONDITION {\n" +
-    		" Second part extended \n" +
-    		" }\n" +
-    		" }\n" +
+    		" Second part extended}}\n" +
+    		" \n" +
+    		" \n" +
     		" \n" +
     		" If not: SOMECONDITION {\n" +
-    		" This is printed if not \n" +
-    		" }\n" +
+    		" This is printed if not}\n" +
+    		" \n" +
     		" \n" +
     		" <img src=testImage.bmp alt=\"Hello, world!\" />\n" +
     		" \n" +
     		" <ul> \n" +
     		" \n" +
-    		" <li>Some unordered list \n" +
-    		" </li><li>With lots of items \n" +
-    		" </li><li>lots of lots of items \n" +
+    		" <li>Some unordered list</li>\n" +
+    		" <li>With lots of items</li>\n" +
+    		" <li>lots of lots of items</li>\n" +
     		" \n" +
     		" </li></ul> \n" +
     		" \n" +
@@ -100,9 +100,9 @@ public class doxygen_translate_runme {
     		" \n" +
     		" <p alt=\"The paragraph title \">\n" +
     		" The paragraph text. \n" +
-    		" Maybe even multiline \n" +
+    		" Maybe even multiline</p>\n" +
     		" \n" +
-    		" </p>@param a the first param \n" +
+    		" @param a the first param \n" +
     		" \n" +
     		" Remarks: Some remark text \n" +
     		" \n" +

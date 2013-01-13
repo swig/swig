@@ -56,6 +56,7 @@ void backslashB()
 /**
  * Backslash e at end of \e line froze SWIG \e
  * with old comment parser.
+ * \arg some list item
  */
 void backslashC()
 {}
