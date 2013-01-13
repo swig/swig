@@ -1114,19 +1114,26 @@ size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line)
 size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
 {
     switch (line[pos]) {
-    case '\\':  // process doxy command or escaped char
-       /* switch (line[pos + 1]) {
-        case '$':
-        case '@':
-        case '\':
-        case '&':
-        case '~':
-        case '<':
-        case '>':
-        case '#': \% \" \. \::
-        }
-        TODO break case if any of escaped chars */
+    case '\\':
     case '@': {
+      // process doxy commands for escaped characters - handling this separately
+      // supports documentation text like \@someText
+      if ((pos + 1) < line.size()) {
+        string escapedChars = "$@\\&~<>#%\".";
+        if (escapedChars.find(line[pos + 1]) != string::npos) {
+          addDoxyCommand(m_tokenList, line.substr(pos + 1, 1));
+          pos += 2;
+          break;
+        } else if ((pos + 2) < line.size()  &&
+                    line[pos + 1] == ':'  &&  line[pos + 2] == ':') {
+          // add command \:: - handling this separately supports documentation
+          // text like \::someText
+          addDoxyCommand(m_tokenList, line.substr(pos + 1, 2));
+          pos += 3;
+          break;
+        }
+      }
+      // handle word commands and \f[, \f$, ... commands
       pos++;
       // characters '$[]{}' are used in commands \f$, \f[, ...
       size_t endOfWordPos = line.find_first_not_of("abcdefghijklmnopqrstuvwxyz$[]{}", pos);

@@ -18,7 +18,9 @@ const int sectionIndicatorsSize = sizeof(sectionIndicators) / sizeof(*sectionInd
 
 /* All of the doxygen commands divided up by how they are parsed */
 const char *simpleCommands[] = {
-  "n", "$", "@", "\\", "&", "~", "<", ">", "#", "%", "\"", ".", "::", "endcond",
+  // the first line are escaped chars, except \~, which is a language ID command.
+  "n", "$", "@", "\\", "&", "~", "<", ">", "#", "%", "\"", ".", "::",
+  "endcond",
   "callgraph", "callergraph", "showinitializer", "hideinitializer", "internal",
   "nosubgrouping", "public", "publicsection", "private", "privatesection",
   "protected", "protectedsection", "tableofcontents"};

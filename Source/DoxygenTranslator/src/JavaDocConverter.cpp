@@ -296,7 +296,6 @@ void JavaDocConverter::handleTagChar(DoxygenEntity& tag, std::string& translated
     translatedComment += arg;
   else
     translatedComment += tag.typeOfEntity;
-  translatedComment += " ";
 }
 
 // handles tags which are the same in Doxygen and Javadoc.
@@ -394,10 +393,9 @@ void JavaDocConverter::handleTagParam(DoxygenEntity& tag,
     return;
 
   translatedComment += "@param ";
-  translatedComment += tag.entityList.begin()->data + " ";
+  translatedComment += tag.entityList.begin()->data;
   tag.entityList.pop_front();
   handleParagraph(tag, translatedComment, dummy);
-  printf("cmd: %s\n", translatedComment.c_str());
 }
 
 

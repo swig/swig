@@ -33,8 +33,9 @@ void backslashA()
 {}
 
 // Output of escaped symbols below in doxygen generated HTML:
-// Rendered: Escaped symbols: $ @ \ & < > # % " \. ::
-// HTML source: Escaped symbols: $ @ \ &amp; &lt; &gt; # % " \. :: 
+// Rendered: Escaped symbols: $ @ \ & < > # % " \. :: @text ::text
+// HTML source: Escaped symbols: $ @ \ &amp; &lt; &gt; # % " \. :: @text ::text
+
 
 /**
  * Doxy command without trailing \cspace space is ignored - nothing appears
@@ -46,8 +47,8 @@ void backslashA()
  * double quotes: "d:\xyz\c\myfile", "@something". single quotes do not help:
  * 'd:\xyz\c\myfile'. Escaping works: d:\\xyz\\c\\myfile. Unix
  * paths of course have no such problems: /xyz/c/myfile
- * Escaped symbols:
- * \$ \@ \\ \& \~ \< \> \# \% \" \. \::
+ * Commands for escaped symbols:
+ * \$ \@ \\ \& \~ \< \> \# \% \" \. \:: \@text \::text
  */
 void backslashB()
 {}

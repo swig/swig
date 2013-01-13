@@ -3,6 +3,11 @@ import com.sun.javadoc.*;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Iterator;
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 
 public class commentParser {
     static HashMap<String, String> parsedComments = new HashMap<String, String>();
@@ -56,10 +61,29 @@ public class commentParser {
             }
 
             if (!actualStr.equals(wantedStr)) {
-                System.out.println("Documentation comments for " + e.getKey() + " do not match: ");
+                System.out.println("Documentation comments for " + e.getKey() + " do not match!");
+                String expectedFileName = "expected.txt";
+                String gotFileName = "got.txt";
+                System.out.println("Output is also saved to files '" + expectedFileName +
+                                   "' and '" + gotFileName + "'");
                 // here we print original strings, for nicer output
                 System.out.println("\n\n---\nexpected:\n" + wantedComments.get(e.getKey()));
                 System.out.println("\n\n---\ngot:\n" + e.getValue());
+
+                try {
+                    // write expected string to file
+                    BufferedWriter expectedFile = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(expectedFileName)));
+                    expectedFile.write(wantedComments.get(e.getKey()));
+                    expectedFile.close();
+
+                    // write translated string to file
+                    BufferedWriter gotFile = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(gotFileName)));
+                    gotFile.write(e.getValue());
+                    gotFile.close();
+                } catch (IOException ex) {
+                    System.out.println("Error when writing output to file: " + ex);
+                }
+                
                 errorCount++;
             }
         }
