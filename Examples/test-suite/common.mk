@@ -566,6 +566,8 @@ all:	$(NOT_BROKEN_TEST_CASES) $(BROKEN_TEST_CASES)
 
 check: 	$(NOT_BROKEN_TEST_CASES)
 
+check-cpp11: $(CPP0X_TEST_CASES:=.cpptest)
+
 # partialcheck target runs SWIG only, ie no compilation or running of tests (for a subset of languages)
 partialcheck:
 	$(MAKE) check CC=true CXX=true LDSHARED=true CXXSHARED=true RUNTOOL=true COMPILETOOL=true
