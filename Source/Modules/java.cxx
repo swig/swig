@@ -1930,9 +1930,10 @@ public:
           SWIG_exit(EXIT_FAILURE);
         }
       } else {
-        if (package) {
+        if (package)
           full_proxy_class_name = NewStringf("%s.%s.%s", package, nspace, proxy_class_name);
-        }
+        else
+          full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
       }
 
       if (!addSymbol(proxy_class_name, n, nspace))
@@ -3592,8 +3593,11 @@ public:
     String *qualified_classname = Copy(classname);
     String *nspace = getNSpace();
 
-    if (nspace)
+    if (nspace && package)
       Insert(qualified_classname, 0, NewStringf("%s.%s.", package, nspace));
+    else if(nspace)
+      Insert(qualified_classname, 0, NewStringf("%s.", nspace));
+
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
     // isn't at this point, so we have to manufacture it ourselves. At least
