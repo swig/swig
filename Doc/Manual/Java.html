@@ -1923,18 +1923,9 @@ The default behaviour described above can be improved via the <a href="SWIGPlus.
 Note that it only works for classes, structs, unions and enums declared within a named C++ namespace.
 When the nspace feature is used, the C++ namespaces are converted into Java packages of the same name.
 Proxy classes are thus declared within a package and this proxy makes numerous calls to the JNI intermediary class which is declared in the unnamed package by default.
-As Java does not support types declared in a named package accessing types declared in an unnamed package, the <tt>-package</tt> commandline option described earlier must be used to provide a parent package.
-So if SWIG is run using the <tt>-package com.myco</tt> option, a wrapped class, <tt>MyWorld::Material::Color</tt>, can then be accessed as <tt>com.myco.MyWorld.Material.Color</tt>. If you don't specify a package, you will get the following error message:
+As Java does not support types declared in a named package accessing types declared in an unnamed package, the <tt>-package</tt> commandline option described earlier generally should be used to provide a parent package.
+So if SWIG is run using the <tt>-package com.myco</tt> option, a wrapped class, <tt>MyWorld::Material::Color</tt>, can then be accessed as <tt>com.myco.MyWorld.Material.Color</tt>. If you don't specify a package, you will get a warning 186. If it is undesirable to have a single top level package, the nspace feature may be used without the <tt>-package<tt> commandline option (and the resulting warning ignored) if all of the types exposed using Swig are placed in a package using the nspace feature and the jniclasspackage pragma is used to specify a package for the JNI intermediate class.
 </p>
-
-<div class="shell">
-<pre>
-example.i:16: Error: The nspace feature used on 'MyWorld::Material::Color' is not supported unless
-a package is specified
-with -package - Java does not support types declared in a named package accessing types declared
-in an unnamed package.
-</pre>
-</div>
 
 <p>
 If the resulting use of the nspace feature and hence packages results in a proxy class in one package deriving or using a proxy class from another package,
@@ -2224,6 +2215,9 @@ The intermediary JNI class can be tailored through the use of pragmas, but is no
 
 <tr>
     <td>jniclassbase            </td> <td>Base class for the intermediary JNI class</td>
+</tr>
+<tr>
+    <td>jniclasspackage         </td> <td>Package in which to place the intermediary JNI class</td>
 </tr>
 <tr>
     <td>jniclassclassmodifiers  </td> <td>Class modifiers and class type for the intermediary JNI class</td>
