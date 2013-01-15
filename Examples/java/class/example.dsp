@@ -136,7 +136,7 @@ InputName=example
 	echo JAVA_INCLUDE: %JAVA_INCLUDE% 
 	echo JAVA_BIN: %JAVA_BIN% 
 	echo on 
-	..\..\..\swig.exe -c++ -java $(InputPath) 
+	..\..\..\swig.exe -c++ -java "$(InputPath)" 
 	
 # End Custom Build
 
@@ -151,7 +151,7 @@ InputName=example
 	echo JAVA_INCLUDE: %JAVA_INCLUDE% 
 	echo JAVA_BIN: %JAVA_BIN% 
 	echo on 
-	..\..\..\swig.exe -c++ -java $(InputPath) 
+	..\..\..\swig.exe -c++ -java "$(InputPath)" 
 	
 # End Custom Build
 
