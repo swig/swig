@@ -2310,15 +2310,18 @@ public:
 	// Get the C# variable type - obtained differently depending on whether a setter is required.
 	String *variable_type = return_type;
 	if (setter_flag) {
-	  assert(last_parm);
-	  p = last_parm;	// (last parameter is the only parameter for properties)
-	  SwigType *pt = Getattr(p, "type");
-	  if ((tm = Getattr(p, "tmap:cstype"))) {
-	    substituteClassname(pt, tm);
-            String *cstypeout = Getattr(p, "tmap:cstype:out");	// the type in the cstype typemap's out attribute overrides the type in the typemap
-	    variable_type = cstypeout ? cstypeout : tm;
+	  assert(last_parm);	// (last parameter is the only parameter for properties)
+	  /* Get variable type - ensure the variable name is fully resolved during typemap lookup via the symbol table set in NewParmNode */
+	  SwigType *cvariable_type = Getattr(last_parm, "type");
+	  Parm *variable_parm = NewParmNode(cvariable_type, n);
+	  if ((tm = Swig_typemap_lookup("cstype", variable_parm, "", 0))) {
+	    String *cstypeout = Getattr(variable_parm, "tmap:cstype:out");	// the type in the cstype typemap's out attribute overrides the type in the typemap
+	    if (cstypeout)
+	      tm = cstypeout;
+	    substituteClassname(cvariable_type, tm);
+	    variable_type = tm;
 	  } else {
-	    Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csvarin typemap defined for %s\n", SwigType_str(pt, 0));
+	    Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(cvariable_type, 0));
 	  }
 	}
 	const String *csattributes = Getattr(n, "feature:cs:attributes");
@@ -2333,17 +2336,17 @@ public:
 
       if (setter_flag) {
 	// Setter method
-	assert(last_parm);
-	p = last_parm;		// (last parameter is the only parameter for properties)
-	SwigType *pt = Getattr(p, "type");
-	if ((tm = Getattr(p, "tmap:csvarin"))) {
-	  substituteClassname(pt, tm);
+	assert(last_parm);	// (last parameter is the only parameter for properties)
+	SwigType *cvariable_type = Getattr(last_parm, "type");
+	Parm *variable_parm = NewParmNode(cvariable_type, n);
+	if ((tm = Swig_typemap_lookup("csvarin", variable_parm, "", 0))) {
+	  substituteClassname(cvariable_type, tm);
 	  Replaceall(tm, "$csinput", "value");
 	  Replaceall(tm, "$imcall", imcall);
-	  excodeSubstitute(n, tm, "csvarin", p);
+	  excodeSubstitute(n, tm, "csvarin", variable_parm);
 	  Printf(proxy_class_code, "%s", tm);
 	} else {
-	  Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csvarin typemap defined for %s\n", SwigType_str(pt, 0));
+	  Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csvarin typemap defined for %s\n", SwigType_str(cvariable_type, 0));
 	}
       } else {
 	// Getter method
