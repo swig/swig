@@ -4294,18 +4294,18 @@ public:
 
     Wrapper *w = NewWrapper();
 
-    if (Len(package_path) > 0)
-      if (Len(getNSpace()) > 0) {
-        internal_classname = NewStringf("%s/%s/%s", package_path, getNSpace(), classname);
-
-        // If the namespace is multiple levels, the result of getNSpace() will have inserted
-        // .'s to delimit namespaces, so we need to replace those with /'s
-        Replace(internal_classname, ".", "/", DOH_REPLACE_ANY);
-      }
-      else
-        internal_classname = NewStringf("%s/%s", package_path, classname);
+    if (Len(package_path) > 0 && Len(getNSpace()) > 0)
+      internal_classname = NewStringf("%s/%s/%s", package_path, getNSpace(), classname);
+    else if (Len(package_path) > 0)
+      internal_classname = NewStringf("%s/%s", package_path, classname);
+    else if (Len(getNSpace()) > 0)
+      internal_classname = NewStringf("%s/%s", getNSpace(), classname);
     else
       internal_classname = NewStringf("%s", classname);
+
+    // If the namespace is multiple levels, the result of getNSpace() will have inserted
+    // .'s to delimit namespaces, so we need to replace those with /'s
+    Replace(internal_classname, ".", "/", DOH_REPLACE_ANY);
 
     Wrapper_add_localv(w, "baseclass", "static jclass baseclass", "= 0", NIL);
     Printf(w->def, "void %s::swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls, bool swig_mem_own, bool weak_global) {", director_classname);
