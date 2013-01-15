@@ -4305,7 +4305,7 @@ public:
 
     // If the namespace is multiple levels, the result of getNSpace() will have inserted
     // .'s to delimit namespaces, so we need to replace those with /'s
-    Replace(internal_classname, ".", "/", DOH_REPLACE_ANY);
+    Replace(internal_classname, NSPACE_SEPARATOR, "/", DOH_REPLACE_ANY);
 
     Wrapper_add_localv(w, "baseclass", "static jclass baseclass", "= 0", NIL);
     Printf(w->def, "void %s::swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls, bool swig_mem_own, bool weak_global) {", director_classname);
