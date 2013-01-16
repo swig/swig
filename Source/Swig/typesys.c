@@ -1194,6 +1194,8 @@ int SwigType_type(SwigType *t) {
   if (strncmp(c, "p.", 2) == 0) {
     if (SwigType_type(c + 2) == T_CHAR)
       return T_STRING;
+    else if (SwigType_type(c + 2) == T_WCHAR)
+      return T_WSTRING;
     else
       return T_POINTER;
   }
@@ -1236,6 +1238,8 @@ int SwigType_type(SwigType *t) {
     return T_SCHAR;
   if (strcmp(c, "unsigned char") == 0)
     return T_UCHAR;
+  if (strcmp(c, "wchar_t") == 0)
+    return T_WCHAR;
   if (strcmp(c, "float") == 0)
     return T_FLOAT;
   if (strcmp(c, "double") == 0)

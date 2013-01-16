@@ -100,6 +100,9 @@ extern "C" {
 #define   T_SYMBOL     98
 #define   T_ERROR      99
 
+/* wide string literal, may contain escaped wide chars like \x1234 as well as normal escape sequences */
+#define   T_WSTRING    39
+
 
 /* --- File interface --- */
 

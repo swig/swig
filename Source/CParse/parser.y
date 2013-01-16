@@ -13,8 +13,8 @@
  * some point.  Beware.
  * ----------------------------------------------------------------------------- */
 
+%expect 6
 %{
-
 #define yylex yylex
 
 char cvsroot_parser_y[] = "$Id$";
@@ -1635,9 +1635,9 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token <id> ID
 %token <str> HBLOCK
 %token <id> POUND 
-%token <id> STRING
+%token <id> STRING WSTRING
 %token <loc> INCLUDE IMPORT INSERT
-%token <str> CHARCONST 
+%token <str> CHARCONST WCHARCONST
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
 %token <ivalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
@@ -1728,7 +1728,7 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate stringbrace stringbracesemi;
-%type <id>       string stringnum ;
+%type <id>       string stringnum wstring;
 %type <tparms>   template_parms;
 %type <dtype>    cpp_end cpp_vend;
 %type <ivalue>   rename_namewarn;
@@ -6001,7 +6001,7 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
                    $$ = $2;
 		   if ($$.type == T_STRING) {
 		     $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
-		   } else if ($$.type != T_CHAR) {
+		   } else if ($$.type != T_CHAR && $$.type != T_WSTRING && $$.type != T_WCHAR) {
 		     $$.rawval = 0;
 		   }
 		   $$.bitfield = 0;
@@ -6127,6 +6127,11 @@ valexpr        : exprnum { $$ = $1; }
 		  $$.type = T_ULONG;
                }
                | exprcompound { $$ = $1; }
+	       | wstring {
+		    $$.val = NewString($1);
+		    $$.rawval = NewStringf("L\"%s\"", $$.val);
+                    $$.type = T_WSTRING;
+	       }
                | CHARCONST {
 		  $$.val = NewString($1);
 		  if (Len($$.val)) {
@@ -6135,6 +6140,18 @@ valexpr        : exprnum { $$ = $1; }
 		    $$.rawval = NewString("'\\0'");
 		  }
 		  $$.type = T_CHAR;
+		  $$.bitfield = 0;
+		  $$.throws = 0;
+		  $$.throwf = 0;
+	       }
+               | WCHARCONST {
+		  $$.val = NewString($1);
+		  if (Len($$.val)) {
+		    $$.rawval = NewStringf("L\'%s\'", $$.val);
+		  } else {
+		    $$.rawval = NewString("L'\\0'");
+		  }
+		  $$.type = T_WCHAR;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
@@ -6661,6 +6678,21 @@ string         : string STRING {
                }
                | STRING { $$ = $1;}
                ; 
+/* Concatenated wide strings: L"str1" L"str2" */
+wstring         : wstring WSTRING {
+                   $$ = (char *) malloc(strlen($1)+strlen($2)+1);
+                   strcpy($$,$1);
+                   strcat($$,$2);
+               }
+/* Concatenated wide string and normal string literal: L"str1" "str2" */
+/*not all the compilers support this concatenation mode, so perhaps better to postpone it*/
+               /*| wstring STRING { here $2 comes unescaped, we have to escape it back first via NewStringf("%(escape)s)"
+                   $$ = (char *) malloc(strlen($1)+strlen($2)+1);
+                   strcpy($$,$1);
+                   strcat($$,$2);
+	       }*/
+               | WSTRING { $$ = $1;}
+               ;
 
 stringbrace    : string {
 		 $$ = NewString($1);

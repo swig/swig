@@ -509,7 +509,6 @@ static int look(Scanner * s) {
 	state = 4;		/* Possibly a SWIG directive */
       
       /* Look for possible identifiers or unicode/delimiter strings */
-
       else if ((isalpha(c)) || (c == '_') ||
 	       (s->idstart && strchr(s->idstart, c))) {
 	state = 7;
@@ -867,11 +866,15 @@ static int look(Scanner * s) {
       break;
     
     case 7:			/* Identifier or true/false or unicode/custom delimiter string */
-      if (c=='R') { /* Possibly CUSTOM DELIMITER string */
+      if (c == 'R') { /* Possibly CUSTOM DELIMITER string */
 	state = 72;
 	break;
       }
-      else if (c!='u' && c!='U' && c!='L') { /* Definitely an identifier */
+      else if (c == 'L') { /* Probably identifier but may be a wide string literal */
+	state = 77;
+	break;
+      }
+      else if (c != 'u' && c != 'U') { /* Definitely an identifier */
 	state = 70;
 	break;
       }
@@ -879,14 +882,14 @@ static int look(Scanner * s) {
       if ((c = nextchar(s)) == 0) {
 	state = 76;
       }
-      else if (c=='\"') { /* Definitely u, U or L string */
+      else if (c == '\"') { /* Definitely u, U or L string */
 	retract(s, 1);
 	state = 1000;
       }
-      else if (c=='R') { /* Possibly CUSTOM DELIMITER u, U, L string */
+      else if (c == 'R') { /* Possibly CUSTOM DELIMITER u, U, L string */
 	state = 73;
       }
-      else if (c=='8') { /* Possibly u8 string */
+      else if (c == '8') { /* Possibly u8 string */
 	state = 71;
       }
       else {
@@ -949,6 +952,59 @@ static int look(Scanner * s) {
       }
       
       break;
+
+      case 77: /*identifier or wide string literal*/
+	if ((c = nextchar(s)) == 0)
+	  return SWIG_TOKEN_ID;
+	else if (c == '\"') {
+	  s->start_line = s->line;
+	  Clear(s->text);
+	  state = 78;
+	}
+	else if (c == '\'') {
+	  s->start_line = s->line;
+	  Clear(s->text);
+	  state = 79;
+	}
+	else if (isalnum(c) || (c == '_') || (c == '$'))
+	  state = 7;
+	else {
+	  retract(s, 1);
+	  return SWIG_TOKEN_ID;
+	}
+      break;
+
+      case 78:			/* Processing a wide string literal*/
+	if ((c = nextchar(s)) == 0) {
+	  Swig_error(cparse_file, cparse_start_line, "Unterminated wide string\n");
+	  return SWIG_TOKEN_ERROR;
+	}
+	if (c == '\"') {
+	  Delitem(s->text, DOH_END);
+	  return SWIG_TOKEN_WSTRING;
+	} else if (c == '\\') {
+	  if ((c = nextchar(s)) == 0) {
+	    Swig_error(cparse_file, cparse_start_line, "Unterminated wide string\n");
+	    return SWIG_TOKEN_ERROR;
+	  }
+	}
+	break;
+
+      case 79:			/* Processing a wide char literal */
+	if ((c = nextchar(s)) == 0) {
+	  Swig_error(cparse_file, cparse_start_line, "Unterminated character constant\n");
+	  return SWIG_TOKEN_ERROR;
+	}
+	if (c == '\'') {
+	  Delitem(s->text, DOH_END);
+	  return (SWIG_TOKEN_WCHAR);
+	} else if (c == '\\') {
+	  if ((c = nextchar(s)) == 0) {
+	    Swig_error(cparse_file, cparse_start_line, "Unterminated wide char literal\n");
+	    return SWIG_TOKEN_ERROR;
+	  }
+	}
+	break;
 
     case 75:			/* Special identifier $ */
       if ((c = nextchar(s)) == 0)

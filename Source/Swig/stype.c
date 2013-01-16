@@ -131,12 +131,21 @@ SwigType *NewSwigType(int t) {
   case T_UCHAR:
     return NewString("unsigned char");
     break;
-  case T_STRING:{
+  case T_STRING: {
       SwigType *t = NewString("char");
       SwigType_add_pointer(t);
       return t;
       break;
     }
+  case T_WCHAR:
+    return NewString("wchar_t");
+    break;
+  case T_WSTRING: {
+    SwigType *t = NewString("wchar_t");
+    SwigType_add_pointer(t);
+    return t;
+    break;
+  }
   case T_LONGLONG:
     return NewString("long long");
     break;

@@ -383,6 +383,10 @@ static int yylook(void) {
     case SWIG_TOKEN_STRING:
       yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
       return STRING;
+
+    case SWIG_TOKEN_WSTRING:
+      yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
+      return WSTRING;
       
     case SWIG_TOKEN_CHAR:
       yylval.str = NewString(Scanner_text(scan));
@@ -391,7 +395,15 @@ static int yylook(void) {
 	Printf(stdout,"%d\n", Len(Scanner_text(scan)));
       }
       return CHARCONST;
-      
+
+    case SWIG_TOKEN_WCHAR:
+      yylval.str = NewString(Scanner_text(scan));
+      if (Len(yylval.str) == 0) {
+	Swig_error(cparse_file, cparse_line, "Empty character constant\n");
+	Printf(stdout,"%d\n", Len(Scanner_text(scan)));
+      }
+      return WCHARCONST;
+
       /* Numbers */
       
     case SWIG_TOKEN_INT:
