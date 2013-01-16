@@ -60,6 +60,12 @@ protected:
    * arg - html tag, with no braces
    */
   void handleTagHtml(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+
+  /* Handles HTML tags recognized by Doxygen, like <A ...>, <ul>, <table>, ... */
+  void handleDoxyHtmlTag(DoxygenEntity& tag,
+                            std::string& translatedComment,
+                            std::string &arg);
+
   /*
    * Just prints new line
    */
@@ -128,6 +134,8 @@ private:
 
   bool paramExists(std::string param);
   std::string indentAndInsertAsterisks(const std::string &doc);
+
+  void addError(int warningType, const std::string &message);
 };
 
 #endif

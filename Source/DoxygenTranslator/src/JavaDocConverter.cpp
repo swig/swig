@@ -147,6 +147,10 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["plainstd::string"] = make_pair(&JavaDocConverter::handlePlainString, "");
   tagHandlers["plainstd::endl"] = make_pair(&JavaDocConverter::handleNewLine, "");
   tagHandlers["n"] = make_pair(&JavaDocConverter::handleNewLine, "");
+
+  // HTML tags
+  tagHandlers["<ul"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<ul");
+
 }
 
 
@@ -268,6 +272,8 @@ void JavaDocConverter::translateEntity(DoxygenEntity &tag,
 
   if (it != tagHandlers.end()) {
     (this->*(it->second.first))(tag, translatedComment, it->second.second);
+  } else {
+      addError(WARN_DOXYGEN_COMMAND_ERROR, "Unknown doxygen or HTML tag: " + tag.typeOfEntity);
   }
 }
 
@@ -282,6 +288,17 @@ void JavaDocConverter::handleTagHtml(DoxygenEntity& tag, std::string& translated
     else
       translatedComment += "<" + arg + ">" + translateSubtree(tag) + "</" + arg + "> ";
   }
+}
+
+
+void JavaDocConverter::handleDoxyHtmlTag(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+    std::string htmlTagArgs = tag.data;
+    if (htmlTagArgs == "/") {
+        // end html tag, for example "</ul>
+        translatedComment += "</" + arg.substr(1) + ">";
+    } else {
+        translatedComment += arg + htmlTagArgs + ">";
+    }
 }
 
 
@@ -703,4 +720,11 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
   }
   
   return NewString(javaDocString.c_str());
+}
+
+
+void JavaDocConverter::addError(int warningType,
+                                     const std::string &message) {
+  Swig_warning(warningType, "", 0,
+               "Doxygen parser warning: %s. \n", message.c_str());
 }

@@ -27,7 +27,7 @@ DoxygenParser::DoxyCommandsMap DoxygenParser::doxygenCommands;
 std::set<std::string> DoxygenParser::doxygenSectionIndicators;
 
 const int TOKENSPERLINE = 8;    //change this to change the printing behaviour of the token list
-
+const std::string END_HTML_TAG_MARK("/");
 
 DoxygenParser::DoxygenParser(bool noisy) : noisy(noisy)
 {
@@ -76,11 +76,11 @@ void DoxygenParser::fillTables() {
     for (int i = 0; i < commandUniquesSize; i++)
         doxygenCommands[commandUniques[i]] = COMMANDUNIQUE;
 
-    for (int i = 0; i < htmlCommandsSize; i++)
-        doxygenCommands[htmlCommands[i]] = COMMANDUNIQUE;
+    for (int i = 0; i < commandHtmlSize; i++)
+        doxygenCommands[commandHtml[i]] = COMMAND_HTML;
 
-    for (int i = 0; i < commandUniquesSize; i++)
-        doxygenCommands[commandUniques[i]] = COMMANDUNIQUE;
+    for (int i = 0; i < commandHtmlEntitiesSize; i++)
+        doxygenCommands[commandHtmlEntities[i]] = COMMAND_HTML_ENTITY;
 
     // fill section indicators command set
     for (int i = 0; i < sectionIndicatorsSize; i++)
@@ -575,6 +575,32 @@ int DoxygenParser::addCommandErrorThrow(const std::string &theCommand,
 }
 
 
+int DoxygenParser::addCommandHtml(const std::string &theCommand,
+                                      const TokenList &,
+                                      DoxygenEntityList &doxyList)
+{
+    if (noisy)
+        cout << "Parsing " << theCommand << endl;
+
+    std::string htmlTagArgs = getNextWord();
+    doxyList.push_back(DoxygenEntity(theCommand, htmlTagArgs));
+    return 1;
+}
+
+
+int DoxygenParser::addCommandHtmlEntity(const std::string &theCommand,
+                                             const TokenList &,
+                                             DoxygenEntityList &doxyList)
+{
+    if (noisy)
+        cout << "Parsing " << theCommand << endl;
+
+    DoxygenEntityList aNewList;
+    doxyList.push_back(DoxygenEntity(theCommand, aNewList));
+    return 1;
+}
+
+
 int DoxygenParser::addCommandUnique(const std::string &theCommand,
                                          const TokenList &tokList,
                                          DoxygenEntityList &doxyList) {
@@ -893,6 +919,10 @@ int DoxygenParser::addCommand(const std::string &commandString,
 			return addCommandErrorThrow(theCommand, tokList, doxyList);
 		case COMMANDUNIQUE:
 			return addCommandUnique(theCommand, tokList, doxyList);
+        case COMMAND_HTML:
+            return addCommandHtml(theCommand, tokList, doxyList);
+        case COMMAND_HTML_ENTITY:
+            return addCommandHtmlEntity(theCommand, tokList, doxyList);
 	}
 	return 0;
 }
@@ -1068,10 +1098,11 @@ bool DoxygenParser::isStartOfDoxyCommentChar(char c)
 }
 
 
-void DoxygenParser::addDoxyCommand(DoxygenParser::TokenList &tokList,
+bool DoxygenParser::addDoxyCommand(DoxygenParser::TokenList &tokList,
                                         const std::string &cmd) {
     if (findCommand(cmd)) {
         tokList.push_back(Token(COMMAND, cmd));
+        return true;
     } else {
         // Unknown commands are ignored, because they are
         // also ignored by Doxygen - see test doxygen_misc_constructs.h, f. backslashB().
@@ -1079,6 +1110,8 @@ void DoxygenParser::addDoxyCommand(DoxygenParser::TokenList &tokList,
         // the line below to put unknown commands to output.
         // tokList.push_back(Token(PLAINSTRING, cmd));
     }
+
+    return false;
 }
 
 
@@ -1156,21 +1189,58 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
       // whitespaces are stored as plain strings
       size_t startOfNextWordPos = line.find_first_not_of(" \t", pos + 1);
       m_tokenList.push_back(Token(PLAINSTRING,
-                               line.substr(pos, startOfNextWordPos - pos)));
+                            line.substr(pos, startOfNextWordPos - pos)));
       pos = startOfNextWordPos;
     } break;
 
     case '<': { // process html commands
+      bool isEndHtmlTag = false;
+      pos++;
+      if (line.size() > pos &&  line[pos] == '/') {
+          isEndHtmlTag = true;
+          pos++;
+      }
 
-      size_t endHtmlPos = line.find_first_of("\t >", pos + 1);
-      if (endHtmlPos != string::npos) {
-        // will push plain string Token. If the command is not HTML supported by
-        // Doxygen, < and > will be replaced by HTML entities &lt; and &gt; respectively,
+      size_t endHtmlPos = line.find_first_of("\t\n >", pos);
+
+      // prepend '<' to distinguish HTML tags from doxygen commands
+      string cmd = line.substr(pos, endHtmlPos - pos);
+      pos = endHtmlPos;
+
+      if (addDoxyCommand(m_tokenList, '<' + cmd)) {
+          // it is a valid HTML command
+          if (line[pos] != '>') { // it should be HTML tag with args,
+                                   // for example <A ...>, <IMG ...>, ...
+              if (isEndHtmlTag) {
+                  m_tokenListIt = m_tokenList.end();
+                  printListError(WARN_DOXYGEN_COMMAND_ERROR, "Illegal end HTML tag without '>' found! Tag: " + cmd);
+              }
+              endHtmlPos = line.find(">", pos);
+              if (endHtmlPos == string::npos) {
+                  m_tokenListIt = m_tokenList.end();
+                  printListError(WARN_DOXYGEN_COMMAND_ERROR, "HTML tag without '>' found! Tag: " + cmd);
+              }
+              // add args of HTML command, like link URL, image URL, ...
+              m_tokenList.push_back(Token(PLAINSTRING,
+                                    line.substr(pos, endHtmlPos - pos)));
+          } else {
+              if (isEndHtmlTag) {
+                // it is a simple tag, so push empty string
+                m_tokenList.push_back(Token(PLAINSTRING, END_HTML_TAG_MARK));
+              } else {
+                // it is a simple tag, so push empty string
+                m_tokenList.push_back(Token(PLAINSTRING, ""));
+              }
+          }
+      } else {
+        // the command is not HTML supported by Doxygen, < and > will be
+        // replaced by HTML entities &lt; and &gt; respectively,
         // but only if 'htmlOnly' flag == false. The flag is set/reset by \htmlonly \verbatim,
         // \endhtmlonly \endverbatim Doxygen commands.
-        // handleHTMLCommand(line.substr(pos + 1), endHtmlPos - pos - 1);
+        m_tokenList.push_back(Token(PLAINSTRING, "&lt;"));
+        m_tokenList.push_back(Token(PLAINSTRING, cmd));
       }
-      pos = endHtmlPos;
+      pos++;
     } break;
 
     case '&': { // process HTML entities
@@ -1190,6 +1260,7 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
     }
     break;
     default:
+      m_tokenListIt = m_tokenList.end();
       printListError(WARN_DOXYGEN_COMMAND_ERROR, "Unknown special character: " + line[pos]);
     }
 

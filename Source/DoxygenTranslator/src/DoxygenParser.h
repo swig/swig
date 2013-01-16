@@ -33,6 +33,8 @@ private:
     COMMANDOWORD,
     COMMANDERRORTHROW,
     COMMANDUNIQUE,
+    COMMAND_HTML,
+    COMMAND_HTML_ENTITY,
     END_LINE,
     PARAGRAPH_END,
     PLAINSTRING,
@@ -299,23 +301,31 @@ private:
    * "dir", "file", "cond"
    */
   int addCommandOWord(const std::string &theCommand,
-                         const TokenList &tokList,
-                         DoxygenEntityList &doxyList);
+                      const TokenList &tokList,
+                      DoxygenEntityList &doxyList);
 
   /*
    * Commands that should not be encountered (such as PHP only)
    * goes til the end of line then returns
    */
   int addCommandErrorThrow(const std::string &theCommand,
-                              const TokenList &tokList,
-                              DoxygenEntityList &doxyList);
+                           const TokenList &tokList,
+                           DoxygenEntityList &doxyList);
+
+  int addCommandHtml(const std::string &theCommand,
+                     const TokenList &tokList,
+                     DoxygenEntityList &doxyList);
+
+  int addCommandHtmlEntity(const std::string &theCommand,
+                           const TokenList &tokList,
+                           DoxygenEntityList &doxyList);
 
   /*
    *Adds the unique commands- different process for each unique command
    */
   int addCommandUnique(const std::string &theCommand,
-                          const TokenList &tokList,
-                          DoxygenEntityList &doxyList);
+                       const TokenList &tokList,
+                       DoxygenEntityList &doxyList);
 
   /* 
    * The actual "meat" of the doxygen parser. Calls the correct addCommand...()
@@ -351,7 +361,7 @@ private:
 
   StringVector split(const std::string &text, char separator);
   bool isStartOfDoxyCommentChar(char c);
-  void addDoxyCommand(DoxygenParser::TokenList &tokList, const std::string &cmd);
+  bool addDoxyCommand(DoxygenParser::TokenList &tokList, const std::string &cmd);
 
 public:
   DoxygenParser(bool noisy = false);

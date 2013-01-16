@@ -83,19 +83,19 @@ const int commandUniquesSize = sizeof(commandUniques) / sizeof(*commandUniques);
 // Other commands are left intact, but '<' and '> are replaced with entities in HTML
 // output. So <varName> appears as &lt;varName&gt; in HTML output. The same
 // behavior must be repeated by SWIG. See Doxygen doc for the list of commands.
-// '<' and '>' are used to differentiate HTML commands from doxygen commands.
-const char *htmlCommands[] = {
-  "<A>", "<B>", "<BLOCKQUOTE>", "<BODY>", "<BR>", "<CENTER>", "<CAPTION>", "<CODE>", "<DFN>", "<DFN>",
-  "<DIV>", "<DL>", "<DT>", "<EM>", "<FORM>", "<HR>", "<H1>", "<H2>", "<H3>", "<I>", "<INPUT>", "<IMG>",
-  "<LI>", "<META>", "<MULTICOL>", "<OL>", "<P>", "<PRE>", "<SMALL>", "<SPAN>", "<STRONG>",
-  "<SUB>", "<SUP>", "<TABLE>", "<TD>", "<TH>", "<TR>", "<TT>", "<KBD>", "<UL>", "<VAR>"
+// '<' is prepended to distinguish HTML tags from Doxygen commands.
+const char *commandHtml[] = {
+  "<a", "<b", "<blockquote", "<body", "<br", "<center", "<caption", "<code", "<dfn",
+  "<div", "<dl", "<dt", "<em", "<form", "<hr", "<h1", "<h2", "<h3", "<i", "<input", "<img",
+  "<li", "<meta", "<multicol", "<ol", "<p", "<pre", "<small", "<span", "<strong",
+  "<sub", "<sup", "<table", "<td", "<th", "<tr", "<tt", "<kbd", "<ul", "<var"
 };
 
-const int htmlCommandsSize = sizeof(htmlCommands) / sizeof(*htmlCommands);
+const int commandHtmlSize = sizeof(commandHtml) / sizeof(*commandHtml);
 
 // Only entities which are translatable to plain text are used here. Others
 // are copied unchanged to output.
-const char *htmlEntities[] = { "&copy", "&trade", "&reg", // (C), (TM), (R)
+const char *commandHtmlEntities[] = { "&copy", "&trade", "&reg", // (C), (TM), (R)
 "&lt",  // less-than symbol
 "&gt",  // greater-than symbol
 "&amp", // ampersand
@@ -118,6 +118,6 @@ const char *htmlEntities[] = { "&copy", "&trade", "&reg", // (C), (TM), (R)
 "&rarr" // -->
 };
 
-const int htmlEntitiesSize = sizeof(htmlEntities) / sizeof(*htmlEntities);
+const int commandHtmlEntitiesSize = sizeof(commandHtmlEntities) / sizeof(*commandHtmlEntities);
 
 #endif

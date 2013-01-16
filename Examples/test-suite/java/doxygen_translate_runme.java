@@ -80,7 +80,7 @@ public class doxygen_translate_runme {
     		" <li>With lots of items</li>\n" +
     		" <li>lots of lots of items</li>\n" +
     		" \n" +
-    		" </li></ul> \n" +
+    		" </ul> \n" +
     		" \n" +
     		" {@link someMember Some description follows }\n" +
     		" \n" +
