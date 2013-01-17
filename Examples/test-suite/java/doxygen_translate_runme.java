@@ -52,7 +52,10 @@ public class doxygen_translate_runme {
     		" \n" +
     		" <i>italicword </i>\n" +
     		" \n" +
-    		" @exception SuperError \n" +
+    		" @ example someFile.txt\n" +
+    		" Some details on using the example\n" +
+    		" \n" +
+                " @exception SuperError \n" +
     		" \n" +
     		" If: ANOTHERCONDITION {\n" +
     		" First part of comment \n" +

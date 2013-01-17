@@ -126,6 +126,9 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["else"] = make_pair(&JavaDocConverter::handleTagIf, "Else: ");
   tagHandlers["elseif"] = make_pair(&JavaDocConverter::handleTagIf, "Else if: ");
   tagHandlers["endcond"] = make_pair(&JavaDocConverter::handleTagMessage, "End of conditional comment.");
+  // space prevents Javadoc to treat '@ example' as command. File name of
+  // example is still informative to user.
+  tagHandlers["example"] = make_pair(&JavaDocConverter::handleTagSame, " example");
   tagHandlers["if"] = make_pair(&JavaDocConverter::handleTagIf, "If: ");
   tagHandlers["ifnot"] = make_pair(&JavaDocConverter::handleTagIf, "If not: ");
   tagHandlers["image"] = make_pair(&JavaDocConverter::handleTagImage, "");
