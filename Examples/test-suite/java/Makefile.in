@@ -3,8 +3,8 @@
 #######################################################################
 
 LANGUAGE     = java
-JAVA         = java
-JAVAC        = javac
+JAVA         = @JAVA@
+JAVAC        = @JAVAC@
 JAVAFLAGS    = -Xcheck:jni
 SCRIPTSUFFIX = _runme.java
 srcdir       = @srcdir@
