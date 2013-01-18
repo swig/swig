@@ -56,8 +56,6 @@ void JavaDocConverter::fillStaticTables() {
    *
    * entities must be translated - remain in Java, something meaningfull in Python (&lt, ...)
    *
-   * \e at end of line freezes doxygen
-   *
    * - enum inside class is missing comment
    * - '\' not representing doxygen commands
    * - add comments also to auto-generated methods lilke equals(), delete() in Java,
@@ -193,6 +191,31 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["<kbd"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<kbd"    );
   tagHandlers["<ul"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<ul"     );
   tagHandlers["<var"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<var"    );
+
+  // HTML entities
+  tagHandlers["&copy" ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&copy");
+  tagHandlers["&trade"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&trade");
+  tagHandlers["&reg"  ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&reg");
+  tagHandlers["&lt"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&lt");
+  tagHandlers["&gt"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&gt");
+  tagHandlers["&amp"  ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&amp");
+  tagHandlers["&apos" ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&apos");
+  tagHandlers["&quot" ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&quot");
+  tagHandlers["&lsquo"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&lsquo");
+  tagHandlers["&rsquo"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&rsquo");
+  tagHandlers["&ldquo"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&ldquo");
+  tagHandlers["&rdquo"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&rdquo");
+  tagHandlers["&ndash"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&ndash");
+  tagHandlers["&mdash"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&mdash");
+  tagHandlers["&nbsp" ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&nbsp");
+  tagHandlers["&times"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&times");
+  tagHandlers["&minus"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&minus");
+  tagHandlers["&sdot" ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&sdot");
+  tagHandlers["&sim"  ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&sim");
+  tagHandlers["&le"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&le");
+  tagHandlers["&ge"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&ge");
+  tagHandlers["&larr" ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&larr");
+  tagHandlers["&rarr" ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "&rarr");
 }
 
 
@@ -341,6 +364,12 @@ void JavaDocConverter::handleDoxyHtmlTag(DoxygenEntity& tag, std::string& transl
     } else {
         translatedComment += arg + htmlTagArgs + ">";
     }
+}
+
+
+void JavaDocConverter::handleHtmlEntity(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+    // html entities can be preserved for Java
+    translatedComment += arg + ';';
 }
 
 

@@ -1263,16 +1263,15 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
         size_t endOfWordPos = line.find_first_not_of("abcdefghijklmnopqrstuvwxyz", pos + 1);
         if (endOfWordPos != string::npos) {
             if (line[endOfWordPos] == ';') {
-                addDoxyCommand(m_tokenList, line.substr(pos, endOfWordPos));
+                addDoxyCommand(m_tokenList, line.substr(pos, endOfWordPos - pos));
+                endOfWordPos++;  // skip ';'
             } else {
                 // it is not an entity - push plain string
                 m_tokenList.push_back(Token(PLAINSTRING,
                                       line.substr(pos, endOfWordPos - pos)));
-                pos = endOfWordPos;
             }
-        } else {
-            pos = string::npos;
         }
+        pos = endOfWordPos;
     }
     break;
     default:

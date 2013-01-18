@@ -63,8 +63,13 @@ protected:
 
   /* Handles HTML tags recognized by Doxygen, like <A ...>, <ul>, <table>, ... */
   void handleDoxyHtmlTag(DoxygenEntity& tag,
-                            std::string& translatedComment,
-                            std::string &arg);
+                         std::string& translatedComment,
+                         std::string &arg);
+
+  /* Handles HTML entities recognized by Doxygen, like &lt;, &copy;, ... */
+  void handleHtmlEntity(DoxygenEntity& tag,
+                        std::string& translatedComment,
+                        std::string &arg);
 
   /*
    * Just prints new line

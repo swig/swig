@@ -210,5 +210,33 @@ int htmlFunction(int a, float b)
 }
 
 
+/**
+ * All entities are treated as commands &copy; &trade; &reg;
+ * should work also&lt;in text
+ * &gt;
+ * &amp;
+ * &apos;
+ * &quot;
+ * &lsquo;
+ * &rsquo;
+ * &ldquo;
+ * &rdaquo;
+ * &ndash;
+ * &mdash;
+ * &nbsp;
+ * &times;
+ * &minus;
+ * &sdot;
+ * &sim;
+ * &le;
+ * &ge;
+ * &larr;
+ * &rarr;
+ */
+int htmlEntitiesFunction(int a, float b)
+{
+}
+
+
  
 %}

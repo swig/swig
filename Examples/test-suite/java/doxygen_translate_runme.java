@@ -227,6 +227,31 @@ public class doxygen_translate_runme {
     		" <var> Starts a piece of text displayed in an italic font.                            \n" +
     		" </var>                                                                               \n" +
                 "");
+
+        wantedComments.put("doxygen_translate.doxygen_translate.htmlEntitiesFunction(int, float)",
+                "All entities are treated as commands &copy; &trade; &reg;\n" +
+                "should work also&lt;in text                              \n" +
+                "&gt;                                                     \n" +
+                "&amp;                                                    \n" +
+                "&apos;                                                   \n" +
+                "&quot;                                                   \n" +
+                "&lsquo;                                                  \n" +
+                "&rsquo;                                                  \n" +
+                "&ldquo;                                                  \n" +
+                "&rdquo;                                                  \n" +
+                "&ndash;                                                  \n" +
+                "&mdash;                                                  \n" +
+                "&nbsp;                                                   \n" +
+                "&times;                                                  \n" +
+                "&minus;                                                  \n" +
+                "&sdot;                                                   \n" +
+                "&sim;                                                    \n" +
+                "&le;                                                     \n" +
+                "&ge;                                                     \n" +
+                "&larr;                                                   \n" +
+                "&rarr;                                                   \n" +
+                "");
+        
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
   }
