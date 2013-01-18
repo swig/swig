@@ -2027,7 +2027,7 @@ public:
 	Printf(dcast_wrap->code, "  jobject jresult = (jobject) 0;\n");
 	Printf(dcast_wrap->code, "  %s *obj = *((%s **)&jCPtrBase);\n", norm_name, norm_name);
 	Printf(dcast_wrap->code, "  if (obj) director = dynamic_cast<Swig::Director *>(obj);\n");
-	Printf(dcast_wrap->code, "  if (director) jresult = director->swig_get_self);\n");
+	Printf(dcast_wrap->code, "  if (director) jresult = director->swig_get_self(jenv);\n");
 	Printf(dcast_wrap->code, "  return jresult;\n");
 	Printf(dcast_wrap->code, "}\n");
 
