@@ -141,6 +141,12 @@ private:
   std::string trim(const std::string &text);
 
   /*
+   * Returns string of the next token if the next token is PLAINSTRING. Returns
+   * empty string otherwise.
+   */
+  std::string getNextToken();
+
+  /*
    * Returns the next word ON THE CURRENT LINE ONLY
    * if a new line is encountered, returns a blank std::string.
    * Updates the iterator if successful.

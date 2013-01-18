@@ -85,7 +85,7 @@ const int commandUniquesSize = sizeof(commandUniques) / sizeof(*commandUniques);
 // behavior must be repeated by SWIG. See Doxygen doc for the list of commands.
 // '<' is prepended to distinguish HTML tags from Doxygen commands.
 const char *commandHtml[] = {
-  "<a", "<b", "<blockquote", "<body", "<br", "<center", "<caption", "<code", "<dfn",
+  "<a", "<b", "<blockquote", "<body", "<br", "<center", "<caption", "<code", "<dd", "<dfn",
   "<div", "<dl", "<dt", "<em", "<form", "<hr", "<h1", "<h2", "<h3", "<i", "<input", "<img",
   "<li", "<meta", "<multicol", "<ol", "<p", "<pre", "<small", "<span", "<strong",
   "<sub", "<sup", "<table", "<td", "<th", "<tr", "<tt", "<kbd", "<ul", "<var"

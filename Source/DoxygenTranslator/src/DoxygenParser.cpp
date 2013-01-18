@@ -178,6 +178,21 @@ void DoxygenParser::skipWhitespaceTokens()
 }
 
 
+std::string DoxygenParser::getNextToken() {
+
+    if (m_tokenListIt == m_tokenList.end()) {
+        return "";
+    }
+
+    if (m_tokenListIt->m_tokenType == PLAINSTRING) {
+        return (m_tokenListIt++)->m_tokenString;
+    }
+
+    return "";
+}
+
+
+
 std::string DoxygenParser::getNextWord() {
 
 /*    if (m_tokenListIt == m_tokenList.end()) {
@@ -582,7 +597,7 @@ int DoxygenParser::addCommandHtml(const std::string &theCommand,
     if (noisy)
         cout << "Parsing " << theCommand << endl;
 
-    std::string htmlTagArgs = getNextWord();
+    std::string htmlTagArgs = getNextToken();
     doxyList.push_back(DoxygenEntity(theCommand, htmlTagArgs));
     return 1;
 }
@@ -1201,7 +1216,7 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
           pos++;
       }
 
-      size_t endHtmlPos = line.find_first_of("\t\n >", pos);
+      size_t endHtmlPos = line.find_first_of("\t >", pos);
 
       // prepend '<' to distinguish HTML tags from doxygen commands
       string cmd = line.substr(pos, endHtmlPos - pos);
@@ -1223,6 +1238,7 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
               // add args of HTML command, like link URL, image URL, ...
               m_tokenList.push_back(Token(PLAINSTRING,
                                     line.substr(pos, endHtmlPos - pos)));
+              pos = endHtmlPos;
           } else {
               if (isEndHtmlTag) {
                 // it is a simple tag, so push empty string

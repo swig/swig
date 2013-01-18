@@ -152,8 +152,47 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["n"] = make_pair(&JavaDocConverter::handleNewLine, "");
 
   // HTML tags
-  tagHandlers["<ul"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<ul");
-
+  tagHandlers["<a"      ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<a"      );
+  tagHandlers["<b"      ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<b"      );
+  tagHandlers["<blockquote"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<blockquote");
+  tagHandlers["<body"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<body"   );
+  tagHandlers["<br"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<br"     );
+  tagHandlers["<center" ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<center" );
+  tagHandlers["<caption"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<caption");
+  tagHandlers["<code"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<code"   );
+  tagHandlers["<dd"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dd"     );
+  tagHandlers["<dfn"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dfn"    );
+  tagHandlers["<div"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<div"    );
+  tagHandlers["<dl"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dl"     );
+  tagHandlers["<dt"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dt"     );
+  tagHandlers["<em"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<em"     );
+  tagHandlers["<form"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<form"   );
+  tagHandlers["<hr"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<hr"     );
+  tagHandlers["<h1"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<h1"     );
+  tagHandlers["<h2"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<h2"     );
+  tagHandlers["<h3"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<h3"     );
+  tagHandlers["<i"      ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<i"      );
+  tagHandlers["<input"  ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<input"  );
+  tagHandlers["<img"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<img"    );
+  tagHandlers["<li"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<li"     );
+  tagHandlers["<meta"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<meta"   );
+  tagHandlers["<multicol"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<multicol");
+  tagHandlers["<ol"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<ol"     );
+  tagHandlers["<p"      ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<p"      );
+  tagHandlers["<pre"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<pre"    );
+  tagHandlers["<small"  ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<small"  );
+  tagHandlers["<span"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<span"   );
+  tagHandlers["<strong" ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<strong" );
+  tagHandlers["<sub"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<sub"    );
+  tagHandlers["<sup"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<sup"    );
+  tagHandlers["<table"  ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<table"  );
+  tagHandlers["<td"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<td"     );
+  tagHandlers["<th"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<th"     );
+  tagHandlers["<tr"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<tr"     );
+  tagHandlers["<tt"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<tt"     );
+  tagHandlers["<kbd"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<kbd"    );
+  tagHandlers["<ul"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<ul"     );
+  tagHandlers["<var"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<var"    );
 }
 
 
