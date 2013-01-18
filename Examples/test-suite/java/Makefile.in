@@ -28,6 +28,7 @@ CPP_TEST_CASES = \
 	java_lib_arrays_dimensionless \
 	java_lib_various \
 	java_jnitypes \
+        java_nspacewithoutpackage \
 	java_pgcpp \
 	java_pragmas \
 	java_prepost \
@@ -40,9 +41,11 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 JAVA_PACKAGE = $*
-SWIGOPT += -package $(JAVA_PACKAGE)
+JAVA_PACKAGEOPT = -package $(JAVA_PACKAGE)
+SWIGOPT += $(JAVA_PACKAGEOPT)
 
 # Custom tests - tests with additional commandline options
+java_nspacewithoutpackage.%: JAVA_PACKAGEOPT =
 nspace.%: JAVA_PACKAGE = $*Package
 nspace_extend.%: JAVA_PACKAGE = $*Package
 director_nspace.%: JAVA_PACKAGE = $*Package
