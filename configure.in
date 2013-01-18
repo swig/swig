@@ -1106,11 +1106,13 @@ if test -z "$JSCOREINCDIR"; then
   esac
 fi
 
+JSCORE=0
 for d in $JSCOREINCDIR ; do
   if test -r "$d/JavaScriptCore/JavaScript.h" || test -r "$d/JavaScript.h" ; then
     AC_MSG_RESULT($d)
     JSCOREINCDIR=$d
     JSCOREINC=-I\"$d\"
+    JSCORE=1
     break
   fi
 done
@@ -1119,51 +1121,55 @@ if test "$JSCOREINC" = "" ; then
   AC_MSG_RESULT(not found)
 fi
 
+# under linux look for the javascript core library
+case $host in
+  *-*-linux*)
+  # check for JavaScriptCore, Webkit libraries
+  AC_ARG_WITH(jscorelib,[  --with-jscorelib =path      Set location of JavaScriptCore (Webkit) library directory], [JSCORELIB="-L$withval"], [JSCORELIB=])
+  AC_MSG_CHECKING(for JavaScriptCore(Webkit) library)
 
-# check for JavaScriptCore, Webkit libraries
-AC_ARG_WITH(jscorelib,[  --with-jscorelib =path      Set location of JavaScriptCore (Webkit) library directory],
-  [JSCORELIB="-L$withval"], [JSCORELIB=])
-AC_MSG_CHECKING(for JavaScriptCore(Webkit) library)
+  if test -z "$JSCORELIB"; then
+    JSCORELIBDIRS="/usr/lib/ /usr/local/lib/"
+    for i in $JSCORELIBDIRS ; do
 
-if test -z "$JSCORELIB"; then
-dirs="/usr/lib/ /usr/local/lib/"
-for i in $dirs ; do
+        if test -r $i/libwebkit-1.0.la; then
+                AC_MSG_RESULT($i)
+                JSCORELIB="-L$i -lwebkit-1.0"
+                break
+        fi
 
-    if test -r $i/libwebkit-1.0.la; then
-            AC_MSG_RESULT($i)
-            JSCORELIB="-L$i -lwebkit-1.0"
-            break
-    fi
+        if test -r $i/libjavascriptcoregtk-1.0.so; then
+               AC_MSG_RESULT($i)
+               JSCORELIB="-L$i -ljavascriptcoregtk-1.0"
+               break
+        fi
 
-    if test -r $i/libjavascriptcoregtk-1.0.so; then
-           AC_MSG_RESULT($i)
-           JSCORELIB="-L$i -ljavascriptcoregtk-1.0"
-           break
-    fi
+        if test -r $i/libwebkitgtk-1.0.so; then
+               AC_MSG_RESULT($i)
+               JSCORELIB="-L$i -lwebkitgtk-1.0"
+               break
+        fi
+    done
+  fi
 
-    if test -r $i/libwebkitgtk-1.0.so; then
-           AC_MSG_RESULT($i)
-           JSCORELIB="-L$i -lwebkitgtk-1.0"
-           break
-    fi
-done
-
-if test -z "$JSCORELIB"; then
-	AC_MSG_RESULT(not found)
-	JSCORE=
-else
-	AC_MSG_RESULT($JSCORELIB)
-	JSCORE=1
-fi
+  if test -z "$JSCORELIB"; then
+    AC_MSG_RESULT(not found)
+    JSCORE=0
+  else
+    AC_MSG_RESULT($JSCORELIB)
+    JSCORE=1
+  fi
+  ;;
+esac
 
 # linking options
 case $host in
-*-*-darwin*) 
+*-*-darwin*)
         JSCOREDYNAMICLINKING="-framework JavaScriptCore"
         JSCORECFLAGS=""
         ;;
-*-*-linux*) 
-	JSCOREDYNAMICLINKING="$JSCORELIB"
+*-*-linux*)
+        JSCOREDYNAMICLINKING="$JSCORELIB"
         JSCORECFLAGS=""
         ;;
 *)
@@ -1179,18 +1185,18 @@ case $host in
 esac
 
 if test "$JS_NO_WARNINGS" == "1"; then
-case $host in
-*-*-darwin* | *-*-linux* | *-*-cygwin* | *-*-mingw*) 
-  JSCXXFLAGS="`echo $CXXFLAGS | sed 's/-Wall//g'`"
-  ;;
-*)
-  JSCXXFLAGS="$CXXFLAGS"
-esac
+  case $host in
+  *-*-darwin* | *-*-linux* | *-*-cygwin* | *-*-mingw*)
+    JSCXXFLAGS="`echo $CXXFLAGS | sed 's/-Wall//g'`"
+    ;;
+  *)
+    JSCXXFLAGS="$CXXFLAGS"
+  esac
 fi
 
 # library output
 case $host in
-*-*-darwin*) 
+*-*-darwin*)
     JSCORESO=".dylib"
     JSCORELDSHARED='$(CC) -dynamiclib'
     JSCORECXXSHARED='$(CXX) -dynamiclib'
@@ -1201,7 +1207,6 @@ case $host in
     JSCORECXXSHARED='$(CXXSHARED)'
     ;;
 esac
-fi
 
 AC_SUBST(JSCORE)
 AC_SUBST(JSCOREINC)
@@ -1259,17 +1264,19 @@ done
 
 if test "$JSV8LIB" = "" ; then
   AC_MSG_RESULT(not found)
+  JSV8=
 else
   AC_MSG_RESULT($JSV8LIB)
+  JSV8=1
 fi
 
 
 # linking options
 case $host in
-*-*-darwin*) 
+*-*-darwin*)
         JSV8DYNAMICLINKING="" # TODO: add osx configuration
         ;;
-*-*-linux*) 
+*-*-linux*)
         JSV8DYNAMICLINKING="$JSV8LIB"
         ;;
 *)
@@ -1277,8 +1284,10 @@ case $host in
         ;;
 esac
 
+AC_SUBST(JSV8)
 AC_SUBST(JSV8INC)
 AC_SUBST(JSV8DYNAMICLINKING)
+
 AC_SUBST(JSDEFAULT)
 
 #----------------------------------------------------------------
