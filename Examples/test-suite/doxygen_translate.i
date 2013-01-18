@@ -220,7 +220,7 @@ int htmlFunction(int a, float b)
  * &lsquo;
  * &rsquo;
  * &ldquo;
- * &rdaquo;
+ * &rdquo;
  * &ndash;
  * &mdash;
  * &nbsp;

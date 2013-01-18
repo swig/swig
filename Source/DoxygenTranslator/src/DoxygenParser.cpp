@@ -1322,7 +1322,7 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
 
     while (pos != string::npos) {
       // find the end of the word
-      size_t doxyCmdOrHtmlTagPos = line.find_first_of("\\@< \t", pos);
+      size_t doxyCmdOrHtmlTagPos = line.find_first_of("\\@<& \t", pos);
       if (doxyCmdOrHtmlTagPos != pos) {
         // plain text found
         m_tokenList.push_back(Token(PLAINSTRING,
