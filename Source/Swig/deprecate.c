@@ -13,8 +13,6 @@
  * that the function and/or API needs to be changed in some future release.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_deprecate_c[] = "$Id: parms.c 9630 2007-01-02 21:17:19Z beazley $";
-
 #include "swig.h"
 
 /* ---------------------------------------------------------------------

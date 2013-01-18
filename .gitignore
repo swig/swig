@@ -2,18 +2,13 @@
 *.o
 *.class
 
-# Editor junk
+# Editor files and various other junk
 *.sw?
+*.bak
 
 # Local PCRE
 pcre
 *.gz
-
-# Python generated files, based on:
-#   https://github.com/github/gitignore/blob/master/Python.gitignore
-*.py[cod]
-*/__pycache__/
-/__pycache__/
 
 # C/C++ object files, based on:
 #   https://github.com/github/gitignore/blob/master/C.gitignore
@@ -90,6 +85,12 @@ Source/CParse/parser.h
 Source/eswig
 swig
 
+# Generated documentation
+Doc/Manual/CCache.html
+Doc/Manual/SWIGDocumentation.html
+Doc/Manual/SWIGDocumentation.pdf
+Doc/Manual/*.book
+
 # Test Suite Generated Files
 Examples/test-suite/allegrocl/*/
 Examples/test-suite/cffi/*/
@@ -113,3 +114,14 @@ Examples/test-suite/r/*/
 Examples/test-suite/ruby/*/
 Examples/test-suite/tcl/*/
 Examples/test-suite/uffi/*/
+
+# Python generated files, based on:
+#   https://github.com/github/gitignore/blob/master/Python.gitignore
+*.py[cod]
+*/__pycache__/
+/__pycache__/
+
+# C# generated files
+*_runme.exe.mdb
+*_runme.exe
+

@@ -11,8 +11,6 @@
  * Octave language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_octave_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 static String *global_name = 0;

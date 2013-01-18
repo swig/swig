@@ -11,8 +11,6 @@
  *     Implements a simple hash table object.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_hash_c[] = "$Id$";
-
 #include "dohint.h"
 
 extern DohObjInfo DohHashType;

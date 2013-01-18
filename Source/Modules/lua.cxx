@@ -44,8 +44,6 @@
    Added support for embedded Lua. Try swig -lua -help for more information
 */
 
-char cvsroot_lua_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 /**** Diagnostics:

@@ -14,8 +14,6 @@
  * like typedef, namespaces, etc.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_typeobj_c[] = "$Id$";
-
 #include "swig.h"
 #include <ctype.h>
 

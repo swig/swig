@@ -16,8 +16,6 @@
  * and other information needed for compilation.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_typepass_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 

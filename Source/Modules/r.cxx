@@ -11,8 +11,6 @@
  * R language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_r_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 static const double DEFAULT_NUMBER = .0000123456712312312323;
