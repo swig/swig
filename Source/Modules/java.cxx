@@ -67,7 +67,7 @@ class JAVA:public Language {
   String *imclass_imports;	//intermediary class imports from %pragma
   String *module_imports;	//module imports from %pragma
   String *imclass_baseclass;	//inheritance for intermediary class class from %pragma
-  String *imclass_package; //package in which to generate the jni class
+  String *imclass_package;	//package in which to generate the jni class
   String *module_baseclass;	//inheritance for module class from %pragma
   String *imclass_interfaces;	//interfaces for intermediary class class from %pragma
   String *module_interfaces;	//interfaces for module class from %pragma
@@ -1208,9 +1208,9 @@ public:
 
       String *nspace = Getattr(n, "sym:nspace"); // NSpace/getNSpace() only works during Language::enumDeclaration call
       if (proxy_flag && !is_wrapping_class()) {
-	      // Global enums / enums in a namespace
-	      assert(!full_imclass_name);
-	      constructIntermediateClassName(n);
+	// Global enums / enums in a namespace
+	assert(!full_imclass_name);
+	constructIntermediateClassName(n);
       }
 
       enum_code = NewString("");
@@ -1625,24 +1625,24 @@ public:
 	  Delete(imclass_baseclass);
 	  imclass_baseclass = Copy(strvalue);
 	} else if (Strcmp(code, "jniclasspackage") == 0) {
-    Delete(imclass_package);
-    imclass_package = Copy(strvalue);
-    String *imclass_class_package_jniname = makeValidJniName(imclass_package);
-    Printv(jnipackage, imclass_class_package_jniname, NIL);
-    Delete(imclass_class_package_jniname);
-    Replaceall(jnipackage, NSPACE_SEPARATOR, "_");
-    Append(jnipackage, "_");
+	  Delete(imclass_package);
+	  imclass_package = Copy(strvalue);
+	  String *imclass_class_package_jniname = makeValidJniName(imclass_package);
+	  Printv(jnipackage, imclass_class_package_jniname, NIL);
+	  Delete(imclass_class_package_jniname);
+	  Replaceall(jnipackage, NSPACE_SEPARATOR, "_");
+	  Append(jnipackage, "_");
 
-    String *wrapper_name = NewString("");
-    String *imclass_class_jniname = makeValidJniName(imclass_name);
-    Printf(wrapper_name, "Java_%s%s_%%f", jnipackage, imclass_class_jniname);
-    Delete(imclass_class_jniname);
+	  String *wrapper_name = NewString("");
+	  String *imclass_class_jniname = makeValidJniName(imclass_name);
+	  Printf(wrapper_name, "Java_%s%s_%%f", jnipackage, imclass_class_jniname);
+	  Delete(imclass_class_jniname);
 
-    Swig_name_unregister("wrapper");
-    Swig_name_register("wrapper", Char(wrapper_name));
+	  Swig_name_unregister("wrapper");
+	  Swig_name_register("wrapper", Char(wrapper_name));
 
-    Delete(wrapper_name);
-  } else if (Strcmp(code, "jniclassclassmodifiers") == 0) {
+	  Delete(wrapper_name);
+	} else if (Strcmp(code, "jniclassclassmodifiers") == 0) {
 	  Delete(imclass_class_modifiers);
 	  imclass_class_modifiers = Copy(strvalue);
 	} else if (Strcmp(code, "jniclasscode") == 0) {
@@ -1918,22 +1918,22 @@ public:
       constructIntermediateClassName(n);
 
       if (!nspace) {
-        full_proxy_class_name = NewStringf("%s", proxy_class_name);
+	full_proxy_class_name = NewStringf("%s", proxy_class_name);
 
-        if (Cmp(proxy_class_name, imclass_name) == 0) {
-          Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
-          SWIG_exit(EXIT_FAILURE);
-        }
+	if (Cmp(proxy_class_name, imclass_name) == 0) {
+	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
+	  SWIG_exit(EXIT_FAILURE);
+	}
 
-        if (Cmp(proxy_class_name, module_class_name) == 0) {
-          Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
-          SWIG_exit(EXIT_FAILURE);
-        }
+	if (Cmp(proxy_class_name, module_class_name) == 0) {
+	  Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
+	  SWIG_exit(EXIT_FAILURE);
+	}
       } else {
-        if (package)
-          full_proxy_class_name = NewStringf("%s.%s.%s", package, nspace, proxy_class_name);
-        else
-          full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
+	if (package)
+	  full_proxy_class_name = NewStringf("%s.%s.%s", package, nspace, proxy_class_name);
+	else
+	  full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
       }
 
       if (!addSymbol(proxy_class_name, n, nspace))
@@ -1943,8 +1943,8 @@ public:
       String *filen = NewStringf("%s%s.java", output_directory, proxy_class_name);
       f_proxy = NewFile(filen, "w", SWIG_output_files());
       if (!f_proxy) {
-        FileErrorDisplay(filen);
-        SWIG_exit(EXIT_FAILURE);
+	FileErrorDisplay(filen);
+	SWIG_exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
