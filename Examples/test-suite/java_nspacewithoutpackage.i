@@ -1,5 +1,8 @@
 %module java_nspacewithoutpackage
 
+%warnfilter(SWIGWARN_JAVA_NSPACE_WITHOUT_PACKAGE) TopLevel::Foo;
+%warnfilter(SWIGWARN_JAVA_NSPACE_WITHOUT_PACKAGE) TopLevel::Bar;
+
 %pragma(java) jniclasspackage="PragmaDefinedPackage"
 
 SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
