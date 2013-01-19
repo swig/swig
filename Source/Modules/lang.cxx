@@ -2364,13 +2364,9 @@ int Language::classDeclaration(Node *n) {
 
   ClassName = Copy(name);
   ClassPrefix = Copy(symname);
-  if (Node* outerClass = Getattr(n, "outerclass")) {
-    while (outerClass) {
-      String* s = NewStringf("%s_%s", Getattr(outerClass, "sym:name"), ClassPrefix);
-      Delete(ClassPrefix);
-      ClassPrefix = s;
-      outerClass = Getattr(outerClass, "outerclass");
-    }
+  for (Node* outerClass = Getattr(n, "outerclass"); outerClass; outerClass = Getattr(outerClass, "outerclass")) {
+    Push(ClassPrefix, "_");
+    Push(ClassPrefix, Getattr(outerClass, "sym:name"));
   }
   if (strip) {
     ClassType = Copy(name);

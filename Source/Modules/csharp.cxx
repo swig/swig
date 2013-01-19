@@ -180,11 +180,9 @@ public:
 	 if (!proxyname) {
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Copy(Getattr(n, "sym:name"));
-	   if (Node* outer_class = Getattr(n, "outerclass")) {
-	     while(outer_class) {
-	       Insert(symname, 0, NewStringf("%s.", Getattr(outer_class, "sym:name")));
-	       outer_class = Getattr(outer_class, "outerclass");
-	     }
+	   for (Node* outer_class = Getattr(n, "outerclass");outer_class;outer_class = Getattr(outer_class, "outerclass")) {
+	     Push(symname, ".");
+	     Push(symname, Getattr(outer_class, "sym:name"));
 	   }
 	   if (nspace) {
 	     if (namespce)
@@ -1893,18 +1891,16 @@ public:
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
       if (Node* outer = Getattr(n, "outerclass")) {
-	String* outerClassesPrefix = Getattr(outer, "sym:name");
+	String* outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
 	for (outer = Getattr(outer, "outerclass"); outer != 0; outer = Getattr(outer, "outerclass")) {
-	  String* s = NewStringf("%s::%s", outerClassesPrefix, Getattr(outer, "sym:name"));
-	  Delete(outerClassesPrefix);
-	  outerClassesPrefix = s;
+	  Push(outerClassesPrefix, "::");
+	  Push(outerClassesPrefix, Getattr(outer, "sym:name"));
 	}
 	String* fnspace = nspace ? NewStringf("%s::%s", nspace, outerClassesPrefix) : outerClassesPrefix;
 	if (!addSymbol(proxy_class_name, n, fnspace))
 	  return SWIG_ERROR;
 	if (nspace)
 	  Delete(fnspace);
-	//Replaceall(outerClassesPrefix, "::", ".");
 	Delete(outerClassesPrefix);
       }
       else {
@@ -1963,7 +1959,7 @@ public:
 
       emitProxyClassDefAndCPPCasts(n);
 
-      String *csclazzname = Swig_name_member(getNSpace(), proxy_class_name, ""); // mangled full proxy class name
+      String *csclazzname = Swig_name_member(getNSpace(), getClassPrefix(), ""); // mangled full proxy class name
 
       Replaceall(proxy_class_def, "$csclassname", proxy_class_name);
       Replaceall(proxy_class_code, "$csclassname", proxy_class_name);
@@ -3453,11 +3449,9 @@ public:
     String *sym_name = Getattr(n, "sym:name");
     String *qualified_classname = Copy(sym_name);
     String *nspace = getNSpace();
-    if (Node* outer_class = Getattr(n, "outerclass")) {
-      while(outer_class) {
-	Insert(qualified_classname, 0, NewStringf("%s.", Getattr(outer_class, "sym:name")));
-	outer_class = Getattr(outer_class, "outerclass");
-      }
+    for (Node* outer_class = Getattr(n, "outerclass"); outer_class; outer_class = Getattr(outer_class, "outerclass")) {
+      Push(qualified_classname, ".");
+      Push(qualified_classname, Getattr(outer_class, "sym:name"));
     }
     if (nspace)
       Insert(qualified_classname, 0, NewStringf("%s.", nspace));
