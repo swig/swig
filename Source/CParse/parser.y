@@ -48,7 +48,6 @@ static String  *Classprefix = 0;
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
 static Node    *currentOuterClass = 0; /*for nested classes*/
-static int      nested_template = 0; /* template class/function definition within a class */
 static char    *last_cpptype = 0;
 static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
@@ -275,13 +274,6 @@ static int  add_only_one = 0;
 static void add_symbols(Node *n) {
   String *decl;
   String *wrn = 0;
-
-  if (nested_template) {
-    if (!(n && Equal(nodeType(n), "template"))) {
-      return;
-    }
-    /* continue if template function, but not template class, declared within a class */
-  }
 
   if (inclass && n) {
     cparse_normalize_void(n);
@@ -2960,7 +2952,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           } else {
                             Setattr(templnode,"sym:typename","1");
                           }
-                          if ($3 && !inclass) {
+                          if ($3) {
 			    /*
 			       Comment this out for 1.3.28. We need to
 			       re-enable it later but first we need to
@@ -2979,10 +2971,6 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Setattr(templnode,"sym:name",nname);
 			    Delete(nname);
                             Setattr(templnode,"feature:onlychildren", "typemap,typemapitem,typemapcopy,typedef,types,fragment");
-
-			    if ($3) {
-			      Swig_warning(WARN_PARSE_NESTED_TEMPLATE, cparse_file, cparse_line, "Named nested template instantiations not supported. Processing as if no name was given to %%template().\n");
-			    }
                           }
                           Delattr(templnode,"templatetype");
                           Setattr(templnode,"template",nn);
@@ -3439,7 +3427,6 @@ cpp_declaration : cpp_class_decl {  $$ = $1; }
 
 /* A simple class/struct/union definition */
 cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
-                 if (nested_template == 0) {
                    String *prefix;
                    List *bases = 0;
 		   Node *scope = 0;
@@ -3530,15 +3517,13 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   if (currentOuterClass)
 		     Setattr($<node>$, "outerclass", currentOuterClass);
 		   currentOuterClass = $<node>$;
-		 }
                } cpp_members RBRACE cpp_opt_declarators {
-	         (void) $<node>6;
-		 if (nested_template == 0) {
 		   Node *p;
 		   SwigType *ty;
 		   Symtab *cscope;
 		   Node *am = 0;
 		   String *scpname = 0;
+		   (void) $<node>6;
 		   $$ = currentOuterClass;
 		   currentOuterClass = Getattr($$, "outerclass");
 		   if (!currentOuterClass)
@@ -3626,12 +3611,6 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Swig_symbol_setscope(cscope);
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		 } else {
-		    $$ = new_node("class");
-		    Setattr($$,"kind",$2);
-		    Setattr($$,"name",NewString($3));
-		    SetFlag($$,"nestedtemplateclass");
-		 }
 	       }
 
 /* An unnamed struct, possibly with a typedef */
@@ -3787,41 +3766,10 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
    ------------------------------------------------------------ */
 
 cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { 
+		   if (currentOuterClass)
+		     Setattr(currentOuterClass, "template_parameters", template_parameters);
 		    template_parameters = $3; 
-		    if (inclass)
-		      nested_template++;
-
 		  } cpp_temp_possible {
-
-		    /* Don't ignore templated functions declared within a class, unless the templated function is within a nested class */
-		    if (nested_template <= 1) {
-		      int is_nested_template_class = $6 && GetFlag($6, "nestedtemplateclass");
-		      if (is_nested_template_class) {
-			$$ = 0;
-			/* Nested template classes would probably better be ignored like ordinary nested classes using cpp_nested, but that introduces shift/reduce conflicts */
-			if (cplus_mode == CPLUS_PUBLIC) {
-			  /* Treat the nested class/struct/union as a forward declaration until a proper nested class solution is implemented */
-			  String *kind = Getattr($6, "kind");
-			  String *name = Getattr($6, "name");
-			  $$ = new_node("template");
-			  Setattr($$,"kind",kind);
-			  Setattr($$,"name",name);
-			  Setattr($$,"sym:weak", "1");
-			  Setattr($$,"templatetype","classforward");
-			  Setattr($$,"templateparms", $3);
-			  add_symbols($$);
-
-			  if (GetFlag($$, "feature:nestedworkaround")) {
-			    Swig_symbol_remove($$);
-			    $$ = 0;
-			  } else {
-			    SWIG_WARN_NODE_BEGIN($$);
-			    Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested template %s not currently supported (%s ignored).\n", kind, name);
-			    SWIG_WARN_NODE_END($$);
-			  }
-			}
-			Delete($6);
-		      } else {
 			String *tname = 0;
 			int     error = 0;
 
@@ -4067,13 +4015,10 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			Delete(Namespaceprefix);
 			Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 			if (error) $$ = 0;
-		      }
-		    } else {
-		      $$ = 0;
-		    }
-		    template_parameters = 0;
-		    if (inclass)
-		      nested_template--;
+			if (currentOuterClass)
+			  template_parameters = Getattr(currentOuterClass, "template_parameters");
+			else
+			  template_parameters = 0;
                   }
                 | TEMPLATE cpptype idcolon {
 		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
@@ -4539,82 +4484,6 @@ cpp_protection_decl : PUBLIC COLON {
 		cplus_mode = CPLUS_PROTECTED;
 	      }
               ;
-
-
-/* ------------------------------------------------------------
-   Named nested structs:
-   struct sname { };
-   struct sname { } id;
-   struct sname : bases { };
-   struct sname : bases { } id;
-   typedef sname struct { } td;
-   typedef sname struct : bases { } td;
-
-   Adding inheritance, ie replacing 'ID' with 'idcolon inherit' 
-   added one shift/reduce
-   ------------------------------------------------------------ */
-/*
-cpp_nested :   storage_class cpptype idcolon inherit LBRACE {
-		cparse_start_line = cparse_line;
-		skip_balanced('{','}');
-		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */ /*
-	      } cpp_opt_declarators {
-	        $$ = 0;
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (cparse_cplusplus) {
-		    String *name = Copy($3);
-		    $$ = nested_forward_declaration($1, $2, $3, name, $7);
-		  } else if ($7) {
-		    nested_new_struct($2, $<str>6, $7);
-		  }
-		}
-		Delete($<str>6);
-	      }
-*/
-/* ------------------------------------------------------------
-   Unnamed/anonymous nested structs:
-   struct { };
-   struct { } id;
-   struct : bases { };
-   struct : bases { } id;
-   typedef struct { } td;
-   typedef struct : bases { } td;
-   ------------------------------------------------------------ */
-/*
-              | storage_class cpptype inherit LBRACE {
-		cparse_start_line = cparse_line;
-		skip_balanced('{','}');
-		$<str>$ = NewString(scanner_ccode); /* copied as initializers overwrite scanner_ccode */ /*
-	      } cpp_opt_declarators {
-	        $$ = 0;
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  if (cparse_cplusplus) {
-		    String *name = $6 ? Copy(Getattr($6, "name")) : 0;
-		    $$ = nested_forward_declaration($1, $2, 0, name, $6);
-		  } else {
-		    if ($6) {
-		      nested_new_struct($2, $<str>5, $6);
-		    } else {
-		      Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", $2);
-		    }
-		  }
-		}
-		Delete($<str>5);
-	      }
-
-
-/* This unfortunately introduces 4 shift/reduce conflicts, so instead the somewhat hacky nested_template is used for ignore nested template classes. */
-/*
-              | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon LBRACE { cparse_start_line = cparse_line; skip_balanced('{','}');
-              } SEMI {
-	        $$ = 0;
-		if (cplus_mode == CPLUS_PUBLIC) {
-		  Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", $5, $6);
-		}
-	      }
-*/ /*
-              ;
-*/
 /* These directives can be included inside a class definition */
 
 cpp_swig_directive: pragma_directive { $$ = $1; }
