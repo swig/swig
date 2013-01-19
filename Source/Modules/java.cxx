@@ -67,7 +67,7 @@ class JAVA:public Language {
   String *imclass_imports;	//intermediary class imports from %pragma
   String *module_imports;	//module imports from %pragma
   String *imclass_baseclass;	//inheritance for intermediary class class from %pragma
-  String *imclass_package;	//package in which to generate the jni class
+  String *imclass_package;	//package in which to generate the intermediary class
   String *module_baseclass;	//inheritance for module class from %pragma
   String *imclass_interfaces;	//interfaces for intermediary class class from %pragma
   String *module_interfaces;	//interfaces for module class from %pragma
@@ -180,7 +180,9 @@ public:
 
     if (nspace && !package) {
       String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
-      Swig_warning(WARN_JAVA_NSPACE_WITHOUT_PACKAGE, Getfile(n), Getline(n), "The nspace feature is used on '%s' without a package is specified with -package - This may result in generated code that does not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
+      Swig_warning(WARN_JAVA_NSPACE_WITHOUT_PACKAGE, Getfile(n), Getline(n),
+	  "The nspace feature is used on '%s' without -package. "
+	  "The generated code may not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
     }
   }
 
@@ -1595,8 +1597,8 @@ public:
    * pragmaDirective()
    *
    * Valid Pragmas:
-   * jniclassbase            - base (extends) for the intermediary
-   * jniclasspackage         - package in which to generate the jni class
+   * jniclassbase            - base (extends) for the intermediary class
+   * jniclasspackage         - package in which to generate the intermediary class
    * jniclassclassmodifiers  - class modifiers for the intermediary class
    * jniclasscode            - text (java code) is copied verbatim to the intermediary class
    * jniclassimports         - import statements for the intermediary class
@@ -1937,7 +1939,7 @@ public:
       }
 
       if (!addSymbol(proxy_class_name, n, nspace))
-        return SWIG_ERROR;
+	return SWIG_ERROR;
 
       String *output_directory = outputDirectory(nspace);
       String *filen = NewStringf("%s%s.java", output_directory, proxy_class_name);
