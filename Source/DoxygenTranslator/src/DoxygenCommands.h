@@ -2,7 +2,9 @@
 #ifndef DOXYGENCOMMANDS_H
 #define DOXYGENCOMMANDS_H
 
+// doxy commands are not processed inside this block
 const char *CMD_HTML_ONLY = "htmlonly";
+// doxy commands are not processed inside this block
 const char *CMD_VERBATIM = "verbatim";
 const char *CMD_END_HTML_ONLY = "endhtmlonly";
 const char *CMD_END_VERBATIM = "endverbatim";

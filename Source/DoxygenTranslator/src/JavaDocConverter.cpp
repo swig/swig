@@ -49,7 +49,7 @@ void JavaDocConverter::fillStaticTables() {
    *     Java src is <x> and therefore invisible on output - browser ignores unknown command.
    *     This is handy in syntax descriptions, for example: more <fileName>.
    *
-   * Standlaone < and > need not to be translated, they are rendered properly in
+   * Standlaone < and > need not be translated, they are rendered properly in
    *      all three outputs.
    *
    * ., %, and " need not to be translated
@@ -92,6 +92,8 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["bug"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["date"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["details"] = make_pair(&JavaDocConverter::handleParagraph, "");
+  // this command is inserts text accumulated after cmd htmlonly -
+  // see DoxygenParser - CMD_HTML_ONLY.
   tagHandlers["htmlonly"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["invariant"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["latexonly"] = make_pair(&JavaDocConverter::handleParagraph, "");

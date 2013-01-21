@@ -1136,15 +1136,15 @@ size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line)
         pos++;
         // characters '$[]{}' are used in commands \f$, \f[, ...
         size_t endOfWordPos = line.find_first_not_of("abcdefghijklmnopqrstuvwxyz$[]{}", pos);
-        string cmd = line.substr(pos , endOfWordPos - pos);
+        string cmd = line.substr(pos, endOfWordPos - pos);
 
         if (cmd == CMD_END_HTML_ONLY  ||  cmd == CMD_END_VERBATIM) {
             m_isVerbatimText = false;
             addDoxyCommand(m_tokenList, cmd);
         } else {
-            cmd = line[pos] + cmd; // prepend '\\' or '@'
             m_tokenList.push_back(Token(PLAINSTRING,
-                                  line.substr(pos, endOfWordPos - pos)));
+                                  // include '\' or '@'
+                                  line.substr(pos - 1, endOfWordPos - pos + 1)));
         }
         pos = endOfWordPos;
     } else {
@@ -1189,14 +1189,14 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
       addDoxyCommand(m_tokenList, cmd);
       if (cmd == CMD_HTML_ONLY  ||  cmd == CMD_VERBATIM) {
           m_isVerbatimText = true;
-      }
-      // skip any possible spaces after command, because some commands have parameters,
-      // and spaces between command and parameter must be ignored.
-      if (endOfWordPos != string::npos) {
-          pos = line.find_first_not_of(" \t", endOfWordPos);
       } else {
-          pos = string::npos;
+          // skip any possible spaces after command, because some commands have parameters,
+          // and spaces between command and parameter must be ignored.
+          if (endOfWordPos != string::npos) {
+              endOfWordPos = line.find_first_not_of(" \t", endOfWordPos);
+          }
       }
+      pos = endOfWordPos;
     } break;
 
     case ' ':  // whitespace
@@ -1248,27 +1248,34 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
                 m_tokenList.push_back(Token(PLAINSTRING, ""));
               }
           }
+          pos++; // skip '>'
       } else {
         // the command is not HTML supported by Doxygen, < and > will be
         // replaced by HTML entities &lt; and &gt; respectively,
         // but only if 'htmlOnly' flag == false. The flag is set/reset by \htmlonly \verbatim,
         // \endhtmlonly \endverbatim Doxygen commands.
-        m_tokenList.push_back(Token(PLAINSTRING, "&lt;"));
+        addDoxyCommand(m_tokenList, "&lt");
         m_tokenList.push_back(Token(PLAINSTRING, cmd));
       }
-      pos++;
     } break;
-
+    case '>': // this char is detected here only when it is not part of HTML tag
+        addDoxyCommand(m_tokenList, "&gt");
+        pos++;
+        break;
     case '&': { // process HTML entities
         size_t endOfWordPos = line.find_first_not_of("abcdefghijklmnopqrstuvwxyz", pos + 1);
         if (endOfWordPos != string::npos) {
             if (line[endOfWordPos] == ';') {
+                // if entity is not recognized by Doxygen (not in the list of
+                // commands) nothing is added (here and in Doxygen).
                 addDoxyCommand(m_tokenList, line.substr(pos, endOfWordPos - pos));
                 endOfWordPos++;  // skip ';'
             } else {
-                // it is not an entity - push plain string
+                // it is not an entity - add entity for ampersand and
+                // the rest of string
+                addDoxyCommand(m_tokenList, "&amp");
                 m_tokenList.push_back(Token(PLAINSTRING,
-                                      line.substr(pos, endOfWordPos - pos)));
+                                      line.substr(pos + 1, endOfWordPos - pos - 1)));
             }
         }
         pos = endOfWordPos;
@@ -1322,7 +1329,7 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
 
     while (pos != string::npos) {
       // find the end of the word
-      size_t doxyCmdOrHtmlTagPos = line.find_first_of("\\@<& \t", pos);
+      size_t doxyCmdOrHtmlTagPos = line.find_first_of("\\@<>& \t", pos);
       if (doxyCmdOrHtmlTagPos != pos) {
         // plain text found
         m_tokenList.push_back(Token(PLAINSTRING,

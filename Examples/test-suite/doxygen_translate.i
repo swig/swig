@@ -203,7 +203,12 @@ int function(int a, float b)
  * </UL> Ends an unnumbered item list.
  *
  * <VAR> Starts a piece of text displayed in an italic font.
- * </VAR>                                                                               
+ * </VAR>
+ *
+ * \htmlonly
+ * <u>underlined \b bold text - doxy commands are ignored inside 'htmlonly' section </u>
+ * \endhtmlonly
+ * <u>underlined text</u>
  */
 int htmlFunction(int a, float b)
 {
@@ -232,6 +237,8 @@ int htmlFunction(int a, float b)
  * &ge;
  * &larr;
  * &rarr;
+ * Not an &text; html entity - ignored by Doxygen.
+ * Not an &text html entity - ampersand is replaced with entity.
  */
 int htmlEntitiesFunction(int a, float b)
 {

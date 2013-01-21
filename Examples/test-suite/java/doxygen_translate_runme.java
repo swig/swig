@@ -226,6 +226,10 @@ public class doxygen_translate_runme {
     		"                                                                                      \n" +
     		" <var> Starts a piece of text displayed in an italic font.                            \n" +
     		" </var>                                                                               \n" +
+                "\n" +
+                "<u>underlined \\b bold text - doxy commands are ignored inside 'htmlonly' section </u>\n" +
+                "\n" +
+                "&lt;u&gt;underlined text&lt;u&gt;\n" +
                 "");
 
         wantedComments.put("doxygen_translate.doxygen_translate.htmlEntitiesFunction(int, float)",
@@ -250,6 +254,8 @@ public class doxygen_translate_runme {
                 "&ge;                                                     \n" +
                 "&larr;                                                   \n" +
                 "&rarr;                                                   \n" +
+                "Not an  html entity - ignored by Doxygen.                \n" +
+                "Not an &amp;text html entity - ampersand is replaced with entity.\n" +
                 "");
         
     // and ask the parser to check comments for us
