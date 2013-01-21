@@ -13,7 +13,12 @@
  * some point.  Beware.
  * ----------------------------------------------------------------------------- */
 
+/*
+Removed until we know more about the min versions of Bison and Yacc required for this
+to work, see Byacc man page: http://invisible-island.net/byacc/manpage/yacc.html
 %expect 6
+*/
+
 %{
 #define yylex yylex
 
