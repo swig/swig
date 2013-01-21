@@ -953,59 +953,6 @@ static int look(Scanner * s) {
       
       break;
 
-      case 77: /*identifier or wide string literal*/
-	if ((c = nextchar(s)) == 0)
-	  return SWIG_TOKEN_ID;
-	else if (c == '\"') {
-	  s->start_line = s->line;
-	  Clear(s->text);
-	  state = 78;
-	}
-	else if (c == '\'') {
-	  s->start_line = s->line;
-	  Clear(s->text);
-	  state = 79;
-	}
-	else if (isalnum(c) || (c == '_') || (c == '$'))
-	  state = 7;
-	else {
-	  retract(s, 1);
-	  return SWIG_TOKEN_ID;
-	}
-      break;
-
-      case 78:			/* Processing a wide string literal*/
-	if ((c = nextchar(s)) == 0) {
-	  Swig_error(cparse_file, cparse_start_line, "Unterminated wide string\n");
-	  return SWIG_TOKEN_ERROR;
-	}
-	if (c == '\"') {
-	  Delitem(s->text, DOH_END);
-	  return SWIG_TOKEN_WSTRING;
-	} else if (c == '\\') {
-	  if ((c = nextchar(s)) == 0) {
-	    Swig_error(cparse_file, cparse_start_line, "Unterminated wide string\n");
-	    return SWIG_TOKEN_ERROR;
-	  }
-	}
-	break;
-
-      case 79:			/* Processing a wide char literal */
-	if ((c = nextchar(s)) == 0) {
-	  Swig_error(cparse_file, cparse_start_line, "Unterminated character constant\n");
-	  return SWIG_TOKEN_ERROR;
-	}
-	if (c == '\'') {
-	  Delitem(s->text, DOH_END);
-	  return (SWIG_TOKEN_WCHAR);
-	} else if (c == '\\') {
-	  if ((c = nextchar(s)) == 0) {
-	    Swig_error(cparse_file, cparse_start_line, "Unterminated wide char literal\n");
-	    return SWIG_TOKEN_ERROR;
-	  }
-	}
-	break;
-
     case 75:			/* Special identifier $ */
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_DOLLAR;
@@ -1026,6 +973,59 @@ static int look(Scanner * s) {
 	  return SWIG_TOKEN_BOOL;
 	}
       return SWIG_TOKEN_ID;
+      break;
+
+    case 77: /*identifier or wide string literal*/
+      if ((c = nextchar(s)) == 0)
+	return SWIG_TOKEN_ID;
+      else if (c == '\"') {
+	s->start_line = s->line;
+	Clear(s->text);
+	state = 78;
+      }
+      else if (c == '\'') {
+	s->start_line = s->line;
+	Clear(s->text);
+	state = 79;
+      }
+      else if (isalnum(c) || (c == '_') || (c == '$'))
+	state = 7;
+      else {
+	retract(s, 1);
+	return SWIG_TOKEN_ID;
+      }
+    break;
+
+    case 78:			/* Processing a wide string literal*/
+      if ((c = nextchar(s)) == 0) {
+	Swig_error(cparse_file, cparse_start_line, "Unterminated wide string\n");
+	return SWIG_TOKEN_ERROR;
+      }
+      if (c == '\"') {
+	Delitem(s->text, DOH_END);
+	return SWIG_TOKEN_WSTRING;
+      } else if (c == '\\') {
+	if ((c = nextchar(s)) == 0) {
+	  Swig_error(cparse_file, cparse_start_line, "Unterminated wide string\n");
+	  return SWIG_TOKEN_ERROR;
+	}
+      }
+      break;
+
+    case 79:			/* Processing a wide char literal */
+      if ((c = nextchar(s)) == 0) {
+	Swig_error(cparse_file, cparse_start_line, "Unterminated wide character constant\n");
+	return SWIG_TOKEN_ERROR;
+      }
+      if (c == '\'') {
+	Delitem(s->text, DOH_END);
+	return (SWIG_TOKEN_WCHAR);
+      } else if (c == '\\') {
+	if ((c = nextchar(s)) == 0) {
+	  Swig_error(cparse_file, cparse_start_line, "Unterminated wide character literal\n");
+	  return SWIG_TOKEN_ERROR;
+	}
+      }
       break;
 
     case 8:			/* A numerical digit */
