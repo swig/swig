@@ -97,11 +97,11 @@ extern "C" {
 #define   T_MPOINTER   38
 #define   T_VARARGS    39
 #define   T_RVALUE_REFERENCE  40
+#define   T_WSTRING    41
+
 #define   T_SYMBOL     98
 #define   T_ERROR      99
 
-/* wide string literal, may contain escaped wide chars like \x1234 as well as normal escape sequences */
-#define   T_WSTRING    39
 
 
 /* --- File interface --- */
