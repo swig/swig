@@ -667,7 +667,6 @@ int JSEmitter::initialize(Node *n) {
   namespaces = NewHash();
   Hash *global_namespace;
   if(State::IsSet(state.global(FLAG_NO_MODULE_OBJECT))) {
-      Printf(stdout, "AAAAAAAAAAAAAAAAAAAAAAAAAAA");
       global_namespace = createNamespaceEntry("global", 0);
   } else {
       global_namespace = createNamespaceEntry(Char(Getattr(n, "name")), "global");
