@@ -553,11 +553,13 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
   case JSEmitter::V8:
     {
       emitter = swig_javascript_create_V8Emitter();
+      Preprocessor_define("SWIG_JAVASCRIPT_V8 1", 0);
       break;
     }
   case JSEmitter::JavascriptCore:
     {
       emitter = swig_javascript_create_JSCEmitter();
+      Preprocessor_define("SWIG_JAVASCRIPT_JSC 1", 0);
       break;
     }
   case JSEmitter::QtScript:
