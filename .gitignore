@@ -1,0 +1,13 @@
+Makefile
+/Examples/Makefile
+/Examples/*/Makefile
+/Examples/test-suite/*/Makefile
+/CCache
+*.Po
+swigp4.ml
+Source/Include/stamp-h1
+Source/Include/swigconfig.h
+config.log
+config.status
+preinst-swig
+swig.spec
