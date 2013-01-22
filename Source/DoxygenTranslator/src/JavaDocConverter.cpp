@@ -126,7 +126,7 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["else"] = make_pair(&JavaDocConverter::handleTagIf, "Else: ");
   tagHandlers["elseif"] = make_pair(&JavaDocConverter::handleTagIf, "Else if: ");
   tagHandlers["endcond"] = make_pair(&JavaDocConverter::handleTagMessage, "End of conditional comment.");
-  // space prevents Javadoc to treat '@ example' as command. File name of
+  // space in second arg prevents Javadoc to treat '@ example' as command. File name of
   // example is still informative to user.
   tagHandlers["example"] = make_pair(&JavaDocConverter::handleTagSame, " example");
   tagHandlers["if"] = make_pair(&JavaDocConverter::handleTagIf, "If: ");
@@ -340,7 +340,9 @@ void JavaDocConverter::translateEntity(DoxygenEntity &tag,
   if (it != tagHandlers.end()) {
     (this->*(it->second.first))(tag, translatedComment, it->second.second);
   } else {
-      addError(WARN_DOXYGEN_COMMAND_ERROR, "Unknown doxygen or HTML tag: " + tag.typeOfEntity);
+      // do NOT print warning, since there are many tags, which are not
+      // translatable - many warnings hide important ones
+      // addError(WARN_DOXYGEN_COMMAND_ERROR, "Unknown doxygen or HTML tag: " + tag.typeOfEntity);
   }
 }
 

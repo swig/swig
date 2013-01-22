@@ -70,6 +70,8 @@ int func02(int a)
 
  
 /**
+ * Comment for \b func03().
+ *
  * \dir /somePath/someFolder
  *
  * \dontinclude someFile.h
@@ -176,6 +178,8 @@ int func05(int a)
 
  
 /**
+ * Comment for \b func06().
+ *
  * \interface someInterface someHeader.h "Header name"
  *
  * \latexonly
@@ -218,6 +222,8 @@ int func06(int a)
 
  
 /**
+ * Comment for \b func07().
+ *
  * \name someHeader.h
  *
  * \namespace someNamespace
@@ -381,6 +387,18 @@ int func09(int a)
  * And here goes simple text
  */
 int func10(int a, float b)
+{
+}
+
+
+/**
+ * \interface someInterface someHeader.h "Header name"
+ *
+ * Because of structural Doxygen command at the start of comment block,
+ * the whoile comment block is ignored. See parser.y, f. isStructuralDoxygen()
+ * or documentation for the list of commands.
+ */
+int func11(int a, float b)
 {
 }
 

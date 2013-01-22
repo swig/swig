@@ -2,6 +2,8 @@
 import com.sun.javadoc.*;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Map;
+import java.util.Set;
 import java.util.Iterator;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
@@ -88,14 +90,29 @@ public class commentParser {
             }
         }
 
-        if (parsedComments.size() < wantedComments.size()) {
-            System.out.println("Found " + (wantedComments.size()-parsedComments.size()) + " missed comment(s)!");
+        if (parsedComments.size() != wantedComments.size()) {
+            System.out.println("Mismatch in the number of comments!\n    Expected: " +
+                               wantedComments.size() + "\n    Parsed: " +
+                               parsedComments.size());
+            System.out.println("Expected keys: ");
+            printKeys(wantedComments);
+            System.out.println("Parsed keys: ");
+            printKeys(parsedComments);
+
             errorCount++;
         }
 		
         return errorCount > 0 ? 1 : 0;
     }
 
+    
+    private static void printKeys(Map map) {
+        Set<String> keys = map.keySet();
+        for (String key : keys) {
+            System.out.println("    " + key);
+        }
+    }
+    
     
     public static void printCommentListForJavaSource() {
         Iterator< Entry<String, String> > it = parsedComments.entrySet().iterator();

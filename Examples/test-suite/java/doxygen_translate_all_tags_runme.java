@@ -51,8 +51,11 @@ public class doxygen_translate_all_tags_runme {
     		" and detailed description of some thing \n");
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func03(int)",
+                       " Comment for <b>func03().</b>\n" +
                        " <i>italicword </i>\n" +
-    		" <i>emphazedWord </i>\n");
+    		" <i>emphazedWord </i>\n" +
+                " @ example someFile.txt\n" +
+                " Some details on using the example");
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func04(int)",
                        " @exception SuperError \n" +
@@ -80,6 +83,7 @@ public class doxygen_translate_all_tags_runme {
     		" describing invariant. \n");
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func06(int)",
+                       " Comment for <b>func06().</b>\n" +
                        " This will only appear in LATeX \n" +
     		" <ul> \n" +
     		" <li>Some unordered list \n" +
@@ -90,6 +94,7 @@ public class doxygen_translate_all_tags_runme {
     		" This will only appear in man\n");
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func07(int)",
+                       " Comment for <b>func07().</b>\n" +
                        " Note: Here \n" +
     		" is the note! \n" +
     		" This is an overloaded member function, provided for convenience. It differs from the above function only in what argument(s) it accepts.\n" +
