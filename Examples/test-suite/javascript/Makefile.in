@@ -47,7 +47,8 @@ CPP_TEST_CASES = \
 	typemap_namespace \
 	typemap_ns_using \
 	using1 \
-	using2
+	using2 \
+	javascript_unicode
 
 SKIP_CPP_CASES = @SKIP_CPP_CASES@
 SKIP_C_CASES = @SKIP_C_CASES@
@@ -94,7 +95,7 @@ run_testcase = \
 
 # Clean
 %.clean:
-	
+
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile javascript_clean

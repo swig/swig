@@ -149,6 +149,7 @@ bool V8Shell::RunShell() {
 
 
 bool V8Shell::InitializeEngine() {
+  return true;
 }
 
 void V8Shell::ExtendEngine() {
@@ -194,6 +195,7 @@ bool V8Shell::ExecuteScript(const std::string& source, const std::string& name) 
 }
 
 bool V8Shell::DisposeEngine() {
+  return true;
 }
 
 v8::Persistent<v8::Context> V8Shell::CreateShellContext() {
