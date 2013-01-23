@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-01-18: Brant Kyser
+            [Java] Patch #15 - Allow the use of the nspace feature without the -package commandline option.
+            This works as long and the new jniclasspackage pragma is used to place the JNI intermediate class
+            into a package and the nspace feature is used to place all exposed types into a package.
+
 2013-01-15: wsfulton
             Fix Visual Studio examples to work when SWIG is unzipped into a directory containing spaces.
 

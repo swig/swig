@@ -67,6 +67,7 @@ class JAVA:public Language {
   String *imclass_imports;	//intermediary class imports from %pragma
   String *module_imports;	//module imports from %pragma
   String *imclass_baseclass;	//inheritance for intermediary class class from %pragma
+  String *imclass_package;	//package in which to generate the intermediary class
   String *module_baseclass;	//inheritance for module class from %pragma
   String *imclass_interfaces;	//interfaces for intermediary class class from %pragma
   String *module_interfaces;	//interfaces for module class from %pragma
@@ -157,6 +158,32 @@ public:
        should be easy to implement though */
     director_multiple_inheritance = 0;
     director_language = 1;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * constructIntermediateClassName()
+   *
+   * Construct the fully qualified name of the intermidiate class and set
+   * the full_imclass_name attribute accordingly.
+   * ----------------------------------------------------------------------------- */
+  void constructIntermediateClassName(Node *n) {
+    String *nspace = Getattr(n, "sym:nspace");
+
+    if (imclass_package && package)
+      full_imclass_name = NewStringf("%s.%s.%s", package, imclass_package, imclass_name);
+    else if (package && nspace)
+      full_imclass_name = NewStringf("%s.%s", package, imclass_name);
+    else if (imclass_package)
+      full_imclass_name = NewStringf("%s.%s", imclass_package, imclass_name);
+    else
+      full_imclass_name = NewStringf("%s", imclass_name);
+
+    if (nspace && !package) {
+      String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
+      Swig_warning(WARN_JAVA_NSPACE_WITHOUT_PACKAGE, Getfile(n), Getline(n),
+	  "The nspace feature is used on '%s' without -package. "
+	  "The generated code may not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
+    }
   }
 
   /* -----------------------------------------------------------------------------
@@ -364,6 +391,7 @@ public:
     proxy_class_code = NewString("");
     module_class_constants_code = NewString("");
     imclass_baseclass = NewString("");
+    imclass_package = NULL;
     imclass_interfaces = NewString("");
     imclass_class_modifiers = NewString("");
     module_class_code = NewString("");
@@ -444,7 +472,7 @@ public:
     }
     // Generate the intermediary class
     {
-      String *filen = NewStringf("%s%s.java", SWIG_output_directory(), imclass_name);
+      String *filen = NewStringf("%s%s.java", outputDirectory(imclass_package), imclass_name);
       File *f_im = NewFile(filen, "w", SWIG_output_files());
       if (!f_im) {
 	FileErrorDisplay(filen);
@@ -457,8 +485,12 @@ public:
       // Start writing out the intermediary class file
       emitBanner(f_im);
 
-      if (package)
-	Printf(f_im, "package %s;\n", package);
+      if (imclass_package && package)
+        Printf(f_im, "package %s.%s;", package, imclass_package);
+      else if (imclass_package)
+        Printf(f_im, "package %s;", imclass_package);
+      else if (package)
+        Printf(f_im, "package %s;\n", package);
 
       if (imclass_imports)
 	Printf(f_im, "%s\n", imclass_imports);
@@ -625,6 +657,8 @@ public:
     module_class_constants_code = NULL;
     Delete(imclass_baseclass);
     imclass_baseclass = NULL;
+    Delete(imclass_package);
+    imclass_package = NULL;
     Delete(imclass_interfaces);
     imclass_interfaces = NULL;
     Delete(imclass_class_modifiers);
@@ -1178,18 +1212,7 @@ public:
       if (proxy_flag && !is_wrapping_class()) {
 	// Global enums / enums in a namespace
 	assert(!full_imclass_name);
-
-	if (!nspace) {
-	  full_imclass_name = NewStringf("%s", imclass_name);
-	} else {
-	  if (package) {
-	    full_imclass_name = NewStringf("%s.%s", package, imclass_name);
-	  } else {
-	    String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
-	    Swig_error(Getfile(n), Getline(n), "The nspace feature used on '%s' is not supported unless a package is specified with -package - Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
-	    SWIG_exit(EXIT_FAILURE);
-	  }
-	}
+	constructIntermediateClassName(n);
       }
 
       enum_code = NewString("");
@@ -1575,6 +1598,7 @@ public:
    *
    * Valid Pragmas:
    * jniclassbase            - base (extends) for the intermediary class
+   * jniclasspackage         - package in which to generate the intermediary class
    * jniclassclassmodifiers  - class modifiers for the intermediary class
    * jniclasscode            - text (java code) is copied verbatim to the intermediary class
    * jniclassimports         - import statements for the intermediary class
@@ -1602,6 +1626,24 @@ public:
 	if (Strcmp(code, "jniclassbase") == 0) {
 	  Delete(imclass_baseclass);
 	  imclass_baseclass = Copy(strvalue);
+	} else if (Strcmp(code, "jniclasspackage") == 0) {
+	  Delete(imclass_package);
+	  imclass_package = Copy(strvalue);
+	  String *imclass_class_package_jniname = makeValidJniName(imclass_package);
+	  Printv(jnipackage, imclass_class_package_jniname, NIL);
+	  Delete(imclass_class_package_jniname);
+	  Replaceall(jnipackage, NSPACE_SEPARATOR, "_");
+	  Append(jnipackage, "_");
+
+	  String *wrapper_name = NewString("");
+	  String *imclass_class_jniname = makeValidJniName(imclass_name);
+	  Printf(wrapper_name, "Java_%s%s_%%f", jnipackage, imclass_class_jniname);
+	  Delete(imclass_class_jniname);
+
+	  Swig_name_unregister("wrapper");
+	  Swig_name_register("wrapper", Char(wrapper_name));
+
+	  Delete(wrapper_name);
 	} else if (Strcmp(code, "jniclassclassmodifiers") == 0) {
 	  Delete(imclass_class_modifiers);
 	  imclass_class_modifiers = Copy(strvalue);
@@ -1875,10 +1917,11 @@ public:
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
       String *nspace = getNSpace();
+      constructIntermediateClassName(n);
 
       if (!nspace) {
 	full_proxy_class_name = NewStringf("%s", proxy_class_name);
-	full_imclass_name = NewStringf("%s", imclass_name);
+
 	if (Cmp(proxy_class_name, imclass_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
 	  SWIG_exit(EXIT_FAILURE);
@@ -1889,14 +1932,10 @@ public:
 	  SWIG_exit(EXIT_FAILURE);
 	}
       } else {
-	if (package) {
+	if (package)
 	  full_proxy_class_name = NewStringf("%s.%s.%s", package, nspace, proxy_class_name);
-	  full_imclass_name = NewStringf("%s.%s", package, imclass_name);
-	} else {
-	  String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
-	  Swig_error(Getfile(n), Getline(n), "The nspace feature used on '%s' is not supported unless a package is specified with -package - Java does not support types declared in a named package accessing types declared in an unnamed package.\n", name);
-	  SWIG_exit(EXIT_FAILURE);
-	}
+	else
+	  full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
       }
 
       if (!addSymbol(proxy_class_name, n, nspace))
@@ -3556,8 +3595,11 @@ public:
     String *qualified_classname = Copy(classname);
     String *nspace = getNSpace();
 
-    if (nspace)
+    if (nspace && package)
       Insert(qualified_classname, 0, NewStringf("%s.%s.", package, nspace));
+    else if(nspace)
+      Insert(qualified_classname, 0, NewStringf("%s.", nspace));
+
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
     // isn't at this point, so we have to manufacture it ourselves. At least
@@ -4254,18 +4296,18 @@ public:
 
     Wrapper *w = NewWrapper();
 
-    if (Len(package_path) > 0)
-      if (Len(getNSpace()) > 0) {
-        internal_classname = NewStringf("%s/%s/%s", package_path, getNSpace(), classname);
-
-        // If the namespace is multiple levels, the result of getNSpace() will have inserted
-        // .'s to delimit namespaces, so we need to replace those with /'s
-        Replace(internal_classname, ".", "/", DOH_REPLACE_ANY);
-      }
-      else
-        internal_classname = NewStringf("%s/%s", package_path, classname);
+    if (Len(package_path) > 0 && Len(getNSpace()) > 0)
+      internal_classname = NewStringf("%s/%s/%s", package_path, getNSpace(), classname);
+    else if (Len(package_path) > 0)
+      internal_classname = NewStringf("%s/%s", package_path, classname);
+    else if (Len(getNSpace()) > 0)
+      internal_classname = NewStringf("%s/%s", getNSpace(), classname);
     else
       internal_classname = NewStringf("%s", classname);
+
+    // If the namespace is multiple levels, the result of getNSpace() will have inserted
+    // .'s to delimit namespaces, so we need to replace those with /'s
+    Replace(internal_classname, NSPACE_SEPARATOR, "/", DOH_REPLACE_ANY);
 
     Wrapper_add_localv(w, "baseclass", "static jclass baseclass", "= 0", NIL);
     Printf(w->def, "void %s::swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls, bool swig_mem_own, bool weak_global) {", director_classname);
