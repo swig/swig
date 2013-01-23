@@ -1167,6 +1167,16 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
       // process doxy commands for escaped characters - handling this separately
       // supports documentation text like \@someText
       if ((pos + 1) < line.size()) {
+
+        // \ and @ with trailing whitespace or quoted get to output as plain string
+        string whitespaces = " '\t\n";
+        if (whitespaces.find(line[pos + 1]) != string::npos) {
+          m_tokenList.push_back(Token(PLAINSTRING, line.substr(pos, 1)));
+          pos++;
+          break;
+        }
+
+        // these chars can be escaped for doxygen
         string escapedChars = "$@\\&~<>#%\".";
         if (escapedChars.find(line[pos + 1]) != string::npos) {
           addDoxyCommand(m_tokenList, line.substr(pos + 1, 1));
@@ -1281,6 +1291,11 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
         pos = endOfWordPos;
     }
     break;
+    case '"':
+        m_isInQuotedString = true;
+        m_tokenList.push_back(Token(PLAINSTRING, "\""));
+        pos++;
+        break;
     default:
       m_tokenListIt = m_tokenList.end();
       printListError(WARN_DOXYGEN_COMMAND_ERROR, "Unknown special character: " + line[pos]);
@@ -1298,6 +1313,7 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
                                                  int fileLine)
 {
   m_isVerbatimText = false;
+  m_isInQuotedString = false;
   m_tokenList.clear();
   m_fileLineNo = fileLine;
   m_fileName = fileName;
@@ -1329,17 +1345,24 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
 
     while (pos != string::npos) {
       // find the end of the word
-      size_t doxyCmdOrHtmlTagPos = line.find_first_of("\\@<>& \t", pos);
+      size_t doxyCmdOrHtmlTagPos = line.find_first_of("\\@<>&\" \t", pos);
       if (doxyCmdOrHtmlTagPos != pos) {
         // plain text found
         m_tokenList.push_back(Token(PLAINSTRING,
-                                 line.substr(pos, doxyCmdOrHtmlTagPos - pos)));
+                              line.substr(pos, doxyCmdOrHtmlTagPos - pos)));
       }
 
       pos = doxyCmdOrHtmlTagPos;
       if (pos != string::npos) {
         if (m_isVerbatimText) {
             pos = processVerbatimText(pos, line);
+        } else if (m_isInQuotedString) {
+            if (line[pos] == '"') {
+                m_isInQuotedString = false;
+            }
+            m_tokenList.push_back(Token(PLAINSTRING,
+                                     line.substr(pos, 1)));
+            pos++;
         } else {
             pos = processNormalComment(pos, line);
         }

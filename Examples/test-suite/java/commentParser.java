@@ -63,7 +63,8 @@ public class commentParser {
             }
 
             if (!actualStr.equals(wantedStr)) {
-                System.out.println("Documentation comments for " + e.getKey() + " do not match!");
+                System.out.println("\n\n////////////////////////////////////////////////////////////////////////");
+                System.out.println("Documentation comments for '" + e.getKey() + "' do not match!");
                 String expectedFileName = "expected.txt";
                 String gotFileName = "got.txt";
                 System.out.println("Output is also saved to files '" + expectedFileName +

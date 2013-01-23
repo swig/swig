@@ -72,7 +72,7 @@ public class doxygen_misc_constructs_runme {
     		" return reference to self, so we can use it like this: \n" +
     		" <pre> \n" +
     		" CConnectionConfig config = new CConnectionConfig(); \n" +
-    		" config.discoveryPort(5534).dllPath(\"C: \\ yWinIDEA \\ onnect.dll\").id(\"main\"); \n" +
+    		" config.discoveryPort(5534).dllPath(\"C:\\\\myWinIDEA\\\\connect.dll\").id(\"main\"); \n" +
     		" </pre> \n" +
     		" \n" +
     		" All parameters are optional. Set only what is required, default values are \n" +
@@ -130,21 +130,31 @@ public class doxygen_misc_constructs_runme {
     		"");
  
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.backslashA()",
-    		" Backslash following<code>word</code> is valid doxygen command. Output contains \n" +
-    		" 'followingword' with word in 'code' font. \n" +
+    		" Backslash following<code>word</code> is a valid doxygen command. Output contains\n" +
+    		" 'followingword' with 'word' in code font. \n" +
     		" \n" +
     		"");
  
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.backslashB()",
-                       " Doxy command without trailing cspace space is ignored. Standalone \n" +
-                       " \\ and '\\' get to output. Commands not recognized by Doxygen \n" +
-                       " are ignored. Backslashes in DOS paths d: and words \n" +
+                       " Doxy command without trailing space is ignored - nothing appears\n" +
+                       " on output. Standalone \\ and '\\' get to output. \n" +
+                       " Standalone @ and '@' get to output. \n" +
+                       " Commands \"in quoted \\b strings are treated as plain text\". \n" +
+                       " Commands not recognized by Doxygen are ignored. \n" +
+                       " Backslashes in DOS paths d: and words \n" +
                        " following them do not appear on output, we must quote them with \n" +
-                       " double quotes: \"d:\\xyz\\c\\myfile\", single quotes do not help: \n" +
-                       " 'd: '. Escaping works: d:\\xyz\\c\\myfile. Unix \n" +
-                       " paths of course have no such problems: /xyz/c/myfile \n" +
+                       " double quotes: \"d:\\xyz\\qwe\\myfile\", \"@something\". Single quotes do not help: \n" +
+                       " 'd: '. Escaping works: d:\\xyz\\qwe\\myfile. Unix \n" +
+                       " paths of course have no such problems: /xyz/qwe/myfile \n" +
+                       " Commands for escaped symbols:\n" +
+                       " $ @ \\ &amp; ~ &lt; &gt; # % &quot; . :: @text ::text" +
     		" \n");
- 
+
+   wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.backslashC()",
+    		" Backslash e at end of <i>line</i> froze SWIG\n" +
+    		" <i>with</i> old comment parser.\n" +
+    		"");
+     
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
   }

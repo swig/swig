@@ -88,6 +88,7 @@ private:
   static std::set<std::string> doxygenSectionIndicators;
 
   bool m_isVerbatimText; // used to handle \htmlonly and \verbatim commands
+  bool m_isInQuotedString;
 
   std::string m_fileName;
   int m_fileLineNo;

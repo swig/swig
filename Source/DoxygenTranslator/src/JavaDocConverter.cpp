@@ -57,6 +57,9 @@ void JavaDocConverter::fillStaticTables() {
    * entities must be translated - remain in Java, something meaningfull in Python (&lt, ...)
    *
    * - enum inside class is missing comment
+   * - crash if link in @see tag is split to two lines
+   * - whitespaces in tests
+   * - Python
    * - '\' not representing doxygen commands
    * - add comments also to auto-generated methods lilke equals(), delete() in Java,
    *   and methods for std::vector(), ...

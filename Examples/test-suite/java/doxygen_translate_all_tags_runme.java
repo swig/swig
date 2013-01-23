@@ -59,6 +59,9 @@ public class doxygen_translate_all_tags_runme {
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func04(int)",
                        " @exception SuperError \n" +
+                       " \sqrt{(x_2-x_1)^2+(y_2-y_1)^2} \n" +
+                       " \sqrt{(x_2-x_1)^2+(y_2-y_1)^2} \n" +
+                       " \sqrt{(x_2-x_1)^2+(y_2-y_1)^2} \n" +
     		" This will only appear in hmtl \n");
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func05(int)",

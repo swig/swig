@@ -27,7 +27,7 @@ void isNoSpaceValidC()
 
 /**
  * Backslash following\c word is a valid doxygen command. Output contains
- * 'followingword' with 'word' in 'code' font.
+ * 'followingword' with 'word' in code font.
  */
 void backslashA()
 {}
@@ -41,12 +41,13 @@ void backslashA()
  * Doxy command without trailing \cspace space is ignored - nothing appears
  * on output. Standalone \ and '\' get to output.
  * Standalone @ and '@' get to output.
+ * Commands "in quoted \b strings are treated as plain text".
  * Commands not recognized by Doxygen \blah @blah are ignored.
- * Backslashes in DOS paths d:\xyz\c\myfile and
- * words following them do not appear on output, we must quote them with
- * double quotes: "d:\xyz\c\myfile", "@something". single quotes do not help:
- * 'd:\xyz\c\myfile'. Escaping works: d:\\xyz\\c\\myfile. Unix
- * paths of course have no such problems: /xyz/c/myfile
+ * Backslashes in DOS paths d:\xyz\qwe\myfile and words 
+ * following them do not appear on output, we must quote them with
+ * double quotes: "d:\xyz\qwe\myfile", "@something". Single quotes do not help:
+ * 'd:\xyz\qwe\myfile'. Escaping works: d:\\xyz\\qwe\\myfile. Unix
+ * paths of course have no such problems: /xyz/qwe/myfile
  * Commands for escaped symbols:
  * \$ \@ \\ \& \~ \< \> \# \% \" \. \:: \@text \::text
  */
@@ -56,14 +57,8 @@ void backslashB()
 /**
  * Backslash e at end of \e line froze SWIG \e
  * with old comment parser.
- * \arg some list item
  */
 void backslashC()
 {}
 
-/**
- *
- */
-void htmlTags()
-{}
 
