@@ -432,12 +432,21 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
      return $null;
    }
    $result = ($1_ltype)$input; %}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &&
+%{ if (!$input) {
+     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Unexpected null return for type $1_type", 0);
+     return $null;
+   }
+   $result = ($1_ltype)$input; %}
 %typemap(directorin) SWIGTYPE &
+%{ $input = ($1_ltype) &$1; %}
+%typemap(directorin) SWIGTYPE &&
 %{ $input = ($1_ltype) &$1; %}
 
 %typemap(csdirectorin) SWIGTYPE *, SWIGTYPE (CLASS::*) "($iminput == IntPtr.Zero) ? null : new $csclassname($iminput, false)"
 %typemap(csdirectorin) SWIGTYPE & "new $csclassname($iminput, false)"
-%typemap(csdirectorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE & "$csclassname.getCPtr($cscall).Handle"
+%typemap(csdirectorin) SWIGTYPE && "new $csclassname($iminput, false)"
+%typemap(csdirectorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, SWIGTYPE && "$csclassname.getCPtr($cscall).Handle"
 
 /* Default array handling */
 %typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)$input; %}
@@ -973,6 +982,7 @@ using System.Runtime.InteropServices;
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
