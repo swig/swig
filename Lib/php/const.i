@@ -31,6 +31,7 @@
 
 %typemap(consttab) SWIGTYPE *,
                    SWIGTYPE &,
+                   SWIGTYPE &&,
                    SWIGTYPE [] {
   /* This actually registers it as a global variable and constant.  I don't
    * like it, but I can't figure out the zend_constant code... */

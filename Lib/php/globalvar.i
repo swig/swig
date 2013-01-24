@@ -80,7 +80,7 @@
   sizeof(zval *), NULL);
 }
 
-%typemap(varinit) SWIGTYPE, SWIGTYPE &
+%typemap(varinit) SWIGTYPE, SWIGTYPE &, SWIGTYPE &&
 {
   zval *z_var;
 
@@ -210,7 +210,7 @@
 
 }
 
-%typemap(varin) SWIGTYPE *, SWIGTYPE &
+%typemap(varin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&
 {
   zval **z_var;
   $1_ltype _temp;
@@ -336,7 +336,7 @@ deliberate error cos this code looks bogus to me
   }
 }
 
-%typemap(varout) SWIGTYPE *, SWIGTYPE &
+%typemap(varout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&
 {
   zval **z_var;
 
