@@ -317,7 +317,16 @@ String *Swig_cresult(SwigType *t, const_String_or_char_ptr name, const_String_or
   case T_RVALUE_REFERENCE:
     {
       String *lstr = SwigType_lstr(t, 0);
-      Printf(fcall, "%s = (%s) &", name, lstr);
+      SwigType *tt = Copy(t);
+      SwigType_del_rvalue_reference(tt);
+      SwigType_add_qualifier(tt, "const");
+      SwigType_add_reference(tt);
+      String *const_lvalue_str = SwigType_rcaststr(tt, 0);
+
+      Printf(fcall, "%s = (%s) &%s", name, lstr, const_lvalue_str);
+
+      Delete(const_lvalue_str);
+      Delete(tt);
       Delete(lstr);
     }
     break;

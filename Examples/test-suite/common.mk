@@ -443,6 +443,7 @@ CPP0X_TEST_CASES = \
 	cpp0x_raw_string_literals \
 	cpp0x_rvalue_reference \
 	cpp0x_rvalue_reference2 \
+	cpp0x_rvalue_reference3 \
 	cpp0x_sizeof_object \
 	cpp0x_static_assert \
 	cpp0x_strongly_typed_enumerations \
