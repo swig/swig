@@ -36,9 +36,10 @@ struct Thingy {
     rvalref = rhs.rvalref;
   }
 private:
-  static const bool PrivateTrue = true;
+  static const bool PrivateTrue;
   Thingy();
 };
+const bool Thingy::PrivateTrue = true;
 
 short && globalRvalueInOut(short &&i) { return std::move(i); }
 
