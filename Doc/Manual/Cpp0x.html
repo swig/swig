@@ -511,22 +511,26 @@ public:
 }
 </pre></div>
 
-<p>Support for the variadic sizeof() function was also introduced:</p>
-
-<div class="code"><pre>
-const int SIZE = sizeof...(ClassName&lt;int, int&gt;);
-</pre></div>
-
 <p>
 For now however, the <tt>%template</tt> directive only accepts one parameter substitution
 for the variable template parameters.
 </p>
 
 <div class="code"><pre>
-%template(MyVariant1) ClassName&lt;&gt;         // zero argument not supported
+%template(MyVariant1) ClassName&lt;&gt;         // zero argument not supported yet
 %template(MyVariant2) ClassName&lt;int&gt;      // ok
-%template(MyVariant3) ClassName&lt;int, int&gt; // too many arguments
+%template(MyVariant3) ClassName&lt;int, int&gt; // too many arguments not supported yet
 </pre></div>
+
+<p>Support for the variadic <tt>sizeof()</tt> function is correctly parsed:</p>
+
+<div class="code"><pre>
+const int SIZE = sizeof...(ClassName&lt;int, int&gt;);
+</pre></div>
+
+<p>
+In the above example <tt>SIZE</tt> is of course wrapped as a constant.
+</p>
 
 <H3><a name="Cpp0x_New_string_literals"></a>7.2.18 New string literals</H3>
 
