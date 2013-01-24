@@ -3,9 +3,20 @@
  * ------------------------------------------------------------ */
 
 %apply int { enum SWIGTYPE };
-%apply const int& { const enum SWIGTYPE& };
+%apply const int& { const enum SWIGTYPE & };
+%apply const int& { const enum SWIGTYPE && };
 
-%typemap(in,fragment=SWIG_AsVal_frag(int),noblock=1) const enum SWIGTYPE& (int val, int ecode, $basetype temp) {  
+%typemap(in,fragment=SWIG_AsVal_frag(int),noblock=1) const enum SWIGTYPE & (int val, int ecode, $basetype temp) {  
+  ecode = SWIG_AsVal(int)($input, &val);
+  if (!SWIG_IsOK(ecode)) {
+    %argument_fail(ecode, "$type", $symname, $argnum);
+  } else {
+    temp = %static_cast(val,$basetype);
+    $1 = &temp;
+  }
+}
+
+%typemap(in,fragment=SWIG_AsVal_frag(int),noblock=1) const enum SWIGTYPE && (int val, int ecode, $basetype temp) {  
   ecode = SWIG_AsVal(int)($input, &val);
   if (!SWIG_IsOK(ecode)) {
     %argument_fail(ecode, "$type", $symname, $argnum);

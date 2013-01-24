@@ -31,9 +31,11 @@
 %typemap("rtype") enum SWIGTYPE *   "character";
 %typemap("rtype") enum SWIGTYPE *const   "character";
 %typemap("rtype") enum SWIGTYPE &  "character";
+%typemap("rtype") enum SWIGTYPE &&  "character";
 %typemap("rtype") SWIGTYPE * "$R_class";
 %typemap("rtype") SWIGTYPE *const "$R_class";
 %typemap("rtype") SWIGTYPE & "$R_class";
+%typemap("rtype") SWIGTYPE && "$R_class";
 %typemap("rtype") SWIGTYPE "$&R_class";
 
 
@@ -65,13 +67,15 @@
   %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE &
   %{  $input = enumToInteger($input, "$R_class"); %}
+%typemap(scoercein) enum SWIGTYPE &&
+  %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE *
   %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE *const
   %{  $input = enumToInteger($input, "$R_class"); %}
 
 
-%typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &  
+%typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &, SWIGTYPE &&
   %{ %}
 
 /*
@@ -79,6 +83,9 @@
   %{ $input = coerceIfNotSubclass($input, "$R_class") %}
 
 %typemap(scoercein) SWIGTYPE & 
+  %{ $input = coerceIfNotSubclass($input, "$R_class") %}
+
+%typemap(scoercein) SWIGTYPE && 
   %{ $input = coerceIfNotSubclass($input, "$R_class") %}
 
 %typemap(scoercein) SWIGTYPE  
@@ -116,6 +123,9 @@ string &, std::string &
 %typemap(scoerceout) enum SWIGTYPE &
   %{  $result = enumFromInteger($result, "$R_class"); %}
 
+%typemap(scoerceout) enum SWIGTYPE &&
+  %{  $result = enumFromInteger($result, "$R_class"); %}
+
 %typemap(scoerceout) enum SWIGTYPE *
   %{  $result = enumToInteger($result, "$R_class"); %}
 
@@ -127,6 +137,9 @@ string &, std::string &
   %{ class($result) <- "$&R_class"; %}
 
 %typemap(scoerceout) SWIGTYPE & 
+  %{ class($result) <- "$R_class"; %}
+
+%typemap(scoerceout) SWIGTYPE && 
   %{ class($result) <- "$R_class"; %}
 
 %typemap(scoerceout) SWIGTYPE * 

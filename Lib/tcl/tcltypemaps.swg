@@ -66,7 +66,7 @@
 
 #if 1
 // Old 1.3.25 typemaps needed to avoid premature object deletion
-%typemap(out,noblock=1) SWIGTYPE *INSTANCE, SWIGTYPE &INSTANCE, SWIGTYPE INSTANCE[] {
+%typemap(out,noblock=1) SWIGTYPE *INSTANCE, SWIGTYPE &INSTANCE, SWIGTYPE &&INSTANCE, SWIGTYPE INSTANCE[] {
   Tcl_SetObjResult(interp, SWIG_NewInstanceObj( %as_voidptr($1), $1_descriptor,0));
 }
 
@@ -86,5 +86,6 @@
 %typemap(out)    SWIGTYPE *  =  SWIGTYPE *INSTANCE;
 %typemap(out)    SWIGTYPE *const  =  SWIGTYPE *;
 %typemap(out)    SWIGTYPE &  =  SWIGTYPE &INSTANCE;
+%typemap(out)    SWIGTYPE && =  SWIGTYPE &&INSTANCE;
 %typemap(out)    SWIGTYPE [] =  SWIGTYPE INSTANCE[];
 %typemap(varout) SWIGTYPE    =  SWIGTYPE INSTANCE;
