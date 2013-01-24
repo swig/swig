@@ -129,7 +129,7 @@
   }    
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
   void *ptr;
   $1 = !caml_ptr_val_internal($input, &ptr,$descriptor);
 }
