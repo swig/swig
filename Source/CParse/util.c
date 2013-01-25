@@ -110,18 +110,17 @@ List *SWIG_split_args(String *s) {
     if (!syntax_error) {
       parameterList = SWIG_split_args(dollar_substitute);
     }
-    Printf(stdout, "after SWIG_split_args\n");
-    /*Delete(dollar_substitute);
-    dollar_substitute = 0; */
 
     if (!syntax_error && Len(parameterList) == 3) {
       String *content = Getitem(parameterList, 0);
       String *pat = Getitem(parameterList, 1);
       String *rep = Getitem(parameterList, 2);
-      
+
       Replace(content, pat, rep, DOH_REPLACE_ANY);
       Replace(s, dollar_substitute, content, DOH_REPLACE_ANY);
 
+      Delete(dollar_substitute);
+      dollar_substitute = 0;
     }
     else {
       Printf(stdout,"ParameterList length: %d\n", Len(parameterList));
