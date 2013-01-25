@@ -1,4 +1,5 @@
 %insert("init") %{
+#define BUILDING_NODE_EXTENSION
 #include <node.h>
 %}
 
