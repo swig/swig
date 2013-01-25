@@ -57,7 +57,7 @@ v8::Handle<v8::Value> $jswrapper(const v8::Arguments& args) {
   SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for contruction of $jsmangledname");
   
 fail:
-  scope.Close(v8::Undefined());
+  return scope.Close(v8::Undefined());
 }
 %}
 
