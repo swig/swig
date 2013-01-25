@@ -43,9 +43,7 @@ List *SWIG_split_args(String *s) {
       }
     }
     if ((level == 0) && angle_level == 0 && ((*c == ',') || (*c == ')'))) {
-      String *tmp = NewStringWithSize(start, c - start);
-      Append(args, tmp);
-      Delete(tmp);
+      Append(args, NewStringWithSize(start, c - start));
       start = c + 1;
       leading = 1;
       if (*c == ')')
@@ -112,21 +110,22 @@ List *SWIG_split_args(String *s) {
     }
 
     if (!syntax_error && Len(parameterList) == 3) {
-      String *content = Getitem(parameterList, 0);
+      String *content = NewString(Getitem(parameterList, 0));
       String *pat = Getitem(parameterList, 1);
       String *rep = Getitem(parameterList, 2);
 
       Replace(content, pat, rep, DOH_REPLACE_ANY);
       Replace(s, dollar_substitute, content, DOH_REPLACE_ANY);
 
-      Delete(dollar_substitute);
-      dollar_substitute = 0;
+      Delete(content);
     }
     else {
-      Printf(stdout,"ParameterList length: %d\n", Len(parameterList));
       Swig_error(Getfile(s), Getline(s), "Bad $substitute() macro.\n");
       break;
     }
+
+    Delete(dollar_substitute);
+    Delete(parameterList);
   }
  }
 
