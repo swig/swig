@@ -1252,6 +1252,16 @@ public:
       EnumFeature enum_feature = decodeEnumFeature(n);
       String *typemap_lookup_type = Getattr(n, "name");
 
+      if (doxygen && doxygenTranslator->hasDocumentation(n)){
+        String *doxygen_comments=doxygenTranslator->getDocumentation(n);
+        if(comment_creation_chatter) {
+          Printf(enum_code, "/* This was generated from enumvalueDeclaration() */");
+        }
+        Printv(enum_code, Char(doxygen_comments), NIL);
+        Delete(doxygen_comments);
+      }
+
+
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Java enum
 
