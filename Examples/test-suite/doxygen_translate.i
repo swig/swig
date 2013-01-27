@@ -54,7 +54,7 @@
  *   This is printed if not
  * \endif
  * 
- * \image html testImage.bmp "Hello, world!" asd=10qwe
+ * \image html testImage.bmp "Hello, world!" width=10cm
  * 
  * <ul>
  * 

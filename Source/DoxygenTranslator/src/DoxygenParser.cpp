@@ -201,21 +201,20 @@ std::string DoxygenParser::getNextWord() {
 */
 	while (m_tokenListIt != m_tokenList.end()  &&  (m_tokenListIt->m_tokenType == PLAINSTRING)) {
 		// handle quoted strings as words
-		if (m_tokenListIt->m_tokenString[0] == '"'
-				&& m_tokenListIt->m_tokenString[m_tokenListIt->m_tokenString.size() - 1] != '"') {
+	    string token = m_tokenListIt->m_tokenString;
+		if (token == "\"") {
 
-			string word = m_tokenListIt->m_tokenString + " ";
+			string word = m_tokenListIt->m_tokenString;
 			m_tokenListIt++;
 			while (true) {
-				string nextWord = getNextWord();
+				string nextWord = getNextToken();
 				if (nextWord.empty()) { // maybe report unterminated string error
 					return word;
 				}
 				word += nextWord;
-				if (word[word.size() - 1] == '"') { // strip quotes
-					return word.substr(1, word.size() - 2);
+				if (nextWord == "\"") {
+					return word;
 				}
-				word += " ";
 			}
 		}
 

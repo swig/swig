@@ -56,11 +56,11 @@ void JavaDocConverter::fillStaticTables() {
    *
    * entities must be translated - remain in Java, something meaningfull in Python (&lt, ...)
    *
-   * - enum inside class is missing comment
+   * - OK enum inside class is missing comment
    * - crash if link in @see tag is split to two lines
    * - whitespaces in tests
    * - Python
-   * - '\' not representing doxygen commands
+   * - OK '\' not representing doxygen commands
    * - add comments also to auto-generated methods lilke equals(), delete() in Java,
    *   and methods for std::vector(), ...
    */
@@ -459,8 +459,11 @@ void JavaDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translate
 
   translatedComment += "<img src=" + file;
   if (title.size())
-    translatedComment += " alt=\"" + title +"\"";
-  translatedComment += " />";
+    translatedComment += " alt=" + title;
+
+  // the size indication is supported for Latex only in Doxygen, see manual
+
+  translatedComment += "/>";
 }
 
 
