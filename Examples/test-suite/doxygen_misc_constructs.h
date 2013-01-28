@@ -56,7 +56,10 @@ void backslashB()
 
 /**
  * Backslash e at end of \e line froze SWIG \e
- * with old comment parser.
+ * with old comment parser. 
+ *
+ * @see MyClass::fun(char,
+ *  float)
  */
 void backslashC()
 {}

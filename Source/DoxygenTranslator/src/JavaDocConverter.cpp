@@ -56,11 +56,9 @@ void JavaDocConverter::fillStaticTables() {
    *
    * entities must be translated - remain in Java, something meaningfull in Python (&lt, ...)
    *
-   * - OK enum inside class is missing comment
    * - crash if link in @see tag is split to two lines
    * - whitespaces in tests
    * - Python
-   * - OK '\' not representing doxygen commands
    * - add comments also to auto-generated methods lilke equals(), delete() in Java,
    *   and methods for std::vector(), ...
    */
@@ -517,7 +515,7 @@ string JavaDocConverter::convertLink(string linkObject) {
   // find the params in function in linkObject (if any)
   size_t lbracePos = linkObject.find('(', 0);
   size_t rbracePos = linkObject.find(')', 0);
-  if (lbracePos == string::npos && rbracePos == string::npos && lbracePos >= rbracePos)
+  if (lbracePos == string::npos || rbracePos == string::npos || lbracePos >= rbracePos)
     return "";
 
   string paramsStr = linkObject.substr(lbracePos + 1, rbracePos - lbracePos - 1);
@@ -621,18 +619,43 @@ void JavaDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translatedC
   if (!tag.entityList.size())
     return;
 
+  // tag.entity list contains contents of the @see paragraph. It should contain
+  // one link (references) to method with or without parameters. Doxygen supports
+  // arbitrary text and types mixed, but this feature is not supported here.
+  // :: or # may be used as a separator between class name and method name.
   list<DoxygenEntity>::iterator it;
+  string methodRef;
   for (it = tag.entityList.begin(); it!=tag.entityList.end(); it++) {
-    if (it->typeOfEntity == "plainstd::endl")
-      handleNewLine(*it, translatedComment, dummy);
-    if (it->typeOfEntity != "plainstd::string")
+    if (it->typeOfEntity == "plainstd::endl") {
+      // handleNewLine(*it, translatedComment, dummy);
       continue;
-    translatedComment += "@see ";
-    string linkObject = convertLink(it->data);
-    if (!linkObject.size())
-      linkObject = it->data;
-    translatedComment += linkObject;
+    }
+
+    // restore entities which may be used in C++ type declaration
+    if (it->typeOfEntity == "&amp") {
+        methodRef += '&';
+    } else if (it->typeOfEntity == "&lt") {
+        methodRef += '<';
+    } else if (it->typeOfEntity == "&gt") {
+        methodRef += '>';
+    } else {
+        methodRef += it->data;
+    }
   }
+
+  // replace :: with #, but only if it appears before left brace
+  size_t lbrace = methodRef.find('(');
+  size_t dblColon = methodRef.find("::");
+  if (dblColon < lbrace) {
+      methodRef = methodRef.substr(0, dblColon) + '#' + methodRef.substr(dblColon + 2);
+  }
+
+  translatedComment += "@see ";
+  string linkObject = convertLink(methodRef);
+  if (!linkObject.size()) {
+    linkObject = methodRef;
+  }
+  translatedComment += linkObject;
 }
 
 

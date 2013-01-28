@@ -153,6 +153,7 @@ public class doxygen_misc_constructs_runme {
    wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.backslashC()",
     		" Backslash e at end of <i>line</i> froze SWIG\n" +
     		" <i>with</i> old comment parser.\n" +
+                " @see MyClass#fun(char,float)\n" +
     		"");
      
     // and ask the parser to check comments for us
