@@ -2,7 +2,9 @@ require("import")	-- the import fn
 import("enums")	-- import lib
 
 -- catch "undefined" global variables
-setmetatable(getfenv(),{__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+local env = _ENV -- Lua 5.2
+if not env then env = getfenv () end -- Lua 5.1
+setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
 
 -- check values
 assert(enums.CSP_ITERATION_FWD==0)

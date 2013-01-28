@@ -2,7 +2,7 @@
 
 %warnfilter(SWIGWARN_PARSE_REDEFINED) S_May;
 
-// %rename with rxspencer can do the equivalent of these two renames, which was resulting in uncompileable code
+// %rename using regex can do the equivalent of these two renames, which was resulting in uncompileable code
 %rename(May) M_May;
 %rename(May) S_May;
 

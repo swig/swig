@@ -7,6 +7,12 @@
 %warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) covariant3; /* Java, C# covariant return types */
 %warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) covariant4; /* Java, C# covariant return types */
 
+%{
+#if defined(__SUNPRO_CC)
+#pragma error_messages (off, wbadasg) /* Assigning extern "C" ... */
+#endif
+%}
+
 //
 // Check this example with directors wherever possible.
 //

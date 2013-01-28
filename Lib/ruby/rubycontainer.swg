@@ -4,8 +4,7 @@
  * Ruby sequence <-> C++ container wrapper
  *
  * This wrapper, and its iterator, allows a general use (and reuse) of
- * the the mapping between C++ and Ruby, thanks to the C++
- * templates.
+ * the mapping between C++ and Ruby, thanks to the C++ templates.
  *
  * Of course, it needs the C++ compiler to support templates, but
  * since we will use this wrapper with the STL containers, that should
@@ -154,6 +153,7 @@ namespace swig {
 }
 
 %fragment("RubySequence_Cont","header",
+	  fragment="<stddef.h>",
 	  fragment="StdTraits",
 	  fragment="RubySequence_Base",
 	  fragment="ConstIterator_T")
@@ -973,7 +973,8 @@ namespace swig
 
 %fragment("StdSequenceTraits","header",
 	  fragment="StdTraits",
-	  fragment="RubySequence_Cont")
+	  fragment="RubySequence_Cont",
+	  fragment="GC_VALUE_definition")
 {
 namespace swig {
   template <class RubySeq, class Seq>

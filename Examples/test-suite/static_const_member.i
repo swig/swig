@@ -11,6 +11,9 @@
 #elif SWIGCSHARP
 %csconst(1) EN;
 %csconst(1) CHARTEST;
+#elif SWIGD
+%dmanifestconst EN;
+%dmanifestconst CHARTEST;
 #endif
 
 %inline %{

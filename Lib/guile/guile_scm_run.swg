@@ -53,8 +53,8 @@ typedef struct swig_guile_clientdata {
   SWIG_Guile_NewMemberObj(ptr, sz, type, FUNC_NAME)
   
 /* Runtime API */
-static swig_module_info *SWIG_Guile_GetModule(void);
-#define SWIG_GetModule(clientdata) SWIG_Guile_GetModule()
+static swig_module_info *SWIG_Guile_GetModule(void *SWIGUNUSEDPARM(clientdata));
+#define SWIG_GetModule(clientdata) SWIG_Guile_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) SWIG_Guile_SetModule(pointer)
   
 SWIGINTERN char *
@@ -204,7 +204,7 @@ SWIGINTERNINLINE int
 SWIG_Guile_IsPointer (SCM s)
 {
   /* module might not be initialized yet, so initialize it */
-  SWIG_Guile_GetModule();
+  SWIG_GetModule(0);
   return SWIG_Guile_IsPointerOfType (s, NULL);
 }
 
@@ -419,7 +419,7 @@ SWIG_Guile_Init ()
 }
 
 SWIGINTERN swig_module_info *
-SWIG_Guile_GetModule(void)
+SWIG_Guile_GetModule(void *SWIGUNUSEDPARM(clientdata))
 {
   SCM module;
   SCM variable;

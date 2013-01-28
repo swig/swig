@@ -16,6 +16,7 @@ public class runme
     Foo f = b.create();
     FooBar fb = new FooBar();
     FooBar2 fb2 = new FooBar2();
+    FooBar3 fb3 = new FooBar3();
 
     String s;
     s = fb.used();
@@ -37,6 +38,21 @@ public class runme
     s = fb.pong();
     if ( s != ("Bar::pong();Foo::pong();FooBar::ping();"))
       throw new Exception("bad FooBar::pong");
+
+//    if (fb3.cheer() != "FooBar3::cheer();")
+//      throw new Exception("bad fb3::cheer");
+
+    if (fb2.callping() != "FooBar2::ping();")
+      throw new Exception("bad fb2.callping");
+
+    if (fb2.callcheer() != "FooBar2::pang();Bar::pong();Foo::pong();FooBar2::ping();")
+      throw new Exception("bad fb2.callcheer");
+
+    if (fb3.callping() != "Bar::ping();")
+      throw new Exception("bad fb3.callping");
+
+    if (fb3.callcheer() != "FooBar3::cheer();")
+      throw new Exception("bad fb3.callcheer");
   }
 }
 
@@ -66,6 +82,18 @@ class FooBar2 : Bar
   protected override String pang()
   {
     return "FooBar2::pang();";
+  }
+}
+
+class FooBar3 : Bar
+{
+  public FooBar3() : base()
+  {
+  }
+
+  protected override String cheer()
+  {
+    return "FooBar3::cheer();";
   }
 }
 

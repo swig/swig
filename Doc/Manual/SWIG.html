@@ -44,6 +44,12 @@
 <li><a href="#SWIG_nn26">Arrays</a>
 <li><a href="#SWIG_readonly_variables">Creating read-only variables</a>
 <li><a href="#SWIG_rename_ignore">Renaming and ignoring declarations</a>
+<ul>
+<li><a href="#SWIG_nn29">Simple renaming of specific identifiers</a>
+<li><a href="#SWIG_advanced_renaming">Advanced renaming support</a>
+<li><a href="#SWIG_limiting_renaming">Limiting global renaming rules</a>
+<li><a href="#SWIG_chosen_unignore">Ignoring everything then wrapping a few selected symbols</a>
+</ul>
 <li><a href="#SWIG_default_args">Default/optional arguments</a>
 <li><a href="#SWIG_nn30">Pointers to functions and callbacks</a>
 </ul>
@@ -142,6 +148,7 @@ can be obtained by typing <tt>swig -help</tt> or <tt>swig
 -o <em>outfile</em>            Name of output file
 -outcurrentdir	      Set default output dir to current dir instead of input file's path
 -outdir <em>dir</em>           Set language specific files output directory
+-pcreversion          Display PCRE version information
 -swiglib              Show location of SWIG library
 -version              Show SWIG version number
 
@@ -1662,6 +1669,9 @@ generate a warning message.   Simply change the directives to <tt>%immutable;</t
 <H3><a name="SWIG_rename_ignore"></a>5.4.7 Renaming and ignoring declarations</H3>
 
 
+<H4><a name="SWIG_nn29"></a>5.4.7.1 Simple renaming of specific identifiers</H4>
+
+
 <p>
 Normally, the name of a C declaration is used when that declaration is
 wrapped into the target language. However, this may generate a
@@ -1742,12 +1752,6 @@ declarations.  If you need to remove a whole section of problematic code, the SW
 </p>
 
 <p>
-More powerful variants of <tt>%rename</tt> and <tt>%ignore</tt> directives can be used to help 
-wrap C++ overloaded functions and methods or C++ methods which use default arguments. This is described in the 
-<a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section in the C++ chapter.
-</p>
-
-<p>
 <b>Compatibility note: </b> Older versions of SWIG provided a special <tt>%name</tt> directive for renaming declarations.
 For example:
 </p>
@@ -1762,6 +1766,337 @@ For example:
 This directive is still supported, but it is deprecated and should probably be avoided.  The <tt>%rename</tt>
 directive is more powerful and better supports wrapping of raw header file information.
 </p>
+
+<H4><a name="SWIG_advanced_renaming"></a>5.4.7.2 Advanced renaming support</H4>
+
+
+<p>
+While writing <tt>%rename</tt> for specific declarations is simple enough,
+sometimes the same renaming rule needs to be applied to many, maybe all,
+identifiers in the SWIG input. For example, it may be necessary to apply some
+transformation to all the names in the target language to better follow its
+naming conventions, like adding a specific prefix to all wrapped functions. Doing it individually
+for each function is impractical so SWIG supports applying a renaming rule to
+all declarations if the name of the identifier to be renamed is not specified:
+</p>
+
+<div class="code">
+<pre>
+%rename("myprefix_%s") ""; // print&nbsp;-&gt;&nbsp;myprefix_print
+</pre>
+</div>
+
+<p>
+This also shows that the argument of <tt>%rename</tt> doesn't have to be a
+literal string but can be a <tt>printf()</tt>-like format string. In the
+simplest form, <tt>"%s"</tt> is replaced with the name of the original
+declaration, as shown above. However this is not always enough and SWIG
+provides extensions to the usual format string syntax to allow applying a
+(SWIG-defined) function to the argument. For example, to wrap all C functions
+<tt>do_something_long()</tt> as more Java-like <tt>doSomethingLong()</tt> you
+can use the <tt>"lowercamelcase"</tt> extended format specifier like this:
+</p>
+
+<div class="code">
+<pre>
+%rename("%(lowercamelcase)s") ""; // foo_bar -&gt; fooBar; FooBar -&gt; fooBar
+</pre>
+</div>
+
+<p>
+Some functions can be parametrized, for example the <tt>"strip"</tt> one
+strips the provided prefix from its argument. The prefix is specified as part
+of the format string, following a colon after the function name:
+</p>
+<div class="code">
+<pre>
+%rename("%(strip:[wx])s") ""; // wxHello -&gt; Hello; FooBar -&gt; FooBar
+</pre>
+</div>
+
+<p>
+Below is the table summarizing all currently defined functions with an example
+of applying each one. Note that some of them have two names, a shorter one
+and a more descriptive one, but the two functions are otherwise equivalent:
+</p>
+<table summary="Format string functions" border="1" cellpadding="5">
+<tr>
+    <th>Function</th><th>Returns</th><th colspan=2>Example (in/out)</th>
+</tr>
+<tr>
+    <td><tt>uppercase</tt> or <tt>upper</tt></td>
+    <td>Upper case version of the string.</td>
+    <td><tt>Print</tt></td><td><tt>PRINT</tt></td>
+</tr>
+<tr>
+    <td><tt>lowercase</tt> or <tt>lower</tt></td>
+    <td>Lower case version of the string.</td>
+    <td><tt>Print</tt></td><td><tt>print</tt></td>
+</tr>
+<tr>
+    <td><tt>title</tt></td>
+    <td>String with first letter capitalized and the rest in lower case.</td>
+    <td><tt>print</tt></td><td><tt>Print</tt></td>
+</tr>
+<tr>
+    <td><tt>firstuppercase</tt></td>
+    <td>String with the first letter capitalized and the rest unchanged.</td>
+    <td><tt>printIt</tt></td><td><tt>PrintIt</tt></td>
+</tr>
+<tr>
+    <td><tt>firstlowercase</tt></td>
+    <td>String with the first letter in lower case and the rest unchanged.</td>
+    <td><tt>PrintIt</tt></td><td><tt>printIt</tt></td>
+</tr>
+<tr>
+    <td><tt>camelcase</tt> or <tt>ctitle</tt></td>
+    <td>String with capitalized first letter and any letter following an
+    underscore (which are removed in the process) and rest in lower case.</td>
+    <td><tt>print_it</tt></td><td><tt>PrintIt</tt></td>
+</tr>
+<tr>
+    <td><tt>lowercamelcase</tt> or <tt>lctitle</tt></td>
+    <td>String with every letter following an underscore (which is removed in
+    the process) capitalized and rest, including the first letter, in lower
+    case.</td>
+    <td><tt>print_it</tt></td><td><tt>printIt</tt></td>
+</tr>
+<tr>
+    <td><tt>undercase</tt> or <tt>utitle</tt></td>
+    <td>Lower case string with underscores inserted before every upper case
+    letter in the original string and any number not at the end of string.
+    Logically, this is the reverse of <tt>camelcase</tt>.</td>
+    <td><tt>PrintIt</tt></td><td><tt>print_it</tt></td>
+</tr>
+<tr>
+    <td><tt>schemify</tt></td>
+    <td>String with all underscores replaced with dashes, resulting in more
+    Lispers/Schemers-pleasing name.</td>
+    <td><tt>print_it</tt></td><td><tt>print-it</tt></td>
+</tr>
+<tr>
+    <td><tt>strip:[prefix]</tt></td>
+    <td>String without the given prefix or the original string if it doesn't
+    start with this prefix. Note that square brackets should be used
+    literally, e.g. <tt>%rename("strip:[wx]")</tt></td>
+    <td><tt>wxPrint</tt></td><td><tt>Print</tt></td>
+</tr>
+<tr>
+    <td><span style="white-space: nowrap;"><tt>regex:/pattern/subst/</tt></span></td>
+    <td>String after (Perl-like) regex substitution operation. This function
+    allows to apply arbitrary regular expressions to the identifier names. The
+    <i>pattern</i> part is a regular expression in Perl syntax (as supported
+    by the <a href="http://www.pcre.org/">Perl Compatible Regular Expressions (PCRE)</a>)
+    library and the <i>subst</i> string
+    can contain back-references introduced by <tt>'\'</tt> or, as backslashes need
+    to be escaped in C strings, rather by <tt>"\\"</tt>. For example, to remove
+    any alphabetic prefix before an underscore you could use the following directive:
+    <tt>%rename("regex:/(\\w+)_(.*)/\\2/")</tt></td>
+    <td><tt>Prefix_Print</tt></td><td><tt>Print</tt></td>
+</tr>
+<tr>
+    <td><tt>command:cmd</tt></td>
+    <td>Output of an external command <tt>cmd</tt> with the string passed to
+    it as input. Notice that this function is extremely slow compared to all
+    the other ones as it involves spawning a separate process and using it for
+    many declarations is not recommended. The <i>cmd</i> is not enclosed in
+    square brackets but must be terminated with a triple <tt>'&lt;'</tt> sign,
+    e.g. <tt>%rename("command:tr&nbsp;-d&nbsp;aeiou &lt;&lt;&lt;")</tt>
+    (nonsensical example removing all vowels)</td>
+    <td><tt>Print</tt></td><td><tt>Prnt</tt></td>
+</tr>
+</table>
+
+<p>
+The most general function of all of the above ones (not counting
+<tt>command</tt> which is even more powerful in principle but which should
+generally be avoided because of performance considerations) is the
+<tt>regex</tt> one. Here are some more examples of its use:
+</p>
+
+<div class="code">
+<pre>
+// Strip the wx prefix from all identifiers except those starting with wxEVT
+%rename("%(regex:/wx(?!EVT)(.*)/\\1/)s") ""; // wxSomeWidget -&gt; SomeWidget
+                                             // wxEVT_PAINT -&gt; wxEVT_PAINT
+
+// Apply a rule for renaming the enum elements to avoid the common prefixes
+// which are redundant in C#/Java
+%rename("%(regex:/^([A-Z][a-z]+)+_(.*)/\\2/)s", %$isenumitem) ""; // Colour_Red -&gt; Red
+
+// Remove all "Set/Get" prefixes.
+%rename("%(regex:/^(Set|Get)(.*)/\\2/)s") ""; // SetValue -&gt; Value
+                                              // GetValue -&gt; Value
+</pre>
+</div>
+
+<p>
+As before, everything that was said above about <tt>%rename</tt> also applies to
+<tt>%ignore</tt>. In fact, the latter is just a special case of the former and
+ignoring an identifier is the same as renaming it to the special
+<tt>"$ignore"</tt> value. So the following snippets
+</p>
+
+<div class="code">
+<pre>
+%ignore print;
+</pre>
+</div>
+
+<p>
+and
+</p>
+
+<div class="code">
+<pre>
+%rename("$ignore") print;
+</pre>
+</div>
+
+<p>
+are exactly equivalent and <tt>%rename</tt> can be used to selectively ignore
+multiple declarations using the previously described matching possibilities.
+</p>
+
+<H4><a name="SWIG_limiting_renaming"></a>5.4.7.3 Limiting global renaming rules</H4>
+
+
+<p>
+As explained in the previous sections, it is possible to either rename
+individual declarations or apply a rename rule to all of them at once. In
+practice, the latter is however rarely appropriate as there are always some
+exceptions to the general rules. To deal with them, the scope of an unnamed
+<tt>%rename</tt> can be limited using subsequent <tt>match</tt> parameters.
+They can be applied to any of the attributes associated by SWIG with the
+declarations appearing in its input. For example:
+</p>
+<div class="code">
+<pre>
+%rename("foo", match$name="bar") "";
+</pre>
+</div>
+<p>
+can be used to achieve the same effect as the simpler
+</p>
+<div class="code">
+<pre>
+%rename("foo") bar;
+</pre>
+</div>
+<p>
+and so is not very interesting on its own. However <tt>match</tt> can also be
+applied to the declaration type, for example <tt>match="class"</tt> restricts
+the match to class declarations only (in C++) and <tt>match="enumitem"</tt>
+restricts it to the enum elements. SWIG also provides convenience macros for
+such match expressions, for example
+</p>
+<div class="code">
+<pre>
+%rename("%(title)s", %$isenumitem) "";
+</pre>
+</div>
+<p>
+will capitalize the names of all the enum elements but not change the case of
+the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>,
+<tt>%$isconstructor</tt>, <tt>%$isunion</tt>, <tt>%$istemplate</tt>, 
+and <tt>%$isvariable</tt> can be used. Many other checks are possible and this
+documentation is not exhaustive, see the "%rename predicates" section in
+<tt>swig.swg</tt> for the full list of supported match expressions.
+</p>
+
+<p>
+In addition to literally matching some string with <tt>match</tt> you can
+also use <tt>regexmatch</tt> or <tt>notregexmatch</tt> to match a string
+against a regular expression. For example, to ignore all functions having
+"Old" as a suffix you could use
+</p>
+<div class="code">
+<pre>
+%rename("$ignore", regexmatch$name="Old$") "";
+</pre>
+</div>
+<p>
+For simple cases like this, specifying the regular expression for the
+declaration name directly can be preferable and can also be done using
+<tt>regextarget</tt>:
+</p>
+<div class="code">
+<pre>
+%rename("$ignore", regextarget=1) "Old$";
+</pre>
+</div>
+
+<p>
+Notice that the check is done only against the name of the declaration
+itself, if you need to match the full name of a C++ declaration you
+must use <tt>fullname</tt> attribute:
+</p>
+
+<div class="code">
+<pre>
+%rename("$ignore", regextarget=1, fullname=1) "NameSpace::ClassName::.*Old$";
+</pre>
+</div>
+
+<p>
+As for <tt>notregexmatch</tt>, it restricts the match only to the strings not
+matching the specified regular expression. So to rename all declarations to lower case
+except those consisting of capital letters only:
+</p>
+<div class="code">
+<pre>
+%rename("$(lower)s", notregexmatch$name="^[A-Z]+$") "";
+</pre>
+</div>
+
+<p>
+Finally, variants of <tt>%rename</tt> and <tt>%ignore</tt> directives can be used to help
+wrap C++ overloaded functions and methods or C++ methods which use default arguments. This is described in the
+<a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Ambiguity resolution and renaming</a> section in the C++ chapter.
+</p>
+
+
+<H4><a name="SWIG_chosen_unignore"></a>5.4.7.4 Ignoring everything then wrapping a few selected symbols</H4>
+
+
+<p>
+Using the techniques described above it is possible to ignore everything in a header and then
+selectively wrap a few chosen methods or classes. For example, consider a header, <tt>myheader.h</tt>
+which has many classes in it and just the one class called <tt>Star</tt> is wanted within this header,
+the following approach could be taken:
+</p>
+
+<div class="code">
+<pre>
+%ignore ""; // Ignore everything
+
+// Unignore chosen class 'Star'
+%rename("%s") Star;
+
+// As the ignore everything will include the constructor, destructor, methods etc
+// in the class, these have to be explicitly unignored too:
+%rename("%s") Star::Star;
+%rename("%s") Star::~Star;
+%rename("%s") Star::shine; // named method
+
+%include "myheader.h"
+</pre>
+</div>
+
+<p>
+Another approach which might be more suitable as it does not require naming all the methods in the
+chosen class is to begin by ignoring just the classes. This does not add an explicit ignore to any
+members of the class, so when the chosen class is unignored, all of its methods will be wrapped.
+</p>
+
+<div class="code">
+<pre>
+%rename($ignore, %$isclass) ""; // Only ignore all classes
+%rename("%s") Star; // Unignore 'Star'
+%include "myheader.h"
+</pre>
+</div>
+
 
 <H3><a name="SWIG_default_args"></a>5.4.8 Default/optional arguments</H3>
 
@@ -1926,13 +2261,13 @@ normally, just use the original function name such as <tt>add()</tt>.
 <p>
 SWIG provides a number of extensions to standard C printf formatting
 that may be useful in this context.  For instance, the following
-variation installs the callbacks as all upper-case constants such as
+variation installs the callbacks as all upper case constants such as
 <tt>ADD</tt>, <tt>SUB</tt>, and <tt>MUL</tt>:
 </p>
 
 <div class="code"><pre>
 /* Some callback functions */
-%callback("%(upper)s");
+%callback("%(uppercase)s");
 int add(int,int);
 int sub(int,int);
 int mul(int,int);
@@ -1940,7 +2275,7 @@ int mul(int,int);
 </pre></div>
 
 <p>
-A format string of <tt>"%(lower)s"</tt> converts all characters to lower-case.
+A format string of <tt>"%(lowercase)s"</tt> converts all characters to lower case.
 A string of <tt>"%(title)s"</tt> capitalizes the first character and converts the
 rest to lower case.
 </p>
@@ -1949,7 +2284,8 @@ rest to lower case.
 And now, a final note about function pointer support.  Although SWIG
 does not normally allow callback functions to be written in the target language, this
 can be accomplished with the use of typemaps and other advanced SWIG features.
-This is described in a later chapter.
+See the <a href="Typemaps.html#Typemaps">Typemaps chapter</a> for more about typemaps
+and individual target language chapters for more on callbacks and the 'director' feature.
 </p>
 
 <H2><a name="SWIG_nn31"></a>5.5 Structures and unions</H2>
@@ -2746,14 +3082,15 @@ output of SWIG is structured first.</p>
 
 
 <p>
-When SWIG creates its output file, it is broken up into four sections
+When SWIG creates its output file, it is broken up into five sections
 corresponding to runtime code, headers, wrapper functions, and module
 initialization code (in that order).   
 </p>
 
 <ul>
 <li><b>Begin section</b>.  <br>
-A placeholder to put code at the beginning of the C/C++ wrapper file.
+A placeholder for users to put code at the beginning of the C/C++ wrapper file.
+This is most often used to define preprocessor macros that are used in later sections.
 </li>
 
 <li><b>Runtime code</b>.  <br>

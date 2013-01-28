@@ -12,8 +12,6 @@
  *     ordinary FILE * or integer file descriptor.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_file_c[] = "$Id$";
-
 #include "dohint.h"
 
 #ifdef DOH_INTFILE
@@ -67,7 +65,7 @@ static int File_read(DOH *fo, void *buffer, int len) {
  * File_write()
  * ----------------------------------------------------------------------------- */
 
-static int File_write(DOH *fo, void *buffer, int len) {
+static int File_write(DOH *fo, const void *buffer, int len) {
   DohFile *f = (DohFile *) ObjData(fo);
   if (f->filep) {
     int ret = (int) fwrite(buffer, 1, len, f->filep);

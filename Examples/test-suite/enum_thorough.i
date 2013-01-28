@@ -537,7 +537,6 @@ IgnoreTest::IgnoreE ignoreETest(IgnoreTest::IgnoreE n) { return n; }
 %}
 
 %inline %{
-
 namespace RepeatSpace {
 typedef enum
 {
@@ -550,6 +549,58 @@ typedef enum
 } repeat;
 repeat repeatTest(repeat e) { return e; }
 }
+%}
+
+%inline %{
+namespace DifferentSpace {
+enum DifferentTypes {
+  typeint = 10,
+  typeboolfalse = false,
+  typebooltrue = true,
+  typebooltwo,
+  typechar = 'C',
+  typedefaultint
+};
+DifferentTypes differentTypesTest(DifferentTypes n) { return n; }
+
+enum {
+  global_typeint = 10,
+  global_typeboolfalse = false,
+  global_typebooltrue = true,
+  global_typebooltwo,
+  global_typechar = 'C',
+  global_typedefaultint
+};
+int globalDifferentTypesTest(int n) { return n; }
+}
 
 %}
 
+#if defined(SWIGJAVA)
+%javaconst(0);
+#elif defined(SWIGCSHARP)
+%csconst(0);
+#endif
+
+%inline %{
+namespace DifferentSpace {
+enum DifferentTypesNoConst {
+  typeint_noconst = 10,
+  typeboolfalse_noconst = false,
+  typebooltrue_noconst = true,
+  typebooltwo_noconst,
+  typechar_noconst = 'C',
+  typedefaultint_noconst
+};
+
+enum {
+  global_typeint_noconst = 10,
+  global_typeboolfalse_noconst = false,
+  global_typebooltrue_noconst = true,
+  global_typebooltwo_noconst,
+  global_typechar_noconst = 'C',
+  global_typedefaultint_noconst
+};
+}
+
+%}

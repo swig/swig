@@ -46,3 +46,5 @@ void draw_depth_map( volume *v, int div_x, int div_y ) {
 }
 
 double volume::depth( double x, double y ) { return 0.0; }
+
+volume::~volume() { }

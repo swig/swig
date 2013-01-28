@@ -3,7 +3,7 @@
 */
 
 #define PYTHONKW(x) %keywordwarn("'" `x` "' is a python keyword, renaming to '_" `x` "'", rename="_%s")  `x`
-#define PYTHONBN(x) %builtinwarn("'" `x` "' conflicts with a built-in name in python")  "::"`x`
+#define PYTHONBN(x) %builtinwarn("'" `x` "' conflicts with a built-in name in python")  `x`
 
 
 /*
@@ -105,7 +105,6 @@ PYTHONBN(setattr);
 PYTHONBN(slice);
 PYTHONBN(sorted);
 PYTHONBN(staticmethod);
-PYTHONBN(staticmethod);
 PYTHONBN(str);
 PYTHONBN(sum);
 PYTHONBN(super);
@@ -124,7 +123,8 @@ PYTHONBN(zip);
 */
 PYTHONBN(True);
 PYTHONBN(False);
-PYTHONBN(None);
+
+PYTHONKW(None);
 
 
 /* 

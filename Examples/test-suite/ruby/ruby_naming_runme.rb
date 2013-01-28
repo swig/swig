@@ -35,23 +35,23 @@ if Ruby_naming::CONSTANT3 != 3
   raise RuntimeError, "Incorrect value for CONSTANT3" 
 end
 
-if not Ruby_naming::methods.include?("constant4")
+if not (Ruby_naming::methods.include?("constant4") || Ruby_naming::methods.include?(:constant4))
   raise RuntimeError, "Incorrect mapping for constant4" 
 end
 
-if not Ruby_naming::methods.include?("constant5")
+if not (Ruby_naming::methods.include?("constant5") || Ruby_naming::methods.include?(:constant5))
   raise RuntimeError, "Incorrect mapping for constant5" 
 end
 
-if not Ruby_naming::methods.include?("constant6")
+if not (Ruby_naming::methods.include?("constant6") || Ruby_naming::methods.include?(:constant6))
   raise RuntimeError, "Incorrect mapping for constant6" 
 end
 
-if not Ruby_naming::TestConstants.instance_methods.include?("constant7")
+if not (Ruby_naming::TestConstants.instance_methods.include?("constant7") || Ruby_naming::TestConstants.instance_methods.include?(:constant7))
   raise RuntimeError, "Incorrect mapping for constant7" 
 end
 
-if not Ruby_naming::TestConstants.methods.include?("constant8")
+if not (Ruby_naming::TestConstants.methods.include?("constant8") || Ruby_naming::TestConstants.methods.include?(:constant8))
   raise RuntimeError, "Incorrect mapping for constant8" 
 end
 
@@ -64,7 +64,7 @@ if Ruby_naming::TestConstants::CONSTANT10 != 10
   raise RuntimeError, "Incorrect value for CONSTANT10" 
 end
 
-if not Ruby_naming::methods.include?("constant11")
+if not (Ruby_naming::methods.include?("constant11") || Ruby_naming::methods.include?(:constant11))
   raise RuntimeError, "Incorrect mapping for constant11" 
 end
 

@@ -35,7 +35,7 @@
 
 /* Runtime API */
 
-#define SWIG_GetModule(clientdata)                      SWIG_Ruby_GetModule()	
+#define SWIG_GetModule(clientdata)                      SWIG_Ruby_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) 		SWIG_Ruby_SetModule(pointer)
 
 
@@ -189,7 +189,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
         downcast methods. */
       if (obj != Qnil) {
         VALUE value = rb_iv_get(obj, "@__swigtype__");
-        char* type_name = RSTRING_PTR(value);
+        const char* type_name = RSTRING_PTR(value);
 				
         if (strcmp(type->name, type_name) == 0) {
           return obj;
@@ -371,7 +371,7 @@ SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty) {
 }
 
 SWIGRUNTIME swig_module_info *
-SWIG_Ruby_GetModule(void)
+SWIG_Ruby_GetModule(void *SWIGUNUSEDPARM(clientdata))
 {
   VALUE pointer;
   swig_module_info *ret = 0;

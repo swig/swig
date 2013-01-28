@@ -8,6 +8,7 @@
 
 JAVA_ARRAYSOFCLASSES(SimpleStruct)
 %apply ARRAYSOFENUMS[ANY] { finger[ANY] }
+//%apply signed char[ANY] { char array_c2[ANY] }
 
 %include "arrays.i"
 
@@ -54,3 +55,15 @@ typedef enum { Big, Little } toe;
 void toestest(toe *t, toe tt[], toe ttt[2]) {}
 %}
 
+
+JAVA_ARRAYS_IMPL(char, jbyte, Byte, Char)
+JAVA_ARRAYS_TYPEMAPS(char, byte, jbyte, Char, "[B")
+%typecheck(SWIG_TYPECHECK_INT8_ARRAY) /* Java byte[] */
+    signed char[ANY], signed char[]
+    ""
+
+%inline %{
+struct ArrayStructExtra {
+	char           array_c2[ARRAY_LEN];
+};
+%}

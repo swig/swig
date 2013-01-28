@@ -108,7 +108,7 @@
 		     unsigned long long,
 		     float,
 		     double
-%{ $input = ($1_ltype)$1_name; %}
+%{ $input = ($1_ltype)$1; %}
 
 %typemap(directorin) const bool &,
 		     const char &,
@@ -124,7 +124,7 @@
 		     const unsigned long long &,
 		     const float &,
 		     const double &
-%{ $input = ($*1_ltype)$1_name; %}
+%{ $input = ($*1_ltype)$1; %}
 
 %typemap(directorout) bool,
 		      char,
@@ -157,8 +157,8 @@
 		      const float &,
 		      const double &
 %{
-  $result = ($1_ltype)_swig_allocate(sizeof($*1_ltype));
-  *$result = *($1_ltype)$input;
+  $result = ($1_ltype)_swig_goallocate(sizeof($*1_ltype));
+  *$result = *($1_ltype)&$input;
 %}
 
 /* The size_t type.  */
@@ -182,17 +182,17 @@
 %{ $result = ($*1_ltype)*$1; %}
 
 %typemap(directorin) size_t
-%{ $input = (size_t)$1_name; %}
+%{ $input = (size_t)$1; %}
 
 %typemap(directorin) const size_t &
-%{ $input = ($*1_ltype)$1_name; %}
+%{ $input = ($*1_ltype)$1; %}
 
 %typemap(directorout) size_t
 %{ $result = ($1_ltype)$input; %}
 
 %typemap(directorout) const size_t &
 %{
-  $result = ($1_ltype)_swig_allocate(sizeof($*1_ltype));
+  $result = ($1_ltype)_swig_goallocate(sizeof($*1_ltype));
   *$result = *($1_ltype)$input;
 %}
 
@@ -206,16 +206,16 @@
 
 %typemap(out) SWIGTYPE (CLASS::*)
 %{
-  $result = _swig_allocate(sizeof($1_ltype));
+  $result = _swig_goallocate(sizeof($1_ltype));
   *($&1_ltype)$result = $1;
 %}
 
 %typemap(directorin) SWIGTYPE (CLASS::*)
-%{ $input = *($&1_ltype)$1_name; %}
+%{ $input = *($&1_ltype)$1; %}
 
 %typemap(directorout) SWIGTYPE (CLASS::*)
 %{
-  $result = _swig_allocate(sizeof($1_ltype));
+  $result = _swig_goallocate(sizeof($1_ltype));
   *($&1_ltype)$result = $input;
 %}
 
@@ -233,7 +233,7 @@
 %{ *($&1_ltype)&$result = $1; %}
 
 %typemap(directorin) SWIGTYPE *
-%{ $input = ($1_ltype)$1_name; %}
+%{ $input = ($1_ltype)$1; %}
 
 %typemap(directorout) SWIGTYPE *
 %{ $result = ($1_ltype)$input; %}
@@ -254,14 +254,6 @@
 %typemap(out) SWIGTYPE *const&
 %{ *($1_ltype)&$result = *$1; %}
 
-/* Function pointers are translated by the code in go.cxx into
-   _swig_fnptr.  Member pointers are translated to _swig_memberptr.  */
-
-%insert(go_header) %{
-type _swig_fnptr *byte
-type _swig_memberptr *byte
-%}
-
 /* References.  */
 
 /* Converting a C++ reference to Go has to be handled in the C++
@@ -276,7 +268,7 @@ type _swig_memberptr *byte
 %{ *($&1_ltype)&$result = $1; %}
 
 %typemap(directorin) SWIGTYPE &
-%{ $input = ($1_ltype)&$1_name; %}
+%{ $input = ($1_ltype)&$1; %}
 
 %typemap(directorout) SWIGTYPE &
 %{ *($&1_ltype)&$result = $input; %}
@@ -309,7 +301,7 @@ type _swig_memberptr *byte
 %{ *($&1_ltype)&$result = $1; %}
 
 %typemap(directorin) SWIGTYPE []
-%{ $input = *($1_ltype)&$1_name; %}
+%{ $input = *($1_ltype)&$1; %}
 
 %typemap(directorout) SWIGTYPE []
 %{ *($&1_ltype)&$result = $input; %}
@@ -347,7 +339,7 @@ type _swig_memberptr *byte
 	signed char *, signed char *&, signed char[ANY], signed char[],
 	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
 %{
-  $input = _swig_makegostring((char*)$1_name, $1_name ?	strlen((char*)$1_name) : 0);
+  $input = _swig_makegostring((char*)$1, $1 ? strlen((char*)$1) : 0);
 %}
 
 %typemap(directorout)
@@ -355,6 +347,28 @@ type _swig_memberptr *byte
 	signed char *, signed char *&, signed char[ANY], signed char[],
 	unsigned char *, unsigned char *&, unsigned char[ANY], unsigned char[]
 %{ $result = ($1_ltype)$input.p; %}
+
+/* String & length */
+
+%typemap(gotype) (char *STRING, size_t LENGTH) "string"
+
+%typemap(in) (char *STRING, size_t LENGTH)
+%{
+  $1 = ($1_ltype)$input.p;
+  $2 = ($2_ltype)$input.n;
+%}
+
+%typemap(out) (char *STRING, size_t LENGTH)
+%{ $result = _swig_makegostring((char*)$1, (size_t)$2); %}
+
+%typemap(directorin) (char *STRING, size_t LENGTH)
+%{ $input = _swig_makegostring((char*)$1, $2); %}
+
+%typemap(directorout) (char *STRING, size_t LENGTH)
+%{
+  $1 = ($1_ltype)$input.p;
+  $2 = ($2_ltype)$input.n;
+%}
 
 /* Enums.  We can't do the right thing for enums in typemap(gotype) so
    we deliberately don't define them.  The right thing would be to
@@ -367,13 +381,25 @@ type _swig_memberptr *byte
 %{ $1 = ($1_ltype)$input; %}
 
 %typemap(out) enum SWIGTYPE
-%{ $result = $1; %}
+%{ $result = (intgo)$1; %}
 
 %typemap(directorin) enum SWIGTYPE
-%{ $input = ($1_ltype)$1_name; %}
+%{ $input = ($1_ltype)$1; %}
 
 %typemap(directorout) enum SWIGTYPE
 %{ $result = ($1_ltype)$input; %}
+
+%typemap(directorin) enum SWIGTYPE & (intgo e)
+%{
+  e = (intgo)$1;
+  $input = &e;
+%}
+
+%typemap(directorout) enum SWIGTYPE &
+%{
+  $*1_ltype f = ($*1_ltype)*$input;
+  $result = ($1_ltype)&f;
+%}
 
 /* Arbitrary type.  This is a type passed by value in the C/C++ code.
    We convert it to a pointer for the Go code.  Note that all basic
@@ -403,7 +429,7 @@ type _swig_memberptr *byte
 #endif
 
 %typemap(directorin) SWIGTYPE
-%{ $input = ($&1_ltype)&$1_name; %}
+%{ $input = ($&1_ltype)&$1; %}
 
 %typemap(directorout) SWIGTYPE
 %{ $result = *($&1_ltype)$input; %}
@@ -524,6 +550,7 @@ type _swig_memberptr *byte
     SWIGTYPE [],
     SWIGTYPE (CLASS::*)
     ""
+
 /* Go keywords.  */
 %include <gokw.swg>
 

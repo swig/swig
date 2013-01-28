@@ -20,16 +20,17 @@
 %}
 
 //
-// Common code for supporting the STD C++ namespace
+// Common code for supporting the C++ std namespace
 //
 
 %{
 #include <string>
 #include <stdexcept>
+#include <stddef.h>
 %}
 
 
-%fragment("StdIteratorTraits","header") %{
+%fragment("StdIteratorTraits","header",fragment="<stddef.h>") %{
 #if defined(__SUNPRO_CC) && defined(_RWSTD_VER)
 #  if !defined(SWIG_NO_STD_NOITERATOR_TRAITS_STL)
 #    define SWIG_STD_NOITERATOR_TRAITS_STL

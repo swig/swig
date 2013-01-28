@@ -109,10 +109,21 @@ SWIG_InitializeModule(0);
   free($1);
 %}
 
+%typemap(freearg, noblock=1) int *OUTPUT,
+signed int *OUTPUT,
+unsigned int *OUTPUT,
+short *OUTPUT,
+signed short *OUTPUT,
+long *OUTPUT,
+signed long *OUTPUT,
+long long *OUTPUT,
+unsigned long long *OUTPUT,
+float *OUTPUT,
+double *OUTPUT {}
 
 
 
-/* Shoul dwe recycle to make the length correct.
+/* Should we recycle to make the length correct.
    And warn if length() > the dimension. 
 */
 %typemap(scheck) SWIGTYPE [ANY] %{
@@ -132,8 +143,6 @@ SWIG_InitializeModule(0);
   };
 %}
 
-
-%include <typemaps/swigmacros.swg>
 %include <typemaps/fragments.swg>
 %include <rfragments.swg>
 %include <ropers.swg>

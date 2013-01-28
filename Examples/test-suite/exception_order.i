@@ -2,6 +2,14 @@
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME);
 
+#if defined(SWIGGO) && defined(SWIGGO_GCCGO)
+%{
+#ifdef __GNUC__
+#include <cxxabi.h>
+#endif
+%}
+#endif
+
 %include "exception.i"
 
 %{
@@ -23,6 +31,18 @@
     SWIG_exception_fail(SWIG_RuntimeError,"postcatch unknown");
   }
 }
+#elif defined(SWIGGO) && defined(SWIGGO_GCCGO)
+%exception %{
+  try {
+    $action
+#ifdef __GNUC__
+  } catch (__cxxabiv1::__foreign_exception&) {
+    throw;
+#endif
+  } catch(...) {
+    SWIG_exception(SWIG_RuntimeError,"postcatch unknown");
+  }
+%}
 #else
 %exception {
   try {

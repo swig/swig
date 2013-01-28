@@ -15,13 +15,13 @@ public class special_variables_runme {
   public static void main(String argv[]) 
   {
     verify(special_variables.ExceptionVars(1.0, 2.0),
-           "result = Space::exceptionvars(arg1,arg2);  Space::exceptionvars  ExceptionVars   Java_special_1variables_special_1variablesJNI_ExceptionVars");
+           "result = Space::exceptionvars(arg1,arg2);  Space::exceptionvars  ExceptionVars   Java_special_1variables_special_1variablesJNI_ExceptionVars  ");
 
     verify(special_variables.overloadedmethod(),
-           "result = Space::overloadedmethod();  Space::overloadedmethod  overloadedmethod  __SWIG_1 Java_special_1variables_special_1variablesJNI_overloadedmethod_1_1SWIG_11");
+           "result = Space::overloadedmethod();  Space::overloadedmethod  overloadedmethod  __SWIG_1 Java_special_1variables_special_1variablesJNI_overloadedmethod_1_1SWIG_11  ");
 
     verify(special_variables.overloadedmethod(10.0),
-          "result = Space::overloadedmethod(arg1);  Space::overloadedmethod  overloadedmethod  __SWIG_0 Java_special_1variables_special_1variablesJNI_overloadedmethod_1_1SWIG_10");
+          "result = Space::overloadedmethod(arg1);  Space::overloadedmethod  overloadedmethod  __SWIG_0 Java_special_1variables_special_1variablesJNI_overloadedmethod_1_1SWIG_10  ");
 
     ABC a = new ABC(0, 0.0);
     verify(special_variables.getDeclaration(), "SpaceNamespace::ABC::ABC(int,double) SpaceNamespace::ABC::ABC(int,double)");

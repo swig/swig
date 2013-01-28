@@ -69,6 +69,7 @@ namespace std {
     typedef _Alloc allocator_type;
 
     %traits_swigtype(_Tp);
+    %traits_enum(_Tp);
 
     %fragment(SWIG_Traits_frag(std::vector<_Tp, _Alloc >), "header",
 	      fragment=SWIG_Traits_frag(_Tp),
@@ -94,7 +95,7 @@ namespace std {
   };
 
   // ***
-  // This specialization should dissapear or get simplified when
+  // This specialization should disappear or get simplified when
   // a 'const SWIGTYPE*&' can be defined
   // ***
   template<class _Tp, class _Alloc >

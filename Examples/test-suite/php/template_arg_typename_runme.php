@@ -11,7 +11,7 @@ $ufbb=new unaryfunction_bool_bool();
 check::is_a($ufbb,"unaryfunction_bool_bool");
 
 unset($whatisthis);
-$bufb=new boolunaryfunction_bool(&$whatisthis);
+$bufb=new boolunaryfunction_bool($whatisthis);
 check::is_a($bufb,"boolunaryfunction_bool");
 
 check::done();

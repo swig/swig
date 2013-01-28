@@ -1,4 +1,4 @@
-// Test using a target language specified base class, primarily for Java/C# and possibly other single inheritance languages
+// Test using a target language specified base class, primarily for Java/C#/D and possibly other single inheritance languages
 
 // Note the multiple inheritance warnings don't appear because of the two techniques used in here: typemaps and %ignore
 
@@ -6,6 +6,8 @@
 
 #if defined(SWIGJAVA)
 # define csbase javabase
+#elif defined(SWIGD)
+# define csbase dbase
 #endif
 
 %pragma(csharp) moduleimports=%{
@@ -20,6 +22,10 @@ class TargetLanguageBase { public void targetLanguageBaseMethod() {} };
 class TargetLanguageBase2 { public void targetLanguageBase2Method() {} };
 %}
 
+%pragma(d) globalproxyimports=%{
+private class TargetLanguageBase { public void targetLanguageBaseMethod() {} };
+private class TargetLanguageBase2 { public void targetLanguageBase2Method() {} };
+%}
 
 %typemap(csbase) SWIGTYPE "TargetLanguageBase"
 

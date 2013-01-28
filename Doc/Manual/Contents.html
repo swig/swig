@@ -5,7 +5,7 @@
 <TITLE>SWIG Users Manual</TITLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff">
-<H1>SWIG Users Manual</H1>
+<H1><a name="Contents"></a>SWIG Users Manual</H1>
 
 <p>
 
@@ -152,6 +152,12 @@
 <li><a href="SWIG.html#SWIG_nn26">Arrays</a>
 <li><a href="SWIG.html#SWIG_readonly_variables">Creating read-only variables</a>
 <li><a href="SWIG.html#SWIG_rename_ignore">Renaming and ignoring declarations</a>
+<ul>
+<li><a href="SWIG.html#SWIG_nn29">Simple renaming of specific identifiers</a>
+<li><a href="SWIG.html#SWIG_advanced_renaming">Advanced renaming support</a>
+<li><a href="SWIG.html#SWIG_limiting_renaming">Limiting global renaming rules</a>
+<li><a href="SWIG.html#SWIG_chosen_unignore">Ignoring everything then wrapping a few selected symbols</a>
+</ul>
 <li><a href="SWIG.html#SWIG_default_args">Default/optional arguments</a>
 <li><a href="SWIG.html#SWIG_nn30">Pointers to functions and callbacks</a>
 </ul>
@@ -237,6 +243,7 @@
 <li><a href="SWIGPlus.html#SWIGPlus_catches">Exception handling with %catches</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn33">Pointers to Members</a>
 <li><a href="SWIGPlus.html#SWIGPlus_smart_pointers">Smart pointers and operator-&gt;()</a>
+<li><a href="SWIGPlus.html#SWIGPlus_ref_unref">C++ reference counted objects - ref/unref feature</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nn35">Using declarations and inheritance</a>
 <li><a href="SWIGPlus.html#SWIGPlus_nested_classes">Nested classes</a>
 <li><a href="SWIGPlus.html#SWIGPlus_const">A brief rant about const-correctness</a>
@@ -256,8 +263,11 @@
 <li><a href="Preprocessor.html#Preprocessor_nn5">Macro Expansion</a>
 <li><a href="Preprocessor.html#Preprocessor_nn6">SWIG Macros</a>
 <li><a href="Preprocessor.html#Preprocessor_nn7">C99 and GNU Extensions</a>
+<li><a href="Preprocessor.html#Preprocessor_delimiters">Preprocessing and delimiters</a>
+<ul>
 <li><a href="Preprocessor.html#Preprocessor_nn8">Preprocessing and %{ ... %} &amp; " ... " delimiters</a>
 <li><a href="Preprocessor.html#Preprocessor_nn9">Preprocessing and { ... } delimiters</a>
+</ul>
 <li><a href="Preprocessor.html#Preprocessor_typemap_delimiters">Preprocessor and Typemaps</a>
 <li><a href="Preprocessor.html#Preprocessor_nn10">Viewing preprocessor output</a>
 <li><a href="Preprocessor.html#Preprocessor_warning_error">The #error and #warning directives</a>
@@ -391,6 +401,7 @@
 <li><a href="Typemaps.html#Typemaps_nn43">Typemaps for multiple target languages</a>
 <li><a href="Typemaps.html#Typemaps_optimal">Optimal code generation when returning by value</a>
 <li><a href="Typemaps.html#Typemaps_multi_argument_typemaps">Multi-argument typemaps</a>
+<li><a href="Typemaps.html#Typemaps_warnings">Typemap warnings</a>
 <li><a href="Typemaps.html#Typemaps_fragments">Typemap fragments</a>
 <ul>
 <li><a href="Typemaps.html#Typemaps_fragment_type_specialization">Fragment type specialization</a>
@@ -489,7 +500,7 @@
 <li><a href="Warnings.html#Warnings_nn12">C/C++ Parser (300-399)</a>
 <li><a href="Warnings.html#Warnings_nn13">Types and typemaps (400-499) </a>
 <li><a href="Warnings.html#Warnings_nn14">Code generation (500-599)</a>
-<li><a href="Warnings.html#Warnings_nn15">Language module specific (800-899) </a>
+<li><a href="Warnings.html#Warnings_nn15">Language module specific (700-899) </a>
 <li><a href="Warnings.html#Warnings_nn16">User defined (900-999)</a>
 </ul>
 <li><a href="Warnings.html#Warnings_nn17">History</a>
@@ -623,13 +634,32 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="CSharp.html#CSharp">18 SWIG and C#</a></h3>
+<h3><a href="Android.html#Android">18 SWIG and Android</a></h3>
+
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="Android.html#Android_overview">Overview</a>
+<li><a href="Android.html#Android_examples">Android examples</a>
+<ul>
+<li><a href="Android.html#Android_examples_intro">Examples introduction</a>
+<li><a href="Android.html#Android_example_simple">Simple C example</a>
+<li><a href="Android.html#Android_example_class">C++ class example</a>
+<li><a href="Android.html#Android_examples_other">Other examples</a>
+</ul>
+<li><a href="Android.html#Android_stl">C++ STL</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+<h3><a href="CSharp.html#CSharp">19 SWIG and C#</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
 <li><a href="CSharp.html#CSharp_introduction">Introduction</a>
 <li><a href="CSharp.html#CSharp_differences_java">Differences to the Java module</a>
+<li><a href="CSharp.html#CSharp_void_pointers">Void pointers</a>
 <li><a href="CSharp.html#CSharp_arrays">C# Arrays</a>
 <ul>
 <li><a href="CSharp.html#CSharp_arrays_swig_library">The SWIG C arrays library</a>
@@ -649,12 +679,14 @@
 <li><a href="CSharp.html#CSharp_directors_implementation">Directors implementation</a>
 <li><a href="CSharp.html#CSharp_director_caveats">Director caveats</a>
 </ul>
+<li><a href="CSharp.html#CSharp_multiple_modules">Multiples modules</a>
 <li><a href="CSharp.html#CSharp_typemap_examples">C# Typemap examples</a>
 <ul>
 <li><a href="CSharp.html#CSharp_memory_management_member_variables">Memory management when returning references to member variables</a>
 <li><a href="CSharp.html#CSharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
 <li><a href="CSharp.html#CSharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
 <li><a href="CSharp.html#CSharp_date_properties">A date example demonstrating marshalling of C# properties</a>
+<li><a href="CSharp.html#CSharp_date_pre_post_directors">Date example demonstrating the 'pre' and 'post' typemap attributes for directors</a>
 <li><a href="CSharp.html#CSharp_partial_classes">Turning wrapped classes into partial classes</a>
 <li><a href="CSharp.html#CSharp_extending_proxy_class">Extending proxy classes with additional C# code</a>
 <li><a href="CSharp.html#CSharp_enum_underlying_type">Underlying type for enums</a>
@@ -663,7 +695,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Chicken.html#Chicken">19 SWIG and Chicken</a></h3>
+<h3><a href="Chicken.html#Chicken">20 SWIG and Chicken</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -701,7 +733,41 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Go.html#Go">20 SWIG and Go</a></h3>
+<h3><a href="D.html#D">21 SWIG and D</a></h3>
+
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="D.html#D_introduction">Introduction</a>
+<li><a href="D.html#D_command_line_invocation">Command line invocation</a>
+<li><a href="D.html#D_typemaps">Typemaps</a>
+<ul>
+<li><a href="D.html#D_typemap_name_comparison">C# &lt;-&gt; D name comparison</a>
+<li><a href="D.html#D_ctype_imtype_dtype">ctype, imtype, dtype</a>
+<li><a href="D.html#D_in_out_directorin_direcetorout">in, out, directorin, directorout</a>
+<li><a href="D.html#D_din_dout_ddirectorin_ddirectorout">din, dout, ddirectorin, ddirectorout</a>
+<li><a href="D.html#D_typecheck_typemaps">typecheck typemaps</a>
+<li><a href="D.html#D_code_injection_typemaps">Code injection typemaps</a>
+<li><a href="D.html#D_special_variables">Special variable macros</a>
+</ul>
+<li><a href="D.html#D_features"><tt>%feature</tt>s</a>
+<li><a href="D.html#D_pragmas">Pragmas</a>
+<li><a href="D.html#D_exceptions">D Exceptions</a>
+<li><a href="D.html#D_directors">D Directors</a>
+<li><a href="D.html#D_other_features">Other features</a>
+<ul>
+<li><a href="D.html#D_nspace">Extended namespace support (<tt>nspace</tt>)</a>
+<li><a href="D.html#D_native_pointer_support">Native pointer support</a>
+<li><a href="D.html#D_operator_overloading">Operator overloading</a>
+<li><a href="D.html#D_test_suite">Running the test-suite</a>
+</ul>
+<li><a href="D.html#D_typemap_examples">D Typemap examples</a>
+<li><a href="D.html#D_planned_features">Work in progress and planned features</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+<h3><a href="Go.html#Go">22 SWIG and Go</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -725,12 +791,14 @@
 <li><a href="Go.html#Go_templates">Go Templates</a>
 <li><a href="Go.html#Go_director_classes">Go Director Classes</a>
 <li><a href="Go.html#Go_primitive_type_mappings">Default Go primitive type mappings</a>
+<li><a href="Go.html#Go_output_arguments">Output arguments</a>
+<li><a href="Go.html#Go_adding_additional_code">Adding additional go code</a>
 </ul>
 </ul>
 </div>
 <!-- INDEX -->
 
-<h3><a href="Guile.html#Guile">21 SWIG and Guile</a></h3>
+<h3><a href="Guile.html#Guile">23 SWIG and Guile</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -765,7 +833,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Java.html#Java">22 SWIG and Java</a></h3>
+<h3><a href="Java.html#Java">24 SWIG and Java</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -847,6 +915,7 @@
 <li><a href="Java.html#Java_directors_overhead">Overhead and code bloat</a>
 <li><a href="Java.html#Java_directors_example">Simple directors example</a>
 <li><a href="Java.html#Java_directors_threading">Director threading issues</a>
+<li><a href="Java.html#Java_directors_performance">Director performance tuning</a>
 </ul>
 <li><a href="Java.html#Java_allprotected">Accessing protected members</a>
 <li><a href="Java.html#Java_common_customization">Common customization features</a>
@@ -862,6 +931,7 @@
 <li><a href="Java.html#Java_simple_pointers">Simple pointers</a>
 <li><a href="Java.html#Java_c_arrays">Wrapping C arrays with Java arrays</a>
 <li><a href="Java.html#Java_unbounded_c_arrays">Unbounded C Arrays</a>
+<li><a href="Java.html#Java_binary_char">Binary data vs Strings</a>
 <li><a href="Java.html#Java_heap_allocations">Overriding new and delete to allocate from Java heap</a>
 </ul>
 <li><a href="Java.html#Java_typemaps">Java typemaps</a>
@@ -902,12 +972,12 @@
 <li><a href="Java.html#Java_performance">Performance concerns and hints</a>
 <li><a href="Java.html#Java_debugging">Debugging</a>
 </ul>
-<li><a href="Java.html#Java_examples">Examples</a>
+<li><a href="Java.html#Java_examples">Java Examples</a>
 </ul>
 </div>
 <!-- INDEX -->
 
-<h3><a href="Lisp.html#Lisp">23 SWIG and Common Lisp</a></h3>
+<h3><a href="Lisp.html#Lisp">25 SWIG and Common Lisp</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -930,7 +1000,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Lua.html#Lua">24 SWIG and Lua</a></h3>
+<h3><a href="Lua.html#Lua">26 SWIG and Lua</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -938,6 +1008,7 @@
 <li><a href="Lua.html#Lua_nn2">Preliminaries</a>
 <li><a href="Lua.html#Lua_nn3">Running SWIG</a>
 <ul>
+<li><a href="Lua.html#Lua_commandline">Additional command line options</a>
 <li><a href="Lua.html#Lua_nn4">Compiling and Linking and Interpreter</a>
 <li><a href="Lua.html#Lua_nn5">Compiling a dynamic module</a>
 <li><a href="Lua.html#Lua_nn6">Using your module</a>
@@ -956,38 +1027,39 @@
 <li><a href="Lua.html#Lua_nn17">C++ overloaded functions</a>
 <li><a href="Lua.html#Lua_nn18">C++ operators</a>
 <li><a href="Lua.html#Lua_nn19">Class extension with %extend</a>
-<li><a href="Lua.html#Lua_nn20">C++ templates</a>
-<li><a href="Lua.html#Lua_nn21">C++ Smart Pointers</a>
-<li><a href="Lua.html#Lua_nn22">C++ Exceptions</a>
+<li><a href="Lua.html#Lua_nn20">Using %newobject to release memory</a>
+<li><a href="Lua.html#Lua_nn21">C++ templates</a>
+<li><a href="Lua.html#Lua_nn22">C++ Smart Pointers</a>
+<li><a href="Lua.html#Lua_nn23">C++ Exceptions</a>
 </ul>
-<li><a href="Lua.html#Lua_nn23">Typemaps</a>
+<li><a href="Lua.html#Lua_nn24">Typemaps</a>
 <ul>
-<li><a href="Lua.html#Lua_nn24">What is a typemap?</a>
-<li><a href="Lua.html#Lua_nn25">Using typemaps</a>
-<li><a href="Lua.html#Lua_nn26">Typemaps and arrays</a>
-<li><a href="Lua.html#Lua_nn27">Typemaps and pointer-pointer functions</a>
+<li><a href="Lua.html#Lua_nn25">What is a typemap?</a>
+<li><a href="Lua.html#Lua_nn26">Using typemaps</a>
+<li><a href="Lua.html#Lua_nn27">Typemaps and arrays</a>
+<li><a href="Lua.html#Lua_nn28">Typemaps and pointer-pointer functions</a>
 </ul>
-<li><a href="Lua.html#Lua_nn28">Writing typemaps</a>
+<li><a href="Lua.html#Lua_nn29">Writing typemaps</a>
 <ul>
-<li><a href="Lua.html#Lua_nn29">Typemaps you can write</a>
-<li><a href="Lua.html#Lua_nn30">SWIG's Lua-C API</a>
+<li><a href="Lua.html#Lua_nn30">Typemaps you can write</a>
+<li><a href="Lua.html#Lua_nn31">SWIG's Lua-C API</a>
 </ul>
-<li><a href="Lua.html#Lua_nn31">Customization of your Bindings</a>
+<li><a href="Lua.html#Lua_nn32">Customization of your Bindings</a>
 <ul>
-<li><a href="Lua.html#Lua_nn32">Writing your own custom wrappers</a>
-<li><a href="Lua.html#Lua_nn33">Adding additional Lua code</a>
+<li><a href="Lua.html#Lua_nn33">Writing your own custom wrappers</a>
+<li><a href="Lua.html#Lua_nn34">Adding additional Lua code</a>
 </ul>
-<li><a href="Lua.html#Lua_nn34">Details on the Lua binding</a>
+<li><a href="Lua.html#Lua_nn35">Details on the Lua binding</a>
 <ul>
-<li><a href="Lua.html#Lua_nn35">Binding global data into the module.</a>
-<li><a href="Lua.html#Lua_nn36">Userdata and Metatables</a>
-<li><a href="Lua.html#Lua_nn37">Memory management</a>
+<li><a href="Lua.html#Lua_nn36">Binding global data into the module.</a>
+<li><a href="Lua.html#Lua_nn37">Userdata and Metatables</a>
+<li><a href="Lua.html#Lua_nn38">Memory management</a>
 </ul>
 </ul>
 </div>
 <!-- INDEX -->
 
-<h3><a href="Modula3.html#Modula3">25 SWIG and Modula-3</a></h3>
+<h3><a href="Modula3.html#Modula3">27 SWIG and Modula-3</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1025,17 +1097,19 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Mzscheme.html#Mzscheme">26 SWIG and MzScheme</a></h3>
+<h3><a href="Mzscheme.html#Mzscheme">28 SWIG and MzScheme/Racket</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
-<li><a href="Mzscheme.html#MzScheme_nn2">Creating native MzScheme structures</a>
+<li><a href="Mzscheme.html#MzScheme_nn2">Creating native structures</a>
+<li><a href="Mzscheme.html#MzScheme_simple">Simple example</a>
+<li><a href="Mzscheme.html#MzScheme_external_docs">External documentation</a>
 </ul>
 </div>
 <!-- INDEX -->
 
-<h3><a href="Ocaml.html#Ocaml">27 SWIG and Ocaml</a></h3>
+<h3><a href="Ocaml.html#Ocaml">29 SWIG and Ocaml</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1086,7 +1160,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Octave.html#Octave">28 SWIG and Octave</a></h3>
+<h3><a href="Octave.html#Octave">30 SWIG and Octave</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1094,6 +1168,7 @@
 <li><a href="Octave.html#Octave_nn2">Preliminaries</a>
 <li><a href="Octave.html#Octave_nn3">Running SWIG</a>
 <ul>
+<li><a href="Octave.html#Octave_nn4">Command-line options</a>
 <li><a href="Octave.html#Octave_nn5">Compiling a dynamic module</a>
 <li><a href="Octave.html#Octave_nn6">Using your module</a>
 </ul>
@@ -1121,7 +1196,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Perl5.html#Perl5">29 SWIG and Perl5</a></h3>
+<h3><a href="Perl5.html#Perl5">31 SWIG and Perl5</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1188,7 +1263,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Php.html#Php">30 SWIG and PHP</a></h3>
+<h3><a href="Php.html#Php">32 SWIG and PHP</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1228,7 +1303,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Pike.html#Pike">31 SWIG and Pike</a></h3>
+<h3><a href="Pike.html#Pike">33 SWIG and Pike</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1252,7 +1327,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Python.html#Python">32 SWIG and Python</a></h3>
+<h3><a href="Python.html#Python">34 SWIG and Python</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1285,11 +1360,16 @@
 <li><a href="Python.html#Python_nn25">C++ namespaces</a>
 <li><a href="Python.html#Python_nn26">C++ templates</a>
 <li><a href="Python.html#Python_nn27">C++ Smart Pointers</a>
-<li><a href="Python.html#Python_nn27a">C++ Reference Counted Objects (ref/unref)</a>
+<li><a href="Python.html#Python_nn27a">C++ reference counted objects</a>
 </ul>
 <li><a href="Python.html#Python_nn28">Further details on the Python class interface</a>
 <ul>
 <li><a href="Python.html#Python_nn29">Proxy classes</a>
+<li><a href="Python.html#Python_builtin_types">Built-in Types</a>
+<ul>
+<li><a href="Python.html#Python_builtin_limitations">Limitations</a>
+<li><a href="Python.html#Python_builtin_overloads">Operator overloads -- use them!</a>
+</ul>
 <li><a href="Python.html#Python_nn30">Memory management</a>
 <li><a href="Python.html#Python_nn31">Python 2.2 and classic classes</a>
 </ul>
@@ -1340,6 +1420,8 @@
 <ul>
 <li><a href="Python.html#Python_nn68">%feature("autodoc", "0")</a>
 <li><a href="Python.html#Python_nn69">%feature("autodoc", "1")</a>
+<li><a href="Python.html#Python_autodoc2">%feature("autodoc", "2")</a>
+<li><a href="Python.html#Python_autodoc3">%feature("autodoc", "3")</a>
 <li><a href="Python.html#Python_nn70">%feature("autodoc", "docstring")</a>
 </ul>
 <li><a href="Python.html#Python_nn71">%feature("docstring")</a>
@@ -1355,7 +1437,23 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Ruby.html#Ruby">33 SWIG and Ruby</a></h3>
+<h3><a href="R.html#R">35 SWIG and R</a></h3>
+
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="R.html#R_nn2">Bugs</a>
+<li><a href="R.html#R_nn3">Using R and SWIG</a>
+<li><a href="R.html#R_nn4">Precompiling large R files</a>
+<li><a href="R.html#R_nn5">General policy</a>
+<li><a href="R.html#R_language_conventions">Language conventions</a>
+<li><a href="R.html#R_nn6">C++ classes</a>
+<li><a href="R.html#R_nn7">Enumerations</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+<h3><a href="Ruby.html#Ruby">36 SWIG and Ruby</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1489,7 +1587,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Tcl.html#Tcl">34 SWIG and Tcl</a></h3>
+<h3><a href="Tcl.html#Tcl">37 SWIG and Tcl</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1555,23 +1653,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="R.html#R">35 SWIG and R</a></h3>
-
-<!-- INDEX -->
-<div class="sectiontoc">
-<ul>
-<li><a href="R.html#R_nn2">Bugs</a>
-<li><a href="R.html#R_nn3">Using R and SWIG</a>
-<li><a href="R.html#R_nn4">Precompiling large R files</a>
-<li><a href="R.html#R_nn5">General policy</a>
-<li><a href="R.html#R_language_conventions">Language conventions</a>
-<li><a href="R.html#R_nn6">C++ classes</a>
-<li><a href="R.html#R_nn7">Enumerations</a>
-</ul>
-</div>
-<!-- INDEX -->
-
-<h3><a href="Extending.html#Extending">36 Extending SWIG to support new languages</a></h3>
+<h3><a href="Extending.html#Extending">38 Extending SWIG to support new languages</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">

@@ -13,8 +13,6 @@
  * that the function and/or API needs to be changed in some future release.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_deprecate_c[] = "$Id: parms.c 9630 2007-01-02 21:17:19Z beazley $";
-
 #include "swig.h"
 
 /* ---------------------------------------------------------------------
@@ -77,7 +75,7 @@ int ParmList_is_compactdefargs(ParmList *p) {
  * ParmList_errorstr()
  *
  * Generate a prototype string suitable for use in error/warning messages.
- * This function is aware of hidden parameters.
+ * Similar to ParmList_protostr() but is also aware of hidden parameters.
  * ---------------------------------------------------------------------- */
 
 /* Discussion.  This function is used to generate error messages, but take 

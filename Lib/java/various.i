@@ -23,7 +23,8 @@
 %typemap(jtype) char **STRING_ARRAY "String[]"
 %typemap(jstype) char **STRING_ARRAY "String[]"
 %typemap(in) char **STRING_ARRAY (jint size) {
-    int i = 0;
+  int i = 0;
+  if ($input) {
     size = JCALL1(GetArrayLength, jenv, $input);
 #ifdef __cplusplus
     $1 = new char*[size+1];
@@ -31,51 +32,57 @@
     $1 = (char **)calloc(size+1, sizeof(char *));
 #endif
     for (i = 0; i<size; i++) {
-        jstring j_string = (jstring)JCALL2(GetObjectArrayElement, jenv, $input, i);
-        const char *c_string = JCALL2(GetStringUTFChars, jenv, j_string, 0);
+      jstring j_string = (jstring)JCALL2(GetObjectArrayElement, jenv, $input, i);
+      const char *c_string = JCALL2(GetStringUTFChars, jenv, j_string, 0);
 #ifdef __cplusplus
-        $1[i] = new char [strlen(c_string)+1];
+      $1[i] = new char [strlen(c_string)+1];
 #else
-        $1[i] = (char *)calloc(strlen(c_string)+1, sizeof(const char *));
+      $1[i] = (char *)calloc(strlen(c_string)+1, sizeof(const char *));
 #endif
-        strcpy($1[i], c_string);
-        JCALL2(ReleaseStringUTFChars, jenv, j_string, c_string);
-        JCALL1(DeleteLocalRef, jenv, j_string);
+      strcpy($1[i], c_string);
+      JCALL2(ReleaseStringUTFChars, jenv, j_string, c_string);
+      JCALL1(DeleteLocalRef, jenv, j_string);
     }
     $1[i] = 0;
+  } else {
+    $1 = 0;
+    size = 0;
+  }
 }
 
 %typemap(freearg) char **STRING_ARRAY {
-    int i;
-    for (i=0; i<size$argnum-1; i++)
+  int i;
+  for (i=0; i<size$argnum-1; i++)
 #ifdef __cplusplus
-      delete[] $1[i];
-    delete[] $1;
+    delete[] $1[i];
+  delete[] $1;
 #else
-      free($1[i]);
-    free($1);
+  free($1[i]);
+  free($1);
 #endif
 }
 
 %typemap(out) char **STRING_ARRAY {
+  if ($1) {
     int i;
     int len=0;
     jstring temp_string;
     const jclass clazz = JCALL1(FindClass, jenv, "java/lang/String");
 
-    while ($1[len]) len++;    
-    jresult = JCALL3(NewObjectArray, jenv, len, clazz, NULL);
+    while ($1[len]) len++;
+    $result = JCALL3(NewObjectArray, jenv, len, clazz, NULL);
     /* exception checking omitted */
 
     for (i=0; i<len; i++) {
-      temp_string = JCALL1(NewStringUTF, jenv, *result++);
-      JCALL3(SetObjectArrayElement, jenv, jresult, i, temp_string);
+      temp_string = JCALL1(NewStringUTF, jenv, *$1++);
+      JCALL3(SetObjectArrayElement, jenv, $result, i, temp_string);
       JCALL1(DeleteLocalRef, jenv, temp_string);
     }
+  }
 }
 
 %typemap(javain) char **STRING_ARRAY "$javainput"
-%typemap(javaout) char **STRING_ARRAY  {
+%typemap(javaout) char **STRING_ARRAY {
     return $jnicall;
   }
 
@@ -107,11 +114,12 @@
     return $null;
   }
   $1 = &temp; 
+  *$1 = 0;
 }
 
 %typemap(argout) char **STRING_OUT {
   jstring jnewstring = NULL;
-  if($1) {
+  if ($1) {
      jnewstring = JCALL1(NewStringUTF, jenv, *$1);
   }
   JCALL3(SetObjectArrayElement, jenv, $input, 0, jnewstring); 
@@ -134,11 +142,11 @@
 %typemap(jtype) char *BYTE "byte[]"
 %typemap(jstype) char *BYTE "byte[]"
 %typemap(in) char *BYTE {
-    $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0); 
+  $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0); 
 }
 
 %typemap(argout) char *BYTE {
-    JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *) $1, 0); 
+  JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *) $1, 0); 
 }
 
 %typemap(javain) char *BYTE "$javainput"

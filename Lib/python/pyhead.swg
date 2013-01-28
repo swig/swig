@@ -5,7 +5,16 @@
 #define PyInt_Check(x) PyLong_Check(x)
 #define PyInt_AsLong(x) PyLong_AsLong(x)
 #define PyInt_FromLong(x) PyLong_FromLong(x)
+#define PyInt_FromSize_t(x) PyLong_FromSize_t(x)
+#define PyString_Check(name) PyBytes_Check(name)
+#define PyString_FromString(x) PyUnicode_FromString(x)
 #define PyString_Format(fmt, args)  PyUnicode_Format(fmt, args)
+#define PyString_AsString(str) PyBytes_AsString(str)
+#define PyString_Size(str) PyBytes_Size(str)	
+#define PyString_InternFromString(key) PyUnicode_InternFromString(key)
+#define Py_TPFLAGS_HAVE_CLASS Py_TPFLAGS_BASETYPE
+#define PyString_AS_STRING(x) PyUnicode_AS_STRING(x)
+#define _PyLong_FromSsize_t(x) PyLong_FromSsize_t(x)
 
 #endif
 
@@ -145,4 +154,65 @@ PyObject *PyBool_FromLong(long ok)
 typedef int Py_ssize_t;
 # define PY_SSIZE_T_MAX INT_MAX
 # define PY_SSIZE_T_MIN INT_MIN
+typedef inquiry lenfunc;
+typedef intargfunc ssizeargfunc;
+typedef intintargfunc ssizessizeargfunc;
+typedef intobjargproc ssizeobjargproc;
+typedef intintobjargproc ssizessizeobjargproc;
+typedef getreadbufferproc readbufferproc;
+typedef getwritebufferproc writebufferproc;
+typedef getsegcountproc segcountproc;
+typedef getcharbufferproc charbufferproc;
+static long PyNumber_AsSsize_t (PyObject *x, void *SWIGUNUSEDPARM(exc))
+{
+  long result = 0;
+  PyObject *i = PyNumber_Int(x);
+  if (i) {
+    result = PyInt_AsLong(i);
+    Py_DECREF(i);
+  }
+  return result;
+}
+#endif
+
+#if PY_VERSION_HEX < 0x02050000
+#define PyInt_FromSize_t(x) PyInt_FromLong((long)x)
+#endif
+
+#if PY_VERSION_HEX < 0x02040000
+#define Py_VISIT(op)				\
+  do { 						\
+    if (op) {					\
+      int vret = visit((op), arg);		\
+      if (vret)					\
+        return vret;				\
+    }						\
+  } while (0)
+#endif
+
+#if PY_VERSION_HEX < 0x02030000
+typedef struct {
+  PyTypeObject type;
+  PyNumberMethods as_number;
+  PyMappingMethods as_mapping;
+  PySequenceMethods as_sequence;
+  PyBufferProcs as_buffer;
+  PyObject *name, *slots;
+} PyHeapTypeObject;
+#endif
+
+#if PY_VERSION_HEX < 0x02030000
+typedef destructor freefunc;
+#endif
+
+#if ((PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION > 6) || \
+     (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION > 0) || \
+     (PY_MAJOR_VERSION > 3))
+# define SWIGPY_USE_CAPSULE
+# define SWIGPY_CAPSULE_NAME ((char*)"swig_runtime_data" SWIG_RUNTIME_VERSION ".type_pointer_capsule" SWIG_TYPE_TABLE_NAME)
+#endif
+
+#if PY_VERSION_HEX < 0x03020000
+#define PyDescr_TYPE(x) (((PyDescrObject *)(x))->d_type)
+#define PyDescr_NAME(x) (((PyDescrObject *)(x))->d_name)
 #endif

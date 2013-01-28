@@ -25,10 +25,30 @@ SWIG_AsVal_dec(bool)(PyObject *obj, bool *val)
 }
 }
 
+/* int */
+
+%fragment(SWIG_From_frag(int),"header") {
+SWIGINTERNINLINE PyObject*
+  SWIG_From_dec(int)(int value)
+{
+  return PyInt_FromLong((long) value);
+}
+}
+
+/* unsigned int */
+
+%fragment(SWIG_From_frag(unsigned int),"header") {
+SWIGINTERNINLINE PyObject*
+  SWIG_From_dec(unsigned int)(unsigned int value)
+{
+  return PyInt_FromSize_t((size_t) value);
+}
+}
+
 /* long */
 
 %fragment(SWIG_From_frag(long),"header") {
-  %define_as(SWIG_From_dec(long),           PyInt_FromLong)
+  %define_as(SWIG_From_dec(long),           PyLong_FromLong)
 }
 
 %fragment(SWIG_AsVal_frag(long),"header",
@@ -80,7 +100,7 @@ SWIGINTERNINLINE PyObject*
 SWIG_From_dec(unsigned long)(unsigned long value)
 {
   return (value > LONG_MAX) ?
-    PyLong_FromUnsignedLong(value) : PyInt_FromLong(%numeric_cast(value,long)); 
+    PyLong_FromUnsignedLong(value) : PyLong_FromLong(%numeric_cast(value,long)); 
 }
 }
 
@@ -89,6 +109,7 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val) 
 {
+%#if PY_VERSION_HEX < 0x03000000
   if (PyInt_Check(obj)) {
     long v = PyInt_AsLong(obj);
     if (v >= 0) {
@@ -97,7 +118,9 @@ SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val)
     } else {
       return SWIG_OverflowError;
     }
-  } else if (PyLong_Check(obj)) {
+  } else
+%#endif
+  if (PyLong_Check(obj)) {
     unsigned long v = PyLong_AsUnsignedLong(obj);
     if (!PyErr_Occurred()) {
       if (val) *val = v;
@@ -139,7 +162,7 @@ SWIGINTERNINLINE PyObject*
 SWIG_From_dec(long long)(long long value)
 {
   return ((value < LONG_MIN) || (value > LONG_MAX)) ?
-    PyLong_FromLongLong(value) : PyInt_FromLong(%numeric_cast(value,long)); 
+    PyLong_FromLongLong(value) : PyLong_FromLong(%numeric_cast(value,long)); 
 }
 }
 
@@ -193,7 +216,7 @@ SWIGINTERNINLINE PyObject*
 SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
   return (value > LONG_MAX) ?
-    PyLong_FromUnsignedLongLong(value) : PyInt_FromLong(%numeric_cast(value,long)); 
+    PyLong_FromUnsignedLongLong(value) : PyLong_FromLong(%numeric_cast(value,long)); 
 }
 }
 

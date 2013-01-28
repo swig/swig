@@ -104,10 +104,8 @@ namespace swig {
       Type v;
       int res = asval(obj, &v);
       if (!obj || !SWIG_IsOK(res)) {
-//	if (!PyErr_Occurred()) {
-//	  %type_error(swig::type_name<Type>());
-//	}
-	if (throw_error) throw std::invalid_argument("bad type");
+	if (throw_error)
+          throw std::invalid_argument("bad type");
       }
       return v;
     }
@@ -129,10 +127,8 @@ namespace swig {
       } else {
 	// Uninitialized return value, no Type() constructor required.
 	static Type *v_def = (Type*) malloc(sizeof(Type));
-//	if (!PyErr_Occurred()) {
-//	  %type_error(swig::type_name<Type>());
-//	}
-	if (throw_error) throw std::invalid_argument("bad type");
+	if (throw_error)
+          throw std::invalid_argument("bad type");
 	memset(v_def,0,sizeof(Type));
 	return *v_def;
       }
@@ -147,10 +143,8 @@ namespace swig {
       if (SWIG_IsOK(res)) {
 	return v;
       } else {
-//	if (!PyErr_Occurred()) {
-//	  %type_error(swig::type_name<Type>());
-//	}
-	if (throw_error) throw std::invalid_argument("bad type");
+	if (throw_error)
+          throw std::invalid_argument("bad type");
 	return 0;
       }
     }

@@ -73,9 +73,8 @@ void NAME##_setitem(TYPE *ary, int index, TYPE value);
 %{
 typedef TYPE NAME;
 %}
-typedef struct NAME {
+typedef struct {
   /* Put language specific enhancements here */
-
 } NAME;
 
 %extend NAME {

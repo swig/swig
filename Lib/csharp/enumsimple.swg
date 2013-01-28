@@ -20,7 +20,7 @@
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const enum SWIGTYPE &
 %{ static $*1_ltype temp = ($*1_ltype)$input; 
    $result = &temp; %}
-%typemap(directorin) const enum SWIGTYPE & "$input = $1_name;"
+%typemap(directorin) const enum SWIGTYPE & "$input = $1;"
 %typemap(csdirectorin) const enum SWIGTYPE & "$iminput"
 %typemap(csdirectorout) const enum SWIGTYPE & "$cscall"
 

@@ -62,22 +62,14 @@ char * typemaps instead:
 %define INPUT_TYPEMAP(TYPE, GOTYPE)
 %typemap(gotype) TYPE *INPUT, TYPE &INPUT "GOTYPE"
 
-%typemap(in) TYPE *INPUT
+ %typemap(in) TYPE *INPUT, TYPE &INPUT
 %{ $1 = ($1_ltype)&$input; %}
 
-%typemap(in) TYPE &INPUT
-%{ $1 = ($1_ltype)$input; %}
+%typemap(out) TYPE *INPUT, TYPE &INPUT ""
 
 %typemap(freearg) TYPE *INPUT, TYPE &INPUT ""
 
-%typemap(directorout) TYPE *INPUT
-%{ $result = ($1_ltype)&$input; %}
-
-%typemap(directorout) TYPE &INPUT
-%{ $result = ($1_ltype)$input; %}
-
-%typemap(directorin) TYPE &INPUT
-%{ $1 = ($input_ltype)&$input; %}
+%typemap(argout) TYPE *INPUT, TYPE &INPUT ""
 
 // %typemap(typecheck) TYPE *INPUT = TYPE;
 // %typemap(typecheck) TYPE &INPUT = TYPE;
@@ -95,7 +87,7 @@ INPUT_TYPEMAP(long, int64);
 INPUT_TYPEMAP(unsigned long, uint64);
 INPUT_TYPEMAP(long long, int64);
 INPUT_TYPEMAP(unsigned long long, uint64);
-INPUT_TYPEMAP(float, float);
+INPUT_TYPEMAP(float, float32);
 INPUT_TYPEMAP(double, float64);
 
 #undef INPUT_TYPEMAP
@@ -165,7 +157,7 @@ char * typemaps instead:
 %define OUTPUT_TYPEMAP(TYPE, GOTYPE)
 %typemap(gotype) TYPE *OUTPUT, TYPE &OUTPUT %{[]GOTYPE%}
 
-%typemap(in) TYPE *OUTPUT($*1_ltype temp)
+%typemap(in) TYPE *OUTPUT($*1_ltype temp), TYPE &OUTPUT($*1_ltype temp)
 {
   if ($input.len == 0) {
     _swig_gopanic("array must contain at least 1 element");
@@ -173,36 +165,14 @@ char * typemaps instead:
   $1 = &temp;
 }
 
-%typemap(in) TYPE &OUTPUT($*1_ltype temp)
-{
-  if ($input->len == 0) {
-    _swig_gopanic("array must contain at least 1 element");
-  }
-  $1 = &temp;
-}
+%typemap(out) TYPE *OUTPUT, TYPE &OUTPUT ""
 
 %typemap(freearg) TYPE *OUTPUT, TYPE &OUTPUT ""
 
-%typemap(argout) TYPE *OUTPUT
+%typemap(argout) TYPE *OUTPUT, TYPE &OUTPUT
 {
   TYPE* a = (TYPE *) $input.array;
   a[0] = temp$argnum;
-}
-
-%typemap(argout) TYPE &OUTPUT 
-{
-  TYPE* a = (TYPE *) $input->array;
-  a[0] = temp$argnum;
-}
-
-%typemap(directorout,warning="Need to provide TYPE *OUTPUT directorout typemap") TYPE *OUTPUT, TYPE &OUTPUT {
-}
-
-%typemap(directorin) TYPE &OUTPUT
-%{ *(($&1_ltype) $input = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *OUTPUT directorin typemap, TYPE array length is unknown") TYPE *OUTPUT
-{
 }
 
 %enddef
@@ -219,7 +189,7 @@ OUTPUT_TYPEMAP(long, int64);
 OUTPUT_TYPEMAP(unsigned long, uint64);
 OUTPUT_TYPEMAP(long long, int64);
 OUTPUT_TYPEMAP(unsigned long long, uint64);
-OUTPUT_TYPEMAP(float, float);
+OUTPUT_TYPEMAP(float, float32);
 OUTPUT_TYPEMAP(double, float64);
 
 #undef OUTPUT_TYPEMAP
@@ -289,31 +259,18 @@ char * typemaps instead:
 %define INOUT_TYPEMAP(TYPE, GOTYPE)
 %typemap(gotype) TYPE *INOUT, TYPE &INOUT %{[]GOTYPE%}
 
-%typemap(in) TYPE *INOUT {
+%typemap(in) TYPE *INOUT, TYPE &INOUT {
   if ($input.len == 0) {
     _swig_gopanic("array must contain at least 1 element");
   }
   $1 = ($1_ltype) $input.array;
 }
 
-%typemap(in) TYPE &INOUT {
-  if ($input->len == 0) {
-    _swig_gopanic("array must contain at least 1 element");
-  }
-  $1 = ($1_ltype) $input->array;
-}
+%typemap(out) TYPE *INOUT, TYPE &INOUT ""
 
 %typemap(freearg) TYPE *INOUT, TYPE &INOUT ""
 
-%typemap(directorout,warning="Need to provide TYPE *INOUT directorout typemap") TYPE *INOUT, TYPE &INOUT {
-}
-
-%typemap(directorin) TYPE &INOUT
-%{ *(($&1_ltype)&$input) = &$1; %}
-
-%typemap(directorin,warning="Need to provide TYPE *INOUT directorin typemap, TYPE array length is unknown") TYPE *INOUT, TYPE &INOUT
-{
-}
+%typemap(argout) TYPE *INOUT, TYPE &INOUT ""
 
 %enddef
 
@@ -329,7 +286,7 @@ INOUT_TYPEMAP(long, int64);
 INOUT_TYPEMAP(unsigned long, uint64);
 INOUT_TYPEMAP(long long, int64);
 INOUT_TYPEMAP(unsigned long long, uint64);
-INOUT_TYPEMAP(float, float);
+INOUT_TYPEMAP(float, float32);
 INOUT_TYPEMAP(double, float64);
 
 #undef INOUT_TYPEMAP

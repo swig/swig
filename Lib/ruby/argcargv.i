@@ -30,7 +30,7 @@
     $2 = (char **) malloc((size+1)*sizeof(char *));
     VALUE *ptr = RARRAY_PTR($input);
     for (i=0; i < size; i++, ptr++) {
-      $2[i]= STR2CSTR(*ptr);
+      $2[i]= StringValuePtr(*ptr);
     }    
     $2[i]=NULL;
   } else {

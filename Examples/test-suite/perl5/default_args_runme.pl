@@ -41,26 +41,26 @@ ok(not($@), '%rename handling');
  
 # exception specifications
 eval { default_args::exceptionspec() };
-is($@, "ciao", "exceptionspec 1");
+like($@, qr/^ciao/, "exceptionspec 1");
 eval { default_args::exceptionspec(-1) };
-is($@, "ciao", "exceptionspec 2");
+like($@, qr/^ciao/, "exceptionspec 2");
 eval { default_args::exceptionspec(100) };
-is($@, '100', "exceptionspec 3");
+like($@, qr/^100/, "exceptionspec 3");
 
 my $ex = new default_args::Except($false);
 
 my $hit = 0;
 eval { $ex->exspec(); $hit = 1; };
-# a zero was thrown, an exception occured, but $@ is false
+# a zero was thrown, an exception occurred, but $@ is false
 is($hit, 0, "exspec 1");
 eval { $ex->exspec(-1) };
-is($@, "ciao", "exspec 2");
+like($@, qr/^ciao/, "exspec 2");
 eval { $ex->exspec(100) };
-is($@, 100, "exspec 3");
+like($@, qr/^100/, "exspec 3");
 eval { $ex = default_args::Except->new($true) };
-is($@, -1, "Except constructor 1");
+like($@, qr/-1/, "Except constructor 1");
 eval { $ex = default_args::Except->new($true, -2) };
-is($@, -2, "Except constructor 2");
+like($@, qr/-2/, "Except constructor 2");
 
 #Default parameters in static class methods
 is(default_args::Statics::staticmethod(), 60, "staticmethod 1");

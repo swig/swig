@@ -18,27 +18,27 @@
  * ----------------------------------------------------------------------------- */
 // this basically adds to a table of constants
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
-       { SWIG_LUA_INT,     (char *)"$symname", (long) $value, 0, 0, 0}
+       {SWIG_LUA_CONSTTAB_INT("$symname", $value)}
 
 %typemap(consttab) float, double
-       { SWIG_LUA_FLOAT,   (char *)"$symname", 0, (double) $value, 0, 0}
+       {SWIG_LUA_CONSTTAB_FLOAT("$symname", $value)}
 
 %typemap(consttab) long long, unsigned long long, signed long long
-       { SWIG_LUA_FLOAT,   (char *)"$symname", 0, (double) $value, 0, 0}
+       {SWIG_LUA_CONSTTAB_FLOAT("$symname", $value)}
 
 %typemap(consttab) const long long&, const unsigned long long&, const signed long long&
-       { SWIG_LUA_FLOAT,   (char *)"$symname", 0, (double) *$value, 0, 0}
+       {SWIG_LUA_CONSTTAB_FLOAT("$symname", *$value)}
 
 %typemap(consttab) char *, const char *, char [], const char []
-       { SWIG_LUA_STRING,  (char *)"$symname", 0, 0, (void *)$value, 0}
+       {SWIG_LUA_CONSTTAB_STRING("$symname", $value)}
 
 // note: char is treated as a seperate special type
 // signed char & unsigned char are numbers
 %typemap(consttab) char
-       { SWIG_LUA_CHAR,  (char *)"$symname", (long)$value, 0, 0, 0}
+       {SWIG_LUA_CONSTTAB_CHAR("$symname", $value)}
 
 %typemap(consttab) long long, unsigned long long
-       { SWIG_LUA_STRING, (char *) "$symname", 0, 0, (void *)"$value", 0}
+       {SWIG_LUA_CONSTTAB_STRING("$symname", "$value")}
 
 %typemap(consttab) SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE []
        { SWIG_LUA_POINTER, (char *)"$symname", 0, 0, (void *)$value, &$1_descriptor}
@@ -142,8 +142,8 @@
 /* ------------------------------------------------------------
  *                              Exceptions
  * ------------------------------------------------------------ */
-/* Confession: I dont really like C++ exceptions
-The python/lua ones are great, but C++ ones I dont like
+/* Confession: I don't really like C++ exceptions
+The python/lua ones are great, but C++ ones I don't like
 (mainly because I cannot get the stack trace out of it)
 Therefore I have not bothered to try doing much in this
 
@@ -191,7 +191,7 @@ There are a few options:
 - return a copy of it: but not all objects are copyable
 	(see exception_partial_info in the test suite for a case where you cannot do this)
 - convert to a string & throw that
-	its not so useful, but it works (this is more lua like).
+	it's not so useful, but it works (this is more lua like).
 The third option (though not nice) is used
 For a more useful solution: see std_except for more details
 */

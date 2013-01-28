@@ -11,8 +11,6 @@
  * Support for Wrap by Contract in SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_contract_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 /* Contract structure.  This holds rules about the different kinds of contract sections
@@ -213,7 +211,7 @@ String *Contracts::make_expression(String *s, Node *n) {
   for (ei = First(list_assert); ei.item; ei = Next(ei)) {
     expr = ei.item;
     if (Len(expr)) {
-      Replaceid(expr, Getattr(n, "name"), "result");
+      Replaceid(expr, Getattr(n, "name"), Swig_cresult_name());
       if (Len(str_assert))
 	Append(str_assert, "&&");
       Printf(str_assert, "(%s)", expr);

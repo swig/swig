@@ -13,8 +13,6 @@
  * in SWIG.  --MR
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_directors_cxx[] = "$Id";
-
 #include "swigmod.h"
 
 /* Swig_csuperclass_call()
@@ -78,9 +76,10 @@ String *Swig_class_name(Node *n) {
 
 String *Swig_director_declaration(Node *n) {
   String *classname = Swig_class_name(n);
-  String *directorname = NewStringf("SwigDirector_%s", classname);
+  String *directorname = Language::instance()->directorClassName(n);
   String *base = Getattr(n, "classtype");
   String *declaration = Swig_class_declaration(n, directorname);
+
   Printf(declaration, " : public %s, public Swig::Director {\n", base);
   Delete(classname);
   Delete(directorname);
@@ -132,7 +131,7 @@ String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
  *
  */
 
-String *Swig_method_decl(SwigType *returntype, SwigType *decl, const_String_or_char_ptr id, List *args, int strip, int values) {
+String *Swig_method_decl(SwigType *rettype, SwigType *decl, const_String_or_char_ptr id, List *args, int strip, int values) {
   String *result;
   List *elements;
   String *element = 0, *nextelement;
@@ -203,7 +202,7 @@ String *Swig_method_decl(SwigType *returntype, SwigType *decl, const_String_or_c
 	  Append(result, ", ");
       }
       Append(result, ")");
-    } else if (returntype) { // This check is intended for conversion operators to a pointer/reference which needs the pointer/reference ignoring in the declaration
+    } else if (rettype) { // This check is intended for conversion operators to a pointer/reference which needs the pointer/reference ignoring in the declaration
       if (SwigType_ispointer(element)) {
 	Insert(result, 0, "*");
 	if ((nextelement) && ((SwigType_isfunction(nextelement) || (SwigType_isarray(nextelement))))) {
@@ -256,9 +255,9 @@ String *Swig_method_decl(SwigType *returntype, SwigType *decl, const_String_or_c
 
   Chop(result);
 
-  if (returntype) {
+  if (rettype) {
     Insert(result, 0, " ");
-    String *rtype = SwigType_str(returntype, 0);
+    String *rtype = SwigType_str(rettype, 0);
     Insert(result, 0, rtype);
     Delete(rtype);
   }
@@ -280,13 +279,40 @@ void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
                                                checkAttribute(n, "storage", "static"))
                                           && !Equal(nodeType(n), "constructor"))) {
     Node *parent = Getattr(n, "parentNode");
-    String *symname = Getattr(parent, "sym:name");
-    String *dirname = NewStringf("SwigDirector_%s", symname);
-    String *dirdecl = NewStringf("%s *darg = 0", dirname);
+    String *dirname;
+    String *dirdecl;
+    dirname = Language::instance()->directorClassName(parent);
+    dirdecl = NewStringf("%s *darg = 0", dirname);
     Wrapper_add_local(f, "darg", dirdecl);
     Printf(f->code, "darg = dynamic_cast<%s *>(arg1);\n", dirname);
     Delete(dirname);
     Delete(dirdecl);
+  }
+}
+
+/* ------------------------------------------------------------
+ * Swig_director_parms_fixup()
+ *
+ * For each parameter in the C++ member function, copy the parameter name
+ * to its "lname"; this ensures that Swig_typemap_attach_parms() will do
+ * the right thing when it sees strings like "$1" in "directorin" typemaps.
+ * ------------------------------------------------------------ */
+
+void Swig_director_parms_fixup(ParmList *parms) {
+  Parm *p;
+  int i;
+  for (i = 0, p = parms; p; p = nextSibling(p), ++i) {
+    String *arg = Getattr(p, "name");
+    String *lname = 0;
+
+    if (!arg && !Equal(Getattr(p, "type"), "void")) {
+      lname = NewStringf("arg%d", i);
+      Setattr(p, "name", lname);
+    } else
+      lname = Copy(arg);
+
+    Setattr(p, "lname", lname);
+    Delete(lname);
   }
 }
 

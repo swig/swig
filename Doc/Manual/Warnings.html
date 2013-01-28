@@ -25,7 +25,7 @@
 <li><a href="#Warnings_nn12">C/C++ Parser (300-399)</a>
 <li><a href="#Warnings_nn13">Types and typemaps (400-499) </a>
 <li><a href="#Warnings_nn14">Code generation (500-599)</a>
-<li><a href="#Warnings_nn15">Language module specific (800-899) </a>
+<li><a href="#Warnings_nn15">Language module specific (700-899) </a>
 <li><a href="#Warnings_nn16">User defined (900-999)</a>
 </ul>
 <li><a href="#Warnings_nn17">History</a>
@@ -257,15 +257,22 @@ Warning messages can be associated with typemaps using the
 
 <div class="code">
 <pre>
-%typemap(in, warning="901:You are really going to regret this") blah * {
+%typemap(in, warning="901:You are really going to regret this usage of $1_type $1_name") blah * {
    ...
 }
 </pre>
 </div>
 
 <p>
-In this case, the warning message will be printed whenever the typemap is actually used.
+In this case, the warning message will be printed whenever the typemap is actually used and the <a href="Typemaps.html#Typemaps_special_variables">special variables</a> will be expanded as appropriate, for example:
 </p>
+
+<div class="shell">
+<pre>
+example.i:23: Warning 901: You are really going to regret this usage of blah * self
+example.i:24: Warning 901: You are really going to regret this usage of blah * stuff
+</pre>
+</div>
 
 <H2><a name="Warnings_symbolic_symbols"></a>14.5 Symbolic symbols</H2>
 
@@ -381,8 +388,12 @@ example.i(4) : Syntax error in input.
 
 
 <ul>
-<li>201. Unable to find 'filename'.
-<li>202. Could not evaluate 'expr'.
+<li>201. Unable to find <em>filename</em>.
+<li>202. Could not evaluate expression <em>expr</em>.
+<li>203. Both includeall and importall are defined: using includeall.
+<li>204. CPP #warning, "<em>warning</em>".
+<li>205. CPP #error, "<em>error</em>".
+<li>206. Unexpected tokens after #<em>directive</em> directive.
 </ul>
 
 <H3><a name="Warnings_nn12"></a>14.9.3 C/C++ Parser (300-399)</H3>
@@ -497,7 +508,7 @@ example.i(4) : Syntax error in input.
 <li>501. Overloaded declaration ignored. <em>decl</em>. Previous declaration is <em>decl</em>.
 <li>502. Overloaded constructor ignored. <em>decl</em>. Previous declaration is <em>decl</em>.
 <li>503. Can't wrap '<em>identifier</em>' unless renamed to a valid identifier.
-<li>504. Function <em>name</em> must have a return type.
+<li>504. Function <em>name</em> must have a return type. Ignored.
 <li>505. Variable length arguments discarded.
 <li>506. Can't wrap varargs with keyword arguments enabled.
 <li>507. Adding native function <em>name</em> not supported (ignored).
@@ -513,9 +524,11 @@ example.i(4) : Syntax error in input.
 <li>517. 
 <li>518. Portability warning: File <em>file1</em> will be overwritten by <em>file2</em> on case insensitive filesystems such as Windows' FAT32 and NTFS unless the class/module name is renamed.
 <li>519. %template() contains no name. Template method ignored: <em>declaration</em>
+<li>520. <em>Base/Derived</em> class '<em>classname1</em>' of '<em>classname2</em>' is not similarly marked as a smart pointer.
+<li>521. Illegal destructor name <em>name</em>. Ignored.
 </ul>
 
-<H3><a name="Warnings_nn15"></a>14.9.6 Language module specific (800-899) </H3>
+<H3><a name="Warnings_nn15"></a>14.9.6 Language module specific (700-899) </H3>
 
 
 <ul>
@@ -538,6 +551,8 @@ example.i(4) : Syntax error in input.
 <li>822. Covariant return types not supported in Java. Proxy method will return <em>basetype</em>  (Java).
 <li>823. No javaconstruct typemap defined for <em>type</em>  (Java).
 <li>824. Missing JNI descriptor in directorin typemap defined for <em>type</em> (Java).
+<li>825. "directorconnect" attribute missing in <em>type</em> "javaconstruct" typemap. (Java).
+<li>826. The nspace feature is used on '<em>type</em>' without -package. The generated code may not compile as Java does not support types declared in a named package accessing types declared in an unnamed package. (Java).
 </ul>
 
 <ul>

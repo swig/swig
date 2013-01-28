@@ -10,6 +10,12 @@
 
 %include "std_string.i"
 
+%{
+#if defined(__SUNPRO_CC)
+#pragma error_messages (off, hidevf)
+#endif
+%}
+
 %inline %{
 #include <cstdio>
 #include <iostream>
@@ -100,5 +106,22 @@ public:
   std::string DefaultParmsCall(int x, double y) { return m_base->DefaultParms(x, y); }
 };
 
+%}
+
+
+%feature(director) BaseClass;
+%feature(director) DerivedClass;
+
+%inline %{
+class BaseClass
+{
+public:
+virtual ~BaseClass() {};
+virtual int dofoo(int& one, int& two, int& three) {return 0;}
+};
+
+class DerivedClass : public BaseClass
+{
+};
 %}
 

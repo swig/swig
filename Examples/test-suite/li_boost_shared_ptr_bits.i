@@ -1,6 +1,6 @@
 %module li_boost_shared_ptr_bits
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 

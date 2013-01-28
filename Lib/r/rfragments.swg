@@ -170,12 +170,12 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
    order to allow for use of CHARSXP caches. */
 
   Rf_protect(t = Rf_allocVector(STRSXP, 1));
-#if R_VERSION >=  R_Version(2,7,0)
+%#if R_VERSION >=  R_Version(2,7,0)
   c = Rf_mkCharLen(carray, size);
-#else
+%#else
   c = Rf_allocVector(CHARSXP, size);
   strncpy((char *)CHAR(c), carray, size);
-#endif
+%#endif
   SET_STRING_ELT(t, 0, c);
   Rf_unprotect(1);
   return t;

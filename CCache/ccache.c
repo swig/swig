@@ -712,12 +712,13 @@ static void from_cache(int first)
 			passfail = retrieve_from_cache(hashname, output_file, hardlink);
 		}
 
-		free(stderr_file);
 		if (passfail == -1) {
 			close(fd_stderr);
 			unlink(stderr_file);
+			free(stderr_file);
 			return;
 		}
+		free(stderr_file);
 	}
 
 	/* get rid of the intermediate preprocessor file */

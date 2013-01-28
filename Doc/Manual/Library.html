@@ -66,18 +66,19 @@ Library files are included using the <tt>%include</tt> directive.
 When searching for files, directories are searched in the following order:
 </p>
 
-<ul>
+<ol>
 <li>The current directory
 <li>Directories specified with the <tt>-I</tt> command line option
 <li>.<tt>/swig_lib</tt>
 <li>SWIG library install location as reported by <tt>swig -swiglib</tt>, for example <tt>/usr/local/share/swig/1.3.30</tt>
 <li>On Windows, a directory <tt>Lib</tt> relative to the location of <tt>swig.exe</tt> is also searched.
-</ul>
+</ol>
 
 <p>
-Within each directory, SWIG first looks for a subdirectory corresponding to a target language (e.g., <tt>python</tt>,
-<tt>tcl</tt>, etc.).   If found, SWIG will search the language specific directory first.  This allows
-for language-specific implementations of library files.
+Within directories mentioned in points 3-5, SWIG first looks for a subdirectory
+corresponding to a target language (e.g., <tt>python</tt>, <tt>tcl</tt>, etc.).
+If found, SWIG will search the language specific directory first. This allows
+for language-specific implementations of library files. 
 </p>
 
 <p>
@@ -682,8 +683,12 @@ pointer.
 
 <div class="indent"><p>
 Copies all of the string data in <tt>s</tt> into the memory pointed to by
-<tt>ptr</tt>.  The string may contain embedded NULL bytes.  The length of
-the string is implicitly determined in the underlying wrapper code.
+<tt>ptr</tt>.  The string may contain embedded NULL bytes.  
+This is actually a wrapper to the standard C library <tt>memmove</tt> function, which is
+declared as 
+<b><tt>void memmove(void *ptr, const void *src, size_t n)</tt></b>.
+The <tt>src</tt> and length <tt>n</tt> parameters are
+extracted from the language specific string <tt>s</tt> in the underlying wrapper code.
 </p></div>
 
 <p>
@@ -824,20 +829,20 @@ If you have a function that expects binary data,
 
 <div class="code">
 <pre>
-int parity(char *str, int len, int initial);
+size_t parity(char *str, size_t len, size_t initial);
 </pre>
 </div>
 
 <p>
-you can wrap the parameters <tt>(char *str, int len)</tt> as a single
+you can wrap the parameters <tt>(char *str, size_t len)</tt> as a single
 argument using a typemap.   Just do this:
 </p>
 
 <div class="code">
 <pre>
-%apply (char *STRING, int LENGTH) { (char *str, int len) };
+%apply (char *STRING, size_t LENGTH) { (char *str, size_t len) };
 ...
-int parity(char *str, int len, int initial);
+size_t parity(char *str, size_t len, size_t initial);
 </pre>
 </div>
 
@@ -854,6 +859,7 @@ Now, in the target language, you can use binary string data like this:
 
 <p>
 In the wrapper function, the passed string will be expanded to a pointer and length parameter.
+The <tt>(char *STRING, int LENGTH)</tt> multi-argument typemap is also available in addition to <tt>(char *STRING, size_t LENGTH)</tt>.
 </p>
 
 <H3><a name="Library_nn11"></a>8.3.3 Using %newobject to release memory</H3>
@@ -1802,19 +1808,6 @@ struct DerivedIntValue : IntValue {
 </div>
 
 <p>
-Note that if the <tt>%shared_ptr</tt> macro is omitted for any class in the inheritance hierarchy, it will
-result in a C++ compiler error.
-For example if the above <tt>%shared_ptr(DerivedIntValue)</tt> is omitted, the following is typical of the compiler error that will result:
-</p>
-
-<div class="shell">
-<pre>
-example_wrap.cxx: In function 'void Java_exampleJNI_delete_1DerivedIntValue(JNIEnv*, _jclass*, jlong)':
-example_wrap.cxx:3169: error: 'smartarg1' was not declared in this scope
-</pre>
-</div>
-
-<p>
 A shared_ptr of the derived class can now be passed to a method where the base is expected in the target language, just as it can in C++:
 </p>
 
@@ -1825,6 +1818,61 @@ int val3 = example.extractValue(div);
 int val4 = example.extractValueSmart(div);
 </pre>
 </div>
+
+<p>
+If the <tt>%shared_ptr</tt> macro is omitted for any class in the inheritance hierarchy, SWIG will warn about this and the generated code may or may not result in a C++ compilation error.
+For example, the following input: 
+</p>
+
+<div class="code">
+<pre>
+%include "boost_shared_ptr.i"
+%shared_ptr(Parent);
+
+%inline %{
+  #include &lt;boost/shared_ptr.hpp&gt;
+  struct GrandParent {
+    virtual ~GrandParent() {}
+  };
+
+  struct Parent : GrandParent {
+    virtual ~Parent() {}
+  };
+
+  struct Child : Parent {
+    virtual ~Child() {}
+  };
+%}
+</pre>
+</div>
+
+<p>
+warns about the missing smart pointer information:
+</p>
+
+<div class="shell">
+<pre>
+example.i:12: Warning 520: Base class 'GrandParent' of 'Parent' is not similarly marked as a smart pointer.
+example.i:16: Warning 520: Derived class 'Child' of 'Parent' is not similarly marked as a smart pointer.
+</pre>
+</div>
+
+<p>
+Adding the missing <tt>%shared_ptr</tt> macros will fix this:
+</p>
+
+<div class="code">
+<pre>
+%include "boost_shared_ptr.i"
+%shared_ptr(GrandParent);
+%shared_ptr(Parent);
+%shared_ptr(Child);
+
+... as before ...
+</pre>
+</div>
+
+<b>Note:</b> There is currently no support for <tt>%shared_ptr</tt> and the director feature.
 
 <H2><a name="Library_nn16"></a>8.5 Utility Libraries</H2>
 

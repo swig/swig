@@ -12,8 +12,6 @@
  * encountered during preprocessing.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_expr_c[] = "$Id$";
-
 #include "swig.h"
 #include "preprocessor.h"
 
@@ -35,7 +33,7 @@ static exprval stack[256];	/* Parsing stack       */
 static int sp = 0;		/* Stack pointer       */
 static int prec[256];		/* Precedence rules    */
 static int expr_init = 0;	/* Initialization flag */
-static char *errmsg = 0;	/* Parsing error       */
+static const char *errmsg = 0;	/* Parsing error       */
 
 /* Initialize the precedence table for various operators.  Low values have higher precedence */
 static void init_precedence() {
@@ -298,16 +296,16 @@ int Preprocessor_expr(DOH *s, int *error) {
 	stack[sp++].op = EXPR_OP;
 	stack[sp].op = EXPR_TOP;
 	stack[sp].svalue = 0;
-      } else if ((token == SWIG_TOKEN_LPAREN)) {
+      } else if (token == SWIG_TOKEN_LPAREN) {
 	stack[sp++].op = EXPR_GROUP;
 	stack[sp].op = EXPR_TOP;
 	stack[sp].value = 0;
 	stack[sp].svalue = 0;
       } else if (token == SWIG_TOKEN_ENDLINE) {
-      } else if ((token == SWIG_TOKEN_STRING)) {
+      } else if (token == SWIG_TOKEN_STRING) {
 	stack[sp].svalue = NewString(Scanner_text(scan));
 	stack[sp].op = EXPR_VALUE;
-      } else if ((token == SWIG_TOKEN_ID)) {
+      } else if (token == SWIG_TOKEN_ID) {
 	stack[sp].value = 0;
 	stack[sp].svalue = 0;
 	stack[sp].op = EXPR_VALUE;
@@ -435,6 +433,6 @@ extra_rparen:
  * Return error message set by the evaluator (if any)
  * ----------------------------------------------------------------------------- */
 
-char *Preprocessor_expr_error() {
+const char *Preprocessor_expr_error() {
   return errmsg;
 }

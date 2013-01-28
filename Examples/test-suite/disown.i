@@ -42,6 +42,12 @@
       _a = disown;    
       return 5;      
     }
+
+    int remove(A *remove) 
+    {
+      delete remove;
+      return 5;      
+    }
     
   };
 }

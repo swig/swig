@@ -13,6 +13,10 @@ public:
 %template(foo_i) foo<int>;
 %template(foo_d) foo<double>;
 
+#ifdef SWIGD
+// Workaround for the D module which uses the literal value in the generated wrapper code.
+%dconstvalue("3") Manta::ColorSpace<Manta::RGBTraits>::NumComponents;
+#endif
 
 %inline {
   

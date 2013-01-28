@@ -120,6 +120,8 @@ public:
   virtual ~Language();
   virtual int emit_one(Node *n);
 
+  String *directorClassName(Node *n);
+
   /* Parse command line options */
 
   virtual void main(int argc, char *argv[]);
@@ -213,7 +215,7 @@ public:
   virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");	/* Add symbol        */
   virtual void dumpSymbols();
   virtual Node *symbolLookup(String *s, const_String_or_char_ptr scope = "");			/* Symbol lookup     */
-  virtual Node *classLookup(SwigType *s);	/* Class lookup      */
+  virtual Node *classLookup(const SwigType *s);	/* Class lookup      */
   virtual Node *enumLookup(SwigType *s);	/* Enum lookup       */
   virtual int abstractClassTest(Node *n);	/* Is class really abstract? */
   virtual int is_assignable(Node *n);	/* Is variable assignable? */
@@ -294,6 +296,10 @@ protected:
   /* Some language modules require additional wrappers for virtual methods not declared in sub-classes */
   virtual bool extraDirectorProtectedCPPMethodsRequired() const;
 
+  /* Identifies if a protected members that are generated when the allprotected option is used.
+     This does not include protected virtual methods as they are turned on with the dirprot option. */
+  bool isNonVirtualProtectedAccess(Node *n) const;
+
   /* Director subclass comparison test */
   String *none_comparison;
 
@@ -355,6 +361,7 @@ String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms);
 String *Swig_method_decl(SwigType *rtype, SwigType *decl, const_String_or_char_ptr id, List *args, int strip, int values);
 String *Swig_director_declaration(Node *n);
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
+void Swig_director_parms_fixup(ParmList *parms);
 /* directors.cxx end */
 
 extern "C" {
@@ -380,8 +387,14 @@ void Wrapper_fast_dispatch_mode_set(int);
 void Wrapper_cast_dispatch_mode_set(int);
 void Wrapper_naturalvar_mode_set(int);
 
-
 void clean_overloaded(Node *n);
+
+extern "C" {
+  const char *Swig_to_string(DOH *object, int count = -1);
+  const char *Swig_to_string_with_location(DOH *object, int count = -1);
+  void Swig_print(DOH *object, int count = -1);
+  void Swig_print_with_location(DOH *object, int count = -1);
+}
 
 /* Contracts */
 
@@ -394,6 +407,5 @@ int Swig_contract_mode_get();
 void Swig_browser(Node *n, int);
 void Swig_default_allocators(Node *n);
 void Swig_process_types(Node *n);
-
 
 #endif

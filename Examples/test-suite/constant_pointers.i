@@ -5,7 +5,8 @@ This testcase primarily test constant pointers, eg int* const.  Only a getter is
 %module constant_pointers
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);                   /* memory leak when setting a ptr/ref variable */
-%warnfilter(SWIGWARN_GO_NAME_CONFLICT);                       /* Ignoring 'Foo' due to Go name ('Foo') conflict with 'foo' */
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG);               /* Setting a pointer/reference variable may leak memory. */
+ 
 
 %inline %{
 
@@ -50,7 +51,7 @@ public:
 private:
   MemberVariablesTest& operator=(const MemberVariablesTest&);
 };
-void foo(const int *const i) {}
+void foofunction(const int *const i) {}
 
 typedef int *typedef1, typedef2, *const typedef3;
 int int1, int2=2, *int3, *const int4 = &GlobalInt;

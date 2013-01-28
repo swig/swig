@@ -11,7 +11,7 @@
 
 %include <std_common.i>
 
-%fragment("SwigPyIterator","header") {  
+%fragment("SwigPyIterator","header",fragment="<stddef.h>") {
 namespace swig {
   struct stop_iteration {
   };
@@ -128,10 +128,18 @@ namespace swig {
       return desc;
     }    
   };
+
+%#if defined(SWIGPYTHON_BUILTIN)
+  inline PyObject* make_output_iterator_builtin (PyObject *pyself)
+  {
+    Py_INCREF(pyself);
+    return pyself;
+  }
+%#endif
 }
 }
 
-%fragment("SwigPyIterator_T","header",fragment="SwigPyIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
+%fragment("SwigPyIterator_T","header",fragment="<stddef.h>",fragment="SwigPyIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
 namespace swig {
   template<typename OutIterator>
   class SwigPyIterator_T :  public SwigPyIterator
@@ -302,6 +310,7 @@ namespace swig {
   {
     return new SwigPyIteratorOpen_T<OutIter>(current, seq);
   }
+
 }
 }
 
@@ -329,9 +338,15 @@ namespace swig
   %newobject SwigPyIterator::operator - (ptrdiff_t n) const;
 
   %nodirector SwigPyIterator;
+
+#if defined(SWIGPYTHON_BUILTIN)
+  %feature("python:tp_iter") SwigPyIterator "&swig::make_output_iterator_builtin";
+  %feature("python:slot", "tp_iternext", functype="iternextfunc") SwigPyIterator::__next__;
+#else
   %extend SwigPyIterator {
   %pythoncode {def __iter__(self): return self}
   }
+#endif
 
   %catches(swig::stop_iteration) SwigPyIterator::value() const;
   %catches(swig::stop_iteration) SwigPyIterator::incr(size_t n = 1);
@@ -346,7 +361,6 @@ namespace swig
   %catches(swig::stop_iteration) SwigPyIterator::operator -= (ptrdiff_t n);
   %catches(swig::stop_iteration) SwigPyIterator::operator + (ptrdiff_t n) const;
   %catches(swig::stop_iteration) SwigPyIterator::operator - (ptrdiff_t n) const;
-
 
   struct SwigPyIterator
   {

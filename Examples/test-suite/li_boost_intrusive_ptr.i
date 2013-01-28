@@ -10,6 +10,8 @@
 %module li_boost_intrusive_ptr
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);
+%warnfilter(SWIGWARN_LANG_SMARTPTR_MISSING) KlassDerived;
+%warnfilter(SWIGWARN_LANG_SMARTPTR_MISSING) KlassDerivedDerived;
 
 %inline %{
 #include "boost/shared_ptr.hpp"
@@ -37,7 +39,7 @@
 # define SWIG_SHARED_PTR_NAMESPACE SwigBoost
 #endif
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
 #define INTRUSIVE_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -50,6 +52,7 @@
 %intrusive_ptr(Space::KlassDerivedDerived)
 
 //For the use_count shared_ptr functions
+#if defined(SWIGJAVA)
 %typemap(in) SWIG_INTRUSIVE_PTR_QNAMESPACE::shared_ptr< Space::Klass > & ($*1_ltype tempnull) %{ 
   $1 = $input ? *($&1_ltype)&$input : &tempnull; 
 %}
@@ -73,6 +76,10 @@
 %typemap (jtype) SWIG_INTRUSIVE_PTR_QNAMESPACE::shared_ptr< Space::KlassDerivedDerived > & "long"
 %typemap (jstype) SWIG_INTRUSIVE_PTR_QNAMESPACE::shared_ptr< Space::KlassDerivedDerived > & "KlassDerivedDerived"
 %typemap(javain) SWIG_INTRUSIVE_PTR_QNAMESPACE::shared_ptr< Space::KlassDerivedDerived > & "KlassDerivedDerived.getCPtr($javainput)"
+
+#elif defined(SWIGCSHARP)
+// TODO!
+#endif
 
 #endif
 

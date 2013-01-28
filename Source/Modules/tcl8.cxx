@@ -11,8 +11,6 @@
  * Tcl8 language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_tcl8_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 static int treduce = SWIG_cparse_template_reduce(0);
@@ -185,7 +183,7 @@ public:
     /* If shadow classing is enabled, we're going to change the module name to "_module" */
     if (itcl) {
       String *filen;
-      filen = NewStringf("%s%s.itcl", Swig_file_dirname(outfile), module);
+      filen = NewStringf("%s%s.itcl", SWIG_output_directory(), module);
 
       Insert(module, 0, "_");
 
@@ -248,7 +246,6 @@ public:
 
     if (itcl) {
       Printv(f_shadow, f_shadow_stubs, "\n", NIL);
-      Close(f_shadow);
       Delete(f_shadow);
     }
 
@@ -259,7 +256,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     return SWIG_OK;
@@ -460,8 +456,8 @@ public:
     /* Need to redo all of this code (eventually) */
 
     /* Return value if necessary  */
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
 #ifdef SWIG_USE_RESULTOBJ
       Replaceall(tm, "$target", "resultobj");
       Replaceall(tm, "$result", "resultobj");
@@ -488,14 +484,14 @@ public:
 
     /* Look for any remaining cleanup */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-	Replaceall(tm, "$source", "result");
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
       }
     }
 
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
     }
 #ifdef SWIG_USE_RESULTOBJ
@@ -531,7 +527,19 @@ public:
 	Printf(df->code, "Tcl_Obj *CONST *argv = objv+1;\n");
 	Printf(df->code, "int argc = objc-1;\n");
 	Printv(df->code, dispatch, "\n", NIL);
-	Printf(df->code, "Tcl_SetResult(interp,(char *) \"No matching function for overloaded '%s'\", TCL_STATIC);\n", iname);
+	Node *sibl = n;
+	while (Getattr(sibl, "sym:previousSibling"))
+	  sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
+	String *protoTypes = NewString("");
+	do {
+	  String *fulldecl = Swig_name_decl(sibl);
+	  Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
+	  Delete(fulldecl);
+	} while ((sibl = Getattr(sibl, "sym:nextSibling")));
+	Printf(df->code, "Tcl_SetResult(interp,(char *) "
+	       "\"Wrong number or type of arguments for overloaded function '%s'.\\n\""
+	       "\n\"  Possible C/C++ prototypes are:\\n\"%s, TCL_STATIC);\n", iname, protoTypes);
+	Delete(protoTypes);
 	Printf(df->code, "return TCL_ERROR;\n");
 	Printv(df->code, "}\n", NIL);
 	Wrapper_print(df, f_wrappers);
@@ -783,10 +791,7 @@ public:
     String *wrap_class = NewStringf("&_wrap_class_%s", mangled_classname);
     SwigType_remember_clientdata(t, wrap_class);
 
-    //    t = Copy(Getattr(n,"classtype"));
-    //    SwigType_add_pointer(t);
-
-    String *rt = Copy(Getattr(n, "classtype"));
+    String *rt = Copy(getClassType());
     SwigType_add_pointer(rt);
 
     // Register the class structure with the type checker
@@ -935,7 +940,7 @@ public:
 	Printv(f_shadow, "  constructor { } {\n", NIL);
 	Printv(f_shadow, "    # This constructor will fail if called directly\n", NIL);
 	Printv(f_shadow, "    if { [info class] == \"::", class_name, "\" } {\n", NIL);
-	Printv(f_shadow, "      error \"No constructor for class ", class_name, (Getattr(n, "abstract") ? " - class is abstract" : ""), "\"\n", NIL);
+	Printv(f_shadow, "      error \"No constructor for class ", class_name, (Getattr(n, "abstracts") ? " - class is abstract" : ""), "\"\n", NIL);
 	Printv(f_shadow, "    }\n", NIL);
 	Printv(f_shadow, "  }\n", NIL);
       }

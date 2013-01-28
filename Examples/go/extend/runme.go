@@ -24,7 +24,6 @@ func main() {
 	fmt.Println("Just call her \"", e.GetTitle(), "\"")
 	fmt.Println("----------------------")
 
-
 	// Create a new EmployeeList instance.  This class does not
 	// have a C++ director wrapper, but can be used freely with
 	// other classes that do.

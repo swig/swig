@@ -29,15 +29,13 @@
  *
  */
 
-char cvsroot_pike_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #include <ctype.h>		// for isalnum()
 
 static const char *usage = (char *) "\
 Pike Options (available with -pike)\n\
-     [None]\n\
+     [no additional options]\n\
 \n";
 
 class PIKE:public Language {
@@ -182,8 +180,6 @@ public:
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_classInit);
-
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 
@@ -421,15 +417,15 @@ public:
 
     /* Return the function value */
     if (current == CONSTRUCTOR) {
-      Printv(actioncode, "THIS = (void *) result;\n", NIL);
+      Printv(actioncode, "THIS = (void *) ", Swig_cresult_name(), ";\n", NIL);
       Printv(description, ", tVoid", NIL);
     } else if (current == DESTRUCTOR) {
       Printv(description, ", tVoid", NIL);
     } else {
       Printv(description, ", ", NIL);
-      if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+      if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
         actioncode = 0;
-	Replaceall(tm, "$source", "result");
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Replaceall(tm, "$target", "resultobj");
 	Replaceall(tm, "$result", "resultobj");
 	if (GetFlag(n, "feature:new")) {
@@ -460,15 +456,15 @@ public:
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-	Replaceall(tm, "$source", "result");
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printf(f->code, "%s\n", tm);
       }
     }
 
     /* See if there is any return cleanup code */
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printf(f->code, "%s\n", tm);
     }
 
@@ -578,12 +574,16 @@ public:
     String *symname = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
     String *value = Getattr(n, "value");
+    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
-    /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
+      /* Special hook for member pointer */
       String *wname = Swig_name_wrapper(symname);
       Printf(f_header, "static %s = %s;\n", SwigType_str(type, wname), value);
       value = wname;
+    } else if (SwigType_type(type) == T_CHAR && is_enum_item) {
+      type = NewSwigType(T_INT);
+      Setattr(n, "type", type);
     }
 
     /* Perform constant typemap substitution */

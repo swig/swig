@@ -4,8 +4,7 @@
  * Octave cell <-> C++ container wrapper
  *
  * This wrapper, and its iterator, allows a general use (and reuse) of
- * the the mapping between C++ and Octave, thanks to the C++
- * templates.
+ * the mapping between C++ and Octave, thanks to the C++ templates.
  *
  * Of course, it needs the C++ compiler to support templates, but
  * since we will use this wrapper with the STL containers, that should
@@ -64,7 +63,7 @@ namespace swig {
 }
 }
 
-%fragment("OctSequence_Base","header")
+%fragment("OctSequence_Base","header",fragment="<stddef.h>")
 {
 %#include <functional>
 

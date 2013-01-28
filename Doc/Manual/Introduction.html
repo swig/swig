@@ -195,9 +195,9 @@ extern int    my_mod(int n, int m);
 <p>
 The interface file contains ANSI C function prototypes and variable
 declarations.  The <tt>%module</tt> directive defines the name of the
-module that will be created by SWIG.  The <tt>%{,%}</tt> block
-provides a location for inserting additional code such as C header
-files or additional C declarations.
+module that will be created by SWIG.  The <tt>%{ %}</tt> block
+provides a location for inserting additional code, such as C header
+files or additional C declarations, into the generated C wrapper code.
 
 <H3><a name="Introduction_nn6"></a>2.3.2 The swig command</H3>
 
@@ -372,9 +372,9 @@ Microsoft Visual Studio.
 
 <p>
 If you are using the GNU Autotools 
-(<a href="http://www.gnu.org/software/autoconf">Autoconf</a>/
-<a href="http://www.gnu.org/software/automake">Automake</a>/
-<a href="http://www.gnu.org/software/libtool">Libtool</a>)
+(<a href="http://www.gnu.org/software/autoconf/">Autoconf</a>/
+<a href="http://www.gnu.org/software/automake/">Automake</a>/
+<a href="http://www.gnu.org/software/libtool/">Libtool</a>)
 to configure SWIG use in your project, the SWIG Autoconf macros can be used.
 The primary macro is <tt>ax_pkg_swig</tt>, see
 <a href="http://www.gnu.org/software/autoconf-archive/ax_pkg_swig.html#ax_pkg_swig">http://www.gnu.org/software/autoconf-archive/ax_pkg_swig.html#ax_pkg_swig</a>.

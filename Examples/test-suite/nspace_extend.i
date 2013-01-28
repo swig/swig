@@ -2,8 +2,11 @@
 %module nspace_extend
 
 // nspace feature only supported by these languages
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD)
 
+#if defined(SWIGJAVA)
+SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
+#endif
 %nspace;
 
 %extend Outer::Inner1::Color {
@@ -39,12 +42,14 @@ namespace Outer {
 
       void colorInstanceMethod(double d) {}
       static void colorStaticMethod(double d) {}
-      void colors(const Inner1::Color& col1a, 
-                  const Outer::Inner1::Color& col1b, 
-                  const Color &col2a, 
-                  const Inner2::Color& col2b, 
+      void colors(const Inner1::Color& col1a,
+                  const Outer::Inner1::Color& col1b,
+                  const Color &col2a,
+                  const Inner2::Color& col2b,
                   const Outer::Inner2::Color& col2c) {}
 }
 
+#else
+#warning nspace feature not yet supported in this target language
 #endif
 

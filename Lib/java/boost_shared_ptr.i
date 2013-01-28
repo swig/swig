@@ -1,7 +1,13 @@
+// Users can provide their own SWIG_SHARED_PTR_TYPEMAPS macro before including this file to change the
+// visibility of the constructor and getCPtr method if desired to public if using multiple modules.
+#ifndef SWIG_SHARED_PTR_TYPEMAPS
+#define SWIG_SHARED_PTR_TYPEMAPS(CONST, TYPE...) SWIG_SHARED_PTR_TYPEMAPS_IMPLEMENTATION(protected, protected, CONST, TYPE)
+#endif
+
 %include <shared_ptr.i>
 
 // Language specific macro implementing all the customisations for handling the smart pointer
-%define SWIG_SHARED_PTR_TYPEMAPS(CONST, TYPE...)
+%define SWIG_SHARED_PTR_TYPEMAPS_IMPLEMENTATION(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, CONST, TYPE...)
 
 // %naturalvar is as documented for member variables
 %naturalvar TYPE;
@@ -140,14 +146,14 @@
 // Base proxy classes
 %typemap(javabody) TYPE %{
   private long swigCPtr;
-  private boolean swigCMemOwnBase;
+  private boolean swigCMemOwn;
 
-  public $javaclassname(long cPtr, boolean cMemoryOwn) {
-    swigCMemOwnBase = cMemoryOwn;
+  PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr($javaclassname obj) {
+  CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
@@ -157,21 +163,21 @@
   private long swigCPtr;
   private boolean swigCMemOwnDerived;
 
-  public $javaclassname(long cPtr, boolean cMemoryOwn) {
+  PTRCTOR_VISIBILITY $javaclassname(long cPtr, boolean cMemoryOwn) {
     super($imclassname.$javaclazznameSWIGSmartPtrUpcast(cPtr), true);
     swigCMemOwnDerived = cMemoryOwn;
     swigCPtr = cPtr;
   }
 
-  protected static long getCPtr($javaclassname obj) {
+  CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
 
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") TYPE {
     if (swigCPtr != 0) {
-      if (swigCMemOwnBase) {
-        swigCMemOwnBase = false;
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
         $jnicall;
       }
       swigCPtr = 0;

@@ -30,7 +30,7 @@ extern void         Scanner_idstart(Scanner *, const char *idchar);
 extern String      *Scanner_errmsg(Scanner *);
 extern int          Scanner_errline(Scanner *);
 extern int          Scanner_isoperator(int tokval);
-extern void         Scanner_freeze_line(Scanner *s, int val);
+extern void         Scanner_locator(Scanner *, String *loc);
 
 /* Note: Tokens in range 100+ are for C/C++ operators */
 

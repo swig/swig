@@ -12,8 +12,6 @@
  * error messages.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_error_c[] = "$Id$";
-
 #include "swig.h"
 #include <stdarg.h>
 #include <ctype.h>
@@ -282,6 +280,41 @@ static String *format_filename(const_String_or_char_ptr filename) {
   Replaceall(formatted_filename, "\\\\", "\\");
 #endif
   return formatted_filename;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_stringify_with_location()
+ *
+ * Return a string representation of any DOH object with line and file location
+ * information in the appropriate error message format. The string representation
+ * is enclosed within [] brackets after the line and file information.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_stringify_with_location(DOH *object) {
+  String *str = NewStringEmpty();
+
+  if (!init_fmt)
+    Swig_error_msg_format(DEFAULT_ERROR_MSG_FORMAT);
+
+  if (object) {
+    int line = Getline(object);
+    String *formatted_filename = format_filename(Getfile(object));
+    if (line > 0) {
+      Printf(str, diag_line_fmt, formatted_filename, line);
+    } else {
+      Printf(str, diag_eof_fmt, formatted_filename);
+    }
+    if (Len(object) == 0) {
+      Printf(str, "[EMPTY]");
+    } else {
+      Printf(str, "[%s]", object);
+    }
+    Delete(formatted_filename);
+  } else {
+    Printf(str, "[NULL]");
+  }
+
+  return str;
 }
 
 /* -----------------------------------------------------------------------------

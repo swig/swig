@@ -3,12 +3,13 @@
 #######################################################################
 
 LANGUAGE     = java
-JAVA         = java
-JAVAC        = javac
+JAVA         = @JAVA@
+JAVAC        = @JAVAC@
+JAVAFLAGS    = -Xcheck:jni
 SCRIPTSUFFIX = _runme.java
 srcdir       = @srcdir@
-top_srcdir   = @top_srcdir@/..
-top_builddir = @top_builddir@/..
+top_srcdir   = ../@top_srcdir@
+top_builddir = ../@top_builddir@
 
 C_TEST_CASES = \
 	java_lib_arrays \
@@ -22,10 +23,12 @@ CPP_TEST_CASES = \
 	intermediary_classname \
 	java_constants \
 	java_director \
+	java_director_assumeoverride \
 	java_enums \
+	java_jnitypes \
 	java_lib_arrays_dimensionless \
 	java_lib_various \
-	java_jnitypes \
+	java_nspacewithoutpackage \
 	java_pgcpp \
 	java_pragmas \
 	java_prepost \
@@ -38,11 +41,15 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 JAVA_PACKAGE = $*
-SWIGOPT += -package $(JAVA_PACKAGE)
+JAVA_PACKAGEOPT = -package $(JAVA_PACKAGE)
+SWIGOPT += $(JAVA_PACKAGEOPT)
 
 # Custom tests - tests with additional commandline options
+java_nspacewithoutpackage.%: JAVA_PACKAGEOPT =
 nspace.%: JAVA_PACKAGE = $*Package
 nspace_extend.%: JAVA_PACKAGE = $*Package
+director_nspace.%: JAVA_PACKAGE = $*Package
+director_nspace_director_name_collision.%: JAVA_PACKAGE = $*Package
 
 # Rules for the different types of tests
 %.cpptest: 
@@ -78,7 +85,7 @@ run_testcase = \
 	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) -classpath . `find . -name "*.java"` && cd .. && \
 	if [ -f $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  $(COMPILETOOL) $(JAVAC) -classpath . -d . $(srcdir)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
-	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) -classpath . $*_runme; \
+	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath . $*_runme; \
 	fi
 
 # Clean: remove testcase directories

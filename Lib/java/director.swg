@@ -25,9 +25,9 @@ namespace Swig {
 
     bool set(JNIEnv *jenv, jobject jobj, bool mem_own, bool weak_global) {
       if (!jthis_) {
-        weak_global_ = weak_global;
+        weak_global_ = weak_global || !mem_own; // hold as weak global if explicitly requested or not owned
         if (jobj)
-          jthis_ = ((weak_global_ || !mem_own) ? jenv->NewWeakGlobalRef(jobj) : jenv->NewGlobalRef(jobj));
+          jthis_ = weak_global_ ? jenv->NewWeakGlobalRef(jobj) : jenv->NewGlobalRef(jobj);
 #if defined(DEBUG_DIRECTOR_OWNED)
         std::cout << "JObjectWrapper::set(" << jobj << ", " << (weak_global ? "weak_global" : "global_ref") << ") -> " << jthis_ << std::endl;
 #endif
@@ -68,6 +68,7 @@ namespace Swig {
       weak_global_ = true;
     }
 
+    /* Only call peek if you know what you are doing wrt to weak/global references */
     jobject peek() {
       return jthis_;
     }
@@ -112,21 +113,29 @@ namespace Swig {
     class JNIEnvWrapper {
       const Director *director_;
       JNIEnv *jenv_;
+      int env_status;
     public:
-      JNIEnvWrapper(const Director *director) : director_(director), jenv_(0) {
+      JNIEnvWrapper(const Director *director) : director_(director), jenv_(0), env_status(0) {
+#if defined(__ANDROID__)
+        JNIEnv **jenv = &jenv_;
+#else
+        void **jenv = (void **)&jenv_;
+#endif
+        env_status = director_->swig_jvm_->GetEnv((void **)&jenv_, JNI_VERSION_1_2);
 #if defined(SWIG_JAVA_ATTACH_CURRENT_THREAD_AS_DAEMON)
         // Attach a daemon thread to the JVM. Useful when the JVM should not wait for 
         // the thread to exit upon shutdown. Only for jdk-1.4 and later.
-        director_->swig_jvm_->AttachCurrentThreadAsDaemon((void **) &jenv_, NULL);
+        director_->swig_jvm_->AttachCurrentThreadAsDaemon(jenv, NULL);
 #else
-        director_->swig_jvm_->AttachCurrentThread((void **) &jenv_, NULL);
+        director_->swig_jvm_->AttachCurrentThread(jenv, NULL);
 #endif
       }
       ~JNIEnvWrapper() {
 #if !defined(SWIG_JAVA_NO_DETACH_CURRENT_THREAD)
         // Some JVMs, eg jdk-1.4.2 and lower on Solaris have a bug and crash with the DetachCurrentThread call.
         // However, without this call, the JVM hangs on exit when the thread was not created by the JVM and creates a memory leak.
-        director_->swig_jvm_->DetachCurrentThread();
+        if (env_status == JNI_EDETACHED)
+          director_->swig_jvm_->DetachCurrentThread();
 #endif
       }
       JNIEnv *getJNIEnv() const {
@@ -141,7 +150,7 @@ namespace Swig {
     void swig_disconnect_director_self(const char *disconn_method) {
       JNIEnvWrapper jnienv(this) ;
       JNIEnv *jenv = jnienv.getJNIEnv() ;
-      jobject jobj = swig_self_.peek();
+      jobject jobj = swig_self_.get(jenv);
 #if defined(DEBUG_DIRECTOR_OWNED)
       std::cout << "Swig::Director::disconnect_director_self(" << jobj << ")" << std::endl;
 #endif
@@ -154,6 +163,7 @@ namespace Swig {
           jenv->CallVoidMethod(jobj, disconn_meth);
         }
       }
+      jenv->DeleteLocalRef(jobj);
     }
 
   public:

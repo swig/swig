@@ -18,6 +18,7 @@
 
 %include <chicken/chickenkw.swg>
 %include <csharp/csharpkw.swg>
+%include <d/dkw.swg>
 %include <java/javakw.swg>
 %include <php/phpkw.swg>
 %include <pike/pikekw.swg>

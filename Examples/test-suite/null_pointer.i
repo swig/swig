@@ -8,5 +8,9 @@
   bool func(A* a) {
     return !a;
   }
+
+  A* getnull() {
+    return 0;
+  }
 }
 

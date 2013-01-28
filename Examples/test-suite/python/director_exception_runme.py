@@ -66,11 +66,15 @@ except MyException, e:
 if not ok:
 	raise RuntimeError
 
+# This is expected to fail with -builtin option
+# Throwing builtin classes as exceptions not supported
 try:
 	raise Exception2()
 except Exception2:
 	pass
 
+# This is expected to fail with -builtin option
+# Throwing builtin classes as exceptions not supported
 try:
 	raise Exception1()
 except Exception1:

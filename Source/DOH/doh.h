@@ -221,7 +221,7 @@ extern int DohDelslice(DOH *obj, int sindex, int eindex);
 
 /* File methods */
 
-extern int DohWrite(DOHFile * obj, void *buffer, int length);
+extern int DohWrite(DOHFile * obj, const void *buffer, int length);
 extern int DohRead(DOHFile * obj, void *buffer, int length);
 extern int DohSeek(DOHFile * obj, long offset, int whence);
 extern long DohTell(DOHFile * obj);
@@ -254,7 +254,7 @@ extern int DohDelmeta(DOH *, const DOH *);
 
   /* Utility functions */
 
-extern void DohEncoding(char *name, DOH *(*fn) (DOH *s));
+extern void DohEncoding(const char *name, DOH *(*fn) (DOH *s));
 extern int DohPrintf(DOHFile * obj, const char *format, ...);
 extern int DohvPrintf(DOHFile * obj, const char *format, va_list ap);
 extern int DohPrintv(DOHFile * obj, ...);
@@ -267,6 +267,8 @@ extern int DohIsSequence(const DOH *obj);
 extern int DohIsString(const DOH *obj);
 extern int DohIsFile(const DOH *obj);
 
+extern void DohSetMaxHashExpand(int count);
+extern int DohGetMaxHashExpand(void);
 extern void DohSetmark(DOH *obj, int x);
 extern int DohGetmark(DOH *obj);
 
@@ -275,9 +277,9 @@ extern int DohGetmark(DOH *obj);
  * ----------------------------------------------------------------------------- */
 
 extern DOHString *DohNewStringEmpty(void);
-extern DOHString *DohNewString(const DOH *c);
-extern DOHString *DohNewStringWithSize(const DOH *c, int len);
-extern DOHString *DohNewStringf(const DOH *fmt, ...);
+extern DOHString *DohNewString(const DOHString_or_char *c);
+extern DOHString *DohNewStringWithSize(const DOHString_or_char *c, int len);
+extern DOHString *DohNewStringf(const DOHString_or_char *fmt, ...);
 
 extern int DohStrcmp(const DOHString_or_char *s1, const DOHString_or_char *s2);
 extern int DohStrncmp(const DOHString_or_char *s1, const DOHString_or_char *s2, int n);
@@ -292,6 +294,7 @@ extern char *DohStrchr(const DOHString_or_char *s1, int ch);
 #define   DOH_REPLACE_FIRST       0x08
 #define   DOH_REPLACE_ID_BEGIN    0x10
 #define   DOH_REPLACE_ID_END      0x20
+#define   DOH_REPLACE_NUMBER_END  0x40
 
 #define Replaceall(s,t,r)  DohReplace(s,t,r,DOH_REPLACE_ANY)
 #define Replaceid(s,t,r)   DohReplace(s,t,r,DOH_REPLACE_ID)
@@ -304,7 +307,10 @@ extern DOHFile *DohNewFile(DOH *filename, const char *mode, DOHList *outfiles);
 extern DOHFile *DohNewFileFromFile(FILE *f);
 extern DOHFile *DohNewFileFromFd(int fd);
 extern void DohFileErrorDisplay(DOHString * filename);
+/*
+ Deprecated, just use DohDelete
 extern int DohClose(DOH *file);
+*/
 extern int DohCopyto(DOHFile * input, DOHFile * output);
 
 
@@ -424,6 +430,8 @@ extern void DohMemoryDebug(void);
 #define SplitLines         DohSplitLines
 #define Setmark            DohSetmark
 #define Getmark            DohGetmark
+#define SetMaxHashExpand   DohSetMaxHashExpand
+#define GetMaxHashExpand   DohGetMaxHashExpand
 #define None               DohNone
 #define Call               DohCall
 #define First              DohFirst

@@ -3,6 +3,1403 @@ SWIG (Simplified Wrapper and Interface Generator)
 See the CHANGES.current file for changes in the current version.
 See the RELEASENOTES file for a summary of changes in each release.
 
+Version 2.0.9 (16 December 2012)
+================================
+
+2012-12-16: wsfulton
+            Fix garbage line number / empty file name reporting for some missing
+            '}' or ')' error messages.
+
+2012-12-15: kkaempf
+            [Ruby] Apply patch 3530444, Class#methods and Class#constants returns array of
+            symbols in Ruby 1.9+
+
+2012-12-14: kkaempf
+            [Ruby] Apply patch 3530439 and finally replace all occurrences of the STR2CSTR() macro
+            with StringValuePtr(). STR2CSTR was deprecated since years and got removed in Ruby 1.9
+
+2012-12-14: kkaempf
+            [Ruby] Applied patches #3530442 and 3530443 to adapt compile and runtime include
+            paths to match Ruby 1.9+
+
+2012-12-14: wsfulton
+            [CFFI] Fix #3161614 - Some string constants are incorrect
+
+2012-12-13: wsfulton
+            [CFFI] Fix #3529690 - Fix incorrect constant names.
+
+2012-12-12: drjoe
+	    [R] add fix to finalizer that was missed earlier
+
+2012-12-11: wsfulton
+            [Python] Apply patch #3590522 - fully qualified package paths for Python 3 even if a module is in the
+            same package.
+
+2012-12-08: wsfulton
+            [Python] Bug #3563647 - PyInt_FromSize_t unavailable prior to Python 2.5 for unsigned int types.
+
+2012-12-08: wsfulton
+            [Perl] Fix bug #3571361 - C++ comment in C wrappers.
+
+2012-12-07: wsfulton
+            [C#] Apply patch #3571029 which adds missing director support for const unsigned long long &.
+
+2012-11-28: kwwette
+            [Octave] Simplified module loading: now just the syntax
+            $ example;
+            is accepted, which loads functions globally but constants and variables relative to the current scope.
+            This make module loading behaviour reliably consistent, and reduces problems when loading modules which
+            depend on other modules which may not have been previously loaded.
+
+2012-11-27: wsfulton
+            [cffi] Fix junk output when wrapping single character literal constants.
+
+2012-11-17: wsfulton
+            [Tcl, Modula3] Add missing support for -outdir.
+
+2012-11-17: wsfulton
+            Fix segfaults when using filename paths greater than 1024 characters in length.
+
+2012-11-14: wsfulton
+            [ccache-swig] Apply patch #3586392 from Frederik Deweerdt to fix some error cases - incorrectly using
+            memory after it has been deleted.
+
+2012-11-09: vzeitlin
+            [Python] Fix overflow when passing values greater than LONG_MAX from Python 3 for parameters with unsigned long C type.
+
+2012-11-09: wsfulton
+            Fix some feature matching issues for implicit destructors and implicit constructors and implicit
+            copy constructors added with %copyctor. Previously a feature for these had to be fully qualified
+            in order to match. Now the following will also match:
+
+              %feature("xyz") ~XXX();
+              struct XXX {};
+
+2012-11-09: wsfulton
+            Further consistency in named output typemap lookups for implicit constructors and destructors and
+            implicit copy constructors added with %copyctor. Previously only the fully qualified name was being
+            used, now the unqualified name will also be used. For example, previously:
+
+              example.i:38: Searching for a suitable 'out' typemap for: void Space::More::~More
+                Looking for: void Space::More::~More
+                Looking for: void
+
+            Now the unqualified name is also used:
+
+              example.i:38: Searching for a suitable 'out' typemap for: void Space::More::~More
+                Looking for: void Space::More::~More
+                Looking for: void ~More
+                Looking for: void
+
+2012-11-02: wsfulton
+            Fix some subtle named output typemap lookup misses, the fully qualified name was not always being
+            used for variables, for example:
+
+              struct Glob {
+                int MyVar;
+              };
+
+            Previously the search rules (as shown by -debug-tmsearch) for the getter wrapper were:
+
+              example.i:44: Searching for a suitable 'out' typemap for: int MyVar
+                Looking for: int MyVar
+                Looking for: int
+
+            Now the scope is named correctly:
+
+              example.i:44: Searching for a suitable 'out' typemap for: int Glob::MyVar
+                Looking for: int Glob::MyVar
+                Looking for: int MyVar
+                Looking for: int
+
+2012-10-26: wsfulton
+            Fix director typemap searching so that a typemap specified with a name will be correctly matched. Previously
+            the name was ignored during the typemap search. Applies to the following list of typemaps: 
+            directorout, csdirectorout, cstype, imtype, ctype, ddirectorout, dtype, gotype, jtype, jni, javadirectorout.
+
+2012-10-11: wsfulton
+            Most of the special variables available for use in %exception are now also available for expansion in
+            %extend blocks. These are: $name $symname $overname $decl $fulldecl $parentname $parentsymname, see docs
+            on "Class extension" in SWIGPlus.html. Patch based on submission from Kris Thielemans.
+
+2012-10-10: wsfulton
+            Additional new special variables in %exception are expanded as follows:
+              $parentname - The parent class name (if any) for a method.
+              $parentsymname - The target language parent class name (if any) for a method.
+
+2012-10-08: iant
+	    [Go] Generating Go code now requires using the -intgosize option to
+	    indicate the size of the 'int' type in Go.  This is because the
+	    size of the type is changing from Go 1.0 to Go 1.1 for x86_64. 
+
+2012-09-14: wsfulton
+	    Add new warning if the empty template instantiation is used as a base class, for example:
+
+              template <typename T> class Base {};
+              %template() Base<int>;
+              class Derived : public Base<int> {};
+
+            gives the following warning instead of silently ignoring the base:
+
+            cpp_inherit.i:52: Warning 401: Base class 'Base< int >' has no name as it is an empty template instantiated with '%template()'. Ignored.
+            cpp_inherit.i:51: Warning 401: The %template directive must be written before 'Base< int >' is used as a base class and be declared with a name.
+
+
+2012-09-11: wsfulton
+	    [Java] Fix #3535304 - Direct use of a weak global reference in directors
+            sometimes causing seg faults especially on Android.
+
+2012-09-06: wsfulton
+	    [Java] Fix (char *STRING, size_t LENGTH) typemaps to accept NULL string.
+
+2012-08-26: drjoe
+	    [R] make ExternalReference slot ref to contain reference
+
+2012-08-26: drjoe
+	    [R] fix Examples/Makefile to use C in $(CC) rather than $(CXX)
+
+Version 2.0.8 (20 August 2012)
+==============================
+
+2012-08-15: wsfulton
+            [Perl] Add size_type, value_type, const_reference to the STL containers.
+
+2012-08-15: wsfulton
+            [Python] Add discard and add methods to std::set wrappers so that pyabc.i can be used ensuring
+            MutableSet is a valid abstract base class for std::set. As reported by Alexey Sokolov.
+            Similarly for std::multiset.
+
+2012-08-15: wsfulton
+            [Python] Fix #3541744 - Missing PyInt_FromSize_t calls for Python 3.
+
+2012-08-13: wsfulton
+            [Java] Patch from David Baum to add the assumeoverride feature for Java directors to
+            improve performance when all overridden methods can be assumed to be overridden.
+
+2012-08-05: wsfulton
+            [Python] #3530021 Fix unused variable warning.
+
+2012-08-05: wsfulton
+            [C#] Fix #3536360 - Invalid code sometimes being generated for director methods
+            with many arguments.
+
+2012-08-05: wsfulton
+            [Perl] #3545877 - Don't undefine bool if defined by C99 stdbool.h - problem using 
+            Perl 5.16 and later.
+
+2012-08-04: wsfulton
+            Remove incorrect warning (314) about target language keywords which were triggered
+            by using declarations and using directives. For example 'string' is a keyword in C#:
+              namespace std { class string; }
+              using std::string;
+
+2012-07-21: wsfulton
+            Fix display of pointers in various places on 64 bit systems - only 32 bits were being shown.
+
+2012-07-21: wsfulton
+            Fix gdb debugger functions 'swigprint' and 'locswigprint' to display to the gdb output window
+            rather than stdout. This fixes display problems in gdbtui and the ensures the output
+            appears where expected in other gdb based debuggers such as Eclipse CDT.
+
+2012-07-20: kwwette
+            [Octave] segfault-on-exit prevention hack now preserves exit status, and uses C99 _Exit().
+
+2012-07-02: wsfulton
+            Fix Debian bug http://bugs.debian.org/672035, typemap copy failure - regression introduced 
+            in swig-2.0.5:
+              %include<stl.i>
+              using std::pair;
+              %template(StrPair) pair<std::string, std::string>;
+
+2012-07-02: wsfulton
+            Fix using declarations combined with using directives with forward class declarations so that
+            types are correctly found in scope for templates. Example:
+
+              namespace Outer2 {
+                namespace Space2 {
+                  template<typename T> class Thing2;
+                }
+              }
+              using namespace Outer2;
+              using Space2::Thing2;
+              template<typename T> class Thing2 {};
+              // STILL BROKEN void useit2(Thing2<int> t) {}
+              void useit2a(Outer2::Space2::Thing2<int> t) {}
+              void useit2b(::Outer2::Space2::Thing2<int> t) {}
+              void useit2c(Space2::Thing2<int> t) {}
+              namespace Outer2 {
+                void useit2d(Space2::Thing2<int> t) {}
+              }
+
+              %template(Thing2Int) Thing2<int>;
+
+
+2012-06-30: wsfulton
+            Fix template namespace problems for symbols declared with a forward class declarations, such as:
+
+              namespace Space1 {
+                namespace Space2 {
+                  template<typename T> struct YYY;
+                }
+                template<typename T> struct Space2::YYY {
+                  T yyy(T h) {
+                    return h;
+                  }    
+                };
+                void testYYY1(Space1::Space2::YYY<int> yy) {}
+                void testYYY2(Space2::YYY<int> yy) {}
+                void testYYY3(::Space1::Space2::YYY<int> yy) {}
+              }
+
+              %template(YYYInt) Space1::Space2::YYY<int>;
+
+2012-06-30: wsfulton
+            Fix namespace problems for symbols declared with a forward class declarations, such as:
+
+              namespace Space1 {
+                namespace Space2 {
+                  struct XXX;
+                  struct YYY;
+                }
+
+                struct Space2::YYY {};
+                struct Space1::Space2::XXX {};
+
+                void testXXX2(Space2::XXX xx) {}
+                void testYYY2(Space2::YYY yy) {}
+              }
+
+            where xx and yy were not recognised as the proxy classes XXX and YYY.
+
+2012-06-30: wsfulton
+            Fix using declarations combined with using directives with forward class declarations so that
+            types are correctly found in scope. 
+
+              namespace Outer2 {
+                namespace Space2 {
+                  class Thing2;
+                }
+              }
+              using namespace Outer2;
+              using Space2::Thing2;
+              class Thing2 {};
+              // None of the methods below correctly used the Thing2 proxy class
+              void useit2(Thing2 t) {}
+              void useit2a(Outer2::Space2::Thing2 t) {}
+              void useit2b(::Outer2::Space2::Thing2 t) {}
+              void useit2c(Space2::Thing2 t) {}
+              namespace Outer2 {
+                void useit2d(Space2::Thing2 t) {}
+              }
+
+2012-06-25: wsfulton
+            Fix using declarations combined with using directives so that types are correctly found in scope.
+            Example:
+
+              namespace Outer2 {
+                namespace Space2 {
+                  class Thing2 {};
+                }
+              }
+              using namespace Outer2; // using directive
+              using Space2::Thing2; // using declaration
+              void useit2(Thing2 t) {}
+
+            Similarly for templated classes.
+
+2012-05-29: wsfulton
+            Fix #3529601 - seg fault when a protected method has the "director"
+            feature but the parent class does not. Also fix similar problems with
+            the allprotected feature.
+
+2012-05-28: wsfulton
+            Fix seg fault when attempting to warn about an illegal destructor - #3530055, 3530078 and #3530118.
+
+Version 2.0.7 (26 May 2012)
+===========================
+2012-05-26: wsfulton
+            std::string typemap modifications so they can be used with %apply for other string
+            classes.
+
+2012-05-25: wsfulton
+            [Lua] Fixes for -external-runtime to work again.
+
+2012-05-22: szager
+	    [python] Disambiguate SWIG_From_unsigned_SS_int and SWIG_From_unsigned_SS_long.
+
+2012-05-18: olly
+	    [PHP] Fix getters for template members. (SF#3428833, SF#3528035)
+
+2012-05-14: wsfulton
+            Fix some language's std::map wrappers to recognise difference_type, size_type, key_type
+            and mapped_type.
+
+2012-05-14: kwwette (signed off by xavier98)
+            [Octave] Prevent Octave from seg-faulting at exit when SWIG
+            modules are loaded, due to bugs in Octave's cleanup code:
+            * Wrapping functions now declared with Octave DEFUN_DLD macro,
+              and loaded through Octave's dynamic module loader
+            * Global variables of swigref type are now assigned a new()
+              copy of the swigref class, to prevent double-free errors
+            * SWIG module at-exit cleanup function now created in Octave
+              through eval(), so not dependent on loaded .oct library
+            * For Octave versions 3.1.* to 3.3.*, register C-level at-exit
+              function which terminates Octave immediately (with correct
+              status code) without performing memory cleanup. This function
+              can be controlled with macros in Lib/octave/octruntime.swg
+
+            [Octave] New syntax for determing whether SWIG module should be
+            loaded globally or non-globally. To load module "example" globally,
+            type the module name
+            $ example;
+            as before; to load module non-globally, assign it to a variable:
+            $ example = example;
+            or
+            $ ex = example;
+            for a shorter (local) module name. -global/-noglobal command-line
+            options and module command line are deprecated. Added usage info
+            to module, so typing
+            $ help example
+            or incorrect usage should display proper usage, with examples.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2012-05-12: olly
+	    [PHP] Fix memory leak in code generated for a callback.  Patch from
+	    SF bug #3510806.
+
+2012-05-12: olly
+	    [PHP] Avoid using zend_error_noreturn() as it doesn't work with all
+	    builds of PHP (SF bug #3166423).  Instead we now wrap it in a
+	    SWIG_FAIL() function which we annotate as "noreturn" for GCC to
+	    avoids warnings.  This also reduces the size of the compiled
+	    wrapper (e.g. the stripped size is reduced by 6% for Xapian's PHP
+	    bindings).
+
+2012-05-11: wsfulton
+            [Java] SF patch #3522855 Fix unintended uninitialised memory access in OUTPUT typemaps.
+
+2012-05-11: wsfulton
+            [Java] SF patch #3522674 Fix possible uninitialised memory access in char **STRING_OUT
+            typemap.
+
+2012-05-11: wsfulton
+            [Java] SF patch #3522611 Fix uninitialised size regression in char **STRING_ARRAY
+            introduced in swig-2.0.6.
+
+2012-05-11: wsfulton
+            SF bug #3525050 - Fix regression introduced in swig-2.0.5 whereby defining one typemap
+            method such as an 'out' typemap may hide another typemap method such as an 'in' typemap -
+            only occurs when the type is a template type where the template parameters are the same
+            via a typedef.
+
+2012-05-10: olly
+	    [PHP] Fix the constant typemaps for SWIGTYPE, etc - previously
+	    these used the wrong name for renamed constants.  Add
+	    autodoc_runme.php to the testsuite as a regression test for this.
+
+2012-05-02: ianlancetaylor
+	    [Go] Remove compatibility support for gccgo 4.6.  Using
+	    SWIG with gccgo will now require gccgo 4.7.  Using SWIG
+	    with the more commonly used gc compiler is unaffected.
+
+2012-05-01: wsfulton
+            Fix generated code for C forward enum declarations in some languages.
+
+Version 2.0.6 (30 April 2012)
+=============================
+
+2012-04-25: wsfulton
+            [Lua] Fix uninitialised variable in SWIGTYPE **OUTPUT typemaps as reported by Jim Anderson.
+
+2012-04-28: wsfulton
+            [Python] Fix compilation errors when wrapping STL containers on Mac OSX and possibly other systems.
+
+2012-04-28: wsfulton
+            [Java] Patch 3521811 from Leo Davis - char **STRING_ARRAY typemaps fixed to handle
+            null pointers.
+
+Version 2.0.5 (19 April 2012)
+=============================
+
+2012-04-14: wsfulton
+            [Lua] Apply patch #3517435 from Miles Bader - prefer to use Lua_pushglobaltable
+
+2012-04-14: wsfulton
+            [Ruby] Apply patch #3517769 from Robin Stocker to fix compile error on MacRuby using RSTRING_PTR.
+
+2012-04-13: wsfulton
+            Apply patch #3511009 from Leif Middelschulte for slightly optimised char * variable wrappers.
+
+2012-04-13: wsfulton
+            [Lua] Apply #3219676 from Shane Liesegang which adds:
+            - support for %factory
+            - a __tostring method
+            - a __disown method
+
+2012-04-13: wsfulton
+            [Xml] Apply #3513569 which adds a catchlist to the xml output.
+
+2012-04-05: olly
+	    [Lua] Add support for Lua 5.2 (patch SF#3514593 from Miles Bader)
+
+2012-03-26: xavier98
+	    [octave] Apply patch #3425993 from jgillis: add extra logic to the octave_swig_type::dims(void) method: it checks if the user has defined a __dims__ method and uses this in stead of returning (1,1)
+	    [octave] Apply patch #3424833 from jgillis: make is_object return true for swig types
+
+2012-03-24: wsfulton
+            [D] Apply #3502431 to fix duplicate symbols in multiple modules.
+
+2012-03-21: wsfulton
+            Fix #3494791 - %$isglobal for %rename matching.
+
+2012-03-20: wsfulton
+            Fix #3487706 and #3391906 - missing stddef.h include for ptrdiff_t when using %import
+            for STL containers and compiling with g++-4.6. An include of stddef.h is now only
+            generated when SWIG generates STL helper templates which require ptrdiff_t. If you 
+            were previously relying on "#include <stddef.h>" always being generated when using a
+            %include of an STL header, you may now need to add this in manually.
+
+2012-03-16: wsfulton
+            Apply patch #3392264 from Sebastien Bine to parse (unsigned) long long types in enum value assignment.
+
+2012-03-16: wsfulton
+            Apply patch #3505530 from Karl Wette to allow custom allocators in STL string classes for the UTL languages.
+
+2012-03-13: wsfulton
+            Apply patch #3468362 from Karl Wette to fix %include inside %define.
+
+2012-03-13: wsfulton
+            [Python, Ruby, Octave, R] Fix #3475492 - iterating through std::vector wrappers of enumerations.
+
+2012-02-27: xavier98 (patches from Karl Wette)
+	    [Octave] Use -globals . to load global variables in module namespace
+	    [Octave] Comment declaration of unimplemented function swig_register_director
+	    [Octave] Fix OCTAVE_PATH in octave Makefiles
+	    [Octave] Add support for std::list - fix li_std_containers_int test
+	    [Octave] Fix imports test
+
+2012-02-16: wsfulton
+            [Java] Make generated support functions in arrays_java.i static so that generated code
+            from multiple instances of SWIG can be compiled and linked together - problem reported by
+            Evan Krause.
+
+2012-01-24: wsfulton
+            Fix crash with bad regex - bug #3474250.
+
+2012-01-24: wsfulton
+            [Python] Add Python stepped slicing support to the STL wrappers (std::vector, std::list).
+            Assigning to a slice, reading a slice and deleting a slice with steps now work.
+            For example:
+
+            %template(vector_i) std::vector<int>
+
+              vi = vector_i(range(10))
+              print list(vi)
+              vi[1:4:2] = [111, 333]
+              print list(vi)
+              del vi[3:10:3]
+              print list(vi)
+              print list(vi[::-1])
+
+            gives (same behaviour as native Python sequences such as list):
+
+              [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+              [0, 111, 2, 333, 4, 5, 6, 7, 8, 9]
+              [0, 111, 2, 4, 5, 7, 8]
+              [8, 7, 5, 4, 2, 111, 0]
+
+2012-01-23: klickverbot
+            [D] Correctly annotate function pointers with C linkage.
+            [D] Exception and Error have become blessed names; removed d_exception_name test case.
+
+2012-01-20: wsfulton
+            [Python] Fix some indexing bugs in Python STL wrappers when the index is negative, eg:
+
+            %template(vector_i) std::vector<int>
+
+              iv=vector_i([0,1,2,3,4,5])
+              iv[-7:]
+
+            now returns [0, 1, 2, 3, 4, 5] instead of [5].
+
+              vv[7:9] = [22,33]
+
+            now returns [0, 1, 2, 3, 4, 5, 22, 33] instead of "index out range" error.
+
+            Also fix some segfaults when replacing ranges, eg when il is a std::list wrapper:
+
+              il[0:2] = [11]
+
+2012-01-17: wsfulton
+            [Go] Fix forward class declaration within a class when used as a base.
+
+2012-01-07: wsfulton
+            [C#] Add support for %nspace when using directors.
+
+2012-01-06: wsfulton
+            [Java] Patch #3452560 from Brant Kyser - add support for %nspace when using directors.
+
+2011-12-21: wsfulton
+            The 'directorin' typemap now accepts $1, $2 etc expansions instead of having to use workarounds -
+            $1_name, $2_name etc.
+
+2011-12-20: wsfulton
+            [Java] Add (char *STRING, size_t LENGTH) director typemaps.
+
+2011-12-20: wsfulton
+            [C#, Go, Java, D] Add support for the 'directorargout' typemap.
+
+2011-12-20: wsfulton
+            [Ocaml, Octave, PHP, Python, Ruby] Correct special variables in 'directorargout' typemap.
+            This change will break any 'directorargout' typemaps you may have written. Please change:
+              $result to $1
+              $input to $result
+
+            Also fix the named 'directorargout' DIRECTOROUT typemaps for these languages which didn't
+            previously compile and add in $1, $2 etc expansion.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2011-12-10: talby
+            [perl5] SWIG_error() now gets decorated with perl source file/line number.
+            [perl5] error handling now conforms to public XS api (fixes perl v5.14 issue).
+
+2011-12-10: wsfulton
+            [Android/Java] Fix directors to compile on Android.
+
+            Added documentation and examples for Android.
+
+2011-12-08: vadz
+	    Bug fix: Handle methods renamed or ignored in the base class correctly in the derived classes
+	    (they could be sometimes mysteriously not renamed or ignored there before).
+
+2011-12-03: klickverbot
+            [D] Fix exception glue code for newer DMD 2 versions.
+            [D] Do not default to 32 bit glue code for DMD anymore.
+            [D] Use stdc.config.c_long/c_ulong to represent C long types.
+
+2011-12-01: szager
+	    [python] Fixed bug 3447426: memory leak in vector.__getitem__.
+
+2011-11-30: wsfulton
+            [R] Remove C++ comments from generated C code.
+
+2011-11-27: olly
+	    [Python] Fix some warnings when compiling generated wrappers with
+	    certain GCC warning options (Debian bug #650246).
+
+2011-11-28: wsfulton
+            Fix #3433541 %typemap(in, numinputs=0) with 10+ arguments.
+
+2011-11-28: olly
+	    [Perl] Fix warnings when compiling generated wrappers with certain
+	    GCC warning options (Debian bug #436711).
+
+2011-11-28: olly
+	    [PHP] Update keyword list to include keywords added in PHP releases up to 5.3.
+
+2011-11-25: wsfulton
+            [C#] Provide an easy way to override the default visibility for the proxy class pointer
+            constructors and getCPtr() method. The visibility is 'internal' by default and if multiple
+            SWIG modules are being used and compiled into different assemblies, then they need to be 
+            'public' in order to use the constructor or getCPtr() method from a different assembly.
+            Use the following macros to change the visibilities in the proxy and type wrapper class:
+
+              SWIG_CSBODY_PROXY(public, public, SWIGTYPE)
+              SWIG_CSBODY_TYPEWRAPPER(public, public, public, SWIGTYPE)
+
+            [Java] Provide an easy way to override the default visibility for the proxy class pointer
+            constructors and getCPtr() method. The visibility is 'protected' by default and if multiple
+            SWIG modules are being used and compiled into different packages, then they need to be 
+            'public' in order to use the constructor or getCPtr() method from a different package.
+            Use the following macros to change the visibilities in the proxy and type wrapper class:
+
+              SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
+              SWIG_JAVABODY_TYPEWRAPPER(public, public, public, SWIGTYPE)
+
+            The default for Java has changed from public to protected for the proxy classes. Use the
+            SWIG_JAVABODY_PROXY macro above to restore to the previous visibilities.
+
+            *** POTENTIAL INCOMPATIBILITY  ***
+
+2011-11-22: szager
+	    [python] Bug 3440044: #ifdef out SWIG_Python_NonDynamicSetAttr if -builtin
+	    isn't being used, to avoid unnecessary binary incompatibilities between
+	    python installations.
+
+2011-11-17: wsfulton
+            Bug fix: Remove root directory from directory search list in Windows.
+
+2011-11-13: wsfulton
+            [Ruby] Apply patch #3421876 from Robin Stocker to fix #3416818 - same class name in 
+            different namespaces confusion when using multiple modules.
+
+2011-11-11: wsfulton
+            Fix pcre-build.sh to work with non-compressed tarballs - problem reported by Adrian Blakely.
+
+2011-11-03: wsfulton
+            Expand special variables in typemap warnings, eg:
+
+              %typemap(in, warning="1000:Test warning for 'in' typemap for $1_type $1_name") int "..."
+
+2011-11-01: wsfulton
+            Fix named output typemaps not being used when the symbol uses a qualifier and contains
+            a number, eg:
+
+              %typemap(out) double ABC::m1 "..."
+
+2011-10-24: talby
+            [perl5] SF bug #3423119 - overload dispatch stack corruption fix.  Better, but more research
+            is needed on a stable path for tail calls in XS.
+
+            Also, fix for large long longs in 32 bit perl.
+
+2011-10-13: xavier98
+	    [octave] Allow Octave modules to be re-loaded after a "clear all".
+
+2011-09-19: wsfulton
+            Fix regression introduced in swig-2.0.1 reported by Teemu Ikonone leading to uncompilable code
+            when using typedef and function pointer references, for example: 
+
+              typedef int FN(const int &a, int b);
+              void *typedef_call1(FN *& precallback, FN * postcallback);
+
+2011-09-14: wsfulton
+            [Lua] Patch #3408012 from Raman Gopalan - add support for embedded Lua (eLua)
+            including options for targeting Lua Tiny RAM (LTR).
+
+2011-09-14: wsfulton
+            [C#] Add boost_intrusive_ptr.i library contribution from patch #3401571.
+
+2011-09-13: wsfulton
+            Add warnings for badly named destructors, eg:
+
+              struct KStruct {
+                ~NOT_KStruct() {}
+              };
+
+            cpp_extend_destructors.i:92: Warning 521: Illegal destructor name ~NOT_KStruct. Ignored.
+
+2011-09-13: wsfulton
+            Fix %extend and destructors for templates. The destructor in %extend was not always wrapped,
+            for example:
+
+              %extend FooT {
+                ~FooT() { delete $self; } // was not wrapped as expected
+              };
+              template<class T> class FooT {};
+              %template(FooTi) FooT<int>;
+
+2011-09-13: wsfulton
+            Fix special variables such as "$decl" and "$fulldecl" in destructors to include the ~ character.
+
+2011-09-10: talby
+            [perl5] SF bug #1481958 - Improve range checking for integer types.
+            Enhance li_typemaps_runme.pl
+
+2011-09-08: wsfulton
+            Fix %extend on typedef classes in a namespace using the typedef name, for example:
+            namespace Space {
+              %extend CStruct {
+                ...
+              }
+              typedef struct tagCStruct { ... } CStruct;
+            }
+
+2011-08-31: xavier98
+	    [octave] patches from Karl Wette: improvements to module loading behavior;
+	    added example of friend operator to operator example; fixed octave panic/crash in 3.0.5;
+	    documentation improvements
+
+2011-08-30: szager
+	    [python] Bug 3400486, fix error signalling for built-in constructors.
+
+2011-08-26: wsfulton
+            [Go] Fix file/line number display for "gotype" when using typemap debugging options
+            -tmsearch and -tmused.
+
+2011-08-26: wsfulton
+            [C#, D] Fix %callback which was generating uncompileable code.
+
+2011-08-25: wsfulton
+            Fix constructors in named typedef class declarations as reported by Gregory Bronner:
+
+            typedef struct A {
+              A(){} // Constructor which was not accepted by SWIG
+              B(){} // NOT a constructor --illegal, but was accepted by SWIG
+            } B;
+
+            For C code, the fix now results in the use of 'struct A *' instead of just 'B *' in
+            the generated code when wrapping members in A, but ultimately this does not matter, as
+            they are the same thing.
+
+2011-08-23: wsfulton
+            Fix %newobject when used in conjunction with %feature("ref") as reported by Jan Becker. The
+            code from the "ref" feature was not always being generated for the function specified by %newobject.
+            Documentation for "ref" and "unref" moved from Python to the C++ chapter.
+
+2011-08-22: szager
+	    [python] Fixed memory leak with --builtin option (bug 3385089).
+
+2011-08-22: wsfulton
+            [Lua] SF patch #3394339 from Torsten Landschoff - new option -nomoduleglobal to disable installing 
+            the module table into the global namespace. Require call also returns the module table instead 
+            of a string.
+
+2011-08-09: xavier98
+            Fix bug 3387394; Octave patches for 3.4.0 compatibility, etc. (from Karl Wette)
+
+2011-08-04: wsfulton
+            Add in $symname expansion for director methods.
+
+2011-07-29: olly
+	    [PHP] Don't generate "return $r;" in cases where $r hasn't been set.
+	    This was basically harmless, except it generated a PHP E_NOTICE if
+	    the calling code had enabled them.
+
+2011-07-26: wsfulton
+            Fix scoping of forward class declarations nested within a class (for C++). Previously the symbol
+            was incorrectly put into the outer namespace, eg
+
+            namespace std {
+              template<class Key, class T> struct map {
+                class iterator;
+              };
+            }
+
+            iterator was scoped as std::iterator, but now it is correctly std::map<Key, T>::iterator;
+
+            Also fixed is %template and template parameters that are a typedef when the template contains
+            default template parameters, eg:
+
+            namespace Std {
+              template<class Key, class T, class C = int> struct Map {
+                typedef Key key_type;
+                typedef T mapped_type;
+              };
+            }
+            typedef double DOUBLE;
+            %template(MM) Std::Map<int, DOUBLE>;
+
+            All symbols within Map will be resolved correctly, eg key_type and mapped_type no matter if the
+            wrapped code uses Std::Map<int, double> or std::Map<int, DOUBLE> or Std::Map<int, double, int>
+
+            Also fixes bug #3378145 - regression introduced in 2.0.4 - %template using traits.
+
+2011-07-20  szager
+	    [python] Fix closure for tp_call slot.
+
+2011-07-16: wsfulton
+	    [python] Fix director typemap using PyObject *.
+
+2011-07-13: szager
+	    [python] SF patch #3365908 - Add all template parameters to map support code in std_map.i
+
+2011-07-13: szager
+	    [python] Fix for bug 3324753: %rename member variables with -builtin.
+
+2011-07-01: wsfulton
+	    Fix some scope and symbol lookup problems when template default parameters are being
+            used with typedef. For example:
+
+            template<typename XX, typename TT = SomeType> struct Foo {
+              typedef XX X;
+              typedef TT T;
+            };
+            template<typename TT> struct UsesFoo {
+              void x(typename Foo<TT>::T, typename Foo<TT>::X);
+            };
+
+            Also fixes use of std::vector<int>::size_type for Python as reported by Aubrey Barnard.
+
+2011-06-23: olly
+	    [PHP] Fix director code to work when PHP is built with ZTS enabled,
+	    which is the standard configuration on Microsoft Windows.
+
+2011-06-21: mutandiz
+	    [allegrocl]
+	    - various small tweaks and bug fixes.
+	    - Avoid name conflicts between smart pointer wrappers and the wrappers for
+	    the actual class.
+	    - Fix default typemaps for C bindings, which were incorrectly attempting to
+	    call non-existent destructors on user-defined types.
+	    - New feature, feature:aclmixins, for adding superclass to the foreign class
+	    wrappers.
+	    - Improve longlong typemaps.
+
+2011-06-19: wsfulton
+	    Fix incorrect typemaps being used for a symbol within a templated type, eg:
+            A<int>::value_type would incorrectly use a typemap for type A.
+
+2011-06-18: olly
+	    [Tcl] Fix variable declarations in middle of blocks which isn't
+	    permitted in C90 (issue probably introduced in 2.0.3 by patch #3224663).
+	    Reported by Paul Obermeier in SF#3288586.
+
+2011-06-17: wsfulton
+	    [Java] SF #3312505 - slightly easier to wrap char[] or char[ANY] with a Java byte[]
+            using arrays_java.i.
+
+2011-06-13: wsfulton
+	    [Ruby, Octave] SF #3310528 Autodoc fixes similar to those described below for Python.
+
+2011-06-10: wsfulton
+	    [Python] Few subtle bugfixes in autodoc documentation generation,
+            - Unnamed argument names fix for autodoc levels > 0.
+            - Display of template types fixed for autodoc levels > 1.
+            - Fix SF #3310528 - display of typedef structs for autodoc levels > 1.
+            - Add missing type for self for autodoc levels 1 and 3.
+            - autodoc levels 2 and 3 documented.
+            - Minor tweaks to autodoc style to conform with PEP8.
+
+2011-05-30: olly
+	    [PHP] Fix handling of directors when -prefix is used.
+
+2011-05-24: olly
+	    [PHP] Fix handling of methods of classes with a virtual base class (SF#3124665).
+
+Version 2.0.4 (21 May 2011)
+===========================
+
+2011-05-19: wsfulton
+	    [Guile] Patch #3191625 fixing overloading of integer types.
+
+2011-05-19: wsfulton
+	    [Perl] Patch #3260265 fixing overloading of non-primitive types and integers in 
+            Perl 5.12 and later.
+
+2011-05-19: wsfulton
+	    [Ruby] Fix %import where one of the imported files %include one of the STL include
+            files such as std_vector.i.
+
+2011-05-17: wsfulton
+	    [Java] Apply #3289851 from Alan Harder to fix memory leak in directors when checking
+            for pending exceptions.
+
+2011-05-17: wsfulton
+	    [Tcl] Apply #3300072 from Christian Delbaere to fix multiple module loading not
+            always sharing variables across modules.
+
+2011-05-16: xavier98
+	    [octave] Fix an incompatibility with never versions of Octave. Case on Octave
+	    API >= 40 to handle rename of Octave_map to octave_map.
+	    [octave] Add support for y.__rop__(x) operators when x.__op__(y) doesn't exist.
+	    [octave] Allow global operators to be defined by SWIG-wrapped functions.
+	    [octave] Fix several bugs around module namespaces; add -global, -noglobal,
+	    -globals <name> command line options to the module.
+
+2011-05-14: wsfulton
+	    %varargs when used with a numeric argument used to create an additional argument 
+            which was intended to provide a guaranteed sentinel value. This never worked and now
+            the additional argument is not generated.
+
+2011-05-13: wsfulton
+	    [python] Additional fixes for python3.2 support.
+
+2011-05-07: szager
+	    [python] Fixed PyGetSetDescr for python3.2.
+
+2011-05-05: wsfulton
+            [Lua, Python, Tcl] C/C++ prototypes shown in error message when calling an overloaded
+            method with incorrect arguments improved to show always show fully qualified name
+            and if a const method. 
+
+            Also fixed other Lua error messages in generated code which weren't consistently
+            using the fully qualified C++ name - requested by Gedalia Pasternak.
+
+2011-04-29: szager
+	    Bug 2635919: Convenience method to convert std::map to a python dict.
+
+2011-04-29: szager
+	    [Python] Fixed bug 2811549: return non-const iterators from STL
+	    methods begin(), end(), rbegin(), rend().
+
+2011-04-25: szager
+	    [Python] Fixed bug 1498929: Access to member fields in map elements
+
+2011-04-23: klickverbot
+            [D] nspace: Correctly generate identifiers for base classes when
+            not in split proxy mode.
+
+2011-04-13: szager
+	    Fixed bug 3286333: infinite recursion with mutual 'using namespace' clauses.
+
+2011-04-12: szager
+	    Fixed bug 1163440: vararg typemaps.
+
+2011-04-12: szager
+	    Fixed bug #3285386: parse error from 'operator T*&()'.  Added operator_pointer_ref
+	    test case to demonstrate.
+
+2011-04-11: szager
+	    [Python] Fixed PyVarObject_HEAD_INIT to eliminate VC++ compiler errors about
+	    static initialization of struct members with pointers.
+
+2011-04-11: wsfulton
+            [Tcl] Apply patch #3284326 from Colin McDonald to fix some compiler warnings.
+
+2011-04-11: szager
+	    [Python] Fixed PyVarObject_HEAD_INIT to eliminate VC++ compiler errors about
+	    static initialization of struct members with pointers.
+
+2011-04-10: klickverbot
+            [D] Fixed wrapping of enums that are type char, for example:
+            enum { X = 'X'; } (this was already in 2.0.3 for C# and Java)
+
+2011-04-10: klickverbot
+            [D] nspace: Fixed referencing types in the root namespace when
+            not in split proxy mode.
+
+2011-04-09: szager
+	    [Python] Applied patch #1932484: migrate PyCObject to PyCapsule.
+
+2011-04-09: szager
+	    [Python] Added preprocessor guards for python functions PyUnicode_AsWideChar and
+	    PySlice_GetIndices, which changed signatures in python3.2.
+
+2011-04-07: wsfulton
+            Fix wrapping of const array typedefs which were generating uncompileable code as
+            reported by Karl Wette.
+
+2011-04-03: szager
+	    [Python] Fixed the behavior of %pythonnondynamic to conform to the spec in Lib/pyuserdir.swg.
+
+2011-04-03: szager
+	    [Python] Merged in the szager-python-builtin branch, adding the -builtin feature
+	    for python.  The -builtin option may provide a significant performance gain
+	    in python wrappers.  For full details and limitations, refer to Doc/Manual/Python.html.
+	    A small test suite designed to demonstrate the performance gain is in
+	    Examples/python/performance.
+
+2011-04-01: wsfulton
+            Add in missing wrappers for friend functions for some target languages, mostly
+            the non-scripting languages like Java and C#.
+
+Version 2.0.3 (29 March 2011)
+=============================
+
+2011-03-29: wsfulton
+            [R] Apply patch #3239076 from Marie White fixing strings for R >= 2.7.0
+
+2011-03-29: wsfulton
+            [Tcl] Apply patch #3248280 from Christian Delbaere which adds better error messages when
+            the incorrect number or type of arguments are passed to overloaded methods.
+
+2011-03-29: wsfulton
+            [Tcl] Apply patch #3224663 from Christian Delbaere.
+            1. Fix when function returns a NULL value, a "NULL" command will be created in the Tcl interpreter
+            and calling this command will cause a segmentation fault. 
+
+            2. Previous implementation searches for class methods using a linear search causing performance issues
+            in wrappers for classes with many member functions. The patch adds a method hash table to classes and
+            changes method name lookup to use the hash table instead of doing a linear search.
+
+2011-03-26: wsfulton
+	    [C#, Java] SF bug #3195112 - fix wrapping of enums that are type char, for example:
+              enum { X = 'X'; }
+
+2011-03-21: vadz
+	    Allow setting PCRE_CFLAGS and PCRE_LIBS during configuration to override the values returned by
+	    pcre-config, e.g. to allow using a static version of PCRE library.
+
+2011-03-17: wsfulton
+	    [UTL] Add missing headers in generated STL wrappers to fix compilation with gcc-4.6.
+
+2011-03-17: wsfulton
+	    Fix regression introduced in swig-2.0.2 where filenames with spaces were not found
+	    when used with %include and %import. Reported by Shane Liesegang.
+
+2011-03-15: wsfulton
+	    [UTL] Fix overloading when using const char[], problem reported by David Maxwell.
+            Similarly for char[ANY] and const char[ANY].
+
+2011-03-15: wsfulton
+	    [C#] Apply patch #3212624 fixing std::map Keys property.
+
+2011-03-14: olly
+	    [PHP] Fix handling of overloaded methods/functions where some
+	    return void and others don't - whether this worked or not depended
+	    on the order they were encountered in (SF#3208299).
+	
+2011-03-13: klickverbot
+            [D] Extended support for C++ namespaces (nspace feature).
+
+2011-03-12: olly
+	    [PHP] Fix sharing of type information between multiple SWIG-wrapped
+	    modules (SF#3202463).
+
+2011-03-09: wsfulton
+	    [Python] Fix SF #3194294 - corner case bug when 'NULL' is used as the default value
+            for a primitive type parameter in a method declaration.
+
+2011-03-07: olly
+	    [PHP] Don't use zend_error_noreturn() for cases where the function
+	    returns void - now this issue can only matter if you have a function
+	    or method which is directed and returns non-void.
+
+2011-03-06: olly
+	    [PHP] Add casts to the typemaps for long long and unsigned long
+	    long to avoid issues when they are used with shorter types via
+	    %apply.
+
+2011-03-02: wsfulton
+	    Templated smart pointers overloaded with both const and non const operator-> generated uncompilable
+	    code when the pointee was a class with either public member variables or static methods.
+	    Regression in 2.0.x reported as working in 1.3.40 by xantares on swig-user mailing list.
+
+Version 2.0.2 (20 February 2011)
+================================
+
+2011-02-19: wsfulton
+	    [PHP] Add missing INPUT, OUTPUT and INOUT typemaps in the typemaps.i library
+            for primitive reference types as well as signed char * and bool *.
+
+2011-02-19: olly
+	    [PHP] Address bug in PHP on some platforms/architectures which
+	    results in zend_error_noreturn() not being available using
+	    SWIG_ZEND_ERROR_NORETURN which defaults to zend_error_noreturn but
+	    can be overridden when building the module by passing
+	    -DSWIG_ZEND_ERROR_NORETURN=zend_error to the compiler.  This may
+	    result in compiler warnings, but should at least allow a module
+	    to be built on those platforms/architectures (SF#3166423).
+
+2011-02-18: wsfulton
+            Fix #3184549 - vararg functions and function overloading when using the -fastdispatch option.
+
+2011-02-18: olly
+	    [PHP] An overloaded method which can return an object or a
+	    primitive type no longer causes SWIG to segfault.  Reported by Paul
+	    Colby in SF#3168531.
+
+2011-02-18: olly
+	    [PHP] Fix invalid erase during iteration of std::map in generated
+	    director code.  Reported by Cory Bennett in SF#3175820.
+
+2011-02-17: wsfulton
+            Preprocessing now warns if extra tokens appear after #else and #end.
+
+2011-02-16: wsfulton
+            Fix #1653092 Preprocessor does not error out when #elif is missing an expression.
+            This and other cases of missing preprocessor expressions now result in an error.
+
+2011-02-14: wsfulton
+            [Ocaml] Apply patch #3151788 from Joel Reymont. Brings Ocaml support up to date 
+            (ver 3.11 and 3.12), including std::string.
+
+2011-02-13: wsfulton
+            [Ruby] Apply patch #3176274 from James Masters - typecheck typemap for time_t.
+
+2011-02-13: wsfulton
+            Apply patch #3171793 from szager - protected director methods failing when -fvirtual is used.
+
+2011-02-13: wsfulton
+            Fix #1927852 - #include directives don't preprocess the file passed to it. The fix is for
+            #include with -importall or -includeall, %include and %import, for example:
+              #define FILENAME "abc.h"
+              %include FILENAME
+
+2011-02-12: wsfulton
+            Fix #1940536, overactive preprocessor which was expanding defined(...) outside of #if and #elif
+            preprocessor directives.
+
+2011-02-05: wsfulton
+            [MzScheme] SF #2942899 Add user supplied documentation to help getting started with MzScheme.
+            Update chapter name to MzScheme/Racket accounting for the rename of MzScheme to Racket.
+
+2011-02-05: wsfulton
+            [C#] SF #3085906 - Possible fix running test-suite on Mac OSX.
+
+2011-02-05: wsfulton
+            SF #3173367 Better information during configure about Boost prerequisite for running
+            the test-suite.
+
+2011-02-05: wsfulton
+            SF #3127633 Fix infinite loop in recursive typedef resolution.
+
+2011-02-04: wsfulton
+            [R] SF #3168676 Fix %rename not working for member variables and methods.
+
+2011-02-04: wsfulton
+            [clisp] SF #3148200 Fix segfault parsing nested unions.
+
+2011-02-01: wsfulton
+            [C#] Directors - a call to a method being defined in the base class, not
+            overridden in a subclass, but again overridden in a class derived from
+            the first subclass was not being dispatched correctly to the most derived class.
+            See director_alternating.i for an example.
+
+2011-02-01: wsfulton
+            [C#, Java] Any 'using' statements in the protected section of a class were previously
+            ignored with director protected (dirprot) mode.
+
+2011-01-30: wsfulton
+            Fix overloading with const pointer reference (SWIGTYPE *const&) parameters for a
+            number of scripting languages.
+
+2011-01-17: wsfulton
+            New warning for smart pointers if only some of the classes in the inheritance
+            chain are marked as smart pointer, eg, %shared_ptr should be used for all classes
+            in an inheritance hierarchy, so this new warning highlights code where this is
+            not the case.
+
+              example.i:12: Warning 520: Base class 'A' of 'B' is not similarly marked as a smart pointer.
+              example.i:16: Warning 520: Derived class 'C' of 'B' is not similarly marked as a smart pointer.
+
+2011-01-14: wsfulton
+            Added some missing multi-argument typemaps: (char *STRING, size_t LENGTH) and 
+            (char *STRING, int LENGTH). Documentation for this updated. Java patch from
+            Volker Grabsch.
+
+2011-01-11: iant
+	    Require Go version 7077 or later.
+
+2010-12-30: klickverbot
+            [C#, D, Java] Check for collision of parameter names with target
+            language keywords when generating the director glue code.
+            
+            The situation in which the generated could would previously be
+            invalid is illustrated in the new 'director_keywords' test case.
+
+2010-12-23: wsfulton
+            [C#] Fix $csinput special variable not being expanded for csvarin typemaps
+            when used for global variables. Reported by Vadim Zeitlin.
+
+2010-12-14: wsfulton
+            Fix $basemangle expansion in array typemaps. For example if type is int *[3],
+            $basemangle expands to _p_int.
+
+2010-12-07: iant
+	    Check that we are using a sufficiently new version of the
+	    6g or 8g Go compiler during configure time. If not, disable Go.
+            Minimum version is now 6707.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2010-12-06: wsfulton
+            Fix #3127394 - use of network paths on Windows/MSys.
+
+2010-11-18: klickverbot
+	    [D] Added the D language module.
+
+2010-11-12: vadz
+	    Fix handling of multiple regex-using %renames attached to the same
+	    declaration. For example, now
+
+	      %rename("%(regex/^Set(.*)/put\\1/)s") "";
+	      %rename("%(regex/^Get(.*)/get\\1/)s") "";
+
+	    works as expected whereas before only the last anonymous rename was
+	    taken into account.
+
+2010-10-17: drjoe
+	    [R] Fix failure in overloaded functions which was breaking
+	    QuantLib-SWIG
+
+2010-10-14: olly
+	    [PHP] Allow compilation on non-conforming Microsoft C++ compilers
+	    which don't accept: return function_returning_void();
+	    Reported by Frank Vanden Berghen on the SWIG mailing list.
+
+2010-10-12: wsfulton
+            Fix unary scope operator (::) (global scope) regression introduced in 2.0.0, reported by
+            Ben Walker. The mangled symbol names were incorrect, sometimes resulting in types being
+            incorrectly treated as opaque types.
+
+            Also fixes #2958781 and some other type problems due to better typedef resolution, eg 
+            std::vector<T *>::value_type didn't resolve to T * when it should have. The mangled type
+            was incorrectly SWIGTYPE_std__vectorT_Test_p_std__allocatorT_Test_p_t_t__value_type and now
+            it is correctly SWIGTYPE_p_Test.
+
+Version 2.0.1 (4 October 2010)
+==============================
+
+2010-10-03: wsfulton
+            Apply patch #3066958 from Mikael Johansson to fix default smart pointer
+            handling when the smart pointer contains both a const and non-const operator->.
+
+2010-10-01: wsfulton
+            Add -pcreversion option to display PCRE version information.
+
+2010-10-01: olly
+	    [Ruby] Avoid segfault when a method node has no parentNode
+	    (SF#3034054).
+
+2010-10-01: olly
+	    [Python] Allow reinitialisation to work with an embedded Python
+	    interpreter (patch from Jim Carroll in SF#3075178).
+
+2010-09-28: wsfulton
+            [C#] Apply patch from Tomas Dirvanauskas for std::map wrappers to avoid
+            throwing exceptions with normal usage of iterators.
+
+2010-09-27: olly
+	    [Python] Improve error message given when a parameter of the wrong
+	    type is passed to an overloaded method (SF#3027355).
+
+2010-09-25: wsfulton
+            Apply SF patch #3075150 - Java directors using static variables in
+            named namespace.
+
+2010-09-24: wsfulton
+            More file and line error/warning reporting fixes where SWIG macros
+            are used within {} braces (where the preprocessor expands macros),
+            for example macros within %inline {...} and %fragment(...) {...}
+            and nested structs.
+
+2010-09-18: wsfulton
+            More file and line error/warning reporting fixes for various inherited
+            class problems.
+
+2010-09-15: wsfulton
+            A much improved debugging of SWIG source experience is now available and
+            documented in the "Debugging SWIG" section in the Doc/Devel/internals.html
+            file, including a swig.dbg support file for the gdb debugger.
+
+2010-09-11: wsfulton
+            Fix incorrect line number reporting in errors/warnings when a macro
+            definition ends with '/' and it is not the end of a C comment.
+
+2010-09-11: wsfulton
+            Fix incorrect line number reporting in errors/warnings after parsing
+            macro invocations with parameters given over more than one line.
+
+2010-09-10: wsfulton
+            Remove extraneous extra line in preprocessed output after including files
+            which would sometimes lead to error/warning messages two lines after the
+            end of the file.
+
+2010-09-10: wsfulton
+            Fix #2149523 - Incorrect line number reporting in errors after parsing macros
+            containing C++ comments.
+
+2010-09-08: olly
+	    [PHP] Fix handling of OUTPUT typemaps (Patch from Ryan in SF#3058394).
+
+2010-09-03: wsfulton
+            Fix erroneous line numbers in error messages for macro expansions, for example,
+            the error message now points to instantiation of the macro, ie the last line here:
+
+              #define MACRO2(a, b) 
+
+              #define MACRO1(NAME) MACRO2(NAME,2,3) 
+
+              MACRO1(abc)
+
+2010-09-02: wsfulton
+            Fix line numbers in error and warning messages for preprocessor messages within
+            %inline, for example:
+
+              %inline %{
+              #define FOOBAR 1
+              #define FOOBAR "hi"
+              %}
+
+2010-09-02: wsfulton
+            Fix line numbers in error and warning messages which were cumulatively one
+            less than they should have been after parsing each %include/%import - bug
+            introduced in swig-1.3.32. Also fix line numbers in error and warning messages
+            when new line characters appear between the %include / %import statement and
+            the filename.
+
+2010-08-30: wsfulton
+            Fix line number and file name reporting for some macro preprocessor warnings.
+            The line number of the macro argument has been corrected and the line number
+            of the start of the macro instead of one past the end of the macro is used.
+            Some examples:
+              file.h:11: Error: Illegal macro argument name '..'
+              file.h:19: Error: Macro 'DUPLICATE' redefined,
+              file.h:15: Error: previous definition of 'DUPLICATE'.
+              file.h:25: Error: Variable-length macro argument must be last parameter
+              file.h:32: Error: Illegal character in macro argument name
+              file.i:37: Error: Macro 'SIT' expects 2 arguments
+
+2010-08-26: wsfulton
+            Fix __LINE__ and __FILE__ expansion reported by Camille Gillot. Mostly this
+            did not work at all. Also fixes SF #2822822.
+
+2010-08-17: wsfulton
+            [Perl] Fix corner case marshalling of doubles - errno was not being correctly
+            set before calling strtod - patch from Justin Vallon - SF Bug #3038936.
+
+2010-08-17: wsfulton
+            Fix make distclean when some of the more obscure languages are detected by
+            configure - fixes from Torsten Landschoff.
+
+2010-07-28: wsfulton
+            Restore configuring out of source for the test-suite since it broke in 1.3.37.
+            As previously, if running 'make check-test-suite' out of source, it needs to be
+            done by invoking configure with a relative path. Invoking configure with an
+            absolute path will not work. Running the full 'make check' still needs to be
+            done in the source tree.
+
+2010-07-16: wsfulton
+            Fix wrapping of function pointers and member function pointers when the function
+            returns by reference.
+
+2010-07-13: vadz
+            Removed support for the old experimental "rxspencer" encoder and
+            "[not]rxsmatch" in %rename (see the 01/16/2006 entry). The new and
+            officially supported "regex" encoder and "[not]regexmatch" checks
+            should be used instead (see the two previous entries). Please
+            replace "%(rxspencer:[pat][subst])s" with "%(regex:/pat/subst/)s"
+            when upgrading. Notice that you will also need to replace the back-
+            references of form "@1" with the more standard "\\1" and may need to
+            adjust your regular expressions syntax as the new regex encoder uses
+            Perl-compatible syntax and not (extended) POSIX syntax as the old one.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2010-07-13: vadz
+            Add "regexmatch", "regextarget" and "notregexmatch" which can be
+            used to apply %rename directives to the declarations matching the
+            specified regular expression only. The first two can be used
+            interchangeably, both of the %renames below do the same thing:
+
+                %rename("$ignore", regexmatch$name="Old$") "";
+                %rename("$ignore", regextarget=1) "Old$";
+
+            (namely ignore the declarations having "Old" suffix).
+
+            "notregexmatch" restricts the match to only the declarations which
+            do not match the regular expression, e.g. here is how to rename to
+            lower case versions all declarations except those consisting from
+            capital letters only:
+
+                %rename("$(lowercase)s", notregexmatch$name="^[A-Z]+$") "";
+
+2010-07-13: vadz
+            Add the new "regex" encoder that can be used in %rename, e.g.
+
+                %rename("regex:/(\\w+)_(.*)/\\2/") "";
+
+            to remove any alphabetical prefix from all identifiers. The syntax
+            of the regular expressions is Perl-like and PCRE library
+            (http://www.pcre.org/) is used to implement this feature but notice
+            that backslashes need to be escaped as usual inside C strings.
+
+            Original patch from Torsten Landschoff.
+
+2010-07-08: wsfulton
+            Fix #3024875 - shared_ptr of classes with non-public destructors. This also fixes
+            the "unref" feature when used on classes with non-public destructors.
+
+2010-06-17: ianlancetaylor
+            [Go] Add the Go language module.
+
+2010-06-10: wsfulton
+            [Lua] Fix SWIG_lua_isnilstring multiply defined when using multiple
+            modules and wrapping strings. Patch from 'Number Cruncher'.
+
+2010-06-10: olly
+	    [PHP] Fix directors to correctly call a method with has a
+	    different name in PHP to C++ (we were always using the C++ name
+	    in this case).
+
+2010-06-03: wsfulton
+            Fix uncompileable code when %rename results in two enum items
+            with the same name. Reported by Vadim Zeitlin.
+
 Version 2.0.0 (2 June 2010)
 ===========================
 
@@ -2218,7 +3615,7 @@ Version 1.3.32 (November 15, 2007)
             [C#] Added missing support for C++ class member pointers.
 
 08/09/2007: wsfulton
-            [C#, Java] Add support for $owner in the "out" typemaps like in the the scripting
+            [C#, Java] Add support for $owner in the "out" typemaps like in the scripting
             language modules. Note that $owner has always been supported in the "javaout" / "csout"
             typemaps.
 
@@ -2918,7 +4315,7 @@ Version 1.3.30 (November 13, 2006)
 10/12/2006: wsfulton
             [Java] Remove potential race condition on the proxy class' delete() method 
             (it is now a synchronized method, but is now customisable by changing the 
-            methodmodifiers attribute in the the javadestruct or javadestruct_derived typemap)
+            methodmodifiers attribute in the javadestruct or javadestruct_derived typemap)
 
             [C#] Remove potential race condition on the proxy class' Dispose() method, 
             similar to Java's delete() above.
@@ -3726,7 +5123,7 @@ Version 1.3.28 (February 12, 2006)
 	        %naturalvar std::string;
 	        %include <std_string.i>
 	      
-              that will tell swig to use the the 'natural' wrapping
+              that will tell swig to use the 'natural' wrapping
               mechanism to all std::string global and member
               variables.
 
@@ -7233,7 +8630,7 @@ Version 1.3.23 (November 11, 2004)
 		b = B()
 		b.bar(1)
 	      
-	      note the the methods are emitted inside the classes,
+	      note the methods are emitted inside the classes,
 	      and hence, the %template name refers to the 'member'
 	      method name, not a global namespace name.
 
@@ -10747,7 +12144,7 @@ Version 1.3.20 (December 17, 2003)
 06/25/2003: mrose (Mark Rose)
             [Python] Director typemap marshalling checks for null pointers when
 	    walking the parameter list instead of relying soley on the parameter
-	    count.  Cures a segfault that occured for multiple argument inv typemaps.
+	    count.  Cures a segfault that occurred for multiple argument inv typemaps.
 	    Someone with more Swig experience should probably review this code.
 
 06/24/2003: mkoeppe (Matthias Koeppe)
@@ -15181,7 +16578,7 @@ Version 1.3.12 (June 2, 2002)
 
             %feature, %rename, %ignore, %exception, and related directives:
 
-            Namespaces are fully integrated into the the renaming and declaration
+            Namespaces are fully integrated into the renaming and declaration
             matcher.  For example:
 
                  %rename(display) Foo::print;          // Rename in namespace Foo
@@ -16222,7 +17619,7 @@ Version 1.3.10 (December 10, 2001)
            shadow classes.   In early implementations, shadow classes were
            merely Python wrappers around typed pointer objects. However, 
            some users actually wanted to receive the shadow class object in C.
-           To accomodate this, the dereferencing of the "this" pointer in
+           To accommodate this, the dereferencing of the "this" pointer in
            a shadow class was moved to C as described in CHANGES [8/8/99].
            However, the process of returning pointers to Python was still
            somewhat problematic.  Specifically, shadow classes never worked
@@ -18136,7 +19533,7 @@ Version 1.3.6  (July 9, 2001)
 	   [Java] destructor (_delete()) was not aware of %name renaming
 	   [Java] extends baseclass did not know about %name renaming
 	   [Java] extends baseclass did extend even when the baseclass was not known to swig
-	   [Java] sometimes enum-declarations occured before the Java class declaration
+	   [Java] sometimes enum-declarations occurred before the Java class declaration
 	   [Java] unrelated enum initialisations no longer appear in Java class
 	   [Java] if module ends in '_' correct JNI names are now produced
 
@@ -19289,7 +20686,7 @@ Version 1.3 Alpha 1 (February 11, 2000)
           names or use %apply to map typemaps to alternate names.
 
 8/8/99  : Handling of the 'this' pointer has been changed in Python shadow
-          classes.  Previously, dereferencing of '.this' occured in the
+          classes.  Previously, dereferencing of '.this' occurred in the
           Python shadow class itself.   Now, this step occurs in the C
           wrappers using the following function:
 
@@ -19846,7 +21243,7 @@ Version 1.1 Patch 1 (August 27, 1997)
 
           Would generate completely bogus code with garbage replacing
           the '%d'.   Caused by one faulty use of printf (wasn't able to find
-          any other occurences).
+          any other occurrences).
 
 7/7/97  : Fixed bug in Python shadow class generation with non-member
           functions that are returning more than one value.
@@ -19962,7 +21359,7 @@ Version 1.1 (June 24, 1997)
                  .... later ...
                  int OldName(int);
 
-          Unlike %name, %rename will rename any occurence of the old name.
+          Unlike %name, %rename will rename any occurrence of the old name.
           This applies to functions, variables, class members and so forth.
           There is no way to disable %rename once set, but you can change the
           name by redeclaring it to something else.

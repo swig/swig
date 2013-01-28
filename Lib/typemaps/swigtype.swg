@@ -352,7 +352,7 @@
 
 %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE *const& {
   void *vptr = 0;
-  int res = SWIG_ConvertPtr($input, &vptr, $descriptor, 0);
+  int res = SWIG_ConvertPtr($input, &vptr, $*descriptor, 0);
   $1 = SWIG_CheckState(res);
 }
 
@@ -411,15 +411,15 @@
 /* directorin */
 
 %typemap(directorin,noblock=1) SWIGTYPE *, SWIGTYPE *const& {
-  $input = SWIG_NewPointerObj(%as_voidptr($1_name), $descriptor, %newpointer_flags);
+  $input = SWIG_NewPointerObj(%as_voidptr($1), $descriptor, %newpointer_flags);
 }
 
 %typemap(directorin,noblock=1) SWIGTYPE {
-  $input = SWIG_NewPointerObj(%as_voidptr(&$1_name), $&descriptor, %newpointer_flags);
+  $input = SWIG_NewPointerObj(%as_voidptr(&$1), $&descriptor, %newpointer_flags);
 }
 
 %typemap(directorin,noblock=1) SWIGTYPE & {
-  $input = SWIG_NewPointerObj(%as_voidptr(&$1_name), $descriptor, %newpointer_flags);
+  $input = SWIG_NewPointerObj(%as_voidptr(&$1), $descriptor, %newpointer_flags);
 }
 
 %typemap(directorin,noblock=1) SWIGTYPE && {
@@ -571,7 +571,7 @@
 /* directorin */
 
 %typemap(directorin,noblock=1) SWIGTYPE (CLASS::*) {
-  $input = SWIG_NewMemberObj(%as_voidptr(&$1_name), sizeof($type), $descriptor);
+  $input = SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($type), $descriptor);
 }
 
 /* directorout */
@@ -631,7 +631,7 @@
 /* directorin */
 
 %typemap(directorin,noblock=1) SWIGTYPE ((*)(ANY)) {
-  $input = SWIG_NewFunctionPtrObj((void*)($1_name), $descriptor);
+  $input = SWIG_NewFunctionPtrObj((void*)($1), $descriptor);
 }
 
 /* directorout */
@@ -649,11 +649,6 @@
 /* ------------------------------------------------------------
  * --- Special typemaps ---
  * ------------------------------------------------------------ */
-
-/* VARARGS_SENTINEL typemap. Used by the %varargs directive. */
-
-%typemap(in,numinputs=0) SWIGTYPE *VARARGS_SENTINEL, SWIGTYPE VARARGS_SENTINEL "";
-
 
 /* DISOWN typemap */
 

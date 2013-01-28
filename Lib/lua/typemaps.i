@@ -66,8 +66,10 @@ or provide a %apply statement
 %enddef
 
 // now the code
-SWIG_NUMBER_TYPEMAP(int); SWIG_NUMBER_TYPEMAP(unsigned int); SWIG_NUMBER_TYPEMAP(signed int);
+SWIG_NUMBER_TYPEMAP(unsigned char); SWIG_NUMBER_TYPEMAP(signed char);
+
 SWIG_NUMBER_TYPEMAP(short); SWIG_NUMBER_TYPEMAP(unsigned short); SWIG_NUMBER_TYPEMAP(signed short);
+SWIG_NUMBER_TYPEMAP(int); SWIG_NUMBER_TYPEMAP(unsigned int); SWIG_NUMBER_TYPEMAP(signed int);
 SWIG_NUMBER_TYPEMAP(long); SWIG_NUMBER_TYPEMAP(unsigned long); SWIG_NUMBER_TYPEMAP(signed long);
 SWIG_NUMBER_TYPEMAP(float);
 SWIG_NUMBER_TYPEMAP(double);
@@ -138,21 +140,21 @@ a few things of note:
 	so for the above mentioned return_array_5() would look like
 	arr=return_array_5() -- no parameters passed in
 * for INOUT arrays, a table must be passed in, and a new table will be returned
-	(this is consistant with the way that numbers are processed)
+	(this is consistent with the way that numbers are processed)
 	if you want just use
 	arr={...}
 	arr=process_var_array_inout(arr)	-- arr is replaced by the new version
 
 The following are not yet supported:
-* variable length output only array (inout's work ok)
-* multidimentional arrays
+* variable length output only array (inout works ok)
+* multidimensional arrays
 * arrays of objects/structs
 * arrays of pointers
 
 */
 
 /*
-The internals of the array managment stuff
+The internals of the array management stuff
 helper fns/macros
 SWIG_ALLOC_ARRAY(TYPE,LEN)	// returns a typed array TYPE[LEN]
 SWIG_FREE_ARRAY(PTR)		// delete the ptr (if not zero)
@@ -345,6 +347,8 @@ for array handling
 // as well as defining typemaps for
 // fixed len arrays in & out, & variable length arrays in
 
+SWIG_TYPEMAP_NUM_ARR(schar,signed char);
+SWIG_TYPEMAP_NUM_ARR(uchar,unsigned char);
 SWIG_TYPEMAP_NUM_ARR(int,int);
 SWIG_TYPEMAP_NUM_ARR(uint,unsigned int);
 SWIG_TYPEMAP_NUM_ARR(short,short);
@@ -363,7 +367,7 @@ SWIG_TYPEMAP_NUM_ARR(double,double);
 %typemap(freearg) enum SWIGTYPE INPUT[ANY]
 %{	SWIG_FREE_ARRAY($1);%}
 
-// variable size array's
+// variable size arrays
 %typemap(in) (enum SWIGTYPE *INPUT,int)
 %{	$1 = ($ltype)SWIG_get_int_num_array_var(L,$input,&$2);
 	if (!$1) SWIG_fail;%}
@@ -410,7 +414,7 @@ void** SWIG_get_ptr_array_var(lua_State* L, int index, int* size,swig_type_info 
 	// all pointers have the ownership value 'own' (normally 0)
 void SWIG_write_ptr_array(lua_State* L,void **array,int size,int own);
 	// read the specified table, and fills the array with ptrs
-	// returns 1 of ok (only fails if it doesnt find correct type of ptrs)
+	// returns 1 of ok (only fails if it doesn't find correct type of ptrs)
 	// helper fn (called by SWIG_get_ptr_array_*() fns)
 int SWIG_read_ptr_array(lua_State* L,int index,void **array,int size,swig_type_info *type);
 
@@ -420,7 +424,7 @@ modification of pointers ownership in the arrays
 eg A fn:
 void pointers_in(TYPE* arr[],int len);
 will make copies of the pointer into a temp array and then pass it into the fn
-Lua does not remeber that this fn held the pointers, so it is not safe to keep
+Lua does not remember that this fn held the pointers, so it is not safe to keep
 these pointers until later
 
 eg A fn:
@@ -547,13 +551,14 @@ free(ptr);
 With the following SWIG code
 %apply SWIGTYPE** OUTPUT{iMath **pptr };
 
-You can get natural wrappering in Lua as follows:
+You can get natural wrapping in Lua as follows:
 ok,ptr=Create_Math() -- ptr is a iMath* which is returned with the int
 ptr=nil -- the iMath* will be GC'ed as normal
 */
 
 %typemap(in,numinputs=0) SWIGTYPE** OUTPUT ($*ltype temp)
-%{  $1 = &temp; %}
+%{ temp = ($*ltype)0;
+   $1 = &temp; %}
 %typemap(argout) SWIGTYPE** OUTPUT
 %{SWIG_NewPointerObj(L,*$1,$*descriptor,1); SWIG_arg++; %}
 

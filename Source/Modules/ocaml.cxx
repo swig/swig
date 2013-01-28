@@ -11,31 +11,31 @@
  * Ocaml language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_ocaml_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #include <ctype.h>
 
-static const char *usage = (char *)
-    ("Ocaml Options (available with -ocaml)\n"
-     "-prefix <name>  - Set a prefix <name> to be prepended to all names\n"
-     "-where          - Emit library location\n"
-     "-suffix <name>  - Change .cxx to something else\n" "-oldvarnames    - old intermediary method names for variable wrappers\n" "\n");
+static const char *usage = (char *) "\
+Ocaml Options (available with -ocaml)\n\
+     -oldvarnames    - Old intermediary method names for variable wrappers\n\
+     -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
+     -suffix <name>  - Change .cxx to something else\n\
+     -where          - Emit library location\n\
+\n";
 
 static int classmode = 0;
 static int in_constructor = 0, in_destructor = 0, in_copyconst = 0;
 static int const_enum = 0;
 static int static_member_function = 0;
 static int generate_sizeof = 0;
-static char *prefix = 0;
+static String *prefix = 0;
 static char *ocaml_path = (char *) "ocaml";
 static bool old_variable_names = false;
 static String *classname = 0;
 static String *module = 0;
 static String *init_func_def = 0;
 static String *f_classtemplate = 0;
-static String *name_qualifier = 0;
+static SwigType *name_qualifier_type = 0;
 
 static Hash *seen_enums = 0;
 static Hash *seen_enumvalues = 0;
@@ -105,8 +105,7 @@ public:
 	  SWIG_exit(0);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
-	    prefix = new char[strlen(argv[i + 1]) + 2];
-	    strcpy(prefix, argv[i + 1]);
+	    prefix = NewString(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
@@ -128,15 +127,13 @@ public:
       }
     }
 
-    // If a prefix has been specified make sure it ends in a '_'
-
+    // If a prefix has been specified make sure it ends in a '_' (not actually used!)
     if (prefix) {
-      if (prefix[strlen(prefix)] != '_') {
-	prefix[strlen(prefix) + 1] = 0;
-	prefix[strlen(prefix)] = '_';
-      }
+      const char *px = Char(prefix);
+      if (px[Len(prefix) - 1] != '_')
+	Printf(prefix, "_");
     } else
-      prefix = (char *) "swig_";
+      prefix = NewString("swig_");
 
     // Add a symbol for this module
 
@@ -341,7 +338,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 
@@ -355,14 +351,12 @@ public:
     Dump(f_class_ctors, f_mlout);
     Dump(f_class_ctors_end, f_mlout);
     Dump(f_mltail, f_mlout);
-    Close(f_mlout);
     Delete(f_mlout);
 
     Dump(f_enumtypes_type, f_mliout);
     Dump(f_enumtypes_value, f_mliout);
     Dump(f_mlibody, f_mliout);
     Dump(f_mlitail, f_mliout);
-    Close(f_mliout);
     Delete(f_mliout);
 
     return SWIG_OK;
@@ -443,7 +437,6 @@ public:
     String *outarg = NewString("");
     String *build = NewString("");
     String *tm;
-    int argout_set = 0;
     int i = 0;
     int numargs;
     int numreq;
@@ -606,7 +599,6 @@ public:
 	Replaceall(tm, "$ntype", normalizeTemplatedClassName(Getattr(p, "type")));
 	Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
-	argout_set = 1;
       } else {
 	p = nextSibling(p);
       }
@@ -657,7 +649,7 @@ public:
     Swig_director_emit_dynamic_cast(n, f);
     String *actioncode = emit_action(n);
 
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
       Replaceall(tm, "$source", "swig_result");
       Replaceall(tm, "$target", "rv");
       Replaceall(tm, "$result", "rv");
@@ -677,15 +669,15 @@ public:
     // Look for any remaining cleanup
 
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
 	Replaceall(tm, "$source", "swig_result");
 	Printv(f->code, tm, "\n", NIL);
       }
     }
     // Free any memory allocated by the function being wrapped..
 
-    if ((tm = Swig_typemap_lookup("swig_result", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("swig_result", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, "\n", NIL);
     }
     // Wrap things up (in a manner of speaking)
@@ -879,9 +871,8 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int staticmemberfunctionHandler(Node *n) {
-    int rv;
     static_member_function = 1;
-    rv = Language::staticmemberfunctionHandler(n);
+    Language::staticmemberfunctionHandler(n);
     static_member_function = 0;
     return SWIG_OK;
   }
@@ -898,12 +889,12 @@ public:
     String *name = Getattr(n, "feature:symname");
     SwigType *type = Getattr(n, "type");
     String *value = Getattr(n, "value");
-    String *qvalue = Getattr(n, "qualified:value");
+    SwigType *qname = Getattr(n, "qualified:name");
     String *rvalue = NewString("");
     String *temp = 0;
 
-    if (qvalue)
-      value = qvalue;
+    if (qname)
+      value = qname;
 
     if (!name) {
       name = mangleNameForCaml(Getattr(n, "name"));
@@ -928,9 +919,10 @@ public:
     // Create variable and assign it a value
 
     Printf(f_header, "static %s = ", SwigType_lstr(type, name));
+    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
     if ((SwigType_type(type) == T_STRING)) {
       Printf(f_header, "\"%s\";\n", value);
-    } else if (SwigType_type(type) == T_CHAR) {
+    } else if (SwigType_type(type) == T_CHAR && !is_enum_item) {
       Printf(f_header, "\'%s\';\n", value);
     } else {
       Printf(f_header, "%s;\n", value);
@@ -1228,20 +1220,18 @@ public:
     return out;
   }
 
-  String *fully_qualify_enum_name(Node *n, String *name) {
+  SwigType *fully_qualified_enum_type(Node *n) {
     Node *parent = 0;
-    String *qualification = NewString("");
     String *fully_qualified_name = NewString("");
     String *parent_type = 0;
-    String *normalized_name;
 
     parent = parentNode(n);
     while (parent) {
       parent_type = nodeType(parent);
       if (Getattr(parent, "name")) {
 	String *parent_copy = NewStringf("%s::", Getattr(parent, "name"));
-	if (!Cmp(parent_type, "class") || !Cmp(parent_type, "namespace"))
-	  Insert(qualification, 0, parent_copy);
+	if (Cmp(parent_type, "class") == 0 || Cmp(parent_type, "namespace") == 0)
+	  Insert(fully_qualified_name, 0, parent_copy);
 	Delete(parent_copy);
       }
       if (!Cmp(parent_type, "class"))
@@ -1249,36 +1239,28 @@ public:
       parent = parentNode(parent);
     }
 
-    Printf(fully_qualified_name, "%s%s", qualification, name);
-
-    normalized_name = normalizeTemplatedClassName(fully_qualified_name);
-    if (!strncmp(Char(normalized_name), "enum ", 5)) {
-      Insert(normalized_name, 5, qualification);
-    }
-
-    return normalized_name;
+    return fully_qualified_name;
   }
 
   /* Benedikt Grundmann inspired --> Enum wrap styles */
 
   int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "name");
-    String *qvalue = 0;
+    SwigType *qtype = 0;
 
-    if (name_qualifier) {
-      qvalue = Copy(name_qualifier);
-      Printv(qvalue, name, NIL);
+    if (name_qualifier_type) {
+      qtype = Copy(name_qualifier_type);
+      Printv(qtype, name, NIL);
     }
 
-    if (const_enum && name && !Getattr(seen_enumvalues, name)) {
+    if (const_enum && qtype && name && !Getattr(seen_enumvalues, name)) {
       Setattr(seen_enumvalues, name, "true");
       SetFlag(n, "feature:immutable");
       Setattr(n, "feature:enumvalue", "1");	// this does not appear to be used
 
-      if (qvalue)
-	Setattr(n, "qualified:value", qvalue);
+      Setattr(n, "qualified:name", SwigType_namestr(qtype));
 
-      String *evname = SwigType_manglestr(qvalue);
+      String *evname = SwigType_manglestr(qtype);
       Insert(evname, 0, "SWIG_ENUM_");
 
       Setattr(n, "feature:enumvname", name);
@@ -1309,10 +1291,10 @@ public:
       /* name is now fully qualified */
       String *fully_qualified_name = NewString(name);
       bool seen_enum = false;
-      if (name_qualifier)
-        Delete(name_qualifier);
+      if (name_qualifier_type)
+        Delete(name_qualifier_type);
       char *strip_position;
-      name_qualifier = fully_qualify_enum_name(n, NewString(""));
+      name_qualifier_type = fully_qualified_enum_type(n);
 
       strip_position = strstr(Char(oname), "::");
 
@@ -1389,29 +1371,23 @@ public:
   int classDirectorMethod(Node *n, Node *parent, String *super) {
     int is_void = 0;
     int is_pointer = 0;
-    String *storage;
-    String *value;
-    String *decl;
-    String *type;
-    String *name;
-    String *classname;
+    String *storage = Getattr(n, "storage");
+    String *value = Getattr(n, "value");
+    String *decl = Getattr(n, "decl");
+    String *returntype = Getattr(n, "type");
+    String *name = Getattr(n, "name");
+    String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");
-    String *declaration;
-    ParmList *l;
-    Wrapper *w;
+    String *symname = Getattr(n, "sym:name");
+    String *declaration = NewString("");
+    ParmList *l = Getattr(n, "parms");
+    Wrapper *w = NewWrapper();
     String *tm;
     String *wrap_args = NewString("");
-    String *return_type;
     int status = SWIG_OK;
     int idx;
     bool pure_virtual = false;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
-
-    storage = Getattr(n, "storage");
-    value = Getattr(n, "value");
-    classname = Getattr(parent, "sym:name");
-    type = Getattr(n, "type");
-    name = Getattr(n, "name");
 
     if (Cmp(storage, "virtual") == 0) {
       if (Cmp(value, "0") == 0) {
@@ -1419,32 +1395,17 @@ public:
       }
     }
 
-    w = NewWrapper();
-    declaration = NewString("");
     Wrapper_add_local(w, "swig_result", "CAMLparam0();\n" "SWIG_CAMLlocal2(swig_result,args)");
 
     /* determine if the method returns a pointer */
-    decl = Getattr(n, "decl");
     is_pointer = SwigType_ispointer_return(decl);
-    is_void = (!Cmp(type, "void") && !is_pointer);
-
-    /* form complete return type */
-    return_type = Copy(type);
-    {
-      SwigType *t = Copy(decl);
-      SwigType *f = 0;
-      f = SwigType_pop_function(t);
-      SwigType_push(return_type, t);
-      Delete(f);
-      Delete(t);
-    }
+    is_void = (!Cmp(returntype, "void") && !is_pointer);
 
     /* virtual method definition */
-    l = Getattr(n, "parms");
     String *target;
     String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
-    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : type;
+    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
     target = Swig_method_decl(rtype, decl, qualified_name, l, 0, 0);
     Printf(w->def, "%s {", target);
     Delete(qualified_name);
@@ -1460,7 +1421,7 @@ public:
      */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	Wrapper_add_localv(w, "c_result", SwigType_lstr(return_type, "c_result"), NIL);
+	Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
       }
     }
 
@@ -1478,6 +1439,8 @@ public:
     } else {
       /* attach typemaps to arguments (C/C++ -> Ocaml) */
       String *arglist = NewString("");
+
+      Swig_director_parms_fixup(l);
 
       Swig_typemap_attach_parms("in", l, 0);
       Swig_typemap_attach_parms("directorin", l, 0);
@@ -1507,6 +1470,7 @@ public:
 
 	Putc(',', arglist);
 	if ((tm = Getattr(p, "tmap:directorin")) != 0) {
+	  Setattr(p, "emit:directorinput", pname);
 	  Replaceall(tm, "$input", pname);
 	  Replaceall(tm, "$owner", "0");
 	  if (Len(tm) == 0)
@@ -1594,12 +1558,12 @@ public:
 	     "swig_result = caml_swig_alloc(1,C_list);\n" "SWIG_Store_field(swig_result,0,args);\n" "args = swig_result;\n" "swig_result = Val_unit;\n", 0);
       Printf(w->code, "swig_result = " "callback3(*caml_named_value(\"swig_runmethod\")," "swig_get_self(),copy_string(\"%s\"),args);\n", Getattr(n, "name"));
       /* exception handling */
-      tm = Swig_typemap_lookup("director:except", n, "result", 0);
+      tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);
       if (!tm) {
 	tm = Getattr(n, "feature:director:except");
       }
       if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-	Printf(w->code, "if (!result) {\n");
+	Printf(w->code, "if (!%s) {\n", Swig_cresult_name());
 	Printf(w->code, "  CAML_VALUE error = *caml_named_value(\"director_except\");\n");
 	Replaceall(tm, "$error", "error");
 	Printv(w->code, Str(tm), "\n", NIL);
@@ -1621,16 +1585,7 @@ public:
 
       idx = 0;
 
-      /* this seems really silly.  the node's type excludes 
-       * qualifier/pointer/reference markers, which have to be retrieved 
-       * from the decl field to construct return_type.  but the typemap
-       * lookup routine uses the node's type, so we have to swap in and
-       * out the correct type.  it's not just me, similar silliness also
-       * occurs in Language::cDeclaration().
-       */
-      Setattr(n, "type", return_type);
       tm = Swig_typemap_lookup("directorout", n, "c_result", w);
-      Setattr(n, "type", type);
       if (tm != 0) {
 	Replaceall(tm, "$input", "swig_result");
 	/* TODO check this */
@@ -1646,8 +1601,8 @@ public:
       /* marshal outputs */
       for (p = l; p;) {
 	if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
-	  Replaceall(tm, "$input", "swig_result");
-	  Replaceall(tm, "$result", Getattr(p, "name"));
+	  Replaceall(tm, "$result", "swig_result");
+	  Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
 	  Printv(w->code, tm, "\n", NIL);
 	  p = Getattr(p, "tmap:directorargout:next");
 	} else {
@@ -1665,15 +1620,15 @@ public:
       if (!(ignored_method && !pure_virtual)) {
 	/* A little explanation:
 	 * The director_enum test case makes a method whose return type
-	 * is an enum type.  return_type here is "int".  gcc complains
+	 * is an enum type.  returntype here is "int".  gcc complains
 	 * about an implicit enum conversion, and although i don't strictly
 	 * agree with it, I'm working on fixing the error:
 	 *
 	 * Below is what I came up with.  It's not great but it should
 	 * always essentially work.
 	 */
-	if (!SwigType_isreference(return_type)) {
-	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", SwigType_lstr(return_type, ""));
+	if (!SwigType_isreference(returntype)) {
+	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", SwigType_lstr(returntype, ""));
 	} else {
 	  Printf(w->code, "CAMLreturn_type(*c_result);\n");
 	}
@@ -1700,6 +1655,7 @@ public:
     /* emit the director method */
     if (status == SWIG_OK) {
       if (!Getattr(n, "defaultargs")) {
+	Replaceall(w->code, "$symname", symname);
 	Wrapper_print(w, f_directors);
 	Printv(f_directors_h, declaration, NIL);
 	Printv(f_directors_h, inline_extra_method, NIL);
@@ -1708,7 +1664,6 @@ public:
 
     /* clean up */
     Delete(wrap_args);
-    Delete(return_type);
     Delete(pclassname);
     DelWrapper(w);
     return status;

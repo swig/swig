@@ -42,7 +42,7 @@
       static PyObject *from(const multimap_type& multimap) {
 	swig_type_info *desc = swig::type_info<multimap_type>();
 	if (desc && desc->clientdata) {
-	  return SWIG_NewPointerObj(new multimap_type(multimap), desc, SWIG_POINTER_OWN);
+	  return SWIG_InternalNewPointerObj(new multimap_type(multimap), desc, SWIG_POINTER_OWN);
 	} else {
 	  size_type size = multimap.size();
 	  int pysize = (size <= (size_type) INT_MAX) ? (int) size : -1;

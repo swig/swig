@@ -11,26 +11,20 @@
  * Guile language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_guile_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #include <ctype.h>
 
 // Note string broken in half for compilers that can't handle long strings
-static const char *guile_usage = (char *) "\
+static const char *usage = (char *) "\
 Guile Options (available with -guile)\n\
-     -prefix <name>          - Use <name> as prefix [default \"gswig_\"]\n\
-     -package <name>         - Set the path of the module to <name>\n\
-                               (default NULL)\n\
      -emitsetters            - Emit procedures-with-setters for variables\n\
                                and structure slots.\n\
-     -onlysetters            - Don't emit traditional getter and setter\n\
-                               procedures for structure slots,\n\
-                               only emit procedures-with-setters.\n\
-     -procdoc <file>         - Output procedure documentation to <file>\n\
-     -procdocformat <format> - Output procedure documentation in <format>;\n\
-                               one of `guile-1.4', `plain', `texinfo'\n\
+     -emitslotaccessors      - Emit accessor methods for all GOOPS slots\n" "\
+     -exportprimitive        - Add the (export ...) code from scmstub into the\n\
+                               GOOPS file.\n\
+     -gh                     - Use the gh_ Guile API. (Guile <= 1.8) \n\
+     -goopsprefix <prefix>   - Prepend <prefix> to all goops identifiers\n\
      -linkage <lstyle>       - Use linkage protocol <lstyle> (default `simple')\n\
                                Use `module' for native Guile module linking\n\
                                (requires Guile >= 1.5.0).  Use `passive' for\n\
@@ -38,18 +32,23 @@ Guile Options (available with -guile)\n\
                                `ltdlmod' for Guile's old dynamic module\n\
                                convention (Guile <= 1.4), or `hobbit' for hobbit\n\
                                modules.\n\
-     -scmstub                - Output Scheme file with module declaration and\n\
-                               exports; only with `passive' and `simple' linkage\n\
-     -gh                     - Use the gh_ Guile API. (Guile <= 1.8) \n\
-     -scm                    - Use the scm Guile API. (Guile >= 1.6, default) \n\
+     -onlysetters            - Don't emit traditional getter and setter\n\
+                               procedures for structure slots,\n\
+                               only emit procedures-with-setters.\n\
+     -package <name>         - Set the path of the module to <name>\n\
+                               (default NULL)\n\
+     -prefix <name>          - Use <name> as prefix [default \"gswig_\"]\n\
+     -procdoc <file>         - Output procedure documentation to <file>\n\
+     -procdocformat <format> - Output procedure documentation in <format>;\n\
+                               one of `guile-1.4', `plain', `texinfo'\n\
      -proxy                  - Export GOOPS class definitions\n\
-     -emitslotaccessors      - Emit accessor methods for all GOOPS slots\n" "\
      -primsuffix <suffix>    - Name appended to primitive module when exporting\n\
                                GOOPS classes. (default = \"primitive\")\n\
-     -goopsprefix <prefix>   - Prepend <prefix> to all goops identifiers\n\
+     -scm                    - Use the scm Guile API. (Guile >= 1.6, default) \n\
+     -scmstub                - Output Scheme file with module declaration and\n\
+                               exports; only with `passive' and `simple' linkage\n\
      -useclassprefix         - Prepend the class name to all goops identifiers\n\
-     -exportprimitive        - Add the (export ...) code from scmstub into the\n\
-                               GOOPS file.\n";
+\n";
 
 static File *f_begin = 0;
 static File *f_runtime = 0;
@@ -58,9 +57,9 @@ static File *f_wrappers = 0;
 static File *f_init = 0;
 
 
-static char *prefix = (char *) "gswig_";
+static String *prefix = NewString("gswig_");
 static char *module = 0;
-static char *package = 0;
+static String *package = 0;
 static enum {
   GUILE_LSTYLE_SIMPLE,		// call `SWIG_init()'
   GUILE_LSTYLE_PASSIVE,		// passive linking (no module code)
@@ -126,7 +125,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
-    int i, orig_len;
+    int i;
 
      SWIG_library_directory("guile");
      SWIG_typemap_lang("guile");
@@ -135,12 +134,11 @@ public:
     for (i = 1; i < argc; i++) {
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
-	  fputs(guile_usage, stdout);
+	  fputs(usage, stdout);
 	  SWIG_exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
-	    prefix = new char[strlen(argv[i + 1]) + 2];
-	    strcpy(prefix, argv[i + 1]);
+	    prefix = NewString(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
@@ -149,8 +147,7 @@ public:
 	  }
 	} else if (strcmp(argv[i], "-package") == 0) {
 	  if (argv[i + 1]) {
-	    package = new char[strlen(argv[i + 1]) + 2];
-	    strcpy(package, argv[i + 1]);
+	    package = NewString(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
@@ -277,12 +274,12 @@ public:
       // should use Swig_warning() ?
       Printf(stderr, "guile: Warning: -exportprimitive only makes sense with passive linkage without a scmstub.\n");
     }
-    // Make sure `prefix' ends in an underscore
 
-    orig_len = strlen(prefix);
-    if (prefix[orig_len - 1] != '_') {
-      prefix[1 + orig_len] = 0;
-      prefix[orig_len] = '_';
+    // Make sure `prefix' ends in an underscore
+    if (prefix) {
+      const char *px = Char(prefix);
+      if (px[Len(prefix) - 1] != '_')
+	Printf(prefix, "_");
     }
 
     /* Add a symbol for this module */
@@ -408,7 +405,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     return SWIG_OK;
@@ -881,10 +877,10 @@ public:
       Printv(actioncode, tab4, "gh_allow_ints();\n", NIL);
 
     // Now have return value, figure out what to do with it.
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
       Replaceall(tm, "$result", "gswig_result");
       Replaceall(tm, "$target", "gswig_result");
-      Replaceall(tm, "$source", "result");
+      Replaceall(tm, "$source", Swig_cresult_name());
       if (GetFlag(n, "feature:new"))
 	Replaceall(tm, "$owner", "1");
       else
@@ -921,14 +917,14 @@ public:
     // Look for any remaining cleanup
 
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-	Replaceall(tm, "$source", "result");
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printv(f->code, tm, "\n", NIL);
       }
     }
     // Free any memory allocated by the function being wrapped..
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, "\n", NIL);
     }
     // Wrap things up (in a manner of speaking)
@@ -1392,9 +1388,10 @@ public:
     }
     // See if there's a typemap
 
+    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
     if (SwigType_type(nctype) == T_STRING) {
       rvalue = NewStringf("\"%s\"", value);
-    } else if (SwigType_type(nctype) == T_CHAR) {
+    } else if (SwigType_type(nctype) == T_CHAR && !is_enum_item) {
       rvalue = NewStringf("\'%s\'", value);
     } else {
       rvalue = NewString(value);

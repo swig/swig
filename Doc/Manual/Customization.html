@@ -455,6 +455,11 @@ variables are replaced with.
 </tr>
 
 <tr>
+<td>$name</td>
+<td>The C/C++ symbol name for the function.</td>
+</tr>
+
+<tr>
 <td>$symname</td>
 <td>The symbol name used internally by SWIG</td>
 </tr>
@@ -477,6 +482,16 @@ variables are replaced with.
 <tr>
 <td>$fulldecl</td>
 <td>The fully qualified C/C++ declaration of the method being wrapped including the return type</td>
+</tr>
+
+<tr>
+<td>$parentname</td>
+<td>The parent class name (if any) for a method.</td>
+</tr>
+
+<tr>
+<td>$parentsymname</td>
+<td>The target language parent class name (if any) for a method.</td>
 </tr>
 
 </table>
@@ -702,6 +717,11 @@ should not attempt to deallocate it twice. This is similar to use the
 DISOWN typemap in the first method argument, and in fact, it also
 depends on the target language on implementing the 'disown' mechanism
 properly.
+</p>
+
+<p>
+The use of <tt>%newobject</tt> is also integrated with reference counting and is covered in the
+<a href="SWIGPlus.html#SWIGPlus_ref_unref">C++ reference counted objects</a> section.
 </p>
 
 <p>

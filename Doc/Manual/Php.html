@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Php"></a>30 SWIG and PHP</H1>
+<H1><a name="Php"></a>32 SWIG and PHP</H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -49,19 +49,23 @@
 
 
 <p>
-SWIG supports generating wrappers for PHP5.  Support for PHP4 has been removed
-as of SWIG 1.3.37.  The PHP developers are no longer making new PHP4 releases,
+SWIG supports generating wrappers for PHP5.  Support for PHP4 was removed
+in SWIG 1.3.37.  The PHP developers are no longer making new PHP4 releases,
 and won't even be patching critical security issues after 2008-08-08, so it
-doesn't make much sense for SWIG to continue to support PHP4 at this point.
-If you need to continue to use PHP4, stick with SWIG 1.3.36.
+doesn't make much sense for SWIG to continue to support PHP4 now.  If you
+really need to continue to use PHP4, just stick with SWIG 1.3.36.
+</p>
+
+<p>
+Currently any PHP5 release should work, but we don't regularly test with
+PHP &lt; 5.3.
 </p>
 
 <p>
 In this chapter, we discuss SWIG's support of PHP.  The PHP module
 was extensively rewritten in release 1.3.26, and support for generating
-OO wrappers for PHP5 was added in 1.3.30.  The PHP module works fairly
-well, but currently does not implement all the
-features available in some of the other languages.
+OO wrappers for PHP5 was added in 1.3.30.  The PHP module now supports most
+of the features available in some of the other languages.
 </p>
 
 <p>
@@ -75,7 +79,7 @@ your extension into php directly, you will need the complete PHP source tree
 available.
 </p>
 
-<H2><a name="Php_nn1"></a>30.1 Generating PHP Extensions</H2>
+<H2><a name="Php_nn1"></a>32.1 Generating PHP Extensions</H2>
 
 
 <p>
@@ -122,7 +126,7 @@ and it doesn't play nicely with package system.  We don't recommend
 this approach, or provide explicit support for it.
 </p>
 
-<H3><a name="Php_nn1_1"></a>30.1.1 Building a loadable extension</H3>
+<H3><a name="Php_nn1_1"></a>32.1.1 Building a loadable extension</H3>
 
 
 <p>
@@ -137,12 +141,12 @@ least work for Linux though):
 	gcc -shared example_wrap.o -o example.so
 </pre></div>
 
-<H3><a name="Php_nn1_3"></a>30.1.2 Using PHP Extensions</H3>
+<H3><a name="Php_nn1_3"></a>32.1.2 Using PHP Extensions</H3>
 
 
 <p>
 To test the extension from a PHP script, you need to load it first. You
-can load it for every script by adding this line the <tt>[PHP]</tt> section of
+can load it for every script by adding this line to the <tt>[PHP]</tt> section of
 <tt>php.ini</tt>:
 </p>
 
@@ -152,7 +156,7 @@ can load it for every script by adding this line the <tt>[PHP]</tt> section of
 
 <p>
 Alternatively, you can load it explicitly only for scripts which need it
-by adding this line:
+by adding this line to the start of each such PHP script::
 </p>
 
 <div class="code"><pre>
@@ -160,7 +164,7 @@ by adding this line:
 </pre></div>
 
 <p>
-to the start of each PHP file.  SWIG also generates a php module, which
+SWIG also generates a php module, which
 attempts to do the <tt>dl()</tt> call for you:
 </p>
 
@@ -168,21 +172,22 @@ attempts to do the <tt>dl()</tt> call for you:
 	include("example.php");
 </pre></div>
 
-<H2><a name="Php_nn2"></a>30.2 Basic PHP interface</H2>
+<H2><a name="Php_nn2"></a>32.2 Basic PHP interface</H2>
 
 
 <p>
 It is important to understand that PHP uses a single global namespace
 into which all symbols from extension modules are loaded.  It is quite
 possible for names of symbols in one extension module to clash with
-other symbols unless care is taken to <tt>%rename</tt> them.
+other symbols unless care is taken to <tt>%rename</tt> them.  At present
+SWIG doesn't have support for the namespace feature added in PHP 5.3.
 </p>
 
-<H3><a name="Php_nn2_1"></a>30.2.1 Constants</H3>
+<H3><a name="Php_nn2_1"></a>32.2.1 Constants</H3>
 
 
 <p>
-These work in much the same way as in C/C++, constants can be defined
+These work in much the same way as in C/C++.  Constants can be defined
 by using either the normal C pre-processor declarations, or the
 <tt>%constant</tt> SWIG directive.  These will then be available from
 your PHP script as a PHP constant, (i.e. no dollar sign is needed to
@@ -199,7 +204,7 @@ access them.) For example, with a swig interface file like this,
 </div>
 
 <p>
-you can access the constants in your php script like this,
+you can access the constants in your PHP script like this,
 </p>
 
 <div class="code"><pre>
@@ -213,9 +218,16 @@ echo "E = " . E . "\n";
 </div>
 
 <p>
-There are two peculiarities with using constants in PHP. The first is that
-if you try to use an undeclared constant, it will evaluate to a string
-set to the constant's name. For example,
+There's one peculiarity of how constants work in PHP which it is useful
+to note (this is not specific to SWIG though) - if you try to use an undeclared
+constant, PHP will issue a warning and then expand the constant to a string
+version of the constant's name.  The warning will often be missed though as
+if you're using PHP in a webserver, it will probably end up in error.log or
+similar.
+</p>
+
+<p>
+For example,
 </p>
 
 <div class="code"><pre>
@@ -243,67 +255,12 @@ if(EASY_TO_MISPEL) {
 </div>
 
 <p>
-will issue a warning about the undeclared constant, but will then
-evaluate it and turn it into a string ('EASY_TO_MISPEL'), which
-evaluates to true, rather than the value of the constant which would
-be false. This is a feature!
+The mis-spelled constant will become the string 'EASY_TO_MISPEL', which
+is treated as true by the if test, when the value of the intended constant
+would be treated as false!
 </p>
 
-<p>
-The second 'feature' is that although constants are case sensitive (by
-default), you cannot declare a constant twice with alternative
-cases. E.g.,
-</p>
-
-<div class="code">
-<pre>
-%module example
-
-#define TEST	Hello
-#define Test	World
-</pre>
-</div>
-
-<p>
-accessed from PHP,
-</p>
-
-<div class="code">
-<pre>
-include("example.php");
-
-echo TEST, Test;
-</pre>
-</div>
-
-<p>
-will output "Hello Test" rather than "Hello World". This is because
-internally, all constants are stored in a hash table by their lower
-case name, so 'TEST' and 'Test' will map to the same hash element
-('Test'). But, because we declared them case sensitive, the Zend
-engine will test if the case matches with the case the constant was
-declared with first.
-</p>
-
-<p>
-So, in the example above, the TEST constant was declared first, and
-will be stored under the hash element 'test'. The 'Test' constant will
-also map to the same hash element 'test', but will not overwrite
-it. When called from the script, the TEST constant will again be
-mapped to the hash element 'test' so the constant will be
-retrieved. The case will then be checked, and will match up, so the
-value ('Hello') will be returned. When 'Test' is evaluated, it will
-also map to the same hash element 'test'. The same constant will be
-retrieved, this time though the case check will fail as 'Test' !=
-'TEST'. So PHP will assume that Test is a undeclared constant, and as
-explained above, will return it as a string set to the constant name
-('Test'). Hence the script above will print 'Hello Test'. If they were
-declared non-case sensitive, the output would be 'Hello Hello', as
-both point to the same value, without the case test taking place.  (
-Apologies, this paragraph needs rewriting to make some sense. )
-</p>
-
-<H3><a name="Php_nn2_2"></a>30.2.2 Global Variables</H3>
+<H3><a name="Php_nn2_2"></a>32.2.2 Global Variables</H3>
 
 
 <p>
@@ -352,7 +309,7 @@ undefined.
 At this time SWIG does not support custom accessor methods.
 </p>
 
-<H3><a name="Php_nn2_3"></a>30.2.3 Functions</H3>
+<H3><a name="Php_nn2_3"></a>32.2.3 Functions</H3>
 
 
 <p>
@@ -405,7 +362,7 @@ print $s;      # The value of $s was not changed.
 -->
 
 
-<H3><a name="Php_nn2_4"></a>30.2.4 Overloading</H3>
+<H3><a name="Php_nn2_4"></a>32.2.4 Overloading</H3>
 
 
 <p>
@@ -461,7 +418,7 @@ taking the integer argument.
 </p>
 -->
 
-<H3><a name="Php_nn2_5"></a>30.2.5 Pointers and References</H3>
+<H3><a name="Php_nn2_5"></a>32.2.5 Pointers and References</H3>
 
 
 <p>
@@ -549,6 +506,12 @@ this, one needs to include <b>phppointers.i</b> which defines the
 named typemap REFERENCE.
 </p>
 
+<p>
+However, this relies on call-time pass-by-reference, which has been
+deprecated in PHP for some time, and was finally <b>removed in PHP 5.4</b>.
+So you should avoid creating new wrappers which rely on this approach.
+</p>
+
 <div class="code"><pre>
 %module example
 %include "phppointers.i"
@@ -593,13 +556,15 @@ PHP in a number of ways: by using <tt>unset</tt> on an existing
 variable, or assigning <tt>NULL</tt> to a variable.
 </p>
 
-<H3><a name="Php_nn2_6"></a>30.2.6 Structures and C++ classes</H3>
+<H3><a name="Php_nn2_6"></a>32.2.6 Structures and C++ classes</H3>
 
 
 <p>
-SWIG defaults to wrapping C++ structs and classes with PHP classes
-unless "-noproxy" is specified.  For PHP5, a PHP wrapper
-class is generated which calls a set of flat functions wrapping the C++ class.
+SWIG defaults to wrapping C++ structs and classes with PHP classes - this
+is done by generating a PHP wrapper script which defines proxy classes
+which calls a set of flat functions which actually wrap the C++ class.
+You can disable this wrapper layer by passing the command-line option
+"-noproxy" in which case you'll just get the flat functions.
 </p>
 
 <p>
@@ -652,7 +617,7 @@ Would be used in the following way from PHP5:
 Member variables and methods are accessed using the <tt>-&gt;</tt> operator.
 </p>
 
-<H4><a name="Php_nn2_6_1"></a>30.2.6.1 Using <tt>-noproxy</tt></H4>
+<H4><a name="Php_nn2_6_1"></a>32.2.6.1 Using <tt>-noproxy</tt></H4>
 
 
 <p>
@@ -678,7 +643,7 @@ Complex_im_set($obj,$d);
 Complex_im_get($obj);
 </pre></div>
 
-<H4><a name="Php_nn2_6_2"></a>30.2.6.2 Constructors and Destructors</H4>
+<H4><a name="Php_nn2_6_2"></a>32.2.6.2 Constructors and Destructors</H4>
 
 
 <p>
@@ -719,7 +684,7 @@ the programmer can either reassign the variable or call
 <tt>unset($v)</tt>
 </p>
 
-<H4><a name="Php_nn2_6_3"></a>30.2.6.3 Static Member Variables</H4>
+<H4><a name="Php_nn2_6_3"></a>32.2.6.3 Static Member Variables</H4>
 
 
 <p>
@@ -746,7 +711,7 @@ would be accessed in PHP as,
 <div class="code"><pre>
 include("example.php");
 
-echo "There has now been " . Ko::threats() . " threats\n";
+echo "There have now been " . Ko::threats() . " threats\n";
 
 </pre></div>
 
@@ -759,10 +724,10 @@ function, e.g.
 
 Ko::threats(10);
 
-echo "There has now been " . Ko::threats() . " threats\n";
+echo "There have now been " . Ko::threats() . " threats\n";
 
 </pre></div>
-<H4><a name="Php_nn2_6_4"></a>30.2.6.4 Static Member Functions</H4>
+<H4><a name="Php_nn2_6_4"></a>32.2.6.4 Static Member Functions</H4>
 
 
 <p>
@@ -784,7 +749,7 @@ Ko::threats();
 </pre></div>
 
 
-<H3><a name="Php_nn2_7"></a>30.2.7 PHP Pragmas, Startup and Shutdown code</H3>
+<H3><a name="Php_nn2_7"></a>32.2.7 PHP Pragmas, Startup and Shutdown code</H3>
 
 
 <p>
@@ -872,7 +837,7 @@ The <tt>%rinit</tt> and <tt>%rshutdown</tt> statements are very similar but inse
 into the request init (PHP_RINIT_FUNCTION) and request shutdown (PHP_RSHUTDOWN_FUNCTION) code respectively.
 </p>
 
-<H2><a name="Php_nn3"></a>30.3 Cross language polymorphism</H2>
+<H2><a name="Php_nn3"></a>32.3 Cross language polymorphism</H2>
 
 
 <p>
@@ -907,7 +872,7 @@ wrapper functions takes care of all the cross-language method routing
 transparently.
 </p>
 
-<H3><a name="Php_nn3_1"></a>30.3.1 Enabling directors</H3>
+<H3><a name="Php_nn3_1"></a>32.3.1 Enabling directors</H3>
 
 
 <p>
@@ -936,9 +901,6 @@ globally, to specific classes, and to specific methods, like this:
 
 // generate directors for all virtual methods in class Foo
 %feature("director") Foo;      
-
-// generate a director for just Foo::bar()
-%feature("director") Foo::bar; 
 </pre>
 </div>
 
@@ -999,7 +961,7 @@ class MyFoo extends Foo {
 </div>
 
 
-<H3><a name="Php_nn3_2"></a>30.3.2 Director classes</H3>
+<H3><a name="Php_nn3_2"></a>32.3.2 Director classes</H3>
 
 
  
@@ -1079,7 +1041,7 @@ so there is no need for the extra overhead involved with routing the
 calls through PHP.
 </p>
 
-<H3><a name="Php_nn3_3"></a>30.3.3 Ownership and object destruction</H3>
+<H3><a name="Php_nn3_3"></a>32.3.3 Ownership and object destruction</H3>
 
 
 <p>
@@ -1135,7 +1097,7 @@ In this example, we are assuming that FooContainer will take care of
 deleting all the Foo pointers it contains at some point.
 </p>
 
-<H3><a name="Php_nn3_4"></a>30.3.4 Exception unrolling</H3>
+<H3><a name="Php_nn3_4"></a>32.3.4 Exception unrolling</H3>
 
 
 <p>
@@ -1194,7 +1156,7 @@ Swig::DirectorMethodException is thrown, PHP will register the exception
 as soon as the C wrapper function returns.
 </p>
 
-<H3><a name="Php_nn3_5"></a>30.3.5 Overhead and code bloat</H3>
+<H3><a name="Php_nn3_5"></a>32.3.5 Overhead and code bloat</H3>
 
 
 <p>
@@ -1227,7 +1189,7 @@ optimized by selectively enabling director methods (using the %feature
 directive) for only those methods that are likely to be extended in PHP.
 </p>
 
-<H3><a name="Php_nn3_6"></a>30.3.6 Typemaps</H3>
+<H3><a name="Php_nn3_6"></a>32.3.6 Typemaps</H3>
 
 
 <p>
@@ -1241,7 +1203,7 @@ need to be supported.
 </p>
 
 
-<H3><a name="Php_nn3_7"></a>30.3.7 Miscellaneous</H3>
+<H3><a name="Php_nn3_7"></a>32.3.7 Miscellaneous</H3>
 
 
 <p> Director typemaps for STL classes are mostly in place, and hence you

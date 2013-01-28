@@ -11,20 +11,18 @@
  * Mzscheme language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_mzscheme_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #include <ctype.h>
 
 static const char *usage = (char *) "\
 Mzscheme Options (available with -mzscheme)\n\
-     -prefix <name>                         - Set a prefix <name> to be prepended to all names\n\
      -declaremodule                         - Create extension that declares a module\n\
-     -noinit                                - Do not emit scheme_initialize, scheme_reload,\n\
-                                              scheme_module_name functions\n\
      -dynamic-load <library>,[library,...]  - Do not link with these libraries, dynamic load\n\
                                               them\n\
+     -noinit                                - Do not emit scheme_initialize, scheme_reload,\n\
+                                              scheme_module_name functions\n\
+     -prefix <name>                         - Set a prefix <name> to be prepended to all names\n\
 ";
 
 static String *fieldnames_tab = 0;
@@ -33,12 +31,10 @@ static String *convert_proto_tab = 0;
 static String *struct_name = 0;
 static String *mangled_struct_name = 0;
 
-static char *prefix = 0;
+static String *prefix = 0;
 static bool declaremodule = false;
 static bool noinit = false;
-//DLOPEN PATCH
-static char *load_libraries = NULL;
-//DLOPEN PATCH
+static String *load_libraries = NULL;
 static String *module = 0;
 static char *mzscheme_path = (char *) "mzscheme";
 static String *init_func_def = 0;
@@ -75,8 +71,7 @@ public:
 	  SWIG_exit(0);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
-	    prefix = new char[strlen(argv[i + 1]) + 2];
-	    strcpy(prefix, argv[i + 1]);
+	    prefix = NewString(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
@@ -90,26 +85,26 @@ public:
 	  noinit = true;
 	  Swig_mark_arg(i);
 	}
-// DLOPEN PATCH
 	else if (strcmp(argv[i], "-dynamic-load") == 0) {
-	  load_libraries = new char[strlen(argv[i + 1]) + 2];
-	  strcpy(load_libraries, argv[i + 1]);
-	  Swig_mark_arg(i++);
-	  Swig_mark_arg(i);
+	  if (argv[i + 1]) {
+	    Delete(load_libraries);
+	    load_libraries = NewString(argv[i + 1]);
+	    Swig_mark_arg(i++);
+	    Swig_mark_arg(i);
+	  } else {
+	    Swig_arg_error();
+	  }
 	}
-// DLOPEN PATCH
       }
     }
 
-    // If a prefix has been specified make sure it ends in a '_'
-
+    // If a prefix has been specified make sure it ends in a '_' (not actually used!)
     if (prefix) {
-      if (prefix[strlen(prefix)] != '_') {
-	prefix[strlen(prefix) + 1] = 0;
-	prefix[strlen(prefix)] = '_';
-      }
+      const char *px = Char(prefix);
+      if (px[Len(prefix) - 1] != '_')
+	Printf(prefix, "_");
     } else
-      prefix = (char *) "swig_";
+      prefix = NewString("swig_");
 
     // Add a symbol for this module
 
@@ -177,11 +172,9 @@ public:
       Printf(f_init, "\treturn scheme_void;\n}\n");
       Printf(f_init, "Scheme_Object *scheme_initialize(Scheme_Env *env) {\n");
 
-      // DLOPEN PATCH
       if (load_libraries) {
 	Printf(f_init, "mz_set_dlopen_libraries(\"%s\");\n", load_libraries);
       }
-      // DLOPEN PATCH
 
       Printf(f_init, "\treturn scheme_reload(env);\n");
       Printf(f_init, "}\n");
@@ -203,7 +196,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     return SWIG_OK;
@@ -240,20 +232,17 @@ public:
     String *outarg = NewString("");
     String *build = NewString("");
     String *tm;
-    int argout_set = 0;
     int i = 0;
     int numargs;
     int numreq;
     String *overname = 0;
 
-    // PATCH DLOPEN
     if (load_libraries) {
       ParmList *parms = Getattr(n, "parms");
       SwigType *type = Getattr(n, "type");
       String *name = NewString("caller");
-      Setattr(n, "wrap:action", Swig_cresult(type, "result", Swig_cfunction_call(name, parms)));
+      Setattr(n, "wrap:action", Swig_cresult(type, Swig_cresult_name(), Swig_cfunction_call(name, parms)));
     }
-    // PATCH DLOPEN
 
     // Make a wrapper name for this
     String *wname = Swig_name_wrapper(iname);
@@ -293,7 +282,6 @@ public:
     numargs = emit_num_arguments(l);
     numreq = emit_num_required(l);
 
-    // DLOPEN PATCH
     /* Add the holder for the pointer to the function to be opened */
     if (load_libraries) {
       Wrapper_add_local(f, "_function_loaded", "static int _function_loaded=(1==0)");
@@ -304,19 +292,16 @@ public:
 	Wrapper_add_local(f, "caller", SwigType_lstr(d, func));	/*"(*caller)()")); */
       }
     }
-    // DLOPEN PATCH
 
     // adds local variables
     Wrapper_add_local(f, "lenv", "int lenv = 1");
     Wrapper_add_local(f, "values", "Scheme_Object *values[MAXVALUES]");
 
-    // DLOPEN PATCH
     if (load_libraries) {
       Printf(f->code, "if (!_function_loaded) { _the_function=mz_load_function(\"%s\");_function_loaded=(1==1); }\n", iname);
       Printf(f->code, "if (!_the_function) { scheme_signal_error(\"Cannot load C function '%s'\"); }\n", iname);
       Printf(f->code, "caller=_the_function;\n");
     }
-    // DLOPEN PATCH
 
     // Now write code to extract the parameters (this is super ugly)
 
@@ -381,7 +366,6 @@ public:
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
 	Printv(outarg, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
-	argout_set = 1;
       } else {
 	p = nextSibling(p);
       }
@@ -405,8 +389,8 @@ public:
     String *actioncode = emit_action(n);
 
     // Now have return value, figure out what to do with it.
-    if ((tm = Swig_typemap_lookup_out("out", n, "result", f, actioncode))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Replaceall(tm, "$target", "values[0]");
       Replaceall(tm, "$result", "values[0]");
       if (GetFlag(n, "feature:new"))
@@ -428,15 +412,15 @@ public:
     // Look for any remaining cleanup
 
     if (GetFlag(n, "feature:new")) {
-      if ((tm = Swig_typemap_lookup("newfree", n, "result", 0))) {
-	Replaceall(tm, "$source", "result");
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+	Replaceall(tm, "$source", Swig_cresult_name());
 	Printv(f->code, tm, "\n", NIL);
       }
     }
     // Free any memory allocated by the function being wrapped..
 
-    if ((tm = Swig_typemap_lookup("ret", n, "result", 0))) {
-      Replaceall(tm, "$source", "result");
+    if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+      Replaceall(tm, "$source", Swig_cresult_name());
       Printv(f->code, tm, "\n", NIL);
     }
     // Wrap things up (in a manner of speaking)
@@ -639,9 +623,10 @@ public:
       // Create variable and assign it a value
 
       Printf(f_header, "static %s = ", SwigType_lstr(type, var_name));
+      bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
       if ((SwigType_type(type) == T_STRING)) {
 	Printf(f_header, "\"%s\";\n", value);
-      } else if (SwigType_type(type) == T_CHAR) {
+      } else if (SwigType_type(type) == T_CHAR && !is_enum_item) {
 	Printf(f_header, "\'%s\';\n", value);
       } else {
 	Printf(f_header, "%s;\n", value);
@@ -682,7 +667,7 @@ public:
     String *mangled_classname = 0;
     String *real_classname = 0;
     String *scm_structname = NewString("");
-    SwigType *ctype_ptr = NewStringf("p.%s", Getattr(n, "classtype"));
+    SwigType *ctype_ptr = NewStringf("p.%s", getClassType());
 
     SwigType *t = NewStringf("p.%s", Getattr(n, "name"));
     swigtype_ptr = SwigType_manglestr(t);

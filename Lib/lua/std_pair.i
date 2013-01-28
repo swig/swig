@@ -10,7 +10,7 @@
 /*
 A really cut down version of the pair class.
 
-this is not useful on its owns is it needs a %template definition with it
+this is not useful on its own - it needs a %template definition with it
 
 eg.
 namespace std {

@@ -208,3 +208,9 @@ long long ll(long long ull) { return ull; }
 } 
 
 #endif
+
+%inline %{
+  int int_object(Spam *s) { return 999; }
+  int int_object(int c) { return c; }
+%}
+

@@ -12,7 +12,7 @@ func main() {
 	foo.Spam(1, 1)
 	foo.Spam(1, 1, 1)
 	foo.Spam(extend_placement.NewFoo())
-	foo.Spam(extend_placement.NewFoo(), float64(1.0))
+	foo.Spam(extend_placement.NewFoo(), 1.0)
 
 	bar := extend_placement.NewBar()
 	bar = extend_placement.NewBar(1)
@@ -22,7 +22,7 @@ func main() {
 	bar.Spam(1, 1)
 	bar.Spam(1, 1, 1)
 	bar.Spam(extend_placement.NewBar())
-	bar.Spam(extend_placement.NewBar(), float64(1.0))
+	bar.Spam(extend_placement.NewBar(), 1.0)
 
 	footi := extend_placement.NewFooTi()
 	footi = extend_placement.NewFooTi(1)
@@ -33,7 +33,7 @@ func main() {
 	footi.Spam(1, 1)
 	footi.Spam(1, 1, 1)
 	footi.Spam(extend_placement.NewFoo())
-	footi.Spam(extend_placement.NewFoo(), float64(1.0))
+	footi.Spam(extend_placement.NewFoo(), 1.0)
 
 	barti := extend_placement.NewBarTi()
 	barti = extend_placement.NewBarTi(1)
@@ -43,5 +43,5 @@ func main() {
 	barti.Spam(1, 1)
 	barti.Spam(1, 1, 1)
 	barti.Spam(extend_placement.NewBar())
-	barti.Spam(extend_placement.NewBar(), float64(1.0))
+	barti.Spam(extend_placement.NewBar(), 1.0)
 }

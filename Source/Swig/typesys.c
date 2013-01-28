@@ -14,8 +14,6 @@
  * run-time type checker is also handled here.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_typesys_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 
@@ -107,12 +105,12 @@ static Typetab *global_scope = 0;	/* The global scope                           
 static Hash *scopes = 0;	/* Hash table containing fully qualified scopes */
 
 /* Performance optimization */
-#define SWIG_TYPEDEF_RESOLVE_CACHE
+#define SWIG_TYPEDEF_RESOLVE_CACHE 
 static Hash *typedef_resolve_cache = 0;
 static Hash *typedef_all_cache = 0;
 static Hash *typedef_qualified_cache = 0;
 
-static Typetab *SwigType_find_scope(Typetab *s, String *nameprefix);
+static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix);
 
 /* common attribute keys, to avoid calling find_key all the times */
 
@@ -167,7 +165,7 @@ void SwigType_typesystem_init() {
  * already defined.  
  * ----------------------------------------------------------------------------- */
 
-int SwigType_typedef(SwigType *type, const_String_or_char_ptr name) {
+int SwigType_typedef(const SwigType *type, const_String_or_char_ptr name) {
   if (Getattr(current_typetab, name))
     return -1;			/* Already defined */
   if (Strcmp(type, name) == 0) {	/* Can't typedef a name to itself */
@@ -297,7 +295,7 @@ void SwigType_inherit_scope(Typetab *scope) {
 
 void SwigType_scope_alias(String *aliasname, Typetab *ttab) {
   String *q;
-  /*  Printf(stdout,"alias: '%s' '%x'\n", aliasname, ttab); */
+  /*  Printf(stdout,"alias: '%s' '%p'\n", aliasname, ttab); */
   q = SwigType_scope_name(current_scope);
   if (Len(q)) {
     Append(q, "::");
@@ -389,37 +387,41 @@ void SwigType_attach_symtab(Symtab *sym) {
  * Debugging function for printing out current scope
  * ----------------------------------------------------------------------------- */
 
-void SwigType_print_scope(Typetab *t) {
+void SwigType_print_scope(void) {
   Hash *ttab;
   Iterator i, j;
 
+  Printf(stdout, "SCOPES start  =======================================\n");
   for (i = First(scopes); i.key; i = Next(i)) {
-    t = i.item;
+    Printf(stdout, "-------------------------------------------------------------\n");
     ttab = Getattr(i.item, "typetab");
 
-    Printf(stdout, "Type scope '%s' (%x)\n", i.key, i.item);
+    Printf(stdout, "Type scope '%s' (%p)\n", i.key, i.item);
     {
       List *inherit = Getattr(i.item, "inherit");
       if (inherit) {
 	Iterator j;
 	for (j = First(inherit); j.item; j = Next(j)) {
-	  Printf(stdout, "    Inherits from '%s' (%x)\n", Getattr(j.item, "qname"), j.item);
+	  Printf(stdout, "    Inherits from '%s' (%p)\n", Getattr(j.item, "qname"), j.item);
 	}
       }
     }
-    Printf(stdout, "-------------------------------------------------------------\n");
     for (j = First(ttab); j.key; j = Next(j)) {
       Printf(stdout, "%40s -> %s\n", j.key, j.item);
     }
   }
+  Printf(stdout, "SCOPES finish =======================================\n");
 }
 
-static Typetab *SwigType_find_scope(Typetab *s, String *nameprefix) {
+static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
   Typetab *ss;
+  Typetab *s_orig = s;
   String *nnameprefix = 0;
   static int check_parent = 1;
 
-  /*  Printf(stdout,"find_scope: %x(%s) '%s'\n", s, Getattr(s,"name"), nameprefix); */
+  if (Getmark(s))
+    return 0;
+  Setmark(s, 1);
 
   if (SwigType_istemplate(nameprefix)) {
     nnameprefix = SwigType_typedef_resolve_all(nameprefix);
@@ -444,6 +446,7 @@ static Typetab *SwigType_find_scope(Typetab *s, String *nameprefix) {
     if (s) {
       if (nnameprefix)
 	Delete(nnameprefix);
+      Setmark(s_orig, 0);
       return s;
     }
     if (!s) {
@@ -463,6 +466,7 @@ static Typetab *SwigType_find_scope(Typetab *s, String *nameprefix) {
 	  if (s) {
 	    if (nnameprefix)
 	      Delete(nnameprefix);
+	    Setmark(s_orig, 0);
 	    return s;
 	  }
 	}
@@ -474,6 +478,7 @@ static Typetab *SwigType_find_scope(Typetab *s, String *nameprefix) {
   }
   if (nnameprefix)
     Delete(nnameprefix);
+  Setmark(s_orig, 0);
   return 0;
 }
 
@@ -533,6 +538,53 @@ static SwigType *_typedef_resolve(Typetab *s, String *base, int look_parent) {
   return type;
 }
 
+/* ----------------------------------------------------------------------------- 
+ * template_parameters_resolve()
+ *
+ * For use with templates only. The template parameters are resolved. If none
+ * of the parameters can be resolved, zero is returned.
+ * ----------------------------------------------------------------------------- */
+
+static String *template_parameters_resolve(const String *base) {
+  List *tparms;
+  String *suffix;
+  String *type;
+  int i, sz;
+  int rep = 0;
+  type = SwigType_templateprefix(base);
+  suffix = SwigType_templatesuffix(base);
+  Append(type, "<(");
+  tparms = SwigType_parmlist(base);
+  sz = Len(tparms);
+  for (i = 0; i < sz; i++) {
+    SwigType *tpr;
+    SwigType *tp = Getitem(tparms, i);
+    if (!rep) {
+      tpr = SwigType_typedef_resolve(tp);
+    } else {
+      tpr = 0;
+    }
+    if (tpr) {
+      Append(type, tpr);
+      Delete(tpr);
+      rep = 1;
+    } else {
+      Append(type, tp);
+    }
+    if ((i + 1) < sz)
+      Append(type, ",");
+  }
+  Append(type, ")>");
+  Append(type, suffix);
+  Delete(suffix);
+  Delete(tparms);
+  if (!rep) {
+    Delete(type);
+    type = 0;
+  }
+  return type;
+}
+
 static SwigType *typedef_resolve(Typetab *s, String *base) {
   return _typedef_resolve(s, base, 1);
 }
@@ -552,12 +604,6 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
   String *namebase = 0;
   String *nameprefix = 0;
   int newtype = 0;
-
-  /*
-     if (!noscope) {
-     noscope = NewStringEmpty();
-     }
-   */
 
   resolved_scope = 0;
 
@@ -602,6 +648,9 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 #endif
 	if (nameprefix) {
 	  /* Name had a prefix on it.   See if we can locate the proper scope for it */
+	  String *rnameprefix = template_parameters_resolve(nameprefix);
+	  nameprefix = rnameprefix ? Copy(rnameprefix) : nameprefix;
+	  Delete(rnameprefix);
 	  s = SwigType_find_scope(s, nameprefix);
 
 	  /* Couldn't locate a scope for the type.  */
@@ -617,7 +666,7 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 	  Printf(stdout, "namebase = '%s'\n", namebase);
 #endif
 	  type = typedef_resolve(s, namebase);
-	  if (type) {
+	  if (type && resolved_scope) {
 	    /* we need to look for the resolved type, this will also
 	       fix the resolved_scope if 'type' and 'namebase' are
 	       declared in different scopes */
@@ -629,7 +678,7 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 #ifdef SWIG_DEBUG
 	  Printf(stdout, "%s type = '%s'\n", Getattr(s, "name"), type);
 #endif
-	  if ((type) && (!Swig_scopename_check(type)) && resolved_scope) {
+	  if (type && (!Swig_scopename_check(type)) && resolved_scope) {
 	    Typetab *rtab = resolved_scope;
 	    String *qname = Getattr(resolved_scope, "qname");
 	    /* If qualified *and* the typename is defined from the resolved scope, we qualify */
@@ -668,42 +717,8 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
        template arguments one by one to see if they can be resolved. */
 
     if (!type && SwigType_istemplate(base)) {
-      List *tparms;
-      String *suffix;
-      int i, sz;
-      int rep = 0;
-      type = SwigType_templateprefix(base);
       newtype = 1;
-      suffix = SwigType_templatesuffix(base);
-      Append(type, "<(");
-      tparms = SwigType_parmlist(base);
-      sz = Len(tparms);
-      for (i = 0; i < sz; i++) {
-	SwigType *tpr;
-	SwigType *tp = Getitem(tparms, i);
-	if (!rep) {
-	  tpr = SwigType_typedef_resolve(tp);
-	} else {
-	  tpr = 0;
-	}
-	if (tpr) {
-	  Append(type, tpr);
-	  Delete(tpr);
-	  rep = 1;
-	} else {
-	  Append(type, tp);
-	}
-	if ((i + 1) < sz)
-	  Append(type, ",");
-      }
-      Append(type, ")>");
-      Append(type, suffix);
-      Delete(suffix);
-      Delete(tparms);
-      if (!rep) {
-	Delete(type);
-	type = 0;
-      }
+      type = template_parameters_resolve(base);
     }
     if (namebase)
       Delete(namebase);
@@ -806,9 +821,10 @@ return_result:
  * Fully resolve a type down to its most basic datatype
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_typedef_resolve_all(SwigType *t) {
+SwigType *SwigType_typedef_resolve_all(const SwigType *t) {
   SwigType *n;
   SwigType *r;
+  int count = 0;
 
   /* Check to see if the typedef resolve has been done before by checking the cache */
   if (!typedef_all_cache) {
@@ -824,6 +840,10 @@ SwigType *SwigType_typedef_resolve_all(SwigType *t) {
   while ((n = SwigType_typedef_resolve(r))) {
     Delete(r);
     r = n;
+    if (++count >= 512) {
+      Swig_error(Getfile(t), Getline(t), "Recursive typedef detected resolving '%s' to '%s' to '%s' and so on...\n", SwigType_str(t, 0), SwigType_str(SwigType_typedef_resolve(t), 0), SwigType_str(SwigType_typedef_resolve(SwigType_typedef_resolve(t)), 0));
+      break;
+    }
   }
 
   /* Add the typedef to the cache for next time it is looked up */
@@ -848,7 +868,7 @@ SwigType *SwigType_typedef_resolve_all(SwigType *t) {
  * scope, it is left in place.
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_typedef_qualified(SwigType *t) {
+SwigType *SwigType_typedef_qualified(const SwigType *t) {
   List *elements;
   String *result;
   int i, len;
@@ -876,7 +896,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 	  e = ty;
 	}
 	resolved_scope = 0;
-	if (typedef_resolve(current_scope, e)) {
+	if (typedef_resolve(current_scope, e) && resolved_scope) {
 	  /* resolved_scope contains the scope that actually resolved the symbol */
 	  String *qname = Getattr(resolved_scope, "qname");
 	  if (qname) {
@@ -933,6 +953,10 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 	Parm *p;
 	List *parms;
 	ty = Swig_symbol_template_deftype(e, current_symtab);
+	/*
+	String *dt = Swig_symbol_template_deftype(e, current_symtab);
+	ty = Swig_symbol_type_qualify(dt, 0);
+	*/
 	e = ty;
 	parms = SwigType_parmlist(e);
 	tprefix = SwigType_templateprefix(e);
@@ -999,6 +1023,9 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
 	Delete(tprefix);
 	Delete(qprefix);
 	Delete(parms);
+	/*
+	Delete(dt);
+	*/
       }
       Append(result, e);
       Delete(ty);
@@ -1049,7 +1076,7 @@ SwigType *SwigType_typedef_qualified(SwigType *t) {
  * Checks a typename to see if it is a typedef.
  * ----------------------------------------------------------------------------- */
 
-int SwigType_istypedef(SwigType *t) {
+int SwigType_istypedef(const SwigType *t) {
   String *type;
 
   type = SwigType_typedef_resolve(t);
@@ -1092,14 +1119,14 @@ int SwigType_typedef_using(const_String_or_char_ptr name) {
 
   /* See if the using name is a scope */
   /*  tt = SwigType_find_scope(current_scope,name);
-     Printf(stdout,"tt = %x, name = '%s'\n", tt, name); */
+     Printf(stdout,"tt = %p, name = '%s'\n", tt, name); */
 
   /* We set up a typedef  B --> A::B */
   Setattr(current_typetab, base, name);
 
   /* Find the scope name where the symbol is defined */
   td = SwigType_typedef_resolve(name);
-  /*  Printf(stdout,"td = '%s' %x\n", td, resolved_scope); */
+  /*  Printf(stdout,"td = '%s' %p\n", td, resolved_scope); */
   if (resolved_scope) {
     defined_name = Getattr(resolved_scope, "qname");
     if (defined_name) {
@@ -1150,7 +1177,7 @@ int SwigType_typedef_using(const_String_or_char_ptr name) {
  * a class.
  * ----------------------------------------------------------------------------- */
 
-int SwigType_isclass(SwigType *t) {
+int SwigType_isclass(const SwigType *t) {
   SwigType *qty, *qtys;
   int isclass = 0;
 
@@ -1186,7 +1213,7 @@ int SwigType_isclass(SwigType *t) {
  * everything is based on typemaps.
  * ----------------------------------------------------------------------------- */
 
-int SwigType_type(SwigType *t) {
+int SwigType_type(const SwigType *t) {
   char *c;
   /* Check for the obvious stuff */
   c = Char(t);
@@ -1303,7 +1330,7 @@ int SwigType_type(SwigType *t) {
  * %feature("valuewrapper").
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_alttype(SwigType *t, int local_tmap) {
+SwigType *SwigType_alttype(const SwigType *t, int local_tmap) {
   Node *n;
   SwigType *w = 0;
   int use_wrapper = 0;
@@ -1421,7 +1448,7 @@ static Hash *r_clientdata = 0;	/* Hash mapping resolved types to client data    
 static Hash *r_mangleddata = 0;	/* Hash mapping mangled types to client data         */
 static Hash *r_remembered = 0;	/* Hash of types we remembered already */
 
-static void (*r_tracefunc) (SwigType *t, String *mangled, String *clientdata) = 0;
+static void (*r_tracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
 
 void SwigType_remember_mangleddata(String *mangled, const_String_or_char_ptr clientdata) {
   if (!r_mangleddata) {
@@ -1431,7 +1458,7 @@ void SwigType_remember_mangleddata(String *mangled, const_String_or_char_ptr cli
 }
 
 
-void SwigType_remember_clientdata(SwigType *t, const_String_or_char_ptr clientdata) {
+void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr clientdata) {
   String *mt;
   SwigType *lt;
   Hash *h;
@@ -1549,12 +1576,12 @@ void SwigType_remember_clientdata(SwigType *t, const_String_or_char_ptr clientda
   }
 }
 
-void SwigType_remember(SwigType *ty) {
+void SwigType_remember(const SwigType *ty) {
   SwigType_remember_clientdata(ty, 0);
 }
 
-void (*SwigType_remember_trace(void (*tf) (SwigType *, String *, String *))) (SwigType *, String *, String *) {
-  void (*o) (SwigType *, String *, String *) = r_tracefunc;
+void (*SwigType_remember_trace(void (*tf) (const SwigType *, String *, String *))) (const SwigType *, String *, String *) {
+  void (*o) (const SwigType *, String *, String *) = r_tracefunc;
   r_tracefunc = tf;
   return o;
 }
@@ -1726,7 +1753,7 @@ void SwigType_inherit(String *derived, String *base, String *cast, String *conve
  * Determines if a t1 is a subtype of t2, ie, is t1 derived from t2
  * ----------------------------------------------------------------------------- */
 
-int SwigType_issubtype(SwigType *t1, SwigType *t2) {
+int SwigType_issubtype(const SwigType *t1, const SwigType *t2) {
   SwigType *ft1, *ft2;
   String *b1, *b2;
   Hash *h;
@@ -1794,13 +1821,13 @@ void SwigType_inherit_equiv(File *out) {
       Append(rlist, ck.key);
     }
     /*    Printf(stdout,"rk.key = '%s'\n", rk.key);
-       Printf(stdout,"rh = %x '%s'\n", rh,rh); */
+       Printf(stdout,"rh = %p '%s'\n", rh,rh); */
 
     bk = First(sub);
     while (bk.key) {
       prefix = SwigType_prefix(rk.key);
       Append(prefix, bk.key);
-      /*      Printf(stdout,"set %x = '%s' : '%s'\n", rh, SwigType_manglestr(prefix),prefix); */
+      /*      Printf(stdout,"set %p = '%s' : '%s'\n", rh, SwigType_manglestr(prefix),prefix); */
       mprefix = SwigType_manglestr(prefix);
       Setattr(rh, mprefix, prefix);
       mkey = SwigType_manglestr(rk.key);
