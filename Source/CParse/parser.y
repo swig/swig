@@ -1772,7 +1772,8 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %type <p>        typemap_parm tm_list tm_tail ;
 %type <p>        templateparameter ;
 %type <id>       templcpptype cpptype access_specifier;
-%type <node>     base_specifier
+%type <node>     base_specifier;
+%type <str>      ellipsis variadic;
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype;
@@ -6429,6 +6430,19 @@ exprcompound   : expr PLUS expr {
                }
                ;
 
+ellipsis      : PERIOD PERIOD PERIOD {
+	        $$ = NewString("...");
+	      }
+	      ;
+
+variadic      : ellipsis {
+	        $$ = $1;
+	      }
+	      | empty {
+	        $$ = 0;
+	      }
+	      ;
+
 inherit        : raw_inherit {
 		 $$ = $1;
                }
@@ -6466,7 +6480,7 @@ base_list      : base_specifier {
 
 base_specifier : opt_virtual {
 		 $<intvalue>$ = cparse_line;
-	       } idcolon {
+	       } idcolon variadic {
 		 $$ = NewHash();
 		 Setfile($$,cparse_file);
 		 Setline($$,$<intvalue>2);
@@ -6479,10 +6493,12 @@ base_specifier : opt_virtual {
                  } else {
 		   Setattr($$,"access","public");
 		 }
+		 if ($4)
+		   SetFlag($$, "variadic");
                }
 	       | opt_virtual access_specifier {
 		 $<intvalue>$ = cparse_line;
-	       } opt_virtual idcolon {
+	       } opt_virtual idcolon variadic {
 		 $$ = NewHash();
 		 Setfile($$,cparse_file);
 		 Setline($$,$<intvalue>3);
@@ -6493,30 +6509,8 @@ base_specifier : opt_virtual {
 	         if (Strcmp($2,"public") != 0) {
 		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, Getfile($$), Getline($$), "%s inheritance from base '%s' (ignored).\n", $2, SwigType_namestr($5));
 		 }
-               }
-               | opt_virtual idcolon PERIOD PERIOD PERIOD { /* Variadic inheritance */
-		 $$ = NewHash();
-		 Setfile($$,cparse_file);
-		 Setline($$,cparse_line);
-		 Setattr($$,"name",$2);
-                 if (last_cpptype && (Strcmp(last_cpptype,"struct") != 0)) {
-		   Setattr($$,"access","private");
-		   Swig_warning(WARN_PARSE_NO_ACCESS,cparse_file,cparse_line,
-				"No access specifier given for base class %s (ignored).\n",$2);
-                 } else {
-		   Setattr($$,"access","public");
-		 }
-               }
-	       | opt_virtual access_specifier opt_virtual idcolon PERIOD PERIOD PERIOD { /* Variadic inheritance */
-		 $$ = NewHash();
-		 Setfile($$,cparse_file);
-		 Setline($$,cparse_line);
-		 Setattr($$,"name",$4);
-		 Setattr($$,"access",$2);
-	         if (Strcmp($2,"public") != 0) {
-		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, cparse_file, 
-				cparse_line,"%s inheritance ignored.\n", $2);
-		 }
+		 if ($6)
+		   SetFlag($$, "variadic");
                }
                ;
 
