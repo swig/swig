@@ -147,6 +147,12 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["remarks"] = make_pair(&JavaDocConverter::handleTagMessage, "Remarks: ");
   tagHandlers["todo"] = make_pair(&JavaDocConverter::handleTagMessage, "TODO: ");
   tagHandlers["verbatim"] = make_pair(&JavaDocConverter::handleTagExtended, "literal");
+
+  // \f commands output literal Latex formula, which is still better than nothing.
+  tagHandlers["f$"] = make_pair(&JavaDocConverter::handleTagVerbatim, "");
+  tagHandlers["f["] = make_pair(&JavaDocConverter::handleTagVerbatim, "");
+  tagHandlers["f{"] = make_pair(&JavaDocConverter::handleTagVerbatim, "");
+
   tagHandlers["warning"] = make_pair(&JavaDocConverter::handleTagMessage, "Warning: ");
   // this command just prints it's contents
   // (it is internal command of swig's parser, contains plain text)
@@ -410,6 +416,14 @@ void JavaDocConverter::handlePlainString(DoxygenEntity& tag, std::string& transl
   translatedComment += tag.data;
  // if (tag.data.size() && tag.data[tag.data.size()-1] != ' ')
  // 	translatedComment += " ";
+}
+
+
+void JavaDocConverter::handleTagVerbatim(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+  translatedComment += arg + " ";
+  for (DoxygenEntityListCIt it = tag.entityList.begin(); it != tag.entityList.end(); it++) {
+      translatedComment += it->data;
+  }
 }
 
 

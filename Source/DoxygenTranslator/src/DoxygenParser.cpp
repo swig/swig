@@ -234,44 +234,6 @@ std::string DoxygenParser::getNextWord() {
 	return "";
 }
 
-/* TODO remove this m.
-std::string DoxygenParser::getNextWordInComment() {
-
-    while (m_tokenListIt != m_tokenList.end()  &&  (m_tokenListIt->m_tokenType == PLAINSTRING  ||  m_tokenListIt->m_tokenType == END_LINE)) {
-        // handle quoted strings as words
-        if (m_tokenListIt->m_tokenString[0] == '"'
-                && m_tokenListIt->m_tokenString[m_tokenListIt->m_tokenString.size() - 1] != '"') {
-
-            string word = m_tokenListIt->m_tokenString + " ";
-            while (true) {
-                string nextWord = getNextWord();
-                if (nextWord.empty()) {// maybe report unterminated string error
-                    return word;
-                }
-                word += nextWord;
-                if (word[word.size() - 1] == '"') { // strip quotes
-                    return word.substr(1, word.size() - 2);
-                }
-                word += " ";
-            }
-        }
-
-        string tokenStr = trim(m_tokenListIt->m_tokenString);
-        m_tokenListIt++;
-        if (!tokenStr.empty()) {
-            return tokenStr;
-        }
-    } * else if (nextToken.m_tokenType == END_LINE) {
-        // this handles cases when command is the last item in line, for example:
-        // * This method returns line number \c
-        // * relative to paragraph.
-        m_tokenListIt++;
-        return getNextWord();
-    } *
-
-    return "";
-} */
-
 
 DoxygenParser::TokenListCIt DoxygenParser::getOneLine(const TokenList &tokList) {
 
@@ -315,7 +277,6 @@ std::string DoxygenParser::getStringTilEndCommand(const std::string & theCommand
 	string description;
 	while (m_tokenListIt != tokList.end()) {
 
-		//TODO: it won't output doxygen commands, need a way to fix it
 		if (m_tokenListIt->m_tokenType == PLAINSTRING) {
 			description += m_tokenListIt->m_tokenString;
 		} else if (m_tokenListIt->m_tokenType == END_LINE) {
@@ -1137,7 +1098,8 @@ size_t DoxygenParser::processVerbatimText(size_t pos, const std::string &line)
         size_t endOfWordPos = line.find_first_not_of("abcdefghijklmnopqrstuvwxyz$[]{}", pos);
         string cmd = line.substr(pos, endOfWordPos - pos);
 
-        if (cmd == CMD_END_HTML_ONLY  ||  cmd == CMD_END_VERBATIM) {
+        if (cmd == CMD_END_HTML_ONLY  ||  cmd == CMD_END_VERBATIM  ||
+            cmd == CMD_END_LATEX_1 ||  cmd == CMD_END_LATEX_2  ||  cmd == CMD_END_LATEX_3) {
             m_isVerbatimText = false;
             addDoxyCommand(m_tokenList, cmd);
         } else {
@@ -1196,7 +1158,8 @@ size_t DoxygenParser::processNormalComment(size_t pos, const std::string &line)
       size_t endOfWordPos = line.find_first_not_of("abcdefghijklmnopqrstuvwxyz$[]{}", pos);
       string cmd = line.substr(pos , endOfWordPos - pos);
       addDoxyCommand(m_tokenList, cmd);
-      if (cmd == CMD_HTML_ONLY  ||  cmd == CMD_VERBATIM) {
+      if (cmd == CMD_HTML_ONLY  ||  cmd == CMD_VERBATIM  ||
+          cmd == CMD_LATEX_1  ||  cmd == CMD_LATEX_2  ||  cmd == CMD_LATEX_3) {
           m_isVerbatimText = true;
       } else {
           // skip any possible spaces after command, because some commands have parameters,

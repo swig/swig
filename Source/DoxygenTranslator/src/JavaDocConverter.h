@@ -55,6 +55,12 @@ protected:
    */
   typedef void (JavaDocConverter::*tagHandler)(DoxygenEntity &tag,
       std::string &translatedComment, std::string &arg);
+
+  /**
+   * Copies verbatim args of the tag to output, used for commands like \f$, ...
+   */
+  void handleTagVerbatim(DoxygenEntity& tag, std::string& translatedComment, std::string &arg);
+
   /*
    * Wrap the command data with the html tag
    * arg - html tag, with no braces
