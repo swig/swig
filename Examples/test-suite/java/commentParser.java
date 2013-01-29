@@ -54,13 +54,24 @@ public class commentParser {
             String wantedStr = wantedComments.get(e.getKey());
             // this may be weird, but I don't know any more effective solution
             actualStr = actualStr.replace(" ", "");
+            actualStr = actualStr.replaceAll("\t", "");
             actualStr = actualStr.replace("\n", "");
-            actualStr = actualStr.replace("\t", "");
             if (wantedStr != null) {
                 wantedStr = wantedStr.replace(" ", "");
-                wantedStr = wantedStr.replace("\n", "");
                 wantedStr = wantedStr.replace("\t", "");
+                wantedStr = wantedStr.replace("\n", "");
             }
+            /* The following lines replace multiple whitespaces with a single one.
+               Although this would be more exact testing, it would also require
+               more work on test maintenance.
+            actualStr = actualStr.replace('\t', ' ');
+            actualStr = actualStr.replaceAll(" +", " ");
+            // actualStr = actualStr.replace("\n", "");
+            if (wantedStr != null) {
+                wantedStr = wantedStr.replace('\t', ' ');
+                wantedStr = wantedStr.replaceAll(" +", " ");
+                // wantedStr = wantedStr.replace("\n", "");
+                } */
 
             if (!actualStr.equals(wantedStr)) {
                 System.out.println("\n\n////////////////////////////////////////////////////////////////////////");

@@ -56,7 +56,6 @@ void JavaDocConverter::fillStaticTables() {
    *
    * entities must be translated - remain in Java, something meaningfull in Python (&lt, ...)
    *
-   * - crash if link in @see tag is split to two lines
    * - whitespaces in tests
    * - Python
    * - add comments also to auto-generated methods lilke equals(), delete() in Java,
