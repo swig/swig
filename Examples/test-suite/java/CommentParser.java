@@ -11,8 +11,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 
-public class commentParser {
-    static HashMap<String, String> parsedComments = new HashMap<String, String>();
+public class CommentParser {
+    private static Map<String, String> m_parsedComments = new HashMap<String, String>();
 
     public static boolean start(RootDoc root) {
 
@@ -24,31 +24,31 @@ public class commentParser {
         for (ClassDoc classDoc : root.classes()) {
 
             if (classDoc.getRawCommentText().length() > 0)
-                parsedComments.put(classDoc.qualifiedName(), classDoc.getRawCommentText());
+                m_parsedComments.put(classDoc.qualifiedName(), classDoc.getRawCommentText());
 
             for (FieldDoc f : classDoc.enumConstants()) {
                 if (f.getRawCommentText().length() > 0)
-                    parsedComments.put(f.qualifiedName(), f.getRawCommentText());
+                    m_parsedComments.put(f.qualifiedName(), f.getRawCommentText());
             }
             for (FieldDoc f : classDoc.fields()) {
                 if (f.getRawCommentText().length() > 0)
-                    parsedComments.put(f.qualifiedName(), f.getRawCommentText());
+                    m_parsedComments.put(f.qualifiedName(), f.getRawCommentText());
             }
             for (MethodDoc m : classDoc.methods()) {
                 if (m.getRawCommentText().length() > 0)
-                    parsedComments.put(m.toString(), m.getRawCommentText());
+                    m_parsedComments.put(m.toString(), m.getRawCommentText());
             }
         }
         return true;
     }
 
     
-    public static int check(HashMap<String, String> wantedComments) {
+    public int check(Map<String, String> wantedComments) {
         int errorCount=0;
-        Iterator< Entry<String, String> > it = parsedComments.entrySet().iterator();
+        Iterator<Entry<String, String>> it = m_parsedComments.entrySet().iterator();
 
-        while (it.hasNext())
-        {
+        while (it.hasNext()) {
+            
             Entry<String, String> e = (Entry<String, String>) it.next();
             String actualStr = e.getValue();
             String wantedStr = wantedComments.get(e.getKey());
@@ -102,14 +102,14 @@ public class commentParser {
             }
         }
 
-        if (parsedComments.size() != wantedComments.size()) {
+        if (m_parsedComments.size() != wantedComments.size()) {
             System.out.println("Mismatch in the number of comments!\n    Expected: " +
                                wantedComments.size() + "\n    Parsed: " +
-                               parsedComments.size());
+                               m_parsedComments.size());
             System.out.println("Expected keys: ");
             printKeys(wantedComments);
             System.out.println("Parsed keys: ");
-            printKeys(parsedComments);
+            printKeys(m_parsedComments);
 
             errorCount++;
         }
@@ -118,7 +118,8 @@ public class commentParser {
     }
 
     
-    private static void printKeys(Map map) {
+    private void printKeys(Map<String, String> map) {
+        
         Set<String> keys = map.keySet();
         for (String key : keys) {
             System.out.println("    " + key);
@@ -127,9 +128,11 @@ public class commentParser {
     
     
     public static void printCommentListForJavaSource() {
-        Iterator< Entry<String, String> > it = parsedComments.entrySet().iterator();
-        while (it.hasNext())
-        {
+
+        Iterator< Entry<String, String> > it = m_parsedComments.entrySet().iterator();
+        
+        while (it.hasNext())  {
+            
             Entry<String, String> e = (Entry<String, String>) it.next();
             String commentText = e.getValue();
             commentText = commentText.replace("\\", "\\\\");
@@ -143,12 +146,12 @@ public class commentParser {
     public static void main(String argv[]) {
 		
         if (argv.length<1) {
-            System.out.format("Usage:\n\tcommentParsing <package to parse>\n");
+            System.out.format("Usage:\n\tCommentParser <package to parse>\n");
             System.exit(1);
         }
 		
         com.sun.tools.javadoc.Main.execute("The comment parser program",
-                                           "commentParser", new String[]{"-quiet", argv[0]});
+                                           "CommentParser", new String[]{"-quiet", argv[0]});
 		
         // if we are run as standalone app, print the list of found comments as it would appear in java source
 		

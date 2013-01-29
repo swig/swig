@@ -19,9 +19,10 @@ public class doxygen_parsing_enums_proper_runme {
       Here we are using internal javadoc tool, it accepts the name of the class as paramterer,
       and calls the start() method of that class with parsed information.
     */
-	commentParser parser = new commentParser();
+    CommentParser parser = new CommentParser();
     com.sun.tools.javadoc.Main.execute("doxygen_parsing_enums_proper runtime test",
-	"commentParser", new String[]{"-quiet", "doxygen_parsing_enums_proper"});
+                                       "CommentParser",
+                                       new String[]{"-quiet", "doxygen_parsing_enums_proper"});
 
     HashMap<String, String> wantedComments = new HashMap<String, String>();
     
