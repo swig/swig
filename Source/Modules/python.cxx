@@ -1556,7 +1556,7 @@ public:
 	else
 	  return v;
       }
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "FALSE") == 0)
+      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
 	return NewString("True");
       if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
 	return NewString("False");
