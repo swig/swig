@@ -354,6 +354,12 @@ private:
   /** Processes comment when \htmlonly and \verbatim commands are encountered. */
   size_t processVerbatimText(size_t pos, const std::string &line);
 
+  bool processEscapedChars(size_t &pos, const std::string &line);
+  void processWordCommands(size_t &pos, const std::string &line);
+  void processHtmlTags(size_t &pos, const std::string &line);
+  void processHtmlEntities(size_t &pos, const std::string &line);
+
+
   /** Processes comment outside \htmlonly and \verbatim commands. */
   size_t processNormalComment(size_t pos, const std::string &line);
 

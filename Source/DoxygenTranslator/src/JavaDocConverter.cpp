@@ -56,10 +56,10 @@ void JavaDocConverter::fillStaticTables() {
    *
    * entities must be translated - remain in Java, something meaningfull in Python (&lt, ...)
    *
-   * - whitespaces in tests
    * - Python
-   * - add comments also to auto-generated methods lilke equals(), delete() in Java,
+   * - add comments also to auto-generated methods like equals(), delete() in Java,
    *   and methods for std::vector(), ...
+   *   Commenting methods of std types is simple - add comment to std_*.i file.
    */
 
 
