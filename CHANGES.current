@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-01-28: William
+            [Java] Apply patch SF #335 - Truly ignore constructors in directors with %ignore.
+
 2013-01-18: Brant Kyser
             [Java] Patch #15 - Allow the use of the nspace feature without the -package commandline option.
             This works as long and the new jniclasspackage pragma is used to place the JNI intermediate class

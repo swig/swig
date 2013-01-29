@@ -1995,6 +1995,9 @@ int Language::classDirectorConstructors(Node *n) {
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
     if (Cmp(nodeType, "constructor") == 0) {
+      if (GetFlag(ni, "feature:ignore"))
+        continue;
+
       Parm *parms = Getattr(ni, "parms");
       if (is_public(ni)) {
 	/* emit public constructor */
