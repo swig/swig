@@ -816,6 +816,20 @@ static List *make_inherit_list(String *clsname, List *names) {
   return bases;
 }
 
+void inherit_base_symbols(List* bases) {
+  if (bases) {
+    Iterator s;
+    for (s = First(bases); s.item; s = Next(s)) {
+      Symtab *st = Getattr(s.item,"symtab");
+      if (st) {
+	Setfile(st,Getfile(s.item));
+	Setline(st,Getline(s.item));
+	Swig_symbol_inherit(st); 
+      }
+    }
+    Delete(bases);
+  }
+}
 /* If the class name is qualified.  We need to create or lookup namespace entries */
 
 static Symtab *set_scope_to_global() {
@@ -3212,9 +3226,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Setattr($<node>$,"Classprefix",$3);
 		   Classprefix = NewString($3);
 		   /* Deal with inheritance  */
-		   if ($4) {
+		   if ($4)
 		     bases = make_inherit_list($3,Getattr($4,"public"));
-		   }
 		   prefix = SwigType_istemplate_templateprefix($3);
 		   if (prefix) {
 		     String *fbase, *tbase;
@@ -3236,18 +3249,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   }
 		   Swig_symbol_newscope();
 		   Swig_symbol_setscopename($3);
-		   if (bases) {
-		     Iterator s;
-		     for (s = First(bases); s.item; s = Next(s)) {
-		       Symtab *st = Getattr(s.item,"symtab");
-		       if (st) {
-			 Setfile(st,Getfile(s.item));
-			 Setline(st,Getline(s.item));
-			 Swig_symbol_inherit(st); 
-		       }
-		     }
-		     Delete(bases);
-		   }
+		   inherit_base_symbols(bases);
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   cparse_start_line = cparse_line;
@@ -3386,12 +3388,17 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 
 /* An unnamed struct, possibly with a typedef */
 
-             | storage_class cpptype LBRACE {
+             | storage_class cpptype inherit LBRACE {
 	       String *unnamed;
 	       unnamed = make_unnamed();
 	       $<node>$ = new_node("class");
 	       Setline($<node>$,cparse_start_line);
 	       Setattr($<node>$,"kind",$2);
+	       if ($3) {
+		 Setattr($<node>$,"baselist", Getattr($3,"public"));
+		 Setattr($<node>$,"protectedbaselist", Getattr($3,"protected"));
+		 Setattr($<node>$,"privatebaselist", Getattr($3,"private"));
+	       }
 	       Setattr($<node>$,"storage",$1);
 	       Setattr($<node>$,"unnamed",unnamed);
 	       Setattr($<node>$,"allows_typedef","1");
@@ -3411,12 +3418,11 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Classprefix = NewStringEmpty();
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-             /*} cpp_members RBRACE declarator initializer c_decl_tail {*/
 	     } cpp_members RBRACE cpp_opt_declarators {
 	       String *unnamed;
+               List *bases = 0;
 	       String *name = 0;
 	       Node *n;
-	       (void) $<node>4;
 	       Classprefix = 0;
 	       $$ = currentOuterClass;
 	       currentOuterClass = Getattr($$, "outerclass");
@@ -3424,8 +3430,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		 inclass = 0;
 	       unnamed = Getattr($$,"unnamed");
                /* Check for pure-abstract class */
-	       Setattr($$,"abstracts", pure_abstracts($5));
-	       n = $7;
+	       Setattr($$,"abstracts", pure_abstracts($6));
+	       n = $8;
 	       if (n) {
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
 		 name = try_to_find_a_name_for_unnamed_structure($1, n);
@@ -3435,6 +3441,9 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Setattr($$,"tdname",name);
 		   Setattr($$,"name",name);
 		   Swig_symbol_setscopename(name);
+		   if ($3)
+		     bases = make_inherit_list(name,Getattr($3,"public"));
+		   inherit_base_symbols(bases);
 
 		     /* If a proper name was given, we use that as the typedef, not unnamed */
 		   Clear(unnamed);
@@ -3450,7 +3459,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Setattr(n, "type", ty);
 		     n = nextSibling(n);
 		   }
-		   n = $7;
+		   n = $8;
 		     /* Check for previous extensions */
 		   if (extendhash) {
 		     String *clsname = Swig_symbol_qualifiedscopename(0);
@@ -3470,7 +3479,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		 } else { /*no suitable name was found for a struct*/
 		   Swig_symbol_setscopename("<unnamed>");
 		 }
-		 appendChild($$,$5);
+		 appendChild($$,$6);
 		 /* Pop the scope */
 		 Setattr($$,"symtab",Swig_symbol_popscope());
 	         if (Getattr($$, "class_rename")) {
@@ -3487,9 +3496,9 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		 Swig_symbol_popscope();
 	         Delete(Namespaceprefix);
 		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		 add_symbols($5);
+		 add_symbols($6);
 		 Delete($$);
-		 $$ = $5; /* pass member list to outer class/namespace (instead of self)*/
+		 $$ = $6; /* pass member list to outer class/namespace (instead of self)*/
 	       }
               }
              ;

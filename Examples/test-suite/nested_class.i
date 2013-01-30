@@ -39,7 +39,7 @@ struct Outer {
   };
 
   ///////////////////////////////////////////
-#ifdef SWIG
+#if defined(__GNUC__) || defined(_MSC_VER)
 /* some compilers do not accept these */
   class {
   public:
@@ -154,7 +154,7 @@ struct Outer {
     Integer xx;
   } MultipleInstanceAnonDerived1, MultipleInstanceAnonDerived2, *MultipleInstanceAnonDerived3, MultipleInstanceAnonDerived4[2];
 
-#ifdef SWIG
+#if defined(__GNUC__) || defined(_MSC_VER)
 /* some compilers do not accept these */
   struct : public InnerMultiple {
     Integer xx;
