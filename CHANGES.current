@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-01-29: William
+            [Java] Ensure 'javapackage' typemap is used as it stopped working from version 2.0.5.
+
 2013-01-28: William
             [Python] Apply patch SF #334 - Fix default value conversions "TRUE"->True, "FALSE"->False.
 

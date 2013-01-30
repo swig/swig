@@ -3527,7 +3527,7 @@ public:
     String *pkg_path = Swig_typemap_lookup("javapackage", p, "", 0);
     SwigType *type = Getattr(p, "type");
 
-    if (pkg_path || Len(pkg_path) == 0)
+    if (!pkg_path || Len(pkg_path) == 0)
       pkg_path = package_path;
 
     String *descriptor_out = Copy(descriptor_in);
