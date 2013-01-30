@@ -72,12 +72,17 @@ public:
   };
   
   ~SWIGV8_Proxy() { 
+    handle.ClearWeak();
+    handle->SetInternalField(0, v8::Undefined());
+    handle.Dispose();
+    handle.Clear();
     v8::V8::AdjustAmountOfExternalAllocatedMemory(-SWIGV8_AVG_OBJ_SIZE);
   }
   
   bool swigCMemOwn;
   void *swigCObject;
   swig_type_info *info;
+  v8::Persistent<v8::Object> handle;
 };
 
 class SWIGV8_ClientData {
@@ -131,14 +136,16 @@ void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void* ptr, swig_type_info
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
   cdata->info = info;
   obj->SetPointerInInternalField(0, cdata);
-  
-  v8::Persistent<v8::Object> weakptr = v8::Persistent<v8::Object>::New(obj);
-  // clientdata must be set for owned data as we need to register the dtor  
+
+  cdata->handle = v8::Persistent<v8::Object>::New(obj);
+
+  // clientdata must be set for owned data as we need to register the dtor
   if(cdata->swigCMemOwn) {
-    weakptr.MakeWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
+    cdata->handle.MakeWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor);
   } else {
-    weakptr.MakeWeak(cdata, SWIGV8_Proxy_DefaultDtor);
+    cdata->handle.MakeWeak(cdata, SWIGV8_Proxy_DefaultDtor);
   }
+  cdata->handle.MarkIndependent();
 }
 
 int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void** ptr, swig_type_info *info, int flags) {

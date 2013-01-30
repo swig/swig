@@ -118,6 +118,9 @@ void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
     $jsfree proxy->swigCObject;
   }
   delete proxy;
+
+  object.Clear();
+  object.Dispose();
 }
 %}
 
