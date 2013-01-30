@@ -1107,6 +1107,7 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
   return nn;
 }
 
+/* look for simple typedef name in typedef list */
 String* try_to_find_a_name_for_unnamed_structure(char* storage, Node* decls) {
   String* name = 0;
   Node* n = decls;
@@ -1119,6 +1120,18 @@ String* try_to_find_a_name_for_unnamed_structure(char* storage, Node* decls) {
     }
   }
   return name;
+}
+
+/* traverse copied tree segment, and update outer class links*/
+void update_nested_classes(Node* n)
+{
+  Node* c = firstChild(n);
+  while (c) {
+    if (Getattr(c, "outerclass"))
+      Setattr(c, "outerclass", n);
+    update_nested_classes(c);
+    c = nextSibling(c);
+  }
 }
 
 Node *Swig_cparse(File *f) {
@@ -2684,6 +2697,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           }
 
                           templnode = copy_node(nn);
+			  update_nested_classes(templnode);
                           /* We need to set the node name based on name used to instantiate */
                           Setattr(templnode,"name",tname);
 			  Delete(tname);
@@ -3296,7 +3310,10 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 
 		   p = $9;
 		   if (p) {
-		     set_nextSibling($$,p);
+		     if (!cparse_cplusplus && currentOuterClass)
+		       appendChild(currentOuterClass, p);
+		     else
+		      appendSibling($$, p);
 		   }
 		   
 		   if (cparse_cplusplus && !cparse_externc) {
@@ -3343,10 +3360,24 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     yyrename = Copy(Getattr($<node>$, "class_rename"));
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-
-		     add_symbols($$);
-		     add_symbols($9);
-		     Delattr($$, "class_rename");
+		     if (!cparse_cplusplus && currentOuterClass) { /* nested C structs go into global scope*/
+		       Node* outer = currentOuterClass;
+		       while (Getattr(outer, "outerclass"))
+			 outer = Getattr(outer, "outerclass");
+		       appendSibling(outer, $$);
+		       add_symbols($9);
+		       set_scope_to_global();
+		       Delete(Namespaceprefix);
+		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		       add_symbols($$);
+		       Delattr($$, "outerclass");
+		       Delattr($$, "class_rename");
+		       $$ = 0;
+		     } else {
+		       add_symbols($$);
+		       add_symbols($9);
+		       Delattr($$, "class_rename");
+		     }
 		   }
 		   Swig_symbol_setscope(cscope);
 		   Delete(Namespaceprefix);
@@ -3408,7 +3439,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     /* If a proper name was given, we use that as the typedef, not unnamed */
 		   Clear(unnamed);
 		   Append(unnamed, name);
-	           set_nextSibling($$,n);
+	           appendSibling($$,n);
 		   if (cparse_cplusplus && !cparse_externc) {
 		     ty = NewString(name);
 		   } else {

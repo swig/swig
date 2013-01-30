@@ -173,6 +173,17 @@ void prependChild(Node *node, Node *chd) {
   }
 }
 
+void appendSibling(Node *node, Node *chd)
+{
+  Node* s = node;
+  while(nextSibling(s))
+    s = nextSibling(s);
+  set_nextSibling(s, chd);
+  s = parentNode(node);
+  if (s)
+    set_lastChild(s, chd);
+}
+
 /* -----------------------------------------------------------------------------
  * removeNode()
  *

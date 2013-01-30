@@ -2620,7 +2620,7 @@ int Language::constructorDeclaration(Node *n) {
       String *scope = Swig_scopename_check(ClassName) ? Swig_scopename_prefix(ClassName) : 0;
       String *actual_name = scope ? NewStringf("%s::%s", scope, name) : NewString(name);
       Delete(scope);
-      if (!Equal(actual_name, expected_name) && !(Getattr(n, "template"))) {
+      if (!Equal(actual_name, expected_name) && !SwigType_istemplate(expected_name)) {
 	bool illegal_name = true;
 	if (Extend) {
 	  // SWIG extension - allow typedef names as destructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'destructor'.
