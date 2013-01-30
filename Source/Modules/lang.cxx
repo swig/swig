@@ -2355,16 +2355,18 @@ int Language::classDeclaration(Node *n) {
     Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Can't wrap class %s unless renamed to a valid identifier.\n", SwigType_namestr(symname));
     return SWIG_NOWRAP;
   }
-
+  AccessMode oldAccessMode = cplus_mode;
+  Node* outerClass = Getattr(n, "outerclass");
+  if (outerClass && oldAccessMode != Dispatcher::PUBLIC)
+    return SWIG_NOWRAP;
+  ClassName = Copy(name);
+  ClassPrefix = Copy(symname);
   if (Cmp(kind, "class") == 0) {
     cplus_mode = PRIVATE;
   } else {
     cplus_mode = PUBLIC;
   }
-
-  ClassName = Copy(name);
-  ClassPrefix = Copy(symname);
-  for (Node* outerClass = Getattr(n, "outerclass"); outerClass; outerClass = Getattr(outerClass, "outerclass")) {
+  for (; outerClass; outerClass = Getattr(outerClass, "outerclass")) {
     Push(ClassPrefix, "_");
     Push(ClassPrefix, Getattr(outerClass, "sym:name"));
   }
@@ -2428,6 +2430,7 @@ int Language::classDeclaration(Node *n) {
     Language::classHandler(n);
   }
 
+  cplus_mode = oldAccessMode;
   NSpace = oldNSpace;
   InClass = oldInClass;
   CurrentClass = oldCurrentClass;

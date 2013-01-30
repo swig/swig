@@ -467,10 +467,16 @@ class TypePass:private Dispatcher {
     
     // name of the outer class should already be patched to contain it's outer classes names, but not to contain namespaces
     // namespace name (if present) is added after processing child nodes
-    if (name && Getattr(n, "outerclass")) {
-      String* fullName = NewStringf("%s::%s", Getattr(Getattr(n, "outerclass"), "name"), name);
-      Setattr(n, "name", fullName);
-      name = fullName;
+    if (Getattr(n, "outerclass")) {
+      String* outerName = Getattr(Getattr(n, "outerclass"), "name");
+      if (name) {
+	name = NewStringf("%s::%s", outerName, name);
+	Setattr(n, "name", name);
+	if (tdname) {
+	  tdname = NewStringf("%s::%s", outerName, tdname);
+	  Setattr(n, "tdname", tdname);
+	}
+      }
     }
 
     if (nsname && name) {
