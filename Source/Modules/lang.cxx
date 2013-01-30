@@ -2345,6 +2345,8 @@ int Language::classDeclaration(Node *n) {
 
   int strip = CPlusPlus ? 1 : unnamed && tdname;
 
+  if (cplus_mode != PUBLIC)
+    return SWIG_NOWRAP;
   if (!name) {
     Swig_warning(WARN_LANG_CLASS_UNNAMED, input_file, line_number, "Can't generate wrappers for unnamed struct/class.\n");
     return SWIG_NOWRAP;
