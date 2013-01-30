@@ -16,6 +16,7 @@ template <> struct Typemap<short> { // Note explicit specialization
 };
 
 %inline %{
+template <typename T> struct Typemap{};
 int globalInt1(int s) { return s; }
 short globalShort1(short s) { return s; }
 
