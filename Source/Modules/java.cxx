@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -194,7 +194,7 @@ public:
    * Return NULL if not otherwise the proxy class name, fully qualified with
    * package name if the nspace feature is used.
    * ----------------------------------------------------------------------------- */
-  
+
    String *getProxyName(SwigType *t) {
      String *proxyname = NULL;
      if (proxy_flag) {
@@ -305,12 +305,12 @@ public:
     if (optionsnode) {
       if (Getattr(optionsnode, "jniclassname"))
 	imclass_name = Copy(Getattr(optionsnode, "jniclassname"));
-      /* check if directors are enabled for this module.  note: this 
+      /* check if directors are enabled for this module.  note: this
        * is a "master" switch, without which no director code will be
        * emitted.  %feature("director") statements are also required
        * to enable directors for individual classes or methods.
        *
-       * use %module(directors="1") modulename at the start of the 
+       * use %module(directors="1") modulename at the start of the
        * interface file to enable director generation.
        */
       if (Getattr(optionsnode, "directors")) {
@@ -742,15 +742,25 @@ public:
    *----------------------------------------------------------------------*/
 
   UpcallData *addUpcallMethod(String *imclass_method, String *class_method, String *imclass_desc, String *class_desc, String *decl) {
+    UpcallData *udata;
+    String *imclass_methodidx;
+    String *class_methodidx;
+    Hash *new_udata;
     String *key = NewStringf("%s|%s", imclass_method, decl);
 
     ++curr_class_dmethod;
 
-    String *imclass_methodidx = NewStringf("%d", n_dmethods);
-    String *class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
+    /* Do we know about this director class already? */
+    if ((udata = Getattr(dmethods_table, key))) {
+      Delete(key);
+      return Getattr(udata, "methodoff");
+    }
+
+    imclass_methodidx = NewStringf("%d", n_dmethods);
+    class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
     n_dmethods++;
 
-    Hash *new_udata = NewHash();
+    new_udata = NewHash();
     Append(dmethods_seq, new_udata);
     Setattr(dmethods_table, key, new_udata);
 
@@ -832,7 +842,7 @@ public:
 
     /*
        The rest of this function deals with generating the intermediary class wrapper function (that wraps
-       a c/c++ function) and generating the JNI c code. Each Java wrapper function has a 
+       a c/c++ function) and generating the JNI c code. Each Java wrapper function has a
        matching JNI c function call.
      */
 
@@ -1125,7 +1135,7 @@ public:
       moduleClassFunctionHandler(n);
     }
 
-    /* 
+    /*
      * Generate the proxy class getters/setters for public member variables.
      * Not for enums and constants.
      */
@@ -1999,7 +2009,7 @@ public:
       f_proxy = NULL;
 
       /* Output the downcast method, if necessary. Note: There's no other really
-         good place to put this code, since Abstract Base Classes (ABCs) can and should have 
+         good place to put this code, since Abstract Base Classes (ABCs) can and should have
          downcasts, making the constructorHandler() a bad place (because ABCs don't get to
          have constructors emitted.) */
       if (GetFlag(n, "feature:javadowncast")) {
@@ -2098,11 +2108,11 @@ public:
   /* -----------------------------------------------------------------------------
    * proxyClassFunctionHandler()
    *
-   * Function called for creating a Java wrapper function around a c++ function in the 
+   * Function called for creating a Java wrapper function around a c++ function in the
    * proxy class. Used for both static and non-static C++ class functions.
    * C++ class static functions map to Java static functions.
-   * Two extra attributes in the Node must be available. These are "proxyfuncname" - 
-   * the name of the Java class proxy function, which in turn will call "imfuncname" - 
+   * Two extra attributes in the Node must be available. These are "proxyfuncname" -
+   * the name of the Java class proxy function, which in turn will call "imfuncname" -
    * the intermediary (JNI) function name in the intermediary class.
    * ----------------------------------------------------------------------------- */
 
@@ -2308,7 +2318,7 @@ public:
 	Replaceall(tm, "$owner", "false");
       substituteClassname(t, tm);
 
-      // For director methods: generate code to selectively make a normal polymorphic call or 
+      // For director methods: generate code to selectively make a normal polymorphic call or
       // an explicit method call - needed to prevent infinite recursion calls in director methods.
       Node *explicit_n = Getattr(n, "explicitcallnode");
       if (explicit_n) {
@@ -2931,7 +2941,7 @@ public:
   /* -----------------------------------------------------------------------------
    * substituteClassname()
    *
-   * Substitute the special variable $javaclassname with the proxy class name for classes/structs/unions 
+   * Substitute the special variable $javaclassname with the proxy class name for classes/structs/unions
    * that SWIG knows about. Also substitutes enums with enum name.
    * Otherwise use the $descriptor name for the Java class name. Note that the $&javaclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
@@ -3008,7 +3018,7 @@ public:
   /* -----------------------------------------------------------------------------
    * makeParameterName()
    *
-   * Inputs: 
+   * Inputs:
    *   n - Node
    *   p - parameter node
    *   arg_num - parameter argument number
@@ -3034,7 +3044,7 @@ public:
     arg = (!pn || (count > 1) || wrn) ? NewStringf("arg%d", arg_num) : Copy(pn);
 
     if (setter && Cmp(arg, "self") != 0) {
-      // Note that for setters the parameter name is always set but sometimes includes C++ 
+      // Note that for setters the parameter name is always set but sometimes includes C++
       // scope resolution, so we need to strip off the scope resolution to make a valid name.
       Delete(arg);
       arg = NewString("value");	//Swig_scopename_last(pn);
@@ -3098,7 +3108,7 @@ public:
    * tmap_method - typemap method name
    * type - typemap type to lookup
    * warning - warning number to issue if no typemaps found
-   * typemap_attributes - the typemap attributes are attached to this node and will 
+   * typemap_attributes - the typemap attributes are attached to this node and will
    *   also be used for temporary storage if non null
    * return is never NULL, unlike Swig_typemap_lookup()
    * ----------------------------------------------------------------------------- */
@@ -3189,7 +3199,7 @@ public:
    * prematureGarbageCollectionPreventionParameter()
    *
    * Get the proxy class name for use in an additional generated parameter. The
-   * additional parameter is added to a native method call purely to prevent 
+   * additional parameter is added to a native method call purely to prevent
    * premature garbage collection of proxy classes which pass their C++ class pointer
    * in a Java long to the JNI layer.
    * ----------------------------------------------------------------------------- */
@@ -3412,7 +3422,7 @@ public:
     else {
       Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
       Printf(code_wrap->code, "  (void)jcls;\n");
-      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName); 
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
     }
 
     Printf(code_wrap->code, "  if (director) {\n");
@@ -3497,41 +3507,54 @@ public:
     // Delete(method_attr);
   }
 
-  /* ---------------------------------------------------------------
-   * Canonicalize the JNI field descriptor
-   *
-   * Replace the $javapackage and $javaclassname family of special
-   * variables with the desired package and Java proxy name as 
-   * required in the JNI field descriptors.
-   * 
-   * !!SFM!! If $packagepath occurs in the field descriptor, but
-   * package_path isn't set (length == 0), then strip it and the
-   * optional trailing '/' from the resulting name.
-   * 
-   * --------------------------------------------------------------- */
+  /** Replace $packagepath using the javapackage typemap
+      associated with passed parm or global package_path
+      if none.  "$packagepath/" is replaced with "" if no
+      package path is set.
+  */
+  void substitutePackagePath(String *text, Parm *p, bool forceEmpty=false) {
+    String *pkg_path= 0;
 
-  String *canonicalizeJNIDescriptor(String *descriptor_in, Parm *p) {
-    String *pkg_path = Swig_typemap_lookup("javapackage", p, "", 0);
-    SwigType *type = Getattr(p, "type");
-
+    if (p)
+      pkg_path = Swig_typemap_lookup("javapackage", p, "", 0);
     if (!pkg_path || Len(pkg_path) == 0)
       pkg_path = package_path;
 
-    String *descriptor_out = Copy(descriptor_in);
-
-    substituteClassname(type, descriptor_out, true);
-
-    if (Len(pkg_path) > 0 && Strchr(descriptor_out, '.') == NULL) {
-      Replaceall(descriptor_out, "$packagepath", pkg_path);
+    if (Len(pkg_path) > 0 && ! forceEmpty) {
+      Replaceall(text, "$packagepath", pkg_path);
     } else {
-      Replaceall(descriptor_out, "$packagepath/", empty_string);
-      Replaceall(descriptor_out, "$packagepath", empty_string);
+      Replaceall(text, "$packagepath/", empty_string);
+      Replaceall(text, "$packagepath", empty_string);
     }
-
-    Replaceall(descriptor_out, ".", "/");
-
     if (pkg_path != package_path)
       Delete(pkg_path);
+  }
+
+  /* ---------------------------------------------------------------
+   * Canonicalize the JNI field descriptor
+   *
+   * Replace the $packagepath and $javaclassname
+   * variables with the desired package and Java proxy name as
+   * required in the JNI field descriptors.
+   *
+   * !!SFM!! If $packagepath occurs in the field descriptor, but
+   * package_path isn't set (length == 0), then strip it and the
+   * optional trailing '/' from the resulting name.
+   *
+   * --------------------------------------------------------------- */
+
+  String *canonicalizeJNIDescriptor(String *descriptor_in, Parm *p) {
+    SwigType *type = Getattr(p, "type");
+
+    String *descriptor_out = Copy(descriptor_in);
+    substituteClassname(type, descriptor_out, true);
+
+    // if descriptor_in ($javaclassname?) is in name space form, a.b.c, discard
+    //   packagepath from string like $packagepath/$javaclassname
+    bool forceEmpty = Strchr(descriptor_out, '.') != NULL;
+    substitutePackagePath(descriptor_out, p, forceEmpty);
+
+    Replaceall(descriptor_out, ".", "/");
 
     return descriptor_out;
   }
@@ -3539,7 +3562,7 @@ public:
   /* ---------------------------------------------------------------
    * classDirectorMethod()
    *
-   * Emit a virtual director method to pass a method call on to the 
+   * Emit a virtual director method to pass a method call on to the
    * underlying Java object.
    *
    * --------------------------------------------------------------- */
@@ -3667,7 +3690,7 @@ public:
       Append(classret_desc, jnidesc_canon);
       Delete(jnidesc_canon);
     } else {
-      Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+      Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
 	  SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
       output_director = false;
     }
@@ -3696,14 +3719,14 @@ public:
 	Delete(jnidesc_canon);
       } else {
 	Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-		     "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+		     "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
 		     SwigType_str(c_ret_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	output_director = false;
       }
 
       Delete(tp);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s for use in %s::%s (skipping director method)\n", 
+      Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s for use in %s::%s (skipping director method)\n",
 	  SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
       output_director = false;
     }
@@ -3776,7 +3799,7 @@ public:
       Delete(tm);
     } else {
       Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-		   "No or improper directorin typemap for type %s  for use in %s::%s (skipping director method)\n", 
+		   "No or improper directorin typemap for type %s  for use in %s::%s (skipping director method)\n",
 		   SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
       output_director = false;
     }
@@ -3821,7 +3844,7 @@ public:
 	    && (tm = Getattr(p, "tmap:directorin"))
 	    && (cdesc = Getattr(p, "tmap:directorin:descriptor"))) {
 
-	  // Objects marshalled by passing a Java class across the JNI boundary use jobject as the JNI type - 
+	  // Objects marshalled by passing a Java class across the JNI boundary use jobject as the JNI type -
 	  // the nouse flag indicates this. We need the specific Java class name instead of the generic 'Ljava/lang/Object;'
 	  if (GetFlag(tp, "tmap:directorin:nouse"))
 	    jdesc = cdesc;
@@ -3862,12 +3885,12 @@ public:
 	      Append(classdesc, jni_canon);
 	      Delete(jni_canon);
 	    } else {
-	      Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF, input_file, line_number, "No javadirectorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+	      Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF, input_file, line_number, "No javadirectorin typemap defined for %s for use in %s::%s (skipping director method)\n",
 		  SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	      output_director = false;
 	    }
 	  } else {
-	    Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s for use in %s::%s (skipping director method)\n", 
+	    Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s for use in %s::%s (skipping director method)\n",
 		SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    output_director = false;
 	  }
@@ -3878,22 +3901,22 @@ public:
 	} else {
 	  if (!desc_tm) {
 	    Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF, input_file, line_number,
-			 "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+			 "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
 			 SwigType_str(c_param_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    p = nextSibling(p);
 	  } else if (!jdesc) {
 	    Swig_warning(WARN_JAVA_TYPEMAP_DIRECTORIN_NODESC, input_file, line_number,
-			 "Missing JNI descriptor in directorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+			 "Missing JNI descriptor in directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
 			 SwigType_str(c_param_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    p = Getattr(p, "tmap:directorin:next");
 	  } else if (!tm) {
 	    Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF, input_file, line_number,
-			 "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n", 
+			 "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n",
 			 SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    p = nextSibling(p);
 	  } else if (!cdesc) {
 	    Swig_warning(WARN_JAVA_TYPEMAP_DIRECTORIN_NODESC, input_file, line_number,
-			 "Missing JNI descriptor in directorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+			 "Missing JNI descriptor in directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
 			 SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    p = Getattr(p, "tmap:directorin:next");
 	  }
@@ -3902,7 +3925,7 @@ public:
 	}
 
       } else {
-	Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s for use in %s::%s (skipping director method)\n", 
+	Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s for use in %s::%s (skipping director method)\n",
 	    SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	output_director = false;
 	p = nextSibling(p);
@@ -3927,6 +3950,17 @@ public:
     // Add any exception specifications to the methods in the director class
     // Get any Java exception classes in the throws typemap
     ParmList *throw_parm_list = NULL;
+    
+    // May need to add throws to director classes if %catches defined
+    // Get any Java exception classes in the throws typemap
+    ParmList *catches_list = Getattr(n, "catchlist");
+    if (catches_list) {
+      Swig_typemap_attach_parms("throws", catches_list, 0);
+      Swig_typemap_attach_parms("directorthrows", catches_list, 0);
+      for (p = catches_list; p; p = nextSibling(p)) {
+	addThrows(n, "tmap:throws", p);
+      }
+    }
 
     if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
       int gencomma = 0;
@@ -3934,11 +3968,16 @@ public:
       Append(w->def, " throw(");
       Append(declaration, " throw(");
 
-      if (throw_parm_list)
+      if (throw_parm_list) {
 	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+	Swig_typemap_attach_parms("directorthrows", throw_parm_list, 0);
+      }
       for (p = throw_parm_list; p; p = nextSibling(p)) {
 	if (Getattr(p, "tmap:throws")) {
-	  addThrows(n, "tmap:throws", p);
+	  // If %catches feature, it overrides specified throws().
+	  if (! catches_list) {
+	    addThrows(n, "tmap:throws", p);
+	  }
 
 	  if (gencomma++) {
 	    Append(w->def, ", ");
@@ -4001,7 +4040,8 @@ public:
 
       Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_methids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
 
-      Printf(w->code, "if (jenv->ExceptionCheck() == JNI_TRUE) return $null;\n");
+      // Generate code to handle any java exception thrown by director delegation
+      directorExceptHandler(n, catches_list?catches_list:throw_parm_list, w, c_classname, name);
 
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
@@ -4015,7 +4055,7 @@ public:
 	  Printf(w->code, "%s\n", tm);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-		       "Unable to use return type %s used in %s::%s (skipping director method)\n", 
+		       "Unable to use return type %s used in %s::%s (skipping director method)\n",
 		       SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	  output_director = false;
 	}
@@ -4042,7 +4082,8 @@ public:
 
       /* Terminate wrapper code */
       Printf(w->code, "} else {\n");
-      Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object\");\n");
+      Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object in %s::%s \");\n",
+	     SwigType_namestr(c_classname), SwigType_namestr(name));
       Printf(w->code, "}\n");
 
       Printf(w->code, "if (swigjobj) jenv->DeleteLocalRef(swigjobj);\n");
@@ -4096,6 +4137,100 @@ public:
     DelWrapper(w);
 
     return status;
+  }
+
+  /* ------------------------------------------------------------
+   * directorExcept handler: Emit code to map java exceptions
+   *  back to C++ exceptions when feature("director:except") is appied
+   *  to a method node
+   * ------------------------------------------------------------ */
+  void directorExceptHandler(Node *n, ParmList *throw_parm_list, Wrapper *w, String *c_classname, String *name) {
+    // After director java method call, allow code for director method exception to be added
+    // Look for director:exceptfeature
+    Parm *p;
+
+    // "Default" feature, so that feature is not applied to every node, per W. Fulton
+    static char const * DEFAULT_DIREXCP_FEATURE =
+	  "jthrowable $error = jenv->ExceptionOccurred();\n"
+	  "if ($error) {\n"
+	  "  jenv->ExceptionClear();\n"
+	  "  $directorthrowshandlers\n"
+	  "  $defaulthandler\n"
+          "  // If java exception not translated to C++ exception, reset\n" 
+          "  // pending java exception (compatible with swig 2.0.x behavior)\n"
+          "  jenv->Throw($error);\n"
+	  "  return $null;\n"
+	  "}\n";
+
+    String * featdirexcp = Getattr(n, "feature:director:except");
+
+    if (!featdirexcp) {
+      featdirexcp = NewString(DEFAULT_DIREXCP_FEATURE);
+    } else {
+      featdirexcp = Copy(featdirexcp);
+    }
+    // Can explicitly disable director:except by setting to "" or "0"
+    if (0 != Len(featdirexcp) && 0 != Cmp(featdirexcp,"0")) {
+
+      substitutePackagePath(featdirexcp, 0); // Replace any $packagepath with global -package package_path
+
+      // Replace $action with any defined typemap handlers (or nothing)
+      if (Strstr(featdirexcp, "$directorthrowshandlers")) {
+	String *directorthrowshandlers_code = NewString("");
+
+	// TODO: Once a java.lang.Throwable is handled, done
+	// bool throwableHandled = false;  TODO: decide if this is useful...
+	bool isfirst = true;
+	for (p = throw_parm_list; p; p = nextSibling(p)) {
+	  String *tmapdirthrows = Getattr(p, "tmap:directorthrows");
+	  String *tmapdirthrowsmatches = Getattr(p, "tmap:directorthrows:matches");
+	  String * excptype = Getattr(p,"type");
+
+	  if (!tmapdirthrows) {
+	    Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, input_file, line_number,
+			 "Feature director:except on %s::%s with $directorthrowshandlers requires directorthrows typemap for exception %s.\n",
+			 SwigType_namestr(c_classname),SwigType_namestr(name), excptype);
+	  } else {
+	    if (! tmapdirthrowsmatches) {
+	      Swig_error(input_file, line_number, "Typemap directorthows on %s: missing required 'matches' attribute", excptype);
+	    }
+	    // replace $packagepath if present, honoring exception javapackage typemap.
+	    tmapdirthrows = Copy(tmapdirthrows);
+	    substitutePackagePath(tmapdirthrows, p);
+	    // replace $packagepath if present, honoring exception javapackage typemap.
+	    tmapdirthrowsmatches = Copy(tmapdirthrowsmatches);
+	    substitutePackagePath(tmapdirthrowsmatches, p);
+	    Replaceall(tmapdirthrowsmatches, ".", "/");  // Make path-like: java/lang/Exception
+	    // Use Swig::exception_matches defined in java/director.swg
+	    Printf(directorthrowshandlers_code,
+		   "    // Handle exception %s\n"
+		   "    %s (Swig::ExceptionMatches(jenv,thrown_,\"%s\")) {\n"
+		   "    %s\n"
+		   "    }\n",
+		   excptype,
+		   isfirst?"if":"else if", tmapdirthrowsmatches,
+		   tmapdirthrows);
+
+	    Delete(tmapdirthrows);
+	    Delete(tmapdirthrowsmatches);
+	    isfirst=false; // clauses after first are "else if"
+	  }
+	}
+
+	Replaceall(featdirexcp, "$directorthrowshandlers", directorthrowshandlers_code);
+	Delete(directorthrowshandlers_code);
+      }
+
+      if (Strstr(featdirexcp, "$defaulthandler")) {
+	// Access feature attribute of director:except, or director:except:defaulthandler
+	String * defaulthandler = Getattr(n, "feature:director:except:defaulthandler");
+	Replaceall(featdirexcp, "$defaulthandler", defaulthandler ? defaulthandler : "");
+      }
+      // Replace all occurences of $error with a common var name.  No need for uniqueness, only one.
+      Replaceall(featdirexcp, "$error", "thrown_");
+      Printf(w->code, "    {\n%s\n}\n", featdirexcp);
+    }
+    Delete(featdirexcp);
   }
 
   /* ------------------------------------------------------------

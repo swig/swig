@@ -41,6 +41,14 @@ class DirectorMethodException: public Swig::DirectorException {};
 
 #endif
 
+#ifdef SWIGJAVA
+
+// Default for director exception warns about unmapped exceptions now in java
+// Suppress warnings for this older test
+%warnfilter(476) Bar;
+
+#endif
+
 #ifdef SWIGRUBY
 
 %feature("director:except") {
