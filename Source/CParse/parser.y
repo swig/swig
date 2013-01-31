@@ -830,6 +830,33 @@ void inherit_base_symbols(List* bases) {
     Delete(bases);
   }
 }
+
+/* Use typedef name as class name */
+void add_typedef_name(Node* n, Node* decl, String* oldName, Symtab *cscope)
+{
+  String* class_rename = 0;
+  SwigType *decltype = Getattr(decl,"decl");
+  if (!decltype || !Len(decltype)) {
+    String *cname;
+    String *tdscopename;
+    String *class_scope = Swig_symbol_qualifiedscopename(cscope);
+    String *name = Getattr(decl,"name");
+    cname = Copy(name);
+    Setattr(n,"tdname",cname);
+    tdscopename = class_scope ? NewStringf("%s::%s", class_scope, name) : Copy(name);
+    class_rename = Getattr(n, "class_rename");
+    if (class_rename && (Strcmp(class_rename,oldName) == 0))
+      Setattr(n, "class_rename", NewString(name));
+    if (!Getattr(classes,tdscopename)) {
+      Setattr(classes,tdscopename,n);
+    }
+    Setattr(n,"decl",decltype);
+    Delete(class_scope);
+    Delete(cname);
+    Delete(tdscopename);
+  }
+}
+
 /* If the class name is qualified.  We need to create or lookup namespace entries */
 
 static Symtab *set_scope_to_global() {
@@ -3328,6 +3355,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Setattr(p,"type",ty);
 		     p = nextSibling(p);
 		   }
+		   if ($9 && Cmp($1,"typedef") == 0)
+		     add_typedef_name($$, $9, $3, cscope);
 
 		   if (cplus_mode != CPLUS_PUBLIC) {
 		   /* we 'open' the class at the end, to allow %template
