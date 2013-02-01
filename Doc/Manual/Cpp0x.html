@@ -735,14 +735,32 @@ int main() {
 <H3><a name="Cpp0x_Polymorphous_wrappers_for_function_objects"></a>7.3.7 Polymorphous wrappers for function objects</H3>
 
 
-<p>SWIG fully supports function template wrappers and function objects:</p>
+<p>
+SWIG supports functor classes in some languages in a very natural way.
+However nothing is provided yet for the new <tt>std::function</tt> template.
+SWIG will parse usage of the template like any other template.
+</p>
 
 <div class="code"><pre>
-function&lt;int ( int, int )&gt; pF;   // function template wrapper
+%rename(__call__) Test::operator(); // Default renaming used for Python
 
 struct Test {
-  bool operator()( short x, short y ); // function object
+  bool operator()(int x, int y); // function object
 };
+
+#include &lt;functional&gt;
+std::function&lt;void (int, int)&gt; pF = Test;   // function template wrapper
+
+</pre></div>
+
+<p>
+Example of supported usage of the plain functor from Python is shown below.
+It does not involve <tt>std::function</tt>.
+</p>
+
+<div class="targetlang">
+t = Test()
+b = t(1,2) # invoke C++ function object
 </pre></div>
 
 <H3><a name="Cpp0x_Type_traits_for_metaprogramming"></a>7.3.8 Type traits for metaprogramming</H3>
