@@ -126,13 +126,14 @@ public:
 <H3><a name="Cpp0x_Initializer_lists"></a>7.2.4 Initializer lists</H3>
 
 
-<p>Constructors using the std::initializer_list class are removed
-from the wrapped class, because the only way to access such a
-constructor is at compile time using the "= {}" assignment.</p>
-<p>Users should add another constructor with specific arguments
-filling the class members manually.</p>
+<p>
+Constructors using the std::initializer_list class are removed
+from the wrapped class because the only way to access such a
+constructor is at compile time using the initialization list syntax.
+Initializer lists are very much a C++ construct and not very accessible from wrappers.
+</p>
 
-<p>For now, if a user wants to fill the class components like this:</p>
+<p>For now, if you want to fill the class components like this:</p>
 
 <div class="code"><pre>
 class A {
@@ -142,7 +143,7 @@ public:
 A a1 = {1,2,3,4};
 </pre></div>
 
-<p>You should add another constructor using the std::vector for example:</p>
+<p>you could add another constructor using <tt>std::vector</tt> for example:</p>
 
 <div class="code"><pre>
 class A {
@@ -153,10 +154,25 @@ public:
 A a1 = {1,2,3,4};
 </pre></div>
 
-<p>And call it from your target language, for example, in Python:</p>
+<p>And then construct it from your target language, for example, in Python:</p>
 <div class="targetlang"><pre>
 &gt;&gt;&gt; a2 = A( [1,2,3,4] )
 </pre></div>
+
+<p>
+<tt>std::initializer_list</tt> is simply a container that can only be initialised at compile time.
+As such it is possible to write typemaps for a target language container to map onto
+<tt>std::initializer_list</tt>. However, this can only be done for a fixed number of elements ...
+there is no way to construct an initializer list with a variable number of arguments at runtime.
+This is not particularly flexible though outside of C++ static initialization,
+hence the need to provide an alternative for use from a target language.
+</p>
+
+<p>
+Initializer lists can appear in any function or method, not just constructors.
+SWIG only ignores the constructors as this is where they commonly occur.
+Users are recommended to manually ignore any other methods using an initialization list with <tt>%ignore</tt>.
+</p>
 
 <H3><a name="Cpp0x_Uniform_initialization"></a>7.2.5 Uniform initialization</H3>
 

@@ -5165,7 +5165,7 @@ def_args       : EQUAL definetype {
                }
                | EQUAL LBRACE {
 		 skip_balanced('{','}');
-		 $$.val = 0;
+		 $$.val = NewString(scanner_ccode);
 		 $$.rawval = 0;
                  $$.type = T_INT;
 		 $$.bitfield = 0;
@@ -6625,7 +6625,10 @@ mem_initializer_list : mem_initializer
                | mem_initializer_list COMMA mem_initializer PERIOD PERIOD PERIOD
                ;
 
-mem_initializer : idcolon LPAREN { skip_balanced('(',')'); Clear(scanner_ccode); }
+mem_initializer : idcolon LPAREN {
+		  skip_balanced('(',')');
+		  Clear(scanner_ccode);
+		}
                 /* Uniform initialization in C++0x.
 		   Example:
                    struct MyStruct {
@@ -6634,7 +6637,10 @@ mem_initializer : idcolon LPAREN { skip_balanced('(',')'); Clear(scanner_ccode);
                      double y_;
                    };
                 */
-                | idcolon LBRACE { skip_balanced('{','}'); Clear(scanner_ccode); }
+                | idcolon LBRACE {
+		  skip_balanced('{','}');
+		  Clear(scanner_ccode);
+		}
                 ;
 
 template_decl : LESSTHAN valparms GREATERTHAN { 
