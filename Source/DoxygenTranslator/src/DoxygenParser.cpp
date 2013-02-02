@@ -1247,6 +1247,16 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
 
   StringVector lines = split(doxygenComment, '\n');
 
+  // remove trailing spaces, because they cause additional new line at the end
+  // comment, which is wrong, because these spaces are space preceding
+  // end of comment :  '  */'
+  if (!doxygenComment.empty()  &&  doxygenComment[doxygenComment.size() - 1] == ' ') {
+    string lastLine = lines[lines.size() - 1];
+    if (trim(lastLine).empty()) {
+      lines.pop_back(); // remove trailing empy line
+    }
+  }
+
   for (StringVectorCIt it = lines.begin(); it != lines.end(); it++) {
     const string &line = *it;
     size_t pos = line.find_first_not_of(" \t");

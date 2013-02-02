@@ -31,32 +31,33 @@ void PyDocConverter::fillStaticTables() {
 
   // table of section titles, they are printed only once
   // for each group of specified doxygen commands
-  sectionTitles["author"] = "Authors:";
-  sectionTitles["authors"] = "Authors:";
-  sectionTitles["copyright"] = "Copyright:";
-  sectionTitles["deprecated"] = "Deprecated:";
-  sectionTitles["example"] = "Example:";
-  sectionTitles["exception"] = "Throws:";
-  sectionTitles["param"] = "Arguments:";
-  sectionTitles["tparam"] = "Arguments:";
-  sectionTitles["note"] = "Notes:";
-  sectionTitles["remark"] = "Remarks:";
-  sectionTitles["remarks"] = "Remarks:";
-  sectionTitles["warning"] = "Warning:";
-  sectionTitles["result"] = "Return:";
-  sectionTitles["return"] = "Return:";
-  sectionTitles["returns"] = "Return:";
-  sectionTitles["sa"] = "See also:";
-  sectionTitles["see"] = "See also:";
-  sectionTitles["since"] = "Since:";
-  sectionTitles["throw"] = "Throws:";
-  sectionTitles["throws"] = "Throws:";
-  sectionTitles["todo"] = "TODO:";
-  sectionTitles["version"] = "Version:";
+  sectionTitles["author"] = "Author: ";
+  sectionTitles["authors"] = "Authors: ";
+  sectionTitles["copyright"] = "Copyright: ";
+  sectionTitles["deprecated"] = "Deprecated: ";
+  sectionTitles["example"] = "Example: ";
+  sectionTitles["exception"] = "Throws: ";
+  sectionTitles["param"] = "Arguments:\n";
+  sectionTitles["tparam"] = "Arguments:\n";
+  sectionTitles["note"] = "Notes: ";
+  sectionTitles["remark"] = "Remarks: ";
+  sectionTitles["remarks"] = "Remarks: ";
+  sectionTitles["warning"] = "Warning: ";
+  sectionTitles["result"] = "Return: ";
+  sectionTitles["return"] = "Return: ";
+  sectionTitles["returns"] = "Returns: ";
+  sectionTitles["sa"] = "See also: ";
+  sectionTitles["see"] = "See also: ";
+  sectionTitles["since"] = "Since: ";
+  sectionTitles["throw"] = "Throw: ";
+  sectionTitles["throws"] = "Throws: ";
+  sectionTitles["todo"] = "TODO: ";
+  sectionTitles["version"] = "Version: ";
 
-  // these commands insert HTML tags
   tagHandlers["a"] = make_pair(&PyDocConverter::handleTagWrap, "_");
   tagHandlers["b"] = make_pair(&PyDocConverter::handleTagWrap, "__");
+  // \c command is translated as single quotes around next word
+  tagHandlers["c"] = make_pair(&PyDocConverter::handleTagWrap, "'");
   tagHandlers["cite"] = make_pair(&PyDocConverter::handleTagWrap, "'");
   tagHandlers["e"] = make_pair(&PyDocConverter::handleTagWrap, "_");
   // these commands insert just a single char, some of them need to be escaped
@@ -78,7 +79,6 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["authors"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["brief"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["bug"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["c"] = make_pair(&PyDocConverter::handleParagraph, " ");
   tagHandlers["code"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["copyright"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["date"] = make_pair(&PyDocConverter::handleParagraph, "");
@@ -196,7 +196,7 @@ std::string PyDocConverter::translateSubtree(DoxygenEntity & doxygenEntity) {
     if (it != sectionTitles.end()) {
       if (it->second != currentSection) {
         currentSection = it->second;
-        translatedComment += currentSection + "\n";
+        translatedComment += currentSection;
       }
     }
     translateEntity(*p, translatedComment);
@@ -215,22 +215,31 @@ void PyDocConverter::translateEntity(DoxygenEntity & doxyEntity, std::string &tr
     (this->*(it->second.first))(doxyEntity, translatedComment, it->second.second);
 }
 
+
 void PyDocConverter::handleParagraph(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   translatedComment += translateSubtree(tag) + arg;
 }
+
+
 void PyDocConverter::handlePlainString(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   translatedComment += tag.data;
   if (tag.data.size() && tag.data[tag.data.size()-1] != ' ')
     translatedComment += "";
 }
+
+
 void PyDocConverter::handleTagMessage(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   std::string dummy;
   translatedComment += arg;
   handleParagraph(tag, translatedComment, dummy);
 }
+
+
 void PyDocConverter::handleTagChar(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   translatedComment += tag.typeOfEntity;
 }
+
+
 void PyDocConverter::handleTagIf(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   std::string dummy;
   translatedComment += arg;
@@ -240,6 +249,8 @@ void PyDocConverter::handleTagIf(DoxygenEntity& tag, std::string& translatedComm
     translatedComment += " {" + translateSubtree(tag) + "}";
   }
 }
+
+
 void PyDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   std::string dummy;
   translatedComment += "Title: ";
@@ -248,6 +259,8 @@ void PyDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedCom
   tag.entityList.pop_front();
   handleParagraph(tag, translatedComment, dummy);
 }
+
+
 void PyDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
   if (tag.entityList.size() < 2)
     return;
@@ -258,7 +271,11 @@ void PyDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translatedC
   if (tag.entityList.size())
     translatedComment += "(" + tag.entityList.begin()->data + ")";
 }
-void PyDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
+
+
+void PyDocConverter::handleTagParam(DoxygenEntity& tag,
+                                         std::string& translatedComment,
+                                         std::string&) {
   std::string dummy;
   if (tag.entityList.size() < 2)
     return;
@@ -270,9 +287,11 @@ void PyDocConverter::handleTagParam(DoxygenEntity& tag, std::string& translatedC
   if (!paramType.size())
     paramType = "none";
 
-  translatedComment += paramNameEntity.data + " (" + paramType + ") -- ";
+  translatedComment += "  " + paramNameEntity.data + " (" + paramType + ") --";
   handleParagraph(tag, translatedComment, dummy);
 }
+
+
 void PyDocConverter::handleTagWrap(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   if (tag.entityList.size()) { // do not include empty tags
     std::string tagData = translateSubtree(tag);
@@ -281,12 +300,15 @@ void PyDocConverter::handleTagWrap(DoxygenEntity& tag, std::string& translatedCo
     if (wsPos != std::string::npos && wsPos != tagData.size() - 1)
       translatedComment += arg + tagData.substr(0, wsPos + 1) + arg + tagData.substr(wsPos + 1);
     else
-      translatedComment += arg + tagData + arg + " ";
+      translatedComment += arg + tagData + arg;
   }
 }
+
+
 void PyDocConverter::handleNewLine(DoxygenEntity&, std::string& translatedComment, std::string&) {
   translatedComment += "\n";
 }
+
 
 String *PyDocConverter::makeDocumentation(Node *n) {
   String *documentation;
@@ -358,7 +380,13 @@ String *PyDocConverter::makeDocumentation(Node *n) {
   }
 
   // if we got something log the result and construct DOH string to return
-  if (pyDocString.length()) {
+  if (!pyDocString.empty()) {
+
+    // remove the last '\n' since additional one is added during writing to file
+    if (pyDocString[pyDocString.size() - 1] == '\n') {
+      pyDocString.erase(pyDocString.size() - 1);
+    }
+
     result = pyDocString;
 
     if (debug) {

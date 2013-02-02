@@ -8,9 +8,12 @@
  * \brief
  * Brief description.
  * 
- * The comment text
+ * The comment text.
+ *
  * \author Some author
+ *
  * \return Some number
+ *
  * \sa function2
  */
 int function()
@@ -51,7 +54,6 @@ int function3(int a, int b)
  * \arg it's null
  *
  * \warning This may not work as expected
- *
  * \code
  * int main() { while(true); }
  * \endcode

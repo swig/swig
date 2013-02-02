@@ -1257,26 +1257,35 @@ public:
     //
     // otherwise, put it all on a single line
     //
+    // All comments translated from doxygen are given as raw stringr (prefix "r"),
+    // because '\' is used often in comments, but may break Python module from
+    // loading. For example, in doxy comment one may write path in quotes:
+    //
+    //     This is path to file "C:\x\file.txt"
+    //
+    // Python will no load the module with such comment becaue of illegal
+    // escape '\x'. '\' may additionally appear in verbatim or htmlonly sections
+    // of doxygen doc, Latex expressions, ...
     if (have_auto && have_ds) {	// Both autodoc and docstring are present
       doc = NewString("");
-      Printv(doc, triple_double, "\n", pythoncode(autodoc, indent), "\n", pythoncode(str, indent), indent, triple_double, NIL);
+      Printv(doc, "r", triple_double, "\n", pythoncode(autodoc, indent), "\n", pythoncode(str, indent), indent, triple_double, NIL);
     } else if (!have_auto && have_ds) {	// only docstring
       if (Strchr(str, '\n') == 0) {
 	doc = NewStringf("%s%s%s", triple_double, str, triple_double);
       } else {
 	doc = NewString("");
-	Printv(doc, triple_double, "\n", pythoncode(str, indent), indent, triple_double, NIL);
+	Printv(doc, "r", triple_double, "\n", pythoncode(str, indent), indent, triple_double, NIL);
       }
     } else if (have_auto && !have_ds) {	// only autodoc
       if (Strchr(autodoc, '\n') == 0) {
 	doc = NewStringf("%s%s%s", triple_double, autodoc, triple_double);
       } else {
 	doc = NewString("");
-	Printv(doc, triple_double, "\n", pythoncode(autodoc, indent), indent, triple_double, NIL);
+	Printv(doc, "r", triple_double, "\n", pythoncode(autodoc, indent), indent, triple_double, NIL);
       }
     } else if (have_doxygen) { // the lowest priority
       doc = NewString("");
-      Printv(doc, triple_double, "\n", pythoncode(doxygen_comment, indent), indent, triple_double, NIL);
+      Printv(doc, "r", triple_double, "\n", pythoncode(doxygen_comment, indent), indent, triple_double, NIL);
     }
     else
       doc = NewString("");
