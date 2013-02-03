@@ -1290,8 +1290,6 @@ static void add_symbols_c(Node *n) {
   String *wrn = 0;
   String *symname = 0;
   int iscdecl = Cmp(nodeType(n),"cdecl") == 0;
-  int only_csymbol = 0;
-  String *name = Getattr(n, "name");
   Setattr(n,"ismember","1");
   Setattr(n,"access", "public");
   if (Getattr(n,"sym:name"))

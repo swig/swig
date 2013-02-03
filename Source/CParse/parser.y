@@ -3469,7 +3469,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   add_symbols($$);
 		   add_symbols(n);
 		   Delattr($$, "class_rename");
-		 }
+		 }else if (cparse_cplusplus)
+		   $$ = 0; /* ignore unnamed structs for C++ */
 	         Delete(unnamed);
 	       } else { /* unnamed struct w/o declarator*/
 		 Swig_symbol_popscope();
