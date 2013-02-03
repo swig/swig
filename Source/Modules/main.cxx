@@ -1147,6 +1147,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "debug-module stage 1\n");
       Swig_print_tree(Getattr(top, "module"));
     }
+    if (Verbose) {
+      Printf(stdout, "Processing nested classes...\n");
+    }
+    Swig_process_nested_classes(top);
 
     if (Verbose) {
       Printf(stdout, "Processing types...\n");

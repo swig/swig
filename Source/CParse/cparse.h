@@ -31,6 +31,7 @@ extern "C" {
   extern void scanner_file(File *);
   extern void scanner_next_token(int);
   extern void skip_balanced(int startchar, int endchar);
+  extern String *get_raw_text_balanced(int startchar, int endchar);
   extern void skip_decl(void);
   extern void scanner_check_typedef(void);
   extern void scanner_ignore_typedef(void);

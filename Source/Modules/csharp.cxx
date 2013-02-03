@@ -180,7 +180,7 @@ public:
 	 if (!proxyname) {
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Copy(Getattr(n, "sym:name"));
-	   for (Node* outer_class = Getattr(n, "outerclass");outer_class;outer_class = Getattr(outer_class, "outerclass")) {
+	   for (Node* outer_class = Getattr(n, "nested");outer_class;outer_class = Getattr(outer_class, "nested")) {
 	     Push(symname, ".");
 	     Push(symname, Getattr(outer_class, "sym:name"));
 	   }
@@ -1621,7 +1621,7 @@ public:
     String *c_baseclassname = NULL;
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
-    bool has_outerclass = Getattr(n, "outerclass") != 0;
+    bool has_outerclass = Getattr(n, "nested") != 0;
 
     // Inheritance from pure C# classes
     Node *attributes = NewHash();
@@ -1890,9 +1890,9 @@ public:
 
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
-      if (Node* outer = Getattr(n, "outerclass")) {
+      if (Node* outer = Getattr(n, "nested")) {
 	String* outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
-	for (outer = Getattr(outer, "outerclass"); outer != 0; outer = Getattr(outer, "outerclass")) {
+	for (outer = Getattr(outer, "nested"); outer != 0; outer = Getattr(outer, "nested")) {
 	  Push(outerClassesPrefix, "::");
 	  Push(outerClassesPrefix, Getattr(outer, "sym:name"));
 	}
@@ -1928,7 +1928,7 @@ public:
       }
 
       // inner class doesn't need this prologue
-      if (!Getattr(n, "outerclass"))
+      if (!Getattr(n, "nested"))
       {
 	String *output_directory = outputDirectory(nspace);
 	String *filen = NewStringf("%s%s.cs", output_directory, proxy_class_name);
@@ -1980,7 +1980,7 @@ public:
       Replaceall(proxy_class_def, "$dllimport", dllimport);
       Replaceall(proxy_class_code, "$dllimport", dllimport);
       Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
-      bool has_outerclass = Getattr(n, "outerclass") != 0;
+      bool has_outerclass = Getattr(n, "nested") != 0;
       if (!has_outerclass)
 	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
       else {
@@ -3449,7 +3449,7 @@ public:
     String *sym_name = Getattr(n, "sym:name");
     String *qualified_classname = Copy(sym_name);
     String *nspace = getNSpace();
-    for (Node* outer_class = Getattr(n, "outerclass"); outer_class; outer_class = Getattr(outer_class, "outerclass")) {
+    for (Node* outer_class = Getattr(n, "nested"); outer_class; outer_class = Getattr(outer_class, "nested")) {
       Push(qualified_classname, ".");
       Push(qualified_classname, Getattr(outer_class, "sym:name"));
     }

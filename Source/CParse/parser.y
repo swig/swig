@@ -767,70 +767,6 @@ static String *make_class_name(String *name) {
   return nname;
 }
 
-static List *make_inherit_list(String *clsname, List *names) {
-  int i, ilen;
-  String *derived;
-  List *bases = NewList();
-
-  if (Namespaceprefix) derived = NewStringf("%s::%s", Namespaceprefix,clsname);
-  else derived = NewString(clsname);
-
-  ilen = Len(names);
-  for (i = 0; i < ilen; i++) {
-    Node *s;
-    String *base;
-    String *n = Getitem(names,i);
-    /* Try to figure out where this symbol is */
-    s = Swig_symbol_clookup(n,0);
-    if (s) {
-      while (s && (Strcmp(nodeType(s),"class") != 0)) {
-	/* Not a class.  Could be a typedef though. */
-	String *storage = Getattr(s,"storage");
-	if (storage && (Strcmp(storage,"typedef") == 0)) {
-	  String *nn = Getattr(s,"type");
-	  s = Swig_symbol_clookup(nn,Getattr(s,"sym:symtab"));
-	} else {
-	  break;
-	}
-      }
-      if (s && ((Strcmp(nodeType(s),"class") == 0) || (Strcmp(nodeType(s),"template") == 0))) {
-	String *q = Swig_symbol_qualified(s);
-	Append(bases,s);
-	if (q) {
-	  base = NewStringf("%s::%s", q, Getattr(s,"name"));
-	  Delete(q);
-	} else {
-	  base = NewString(Getattr(s,"name"));
-	}
-      } else {
-	base = NewString(n);
-      }
-    } else {
-      base = NewString(n);
-    }
-    if (base) {
-      Swig_name_inherit(base,derived);
-      Delete(base);
-    }
-  }
-  return bases;
-}
-
-void inherit_base_symbols(List* bases) {
-  if (bases) {
-    Iterator s;
-    for (s = First(bases); s.item; s = Next(s)) {
-      Symtab *st = Getattr(s.item,"symtab");
-      if (st) {
-	Setfile(st,Getfile(s.item));
-	Setline(st,Getline(s.item));
-	Swig_symbol_inherit(st); 
-      }
-    }
-    Delete(bases);
-  }
-}
-
 /* Use typedef name as class name */
 void add_typedef_name(Node* n, Node* decl, String* oldName, Symtab *cscope)
 {
@@ -1168,8 +1104,8 @@ void update_nested_classes(Node* n)
 {
   Node* c = firstChild(n);
   while (c) {
-    if (Getattr(c, "outerclass"))
-      Setattr(c, "outerclass", n);
+    if (Getattr(c, "nested"))
+      Setattr(c, "nested", n);
     update_nested_classes(c);
     c = nextSibling(c);
   }
@@ -2787,7 +2723,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                               csyms = Swig_symbol_current();
                               Swig_symbol_setscope(Getattr(templnode,"symtab"));
                               if (baselist) {
-                                List *bases = make_inherit_list(Getattr(templnode,"name"),baselist);
+                                List *bases = Swig_make_inherit_list(Getattr(templnode,"name"),baselist, Namespaceprefix);
                                 if (bases) {
                                   Iterator s;
                                   for (s = First(bases); s.item; s = Next(s)) {
@@ -3254,7 +3190,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Classprefix = NewString($3);
 		   /* Deal with inheritance  */
 		   if ($4)
-		     bases = make_inherit_list($3,Getattr($4,"public"));
+		     bases = Swig_make_inherit_list($3,Getattr($4,"public"),Namespaceprefix);
 		   prefix = SwigType_istemplate_templateprefix($3);
 		   if (prefix) {
 		     String *fbase, *tbase;
@@ -3276,7 +3212,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   }
 		   Swig_symbol_newscope();
 		   Swig_symbol_setscopename($3);
-		   inherit_base_symbols(bases);
+		   Swig_inherit_base_symbols(bases);
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   cparse_start_line = cparse_line;
@@ -3298,7 +3234,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Delete(prefix);
 		   inclass = 1;
 		   if (currentOuterClass)
-		     Setattr($<node>$, "outerclass", currentOuterClass);
+		     Setattr($<node>$, "nested", currentOuterClass);
 		   currentOuterClass = $<node>$;
                } cpp_members RBRACE cpp_opt_declarators {
 		   Node *p;
@@ -3308,7 +3244,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   String *scpname = 0;
 		   (void) $<node>6;
 		   $$ = currentOuterClass;
-		   currentOuterClass = Getattr($$, "outerclass");
+		   currentOuterClass = Getattr($$, "nested");
 		   if (!currentOuterClass)
 		     inclass = 0;
 		   cscope = Getattr($$, "prev_symtab");
@@ -3393,15 +3329,15 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		     if (!cparse_cplusplus && currentOuterClass) { /* nested C structs go into global scope*/
 		       Node* outer = currentOuterClass;
-		       while (Getattr(outer, "outerclass"))
-			 outer = Getattr(outer, "outerclass");
+		       while (Getattr(outer, "nested"))
+			 outer = Getattr(outer, "nested");
 		       appendSibling(outer, $$);
 		       add_symbols($9);
 		       set_scope_to_global();
 		       Delete(Namespaceprefix);
 		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		       add_symbols($$);
-		       Delattr($$, "outerclass");
+		       Delattr($$, "nested");
 		       Delattr($$, "class_rename");
 		       $$ = 0;
 		     } else {
@@ -3419,6 +3355,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 
              | storage_class cpptype inherit LBRACE {
 	       String *unnamed;
+	       String *code;
 	       unnamed = make_unnamed();
 	       $<node>$ = new_node("class");
 	       Setline($<node>$,cparse_start_line);
@@ -3441,12 +3378,16 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
 	       if (currentOuterClass)
-		 Setattr($<node>$, "outerclass", currentOuterClass);
+		 Setattr($<node>$, "nested", currentOuterClass);
 	       currentOuterClass = $<node>$;
 	       inclass = 1;
 	       Classprefix = NewStringEmpty();
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+	       /* save the structure declaration to make a typedef for it later*/
+	       code = get_raw_text_balanced('{', '}');
+	       Setattr($<node>$, "code", code);
+	       Delete(code);
 	     } cpp_members RBRACE cpp_opt_declarators {
 	       String *unnamed;
                List *bases = 0;
@@ -3454,7 +3395,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Node *n;
 	       Classprefix = 0;
 	       $$ = currentOuterClass;
-	       currentOuterClass = Getattr($$, "outerclass");
+	       currentOuterClass = Getattr($$, "nested");
 	       if (!currentOuterClass)
 		 inclass = 0;
 	       unnamed = Getattr($$,"unnamed");
@@ -3462,6 +3403,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Setattr($$,"abstracts", pure_abstracts($6));
 	       n = $8;
 	       if (n) {
+	         appendSibling($$,n);
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
 		 name = try_to_find_a_name_for_unnamed_structure($1, n);
 		 if (name) {
@@ -3471,13 +3413,12 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Setattr($$,"name",name);
 		   Swig_symbol_setscopename(name);
 		   if ($3)
-		     bases = make_inherit_list(name,Getattr($3,"public"));
-		   inherit_base_symbols(bases);
+		     bases = Swig_make_inherit_list(name,Getattr($3,"public"),Namespaceprefix);
+		   Swig_inherit_base_symbols(bases);
 
 		     /* If a proper name was given, we use that as the typedef, not unnamed */
 		   Clear(unnamed);
 		   Append(unnamed, name);
-	           appendSibling($$,n);
 		   if (cparse_cplusplus && !cparse_externc) {
 		     ty = NewString(name);
 		   } else {
@@ -3505,22 +3446,31 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   scpname = Swig_symbol_qualifiedscopename(0);
 		   Setattr(classes,scpname,$$);
 		   Delete(scpname);
-		 } else { /*no suitable name was found for a struct*/
+		 } else { /* no suitable name was found for a struct */
+		   Setattr($$, "nested:unnamed", Getattr(n, "name")); /* save the name of the first declarator for later use in name generation*/
+		   while (n) { /* attach unnamed struct to the declarators, so that they would receive proper type later*/
+		     Setattr(n, "nested:unnamedtype", $$);
+		     Setattr(n, "storage", $1);
+		     n = nextSibling(n);
+		   }
+		   n = $8;
 		   Swig_symbol_setscopename("<unnamed>");
 		 }
 		 appendChild($$,$6);
 		 /* Pop the scope */
 		 Setattr($$,"symtab",Swig_symbol_popscope());
-	         if (Getattr($$, "class_rename")) {
-		   Delete(yyrename);
-		   yyrename = Copy(Getattr($<node>$, "class_rename"));
-	         }
-	         Delete(Namespaceprefix);
-	         Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-	         add_symbols($$);
-	         add_symbols(n);
+		 if (name) {
+		   if (Getattr($$, "class_rename")) {
+		     Delete(yyrename);
+		     yyrename = Copy(Getattr($<node>$, "class_rename"));
+	           }
+		   Delete(Namespaceprefix);
+		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		   add_symbols($$);
+		   add_symbols(n);
+		   Delattr($$, "class_rename");
+		 }
 	         Delete(unnamed);
-	         Delattr($$, "class_rename");
 	       } else { /* unnamed struct w/o declarator*/
 		 Swig_symbol_popscope();
 	         Delete(Namespaceprefix);

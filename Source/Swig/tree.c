@@ -179,6 +179,7 @@ void appendSibling(Node *node, Node *chd)
   while(nextSibling(s))
     s = nextSibling(s);
   set_nextSibling(s, chd);
+  set_previousSibling(chd, s);
   s = parentNode(node);
   if (s)
     set_lastChild(s, chd);

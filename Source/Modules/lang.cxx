@@ -990,8 +990,6 @@ int Language::cDeclaration(Node *n) {
     /* Some kind of variable declaration */
     String *declaration = Copy(decl);
     Delattr(n, "decl");
-    if (Getattr(n, "nested"))
-      SetFlag(n, "feature:immutable");
     if (!CurrentClass) {
       if ((Cmp(storage, "extern") == 0) || ForceExtern) {
 	f_header = Swig_filebyname("header");
@@ -2358,7 +2356,7 @@ int Language::classDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
   AccessMode oldAccessMode = cplus_mode;
-  Node* outerClass = Getattr(n, "outerclass");
+  Node* outerClass = Getattr(n, "nested");
   if (outerClass && oldAccessMode != Dispatcher::PUBLIC)
     return SWIG_NOWRAP;
   ClassName = Copy(name);
@@ -2368,7 +2366,7 @@ int Language::classDeclaration(Node *n) {
   } else {
     cplus_mode = PUBLIC;
   }
-  for (; outerClass; outerClass = Getattr(outerClass, "outerclass")) {
+  for (; outerClass; outerClass = Getattr(outerClass, "nested")) {
     Push(ClassPrefix, "_");
     Push(ClassPrefix, Getattr(outerClass, "sym:name"));
   }
