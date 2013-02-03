@@ -12,8 +12,6 @@
  * the naming of local variables, calling conventions, and so forth.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_cwrap_c[] = "$Id$";
-
 #include "swig.h"
 
 extern int cparse_cplusplus;
@@ -855,6 +853,9 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   String *self = 0;
   int is_smart_pointer_overload = 0;
   String *qualifier = Getattr(n, "qualifier");
+  String *directorScope = NewString(nspace);
+
+  Replace(directorScope, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
   
   /* If smart pointer without const overload or mutable method, change self dereferencing */
   if (flags & CWRAP_SMART_POINTER) {
@@ -937,7 +938,10 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
 	/* If protected access (can only be if a director method) then call the extra public accessor method (language module must provide this) */
 	String *explicit_qualifier_tmp = SwigType_namestr(Getattr(Getattr(parentNode(n), "typescope"), "qname"));
 	explicitcall_name = NewStringf("%sSwigPublic", name);
-	explicit_qualifier = NewStringf("SwigDirector_%s", explicit_qualifier_tmp);
+        if (Len(directorScope) > 0)
+	  explicit_qualifier = NewStringf("SwigDirector_%s_%s", directorScope, explicit_qualifier_tmp);
+        else
+	  explicit_qualifier = NewStringf("SwigDirector_%s", explicit_qualifier_tmp);
 	Delete(explicit_qualifier_tmp);
       } else {
 	explicit_qualifier = SwigType_namestr(Getattr(Getattr(parentNode(n), "typescope"), "qname"));
@@ -1057,6 +1061,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   Delete(p);
   Delete(self);
   Delete(parms);
+  Delete(directorScope);
   return SWIG_OK;
 }
 
@@ -1107,6 +1112,9 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
   ParmList *directorparms;
   SwigType *type;
   int use_director;
+  String *directorScope = NewString(nspace);
+ 
+  Replace(directorScope, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
 
   use_director = Swig_directorclass(n);
 
@@ -1173,6 +1181,11 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
 	String *director_call;
 	String *nodirector_call;
 
+        if (Len(directorScope) > 0)
+          directorname = NewStringf("SwigDirector_%s_%s", directorScope, name);
+        else 
+          directorname = NewStringf("SwigDirector_%s", name);
+
 	Replaceall(tmp_none_comparison, "$arg", "arg1");
 
 	director_call = Swig_cppconstructor_director_call(directorname, directorparms);
@@ -1233,6 +1246,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
   if (directorparms != parms)
     Delete(directorparms);
   Delete(parms);
+  Delete(directorScope);
   return SWIG_OK;
 }
 

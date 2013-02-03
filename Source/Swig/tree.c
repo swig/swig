@@ -12,8 +12,6 @@
  * parse trees.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_tree_c[] = "$Id$";
-
 #include "swig.h"
 #include <stdarg.h>
 #include <assert.h>

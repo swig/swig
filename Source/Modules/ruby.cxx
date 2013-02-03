@@ -11,8 +11,6 @@
  * Ruby language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_ruby_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 static int treduce = SWIG_cparse_template_reduce(0);
@@ -792,11 +790,7 @@ private:
       }
       if (Strcmp(v, "NULL") == 0)
 	return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
-      else if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-	return NewString("true");
-      else if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-	return NewString("false");
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "FALSE") == 0)
+      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
 	return NewString("True");
       if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
 	return NewString("False");

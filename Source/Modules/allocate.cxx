@@ -15,8 +15,6 @@
  * Doc/Manual/SWIGPlus.html for details.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_allocate_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 

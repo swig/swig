@@ -15,8 +15,6 @@
  * C identifiers up into keywords and SWIG directives.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_cscanner_c[] = "$Id$";
-
 #include "cparse.h"
 #include "parser.h"
 #include <string.h>

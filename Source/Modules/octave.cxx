@@ -11,8 +11,6 @@
  * Octave language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_octave_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 static String *global_name = 0;
@@ -526,11 +524,7 @@ public:
       }
       if (Strcmp(v, "NULL") == 0)
 	return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
-      else if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-	return NewString("true");
-      else if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-	return NewString("false");
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "FALSE") == 0)
+      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
 	return NewString("true");
       if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
 	return NewString("false");

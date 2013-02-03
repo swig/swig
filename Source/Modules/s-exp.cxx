@@ -11,8 +11,6 @@
  * A parse tree represented as Lisp s-expressions.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_s_exp_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "dohint.h"
 

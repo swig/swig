@@ -12,8 +12,6 @@
  * feature that's normally disabled.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_browser_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #ifdef SWIG_SWILL

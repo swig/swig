@@ -5,6 +5,38 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-01-29: William
+            [Java] Ensure 'javapackage' typemap is used as it stopped working from version 2.0.5.
+
+2013-01-28: William
+            [Python] Apply patch SF #334 - Fix default value conversions "TRUE"->True, "FALSE"->False.
+
+2013-01-28: William
+            [Java] Apply patch SF #335 - Truly ignore constructors in directors with %ignore.
+
+2013-01-18: Brant Kyser
+            [Java] Patch #15 - Allow the use of the nspace feature without the -package commandline option.
+            This works as long and the new jniclasspackage pragma is used to place the JNI intermediate class
+            into a package and the nspace feature is used to place all exposed types into a package.
+
+2013-01-15: wsfulton
+            Fix Visual Studio examples to work when SWIG is unzipped into a directory containing spaces.
+
+2013-01-15: wsfulton
+            [C#] Fix cstype typemap lookup for member variables so that a fully qualified variable name
+            matches. For example:
+              %typemap(cstype) bool MVar::mvar "MyBool"
+              struct MVar {
+                bool mvar;
+              };
+
+2013-01-11: Brant Kyser
+	    [Java, C#, D] SF Bug #1299 - Fix generated names for when %nspace is used on
+            classes with the same name in two different namespaces.
+
+2013-01-11: Vladimir Kalinin
+	    [C#] Add support for csdirectorin 'pre', 'post' and 'terminator' attributes.
+
 2013-01-08: olly
 	    [PHP] Fix to work with a ZTS build of PHP (broken in 2.0.7).
 

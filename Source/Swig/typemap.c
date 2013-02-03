@@ -11,8 +11,6 @@
  * A somewhat generalized implementation of SWIG1.1 typemaps.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_typemap_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 #include <ctype.h>

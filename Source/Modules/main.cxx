@@ -11,8 +11,6 @@
  * Main entry point to the SWIG core.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_main_cxx[] = "$Id$";
-
 #include "swigconfig.h"
 
 #if defined(_WIN32)

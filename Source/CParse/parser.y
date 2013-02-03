@@ -17,8 +17,6 @@
 %{
 #define yylex yylex
 
-char cvsroot_parser_y[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 #include "preprocessor.h"

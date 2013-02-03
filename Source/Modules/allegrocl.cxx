@@ -11,8 +11,6 @@
  * ALLEGROCL language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_allegrocl_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 #include <ctype.h>

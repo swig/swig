@@ -13,8 +13,6 @@
  * are provided.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_include_c[] = "$Id$";
-
 #include "swig.h"
 
 static List   *directories = 0;	        /* List of include directories */

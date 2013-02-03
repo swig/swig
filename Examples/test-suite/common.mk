@@ -178,6 +178,7 @@ CPP_TEST_CASES += \
 	director_keywords \
 	director_namespace_clash \
 	director_nspace \
+	director_nspace_director_name_collision \
 	director_nested \
 	director_overload \
 	director_overload2 \
@@ -233,7 +234,7 @@ CPP_TEST_CASES += \
 	inherit_void_arg \
 	inline_initializer \
 	insert_directive \
-        keyword_rename \
+	keyword_rename \
 	kind \
 	langobj \
 	li_attribute \
@@ -280,7 +281,7 @@ CPP_TEST_CASES += \
 	operator_overload \
 	operator_overload_break \
 	operator_pointer_ref \
-        operbool \
+	operbool \
 	ordering \
 	overload_copy \
 	overload_method \
@@ -484,8 +485,8 @@ CPP_STD_TEST_CASES += \
 	li_std_except \
 	li_std_except_as_class \
 	li_std_map \
-        li_std_pair \
-        li_std_pair_using \
+	li_std_pair \
+	li_std_pair_using \
 	li_std_string \
 	li_std_vector \
 	li_std_vector_enum \
@@ -518,7 +519,7 @@ C_TEST_CASES += \
 	immutable_values \
 	inctest \
 	integers \
-        keyword_rename \
+	keyword_rename \
 	lextype \
 	li_carrays \
 	li_cdata \

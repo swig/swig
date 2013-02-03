@@ -11,8 +11,6 @@
  * Support for Wrap by Contract in SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_contract_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 /* Contract structure.  This holds rules about the different kinds of contract sections
