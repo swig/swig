@@ -3493,7 +3493,7 @@ public:
     Delete(wname);
     Delete(swig_director_connect);
     Delete(qualified_classname);
-    Delete(dirClassName);
+    Delete(director_class_name);
   }
 
   /* ---------------------------------------------------------------
