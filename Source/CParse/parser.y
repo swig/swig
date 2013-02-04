@@ -1158,8 +1158,6 @@ static Node *nested_forward_declaration(const char *storage, const char *kind, S
   if (sname) {
     /* Add forward declaration of the nested type */
     Node *n = new_node("classforward");
-    Setfile(n, cparse_file);
-    Setline(n, cparse_line);
     Setattr(n, "kind", kind);
     Setattr(n, "name", sname);
     Setattr(n, "storage", storage);
@@ -3832,8 +3830,6 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
                 $$ = 0; 
 	      } else {
 		$$ = new_node("classforward");
-		Setfile($$,cparse_file);
-		Setline($$,cparse_line);
 		Setattr($$,"kind",$2);
 		Setattr($$,"name",$3);
 		Setattr($$,"sym:weak", "1");
