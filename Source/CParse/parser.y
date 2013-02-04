@@ -3165,7 +3165,12 @@ c_declaration   : c_decl {
 		    appendChild($$,firstChild($5));
 		  }
                 }
-                | cpp_lambda_decl { Swig_warning(WARN_CPP11_LAMBDA, cparse_file, cparse_line,"Lambda expressions and closures are not fully supported yet.\n"); $$ = $1; }
+                | cpp_lambda_decl {
+		  $$ = $1;
+		  SWIG_WARN_NODE_BEGIN($$);
+		  Swig_warning(WARN_CPP11_LAMBDA, cparse_file, cparse_line, "Lambda expressions and closures are not fully supported yet.\n");
+		  SWIG_WARN_NODE_END($$);
+		}
                 | USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_DECLARATION, cparse_file, cparse_line,"The 'using' keyword in type aliasing is not fully supported yet.\n"); $$ = 0; }
                 | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_TEMPLATE, cparse_file, cparse_line,"The 'using' keyword in template aliasing is not fully supported yet.\n"); $$ = 0; }
                 ;
@@ -3366,13 +3371,19 @@ cpp_alternate_rettype : primitive_type { $$ = $1; }
    auto six = [](int x, int y) { return x+y; }(4, 2);
    ------------------------------------------------------------ */
 cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
-		  $$ = 0;
+		  $$ = new_node("lambda");
+		  Setattr($$,"name",$3);
+		  add_symbols($$);
 	        }
                 | storage_class AUTO idcolon EQUAL lambda_introducer LPAREN parms RPAREN cpp_const ARROW type lambda_body lambda_tail {
-		  $$ = 0;
+		  $$ = new_node("lambda");
+		  Setattr($$,"name",$3);
+		  add_symbols($$);
 		}
                 | storage_class AUTO idcolon EQUAL lambda_introducer lambda_body lambda_tail {
-		  $$ = 0;
+		  $$ = new_node("lambda");
+		  Setattr($$,"name",$3);
+		  add_symbols($$);
 		}
                 ;
 

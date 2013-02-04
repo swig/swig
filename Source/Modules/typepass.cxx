@@ -524,7 +524,7 @@ class TypePass:private Dispatcher {
   }
 
   /* ------------------------------------------------------------
-   * namespaceDeclaration()
+   * templateDeclaration()
    * ------------------------------------------------------------ */
 
   virtual int templateDeclaration(Node *n) {
@@ -540,6 +540,14 @@ class TypePass:private Dispatcher {
       Delete(rname);
       /*      SwigType_typedef_class(name); */
     }
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * lambdaDeclaration()
+   * ------------------------------------------------------------ */
+
+  virtual int lambdaDeclaration(Node *) {
     return SWIG_OK;
   }
 

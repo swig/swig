@@ -139,6 +139,8 @@ int Dispatcher::emit_one(Node *n) {
     ret = namespaceDeclaration(n);
   } else if (strcmp(tag, "template") == 0) {
     ret = templateDeclaration(n);
+  } else if (strcmp(tag, "lambda") == 0) {
+    ret = lambdaDeclaration(n);
   }
 
   /* ===============================================================
@@ -283,6 +285,9 @@ int Dispatcher::classDeclaration(Node *n) {
   return defaultHandler(n);
 }
 int Dispatcher::templateDeclaration(Node *n) {
+  return defaultHandler(n);
+}
+int Dispatcher::lambdaDeclaration(Node *n) {
   return defaultHandler(n);
 }
 int Dispatcher::classforwardDeclaration(Node *n) {

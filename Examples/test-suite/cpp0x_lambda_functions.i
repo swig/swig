@@ -5,7 +5,26 @@
 */
 %module cpp0x_lambda_functions
 
-#pragma SWIG nowarn=SWIGWARN_LANG_NATIVE_UNIMPL
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda1;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda2;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda3;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda4;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda5;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda6;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda7;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda8;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda9;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda10;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda11;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda12;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda13;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda14;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda15;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda16;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda17;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda18;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) Space1::lambda19;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) Space1::Space2::lambda20;
 
 %inline %{
 /* Defined lambda function with return value. */
@@ -43,6 +62,13 @@ auto lambda15 = [] () mutable throw () {};
 auto lambda16 = [] { return thing; };
 auto lambda17 = [] { return thing; }();
 constexpr auto lambda18 = [] (int x, int y) mutable throw(int) { return x+y; };
+
+namespace Space1 {
+  constexpr auto lambda19 = [] (int x, int y) mutable throw(int) { return x+y; };
+  namespace Space2 {
+    constexpr auto lambda20 = [] (int x, int y) mutable throw(int) { return x+y; };
+  }
+}
 
 int runLambda1() {
   return lambda1(5,6);
