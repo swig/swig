@@ -3171,8 +3171,28 @@ c_declaration   : c_decl {
 		  Swig_warning(WARN_CPP11_LAMBDA, cparse_file, cparse_line, "Lambda expressions and closures are not fully supported yet.\n");
 		  SWIG_WARN_NODE_END($$);
 		}
-                | USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_DECLARATION, cparse_file, cparse_line,"The 'using' keyword in type aliasing is not fully supported yet.\n"); $$ = 0; }
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL { skip_decl(); Swig_warning(WARN_CPP11_ALIAS_TEMPLATE, cparse_file, cparse_line,"The 'using' keyword in template aliasing is not fully supported yet.\n"); $$ = 0; }
+                | USING idcolon EQUAL {
+		  skip_decl();
+		  $$ = new_node("using");
+		  Setattr($$,"name",$2);
+		  add_symbols($$);
+		  SWIG_WARN_NODE_BEGIN($$);
+		  Swig_warning(WARN_CPP11_ALIAS_DECLARATION, cparse_file, cparse_line, "The 'using' keyword in type aliasing is not fully supported yet.\n");
+		  SWIG_WARN_NODE_END($$);
+
+		  $$ = 0; /* TODO - ignored for now */
+		}
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL {
+		  skip_decl();
+		  $$ = new_node("using");
+		  Setattr($$,"name",$6);
+		  add_symbols($$);
+		  SWIG_WARN_NODE_BEGIN($$);
+		  Swig_warning(WARN_CPP11_ALIAS_TEMPLATE, cparse_file, cparse_line, "The 'using' keyword in template aliasing is not fully supported yet.\n");
+		  SWIG_WARN_NODE_END($$);
+
+		  $$ = 0; /* TODO - ignored for now */
+		}
                 ;
 
 /* ------------------------------------------------------------

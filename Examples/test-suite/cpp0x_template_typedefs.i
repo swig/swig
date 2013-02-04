@@ -1,6 +1,9 @@
 /* This testcase checks whether SWIG correctly parses alias templates. */
 %module cpp0x_template_typedefs
 
+%warnfilter(SWIGWARN_CPP11_ALIAS_TEMPLATE) TypedefName;
+%warnfilter(SWIGWARN_CPP11_ALIAS_DECLARATION) PF;
+
 %inline %{
 template< typename T1, typename T2, int >
 class SomeType {
@@ -9,6 +12,7 @@ class SomeType {
   int c;
 };
 
+// template aliasing
 template< typename T2 >
 using TypedefName = SomeType<char*, T2, 5>;
 
