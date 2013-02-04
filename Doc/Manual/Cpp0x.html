@@ -125,53 +125,133 @@ public:
 
 <H3><a name="Cpp0x_Initializer_lists"></a>7.2.4 Initializer lists</H3>
 
-
 <p>
-Constructors using the std::initializer_list class are removed
-from the wrapped class because the only way to access such a
-constructor is at compile time using the initialization list syntax.
-Initializer lists are very much a C++ construct and not very accessible from wrappers.
+Initializer lists are very much a C++ compiler construct and are not very accessible from wrappers as
+they are intended for compile time initialization of classes using the special <tt>std::initializer_list</tt> type.
+SWIG detects usage of initializer lists and will emit a special informative warning each time one is used:
 </p>
 
-<p>For now, if you want to fill the class components like this:</p>
+<div class="shell">
+<pre>
+example.i:33: Warning 476: Initialization using std::initializer_list.
+</pre>
+</div>
+
+<p>
+Initializer lists usually appear in constructors but can appear in any function or method.
+They often appear in constructors which are overloaded with alternative approaches to initializing a class,
+such as the std container's push_back method for adding elements to a container.
+The recommended approach then is to simply ignore the initializer-list constructor, for example:
+</p>
 
 <div class="code"><pre>
-class A {
+%ignore Container::Container(std::initializer_list&lt;int&gt;);
+class Container {
 public:
-  A( std::initializer_list&lt;int&gt; );
+  Container(std::initializer_list&lt;int&gt;); // initializer-list constructor
+  Container();
+  void push_back(const int &amp;);
+  ...
 };
-A a1 = {1,2,3,4};
 </pre></div>
 
-<p>you could add another constructor using <tt>std::vector</tt> for example:</p>
+<p>Alternatively you could modify the class and add another constructor for initialization by some other means,
+for example by a <tt>std::vector</tt>:</p>
 
 <div class="code"><pre>
-class A {
+%include &lt;std_vector.i&gt;
+class Container {
 public:
-  A( std::initializer_list&lt;int&gt; );
-  A( std::vector&lt;int&gt; );
+  Container(const std::vector&lt;int&gt; &amp;);
+  Container(std::initializer_list&lt;int&gt;); // initializer-list constructor
+  Container();
+  void push_back(const int &amp;);
+  ...
 };
-A a1 = {1,2,3,4};
 </pre></div>
 
-<p>And then construct it from your target language, for example, in Python:</p>
+<p>And then call this constructor from your target language, for example, in Python, the following will call the constructor taking the <tt>std::vector</tt>:</p>
+
 <div class="targetlang"><pre>
-&gt;&gt;&gt; a2 = A( [1,2,3,4] )
+&gt;&gt;&gt; c = Container( [1,2,3,4] )
 </pre></div>
 
 <p>
-<tt>std::initializer_list</tt> is simply a container that can only be initialised at compile time.
-As such it is possible to write typemaps for a target language container to map onto
-<tt>std::initializer_list</tt>. However, this can only be done for a fixed number of elements ...
-there is no way to construct an initializer list with a variable number of arguments at runtime.
-This is not particularly flexible though outside of C++ static initialization,
-hence the need to provide an alternative for use from a target language.
+If you are unable to modify the class being wrapped, consider ignoring the initializer-list constructor and using
+%extend to add in an alternative constructor:
+</p>
+
+<div class="code"><pre>
+%include &lt;std_vector.i&gt;
+%extend Container {
+  Container(const std::vector&lt;int&gt; &amp;elements) {
+    Container *c = new Container();
+    for (int element : elements)
+      c-&gt;push_back(element);
+    return c;
+  }
+}
+
+%ignore Container::Container(std::initializer_list&lt;int&gt;);
+
+class Container {
+public:
+  Container(std::initializer_list&lt;int&gt;); // initializer-list constructor
+  Container();
+  void push_back(const int &amp;);
+  ...
+};
+</pre></div>
+
+<p>
+The above makes the wrappers look is as if the class had been declared as follows:
+</p>
+
+<div class="code"><pre>
+%include &lt;std_vector.i&gt;
+class Container {
+public:
+  Container(const std::vector&lt;int&gt; &amp;);
+//  Container(std::initializer_list&lt;int&gt;); // initializer-list constructor (ignored)
+  Container();
+  void push_back(const int &amp;);
+  ...
+};
+</pre></div>
+
+<p>
+<tt>std::initializer_list</tt> is simply a container that can only be initialized at compile time.
+As it is just a C++ type, it is possible to write typemaps for a target language container to map onto
+<tt>std::initializer_list</tt>. However, this can only be done for a fixed number of elements as
+initializer lists are not designed to be constructed with a variable number of arguments at runtime.
+The example below is a very simple approach which ignores any parameters passed in and merely initializes
+with a fixed list of fixed integer values chosen at compile time:
+</p>
+
+<div class="code"><pre>
+%typemap(in) std::initializer_list&lt;int&gt; {
+  $1 = {10, 20, 30, 40, 50};
+}
+class Container {
+public:
+  Container(std::initializer_list&lt;int&gt;); // initializer-list constructor
+  Container();
+  void push_back(const int &amp;);
+  ...
+};
+</pre></div>
+
+<p>
+Any attempt at passing in values from the target language will be ignored and replaced by <tt>{10, 20, 30, 40, 50}</tt>.
+Needless to say, this approach is very limited, but could be improved upon, but only slightly.
+A typemap could be written to map a fixed number of elements on to the <tt>std::initializer_list</tt>,
+but with values decided at runtime.
+The typemaps would be target language specific.
 </p>
 
 <p>
-Initializer lists can appear in any function or method, not just constructors.
-SWIG only ignores the constructors as this is where they commonly occur.
-Users are recommended to manually ignore any other methods using an initialization list with <tt>%ignore</tt>.
+Note that the default typemap for <tt>std::initializer_list</tt> does nothing but issue the warning
+and hence any user supplied typemaps will override it and suppress the warning.
 </p>
 
 <H3><a name="Cpp0x_Uniform_initialization"></a>7.2.5 Uniform initialization</H3>

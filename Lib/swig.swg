@@ -310,6 +310,88 @@ static int NAME(TYPE x) {
 %include <swigwarnings.swg>
 
 /* -----------------------------------------------------------------------------
+ * Overloading support
+ * ----------------------------------------------------------------------------- */
+
+/*
+ * Function/method overloading support.   This is done through typemaps,
+ * but also involve a precedence level. 
+ */
+
+/* Macro for overload resolution */
+
+%define %typecheck(_x...) %typemap(typecheck, precedence=_x) %enddef
+
+/* Macros for precedence levels */
+
+%define SWIG_TYPECHECK_POINTER       0     %enddef
+%define SWIG_TYPECHECK_ITERATOR      5     %enddef
+%define SWIG_TYPECHECK_VOIDPTR       10    %enddef
+%define SWIG_TYPECHECK_BOOL          15    %enddef
+%define SWIG_TYPECHECK_UINT8         20    %enddef
+%define SWIG_TYPECHECK_INT8          25    %enddef
+%define SWIG_TYPECHECK_UINT16        30    %enddef
+%define SWIG_TYPECHECK_INT16         35    %enddef
+%define SWIG_TYPECHECK_UINT32        40    %enddef
+%define SWIG_TYPECHECK_INT32         45    %enddef
+%define SWIG_TYPECHECK_SIZE          47    %enddef
+%define SWIG_TYPECHECK_PTRDIFF       48    %enddef
+%define SWIG_TYPECHECK_UINT64        50    %enddef
+%define SWIG_TYPECHECK_INT64         55    %enddef
+%define SWIG_TYPECHECK_UINT128       60    %enddef
+%define SWIG_TYPECHECK_INT128        65    %enddef
+%define SWIG_TYPECHECK_INTEGER       70    %enddef
+%define SWIG_TYPECHECK_FLOAT         80    %enddef
+%define SWIG_TYPECHECK_DOUBLE        90    %enddef
+%define SWIG_TYPECHECK_CPLXFLT       95    %enddef
+%define SWIG_TYPECHECK_CPLXDBL      100    %enddef
+%define SWIG_TYPECHECK_COMPLEX      105    %enddef
+%define SWIG_TYPECHECK_UNICHAR      110    %enddef
+%define SWIG_TYPECHECK_STDUNISTRING 115    %enddef
+%define SWIG_TYPECHECK_UNISTRING    120    %enddef
+%define SWIG_TYPECHECK_CHAR         130    %enddef
+%define SWIG_TYPECHECK_STDSTRING    135    %enddef
+%define SWIG_TYPECHECK_STRING       140    %enddef
+%define SWIG_TYPECHECK_PAIR         150    %enddef
+%define SWIG_TYPECHECK_VECTOR       160    %enddef
+%define SWIG_TYPECHECK_DEQUE        170    %enddef
+%define SWIG_TYPECHECK_LIST         180    %enddef
+%define SWIG_TYPECHECK_SET          190    %enddef
+%define SWIG_TYPECHECK_MULTISET     200    %enddef
+%define SWIG_TYPECHECK_MAP          210    %enddef
+%define SWIG_TYPECHECK_MULTIMAP     220    %enddef
+%define SWIG_TYPECHECK_STACK        230    %enddef
+%define SWIG_TYPECHECK_QUEUE        240    %enddef
+
+%define SWIG_TYPECHECK_BOOL_ARRAY        1015    %enddef
+%define SWIG_TYPECHECK_INT8_ARRAY        1025    %enddef
+%define SWIG_TYPECHECK_INT16_ARRAY       1035    %enddef
+%define SWIG_TYPECHECK_INT32_ARRAY       1045    %enddef
+%define SWIG_TYPECHECK_INT64_ARRAY       1055    %enddef
+%define SWIG_TYPECHECK_INT128_ARRAY      1065    %enddef
+%define SWIG_TYPECHECK_FLOAT_ARRAY       1080    %enddef
+%define SWIG_TYPECHECK_DOUBLE_ARRAY      1090    %enddef
+%define SWIG_TYPECHECK_CHAR_ARRAY        1130    %enddef
+%define SWIG_TYPECHECK_STRING_ARRAY      1140    %enddef
+%define SWIG_TYPECHECK_OBJECT_ARRAY      1150    %enddef
+
+%define SWIG_TYPECHECK_BOOL_PTR          2015    %enddef
+%define SWIG_TYPECHECK_UINT8_PTR         2020    %enddef
+%define SWIG_TYPECHECK_INT8_PTR          2025    %enddef
+%define SWIG_TYPECHECK_UINT16_PTR        2030    %enddef
+%define SWIG_TYPECHECK_INT16_PTR         2035    %enddef
+%define SWIG_TYPECHECK_UINT32_PTR        2040    %enddef
+%define SWIG_TYPECHECK_INT32_PTR         2045    %enddef
+%define SWIG_TYPECHECK_UINT64_PTR        2050    %enddef
+%define SWIG_TYPECHECK_INT64_PTR         2055    %enddef
+%define SWIG_TYPECHECK_FLOAT_PTR         2080    %enddef
+%define SWIG_TYPECHECK_DOUBLE_PTR        2090    %enddef
+%define SWIG_TYPECHECK_CHAR_PTR          2130    %enddef
+
+%define SWIG_TYPECHECK_SWIGOBJECT        5000    %enddef
+
+
+/* -----------------------------------------------------------------------------
  * Default handling of certain overloaded operators 
  * ----------------------------------------------------------------------------- */
 
@@ -340,6 +422,10 @@ static int NAME(TYPE x) {
 
 /* Define std namespace */
 namespace std {
+  /* Warn about std::initializer_list usage. The constructor/method where used should probably be ignored. See docs. */
+  template<typename T> class initializer_list {};
+  %typemap(in, warning=SWIGWARN_TYPEMAP_INITIALIZER_LIST_MSG) initializer_list<T> ""
+  %typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER) initializer_list<T> ""
 }
 #endif
 
@@ -499,89 +585,6 @@ namespace std {
     for (; jj < $1_dim1; ++jj) dp[jj] = ip[jj];
   }
 }
-
-/* -----------------------------------------------------------------------------
- * Overloading support
- * ----------------------------------------------------------------------------- */
-
-/*
- * Function/method overloading support.   This is done through typemaps,
- * but also involve a precedence level. 
- */
-
-/* Macro for overload resolution */
-
-%define %typecheck(_x...) %typemap(typecheck, precedence=_x) %enddef
-
-/* Macros for precedence levels */
-
-%define SWIG_TYPECHECK_POINTER       0     %enddef
-%define SWIG_TYPECHECK_ITERATOR      5     %enddef
-%define SWIG_TYPECHECK_VOIDPTR       10    %enddef
-%define SWIG_TYPECHECK_BOOL          15    %enddef
-%define SWIG_TYPECHECK_UINT8         20    %enddef
-%define SWIG_TYPECHECK_INT8          25    %enddef
-%define SWIG_TYPECHECK_UINT16        30    %enddef
-%define SWIG_TYPECHECK_INT16         35    %enddef
-%define SWIG_TYPECHECK_UINT32        40    %enddef
-%define SWIG_TYPECHECK_INT32         45    %enddef
-%define SWIG_TYPECHECK_SIZE          47    %enddef
-%define SWIG_TYPECHECK_PTRDIFF       48    %enddef
-%define SWIG_TYPECHECK_UINT64        50    %enddef
-%define SWIG_TYPECHECK_INT64         55    %enddef
-%define SWIG_TYPECHECK_UINT128       60    %enddef
-%define SWIG_TYPECHECK_INT128        65    %enddef
-%define SWIG_TYPECHECK_INTEGER       70    %enddef
-%define SWIG_TYPECHECK_FLOAT         80    %enddef
-%define SWIG_TYPECHECK_DOUBLE        90    %enddef
-%define SWIG_TYPECHECK_CPLXFLT       95    %enddef
-%define SWIG_TYPECHECK_CPLXDBL      100    %enddef
-%define SWIG_TYPECHECK_COMPLEX      105    %enddef
-%define SWIG_TYPECHECK_UNICHAR      110    %enddef
-%define SWIG_TYPECHECK_STDUNISTRING 115    %enddef
-%define SWIG_TYPECHECK_UNISTRING    120    %enddef
-%define SWIG_TYPECHECK_CHAR         130    %enddef
-%define SWIG_TYPECHECK_STDSTRING    135    %enddef
-%define SWIG_TYPECHECK_STRING       140    %enddef
-%define SWIG_TYPECHECK_PAIR         150    %enddef
-%define SWIG_TYPECHECK_VECTOR       160    %enddef
-%define SWIG_TYPECHECK_DEQUE        170    %enddef
-%define SWIG_TYPECHECK_LIST         180    %enddef
-%define SWIG_TYPECHECK_SET          190    %enddef
-%define SWIG_TYPECHECK_MULTISET     200    %enddef
-%define SWIG_TYPECHECK_MAP          210    %enddef
-%define SWIG_TYPECHECK_MULTIMAP     220    %enddef
-%define SWIG_TYPECHECK_STACK        230    %enddef
-%define SWIG_TYPECHECK_QUEUE        240    %enddef
-
-%define SWIG_TYPECHECK_BOOL_ARRAY        1015    %enddef
-%define SWIG_TYPECHECK_INT8_ARRAY        1025    %enddef
-%define SWIG_TYPECHECK_INT16_ARRAY       1035    %enddef
-%define SWIG_TYPECHECK_INT32_ARRAY       1045    %enddef
-%define SWIG_TYPECHECK_INT64_ARRAY       1055    %enddef
-%define SWIG_TYPECHECK_INT128_ARRAY      1065    %enddef
-%define SWIG_TYPECHECK_FLOAT_ARRAY       1080    %enddef
-%define SWIG_TYPECHECK_DOUBLE_ARRAY      1090    %enddef
-%define SWIG_TYPECHECK_CHAR_ARRAY        1130    %enddef
-%define SWIG_TYPECHECK_STRING_ARRAY      1140    %enddef
-%define SWIG_TYPECHECK_OBJECT_ARRAY      1150    %enddef
-
-%define SWIG_TYPECHECK_BOOL_PTR          2015    %enddef
-%define SWIG_TYPECHECK_UINT8_PTR         2020    %enddef
-%define SWIG_TYPECHECK_INT8_PTR          2025    %enddef
-%define SWIG_TYPECHECK_UINT16_PTR        2030    %enddef
-%define SWIG_TYPECHECK_INT16_PTR         2035    %enddef
-%define SWIG_TYPECHECK_UINT32_PTR        2040    %enddef
-%define SWIG_TYPECHECK_INT32_PTR         2045    %enddef
-%define SWIG_TYPECHECK_UINT64_PTR        2050    %enddef
-%define SWIG_TYPECHECK_INT64_PTR         2055    %enddef
-%define SWIG_TYPECHECK_FLOAT_PTR         2080    %enddef
-%define SWIG_TYPECHECK_DOUBLE_PTR        2090    %enddef
-%define SWIG_TYPECHECK_CHAR_PTR          2130    %enddef
-
-
-%define SWIG_TYPECHECK_SWIGOBJECT        5000    %enddef
-
 
 /* -----------------------------------------------------------------------------
  *  Runtime code

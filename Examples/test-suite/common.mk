@@ -486,6 +486,7 @@ CPP0X_TEST_CASES = \
 	cpp0x_explicit_conversion_operators \
 	cpp0x_function_objects \
 	cpp0x_initializer_list \
+	cpp0x_initializer_list_extend \
 	cpp0x_lambda_functions \
 	cpp0x_null_pointer_constant \
 	cpp0x_raw_string_literals \
