@@ -213,6 +213,8 @@ public:
       dirclassname = NewStringf("SwigDirector_%s", classname);
       Setattr(n, attrib, dirclassname);
     }
+    else 
+      dirclassname = Copy(dirclassname);
 
     return dirclassname;
   }
@@ -3444,7 +3446,7 @@ public:
 
     // Output the director connect method:
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
-    String *director_class_name = directorClassName(n);
+    String *dirclassname = directorClassName(n);
     String *swig_director_connect = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
     String *wname = Swig_name_wrapper(swig_director_connect);
     String *sym_name = Getattr(n, "sym:name");
@@ -3464,7 +3466,7 @@ public:
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
 
     Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", director_class_name, director_class_name);
+    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirclassname, dirclassname);
     // TODO: if statement not needed?? - Java too
     Printf(code_wrap->code, "  if (director) {\n");
     Printf(code_wrap->code, "    director->swig_connect_director(");
@@ -3476,7 +3478,7 @@ public:
       Printf(code_wrap->def, ", ");
       if (i != first_class_dmethod)
 	Printf(code_wrap->code, ", ");
-      Printf(code_wrap->def, "%s::SWIG_Callback%s_t callback%s", director_class_name, methid, methid);
+      Printf(code_wrap->def, "%s::SWIG_Callback%s_t callback%s", dirclassname, methid, methid);
       Printf(code_wrap->code, "callback%s", methid);
       Printf(imclass_class_code, ", %s.SwigDelegate%s_%s delegate%s", qualified_classname, sym_name, methid, methid);
     }
@@ -3493,7 +3495,7 @@ public:
     Delete(wname);
     Delete(swig_director_connect);
     Delete(qualified_classname);
-    Delete(director_class_name);
+    Delete(dirclassname);
   }
 
   /* ---------------------------------------------------------------
@@ -3992,6 +3994,7 @@ public:
     Delete(proxy_method_types);
     Delete(callback_def);
     Delete(callback_code);
+    Delete(dirclassname);
     DelWrapper(w);
 
     return status;
@@ -4158,7 +4161,7 @@ public:
 
   int classDirectorEnd(Node *n) {
     int i;
-    String *director_classname = directorClassName(n);
+    String *dirclassname = directorClassName(n);
 
     Wrapper *w = NewWrapper();
 
@@ -4168,7 +4171,7 @@ public:
 
     Printf(f_directors_h, "    void swig_connect_director(");
 
-    Printf(w->def, "void %s::swig_connect_director(", director_classname);
+    Printf(w->def, "void %s::swig_connect_director(", dirclassname);
 
     for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
@@ -4195,7 +4198,7 @@ public:
     Printf(f_directors_h, "};\n\n");
     Printf(w->code, "}\n\n");
 
-    Printf(w->code, "void %s::swig_init_callbacks() {\n", director_classname);
+    Printf(w->code, "void %s::swig_init_callbacks() {\n", dirclassname);
     for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
       String *overname = Getattr(udata, "overname");
@@ -4206,6 +4209,7 @@ public:
     Wrapper_print(w, f_directors);
 
     DelWrapper(w);
+    Delete(dirclassname);
 
     return Language::classDirectorEnd(n);
   }
@@ -4238,8 +4242,8 @@ public:
     String *base = Getattr(n, "classtype");
     String *class_ctor = NewString("Swig::Director()");
 
-    String *directorname = directorClassName(n);
-    String *declaration = Swig_class_declaration(n, directorname);
+    String *dirclassname = directorClassName(n);
+    String *declaration = Swig_class_declaration(n, dirclassname);
 
     Printf(declaration, " : public %s, public Swig::Director", base);
 
@@ -4247,7 +4251,7 @@ public:
     Setattr(n, "director:decl", declaration);
     Setattr(n, "director:ctor", class_ctor);
 
-    Delete(directorname);
+    Delete(dirclassname);
   }
 
 };				/* class CSHARP */
