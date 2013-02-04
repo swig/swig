@@ -1468,7 +1468,9 @@ static Node* create_insert(Node* n)
 
 static void name_unnamed_c_structs(Node *n)
 {
-  for (Node* c = firstChild(n); c; c = nextSibling(c)) {
+  Node* c = firstChild(n);
+  while (c) {
+    Node* next = nextSibling(c);
     if (String* declName = Getattr(c, "nested:unnamed")) {
       if (Node* outer = Getattr(c, "nested")) {
 	// generate a name
@@ -1540,11 +1542,13 @@ static void name_unnamed_c_structs(Node *n)
 	Delattr(c, "nested");
       }else {
 	// global unnamed struct - ignore it
+	c = next;
 	continue;
       }
     }
     // process children
     name_unnamed_c_structs(c);
+    c = next;
   }
 }
 void Swig_process_nested_classes(Node *n)
