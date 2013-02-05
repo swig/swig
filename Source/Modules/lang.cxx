@@ -2378,7 +2378,7 @@ int Language::classDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
   AccessMode oldAccessMode = cplus_mode;
-  Node* outerClass = Getattr(n, "nested");
+  Node* outerClass = Getattr(n, "nested:outer");
   if (outerClass && oldAccessMode != Dispatcher::PUBLIC)
     return SWIG_NOWRAP;
   ClassName = Copy(name);
@@ -2388,7 +2388,7 @@ int Language::classDeclaration(Node *n) {
   } else {
     cplus_mode = PUBLIC;
   }
-  for (; outerClass; outerClass = Getattr(outerClass, "nested")) {
+  for (; outerClass; outerClass = Getattr(outerClass, "nested:outer")) {
     Push(ClassPrefix, "_");
     Push(ClassPrefix, Getattr(outerClass, "sym:name"));
   }
@@ -3404,6 +3404,9 @@ bool Language::extraDirectorProtectedCPPMethodsRequired() const {
   return true;
 }
 
+bool Language::nestedClassesSupported() const { 
+  return false; 
+}
 /* -----------------------------------------------------------------------------
  * Language::is_wrapping_class()
  * ----------------------------------------------------------------------------- */
