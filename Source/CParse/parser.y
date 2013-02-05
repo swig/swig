@@ -1725,7 +1725,6 @@ static void tag_nodes(Node *n, const_String_or_char_ptr attrname, DOH *value) {
 %token <str> OPERATOR
 %token <str> COPERATOR
 %token PARSETYPE PARSEPARM PARSEPARMS
-%token TEST1 TEST2 TEST3
 
 %left  CAST
 %left  QUESTIONMARK
