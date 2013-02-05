@@ -631,7 +631,7 @@ In the above example <tt>SIZE</tt> is of course wrapped as a constant.
 <H3><a name="Cpp0x_New_string_literals"></a>7.2.18 New string literals</H3>
 
 
-<p>SWIG fully supports unicode string constants and raw string literals.</p>
+<p>SWIG supports unicode string constants and raw string literals.</p>
 
 <div class="code"><pre>
 // New string literals
@@ -685,12 +685,32 @@ OutputType operator "" _mySuffix(const char32_t * string_values, size_t num_char
 </pre></div>
 
 <p>
-Note that the %rename directive currently does not parse the double quotes, so these can't be easily accessed from
-target languages.
+Like other operators that SWIG parses, a warning is given about renaming the operator in order for it to be wrapped:
 </p>
 
+<div class="shell"><pre>
+example.i:27: Warning 503: Can't wrap 'operator "" _myRawLiteral' unless renamed to a valid identifier.
+</pre></div>
+
 <p>
-Use of user-defined literals such as the following still give a syntax error:
+If %rename is used, then it can be called like any other wrapped method.
+Currently you need to specify the full declaration including parameters for %rename:
+</p>
+
+<div class="code"><pre>
+%rename(MyRawLiteral)  operator"" _myRawLiteral(const char * value);
+</pre></div>
+
+<p>
+Or if you just wish to ignore it altogether:
+</p>
+
+<div class="code"><pre>
+%ignore operator "" _myRawLiteral(const char * value);
+</pre></div>
+
+<p>
+Note that use of user-defined literals such as the following still give a syntax error:
 </p>
 
 <div class="code"><pre>

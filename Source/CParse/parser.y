@@ -5677,10 +5677,11 @@ direct_declarator : idcolon {
 		    }
                  }
                  /* User-defined string literals. eg.
-                    int operator""_mySuffix(const char* val, int length) {...} */
+                    int operator"" _mySuffix(const char* val, int length) {...} */
 		 /* This produces one S/R conflict. */
                  | OPERATOR ID LPAREN parms RPAREN {
 		    SwigType *t;
+                    Append($1, " "); /* intervening space is mandatory */
                     Append($1, Char($2));
 		    $$.id = Char($1);
 		    t = NewStringEmpty();
