@@ -8,8 +8,13 @@ def check(got, expected):
   #expectedStr = string.replace(expected, ' ', '')
   #expectedStr = string.replace(expectedStr, '\n', '')
   #expectedStr = string.replace(expectedStr, '\t', '')
+
+  if got == None:  # when there is no commant attached to a class or function
+      got = ''
+
   if not got == expected:
     print "\n\n////////////////////////////////////////////////////////////////////////"
+
     expectedFileName = "expected.txt"
     gotFileName = "got.txt"
     print "Output is also saved to files '" + expectedFileName + \
@@ -20,5 +25,5 @@ def check(got, expected):
     expectedFile.close()
     gotFile = open(gotFileName, "w")
     gotFile.write(got)
-    gotFile.close()    
+    gotFile.close()
     raise RuntimeError("Expected: [" + str(expected) + "]\n" + "Got     : [" + str(got) + "]\n")
