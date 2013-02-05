@@ -850,9 +850,9 @@ void SWIG_getoptions(int argc, char *argv[]) {
   }
 }
 
-
-
-
+extern "C" void Swig_name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, String *name, SwigType *decl, Hash *nameobj);
+extern "C" Hash *Swig_name_rename_hash();
+extern "C" List *Swig_name_rename_list();
 
 int SWIG_main(int argc, char *argv[], Language *l) {
   char *c;
@@ -1148,7 +1148,10 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     if (Verbose) {
       Printf(stdout, "Processing nested classes...\n");
     }
-    Swig_process_nested_classes(top);
+    if (lang->nestedClassesSupported())
+      Swig_process_nested_classes(top);
+    else
+      Swig_name_nameobj_add(Swig_name_rename_hash(), Swig_name_rename_list(), 0, "$isnested", 0, "$ignore");
 
     if (Verbose) {
       Printf(stdout, "Processing types...\n");

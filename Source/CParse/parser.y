@@ -1102,8 +1102,8 @@ void update_nested_classes(Node* n)
 {
   Node* c = firstChild(n);
   while (c) {
-    if (Getattr(c, "nested"))
-      Setattr(c, "nested", n);
+    if (Getattr(c, "nested:outer"))
+      Setattr(c, "nested:outer", n);
     update_nested_classes(c);
     c = nextSibling(c);
   }
@@ -3231,8 +3231,10 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   }
 		   Delete(prefix);
 		   inclass = 1;
-		   if (currentOuterClass)
-		     Setattr($<node>$, "nested", currentOuterClass);
+		   if (currentOuterClass) {
+		     Setattr($<node>$, "nested:outer", currentOuterClass);
+		     SetFlag($<node>$, "nested");
+		   }
 		   currentOuterClass = $<node>$;
                } cpp_members RBRACE cpp_opt_declarators {
 		   Node *p;
@@ -3242,7 +3244,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   String *scpname = 0;
 		   (void) $<node>6;
 		   $$ = currentOuterClass;
-		   currentOuterClass = Getattr($$, "nested");
+		   currentOuterClass = Getattr($$, "nested:outer");
 		   if (!currentOuterClass)
 		     inclass = 0;
 		   cscope = Getattr($$, "prev_symtab");
@@ -3327,15 +3329,15 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		     if (!cparse_cplusplus && currentOuterClass) { /* nested C structs go into global scope*/
 		       Node* outer = currentOuterClass;
-		       while (Getattr(outer, "nested"))
-			 outer = Getattr(outer, "nested");
+		       while (Getattr(outer, "nested:outer"))
+			 outer = Getattr(outer, "nested:outer");
 		       appendSibling(outer, $$);
 		       add_symbols($9);
 		       set_scope_to_global();
 		       Delete(Namespaceprefix);
 		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		       add_symbols($$);
-		       Delattr($$, "nested");
+		       Delattr($$, "nested:outer");
 		       Delattr($$, "class_rename");
 		       $$ = 0;
 		     } else {
@@ -3375,8 +3377,10 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       }
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
-	       if (currentOuterClass)
-		 Setattr($<node>$, "nested", currentOuterClass);
+	       if (currentOuterClass) {
+		 Setattr($<node>$, "nested:outer", currentOuterClass);
+		 SetFlag($<node>$, "nested");
+	       }
 	       currentOuterClass = $<node>$;
 	       inclass = 1;
 	       Classprefix = NewStringEmpty();
@@ -3393,7 +3397,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Node *n;
 	       Classprefix = 0;
 	       $$ = currentOuterClass;
-	       currentOuterClass = Getattr($$, "nested");
+	       currentOuterClass = Getattr($$, "nested:outer");
 	       if (!currentOuterClass)
 		 inclass = 0;
 	       unnamed = Getattr($$,"unnamed");

@@ -465,8 +465,8 @@ class TypePass:private Dispatcher {
     
     // name of the outer class should already be patched to contain it's outer classes names, but not to contain namespaces
     // namespace name (if present) is added after processing child nodes
-    if (Getattr(n, "nested")) {
-      String* outerName = Getattr(Getattr(n, "nested"), "name");
+    if (Getattr(n, "nested:outer")) {
+      String* outerName = Getattr(Getattr(n, "nested:outer"), "name");
       if (name) {
 	name = NewStringf("%s::%s", outerName, name);
 	Setattr(n, "name", name);
@@ -1472,7 +1472,7 @@ static void name_unnamed_c_structs(Node *n)
   while (c) {
     Node* next = nextSibling(c);
     if (String* declName = Getattr(c, "nested:unnamed")) {
-      if (Node* outer = Getattr(c, "nested")) {
+      if (Node* outer = Getattr(c, "nested:outer")) {
 	// generate a name
 	String* name = NewStringf("%s_%s", Getattr(outer, "name"), declName);
 	Delattr(c, "nested:unnamed");
@@ -1539,7 +1539,7 @@ static void name_unnamed_c_structs(Node *n)
 	}
 	set_nextSibling(n, c);
 	set_previousSibling(c, n);
-	Delattr(c, "nested");
+	Delattr(c, "nested:outer");
       }else {
 	// global unnamed struct - ignore it
 	c = next;
