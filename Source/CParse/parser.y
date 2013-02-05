@@ -2967,7 +2967,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                               p = tp;
                               def_supplied = 1;
                             } else if (p && !tp) { /* Variadic template - tp < p */
+			      SWIG_WARN_NODE_BEGIN(nn);
                               Swig_warning(WARN_CPP11_VARIADIC_TEMPLATE,cparse_file, cparse_line,"Only the first variadic template argument is currently supported.\n");
+			      SWIG_WARN_NODE_END(nn);
                               break;
                             }
                           }
