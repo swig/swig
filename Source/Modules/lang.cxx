@@ -985,7 +985,7 @@ int Language::cDeclaration(Node *n) {
 	      }
 	    }
 	    Printf(f_header, ";\n");
-	  } else if (Cmp(storage, "externc") == 0) {
+	  } else if (Swig_storage_isexternc(n)) {
 	    /* here 'extern "C"' is needed */
 	    String *str = SwigType_str(ty, name);
 	    Printf(f_header, "extern \"C\" %s;\n", str);

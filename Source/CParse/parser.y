@@ -1491,8 +1491,9 @@ static void new_feature(const char *featurename, String *val, Hash *featureattri
 
 /* check if a function declaration is a plain C object */
 static int is_cfunction(Node *n) {
-  if (!cparse_cplusplus || cparse_externc) return 1;
-  if (Cmp(Getattr(n,"storage"),"externc") == 0) {
+  if (!cparse_cplusplus || cparse_externc)
+    return 1;
+  if (Swig_storage_isexternc(n)) {
     return 1;
   }
   return 0;
@@ -5029,6 +5030,14 @@ storage_class  : EXTERN { $$ = "extern"; }
                | EXTERN string { 
                    if (strcmp($2,"C") == 0) {
 		     $$ = "externc";
+		   } else {
+		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
+		     $$ = 0;
+		   }
+               }
+               | EXTERN string THREAD_LOCAL {
+                   if (strcmp($2,"C") == 0) {
+		     $$ = "externc thread_local";
 		   } else {
 		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
 		     $$ = 0;

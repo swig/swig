@@ -28,3 +28,7 @@ cvar.teval = -55
 if cvar.teval != -55:
   raise RuntimeError
 
+cvar.ectval = -66
+if cvar.ectval != -66:
+  raise RuntimeError
+

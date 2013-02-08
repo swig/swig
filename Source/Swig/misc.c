@@ -274,6 +274,17 @@ int Swig_storage_isextern(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_storage_isexternc()
+ *
+ * Determine if the storage class specifier is externc (but not plain extern)
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isexternc(Node *n) {
+  const String *storage = Getattr(n, "storage");
+  return storage ? Strcmp(storage, "externc") == 0 || Strncmp(storage, "externc ", 8) == 0 : 0;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_storage_isstatic_custom()
  *
  * Determine if the storage class specifier is static
