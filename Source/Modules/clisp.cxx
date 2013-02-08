@@ -148,7 +148,7 @@ int CLISP::top(Node *n) {
 int CLISP::functionWrapper(Node *n) {
   is_function = 1;
   String *storage = Getattr(n, "storage");
-  if (!extern_all_flag && (!storage || (Strcmp(storage, "extern") && Strcmp(storage, "externc"))))
+  if (!extern_all_flag && (!storage || (!Swig_storage_isextern(n) && Strcmp(storage, "externc"))))
     return SWIG_OK;
 
   String *func_name = Getattr(n, "sym:name");
@@ -220,7 +220,7 @@ int CLISP::variableWrapper(Node *n) {
   //  SwigType *type=;
   String *storage = Getattr(n, "storage");
 
-  if (!extern_all_flag && (!storage || (Strcmp(storage, "extern") && Strcmp(storage, "externc"))))
+  if (!extern_all_flag && (!storage || (!Swig_storage_isextern(n) && Strcmp(storage, "externc"))))
     return SWIG_OK;
 
   String *var_name = Getattr(n, "sym:name");

@@ -263,6 +263,17 @@ void Swig_filename_unescape(String *filename) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_storage_isextern()
+ *
+ * Determine if the storage class specifier is extern (but not externc)
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isextern(Node *n) {
+  const String *storage = Getattr(n, "storage");
+  return storage ? Strcmp(storage, "extern") == 0 || Strncmp(storage, "extern ", 7) == 0 : 0;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_storage_isstatic_custom()
  *
  * Determine if the storage class specifier is static

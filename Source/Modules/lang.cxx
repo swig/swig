@@ -955,7 +955,7 @@ int Language::cDeclaration(Node *n) {
 
       if (AddExtern) {
 	if (f_header) {
-	  if ((Cmp(storage, "extern") == 0) || (ForceExtern && !storage)) {
+	  if (Swig_storage_isextern(n) || (ForceExtern && !storage)) {
 	    /* we don't need the 'extern' part in the C/C++ declaration,
 	       and it produces some problems when namespace and SUN
 	       Studio is used.
@@ -1017,12 +1017,12 @@ int Language::cDeclaration(Node *n) {
     if (Getattr(n, "nested"))
       SetFlag(n, "feature:immutable");
     if (!CurrentClass) {
-      if ((Cmp(storage, "extern") == 0) || ForceExtern) {
-	f_header = Swig_filebyname("header");
+      if (Swig_storage_isextern(n) || ForceExtern) {
 	if (AddExtern) {
+	  f_header = Swig_filebyname("header");
 	  if (f_header) {
 	    String *str = SwigType_str(ty, name);
-	    Printf(f_header, "extern %s;\n", str);
+	    Printf(f_header, "%s %s;\n", Getattr(n, "storage"), str);
 	    Delete(str);
 	  }
 	}

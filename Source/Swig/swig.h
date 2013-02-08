@@ -315,6 +315,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Swig_filename_correct(String *filename);
   extern String *Swig_filename_escape(String *filename);
   extern void Swig_filename_unescape(String *filename);
+  extern int Swig_storage_isextern(Node *n);
   extern int Swig_storage_isstatic_custom(Node *n, const_String_or_char_ptr storage);
   extern int Swig_storage_isstatic(Node *n);
   extern String *Swig_string_escape(String *s);
