@@ -263,6 +263,27 @@ void Swig_filename_unescape(String *filename) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_storage_isstatic_custom()
+ *
+ * Determine if the storage class specifier is static
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isstatic_custom(Node *n, const_String_or_char_ptr storage_name) {
+  const String *storage = Getattr(n, storage_name);
+  return storage ? Strncmp(storage, "static", 6) == 0 : 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_storage_isstatic()
+ *
+ * Determine if the storage class specifier is static
+ * ----------------------------------------------------------------------------- */
+
+int Swig_storage_isstatic(Node *n) {
+  return Swig_storage_isstatic_custom(n, "storage");
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_escape()
  *
  * Takes a string object and produces a string with escape codes added to it.

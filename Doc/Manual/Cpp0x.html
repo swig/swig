@@ -722,17 +722,22 @@ OutputType var3 = 3.1416_suffix;
 <H3><a name="Cpp0x_Thread_local_storage"></a>7.2.20 Thread-local storage</H3>
 
 
-<p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, a variable
+<p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, variable
 reachable by the current thread can be defined as:</p> 
 
 <div class="code"><pre>
 struct A {
-   thread_local int val;
+   static thread_local int val;
 };
+thread_local int global_val;
 </pre></div>
 
-<p>The new C++0x threading libraries are ignored because each SWIG target language offers
-its own threading facilities.</p>
+<p>
+The use of the <tt>thread_local</tt> storage specifier does not affect the wrapping process; it does not modify
+the wrapper code compared to when it is not specified.
+A variable will be thread local if accessed from different threads from the target language in the
+same way that it will be thread local if accessed from C++ code.
+</p>
 
 <H3><a name="Cpp0x_Defaulting/deleting_of_standard_functions_on_C++_objects"></a>7.2.21 Defaulting/deleting of standard functions on C++ objects</H3>
 

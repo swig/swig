@@ -922,7 +922,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
         self = NewString("(*(this))->");
         is_smart_pointer_overload = 1;
       }
-      else if (Cmp(Getattr(n, "storage"), "static") == 0) {
+      else if (Swig_storage_isstatic(n)) {
 	String *cname = Getattr(n, "classname") ? Getattr(n, "classname") : classname;
 	String *ctname = SwigType_namestr(cname);
         self = NewStringf("(*(%s const *)this)->", ctname);
@@ -1064,7 +1064,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
       String *func = NewStringf("%s(", mangled);
       String *cres;
 
-      if (Cmp(Getattr(n, "storage"), "static") != 0) {
+      if (!Swig_storage_isstatic(n)) {
 	String *pname = Swig_cparm_name(pp, i);
 	String *ctname = SwigType_namestr(cname);
 	String *fadd = 0;
@@ -1467,7 +1467,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   int varcref = flags & CWRAP_NATURAL_VAR;
 
   if (flags & CWRAP_SMART_POINTER) {
-    if (checkAttribute(n, "storage", "static")) {
+    if (Swig_storage_isstatic(n)) {
       Node *sn = Getattr(n, "cplus:staticbase");
       String *base = Getattr(sn, "name");
       self = NewStringf("%s::", base);

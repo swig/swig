@@ -1058,7 +1058,7 @@ int Language::cDeclaration(Node *n) {
 int Language::functionHandler(Node *n) {
   String *storage = Getattr(n, "storage");
   int isfriend = CurrentClass && Cmp(storage, "friend") == 0;
-  int isstatic = CurrentClass && Cmp(storage, "static") == 0 && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"));
+  int isstatic = CurrentClass && Swig_storage_isstatic(n) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"));
   Parm *p = Getattr(n, "parms");
   if (GetFlag(n, "feature:del")) {
     /* the method acts like a delete operator, ie, we need to disown the parameter */
@@ -1366,7 +1366,6 @@ int Language::variableHandler(Node *n) {
   if (!CurrentClass) {
     globalvariableHandler(n);
   } else {
-    String *storage = Getattr(n, "storage");
     Swig_save("variableHandler", n, "feature:immutable", NIL);
     if (SmartPointer) {
       /* If a smart-pointer and it's a constant access, we have to set immutable */
@@ -1374,7 +1373,7 @@ int Language::variableHandler(Node *n) {
 	SetFlag(n, "feature:immutable");
       }
     }
-    if ((Cmp(storage, "static") == 0) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"))) {
+    if (Swig_storage_isstatic(n) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"))) {
       staticmembervariableHandler(n);
     } else {
       membervariableHandler(n);
@@ -1428,7 +1427,7 @@ int Language::membervariableHandler(Node *n) {
       String *target = 0;
       if (!Extend) {
 	if (SmartPointer) {
-	  if (checkAttribute(n, "storage", "static")) {
+	  if (Swig_storage_isstatic(n)) {
 	    Node *sn = Getattr(n, "cplus:staticbase");
 	    String *base = Getattr(sn, "name");
 	    target = NewStringf("%s::%s", base, name);

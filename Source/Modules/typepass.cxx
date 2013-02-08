@@ -995,7 +995,7 @@ class TypePass:private Dispatcher {
 	      String *symname = Getattr(n, "sym:name");
 	      while (c) {
 		if (Strcmp(nodeType(c), "cdecl") == 0) {
-		  if (!(checkAttribute(c, "storage", "static")
+		  if (!(Swig_storage_isstatic(c)
 			|| checkAttribute(c, "storage", "typedef")
 			|| checkAttribute(c, "storage", "friend")
 			|| (Getattr(c, "feature:extend") && !Getattr(c, "code"))

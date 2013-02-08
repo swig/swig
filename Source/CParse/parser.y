@@ -5041,6 +5041,10 @@ storage_class  : EXTERN { $$ = "extern"; }
                | EXPLICIT { $$ = "explicit"; }
                | CONSTEXPR { $$ = "constexpr"; }
                | THREAD_LOCAL { $$ = "thread_local"; }
+               | THREAD_LOCAL STATIC { $$ = "static thread_local"; }
+               | STATIC THREAD_LOCAL { $$ = "static thread_local"; }
+               | EXTERN THREAD_LOCAL { $$ = "extern thread_local"; }
+               | THREAD_LOCAL EXTERN { $$ = "extern thread_local"; }
                | empty { $$ = 0; }
                ;
 
