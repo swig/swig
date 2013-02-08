@@ -43,5 +43,9 @@ public class cpp0x_thread_local_runme {
     cpp0x_thread_local.setEctval(-55);
     if (cpp0x_thread_local.getEctval() != -55)
       throw new RuntimeException();
+
+    cpp0x_thread_local.setEcpptval(-66);
+    if (cpp0x_thread_local.getEcpptval() != -66)
+      throw new RuntimeException();
   }
 }

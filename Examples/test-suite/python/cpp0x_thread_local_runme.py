@@ -32,3 +32,7 @@ cvar.ectval = -66
 if cvar.ectval != -66:
   raise RuntimeError
 
+cvar.ecpptval = -66
+if cvar.ecpptval != -66:
+  raise RuntimeError
+

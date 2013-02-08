@@ -507,7 +507,7 @@ CPP0X_TEST_CASES = \
 #	cpp0x_inheriting_constructors \ # not supported by gcc-4.7
 #	cpp0x_hash_tables \           # not fully implemented yet
 #	cpp0x_result_of \             # SWIG does not support
-#	cpp0x_thread_local \          # not supported by any compiler yet
+#	cpp0x_thread_local \          # needs gcc-4.8
 
 # Broken C++0x test cases.
 CPP0X_TEST_BROKEN = 

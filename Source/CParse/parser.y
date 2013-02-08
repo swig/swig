@@ -5027,9 +5027,11 @@ anon_bitfield_type : primitive_type { $$ = $1;
  * ====================================================================== */
 
 storage_class  : EXTERN { $$ = "extern"; }
-               | EXTERN string { 
+               | EXTERN string {
                    if (strcmp($2,"C") == 0) {
 		     $$ = "externc";
+                   } else if (strcmp($2,"C++") == 0) {
+		     $$ = "extern";
 		   } else {
 		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
 		     $$ = 0;
@@ -5038,6 +5040,8 @@ storage_class  : EXTERN { $$ = "extern"; }
                | EXTERN string THREAD_LOCAL {
                    if (strcmp($2,"C") == 0) {
 		     $$ = "externc thread_local";
+                   } else if (strcmp($2,"C++") == 0) {
+		     $$ = "extern thread_local";
 		   } else {
 		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
 		     $$ = 0;
