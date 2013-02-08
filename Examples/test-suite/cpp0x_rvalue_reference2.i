@@ -1,5 +1,7 @@
 %module cpp0x_rvalue_reference2
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) globalrrval;
+
 // This testcase tests lots of different places that rvalue reference syntax can be used
 
 %typemap(in) Something && "/*in Something && typemap*/"

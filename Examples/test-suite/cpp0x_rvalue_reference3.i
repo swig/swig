@@ -1,5 +1,7 @@
 %module cpp0x_rvalue_reference3
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);
+
 %inline %{
 #include <utility>
 struct Thing {};
