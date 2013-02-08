@@ -3563,7 +3563,7 @@ With directors routing method calls to Java, and proxies routing them
 to C++, the handling of exceptions is an important concern. By default, the
 directors ignore exceptions that occur during method calls dispatched to the
 Java director class and simply return '$null' to the C++ caller.
-To handle such exceptions correctly, it is necessary to temporarily translate 
+To handle such exceptions correctly, it is necessary to translate 
 them into C++ exceptions. This can be done with the %feature("director:except") 
 directive.  Two forms are available.  In the first, simply attach a code block to
 a method to handle the mapping of java exceptions into C++ exceptions.
@@ -3572,26 +3572,26 @@ a method to handle the mapping of java exceptions into C++ exceptions.
 <div class="code">
 <pre>
 // All the rules to associate a feature with an element apply
-%feature("director:except",fullname=1) MyClass::method {
+%feature("director:except",fullname=1) MyClass::method(int x) {
   if ($thrown) {
-    if (ExceptionMatches($thrown,"java/lang/IndexOutOfBoundsException")) 
-      throw std::out_of_range(GetMessage($thrown));
+    if (ExceptionMatches(jenv,$thrown,"java/lang/IndexOutOfBoundsException")) 
+      throw std::out_of_range(jenv,GetMessage($thrown));
     else if (ExceptionMatches($thrown,"$packagepath/MyJavaException")) 
-      throw MyException(GetMessage($thrown));
+      throw MyCppException(GetMessage(jenv,$thrown));
     else 
       throw std::runtime_error("Unexpected exception thrown by MyClass::method");
   }
 }
 
 class MyClass {
-  void method(int x) throws (std::out_of_range, MyException1);
+  void method(int x) throws (std::out_of_range, MyCppException);
 }  
 
 </pre>
 </div>
 <p>
-This approach allows mapping java exceptions thrown by a director methods into
-c++ exceptions to match the exceptions expected by a C++ caller.  There need not
+This approach allows mapping java exceptions thrown by director methods into
+c++ exceptions, to match the exceptions expected by a C++ caller.  There need not
 be a throws() declaration on the method.  This approach gives complete
 flexibility to map exceptions thrown by a java director implementation into
 desired C++ exceptions.  The methods <code>ExceptionMatches</code>
@@ -3649,6 +3649,7 @@ DEFINE_EXCP(ExcpA)
 DEFINE_EXCP(ExcpB)
 DEFINE_EXCP(Unknown)
 
+// Mark three methods to map director-thrown exceptions.
 // Standard rules for feature matching apply
 %feature("director:except",fullname=1) MyClass::meth1(int);
 %feature("director:except",fullname=1) MyClass::meth2;
@@ -3661,7 +3662,7 @@ DEFINE_EXCP(Unknown)
   throw MyNS::ExcpB(GetMessage(jenv,$thrown)); 
 }
 // Any thrown java exception will match and be translated to a MyNS::Unexpected
-%typemap(directorthrows, matches="java.lang.Throwable") MyNS::Unexpected {
+%typemap(directorthrows, matches="java/lang/Throwable") MyNS::Unexpected {
   throw MyNS::Unexpected(GetMessage(jenv,$thrown));
 }
 
@@ -3691,7 +3692,7 @@ exception type listed in the <code>throw()</code> declaration
 typemap should always throw a c++ exception.  The type test is generated using
 a call to </code>ExceptionMatches</code> with the "matches" attribute from the
 directorthrows typemap.  If a directorthrows typemap specifies a "matches" value of
-"java.lang.Throwable" this will be generated as an "else" clause, and a warning will 
+"java/lang/Throwable" this will be generated as an "else" clause, and a warning will 
 be generated for any subsequent exceptions in the throw() declaration, which will be 
 ignored. 
 </p>
