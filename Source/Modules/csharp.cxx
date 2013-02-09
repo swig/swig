@@ -178,9 +178,11 @@ public:
 	 if (!proxyname) {
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Copy(Getattr(n, "sym:name"));
-	   for (Node* outer_class = Getattr(n, "nested:outer");outer_class;outer_class = Getattr(outer_class, "nested:outer")) {
-	     Push(symname, ".");
-	     Push(symname, Getattr(outer_class, "sym:name"));
+	   if (!GetFlag(n, "feature:flatnested")) {
+	     for (Node* outer_class = Getattr(n, "nested:outer");outer_class;outer_class = Getattr(outer_class, "nested:outer")) {
+	       Push(symname, ".");
+	       Push(symname, Getattr(outer_class, "sym:name"));
+	     }
 	   }
 	   if (nspace) {
 	     if (namespce)
@@ -1621,7 +1623,7 @@ public:
     String *c_baseclassname = NULL;
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
-    bool has_outerclass = Getattr(n, "nested:outer") != 0;
+    bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
 
     // Inheritance from pure C# classes
     Node *attributes = NewHash();
@@ -1928,7 +1930,7 @@ public:
       }
 
       // inner class doesn't need this prologue
-      if (!Getattr(n, "nested:outer"))
+      if (!Getattr(n, "nested:outer") || GetFlag(n, "feature:flatnested"))
       {
 	String *output_directory = outputDirectory(nspace);
 	String *filen = NewStringf("%s%s.cs", output_directory, proxy_class_name);
@@ -1980,7 +1982,7 @@ public:
       Replaceall(proxy_class_def, "$dllimport", dllimport);
       Replaceall(proxy_class_code, "$dllimport", dllimport);
       Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
-      bool has_outerclass = Getattr(n, "nested:outer") != 0;
+      bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
       if (!has_outerclass)
 	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
       else {
@@ -3452,9 +3454,11 @@ public:
     String *sym_name = Getattr(n, "sym:name");
     String *qualified_classname = Copy(sym_name);
     String *nspace = getNSpace();
-    for (Node* outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
-      Push(qualified_classname, ".");
-      Push(qualified_classname, Getattr(outer_class, "sym:name"));
+    if (!GetFlag(n, "feature:flatnested")) {
+      for (Node* outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
+	Push(qualified_classname, ".");
+	Push(qualified_classname, Getattr(outer_class, "sym:name"));
+      }
     }
     if (nspace)
       Insert(qualified_classname, 0, NewStringf("%s.", nspace));

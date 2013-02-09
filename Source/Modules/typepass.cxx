@@ -465,15 +465,13 @@ class TypePass:private Dispatcher {
     
     // name of the outer class should already be patched to contain it's outer classes names, but not to contain namespaces
     // namespace name (if present) is added after processing child nodes
-    if (Getattr(n, "nested:outer")) {
+    if (Getattr(n, "nested:outer") && name) {
       String* outerName = Getattr(Getattr(n, "nested:outer"), "name");
-      if (name) {
-	name = NewStringf("%s::%s", outerName, name);
-	Setattr(n, "name", name);
-	if (tdname) {
-	  tdname = NewStringf("%s::%s", outerName, tdname);
-	  Setattr(n, "tdname", tdname);
-	}
+      name = NewStringf("%s::%s", outerName, name);
+      Setattr(n, "name", name);
+      if (tdname) {
+	tdname = NewStringf("%s::%s", outerName, tdname);
+	Setattr(n, "tdname", tdname);
       }
     }
 
@@ -1431,8 +1429,7 @@ static void add_symbols_c(Node *n) {
   Delete(symname);
 }
 // Create an %insert with a typedef to make a new name visible to C
-static Node* create_insert(Node* n)
-{
+static Node* create_insert(Node* n) {
   // format a typedef
   String* ccode = Getattr(n, "code");
   Push(ccode, " ");
@@ -1466,8 +1463,24 @@ static Node* create_insert(Node* n)
   return newnode;
 }
 
-static void name_unnamed_c_structs(Node *n)
+static void insertNodeAfter(Node *n, Node* c)
 {
+  Node* g = parentNode(n);
+  set_parentNode(c, g);
+  if (lastChild(g) == n)
+    set_lastChild(g, c);
+  else {
+    Node* ns = nextSibling(n);
+    set_nextSibling(c, ns);
+    set_previousSibling(ns, c);
+  }
+  set_nextSibling(n, c);
+  set_previousSibling(c, n);
+}
+
+void Swig_name_unnamed_c_structs(Node *n) {
+  if (!classhash)
+    classhash = Getattr(n, "classes");
   Node* c = firstChild(n);
   while (c) {
     Node* next = nextSibling(c);
@@ -1516,29 +1529,10 @@ static void name_unnamed_c_structs(Node *n)
 	add_symbols_c(c);
 	
 	Node* ins = create_insert(c);
-	decl = nextSibling(c);
-	// add "insert" node with typedef 
-	set_nextSibling(ins, decl);
-	set_previousSibling(decl, ins);
-	if (Node* ps = previousSibling(c)){
-	  set_previousSibling(ins, ps);
-	  set_nextSibling(ps, ins);
-	}
-	else
-	  set_firstChild(n, ins);
-	set_parentNode(ins, n);
-	// and move c to the top
-	Node* g = parentNode(n);
-	set_parentNode(c, g);
-	if (lastChild(g) == n)
-	  set_lastChild(g, c);
-	else {
-	  Node* ns = nextSibling(n);
-	  set_nextSibling(c, ns);
-	  set_previousSibling(ns, c);
-	}
-	set_nextSibling(n, c);
-	set_previousSibling(c, n);
+	insertNodeAfter(c, ins);
+	removeNode(c);
+	insertNodeAfter(n, c);
+	Delete(ins);
 	Delattr(c, "nested:outer");
       }else {
 	// global unnamed struct - ignore it
@@ -1547,23 +1541,20 @@ static void name_unnamed_c_structs(Node *n)
       }
     }
     // process children
-    name_unnamed_c_structs(c);
+    Swig_name_unnamed_c_structs(c);
     c = next;
   }
 }
 
-
-void Swig_process_nested_classes(Node *n)
-{
-  if (!n)
-    return;
-  if (CPlusPlus) {
-    //Getattr(Swig_cparse_features()
-  }
-  else { // C structures are already in global scope - need process only unnamed structs
-    classhash = Getattr(n, "classes");
-    if (!classhash)
-      return;
-    name_unnamed_c_structs(n);
+void Swig_process_nested_classes(Node *n) {
+  Node* c = firstChild(n);
+  while (c) {
+    Node* next = nextSibling(c);
+    if (GetFlag(c, "nested") && GetFlag(c, "feature:flatnested")) {
+      removeNode(c);
+      insertNodeAfter(n, c);
+    }
+    Swig_process_nested_classes(c);
+    c = next;
   }
 }

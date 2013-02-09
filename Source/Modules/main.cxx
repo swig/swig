@@ -864,6 +864,7 @@ void Swig_ignore_nested() {
   Delete(newname);
 }
 
+
 int SWIG_main(int argc, char *argv[], Language *l) {
   char *c;
 
@@ -1159,11 +1160,11 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "debug-module stage 1\n");
       Swig_print_tree(Getattr(top, "module"));
     }
-    if (Verbose) {
-      Printf(stdout, "Processing nested classes...\n");
+    if (lang->nestedClassesSupported() && !CPlusPlus) {
+      if (Verbose)
+	Printf(stdout, "Processing unnamed structs...\n");
+      Swig_name_unnamed_c_structs(top);
     }
-    if (lang->nestedClassesSupported())
-      Swig_process_nested_classes(top);
 
     if (Verbose) {
       Printf(stdout, "Processing types...\n");
@@ -1183,6 +1184,12 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "C++ analysis...\n");
     }
     Swig_default_allocators(top);
+
+    if (lang->nestedClassesSupported() && CPlusPlus) {
+      if (Verbose)
+	Printf(stdout, "Processing nested classes...\n");
+      Swig_process_nested_classes(top);
+    }
 
     if (dump_top & STAGE3) {
       Printf(stdout, "debug-top stage 3\n");
