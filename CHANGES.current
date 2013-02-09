@@ -5,13 +5,16 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
-2013-01-29: William
+2013-02-09: wsfulton
+            [CFFI] Apply patch #22 - Fix missing package before &body
+
+2013-01-29: wsfulton
             [Java] Ensure 'javapackage' typemap is used as it stopped working from version 2.0.5.
 
-2013-01-28: William
+2013-01-28: wsfulton
             [Python] Apply patch SF #334 - Fix default value conversions "TRUE"->True, "FALSE"->False.
 
-2013-01-28: William
+2013-01-28: wsfulton
             [Java] Apply patch SF #335 - Truly ignore constructors in directors with %ignore.
 
 2013-01-18: Brant Kyser

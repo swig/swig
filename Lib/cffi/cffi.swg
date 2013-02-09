@@ -152,7 +152,7 @@
 %insert("swiglisp") %{
 ;;;SWIG wrapper code starts here
 
-(cl:defmacro defanonenum (&body enums)
+(cl:defmacro defanonenum (cl:&body enums)
    "Converts anonymous enums to defconstants."
   `(cl:progn ,@(cl:loop for value in enums
                         for index = 0 then (cl:1+ index)
