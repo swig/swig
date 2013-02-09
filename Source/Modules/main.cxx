@@ -850,9 +850,19 @@ void SWIG_getoptions(int argc, char *argv[]) {
   }
 }
 
-extern "C" void Swig_name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, String *name, SwigType *decl, Hash *nameobj);
-extern "C" Hash *Swig_name_rename_hash();
-extern "C" List *Swig_name_rename_list();
+void Swig_ignore_nested() {
+  String* name = NewStringEmpty();
+  Hash* newname = NewHash();
+  Setattr(newname, "name", "$ignore");
+  Hash* match = NewHash();
+  Setattr(match, "name", "match$nested");
+  Setattr(match, "value", "1");
+  set_nextSibling(newname, match);
+  Swig_name_rename_add(0, name, 0, newname, 0);
+  Delete(name);
+  Delete(match);
+  Delete(newname);
+}
 
 int SWIG_main(int argc, char *argv[], Language *l) {
   char *c;
@@ -1136,13 +1146,8 @@ int SWIG_main(int argc, char *argv[], Language *l) {
     }
 
     // add "ignore" directive if nested classes are not supported
-    if (!lang->nestedClassesSupported()) {
-      String* name = NewString("$isnested");
-      String* targetname = NewString("$ignore");
-      Swig_name_nameobj_add(Swig_name_rename_hash(), Swig_name_rename_list(), 0, name, 0, targetname);
-      Delete(name);
-      Delete(targetname);
-    }
+    if (!lang->nestedClassesSupported())
+      Swig_ignore_nested();
 
     Node *top = Swig_cparse(cpps);
 
