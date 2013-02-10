@@ -3983,6 +3983,8 @@ cpp_members  : cpp_member cpp_members {
 		       p = nextSibling(p);
 		     }
 		     set_nextSibling(pp,$2);
+		     if ($2)
+		       set_previousSibling($2, pp);
 		   } else {
 		     $$ = $2;
 		   }
