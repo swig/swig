@@ -82,6 +82,42 @@ extern int AddExtern;
 #define  IMPORT_MODULE   2
 
 /* ----------------------------------------------------------------------
+ * EqualModuloStruct()
+ *
+ * Compare two type names, returning true if they are equal ignoring a
+ * preceding struct specifier. Used for constructor and destructor name
+ * checking for structs in C mode.
+ * ---------------------------------------------------------------------- */
+static int EqualModuloStruct(SwigType *typeA, SwigType *typeB) {
+    int equal = Equal(typeA, typeB);
+    if (!equal) {
+        const char kStruct[] = "struct ";
+        String *strA = SwigType_namestr(typeA);
+        String *strB = SwigType_namestr(typeB);
+        char *cStrA = Char(strA);
+        char *cStrB = Char(strB);
+
+        // Note: only need to skip for one of the type names; if both or
+        // neither have a 'struct' modifier, we know they're truly unequal
+        // from the original check, above.
+        if (strncmp(cStrA, kStruct, sizeof(kStruct) - 1) == 0) {
+            cStrA += sizeof(kStruct) - 1;
+        } else if (strncmp(cStrB, kStruct, sizeof(kStruct) - 1) == 0) {
+            cStrB += sizeof(kStruct) - 1;
+        }
+
+        // Only bother testing if we've adjusted one
+        if (cStrA != Char(strA) || cStrB != Char(strB)) {
+            equal = (strcmp(cStrA, cStrB) == 0);
+        }
+
+        Delete(strA);
+        Delete(strB);
+    }
+    return equal;
+}
+
+/* ----------------------------------------------------------------------
  * Dispatcher::emit_one()
  *
  * Dispatch a single node
@@ -2634,7 +2670,7 @@ int Language::constructorDeclaration(Node *n) {
 	  // SWIG extension - allow typedef names as destructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'destructor'.
 	  SwigType *name_resolved = SwigType_typedef_resolve_all(actual_name);
 	  SwigType *expected_name_resolved = SwigType_typedef_resolve_all(expected_name);
-	  illegal_name = !Equal(name_resolved, expected_name_resolved);
+	  illegal_name = !EqualModuloStruct(name_resolved, expected_name_resolved);
 	  Delete(name_resolved);
 	  Delete(expected_name_resolved);
 	}
@@ -2773,7 +2809,7 @@ int Language::destructorDeclaration(Node *n) {
       // SWIG extension - allow typedef names as destructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'destructor'.
       SwigType *name_resolved = SwigType_typedef_resolve_all(actual_name);
       SwigType *expected_name_resolved = SwigType_typedef_resolve_all(expected_name);
-      illegal_name = !Equal(name_resolved, expected_name_resolved);
+      illegal_name = !EqualModuloStruct(name_resolved, expected_name_resolved);
       Delete(name_resolved);
       Delete(expected_name_resolved);
     }
