@@ -1160,7 +1160,7 @@ int SWIG_main(int argc, char *argv[], Language *l) {
       Printf(stdout, "debug-module stage 1\n");
       Swig_print_tree(Getattr(top, "module"));
     }
-    if (lang->nestedClassesSupported() && !CPlusPlus) {
+    if (!CPlusPlus) {
       if (Verbose)
 	Printf(stdout, "Processing unnamed structs...\n");
       Swig_name_unnamed_c_structs(top);
