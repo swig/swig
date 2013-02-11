@@ -50,11 +50,11 @@ class DirectorMethodException: public Swig::DirectorException {};
 
 // Add an explicit handler for one method, mapping one java exception back to an 'int' 
 %feature("director:except",fullname=1) Foo::ping {
-  if (ExceptionMatches(jenv,$thrown,"$packagepath/MyJavaException1")) {
+  if (Swig::exception_matches(jenv,$thrown,"$packagepath/MyJavaException1")) {
     throw 1;
   } 
-  else if (ExceptionMatches(jenv,$thrown,"$packagepath/MyJavaException2")) {
-    std::string msg = GetMessage(jenv,$thrown);
+  else if (Swig::exception_matches(jenv,$thrown,"$packagepath/MyJavaException2")) {
+    std::string msg = Swig::get_exception_message(jenv,$thrown);
     throw ::Exception2(msg);
   }
 }
@@ -64,19 +64,19 @@ class DirectorMethodException: public Swig::DirectorException {};
 
 // directorthrows typemaps for java->c++ conversions
 %typemap(directorthrows,matches="$packagepath/MyJavaException1") Exception1 {
-  std::string msg = GetMessage(jenv,$thrown);
-  throw ::Exception1(GetMessage(jenv,$thrown));
+  std::string msg = Swig::get_exception_message(jenv,$thrown);
+  throw ::Exception1(msg);
 }
 
 %typemap(directorthrows,matches="$packagepath/MyJavaException2") Exception2 {
-  std::string msg = GetMessage(jenv,$thrown);
-  throw ::Exception2(GetMessage(jenv,$thrown));
+  std::string msg = Swig::get_exception_message(jenv,$thrown);
+  throw ::Exception2(msg);
 }
 
 // Make this catch-all for any exception including unchecked
 %typemap(directorthrows,matches="java.lang.Throwable") Unexpected {
-  std::string msg = GetMessage(jenv,$thrown);
-  throw ::Unexpected(GetMessage(jenv,$thrown));
+  std::string msg = Swig::get_exception_message(jenv,$thrown);
+  throw ::Unexpected(msg);
 }
 
 // TODO 'throws' typemap emitted by emit_action has no way to get access 

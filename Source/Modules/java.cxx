@@ -4140,6 +4140,27 @@ public:
     String * featdirexcp = Getattr(n, "feature:director:except");
 
     if (featdirexcp && 0 != Len(featdirexcp) && 0 != Cmp(featdirexcp,"0")) {
+    
+      // noutils attribute.  If it is not set, or it is "0" DO NOT emit utility method code
+      // Utilities introduce dependency on std::string (which std::exception also introduces)
+      String * noutilattr = Getattr(n, "feature:director:except:noutils");
+      bool noutils = noutilattr && 0 != Len(noutilattr) && 0 != Cmp(noutilattr,"0");
+      // Emits the utilities code if noutils is not set
+      if (noutils) {
+	// typemap generated handlers require the generated utils
+	if (0 == Cmp(featdirexcp,"1")) {
+	  Swig_error(input_file, line_number, 
+		     "Feature director:except on %s::%s with noutils attribute must have a code handler block",
+		     SwigType_namestr(c_classname),SwigType_namestr(name));
+	}
+      } else {
+	static bool emitOneTime = false;
+	if (! emitOneTime) {
+	  emitOneTime = true;
+	  Swig_insert_file("director_except_utils.swg", f_runtime);
+	}
+      }
+
       Printf(w->code,"jthrowable thrown_ = jenv->ExceptionOccurred();\n");
       Printf(w->code,"if (thrown_) {\n");
       Printf(w->code,"  jenv->ExceptionClear();  // Must clear exception to call later JNI methods\n");
@@ -4187,13 +4208,13 @@ public:
 	      tmapdirthrowsmatches = Copy(tmapdirthrowsmatches);
 	      substitutePackagePath(tmapdirthrowsmatches, p);
 	      Replaceall(tmapdirthrowsmatches, ".", "/");  // Make path-like: java/lang/Exception
-	      // Use ExceptionMatches defined in java/director.swg
+	      // Use Swig::exception_matches defined in java/director.swg
 	      Printf(w->code, "    // Handle exception %s\n", excptype);
-	      // Don't bother with test for Throwable, all must match, so just make "else {"
+	      // Don't bother with test, for Throwable. All must match, so just make "else {"
 	      if (throwableHandled) 
 		Printf(w->code, "    %s {\n",isfirst?"":"else");
 	      else
-		Printf(w->code, "    %s (ExceptionMatches(jenv,thrown_,\"%s\")) {",isfirst?"if":"else if",tmapdirthrowsmatches);
+		Printf(w->code, "    %s (Swig::exception_matches(jenv,thrown_,\"%s\")) {",isfirst?"if":"else if",tmapdirthrowsmatches);
 	      Printf(w->code, "    %s\n", tmapdirthrows);
 	      Printf(w->code, "    }\n");
 	      Delete(tmapdirthrows);
@@ -4216,10 +4237,6 @@ public:
       Printf(w->code, "    throw;\n");
       Printf(w->code, "  }\n");
       Printf(w->code, "  // TODO: direct:except did not properly throw.  Throw runtime_error?\n");
-      // Runtime warning, depends on java/director.swg including <iostream>. 
-      // TODO: Simply ignore and swallow exception? Add flag to feature? ...
-      Printv(w->code, "  std::cerr << \"SWIG warning: Untranslated Java exception '\" << GetClassName(jenv,thrown_) ",
-	     "<< \"' for direct:except on ",c_classname,"::",name,"\" << std::endl;\n",NIL);
       Printf(w->code, "  return $null;\n");
       Printf(w->code, "}\n");
 
