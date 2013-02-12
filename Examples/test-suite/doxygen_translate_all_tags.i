@@ -110,11 +110,11 @@ int func03(int a)
  * \f$ \sqrt{(x_2-x_1)^2+(y_2-y_1)^2} \f$
  *
  * \f[
- *   \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
+ *     \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
  * \f]
  *
  * \f{
- *   \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
+ *     \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
  * \f}
  *
  * \file file.h
@@ -395,7 +395,7 @@ int func10(int a, float b)
  * \interface someInterface someHeader.h "Header name"
  *
  * Because of structural Doxygen command at the start of comment block,
- * the whoile comment block is ignored. See parser.y, f. isStructuralDoxygen()
+ * the whole comment block is ignored. See parser.y, f. isStructuralDoxygen()
  * or documentation for the list of commands.
  */
 int func11(int a, float b)

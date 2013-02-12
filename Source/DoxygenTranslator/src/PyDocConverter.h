@@ -29,6 +29,10 @@ public:
   String *makeDocumentation(Node *node);
 
 protected:
+
+  size_t m_tableLineLen;
+  bool m_prevRowIsTH;
+
   /*
    * Format a string so it is justified and split over several lines 
    * not exeeding a given length.
@@ -74,6 +78,14 @@ protected:
    * Print only data part of code
    */
   void handlePlainString(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+
+  /**
+   * Copies verbatim args of the tag to output, used for commands like \f$, ...
+   */
+  void handleTagVerbatim(DoxygenEntity& tag,
+                            std::string& translatedComment,
+                            std::string &arg);
+
   /*
    * Print the if-elseif-else-endif section
    */
@@ -95,6 +107,34 @@ protected:
    * Format nice param description with type information
    */
   void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+
+  /* Handles HTML tags recognized by Doxygen, like <A ...>, <ul>, <table>, ... */
+
+  void handleDoxyHtmlTag(DoxygenEntity& tag, std::string& translatedComment, std::string &arg);
+
+  /*
+   * Handles HTML tags, which are translated to markdown-like syntax, for example
+   * <i>text</i>  -->  _text_. Appends arg for start HTML tag and end HTML tag.
+   */
+  void handleDoxyHtmlTag2(DoxygenEntity& tag,
+                             std::string& translatedComment,
+                             std::string &arg);
+
+  /* Handles HTML table, tag <tr> */
+  void handleDoxyHtmlTag_tr(DoxygenEntity& tag, std::string& translatedComment,
+                               std::string &arg);
+
+  /* Handles HTML table, tag <th> */
+  void handleDoxyHtmlTag_th(DoxygenEntity& tag, std::string& translatedComment,
+                               std::string &arg);
+
+  /* Handles HTML table, tag <td> */
+  void handleDoxyHtmlTag_td(DoxygenEntity& tag, std::string& translatedComment,
+                                std::string &arg);
+
+  /* Handles HTML entities recognized by Doxygen, like &lt;, &copy;, ... */
+  void handleHtmlEntity(DoxygenEntity&, std::string& translatedComment, std::string &arg);
+
 
   /*
    * Utility method to generate a diving line for a documentation string.

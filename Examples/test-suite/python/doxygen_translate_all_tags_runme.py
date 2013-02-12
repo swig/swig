@@ -91,14 +91,31 @@ commentVerifier.check(doxygen_translate_all_tags.func04.__doc__,
 r"""
   Throws: SuperError
 
-    \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
- 
-    \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
- 
-    \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
+
+
+    \sqrt{(x_2-x_1)^2+(y_2-y_1)^2} 
+
+   
+  \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
+
+
+   
+  \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
+
+
+
+
+
+
+
+
+
+
+
 
   This will only appear in hmtl
-""")
+
+  """)
 
 commentVerifier.check(doxygen_translate_all_tags.func05.__doc__,
 r"""
@@ -122,13 +139,29 @@ r"""
 
   Image: testImage.bmp("Hello, world!")
 
+
+
+
+
+
+
+
+
+
+
   Some text
   describing invariant.
-""")
+  """)
 
 commentVerifier.check(doxygen_translate_all_tags.func06.__doc__,
 r"""
+  Comment for __func06().__
+
+
+
+
   This will only appear in LATeX
+
 
 
 
@@ -138,13 +171,36 @@ r"""
 
 
 
-  someMember Some description follows
+
+  someMember Some description follows 
+
+
+
 
   This will only appear in man
-""")
+
+
+
+
+
+
+
+
+
+
+
+
+  """)
 
 commentVerifier.check(doxygen_translate_all_tags.func07.__doc__,
 r"""
+  Comment for __func07().__
+
+
+
+
+
+
   Notes: Here
   is the note!
 
@@ -153,18 +209,28 @@ r"""
 
   someword
 
+
+
+
+
   Title: The paragraph title
   The paragraph text.
   Maybe even multiline
 
+
+
   Arguments:
     a (int) -- the first param
-""")
+
+
+
+
+
+  """)
 
 commentVerifier.check(doxygen_translate_all_tags.func08.__doc__,
 r"""
-  Remarks:
-  Some remark text
+  Remarks: Some remark text
 
   Another remarks section
 
@@ -172,8 +238,9 @@ r"""
 
   it
 
-  may return
-""")
+  Returns: may return
+
+  """)
 
 commentVerifier.check(doxygen_translate_all_tags.func09.__doc__,
 r"""
@@ -182,37 +249,67 @@ r"""
 
   See also: someOtherMethod
 
+
+
   function
 
   Same as
   brief description
 
+
+
   Since: version 0.0.0.1
 
-  Throws: superException
 
-  RuntimeError
-""")
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Throw: superException
+
+  Throws: RuntimeError
+  """)
 
 commentVerifier.check(doxygen_translate_all_tags.func10.__doc__,
 r"""
-  TODO:
-  Some very important task
+  TODO: Some very important task
 
   Arguments:
     b (float) -- B is mentioned again...
 
+
+
+
+
+
+
   very long
   text with tags <sometag>
+
+
+
 
   Version: 0.0.0.2
 
   Warning: This is senseless!
 
+
+
+
   This will only appear in XML
+
 
   Here goes test of symbols:
   $ @ \ & ~ < > # % " . ::
 
   And here goes simple text
-""")
+  """)

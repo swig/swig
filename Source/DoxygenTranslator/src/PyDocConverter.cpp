@@ -46,8 +46,8 @@ void PyDocConverter::fillStaticTables() {
   sectionTitles["result"] = "Return: ";
   sectionTitles["return"] = "Return: ";
   sectionTitles["returns"] = "Returns: ";
-  sectionTitles["sa"] = "See also: ";
-  sectionTitles["see"] = "See also: ";
+//  sectionTitles["sa"] = "See also: ";
+//  sectionTitles["see"] = "See also: ";
   sectionTitles["since"] = "Since: ";
   sectionTitles["throw"] = "Throw: ";
   sectionTitles["throws"] = "Throws: ";
@@ -57,7 +57,7 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["a"] = make_pair(&PyDocConverter::handleTagWrap, "_");
   tagHandlers["b"] = make_pair(&PyDocConverter::handleTagWrap, "__");
   // \c command is translated as single quotes around next word
-  tagHandlers["c"] = make_pair(&PyDocConverter::handleTagWrap, "'");
+  tagHandlers["c"] = make_pair(&PyDocConverter::handleTagWrap, "'"); // see markdown support in doxy, section 'code wraps'
   tagHandlers["cite"] = make_pair(&PyDocConverter::handleTagWrap, "'");
   tagHandlers["e"] = make_pair(&PyDocConverter::handleTagWrap, "_");
   // these commands insert just a single char, some of them need to be escaped
@@ -101,8 +101,8 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["result"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["remark"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["remarks"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["sa"] = make_pair(&PyDocConverter::handleParagraph, "");
-  tagHandlers["see"] = make_pair(&PyDocConverter::handleParagraph, "");
+  tagHandlers["sa"] = make_pair(&PyDocConverter::handleTagMessage, "See also: ");
+  tagHandlers["see"] = make_pair(&PyDocConverter::handleTagMessage, "See also: ");
   tagHandlers["since"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["short"] = make_pair(&PyDocConverter::handleParagraph, "");
   tagHandlers["throw"] = make_pair(&PyDocConverter::handleParagraph, "");
@@ -133,10 +133,87 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["plainstd::string"] = make_pair(&PyDocConverter::handlePlainString, "");
   tagHandlers["plainstd::endl"] = make_pair(&PyDocConverter::handleNewLine, "");
   tagHandlers["n"] = make_pair(&PyDocConverter::handleNewLine, "");
+
+  // \f commands output literal Latex formula, which is still better than nothing.
+  tagHandlers["f$"] = make_pair(&PyDocConverter::handleTagVerbatim, "");
+  tagHandlers["f["] = make_pair(&PyDocConverter::handleTagVerbatim, "");
+  tagHandlers["f{"] = make_pair(&PyDocConverter::handleTagVerbatim, "");
+
+  // HTML tags
+  tagHandlers["<a"      ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""      );
+  tagHandlers["<b"      ] = make_pair(&PyDocConverter::handleDoxyHtmlTag2, "__");
+  tagHandlers["<blockquote"] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "");
+  tagHandlers["<body"   ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""   );
+  tagHandlers["<br"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "\n"     );
+  tagHandlers["<center" ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "" );
+  tagHandlers["<caption"] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "");
+  tagHandlers["<code"   ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""   );
+  tagHandlers["<dd"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""     );
+  tagHandlers["<dfn"    ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""    );
+  tagHandlers["<div"    ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""    );
+  tagHandlers["<dl"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""     );
+  tagHandlers["<dt"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""     );
+  tagHandlers["<em"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag2, "_");
+  tagHandlers["<form"   ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""   );
+  tagHandlers["<hr"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag,
+              "--------------------------------------------------------------------\n"     );
+  tagHandlers["<h1"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "# "     );
+  tagHandlers["<h2"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "##"     );
+  tagHandlers["<h3"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "###"     );
+  tagHandlers["<i"      ] = make_pair(&PyDocConverter::handleDoxyHtmlTag2, "_");
+  tagHandlers["<input"  ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""  );
+  tagHandlers["<img"    ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "Image:"  );
+  tagHandlers["<li"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "- "     );
+  tagHandlers["<meta"   ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""   );
+  tagHandlers["<multicol"] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "");
+  tagHandlers["<ol"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""     );
+  tagHandlers["<p"      ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "\n\n"      );
+  tagHandlers["<pre"    ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""    );
+  tagHandlers["<small"  ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""  );
+  tagHandlers["<span"   ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""   );
+  tagHandlers["<strong" ] = make_pair(&PyDocConverter::handleDoxyHtmlTag2, "__");
+  tagHandlers["<sub"    ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""    );
+  tagHandlers["<sup"    ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""    );
+  tagHandlers["<table"  ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, ""  );
+  tagHandlers["<td"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag_td, "");
+  tagHandlers["<th"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag_th, "");
+  tagHandlers["<tr"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag_tr, "");
+  tagHandlers["<tt"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "");
+  tagHandlers["<kbd"    ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "");
+  tagHandlers["<ul"     ] = make_pair(&PyDocConverter::handleDoxyHtmlTag, "");
+  tagHandlers["<var"    ] = make_pair(&PyDocConverter::handleDoxyHtmlTag2, "_");
+
+  // HTML entities
+  tagHandlers["&copy" ] = make_pair(&PyDocConverter::handleHtmlEntity, "(C)");
+  tagHandlers["&trade"] = make_pair(&PyDocConverter::handleHtmlEntity, " TM");
+  tagHandlers["&reg"  ] = make_pair(&PyDocConverter::handleHtmlEntity, "(R)");
+  tagHandlers["&lt"   ] = make_pair(&PyDocConverter::handleHtmlEntity, "<");
+  tagHandlers["&gt"   ] = make_pair(&PyDocConverter::handleHtmlEntity, ">");
+  tagHandlers["&amp"  ] = make_pair(&PyDocConverter::handleHtmlEntity, "&");
+  tagHandlers["&apos" ] = make_pair(&PyDocConverter::handleHtmlEntity, "'");
+  tagHandlers["&quot" ] = make_pair(&PyDocConverter::handleHtmlEntity, "\"");
+  tagHandlers["&lsquo"] = make_pair(&PyDocConverter::handleHtmlEntity, "`");
+  tagHandlers["&rsquo"] = make_pair(&PyDocConverter::handleHtmlEntity, "'");
+  tagHandlers["&ldquo"] = make_pair(&PyDocConverter::handleHtmlEntity, "\"");
+  tagHandlers["&rdquo"] = make_pair(&PyDocConverter::handleHtmlEntity, "\"");
+  tagHandlers["&ndash"] = make_pair(&PyDocConverter::handleHtmlEntity, "-");
+  tagHandlers["&mdash"] = make_pair(&PyDocConverter::handleHtmlEntity, "--");
+  tagHandlers["&nbsp" ] = make_pair(&PyDocConverter::handleHtmlEntity, " ");
+  tagHandlers["&times"] = make_pair(&PyDocConverter::handleHtmlEntity, "x");
+  tagHandlers["&minus"] = make_pair(&PyDocConverter::handleHtmlEntity, "-");
+  tagHandlers["&sdot" ] = make_pair(&PyDocConverter::handleHtmlEntity, ".");
+  tagHandlers["&sim"  ] = make_pair(&PyDocConverter::handleHtmlEntity, "~");
+  tagHandlers["&le"   ] = make_pair(&PyDocConverter::handleHtmlEntity, "<=");
+  tagHandlers["&ge"   ] = make_pair(&PyDocConverter::handleHtmlEntity, ">=");
+  tagHandlers["&larr" ] = make_pair(&PyDocConverter::handleHtmlEntity, "<--");
+  tagHandlers["&rarr" ] = make_pair(&PyDocConverter::handleHtmlEntity, "-->");
 }
 
 PyDocConverter::PyDocConverter(bool debugTranslator, bool debugParser)
-: DoxygenTranslator(debugTranslator, debugParser) {
+: DoxygenTranslator(debugTranslator, debugParser),
+  m_tableLineLen(0),
+  m_prevRowIsTH(false)
+{
   fillStaticTables();
 }
 
@@ -228,6 +305,16 @@ void PyDocConverter::handlePlainString(DoxygenEntity& tag, std::string& translat
 }
 
 
+void PyDocConverter::handleTagVerbatim(DoxygenEntity& tag,
+                                            std::string& translatedComment,
+                                            std::string &arg) {
+  translatedComment += arg + " ";
+  for (DoxygenEntityListCIt it = tag.entityList.begin(); it != tag.entityList.end(); it++) {
+      translatedComment += it->data;
+  }
+}
+
+
 void PyDocConverter::handleTagMessage(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
   std::string dummy;
   translatedComment += arg;
@@ -302,6 +389,89 @@ void PyDocConverter::handleTagWrap(DoxygenEntity& tag, std::string& translatedCo
     else
       translatedComment += arg + tagData + arg;
   }
+}
+
+
+void PyDocConverter::handleDoxyHtmlTag(DoxygenEntity& tag,
+                                            std::string& translatedComment,
+                                            std::string &arg) {
+    std::string htmlTagArgs = tag.data;
+    if (htmlTagArgs == "/") {
+        // end html tag, for example "</ul>
+        // translatedComment += "</" + arg.substr(1) + ">";
+    } else {
+        translatedComment += arg + htmlTagArgs;
+    }
+}
+
+
+void PyDocConverter::handleDoxyHtmlTag2(DoxygenEntity& tag,
+                                             std::string& translatedComment,
+                                             std::string &arg) {
+    std::string htmlTagArgs = tag.data;
+    if (htmlTagArgs == "/") {
+        // end html tag, for example "</em>
+        translatedComment += arg;
+    } else {
+        translatedComment += arg;
+    }
+}
+
+void PyDocConverter::handleDoxyHtmlTag_tr(DoxygenEntity& tag,
+                                                std::string& translatedComment,
+                                                std::string &) {
+    std::string htmlTagArgs = tag.data;
+    if (htmlTagArgs == "/") {
+      // end tag, </tr> appends vertical table line '|'
+      translatedComment += '|';
+      size_t nlPos = translatedComment.rfind('\n');
+      if (nlPos != string::npos) {
+        size_t startOfTableLinePos = translatedComment.find_first_not_of(" \t", nlPos);
+        if (startOfTableLinePos != string::npos) {
+          m_tableLineLen = translatedComment.size() - startOfTableLinePos;
+        }
+      }
+    } else {
+      if (m_prevRowIsTH) {
+        // if previous row contained <th> tag, add horizontal separator
+        translatedComment += string('_', m_tableLineLen);
+        m_prevRowIsTH = false;
+      }
+    }
+}
+
+
+void PyDocConverter::handleDoxyHtmlTag_th(DoxygenEntity& tag,
+                                                std::string& translatedComment,
+                                                std::string &) {
+    std::string htmlTagArgs = tag.data;
+    if (htmlTagArgs == "/") {
+      // end tag, </th> is ignored
+    } else {
+        translatedComment += '|';
+        m_prevRowIsTH = true;
+    }
+}
+
+
+void PyDocConverter::handleDoxyHtmlTag_td(DoxygenEntity& tag,
+                                                std::string& translatedComment,
+                                                std::string &) {
+    std::string htmlTagArgs = tag.data;
+    if (htmlTagArgs == "/") {
+        // end tag, </td> is ignored
+    } else {
+      translatedComment += '|';
+    }
+}
+
+
+
+void PyDocConverter::handleHtmlEntity(DoxygenEntity&,
+                                           std::string& translatedComment,
+                                           std::string &arg) {
+    // html entities
+    translatedComment += arg;
 }
 
 
