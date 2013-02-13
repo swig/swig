@@ -138,87 +138,77 @@ commentVerifier.check(doxygen_translate.htmlFunction.__doc__,
 r"""
   Test for html tags. See Doxygen doc for list of tags recognized by Doxygen.
  
-  <a href = "http://acme.com/index.html">This is link</a>
-  <b>bold</b>
-  <BLOCKQUOTE>
+  This is link (http://acme.com/index.html)
+  __bold__
+  Quote:
   Quotation block.
-  </BLOCKQUOTE>
-  <br>
-  <center>center</center>
-  <code>this is code</code>
-  <DD> Starts an item description.
-  <DFN> Starts a piece of text displayed in a typewriter font.
-  </DFN> 
-  <DIV> Starts a section with a specific style (HTML only)
-  </DIV> 
-  <DL> Starts a description list.
-  <DT> Starts an item title.</DT>
-  </DL> 
-  <EM> Starts a piece of text displayed in an italic font.
-  </EM> 
-  <FORM> 'Form' does not generate any output.
-  </FORM>
-  <HR> 
-  <H1> Starts an unnumbered section.
-  </H1>
-  <H2> Starts an unnumbered subsection.
-  </H2> 
-  <H3> Starts an unnumbered subsubsection.
-  </H3> 
-  <I> Starts a piece of text displayed in an italic font.
-  <INPUT> Does not generate any output.
-  </I> 
-  <IMG src="slika.png"> 
-  <META> Does not generate any output.
-  <MULTICOL> ignored by doxygen.
-  </MULTICOL> ignored by doxygen.
+   ("http://www.worldwildlife.org/who/index.html")
+
+
+  center
+  'this is code'
+
+
+  Starts an item title.
+      Starts an item description.
+
+
+  Starts a piece of text displayed in a typewriter font.
+                      
+  Starts a section with a specific style (HTML only)
+
+  __Starts a piece of text displayed in an italic font.__
+
+  'Form' does not generate any output.
+
+  --------------------------------------------------------------------
+  # Heading 1
+
+  ## Heading 2
+
+  ### Heading 3
+
+  _Starts a piece of text displayed in an italic font._
+  Input tag.
+  Image:src="slika.png"> 
+  Meta tag.
+  Multicol is ignored by doxygen.
+
+  - List item 1.
+  - List item 2.
+
+
+  Starts a new paragraph.
+
+  Starts a preformatted fragment.
+
+  Starts a section of text displayed in a smaller font.
+
+  'Starts an inline text fragment with a specific style.'
+
+  __Starts a section of bold text.__
+   Starts a piece of text displayed in subscript.
+   Starts a piece of text displayed in superscript.
+
  
-  <OL> Starts a numbered item list.
-  <LI> Starts a new list item.
-  </LI> 
-  </OL> Ends a numbered item list.
+  Animals
+  | Column 1 | Column 2 |
+  -----------------------
+  | cow      | dog      |
+  | cat      | mouse    |
+  | horse    | parrot   |
  
-  <P> Starts a new paragraph.
-  </P> 
-  <PRE> Starts a preformatted fragment.
-  </PRE>
-  <SMALL> Starts a section of text displayed in a smaller font.
-  </SMALL>
-  <SPAN> Starts an inline text fragment with a specific style (HTML only)
-  </SPAN>
-  <STRONG> Starts a section of bold text.
-  </STRONG>
-  <SUB> Starts a piece of text displayed in subscript.
-  </SUB>
-  <SUP> Starts a piece of text displayed in superscript.
-  </SUP>
+  Starts a piece of text displayed in a typewriter font.
+                      
+  Starts a piece of text displayed in a typewriter font.
  
-  <table border = '1'>
-  <caption>Animals</caption>
-  <tr><th> cow   </th><th> dog    </th></tr>
-  <tr><td> cow   </td><td> dog    </td></tr>
-  <tr><td> cat   </td><td> mouse  </td></tr>
-  <tr><td> horse </td><td> parrot </td></tr>
-  </table>
+  - List item 1.
+  - List item 2.
+  - List item 3.
  
-  <TT> Starts a piece of text displayed in a typewriter font.
-  </TT> 
-  <KBD> Starts a piece of text displayed in a typewriter font.
-  </KBD> 
+  _Starts a piece of text displayed in an italic font._
  
-  <UL> Starts an unnumbered item list.
-  <LI> Starts a new list item 1.</LI> 
-  <LI> Starts a new list item 2.</LI> 
-  <LI> Starts a new list item 3.</LI> 
-  </UL> Ends an unnumbered item list.
- 
-  <VAR> Starts a piece of text displayed in an italic font.
-  </VAR>
- 
-  \htmlonly
   <u>underlined \b bold text - doxy commands are ignored inside 'htmlonly' section </u>
-  \endhtmlonly
-  <u>underlined text</u>
   """)
 
 

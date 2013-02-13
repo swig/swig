@@ -128,67 +128,64 @@ int function(int a, float b)
 /**
  * Test for html tags. See Doxygen doc for list of tags recognized by Doxygen.
  *
- * <a href = "http://acme.com/index.html">This is link</a>
+ * <a href="http://acme.com/index.html">This is link</a>
  * <b>bold</b>
- * <BLOCKQUOTE>
+ * <BLOCKQUOTE cite="http://www.worldwildlife.org/who/index.html">
  * Quotation block.
  * </BLOCKQUOTE>
  * <br>
  * <center>center</center>
  * <code>this is code</code>
- * <DD> Starts an item description.
- * <DFN> Starts a piece of text displayed in a typewriter font.
+ *
+ * <DL>
+ * <DT>Starts an item title.</DT>
+ * <DD>Starts an item description.</dd>
+ * </dl>
+ *
+ * <DFN>Starts a piece of text displayed in a typewriter font.
  * </DFN> 
- * <DIV> Starts a section with a specific style (HTML only)
+ * <DIV>Starts a section with a specific style (HTML only)
  * </DIV> 
- * <DL> Starts a description list.
- * <DT> Starts an item title.</DT>
- * </DL> 
- * <EM> Starts a piece of text displayed in an italic font.
+ * <EM>Starts a piece of text displayed in an italic font.
  * </EM> 
- * <FORM> 'Form' does not generate any output.
+ * <FORM>'Form' does not generate any output.
  * </FORM>
  * <HR> 
- * <H1> Starts an unnumbered section.
+ * <H1>Heading 1
  * </H1>
- * <H2> Starts an unnumbered subsection.
+ * <H2>Heading 2
  * </H2> 
- * <H3> Starts an unnumbered subsubsection.
+ * <H3>Heading 3
  * </H3> 
- * <I> Starts a piece of text displayed in an italic font.
- * <INPUT> Does not generate any output.
- * </I> 
+ * <I>Starts a piece of text displayed in an italic font.</I>
+ * <INPUT>Input tag.
  * <IMG src="slika.png"> 
- * <META> Does not generate any output.
- * <MULTICOL> ignored by doxygen.
- * </MULTICOL> ignored by doxygen.
+ * <META>Meta tag.
+ * <MULTICOL>Multicol is ignored by doxygen.
+ * </MULTICOL>
  *
- * <OL> Starts a numbered item list.
- * <LI> Starts a new list item.
- * </LI> 
- * </OL> Ends a numbered item list.
+ * <OL>
+ * <LI>List item 1.</LI> 
+ * <LI>List item 2.</LI> 
+ * </OL> 
  *
- * <P> Starts a new paragraph.
+ * <P>Starts a new paragraph.
  * </P> 
- * <PRE> Starts a preformatted fragment.
+ * <PRE>Starts a preformatted fragment.
  * </PRE>
- * <SMALL> Starts a section of text displayed in a smaller font.
+ * <SMALL>Starts a section of text displayed in a smaller font.
  * </SMALL>
- * <SPAN> Starts an inline text fragment with a specific style (HTML only)
- * </SPAN>
- * <STRONG> Starts a section of bold text.
- * </STRONG>
- * <SUB> Starts a piece of text displayed in subscript.
- * </SUB>
- * <SUP> Starts a piece of text displayed in superscript.
- * </SUP>
+ * <SPAN>Starts an inline text fragment with a specific style.</SPAN>
+ * <STRONG>Starts a section of bold text.</STRONG>
+ * <SUB>Starts a piece of text displayed in subscript.</SUB>
+ * <SUP>Starts a piece of text displayed in superscript.</SUP>
  *
  * <table border = '1'>
  * <caption>Animals</caption>
- * <tr><th> cow   </th><th> dog    </th></tr>
- * <tr><td> cow   </td><td> dog    </td></tr>
- * <tr><td> cat   </td><td> mouse  </td></tr>
- * <tr><td> horse </td><td> parrot </td></tr>
+  <tr><th> Column 1 </th><th> Column 2 </th></tr>
+  <tr><td> cow      </td><td> dog      </td></tr>
+  <tr><td> cat      </td><td> mouse    </td></tr>
+  <tr><td> horse    </td><td> parrot   </td></tr>
  * </table>
  *
  * <TT> Starts a piece of text displayed in a typewriter font.
@@ -197,18 +194,16 @@ int function(int a, float b)
  * </KBD> 
  *
  * <UL> Starts an unnumbered item list.
- * <LI> Starts a new list item 1.</LI> 
- * <LI> Starts a new list item 2.</LI> 
- * <LI> Starts a new list item 3.</LI> 
+ * <LI> List item 1.</LI> 
+ * <LI> List item 2.</LI> 
+ * <LI> List item 3.</LI> 
  * </UL> Ends an unnumbered item list.
  *
- * <VAR> Starts a piece of text displayed in an italic font.
- * </VAR>
+ * <VAR>Starts a piece of text displayed in an italic font.</VAR>
  *
  * \htmlonly
  * <u>underlined \b bold text - doxy commands are ignored inside 'htmlonly' section </u>
  * \endhtmlonly
- * <u>underlined text</u>
  */
 int htmlFunction(int a, float b)
 {

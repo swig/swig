@@ -32,6 +32,7 @@ protected:
 
   size_t m_tableLineLen;
   bool m_prevRowIsTH;
+  std::string m_url;
 
   /*
    * Format a string so it is justified and split over several lines 
@@ -111,6 +112,18 @@ protected:
   /* Handles HTML tags recognized by Doxygen, like <A ...>, <ul>, <table>, ... */
 
   void handleDoxyHtmlTag(DoxygenEntity& tag, std::string& translatedComment, std::string &arg);
+
+  /** Does not ouput params of HTML tag, for example in <table border='1'>
+   * 'border=1' is not written to output.
+   */
+  void handleDoxyHtmlTagNoParam(DoxygenEntity& tag,
+                                    std::string& translatedComment,
+                                    std::string &arg);
+
+  /** TRanslates tag <a href = "url">text</a> to: text ("url"). */
+  void handleDoxyHtmlTag_A(DoxygenEntity& tag,
+                              std::string& translatedComment,
+                              std::string &arg);
 
   /*
    * Handles HTML tags, which are translated to markdown-like syntax, for example
