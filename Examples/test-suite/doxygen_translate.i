@@ -143,20 +143,20 @@ int function(int a, float b)
  * </dl>
  *
  * <DFN>Starts a piece of text displayed in a typewriter font.
- * </DFN> 
+ * </DFN>
  * <DIV>Starts a section with a specific style (HTML only)
- * </DIV> 
- * <EM>Starts a piece of text displayed in an italic font.
- * </EM> 
+ * </DIV>
+ * <EM>Starts a piece of text displayed in an italic font.</EM>
+ *
  * <FORM>'Form' does not generate any output.
  * </FORM>
- * <HR> 
+ * <HR>
  * <H1>Heading 1
  * </H1>
  * <H2>Heading 2
- * </H2> 
+ * </H2>
  * <H3>Heading 3
- * </H3> 
+ * </H3>
  * <I>Starts a piece of text displayed in an italic font.</I>
  * <INPUT>Input tag.
  * <IMG src="slika.png"> 
@@ -165,12 +165,12 @@ int function(int a, float b)
  * </MULTICOL>
  *
  * <OL>
- * <LI>List item 1.</LI> 
- * <LI>List item 2.</LI> 
- * </OL> 
+ * <LI>List item 1.</LI>
+ * <LI>List item 2.</LI>
+ * </OL>
  *
  * <P>Starts a new paragraph.
- * </P> 
+ * </P>
  * <PRE>Starts a preformatted fragment.
  * </PRE>
  * <SMALL>Starts a section of text displayed in a smaller font.
@@ -188,16 +188,16 @@ int function(int a, float b)
   <tr><td> horse    </td><td> parrot   </td></tr>
  * </table>
  *
- * <TT> Starts a piece of text displayed in a typewriter font.
- * </TT> 
- * <KBD> Starts a piece of text displayed in a typewriter font.
- * </KBD> 
+ * <TT>Starts a piece of text displayed in a typewriter font.
+ * </TT>
+ * <KBD>Starts a piece of text displayed in a typewriter font.
+ * </KBD>
  *
- * <UL> Starts an unnumbered item list.
- * <LI> List item 1.</LI> 
- * <LI> List item 2.</LI> 
- * <LI> List item 3.</LI> 
- * </UL> Ends an unnumbered item list.
+ * <UL>
+ * <LI>List item 1.</LI>
+ * <LI>List item 2.</LI>
+ * <LI>List item 3.</LI>
+ * </UL>
  *
  * <VAR>Starts a piece of text displayed in an italic font.</VAR>
  *

@@ -137,10 +137,10 @@ r"""
 commentVerifier.check(doxygen_translate.htmlFunction.__doc__,
 r"""
   Test for html tags. See Doxygen doc for list of tags recognized by Doxygen.
- 
-  This is link (http://acme.com/index.html)
+
+  This is link ("http://acme.com/index.html")
   __bold__
-  Quote:
+  Quote: 
   Quotation block.
    ("http://www.worldwildlife.org/who/index.html")
 
@@ -154,7 +154,7 @@ r"""
 
 
   Starts a piece of text displayed in a typewriter font.
-                      
+
   Starts a section with a specific style (HTML only)
 
   __Starts a piece of text displayed in an italic font.__
@@ -162,6 +162,7 @@ r"""
   'Form' does not generate any output.
 
   --------------------------------------------------------------------
+
   # Heading 1
 
   ## Heading 2
@@ -170,12 +171,15 @@ r"""
 
   _Starts a piece of text displayed in an italic font._
   Input tag.
-  Image:src="slika.png"> 
+  Image: src="slika.png" 
   Meta tag.
   Multicol is ignored by doxygen.
 
+
+
   - List item 1.
   - List item 2.
+
 
 
   Starts a new paragraph.
@@ -185,42 +189,47 @@ r"""
   Starts a section of text displayed in a smaller font.
 
   'Starts an inline text fragment with a specific style.'
-
   __Starts a section of bold text.__
    Starts a piece of text displayed in subscript.
    Starts a piece of text displayed in superscript.
 
- 
+
   Animals
   | Column 1 | Column 2 |
   -----------------------
   | cow      | dog      |
   | cat      | mouse    |
   | horse    | parrot   |
- 
+
+
   Starts a piece of text displayed in a typewriter font.
-                      
+
   Starts a piece of text displayed in a typewriter font.
- 
+
+
+
   - List item 1.
   - List item 2.
   - List item 3.
- 
+
+
   _Starts a piece of text displayed in an italic font._
- 
+
+
   <u>underlined \b bold text - doxy commands are ignored inside 'htmlonly' section </u>
+
   """)
 
 
 commentVerifier.check(doxygen_translate.htmlEntitiesFunction.__doc__,
 r"""
-  All entities are treated as commands (C); TM  (R);
+  All entities are treated as commands (C)  TM (R)
   should work also<in text
   >
   &
   '
   "
-  '
+  `
   '
   "
   "
@@ -235,6 +244,6 @@ r"""
   >=
   <--
   -->
-  Not an html entity - ignored by Doxygen.
+  Not an  html entity - ignored by Doxygen.
   Not an &text html entity - ampersand is replaced with entity.
   """)
