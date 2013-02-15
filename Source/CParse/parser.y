@@ -1008,80 +1008,6 @@ static String *resolve_create_node_scope(String *cname) {
   return cname;
 }
  
-/* -----------------------------------------------------------------------------
- * nested_forward_declaration()
- * 
- * Nested struct handling for C++ code only.
- *
- * Treat the nested class/struct/union as a forward declaration until a proper 
- * nested class solution is implemented.
- * ----------------------------------------------------------------------------- */
-
-static Node *nested_forward_declaration(const char *storage, const char *kind, String *sname, String *name, Node *cpp_opt_declarators) {
-  Node *nn = 0;
-  int warned = 0;
-
-  if (sname) {
-    /* Add forward declaration of the nested type */
-    Node *n = new_node("classforward");
-    Setfile(n, cparse_file);
-    Setline(n, cparse_line);
-    Setattr(n, "kind", kind);
-    Setattr(n, "name", sname);
-    Setattr(n, "storage", storage);
-    Setattr(n, "sym:weak", "1");
-    add_symbols(n);
-    nn = n;
-  }
-
-  /* Add any variable instances. Also add in any further typedefs of the nested type.
-     Note that anonymous typedefs (eg typedef struct {...} a, b;) are treated as class forward declarations */
-  if (cpp_opt_declarators) {
-    int storage_typedef = (storage && (strcmp(storage, "typedef") == 0));
-    int variable_of_anonymous_type = !sname && !storage_typedef;
-    if (!variable_of_anonymous_type) {
-      int anonymous_typedef = !sname && (storage && (strcmp(storage, "typedef") == 0));
-      Node *n = cpp_opt_declarators;
-      SwigType *type = name;
-      while (n) {
-	Setattr(n, "type", type);
-	Setattr(n, "storage", storage);
-	if (anonymous_typedef) {
-	  Setattr(n, "nodeType", "classforward");
-	  Setattr(n, "sym:weak", "1");
-	}
-	n = nextSibling(n);
-      }
-      add_symbols(cpp_opt_declarators);
-
-      if (nn) {
-	set_nextSibling(nn, cpp_opt_declarators);
-      } else {
-	nn = cpp_opt_declarators;
-      }
-    }
-  }
-
-  if (nn && Equal(nodeType(nn), "classforward")) {
-    Node *n = nn;
-    if (GetFlag(n, "feature:nestedworkaround")) {
-      Swig_symbol_remove(n);
-      nn = 0;
-      warned = 1;
-    } else {
-      SWIG_WARN_NODE_BEGIN(n);
-      Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, sname ? sname : name);
-      SWIG_WARN_NODE_END(n);
-      warned = 1;
-    }
-  }
-
-  if (!warned)
-    Swig_warning(WARN_PARSE_UNNAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (ignored).\n", kind);
-
-  return nn;
-}
-
 /* look for simple typedef name in typedef list */
 String* try_to_find_a_name_for_unnamed_structure(char* storage, Node* decls) {
   String* name = 0;
@@ -3179,12 +3105,9 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   $3 = scope;
 		   Setattr($<node>$,"name",$3);
 
-		   /* save yyrename to the class attribute, to be used later in add_symbols()
-		   the only purpose is to support %name() functionality */
-		   if (yyrename)
-		     Setattr($<node>$, "class_rename", make_name($<node>$, $3, 0));
-
-		   Setattr($<node>$,"Classprefix",$3);
+		   /* save yyrename to the class attribute, to be used later in add_symbols()*/
+		   Setattr($<node>$, "class_rename", make_name($<node>$, $3, 0));
+		   Setattr($<node>$, "Classprefix", $3);
 		   Classprefix = NewString($3);
 		   /* Deal with inheritance  */
 		   if ($4)
@@ -3372,8 +3295,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Setattr($<node>$,"storage",$1);
 	       Setattr($<node>$,"unnamed",unnamed);
 	       Setattr($<node>$,"allows_typedef","1");
-	       if (yyrename)
-	         Setattr($<node>$, "class_rename", make_name($<node>$,0,0));
+	       Setattr($<node>$, "class_rename", make_name($<node>$,0,0));
 	       if (strcmp($2,"class") == 0) {
 		 cplus_mode = CPLUS_PRIVATE;
 	       } else {
@@ -3470,10 +3392,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		 /* Pop the scope */
 		 Setattr($$,"symtab",Swig_symbol_popscope());
 		 if (name) {
-		   if (Getattr($$, "class_rename")) {
-		     Delete(yyrename);
-		     yyrename = Copy(Getattr($<node>$, "class_rename"));
-	           }
+		   Delete(yyrename);
+		   yyrename = Copy(Getattr($<node>$, "class_rename"));
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   add_symbols($$);
