@@ -60,7 +60,7 @@
      * used for unspecified parameters.
      * <p>
      *
-     * @link advancedWinIDEALaunching.py Python example. @endlink <br>
+     * @link advancedWinIDEALaunching.py Python example.@endlink <br>
      */
     class CConnectionConfig
     {

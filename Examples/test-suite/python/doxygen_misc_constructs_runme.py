@@ -16,6 +16,7 @@ commentVerifier.check(doxygen_misc_constructs.getAddress.__doc__,
     isGetSize (bool) -- if set, for every object location both address and size are returned
 
   Connection::getId() 
+
   """)
 
 commentVerifier.check(doxygen_misc_constructs.CConnectionConfig.__doc__,
@@ -31,7 +32,9 @@ commentVerifier.check(doxygen_misc_constructs.CConnectionConfig.__doc__,
     used for unspecified parameters.
 
 
-    advancedWinIDEALaunching.py Python example. 
+
+    advancedWinIDEALaunching.py Python example.
+
     """)
 
 commentVerifier.check(doxygen_misc_constructs.waitTime.__doc__,

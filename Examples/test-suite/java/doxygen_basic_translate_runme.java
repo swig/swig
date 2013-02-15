@@ -28,12 +28,12 @@ public class doxygen_basic_translate_runme {
     
     wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function()",
     		" \n" +
-    		" Brief description. \n" +
+    		" Brief description.\n" +
     		" \n" +
-    		" The comment text \n" +
-    		" @author Some author \n" +
-    		" @return Some number \n" +
-    		" @see function2 \n" +
+    		" The comment text.\n" +
+    		" @author Some author\n" +
+    		" @return Some number\n" +
+    		" @see function2\n" +
     		" \n" +
     		"");
     wantedComments.put("doxygen_basic_translate.doxygen_basic_translate.function2()",

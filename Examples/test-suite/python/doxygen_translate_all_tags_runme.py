@@ -251,7 +251,7 @@ r"""
 
 
 
-  function
+  See also: function
 
   Same as
   brief description
