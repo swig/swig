@@ -3105,6 +3105,10 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   $3 = scope;
 		   Setattr($<node>$,"name",$3);
 
+		   if (currentOuterClass) {
+		     SetFlag($<node>$, "nested");
+		     Setattr($<node>$, "nested:outer", currentOuterClass);
+		   }
 		   /* save yyrename to the class attribute, to be used later in add_symbols()*/
 		   Setattr($<node>$, "class_rename", make_name($<node>$, $3, 0));
 		   Setattr($<node>$, "Classprefix", $3);
@@ -3154,10 +3158,6 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   }
 		   Delete(prefix);
 		   inclass = 1;
-		   if (currentOuterClass) {
-		     Setattr($<node>$, "nested:outer", currentOuterClass);
-		     SetFlag($<node>$, "nested");
-		   }
 		   currentOuterClass = $<node>$;
                } cpp_members RBRACE cpp_opt_declarators {
 		   Node *p;
@@ -3295,6 +3295,10 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       Setattr($<node>$,"storage",$1);
 	       Setattr($<node>$,"unnamed",unnamed);
 	       Setattr($<node>$,"allows_typedef","1");
+	       if (currentOuterClass) {
+		 SetFlag($<node>$, "nested");
+		 Setattr($<node>$, "nested:outer", currentOuterClass);
+	       }
 	       Setattr($<node>$, "class_rename", make_name($<node>$,0,0));
 	       if (strcmp($2,"class") == 0) {
 		 cplus_mode = CPLUS_PRIVATE;
@@ -3303,10 +3307,6 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       }
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
-	       if (currentOuterClass) {
-		 Setattr($<node>$, "nested:outer", currentOuterClass);
-		 SetFlag($<node>$, "nested");
-	       }
 	       currentOuterClass = $<node>$;
 	       inclass = 1;
 	       Classprefix = NewStringEmpty();
