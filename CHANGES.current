@@ -56,6 +56,9 @@ Version 2.0.10 (in progress)
             When generating functions provided by %extend, use "(void)" for no-argument functions
             instead of "()". This prevents warnings when compiling with "gcc -Wstrict-prototypes".
 
+2013-02-17: kwwette
+            [Octave] Minor fix to autodoc generation: get the right type for functions returning structs.
+
 2013-02-15: wsfulton
             Deprecate typedef names used in %extend that are not the real class/struct name. For example:
 
