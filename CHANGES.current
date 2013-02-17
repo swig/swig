@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-02-17: kwwette
+            [Octave] Minor fix to autodoc generation: get the right type for functions returning structs.
+
 2013-02-09: wsfulton
             [CFFI] Apply patch #22 - Fix missing package before &body
 
