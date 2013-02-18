@@ -2632,6 +2632,9 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           Setfile(templnode,cparse_file);
                           Setline(templnode,cparse_line);
                           Delete(temparms);
+			  if (currentOuterClass) {
+			    SetFlag(templnode, "nested");
+			  }
 
                           add_symbols_copy(templnode);
 
