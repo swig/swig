@@ -5,6 +5,45 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-02-18: wsfulton
+            Deprecate typedef names used as constructor and destructor names in %extend. The real
+            class/struct name should be used.
+
+              typedef struct tagEStruct {
+                int ivar;
+              } EStruct;
+
+              %extend tagEStruct {
+                EStruct() // illegal name, should be tagEStruct()
+                {
+                  EStruct *s = new EStruct();
+                  s->ivar = ivar0;
+                  return s;
+                }
+                ~EStruct() // illegal name, should be ~tagEStruct()
+                {
+                  delete $self;
+                }
+              }
+
+            For now these trigger a warning:
+
+              extend_constructor_destructor.i:107: Warning 522: Use of an illegal constructor name 'EStruct' in
+              %extend is deprecated, the constructor name should be 'tagEStruct'.
+              extend_constructor_destructor.i:111: Warning 523: Use of an illegal destructor name 'EStruct' in
+              %extend is deprecated, the destructor name should be 'tagEStruct'.
+
+            These %extend destructor and constructor names were valid up to swig-2.0.4, however swig-2.0.5 ignored
+            them altogether for C code as reported in SF bug #1306. The old behaviour of using them has been
+            restored for now, but is officially deprecated. This does not apply to anonymously defined typedef
+            classes/structs such as:
+
+              typedef struct {...} X;
+
+2013-02-17: kwwette
+            When generating functions which wrap C extension code, use "(void)" for no-argument functions
+            instead of "()". This prevents warnings when compiling with "gcc -Wstrict-prototypes".
+
 2013-02-15: wsfulton
             Deprecate typedef names used in %extend that are not the real class/struct name. For example:
 
