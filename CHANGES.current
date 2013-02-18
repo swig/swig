@@ -5,6 +5,18 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-02-19: kwwette
+            Fix bug in SWIG's handling of qualified (e.g. const) variables of array type. Given the typedef
+              a(7).q(volatile).double myarray     // typedef volatile double[7] myarray;
+            the type
+              q(const).myarray                    // const myarray
+            becomes
+              a(7).q(const volatile).double       // const volatile double[7]
+            Previously, SwigType_typedef_resolve() produces the type
+              q(const).a(7).q(volatile).double    // non-sensical type
+            which would never match %typemap declarations, whose types were parsed correctly.
+            Add typemap_array_qualifiers.i to the test suite which checks for the correct behaviour.
+
 2013-02-18: wsfulton
             Deprecate typedef names used as constructor and destructor names in %extend. The real
             class/struct name should be used.
