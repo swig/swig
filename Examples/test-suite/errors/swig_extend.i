@@ -33,3 +33,28 @@ typedef struct StructD StructDName;
   void method() {}
 }
 
+
+typedef struct stru_struct {
+    int bar;
+} stru;
+typedef union uni_union {
+    int un1;
+    double un2;
+} uni;
+
+%extend stru {
+    stru() {
+        stru* s = (stru*)malloc(sizeof(stru));
+        s->bar = 11;
+        return s;
+    }
+    ~stru() {
+      free($self);
+    }
+}
+
+%extend uni {
+  uni() { return 0; }
+  ~uni() { free($self); }
+}
+
