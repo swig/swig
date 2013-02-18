@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-02-17: kwwette
+            When generating functions which wrap C extension code, use "(void)" for no-argument functions
+            instead of "()". This prevents warnings when compiling with "gcc -Wstrict-prototypes".
+
 2013-02-09: wsfulton
             [CFFI] Apply patch #22 - Fix missing package before &body
 
