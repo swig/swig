@@ -433,6 +433,7 @@ CPP_TEST_CASES += \
 	typedef_sizet \
 	typedef_struct \
 	typemap_arrays \
+	typemap_array_qualifiers \
 	typemap_delete \
 	typemap_directorout \
 	typemap_global_scope \
