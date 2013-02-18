@@ -188,6 +188,10 @@ pp_variable_args.i:6: Error: Variable length macro argument must be last paramet
 :::::::::::::::::::::::::::::::: swig_apply_nargs.i :::::::::::::::::::::::::::::::::::
 swig_apply_nargs.i:6: Error: Can't apply (char *str,int len) to (int x).  Number of arguments don't match.
 
+:::::::::::::::::::::::::::::::: swig_extend.i :::::::::::::::::::::::::::::::::::
+swig_extend.i:19: Warning 326: Deprecated %extend name used - the struct name 'StructBName' should be used instead of the typedef name 'StructB'.
+swig_extend.i:34: Warning 303: %extend defined for an undeclared class StructDName.
+
 :::::::::::::::::::::::::::::::: swig_identifier.i :::::::::::::::::::::::::::::::::::
 swig_identifier.i:5: Warning 503: Can't wrap 'foo bar' unless renamed to a valid identifier.
 

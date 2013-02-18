@@ -5,6 +5,25 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-02-15: wsfulton
+            Deprecate typedef names used in %extend that are not the real class/struct name. For example:
+
+              typedef struct StructBName {
+                int myint;
+              } StructB;
+
+              %extend StructB {
+                void method() {}
+              }
+
+            will now trigger a warning:
+
+              swig_extend.i:19: Warning 326: Deprecated %extend name used - the struct name StructBName
+              should be used instead of the typedef name StructB.
+
+            This is only partially working anyway (the %extend only worked if placed after the class
+            definition). 
+
 2013-02-09: wsfulton
             [CFFI] Apply patch #22 - Fix missing package before &body
 

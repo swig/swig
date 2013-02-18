@@ -38,6 +38,7 @@ static Node    *top = 0;      /* Top of the generated parse tree */
 static int      unnamed = 0;  /* Unnamed datatype counter */
 static Hash    *extendhash = 0;     /* Hash table of added methods */
 static Hash    *classes = 0;        /* Hash table of classes */
+static Hash    *classes_typedefs = 0; /* Hash table of typedef classes: typedef struct X {...} Y; */
 static Symtab  *prev_symtab = 0;
 static Node    *current_class = 0;
 String  *ModuleName = 0;
@@ -718,7 +719,7 @@ static void check_extensions() {
   for (ki = First(extendhash); ki.key; ki = Next(ki)) {
     if (!Strchr(ki.key,'<')) {
       SWIG_WARN_NODE_BEGIN(ki.item);
-      Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", ki.key);
+      Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", SwigType_namestr(ki.key));
       SWIG_WARN_NODE_END(ki.item);
     }
   }
@@ -1909,20 +1910,34 @@ extend_directive : EXTEND options idcolon LBRACE {
 	       String *clsname;
 	       cplus_mode = CPLUS_PUBLIC;
 	       if (!classes) classes = NewHash();
+	       if (!classes_typedefs) classes_typedefs = NewHash();
 	       if (!extendhash) extendhash = NewHash();
 	       clsname = make_class_name($3);
 	       cls = Getattr(classes,clsname);
 	       if (!cls) {
-		 /* No previous definition. Create a new scope */
-		 Node *am = Getattr(extendhash,clsname);
-		 if (!am) {
-		   Swig_symbol_newscope();
-		   Swig_symbol_setscopename($3);
-		   prev_symtab = 0;
+	         cls = Getattr(classes_typedefs, clsname);
+		 if (!cls) {
+		   /* No previous definition. Create a new scope */
+		   Node *am = Getattr(extendhash,clsname);
+		   if (!am) {
+		     Swig_symbol_newscope();
+		     Swig_symbol_setscopename($3);
+		     prev_symtab = 0;
+		   } else {
+		     prev_symtab = Swig_symbol_setscope(Getattr(am,"symtab"));
+		   }
+		   current_class = 0;
 		 } else {
-		   prev_symtab = Swig_symbol_setscope(Getattr(am,"symtab"));
+		   /* Previous typedef class definition.  Use its symbol table.
+		      Deprecated, just the real name should be used. 
+		      Note that %extend before the class typedef never worked, only %extend after the class typdef. */
+		   prev_symtab = Swig_symbol_setscope(Getattr(cls, "symtab"));
+		   current_class = cls;
+		   extendmode = 1;
+		   SWIG_WARN_NODE_BEGIN(cls);
+		   Swig_warning(WARN_PARSE_EXTEND_NAME, cparse_file, cparse_line, "Deprecated %%extend name used - the %s name '%s' should be used instead of the typedef name '%s'.\n", Getattr(cls, "kind"), SwigType_namestr(Getattr(cls, "name")), $3);
+		   SWIG_WARN_NODE_END(cls);
 		 }
-		 current_class = 0;
 	       } else {
 		 /* Previous class definition.  Use its symbol table */
 		 prev_symtab = Swig_symbol_setscope(Getattr(cls,"symtab"));
@@ -3585,7 +3600,6 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   if (!classes) classes = NewHash();
 		   scpname = Swig_symbol_qualifiedscopename(0);
 		   Setattr(classes,scpname,$$);
-		   Delete(scpname);
 
 		   appendChild($$,$7);
 		   
@@ -3606,7 +3620,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Setattr(p,"type",ty);
 		     p = nextSibling(p);
 		   }
-		   /* Dump nested classes */
+		   /* Class typedefs */
 		   {
 		     String *name = $3;
 		     if ($9) {
@@ -3626,8 +3640,9 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 			     Delete(class_rename);
 			     class_rename = NewString(name);
 			   }
-			   if (!Getattr(classes,tdscopename)) {
-			     Setattr(classes,tdscopename,$$);
+			   if (!classes_typedefs) classes_typedefs = NewHash();
+			   if (!Equal(scpname, tdscopename) && !Getattr(classes_typedefs, tdscopename)) {
+			     Setattr(classes_typedefs, tdscopename, $$);
 			   }
 			   Setattr($$,"decl",decltype);
 			   Delete(class_scope);
@@ -3638,6 +3653,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     }
 		     appendChild($$,dump_nested(Char(name)));
 		   }
+		   Delete(scpname);
 
 		   if (cplus_mode != CPLUS_PUBLIC) {
 		   /* we 'open' the class at the end, to allow %template
