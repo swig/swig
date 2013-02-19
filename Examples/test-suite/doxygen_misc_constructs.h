@@ -64,4 +64,11 @@ void backslashB()
 void backslashC()
 {}
 
-
+/**
+ * The next line contains expression:
+ * <pre>
+ * ['retVal < 10', 'g_counter == 23 && g_mode & 3']
+ *</pre>
+ */
+void cycle()
+{}

@@ -153,7 +153,16 @@ public class doxygen_misc_constructs_runme {
     		" <i>with</i> old comment parser.\n" +
                 " @see MyClass#fun(char,float)\n" +
     		"");
-     
+
+   wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.cycle()",
+    		" The next line contains expression:\n" +
+                " <pre>\n" +
+    		" ['retVal &lt; 10', 'g_counter == 23 &amp;&amp; g_mode &amp; 3']\n" +
+                " </pre>\n" +
+    		"\n" +
+    		"");
+ 
+    
     // and ask the parser to check comments for us
     System.exit(parser.check(wantedComments));
   }

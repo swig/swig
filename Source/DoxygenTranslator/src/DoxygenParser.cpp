@@ -1120,7 +1120,7 @@ void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line)
   pos = endHtmlPos;
 
   // prepend '<' to distinguish HTML tags from doxygen commands
-  if (addDoxyCommand(m_tokenList, '<' + cmd)) {
+  if (!cmd.empty()  &&  addDoxyCommand(m_tokenList, '<' + cmd)) {
     // it is a valid HTML command
     if (line[pos] != '>') { // it should be HTML tag with args,
                              // for example <A ...>, <IMG ...>, ...
@@ -1148,7 +1148,10 @@ void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line)
         m_tokenList.push_back(Token(PLAINSTRING, ""));
       }
     }
-    pos++; // skip '>'
+
+    if (pos != string::npos) {
+        pos++; // skip '>'
+    }
   } else {
     // the command is not HTML supported by Doxygen, < and > will be
     // replaced by HTML entities &lt; and &gt; respectively,
@@ -1164,7 +1167,7 @@ void DoxygenParser::processHtmlEntities(size_t &pos, const std::string &line)
 
   if (endOfWordPos != string::npos) {
 
-    if (line[endOfWordPos] == ';')
+    if (line[endOfWordPos] == ';'  &&  (endOfWordPos - pos) > 1)
     {
       // if entity is not recognized by Doxygen (not in the list of
       // commands) nothing is added (here and in Doxygen).
