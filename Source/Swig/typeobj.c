@@ -429,21 +429,16 @@ int SwigType_isreference(const SwigType *t) {
  * 'qual' can be a list of multiple qualifiers in any order, separated by spaces.
  * ----------------------------------------------------------------------------- */
 
-/* Helper function to sort the mangled list */
-static int SwigType_compare_qualifiers(const DOH *a, const DOH *b) {
-  return strcmp(Char(a), Char(b));
-}
-
 SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
   List *qlist;
-  String *allq, *newq, *q;
+  String *allq, *newq;
   int i, sz;
-  char *c, *cqual, *cq, *cqprev;
-  c = Char(t);
-  cqual = Char(qual);
+  const char *cqprev = 0;
+  const char *c = Char(t);
+  const char *cqual = Char(qual);
 
   /* if 't' has no qualifiers and 'qual' is a single qualifier, simply add it */
-  if ((strncmp(c, "q(", 2) != 0) && (strstr(cqual, " ") == NULL)) {
+  if ((strncmp(c, "q(", 2) != 0) && (strstr(cqual, " ") == 0)) {
     String *temp = NewStringf("q(%s).", cqual);
     Insert(t, 0, temp);
     Delete(temp);
@@ -464,17 +459,16 @@ SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
   qlist = Split(allq, ' ', INT_MAX);
   Delete(allq);
 
-  /* sort list */
-  SortList(qlist, SwigType_compare_qualifiers);
+  /* sort in alphabetical order */
+  SortList(qlist, Strcmp);
 
   /* create new qualifier string from unique elements of list */
   sz = Len(qlist);
   newq = NewString("q(");
-  cqprev = NULL;
   for (i = 0; i < sz; ++i) {
-    q = Getitem(qlist, i);
-    cq = Char(q);
-    if (cqprev == NULL || strcmp(cqprev, cq) != 0) {
+    String *q = Getitem(qlist, i);
+    const char *cq = Char(q);
+    if (cqprev == 0 || strcmp(cqprev, cq) != 0) {
       if (i > 0) {
         Append(newq, " ");
       }
