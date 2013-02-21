@@ -40,21 +40,21 @@ r"""
   Throws: SuperError
 
   If: ANOTHERCONDITION {
-  First part of comment
-  If: SECONDCONDITION {
-  Nested condition text
-  }Else if: THIRDCONDITION {
-  The third condition text
-  }Else:  {The last text block
-  }
-  }Else:  {Second part of comment
-  If: CONDITION {
-  Second part extended
-  }
+    First part of comment
+    If: SECONDCONDITION {
+      Nested condition text
+    }Else if: THIRDCONDITION {
+      The third condition text
+    }Else:  {    The last text block
+    }
+  }Else:  {  Second part of comment
+    If: CONDITION {
+      Second part extended
+    }
   }
 
   If not: SOMECONDITION {
-  This is printed if not
+    This is printed if not
   }
 
   Image: testImage.bmp("Hello, world!")

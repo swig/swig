@@ -154,13 +154,29 @@ public class doxygen_misc_constructs_runme {
                 " @see MyClass#fun(char,float)\n" +
     		"");
 
-   wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.cycle()",
+   wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.cycle(int, java.lang.String)",
     		" The next line contains expression:\n" +
                 " <pre>\n" +
     		" ['retVal &lt; 10', 'g_counter == 23 &amp;&amp; g_mode &amp; 3']\n" +
                 " </pre>\n" +
     		"\n" +
-    		"");
+                " Both words should be emphasized <b>isystem.connect</b>.\n" +
+                " But not the last period. For <b>example</b>, comma should not be emphasized.\n" +
+                " Similar <b>for</b>: double colon.\n" +
+    		"\n" +
+                " Spaces at the start of line should be taken into account:\n" +
+                " @param id used as prefix in log\n" +
+                "     statements. The default value is empty string, which is OK if\n" +
+                "     there is only one app. instance. Example:\n" +
+                "     <pre>\n" +
+                "         ctrl.setBP(\"func1\");\n" +
+                "     </pre>\n" +
+                "     If we set the id to <code>main_</code>, we get:\n" +
+                "     <pre>\n" +
+                "         main_ctrl.setBP(\"func1\");\n" +
+                "     </pre>\n" +
+                "\n" +
+                " @param fileName name of the log file\n");
  
     
     // and ask the parser to check comments for us

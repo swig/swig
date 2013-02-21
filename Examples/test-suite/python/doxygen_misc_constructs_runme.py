@@ -110,6 +110,35 @@ commentVerifier.check(doxygen_misc_constructs.backslashC.__doc__,
   _with_ old comment parser. 
 
   See also: MyClass::fun(char,
-  float)
+   float)
   """
 )
+
+
+commentVerifier.check(doxygen_misc_constructs.cycle.__doc__,
+  r"""
+  The next line contains expression:
+
+  ['retVal < 10', 'g_counter == 23 && g_mode & 3']
+
+
+  Both words should be emphasized __isystem.connect__.
+  But not the last period. For __example__, comma should not be emphasized.
+  Similar __for__: double colon.
+
+  Spaces at the start of line should be taken into account:
+  Arguments:
+    id (int) -- used as prefix in log
+      statements. The default value is empty string, which is OK if
+      there is only one app. instance. Example:
+      
+          ctrl.setBP("func1");
+      
+      If we set the id to 'main_', we get:
+      
+          main_ctrl.setBP("func1");
+      
+
+    fileName (char *) -- name of the log file
+  """
+);

@@ -69,6 +69,26 @@ void backslashC()
  * <pre>
  * ['retVal < 10', 'g_counter == 23 && g_mode & 3']
  *</pre>
+ *
+ * Both words should be emphasized \b isystem.connect.
+ * But not the last period. For \b example, comma should not be emphasized.
+ * Similar \b for: double colon.
+ *
+ * Spaces at the start of line should be taken into account:
+ * @param id used as prefix in log
+ *     statements. The default value is empty string, which is OK if
+ *     there is only one app. instance. Example:
+ *     <pre>
+ *         ctrl.setBP("func1");
+ *     </pre>
+ *     If we set the id to \c main_, we get:
+ *     <pre>
+ *         main_ctrl.setBP("func1");
+ *     </pre>
+ *
+ * @param fileName name of the log file
  */
-void cycle()
+void cycle(int id, char *fileName)
 {}
+
+

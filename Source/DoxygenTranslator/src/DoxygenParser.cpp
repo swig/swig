@@ -199,39 +199,33 @@ std::string DoxygenParser::getNextWord() {
         return "";
     }
 */
-	while (m_tokenListIt != m_tokenList.end()  &&  (m_tokenListIt->m_tokenType == PLAINSTRING)) {
-		// handle quoted strings as words
-	    string token = m_tokenListIt->m_tokenString;
-		if (token == "\"") {
+  while (m_tokenListIt != m_tokenList.end()  &&  (m_tokenListIt->m_tokenType == PLAINSTRING)) {
+    // handle quoted strings as words
+    string token = m_tokenListIt->m_tokenString;
+    if (token == "\"") {
 
-			string word = m_tokenListIt->m_tokenString;
-			m_tokenListIt++;
-			while (true) {
-				string nextWord = getNextToken();
-				if (nextWord.empty()) { // maybe report unterminated string error
-					return word;
-				}
-				word += nextWord;
-				if (nextWord == "\"") {
-					return word;
-				}
-			}
-		}
+      string word = m_tokenListIt->m_tokenString;
+      m_tokenListIt++;
+      while (true) {
+        string nextWord = getNextToken();
+        if (nextWord.empty()) { // maybe report unterminated string error
+          return word;
+        }
+        word += nextWord;
+        if (nextWord == "\"") {
+          return word;
+        }
+      }
+    }
 
-        string tokenStr = trim(m_tokenListIt->m_tokenString);
-		m_tokenListIt++;
-		if (!tokenStr.empty()) {
-		    return tokenStr;
-		}
-	} /* else if (nextToken.m_tokenType == END_LINE) {
-	    // this handles cases when command is the last item in line, for example:
-	    // * This method returns line number \c
-	    // * relative to paragraph.
-        m_tokenListIt++;
-        return getNextWord();
-	} */
+    string tokenStr = trim(m_tokenListIt->m_tokenString);
+    m_tokenListIt++;
+    if (!tokenStr.empty()) {
+      return tokenStr;
+    }
+  }
 
-	return "";
+  return "";
 }
 
 
@@ -381,36 +375,36 @@ void DoxygenParser::skipEndOfLine()
 
 int DoxygenParser::addSimpleCommand(const std::string &theCommand,
                                          DoxygenEntityList &doxyList) {
-	if (noisy)
-		cout << "Parsing " << theCommand << endl;
+  if (noisy)
+    cout << "Parsing " << theCommand << endl;
 
-	doxyList.push_back(DoxygenEntity(theCommand));
-	return 1;
+  doxyList.push_back(DoxygenEntity(theCommand));
+  return 1;
 }
 
 
 int DoxygenParser::addCommandWord(const std::string &theCommand,
                                        const TokenList &,
                                        DoxygenEntityList &doxyList) {
-	if (noisy)
-		cout << "Parsing " << theCommand << endl;
+  if (noisy)
+    cout << "Parsing " << theCommand << endl;
 
-	if (isEndOfLine()) {
-	    // handles cases when command is at the end of line (for example "\c\nreally"
-	    skipWhitespaceTokens();
-	    doxyList.push_back(DoxygenEntity("plainstd::endl"));
-	}
-	std::string name = getNextWord();
-    if (!name.empty()) {
-      DoxygenEntityList aNewList;
-      aNewList.push_back(DoxygenEntity("plainstd::string", name));
-      doxyList.push_back(DoxygenEntity(theCommand, aNewList));
-      return 1;
-	} else {
-		printListError(WARN_DOXYGEN_COMMAND_ERROR, "No word followed " +
-		                theCommand + " command. Not added");
-	}
-	return 0;
+  if (isEndOfLine()) {
+    // handles cases when command is at the end of line (for example "\c\nreally"
+    skipWhitespaceTokens();
+    doxyList.push_back(DoxygenEntity("plainstd::endl"));
+  }
+  std::string name = getNextWord();
+  if (!name.empty()) {
+    DoxygenEntityList aNewList;
+    aNewList.push_back(DoxygenEntity("plainstd::string", name));
+    doxyList.push_back(DoxygenEntity(theCommand, aNewList));
+    return 1;
+  } else {
+    printListError(WARN_DOXYGEN_COMMAND_ERROR, "No word followed " +
+        theCommand + " command. Not added");
+  }
+  return 0;
 }
 
 
@@ -1264,32 +1258,69 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
     const string &line = *it;
     size_t pos = line.find_first_not_of(" \t");
 
-    // skip sequences of '*', '/', and '!' of any length
-    while (pos != string::npos  &&  isStartOfDoxyCommentChar(line[pos])) {
-      pos++;
+    if (pos == string::npos) {
+      m_tokenList.push_back(Token(END_LINE, "\n"));
+      continue;
     }
 
-    if (pos == string::npos) {
-        m_tokenList.push_back(Token(END_LINE, "\n"));
+    // skip sequences of '*', '/', and '!' of any length
+    bool isStartOfCommentLineCharFound = false;
+    while (pos < line.size()  &&  isStartOfDoxyCommentChar(line[pos])) {
+      pos++;
+      isStartOfCommentLineCharFound = true;
+    }
+
+    if (pos == line.size()) {
+      m_tokenList.push_back(Token(END_LINE, "\n"));
       continue;
+    }
+
+    // if 'isStartOfCommentLineCharFound' then preserve leading spaces, so
+    // ' *    comment' gets translated to ' *    comment', not ' * comment'
+    // This is important to keep formatting for comments translated to Python.
+    if (isStartOfCommentLineCharFound  &&  line[pos] == ' ') {
+      pos++; // points to char after ' * '
+      if (pos == line.size()) {
+        m_tokenList.push_back(Token(END_LINE, "\n"));
+        continue;
+      }
     }
 
     // line[pos] may be ' \t' or start of word, it there was no '*', '/' or '!'
     // at beginning of the line. Make sure it points to start of the first word
     // in the line.
-    pos = line.find_first_not_of(" \t", pos);
-    if (pos == string::npos) {
+    size_t firstWordPos = line.find_first_not_of(" \t", pos);
+    if (firstWordPos == string::npos) {
       m_tokenList.push_back(Token(END_LINE, "\n"));
       continue;
     }
+
+    if (isStartOfCommentLineCharFound  &&  firstWordPos > pos) {
+      m_tokenList.push_back(Token(PLAINSTRING, line.substr(pos, firstWordPos - pos)));
+    }
+
+    pos = firstWordPos;
 
     while (pos != string::npos) {
       // find the end of the word
       size_t doxyCmdOrHtmlTagPos = line.find_first_of("\\@<>&\" \t", pos);
       if (doxyCmdOrHtmlTagPos != pos) {
         // plain text found
-        m_tokenList.push_back(Token(PLAINSTRING,
-                              line.substr(pos, doxyCmdOrHtmlTagPos - pos)));
+        // if the last char is punctuation, make it a separate word, otherwise
+        // it may be included with word also when not appropriate, for example:
+        //   colors are \b red, green, and blue --> colors are <b>red,</b> green, and blue
+        // instead of (comma not bold):
+        //   colors are \b red, green, and blue --> colors are <b>red</b>, green, and blue
+        // In Python it looks even worse:
+        //   colors are \b red, green, and blue --> colors are 'red,' green, and blue
+        string text = line.substr(pos, doxyCmdOrHtmlTagPos - pos);
+        string punctuations(".,:");
+        if (!text.empty()  &&  punctuations.find(text[text.size() - 1]) != string::npos) {
+          m_tokenList.push_back(Token(PLAINSTRING, text.substr(0, text.size() - 1)));
+          m_tokenList.push_back(Token(PLAINSTRING, text.substr(text.size() - 1)));
+        } else {
+          m_tokenList.push_back(Token(PLAINSTRING, text));
+        }
       }
 
       pos = doxyCmdOrHtmlTagPos;

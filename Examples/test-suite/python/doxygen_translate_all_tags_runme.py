@@ -67,7 +67,7 @@ r"""
 
 commentVerifier.check(doxygen_translate_all_tags.func03.__doc__,
 r"""
-  Comment for __func03().__
+  Comment for __func03()__.
 
 
 
@@ -96,11 +96,11 @@ r"""
     \sqrt{(x_2-x_1)^2+(y_2-y_1)^2} 
 
    
-  \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
+      \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
 
 
    
-  \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
+      \sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
 
 
 
@@ -120,21 +120,21 @@ r"""
 commentVerifier.check(doxygen_translate_all_tags.func05.__doc__,
 r"""
   If: ANOTHERCONDITION {
-  First part of comment
-  If: SECONDCONDITION {
-  Nested condition text
-  }Else if: THIRDCONDITION {
-  The third condition text
-  }Else:  {The last text block
-  }
-  }Else:  {Second part of comment
-  If: CONDITION {
-  Second part extended
-  }
+    First part of comment
+    If: SECONDCONDITION {
+      Nested condition text
+    }Else if: THIRDCONDITION {
+      The third condition text
+    }Else:  {    The last text block
+    }
+  }Else:  {  Second part of comment
+    If: CONDITION {
+      Second part extended
+    }
   }
 
   If not: SOMECONDITION {
-  This is printed if not
+    This is printed if not
   }
 
   Image: testImage.bmp("Hello, world!")
@@ -155,7 +155,7 @@ r"""
 
 commentVerifier.check(doxygen_translate_all_tags.func06.__doc__,
 r"""
-  Comment for __func06().__
+  Comment for __func06()__.
 
 
 
@@ -194,7 +194,7 @@ r"""
 
 commentVerifier.check(doxygen_translate_all_tags.func07.__doc__,
 r"""
-  Comment for __func07().__
+  Comment for __func07()__.
 
 
 
