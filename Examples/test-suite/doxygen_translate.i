@@ -182,10 +182,10 @@ int function(int a, float b)
  *
  * <table border = '1'>
  * <caption>Animals</caption>
-  <tr><th> Column 1 </th><th> Column 2 </th></tr>
-  <tr><td> cow      </td><td> dog      </td></tr>
-  <tr><td> cat      </td><td> mouse    </td></tr>
-  <tr><td> horse    </td><td> parrot   </td></tr>
+ * <tr><th> Column 1 </th><th> Column 2 </th></tr>
+ * <tr><td> cow      </td><td> dog      </td></tr>
+ * <tr><td> cat      </td><td> mouse    </td></tr>
+ * <tr><td> horse    </td><td> parrot   </td></tr>
  * </table>
  *
  * <TT>Starts a piece of text displayed in a typewriter font.

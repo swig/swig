@@ -949,6 +949,40 @@ file, so they have no comment translated for them.
 </p>
 
 <p>
+  <b>Whitespaces and tables</b><br>
+  Whitespaces are preserved when translating comments, so it makes
+  sense to have Doxygen comments formatted in a readable way. This
+  includes tables, where tags &lt;th&gt;, &lt;td&gt; and &lt;/tr&gt;are translated
+  to '|'. The line after line with &lt;th&gt; tags contains dashes.
+  If we take care about whitespaces, comments in Python are much more
+  readable. Example:
+
+<div class="code"><pre>
+/**
+ * &lt;table border = '1'&gt;
+ * &lt;caption&gt;Animals&lt;/caption&gt;
+ * &lt;tr&gt;&lt;th&gt; Column 1 &lt;/th&gt;&lt;th&gt; Column 2 &lt;/th&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt; cow      &lt;/td&gt;&lt;td&gt; dog      &lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt; cat      &lt;/td&gt;&lt;td&gt; mouse    &lt;/td&gt;&lt;/tr&gt;
+ * &lt;tr&gt;&lt;td&gt; horse    &lt;/td&gt;&lt;td&gt; parrot   &lt;/td&gt;&lt;/tr&gt;
+ * &lt;/table&gt;
+ */
+</pre></div>
+<p/>
+translates to Python as:
+<p/>
+<div class="targetlang"><pre>
+  Animals
+  | Column 1 | Column 2 |
+  -----------------------
+  | cow      | dog      |
+  | cat      | mouse    |
+  | horse    | parrot   |
+</pre></div>
+</p>
+
+<p>
+  <b>Overloaded functions</b><br>
 Since all the overloaded functions in c++ are wrapped into one Python
 function, PyDoc translator will combine every comment of every
 overloaded function and put it in the comment for wrapping function.
@@ -957,7 +991,7 @@ If you intend to use resulting proxy files with Doxygen docs
 generator, rather than PyDoc, you may want to turn off translator
 completely (doxygen:notranslate feature).  Then SWIG will just copy
 the comments to the proxy file and reformat them if needed, but all
-the comment content will be left as is. As Doxygen don't support
+the comment content will be left as is. As Doxygen doesn't support
 special commands in Python comments
 (see <a href="http://www.stack.nl/~dimitri/doxygen/docblocks.html#pythonblocks">Doxygen
 docs</a>), you may want to use some tool like doxypy
@@ -1457,6 +1491,16 @@ check-python-test-suite'. To run them individually, type
 <pre>
   Examples/test-suite/java $ make doxygen_misc_constructs.cpptest -s
 </pre>
+
+If test fails, both expected and translated comments are printed to
+std out, but also written to files <i>expected.txt</i>
+and <I>got.txt</I>. Since it is often difficult to find a single
+character difference in several lines of text, we can use some diff
+tool, for example:
+<pre>
+  Examples/test-suite/java $ kdiff3 expected.txt got.txt
+</pre>
+
 
     
 <br>
