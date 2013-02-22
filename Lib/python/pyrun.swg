@@ -1231,10 +1231,10 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
                   *ptr = vptr;
                   /* transfer the ownership to 'ptr' */
                   iobj->own = 0;
-                  res = SWIG_AddCast(res);
+                  SWIG_AddCastInplace(&res);
                   res = SWIG_AddNewMask(res);
                 } else {
-                  res = SWIG_AddCast(res);		    
+                  SWIG_AddCastInplace(&res);    
                 }
               }
             }
