@@ -221,6 +221,24 @@ r"""
   """)
 
 
+commentVerifier.check(doxygen_translate.htmlTableFunction.__doc__,
+r"""
+  The meaning of flags:
+
+  Arguments:
+    byFlags (int) -- bits marking required items:
+    
+    | Size in bits| Items Required |
+    --------------------------------
+    | 1 - 8       |      1         |
+    | 9 - 16      |      2         |
+    | 17 - 32     |      4         |
+    
+    Almost all combinations of above flags are supported by
+    'htmlTable...' functions.
+  """)                      
+
+
 commentVerifier.check(doxygen_translate.htmlEntitiesFunction.__doc__,
 r"""
   All entities are treated as commands (C)  TM (R)

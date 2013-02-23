@@ -232,6 +232,21 @@ public class doxygen_translate_runme {
                 "\n" +
                 "");
 
+        wantedComments.put("doxygen_translate.doxygen_translate.htmlTableFunction(int)",
+                "The meaning of flags:\n" +
+                "\n" +
+                " @param byFlags bits marking required items:\n" +
+                "   <table>\n" +
+                "   <tr><th> Size in bits</th><th> Items Required </th></tr>\n" +
+                "   <tr><td> 1 - 8       </td><td>      1         </td></tr>\n" +
+                "   <tr><td> 9 - 16      </td><td>      2         </td></tr>\n" +
+                "   <tr><td> 17 - 32     </td><td>      4         </td></tr>\n" +
+                "   </table>\n" +
+                "   Almost all combinations of above flags are supported by\n" +
+                "   <code>htmlTable...</code> functions.\n" +
+                   "");
+
+        
         wantedComments.put("doxygen_translate.doxygen_translate.htmlEntitiesFunction(int, float)",
                 "All entities are treated as commands &copy; &trade; &reg;\n" +
                 "should work also&lt;in text                              \n" +

@@ -20,13 +20,14 @@
 //TODO {@link} {@linkplain} {@docRoot}, and other useful doxy commands that are not a javadoc tag
 
 // define static tables, they are filled in JavaDocConverter's constructor
-std::map<std::string, std::pair<JavaDocConverter::tagHandler, std::string > > JavaDocConverter::tagHandlers;
+std::map<std::string, std::pair<JavaDocConverter::tagHandler, std::string> > JavaDocConverter::tagHandlers;
 
 using std::string;
 using std::list;
 using std::vector;
 
-void JavaDocConverter::fillStaticTables() {
+void JavaDocConverter::fillStaticTables()
+{
   if (tagHandlers.size()) // fill only once
     return;
 
@@ -61,7 +62,6 @@ void JavaDocConverter::fillStaticTables() {
    *   and methods for std::vector(), ...
    *   Commenting methods of std types is simple - add comment to std_*.i file.
    */
-
 
   // these commands insert HTML tags
   tagHandlers["a"] = make_pair(&JavaDocConverter::handleTagHtml, "i");
@@ -98,13 +98,15 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["invariant"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["latexonly"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["manonly"] = make_pair(&JavaDocConverter::handleParagraph, "");
-  tagHandlers["partofdescription"] = make_pair(&JavaDocConverter::handleParagraph, "");
+  tagHandlers["partofdescription"] = make_pair(
+      &JavaDocConverter::handleParagraph, "");
   tagHandlers["rtfonly"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["short"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["xmlonly"] = make_pair(&JavaDocConverter::handleParagraph, "");
   // these commands are kept as-is, they are supported by JavaDoc
   tagHandlers["author"] = make_pair(&JavaDocConverter::handleTagSame, "");
-  tagHandlers["authors"] = make_pair(&JavaDocConverter::handleTagSame, "author");
+  tagHandlers["authors"] = make_pair(&JavaDocConverter::handleTagSame,
+      "author");
   tagHandlers["deprecated"] = make_pair(&JavaDocConverter::handleTagSame, "");
   tagHandlers["exception"] = make_pair(&JavaDocConverter::handleTagSame, "");
   tagHandlers["package"] = make_pair(&JavaDocConverter::handleTagSame, "");
@@ -112,7 +114,8 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["tparam"] = make_pair(&JavaDocConverter::handleTagParam, "");
   tagHandlers["result"] = make_pair(&JavaDocConverter::handleTagSame, "return");
   tagHandlers["return"] = make_pair(&JavaDocConverter::handleTagSame, "");
-  tagHandlers["returns"] = make_pair(&JavaDocConverter::handleTagSame, "return");
+  tagHandlers["returns"] = make_pair(&JavaDocConverter::handleTagSame,
+      "return");
   //tagHandlers["see"] = make_pair(&JavaDocConverter::handleTagSame, "");
   //tagHandlers["sa"] = make_pair(&JavaDocConverter::handleTagSame, "see");
   tagHandlers["since"] = make_pair(&JavaDocConverter::handleTagSame, "");
@@ -121,117 +124,159 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["version"] = make_pair(&JavaDocConverter::handleTagSame, "");
   // these commands have special handlers
   tagHandlers["code"] = make_pair(&JavaDocConverter::handleTagExtended, "code");
-  tagHandlers["cond"] = make_pair(&JavaDocConverter::handleTagMessage, "Conditional comment: ");
-  tagHandlers["copyright"] = make_pair(&JavaDocConverter::handleTagMessage, "Copyright: ");
+  tagHandlers["cond"] = make_pair(&JavaDocConverter::handleTagMessage,
+      "Conditional comment: ");
+  tagHandlers["copyright"] = make_pair(&JavaDocConverter::handleTagMessage,
+      "Copyright: ");
   tagHandlers["else"] = make_pair(&JavaDocConverter::handleTagIf, "Else: ");
-  tagHandlers["elseif"] = make_pair(&JavaDocConverter::handleTagIf, "Else if: ");
-  tagHandlers["endcond"] = make_pair(&JavaDocConverter::handleTagMessage, "End of conditional comment.");
+  tagHandlers["elseif"] = make_pair(&JavaDocConverter::handleTagIf,
+      "Else if: ");
+  tagHandlers["endcond"] = make_pair(&JavaDocConverter::handleTagMessage,
+      "End of conditional comment.");
   // space in second arg prevents Javadoc to treat '@ example' as command. File name of
   // example is still informative to user.
-  tagHandlers["example"] = make_pair(&JavaDocConverter::handleTagSame, " example");
+  tagHandlers["example"] = make_pair(&JavaDocConverter::handleTagSame,
+      " example");
   tagHandlers["if"] = make_pair(&JavaDocConverter::handleTagIf, "If: ");
   tagHandlers["ifnot"] = make_pair(&JavaDocConverter::handleTagIf, "If not: ");
   tagHandlers["image"] = make_pair(&JavaDocConverter::handleTagImage, "");
   tagHandlers["link"] = make_pair(&JavaDocConverter::handleTagLink, "");
   tagHandlers["see"] = make_pair(&JavaDocConverter::handleTagSee, "");
   tagHandlers["sa"] = make_pair(&JavaDocConverter::handleTagSee, "");
-  tagHandlers["note"] = make_pair(&JavaDocConverter::handleTagMessage, "Note: ");
-  tagHandlers["overload"] = make_pair(&JavaDocConverter::handleTagMessage, "This is an overloaded member function, provided for"
-      " convenience. It differs from the above function only in what"
-      " argument(s) it accepts.");
+  tagHandlers["note"] = make_pair(&JavaDocConverter::handleTagMessage,
+      "Note: ");
+  tagHandlers["overload"] = make_pair(&JavaDocConverter::handleTagMessage,
+      "This is an overloaded member function, provided for"
+          " convenience. It differs from the above function only in what"
+          " argument(s) it accepts.");
   tagHandlers["par"] = make_pair(&JavaDocConverter::handleTagPar, "");
-  tagHandlers["remark"] = make_pair(&JavaDocConverter::handleTagMessage, "Remarks: ");
-  tagHandlers["remarks"] = make_pair(&JavaDocConverter::handleTagMessage, "Remarks: ");
-  tagHandlers["todo"] = make_pair(&JavaDocConverter::handleTagMessage, "TODO: ");
-  tagHandlers["verbatim"] = make_pair(&JavaDocConverter::handleTagExtended, "literal");
+  tagHandlers["remark"] = make_pair(&JavaDocConverter::handleTagMessage,
+      "Remarks: ");
+  tagHandlers["remarks"] = make_pair(&JavaDocConverter::handleTagMessage,
+      "Remarks: ");
+  tagHandlers["todo"] = make_pair(&JavaDocConverter::handleTagMessage,
+      "TODO: ");
+  tagHandlers["verbatim"] = make_pair(&JavaDocConverter::handleTagExtended,
+      "literal");
 
   // \f commands output literal Latex formula, which is still better than nothing.
   tagHandlers["f$"] = make_pair(&JavaDocConverter::handleTagVerbatim, "");
   tagHandlers["f["] = make_pair(&JavaDocConverter::handleTagVerbatim, "");
   tagHandlers["f{"] = make_pair(&JavaDocConverter::handleTagVerbatim, "");
 
-  tagHandlers["warning"] = make_pair(&JavaDocConverter::handleTagMessage, "Warning: ");
+  tagHandlers["warning"] = make_pair(&JavaDocConverter::handleTagMessage,
+      "Warning: ");
   // this command just prints it's contents
   // (it is internal command of swig's parser, contains plain text)
-  tagHandlers["plainstd::string"] = make_pair(&JavaDocConverter::handlePlainString, "");
-  tagHandlers["plainstd::endl"] = make_pair(&JavaDocConverter::handleNewLine, "");
+  tagHandlers["plainstd::string"] = make_pair(
+      &JavaDocConverter::handlePlainString, "");
+  tagHandlers["plainstd::endl"] = make_pair(&JavaDocConverter::handleNewLine,
+      "");
   tagHandlers["n"] = make_pair(&JavaDocConverter::handleNewLine, "");
 
   // HTML tags
-  tagHandlers["<a"      ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<a"      );
-  tagHandlers["<b"      ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<b"      );
-  tagHandlers["<blockquote"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<blockquote");
-  tagHandlers["<body"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<body"   );
-  tagHandlers["<br"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<br"     );
-  tagHandlers["<center" ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<center" );
-  tagHandlers["<caption"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<caption");
-  tagHandlers["<code"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<code"   );
-  tagHandlers["<dd"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dd"     );
-  tagHandlers["<dfn"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dfn"    );
-  tagHandlers["<div"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<div"    );
-  tagHandlers["<dl"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dl"     );
-  tagHandlers["<dt"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dt"     );
-  tagHandlers["<em"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<em"     );
-  tagHandlers["<form"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<form"   );
-  tagHandlers["<hr"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<hr"     );
-  tagHandlers["<h1"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<h1"     );
-  tagHandlers["<h2"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<h2"     );
-  tagHandlers["<h3"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<h3"     );
-  tagHandlers["<i"      ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<i"      );
-  tagHandlers["<input"  ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<input"  );
-  tagHandlers["<img"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<img"    );
-  tagHandlers["<li"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<li"     );
-  tagHandlers["<meta"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<meta"   );
-  tagHandlers["<multicol"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<multicol");
-  tagHandlers["<ol"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<ol"     );
-  tagHandlers["<p"      ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<p"      );
-  tagHandlers["<pre"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<pre"    );
-  tagHandlers["<small"  ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<small"  );
-  tagHandlers["<span"   ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<span"   );
-  tagHandlers["<strong" ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<strong" );
-  tagHandlers["<sub"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<sub"    );
-  tagHandlers["<sup"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<sup"    );
-  tagHandlers["<table"  ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<table"  );
-  tagHandlers["<td"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<td"     );
-  tagHandlers["<th"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<th"     );
-  tagHandlers["<tr"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<tr"     );
-  tagHandlers["<tt"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<tt"     );
-  tagHandlers["<kbd"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<kbd"    );
-  tagHandlers["<ul"     ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<ul"     );
-  tagHandlers["<var"    ] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<var"    );
+  tagHandlers["<a"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<a");
+  tagHandlers["<b"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<b");
+  tagHandlers["<blockquote"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<blockquote");
+  tagHandlers["<body"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<body");
+  tagHandlers["<br"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<br");
+  tagHandlers["<center"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<center");
+  tagHandlers["<caption"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<caption");
+  tagHandlers["<code"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<code");
+  tagHandlers["<dd"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dd");
+  tagHandlers["<dfn"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dfn");
+  tagHandlers["<div"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<div");
+  tagHandlers["<dl"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dl");
+  tagHandlers["<dt"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<dt");
+  tagHandlers["<em"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<em");
+  tagHandlers["<form"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<form");
+  tagHandlers["<hr"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<hr");
+  tagHandlers["<h1"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<h1");
+  tagHandlers["<h2"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<h2");
+  tagHandlers["<h3"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<h3");
+  tagHandlers["<i"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<i");
+  tagHandlers["<input"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<input");
+  tagHandlers["<img"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<img");
+  tagHandlers["<li"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<li");
+  tagHandlers["<meta"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<meta");
+  tagHandlers["<multicol"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<multicol");
+  tagHandlers["<ol"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<ol");
+  tagHandlers["<p"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<p");
+  tagHandlers["<pre"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<pre");
+  tagHandlers["<small"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<small");
+  tagHandlers["<span"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<span");
+  tagHandlers["<strong"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<strong");
+  tagHandlers["<sub"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<sub");
+  tagHandlers["<sup"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<sup");
+  tagHandlers["<table"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag,
+      "<table");
+  tagHandlers["<td"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<td");
+  tagHandlers["<th"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<th");
+  tagHandlers["<tr"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<tr");
+  tagHandlers["<tt"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<tt");
+  tagHandlers["<kbd"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<kbd");
+  tagHandlers["<ul"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<ul");
+  tagHandlers["<var"] = make_pair(&JavaDocConverter::handleDoxyHtmlTag, "<var");
 
   // HTML entities
-  tagHandlers["&copy" ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&copy");
-  tagHandlers["&trade"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&trade");
-  tagHandlers["&reg"  ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&reg");
-  tagHandlers["&lt"   ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&lt");
-  tagHandlers["&gt"   ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&gt");
-  tagHandlers["&amp"  ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&amp");
-  tagHandlers["&apos" ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&apos");
-  tagHandlers["&quot" ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&quot");
-  tagHandlers["&lsquo"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&lsquo");
-  tagHandlers["&rsquo"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&rsquo");
-  tagHandlers["&ldquo"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&ldquo");
-  tagHandlers["&rdquo"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&rdquo");
-  tagHandlers["&ndash"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&ndash");
-  tagHandlers["&mdash"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&mdash");
-  tagHandlers["&nbsp" ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&nbsp");
-  tagHandlers["&times"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&times");
-  tagHandlers["&minus"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&minus");
-  tagHandlers["&sdot" ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&sdot");
-  tagHandlers["&sim"  ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&sim");
-  tagHandlers["&le"   ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&le");
-  tagHandlers["&ge"   ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&ge");
-  tagHandlers["&larr" ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&larr");
-  tagHandlers["&rarr" ] = make_pair(&JavaDocConverter::handleHtmlEntity, "&rarr");
+  tagHandlers["&copy"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&copy");
+  tagHandlers["&trade"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&trade");
+  tagHandlers["&reg"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&reg");
+  tagHandlers["&lt"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&lt");
+  tagHandlers["&gt"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&gt");
+  tagHandlers["&amp"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&amp");
+  tagHandlers["&apos"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&apos");
+  tagHandlers["&quot"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&quot");
+  tagHandlers["&lsquo"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&lsquo");
+  tagHandlers["&rsquo"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&rsquo");
+  tagHandlers["&ldquo"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&ldquo");
+  tagHandlers["&rdquo"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&rdquo");
+  tagHandlers["&ndash"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&ndash");
+  tagHandlers["&mdash"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&mdash");
+  tagHandlers["&nbsp"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&nbsp");
+  tagHandlers["&times"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&times");
+  tagHandlers["&minus"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&minus");
+  tagHandlers["&sdot"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&sdot");
+  tagHandlers["&sim"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&sim");
+  tagHandlers["&le"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&le");
+  tagHandlers["&ge"] = make_pair(&JavaDocConverter::handleHtmlEntity, "&ge");
+  tagHandlers["&larr"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&larr");
+  tagHandlers["&rarr"] = make_pair(&JavaDocConverter::handleHtmlEntity,
+      "&rarr");
 }
 
-
-JavaDocConverter::JavaDocConverter(bool debugTranslator, bool debugParser)
-: DoxygenTranslator(debugTranslator, debugParser) {
+JavaDocConverter::JavaDocConverter(bool debugTranslator, bool debugParser) :
+    DoxygenTranslator(debugTranslator, debugParser)
+{
   fillStaticTables();
 }
-
 
 /**
  * Formats comment lines by inserting '\n *' at to long lines and tabs for
@@ -242,7 +287,8 @@ JavaDocConverter::JavaDocConverter(bool debugTranslator, bool debugParser)
  * better algorithm.
  */
 std::string JavaDocConverter::formatCommand(std::string unformattedLine,
-                                                int indent) {
+                                            int indent)
+{
   std::string formattedLines;
   return unformattedLine;  // currently disabled
   int lastPosition = 0;
@@ -262,10 +308,12 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine,
       if (!isFirstLine)
         for (int j = 0; j < indent; j++) {
           formattedLines.append("\t");
-        } else {
-          isFirstLine = 0;
         }
-      formattedLines.append(unformattedLine.substr(lastPosition, i - lastPosition + 1));
+      else {
+        isFirstLine = 0;
+      }
+      formattedLines.append(
+          unformattedLine.substr(lastPosition, i - lastPosition + 1));
       formattedLines.append("\n *");
 
     }
@@ -276,12 +324,13 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine,
         formattedLines.append("\t");
       }
     }
-    formattedLines.append(unformattedLine.substr(lastPosition, unformattedLine.length() - lastPosition));
+    formattedLines.append(
+        unformattedLine.substr(lastPosition,
+            unformattedLine.length() - lastPosition));
   }
 
   return formattedLines;
 }
-
 
 /**
  * Returns true, if the given parameter exists in the current node
@@ -290,7 +339,8 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine,
  * true - parameters are copied to output regardless of presence in
  * function params list.
  */
-bool JavaDocConverter::paramExists(std::string param) {
+bool JavaDocConverter::paramExists(std::string param)
+{
 
   if (GetFlag(currentNode, "feature:doxygen:nostripparams")) {
     return true;
@@ -300,7 +350,7 @@ bool JavaDocConverter::paramExists(std::string param) {
 
   for (Parm *p = plist; p;) {
 
-    if (Getattr(p, "name") && Char(Getattr(p, "name")) == param) {
+    if (Getattr(p, "name") && Char (Getattr(p, "name")) == param) {
       return true;
     }
     /* doesn't seem to work always: in some cases (especially for 'self' parameters)
@@ -315,80 +365,92 @@ bool JavaDocConverter::paramExists(std::string param) {
   return false;
 }
 
-
-std::string JavaDocConverter::translateSubtree(DoxygenEntity &doxygenEntity) {
+std::string JavaDocConverter::translateSubtree(DoxygenEntity &doxygenEntity)
+{
   std::string translatedComment;
-  
+
   if (doxygenEntity.isLeaf) {
     return translatedComment;
   }
-  
+
   for (DoxygenEntityListIt p = doxygenEntity.entityList.begin();
-       p != doxygenEntity.entityList.end(); p++) {
+      p != doxygenEntity.entityList.end(); p++) {
 
     translateEntity(*p, translatedComment);
     translateSubtree(*p);
   }
-  
+
   return translatedComment;
 }
-
 
 /**
  * Checks if a handler for the given tag exists, and calls it.
  */
 void JavaDocConverter::translateEntity(DoxygenEntity &tag,
-                                            std::string &translatedComment) {
+                                       std::string &translatedComment)
+{
 
-  std::map<std::string, std::pair<tagHandler, std::string > >::iterator it;
+  std::map<std::string, std::pair<tagHandler, std::string> >::iterator it;
   it = tagHandlers.find(tag.typeOfEntity);
 
   if (it != tagHandlers.end()) {
     (this->*(it->second.first))(tag, translatedComment, it->second.second);
   } else {
-      // do NOT print warning, since there are many tags, which are not
-      // translatable - many warnings hide important ones
-      // addError(WARN_DOXYGEN_COMMAND_ERROR, "Unknown doxygen or HTML tag: " + tag.typeOfEntity);
+    // do NOT print warning, since there are many tags, which are not
+    // translatable - many warnings hide important ones
+    // addError(WARN_DOXYGEN_COMMAND_ERROR, "Unknown doxygen or HTML tag: " + tag.typeOfEntity);
   }
 }
 
-
-void JavaDocConverter::handleTagHtml(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handleTagHtml(DoxygenEntity& tag,
+                                     std::string& translatedComment,
+                                     std::string &arg)
+{
   if (tag.entityList.size()) { // do not include empty tags
     std::string tagData = translateSubtree(tag);
     // wrap the thing, ignoring whitespaces
     size_t wsPos = tagData.find_last_not_of("\n\t ");
     if (wsPos != std::string::npos)
-      translatedComment += "<" + arg + ">" + tagData.substr(0, wsPos + 1) + "</" + arg + ">" + tagData.substr(wsPos + 1);
+      translatedComment += "<" + arg + ">" + tagData.substr(0, wsPos + 1) + "</"
+          + arg + ">" + tagData.substr(wsPos + 1);
     else
-      translatedComment += "<" + arg + ">" + translateSubtree(tag) + "</" + arg + "> ";
+      translatedComment += "<" + arg + ">" + translateSubtree(tag) + "</" + arg
+          + "> ";
   }
 }
 
-
-void JavaDocConverter::handleDoxyHtmlTag(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
-    std::string htmlTagArgs = tag.data;
-    if (htmlTagArgs == "/") {
-        // end html tag, for example "</ul>
-        translatedComment += "</" + arg.substr(1) + ">";
-    } else {
-        translatedComment += arg + htmlTagArgs + ">";
-    }
+void JavaDocConverter::handleDoxyHtmlTag(DoxygenEntity& tag,
+                                         std::string& translatedComment,
+                                         std::string &arg)
+{
+  std::string htmlTagArgs = tag.data;
+  if (htmlTagArgs == "/") {
+    // end html tag, for example "</ul>
+    translatedComment += "</" + arg.substr(1) + ">";
+  } else {
+    translatedComment += arg + htmlTagArgs + ">";
+  }
 }
 
-
-void JavaDocConverter::handleHtmlEntity(DoxygenEntity&, std::string& translatedComment, std::string &arg) {
-    // html entities can be preserved for Java
-    translatedComment += arg + ';';
+void JavaDocConverter::handleHtmlEntity(DoxygenEntity&,
+                                        std::string& translatedComment,
+                                        std::string &arg)
+{
+  // html entities can be preserved for Java
+  translatedComment += arg + ';';
 }
 
-
-void JavaDocConverter::handleNewLine(DoxygenEntity&, std::string& translatedComment, std::string&) {
+void JavaDocConverter::handleNewLine(DoxygenEntity&,
+                                     std::string& translatedComment,
+                                     std::string&)
+{
   translatedComment += "\n * ";
 }
 
-
-void JavaDocConverter::handleTagChar(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handleTagChar(DoxygenEntity& tag,
+                                     std::string& translatedComment,
+                                     std::string &arg)
+{
   // escape it if we need to, else just print
   if (arg.size())
     translatedComment += arg;
@@ -397,42 +459,57 @@ void JavaDocConverter::handleTagChar(DoxygenEntity& tag, std::string& translated
 }
 
 // handles tags which are the same in Doxygen and Javadoc.
-void JavaDocConverter::handleTagSame(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handleTagSame(DoxygenEntity& tag,
+                                     std::string& translatedComment,
+                                     std::string &arg)
+{
   if (arg.size())
     tag.typeOfEntity = arg;
-  translatedComment += formatCommand(std::string("@" + tag.typeOfEntity + " " + translateSubtree(tag)), 2);
+  translatedComment += formatCommand(
+      std::string("@" + tag.typeOfEntity + " " + translateSubtree(tag)), 2);
 }
 
-
-void JavaDocConverter::handleParagraph(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
+void JavaDocConverter::handleParagraph(DoxygenEntity& tag,
+                                       std::string& translatedComment,
+                                       std::string&)
+{
   translatedComment += formatCommand(translateSubtree(tag), 0);
 }
 
-
-void JavaDocConverter::handlePlainString(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
+void JavaDocConverter::handlePlainString(DoxygenEntity& tag,
+                                         std::string& translatedComment,
+                                         std::string&)
+{
   translatedComment += tag.data;
- // if (tag.data.size() && tag.data[tag.data.size()-1] != ' ')
- // 	translatedComment += " ";
+  // if (tag.data.size() && tag.data[tag.data.size()-1] != ' ')
+  // 	translatedComment += " ";
 }
 
-
-void JavaDocConverter::handleTagVerbatim(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handleTagVerbatim(DoxygenEntity& tag,
+                                         std::string& translatedComment,
+                                         std::string &arg)
+{
   translatedComment += arg + " ";
-  for (DoxygenEntityListCIt it = tag.entityList.begin(); it != tag.entityList.end(); it++) {
-      translatedComment += it->data;
+  for (DoxygenEntityListCIt it = tag.entityList.begin();
+      it != tag.entityList.end(); it++) {
+    translatedComment += it->data;
   }
 }
 
-
-void JavaDocConverter::handleTagExtended(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handleTagExtended(DoxygenEntity& tag,
+                                         std::string& translatedComment,
+                                         std::string &arg)
+{
   std::string dummy;
   translatedComment += "{@" + arg + " ";
   handleParagraph(tag, translatedComment, dummy);
   translatedComment += "}";
 }
 
-
-void JavaDocConverter::handleTagIf(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handleTagIf(DoxygenEntity& tag,
+                                   std::string& translatedComment,
+                                   std::string &arg)
+{
   std::string dummy;
   translatedComment += arg;
   if (tag.entityList.size()) {
@@ -442,22 +519,26 @@ void JavaDocConverter::handleTagIf(DoxygenEntity& tag, std::string& translatedCo
   }
 }
 
-
-void JavaDocConverter::handleTagMessage(DoxygenEntity& tag, std::string& translatedComment, std::string &arg) {
+void JavaDocConverter::handleTagMessage(DoxygenEntity& tag,
+                                        std::string& translatedComment,
+                                        std::string &arg)
+{
   std::string dummy;
   translatedComment += formatCommand(arg, 0);
   handleParagraph(tag, translatedComment, dummy);
 }
 
-
-void JavaDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
+void JavaDocConverter::handleTagImage(DoxygenEntity& tag,
+                                      std::string& translatedComment,
+                                      std::string&)
+{
   if (tag.entityList.size() < 2)
     return;
 
   std::string file;
   std::string title;
 
-  std::list <DoxygenEntity>::iterator it = tag.entityList.begin();
+  std::list<DoxygenEntity>::iterator it = tag.entityList.begin();
   if (it->data != "html")
     return;
 
@@ -477,8 +558,10 @@ void JavaDocConverter::handleTagImage(DoxygenEntity& tag, std::string& translate
   translatedComment += "/>";
 }
 
-
-void JavaDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
+void JavaDocConverter::handleTagPar(DoxygenEntity& tag,
+                                    std::string& translatedComment,
+                                    std::string&)
+{
   std::string dummy;
   translatedComment += "<p";
   if (tag.entityList.size()) {
@@ -490,10 +573,10 @@ void JavaDocConverter::handleTagPar(DoxygenEntity& tag, std::string& translatedC
   translatedComment += "</p>";
 }
 
-
 void JavaDocConverter::handleTagParam(DoxygenEntity& tag,
                                       std::string& translatedComment,
-                                      std::string&) {
+                                      std::string&)
+{
   std::string dummy;
 
   if (!tag.entityList.size())
@@ -507,17 +590,19 @@ void JavaDocConverter::handleTagParam(DoxygenEntity& tag,
   handleParagraph(tag, translatedComment, dummy);
 }
 
-
-string JavaDocConverter::convertLink(string linkObject) {
+string JavaDocConverter::convertLink(string linkObject)
+{
   if (GetFlag(currentNode, "feature:doxygen:nolinktranslate"))
     return linkObject;
   // find the params in function in linkObject (if any)
   size_t lbracePos = linkObject.find('(', 0);
   size_t rbracePos = linkObject.find(')', 0);
-  if (lbracePos == string::npos || rbracePos == string::npos || lbracePos >= rbracePos)
+  if (lbracePos == string::npos || rbracePos == string::npos
+      || lbracePos >= rbracePos)
     return "";
 
-  string paramsStr = linkObject.substr(lbracePos + 1, rbracePos - lbracePos - 1);
+  string paramsStr = linkObject.substr(lbracePos + 1,
+      rbracePos - lbracePos - 1);
   // strip the params, to fill them later
   linkObject = linkObject.substr(0, lbracePos);
 
@@ -539,7 +624,7 @@ string JavaDocConverter::convertLink(string linkObject) {
   }
 
   linkObject += "(";
-  for (size_t i=0; i<params.size(); i++) {
+  for (size_t i = 0; i < params.size(); i++) {
     // translate c/c++ type string to swig's type
     // i e 'int **arr[100][10]' -> 'a(100).a(10).p.p.int'
     // also converting arrays to pointers
@@ -551,18 +636,17 @@ string JavaDocConverter::convertLink(string linkObject) {
       SwigType_add_qualifier(swigType, "const");
 
     // handle pointers, references and arrays
-    for (int j=(int)params[i].size() - 1; j>=0; j--) {
+    for (int j = (int) params[i].size() - 1; j >= 0; j--) {
       // skip all the [...] blocks, write 'p.' for every of it
       if (paramStr[j] == ']') {
-        while (j>=0 && paramStr[j] != '[')
+        while (j >= 0 && paramStr[j] != '[')
           j--;
         // no closing brace
         if (j < 0)
           return "";
         SwigType_add_pointer(swigType);
         continue;
-      }
-      else if (paramStr[j] == '*')
+      } else if (paramStr[j] == '*')
         SwigType_add_pointer(swigType);
       else if (paramStr[j] == '&')
         SwigType_add_reference(swigType);
@@ -572,7 +656,8 @@ string JavaDocConverter::convertLink(string linkObject) {
           typeNameStart = 0;
         else
           typeNameStart++;
-        Append(swigType, paramStr.substr(typeNameStart, j - typeNameStart + 1).c_str());
+        Append(swigType,
+            paramStr.substr(typeNameStart, j - typeNameStart + 1).c_str());
         break;
       }
     }
@@ -580,10 +665,11 @@ string JavaDocConverter::convertLink(string linkObject) {
     // make dummy param list, to lookup typemaps for it
     Parm *dummyParam = NewParm(swigType, "", 0);
     Swig_typemap_attach_parms("jstype", dummyParam, NULL);
-    Language::instance()->replaceSpecialVariables(0, Getattr(dummyParam, "tmap:jstype"), dummyParam);
+    Language::instance()->replaceSpecialVariables(0,
+        Getattr(dummyParam, "tmap:jstype"), dummyParam);
 
     //Swig_print(dummyParam, 1);
-    linkObject += Char(Getattr(dummyParam, "tmap:jstype"));
+    linkObject += Char (Getattr(dummyParam, "tmap:jstype"));
     if (i != params.size() - 1)
       linkObject += ",";
 
@@ -595,8 +681,10 @@ string JavaDocConverter::convertLink(string linkObject) {
   return linkObject;
 }
 
-
-void JavaDocConverter::handleTagLink(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
+void JavaDocConverter::handleTagLink(DoxygenEntity& tag,
+                                     std::string& translatedComment,
+                                     std::string&)
+{
   std::string dummy;
   if (!tag.entityList.size())
     return;
@@ -612,8 +700,10 @@ void JavaDocConverter::handleTagLink(DoxygenEntity& tag, std::string& translated
   translatedComment += "}";
 }
 
-
-void JavaDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translatedComment, std::string&) {
+void JavaDocConverter::handleTagSee(DoxygenEntity& tag,
+                                    std::string& translatedComment,
+                                    std::string&)
+{
   std::string dummy;
   if (!tag.entityList.size())
     return;
@@ -624,7 +714,7 @@ void JavaDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translatedC
   // :: or # may be used as a separator between class name and method name.
   list<DoxygenEntity>::iterator it;
   string methodRef;
-  for (it = tag.entityList.begin(); it!=tag.entityList.end(); it++) {
+  for (it = tag.entityList.begin(); it != tag.entityList.end(); it++) {
     if (it->typeOfEntity == "plainstd::endl") {
       // handleNewLine(*it, translatedComment, dummy);
       continue;
@@ -632,13 +722,13 @@ void JavaDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translatedC
 
     // restore entities which may be used in C++ type declaration
     if (it->typeOfEntity == "&amp") {
-        methodRef += '&';
+      methodRef += '&';
     } else if (it->typeOfEntity == "&lt") {
-        methodRef += '<';
+      methodRef += '<';
     } else if (it->typeOfEntity == "&gt") {
-        methodRef += '>';
+      methodRef += '>';
     } else {
-        methodRef += it->data;
+      methodRef += it->data;
     }
   }
 
@@ -646,7 +736,8 @@ void JavaDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translatedC
   size_t lbrace = methodRef.find('(');
   size_t dblColon = methodRef.find("::");
   if (dblColon < lbrace) {
-      methodRef = methodRef.substr(0, dblColon) + '#' + methodRef.substr(dblColon + 2);
+    methodRef = methodRef.substr(0, dblColon) + '#'
+        + methodRef.substr(dblColon + 2);
   }
 
   translatedComment += "@see ";
@@ -657,22 +748,21 @@ void JavaDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translatedC
   translatedComment += linkObject;
 }
 
-
 /* This function moves all endlines at the end of child entities
  * out of the child entities to the parent.
  * For example, entity tree:
 
-   -root
-    |-param
-      |-paramText
-      |-endline
+ -root
+ |-param
+ |-paramText
+ |-endline
 
-   should be turned to
+ should be turned to
 
-   -root
-    |-param
-      |-paramText
-    |-endline
+ -root
+ |-param
+ |-paramText
+ |-endline
  *
  */
 int JavaDocConverter::shiftEndlinesUpTree(DoxygenEntity &root, int level)
@@ -694,13 +784,13 @@ int JavaDocConverter::shiftEndlinesUpTree(DoxygenEntity &root, int level)
   }
 
   int removedCount = 0;
-  while (!root.entityList.empty()  &&  root.entityList.rbegin()->typeOfEntity == "plainstd::endl") {
+  while (!root.entityList.empty()
+      && root.entityList.rbegin()->typeOfEntity == "plainstd::endl") {
     root.entityList.pop_back();
     removedCount++;
   }
   return removedCount;
 }
-
 
 /**
  * This makes sure that all comment lines contain '*'. It is not mandatory in doxygen,
@@ -708,7 +798,8 @@ int JavaDocConverter::shiftEndlinesUpTree(DoxygenEntity &root, int level)
  * to indentation of the first line. Indentation of non-empty lines is not
  * changed - garbage in garbage out.
  */
-std::string JavaDocConverter::indentAndInsertAsterisks(const string &doc) {
+std::string JavaDocConverter::indentAndInsertAsterisks(const string &doc)
+{
 
   size_t idx = doc.find('\n');
   size_t indent = 0;
@@ -743,17 +834,17 @@ std::string JavaDocConverter::indentAndInsertAsterisks(const string &doc) {
   while (idx != string::npos) {
 
     size_t nonspaceIdx = translatedStr.find_first_not_of(" \t", idx + 1);
-    if (nonspaceIdx != string::npos  &&  translatedStr[nonspaceIdx] != '*') {
+    if (nonspaceIdx != string::npos && translatedStr[nonspaceIdx] != '*') {
       // line without '*' found - is it empty?
       if (translatedStr[nonspaceIdx] != '\n') {
         // add '* ' to each line without it
-        translatedStr = translatedStr.substr(0, nonspaceIdx) + "* " +
-                translatedStr.substr(nonspaceIdx);
+        translatedStr = translatedStr.substr(0, nonspaceIdx) + "* "
+            + translatedStr.substr(nonspaceIdx);
         //printf(translatedStr.c_str());
       } else {
         // we found empty line, replace it with indented '*'
-        translatedStr = translatedStr.substr(0, idx + 1) + indentStr +
-                "* " + translatedStr.substr(nonspaceIdx);
+        translatedStr = translatedStr.substr(0, idx + 1) + indentStr + "* "
+            + translatedStr.substr(nonspaceIdx);
       }
     }
     idx = translatedStr.find('\n', nonspaceIdx);
@@ -774,8 +865,8 @@ std::string JavaDocConverter::indentAndInsertAsterisks(const string &doc) {
   return translatedStr;
 }
 
-
-String *JavaDocConverter::makeDocumentation(Node *node) {
+String *JavaDocConverter::makeDocumentation(Node *node)
+{
 
   String *documentation = getDoxygenComment(node);
 
@@ -785,7 +876,7 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
 
   if (GetFlag(node, "feature:doxygen:notranslate")) {
 
-    string doc = Char(documentation);
+    string doc = Char (documentation);
 
     string translatedStr = indentAndInsertAsterisks(doc);
 
@@ -794,9 +885,8 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
     return comment;
   }
 
-  DoxygenEntityList entityList = parser.createTree(Char(documentation),
-                                                   Char(Getfile(documentation)),
-                                                   Getline(documentation));
+  DoxygenEntityList entityList = parser.createTree(Char (documentation),
+      Char (Getfile(documentation)), Getline(documentation));
 
   // entityList.sort(CompareDoxygenEntities()); sorting currently not used,
 
@@ -816,14 +906,14 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
   shiftEndlinesUpTree(root);
 
   // strip endlines at the beginning
-  while (!root.entityList.empty()  &&
-          root.entityList.begin()->typeOfEntity == "plainstd::endl") {
+  while (!root.entityList.empty()
+      && root.entityList.begin()->typeOfEntity == "plainstd::endl") {
     root.entityList.pop_front();
   }
 
   // and at the end
-  while (!root.entityList.empty()  &&
-          root.entityList.rbegin()->typeOfEntity == "plainstd::endl") {
+  while (!root.entityList.empty()
+      && root.entityList.rbegin()->typeOfEntity == "plainstd::endl") {
     root.entityList.pop_back();
   }
 
@@ -835,13 +925,12 @@ String *JavaDocConverter::makeDocumentation(Node *node) {
     std::cout << "\n---RESULT IN JAVADOC---" << std::endl;
     std::cout << javaDocString;
   }
-  
+
   return NewString(javaDocString.c_str());
 }
 
-
-void JavaDocConverter::addError(int warningType,
-                                     const std::string &message) {
-  Swig_warning(warningType, "", 0,
-               "Doxygen parser warning: %s. \n", message.c_str());
+void JavaDocConverter::addError(int warningType, const std::string &message)
+{
+  Swig_warning(warningType, "", 0, "Doxygen parser warning: %s. \n",
+      message.c_str());
 }

@@ -104,26 +104,26 @@ const int commandHtmlSize = sizeof(commandHtml) / sizeof(*commandHtml);
 // Only entities which are translatable to plain text are used here. Others
 // are copied unchanged to output.
 const char *commandHtmlEntities[] = { "&copy", "&trade", "&reg", // (C), (TM), (R)
-"&lt",  // less-than symbol
-"&gt",  // greater-than symbol
-"&amp", // ampersand
-"&apos", // single quotation mark (straight)
-"&quot", // double quotation mark (straight)
-"&lsquo", // left single quotation mark
-"&rsquo", // right single quotation mark
-"&ldquo", // left double quotation mark
-"&rdquo", // right double quotation mark
-"&ndash", // n-dash (for numeric ranges, e.g. 2–8)
-"&mdash", // --
-"&nbsp", //
-"&times", // x
-"&minus", // -
-"&sdot", // .
-"&sim", // ~
-"&le", // <=
-"&ge", // >=
-"&larr", // <--
-"&rarr" // -->
+  "&lt",  // less-than symbol
+  "&gt",  // greater-than symbol
+  "&amp", // ampersand
+  "&apos", // single quotation mark (straight)
+  "&quot", // double quotation mark (straight)
+  "&lsquo", // left single quotation mark
+  "&rsquo", // right single quotation mark
+  "&ldquo", // left double quotation mark
+  "&rdquo", // right double quotation mark
+  "&ndash", // n-dash (for numeric ranges, e.g. 2–8)
+  "&mdash", // --
+  "&nbsp", //
+  "&times", // x
+  "&minus", // -
+  "&sdot", // .
+  "&sim", // ~
+  "&le", // <=
+  "&ge", // >=
+  "&larr", // <--
+  "&rarr" // -->
 };
 
 const int commandHtmlEntitiesSize = sizeof(commandHtmlEntities) / sizeof(*commandHtmlEntities);

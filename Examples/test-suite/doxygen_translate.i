@@ -209,6 +209,23 @@ int htmlFunction(int a, float b)
 {
 }
 
+/** 
+ * The meaning of flags:
+ *
+ * @param byFlags bits marking required items:
+ *   <table>
+ *   <tr><th> Size in bits</th><th> Items Required </th></tr>
+ *   <tr><td> 1 - 8       </td><td>      1         </td></tr>
+ *   <tr><td> 9 - 16      </td><td>      2         </td></tr>
+ *   <tr><td> 17 - 32     </td><td>      4         </td></tr>
+ *   </table>
+ *   Almost all combinations of above flags are supported by
+ *   \c htmlTable... functions.
+ */
+int htmlTableFunction(int byFlags)
+{
+}
+
 
 /**
  * All entities are treated as commands &copy; &trade; &reg;
