@@ -1315,7 +1315,11 @@ void DoxygenParser::tokenizeDoxygenComment(const std::string &doxygenComment,
         //   colors are \b red, green, and blue --> colors are 'red,' green, and blue
         string text = line.substr(pos, doxyCmdOrHtmlTagPos - pos);
         string punctuations(".,:");
-        if (!text.empty()  &&  punctuations.find(text[text.size() - 1]) != string::npos) {
+        size_t textSize = text.size();
+
+        if (!text.empty()  &&  punctuations.find(text[text.size() - 1]) != string::npos  &&
+            // but do not break ellipsis (...)
+            !(textSize > 1 && text[textSize - 2] == '.')) {
           m_tokenList.push_back(Token(PLAINSTRING, text.substr(0, text.size() - 1)));
           m_tokenList.push_back(Token(PLAINSTRING, text.substr(text.size() - 1)));
         } else {
