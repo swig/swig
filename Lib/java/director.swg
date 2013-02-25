@@ -7,10 +7,6 @@
 
 #ifdef __cplusplus
 
-#include <string>
-
-#include <iostream>
-
 #if defined(DEBUG_DIRECTOR_OWNED)
 #include <iostream>
 #endif
@@ -174,7 +170,6 @@ namespace Swig {
     Director(JNIEnv *jenv) : swig_jvm_((JavaVM *) NULL), swig_self_() {
       /* Acquire the Java VM pointer */
       jenv->GetJavaVM(&swig_jvm_);
-
     }
 
     virtual ~Director() {
