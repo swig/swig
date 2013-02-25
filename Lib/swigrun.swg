@@ -168,7 +168,7 @@ SWIGINTERNINLINE int SWIG_CheckState(int r) {
   return SWIG_IsOK(r) ? SWIG_CastRank(r) + 1 : 0; 
 }
 #else /* no cast-rank mode */
-#  define SWIG_AddCast
+#  define SWIG_AddCast(r) ((r)+0)
 #  define SWIG_CheckState(r) (SWIG_IsOK(r) ? 1 : 0)
 #endif
 
