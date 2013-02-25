@@ -227,6 +227,25 @@ static String *feature_identifier_fix(String *s) {
   }
 }
 
+static void set_access_mode(Node* n) {
+  if (cplus_mode == CPLUS_PUBLIC)
+    Setattr(n, "access", "public");
+  else if (cplus_mode == CPLUS_PROTECTED)
+    Setattr(n, "access", "protected");
+  else
+    Setattr(n, "access", "private");
+}
+
+static void restore_access_mode(Node* n) {
+  char* mode = Char(Getattr(n, "access"));
+  if (strcmp(mode, "private") == 0)
+    cplus_mode = CPLUS_PRIVATE;
+  else if (strcmp(mode, "protected") == 0)
+    cplus_mode = CPLUS_PROTECTED;
+  else
+    cplus_mode = CPLUS_PUBLIC;
+}
+
 /* Generate the symbol table name for an object */
 /* This is a bit of a mess. Need to clean up */
 static String *add_oldname = 0;
@@ -3111,6 +3130,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   if (currentOuterClass) {
 		     SetFlag($<node>$, "nested");
 		     Setattr($<node>$, "nested:outer", currentOuterClass);
+		     set_access_mode($<node>$);
 		   }
 		   /* save yyrename to the class attribute, to be used later in add_symbols()*/
 		   Setattr($<node>$, "class_rename", make_name($<node>$, $3, 0));
@@ -3233,6 +3253,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     appendChild($$,pa);
 		     Delete(pa);
 		   }
+		   if (currentOuterClass)
+		     restore_access_mode($$);
 
 		   Setattr($$,"symtab",Swig_symbol_popscope());
 
@@ -3301,6 +3323,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       if (currentOuterClass) {
 		 SetFlag($<node>$, "nested");
 		 Setattr($<node>$, "nested:outer", currentOuterClass);
+		 set_access_mode($<node>$);
 	       }
 	       Setattr($<node>$, "class_rename", make_name($<node>$,0,0));
 	       if (strcmp($2,"class") == 0) {
@@ -3329,6 +3352,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 	       currentOuterClass = Getattr($$, "nested:outer");
 	       if (!currentOuterClass)
 		 inclass = 0;
+	       else
+		 restore_access_mode($$);
 	       unnamed = Getattr($$,"unnamed");
                /* Check for pure-abstract class */
 	       Setattr($$,"abstracts", pure_abstracts($6));
