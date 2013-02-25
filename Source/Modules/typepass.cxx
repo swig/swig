@@ -1647,11 +1647,16 @@ void Swig_process_nested_classes(Node *n) {
   Node* c = firstChild(n);
   while (c) {
     Node* next = nextSibling(c);
-    if (GetFlag(c, "nested") && GetFlag(c, "feature:flatnested")) {
-      removeNode(c);
-      insertNodeAfter(n, c);
+    if (!Getattr(c,"templatetype")) {
+      if (GetFlag(c, "nested") && GetFlag(c, "feature:flatnested")) {
+        removeNode(c);
+        if (strcmp(Char(Getattr(c,"access")), "public") != 0)
+  	  SetFlag(c, "feature:ignore");
+	else
+	  insertNodeAfter(n, c);
+      }
+      Swig_process_nested_classes(c);
     }
-    Swig_process_nested_classes(c);
     c = next;
   }
 }
