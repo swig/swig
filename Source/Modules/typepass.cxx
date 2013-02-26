@@ -1654,6 +1654,7 @@ void Swig_process_nested_classes(Node *n) {
   	  SetFlag(c, "feature:ignore");
 	else
 	  insertNodeAfter(n, c);
+	Delattr(c, "nested:outer");
       }
       Swig_process_nested_classes(c);
     }
