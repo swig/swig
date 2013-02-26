@@ -3276,7 +3276,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     add_symbols($9);
 		   } else {
 		     Delete(yyrename);
-		     yyrename = Copy(Getattr($<node>$, "class_rename"));
+		     yyrename = 0;
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		     if (!cparse_cplusplus && currentOuterClass) { /* nested C structs go into global scope*/
@@ -3288,11 +3288,13 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		       set_scope_to_global();
 		       Delete(Namespaceprefix);
 		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		       yyrename = Copy(Getattr($<node>$, "class_rename"));
 		       add_symbols($$);
 		       Delattr($$, "nested:outer");
 		       Delattr($$, "class_rename");
 		       $$ = 0;
 		     } else {
+       		       yyrename = Copy(Getattr($<node>$, "class_rename"));
 		       add_symbols($$);
 		       add_symbols($9);
 		       Delattr($$, "class_rename");
