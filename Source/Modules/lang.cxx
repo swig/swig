@@ -353,7 +353,7 @@ Language::~Language() {
     String *dirclassname;
     String *nspace = NewString(Getattr(n, "sym:nspace"));
     const char *attrib = "director:classname";
-    String *classname = Getattr(n, "sym:name");
+    String *classname = getClassPrefix();
 
     Replace(nspace, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
     if (Len(nspace) > 0)

@@ -1930,8 +1930,7 @@ public:
       }
 
       // inner class doesn't need this prologue
-      if (!Getattr(n, "nested:outer") || GetFlag(n, "feature:flatnested"))
-      {
+      if (!Getattr(n, "nested:outer")) {
 	String *output_directory = outputDirectory(nspace);
 	String *filen = NewStringf("%s%s.cs", output_directory, proxy_class_name);
 	f_proxy = NewFile(filen, "w", SWIG_output_files());
@@ -2002,10 +2001,8 @@ public:
 	addCloseNamespace(nspace, f_proxy);
 	Delete(f_proxy);
 	f_proxy = NULL;
-      }
-      else {
+      } else
 	Append(old_proxy_class_code, "}\n");
-      }
 
       /* Output the downcast method, if necessary. Note: There's no other really
          good place to put this code, since Abstract Base Classes (ABCs) can and should have 

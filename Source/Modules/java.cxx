@@ -203,6 +203,12 @@ public:
 	 if (!proxyname) {
 	   String *nspace = Getattr(n, "sym:nspace");
 	   String *symname = Getattr(n, "sym:name");
+	   if (!GetFlag(n, "feature:flatnested")) {
+	     for (Node* outer_class = Getattr(n, "nested:outer");outer_class;outer_class = Getattr(outer_class, "nested:outer")) {
+	       Push(symname, ".");
+	       Push(symname, Getattr(outer_class, "sym:name"));
+	     }
+	   }
 	   if (nspace) {
 	     if (package)
 	       proxyname = NewStringf("%s.%s.%s", package, nspace, symname);
@@ -1140,7 +1146,7 @@ public:
      */
     if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
       // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
-      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) != 0;
+      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) != 0;
 
       String *getter_setter_name = NewString("");
       if (!getter_flag)
@@ -1719,6 +1725,7 @@ public:
     String *c_baseclassname = NULL;
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
+    bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
 
     // Inheritance from pure Java classes
     Node *attributes = NewHash();
@@ -1779,8 +1786,11 @@ public:
     const String *pure_interfaces = typemapLookup(n, "javainterfaces", typemap_lookup_type, WARN_NONE);
 
     // Start writing the proxy class
-    Printv(proxy_class_def, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE),	// Import statements
-	   "\n", typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
+    if (!has_outerclass) // Import statements
+      Printv(proxy_class_def, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE),"\n", NIL);
+    else
+      Printv(proxy_class_def, "static ", NIL); // C++ nested classes correspond to static java classes
+    Printv(proxy_class_def, typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
 	   (*Char(wanted_base)) ? " extends " : "", wanted_base, *Char(pure_interfaces) ?	// Pure Java interfaces
 	   " implements " : "", pure_interfaces, " {", derived ? typemapLookup(n, "javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :	// main body of class
@@ -1831,7 +1841,7 @@ public:
     /* Also insert the swigTakeOwnership and swigReleaseOwnership methods */
     if (feature_director) {
       String *destruct_jnicall, *release_jnicall, *take_jnicall;
-      String *changeown_method_name = Swig_name_member(getNSpace(), proxy_class_name, "change_ownership");
+      String *changeown_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "change_ownership");
 
       destruct_jnicall = NewStringf("%s()", destruct_methodname);
       release_jnicall = NewStringf("%s.%s(this, swigCPtr, false)", full_imclass_name, changeown_method_name);
@@ -1857,7 +1867,7 @@ public:
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
       String *smartptr = Getattr(n, "feature:smartptr");
-      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
+      String *upcast_method = Swig_name_member(getNSpace(), getClassPrefix(), smartptr != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
       String *jniname = makeValidJniName(upcast_method);
       String *wname = Swig_name_wrapper(jniname);
       Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method);
@@ -1914,13 +1924,29 @@ public:
   virtual int classHandler(Node *n) {
 
     File *f_proxy = NULL;
+    String* old_proxy_class_name = proxy_class_name;
+    String* old_full_proxy_class_name = full_proxy_class_name;
+    String* old_full_imclass_name = full_imclass_name;
+    String* old_destructor_call = destructor_call;
+    String* old_destructor_throws_clause = destructor_throws_clause;
+    String* old_proxy_class_constants_code = proxy_class_constants_code;
+    String* old_proxy_class_def = proxy_class_def;
+    String* old_proxy_class_code = proxy_class_code;
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
       String *nspace = getNSpace();
       constructIntermediateClassName(n);
 
+      String* outerClassesPrefix = 0;
+      if (Node* outer = Getattr(n, "nested:outer")) {
+	outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
+	for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
+	  Push(outerClassesPrefix, ".");
+	  Push(outerClassesPrefix, Getattr(outer, "sym:name"));
+	}
+      }
       if (!nspace) {
-	full_proxy_class_name = NewStringf("%s", proxy_class_name);
+	full_proxy_class_name = outerClassesPrefix ? NewStringf("%s.%s", outerClassesPrefix, proxy_class_name) : NewStringf("%s", proxy_class_name);
 
 	if (Cmp(proxy_class_name, imclass_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
@@ -1932,54 +1958,71 @@ public:
 	  SWIG_exit(EXIT_FAILURE);
 	}
       } else {
-	if (package)
-	  full_proxy_class_name = NewStringf("%s.%s.%s", package, nspace, proxy_class_name);
-	else
-	  full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
+	if (outerClassesPrefix) {
+	  if (package)
+	    full_proxy_class_name = NewStringf("%s.%s.%s.%s", package, nspace, outerClassesPrefix, proxy_class_name);
+	  else
+	    full_proxy_class_name = NewStringf("%s.%s.%s", nspace, outerClassesPrefix, proxy_class_name);
+	}else {
+	  if (package)
+	    full_proxy_class_name = NewStringf("%s.%s.%s", package, nspace, proxy_class_name);
+	  else
+	    full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
+	}
       }
 
-      if (!addSymbol(proxy_class_name, n, nspace))
-	return SWIG_ERROR;
-
-      String *output_directory = outputDirectory(nspace);
-      String *filen = NewStringf("%s%s.java", output_directory, proxy_class_name);
-      f_proxy = NewFile(filen, "w", SWIG_output_files());
-      if (!f_proxy) {
-	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
-      }
-      Append(filenames_list, Copy(filen));
-      Delete(filen);
-      filen = NULL;
-
-      // Start writing out the proxy class file
-      emitBanner(f_proxy);
-
-      if (package || nspace) {
-	Printf(f_proxy, "package ");
-	if (package)
-	  Printv(f_proxy, package, nspace ? "." : "", NIL);
+      if (outerClassesPrefix) {
+	Replaceall(outerClassesPrefix, ".", "::");
+	String* fnspace = nspace ? NewStringf("%s::%s", nspace, outerClassesPrefix) : outerClassesPrefix;
+	if (!addSymbol(proxy_class_name, n, fnspace))
+	  return SWIG_ERROR;
 	if (nspace)
-	  Printv(f_proxy, nspace, NIL);
-	Printf(f_proxy, ";\n");
+	  Delete(fnspace);
+	Delete(outerClassesPrefix);
+      }
+      else {
+	if (!addSymbol(proxy_class_name, n, nspace))
+	  return SWIG_ERROR;
       }
 
-      Clear(proxy_class_def);
-      Clear(proxy_class_code);
+      if (!Getattr(n, "nested:outer")) {
+	String *output_directory = outputDirectory(nspace);
+	String *filen = NewStringf("%s%s.java", output_directory, proxy_class_name);
+	f_proxy = NewFile(filen, "w", SWIG_output_files());
+	if (!f_proxy) {
+	  FileErrorDisplay(filen);
+	  SWIG_exit(EXIT_FAILURE);
+	}
+	Append(filenames_list, Copy(filen));
+	Delete(filen);
+	Delete(output_directory);
 
+	// Start writing out the proxy class file
+	emitBanner(f_proxy);
+
+	if (package || nspace) {
+	  Printf(f_proxy, "package ");
+	  if (package)
+	    Printv(f_proxy, package, nspace ? "." : "", NIL);
+	  if (nspace)
+	    Printv(f_proxy, nspace, NIL);
+	  Printf(f_proxy, ";\n");
+	}
+      }
+
+      proxy_class_def = NewString("");
+      proxy_class_code = NewString("");
       destructor_call = NewString("");
       destructor_throws_clause = NewString("");
       proxy_class_constants_code = NewString("");
-      Delete(output_directory);
     }
-
     Language::classHandler(n);
 
     if (proxy_flag) {
 
       emitProxyClassDefAndCPPCasts(n);
 
-      String *javaclazzname = Swig_name_member(getNSpace(), proxy_class_name, ""); // mangled full proxy class name
+      String *javaclazzname = Swig_name_member(getNSpace(), getClassPrefix(), ""); // mangled full proxy class name
 
       Replaceall(proxy_class_def, "$javaclassname", proxy_class_name);
       Replaceall(proxy_class_code, "$javaclassname", proxy_class_name);
@@ -1997,22 +2040,35 @@ public:
       Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
 
-      Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
+      bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
+      if (!has_outerclass)
+	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
+      else {
+	Append(old_proxy_class_code, proxy_class_def);
+	Append(old_proxy_class_code, proxy_class_code);
+      }
 
       // Write out all the constants
-      if (Len(proxy_class_constants_code) != 0)
-	Printv(f_proxy, proxy_class_constants_code, NIL);
+      if (Len(proxy_class_constants_code) != 0) {
+	if (!has_outerclass)
+	  Printv(f_proxy, proxy_class_constants_code, NIL);
+	else
+	  Append(old_proxy_class_code, proxy_class_constants_code);
+      }
 
-      Printf(f_proxy, "}\n");
-      Delete(f_proxy);
-      f_proxy = NULL;
+      if (!has_outerclass) {
+	Printf(f_proxy, "}\n");
+        Delete(f_proxy);
+        f_proxy = NULL;
+      } else
+	Append(old_proxy_class_code, "}\n");
 
       /* Output the downcast method, if necessary. Note: There's no other really
          good place to put this code, since Abstract Base Classes (ABCs) can and should have 
          downcasts, making the constructorHandler() a bad place (because ABCs don't get to
          have constructors emitted.) */
       if (GetFlag(n, "feature:javadowncast")) {
-	String *downcast_method = Swig_name_member(getNSpace(), proxy_class_name, "SWIGDowncast");
+	String *downcast_method = Swig_name_member(getNSpace(), getClassPrefix(), "SWIGDowncast");
 	String *jniname = makeValidJniName(downcast_method);
 	String *wname = Swig_name_wrapper(jniname);
 
@@ -2044,17 +2100,21 @@ public:
 
       Delete(javaclazzname);
       Delete(proxy_class_name);
-      proxy_class_name = NULL;
+      proxy_class_name = old_proxy_class_name;
       Delete(full_proxy_class_name);
-      full_proxy_class_name = NULL;
+      full_proxy_class_name = old_full_proxy_class_name;
       Delete(full_imclass_name);
-      full_imclass_name = NULL;
+      full_imclass_name = old_full_imclass_name;
       Delete(destructor_call);
-      destructor_call = NULL;
+      destructor_call = old_destructor_call;
       Delete(destructor_throws_clause);
-      destructor_throws_clause = NULL;
+      destructor_throws_clause = old_destructor_throws_clause;
       Delete(proxy_class_constants_code);
-      proxy_class_constants_code = NULL;
+      proxy_class_constants_code = old_proxy_class_constants_code;
+      Delete(proxy_class_def);
+      proxy_class_def = old_proxy_class_def;
+      Delete(proxy_class_code);
+      proxy_class_code = old_proxy_class_code;
     }
 
     return SWIG_OK;
@@ -2070,7 +2130,7 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
+      String *intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
@@ -2092,7 +2152,7 @@ public:
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
-      String *intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, overloaded_name);
+      String *intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name);
       Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
       Setattr(n, "imfuncname", intermediary_function_name);
       proxyClassFunctionHandler(n);
@@ -2168,7 +2228,7 @@ public:
 
     if (wrapping_member_flag && !enum_constant_flag) {
       // For wrapping member variables (Javabean setter)
-      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, proxy_class_name, variable_name))) == 0);
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) == 0);
     }
 
     /* Start generating the proxy function */
@@ -2322,7 +2382,7 @@ public:
       Node *explicit_n = Getattr(n, "explicitcallnode");
       if (explicit_n) {
 	String *ex_overloaded_name = getOverloadedName(explicit_n);
-	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), proxy_class_name, ex_overloaded_name);
+	String *ex_intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), ex_overloaded_name);
 
 	String *ex_imcall = Copy(imcall);
 	Replaceall(ex_imcall, "$imfuncname", ex_intermediary_function_name);
@@ -3397,7 +3457,7 @@ public:
     // Output the director connect method:
     String *jni_imclass_name = makeValidJniName(imclass_name);
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
-    String *swig_director_connect = Swig_name_member(getNSpace(), proxy_class_name, "director_connect");
+    String *swig_director_connect = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
     String *swig_director_connect_jni = makeValidJniName(swig_director_connect);
     String *smartptr_feature = Getattr(n, "feature:smartptr");
     String *dirClassName = directorClassName(n);
@@ -3441,7 +3501,7 @@ public:
     Delete(swig_director_connect);
 
     // Output the swigReleaseOwnership, swigTakeOwnership methods:
-    String *changeown_method_name = Swig_name_member(getNSpace(), proxy_class_name, "change_ownership");
+    String *changeown_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "change_ownership");
     String *changeown_jnimethod_name = makeValidJniName(changeown_method_name);
 
     Printf(imclass_class_code, "  public final static native void %s(%s obj, long cptr, boolean take_or_release);\n", changeown_method_name, full_proxy_class_name);
@@ -4438,6 +4498,9 @@ public:
     Setattr(n, "director:ctor", class_ctor);
   }
 
+  bool nestedClassesSupported() const { 
+    return true; 
+  }
 };				/* class JAVA */
 
 /* -----------------------------------------------------------------------------
