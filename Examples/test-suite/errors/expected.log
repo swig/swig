@@ -188,6 +188,16 @@ pp_variable_args.i:6: Error: Variable length macro argument must be last paramet
 :::::::::::::::::::::::::::::::: swig_apply_nargs.i :::::::::::::::::::::::::::::::::::
 swig_apply_nargs.i:6: Error: Can't apply (char *str,int len) to (int x).  Number of arguments don't match.
 
+:::::::::::::::::::::::::::::::: swig_extend.i :::::::::::::::::::::::::::::::::::
+swig_extend.i:19: Warning 326: Deprecated %extend name used - the struct name 'StructBName' should be used instead of the typedef name 'StructB'.
+swig_extend.i:45: Warning 326: Deprecated %extend name used - the struct name 'stru_struct' should be used instead of the typedef name 'stru'.
+swig_extend.i:56: Warning 326: Deprecated %extend name used - the union name 'uni_union' should be used instead of the typedef name 'uni'.
+swig_extend.i:34: Warning 303: %extend defined for an undeclared class StructDName.
+swig_extend.i:50: Warning 522: Use of an illegal constructor name 'stru' in %extend is deprecated, the constructor name should be 'stru_struct'.
+swig_extend.i:53: Warning 523: Use of an illegal destructor name 'stru' in %extend is deprecated, the destructor name should be 'stru_struct'.
+swig_extend.i:57: Warning 522: Use of an illegal constructor name 'uni' in %extend is deprecated, the constructor name should be 'uni_union'.
+swig_extend.i:58: Warning 523: Use of an illegal destructor name 'uni' in %extend is deprecated, the destructor name should be 'uni_union'.
+
 :::::::::::::::::::::::::::::::: swig_identifier.i :::::::::::::::::::::::::::::::::::
 swig_identifier.i:5: Warning 503: Can't wrap 'foo bar' unless renamed to a valid identifier.
 

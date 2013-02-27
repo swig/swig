@@ -2645,10 +2645,22 @@ int Language::constructorDeclaration(Node *n) {
       if (!Equal(actual_name, expected_name) && !SwigType_istemplate(expected_name)) {
 	bool illegal_name = true;
 	if (Extend) {
-	  // SWIG extension - allow typedef names as destructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'destructor'.
+	  // Check for typedef names used as a constructor name in %extend. This is deprecated except for anonymous
+	  // typedef structs which have had their symbol names adjusted to the typedef name in the parser.
 	  SwigType *name_resolved = SwigType_typedef_resolve_all(actual_name);
 	  SwigType *expected_name_resolved = SwigType_typedef_resolve_all(expected_name);
+
+	  if (!CPlusPlus) {
+	    if (Strncmp(name_resolved, "struct ", 7) == 0)
+	      Replace(name_resolved, "struct ", "", DOH_REPLACE_FIRST);
+	    else if (Strncmp(name_resolved, "union ", 6) == 0)
+	      Replace(name_resolved, "union ", "", DOH_REPLACE_FIRST);
+	  }
+
 	  illegal_name = !Equal(name_resolved, expected_name_resolved);
+	  if (!illegal_name)
+	    Swig_warning(WARN_LANG_EXTEND_CONSTRUCTOR, input_file, line_number, "Use of an illegal constructor name '%s' in %%extend is deprecated, the constructor name should be '%s'.\n", 
+		SwigType_str(Swig_scopename_last(actual_name), 0), SwigType_str(Swig_scopename_last(expected_name), 0));
 	  Delete(name_resolved);
 	  Delete(expected_name_resolved);
 	}
@@ -2784,10 +2796,22 @@ int Language::destructorDeclaration(Node *n) {
   if (!Equal(actual_name, expected_name) && !(Getattr(n, "template"))) {
     bool illegal_name = true;
     if (Extend) {
-      // SWIG extension - allow typedef names as destructor name in %extend - an unnamed struct declared with a typedef can thus be given a 'destructor'.
+      // Check for typedef names used as a destructor name in %extend. This is deprecated except for anonymous
+      // typedef structs which have had their symbol names adjusted to the typedef name in the parser.
       SwigType *name_resolved = SwigType_typedef_resolve_all(actual_name);
       SwigType *expected_name_resolved = SwigType_typedef_resolve_all(expected_name);
+
+      if (!CPlusPlus) {
+	if (Strncmp(name_resolved, "struct ", 7) == 0)
+	  Replace(name_resolved, "struct ", "", DOH_REPLACE_FIRST);
+	else if (Strncmp(name_resolved, "union ", 6) == 0)
+	  Replace(name_resolved, "union ", "", DOH_REPLACE_FIRST);
+      }
+
       illegal_name = !Equal(name_resolved, expected_name_resolved);
+      if (!illegal_name)
+	Swig_warning(WARN_LANG_EXTEND_DESTRUCTOR, input_file, line_number, "Use of an illegal destructor name '%s' in %%extend is deprecated, the destructor name should be '%s'.\n", 
+	    SwigType_str(Swig_scopename_last(actual_name), 0), SwigType_str(Swig_scopename_last(expected_name), 0));
       Delete(name_resolved);
       Delete(expected_name_resolved);
     }
