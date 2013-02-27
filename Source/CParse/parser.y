@@ -786,7 +786,7 @@ static String *make_class_name(String *name) {
 }
 
 /* Use typedef name as class name */
-void add_typedef_name(Node* n, Node* decl, String* oldName, Symtab *cscope)
+void add_typedef_name(Node* n, Node* decl, String* oldName, Symtab *cscope, String* scpname)
 {
   String* class_rename = 0;
   SwigType *decltype = Getattr(decl,"decl");
@@ -801,8 +801,9 @@ void add_typedef_name(Node* n, Node* decl, String* oldName, Symtab *cscope)
     class_rename = Getattr(n, "class_rename");
     if (class_rename && (Strcmp(class_rename,oldName) == 0))
       Setattr(n, "class_rename", NewString(name));
-    if (!Getattr(classes,tdscopename)) {
-      Setattr(classes,tdscopename,n);
+    if (!classes_typedefs) classes_typedefs = NewHash();
+    if (!Equal(scpname, tdscopename) && !Getattr(classes_typedefs, tdscopename)) {
+      Setattr(classes_typedefs, tdscopename, n);
     }
     Setattr(n,"decl",decltype);
     Delete(class_scope);
@@ -3256,7 +3257,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     p = nextSibling(p);
 		   }
 		   if ($9 && Cmp($1,"typedef") == 0)
-		     add_typedef_name($$, $9, $3, cscope);
+		     add_typedef_name($$, $9, $3, cscope, scpname);
+		   Delete(scpname);
 
 		   if (cplus_mode != CPLUS_PUBLIC) {
 		   /* we 'open' the class at the end, to allow %template
