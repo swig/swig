@@ -11,6 +11,23 @@
 #include <stdio.h>
 %}
 
+#if !defined(SWIG_CSHARP_NO_PINVOKE_ATTRIBUTES)
+%pragma(csharp) imclasscode=%{
+  /// For Xamarin.iOS MonoTouch.MonoPInvokeCallback functionality
+  /// This attribute can be defined in any assembly for Xamarin.iOS to use it.
+  public class MonoPInvokeCallbackAttribute : Attribute {
+    public MonoPInvokeCallbackAttribute(Type t) {
+    }
+  }
+  /// For Xamarin.iOS MonoTouch.MonoNativeFunctionWrapper functionality
+  /// This attribute can be defined in any assembly for Xamarin.iOS to use it.
+  public class MonoNativeFunctionWrapperAttribute : Attribute {
+    public MonoNativeFunctionWrapperAttribute() {
+    }
+  }
+%}
+#endif
+
 #if !defined(SWIG_CSHARP_NO_EXCEPTION_HELPER)
 %insert(runtime) %{
 /* Support for throwing C# exceptions from C/C++. There are two types: 
@@ -130,7 +147,9 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
 %pragma(csharp) imclasscode=%{
   protected class SWIGExceptionHelper {
 
+    [MonoNativeFunctionWrapper]
     public delegate void ExceptionDelegate(string message);
+    [MonoNativeFunctionWrapper]
     public delegate void ExceptionArgumentDelegate(string message, string paramName);
 
     static ExceptionDelegate applicationDelegate = new ExceptionDelegate(SetPendingApplicationException);
@@ -169,48 +188,62 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
                                 ExceptionArgumentDelegate argumentNullDelegate,
                                 ExceptionArgumentDelegate argumentOutOfRangeDelegate);
 
+    [MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingApplicationException(string message) {
       SWIGPendingException.Set(new System.ApplicationException(message, SWIGPendingException.Retrieve()));
     }
+    [MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingArithmeticException(string message) {
       SWIGPendingException.Set(new System.ArithmeticException(message, SWIGPendingException.Retrieve()));
     }
+    [MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingDivideByZeroException(string message) {
       SWIGPendingException.Set(new System.DivideByZeroException(message, SWIGPendingException.Retrieve()));
     }
+    [MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingIndexOutOfRangeException(string message) {
       SWIGPendingException.Set(new System.IndexOutOfRangeException(message, SWIGPendingException.Retrieve()));
     }
+    [MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingInvalidCastException(string message) {
       SWIGPendingException.Set(new System.InvalidCastException(message, SWIGPendingException.Retrieve()));
     }
+    [MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingInvalidOperationException(string message) {
       SWIGPendingException.Set(new System.InvalidOperationException(message, SWIGPendingException.Retrieve()));
     }
+    [MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingIOException(string message) {
       SWIGPendingException.Set(new System.IO.IOException(message, SWIGPendingException.Retrieve()));
     }
+    [MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingNullReferenceException(string message) {
       SWIGPendingException.Set(new System.NullReferenceException(message, SWIGPendingException.Retrieve()));
     }
+    [MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingOutOfMemoryException(string message) {
       SWIGPendingException.Set(new System.OutOfMemoryException(message, SWIGPendingException.Retrieve()));
     }
+    [MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingOverflowException(string message) {
       SWIGPendingException.Set(new System.OverflowException(message, SWIGPendingException.Retrieve()));
     }
+    [MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingSystemException(string message) {
       SWIGPendingException.Set(new System.SystemException(message, SWIGPendingException.Retrieve()));
     }
 
+    [MonoPInvokeCallback(typeof(ExceptionArgumentDelegate))]
     static void SetPendingArgumentException(string message, string paramName) {
       SWIGPendingException.Set(new System.ArgumentException(message, paramName, SWIGPendingException.Retrieve()));
     }
+    [MonoPInvokeCallback(typeof(ExceptionArgumentDelegate))]
     static void SetPendingArgumentNullException(string message, string paramName) {
       Exception e = SWIGPendingException.Retrieve();
       if (e != null) message = message + " Inner Exception: " + e.Message;
       SWIGPendingException.Set(new System.ArgumentNullException(paramName, message));
     }
+    [MonoPInvokeCallback(typeof(ExceptionArgumentDelegate))]
     static void SetPendingArgumentOutOfRangeException(string message, string paramName) {
       Exception e = SWIGPendingException.Retrieve();
       if (e != null) message = message + " Inner Exception: " + e.Message;
@@ -291,12 +324,14 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
 %pragma(csharp) imclasscode=%{
   protected class SWIGStringHelper {
 
+    [MonoNativeFunctionWrapper]
     public delegate string SWIGStringDelegate(string message);
     static SWIGStringDelegate stringDelegate = new SWIGStringDelegate(CreateString);
 
     [DllImport("$dllimport", EntryPoint="SWIGRegisterStringCallback_$module")]
     public static extern void SWIGRegisterStringCallback_$module(SWIGStringDelegate stringDelegate);
 
+    [MonoPInvokeCallback(typeof(SWIGStringDelegate))]
     static string CreateString(string cString) {
       return cString;
     }
