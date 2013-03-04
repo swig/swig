@@ -1,3 +1,5 @@
+#ifdef GUILE_VERSION_1_6
+
 #define gh_append2(a, b) scm_append(scm_listify(a, b, SCM_UNDEFINED)) 
 #define gh_apply(a, b) scm_apply(a, b, SCM_EOL) 
 #define gh_bool2scm SCM_BOOL 
@@ -37,3 +39,47 @@
 #define gh_vector_ref scm_vector_ref 
 #define gh_vector_set_x scm_vector_set_x 
 #define gh_char2scm SCM_MAKE_CHAR
+
+#else
+
+#define gh_append2(a, b) scm_append(scm_listify(a, b, SCM_UNDEFINED)) 
+#define gh_apply(a, b) scm_apply(a, b, SCM_EOL) 
+#define gh_bool2scm scm_from_bool 
+#define gh_boolean_p scm_is_bool 
+#define gh_car SCM_CAR 
+#define gh_cdr SCM_CDR 
+#define gh_cons scm_cons 
+#define gh_double2scm scm_from_double 
+#define gh_int2scm scm_from_long 
+#define gh_length(lst) scm_to_ulong(scm_length(lst))
+#define gh_list scm_listify 
+#define gh_list_to_vector scm_vector 
+#define gh_make_vector scm_make_vector 
+#define gh_null_p scm_is_null 
+#define gh_number_p scm_is_number 
+#define gh_pair_p scm_is_pair 
+#define gh_scm2bool scm_is_true
+#define gh_scm2char SCM_CHAR 
+#define gh_scm2double scm_to_double
+#define gh_scm2int scm_to_int
+#define gh_scm2long scm_to_long
+#define gh_scm2short scm_to_short
+#define gh_scm2newstr SWIG_Guile_scm2newstr
+#define gh_scm2ulong scm_to_ulong
+#define gh_scm2ushort scm_to_ushort
+#define gh_scm2uint scm_to_uint
+#define gh_ulong2scm scm_from_ulong
+#define gh_long2scm scm_from_long
+#define gh_str02scm(str) str ? scm_from_locale_string(str) : SCM_BOOL_F 
+#define gh_long_long2scm scm_from_long_long
+#define gh_scm2long_long scm_to_long_long
+#define gh_ulong_long2scm scm_from_ulong_long
+#define gh_scm2ulong_long scm_to_ulong_long
+#define gh_string_p scm_is_string 
+#define gh_vector_length scm_c_vector_length 
+#define gh_vector_p scm_is_vector 
+#define gh_vector_ref scm_vector_ref 
+#define gh_vector_set_x scm_vector_set_x 
+#define gh_char2scm SCM_MAKE_CHAR
+
+#endif
