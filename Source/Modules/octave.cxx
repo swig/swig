@@ -1371,7 +1371,6 @@ public:
 	outputs++;
 
       // build argument list and type conversion string
-      idx = 0;
       p = l;
       while (p) {
 	if (checkAttribute(p, "tmap:in:numinputs", "0")) {

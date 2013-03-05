@@ -746,7 +746,6 @@ SwigType *SwigType_add_function(SwigType *t, ParmList *parms) {
 
   Insert(t, 0, ").");
   pstr = NewString("f(");
-  p = parms;
   for (p = parms; p; p = nextSibling(p)) {
     if (p != parms)
       Putc(',', pstr);
@@ -844,7 +843,6 @@ SwigType *SwigType_add_template(SwigType *t, ParmList *parms) {
   Parm *p;
 
   Append(t, "<(");
-  p = parms;
   for (p = parms; p; p = nextSibling(p)) {
     String *v;
     if (Getattr(p, "default"))
