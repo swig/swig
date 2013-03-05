@@ -1583,8 +1583,6 @@ public:
       String *cleanup = NewString("");
       String *outarg = NewString("");
 
-      idx = 0;
-
       tm = Swig_typemap_lookup("directorout", n, "c_result", w);
       if (tm != 0) {
 	Replaceall(tm, "$input", "swig_result");
@@ -1742,7 +1740,6 @@ public:
     p = NewParm(type, NewString("self"), n);
     q = Copy(p);
     set_nextSibling(p, parms);
-    parms = p;
 
     {
       Wrapper *w = NewWrapper();

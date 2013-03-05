@@ -787,7 +787,6 @@ public:
     }
 
     f = NewWrapper();
-    numopt = 0;
 
     String *outarg = NewStringEmpty();
     String *cleanup = NewStringEmpty();
@@ -1736,7 +1735,6 @@ public:
 	    if (!class_node) {
 	      /* This is needed when we're returning a pointer to a type
 	       * rather than returning the type by value or reference. */
-	      class_node = current_class;
 	      Delete(mangled);
 	      mangled = NewString(SwigType_manglestr(ret_type));
 	      class_node = Getattr(zend_types, mangled);

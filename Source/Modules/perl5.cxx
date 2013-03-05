@@ -610,7 +610,6 @@ public:
     Printf(f->code, "}\n");
 
     /* Write code to extract parameters. */
-    i = 0;
     for (i = 0, p = l; i < num_arguments; i++) {
 
       /* Skip ignored arguments */
