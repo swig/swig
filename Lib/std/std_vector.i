@@ -95,7 +95,7 @@ namespace std {
   };
 
   // ***
-  // This specialization should dissapear or get simplified when
+  // This specialization should disappear or get simplified when
   // a 'const SWIGTYPE*&' can be defined
   // ***
   template<class _Tp, class _Alloc >

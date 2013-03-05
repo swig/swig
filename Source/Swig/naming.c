@@ -20,8 +20,6 @@
  * %v - variable name is substituted
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_naming_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 #include <ctype.h>
@@ -883,12 +881,15 @@ List *Swig_name_rename_list() {
 int Swig_need_name_warning(Node *n) {
   int need = 1;
   /* 
-     we don't use name warnings for:
+     We don't use name warnings for:
      - class forwards, no symbol is generated at the target language.
      - template declarations, only for real instances using %template(name).
-     - typedefs, they have no effect at the target language.
+     - typedefs, have no effect at the target language.
+     - using declarations and using directives, have no effect at the target language.
    */
   if (checkAttribute(n, "nodeType", "classforward")) {
+    need = 0;
+  } else if (checkAttribute(n, "nodeType", "using")) {
     need = 0;
   } else if (checkAttribute(n, "storage", "typedef")) {
     need = 0;

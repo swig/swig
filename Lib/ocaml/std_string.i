@@ -36,7 +36,7 @@ class wstring;
     SWIG_exception(SWIG_TypeError, "string expected");
 }
 
-%typemap(in) const string & (std::string temp) {
+%typemap(in) const string & ($*1_ltype temp) {
   /* %typemap(in) const string & */
   if (caml_ptr_check($input)) {
     temp.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
@@ -46,7 +46,7 @@ class wstring;
   }
 }
 
-%typemap(in) string & (std::string temp) {
+%typemap(in) string & ($*1_ltype temp) {
   /* %typemap(in) string & */
   if (caml_ptr_check($input)) {
     temp.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
@@ -56,17 +56,17 @@ class wstring;
   }
 }
 
-%typemap(in) string * (std::string *temp) {
+%typemap(in) string * ($*1_ltype *temp) {
   /* %typemap(in) string * */
   if (caml_ptr_check($input)) {
-    temp = new std::string((char *)caml_ptr_val($input,0), caml_string_len($input));
+    temp = new $*1_ltype((char *)caml_ptr_val($input,0), caml_string_len($input));
     $1 = temp;
   } else {
     SWIG_exception(SWIG_TypeError, "string expected");
   }
 }
 
-%typemap(free) string * (std::string *temp) {
+%typemap(free) string * ($*1_ltype *temp) {
   delete temp;
 }
 

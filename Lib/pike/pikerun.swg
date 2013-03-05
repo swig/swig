@@ -28,11 +28,11 @@ typedef struct swig_object_wrapper {
 
 #define SWIG_ConvertPtr SWIG_Pike_ConvertPtr
 #define SWIG_NewPointerObj SWIG_Pike_NewPointerObj
-#define SWIG_GetModule(clientdata) SWIG_Pike_GetModule()
+#define SWIG_GetModule(clientdata) SWIG_Pike_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) SWIG_Pike_SetModule(pointer)
 
 /* These need to be filled in before type sharing between modules will work */
-static swig_module_info *SWIG_Pike_GetModule() {
+static swig_module_info *SWIG_Pike_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
   return 0;
 }
 

@@ -11,8 +11,6 @@
  * CHICKEN language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_chicken_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #include <ctype.h>
@@ -290,8 +288,6 @@ int CHICKEN::top(Node *n) {
 
   Printf(f_scm, "%s\n", chickentext);
 
-
-  Close(f_scm);
   Delete(f_scm);
 
   char buftmp[20];
@@ -324,7 +320,6 @@ int CHICKEN::top(Node *n) {
   Delete(f_wrappers);
   Delete(f_sym_size);
   Delete(f_init);
-  Close(f_begin);
   Delete(f_runtime);
   Delete(f_begin);
   return SWIG_OK;

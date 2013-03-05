@@ -2345,7 +2345,7 @@ doesn't know how to add an instance of <tt>MyString</tt> to itself.
 </li>
 
 <li><p>If you have multiple SWIG modules that share type information (<a href="Modules.html#Modules_nn2">more info</a>),
-the <tt>-builtin</tt> option requiress a bit of extra discipline to ensure that base classes are initialized before derived classes.  Specifically:</p>
+the <tt>-builtin</tt> option requires a bit of extra discipline to ensure that base classes are initialized before derived classes.  Specifically:</p>
 <ul>
 <li><p>There must be an unambiguous dependency graph for the modules.</p></li>
 <li><p>Module dependencies must be explicitly stated with <tt>%import</tt> statements in the SWIG interface file.</p>
@@ -2782,9 +2782,6 @@ globally, to specific classes, and to specific methods, like this:
 
 // generate directors for all virtual methods in class Foo
 %feature("director") Foo;      
-
-// generate a director for just Foo::bar()
-%feature("director") Foo::bar; 
 </pre>
 </div>
 
@@ -3389,7 +3386,39 @@ public:
 </pre>
 </div>
 
+<p>
+Note that when the underlying C++ method is overloaded, there is only one proxy Python method
+for multiple C++ methods. In this case, only one of parsed methods is examined
+for the feature. You are better off specifying the feature without the argument list to ensure it will get used,
+as it will then get attached to all the overloaded C++ methods. For example:
+</p>
 
+<div class="code">
+<pre>
+%module example
+
+// Add python code to bar()
+
+%pythonprepend Foo::bar %{
+   #do something before C++ call
+%}
+
+%pythonappend Foo::bar %{
+   #do something after C++ call
+%}
+
+
+class Foo {
+public:
+    int bar(int x);
+    int bar();
+}
+</pre>
+</div>
+
+<p>
+The same applies for overloaded constructors.
+</p>
 
 
 <H3><a name="Python_nn43"></a>34.6.3 Class extension with %extend</H3>

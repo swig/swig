@@ -168,7 +168,7 @@ SWIGINTERNINLINE int SWIG_CheckState(int r) {
   return SWIG_IsOK(r) ? SWIG_CastRank(r) + 1 : 0; 
 }
 #else /* no cast-rank mode */
-#  define SWIG_AddCast
+#  define SWIG_AddCast(r) (r)
 #  define SWIG_CheckState(r) (SWIG_IsOK(r) ? 1 : 0)
 #endif
 
@@ -232,18 +232,18 @@ SWIG_TypeNameComp(const char *f1, const char *l1,
 
 /*
   Check type equivalence in a name list like <name1>|<name2>|...
-  Return 0 if not equal, 1 if equal
+  Return 0 if equal, -1 if nb < tb, 1 if nb > tb
 */
 SWIGRUNTIME int
-SWIG_TypeEquiv(const char *nb, const char *tb) {
-  int equiv = 0;
+SWIG_TypeCmp(const char *nb, const char *tb) {
+  int equiv = 1;
   const char* te = tb + strlen(tb);
   const char* ne = nb;
-  while (!equiv && *ne) {
+  while (equiv != 0 && *ne) {
     for (nb = ne; *ne; ++ne) {
       if (*ne == '|') break;
     }
-    equiv = (SWIG_TypeNameComp(nb, ne, tb, te) == 0) ? 1 : 0;
+    equiv = SWIG_TypeNameComp(nb, ne, tb, te);
     if (*ne) ++ne;
   }
   return equiv;
@@ -251,23 +251,12 @@ SWIG_TypeEquiv(const char *nb, const char *tb) {
 
 /*
   Check type equivalence in a name list like <name1>|<name2>|...
-  Return 0 if equal, -1 if nb < tb, 1 if nb > tb
+  Return 0 if not equal, 1 if equal
 */
 SWIGRUNTIME int
-SWIG_TypeCompare(const char *nb, const char *tb) {
-  int equiv = 0;
-  const char* te = tb + strlen(tb);
-  const char* ne = nb;
-  while (!equiv && *ne) {
-    for (nb = ne; *ne; ++ne) {
-      if (*ne == '|') break;
-    }
-    equiv = (SWIG_TypeNameComp(nb, ne, tb, te) == 0) ? 1 : 0;
-    if (*ne) ++ne;
-  }
-  return equiv;
+SWIG_TypeEquiv(const char *nb, const char *tb) {
+  return SWIG_TypeCmp(nb, tb) == 0 ? 1 : 0;
 }
-
 
 /*
   Check the typename

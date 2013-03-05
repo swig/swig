@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[2.0.6],[http://www.swig.org])
+AC_INIT([swig],[2.0.10],[http://www.swig.org])
 
 dnl NB: When this requirement is increased to 2.60 or later, AC_PROG_SED
 dnl     definition below can be removed
@@ -118,7 +118,7 @@ AC_SUBST(ENABLE_CCACHE)
 
 echo ""
 echo "Checking packages required for SWIG developers."
-echo "Note : None of the following packages are required for users to compile and install SWIG"
+echo "Note : None of the following packages are required for users to compile and install SWIG from the distributed tarball"
 echo ""
 
 AC_PROG_YACC
@@ -128,11 +128,22 @@ AC_SUBST(AR)
 AC_CHECK_PROGS(YODL2MAN, yodl2man)
 AC_CHECK_PROGS(YODL2HTML, yodl2html)
 
+if test -n "$YODL2MAN"; then
+  AC_MSG_CHECKING([yodl2man version >= 2.02])
+  yodl_version=`$YODL2MAN --version 2>&1 | grep 'yodl version' | sed 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.*[0-9]*\).*/\1/g'`
+  AX_COMPARE_VERSION([$yodl_version],[ge],[2.02], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no - $yodl_version found])])
+fi
+
+if test -n "$YODL2HTML"; then
+  AC_MSG_CHECKING([yodl2html version >= 2.02])
+  yodl_version=`$YODL2HTML --version 2>&1 | grep 'yodl version' | sed 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/g'`
+  AX_COMPARE_VERSION([$yodl_version],[ge],[2.02], [AC_MSG_RESULT([yes])], [AC_MSG_RESULT([no - $yodl_version found])])
+fi
 
 echo ""
 echo "Checking for installed target languages and other information in order to compile and run"
 echo "the examples and test-suite invoked by 'make check'."
-echo "Note : None of the following packages are required for users to compile and install SWIG"
+echo "Note : None of the following packages are required for users to compile and install SWIG from the distributed tarball"
 echo ""
 
 dnl Some test cases require Boost
@@ -626,17 +637,16 @@ AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBI
 
 # First, check for "--without-python" or "--with-python=no".
 if test x"${PYBIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Python])
+  AC_MSG_NOTICE([Disabling Python])
 else
-# First figure out the name of the Python executable
+  # First figure out the name of the Python executable
+  if test "x$PYBIN" = xyes; then
+    AC_CHECK_PROGS(PYTHON, [python python2.8 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4])
+  else
+    PYTHON="$PYBIN"
+  fi
 
-if test "x$PYBIN" = xyes; then
-AC_CHECK_PROGS(PYTHON, [python python2.8 python2.7 python2.6 python2.5 python2.4 python2.3 python2.2 python2.1 python2.0 python1.6 python1.5 python1.4 python])
-else
-PYTHON="$PYBIN"
-fi
-
-if test -n "$PYTHON"; then
+  if test -n "$PYTHON"; then
     AC_MSG_CHECKING(for Python prefix)
     PYPREFIX=`($PYTHON -c "import sys; print sys.prefix") 2>/dev/null`
     AC_MSG_RESULT($PYPREFIX)
@@ -669,12 +679,12 @@ if test -n "$PYTHON"; then
 
     AC_MSG_CHECKING(for Python header files)
     if test -r $PYPREFIX/include/$PYVERSION/Python.h; then
-        PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
+      PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
     fi
     if test -z "$PYINCLUDE"; then
-        if test -r $PYPREFIX/include/Py/Python.h; then
-            PYINCLUDE="-I$PYPREFIX/include/Py -I$PYEPREFIX/$PYLIBDIR/python/lib"
-        fi
+      if test -r $PYPREFIX/include/Py/Python.h; then
+        PYINCLUDE="-I$PYPREFIX/include/Py -I$PYEPREFIX/$PYLIBDIR/python/lib"
+      fi
     fi
     AC_MSG_RESULT($PYINCLUDE)
 
@@ -682,32 +692,32 @@ if test -n "$PYTHON"; then
     AC_MSG_CHECKING(for Python library)
     dirs="$PYVERSION/config $PYVERSION/$PYLIBDIR python/$PYLIBDIR"
     for i in $dirs; do
-        if test -d $PYEPREFIX/$PYLIBDIR/$i; then
-           PYLIB="$PYEPREFIX/$PYLIBDIR/$i"
-           break
-        fi
+      if test -d $PYEPREFIX/$PYLIBDIR/$i; then
+        PYLIB="$PYEPREFIX/$PYLIBDIR/$i"
+        break
+      fi
     done
     if test -z "$PYLIB"; then
-        AC_MSG_RESULT(Not found)
+      AC_MSG_RESULT(Not found)
     else
-        AC_MSG_RESULT($PYLIB)
+      AC_MSG_RESULT($PYLIB)
     fi
 
     # Check for really old versions
     if test -r $PYLIB/libPython.a; then
-         PYLINK="-lModules -lPython -lObjects -lParser"
+      PYLINK="-lModules -lPython -lObjects -lParser"
     else
-         PYLINK="-l$PYVERSION"
+      PYLINK="-l$PYVERSION"
     fi
-fi
+  fi
 
-# Cygwin (Windows) needs the library for dynamic linking
-case $host in
-*-*-cygwin* | *-*-mingw*) PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
-         DEFS="-DUSE_DL_IMPORT $DEFS" PYINCLUDE="$PYINCLUDE"
-         ;;
-*)PYTHONDYNAMICLINKING="";;
-esac
+  # Cygwin (Windows) needs the library for dynamic linking
+  case $host in
+  *-*-cygwin* | *-*-mingw*) PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
+    DEFS="-DUSE_DL_IMPORT $DEFS" PYINCLUDE="$PYINCLUDE"
+    ;;
+  *)PYTHONDYNAMICLINKING="";;
+  esac
 fi
 
 AC_SUBST(PYINCLUDE)
@@ -732,24 +742,19 @@ AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]),[
 
 # First, check for "--without-python3" or "--with-python3=no".
 if test x"${PY3BIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Python 3.x support])
+  AC_MSG_NOTICE([Disabling Python 3.x support])
 else
-# First figure out the name of the Python3 executable 
+  for py_ver in 3 3.6 3.5 3.4 3.3 3.2 3.1 3.0; do
+    AC_CHECK_PROGS(PYTHON3, [python$py_ver])
+    if test -n "$PYTHON3"; then
+      AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
+      if test -n "$PY3CONFIG"; then
+        break
+      fi
+    fi
+  done
 
-if test "x$PY3BIN" = xyes; then
-  AC_CHECK_PROGS(PYTHON3, [python3 python3.0 python3.1])
-else
-  PYTHON3="$PY3BIN"
-fi
-
-# Check for Python 3.x development tools (header files, static library and python3-config)
-if test "x$PYTHON3" = x; then
-  AC_CHECK_PROGS(PY3CONFIG, [python3-config python3.0-config python3.1-config])
-else
-  AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config python3-config python3.0-config python3.1-config])
-fi
-
-if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
+  if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
     AC_MSG_CHECKING([for Python 3.x prefix])
     PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
     AC_MSG_RESULT($PY3PREFIX)
@@ -787,27 +792,27 @@ if test -n "$PYTHON3" -a -n "$PY3CONFIG"; then
     AC_MSG_CHECKING([for Python 3.x library])
     dirs="$PY3VERSION/config $PY3VERSION/$PY3LIBDIR python/$PY3LIBDIR"
     for i in $dirs; do
-        if test -d $PY3EPREFIX/$PY3LIBDIR/$i; then
-           PY3LIB="$PY3EPREFIX/$PY3LIBDIR/$i"
-           break
-        fi
+      if test -d $PY3EPREFIX/$PY3LIBDIR/$i; then
+        PY3LIB="$PY3EPREFIX/$PY3LIBDIR/$i"
+        break
+      fi
     done
     if test -z "$PY3LIB"; then
-        AC_MSG_RESULT([Not found])
+      AC_MSG_RESULT([Not found])
     else
-        AC_MSG_RESULT($PY3LIB)
+      AC_MSG_RESULT($PY3LIB)
     fi
 
     PY3LINK="-l$PY3VERSION"
-fi
+  fi
 
-# Cygwin (Windows) needs the library for dynamic linking
-case $host in
-*-*-cygwin* | *-*-mingw*) PYTHON3DYNAMICLINKING="-L$PYLIB $PY3LINK"
-         DEFS="-DUSE_DL_IMPORT $DEFS" PY3INCLUDE="$PY3INCLUDE"
-         ;;
-*)PYTHON3DYNAMICLINKING="";;
-esac
+  # Cygwin (Windows) needs the library for dynamic linking
+  case $host in
+  *-*-cygwin* | *-*-mingw*) PYTHON3DYNAMICLINKING="-L$PYLIB $PY3LINK"
+    DEFS="-DUSE_DL_IMPORT $DEFS" PY3INCLUDE="$PY3INCLUDE"
+    ;;
+  *)PYTHON3DYNAMICLINKING="";;
+  esac
 fi
 
 AC_SUBST(PY3INCLUDE)
@@ -900,7 +905,6 @@ AC_SUBST(PERL5CCFLAGS)
 #----------------------------------------------------------------
 
 OCTAVEBIN=
-OCTAVEDYNAMICLINKING=
 OCTAVE_SO=.oct
 
 AC_ARG_WITH(octave, AS_HELP_STRING([--without-octave], [Disable Octave])
@@ -908,58 +912,51 @@ AS_HELP_STRING([--with-octave=path], [Set location of Octave executable]),[OCTAV
 
 # First, check for "--without-octave" or "--with-octave=no".
 if test x"${OCTAVEBIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Octave])
-OCTAVE=
-else
+   AC_MSG_NOTICE([Disabling Octave])
+   OCTAVE=
 
 # First figure out what the name of Octave is
+elif test "x$OCTAVEBIN" = xyes; then
+   AC_CHECK_PROGS(OCTAVE, octave)
 
-if test "x$OCTAVEBIN" = xyes; then
-AC_CHECK_PROGS(OCTAVE, octave)
 else
-OCTAVE="$OCTAVEBIN"
+   OCTAVE="$OCTAVEBIN"
 fi
 
-
-AC_MSG_CHECKING(for Octave header files)
 if test -n "$OCTAVE"; then
-	OCTAVECONFIG=[`echo $OCTAVEBIN | sed 's|octave\([^/]*\)$|octave-config\1|'`]
-	if test -r "$OCTAVECONFIG"; then
-		OCTAVEDIR=`$OCTAVECONFIG -p OCTINCLUDEDIR | sed 's|/octave$||'`
-	else
-		OCTAVEDIR="/usr/include"
-	fi
-	if test "$OCTAVEDIR" != ""; then
-		dirs="$OCTAVEDIR/octave $OCTAVEDIR"
-		OCTAVEEXT=""
-		for i in $dirs; do
-			if test -r $i/octave/oct.h; then
-				OCTAVEEXT="$i"
-				break;
-			fi
-		done
-		if test "$OCTAVEEXT" = "" ; then
-			AC_MSG_RESULT(not found)
-		else
-			AC_MSG_RESULT($OCTAVEEXT)
-		fi
-
-		AC_MSG_CHECKING(for Octave compiler options)
- 		OCTAVECCFLAGS=""
-		AC_MSG_RESULT($OCTAVECCFLAGS)
-	fi
+   AC_MSG_CHECKING([for mkoctfile])
+   AS_IF([test "x`${OCTAVE} -qfH --eval 'mkoctfile -p CXX' 2>/dev/null`" != x],[
+     AC_MSG_RESULT([yes])
+   ],[
+     AC_MSG_ERROR([mkoctfile is not installed])
+   ])
+   AC_MSG_CHECKING([for Octave preprocessor flags])
+   OCTAVE_CPPFLAGS=
+   for n in CPPFLAGS INCFLAGS; do
+     OCTAVE_CPPFLAGS="${OCTAVE_CPPFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+   done
+   AC_MSG_RESULT($OCTAVE_CPPFLAGS)
+   AC_MSG_CHECKING([for Octave compiler flags])
+   OCTAVE_CXXFLAGS=
+   for n in ALL_CXXFLAGS; do
+     OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+   done
+   AC_MSG_RESULT($OCTAVE_CXXFLAGS)
+   AC_MSG_CHECKING([for Octave linker flags])
+   OCTAVE_LDFLAGS=
+   for n in RDYNAMIC_FLAG LFLAGS RLD_FLAG OCTAVE_LIBS LIBS; do
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`$OCTAVE -qfH --eval "mkoctfile -p $n"`
+   done
+   AC_MSG_RESULT($OCTAVE_LDFLAGS)
 else
-       	AC_MSG_RESULT(could not figure out how to run octave)
-fi
-
+   AC_MSG_RESULT(could not figure out how to run octave)
 fi
 
 AC_SUBST(OCTAVE)
-AC_SUBST(OCTAVEEXT)
 AC_SUBST(OCTAVE_SO)
-AC_SUBST(OCTAVEDYNAMICLINKING)
-AC_SUBST(OCTAVELIB)
-AC_SUBST(OCTAVECCFLAGS)
+AC_SUBST(OCTAVE_CPPFLAGS)
+AC_SUBST(OCTAVE_CXXFLAGS)
+AC_SUBST(OCTAVE_LDFLAGS)
 
 #----------------------------------------------------------------
 # Look for Scilab
@@ -1314,16 +1311,16 @@ CFLAGS="`echo $CFLAGS | sed 's/-ansi//g;s/-pedantic//g;'` $GUILEINCLUDE"
 LIBS="$LIBS $GUILELINK"
 
 AC_MSG_CHECKING(whether Guile's gh_ API works)
-AC_LINK_IFELSE([#include <guile/gh.h>
-  int main() { SCM s; return gh_scm2int(s); }], GUILE_GH_INTERFACE=1, )
+AC_LINK_IFELSE([AC_LANG_SOURCE([#include <guile/gh.h>
+  int main() { SCM s; return gh_scm2int(s); }])], GUILE_GH_INTERFACE=1, )
 if test -n "$GUILE_GH_INTERFACE" ; then
         AC_MSG_RESULT(yes)
 else
 	AC_MSG_RESULT(no)
 fi
 AC_MSG_CHECKING(whether Guile's SCM_ API works)
-AC_LINK_IFELSE([#include <libguile.h>
-  int main() { SCM s; scm_slot_exists_p(SCM_BOOL_F, SCM_BOOL_F); return SCM_STRING_LENGTH(s); }], GUILE_SCM_INTERFACE=1, )
+AC_LINK_IFELSE([AC_LANG_SOURCE([#include <libguile.h>
+  int main() { SCM s; scm_slot_exists_p(SCM_BOOL_F, SCM_BOOL_F); return SCM_STRING_LENGTH(s); }])], GUILE_SCM_INTERFACE=1, )
 if test -n "$GUILE_SCM_INTERFACE" ; then
         AC_MSG_RESULT(yes)
 else
@@ -1407,7 +1404,13 @@ fi
 
 AC_MSG_CHECKING(for Ruby header files)
 if test -n "$RUBY"; then
-	RUBYDIR=`($RUBY -rmkmf -e 'print Config::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
+        # Try Ruby1.9 first
+        RUBYDIR=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["rubyhdrdir"]] || $rubyhdrdir') 2>/dev/null`
+	if test x"$RUBYDIR" = x"" || test x"$RUBYDIR" = x"nil"; then
+		RUBYDIR=`($RUBY -rmkmf -e 'print Config::CONFIG[["archdir"]] || $archdir') 2>/dev/null`
+        else
+                RUBYARCH=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["arch"]] || $arch') 2>/dev/null`
+        fi
 	if test x"$RUBYDIR" != x""; then
 		dirs="$RUBYDIR"
 		RUBYINCLUDE=none
@@ -1418,6 +1421,9 @@ if test -n "$RUBY"; then
 				break;
 			fi
 		done
+		if test x"$RUBYARCH" != x""; then
+			RUBYINCLUDE="-I$RUBYDIR -I$RUBYDIR/$RUBYARCH"
+		fi
 		if test "$RUBYINCLUDE" = none; then
 			RUBYINCLUDE="-I$RUBYDIR"
 			AC_MSG_RESULT(could not locate ruby.h...using $RUBYINCLUDE)
@@ -1829,19 +1835,19 @@ if test -z "$CSHARPCOMPILERBIN" ; then
   case $host in
   *-*-cygwin* | *-*-mingw*)
     # prefer Mono gmcs (.NET 2.0) over mcs (.NET 1.1) - note mcs-1.2.3 has major pinvoke bug
-    AC_CHECK_PROGS(CSHARPCOMPILER, csc gmcs mcs cscc)
+    AC_CHECK_PROGS(CSHARPCOMPILER, csc mono-csc gmcs mcs cscc)
     if test -n "$CSHARPCOMPILER" && test "$CSHARPCOMPILER" = "csc" ; then
       AC_MSG_CHECKING(whether csc is the Microsoft CSharp compiler)
       csc 2>/dev/null | grep "C#" > /dev/null || CSHARPCOMPILER=""
       if test -z "$CSHARPCOMPILER" ; then
         AC_MSG_RESULT(no)
-        AC_CHECK_PROGS(CSHARPCOMPILER, gmcs mcs cscc)
+        AC_CHECK_PROGS(CSHARPCOMPILER, mono-csc gmcs mcs cscc)
       else
         AC_MSG_RESULT(yes)
       fi
     fi
     ;;
-  *)AC_CHECK_PROGS(CSHARPCOMPILER, gmcs mcs cscc);;
+  *)AC_CHECK_PROGS(CSHARPCOMPILER, mono-csc gmcs mcs cscc);;
   esac
 else
   CSHARPCOMPILER="$CSHARPCOMPILERBIN"
@@ -2133,6 +2139,7 @@ if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then
   GOC=
   GO1=false
   GOGCC=false
+  GOOPT=
 else
 
   if test "x$GOBIN" = xyes; then
@@ -2143,16 +2150,40 @@ else
 
   GOGCC=false
   GO1=false
+  GOOPT=
   if test -n "$GO" ; then
     if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
       GOGCC=true
+      AC_MSG_CHECKING([whether gccgo version is too old])
       go_version=`$GO --version | sed -e 's/[^0-9]* \([0-9.]*\) .*$/\1/' -e 's/[.]//g'`
       if test "$go_version" -lt 470; then
-        AC_DEFINE(HAVE_GCCGO_46, 1, [Define if using gccgo before 4.7.0])
+        AC_MSG_RESULT([yes - minimum version is 4.7.0])
+      else
+	AC_MSG_RESULT([no])
+        if test "$go_version" -lt 480; then
+          GOOPT="-intgosize 32"
+	else
+	  AC_CHECK_SIZEOF([void *], [4])
+	  if test "$ac_cv_sizeof_void_p" = "8"; then
+	    GOOPT="-intgosize 64"
+	  else
+	    GOOPT="-intgosize 32"
+	  fi
+        fi
       fi
     elif test "`echo $GO | sed -e 's|.*/||'`" = "go"; then
       GO1=true
       GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
+      go_version=$($GO version | sed -e 's/go version //')
+      case $go_version in
+      go1.0*) GOOPT="-intgosize 32" ;;
+      *) if test "$GOC" = "6c"; then
+           GOOPT="-intgosize 64"
+         else
+           GOOPT="-intgosize 32"
+	 fi
+	 ;;
+      esac
     else
       GOC=`echo $GO | sed -e 's/g/c/'`
       AC_MSG_CHECKING([whether Go ($GO) version is too old])
@@ -2164,6 +2195,7 @@ else
       else
         AC_MSG_RESULT([no])
       fi
+      GOOPT="-intgosize 32"
     fi
   fi
 fi
@@ -2172,6 +2204,7 @@ AC_SUBST(GOGCC)
 AC_SUBST(GO)
 AC_SUBST(GOC)
 AC_SUBST(GO1)
+AC_SUBST(GOOPT)
 
 #----------------------------------------------------------------
 # Look for D
@@ -2276,7 +2309,7 @@ AC_SUBST(SKIP_PERL5)
 
 
 SKIP_OCTAVE=
-if test -z "$OCTAVE" || test -z "$OCTAVEEXT" ; then
+if test -z "$OCTAVE" ; then
     SKIP_OCTAVE="1"
 fi
 AC_SUBST(SKIP_OCTAVE)

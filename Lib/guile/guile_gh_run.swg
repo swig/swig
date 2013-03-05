@@ -27,7 +27,7 @@ typedef SCM (*swig_guile_proc)();
   SWIG_Guile_MustGetPtr(&swig_module, s, type, argnum, flags, FUNC_NAME)
 #define SWIG_NewPointerObj(ptr, type, owner) \
   SWIG_Guile_NewPointerObj(&swig_module, (void*)ptr, type, owner)
-#define SWIG_GetModule(clientdata) SWIG_Guile_GetModule()
+#define SWIG_GetModule(clientdata) SWIG_Guile_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) SWIG_Guile_SetModule(pointer)
 
 /* Ignore object-ownership changes in gh mode */
@@ -114,14 +114,14 @@ SWIG_Guile_LookupType(swig_module_info *module, SCM s, int normal)
 
 #ifdef SWIG_GUILE_MODULE_STATIC
 static swig_module_info *swig_guile_module = 0;
-SWIG_GUILE_MODULE_STATIC swig_module_info *SWIG_Guile_GetModule(void) {
+SWIG_GUILE_MODULE_STATIC swig_module_info *SWIG_Guile_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
   return swig_guile_module;
 }
 SWIG_GUILE_MODULE_STATIC void SWIG_Guile_SetModule(swig_module_info *pointer) {
   swig_guile_module = pointer;
 }
 #else
-SWIGEXPORT swig_module_info * SWIG_Guile_GetModule(void);
+SWIGEXPORT swig_module_info * SWIG_Guile_GetModule(void *SWIGUNUSEDPARM(clientdata));
 SWIGEXPORT void SWIG_Guile_SetModule(swig_module_info *pointer);
 #endif
 

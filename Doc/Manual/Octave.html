@@ -63,7 +63,7 @@ The SWIG implemention was first based on Octave 2.9.12, so this is the minimum v
 </p>
 
 <p>
-As of SWIG 2.0.5, the Octave module should work with Octave versions 3.0.5, 3.2.4, and 3.4.0.
+As of SWIG 2.0.7, the Octave module has been tested with Octave versions 3.0.5, 3.2.4, 3.4.3, and 3.6.1.
 </p>
 
 <H2><a name="Octave_nn3"></a>30.2 Running SWIG</H2>
@@ -95,7 +95,7 @@ The <tt>-c++</tt> option is also required when wrapping C++ code:
 <div class="shell"><pre>$ swig -octave -c++ -o example_wrap.cpp example.i </pre></div>
 
 <p>
-This creates a C++ source file <tt>example_wrap.cpp</tt>. A C++ file is generated even when wrapping C code as Octave is itself written in C++ and requires wrapper code to be in the same language. The generated C++ source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application (in this case, the gcd implementation) to create an extension module.
+This creates a C++ source file "example_wrap.cpp". A C++ file is generated even when wrapping C code as Octave is itself written in C++ and requires wrapper code to be in the same language. The generated C++ source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application (in this case, the gcd implementation) to create an extension module.
 </p>
 
 <H3><a name="Octave_nn4"></a>30.2.1 Command-line options</H3>
@@ -110,15 +110,12 @@ Options specific to the Octave module are:
 <pre>$ swig -octave -help
 ...
 Octave Options (available with -octave)
-     -global       - Load all symbols into the global namespace [default]
      -globals <em>name</em> - Set <em>name</em> used to access C global variables [default: 'cvar']
-                         - Use '.' to load C global variables into module namespace
-     -noglobal     - Do not load all symbols into the global namespace
+                     Use '.' to load C global variables into module namespace
      -opprefix <em>str</em> - Prefix <em>str</em> for global operator functions [default: 'op_']
 </pre></div>
 
 <p>
-The <em>-global</em> and <em>-noglobal</em> options determine whether the Octave module will load all symbols into the global namespace in addition to the global namespace.
 The <em>-globals</em> option sets the name of the variable which is the namespace for C global variables exported by the module.
 The special name "." loads C global variables into the module namespace, i.e. alongside C functions and structs exported by the module.
 The <em>-opprefix</em> options sets the prefix of the names of global/friend <a href="#Octave_nn18">operator</a> functions.
@@ -138,7 +135,7 @@ $ mkoctfile example_wrap.cpp example.c
 </pre></div>
 
 <p>
-        where example.c is the file containing the gcd() implementation. 
+        where "example.c" is the file containing the gcd() implementation. 
 </p>
 
 <p>
@@ -146,7 +143,7 @@ $ mkoctfile example_wrap.cpp example.c
 </p>
 
 <p>
-        mkoctfile will produce example.oct, which contains the compiled extension module. Loading it into Octave is then a matter of invoking 
+        mkoctfile will produce "example.oct", which contains the compiled extension module. Loading it into Octave is then a matter of invoking 
 </p>
 
           <div class="targetlang"><pre>octave:1&gt; example</pre></div>
@@ -176,59 +173,26 @@ ans =  4 </pre></div>
 
 
 <p>
-The SWIG module directive specifies the name of the Octave module. If you specify `module example', then in Octave everything in the module will be accessible under "example", as in the above example. When choosing a module name, make sure you don't use the same name as a built-in Octave command or standard module name.
+The SWIG module directive specifies the name of the Octave module. If you specify "module example", then in Octave everything in the module will be accessible under "example", as in the above example. When choosing a module name, make sure you don't use the same name as a built-in Octave command or standard module name.
 </p>
 
 <p>
-When Octave is asked to invoke <tt>example</tt>, it will try to find the .m or .oct file that defines the function "example". It will thusly find example.oct, that upon loading will register all of the module's symbols.
+When Octave is asked to invoke <tt>example</tt>, it will try to find the ".m" or ".oct" file that defines the function "example". You therefore need to make sure that "example.oct" is in Octave's search path, which can be specified with the environment variable "OCTAVE_PATH".
 </p>
 
 <p>
-An Octave module takes three options, <em>-global</em>, <em>-noglobal</em>, and <em>-globals</em>, which behave the same as the corresponding swig <a href="#Octave_nn4">command-line options</a>.
-Here are some example usages:
+To load an Octave module, simply type its name:
 </p>
 
-    <div class="targetlang"><pre>
-octave:1&gt; example -help
-usage: example [-global|-noglobal] [-globals &lt;name&gt;]
-octave:2&gt; example -global
-octave:3&gt; gcd(4,6)
+<div class="targetlang"><pre>
+octave:1&gt; example;
+octave:2&gt; gcd(4,6)
 ans =  2
-octave:4&gt; cvar.Foo
-ans =  3
-octave:5&gt; cvar.Foo=4;
-octave:6&gt; cvar.Foo
-ans =  4
-</pre></div>
-<br>
-    <div class="targetlang"><pre>
-octave:1&gt; example -noglobal
-octave:2&gt; gcd(6,9)
-ans =  3
 octave:3&gt; cvar.Foo
-error: `cvar' undefined near line 3 column 1
-octave:3&gt; example.cvar.Foo
 ans =  3
-</pre></div>
-<br>
-    <div class="targetlang"><pre>
-octave:1&gt; example -globals mycvar
-octave:2&gt; cvar.Foo
-error: `cvar' undefined near line 2 column 1
-octave:2&gt; mycvar.Foo
-ans =  3
-</pre></div>
-
-<p>
-     It is also possible to rename the module / global variables namespaces with an assignment, as in: <br>
-    <div class="targetlang"><pre>
-octave:1&gt; example
-octave:2&gt; c=example;
-octave:3&gt; c.gcd(10,4)
-ans =  2
-octave:4&gt; some_vars = cvar;
-octave:5&gt; some_vars.Foo
-ans =  3
+octave:4&gt; cvar.Foo=4;
+octave:5&gt; cvar.Foo
+ans =  4
 </pre></div>
 
 <p>
@@ -274,9 +238,9 @@ int fact(int n); </pre></div>
      Global variables are a little special in Octave. Given a global variable: 
 </p>
 
-    <div class="code"><pre>%module example
+<div class="code"><pre>%module example
 extern double Foo;
-      </pre></div>
+</pre></div>
 
 <p>
     To expose variables, SWIG actually generates two functions, to get and set the value. In this case, Foo_set and Foo_set would be generated. SWIG then automatically calls these functions when you get and set the variable-- in the former case creating a local copy in the interpreter of the C variables, and in the latter case copying an interpreter variables onto the C variable. 

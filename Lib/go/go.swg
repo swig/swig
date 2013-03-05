@@ -366,13 +366,25 @@
 %{ $1 = ($1_ltype)$input; %}
 
 %typemap(out) enum SWIGTYPE
-%{ $result = $1; %}
+%{ $result = (intgo)$1; %}
 
 %typemap(directorin) enum SWIGTYPE
 %{ $input = ($1_ltype)$1; %}
 
 %typemap(directorout) enum SWIGTYPE
 %{ $result = ($1_ltype)$input; %}
+
+%typemap(directorin) enum SWIGTYPE & (intgo e)
+%{
+  e = (intgo)$1;
+  $input = &e;
+%}
+
+%typemap(directorout) enum SWIGTYPE &
+%{
+  $*1_ltype f = ($*1_ltype)*$input;
+  $result = ($1_ltype)&f;
+%}
 
 /* Arbitrary type.  This is a type passed by value in the C/C++ code.
    We convert it to a pointer for the Go code.  Note that all basic
