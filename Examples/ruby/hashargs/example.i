@@ -14,7 +14,7 @@
       val = rb_hash_aref($input, key);
       Check_Type(key, T_STRING);
       Check_Type(val, T_FIXNUM);
-      $2[i] = STR2CSTR(key);
+      $2[i] = StringValuePtr(key);
       $3[i] = NUM2INT(val);
     }
   }

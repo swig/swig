@@ -5,30 +5,6 @@
  * This file is parsed by SWIG before reading any other interface file.
  * ----------------------------------------------------------------------------- */
 
-%insert("runtime") %{
-/* Lua flavors */
-#define SWIG_LUA_FLAVOR_LUA 1
-#define SWIG_LUA_FLAVOR_ELUA 2
-#define SWIG_LUA_FLAVOR_ELUAC 3
-
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
-#  define SWIG_LUA_CONSTTAB_INT(B, C) LSTRKEY(B), LNUMVAL(C)
-#  define SWIG_LUA_CONSTTAB_FLOAT(B, C) LSTRKEY(B), LNUMVAL(C)
-#  define SWIG_LUA_CONSTTAB_STRING(B, C) LSTRKEY(B), LSTRVAL(C)
-#  define SWIG_LUA_CONSTTAB_CHAR(B, C) LSTRKEY(B), LNUMVAL(C)
-# else /* SWIG_LUA_FLAVOR_LUA */
-#  define SWIG_LUA_CONSTTAB_INT(B, C) SWIG_LUA_INT, (char *)B, (long)C, 0, 0, 0
-#  define SWIG_LUA_CONSTTAB_FLOAT(B, C) SWIG_LUA_FLOAT, (char *)B, 0, (double)C, 0, 0
-#  define SWIG_LUA_CONSTTAB_STRING(B, C) SWIG_LUA_STRING, (char *)B, 0, 0, (void *)C, 0
-#  define SWIG_LUA_CONSTTAB_CHAR(B, C) SWIG_LUA_CHAR, (char *)B, (long)C, 0, 0, 0
-#endif
-
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
-#  define LRO_STRVAL(v) {{.p = (char *) v}, LUA_TSTRING}
-#  define LSTRVAL LRO_STRVAL
-#endif
-%}
-
 /* -----------------------------------------------------------------------------
  *                          includes
  * ----------------------------------------------------------------------------- */
@@ -166,8 +142,8 @@
 /* ------------------------------------------------------------
  *                              Exceptions
  * ------------------------------------------------------------ */
-/* Confession: I dont really like C++ exceptions
-The python/lua ones are great, but C++ ones I dont like
+/* Confession: I don't really like C++ exceptions
+The python/lua ones are great, but C++ ones I don't like
 (mainly because I cannot get the stack trace out of it)
 Therefore I have not bothered to try doing much in this
 
@@ -215,7 +191,7 @@ There are a few options:
 - return a copy of it: but not all objects are copyable
 	(see exception_partial_info in the test suite for a case where you cannot do this)
 - convert to a string & throw that
-	its not so useful, but it works (this is more lua like).
+	it's not so useful, but it works (this is more lua like).
 The third option (though not nice) is used
 For a more useful solution: see std_except for more details
 */

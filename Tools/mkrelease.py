@@ -48,4 +48,4 @@ os.system("svn copy -m \"rel-" + version + "\" https://swig.svn.sourceforge.net/
 
 print "Finished"
 
-print "Now log in to SourceForge and set the operating system and link the release notes to each of the tarball and zip file in the File Manager."
+print "Now log in to SourceForge and set the operating systems applicable to the newly uploaded tarball and zip file."

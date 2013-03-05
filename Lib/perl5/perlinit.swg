@@ -33,7 +33,7 @@ XS(SWIG_init) {
 
     /* Install commands */
     for (i = 0; swig_commands[i].name; i++) {
-      // Casts only needed for Perl < 5.10.
+      /* Casts only needed for Perl < 5.10. */
 #ifdef __cplusplus
       newXS(const_cast<char*>(swig_commands[i].name), swig_commands[i].wrapper, const_cast<char*>(__FILE__));
 #else

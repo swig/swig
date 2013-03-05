@@ -51,7 +51,7 @@ my $ex = new default_args::Except($false);
 
 my $hit = 0;
 eval { $ex->exspec(); $hit = 1; };
-# a zero was thrown, an exception occured, but $@ is false
+# a zero was thrown, an exception occurred, but $@ is false
 is($hit, 0, "exspec 1");
 eval { $ex->exspec(-1) };
 like($@, qr/^ciao/, "exspec 2");

@@ -29,8 +29,6 @@
  *
  */
 
-char cvsroot_pike_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #include <ctype.h>		// for isalnum()
@@ -182,8 +180,6 @@ public:
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_classInit);
-
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
 

@@ -40,3 +40,13 @@ is an error in which case stderr is suggested.
 Please set the name of the module to the same name as the testcase,
 otherwise modules will not be found.
 
+There is a special directory called testdir for testcases requiring
+inputs from subdirectories or multiple directories. See the
+testdir/README file.
+
+Further Documentation
+---------------------
+
+There is documentation about the test-suite and how to use use it in
+the SWIG documentation - Doc/Manual/Extending.html#Extending_test_suite.
+

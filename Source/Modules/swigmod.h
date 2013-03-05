@@ -120,6 +120,8 @@ public:
   virtual ~Language();
   virtual int emit_one(Node *n);
 
+  String *directorClassName(Node *n);
+
   /* Parse command line options */
 
   virtual void main(int argc, char *argv[]);
@@ -293,6 +295,10 @@ protected:
 
   /* Some language modules require additional wrappers for virtual methods not declared in sub-classes */
   virtual bool extraDirectorProtectedCPPMethodsRequired() const;
+
+  /* Identifies if a protected members that are generated when the allprotected option is used.
+     This does not include protected virtual methods as they are turned on with the dirprot option. */
+  bool isNonVirtualProtectedAccess(Node *n) const;
 
   /* Director subclass comparison test */
   String *none_comparison;

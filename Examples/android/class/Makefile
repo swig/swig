@@ -7,6 +7,7 @@ PACKAGENAME= org.swig.classexample
 SWIGOPT    = -package $(PACKAGENAME) -outdir $(PACKAGEDIR)/classexample 
 PROJECTNAME= SwigClass
 TARGETID  = 1
+#INSTALLOPTIONS = -s # To install on SD Card
 
 all::	android
 
@@ -18,7 +19,7 @@ android::
 
 install::
 	-adb uninstall $(PACKAGENAME)
-	adb install bin/$(PROJECTNAME)-debug.apk
+	adb install $(INSTALLOPTIONS) bin/$(PROJECTNAME)-debug.apk
 
 clean::
 	ant clean

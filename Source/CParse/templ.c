@@ -11,8 +11,6 @@
  * Expands a template into a specialized version.   
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_templ_c[] = "$Id$";
-
 #include "swig.h"
 #include "cparse.h"
 
@@ -766,6 +764,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
 	for (i = 1; i < posslen; i++) {
 	  String *templcsymname = Getattr(Getitem(possiblepartials, i), "templcsymname");
 	  Node *ignored_node = Swig_symbol_clookup_local(templcsymname, primary_scope);
+	  assert(ignored_node);
 	  Swig_warning(WARN_PARSE_TEMPLATE_AMBIG, Getfile(ignored_node), Getline(ignored_node), "  instantiation '%s' ignored.\n", SwigType_namestr(Getattr(ignored_node, "name")));
 	}
       }

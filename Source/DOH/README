@@ -69,7 +69,7 @@ Close(obj)                      Close
 
 String Operations
 -----------------
-Replace(obj, orig, rep, flags)  Replace occurences of orig with rep.
+Replace(obj, orig, rep, flags)  Replace occurrences of orig with rep.
 Chop(obj)                       Remove trailing whitespace
 
 flags is one of the following:
