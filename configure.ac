@@ -2265,16 +2265,16 @@ AC_SUBST(SKIP_JAVA)
 
 
 SKIP_GUILE=
-if test -z "$GUILEINCLUDE" || test -z "$GUILELIB" || test -z "$GUILE_GH_INTERFACE"; then
+if test -z "$GUILEINCLUDE" || test -z "$GUILELIB" || test -z "$GUILE_SCM_INTERFACE"; then
     SKIP_GUILE="1"
 fi
 AC_SUBST(SKIP_GUILE)
 
-SKIP_GUILESCM=
-if test -z "$GUILEINCLUDE" || test -z "$GUILELIB" || test -z "$GUILE_SCM_INTERFACE"; then
-    SKIP_GUILESCM="1"
+SKIP_GUILEGH=
+if test -z "$GUILEINCLUDE" || test -z "$GUILELIB" || test -z "$GUILE_GH_INTERFACE"; then
+    SKIP_GUILEGH="1"
 fi
-AC_SUBST(SKIP_GUILESCM)
+AC_SUBST(SKIP_GUILEGH)
 
 
 SKIP_MZSCHEME=
@@ -2451,7 +2451,7 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/csharp/Makefile	        \
     Examples/test-suite/d/Makefile	        \
     Examples/test-suite/guile/Makefile	        \
-    Examples/test-suite/guilescm/Makefile	\
+    Examples/test-suite/guilegh/Makefile	\
     Examples/test-suite/java/Makefile	        \
     Examples/test-suite/mzscheme/Makefile	\
     Examples/test-suite/ocaml/Makefile	        \
