@@ -455,11 +455,11 @@ octave_clean:
 
 # Make sure these locate your Guile installation
 GUILE         = @GUILE@
-GUILE_INCLUDE = @GUILEINCLUDE@
-GUILE_LIB     = @GUILELIB@
+GUILE_CFLAGS  = @GUILE_CFLAGS@
 GUILE_SO      = @GUILE_SO@
+GUILE_LIBS    = @GUILE_LIBS@
+GUILE_LIBOPTS = @LIBS@ $(SYSLIBS)
 GUILE_LIBPREFIX = lib
-GUILE_LIBOPTS = @GUILELINK@ @LIBS@ $(SYSLIBS)
 GUILE_SCRIPT  = $(RUNME).scm
 
 #------------------------------------------------------------------
@@ -467,13 +467,14 @@ GUILE_SCRIPT  = $(RUNME).scm
 #------------------------------------------------------------------
 guile: $(SRCS)
 	$(SWIG) -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ISRCS) $(SRCS)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
-guile_cpp: $(SRCS)
+guile_cpp: $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
+$(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO): $(SRCS)
 	$(SWIG) -c++ -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
+	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $@
 
 guile_externalhdr:
 	$(SWIG) -guile -external-runtime $(TARGET)
@@ -483,12 +484,12 @@ guile_externalhdr:
 #------------------------------------------------------------------
 guile_gh: $(SRCS)
 	$(SWIG) -guile -gh -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ISRCS) $(SRCS)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 guile_gh_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -gh -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 # -----------------------------------------------------------------
@@ -497,12 +498,12 @@ guile_gh_cpp: $(SRCS)
 
 guile_passive: $(SRCS)
 	$(SWIG) -guile -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ISRCS) $(SRCS)
+	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ISRCS) $(SRCS)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 guile_passive_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_INCLUDE) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 # -----------------------------------------------------------------
@@ -513,23 +514,23 @@ guile_static: $(SRCS)
 	$(SWIG) -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) \
 	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
-	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+	  $(GUILE_CFLAGS) $(LIBS) -L$(GUILE_LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 guile_static_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
-	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+	  $(GUILE_CFLAGS) $(LIBS) -L$(GUILE_LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 guile_simple: $(SRCS)
 	$(SWIG) -guile -lguilemain.i -Linkage simple $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) \
-	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+	  $(GUILE_CFLAGS) $(LIBS) -L$(GUILE_LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 guile_simple_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i -Linkage simple $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
-	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+	  $(GUILE_CFLAGS) $(LIBS) -L$(GUILE_LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 # -----------------------------------------------------------------
 # Running a Guile example
