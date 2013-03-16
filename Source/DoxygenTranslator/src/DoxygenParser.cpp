@@ -692,10 +692,12 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
           "No key followed " + theCommand + " command. Not added");
       return 0;
     }
-    std::string text = getNextWord();
-    aNewList.push_back(DoxygenEntity("plainstd::string", name));
-    if (!text.empty())
-      aNewList.push_back(DoxygenEntity("plainstd::string", text));
+    DoxygenEntityList aNewList;
+    TokenListCIt endOfLine = getOneLine(tokList);
+    if (endOfLine != m_tokenListIt) {
+      aNewList = parse(endOfLine, tokList);
+    }
+    aNewList.push_front(DoxygenEntity("plainstd::string", name));
     doxyList.push_back(DoxygenEntity(theCommand, aNewList));
   }
   // \subpage <name> ["(text)"]

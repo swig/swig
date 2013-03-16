@@ -61,6 +61,11 @@ protected:
    */
   void handleTagVerbatim(DoxygenEntity& tag, std::string& translatedComment, std::string &arg);
 
+  /** Creates anchor link. */
+  void handleTagAnchor(DoxygenEntity& tag,
+                       std::string& translatedComment,
+                       std::string &arg);
+
   /*
    * Wrap the command data with the html tag
    * arg - html tag, with no braces
@@ -125,6 +130,12 @@ protected:
    * Insert \@param command, if it is really a function param
    */
   void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  /*
+   * Writes text of \ref tag in italic. Does not produce link, because javadoc
+   * does not support page and section tags.
+   */
+  void handleTagRef(DoxygenEntity& tag, std::string& translatedComment,
+                    std::string&);
   /*
    * Insert {@link...} command, and handle all the <link-object>s correctly
    * (like converting types of params, etc)

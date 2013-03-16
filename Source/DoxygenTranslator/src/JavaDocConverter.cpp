@@ -88,6 +88,7 @@ void JavaDocConverter::fillStaticTables()
   tagHandlers["::"] = make_pair(&JavaDocConverter::handleTagChar, "");
   // these commands are stripped out
   tagHandlers["attention"] = make_pair(&JavaDocConverter::handleParagraph, "");
+  tagHandlers["anchor"] = make_pair(&JavaDocConverter::handleTagAnchor, "");
   tagHandlers["brief"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["bug"] = make_pair(&JavaDocConverter::handleParagraph, "");
   tagHandlers["date"] = make_pair(&JavaDocConverter::handleParagraph, "");
@@ -112,6 +113,7 @@ void JavaDocConverter::fillStaticTables()
   tagHandlers["package"] = make_pair(&JavaDocConverter::handleTagSame, "");
   tagHandlers["param"] = make_pair(&JavaDocConverter::handleTagParam, "");
   tagHandlers["tparam"] = make_pair(&JavaDocConverter::handleTagParam, "");
+  tagHandlers["ref"] = make_pair(&JavaDocConverter::handleTagRef, "");
   tagHandlers["result"] = make_pair(&JavaDocConverter::handleTagSame, "return");
   tagHandlers["return"] = make_pair(&JavaDocConverter::handleTagSame, "");
   tagHandlers["returns"] = make_pair(&JavaDocConverter::handleTagSame,
@@ -402,6 +404,15 @@ void JavaDocConverter::translateEntity(DoxygenEntity &tag,
   }
 }
 
+
+void JavaDocConverter::handleTagAnchor(DoxygenEntity& tag,
+                                       std::string& translatedComment,
+                                       std::string &)
+{
+  translatedComment += "<a id=\"#" + translateSubtree(tag) + "\"></a>";
+}
+
+
 void JavaDocConverter::handleTagHtml(DoxygenEntity& tag,
                                      std::string& translatedComment,
                                      std::string &arg)
@@ -573,6 +584,7 @@ void JavaDocConverter::handleTagPar(DoxygenEntity& tag,
   translatedComment += "</p>";
 }
 
+
 void JavaDocConverter::handleTagParam(DoxygenEntity& tag,
                                       std::string& translatedComment,
                                       std::string&)
@@ -589,6 +601,35 @@ void JavaDocConverter::handleTagParam(DoxygenEntity& tag,
   tag.entityList.pop_front();
   handleParagraph(tag, translatedComment, dummy);
 }
+
+
+void JavaDocConverter::handleTagRef(DoxygenEntity& tag,
+                                    std::string& translatedComment,
+                                    std::string&)
+{
+  std::string dummy;
+//  translatedComment += "1111";
+  if (!tag.entityList.size())
+    return;
+//  translatedComment += "2222";
+  //if (!paramExists(tag.entityList.begin()->data))
+//    return;
+
+  // we don't translate to link, since \page is not supported in Java, but we
+  // make text in italic, so that reader at least knows what to look at.
+  // translatedComment += "<i>";
+  //  tag.entityList.pop_front();
+  //  translatedComment += translateSubtree(tag);
+  //  translatedComment += "</i>";
+  string anchor = tag.entityList.begin()->data;
+  tag.entityList.pop_front();
+  string anchorText = translateSubtree(tag);
+  if (anchorText.find_first_not_of(" \t") == string::npos) {
+    anchorText = anchor;
+  }
+  translatedComment += "<a href=\"#" + anchor + "\">" + anchorText + "</a>";
+}
+
 
 string JavaDocConverter::convertLink(string linkObject)
 {

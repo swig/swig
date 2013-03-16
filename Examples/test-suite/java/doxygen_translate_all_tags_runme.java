@@ -111,11 +111,15 @@ public class doxygen_translate_all_tags_runme {
                 " @param a the first param\n");
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func08(int)",
-    		" Remarks: Some remark text \n" +
-    		" Remarks: Another remarks section \n" +
-    		" @return Whatever \n" +
-    		" @return it \n" +
-    		" @return may return \n");
+                       "<a id=\"#someAnchor\"></a>\n" +
+                       "Text after anchor.\n" + 
+                       "<i>Anchor description</i>\n" +
+                       "<i>someAnchor</i>\n" +
+                       " Remarks: Some remark text \n" +
+                       " Remarks: Another remarks section \n" +
+                       " @return Whatever \n" +
+                       " @return it \n" +
+                       " @return may return \n");
     
     wantedComments.put("doxygen_translate_all_tags.doxygen_translate_all_tags.func09(int)",
                        " This will only appear in RTF \n" +
