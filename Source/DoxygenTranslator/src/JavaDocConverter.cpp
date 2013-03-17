@@ -409,7 +409,7 @@ void JavaDocConverter::handleTagAnchor(DoxygenEntity& tag,
                                        std::string& translatedComment,
                                        std::string &)
 {
-  translatedComment += "<a id=\"#" + translateSubtree(tag) + "\"></a>";
+  translatedComment += "<a id=\"" + translateSubtree(tag) + "\"></a>";
 }
 
 
@@ -455,7 +455,15 @@ void JavaDocConverter::handleNewLine(DoxygenEntity&,
                                      std::string& translatedComment,
                                      std::string&)
 {
-  translatedComment += "\n * ";
+  // <br> tag is added, because otherwise to much text is joined
+  // into same paragraph by javadoc. For example, doxy list:
+  // - item one
+  // - item two
+  // becomes one paragraph with surrounding text without newlines.
+  // This way we get to many empty lines in javadoc output, but this
+  // is still better than joined lines. Possibility for improvements
+  // exists.
+  translatedComment += "<br>\n * ";
 }
 
 void JavaDocConverter::handleTagChar(DoxygenEntity& tag,
@@ -608,24 +616,17 @@ void JavaDocConverter::handleTagRef(DoxygenEntity& tag,
                                     std::string&)
 {
   std::string dummy;
-//  translatedComment += "1111";
   if (!tag.entityList.size())
     return;
-//  translatedComment += "2222";
-  //if (!paramExists(tag.entityList.begin()->data))
-//    return;
 
-  // we don't translate to link, since \page is not supported in Java, but we
-  // make text in italic, so that reader at least knows what to look at.
-  // translatedComment += "<i>";
-  //  tag.entityList.pop_front();
-  //  translatedComment += translateSubtree(tag);
-  //  translatedComment += "</i>";
+  // we translate to link, although \page is not supported in Java, but 
+  // reader at least knows what to look at. Also for \anchor tag on the same
+  // page this link works.
   string anchor = tag.entityList.begin()->data;
   tag.entityList.pop_front();
-  string anchorText = translateSubtree(tag);
-  if (anchorText.find_first_not_of(" \t") == string::npos) {
-    anchorText = anchor;
+  string anchorText = anchor;
+  if (!tag.entityList.empty()) {
+    anchorText = tag.entityList.begin()->data;
   }
   translatedComment += "<a href=\"#" + anchor + "\">" + anchorText + "</a>";
 }

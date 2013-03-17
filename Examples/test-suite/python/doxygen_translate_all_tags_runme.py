@@ -230,6 +230,12 @@ r"""
 
 commentVerifier.check(doxygen_translate_all_tags.func08.__doc__,
 r"""
+  Text after anchor.
+
+  'Anchor description'
+  'someAnchor'
+  'someAnchor'
+
   Remarks: Some remark text
 
   Another remarks section

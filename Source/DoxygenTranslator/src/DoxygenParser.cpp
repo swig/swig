@@ -693,11 +693,23 @@ int DoxygenParser::addCommandUnique(const std::string &theCommand,
       return 0;
     }
     DoxygenEntityList aNewList;
-    TokenListCIt endOfLine = getOneLine(tokList);
-    if (endOfLine != m_tokenListIt) {
-      aNewList = parse(endOfLine, tokList);
-    }
     aNewList.push_front(DoxygenEntity("plainstd::string", name));
+    // TokenListCIt endOfLine = getOneLine(tokList);
+    // if (endOfLine != m_tokenListIt) {
+    //   aNewList = parse(endOfLine, tokList);
+    //}
+    TokenListCIt tmpIt = m_tokenListIt;
+    std::string refTitle = getNextWord();
+    // If title is following the ref tag, it must be quoted. Otherwise
+    // doxy puts link on ref id.
+    if (refTitle.size() > 1  &&  refTitle[0] == '"') {
+        // remove quotes
+        refTitle = refTitle.substr(1, refTitle.size() - 2);
+        aNewList.push_back(DoxygenEntity("plainstd::string", refTitle));
+    } else {
+        // no quoted string is following, so we have to restore iterator
+        m_tokenListIt = tmpIt;
+    }
     doxyList.push_back(DoxygenEntity(theCommand, aNewList));
   }
   // \subpage <name> ["(text)"]

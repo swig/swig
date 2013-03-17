@@ -134,6 +134,7 @@ void PyDocConverter::fillStaticTables()
   tagHandlers["par"] = make_pair(&PyDocConverter::handleTagPar, "");
   tagHandlers["param"] = make_pair(&PyDocConverter::handleTagParam, "");
   tagHandlers["tparam"] = make_pair(&PyDocConverter::handleTagParam, "");
+  tagHandlers["ref"] = make_pair(&PyDocConverter::handleTagRef, "");
   // this command just prints it's contents
   // (it is internal command of swig's parser, contains plain text)
   tagHandlers["plainstd::string"] = make_pair(
@@ -415,6 +416,25 @@ void PyDocConverter::handleTagParam(DoxygenEntity& tag,
   translatedComment += "  " + paramNameEntity.data + " (" + paramType + ") --";
   handleParagraph(tag, translatedComment, dummy);
 }
+
+
+void PyDocConverter::handleTagRef(DoxygenEntity& tag,
+                                  std::string& translatedComment,
+                                  std::string&)
+{
+  std::string dummy;
+  if (!tag.entityList.size())
+    return;
+
+  string anchor = tag.entityList.begin()->data;
+  tag.entityList.pop_front();
+  string anchorText = anchor;
+  if (!tag.entityList.empty()) {
+    anchorText = tag.entityList.begin()->data;
+  }
+  translatedComment += "'" + anchorText + "'";
+}
+
 
 void PyDocConverter::handleTagWrap(DoxygenEntity& tag,
                                    std::string& translatedComment,

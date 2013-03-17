@@ -131,8 +131,7 @@ protected:
    */
   void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
   /*
-   * Writes text of \ref tag in italic. Does not produce link, because javadoc
-   * does not support page and section tags.
+   * Writes link for \ref tag. 
    */
   void handleTagRef(DoxygenEntity& tag, std::string& translatedComment,
                     std::string&);

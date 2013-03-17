@@ -277,7 +277,9 @@ int func07(int a)
  *
  * \publicsection
  *
- * \ref someAnchor Anchor description
+ * \ref someAnchor "Anchor description"
+ *
+ * \ref someAnchor not quoted text is not part of ref tag
  *
  * \ref someAnchor
  *

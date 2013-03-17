@@ -108,7 +108,11 @@ protected:
    * Format nice param description with type information
    */
   void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
-
+  /*
+   * Writes text for \ref tag. 
+   */
+  void handleTagRef(DoxygenEntity& tag, std::string& translatedComment, std::string&);
+    
   /* Handles HTML tags recognized by Doxygen, like <A ...>, <ul>, <table>, ... */
 
   void handleDoxyHtmlTag(DoxygenEntity& tag, std::string& translatedComment, std::string &arg);
