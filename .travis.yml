@@ -2,7 +2,13 @@ language: cpp
 compiler:
   - gcc
   - clang
-script: ./autogen.sh && ./configure && make -s
+python:
+  - "2.7"
+  - "3.3"
+before_install:
+  - sudo apt-get update -qq 
+  - sudo apt-get install libboost-dev -qq
+script: ./autogen.sh && ./configure && make -s && make -k check-python-test-suite
 branches:
   only:
     - master
