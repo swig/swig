@@ -56,10 +56,18 @@ public class CommentParser {
             actualStr = actualStr.replace(" ", "");
             actualStr = actualStr.replaceAll("\t", "");
             actualStr = actualStr.replace("\n", "");
+            
+            // Removing of <br> is temporary solution, since adding of
+            // <br> tag requires changes in all tests. However, <br>
+            // tag should be added more selectively and when this is
+            // implemented, tests should be updated.
+            actualStr = actualStr.replace("<br>", "");
+            
             if (wantedStr != null) {
                 wantedStr = wantedStr.replace(" ", "");
                 wantedStr = wantedStr.replace("\t", "");
                 wantedStr = wantedStr.replace("\n", "");
+                wantedStr = wantedStr.replace("<br>", "");
             }
             /* The following lines replace multiple whitespaces with a single one.
                Although this would be more exact testing, it would also require
@@ -92,7 +100,7 @@ public class CommentParser {
 
                     // write translated string to file
                     BufferedWriter gotFile = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(gotFileName)));
-                    gotFile.write(e.getValue());
+                    gotFile.write(e.getValue().replace("<br>", ""));
                     gotFile.close();
                 } catch (IOException ex) {
                     System.out.println("Error when writing output to file: " + ex);
