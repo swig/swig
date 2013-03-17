@@ -2,4 +2,7 @@ language: cpp
 compiler:
   - gcc
   - clang
-script: ./autogen.sh && ./configure && make
+script: ./autogen.sh && ./configure && make -s
+branches:
+  only:
+    - master
