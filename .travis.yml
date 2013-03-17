@@ -1,14 +1,31 @@
 language: cpp
 compiler:
   - gcc
-  - clang
+#  - clang
 python:
   - "2.7"
   - "3.3"
+jdk:
+  - oraclejdk7
+  - openjdk6
+env:
+  - SWIGLANG=python
+matrix:
+  include:
+    - python: "2.7"
+    - compiler: gcc
+    - env: SWIGLANG=python
+  include:
+    - jdk: oraclejdk7
+    - compiler: gcc
+    - env: SWIGLANG=java
 before_install:
-  - sudo apt-get update -qq 
   - sudo apt-get install libboost-dev -qq
-script: ./autogen.sh && ./configure && make -s && make -k check-python-test-suite
+script:
+  - set
+  - ./autogen.sh && ./configure
+  - make -s
+  - make -k check-$SWIGLANG-examples check-$SWIGLANG-test-suite
 branches:
   only:
     - master
