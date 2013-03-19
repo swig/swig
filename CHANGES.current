@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-03-19: wsfulton
+            [C#, Java, D] Fix seg fault in SWIG using directors when class and virtual method names are
+            the same except being in different namespaces when the %nspace feature is not being used.
+
 2013-02-19: kwwette
             Fix bug in SWIG's handling of qualified (e.g. const) variables of array type. Given the typedef
               a(7).q(volatile).double myarray     // typedef volatile double[7] myarray;
