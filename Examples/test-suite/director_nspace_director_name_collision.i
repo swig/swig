@@ -39,6 +39,7 @@ namespace TopLevel
 %nspace TopLevel::B::Foo;
 #else
 #warning nspace feature not yet supported in this target language
+%ignore TopLevel::B::Foo;
 #endif
 
 %feature("director") TopLevel::A::Foo;
