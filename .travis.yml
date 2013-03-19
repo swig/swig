@@ -1,15 +1,4 @@
 language: cpp
-compiler:
-  - gcc
-#  - clang
-python:
-  - "2.7"
-  - "3.3"
-jdk:
-  - oraclejdk7
-  - openjdk6
-env:
-  - SWIGLANG=python
 matrix:
   include:
     - python: "2.7"
