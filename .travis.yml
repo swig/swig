@@ -2,16 +2,14 @@ language: cpp
 matrix:
   include:
     - python: "2.7"
-    - compiler: gcc
-    - env: SWIGLANG=python
-  include:
+      compiler: gcc
+      env: SWIGLANG=python
     - jdk: oraclejdk7
-    - compiler: gcc
-    - env: SWIGLANG=java
+      compiler: gcc
+      env: SWIGLANG=java
 before_install:
   - sudo apt-get install libboost-dev -qq
 script:
-  - set
   - ./autogen.sh && ./configure
   - make -s
   - make -k check-$SWIGLANG-examples check-$SWIGLANG-test-suite
