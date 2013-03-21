@@ -2482,4 +2482,4 @@ AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
 AC_CONFIG_FILES([CCache/ccache_swig_config.h])
 
 AC_OUTPUT
-dnl configure.in ends here
+dnl configure.ac ends here
