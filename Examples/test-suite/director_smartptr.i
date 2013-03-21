@@ -32,6 +32,12 @@ public:
 
 %}
 
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD)
+#define SHARED_PTR_WRAPPERS_IMPLEMENTED
+#endif
+
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
+
 %include <std_string.i>
 %include <boost_shared_ptr.i>
 
@@ -61,3 +67,6 @@ public:
  
   static Foo* get_self(Foo *self_);
 };
+
+#endif
+
