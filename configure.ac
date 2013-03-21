@@ -670,7 +670,7 @@ else
     AC_MSG_CHECKING(for Python lib dir)
     PYLIBDIR=`($PYTHON -c "import sys; print sys.lib") 2>/dev/null`
     if test -z "$PYLIBDIR"; then
-      # older versions don't have sys.lib  so the best we can do is assume lib
+      # Fedora patch Python to add sys.lib, for other distros we assume "lib".
       PYLIBDIR="lib" 
     fi
     AC_MSG_RESULT($PYLIBDIR)
