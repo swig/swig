@@ -205,7 +205,7 @@ then
 	*-*-next*)
 		if test "$ns_dyld"
 		then LDSHARED='$(CC) $(LDFLAGS) -bundle -prebind'
-		else LDSHARED='$(CC) $(CFLAGS) -nostdlib -r';
+		else LDSHARED='$(CC) $(CFLAGS) -nostdlib -r'
 		fi
                 if test "$with_next_framework" ; then
 		    LDSHARED="$LDSHARED \$(LDLIBRARY)"
@@ -243,9 +243,9 @@ AC_MSG_CHECKING(TRYLINKINGWITHCXX)
 if test -z "$TRYLINKINGWITHCXX"
 then
 	case $host in
-	*-*-solaris*) if test "$GCC" = yes;
-             then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G";
-             else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun -lCstd";
+	*-*-solaris*) if test "$GCC" = yes
+             then TRYLINKINGWITHCXX="CXXSHARED= $CXX -Wl,-G"
+             else TRYLINKINGWITHCXX="CXXSHARED= $CXX -G -L/opt/SUNWspro/lib -lCrun -lCstd"
              fi;;
         *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= $CXX +z ";;
         *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= $CXX -bundle -undefined suppress -flat_namespace";;
@@ -270,9 +270,9 @@ AC_MSG_CHECKING(CCSHARED)
 if test -z "$CCSHARED"
 then
 	case $host in
-	*-*-hp*) if test "$GCC" = yes;
-		 then CCSHARED="-fpic";
-		 else CCSHARED="+z";
+	*-*-hp*) if test "$GCC" = yes
+		 then CCSHARED="-fpic"
+		 else CCSHARED="+z"
 		 fi;;
 	*-*-linux*) CCSHARED="-fpic";;
 	*-*-freebsd* | *-*-openbsd*) CCSHARED="-fpic";;
@@ -320,7 +320,7 @@ AC_MSG_RESULT($LINKFORSHARED)
 # Optional CFLAGS used to silence/enhance compiler warnings on some platforms.
 AC_MSG_CHECKING(PLATFLAGS)
 case $host in
-  *-*-solaris*) if test "$GCC" = yes;
+  *-*-solaris*) if test "$GCC" = yes
     then PLATFLAGS=
     else PLATFLAGS=
       #    else PLATFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
@@ -859,7 +859,7 @@ if test -n "$PERL"; then
 			if test -r $i/perl.h; then
 				AC_MSG_RESULT($i)
 				PERL5EXT="$i"
-				break;
+				break
 			fi
 		done
 		if test "$PERL5EXT" = none; then
@@ -1356,7 +1356,7 @@ if test -n "$RUBY"; then
 			if test -r $i/ruby.h; then
 				AC_MSG_RESULT($i)
 				RUBYINCLUDE="-I$i"
-				break;
+				break
 			fi
 		done
 		if test x"$RUBYARCH" != x""; then
@@ -1406,7 +1406,7 @@ if test -n "$RUBY"; then
 			for i in $dirs; do
 				if (test -r $i/$rb_libruby;) then
 					RUBYLIB="$i"
-					break;
+					break
 				fi
 			done
 		fi
@@ -1548,7 +1548,7 @@ else
 			AC_MSG_RESULT($i)
 			OCAMLEXT="$i"
 			OCAMLINC="-I$OCAMLEXT"
-			break;
+			break
 		fi
 	done
 	if test -z "$OCAMLINC"; then
@@ -1794,7 +1794,7 @@ if test -z "$CSHARPBIN" ; then
       # The Mono compiler should emit: Mono C# compiler version a.b.c.d
       csharp_version_raw=`(mcs --version) 2>/dev/null`
       csharp_version_searched=`(mcs --version | sed -e "/C#/b" -e "/Mono/b" -e d) 2>/dev/null` # return string if contains 'Mono' or 'C#'
-      CSHARPCOMPILER="";
+      CSHARPCOMPILER=""
       if test -n "$csharp_version_raw" ; then
         if test "$csharp_version_raw" = "$csharp_version_searched" ; then
           CSHARPCOMPILER="mcs"
@@ -1951,7 +1951,7 @@ else
       if test -r $i/lua.h; then
         AC_MSG_RESULT($i/lua.h)
 	LUAFLAGS="$ISYSTEM$i"
-	break;
+	break
       fi
     done
     if test -z "$LUAFLAGS"; then
