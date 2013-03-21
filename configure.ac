@@ -703,12 +703,7 @@ else
       AC_MSG_RESULT($PYLIB)
     fi
 
-    # Check for really old versions
-    if test -r $PYLIB/libPython.a; then
-      PYLINK="-lModules -lPython -lObjects -lParser"
-    else
-      PYLINK="-l$PYVERSION"
-    fi
+    PYLINK="-l$PYVERSION"
   fi
 
   # Cygwin (Windows) needs the library for dynamic linking
