@@ -713,8 +713,9 @@ else
 
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
-  *-*-cygwin* | *-*-mingw*) PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
-    DEFS="-DUSE_DL_IMPORT $DEFS" PYINCLUDE="$PYINCLUDE"
+  *-*-cygwin* | *-*-mingw*)
+    PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
+    DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
   *)PYTHONDYNAMICLINKING="";;
   esac
@@ -808,8 +809,9 @@ else
 
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
-  *-*-cygwin* | *-*-mingw*) PYTHON3DYNAMICLINKING="-L$PYLIB $PY3LINK"
-    DEFS="-DUSE_DL_IMPORT $DEFS" PY3INCLUDE="$PY3INCLUDE"
+  *-*-cygwin* | *-*-mingw*)
+    PYTHON3DYNAMICLINKING="-L$PYLIB $PY3LINK"
+    DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
   *)PYTHON3DYNAMICLINKING="";;
   esac
@@ -1300,7 +1302,7 @@ else
     AC_MSG_CHECKING(for MzScheme dynext object) 
     MZDYNOBJ=`$MZSCHEME --eval '(begin (require dynext/link) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (printf "~a" x)) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
     if test -f "$MZDYNOBJ"; then
-      MZDYNOBJ="$MZDYNOBJ"
+      :
     else
       # older versions (3.72 approx and earlier)
       MZDYNOBJ=`$MZSCHEME --mute-banner --version --eval '(begin (require (lib "link.ss" "dynext")) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x) (display " ")) ((current-make-standard-link-libraries)))) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x)) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
@@ -1511,36 +1513,26 @@ else
     AC_MSG_CHECKING(for Ocaml DL load generator)
     if test -z "$OCAMLDLGEN"; then
 	AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen, :)
-    else
-	OCAMLDLGEN="$OCAMLDLGEN"
     fi
 
     AC_MSG_CHECKING(for Ocaml package tool)
 	if test -z "$OCAMLFIND"; then
 	AC_CHECK_PROGS(OCAMLFIND, ocamlfind, :)
-    else
-	OCAMLFIND="$OCAMLFIND"
     fi
 
     AC_MSG_CHECKING(for Ocaml compiler)
 	if test -z "$OCAMLC"; then
 	AC_CHECK_PROGS(OCAMLC, ocamlc, :)
-    else
-	OCAMLC="$OCAMLC"
     fi
 
     AC_MSG_CHECKING(for Ocaml interpreter)
 	if test "x$OCAMLBIN" = xyes; then
 	AC_CHECK_PROGS(OCAMLBIN, ocaml, :)
-    else
-	OCAMLBIN="$OCAMLBIN"
     fi
 
     AC_MSG_CHECKING(for Ocaml toplevel creator)
     if test -z "$OCAMLMKTOP"; then
 	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop, :)
-    else
-	OCAMLMKTOP="$OCAMLMKTOP"
     fi
 
     OCAMLLOC=loc
