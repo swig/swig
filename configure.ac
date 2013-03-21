@@ -1504,47 +1504,47 @@ AC_ARG_WITH(ocamlmktop,[  --with-ocamlmktop=path  Set location of ocamlmktop exe
 
 # First, check for "--without-ocaml" or "--with-ocaml=no".
 if test x"${OCAMLBIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling OCaml])
-OCAMLBIN=
+    AC_MSG_NOTICE([Disabling OCaml])
+    OCAMLBIN=
 else
 
-AC_MSG_CHECKING(for Ocaml DL load generator)
-if test -z "$OCAMLDLGEN"; then
-AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen, :)
-else
-OCAMLDLGEN="$OCAMLDLGEN"
-fi
+    AC_MSG_CHECKING(for Ocaml DL load generator)
+    if test -z "$OCAMLDLGEN"; then
+	AC_CHECK_PROGS(OCAMLDLGEN, ocamldlgen, :)
+    else
+	OCAMLDLGEN="$OCAMLDLGEN"
+    fi
 
-AC_MSG_CHECKING(for Ocaml package tool)
-if test -z "$OCAMLFIND"; then
-AC_CHECK_PROGS(OCAMLFIND, ocamlfind, :)
-else
-OCAMLFIND="$OCAMLFIND"
-fi
+    AC_MSG_CHECKING(for Ocaml package tool)
+	if test -z "$OCAMLFIND"; then
+	AC_CHECK_PROGS(OCAMLFIND, ocamlfind, :)
+    else
+	OCAMLFIND="$OCAMLFIND"
+    fi
 
-AC_MSG_CHECKING(for Ocaml compiler)
-if test -z "$OCAMLC"; then
-AC_CHECK_PROGS(OCAMLC, ocamlc, :)
-else
-OCAMLC="$OCAMLC"
-fi
+    AC_MSG_CHECKING(for Ocaml compiler)
+	if test -z "$OCAMLC"; then
+	AC_CHECK_PROGS(OCAMLC, ocamlc, :)
+    else
+	OCAMLC="$OCAMLC"
+    fi
 
-AC_MSG_CHECKING(for Ocaml interpreter)
-if test "x$OCAMLBIN" = xyes; then
-AC_CHECK_PROGS(OCAMLBIN, ocaml, :)
-else
-OCAMLBIN="$OCAMLBIN"
-fi
+    AC_MSG_CHECKING(for Ocaml interpreter)
+	if test "x$OCAMLBIN" = xyes; then
+	AC_CHECK_PROGS(OCAMLBIN, ocaml, :)
+    else
+	OCAMLBIN="$OCAMLBIN"
+    fi
 
-AC_MSG_CHECKING(for Ocaml toplevel creator)
-if test -z "$OCAMLMKTOP"; then
-AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop, :)
-else
-OCAMLMKTOP="$OCAMLMKTOP"
-fi
+    AC_MSG_CHECKING(for Ocaml toplevel creator)
+    if test -z "$OCAMLMKTOP"; then
+	AC_CHECK_PROGS(OCAMLMKTOP, ocamlmktop, :)
+    else
+	OCAMLMKTOP="$OCAMLMKTOP"
+    fi
 
-OCAMLLOC=loc
-if test "$OCAMLC" != ":" ; then
+    OCAMLLOC=loc
+    if test "$OCAMLC" != ":" ; then
 	AC_MSG_CHECKING(for Ocaml header files)
 	dirs="/usr/lib/ocaml/caml /usr/local/lib/ocaml/caml"
 	dir="`$OCAMLC -where 2>/dev/null`"
@@ -1567,7 +1567,7 @@ if test "$OCAMLC" != ":" ; then
 	OCAMLVER=`$OCAMLC -version | sed -e 's/.*version //g'`
 	AC_COMPARE_VERSION([$OCAMLVER],[3.08.2],[:],[:],[OCAMLLOC=_loc])
 	AC_MSG_RESULT($OCAMLVER)
-fi
+    fi
 fi # Disabling ocaml
 
 export OCAMLLOC
@@ -1600,8 +1600,8 @@ AS_HELP_STRING([--with-pike=path], [Set location of Pike executable]),[PIKEBIN="
 
 # First, check for "--without-pike" or "--with-pike=no".
 if test x"${PIKEBIN}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Pike])
-PIKEBIN=
+    AC_MSG_NOTICE([Disabling Pike])
+    PIKEBIN=
 else
 
 if test "x$PIKEBIN" = xyes; then
