@@ -79,6 +79,7 @@ class CSHARP:public Language {
   String *director_method_types;	// Director method types
   String *director_connect_parms;	// Director delegates parameter list for director connect call
   String *destructor_call;	//C++ destructor call if any
+  String *interface_code;
 
   // Director method stuff:
   List *dmethods_seq;
@@ -130,6 +131,7 @@ public:
       variable_name(NULL),
       proxy_class_constants_code(NULL),
       module_class_constants_code(NULL),
+      interface_code(0),
       enum_code(NULL),
       dllimport(NULL),
       namespce(NULL),
@@ -1843,7 +1845,9 @@ public:
    * ---------------------------------------------------------------------- */
 
   virtual int classHandler(Node *n) {
-
+    String* old_interface_code = interface_code;
+    interface_code = NewStringEmpty();
+    bool isInterface = GetFlag(n, "feature:interface") != 0;
     String *nspace = getNSpace();
     File *f_proxy = NULL;
     if (proxy_flag) {
@@ -1887,7 +1891,6 @@ public:
 
       // Start writing out the proxy class file
       emitBanner(f_proxy);
-
       addOpenNamespace(nspace, f_proxy);
 
       Clear(proxy_class_def);
@@ -1980,6 +1983,8 @@ public:
       destructor_call = NULL;
       Delete(proxy_class_constants_code);
       proxy_class_constants_code = NULL;
+      Delete(interface_code);
+      interface_code = old_interface_code;
     }
 
     return SWIG_OK;
