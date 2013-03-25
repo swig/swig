@@ -398,7 +398,7 @@ namespace swig {
         typename Sequence::reverse_iterator it = sb;
         size_t delcount = (ii - jj - step - 1) / -step;
         while (delcount) {
-          self->erase((++it).base());
+          it = typename Sequence::reverse_iterator(self->erase((++it).base()));
           if (it==self->rend())
             break;
           for (Py_ssize_t c=0; c<(-step-1); ++c)
