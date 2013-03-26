@@ -48,7 +48,7 @@
              const double & ($basetype temp)
   %{ temp = ($basetype)$input;  $1 = &temp; %}
 
-  the other tipical change is to add the enum SWIGTYPE to the
+  the other typical change is to add the enum SWIGTYPE to the
   integer throws typemaps:
 
   %typemap(throws) int, 
