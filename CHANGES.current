@@ -9,6 +9,9 @@ Version 2.0.10 (in progress)
             [Ruby] Fix delete_if (reject!) for the STL container wrappers which previously would
             sometimes seg fault or not work.
 
+2013-03-25: wsfulton
+            [Python] Fix some undefined behaviour deleting slices in the STL containers.
+
 2013-03-19: wsfulton
             [C#, Java, D] Fix seg fault in SWIG using directors when class and virtual method names are
             the same except being in different namespaces when the %nspace feature is not being used.
