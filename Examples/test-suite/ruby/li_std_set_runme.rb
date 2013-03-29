@@ -61,3 +61,7 @@ s.to_a == [1,[1,2],'hello']  # sort order: s.sort {|a,b| a.hash <=> b.hash}
 
 EOF
 
+iv = Set_int.new([0,1,2,3,4,5,6])
+iv.delete_if { |x| x == 0 || x == 3 || x == 6 }
+swig_assert_equal(iv.to_s, '1245', binding)
+
