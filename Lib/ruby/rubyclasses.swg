@@ -36,11 +36,64 @@
 
 %fragment("GC_VALUE_definition","header") {
 namespace swig {
+  class SwigGCReferences {
+    // Hash of all GC_VALUE's currently in use
+    static SwigGCReferences s_references;
+
+    VALUE _hash;
+
+    SwigGCReferences() : _hash(Qnil) {
+    }
+    ~SwigGCReferences() {
+      if (_hash != Qnil)
+        rb_gc_unregister_address( &_hash );
+    }
+    static void EndProcHandler(VALUE) {
+      // Ruby interpreter ending - _hash can no longer be accessed.
+      s_references._hash = Qnil;
+    }
+  public:
+    static SwigGCReferences& instance() {
+      return s_references;
+    }
+    static void initialize() {
+      if (s_references._hash == Qnil) {
+        rb_set_end_proc(&EndProcHandler, Qnil);
+        s_references._hash = rb_hash_new();
+        rb_gc_register_address( &s_references._hash );
+      }
+    }
+    void GC_register(VALUE& obj) {
+      if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
+	return;
+      if (_hash != Qnil) {
+        VALUE val = rb_hash_aref(_hash, obj);
+        unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 0;
+        ++n;
+        rb_hash_aset(_hash, obj, INT2NUM(n));
+      }
+    }
+    void GC_unregister(const VALUE& obj) {
+      if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
+	return;
+      // this test should not be needed but I've noticed some very erratic
+      // behavior of none being unregistered in some very rare situations.
+      if (BUILTIN_TYPE(obj) == T_NONE)
+        return;
+      if (_hash != Qnil) {
+        VALUE val = rb_hash_aref(s_references._hash, obj);
+        unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 1;
+        --n;
+        if (n)
+	  rb_hash_aset(s_references._hash, obj, INT2NUM(n));
+        else
+	  rb_hash_delete(s_references._hash, obj);
+      }
+    }
+  };
+
   class GC_VALUE {
   protected:
-    // Hash of all GC_VALUE's currently in use
-    static VALUE _hash;
-
     VALUE  _obj;
 
     static ID hash_id;
@@ -77,75 +130,33 @@ namespace swig {
 
 
   public:
-    static void initialize()
-    {
-      if ( _hash == Qnil ) 
-	{ 
-	  _hash = rb_hash_new();
-	  rb_gc_register_address( &_hash );
-	}
-    }
-
-    // this function is never called.  Provided for symmetry only.
-    static void cleanup()
-    {
-      rb_gc_unregister_address( &_hash );
-    }
-
     GC_VALUE() : _obj( Qnil )
     {
     }
 
     GC_VALUE(const GC_VALUE& item) : _obj(item._obj)
     {
-      GC_register();
+      SwigGCReferences::instance().GC_register(_obj);
     }
     
     GC_VALUE(VALUE obj) :_obj(obj)
     {
-      GC_register();
+      SwigGCReferences::instance().GC_register(_obj);
     }
     
     ~GC_VALUE() 
     {
-      GC_unregister();
+      SwigGCReferences::instance().GC_unregister(_obj);
     }
     
     GC_VALUE & operator=(const GC_VALUE& item) 
     {
-      GC_unregister();
+      SwigGCReferences::instance().GC_unregister(_obj);
       _obj = item._obj;
-      GC_register();
+      SwigGCReferences::instance().GC_register(_obj);
       return *this;
     }
 
-    void GC_register()
-    {
-      if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) 
-	return;
-      VALUE val = rb_hash_aref( _hash, _obj );
-      unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 0;
-      ++n;
-      rb_hash_aset( _hash, _obj, INT2NUM(n) );
-    }
-
-    void GC_unregister()
-    {
-      if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) 
-	return;
-      // this test should not be needed but I've noticed some very erratic
-      // behavior of none being unregistered in some very rare situations.
-      if ( BUILTIN_TYPE(_obj) == T_NONE ) return;
-
-      VALUE val = rb_hash_aref( _hash, _obj );
-      unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 1;
-      --n;
-      if ( n )
-	rb_hash_aset( _hash, _obj, INT2NUM(n) );
-      else
-	rb_hash_delete( _hash, _obj );
-    }
-    
     operator VALUE() const
     {
       return _obj;
@@ -294,7 +305,7 @@ namespace swig {
   ID  GC_VALUE::lshift_id = rb_intern("<<");
   ID  GC_VALUE::rshift_id = rb_intern(">>");
 
-  VALUE GC_VALUE::_hash = Qnil;
+  SwigGCReferences SwigGCReferences::s_references;
 
   typedef GC_VALUE LANGUAGE_OBJ;
 
@@ -350,7 +361,7 @@ namespace swig {
 
 
 %init {
-  swig::GC_VALUE::initialize();
+  swig::SwigGCReferences::initialize();
 }
 
 
