@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-04-02: wsfulton
+            [Ruby] Runtime fixes for std::complex wrappers for ruby-1.9 - new native Ruby complex numbers are used.
+
 2013-03-30: wsfulton
             [Ruby] Fix seg fault when using STL containers of generic Ruby types, GC_VALUE or LANGUAGE_OBJECT,
             on exit of the Ruby interpreter. More frequently observed in ruby-1.9.
