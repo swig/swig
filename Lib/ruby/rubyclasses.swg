@@ -172,17 +172,14 @@ namespace swig {
       return rb_inspect(_obj);
     }
 
-    static VALUE swig_rescue_funcall( VALUE )
+    static VALUE swig_rescue_swallow( VALUE )
     {
-/*
-      VALUE err = rb_errinfo();
-      VALUE errstr = rb_obj_as_string(err);
-      std::cout << "Error is: '" << RSTRING_PTR(StringValue(errstr)) << "'" << std::endl;
-*/
-      return Qnil;/* Swallow Ruby exception */
+      // VALUE errstr = rb_obj_as_string(rb_errinfo());
+      // printf("Swallowing error: '%s'\n", RSTRING_PTR(StringValue(errstr)));
+      return Qnil; /* Swallow Ruby exception */
     }
 
-    static VALUE swig_protect_funcall( VALUE p )
+    static VALUE swig_rescue_funcall( VALUE p )
     {
       OpArgs* args = (OpArgs*) p;
       return rb_funcall( args->src, args->id, args->nargs, args->target );
@@ -206,8 +203,8 @@ namespace swig {
 	  args.id     = op_id; \
 	  args.nargs  = 1; \
 	  args.target = VALUE(other); \
-          ret = rb_rescue(RUBY_METHOD_FUNC(swig_protect_funcall), VALUE(&args), \
-                         (RUBY_METHOD_FUNC(swig_rescue_funcall)), Qnil); \
+          ret = rb_rescue(RUBY_METHOD_FUNC(swig_rescue_funcall), VALUE(&args), \
+                         (RUBY_METHOD_FUNC(swig_rescue_swallow)), Qnil); \
 	} \
       if ( ret == Qnil ) { \
 	VALUE a = rb_funcall(         _obj, hash_id, 0 ); \
@@ -240,14 +237,13 @@ namespace swig {
     { \
       VALUE ret = Qnil; \
       SWIG_RUBY_THREAD_BEGIN_BLOCK; \
-      int status; \
       OpArgs  args; \
       args.src    = _obj; \
       args.id     = proc_id; \
       args.nargs  = 0; \
       args.target = Qnil; \
-      ret = rb_protect( PROTECTFUNC(swig_protect_funcall), VALUE(&args), \
-			&status ); \
+      ret = rb_rescue(RUBY_METHOD_FUNC(swig_rescue_funcall), VALUE(&args), \
+                     (RUBY_METHOD_FUNC(swig_rescue_swallow)), Qnil); \
       SWIG_RUBY_THREAD_END_BLOCK; \
       return ret; \
     }
@@ -262,14 +258,13 @@ namespace swig {
     { \
       VALUE ret = Qnil; \
       SWIG_RUBY_THREAD_BEGIN_BLOCK; \
-      int status; \
       OpArgs  args; \
       args.src    = _obj; \
       args.id     = proc_id; \
       args.nargs  = 1; \
       args.target = VALUE(other); \
-      ret = rb_protect( PROTECTFUNC(swig_protect_funcall), VALUE(&args), \
-			&status ); \
+      ret = rb_rescue(RUBY_METHOD_FUNC(swig_rescue_funcall), VALUE(&args), \
+                     (RUBY_METHOD_FUNC(swig_rescue_swallow)), Qnil); \
       SWIG_RUBY_THREAD_END_BLOCK; \
       return GC_VALUE(ret); \
     }
