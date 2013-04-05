@@ -172,6 +172,16 @@ namespace swig {
       return rb_inspect(_obj);
     }
 
+    static VALUE swig_rescue_funcall( VALUE )
+    {
+/*
+      VALUE err = rb_errinfo();
+      VALUE errstr = rb_obj_as_string(err);
+      std::cout << "Error is: '" << RSTRING_PTR(StringValue(errstr)) << "'" << std::endl;
+*/
+      return Qnil;/* Swallow Ruby exception */
+    }
+
     static VALUE swig_protect_funcall( VALUE p )
     {
       OpArgs* args = (OpArgs*) p;
@@ -189,16 +199,15 @@ namespace swig {
       bool  res = false; \
       VALUE ret = Qnil; \
       SWIG_RUBY_THREAD_BEGIN_BLOCK; \
-      if ( rb_respond_to( _obj, op_id ) == Qtrue ) \
+      if ( rb_respond_to( _obj, op_id ) ) \
 	{ \
-	  int status; \
 	  OpArgs  args; \
           args.src    = _obj; \
 	  args.id     = op_id; \
 	  args.nargs  = 1; \
 	  args.target = VALUE(other); \
-	  ret = rb_protect( PROTECTFUNC(swig_protect_funcall), \
-                            VALUE(&args), &status ); \
+          ret = rb_rescue(RUBY_METHOD_FUNC(swig_protect_funcall), VALUE(&args), \
+                         (RUBY_METHOD_FUNC(swig_rescue_funcall)), Qnil); \
 	} \
       if ( ret == Qnil ) { \
 	VALUE a = rb_funcall(         _obj, hash_id, 0 ); \

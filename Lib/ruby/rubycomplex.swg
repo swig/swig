@@ -20,8 +20,8 @@ VALUE rb_complex_new(VALUE x, VALUE y) {
 static int SWIG_Is_Complex( VALUE obj ) {
   static ID real_id = rb_intern("real");
   static ID imag_id = rb_intern("imag");
-  return ( (rb_respond_to( obj, real_id ) == Qtrue) &&
-           (rb_respond_to( obj, imag_id ) == Qtrue) );
+  return ( (rb_respond_to( obj, real_id ) ) &&
+           (rb_respond_to( obj, imag_id ) ) );
 }
 %#else
 static int SWIG_Is_Complex( VALUE obj ) {

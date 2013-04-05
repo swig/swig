@@ -5,6 +5,16 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-04-05: wsfulton
+            [Ruby] SF Bug #1292 - Runtime fixes for Proc changes in ruby-1.9 when using STL
+            wrappers that override the default predicate, such as:
+
+              %template(Map) std::map<swig::LANGUAGE_OBJ, swig::LANGUAGE_OBJ, swig::BinaryPredicate<> >;
+
+2013-04-05: wsfulton
+            [Ruby] SF Bug #1159 - Correctly check rb_respond_to call return values to fix some
+            further 1.9 problems with functors and use of Complex wrappers.
+
 2013-04-02: wsfulton
             [Ruby] Runtime fixes for std::complex wrappers for ruby-1.9 - new native Ruby complex numbers are used.
 
