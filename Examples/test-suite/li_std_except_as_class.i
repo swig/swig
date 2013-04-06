@@ -6,6 +6,12 @@
  *  'std::exception' then the bug would not be fully replicated */
 
 %{
+#if defined(_MSC_VER)
+  #pragma warning(disable: 4290) // C++ exception specification ignored except to indicate a function is not __declspec(nothrow)
+#endif
+%}
+
+%{
 #include <exception>
 #include <stdexcept>
 void test_domain_error() throw(std::domain_error) 
