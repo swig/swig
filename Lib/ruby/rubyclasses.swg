@@ -174,8 +174,10 @@ namespace swig {
 
     static VALUE swig_rescue_swallow(VALUE)
     {
-      // VALUE errstr = rb_obj_as_string(rb_errinfo());
-      // printf("Swallowing error: '%s'\n", RSTRING_PTR(StringValue(errstr)));
+      /*
+      VALUE errstr = rb_obj_as_string(rb_errinfo());
+      printf("Swallowing error: '%s'\n", RSTRING_PTR(StringValue(errstr)));
+      */
       return Qnil; /* Swallow Ruby exception */
     }
 
