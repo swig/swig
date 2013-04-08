@@ -1,7 +1,8 @@
 # This is the import runtime testcase.
 
-imports_b;
+# If imports_b is loaded before imports_a, a seg fault occurred during interpreter cleanup/exit in version 3.1 and 3.2, seems okay in 3.6
 imports_a;
+imports_b;
 
 x = imports_b.B();
 x.hello();
