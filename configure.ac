@@ -1592,7 +1592,7 @@ if test x"${PIKEBIN}" = xno -o x"${with_alllang}" = xno ; then
 else
 
 if test "x$PIKEBIN" = xyes; then
-	AC_CHECK_PROGS(PIKE, pike pike7.6 pike7.4 pike7.2)
+	AC_CHECK_PROGS(PIKE, pike pike7.8 pike7.6 pike7.4 pike7.2)
 else
 	PIKE="$PIKEBIN"
 fi
@@ -2063,6 +2063,7 @@ if test x"${GOBIN}" = xno -o x"${with_alllang}" = xno ; then
   GO1=false
   GOGCC=false
   GOOPT=
+  GOVERSIONOPTION=
 else
 
   if test "x$GOBIN" = xyes; then
@@ -2074,11 +2075,13 @@ else
   GOGCC=false
   GO1=false
   GOOPT=
+  GOVERSIONOPTION=
   if test -n "$GO" ; then
     if $GO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
       GOGCC=true
+      GOVERSIONOPTION=--version
       AC_MSG_CHECKING([whether gccgo version is too old])
-      go_version=`$GO --version | sed -e 's/[^0-9]* \([0-9.]*\) .*$/\1/' -e 's/[.]//g'`
+      go_version=`$GO $GOVERSIONOPTION | sed -e 's/[^0-9]* \([0-9.]*\) .*$/\1/' -e 's/[.]//g'`
       if test "$go_version" -lt 470; then
         AC_MSG_RESULT([yes - minimum version is 4.7.0])
       else
@@ -2096,8 +2099,9 @@ else
       fi
     elif test "`echo $GO | sed -e 's|.*/||'`" = "go"; then
       GO1=true
+      GOVERSIONOPTION=version
       GOC=$(sh -c "$(go env) && echo \$GOCHAR")c
-      go_version=$($GO version | sed -e 's/go version //')
+      go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
       case $go_version in
       go1.0*) GOOPT="-intgosize 32" ;;
       *) if test "$GOC" = "6c"; then
@@ -2109,8 +2113,9 @@ else
       esac
     else
       GOC=`echo $GO | sed -e 's/g/c/'`
+      GOVERSIONOPTION=-V
       AC_MSG_CHECKING([whether Go ($GO) version is too old])
-      go_version=`$GO -V 2>/dev/null | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
+      go_version=`$GO $GOVERSIONOPTION 2>/dev/null | sed -e 's/.*version.* \([[0-9]]*\).*/\1/'`
       go_min_version=7077
       if test "$go_version" != "" -a "$go_version" -lt $go_min_version; then
         AC_MSG_RESULT([yes - minimum version is $go_min_version])
@@ -2128,6 +2133,7 @@ AC_SUBST(GO)
 AC_SUBST(GOC)
 AC_SUBST(GO1)
 AC_SUBST(GOOPT)
+AC_SUBST(GOVERSIONOPTION)
 
 #----------------------------------------------------------------
 # Look for D

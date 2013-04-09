@@ -123,6 +123,45 @@ check-aliveness:
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
 
+# Checks / displays versions of each target language
+check-versions:					\
+	check-tcl-version			\
+	check-perl5-version			\
+	check-python-version			\
+	check-java-version			\
+	check-android-version			\
+	check-guile-version			\
+	check-mzscheme-version			\
+	check-ruby-version			\
+	check-ocaml-version			\
+	check-octave-version			\
+	check-php-version			\
+	check-pike-version			\
+	check-chicken-version			\
+	check-csharp-version			\
+	check-modula3-version			\
+	check-lua-version			\
+	check-allegrocl-version			\
+	check-clisp-version			\
+	check-uffi-version			\
+	check-cffi-version			\
+	check-r-version				\
+	check-go-version			\
+	check-d-version
+
+# all examples
+check-%-version :
+	@if test -z "$(skip-$*)"; then				\
+	  echo $* unknown;					\
+	  exit 1;						\
+	fi
+	@if $(skip-$*); then					\
+	  echo skipping $* version;				\
+	else							\
+	  echo showing $* version;				\
+	  (cd Examples && $(MAKE) -s $*_version)		\
+	fi
+
 # Checks examples for compilation (does not run them)
 check-examples:					\
 	check-tcl-examples			\
@@ -252,7 +291,7 @@ partialcheck-test-suite:
 partialcheck-%-test-suite:
 	@$(MAKE) -k -s check-$*-test-suite ACTION=partialcheck NOSKIP=1
 
-check: check-aliveness check-ccache check-examples check-test-suite
+check: check-aliveness check-ccache check-versions check-examples check-test-suite
 
 # Run known-to-be-broken as well as not broken testcases in the test-suite
 all-test-suite:					\

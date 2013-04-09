@@ -95,6 +95,7 @@ distclean:
 
 # Set these to your local copy of Tcl/Tk.
 
+TCLSH       = tclsh
 TCL_INCLUDE = @TCLINCLUDE@
 TCL_LIB     = @TCLLIB@
 TCL_OPTS    = @LIBS@
@@ -155,6 +156,13 @@ tcl_cpp: $(SRCS)
 	$(TCLCXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
 
 # -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+tcl_version:
+	echo 'puts $$tcl_version;exit 0' | $(TCLSH)
+
+# -----------------------------------------------------------------
 # Cleaning the Tcl examples
 # -----------------------------------------------------------------
 
@@ -176,6 +184,7 @@ PERL5_INCLUDE= @PERL5EXT@
 # Extra Perl specific dynamic linking options
 PERL5_DLNK   = @PERL5DYNAMICLINKING@
 PERL5_CCFLAGS = @PERL5CCFLAGS@
+PERL = @PERL@
 
 # ----------------------------------------------------------------
 # Build a Perl5 dynamically loadable module (C)
@@ -215,6 +224,13 @@ perl5_static: $(SRCS)
 perl5_static_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ -static -lperlmain.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+perl5_version:
+	$(PERL) -v | grep "This is"
 
 # -----------------------------------------------------------------
 # Cleaning the Perl5 examples
@@ -316,6 +332,13 @@ runme3.py: runme.py
 	$(PY2TO3) -w $@ >/dev/null 2>&1
 
 # -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+python_version:
+	$(PYTHON) -V
+
+# -----------------------------------------------------------------
 # Cleaning the python examples
 # -----------------------------------------------------------------
 
@@ -369,6 +392,13 @@ octave_run: $(OCTSCRIPT)
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir):$$OCTAVE_PATH $(OCTAVE) $(OCTSCRIPT) >/dev/null
 
 # -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+octave_version:
+	$(OCTAVE) --version | grep -i version
+
+# -----------------------------------------------------------------
 # Cleaning the octave examples
 # -----------------------------------------------------------------
 
@@ -383,6 +413,7 @@ octave_clean:
 ##################################################################
 
 # Make sure these locate your Guile installation
+GUILE         = @GUILE@
 GUILE_INCLUDE = @GUILEINCLUDE@
 GUILE_LIB     = @GUILELIB@
 GUILE_SO      = @GUILE_SO@
@@ -460,6 +491,13 @@ guile_simple_cpp: $(SRCS)
 	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 # -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+guile_version:
+	$(GUILE) --version
+
+# -----------------------------------------------------------------
 # Cleaning the Guile examples
 # -----------------------------------------------------------------
 
@@ -484,6 +522,8 @@ JAVASO =@JAVASO@
 JAVALDSHARED = @JAVALDSHARED@
 JAVACXXSHARED = @JAVACXXSHARED@
 JAVACFLAGS = @JAVACFLAGS@
+JAVA = @JAVA@
+JAVAC = @JAVAC@
 
 # ----------------------------------------------------------------
 # Build a java dynamically loadable module (C)
@@ -504,6 +544,14 @@ java_cpp: $(SRCS)
 	$(JAVACXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
 
 # -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+java_version:
+	$(JAVA) -version
+	$(JAVAC) -version || echo "unknown javac version"
+
+# -----------------------------------------------------------------
 # Cleaning the java examples
 # -----------------------------------------------------------------
 
@@ -511,6 +559,17 @@ java_clean:
 	rm -f *_wrap* *~ .~* *.class `find . -name \*.java | grep -v runme.java`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@JAVASO@
+
+##################################################################
+#####                       ANDROID                         ######
+##################################################################
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+android_version:
+	adb version
 
 ##################################################################
 #####                      MODULA3                          ######
@@ -531,6 +590,13 @@ modula3_cpp: $(SRCS)
 	$(SWIG) -modula3 -c++ $(SWIGOPT) $(INTERFACEPATH)
 
 # -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+modula3_version:
+	echo "Unknown modula3 version"
+
+# -----------------------------------------------------------------
 # Cleaning the modula3 examples
 # -----------------------------------------------------------------
 
@@ -543,6 +609,7 @@ modula3_clean:
 #####                       MZSCHEME                        ######
 ##################################################################
 
+MZSCHEME = mzscheme
 MZC = @MZC@
 MZDYNOBJ = @MZDYNOBJ@
 MZSCHEME_SO = @MZSCHEME_SO@
@@ -560,6 +627,14 @@ mzscheme_cpp: $(SRCS)
 	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(COMPILETOOL) $(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(CFLAGS) -o $(LIBPREFIX)$(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+mzscheme_version:
+	$(MZSCHEME) -v
+	$(MZC) -v
 
 # -----------------------------------------------------------------
 # Cleaning the mzscheme examples
@@ -697,6 +772,17 @@ ocaml_dynamic_cpp: $(SRCS)
 		-package dl -linkpkg \
 		$(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) -cc '$(CXX) -Wno-write-strings'
 
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+ocaml_version:
+	$(OCC) -version
+
+# -----------------------------------------------------------------
+# Cleaning the Ocaml examples
+# -----------------------------------------------------------------
+
 ocaml_clean:
 	rm -f *_wrap* *~ .~* *.cmo *.cmi $(MLFILE) $(MLFILE)i swig.mli swig.cmi swig.ml swig.cmo swigp4.ml swigp4.cmo
 	rm -f core @EXTRA_CLEAN@
@@ -711,6 +797,7 @@ RUBY_CFLAGS= @RUBYCCDLFLAGS@ $(DEFS)
 RUBY_INCLUDE= @RUBYINCLUDE@
 RUBY_LIB     = @RUBYLIB@
 RUBY_DLNK = @RUBYDYNAMICLINKING@
+RUBY = @RUBY@
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -749,6 +836,13 @@ ruby_cpp_static: $(SRCS)
 	$(CXX) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	$(RUBY_INCLUDE) $(LIBS)  -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
 
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+ruby_version:
+	$(RUBY) -v
 
 # -----------------------------------------------------------------
 # Cleaning the Ruby examples
@@ -795,6 +889,13 @@ php_run:
 	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off $(PHPSCRIPT)
 
 # -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+php_version:
+	$(PHP) -v
+
+# -----------------------------------------------------------------
 # Cleaning the PHP examples
 # -----------------------------------------------------------------
 
@@ -808,6 +909,7 @@ php_clean:
 ##################################################################
 
 # Make sure these locate your Pike installation
+PIKE         = pike
 PIKE_CFLAGS  = @PIKECCDLFLAGS@ -DHAVE_CONFIG_H
 PIKE_INCLUDE = @PIKEINCLUDE@
 PIKE_LIB     = @PIKELIB@
@@ -849,6 +951,13 @@ pike_cpp_static: $(SRCS)
 	$(SWIG) -c++ -pike -lembed.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(PIKE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	$(PIKE_INCLUDE) $(LIBS)  -L$(PIKE_LIB) $(PIKE_LIBOPTS) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+pike_version:
+	$(PIKE) -v
 
 # -----------------------------------------------------------------
 # Cleaning the Pike examples
@@ -951,6 +1060,17 @@ chicken_cpp:
 chicken_externalhdr:
 	$(SWIG) -chicken -external-runtime $(TARGET)
 
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+chicken_version:
+	$(CHICKEN) -version
+
+# -----------------------------------------------------------------
+# Cleaning the CHICKEN examples
+# -----------------------------------------------------------------
+
 chicken_clean:
 	rm -f *_wrap* *~ .~* *_chicken*
 	rm -f core @EXTRA_CLEAN@
@@ -994,6 +1114,13 @@ csharp_compile: $(SRCS)
 	$(COMPILETOOL) $(CSHARPCOMPILER) $(CSHARPFLAGS) $(CSHARPSRCS)
 
 # -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+csharp_version:
+	$(CSHARPCOMPILER) --version || echo "Unknown C# compiler version"
+
+# -----------------------------------------------------------------
 # Cleaning the CSharp examples
 # -----------------------------------------------------------------
 
@@ -1013,6 +1140,7 @@ LUA_LIB    = @LUALINK@
 # Extra specific dynamic linking options
 LUA_DLNK   = @LUADYNAMICLINKING@
 LUA_SO     = @LUA_SO@
+LUA        = @LUABIN@
 
 # Extra code for lua static link
 LUA_INTERP     = ../lua.c
@@ -1050,6 +1178,13 @@ lua_static_cpp: $(SRCS)
 	$(LUA_INCLUDE) $(LIBS)  $(LUA_LIB) -o $(TARGET)
 
 # -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+lua_version:
+	$(LUA) -v
+
+# -----------------------------------------------------------------
 # Cleaning the lua examples
 # -----------------------------------------------------------------
 
@@ -1062,6 +1197,8 @@ lua_clean:
 #####                   ALLEGRO CL                          ######
 ##################################################################
 
+ALLEGROCL    = @ALLEGROCLBIN@
+
 allegrocl: $(SRCS)
 	$(SWIG) -allegrocl -cwrap $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCS)
@@ -1072,6 +1209,17 @@ allegrocl_cpp: $(SRCS)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+allegrocl_version:
+	$(ALLEGROCL) --version
+
+# -----------------------------------------------------------------
+# Cleaning the ALLEGRO CL examples
+# -----------------------------------------------------------------
+
 allegrocl_clean:
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
@@ -1081,11 +1229,24 @@ allegrocl_clean:
 #####                      CLISP                            ######
 ##################################################################
 
+CLISP = @CLISPBIN@
+
 clisp: $(SRCS)
 	$(SWIG) -clisp $(SWIGOPT) $(INTERFACEPATH)
 
 clisp_cpp: $(SRCS)
 	$(SWIG) -c++ -clisp $(SWIGOPT) $(INTERFACEPATH)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+clisp_version:
+	$(CLISP) --version
+
+# -----------------------------------------------------------------
+# Cleaning the CLISP examples
+# -----------------------------------------------------------------
 
 clisp_clean:
 	rm -f *_wrap* *~ .~*
@@ -1095,6 +1256,8 @@ clisp_clean:
 ##################################################################
 #####                      CFFI                             ######
 ##################################################################
+
+CFFI = @CFFIBIN@
 
 cffi: $(SRCS)
 	$(SWIG) -cffi $(SWIGOPT) $(INTERFACEPATH)
@@ -1106,6 +1269,17 @@ cffi_cpp: $(SRCS)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+cffi_version:
+	$(CFFI) --version
+
+# -----------------------------------------------------------------
+# Cleaning the CFFI examples
+# -----------------------------------------------------------------
+
 cffi_clean:
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
@@ -1114,6 +1288,8 @@ cffi_clean:
 ##################################################################
 #####                      UFFI                             ######
 ##################################################################
+
+UFFI = @UFFIBIN@
 
 uffi: $(SRCS)
 	$(SWIG) -uffi $(SWIGOPT) $(INTERFACEPATH)
@@ -1124,6 +1300,17 @@ uffi_cpp: $(SRCS)
 	$(SWIG) -c++ -uffi $(SWIGOPT) $(INTERFACEPATH)
 #	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
 #	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+uffi_version:
+	$(UFFI) --version
+
+# -----------------------------------------------------------------
+# Cleaning the UFFI examples
+# -----------------------------------------------------------------
 
 uffi_clean:
 	rm -f *_wrap* *~ .~*
@@ -1143,6 +1330,10 @@ R_CFLAGS=-fPIC
 # we get -fPIC
 # CMD SHLIB stdout is piped to /dev/null to prevent echo of compiler command
 
+# ----------------------------------------------------------------
+# Build a R dynamically loadable module (C)
+# ----------------------------------------------------------------
+
 r: $(SRCS)
 	$(SWIG) -r $(SWIGOPT) $(INTERFACEPATH)
 ifneq ($(SRCS),)
@@ -1150,12 +1341,27 @@ ifneq ($(SRCS),)
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
 
+# ----------------------------------------------------------------
+# Build a R dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
 r_cpp: $(CXXSRCS)
 	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
 ifneq ($(CXXSRCS),)
 	$(CXX) -g -c $(CFLAGS) $(R_CFLAGS) $(CXXSRCS) $(INCLUDES) 
 endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+r_version:
+	$(R) --version | grep -i version
+
+# -----------------------------------------------------------------
+# Cleaning the R examples
+# -----------------------------------------------------------------
 
 r_clean:
 	rm -f *_wrap* *~ .~*
@@ -1172,6 +1378,7 @@ GOGCC = @GOGCC@
 GO1 = @GO1@
 GOC = @GOC@
 GOOPT = @GOOPT@
+GOVERSIONOPTION = @GOVERSIONOPTION@
 
 GOSWIGARG = `if $(GOGCC) ; then echo -gccgo; fi`
 GOCOMPILEARG = `if $(GOGCC) ; then echo -c -g; elif $(GO1) ; then echo tool $(GOC:c=g) ; fi`
@@ -1229,6 +1436,13 @@ go_run: runme.go
 	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
 	fi
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+go_version:
+	$(GO) $(GOVERSIONOPTION)
 
 # -----------------------------------------------------------------
 # Cleaning the Go examples
@@ -1290,6 +1504,14 @@ d_compile: $(SRCS)
 
 d_run:
 	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+d_version:
+	# Needs improvement!
+	echo D version guess - $(D_VERSION)
 
 # -----------------------------------------------------------------
 # Clean the D examples
