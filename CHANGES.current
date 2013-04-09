@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-04-09: olly
+	    [PHP] Add missing directorin typemap for char* and char[] which
+	    fixes director_string testcase failure.
+
 2013-04-05: wsfulton
             [Ruby] SF Bug #1292 - Runtime fixes for Proc changes in ruby-1.9 when using STL
             wrappers that override the default predicate, such as:
