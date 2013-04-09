@@ -1117,8 +1117,9 @@ csharp_compile: $(SRCS)
 # Version display
 # -----------------------------------------------------------------
 
+# Version check below also works with MS csc.exe which does not understand --version
 csharp_version:
-	$(CSHARPCOMPILER) --version || echo "Unknown C# compiler version"
+	$(CSHARPCOMPILER) --version | grep -i version
 
 # -----------------------------------------------------------------
 # Cleaning the CSharp examples
