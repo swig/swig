@@ -207,8 +207,8 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
   JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &jvalue);
 }
 
-%typemap(typecheck) TYPE *INOUT = TYPECHECKTYPE;
-%typemap(typecheck) TYPE &INOUT = TYPECHECKTYPE;
+%typemap(typecheck) TYPE *OUTPUT = TYPECHECKTYPE;
+%typemap(typecheck) TYPE &OUTPUT = TYPECHECKTYPE;
 %enddef
 
 OUTPUT_TYPEMAP(bool, jboolean, boolean, Boolean, "[Ljava/lang/Boolean;", jbooleanArray);
