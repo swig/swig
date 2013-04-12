@@ -1462,7 +1462,7 @@ go_run: runme.go
 	else \
 	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
 	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1476,7 +1476,7 @@ go_version:
 # -----------------------------------------------------------------
 
 go_clean:
-	rm -f *_wrap* *_gc* .~* runme
+	rm -f *_wrap* *_gc* .~* runme $(GOSRCS)
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *.[568] *.a *@SO@
 
