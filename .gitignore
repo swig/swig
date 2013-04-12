@@ -126,3 +126,5 @@ Examples/test-suite/uffi/*/
 *_runme.exe.mdb
 *_runme.exe
 
+# Scratch directories
+Examples/scratch
