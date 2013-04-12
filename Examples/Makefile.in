@@ -189,6 +189,8 @@ PERL5_INCLUDE= @PERL5EXT@
 PERL5_DLNK   = @PERL5DYNAMICLINKING@
 PERL5_CCFLAGS = @PERL5CCFLAGS@
 PERL = @PERL@
+PERL5_LIB = -L$(PERL5_INCLUDE) -l@PERL5LIB@ @LIBS@ $(SYSLIBS)
+PERL5_SCRIPT = $(RUNME).pl
 
 # ----------------------------------------------------------------
 # Build a Perl5 dynamically loadable module (C)
@@ -219,8 +221,6 @@ perl5_xs: $(SRCS)
 # Build a statically linked Perl5 executable
 # ----------------------------------------------------------------
 
-PERL5_LIB    = -L$(PERL5_INCLUDE) -l@PERL5LIB@ @LIBS@ $(SYSLIBS)
-
 perl5_static: $(SRCS)
 	$(SWIG) -perl5 -static -lperlmain.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) -Dbool=char $(SRCS) $(ISRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
@@ -228,6 +228,13 @@ perl5_static: $(SRCS)
 perl5_static_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ -static -lperlmain.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Running a Perl5 example
+# -----------------------------------------------------------------
+
+perl5_run:
+	$(RUNTOOL) $(PERL) $(PERL5_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
