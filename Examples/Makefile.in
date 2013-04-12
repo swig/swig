@@ -547,6 +547,13 @@ java_cpp: $(SRCS)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(JAVACFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JAVA_INCLUDE)
 	$(JAVACXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
 
+# ----------------------------------------------------------------
+# Compile java files
+# ----------------------------------------------------------------
+
+java_compile: $(SRCS)
+	$(COMPILETOOL) $(JAVAC) $(JAVACFLAGS) $(JAVASRCS)
+
 # -----------------------------------------------------------------
 # Run java example
 # -----------------------------------------------------------------
