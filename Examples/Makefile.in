@@ -366,6 +366,8 @@ OCTAVE_CXX    = $(DEFS) @OCTAVE_CPPFLAGS@ @OCTAVE_CXXFLAGS@
 OCTAVE_DLNK   = @OCTAVE_LDFLAGS@
 OCTAVE_SO     = @OCTAVE_SO@
 
+OCTAVE_SCRIPT = $(RUNME).m
+
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # Note: Octave requires C++ compiler when compiling C wrappers
@@ -390,10 +392,8 @@ octave_cpp: $(SRCS)
 # Running an Octave example
 # -----------------------------------------------------------------
 
-OCTSCRIPT = runme.m
-
-octave_run: $(OCTSCRIPT)
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir):$$OCTAVE_PATH $(OCTAVE) $(OCTSCRIPT) >/dev/null
+octave_run:
+	$(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -403,7 +403,7 @@ octave_version:
 	$(OCTAVE) --version | grep -i version
 
 # -----------------------------------------------------------------
-# Cleaning the octave examples
+# Cleaning the Octave examples
 # -----------------------------------------------------------------
 
 octave_clean:
