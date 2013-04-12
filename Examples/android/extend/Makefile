@@ -9,22 +9,18 @@ PROJECTNAME= SwigExtend
 TARGETID  = 1
 #INSTALLOPTIONS = -s # To install on SD Card
 
-all::	android
-
-android::
+check:
 	android update project --target $(TARGETID) --name $(PROJECTNAME) --path .
 	$(SWIG) -c++ -java $(SWIGOPT) -o jni/$(TARGET)_wrap.cpp jni/$(INTERFACE)
 	ndk-build
 	ant debug
 
-install::
+install:
 	-adb uninstall $(PACKAGENAME)
 	adb install $(INSTALLOPTIONS) bin/$(PROJECTNAME)-debug.apk
 
-clean::
+clean:
 	ant clean
-	rm -f jni/$(TARGET)_wrap.cpp
+	rm -f jni/$(TARGET)_wrap.h jni/$(TARGET)_wrap.cpp
 	rm -f `find $(PACKAGEDIR) -name \*.java | grep -v $(PROJECTNAME).java`
-	
-
-check: all
+	rm -rf obj
