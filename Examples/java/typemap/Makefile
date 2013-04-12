@@ -5,14 +5,13 @@ TARGET     = example
 INTERFACE  = example.i
 SWIGOPT    =
 
-all::	java
+check: build
+	$(MAKE) -f $(TOP)/Makefile java_run
 
-java::
+build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' java
 	javac *.java
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile java_clean
-
-check: all

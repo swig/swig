@@ -552,7 +552,7 @@ java_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 java_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(JAVA) $(RUNME) $(RUNPIPE)
+	env LD_LIBRARY_PATH=. $(RUNTOOL) $(JAVA) $(RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
