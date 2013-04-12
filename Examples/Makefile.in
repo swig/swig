@@ -46,6 +46,10 @@ LIBPREFIX  =
 RUNTOOL    =
 # COMPILETOOL is a way to run the compiler under another tool, or more commonly just to stop the compiler executing
 COMPILETOOL=
+# RUNPIPE is for piping output of running interpreter/compiled code somewhere, eg RUNPIPE=\>/dev/null
+RUNPIPE=
+
+RUNME = runme
 
 # X11 options
 
@@ -544,6 +548,13 @@ java_cpp: $(SRCS)
 	$(JAVACXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
 
 # -----------------------------------------------------------------
+# Run java example
+# -----------------------------------------------------------------
+
+java_run:
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(JAVA) $(RUNME) $(RUNPIPE)
+
+# -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
@@ -556,7 +567,7 @@ java_version:
 # -----------------------------------------------------------------
 
 java_clean:
-	rm -f *_wrap* *~ .~* *.class `find . -name \*.java | grep -v runme.java`
+	rm -f *_wrap* *~ .~* *.class `find . -name \*.java | grep -v $(RUNME).java`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@JAVASO@
 
