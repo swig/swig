@@ -823,7 +823,10 @@ RUBY_CFLAGS= @RUBYCCDLFLAGS@ $(DEFS)
 RUBY_INCLUDE= @RUBYINCLUDE@
 RUBY_LIB     = @RUBYLIB@
 RUBY_DLNK = @RUBYDYNAMICLINKING@
+RUBY_LIBOPTS = @RUBYLINK@ @LIBS@ $(SYSLIBS)
 RUBY = @RUBY@
+RUBY_SCRIPT = $(RUNME).rb
+
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -850,8 +853,6 @@ ruby_cpp: $(SRCS)
 # library file
 # -----------------------------------------------------------------
 
-RUBY_LIBOPTS = @RUBYLINK@ @LIBS@ $(SYSLIBS)
-
 ruby_static: $(SRCS)
 	$(SWIG) -ruby -lembed.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(RUBY_CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDES) \
@@ -862,6 +863,12 @@ ruby_cpp_static: $(SRCS)
 	$(CXX) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	$(RUBY_INCLUDE) $(LIBS)  -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
 
+# -----------------------------------------------------------------
+# Run Ruby example
+# -----------------------------------------------------------------
+
+ruby_run:
+	$(RUNTOOL) $(RUBY) $(RUBY_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
