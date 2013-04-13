@@ -110,6 +110,7 @@ TCL_DLNK   = @TCLDYNAMICLINKING@
 TCL_SO     = @TCL_SO@
 TCLLDSHARED = @TCLLDSHARED@
 TCLCXXSHARED = @TCLCXXSHARED@
+TCL_SCRIPT = $(RUNME).tcl
 
 # -----------------------------------------------------------
 # Build a new version of the tclsh shell
@@ -158,6 +159,13 @@ tcl_cpp: $(SRCS)
 	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE)
 	$(TCLCXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
+
+# -----------------------------------------------------------------
+# Run Tcl example
+# -----------------------------------------------------------------
+
+tcl_run:
+	$(RUNTOOL) $(TCLSH) $(TCL_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
