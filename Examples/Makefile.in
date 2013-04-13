@@ -882,12 +882,14 @@ ruby_clean:
 #####                       PHP                             ######
 ##################################################################
 
+PHP         = @PHP@
+PHP_INCLUDE = @PHPINC@
+PHP_SO      = @PHP_SO@
+PHP_SCRIPT  = $(RUNME).php
+
 # -------------------------------------------------------------------
 # Build a PHP dynamically loadable module (C)
 # -------------------------------------------------------------------
-
-PHP_INCLUDE = @PHPINC@
-PHP_SO      = @PHP_SO@
 
 php: $(SRCS)
 	$(SWIG) -php $(SWIGOPT) $(INTERFACEPATH)
@@ -907,11 +909,8 @@ php_cpp: $(SRCS)
 # Running a PHP example
 # -----------------------------------------------------------------
 
-PHP=@PHP@
-PHPSCRIPT ?= runme.php
-
 php_run:
-	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off $(PHPSCRIPT)
+	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off $(PHP_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
