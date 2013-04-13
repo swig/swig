@@ -1359,6 +1359,7 @@ R = R
 RCXXSRCS = $(INTERFACE:.i=_wrap.cpp) #Need to use _wrap.cpp for R build system as it does not understand _wrap.cxx
 RRSRC = $(INTERFACE:.i=.R)
 R_CFLAGS=-fPIC
+R_SCRIPT=$(RUNME).R
 
 # need to compile .cxx files outside of R build system to make sure that
 # we get -fPIC
@@ -1387,6 +1388,13 @@ endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
 
 # -----------------------------------------------------------------
+# Run R example
+# -----------------------------------------------------------------
+
+r_run:
+	$(RUNTOOL) $(R) CMD BATCH $(R_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
@@ -1401,7 +1409,7 @@ r_clean:
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ NAMESPACE
-	rm -f $(RRSRC) runme.Rout .RData
+	rm -f $(RRSRC) $(RUNME).Rout .RData
 
 ##################################################################
 #####                        Go                             ######
