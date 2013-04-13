@@ -2591,7 +2591,7 @@ done:
       }
 
       if (!idx) {
-	Printf(w->code, "zval **args = NULL;\n", idx);
+	Printf(w->code, "zval **args = NULL;\n");
       } else {
 	Printf(w->code, "zval *args[%d];\n", idx);
       }
