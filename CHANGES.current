@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-04-08: kwwette
+            Add -MP option to SWIG for generating phony targets for all dependencies.
+            - Prevents make from complaining if header files have been deleted before
+              the dependency file has been updated.
+            - Modelled on similar option in GCC.
+
 2013-04-09: olly
 	    [PHP] Add missing directorin typemap for char* and char[] which
 	    fixes director_string testcase failure.
