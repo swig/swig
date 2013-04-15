@@ -35,5 +35,7 @@ public class runme
   {
     director_smartptr_MyBarFoo myBarFoo =
       new director_smartptr_MyBarFoo();
+
+    myBarFoo.ping();
   }
 }
