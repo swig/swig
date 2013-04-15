@@ -1080,11 +1080,13 @@ pike_clean:
 
 CHICKEN = @CHICKEN@
 CHICKEN_CSC = @CHICKEN_CSC@
+CHICKEN_CSI = @CHICKEN_CSI@
 CHICKEN_LIBOPTS = @CHICKENLIB@  $(SYSLIBS)
 CHICKEN_SHAREDLIBOPTS = @CHICKENSHAREDLIB@  $(SYSLIBS)
 CHICKEN_CFLAGS = @CHICKENOPTS@
 CHICKENOPTS = -quiet
 CHICKEN_MAIN =
+CHICKEN_SCRIPT = $(RUNME).ss
 
 # SWIG produces $(ISRCS) (the C wrapper file)
 # and $(CHICKEN_GENERATED_SCHEME) (the Scheme wrapper file):
@@ -1164,6 +1166,13 @@ chicken_cpp:
 
 chicken_externalhdr:
 	$(SWIG) -chicken -external-runtime $(TARGET)
+
+# -----------------------------------------------------------------
+# Run CHICKEN example
+# -----------------------------------------------------------------
+
+chicken_run:
+	$(RUNTOOL) $(CHICKEN_CSI) $(CHICKEN_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

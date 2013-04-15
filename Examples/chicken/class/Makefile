@@ -14,7 +14,11 @@ VARIANT     =
 #CHICKEN_MAIN = test-tinyclos-class.scm
 #VARIANT      = _static
 
-all:: $(TARGET) $(TARGET)_proxy
+check: build
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH csi test-lowlevel-class.scm
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH csi test-tinyclos-class.scm
+
+build: $(TARGET) $(TARGET)_proxy
 
 $(TARGET): $(INTERFACE) $(SRCS)
 	$(MAKE) -f $(TOP)/Makefile \
@@ -28,11 +32,7 @@ $(TARGET)_proxy: $(INTERFACE) $(SRCS)
 		INCLUDE='$(INCLUDE)' SWIGOPT='$(SWIGOPT) -proxy' TARGET='$(TARGET)_proxy' \
 		SWIG='$(SWIG)' INTERFACE='$(INTERFACE)' CHICKENOPTS='$(CHICKENOPTS)' chicken$(VARIANT)_cpp
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile chicken_clean
 	rm -f example.scm
 	rm -f $(TARGET)
-
-check::
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH csi test-lowlevel-class.scm
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH csi test-tinyclos-class.scm
