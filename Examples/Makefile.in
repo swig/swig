@@ -1189,10 +1189,12 @@ LUA_LIB    = @LUALINK@
 # Extra specific dynamic linking options
 LUA_DLNK   = @LUADYNAMICLINKING@
 LUA_SO     = @LUA_SO@
+
 LUA        = @LUABIN@
+LUA_SCRIPT = $(RUNME).lua
 
 # Extra code for lua static link
-LUA_INTERP     = ../lua.c
+LUA_INTERP = ../lua.c
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -1225,6 +1227,16 @@ lua_static_cpp: $(SRCS)
 	$(SWIG) -c++ -lua -module example $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(LUA_INTERP) $(INCLUDES) \
 	$(LUA_INCLUDE) $(LIBS)  $(LUA_LIB) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Run Lua example
+# -----------------------------------------------------------------
+
+lua_run:
+	$(RUNTOOL) $(LUA) $(LUA_SCRIPT) $(RUNPIPE)
+
+lua_embed_run:
+	$(RUNTOOL) ./$(TARGET) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

@@ -5,15 +5,16 @@ TARGET     = example
 INTERFACE  = example.i
 LIBS       = 
 
-all::
+check: build
+	$(MAKE) -f $(TOP)/Makefile lua_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' lua
 
-static::
+static:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='mylua' INTERFACE='$(INTERFACE)' lua_static
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile lua_clean
-
-check: all
