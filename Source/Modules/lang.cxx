@@ -652,6 +652,11 @@ int Language::insertDirective(Node *n) {
       f = Swig_filebyname(section);
     }
     if (f) {
+      /* Replace $descriptor() macros */
+      Setfile(code, Getfile(n));
+      Setline(code, Getline(n));
+      Swig_cparse_replace_descriptor(code);
+
       Printf(f, "%s\n", code);
     } else {
       Swig_error(input_file, line_number, "Unknown target '%s' for %%insert directive.\n", section);
