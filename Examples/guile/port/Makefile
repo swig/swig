@@ -3,8 +3,9 @@ TARGET = port
 IFILE  = port.i
 MKDIR  = ..
 
+check: build
 
-all::
+build:
 	$(MAKE) -f $(MKDIR)/Makefile		\
 		SRCS='$(SRCS)'			\
 		TARGET=$(TARGET)		\
@@ -12,7 +13,5 @@ all::
 		MODULE=$(MODULE)		\
 	  sub-all
 
-clean::
+clean:
 	$(MAKE) -f $(MKDIR)/Makefile TARGET='$(TARGET)' guile_clean
-
-check: all

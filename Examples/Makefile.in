@@ -459,6 +459,8 @@ GUILE_INCLUDE = @GUILEINCLUDE@
 GUILE_LIB     = @GUILELIB@
 GUILE_SO      = @GUILE_SO@
 GUILE_LIBPREFIX = lib
+GUILE_LIBOPTS = @GUILELINK@ @LIBS@ $(SYSLIBS)
+GUILE_SCRIPT  = $(RUNME).scm
 
 #------------------------------------------------------------------
 # Build a dynamically loaded module with passive linkage and the scm interface
@@ -507,8 +509,6 @@ guile_passive_cpp: $(SRCS)
 # Build statically linked Guile interpreter
 # -----------------------------------------------------------------
 
-GUILE_LIBOPTS = @GUILELINK@ @LIBS@ $(SYSLIBS)
-
 guile_static: $(SRCS)
 	$(SWIG) -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) \
@@ -530,6 +530,13 @@ guile_simple_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i -Linkage simple $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	  $(GUILE_INCLUDE) $(LIBS) -L$(GUILE_LIB) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+
+# -----------------------------------------------------------------
+# Running a Guile example
+# -----------------------------------------------------------------
+
+guile_run:
+	$(RUNTOOL) $(GUILE) -l $(GUILE_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
