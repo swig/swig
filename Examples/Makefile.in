@@ -696,6 +696,13 @@ modula3_cpp: $(SRCS)
 	$(SWIG) -modula3 -c++ $(SWIGOPT) $(INTERFACEPATH)
 
 # -----------------------------------------------------------------
+# Run modula3 example
+# -----------------------------------------------------------------
+
+modula3_run:
+	$(RUNTOOL) false $(RUNPIPE)
+
+# -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
@@ -719,6 +726,7 @@ MZSCHEME = mzscheme
 MZC = @MZC@
 MZDYNOBJ = @MZDYNOBJ@
 MZSCHEME_SO = @MZSCHEME_SO@
+MZSCHEME_SCRIPT = $(RUNME).scm
 
 # ----------------------------------------------------------------
 # Build a C/C++ dynamically loadable module
@@ -733,6 +741,13 @@ mzscheme_cpp: $(SRCS)
 	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(COMPILETOOL) $(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(CFLAGS) -o $(LIBPREFIX)$(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS)
+
+# -----------------------------------------------------------------
+# Run mzscheme example
+# -----------------------------------------------------------------
+
+mzscheme_run:
+	$(RUNTOOL) $(MZSCHEME) -r $(MZSCHEME_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
