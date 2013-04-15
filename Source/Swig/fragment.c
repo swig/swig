@@ -60,6 +60,8 @@ void Swig_fragment_register(Node *fragment) {
       }
       Setfile(ccode, Getfile(fragment));
       Setline(ccode, Getline(fragment));
+      /* Replace $descriptor() macros */
+      Swig_cparse_replace_descriptor(ccode);
       Setattr(fragments, name, ccode);
       if (debug)
 	Printf(stdout, "registering fragment %s %s\n", name, section);
