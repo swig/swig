@@ -3395,12 +3395,8 @@ public:
 
     if (Len(smartptr_feature)) {
       Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", smartptr_feature, smartptr_feature);
-      Printf(code_wrap->code, "  // NOTE: Pulling the raw pointer out of the smart pointer as the following code does\n");
-      Printf(code_wrap->code, "  //       is generally a bad idea. However, in this case we keep a local instance of the\n");
-      Printf(code_wrap->code, "  //       smart pointer around while we are using the raw pointer, which should keep the\n");
-      Printf(code_wrap->code, "  //       raw pointer alive. This is done instead of using the smart pointer's dynamic cast\n");
-      Printf(code_wrap->code, "  //       feature since different smart pointer implementations have differently named dynamic\n");
-      Printf(code_wrap->code, "  //       cast mechanisms.\n");
+      Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
+      Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
       Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
     }
     else {
