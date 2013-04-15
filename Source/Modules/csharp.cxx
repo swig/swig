@@ -3382,6 +3382,7 @@ public:
     String *qualified_classname = Copy(sym_name);
     String *nspace = getNSpace();
     String *dirClassName = directorClassName(n);
+    String *smartptr_feature = Getattr(n, "feature:smartptr");
 
     if (nspace)
       Insert(qualified_classname, 0, NewStringf("%s.", nspace));
@@ -3392,8 +3393,21 @@ public:
     Wrapper *code_wrap = NewWrapper();
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
 
-    Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
-    Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
+    if (Len(smartptr_feature)) {
+      Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", smartptr_feature, smartptr_feature);
+      Printf(code_wrap->code, "  // NOTE: Pulling the raw pointer out of the smart pointer as the following code does\n");
+      Printf(code_wrap->code, "  //       is generally a bad idea. However, in this case we keep a local instance of the\n");
+      Printf(code_wrap->code, "  //       smart pointer around while we are using the raw pointer, which should keep the\n");
+      Printf(code_wrap->code, "  //       raw pointer alive. This is done instead of using the smart pointer's dynamic cast\n");
+      Printf(code_wrap->code, "  //       feature since different smart pointer implementations have differently named dynamic\n");
+      Printf(code_wrap->code, "  //       cast mechanisms.\n");
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
+    }
+    else {
+      Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", norm_name, norm_name);
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
+    }
+
     // TODO: if statement not needed?? - Java too
     Printf(code_wrap->code, "  if (director) {\n");
     Printf(code_wrap->code, "    director->swig_connect_director(");
