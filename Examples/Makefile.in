@@ -1650,6 +1650,8 @@ else
   DCOMPILER = @D1COMPILER@
 endif
 
+D_RUNME = ./$(RUNME)
+
 # ----------------------------------------------------------------
 # Build a dynamically loadable D wrapper for a C module
 # ----------------------------------------------------------------
@@ -1682,7 +1684,7 @@ d_compile: $(SRCS)
 # -----------------------------------------------------------------
 
 d_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme
+	$(RUNTOOL) $(D_RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

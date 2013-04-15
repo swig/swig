@@ -13,18 +13,15 @@ SWIGOPT       =
 DSRCS         = *.d
 DFLAGS        = -ofrunme
 
+check: build
+	cd $(WORKING_DIR); \
+	$(MAKE) -f $(TOP)/Makefile d_run
 
-all::	d
-
-d::
+build:
 	cd $(WORKING_DIR); \
 	$(MAKE) -f $(TOP)/Makefile EXTRA_CFLAGS='$(EXTRA_CFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' SWIG='$(SWIG)' SWIGOPT='$(SWIGOPT) -outcurrentdir ../example.i' TARGET='$(TARGET)' d; \
 	$(MAKE) -f $(TOP)/Makefile DSRCS='$(DSRCS)' DFLAGS='$(DFLAGS)' d_compile
 
-clean::
+clean:
 	cd $(WORKING_DIR); \
 	$(MAKE) -f $(TOP)/Makefile d_clean
-
-check: all
-	cd $(WORKING_DIR); \
-	$(MAKE) -f $(TOP)/Makefile d_run
