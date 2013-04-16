@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-04-15: kwwette
+            [octave] Fix bugs in output of cleanup code.
+            - Cleanup code is now written also after the "fail:" label, so it will be called if
+              a SWIG_exception is raised by the wrapping function, consistent with other modules.
+            - Octave module now also recognises the "$cleanup" special variable, if needed.
+
 2013-04-08: kwwette
             Add -MP option to SWIG for generating phony targets for all dependencies.
             - Prevents make from complaining if header files have been deleted before
