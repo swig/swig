@@ -744,9 +744,14 @@ public:
       Delete(tm);
     }
 
-    Printf(f->code, "fail:\n");	// we should free locals etc if this happens
     Printf(f->code, "return _out;\n");
+    Printf(f->code, "fail:\n");	// we should free locals etc if this happens
+    Printv(f->code, cleanup, NIL);
+    Printf(f->code, "return octave_value_list();\n");
     Printf(f->code, "}\n");
+
+    /* Substitute the cleanup code */
+    Replaceall(f->code, "$cleanup", cleanup);
 
     Replaceall(f->code, "$symname", iname);
     Wrapper_print(f, f_wrappers);
