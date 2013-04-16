@@ -1369,6 +1369,7 @@ lua_clean:
 ##################################################################
 
 ALLEGROCL    = @ALLEGROCLBIN@
+ALLEGROCL_SCRIPT=$(RUNME).lisp
 
 allegrocl: $(SRCS)
 	$(SWIG) -allegrocl -cwrap $(SWIGOPT) $(INTERFACEPATH)
@@ -1379,6 +1380,13 @@ allegrocl_cpp: $(SRCS)
 	$(SWIG) -c++ -allegrocl $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Run ALLEGRO CL example
+# -----------------------------------------------------------------
+
+allegrocl_run:
+	$(RUNTOOL) $(ALLEGROCL) -batch -s $(ALLEGROCL_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1401,12 +1409,20 @@ allegrocl_clean:
 ##################################################################
 
 CLISP = @CLISPBIN@
+CLISP_SCRIPT=$(RUNME).lisp
 
 clisp: $(SRCS)
 	$(SWIG) -clisp $(SWIGOPT) $(INTERFACEPATH)
 
 clisp_cpp: $(SRCS)
 	$(SWIG) -c++ -clisp $(SWIGOPT) $(INTERFACEPATH)
+
+# -----------------------------------------------------------------
+# Run CLISP example
+# -----------------------------------------------------------------
+
+clisp_run:
+	$(RUNTOOL) $(CLISP) -batch -s $(CLISP_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1429,6 +1445,7 @@ clisp_clean:
 ##################################################################
 
 CFFI = @CFFIBIN@
+CFFI_SCRIPT=$(RUNME).lisp
 
 cffi: $(SRCS)
 	$(SWIG) -cffi $(SWIGOPT) $(INTERFACEPATH)
@@ -1439,6 +1456,13 @@ cffi_cpp: $(SRCS)
 	$(SWIG) -c++ -cffi $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Run CFFI example
+# -----------------------------------------------------------------
+
+cffi_run:
+	$(RUNTOOL) $(CFFI) -batch -s $(CFFI_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1461,6 +1485,7 @@ cffi_clean:
 ##################################################################
 
 UFFI = @UFFIBIN@
+UFFI_SCRIPT=$(RUNME).lisp
 
 uffi: $(SRCS)
 	$(SWIG) -uffi $(SWIGOPT) $(INTERFACEPATH)
@@ -1471,6 +1496,13 @@ uffi_cpp: $(SRCS)
 	$(SWIG) -c++ -uffi $(SWIGOPT) $(INTERFACEPATH)
 #	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
 #	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Run UFFI example
+# -----------------------------------------------------------------
+
+uffi_run:
+	$(RUNTOOL) $(UFFI) -batch -s $(UFFI_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
