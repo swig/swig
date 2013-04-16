@@ -1581,26 +1581,37 @@ public:
   }
   String* getQualifiedInterfaceName(Node* n)
   {
-    // TODO: qualified interface name  //getProxyName(Getattr(base.item, "name"))
-    return Getattr(n, "feature:interface:name");
+    String* ret;
+    String *nspace = Getattr(n, "sym:nspace");
+    String *iname = Getattr(n, "feature:interface:name");
+    if (nspace) {
+      if (namespce)
+	ret = NewStringf("%s.%s.%s", namespce, nspace, iname);
+      else
+	ret = NewStringf("%s.%s", nspace, iname);
+    } else {
+      ret = Copy(iname);
+    }
+    return ret;
   }
-  void addInterfaceNameAndUpcasts(String* interface_list, String* interface_upcasts, Iterator base, String* c_baseclass, String* c_classname) {
-    String* iname = getQualifiedInterfaceName(base.item);
+  void addInterfaceNameAndUpcasts(String* interface_list, String* interface_upcasts, Node* base, String* c_classname) {
+    String* c_baseclass = SwigType_namestr(Getattr(base, "name"));
+    String* iname = getQualifiedInterfaceName(base);
     if (Len(interface_list))
       Append(interface_list, ", ");
     Append(interface_list, iname);
 
     Printf(interface_upcasts, "  [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]\n");
     String* upcast_name = 0;
-    if (String* cptr_func = Getattr(base.item, "feature:interface:cptr"))
+    if (String* cptr_func = Getattr(base, "feature:interface:cptr"))
       upcast_name = NewStringf("%s.%s", iname, cptr_func);
     else
       upcast_name = NewStringf("%s.GetCPtr", iname);
-    Printf(interface_upcasts, "  IntPtr %s()", upcast_name);
+    Printf(interface_upcasts, "  HandleRef %s()", upcast_name);
     Replaceall(upcast_name, ".", "_");
     String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
     String *wname = Swig_name_wrapper(upcast_method);
-    Printf(interface_upcasts, "{ return %s.%s(swigCPtr.Handle); }\n", imclass_name, upcast_method );
+    Printf(interface_upcasts, "{ return new HandleRef((%s)this, %s.%s(swigCPtr.Handle)); }\n", iname, imclass_name, upcast_method );
     Printv(imclass_cppcasts_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
     Printf(imclass_cppcasts_code, "  public static extern IntPtr %s(IntPtr jarg1);\n", upcast_method);
     Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
@@ -1611,6 +1622,8 @@ public:
     Delete(upcast_name);
     Delete(wname);
     Delete(upcast_method);
+    Delete(iname);
+    Delete(c_baseclass);
   }
   /* -----------------------------------------------------------------------------
    * emitProxyClassDefAndCPPCasts()
@@ -1642,7 +1655,7 @@ public:
           base = Next(base);
         }
 	while (base.item && Getattr(base.item, "feature:interface")) {
-	  addInterfaceNameAndUpcasts(interface_list, interface_upcasts, base, c_baseclass, c_classname);
+	  addInterfaceNameAndUpcasts(interface_list, interface_upcasts, base.item, c_classname);
 	  base = Next(base);
 	}
         if (base.item) {
@@ -1654,7 +1667,7 @@ public:
           /* Warn about multiple inheritance for additional base class(es) */
           while (base.item) {
 	    if (Getattr(base.item, "feature:interface")) {
-	      addInterfaceNameAndUpcasts(interface_list, interface_upcasts, base, c_baseclass, c_classname);
+	      addInterfaceNameAndUpcasts(interface_list, interface_upcasts, base.item, c_classname);
 	    } else if (!GetFlag(base.item, "feature:ignore")) {
 	      String *proxyclassname = Getattr(n, "classtypeobj");
 	      String *baseclassname = Getattr(base.item, "name");
@@ -1664,6 +1677,9 @@ public:
             base = Next(base);
           }
         }
+      }
+      if (Getattr(n, "feature:interface")) {
+	addInterfaceNameAndUpcasts(interface_list, interface_upcasts, n, c_classname);
       }
     }
 
@@ -1884,8 +1900,9 @@ public:
     Delete(baseclass);
   }
 
-  static void emitInterfaceDeclaration(Node* n, String* iname,  File* f_interface)
+  void emitInterfaceDeclaration(Node* n, String* iname, File* f_interface)
   {
+    Printv(f_interface, typemapLookup(n, "csimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
     Printf(f_interface, "public interface %s", iname);
     if (List *baselist = Getattr(n, "bases")) {
       String* bases = 0;
@@ -1893,10 +1910,6 @@ public:
 	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
 	  continue; // TODO: warn about skipped non-interface bases
 	String* base_iname = Getattr(base.item, "feature:interface:name");
-	if (!base_iname) {
-	  Swig_error(Getfile(n), Getline(n), "interface %s has a base interface %s w/o name attribute", iname, Getattr(base.item, "name"));
-	  continue;
-	}
 	if (!bases)
 	  bases = NewStringf(" : %s", base_iname);
 	else {
@@ -1912,9 +1925,9 @@ public:
     Printf(f_interface, " {\n");
     Printf(f_interface, "  [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]\n");
     if (String* cptr_func = Getattr(n, "feature:interface:cptr"))
-      Printf(f_interface, "  IntPtr %s();\n", cptr_func);
+      Printf(f_interface, "  HandleRef %s();\n", cptr_func);
     else
-      Printf(f_interface, "  IntPtr GetCPtr();\n");
+      Printf(f_interface, "  HandleRef GetCPtr();\n");
   }
   /* ----------------------------------------------------------------------
    * classHandler()
@@ -1976,9 +1989,11 @@ public:
       proxy_class_constants_code = NewStringEmpty();
       if (Getattr(n, "feature:interface")) {
 	interface_class_code = NewStringEmpty();
-	String* iname = Copy(Getattr(n, "feature:interface:name"));
-	if (!iname)
-	  iname = NewStringf("I%s", proxy_class_name);
+	String* iname = Getattr(n, "feature:interface:name");
+	if (!iname) {
+	  Swig_error(Getfile(n), Getline(n), "Interface %s has no name attribute", proxy_class_name);
+	  SWIG_exit(EXIT_FAILURE);
+	}
 	filen = NewStringf("%s%s.cs", output_directory, iname);
 	f_interface = NewFile(filen, "w", SWIG_output_files());
 	if (!f_interface) {
@@ -2196,8 +2211,10 @@ public:
       Printf(function_code, "  %s ", methodmods);
       if (!is_smart_pointer()) {
 	// Smart pointer classes do not mirror the inheritance hierarchy of the underlying pointer type, so no virtual/override/new required.
-	if (Getattr(n, "override"))
-	  Printf(function_code, "override ");
+	if (Node *base = Getattr(n, "override")) {
+	  if (!Getattr(parentNode(base), "feature:interface"))
+	    Printf(function_code, "override ");
+	}
 	else if (checkAttribute(n, "storage", "virtual"))
 	  Printf(function_code, "virtual ");
 	if (Getattr(n, "hides"))
