@@ -598,12 +598,56 @@ java_clean:
 #####                       ANDROID                         ######
 ##################################################################
 
+ANDROID = android
+ANDROID_NDK_BUILD = ndk-build
+ANDROID_ADB = adb
+ANT = ant
+TARGETID = 1
+
+# ----------------------------------------------------------------
+# Build an Android dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+android: $(SRCS)
+	$(ANDROID) update project --target $(TARGETID) --name $(PROJECTNAME) --path .
+	$(SWIG) -java $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
+	$(ANDROID_NDK_BUILD)
+	$(ANT) debug
+
+# ----------------------------------------------------------------
+# Build an Android dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+android_cpp: $(SRCS)
+	$(ANDROID) update project --target $(TARGETID) --name $(PROJECTNAME) --path .
+	$(SWIG) -java -c++ $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.cpp $(INTERFACEPATH)
+	$(ANDROID_NDK_BUILD)
+	$(ANT) debug
+
+# ----------------------------------------------------------------
+# Android install
+# ----------------------------------------------------------------
+
+android_install:
+	-$(ANDROID_ADB) uninstall $(PACKAGENAME)
+	$(ANDROID_ADB) install $(INSTALLOPTIONS) bin/$(PROJECTNAME)-debug.apk
+
 # -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
 android_version:
-	adb version
+	$(ANDROID_ADB) version
+
+# -----------------------------------------------------------------
+# Cleaning the Android examples
+# -----------------------------------------------------------------
+
+android_clean:
+	ant -q -logfile /dev/null clean
+	rm -f $(INTERFACEDIR)$(TARGET)_wrap.*
+	rm -f `find $(PACKAGEDIR) -name \*.java | grep -v $(PROJECTNAME).java`
+	rm -rf obj
 
 ##################################################################
 #####                      MODULA3                          ######
