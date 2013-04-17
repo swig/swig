@@ -3382,7 +3382,7 @@ public:
     String *qualified_classname = Copy(sym_name);
     String *nspace = getNSpace();
     String *dirClassName = directorClassName(n);
-    String *smartptr_feature = Getattr(n, "feature:smartptr");
+    String *smartptr = Getattr(n, "feature:smartptr");
 
     if (nspace)
       Insert(qualified_classname, 0, NewStringf("%s.", nspace));
@@ -3393,8 +3393,8 @@ public:
     Wrapper *code_wrap = NewWrapper();
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
 
-    if (Len(smartptr_feature)) {
-      Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", smartptr_feature, smartptr_feature);
+    if (Len(smartptr)) {
+      Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", smartptr, smartptr);
       Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
       Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
       Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);

@@ -5,6 +5,9 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-04-17: wsfulton
+            [C#] Pull patch #34 from BrantKyser to fix smart pointers in conjuction with directors.
+
 2013-04-08: kwwette
             Add -MP option to SWIG for generating phony targets for all dependencies.
             - Prevents make from complaining if header files have been deleted before
