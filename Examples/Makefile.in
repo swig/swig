@@ -62,6 +62,27 @@ ICXXSRCS   = $(IWRAP:.i=.cxx)
 IOBJS      = $(IWRAP:.i=.@OBJEXT@)
 
 ##################################################################
+# Some options for silent output
+##################################################################
+
+ifneq (,$(findstring s, $(filter-out --%, $(MAKEFLAGS))))
+  # make -s detected
+  SILENT=1
+else
+  SILENT=
+endif
+
+ifneq (,$(SILENT))
+  SILENT_OPTION = -s
+  SILENT_PIPE = >/dev/null
+  ANT_QUIET = -q -logfile /dev/null
+else
+  SILENT_OPTION =
+  SILENT_PIPE =
+  ANT_QUIET =
+endif
+
+##################################################################
 # Dynamic loading for C++
 # If you are going to be building dynamic loadable modules in C++,
 # you may need to edit this line appropriately.
@@ -609,20 +630,20 @@ TARGETID = 1
 # ----------------------------------------------------------------
 
 android: $(SRCS)
-	$(ANDROID) update project --target $(TARGETID) --name $(PROJECTNAME) --path .
+	$(ANDROID) $(SILENT_OPTION) update project --target $(TARGETID) --name $(PROJECTNAME) --path .
 	$(SWIG) -java $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
-	$(ANDROID_NDK_BUILD)
-	$(ANT) debug
+	+$(ANDROID_NDK_BUILD) $(SILENT_PIPE)
+	$(ANT) $(ANT_QUIET) debug
 
 # ----------------------------------------------------------------
 # Build an Android dynamically loadable module (C++)
 # ----------------------------------------------------------------
 
 android_cpp: $(SRCS)
-	$(ANDROID) update project --target $(TARGETID) --name $(PROJECTNAME) --path .
+	$(ANDROID) $(SILENT_OPTION) update project --target $(TARGETID) --name $(PROJECTNAME) --path .
 	$(SWIG) -java -c++ $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.cpp $(INTERFACEPATH)
-	$(ANDROID_NDK_BUILD)
-	$(ANT) debug
+	+$(ANDROID_NDK_BUILD) $(SILENT_PIPE)
+	$(ANT) $(ANT_QUIET) debug
 
 # ----------------------------------------------------------------
 # Android install
