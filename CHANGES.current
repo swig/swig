@@ -5,6 +5,16 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-04-18: wsfulton
+            Fix SF Bug #428 - Syntax error when preprocessor macros are defined inside of enum lists, such as:
+
+              typedef enum {
+                eZero = 0
+              #define ONE 1
+              } EFoo;
+
+            The macros are silently ignored.
+
 2013-04-17: wsfulton
             [C#] Pull patch #34 from BrantKyser to fix smart pointers in conjuction with directors.
 

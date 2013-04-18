@@ -514,6 +514,7 @@ C_TEST_CASES += \
 	empty \
 	enums \
 	enum_forward \
+	enum_macro \
 	extern_declaration \
 	funcptr \
 	function_typedef \
