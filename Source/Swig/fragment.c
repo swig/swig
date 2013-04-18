@@ -18,6 +18,7 @@
 
 #include "swig.h"
 #include "swigwarn.h"
+#include "cparse.h"
 
 static Hash *fragments = 0;
 static Hash *looking_fragments = 0;

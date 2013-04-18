@@ -6,6 +6,19 @@ Version 2.0.10 (in progress)
 ============================
 
 2013-04-18: wsfulton
+            Apply Patch #36 from Jesus Lopez to add support for $descriptor() special variable macro expansion 
+            in fragments. For example:
+
+              %fragment("nameDescriptor", "header")
+              %{
+                static const char *nameDescriptor = "$descriptor(Name)";
+              %}
+
+            which will generate into the wrapper if the fragment is used:
+
+              static const char *nameDescriptor = "SWIGTYPE_Name";
+
+2013-04-18: wsfulton
             Fix SF Bug #428 - Syntax error when preprocessor macros are defined inside of enum lists, such as:
 
               typedef enum {

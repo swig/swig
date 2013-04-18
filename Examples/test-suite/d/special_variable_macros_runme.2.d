@@ -12,6 +12,7 @@ void main() {
   enforce(testJack(name) == "$specialname");
   enforce(testJill(name) == "jilly");
   enforce(testMary(name) == "SWIGTYPE_p_NameWrap");
+  enforce(testJames(name) == "SWIGTYPE_Name");
   enforce(testJim(name) == "multiname num");
 
   enforce(testJohn(new PairIntBool(10, false)) == 123);
