@@ -19,22 +19,7 @@ extern "C" {
 /* In the code below, use guile 2.0 compatible functions where possible.
    Functions that don't exist in older versions will be mapped to
    a deprecated equivalent for those versions only */
-/* ... setup guile 2-like interface for guile 1.6 */
-#if (SCM_MAJOR_VERSION == 1) && (SCM_MINOR_VERSION <= 6)
-
-# define scm_from_locale_keyword scm_c_make_keyword
-# define scm_from_locale_symbol scm_str2symbol
-# define scm_is_null SCM_NULLP
-# define scm_is_true SCM_NFALSEP
-# define scm_is_string SCM_STRINGP
-
-/* Used later on to setup different code paths where it's
-   not possible to use a guile 2-like interface */
-# define GUILE_VERSION_1_6
-
-#endif
-
-/* ... setup guile 2-like interface for guile 1.6 and 1.8 */
+/* ... setup guile 2-like interface for guile 1.8 */
 #if defined (SCM_MAJOR_VERSION) && (SCM_MAJOR_VERSION < 2)
 
 static SCM
