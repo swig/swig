@@ -60,25 +60,25 @@
 
 %typemap(throws) SWIGTYPE {
   $&ltype temp = new $ltype($1);
-  scm_throw(scm_str2symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
 	    scm_listify(SWIG_NewPointerObj(temp, $&descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
 %typemap(throws) SWIGTYPE & {
-  scm_throw(scm_str2symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
 	    scm_listify(SWIG_NewPointerObj(&$1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
 %typemap(throws) SWIGTYPE * {
-  scm_throw(scm_str2symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
 	    scm_listify(SWIG_NewPointerObj($1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
 %typemap(throws) SWIGTYPE [] {
-  scm_throw(scm_str2symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
 	    scm_listify(SWIG_NewPointerObj($1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
@@ -151,7 +151,7 @@
    enums, which cannot be cast to. */
 %typemap(varin)  enum SWIGTYPE  {
   if (sizeof(int) != sizeof($1)) {
-    scm_error(scm_str2symbol("swig-error"),
+    scm_error(scm_from_locale_symbol("swig-error"),
 	      (char *) FUNC_NAME,
 	      (char *) "enum variable '$name' cannot be set",
 	      SCM_EOL, SCM_BOOL_F); 
@@ -161,7 +161,7 @@
 %typemap(out)    enum SWIGTYPE  { $result = scm_from_long($1); }
 %typemap(varout) enum SWIGTYPE  { $result = scm_from_long($1); }
 %typemap(throws) enum SWIGTYPE {
-  scm_throw(scm_str2symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
      scm_listify(scm_from_long($1), SCM_UNDEFINED));
 }
 
@@ -210,7 +210,7 @@
  /* Throw typemap */
  %typemap(throws) C_NAME {
    C_NAME swig_c_value = $1;
-   scm_throw(scm_str2symbol((char *) "swig-exception"),
+   scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
 	     scm_listify(C_TO_SCM_EXPR, SCM_UNDEFINED));
  }
 %enddef
@@ -254,7 +254,7 @@
  }
  /* Throw typemap */
  %typemap(throws) C_NAME {
-   scm_throw(scm_str2symbol((char *) "swig-exception"),
+   scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
 	     scm_listify(C_TO_SCM($1), SCM_UNDEFINED));
  }
 %enddef
@@ -329,7 +329,7 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
 }
 
 %typemap(throws) char * {
-  scm_throw(scm_str2symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
 	    scm_listify(SWIG_str02scm($1), SCM_UNDEFINED));
 }
 
