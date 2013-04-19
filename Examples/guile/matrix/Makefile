@@ -4,6 +4,7 @@ IFILE  = package.i
 MKDIR  = ..
 
 check: build
+	./$(TARGET) -e do-test -s matrix.scm
 
 build:
 	$(MAKE) -f $(MKDIR)/Makefile		\

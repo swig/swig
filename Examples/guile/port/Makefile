@@ -4,6 +4,7 @@ IFILE  = port.i
 MKDIR  = ..
 
 check: build
+	./$(TARGET) -s port.scm
 
 build:
 	$(MAKE) -f $(MKDIR)/Makefile		\
