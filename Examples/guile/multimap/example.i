@@ -66,7 +66,7 @@ extern int count(char *bytes, int len, char c);
 /* Return the mutated string as a new object.  */
 
 %typemap(argout) (char *str, int len) {
-  SWIG_APPEND_VALUE(scm_mem2string($1,$2));
+  SWIG_APPEND_VALUE(scm_from_locale_stringn($1,$2));
   if ($1) scm_must_free($1);
 }   
 
