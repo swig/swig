@@ -898,7 +898,7 @@ ocaml_dynamic_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 ocaml_run:
-	$(RUNTOOL) false $(RUNPIPE)
+	$(RUNTOOL) ./$(TARGET) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
