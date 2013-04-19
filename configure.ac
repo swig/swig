@@ -1239,15 +1239,7 @@ else
       CFLAGS="`echo $CFLAGS | sed 's/-ansi//g;s/-pedantic//g;'` $GUILE_CFLAGS"
       LIBS="$LIBS $GUILE_LIBS"
 
-      AC_MSG_CHECKING(whether Guile's gh_ API works)
-      AC_LINK_IFELSE([AC_LANG_SOURCE([#include <guile/gh.h>
-        int main() { SCM s; return gh_scm2int(s); }])], GUILE_GH_INTERFACE=1, )
-      if test -n "$GUILE_GH_INTERFACE" ; then
-        AC_MSG_RESULT(yes)
-      else
-        AC_MSG_RESULT(no)
-      fi
-      AC_MSG_CHECKING(whether Guile's SCM_ API works)
+      AC_MSG_CHECKING(whether Guile/SCM_ API works)
       AC_LINK_IFELSE([AC_LANG_SOURCE([#include <libguile.h>
         int main() { SCM s; scm_slot_exists_p(SCM_BOOL_F, SCM_BOOL_F); return SCM_STRING_LENGTH(s); }])], GUILE_SCM_INTERFACE=1, )
       if test -n "$GUILE_SCM_INTERFACE" ; then
@@ -1265,7 +1257,6 @@ fi
 AC_SUBST(GUILE)
 AC_SUBST(GUILE_CFLAGS)
 AC_SUBST(GUILE_LIBS)
-AC_SUBST(GUILE_GH_INTERFACE)
 AC_SUBST(GUILE_SCM_INTERFACE)
 
 #----------------------------------------------------------------
@@ -2268,12 +2259,6 @@ if test -z "$GUILE_CFLAGS" || test -z "$GUILE_LIBS" || test -z "$GUILE_SCM_INTER
 fi
 AC_SUBST(SKIP_GUILE)
 
-SKIP_GUILEGH=
-if test -z "$GUILE_CFLAGS" || test -z "$GUILE_LIBS" || test -z "$GUILE_GH_INTERFACE"; then
-    SKIP_GUILEGH="1"
-fi
-AC_SUBST(SKIP_GUILEGH)
-
 
 SKIP_MZSCHEME=
 if test -z "$MZC" || test -z "$MZDYNOBJ" ; then
@@ -2449,7 +2434,6 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/csharp/Makefile	        \
     Examples/test-suite/d/Makefile	        \
     Examples/test-suite/guile/Makefile	        \
-    Examples/test-suite/guilegh/Makefile	\
     Examples/test-suite/java/Makefile	        \
     Examples/test-suite/mzscheme/Makefile	\
     Examples/test-suite/ocaml/Makefile	        \

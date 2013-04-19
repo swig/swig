@@ -58,7 +58,6 @@ skip-tcl	= test -n "@SKIP_TCL@"
 skip-perl5	= test -n "@SKIP_PERL5@"
 skip-python	= test -n "@SKIP_PYTHON@"
 skip-java	= test -n "@SKIP_JAVA@"
-skip-guilegh    = test -n "@SKIP_GUILEGH@"
 skip-guile	= test -n "@SKIP_GUILE@"
 skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
 skip-ruby	= test -n "@SKIP_RUBY@"
@@ -246,7 +245,6 @@ check-test-suite:				\
 	check-perl5-test-suite			\
 	check-python-test-suite			\
 	check-java-test-suite			\
-	check-guilegh-test-suite		\
 	check-guile-test-suite			\
 	check-mzscheme-test-suite		\
 	check-ruby-test-suite			\
@@ -299,7 +297,6 @@ all-test-suite:					\
 	all-perl5-test-suite			\
 	all-python-test-suite			\
 	all-java-test-suite			\
-	all-guilegh-test-suite			\
 	all-guile-test-suite			\
 	all-mzscheme-test-suite			\
 	all-ruby-test-suite			\
@@ -328,7 +325,6 @@ broken-test-suite:				\
 	broken-perl5-test-suite			\
 	broken-python-test-suite		\
 	broken-java-test-suite			\
-	broken-guilegh-test-suite		\
 	broken-guile-test-suite			\
 	broken-mzscheme-test-suite		\
 	broken-ruby-test-suite			\

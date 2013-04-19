@@ -14,7 +14,7 @@
 <ul>
 <li><a href="#Guile_nn1">Supported Guile Versions</a>
 <li><a href="#Guile_nn2">Meaning of "Module"</a>
-<li><a href="#Guile_nn3">Using the SCM or GH Guile API</a>
+<li><a href="#Guile_nn3">Old GH Guile API</a>
 <li><a href="#Guile_nn4">Linkage</a>
 <ul>
 <li><a href="#Guile_nn5">Simple Linkage</a>
@@ -64,53 +64,19 @@ There are three different concepts of "module" involved, defined
 separately for SWIG, Guile, and Libtool.  To avoid horrible confusion,
 we explicitly prefix the context, e.g., "guile-module".
 
-<H2><a name="Guile_nn3"></a>23.3 Using the SCM or GH Guile API</H2>
+<H2><a name="Guile_nn3"></a>23.3 Old GH Guile API</H2>
 
 
-<p>The guile module can currently export wrapper files that use the guile GH interface or the
-SCM interface. This is controlled by an argument passed to swig.  The "-gh" argument causes swig
-to output GH code, and the "-scm" argument causes swig to output SCM code.  Right now the "-scm" argument
-is the default.  The "-scm" wrapper generation assumes a guile version &gt;= 1.6 and has several advantages over
-the "-gh" wrapper generation including garbage collection and GOOPS support.
-The "-gh" wrapper generation can be used for older versions of guile.
-The guile GH wrapper code generation is depreciated and the
-SCM interface is the default.  The SCM and GH interface differ greatly in how they store
-pointers and have completely different run-time code. See below for more info.  
+<p>Support for the guile GH wrapper code generation has been dropped. The last
+version of SWIG that can still generate guile GH wrapper code is 2.0.9. Please
+use that version if you really need the GH wrapper code.
 
-<p>The GH interface to guile is deprecated.  Read more about why in the 
+<p>Guile 1.8 and older could be interfaced using a two different api's, the SCM
+or the GH API. The GH interface to guile is deprecated.  Read more about why in the 
 <a href="http://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/GH.html#GH">Guile manual</a>.
-The idea of the GH interface was to provide a high level API that other languages and projects
-could adopt.  This was a good idea, but didn't pan out well for general development.  But for the
-specific, minimal uses that the SWIG typemaps put the GH interface to use is ideal for
-using a high level API.  So even though the GH interface is depreciated, SWIG will continue to use
-the GH interface and provide mappings from the GH interface to whatever API we need.
-We can maintain this mapping where guile failed because SWIG uses a small subset of all the GH functions 
-which map easily.  All the guile typemaps like typemaps.i and std_vector.i
-will continue to use the GH functions to do things like create lists of values, convert strings to
-integers, etc.  Then every language module will define a mapping between the GH interface and 
-whatever custom API the language uses.  This is currently implemented by the guile module to use
-the SCM guile API rather than the GH guile API.  
-For example, here are some of the current mapping file for the SCM API</p>
 
-<div class="code"><pre>
-
-#define gh_append2(a, b) scm_append(scm_listify(a, b, SCM_UNDEFINED)) 
-#define gh_apply(a, b) scm_apply(a, b, SCM_EOL) 
-#define gh_bool2scm SCM_BOOL 
-#define gh_boolean_p SCM_BOOLP 
-#define gh_car SCM_CAR 
-#define gh_cdr SCM_CDR 
-#define gh_cons scm_cons 
-#define gh_double2scm scm_make_real 
-...
-</pre></div>
-
-<p>This file is parsed by SWIG at wrapper generation time, so every reference to a gh_ function is replaced
-by a scm_ function in the wrapper file.  Thus the gh_ function calls will never be seen in the wrapper;
-the wrapper will look exactly like it was generated
-for the specific API.  Currently only the guile language module has created a mapping policy from gh_ to scm_,
-but there is no reason other languages (like mzscheme or chicken) couldn't also use this.  
-If that happens, there is A LOT less code duplication in the standard typemaps.</p>
+<p>The SCM wrapper generation assumes a guile version &gt;= 1.8 and has several advantages over
+the "-gh" wrapper generation including garbage collection and GOOPS support.
 
 <H2><a name="Guile_nn4"></a>23.4 Linkage</H2>
 
