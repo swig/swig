@@ -11,9 +11,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <global.h>
-#include <module.h>
-#include <interpret.h>
+#include <pike/global.h>
+#include <pike/module.h>
+#include <pike/interpret.h>
 #ifdef __cplusplus
 }
 #endif

@@ -1618,18 +1618,21 @@ AC_ARG_WITH(pikeincl, AS_HELP_STRING([--with-pikeincl=path],
 if test -n "$PIKE"; then
       AC_MSG_CHECKING([for Pike header files])
       if test -z "$PIKEINCLUDE" -a -n "$PIKECONFIG"; then
-              PIKEINCLUDE=`$PIKECONFIG --cflags`
+        PIKEINCLUDE=`$PIKECONFIG --cflags`
       fi
       if test -z "$PIKEINCLUDE" -a -n "$PIKE"; then
-              PIKEPATH=`which $PIKE`
-              PIKEINCLUDE=`$PIKE Tools/check-include-path.pike $PIKEPATH`
-              PIKEINCLUDE="-I$PIKEINCLUDE"
+        PIKEINCLUDE=`$PIKE -x cflags`
+        if test -z "$PIKEINCLUDE"; then
+          PIKEPATH=`which $PIKE`
+          PIKEINCLUDE=`$PIKE Tools/check-include-path.pike $PIKEPATH`
+          PIKEINCLUDE="-I$PIKEINCLUDE"
+        fi
       fi
 
       if test -z "$PIKEINCLUDE"; then
-              AC_MSG_RESULT(not found)
+        AC_MSG_RESULT(not found)
       else
-              AC_MSG_RESULT($PIKEINCLUDE)
+        AC_MSG_RESULT($PIKEINCLUDE)
       fi
 fi
 fi
@@ -2305,7 +2308,7 @@ fi
 AC_SUBST(SKIP_OCAML)
 
 
-SKIP_PIKE="1" # Always skipped!
+SKIP_PIKE=
 if test -z "$PIKE" || test -z "$PIKEINCLUDE" ; then
     SKIP_PIKE="1"
 fi
