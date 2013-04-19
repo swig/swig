@@ -479,19 +479,6 @@ $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO): $(SRCS)
 guile_externalhdr:
 	$(SWIG) -guile -external-runtime $(TARGET)
 
-#------------------------------------------------------------------
-# Build a dynamically loaded module with passive linkage and the gh interface
-#------------------------------------------------------------------
-guile_gh: $(SRCS)
-	$(SWIG) -guile -gh -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ISRCS) $(SRCS)
-	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
-
-guile_gh_cpp: $(SRCS)
-	$(SWIG) -c++ -guile -gh -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
-
 # -----------------------------------------------------------------
 # Build a dynamically loadable module with passive linkage
 # -----------------------------------------------------------------
