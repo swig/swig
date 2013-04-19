@@ -22,6 +22,7 @@ TARGET      = $(TARGET_NOEXE)@EXEEXT@
 SOURCE      = Source
 CCACHE      = CCache
 DOCS        = Doc/Manual
+RUNPIPE     = \>/dev/null
 
 swig: libfiles source ccache
 
@@ -229,7 +230,7 @@ check-%-examples :
 # individual example
 %.actionexample:
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
-	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) -s $(chk-set-env) $(ACTION) RUNPIPE=\>/dev/null)
+	@(cd Examples/$(LANGUAGE)/$* && $(MAKE) -s $(chk-set-env) $(ACTION) RUNPIPE=$(RUNPIPE))
 
 # gcj individual example
 java.actionexample:
