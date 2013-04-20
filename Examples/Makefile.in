@@ -747,7 +747,7 @@ mzscheme_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 mzscheme_run:
-	$(RUNTOOL) $(MZSCHEME) -r $(MZSCHEME_SCRIPT) $(RUNPIPE)
+	env LD_LIBRARY_PATH=. $(RUNTOOL) $(MZSCHEME) -r $(MZSCHEME_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
