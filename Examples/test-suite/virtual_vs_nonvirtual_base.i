@@ -6,6 +6,7 @@ class SimpleVirtual
 {
 	public:
 		virtual int implementMe() = 0;
+		virtual ~SimpleVirtual() {}
 };
 
 class SimpleNonVirtual

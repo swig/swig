@@ -423,7 +423,8 @@ example.i(4) : Syntax error in input.
 <li>322. Redundant redeclaration of '<em>name</em>'.
 <li>323. Recursive scope inheritance of '<em>name</em>'.
 <li>324. Named nested template instantiations not supported. Processing as if no name was given to %template().
-<li>325. Nested class not currently supported (<em>name</em> ignored).
+<li>325. Nested <em>kind</em> not currently supported (<em>name</em> ignored).
+<li>326. Deprecated %extend name used - the <em>kind</em> name '<em>name</em>' should be used instead of the typedef name '<em>name</em>'.
 <li>350. operator new ignored.
 <li>351. operator delete ignored.
 <li>352. operator+ ignored.
@@ -526,6 +527,8 @@ example.i(4) : Syntax error in input.
 <li>519. %template() contains no name. Template method ignored: <em>declaration</em>
 <li>520. <em>Base/Derived</em> class '<em>classname1</em>' of '<em>classname2</em>' is not similarly marked as a smart pointer.
 <li>521. Illegal destructor name <em>name</em>. Ignored.
+<li>522. Use of an illegal constructor name '<em>name</em>' in %extend is deprecated, the constructor name should be '<em>name</em>'.
+<li>523. Use of an illegal destructor name '<em>name</em>' in %extend is deprecated, the destructor name should be '<em>name</em>'.
 </ul>
 
 <H3><a name="Warnings_nn15"></a>14.9.6 Language module specific (700-899) </H3>
@@ -551,6 +554,8 @@ example.i(4) : Syntax error in input.
 <li>822. Covariant return types not supported in Java. Proxy method will return <em>basetype</em>  (Java).
 <li>823. No javaconstruct typemap defined for <em>type</em>  (Java).
 <li>824. Missing JNI descriptor in directorin typemap defined for <em>type</em> (Java).
+<li>825. "directorconnect" attribute missing in <em>type</em> "javaconstruct" typemap. (Java).
+<li>826. The nspace feature is used on '<em>type</em>' without -package. The generated code may not compile as Java does not support types declared in a named package accessing types declared in an unnamed package. (Java).
 </ul>
 
 <ul>

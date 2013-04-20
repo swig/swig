@@ -1,5 +1,8 @@
 %module extend_typedef_class
 
+%warnfilter(SWIGWARN_PARSE_EXTEND_NAME) tagCClass;
+%warnfilter(SWIGWARN_PARSE_EXTEND_NAME) tagCStruct;
+
 // classes in global namespace
 %inline %{
   typedef struct tagAClass {

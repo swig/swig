@@ -11,8 +11,6 @@
  * Modula3 language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_modula3_cxx[] = "$Id$";
-
 /*
   Text formatted with
     indent -sob -br -ce -nut -npsl
@@ -835,7 +833,7 @@ MODULA3():
     scanConstant(file, n);
     Printf(file, "  return 0;\n");
     Printf(file, "}\n");
-    Close(file);
+    Delete(file);
     return SWIG_OK;
   }
 
@@ -870,7 +868,7 @@ MODULA3():
    by SWIG with option -generaterename. */\n\
 \n", input_file);
     scanRename(file, n);
-    Close(file);
+    Delete(file);
     return SWIG_OK;
   }
 
@@ -900,7 +898,7 @@ MODULA3():
    by SWIG with option -generatetypemap. */\n\
 \n", input_file);
     scanTypemap(file, n);
-    Close(file);
+    Delete(file);
     return SWIG_OK;
   }
 
@@ -991,7 +989,7 @@ MODULA3():
     // Generate m3makefile
     // This will be unnecessary if SWIG is invoked from Quake.
     {
-      File *file = openWriteFile(NewStringf("%sm3makefile", Swig_file_dirname(outfile)));
+      File *file = openWriteFile(NewStringf("%sm3makefile", SWIG_output_directory()));
 
       Printf(file, "%% automatically generated quake file for %s\n\n", name);
 
@@ -1009,12 +1007,12 @@ MODULA3():
       } else {
 	Printf(file, "library(\"m3%s\")\n", name);
       }
-      Close(file);
+      Delete(file);
     }
 
     // Generate the raw interface
     {
-      File *file = openWriteFile(NewStringf("%s%s.i3", Swig_file_dirname(outfile), m3raw_name));
+      File *file = openWriteFile(NewStringf("%s%s.i3", SWIG_output_directory(), m3raw_name));
 
       emitBanner(file);
 
@@ -1027,12 +1025,12 @@ MODULA3():
       Printv(file, m3raw_intf.f, NIL);
 
       Printf(file, "\nEND %s.\n", m3raw_name);
-      Close(file);
+      Delete(file);
     }
 
     // Generate the raw module
     {
-      File *file = openWriteFile(NewStringf("%s%s.m3", Swig_file_dirname(outfile), m3raw_name));
+      File *file = openWriteFile(NewStringf("%s%s.m3", SWIG_output_directory(), m3raw_name));
 
       emitBanner(file);
 
@@ -1045,12 +1043,12 @@ MODULA3():
       Printv(file, m3raw_impl.f, NIL);
 
       Printf(file, "BEGIN\nEND %s.\n", m3raw_name);
-      Close(file);
+      Delete(file);
     }
 
     // Generate the interface for the comfort wrappers
     {
-      File *file = openWriteFile(NewStringf("%s%s.i3", Swig_file_dirname(outfile), m3wrap_name));
+      File *file = openWriteFile(NewStringf("%s%s.i3", SWIG_output_directory(), m3wrap_name));
 
       emitBanner(file);
 
@@ -1075,12 +1073,12 @@ MODULA3():
 
       // Finish off the class
       Printf(file, "\nEND %s.\n", m3wrap_name);
-      Close(file);
+      Delete(file);
     }
 
     // Generate the wrapper routines implemented in Modula 3
     {
-      File *file = openWriteFile(NewStringf("%s%s.m3", Swig_file_dirname(outfile), m3wrap_name));
+      File *file = openWriteFile(NewStringf("%s%s.m3", SWIG_output_directory(), m3wrap_name));
 
       emitBanner(file);
 
@@ -1096,7 +1094,7 @@ MODULA3():
       Printv(file, m3wrap_impl.f, NIL);
 
       Printf(file, "\nBEGIN\nEND %s.\n", m3wrap_name);
-      Close(file);
+      Delete(file);
     }
 
     if (upcasts_code)
@@ -1162,7 +1160,6 @@ MODULA3():
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     return SWIG_OK;
@@ -2030,7 +2027,7 @@ MODULA3():
 	      if (oldname != NIL) {
 		Swig_warning(WARN_MODULA3_BAD_ENUMERATION, input_file, line_number, "The value <%s> is already assigned to <%s>.\n", value, oldname);
 	      }
-//printf("items %lx, set %s = %s\n", (long) items, Char(newvalue), Char(m3name));
+//printf("items %p, set %s = %s\n", items, Char(newvalue), Char(m3name));
 	      Setattr(items, newvalue, m3name);
 	      if (max < numvalue) {
 		max = numvalue;
@@ -2097,7 +2094,7 @@ MODULA3():
 	  stem += Len(pat.prefix);
 	}
 	String *newname;
-	if (Strcmp(srcstyle, "underscore") == 0) {
+	if (srcstyle && Strcmp(srcstyle, "underscore") == 0) {
 	  if (newprefix != NIL) {
 	    String *newstem = nameToModula3(stem, true);
 	    newname = NewStringf("%s%s", newprefix, newstem);
@@ -2215,16 +2212,18 @@ MODULA3():
     List *baselist = Getattr(n, "bases");
     if (baselist != NIL) {
       Iterator base = First(baselist);
-      c_baseclassname = Getattr(base.item, "name");
-      baseclass = Copy(getProxyName(c_baseclassname));
-      if (baseclass) {
-	c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
-      }
-      base = Next(base);
-      if (base.item != NIL) {
-	Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-		     "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
-		     name, Getattr(base.item, "name"));
+      if (base.item) {
+	c_baseclassname = Getattr(base.item, "name");
+	baseclass = Copy(getProxyName(c_baseclassname));
+	if (baseclass) {
+	  c_baseclass = SwigType_namestr(Getattr(base.item, "name"));
+	}
+	base = Next(base);
+	if (base.item != NIL) {
+	  Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+	      "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
+	      name, Getattr(base.item, "name"));
+	}
       }
     }
 
@@ -2388,7 +2387,7 @@ MODULA3():
 	SWIG_exit(EXIT_FAILURE);
       }
 
-      String *filen = NewStringf("%s%s.m3", Swig_file_dirname(outfile), proxy_class_name);
+      String *filen = NewStringf("%s%s.m3", SWIG_output_directory(), proxy_class_name);
       f_proxy = NewFile(filen, "w", SWIG_output_files());
       if (!f_proxy) {
 	FileErrorDisplay(filen);
@@ -2461,12 +2460,14 @@ MODULA3():
 	    /* Look for the first (principal?) base class -
 	       Modula 3 does not support multiple inheritance */
 	    Iterator base = First(baselist);
-	    Append(baseclassname, Getattr(base.item, "sym:name"));
-	    base = Next(base);
-	    if (base.item != NIL) {
-	      Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-			   "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
-			   proxy_class_name, Getattr(base.item, "name"));
+	    if (base.item) {
+	      Append(baseclassname, Getattr(base.item, "sym:name"));
+	      base = Next(base);
+	      if (base.item) {
+		Swig_warning(WARN_MODULA3_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+		    "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Modula 3.\n",
+		    proxy_class_name, Getattr(base.item, "name"));
+	      }
 	    }
 	  }
 	}
@@ -2555,7 +2556,7 @@ MODULA3():
       Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
 
       Printf(f_proxy, "}\n");
-      Close(f_proxy);
+      Delete(f_proxy);
       f_proxy = NULL;
 
       Delete(proxy_class_name);
@@ -3528,6 +3529,7 @@ MODULA3():
 
     m3wrap_impl.enterBlock(no_block);
     if (proxy_flag && global_variable_flag) {
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(NSPACE_TODO, variable_name)) == 0);
       // Properties
       if (setter_flag) {
 	// Setter method
@@ -3781,7 +3783,7 @@ MODULA3():
     Setfile(n, input_file);
     Setline(n, line_number);
 
-    String *filen = NewStringf("%s%s.m3", Swig_file_dirname(outfile), classname);
+    String *filen = NewStringf("%s%s.m3", SWIG_output_directory(), classname);
     File *f_swigtype = NewFile(filen, "w", SWIG_output_files());
     if (!f_swigtype) {
       FileErrorDisplay(filen);
@@ -3811,7 +3813,7 @@ MODULA3():
     Replaceall(swigtype, "$m3classname", classname);
     Printv(f_swigtype, swigtype, NIL);
 
-    Close(f_swigtype);
+    Delete(f_swigtype);
     Delete(filen);
     Delete(swigtype);
   }

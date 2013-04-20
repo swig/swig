@@ -1,4 +1,4 @@
-%module csharp_prepost
+%module (directors="1") csharp_prepost
 
 // Test the pre, post, terminate and cshin attributes for csin typemaps
 
@@ -64,9 +64,11 @@ bool globalfunction2(std::vector<double> & v, std::vector<double> &v2, std::vect
 struct PrePost2 {
   PrePost2() {
   }
+  virtual ~PrePost2() {
+  }
   PrePost2(std::vector<double> & v, std::vector<double> &v2, std::vector<double> & vpre, std::vector<double> & vpost) {
   }
-  bool method(std::vector<double> & v, std::vector<double> &v2, std::vector<double> & vpre, std::vector<double> & vpost) {
+  virtual bool method(std::vector<double> & v, std::vector<double> &v2, std::vector<double> & vpre, std::vector<double> & vpost) {
     return true;
   }
   static bool staticmethod(std::vector<double> & v, std::vector<double> &v2, std::vector<double> & vpre, std::vector<double> & vpost) {
@@ -74,6 +76,40 @@ struct PrePost2 {
   }
 };
 %}
+
+// Check csdirectorin pre and post attributes
+// ref param
+%typemap(csdirectorin,
+   pre="    DoubleVector d$iminput = new DoubleVector($iminput, false);\n"
+       "    int count$iminput = d$iminput.Count;\n"
+       "    double[] v$iminput = new double[count$iminput];\n"
+       "    for (int i=0; i<count$iminput; ++i) {\n"
+       "      v$iminput[i] = d$iminput[i];\n"
+       "    }\n",
+   post="      foreach (double d in v$iminput) {\n"
+        "        d$iminput.Add(d);\n"
+        "      }\n"
+  ) std::vector<double> &vpre
+  "ref v$iminput"
+// post only in csdirectorin typemap
+%typemap(csdirectorin, post="      DoubleVector d$iminput = new DoubleVector($iminput, false);\n"
+                            "      int size = d$iminput.Count;\n"
+                            "      for (int i=0; i<size; ++i) {\n"
+                            "        d$iminput[i] /= 100;\n"
+                            "      }") std::vector<double> &vpost
+  "new $csclassname($iminput, false)"
+
+%feature("director") PrePost3;
+%inline %{
+struct PrePost3 {
+  PrePost3() {
+  }
+  virtual ~PrePost3(){}
+  virtual void method(std::vector<double> & vpre, std::vector<double> & vpost) {}
+  virtual int methodint(std::vector<double> & vpre, std::vector<double> & vpost) { return 0; }
+};
+%}
+
 
 %template(DoubleVector) std::vector<double>;
 

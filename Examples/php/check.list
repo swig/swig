@@ -1,5 +1,5 @@
 # see top-level Makefile.in
-# (see also top-level configure.in kludge)
+# (see also top-level configure.ac kludge)
 callback
 class
 constants

@@ -11,21 +11,19 @@
  * Parameter list class.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_parms_c[] = "$Id$";
-
 #include "swig.h"
 
 /* ------------------------------------------------------------------------
  * NewParm()
  *
  * Create a new parameter from datatype 'type' and name 'name' copying
- * the file and line number from the Node file_line_node.
+ * the file and line number from the Node from_node.
  * ------------------------------------------------------------------------ */
 
-Parm *NewParm(SwigType *type, const_String_or_char_ptr name, Node *file_line_node) {
+Parm *NewParm(SwigType *type, const_String_or_char_ptr name, Node *from_node) {
   Parm *p = NewParmWithoutFileLineInfo(type, name);
-  Setfile(p, Getfile(file_line_node));
-  Setline(p, Getline(file_line_node));
+  Setfile(p, Getfile(from_node));
+  Setline(p, Getline(from_node));
   return p;
 }
 
@@ -45,6 +43,20 @@ Parm *NewParmWithoutFileLineInfo(SwigType *type, const_String_or_char_ptr name) 
     Delete(ntype);
   }
   Setattr(p, "name", name);
+  return p;
+}
+
+/* ------------------------------------------------------------------------
+ * NewParmNode()
+ *
+ * Create a new parameter from datatype 'type' and name and symbol table as
+ * well as file and line number from the 'from_node'.
+ * The resulting Parm will be similar to a Node used for typemap lookups.
+ * ------------------------------------------------------------------------ */
+
+Parm *NewParmNode(SwigType *type, Node *from_node) {
+  Parm *p = NewParm(type, Getattr(from_node, "name"), from_node);
+  Setattr(p, "sym:symtab", Getattr(from_node, "sym:symtab"));
   return p;
 }
 

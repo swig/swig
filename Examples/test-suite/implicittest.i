@@ -18,7 +18,6 @@
     explicit A(char *s) { ii = 4; }
 
     int get() const { return ii; }
-    
   };
 
   int get(const A& a) { return a.ii; }
@@ -33,7 +32,7 @@
     explicit A_T(char *s) { ii = 4; }
 
     int get() const { return ii; }
-    
+    static int sget(const A_T& a) { return a.ii; }
   };
 }
 

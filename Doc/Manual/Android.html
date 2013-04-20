@@ -15,7 +15,9 @@
 <li><a href="#Android_examples_intro">Examples introduction</a>
 <li><a href="#Android_example_simple">Simple C example</a>
 <li><a href="#Android_example_class">C++ class example</a>
+<li><a href="#Android_examples_other">Other examples</a>
 </ul>
+<li><a href="#Android_stl">C++ STL</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -45,7 +47,7 @@ This chapter contains a few Android specific notes and examples.
 
 
 <p>
-The examples require the the <a href="http://developer.android.com/sdk/index.html">Android SDK</a> and <a href="http://developer.android.com/sdk/ndk/index.html">Android NDK</a> which can be installed as per instructions in the links.
+The examples require the <a href="http://developer.android.com/sdk/index.html">Android SDK</a> and <a href="http://developer.android.com/sdk/ndk/index.html">Android NDK</a> which can be installed as per instructions in the links.
 The Eclipse version is not required for these examples as just the command line tools are used (shown for Linux as the host, but Windows will be very similar, if not identical in most places).
 Add the SDK tools and NDK tools to your path and create a directory somewhere for your Android projects (adjust PATH as necessary to where you installed the tools):
 </p>
@@ -743,6 +745,36 @@ Run the app to see the result of calling the C++ code from Java:
 </p>
 
 <center><img src="android-class.png" alt="Android screenshot of SwigClass example"></center>
+
+<H3><a name="Android_examples_other"></a>18.2.4 Other examples</H3>
+
+
+<p>
+The Examples/android directory contains further examples which can be run and installed in a similar manner to the previous two examples.
+</p>
+
+<p>
+Note that the 'extend' example is demonstrates the directors feature.
+Normally C++ exception handling and the STL is not available by default in the version of g++ shipped with Android, but this example turns these features on as described in the next section.
+</p>
+
+<H2><a name="Android_stl"></a>18.3 C++ STL</H2>
+
+
+<p>
+Should the C++ Standard Template Library (STL) be required, an <tt>Application.mk</tt> file needs to be created 
+in the same directory as the <tt>Android.mk</tt> directory containing information about the STL to use.
+See the NDK documentation in the $NDKROOT/docs folder especially CPLUSPLUS-SUPPORT.html.
+Below is an example of the <tt>Application.mk</tt> file to make the STLport static library available for use:
+</p>
+
+<div class="code">
+<pre>
+# File: Application.mk
+APP_STL := gnustl_static
+</pre>
+</div>
+
 
 </body>
 </html>

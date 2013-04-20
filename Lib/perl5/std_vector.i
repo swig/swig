@@ -180,6 +180,9 @@ namespace std {
             }
         }
       public:
+        typedef size_t size_type;
+        typedef T value_type;
+        typedef const value_type& const_reference;
         vector(unsigned int size = 0);
         vector(unsigned int size, const T& value);
         vector(const vector<T> &);
@@ -349,6 +352,9 @@ namespace std {
             }
         }
       public:
+        typedef size_t size_type;
+        typedef T value_type;
+        typedef const value_type& const_reference;
         vector(unsigned int size = 0);
         vector(unsigned int size, T *value);
         vector(const vector<T *> &);
@@ -517,6 +523,9 @@ namespace std {
             }
         }
       public:
+        typedef size_t size_type;
+        typedef T value_type;
+        typedef const value_type& const_reference;
         vector(unsigned int size = 0);
         vector(unsigned int size, T value);
         vector(const vector<T> &);

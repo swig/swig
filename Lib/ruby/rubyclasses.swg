@@ -36,11 +36,64 @@
 
 %fragment("GC_VALUE_definition","header") {
 namespace swig {
+  class SwigGCReferences {
+    // Hash of all GC_VALUE's currently in use
+    static SwigGCReferences s_references;
+
+    VALUE _hash;
+
+    SwigGCReferences() : _hash(Qnil) {
+    }
+    ~SwigGCReferences() {
+      if (_hash != Qnil)
+        rb_gc_unregister_address(&_hash);
+    }
+    static void EndProcHandler(VALUE) {
+      // Ruby interpreter ending - _hash can no longer be accessed.
+      s_references._hash = Qnil;
+    }
+  public:
+    static SwigGCReferences& instance() {
+      return s_references;
+    }
+    static void initialize() {
+      if (s_references._hash == Qnil) {
+        rb_set_end_proc(&EndProcHandler, Qnil);
+        s_references._hash = rb_hash_new();
+        rb_gc_register_address(&s_references._hash);
+      }
+    }
+    void GC_register(VALUE& obj) {
+      if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
+        return;
+      if (_hash != Qnil) {
+        VALUE val = rb_hash_aref(_hash, obj);
+        unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 0;
+        ++n;
+        rb_hash_aset(_hash, obj, INT2NUM(n));
+      }
+    }
+    void GC_unregister(const VALUE& obj) {
+      if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
+        return;
+      // this test should not be needed but I've noticed some very erratic
+      // behavior of none being unregistered in some very rare situations.
+      if (BUILTIN_TYPE(obj) == T_NONE)
+        return;
+      if (_hash != Qnil) {
+        VALUE val = rb_hash_aref(s_references._hash, obj);
+        unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 1;
+        --n;
+        if (n)
+          rb_hash_aset(s_references._hash, obj, INT2NUM(n));
+        else
+          rb_hash_delete(s_references._hash, obj);
+      }
+    }
+  };
+
   class GC_VALUE {
   protected:
-    // Hash of all GC_VALUE's currently in use
-    static VALUE _hash;
-
     VALUE  _obj;
 
     static ID hash_id;
@@ -77,75 +130,33 @@ namespace swig {
 
 
   public:
-    static void initialize()
-    {
-      if ( _hash == Qnil ) 
-	{ 
-	  _hash = rb_hash_new();
-	  rb_gc_register_address( &_hash );
-	}
-    }
-
-    // this function is never called.  Provided for symmetry only.
-    static void cleanup()
-    {
-      rb_gc_unregister_address( &_hash );
-    }
-
-    GC_VALUE() : _obj( Qnil )
+    GC_VALUE() : _obj(Qnil)
     {
     }
 
     GC_VALUE(const GC_VALUE& item) : _obj(item._obj)
     {
-      GC_register();
+      SwigGCReferences::instance().GC_register(_obj);
     }
     
     GC_VALUE(VALUE obj) :_obj(obj)
     {
-      GC_register();
+      SwigGCReferences::instance().GC_register(_obj);
     }
     
     ~GC_VALUE() 
     {
-      GC_unregister();
+      SwigGCReferences::instance().GC_unregister(_obj);
     }
     
     GC_VALUE & operator=(const GC_VALUE& item) 
     {
-      GC_unregister();
+      SwigGCReferences::instance().GC_unregister(_obj);
       _obj = item._obj;
-      GC_register();
+      SwigGCReferences::instance().GC_register(_obj);
       return *this;
     }
 
-    void GC_register()
-    {
-      if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) 
-	return;
-      VALUE val = rb_hash_aref( _hash, _obj );
-      unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 0;
-      ++n;
-      rb_hash_aset( _hash, _obj, INT2NUM(n) );
-    }
-
-    void GC_unregister()
-    {
-      if ( FIXNUM_P(_obj) || SPECIAL_CONST_P(_obj) || SYMBOL_P(_obj) ) 
-	return;
-      // this test should not be needed but I've noticed some very erratic
-      // behavior of none being unregistered in some very rare situations.
-      if ( BUILTIN_TYPE(_obj) == T_NONE ) return;
-
-      VALUE val = rb_hash_aref( _hash, _obj );
-      unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 1;
-      --n;
-      if ( n )
-	rb_hash_aset( _hash, _obj, INT2NUM(n) );
-      else
-	rb_hash_delete( _hash, _obj );
-    }
-    
     operator VALUE() const
     {
       return _obj;
@@ -161,113 +172,110 @@ namespace swig {
       return rb_inspect(_obj);
     }
 
-    static VALUE swig_protect_funcall( VALUE p )
+    static VALUE swig_rescue_swallow(VALUE)
+    {
+      /*
+      VALUE errstr = rb_obj_as_string(rb_errinfo());
+      printf("Swallowing error: '%s'\n", RSTRING_PTR(StringValue(errstr)));
+      */
+      return Qnil; /* Swallow Ruby exception */
+    }
+
+    static VALUE swig_rescue_funcall(VALUE p)
     {
       OpArgs* args = (OpArgs*) p;
-      return rb_funcall( args->src, args->id, args->nargs, args->target );
+      return rb_funcall(args->src, args->id, args->nargs, args->target);
     }
 
-
-%#define GC_VALUE_CMP( op_id, op, cmp, cmpval ) \
-    bool op( const GC_VALUE& other ) const \
-    { \
-      if ( FIXNUM_P(_obj) && FIXNUM_P(other._obj) ) \
-      { \
-	return _obj cmp other._obj; \
-      } \
-      bool  res = false; \
-      VALUE ret = Qnil; \
-      SWIG_RUBY_THREAD_BEGIN_BLOCK; \
-      if ( rb_respond_to( _obj, op_id ) == Qtrue ) \
-	{ \
-	  int status; \
-	  OpArgs  args; \
-          args.src    = _obj; \
-	  args.id     = op_id; \
-	  args.nargs  = 1; \
-	  args.target = VALUE(other); \
-	  ret = rb_protect( PROTECTFUNC(swig_protect_funcall), \
-                            VALUE(&args), &status ); \
-	} \
-      if ( ret == Qnil ) { \
-	VALUE a = rb_funcall(         _obj, hash_id, 0 ); \
-	VALUE b = rb_funcall( VALUE(other), hash_id, 0 ); \
-	res = a cmp b; \
-      } \
-      else \
-	{ \
-	  res = RTEST( ret ); \
-	} \
-      SWIG_RUBY_THREAD_END_BLOCK; \
-      return res; \
+    bool relational_equal_op(const GC_VALUE& other, const ID& op_id, bool (*op_func)(const VALUE& a, const VALUE& b)) const
+    {
+      if (FIXNUM_P(_obj) && FIXNUM_P(other._obj)) {
+        return op_func(_obj, other._obj);
+      }
+      bool res = false;
+      VALUE ret = Qnil;
+      SWIG_RUBY_THREAD_BEGIN_BLOCK;
+      if (rb_respond_to(_obj, op_id)) {
+        OpArgs  args;
+        args.src    = _obj;
+        args.id     = op_id;
+        args.nargs  = 1;
+        args.target = VALUE(other);
+        ret = rb_rescue(RUBY_METHOD_FUNC(swig_rescue_funcall), VALUE(&args),
+                       (RUBY_METHOD_FUNC(swig_rescue_swallow)), Qnil);
+      }
+      if (ret == Qnil) {
+        VALUE a = rb_funcall(         _obj, hash_id, 0 );
+        VALUE b = rb_funcall( VALUE(other), hash_id, 0 );
+        res = op_func(a, b);
+      } else {
+        res = RTEST(ret);
+      }
+      SWIG_RUBY_THREAD_END_BLOCK;
+      return res;
     }
 
+    static bool operator_eq(const VALUE& a, const VALUE& b) { return a == b; }
+    static bool operator_lt(const VALUE& a, const VALUE& b) { return a < b; }
+    static bool operator_le(const VALUE& a, const VALUE& b) { return a <= b; }
+    static bool operator_gt(const VALUE& a, const VALUE& b) { return a > b; }
+    static bool operator_ge(const VALUE& a, const VALUE& b) { return a >= b; }
 
-    GC_VALUE_CMP( eq_id, operator==, ==, == 0 )
-    GC_VALUE_CMP( lt_id, operator<,  < , <  0 )
-    GC_VALUE_CMP( le_id, operator<=, <=, <= 0 )
-    GC_VALUE_CMP( gt_id, operator>,  > , >  0 )
-    GC_VALUE_CMP( ge_id, operator>=, >=, >= 0 )
-%#undef GC_VALUE_CMP
+    bool operator==(const GC_VALUE& other) const { return relational_equal_op(other, eq_id, operator_eq); }
+    bool operator<(const GC_VALUE& other) const { return relational_equal_op(other, lt_id, operator_lt); }
+    bool operator<=(const GC_VALUE& other) const { return relational_equal_op(other, le_id, operator_le); }
+    bool operator>(const GC_VALUE& other) const { return relational_equal_op(other, gt_id, operator_gt); }
+    bool operator>=(const GC_VALUE& other) const { return relational_equal_op(other, ge_id, operator_ge); }
 
-    bool operator!=( const GC_VALUE& other )
+    bool operator!=(const GC_VALUE& other) const
     {
       return !(this->operator==(other));
     }
 
-%#define GC_VALUE_UNARY( proc_id, op ) \
-    GC_VALUE op() const \
-    { \
-      VALUE ret = Qnil; \
-      SWIG_RUBY_THREAD_BEGIN_BLOCK; \
-      int status; \
-      OpArgs  args; \
-      args.src    = _obj; \
-      args.id     = proc_id; \
-      args.nargs  = 0; \
-      args.target = Qnil; \
-      ret = rb_protect( PROTECTFUNC(swig_protect_funcall), VALUE(&args), \
-			&status ); \
-      SWIG_RUBY_THREAD_END_BLOCK; \
-      return ret; \
+    GC_VALUE unary_op(const ID& op_id) const
+    {
+      VALUE ret = Qnil;
+      SWIG_RUBY_THREAD_BEGIN_BLOCK;
+      OpArgs  args;
+      args.src    = _obj;
+      args.id     = op_id;
+      args.nargs  = 0;
+      args.target = Qnil;
+      ret = rb_rescue(RUBY_METHOD_FUNC(swig_rescue_funcall), VALUE(&args),
+                     (RUBY_METHOD_FUNC(swig_rescue_swallow)), Qnil);
+      SWIG_RUBY_THREAD_END_BLOCK;
+      return ret;
     }
 
-    GC_VALUE_UNARY( pos_id, operator+ )
-    GC_VALUE_UNARY( neg_id, operator- )
-    GC_VALUE_UNARY( inv_id, operator~ )
-%#undef GC_VALUE_BINARY
+    GC_VALUE operator+() const { return unary_op(pos_id); }
+    GC_VALUE operator-() const { return unary_op(neg_id); }
+    GC_VALUE operator~() const { return unary_op(inv_id); }
 
-%#define GC_VALUE_BINARY( proc_id, op ) \
-    GC_VALUE op( const GC_VALUE& other ) const \
-    { \
-      VALUE ret = Qnil; \
-      SWIG_RUBY_THREAD_BEGIN_BLOCK; \
-      int status; \
-      OpArgs  args; \
-      args.src    = _obj; \
-      args.id     = proc_id; \
-      args.nargs  = 1; \
-      args.target = VALUE(other); \
-      ret = rb_protect( PROTECTFUNC(swig_protect_funcall), VALUE(&args), \
-			&status ); \
-      SWIG_RUBY_THREAD_END_BLOCK; \
-      return GC_VALUE(ret); \
+    GC_VALUE binary_op(const GC_VALUE& other, const ID& op_id) const
+    {
+      VALUE ret = Qnil;
+      SWIG_RUBY_THREAD_BEGIN_BLOCK;
+      OpArgs  args;
+      args.src    = _obj;
+      args.id     = op_id;
+      args.nargs  = 1;
+      args.target = VALUE(other);
+      ret = rb_rescue(RUBY_METHOD_FUNC(swig_rescue_funcall), VALUE(&args),
+                     (RUBY_METHOD_FUNC(swig_rescue_swallow)), Qnil);
+      SWIG_RUBY_THREAD_END_BLOCK;
+      return GC_VALUE(ret);
     }
 
-    GC_VALUE_BINARY( add_id, operator+ );
-    GC_VALUE_BINARY( sub_id, operator- );
-    GC_VALUE_BINARY( mul_id, operator* );
-    GC_VALUE_BINARY( div_id, operator/ );
-    GC_VALUE_BINARY( mod_id, operator% );
-    
-    GC_VALUE_BINARY( and_id, operator& );
-    GC_VALUE_BINARY( xor_id, operator^ );
-    GC_VALUE_BINARY(  or_id, operator| );
-
-    GC_VALUE_BINARY( lshift_id, operator<< );
-    GC_VALUE_BINARY( rshift_id, operator>> );
-%#undef GC_VALUE_BINARY
-
+    GC_VALUE operator+(const GC_VALUE& other) const { return binary_op(other, add_id); }
+    GC_VALUE operator-(const GC_VALUE& other) const { return binary_op(other, sub_id); }
+    GC_VALUE operator*(const GC_VALUE& other) const { return binary_op(other, mul_id); }
+    GC_VALUE operator/(const GC_VALUE& other) const { return binary_op(other, div_id); }
+    GC_VALUE operator%(const GC_VALUE& other) const { return binary_op(other, mod_id); }
+    GC_VALUE operator&(const GC_VALUE& other) const { return binary_op(other, and_id); }
+    GC_VALUE operator^(const GC_VALUE& other) const { return binary_op(other, xor_id); }
+    GC_VALUE operator|(const GC_VALUE& other) const { return binary_op(other, or_id); }
+    GC_VALUE operator<<(const GC_VALUE& other) const { return binary_op(other, lshift_id); }
+    GC_VALUE operator>>(const GC_VALUE& other) const { return binary_op(other, rshift_id); }
   };
 
   ID  GC_VALUE::hash_id = rb_intern("hash");
@@ -294,7 +302,7 @@ namespace swig {
   ID  GC_VALUE::lshift_id = rb_intern("<<");
   ID  GC_VALUE::rshift_id = rb_intern(">>");
 
-  VALUE GC_VALUE::_hash = Qnil;
+  SwigGCReferences SwigGCReferences::s_references;
 
   typedef GC_VALUE LANGUAGE_OBJ;
 
@@ -337,7 +345,7 @@ namespace swig {
     VALUE to_s() const;
     GC_VALUE();
   protected:
-    GC_VALUE( const GC_VALUE& );
+    GC_VALUE(const GC_VALUE&);
     ~GC_VALUE();
   };
 
@@ -350,7 +358,7 @@ namespace swig {
 
 
 %init {
-  swig::GC_VALUE::initialize();
+  swig::SwigGCReferences::initialize();
 }
 
 

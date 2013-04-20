@@ -3,8 +3,10 @@ TARGET = matrix
 IFILE  = package.i
 MKDIR  = ..
 
+check: build
+	./$(TARGET) -e do-test -s matrix.scm
 
-all::
+build:
 	$(MAKE) -f $(MKDIR)/Makefile		\
 		SRCS='$(SRCS)'			\
 		TARGET=$(TARGET)		\
@@ -12,7 +14,5 @@ all::
 		MODULE=$(MODULE)		\
 	  sub-all
 
-clean::
+clean:
 	$(MAKE) -f $(MKDIR)/Makefile TARGET='$(TARGET)' guile_clean
-
-check: all

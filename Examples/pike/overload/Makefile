@@ -5,15 +5,16 @@ TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lstdc++ -lm
 
-all::
+check: build
+	$(MAKE) -f $(TOP)/Makefile pike_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' pike_cpp
 
-static::
+static:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='mypike' INTERFACE='$(INTERFACE)' pike_cpp_static
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile pike_clean
-
-check: all

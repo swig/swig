@@ -839,19 +839,49 @@ of type <tt>va_list</tt>.  For example:
 
 <div class="code">
 <pre>
-int vfprintf(FILE *f, const char *fmt, va_list ap);
+int vprintf(const char *fmt, va_list ap);
 </pre>
 </div>
 
 <p>
-As far as we know, there is no obvious way to wrap these functions
-with SWIG.  This is because there is no documented way to assemble the
+As far as we know, there is no obvious way to wrap these functions with
+SWIG.  This is because there is no documented way to assemble the
 proper va_list structure (there are no C library functions to do it
 and the contents of va_list are opaque).  Not only that, the contents
 of a <tt>va_list</tt> structure are closely tied to the underlying
 call-stack.  It's not clear that exporting a <tt>va_list</tt> would
 have any use or that it would work at all.
 </p>
+
+<p>
+A workaround can be implemented by writing a simple varargs C wrapper and then using the techniques
+discussed earlier in this chapter for varargs. Below is a simple wrapper for <tt>vprintf</tt> renamed so that
+it can still be called as <tt>vprintf</tt> from your target language. The <tt>%varargs</tt>
+used in the example restricts the function to taking one string argument.
+</p>
+
+<div class="code">
+<pre>
+%{
+int vprintf(const char *fmt, va_list ap);
+%}
+
+%varargs(const char *) my_vprintf;
+%rename(vprintf) my_vprintf;
+
+%inline %{
+int my_vprintf(const char *fmt, ...) {
+  va_list ap;
+  int result;
+
+  va_start(ap, fmt);
+  result = vprintf(fmt, ap);
+  va_end(ap);
+  return result;
+}
+%}
+</pre>
+</div>
 
 <H2><a name="Varargs_nn9"></a>13.8 C++ Issues</H2>
 

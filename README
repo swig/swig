@@ -1,11 +1,13 @@
 SWIG (Simplified Wrapper and Interface Generator)
 
-Version: 2.0.6 (30 April 2012)
+Version: 2.0.10 (in progress)
 
 Tagline: SWIG is a compiler that integrates C and C++ with languages
-         including Perl, Python, Tcl, Ruby, PHP, Java, Ocaml, Lua,
-         Scheme (Guile, MzScheme, CHICKEN), Pike, C#, Modula-3,
-         Common Lisp (CLISP, Allegro CL, CFFI, UFFI), Octave and R.
+         including Perl, Python, Tcl, Ruby, PHP, Java, C#, D, Go, Lua,
+         Octave, R, Scheme (Guile, MzScheme/Racket, CHICKEN), Ocaml,
+         Modula-3, Common Lisp (CLISP, Allegro CL, CFFI, UFFI) and Pike.
+         SWIG can also export its parse tree into Lisp s-expressions and
+         XML.
 
 SWIG reads annotated C/C++ header files and creates wrapper code (glue
 code) in order to make the corresponding C/C++ libraries available to
@@ -30,6 +32,22 @@ Please see the CHANGES.current file for a detailed list of bug fixes and
 new features for the current release. The CHANGES file contains bug fixes
 and new features for older versions. A summary of changes in each release
 can be found in the RELEASENOTES file.
+
+Documentation
+=============
+The Doc/Manual directory contains the most recent set of updated
+documentation for this release. The documentation is available in
+three different formats, each of which contains identical content.
+These format are, pdf (Doc/Manual/SWIGDocumentation.pdf), single
+page html (Doc/Manual/SWIGDocumentation.html) or multiple page html
+(other files in Doc/Manual). Please select your chosen format and
+copy/install to wherever takes your fancy.
+
+There is some technical developer documentation available in the
+Doc/Devel subdirectory.  This is not necessarily up-to-date, but it
+has some information on SWIG internals.
+
+Documentation is also online at http://www.swig.org/doc.html.
 
 Backwards Compatibility
 =======================
@@ -97,9 +115,6 @@ minimal effect. All they do is reduce the amount of testing done with
 'make check'. The SWIG executable and library files installed cannot currently
 be configured with a subset of target languages.
 
-Please see the Documentation section below on installing documentation as
-none is installed by default.
-
 SWIG used to include a set of runtime libraries for some languages for working
 with multiple modules. These are no longer built during the installation stage.
 However, users can build them just like any wrapper module as described in
@@ -108,7 +123,7 @@ examples which build the runtime library.
 
 Notes:
 
-(1) If you checked the code out via SVN, you will have to run ./autogen.sh
+(1) If you checked the code out via Git, you will have to run ./autogen.sh
     before typing 'configure'.  In addition, a full build of SWIG requires
     the a number of packages to be installed.  Full instructions at
     http://www.swig.org/svn.html
@@ -175,8 +190,9 @@ The Examples directory contains a variety of examples of using SWIG
 and it has some browsable documentation.  Simply point your browser to
 the file "Example/index.html".
 
-The Examples directory also includes Visual C++ project (.dsp) files for
-building some of the examples on Windows.
+The Examples directory also includes Visual C++ project 6 (.dsp) files for
+building some of the examples on Windows. Later versions of Visual Studio
+will convert these old style project files into a current solution file.
 
 Known Issues
 ============
@@ -214,20 +230,6 @@ installed.  To fix this:
 
 If you are having other troubles, you might look at the SWIG Wiki at
 http://www.dabeaz.com/cgi-bin/wiki.pl.
-
-Documentation
-=============
-The Doc/Manual directory contains the most recent set of updated
-documentation for this release. The documentation is available in
-three different formats, each of which contains identical content.
-These format are, pdf (Doc/Manual/SWIGDocumentation.pdf), single
-page html (Doc/Manual/SWIGDocumentation.html) or multiple page html
-(other files in Doc/Manual). Please select your chosen format and
-copy/install to wherever takes your fancy.
-
-There is some technical developer documentation available in the
-Doc/Devel subdirectory.  This is not necessarily up-to-date, but it
-has some information on SWIG internals.
 
 Participate!
 ============

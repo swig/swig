@@ -1,49 +1,61 @@
 /*
   Defines the As/From conversors for double/float complex, you need to
-  provide complex Type, the Name you want to use in the conversors,
+  provide complex Type, the Name you want to use in the converters,
   the complex Constructor method, and the Real and Imag complex
-  accesor methods.
+  accessor methods.
 
   See the std_complex.i and ccomplex.i for concrete examples.
 */
 
-/*
-  Ruby does not have native complex numbers.  They are an extension in the
-  STD library.
-*/
-%{
-  static VALUE swig_rb_cComplex = Qnil;
-  static ID    swig_real_id = 0;
-  static ID    swig_imag_id = 0;
-
-  int Ruby_Is_Complex( VALUE obj )
-    {
-      return ( (rb_respond_to( obj, swig_real_id ) == Qtrue) &&
-	       (rb_respond_to( obj, swig_imag_id ) == Qtrue) );
-    }
-%}
-
-%init {
-  rb_require("complex");
-  swig_rb_cComplex = rb_const_get( rb_cObject, rb_intern("Complex") );
-  if( swig_rb_cComplex == Qnil )
-    rb_warn("Ruby's complex.so not found");
-  swig_real_id = rb_intern("real");
-  swig_imag_id = rb_intern("imag");
+%fragment("SWIG_Complex_Numbers","header")
+{
+%#if !defined(T_COMPLEX)
+/* Ruby versions prior to 1.9 did not have native complex numbers.  They were an extension in the STD library.  */
+VALUE rb_complex_new(VALUE x, VALUE y) {
+  static ID new_id = rb_intern("new");
+  static VALUE cComplex = rb_const_get(rb_cObject, rb_intern("Complex"));
+  return rb_funcall(cComplex, new_id, 2, x, y);
 }
 
-/* the common from conversor */
+static int SWIG_Is_Complex( VALUE obj ) {
+  static ID real_id = rb_intern("real");
+  static ID imag_id = rb_intern("imag");
+  return ( (rb_respond_to( obj, real_id ) ) &&
+           (rb_respond_to( obj, imag_id ) ) );
+}
+%#else
+static int SWIG_Is_Complex( VALUE obj ) {
+  return TYPE(obj) == T_COMPLEX;
+}
+%#endif
+
+VALUE SWIG_Complex_Real(VALUE obj) {
+  static ID real_id = rb_intern("real");
+  return rb_funcall(obj, real_id, 0);
+}
+
+VALUE SWIG_Complex_Imaginary(VALUE obj) {
+  static ID imag_id = rb_intern("imag");
+  return rb_funcall(obj, imag_id, 0);
+}
+}
+
+%init {
+%#if !defined(T_COMPLEX)
+  rb_require("complex");
+%#endif
+}
+
+/* the common from converter */
 %define %swig_fromcplx_conv(Type, Real, Imag)
 %fragment(SWIG_From_frag(Type),"header")
 {
 SWIGINTERNINLINE VALUE
 SWIG_From(Type)(%ifcplusplus(const Type&, Type) c)
 {
-  VALUE args[] = { 
-    rb_float_new(Real(c)), 
-    rb_float_new(Imag(c))
-  };
-  return rb_class_new_instance(2, args, swig_rb_cComplex);
+  VALUE re = rb_float_new(Real(c));
+  VALUE im = rb_float_new(Imag(c));
+  return rb_complex_new(re, im);
 }
 }
 %enddef
@@ -51,15 +63,16 @@ SWIG_From(Type)(%ifcplusplus(const Type&, Type) c)
 /* the double case */
 %define %swig_cplxdbl_conv(Type, Constructor, Real, Imag)
 %fragment(SWIG_AsVal_frag(Type),"header",
-	  fragment=SWIG_AsVal_frag(double))
+	  fragment=SWIG_AsVal_frag(double),
+          fragment="SWIG_Complex_Numbers")
 {
 SWIGINTERN int
 SWIG_AsVal(Type) (VALUE o, Type* val)
 {
-  if ( Ruby_Is_Complex( o ) ) {
+  if ( SWIG_Is_Complex( o ) ) {
     if (val) {
-      VALUE real = rb_funcall(o, swig_real_id, 0 );
-      VALUE imag = rb_funcall(o, swig_imag_id, 0 );
+      VALUE real = SWIG_Complex_Real(o);
+      VALUE imag = SWIG_Complex_Imaginary(o);
       double re = 0;
       SWIG_AsVal_double( real, &re );
       double im = 0;
@@ -85,13 +98,14 @@ SWIG_AsVal(Type) (VALUE o, Type* val)
 %define %swig_cplxflt_conv(Type, Constructor, Real, Imag)
 %fragment(SWIG_AsVal_frag(Type),"header",
           fragment=SWIG_AsVal_frag(float),
-          fragment=SWIG_AsVal_frag(double)) {
+          fragment=SWIG_AsVal_frag(double),
+          fragment="SWIG_Complex_Numbers") {
 SWIGINTERN int
 SWIG_AsVal(Type)(VALUE o, Type *val)
 {
-  if ( Ruby_Is_Complex( o ) ) {
-    VALUE real = rb_funcall(o, swig_real_id, 0 );
-    VALUE imag = rb_funcall(o, swig_imag_id, 0 );
+  if ( SWIG_Is_Complex( o ) ) {
+    VALUE real = SWIG_Complex_Real(o);
+    VALUE imag = SWIG_Complex_Imaginary(o);
     double re = 0;
     SWIG_AsVal_double( real, &re );
     double im = 0;

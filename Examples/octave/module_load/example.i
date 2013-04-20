@@ -1,5 +1,5 @@
 /* File : example.i */
-%module example
+/* module name given on cmdline */
 %{
 #include "example.h"
 %}

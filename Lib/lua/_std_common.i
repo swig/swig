@@ -4,7 +4,7 @@
  * std::helpers for LUA
  * ----------------------------------------------------------------------------- */
 
-%include <std_except.i> // the general exepctions
+%include <std_except.i> // the general exceptions
 
 /*
 The basic idea here, is instead of trying to feed SWIG all the
@@ -16,9 +16,9 @@ so the class declarations become just a set of %defines
 */
 
 /* #define for basic container features
-note: I allow front(), back() & pop_back() to throw execptions
+note: I allow front(), back() & pop_back() to throw exceptions
 upon empty containers, rather than coredump
-(as we have'nt defined the methods, we can use %extend to add with
+(as we haven't defined the methods, we can use %extend to add with
 new features)
 
 */

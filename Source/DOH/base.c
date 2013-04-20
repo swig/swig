@@ -12,8 +12,6 @@
  *     DOH objects.  A number of small utility functions are also included.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_base_c[] = "$Id$";
-
 #include "dohint.h"
 
 /* -----------------------------------------------------------------------------
@@ -761,6 +759,7 @@ int DohUngetc(int ch, DOH *obj) {
  * DohClose()
  * ----------------------------------------------------------------------------- */
 
+/*
 int DohClose(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
@@ -773,6 +772,7 @@ int DohClose(DOH *obj) {
   }
   return fclose((FILE *) obj);
 }
+*/
 
 /* -----------------------------------------------------------------------------
  * DohIsString()

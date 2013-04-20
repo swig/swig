@@ -25,8 +25,13 @@
 */
 
 %define %std_deque_methods_noempty(T)
-       typedef T &reference;
-       typedef const T& const_reference;
+       typedef size_t size_type;
+       typedef ptrdiff_t difference_type;
+       typedef T value_type;
+       typedef value_type* pointer;
+       typedef const value_type* const_pointer;
+       typedef value_type& reference;
+       typedef const value_type& const_reference;
 
        deque();
        deque(unsigned int size, const T& value=T());
