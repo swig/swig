@@ -1122,7 +1122,7 @@ CHICKEN_SHAREDLIBOPTS = @CHICKENSHAREDLIB@  $(SYSLIBS)
 CHICKEN_CFLAGS = @CHICKENOPTS@
 CHICKENOPTS = -quiet
 CHICKEN_MAIN =
-CHICKEN_SCRIPT = $(RUNME).ss
+CHICKEN_SCRIPT = $(RUNME).scm
 
 # SWIG produces $(ISRCS) (the C wrapper file)
 # and $(CHICKEN_GENERATED_SCHEME) (the Scheme wrapper file):
@@ -1208,7 +1208,7 @@ chicken_externalhdr:
 # -----------------------------------------------------------------
 
 chicken_run:
-	$(RUNTOOL) $(CHICKEN_CSI) $(CHICKEN_SCRIPT) $(RUNPIPE)
+	env LD_LIBRARY_PATH=. $(RUNTOOL) $(CHICKEN_CSI) $(CHICKEN_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
