@@ -57,7 +57,6 @@ Examples/xml/Makefile
 Lib/ocaml/swigp4.ml
 /Makefile
 Source/Include/stamp-h1
-Source/Include/swigconfig.h
 Source/Makefile
 .deps
 config.log
@@ -67,8 +66,6 @@ swig.spec
 # Build Artifacts
 .dirstamp
 CCache/ccache-swig
-Source/CParse/parser.c
-Source/CParse/parser.h
 Source/eswig
 swig
 # Generated documentation
