@@ -109,8 +109,8 @@ namespace std {
         }
         %typemap(out) map<K,T> {
             SCM alist = SCM_EOL;
-            for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                  i!=$1.rend(); ++i) {
+            for (std::map<K,T >::reverse_iterator i=$i.rbegin(); 
+                                                  i!=$i.rend(); ++i) {
                 K* key = new K(i->first);
                 T* val = new T(i->second);
                 SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
@@ -251,8 +251,8 @@ namespace std {
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
+                                                      i!=self->rend(); ++i) {
                     K* key = new K(i->first);
                     SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                     result = scm_cons(k,result);
@@ -471,8 +471,8 @@ namespace std {
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
+                                                      i!=self->rend(); ++i) {
                     SCM k = CONVERT_TO(i->first);
                     result = scm_cons(k,result);
                 }
@@ -683,8 +683,8 @@ namespace std {
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
+                                                      i!=self->rend(); ++i) {
                     K* key = new K(i->first);
                     SCM k = SWIG_NewPointerObj(key,$descriptor(K *), 1);
                     result = scm_cons(k,result);
@@ -895,8 +895,8 @@ namespace std {
             }
             SCM keys() {
                 SCM result = SCM_EOL;
-                for (std::map<K,T >::reverse_iterator i=$1.rbegin(); 
-                                                      i!=$1.rend(); ++i) {
+                for (std::map<K,T >::reverse_iterator i=self->rbegin(); 
+                                                      i!=self->rend(); ++i) {
                     SCM k = CONVERT_K_TO(i->first);
                     result = scm_cons(k,result);
                 }
