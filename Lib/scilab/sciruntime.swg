@@ -153,7 +153,7 @@ SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swi
   r = SWIG_PackData(r, _ptr, _sz);
   strcpy(r, _type->name);
 
-  pstData = (char **)MALLOC(sizeof(char *));
+  pstData = (char **)malloc(sizeof(char *));
   pstData[0] = strdup(r);
 
   sciErr = createMatrixOfString(_pvApiCtx, Rhs + _iVarOut, 1, 1, (char **)pstData);
@@ -162,7 +162,7 @@ SWIG_Scilab_NewMemberObj(void *_pvApiCtx, int _iVarOut, void *_ptr, int _sz, swi
     return SWIG_ERROR;
   }
 
-  freeArrayOfString(pstData, 1);
+  free(pstData[0]);
 
   return Rhs + _iVarOut;
 }
