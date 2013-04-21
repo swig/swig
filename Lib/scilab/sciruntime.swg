@@ -4,9 +4,7 @@
 
 #define %scilabcode %insert("scilab")
 
-// Error message will be displayed inside Scilab fragment functions
-// and the following line Will not work because code is not an int
-//#define SWIG_Error(code, msg)   Scierror(code, _("%s\n"), msg);
+
 
 %insert(runtime) %{
 /* Scilab standard headers */
@@ -28,8 +26,52 @@ extern "C" {
 
 typedef int SciObject;
 
+
+/* -----------------------------------------------------------------------------
+ * error manipulation
+ * ----------------------------------------------------------------------------- */
+
+SWIGINTERN const char*
+SWIG_Scilab_ErrorType(int code) {
+  switch(code) {
+  case SWIG_MemoryError:
+    return "MemoryError";
+  case SWIG_IOError:
+    return "IOError";
+  case SWIG_RuntimeError:
+    return "RuntimeError";
+  case SWIG_IndexError:
+    return "IndexError";
+  case SWIG_TypeError:
+    return "TypeError";
+  case SWIG_DivisionByZero:
+    return "ZeroDivisionError";
+  case SWIG_OverflowError:
+    return "OverflowError";
+  case SWIG_SyntaxError:
+    return "SyntaxError";
+  case SWIG_ValueError:
+    return "ValueError";
+  case SWIG_SystemError:
+    return "SystemError";
+  case SWIG_AttributeError:
+    return "AttributeError";
+  default:
+    return "RuntimeError";
+  }
+}
+
+SWIGINTERN void
+SWIG_Scilab_ErrorMsg(int code, const char *mesg)
+{
+   sciprint(_("SWIG/Scilab Error : %s\n%s"),SWIG_Scilab_ErrorType(code),mesg);
+}
+
+
+
 #define SWIG_fail                 return SWIG_ERROR;
-#define SWIG_Error                return SWIG_ERROR;
+#define SWIG_ErrorType(code)      SWIG_Scilab_ErrorType(code)                                      
+#define SWIG_Error(code, msg)     SWIG_Scilab_ErrorMsg(code,msg)
 
 /* Used for C++ enums */
 //#define SWIG_AsVal_int(scilabValue, valuePointer) SWIG_SciDouble_AsInt(pvApiCtx, scilabValue, valuePointer, fname)
