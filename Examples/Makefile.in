@@ -970,7 +970,7 @@ ruby_cpp_static: $(SRCS)
 # -----------------------------------------------------------------
 
 ruby_run:
-	$(RUNTOOL) $(RUBY) $(RUBY_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(RUBY) -I. $(RUBY_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
