@@ -51,7 +51,9 @@ public:
 									//!< with details
 
 	/**
-	 * The class method comment
+	 * The class method comment.
+         *
+         * \link SomeAnotherClass#classMethodExtended(int, int) a link text \endlink
 	 */
 	void classMethod()
 	{

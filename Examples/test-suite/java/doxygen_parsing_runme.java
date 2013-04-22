@@ -111,8 +111,9 @@ public class doxygen_parsing_runme {
     		"The class attribute post-comment with details \n" +
     		"");
     wantedComments.put("doxygen_parsing.SomeAnotherClass.classMethod()",
-    		" The class method comment \n" +
-    		" \n" +
+    		" The class method comment.<br>\n" +
+                " <br>\n" +
+                " {@link SomeAnotherClass#classMethodExtended(int,int) a link text  }\n" +
     		"");
     wantedComments.put("doxygen_parsing.SomeAnotherStruct.structMethodExtended2(int, int)",
     		" The struct method with parameter \n" +
