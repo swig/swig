@@ -646,6 +646,7 @@ string JavaDocConverter::convertLink(string linkObject)
   string paramsStr = linkObject.substr(lbracePos + 1,
       rbracePos - lbracePos - 1);
   // strip the params, to fill them later
+  string additionalObject = linkObject.substr(rbracePos + 1, string::npos);
   linkObject = linkObject.substr(0, lbracePos);
 
   // find all the params
@@ -720,7 +721,7 @@ string JavaDocConverter::convertLink(string linkObject)
   }
   linkObject += ")";
 
-  return linkObject;
+  return linkObject + additionalObject;
 }
 
 void JavaDocConverter::handleTagLink(DoxygenEntity& tag,
