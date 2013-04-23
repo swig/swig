@@ -1,4 +1,4 @@
-#include <ext_test_wrap_hdr.h>
+#include <guilescm_ext_test_wrap_hdr.h>
 #include <imports_a.h>
 
 SCM test_create()
