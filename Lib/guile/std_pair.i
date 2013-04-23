@@ -22,7 +22,7 @@
 namespace std {
 
     template<class T, class U> struct pair {
-        %typemap(in) pair<T,U> (std::pair<T,U>* m) {
+        %typemap(in) pair<T,U> %{
             if (scm_is_pair($input)) {
                 T* x;
                 U* y;
@@ -36,11 +36,9 @@ namespace std {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
-        }
-        %typemap(in) const pair<T,U>& (std::pair<T,U> temp,
-                                      std::pair<T,U>* m),
-                     const pair<T,U>* (std::pair<T,U> temp,
-                                      std::pair<T,U>* m) {
+        %}
+        %typemap(in) const pair<T,U>& (std::pair<T,U> *temp = 0),
+                     const pair<T,U>* (std::pair<T,U> *temp = 0) %{
             if (scm_is_pair($input)) {
                 T* x;
                 U* y;
@@ -49,13 +47,14 @@ namespace std {
                 second = SCM_CDR($input);
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
-                temp = std::make_pair(*x,*y);
-                $1 = &temp;
+                temp = new std::pair< T, U >(*x,*y);
+                $1 = temp;
             } else {
                 $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
-        }
+        %}
+        %typemap(argout) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
         %typemap(out) pair<T,U> {
             T* x = new T($1.first);
             U* y = new U($1.second);
@@ -129,7 +128,7 @@ namespace std {
 
     %define specialize_std_pair_on_first(T,CHECK,CONVERT_FROM,CONVERT_TO)
     template<class U> struct pair<T,U> {
-        %typemap(in) pair<T,U> (std::pair<T,U>* m) {
+        %typemap(in) pair<T,U> %{
             if (scm_is_pair($input)) {
                 U* y;
                 SCM first, second;
@@ -137,18 +136,16 @@ namespace std {
                 second = SCM_CDR($input);
                 if (!CHECK(first))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #T "," #U "> expected");
+                                   "pair<" #T "," #U "> expected");
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
                 $1 = std::make_pair(CONVERT_FROM(first),*y);
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
-        }
-        %typemap(in) const pair<T,U>& (std::pair<T,U> temp,
-                                       std::pair<T,U>* m),
-                     const pair<T,U>* (std::pair<T,U> temp,
-                                       std::pair<T,U>* m) {
+        %}
+        %typemap(in) const pair<T,U>& (std::pair<T,U> *temp = 0),
+                     const pair<T,U>* (std::pair<T,U> *temp = 0) %{
             if (scm_is_pair($input)) {
                 U* y;
                 SCM first, second;
@@ -156,15 +153,16 @@ namespace std {
                 second = SCM_CDR($input);
                 if (!CHECK(first))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #T "," #U "> expected");
+                                   "pair<" #T "," #U "> expected");
                 y = (U*) SWIG_MustGetPtr(second,$descriptor(U *),$argnum, 0);
-                temp = std::make_pair(CONVERT_FROM(first),*y);
-                $1 = &temp;
+                temp = new std::pair< T, U >(CONVERT_FROM(first),*y);
+                $1 = temp;
             } else {
                 $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
-        }
+        %}
+        %typemap(argout) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
         %typemap(out) pair<T,U> {
             U* y = new U($1.second);
             SCM second = SWIG_NewPointerObj(y,$descriptor(U *), 1);
@@ -230,7 +228,7 @@ namespace std {
 
     %define specialize_std_pair_on_second(U,CHECK,CONVERT_FROM,CONVERT_TO)
     template<class T> struct pair<T,U> {
-        %typemap(in) pair<T,U> (std::pair<T,U>* m) {
+        %typemap(in) pair<T,U> %{
             if (scm_is_pair($input)) {
                 T* x;
                 SCM first, second;
@@ -239,17 +237,15 @@ namespace std {
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #T "," #U "> expected");
+                                   "pair<" #T "," #U "> expected");
                 $1 = std::make_pair(*x,CONVERT_FROM(second));
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
-        }
-        %typemap(in) const pair<T,U>& (std::pair<T,U> temp,
-                                      std::pair<T,U>* m),
-                     const pair<T,U>* (std::pair<T,U> temp,
-                                      std::pair<T,U>* m) {
+        %}
+        %typemap(in) const pair<T,U>& (std::pair<T,U> *temp = 0),
+                     const pair<T,U>* (std::pair<T,U> *temp = 0) %{
             if (scm_is_pair($input)) {
                 T* x;
                 SCM first, second;
@@ -258,14 +254,15 @@ namespace std {
                 x = (T*) SWIG_MustGetPtr(first,$descriptor(T *),$argnum, 0);
                 if (!CHECK(second))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #T "," #U "> expected");
-                temp = std::make_pair(*x,CONVERT_FROM(second));
-                $1 = &temp;
+                                   "pair<" #T "," #U "> expected");
+                temp = new std::pair< T, U >(*x,CONVERT_FROM(second));
+                $1 = temp;
             } else {
                 $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
-        }
+        %}
+        %typemap(argout) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
         %typemap(out) pair<T,U> {
             T* x = new T($1.first);
             SCM first = SWIG_NewPointerObj(x,$descriptor(T *), 1);
@@ -332,40 +329,38 @@ namespace std {
     %define specialize_std_pair_on_both(T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO,
                                         U,CHECK_U,CONVERT_U_FROM,CONVERT_U_TO)
     template<> struct pair<T,U> {
-        %typemap(in) pair<T,U> (std::pair<T,U>* m) {
+        %typemap(in) pair<T,U> %{
             if (scm_is_pair($input)) {
                 SCM first, second;
                 first = SCM_CAR($input);
                 second = SCM_CDR($input);
                 if (!CHECK_T(first) || !CHECK_U(second))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #T "," #U "> expected");
+                                   "pair<" #T "," #U "> expected");
                 $1 = std::make_pair(CONVERT_T_FROM(first),
                                     CONVERT_U_FROM(second));
             } else {
                 $1 = *(($&1_type)
                        SWIG_MustGetPtr($input,$&1_descriptor,$argnum, 0));
             }
-        }
-        %typemap(in) const pair<T,U>& (std::pair<T,U> temp,
-                                      std::pair<T,U>* m),
-                     const pair<T,U>* (std::pair<T,U> temp,
-                                      std::pair<T,U>* m) {
+        %}
+        %typemap(in) const pair<T,U>& (std::pair<T,U> *temp = 0),
+                     const pair<T,U>* (std::pair<T,U> *temp = 0) %{
             if (scm_is_pair($input)) {
                 SCM first, second;
                 first = SCM_CAR($input);
                 second = SCM_CDR($input);
                 if (!CHECK_T(first) || !CHECK_U(second))
                     SWIG_exception(SWIG_TypeError,
-                                   "map<" #T "," #U "> expected");
-                temp = std::make_pair(CONVERT_T_FROM(first),
-                                      CONVERT_U_FROM(second));
-                $1 = &temp;
+                                   "pair<" #T "," #U "> expected");
+                temp = new std::pair< T, U >(CONVERT_T_FROM(first), CONVERT_U_FROM(second));
+                $1 = temp;
             } else {
                 $1 = ($1_ltype)
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
-        }
+        %}
+        %typemap(argout) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
         %typemap(out) pair<T,U> {
             $result = scm_cons(CONVERT_T_TO($1.first),
                               CONVERT_U_TO($1.second));
