@@ -22,7 +22,7 @@ C_TEST_CASES = long_long \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-# none!
+INCLUDES    += -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/guile
 
 # Custom tests - tests with additional commandline options
 %.multicpptest: SWIGOPT += $(GUILE_RUNTIME)
