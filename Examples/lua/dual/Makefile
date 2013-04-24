@@ -7,15 +7,15 @@ LUA_INTERP = dual.cpp
 
 # This is a little different to normal as we need to static link two modules and a custom interpreter
 # We need the external runtime, then swig examples2, and build the module as normal
-all::
+check: build
+	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' lua_embed_run
+
+build:
 	$(SWIG) -lua -external-runtime
 	$(SWIG) -c++ -lua $(SWIGOPT) example2.i
 	$(MAKE) -f $(TOP)/Makefile $(SWIGLIB) CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='example.i' LUA_INTERP='$(LUA_INTERP)' lua_static_cpp
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile lua_clean
-	rm -f swigluarun.h
-
-check: all
-
+	rm -f swigluarun.h $(TARGET)

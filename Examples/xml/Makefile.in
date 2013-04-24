@@ -19,8 +19,6 @@ all-dot-i-files =				\
 	example_xml.i				\
 	gnarly.i
 
-all: check
-
 chk-swiglib = $(top_srcdir)/Lib
 
 check:

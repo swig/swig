@@ -5,17 +5,17 @@ TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
 
-all:: Example.class
+check: build
+	$(MAKE) -f $(TOP)/Makefile tcl_run
+
+build: Example.class
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' CXX="gcj"  \
 	TCL_CXXSHARED="gcj -fpic -shared Example.class " LIBS="-lstdc++" DEFS='' tcl_cpp
 
-
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile tcl_clean
 	rm -f *.class Example.h
-
-check: all
 
 run:
 	tclsh runme.tcl

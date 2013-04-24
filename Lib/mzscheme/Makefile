@@ -1,4 +1,4 @@
 
-co::
+co:
 	co RCS/*.i* RCS/*.swg*
 

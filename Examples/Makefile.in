@@ -46,6 +46,10 @@ LIBPREFIX  =
 RUNTOOL    =
 # COMPILETOOL is a way to run the compiler under another tool, or more commonly just to stop the compiler executing
 COMPILETOOL=
+# RUNPIPE is for piping output of running interpreter/compiled code somewhere, eg RUNPIPE=\>/dev/null
+RUNPIPE=
+
+RUNME = runme
 
 # X11 options
 
@@ -56,6 +60,27 @@ IWRAP      = $(INTERFACE:.i=_wrap.i)
 ISRCS      = $(IWRAP:.i=.c)
 ICXXSRCS   = $(IWRAP:.i=.cxx)
 IOBJS      = $(IWRAP:.i=.@OBJEXT@)
+
+##################################################################
+# Some options for silent output
+##################################################################
+
+ifneq (,$(findstring s, $(filter-out --%, $(MAKEFLAGS))))
+  # make -s detected
+  SILENT=1
+else
+  SILENT=
+endif
+
+ifneq (,$(SILENT))
+  SILENT_OPTION = -s
+  SILENT_PIPE = >/dev/null
+  ANT_QUIET = -q -logfile /dev/null
+else
+  SILENT_OPTION =
+  SILENT_PIPE =
+  ANT_QUIET =
+endif
 
 ##################################################################
 # Dynamic loading for C++
@@ -106,6 +131,7 @@ TCL_DLNK   = @TCLDYNAMICLINKING@
 TCL_SO     = @TCL_SO@
 TCLLDSHARED = @TCLLDSHARED@
 TCLCXXSHARED = @TCLCXXSHARED@
+TCL_SCRIPT = $(RUNME).tcl
 
 # -----------------------------------------------------------
 # Build a new version of the tclsh shell
@@ -156,6 +182,13 @@ tcl_cpp: $(SRCS)
 	$(TCLCXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO)
 
 # -----------------------------------------------------------------
+# Run Tcl example
+# -----------------------------------------------------------------
+
+tcl_run:
+	$(RUNTOOL) $(TCLSH) $(TCL_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
@@ -185,6 +218,8 @@ PERL5_INCLUDE= @PERL5EXT@
 PERL5_DLNK   = @PERL5DYNAMICLINKING@
 PERL5_CCFLAGS = @PERL5CCFLAGS@
 PERL = @PERL@
+PERL5_LIB = -L$(PERL5_INCLUDE) -l@PERL5LIB@ @LIBS@ $(SYSLIBS)
+PERL5_SCRIPT = $(RUNME).pl
 
 # ----------------------------------------------------------------
 # Build a Perl5 dynamically loadable module (C)
@@ -215,8 +250,6 @@ perl5_xs: $(SRCS)
 # Build a statically linked Perl5 executable
 # ----------------------------------------------------------------
 
-PERL5_LIB    = -L$(PERL5_INCLUDE) -l@PERL5LIB@ @LIBS@ $(SYSLIBS)
-
 perl5_static: $(SRCS)
 	$(SWIG) -perl5 -static -lperlmain.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) -Dbool=char $(SRCS) $(ISRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
@@ -224,6 +257,13 @@ perl5_static: $(SRCS)
 perl5_static_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ -static -lperlmain.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Running a Perl5 example
+# -----------------------------------------------------------------
+
+perl5_run:
+	$(RUNTOOL) $(PERL) $(PERL5_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -317,17 +357,17 @@ python_static_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 ifeq (,$(PY3))
-  PYSCRIPT = runme.py
+  PYSCRIPT = $(RUNME).py
 else
-  PYSCRIPT = runme3.py
+  PYSCRIPT = $(RUNME)3.py
 endif
 
 PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
 
-python_run: $(PYSCRIPT)
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=$(srcdir):$$PYTHONPATH $(PYTHON) $(PYSCRIPT) >/dev/null
+python_run:
+	$(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
 
-runme3.py: runme.py
+$(RUNME)3.py: $(RUNME).py
 	cp $< $@
 	$(PY2TO3) -w $@ >/dev/null 2>&1
 
@@ -347,7 +387,8 @@ python_clean:
 	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *@PYTHON_SO@
-	if [ -f runme.py ]; then rm -f runme3.py runme3.py.bak; fi
+	rm -f $(TARGET).py
+	if [ -f $(RUNME).py ]; then rm -f $(RUNME)3.py $(RUNME)3.py.bak; fi
 
 
 ##################################################################
@@ -361,6 +402,8 @@ OCTAVE_CXX    = $(DEFS) @OCTAVE_CPPFLAGS@ @OCTAVE_CXXFLAGS@
 # Extra Octave specific dynamic linking options
 OCTAVE_DLNK   = @OCTAVE_LDFLAGS@
 OCTAVE_SO     = @OCTAVE_SO@
+
+OCTAVE_SCRIPT = $(RUNME).m
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -386,10 +429,8 @@ octave_cpp: $(SRCS)
 # Running an Octave example
 # -----------------------------------------------------------------
 
-OCTSCRIPT = runme.m
-
-octave_run: $(OCTSCRIPT)
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH OCTAVE_PATH=$(srcdir):$$OCTAVE_PATH $(OCTAVE) $(OCTSCRIPT) >/dev/null
+octave_run:
+	$(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -399,7 +440,7 @@ octave_version:
 	$(OCTAVE) --version | grep -i version
 
 # -----------------------------------------------------------------
-# Cleaning the octave examples
+# Cleaning the Octave examples
 # -----------------------------------------------------------------
 
 octave_clean:
@@ -416,7 +457,10 @@ octave_clean:
 GUILE         = @GUILE@
 GUILE_CFLAGS  = @GUILE_CFLAGS@
 GUILE_SO      = @GUILE_SO@
+GUILE_LIBS    = @GUILE_LIBS@
+GUILE_LIBOPTS = @LIBS@ $(SYSLIBS)
 GUILE_LIBPREFIX = lib
+GUILE_SCRIPT  = $(RUNME).scm
 
 #------------------------------------------------------------------
 # Build a dynamically loaded module with passive linkage and the scm interface
@@ -453,9 +497,6 @@ guile_passive_cpp: $(SRCS)
 # Build statically linked Guile interpreter
 # -----------------------------------------------------------------
 
-GUILE_LIBS    = @GUILE_LIBS@
-GUILE_LIBOPTS = @LIBS@ $(SYSLIBS)
-
 guile_static: $(SRCS)
 	$(SWIG) -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) \
@@ -477,6 +518,13 @@ guile_simple_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i -Linkage simple $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	  $(GUILE_CFLAGS) $(LIBS) -L$(GUILE_LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+
+# -----------------------------------------------------------------
+# Running a Guile example
+# -----------------------------------------------------------------
+
+guile_run:
+	$(RUNTOOL) $(GUILE) -l $(GUILE_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -531,6 +579,20 @@ java_cpp: $(SRCS)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(JAVACFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JAVA_INCLUDE)
 	$(JAVACXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
 
+# ----------------------------------------------------------------
+# Compile java files
+# ----------------------------------------------------------------
+
+java_compile: $(SRCS)
+	$(COMPILETOOL) $(JAVAC) $(JAVACFLAGS) $(JAVASRCS)
+
+# -----------------------------------------------------------------
+# Run java example
+# -----------------------------------------------------------------
+
+java_run:
+	env LD_LIBRARY_PATH=. $(RUNTOOL) $(JAVA) $(RUNME) $(RUNPIPE)
+
 # -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
@@ -544,7 +606,7 @@ java_version:
 # -----------------------------------------------------------------
 
 java_clean:
-	rm -f *_wrap* *~ .~* *.class `find . -name \*.java | grep -v runme.java`
+	rm -f *_wrap* *~ .~* *.class `find . -name \*.java | grep -v $(RUNME).java`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@JAVASO@
 
@@ -552,12 +614,56 @@ java_clean:
 #####                       ANDROID                         ######
 ##################################################################
 
+ANDROID = android
+ANDROID_NDK_BUILD = ndk-build
+ANDROID_ADB = adb
+ANT = ant
+TARGETID = 1
+
+# ----------------------------------------------------------------
+# Build an Android dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+android: $(SRCS)
+	$(ANDROID) $(SILENT_OPTION) update project --target $(TARGETID) --name $(PROJECTNAME) --path .
+	$(SWIG) -java $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
+	+$(ANDROID_NDK_BUILD) $(SILENT_PIPE)
+	$(ANT) $(ANT_QUIET) debug
+
+# ----------------------------------------------------------------
+# Build an Android dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+android_cpp: $(SRCS)
+	$(ANDROID) $(SILENT_OPTION) update project --target $(TARGETID) --name $(PROJECTNAME) --path .
+	$(SWIG) -java -c++ $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.cpp $(INTERFACEPATH)
+	+$(ANDROID_NDK_BUILD) $(SILENT_PIPE)
+	$(ANT) $(ANT_QUIET) debug
+
+# ----------------------------------------------------------------
+# Android install
+# ----------------------------------------------------------------
+
+android_install:
+	-$(ANDROID_ADB) uninstall $(PACKAGENAME)
+	$(ANDROID_ADB) install $(INSTALLOPTIONS) bin/$(PROJECTNAME)-debug.apk
+
 # -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
 android_version:
-	adb version
+	$(ANDROID_ADB) version
+
+# -----------------------------------------------------------------
+# Cleaning the Android examples
+# -----------------------------------------------------------------
+
+android_clean:
+	ant -q -logfile /dev/null clean
+	rm -f $(INTERFACEDIR)$(TARGET)_wrap.*
+	rm -f `find $(PACKAGEDIR) -name \*.java | grep -v $(PROJECTNAME).java`
+	rm -rf obj
 
 ##################################################################
 #####                      MODULA3                          ######
@@ -576,6 +682,13 @@ modula3: $(SRCS)
 
 modula3_cpp: $(SRCS)
 	$(SWIG) -modula3 -c++ $(SWIGOPT) $(INTERFACEPATH)
+
+# -----------------------------------------------------------------
+# Run modula3 example
+# -----------------------------------------------------------------
+
+modula3_run:
+	$(RUNTOOL) false $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -601,6 +714,7 @@ MZSCHEME = mzscheme
 MZC = @MZC@
 MZDYNOBJ = @MZDYNOBJ@
 MZSCHEME_SO = @MZSCHEME_SO@
+MZSCHEME_SCRIPT = $(RUNME).scm
 
 # ----------------------------------------------------------------
 # Build a C/C++ dynamically loadable module
@@ -615,6 +729,13 @@ mzscheme_cpp: $(SRCS)
 	$(SWIG) -mzscheme -c++ $(SWIGOPT) $(INTERFACEPATH)
 	$(COMPILETOOL) $(MZC) `echo $(INCLUDES) | sed 's/-I/++ccf -I/g'` --cc $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(CFLAGS) -o $(LIBPREFIX)$(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS)
+
+# -----------------------------------------------------------------
+# Run mzscheme example
+# -----------------------------------------------------------------
+
+mzscheme_run:
+	env LD_LIBRARY_PATH=. $(RUNTOOL) $(MZSCHEME) -r $(MZSCHEME_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -761,6 +882,13 @@ ocaml_dynamic_cpp: $(SRCS)
 		$(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) -cc '$(CXX) -Wno-write-strings'
 
 # -----------------------------------------------------------------
+# Run ocaml example
+# -----------------------------------------------------------------
+
+ocaml_run:
+	$(RUNTOOL) ./$(TARGET) $(RUNPIPE)
+
+# -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
@@ -785,7 +913,10 @@ RUBY_CFLAGS= @RUBYCCDLFLAGS@ $(DEFS)
 RUBY_INCLUDE= @RUBYINCLUDE@
 RUBY_LIB     = @RUBYLIB@
 RUBY_DLNK = @RUBYDYNAMICLINKING@
+RUBY_LIBOPTS = @RUBYLINK@ @LIBS@ $(SYSLIBS)
 RUBY = @RUBY@
+RUBY_SCRIPT = $(RUNME).rb
+
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -812,8 +943,6 @@ ruby_cpp: $(SRCS)
 # library file
 # -----------------------------------------------------------------
 
-RUBY_LIBOPTS = @RUBYLINK@ @LIBS@ $(SYSLIBS)
-
 ruby_static: $(SRCS)
 	$(SWIG) -ruby -lembed.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(RUBY_CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDES) \
@@ -824,6 +953,12 @@ ruby_cpp_static: $(SRCS)
 	$(CXX) $(CFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	$(RUBY_INCLUDE) $(LIBS)  -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
 
+# -----------------------------------------------------------------
+# Run Ruby example
+# -----------------------------------------------------------------
+
+ruby_run:
+	$(RUNTOOL) $(RUBY) -I. $(RUBY_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -845,12 +980,14 @@ ruby_clean:
 #####                       PHP                             ######
 ##################################################################
 
+PHP         = @PHP@
+PHP_INCLUDE = @PHPINC@
+PHP_SO      = @PHP_SO@
+PHP_SCRIPT  = $(RUNME).php
+
 # -------------------------------------------------------------------
 # Build a PHP dynamically loadable module (C)
 # -------------------------------------------------------------------
-
-PHP_INCLUDE = @PHPINC@
-PHP_SO      = @PHP_SO@
 
 php: $(SRCS)
 	$(SWIG) -php $(SWIGOPT) $(INTERFACEPATH)
@@ -870,11 +1007,8 @@ php_cpp: $(SRCS)
 # Running a PHP example
 # -----------------------------------------------------------------
 
-PHP=@PHP@
-PHPSCRIPT ?= runme.php
-
 php_run:
-	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off $(PHPSCRIPT)
+	$(RUNTOOL) $(PHP) -n -q -d extension_dir=. -d safe_mode=Off $(PHP_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -902,6 +1036,8 @@ PIKE_CFLAGS  = @PIKECCDLFLAGS@ -DHAVE_CONFIG_H
 PIKE_INCLUDE = @PIKEINCLUDE@
 PIKE_LIB     = @PIKELIB@
 PIKE_DLNK    = @PIKEDYNAMICLINKING@
+PIKE_LIBOPTS = @PIKELINK@ @LIBS@ $(SYSLIBS)
+PIKE_SCRIPT  = $(RUNME).pike
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -928,8 +1064,6 @@ pike_cpp: $(SRCS)
 # library file
 # -----------------------------------------------------------------
 
-PIKE_LIBOPTS = @PIKELINK@ @LIBS@ $(SYSLIBS)
-
 pike_static: $(SRCS)
 	$(SWIG) -pike -lembed.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(PIKE_CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCS) $(INCLUDES) \
@@ -939,6 +1073,13 @@ pike_cpp_static: $(SRCS)
 	$(SWIG) -c++ -pike -lembed.i $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(PIKE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	$(PIKE_INCLUDE) $(LIBS)  -L$(PIKE_LIB) $(PIKE_LIBOPTS) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Run pike example
+# -----------------------------------------------------------------
+
+pike_run:
+	$(RUNTOOL) $(PIKE) $(PIKE_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -963,11 +1104,13 @@ pike_clean:
 
 CHICKEN = @CHICKEN@
 CHICKEN_CSC = @CHICKEN_CSC@
+CHICKEN_CSI = @CHICKEN_CSI@
 CHICKEN_LIBOPTS = @CHICKENLIB@  $(SYSLIBS)
 CHICKEN_SHAREDLIBOPTS = @CHICKENSHAREDLIB@  $(SYSLIBS)
 CHICKEN_CFLAGS = @CHICKENOPTS@
 CHICKENOPTS = -quiet
 CHICKEN_MAIN =
+CHICKEN_SCRIPT = $(RUNME).scm
 
 # SWIG produces $(ISRCS) (the C wrapper file)
 # and $(CHICKEN_GENERATED_SCHEME) (the Scheme wrapper file):
@@ -1049,6 +1192,13 @@ chicken_externalhdr:
 	$(SWIG) -chicken -external-runtime $(TARGET)
 
 # -----------------------------------------------------------------
+# Run CHICKEN example
+# -----------------------------------------------------------------
+
+chicken_run:
+	env LD_LIBRARY_PATH=. $(RUNTOOL) $(CHICKEN_CSI) $(CHICKEN_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
@@ -1075,6 +1225,7 @@ CSHARPCOMPILER = @CSHARPCOMPILER@
 CSHARPCILINTERPRETER = @CSHARPCILINTERPRETER@
 CSHARPCFLAGS = @CSHARPCFLAGS@
 CSHARPSO = @CSHARPSO@
+CSHARP_RUNME = ./$(RUNME).exe
 
 # ----------------------------------------------------------------
 # Build a CSharp dynamically loadable module (C)
@@ -1100,6 +1251,13 @@ csharp_cpp: $(SRCS)
 
 csharp_compile: $(SRCS)
 	$(COMPILETOOL) $(CSHARPCOMPILER) $(CSHARPFLAGS) $(CSHARPSRCS)
+
+# -----------------------------------------------------------------
+# Run CSharp example
+# -----------------------------------------------------------------
+
+csharp_run:
+	env LD_LIBRARY_PATH=. $(RUNTOOL) $(CSHARP_RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1129,10 +1287,12 @@ LUA_LIB    = @LUALINK@
 # Extra specific dynamic linking options
 LUA_DLNK   = @LUADYNAMICLINKING@
 LUA_SO     = @LUA_SO@
+
 LUA        = @LUABIN@
+LUA_SCRIPT = $(RUNME).lua
 
 # Extra code for lua static link
-LUA_INTERP     = ../lua.c
+LUA_INTERP = ../lua.c
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -1167,6 +1327,16 @@ lua_static_cpp: $(SRCS)
 	$(LUA_INCLUDE) $(LIBS)  $(LUA_LIB) -o $(TARGET)
 
 # -----------------------------------------------------------------
+# Run Lua example
+# -----------------------------------------------------------------
+
+lua_run:
+	$(RUNTOOL) $(LUA) $(LUA_SCRIPT) $(RUNPIPE)
+
+lua_embed_run:
+	$(RUNTOOL) ./$(TARGET) $(RUNPIPE)
+
+# -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
@@ -1187,6 +1357,7 @@ lua_clean:
 ##################################################################
 
 ALLEGROCL    = @ALLEGROCLBIN@
+ALLEGROCL_SCRIPT=$(RUNME).lisp
 
 allegrocl: $(SRCS)
 	$(SWIG) -allegrocl -cwrap $(SWIGOPT) $(INTERFACEPATH)
@@ -1197,6 +1368,13 @@ allegrocl_cpp: $(SRCS)
 	$(SWIG) -c++ -allegrocl $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Run ALLEGRO CL example
+# -----------------------------------------------------------------
+
+allegrocl_run:
+	$(RUNTOOL) $(ALLEGROCL) -batch -s $(ALLEGROCL_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1219,12 +1397,20 @@ allegrocl_clean:
 ##################################################################
 
 CLISP = @CLISPBIN@
+CLISP_SCRIPT=$(RUNME).lisp
 
 clisp: $(SRCS)
 	$(SWIG) -clisp $(SWIGOPT) $(INTERFACEPATH)
 
 clisp_cpp: $(SRCS)
 	$(SWIG) -c++ -clisp $(SWIGOPT) $(INTERFACEPATH)
+
+# -----------------------------------------------------------------
+# Run CLISP example
+# -----------------------------------------------------------------
+
+clisp_run:
+	$(RUNTOOL) $(CLISP) -batch -s $(CLISP_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1247,6 +1433,7 @@ clisp_clean:
 ##################################################################
 
 CFFI = @CFFIBIN@
+CFFI_SCRIPT=$(RUNME).lisp
 
 cffi: $(SRCS)
 	$(SWIG) -cffi $(SWIGOPT) $(INTERFACEPATH)
@@ -1257,6 +1444,13 @@ cffi_cpp: $(SRCS)
 	$(SWIG) -c++ -cffi $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Run CFFI example
+# -----------------------------------------------------------------
+
+cffi_run:
+	$(RUNTOOL) $(CFFI) -batch -s $(CFFI_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1279,6 +1473,7 @@ cffi_clean:
 ##################################################################
 
 UFFI = @UFFIBIN@
+UFFI_SCRIPT=$(RUNME).lisp
 
 uffi: $(SRCS)
 	$(SWIG) -uffi $(SWIGOPT) $(INTERFACEPATH)
@@ -1289,6 +1484,13 @@ uffi_cpp: $(SRCS)
 	$(SWIG) -c++ -uffi $(SWIGOPT) $(INTERFACEPATH)
 #	$(CXX) -c $(CCSHARED) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES)
 #	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Run UFFI example
+# -----------------------------------------------------------------
+
+uffi_run:
+	$(RUNTOOL) $(UFFI) -batch -s $(UFFI_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1314,6 +1516,7 @@ R = R
 RCXXSRCS = $(INTERFACE:.i=_wrap.cpp) #Need to use _wrap.cpp for R build system as it does not understand _wrap.cxx
 RRSRC = $(INTERFACE:.i=.R)
 R_CFLAGS=-fPIC
+R_SCRIPT=$(RUNME).R
 
 # need to compile .cxx files outside of R build system to make sure that
 # we get -fPIC
@@ -1342,6 +1545,13 @@ endif
 	+( PKG_CPPFLAGS="$(INCLUDES)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
 
 # -----------------------------------------------------------------
+# Run R example
+# -----------------------------------------------------------------
+
+r_run:
+	$(RUNTOOL) $(R) CMD BATCH $(R_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
@@ -1356,7 +1566,7 @@ r_clean:
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ NAMESPACE
-	rm -f $(RRSRC) runme.Rout .RData
+	rm -f $(RRSRC) $(RUNME).Rout .RData
 
 ##################################################################
 #####                        Go                             ######
@@ -1424,7 +1634,7 @@ go_run: runme.go
 	else \
 	  $(COMPILETOOL) $(GOTOOL) $(GOLD) -r $${GOROOT}/pkg/$${GOOS}_$${GOARCH}:. -o runme runme.$(GOOBJEXT); \
 	fi
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme
+	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
@@ -1438,7 +1648,7 @@ go_version:
 # -----------------------------------------------------------------
 
 go_clean:
-	rm -f *_wrap* *_gc* .~* runme
+	rm -f *_wrap* *_gc* .~* runme $(GOSRCS)
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *.[568] *.a *@SO@
 
@@ -1459,6 +1669,8 @@ else
   SWIGD = $(SWIG) -d
   DCOMPILER = @D1COMPILER@
 endif
+
+D_RUNME = ./$(RUNME)
 
 # ----------------------------------------------------------------
 # Build a dynamically loadable D wrapper for a C module
@@ -1492,7 +1704,7 @@ d_compile: $(SRCS)
 # -----------------------------------------------------------------
 
 d_run:
-	env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./runme
+	$(RUNTOOL) $(D_RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

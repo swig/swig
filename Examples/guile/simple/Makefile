@@ -3,7 +3,10 @@ TARGET = my-guile
 IFILE  = example.i
 MKDIR  = ..
 
-all: $(TARGET)
+check: $(TARGET)
+	./$(TARGET) -s example.scm
+
+build: $(TARGET)
 
 $(TARGET):
 	$(MAKE) -f $(MKDIR)/Makefile		\
@@ -12,8 +15,5 @@ $(TARGET):
 		IFILE=$(IFILE)			\
 	    sub-all
 
-clean::
+clean:
 	$(MAKE) -f $(MKDIR)/Makefile TARGET='$(TARGET)' guile_clean
-
-check: $(TARGET)
-	./$(TARGET) -s example.scm > /dev/null

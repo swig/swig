@@ -3,15 +3,15 @@ TARGET = my-guile
 IFILE  = example.i
 MKDIR  = ..
 
-all::
+check: build
+	./my-guile -s constants.scm
+
+build:
 	$(MAKE) -f $(MKDIR)/Makefile		\
 		SRCS='$(SRCS)'			\
 		TARGET=$(TARGET)		\
 		IFILE=$(IFILE)			\
 	    sub-all
 
-clean::
+clean:
 	$(MAKE) -f $(MKDIR)/Makefile TARGET='$(TARGET)' guile_clean
-
-check: all
-	./my-guile -s constants.scm
