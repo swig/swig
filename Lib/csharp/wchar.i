@@ -20,12 +20,14 @@ static SWIG_CSharpWStringHelperCallback SWIG_csharp_wstring_callback = NULL;
 %pragma(csharp) imclasscode=%{
   protected class SWIGWStringHelper {
 
+    [MonoNativeFunctionWrapper]
     public delegate string SWIGWStringDelegate(IntPtr message);
     static SWIGWStringDelegate wstringDelegate = new SWIGWStringDelegate(CreateWString);
 
     [DllImport("$dllimport", EntryPoint="SWIGRegisterWStringCallback_$module")]
     public static extern void SWIGRegisterWStringCallback_$module(SWIGWStringDelegate wstringDelegate);
 
+    [MonoPInvokeCallback(typeof(SWIGWStringDelegate))]
     static string CreateWString([MarshalAs(UnmanagedType.LPWStr)]IntPtr cString) {
       return System.Runtime.InteropServices.Marshal.PtrToStringUni(cString);
     }
