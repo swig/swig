@@ -54,7 +54,7 @@ namespace std {
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         %}
-        %typemap(argout) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
+        %typemap(freearg) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
         %typemap(out) pair<T,U> {
             T* x = new T($1.first);
             U* y = new U($1.second);
@@ -162,7 +162,7 @@ namespace std {
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         %}
-        %typemap(argout) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
+        %typemap(freearg) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
         %typemap(out) pair<T,U> {
             U* y = new U($1.second);
             SCM second = SWIG_NewPointerObj(y,$descriptor(U *), 1);
@@ -262,7 +262,7 @@ namespace std {
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         %}
-        %typemap(argout) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
+        %typemap(freearg) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
         %typemap(out) pair<T,U> {
             T* x = new T($1.first);
             SCM first = SWIG_NewPointerObj(x,$descriptor(T *), 1);
@@ -360,7 +360,7 @@ namespace std {
                     SWIG_MustGetPtr($input,$1_descriptor,$argnum, 0);
             }
         %}
-        %typemap(argout) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
+        %typemap(freearg) const pair<T,U>&, const pair<T,U>* %{ delete temp$argnum; %}
         %typemap(out) pair<T,U> {
             $result = scm_cons(CONVERT_T_TO($1.first),
                               CONVERT_U_TO($1.second));
