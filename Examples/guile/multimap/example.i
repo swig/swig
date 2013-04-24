@@ -59,14 +59,14 @@ extern int count(char *bytes, int len, char c);
 
 %typemap(in) (char *str, int len) {
   size_t temp;
-  $1 = gh_scm2newstr($input,&temp);
+  $1 = SWIG_Guile_scm2newstr($input,&temp);
   $2 = temp;
 }
 
 /* Return the mutated string as a new object.  */
 
 %typemap(argout) (char *str, int len) {
-  SWIG_APPEND_VALUE(gh_str2scm($1,$2));
+  SWIG_APPEND_VALUE(scm_from_locale_stringn($1,$2));
   if ($1) scm_must_free($1);
 }   
 

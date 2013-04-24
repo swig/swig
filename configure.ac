@@ -157,7 +157,7 @@ if test "$GCC" = yes; then
 else
     ISYSTEM="-I"
 fi
-
+AC_MSG_NOTICE(ISYSTEM: $ISYSTEM)
 
 dnl Info for building shared libraries ... in order to run the examples
 
@@ -1148,126 +1148,115 @@ AC_SUBST(NDKBUILD)
 # Look for Guile
 #----------------------------------------------------------------
 
-GUILEPACKAGE=
-GUILEINCLUDE=
 GUILE=
-GUILELIB=
-GUILELINK=
-GUILEPKGDATADIR=
+GUILE_CFLAGS=
+GUILE_LIBS=
 
-AC_ARG_WITH(guile-config,AS_HELP_STRING([--without-guile], [Disable Guile])
-AS_HELP_STRING([--with-guile-config=path], [Set location of guile-config]),[ GUILE_CONFIG="$withval"], [GUILE_CONFIG=])
-AC_ARG_WITH(guilepackage, AS_HELP_STRING([--with-guile-prefix=path], [Set location of Guile tree]),[
-	GUILEPACKAGE="$withval"])
-AC_ARG_WITH(guile,[  --with-guile=path       Set location of Guile executable],[
-	GUILE="$withval"], [GUILE=yes])
-AC_ARG_WITH(guileincl,[  --with-guileincl=path   Set location of Guile include directory],[
-	GUILEINCLUDE="$withval"])
-AC_ARG_WITH(guilelib,[  --with-guilelib=path    Set location of Guile library directory],[
-	GUILELIB="$withval"])
+AC_ARG_WITH(guile, AS_HELP_STRING([--without-guile], [Disable Guile])
+AS_HELP_STRING([--with-guile=path], [Set location of Guile executable]),[GUILE="$withval"], [GUILE=yes])
+AC_ARG_WITH(guile-cflags,[  --with-guile-cflags=cflags   Set cflags required to compile against Guile],[
+	GUILE_CFLAGS="$withval"])
+AC_ARG_WITH(guile-libs,[  --with-guile-libs=ldflags    Set ldflags needed to link with Guile],[
+	GUILE_LIBS="$withval"])
 
 # First, check for "--without-guile" or "--with-guile=no".
 if test x"${GUILE}" = xno -o x"${with_alllang}" = xno ; then 
-AC_MSG_NOTICE([Disabling Guile])
+  AC_MSG_NOTICE([Disabling Guile])
+  GUILE=
+  GUILE_CFLAGS=
+  GUILE_LIBS=
 else
 
-if test -z "$GUILE_CONFIG" ; then
-  AC_PATH_PROG(GUILE_CONFIG, guile-config)
-fi
-
-if test -n "$GUILE_CONFIG" ; then
-  GUILEPACKAGE="`$GUILE_CONFIG info prefix`"
-  GUILEINCLUDE="`$GUILE_CONFIG info includedir`"
-  GUILELIB="`$GUILE_CONFIG info libdir`"
-  GUILE="`$GUILE_CONFIG info bindir`/guile"
-  GUILELINK="`$GUILE_CONFIG link`"
-  GUILEPKGDATADIR="`$GUILE_CONFIG info pkgdatadir`"
-fi
-
-  if test -z "$GUILE" -o "x$GUILE" = xyes; then
-     if test -n "$GUILEPACKAGE"; then
-  	GUILE="$GUILEPACKAGE/bin/guile"
-     else
-  	GUILE=
-     fi
+  # Use pkg-config to find guile specific config parameters
+  # Note: if guile is not installed in a standard system path
+  # you can set the environment variable PKG_CONFIG_PATH to
+  # the directory where the guile package config file is stored
+  AC_PATH_PROG(PKG_CONFIG,pkg-config)
+  if test "x$PKG_CONFIG" = x; then
+    # @*%&$ Ximian programmers renamed this application
+    AC_PATH_PROG(PKG_CONFIG,pkgconfig)
   fi
+  if test "x$PKG_CONFIG" = x; then
+    AC_MSG_NOTICE([Could not find the pkg-config (or pkgconfig) program required to set up Guile. Disabling Guile],)
+    GUILE=
+    GUILE_CFLAGS=
+    GUILE_LIBS=""
+  else
 
-  if test -z "$GUILEINCLUDE"; then
-     if test -n "$GUILEPACKAGE"; then
-  	GUILEINCLUDE="$GUILEPACKAGE/include"
-     fi
-  fi
+    # If the user has given these values, cache them to override the
+    # detected values.
+    if test "x$GUILE_LIBS" != x; then
+      saved_GUILE_LIBS="$GUILE_LIBS"
+    fi
+    if test "x$GUILE_CFLAGS" != x; then
+      saved_GUILE_CFLAGS="$GUILE_CFLAGS"
+    fi
 
-  if test -z "$GUILELIB"; then
-     if test -n "$GUILEPACKAGE"; then
-  	GUILELIB="$GUILEPACKAGE/lib"
-     fi
-  fi
+    # Look up GUILE_CFLAGS and GUILE_LIBS, and version check
+    GUILE_SERIES=""
+    PKG_CHECK_MODULES(GUILE, [guile-1.8], [ GUILE_SERIES="18" ], [
+      PKG_CHECK_MODULES(GUILE, [guile-2.0], [GUILE_SERIES="20" ], [AC_MSG_NOTICE([
+        Only Guile 1.8 or 2.0 is supported. Neither version appears to be installed correctly. Disabling Guile
+      ])])
+    ])
 
+    if test "x$GUILE-SERIES" = x; then
+      GUILE=
+      GUILE_CFLAGS=
+      GUILE_LIBS=
+    else
+      # Look up GUILE executable
+      if test "x$GUILE" = xyes; then
+        GUILE=
+        if test "$xGUILE_SERIES" = "x18"; then
+          AC_PATH_PROG(GUILE18, guile-1.8)
+          if test "x$GUILE18" != x; then
+            GUILE="$GUILE18"
+          fi
+        fi
+        if test "$xGUILE_SERIES" = "x20"; then
+          AC_PATH_PROG(GUILE20, guile-2.0)
+          if test "x$GUILE20" != x; then
+            GUILE="$GUILE20"
+          fi
+        fi
+        if test "x$GUILE" = x; then
+          AC_PATH_PROG(GUILE, guile)
+        fi
+      fi
 
-AC_MSG_CHECKING(for Guile header files)
+      if test "x$saved_GUILE_LIBS" != x; then
+        GUILE_LIBS="$saved_GUILE_LIBS"
+      fi
+      if test "x$saved_GUILE_CFLAGS" != x; then
+        GUILE_CFLAGS="$saved_GUILE_CFLAGS"
+      fi
 
-  dirs="$GUILEINCLUDE"
-  for i in $dirs ; do
-  	if test -r $i/guile/gh.h; then
-  		AC_MSG_RESULT($i)
-  		GUILEINCLUDE="$ISYSTEM$i"
-  		break
-  	fi
-  done
-  if test -z "$GUILEINCLUDE"; then
-      	AC_MSG_RESULT(not found)
-  fi
+      guilesafe_CFLAGS=$CFLAGS
+      guilesafe_LIBS=$LIBS
+      # Filter out "-ansi -pedantic" because Guile header files will not compile with these flags.
+      # (The flags -ansi -pedantic are automatically added by ac_compile_warnings.m4)
+      CFLAGS="`echo $CFLAGS | sed 's/-ansi//g;s/-pedantic//g;'` $GUILE_CFLAGS"
+      LIBS="$LIBS $GUILE_LIBS"
 
-  AC_MSG_CHECKING(for Guile library)
-  dirs="$GUILELIB"
-  for i in $dirs ; do
-  	if test -r $i/libguile.so; then
-  	    AC_MSG_RESULT($i)
-  	    GUILELIB="$i"
-  	    break
-  	fi
-  done
-  if test -z "$GUILELIB"; then
-  	AC_MSG_RESULT(not found)
-  fi
-
-if test -z "$GUILELINK"; then
-  GUILELINK="-L$GUILELIB -lguile"
-fi
-
-guilesafe_CFLAGS=$CFLAGS
-guilesafe_LIBS=$LIBS
-# Filter out "-ansi -pedantic" because Guile header files will not compile with these flags.
-# (The flags -ansi -pedantic are automatically added by ac_compile_warnings.m4)
-CFLAGS="`echo $CFLAGS | sed 's/-ansi//g;s/-pedantic//g;'` $GUILEINCLUDE"
-LIBS="$LIBS $GUILELINK"
-
-AC_MSG_CHECKING(whether Guile's gh_ API works)
-AC_LINK_IFELSE([AC_LANG_SOURCE([#include <guile/gh.h>
-  int main() { SCM s; return gh_scm2int(s); }])], GUILE_GH_INTERFACE=1, )
-if test -n "$GUILE_GH_INTERFACE" ; then
+      AC_MSG_CHECKING(whether Guile/SCM_ API works)
+      AC_LINK_IFELSE([AC_LANG_SOURCE([#include <libguile.h>
+        int main() { SCM s; scm_slot_exists_p(SCM_BOOL_F, SCM_BOOL_F); return SCM_STRING_LENGTH(s); }])], GUILE_SCM_INTERFACE=1, )
+      if test -n "$GUILE_SCM_INTERFACE" ; then
         AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-AC_MSG_CHECKING(whether Guile's SCM_ API works)
-AC_LINK_IFELSE([AC_LANG_SOURCE([#include <libguile.h>
-  int main() { SCM s; scm_slot_exists_p(SCM_BOOL_F, SCM_BOOL_F); return SCM_STRING_LENGTH(s); }])], GUILE_SCM_INTERFACE=1, )
-if test -n "$GUILE_SCM_INTERFACE" ; then
-        AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
-fi
-CFLAGS=$guilesafe_CFLAGS
-LIBS=$guilesafe_LIBS
+      else
+        AC_MSG_RESULT(no)
+      fi
+
+      CFLAGS=$guilesafe_CFLAGS
+      LIBS=$guilesafe_LIBS
+    fi
+  fi
 fi
 
 AC_SUBST(GUILE)
-AC_SUBST(GUILEINCLUDE)
-AC_SUBST(GUILELIB)
-AC_SUBST(GUILELINK)
-AC_SUBST(GUILE_GH_INTERFACE)
+AC_SUBST(GUILE_CFLAGS)
+AC_SUBST(GUILE_LIBS)
 AC_SUBST(GUILE_SCM_INTERFACE)
 
 #----------------------------------------------------------------
@@ -2268,16 +2257,10 @@ AC_SUBST(SKIP_JAVA)
 
 
 SKIP_GUILE=
-if test -z "$GUILEINCLUDE" || test -z "$GUILELIB" || test -z "$GUILE_GH_INTERFACE"; then
+if test -z "$GUILE_CFLAGS" || test -z "$GUILE_LIBS" || test -z "$GUILE_SCM_INTERFACE"; then
     SKIP_GUILE="1"
 fi
 AC_SUBST(SKIP_GUILE)
-
-SKIP_GUILESCM=
-if test -z "$GUILEINCLUDE" || test -z "$GUILELIB" || test -z "$GUILE_SCM_INTERFACE"; then
-    SKIP_GUILESCM="1"
-fi
-AC_SUBST(SKIP_GUILESCM)
 
 
 SKIP_MZSCHEME=
@@ -2454,7 +2437,6 @@ AC_CONFIG_FILES([			        \
     Examples/test-suite/csharp/Makefile	        \
     Examples/test-suite/d/Makefile	        \
     Examples/test-suite/guile/Makefile	        \
-    Examples/test-suite/guilescm/Makefile	\
     Examples/test-suite/java/Makefile	        \
     Examples/test-suite/mzscheme/Makefile	\
     Examples/test-suite/ocaml/Makefile	        \

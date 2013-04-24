@@ -7,8 +7,8 @@ SWIG		= ../$(top_srcdir)/preinst-swig
 CC		= @CC@
 CXX		= @CXX@
 CFLAGS		= @PLATFLAGS@
-GUILEINCLUDE	= @GUILEINCLUDE@
-GUILELINK	= @GUILELINK@
+GUILE_CFLAGS	= @GUILE_CFLAGS@
+GUILE_LIBS	= @GUILE_LIBS@
 SWIGOPT		=
 
 WRAP		= $(IFILE:.i=_wrap.c)
@@ -31,10 +31,10 @@ guile_clean:
 
 sub-all:
 	$(SWIG) -guile $(SWIGOPT) $(IFILE)
-	$(CC) $(CFLAGS) -o $(TARGET) $(SRCS) $(WRAP) $(GUILEINCLUDE) $(GUILELINK)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRCS) $(WRAP) $(GUILE_CFLAGS) $(GUILE_LIBS)
 
 sub-all-cxx:
 	$(SWIG) -c++ -guile $(SWIGOPT) $(IFILE)
-	$(CXX) $(CFLAGS) -o $(TARGET) $(SRCS) $(CXXWRAP) $(GUILEINCLUDE) $(GUILELINK)
+	$(CXX) $(CFLAGS) -o $(TARGET) $(SRCS) $(CXXWRAP) $(GUILE_CFLAGS) $(GUILE_LIBS)
 
 # Makefile ends here
