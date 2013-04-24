@@ -56,6 +56,12 @@ SWIG works with Guile versions 1.8.x and 2.0.x. Support for version
 1.6.x has been dropped. The last version of SWIG that still works with
 Guile version 1.6.x is SWIG 2.0.9.
 
+<p>
+Note that starting with guile 2.0, the guile sources can be compiled for
+improved performance. This is currently not tested with swig
+so your mileage may vary. To be safe set environment variable
+GUILE_AUTO_COMPILE to 0 when using swig generated guile code.
+
 <H2><a name="Guile_nn2"></a>23.2 Meaning of "Module"</H2>
 
 
