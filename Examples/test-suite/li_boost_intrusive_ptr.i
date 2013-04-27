@@ -13,9 +13,12 @@
 %warnfilter(SWIGWARN_LANG_SMARTPTR_MISSING) KlassDerived;
 %warnfilter(SWIGWARN_LANG_SMARTPTR_MISSING) KlassDerivedDerived;
 
-%inline %{
-#include "boost/shared_ptr.hpp"
-#include "boost/intrusive_ptr.hpp"
+%{
+template<typename T> void intrusive_ptr_add_ref(const T* r) { r->addref(); }
+template<typename T> void intrusive_ptr_release(const T* r) { r->release(); }
+
+#include <boost/shared_ptr.hpp>
+#include <boost/intrusive_ptr.hpp>
 #include <boost/detail/atomic_count.hpp>
 
 // Uncomment macro below to turn on intrusive_ptr memory leak checking as described above
@@ -102,8 +105,6 @@
 
 %ignore IgnoredRefCountingBase;
 %ignore *::operator=;
-%ignore intrusive_ptr_add_ref;
-%ignore intrusive_ptr_release;
 %newobject pointerownertest();
 %newobject smartpointerpointerownertest();
   
@@ -429,10 +430,6 @@ template <class T1, class T2> struct Pair : Base<T1, T2> {
 
 Pair<int, double> pair_id2(Pair<int, double> p) { return p; }
 SwigBoost::intrusive_ptr< Pair<int, double> > pair_id1(SwigBoost::intrusive_ptr< Pair<int, double> > p) { return p; }
-
-template<typename T> void intrusive_ptr_add_ref(const T* r) { r->addref(); }
-
-template<typename T> void intrusive_ptr_release(const T* r) { r->release(); }
 
 long use_count(const SwigBoost::shared_ptr<Space::Klass>& sptr) {
   return sptr.use_count();
