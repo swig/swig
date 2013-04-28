@@ -6,15 +6,16 @@ INTERFACE  = example.i
 LIBS       = -lm
 SWIGOPT    = 
 
-all::
+check: build
+	$(MAKE) -f $(TOP)/Makefile lua_run
+
+build:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' lua_cpp
 
-static::
+static:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	TARGET='mylua' INTERFACE='$(INTERFACE)' lua_cpp_static
 
-clean::
+clean:
 	$(MAKE) -f $(TOP)/Makefile lua_clean
-
-check: all

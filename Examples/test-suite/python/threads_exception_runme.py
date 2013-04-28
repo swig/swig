@@ -23,10 +23,12 @@ except RuntimeError,e:
 try:
   t.hosed()
 except threads_exception.Exc,e:
-  if e.code != 42:
-    raise RuntimeError
-  if e.msg != "Hosed":
-    raise RuntimeError, "bad... msg: %s" % e.msg
+  code = e.code
+  if code != 42:
+    raise RuntimeError, "bad... code: %d" % code
+  msg = e.msg
+  if msg != "Hosed":
+    raise RuntimeError, "bad... msg: '%s' len: %d" % (msg, len(msg))
 
 for i in range(1,4):
   try:

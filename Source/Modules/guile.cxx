@@ -11,8 +11,6 @@
  * Guile language module for SWIG.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_guile_cxx[] = "$Id$";
-
 #include "swigmod.h"
 
 #include <ctype.h>
@@ -59,9 +57,9 @@ static File *f_wrappers = 0;
 static File *f_init = 0;
 
 
-static char *prefix = (char *) "gswig_";
+static String *prefix = NewString("gswig_");
 static char *module = 0;
-static char *package = 0;
+static String *package = 0;
 static enum {
   GUILE_LSTYLE_SIMPLE,		// call `SWIG_init()'
   GUILE_LSTYLE_PASSIVE,		// passive linking (no module code)
@@ -127,7 +125,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
-    int i, orig_len;
+    int i;
 
      SWIG_library_directory("guile");
      SWIG_typemap_lang("guile");
@@ -140,8 +138,7 @@ public:
 	  SWIG_exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
-	    prefix = new char[strlen(argv[i + 1]) + 2];
-	    strcpy(prefix, argv[i + 1]);
+	    prefix = NewString(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
@@ -150,8 +147,7 @@ public:
 	  }
 	} else if (strcmp(argv[i], "-package") == 0) {
 	  if (argv[i + 1]) {
-	    package = new char[strlen(argv[i + 1]) + 2];
-	    strcpy(package, argv[i + 1]);
+	    package = NewString(argv[i + 1]);
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
 	    i++;
@@ -278,12 +274,12 @@ public:
       // should use Swig_warning() ?
       Printf(stderr, "guile: Warning: -exportprimitive only makes sense with passive linkage without a scmstub.\n");
     }
-    // Make sure `prefix' ends in an underscore
 
-    orig_len = strlen(prefix);
-    if (prefix[orig_len - 1] != '_') {
-      prefix[1 + orig_len] = 0;
-      prefix[orig_len] = '_';
+    // Make sure `prefix' ends in an underscore
+    if (prefix) {
+      const char *px = Char(prefix);
+      if (px[Len(prefix) - 1] != '_')
+	Printf(prefix, "_");
     }
 
     /* Add a symbol for this module */
@@ -409,7 +405,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     return SWIG_OK;

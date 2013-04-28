@@ -85,7 +85,7 @@ as follows :
   }
   tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
-    SWIG_croak("expected a integer reference");
+    SWIG_croak("expected an integer reference");
   }
   dvalue = SvIV(tempsv);
   $1 = &dvalue;
@@ -99,7 +99,7 @@ as follows :
   }
   tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
-    SWIG_croak("expected a integer reference");
+    SWIG_croak("expected an integer reference");
   }
   dvalue = (short) SvIV(tempsv);
   $1 = &dvalue;
@@ -112,7 +112,7 @@ as follows :
   }
   tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
-    SWIG_croak("expected a integer reference");
+    SWIG_croak("expected an integer reference");
   }
   dvalue = (long) SvIV(tempsv);
   $1 = &dvalue;
@@ -125,7 +125,7 @@ as follows :
   }
   tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
-    SWIG_croak("expected a integer reference");
+    SWIG_croak("expected an integer reference");
   }
   dvalue = (unsigned int) SvUV(tempsv);
   $1 = &dvalue;
@@ -138,7 +138,7 @@ as follows :
   }
   tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
-    SWIG_croak("expected a integer reference");
+    SWIG_croak("expected an integer reference");
   }
   dvalue = (unsigned short) SvUV(tempsv);
   $1 = &dvalue;
@@ -151,7 +151,7 @@ as follows :
   }
   tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
-    SWIG_croak("expected a integer reference");
+    SWIG_croak("expected an integer reference");
   }
   dvalue = (unsigned long) SvUV(tempsv);
   $1 = &dvalue;
@@ -165,7 +165,7 @@ as follows :
   }
   tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
-    SWIG_croak("expected a integer reference");
+    SWIG_croak("expected an integer reference");
   }
   dvalue = (unsigned char) SvUV(tempsv);
   $1 = &dvalue;
@@ -179,7 +179,7 @@ as follows :
   }
   tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
-    SWIG_croak("expected a integer reference");
+    SWIG_croak("expected an integer reference");
   }
   dvalue = (signed char) SvIV(tempsv);
   $1 = &dvalue;
@@ -193,7 +193,7 @@ as follows :
   }
   tempsv = SvRV($input);
   if (!SvIOK(tempsv)) {
-    SWIG_croak("expected a integer reference");
+    SWIG_croak("expected an integer reference");
   }
   dvalue = SvIV(tempsv) ? true : false;
   $1 = &dvalue;

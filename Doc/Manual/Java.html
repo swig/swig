@@ -86,6 +86,7 @@
 <li><a href="#Java_directors_overhead">Overhead and code bloat</a>
 <li><a href="#Java_directors_example">Simple directors example</a>
 <li><a href="#Java_directors_threading">Director threading issues</a>
+<li><a href="#Java_directors_performance">Director performance tuning</a>
 </ul>
 <li><a href="#Java_allprotected">Accessing protected members</a>
 <li><a href="#Java_common_customization">Common customization features</a>
@@ -326,12 +327,13 @@ The exact location may vary on your machine, but the above locations are typical
 
 <p>
 The JNI code exists in a dynamic module or shared library (DLL on Windows) and gets loaded by the JVM. 
-To build a shared library file, you need to compile your module in a manner similar to the following (shown for Solaris):</p>
+Assuming you have code you need to link to in a file called <tt>example.c</tt>, in order to build a shared library file, you need to compile your module in a manner similar to the following (shown for Solaris):</p>
 
 <div class="code"><pre>
 $ swig -java example.i
 $ gcc -c example_wrap.c  -I/usr/java/include -I/usr/java/include/solaris
-$ ld -G example_wrap.o  -o libexample.so
+$ gcc -c example.c
+$ ld -G example_wrap.o example.o -o libexample.so
 </pre></div>
 
 <p>
@@ -1921,18 +1923,23 @@ The default behaviour described above can be improved via the <a href="SWIGPlus.
 Note that it only works for classes, structs, unions and enums declared within a named C++ namespace.
 When the nspace feature is used, the C++ namespaces are converted into Java packages of the same name.
 Proxy classes are thus declared within a package and this proxy makes numerous calls to the JNI intermediary class which is declared in the unnamed package by default.
-As Java does not support types declared in a named package accessing types declared in an unnamed package, the <tt>-package</tt> commandline option described earlier must be used to provide a parent package.
-So if SWIG is run using the <tt>-package com.myco</tt> option, a wrapped class, <tt>MyWorld::Material::Color</tt>, can then be accessed as <tt>com.myco.MyWorld.Material.Color</tt>. If you don't specify a package, you will get the following error message:
+As Java does not support types declared in a named package accessing types declared in an unnamed package, the <tt>-package</tt> commandline option described earlier generally should be used to provide a parent package.
+So if SWIG is run using the <tt>-package com.myco</tt> option, a wrapped class, <tt>MyWorld::Material::Color</tt>, can then be accessed as <tt>com.myco.MyWorld.Material.Color</tt>.
+If you don't specify a package, you will get the following warning:
 </p>
 
 <div class="shell">
 <pre>
-example.i:16: Error: The nspace feature used on 'MyWorld::Material::Color' is not supported unless
-a package is specified
-with -package - Java does not support types declared in a named package accessing types declared
-in an unnamed package.
+example.i:16: Warning 826: The nspace feature is used on 'MyWorld::Material::Color' without -package. The generated code 
+may not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.
 </pre>
 </div>
+
+<p>
+If it is undesirable to have a single top level package, the nspace feature may be used without the <tt>-package</tt> commandline option
+(and the resulting warning ignored) if all of the types exposed using SWIG are placed in a package using the nspace feature and the
+'jniclasspackage' pragma is used to specify a package for the JNI intermediary class.
+</p>
 
 <p>
 If the resulting use of the nspace feature and hence packages results in a proxy class in one package deriving or using a proxy class from another package,
@@ -2222,6 +2229,9 @@ The intermediary JNI class can be tailored through the use of pragmas, but is no
 
 <tr>
     <td>jniclassbase            </td> <td>Base class for the intermediary JNI class</td>
+</tr>
+<tr>
+    <td>jniclasspackage         </td> <td>Package in which to place the intermediary JNI class</td>
 </tr>
 <tr>
     <td>jniclassclassmodifiers  </td> <td>Class modifiers and class type for the intermediary JNI class</td>
@@ -3354,9 +3364,6 @@ The %feature directive can be applied globally, to specific classes, and to spec
 
 // generate directors for all virtual methods in class Foo
 %feature("director") Foo;      
-
-// generate a director for just Foo::bar()
-%feature("director") Foo::bar; 
 </pre>
 </div>
 
@@ -3526,6 +3533,28 @@ Macros can be defined on the commandline when compiling your C++ code, or altern
 %}
 </pre>
 </div>
+
+<H3><a name="Java_directors_performance"></a>24.5.6 Director performance tuning</H3>
+
+
+<p>
+When a new instance of a director (or subclass) is created in Java, the C++ side of the director performs a runtime check per director method to determine if that particular method is overridden in Java or if it should invoke the C++ base implementation directly.  Although this makes initialization slightly more expensive, it is generally a good overall tradeoff.
+</p>
+
+<p>
+However, if all director methods are expected to usually be overridden by Java subclasses, then initialization can be made faster by avoiding these checks via the <tt>assumeoverride</tt> attribute.  For example:
+</p>
+
+<div class="code">
+<pre>
+%feature("director", assumeoverride=1) Foo;
+</pre>
+</div>
+
+<p>
+The disadvantage is that invocation of director methods from C++ when Java doesn't actually override the method will require an additional call up into Java and back to C++.  As such, this option is only useful when overrides are extremely common and instantiation is frequent enough that its performance is critical.
+</p>
+
 
 <H2><a name="Java_allprotected"></a>24.6 Accessing protected members</H2>
 
@@ -5468,6 +5497,22 @@ interfaces (implements) for Java class: empty default
 <p><tt>%typemap(javafinalize)</tt></p>
 <div class="indent">
 the <tt>finalize()</tt> method (proxy classes only): default calls the <tt>delete()</tt> method
+
+<p>
+Note that the default javafinalize typemap must contain the full implementation of the finalize method.
+Any customization to this typemap must still declare a java finalize method with the correct signature.
+Note also that the name of the generated "delete" method may be affected by <tt>javadestruct</tt> and <tt>javadestruct_derived</tt> typemaps.
+Below shows an example modifying the finalizer, assuming the <tt>delete</tt> method has been renamed to <tt>swig_delete</tt>.
+</p>
+
+<div class="code"><pre>
+%typemap(javafinalize) SWIGTYPE %{
+   protected void finalize() {
+     swig_delete();  // renamed to prevent conflict with existing delete method
+   }
+]%
+</pre></div>
+
 </div>
 
 <p>
@@ -5617,7 +5662,7 @@ to make the method and constructor public:
 
 <p>
 The Java directors feature requires the "javadirectorin", "javadirectorout", "directorin" and the "directorout" typemaps in order to work properly.
-The "javapackage" typemap is an optional typemap used to identify the Java package path for individual SWIG generated proxy classes.
+The "javapackage" typemap is an optional typemap used to identify the Java package path for individual SWIG generated proxy classes used in director methods.
 </p>
 
 <p><tt>%typemap(directorin)</tt></p>
@@ -5758,6 +5803,7 @@ The target method is the method in the Java proxy class which overrides the virt
 <p>
 The "javapackage" typemap is optional; it serves to identify a class's Java package.
 This typemap should be used in conjunction with classes that are defined outside of the current SWIG interface file.
+The typemap is only used if the type is used in a director method, that is, in a virtual method in a director class.
 For example:
 </p>
 
@@ -5774,7 +5820,7 @@ For example:
   class Example {
   public:
     virtual ~Example();
-    void     ping(Foo *arg1, Bar *arg2);
+    virtual void ping(Foo *arg1, Bar *arg2);
   };
 }
 </pre>
@@ -5799,7 +5845,7 @@ The corrected interface file looks like:
   class Example {
   public:
     virtual ~Example();
-    void     ping(Foo *arg1, Bar *arg2);
+    virtual void ping(Foo *arg1, Bar *arg2);
   };
 }
 </pre>
@@ -7864,4 +7910,3 @@ Many of these have runtime tests in the java subdirectory.
 
 </body>
 </html>
-

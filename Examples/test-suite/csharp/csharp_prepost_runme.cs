@@ -5,6 +5,22 @@ using csharp_prepostNamespace;
 
 public class csharp_prepost_runme {
 
+  class PrePost3_Derived : PrePost3
+  {
+    public PrePost3_Derived(){}
+    public override void method(ref double[] vpre, DoubleVector vpost)
+    {
+      Assert(vpre[0], 1.0);
+      vpre[0] = 2.0;
+      Assert(vpost.Count, 2);
+      vpost.Add(1.0);
+    }
+    public override int methodint(ref double[] vpre, DoubleVector vpost)
+    {
+      method(ref vpre, vpost);
+      return vpost.Count;
+    }
+  }
   public static void Main() {
     {
       double[] v;
@@ -35,6 +51,28 @@ public class csharp_prepost_runme {
       Assert(v.Length, 2);
       Assert(v[0], 7.7);
       Assert(v[1], 8.8);
+    }
+
+    {
+      PrePost3_Derived p = new PrePost3_Derived();
+      double[] vpre = new double[] { 1.0 };
+      DoubleVector vpost = new DoubleVector();
+      vpost.Add(3.0);
+      vpost.Add(4.0);
+      p.method(ref vpre, vpost);
+      Assert(vpre[0], 2.0);
+      Assert(vpost.Count, 3);
+    }
+    {
+      PrePost3_Derived p = new PrePost3_Derived();
+      double[] vpre = new double[] { 1.0 };
+      DoubleVector vpost = new DoubleVector();
+      vpost.Add(3.0);
+      vpost.Add(4.0);
+      int size = p.methodint(ref vpre, vpost);
+      Assert(vpre[0], 2.0);
+      Assert(vpost.Count, 3);
+      Assert(size, 3);
     }
 
     // Check attributes are generated for the constructor helper function

@@ -44,7 +44,7 @@ namespace std {
       }
     }
 
-    %typemap(in) const string& (std::string temp, char *tempptr) {
+    %typemap(in) const string& ($*1_ltype temp, char *tempptr) {
 
       if ($input == C_SCHEME_FALSE) {
 	temp.resize(0);

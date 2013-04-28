@@ -32,7 +32,7 @@ std::string ExceptionVars(double i, double j) {
   result = $symname(1.0,2.0); // Should expand to ExceptionVars
   result = $name(3.0,4.0); // Should expand to Space::exceptionvars
   // above will not compile if the variables are not expanded properly
-  result = "$action  $name  $symname  $overname $wrapname";
+  result = "$action  $name  $symname  $overname $wrapname $parentclassname $parentclasssymname";
 %}
 %inline %{
 namespace Space {
@@ -49,7 +49,7 @@ std::string exceptionvars(double i, double j) {
   result = $name();
   result = $name(2.0);
   // above will not compile if the variables are not expanded properly
-  result = "$action  $name  $symname  $overname $wrapname";
+  result = "$action  $name  $symname  $overname $wrapname $parentclassname $parentclasssymname";
   // $decl
 %}
 
@@ -104,3 +104,36 @@ struct DirectorTest {
   virtual ~DirectorTest() {}
 };
 %}
+
+
+/////////////////////////////////// parentclasssymname parentclassname /////////////////////////////////
+%exception instance_def {
+  $action
+  $parentclasssymname_aaa();
+  $parentclassname_bbb();
+  // above will not compile if the variables are not expanded properly
+}
+%exception static_def {
+  $action
+  $parentclasssymname_aaa();
+  $parentclassname_bbb();
+  // above will not compile if the variables are not expanded properly
+}
+
+%{
+void DEFNewName_aaa() {}
+namespace SpaceNamespace {
+  void DEF_bbb() {}
+}
+%}
+
+%rename(DEFNewName) DEF;
+%inline %{
+namespace SpaceNamespace {
+  struct DEF : ABC {
+    void instance_def() {}
+    static void static_def() {}
+  };
+}
+%}
+

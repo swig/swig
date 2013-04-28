@@ -93,7 +93,6 @@ or you can use the %apply directive :
 
 */
 
-// These typemaps contributed by Robin Dunn
 //----------------------------------------------------------------------
 //
 // T_OUTPUT typemap (and helper function) to return multiple argouts as

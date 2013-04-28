@@ -12,8 +12,6 @@
  *     an arbitrary C object represented as a void *.
  * ----------------------------------------------------------------------------- */
 
-char cvsroot_void_c[] = "$Id$";
-
 #include "dohint.h"
 
 typedef struct {

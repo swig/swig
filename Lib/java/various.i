@@ -46,6 +46,7 @@
     $1[i] = 0;
   } else {
     $1 = 0;
+    size = 0;
   }
 }
 
@@ -113,6 +114,7 @@
     return $null;
   }
   $1 = &temp; 
+  *$1 = 0;
 }
 
 %typemap(argout) char **STRING_OUT {

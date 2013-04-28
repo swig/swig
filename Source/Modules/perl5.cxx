@@ -11,8 +11,6 @@
  * Perl5 language module for SWIG.
  * ------------------------------------------------------------------------- */
 
-char cvsroot_perl5_cxx[] = "$Id$";
-
 #include "swigmod.h"
 #include "cparse.h"
 static int treduce = SWIG_cparse_template_reduce(0);
@@ -132,7 +130,7 @@ public:
   Node *is_shadow(SwigType *t) {
     Node *n;
     n = classLookup(t);
-    /*  Printf(stdout,"'%s' --> '%x'\n", t, n); */
+    /*  Printf(stdout,"'%s' --> '%p'\n", t, n); */
     if (n) {
       if (!Getattr(n, "perl5:proxy")) {
 	setclassname(n);
@@ -520,7 +518,6 @@ public:
     Printf(f_pm, "%s", additional_perl_code);
 
     Printf(f_pm, "1;\n");
-    Close(f_pm);
     Delete(f_pm);
     Delete(base);
     Delete(dest_package);
@@ -534,7 +531,6 @@ public:
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_init);
-    Close(f_begin);
     Delete(f_runtime);
     Delete(f_begin);
     return SWIG_OK;
@@ -614,7 +610,6 @@ public:
     Printf(f->code, "}\n");
 
     /* Write code to extract parameters. */
-    i = 0;
     for (i = 0, p = l; i < num_arguments; i++) {
 
       /* Skip ignored arguments */
@@ -870,6 +865,8 @@ public:
 	emit_action_code(n, setf->code, tm);
       } else {
 	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(t, 0));
+	DelWrapper(setf);
+	DelWrapper(getf);
 	return SWIG_NOWRAP;
       }
       Printf(setf->code, "fail:\n");
@@ -1638,8 +1635,8 @@ public:
 	      while (fgets(buffer, 4095, f)) {
 		Printf(pragma_include, "%s", buffer);
 	      }
+	      fclose(f);
 	    }
-	    fclose(f);
 	  }
 	} else {
 	  Swig_error(input_file, line_number, "Unrecognized pragma.\n");
@@ -1669,7 +1666,7 @@ public:
     }
 
     /* Split the input text into lines */
-    List *clist = DohSplitLines(temp);
+    List *clist = SplitLines(temp);
     Delete(temp);
     int initial = 0;
     String *s = 0;

@@ -8,7 +8,7 @@ public class bools_runme {
   }
 }
 
-class director_nspace_MyBarFoo : director_nspaceNamespace.Bar.Foo {
+class director_nspace_MyBarFoo : director_nspaceNamespace.TopLevel.Bar.Foo {
 
   public override String ping() {
     return "director_nspace_MyBarFoo.ping();";
@@ -18,15 +18,15 @@ class director_nspace_MyBarFoo : director_nspaceNamespace.Bar.Foo {
     return "director_nspace_MyBarFoo.pong();" + ping();
   }
 
-  public override String fooBar(director_nspaceNamespace.Bar.FooBar fooBar) {
+  public override String fooBar(director_nspaceNamespace.TopLevel.Bar.FooBar fooBar) {
     return fooBar.FooBarDo();
   }
 
-  public override director_nspaceNamespace.Bar.Foo makeFoo() {
-    return new director_nspaceNamespace.Bar.Foo();
+  public override director_nspaceNamespace.TopLevel.Bar.Foo makeFoo() {
+    return new director_nspaceNamespace.TopLevel.Bar.Foo();
   }
 
-  public override director_nspaceNamespace.Bar.FooBar makeFooBar() {
-    return new director_nspaceNamespace.Bar.FooBar();
+  public override director_nspaceNamespace.TopLevel.Bar.FooBar makeFooBar() {
+    return new director_nspaceNamespace.TopLevel.Bar.FooBar();
   }
 }

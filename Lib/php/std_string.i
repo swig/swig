@@ -56,15 +56,15 @@ namespace std {
 
     /* These next two handle a function which takes a non-const reference to
      * a std::string and modifies the string. */
-    %typemap(in) string & (std::string temp) %{
+    %typemap(in) string & ($*1_ltype temp) %{
         convert_to_string_ex($input);
         temp.assign(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
         $1 = &temp;
     %}
 
-    %typemap(directorout) string & (std::string *temp) %{
+    %typemap(directorout) string & ($*1_ltype *temp) %{
         convert_to_string_ex($input);
-        temp = new std::string(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
+        temp = new $*1_ltype(Z_STRVAL_PP($input), Z_STRLEN_PP($input));
         swig_acquire_ownership(temp);
         $result = temp;
     %}

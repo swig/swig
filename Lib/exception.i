@@ -14,12 +14,8 @@
 
 #ifdef SWIGPHP
 %{
-#if PHP_MAJOR_VERSION < 5
-# define SWIG_exception(code, msg) { zend_error(E_ERROR, msg); }
-#else
-# include "zend_exceptions.h"
-# define SWIG_exception(code, msg) { zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC); }
-#endif
+#include "zend_exceptions.h"
+#define SWIG_exception(code, msg) { zend_throw_exception(NULL, (char*)msg, code TSRMLS_CC); }
 %}
 #endif
 

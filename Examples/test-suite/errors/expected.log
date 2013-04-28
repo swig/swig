@@ -46,7 +46,7 @@ c_long_short.i:5: Error: Extra long specifier.
 c_long_short.i:6: Error: Extra short specifier.
 
 :::::::::::::::::::::::::::::::: c_missing_rbrace.i :::::::::::::::::::::::::::::::::::
-:168430090: Error: Missing '}'. Reached end of input.
+c_missing_rbrace.i:3: Error: Missing '}'. Reached end of input.
 c_missing_rbrace.i:3: Error: Syntax error in input(1).
 
 :::::::::::::::::::::::::::::::: c_missing_semi.i :::::::::::::::::::::::::::::::::::
@@ -188,6 +188,16 @@ pp_variable_args.i:6: Error: Variable length macro argument must be last paramet
 :::::::::::::::::::::::::::::::: swig_apply_nargs.i :::::::::::::::::::::::::::::::::::
 swig_apply_nargs.i:6: Error: Can't apply (char *str,int len) to (int x).  Number of arguments don't match.
 
+:::::::::::::::::::::::::::::::: swig_extend.i :::::::::::::::::::::::::::::::::::
+swig_extend.i:19: Warning 326: Deprecated %extend name used - the struct name 'StructBName' should be used instead of the typedef name 'StructB'.
+swig_extend.i:45: Warning 326: Deprecated %extend name used - the struct name 'stru_struct' should be used instead of the typedef name 'stru'.
+swig_extend.i:56: Warning 326: Deprecated %extend name used - the union name 'uni_union' should be used instead of the typedef name 'uni'.
+swig_extend.i:34: Warning 303: %extend defined for an undeclared class StructDName.
+swig_extend.i:50: Warning 522: Use of an illegal constructor name 'stru' in %extend is deprecated, the constructor name should be 'stru_struct'.
+swig_extend.i:53: Warning 523: Use of an illegal destructor name 'stru' in %extend is deprecated, the destructor name should be 'stru_struct'.
+swig_extend.i:57: Warning 522: Use of an illegal constructor name 'uni' in %extend is deprecated, the constructor name should be 'uni_union'.
+swig_extend.i:58: Warning 523: Use of an illegal destructor name 'uni' in %extend is deprecated, the destructor name should be 'uni_union'.
+
 :::::::::::::::::::::::::::::::: swig_identifier.i :::::::::::::::::::::::::::::::::::
 swig_identifier.i:5: Warning 503: Can't wrap 'foo bar' unless renamed to a valid identifier.
 
@@ -227,17 +237,17 @@ cpp_extend_destructors.i:87: Warning 302: Identifier '~JStruct' redefined (ignor
 cpp_extend_destructors.i:85: Warning 302: previous definition of '~JStruct'.
 cpp_extend_destructors.i:100: Warning 302: Identifier '~LStruct' redefined (ignored),
 cpp_extend_destructors.i:98: Warning 302: previous definition of '~LStruct'.
-cpp_extend_destructors.i:24: Warning 521: Illegal destructor name ~NOT_CStruct. Ignored.
-cpp_extend_destructors.i:30: Warning 521: Illegal destructor name ~NOT_DStruct. Ignored.
-cpp_extend_destructors.i:44: Warning 521: Illegal destructor name ~NOT_EStruct. Ignored.
-cpp_extend_destructors.i:50: Warning 521: Illegal destructor name ~NOT_FStruct. Ignored.
-cpp_extend_destructors.i:65: Warning 521: Illegal destructor name ~NOT_GStruct. Ignored.
-cpp_extend_destructors.i:72: Warning 521: Illegal destructor name ~NOT_HStruct. Ignored.
-cpp_extend_destructors.i:81: Warning 521: Illegal destructor name ~NOT_IStruct. Ignored.
-cpp_extend_destructors.i:86: Warning 521: Illegal destructor name ~NOT_JStruct. Ignored.
-cpp_extend_destructors.i:92: Warning 521: Illegal destructor name ~NOT_KStruct. Ignored.
-cpp_extend_destructors.i:99: Warning 521: Illegal destructor name ~NOT_LStruct< int >. Ignored.
-cpp_extend_destructors.i:99: Warning 521: Illegal destructor name ~NOT_LStruct< short >. Ignored.
+cpp_extend_destructors.i:24: Warning 521: Illegal destructor name CStruct::~NOT_CStruct(). Ignored.
+cpp_extend_destructors.i:30: Warning 521: Illegal destructor name DStruct::~NOT_DStruct(). Ignored.
+cpp_extend_destructors.i:44: Warning 521: Illegal destructor name EStruct::~NOT_EStruct(). Ignored.
+cpp_extend_destructors.i:50: Warning 521: Illegal destructor name FStruct::~NOT_FStruct(). Ignored.
+cpp_extend_destructors.i:65: Warning 521: Illegal destructor name GStruct::~NOT_GStruct(). Ignored.
+cpp_extend_destructors.i:72: Warning 521: Illegal destructor name HStruct::~NOT_HStruct(). Ignored.
+cpp_extend_destructors.i:81: Warning 521: Illegal destructor name IStruct::~NOT_IStruct(). Ignored.
+cpp_extend_destructors.i:86: Warning 521: Illegal destructor name JStruct::~NOT_JStruct(). Ignored.
+cpp_extend_destructors.i:92: Warning 521: Illegal destructor name KStruct::~NOT_KStruct(). Ignored.
+cpp_extend_destructors.i:99: Warning 521: Illegal destructor name LStruct< int >::~NOT_LStruct(). Ignored.
+cpp_extend_destructors.i:99: Warning 521: Illegal destructor name LStruct< short >::~NOT_LStruct(). Ignored.
 
 :::::::::::::::::::::::::::::::: cpp_extend_redefine.i :::::::::::::::::::::::::::::::::::
 cpp_extend_redefine.i:9: Warning 302: Identifier 'bar' redefined by %extend (ignored),
@@ -268,6 +278,10 @@ cpp_inherit.i:24: Warning 401: Nothing known about base class 'A6'. Ignored.
 cpp_inherit.i:26: Warning 401: Nothing known about base class 'A7< int >'. Ignored.
 cpp_inherit.i:26: Warning 401: Maybe you forgot to instantiate 'A7< int >' using %template.
 cpp_inherit.i:45: Warning 323: Recursive scope inheritance of 'Recursive'.
+cpp_inherit.i:52: Warning 401: Base class 'Base< int >' has no name as it is an empty template instantiated with '%template()'. Ignored.
+cpp_inherit.i:51: Warning 401: The %template directive must be written before 'Base< int >' is used as a base class and be declared with a name.
+cpp_inherit.i:53: Warning 401: Base class 'Base< double >' undefined.
+cpp_inherit.i:54: Warning 401: 'Base< double >' must be defined before it is used as a base class.
 
 :::::::::::::::::::::::::::::::: cpp_macro_locator.i :::::::::::::::::::::::::::::::::::
 cpp_macro_locator.i:66: Warning 204: CPP #warning, "inline warning message one".
@@ -292,6 +306,10 @@ cpp_macro_locator.i:97: Warning 509: as it is shadowed by overloadinline2(int *)
 cpp_macro_locator.i:101: Warning 509: Overloaded method overload5(int const *) effectively ignored,
 cpp_macro_locator.i:100: Warning 509: as it is shadowed by overload5(int *).
 
+:::::::::::::::::::::::::::::::: cpp_missing_rparenthesis.i :::::::::::::::::::::::::::::::::::
+cpp_missing_rparenthesis.i:5: Error: Missing ')'. Reached end of input.
+cpp_missing_rparenthesis.i:5: Error: Syntax error in input(3).
+
 :::::::::::::::::::::::::::::::: cpp_missing_rtemplate.i :::::::::::::::::::::::::::::::::::
 cpp_missing_rtemplate.i:4: Error: Syntax error in input(1).
 
@@ -312,8 +330,8 @@ cpp_nested.i:12: Warning 325: Nested class not currently supported (Grok ignored
 cpp_no_access.i:3: Warning 319: No access specifier given for base class 'foo' (ignored).
 
 :::::::::::::::::::::::::::::::: cpp_no_return_type.i :::::::::::::::::::::::::::::::::::
-cpp_no_return_type.i:6: Warning 504: Function R must have a return type. Ignored.
-cpp_no_return_type.i:10: Warning 504: Function UU must have a return type. Ignored.
+cpp_no_return_type.i:6: Warning 504: Function S::R() must have a return type. Ignored.
+cpp_no_return_type.i:10: Warning 504: Function U::UU() must have a return type. Ignored.
 
 :::::::::::::::::::::::::::::::: cpp_nobase.i :::::::::::::::::::::::::::::::::::
 cpp_nobase.i:3: Warning 401: Nothing known about base class 'Bar'. Ignored.

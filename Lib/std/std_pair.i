@@ -49,7 +49,7 @@ namespace std {
   };
 
   // ***
-  // The following specializations should dissapear or get 
+  // The following specializations should disappear or get
   // simplified when a 'const SWIGTYPE*&' can be defined
   // ***
   template <class T, class U > struct pair<T, U*> {      

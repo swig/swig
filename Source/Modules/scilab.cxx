@@ -181,7 +181,6 @@ public:
     Printf(builderCode, "exit");
     builderFile = NewFile(NewStringf("%sbuilder.sce", SWIG_output_directory()), "w", SWIG_output_files());
     Printv(builderFile, builderCode, NIL);
-    Close(builderFile);
     Delete(builderFile);
 
     /* Close the init function and quit (opened in sciruntime.swg) */
@@ -199,7 +198,6 @@ public:
     Delete(headerSection);
     Delete(wrappersSection);
     Delete(initSection);
-    Close(beginSection);
     Delete(beginSection);
 
     return SWIG_OK;
@@ -357,6 +355,20 @@ public:
       }
     }
     /* Add cleanup code */
+    for (param = functionParamsList; param;) {
+      String *tm;
+      if ((tm = Getattr(param, "tmap:freearg"))) {
+		if (tm && (Len(tm) != 0)) {
+		  Replaceall(tm, "$source", Getattr(param, "lname"));
+          Printf(wrapper->code, "%s\n", tm);
+	      Delete(tm);
+		}
+		param= Getattr(param, "tmap:freearg:next");
+      } else {
+		param = nextSibling(param);
+      }
+    }
+
 
     /* Close the function(ok) */
     Printv(wrapper->code, "return SWIG_OK;\n", NIL);
