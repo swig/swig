@@ -466,13 +466,13 @@ GUILE_SCRIPT  = $(RUNME).scm
 # Build a dynamically loaded module with passive linkage and the scm interface
 #------------------------------------------------------------------
 guile: $(SRCS)
-	$(SWIG) -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIG) -guile -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ISRCS) $(SRCS)
 	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 guile_cpp: $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO): $(SRCS)
-	$(SWIG) -c++ -guile -scm -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
+	$(SWIG) -c++ -guile -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
 	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $@
 
