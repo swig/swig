@@ -218,8 +218,10 @@ public:
 	  goops = true;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-gh") == 0) {
+	  Printf(stderr, "guile: Warning: -gh option is deprecated. Swig will always generate wrappers using the scm interface. See documentation for more information regarding the deprecated gh interface.\n");
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-scm") == 0) {
+	  Printf(stderr, "guile: Warning: -scm option is deprecated. Swig will always generate wrappers using the scm interface. See documentation for more information regarding the deprecated gh interface.\n");
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-primsuffix") == 0) {
 	  if (argv[i + 1]) {
