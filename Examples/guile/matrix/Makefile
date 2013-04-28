@@ -12,6 +12,7 @@ build:
 		TARGET=$(TARGET)		\
 		IFILE=$(IFILE)			\
 		MODULE=$(MODULE)		\
+		LIBS="-lm"			\
 	  sub-all
 
 clean:
