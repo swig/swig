@@ -106,7 +106,6 @@ private:
   File *f_wrappers;
   File *f_init;
   File *f_initbeforefunc;
-  String *PrefixPlusUnderscore;
   String *s_cmd_tab;		// table of command names
   String *s_var_tab;		// table of global variables
   String *s_const_tab;		// table of global constants
@@ -150,7 +149,6 @@ public:
     f_wrappers(0),
     f_init(0),
     f_initbeforefunc(0),
-    PrefixPlusUnderscore(0),
     s_cmd_tab(0),
     s_var_tab(0),
     s_const_tab(0),

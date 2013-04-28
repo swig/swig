@@ -204,9 +204,6 @@ private:
   String *proxy_class_name;
   String *variable_name;	//Name of a variable being wrapped
   String *variable_type;	//Type of this variable
-  String *enumeration_name;	//Name of the current enumeration type
-  Hash *enumeration_items;	//and its members
-  int enumeration_max;
   Hash *enumeration_coll;	//Collection of all enumerations.
   /* The items are nodes with members:
      "items"  - hash of with key 'itemname' and content 'itemvalue'
@@ -268,9 +265,6 @@ MODULA3():
       proxy_class_name(NULL),
       variable_name(NULL),
       variable_type(NULL),
-      enumeration_name(NULL),
-      enumeration_items(NULL),
-      enumeration_max(0),
       enumeration_coll(NULL),
       constant_values(NULL),
       constantfilename(NULL),
@@ -1783,19 +1777,6 @@ MODULA3():
       Printf(m3wrap_intf.f, "%s = %s;\n", name, value);
     }
   }
-
-#if 0
-  void generateEnumerationItem(const String *name, const String *value, int numvalue) {
-    String *oldsymname = Getattr(enumeration_items, value);
-    if (oldsymname != NIL) {
-      Swig_warning(WARN_MODULA3_BAD_ENUMERATION, input_file, line_number, "The value <%s> is already assigned to <%s>.\n", value, oldsymname);
-    }
-    Setattr(enumeration_items, value, name);
-    if (enumeration_max < numvalue) {
-      enumeration_max = numvalue;
-    }
-  }
-#endif
 
   void emitEnumeration(File *file, String *name, Node *n) {
     Printf(file, "%s = {", name);
