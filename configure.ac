@@ -2237,14 +2237,14 @@ AC_SUBST(SKIP_OCTAVE)
 
 
 SKIP_PYTHON=
-if (test -z "$PYINCLUDE" || test -z "$PYLIB") &&
-   (test -z "$PY3INCLUDE" || test -z "PY3LIB") ; then
+if (test -z "$PYINCLUDE") &&
+   (test -z "$PY3INCLUDE") ; then
     SKIP_PYTHON="1"
 fi
 AC_SUBST(SKIP_PYTHON)
 
 SKIP_PYTHON3=
-if test -z "$PY3INCLUDE" || test -z "$PY3LIB" ; then
+if test -z "$PY3INCLUDE" ; then
     SKIP_PYTHON3="1"
 fi
 AC_SUBST(SKIP_PYTHON3)
