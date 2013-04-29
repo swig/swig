@@ -101,7 +101,6 @@ Examples/test-suite/csharp/*/
 Examples/test-suite/d/*/
 Examples/test-suite/go/*/
 Examples/test-suite/guile/*/
-Examples/test-suite/guilescm/*/
 Examples/test-suite/java/*/
 Examples/test-suite/lua/*/
 Examples/test-suite/mzscheme/*/
