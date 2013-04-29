@@ -5,6 +5,16 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-04-28: gjanssens
+            Updates in guile module:
+            - Add support for guile 2.0
+            - Drop support for guile 1.6
+            - Drop support for generating wrappers using guile's gh interface.
+              All generated wrappers will use the scm interface from now on.
+            - Deprecate -gh and -scm options. They are no longer needed.
+              A warning will be issued when these options are still used.
+            - Fix all tests and examples to have a successful travis test
+
 2013-04-18: wsfulton
             Apply Patch #36 from Jesus Lopez to add support for $descriptor() special variable macro expansion 
             in fragments. For example:
