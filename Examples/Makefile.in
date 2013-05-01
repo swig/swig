@@ -602,7 +602,7 @@ java_run:
 
 java_version:
 	$(JAVA) -version
-	$(JAVAC) -version || echo "unknown javac version"
+	$(JAVAC) -version || echo "Unknown javac version"
 
 # -----------------------------------------------------------------
 # Cleaning the java examples
