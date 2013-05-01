@@ -18,13 +18,15 @@ extern int    gcd(int x, int y);
 %typemap(in) (int argc, char *argv[]) %{
   scm_t_array_handle handle;
   size_t i;
+  size_t lenp;
   ssize_t inc;
   const SCM *v;
   if (!(SCM_NIMP($input) && scm_is_vector($input))) {
     SWIG_exception(SWIG_ValueError, "Expecting a vector");
     return 0;
   }
-  v = scm_vector_elements($input, &handle, &$1, &inc);
+  v = scm_vector_elements($input, &handle, &lenp, &inc);
+  $1 = (int)lenp;
   if ($1 == 0) {
     SWIG_exception(SWIG_ValueError, "Vector must contain at least 1 element");
   }
