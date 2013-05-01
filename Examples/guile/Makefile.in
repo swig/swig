@@ -7,7 +7,8 @@ SWIG		= ../$(top_srcdir)/preinst-swig
 CC		= @CC@
 CXX		= @CXX@
 CFLAGS		= @PLATFLAGS@
-LIBS            =
+LIBS		=
+GUILE		= @GUILE@
 GUILE_CFLAGS	= @GUILE_CFLAGS@
 GUILE_LIBS	= @GUILE_LIBS@
 SWIGOPT		=
@@ -37,5 +38,10 @@ sub-all:
 sub-all-cxx:
 	$(SWIG) -c++ -guile $(SWIGOPT) $(IFILE)
 	$(CXX) $(CFLAGS) -o $(TARGET) $(SRCS) $(CXXWRAP) $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS)
+
+run_example:
+	if [ -f $(RUNSCRIPT) ]; then \
+          env GUILE_AUTO_COMPILE=0 LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(GUILE) -l $(RUNSCRIPT); \
+        fi
 
 # Makefile ends here

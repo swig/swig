@@ -1,6 +1,6 @@
 ;;; Test out some multi-argument typemaps
 
-(use-modules (example))
+(dynamic-call "scm_init_example_module" (dynamic-link "./libexample.so"))
 
 ; Call the GCD function
 
@@ -27,4 +27,4 @@
 (display (capitalize "hello world"))
 (newline)
 
-
+(exit 0)
