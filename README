@@ -24,7 +24,11 @@ A SWIG FAQ and other hints can be found on the SWIG Wiki:
 
 License
 =======
-Please see the LICENSE file for details of the SWIG license.
+Please see the LICENSE file for details of the SWIG license. For
+further insight into the license including the license of SWIG's
+output code, please visit
+
+        http://www.swig.org/legal.html
 
 Release Notes
 =============
