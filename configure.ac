@@ -1201,7 +1201,7 @@ else
     AC_PATH_PROG(PKG_CONFIG,pkgconfig)
   fi
   if test "x$PKG_CONFIG" = x; then
-    AC_MSG_NOTICE([Could not find the pkg-config (or pkgconfig) program required to set up Guile. Disabling Guile],)
+    AC_MSG_NOTICE([Could not find the pkg-config (or pkgconfig) program required to set up Guile. Disabling Guile.])
     GUILE=
     GUILE_CFLAGS=
     GUILE_LIBS=""
@@ -1220,11 +1220,11 @@ else
     GUILE_SERIES=""
     PKG_CHECK_MODULES(GUILE, [guile-1.8], [ GUILE_SERIES="18" ], [
       PKG_CHECK_MODULES(GUILE, [guile-2.0], [GUILE_SERIES="20" ], [AC_MSG_NOTICE([
-        Only Guile 1.8 or 2.0 is supported. Neither version appears to be installed correctly. Disabling Guile
+        Only Guile 1.8 or 2.0 is supported. Neither version appears to be installed correctly. Disabling Guile.
       ])])
     ])
 
-    if test "x$GUILE-SERIES" = x; then
+    if test "x$GUILE_SERIES" = x; then
       GUILE=
       GUILE_CFLAGS=
       GUILE_LIBS=
