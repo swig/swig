@@ -21,6 +21,14 @@
 <li><a href="#Preface_release_notes">Release notes</a>
 <li><a href="#Preface_nn10">Credits</a>
 <li><a href="#Preface_nn11">Bug reports</a>
+<li><a href="#Preface_installation">Installation</a>
+<ul>
+<li><a href="#Preface_windows_installation">Windows installation</a>
+<li><a href="#Preface_unix_installation">Unix installation</a>
+<li><a href="#Preface_osx_installation">Macintosh OS X installation</a>
+<li><a href="#Preface_testing">Testing</a>
+<li><a href="#Preface_examples">Examples</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -115,6 +123,7 @@ about this can be obtained at:
 <div class="shell"><pre>
 <a href="http://www.swig.org/svn.html">SWIG Bleeding Edge</a>
 </pre></div>
+
 
 
 <H2><a name="Preface_nn6"></a>1.5 Prerequisites</H2>
@@ -237,6 +246,205 @@ possible, including (if applicable), error messages, tracebacks (if a
 core dump occurred), corresponding portions of the SWIG interface file
 used, and any important pieces of the SWIG generated wrapper code.  We
 can only fix bugs if we know about them.
+</p>
+
+<H2><a name="Preface_installation"></a>1.12 Installation</H2>
+
+
+<H3><a name="Preface_windows_installation"></a>1.12.1 Windows installation</H3>
+
+
+<p>
+Please see the dedicated <a href="Windows.html">Windows chapter</a> for instructions on installing
+SWIG on Windows and running the examples. The Windows distribution is
+called swigwin and includes a prebuilt SWIG executable, swig.exe, included in
+the top level directory. Otherwise it is exactly the same as
+the main SWIG distribution. There is no need to download anything else.
+</p>
+
+<H3><a name="Preface_unix_installation"></a>1.12.2 Unix installation</H3>
+
+
+<p>
+You must use <a href="http://www.gnu.org/software/make/">GNU make</a> to build and install SWIG.
+</p>
+
+<p>
+<a href="http://www.pcre.org/">PCRE</a>
+needs to be installed on your system to build SWIG, in particular
+pcre-config must be available. If you have PCRE headers and libraries but not
+pcre-config itself or, alternatively, wish to override the compiler or linker
+flags returned by pcre-config, you may set PCRE_LIBS and PCRE_CFLAGS variables
+to be used instead. And if you don't have PCRE at all, the configure script
+will provide instructions for obtaining it.
+</p>
+
+<p>
+To build and install SWIG, simply type the following:
+</p>
+
+<div class="shell"><pre>
+$ ./configure
+$ make
+$ make install
+</pre></div>
+
+<p>
+By default SWIG installs itself in /usr/local.  If you need to install SWIG in
+a different location or in your home directory, use the <tt>--prefix</tt> option
+to <tt>./configure</tt>.  For example:
+</p>
+
+<div class="shell"><pre>
+$ ./configure --prefix=/home/yourname/projects
+$ make
+$ make install
+</pre></div>
+
+<p>
+Note: the directory given to <tt>--prefix</tt> must be an absolute pathname.  Do <b>not</b> use
+the ~ shell-escape to refer to your home directory.  SWIG won't work properly
+if you do this.
+</p>
+
+<p>
+The INSTALL file shipped in the top level directory details more about using configure. Also try
+</p>
+
+<div class="shell"><pre>
+$ ./configure --help.
+</pre></div>
+
+<p>
+The configure script will attempt to locate various packages on your machine
+including Tcl, Perl5, Python and all the other target languages that SWIG
+supports.  Don't panic if you get 'not found' messages -- SWIG does not need these
+packages to compile or run.   The configure script is actually looking for
+these packages so that you can try out the SWIG examples contained
+in the 'Examples' directory without having to hack Makefiles.
+Note that the <tt>--without-xxx</tt> options, where xxx is a target language, have
+minimal effect. All they do is reduce the amount of testing done with
+'make check'. The SWIG executable and library files installed cannot currently
+be configured with a subset of target languages.
+</p>
+
+<p>
+SWIG used to include a set of runtime libraries for some languages for working
+with multiple modules. These are no longer built during the installation stage.
+However, users can build them just like any wrapper module as described in
+the <a href="Modules.html">Modules chapter</a>.
+The CHANGES file shipped with SWIG in the top level directory
+also lists some examples which build the runtime library.
+</p>
+
+<p>
+Note:
+</p>
+
+<ul>
+<li>
+If you checked the code out via Git, you will have to run <tt>./autogen.sh</tt>
+before <tt>./configure</tt>.  In addition, a full build of SWIG requires
+a number of packages to be installed.  Full instructions at
+<a href="http://www.swig.org/svn.html">SWIG bleeding edge</a>.
+</li>
+</ul>
+
+<H3><a name="Preface_osx_installation"></a>1.12.3 Macintosh OS X installation</H3>
+
+
+<p>
+SWIG is known to work on various flavors of OS X.  Follow the Unix installation
+instructions above.   However, as of this writing, there is still great deal of
+inconsistency with how shared libaries are handled by various scripting languages
+on OS X.
+</p>
+
+<p>
+Users of OS X should be aware that Darwin handles shared libraries and linking in
+a radically different way than most Unix systems.  In order to test SWIG and run
+the examples, SWIG configures itself to use flat namespaces and to allow undefined
+symbols (<tt>-flat_namespace -undefined suppress</tt>). This mostly closely follows the Unix
+model and makes it more likely that the SWIG examples will work with whatever
+installation of software you might have.  However, this is generally not the recommended
+technique for building larger extension modules.  Instead, you should utilize
+Darwin's two-level namespaces.  Some details about this can be found here
+
+<a href="http://developer.apple.com/documentation/ReleaseNotes/DeveloperTools/TwoLevelNamespaces.html">http://developer.apple.com/documentation/ReleaseNotes/DeveloperTools/TwoLevelNamespaces.html</a>.
+
+</p>
+
+<p>
+Needless to say, you might have to experiment a bit to get things working at first.
+</p>
+
+<H3><a name="Preface_testing"></a>1.12.4 Testing</H3>
+
+
+<p>
+If you want to test SWIG after building it, a check can be performed on Unix operating systems.
+Type the following:
+</p>
+
+<div class="shell"><pre>
+    $ make -k check
+</pre></div>
+
+<p>
+This step can be performed either before or after installation.
+The check requires at least one of the target languages to be
+installed.  If it fails, it may mean that you have an uninstalled
+language module or that the file 'Examples/Makefile' has been
+incorrectly configured.  It may also fail due to compiler issues such
+as a broken C++ compiler.  Even if the check fails, there is a
+pretty good chance SWIG still works correctly --- you will just have to
+mess around with one of the examples and some makefiles to get it to work.
+Some tests may also fail due to missing dependency packages, eg PCRE
+or Boost, but this will require careful analysis of the configure output
+done during configuration.
+</p>
+
+<p>
+The test suite executed by the check is designed to stress-test
+many parts of the implementation including obscure corner cases. If some
+of these tests fail or generate warning messages, there is no reason for
+alarm --- the test may be related to some new SWIG feature or a difficult bug
+that we're trying to resolve.  Chances are that SWIG will work just fine
+for you. Note that if you have more than one CPU/core, then you can use
+parallel make to speed up the check as it does take quite some time to run,
+for example:
+</p>
+
+<div class="shell"><pre>
+    $ make -j2 -k check
+</pre></div>
+
+<p>
+Also, SWIG's support for C++ is sufficiently advanced that certain
+tests may fail on older C++ compilers (for instance if your compiler
+does not support member templates).   These errors are harmless if you
+don't intend to use these features in your own programs.
+</p>
+
+<p>
+Note: The test-suite currently contains over 500 tests.  If you
+have many different target languages installed and a slow machine, it
+might take more than an hour to run the test-suite.
+</p>
+
+<H3><a name="Preface_examples"></a>1.12.5 Examples</H3>
+
+
+<p>
+The Examples directory contains a variety of examples of using SWIG
+and it has some browsable documentation.  Simply point your browser to
+the file "Example/index.html".
+</p>
+
+<p>
+The Examples directory also includes Visual C++ project 6 (.dsp) files for
+building some of the examples on Windows. Later versions of Visual Studio
+will convert these old style project files into a current solution file.
 </p>
 
 </body>
