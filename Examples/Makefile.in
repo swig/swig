@@ -24,7 +24,7 @@
 TARGET     =
 CC         = @CC@
 CXX        = @CXX@
-CFLAGS     = @PLATFLAGS@
+CFLAGS     = @BOOST_CPPFLAGS@ @PLATFLAGS@
 prefix     = @prefix@
 exec_prefix= @exec_prefix@
 SRCS       =
@@ -217,6 +217,9 @@ PERL5_INCLUDE= @PERL5EXT@
 # Extra Perl specific dynamic linking options
 PERL5_DLNK   = @PERL5DYNAMICLINKING@
 PERL5_CCFLAGS = @PERL5CCFLAGS@
+PERL5_CCDLFLAGS = @PERL5CCDLFLAGS@
+PERL5_CCCDLFLAGS = @PERL5CCCDLFLAGS@
+PERL5_LDFLAGS = @PERL5LDFLAGS@
 PERL = @PERL@
 PERL5_LIB = -L$(PERL5_INCLUDE) -l@PERL5LIB@ @LIBS@ $(SYSLIBS)
 PERL5_SCRIPT = $(RUNME).pl
@@ -227,8 +230,8 @@ PERL5_SCRIPT = $(RUNME).pl
 
 perl5: $(SRCS)
 	$(SWIG) -perl5 $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(CC) -c -Dbool=char $(CCSHARED) $(CFLAGS) $(SRCS) $(ISRCS) $(INCLUDES) $(PERL5_CCFLAGS) $(PERL5_CCCDLFLAGS) -I$(PERL5_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(PERL5_CCDLFLAGS) $(OBJS) $(IOBJS) $(PERL5_LDFLAGS) $(PERL5_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Build a Perl5 dynamically loadable module (C++)
@@ -236,8 +239,8 @@ perl5: $(SRCS)
 
 perl5_cpp: $(SRCS)
 	$(SWIG) -perl5 -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PERL5_CCFLAGS) -I$(PERL5_INCLUDE)
-	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(PERL5_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(CXX) -c $(CCSHARED) $(CFLAGS) $(SRCS) $(CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PERL5_CCFLAGS) $(PERL5_CCCDLFLAGS) -I$(PERL5_INCLUDE)
+	$(CXXSHARED) $(CFLAGS) $(PERL5_CCDLFLAGS) $(OBJS) $(IOBJS) $(PERL5_LDFLAGS) $(PERL5_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
 # Build a module from existing XS C source code.   (ie. from xsubpp).

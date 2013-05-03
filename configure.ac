@@ -847,7 +847,7 @@ fi
 AC_MSG_CHECKING(for Perl5 header files)
 if test -n "$PERL"; then
 	PERL5DIR=`($PERL -e 'use Config; print $Config{archlib}, "\n";') 2>/dev/null`
-	if test "$PERL5DIR" != ""; then
+	if test -n "$PERL5DIR" ; then
 		dirs="$PERL5DIR $PERL5DIR/CORE"
 		PERL5EXT=none
 		for i in $dirs; do
@@ -863,19 +863,40 @@ if test -n "$PERL"; then
 		fi
 
 		AC_MSG_CHECKING(for Perl5 library)
-		PERL5LIB=`($PERL -e 'use Config; $_=$Config{libperl}; s/^lib//; s/$Config{_a}$//; print $_, "\n"') 2>/dev/null`
-		if test "$PERL5LIB" = "" ; then
+		PERL5LIB=`($PERL -e 'use Config; $_=$Config{libperl}; s/^lib//; s/$Config{_a}$//; s/\.$Config{so}.*//; print $_, "\n"') 2>/dev/null`
+		if test -z "$PERL5LIB" ; then
 			AC_MSG_RESULT(not found)
 		else
 			AC_MSG_RESULT($PERL5LIB)
 		fi
-    AC_MSG_CHECKING(for Perl5 compiler options)
+    AC_MSG_CHECKING(for Perl5 ccflags)
  		PERL5CCFLAGS=`($PERL -e 'use Config; print $Config{ccflags}, "\n"' | sed "s/-Wdeclaration-after-statement//" | sed "s/-I/$ISYSTEM/") 2>/dev/null`
- 		if test "$PERL5CCFLAGS" = "" ; then
+ 		if test -z "$PERL5CCFLAGS" ; then
  			AC_MSG_RESULT(not found)
  		else
  			AC_MSG_RESULT($PERL5CCFLAGS)
  		fi
+    AC_MSG_CHECKING(for Perl5 ccdlflags)
+    PERL5CCDLFLAGS=`($PERL -e 'use Config; print $Config{ccdlflags}, "\n"') 2>/dev/null`
+    if test -z "$PERL5CCDLFLAGS" ; then
+      AC_MSG_RESULT(not found)
+      else
+      AC_MSG_RESULT($PERL5CCDLFLAGS)
+    fi
+    AC_MSG_CHECKING(for Perl5 cccdlflags)
+    PERL5CCCDLFLAGS=`($PERL -e 'use Config; print $Config{cccdlflags}, "\n"') 2>/dev/null`
+    if test -z "$PERL5CCCDLFLAGS" ; then
+      AC_MSG_RESULT(not found)
+      else
+      AC_MSG_RESULT($PERL5CCCDLFLAGS)
+    fi
+    AC_MSG_CHECKING(for Perl5 ldflags)
+    PERL5LDFLAGS=`($PERL -e 'use Config; print $Config{ldflags}, "\n"') 2>/dev/null`
+    if test -z "$PERL5LDFLAGS" ; then
+      AC_MSG_RESULT(not found)
+      else
+      AC_MSG_RESULT($PERL5LDFLAGS)
+    fi
 	else
 		AC_MSG_RESULT(unable to determine perl5 configuration)
 		PERL5EXT=$PERL5DIR
@@ -896,6 +917,9 @@ AC_SUBST(PERL5EXT)
 AC_SUBST(PERL5DYNAMICLINKING)
 AC_SUBST(PERL5LIB)
 AC_SUBST(PERL5CCFLAGS)
+AC_SUBST(PERL5CCDLFLAGS)
+AC_SUBST(PERL5CCCDLFLAGS)
+AC_SUBST(PERL5LDFLAGS)
 
 #----------------------------------------------------------------
 # Look for Octave
