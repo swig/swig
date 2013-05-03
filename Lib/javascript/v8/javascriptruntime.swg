@@ -8,7 +8,6 @@
 #include <v8.h>
 #include <errno.h>
 #include <limits.h>
-#include <iostream>
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */

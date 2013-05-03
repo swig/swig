@@ -114,7 +114,6 @@ fail:
 void $jswrapper(v8::Persistent< v8::Value > object, void *parameter) {
   SWIGV8_Proxy* proxy = (SWIGV8_Proxy*) parameter;
   if(proxy->swigCMemOwn && proxy->swigCObject) {
-    std::cout << "Deleting wrapped instance: " << proxy->info->name << std::endl;
     $jsfree proxy->swigCObject;
   }
   delete proxy;
