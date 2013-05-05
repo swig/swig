@@ -1,5 +1,6 @@
 %typemap(in) (double* matrixAsInput, int rows, int cols) {
   int *piAddr = NULL;
+  SciErr sciErr;
   sciErr = getVarAddressFromPosition(pvApiCtx, $input, &piAddr);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
@@ -12,9 +13,9 @@
   }
 }
 
+
 %typemap(in,numinputs=0) (double** matrixAsArgOutput,int* rows, int* cols)
 {
-
 }
 
 %typemap(arginit) (double** matrixAsArgOutput,int* rows, int* cols)
@@ -34,15 +35,14 @@
 
 %typemap(argout) (double** matrixAsArgOutput,int* rows, int* cols)
 {
-  sciErr = createMatrixOfDouble(pvApiCtx, iVarOut, *$2, *$3, (double *)*$1);
+  SciErr sciErr;
+  sciErr = createMatrixOfDouble(pvApiCtx,  Rhs +$result, *$2, *$3, (double *)*$1);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return 0;
   }
+  AssignOutputVariable(pvApiCtx, outputPosition) = Rhs +$result;
 
-  AssignOutputVariable(pvApiCtx, iOutNum) = iVarOut;
-  iOutNum++;
-  iVarOut++;
 }
 
 

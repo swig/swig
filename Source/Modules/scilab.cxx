@@ -357,6 +357,20 @@ public:
       }
     }
     /* Add cleanup code */
+    for (param = functionParamsList; param;) {
+      String *tm;
+      if ((tm = Getattr(param, "tmap:freearg"))) {
+		if (tm && (Len(tm) != 0)) {
+		  Replaceall(tm, "$source", Getattr(param, "lname"));
+          Printf(wrapper->code, "%s\n", tm);
+	      Delete(tm);
+		}
+		param= Getattr(param, "tmap:freearg:next");
+      } else {
+		param = nextSibling(param);
+      }
+    }
+
 
     /* Close the function(ok) */
     Printv(wrapper->code, "return SWIG_OK;\n", NIL);

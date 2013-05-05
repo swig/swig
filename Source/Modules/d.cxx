@@ -3760,7 +3760,7 @@ private:
       String *nspace = getNSpace();
       if (nspace) {
 	// Check the root package/outermost namespace (a class A in module
-	// A.B leads to problems if another module A.C is also imported)…
+	// A.B leads to problems if another module A.C is also imported)
 	if (Len(package) > 0) {
 	  String *dotless_package = NewStringWithSize(package, Len(package) - 1);
 	  if (Cmp(class_name, dotless_package) == 0) {
