@@ -1176,8 +1176,10 @@ GUILE=
 GUILE_CFLAGS=
 GUILE_LIBS=
 
-AC_ARG_WITH(guile, AS_HELP_STRING([--without-guile], [Disable Guile])
-AS_HELP_STRING([--with-guile=path], [Set location of Guile executable]),[GUILE="$withval"], [GUILE=yes])
+AC_ARG_WITH(guile-config, AS_HELP_STRING([--without-guile], [Disable Guile])
+	AS_HELP_STRING([--with-guile-config=path], [Set location of guile-config]),[ GUILE_CONFIG="$withval"], [GUILE_CONFIG=])
+AC_ARG_WITH(guile,[  --with-guile=path       Set location of Guile executable],[
+	GUILE="$withval"], [GUILE=yes])
 AC_ARG_WITH(guile-cflags,[  --with-guile-cflags=cflags   Set cflags required to compile against Guile],[
 	GUILE_CFLAGS="$withval"])
 AC_ARG_WITH(guile-libs,[  --with-guile-libs=ldflags    Set ldflags needed to link with Guile],[
@@ -1186,95 +1188,35 @@ AC_ARG_WITH(guile-libs,[  --with-guile-libs=ldflags    Set ldflags needed to lin
 # First, check for "--without-guile" or "--with-guile=no".
 if test x"${GUILE}" = xno -o x"${with_alllang}" = xno ; then 
   AC_MSG_NOTICE([Disabling Guile])
-  GUILE=
-  GUILE_CFLAGS=
-  GUILE_LIBS=
 else
-
-  # Use pkg-config to find guile specific config parameters
-  # Note: if guile is not installed in a standard system path
-  # you can set the environment variable PKG_CONFIG_PATH to
-  # the directory where the guile package config file is stored
-  AC_PATH_PROG(PKG_CONFIG,pkg-config)
-  if test "x$PKG_CONFIG" = x; then
-    # @*%&$ Ximian programmers renamed this application
-    AC_PATH_PROG(PKG_CONFIG,pkgconfig)
+  if test -z "$GUILE_CONFIG" ; then
+    AC_PATH_PROG(GUILE_CONFIG, guile-config)
   fi
-  if test "x$PKG_CONFIG" = x; then
-    AC_MSG_NOTICE([Could not find the pkg-config (or pkgconfig) program required to set up Guile. Disabling Guile.])
-    GUILE=
-    GUILE_CFLAGS=
-    GUILE_LIBS=""
-  else
-
-    # If the user has given these values, cache them to override the
-    # detected values.
-    if test "x$GUILE_LIBS" != x; then
-      saved_GUILE_LIBS="$GUILE_LIBS"
-    fi
-    if test "x$GUILE_CFLAGS" != x; then
-      saved_GUILE_CFLAGS="$GUILE_CFLAGS"
+  if test -n "$GUILE_CONFIG" ; then
+    if test x"$GUILE" = xyes; then
+      AC_MSG_CHECKING([for guile bindir])
+      guile_bindir="`$GUILE_CONFIG info bindir`"
+      AC_MSG_RESULT([$guile_bindir])
+      GUILE=$guile_bindir/guile
+      if ! test -f "$GUILE" ; then
+	GUILE=
+        AC_PATH_PROG(GUILE, guile)
+      fi
     fi
 
-    # Look up GUILE_CFLAGS and GUILE_LIBS, and version check
-    GUILE_SERIES=""
-    PKG_CHECK_MODULES(GUILE, [guile-1.8], [ GUILE_SERIES="18" ], [
-      PKG_CHECK_MODULES(GUILE, [guile-2.0], [GUILE_SERIES="20" ], [AC_MSG_NOTICE([
-        Only Guile 1.8 or 2.0 is supported. Neither version appears to be installed correctly. Disabling Guile.
-      ])])
-    ])
-
-    if test "x$GUILE_SERIES" = x; then
-      GUILE=
-      GUILE_CFLAGS=
-      GUILE_LIBS=
-    else
-      # Look up GUILE executable
-      if test "x$GUILE" = xyes; then
-        GUILE=
-        if test "$xGUILE_SERIES" = "x18"; then
-          AC_PATH_PROG(GUILE18, guile-1.8)
-          if test "x$GUILE18" != x; then
-            GUILE="$GUILE18"
-          fi
-        fi
-        if test "$xGUILE_SERIES" = "x20"; then
-          AC_PATH_PROG(GUILE20, guile-2.0)
-          if test "x$GUILE20" != x; then
-            GUILE="$GUILE20"
-          fi
-        fi
-        if test "x$GUILE" = x; then
-          AC_PATH_PROG(GUILE, guile)
-        fi
-      fi
-
-      if test "x$saved_GUILE_LIBS" != x; then
-        GUILE_LIBS="$saved_GUILE_LIBS"
-      fi
-      if test "x$saved_GUILE_CFLAGS" != x; then
-        GUILE_CFLAGS="$saved_GUILE_CFLAGS"
-      fi
-
-      guilesafe_CFLAGS=$CFLAGS
-      guilesafe_LIBS=$LIBS
-      # Filter out "-ansi -pedantic" because Guile header files will not compile with these flags.
-      # (The flags -ansi -pedantic are automatically added by ac_compile_warnings.m4)
-      CFLAGS="`echo $CFLAGS | sed 's/-ansi//g;s/-pedantic//g;'` $GUILE_CFLAGS"
-      LIBS="$LIBS $GUILE_LIBS"
-
-      AC_MSG_CHECKING(whether Guile/SCM_ API works)
-      AC_LINK_IFELSE([AC_LANG_SOURCE([#include <libguile.h>
-        int main() { SCM s; scm_slot_exists_p(SCM_BOOL_F, SCM_BOOL_F); return SCM_STRING_LENGTH(s); }])], GUILE_SCM_INTERFACE=1, )
-      if test -n "$GUILE_SCM_INTERFACE" ; then
-        AC_MSG_RESULT(yes)
-      else
-        AC_MSG_RESULT(no)
-      fi
-
-      CFLAGS=$guilesafe_CFLAGS
-      LIBS=$guilesafe_LIBS
+    if test -z "$GUILE_CFLAGS" ; then
+      AC_MSG_CHECKING([for guile compile flags])
+      GUILE_CFLAGS="`$GUILE_CONFIG compile`"
+      AC_MSG_RESULT([$GUILE_CFLAGS])
     fi
+
+    if test -z "$GUILE_LIBS" ; then
+      AC_MSG_CHECKING([for guile link flags])
+      GUILE_LIBS="`$GUILE_CONFIG link`"
+      AC_MSG_RESULT([$GUILE_LIBS])
+    fi
+
+    GUILE_SCM_INTERFACE=1
   fi
 fi
 
@@ -2281,7 +2223,7 @@ AC_SUBST(SKIP_JAVA)
 
 
 SKIP_GUILE=
-if test -z "$GUILE_CFLAGS" || test -z "$GUILE_LIBS" || test -z "$GUILE_SCM_INTERFACE"; then
+if test -z "$GUILE" || test -z "$GUILE_CFLAGS" || test -z "$GUILE_LIBS" || test -z "$GUILE_SCM_INTERFACE"; then
     SKIP_GUILE="1"
 fi
 AC_SUBST(SKIP_GUILE)
