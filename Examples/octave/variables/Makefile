@@ -1,7 +1,7 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
 SRCS       = example.c
-TARGET     = example
+TARGET     = swigexample
 INTERFACE  = example.i
 
 check: build
@@ -10,10 +10,6 @@ check: build
 build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' octave
-
-static:
-	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	TARGET='myoctave' INTERFACE='$(INTERFACE)' octave_static
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile octave_clean

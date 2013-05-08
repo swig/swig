@@ -1,5 +1,5 @@
 /* File : example.i */
-%module example
+%module swigexample
 
 %contract gcd(int x, int y) {
 require:

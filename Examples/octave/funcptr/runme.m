@@ -1,6 +1,6 @@
 # file: runme.m
 
-example
+swigexample
 
 a = 37
 b = 42
@@ -10,12 +10,11 @@ b = 42
 printf("Trying some C callback functions\n");
 printf("    a        = %i\n", a);
 printf("    b        = %i\n", b);
-printf("    ADD(a,b) = %i\n", example.do_op(a,b,example.ADD));
-printf("    SUB(a,b) = %i\n", example.do_op(a,b,example.SUB));
-printf("    MUL(a,b) = %i\n", example.do_op(a,b,example.MUL));
+printf("    ADD(a,b) = %i\n", swigexample.do_op(a,b,swigexample.ADD));
+printf("    SUB(a,b) = %i\n", swigexample.do_op(a,b,swigexample.SUB));
+printf("    MUL(a,b) = %i\n", swigexample.do_op(a,b,swigexample.MUL));
 
 printf("Here is what the C callback function objects look like in Octave\n");
-example.ADD
-example.SUB
-example.MUL
-
+swigexample.ADD
+swigexample.SUB
+swigexample.MUL

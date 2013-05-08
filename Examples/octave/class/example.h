@@ -8,7 +8,7 @@ public:
   virtual ~Shape() {
     nshapes--;
   };
-  double  x, y;   
+  double  x, y;
   void    move(double dx, double dy);
   virtual double area(void) = 0;
   virtual double perimeter(void) = 0;
@@ -32,8 +32,3 @@ public:
   virtual double area(void);
   virtual double perimeter(void);
 };
-
-
-
-
-  

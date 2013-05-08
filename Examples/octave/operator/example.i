@@ -1,5 +1,5 @@
 /* File : example.i */
-%module example
+%module swigexample
 #pragma SWIG nowarn=SWIGWARN_IGNORE_OPERATOR_EQ
 %{
 #include "example.h"

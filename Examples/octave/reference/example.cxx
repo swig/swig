@@ -43,4 +43,3 @@ Vector &VectorArray::operator[](int index) {
 int VectorArray::size() {
   return maxsize;
 }
-

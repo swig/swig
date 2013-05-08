@@ -1,10 +1,10 @@
 TOP        = ../..
 SWIG       = $(TOP)/../preinst-swig
 CXXSRCS    = example.cxx
-TARGET     = example
+TARGET     = swigexample
 INTERFACE  = example.i
 LIBS       = -lm
-SWIGOPT    = 
+SWIGOPT    =
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile octave_run
@@ -12,10 +12,6 @@ check: build
 build:
 	$(MAKE) -f $(TOP)/Makefile $(SWIGLIB) CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
 	SWIGOPT='$(SWIGOPT)' TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' octave_cpp
-
-static:
-	$(MAKE) -f $(TOP)/Makefile $(SWIGLIB) CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
-	SWIGOPT='$(SWIGOPT)' TARGET='myoctave' INTERFACE='$(INTERFACE)' octave_cpp_static
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile octave_clean

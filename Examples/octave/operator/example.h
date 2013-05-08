@@ -25,7 +25,7 @@ public:
   ComplexVal operator-() const {
     return ComplexVal(-rpart, -ipart);
   }
-  
+
   double re() const { return rpart; }
   double im() const { return ipart; }
 };

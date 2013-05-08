@@ -1,5 +1,5 @@
 /* File : example.i */
-%module example
+%module swigexample
 %{
 #include "example.h"
 %}
@@ -15,4 +15,3 @@ int mul(int, int);
 %nocallback;
 
 extern int (*funcvar)(int,int);
-

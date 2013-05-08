@@ -20,4 +20,3 @@ public:
 	void setCallback(Callback *cb) { delCallback(); _callback = cb; }
 	void call() { if (_callback) _callback->run(); }
 };
-

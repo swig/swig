@@ -10,4 +10,3 @@ class Foo {
 };
 
 void enum_test(color c, Foo::speed s);
-
