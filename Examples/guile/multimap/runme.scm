@@ -1,6 +1,6 @@
 ;;; Test out some multi-argument typemaps
 
-(dynamic-call "scm_init_example_module" (dynamic-link "./libexample.so"))
+(dynamic-call "scm_init_example_module" (dynamic-link "./libexample"))
 
 ; Call the GCD function
 
