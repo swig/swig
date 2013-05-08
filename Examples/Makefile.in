@@ -466,35 +466,21 @@ GUILE_LIBPREFIX = lib
 GUILE_SCRIPT  = $(RUNME).scm
 
 #------------------------------------------------------------------
-# Build a dynamically loaded module with passive linkage and the scm interface
+# Build a dynamically loaded module with passive linkage
 #------------------------------------------------------------------
 guile: $(SRCS)
 	$(SWIG) -guile -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ISRCS) $(SRCS)
-	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
+	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 guile_cpp: $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO): $(SRCS)
 	$(SWIG) -c++ -guile -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $@
+	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) $(CPP_DLLIBS) -o $@
 
 guile_externalhdr:
 	$(SWIG) -guile -external-runtime $(TARGET)
-
-# -----------------------------------------------------------------
-# Build a dynamically loadable module with passive linkage
-# -----------------------------------------------------------------
-
-guile_passive: $(SRCS)
-	$(SWIG) -guile -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ISRCS) $(SRCS)
-	$(LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
-
-guile_passive_cpp: $(SRCS)
-	$(SWIG) -c++ -guile -Linkage passive $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS)
-	$(CXXSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
 # -----------------------------------------------------------------
 # Build statically linked Guile interpreter
@@ -504,23 +490,23 @@ guile_static: $(SRCS)
 	$(SWIG) -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) \
 	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
-	  $(GUILE_CFLAGS) $(LIBS) -L$(GUILE_LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 guile_static_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
 	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
-	  $(GUILE_CFLAGS) $(LIBS) -L$(GUILE_LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 guile_simple: $(SRCS)
 	$(SWIG) -guile -lguilemain.i -Linkage simple $(SWIGOPT) $(INTERFACEPATH)
 	$(CC) $(CFLAGS) $(ISRCS) $(SRCS) $(INCLUDES) \
-	  $(GUILE_CFLAGS) $(LIBS) -L$(GUILE_LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 guile_simple_cpp: $(SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i -Linkage simple $(SWIGOPT) $(INTERFACEPATH)
 	$(CXX) $(CFLAGS) $(ICXXSRCS) $(SRCS) $(CXXSRCS) $(INCLUDES) \
-	  $(GUILE_CFLAGS) $(LIBS) -L$(GUILE_LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
 # -----------------------------------------------------------------
 # Running a Guile example
