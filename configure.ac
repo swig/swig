@@ -1206,7 +1206,7 @@ else
 
     if test -z "$GUILE_CFLAGS" ; then
       AC_MSG_CHECKING([for guile compile flags])
-      GUILE_CFLAGS="`$GUILE_CONFIG compile`"
+      GUILE_CFLAGS="`$GUILE_CONFIG compile`" # Note that this can sometimes be empty
       AC_MSG_RESULT([$GUILE_CFLAGS])
     fi
 
@@ -2223,7 +2223,7 @@ AC_SUBST(SKIP_JAVA)
 
 
 SKIP_GUILE=
-if test -z "$GUILE" || test -z "$GUILE_CFLAGS" || test -z "$GUILE_LIBS" || test -z "$GUILE_SCM_INTERFACE"; then
+if test -z "$GUILE" || test -z "$GUILE_LIBS" || test -z "$GUILE_SCM_INTERFACE"; then
     SKIP_GUILE="1"
 fi
 AC_SUBST(SKIP_GUILE)
