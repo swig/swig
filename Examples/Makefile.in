@@ -440,7 +440,7 @@ octave_run:
 # -----------------------------------------------------------------
 
 octave_version:
-	$(OCTAVE) --version | grep -i version
+	$(OCTAVE) --version | head -n 1
 
 # -----------------------------------------------------------------
 # Cleaning the Octave examples
@@ -520,7 +520,7 @@ guile_run:
 # -----------------------------------------------------------------
 
 guile_version:
-	$(GUILE) --version
+	$(GUILE) --version | head -n 1
 
 # -----------------------------------------------------------------
 # Cleaning the Guile examples
@@ -1004,7 +1004,7 @@ php_run:
 # -----------------------------------------------------------------
 
 php_version:
-	$(PHP) -v
+	$(PHP) -v | head -n 1
 
 # -----------------------------------------------------------------
 # Cleaning the PHP examples
@@ -1075,7 +1075,7 @@ pike_run:
 # -----------------------------------------------------------------
 
 pike_version:
-	$(PIKE) -v
+	$(PIKE) -v | head -n 1
 
 # -----------------------------------------------------------------
 # Cleaning the Pike examples
@@ -1192,7 +1192,7 @@ chicken_run:
 # -----------------------------------------------------------------
 
 chicken_version:
-	$(CHICKEN) -version
+	$(CHICKEN) -version | grep -i version
 
 # -----------------------------------------------------------------
 # Cleaning the CHICKEN examples
@@ -1254,7 +1254,7 @@ csharp_run:
 
 # Version check below also works with MS csc.exe which does not understand --version
 csharp_version:
-	$(CSHARPCOMPILER) --version | grep -i version
+	$(CSHARPCOMPILER) --version | head -n 1
 
 # -----------------------------------------------------------------
 # Cleaning the CSharp examples
@@ -1330,7 +1330,7 @@ lua_embed_run:
 # -----------------------------------------------------------------
 
 lua_version:
-	$(LUA) -v
+	$(LUA) -v | head -n 1
 
 # -----------------------------------------------------------------
 # Cleaning the lua examples
@@ -1406,7 +1406,7 @@ clisp_run:
 # -----------------------------------------------------------------
 
 clisp_version:
-	$(CLISP) --version
+	$(CLISP) --version | head -n 1
 
 # -----------------------------------------------------------------
 # Cleaning the CLISP examples
@@ -1545,7 +1545,7 @@ r_run:
 # -----------------------------------------------------------------
 
 r_version:
-	$(R) --version | grep -i version
+	$(R) --version | head -n 1
 
 # -----------------------------------------------------------------
 # Cleaning the R examples
