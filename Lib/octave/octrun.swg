@@ -1289,16 +1289,7 @@ SWIGRUNTIMEINLINE octave_value SWIG_Octave_GetGlobalValue(std::string name) {
 }
 
 SWIGRUNTIME void SWIG_Octave_SetGlobalValue(std::string name, const octave_value& value) {
-  // It is critical that a newly-allocated octave_value is passed to set_global_value(),
-  // since it and the Octave symbol table take references to the values assigned to it.
-  // If we were to pass a reference to 'value' to set_global_value(), then the Octave
-  // symbol table would hold a reference to a variable owned by the SWIG .oct module.
-  // Both will think that they own the reference (since the .oct module is dynamically
-  // loaded, it appears to have its own C++ runtime), and so they will both try to
-  // de-allocate the octave_value on exit, resulting in a double-free or seg-fault.
-  // This is prevented by giving Octave its own heap-allocated copy of 'value'.
-  octave_value *pov = new octave_value(value);
-  set_global_value(name, *pov);
+  set_global_value(name, value);
 }
 
 SWIGRUNTIME void SWIG_Octave_LinkGlobalValue(std::string name) {
