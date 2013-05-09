@@ -1,20 +1,15 @@
-SRCS   = matrix.c vector.c
-TARGET = matrix
-IFILE  = example.i
-MKDIR  = ..
 TOP        = ../..
+SWIG       = $(TOP)/../preinst-swig
+SRCS       = matrix.c vector.c
+TARGET     = matrix
+INTERFACE  = example.i
 
 check: build
-	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' GUILE_RUNOPTIONS='-e do-test' guile_embedded_run
+	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' GUILE_RUNOPTIONS='-e do-test' guile_augmented_run
 
 build:
-	$(MAKE) -f $(MKDIR)/Makefile		\
-		SRCS='$(SRCS)'			\
-		TARGET=$(TARGET)		\
-		IFILE=$(IFILE)			\
-		MODULE=$(MODULE)		\
-		LIBS="-lm"			\
-	  sub-all
+	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' guile_augmented
 
 clean:
-	$(MAKE) -f $(MKDIR)/Makefile TARGET='$(TARGET)' guile_clean
+	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' guile_clean

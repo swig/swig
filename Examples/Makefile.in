@@ -111,7 +111,6 @@ OBJS      = $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@)
 
 distclean:
 	rm -f Makefile
-	rm -f guile/Makefile
 	rm -f xml/Makefile
 
 ##################################################################
@@ -483,6 +482,14 @@ guile_externalhdr:
 	$(SWIG) -guile -external-runtime $(TARGET)
 
 # -----------------------------------------------------------------
+# Build Guile interpreter augmented with extra functions
+# -----------------------------------------------------------------
+
+guile_augmented:
+	$(SWIG) -guile $(SWIGOPT) $(INTERFACE)
+	$(CC) $(CFLAGS) $(SRCS) $(ISRCS) $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) -o $(TARGET)
+
+# -----------------------------------------------------------------
 # Build statically linked Guile interpreter
 # -----------------------------------------------------------------
 
@@ -513,10 +520,10 @@ guile_simple_cpp: $(SRCS)
 # -----------------------------------------------------------------
 
 guile_run:
-	$(RUNTOOL) $(GUILE) -l $(GUILE_SCRIPT) $(RUNPIPE)
+	env GUILE_AUTO_COMPILE=0 $(RUNTOOL) $(GUILE) -l $(GUILE_SCRIPT) $(RUNPIPE)
 
-guile_embedded_run:
-	$(RUNTOOL) ./$(TARGET) $(GUILE_RUNOPTIONS) -s $(GUILE_SCRIPT) $(RUNPIPE)
+guile_augmented_run:
+	env GUILE_AUTO_COMPILE=0 $(RUNTOOL) ./$(TARGET) $(GUILE_RUNOPTIONS) -s $(GUILE_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

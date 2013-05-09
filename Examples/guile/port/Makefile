@@ -1,19 +1,16 @@
-SRCS   = example.c
-TARGET = port
-IFILE  = example.i
-MKDIR  = ..
+TOP        = ../..
+SWIG       = $(TOP)/../preinst-swig
+SRCS       = example.c
+TARGET     = port
+INTERFACE  = example.i
 
 check: build
 	./$(TARGET) -s runme.scm
 
 build:
-	$(MAKE) -f $(MKDIR)/Makefile		\
-		SRCS='$(SRCS)'			\
-		TARGET=$(TARGET)		\
-		IFILE=$(IFILE)			\
-		MODULE=$(MODULE)		\
-	  sub-all
+	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' guile_augmented
 
 clean:
-	$(MAKE) -f $(MKDIR)/Makefile TARGET='$(TARGET)' guile_clean
+	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' guile_clean
 	rm -f test.out

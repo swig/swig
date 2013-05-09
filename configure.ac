@@ -2397,7 +2397,6 @@ AC_CONFIG_FILES([			        \
     swig.spec				        \
     Source/Makefile			        \
     Examples/Makefile			        \
-    Examples/guile/Makefile		        \
     Examples/xml/Makefile		        \
     Examples/test-suite/chicken/Makefile	\
     Examples/test-suite/csharp/Makefile	        \
