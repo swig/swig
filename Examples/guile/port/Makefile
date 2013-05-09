@@ -5,7 +5,7 @@ TARGET     = port
 INTERFACE  = example.i
 
 check: build
-	./$(TARGET) -s runme.scm
+	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' guile_augmented_run
 
 build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
