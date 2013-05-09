@@ -515,6 +515,9 @@ guile_simple_cpp: $(SRCS)
 guile_run:
 	$(RUNTOOL) $(GUILE) -l $(GUILE_SCRIPT) $(RUNPIPE)
 
+guile_embedded_run:
+	$(RUNTOOL) ./$(TARGET) $(GUILE_RUNOPTIONS) -s $(GUILE_SCRIPT) $(RUNPIPE)
+
 # -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------

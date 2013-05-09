@@ -1,10 +1,10 @@
-SRCS   = port.c
+SRCS   = example.c
 TARGET = port
-IFILE  = port.i
+IFILE  = example.i
 MKDIR  = ..
 
 check: build
-	./$(TARGET) -s port.scm
+	./$(TARGET) -s runme.scm
 
 build:
 	$(MAKE) -f $(MKDIR)/Makefile		\
@@ -16,3 +16,4 @@ build:
 
 clean:
 	$(MAKE) -f $(MKDIR)/Makefile TARGET='$(TARGET)' guile_clean
+	rm -f test.out

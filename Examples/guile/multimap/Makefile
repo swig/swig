@@ -5,7 +5,7 @@ TARGET     = example
 INTERFACE  = example.i
 
 check: build
-	$(MAKE) -f ../Makefile RUNSCRIPT=runme.scm run_example
+	$(MAKE) -f $(TOP)/Makefile guile_run
 
 build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \

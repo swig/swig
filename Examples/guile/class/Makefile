@@ -3,8 +3,10 @@ SWIG       = $(TOP)/../preinst-swig
 CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
+TOP        = ../..
 
 check: build
+#	$(MAKE) -f $(TOP)/Makefile guile_run
 
 build:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \

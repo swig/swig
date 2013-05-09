@@ -1,10 +1,11 @@
 SRCS   = matrix.c vector.c
 TARGET = matrix
-IFILE  = package.i
+IFILE  = example.i
 MKDIR  = ..
+TOP        = ../..
 
 check: build
-	./$(TARGET) -e do-test -s matrix.scm
+	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' GUILE_RUNOPTIONS='-e do-test' guile_embedded_run
 
 build:
 	$(MAKE) -f $(MKDIR)/Makefile		\

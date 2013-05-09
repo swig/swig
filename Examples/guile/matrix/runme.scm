@@ -211,4 +211,3 @@
 
   (cleanup M-list))
 
-;;; matrix.scm ends here

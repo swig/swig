@@ -1,5 +1,6 @@
 # see top-level Makefile.in
 constants
+class
 port
 simple
 std_vector

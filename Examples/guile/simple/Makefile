@@ -2,9 +2,10 @@ SRCS   = example.c
 TARGET = my-guile
 IFILE  = example.i
 MKDIR  = ..
+TOP        = ../..
 
 check: $(TARGET)
-	./$(TARGET) -s example.scm
+	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' guile_embedded_run
 
 build: $(TARGET)
 
