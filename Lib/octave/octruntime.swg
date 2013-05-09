@@ -288,6 +288,15 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 
     SWIG_InstallOps(octave_swig_ref::static_type_id());
 
+    octave_swig_type::swig_member_const_iterator mb;
+    for (mb = module_ns->swig_members_begin(); mb != module_ns->swig_members_end(); ++mb) {
+      if (mb->second.first && mb->second.first->method) {
+        if (!SWIG_Octave_InstallFunction(me, mb->first)) {
+          return octave_value_list();
+        }
+      }
+    }
+
 #if OCTAVE_API_VERSION_NUMBER < 37
     mlock(me->name());
 #else
@@ -296,16 +305,9 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 
   }
 
-  octave_function *me = octave_call_stack::current();
-
   octave_swig_type::swig_member_const_iterator mb;
   for (mb = module_ns->swig_members_begin(); mb != module_ns->swig_members_end(); ++mb) {
-    if (mb->second.first && mb->second.first->method) {
-      if (!SWIG_Octave_InstallFunction(me, mb->first)) {
-        return octave_value_list();
-      }
-    }
-    else if (mb->second.second.is_defined()) {
+    if (mb->second.second.is_defined()) {
       SWIG_Octave_SetGlobalValue(mb->first, mb->second.second);
       SWIG_Octave_LinkGlobalValue(mb->first);
     }
