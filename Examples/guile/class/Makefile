@@ -6,7 +6,7 @@ INTERFACE  = example.i
 TOP        = ../..
 
 check: build
-#	$(MAKE) -f $(TOP)/Makefile guile_run
+	$(MAKE) -f $(TOP)/Makefile guile_run
 
 build:
 	$(MAKE) -f $(TOP)/Makefile CXXSRCS='$(CXXSRCS)' SWIG='$(SWIG)' \
