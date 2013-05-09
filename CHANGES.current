@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-05-09: kwwette
+            [Octave] Fix bugs in Octave module loading:
+            - fix a memory leak in setting of global variables
+            - install functions only once, to speed up module loads
+
 2013-04-28: gjanssens
             [Guile] Updates in guile module:
             - Add support for guile 2.0
