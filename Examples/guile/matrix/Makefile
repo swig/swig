@@ -9,7 +9,7 @@ check: build
 
 build:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
-	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' guile_augmented
+	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' LIBS='-lm' guile_augmented
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile TARGET='$(TARGET)' guile_clean
