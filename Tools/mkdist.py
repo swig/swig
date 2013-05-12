@@ -68,8 +68,8 @@ print "Tagging release"
 tag = "'rel-" + version + "'"
 os.system("git tag -a -m " + tag + " " + tag) == 0 or failed()
 
-print "Grabbing tagged release git repository using 'git archive' into " + outdir
 outdir = os.path.basename(os.getcwd()) + "/" + dirname + "/"
+print "Grabbing tagged release git repository using 'git archive' into " + outdir
 os.system("(cd .. && git archive --prefix=" + outdir + tag + " . | tar -xf -)") == 0 or failed()
 
 # Remove the debian directory -- it's not official
