@@ -398,7 +398,7 @@ int execlp(const char *path, const char *arg, ...);
 </div>
 
 <p>
-Note that <tt>str3</tt> is the name of the last argument, as we have used <tt>%vargars</tt> with 3.
+Note that <tt>str3</tt> is the name of the last argument, as we have used <tt>%varargs</tt> with 3.
 Now <tt>execlp("a", "b", "c", "d", "e")</tt> will result in an error as one too many arguments has been passed,
 as now only 2 additional 'str' arguments can be passed with the 3rd one always using the specified default <tt>NULL</tt>.
 </p>
