@@ -6,6 +6,7 @@
 import sys
 import string
 import os
+import subprocess
 
 def failed():
   print "mkdist.py failed to complete"
@@ -34,10 +35,42 @@ os.system("rm -f "+dirname+".tar.gz")
 print "Removing "+dirname+".tar.gz if exists"
 os.system("rm -f "+dirname+".tar")
 
-# Do a SVN export into the directory name
+# Grab the code from git
 
-print "Grabbing latest SWIG from svn"
-os.system("svn export -r HEAD https://swig.svn.sourceforge.net/svnroot/swig/trunk "+dirname) == 0 or failed()
+print "Checking git repository is in sync with remote repository"
+os.system("git remote update") == 0 or failed()
+command = ["git", "status", "--porcelain", "-uno"]
+out = subprocess.check_output(command)
+if out.strip() != "":
+  print "Local git repository has modifications"
+  print " ".join(command)
+  print out
+  sys.exit(3)
+
+command = ["git", "log", "--oneline", "master..origin/master"]
+out = subprocess.check_output(command)
+if out.strip() != "":
+  print "Remote repository has additional modifications to local repository"
+  print " ".join(command)
+  print out
+  sys.exit(3)
+
+command = ["git", "log", "--oneline", "origin/master..master"]
+out = subprocess.check_output(command)
+if out.strip() != "":
+  print "Local repository has modifications not pushed to the remote repository"
+  print "These should be pushed and checked that they pass Continuous Integration testing before continuing"
+  print " ".join(command)
+  print out
+  sys.exit(3)
+
+print "Tagging release"
+tag = "'rel-" + version + "'"
+os.system("git tag -a -m " + tag + " " + tag) == 0 or failed()
+
+print "Grabbing tagged release git repository using 'git archive' into " + outdir
+outdir = os.path.basename(os.getcwd()) + "/" + dirname + "/"
+os.system("(cd .. && git archive --prefix=" + outdir + tag + " . | tar -xf -)") == 0 or failed()
 
 # Remove the debian directory -- it's not official
 
