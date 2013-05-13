@@ -1,6 +1,6 @@
 ;;;; Show the three different ways to deal with multiple return values
 
-(dynamic-call "scm_init_example_module" (dynamic-link "./libexample"))
+(load-extension "./libexample" "scm_init_example_module")
 
 ;;; Multiple values as lists. By default, if more than one value is to
 ;;; be returned, a list of the values is created and returned.  The

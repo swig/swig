@@ -1,9 +1,9 @@
-; file: runme.py
+; file: runme.scm
 
 ; This file illustrates the proxy class C++ interface generated
 ; by SWIG.
 
-(dynamic-call "scm_init_example_module" (dynamic-link "./libexample"))
+(load-extension "./libexample" "scm_init_example_module")
 
 ; Convenience wrapper around the display function
 ; (which only accepts one argument at the time)
