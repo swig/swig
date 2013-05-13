@@ -27,8 +27,7 @@
 <li><a href="#Guile_nn11">Typemaps</a>
 <li><a href="#Guile_nn12">Representation of pointers as smobs</a>
 <ul>
-<li><a href="#Guile_nn13">GH Smobs</a>
-<li><a href="#Guile_nn14">SCM Smobs</a>
+<li><a href="#Guile_nn14">Smobs</a>
 <li><a href="#Guile_nn15">Garbage Collection</a>
 </ul>
 <li><a href="#Guile_nn16">Exception Handling</a>
@@ -73,16 +72,13 @@ we explicitly prefix the context, e.g., "guile-module".
 <H2><a name="Guile_nn3"></a>23.3 Old GH Guile API</H2>
 
 
-<p>Support for the guile GH wrapper code generation has been dropped. The last
-version of SWIG that can still generate guile GH wrapper code is 2.0.9. Please
-use that version if you really need the GH wrapper code.
-
-<p>Guile 1.8 and older could be interfaced using a two different api's, the SCM
+<p>Guile 1.8 and older could be interfaced using two different api's, the SCM
 or the GH API. The GH interface to guile is deprecated.  Read more about why in the 
 <a href="http://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/GH.html#GH">Guile manual</a>.
 
-<p>The SCM wrapper generation assumes a guile version &gt;= 1.8 and has several advantages over
-the "-gh" wrapper generation including garbage collection and GOOPS support.
+<p>Support for the guile GH wrapper code generation has been dropped from SWIG. The last
+version of SWIG that can still generate guile GH wrapper code is 2.0.9. Please
+use that version if you really need the GH wrapper code.
 
 <H2><a name="Guile_nn4"></a>23.4 Linkage</H2>
 
@@ -212,7 +208,7 @@ are using multiple modules.
 
 <p>SWIG can also generate wrapper code that does all the Guile module
 declarations on its own if you pass it the <code>-Linkage
-module</code> command-line option. This requires Guile 1.5.0 or later.
+module</code> command-line option.
 
 <p>The module name is set with the <code>-package</code> and
 <code>-module</code> command-line options. Suppose you want to define
@@ -235,7 +231,7 @@ shared libraries into Guile; all bindings are automatically put in
 newly created Guile modules. 
 <div class="targetlang">
 <pre>
-(define my-so (dynamic-link "./libfoo.so"))
+(define my-so (dynamic-link "./libfoo"))
 ;; create new module and put bindings there:
 (dynamic-call "scm_init_my_modules_foo_module" my-so) 
 </pre>
@@ -424,7 +420,7 @@ representing the expected pointer type.  See also
 If the Scheme object passed was not a SWIG smob representing a compatible
 pointer, a <code>wrong-type-arg</code> exception is raised.
 
-<H3><a name="Guile_nn13"></a>23.7.1 GH Smobs</H3>
+<H3><a name="Guile_nn14"></a>23.7.1 Smobs</H3>
 
 
 <p>
@@ -435,44 +431,19 @@ mangled type name.  As Guile allows registering user types, so-called
 implemented now.  The details will be discussed in the following.
 </p>
 
-<p> A smob is a cons cell where the lower half of the CAR contains the smob type
-tag, while the upper half of the CAR and the whole CDR are available. Every
-module creates its own smob type in the clientdata field of the module. So the
-lower 16 bits of the car of the smob store the tag and the upper 16 bits store
-the index this type is in the array. We can then, given a smob, find its
-swig_type_info struct by using the tag (lower 16 bits of car) to find which
-module this type is in (since each tag is unique for the module). Then we use
-the upper 16 bits to index into the array of types attached to this module.
-Looking up the module from the tag is worst case O(# of modules) but average
-case O(1). This is because the modules are stored in a circularly linked list,
-and when we start searching the modules for the tag, we start looking with the
-module that the function doing the lookup is in. SWIG_Guile_ConvertPtr() takes
-as its first argument the swig_module_info * of the calling function, which is
-where we start comparing tags. Most types will be looked up in the same module
-that created them, so the first module we check will most likely be correct.
-Once we have a swig_type_info structure, we loop through the linked list of
-casts, using pointer comparisons.</p>
-
-<H3><a name="Guile_nn14"></a>23.7.2 SCM Smobs</H3>
-
-
-<p>The SCM interface (using the "-scm" argument to swig) uses swigrun.swg.
-The whole type system, when it is first initialized, creates two smobs named "swig" and "collected_swig".
+<p>The whole type system, when it is first initialized, creates two smobs named "swig" and "collected_swig".
 The swig smob is used for non-garbage collected smobs, while the collected_swig smob is used as described
 below.  Each smob has the same format, which is a double cell created by SCM_NEWSMOB2()
 The first word of data is the pointer to the object and the second word of data is the swig_type_info *
-structure describing this type.  This is a lot easier than the GH interface above because we can store
-a pointer to the type info structure right in the type.  With the GH interface, there was not enough
-room in the smob to store two whole words of data so we needed to store part of the "swig_type_info address"
-in the smob tag.  If a generated GOOPS module has been loaded, smobs will be wrapped by the corresponding
-GOOPS class.</p>
+structure describing this type.  If a generated GOOPS module has been loaded, smobs will be wrapped by
+the corresponding GOOPS class.</p>
 
 
-<H3><a name="Guile_nn15"></a>23.7.3 Garbage Collection</H3>
+<H3><a name="Guile_nn15"></a>23.7.2 Garbage Collection</H3>
 
 
-<p>Garbage collection is a feature of the new SCM interface, and it is automatically included
-if you pass the "-scm" flag to swig.  Thus the swig garbage collection support requires guile &gt;1.6.
+<p>Garbage collection is a feature of Guile since version 1.6. As SWIG now requires Guile &gt; 1.8,
+it is automatically included.
 Garbage collection works like this.  Every swig_type_info structure stores in its clientdata field a pointer
 to the destructor for this type.  The destructor is the generated wrapper around the delete function.
 So swig still exports a wrapper for the destructor, it just does not call scm_c_define_gsubr() for
@@ -514,8 +485,7 @@ See Lib/exception.i for details.
 <p>If invoked with the command-line option <code>-procdoc
 <var>file</var></code>, SWIG creates documentation strings for the
 generated wrapper functions, describing the procedure signature and
-return value, and writes them to <var>file</var>. You need Guile 1.4
-or later to make use of the documentation files.
+return value, and writes them to <var>file</var>.
 
 <p>SWIG can generate documentation strings in three formats, which are
 selected via the command-line option <code>-procdocformat
@@ -580,10 +550,7 @@ Guile's Object-Oriented Programming System (GOOPS).  GOOPS is a
 sophisticated object system in the spirit of the Common Lisp Object
 System (CLOS).
 
-<p>GOOPS support is
-only available with the new SCM interface (enabled with the
-<code>-scm</code> command-line option of SWIG).  To enable GOOPS
-support, pass the <code>-proxy</code> argument to
+<p>To enable GOOPS support, pass the <code>-proxy</code> argument to
 swig.  This will export the GOOPS wrapper definitions into the
 <code><i>module</i>.scm</code> file in the directory specified by -outdir or the
 current directory.  GOOPS support requires either passive or module linkage.</p>
