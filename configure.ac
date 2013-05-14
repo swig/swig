@@ -1226,15 +1226,12 @@ else
       GUILE_LIBS="`$GUILE_CONFIG link`"
       AC_MSG_RESULT([$GUILE_LIBS])
     fi
-
-    GUILE_SCM_INTERFACE=1
   fi
 fi
 
 AC_SUBST(GUILE)
 AC_SUBST(GUILE_CFLAGS)
 AC_SUBST(GUILE_LIBS)
-AC_SUBST(GUILE_SCM_INTERFACE)
 
 #----------------------------------------------------------------
 # Look for MzScheme
@@ -2234,7 +2231,7 @@ AC_SUBST(SKIP_JAVA)
 
 
 SKIP_GUILE=
-if test -z "$GUILE" || test -z "$GUILE_LIBS" || test -z "$GUILE_SCM_INTERFACE"; then
+if test -z "$GUILE" || test -z "$GUILE_LIBS" ; then
     SKIP_GUILE="1"
 fi
 AC_SUBST(SKIP_GUILE)
