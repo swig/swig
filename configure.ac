@@ -1206,11 +1206,12 @@ else
 
     if test -f "$GUILE" ; then
       AC_MSG_CHECKING([for guile version])
-      guile_version=`guile -c '(display (effective-version))'`
+      guile_version=`$GUILE -c '(display (effective-version))'`
       AC_MSG_RESULT([$guile_version])
-      guile -c '(if (>= (string->number (effective-version)) 1.8) (exit 0) (exit 1))'
-      if test $? -ne 0 ; then
-        AC_MSG_WARN(Not Guile >= 1.8, SWIG does not support this version of Guile)
+      AC_MSG_CHECKING([for guile version >= 1.8])
+      guile_good_version=`$GUILE -c '(if (>= (string->number (effective-version)) 1.8) (display "yes") (display "no"))'`
+      AC_MSG_RESULT([$guile_good_version])
+      if test x"$guile_good_version" != xyes ; then
         GUILE=
       fi
     fi
