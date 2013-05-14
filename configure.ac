@@ -1204,6 +1204,17 @@ else
       fi
     fi
 
+    if test -f "$GUILE" ; then
+      AC_MSG_CHECKING([for guile version])
+      guile_version=`guile -c '(display (effective-version))'`
+      AC_MSG_RESULT([$guile_version])
+      guile -c '(if (>= (string->number (effective-version)) 1.8) (exit 0) (exit 1))'
+      if test $? -ne 0 ; then
+        AC_MSG_WARN(Not Guile >= 1.8, SWIG does not support this version of Guile)
+        GUILE=
+      fi
+    fi
+
     if test -z "$GUILE_CFLAGS" ; then
       AC_MSG_CHECKING([for guile compile flags])
       GUILE_CFLAGS="`$GUILE_CONFIG compile`" # Note that this can sometimes be empty
