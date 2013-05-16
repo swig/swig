@@ -3671,7 +3671,7 @@ public:
 		Replaceall(pre, "$iminput", ln);
 		if (Len(pre_code) > 0)
 		  Printf(pre_code, "\n");
-		  Printv(pre_code, pre, NIL);
+		Printv(pre_code, pre, NIL);
 	      }
 	      String *post = Getattr(p, "tmap:csdirectorin:post");
 	      if (post) {

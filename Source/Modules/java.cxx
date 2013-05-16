@@ -138,6 +138,7 @@ public:
       imclass_imports(NULL),
       module_imports(NULL),
       imclass_baseclass(NULL),
+      imclass_package(NULL),
       module_baseclass(NULL),
       imclass_interfaces(NULL),
       module_interfaces(NULL),
