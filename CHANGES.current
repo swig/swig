@@ -5,6 +5,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-05-19: wsfulton
+            Fix ccache-swig internal error bug due to premature file cleanup.
+
+            Fixes SF bug 1319 which shows up as a failure in the ccache tests on
+            Debian 64 bit Wheezy, possibly because ENABLE_ZLIB is defined.
+
+            This is a corner case which will be hit when the maximum number of files
+            in the cache is set to be quite low (-F option), resulting in a cache miss.
+
 2013-05-09: kwwette
             [Octave] Fix bugs in Octave module loading:
             - fix a memory leak in setting of global variables
