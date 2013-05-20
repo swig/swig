@@ -1929,6 +1929,8 @@ public:
     else
       Printf(f_interface, "  HandleRef GetCPtr();\n");
   }
+
+  // collect all not abstract methods from the bases marked as "interface"
   void collectNonAbstractMethods(Node* n, List* methods) {
     if (List *baselist = Getattr(n, "bases")) {
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
@@ -1939,6 +1941,8 @@ public:
 	    if (GetFlag(child, "feature:ignore") || Getattr(child, "feature:interface:owner") || GetFlag(child, "abstract"))
 	      continue; // skip methods propagated to bases and abstracts
 	    Node* m = Copy(child);
+	    set_nextSibling(m, NIL);
+	    set_previousSibling(m, NIL);
 	    Setattr(m, "feature:interface:owner", base.item);
 	    Append(methods, m);
 	  }
@@ -1947,18 +1951,18 @@ public:
       }
     }
   }
+  // append all the interface methods not implemented in the current class, so that it would not be abstract
   void propagateInterfaceMethods(Node *n)
   {
     List* methods = NewList();
     collectNonAbstractMethods(n, methods);
-    // TODO: filter all the method not implemented in "n" and its bases.
     for (Iterator mi = First(methods); mi.item; mi = Next(mi)) {
       String *this_decl = Getattr(mi.item, "decl");
       String *resolved_decl = SwigType_typedef_resolve_all(this_decl);
       bool overloaded = false;
       if (SwigType_isfunction(resolved_decl)) {
 	String *name = Getattr(mi.item, "name");
-	for (Node* child = firstChild(mi.item); child; child = nextSibling(child)) {
+	for (Node* child = firstChild(n); child; child = nextSibling(child)) {
 	  if (Getattr(child, "feature:interface:owner"))
 	    break; // at the end of the list are newly appended methods
 	  if (checkAttribute(child, "name", name)) {
