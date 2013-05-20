@@ -1929,6 +1929,55 @@ public:
     else
       Printf(f_interface, "  HandleRef GetCPtr();\n");
   }
+  void collectNonAbstractMethods(Node* n, List* methods) {
+    if (List *baselist = Getattr(n, "bases")) {
+      for (Iterator base = First(baselist); base.item; base = Next(base)) {
+	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
+	  continue;
+	for (Node* child = firstChild(base.item); child; child = nextSibling(child)) {
+	  if (strcmp(Char(nodeType(child)), "cdecl") == 0) {
+	    if (GetFlag(child, "feature:ignore") || Getattr(child, "feature:interface:owner") || GetFlag(child, "abstract"))
+	      continue; // skip methods propagated to bases and abstracts
+	    Node* m = Copy(child);
+	    Setattr(m, "feature:interface:owner", base.item);
+	    Append(methods, m);
+	  }
+	}
+	collectNonAbstractMethods(base.item, methods);
+      }
+    }
+  }
+  void propagateInterfaceMethods(Node *n)
+  {
+    List* methods = NewList();
+    collectNonAbstractMethods(n, methods);
+    // TODO: filter all the method not implemented in "n" and its bases.
+    for (Iterator mi = First(methods); mi.item; mi = Next(mi)) {
+      String *this_decl = Getattr(mi.item, "decl");
+      String *resolved_decl = SwigType_typedef_resolve_all(this_decl);
+      bool overloaded = false;
+      if (SwigType_isfunction(resolved_decl)) {
+	String *name = Getattr(mi.item, "name");
+	for (Node* child = firstChild(mi.item); child; child = nextSibling(child)) {
+	  if (Getattr(child, "feature:interface:owner"))
+	    break; // at the end of the list are newly appended methods
+	  if (checkAttribute(child, "name", name)) {
+	    String *decl = SwigType_typedef_resolve_all(Getattr(child, "decl"));
+	    overloaded = Strcmp(decl, this_decl) == 0;
+	    Delete(decl);
+	    if (overloaded)
+	      break;
+	  }
+	}
+      }
+      Delete(resolved_decl);
+      if (!overloaded)
+	appendChild(n, mi.item);
+      else
+	Delete(mi.item);
+    }
+    Delete(methods);
+  }
   /* ----------------------------------------------------------------------
    * classHandler()
    * ---------------------------------------------------------------------- */
@@ -1987,6 +2036,7 @@ public:
 
       destructor_call = NewStringEmpty();
       proxy_class_constants_code = NewStringEmpty();
+      propagateInterfaceMethods(n);
       if (Getattr(n, "feature:interface")) {
 	interface_class_code = NewStringEmpty();
 	String* iname = Getattr(n, "feature:interface:name");
