@@ -18,6 +18,8 @@
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
+// helper function used in feature:interface implementation
+void Swig_propagate_interface_methods(Node *n);
 
 class JAVA:public Language {
   static const char *usage;
@@ -53,6 +55,7 @@ class JAVA:public Language {
   String *imclass_class_code;	// intermediary class code
   String *proxy_class_def;
   String *proxy_class_code;
+  String *interface_class_code; // if %feature("interface") was declared for a class, here goes the interface declaration
   String *module_class_code;
   String *proxy_class_name;	// proxy class name
   String *full_proxy_class_name;// fully qualified proxy class name when using nspace feature, otherwise same as proxy_class_name
@@ -124,6 +127,7 @@ public:
       imclass_class_code(NULL),
       proxy_class_def(NULL),
       proxy_class_code(NULL),
+      interface_class_code(NULL),
       module_class_code(NULL),
       proxy_class_name(NULL),
       full_proxy_class_name(NULL),
@@ -1698,6 +1702,62 @@ public:
     return Language::pragmaDirective(n);
   }
 
+  String* getQualifiedInterfaceName(Node* n)
+  {
+    String* ret = Getattr(n, "feature:interface:qname");
+    if (!ret) {
+      String *nspace = Getattr(n, "sym:nspace");
+      String *symname = Getattr(n, "feature:interface:name");
+      if (nspace) {
+	if (package)
+	  ret = NewStringf("%s.%s.%s", package, nspace, symname);
+	else
+	  ret = NewStringf("%s.%s", nspace, symname);
+      } else {
+	if (package)
+	  ret = NewStringf("%s.%s", package, symname);
+	else
+	  ret = Copy(symname);
+      }
+      Setattr(n, "feature:interface:qname", ret);
+    }
+    return ret;
+  }
+  void addInterfaceNameAndUpcasts(String* interface_list, String* interface_upcasts, Node* base, String* c_classname) {
+    String* c_baseclass = SwigType_namestr(Getattr(base, "name"));
+    String* iname = Getattr(base, "feature:interface:name");
+    if (Len(interface_list))
+      Append(interface_list, ", ");
+    Append(interface_list, iname);
+
+    String* upcast_name = 0;
+    if (String* cptr_func = Getattr(base, "feature:interface:cptr"))
+      upcast_name = NewStringf("%s", cptr_func);
+    else
+      upcast_name = NewStringf("%s_getCPtr", iname);
+    Printf(interface_upcasts, "  public long %s()", upcast_name);
+    Replaceall(upcast_name, ".", "_");
+    String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
+    String *jniname = makeValidJniName(upcast_method);
+    String *wname = Swig_name_wrapper(jniname);
+    Printf(interface_upcasts, "{ return %s.%s(swigCPtr); }\n", imclass_name, upcast_method );
+    Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method);
+    Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
+    Printv(upcasts_code,
+      "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
+      "    jlong baseptr = 0;\n"
+      "    (void)jenv;\n"
+      "    (void)jcls;\n"
+      "    *(", c_baseclass, " **)&baseptr = *(", c_classname, " **)&jarg1;\n"
+      "    return baseptr;\n"
+      "}\n", "\n", NIL);
+    Delete(upcast_name);
+    Delete(wname);
+    Delete(jniname);
+    Delete(upcast_method);
+    Delete(c_baseclass);
+  }
+
   /* -----------------------------------------------------------------------------
    * emitProxyClassDefAndCPPCasts()
    * ----------------------------------------------------------------------------- */
@@ -1707,6 +1767,8 @@ public:
     String *c_baseclass = NULL;
     String *baseclass = NULL;
     String *c_baseclassname = NULL;
+    String *interface_list = NewStringEmpty();
+    String *interface_upcasts = NewStringEmpty();
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
 
@@ -1725,6 +1787,10 @@ public:
         while (base.item && GetFlag(base.item, "feature:ignore")) {
           base = Next(base);
         }
+	while (base.item && Getattr(base.item, "feature:interface")) {
+	  addInterfaceNameAndUpcasts(interface_list, interface_upcasts, base.item, c_classname);
+	  base = Next(base);
+	}
         if (base.item) {
           c_baseclassname = Getattr(base.item, "name");
           baseclass = Copy(getProxyName(c_baseclassname));
@@ -1733,17 +1799,20 @@ public:
           base = Next(base);
           /* Warn about multiple inheritance for additional base class(es) */
           while (base.item) {
-            if (GetFlag(base.item, "feature:ignore")) {
-              base = Next(base);
-              continue;
-            }
-            String *proxyclassname = Getattr(n, "classtypeobj");
-            String *baseclassname = Getattr(base.item, "name");
-            Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-                         "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
+	    if (Getattr(base.item, "feature:interface")) {
+	      addInterfaceNameAndUpcasts(interface_list, interface_upcasts, base.item, c_classname);
+	    } else if (!GetFlag(base.item, "feature:ignore")) {
+	      String *proxyclassname = Getattr(n, "classtypeobj");
+	      String *baseclassname = Getattr(base.item, "name");
+	      Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+                "Warning for %s proxy: Base %s ignored. Multiple inheritance is not supported in Java.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
+	    }
             base = Next(base);
           }
         }
+      }
+      if (Getattr(n, "feature:interface")) {
+	addInterfaceNameAndUpcasts(interface_list, interface_upcasts, n, c_classname);
       }
     }
 
@@ -1767,13 +1836,15 @@ public:
 
     // Pure Java interfaces
     const String *pure_interfaces = typemapLookup(n, "javainterfaces", typemap_lookup_type, WARN_NONE);
-
+    if (*Char(interface_list) && *Char(pure_interfaces))
+      Append(interface_list, ", ");
+    Append(interface_list, pure_interfaces);
     // Start writing the proxy class
     Printv(proxy_class_def, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE),	// Import statements
 	   "\n", typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers
 	   " $javaclassname",	// Class name and bases
-	   (*Char(wanted_base)) ? " extends " : "", wanted_base, *Char(pure_interfaces) ?	// Pure Java interfaces
-	   " implements " : "", pure_interfaces, " {", derived ? typemapLookup(n, "javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :	// main body of class
+	   (*Char(wanted_base)) ? " extends " : "", wanted_base, *Char(interface_list) ?	// Pure Java interfaces
+	   " implements " : "", interface_list, " {", derived ? typemapLookup(n, "javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :	// main body of class
 	   typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
 	   NIL);
 
@@ -1816,6 +1887,8 @@ public:
       if (*Char(destruct))
 	Printv(proxy_class_def, "\n  ", destruct_methodmodifiers, " void ", destruct_methodname, "()", destructor_throws_clause, " ", destruct, "\n", NIL);
     }
+    if (*Char(interface_upcasts))
+      Printv(proxy_class_def, interface_upcasts, NIL);
 
     /* Insert directordisconnect typemap, if this class has directors enabled */
     /* Also insert the swigTakeOwnership and swigReleaseOwnership methods */
@@ -1837,6 +1910,8 @@ public:
       Delete(take_jnicall);
     }
 
+    Delete(interface_upcasts);
+    Delete(interface_list);
     Delete(attributes);
     Delete(destruct);
 
@@ -1897,13 +1972,53 @@ public:
     Delete(baseclass);
   }
 
+  void emitInterfaceDeclaration(Node* n, String* iname, File* f_interface, String *nspace)
+  {
+    if (package || nspace) {
+      Printf(f_interface, "package ");
+      if (package)
+	Printv(f_interface, package, nspace ? "." : "", NIL);
+      if (nspace)
+	Printv(f_interface, nspace, NIL);
+      Printf(f_interface, ";\n");
+    }
+
+    Printv(f_interface, typemapLookup(n, "javaimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
+    Printf(f_interface, "public interface %s", iname);
+    if (List *baselist = Getattr(n, "bases")) {
+      String* bases = 0;
+      for (Iterator base = First(baselist); base.item; base = Next(base)) {
+	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
+	  continue; // TODO: warn about skipped non-interface bases
+	String* base_iname = Getattr(base.item, "feature:interface:name");
+	if (!bases)
+	  bases = NewStringf(" : %s", base_iname);
+	else {
+	  Append(bases, ", ");
+	  Append(bases, base_iname);
+	}
+      }
+      if (bases) {
+	Printv(f_interface, "extends ", bases, NIL);
+	Delete(bases);
+      }
+    }
+    Printf(f_interface, " {\n");
+    if (String* cptr_func = Getattr(n, "feature:interface:cptr"))
+      Printf(f_interface, "  long %s();\n", cptr_func);
+    else
+      Printf(f_interface, "  long %s_getCPtr();\n", iname);
+  }
+
   /* ----------------------------------------------------------------------
    * classHandler()
    * ---------------------------------------------------------------------- */
 
   virtual int classHandler(Node *n) {
-
     File *f_proxy = NULL;
+    File *f_interface = NULL;
+    String *old_interface_class_code = interface_class_code;
+    interface_class_code = 0;
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
       String *nspace = getNSpace();
@@ -1938,8 +2053,7 @@ public:
 	FileErrorDisplay(filen);
 	SWIG_exit(EXIT_FAILURE);
       }
-      Append(filenames_list, Copy(filen));
-      Delete(filen);
+      Append(filenames_list, filen);
       filen = NULL;
 
       // Start writing out the proxy class file
@@ -1960,6 +2074,24 @@ public:
       destructor_call = NewString("");
       destructor_throws_clause = NewString("");
       proxy_class_constants_code = NewString("");
+      Swig_propagate_interface_methods(n);
+      if (Getattr(n, "feature:interface")) {
+	interface_class_code = NewStringEmpty();
+	String* iname = Getattr(n, "feature:interface:name");
+	if (!iname) {
+	  Swig_error(Getfile(n), Getline(n), "Interface %s has no name attribute", proxy_class_name);
+	  SWIG_exit(EXIT_FAILURE);
+	}
+	filen = NewStringf("%s%s.java", output_directory, iname);
+	f_interface = NewFile(filen, "w", SWIG_output_files());
+	if (!f_interface) {
+	  FileErrorDisplay(filen);
+	  SWIG_exit(EXIT_FAILURE);
+	}
+	Append(filenames_list, filen); // file name ownership goes to the list
+	emitBanner(f_interface);
+	emitInterfaceDeclaration(n, iname, f_interface, nspace);
+      }
       Delete(output_directory);
     }
 
@@ -2028,6 +2160,11 @@ public:
 	Delete(wname);
 	Delete(jniname);
 	Delete(downcast_method);
+      }
+
+      if (f_interface) {
+	Printv(f_interface, interface_class_code, "}\n", NIL);
+	Delete(f_interface);
       }
 
       emitDirectorExtraMethods(n);
@@ -2119,6 +2256,7 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
+    bool is_interface = Getattr(parentNode(n), "feature:interface") != 0 && !static_flag;
 
     if (!proxy_flag)
       return;
@@ -2168,6 +2306,9 @@ public:
     if (static_flag)
       Printf(function_code, "static ");
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
+    
+    if (is_interface)
+      Printf(interface_class_code, "  %s %s(", return_type, proxy_function_name);
 
     Printv(imcall, full_imclass_name, ".$imfuncname(", NIL);
     if (!static_flag) {
@@ -2255,10 +2396,15 @@ public:
 	}
 
 	/* Add parameter to proxy function */
-	if (gencomma >= 2)
+	if (gencomma >= 2) {
 	  Printf(function_code, ", ");
+	  if (is_interface)
+	    Printf(interface_class_code, ", ");
+	}
 	gencomma = 2;
 	Printf(function_code, "%s %s", param_type, arg);
+	if (is_interface)
+	  Printf(interface_class_code, "%s %s", param_type, arg);
 
 	if (prematureGarbageCollectionPreventionParameter(pt, p)) {
           String *pgcppname = Getattr(p, "tmap:javain:pgcppname");
@@ -2280,6 +2426,8 @@ public:
 
     Printf(imcall, ")");
     Printf(function_code, ")");
+    if (is_interface)
+      Printf(interface_class_code, ");\n");
 
     // Transform return type used in JNI function (in intermediary class) to type used in Java wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup("javaout", n, "", 0))) {
