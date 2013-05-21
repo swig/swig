@@ -1274,8 +1274,10 @@ public:
 	  // Add extra indentation
 	  Replaceall(enum_code, "\n", "\n  ");
 	  Replaceall(enum_code, "  \n", "\n");
-
-	  Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
+	  if (GetFlag(getCurrentClass(), "feature:interface"))
+	    Printv(interface_class_code, "  ", enum_code, "\n\n", NIL);
+	  else
+	    Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
 	} else {
 	  // Global enums are defined in their own file
 	  String *output_directory = outputDirectory(nspace);
@@ -1723,39 +1725,58 @@ public:
     }
     return ret;
   }
-  void addInterfaceNameAndUpcasts(String* interface_list, String* interface_upcasts, Node* base, String* c_classname) {
-    String* c_baseclass = SwigType_namestr(Getattr(base, "name"));
-    String* iname = Getattr(base, "feature:interface:name");
-    if (Len(interface_list))
-      Append(interface_list, ", ");
-    Append(interface_list, iname);
+  void addInterfaceNameAndUpcasts(String* interface_list, String* interface_upcasts, Hash* base_list, String* c_classname) {
+    List* keys = Keys(base_list);
+    for (Iterator it = First(keys); it.item; it = Next(it)) {
+      Node* base = Getattr(base_list, it.item);
+      String* c_baseclass = SwigType_namestr(Getattr(base, "name"));
+      String* iname = Getattr(base, "feature:interface:name");
+      if (Len(interface_list))
+	Append(interface_list, ", ");
+      Append(interface_list, iname);
 
-    String* upcast_name = 0;
-    if (String* cptr_func = Getattr(base, "feature:interface:cptr"))
-      upcast_name = NewStringf("%s", cptr_func);
-    else
-      upcast_name = NewStringf("%s_getCPtr", iname);
-    Printf(interface_upcasts, "  public long %s()", upcast_name);
-    Replaceall(upcast_name, ".", "_");
-    String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
-    String *jniname = makeValidJniName(upcast_method);
-    String *wname = Swig_name_wrapper(jniname);
-    Printf(interface_upcasts, "{ return %s.%s(swigCPtr); }\n", imclass_name, upcast_method );
-    Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method);
-    Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
-    Printv(upcasts_code,
-      "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
-      "    jlong baseptr = 0;\n"
-      "    (void)jenv;\n"
-      "    (void)jcls;\n"
-      "    *(", c_baseclass, " **)&baseptr = *(", c_classname, " **)&jarg1;\n"
-      "    return baseptr;\n"
-      "}\n", "\n", NIL);
-    Delete(upcast_name);
-    Delete(wname);
-    Delete(jniname);
-    Delete(upcast_method);
-    Delete(c_baseclass);
+      String* upcast_name = 0;
+      if (String* cptr_func = Getattr(base, "feature:interface:cptr"))
+	upcast_name = NewStringf("%s", cptr_func);
+      else
+	upcast_name = NewStringf("%s_getCPtr", iname);
+      Printf(interface_upcasts, "  public long %s()", upcast_name);
+      Replaceall(upcast_name, ".", "_");
+      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
+      String *jniname = makeValidJniName(upcast_method);
+      String *wname = Swig_name_wrapper(jniname);
+      Printf(interface_upcasts, "{ return %s.%s(swigCPtr); }\n", imclass_name, upcast_method );
+      Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method);
+      Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
+      Printv(upcasts_code,
+	"SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
+	"    jlong baseptr = 0;\n"
+	"    (void)jenv;\n"
+	"    (void)jcls;\n"
+	"    *(", c_baseclass, " **)&baseptr = *(", c_classname, " **)&jarg1;\n"
+	"    return baseptr;\n"
+	"}\n", "\n", NIL);
+      Delete(upcast_name);
+      Delete(wname);
+      Delete(jniname);
+      Delete(upcast_method);
+      Delete(c_baseclass);
+    }
+    Delete(keys);
+    Delete(base_list);
+  }
+
+  void collectInterfaceBases(Hash* bases, Node* n) {
+    if (Getattr(n, "feature:interface")) {
+      String* name = Getattr(n, "feature:interface:name");
+      if (Getattr(bases, name))
+	return;
+      Setattr(bases, name, n);
+    }
+    if (List *baselist = Getattr(n, "bases")) {
+      for (Iterator base = First(baselist); base.item; base = Next(base))
+	collectInterfaceBases(bases, base.item);
+    }
   }
 
   /* -----------------------------------------------------------------------------
@@ -1780,17 +1801,13 @@ public:
     Delete(attributes);
 
     // C++ inheritance
+    List* interface_classes = NewHash();
     if (!purebase_replace) {
       List *baselist = Getattr(n, "bases");
       if (baselist) {
         Iterator base = First(baselist);
-        while (base.item && GetFlag(base.item, "feature:ignore")) {
+        while (base.item && (GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface")))
           base = Next(base);
-        }
-	while (base.item && Getattr(base.item, "feature:interface")) {
-	  addInterfaceNameAndUpcasts(interface_list, interface_upcasts, base.item, c_classname);
-	  base = Next(base);
-	}
         if (base.item) {
           c_baseclassname = Getattr(base.item, "name");
           baseclass = Copy(getProxyName(c_baseclassname));
@@ -1799,9 +1816,7 @@ public:
           base = Next(base);
           /* Warn about multiple inheritance for additional base class(es) */
           while (base.item) {
-	    if (Getattr(base.item, "feature:interface")) {
-	      addInterfaceNameAndUpcasts(interface_list, interface_upcasts, base.item, c_classname);
-	    } else if (!GetFlag(base.item, "feature:ignore")) {
+	    if (!GetFlag(base.item, "feature:ignore") && !Getattr(base.item, "feature:interface")) {
 	      String *proxyclassname = Getattr(n, "classtypeobj");
 	      String *baseclassname = Getattr(base.item, "name");
 	      Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
@@ -1811,10 +1826,9 @@ public:
           }
         }
       }
-      if (Getattr(n, "feature:interface")) {
-	addInterfaceNameAndUpcasts(interface_list, interface_upcasts, n, c_classname);
-      }
     }
+    collectInterfaceBases(interface_classes, n);
+    addInterfaceNameAndUpcasts(interface_list, interface_upcasts, interface_classes, c_classname);
 
     bool derived = baseclass && getProxyName(c_baseclassname);
     if (derived && purebase_notderived)
@@ -1988,18 +2002,19 @@ public:
     if (List *baselist = Getattr(n, "bases")) {
       String* bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
-	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
+	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface")) {
 	  continue; // TODO: warn about skipped non-interface bases
+	}
 	String* base_iname = Getattr(base.item, "feature:interface:name");
 	if (!bases)
-	  bases = NewStringf(" : %s", base_iname);
+	  bases = Copy(base_iname);
 	else {
 	  Append(bases, ", ");
 	  Append(bases, base_iname);
 	}
       }
       if (bases) {
-	Printv(f_interface, "extends ", bases, NIL);
+	Printv(f_interface, " extends ", bases, NIL);
 	Delete(bases);
       }
     }
