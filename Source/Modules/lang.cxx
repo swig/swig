@@ -3603,3 +3603,58 @@ Language *Language::instance() {
 Hash *Language::getClassHash() const {
   return classhash;
 }
+
+// 2 methods below are used in C# && Java module "feature:interface" implementation
+//
+// Collect all not abstract methods from the bases marked as "interface"
+void Swig_collect_non_abstract_methods(Node* n, List* methods) {
+  if (List *baselist = Getattr(n, "bases")) {
+    for (Iterator base = First(baselist); base.item; base = Next(base)) {
+      if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
+	continue;
+      for (Node* child = firstChild(base.item); child; child = nextSibling(child)) {
+	if (strcmp(Char(nodeType(child)), "cdecl") == 0) {
+	  if (GetFlag(child, "feature:ignore") || Getattr(child, "feature:interface:owner") || GetFlag(child, "abstract"))
+	    continue; // skip methods propagated to bases and abstracts
+	  Node* m = Copy(child);
+	  set_nextSibling(m, NIL);
+	  set_previousSibling(m, NIL);
+	  Setattr(m, "feature:interface:owner", base.item);
+	  Append(methods, m);
+	}
+      }
+      Swig_collect_non_abstract_methods(base.item, methods);
+    }
+  }
+}
+// Append all the interface methods not implemented in the current class, so that it would not be abstract
+void Swig_propagate_interface_methods(Node *n)
+{
+  List* methods = NewList();
+  Swig_collect_non_abstract_methods(n, methods);
+  for (Iterator mi = First(methods); mi.item; mi = Next(mi)) {
+    String *this_decl = Getattr(mi.item, "decl");
+    String *resolved_decl = SwigType_typedef_resolve_all(this_decl);
+    bool overloaded = false;
+    if (SwigType_isfunction(resolved_decl)) {
+      String *name = Getattr(mi.item, "name");
+      for (Node* child = firstChild(n); child; child = nextSibling(child)) {
+	if (Getattr(child, "feature:interface:owner"))
+	  break; // at the end of the list are newly appended methods
+	if (checkAttribute(child, "name", name)) {
+	  String *decl = SwigType_typedef_resolve_all(Getattr(child, "decl"));
+	  overloaded = Strcmp(decl, this_decl) == 0;
+	  Delete(decl);
+	  if (overloaded)
+	    break;
+	}
+      }
+    }
+    Delete(resolved_decl);
+    if (!overloaded)
+      appendChild(n, mi.item);
+    else
+      Delete(mi.item);
+  }
+  Delete(methods);
+}
