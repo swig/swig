@@ -21,6 +21,8 @@
 	   (lambda ()
 	     (print-int (current-output-port) 314159))))
        (lambda args
+	 (display "Attempting to write to a string or soft port will result in this error:")
+	 (newline)
 	 (write args) (newline)))
 
 ;; Read from a file port. Note that it is a bad idea to mix Scheme and
