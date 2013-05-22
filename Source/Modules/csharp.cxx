@@ -1615,7 +1615,7 @@ public:
 	upcast_name = NewStringf("%s.%s", iname, cptr_func);
       else
 	upcast_name = NewStringf("%s.GetCPtr", iname);
-      Printf(interface_upcasts, "  public HandleRef %s()", upcast_name);
+      Printf(interface_upcasts, "  HandleRef %s()", upcast_name);
       Replaceall(upcast_name, ".", "_");
       String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
       String *wname = Swig_name_wrapper(upcast_method);
