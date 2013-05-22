@@ -3604,35 +3604,65 @@ Hash *Language::getClassHash() const {
   return classhash;
 }
 
-// 2 methods below are used in C# && Java module "feature:interface" implementation
+// 4 methods below are used in C# && Java module "feature:interface" implementation
 //
 // Collect all not abstract methods from the bases marked as "interface"
-void Swig_collect_non_abstract_methods(Node* n, List* methods) {
-  if (List *baselist = Getattr(n, "bases")) {
-    for (Iterator base = First(baselist); base.item; base = Next(base)) {
-      if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
+static void collect_interface_methods(Node* n, List* methods) {
+  if (Hash* bases = Getattr(n, "feature:interface:bases")){
+    List* keys = Keys(bases);
+    for (Iterator base = First(keys); base.item; base = Next(base)) {
+      Node* cls = Getattr(bases, base.item);
+      if (cls == n)
 	continue;
-      for (Node* child = firstChild(base.item); child; child = nextSibling(child)) {
+      for (Node* child = firstChild(cls); child; child = nextSibling(child)) {
 	if (strcmp(Char(nodeType(child)), "cdecl") == 0) {
-	  if (GetFlag(child, "feature:ignore") || Getattr(child, "feature:interface:owner") || GetFlag(child, "abstract"))
-	    continue; // skip methods propagated to bases and abstracts
+	  if (GetFlag(child, "feature:ignore") || Getattr(child, "feature:interface:owner"))
+	    continue; // skip methods propagated to bases
 	  Node* m = Copy(child);
 	  set_nextSibling(m, NIL);
 	  set_previousSibling(m, NIL);
-	  Setattr(m, "feature:interface:owner", base.item);
+	  Setattr(m, "feature:interface:owner", cls);
 	  Append(methods, m);
 	}
       }
-      Swig_collect_non_abstract_methods(base.item, methods);
     }
+    Delete(keys);
   }
 }
+
+static void collect_interface_bases(Hash* bases, Node* n) {
+  if (Getattr(n, "feature:interface")) {
+    String* name = Getattr(n, "feature:interface:name");
+    if (Getattr(bases, name))
+      return;
+    Setattr(bases, name, n);
+  }
+  if (List *baselist = Getattr(n, "bases")) {
+    for (Iterator base = First(baselist); base.item; base = Next(base))
+      if (!GetFlag(base.item, "feature:ignore"))
+	collect_interface_bases(bases, base.item);
+  }
+}
+
+static void Swig_collect_interface_bases(Node* n) {
+  Hash* interface_classes = NewHash();
+  collect_interface_bases(interface_classes, n);
+  if (Len(interface_classes) == 0)
+    Delete(interface_classes);
+  else
+    Setattr(n, "feature:interface:bases", interface_classes);
+}
+
 // Append all the interface methods not implemented in the current class, so that it would not be abstract
 void Swig_propagate_interface_methods(Node *n)
 {
+  Swig_collect_interface_bases(n);
   List* methods = NewList();
-  Swig_collect_non_abstract_methods(n, methods);
+  collect_interface_methods(n, methods);
+  bool is_interface = Getattr(n, "feature:interface") != 0;
   for (Iterator mi = First(methods); mi.item; mi = Next(mi)) {
+    if (!is_interface && GetFlag(mi.item, "abstract"))
+      continue;
     String *this_decl = Getattr(mi.item, "decl");
     String *resolved_decl = SwigType_typedef_resolve_all(this_decl);
     bool overloaded = false;

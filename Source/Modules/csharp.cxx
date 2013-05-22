@@ -1599,35 +1599,40 @@ public:
     }
     return ret;
   }
-  void addInterfaceNameAndUpcasts(String* interface_list, String* interface_upcasts, Node* base, String* c_classname) {
-    String* c_baseclass = SwigType_namestr(Getattr(base, "name"));
-    String* iname = getQualifiedInterfaceName(base);
-    if (Len(interface_list))
-      Append(interface_list, ", ");
-    Append(interface_list, iname);
+  void addInterfaceNameAndUpcasts(String* interface_list, String* interface_upcasts, Hash* base_list, String* c_classname) {
+    List* keys = Keys(base_list);
+    for (Iterator it = First(keys); it.item; it = Next(it)) {
+      Node* base = Getattr(base_list, it.item);
+      String* c_baseclass = SwigType_namestr(Getattr(base, "name"));
+      String* iname = getQualifiedInterfaceName(base);
+      if (Len(interface_list))
+	Append(interface_list, ", ");
+      Append(interface_list, iname);
 
-    Printf(interface_upcasts, "  [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]\n");
-    String* upcast_name = 0;
-    if (String* cptr_func = Getattr(base, "feature:interface:cptr"))
-      upcast_name = NewStringf("%s.%s", iname, cptr_func);
-    else
-      upcast_name = NewStringf("%s.GetCPtr", iname);
-    Printf(interface_upcasts, "  public HandleRef %s()", upcast_name);
-    Replaceall(upcast_name, ".", "_");
-    String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
-    String *wname = Swig_name_wrapper(upcast_method);
-    Printf(interface_upcasts, "{ return new HandleRef((%s)this, %s.%s(swigCPtr.Handle)); }\n", iname, imclass_name, upcast_method );
-    Printv(imclass_cppcasts_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
-    Printf(imclass_cppcasts_code, "  public static extern IntPtr %s(IntPtr jarg1);\n", upcast_method);
-    Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
-    Printv(upcasts_code,
-      "SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname, "(", c_classname, " *jarg1) {\n",
-      "    return (", c_baseclass, " *)jarg1;\n"
-      "}\n", "\n", NIL);
-    Delete(upcast_name);
-    Delete(wname);
-    Delete(upcast_method);
-    Delete(c_baseclass);
+      Printf(interface_upcasts, "  [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]\n");
+      String* upcast_name = 0;
+      if (String* cptr_func = Getattr(base, "feature:interface:cptr"))
+	upcast_name = NewStringf("%s.%s", iname, cptr_func);
+      else
+	upcast_name = NewStringf("%s.GetCPtr", iname);
+      Printf(interface_upcasts, "  public HandleRef %s()", upcast_name);
+      Replaceall(upcast_name, ".", "_");
+      String *upcast_method = Swig_name_member(getNSpace(), proxy_class_name, upcast_name);
+      String *wname = Swig_name_wrapper(upcast_method);
+      Printf(interface_upcasts, "{ return new HandleRef((%s)this, %s.%s(swigCPtr.Handle)); }\n", iname, imclass_name, upcast_method );
+      Printv(imclass_cppcasts_code, "\n  [DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
+      Printf(imclass_cppcasts_code, "  public static extern IntPtr %s(IntPtr jarg1);\n", upcast_method);
+      Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
+      Printv(upcasts_code,
+	"SWIGEXPORT ", c_baseclass, " * SWIGSTDCALL ", wname, "(", c_classname, " *jarg1) {\n",
+	"    return (", c_baseclass, " *)jarg1;\n"
+	"}\n", "\n", NIL);
+      Delete(upcast_name);
+      Delete(wname);
+      Delete(upcast_method);
+      Delete(c_baseclass);
+    }
+    Delete(keys);
   }
   /* -----------------------------------------------------------------------------
    * emitProxyClassDefAndCPPCasts()
@@ -1655,13 +1660,8 @@ public:
       List *baselist = Getattr(n, "bases");
       if (baselist) {
         Iterator base = First(baselist);
-        while (base.item && GetFlag(base.item, "feature:ignore")) {
-          base = Next(base);
-        }
-	while (base.item && Getattr(base.item, "feature:interface")) {
-	  addInterfaceNameAndUpcasts(interface_list, interface_upcasts, base.item, c_classname);
+	while (base.item && (GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface")))
 	  base = Next(base);
-	}
         if (base.item) {
           c_baseclassname = Getattr(base.item, "name");
           baseclass = Copy(getProxyName(c_baseclassname));
@@ -1670,9 +1670,7 @@ public:
           base = Next(base);
           /* Warn about multiple inheritance for additional base class(es) */
           while (base.item) {
-	    if (Getattr(base.item, "feature:interface")) {
-	      addInterfaceNameAndUpcasts(interface_list, interface_upcasts, base.item, c_classname);
-	    } else if (!GetFlag(base.item, "feature:ignore")) {
+	    if (!GetFlag(base.item, "feature:ignore") && !Getattr(base.item, "feature:interface")) {
 	      String *proxyclassname = Getattr(n, "classtypeobj");
 	      String *baseclassname = Getattr(base.item, "name");
 	      Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
@@ -1682,10 +1680,9 @@ public:
           }
         }
       }
-      if (Getattr(n, "feature:interface")) {
-	addInterfaceNameAndUpcasts(interface_list, interface_upcasts, n, c_classname);
-      }
     }
+    if (Hash* interface_classes = Getattr(n, "feature:interface:bases"))
+      addInterfaceNameAndUpcasts(interface_list, interface_upcasts, interface_classes, c_classname);
 
     bool derived = baseclass && getProxyName(c_baseclassname);
     if (derived && purebase_notderived)
@@ -2144,7 +2141,8 @@ public:
     String *pre_code = NewString("");
     String *post_code = NewString("");
     String *terminator_code = NewString("");
-    bool is_interface = Getattr(parentNode(n), "feature:interface") != 0 && !static_flag;
+    bool is_interface = Getattr(parentNode(n), "feature:interface") != 0 
+      && !static_flag && Getattr(n, "feature:interface:owner") == 0;
 
     if (!proxy_flag)
       return;

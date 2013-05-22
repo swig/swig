@@ -1763,20 +1763,6 @@ public:
       Delete(c_baseclass);
     }
     Delete(keys);
-    Delete(base_list);
-  }
-
-  void collectInterfaceBases(Hash* bases, Node* n) {
-    if (Getattr(n, "feature:interface")) {
-      String* name = Getattr(n, "feature:interface:name");
-      if (Getattr(bases, name))
-	return;
-      Setattr(bases, name, n);
-    }
-    if (List *baselist = Getattr(n, "bases")) {
-      for (Iterator base = First(baselist); base.item; base = Next(base))
-	collectInterfaceBases(bases, base.item);
-    }
   }
 
   /* -----------------------------------------------------------------------------
@@ -1827,8 +1813,8 @@ public:
         }
       }
     }
-    collectInterfaceBases(interface_classes, n);
-    addInterfaceNameAndUpcasts(interface_list, interface_upcasts, interface_classes, c_classname);
+    if (Hash* interface_classes = Getattr(n, "feature:interface:bases"))
+      addInterfaceNameAndUpcasts(interface_list, interface_upcasts, interface_classes, c_classname);
 
     bool derived = baseclass && getProxyName(c_baseclassname);
     if (derived && purebase_notderived)
@@ -2002,9 +1988,8 @@ public:
     if (List *baselist = Getattr(n, "bases")) {
       String* bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
-	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface")) {
+	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
 	  continue; // TODO: warn about skipped non-interface bases
-	}
 	String* base_iname = Getattr(base.item, "feature:interface:name");
 	if (!bases)
 	  bases = Copy(base_iname);
@@ -2271,7 +2256,8 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
-    bool is_interface = Getattr(parentNode(n), "feature:interface") != 0 && !static_flag;
+    bool is_interface = Getattr(parentNode(n), "feature:interface") != 0 
+      && !static_flag && Getattr(n, "feature:interface:owner") == 0;
 
     if (!proxy_flag)
       return;
