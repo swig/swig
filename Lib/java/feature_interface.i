@@ -5,8 +5,7 @@
 %typemap(javadirectorout) CTYPE*, const CTYPE& "$javacall." ## #INTERFACE ## "_getCPtr()"
 %typemap(javadirectorin) CTYPE*, const CTYPE&
 %{
-  long cPtr = $jniinput;
-	return (cPtr == 0) ? null : (INTERFACE)new IMPL(cPtr,false)
+	($jniinput == 0) ? null : (INTERFACE)new IMPL($jniinput,false)
 %}
 %typemap(javain) CTYPE*, const CTYPE& "$javainput." ## #INTERFACE ## "_getCPtr()"
 %typemap(javaout) CTYPE*, const CTYPE&
