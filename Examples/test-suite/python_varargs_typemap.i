@@ -51,10 +51,14 @@ char* testfunc (int arg1, double arg2, ...)
 {
   va_list ap;
   char *c;
+  static char buffer[1024];
+  buffer[0] = 0;
   va_start(ap, arg2);
-  c = va_arg(ap, char*);
+  while ((c = va_arg(ap, char *))) {
+    strcat(buffer, c);
+  }
   va_end(ap);
-  return c;
+  return buffer;
 }
 }
 
