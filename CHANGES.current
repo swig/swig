@@ -5,6 +5,10 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.10 (in progress)
 ============================
 
+2013-05-25: Artem Serebriyskiy
+            SVN Patch ticket #338 - fixes to %attribute macros for template usage
+            with %arg.
+
 2013-05-19: wsfulton
             Fix ccache-swig internal error bug due to premature file cleanup.
 
