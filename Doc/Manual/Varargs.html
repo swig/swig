@@ -509,10 +509,10 @@ like this:
 
 <div class="code">
 <pre>
-%typemap(in) (...)(char *args[10]) {
+%typemap(in) (...)(char *vargs[10]) {
   int i;
   int argc;
-  for (i = 0; i &lt; 10; i++) args[i] = 0;
+  for (i = 0; i &lt; 10; i++) vargs[i] = 0;
   argc = PyTuple_Size(varargs);
   if (argc &gt; 10) {
     PyErr_SetString(PyExc_ValueError, "Too many arguments");
@@ -528,7 +528,7 @@ like this:
        return NULL;
     }
     pystr = PyUnicode_AsUTF8String(pyobj);
-    str = PyBytes_AsString(pystr);
+    str = strdup(PyBytes_AsString(pystr));
     Py_XDECREF(pystr);
 %#else  
     if (!PyString_Check(pyobj)) {
@@ -537,22 +537,34 @@ like this:
     }
     str = PyString_AsString(pyobj);
 %#endif
-    args[i] = str;
+    vargs[i] = str;
   }
-  $1 = (void *) args;
+  $1 = (void *)vargs;
+}
+
+%typemap(freearg) (...) {
+%#if PY_VERSION_HEX&gt;=0x03000000
+  int i;
+  for (i = 0; i &lt; 10; i++) {
+    free(vargs$argnum[i]);
+  }
+%#endif
 }
 </pre>
 </div>
 
 <p>
-In this typemap, the special variable <tt>varargs</tt> is a tuple
+In the 'in' typemap, the special variable <tt>varargs</tt> is a tuple
 holding all of the extra arguments passed (this is specific to the
 Python module).  The typemap then pulls this apart and sticks the
 values into the array of strings <tt>args</tt>.  Then, the array is
 assigned to <tt>$1</tt> (recall that this is the <tt>void *</tt>
 variable corresponding to <tt>(...)</tt>).  However, this assignment
 is only half of the picture----clearly this alone is not enough to
-make the function work.  To patch everything up, you have to rewrite the
+make the function work.  The 'freearg' typemap cleans up memory
+allocated in the 'in' typemap; this code is generated to be called
+after the <tt>execlp</tt> function is called. To patch everything
+up, you have to rewrite the
 underlying action code using the <tt>%feature</tt> directive like
 this:
 </p>
@@ -560,9 +572,9 @@ this:
 <div class="code">
 <pre>
 %feature("action") execlp {
-   char *args = (char **) arg3;
-   result = execlp(arg1, arg2, args[0], args[1], args[2], args[3], args[4],
-                   args[5],args[6],args[7],args[8],args[9], NULL);
+  char **vargs = (char **) arg3;
+  result = execlp(arg1, arg2, vargs[0], vargs[1], vargs[2], vargs[3], vargs[4],
+                  vargs[5], vargs[6], vargs[7], vargs[8], vargs[9], NULL);
 }
 
 int execlp(const char *path, const char *arg, ...);
