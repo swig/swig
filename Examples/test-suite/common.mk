@@ -238,6 +238,7 @@ CPP_TEST_CASES += \
 	kind \
 	langobj \
 	li_attribute \
+	li_attribute_template \
 	li_boost_shared_ptr \
 	li_boost_shared_ptr_bits \
 	li_boost_shared_ptr_template \
