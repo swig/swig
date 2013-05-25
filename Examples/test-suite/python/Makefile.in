@@ -112,17 +112,17 @@ VALGRIND_OPT += --suppressions=pythonswig.supp
 %.cpptest: 
 	$(setup)
 	+$(swig_and_compile_cpp)
-	$(run_testcase)
+	+$(run_testcase)
 
 %.ctest:
 	$(setup)
 	+$(swig_and_compile_c)
-	$(run_testcase)
+	+$(run_testcase)
 
 %.multicpptest: 
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
-	$(run_testcase)
+	+$(run_testcase)
 
 
 # Call 2to3 to generate Python 3.x test from the Python 2.x's *_runme.py file
