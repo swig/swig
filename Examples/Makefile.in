@@ -366,7 +366,7 @@ endif
 
 PY2TO3 = 2to3 `2to3 -l | grep -v -E "Available|import$$" | awk '{print "-f "$$0}'`
 
-python_run:
+python_run: $(PYSCRIPT)
 	$(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
 
 $(RUNME)3.py: $(RUNME).py
