@@ -13,13 +13,14 @@ for i in range(0,10):
 # This will probably be garbled because %d is interpreted by C
 example.printf("The value is %d\n")
 
+stdout = example.stdout_stream()
 # Call fprintf
-example.fprintf(sys.stdout,"Hello World. I'm fprintf\n")
+example.fprintf(stdout,"Hello World. I'm fprintf\n")
 for i in range(0,10):
-    example.fprintf(sys.stdout,"i is %d\n" % i)
+    example.fprintf(stdout,"i is %d\n" % i)
 
 # This won't be garbled since %d is not interpreted
-example.fprintf(sys.stdout,"The value is %d\n")
+example.fprintf(stdout,"The value is %d\n")
 
 # This function calls our NULL-terminated function
 
