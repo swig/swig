@@ -35,7 +35,7 @@ protected:
   String *builderCode;
   int builderFunctionCount;
 
-  String *sourceFile;
+  List *sourceFileList;
   String *cflag;
   String *ldflag;
 
@@ -45,7 +45,7 @@ public:
    * ----------------------------------------------------------------------*/
   virtual void main(int argc, char* argv[]) {
 
-    sourceFile = NULL;
+    sourceFileList = NewList();
     ldflag = NULL;
     cflag = NULL;
 
@@ -58,9 +58,14 @@ public:
           /* Indicate arg as valid */
           Swig_mark_arg(argIndex);
         } else if (strcmp(argv[argIndex], "-addsrc") == 0) {
-          Swig_mark_arg(argIndex);
           if (argv[argIndex+1] != NULL) {
-            sourceFile = NewString(argv[argIndex+1]);
+            Swig_mark_arg(argIndex);
+            char *sourceFile = strtok(argv[argIndex+1], " ");
+            while (sourceFile != NULL)
+            {
+              DohInsertitem(sourceFileList, Len(sourceFileList), sourceFile);
+              sourceFile = strtok(NULL, " ");
+            }
             Swig_mark_arg(argIndex+1);
           }
         } else if (strcmp(argv[argIndex], "-addcflag") == 0) {
@@ -138,10 +143,6 @@ public:
       Printf(builderCode, "ilib_verbose(0);\n");
     #endif
     Printf(builderCode, "ilib_name = \"%slib\";\n", moduleName);
-    Printf(builderCode, "files = \"%s\";\n", outputFilename);
-    if (sourceFile != NULL) {
-      Printf(builderCode, "files($+1) = \"%s\";\n", sourceFile);
-    }
 
     Printf(builderCode, "libs = [];\n");
     if (ldflag != NULL) {
@@ -149,12 +150,28 @@ public:
     } else {
       Printf(builderCode, "ldflags = \"\";\n");
     }
+
     Printf(builderCode, "cflags = [\"-g -I\" + get_absolute_file_path(\"builder.sce\")];\n");
     if (cflag != NULL) {
       Printf(builderCode, "includepath = \"%s\";\n", cflag);
       Printf(builderCode, "includepath = fullpath(part(includepath, 3:length(includepath)));\n");
       Printf(builderCode, "cflags = cflags + \" -I\" + includepath;\n");
     }
+
+    DohInsertitem(sourceFileList, 0, outputFilename);
+    for (int i=0; i<Len(sourceFileList); i++)
+    {
+      String* sourceFile = Getitem(sourceFileList, i);
+      if (i==0)
+      {
+          Printf(builderCode, "files = \"%s\";\n", sourceFile);
+      }
+      else
+      {
+          Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
+      }
+    }
+
     Printf(builderCode, "table = [");
 
     /* Emit code for children */
