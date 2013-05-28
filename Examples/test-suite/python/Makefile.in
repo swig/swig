@@ -58,7 +58,7 @@ CPP_TEST_CASES += \
 	li_std_wstream \
 	li_std_wstring \
 	primitive_types \
-        python_abstractbase \
+	python_abstractbase \
 	python_append \
 	python_director \
 	python_nondynamic \
@@ -165,6 +165,9 @@ endif
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile python_clean
 	rm -f hugemod.h hugemod_a.i hugemod_b.i hugemod_a.py hugemod_b.py hugemod_runme.py
+	rm -f clientdata_prop_a.py clientdata_prop_b.py import_stl_a.py import_stl_b.py
+	rm -f imports_a.py imports_b.py mod_a.py mod_b.py multi_import_a.py
+	rm -f multi_import_b.py packageoption_a.py packageoption_b.py packageoption_c.py
 
 cvsignore:
 	@echo '*wrap* *.pyc *.so *.dll *.exp *.lib'
