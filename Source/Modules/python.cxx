@@ -94,6 +94,7 @@ static int castmode = 0;
 static int extranative = 0;
 static int outputtuple = 0;
 static int nortti = 0;
+static int relativeimport = 0;
 
 /* flags for the make_autodoc function */
 enum autodoc_t {
@@ -156,6 +157,7 @@ static const char *usage3 = (char *) "\
      -oldrepr        - Use shorter and old version of __repr__ in proxy classes\n\
      -outputtuple    - Use a PyTuple for outputs instead of a PyList (use carefully with legacy interfaces) \n\
      -proxydel       - Generate a __del__ method even though it is now redundant (default) \n\
+     -relativeimport - Use relative python imports \n\
      -safecstrings   - Use safer (but slower) C string mapping, generating copies from Python -> C/C++\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options: \n\
@@ -519,6 +521,9 @@ public:
 	} else if (strcmp(argv[i], "-builtin") == 0) {
 	  builtin = 1;
 	  Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-relativeimport") == 0) {
+	  relativeimport = 1;
 	  Swig_mark_arg(i);
 	}
 
@@ -1029,6 +1034,284 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * tail = subpkg_tail(base, other)
+   *
+   * Return the name of 'other' package relative to 'base'.
+   *
+   * 1. If 'other' is a sub-package of 'base', returns the 'other' relative to
+   *    'base'.
+   * 2. If 'other' and 'base' are equal, returns empty string "".
+   * 3. In any other case, NULL pointer is returned.
+   *
+   * The 'base' and 'other' are expected to be fully qualified names.
+   *
+   * NOTE: none of 'base' nor 'other' can be null.
+   *
+   * Examples:
+   *
+   *  #  base       other          tail
+   * --  ----       -----          ----
+   *  1  "Foo"      "Foo.Bar" ->  "Bar"
+   *  2	 "Foo"      "Foo."    ->  ""
+   *  3	 "Foo"      "FooB.ar" ->  NULL
+   *  4	 "Foo.Bar"  "Foo.Bar" ->  ""
+   *  5  "Foo.Bar"  "Foo"     ->  NULL
+   *  6  "Foo.Bar"  "Foo.Gez" ->  NULL
+   *
+   *  NOTE: the example #2 is actually a syntax error (at input). I believe
+   *        swig parser prevents us from this case happening here.
+   * ------------------------------------------------------------ */
+  static String* subpkg_tail(const String* base, const String* other)
+  {
+    int baselen = Len(base);
+    int otherlen = Len(other);
+
+    if (Strncmp(other, base, baselen) == 0) {
+      if ((baselen < otherlen) && (Char(other))[baselen] == '.') {
+        return NewString((Char(other)) + baselen + 1);
+      } else if (baselen == otherlen) {
+        return NewString("");
+      } else {
+        return 0;
+      }
+    } else {
+      return 0;
+    }
+  }
+
+  /* ------------------------------------------------------------
+   * out = abs_import_directive_string(pkg, mod, pfx)
+   *
+   * Return a String* containing python code to import module.
+   *
+   * 	pkg     package name or the module being imported
+   * 	mod     module name of the module being imported
+   * 	pfx     optional prefix to module name
+   *
+   * NOTE: keep this function consistent with abs_import_name_string().
+   * ------------------------------------------------------------ */
+  static String* abs_import_directive_string(const String* pkg,
+                                             const String* mod,
+                                             const char* pfx = "")
+  {
+    String* out = NewString("");
+
+    if (pkg && *Char(pkg)) {
+      Printf(out, "import %s.%s%s\n", pkg, pfx, mod);
+    } else {
+      Printf(out, "import %s%s\n", pfx, mod);
+    }
+    return out;
+  }
+
+  /* ------------------------------------------------------------
+   * out = rel_import_directive_string(mainpkg, pkg, mod, pfx)
+   *
+   * Return a String* containing python code to import module that
+   * is potentially within a package.
+   *
+   * 	mainpkg	package name of the module which imports the other module
+   * 	pkg     package name or the module being imported
+   * 	mod     module name of the module being imported
+   * 	pfx     optional prefix to module name
+   *
+   * NOTE: keep this function consistent with rel_import_name_string().
+   * ------------------------------------------------------------ */
+  static String* rel_import_directive_string(const String* mainpkg,
+                                             const String* pkg,
+                                             const String* mod,
+                                             const char* pfx = "")
+  {
+    /* NOTE: things are not so trivial. This is what we do here (by examples):
+     *
+     * 0. To import module 'foo', which is not in any package, we do absolute
+     *    import:
+     *
+     *       import foo
+     *
+     * 1. To import 'pkg1.pkg2.foo', when mainpkg != "pkg1" and
+     *    mainpkg != "pkg1.pkg2" or when mainpkg is not given we do absolute
+     *    import:
+     *
+     *          import pkg1.pkg2.foo
+     *
+     * 2. To import module pkg1.foo, when mainpkg == "pkg1", we do:
+     *
+     *    - for py3 = 0:
+     *
+     *          import foo
+     *
+     *    - for py3 = 1:
+     *
+     *          from . import foo
+     *
+     * 3. To import "pkg1.pkg2.pkg3.foo", when mainpkg = "pkg1", we do:
+     *
+     *    - for py3 == 0:
+     *
+     *          import pkg2.pkg3.foo
+     *
+     *    - for py3 == 1:
+     *
+     *          from . import pkg2  # [1]
+     *          import pkg1.pkg2.pkg3.foo
+     *
+     * NOTE: [1] is necessary for pkg2.foo to be present in the importing module
+     */
+    String* apkg = 0; // absolute (FQDN) package name of pkg
+    String* rpkg = 0; // relative package name
+    int py3_rlen1 = 0; // length of 1st level sub-package name, used by py3
+    String* out = NewString("");
+
+    if (pkg && *Char(pkg)) {
+      if(mainpkg) {
+        String* tail = subpkg_tail(mainpkg, pkg);
+        if (tail) {
+          if(*Char(tail)) {
+            rpkg = NewString(tail);
+            const char* py3_end1 = Strchr(rpkg, '.');
+            if(!py3_end1) py3_end1 = (Char(rpkg)) + Len(rpkg);
+            py3_rlen1 = py3_end1 - (Char(rpkg));
+          } else {
+            rpkg = NewString("");
+          }
+          Delete(tail);
+        } else {
+          apkg = NewString(pkg);
+        }
+      } else {
+        apkg = NewString(pkg);
+      }
+    } else {
+      apkg = NewString("");
+    }
+
+    if (apkg) {
+      Printf(out, "import %s%s%s%s\n", apkg, *Char(apkg) ? "." : "", pfx, mod);
+      Delete(apkg);
+    } else {
+      if (py3) {
+        if (py3_rlen1)
+	        Printf(out, "from . import %.*s\n", py3_rlen1, rpkg);
+        Printf(out, "from .%s import %s%s\n", rpkg, pfx, mod);
+      } else {
+        Printf(out, "import %s%s%s%s\n", rpkg, *Char(rpkg) ? "." : "", pfx, mod);
+      }
+      Delete(rpkg);
+    }
+    return out;
+  }
+
+  /* ------------------------------------------------------------
+   * out = import_directive_string(mainpkg, pkg, mod, pfx)
+   * ------------------------------------------------------------ */
+  static String* import_directive_string(const String* mainpkg,
+                                         const String* pkg,
+                                         const String* mod,
+                                         const char* pfx = "")
+  {
+    if (!relativeimport) {
+      return abs_import_directive_string(pkg, mod, pfx);
+    } else {
+      return rel_import_directive_string(mainpkg, pkg, mod, pfx);
+    }
+  }
+
+  /* ------------------------------------------------------------
+   * out = abs_import_name_string(mainpkg, mainmod, pkg, mod, sym)
+   *
+   * Return a String* with the name of a symbol (perhaps imported
+   * from external module by absolute import directive).
+   *
+   * mainpkg  package name of current module
+   * mainmod  module name of current module
+   * pkg      package name of (perhaps other) module
+   * mod      module name of (perhaps other) module
+   * sym      symbol name
+   *
+   * NOTE: mainmod, mod, and sym can't be NULL.
+   * NOTE: keep this function consistent with abs_import_directive_string()
+   * ------------------------------------------------------------ */
+  static String* abs_import_name_string(const String* mainpkg,
+                                        const String* mainmod,
+                                        const String* pkg,
+                                        const String* mod,
+                                        const String* sym)
+  {
+    String* out = NewString("");
+    if (pkg && *Char(pkg)) {
+      if (mainpkg && *Char(mainpkg)) {
+        if (Strcmp(mainpkg,pkg) != 0 || Strcmp(mainmod, mod) != 0) {
+          Printf(out, "%s.%s.", pkg, mod);
+        }
+      } else {
+        Printf(out, "%s.%s.", pkg, mod);
+      }
+    } else if ((mainpkg && *Char(mainpkg)) || Strcmp(mainmod, mod) != 0) {
+      Printf(out, "%s.", mod);
+    }
+    Append(out, sym);
+    return out;
+  }
+
+  /* ------------------------------------------------------------
+   * out = rel_import_name_string(mainpkg, mainmod, pkg, mod, sym)
+   *
+   * Return a String* with the name of a symbol (perhaps imported
+   * from external module by relative import directive).
+   *
+   * mainpkg  package name of current module
+   * mainmod  module name of current module
+   * pkg      package name of (perhaps other) module
+   * mod      module name of (perhaps other) module
+   * sym      symbol name
+   *
+   * NOTE: mainmod, mod, and sym can't be NULL.
+   * NOTE: keep this function consistent with rel_import_directive_string()
+   * ------------------------------------------------------------ */
+  static String* rel_import_name_string(const String* mainpkg,
+                                        const String* mainmod,
+                                        const String* pkg,
+                                        const String* mod,
+                                        const String* sym)
+  {
+    String* out = NewString("");
+    if (pkg && *Char(pkg)) {
+      String* tail = 0;
+      if (mainpkg)
+        tail = subpkg_tail(mainpkg, pkg);
+      if (!tail)
+        tail = NewString(pkg);
+      if(*Char(tail)) {
+        Printf(out, "%s.%s.", tail, mod);
+      } else if (Strcmp(mainmod, mod) != 0) {
+        Printf(out, "%s.", mod);
+      }
+      Delete(tail);
+    } else if ((mainpkg && *Char(mainpkg)) || Strcmp(mainmod, mod) != 0) {
+      Printf(out, "%s.", mod);
+    }
+    Append(out, sym);
+    return out;
+  }
+
+  /* ------------------------------------------------------------
+   * out = import_name_string(mainpkg, mainmod, pkg, mod, sym)
+   *  ------------------------------------------------------------ */
+  static String* import_name_string(const String* mainpkg,
+                                    const String* mainmod,
+                                    const String* pkg,
+                                    const String* mod,
+                                    const String* sym)
+  {
+    if (!relativeimport) {
+      return abs_import_name_string(mainpkg,mainmod,pkg,mod,sym);
+    } else {
+      return rel_import_name_string(mainpkg,mainmod,pkg,mod,sym);
+    }
+  }
+
+  /* ------------------------------------------------------------
    * importDirective()
    * ------------------------------------------------------------ */
 
@@ -1037,38 +1320,26 @@ public:
       String *modname = Getattr(n, "module");
 
       if (modname) {
-	String *import = NewString("import ");
-
 	// Find the module node for this imported module.  It should be the
 	// first child but search just in case.
 	Node *mod = firstChild(n);
 	while (mod && Strcmp(nodeType(mod), "module") != 0)
 	  mod = nextSibling(mod);
 
-	// Is the imported module in another package?  (IOW, does it use the
-	// %module(package="name") option and it's different than the package
-	// of this module.)
 	Node *options = Getattr(mod, "options");
 	String *pkg = options ? Getattr(options, "package") : 0;
-	if (pkg) {
-	  Printf(import, "%s.", pkg);
-	}
-	// finally, output the name of the imported module
 	if (shadowimport) {
 	  if (!options || (!Getattr(options, "noshadow") && !Getattr(options, "noproxy"))) {
-	    Printf(import, "_%s\n", modname);
-	    if (!GetFlagAttr(f_shadow_imports, import)) {
-	      if (pkg) {
-		Printf(builtin ? f_shadow_builtin_imports : f_shadow, "import %s.%s\n", pkg, modname);
-	      } else {
-		Printf(builtin ? f_shadow_builtin_imports : f_shadow, "import %s\n", modname);
-	      }
-	      SetFlag(f_shadow_imports, import);
+	    String* _import = import_directive_string(package, pkg, modname, "_");
+	    if (!GetFlagAttr(f_shadow_imports, _import)) {
+	      String* import = import_directive_string(package, pkg, modname);
+	      Printf(builtin ? f_shadow_builtin_imports : f_shadow, "%s", import);
+	      Delete(import);
+	      SetFlag(f_shadow_imports, _import);
 	    }
+	    Delete(_import);
 	  }
 	}
-
-	Delete(import);
       }
     }
     return Language::importDirective(n);
@@ -3164,19 +3435,13 @@ public:
     if (shadow && !Getattr(n, "feature:onlychildren")) {
       Node *mod = Getattr(n, "module");
       if (mod) {
-	String *importname = NewString("");
 	String *modname = Getattr(mod, "name");
-	if (Strcmp(modname, mainmodule) != 0) {
-	  // check if the module has a package option
-	  Node *options = Getattr(mod, "options");
-	  String *pkg = options ? Getattr(options, "package") : 0;
-	  if (pkg) {
-	    Printf(importname, "%s.", pkg);
-	  }
-	  Printf(importname, "%s.", modname);
-	}
-	Append(importname, Getattr(n, "sym:name"));
+	Node *options = Getattr(mod, "options");
+	String* pkg = options ? Getattr(options, "package") : 0;
+	String* sym = Getattr(n, "sym:name");
+	String* importname = import_name_string(package, mainmodule, pkg, modname, sym);
 	Setattr(n, "python:proxy", importname);
+	Delete(importname);
       }
     }
     int result = Language::classDeclaration(n);
