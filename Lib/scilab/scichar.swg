@@ -32,7 +32,7 @@ SwigScilabStringToChar(void *_pvApiCtx, int _iVar, char *_pcValue, char *_fname)
     return SWIG_ERROR;
   }
 
-  _pstStrings = (char *)MALLOC(sizeof(char));
+  _pstStrings = (char *)malloc(sizeof(char));
   sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &_piLength, (char **)&_pstStrings);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
@@ -44,7 +44,7 @@ SwigScilabStringToChar(void *_pvApiCtx, int _iVar, char *_pcValue, char *_fname)
   }
   *_pcValue = _pstStrings[0];
 
-  FREE(_pstStrings);
+  free(_pstStrings);
 
   return SWIG_OK;
 }
@@ -58,7 +58,7 @@ SWIGINTERN int
 SwigScilabStringFromChar(void *_pvApiCtx, int _iVarOut, char _chValue) {
   SciErr sciErr;
 
-  char *pchValue = (char*)MALLOC(sizeof(char) * 2);
+  char *pchValue = (char*)malloc(sizeof(char) * 2);
   pchValue[0] = _chValue;
   pchValue[1] = '\0';
 
@@ -68,7 +68,7 @@ SwigScilabStringFromChar(void *_pvApiCtx, int _iVarOut, char _chValue) {
     return SWIG_ERROR;
   }
 
-  FREE(pchValue);
+  free(pchValue);
 
   return Rhs + _iVarOut;
 }
@@ -126,7 +126,7 @@ SwigScilabStringToCharPtr(void *_pvApiCtx, int _iVar, char *_pcValue, int _iLeng
     return SWIG_ERROR;
   }
 
-  pstStrings = (char *)MALLOC(sizeof(char) * (piLength + 1));
+  pstStrings = (char *)malloc(sizeof(char) * (piLength + 1));
   sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &piLength, (char **)&pstStrings);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
@@ -135,7 +135,7 @@ SwigScilabStringToCharPtr(void *_pvApiCtx, int _iVar, char *_pcValue, int _iLeng
 
   strcpy(_pcValue, pstStrings);
 
-  FREE(pstStrings);
+  free(pstStrings);
 
   return SWIG_OK;
 }
@@ -177,7 +177,7 @@ SwigScilabStringToCharPtrAndSize(void *_pvApiCtx, int _iVar, char **_pcValue, si
     return SWIG_ERROR;
   }
 
-  _pstStrings = (char *)MALLOC(sizeof(char) * (piLength + 1));
+  _pstStrings = (char *)malloc(sizeof(char) * (piLength + 1));
   sciErr = getMatrixOfString(pvApiCtx, piAddrVar, &iRows, &iCols, &piLength, (char **)&_pstStrings);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
@@ -191,7 +191,7 @@ SwigScilabStringToCharPtrAndSize(void *_pvApiCtx, int _iVar, char **_pcValue, si
     *_pcValue = _pstStrings;
   }
 
-  FREE(_pstStrings);
+  free(_pstStrings);
 
   if (_piLength != NULL) {
     *_piLength = (size_t) piLength;
@@ -206,7 +206,7 @@ SwigScilabStringFromCharPtr(void *_pvApiCtx, int _iVarOut, const char *_pchValue
   SciErr sciErr;
   char **pstData = NULL;
 
-  pstData = (char **)MALLOC(sizeof(char *));
+  pstData = (char **)malloc(sizeof(char *));
   pstData[0] = strdup(_pchValue);
 
   sciErr = createMatrixOfString(_pvApiCtx, Rhs + _iVarOut, 1, 1, (char **)pstData);
@@ -215,7 +215,7 @@ SwigScilabStringFromCharPtr(void *_pvApiCtx, int _iVarOut, const char *_pchValue
     return SWIG_ERROR;
   }
 
-  freeArrayOfString(pstData, 1);
+  free(pstData[0]);
 
   return Rhs + _iVarOut;
 }
@@ -226,7 +226,7 @@ SwigScilabStringFromCharPtrAndSize(void *_pvApiCtx, int _iVarOut, const char *_p
   SciErr sciErr;
   char **pstData = NULL;
 
-  pstData = (char **)MALLOC(sizeof(char *));
+  pstData = (char **)malloc(sizeof(char *));
   pstData[0] = strdup(_pchValue);
 
   sciErr = createMatrixOfString(_pvApiCtx, Rhs + _iVarOut, 1, 1, (char **)pstData);
@@ -235,7 +235,7 @@ SwigScilabStringFromCharPtrAndSize(void *_pvApiCtx, int _iVarOut, const char *_p
     return SWIG_ERROR;
   }
 
-  FREE(pstData);
+  free(pstData[0]);
 
   return Rhs + _iVarOut;
 }
