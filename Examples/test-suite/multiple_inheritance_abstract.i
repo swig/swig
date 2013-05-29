@@ -1,10 +1,11 @@
 %module  multiple_inheritance_abstract
 
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %include "feature_interface.i"
 DECLARE_INTERFACE_RENAME(ABase1, ABase1, SWIGTYPE_ABase1)
 DECLARE_INTERFACE_RENAME(CBase1, CBase1, SWIGTYPE_CBase1)
 DECLARE_INTERFACE_RENAME(CBase2, CBase2, SWIGTYPE_CBase2)
-
+#endif
 
 %inline %{
 struct CBase1 {
