@@ -2070,7 +2070,6 @@ public:
       destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
 
-      Swig_propagate_interface_methods(n);
       if (Getattr(n, "feature:interface")) {
 	interface_class_code = NewStringEmpty();
 	String *iname = Getattr(n, "feature:interface:name");
@@ -4271,6 +4270,8 @@ public:
     String *old_director_delegate_instances = director_delegate_instances;
     String *old_director_method_types = director_method_types;
     String *old_director_connect_parms = director_connect_parms;
+    if (proxy_flag)
+      Swig_propagate_interface_methods(n);
 
     int ret = Language::classDeclaration(n);
 

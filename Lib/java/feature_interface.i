@@ -17,6 +17,10 @@
 %typemap(javadirectorin) CTYPE, CTYPE & "(INTERFACE)new IMPL($jniinput, false)"
 %typemap(javadirectorin) CTYPE *, CTYPE *const&, CTYPE [] "($jniinput == 0) ? null : (INTERFACE)new IMPL($jniinput, false)"
 %typemap(javadirectorout) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "$javacall." ## #INTERFACE ## "_SWIGInterfaceUpcast()"
+%typemap(directorin, descriptor="L$packagepath/" ## #INTERFACE ## ";") CTYPE *, CTYPE &, CTYPE *const&, CTYPE [], CTYPE & 
+%{ $input = 0;
+   *(($&1_ltype*)&$input) = &$1;
+%}
 SWIG_JAVABODY_PROXY(public, protected, CTYPE)
 %enddef
 
