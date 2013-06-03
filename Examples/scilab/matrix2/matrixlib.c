@@ -1,32 +1,39 @@
 #include <stdlib.h>
-double sumitems(double *first, int nbRow, int nbCol) {
+
+double sumMatrixElements(double *inputMatrix, int nbRow, int nbCol)
+{
 	int i;
-	double total;
-	for (i=0; i<(nbRow*nbCol); i++) {
-		total+=first[i];
+	double total = 0.0;
+	for (i=0; i<nbRow*nbCol; i++)
+	{
+		total += inputMatrix[i];
 	}
 	return total;
 }
 
-void sumitems_argoutput(double *first, int nbRow, int nbCol,double** result,int* nbrowres,int* nbcolsres) {
+void squareMatrixElements(double *inputMatrix, int nbRow, int nbCol, double** resultMatrix, int* nbRowRes, int* nbColRes)
+{
 	int i;
-	*nbrowres=nbRow;
-	*nbcolsres=nbCol;
-	*result=malloc(nbRow*nbCol*sizeof(double));
-	for (i=0; i<(nbRow*nbCol); i++) {
-		(*result)[i]=first[i]+first[i];
+	int size = nbRow * nbCol;
+	*nbRowRes = nbRow;
+	*nbColRes = nbCol;
+	*resultMatrix = (double*) malloc(size * sizeof(double));
+	for (i=0; i<size; i++)
+	{
+		(*resultMatrix)[i] = inputMatrix[i] * inputMatrix[i];
  	}
-	return;
 }
 
-double* getValues(int *numberOfRow, int *numberOfCol) {
-	double *tempMatrix ;
+void getMatrix(double **resultMatrix, int *nbRowRes, int *nbColRes)
+{
 	int i;
-	*numberOfRow=23; *numberOfCol=3;
-   tempMatrix= (double*)malloc(sizeof(double )* *numberOfRow * *numberOfCol);
-
-	for (i=0; i<((*numberOfRow)*(*numberOfCol)); i++) {
-		tempMatrix[i]=i*2;
+	int size;
+	*nbRowRes = 5;
+	*nbColRes = 3;
+	size = (*nbRowRes) * (*nbColRes);
+   	*resultMatrix = (double*) malloc(size * sizeof(double));
+	for (i=0; i<size; i++)
+	{
+		(*resultMatrix)[i] = i*2;
 	}
-	return tempMatrix;
 }

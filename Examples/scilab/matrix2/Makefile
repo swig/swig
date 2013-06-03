@@ -4,12 +4,12 @@ SRCS       = matrixlib.c
 TARGET     = matrixlib
 INTERFACE  = matrixlib.i
 
-all::
+all:
 	$(MAKE) -f $(TOP)/Makefile SRCS='$(SRCS)' SWIG='$(SWIG)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' scilab
-	
 
-clean::
+
+clean:
 	$(MAKE) -f $(TOP)/Makefile scilab_clean
 	rm -f *.sce *.so lib*lib.c *_wrap.c
 
