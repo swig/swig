@@ -4,6 +4,7 @@
  */
 
 %include <scimatrixdouble.swg>
+%include <scimatrixint.swg>
 
 
 
