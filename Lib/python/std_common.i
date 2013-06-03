@@ -8,6 +8,7 @@
 */
 
 %define %traits_ptypen(Type...)
+%traits_swigtype(Type);
   %fragment(SWIG_Traits_frag(Type),"header",
 	    fragment=SWIG_AsVal_frag(Type),
 	    fragment=SWIG_From_frag(Type),
