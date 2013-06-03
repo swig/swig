@@ -8,15 +8,13 @@
 */
 
 %define %traits_ptypen(Type...)
+%traits_swigtype(Type);
   %fragment(SWIG_Traits_frag(Type),"header",
 	    fragment=SWIG_AsVal_frag(Type),
 	    fragment=SWIG_From_frag(Type),
-	    fragment="StdTraits") {
+	    fragment="StdTraits",
+	    fragment=SWIG_Traits_frag(Type)) {
 namespace swig {
-  template <> struct traits<Type > {
-    typedef value_category category;
-    static const char* type_name() { return  #Type; }
-  };  
   template <>  struct traits_asval<Type > {   
     typedef Type value_type;
     static int asval(PyObject *obj, value_type *val) { 

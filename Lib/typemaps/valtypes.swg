@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------
- * Value typemaps (Type, const Type&) for value types, such as
+ * Value typemaps (Type, Type const&) for value types, such as
  * fundamental types (int, double), that define the AsVal/From
  * methods.
  *
@@ -39,7 +39,7 @@
     $1 = %static_cast(val,$ltype);
   }
   %typemap(freearg) Type "";
-  %typemap(in,noblock=1,fragment=frag) const Type & ($*ltype temp, Type val, int ecode = 0) {  
+  %typemap(in,noblock=1,fragment=frag) Type const & ($*ltype temp, Type val, int ecode = 0) {  
     ecode = asval_meth($input, &val);
     if (!SWIG_IsOK(ecode)) {
       %argument_fail(ecode, "$*ltype", $symname, $argnum);
@@ -47,16 +47,16 @@
     temp = %static_cast(val, $*ltype);
     $1 = &temp;
   }
-  %typemap(freearg) const Type& "";
+  %typemap(freearg) Type const& "";
 %enddef
 
 /* out */
 
 %define %value_out_typemap(from_meth,frag,Type...)
-  %typemap(out,noblock=1,fragment=frag) Type, const Type {
+  %typemap(out,noblock=1,fragment=frag) Type, Type const {
     %set_output(from_meth(%static_cast($1,Type))); 
   }
-  %typemap(out,noblock=1,fragment=frag) const Type& {
+  %typemap(out,noblock=1,fragment=frag) Type const& {
     %set_output(from_meth(%static_cast(*$1,Type))); 
   }
 %enddef
@@ -77,7 +77,7 @@
 /* varout */
 
 %define %value_varout_typemap(from_meth,frag,Type...)
-  %typemap(varout,noblock=1,fragment=frag) Type, const Type&  {
+  %typemap(varout,noblock=1,fragment=frag) Type, Type const&  {
     %set_varoutput(from_meth(%static_cast($1,Type)));
   }
 %enddef
@@ -99,7 +99,7 @@
   %typemap(directorin,noblock=1,fragment=frag) Type *DIRECTORIN {
     $input = from_meth(%static_cast(*$1,Type)); 
   }
-  %typemap(directorin,noblock=1,fragment=frag) Type, const Type& {
+  %typemap(directorin,noblock=1,fragment=frag) Type, Type const& {
     $input = from_meth(%static_cast($1,Type)); 
   }
 %enddef
@@ -122,7 +122,7 @@
     }
     $result = %static_cast(swig_val,$type);
   }
-  %typemap(directorout,noblock=1,fragment=frag,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) const Type& {  
+  %typemap(directorout,noblock=1,fragment=frag,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) Type const& {  
     Type swig_val;
     int swig_res = asval_meth($input, &swig_val);
     if (!SWIG_IsOK(swig_res)) {
@@ -132,7 +132,7 @@
     swig_acquire_ownership(temp);
     $result = temp;
   }
-  %typemap(directorfree,noblock=1) const Type & {
+  %typemap(directorfree,noblock=1) Type const & {
     if (director) {
       director->swig_release_ownership(%as_voidptr($input));
     }
@@ -159,7 +159,7 @@
 /* typecheck */
 
 %define %value_typecheck_typemap(check,asval_meth,frag,Type...)
-  %typemap(typecheck,precedence=check,fragment=frag) Type, const Type& {
+  %typemap(typecheck,precedence=check,fragment=frag) Type, Type const& {
     int res = asval_meth($input, NULL);
     $1 = SWIG_CheckState(res);
   }

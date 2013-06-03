@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * ptrtypes.swg
  *
- * Value typemaps (Type, const Type&) for "Ptr" types, such as swig
+ * Value typemaps (Type, Type const&) for "Ptr" types, such as swig
  * wrapped classes, that define the AsPtr/From methods
  *
  * To apply them, just use one of the following macros:
@@ -36,14 +36,14 @@
     if (SWIG_IsNewObj(res)) %delete(ptr);
   }
   %typemap(freearg) Type "";
-  %typemap(in,fragment=frag) const Type & (int res = SWIG_OLDOBJ) {
+  %typemap(in,fragment=frag) Type const & (int res = SWIG_OLDOBJ) {
     Type *ptr = (Type *)0;
     res = asptr_meth($input, &ptr);
     if (!SWIG_IsOK(res)) { %argument_fail(res,"$type",$symname, $argnum); }
     if (!ptr) { %argument_nullref("$type",$symname, $argnum); }
     $1 = ptr;
   }
-  %typemap(freearg,noblock=1) const Type &  {
+  %typemap(freearg,noblock=1) Type const &  {
     if (SWIG_IsNewObj(res$argnum)) %delete($1);
   }
 %enddef
@@ -146,7 +146,7 @@
   $1 = SWIG_CheckState(res);
 }
 
-%typemap(typecheck,noblock=1,precedence=check,fragment=frag) Type, const Type& {  
+%typemap(typecheck,noblock=1,precedence=check,fragment=frag) Type, Type const& {  
   int res = asptr_meth($input, (Type**)(0));
   $1 = SWIG_CheckState(res);
 }

@@ -92,7 +92,7 @@ namespace swig {
   };
 
   template <class Type> struct traits_from {
-    static SWIG_Object from SWIG_FROM_DECL_ARGS(const Type& val) {
+    static SWIG_Object from SWIG_FROM_DECL_ARGS(Type const& val) {
       return traits_from_ptr<SWIG_POINTER_OWN, Type>::from(new Type(val));
     }
   };
@@ -104,7 +104,7 @@ namespace swig {
   };
 
   template <class Type>
-  inline SWIG_Object from SWIG_FROM_DECL_ARGS(const Type& val) {
+  inline SWIG_Object from SWIG_FROM_DECL_ARGS(Type const& val) {
     return traits_from<Type>::from(val);
   }
 
