@@ -5,3 +5,7 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.11 (in progress)
 ============================
 
+2013-06-04: olly
+	    [PHP] Fix SWIG_ZTS_ConvertResourcePtr() not to dereference NULL
+	    if the type lookup fails.
+

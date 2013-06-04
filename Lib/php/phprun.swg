@@ -209,11 +209,11 @@ SWIG_ZTS_ConvertResourcePtr(zval *z, swig_type_info *ty, int flags TSRMLS_DC) {
   const char *type_name;
 
   value = (swig_object_wrapper *) zend_list_find(z->value.lval, &type);
-  if ( flags & SWIG_POINTER_DISOWN ) {
+  if (type==-1) return NULL;
+  if (flags & SWIG_POINTER_DISOWN) {
     value->newobject = 0;
   }
   p = value->ptr;
-  if (type==-1) return NULL;
 
   type_name=zend_rsrc_list_get_rsrc_type(z->value.lval TSRMLS_CC);
 
