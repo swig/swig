@@ -1280,7 +1280,7 @@ SWIGRUNTIME int SWIG_Octave_ConvertPacked(const octave_value &ov, void *ptr, siz
   return ost->copy(type, (char *) ptr, sz) ? SWIG_OK : SWIG_ERROR;
 }
 
-void SWIG_Octave_SetConstant(octave_swig_type *module_ns, const std::string &name, const octave_value &ov) {
+SWIGRUNTIMEINLINE void SWIG_Octave_SetConstant(octave_swig_type *module_ns, const std::string &name, const octave_value &ov) {
   module_ns->assign(name, ov);
 }
 
