@@ -274,6 +274,13 @@
  * ----------------------------------------------------------------------------- */
 %scilab_varout_typemap(constcode, SwigScilabInt32FromEnum, enum SWIGTYPE);
 
+%typemap(out, fragment="SwigScilabInt32FromEnum") enum SWIGTYPE {
+  if (SwigScilabInt32FromEnum(pvApiCtx, $result, $1) != SWIG_OK)
+  {
+    return SWIG_ERROR;
+  }
+}
+
 /* -----------------------------------------------------------------------------*/
 /* Typecheck typemaps */
 /* -----------------------------------------------------------------------------*/
