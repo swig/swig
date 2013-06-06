@@ -1,18 +1,16 @@
-/* File : example.cpp */
+/* File : example.hxx */
 
 #include <vector>
 
-namespace nlopt {
-    class opt {
-    public:
-        void set_lower_bound(const std::vector<double> &v) {
-            double sum = 0;
-            for (int i = 0; i < v.size(); i++) {
-                sum += v[i];
-            }
-            //return sum;
-        }
-    };
-}
+std::vector<double> create_dvector(const int size, const double value);
+std::vector<int> create_ivector(const int size, const int value);
+
+double sum_dvector(const std::vector<double> dvector);
+int sum_ivector(const std::vector<int> ivector);
+
+void concat_dvector(std::vector<double>& dvector, const std::vector<double> other_dvector);
+void concat_ivector(std::vector<int>& ivector, const std::vector<int> other_ivector);
+
+
 
 

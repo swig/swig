@@ -1,9 +1,14 @@
-// loader the *.so
 exec loader.sce
 
-myMatrix=[ 103 3 1    12;0   0 2043 1];
-m=sumitems_argoutput(myMatrix)
-myOtherMatrix=getValues();
-size(myOtherMatrix)
-disp(myOtherMatrix);
-exit
+disp("Call lib function getMatrix()");
+matrix1 = getMatrix();
+disp(matrix1);
+
+disp("Call lib function sumMatrixElements()");
+s = sumMatrixElements(matrix1);
+disp(s);
+
+disp("Call lib function squareMatrixElements()");
+squareMatrix = squareMatrixElements(matrix1);
+disp(squareMatrix);
+

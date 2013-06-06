@@ -9,7 +9,7 @@
 
 %include <std_common.i>
 
-%fragment("SciSwigIterator","header",fragment="<stddef.h>") {  
+%fragment("SciSwigIterator","header",fragment="<stddef.h>") {
 namespace swig {
   struct stop_iteration {
   };
@@ -22,7 +22,7 @@ namespace swig {
     SciSwigIterator(SciObject seq) : _seq(seq)
     {
     }
-      
+
   public:
     virtual ~SciSwigIterator() {}
 
@@ -44,7 +44,7 @@ namespace swig {
     {
       throw std::invalid_argument("operation not supported");
     }
-    
+
     virtual SciSwigIterator *copy() const = 0;
 
     SciObject next()
@@ -64,12 +64,12 @@ namespace swig {
     {
       return  (n > 0) ?  incr(n) : decr(-n);
     }
-      
+
     bool operator == (const SciSwigIterator& x)  const
     {
       return equal(x);
     }
-      
+
     bool operator != (const SciSwigIterator& x) const
     {
       return ! operator==(x);
@@ -84,7 +84,7 @@ namespace swig {
       decr();
       return this;
     }
-      
+
     SciSwigIterator* operator + (ptrdiff_t n) const
     {
       return copy()->advance(n);
@@ -94,21 +94,21 @@ namespace swig {
     {
       return copy()->advance(-n);
     }
-      
+
     ptrdiff_t operator - (const SciSwigIterator& x) const
     {
       return x.distance(*this);
     }
-      
+
     static swig_type_info* descriptor() {
       static int init = 0;
       static swig_type_info* desc = 0;
       if (!init) {
 	desc = SWIG_TypeQuery("swig::SciSwigIterator *");
 	init = 1;
-      }	
+      }
       return desc;
-    }    
+    }
   };
 }
 }
@@ -120,7 +120,7 @@ namespace swig {
   {
   public:
     typedef OutIterator out_iterator;
-    typedef typename std::iterator_traits<out_iterator>::value_type value_type;    
+    typedef typename std::iterator_traits<out_iterator>::value_type value_type;
     typedef SciSwigIterator_T<out_iterator> self_type;
 
     SciSwigIterator_T(out_iterator curr, SciObject seq)
@@ -133,7 +133,7 @@ namespace swig {
       return current;
     }
 
-    
+
     bool equal (const SciSwigIterator &iter) const
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
@@ -143,7 +143,7 @@ namespace swig {
 	throw std::invalid_argument("bad iterator type");
       }
     }
-    
+
     ptrdiff_t distance(const SciSwigIterator &iter) const
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
@@ -152,14 +152,14 @@ namespace swig {
       } else {
 	throw std::invalid_argument("bad iterator type");
       }
-    }    
-    
+    }
+
   protected:
     out_iterator current;
   };
-  
+
   template <class ValueType>
-  struct from_oper 
+  struct from_oper
   {
     typedef const ValueType& argument_type;
     typedef SciObject result_type;
@@ -169,7 +169,7 @@ namespace swig {
     }
   };
 
-  template<typename OutIterator, 
+  template<typename OutIterator,
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
 	   typename FromOper = from_oper<ValueType> >
   class SciSwigIteratorOpen_T :  public SciSwigIterator_T<OutIterator>
@@ -180,16 +180,16 @@ namespace swig {
     typedef ValueType value_type;
     typedef SciSwigIterator_T<out_iterator>  base;
     typedef SciSwigIteratorOpen_T<OutIterator, ValueType, FromOper> self_type;
-    
+
     SciSwigIteratorOpen_T(out_iterator curr, SciObject seq)
       : SciSwigIterator_T<OutIterator>(curr, seq)
     {
     }
-    
+
     SciObject value() const {
       return from(static_cast<const value_type&>(*(base::current)));
     }
-    
+
     SciSwigIterator *copy() const
     {
       return new self_type(*this);
@@ -212,7 +212,7 @@ namespace swig {
     }
   };
 
-  template<typename OutIterator, 
+  template<typename OutIterator,
 	   typename ValueType = typename std::iterator_traits<OutIterator>::value_type,
 	   typename FromOper = from_oper<ValueType> >
   class SciSwigIteratorClosed_T :  public SciSwigIterator_T<OutIterator>
@@ -221,14 +221,14 @@ namespace swig {
     FromOper from;
     typedef OutIterator out_iterator;
     typedef ValueType value_type;
-    typedef SciSwigIterator_T<out_iterator>  base;    
+    typedef SciSwigIterator_T<out_iterator>  base;
     typedef SciSwigIteratorClosed_T<OutIterator, ValueType, FromOper> self_type;
-    
+
     SciSwigIteratorClosed_T(out_iterator curr, out_iterator first, out_iterator last, SciObject seq)
       : SciSwigIterator_T<OutIterator>(curr, seq), begin(first), end(last)
     {
     }
-    
+
     SciObject value() const {
       if (base::current == end) {
 	throw stop_iteration();
@@ -236,7 +236,7 @@ namespace swig {
 	return from(static_cast<const value_type&>(*(base::current)));
       }
     }
-    
+
     SciSwigIterator *copy() const
     {
       return new self_type(*this);
@@ -289,14 +289,15 @@ namespace swig {
 
 
 %fragment("SciSwigIterator");
-namespace swig 
+namespace swig
 {
 // Throw a StopIteration exception
   %ignore stop_iteration;
   struct stop_iteration {};
-  
-  %typemap(throws) stop_iteration {
-    error("stop_iteration exception");
+
+  %typemap(throws) stop_iteration
+  {
+    Scierror(999, "%s: stop_iteration exception", SWIG_Scilab_GetFname());
     SWIG_fail;
   }
 
@@ -332,13 +333,13 @@ namespace swig
     virtual SciObject value() const = 0;
 
     virtual SciSwigIterator *incr(size_t n = 1) = 0;
-    
+
     virtual SciSwigIterator *decr(size_t n = 1);
 
     virtual ptrdiff_t distance(const SciSwigIterator &x) const;
 
     virtual bool equal (const SciSwigIterator &x) const;
-    
+
     virtual SciSwigIterator *copy() const = 0;
 
     SciObject next();
