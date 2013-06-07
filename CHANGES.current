@@ -5,6 +5,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.11 (in progress)
 ============================
 
+2013-07-07: wsfulton
+	    [Ruby] Git issue #52. Fix regression with missing rb_complex_new function for Ruby
+            versions prior to 1.9 using std::complex wrappers if just using std::complex as an output type.
+            Also fix the Complex helper functions external visibility (to static by default).
+
 2013-06-04: olly
 	    [PHP] Fix SWIG_ZTS_ConvertResourcePtr() not to dereference NULL
 	    if the type lookup fails.

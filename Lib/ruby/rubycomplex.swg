@@ -7,34 +7,39 @@
   See the std_complex.i and ccomplex.i for concrete examples.
 */
 
-%fragment("SWIG_Complex_Numbers","header")
+%fragment("rb_complex_new","header")
 {
 %#if !defined(T_COMPLEX)
 /* Ruby versions prior to 1.9 did not have native complex numbers.  They were an extension in the STD library.  */
-VALUE rb_complex_new(VALUE x, VALUE y) {
+SWIGINTERN VALUE rb_complex_new(VALUE x, VALUE y) {
   static ID new_id = rb_intern("new");
   static VALUE cComplex = rb_const_get(rb_cObject, rb_intern("Complex"));
   return rb_funcall(cComplex, new_id, 2, x, y);
 }
+%#endif
+}
 
-static int SWIG_Is_Complex( VALUE obj ) {
+%fragment("SWIG_Complex_Numbers","header")
+{
+%#if !defined(T_COMPLEX)
+SWIGINTERN int SWIG_Is_Complex( VALUE obj ) {
   static ID real_id = rb_intern("real");
   static ID imag_id = rb_intern("imag");
   return ( (rb_respond_to( obj, real_id ) ) &&
            (rb_respond_to( obj, imag_id ) ) );
 }
 %#else
-static int SWIG_Is_Complex( VALUE obj ) {
+SWIGINTERN int SWIG_Is_Complex( VALUE obj ) {
   return TYPE(obj) == T_COMPLEX;
 }
 %#endif
 
-VALUE SWIG_Complex_Real(VALUE obj) {
+SWIGINTERN VALUE SWIG_Complex_Real(VALUE obj) {
   static ID real_id = rb_intern("real");
   return rb_funcall(obj, real_id, 0);
 }
 
-VALUE SWIG_Complex_Imaginary(VALUE obj) {
+SWIGINTERN VALUE SWIG_Complex_Imaginary(VALUE obj) {
   static ID imag_id = rb_intern("imag");
   return rb_funcall(obj, imag_id, 0);
 }
@@ -48,7 +53,7 @@ VALUE SWIG_Complex_Imaginary(VALUE obj) {
 
 /* the common from converter */
 %define %swig_fromcplx_conv(Type, Real, Imag)
-%fragment(SWIG_From_frag(Type),"header")
+%fragment(SWIG_From_frag(Type),"header",fragment="rb_complex_new")
 {
 SWIGINTERNINLINE VALUE
 SWIG_From(Type)(%ifcplusplus(const Type&, Type) c)
