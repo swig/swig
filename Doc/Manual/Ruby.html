@@ -166,7 +166,7 @@ of Ruby. </p>
 option:</p>
 
 <div class="code shell">
-<pre>$ <b>swig -ruby example.i</b>
+<pre>$ swig -ruby example.i
 </pre>
 </div>
 
@@ -174,7 +174,7 @@ option:</p>
 option: </p>
 
 <div class="code shell">
-<pre>$ <b>swig -c++ -ruby example.i</b>
+<pre>$ swig -c++ -ruby example.i
 </pre>
 </div>
 
@@ -200,7 +200,7 @@ location is typical. If you are not entirely sure where Ruby is
 installed, you can run Ruby to find out. For example: </p>
 
 <div class="code shell">
-<pre>$ <b>ruby -e 'puts $:.join("\n")'</b>
+<pre>$ ruby -e 'puts $:.join("\n")'
 /usr/local/lib/ruby/site_ruby/1.6 /usr/local/lib/ruby/site_ruby/1.6/i686-linux
 /usr/local/lib/ruby/site_ruby /usr/local/lib/ruby/1.6 /usr/local/lib/ruby/1.6/i686-linux .
 </pre>
@@ -226,7 +226,10 @@ looks like the following:</p>
   <li>
     <p>Type the following to build the extension:</p>
     <div class="code shell">
-    <pre>$ <b>ruby extconf.rb</b><br>$ <b>make</b><br>$ <b>make install</b>
+    <pre>
+$ ruby extconf.rb
+$ make
+$ make install
     </pre>
     </div>
   </li>
@@ -254,10 +257,10 @@ called <tt>example.c</tt>, a typical sequence of commands for the Linux
 operating system would look something like this: </p>
 
 <div class="code shell">
-<pre>$ <b>swig -ruby example.i</b>
-$ <b>gcc -c example.c</b>
-$ <b>gcc -c example_wrap.c -I/usr/local/lib/ruby/1.6/i686-linux</b> 
-$ <b>gcc -shared example.o example_wrap.o -o example.so</b>
+<pre>$ swig -ruby example.i
+$ gcc -c example.c
+$ gcc -c example_wrap.c -I/usr/local/lib/ruby/1.6/i686-linux
+$ gcc -shared example.o example_wrap.o -o example.so
 </pre>
 </div>
 
@@ -291,7 +294,7 @@ name for your extension. So for example, a SWIG interface file that
 begins with: </p>
 
 <div class="code">
-<pre>%module example<br></pre>
+<pre>%module example</pre>
 </div>
 
 <p> will result in an extension module using the feature name
@@ -319,7 +322,11 @@ finally rebuilding Ruby. </p>
 using the C++ compiler. For example: </p>
 
 <div class="code shell">
-<pre>$ <b>swig -c++ -ruby example.i</b><br>$ <b>g++ -c example.cxx</b><br>$ <b>g++ -c example_wrap.cxx -I/usr/local/lib/ruby/1.6/i686-linux</b><br>$ <b>g++ -shared example.o example_wrap.o -o example.so</b>
+<pre>
+$ swig -c++ -ruby example.i
+$ g++ -c example.cxx
+$ g++ -c example_wrap.cxx -I/usr/local/lib/ruby/1.6/i686-linux
+$ g++ -shared example.o example_wrap.o -o example.so
 </pre>
 </div>
 
@@ -349,7 +356,10 @@ script) will work with Windows as well; you should be able to build
 your code into a DLL by typing: </p>
 
 <div class="code shell">
-<pre>C:\swigtest&gt; <b>ruby extconf.rb</b><br>C:\swigtest&gt; <b>nmake</b><br>C:\swigtest&gt; <b>nmake install</b>
+<pre>
+C:\swigtest&gt; ruby extconf.rb
+C:\swigtest&gt; nmake
+C:\swigtest&gt; nmake install
 </pre>
 </div>
 
@@ -414,7 +424,10 @@ example if you have this ruby file run.rb:</p>
 directory, then run the Ruby script from the DOS/Command prompt: </p>
 
 <div class="code shell">
-<pre>C:\swigtest&gt; <b>ruby run.rb</b><br>Foo = 3.0<br></pre>
+<pre>
+C:\swigtest&gt; ruby run.rb
+Foo = 3.0
+</pre>
 </div>
 
 <H2><a name="Ruby_nn11"></a>36.3 The Ruby-to-C/C++ Mapping</H2>
@@ -443,33 +456,34 @@ quotes, e.g. </p>
 </div>
 
 <p> An alternate method of specifying a nested module name is to
-use the <span style="font-family: monospace;">-prefix</span>
+use the <tt>-prefix</tt>
 option on the SWIG command line. The prefix that you specify with this
-option will be prepended to the module name specified with the <span style="font-family: monospace;">%module</span>
+option will be prepended to the module name specified with the <tt>%module</tt>
 directive in your SWIG interface file. So for example, this declaration
-at the top of your SWIG interface file:<br>
-
+at the top of your SWIG interface file:
 </p>
 
 <div class="code">
 <pre>%module "foo::bar::spam"</pre>
 </div>
 
-<p> will result in a nested module name of <span style="font-family: monospace;">Foo::Bar::Spam</span>,
+<p> will result in a nested module name of <tt>Foo::Bar::Spam</tt>,
 but you can achieve the <span style="font-style: italic;">same</span>
-effect by specifying:<br>
+effect by specifying:
 </p>
 
 <div class="code">
 <pre>%module spam</pre>
 </div>
 
-<p> and then running SWIG with the <span style="font-family: monospace;">-prefix</span> command
-line option:<br>
+<p> and then running SWIG with the <tt>-prefix</tt> command
+line option:
 </p>
 
 <div class="code shell">
-<pre>$ <b>swig -ruby -prefix "foo::bar::" example.i</b></pre>
+<pre>
+$ swig -ruby -prefix "foo::bar::" example.i
+</pre>
 </div>
 
 <p> Starting with SWIG 1.3.20, you can also choose to wrap
@@ -477,7 +491,9 @@ everything into the global module by specifying the <tt>-globalmodule</tt>
 option on the SWIG command line, i.e. </p>
 
 <div class="code shell">
-<pre>$ <b>swig -ruby -globalmodule example.i</b></pre>
+<pre>
+$ swig -ruby -globalmodule example.i
+</pre>
 </div>
 
 <p> Note that this does not relieve you of the requirement of
@@ -721,7 +737,7 @@ utility methods work normally: </p>
 <p> Furthermore, if you have a function like this: </p>
 
 <div class="code">
-<pre>void spam(Parent *f);<br></pre>
+<pre>void spam(Parent *f);</pre>
 </div>
 
 <p> then the function <tt>spam()</tt> accepts <tt>Parent</tt>*
@@ -758,7 +774,9 @@ an optional feature that you can activate with the <tt>-minherit</tt>
 command-line option: </p>
 
 <div class="code shell">
-<pre>$ <b>swig -c++ -ruby -minherit example.i</b></pre>
+<pre>
+$ swig -c++ -ruby -minherit example.i
+</pre>
 </div>
 
 <p> Using our previous example, if your SWIG interface file
@@ -1004,45 +1022,37 @@ do
 that, you need to define a container that contains a swig::GC_VALUE,
 like:</p>
 
-<div style="font-family: monospace;" class="code">%module
-nativevector<br>
-<br>
+<div class="code"><pre>
+%module nativevector
 
-%{<br>
-std::vector&lt; swig::GC_VALUE &gt; NativeVector;<br>
-%}<br>
-<br>
+%{
+std::vector&lt; swig::GC_VALUE &gt; NativeVector;
+%}
 
-%template(NativeVector) std::vector&lt; swig::GC_VALUE &gt;;<br>
+%template(NativeVector) std::vector&lt; swig::GC_VALUE &gt;;
+</pre>
 </div>
-
-<br>
 
 <p>This vector can then contain any Ruby object, making them
 almost identical to Ruby's own Array class.</p>
 
-<div class="targetlang"><span style="font-family: monospace;">require 'nativevector'</span><br style="font-family: monospace;">
+<div class="targetlang">
+<pre>require 'nativevector'
+include NativeVector
 
-<span style="font-family: monospace;">include NativeVector</span><br style="font-family: monospace;">
+v = NativeVector.new
+v &lt;&lt; 1
+v &lt;&lt; [1,2]
+v &lt;&lt; 'hello'
 
-<br style="font-family: monospace;">
+class A; end
 
-<span style="font-family: monospace;">v = NativeVector.new</span><br style="font-family: monospace;">
-<span style="font-family: monospace;">v &lt;&lt; 1</span><br style="font-family: monospace;">
-<span style="font-family: monospace;">v &lt;&lt;
-[1,2]</span><br style="font-family: monospace;">
-<span style="font-family: monospace;">v &lt;&lt;
-'hello'</span><br style="font-family: monospace;">
-<br style="font-family: monospace;">
-<span style="font-family: monospace;">class A; end</span><br style="font-family: monospace;">
-<br style="font-family: monospace;">
-<span style="font-family: monospace;">v &lt;&lt;
-A.new</span><br style="font-family: monospace;">
-<br style="font-family: monospace;">
-<span style="font-family: monospace;">puts v</span><br style="font-family: monospace;">
-<span style="font-weight: bold; font-family: monospace;">=&gt;
-[1, [1,2], 'hello',&nbsp;#&lt;A:0x245325&gt;]</span></div>
-<br>
+v &lt;&lt; A.new
+
+puts v
+=&gt; [1, [1,2], 'hello',&nbsp;#&lt;A:0x245325&gt;]
+</pre>
+</div>
 
 <p>Obviously, there is a lot more to template wrapping than
 shown in these examples. More details can be found in the <a href="SWIGPlus.html#SWIGPlus">SWIG and C++</a>
@@ -1053,7 +1063,7 @@ chapter.</p>
 
 <p>Some containers in the STL allow you to modify their default
 behavior by using so called functors or function objects.
-&nbsp;Functors are often just a very simple struct with<span style="font-family: monospace;"> operator()</span>
+&nbsp;Functors are often just a very simple struct with<tt> operator()</tt>
 redefined or an actual C/C++ function. &nbsp;This allows you, for
 example, to always keep the sort order of a STL container to your
 liking.</p>
@@ -1062,58 +1072,51 @@ liking.</p>
 that
 support functors using Ruby procs or methods, instead.
 &nbsp;Currently,
-this includes <span style="font-family: monospace;">std::set</span>,
-<span style="font-family: monospace;">set::map</span>,
-<span style="font-family: monospace;">std::multiset</span>
-and <span style="font-family: monospace;">std::multimap</span>.</p>
+this includes <tt>std::set</tt>,
+<tt>set::map</tt>,
+<tt>std::multiset</tt>
+and <tt>std::multimap</tt>.</p>
 
-<p>The functors in swig are called<span style="font-family: monospace;"> swig::UnaryFunction</span>
-and <span style="font-family: monospace;">swig::BinaryFunction</span>.<br>
+<p>The functors in swig are called<tt> swig::UnaryFunction</tt>
+and <tt>swig::BinaryFunction</tt>.
 
-For C++ predicates (ie. functors that must return bool as a result) <span style="font-family: monospace;">swig::UnaryPredicate</span>
-and <span style="font-family: monospace;">swig::BinaryPredicate</span>
+For C++ predicates (ie. functors that must return bool as a result) <tt>swig::UnaryPredicate</tt>
+and <tt>swig::BinaryPredicate</tt>
 are provided.</p>
 
 <p>As an example, if given this swig file:</p>
 
-<div style="font-family: monospace;" class="code">%module
-intset;<br>
-<br>
-%include &lt;std_set.i&gt;<br>
-<br>
+<div class="code"><pre>
+%module intset;
 
-%typemap(IntSet)&nbsp; std::set&lt; int, swig::BinaryPredicate
-&gt;;</div>
+%include &lt;std_set.i&gt;
+
+%typemap(IntSet)&nbsp; std::set&lt; int, swig::BinaryPredicate &gt;;
+</pre></div>
 
 <p>You can then use the set from Ruby with or without a proc
 object as a predicate:</p>
 
-<div style="font-family: monospace;" class="targetlang">require
-'intset'<br>
+<div class="targetlang"><pre>
+require 'intset'
+include Intset
 
-include Intset<br>
-<br>
-# Default sorting behavior defined in C++<br>
-a = IntSet.new<br>
-
-a &lt;&lt; 1<br>
-a &lt;&lt; 2<br>
-a &lt;&lt; 3<br>
-a<br>
-
-<span style="font-weight: bold;">=&gt;
-&nbsp;[1,2,3]</span><br>
-<br>
+# Default sorting behavior defined in C++
+a = IntSet.new
+a &lt;&lt; 1
+a &lt;&lt; 2
+a &lt;&lt; 3
+a
+<span style="font-weight: bold;">=&gt;&nbsp;[1,2,3]</span>
 
 # Custom sorting behavior defined by a Ruby proc
-<div><span class="targetlang">b = IntSet.new( proc {
-|a,b| a &gt; b } )</span><br>
-b&nbsp;&lt;&lt; 1<br>
-b&nbsp;&lt;&lt; 2<br>
-b&nbsp;&lt;&lt; 3<br>
-b<br style="font-weight: bold;">
-<span style="font-weight: bold;">=&gt;
-&nbsp;[3,2,1]</span> </div>
+b = IntSet.new( proc { |a,b| a &gt; b } )
+b&nbsp;&lt;&lt; 1
+b&nbsp;&lt;&lt; 2
+b&nbsp;&lt;&lt; 3
+b
+<span style="font-weight: bold;">=&gt; &nbsp;[3,2,1]</span>
+</pre>
 </div>
 
 <H3><a name="Ruby_C_Iterators"></a>36.3.15 C++ STL Iterators</H3>
@@ -1127,8 +1130,8 @@ values they point at, while the non-const iterators can both read and
 modify the values.</p>
 
 <p>The Ruby STL wrappings support both type of iterators by using
-a proxy class in-between. &nbsp;This proxy class is <span style="font-family: monospace;">swig::Iterator or
-swig::ConstIterator. &nbsp;</span>Derived from them are template
+a proxy class in-between. &nbsp;This proxy class is <tt>swig::Iterator or
+swig::ConstIterator. &nbsp;</tt>Derived from them are template
 classes that need to be initialized with the actual iterator for the
 container you are wrapping and often times with the beginning and
 ending points of the iteration range.&nbsp;</p>
@@ -1136,86 +1139,68 @@ ending points of the iteration range.&nbsp;</p>
 <p>The SWIG STL library already provides typemaps to all the
 standard containers to do this wrapping automatically for you, but if
 you have your own STL-like iterator, you will need to write your own
-typemap for them.&nbsp;&nbsp;For out typemaps, the special functions <span style="font-family: monospace;">make_const_iterator</span> and <span style="font-family: monospace;">make_nonconst_iterator</span> are provided.</p>
+typemap for them.&nbsp;&nbsp;For out typemaps, the special functions <tt>make_const_iterator</tt> and <tt>make_nonconst_iterator</tt> are provided.</p>
 
 <p>These can be used either like:</p>
 
-<div style="font-family: monospace;" class="code">make_const_iterator( iterator, rubyclass );<br>
+<div class="code"><pre>
+make_const_iterator( iterator, rubyclass );
+make_const_iterator( iterator, iterator_begin, iterator_end, rubyclass );
+</pre></div>
 
-make_const_iterator( iterator, iterator_begin, iterator_end, rubyclass );</div>
-
-<p>The iterators support a <span style="font-family: monospace;">next()</span> and <span style="font-family: monospace;">previous()&nbsp;</span>member function to
-just change the iterator without returning anything. &nbsp;<span style="font-family: monospace;">previous()</span>
+<p>The iterators support a <tt>next()</tt> and <tt>previous()&nbsp;</tt>member function to
+just change the iterator without returning anything. &nbsp;<tt>previous()</tt>
 should obviously only be used for bidirectional iterators. &nbsp;You
 can also advance the iterator multiple steps by using standard math
-operations like <span style="font-family: monospace;">+=</span>.</p>
+operations like <tt>+=</tt>.</p>
 
 <p>The
-value&nbsp;the iterator points at can be accessed with <span style="font-family: monospace;">value()</span> -- this is equivalent to dereferencing it with <span style="font-family: monospace;">*i</span>.
-&nbsp; For non-const iterators, a <span style="font-family: monospace;">value=()</span> function
+value&nbsp;the iterator points at can be accessed with <tt>value()</tt> -- this is equivalent to dereferencing it with <tt>*i</tt>.
+&nbsp; For non-const iterators, a <tt>value=()</tt> function
 is also provided which allows you to change the value pointed by the
-iterator. &nbsp;This is equivalent to the C++ construct of dereferencing and assignment, like <span style="font-family: monospace;">*i = something</span>.&nbsp;</p>
+iterator. &nbsp;This is equivalent to the C++ construct of dereferencing and assignment, like <tt>*i = something</tt>.&nbsp;</p>
 
 <p>Thus, given say a vector class of doubles defined as:</p>
 
-<div style="font-family: monospace;" class="code"><span class="code">%module doublevector</span><br class="code">
+<div class="code">
+<pre>
+%module doublevector
 
-<span class="code"><br>
+%include std_vector.i
 
-%include std_vector.i</span><br class="code">
-
-<span class="code"><br>
-
-%template(DoubleVector) std::vector&lt;double&gt;;</span></div>
+%template(DoubleVector) std::vector&lt;double&gt;;
+</pre>
+</div>
 
 <p>Its iterator can then be used from Ruby like:</p>
 
-<div style="font-family: monospace;" class="targetlang">require
-'doublevector'<br>
+<div class="targetlang">
+<pre>
+require 'doublevector'
+include Doublevector
 
-include Doublevector<br>
+v = DoubleVector.new
+v &lt;&lt; 1
+v &lt;&lt; 2
+v &lt;&lt; 3
 
-<br>
+#
+# an elaborate and less efficient way of doing v.map! { |x| x+2 }
+#
+i = v.begin
+e = v.end
+while i != e
+&nbsp; val = i.value
+&nbsp; val += 2
+&nbsp; i.value = val
+&nbsp; i.next
+end
+i
+<b>&gt;&gt; [3, 4, 5 ]</b>
+</pre>
+</div>
 
-v = DoubleVector.new<br>
-
-v &lt;&lt; 1<br>
-
-v &lt;&lt; 2<br>
-
-v &lt;&lt; 3<br>
-
-<br>
-
-#<br>
-
-# an elaborate and less efficient way of doing v.map! { |x| x+2 }<br>
-
-#<br>
-
-i = v.begin<br>
-
-e = v.end<br>
-
-while i != e<br>
-
-&nbsp; val = i.value<br>
-
-&nbsp; val += 2<br>
-
-&nbsp; i.value = val<br>
-
-&nbsp; i.next<br>
-
-end<br>
-
-i<br>
-
-<b>&gt;&gt; [3, 4, 5 ]</b></div>
-
-<br>
-
-<p>If you'd rather have STL classes without any iterators, you should define<span style="font-family: monospace;"> -DSWIG_NO_EXPORT_ITERATOR_METHODS </span>when running swig.</p>
+<p>If you'd rather have STL classes without any iterators, you should define<tt> -DSWIG_NO_EXPORT_ITERATOR_METHODS </tt>when running swig.</p>
 
 <H3><a name="Ruby_nn24"></a>36.3.16 C++ Smart Pointers</H3>
 
@@ -1321,7 +1306,7 @@ constant, class and method names to conform with the standard Ruby
 naming conventions. For example: </p>
 
 <div class="code shell">
-<pre>$ <b>swig -ruby -autorename example.i</b>
+<pre>$ swig -ruby -autorename example.i
 </pre>
 </div>
 
@@ -1637,37 +1622,38 @@ construction:
 
 <p> Then, in ruby, it can be used like:</p>
 
-<div style="font-family: monospace;" class="targetlang">Window.new(0,0,360,480)
-{ |w|<br>
-
-&nbsp;&nbsp;&nbsp; w.color = Fltk::RED<br>
-
-&nbsp;&nbsp;&nbsp; w.border = false<br>
-
-<span class="targetlang">}</span></div>
+<div class="targetlang"><pre>
+Window.new(0,0,360,480) { |w|
+&nbsp;&nbsp;&nbsp; w.color = Fltk::RED
+&nbsp;&nbsp;&nbsp; w.border = false
+}
+</pre>
+</div>
 
 <br>
 
 <p>For other methods, you can usually use a dummy parameter with
 a special in typemap, like:</p>
 
-<div class="code" style="font-family: monospace;">//<br>
+<div class="code" ><pre>
+//
+// original function was:
+//
+// void func(int x);
 
-// original function was:<br>
-//<br>
-// void func(int x);<br>
-<br>
-%typemap(in,numinputs=0) int RUBY_YIELD_SELF {<br>
-&nbsp; &nbsp; &nbsp;if ( !rb_block_given_p() )<br>
+%typemap(in,numinputs=0) int RUBY_YIELD_SELF {
+&nbsp; &nbsp; &nbsp;if ( !rb_block_given_p() )
 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-rb_raise("No block given");<br>
-&nbsp; &nbsp; &nbsp;return rb_yield(self);<br>
-}<br>
-<br>
-%extend {<br>
+rb_raise("No block given");
+&nbsp; &nbsp; &nbsp;return rb_yield(self);
+}
+
+%extend {
 &nbsp; &nbsp; &nbsp; &nbsp; void func(int x, int
-RUBY_YIELD_SELF );<br>
-}</div>
+RUBY_YIELD_SELF );
+}
+</pre>
+</div>
 
 <p>For more information on typemaps, see <a href="#Ruby_nn37">Typemaps</a>.</p>
 
@@ -1685,118 +1671,118 @@ from SWIG error codes to Ruby exceptions:</p>
 <table class="diagram" summary="Mapping between SWIG error codes and Ruby exceptions." border="1" width="80%">
   <tbody>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_MemoryError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eNoMemError</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_IOError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eIOError</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_RuntimeError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eRuntimeError</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_IndexError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eIndexError</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_TypeError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eTypeError</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_DivisionByZero</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eZeroDivError</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_OverflowError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eRangeError</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_SyntaxError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eSyntaxError</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_ValueError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eArgError</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_SystemError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eFatal</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_AttributeError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eRuntimeError</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_NullReferenceError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eNullReferenceError*</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_ObjectPreviouslyDeletedError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eObjectPreviouslyDeleted*</div>
       </td>
     </tr>
     <tr>
-      <td class="diagram" style="font-family: monospace;">
+      <td class="diagram">
       <div>SWIG_UnknownError</div>
       </td>
-      <td style="font-family: monospace;">
+      <td>
       <div>rb_eRuntimeError</div>
       </td>
     </tr>
-    <tr class="diagram" style="font-family: monospace;">
+    <tr class="diagram">
       <td colspan="2">
       <div>* These error classes are created by
 SWIG and are not built-in Ruby exception classes </div>
@@ -1812,10 +1798,9 @@ Obj is a C++ instance of an exception class, type is a string
 specifying the type of exception (for example, "MyError") and desc is
 the SWIG description of the exception class. For example: </p>
 
-<div style="font-family: monospace;" class="code">
-%raise(SWIG_NewPointerObj(e,
-SWIGTYPE_p_AssertionFailedException,
-0), ":AssertionFailedException", SWIGTYPE_p_AssertionFailedException);</div>
+<div class="code"><pre>
+%raise(SWIG_NewPointerObj(e, SWIGTYPE_p_AssertionFailedException, 0), ":AssertionFailedException", SWIGTYPE_p_AssertionFailedException);
+</pre></div>
 
 <p>This is useful when you want to pass the current exception
 object
@@ -1849,7 +1834,7 @@ providing for a more natural integration between C++ code and Ruby code.</p>
 <pre>foo = Foo.new<br>begin<br> foo.test()<br>rescue CustomError =&gt; e<br> puts "Caught custom error"<br>end </pre>
 </div>
 
-<p>For another example look at swig/Examples/ruby/exception_class.<br>
+<p>For another example look at swig/Examples/ruby/exception_class.
 
 </p>
 
@@ -1876,8 +1861,11 @@ attached to a specific C datatype. The general form of this declaration
 is as follows ( parts enclosed in [...] are optional
 ):&nbsp;&nbsp; &nbsp;</p>
 
-<div class="code"><span style="font-family: monospace;" class="code">%typemap( method [, modifiers...] ) typelist
-code; </span></div>
+<div class="code">
+<pre>
+%typemap( method [, modifiers...] ) typelist code;
+</pre>
+</div>
 
 <p><em> method</em> is a simply a name that specifies
 what kind of typemap is being defined. It is usually a name like <tt>"in"</tt>,
@@ -1936,7 +1924,10 @@ following sample code: </p>
 <p>prints the result:</p>
 
 <div class="code shell">
-<pre>Received an integer : 6<br>720<br></pre>
+<pre>
+Received an integer : 6
+720
+</pre>
 </div>
 
 <p> In this example, the typemap is applied to all occurrences of
@@ -2122,33 +2113,33 @@ function arguments. For example:
 <table border="1" cellpadding="2" cellspacing="2" width="100%" summary="Special variables - in typemap">
   <tbody>
     <tr>
-      <td style="font-family: monospace;">$input </td>
-      <td style="font-family: monospace;"> Input object
+      <td>$input </td>
+      <td> Input object
 holding value to be converted.</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$symname </td>
-      <td style="font-family: monospace;"> Name of
+      <td>$symname </td>
+      <td> Name of
 function/method being wrapped</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1...n </td>
-      <td style="font-family: monospace;"> Argument being
+      <td>$1...n </td>
+      <td> Argument being
 sent to the function</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_name </td>
-      <td style="font-family: monospace;"> Name of the
+      <td>$1_name </td>
+      <td> Name of the
 argument (if provided)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_type </td>
-      <td style="font-family: monospace;"> The actual C
+      <td>$1_type </td>
+      <td> The actual C
 datatype matched by the typemap.</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_ltype </td>
-      <td style="font-family: monospace;"> The assignable
+      <td>$1_ltype </td>
+      <td> The assignable
 version of the C datatype matched by the typemap.</td>
     </tr>
   </tbody>
@@ -2205,33 +2196,33 @@ to a Ruby object.</p>
 <table border="1" cellpadding="2" cellspacing="2" width="100%" summary="Special variables - out typemap">
   <tbody>
     <tr>
-      <td style="font-family: monospace;">$result </td>
-      <td style="font-family: monospace;"> Result object
+      <td>$result </td>
+      <td> Result object
 returned to target language.</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$symname </td>
-      <td style="font-family: monospace;"> Name of
+      <td>$symname </td>
+      <td> Name of
 function/method being wrapped</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1...n </td>
-      <td style="font-family: monospace;"> Argument being
+      <td>$1...n </td>
+      <td> Argument being
 wrapped</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_name </td>
-      <td style="font-family: monospace;"> Name of the
+      <td>$1_name </td>
+      <td> Name of the
 argument (if provided)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_type </td>
-      <td style="font-family: monospace;"> The actual C
+      <td>$1_type </td>
+      <td> The actual C
 datatype matched by the typemap.</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_ltype </td>
-      <td style="font-family: monospace;"> The assignable
+      <td>$1_ltype </td>
+      <td> The assignable
 version of the C datatype matched by the typemap.</td>
     </tr>
   </tbody>
@@ -2301,18 +2292,18 @@ example:</p>
 <table border="1" cellpadding="2" cellspacing="2" width="100%" summary="Special variables - argout typemap">
   <tbody>
     <tr>
-      <td style="font-family: monospace;">$result </td>
-      <td style="font-family: monospace;"> Result object
+      <td>$result </td>
+      <td> Result object
 returned to target language.</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$input </td>
-      <td style="font-family: monospace;"> The original
+      <td>$input </td>
+      <td> The original
 input object passed.</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$symname </td>
-      <td style="font-family: monospace;"> Name of
+      <td>$symname </td>
+      <td> Name of
 function/method being wrapped.</td>
     </tr>
   </tbody>
@@ -2441,38 +2432,38 @@ typemap.
 <table border="1" cellpadding="2" cellspacing="2" width="100%" summary="Special variables - directorin typemap">
   <tbody>
     <tr>
-      <td style="font-family: monospace;">$result </td>
-      <td style="font-family: monospace;"> Result object
+      <td>$result </td>
+      <td> Result object
 returned to target language.</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$symname </td>
-      <td style="font-family: monospace;"> Name of
+      <td>$symname </td>
+      <td> Name of
 function/method being wrapped</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1...n </td>
-      <td style="font-family: monospace;"> Argument being
+      <td>$1...n </td>
+      <td> Argument being
 wrapped</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_name </td>
-      <td style="font-family: monospace;"> Name of the
+      <td>$1_name </td>
+      <td> Name of the
 argument (if provided)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_type </td>
-      <td style="font-family: monospace;"> The actual C
+      <td>$1_type </td>
+      <td> The actual C
 datatype matched by the typemap.</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_ltype </td>
-      <td style="font-family: monospace;"> The assignable
+      <td>$1_ltype </td>
+      <td> The assignable
 version of the C datatype matched by the typemap.</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">this </td>
-      <td style="font-family: monospace;"> C++ this,
+      <td>this </td>
+      <td> C++ this,
 referring to the class itself.</td>
     </tr>
   </tbody>
@@ -2488,15 +2479,11 @@ of the "out" typemap, making its rule often similar to the "in"
 typemap.
 </p>
 
-<div class="code"><tt style="font-family: monospace;"><br>
-
-%typemap(directorout) int {</tt><tt><br>
-
-&nbsp; &nbsp;$result =&nbsp;NUM2INT($1);</tt><br>
-
-<tt style="font-family: monospace;">}<br>
-
-</tt></div>
+<div class="code"><pre>
+%typemap(directorout) int {
+&nbsp; &nbsp;$result =&nbsp;NUM2INT($1);
+</pre>
+</div>
 
 <p> The following special variables are available:</p>
 
@@ -2504,35 +2491,35 @@ typemap.
 <table border="1" cellpadding="2" cellspacing="2" width="100%" summary="Special variables - directorout typemap">
   <tbody>
     <tr>
-      <td style="font-family: monospace;">$input</td>
-      <td style="font-family: monospace;">Ruby object being sent to the function</td>
+      <td>$input</td>
+      <td>Ruby object being sent to the function</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$symname </td>
-      <td style="font-family: monospace;">Name of function/method being wrapped</td>
+      <td>$symname </td>
+      <td>Name of function/method being wrapped</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1...n </td>
-      <td style="font-family: monospace;">Argument being sent to the function</td>
+      <td>$1...n </td>
+      <td>Argument being sent to the function</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_name </td>
-      <td style="font-family: monospace;"> Name of the
+      <td>$1_name </td>
+      <td> Name of the
 argument (if provided)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_type </td>
-      <td style="font-family: monospace;"> The actual C
+      <td>$1_type </td>
+      <td> The actual C
 datatype matched by the typemap.</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_ltype </td>
-      <td style="font-family: monospace;"> The assignable
+      <td>$1_ltype </td>
+      <td> The assignable
 version of the C datatype matched by the typemap.</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">this </td>
-      <td style="font-family: monospace;"> C++ this,
+      <td>this </td>
+      <td> C++ this,
 referring to the class itself.</td>
     </tr>
   </tbody>
@@ -2540,17 +2527,18 @@ referring to the class itself.</td>
 </div>
 
 <p>Currently, the directorout nor the out typemap support the
-option&nbsp;<span style="font-family: monospace;">numoutputs</span>,
+option&nbsp;<tt>numoutputs</tt>,
 but the Ruby module provides that functionality through a %feature
 directive. &nbsp;Thus, a function can be made to return "nothing"
 if you do:</p>
 
-<div style="font-family: monospace;" class="code">%feature("numoutputs","0")
-MyClass::function;</div>
+<div class="code"><pre>
+%feature("numoutputs","0") MyClass::function;
+</pre></div>
 
 <p>This feature can be useful if a function returns a status
 code, which you want to discard but still use the typemap to raise an
-exception.<br>
+exception.
 
 </p>
 
@@ -2560,12 +2548,12 @@ exception.<br>
 <p>Output argument processing in director
 member functions.</p>
 
-<div class="code"><tt style="font-family: monospace;">%typemap(directorargout,
-fragment="output_helper") int {</tt><tt><br>
-
-$result = output_helper( $result, NUM2INT($1) );</tt><br>
-
-<tt style="font-family: monospace;">}</tt></div>
+<div class="code"><pre>
+%typemap(directorargout,
+fragment="output_helper") int {
+  $result = output_helper( $result, NUM2INT($1) );
+}
+</pre></div>
 
 <p> The following special variables are available:</p>
 
@@ -2573,39 +2561,39 @@ $result = output_helper( $result, NUM2INT($1) );</tt><br>
 <table style="text-align: left; width: 100%;" border="1" cellpadding="2" cellspacing="2" summary="Special variables - directorargout typemap">
   <tbody>
     <tr>
-      <td style="font-family: monospace;">$result</td>
-      <td style="font-family: monospace;">Result that the director function returns</td>
+      <td>$result</td>
+      <td>Result that the director function returns</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$input</td>
-      <td style="font-family: monospace;">Ruby object being sent to the function</td>
+      <td>$input</td>
+      <td>Ruby object being sent to the function</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$symname</td>
-      <td style="font-family: monospace;">name of the function/method being wrapped</td>
+      <td>$symname</td>
+      <td>name of the function/method being wrapped</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1...n</td>
-      <td style="font-family: monospace;">Argument being sent to the function</td>
+      <td>$1...n</td>
+      <td>Argument being sent to the function</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_name</td>
-      <td style="font-family: monospace;">Name of the
+      <td>$1_name</td>
+      <td>Name of the
 argument (if provided)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_type</td>
-      <td style="font-family: monospace;">The actual C
+      <td>$1_type</td>
+      <td>The actual C
 datatype matched by the typemap</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">$1_ltype</td>
-      <td style="font-family: monospace;">The assignable
+      <td>$1_ltype</td>
+      <td>The assignable
 version of the C datatype matched by the typemap</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">this</td>
-      <td style="font-family: monospace;">C++ this,
+      <td>this</td>
+      <td>C++ this,
 referring to the instance of the class itself</td>
     </tr>
   </tbody>
@@ -2702,28 +2690,28 @@ across multiple languages.</p>
       <td></td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">INT2NUM(long or int) </td>
-      <td style="font-family: monospace;">SWIG_From_int(int x)</td>
+      <td>INT2NUM(long or int) </td>
+      <td>SWIG_From_int(int x)</td>
       <td> int to Fixnum or Bignum</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">INT2FIX(long or int) </td>
-      <td style="font-family: monospace;"></td>
+      <td>INT2FIX(long or int) </td>
+      <td></td>
       <td> int to Fixnum (faster than INT2NUM)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">CHR2FIX(char) </td>
-      <td style="font-family: monospace;">SWIG_From_char(char x)</td>
+      <td>CHR2FIX(char) </td>
+      <td>SWIG_From_char(char x)</td>
       <td> char to Fixnum</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">rb_str_new2(char*) </td>
-      <td style="font-family: monospace;">SWIG_FromCharPtrAndSize(char*, size_t)</td>
+      <td>rb_str_new2(char*) </td>
+      <td>SWIG_FromCharPtrAndSize(char*, size_t)</td>
       <td> char* to String</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">rb_float_new(double) </td>
-      <td style="font-family: monospace;">SWIG_From_double(double),<br>
+      <td>rb_float_new(double) </td>
+      <td>SWIG_From_double(double),<br>
 SWIG_From_float(float)</td>
       <td>float/double to Float</td>
     </tr>
@@ -2735,65 +2723,65 @@ SWIG_From_float(float)</td>
 
 
 <p>Here, while the Ruby versions return the value directly, the SWIG
-versions do not, but return a status value to indicate success (<span style="font-family: monospace;">SWIG_OK</span>). While more akward to use, this allows you to write typemaps that report more helpful error messages, like:</p>
-<div style="font-family: monospace;" class="code"><br>
-%typemap(in) size_t (int ok)<br>
-&nbsp; <br>
-&nbsp; ok = SWIG_AsVal_size_t($input, &amp;$1);<br>
-&nbsp; if (!SWIG_IsOK(ok)) {<br>
-&nbsp;&nbsp;&nbsp; SWIG_exception_fail(SWIG_ArgError(ok),
-Ruby_Format_TypeError( "$1_name", "$1_type","$symname", $argnum, $input
-));<br>
-&nbsp; &nbsp;}<br>
-<br>
-} </div>
-<div style="font-family: monospace;">&nbsp;&nbsp;</div>
+versions do not, but return a status value to indicate success (<tt>SWIG_OK</tt>). While more akward to use, this allows you to write typemaps that report more helpful error messages, like:</p>
+
+<div class="code">
+<pre>
+%typemap(in) size_t (int ok)
+  ok = SWIG_AsVal_size_t($input, &amp;$1);
+  if (!SWIG_IsOK(ok)) {
+    SWIG_exception_fail(SWIG_ArgError(ok), Ruby_Format_TypeError( "$1_name", "$1_type","$symname", $argnum, $input));
+  }
+}
+</pre>
+</div>
+
 <div class="diagram">
 <table border="1" cellpadding="2" cellspacing="2" width="100%" summary="Ruby objects">
   <tbody>
     <tr>
-      <td style="font-family: monospace;">int NUM2INT(Numeric)</td>
-      <td style="font-family: monospace;">SWIG_AsVal_int(VALUE, int*)</td>
+      <td>int NUM2INT(Numeric)</td>
+      <td>SWIG_AsVal_int(VALUE, int*)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">int FIX2INT(Numeric)</td>
-      <td style="font-family: monospace;">SWIG_AsVal_int(VALUE, int*)</td>
+      <td>int FIX2INT(Numeric)</td>
+      <td>SWIG_AsVal_int(VALUE, int*)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">unsigned int NUM2UINT(Numeric)</td>
-      <td style="font-family: monospace;">SWIG_AsVal_unsigned_SS_int(VALUE, int*)</td>
+      <td>unsigned int NUM2UINT(Numeric)</td>
+      <td>SWIG_AsVal_unsigned_SS_int(VALUE, int*)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">unsigned int FIX2UINT(Numeric)</td>
-      <td style="font-family: monospace;">SWIG_AsVal_unsigned_SS_int(VALUE, int*)</td>
+      <td>unsigned int FIX2UINT(Numeric)</td>
+      <td>SWIG_AsVal_unsigned_SS_int(VALUE, int*)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">long NUM2LONG(Numeric)</td>
-      <td style="font-family: monospace;">SWIG_AsVal_long(VALUE, long*)</td>
+      <td>long NUM2LONG(Numeric)</td>
+      <td>SWIG_AsVal_long(VALUE, long*)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">long FIX2LONG(Numeric)</td>
-      <td style="font-family: monospace;">SWIG_AsVal_long(VALUE, long*)</td>
+      <td>long FIX2LONG(Numeric)</td>
+      <td>SWIG_AsVal_long(VALUE, long*)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">unsigned long FIX2ULONG(Numeric)</td>
-      <td style="font-family: monospace;">SWIG_AsVal_unsigned_SS_long(VALUE, unsigned long*)</td>
+      <td>unsigned long FIX2ULONG(Numeric)</td>
+      <td>SWIG_AsVal_unsigned_SS_long(VALUE, unsigned long*)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">char NUM2CHR(Numeric or String)</td>
-      <td style="font-family: monospace;">SWIG_AsVal_char(VALUE, int*)</td>
+      <td>char NUM2CHR(Numeric or String)</td>
+      <td>SWIG_AsVal_char(VALUE, int*)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">char * StringValuePtr(String)</td>
-      <td style="font-family: monospace;">SWIG_AsCharPtrAndSize(VALUE, char*, size_t, int* alloc)</td>
+      <td>char * StringValuePtr(String)</td>
+      <td>SWIG_AsCharPtrAndSize(VALUE, char*, size_t, int* alloc)</td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">char * rb_str2cstr(String, int*length)</td>
-      <td style="font-family: monospace;"></td>
+      <td>char * rb_str2cstr(String, int*length)</td>
+      <td></td>
     </tr>
     <tr>
-      <td style="font-family: monospace;">double NUM2DBL(Numeric)</td>
-      <td style="font-family: monospace;">(double) SWIG_AsVal_int(VALUE) or similar</td>
+      <td>double NUM2DBL(Numeric)</td>
+      <td>(double) SWIG_AsVal_int(VALUE) or similar</td>
     </tr>
   </tbody>
 </table>
@@ -3250,16 +3238,17 @@ generated file.&nbsp;</p>
 <p>For example, to generate html web pages from a C++ file, you'd
 do:&nbsp;</p>
 
-<div class="code shell"><span style="font-family: monospace; font-weight: bold;">
-$
-rdoc&nbsp;-E cxx=c -f html file_wrap.cxx</span></div>
+<div class="code shell">
+<pre>
+$ rdoc&nbsp;-E cxx=c -f html file_wrap.cxx
+</pre></div>
 
 <p>To
 generate ri documentation from a c wrap file, you could do:</p>
 
-<div class="code shell"><span style="font-family: monospace; font-weight: bold;">$ rdoc
--r&nbsp;file_wrap.c</span>
-</div>
+<div class="code shell"><pre>
+$ rdoc -r&nbsp;file_wrap.c
+</pre></div>
 
 <H3><a name="Ruby_nn66"></a>36.8.1 Module docstring</H3>
 
@@ -3611,7 +3600,7 @@ that defines a derived class: </p>
 extension module: </p>
 
 <div class="code shell">
-<pre>$ <b>swig -c++ -ruby shape.i</b>
+<pre>$ swig -c++ -ruby shape.i
 </pre>
 </div>
 
@@ -3887,7 +3876,7 @@ class library models a zoo and the animals it contains. </p>
 <pre>%module zoo<br><br>%{<br>#include &lt;string&gt;<br>#include &lt;vector&gt;<br><br>#include "zoo.h"<br>%}<br><br>class Animal<br>{<br>private:<br> typedef std::vector&lt;Animal*&gt; AnimalsType;<br> typedef AnimalsType::iterator IterType;<br>protected:<br> AnimalsType animals;<br>protected:<br> std::string name_;<br>public:<br> // Construct an animal with this name<br> Animal(const char* name) : name_(name) {}<br> <br> // Return the animal's name<br> const char* get_name() const { return name.c_str(); }<br>};<br><br>class Zoo<br>{<br>protected:<br> std::vector&lt;animal *=""&gt; animals;<br> <br>public:<br> // Construct an empty zoo<br> Zoo() {}<br> <br> /* Create a new animal. */<br> static Animal* Zoo::create_animal(const char* name)<br> {<br> return new Animal(name);<br> }<br><br> // Add a new animal to the zoo<br> void add_animal(Animal* animal) {<br> animals.push_back(animal); <br> }<br><br> Animal* remove_animal(size_t i) {<br> Animal* result = this-&gt;animals[i];<br> IterType iter = this-&gt;animals.begin();<br> std::advance(iter, i);<br> this-&gt;animals.erase(iter);<br><br> return result;<br> }<br> <br> // Return the number of animals in the zoo<br> size_t get_num_animals() const {<br> return animals.size(); <br> }<br> <br> // Return a pointer to the ith animal<br> Animal* get_animal(size_t i) const {<br> return animals[i]; <br> }<br>};<br><br></pre>
 </div>
 
-<p>Let's say you SWIG this code and then run IRB:<br>
+<p>Let's say you SWIG this code and then run IRB:
 
 </p>
 
@@ -3968,8 +3957,7 @@ class-by-class basis if needed. To fix the example above:</p>
 <pre>%module example<br><br>%{<br>#include "example.h"<br>%}<br><br><b>/* Tell SWIG that create_animal creates a new object */</b><br><b>%newobject Zoo::create_animal;</b><br><br><b>/* Tell SWIG to keep track of mappings between C/C++ structs/classes. */</b><br style="font-weight: bold;"><b>%trackobjects;</b><br><br>%include "example.h"</pre>
 </div>
 
-<p>When this code runs we see:<br>
-
+<p>When this code runs we see:
 </p>
 
 <div class="code targetlang">
@@ -4013,7 +4001,7 @@ has problems. For example:<br>
 
 <p>The problem is that Ruby does not know that the <tt>zoo</tt>
 object contains a reference to a Ruby object. Thus, when Ruby garbage
-collects <span style="font-family: monospace;">tiger1</span>
+collects <tt>tiger1</tt>
 it frees the underlying C++ object.</p>
 
 <p>This can be fixed by implementing a <tt>mark</tt>
@@ -4086,8 +4074,8 @@ above. </p>
 <p>To show how to use the <tt>%freefunc</tt>
 directive, let's slightly change our example. Assume that the zoo
 object is responsible for freeing animal that it contains. This means
-that the <span style="font-family: monospace;">Zoo::add_animal</span>
-function should be marked with a <span style="font-family: monospace;">DISOWN</span> typemap
+that the <tt>Zoo::add_animal</tt>
+function should be marked with a <tt>DISOWN</tt> typemap
 and the destructor should be updated as below:</p>
 
 <div class="code">
@@ -4283,19 +4271,12 @@ collect any VALUE objects defined from that point on. &nbsp;</p>
 <p>To mark functions to either reset the ruby stack or not, you
 can use:</p>
 
-<div class="indent code" style="font-family: monospace;">%initstack
-&nbsp; Class::memberfunction; &nbsp;// only re-init the stack
-in this director method<br>
-
-%ignorestack Class::memberfunction; &nbsp;// do not re-init the
-stack in this director method<br>
-
-%initstack &nbsp; Class; &nbsp; &nbsp; &nbsp;
-&nbsp; &nbsp; &nbsp; &nbsp; // init the stack on all
-the methods of this class<br>
-
-%initstack; &nbsp; // all director functions will
-re-init the stack</div>
+<div class="code"><pre>
+%initstack Class::memberfunction;   // only re-init the stack in this director method
+%ignorestack Class::memberfunction; // do not re-init the stack in this director method
+%initstack Class;                   // init the stack on all the methods of this class
+%initstack;                         // all director functions will re-init the stack
+</pre></div>
 
 </body>
 </html>
