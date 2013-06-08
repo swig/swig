@@ -71,9 +71,9 @@
 <li><a href="#Ruby_Placement_of_typemaps">Placement of typemaps</a>
 <li><a href="#Ruby_nn39">Ruby typemaps</a>
 <ul>
-<li><a href="#Ruby_in_typemap">&nbsp;"in" typemap</a>
+<li><a href="#Ruby_in_typemap">"in" typemap</a>
 <li><a href="#Ruby_typecheck_typemap">"typecheck" typemap</a>
-<li><a href="#Ruby_out_typemap">&nbsp;"out" typemap</a>
+<li><a href="#Ruby_out_typemap">"out" typemap</a>
 <li><a href="#Ruby_arginit_typemap">"arginit" typemap</a>
 <li><a href="#Ruby_default_typemap">"default" typemap</a>
 <li><a href="#Ruby_check_typemap">"check" typemap</a>
@@ -1259,7 +1259,7 @@ v.delete_if { |x| x == 3 }
 
 <p>The SWIG Ruby module provides also the ability for all the STL
 containers to carry around Ruby native objects (Fixnum, Classes, etc)
-making them act almost like Ruby's own Array, Hash, etc. &nbsp; To
+making them act almost like Ruby's own Array, Hash, etc.  To
 do
 that, you need to define a container that contains a swig::GC_VALUE,
 like:</p>
@@ -1292,7 +1292,7 @@ class A; end
 v &lt;&lt; A.new
 
 puts v
-=&gt; [1, [1,2], 'hello',&nbsp;#&lt;A:0x245325&gt;]
+=&gt; [1, [1,2], 'hello', #&lt;A:0x245325&gt;]
 </pre>
 </div>
 
@@ -1305,15 +1305,15 @@ chapter.</p>
 
 <p>Some containers in the STL allow you to modify their default
 behavior by using so called functors or function objects.
-&nbsp;Functors are often just a very simple struct with<tt> operator()</tt>
-redefined or an actual C/C++ function. &nbsp;This allows you, for
+Functors are often just a very simple struct with<tt> operator()</tt>
+redefined or an actual C/C++ function. This allows you, for
 example, to always keep the sort order of a STL container to your
 liking.</p>
 
 <p>The Ruby STL mappings allows you to modify those containers
 that
 support functors using Ruby procs or methods, instead.
-&nbsp;Currently,
+Currently,
 this includes <tt>std::set</tt>,
 <tt>set::map</tt>,
 <tt>std::multiset</tt>
@@ -1333,7 +1333,7 @@ are provided.</p>
 
 %include &lt;std_set.i&gt;
 
-%typemap(IntSet)&nbsp; std::set&lt; int, swig::BinaryPredicate &gt;;
+%typemap(IntSet) std::set&lt; int, swig::BinaryPredicate &gt;;
 </pre></div>
 
 <p>You can then use the set from Ruby with or without a proc
@@ -1349,39 +1349,39 @@ a &lt;&lt; 1
 a &lt;&lt; 2
 a &lt;&lt; 3
 a
-<b>=&gt;&nbsp;[1,2,3]</b>
+<b>=&gt; [1,2,3]</b>
 
 # Custom sorting behavior defined by a Ruby proc
 b = IntSet.new( proc { |a,b| a &gt; b } )
-b&nbsp;&lt;&lt; 1
-b&nbsp;&lt;&lt; 2
-b&nbsp;&lt;&lt; 3
+b &lt;&lt; 1
+b &lt;&lt; 2
+b &lt;&lt; 3
 b
-<b>=&gt; &nbsp;[3,2,1]</b>
+<b>=&gt;  [3,2,1]</b>
 </pre>
 </div>
 
 <H3><a name="Ruby_C_Iterators"></a>36.3.15 C++ STL Iterators</H3>
 
 
-<p>The STL is well known for the use of iterators. &nbsp;There
+<p>The STL is well known for the use of iterators. There
 are a number of iterators possible with different properties, but in
 general there are two main categories: const iterators and non-const
-iterators. &nbsp;The const iterators can access and not modify the
+iterators. The const iterators can access and not modify the
 values they point at, while the non-const iterators can both read and
 modify the values.</p>
 
 <p>The Ruby STL wrappings support both type of iterators by using
-a proxy class in-between. &nbsp;This proxy class is <tt>swig::Iterator or
-swig::ConstIterator. &nbsp;</tt>Derived from them are template
+a proxy class in-between. This proxy class is <tt>swig::Iterator or
+swig::ConstIterator. </tt> Derived from them are template
 classes that need to be initialized with the actual iterator for the
 container you are wrapping and often times with the beginning and
-ending points of the iteration range.&nbsp;</p>
+ending points of the iteration range.</p>
 
 <p>The SWIG STL library already provides typemaps to all the
 standard containers to do this wrapping automatically for you, but if
 you have your own STL-like iterator, you will need to write your own
-typemap for them.&nbsp;&nbsp;For out typemaps, the special functions <tt>make_const_iterator</tt> and <tt>make_nonconst_iterator</tt> are provided.</p>
+typemap for them. For out typemaps, the special functions <tt>make_const_iterator</tt> and <tt>make_nonconst_iterator</tt> are provided.</p>
 
 <p>These can be used either like:</p>
 
@@ -1390,17 +1390,17 @@ make_const_iterator( iterator, rubyclass );
 make_const_iterator( iterator, iterator_begin, iterator_end, rubyclass );
 </pre></div>
 
-<p>The iterators support a <tt>next()</tt> and <tt>previous()&nbsp;</tt>member function to
-just change the iterator without returning anything. &nbsp;<tt>previous()</tt>
-should obviously only be used for bidirectional iterators. &nbsp;You
+<p>The iterators support a <tt>next()</tt> and <tt>previous()</tt> member function to
+just change the iterator without returning anything. <tt>previous()</tt>
+should obviously only be used for bidirectional iterators. You
 can also advance the iterator multiple steps by using standard math
 operations like <tt>+=</tt>.</p>
 
 <p>The
-value&nbsp;the iterator points at can be accessed with <tt>value()</tt> -- this is equivalent to dereferencing it with <tt>*i</tt>.
-&nbsp; For non-const iterators, a <tt>value=()</tt> function
+value the iterator points at can be accessed with <tt>value()</tt> -- this is equivalent to dereferencing it with <tt>*i</tt>.
+  For non-const iterators, a <tt>value=()</tt> function
 is also provided which allows you to change the value pointed by the
-iterator. &nbsp;This is equivalent to the C++ construct of dereferencing and assignment, like <tt>*i = something</tt>.&nbsp;</p>
+iterator.  This is equivalent to the C++ construct of dereferencing and assignment, like <tt>*i = something</tt>. </p>
 
 <p>Thus, given say a vector class of doubles defined as:</p>
 
@@ -1432,10 +1432,10 @@ v &lt;&lt; 3
 i = v.begin
 e = v.end
 while i != e
-&nbsp; val = i.value
-&nbsp; val += 2
-&nbsp; i.value = val
-&nbsp; i.next
+  val = i.value
+  val += 2
+  i.value = val
+  i.next
 end
 i
 <b>&gt;&gt; [3, 4, 5 ]</b>
@@ -2022,12 +2022,12 @@ Features</a> for more examples.</p>
 <p>One of the highlights of Ruby and most of its standard library
 is
 the use of blocks, which allow the easy creation of continuations and
-other niceties. &nbsp;Blocks in ruby are also often used to
+other niceties.  Blocks in ruby are also often used to
 simplify the passing of many arguments to a class.</p>
 
 <p>In order to make your class constructor support blocks, you
 can take advantage of the %exception directive, which will get run
-after the C++ class' constructor was called.&nbsp;</p>
+after the C++ class' constructor was called. </p>
 
 <p>For example, this yields the class over after its
 construction:
@@ -2037,8 +2037,8 @@ construction:
 <pre>class Window
 {
 public:
- Window(int x, int y, int w, int h);
-// .... other methods here ....
+  Window(int x, int y, int w, int h);
+  // .... other methods here ....
 };
 
 // Add support for yielding self in the Class' constructor.
@@ -2054,8 +2054,8 @@ public:
 
 <div class="targetlang"><pre>
 Window.new(0,0,360,480) { |w|
-&nbsp;&nbsp;&nbsp; w.color = Fltk::RED
-&nbsp;&nbsp;&nbsp; w.border = false
+  w.color = Fltk::RED
+  w.border = false
 }
 </pre>
 </div>
@@ -2070,15 +2070,13 @@ a special in typemap, like:</p>
 // void func(int x);
 
 %typemap(in,numinputs=0) int RUBY_YIELD_SELF {
-&nbsp; &nbsp; &nbsp;if ( !rb_block_given_p() )
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-rb_raise("No block given");
-&nbsp; &nbsp; &nbsp;return rb_yield(self);
+  if ( !rb_block_given_p() )
+    rb_raise("No block given");
+  return rb_yield(self);
 }
 
 %extend {
-&nbsp; &nbsp; &nbsp; &nbsp; void func(int x, int
-RUBY_YIELD_SELF );
+  void func(int x, int RUBY_YIELD_SELF );
 }
 </pre>
 </div>
@@ -2286,7 +2284,7 @@ end </pre>
 wrapping behavior for various C/C++ datatypes using the <tt>%typemap</tt>
 directive. This is an advanced topic that assumes familiarity with the
 Ruby C API as well as the material in the "<a href="Typemaps.html#Typemaps">Typemaps</a>"
-chapter.&nbsp;
+chapter.
 </p>
 
 <p>Before proceeding, it should be stressed that typemaps are not
@@ -2300,7 +2298,7 @@ of the primitive C-Ruby interface.</p>
 <p> A typemap is nothing more than a code generation rule that is
 attached to a specific C datatype. The general form of this declaration
 is as follows ( parts enclosed in [...] are optional
-):&nbsp;&nbsp; &nbsp;</p>
+): </p>
 
 <div class="code">
 <pre>
@@ -2641,7 +2639,7 @@ string</tt>
 <p>The following list details all of the typemap methods that
 can be used by the Ruby module: </p>
 
-<H4><a name="Ruby_in_typemap"></a>36.7.6.1 &nbsp;"in" typemap</H4>
+<H4><a name="Ruby_in_typemap"></a>36.7.6.1 "in" typemap</H4>
 
 
 <p>Converts Ruby objects to input
@@ -2730,7 +2728,7 @@ program uses overloaded methods, you should also define a collection of
 "typecheck" typemaps. More details about this follow in a later section
 on "Typemaps and Overloading."</p>
 
-<H4><a name="Ruby_out_typemap"></a>36.7.6.3 &nbsp;"out" typemap</H4>
+<H4><a name="Ruby_out_typemap"></a>36.7.6.3 "out" typemap</H4>
 
 
 <p>Converts return value of a C function
@@ -2848,7 +2846,7 @@ example:</p>
 <div class="code">
 <pre>/* Set the input argument to point to a temporary variable */
 %typemap(in, numinputs=0) int *out (int temp) {
- $1 = &amp;temp;
+  $1 = &amp;temp;
 }
 
 %typemap(argout, fragment="output_helper") int *out {
@@ -3018,7 +3016,7 @@ handling with %exception</a> section.</p>
 
 
 <p>Converts C++ objects in director
-member functions to ruby objects.&nbsp;It is roughly the opposite
+member functions to ruby objects. It is roughly the opposite
 of the "in" typemap, making its typemap rule often similar to the "out"
 typemap.
 </p>
@@ -3077,14 +3075,15 @@ referring to the class itself.</td>
 
 
 <p>Converts Ruby objects in director
-member functions to C++ objects. &nbsp;It is roughly the opposite
+member functions to C++ objects. It is roughly the opposite
 of the "out" typemap, making its rule often similar to the "in"
 typemap.
 </p>
 
 <div class="code"><pre>
 %typemap(directorout) int {
-&nbsp; &nbsp;$result =&nbsp;NUM2INT($1);
+  $result = NUM2INT($1);
+}
 </pre>
 </div>
 
@@ -3130,9 +3129,9 @@ referring to the class itself.</td>
 </div>
 
 <p>Currently, the directorout nor the out typemap support the
-option&nbsp;<tt>numoutputs</tt>,
+option <tt>numoutputs</tt>,
 but the Ruby module provides that functionality through a %feature
-directive. &nbsp;Thus, a function can be made to return "nothing"
+directive. Thus, a function can be made to return "nothing"
 if you do:</p>
 
 <div class="code"><pre>
@@ -3271,13 +3270,13 @@ being created. </div>
 <p> When you write a typemap, you usually have to work directly
 with Ruby objects. The following functions may prove to be useful.
 (These functions plus many more can be found in <em>Programming
-Ruby</em> book, by David Thomas and Andrew Hunt.)&nbsp;</p>
+Ruby</em> book, by David Thomas and Andrew Hunt.)</p>
 <p>In addition, we list equivalent functions that SWIG defines, which
 provide a language neutral conversion (these functions are defined for
-each swig language supported). &nbsp;If you are trying to create a swig
+each swig language supported). If you are trying to create a swig
 file that will work under multiple languages, it is recommended you
 stick to the swig functions instead of the native Ruby functions.
-&nbsp;That should help you avoid having to rewrite a lot of typemaps
+That should help you avoid having to rewrite a lot of typemaps
 across multiple languages.</p>
 
 <H4><a name="Ruby_nn42"></a>36.7.8.1 C Datatypes to Ruby Objects</H4>
@@ -3999,7 +3998,7 @@ static data types: </p>
 
 Note that this is mostly an example of typemaps. If you want to use the
 STL with ruby, you are advised to use the standard swig STL library,
-which does much more than this. &nbsp;Refer to the section called
+which does much more than this. Refer to the section called
 the<a href="#Ruby_nn23_1"> C++ Standard Template Library</a>.
 
 <H2><a name="Ruby_nn65"></a>36.8 Docstring Features</H2>
@@ -4019,28 +4018,28 @@ read by Ruby's rdoc tool to generate html web pages, ri documentation,
 Windows chm file and an .xml description.</p>
 
 <p>rdoc can then be run from a console or shell window on a swig
-generated file.&nbsp;</p>
+generated file.</p>
 
 <p>For example, to generate html web pages from a C++ file, you'd
-do:&nbsp;</p>
+do:</p>
 
 <div class="code shell">
 <pre>
-$ rdoc&nbsp;-E cxx=c -f html file_wrap.cxx
+$ rdoc -E cxx=c -f html file_wrap.cxx
 </pre></div>
 
 <p>To
 generate ri documentation from a c wrap file, you could do:</p>
 
 <div class="code shell"><pre>
-$ rdoc -r&nbsp;file_wrap.c
+$ rdoc -r file_wrap.c
 </pre></div>
 
 <H3><a name="Ruby_nn66"></a>36.8.1 Module docstring</H3>
 
 
 <p>
-Ruby allows a docstring at the beginning of the&nbsp;file
+Ruby allows a docstring at the beginning of the file
 before any other statements, and it is typically used to give a
 general description of the entire module. SWIG supports this by
 setting an option of the <tt>%module</tt> directive. For
@@ -4138,7 +4137,7 @@ this:
 When the "2" option is used then the parameter types will not
 be
 used in the rdoc string. However, they will be listed in full after the
-function. &nbsp;Given the example above, then turning on the
+function. Given the example above, then turning on the
 parameter types with the "2" option will result in Ruby code like
 this:
 </p>
@@ -4148,7 +4147,7 @@ this:
 
 <p>
 When the "3" option is used then the function will be documented using
-a combination of "1" and "2" above. &nbsp;Given the example above,
+a combination of "1" and "2" above. Given the example above,
 then turning on the
 parameter types with the "2" option will result in Ruby code like
 this:
@@ -4744,24 +4743,24 @@ classes is:</p>
 class Foo
 {
 public:
- Foo();
- ~Foo();
+  Foo();
+  ~Foo();
 };
 
 class Bar
 {
- Foo *foo_;
+  Foo *foo_;
 public:
- Bar();
- ~Bar();
- Foo* get_foo();
+  Bar();
+  ~Bar();
+  Foo* get_foo();
 
-<b> %newobject get_new_foo;</b>
- Foo* get_new_foo();
+<b>  %newobject get_new_foo;</b>
+  Foo* get_new_foo();
 
-<b> %apply SWIGTYPE *DISOWN {Foo *foo};</b>
- void set_foo(Foo *foo);
-<b> %clear Foo *foo;</b>
+<b>  %apply SWIGTYPE *DISOWN {Foo *foo};</b>
+  void set_foo(Foo *foo);
+<b>  %clear Foo *foo;</b>
 };
 </pre>
 </div>
@@ -5230,28 +5229,28 @@ existing Ruby object to the destroyed C++ object and raise an exception.
 %include "example.h"
 
 %header %{
- static void free_Zoo(void* ptr) {
- Zoo* zoo = (Zoo*) ptr;
+  static void free_Zoo(void* ptr) {
+    Zoo* zoo = (Zoo*) ptr;
 
- /* Loop over each animal */
- int count = zoo-&gt;get_num_animals();
+    /* Loop over each animal */
+    int count = zoo-&gt;get_num_animals();
 
- for(int i = 0; i &lt; count; ++i) {
- /* Get an animal */
- Animal* animal = zoo-&gt;get_animal(i);
+    for(int i = 0; i &lt; count; ++i) {
+      /* Get an animal */
+      Animal* animal = zoo-&gt;get_animal(i);
 
- /* Unlink the Ruby object from the C++ object */
- SWIG_RubyUnlinkObjects(animal);
+      /* Unlink the Ruby object from the C++ object */
+      SWIG_RubyUnlinkObjects(animal);
 
- /* Now remove the tracking for this animal */
- SWIG_RubyRemoveTracking(animal);
- }
+      /* Now remove the tracking for this animal */
+      SWIG_RubyRemoveTracking(animal);
+    }
 
- /* Now call SWIG_RubyRemoveTracking for the zoo */
- SWIG_RubyRemoveTracking(ptr);
- /* Now free the zoo which will free the animals it contains */
- delete zoo;
- }
+    /* Now call SWIG_RubyRemoveTracking for the zoo */
+    SWIG_RubyRemoveTracking(ptr);
+    /* Now free the zoo which will free the animals it contains */
+    delete zoo;
+  }
 %} </pre>
 </div>
 
@@ -5294,7 +5293,7 @@ been freed, and thus raises a runtime exception.</p>
 
 <p>As has been said, the Ruby GC runs and marks objects before
 its
-sweep phase. &nbsp;When the garbage collector is called, it will
+sweep phase. When the garbage collector is called, it will
 also
 try to mark any Ruby objects (VALUE) it finds in the machine registers
 and in the C++ stack.</p>
@@ -5309,7 +5308,7 @@ whenever you do inside a function:</p>
 <p>For ruby to determine where its stack space begins, during
 initialization a normal Ruby interpreter will call the ruby_init()
 function which in turn will call a function called Init_stack or
-similar. &nbsp;This function will store a pointer to the location
+similar. This function will store a pointer to the location
 where
 the stack points at that point in time.</p>
 
@@ -5317,37 +5316,37 @@ the stack points at that point in time.</p>
 function of your program and whenever the GC is called, ruby will
 assume that the memory between the current location in memory and the
 pointer that was stored previously represents the stack, which may
-contain local (and temporary) VALUE ruby objects. &nbsp; Ruby will
+contain local (and temporary) VALUE ruby objects.  Ruby will
 then be careful not to remove any of those objects in that location.</p>
 
-<p>So far so good. &nbsp;For a normal Ruby session, all the
+<p>So far so good. For a normal Ruby session, all the
 above is
 completely transparent and magic to the extensions developer.
-&nbsp;&nbsp;</p>
+</p>
 
 <p>However, with an embedded Ruby, it may not always be possible
 to
-modify main() to make sure ruby_init() is called there. &nbsp; As
+modify main() to make sure ruby_init() is called there.  As
 such,
 ruby_init() will likely end up being called from within some other
-function. &nbsp;This can lead Ruby to measure incorrectly where the
-stack begins and&nbsp;can result in Ruby incorrectly collecting
+function. This can lead Ruby to measure incorrectly where the
+stack begins and can result in Ruby incorrectly collecting
 those
-temporary VALUE objects that are created once another&nbsp;function
+temporary VALUE objects that are created once another function
 is
-called. &nbsp;The end result: random crashes and segmentation
+called. The end result: random crashes and segmentation
 faults.</p>
 
 <p>This problem will often be seen in director functions that are
-used for callbacks, for example. &nbsp;</p>
+used for callbacks, for example. </p>
 
 <p>To solve the problem, SWIG can now generate code with director
-functions&nbsp;containing the optional macros SWIG_INIT_STACK and
-SWIG_RELEASE_STACK. &nbsp; These macros will try to force Ruby to
-reinitiliaze the beginning of the stack&nbsp;the first time a
+functions containing the optional macros SWIG_INIT_STACK and
+SWIG_RELEASE_STACK. These macros will try to force Ruby to
+reinitiliaze the beginning of the stack the first time a
 director
-function is called. &nbsp;This will lead Ruby to measure and not
-collect any VALUE objects defined from that point on. &nbsp;</p>
+function is called. This will lead Ruby to measure and not
+collect any VALUE objects defined from that point on. </p>
 
 <p>To mark functions to either reset the ruby stack or not, you
 can use:</p>
