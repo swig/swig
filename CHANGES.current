@@ -5,6 +5,12 @@ See the RELEASENOTES file for a summary of changes in each release.
 Version 2.0.11 (in progress)
 ============================
 
+2013-07-11: wsfulton
+            [Python] Add SWIG_PYTHON_NO_DEBUG macro which can be defined to use the Release version
+            of the Python interpreter in Debug builds of the wrappers. The Visual Studio .dsp example
+            files have been modified to use this so that Debug builds will now work without having
+            to install or build a Debug build of the interpreter.
+
 2013-07-07: wsfulton
 	    [Ruby] Git issue #52. Fix regression with missing rb_complex_new function for Ruby
             versions prior to 1.9 using std::complex wrappers if just using std::complex as an output type.
