@@ -6,8 +6,8 @@
   namespace swig {
     template <class T>
     struct traits_asptr<std::vector<T> >  {
-      static int asptr(SciObject *obj, std::vector<T> **vec) {
-	return traits_asptr_stdseq<std::vector<T> >::asptr(obj, vec);
+      static int asptr(const SciObject &obj, std::vector<T> **vec) {
+        return traits_asptr_stdseq<std::vector<T> >::asptr(obj, vec);
       }
     };
 
@@ -19,6 +19,7 @@
     };
   }
 %}
+
 
 #define %swig_vector_methods(Type...) %swig_sequence_methods(Type)
 #define %swig_vector_methods_val(Type...) %swig_sequence_methods_val(Type);

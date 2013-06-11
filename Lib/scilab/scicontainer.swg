@@ -13,6 +13,7 @@
 
 %{
 #include <iostream>
+#include <stdio.h>
 %}
 
 
@@ -38,22 +39,22 @@ namespace swig {
     typedef value_category category;
     static const char* type_name() { return  "SciObject"; }
   };
-  
+
   template <>  struct traits_from<SciObject> {
     typedef SciObject value_type;
     static SciObject from(const value_type& val) {
       return val;
     }
   };
-  
-  template <> 
+
+  template <>
   struct traits_check<SciObject, value_category> {
     static bool check(const SciObject&) {
       return true;
     }
   };
-  
-  template <>  struct traits_asval<SciObject > {   
+
+  template <>  struct traits_asval<SciObject > {
     typedef SciObject value_type;
     static int asval(const SciObject& obj, value_type *val) {
       if (val) *val = obj;
@@ -73,7 +74,7 @@ namespace std {
   {
     bool
     operator()(const SciObject& v, const SciObject& w) const
-    { 
+    {
         //SciObject res = do_binary_op(SciObject::op_le,v,w);
         return true;//res.is_true();
     }
@@ -91,7 +92,7 @@ namespace swig {
     } else if (insert && ((size_t) i == size)) {
       return size;
     }
-    
+
     throw std::out_of_range("index out of range");
   }
 
@@ -197,7 +198,7 @@ namespace swig
       : _seq(seq), _index(index)
     {
     }
-    
+
     operator T () const
     {
       //      swig::SwigVar_PyObject item = SciSequence_GetItem(_seq, _index);
@@ -436,28 +437,19 @@ namespace swig
 
   %typemap(out,noblock=1,fragment="SciSequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    $result = SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
-				 swig::SciSwigIterator::descriptor(),SWIG_POINTER_OWN);
+    %set_output(SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &)),
+           swig::SciSwigIterator::descriptor(),SWIG_POINTER_OWN));
   }
   %typemap(out,fragment="SciSequence_Cont")
     std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
-    SciObject_list tmpc;
-    tmpc.append(SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-				   swig::SciSwigIterator::descriptor(),SWIG_POINTER_OWN));
-    tmpc.append(SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).second),
-				   swig::SciSwigIterator::descriptor(),SWIG_POINTER_OWN));
-    $result = Cell(tmpc);
+    // TODO: return a Scilab list from the pair (see code for Octave)
   }
 
   %fragment("SwigPyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="SciSequence_Cont") {}
 
   %typemap(out,fragment="SciPairBoolOutputIterator")
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
-    SciObject_list tmpc;
-    tmpc.append(SWIG_NewPointerObj(swig::make_output_iterator(%static_cast($1,const $type &).first),
-				   swig::SciSwigIterator::descriptor(),SWIG_POINTER_OWN));
-    tmpc.append(SWIG_From(bool)(%static_cast($1,const $type &).second));
-    $result = Cell(tmpc);
+    // TODO: return a Scilab list from the pair (see code for Octave)
   }
 
   %typemap(in,noblock=1,fragment="SciSequence_Cont")
@@ -465,7 +457,7 @@ namespace swig
     reverse_iterator(swig::SciSwigIterator *iter = 0, int res),
     const_iterator(swig::SciSwigIterator *iter = 0, int res),
     const_reverse_iterator(swig::SciSwigIterator *iter = 0, int res) {
-    res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::SciSwigIterator::descriptor(), 0);
+    res = SWIG_ConvertPtr((SciObject)$input, %as_voidptrptr(&iter), swig::SciSwigIterator::descriptor(), 0);
     if (!SWIG_IsOK(res) || !iter) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     } else {
@@ -481,7 +473,7 @@ namespace swig
   %typecheck(%checkcode(ITERATOR),noblock=1,fragment="SciSequence_Cont")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
     swig::SciSwigIterator *iter = 0;
-    int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::SciSwigIterator::descriptor(), 0);
+    int res = SWIG_ConvertPtr((SciObject)$input, %as_voidptrptr(&iter), swig::SciSwigIterator::descriptor(), 0);
     $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::SciSwigIterator_T<$type > *>(iter) != 0));
   }
 
@@ -497,7 +489,7 @@ namespace swig
 %define %swig_sequence_methods_common(Sequence...)
   %swig_sequence_iterator(%arg(Sequence))
   %swig_container_methods(%arg(Sequence))
-  
+
   %fragment("SciSequence_Base");
 
   %extend {
@@ -561,30 +553,7 @@ namespace swig {
     typedef T value_type;
 
     static int asptr(const SciObject& obj, sequence **seq) {
-      if (!obj.is_defined() || Swig::swig_value_deref(obj)) {
-	sequence *p;
-	if (SWIG_ConvertPtr(obj,(void**)&p,
-			    swig::type_info<sequence>(),0) == SWIG_OK) {
-	  if (seq) *seq = p;
-	  return SWIG_OLDOBJ;
-	}
-      } else if (obj.is_cell()) {
-	try {
-	  SciSequence_Cont<value_type> sciseq(obj);
-	  if (seq) {
-	    sequence *pseq = new sequence();
-	    assign(sciseq, pseq);
-	    *seq = pseq;
-	    return SWIG_NEWOBJ;
-	  } else {
-	    return sciseq.check() ? SWIG_OK : SWIG_ERROR;
-	  }
-	} catch (std::exception& e) {
-	  if (seq&&!error_state)
-	    error("swig type error: %s",e.what());
-	  return SWIG_ERROR;
-	}
-      }
+      // TODO: convert input Scilab list (or pointer) to sequence.
       return SWIG_ERROR;
     }
   };
@@ -600,25 +569,12 @@ namespace swig {
 #ifdef SWIG_SCILAB_EXTRA_NATIVE_CONTAINERS
       swig_type_info *desc = swig::type_info<sequence>();
       if (desc && desc->clientdata) {
-	return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
+        return SWIG_NewPointerObj(new sequence(seq), desc, SWIG_POINTER_OWN);
       }
 #endif
-      size_type size = seq.size();
-      if (size <= (size_type)INT_MAX) {
-	Cell c(size,1);
-	int i = 0;
-	for (const_iterator it = seq.begin();
-	     it != seq.end(); ++it, ++i) {
-	  c(i) = swig::from<value_type>(*it);
-	}
-	return c;
-      } else {
-	error("swig overflow error: sequence size not valid in Scilab");
-	return SciObject();
-      }
-      return SciObject();
+      // TODO: return a Scilab list from the sequence.
+      return (SciObject)0;
     }
   };
 }
 }
-
