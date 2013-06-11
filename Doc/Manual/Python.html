@@ -874,7 +874,7 @@ the build options of project to try and track this down.
 A 'Debug' build of the wrappers requires a debug build of the Python interpreter.
 This normally requires building the Python interpreter from source, which is not a
 job for the feint-hearted. Alternatively you can use the 'Release' build of the
-Python interpreter with a 'Debug' build of your wrappers by defining the <tt>SWIG_PYTHON_NO_DEBUG</tt>
+Python interpreter with a 'Debug' build of your wrappers by defining the <tt>SWIG_PYTHON_INTERPRETER_NO_DEBUG</tt>
 symbol under the preprocessor options. Or you can ensure this macro is defined at the beginning
 of the wrapper code using the following in your interface file, where <tt>_MSC_VER</tt> ensures it is
 only used by the Visual Studio compiler:
@@ -883,7 +883,7 @@ only used by the Visual Studio compiler:
 <div class="code"><pre>
 %begin %{
 #ifdef _MSC_VER
-#define SWIG_PYTHON_NO_DEBUG
+#define SWIG_PYTHON_INTERPRETER_NO_DEBUG
 #endif
 %}
 </pre></div>

@@ -1,5 +1,5 @@
 %insert(runtime) %{
-#if defined(_DEBUG) && defined(SWIG_PYTHON_NO_DEBUG)
+#if defined(_DEBUG) && defined(SWIG_PYTHON_INTERPRETER_NO_DEBUG)
 /* Use debug wrappers with the Python release dll */
 # undef _DEBUG
 # include <Python.h>
