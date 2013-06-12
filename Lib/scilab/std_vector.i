@@ -13,7 +13,7 @@
 
     template <class T>
     struct traits_from<std::vector<T> > {
-      static SciObject *from(const std::vector<T>& vec) {
+      static SciObject from(const std::vector<T>& vec) {
 	return traits_from_stdseq<std::vector<T> >::from(vec);
       }
     };

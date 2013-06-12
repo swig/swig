@@ -59,7 +59,7 @@ SWIG_SciUint8_AsUnsignedChar(void *_pvApiCtx, int _iVar, unsigned char *_pucValu
 }
 
 %fragment(SWIG_From_frag(unsigned char), "header", fragment="SWIG_SciUint8_FromUnsignedChar") {
-#define SWIG_From_unsigned_SS_char(value) SWIG_SciUint8_FromUnsignedChar(pvApiCtx, $result, value)
+#define SWIG_From_unsigned_SS_char(value) SWIG_SciUint8_FromUnsignedChar(pvApiCtx, SWIG_Scilab_GetOutputPosition(), value)
 }
 %fragment("SWIG_SciUint8_FromUnsignedChar", "header") {
 SWIGINTERN int

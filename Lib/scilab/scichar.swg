@@ -51,7 +51,7 @@ SwigScilabStringToChar(void *_pvApiCtx, int _iVar, char *_pcValue, char *_fname)
 }
 
 %fragment(SWIG_From_frag(char), "header", fragment="SwigScilabStringFromChar") {
-#define SWIG_From_char(value) SwigScilabStringFromChar(pvApiCtx, $result, value)
+#define SWIG_From_char(value) SwigScilabStringFromChar(pvApiCtx, SWIG_Scilab_GetOutputPosition(), value)
 }
 %fragment("SwigScilabStringFromChar", "header") {
 SWIGINTERN int
@@ -87,7 +87,7 @@ SwigScilabStringFromChar(void *_pvApiCtx, int _iVarOut, char _chValue) {
 #define SWIG_FromCharPtr(charPtr) SwigScilabStringFromCharPtr(pvApiCtx, $result, charPtr)
 }
 %fragment("SWIG_FromCharPtrAndSize", "header", fragment = "SwigScilabStringFromCharPtrAndSize") {
-#define SWIG_FromCharPtrAndSize(charPtr, charPtrLength) SwigScilabStringFromCharPtrAndSize(pvApiCtx, $result, charPtr)
+#define SWIG_FromCharPtrAndSize(charPtr, charPtrLength) SwigScilabStringFromCharPtrAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), charPtr)
 }
 %fragment("SwigScilabStringToCharPtr", "header") {
 SWIGINTERN int

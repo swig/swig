@@ -59,7 +59,7 @@ SWIG_SciUint16_AsUnsignedShort(void *_pvApiCtx, int _iVar, unsigned short *_pusV
 }
 
 %fragment(SWIG_From_frag(unsigned short), "header", fragment="SWIG_SciUint16_FromUnsignedShort") {
-#define SWIG_From_unsigned_SS_short(value) SWIG_SciUint16_FromUnsignedShort(pvApiCtx, $result, value)
+#define SWIG_From_unsigned_SS_short(value) SWIG_SciUint16_FromUnsignedShort(pvApiCtx, SWIG_Scilab_GetOutputPosition(), value)
 }
 %fragment("SWIG_SciUint16_FromUnsignedShort", "header") {
 SWIGINTERN int
