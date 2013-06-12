@@ -13,7 +13,6 @@
 
 %{
 #include <iostream>
-#include <stdio.h>
 %}
 
 
@@ -189,6 +188,8 @@ namespace swig {
 	  fragment="SciSequence_Base",
 	  fragment="SciSwigIterator_T")
 {
+%#include <stdio.h>
+
 namespace swig
 {
   template <class T>
