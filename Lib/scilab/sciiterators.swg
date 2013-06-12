@@ -321,6 +321,12 @@ namespace swig
   %catches(swig::stop_iteration) SciSwigIterator::operator + (ptrdiff_t n) const;
   %catches(swig::stop_iteration) SciSwigIterator::operator - (ptrdiff_t n) const;
 
+  %ignore SciSwigIterator::operator==;
+  %ignore SciSwigIterator::operator!=;
+  %ignore SciSwigIterator::operator++;
+  %ignore SciSwigIterator::operator--;
+  %ignore SciSwigIterator::operator+;
+  %ignore SciSwigIterator::operator-;
 
   struct SciSwigIterator
   {
@@ -355,4 +361,3 @@ namespace swig
     ptrdiff_t operator - (const SciSwigIterator& x) const;
   };
 }
-
