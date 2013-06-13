@@ -117,6 +117,9 @@ typedef struct swig_lua_class {
   void    (*destructor)(void *);
   swig_lua_method   *methods;
   swig_lua_attribute     *attributes;
+  swig_lua_method   *cls_methods;
+  swig_lua_attribute    *cls_attributes;
+  swig_lua_const_info    *cls_constants;
   struct swig_lua_class **bases;
   const char **base_names;
 } swig_lua_class;

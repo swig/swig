@@ -111,6 +111,9 @@ private:
   String *s_const_tab;		// table of global constants
   String *s_methods_tab;	// table of class methods
   String *s_attr_tab;		// table of class attributes
+  String *s_cls_attr_tab;   // table of class static attributes
+  String *s_cls_methods_tab;// table of class static methods
+  String *s_cls_const_tab;  // tables of class constants(including enums)
   String *s_luacode;		// luacode to be called during init
   String *s_dot_get;            // table of variable 'get' functions
   String *s_dot_set;            // table of variable 'set' functions
@@ -736,6 +739,7 @@ public:
     NEW LANGUAGE NOTE:END ************************************************/
     /* Now register the function with the interpreter. */
     if (!Getattr(n, "sym:overloaded")) {
+      REPORT("dispatchFunction", n);
       //      add_method(n, iname, wname, description);
       if (current==NO_CPP || current==STATIC_FUNC) { // emit normal fns & static fns
         if(elua_ltr || eluac_ltr)
@@ -775,6 +779,7 @@ public:
   look for %typecheck(SWIG_TYPECHECK_*) in the .swg file
   NEW LANGUAGE NOTE:END ************************************************/
   void dispatchFunction(Node *n) {
+    REPORT("dispatchFunction", n);
     /* Last node in overloaded chain */
 
     int maxargs;
@@ -887,7 +892,7 @@ public:
    * constantWrapper()
    * ------------------------------------------------------------ */
   virtual int constantWrapper(Node *n) {
-    //    REPORT("constantWrapper", n);
+        REPORT("constantWrapper", n);
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     String *nsname = Copy(iname);
@@ -956,6 +961,31 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int enumvalueDeclaration(Node *n) {
+    // Wrapping inside class
+    if(getCurrentClass()) {
+      /* Add to class constants */
+      String *name = Getattr(n, "name");
+      String *iname = Getattr(n, "sym:name");
+      String *nsname = Copy(iname);
+      String *rawval = Getattr(n, "rawval");
+      String *value = rawval ? rawval : Getattr(n, "value");
+      String *tm;
+      if (!addSymbol(iname, n))
+        return SWIG_ERROR;
+      if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
+        Replaceall(tm, "$source", value);
+        Replaceall(tm, "$target", name);
+        Replaceall(tm, "$value", value);
+        Replaceall(tm, "$nsname", nsname);
+        Printf(s_cls_const_tab, "    %s,\n", tm);
+      } else {
+        Delete(nsname);
+        Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
+        return SWIG_NOWRAP;
+      }
+      Delete(nsname);
+    }
+    // Wrapping outside class
     return Language::enumvalueDeclaration(n);
   }
 
@@ -1009,6 +1039,19 @@ public:
     Printf(s_methods_tab, "static swig_lua_method swig_");
     Printv(s_methods_tab, mangled_classname, "_methods[] = {\n", NIL);
 
+    s_cls_methods_tab = NewString("");
+    Printf(s_cls_methods_tab, "static swig_lua_method swig_");
+    Printv(s_cls_methods_tab, mangled_classname, "_cls_methods[] = {\n", NIL);
+
+    s_cls_attr_tab = NewString("");
+    Printf(s_cls_attr_tab, "static swig_lua_attribute swig_");
+    Printv(s_cls_attr_tab, mangled_classname, "_cls_attributes[] = {\n", NIL);
+
+    s_cls_const_tab = NewString("");
+    Printf(s_cls_const_tab, "static swig_lua_const_info swig_");
+    Printv(s_cls_const_tab, mangled_classname, "_cls_constants[] = {\n", NIL);
+
+
     // Generate normal wrappers
     Language::classHandler(n);
 
@@ -1047,8 +1090,21 @@ public:
     Printf(s_attr_tab, "    {0,0,0}\n};\n");
     Printv(f_wrappers, s_attr_tab, NIL);
 
+    Printf(s_cls_attr_tab, "    {0,0,0}\n};\n");
+    Printv(f_wrappers, s_cls_attr_tab, NIL);
+
+    Printf(s_cls_methods_tab, "    {0,0}\n};\n");
+    Printv(f_wrappers, s_cls_methods_tab, NIL);
+
+    Printf(s_cls_const_tab, "    {0,0,0,0,0,0}\n};\n");
+    Printv(f_wrappers, s_cls_const_tab, NIL);
+
+
     Delete(s_methods_tab);
     Delete(s_attr_tab);
+    Delete(s_cls_methods_tab);
+    Delete(s_cls_attr_tab);
+    Delete(s_cls_const_tab);
 
     // Handle inheritance
     // note: with the idea of class hierarchies spread over multiple modules
@@ -1122,7 +1178,7 @@ public:
     } else {
       Printf(f_wrappers, ",0");
     }
-    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, swig_%s_bases, swig_%s_base_names };\n\n", mangled_classname, mangled_classname, mangled_classname, mangled_classname);
+    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, swig_%s_cls_methods, swig_%s_cls_attributes, swig_%s_cls_constants, swig_%s_bases, swig_%s_base_names };\n\n", mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname);
 
     //    Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname, "_bases };\n\n", NIL);
     //    Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NIL);
@@ -1233,7 +1289,21 @@ public:
 
   virtual int staticmemberfunctionHandler(Node *n) {
     current = STATIC_FUNC;
-    return Language::staticmemberfunctionHandler(n);
+    int result = Language::staticmemberfunctionHandler(n);
+    if (result != SWIG_OK) {
+      return result;
+    }
+    current = NO_CPP;
+    String *name = Getattr(n, "name");
+    String *symname = Getattr(n, "sym:name");
+    String *rname, *realname;
+    realname = symname? symname : name;
+    rname = Swig_name_wrapper( symname );
+    if (!Getattr(n, "sym:nextSibling")) {
+      Printv(s_cls_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
+    }
+    Delete(rname);
+    return SWIG_OK;
   }
 
   /* ------------------------------------------------------------
