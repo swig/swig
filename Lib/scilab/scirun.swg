@@ -27,11 +27,3 @@ static void SWIG_Scilab_SetOutputPosition(int _outputPosition) {
 #define Scilab_Error_Occurred() 0
 #define SWIG_Scilab_AddErrorMsg(msg) {;}
 
-#ifdef __cplusplus
-namespace std {
-    class SciObject {
-    public:
-        SciObject();
-    };
-}
-#endif
