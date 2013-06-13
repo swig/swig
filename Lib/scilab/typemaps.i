@@ -49,12 +49,17 @@ or you can use the %apply directive :
         double fadd(double *a, double *b);
 
 */
+
 %typemap(in, noblock=1, fragment=SWIG_AsVal_frag(int)) int *INPUT(int temp), int &INPUT(int temp) {
   if (SWIG_AsVal_dec(int)($input, &temp) != SWIG_OK) {
     SWIG_fail;
   }
   $1 = &temp;
 }
+
+%typemap(freearg, noblock=1) int *INPUT, int &INPUT {
+}
+
 //short          *INPUT
 //long           *INPUT
 //long long      *INPUT
@@ -65,6 +70,7 @@ or you can use the %apply directive :
 //unsigned char  *INPUT
 //bool           *INPUT
 //float          *INPUT
+
 %typemap(in, noblock=1, fragment=SWIG_AsVal_frag(double)) double *INPUT(double temp), double &INPUT(double temp) {
   if (SWIG_AsVal_dec(double)($input, &temp) != SWIG_OK) {
     SWIG_fail;
@@ -72,7 +78,8 @@ or you can use the %apply directive :
   $1 = &temp;
 }
 
-
+%typemap(freearg, noblock=1) double *INPUT, double &INPUT {
+}
 
 // OUTPUT typemaps.   These typemaps are used for parameters that
 // are output only.   The output value is appended to the result as

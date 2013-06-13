@@ -544,10 +544,21 @@ public:
 
     /* Get the useful information from the node */
     String *nodeName = Getattr(node, "name");
+    SwigType *type = Getattr(node, "type");
     String *constantName = Getattr(node, "sym:name");
     String *rawValue = Getattr(node, "rawval");
     String *constantValue = rawValue ? rawValue : Getattr(node, "value");
     String *constantTypemap = NULL;
+
+    /* Create variables for member pointer constants, not suppported by typemaps (like Python wrapper does) */
+    if (SwigType_type(type) == T_MPOINTER) {
+      String *wname = Swig_name_wrapper(constantName);
+      String *str = SwigType_str(type, wname);
+      Printf(headerSection, "static %s = %s;\n", str, constantValue);
+      Delete(str);
+      constantValue = wname;
+    }
+
     /* Create GET function to get the constant value */
     Wrapper *getFunctionWrapper = NewWrapper();
     String *getFunctionName = Swig_name_get(NSPACE_TODO, constantName);

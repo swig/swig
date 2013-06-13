@@ -58,7 +58,7 @@ SwigScilabUint32ToUnsignedInt(void *_pvApiCtx, int _iVar, unsigned int *_puiValu
 }
 }
 %fragment(SWIG_From_frag(unsigned int), "header", fragment="SwigScilabUint32FromUnsignedInt") {
-#define SWIG_From_unsigned_SS_int(value) SwigScilabUint32FromUnsignedInt(pvApiCtx, $result, value)
+#define SWIG_From_unsigned_SS_int(value) SwigScilabUint32FromUnsignedInt(pvApiCtx, SWIG_Scilab_GetOutputPosition(), value)
 }
 %fragment("SwigScilabUint32FromUnsignedInt", "header") {
 SWIGINTERN int
