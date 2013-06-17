@@ -52,11 +52,11 @@
   This helps me search the parse tree & figure out what is going on inside SWIG
   (because its not clear or documented)
 */
-#define REPORT(T,D)		// no info:
+//#define REPORT(T,D)		// no info:
 //#define REPORT(T,D)   {Printf(stdout,T"\n");} // only title
 //#define REPORT(T,D)		{Printf(stdout,T" %p\n",n);} // title & pointer
 //#define REPORT(T,D)   {Printf(stdout,T"\n");display_mapping(D);}      // the works
-//#define REPORT(T,D)   {Printf(stdout,T"\n");if(D)Swig_print_node(D);}      // the works
+#define REPORT(T,D)   {Printf(stdout,T"\n");if(D)Swig_print_node(D);}      // the works
 
 void display_mapping(DOH *d) {
   if (d == 0 || !DohIsMapping(d))
@@ -743,7 +743,7 @@ public:
     NEW LANGUAGE NOTE:END ************************************************/
     /* Now register the function with the interpreter. */
     if (!Getattr(n, "sym:overloaded")) {
-      REPORT("dispatchFunction", n);
+      //REPORT("dispatchFunction", n);
       //      add_method(n, iname, wname, description);
       if (current==NO_CPP || current==STATIC_FUNC) { // emit normal fns & static fns
         if(elua_ltr || eluac_ltr)
@@ -783,7 +783,7 @@ public:
   look for %typecheck(SWIG_TYPECHECK_*) in the .swg file
   NEW LANGUAGE NOTE:END ************************************************/
   void dispatchFunction(Node *n) {
-    REPORT("dispatchFunction", n);
+    //REPORT("dispatchFunction", n);
     /* Last node in overloaded chain */
 
     int maxargs;
@@ -1198,7 +1198,10 @@ public:
     } else {
       Printf(f_wrappers, ",0");
     }
-    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, swig_%s_cls_methods, swig_%s_cls_attributes, swig_%s_cls_constants, swig_%s_bases, swig_%s_base_names };\n\n", mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname, mangled_classname);
+    Printf(f_wrappers, ", swig_%s_methods, swig_%s_attributes, { \"%s\", swig_%s_cls_methods, swig_%s_cls_attributes, swig_%s_cls_constants }, swig_%s_bases, swig_%s_base_names };\n\n",
+        mangled_classname, mangled_classname,
+        class_name, mangled_classname, mangled_classname, mangled_classname,
+        mangled_classname, mangled_classname );
 
     //    Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname, "_bases };\n\n", NIL);
     //    Printv(s_cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, &_wrap_class_", mangled_classname, "},\n", NIL);
@@ -1308,22 +1311,38 @@ public:
    * ---------------------------------------------------------------------- */
 
   virtual int staticmemberfunctionHandler(Node *n) {
+    REPORT("staticmemberfunctionHandler", n);
     current = STATIC_FUNC;
     String *symname = Getattr(n, "sym:name");
-    if( getClassName() ) {
-      Swig_save("luaclassobj_memberconstantHandler", n, "luaclassobj:symname", NIL );
+    if( cparse_cplusplus && getCurrentClass() ) { // TODO: REMOVE, we are certainly in c++ mode
+      Swig_save("luaclassobj_staticmemberfunctionHandler", n, "luaclassobj:symname", NIL );
       Setattr(n, "luaclassobj:symname", symname );
     }
     int result = Language::staticmemberfunctionHandler(n);
 
-    if( getClassName() ) {
+    if( cparse_cplusplus && getCurrentClass() ) {
       Swig_restore(n);
     }
     current = NO_CPP;
     if (result != SWIG_OK) {
       return result;
     }
-    /*
+
+    Printf( stdout, "WTF?" ); // TODO: REMOVE
+    if( cparse_cplusplus && getCurrentClass() ) { // TODO: REMOVE, we are certainly in c++ mode
+      if (Getattr(n, "sym:nextSibling")) {
+        return SWIG_OK;
+      }
+      String *name = Getattr(n, "name");
+      String *rname, *realname;
+      realname = symname? symname : name;
+      rname = Swig_name_wrapper( symname );
+      Printf( stdout, "static class wrp. realname %s rname %s \n", realname, rname ); // TODO:REMOVE
+      Printv(s_cls_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
+      Delete(rname);
+    }
+
+    /* // TODO:REMOVE
     String *name = Getattr(n, "name");
     String *rname, *realname;
     realname = symname? symname : name;
@@ -1345,12 +1364,12 @@ public:
   virtual int memberconstantHandler(Node *n) {
         REPORT("memberconstantHandler",n);
     String *symname = Getattr(n, "sym:name");
-    if( getClassName() ) {
+    if( cparse_cplusplus && getCurrentClass() ) {
       Swig_save("luaclassobj_memberconstantHandler", n, "luaclassobj:symname", NIL );
       Setattr(n, "luaclassobj:symname", symname );
     }
     int result = Language::memberconstantHandler(n);
-    if( getClassName() ) {
+    if( cparse_cplusplus && getCurrentClass() ) {
       Swig_restore(n);
     }
     return result;
@@ -1363,7 +1382,29 @@ public:
   virtual int staticmembervariableHandler(Node *n) {
     //    REPORT("staticmembervariableHandler",n);
     current = STATIC_VAR;
-    return Language::staticmembervariableHandler(n);
+    String* symname = Getattr(n, "sym:name" );
+    int result = Language::staticmembervariableHandler(n);
+
+    if( result != SWIG_OK ) {
+      return result;
+    }
+
+    if( Getattr(n, "wrappedasconstant" ) ) {
+      return SWIG_OK;
+    }
+
+    String *gname, *sname;
+    gname = Swig_name_wrapper(Swig_name_get(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
+    if (!GetFlag(n, "feature:immutable")) {
+      sname = Swig_name_wrapper(Swig_name_set(NSPACE_TODO, Swig_name_member(NSPACE_TODO, class_name, symname)));
+    } else {
+      //sname = NewString("0");
+      sname = NewString("SWIG_Lua_set_immutable"); // error message
+    }
+    Printf(s_cls_attr_tab,"%s{ \"%s\", %s, %s},\n",tab4,symname,gname,sname);
+    Delete(gname);
+    Delete(sname);
+    return SWIG_OK;
   }
 
   /* ---------------------------------------------------------------------
