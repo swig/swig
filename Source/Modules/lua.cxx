@@ -45,6 +45,7 @@
 */
 
 #include "swigmod.h"
+#include "cparse.h"
 
 /**** Diagnostics:
   With the #define REPORT(), you can change the amount of diagnostics given
@@ -931,7 +932,7 @@ public:
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
       return SWIG_NOWRAP;
     }
-    if( getClassName() ) {
+    if( cparse_cplusplus && getCurrentClass() ) {
       // Additionally add to class constants
       Swig_require( "luaclassobj_constantWrapper", n, "*sym:name", "luaclassobj:symname", NIL );
       Setattr( n, "sym:name", Getattr( n, "luaclassobj:symname" ) );
@@ -1342,7 +1343,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int memberconstantHandler(Node *n) {
-    //    REPORT("memberconstantHandler",n);
+        REPORT("memberconstantHandler",n);
     String *symname = Getattr(n, "sym:name");
     if( getClassName() ) {
       Swig_save("luaclassobj_memberconstantHandler", n, "luaclassobj:symname", NIL );
