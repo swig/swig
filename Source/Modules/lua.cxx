@@ -157,6 +157,9 @@ public:
     s_const_tab(0),
     s_methods_tab(0),
     s_attr_tab(0),
+    s_cls_attr_tab(0),
+    s_cls_methods_tab(0),
+    s_cls_const_tab(0),
     s_luacode(0),
     s_dot_get(0),
     s_dot_set(0),
@@ -928,6 +931,20 @@ public:
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
       return SWIG_NOWRAP;
     }
+    if( getClassName() ) {
+      // Additionally add to class constants
+      Swig_require( "luaclassobj_constantWrapper", n, "*sym:name", "luaclassobj:symname", NIL );
+      Setattr( n, "sym:name", Getattr( n, "luaclassobj:symname" ) );
+      String* cls_nsname = Getattr(n, "sym:name" );
+      if ((tm = Swig_typemap_lookup("consttab", n, name, 0))) {
+        Replaceall(tm, "$source", value);
+        Replaceall(tm, "$target", name);
+        Replaceall(tm, "$value", value);
+        Replaceall(tm, "$nsname", cls_nsname);
+        Printf( s_cls_const_tab, "    %s,\n", tm );
+      } 
+      Swig_restore(n);
+    }
     Delete(nsname);
     return SWIG_OK;
   }
@@ -962,6 +979,7 @@ public:
 
   virtual int enumvalueDeclaration(Node *n) {
     // Wrapping inside class
+#if 0
     if(getCurrentClass()) {
       /* Add to class constants */
       String *name = Getattr(n, "name");
@@ -985,6 +1003,7 @@ public:
       }
       Delete(nsname);
     }
+#endif
     // Wrapping outside class
     return Language::enumvalueDeclaration(n);
   }
@@ -1289,13 +1308,22 @@ public:
 
   virtual int staticmemberfunctionHandler(Node *n) {
     current = STATIC_FUNC;
+    String *symname = Getattr(n, "sym:name");
+    if( getClassName() ) {
+      Swig_save("luaclassobj_memberconstantHandler", n, "luaclassobj:symname", NIL );
+      Setattr(n, "luaclassobj:symname", symname );
+    }
     int result = Language::staticmemberfunctionHandler(n);
+
+    if( getClassName() ) {
+      Swig_restore(n);
+    }
+    current = NO_CPP;
     if (result != SWIG_OK) {
       return result;
     }
-    current = NO_CPP;
+    /*
     String *name = Getattr(n, "name");
-    String *symname = Getattr(n, "sym:name");
     String *rname, *realname;
     realname = symname? symname : name;
     rname = Swig_name_wrapper( symname );
@@ -1303,6 +1331,7 @@ public:
       Printv(s_cls_methods_tab, tab4, "{\"", realname, "\", ", rname, "}, \n", NIL);
     }
     Delete(rname);
+    */
     return SWIG_OK;
   }
 
@@ -1314,7 +1343,16 @@ public:
 
   virtual int memberconstantHandler(Node *n) {
     //    REPORT("memberconstantHandler",n);
-    return Language::memberconstantHandler(n);
+    String *symname = Getattr(n, "sym:name");
+    if( getClassName() ) {
+      Swig_save("luaclassobj_memberconstantHandler", n, "luaclassobj:symname", NIL );
+      Setattr(n, "luaclassobj:symname", symname );
+    }
+    int result = Language::memberconstantHandler(n);
+    if( getClassName() ) {
+      Swig_restore(n);
+    }
+    return result;
   }
 
   /* ---------------------------------------------------------------------
