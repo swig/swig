@@ -475,7 +475,6 @@ SWIGINTERN void  SWIG_Lua_add_class_variable(lua_State* L,const char* name,lua_C
 /* helper function - register namespace methods and attributes into namespace */
 SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State* L, swig_lua_namespace* ns)
 {
-  int t2_remove = lua_gettop(L);
   int i = 0;
   assert( lua_istable(L,-1) );
   /* There must be table at the top of the stack */
@@ -500,7 +499,6 @@ SWIGINTERN int SWIG_Lua_add_namespace_details(lua_State* L, swig_lua_namespace* 
   /* clear stack - remote metatble */
   lua_pop(L,1);
 
-  assert( lua_gettop(L) == t2_remove );
 }
 
 /* helper function. creates namespace table and add it to module table */
@@ -733,7 +731,7 @@ SWIGINTERN void  SWIG_Lua_get_class_metatable(lua_State* L,const char* cname)
 }
 
 
-/* helper add a variable to a registered class */ // TODO:REMOVE
+/* helper add a variable to a registered class */
 SWIGINTERN void  SWIG_Lua_add_class_variable(lua_State* L,const char* name,lua_CFunction getFn,lua_CFunction setFn)
 {
   assert(lua_istable(L,-1));  /* just in case */
@@ -819,18 +817,14 @@ SWIGINTERN void SWIG_Lua_init_base_class(lua_State* L,swig_lua_class* clss)
   }
 }
 
-/* helper create class name registry in module. E.g. for clas MyClass creates
-a table-functor so you can do MyClass(...) (and that is equal to new_MyClass) to create new
-objects as well as do MyClass.EnumValue1 to access enum values */
+/* Register class static methods,attributes etc as well as constructor proxy */
 SWIGINTERN void SWIG_Lua_class_register_static(lua_State* L, swig_lua_class* clss)
 {
   lua_checkstack(L,5); /* just in case */
   assert(lua_istable(L,-1));  /* just in case */
   assert(strcmp(clss->name, clss->cls_static.name) == 0); /* in class those 2 must be equal */
 
-  int t1 = lua_gettop(L);
   SWIG_Lua_namespace_register(L,&clss->cls_static);
-  assert( lua_gettop(L) == t1 );
 
   SWIG_Lua_get_table(L,clss->name); // Get namespace table back
   assert( lua_istable(L,-1) ); /* just in case */
