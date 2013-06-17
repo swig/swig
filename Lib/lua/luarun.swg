@@ -396,10 +396,10 @@ SWIGINTERN void  SWIG_Lua_module_add_function(lua_State* L,const char* name,lua_
 SWIGINTERN int  SWIG_Lua_class_get(lua_State* L)
 {
 /*  there should be 2 params passed in
-  (1) userdata (not the meta table)
+  (1) userdata or table (not the meta table)
   (2) string name of the attribute
 */
-  assert(lua_isuserdata(L,-2));  /* just in case */
+  assert( lua_isuserdata(L,-2) || lua_istable(L,-2) );  /* just in case */
   lua_getmetatable(L,-2);    /* get the meta table */
   assert(lua_istable(L,-1));  /* just in case */
   SWIG_Lua_get_table(L,".get"); /* find the .get table */
@@ -454,7 +454,7 @@ printf("SWIG_Lua_class_set %p(%s) '%s' %p(%s)\n",
       lua_tostring(L,2),
       lua_topointer(L,3),lua_typename(L,lua_type(L,3)));*/
 
-  assert(lua_isuserdata(L,1));  /* just in case */
+  assert(lua_isuserdata(L,1)|| lua_istable(L,1));  /* just in case */
   lua_getmetatable(L,1);    /* get the meta table */
   assert(lua_istable(L,-1));  /* just in case */
 
@@ -641,6 +641,7 @@ SWIGINTERN void SWIG_Lua_add_class_static_details( lua_State* L, swig_lua_class*
   for(i=0;clss->cls_methods[i].name;i++){
     SWIG_Lua_add_function(L,clss->cls_methods[i].name,clss->cls_methods[i].method);
   }
+  lua_pop(L,1);
 }
 
 /* helper to recursively add class details (attributes & operations) */
@@ -710,12 +711,16 @@ SWIGINTERN void SWIG_Lua_add_class_name_registry_entry(lua_State* L, swig_lua_cl
     clss->constructor != 0 || clss->cls_methods != 0
     || clss->cls_attributes != 0 || clss->cls_constants != 0;
 
+  if (clss->constructor)
+  {
+    SWIG_Lua_add_function(L,".constructor", clss->constructor);
+  }
+
   if( need_metatable )
   {
     lua_newtable(L); /* metatable for entry */
     if (clss->constructor)
     {
-      SWIG_Lua_add_function(L,".constructor", clss->constructor);
       SWIG_Lua_add_function(L,"__call", SWIG_Lua_constructor_proxy );
     }
     /* add a table called ".get" */
